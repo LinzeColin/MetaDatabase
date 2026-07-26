@@ -5,13 +5,13 @@
 ## 当前目标与状态
 
 - 本轮只处理 Stage 7/T0705，必须停在 T0706 前。
-- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.30`。
-- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.29.json`，SHA-256
-  `c2f9f44d1cf62f3b783d7f83e880b402cbf422eb5817266a406c37c0ae7f08d4`。
+- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.31`。
+- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.30.json`，SHA-256
+  `eba49e83b5b99b18faeb01f7223b7fcac14e76eedf089052d2ddb33e34072217`。
 - 唯一状态权威：`machine/status/latest.json` =
-  `PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED`。
+  `PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED`。
 - Protected Oracles 5/43 executed、4 PASS、1 FAILED；final Acceptance 0/34；
-  T0705 production workflow 11，其中两次在 protected Environment 前结束；final publication 0。
+  T0705 production workflow 12，其中两次在 protected Environment 前结束；final publication 0。
 
 ## 已冻结前序
 
@@ -47,8 +47,14 @@
   Environment scope，而 authority job 按设计在 Environment 进入前执行，因此变量不可见。
   candidate validation、protected Environment、Secret、Gmail、私库调用及全部 mutation 均为 0；
   Environment/repository 两个变量作用域均已清理，该 head 已冻结，不重跑。
+- v1.0.30 repository-scope successor 已通过 candidate validation、authority consumption、
+  protected Environment、精确 App repository scope、Gmail OAuth 与加密 checkpoint recovery，
+  随后在 `SCHEDULE_PLANNING` 失败。公开 job 时间戳与已提交 RunPlanner 分支证明：运行时真实墙钟
+  尚未到同日 04:30 Australia/Sydney，产生负 schedule delay。Gmail API 调用、完整 Raw 读取及
+  全部 mutation 均为 0；one-shot repository variable 已删除。该第十个 protected head 已冻结，
+  永不得 rerun/redispatch。
 
-## T0705 repository-scope authority recovery successor
+## T0705 deterministic historical-clock recovery successor
 
 - `GitHubProcessedCiphertextStore.fetch_current` 先读取 bounded Contents metadata，只把
   `type/path/size/sha` 作为绑定；ciphertext 必须由精确
@@ -67,18 +73,19 @@
   exact-message Trash。Timeline snapshot、唯一 latest age Asset 与 checkpoint-last CAS 均须
   远端恢复。
 - `workflow_dispatch` 如实称为 `SCHEDULE_REHEARSAL`，rehearsal platform schedule event 为 0。
-- v1.0.30 不改变 canonical Git Blob recovery 或数据面行为；只把 exact-head one-shot authority
-  交付约束修复为 repository scope，并更新失败账本、status/schema、composition hash 与 package
-  binding。
+- v1.0.31 不改变 canonical Git Blob recovery 或数据面行为；只在 workflow_dispatch rehearsal
+  注入 `2026-07-26T01:00:00Z` 固定历史时钟，复用生产 `RunPlanner(SCHEDULE)` 即时走过 04:30
+  分支。live schedule 不注入 fixture，保留真实时钟。
 
 ## 当前安全边界与下一步
 
-- T0705 总 delivery 最多 13，十一个 launch 已消耗 11；只剩 authority-scope recovery delivery 1
+- T0705 总 delivery 最多 14，十二个 launch 已消耗 12；只剩 deterministic-clock recovery delivery 1
   与 receipt/schedule closure delivery 1。
-- 总 rehearsal dispatch 最多 10，九个失败 attempt 已消耗 9；只剩一个新 recovery dispatch，
+- 总 rehearsal dispatch 最多 11，十个失败 attempt 已消耗 10；只剩一个新 recovery dispatch，
   必须为 attempt 1、rerun 0。
-- candidate-preflight dispatch 最多 3，已消耗 2；authority-scope failure budget 1 已消耗 1；
-  两个 pre-Secret head 均禁止 rerun/redispatch。
+- candidate-preflight dispatch 最多 4，已消耗 3；authority-scope failure budget 1 与
+  schedule-planning wall-clock failure budget 1 均已消耗；全部失败 head 禁止
+  rerun/redispatch。
 - 不使用真实时间 Soak、观察期或全量测试作为前置；时间与历史分支由 Fake Clock、Fixture、历史
   回放和故障注入即时验证。
 - protected PASS receipt 绑定前，`MOOMOOAU_PRODUCTION_ENABLED` 不得为 true。

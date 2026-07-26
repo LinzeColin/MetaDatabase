@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar, soak, observation-window, full-suite or manual-approval blocker. Nine different exact-main GA schedule-mode rehearsals failed and all nine heads are frozen. The ninth attempt proved exact installed GitHub App repository scope before Gmail credential exchange. Read-only live replay then reproduced one non-canonical Contents raw-media body while the metadata-addressed Git Blobs API returned valid canonical ciphertext for every current pointer. Exactly one reviewed canonical Git Blob recovery head may run once, while remaining truthfully distinct from a GitHub schedule event.",
+    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar, soak, observation-window, full-suite or manual-approval blocker. Ten different exact-main GA schedule-mode rehearsals failed and all ten heads are frozen; two additional pre-Secret heads are frozen separately. The tenth protected attempt passed candidate validation, repository-scoped authority, exact installed GitHub App scope, Gmail OAuth and encrypted checkpoint recovery, then failed deterministically in SCHEDULE_PLANNING because wall time preceded the same-day 04:30 Australia/Sydney target. Exactly one reviewed deterministic historical-clock successor may run once without wall-clock waiting, while remaining truthfully distinct from a GitHub schedule event; the committed live schedule keeps the real clock.",
     "authorized_on": "2026-07-26",
-    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts and all nine frozen failed heads remain immutable. The ninth public result remained within FIRST_IMPORT_POINTER_FETCH; read-only connected-repository verification proves no ninth-attempt private commit or Gmail mutation. The protected exception was not received or inspected, so its text remains unknown; the protocol failure is independently live-reproduced against the unchanged remote head. One canonical Git Blob recovery delivery/attempt and one receipt/schedule-closure delivery may reuse the existing moomooau-beta Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. Current-pointer recovery uses bounded Contents metadata only to bind exact path, size and blob SHA, then requires the exact metadata-addressed Git Blobs API base64 body, response SHA, decoded size, age envelope and canonical Git blob SHA before decrypt; Contents inline and raw-media bodies are never trusted for Processed recovery. Exception text, URLs, identifiers, counters, mailbox facts, repository locators and secrets remain forbidden. Existing metadata quarantine, deterministic verification, remote recovery, second verification, exact-message Trash budget, single latest Timeline replacement and checkpoint-last ordering remain fail closed. Fake Clock, historical replay, fixtures and fault injection replace wall-clock soak or waiting. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
+    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts, all ten protected failed heads and both pre-Secret failed heads remain immutable. The tenth attempt's public timestamps plus pinned RunPlanner branch prove a negative same-day schedule delay before any Gmail API call or mutation; its one-shot authority was consumed and deleted. One deterministic historical-clock recovery delivery/attempt and one receipt/live-schedule closure delivery may reuse the existing moomooau-beta Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. Current-pointer recovery uses bounded Contents metadata only to bind exact path, size and blob SHA, then requires the exact metadata-addressed Git Blobs API base64 body, response SHA, decoded size, age envelope and canonical Git blob SHA before decrypt; Contents inline and raw-media bodies are never trusted for Processed recovery. Exception text, URLs, identifiers, counters, mailbox facts, repository locators and secrets remain forbidden. Existing metadata quarantine, deterministic verification, remote recovery, second verification, exact-message Trash budget, single latest Timeline replacement and checkpoint-last ordering remain fail closed. Fake Clock, historical replay, fixtures and fault injection replace wall-clock soak or waiting. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event, while the committed live schedule uses the real clock. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -199,7 +199,7 @@
       "next_action": "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal authority variable, and execute exactly one protected schedule-mode GA workflow_dispatch at attempt 1 with rerun zero. Keep the platform schedule disabled until the PASS receipt is bound, then stop before T0706."
     },
     "PROTECTED_GA_REPAIR_AUTHORIZED": {
-      "package_version": "1.0.30",
+      "package_version": "1.0.31",
       "resolved_review_findings": [
         "REV-P0-002",
         "REV-P0-003",
@@ -209,11 +209,11 @@
       ],
       "current_remediation_blockers": [
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-        "T0705_NINE_FAILED_HEADS_FROZEN",
-        "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
+        "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN",
+        "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Freeze both pre-Secret failed heads, deliver one exact-main T0705 repository-scoped one-shot authority successor, and execute exactly one new attempt-1 schedule-mode rehearsal. Never rerun or redispatch any failed protected, preflight or authority-context head. Set the one-shot repository variable only after the exact merge head exists, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
+      "next_action": "Freeze the wall-clock schedule-planning failed head, deliver one exact-main T0705 deterministic historical-replay clock successor, and execute exactly one new attempt-1 schedule-mode rehearsal without waiting for 04:30. Never rerun or redispatch any failed protected, preflight, authority-context or schedule-planning head. Set the one-shot repository variable only after the exact merge head exists, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live 04:30 Australia/Sydney schedule and stop before T0706."
     }
   }
 }

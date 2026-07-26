@@ -2,13 +2,13 @@
   "schema_version": "moomooau.stage-task-status.v1",
   "stage_id": "S7",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
-  "stage_status": "T0705_NINE_FAILED_HEADS_FROZEN_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED_PENDING",
+  "stage_status": "T0705_TEN_FAILED_HEADS_FROZEN_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED_PENDING",
   "tasks": [
     {"id": "T0701", "status": "remote_alpha_passed_formal_completion_withheld"},
     {"id": "T0702", "status": "protected_beta_passed_formal_completion_withheld"},
     {"id": "T0703", "status": "protected_m3_passed_formal_completion_withheld_scope_stop"},
     {"id": "T0704", "status": "protected_blue_green_passed_formal_completion_withheld_scope_stop"},
-    {"id": "T0705", "status": "nine_protected_attempts_and_two_pre_secret_failed_heads_frozen_repository_scoped_authority_recovery_authorized_pending"},
+    {"id": "T0705", "status": "ten_protected_attempts_and_two_pre_secret_failed_heads_frozen_deterministic_historical_clock_recovery_authorized_pending"},
     {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
     {"id": "T0707", "status": "local_mechanism_ready_blocked_predecessor_owner_key_adapters_and_protected_drill"},
     {"id": "T0708", "status": "local_policy_ready_blocked_recovery_predecessor_candidate_canary_and_protected_operations"}
@@ -19,12 +19,12 @@
   "protected_oracles_executed": 5,
   "protected_oracles_passed": 4,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 29,
-  "production_workflow_runs": 11,
+  "protected_workflow_runs": 30,
+  "production_workflow_runs": 12,
   "final_acceptances_passed": 0,
-  "delivery_status": "CONTROLLED_T0705_CANONICAL_GIT_BLOB_RECOVERY_CANDIDATE_NOT_FINAL",
-  "ordering_status": "T0705_NINE_PROTECTED_AND_TWO_PRE_SECRET_FAILED_HEADS_FROZEN_ONE_REPOSITORY_SCOPE_RECOVERY_ATTEMPT_AUTHORIZED",
-  "diagnostic_repair_status": "GA_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED",
+  "delivery_status": "CONTROLLED_T0705_DETERMINISTIC_CLOCK_RECOVERY_CANDIDATE_NOT_FINAL",
+  "ordering_status": "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN_TWO_PRE_SECRET_FAILURES_ONE_SCHEDULE_PLANNING_FAILURE_ONE_DETERMINISTIC_CLOCK_RECOVERY_ATTEMPT_AUTHORIZED",
+  "diagnostic_repair_status": "GA_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED",
   "new_controlled_delivery_authorized": true,
   "new_protected_dispatch_authorized": true
 }

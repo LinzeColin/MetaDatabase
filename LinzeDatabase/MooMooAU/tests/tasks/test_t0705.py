@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
@@ -67,6 +67,7 @@ from moomooau_archive.protected_ga_entrypoint import (
     CONTROL_REPOSITORY_ID,
     CONTROL_WORKFLOW_REF,
     GA_CONFIRMATION,
+    GA_REHEARSAL_CLOCK_UTC,
     DerivedGASecretSource,
     ProtectedGAEntrypointError,
     blue_green_receipt_sha256,
@@ -837,6 +838,8 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["ga_authorized"] is True
     assert contract["required_event"] == "workflow_dispatch"
     assert contract["schedule_mode"] == "SCHEDULE_REHEARSAL"
+    assert contract["schedule_clock_mode"] == "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
+    assert contract["schedule_clock_fixture_utc"] == "2026-07-26T01:00:00Z"
     assert contract["platform_schedule_event_observed"] is False
     assert contract["target_time"] == "04:30"
     assert contract["timezone"] == "Australia/Sydney"
@@ -848,6 +851,7 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert len(cast(list[str], contract["failed_ga_head_shas"])) == 9
     assert len(cast(list[str], contract["failed_ga_preflight_head_shas"])) == 1
     assert len(cast(list[str], contract["failed_ga_authority_context_head_shas"])) == 1
+    assert len(cast(list[str], contract["failed_ga_schedule_planning_head_shas"])) == 1
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
     assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 9
@@ -857,7 +861,21 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["failed_ga_authority_context_ledger_path"] == (
         "machine/stages/S7/reviews/t0705/authority-variable-scope-attempt-ledger.json"
     )
+    assert contract["failed_ga_schedule_planning_ledger_path"] == (
+        "machine/stages/S7/reviews/t0705/schedule-planning-clock-attempt-ledger.json"
+    )
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
+
+
+def test_t0705_rehearsal_clock_is_deterministic_historical_replay_after_target() -> None:
+    assert GA_REHEARSAL_CLOCK_UTC == datetime(2026, 7, 26, 1, tzinfo=UTC)
+    plan = RunPlanner().plan(
+        RunTrigger.SCHEDULE,
+        started_at_utc=GA_REHEARSAL_CLOCK_UTC,
+        last_successful_run_date_sydney=None,
+    )
+    assert plan.run_date_sydney == date(2026, 7, 26)
+    assert plan.schedule_delay_minutes == 390
 
 
 def test_t0705_derives_ga_config_in_memory_from_existing_beta_plane() -> None:
@@ -1109,6 +1127,8 @@ def test_t0705_ga_main_redacts_exception_and_emits_only_safe_phase(
     def fail_after_full_recovery(*args: object, **kwargs: object) -> object:
         del args
         diagnostics = cast(ProtectedGADiagnostics, kwargs["diagnostics"])
+        clock = cast(Callable[[], datetime], kwargs["clock"])
+        assert clock() == GA_REHEARSAL_CLOCK_UTC
         diagnostics.enter(ProtectedGAFailurePhase.FULL_RECOVERY)
         raise RuntimeError(protected_value)
 
