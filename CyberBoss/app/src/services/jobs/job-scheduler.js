@@ -385,10 +385,19 @@ class JobScheduler {
         pid: this.pid,
       });
       if (claim.claimed) {
-        this.database.finishRuntimeJob(claim.job.id, "failed_terminal", {
+        const finalJob = this.database.finishRuntimeJob(
+          claim.job.id,
+          "failed_terminal",
+          {
           ownerId: this.ownerId,
           errorClass: "workspace_alias_rejected",
           metadata: { error_class: "workspace_alias_rejected" },
+          },
+        );
+        await this.onRuntimeTerminal({
+          job: finalJob,
+          event: null,
+          terminalStatus: finalJob.status,
         });
       }
       return Object.freeze({
@@ -489,7 +498,10 @@ class JobScheduler {
         && current.lease_owner === this.ownerId
       ) {
         const classification = classifyRuntimeError(error);
-        this.database.finishRuntimeJob(job.id, "failed_terminal", {
+        const finalJob = this.database.finishRuntimeJob(
+          job.id,
+          "failed_terminal",
+          {
           ownerId: this.ownerId,
           errorClass: dispatchStarted
             ? "runtime_dispatch_ambiguous"
@@ -498,6 +510,12 @@ class JobScheduler {
             error_class: classification.errorClass,
             replay_allowed: false,
           },
+          },
+        );
+        await this.onRuntimeTerminal({
+          job: finalJob,
+          event: null,
+          terminalStatus: finalJob.status,
         });
       }
       return Object.freeze({
@@ -606,6 +624,7 @@ class JobScheduler {
     return Object.freeze({
       handled: true,
       terminal: true,
+      jobId: finalJob.id,
       terminalStatus: finalJob.status,
     });
   }

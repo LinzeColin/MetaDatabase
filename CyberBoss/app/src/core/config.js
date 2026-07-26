@@ -23,6 +23,13 @@ function readConfig() {
   if (durableInbox && !jobScheduler && !baselineStagingAllowed) {
     throw new Error("CB_JOB_SCHEDULER=false is allowed only in explicit non-production staging");
   }
+  const durableOutboxOverride = readOptionalBoolEnv("CB_DURABLE_OUTBOX");
+  const durableOutbox = jobScheduler && (
+    durableOutboxOverride === undefined ? true : durableOutboxOverride
+  );
+  if (jobScheduler && !durableOutbox && !baselineStagingAllowed) {
+    throw new Error("CB_DURABLE_OUTBOX=false is allowed only in explicit non-production staging");
+  }
   const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
     || path.join(stateDir, "workspaces.json");
   const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
@@ -60,6 +67,7 @@ function readConfig() {
       || 32 * 1024,
     durableInbox,
     jobScheduler,
+    durableOutbox,
     baselineStagingAllowed,
     runtimeDatabasePath: readTextEnv("CB_RUNTIME_DB")
       || path.join(stateDir, "runtime.db"),
@@ -70,6 +78,11 @@ function readConfig() {
     activePayloadTtlHours: readIntEnv("CB_ACTIVE_PAYLOAD_TTL_HOURS") || 24,
     runtimeLeaseMs: readIntEnv("CB_RUNTIME_LEASE_MS") || 30_000,
     controlLeaseMs: readIntEnv("CB_CONTROL_LEASE_MS") || 10_000,
+    outboxLeaseMs: readIntEnv("CB_OUTBOX_LEASE_MS") || 10_000,
+    outboxMaxAttempts: readIntEnv("CB_OUTBOX_MAX_ATTEMPTS") || 5,
+    outboxBaseDelayMs: readIntEnv("CB_OUTBOX_BASE_DELAY_MS") || 1_000,
+    outboxMaxDelayMs: readIntEnv("CB_OUTBOX_MAX_DELAY_MS") || 60_000,
+    outboxChunkChars: readIntEnv("CB_OUTBOX_CHUNK_CHARS") || 3_600,
     pollStaleMs: readIntEnv("CB_POLL_STALE_MS") || 90_000,
     queueStuckMs: readIntEnv("CB_QUEUE_STUCK_MS") || 5 * 60_000,
     schedulerQueueLimit: readIntEnv("CB_QUEUE_LIMIT") || 20,

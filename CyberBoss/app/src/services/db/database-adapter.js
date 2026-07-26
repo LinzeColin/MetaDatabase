@@ -30,6 +30,11 @@ const MIGRATIONS = Object.freeze([
     name: "003_cb220_scheduler_control.sql",
     sourceCommit: "CB-220",
   }),
+  Object.freeze({
+    version: 4,
+    name: "004_cb230_durable_outbox.sql",
+    sourceCommit: "CB-230",
+  }),
 ]);
 const ENVELOPE_VERSION = 1;
 const NONCE_BYTES = 12;
@@ -38,6 +43,7 @@ const REDACTED_SENTINEL = Buffer.from([0]);
 const DEFAULT_PAYLOAD_TTL_MS = 24 * 60 * 60 * 1000;
 const MIN_LEASE_MS = 100;
 const MAX_LEASE_MS = 10 * 60 * 1000;
+const DEFAULT_OUTBOX_LEASE_MS = 10_000;
 const RUNTIME_LEASE_NAME = "runtime_job";
 const CONTROL_LEASE_NAME = "command_control";
 const ACTIVE_JOB_STATUSES = Object.freeze(["running", "waiting_approval"]);
@@ -128,6 +134,13 @@ function requireBoundedString(value, field, maximum = 512) {
 function requireSafeToken(value, field) {
   requireBoundedString(value, field, 160);
   if (!SAFE_TOKEN.test(value)) {
+    throw new RuntimeSpoolError(`INVALID_${field.toUpperCase()}`);
+  }
+  return value;
+}
+
+function requireSha256(value, field) {
+  if (typeof value !== "string" || !/^[0-9a-f]{64}$/.test(value)) {
     throw new RuntimeSpoolError(`INVALID_${field.toUpperCase()}`);
   }
   return value;
@@ -370,6 +383,7 @@ class RuntimeSpoolDatabase {
     try {
       this.#configure();
       this.#migrate();
+      this.#backfillLegacyOutboxIdentity();
       this.#verifyRuntimeContract();
       this.#secureDatabaseFiles();
     } catch (error) {
@@ -466,6 +480,74 @@ class RuntimeSpoolDatabase {
     }
   }
 
+  #backfillLegacyOutboxIdentity() {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const rows = this.database
+        .prepare(
+          `SELECT id, job_id, message_kind, dedupe_key,
+                  logical_message_sha256, provider_client_id
+           FROM outbox_messages
+           WHERE status<>'confirmed'
+             AND (
+               logical_message_sha256 IS NULL
+               OR provider_client_id IS NULL
+             )
+           ORDER BY created_at, id`,
+        )
+        .all();
+      for (const row of rows) {
+        const logicalHash = row.logical_message_sha256
+          || sha256(
+            Buffer.from(
+              `${row.job_id}\u0000${row.message_kind}\u0000${row.dedupe_key}`,
+              "utf8",
+            ),
+          );
+        const clientId = row.provider_client_id
+          || `cb-outbox-${sha256(
+            Buffer.from(row.dedupe_key, "utf8"),
+          ).slice(0, 32)}`;
+        const result = this.database
+          .prepare(
+            `UPDATE outbox_messages
+             SET logical_message_sha256=?, provider_client_id=?
+             WHERE id=? AND status<>'confirmed'
+               AND (
+                 logical_message_sha256 IS NULL
+                 OR provider_client_id IS NULL
+               )`,
+          )
+          .run(logicalHash, clientId, row.id);
+        if (Number(result.changes) !== 1) {
+          throw new RuntimeSpoolError(
+            "LEGACY_OUTBOX_IDENTITY_BACKFILL_CONFLICT",
+          );
+        }
+      }
+      const incomplete = this.database
+        .prepare(
+          `SELECT COUNT(*) AS count
+           FROM outbox_messages
+           WHERE status<>'confirmed'
+             AND (
+               logical_message_sha256 IS NULL
+               OR provider_client_id IS NULL
+             )`,
+        )
+        .get();
+      if (Number(incomplete.count) !== 0) {
+        throw new RuntimeSpoolError(
+          "LEGACY_OUTBOX_IDENTITY_BACKFILL_INCOMPLETE",
+        );
+      }
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
   #verifyRuntimeContract() {
     const status = this.pragmaStatus();
     if (
@@ -551,6 +633,59 @@ class RuntimeSpoolDatabase {
         payload,
         sha256(Buffer.from(payload, "utf8")),
         at,
+        at,
+      );
+    return eventId;
+  }
+
+  #appendOutboxAttemptEvent({
+    outboxId,
+    attemptNumber,
+    eventType,
+    errorClass = null,
+    retryAt = null,
+    providerReceiptHash = null,
+    at,
+  }) {
+    if (
+      !Number.isSafeInteger(attemptNumber)
+      || attemptNumber < 1
+      || ![
+        "started",
+        "retry_scheduled",
+        "confirmed",
+        "failed_terminal",
+        "ambiguous",
+      ].includes(eventType)
+    ) {
+      throw new RuntimeSpoolError("OUTBOX_ATTEMPT_EVENT_INVALID");
+    }
+    if (errorClass !== null) {
+      requireSafeToken(errorClass, "error_class");
+    }
+    if (providerReceiptHash !== null) {
+      requireSha256(providerReceiptHash, "provider_receipt_hash");
+    }
+    const eventId = this.#identity(
+      "outbox-attempt-event",
+      [outboxId, attemptNumber, eventType],
+      "outboxevent",
+    );
+    this.database
+      .prepare(
+        `INSERT INTO outbox_attempt_events(
+          id, outbox_id, attempt_number, event_type, error_class, retry_at,
+          provider_receipt_hash, occurred_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        eventId,
+        outboxId,
+        attemptNumber,
+        eventType,
+        errorClass,
+        retryAt,
+        providerReceiptHash,
         at,
       );
     return eventId;
@@ -1930,6 +2065,8 @@ class RuntimeSpoolDatabase {
     chunkIndex = 1,
     chunkCount = 1,
     maxAttempts = 5,
+    logicalMessageSha256 = null,
+    providerClientId = null,
   }) {
     this.#assertOpen();
     requireSafeToken(dedupeKey, "dedupe_key");
@@ -1956,6 +2093,17 @@ class RuntimeSpoolDatabase {
     const expiresAt = this.#expiresAt(now);
     const plain = payloadBuffer(payload);
     const payloadHash = sha256(plain);
+    const logicalHash = logicalMessageSha256 === null
+      ? sha256(
+          Buffer.from(
+            `${jobId}\u0000${messageKind}\u0000${dedupeKey}`,
+            "utf8",
+          ),
+        )
+      : requireSha256(logicalMessageSha256, "logical_message_sha256");
+    const clientId = providerClientId === null
+      ? `cb-outbox-${sha256(Buffer.from(dedupeKey, "utf8")).slice(0, 32)}`
+      : requireSafeToken(providerClientId, "provider_client_id");
     const payloadCiphertext = this.cipher.encrypt(
       plain,
       `outbox:${outboxId}:payload`,
@@ -1971,8 +2119,12 @@ class RuntimeSpoolDatabase {
             id, job_id, correlation_id, target_type, target_ref_ciphertext,
             dedupe_key, message_kind, chunk_index, chunk_count,
             payload_ciphertext, payload_sha256, status, max_attempts,
-            created_at, updated_at, payload_expires_at, target_ref_expires_at
-          ) VALUES (?, ?, ?, 'weixin', ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)
+            created_at, updated_at, payload_expires_at, target_ref_expires_at,
+            logical_message_sha256, provider_client_id
+          ) VALUES (
+            ?, ?, ?, 'weixin', ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?,
+            ?, ?
+          )
           ON CONFLICT(dedupe_key) DO NOTHING`,
         )
         .run(
@@ -1991,25 +2143,780 @@ class RuntimeSpoolDatabase {
           now,
           expiresAt,
           targetCiphertext ? expiresAt : null,
+          logicalHash,
+          clientId,
         );
       const row = this.database
         .prepare(
-          "SELECT id, job_id, payload_sha256, status FROM outbox_messages WHERE dedupe_key=?",
+          `SELECT id, job_id, payload_sha256, status, message_kind,
+                  chunk_index, chunk_count, max_attempts,
+                  logical_message_sha256, provider_client_id
+           FROM outbox_messages WHERE dedupe_key=?`,
         )
         .get(dedupeKey);
       if (
         !row ||
         row.id !== outboxId ||
         row.job_id !== jobId ||
-        row.payload_sha256 !== payloadHash
+        row.payload_sha256 !== payloadHash ||
+        row.message_kind !== messageKind ||
+        Number(row.chunk_index) !== chunkIndex ||
+        Number(row.chunk_count) !== chunkCount ||
+        Number(row.max_attempts) !== maxAttempts ||
+        row.logical_message_sha256 !== logicalHash ||
+        row.provider_client_id !== clientId
       ) {
         throw new IntegrityConflictError();
       }
-      return Object.freeze({ ...row });
+      return this.getOutbox(outboxId);
     } finally {
       plain.fill(0);
       this.#secureDatabaseFiles();
     }
+  }
+
+  getOutbox(outboxId) {
+    this.#assertOpen();
+    requireBoundedString(outboxId, "outbox_id", 160);
+    const row = this.database
+      .prepare(
+        `SELECT id, job_id, correlation_id, target_type, dedupe_key,
+                message_kind, chunk_index, chunk_count, payload_sha256,
+                status, attempt_count, max_attempts, next_attempt_at,
+                last_error_class, last_error_redacted, created_at, updated_at,
+                confirmed_at, provider_receipt_hash, payload_expires_at,
+                payload_redacted_at, target_ref_expires_at,
+                target_ref_redacted_at, logical_message_sha256,
+                provider_client_id, claim_owner, claim_expires_at,
+                dispatch_started_at, last_attempt_at, confirmation_state,
+                dispatch_outcome, recovery_class
+         FROM outbox_messages WHERE id=?`,
+      )
+      .get(outboxId);
+    return row ? Object.freeze({ ...row }) : null;
+  }
+
+  getOutboxByDedupeKey(dedupeKey) {
+    this.#assertOpen();
+    requireSafeToken(dedupeKey, "dedupe_key");
+    const row = this.database
+      .prepare("SELECT id FROM outbox_messages WHERE dedupe_key=?")
+      .get(dedupeKey);
+    return row ? this.getOutbox(row.id) : null;
+  }
+
+  listOutbox(jobId = null) {
+    this.#assertOpen();
+    if (jobId !== null) {
+      requireBoundedString(jobId, "job_id", 160);
+    }
+    const rows = jobId === null
+      ? this.database
+          .prepare(
+            `SELECT id FROM outbox_messages
+             ORDER BY created_at, logical_message_sha256, chunk_index, id`,
+          )
+          .all()
+      : this.database
+          .prepare(
+            `SELECT id FROM outbox_messages WHERE job_id=?
+             ORDER BY created_at, logical_message_sha256, chunk_index, id`,
+          )
+          .all(jobId);
+    return rows.map((row) => this.getOutbox(row.id));
+  }
+
+  listOutboxAttemptEvents(outboxId = null) {
+    this.#assertOpen();
+    if (outboxId !== null) {
+      requireBoundedString(outboxId, "outbox_id", 160);
+    }
+    const rows = outboxId === null
+      ? this.database
+          .prepare(
+            `SELECT id, outbox_id, attempt_number, event_type, error_class,
+                    retry_at, provider_receipt_hash, occurred_at
+             FROM outbox_attempt_events
+             ORDER BY outbox_id, attempt_number,
+                      CASE event_type
+                        WHEN 'started' THEN 1
+                        WHEN 'retry_scheduled' THEN 2
+                        WHEN 'confirmed' THEN 2
+                        WHEN 'failed_terminal' THEN 2
+                        WHEN 'ambiguous' THEN 2
+                        ELSE 3
+                      END,
+                      occurred_at, id`,
+          )
+          .all()
+      : this.database
+          .prepare(
+            `SELECT id, outbox_id, attempt_number, event_type, error_class,
+                    retry_at, provider_receipt_hash, occurred_at
+             FROM outbox_attempt_events WHERE outbox_id=?
+             ORDER BY attempt_number,
+                      CASE event_type
+                        WHEN 'started' THEN 1
+                        WHEN 'retry_scheduled' THEN 2
+                        WHEN 'confirmed' THEN 2
+                        WHEN 'failed_terminal' THEN 2
+                        WHEN 'ambiguous' THEN 2
+                        ELSE 3
+                      END,
+                      occurred_at, id`,
+          )
+          .all(outboxId);
+    return rows.map((row) => Object.freeze({ ...row }));
+  }
+
+  claimNextOutbox({
+    ownerId,
+    leaseMs = DEFAULT_OUTBOX_LEASE_MS,
+  } = {}) {
+    this.#assertOpen();
+    requireSafeToken(ownerId, "claim_owner");
+    const now = this.#timestamp();
+    const expiresAt = leaseExpiry(now, leaseMs);
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const row = this.database
+        .prepare(
+          `SELECT candidate.id
+           FROM outbox_messages AS candidate
+           WHERE (
+             candidate.status='pending'
+             OR (
+               candidate.status='retry'
+               AND candidate.next_attempt_at IS NOT NULL
+               AND candidate.next_attempt_at<=?
+             )
+           )
+             AND candidate.attempt_count < candidate.max_attempts
+             AND NOT EXISTS (
+               SELECT 1
+               FROM outbox_messages AS previous
+               WHERE previous.job_id=candidate.job_id
+                 AND previous.logical_message_sha256=
+                   candidate.logical_message_sha256
+                 AND previous.chunk_index<candidate.chunk_index
+                 AND previous.status<>'confirmed'
+             )
+           ORDER BY candidate.created_at,
+                    candidate.logical_message_sha256,
+                    candidate.chunk_index,
+                    candidate.id
+           LIMIT 1`,
+        )
+        .get(now);
+      if (!row) {
+        this.database.exec("COMMIT");
+        return Object.freeze({ claimed: false, reason: "queue_empty" });
+      }
+      const current = this.getOutbox(row.id);
+      const attemptNumber = Number(current.attempt_count) + 1;
+      const result = this.database
+        .prepare(
+          `UPDATE outbox_messages
+           SET status='sending', attempt_count=?, next_attempt_at=NULL,
+               claim_owner=?, claim_expires_at=?, dispatch_started_at=NULL,
+               last_attempt_at=?, confirmation_state='unconfirmed',
+               dispatch_outcome='not_started', recovery_class=NULL,
+               updated_at=?
+           WHERE id=? AND status IN ('pending','retry')
+             AND attempt_count=?`,
+        )
+        .run(
+          attemptNumber,
+          ownerId,
+          expiresAt,
+          now,
+          now,
+          row.id,
+          Number(current.attempt_count),
+        );
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("OUTBOX_CLAIM_CONFLICT");
+      }
+      this.#appendOutboxAttemptEvent({
+        outboxId: row.id,
+        attemptNumber,
+        eventType: "started",
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return Object.freeze({
+        claimed: true,
+        reason: "claimed",
+        row: this.getOutbox(row.id),
+      });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  readClaimedOutbox(outboxId, { ownerId } = {}) {
+    this.#assertOpen();
+    requireBoundedString(outboxId, "outbox_id", 160);
+    requireSafeToken(ownerId, "claim_owner");
+    const row = this.database
+      .prepare(
+        `SELECT id, payload_ciphertext, payload_sha256,
+                target_ref_ciphertext, status, claim_owner,
+                provider_client_id
+         FROM outbox_messages WHERE id=?`,
+      )
+      .get(outboxId);
+    if (!row) {
+      throw new RuntimeSpoolError("OUTBOX_NOT_FOUND");
+    }
+    if (row.status !== "sending" || row.claim_owner !== ownerId) {
+      throw new RuntimeSpoolError("OUTBOX_CLAIM_OWNER_CONFLICT");
+    }
+    const payload = this.cipher.decrypt(
+      row.payload_ciphertext,
+      `outbox:${outboxId}:payload`,
+    );
+    let target = null;
+    try {
+      if (sha256(payload) !== row.payload_sha256) {
+        throw new IntegrityConflictError();
+      }
+      if (row.target_ref_ciphertext === null) {
+        throw new RuntimeSpoolError("OUTBOX_TARGET_REDACTED");
+      }
+      const targetBuffer = this.cipher.decrypt(
+        row.target_ref_ciphertext,
+        `outbox:${outboxId}:target`,
+      );
+      try {
+        target = JSON.parse(targetBuffer.toString("utf8"));
+      } catch {
+        throw new RuntimeSpoolError("OUTBOX_TARGET_INVALID");
+      } finally {
+        targetBuffer.fill(0);
+      }
+      if (!target || typeof target !== "object" || Array.isArray(target)) {
+        throw new RuntimeSpoolError("OUTBOX_TARGET_INVALID");
+      }
+      return Object.freeze({
+        payload: payload.toString("utf8"),
+        target: Object.freeze({ ...target }),
+        providerClientId: row.provider_client_id,
+      });
+    } finally {
+      payload.fill(0);
+    }
+  }
+
+  markOutboxDispatchStarted(outboxId, { ownerId } = {}) {
+    this.#assertOpen();
+    requireBoundedString(outboxId, "outbox_id", 160);
+    requireSafeToken(ownerId, "claim_owner");
+    const now = this.#timestamp();
+    const result = this.database
+      .prepare(
+        `UPDATE outbox_messages
+         SET dispatch_started_at=?, updated_at=?
+         WHERE id=? AND status='sending' AND claim_owner=?
+           AND dispatch_started_at IS NULL`,
+      )
+      .run(now, now, outboxId, ownerId);
+    if (Number(result.changes) !== 1) {
+      throw new RuntimeSpoolError("OUTBOX_DISPATCH_CONFLICT");
+    }
+    return this.getOutbox(outboxId);
+  }
+
+  markOutboxRetry(outboxId, {
+    ownerId,
+    errorClass,
+    nextAttemptAt,
+  } = {}) {
+    this.#assertOpen();
+    requireBoundedString(outboxId, "outbox_id", 160);
+    requireSafeToken(ownerId, "claim_owner");
+    requireSafeToken(errorClass, "error_class");
+    const retryAt = timestampFrom(nextAttemptAt);
+    const now = this.#timestamp();
+    if (retryAt < now) {
+      throw new RuntimeSpoolError("OUTBOX_RETRY_TIME_INVALID");
+    }
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const row = this.getOutbox(outboxId);
+      if (
+        !row
+        || row.status !== "sending"
+        || row.claim_owner !== ownerId
+        || !row.dispatch_started_at
+        || Number(row.attempt_count) >= Number(row.max_attempts)
+      ) {
+        throw new RuntimeSpoolError("OUTBOX_RETRY_NOT_ALLOWED");
+      }
+      const result = this.database
+        .prepare(
+          `UPDATE outbox_messages
+           SET status='retry', next_attempt_at=?, last_error_class=?,
+               last_error_redacted=?, claim_owner=NULL,
+               claim_expires_at=NULL, dispatch_started_at=NULL,
+               dispatch_outcome='known_failure',
+               confirmation_state='unconfirmed',
+               recovery_class='provider_known_retryable', updated_at=?
+           WHERE id=? AND status='sending' AND claim_owner=?
+             AND attempt_count=?`,
+        )
+        .run(
+          retryAt,
+          errorClass,
+          errorClass,
+          now,
+          outboxId,
+          ownerId,
+          Number(row.attempt_count),
+        );
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("OUTBOX_CLAIM_OWNER_CONFLICT");
+      }
+      this.#appendOutboxAttemptEvent({
+        outboxId,
+        attemptNumber: Number(row.attempt_count),
+        eventType: "retry_scheduled",
+        errorClass,
+        retryAt,
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return this.getOutbox(outboxId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  markOutboxConfirmed(outboxId, {
+    ownerId,
+    providerConfirmation,
+  } = {}) {
+    this.#assertOpen();
+    requireBoundedString(outboxId, "outbox_id", 160);
+    requireSafeToken(ownerId, "claim_owner");
+    const row = this.getOutbox(outboxId);
+    if (
+      !row
+      || row.status !== "sending"
+      || row.claim_owner !== ownerId
+      || !row.dispatch_started_at
+      || !providerConfirmation
+      || providerConfirmation.confirmed !== true
+      || providerConfirmation.clientId !== row.provider_client_id
+    ) {
+      throw new RuntimeSpoolError("OUTBOX_CONFIRMATION_REQUIRED");
+    }
+    const receiptHash = requireSha256(
+      providerConfirmation.receiptHash,
+      "provider_receipt_hash",
+    );
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const result = this.database
+        .prepare(
+          `UPDATE outbox_messages
+           SET status='confirmed', confirmed_at=?,
+               provider_receipt_hash=?, confirmation_state='confirmed',
+               dispatch_outcome='confirmed', claim_owner=NULL,
+               claim_expires_at=NULL, next_attempt_at=NULL,
+               last_error_class=NULL, last_error_redacted=NULL,
+               recovery_class=NULL, updated_at=?
+           WHERE id=? AND status='sending' AND claim_owner=?
+             AND attempt_count=?`,
+        )
+        .run(
+          now,
+          receiptHash,
+          now,
+          outboxId,
+          ownerId,
+          Number(row.attempt_count),
+        );
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("OUTBOX_CLAIM_OWNER_CONFLICT");
+      }
+      this.#appendOutboxAttemptEvent({
+        outboxId,
+        attemptNumber: Number(row.attempt_count),
+        eventType: "confirmed",
+        providerReceiptHash: receiptHash,
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return this.getOutbox(outboxId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  markOutboxTerminal(outboxId, {
+    ownerId,
+    errorClass,
+    ambiguous = false,
+    recoveryClass = null,
+  } = {}) {
+    this.#assertOpen();
+    requireBoundedString(outboxId, "outbox_id", 160);
+    requireSafeToken(ownerId, "claim_owner");
+    requireSafeToken(errorClass, "error_class");
+    if (recoveryClass !== null) {
+      requireSafeToken(recoveryClass, "recovery_class");
+    }
+    const row = this.getOutbox(outboxId);
+    if (
+      !row
+      || row.status !== "sending"
+      || row.claim_owner !== ownerId
+    ) {
+      throw new RuntimeSpoolError("OUTBOX_CLAIM_OWNER_CONFLICT");
+    }
+    if (ambiguous && !row.dispatch_started_at) {
+      throw new RuntimeSpoolError("OUTBOX_AMBIGUOUS_DISPATCH_REQUIRED");
+    }
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const result = this.database
+        .prepare(
+          `UPDATE outbox_messages
+           SET status='failed_terminal', next_attempt_at=NULL,
+               last_error_class=?, last_error_redacted=?,
+               confirmation_state=?, dispatch_outcome=?,
+               claim_owner=NULL, claim_expires_at=NULL,
+               recovery_class=?, updated_at=?
+           WHERE id=? AND status='sending' AND claim_owner=?
+             AND attempt_count=?`,
+        )
+        .run(
+          errorClass,
+          errorClass,
+          ambiguous ? "ambiguous" : "unconfirmed",
+          ambiguous ? "ambiguous" : "known_failure",
+          recoveryClass,
+          now,
+          outboxId,
+          ownerId,
+          Number(row.attempt_count),
+        );
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("OUTBOX_CLAIM_OWNER_CONFLICT");
+      }
+      this.#appendOutboxAttemptEvent({
+        outboxId,
+        attemptNumber: Number(row.attempt_count),
+        eventType: ambiguous ? "ambiguous" : "failed_terminal",
+        errorClass,
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return this.getOutbox(outboxId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  failOutboxDependents(outboxId) {
+    this.#assertOpen();
+    requireBoundedString(outboxId, "outbox_id", 160);
+    const source = this.getOutbox(outboxId);
+    if (!source || source.status !== "failed_terminal") {
+      throw new RuntimeSpoolError("OUTBOX_TERMINAL_SOURCE_REQUIRED");
+    }
+    const now = this.#timestamp();
+    const result = this.database
+      .prepare(
+        `UPDATE outbox_messages
+         SET status='failed_terminal', next_attempt_at=NULL,
+             last_error_class='previous_chunk_failed',
+             last_error_redacted='previous_chunk_failed',
+             confirmation_state='unconfirmed',
+             dispatch_outcome='known_failure',
+             claim_owner=NULL, claim_expires_at=NULL,
+             recovery_class='blocked_by_previous_chunk', updated_at=?
+         WHERE job_id=? AND logical_message_sha256=?
+           AND chunk_index>? AND status IN ('pending','retry')`,
+      )
+      .run(
+        now,
+        source.job_id,
+        source.logical_message_sha256,
+        Number(source.chunk_index),
+      );
+    return Object.freeze({ failedDependents: Number(result.changes) });
+  }
+
+  recoverOutboxOnExclusiveStartup() {
+    this.#assertOpen();
+    const now = this.#timestamp();
+    const rows = this.database
+      .prepare(
+        `SELECT id FROM outbox_messages
+         WHERE status='sending'
+         ORDER BY created_at, id`,
+      )
+      .all();
+    let safeRetry = 0;
+    let ambiguousTerminal = 0;
+    const ambiguousOutboxIds = [];
+    const affectedJobIds = new Set();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      for (const item of rows) {
+        const row = this.getOutbox(item.id);
+        if (!row || row.status !== "sending") {
+          continue;
+        }
+        if (!row.dispatch_started_at) {
+          this.database
+            .prepare(
+              `UPDATE outbox_messages
+               SET status='retry', next_attempt_at=?,
+                   last_error_class='recovery_before_dispatch',
+                   last_error_redacted='recovery_before_dispatch',
+                   claim_owner=NULL, claim_expires_at=NULL,
+                   dispatch_outcome='not_started',
+                   confirmation_state='unconfirmed',
+                   recovery_class='safe_before_dispatch', updated_at=?
+               WHERE id=? AND status='sending'`,
+            )
+            .run(now, now, row.id);
+          this.#appendOutboxAttemptEvent({
+            outboxId: row.id,
+            attemptNumber: Number(row.attempt_count),
+            eventType: "retry_scheduled",
+            errorClass: "recovery_before_dispatch",
+            retryAt: now,
+            at: now,
+          });
+          safeRetry += 1;
+          continue;
+        }
+        this.database
+          .prepare(
+            `UPDATE outbox_messages
+             SET status='failed_terminal', next_attempt_at=NULL,
+                 last_error_class='ambiguous_send_outcome',
+                 last_error_redacted='ambiguous_send_outcome',
+                 confirmation_state='ambiguous',
+                 dispatch_outcome='ambiguous',
+                 claim_owner=NULL, claim_expires_at=NULL,
+                 recovery_class='manual_reconcile_required', updated_at=?
+             WHERE id=? AND status='sending'`,
+          )
+          .run(now, row.id);
+        this.#appendOutboxAttemptEvent({
+          outboxId: row.id,
+          attemptNumber: Number(row.attempt_count),
+          eventType: "ambiguous",
+          errorClass: "ambiguous_send_outcome",
+          at: now,
+        });
+        ambiguousTerminal += 1;
+        ambiguousOutboxIds.push(row.id);
+        affectedJobIds.add(row.job_id);
+      }
+      this.database.exec("COMMIT");
+      for (const outboxId of ambiguousOutboxIds) {
+        this.failOutboxDependents(outboxId);
+      }
+      for (const jobId of affectedJobIds) {
+        this.reconcileJobReplyState(jobId);
+      }
+      return Object.freeze({
+        inspected: rows.length,
+        safeRetry,
+        ambiguousTerminal,
+        affectedJobs: affectedJobIds.size,
+      });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  nextOutboxDueAt() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        `SELECT MIN(
+           CASE
+             WHEN candidate.status='pending' THEN candidate.created_at
+             ELSE candidate.next_attempt_at
+           END
+         ) AS due_at
+         FROM outbox_messages AS candidate
+         WHERE candidate.status IN ('pending','retry')
+           AND candidate.attempt_count < candidate.max_attempts
+           AND NOT EXISTS (
+             SELECT 1
+             FROM outbox_messages AS previous
+             WHERE previous.job_id=candidate.job_id
+               AND previous.logical_message_sha256=
+                 candidate.logical_message_sha256
+               AND previous.chunk_index<candidate.chunk_index
+               AND previous.status<>'confirmed'
+           )`,
+      )
+      .get();
+    return row?.due_at || null;
+  }
+
+  outboxMetrics() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        `SELECT
+           SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) AS pending,
+           SUM(CASE WHEN status='sending' THEN 1 ELSE 0 END) AS sending,
+           SUM(CASE WHEN status='retry' THEN 1 ELSE 0 END) AS retry,
+           SUM(CASE WHEN status='confirmed' THEN 1 ELSE 0 END) AS confirmed,
+           SUM(CASE WHEN status='failed_terminal' THEN 1 ELSE 0 END)
+             AS failed_terminal,
+           SUM(CASE WHEN confirmation_state='ambiguous' THEN 1 ELSE 0 END)
+             AS ambiguous
+         FROM outbox_messages`,
+      )
+      .get();
+    return Object.freeze({
+      pending: Number(row.pending || 0),
+      sending: Number(row.sending || 0),
+      retry: Number(row.retry || 0),
+      confirmed: Number(row.confirmed || 0),
+      failedTerminal: Number(row.failed_terminal || 0),
+      ambiguous: Number(row.ambiguous || 0),
+    });
+  }
+
+  hasFinalOutbox(jobId, messageKind = null) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    if (
+      messageKind !== null
+      && !["result", "error", "cancelled"].includes(messageKind)
+    ) {
+      throw new RuntimeSpoolError("MESSAGE_KIND_INVALID");
+    }
+    const row = messageKind === null
+      ? this.database
+          .prepare(
+            `SELECT COUNT(*) AS count
+             FROM outbox_messages
+             WHERE job_id=?
+               AND message_kind IN ('result','error','cancelled')`,
+          )
+          .get(jobId)
+      : this.database
+          .prepare(
+            `SELECT COUNT(*) AS count
+             FROM outbox_messages
+             WHERE job_id=? AND message_kind=?`,
+          )
+          .get(jobId, messageKind);
+    return Number(row.count) > 0;
+  }
+
+  reconcileAllFinalOutboxJobs() {
+    this.#assertOpen();
+    const rows = this.database
+      .prepare(
+        `SELECT DISTINCT job_id
+         FROM outbox_messages
+         WHERE message_kind IN ('result','error','cancelled')
+         ORDER BY job_id`,
+      )
+      .all();
+    const states = rows.map((row) => this.reconcileJobReplyState(row.job_id));
+    return Object.freeze({
+      inspectedJobs: rows.length,
+      replied: states.filter((state) => state.status === "replied").length,
+      replyFailed: states.filter(
+        (state) => state.status === "reply_failed",
+      ).length,
+      replyPending: states.filter(
+        (state) => state.status === "reply_pending",
+      ).length,
+    });
+  }
+
+  reconcileJobReplyState(jobId) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    let job = this.getJob(jobId);
+    if (!job) {
+      throw new RuntimeSpoolError("JOB_NOT_FOUND");
+    }
+    const final = this.database
+      .prepare(
+        `SELECT
+           COUNT(*) AS total,
+           SUM(CASE WHEN status='confirmed' THEN 1 ELSE 0 END) AS confirmed,
+           SUM(CASE WHEN status='failed_terminal' THEN 1 ELSE 0 END)
+             AS failed
+         FROM outbox_messages
+         WHERE job_id=?
+           AND message_kind IN ('result','error','cancelled')`,
+      )
+      .get(jobId);
+    const total = Number(final.total || 0);
+    const confirmed = Number(final.confirmed || 0);
+    const failed = Number(final.failed || 0);
+    if (total === 0) {
+      return Object.freeze({
+        status: job.status,
+        total,
+        confirmed,
+        failed,
+        reason: "final_outbox_absent",
+      });
+    }
+    if (["succeeded", "failed_terminal", "cancelled"].includes(job.status)) {
+      job = this.transitionJob(jobId, "reply_pending", {
+        expectedVersion: Number(job.state_version),
+        metadata: {
+          transition_code: "durable_final_staged",
+        },
+      });
+    }
+    if (job.status === "reply_pending" && failed > 0) {
+      job = this.transitionJob(jobId, "reply_failed", {
+        expectedVersion: Number(job.state_version),
+        metadata: {
+          receipt_count: confirmed,
+          terminal_count: failed,
+          transition_code: "outbox_terminal",
+        },
+      });
+    } else if (job.status === "reply_pending" && confirmed === total) {
+      job = this.transitionJob(jobId, "replied", {
+        expectedVersion: Number(job.state_version),
+        metadata: {
+          receipt_count: confirmed,
+          transition_code: "all_chunks_confirmed",
+        },
+      });
+    }
+    return Object.freeze({
+      status: job.status,
+      total,
+      confirmed,
+      failed,
+      reason:
+        job.status === "replied"
+          ? "all_chunks_confirmed"
+          : job.status === "reply_failed"
+            ? "terminal_delivery_failure"
+            : "confirmation_pending",
+    });
   }
 
   enqueueSyncEvent({
@@ -2367,6 +3274,7 @@ class RuntimeSpoolDatabase {
 }
 
 module.exports = {
+  DEFAULT_OUTBOX_LEASE_MS,
   DEFAULT_PAYLOAD_TTL_MS,
   IntegrityConflictError,
   MIGRATIONS,

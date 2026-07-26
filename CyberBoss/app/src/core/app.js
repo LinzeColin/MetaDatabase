@@ -36,6 +36,9 @@ const { RuntimeSpoolDatabase } = require("../services/db/database-adapter");
 const { DurableInboxCoordinator } = require("../services/inbox/durable-inbox");
 const { JobScheduler } = require("../services/jobs/job-scheduler");
 const {
+  DurableOutboxWorker,
+} = require("../services/outbox/durable-outbox");
+const {
   ResourceReadinessGate,
   captureLiveResourceSnapshot,
 } = require("../services/jobs/resource-readiness-gate");
@@ -149,6 +152,7 @@ class CyberbossApp {
     this.runtimeSpoolDatabase = null;
     this.durableInboxCoordinator = null;
     this.jobScheduler = null;
+    this.outboxWorker = null;
     this.runtimeAdapter.onEvent((event) => {
       this.threadStateStore.applyRuntimeEvent(event);
       this.runtimeEventChain = this.runtimeEventChain
@@ -194,10 +198,36 @@ class CyberbossApp {
           this.config.activePayloadTtlHours,
         ),
       });
+      if (this.config.durableOutbox === true) {
+        this.outboxWorker = new DurableOutboxWorker({
+          database: this.runtimeSpoolDatabase,
+          channelAdapter: this.channelAdapter,
+          leaseMs: this.config.outboxLeaseMs,
+          maxAttempts: this.config.outboxMaxAttempts,
+          baseDelayMs: this.config.outboxBaseDelayMs,
+          maxDelayMs: this.config.outboxMaxDelayMs,
+          maxChunkChars: this.config.outboxChunkChars,
+        });
+        this.streamDelivery.setOutboxWorker(this.outboxWorker);
+      }
       this.durableInboxCoordinator = new DurableInboxCoordinator({
         channelAdapter: this.channelAdapter,
         database: this.runtimeSpoolDatabase,
         config: this.config,
+        onAccepted: this.outboxWorker
+          ? ({ accepted, normalized }) => {
+              this.outboxWorker.stageMessage({
+                jobId: accepted.jobId,
+                messageKind: "accepted",
+                logicalKey: `accepted:${accepted.jobId}`,
+                target: {
+                  userId: normalized.senderId,
+                  contextToken: normalized.contextToken,
+                },
+                text: `✅ Accepted\njob: ${accepted.jobId}`,
+              });
+            }
+          : null,
       });
       if (this.config.jobScheduler === true) {
         const gate = new ResourceReadinessGate({
@@ -219,6 +249,11 @@ class CyberbossApp {
           snapshotProvider: (facts) => captureLiveResourceSnapshot(facts),
           dispatchRuntime: (payload) => this.dispatchDurableRuntimeJob(payload),
           dispatchControl: (payload) => this.dispatchDurableControlJob(payload),
+          onRuntimeTerminal: (payload) => (
+            payload?.event
+              ? undefined
+              : this.handleDurableJobTerminal(payload)
+          ),
         });
       }
     } catch (error) {
@@ -234,6 +269,11 @@ class CyberbossApp {
     if (this.jobScheduler) {
       this.jobScheduler.stop();
       this.jobScheduler = null;
+    }
+    if (this.outboxWorker) {
+      this.outboxWorker.stop();
+      this.outboxWorker = null;
+      this.streamDelivery.setOutboxWorker(null);
     }
     this.durableInboxCoordinator = null;
     if (this.runtimeSpoolDatabase) {
@@ -272,6 +312,7 @@ class CyberbossApp {
     try {
       this.initializeDurableInbox();
       runtimeState = await this.runtimeAdapter.initialize();
+      await this.outboxWorker?.start();
       this.jobScheduler?.start();
     } catch (error) {
       this.closeDurableInbox();
@@ -297,6 +338,9 @@ class CyberbossApp {
     );
     console.log(
       `[cyberboss] jobScheduler=${this.jobScheduler ? "enabled" : "staging_manual"}`,
+    );
+    console.log(
+      `[cyberboss] durableOutbox=${this.outboxWorker ? "enabled" : "staging_direct"}`,
     );
     console.log(`[cyberboss] runtimeEndpoint=${runtimeState.endpoint || runtimeState.command || "(spawn)"}`);
     console.log(`[cyberboss] runtimeModels=${runtimeState.models?.length || 0}`);
@@ -340,6 +384,7 @@ class CyberbossApp {
                 `[cyberboss] durable batch queued accepted=${durable.acceptedCount} rejected=${durable.rejectedCount}`,
               );
             }
+            await this.outboxWorker?.runCycle();
             await this.jobScheduler?.runCycle();
           } else {
             const fetched = await this.channelAdapter.fetchUpdates({
@@ -631,6 +676,8 @@ class CyberbossApp {
       userId: normalized.senderId,
       contextToken: normalized.contextToken,
       provider: normalized.provider,
+      jobId: job.id,
+      correlationId: job.correlation_id,
     });
     const prepared = await this.prepareIncomingMessageForRuntime(
       normalized,
@@ -644,6 +691,10 @@ class CyberbossApp {
       workspaceRoot: resolvedWorkspace.root,
       prepared,
       returnRun: true,
+      deliveryContext: {
+        jobId: job.id,
+        correlationId: job.correlation_id,
+      },
     });
     if (!run || typeof run !== "object") {
       throw new Error("DURABLE_RUNTIME_DISPATCH_FAILED");
@@ -729,6 +780,7 @@ class CyberbossApp {
     workspaceRoot,
     prepared,
     returnRun = false,
+    deliveryContext = null,
   }) {
     workspaceRoot = this.workspaceRegistry.assertAllowedRoot(workspaceRoot).root;
     const pendingScopeKey = this.turnGateStore.begin(bindingKey, workspaceRoot);
@@ -775,6 +827,12 @@ class CyberbossApp {
         userId: prepared.senderId,
         contextToken: prepared.contextToken,
         provider: prepared.provider,
+        ...(deliveryContext?.jobId
+          ? {
+              jobId: deliveryContext.jobId,
+              correlationId: deliveryContext.correlationId || "",
+            }
+          : {}),
         ...(prepared.traceId ? { traceId: prepared.traceId } : {}),
       };
       if (turn.turnId) {
@@ -791,6 +849,9 @@ class CyberbossApp {
         : true;
     } catch (error) {
       this.turnGateStore.releaseScope(bindingKey, workspaceRoot);
+      if (deliveryContext?.jobId) {
+        throw error;
+      }
       const messageText = error instanceof Error ? error.message : String(error || "unknown error");
       await this.channelAdapter.sendText({
         userId: prepared.senderId,
@@ -1377,6 +1438,9 @@ class CyberbossApp {
     const schedulerStatus = this.jobScheduler
       ? this.jobScheduler.statusSnapshot()
       : null;
+    const outboxStatus = this.outboxWorker
+      ? this.outboxWorker.statusSnapshot()
+      : null;
 
     const lines = [
       `📍 workspace: ${this.workspaceRegistry.aliasForRoot(workspaceRoot)}`,
@@ -1394,6 +1458,14 @@ class CyberbossApp {
         `🔒 active runtime lease: ${schedulerStatus.activeRuntimeLeaseCount}`,
         `🛡️ gate: ${schedulerStatus.gateState}/${schedulerStatus.gateReason}`,
         `🧭 action: ${schedulerStatus.gateAction}`,
+      );
+    }
+    if (outboxStatus) {
+      lines.push(
+        `📤 outbox pending: ${outboxStatus.metrics.pending + outboxStatus.metrics.retry}`,
+        `✅ outbox confirmed: ${outboxStatus.metrics.confirmed}`,
+        `⚠️ outbox failed: ${outboxStatus.metrics.failedTerminal}`,
+        `❓ outbox ambiguous: ${outboxStatus.metrics.ambiguous}`,
       );
     }
     lines.push(formatContextStatusLine({
@@ -1778,11 +1850,94 @@ class CyberbossApp {
     ).root;
   }
 
+  resolveDurableReplyTargetForJob(jobId) {
+    if (!this.runtimeSpoolDatabase || !jobId) {
+      return null;
+    }
+    const job = this.runtimeSpoolDatabase.getJob(jobId);
+    if (!job?.inbox_id) {
+      return null;
+    }
+    let payloadBuffer = null;
+    let contextBuffer = null;
+    try {
+      payloadBuffer = this.runtimeSpoolDatabase.readInboundPayload(job.inbox_id);
+      contextBuffer = this.runtimeSpoolDatabase.readInboundContextToken(
+        job.inbox_id,
+      );
+      const payload = JSON.parse(payloadBuffer.toString("utf8"));
+      const userId = normalizeText(payload?.senderId);
+      const storedContext = contextBuffer
+        ? normalizeText(contextBuffer.toString("utf8"))
+        : "";
+      const refreshedContext = userId
+        ? normalizeText(this.channelAdapter.getKnownContextTokens?.()?.[userId])
+        : "";
+      return normalizeReplyTarget({
+        userId,
+        contextToken: storedContext || refreshedContext,
+        provider: payload?.provider || "weixin",
+      });
+    } catch {
+      return null;
+    } finally {
+      payloadBuffer?.fill?.(0);
+      contextBuffer?.fill?.(0);
+    }
+  }
+
+  async handleDurableJobTerminal({
+    job,
+    event = null,
+    terminalStatus = "",
+    replyTarget = null,
+  } = {}) {
+    if (!this.outboxWorker || !this.runtimeSpoolDatabase || !job?.id) {
+      return Object.freeze({ handled: false, reason: "outbox_unavailable" });
+    }
+    const target =
+      normalizeReplyTarget(replyTarget)
+      || this.resolveDurableReplyTargetForJob(job.id);
+    if (!target) {
+      return Object.freeze({
+        handled: false,
+        reason: "reply_target_unavailable",
+        state: this.runtimeSpoolDatabase.reconcileJobReplyState(job.id),
+      });
+    }
+    const durableTerminal = ["succeeded", "failed_terminal", "cancelled"].includes(
+      terminalStatus,
+    )
+      ? terminalStatus
+      : ["succeeded", "failed_terminal", "cancelled"].includes(job.status)
+        ? job.status
+        : "failed_terminal";
+    const result = await this.outboxWorker.ensureTerminalMessage({
+      jobId: job.id,
+      terminalStatus: durableTerminal,
+      target,
+      logicalKey: `terminal:${job.id}:${durableTerminal}`,
+      text:
+        durableTerminal === "succeeded"
+          ? normalizeText(event?.payload?.text) || "✅ Completed."
+          : "",
+    });
+    return Object.freeze({
+      handled: true,
+      result,
+      state: this.runtimeSpoolDatabase.reconcileJobReplyState(job.id),
+    });
+  }
+
   async handleRuntimeEvent(event) {
     const schedulerEvent = this.jobScheduler
       ? await this.jobScheduler.handleRuntimeEvent(event)
       : null;
-    const failureReplyTarget = event?.type === "runtime.turn.failed"
+    const terminalReplyTarget = [
+      "runtime.turn.completed",
+      "runtime.turn.failed",
+    ].includes(event?.type)
+      && typeof this.streamDelivery.resolveReplyTargetForRun === "function"
       ? this.streamDelivery.resolveReplyTargetForRun({
           threadId: event?.payload?.threadId,
           turnId: event?.payload?.turnId,
@@ -1810,11 +1965,18 @@ class CyberbossApp {
       }
       try {
         this.turnGateStore.releaseThread(event.payload.threadId);
-        if (event.type === "runtime.turn.failed") {
+        if (schedulerEvent?.terminal && this.outboxWorker) {
+          await this.handleDurableJobTerminal({
+            job: this.runtimeSpoolDatabase.getJob(schedulerEvent.jobId),
+            event,
+            terminalStatus: schedulerEvent.terminalStatus,
+            replyTarget: terminalReplyTarget,
+          });
+        } else if (event.type === "runtime.turn.failed") {
           await this.sendFailureToThread(
             event.payload.threadId,
             event.payload.text || "❌ Execution failed",
-            failureReplyTarget,
+            terminalReplyTarget,
           );
         }
         if (linked?.bindingKey && linked?.workspaceRoot) {

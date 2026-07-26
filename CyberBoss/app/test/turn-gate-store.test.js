@@ -749,6 +749,7 @@ test("durable bind and new commands cannot change scope during an active Runtime
 
 test("durable Runtime dispatch revalidates alias and returns the exact run binding", async () => {
   const activeRoots = [];
+  const replyTargets = [];
   const appLike = {
     workspaceRegistry: {
       resolve(alias) {
@@ -772,7 +773,9 @@ test("durable Runtime dispatch revalidates alias and returns the exact run bindi
       },
     },
     streamDelivery: {
-      setReplyTarget() {},
+      setReplyTarget(_bindingKey, target) {
+        replyTargets.push(target);
+      },
     },
     async prepareIncomingMessageForRuntime(normalized, workspaceRoot) {
       assert.equal(workspaceRoot, "/workspace");
@@ -781,6 +784,10 @@ test("durable Runtime dispatch revalidates alias and returns the exact run bindi
     async dispatchPreparedTurn(payload) {
       assert.equal(payload.workspaceRoot, "/workspace");
       assert.equal(payload.returnRun, true);
+      assert.deepEqual(payload.deliveryContext, {
+        jobId: "job-1",
+        correlationId: "corr-1",
+      });
       return { threadId: "thread-1", turnId: "turn-1" };
     },
   };
@@ -788,6 +795,8 @@ test("durable Runtime dispatch revalidates alias and returns the exact run bindi
     appLike,
     {
       job: {
+        id: "job-1",
+        correlation_id: "corr-1",
         runtime: "codex",
         workspace_alias: "cyberboss",
       },
@@ -803,4 +812,11 @@ test("durable Runtime dispatch revalidates alias and returns the exact run bindi
   );
   assert.deepEqual(run, { threadId: "thread-1", turnId: "turn-1" });
   assert.deepEqual(activeRoots, [["binding-1", "/workspace"]]);
+  assert.deepEqual(replyTargets, [{
+    userId: "user-1",
+    contextToken: "ctx-1",
+    provider: "weixin",
+    jobId: "job-1",
+    correlationId: "corr-1",
+  }]);
 });

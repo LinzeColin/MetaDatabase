@@ -106,7 +106,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const clean = openSpool(cleanPath);
     assert.deepEqual(
       clean.migrationRecords().map((row) => row.version),
-      [1, 2, 3],
+      [1, 2, 3, 4],
     );
     assert.deepEqual(clean.pragmaStatus(), {
       journalMode: "wal",
@@ -128,6 +128,8 @@ if (!isMainThread && workerData?.mode === "duplicate") {
       "CREATE TRIGGER job_events_immutable_update_guard",
       "CREATE UNIQUE INDEX idx_jobs_single_active_runtime",
       "CREATE TRIGGER jobs_scheduler_runtime_lease_guard",
+      "CREATE TABLE outbox_attempt_events",
+      "CREATE TRIGGER outbox_confirmation_truth_guard",
     ]) {
       assert.match(schema, new RegExp(marker));
     }
@@ -138,12 +140,62 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     v1.exec(
       fs.readFileSync(path.join(MIGRATION_ROOT, "001_runtime_spool.sql"), "utf8"),
     );
+    v1.exec(`
+      INSERT INTO inbox_messages(
+        id, source, source_account_hash, source_message_id, correlation_id,
+        user_ref_hash, message_type, payload_ciphertext, payload_sha256,
+        status, received_at, durable_at
+      ) VALUES (
+        'legacy-inbox', 'weixin', 'legacy-account', 'legacy-message',
+        'legacy-correlation', 'legacy-user', 'text', X'01',
+        '${"a".repeat(64)}', 'accepted',
+        '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'
+      );
+      INSERT INTO jobs(
+        id, correlation_id, inbox_id, workspace_alias, runtime,
+        operation_class, status, input_sha256, created_at, updated_at
+      ) VALUES (
+        'legacy-job', 'legacy-correlation', 'legacy-inbox', 'legacy',
+        'codex', 'read_only', 'queued', '${"b".repeat(64)}',
+        '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'
+      );
+      INSERT INTO outbox_messages(
+        id, job_id, correlation_id, target_type, target_ref_ciphertext,
+        dedupe_key, message_kind, payload_ciphertext, payload_sha256,
+        status, created_at, updated_at
+      ) VALUES (
+        'legacy-outbox', 'legacy-job', 'legacy-correlation', 'weixin', X'01',
+        'legacy-result-1', 'result', X'01', '${"c".repeat(64)}',
+        'pending', '2026-01-01T00:00:00.000Z',
+        '2026-01-01T00:00:00.000Z'
+      );
+    `);
     v1.close();
     const upgraded = openSpool(v1Path);
     assert.deepEqual(
       upgraded.migrationRecords().map((row) => row.version),
-      [1, 2, 3],
+      [1, 2, 3, 4],
     );
+    const legacyOutbox = upgraded.getOutbox("legacy-outbox");
+    assert.equal(
+      legacyOutbox.logical_message_sha256,
+      hash(
+        Buffer.from(
+          "legacy-job\u0000result\u0000legacy-result-1",
+          "utf8",
+        ),
+      ),
+    );
+    assert.equal(
+      legacyOutbox.provider_client_id,
+      `cb-outbox-${hash(Buffer.from("legacy-result-1", "utf8")).slice(0, 32)}`,
+    );
+    const legacyClaim = upgraded.claimNextOutbox({
+      ownerId: "legacy-upgrade-test",
+      leaseMs: 1000,
+    });
+    assert.equal(legacyClaim.claimed, true);
+    assert.equal(legacyClaim.row.id, "legacy-outbox");
     upgraded.close();
 
     const legacyReader = new DatabaseSync(v1Path, { readOnly: true });
@@ -177,6 +229,12 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     );
     assert.doesNotMatch(migration3, /\b(?:DROP|RENAME|VACUUM)\b/i);
     assert.match(migration3, /ALTER TABLE jobs ADD COLUMN/);
+    const migration4 = fs.readFileSync(
+      path.join(MIGRATION_ROOT, "004_cb230_durable_outbox.sql"),
+      "utf8",
+    );
+    assert.doesNotMatch(migration4, /\b(?:DROP|RENAME|VACUUM)\b/i);
+    assert.match(migration4, /ALTER TABLE outbox_messages ADD COLUMN/);
   });
 
   test("10,000 durable fixtures have stable collision-free source, correlation and job IDs", { timeout: 60000 }, (t) => {

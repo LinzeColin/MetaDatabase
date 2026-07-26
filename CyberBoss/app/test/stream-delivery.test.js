@@ -8,7 +8,12 @@ const DEFERRED_PLAIN_REPLY_HEADER = "===== 上轮对话遗留内容 =====";
 const DEFERRED_SYSTEM_REPLY_HEADER = "===== 期间模型主动联系 =====";
 const CURRENT_REPLY_HEADER = "===== 本轮模型回复 =====";
 
-function createHarness({ sendText, getKnownContextTokens, runtimeId = "" } = {}) {
+function createHarness({
+  sendText,
+  getKnownContextTokens,
+  runtimeId = "",
+  outboxWorker = null,
+} = {}) {
   const sent = [];
   const channelAdapter = {
     async sendText(payload) {
@@ -33,7 +38,12 @@ function createHarness({ sendText, getKnownContextTokens, runtimeId = "" } = {})
     },
   };
 
-  const streamDelivery = new StreamDelivery({ channelAdapter, sessionStore, runtimeId });
+  const streamDelivery = new StreamDelivery({
+    channelAdapter,
+    sessionStore,
+    runtimeId,
+    outboxWorker,
+  });
   return { sent, streamDelivery, bindingByThreadId };
 }
 
@@ -563,4 +573,54 @@ test("plain reply with deferred prefix is sent as soon as the first item is fina
     contextToken: "ctx-8",
     preserveBlock: true,
   });
+});
+
+test("durable job result is staged before worker dispatch and never uses direct sendText", async () => {
+  const order = [];
+  const rows = new Map();
+  const outboxWorker = {
+    database: {
+      getOutbox(id) {
+        return rows.get(id) || null;
+      },
+    },
+    stageMessage(input) {
+      order.push(`stage:${input.messageKind}`);
+      assert.equal(input.jobId, "job-durable");
+      assert.match(input.logicalKey, /thread-durable:turn-durable:item-durable/);
+      assert.equal(input.text, "durable result");
+      const row = { id: "outbox-durable", status: "pending" };
+      rows.set(row.id, row);
+      return { staged: [row] };
+    },
+    async runCycle() {
+      order.push("dispatch");
+      rows.set("outbox-durable", {
+        id: "outbox-durable",
+        status: "confirmed",
+      });
+    },
+  };
+  const { sent, streamDelivery } = createHarness({ outboxWorker });
+  streamDelivery.bindReplyTargetForTurn({
+    threadId: "thread-durable",
+    turnId: "turn-durable",
+    target: {
+      userId: "user-durable",
+      contextToken: "ctx-durable",
+      provider: "weixin",
+      jobId: "job-durable",
+      correlationId: "corr-durable",
+    },
+  });
+
+  await runCompletedTurn(streamDelivery, {
+    threadId: "thread-durable",
+    turnId: "turn-durable",
+    itemId: "item-durable",
+    text: "durable result",
+  });
+
+  assert.deepEqual(order, ["stage:result", "dispatch"]);
+  assert.deepEqual(sent, []);
 });

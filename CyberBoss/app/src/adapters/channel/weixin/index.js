@@ -195,6 +195,46 @@ function createWeixinChannelAdapter(config) {
     async sendText({ userId, text, contextToken = "", preserveBlock = false }) {
       await sendTextChunks({ userId, text, contextToken, preserveBlock });
     },
+    async sendTextChunk({
+      userId,
+      text,
+      contextToken = "",
+      clientId = "",
+    }) {
+      const account = ensureAccount();
+      const resolvedToken = resolveContextToken(userId, contextToken);
+      const stableClientId = String(clientId || "").trim();
+      const outgoingText = String(text || "");
+      if (!resolvedToken) {
+        const error = new Error("Missing context_token for durable outbox.");
+        error.code = "WEIXIN_CONTEXT_REQUIRED";
+        error.outcomeKnown = true;
+        throw error;
+      }
+      if (!/^cb-outbox-[0-9a-f]{32}$/.test(stableClientId)) {
+        const error = new Error("Durable outbox requires a stable client id.");
+        error.code = "WEIXIN_STABLE_CLIENT_ID_REQUIRED";
+        error.outcomeKnown = true;
+        throw error;
+      }
+      if (
+        !outgoingText.trim()
+        || Array.from(outgoingText).length > MAX_WEIXIN_CHUNK
+      ) {
+        const error = new Error("Durable outbox chunk is invalid.");
+        error.code = "WEIXIN_OUTBOX_CHUNK_INVALID";
+        error.outcomeKnown = true;
+        throw error;
+      }
+      return sendText({
+        baseUrl: account.baseUrl,
+        token: account.token,
+        toUserId: userId,
+        text: outgoingText,
+        contextToken: resolvedToken,
+        clientId: stableClientId,
+      });
+    },
     async sendTyping({ userId, status = 1, contextToken = "" }) {
       const account = ensureAccount();
       const resolvedToken = resolveContextToken(userId, contextToken);

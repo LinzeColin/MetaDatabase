@@ -11,6 +11,7 @@ class StreamDelivery {
     onTraceEvent,
     systemReplyRetryScheduleMs,
     sameTokenRetryDelayMs,
+    outboxWorker = null,
   }) {
     this.channelAdapter = channelAdapter;
     this.sessionStore = sessionStore;
@@ -30,18 +31,28 @@ class StreamDelivery {
     this.deferredReplyPrefixByBindingKey = new Map();
     this.stateByRunKey = new Map();
     this.runSequence = 0;
+    this.outboxWorker = outboxWorker;
+  }
+
+  setOutboxWorker(outboxWorker = null) {
+    if (
+      outboxWorker !== null
+      && (
+        typeof outboxWorker.stageMessage !== "function"
+        || typeof outboxWorker.runCycle !== "function"
+      )
+    ) {
+      throw new Error("DURABLE_OUTBOX_WORKER_INVALID");
+    }
+    this.outboxWorker = outboxWorker;
   }
 
   setReplyTarget(bindingKey, target) {
-    if (!bindingKey || !target?.userId || !target?.contextToken) {
+    const normalizedTarget = normalizeReplyTarget(target);
+    if (!bindingKey || !normalizedTarget) {
       return;
     }
-    this.replyTargetByBindingKey.set(bindingKey, {
-      userId: String(target.userId).trim(),
-      contextToken: String(target.contextToken).trim(),
-      provider: normalizeText(target.provider),
-      traceId: normalizeText(target.traceId),
-    });
+    this.replyTargetByBindingKey.set(bindingKey, normalizedTarget);
   }
 
   queueReplyTargetForThread(threadId, target) {
@@ -394,6 +405,14 @@ class StreamDelivery {
     if (prependDeferredPrefix) {
       payload.preserveBlock = true;
     }
+    if (state.replyTarget.jobId) {
+      return this.deliverDurableReply(state, {
+        text: payload.text,
+        logicalKey: `${state.runKey}:${delivery.itemId || "reply"}`,
+        messageKind: "result",
+        preserveBlock: payload.preserveBlock === true,
+      });
+    }
     this.emitTraceEvent("outbox_staged", state, payload.text);
     const outcome = await this.sendTextWithRetry(state, payload, { kind: "plain_reply" });
     if (outcome?.delivered) {
@@ -408,11 +427,55 @@ class StreamDelivery {
       text,
       contextToken: initialTarget.contextToken,
     };
+    if (state.replyTarget.jobId) {
+      return this.deliverDurableReply(state, {
+        text: payload.text,
+        logicalKey: `${state.runKey}:system-reply`,
+        messageKind: "result",
+      });
+    }
     this.emitTraceEvent("outbox_staged", state, payload.text);
     const outcome = await this.sendTextWithRetry(state, payload, { kind: "system_reply" });
     if (outcome?.delivered) {
       this.emitTraceEvent("delivery_confirmed", state, payload.text);
     }
+  }
+
+  async deliverDurableReply(state, {
+    text,
+    logicalKey,
+    messageKind,
+    preserveBlock = false,
+  }) {
+    if (!this.outboxWorker) {
+      throw new Error("DURABLE_OUTBOX_REQUIRED");
+    }
+    const staged = this.outboxWorker.stageMessage({
+      jobId: state.replyTarget.jobId,
+      messageKind,
+      logicalKey,
+      target: {
+        userId: state.replyTarget.userId,
+        contextToken: state.replyTarget.contextToken,
+        preserveBlock,
+      },
+      text,
+    });
+    this.emitTraceEvent("outbox_staged", state, text);
+    await this.outboxWorker.runCycle();
+    const confirmed = staged.staged.every(
+      (row) =>
+        this.outboxWorker.database.getOutbox(row.id)?.status === "confirmed",
+    );
+    if (confirmed) {
+      this.emitTraceEvent("delivery_confirmed", state, text);
+    }
+    return Object.freeze({
+      delivered: confirmed,
+      deferred: !confirmed,
+      durable: true,
+      outboxCount: staged.staged.length,
+    });
   }
 
   async sendTextWithRetry(state, payload, { kind }) {
@@ -511,6 +574,8 @@ class StreamDelivery {
       contextToken: refreshedContextToken,
       provider: currentTarget.provider,
       traceId: currentTarget.traceId,
+      jobId: currentTarget.jobId,
+      correlationId: currentTarget.correlationId,
     };
   }
 
@@ -560,12 +625,7 @@ class StreamDelivery {
   }
 
   applyThreadReplyTarget(state, target) {
-    state.replyTarget = {
-      userId: target.userId,
-      contextToken: target.contextToken,
-      provider: target.provider,
-      traceId: target.traceId,
-    };
+    state.replyTarget = normalizeReplyTarget(target);
     state.threadReplyTargetAttached = true;
   }
 
@@ -742,6 +802,8 @@ function normalizeReplyTarget(target) {
     contextToken: String(target.contextToken).trim(),
     provider: normalizeText(target.provider),
     traceId: normalizeText(target.traceId),
+    jobId: normalizeText(target.jobId),
+    correlationId: normalizeText(target.correlationId),
   };
 }
 

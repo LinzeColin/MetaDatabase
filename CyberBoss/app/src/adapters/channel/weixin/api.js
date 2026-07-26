@@ -68,7 +68,17 @@ async function apiPost({ baseUrl, endpoint, token, body, timeoutMs = 0, label })
       throw new Error(`${label} response body exceeds ${MAX_RESPONSE_BODY_BYTES} bytes`);
     }
     if (!response.ok) {
-      throw new Error(`${label} http ${response.status}: ${redactSensitiveText(truncateForLog(raw, 512))}`);
+      const error = new Error(
+        `${label} http ${response.status}: ${redactSensitiveText(truncateForLog(raw, 512))}`,
+      );
+      error.code = "WEIXIN_HTTP_ERROR";
+      error.status = response.status;
+      error.outcomeKnown = true;
+      const retryAfter = Number(response.headers?.get?.("retry-after"));
+      if (Number.isFinite(retryAfter) && retryAfter >= 0) {
+        error.retryAfterMs = retryAfter * 1_000;
+      }
+      throw error;
     }
     return raw;
   } finally {
@@ -98,7 +108,14 @@ async function sendMessage({ baseUrl, token, body, timeoutMs }) {
   const errcode = parsed?.errcode;
   if ((ret !== undefined && ret !== 0) || (errcode !== undefined && errcode !== 0)) {
     const errmsg = typeof parsed?.errmsg === "string" ? parsed.errmsg.trim() : "";
-    throw new Error(`sendMessage ret=${ret ?? ""} errcode=${errcode ?? ""} errmsg=${redactSensitiveText(errmsg)}`);
+    const error = new Error(
+      `sendMessage ret=${ret ?? ""} errcode=${errcode ?? ""} errmsg=${redactSensitiveText(errmsg)}`,
+    );
+    error.code = "WEIXIN_PROVIDER_ERROR";
+    error.ret = ret;
+    error.errcode = errcode;
+    error.outcomeKnown = true;
+    throw error;
   }
   return parsed;
 }
@@ -237,7 +254,14 @@ async function sendText({ baseUrl, token, toUserId, text, contextToken, clientId
   const errcode = parsed?.errcode;
   if ((ret !== undefined && ret !== 0) || (errcode !== undefined && errcode !== 0)) {
     const errmsg = typeof parsed?.errmsg === "string" ? parsed.errmsg.trim() : "";
-    throw new Error(`sendMessage ret=${ret ?? ""} errcode=${errcode ?? ""} errmsg=${redactSensitiveText(errmsg)}`);
+    const error = new Error(
+      `sendMessage ret=${ret ?? ""} errcode=${errcode ?? ""} errmsg=${redactSensitiveText(errmsg)}`,
+    );
+    error.code = "WEIXIN_PROVIDER_ERROR";
+    error.ret = ret;
+    error.errcode = errcode;
+    error.outcomeKnown = true;
+    throw error;
   }
   return parsed;
 }

@@ -40,6 +40,12 @@ for (const key of [
   'CB_RUNTIME_DB',
   'CB_RUNTIME_ENCRYPTION_KEY_FILE',
   'CB_RUNTIME_IDENTITY_KEY_FILE',
+  'CB_DURABLE_OUTBOX',
+  'CB_OUTBOX_LEASE_MS',
+  'CB_OUTBOX_MAX_ATTEMPTS',
+  'CB_OUTBOX_BASE_DELAY_MS',
+  'CB_OUTBOX_MAX_DELAY_MS',
+  'CB_OUTBOX_CHUNK_CHARS',
   'CB_JOB_SCHEDULER',
   'CB_JOB_CONCURRENCY',
   'CB_RUNTIME_LEASE_MS',
@@ -79,6 +85,12 @@ if (!/^ws:\/\/(127\.0\.0\.1|localhost):\d+$/.test(env.CYBERBOSS_CODEX_ENDPOINT |
 }
 if (Number(env.CB_JOB_CONCURRENCY) !== 1) errors.push('job_concurrency_must_equal_1');
 if (env.CB_DURABLE_INBOX !== 'true') errors.push('durable_inbox_must_default_true');
+if (env.CB_DURABLE_OUTBOX !== 'true') errors.push('durable_outbox_must_default_true');
+if (Number(env.CB_OUTBOX_LEASE_MS) !== 10000) errors.push('outbox_lease_must_equal_10000');
+if (Number(env.CB_OUTBOX_MAX_ATTEMPTS) !== 5) errors.push('outbox_attempts_must_equal_5');
+if (Number(env.CB_OUTBOX_BASE_DELAY_MS) !== 1000) errors.push('outbox_base_delay_must_equal_1000');
+if (Number(env.CB_OUTBOX_MAX_DELAY_MS) !== 60000) errors.push('outbox_max_delay_must_equal_60000');
+if (Number(env.CB_OUTBOX_CHUNK_CHARS) !== 3600) errors.push('outbox_chunk_chars_must_equal_3600');
 if (env.CB_JOB_SCHEDULER !== 'true') errors.push('job_scheduler_must_default_true');
 if (Number(env.CB_RUNTIME_LEASE_MS) !== 30000) errors.push('runtime_lease_must_equal_30000');
 if (Number(env.CB_CONTROL_LEASE_MS) !== 10000) errors.push('control_lease_must_equal_10000');

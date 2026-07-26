@@ -20,6 +20,9 @@ const {
   DurableInboxError,
   stableProviderMessageIdentity,
 } = require("../src/services/inbox/durable-inbox");
+const {
+  DurableOutboxWorker,
+} = require("../src/services/outbox/durable-outbox");
 
 const FIXTURE_KEY = Buffer.from(
   "5d62ec7e99da044398b8f49535797033df92ad84577c88a86279b0a36e3ef2ee",
@@ -285,6 +288,79 @@ if (process.argv[2] === "--crash-worker") {
     database.close();
     assert.equal(executeSyntheticRuntimeOnce(directory), 1);
     assert.equal(queryState(directory).jobs[0].status, "succeeded");
+  });
+
+  test("accepted reply is staged before cursor commit and replay stays idempotent", async (t) => {
+    const directory = temporaryDirectory(t);
+    const config = runtimeConfig(directory);
+    const channelAdapter = createFixtureChannel({ directory, config });
+    const database = openDatabase(directory);
+    let providerCalls = 0;
+    const outboxWorker = new DurableOutboxWorker({
+      database,
+      channelAdapter: {
+        async sendTextChunk({ clientId }) {
+          providerCalls += 1;
+          return {
+            ret: 0,
+            message_id: `accepted-${clientId}`,
+          };
+        },
+      },
+      autoSchedule: false,
+    });
+    let crashOnce = true;
+    const coordinator = new DurableInboxCoordinator({
+      channelAdapter,
+      database,
+      config,
+      onAccepted({ accepted, normalized }) {
+        outboxWorker.stageMessage({
+          jobId: accepted.jobId,
+          messageKind: "accepted",
+          logicalKey: `accepted:${accepted.jobId}`,
+          target: {
+            userId: normalized.senderId,
+            contextToken: normalized.contextToken,
+          },
+          text: `✅ Accepted\njob: ${accepted.jobId}`,
+        });
+      },
+      faultInjector(point) {
+        if (point === "after_accepted_outbox_before_cursor" && crashOnce) {
+          crashOnce = false;
+          throw new Error("synthetic accepted-outbox crash");
+        }
+      },
+    });
+
+    await assert.rejects(
+      () => coordinator.pollOnce({ timeoutMs: 10 }),
+      /synthetic accepted-outbox crash/,
+    );
+    assert.equal(channelAdapter.loadSyncBuffer(), "");
+    assert.equal(database.counts().inbox_messages, 1);
+    assert.equal(database.counts().jobs, 1);
+    assert.equal(database.counts().outbox_messages, 1);
+    assert.equal(database.listOutbox()[0].status, "pending");
+    assert.equal(providerCalls, 0);
+
+    const replay = await coordinator.pollOnce({ timeoutMs: 10 });
+    assert.equal(replay.jobs[0].duplicate, true);
+    assert.equal(channelAdapter.loadSyncBuffer(), "cursor-1");
+    assert.equal(database.counts().outbox_messages, 1);
+    assert.equal(providerCalls, 0);
+
+    assert.deepEqual(await outboxWorker.runCycle(), {
+      ambiguous: 0,
+      confirmed: 1,
+      processed: 1,
+      retryScheduled: 0,
+      terminal: 0,
+    });
+    assert.equal(database.listOutbox()[0].status, "confirmed");
+    assert.equal(providerCalls, 1);
+    database.close();
   });
 
   test("numeric batches sort then require unique highest-continuous sequence", (t) => {

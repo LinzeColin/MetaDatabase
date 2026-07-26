@@ -220,6 +220,7 @@ class DurableInboxCoordinator {
     database,
     config,
     faultInjector = () => {},
+    onAccepted = null,
   }) {
     if (!channelAdapter || typeof channelAdapter.fetchUpdates !== "function") {
       throw new DurableInboxError("CHANNEL_FETCH_API_REQUIRED");
@@ -243,6 +244,8 @@ class DurableInboxCoordinator {
     this.config = config || {};
     this.faultInjector =
       typeof faultInjector === "function" ? faultInjector : () => {};
+    this.onAccepted =
+      typeof onAccepted === "function" ? onAccepted : null;
   }
 
   #fault(point) {
@@ -385,6 +388,16 @@ class DurableInboxCoordinator {
           maxAttempts: 1,
           cursorBatchId,
         });
+        if (this.onAccepted) {
+          const callbackResult = this.onAccepted({
+            accepted,
+            normalized: Object.freeze({ ...normalized }),
+          });
+          if (callbackResult && typeof callbackResult.then === "function") {
+            throw new DurableInboxError("ON_ACCEPTED_MUST_BE_SYNCHRONOUS");
+          }
+          this.#fault("after_accepted_outbox_before_cursor");
+        }
         jobs.push(Object.freeze({
           ...accepted,
           sourceIdentityKind: identity.kind,

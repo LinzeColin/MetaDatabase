@@ -203,6 +203,45 @@
       "upstream_sync_enabled": false,
       "upstream_support_claimed": false,
       "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-230",
+      "phase": "P2.4",
+      "base_commit": "916651854a6402254724c885398060b2e267e496",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/004_cb230_durable_outbox.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/durable-outbox-acceptance.js",
+        "CyberBoss/app/src/adapters/channel/weixin/api.js",
+        "CyberBoss/app/src/adapters/channel/weixin/index.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/core/stream-delivery.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/inbox/durable-inbox.js",
+        "CyberBoss/app/src/services/jobs/job-scheduler.js",
+        "CyberBoss/app/src/services/outbox/durable-outbox.js",
+        "CyberBoss/app/test/durable-inbox-crash-cut.test.js",
+        "CyberBoss/app/test/durable-outbox-crash-cut.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js",
+        "CyberBoss/app/test/stream-delivery.test.js",
+        "CyberBoss/app/test/turn-gate-store.test.js",
+        "CyberBoss/app/test/weixin-outbox-transport.test.js"
+      ],
+      "purposes": [
+        "persist accepted and terminal job replies in an encrypted durable outbox before any provider dispatch",
+        "derive stable message chunks, dedupe keys and provider client identifiers from durable logical identity",
+        "retry only explicit known provider failures with bounded jittered exponential delay and injected time",
+        "require provider confirmation before durable receipt and derive replied only after every final chunk is confirmed",
+        "recover pre-dispatch claims safely while fencing post-dispatch unknown outcomes for manual reconciliation without replay",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
     }
   ]
 }

@@ -162,6 +162,30 @@ cgroup 内运行有 64 MiB/64 MiB/1000 项硬上限的 immediate pressure fixtur
 provider/Private-MetaDatabase。outbox worker 属于 CB-230，PG-2 不在本 Run
 执行。
 
+P2.4 增加 durable outbox 与 delivery truth。accepted ack 在 inbound cursor
+commit 前进入 encrypted SQLite；final result、terminal error/cancelled
+reply 在任何 provider dispatch 前按 Unicode code point 生成 deterministic
+chunk、stable dedupe key 与 stable provider client ID。provider 只有返回可
+归一化的明确 receipt 才能写 `confirmed`；全部 final chunks 确认前 job
+保持 `reply_pending`，启动恢复会重新推导 `replied`/`reply_failed`。
+
+retry 只接受 outcome 已知的 408/425/429/5xx 或明确 transient code，默认最多
+5 次 bounded jittered exponential delay，clock、random 与 timer 均可注入。
+401/invalid context 直接 terminal；只有发现不同的新 context 时才另行发送
+固定脱敏 re-login 建议。provider 无端到端幂等/查询合同时，dispatch 已开始
+但 confirmation 未提交的恢复一律标记 `ambiguous_send_outcome` 和
+`manual_reconcile_required`，自动重发次数为 0，不能声称 exactly-once
+provider delivery。
+
+`build-durable-outbox-artifacts.py` 生成 clean exact-commit complete
+Corresponding Source、manifest、checksums 与
+`outbox-recovery-matrix.json`；`install-durable-outbox.sh` 只安装 immutable
+inactive candidate；`accept-durable-outbox.sh` 仅在 CB-230 staging 和独立
+synthetic runtime root 使用 ephemeral keys、fixture provider 与 virtual
+clock。它不切 `current`、不 enable/start service、不读取真实凭据，不调用
+真实 WeChat/Runtime/Private-MetaDatabase。canonical sync 属于 CB-240，
+PG-2 仍须在五个 Stage 2 tasks 全部通过后独立执行。
+
 ## Immediate validation
 
 ```bash
@@ -207,6 +231,12 @@ python3 -m py_compile \
 bash implementation-kit/scripts/install-job-scheduler.sh \
   --check --release-id 0000000000000000000000000000000000000000
 bash implementation-kit/scripts/accept-job-scheduler.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+python3 -m py_compile \
+  implementation-kit/scripts/build-durable-outbox-artifacts.py
+bash implementation-kit/scripts/install-durable-outbox.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+bash implementation-kit/scripts/accept-durable-outbox.sh \
   --check --release-id 0000000000000000000000000000000000000000
 python3 -m py_compile \
   implementation-kit/scripts/build-cloud-walking-skeleton-artifacts.py

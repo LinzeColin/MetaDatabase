@@ -55,6 +55,11 @@ TASKS = {
         "contract": "docs/governance/RUN_CONTRACT_P2_3_CB_220.md",
         "stage_prefix": ".cb220-artifacts-",
     },
+    "CB-230": {
+        "phase": "P2.4",
+        "contract": "docs/governance/RUN_CONTRACT_P2_4_CB_230.md",
+        "stage_prefix": ".cb230-artifacts-",
+    },
 }
 
 
@@ -280,6 +285,76 @@ def build_job_scheduler_matrix(
         return destination
 
 
+def build_durable_outbox_matrix(
+    repo: Path,
+    commit: str,
+    stage: Path,
+) -> Path:
+    with tempfile.TemporaryDirectory(prefix=".cb230-runtime-", dir=stage.parent) as raw:
+        runtime = Path(raw)
+        key_file = runtime / "synthetic.key"
+        runtime_state = runtime / "state"
+        output = runtime / "output"
+        runtime_state.mkdir(mode=0o700)
+        output.mkdir(mode=0o700)
+        key_file.write_bytes(os.urandom(32))
+        key_file.chmod(0o400)
+        result = subprocess.run(
+            [
+                "node",
+                str(repo / "CyberBoss/app/scripts/durable-outbox-acceptance.js"),
+                "--runtime-root",
+                str(runtime_state),
+                "--key-file",
+                str(key_file),
+                "--output-directory",
+                str(output),
+                "--release-commit",
+                commit,
+                "--target-id-sha256",
+                "7865f743d174",
+            ],
+            cwd=repo,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=240,
+        )
+        expect(
+            result.returncode == 0
+            and "CB230_DURABLE_OUTBOX_ACCEPTANCE=PASS" in result.stdout,
+            "durable_outbox_acceptance",
+        )
+        generated = output / "outbox-recovery-matrix.json"
+        report = json.loads(generated.read_text(encoding="utf-8"))
+        expect(
+            report.get("task_id") == "CB-230"
+            and report.get("phase") == "P2.4"
+            and report.get("release_commit") == commit
+            and report.get("result") == "passed"
+            and report.get("ac_021_retry", {}).get("attempts") == 3
+            and report.get("ac_021_retry", {}).get("real_wait_calls") == 0
+            and report.get("ac_022_dedupe", {}).get(
+                "confirmed_delivery_count"
+            )
+            == 1
+            and report.get("ac_062_recovery", {}).get(
+                "unknown_dispatch_auto_replay_count"
+            )
+            == 0
+            and report.get("security", {}).get(
+                "plaintext_db_wal_shm_hits"
+            )
+            == 0,
+            "durable_outbox_matrix",
+        )
+        destination = stage / "outbox-recovery-matrix.json"
+        shutil.copyfile(generated, destination)
+        destination.chmod(0o644)
+        return destination
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", type=Path, required=True)
@@ -363,6 +438,27 @@ def main() -> int:
                 "app/test/workspace-scope.test.js",
                 "docs/product_design/v0.0.0.4/implementation-kit/scripts/"
                 "resource-pressure-fixture.py",
+            ):
+                expect(required in inventory, f"source_missing:{required}")
+        if args.task_id == "CB-230":
+            for required in (
+                "app/migrations/001_runtime_spool.sql",
+                "app/migrations/002_cb200_retention_and_transitions.sql",
+                "app/migrations/003_cb220_scheduler_control.sql",
+                "app/migrations/004_cb230_durable_outbox.sql",
+                "app/scripts/durable-outbox-acceptance.js",
+                "app/src/adapters/channel/weixin/api.js",
+                "app/src/adapters/channel/weixin/index.js",
+                "app/src/core/app.js",
+                "app/src/core/stream-delivery.js",
+                "app/src/services/db/database-adapter.js",
+                "app/src/services/inbox/durable-inbox.js",
+                "app/src/services/jobs/job-scheduler.js",
+                "app/src/services/outbox/durable-outbox.js",
+                "app/test/durable-inbox-crash-cut.test.js",
+                "app/test/durable-outbox-crash-cut.test.js",
+                "app/test/stream-delivery.test.js",
+                "app/test/weixin-outbox-transport.test.js",
             ):
                 expect(required in inventory, f"source_missing:{required}")
 
@@ -573,6 +669,107 @@ def main() -> int:
                     "real_runtime": False,
                     "pg_2_executed": False,
                 }
+            if args.task_id == "CB-230":
+                manifest["runtime_spool"] = {
+                    "schema_version": 4,
+                    "migration_mode": "additive_backward_compatible",
+                    "migration_sha256": {
+                        "001_runtime_spool.sql": git_blob_sha256(
+                            repo,
+                            args.commit,
+                            "app/migrations/001_runtime_spool.sql",
+                        ),
+                        "002_cb200_retention_and_transitions.sql":
+                            git_blob_sha256(
+                                repo,
+                                args.commit,
+                                "app/migrations/"
+                                "002_cb200_retention_and_transitions.sql",
+                            ),
+                        "003_cb220_scheduler_control.sql":
+                            git_blob_sha256(
+                                repo,
+                                args.commit,
+                                "app/migrations/"
+                                "003_cb220_scheduler_control.sql",
+                            ),
+                        "004_cb230_durable_outbox.sql":
+                            git_blob_sha256(
+                                repo,
+                                args.commit,
+                                "app/migrations/"
+                                "004_cb230_durable_outbox.sql",
+                            ),
+                    },
+                    "journal_mode": "WAL",
+                    "synchronous": "FULL",
+                    "foreign_keys": True,
+                    "busy_timeout_ms": 5000,
+                    "active_payload_encryption": "AES-256-GCM",
+                    "active_payload_ttl_hours": 24,
+                    "real_canonical_sync": False,
+                    "channel_poll_integrated": True,
+                    "scheduler_integrated": True,
+                    "outbox_worker_integrated": True,
+                    "pg_2_executed": False,
+                }
+                manifest["durable_inbox"] = {
+                    "candidate_cursor_api": True,
+                    "cursor_commit_after_durable": True,
+                    "numeric_continuity_guard": True,
+                    "stable_source_id_required": True,
+                    "accepted_outbox_before_cursor": True,
+                    "active_payload_encryption": "AES-256-GCM",
+                    "channel_poll_integrated": True,
+                    "scheduler_integrated": True,
+                    "outbox_worker_integrated": True,
+                    "real_wechat": False,
+                    "real_runtime": False,
+                    "pg_2_executed": False,
+                }
+                manifest["job_scheduler"] = {
+                    "single_runtime_lease": True,
+                    "max_runtime_concurrency": 1,
+                    "fifo_order": "created_at,id",
+                    "transactional_claim": True,
+                    "heartbeat_and_expiry": True,
+                    "command_runtime_planes_separated": True,
+                    "workspace_alias_gate": True,
+                    "resource_readiness_gate": True,
+                    "truthful_stop_terminal": True,
+                    "unsafe_mutation_auto_replay": False,
+                    "outbox_worker_integrated": True,
+                    "real_wechat": False,
+                    "real_runtime": False,
+                    "pg_2_executed": False,
+                }
+                manifest["durable_outbox"] = {
+                    "schema_version": 4,
+                    "staged_before_provider": True,
+                    "stable_dedupe_key": True,
+                    "stable_provider_client_id": True,
+                    "max_attempts": 5,
+                    "retry_strategy": "bounded_jittered_exponential",
+                    "provider_confirmation_required": True,
+                    "unknown_outcome_auto_replay": False,
+                    "terminal_advice_redacted": True,
+                    "provider_chunk_limit_code_points": 3800,
+                    "replay_count": 1000,
+                    "recovery_cut_points": [
+                        "pending_before_claim",
+                        "claimed_before_dispatch",
+                        "provider_returned_before_confirmation_commit",
+                        "confirmation_committed_before_crash",
+                    ],
+                    "accepted_reply_integrated": True,
+                    "final_reply_integrated": True,
+                    "terminal_reply_integrated": True,
+                    "canonical_sync_integrated": False,
+                    "real_wechat": False,
+                    "real_runtime": False,
+                    "cb_240_executed": False,
+                    "pg_2_executed": False,
+                }
             manifest_path = stage / "artifact-manifest.json"
             write_json(manifest_path, manifest)
             matrix_path = (
@@ -581,7 +778,15 @@ def main() -> int:
                 else (
                     build_job_scheduler_matrix(repo, args.commit, stage)
                     if args.task_id == "CB-220"
-                    else None
+                    else (
+                        build_durable_outbox_matrix(
+                            repo,
+                            args.commit,
+                            stage,
+                        )
+                        if args.task_id == "CB-230"
+                        else None
+                    )
                 )
             )
             checksum_lines = [
@@ -606,7 +811,7 @@ def main() -> int:
     print(
         f"{args.task_id.replace('-', '')}_ARTIFACT_BUILD=PASS "
         f"release_id={args.commit} "
-        f"artifacts={4 if args.task_id in {'CB-210', 'CB-220'} else 3} "
+        f"artifacts={4 if args.task_id in {'CB-210', 'CB-220', 'CB-230'} else 3} "
         "corresponding_source_complete=true "
         "license_expression=AGPL-3.0-only_AND_GPL-3.0-only "
         "upstream_clarification_received=false publication=none"
