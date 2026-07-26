@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-26T08:39:29Z",
+  "observed_at_utc": "2026-07-26T09:47:01Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
     "path": ".github/workflows/moomooau-production.yml",
-    "sha256": "0081f2b33f03033b3d5af27876ece55d085e4f29fac36ac9df62d91a1c70821f",
+    "sha256": "e195f77e78958218b703676743ad570da0ca2ecf6721f0a8f6b2ba7e735ff3aa",
     "cron": "30 4 * * *",
     "timezone": "Australia/Sydney",
     "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
@@ -23,7 +23,7 @@
     "MOOMOOAU_GMAIL_OAUTH"
   ],
   "component_bindings": [
-    "ProtectedGAEntrypoint <- exact-main owner closed-enum first-import subphase-diagnostic dispatch, T0702-T0704 receipts, six frozen T0705 failure ledgers and one-task authority",
+    "ProtectedGAEntrypoint <- exact-main owner pointer-blob recovery repair dispatch, T0702-T0704 receipts, seven frozen T0705 failure ledgers and one-task authority",
     "ProtectedGADiagnostics <- closed last-entered operation phase/subphase only, never exception text or protected values",
     "DerivedGASecretSource <- existing moomooau-beta inputs plus in-memory GA policy only",
     "LiveRepositoryCapacityProbe <- current private repository tree and single live Release Asset",
@@ -35,7 +35,7 @@
     "OfficialAgeCrypto <- recipient plus protected tmpfs identity",
     "EncryptedGmailSyncCheckpoint <- strict private Contents CAS",
     "RawCommitSaga <- append-only private age ciphertext",
-    "ProcessedCommitSaga <- immutable datasets plus strict current CAS",
+    "ProcessedCommitSaga <- immutable datasets plus strict current CAS; current pointer fetch uses bounded Contents metadata, exact raw media and canonical Git blob SHA binding",
     "RemoteFirstImportTimestampSource <- recovered first-import timestamp and historical Gmail label state from current encrypted Processed lineage",
     "RemoteRecoveryGate <- Raw and Processed remote decrypt-and-digest proof",
     "ExactMessageTrashExecutor <- second verification plus exact messages.trash",
@@ -54,6 +54,9 @@
     "src/moomooau_archive/operation_gate.py": {
       "sha256": "d21a1cf7de18877c124277d7c7d3a95fc5ceab71c3cf51a1c4ae8f2116e60d36"
     },
+    "src/moomooau_archive/processed_commit.py": {
+      "sha256": "28435c059711ef30e146e9fdd961151c14523e15f1896f45564b8ad2f2dc4b46"
+    },
     "src/moomooau_archive/production.py": {
       "sha256": "7f7eb850f66c6f078866d22211af95beb9d9dba2052ed18d647725b4ef8b5dee"
     },
@@ -70,13 +73,13 @@
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "b442509e9d9d42d925d2c46f6ed07937c1c8e000dd3716c07e2a7bc376c3c24b"
+      "sha256": "aa613fd2b59be22fcd668e24260385e22e89aeb04b055420e9ffe9c6622c7d3c"
     },
     "src/moomooau_archive/protected_ga_diagnostics.py": {
       "sha256": "8ce12e5de0dbdcebe0bc951939a6760d03d457c469abd676263ea1c96eac0221"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "9c3a8bdcd386a7859ce64683ed9133ac41b3f67a766d8c2f1b3a4bc53e94dd8e"
+      "sha256": "15184f6a5cdc3d0df63a99ef75ff084f3b630f154a49f96902f06013e00dbd8d"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
@@ -85,10 +88,10 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "06e90b3a79401d538437212714380a2272c8a1f3f9045707efdfe06a769d5876"
+      "sha256": "b0cf946e4ca88716f3ea3b6da6d2817db4c9d1b31a24c2043e50ef73bbbc4ea2"
     },
     "tests/tasks/test_t0705.py": {
-      "sha256": "f9d82e4ab37ba57c8eb6d0546aac05e749cee63437a847ad2c413c00b245254e"
+      "sha256": "51e89dfe1a5722e3d5ddf137ba419c2ebc46ab1576bdee9c60aa296c14dccaaf"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

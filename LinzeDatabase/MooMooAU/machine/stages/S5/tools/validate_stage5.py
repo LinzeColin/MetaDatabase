@@ -512,7 +512,7 @@ def _validate_workflows(root: Path) -> list[str]:
         "workflow_dispatch:",
         "expected_head_sha:",
         "confirm_ga:",
-        "GA_SCHEDULE_MODE_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE",
+        "GA_SCHEDULE_MODE_POINTER_BLOB_RECOVERY_REPAIR_MUTATION_BUDGET_ONE",
         "runs-on: ubuntu-24.04",
         "cancel-in-progress: false",
         "requirements/stage6.lock",

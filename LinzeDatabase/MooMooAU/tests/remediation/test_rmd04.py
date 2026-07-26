@@ -211,7 +211,10 @@ class SyntheticProductionGitHubTransport:
                 {
                     "content": base64.b64encode(value).decode("ascii"),
                     "encoding": "base64",
+                    "path": relative,
                     "sha": self.revisions[relative],
+                    "size": len(value),
+                    "type": "file",
                 },
             )
         if request.method != "PUT" or request.body is None:
@@ -224,7 +227,7 @@ class SyntheticProductionGitHubTransport:
         ciphertext = base64.b64decode(payload["content"], validate=True)
         self.write_calls += 1
         revision = hashlib.sha1(
-            str(self.write_calls).encode("ascii") + b"\0" + ciphertext,
+            b"blob " + str(len(ciphertext)).encode("ascii") + b"\0" + ciphertext,
             usedforsecurity=False,
         ).hexdigest()
         self.objects[relative] = ciphertext
@@ -640,7 +643,21 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.25":
+    if status["package_version"] == "1.0.26":
+        assert status["dimensions"]["protected_oracles"] == {
+            "status": "FAILED",
+            "declared": 43,
+            "executed": 5,
+            "passed": 4,
+            "failed": 1,
+            "not_run": 38,
+        }
+        assert status["dimensions"]["publication"] == {
+            "status": "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL",
+            "controlled_main_deliveries": 24,
+            "remote_publications": 0,
+        }
+    elif status["package_version"] == "1.0.25":
         assert status["dimensions"]["protected_oracles"] == {
             "status": "FAILED",
             "declared": 43,

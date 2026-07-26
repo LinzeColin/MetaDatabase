@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.25",
+    "version": "1.0.26",
     "date": "2026-07-26",
-    "summary": "固化 T0705 第六个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出将边界收窄为 FIRST_IMPORT_RECOVERY；只读远端核验确认第六次无私库提交、无 Processed/Timeline/checkpoint/Gmail 变更，精确根因仍为 UNKNOWN。六个失败头禁止 rerun/redispatch；只授权一个不接收受保护值的 closed-enum first-import subphase 诊断 head 与一次 attempt 1，若失败仅允许一个精确 closure，T0706 和最终发布仍禁止。"
+    "summary": "固化 T0705 第七个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出将边界收窄为 FIRST_IMPORT_POINTER_FETCH；只读连接仓核验确认零提交、tree/blob 与 raw media 有效，且一份 Contents 内联表示长度不一致，精确根因仍为 UNKNOWN。七个失败头禁止 rerun/redispatch；只授权一个 exact raw media 与 canonical Git blob SHA 绑定 repair attempt 1，T0706 和最终发布仍禁止。"
   },
   {
     "version": "1.0.18",

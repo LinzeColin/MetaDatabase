@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar or manual-approval blocker. Six different exact-main GA schedule-mode rehearsals failed and all six heads are frozen; exactly one new reviewed closed-enum first-import subphase-diagnostic head may run once, followed only if needed by one exact repair-or-PASS closure head, and both must remain truthfully distinct from a GitHub schedule event",
+    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar or manual-approval blocker. Seven different exact-main GA schedule-mode rehearsals failed and all seven heads are frozen; exactly one new reviewed pointer-blob recovery repair head may run once and must remain truthfully distinct from a GitHub schedule event",
     "authorized_on": "2026-07-26",
-    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts and all six frozen failed heads remain immutable. The fourth failure independently proves six new recoverable age ciphertext objects through Raw, Processed and current-pointer persistence, with no Timeline snapshot or checkpoint change. The fifth failure disclosed coarse PROCESSED_PLAN and the sixth narrowed it to FIRST_IMPORT_RECOVERY; read-only remote verification proves no fifth- or sixth-attempt data-repository commit, and committed ordering places the sixth boundary after Raw recovery and classification but before document-envelope construction, Processed writes or Gmail mutation. The exact real-data root cause remains UNKNOWN. One first-import subphase-diagnostic delivery/attempt, at most one exact repair-or-PASS closure delivery/attempt and one receipt/schedule-closure delivery may reuse the existing moomooau-beta Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. Diagnostic output is limited to a closed public-safe phase/subphase and fixed installation-token failure class; exception text, URLs, identifiers, counters, mailbox facts, repository locators and secrets are forbidden. Existing metadata quarantine, deterministic verification, remote recovery, second verification, exact-message Trash budget, single latest Timeline replacement and checkpoint-last ordering remain fail closed. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
+    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts and all seven frozen failed heads remain immutable. The seventh public result narrowed the boundary to FIRST_IMPORT_POINTER_FETCH; read-only connected-repository verification proves no seventh-attempt private commit, two valid current pointer Git tree/blob objects and two exact raw media bodies, while one Contents inline representation is inconsistent with its declared size. The protected exception was not received, so the exact real-data root cause remains UNKNOWN. One pointer-blob recovery repair delivery/attempt and one receipt/schedule-closure delivery may reuse the existing moomooau-beta Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. Current-pointer recovery must use bounded Contents metadata, exact raw media and canonical Git blob SHA binding before decrypt; exception text, URLs, identifiers, counters, mailbox facts, repository locators and secrets remain forbidden. Existing metadata quarantine, deterministic verification, remote recovery, second verification, exact-message Trash budget, single latest Timeline replacement and checkpoint-last ordering remain fail closed. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -199,7 +199,7 @@
       "next_action": "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal authority variable, and execute exactly one protected schedule-mode GA workflow_dispatch at attempt 1 with rerun zero. Keep the platform schedule disabled until the PASS receipt is bound, then stop before T0706."
     },
     "PROTECTED_GA_REPAIR_AUTHORIZED": {
-      "package_version": "1.0.25",
+      "package_version": "1.0.26",
       "resolved_review_findings": [
         "REV-P0-002",
         "REV-P0-003",
@@ -209,10 +209,10 @@
       ],
       "current_remediation_blockers": [
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-        "T0705_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_PENDING",
+        "T0705_POINTER_BLOB_RECOVERY_REPAIR_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Deliver one new exact-main T0705 closed-enum first-import subphase-diagnostic candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the six failed heads; if the diagnostic fails, permit only one exact repair-or-PASS closure candidate. After exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
+      "next_action": "Deliver one new exact-main T0705 pointer-blob recovery repair candidate and execute exactly one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the seven failed heads. After exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
     }
   }
 }

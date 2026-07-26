@@ -1,5 +1,16 @@
 # Taskpack Changelog
 
+## 1.0.26 — 2026-07-26
+
+固化 T0705 第七次 protected GA 在 `FIRST_IMPORT_POINTER_FETCH` 的零新增副作用失败。绑定正常
+PR/main 交付、attempt-1/rerun-0 workflow、authority/cleanup 结果、one-shot authority 清理和
+只读连接仓零 commit 核验；protected exception 未被读取，精确线上根因保持 `UNKNOWN`。
+
+live A/B 协议证据证明两份 current pointer 的 Git tree/blob 与 exact raw media 均有效，但一份
+Contents JSON 内联表示解码长度与声明尺寸不一致。修复改为 bounded Contents metadata + exact
+raw media + canonical Git blob SHA 绑定，漂移时失败关闭。七个失败 head 永久冻结；只授权一个新
+repair attempt 1 和 PASS 后的 receipt/schedule closure，T0706 与最终发布仍禁止。
+
 ## 1.0.25 — 2026-07-26
 
 固化 T0705 第六次 protected GA 在 coarse `FIRST_IMPORT_RECOVERY` 的零新增副作用失败。绑定正常

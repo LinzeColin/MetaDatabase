@@ -54,6 +54,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.23",
             "1.0.24",
             "1.0.25",
+            "1.0.26",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -80,6 +81,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.23",
         "1.0.24",
         "1.0.25",
+        "1.0.26",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -102,6 +104,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.23",
         "1.0.24",
         "1.0.25",
+        "1.0.26",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -123,6 +126,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.23",
         "1.0.24",
         "1.0.25",
+        "1.0.26",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -143,6 +147,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.23",
         "1.0.24",
         "1.0.25",
+        "1.0.26",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -176,6 +181,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.23",
         "1.0.24",
         "1.0.25",
+        "1.0.26",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -190,6 +196,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.23",
         "1.0.24",
         "1.0.25",
+        "1.0.26",
     }
     t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] in {
         "1.0.13",
@@ -224,6 +231,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.23",
             "1.0.24",
             "1.0.25",
+            "1.0.26",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -251,14 +259,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0705_repair_authorized = (
-        delivery["package_version"] == "1.0.25"
+        delivery["package_version"] == "1.0.26"
         and delivery.get("overall_status")
-        == "PROTECTED_GA_SIXTH_ATTEMPT_FAILED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED"
+        == "PROTECTED_GA_SEVENTH_ATTEMPT_FAILED_POINTER_BLOB_REPAIR_AUTHORIZED"
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
-        == "CONTROLLED_T0705_FIRST_IMPORT_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+        == "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL"
     )
     t0704_protected_passed = (
         delivery["package_version"] in {"1.0.18", "1.0.19"}
@@ -313,8 +321,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702、T0703 与 T0704 均通过；T0705 六次运行失败且六个头已冻结，"
-            "closed-enum first-import subphase diagnostic 已授权"
+            "T0702、T0703 与 T0704 均通过；T0705 七次运行失败且七个头已冻结，"
+            "pointer-blob recovery repair 已授权"
             if t0705_repair_authorized
             else "T0702、T0703 与 T0704 受保护验证均通过；T0705 一次性 schedule-mode "
             "rehearsal 已授权待运行"
@@ -467,12 +475,19 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "一个精确 repair-or-PASS closure。诊断不得接收异常、标识、URL、计数、Secret、"
             "仓库定位或邮箱派生值"
         ),
+        "T0705_POINTER_BLOB_RECOVERY_REPAIR_PENDING": (
+            "T0705 七个 exact-main attempt-1 head 均已冻结；第七次 authority 与身份清理通过，"
+            "公开输出将边界收窄为 FIRST_IMPORT_POINTER_FETCH。只读连接仓核验确认第七次零提交，"
+            "两份 current pointer 的 tree/blob 与 raw media 有效，但一份 Contents 内联表示"
+            "长度不一致；protected exception 未读取，精确根因仍为 UNKNOWN。仅授权一个使用"
+            "bounded metadata、exact raw media 与 canonical Git blob SHA 的 repair attempt 1"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 六个失败头已冻结且 first-import subphase diagnostic "
+            "T0704 已通过；T0705 七个失败头已冻结且 pointer-blob recovery repair "
             "已授权，T0706 及其后的"
             "受保护验收未授权"
             if t0705_repair_authorized
@@ -502,7 +517,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0705 六个 GA 失败头已冻结，封闭 first-import subphase diagnostic 已授权待运行"
+            "RMD-06 T0705 七个 GA 失败头已冻结，pointer-blob recovery repair 已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -533,9 +548,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 六个 exact-main attempt-1 失败头已冻结；第六次公开输出将边界收窄为 "
-            "FIRST_IMPORT_RECOVERY，只读远端核验确认私库零提交、Processed/Timeline/"
-            "checkpoint/Gmail 零变更，封闭 first-import subphase diagnostic 候选待执行"
+            "T0705 七个 exact-main attempt-1 失败头已冻结；第七次公开输出将边界收窄为 "
+            "FIRST_IMPORT_POINTER_FETCH，只读连接仓核验确认零提交、tree/blob 与 raw media "
+            "有效且一份 Contents 内联表示长度不一致，pointer-blob recovery repair 待执行"
             if t0705_repair_authorized
             else "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
             "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
@@ -582,9 +597,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.25 closed-enum first-import subphase diagnostic 精确候选并执行一次"
-            "新 head protected SCHEDULE_REHEARSAL；六个失败头与新候选均 rerun 0；若诊断"
-            "失败只允许一个精确 repair-or-PASS closure，PASS 后只"
+            "交付 v1.0.26 pointer-blob recovery repair 精确候选并执行一次"
+            "新 head protected SCHEDULE_REHEARSAL；七个失败头与新候选均 rerun 0；PASS 后只"
             "启用已提交 04:30 "
             "schedule，并停在 T0706 前"
             if t0705_repair_authorized
@@ -899,6 +913,46 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": (
                     "T0705 六个失败头冻结后仅允许一个封闭枚举子阶段诊断及必要时一个精确 closure"
                 ),
+            },
+            {
+                "en": "FIRST_IMPORT_POINTER_FETCH",
+                "zh": "首次导入 current pointer 取回",
+                "note": "在 pointer 解密与任何新 Processed 写入前取回远端加密 current 指针",
+            },
+            {
+                "en": "Git blob",
+                "zh": "Git blob 对象",
+                "note": "以 blob header 与原始字节计算 canonical SHA 的不可变 Git 内容对象",
+            },
+            {
+                "en": "raw media",
+                "zh": "原始媒体表示",
+                "note": "GitHub Contents API 返回未经内联 JSON base64 重编码的 exact body",
+            },
+            {
+                "en": "bounded",
+                "zh": "有界",
+                "note": "输入、尺寸、路径或次数受明确上限约束",
+            },
+            {
+                "en": "exception",
+                "zh": "异常",
+                "note": "运行时错误对象；本阶段不读取或公开受保护异常内容",
+            },
+            {
+                "en": "pointer-blob",
+                "zh": "指针 blob",
+                "note": "保存 Processed current 指针的 age 加密 Git blob",
+            },
+            {
+                "en": "tree",
+                "zh": "Git 目录树",
+                "note": "Git commit 下用于绑定路径、mode 与 blob SHA 的不可变目录对象",
+            },
+            {
+                "en": "POINTER_BLOB_RECOVERY_REPAIR_PENDING",
+                "zh": "指针 blob 恢复修复待执行",
+                "note": "七个失败头冻结后仅剩一次 exact raw media 与 Git blob SHA 绑定修复权限",
             },
             {
                 "en": "closed-enum",
@@ -1290,8 +1344,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0705 六个 GA 失败头已冻结，closed-enum first-import subphase "
-            "diagnostic 已授权待运行"
+            "RMD-06 T0705 七个 GA 失败头已冻结，pointer-blob recovery repair 已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1322,8 +1375,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 六个失败头已冻结；仅允许新 exact-main closed-enum first-import "
-            "subphase diagnostic attempt 1，失败后至多一个精确 closure attempt"
+            "T0705 七个失败头已冻结；仅允许新 exact-main pointer-blob recovery repair attempt 1"
             if t0705_repair_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1356,7 +1408,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.25 closed-enum first-import subphase diagnostic exact-main 候选、"
+            "交付 v1.0.26 pointer-blob recovery repair exact-main 候选、"
             "执行一次新 attempt-1 "
             "SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
             if t0705_repair_authorized
@@ -1426,8 +1478,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 六次运行失败，"
-                    "六个失败头已冻结，closed-enum first-import subphase diagnostic 待运行）"
+                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 七次运行失败，"
+                    "七个失败头已冻结，pointer-blob recovery repair 待运行）"
                     if t0705_repair_authorized
                     else "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 一次性 "
                     "SCHEDULE_REHEARSAL 已授权待运行）"
@@ -1755,15 +1807,15 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         changelog.insert(
             0,
             {
-                "version": "1.0.25",
+                "version": "1.0.26",
                 "date": "2026-07-26",
                 "summary": (
-                    "固化 T0705 第六个 exact-main attempt-1 失败：authority 与身份清理通过，"
-                    "protected 输出将边界收窄为 FIRST_IMPORT_RECOVERY；只读远端核验确认"
-                    "第六次无私库提交、无 Processed/Timeline/checkpoint/Gmail 变更，精确根因"
-                    "仍为 UNKNOWN。六个失败头禁止 rerun/redispatch；只授权一个不接收受保护"
-                    "值的 closed-enum first-import subphase 诊断 head 与一次 attempt 1，若"
-                    "失败仅允许一个精确 closure，T0706 和最终发布仍禁止。"
+                    "固化 T0705 第七个 exact-main attempt-1 失败：authority 与身份清理通过，"
+                    "protected 输出将边界收窄为 FIRST_IMPORT_POINTER_FETCH；只读连接仓核验"
+                    "确认零提交、tree/blob 与 raw media 有效，且一份 Contents 内联表示长度"
+                    "不一致，精确根因仍为 UNKNOWN。七个失败头禁止 rerun/redispatch；只授权"
+                    "一个 exact raw media 与 canonical Git blob SHA 绑定 repair attempt 1，"
+                    "T0706 和最终发布仍禁止。"
                 ),
             },
         )
