@@ -153,10 +153,10 @@ def _validate_contracts(root: Path) -> list[str]:
     if [item.get("task_id") for item in items] != STAGE7_TASKS:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
-        local.get("overall_status") != "T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED"
+        local.get("overall_status") != "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
-        or "No fixed calendar observation period applies"
+        or "No fixed calendar observation period or wall-clock 04:30 wait applies"
         not in local.get("final_acceptance_policy", "")
     ):
         errors.append("Stage 7 acceptance policy overstates current completion")
@@ -200,36 +200,52 @@ def _validate_contracts(root: Path) -> list[str]:
     if (
         run.get("schema_version") != "moomooau.run-contract.v1"
         or run.get("stage_id") != "S7"
-        or run.get("task_id") != "T0704"
-        or run.get("baseline_commit") != "65cef09935475ab578d28a61817cc92700d6da04"
+        or run.get("task_id") != "T0705"
+        or run.get("baseline_commit") != "c4d4f6cdd60398fba2724d32a99a59306f4225a1"
         or run.get("baseline_manifest_sha256")
-        != "8129ff31427b98ecb93a0fe7ca5fbc16117e3908ddf3053805d6742bbe813d9c"  # pragma: allowlist secret  # noqa: E501
+        != "957ce9a5455d85927080e913ac364c2dfdd9a019b8d0426fa07b39fd965cf25e"  # pragma: allowlist secret  # noqa: E501
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
-        or authorization.get("purpose") != "T0704_PROTECTED_BLUE_GREEN_RECEIPT_CLOSURE_ONLY"
-        or authorization.get("prior_failed_attempts_exact") != 1
-        or authorization.get("successful_blue_green_receipts_exact") != 1
-        or authorization.get("blue_green_authorized") is not False
-        or authorization.get("t0705_authorized") is not False
-        or authorization.get("protected_blue_green_dispatch_limit") != 0
-        or authorization.get("controlled_main_delivery_limit") != 1
+        or authorization.get("purpose") != "T0705_PROTECTED_GA_SCHEDULE_MODE_AND_ENABLEMENT_ONLY"
+        or authorization.get("t0704_receipt_required") is not True
+        or authorization.get("t0704_receipt_sha256")
+        != "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"
+        or authorization.get("t0705_authorized") is not True
+        or authorization.get("t0706_authorized") is not False
+        or authorization.get("ga_rehearsal_dispatch_limit") != 1
+        or authorization.get("ga_rehearsal_rerun_limit") != 0
+        or authorization.get("controlled_main_delivery_limit") != 2
         or authorization.get("manual_environment_reviewers_required") is not False
+        or authorization.get("fixed_calendar_wait_days") != 0
         or authorization.get("final_publication_authorized") is not False
-        or effect_budget.get("controlled_main_deliveries_maximum") != 1
-        or any(
-            value != 0
-            for key, value in effect_budget.items()
-            if key != "controlled_main_deliveries_maximum"
-        )
+        or effect_budget.get("controlled_main_deliveries_maximum") != 2
+        or effect_budget.get("protected_environment_secret_names_maximum") != 8
+        or effect_budget.get("private_data_repository_creations_maximum") != 0
+        or effect_budget.get("github_app_creations_maximum") != 0
+        or effect_budget.get("protected_ga_rehearsal_dispatches_maximum") != 1
+        or effect_budget.get("protected_ga_rehearsal_reruns_maximum") != 0
+        or effect_budget.get("protected_ga_pipeline_runs_maximum") != 1
+        or effect_budget.get("platform_schedule_events_during_rehearsal_maximum") != 0
+        or effect_budget.get("gmail_exact_message_trash_mutations_maximum") != 1
+        or effect_budget.get("timeline_snapshot_commit_attempts_maximum") != 1
+        or effect_budget.get("timeline_state_commits_maximum") != 1
+        or effect_budget.get("timeline_publish_attempts_maximum") != 1
+        or effect_budget.get("release_asset_uploads_maximum") != 1
+        or effect_budget.get("maximum_live_timeline_assets") != 1
+        or effect_budget.get("gmail_checkpoint_mutations_maximum") != 1
+        or effect_budget.get("production_schedule_enablement_mutations_maximum") != 1
+        or effect_budget.get("t0706_runs_maximum") != 0
+        or effect_budget.get("recovery_drill_runs_maximum") != 0
+        or effect_budget.get("patch_lifecycle_protected_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "workflow rerun or redispatch of a failed or successful T0704 head" in item
+            "more than one protected T0705 rehearsal dispatch" in item
             for item in run.get("non_goals", [])
         )
         or not run.get("rollback")
         or not run.get("stop_conditions")
     ):
-        errors.append("Stage 7 T0704 protected PASS evidence-closure Run Contract is incomplete")
+        errors.append("Stage 7 T0705 protected GA Run Contract is incomplete")
     blue_green_ledger_path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER
     blue_green_schema_path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA
     blue_green_ledger = _load(blue_green_ledger_path)
@@ -354,7 +370,7 @@ def _validate_contracts(root: Path) -> list[str]:
     if (
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
-        or status.get("stage_status") != "T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED"
+        or status.get("stage_status") != "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
@@ -364,25 +380,26 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_workflow_runs") != 20
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
-        or status.get("delivery_status") != "CONTROLLED_T0704_COMPLETED_NOT_FINAL"
-        or status.get("ordering_status") != "T0704_PASS_RECEIPT_BOUND_SCOPE_STOP_BEFORE_T0705"
+        or status.get("delivery_status") != "CONTROLLED_T0705_CANDIDATE_NOT_FINAL"
+        or status.get("ordering_status") != "T0704_PASS_RECEIPT_BOUND_T0705_ONE_ATTEMPT_AUTHORIZED"
         or status.get("diagnostic_repair_status")
         != "GITHUB_RELEASE_ASSET_302_RECOVERY_VERIFIED_PROTECTED"
         or status.get("new_controlled_delivery_authorized") is not True
-        or status.get("new_protected_dispatch_authorized") is not False
+        or status.get("new_protected_dispatch_authorized") is not True
     ):
-        errors.append("Stage 7 task status is not truthfully T0704 scope-stopped")
+        errors.append("Stage 7 task status is not truthfully T0705 authorized-pending")
 
     semantic = _load(root / "machine/stages/S7/contracts/semantic_gate.json")
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
-        semantic.get("status") != "T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED"
+        semantic.get("status") != "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
         or "T0704_FIRST_ATTEMPT_FAILED_HEAD_FROZEN" not in semantic_statuses
         or "T0704_RELEASE_ASSET_302_RECOVERY_REPAIR_VERIFIED" not in semantic_statuses
         or "T0704_PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP" not in semantic_statuses
+        or "T0705_ONE_SHOT_SCHEDULE_REHEARSAL_AUTHORIZED" not in semantic_statuses
         or "T0703_FAILED_LINEAGE_FROZEN" not in semantic_statuses
         or "PROTECTED_ZERO_NEW_WRITE_RECONCILIATION_VALIDATED" not in semantic_statuses
         or "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS" not in semantic_statuses
@@ -770,7 +787,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED",
+        "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -836,6 +853,7 @@ def _validate_workflow(root: Path) -> list[str]:
         "protected_m3_entrypoint.py",
         "protected_blue_green.py",
         "protected_blue_green_entrypoint.py",
+        "protected_ga_entrypoint.py",
         "gmail_sync_checkpoint.py",
         "model_boundary.py",
         "recovery_drill.py",
@@ -1233,7 +1251,7 @@ def _validate_workflow(root: Path) -> list[str]:
     )
     production_uses = _action_uses(production)
     expected_secret_names = {
-        "MOOMOOAU_PRODUCTION_CONFIG",
+        "MOOMOOAU_BETA_CONFIG",
         "MOOMOOAU_SENDER_REGISTRY",
         "MOOMOOAU_CLASSIFICATION_REGISTRY",
         "MOOMOOAU_PARSER_REGISTRY",
@@ -1243,13 +1261,30 @@ def _validate_workflow(root: Path) -> list[str]:
         "MOOMOOAU_GMAIL_OAUTH",
     }
     actual_secret_names = set(re.findall(r"\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}", production))
+    try:
+        production_value = yaml.load(production, Loader=yaml.BaseLoader)
+    except yaml.YAMLError:
+        production_value = None
     production_required = (
         'cron: "30 4 * * *"',
         'timezone: "Australia/Sydney"',
         "workflow_dispatch:",
+        "expected_head_sha:",
+        "confirm_ga:",
+        "GA_SCHEDULE_MODE_REHEARSAL_MUTATION_BUDGET_ONE",
         "permissions:\n  contents: read",
-        "MOOMOOAU_PRODUCTION_ENABLED == 'true'",
-        "environment: moomooau-production",
+        "group: moomooau-production-single-writer",
+        "Fail closed on invalid protected GA dispatch context",
+        'test "$GITHUB_REPOSITORY_ID" = "1300525906"',
+        'test "$GITHUB_REPOSITORY_OWNER_ID" = "68840188"',
+        'test "$GITHUB_ACTOR_ID" = "68840188"',
+        'test "$GITHUB_RUN_ATTEMPT" = "1"',
+        'test "$RUNNER_ENVIRONMENT" = "github-hosted"',
+        'test "$GITHUB_REF" = "refs/heads/main"',
+        'test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"',
+        'test "$GA_AUTHORIZED_HEAD" = "$GITHUB_SHA"',
+        "needs: ga-authority-gate",
+        "environment: moomooau-beta",
         "concurrency:",
         "cancel-in-progress: false",
         "runs-on: ubuntu-24.04",
@@ -1257,9 +1292,17 @@ def _validate_workflow(root: Path) -> list[str]:
         "--require-hashes",
         "--no-build-isolation --no-deps .",
         pins["age"]["linux_amd64_archive_sha256"],
-        "python -m moomooau_archive.production",
+        "tests/tasks/test_t0705.py",
+        "validate_package.py",
+        "validate_delivery_status.py",
+        "validate_publication.py",
+        "protected_ga_entrypoint",
+        "--contract-only",
         "--execute-protected",
-        '--event-name "$EVENT_NAME"',
+        "blue_green_receipt_sha256",
+        "ga_gate_sha256",
+        "MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD",
+        "MOOMOOAU_PRODUCTION_ENABLED",
         "persist-credentials: false",
     )
     production_forbidden = (
@@ -1270,14 +1313,24 @@ def _validate_workflow(root: Path) -> list[str]:
         "git push",
         "contents: write",
         "MOOMOOAU_STAGE5_PROTECTED_ORACLE",
+        "environment: moomooau-production",
+        "python -m moomooau_archive.production",
+    )
+    production_workflow_triggers = (
+        set(production_value.get("on", {}))
+        if isinstance(production_value, dict) and isinstance(production_value.get("on"), dict)
+        else set()
     )
     if (
         not PRODUCTION_WORKFLOW.is_file()
+        or production_workflow_triggers != {"schedule", "workflow_dispatch"}
         or any(token not in production for token in production_required)
         or any(token.casefold() in production.casefold() for token in production_forbidden)
         or actual_secret_names != expected_secret_names
         or production.count("${{ secrets.") != len(expected_secret_names)
-        or len(production_uses) != 2
+        or production.count('test "$RUNNER_ENVIRONMENT" = "github-hosted"') != 2
+        or production.count(pins["age"]["linux_amd64_archive_sha256"]) != 2
+        or len(production_uses) != 4
         or any(PINNED_ACTION.fullmatch(item) is None for item in production_uses)
         or any(
             item.rsplit("@", 1)[1]
@@ -1285,7 +1338,20 @@ def _validate_workflow(root: Path) -> list[str]:
             for item in production_uses
         )
     ):
-        errors.append("protected production workflow drifts from the RMD-04 composition")
+        errors.append("protected production workflow drifts from the T0705 candidate contract")
+    errors.extend(
+        validate_workflow_expression_contexts(
+            production_value,
+            label=".github/workflows/moomooau-production.yml",
+        )
+    )
+    errors.extend(
+        validate_governance_dependency_auth(
+            production_value,
+            label=".github/workflows/moomooau-production.yml",
+            required=False,
+        )
+    )
     return errors
 
 
@@ -1837,6 +1903,11 @@ def _validate_evidence(root: Path) -> list[str]:
             "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN",
             "FINAL_ACCEPTANCE_AND_POST_BLUE_GREEN_STAGE7_PHASES_NOT_RUN",
         },
+        "T0705": {
+            "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
+            "T0705_PROTECTED_RECEIPT_NOT_BOUND",
+            "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN",
+        },
         "T0706": {
             "GA_NOT_COMPLETE",
             "CODEX_AUTOMATION_NOT_CREATED",
@@ -1943,7 +2014,9 @@ def _validate_evidence(root: Path) -> list[str]:
 
     latest = _load(root / "evidence/stage7/latest.json")
     observation = latest.get("observation", {})
-    aggregate_required_blockers = set().union(*required_blockers.values())
+    aggregate_required_blockers = set().union(*required_blockers.values()) - {
+        "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN"
+    }
     aggregate_resolved_blockers = set().union(*resolved_local_blockers.values())
     not_run = (
         "ga_0430_schedule",
@@ -1953,11 +2026,15 @@ def _validate_evidence(root: Path) -> list[str]:
     )
     if (
         latest.get("stage_id") != "S7"
-        or latest.get("status") != "T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED"
+        or latest.get("status") != "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
-        or latest.get("scope") != "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_T0704_PASS_RECEIPTS"
+        or latest.get("scope")
+        != (
+            "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_T0704_PASS_RECEIPTS"
+            "_AND_T0705_ONE_SHOT_AUTHORITY"
+        )
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
         or latest.get("completed_task_count") != 0
@@ -1978,7 +2055,9 @@ def _validate_evidence(root: Path) -> list[str]:
         != "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED"
         or observation.get("blue_green_deterministic_evidence_run")
         != "PASS_ONE_RECOVERABLE_ENCRYPTED_TIMELINE_ZERO_GMAIL_OR_CURRENT_MUTATION"
-        or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
+        or observation.get("ga_full_pipeline_local_mechanism")
+        != "PASS_EXACT_PROTECTED_ENTRYPOINT_READY"
+        or observation.get("ga_protected_entrypoint") != "AUTHORIZED_ONE_SHOT_NOT_RUN"
         or observation.get("codex_auto_local_policy") != "PASS"
         or observation.get("recovery_drill_local_mechanism") != "PASS"
         or observation.get("patch_lifecycle_local_policy") != "PASS"
@@ -1996,7 +2075,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 17
+        or observation.get("controlled_main_deliveries") != 18
         or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or observation.get("remote_publications") != 0
         or observation.get("m3_runs") != 1
@@ -2006,14 +2085,15 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("maximum_observed_live_timeline_assets") != 1
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
-        or latest.get("delivery_status") != "CONTROLLED_T0704_COMPLETED_NOT_FINAL"
+        or latest.get("delivery_status") != "CONTROLLED_T0705_CANDIDATE_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Close T0704/S7AC-004 from the exact protected receipt and stop before T0705. "
-            "No T0704 rerun or redispatch is allowed; T0705 requires a new explicit Run Contract."
+            "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal "
+            "authority variable, execute one attempt-1 protected schedule-mode rehearsal with "
+            "rerun zero, and stop before T0706."
         )
     ):
-        errors.append("Stage 7 aggregate evidence is not truthfully T0704 scope-stopped")
+        errors.append("Stage 7 aggregate evidence is not truthfully T0705 authorized-pending")
     return errors
 
 

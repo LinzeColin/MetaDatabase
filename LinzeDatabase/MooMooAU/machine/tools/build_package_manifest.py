@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.18 protected T0704 PASS evidence-closure manifest."""
+"""Build the v1.0.19 protected T0705 GA candidate manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.18.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.18"
-PACKAGE_VERSION = "1.0.18"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.17.json")
-PREDECESSOR_MANIFEST_SHA256 = "8129ff31427b98ecb93a0fe7ca5fbc16117e3908ddf3053805d6742bbe813d9c"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.19.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.19"
+PACKAGE_VERSION = "1.0.19"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.18.json")
+PREDECESSOR_MANIFEST_SHA256 = "957ce9a5455d85927080e913ac364c2dfdd9a019b8d0426fa07b39fd965cf25e"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.17 manifest drift")
+        raise ValueError("predecessor v1.0.18 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -166,11 +166,12 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or status.get("package_version") != PACKAGE_VERSION
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
-        or status.get("overall_status")
-        != "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED"
-        or "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN" not in status.get("blockers", [])
+        or status.get("overall_status") != "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING"
+        or "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING" not in status.get("blockers", [])
     ):
-        raise ValueError("T0704 protected PASS is not in the exact scope-stopped state")
+        raise ValueError(
+            "T0705 protected GA candidate is not in the exact authorized-pending state"
+        )
     entries = [
         {
             "path": path.relative_to(root).as_posix(),
@@ -180,29 +181,30 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v17",
+        "schema_version": "moomooau.package-manifest.v19",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 T0704 evidence closure only: preserve the exact T0702, T0703 and T0704 "
-            "protected PASS receipts plus every immutable failed-attempt ledger. One controlled "
-            "main delivery may make the T0704 closure durable. Every protected dispatch, Secret "
-            "read, Gmail or private-repository action, T0705, scheduling and final publication "
-            "remain forbidden."
+            "Stage 7 T0705 only: preserve the exact T0702, T0703 and T0704 protected PASS "
+            "receipts plus every immutable failed-attempt ledger. One launch delivery, one "
+            "exact-main attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and one later "
+            "receipt/authority-closure delivery are authorized. Reuse only the existing eight-name "
+            "moomooau-beta protected input set and installed GitHub App; T0706, final Acceptance "
+            "and final publication remain unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.18 T0704 PASS snapshot: immutable v1.0.1 product contracts "
-            "and v1.0.2-v1.0.17 predecessor lineage remain unchanged. The failed T0704 head is "
-            "frozen. The distinct exact-main repair attempt passed authority, Blue-Green and "
-            "identity cleanup; reused the existing candidate Processed shadow and Timeline "
-            "snapshot; retained processed-current; and remotely recovered exactly one "
-            "age-encrypted latest Timeline. Independent namespace-scoped reads prove one encrypted "
-            "state-only repair commit, unchanged Raw and Processed trees, zero duplicate candidate "
-            "or snapshot writes and one nonempty age envelope Asset. T0704/S7AC-004 pass, while "
-            "T0705, production health, final Acceptance, Stage 7 completion and final publication "
-            "remain unclaimed."
+            "Baseline-preserving v1.0.19 T0705 candidate: immutable v1.0.1 product contracts and "
+            "v1.0.2-v1.0.18 predecessor lineage remain unchanged. The candidate binds the T0702, "
+            "T0703 and T0704 PASS receipts, exact owner/main/workflow context, one-shot exact-head "
+            "authority, the production SCHEDULE planner path targeting 04:30 Australia/Sydney, "
+            "live private-repository capacity refresh before Gmail exchange, deterministic "
+            "verified-only full reads, Raw and Processed remote recovery before exact-message "
+            "Trash, one recoverable latest encrypted Timeline and checkpoint-last CAS. The "
+            "workflow_dispatch must call itself SCHEDULE_REHEARSAL and never a platform schedule "
+            "event. Protected execution, T0705/S7AC-005 PASS, T0706, final Acceptance, Stage 7 "
+            "completion and final publication remain unclaimed in this candidate."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

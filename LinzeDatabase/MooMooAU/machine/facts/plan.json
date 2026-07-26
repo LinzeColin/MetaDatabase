@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前",
-  "phase": "T0704/S7AC-004 精确成功回执闭合；全部 T0704 权限已消耗",
-  "task": "完成 v1.0.18 精确成功证据交付并停止；T0705 需要新的显式 Run Contract",
+  "stage": "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行",
+  "phase": "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行",
+  "task": "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前",
   "owner": "Codex 开发线程"
 }

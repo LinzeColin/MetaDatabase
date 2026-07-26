@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN",
-    "内容": "T0704/S7AC-004 已由精确受保护回执关闭；当前证据闭包 Run Contract 明确不授权 T0705",
+    "id": "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
+    "内容": "T0705 exact-main 候选已绑定 T0702–T0704 PASS 回执、现有八项 protected input、实时容量刷新与 one-shot 权限；唯一 attempt-1 SCHEDULE_REHEARSAL 尚未运行",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
@@ -29,14 +29,7 @@
   },
   {
     "id": "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "内容": "T0704 已通过；T0705 及其后的受保护验收仍未执行",
-    "owner_only": false,
-    "owner": "Codex 开发线程",
-    "首次登记": "2026-07-22"
-  },
-  {
-    "id": "T0705_NEW_RUN_CONTRACT_REQUIRED",
-    "内容": "进入 T0705 前必须建立新的显式 Run Contract；T0704 的全部 dispatch 权限已消耗",
+    "内容": "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

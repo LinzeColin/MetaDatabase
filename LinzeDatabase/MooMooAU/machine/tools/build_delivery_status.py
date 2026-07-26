@@ -99,6 +99,7 @@ def _select_transition_state(
     *,
     t0704_authorized: bool = False,
     t0704_repair_authorized: bool = False,
+    t0705_authorized: bool = False,
 ) -> tuple[str, dict[str, Any]]:
     states = model.get("states")
     if not isinstance(states, dict) or set(states) != {
@@ -111,6 +112,7 @@ def _select_transition_state(
         "PROTECTED_M3_PASS_T0704_AUTHORIZED",
         "PROTECTED_BLUE_GREEN_REPAIR_AUTHORIZED",
         "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP",
+        "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
@@ -125,7 +127,11 @@ def _select_transition_state(
                     else "PROTECTED_BETA_PASS_M3_AUTHORIZED"
                 )
             elif protected_blue_green_receipt is not None:
-                state_name = "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP"
+                state_name = (
+                    "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED"
+                    if t0705_authorized
+                    else "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP"
+                )
             elif t0704_authorized:
                 state_name = (
                     "PROTECTED_BLUE_GREEN_REPAIR_AUTHORIZED"
@@ -179,6 +185,49 @@ def _t0704_authorized(root: Path) -> bool:
         and budget.get("maximum_live_timeline_assets") == 1
         and budget.get("scheduled_runs_maximum") == 0
         and budget.get("ga_runs_maximum") == 0
+    )
+
+
+def _t0705_authorized(root: Path) -> bool:
+    path = root / STAGE7_RUN_CONTRACT_PATH
+    if not path.is_file() or path.is_symlink():
+        return False
+    contract = _load(path)
+    authorization = contract.get("authorization", {})
+    budget = contract.get("authorized_effect_budget", {})
+    return bool(
+        contract.get("schema_version") == "moomooau.run-contract.v1"
+        and contract.get("stage_id") == "S7"
+        and contract.get("task_id") == "T0705"
+        and authorization.get("purpose") == "T0705_PROTECTED_GA_SCHEDULE_MODE_AND_ENABLEMENT_ONLY"
+        and authorization.get("t0704_receipt_required") is True
+        and authorization.get("t0704_receipt_sha256")
+        == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"
+        and authorization.get("t0705_authorized") is True
+        and authorization.get("t0706_authorized") is False
+        and authorization.get("ga_rehearsal_dispatch_limit") == 1
+        and authorization.get("ga_rehearsal_rerun_limit") == 0
+        and authorization.get("controlled_main_delivery_limit") == 2
+        and authorization.get("manual_environment_reviewers_required") is False
+        and authorization.get("fixed_calendar_wait_days") == 0
+        and authorization.get("final_publication_authorized") is False
+        and budget.get("controlled_main_deliveries_maximum") == 2
+        and budget.get("protected_environment_secret_names_maximum") == 8
+        and budget.get("protected_ga_rehearsal_dispatches_maximum") == 1
+        and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
+        and budget.get("protected_ga_pipeline_runs_maximum") == 1
+        and budget.get("platform_schedule_events_during_rehearsal_maximum") == 0
+        and budget.get("gmail_exact_message_trash_mutations_maximum") == 1
+        and budget.get("timeline_snapshot_commit_attempts_maximum") == 1
+        and budget.get("timeline_state_commits_maximum") == 1
+        and budget.get("timeline_publish_attempts_maximum") == 1
+        and budget.get("release_asset_uploads_maximum") == 1
+        and budget.get("maximum_live_timeline_assets") == 1
+        and budget.get("gmail_checkpoint_mutations_maximum") == 1
+        and budget.get("production_schedule_enablement_mutations_maximum") == 1
+        and budget.get("t0706_runs_maximum") == 0
+        and budget.get("recovery_drill_runs_maximum") == 0
+        and budget.get("patch_lifecycle_protected_runs_maximum") == 0
     )
 
 
@@ -644,6 +693,7 @@ def _validate_composition_for_state(
                 "1.0.16",
                 "1.0.17",
                 "1.0.18",
+                "1.0.19",
             },
         ),
     )
@@ -773,6 +823,7 @@ def _validate_stage6_evidence_transition(
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
@@ -813,6 +864,7 @@ def build_status(
         protected_blue_green_receipt,
         t0704_authorized=_t0704_authorized(root),
         t0704_repair_authorized=_t0704_repair_authorized(root),
+        t0705_authorized=_t0705_authorized(root),
     )
 
     workflow_matrix = _load(root / WORKFLOW_MATRIX_PATH)
@@ -969,6 +1021,7 @@ def build_status(
     authorized_t0704_state = state_name == "PROTECTED_M3_PASS_T0704_AUTHORIZED"
     repair_t0704_state = state_name == "PROTECTED_BLUE_GREEN_REPAIR_AUTHORIZED"
     passed_t0704_state = state_name == "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP"
+    authorized_t0705_state = state_name == "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -1093,6 +1146,29 @@ def build_status(
         production_workflow_runs = 0
         publication_status = "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL"
         mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_FAILED_ATTEMPT"
+    elif authorized_t0705_state:
+        if (
+            protected_receipt is None
+            or protected_m3_attempt_ledger is None
+            or protected_m3_receipt is None
+            or protected_blue_green_attempt_ledger is None
+            or protected_blue_green_receipt is None
+            or protected_executed != 4
+            or protected_passed != 4
+            or protected_failed != 0
+        ):
+            raise ValueError("T0705 authority lacks the exact protected T0704 PASS lineage")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING"
+        protected_status = "PARTIAL"
+        production_workflow_runs = 0
+        publication_status = "CONTROLLED_T0705_CANDIDATE_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0705_PREFLIGHT"
     elif passed_t0704_state:
         if (
             protected_receipt is None
@@ -1236,6 +1312,7 @@ def build_status(
                         else 0
                     )
                     + (1 if protected_blue_green_receipt is not None else 0)
+                    + (1 if authorized_t0705_state else 0)
                     if protected_receipt is not None
                     else 0
                 ),

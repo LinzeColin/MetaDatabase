@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.18",
-  "status_as_of_utc": "2026-07-25T22:52:22Z",
+  "package_version": "1.0.19",
+  "status_as_of_utc": "2026-07-26T00:06:15Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED",
+  "overall_status": "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -25,7 +25,7 @@
       "status": "LOCAL_MECHANISMS_EVIDENCED",
       "evidenced_tasks": 58,
       "total_tasks": 58,
-      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PASS_RECEIPT"
+      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0705_PREFLIGHT"
     },
     "formal_task_completion": {
       "status": "INCOMPLETE",
@@ -53,14 +53,14 @@
       "workflow_runs": 0,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN",
+        "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_WORKFLOW_NOT_RUN"
       ]
     },
     "publication": {
-      "status": "CONTROLLED_T0704_COMPLETED_NOT_FINAL",
-      "controlled_main_deliveries": 17,
+      "status": "CONTROLLED_T0705_CANDIDATE_NOT_FINAL",
+      "controlled_main_deliveries": 18,
       "remote_publications": 0
     }
   },
@@ -219,11 +219,10 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN",
+    "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_WORKFLOW_NOT_RUN",
     "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "T0705_NEW_RUN_CONTRACT_REQUIRED",
     "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
   ],
   "resolved_review_findings": [
@@ -233,18 +232,18 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Close T0704/S7AC-004 from the exact protected receipt and stop before T0705. No T0704 rerun or redispatch is allowed; a new explicit T0705 Run Contract is required.",
+  "next_action": "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal authority variable, and execute exactly one protected schedule-mode GA workflow_dispatch at attempt 1 with rerun zero. Keep the platform schedule disabled until the PASS receipt is bound, then stop before T0706.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "b44c9c684b8ee573211716eeeef32f273dc703ac3d0488f4d0d3c3647fe846e6",
+    "acceptance_summary_sha256": "71ba5a42c028310189efa7555fa7cd1b0ff7de5e041ffb1ac9c358e51699ccb4",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "98a13cd21dafdfedf925f2f7d7adba9ead6da93ab7fa916055a49fde4a3ba00a",
+    "delivery_status_model_sha256": "7cbc83b01780962ee057ee29be3635e32cf7093f5a0fd25611fdf65598b99ff2",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "8edf3f363188d90584214ac4fa2ffa0edb5e2a334527be4f2a3e65bb43ac2b3d",
+    "production_composition_sha256": "8b385cc7aa45607acd8638162d33e53ca768f7402a75f49fddeb955f16be6952",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "7693d61b768dcea22b5fbb1ac410b7ea786dc3eb9878640347be53c912f5f6ab",
+    "task_evidence_root_sha256": "4031dc174db24a4b14e45b9afa29c5578b285a2174f48f2b7c3e89f36e860d33",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",

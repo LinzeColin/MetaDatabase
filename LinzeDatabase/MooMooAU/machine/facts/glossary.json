@@ -36,43 +36,43 @@
   "invariants": [
     {
       "rule": "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     },
     {
       "rule": "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。",
-      "note": "v1.0.1 产品契约，由 v1.0.18 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.19 原样继承"
     }
   ],
   "terms": [
@@ -165,6 +165,56 @@
       "en": "Beta",
       "zh": "小规模真实只存原始数据阶段",
       "note": "T0702 受保护发布阶段"
+    },
+    {
+      "en": "GA",
+      "zh": "全面可用阶段",
+      "note": "T0705 完整受保护归档路径"
+    },
+    {
+      "en": "SCHEDULE_REHEARSAL",
+      "zh": "调度模式演练",
+      "note": "手动触发同一调度规划路径，但不声称平台调度事件"
+    },
+    {
+      "en": "PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
+      "zh": "受保护全面可用调度演练待执行",
+      "note": "T0705 唯一一次受保护运行尚未完成"
+    },
+    {
+      "en": "rehearsal",
+      "zh": "演练",
+      "note": "不等待墙钟的确定性路径验证"
+    },
+    {
+      "en": "schedule-mode",
+      "zh": "调度模式",
+      "note": "调用生产调度规划路径"
+    },
+    {
+      "en": "schedule",
+      "zh": "调度",
+      "note": "每日四点半云端触发定义"
+    },
+    {
+      "en": "one-shot",
+      "zh": "一次性",
+      "note": "只授权一个新执行头的一次尝试"
+    },
+    {
+      "en": "input",
+      "zh": "输入",
+      "note": "受保护环境的精确名称配置"
+    },
+    {
+      "en": "Australia",
+      "zh": "澳大利亚",
+      "note": "生产目标时区地域"
+    },
+    {
+      "en": "Sydney",
+      "zh": "悉尼",
+      "note": "生产目标时区城市"
     },
     {
       "en": "Raw-only",

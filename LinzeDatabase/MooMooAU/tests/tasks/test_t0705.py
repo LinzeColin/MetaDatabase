@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import base64
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
+from typing import cast
 
 import pytest
 from stage7_support import (
@@ -30,10 +34,29 @@ from moomooau_archive.gmail_sync_checkpoint import (
     GmailRunCheckpoint,
 )
 from moomooau_archive.http_boundary import HttpRequest, HttpResponse
+from moomooau_archive.production import (
+    PRODUCTION_CONFIG_SECRET_NAME,
+    ProductionBootstrap,
+    ProductionExecutionResult,
+)
+from moomooau_archive.protected_ga_entrypoint import (
+    CONTROL_OWNER_ID,
+    CONTROL_REPOSITORY_ID,
+    CONTROL_WORKFLOW_REF,
+    GA_CONFIRMATION,
+    DerivedGASecretSource,
+    ProtectedGAEntrypointError,
+    blue_green_receipt_sha256,
+    execute_protected,
+    execution_contract,
+    ga_gate_sha256,
+)
 from moomooau_archive.release_control import GateStatus, ReleasePhase, Stage7ReleaseGate
 from moomooau_archive.run_schedule import RunPlanner, RunTrigger, ScheduledRunPlan
 from moomooau_archive.secret_values import SecretText
 from moomooau_archive.timeline_publish import TimelinePublishAction
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class _GitHubSyncTransport:
@@ -444,3 +467,183 @@ def test_t0705_pending_verified_source_cannot_disappear_from_checkpoint_truth() 
         assert context.raw_store.create_calls == 0
         assert context.processed_store.write_calls == 0
         assert context.transport.trashed_ids == []
+
+
+def _protected_ga_environment(head_sha: str) -> dict[str, str]:
+    return {
+        "GITHUB_ACTIONS": "true",
+        "GITHUB_EVENT_NAME": "workflow_dispatch",
+        "GITHUB_REPOSITORY_ID": str(CONTROL_REPOSITORY_ID),
+        "GITHUB_REPOSITORY_OWNER_ID": str(CONTROL_OWNER_ID),
+        "GITHUB_ACTOR_ID": str(CONTROL_OWNER_ID),
+        "GITHUB_RUN_ID": "7005001",
+        "GITHUB_RUN_ATTEMPT": "1",
+        "GITHUB_SHA": head_sha,
+        "GITHUB_REF": "refs/heads/main",
+        "GITHUB_WORKFLOW_REF": CONTROL_WORKFLOW_REF,
+        "RUNNER_ENVIRONMENT": "github-hosted",
+        "MOOMOOAU_PROTECTED_ENVIRONMENT": "moomooau-beta",
+        "MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD": head_sha,
+    }
+
+
+class _SyntheticProductionRuntime:
+    def __init__(self, execution: ProductionExecutionResult) -> None:
+        self._execution = execution
+        self.trigger: RunTrigger | None = None
+
+    def run(self, trigger: RunTrigger) -> ProductionExecutionResult:
+        self.trigger = trigger
+        return self._execution
+
+
+class _SyntheticProductionBootstrap:
+    def __init__(self, execution: ProductionExecutionResult) -> None:
+        self.runtime = _SyntheticProductionRuntime(execution)
+        self.open_calls = 0
+
+    @contextmanager
+    def open(self) -> Iterator[_SyntheticProductionRuntime]:
+        self.open_calls += 1
+        yield self.runtime
+
+
+def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() -> None:
+    contract = execution_contract(PROJECT_ROOT)
+    assert contract["mode"] == "CONTRACT_ONLY"
+    assert contract["ga_authorized"] is True
+    assert contract["required_event"] == "workflow_dispatch"
+    assert contract["schedule_mode"] == "SCHEDULE_REHEARSAL"
+    assert contract["platform_schedule_event_observed"] is False
+    assert contract["target_time"] == "04:30"
+    assert contract["timezone"] == "Australia/Sydney"
+    assert contract["ga_mutation_budget_per_run"] == 1
+    assert contract["maximum_pipeline_runs"] == 1
+    assert contract["maximum_reruns"] == 0
+    assert contract["required_protected_input_count"] == 8
+    assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
+    assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
+
+
+def test_t0705_derives_ga_config_in_memory_from_existing_beta_plane() -> None:
+    beta_config = {
+        "schema_version": "moomooau.protected-beta-config.v1",
+        "phase": "BETA_RAW_ONLY",
+        "beta_message_budget": 1,
+        "key_epoch": "synthetic-epoch-1",
+        "age_recipient": "age1" + "q" * 58,
+        "github": {
+            "app_id": 1,
+            "installation_id": 2,
+            "repository_id": 3,
+        },
+        "capacity": {
+            "observed_at_utc": "2026-07-23T00:00:00Z",
+            "limits": {
+                "lfs_storage_budget_bytes": 10_000_000,
+                "lfs_object_maximum_bytes": 1_000_000,
+            },
+            "snapshot": {
+                "git_repository_bytes": 1_000,
+                "lfs_storage_bytes": 0,
+                "largest_git_object_bytes": 1_000,
+                "largest_lfs_object_bytes": 0,
+                "live_release_asset_bytes": 1_000,
+            },
+        },
+    }
+    source = DerivedGASecretSource(
+        {"MOOMOOAU_BETA_CONFIG": json.dumps(beta_config)},
+        observations_through(ReleasePhase.BLUE_GREEN),
+    )
+    derived = source.read(PRODUCTION_CONFIG_SECRET_NAME)
+    try:
+        parsed = json.loads(derived.reveal())
+    finally:
+        derived.destroy()
+    assert parsed["schema_version"] == "moomooau.production-config.v1"
+    assert parsed["phase"] == "GA"
+    assert parsed["parser_current_version"] == "1.0.0"
+    assert parsed["ga_mutation_budget_per_run"] == 1
+    assert parsed["github"] == beta_config["github"]
+    assert parsed["capacity"] == beta_config["capacity"]
+    assert [item["phase"] for item in parsed["predecessor_observations"]] == [
+        "ALPHA",
+        "BETA_RAW_ONLY",
+        "M3_CANARY",
+        "BLUE_GREEN",
+    ]
+    assert "MOOMOOAU_BETA_CONFIG" not in derived.__repr__()
+
+
+def test_t0705_protected_context_rejects_non_owner_before_bootstrap() -> None:
+    head = "a" * 40
+    environment = _protected_ga_environment(head)
+    environment["GITHUB_ACTOR_ID"] = "1"
+    synthetic = _SyntheticProductionBootstrap(cast(ProductionExecutionResult, object()))
+    with pytest.raises(ProtectedGAEntrypointError, match="context"):
+        execute_protected(
+            environment,
+            project_root=PROJECT_ROOT,
+            expected_head_sha=head,
+            supplied_blue_green_receipt_sha256=blue_green_receipt_sha256(PROJECT_ROOT),
+            supplied_ga_gate_sha256=ga_gate_sha256(PROJECT_ROOT),
+            confirmation=GA_CONFIRMATION,
+            bootstrap=cast(ProductionBootstrap, synthetic),
+        )
+    assert synthetic.open_calls == 0
+
+
+def test_t0705_protected_schedule_rehearsal_is_aggregate_only_and_gate_complete() -> None:
+    message_id = "msg-stage7-protected-ga"
+    predecessors = observations_through(ReleasePhase.BLUE_GREEN)
+    with ga_context((m3_canary_message(message_id),)) as context:
+        outcome = context.runner.run(
+            _sunday_plan(),
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            predecessor_observations=predecessors,
+            beta_message_budget=1,
+            ga_mutation_budget_per_run=1,
+            ga_capacity_authorized=True,
+        )
+        execution = ProductionExecutionResult(_sunday_plan(), outcome)
+        synthetic = _SyntheticProductionBootstrap(execution)
+        head = "b" * 40
+        evidence = execute_protected(
+            _protected_ga_environment(head),
+            project_root=PROJECT_ROOT,
+            expected_head_sha=head,
+            supplied_blue_green_receipt_sha256=blue_green_receipt_sha256(PROJECT_ROOT),
+            supplied_ga_gate_sha256=ga_gate_sha256(PROJECT_ROOT),
+            confirmation=GA_CONFIRMATION,
+            bootstrap=cast(ProductionBootstrap, synthetic),
+            clock=lambda: datetime(2026, 7, 26, 1, tzinfo=UTC),
+        )
+    public = evidence.to_dict()
+    encoded = json.dumps(public, sort_keys=True)
+    assert public["status"] == "PROTECTED_GA_SCHEDULE_REHEARSAL_COMPLETED_NOT_FINAL"
+    assert public["ga_gate_status"] == "PASS"
+    assert public["schedule"] == {
+        "mode": "SCHEDULE_REHEARSAL",
+        "target_time": "04:30",
+        "timezone": "Australia/Sydney",
+        "planner_trigger": "schedule",
+        "platform_schedule_event_observed": False,
+        "workflow_dispatch_truthfully_disclosed": True,
+        "fixed_calendar_wait_days": 0,
+    }
+    phase = cast(dict[str, object], public["phase_observation"])
+    assert phase["verified_bucket"] == "ONE"
+    assert phase["source_mutation_budget"] == 1
+    assert phase["remote_recovery_one_hundred_percent"] is True
+    assert phase["full_reconcile_comparison"] == "NOT_COMPARABLE_INITIAL_IMPORT"
+    assert phase["minimum_live_timeline_assets"] == 1
+    assert phase["maximum_live_timeline_assets"] == 1
+    assert phase["exact_mailbox_counts_disclosed"] is False
+    assert public["production_health_claimed"] is False
+    assert public["final_acceptance_claimed"] is False
+    assert synthetic.open_calls == 1
+    assert synthetic.runtime.trigger is RunTrigger.SCHEDULE
+    assert message_id not in encoded
+    assert "synthetic-private" not in encoded

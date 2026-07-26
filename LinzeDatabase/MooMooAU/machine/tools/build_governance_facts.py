@@ -47,6 +47,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.16",
             "1.0.17",
             "1.0.18",
+            "1.0.19",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -66,6 +67,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -81,6 +83,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -95,6 +98,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -108,6 +112,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -134,6 +139,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -141,6 +147,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     }
     t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] in {
         "1.0.13",
@@ -149,6 +156,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
         "1.0.17",
         "1.0.18",
+        "1.0.19",
     }
     t0703_historical_label_reconciliation_authorized = delivery["package_version"] in {
         "1.0.14",
@@ -156,7 +164,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
     }
     t0703_protected_passed = (
-        delivery["package_version"] in {"1.0.15", "1.0.16", "1.0.17", "1.0.18"}
+        delivery["package_version"] in {"1.0.15", "1.0.16", "1.0.17", "1.0.18", "1.0.19"}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") in {0, 1}
@@ -183,14 +191,23 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0704_protected_passed = (
-        delivery["package_version"] == "1.0.18"
+        delivery["package_version"] in {"1.0.18", "1.0.19"}
         and delivery.get("overall_status")
-        == "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED"
+        in {
+            "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED",
+            "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING",
+        }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 0
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
-        == "CONTROLLED_T0704_COMPLETED_NOT_FINAL"
+        in {"CONTROLLED_T0704_COMPLETED_NOT_FINAL", "CONTROLLED_T0705_CANDIDATE_NOT_FINAL"}
+    )
+    t0705_authorized = (
+        delivery["package_version"] == "1.0.19"
+        and delivery.get("overall_status") == "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING"
+        and delivery.get("dimensions", {}).get("publication", {}).get("status")
+        == "CONTROLLED_T0705_CANDIDATE_NOT_FINAL"
     )
     protected_beta_failed = (
         not t0703_repair_authorized
@@ -225,7 +242,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702、T0703 与 T0704 受保护验证均通过；T0704 权限已消耗，范围停止于 T0705 前"
+            "T0702、T0703 与 T0704 受保护验证均通过；T0705 一次性 schedule-mode "
+            "rehearsal 已授权待运行"
+            if t0705_authorized
+            else "T0702、T0703 与 T0704 受保护验证均通过；T0704 权限已消耗，范围停止于 T0705 前"
             if t0704_protected_passed
             else "T0702 与 T0703 通过；T0704 首次执行失败，Release Asset 302 有界修复已授权"
             if t0704_repair_authorized
@@ -347,12 +367,18 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "T0705_NEW_RUN_CONTRACT_REQUIRED": (
             "进入 T0705 前必须建立新的显式 Run Contract；T0704 的全部 dispatch 权限已消耗"
         ),
+        "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING": (
+            "T0705 exact-main 候选已绑定 T0702–T0704 PASS 回执、现有八项 protected input、"
+            "实时容量刷新与 one-shot 权限；唯一 attempt-1 SCHEDULE_REHEARSAL 尚未运行"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 及其后的受保护验收仍未执行"
+            "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权"
+            if t0705_authorized
+            else "T0704 已通过；T0705 及其后的受保护验收仍未执行"
             if t0704_protected_passed
             else "T0703 已通过；T0704 及其后的受保护验收仍未执行"
         ),
@@ -375,7 +401,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
+            "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
+            if t0705_authorized
+            else "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
             if t0704_protected_passed
             else "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行"
             if t0704_repair_authorized
@@ -402,7 +430,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0702/S7AC-002、T0703/S7AC-003 与 T0704/S7AC-004 均已通过；修复 attempt "
+            "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
+            "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
+            if t0705_authorized
+            else "T0702/S7AC-002、T0703/S7AC-003 与 T0704/S7AC-004 均已通过；修复 attempt "
             "复用既有 candidate/snapshot，恢复并验证唯一加密 Timeline，Gmail 与 "
             "processed-current 保持不变"
             if t0704_protected_passed
@@ -444,7 +475,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "固化 T0704 精确成功回执与独立聚合核验；禁止任何 T0704 rerun/redispatch，不进入 T0705"
+            "交付 v1.0.19 精确候选并执行一次 protected SCHEDULE_REHEARSAL；rerun 0，"
+            "PASS 前不启用调度，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前"
+            if t0705_authorized
+            else "固化 T0704 精确成功回执与独立聚合核验；禁止任何 T0704 "
+            "rerun/redispatch，不进入 T0705"
             if t0704_protected_passed
             else "交付精确 T0704 302 修复候选并执行唯一一次新 head protected attempt 1；"
             "禁止失败头 rerun/redispatch、重复 candidate/snapshot 写入、Gmail/current 变更与 T0705"
@@ -670,6 +705,24 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             {"en": "Codex", "zh": "开发线程", "note": "用户唯一维护入口"},
             {"en": "age", "zh": "文件加密工具", "note": "所有敏感持久化数据的加密边界"},
             {"en": "Beta", "zh": "小规模真实只存原始数据阶段", "note": "T0702 受保护发布阶段"},
+            {"en": "GA", "zh": "全面可用阶段", "note": "T0705 完整受保护归档路径"},
+            {
+                "en": "SCHEDULE_REHEARSAL",
+                "zh": "调度模式演练",
+                "note": "手动触发同一调度规划路径，但不声称平台调度事件",
+            },
+            {
+                "en": "PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
+                "zh": "受保护全面可用调度演练待执行",
+                "note": "T0705 唯一一次受保护运行尚未完成",
+            },
+            {"en": "rehearsal", "zh": "演练", "note": "不等待墙钟的确定性路径验证"},
+            {"en": "schedule-mode", "zh": "调度模式", "note": "调用生产调度规划路径"},
+            {"en": "schedule", "zh": "调度", "note": "每日四点半云端触发定义"},
+            {"en": "one-shot", "zh": "一次性", "note": "只授权一个新执行头的一次尝试"},
+            {"en": "input", "zh": "输入", "note": "受保护环境的精确名称配置"},
+            {"en": "Australia", "zh": "澳大利亚", "note": "生产目标时区地域"},
+            {"en": "Sydney", "zh": "悉尼", "note": "生产目标时区城市"},
             {
                 "en": "Raw-only",
                 "zh": "仅原始数据",
@@ -1004,7 +1057,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
+            "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
+            if t0705_authorized
+            else "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
             if t0704_protected_passed
             else "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行"
             if t0704_repair_authorized
@@ -1031,7 +1086,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0704/S7AC-004 精确成功回执闭合；全部 T0704 权限已消耗"
+            "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
+            if t0705_authorized
+            else "T0704/S7AC-004 精确成功回执闭合；全部 T0704 权限已消耗"
             if t0704_protected_passed
             else "T0704 首次失败已冻结；仅允许新 exact-main 302 修复 attempt 1"
             if t0704_repair_authorized
@@ -1060,7 +1117,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "完成 v1.0.18 精确成功证据交付并停止；T0705 需要新的显式 Run Contract"
+            "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，"
+            "PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
+            if t0705_authorized
+            else "完成 v1.0.18 精确成功证据交付并停止；T0705 需要新的显式 Run Contract"
             if t0704_protected_passed
             else "交付 v1.0.17 有界 302 修复，复用既有 candidate/snapshot "
             "并恢复恰好一个加密 Timeline；"
@@ -1123,7 +1183,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 及后续受保护验证未运行）"
+                    "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 一次性 "
+                    "SCHEDULE_REHEARSAL 已授权待运行）"
+                    if t0705_authorized
+                    else "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 及后续受保护验证未运行）"
                     if t0704_protected_passed
                     else "阻塞（T0702 与 T0703 PASS；T0704 首次 attempt 失败且有界 302 修复待运行）"
                     if t0704_repair_authorized
@@ -1169,7 +1232,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "id": "`发布`",
                 "criteria": "最终复审修复后才创建干净快照并一次性上传",
                 "status": (
-                    "T0704 受控证据已交付；最终发布未授权"
+                    "T0705 受控候选待执行；最终发布未授权"
+                    if t0705_authorized
+                    else "T0704 受控证据已交付；最终发布未授权"
                     if t0704_protected_passed
                     else "本地，未发布"
                 ),
@@ -1419,6 +1484,22 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "验证恰好一个 age 加密最新 Timeline，processed-current、Raw、Processed "
                     "与 Gmail 均无新增效果。失败头保持冻结，T0704/S7AC-004 关闭，全部 T0704 "
                     "权限已消耗，范围停止于 T0705 前。"
+                ),
+            },
+        )
+    if t0705_authorized:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.19",
+                "date": "2026-07-26",
+                "summary": (
+                    "在精确 T0704 protected PASS 后只授权 T0705：复用现有八项 protected "
+                    "input 与安装到唯一私有仓的 GitHub App，在 Secret/Gmail 前刷新实时容量；"
+                    "唯一 exact-main attempt-1 workflow_dispatch 调用生产 SCHEDULE planner "
+                    "path 并如实标记 SCHEDULE_REHEARSAL，rerun 为零。PASS 回执绑定前调度保持"
+                    "关闭，之后只启用已提交的 04:30 Australia/Sydney schedule；T0706、最终"
+                    "Acceptance 与最终发布仍未授权。"
                 ),
             },
         )

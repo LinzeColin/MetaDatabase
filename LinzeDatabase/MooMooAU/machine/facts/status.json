@@ -1,11 +1,11 @@
 {
-  "version": "1.0.18",
-  "stage": "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前",
-  "phase": "T0702/S7AC-002、T0703/S7AC-003 与 T0704/S7AC-004 均已通过；修复 attempt 复用既有 candidate/snapshot，恢复并验证唯一加密 Timeline，Gmail 与 processed-current 保持不变",
-  "task": "固化 T0704 精确成功回执与独立聚合核验；禁止任何 T0704 rerun/redispatch，不进入 T0705",
+  "version": "1.0.19",
+  "stage": "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行",
+  "phase": "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行",
+  "task": "交付 v1.0.19 精确候选并执行一次 protected SCHEDULE_REHEARSAL；rerun 0，PASS 前不启用调度，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 4/43（通过 4、失败 0）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",
   "evidence_status": "PASS",
-  "rendered_at": "2026-07-25"
+  "rendered_at": "2026-07-26"
 }

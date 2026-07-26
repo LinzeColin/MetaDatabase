@@ -4,41 +4,38 @@
 
 ## 当前目标与状态
 
-- 本轮只处理 Stage 7/T0704，已在 T0705 前范围停止。
-- 当前控制包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.18`。
-- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.17.json`，SHA-256
-  `8129ff31427b98ecb93a0fe7ca5fbc16117e3908ddf3053805d6742bbe813d9c`。
+- 本轮只处理 Stage 7/T0705，必须停在 T0706 前。
+- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.19`。
+- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.18.json`，SHA-256
+  `957ce9a5455d85927080e913ac364c2dfdd9a019b8d0426fa07b39fd965cf25e`。
 - 唯一状态权威：`machine/status/latest.json` =
-  `PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED`。
+  `PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING`。
 - Protected Oracles 4/43 executed、4 PASS、0 FAILED；final Acceptance 0/34；
-  production workflow 0；final publication 0。
+  T0705 production workflow 0；final publication 0。
 
-## 已冻结的 T0704 证据
+## 已冻结前序
 
-- 首次失败 head `b3ff184b…`、run `30175241669`、attempt 1、rerun 0，继续由
-  `machine/stages/S7/reviews/t0704/attempt-ledger.json` 固定，不得再次运行。
-- 修复 PR #113 正常合入 main `65cef099…`；protected run `30178201201` 精确绑定该 head，
-  attempt 1、rerun 0。
-- authority、Blue-Green 与 identity cleanup 均 PASS。
-- 受保护回执证明既有 candidate/snapshot 恢复、processed-current 不变、完整 reconcile
-  difference 0、唯一非空 age Timeline Asset round-trip recovery。
-- 独立聚合核验没有解密，只确认一个加密 Timeline state commit；Raw、Processed、
-  current、candidate、snapshot 与 repair Gmail mutation 均无新增效果。
-- 唯一成功回执：`machine/stages/S7/reviews/t0704/execution-receipt.json`。
+- T0702、T0703、T0704 protected PASS receipts 及全部 failed-attempt ledgers 不可变。
+- T0704 成功 run `30178201201` 绑定 main `65cef099…`，attempt 1、rerun 0；一个可恢复
+  age-encrypted latest Timeline 已验证。
+- 任何历史失败或成功 head 均不得 rerun/redispatch。
 
-## 当前安全边界
+## T0705 候选
 
-- `blue_green_authorized=false`；成功回执存在时入口强制 fail closed。
-- 当前 Run Contract 只允许一次受控证据交付。
-- protected dispatch/rerun、Secret read、Gmail/private repository/Raw/Processed/
-  Timeline/schedule effect budget 均为 0。
-- T0705、GA、04:30 schedule、Recovery Drill、Patch Lifecycle 受保护执行、
-  final Acceptance、Stage 7 completion 与 final publication 均未授权。
+- `protected_ga_entrypoint.py` 绑定 owner、exact main、固定 workflow ref、attempt 1、
+  one-shot exact-head authority、T0702–T0704 receipts 与当前 Run Contract。
+- 复用现有 `moomooau-beta` 八个精确 Secret 名称，值不复制、不写盘、不公开。
+- 已安装 GitHub App 必须在 Gmail exchange 前刷新唯一私有仓实时容量。
+- 只完整读取确定性 `VERIFIED` 来源；Raw/Processed 恢复及二次验证后才允许最多一次精确
+  `users.messages.trash`。
+- Timeline snapshot、唯一 latest age Asset 与最后一步 encrypted checkpoint CAS 均需恢复。
+- workflow_dispatch 如实称为 `SCHEDULE_REHEARSAL`，只调用与生产一致的 SCHEDULE planner；
+  rehearsal 的 platform schedule event 必须为 0。
 
-## 验证与下一步
+## 当前安全边界与下一步
 
-- v1.0.18 必须通过 tasks/remediation 全集、Ruff、mypy、Acceptance、Delivery status、
-  Governance、Stage 0–7 preflight、package、publication 与真实 remote depth-1 clone。
-- 只允许将该证据闭合包通过 PR 合入 main，并核验 PR 与 exact-main CI。
-- 不触发任何 protected workflow。
-- 合入后清理本轮分支/worktree；后续如要进入 T0705，必须新建显式单阶段 Run Contract。
+- 允许 launch delivery 1、protected rehearsal dispatch 1、rerun 0、closure delivery 1。
+- protected PASS receipt 绑定前，`MOOMOOAU_PRODUCTION_ENABLED` 不得为 true。
+- 合入 exact-main candidate 后只设置一个 exact-head authority，运行一次；无论结果如何立即删除。
+- PASS 后才固化 receipt、关闭 rehearsal 入口并启用已提交 04:30 Australia/Sydney schedule。
+- 不进入 T0706，不创建 Codex Automation，不运行 Recovery Drill/Patch Lifecycle，不做最终发布。
