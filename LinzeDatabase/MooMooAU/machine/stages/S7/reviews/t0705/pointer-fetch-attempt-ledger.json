@@ -1,0 +1,168 @@
+{
+  "schema_version": "moomooau.protected-ga-pointer-fetch-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "observed_through_utc": "2026-07-26T09:47:01Z",
+  "predecessor_control": {
+    "prior_run_contract_sha256": "c48313bac0a9c3003d80188aa47f4022a33919508f780efa6942868845e3bf85",
+    "sixth_attempt_ledger_sha256": "9c5b5bedade30d511d0503f0b623a57ff59bca14bd7cf48409f8a6c459879b31",
+    "sixth_attempt_ledger_schema_sha256": "d6deff1bc93e92c78e1b3c15771a679bcc5fd6b2a59da216fbbf08a4244be4b3",
+    "prior_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+      "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"
+    ],
+    "prior_failed_head_dispatches_after_freeze": 0,
+    "prior_failed_head_reruns_after_freeze": 0
+  },
+  "attempts": [
+    {
+      "sequence": 7,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 122,
+        "pull_request_head_sha": "69f4644b557db4897f8e094c1c959c2aabeaa5d3",
+        "merge_commit_parent_sha": "8ac7d3ea455e5fd44cc60b7218b081345e90fdbe",
+        "merge_commit_sha": "2133673b335a384657c8668b62a1c13055c212cd",
+        "merged_at_utc": "2026-07-26T09:41:32Z",
+        "terminal_checks": 23,
+        "successful_checks": 23,
+        "failed_checks": 0,
+        "skipped_checks": 0,
+        "neutral_checks": 0
+      },
+      "workflow": {
+        "run_id": 30196968135,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30196968135",
+        "workflow_id": 318812500,
+        "event": "workflow_dispatch",
+        "workflow_ref": "refs/heads/main",
+        "workflow_head_sha": "2133673b335a384657c8668b62a1c13055c212cd",
+        "run_attempt": 1,
+        "reruns": 0,
+        "started_at_utc": "2026-07-26T09:43:22Z",
+        "completed_at_utc": "2026-07-26T09:47:01Z"
+      },
+      "jobs": {
+        "authority_gate": {
+          "job_id": 89780081362,
+          "status": "PASS",
+          "started_at_utc": "2026-07-26T09:43:26Z",
+          "completed_at_utc": "2026-07-26T09:44:45Z"
+        },
+        "ga_schedule_rehearsal": {
+          "job_id": 89780192233,
+          "status": "FAILED",
+          "started_at_utc": "2026-07-26T09:44:49Z",
+          "completed_at_utc": "2026-07-26T09:47:01Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-26T09:47:00Z"
+        },
+        "live_schedule_hold": {
+          "job_id": 89780081751,
+          "status": "SKIPPED",
+          "completed_at_utc": "2026-07-26T09:43:23Z"
+        }
+      },
+      "public_failure": {
+        "schema_version": "moomooau.protected-ga-public-failure.v1",
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_GA_FIRST_IMPORT_POINTER_FETCH_FAILED",
+        "failure_phase": "FIRST_IMPORT_POINTER_FETCH",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "diagnostic_taxonomy": "moomooau.protected-ga-failure-taxonomy.v1",
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "platform_schedule_event_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_head_changed": false,
+        "private_repository_new_commits_during_attempt": 0,
+        "private_repository_added_paths": 0,
+        "private_repository_modified_paths": 0,
+        "private_repository_removed_paths": 0,
+        "raw_ciphertext_creations": 0,
+        "processed_immutable_creations": 0,
+        "processed_current_pointer_mutations": 0,
+        "timeline_snapshot_mutations": 0,
+        "timeline_state_mutations": 0,
+        "timeline_publish_attempts": 0,
+        "gmail_checkpoint_mutations": 0,
+        "gmail_source_mutations": 0,
+        "gmail_mutation_api_reached": false,
+        "platform_schedule_events": 0,
+        "identity_plaintext_cleanup": "PASS",
+        "one_shot_authority_variable_after_dispatch": "ABSENT",
+        "production_enablement_variable_after_dispatch": "ABSENT",
+        "protected_environment_secret_names": 8,
+        "exact_private_locator_disclosed": false,
+        "exact_private_path_disclosed": false,
+        "exact_source_identifier_disclosed": false,
+        "exact_mailbox_counts_disclosed": false
+      },
+      "protocol_evidence": {
+        "matching_private_repositories": 1,
+        "current_pointer_objects": 2,
+        "git_tree_blob_objects_valid": 2,
+        "git_raw_media_objects_valid": 2,
+        "contents_inline_representation_mismatches": 1,
+        "age_envelopes_valid": 2,
+        "canonical_git_blob_sha_bindings_valid": 2,
+        "private_repository_locators_disclosed": false,
+        "private_paths_disclosed": false,
+        "source_identifiers_disclosed": false
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "WITHIN_FIRST_IMPORT_POINTER_FETCH_BEFORE_POINTER_DECRYPT_OR_ANY_NEW_PROCESSED_WRITE_OR_GMAIL_MUTATION",
+        "exact_runtime_exception": "NOT_RECEIVED_OR_INSPECTED",
+        "exact_root_cause": "UNKNOWN",
+        "exact_root_cause_claimed": false,
+        "safe_next_repair": "CONTENTS_METADATA_PLUS_EXACT_RAW_MEDIA_WITH_CANONICAL_GIT_BLOB_SHA_BINDING",
+        "repair_confidence": "HIGH_FOR_OBSERVED_PROTOCOL_MISMATCH_WITHOUT_CLAIMING_PROTECTED_EXCEPTION",
+        "basis": [
+          "the protected failure payload contains only the fixed FIRST_IMPORT_POINTER_FETCH phase, UNCLASSIFIED installation-token failure class and explicit non-disclosure claims",
+          "authority and plaintext cleanup passed, the protected GA step failed, the live schedule hold remained skipped and the seventh failed head remains attempt 1 with rerun zero",
+          "read-only connected-repository verification observed no private-repository commit during the seventh attempt",
+          "committed runner ordering reaches pointer fetch only after Raw remote recovery and classification and before pointer decrypt, document-envelope construction, any Processed write, Timeline, checkpoint or Gmail mutation",
+          "two current pointer Git tree/blob objects and raw media bodies were valid age ciphertext with exact declared size and canonical Git blob SHA binding",
+          "one GitHub Contents inline JSON representation decoded to a byte length inconsistent with its declared size while the exact raw Contents media and Git blob object agreed",
+          "the repair retains the exact allowlisted Contents path, uses Contents JSON only for file metadata, fetches exact raw media, enforces a two MiB bound and validates canonical Git blob SHA before decrypt",
+          "the protected exception was not received or inspected, so the exact root cause remains UNKNOWN despite the reproducible live protocol mismatch"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+      "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+      "2133673b335a384657c8668b62a1c13055c212cd"
+    ],
+    "exact_pointer_blob_recovery_repair_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "historical_ga_rehearsal_dispatches_consumed": 7,
+    "historical_ga_rehearsal_reruns": 0,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_005_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

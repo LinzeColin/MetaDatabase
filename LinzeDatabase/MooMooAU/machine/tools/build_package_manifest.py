@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.25 protected T0705 GA first-import diagnostic manifest."""
+"""Build the v1.0.26 protected T0705 pointer-blob recovery repair manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.25.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.25"
-PACKAGE_VERSION = "1.0.25"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.24.json")
-PREDECESSOR_MANIFEST_SHA256 = "58c758bab6b6df446e4aa6f8fec9a6f6e61a32726d28760dbf27cd98226b1820"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.26.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.26"
+PACKAGE_VERSION = "1.0.26"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.25.json")
+PREDECESSOR_MANIFEST_SHA256 = "ea2ff510ccd929aa4b99dfb49ebbc90184f6cfcfc75ede846a167c502face3a9"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.24 manifest drift")
+        raise ValueError("predecessor v1.0.25 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -167,11 +167,11 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
         or status.get("overall_status")
-        != "PROTECTED_GA_SIXTH_ATTEMPT_FAILED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED"
-        or "T0705_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_PENDING" not in status.get("blockers", [])
+        != "PROTECTED_GA_SEVENTH_ATTEMPT_FAILED_POINTER_BLOB_REPAIR_AUTHORIZED"
+        or "T0705_POINTER_BLOB_RECOVERY_REPAIR_PENDING" not in status.get("blockers", [])
     ):
         raise ValueError(
-            "T0705 protected GA first-import diagnostic is not exactly authorized-pending"
+            "T0705 protected GA pointer-blob recovery repair is not exactly authorized-pending"
         )
     entries = [
         {
@@ -182,7 +182,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v25",
+        "schema_version": "moomooau.package-manifest.v26",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
@@ -194,34 +194,33 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "cc7c8af9a40122a61ee2549fb365df813cbd4f16 and "
             "4c207ad539754166fae6642ff4e6850438d3e2fc and "
             "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4 and "
-            "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7, and preserve the exact T0702, "
-            "T0703 and T0704 protected PASS receipts plus all six immutable T0705 failed-attempt "
-            "ledgers. One reviewed closed-enum first-import subphase-diagnostic delivery, "
-            "one new exact-main "
+            "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7 and "
+            "2133673b335a384657c8668b62a1c13055c212cd, and preserve the exact T0702, "
+            "T0703 and T0704 protected PASS receipts plus all seven immutable T0705 failed-attempt "
+            "ledgers. One reviewed pointer-blob recovery repair delivery, one new exact-main "
             "attempt-1 protected "
-            "SCHEDULE_REHEARSAL with rerun zero, at most one exact repair-or-PASS closure "
-            "delivery/attempt, and one later receipt/schedule-closure delivery remain authorized. "
+            "SCHEDULE_REHEARSAL with rerun zero and one later receipt/schedule-closure delivery "
+            "remain authorized. "
             "Reuse only the existing eight-name moomooau-beta protected input "
             "set and installed GitHub App; T0706, final Acceptance and final publication remain "
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.25 T0705 diagnostic candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.24 predecessor lineage remain unchanged. All six failed "
+            "Baseline-preserving v1.0.26 T0705 repair candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.25 predecessor lineage remain unchanged. All seven failed "
             "GA heads are digest-bound and cannot be rerun or redispatched. The only runtime "
-            "change adds fixed-enum first-import recovery subphases to the existing last-entered "
-            "phase "
-            "tracker without inspecting an exception or receiving any protected value. It "
-            "preserves persisted first-import label replay, "
+            "change replaces unsafe Contents inline current-pointer decoding with bounded "
+            "Contents metadata, exact raw media and canonical Git blob SHA binding before decrypt. "
+            "It preserves persisted first-import label replay, "
             "pre-Raw metadata quarantine, "
             "fail-closed second verification, ACTIVE processing and the repaired "
             "paired-empty SAFE_DEFERRED path. "
-            "The new exact-main workflow_dispatch must use the production SCHEDULE planner "
+            "The one remaining exact-main workflow_dispatch must use the production SCHEDULE planner "
             "targeting 04:30 Australia/Sydney, truthfully identify itself as SCHEDULE_REHEARSAL, "
             "refresh live private-repository capacity before Gmail exchange, and retain "
             "verified-only full reads, "
             "Raw and Processed remote recovery before exact-message Trash, one recoverable latest "
-            "encrypted Timeline and checkpoint-last CAS. Diagnostic execution, "
+            "encrypted Timeline and checkpoint-last CAS. Repair execution, "
             "T0705/S7AC-005 PASS, "
             "T0706, final Acceptance, Stage 7 completion and final publication remain unclaimed."
         ),

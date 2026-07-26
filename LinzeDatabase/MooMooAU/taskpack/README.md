@@ -276,6 +276,19 @@ delivery，继续停止在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.22.json`
 - `CHANGELOG.md`
 
+`v1.0.26` 直接继承不可变 v1.0.25，固化 T0705 第七个不同 exact-main protected GA
+失败并冻结 head `2133673b…`。公开输出固定在 `FIRST_IMPORT_POINTER_FETCH`；只读连接仓核验
+确认第七次零 commit，且两份 current pointer 的 Git tree/blob 与 exact raw media 都有效，但
+其中一份 Contents JSON 内联表示解码长度与声明尺寸不一致。protected exception 未被读取，
+精确线上根因保持 `UNKNOWN`。唯一新实现改为 bounded Contents metadata + exact raw media +
+canonical Git blob SHA 绑定，漂移时失败关闭。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.26.md`
+- `ROADMAP.v1.0.26.md`
+- `PACKAGE_MANIFEST.v1.0.26.json`
+- `SOURCE_PROVENANCE.v1.0.26.json`
+- `CHANGELOG.md`
+
 `v1.0.25` 直接继承不可变 v1.0.24，固化 T0705 第六个不同 exact-main protected GA
 失败并冻结 head `d10f5086…`。公开输出只有 coarse `FIRST_IMPORT_RECOVERY`；只读 private
 数据仓核验确认第六次零 commit、零路径变化，失败边界在 Raw recovery/classification 之后、
@@ -316,7 +329,8 @@ last-entered phase 诊断，禁止异常文本、URL、标识符、计数、邮�
 - `SOURCE_PROVENANCE.v1.0.23.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.24.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.23.json`、
+`PACKAGE_MANIFEST.v1.0.25.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.24.json`、
+`PACKAGE_MANIFEST.v1.0.23.json`、
 `PACKAGE_MANIFEST.v1.0.22.json`、
 `PACKAGE_MANIFEST.v1.0.21.json`、
 `PACKAGE_MANIFEST.v1.0.20.json`、

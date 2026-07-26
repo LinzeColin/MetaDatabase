@@ -712,16 +712,16 @@
       }
     },
     {
-      "title": "v1.0.25 sixth failed T0705 GA first-import diagnostic authorized",
+      "title": "v1.0.26 seventh failed T0705 GA pointer-blob recovery repair authorized",
       "properties": {
-        "package_version": {"const": "1.0.25"},
+        "package_version": {"const": "1.0.26"},
         "overall_status": {
-          "const": "PROTECTED_GA_SIXTH_ATTEMPT_FAILED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED"
+          "const": "PROTECTED_GA_SEVENTH_ATTEMPT_FAILED_POINTER_BLOB_REPAIR_AUTHORIZED"
         },
         "blockers": {
           "const": [
             "FORMAL_TASKS_INCOMPLETE",
-            "T0705_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_PENDING",
+            "T0705_POINTER_BLOB_RECOVERY_REPAIR_PENDING",
             "FINAL_ACCEPTANCE_BLOCKED",
             "PRODUCTION_SCHEDULE_DISABLED",
             "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
@@ -738,7 +738,7 @@
           ]
         },
         "next_action": {
-          "const": "Deliver one new exact-main T0705 closed-enum first-import subphase-diagnostic candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the six failed heads; if the diagnostic fails, permit only one exact repair-or-PASS closure candidate. After exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
+          "const": "Deliver one new exact-main T0705 pointer-blob recovery repair candidate and execute exactly one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the seven failed heads. After exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
         },
         "source_digests": {
           "required": [
@@ -748,7 +748,8 @@
             "protected_ga_label_replay_attempt_ledger_sha256",
             "protected_ga_post_processed_attempt_ledger_sha256",
             "protected_ga_processed_plan_attempt_ledger_sha256",
-            "protected_ga_first_import_attempt_ledger_sha256"
+            "protected_ga_first_import_attempt_ledger_sha256",
+            "protected_ga_pointer_fetch_attempt_ledger_sha256"
           ]
         }
       }
@@ -758,7 +759,7 @@
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17", "1.0.18", "1.0.19", "1.0.20", "1.0.21", "1.0.22", "1.0.23", "1.0.24", "1.0.25"],
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17", "1.0.18", "1.0.19", "1.0.20", "1.0.21", "1.0.22", "1.0.23", "1.0.24", "1.0.25", "1.0.26"],
       "description": "Coupled by the root oneOf to the exact historical RMD state or current protected scope-stopped state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
@@ -793,7 +794,8 @@
         "PROTECTED_GA_THIRD_ATTEMPT_FAILED_LABEL_REPLAY_REPAIR_AUTHORIZED",
         "PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED",
         "PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED",
-        "PROTECTED_GA_SIXTH_ATTEMPT_FAILED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED"
+        "PROTECTED_GA_SIXTH_ATTEMPT_FAILED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED",
+        "PROTECTED_GA_SEVENTH_ATTEMPT_FAILED_POINTER_BLOB_REPAIR_AUTHORIZED"
       ]
     },
     "dimensions": {
@@ -898,7 +900,8 @@
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_THREE_T0705_FAILURES",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FOUR_T0705_FAILURES",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FIVE_T0705_FAILURES",
-            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_SIX_T0705_FAILURES"
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_SIX_T0705_FAILURES",
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_SEVEN_T0705_FAILURES"
           ]
         }
       }
@@ -945,7 +948,7 @@
       "required": ["status", "workflow_runs", "reason_codes"],
       "properties": {
         "status": {"const": "BLOCKED"},
-        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 6},
+        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 7},
         "reason_codes": {
           "type": "array",
           "minItems": 4,
@@ -973,7 +976,8 @@
             "CONTROLLED_T0705_LABEL_REPLAY_REPAIR_CANDIDATE_NOT_FINAL",
             "CONTROLLED_T0705_PHASE_DIAGNOSTIC_CANDIDATE_NOT_FINAL",
             "CONTROLLED_T0705_PROCESSED_PLAN_DIAGNOSTIC_CANDIDATE_NOT_FINAL",
-            "CONTROLLED_T0705_FIRST_IMPORT_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+            "CONTROLLED_T0705_FIRST_IMPORT_DIAGNOSTIC_CANDIDATE_NOT_FINAL",
+            "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL"
           ]
         },
         "controlled_main_deliveries": {

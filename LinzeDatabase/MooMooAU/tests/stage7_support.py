@@ -1287,7 +1287,10 @@ class SyntheticProtectedGitHubTransport:
                     {
                         "content": base64.b64encode(value).decode("ascii"),
                         "encoding": "base64",
+                        "path": relative_path,
                         "sha": self.revisions[relative_path],
+                        "size": len(value),
+                        "type": "file",
                     },
                 )
             if request.method == "PUT" and request.body is not None:
@@ -1301,7 +1304,7 @@ class SyntheticProtectedGitHubTransport:
                 ciphertext = base64.b64decode(payload["content"], validate=True)
                 self.write_calls += 1
                 revision = hashlib.sha1(
-                    str(self.write_calls).encode("ascii") + b"\0" + ciphertext,
+                    b"blob " + str(len(ciphertext)).encode("ascii") + b"\0" + ciphertext,
                     usedforsecurity=False,
                 ).hexdigest()
                 self.objects[relative_path] = ciphertext

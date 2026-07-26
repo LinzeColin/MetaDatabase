@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0705 六个 GA 失败头已冻结，closed-enum first-import subphase diagnostic 已授权待运行",
-  "phase": "T0705 六个失败头已冻结；仅允许新 exact-main closed-enum first-import subphase diagnostic attempt 1，失败后至多一个精确 closure attempt",
-  "task": "交付 v1.0.25 closed-enum first-import subphase diagnostic exact-main 候选、执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前",
+  "stage": "RMD-06 T0705 七个 GA 失败头已冻结，pointer-blob recovery repair 已授权待运行",
+  "phase": "T0705 七个失败头已冻结；仅允许新 exact-main pointer-blob recovery repair attempt 1",
+  "task": "交付 v1.0.26 pointer-blob recovery repair exact-main 候选、执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前",
   "owner": "Codex 开发线程"
 }

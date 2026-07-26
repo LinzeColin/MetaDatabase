@@ -35,6 +35,7 @@ EXPECTED_SOURCE_PATHS = {
     "src/moomooau_archive/capacity.py",
     "src/moomooau_archive/kill_switch.py",
     "src/moomooau_archive/operation_gate.py",
+    "src/moomooau_archive/processed_commit.py",
     "src/moomooau_archive/production.py",
     "src/moomooau_archive/production_adapters.py",
     "src/moomooau_archive/gmail_sync_checkpoint.py",
@@ -130,7 +131,7 @@ def validate(
         "--no-build-isolation --no-deps .",
         "python -m moomooau_archive.protected_ga_entrypoint",
         "--execute-protected",
-        "GA_SCHEDULE_MODE_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE",
+        "GA_SCHEDULE_MODE_POINTER_BLOB_RECOVERY_REPAIR_MUTATION_BUDGET_ONE",
         '--expected-head-sha "$EXPECTED_HEAD_SHA"',
     )
     contract_secret_names = contract.get("secret_names")

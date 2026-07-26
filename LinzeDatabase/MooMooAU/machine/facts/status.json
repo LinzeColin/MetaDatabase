@@ -1,8 +1,8 @@
 {
-  "version": "1.0.25",
-  "stage": "RMD-06 T0705 六个 GA 失败头已冻结，封闭 first-import subphase diagnostic 已授权待运行",
-  "phase": "T0705 六个 exact-main attempt-1 失败头已冻结；第六次公开输出将边界收窄为 FIRST_IMPORT_RECOVERY，只读远端核验确认私库零提交、Processed/Timeline/checkpoint/Gmail 零变更，封闭 first-import subphase diagnostic 候选待执行",
-  "task": "交付 v1.0.25 closed-enum first-import subphase diagnostic 精确候选并执行一次新 head protected SCHEDULE_REHEARSAL；六个失败头与新候选均 rerun 0；若诊断失败只允许一个精确 repair-or-PASS closure，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
+  "version": "1.0.26",
+  "stage": "RMD-06 T0705 七个 GA 失败头已冻结，pointer-blob recovery repair 已授权待运行",
+  "phase": "T0705 七个 exact-main attempt-1 失败头已冻结；第七次公开输出将边界收窄为 FIRST_IMPORT_POINTER_FETCH，只读连接仓核验确认零提交、tree/blob 与 raw media 有效且一份 Contents 内联表示长度不一致，pointer-blob recovery repair 待执行",
+  "task": "交付 v1.0.26 pointer-blob recovery repair 精确候选并执行一次新 head protected SCHEDULE_REHEARSAL；七个失败头与新候选均 rerun 0；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 5/43（通过 4、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",

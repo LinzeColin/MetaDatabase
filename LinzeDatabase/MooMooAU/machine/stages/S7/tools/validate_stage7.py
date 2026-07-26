@@ -73,6 +73,12 @@ FAILED_T0705_FIRST_IMPORT_ATTEMPT_LEDGER_SHA256 = (
 FAILED_T0705_FIRST_IMPORT_ATTEMPT_LEDGER_SCHEMA_SHA256 = (
     "d6deff1bc93e92c78e1b3c15771a679bcc5fd6b2a59da216fbbf08a4244be4b3"  # pragma: allowlist secret
 )
+FAILED_T0705_POINTER_FETCH_ATTEMPT_LEDGER_SHA256 = (
+    "18d2e1cc29182dea7a94b25d25072d15cbc0ac91b091685faba69bcaa7532066"  # pragma: allowlist secret
+)
+FAILED_T0705_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_SHA256 = (
+    "801e1e44299115958bc838cc6c8e04c45f482a5ee50567345f22ad2295db83d2"  # pragma: allowlist secret
+)
 PROTECTED_BETA_ATTEMPT_LEDGER = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
@@ -126,6 +132,12 @@ PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER = Path(
 )
 PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-ga-first-import-attempt-ledger-v1.schema.json"
+)
+PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER = Path(
+    "machine/stages/S7/reviews/t0705/pointer-fetch-attempt-ledger.json"
+)
+PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA = Path(
+    "machine/stages/S7/schemas/protected-ga-pointer-fetch-attempt-ledger-v1.schema.json"
 )
 STAGE7_TASKS = [f"T070{index}" for index in range(1, 9)]
 STAGE7_ACCEPTANCES = [f"S7AC-00{index}" for index in range(1, 9)]
@@ -224,7 +236,7 @@ def _validate_contracts(root: Path) -> list[str]:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
         local.get("overall_status")
-        != "T0705_SIX_FAILED_HEADS_FROZEN_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED_PENDING"
+        != "T0705_SEVEN_FAILED_HEADS_FROZEN_POINTER_BLOB_REPAIR_AUTHORIZED_PENDING"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
         or "No fixed calendar observation period or wall-clock 04:30 wait applies"
@@ -273,18 +285,18 @@ def _validate_contracts(root: Path) -> list[str]:
         or run.get("stage_id") != "S7"
         or run.get("task_id") != "T0705"
         or run.get("baseline_commit")
-        != "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"  # pragma: allowlist secret
+        != "2133673b335a384657c8668b62a1c13055c212cd"  # pragma: allowlist secret
         or run.get("baseline_manifest_sha256")
-        != "58c758bab6b6df446e4aa6f8fec9a6f6e61a32726d28760dbf27cd98226b1820"  # pragma: allowlist secret  # noqa: E501
+        != "ea2ff510ccd929aa4b99dfb49ebbc90184f6cfcfc75ede846a167c502face3a9"  # pragma: allowlist secret  # noqa: E501
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
         or authorization.get("purpose")
-        != "T0705_PROTECTED_GA_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_AND_ENABLEMENT_ONLY"
+        != "T0705_PROTECTED_GA_POINTER_BLOB_RECOVERY_REPAIR_AND_ENABLEMENT_ONLY"
         or authorization.get("original_run_contract_sha256")
         != "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         or authorization.get("prior_run_contract_sha256")
-        != "00721a51af1a2bcabffb545700b516b7f713b2b2b2b8876d9b723dab37f55360"  # pragma: allowlist secret  # noqa: E501
-        or authorization.get("failed_attempt_ledgers_required") != 6
+        != "c48313bac0a9c3003d80188aa47f4022a33919508f780efa6942868845e3bf85"  # pragma: allowlist secret  # noqa: E501
+        or authorization.get("failed_attempt_ledgers_required") != 7
         or authorization.get("first_failed_attempt_ledger_sha256")
         != FAILED_T0705_ATTEMPT_LEDGER_SHA256
         or authorization.get("first_failed_attempt_ledger_schema_sha256")
@@ -309,6 +321,10 @@ def _validate_contracts(root: Path) -> list[str]:
         != FAILED_T0705_FIRST_IMPORT_ATTEMPT_LEDGER_SHA256
         or authorization.get("sixth_failed_attempt_ledger_schema_sha256")
         != FAILED_T0705_FIRST_IMPORT_ATTEMPT_LEDGER_SCHEMA_SHA256
+        or authorization.get("seventh_failed_attempt_ledger_sha256")
+        != FAILED_T0705_POINTER_FETCH_ATTEMPT_LEDGER_SHA256
+        or authorization.get("seventh_failed_attempt_ledger_schema_sha256")
+        != FAILED_T0705_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_SHA256
         or authorization.get("failed_workflow_head_shas")
         != [
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
@@ -317,6 +333,7 @@ def _validate_contracts(root: Path) -> list[str]:
             "4c207ad539754166fae6642ff4e6850438d3e2fc",  # pragma: allowlist secret
             "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",  # pragma: allowlist secret
             "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",  # pragma: allowlist secret
+            "2133673b335a384657c8668b62a1c13055c212cd",  # pragma: allowlist secret
         ]
         or authorization.get("failed_head_rerun_allowed") is not False
         or authorization.get("failed_head_redispatch_allowed") is not False
@@ -326,31 +343,32 @@ def _validate_contracts(root: Path) -> list[str]:
         or authorization.get("t0705_authorized") is not True
         or authorization.get("t0706_authorized") is not False
         or authorization.get("controlled_main_delivery_total_limit") != 9
-        or authorization.get("controlled_main_deliveries_consumed") != 6
-        or authorization.get("controlled_main_deliveries_remaining") != 3
-        or authorization.get("ga_rehearsal_dispatches_consumed") != 6
+        or authorization.get("controlled_main_deliveries_consumed") != 7
+        or authorization.get("controlled_main_deliveries_remaining") != 2
+        or authorization.get("ga_rehearsal_dispatches_consumed") != 7
         or authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or authorization.get("ga_label_replay_repair_dispatches_consumed") != 1
         or authorization.get("ga_phase_diagnostic_dispatches_consumed") != 1
         or authorization.get("ga_processed_plan_diagnostic_dispatches_consumed") != 1
-        or authorization.get("ga_first_import_diagnostic_dispatch_limit") != 1
+        or authorization.get("ga_first_import_diagnostic_dispatches_consumed") != 1
         or authorization.get("ga_exact_repair_or_pass_closure_dispatch_limit") != 1
         or authorization.get("ga_first_import_diagnostic_rerun_limit") != 0
         or authorization.get("manual_environment_reviewers_required") is not False
         or authorization.get("fixed_calendar_wait_days") != 0
         or authorization.get("final_publication_authorized") is not False
         or effect_budget.get("controlled_main_deliveries_total_maximum") != 9
-        or effect_budget.get("controlled_main_deliveries_remaining_maximum") != 3
+        or effect_budget.get("controlled_main_deliveries_remaining_maximum") != 2
         or effect_budget.get("protected_environment_secret_names_maximum") != 8
         or effect_budget.get("private_data_repository_creations_maximum") != 0
         or effect_budget.get("github_app_creations_maximum") != 0
         or effect_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 8
-        or effect_budget.get("protected_ga_rehearsal_dispatches_consumed") != 6
+        or effect_budget.get("protected_ga_rehearsal_dispatches_consumed") != 7
         or effect_budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_label_replay_repair_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_phase_diagnostic_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_processed_plan_diagnostic_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_first_import_diagnostic_dispatches_maximum") != 1
+        or effect_budget.get("protected_ga_first_import_diagnostic_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_exact_repair_or_pass_closure_dispatches_maximum") != 1
         or effect_budget.get("protected_ga_rehearsal_reruns_maximum") != 0
         or effect_budget.get("failed_head_reruns_maximum") != 0
@@ -371,7 +389,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("patch_lifecycle_protected_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "more than one new protected T0705 first-import subphase-diagnostic dispatch" in item
+            "more than one new protected T0705 pointer-blob recovery repair dispatch" in item
             for item in run.get("non_goals", [])
         )
         or not run.get("rollback")
@@ -503,22 +521,22 @@ def _validate_contracts(root: Path) -> list[str]:
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
         or status.get("stage_status")
-        != "T0705_SIX_FAILED_HEADS_FROZEN_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED_PENDING"
+        != "T0705_SEVEN_FAILED_HEADS_FROZEN_POINTER_BLOB_REPAIR_AUTHORIZED_PENDING"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
         or status.get("protected_oracles_executed") != 5
         or status.get("protected_oracles_passed") != 4
         or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 26
-        or status.get("production_workflow_runs") != 6
+        or status.get("protected_workflow_runs") != 27
+        or status.get("production_workflow_runs") != 7
         or status.get("final_acceptances_passed") != 0
         or status.get("delivery_status")
-        != "CONTROLLED_T0705_FIRST_IMPORT_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+        != "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL"
         or status.get("ordering_status")
-        != ("T0705_SIX_FAILED_HEADS_FROZEN_ONE_NEW_FIRST_IMPORT_DIAGNOSTIC_ATTEMPT_AUTHORIZED")
+        != ("T0705_SEVEN_FAILED_HEADS_FROZEN_ONE_POINTER_BLOB_REPAIR_ATTEMPT_AUTHORIZED")
         or status.get("diagnostic_repair_status")
-        != "GA_CLOSED_ENUM_FIRST_IMPORT_DIAGNOSTICS_VERIFIED_LOCAL"
+        != "GA_POINTER_BLOB_RAW_MEDIA_RECOVERY_VERIFIED_LOCAL"
         or status.get("new_controlled_delivery_authorized") is not True
         or status.get("new_protected_dispatch_authorized") is not True
     ):
@@ -528,7 +546,7 @@ def _validate_contracts(root: Path) -> list[str]:
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
         semantic.get("status")
-        != "T0705_SIX_FAILED_HEADS_FROZEN_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED_PENDING"
+        != "T0705_SEVEN_FAILED_HEADS_FROZEN_POINTER_BLOB_REPAIR_AUTHORIZED_PENDING"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
@@ -541,7 +559,8 @@ def _validate_contracts(root: Path) -> list[str]:
         or "T0705_LABEL_REPLAY_REPAIR_DELIVERED_HEAD_FROZEN" not in semantic_statuses
         or "T0705_CLOSED_PHASE_DIAGNOSTIC_DELIVERED_HEAD_FROZEN" not in semantic_statuses
         or "T0705_CLOSED_PROCESSED_PLAN_DIAGNOSTIC_DELIVERED_HEAD_FROZEN" not in semantic_statuses
-        or "T0705_CLOSED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED" not in semantic_statuses
+        or "T0705_CLOSED_FIRST_IMPORT_DIAGNOSTIC_DELIVERED_HEAD_FROZEN" not in semantic_statuses
+        or "T0705_POINTER_BLOB_RECOVERY_REPAIR_AUTHORIZED" not in semantic_statuses
         or "T0703_FAILED_LINEAGE_FROZEN" not in semantic_statuses
         or "PROTECTED_ZERO_NEW_WRITE_RECONCILIATION_VALIDATED" not in semantic_statuses
         or "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS" not in semantic_statuses
@@ -937,7 +956,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "T0705_SIX_FAILED_HEADS_FROZEN_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED_PENDING",
+        "T0705_SEVEN_FAILED_HEADS_FROZEN_POINTER_BLOB_REPAIR_AUTHORIZED_PENDING",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -1422,7 +1441,7 @@ def _validate_workflow(root: Path) -> list[str]:
         "workflow_dispatch:",
         "expected_head_sha:",
         "confirm_ga:",
-        "GA_SCHEDULE_MODE_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE",
+        "GA_SCHEDULE_MODE_POINTER_BLOB_RECOVERY_REPAIR_MUTATION_BUDGET_ONE",
         "permissions:\n  contents: read",
         "group: moomooau-production-single-writer",
         "Fail closed on invalid protected GA dispatch context",
@@ -1440,6 +1459,7 @@ def _validate_workflow(root: Path) -> list[str]:
         'test "$GITHUB_SHA" != "4c207ad539754166fae6642ff4e6850438d3e2fc"',
         'test "$GITHUB_SHA" != "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"',
         'test "$GITHUB_SHA" != "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"',
+        'test "$GITHUB_SHA" != "2133673b335a384657c8668b62a1c13055c212cd"',
         'echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"',
         "needs: ga-authority-gate",
         "needs.ga-authority-gate.outputs.authorized_head",
@@ -2576,6 +2596,93 @@ def _validate_evidence(root: Path) -> list[str]:
             or any(value is not False for value in claims.values())
         ):
             errors.append("protected GA first-import failed-attempt ledger is not exact or frozen")
+    ga_pointer_fetch_ledger_path = root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER
+    ga_pointer_fetch_schema_path = root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA
+    try:
+        ga_pointer_fetch_ledger = _load(ga_pointer_fetch_ledger_path)
+        ga_pointer_fetch_schema = _load(ga_pointer_fetch_schema_path)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        errors.append("protected GA pointer-fetch failed-attempt ledger is missing or unreadable")
+    else:
+        ledger_errors = list(
+            Draft202012Validator(
+                ga_pointer_fetch_schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ga_pointer_fetch_ledger)
+        )
+        attempts = ga_pointer_fetch_ledger.get("attempts", [])
+        attempt = attempts[0] if isinstance(attempts, list) and len(attempts) == 1 else {}
+        delivery = attempt.get("delivery", {})
+        workflow = attempt.get("workflow", {})
+        jobs = attempt.get("jobs", {})
+        failure = attempt.get("public_failure", {})
+        effects = attempt.get("effects", {})
+        protocol = attempt.get("protocol_evidence", {})
+        diagnosis = attempt.get("diagnosis", {})
+        policy = ga_pointer_fetch_ledger.get("completion_policy", {})
+        claims = ga_pointer_fetch_ledger.get("claims", {})
+        if (
+            ledger_errors
+            or _sha256(ga_pointer_fetch_ledger_path)
+            != FAILED_T0705_POINTER_FETCH_ATTEMPT_LEDGER_SHA256
+            or _sha256(ga_pointer_fetch_schema_path)
+            != FAILED_T0705_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_SHA256
+            or attempt.get("sequence") != 7
+            or delivery.get("pull_request_number") != 122
+            or delivery.get("merge_commit_sha")
+            != "2133673b335a384657c8668b62a1c13055c212cd"  # pragma: allowlist secret
+            or delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
+            or workflow.get("run_id") != 30196968135
+            or workflow.get("run_attempt") != 1
+            or workflow.get("reruns") != 0
+            or jobs.get("authority_gate", {}).get("status") != "PASS"
+            or jobs.get("ga_schedule_rehearsal", {}).get("status") != "FAILED"
+            or jobs.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+            or jobs.get("live_schedule_hold", {}).get("status") != "SKIPPED"
+            or failure.get("reason_code") != "PROTECTED_GA_FIRST_IMPORT_POINTER_FETCH_FAILED"
+            or failure.get("failure_phase") != "FIRST_IMPORT_POINTER_FETCH"
+            or failure.get("exact_root_cause_claimed") is not False
+            or any(
+                effects.get(key) != 0
+                for key in (
+                    "private_repository_new_commits_during_attempt",
+                    "private_repository_added_paths",
+                    "private_repository_modified_paths",
+                    "private_repository_removed_paths",
+                    "raw_ciphertext_creations",
+                    "processed_immutable_creations",
+                    "processed_current_pointer_mutations",
+                    "timeline_snapshot_mutations",
+                    "timeline_state_mutations",
+                    "timeline_publish_attempts",
+                    "gmail_checkpoint_mutations",
+                    "gmail_source_mutations",
+                    "platform_schedule_events",
+                )
+            )
+            or effects.get("private_repository_head_changed") is not False
+            or effects.get("gmail_mutation_api_reached") is not False
+            or protocol.get("matching_private_repositories") != 1
+            or protocol.get("current_pointer_objects") != 2
+            or protocol.get("git_tree_blob_objects_valid") != 2
+            or protocol.get("git_raw_media_objects_valid") != 2
+            or protocol.get("contents_inline_representation_mismatches") != 1
+            or protocol.get("canonical_git_blob_sha_bindings_valid") != 2
+            or diagnosis.get("exact_runtime_exception") != "NOT_RECEIVED_OR_INSPECTED"
+            or diagnosis.get("exact_root_cause") != "UNKNOWN"
+            or diagnosis.get("safe_next_repair")
+            != "CONTENTS_METADATA_PLUS_EXACT_RAW_MEDIA_WITH_CANONICAL_GIT_BLOB_SHA_BINDING"
+            or policy.get("same_head_rerun_allowed") is not False
+            or policy.get("failed_head_redispatch_allowed") is not False
+            or policy.get("exact_pointer_blob_recovery_repair_candidate_allowed") is not True
+            or policy.get("next_candidate_dispatch_limit") != 1
+            or policy.get("historical_ga_rehearsal_dispatches_consumed") != 7
+            or policy.get("historical_ga_rehearsal_reruns") != 0
+            or policy.get("t0705_complete") is not False
+            or policy.get("t0706_authorized") is not False
+            or any(value is not False for value in claims.values())
+        ):
+            errors.append("protected GA pointer-fetch failed-attempt ledger is not exact or frozen")
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
@@ -2588,8 +2695,8 @@ def _validate_evidence(root: Path) -> list[str]:
             "FINAL_ACCEPTANCE_AND_POST_BLUE_GREEN_STAGE7_PHASES_NOT_RUN",
         },
         "T0705": {
-            "T0705_SIX_FAILED_HEADS_FROZEN",
-            "T0705_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_PENDING",
+            "T0705_SEVEN_FAILED_HEADS_FROZEN",
+            "T0705_POINTER_BLOB_RECOVERY_REPAIR_PENDING",
             "T0705_PROTECTED_RECEIPT_NOT_BOUND",
             "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN",
         },
@@ -2713,14 +2820,14 @@ def _validate_evidence(root: Path) -> list[str]:
     if (
         latest.get("stage_id") != "S7"
         or latest.get("status")
-        != "T0705_SIX_FAILED_HEADS_FROZEN_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED_PENDING"
+        != "T0705_SEVEN_FAILED_HEADS_FROZEN_POINTER_BLOB_REPAIR_AUTHORIZED_PENDING"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or latest.get("scope")
         != (
             "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_T0704_PASS_RECEIPTS"
-            "_SIX_T0705_FAILED_ATTEMPTS_AND_ONE_CLOSED_FIRST_IMPORT_DIAGNOSTIC_AUTHORITY"
+            "_SEVEN_T0705_FAILED_ATTEMPTS_AND_ONE_POINTER_BLOB_RECOVERY_REPAIR_AUTHORITY"
         )
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
@@ -2729,8 +2836,8 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("protected_oracles_executed") != 5
         or latest.get("protected_oracles_passed") != 4
         or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 26
-        or latest.get("production_workflow_runs") != 6
+        or latest.get("protected_workflow_runs") != 27
+        or latest.get("production_workflow_runs") != 7
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
         or observation.get("beta_public_safe_failure_diagnostics")
@@ -2745,7 +2852,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("ga_full_pipeline_local_mechanism")
         != "PASS_EXACT_PROTECTED_ENTRYPOINT_READY"
         or observation.get("ga_protected_entrypoint")
-        != "SIX_FAILED_HEADS_FROZEN_CLOSED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED"
+        != "SEVEN_FAILED_HEADS_FROZEN_POINTER_BLOB_RECOVERY_REPAIR_AUTHORIZED"
         or observation.get("codex_auto_local_policy") != "PASS"
         or observation.get("recovery_drill_local_mechanism") != "PASS"
         or observation.get("patch_lifecycle_local_policy") != "PASS"
@@ -2763,7 +2870,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 23
+        or observation.get("controlled_main_deliveries") != 24
         or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or observation.get("remote_publications") != 0
         or observation.get("m3_runs") != 1
@@ -2774,13 +2881,12 @@ def _validate_evidence(root: Path) -> list[str]:
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
         or latest.get("delivery_status")
-        != "CONTROLLED_T0705_FIRST_IMPORT_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+        != "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Deliver one new exact-main T0705 closed-enum first-import subphase-diagnostic "
-            "candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or "
-            "redispatch any of the six failed heads; if the diagnostic fails, permit only one "
-            "exact repair-or-PASS closure candidate. After exact protected PASS bind the receipt, "
+            "Deliver one new exact-main T0705 pointer-blob recovery repair candidate and execute "
+            "exactly one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the "
+            "seven failed heads. After exact protected PASS bind the receipt, "
             "enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
         )
     ):
