@@ -73,6 +73,19 @@ function createCodexRuntimeAdapter(config) {
     getSessionStore() {
       return sessionStore;
     },
+    getReadiness() {
+      const runtimeClient = client;
+      const ready = Boolean(
+        readyState
+        && runtimeClient
+        && runtimeClient.isReady
+        && runtimeClient.isTransportReady(),
+      );
+      return {
+        ready,
+        reason: ready ? "ready" : "runtime_transport_unready",
+      };
+    },
     getTurnCapabilities({ model = "" } = {}) {
       const forcedNativeImageInput = config.codexNativeImageInput;
       if (typeof forcedNativeImageInput === "boolean") {

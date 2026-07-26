@@ -34,6 +34,11 @@ const { TurnGateStore } = require("./turn-gate-store");
 const { ReminderQueueStore } = require("../adapters/channel/weixin/reminder-queue-store");
 const { RuntimeSpoolDatabase } = require("../services/db/database-adapter");
 const { DurableInboxCoordinator } = require("../services/inbox/durable-inbox");
+const { JobScheduler } = require("../services/jobs/job-scheduler");
+const {
+  ResourceReadinessGate,
+  captureLiveResourceSnapshot,
+} = require("../services/jobs/resource-readiness-gate");
 const {
   matchesCommandPrefix,
   canonicalizeCommandTokens,
@@ -143,6 +148,7 @@ class CyberbossApp {
     this.runtimeEventChain = Promise.resolve();
     this.runtimeSpoolDatabase = null;
     this.durableInboxCoordinator = null;
+    this.jobScheduler = null;
     this.runtimeAdapter.onEvent((event) => {
       this.threadStateStore.applyRuntimeEvent(event);
       this.runtimeEventChain = this.runtimeEventChain
@@ -193,6 +199,28 @@ class CyberbossApp {
         database: this.runtimeSpoolDatabase,
         config: this.config,
       });
+      if (this.config.jobScheduler === true) {
+        const gate = new ResourceReadinessGate({
+          pollStaleMs: this.config.pollStaleMs,
+          queueStuckMs: this.config.queueStuckMs,
+          queueLimit: this.config.schedulerQueueLimit,
+        });
+        this.jobScheduler = new JobScheduler({
+          database: this.runtimeSpoolDatabase,
+          workspaceRegistry: this.workspaceRegistry,
+          gate,
+          runtimeLeaseMs: this.config.runtimeLeaseMs,
+          controlLeaseMs: this.config.controlLeaseMs,
+          runtimeReadiness: () => (
+            typeof this.runtimeAdapter.getReadiness === "function"
+              ? this.runtimeAdapter.getReadiness()
+              : { ready: false, reason: "runtime_readiness_unavailable" }
+          ),
+          snapshotProvider: (facts) => captureLiveResourceSnapshot(facts),
+          dispatchRuntime: (payload) => this.dispatchDurableRuntimeJob(payload),
+          dispatchControl: (payload) => this.dispatchDurableControlJob(payload),
+        });
+      }
     } catch (error) {
       this.closeDurableInbox();
       throw error;
@@ -203,6 +231,10 @@ class CyberbossApp {
   }
 
   closeDurableInbox() {
+    if (this.jobScheduler) {
+      this.jobScheduler.stop();
+      this.jobScheduler = null;
+    }
     this.durableInboxCoordinator = null;
     if (this.runtimeSpoolDatabase) {
       this.runtimeSpoolDatabase.close();
@@ -240,6 +272,7 @@ class CyberbossApp {
     try {
       this.initializeDurableInbox();
       runtimeState = await this.runtimeAdapter.initialize();
+      this.jobScheduler?.start();
     } catch (error) {
       this.closeDurableInbox();
       await this.runtimeAdapter.close().catch(() => {});
@@ -248,6 +281,7 @@ class CyberbossApp {
     const knownContextTokens = Object.keys(this.channelAdapter.getKnownContextTokens()).length;
     const syncBuffer = this.channelAdapter.loadSyncBuffer();
     await this.restoreBoundThreadSubscriptions();
+    await this.jobScheduler?.runCycle();
 
     console.log("[cyberboss] bootstrap ok");
     console.log(`[cyberboss] channel=${this.channelAdapter.describe().id}`);
@@ -260,6 +294,9 @@ class CyberbossApp {
     console.log(`[cyberboss] syncBuffer=${syncBuffer ? "ready" : "empty"}`);
     console.log(
       `[cyberboss] durableInbox=${this.durableInboxCoordinator ? "enabled" : "staging_baseline"}`,
+    );
+    console.log(
+      `[cyberboss] jobScheduler=${this.jobScheduler ? "enabled" : "staging_manual"}`,
     );
     console.log(`[cyberboss] runtimeEndpoint=${runtimeState.endpoint || runtimeState.command || "(spawn)"}`);
     console.log(`[cyberboss] runtimeModels=${runtimeState.models?.length || 0}`);
@@ -277,6 +314,7 @@ class CyberbossApp {
     const shutdown = createShutdownController(async () => {
       this.clearPendingImageInboundTimers();
       await this.closeLocationServer();
+      this.jobScheduler?.stop();
       await this.runtimeAdapter.close();
       this.closeDurableInbox();
     });
@@ -295,12 +333,14 @@ class CyberbossApp {
             const durable = await this.durableInboxCoordinator.pollOnce({
               timeoutMs: this.resolveLongPollTimeoutMs(),
             });
+            this.jobScheduler?.notePollSuccess();
             consecutiveFailures = 0;
             if (durable.acceptedCount || durable.rejectedCount) {
               console.log(
                 `[cyberboss] durable batch queued accepted=${durable.acceptedCount} rejected=${durable.rejectedCount}`,
               );
             }
+            await this.jobScheduler?.runCycle();
           } else {
             const fetched = await this.channelAdapter.fetchUpdates({
               syncBuffer: this.channelAdapter.loadSyncBuffer(),
@@ -336,6 +376,7 @@ class CyberbossApp {
           }
 
           consecutiveFailures += 1;
+          this.jobScheduler?.notePollFailure(error);
           console.error(`[cyberboss] poll failed: ${formatErrorMessage(error)}`);
           await sleep(consecutiveFailures >= MAX_CONSECUTIVE_FAILURES ? BACKOFF_DELAY_MS : RETRY_DELAY_MS);
         }
@@ -344,6 +385,7 @@ class CyberbossApp {
       shutdown.dispose();
       this.clearPendingImageInboundTimers();
       await this.closeLocationServer();
+      this.jobScheduler?.stop();
       await this.runtimeAdapter.close();
       this.closeDurableInbox();
     }
@@ -563,6 +605,112 @@ class CyberbossApp {
     await this.routePreparedInbound({ bindingKey, workspaceRoot, prepared });
   }
 
+  async dispatchDurableRuntimeJob({ job, normalized, workspace }) {
+    const runtimeId = this.runtimeAdapter.describe().id;
+    const expectedRuntime = runtimeId === "claudecode" ? "claude" : runtimeId;
+    if (job?.runtime !== expectedRuntime) {
+      throw new Error("RUNTIME_ADAPTER_MISMATCH");
+    }
+    const resolvedWorkspace = this.workspaceRegistry.resolve(job.workspace_alias);
+    if (
+      resolvedWorkspace.alias !== workspace?.alias
+      || resolvedWorkspace.root !== workspace?.root
+    ) {
+      throw new Error("WORKSPACE_BINDING_CHANGED");
+    }
+    const bindingKey = this.runtimeAdapter.getSessionStore().buildBindingKey({
+      workspaceId: normalized.workspaceId,
+      accountId: normalized.accountId,
+      senderId: normalized.senderId,
+    });
+    this.runtimeAdapter.getSessionStore().setActiveWorkspaceRoot(
+      bindingKey,
+      resolvedWorkspace.root,
+    );
+    this.streamDelivery.setReplyTarget(bindingKey, {
+      userId: normalized.senderId,
+      contextToken: normalized.contextToken,
+      provider: normalized.provider,
+    });
+    const prepared = await this.prepareIncomingMessageForRuntime(
+      normalized,
+      resolvedWorkspace.root,
+    );
+    if (!prepared) {
+      throw new Error("DURABLE_RUNTIME_INPUT_REJECTED");
+    }
+    const run = await this.dispatchPreparedTurn({
+      bindingKey,
+      workspaceRoot: resolvedWorkspace.root,
+      prepared,
+      returnRun: true,
+    });
+    if (!run || typeof run !== "object") {
+      throw new Error("DURABLE_RUNTIME_DISPATCH_FAILED");
+    }
+    return run;
+  }
+
+  async dispatchDurableControlJob({
+    normalized,
+    command,
+    activeRun,
+    workspace,
+  }) {
+    const bindingKey = this.runtimeAdapter.getSessionStore().buildBindingKey({
+      workspaceId: normalized.workspaceId,
+      accountId: normalized.accountId,
+      senderId: normalized.senderId,
+    });
+    this.streamDelivery.setReplyTarget(bindingKey, {
+      userId: normalized.senderId,
+      contextToken: normalized.contextToken,
+      provider: normalized.provider,
+    });
+    if (
+      activeRun
+      && ["bind", "new"].includes(command.name)
+    ) {
+      await this.channelAdapter.sendText({
+        userId: normalized.senderId,
+        text: `⚠️ /${command.name} is blocked while a Runtime job is active. Use /stop first.`,
+        contextToken: normalized.contextToken,
+      });
+      return { resultCode: "active_runtime_guard" };
+    }
+    if (command.name === "stop") {
+      if (!activeRun?.runBound || !activeRun.threadId || !activeRun.turnId) {
+        await this.channelAdapter.sendText({
+          userId: normalized.senderId,
+          text: activeRun
+            ? "⚠️ The active Runtime run is not safely bound; no cancellation was claimed."
+            : "💡 There is no running Runtime job right now.",
+          contextToken: normalized.contextToken,
+        });
+        return {
+          resultCode: activeRun
+            ? "active_run_unbound"
+            : "no_active_runtime",
+        };
+      }
+      await this.runtimeAdapter.cancelTurn({
+        threadId: activeRun.threadId,
+        turnId: activeRun.turnId,
+        workspaceRoot: this.workspaceRegistry.resolve(
+          activeRun.job.workspace_alias,
+        ).root,
+      });
+      await this.channelAdapter.sendText({
+        userId: normalized.senderId,
+        text: "⏹️ Stop request acknowledged by Runtime; final job state is pending the Runtime terminal event.",
+        contextToken: normalized.contextToken,
+      });
+      return { resultCode: "cancel_acknowledged" };
+    }
+    await this.dispatchChannelCommand(normalized, command);
+    return { resultCode: "command_processed" };
+  }
+
   isTurnDispatchBlocked(bindingKey, workspaceRoot, { ignoreBoundary = false } = {}) {
     const scopeKey = buildScopeKey(bindingKey, workspaceRoot);
     if (!ignoreBoundary && scopeKey && this.turnBoundaryScopeKeys?.has(scopeKey)) {
@@ -576,7 +724,12 @@ class CyberbossApp {
     return threadState?.status === "running" || hasRpcId(threadState?.pendingApproval?.requestId);
   }
 
-  async dispatchPreparedTurn({ bindingKey, workspaceRoot, prepared }) {
+  async dispatchPreparedTurn({
+    bindingKey,
+    workspaceRoot,
+    prepared,
+    returnRun = false,
+  }) {
     workspaceRoot = this.workspaceRegistry.assertAllowedRoot(workspaceRoot).root;
     const pendingScopeKey = this.turnGateStore.begin(bindingKey, workspaceRoot);
     await this.channelAdapter.sendTyping({
@@ -633,7 +786,9 @@ class CyberbossApp {
       } else {
         this.streamDelivery.queueReplyTargetForThread(turn.threadId, replyTarget);
       }
-      return true;
+      return returnRun
+        ? Object.freeze({ threadId: turn.threadId, turnId: turn.turnId })
+        : true;
     } catch (error) {
       this.turnGateStore.releaseScope(bindingKey, workspaceRoot);
       const messageText = error instanceof Error ? error.message : String(error || "unknown error");
@@ -1219,15 +1374,28 @@ class CyberbossApp {
     const storedModel = runtimeParams.model || "";
     const storedModelProvider = runtimeParams.modelProvider || this.runtimeAdapter.describe().modelProvider || "";
     const effectiveModel = this.runtimeAdapter.describe().model || storedModel;
+    const schedulerStatus = this.jobScheduler
+      ? this.jobScheduler.statusSnapshot()
+      : null;
 
     const lines = [
       `📍 workspace: ${this.workspaceRegistry.aliasForRoot(workspaceRoot)}`,
-      `🧵 thread: ${threadId || "(none)"}`,
+      `🧵 thread: ${schedulerStatus
+        ? (threadId ? "(present)" : "(none)")
+        : (threadId || "(none)")}`,
       `📊 status: ${threadState?.status || "idle"}`,
       `🤖 runtime: ${runtimeName}`,
       `🤖 model: ${effectiveModel || "(default)"}`,
       `🤖 provider: ${storedModelProvider || "(default)"}`,
     ];
+    if (schedulerStatus) {
+      lines.push(
+        `📥 queue: ${schedulerStatus.queuedTotal}`,
+        `🔒 active runtime lease: ${schedulerStatus.activeRuntimeLeaseCount}`,
+        `🛡️ gate: ${schedulerStatus.gateState}/${schedulerStatus.gateReason}`,
+        `🧭 action: ${schedulerStatus.gateAction}`,
+      );
+    }
     lines.push(formatContextStatusLine({
       runtimeName,
       context,
@@ -1252,9 +1420,12 @@ class CyberbossApp {
       await this.runtimeAdapter.startFreshThreadDraft({ bindingKey, workspaceRoot });
     }
     this.runtimeAdapter.getSessionStore().clearThreadIdForWorkspace(bindingKey, workspaceRoot);
+    const workspaceLabel = this.workspaceRegistry
+      ? this.workspaceRegistry.aliasForRoot(workspaceRoot)
+      : workspaceRoot;
     await this.channelAdapter.sendText({
       userId: normalized.senderId,
-      text: `✅ Switched to a fresh thread draft\nworkspace: ${workspaceRoot}`,
+      text: `✅ Switched to a fresh thread draft\nworkspace: ${workspaceLabel}`,
       contextToken: normalized.contextToken,
     });
   }
@@ -1608,6 +1779,9 @@ class CyberbossApp {
   }
 
   async handleRuntimeEvent(event) {
+    const schedulerEvent = this.jobScheduler
+      ? await this.jobScheduler.handleRuntimeEvent(event)
+      : null;
     const failureReplyTarget = event?.type === "runtime.turn.failed"
       ? this.streamDelivery.resolveReplyTargetForRun({
           threadId: event?.payload?.threadId,
@@ -1673,6 +1847,15 @@ class CyberbossApp {
         if (scopeKey) {
           this.turnBoundaryScopeKeys.delete(scopeKey);
         }
+      }
+      if (schedulerEvent?.terminal) {
+        queueMicrotask(() => {
+          void this.jobScheduler?.runCycle().catch((error) => {
+            console.error(
+              `[cyberboss] scheduler continuation failed ${formatErrorMessage(error)}`,
+            );
+          });
+        });
       }
       return;
     }

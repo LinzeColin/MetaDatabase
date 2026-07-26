@@ -40,22 +40,37 @@ function mapCodexMessageToRuntimeEvent(message) {
   }
 
   if (method === "turn/completed") {
+    const status = normalizeString(
+      params?.turn?.status || params?.status || "completed",
+    ).toLowerCase();
     return {
       type: "runtime.turn.completed",
       payload: {
         threadId,
         turnId,
+        status,
+        cancelled: ["interrupted", "cancelled", "canceled"].includes(status),
       },
     };
   }
 
   if (method === "turn/failed") {
+    const retryable =
+      params?.turn?.error?.retryable === true
+      || params?.error?.retryable === true;
     return {
       type: "runtime.turn.failed",
       payload: {
         threadId,
         turnId,
         text: extractFailureText(params),
+        errorClass: normalizeString(
+          params?.turn?.error?.code || params?.error?.code,
+        ),
+        retryable,
+        cancelled:
+          params?.turn?.status === "interrupted"
+          || params?.turn?.status === "cancelled",
       },
     };
   }
@@ -95,6 +110,7 @@ function mapCodexMessageToRuntimeEvent(message) {
       payload: {
         kind: "command",
         threadId,
+        turnId,
         requestId: message?.id ?? null,
         reason: normalizeString(params?.reason),
         command: extractApprovalDisplayCommand(params),

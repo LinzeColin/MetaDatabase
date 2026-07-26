@@ -16,6 +16,7 @@ function createClaudeCodeRuntimeAdapter(config) {
   const pendingModelByWorkspaceRoot = new Map();
   const configuredModel = normalizeText(config.claudeModel);
   let globalListener = null;
+  let initialized = false;
   const ipcSocketPath = path.join(
     config.stateDir || path.join(os.homedir(), ".cyberboss"),
     "claudecode-runtime.sock",
@@ -177,6 +178,12 @@ function createClaudeCodeRuntimeAdapter(config) {
     getSessionStore() {
       return sessionStore;
     },
+    getReadiness() {
+      return {
+        ready: initialized,
+        reason: initialized ? "ready" : "runtime_not_initialized",
+      };
+    },
     getTurnCapabilities({ model = "" } = {}) {
       const effectiveModel = resolveModel(model);
       return {
@@ -187,12 +194,14 @@ function createClaudeCodeRuntimeAdapter(config) {
     async initialize() {
       hydrateRuntimeModelsFromClaudeProjects();
       ipcServer.start();
+      initialized = true;
       return {
         command: config.claudeCommand || "claude",
         models: [],
       };
     },
     async close() {
+      initialized = false;
       for (const client of clientsByWorkspace.values()) {
         await client.close();
       }

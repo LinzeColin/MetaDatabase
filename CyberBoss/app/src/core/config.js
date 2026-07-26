@@ -16,6 +16,13 @@ function readConfig() {
   if (!durableInbox && !baselineStagingAllowed) {
     throw new Error("CB_DURABLE_INBOX=false is allowed only in explicit non-production staging");
   }
+  const jobSchedulerOverride = readOptionalBoolEnv("CB_JOB_SCHEDULER");
+  const jobScheduler = durableInbox && (
+    jobSchedulerOverride === undefined ? true : jobSchedulerOverride
+  );
+  if (durableInbox && !jobScheduler && !baselineStagingAllowed) {
+    throw new Error("CB_JOB_SCHEDULER=false is allowed only in explicit non-production staging");
+  }
   const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
     || path.join(stateDir, "workspaces.json");
   const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
@@ -52,6 +59,7 @@ function readConfig() {
       || readIntEnv("CB_MAX_INPUT_BYTES")
       || 32 * 1024,
     durableInbox,
+    jobScheduler,
     baselineStagingAllowed,
     runtimeDatabasePath: readTextEnv("CB_RUNTIME_DB")
       || path.join(stateDir, "runtime.db"),
@@ -60,6 +68,11 @@ function readConfig() {
     runtimeIdentityKeyFile: readTextEnv("CB_RUNTIME_IDENTITY_KEY_FILE")
       || path.join(stateDir, "credentials", "runtime-identity.key"),
     activePayloadTtlHours: readIntEnv("CB_ACTIVE_PAYLOAD_TTL_HOURS") || 24,
+    runtimeLeaseMs: readIntEnv("CB_RUNTIME_LEASE_MS") || 30_000,
+    controlLeaseMs: readIntEnv("CB_CONTROL_LEASE_MS") || 10_000,
+    pollStaleMs: readIntEnv("CB_POLL_STALE_MS") || 90_000,
+    queueStuckMs: readIntEnv("CB_QUEUE_STUCK_MS") || 5 * 60_000,
+    schedulerQueueLimit: readIntEnv("CB_QUEUE_LIMIT") || 20,
     walkingSkeletonTraceFile: readTextEnv("CYBERBOSS_WALKING_SKELETON_TRACE_FILE"),
     channel: readTextEnv("CYBERBOSS_CHANNEL") || "weixin",
     runtime: readTextEnv("CYBERBOSS_RUNTIME") || "codex",

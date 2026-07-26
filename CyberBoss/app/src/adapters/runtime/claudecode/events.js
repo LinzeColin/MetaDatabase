@@ -38,6 +38,10 @@ function mapClaudeCodeMessageToRuntimeEvent(message, raw) {
           threadId: message.sessionId,
           turnId: message.turnId,
           text: typeof message.text === "string" ? message.text : "",
+          status: normalizeString(message.status) || "completed",
+          cancelled: ["interrupted", "cancelled", "canceled"].includes(
+            normalizeString(message.status).toLowerCase(),
+          ),
         },
       };
     case "approval.requested":
@@ -46,6 +50,7 @@ function mapClaudeCodeMessageToRuntimeEvent(message, raw) {
         type: "runtime.approval.requested",
         payload: {
           threadId: message.sessionId,
+          turnId: message.turnId,
           requestId: message.requestId,
           reason: `Tool: ${readableToolName || ""}`,
           command: formatToolCommand(message.toolName, message.input),
@@ -67,6 +72,11 @@ function mapClaudeCodeMessageToRuntimeEvent(message, raw) {
           threadId: message.sessionId,
           turnId: message.turnId,
           text: message.error || "❌ Runtime process exited unexpectedly",
+          errorClass: type === "process.close"
+            ? "transport_unavailable"
+            : "runtime_terminal",
+          retryable: type === "process.close",
+          cancelled: message.cancelled === true,
         },
       };
     case "session.id":

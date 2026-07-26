@@ -106,7 +106,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const clean = openSpool(cleanPath);
     assert.deepEqual(
       clean.migrationRecords().map((row) => row.version),
-      [1, 2],
+      [1, 2, 3],
     );
     assert.deepEqual(clean.pragmaStatus(), {
       journalMode: "wal",
@@ -126,6 +126,8 @@ if (!isMainThread && workerData?.mode === "duplicate") {
       "CREATE TABLE job_state_transitions",
       "CREATE TRIGGER jobs_status_transition_guard",
       "CREATE TRIGGER job_events_immutable_update_guard",
+      "CREATE UNIQUE INDEX idx_jobs_single_active_runtime",
+      "CREATE TRIGGER jobs_scheduler_runtime_lease_guard",
     ]) {
       assert.match(schema, new RegExp(marker));
     }
@@ -140,7 +142,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const upgraded = openSpool(v1Path);
     assert.deepEqual(
       upgraded.migrationRecords().map((row) => row.version),
-      [1, 2],
+      [1, 2, 3],
     );
     upgraded.close();
 
@@ -169,6 +171,12 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     );
     assert.doesNotMatch(migration2, /\b(?:DROP|RENAME|VACUUM)\b/i);
     assert.match(migration2, /ALTER TABLE .* ADD COLUMN/);
+    const migration3 = fs.readFileSync(
+      path.join(MIGRATION_ROOT, "003_cb220_scheduler_control.sql"),
+      "utf8",
+    );
+    assert.doesNotMatch(migration3, /\b(?:DROP|RENAME|VACUUM)\b/i);
+    assert.match(migration3, /ALTER TABLE jobs ADD COLUMN/);
   });
 
   test("10,000 durable fixtures have stable collision-free source, correlation and job IDs", { timeout: 60000 }, (t) => {

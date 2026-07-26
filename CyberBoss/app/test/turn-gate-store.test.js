@@ -632,3 +632,175 @@ test("flushPendingInboundMessages falls back to messageId ordering when received
   assert.equal(dispatched[0].prepared.contextToken, "ctx-200");
   assert.match(dispatched[0].prepared.text, /第一条[\s\S]*第二条[\s\S]*第三条/);
 });
+
+test("durable stop acknowledges only the Runtime request and keeps terminal truth pending", async () => {
+  const cancellations = [];
+  const sent = [];
+  const appLike = {
+    workspaceRegistry: {
+      resolve(alias) {
+        assert.equal(alias, "cyberboss");
+        return { alias, root: "/workspace" };
+      },
+    },
+    runtimeAdapter: {
+      getSessionStore() {
+        return {
+          buildBindingKey() {
+            return "binding-1";
+          },
+        };
+      },
+      async cancelTurn(payload) {
+        cancellations.push(payload);
+      },
+    },
+    streamDelivery: {
+      setReplyTarget() {},
+    },
+    channelAdapter: {
+      async sendText(payload) {
+        sent.push(payload.text);
+      },
+    },
+  };
+
+  const result = await CyberbossApp.prototype.dispatchDurableControlJob.call(
+    appLike,
+    {
+      normalized: {
+        provider: "weixin",
+        workspaceId: "default",
+        accountId: "account-1",
+        senderId: "user-1",
+        contextToken: "ctx-1",
+      },
+      command: { name: "stop", args: "" },
+      workspace: { alias: "cyberboss", root: "/workspace" },
+      activeRun: {
+        job: { workspace_alias: "cyberboss" },
+        threadId: "thread-1",
+        turnId: "turn-1",
+        runBound: true,
+      },
+    },
+  );
+
+  assert.deepEqual(cancellations, [{
+    threadId: "thread-1",
+    turnId: "turn-1",
+    workspaceRoot: "/workspace",
+  }]);
+  assert.equal(result.resultCode, "cancel_acknowledged");
+  assert.match(sent[0], /final job state is pending/);
+  assert.doesNotMatch(sent[0], /job (?:cancelled|succeeded)/i);
+});
+
+test("durable bind and new commands cannot change scope during an active Runtime job", async () => {
+  const sent = [];
+  let commandDispatches = 0;
+  const appLike = {
+    runtimeAdapter: {
+      getSessionStore() {
+        return {
+          buildBindingKey() {
+            return "binding-1";
+          },
+        };
+      },
+    },
+    streamDelivery: {
+      setReplyTarget() {},
+    },
+    channelAdapter: {
+      async sendText(payload) {
+        sent.push(payload.text);
+      },
+    },
+    async dispatchChannelCommand() {
+      commandDispatches += 1;
+    },
+  };
+  const normalized = {
+    provider: "weixin",
+    workspaceId: "default",
+    accountId: "account-1",
+    senderId: "user-1",
+    contextToken: "ctx-1",
+  };
+  for (const name of ["bind", "new"]) {
+    const result = await CyberbossApp.prototype.dispatchDurableControlJob.call(
+      appLike,
+      {
+        normalized,
+        command: { name, args: name === "bind" ? "cyberboss" : "" },
+        activeRun: {
+          job: { workspace_alias: "cyberboss" },
+          runBound: true,
+        },
+        workspace: { alias: "cyberboss", root: "/workspace" },
+      },
+    );
+    assert.equal(result.resultCode, "active_runtime_guard");
+  }
+  assert.equal(commandDispatches, 0);
+  assert.equal(sent.length, 2);
+});
+
+test("durable Runtime dispatch revalidates alias and returns the exact run binding", async () => {
+  const activeRoots = [];
+  const appLike = {
+    workspaceRegistry: {
+      resolve(alias) {
+        assert.equal(alias, "cyberboss");
+        return { alias, root: "/workspace" };
+      },
+    },
+    runtimeAdapter: {
+      describe() {
+        return { id: "codex" };
+      },
+      getSessionStore() {
+        return {
+          buildBindingKey() {
+            return "binding-1";
+          },
+          setActiveWorkspaceRoot(bindingKey, workspaceRoot) {
+            activeRoots.push([bindingKey, workspaceRoot]);
+          },
+        };
+      },
+    },
+    streamDelivery: {
+      setReplyTarget() {},
+    },
+    async prepareIncomingMessageForRuntime(normalized, workspaceRoot) {
+      assert.equal(workspaceRoot, "/workspace");
+      return { ...normalized };
+    },
+    async dispatchPreparedTurn(payload) {
+      assert.equal(payload.workspaceRoot, "/workspace");
+      assert.equal(payload.returnRun, true);
+      return { threadId: "thread-1", turnId: "turn-1" };
+    },
+  };
+  const run = await CyberbossApp.prototype.dispatchDurableRuntimeJob.call(
+    appLike,
+    {
+      job: {
+        runtime: "codex",
+        workspace_alias: "cyberboss",
+      },
+      normalized: {
+        provider: "weixin",
+        workspaceId: "default",
+        accountId: "account-1",
+        senderId: "user-1",
+        contextToken: "ctx-1",
+      },
+      workspace: { alias: "cyberboss", root: "/workspace" },
+    },
+  );
+  assert.deepEqual(run, { threadId: "thread-1", turnId: "turn-1" });
+  assert.deepEqual(activeRoots, [["binding-1", "/workspace"]]);
+});

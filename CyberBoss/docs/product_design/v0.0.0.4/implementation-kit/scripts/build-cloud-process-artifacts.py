@@ -50,6 +50,11 @@ TASKS = {
         "contract": "docs/governance/RUN_CONTRACT_P2_2_CB_210.md",
         "stage_prefix": ".cb210-artifacts-",
     },
+    "CB-220": {
+        "phase": "P2.3",
+        "contract": "docs/governance/RUN_CONTRACT_P2_3_CB_220.md",
+        "stage_prefix": ".cb220-artifacts-",
+    },
 }
 
 
@@ -222,6 +227,59 @@ def build_durable_inbox_matrix(
         return destination
 
 
+def build_job_scheduler_matrix(
+    repo: Path,
+    commit: str,
+    stage: Path,
+) -> Path:
+    with tempfile.TemporaryDirectory(prefix=".cb220-runtime-", dir=stage.parent) as raw:
+        output = Path(raw) / "job-scheduler-acceptance.json"
+        result = subprocess.run(
+            [
+                "node",
+                str(repo / "CyberBoss/app/scripts/job-scheduler-acceptance.js"),
+                "--output",
+                str(output),
+            ],
+            cwd=repo,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=180,
+        )
+        expect(
+            result.returncode == 0
+            and "CB220_JOB_SCHEDULER_ACCEPTANCE=PASS" in result.stdout,
+            "job_scheduler_acceptance",
+        )
+        report = json.loads(output.read_text(encoding="utf-8"))
+        expect(
+            report.get("task_id") == "CB-220"
+            and report.get("phase") == "P2.3"
+            and report.get("result") == "passed"
+            and report.get("scheduler", {}).get(
+                "max_active_runtime_leases"
+            )
+            == 1
+            and report.get("scheduler", {}).get("fifo_dispatch_order")
+            is True
+            and report.get("workspace", {}).get(
+                "symlink_escape_dispatched"
+            )
+            is False
+            and report.get("recovery", {}).get(
+                "ambiguous_mutation_replayed"
+            )
+            is False,
+            "job_scheduler_matrix",
+        )
+        destination = stage / "job-scheduler-acceptance.json"
+        shutil.copyfile(output, destination)
+        destination.chmod(0o644)
+        return destination
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", type=Path, required=True)
@@ -287,6 +345,24 @@ def main() -> int:
                 "app/src/services/inbox/durable-inbox.js",
                 "app/test/durable-inbox-crash-cut.test.js",
                 "app/test/weixin-cursor-commit.test.js",
+            ):
+                expect(required in inventory, f"source_missing:{required}")
+        if args.task_id == "CB-220":
+            for required in (
+                "app/migrations/001_runtime_spool.sql",
+                "app/migrations/002_cb200_retention_and_transitions.sql",
+                "app/migrations/003_cb220_scheduler_control.sql",
+                "app/scripts/job-scheduler-acceptance.js",
+                "app/src/adapters/runtime/claudecode/events.js",
+                "app/src/adapters/runtime/codex/events.js",
+                "app/src/services/db/database-adapter.js",
+                "app/src/services/jobs/job-scheduler.js",
+                "app/src/services/jobs/resource-readiness-gate.js",
+                "app/test/job-scheduler.test.js",
+                "app/test/resource-readiness-gate.test.js",
+                "app/test/workspace-scope.test.js",
+                "docs/product_design/v0.0.0.4/implementation-kit/scripts/"
+                "resource-pressure-fixture.py",
             ):
                 expect(required in inventory, f"source_missing:{required}")
 
@@ -431,12 +507,82 @@ def main() -> int:
                     "real_runtime": False,
                     "pg_2_executed": False,
                 }
+            if args.task_id == "CB-220":
+                manifest["runtime_spool"] = {
+                    "schema_version": 3,
+                    "migration_mode": "additive_backward_compatible",
+                    "migration_sha256": {
+                        "001_runtime_spool.sql": git_blob_sha256(
+                            repo,
+                            args.commit,
+                            "app/migrations/001_runtime_spool.sql",
+                        ),
+                        "002_cb200_retention_and_transitions.sql":
+                            git_blob_sha256(
+                                repo,
+                                args.commit,
+                                "app/migrations/"
+                                "002_cb200_retention_and_transitions.sql",
+                            ),
+                        "003_cb220_scheduler_control.sql":
+                            git_blob_sha256(
+                                repo,
+                                args.commit,
+                                "app/migrations/"
+                                "003_cb220_scheduler_control.sql",
+                            ),
+                    },
+                    "journal_mode": "WAL",
+                    "synchronous": "FULL",
+                    "foreign_keys": True,
+                    "busy_timeout_ms": 5000,
+                    "active_payload_encryption": "AES-256-GCM",
+                    "active_payload_ttl_hours": 24,
+                    "real_canonical_sync": False,
+                    "channel_poll_integrated": True,
+                    "scheduler_integrated": True,
+                    "outbox_worker_integrated": False,
+                    "pg_2_executed": False,
+                }
+                manifest["durable_inbox"] = {
+                    "candidate_cursor_api": True,
+                    "cursor_commit_after_durable": True,
+                    "numeric_continuity_guard": True,
+                    "stable_source_id_required": True,
+                    "active_payload_encryption": "AES-256-GCM",
+                    "channel_poll_integrated": True,
+                    "scheduler_integrated": True,
+                    "outbox_worker_integrated": False,
+                    "real_wechat": False,
+                    "real_runtime": False,
+                    "pg_2_executed": False,
+                }
+                manifest["job_scheduler"] = {
+                    "single_runtime_lease": True,
+                    "max_runtime_concurrency": 1,
+                    "fifo_order": "created_at,id",
+                    "transactional_claim": True,
+                    "heartbeat_and_expiry": True,
+                    "command_runtime_planes_separated": True,
+                    "workspace_alias_gate": True,
+                    "resource_readiness_gate": True,
+                    "truthful_stop_terminal": True,
+                    "unsafe_mutation_auto_replay": False,
+                    "outbox_worker_integrated": False,
+                    "real_wechat": False,
+                    "real_runtime": False,
+                    "pg_2_executed": False,
+                }
             manifest_path = stage / "artifact-manifest.json"
             write_json(manifest_path, manifest)
             matrix_path = (
                 build_durable_inbox_matrix(repo, args.commit, stage)
                 if args.task_id == "CB-210"
-                else None
+                else (
+                    build_job_scheduler_matrix(repo, args.commit, stage)
+                    if args.task_id == "CB-220"
+                    else None
+                )
             )
             checksum_lines = [
                 f"{sha256(manifest_path)}  {manifest_path.name}",
@@ -460,7 +606,7 @@ def main() -> int:
     print(
         f"{args.task_id.replace('-', '')}_ARTIFACT_BUILD=PASS "
         f"release_id={args.commit} "
-        f"artifacts={4 if args.task_id == 'CB-210' else 3} "
+        f"artifacts={4 if args.task_id in {'CB-210', 'CB-220'} else 3} "
         "corresponding_source_complete=true "
         "license_expression=AGPL-3.0-only_AND_GPL-3.0-only "
         "upstream_clarification_received=false publication=none"

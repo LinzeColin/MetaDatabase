@@ -136,6 +136,32 @@ WeChat/Runtime/Private-MetaDatabase。scheduler/global lease/claim recovery
 仍属于 CB-220，outbox worker/retry/receipt 仍属于 CB-230，PG-2 不在本 Run
 执行。
 
+P2.3 增加 durable Runtime scheduler。Runtime job 按 `created_at,id` FIFO，
+由 SQLite transaction claim 全局唯一 lease；partial unique index、owner
+token、heartbeat、expiry 和 late-event fencing 共同保证 active Runtime
+lease 最大值为 1。slash command 使用独立 control lease，因此 active turn
+中的 `/stop` 不会排在 Runtime lease 后死锁；cancel acknowledgement 只记录
+request，最终状态仍以 Runtime `completed`、`failed` 或 `interrupted` event
+为真源。
+
+每次 dispatch 都重新解析 root-controlled workspace alias；绝对路径、未知
+alias、symlink escape 在 Runtime 调用前拒绝，且拒绝不得产生文件系统变化。
+resource/readiness gate 同时检查 channel poll freshness、Runtime readiness、
+memory、disk、inode、load、queue depth 与 stuck lease。measurement unavailable
+默认阻断；protect 阶段只允许既有 read-only drain，不允许 bounded mutation
+启动。只有明确 terminal retryable 的 read-only job 可在预算内自动重排；
+dispatch 后 ambiguous mutation 永不自动 replay。
+
+`build-job-scheduler-artifacts.py` 继续生成 clean exact-commit complete
+Corresponding Source、manifest、checksums 与可执行
+`job-scheduler-acceptance.json`。`install-job-scheduler.sh` 只安装 immutable
+inactive candidate；`accept-job-scheduler.sh` 在 CB-220 staging 运行
+deterministic scheduler/workspace/stop/recovery matrix，并在 128 MiB transient
+cgroup 内运行有 64 MiB/64 MiB/1000 项硬上限的 immediate pressure fixture。
+它不切 `current`、不 enable/start 业务 service，不读取真实凭据或调用真实
+provider/Private-MetaDatabase。outbox worker 属于 CB-230，PG-2 不在本 Run
+执行。
+
 ## Immediate validation
 
 ```bash
@@ -175,6 +201,12 @@ bash implementation-kit/scripts/install-controlled-workspace.sh \
 python3 -m py_compile \
   implementation-kit/scripts/build-cloud-process-artifacts.py
 bash implementation-kit/scripts/install-cloud-process-family.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+python3 -m py_compile \
+  implementation-kit/scripts/build-job-scheduler-artifacts.py
+bash implementation-kit/scripts/install-job-scheduler.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+bash implementation-kit/scripts/accept-job-scheduler.sh \
   --check --release-id 0000000000000000000000000000000000000000
 python3 -m py_compile \
   implementation-kit/scripts/build-cloud-walking-skeleton-artifacts.py

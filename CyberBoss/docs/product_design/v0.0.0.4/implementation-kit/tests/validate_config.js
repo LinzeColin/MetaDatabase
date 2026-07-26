@@ -40,7 +40,13 @@ for (const key of [
   'CB_RUNTIME_DB',
   'CB_RUNTIME_ENCRYPTION_KEY_FILE',
   'CB_RUNTIME_IDENTITY_KEY_FILE',
+  'CB_JOB_SCHEDULER',
   'CB_JOB_CONCURRENCY',
+  'CB_RUNTIME_LEASE_MS',
+  'CB_CONTROL_LEASE_MS',
+  'CB_POLL_STALE_MS',
+  'CB_QUEUE_STUCK_MS',
+  'CB_QUEUE_LIMIT',
   'CB_DATA_REPO_SLUG',
   'CB_DATA_AREA',
   'CB_DATA_DOMAIN',
@@ -73,6 +79,12 @@ if (!/^ws:\/\/(127\.0\.0\.1|localhost):\d+$/.test(env.CYBERBOSS_CODEX_ENDPOINT |
 }
 if (Number(env.CB_JOB_CONCURRENCY) !== 1) errors.push('job_concurrency_must_equal_1');
 if (env.CB_DURABLE_INBOX !== 'true') errors.push('durable_inbox_must_default_true');
+if (env.CB_JOB_SCHEDULER !== 'true') errors.push('job_scheduler_must_default_true');
+if (Number(env.CB_RUNTIME_LEASE_MS) !== 30000) errors.push('runtime_lease_must_equal_30000');
+if (Number(env.CB_CONTROL_LEASE_MS) !== 10000) errors.push('control_lease_must_equal_10000');
+if (Number(env.CB_POLL_STALE_MS) !== 90000) errors.push('poll_stale_must_equal_90000');
+if (Number(env.CB_QUEUE_STUCK_MS) !== 300000) errors.push('queue_stuck_must_equal_300000');
+if (Number(env.CB_QUEUE_LIMIT) !== 100) errors.push('queue_limit_must_equal_100');
 if (!path.isAbsolute(env.CB_RUNTIME_ENCRYPTION_KEY_FILE || '')) {
   errors.push('runtime_encryption_key_file_absolute');
 }

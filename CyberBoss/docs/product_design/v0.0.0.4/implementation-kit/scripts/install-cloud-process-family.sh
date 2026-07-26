@@ -89,6 +89,13 @@ case "$TASK_ID" in
     ACCEPTANCE_SCRIPT="accept-durable-inbox.sh"
     REPORT_PREFIX="DURABLE_INBOX_INSTALL"
     ;;
+  CB-220)
+    PHASE="P2.3"
+    STAGING_TAG="cb220"
+    CONTRACT_PATH="docs/governance/RUN_CONTRACT_P2_3_CB_220.md"
+    ACCEPTANCE_SCRIPT="accept-job-scheduler.sh"
+    REPORT_PREFIX="JOB_SCHEDULER_INSTALL"
+    ;;
   *)
     fail "unsupported_task_id"
     ;;
@@ -257,6 +264,36 @@ jq -e --arg release "$RELEASE_ID" --arg task "$TASK_ID" --arg phase "$PHASE" '
     .durable_inbox.real_wechat == false and
     .durable_inbox.real_runtime == false and
     .durable_inbox.pg_2_executed == false
+  elif $task == "CB-220" then
+    .runtime_spool.schema_version == 3 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.channel_poll_integrated == true and
+    .runtime_spool.scheduler_integrated == true and
+    .runtime_spool.outbox_worker_integrated == false and
+    .runtime_spool.pg_2_executed == false and
+    .durable_inbox.candidate_cursor_api == true and
+    .durable_inbox.cursor_commit_after_durable == true and
+    .durable_inbox.numeric_continuity_guard == true and
+    .durable_inbox.scheduler_integrated == true and
+    .durable_inbox.outbox_worker_integrated == false and
+    .durable_inbox.real_wechat == false and
+    .durable_inbox.real_runtime == false and
+    .durable_inbox.pg_2_executed == false and
+    .job_scheduler.single_runtime_lease == true and
+    .job_scheduler.max_runtime_concurrency == 1 and
+    .job_scheduler.fifo_order == "created_at,id" and
+    .job_scheduler.transactional_claim == true and
+    .job_scheduler.heartbeat_and_expiry == true and
+    .job_scheduler.command_runtime_planes_separated == true and
+    .job_scheduler.workspace_alias_gate == true and
+    .job_scheduler.resource_readiness_gate == true and
+    .job_scheduler.truthful_stop_terminal == true and
+    .job_scheduler.unsafe_mutation_auto_replay == false and
+    .job_scheduler.outbox_worker_integrated == false and
+    .job_scheduler.real_wechat == false and
+    .job_scheduler.real_runtime == false and
+    .job_scheduler.pg_2_executed == false
   else true end)
 ' "$MANIFEST" >/dev/null || fail "artifact_manifest_contract"
 if [[ "$TASK_ID" == "CB-210" ]]; then
@@ -285,6 +322,36 @@ if [[ "$TASK_ID" == "CB-210" ]]; then
     .result == "passed"
   ' "$ARTIFACTS/durable-inbox-matrix.json" >/dev/null ||
     fail "durable_inbox_matrix_contract"
+fi
+if [[ "$TASK_ID" == "CB-220" ]]; then
+  [[ -f "$ARTIFACTS/job-scheduler-acceptance.json" &&
+    ! -L "$ARTIFACTS/job-scheduler-acceptance.json" ]] ||
+    fail "job_scheduler_matrix_missing"
+  jq -e '
+    .task_id == "CB-220" and
+    .phase == "P2.3" and
+    .claim_level == "deterministic_fixture" and
+    .scheduler.queued_runtime_jobs == 5 and
+    .scheduler.max_active_runtime_leases == 1 and
+    .scheduler.fifo_dispatch_order == true and
+    .scheduler.command_runtime_planes_separated == true and
+    .workspace.allowlisted_alias_dispatched == true and
+    .workspace.absolute_path_dispatched == false and
+    .workspace.unknown_alias_dispatched == false and
+    .workspace.symlink_escape_dispatched == false and
+    .resource_gate.protect_blocks_mutation == true and
+    .resource_gate.recover_allows_dispatch == true and
+    .stop.cancel_call_count == 3 and
+    .stop.acknowledgement_claimed_terminal == false and
+    .recovery.ambiguous_mutation_replayed == false and
+    .runtime_errors.bounded_mutation_auto_replay == false and
+    .phase_boundary.outbox_worker_integrated == false and
+    .phase_boundary.real_wechat == false and
+    .phase_boundary.real_runtime == false and
+    .phase_boundary.pg_2_executed == false and
+    .result == "passed"
+  ' "$ARTIFACTS/job-scheduler-acceptance.json" >/dev/null ||
+    fail "job_scheduler_matrix_contract"
 fi
 
 SOURCE_ARCHIVE="$(jq -er '.source.archive' "$MANIFEST")"
@@ -418,6 +485,25 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
         fail "candidate_durable_inbox_source:$required"
     done
   fi
+  if [[ "$TASK_ID" == "CB-220" ]]; then
+    for required in \
+      app/migrations/001_runtime_spool.sql \
+      app/migrations/002_cb200_retention_and_transitions.sql \
+      app/migrations/003_cb220_scheduler_control.sql \
+      app/scripts/job-scheduler-acceptance.js \
+      app/src/adapters/runtime/claudecode/events.js \
+      app/src/adapters/runtime/codex/events.js \
+      app/src/services/db/database-adapter.js \
+      app/src/services/jobs/job-scheduler.js \
+      app/src/services/jobs/resource-readiness-gate.js \
+      app/test/job-scheduler.test.js \
+      app/test/resource-readiness-gate.test.js \
+      app/test/workspace-scope.test.js \
+      docs/product_design/v0.0.0.4/implementation-kit/scripts/resource-pressure-fixture.py; do
+      [[ -f "$RELEASE_STAGE/$required" && ! -L "$RELEASE_STAGE/$required" ]] ||
+        fail "candidate_job_scheduler_source:$required"
+    done
+  fi
   chown -R "$CODE_USER:$CODE_GROUP" "$RELEASE_STAGE"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$STATE_ROOT/cache/npm"
   sudo -u "$CODE_USER" -H env \
@@ -441,7 +527,8 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
   [[ "$TEST_COUNT" =~ ^[0-9]+$ ]] || fail "candidate_test_count"
   ln -s "docs/product_design/v0.0.0.4/implementation-kit" \
     "$RELEASE_STAGE/implementation-kit"
-  if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ]]; then
+  if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ||
+    "$TASK_ID" == "CB-220" ]]; then
     ln -s "app/migrations" "$RELEASE_STAGE/migrations"
     jq '{
       schema_version: 1,
@@ -457,6 +544,13 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
     install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
       "$ARTIFACTS/durable-inbox-matrix.json" \
       "$RELEASE_STAGE/evidence/durable-inbox-matrix.json"
+  fi
+  if [[ "$TASK_ID" == "CB-220" ]]; then
+    install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 \
+      "$RELEASE_STAGE/evidence"
+    install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
+      "$ARTIFACTS/job-scheduler-acceptance.json" \
+      "$RELEASE_STAGE/evidence/job-scheduler-acceptance.json"
   fi
   install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
     "$KIT_ROOT/config/cloud-process-health.json" \
@@ -501,6 +595,12 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
       then . + {
         runtime_spool: $artifact[0].runtime_spool,
         durable_inbox: $artifact[0].durable_inbox
+      }
+      elif $task_id == "CB-220"
+      then . + {
+        runtime_spool: $artifact[0].runtime_spool,
+        durable_inbox: $artifact[0].durable_inbox,
+        job_scheduler: $artifact[0].job_scheduler
       }
       else .
       end' >"$RELEASE_STAGE/release-manifest.json"
@@ -553,6 +653,36 @@ jq -e --arg release "$RELEASE_ID" \
     .durable_inbox.real_wechat == false and
     .durable_inbox.real_runtime == false and
     .durable_inbox.pg_2_executed == false
+  elif $task == "CB-220" then
+    .runtime_spool.schema_version == 3 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.channel_poll_integrated == true and
+    .runtime_spool.scheduler_integrated == true and
+    .runtime_spool.outbox_worker_integrated == false and
+    .runtime_spool.pg_2_executed == false and
+    .durable_inbox.candidate_cursor_api == true and
+    .durable_inbox.cursor_commit_after_durable == true and
+    .durable_inbox.numeric_continuity_guard == true and
+    .durable_inbox.scheduler_integrated == true and
+    .durable_inbox.outbox_worker_integrated == false and
+    .durable_inbox.real_wechat == false and
+    .durable_inbox.real_runtime == false and
+    .durable_inbox.pg_2_executed == false and
+    .job_scheduler.single_runtime_lease == true and
+    .job_scheduler.max_runtime_concurrency == 1 and
+    .job_scheduler.fifo_order == "created_at,id" and
+    .job_scheduler.transactional_claim == true and
+    .job_scheduler.heartbeat_and_expiry == true and
+    .job_scheduler.command_runtime_planes_separated == true and
+    .job_scheduler.workspace_alias_gate == true and
+    .job_scheduler.resource_readiness_gate == true and
+    .job_scheduler.truthful_stop_terminal == true and
+    .job_scheduler.unsafe_mutation_auto_replay == false and
+    .job_scheduler.outbox_worker_integrated == false and
+    .job_scheduler.real_wechat == false and
+    .job_scheduler.real_runtime == false and
+    .job_scheduler.pg_2_executed == false
   else true end)
 ' "$RELEASE_PATH/release-manifest.json" >/dev/null ||
   fail "candidate_release_manifest"
@@ -560,7 +690,8 @@ jq -e --arg release "$RELEASE_ID" \
   -f "$RELEASE_PATH/process-tree.txt" &&
   -f "$RELEASE_PATH/app/scripts/cloud-supervisor.js" ]] ||
   fail "candidate_contract_files"
-if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ]]; then
+if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ||
+  "$TASK_ID" == "CB-220" ]]; then
   [[ -L "$RELEASE_PATH/migrations" &&
     "$(realpath "$RELEASE_PATH/migrations")" == \
       "$RELEASE_PATH/app/migrations" &&
@@ -572,7 +703,8 @@ if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ]]; then
     .task_id == $task and
     .phase == $phase and
     .release_commit == $release and
-    .runtime_spool.schema_version == 2 and
+    .runtime_spool.schema_version ==
+      (if $task == "CB-220" then 3 else 2 end) and
     .runtime_spool.migration_mode == "additive_backward_compatible" and
     .runtime_spool.active_payload_encryption == "AES-256-GCM" and
     .runtime_spool.real_canonical_sync == false
@@ -588,6 +720,15 @@ if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ]]; then
         "$RELEASE_PATH/schema-manifest.json")" ]] ||
       fail "candidate_migration_hash:$migration"
   done
+  if [[ "$TASK_ID" == "CB-220" ]]; then
+    migration="003_cb220_scheduler_control.sql"
+    [[ "$(sha256sum "$RELEASE_PATH/app/migrations/$migration" |
+      cut -d' ' -f1)" == \
+      "$(jq -er --arg migration "$migration" \
+        '.runtime_spool.migration_sha256[$migration]' \
+        "$RELEASE_PATH/schema-manifest.json")" ]] ||
+      fail "candidate_migration_hash:$migration"
+  fi
 fi
 if [[ "$TASK_ID" == "CB-210" ]]; then
   [[ -f "$RELEASE_PATH/evidence/durable-inbox-matrix.json" &&
@@ -596,6 +737,14 @@ if [[ "$TASK_ID" == "CB-210" ]]; then
   cmp -s "$ARTIFACTS/durable-inbox-matrix.json" \
     "$RELEASE_PATH/evidence/durable-inbox-matrix.json" ||
     fail "candidate_durable_inbox_matrix_drift"
+fi
+if [[ "$TASK_ID" == "CB-220" ]]; then
+  [[ -f "$RELEASE_PATH/evidence/job-scheduler-acceptance.json" &&
+    ! -L "$RELEASE_PATH/evidence/job-scheduler-acceptance.json" ]] ||
+    fail "candidate_job_scheduler_matrix"
+  cmp -s "$ARTIFACTS/job-scheduler-acceptance.json" \
+    "$RELEASE_PATH/evidence/job-scheduler-acceptance.json" ||
+    fail "candidate_job_scheduler_matrix_drift"
 fi
 [[ -L "$RELEASE_PATH/implementation-kit" &&
   "$(realpath "$RELEASE_PATH/implementation-kit")" == \
@@ -656,7 +805,12 @@ CB_OCI_BACKUP=false
 CB_FILE_ATTACHMENTS=false
 CB_STORE_FULL_CONTENT=false
 CB_AUTONOMOUS_MUTATION=false
+CB_JOB_SCHEDULER=true
 CB_JOB_CONCURRENCY=1
+CB_RUNTIME_LEASE_MS=30000
+CB_CONTROL_LEASE_MS=10000
+CB_POLL_STALE_MS=90000
+CB_QUEUE_STUCK_MS=300000
 CB_QUEUE_LIMIT=100
 CB_MAX_INPUT_BYTES=32768
 CB_DATA_REPO_SLUG=LinzeColin/Private-Database

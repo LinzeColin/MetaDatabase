@@ -25,12 +25,22 @@ const MIGRATIONS = Object.freeze([
     name: "002_cb200_retention_and_transitions.sql",
     sourceCommit: "CB-200",
   }),
+  Object.freeze({
+    version: 3,
+    name: "003_cb220_scheduler_control.sql",
+    sourceCommit: "CB-220",
+  }),
 ]);
 const ENVELOPE_VERSION = 1;
 const NONCE_BYTES = 12;
 const TAG_BYTES = 16;
 const REDACTED_SENTINEL = Buffer.from([0]);
 const DEFAULT_PAYLOAD_TTL_MS = 24 * 60 * 60 * 1000;
+const MIN_LEASE_MS = 100;
+const MAX_LEASE_MS = 10 * 60 * 1000;
+const RUNTIME_LEASE_NAME = "runtime_job";
+const CONTROL_LEASE_NAME = "command_control";
+const ACTIVE_JOB_STATUSES = Object.freeze(["running", "waiting_approval"]);
 const SAFE_TOKEN = /^[A-Za-z0-9_.:/-]{1,160}$/;
 const SAFE_REDACTED_KEY =
   /^(?:source|index|attempt|[a-z][a-z0-9_]*(?:_code|_class|_count|_ms|_enabled|_allowed|_present|_pending))$/;
@@ -297,6 +307,27 @@ function timestampFrom(value) {
   return date.toISOString();
 }
 
+function leaseExpiry(now, leaseMs) {
+  if (
+    !Number.isSafeInteger(leaseMs)
+    || leaseMs < MIN_LEASE_MS
+    || leaseMs > MAX_LEASE_MS
+  ) {
+    throw new RuntimeSpoolError("LEASE_DURATION_INVALID");
+  }
+  return new Date(new Date(now).getTime() + leaseMs).toISOString();
+}
+
+function normalizePid(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new RuntimeSpoolError("LEASE_PID_INVALID");
+  }
+  return value;
+}
+
 class RuntimeSpoolDatabase {
   constructor({
     databasePath,
@@ -400,18 +431,19 @@ class RuntimeSpoolDatabase {
     ) {
       throw new RuntimeSpoolError("MIGRATION_V1_IDENTITY_INVALID");
     }
-    if (versions.length === 1) {
-      const migration2 = sources
-        .get(2)
-        .source.replaceAll(
-          "__MIGRATION_001_CHECKSUM__",
-          sources.get(1).checksum,
-        )
-        .replaceAll(
-          "__MIGRATION_002_CHECKSUM__",
-          sources.get(2).checksum,
+    for (
+      let nextVersion = versions.length + 1;
+      nextVersion <= MIGRATIONS.length;
+      nextVersion += 1
+    ) {
+      let migrationSourceText = sources.get(nextVersion).source;
+      for (const source of sources.values()) {
+        migrationSourceText = migrationSourceText.replaceAll(
+          `__MIGRATION_${String(source.version).padStart(3, "0")}_CHECKSUM__`,
+          source.checksum,
         );
-      this.database.exec(migration2);
+      }
+      this.database.exec(migrationSourceText);
     }
 
     versions = this.database
@@ -522,6 +554,66 @@ class RuntimeSpoolDatabase {
         at,
       );
     return eventId;
+  }
+
+  #managedJob(jobId) {
+    return this.database
+      .prepare(
+        `SELECT id, correlation_id, inbox_id, workspace_alias, runtime,
+                operation_class, status, state_version, attempt_count,
+                max_attempts, scheduler_managed, lease_owner,
+                lease_heartbeat_at, lease_expires_at, dispatch_started_at,
+                cancel_requested_at, runtime_thread_hash, runtime_turn_hash,
+                created_at, queued_at, started_at, finished_at, updated_at
+         FROM jobs WHERE id=?`,
+      )
+      .get(jobId);
+  }
+
+  #assertManagedLease(job, ownerId, { command }) {
+    if (!job) {
+      throw new RuntimeSpoolError("JOB_NOT_FOUND");
+    }
+    const isCommand = job.operation_class === "command";
+    if (
+      Number(job.scheduler_managed) !== 1
+      || isCommand !== command
+      || job.lease_owner !== ownerId
+    ) {
+      throw new RuntimeSpoolError("LEASE_OWNER_CONFLICT");
+    }
+  }
+
+  #transitionWaitingJobToRunning(job, now, metadata = {}) {
+    if (job.status !== "waiting_approval") {
+      return job;
+    }
+    const nextVersion = Number(job.state_version) + 1;
+    const result = this.database
+      .prepare(
+        `UPDATE jobs
+         SET status='running', state_version=?, updated_at=?,
+             last_runtime_event_at=?
+         WHERE id=? AND status='waiting_approval' AND state_version=?`,
+      )
+      .run(nextVersion, now, now, job.id, Number(job.state_version));
+    if (Number(result.changes) !== 1) {
+      throw new RuntimeSpoolError("STATE_VERSION_CONFLICT");
+    }
+    this.#appendJobEvent({
+      jobId: job.id,
+      correlationId: job.correlation_id,
+      eventType: "job_transition",
+      fromStatus: "waiting_approval",
+      toStatus: "running",
+      stateVersion: nextVersion,
+      metadata: {
+        transition_code: "runtime_terminal_observed",
+        ...metadata,
+      },
+      at: now,
+    });
+    return this.#managedJob(job.id);
   }
 
   deriveIds({ source, sourceAccountRef, sourceMessageId }) {
@@ -916,6 +1008,919 @@ class RuntimeSpoolDatabase {
     }
   }
 
+  peekNextRuntimeJob() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        `SELECT id
+         FROM jobs
+         WHERE status='queued'
+           AND operation_class <> 'command'
+           AND attempt_count < max_attempts
+         ORDER BY created_at, id
+         LIMIT 1`,
+      )
+      .get();
+    return row ? this.getJob(row.id) : null;
+  }
+
+  peekNextControlJob() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        `SELECT id
+         FROM jobs
+         WHERE status='queued' AND operation_class='command'
+         ORDER BY created_at, id
+         LIMIT 1`,
+      )
+      .get();
+    return row ? this.getJob(row.id) : null;
+  }
+
+  getActiveRuntimeJob() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        `SELECT id
+         FROM jobs
+         WHERE operation_class <> 'command'
+           AND status IN ('running','waiting_approval')
+         ORDER BY started_at, id
+         LIMIT 1`,
+      )
+      .get();
+    return row ? this.getJob(row.id) : null;
+  }
+
+  getActiveControlJob() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        `SELECT id
+         FROM jobs
+         WHERE operation_class='command' AND status='running'
+         ORDER BY started_at, id
+         LIMIT 1`,
+      )
+      .get();
+    return row ? this.getJob(row.id) : null;
+  }
+
+  queueMetrics() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        `SELECT
+           SUM(CASE WHEN status='queued' THEN 1 ELSE 0 END) AS queued_total,
+           SUM(CASE
+             WHEN status='queued' AND operation_class='command' THEN 1
+             ELSE 0
+           END) AS queued_control,
+           SUM(CASE
+             WHEN status='queued' AND operation_class<>'command' THEN 1
+             ELSE 0
+           END) AS queued_runtime,
+           SUM(CASE
+             WHEN status IN ('running','waiting_approval')
+               AND operation_class<>'command' THEN 1
+             ELSE 0
+           END) AS active_runtime_jobs,
+           SUM(CASE
+             WHEN status IN ('running','waiting_approval')
+               AND operation_class<>'command'
+               AND lease_owner IS NOT NULL
+               AND lease_expires_at IS NOT NULL THEN 1
+             ELSE 0
+           END) AS active_runtime_leases,
+           SUM(CASE
+             WHEN status='running' AND operation_class='command' THEN 1
+             ELSE 0
+           END) AS active_control_jobs,
+           MIN(CASE WHEN status='queued' THEN created_at END) AS oldest_queued_at
+         FROM jobs`,
+      )
+      .get();
+    return Object.freeze({
+      queuedTotal: Number(row.queued_total || 0),
+      queuedControl: Number(row.queued_control || 0),
+      queuedRuntime: Number(row.queued_runtime || 0),
+      activeRuntimeJobs: Number(row.active_runtime_jobs || 0),
+      activeRuntimeLeases: Number(row.active_runtime_leases || 0),
+      activeControlJobs: Number(row.active_control_jobs || 0),
+      oldestQueuedAt: row.oldest_queued_at || null,
+    });
+  }
+
+  claimNextRuntimeJob({
+    ownerId,
+    leaseMs,
+    expectedJobId = null,
+    bootId = null,
+    pid = null,
+  }) {
+    return this.#claimManagedJob({
+      command: false,
+      ownerId,
+      leaseMs,
+      expectedJobId,
+      bootId,
+      pid,
+    });
+  }
+
+  claimNextControlJob({
+    ownerId,
+    leaseMs,
+    expectedJobId = null,
+    bootId = null,
+    pid = null,
+  }) {
+    return this.#claimManagedJob({
+      command: true,
+      ownerId,
+      leaseMs,
+      expectedJobId,
+      bootId,
+      pid,
+    });
+  }
+
+  #claimManagedJob({
+    command,
+    ownerId,
+    leaseMs,
+    expectedJobId,
+    bootId,
+    pid,
+  }) {
+    this.#assertOpen();
+    requireSafeToken(ownerId, "lease_owner");
+    if (expectedJobId !== null) {
+      requireBoundedString(expectedJobId, "expected_job_id", 160);
+    }
+    if (bootId !== null) {
+      requireSafeToken(bootId, "boot_id");
+    }
+    const normalizedPid = normalizePid(pid);
+    const now = this.#timestamp();
+    const expiresAt = leaseExpiry(now, leaseMs);
+    const leaseName = command ? CONTROL_LEASE_NAME : RUNTIME_LEASE_NAME;
+    const operationPredicate = command ? "= 'command'" : "<> 'command'";
+    const activeStatuses = command
+      ? "status='running'"
+      : "status IN ('running','waiting_approval')";
+
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const active = this.database
+        .prepare(
+          `SELECT id
+           FROM jobs
+           WHERE operation_class ${operationPredicate}
+             AND ${activeStatuses}
+           ORDER BY started_at, id
+           LIMIT 1`,
+        )
+        .get();
+      if (active) {
+        this.database.exec("COMMIT");
+        return Object.freeze({
+          claimed: false,
+          reason: "active_job",
+          activeJobId: active.id,
+        });
+      }
+
+      const lease = this.database
+        .prepare(
+          "SELECT owner_id, expires_at FROM singleton_leases WHERE name=?",
+        )
+        .get(leaseName);
+      if (lease && lease.expires_at > now) {
+        this.database.exec("COMMIT");
+        return Object.freeze({
+          claimed: false,
+          reason: "singleton_busy",
+        });
+      }
+      if (lease) {
+        this.database
+          .prepare(
+            "DELETE FROM singleton_leases WHERE name=? AND expires_at<=?",
+          )
+          .run(leaseName, now);
+      }
+
+      const head = this.database
+        .prepare(
+          `SELECT id, correlation_id, state_version
+           FROM jobs
+           WHERE status='queued'
+             AND operation_class ${operationPredicate}
+             ${command ? "" : "AND attempt_count < max_attempts"}
+           ORDER BY created_at, id
+           LIMIT 1`,
+        )
+        .get();
+      if (!head) {
+        this.database.exec("COMMIT");
+        return Object.freeze({ claimed: false, reason: "queue_empty" });
+      }
+      if (expectedJobId !== null && head.id !== expectedJobId) {
+        this.database.exec("COMMIT");
+        return Object.freeze({
+          claimed: false,
+          reason: "fifo_head_changed",
+          headJobId: head.id,
+        });
+      }
+
+      const nextVersion = Number(head.state_version) + 1;
+      const result = this.database
+        .prepare(
+          `UPDATE jobs
+           SET status='running', state_version=?, scheduler_managed=1,
+               lease_owner=?, lease_heartbeat_at=?, lease_expires_at=?,
+               started_at=COALESCE(started_at, ?), updated_at=?
+           WHERE id=? AND status='queued' AND state_version=?`,
+        )
+        .run(
+          nextVersion,
+          ownerId,
+          now,
+          expiresAt,
+          now,
+          now,
+          head.id,
+          Number(head.state_version),
+        );
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("STATE_VERSION_CONFLICT");
+      }
+      this.database
+        .prepare(
+          `INSERT INTO singleton_leases(
+             name, owner_id, boot_id, pid, acquired_at, heartbeat_at, expires_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          leaseName,
+          ownerId,
+          bootId,
+          normalizedPid,
+          now,
+          now,
+          expiresAt,
+        );
+      this.#appendJobEvent({
+        jobId: head.id,
+        correlationId: head.correlation_id,
+        eventType: "job_transition",
+        fromStatus: "queued",
+        toStatus: "running",
+        stateVersion: nextVersion,
+        metadata: {
+          lease_class_code: command ? "control" : "runtime",
+          transition_code: "scheduler_claimed",
+        },
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return Object.freeze({
+        claimed: true,
+        reason: "claimed",
+        job: this.getJob(head.id),
+      });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  markRuntimeDispatchStarted(jobId, { ownerId } = {}) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    requireSafeToken(ownerId, "lease_owner");
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const job = this.#managedJob(jobId);
+      this.#assertManagedLease(job, ownerId, { command: false });
+      if (
+        job.status !== "running"
+        || job.dispatch_started_at !== null
+        || Number(job.attempt_count) >= Number(job.max_attempts)
+      ) {
+        throw new RuntimeSpoolError("RUNTIME_DISPATCH_NOT_ALLOWED");
+      }
+      const result = this.database
+        .prepare(
+          `UPDATE jobs
+           SET dispatch_started_at=?, attempt_count=attempt_count+1,
+               updated_at=?, last_runtime_event_at=?
+           WHERE id=? AND status='running' AND lease_owner=?
+             AND dispatch_started_at IS NULL`,
+        )
+        .run(now, now, now, jobId, ownerId);
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("LEASE_OWNER_CONFLICT");
+      }
+      this.#appendJobEvent({
+        jobId,
+        correlationId: job.correlation_id,
+        eventType: "runtime_dispatch_started",
+        fromStatus: "running",
+        toStatus: "running",
+        stateVersion: Number(job.state_version),
+        metadata: { attempt_count: Number(job.attempt_count) + 1 },
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return this.getJob(jobId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  bindRuntimeRun(jobId, { ownerId, threadId, turnId }) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    requireSafeToken(ownerId, "lease_owner");
+    const boundedThread = requireBoundedString(threadId, "runtime_thread_id", 1024);
+    const boundedTurn = requireBoundedString(turnId, "runtime_turn_id", 1024);
+    const threadHash = this.#identity(
+      "runtime-thread",
+      [jobId, boundedThread],
+      "thread",
+    );
+    const turnHash = this.#identity(
+      "runtime-turn",
+      [jobId, boundedThread, boundedTurn],
+      "turn",
+    );
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const job = this.#managedJob(jobId);
+      this.#assertManagedLease(job, ownerId, { command: false });
+      if (!ACTIVE_JOB_STATUSES.includes(job.status) || !job.dispatch_started_at) {
+        throw new RuntimeSpoolError("RUNTIME_BIND_NOT_ALLOWED");
+      }
+      if (
+        (job.runtime_thread_hash && job.runtime_thread_hash !== threadHash)
+        || (job.runtime_turn_hash && job.runtime_turn_hash !== turnHash)
+      ) {
+        throw new IntegrityConflictError();
+      }
+      const firstBinding = !job.runtime_thread_hash && !job.runtime_turn_hash;
+      if (firstBinding) {
+        this.database
+          .prepare(
+            `UPDATE jobs
+             SET runtime_thread_hash=?, runtime_turn_hash=?,
+                 last_runtime_event_at=?, updated_at=?
+             WHERE id=? AND lease_owner=?`,
+          )
+          .run(threadHash, turnHash, now, now, jobId, ownerId);
+        this.#appendJobEvent({
+          jobId,
+          correlationId: job.correlation_id,
+          eventType: "runtime_run_bound",
+          fromStatus: job.status,
+          toStatus: job.status,
+          stateVersion: Number(job.state_version),
+          metadata: {
+            runtime_thread_present: true,
+            runtime_turn_present: true,
+          },
+          at: now,
+        });
+      }
+      this.database.exec("COMMIT");
+      return Object.freeze({
+        jobId,
+        threadHash,
+        turnHash,
+        duplicate: !firstBinding,
+      });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  heartbeatManagedLease(jobId, { ownerId, leaseMs, command = false } = {}) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    requireSafeToken(ownerId, "lease_owner");
+    const now = this.#timestamp();
+    const expiresAt = leaseExpiry(now, leaseMs);
+    const leaseName = command ? CONTROL_LEASE_NAME : RUNTIME_LEASE_NAME;
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const job = this.#managedJob(jobId);
+      this.#assertManagedLease(job, ownerId, { command });
+      const validStatus = command
+        ? job.status === "running"
+        : ACTIVE_JOB_STATUSES.includes(job.status);
+      if (!validStatus || !job.lease_expires_at || job.lease_expires_at <= now) {
+        throw new RuntimeSpoolError("LEASE_EXPIRED");
+      }
+      const jobResult = this.database
+        .prepare(
+          `UPDATE jobs
+           SET lease_heartbeat_at=?, lease_expires_at=?, updated_at=?
+           WHERE id=? AND lease_owner=? AND lease_expires_at>?`,
+        )
+        .run(now, expiresAt, now, jobId, ownerId, now);
+      const singletonResult = this.database
+        .prepare(
+          `UPDATE singleton_leases
+           SET heartbeat_at=?, expires_at=?
+           WHERE name=? AND owner_id=? AND expires_at>?`,
+        )
+        .run(now, expiresAt, leaseName, ownerId, now);
+      if (
+        Number(jobResult.changes) !== 1
+        || Number(singletonResult.changes) !== 1
+      ) {
+        throw new RuntimeSpoolError("LEASE_OWNER_CONFLICT");
+      }
+      this.database.exec("COMMIT");
+      return Object.freeze({ heartbeatAt: now, expiresAt });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  markRuntimeCancelRequested(jobId, { ownerId } = {}) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    requireSafeToken(ownerId, "lease_owner");
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const job = this.#managedJob(jobId);
+      this.#assertManagedLease(job, ownerId, { command: false });
+      if (!ACTIVE_JOB_STATUSES.includes(job.status)) {
+        throw new RuntimeSpoolError("ACTIVE_RUNTIME_JOB_REQUIRED");
+      }
+      if (!job.cancel_requested_at) {
+        this.database
+          .prepare(
+            `UPDATE jobs
+             SET cancel_requested_at=?, last_runtime_event_at=?, updated_at=?
+             WHERE id=? AND lease_owner=?`,
+          )
+          .run(now, now, now, jobId, ownerId);
+        this.#appendJobEvent({
+          jobId,
+          correlationId: job.correlation_id,
+          eventType: "runtime_cancel_requested",
+          fromStatus: job.status,
+          toStatus: job.status,
+          stateVersion: Number(job.state_version),
+          metadata: { cancel_pending: true },
+          at: now,
+        });
+      }
+      this.database.exec("COMMIT");
+      return this.getJob(jobId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  transitionManagedRuntimeJob(jobId, toStatus, {
+    ownerId,
+    metadata = {},
+  } = {}) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    requireSafeToken(ownerId, "lease_owner");
+    if (!["running", "waiting_approval"].includes(toStatus)) {
+      throw new RuntimeSpoolError("MANAGED_RUNTIME_TRANSITION_INVALID");
+    }
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const job = this.#managedJob(jobId);
+      this.#assertManagedLease(job, ownerId, { command: false });
+      assertTransition(job.status, toStatus);
+      const nextVersion = Number(job.state_version) + 1;
+      const result = this.database
+        .prepare(
+          `UPDATE jobs
+           SET status=?, state_version=?, last_runtime_event_at=?, updated_at=?
+           WHERE id=? AND status=? AND state_version=? AND lease_owner=?`,
+        )
+        .run(
+          toStatus,
+          nextVersion,
+          now,
+          now,
+          jobId,
+          job.status,
+          Number(job.state_version),
+          ownerId,
+        );
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("STATE_VERSION_CONFLICT");
+      }
+      this.#appendJobEvent({
+        jobId,
+        correlationId: job.correlation_id,
+        eventType: "job_transition",
+        fromStatus: job.status,
+        toStatus,
+        stateVersion: nextVersion,
+        metadata,
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return this.getJob(jobId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  finishRuntimeJob(jobId, toStatus, {
+    ownerId,
+    errorClass = null,
+    metadata = {},
+  } = {}) {
+    return this.#finishManagedJob(jobId, toStatus, {
+      command: false,
+      ownerId,
+      errorClass,
+      metadata,
+    });
+  }
+
+  finishControlJob(jobId, toStatus, {
+    ownerId,
+    errorClass = null,
+    metadata = {},
+  } = {}) {
+    return this.#finishManagedJob(jobId, toStatus, {
+      command: true,
+      ownerId,
+      errorClass,
+      metadata,
+    });
+  }
+
+  #finishManagedJob(jobId, toStatus, {
+    command,
+    ownerId,
+    errorClass,
+    metadata,
+  }) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    requireSafeToken(ownerId, "lease_owner");
+    if (!["succeeded", "failed_terminal", "cancelled"].includes(toStatus)) {
+      throw new RuntimeSpoolError("MANAGED_TERMINAL_STATUS_INVALID");
+    }
+    if (errorClass !== null) {
+      requireSafeToken(errorClass, "error_class");
+    }
+    const now = this.#timestamp();
+    const leaseName = command ? CONTROL_LEASE_NAME : RUNTIME_LEASE_NAME;
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      let job = this.#managedJob(jobId);
+      this.#assertManagedLease(job, ownerId, { command });
+      const validStatus = command
+        ? job.status === "running"
+        : ACTIVE_JOB_STATUSES.includes(job.status);
+      if (!validStatus) {
+        throw new RuntimeSpoolError("ACTIVE_MANAGED_JOB_REQUIRED");
+      }
+      if (!command && job.status === "waiting_approval" && toStatus !== "cancelled") {
+        job = this.#transitionWaitingJobToRunning(job, now);
+      }
+      assertTransition(job.status, toStatus);
+      const nextVersion = Number(job.state_version) + 1;
+      const result = this.database
+        .prepare(
+          `UPDATE jobs
+           SET status=?, state_version=?, lease_owner=NULL,
+               lease_heartbeat_at=NULL, lease_expires_at=NULL,
+               error_class=?, error_redacted=?, finished_at=?,
+               last_runtime_event_at=?, updated_at=?
+           WHERE id=? AND status=? AND state_version=? AND lease_owner=?`,
+        )
+        .run(
+          toStatus,
+          nextVersion,
+          errorClass,
+          errorClass,
+          now,
+          now,
+          now,
+          jobId,
+          job.status,
+          Number(job.state_version),
+          ownerId,
+        );
+      if (Number(result.changes) !== 1) {
+        throw new RuntimeSpoolError("STATE_VERSION_CONFLICT");
+      }
+      const leaseDelete = this.database
+        .prepare(
+          "DELETE FROM singleton_leases WHERE name=? AND owner_id=?",
+        )
+        .run(leaseName, ownerId);
+      if (Number(leaseDelete.changes) !== 1) {
+        throw new RuntimeSpoolError("LEASE_OWNER_CONFLICT");
+      }
+      this.#appendJobEvent({
+        jobId,
+        correlationId: job.correlation_id,
+        eventType: "job_transition",
+        fromStatus: job.status,
+        toStatus,
+        stateVersion: nextVersion,
+        metadata,
+        at: now,
+      });
+      this.database.exec("COMMIT");
+      return this.getJob(jobId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  requeueRetryableRuntimeJob(jobId, {
+    ownerId,
+    errorClass,
+    metadata = {},
+  } = {}) {
+    this.#assertOpen();
+    requireBoundedString(jobId, "job_id", 160);
+    requireSafeToken(ownerId, "lease_owner");
+    requireSafeToken(errorClass, "error_class");
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      let job = this.#managedJob(jobId);
+      this.#assertManagedLease(job, ownerId, { command: false });
+      if (
+        !ACTIVE_JOB_STATUSES.includes(job.status)
+        || job.operation_class !== "read_only"
+        || !job.dispatch_started_at
+        || Number(job.attempt_count) >= Number(job.max_attempts)
+      ) {
+        throw new RuntimeSpoolError("SAFE_RETRY_NOT_PROVEN");
+      }
+      job = this.#transitionWaitingJobToRunning(job, now);
+      assertTransition(job.status, "failed_retryable");
+      const failedVersion = Number(job.state_version) + 1;
+      this.database
+        .prepare(
+          `UPDATE jobs
+           SET status='failed_retryable', state_version=?, error_class=?,
+               error_redacted=?, last_runtime_event_at=?, updated_at=?
+           WHERE id=? AND status='running' AND state_version=? AND lease_owner=?`,
+        )
+        .run(
+          failedVersion,
+          errorClass,
+          errorClass,
+          now,
+          now,
+          jobId,
+          Number(job.state_version),
+          ownerId,
+        );
+      this.#appendJobEvent({
+        jobId,
+        correlationId: job.correlation_id,
+        eventType: "job_transition",
+        fromStatus: "running",
+        toStatus: "failed_retryable",
+        stateVersion: failedVersion,
+        metadata,
+        at: now,
+      });
+      const queuedVersion = failedVersion + 1;
+      this.database
+        .prepare(
+          `UPDATE jobs
+           SET status='queued', state_version=?, lease_owner=NULL,
+               lease_heartbeat_at=NULL, lease_expires_at=NULL,
+               dispatch_started_at=NULL, cancel_requested_at=NULL,
+               runtime_thread_hash=NULL, runtime_turn_hash=NULL,
+               error_class=NULL, error_redacted=NULL, updated_at=?
+           WHERE id=? AND status='failed_retryable' AND state_version=?`,
+        )
+        .run(queuedVersion, now, jobId, failedVersion);
+      this.#appendJobEvent({
+        jobId,
+        correlationId: job.correlation_id,
+        eventType: "job_transition",
+        fromStatus: "failed_retryable",
+        toStatus: "queued",
+        stateVersion: queuedVersion,
+        metadata: { transition_code: "safe_read_only_retry" },
+        at: now,
+      });
+      const deleted = this.database
+        .prepare(
+          "DELETE FROM singleton_leases WHERE name=? AND owner_id=?",
+        )
+        .run(RUNTIME_LEASE_NAME, ownerId);
+      if (Number(deleted.changes) !== 1) {
+        throw new RuntimeSpoolError("LEASE_OWNER_CONFLICT");
+      }
+      this.database.exec("COMMIT");
+      return this.getJob(jobId);
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  recoverExpiredRuntimeLease() {
+    return this.#recoverExpiredManagedLease({ command: false });
+  }
+
+  recoverExpiredControlLease() {
+    return this.#recoverExpiredManagedLease({ command: true });
+  }
+
+  #recoverExpiredManagedLease({ command }) {
+    this.#assertOpen();
+    const now = this.#timestamp();
+    const leaseName = command ? CONTROL_LEASE_NAME : RUNTIME_LEASE_NAME;
+    const operationPredicate = command ? "= 'command'" : "<> 'command'";
+    const activeStatuses = command
+      ? "status='running'"
+      : "status IN ('running','waiting_approval')";
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      let job = this.database
+        .prepare(
+          `SELECT *
+           FROM jobs
+           WHERE operation_class ${operationPredicate}
+             AND ${activeStatuses}
+           ORDER BY started_at, id
+           LIMIT 1`,
+        )
+        .get();
+      if (!job) {
+        const deleted = this.database
+          .prepare(
+            "DELETE FROM singleton_leases WHERE name=? AND expires_at<=?",
+          )
+          .run(leaseName, now);
+        this.database.exec("COMMIT");
+        return Object.freeze({
+          recovered: Number(deleted.changes) > 0,
+          classification: Number(deleted.changes) > 0
+            ? "orphan_singleton_removed"
+            : "none",
+          requeued: false,
+        });
+      }
+      if (!job.lease_expires_at || job.lease_expires_at > now) {
+        this.database.exec("COMMIT");
+        return Object.freeze({
+          recovered: false,
+          classification: "lease_active",
+          requeued: false,
+          jobId: job.id,
+        });
+      }
+
+      const ownerId = job.lease_owner;
+      if (!command && !job.dispatch_started_at && job.status === "running") {
+        const failedVersion = Number(job.state_version) + 1;
+        this.database
+          .prepare(
+            `UPDATE jobs
+             SET status='failed_retryable', state_version=?,
+                 error_class='lease_expired_before_dispatch',
+                 error_redacted='lease_expired_before_dispatch', updated_at=?
+             WHERE id=? AND status='running' AND state_version=?`,
+          )
+          .run(failedVersion, now, job.id, Number(job.state_version));
+        this.#appendJobEvent({
+          jobId: job.id,
+          correlationId: job.correlation_id,
+          eventType: "job_transition",
+          fromStatus: "running",
+          toStatus: "failed_retryable",
+          stateVersion: failedVersion,
+          metadata: { recovery_class_code: "safe_before_dispatch" },
+          at: now,
+        });
+        const queuedVersion = failedVersion + 1;
+        this.database
+          .prepare(
+            `UPDATE jobs
+             SET status='queued', state_version=?, lease_owner=NULL,
+                 lease_heartbeat_at=NULL, lease_expires_at=NULL,
+                 error_class=NULL, error_redacted=NULL, updated_at=?
+             WHERE id=? AND status='failed_retryable' AND state_version=?`,
+          )
+          .run(queuedVersion, now, job.id, failedVersion);
+        this.#appendJobEvent({
+          jobId: job.id,
+          correlationId: job.correlation_id,
+          eventType: "job_transition",
+          fromStatus: "failed_retryable",
+          toStatus: "queued",
+          stateVersion: queuedVersion,
+          metadata: { transition_code: "recovered_before_dispatch" },
+          at: now,
+        });
+        this.database
+          .prepare(
+            "DELETE FROM singleton_leases WHERE name=? AND owner_id=?",
+          )
+          .run(leaseName, ownerId);
+        this.database.exec("COMMIT");
+        return Object.freeze({
+          recovered: true,
+          classification: "safe_before_dispatch",
+          requeued: true,
+          jobId: job.id,
+        });
+      }
+
+      if (!command && job.status === "waiting_approval") {
+        job = this.#transitionWaitingJobToRunning(job, now, {
+          recovery_class_code: "ambiguous_after_dispatch",
+        });
+      }
+      assertTransition(job.status, "failed_terminal");
+      const nextVersion = Number(job.state_version) + 1;
+      const errorClass = command
+        ? "control_recovery_ambiguous"
+        : "recovery_ambiguous_after_dispatch";
+      this.database
+        .prepare(
+          `UPDATE jobs
+           SET status='failed_terminal', state_version=?, lease_owner=NULL,
+               lease_heartbeat_at=NULL, lease_expires_at=NULL,
+               error_class=?, error_redacted=?, finished_at=?,
+               last_runtime_event_at=?, updated_at=?
+           WHERE id=? AND status=? AND state_version=?`,
+        )
+        .run(
+          nextVersion,
+          errorClass,
+          errorClass,
+          now,
+          now,
+          now,
+          job.id,
+          job.status,
+          Number(job.state_version),
+        );
+      this.#appendJobEvent({
+        jobId: job.id,
+        correlationId: job.correlation_id,
+        eventType: "job_transition",
+        fromStatus: job.status,
+        toStatus: "failed_terminal",
+        stateVersion: nextVersion,
+        metadata: {
+          recovery_class_code: command
+            ? "control_ambiguous"
+            : "ambiguous_after_dispatch",
+        },
+        at: now,
+      });
+      this.database
+        .prepare(
+          "DELETE FROM singleton_leases WHERE name=? AND owner_id=?",
+        )
+        .run(leaseName, ownerId);
+      this.database.exec("COMMIT");
+      return Object.freeze({
+        recovered: true,
+        classification: command
+          ? "control_ambiguous"
+          : "ambiguous_after_dispatch",
+        requeued: false,
+        jobId: job.id,
+      });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
   enqueueOutbox({
     jobId,
     dedupeKey,
@@ -1239,7 +2244,11 @@ class RuntimeSpoolDatabase {
         `SELECT id, correlation_id, inbox_id, workspace_alias, runtime,
                 operation_class, status, state_version, attempt_count,
                 max_attempts, input_sha256, output_sha256, created_at,
-                queued_at, started_at, finished_at, updated_at, canonical_state
+                queued_at, started_at, finished_at, updated_at, canonical_state,
+                scheduler_managed, lease_owner, lease_heartbeat_at,
+                lease_expires_at, dispatch_started_at, cancel_requested_at,
+                runtime_thread_hash, runtime_turn_hash, last_runtime_event_at,
+                error_class, error_redacted
          FROM jobs WHERE id=?`,
       )
       .get(jobId);

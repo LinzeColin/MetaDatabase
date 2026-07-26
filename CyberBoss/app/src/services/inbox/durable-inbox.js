@@ -174,7 +174,7 @@ function runtimeName(config) {
 function operationClass(normalized) {
   return classifyMessageType(normalized) === "command"
     ? "command"
-    : "read_only";
+    : "bounded_mutation";
 }
 
 function encryptedPayload(normalized) {

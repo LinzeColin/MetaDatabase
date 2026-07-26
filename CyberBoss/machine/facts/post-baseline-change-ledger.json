@@ -164,6 +164,45 @@
       "upstream_sync_enabled": false,
       "upstream_support_claimed": false,
       "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-220",
+      "phase": "P2.3",
+      "base_commit": "e5995d0967e789c99ce06b5b76fa794e5d455f68",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/003_cb220_scheduler_control.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/job-scheduler-acceptance.js",
+        "CyberBoss/app/src/adapters/runtime/claudecode/events.js",
+        "CyberBoss/app/src/adapters/runtime/claudecode/index.js",
+        "CyberBoss/app/src/adapters/runtime/codex/events.js",
+        "CyberBoss/app/src/adapters/runtime/codex/index.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/inbox/durable-inbox.js",
+        "CyberBoss/app/src/services/jobs/job-scheduler.js",
+        "CyberBoss/app/src/services/jobs/resource-readiness-gate.js",
+        "CyberBoss/app/test/job-scheduler.test.js",
+        "CyberBoss/app/test/resource-readiness-gate.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js",
+        "CyberBoss/app/test/turn-gate-store.test.js",
+        "CyberBoss/app/test/workspace-scope.test.js"
+      ],
+      "purposes": [
+        "claim FIFO Runtime jobs under one transactionally fenced global lease with heartbeat and expiry",
+        "separate serialized control commands from the Runtime lease so stop and approval controls cannot deadlock",
+        "gate dispatch on Runtime readiness, poll freshness, live resource pressure, operation class and the frozen workspace registry",
+        "bind Runtime events to durable jobs with hashed run references and record truthful succeeded, failed or cancelled terminal state",
+        "classify recovery safety and prevent automatic replay after ambiguous bounded mutation dispatch",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
     }
   ]
 }
