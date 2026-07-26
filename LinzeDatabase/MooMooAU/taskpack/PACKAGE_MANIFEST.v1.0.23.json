@@ -1774,8 +1774,8 @@
     },
     {
       "path": "machine/tools/build_delivery_status.py",
-      "bytes": 92823,
-      "sha256": "663a7c21b0a38af487d28272c7aa89f3990637030285f4031dd501a2caf50825"
+      "bytes": 92849,
+      "sha256": "3edc535339379ba4fc16c0de7ff678a1b533bbffb62a7b57632373ca646ca9ab"
     },
     {
       "path": "machine/tools/build_governance_facts.py",
@@ -3134,8 +3134,8 @@
     },
     {
       "path": "tests/remediation/test_rmd06.py",
-      "bytes": 17832,
-      "sha256": "73a5567838ef5e4aff7b571a7319c25f28fcac6aeca748b0b3a81459fcaef447"
+      "bytes": 17998,
+      "sha256": "97c8d93993008a7dea5b49bd58d438ecbe06af003b7e7be49b1e2d7e81bc345c"
     },
     {
       "path": "tests/stage3_support.py",
