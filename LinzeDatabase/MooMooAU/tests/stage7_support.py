@@ -336,7 +336,11 @@ class Stage7GmailTransport:
         if (
             request.method == "GET"
             and relative in self.message_ids
-            and query == {"format": ["minimal"]}
+            and query
+            == {
+                "fields": ["id,labelIds"],
+                "format": ["minimal"],
+            }
         ):
             return HttpResponse(
                 200,

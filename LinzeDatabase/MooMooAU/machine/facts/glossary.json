@@ -36,43 +36,43 @@
   "invariants": [
     {
       "rule": "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     },
     {
       "rule": "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。",
-      "note": "v1.0.1 产品契约，由 v1.0.33 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.34 原样继承"
     }
   ],
   "terms": [
@@ -395,6 +395,56 @@
       "en": "RAW_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
       "zh": "Raw 规范 Git Blob 恢复待执行",
       "note": "Raw 只信任 Contents metadata 定址的规范 Git Blob 字节"
+    },
+    {
+      "en": "THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN",
+      "zh": "十三个受保护失败执行头已冻结",
+      "note": "T0705 十三个不同主分支 protected 提交均禁止重跑或再次派发"
+    },
+    {
+      "en": "TRASH_CONFIRMATION_RECOVERY_PENDING",
+      "zh": "垃圾箱确认恢复待执行",
+      "note": "精确部分响应、最多一次只读确认且零 mutation retry"
+    },
+    {
+      "en": "partial response",
+      "zh": "部分响应",
+      "note": "Gmail label 确认只请求 id 与 labelIds"
+    },
+    {
+      "en": "uncertain outcome reconciliation",
+      "zh": "不确定结果对账",
+      "note": "不确定 Trash response 后最多读取一次 label state，不重复 mutation"
+    },
+    {
+      "en": "TRASH_MUTATION",
+      "zh": "移入垃圾箱变更阶段",
+      "note": "只允许对精确验证来源消息执行一次变更"
+    },
+    {
+      "en": "confirmation",
+      "zh": "确认",
+      "note": "通过最小 label state 响应确定结果"
+    },
+    {
+      "en": "fields",
+      "zh": "响应字段选择器",
+      "note": "确认请求固定为 id 与 labelIds"
+    },
+    {
+      "en": "probe",
+      "zh": "探测",
+      "note": "有界只读表示探测，不读取正文且不变更消息"
+    },
+    {
+      "en": "representation",
+      "zh": "响应表示",
+      "note": "Gmail API 返回的 JSON 字段集合"
+    },
+    {
+      "en": "snippet",
+      "zh": "摘要片段",
+      "note": "确认逻辑不读取、不信任且通过部分响应排除"
     },
     {
       "en": "Git Blobs",

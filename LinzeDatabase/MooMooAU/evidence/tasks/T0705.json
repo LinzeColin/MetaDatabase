@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_RAW_CANONICAL_GIT_BLOB_RECOVERY_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_TRASH_CONFIRMATION_RECOVERY_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T16:22:15Z",
-  "baseline_commit": "0d0b6afd6a0cde606230a3df7378bdd90586de5d",
+  "observed_at_utc": "2026-07-26T17:34:39Z",
+  "baseline_commit": "4b7442bb635ea1e7cf5a814c3c56047aa288d594",
   "record_status": "BLOCKED",
-  "scope": "PROTECTED_TWELVE_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES_AND_RAW_CANONICAL_GIT_BLOB_RECOVERY_PREFLIGHT",
+  "scope": "PROTECTED_THIRTEEN_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES_AND_TRASH_CONFIRMATION_RECOVERY_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -146,6 +146,21 @@
       "evidence_ref": "machine/stages/S7/reviews/t0705/raw-recovery-representation-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-raw-recovery-representation-attempt-ledger-v1.schema.json"
     },
     {
+      "id": "trash_confirmation_head_frozen_before_timeline_or_checkpoint",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S7/reviews/t0705/trash-confirmation-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-trash-confirmation-attempt-ledger-v1.schema.json"
+    },
+    {
+      "id": "minimal_label_confirmation_uses_content_excluding_partial_response",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0202.py::test_t0202_minimal_label_confirmation_requires_content_excluding_fields"
+    },
+    {
+      "id": "uncertain_trash_response_one_read_zero_mutation_retry",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0502.py::test_t0502_uncertain_response_reconciles_confirmed_trash_without_mutation_retry"
+    },
+    {
       "id": "schedule_rehearsal_uses_deterministic_historical_clock_after_target",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_rehearsal_clock_is_deterministic_historical_replay_after_target"
@@ -225,34 +240,34 @@
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds Processed current pointers and Raw recovery to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All twelve protected attempts failed and no T0705 PASS receipt exists; the formatter and authority-context rejections both occurred before protected Secret or data-plane access. The twelfth protected attempt reached Raw recovery after one verified candidate completed Raw/Processed recovery and a determinate Trash outcome; it stopped before Timeline or checkpoint mutation."
+      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds Processed current pointers and Raw recovery to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All thirteen protected attempts failed and no T0705 PASS receipt exists; the formatter and authority-context rejections both occurred before protected Secret or data-plane access. The thirteenth protected attempt crossed canonical Raw/Processed recovery and stopped in TRASH_MUTATION before Timeline or checkpoint; its exact root cause remains unclaimed."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads, the wall-clock schedule-planning head, authentication-clock-coupling head and Raw-recovery representation head are frozen separately; one canonical Raw Git Blob successor may run once with live UTC security time and a deterministic RunPlanner fixture while every failed head remains non-rerunnable."
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads, the wall-clock schedule-planning head, authentication-clock-coupling head, Raw-recovery representation head and Trash-mutation head are frozen separately; one Trash-confirmation successor may run once with live UTC security time and a deterministic RunPlanner fixture while every failed head remains non-rerunnable."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "All twelve protected GA attempts emitted aggregate-safe failure only; the candidate preflight and authority-context failures never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published."
+      "reason": "All thirteen protected GA attempts emitted aggregate-safe failure only; the candidate preflight and authority-context failures never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published."
     },
     {
       "id": "AC-032",
       "status": "PARTIAL",
-      "reason": "Synthetic canonical Git Blob Raw/Processed recovery, Timeline and Gmail checkpoint recovery plus metadata quarantine, persisted label replay, closed phase diagnostics, idempotent backlog replay and split live-security/historical-planner time pass; protected GA recovery remains pending."
+      "reason": "Synthetic canonical Git Blob Raw/Processed recovery, content-excluding label confirmation, uncertain Trash response reconciliation with one read and zero mutation retries, Timeline and Gmail checkpoint recovery plus metadata quarantine, persisted label replay, closed phase diagnostics, idempotent backlog replay and split live-security/historical-planner time pass; protected GA recovery remains pending."
     }
   ],
   "production_oracles": [
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
       "status": "FAILED",
-      "reason": "The first nine protected exact-main attempts failed and are frozen. A later candidate failed Ruff format validation before protected Environment entry; its successor failed before checkout because an Environment-scoped variable was unavailable to the pre-Environment authority job. The repository-scoped successor failed in schedule planning before the same-day target; its deterministic-clock successor reused that clock for GitHub App JWT signing. The split-clock successor passed authentication and repository scope, then failed Raw recovery on a non-canonical Contents raw-media representation before Timeline or checkpoint mutation. All twelve protected heads and both pre-Secret heads are frozen; one Raw canonical Git Blob successor is authorized."
+      "reason": "The first nine protected exact-main attempts failed and are frozen. A later candidate failed Ruff format validation before protected Environment entry; its successor failed before checkout because an Environment-scoped variable was unavailable to the pre-Environment authority job. The repository-scoped successor failed in schedule planning before the same-day target; its deterministic-clock successor reused that clock for GitHub App JWT signing. The split-clock successor failed Raw recovery; its canonical Raw successor crossed Raw and Processed recovery and stopped in TRASH_MUTATION before Timeline or checkpoint. All thirteen protected heads and both pre-Secret heads are frozen; one content-excluding Trash-confirmation successor is authorized without claiming the exact protected root cause."
     }
   ],
   "blockers": [
-    "T0705_TWELVE_PROTECTED_FAILED_HEADS_FROZEN",
-    "T0705_RAW_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
+    "T0705_THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN",
+    "T0705_TRASH_CONFIRMATION_RECOVERY_PENDING",
     "T0705_PROTECTED_RECEIPT_NOT_BOUND",
     "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
   ],
@@ -278,5 +293,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Freeze the Raw-recovery representation failed head, deliver one exact-main T0705 Raw canonical Git Blob successor, and execute exactly one new attempt-1 schedule-mode rehearsal with 2026-07-26T19:00:00Z only for RunPlanner. Never rerun or redispatch any failed head. Set the one-shot repository variable only after merge, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706."
+  "next_action": "Freeze the Trash-mutation failed head, deliver one exact-main T0705 content-excluding label-confirmation successor, and execute exactly one new attempt-1 schedule-mode rehearsal with 2026-07-26T19:00:00Z only for RunPlanner. Require fields=id,labelIds; after an uncertain Trash response perform at most one label read and zero mutation retries. Never rerun or redispatch any failed head. Set the one-shot repository variable only after merge, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706."
 }

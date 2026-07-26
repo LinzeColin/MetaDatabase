@@ -963,6 +963,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["mode"] == "CONTRACT_ONLY"
     assert contract["ga_authorized"] is True
     assert contract["required_event"] == "workflow_dispatch"
+    assert (
+        contract["required_confirmation"]
+        == "GA_SCHEDULE_MODE_TRASH_CONFIRMATION_RECOVERY_MUTATION_BUDGET_ONE"
+    )
     assert contract["schedule_mode"] == "SCHEDULE_REHEARSAL"
     assert contract["security_clock_mode"] == "LIVE_UTC"
     assert contract["schedule_clock_mode"] == "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
@@ -981,6 +985,7 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert len(cast(list[str], contract["failed_ga_schedule_planning_head_shas"])) == 1
     assert len(cast(list[str], contract["failed_ga_authentication_clock_head_shas"])) == 1
     assert len(cast(list[str], contract["failed_ga_raw_recovery_head_shas"])) == 1
+    assert len(cast(list[str], contract["failed_ga_trash_confirmation_head_shas"])) == 1
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
     assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 9
@@ -998,6 +1003,9 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     )
     assert contract["failed_ga_raw_recovery_ledger_path"] == (
         "machine/stages/S7/reviews/t0705/raw-recovery-representation-attempt-ledger.json"
+    )
+    assert contract["failed_ga_trash_confirmation_ledger_path"] == (
+        "machine/stages/S7/reviews/t0705/trash-confirmation-attempt-ledger.json"
     )
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 

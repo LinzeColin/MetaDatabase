@@ -7,6 +7,7 @@ import pytest
 from moomooau_archive.gmail_guard import (
     GmailEndpointGuard,
     GmailEndpointRejected,
+    get_message_label_confirmation_request,
     get_message_request,
     list_filters_request,
     list_history_request,
@@ -93,6 +94,25 @@ def test_t0202_metadata_get_requires_content_excluding_partial_response() -> Non
 
     with pytest.raises(GmailEndpointRejected):
         guard.send(HttpRequest("GET", base + "?format=raw&fields=id,raw"))
+    assert len(transport.requests) == 1
+
+
+def test_t0202_minimal_label_confirmation_requires_content_excluding_fields() -> None:
+    transport = RecordingTransport()
+    guard = GmailEndpointGuard(transport)
+    request = get_message_label_confirmation_request("synthetic_message_001")
+    query = parse_qs(urlsplit(request.url).query)
+    assert query == {"fields": ["id,labelIds"], "format": ["minimal"]}
+    guard.send(request)
+
+    base = "https://gmail.googleapis.com/gmail/v1/users/me/messages/synthetic_message_001"
+    for query_string in (
+        "format=minimal",
+        "format=minimal&fields=id,labelIds,snippet",
+        "format=minimal&fields=id,threadId,labelIds",
+    ):
+        with pytest.raises(GmailEndpointRejected):
+            guard.send(HttpRequest("GET", f"{base}?{query_string}"))
     assert len(transport.requests) == 1
 
 

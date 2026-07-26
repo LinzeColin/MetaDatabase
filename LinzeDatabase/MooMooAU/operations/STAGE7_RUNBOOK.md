@@ -3,9 +3,9 @@
 ## 当前状态
 
 交付状态为
-`PROTECTED_GA_TWELFTH_ATTEMPT_FAILED_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED`，Stage 7
+`PROTECTED_GA_THIRTEENTH_ATTEMPT_FAILED_TRASH_CONFIRMATION_RECOVERY_AUTHORIZED`，Stage 7
 验收覆盖状态为
-`T0705_TWELVE_FAILED_HEADS_FROZEN_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED_PENDING`。T0701–T0708
+`T0705_THIRTEEN_FAILED_HEADS_FROZEN_TRASH_CONFIRMATION_RECOVERY_AUTHORIZED_PENDING`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -81,10 +81,18 @@ Gmail OAuth；首个 verified candidate 完成 Raw/Processed 恢复和二次验�
 Git Blob 通过 response SHA、size、age envelope 与 canonical SHA。该第十二个 protected head
 已冻结，不重跑。
 
-当前精确 successor Run Contract 的总 delivery 预算为 16，十四个 launch 已消耗 14；总 protected
-rehearsal dispatch 预算为 13，十二个失败 attempt 已消耗 12；candidate-preflight dispatch 预算为
+v1.0.33 Raw canonical Git Blob successor 已通过 authority、candidate validation、live-clock
+authentication、精确 App repository scope、Gmail OAuth 以及 canonical Raw/Processed recovery，
+随后在 `TRASH_MUTATION` 失败。远端只有 age-encrypted Raw、Processed 与 current-pointer 写入，
+Timeline 与 checkpoint 均未提交；exact protected root cause 保持 unclaimed。独立只读 Gmail
+representation probe 证明 `minimal` 响应可以含非空 `snippet`。该第十三个 protected head 已冻结，
+不重跑、不 redispatch。
+
+当前精确 successor Run Contract 的总 delivery 预算为 17，十五个 launch 已消耗 15；总 protected
+rehearsal dispatch 预算为 14，十三个失败 attempt 已消耗 13；candidate-preflight dispatch 预算为
 6，已消耗 5；authority-scope、schedule-planning wall-clock、authentication-clock-coupling 和
-Raw-representation failure budget 各 1 且均已消耗。只剩一次 Raw canonical Git Blob recovery delivery/attempt 和一次
+Raw-representation、Trash-confirmation failure budget 各 1 且均已消耗。只剩一次
+Trash-confirmation recovery delivery/attempt 和一次
 receipt/schedule-closure
 delivery。它复用现有 `moomooau-beta`
 Environment 的八个精确 Secret
@@ -93,7 +101,8 @@ Environment 的八个精确 Secret
 已提交的 04:30 Australia/Sydney schedule。
 current pointer 与 Raw recovery 只把 Contents 响应用作 bounded metadata；ciphertext 必须来自精确
 `GET /git/blobs/{metadata_sha}` 的 JSON base64 body，并核对响应 SHA、声明/解码 size、age
-envelope 与 canonical Git blob SHA。rehearsal 必须明确记录
+envelope 与 canonical Git blob SHA。Gmail label confirmation 只请求 `fields=id,labelIds`；
+uncertain Trash response 最多执行一次只读 label confirmation，mutation retry 为 0。rehearsal 必须明确记录
 `platform_schedule_event_observed=false`，不能伪称 GitHub schedule
 event。T0706、Recovery Drill、Patch Lifecycle protected execution、最终 Acceptance 与最终
 发布均未授权。
@@ -165,7 +174,7 @@ Oracle `NOT_RUN`、final Acceptance 0/34、Stage 7 或生产 `BLOCKED`。
 
 日常运行从同一私有仓恢复 `MooMooAU/State/gmail-sync-current.json.age`。周日或手动 Full Reconciliation 必须先由有效 History 水位计算增量候选，再独立全量扫描；只有两者实际相等才可记录 difference=0。首次导入或 History 404 没有独立候选时明确记为 `NOT_COMPARABLE`，不得伪装为零差异。非零差异在 Raw Fetch、M3 和 Timeline 前停止。
 
-每个候选仍执行 metadata-first 验证；只有 `VERIFIED` 才可 Full Fetch。Raw age 提交与远端恢复、current Parser 的 Processed age 提交与远端恢复全部成功后，才进行第二次验证并从显式 stable Budget 中消费一次精确 `users.messages.trash`。Budget 用尽的已恢复消息保持 `ELIGIBLE` 并由下次 checkpoint 重放；已在 Trash 的同一消息只确认、不重复消费 mutation call。pending 消息若从新 Gmail 真值集合消失或 thread identity 改变，整次运行 fail closed 且不前移 checkpoint，不得静默丢弃已验证待办。任何不确定 Trash 结果立即停止且不前移 checkpoint。
+每个候选仍执行 metadata-first 验证；只有 `VERIFIED` 才可 Full Fetch。Raw age 提交与远端恢复、current Parser 的 Processed age 提交与远端恢复全部成功后，才进行第二次验证并从显式 stable Budget 中消费一次精确 `users.messages.trash`。Budget 用尽的已恢复消息保持 `ELIGIBLE` 并由下次 checkpoint 重放；已在 Trash 的同一消息只确认、不重复消费 mutation call。pending 消息若从新 Gmail 真值集合消失或 thread identity 改变，整次运行 fail closed 且不前移 checkpoint，不得静默丢弃已验证待办。任何不确定 Trash 响应只允许一次 `fields=id,labelIds` label read，mutation 不重试；未明确确认 `TRASH` 时停止且不前移 checkpoint。
 
 Timeline 只聚合远端恢复且仍匹配 current Processed pointer 的 facts；snapshot 再次 age 提交/恢复后才调用单 Asset publisher。健康结果必须为恰好一个 live Asset。最后一步才 strict-CAS Gmail checkpoint，并重新读取、解密和逐字段比较；CAS 或恢复失败时整次运行不完成，下次按旧水位幂等补偿。公开结果只含 bucket/零差异状态，不含 Gmail ID、仓库定位或金融值，也明确 `production_health_claimed=false`。
 
@@ -177,7 +186,7 @@ GitHub App 必须先证明 installation token 的精确 repository scope 只包�
 04:30 生产运行相同的 `RunTrigger.SCHEDULE` planner path，并公开标记为
 `SCHEDULE_REHEARSAL`。
 
-十二次 protected rehearsal 都 FAILED，不能计为 PASS；十二个 protected head 均已冻结。第九次仍进入
+十三次 protected rehearsal 都 FAILED，不能计为 PASS；十三个 protected head 均已冻结。第九次仍进入
 `FIRST_IMPORT_POINTER_FETCH`，但没有产生 private commit、Processed、Timeline、checkpoint 或
 Gmail mutation；exact runtime exception 未接收或检查。只读 live A/B 已把直接表示层差异确定为
 Contents raw-media body 与 metadata blob 不一致，而 exact Git Blobs API 可以恢复 canonical
@@ -190,13 +199,15 @@ scope 错误在 checkout 前失败，同样为零远端效果且 head 已冻结�
 fixture 跨过 schedule planning，但该 fixture 同时污染安全凭证时钟，使 GitHub App JWT 在
 repository resolution 前被拒绝；私库/Gmail 调用与 mutation 均为 0。第十二次使用 split clock，
 通过 App scope 与 Gmail OAuth 后在下一 verified candidate 的 Raw recovery 失败；表示层 A/B
-已固定在独立账本。当前唯一后继候选只改变 Raw recovery bytes 来源，不改变 pointer、
-metadata quarantine、pending replay、second verification、
-ACTIVE/SAFE_DEFERRED、Trash、Timeline 或 checkpoint 行为；只要求 merge 后用 repository
-variable 绑定 exact main head，并在 authority 消耗后删除。新入口在 Secret 前明确拒绝十个
-protected 失败 head、authentication-clock-coupling 失败 head与两个 pre-Secret 失败 head，
+已固定在独立账本。第十三次使用 canonical Raw recovery，跨过 Raw 与 Processed recovery 后在
+`TRASH_MUTATION` 停止；exact protected root cause 保持 unclaimed，Timeline/checkpoint 为 0。
+当前唯一后继候选只将 label confirmation 约束为 `fields=id,labelIds`，并为 uncertain Trash
+response 提供一次只读确认、零 mutation retry；不改变 pointer、metadata quarantine、pending
+replay、second verification、ACTIVE/SAFE_DEFERRED、Timeline 或 checkpoint 行为；只要求 merge 后用 repository
+variable 绑定 exact main head，并在 authority 消耗后删除。新入口在 Secret 前明确拒绝十三个
+protected 失败 head与两个 pre-Secret 失败 head，
 并把 authority job 验证后的 exact head 通过 job output 绑定给 protected Environment job。
-当前 Raw canonical Git Blob recovery rehearsal 尚未运行，且只允许一个新 exact-main head
+当前 Trash-confirmation recovery rehearsal 尚未运行，且只允许一个新 exact-main head
 执行 attempt 1。因此 T0705 与其 AC 仍为 `BLOCKED/PARTIAL/FAILED`；App 链接确认和本地候选都
 不能替代精确 protected receipt。
 

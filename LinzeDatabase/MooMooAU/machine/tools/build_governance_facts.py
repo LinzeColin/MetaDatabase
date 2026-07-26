@@ -62,6 +62,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.31",
             "1.0.32",
             "1.0.33",
+            "1.0.34",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -96,6 +97,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.31",
         "1.0.32",
         "1.0.33",
+        "1.0.34",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -126,6 +128,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.31",
         "1.0.32",
         "1.0.33",
+        "1.0.34",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -155,6 +158,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.31",
         "1.0.32",
         "1.0.33",
+        "1.0.34",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -183,6 +187,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.31",
         "1.0.32",
         "1.0.33",
+        "1.0.34",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -224,6 +229,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.31",
         "1.0.32",
         "1.0.33",
+        "1.0.34",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -283,6 +289,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.31",
             "1.0.32",
             "1.0.33",
+            "1.0.34",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -309,7 +316,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 3
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
-    t0705_repair_authorized = (
+    t0705_raw_recovery_authorized = (
         delivery["package_version"] == "1.0.33"
         and delivery.get("overall_status")
         == "PROTECTED_GA_TWELFTH_ATTEMPT_FAILED_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED"
@@ -318,6 +325,19 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
         == "CONTROLLED_T0705_RAW_CANONICAL_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
+    )
+    t0705_trash_confirmation_recovery_authorized = (
+        delivery["package_version"] == "1.0.34"
+        and delivery.get("overall_status")
+        == "PROTECTED_GA_THIRTEENTH_ATTEMPT_FAILED_TRASH_CONFIRMATION_RECOVERY_AUTHORIZED"
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
+        and delivery.get("dimensions", {}).get("publication", {}).get("status")
+        == "CONTROLLED_T0705_TRASH_CONFIRMATION_RECOVERY_CANDIDATE_NOT_FINAL"
+    )
+    t0705_repair_authorized = (
+        t0705_raw_recovery_authorized or t0705_trash_confirmation_recovery_authorized
     )
     t0704_protected_passed = (
         delivery["package_version"] in {"1.0.18", "1.0.19"}
@@ -372,9 +392,12 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702、T0703 与 T0704 均通过；T0705 九次运行失败且九个头已冻结，"
-            "canonical Git Blob recovery 已授权"
-            if t0705_repair_authorized
+            "T0702、T0703 与 T0704 均通过；T0705 十三次 protected 运行失败且失败头已冻结，"
+            "Trash confirmation recovery 已授权"
+            if t0705_trash_confirmation_recovery_authorized
+            else "T0702、T0703 与 T0704 均通过；T0705 十二次 protected 运行失败且失败头已冻结，"
+            "Raw canonical Git Blob recovery 已授权"
+            if t0705_raw_recovery_authorized
             else "T0702、T0703 与 T0704 受保护验证均通过；T0705 一次性 schedule-mode "
             "rehearsal 已授权待运行"
             if t0705_authorized
@@ -580,15 +603,32 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "Git Blob successor；RunPlanner 使用 2026-07-26T19:00:00Z Fixture 即时验证，"
             "不等待、不重跑"
         ),
+        "T0705_THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN": (
+            "T0705 十三个 protected exact-main attempt-1 head 与两个独立 pre-Secret "
+            "失败 head 均已冻结；所有失败 head 的 rerun 与 redispatch 均为零"
+        ),
+        "T0705_TRASH_CONFIRMATION_RECOVERY_PENDING": (
+            "第十三次已通过 authority、candidate validation、live-clock 认证、精确 App "
+            "repository scope 与 Gmail OAuth，并完成多件 Raw/Processed 远端恢复；随后在 "
+            "TRASH_MUTATION 阶段失败，Timeline 与 checkpoint 均未提交。精确线上根因未宣称；"
+            "有界只读 Gmail representation probe 只证明最小响应可包含非空 snippet，而旧确认"
+            "客户端会拒绝任意 snippet key。仅授权一个 successor：确认请求固定 "
+            "fields=id,labelIds；Trash response 不确定时最多一次只读 label 确认、零 mutation "
+            "retry；RunPlanner 使用 2026-07-26T19:00:00Z Fixture 即时验证，不等待、不重跑"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 十二个 protected 失败头及两个 pre-Secret 失败头"
+            "T0704 已通过；T0705 十三个 protected 失败头及两个 pre-Secret 失败头"
+            "已冻结，Trash confirmation successor 已授权且无需等待 04:30；T0706 及其后的"
+            "受保护验收未授权"
+            if t0705_trash_confirmation_recovery_authorized
+            else "T0704 已通过；T0705 十二个 protected 失败头及两个 pre-Secret 失败头"
             "已冻结，Raw canonical Git Blob successor 已授权且无需等待 04:30；T0706 及其后的"
             "受保护验收未授权"
-            if t0705_repair_authorized
+            if t0705_raw_recovery_authorized
             else "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权"
             if t0705_authorized
             else "T0704 已通过；T0705 及其后的受保护验收仍未执行"
@@ -615,9 +655,12 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0705 十二个 GA 失败头及两个 pre-Secret 失败头已冻结，"
+            "RMD-06 T0705 十三个 GA 失败头及两个 pre-Secret 失败头已冻结，"
+            "Trash confirmation successor 已授权待运行"
+            if t0705_trash_confirmation_recovery_authorized
+            else "RMD-06 T0705 十二个 GA 失败头及两个 pre-Secret 失败头已冻结，"
             "Raw canonical Git Blob successor 已授权待运行"
-            if t0705_repair_authorized
+            if t0705_raw_recovery_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
             else "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
@@ -647,12 +690,19 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 十二个 protected exact-main attempt-1 失败头已冻结；第十二次完成首个 "
+            "T0705 十三个 protected exact-main attempt-1 失败头已冻结；第十三次通过 "
+            "authority、candidate validation、live-clock 认证、精确 App repository scope 与 "
+            "Gmail OAuth，并完成多件 Raw/Processed 恢复，随后在 TRASH_MUTATION 阶段失败；"
+            "精确线上根因未宣称，Timeline 与 checkpoint 均未提交。新 head 将 label 确认请求"
+            "固定为 fields=id,labelIds，并在不确定 Trash response 后最多执行一次只读确认、"
+            "零 mutation retry"
+            if t0705_trash_confirmation_recovery_authorized
+            else "T0705 十二个 protected exact-main attempt-1 失败头已冻结；第十二次完成首个 "
             "verified candidate 的 Raw/Processed 恢复和确定 Trash 结果，随后下一 candidate "
             "在 RAW_RECOVERY 因 Contents raw-media 与 canonical Git Blob 表示不一致而关闭失败。"
             "新 head 只把 Raw recovery 切换为 metadata-addressed canonical Git Blob，并将 "
             "RunPlanner Fixture 移到所有已知数据效果之后"
-            if t0705_repair_authorized
+            if t0705_raw_recovery_authorized
             else "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
             "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
             if t0705_authorized
@@ -698,14 +748,20 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.33 Raw canonical Git Blob 精确 successor，并只向 RunPlanner 注入 "
+            "交付 v1.0.34 Trash confirmation 精确 successor，并只向 RunPlanner 注入 "
+            "2026-07-26T19:00:00Z Fake Clock 即时执行一次新 head protected "
+            "SCHEDULE_REHEARSAL；十三个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；"
+            "确认请求固定 fields=id,labelIds，不确定 response 后最多一次只读确认、零 mutation "
+            "retry；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前"
+            if t0705_trash_confirmation_recovery_authorized
+            else "交付 v1.0.33 Raw canonical Git Blob 精确 successor，并只向 RunPlanner 注入 "
             "2026-07-26T19:00:00Z Fake Clock 即时执行一次新 head protected "
             "SCHEDULE_REHEARSAL；十二个 protected 失败头与两个 pre-Secret "
             "失败头均 rerun 0；"
             "PASS 后只"
             "启用已提交 04:30 "
             "schedule，并停在 T0706 前"
-            if t0705_repair_authorized
+            if t0705_raw_recovery_authorized
             else "交付 v1.0.19 精确候选并执行一次 protected SCHEDULE_REHEARSAL；rerun 0，"
             "PASS 前不启用调度，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前"
             if t0705_authorized
@@ -1112,6 +1168,56 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "RAW_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
                 "zh": "Raw 规范 Git Blob 恢复待执行",
                 "note": "Raw 只信任 Contents metadata 定址的规范 Git Blob 字节",
+            },
+            {
+                "en": "THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN",
+                "zh": "十三个受保护失败执行头已冻结",
+                "note": "T0705 十三个不同主分支 protected 提交均禁止重跑或再次派发",
+            },
+            {
+                "en": "TRASH_CONFIRMATION_RECOVERY_PENDING",
+                "zh": "垃圾箱确认恢复待执行",
+                "note": "精确部分响应、最多一次只读确认且零 mutation retry",
+            },
+            {
+                "en": "partial response",
+                "zh": "部分响应",
+                "note": "Gmail label 确认只请求 id 与 labelIds",
+            },
+            {
+                "en": "uncertain outcome reconciliation",
+                "zh": "不确定结果对账",
+                "note": "不确定 Trash response 后最多读取一次 label state，不重复 mutation",
+            },
+            {
+                "en": "TRASH_MUTATION",
+                "zh": "移入垃圾箱变更阶段",
+                "note": "只允许对精确验证来源消息执行一次变更",
+            },
+            {
+                "en": "confirmation",
+                "zh": "确认",
+                "note": "通过最小 label state 响应确定结果",
+            },
+            {
+                "en": "fields",
+                "zh": "响应字段选择器",
+                "note": "确认请求固定为 id 与 labelIds",
+            },
+            {
+                "en": "probe",
+                "zh": "探测",
+                "note": "有界只读表示探测，不读取正文且不变更消息",
+            },
+            {
+                "en": "representation",
+                "zh": "响应表示",
+                "note": "Gmail API 返回的 JSON 字段集合",
+            },
+            {
+                "en": "snippet",
+                "zh": "摘要片段",
+                "note": "确认逻辑不读取、不信任且通过部分响应排除",
             },
             {
                 "en": "Git Blobs",
@@ -1631,8 +1737,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0705 十二个 GA 失败头已冻结，Raw canonical Git Blob recovery 已授权待运行"
-            if t0705_repair_authorized
+            "RMD-06 T0705 十三个 GA 失败头已冻结，Trash confirmation recovery 已授权待运行"
+            if t0705_trash_confirmation_recovery_authorized
+            else "RMD-06 T0705 十二个 GA 失败头已冻结，Raw canonical Git Blob recovery 已授权待运行"
+            if t0705_raw_recovery_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
             else "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
@@ -1662,10 +1770,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 十二个 protected 失败头与两个 pre-Secret 失败头已冻结；"
+            "T0705 十三个 protected 失败头与两个 pre-Secret 失败头已冻结；仅允许 "
+            "fields=id,labelIds 与一次只读不确定结果对账、零 mutation retry 的 "
+            "Trash confirmation successor exact-main attempt 1；用 Fake Clock 即时验证"
+            if t0705_trash_confirmation_recovery_authorized
+            else "T0705 十二个 protected 失败头与两个 pre-Secret 失败头已冻结；"
             "仅允许 Raw canonical Git Blob successor exact-main attempt 1，"
             "用 Fake Clock 即时验证且无需等待真实 04:30"
-            if t0705_repair_authorized
+            if t0705_raw_recovery_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
             else "T0704/S7AC-004 精确成功回执闭合；全部 T0704 权限已消耗"
@@ -1697,12 +1809,17 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.33 Raw canonical Git Blob exact-main successor、"
+            "交付 v1.0.34 Trash confirmation exact-main successor；只向 RunPlanner 注入 "
+            "2026-07-26T19:00:00Z Fixture 即时执行一次 attempt-1 SCHEDULE_REHEARSAL，"
+            "确认请求固定 fields=id,labelIds，不确定 response 后最多一次只读确认、零 mutation "
+            "retry；PASS 后启用 live UTC 的 04:30 Australia/Sydney schedule，并停在 T0706 前"
+            if t0705_trash_confirmation_recovery_authorized
+            else "交付 v1.0.33 Raw canonical Git Blob exact-main successor、"
             "用 live UTC 安全时钟与 2026-07-26T19:00:00Z RunPlanner Fixture 即时执行一次新 "
             "attempt-1 "
             "SCHEDULE_REHEARSAL，PASS 后启用 live UTC 的 04:30 Australia/Sydney schedule，"
             "并停在 T0706 前"
-            if t0705_repair_authorized
+            if t0705_raw_recovery_authorized
             else "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，"
             "PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
             if t0705_authorized
@@ -1769,9 +1886,12 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 九次运行失败，"
-                    "九个失败头已冻结，canonical Git Blob recovery 待运行）"
-                    if t0705_repair_authorized
+                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 十三次 protected 运行失败，"
+                    "失败头已冻结，Trash confirmation recovery 待运行）"
+                    if t0705_trash_confirmation_recovery_authorized
+                    else "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 十二次 protected 运行失败，"
+                    "失败头已冻结，Raw canonical Git Blob recovery 待运行）"
+                    if t0705_raw_recovery_authorized
                     else "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 一次性 "
                     "SCHEDULE_REHEARSAL 已授权待运行）"
                     if t0705_authorized
@@ -1821,8 +1941,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "id": "`发布`",
                 "criteria": "最终复审修复后才创建干净快照并一次性上传",
                 "status": (
-                    "T0705 受控修复候选待执行；最终发布未授权"
-                    if t0705_repair_authorized
+                    "T0705 Trash confirmation 受控修复候选待执行；最终发布未授权"
+                    if t0705_trash_confirmation_recovery_authorized
+                    else "T0705 Raw recovery 受控修复候选待执行；最终发布未授权"
+                    if t0705_raw_recovery_authorized
                     else "T0705 受控候选待执行；最终发布未授权"
                     if t0705_authorized
                     else "T0704 受控证据已交付；最终发布未授权"
@@ -2194,6 +2316,25 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "rerun/redispatch。v1.0.33 仅将 Raw recovery 切换到规范 Git Blob，并把 "
                     "RunPlanner Fixture 移到 2026-07-26T19:00:00Z。故障注入即时验证；不设 "
                     "soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
+                ),
+            },
+        )
+    if t0705_trash_confirmation_recovery_authorized:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.34",
+                "date": "2026-07-26",
+                "summary": (
+                    "固化 v1.0.33 exact-main protected attempt 的 TRASH_MUTATION 阶段失败："
+                    "authority、candidate validation、live-clock 认证、精确 App repository "
+                    "scope 与 Gmail OAuth 均通过，并完成多件 Raw/Processed 远端恢复；Timeline "
+                    "与 checkpoint 未提交。公开失败阶段、远端提交拓扑、只读 Gmail label state "
+                    "与有界 representation probe 不足以证明精确线上根因，因此保持未宣称。"
+                    "失败 head 禁止 rerun/redispatch。v1.0.34 将 label 确认固定为 "
+                    "fields=id,labelIds；不确定 Trash response 后最多一次只读 label 确认、"
+                    "零 mutation retry。Fake Clock、Fixture 与故障注入即时验证；不设 soak、"
+                    "观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
                 ),
             },
         )

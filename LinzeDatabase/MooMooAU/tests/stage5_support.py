@@ -211,7 +211,15 @@ class SyntheticM3Transport:
                 self.trash_status,
                 json.dumps({"id": self.message_id}, separators=(",", ":")).encode("utf-8"),
             )
-        if request.method == "GET" and parsed.path == get_path and query == {"format": ["minimal"]}:
+        if (
+            request.method == "GET"
+            and parsed.path == get_path
+            and query
+            == {
+                "fields": ["id,labelIds"],
+                "format": ["minimal"],
+            }
+        ):
             labels = ["CATEGORY_UPDATES", "TRASH" if self.confirm_trash else "INBOX"]
             return HttpResponse(
                 200,

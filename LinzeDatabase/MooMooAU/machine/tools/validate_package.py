@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator for the v1.0.33 protected T0705 Raw canonical recovery package."""
+"""Read-only validator for the v1.0.34 protected T0705 Trash-confirmation package."""
 
 from __future__ import annotations
 
@@ -30,12 +30,12 @@ from jsonschema import Draft202012Validator, FormatChecker
 from validate_delivery_status import validate as validate_delivery_status
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.33.json")
+PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.34.json")
 CURRENT_MAINLINE_BASE_COMMIT = (
-    "0d0b6afd6a0cde606230a3df7378bdd90586de5d"  # pragma: allowlist secret
+    "4b7442bb635ea1e7cf5a814c3c56047aa288d594"  # pragma: allowlist secret
 )
 ACCEPTANCE_REMEDIATION_BASE_COMMIT = (
-    "0d0b6afd6a0cde606230a3df7378bdd90586de5d"  # pragma: allowlist secret
+    "4b7442bb635ea1e7cf5a814c3c56047aa288d594"  # pragma: allowlist secret
 )
 T0705_CANDIDATE_PREFLIGHT_HEAD = (
     "26949ab5031a21b0c515c282c9ef06ff9417e058"  # pragma: allowlist secret
@@ -49,7 +49,8 @@ T0705_SCHEDULE_PLANNING_HEAD = (
 T0705_AUTHENTICATION_CLOCK_HEAD = (
     "c2c057b449fe1cbbd470867c274833242e3f139d"  # pragma: allowlist secret
 )
-T0705_RAW_RECOVERY_HEAD = CURRENT_MAINLINE_BASE_COMMIT
+T0705_RAW_RECOVERY_HEAD = "0d0b6afd6a0cde606230a3df7378bdd90586de5d"  # pragma: allowlist secret
+T0705_TRASH_CONFIRMATION_HEAD = CURRENT_MAINLINE_BASE_COMMIT
 T0704_PASS_MAIN_COMMIT = "65cef09935475ab578d28a61817cc92700d6da04"  # pragma: allowlist secret
 CANDIDATE_SNAPSHOT = {
     "repository": "LinzeColin/MetaDatabase",
@@ -156,19 +157,25 @@ PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/"
     "protected-ga-raw-recovery-representation-attempt-ledger-v1.schema.json"
 )
+PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/trash-confirmation-attempt-ledger.json"
+)
+PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-trash-confirmation-attempt-ledger-v1.schema.json"
+)
 T0705_RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
 AUTHORIZATION_BASIS = (
-    "The exact protected T0702, T0703 and T0704 PASS receipts, all twelve immutable T0705 "
+    "The exact protected T0702, T0703 and T0704 PASS receipts, all thirteen immutable T0705 "
     "protected failed-attempt ledgers and the distinct pre-Secret candidate-validation and "
     "authority-context ledgers, "
     "live read-only raw-media versus Git Blob replay, owner no-time-gate direction and one-task "
     "successor Run Contract freeze every failed head and authorize exactly one repository-scoped "
-    "one-shot authority T0705 exact-main Raw canonical Git Blob schedule-mode rehearsal "
+    "one-shot authority T0705 exact-main Trash-confirmation schedule-mode rehearsal "
     "without authorizing "
     "T0706 or final publication"
 )
 AUTHORIZED_SCOPE = (
-    "One repository-scoped one-shot authority T0705 Raw canonical Git Blob recovery "
+    "One repository-scoped one-shot authority T0705 Trash-confirmation recovery "
     "candidate: never rerun or redispatch any protected failed head or either pre-Secret failed "
     "head "
     "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f, "
@@ -184,7 +191,8 @@ AUTHORIZED_SCOPE = (
     "9c79b92bcdf8b027727963dfe52bd183a170954c or "
     "27886f54a30a12ca7992a908e97340d1d8234430 or "
     "c2c057b449fe1cbbd470867c274833242e3f139d or "
-    "0d0b6afd6a0cde606230a3df7378bdd90586de5d. Use bounded Contents metadata only to bind exact "
+    "0d0b6afd6a0cde606230a3df7378bdd90586de5d or "
+    "4b7442bb635ea1e7cf5a814c3c56047aa288d594. Use bounded Contents metadata only to bind exact "
     "path, size and blob SHA, then recover Raw and Processed ciphertext from the exact "
     "metadata-addressed "
     "Git Blobs API base64 body with response SHA, decoded size, age envelope and canonical Git "
@@ -193,7 +201,7 @@ AUTHORIZED_SCOPE = (
     "Preserve "
     "persisted first-import timestamp and label-state replay plus pre-Raw metadata "
     "quarantine, prior pending refs, fail-closed second verification, ACTIVE processing and "
-    "paired-empty SAFE_DEFERRED. Bind all protected predecessor receipts, all twelve protected "
+    "paired-empty SAFE_DEFERRED. Bind all protected predecessor receipts, all thirteen protected "
     "failed ledgers plus the candidate-preflight and authority-context ledgers, "
     "reuse the existing "
     "eight-name moomooau-beta Environment and installed GitHub App, refresh live "
@@ -203,8 +211,9 @@ AUTHORIZED_SCOPE = (
     "OAuth, capacity and evidence timestamps use live UTC while RunPlanner alone receives the "
     "committed 2026-07-26T19:00:00Z historical replay clock after all known data effects. "
     "Verified-only Raw and Processed remote "
-    "recovery precede "
-    "exact-message Trash budget one; Timeline and checkpoint recovery are mandatory. Enable only "
+    "recovery precede exact-message Trash budget one; request only fields=id,labelIds for label "
+    "confirmation, and after an uncertain Trash response perform at most one read and zero "
+    "mutation retries. Timeline and checkpoint recovery are mandatory. Enable only "
     "the committed 04:30 Australia/Sydney schedule after PASS and stop before T0706"
 )
 
@@ -218,7 +227,7 @@ def _load(path: Path) -> Any:
 
 
 def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
-    """Return the exact RMD-06 and protected T0705 Raw canonical authority."""
+    """Return the exact RMD-06 and protected T0705 Trash-confirmation authority."""
 
     root = root.resolve()
     attempt_ledger = _load(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH)
@@ -287,6 +296,10 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ga_raw_recovery_ledger = _load(root / PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_PATH)
     ga_raw_recovery_ledger_schema = _load(
         root / PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA_PATH
+    )
+    ga_trash_confirmation_ledger = _load(root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_PATH)
+    ga_trash_confirmation_ledger_schema = _load(
+        root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_SCHEMA_PATH
     )
     t0705_contract = _load(root / T0705_RUN_CONTRACT_PATH)
     if (
@@ -1687,6 +1700,62 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ):
         raise ValueError("protected T0705 Raw-recovery attempt ledger is not exact")
 
+    ga_trash_confirmation_errors = list(
+        Draft202012Validator(
+            ga_trash_confirmation_ledger_schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(ga_trash_confirmation_ledger)
+    )
+    trash_workflow = ga_trash_confirmation_ledger.get("workflow", {})
+    trash_failure = ga_trash_confirmation_ledger.get("failure", {})
+    trash_effects = ga_trash_confirmation_ledger.get("effects", {})
+    trash_topology = ga_trash_confirmation_ledger.get("remote_commit_topology", {})
+    trash_probe = ga_trash_confirmation_ledger.get("read_only_gmail_representation_probe", {})
+    trash_policy = ga_trash_confirmation_ledger.get("remediation_contract", {})
+    trash_claims = ga_trash_confirmation_ledger.get("claims", {})
+    if (
+        ga_trash_confirmation_errors
+        or _sha256(root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_PATH)
+        != "6a05af65bc8f0045bb5c7d4ce511ff643c07fe1b6a1a6c8190962cd4c5ca598b"  # pragma: allowlist secret  # noqa: E501
+        or _sha256(root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_SCHEMA_PATH)
+        != "5cee0e8e3dc695251f487f482457ea91cab5b240eed7be81891b0d23bf4cb4e8"  # pragma: allowlist secret  # noqa: E501
+        or ga_trash_confirmation_ledger.get("scope")
+        != "PROTECTED_ENVIRONMENT_VERIFIED_PIPELINE_TRASH_CONFIRMATION_ONLY"
+        or trash_workflow.get("workflow_head_sha") != T0705_TRASH_CONFIRMATION_HEAD
+        or trash_workflow.get("run_id") != 30212089899
+        or trash_workflow.get("run_attempt") != 1
+        or trash_workflow.get("reruns") != 0
+        or trash_failure.get("phase") != "TRASH_MUTATION"
+        or trash_failure.get("reason_code") != "PROTECTED_GA_TRASH_MUTATION_FAILED"
+        or trash_failure.get("public_payload_exact_root_cause_claimed") is not False
+        or trash_failure.get("ledger_exact_root_cause_claimed") is not False
+        or trash_effects.get("raw_and_processed_remote_recovery_reached_before_failure") is not True
+        or trash_effects.get("timeline_mutations") != 0
+        or trash_effects.get("checkpoint_mutations") != 0
+        or trash_effects.get("tmpfs_plaintext_cleanup") != "PASS"
+        or trash_topology.get("private_repository_locator_disclosed") is not False
+        or trash_topology.get("private_object_paths_disclosed") is not False
+        or trash_topology.get("timeline_or_checkpoint_commit_present") is not False
+        or trash_probe.get("message_bodies_read") is not False
+        or trash_probe.get("message_mutations") != 0
+        or trash_probe.get("minimal_response_contains_nonempty_snippet") is not True
+        or trash_probe.get("exact_partial_response_required") != "id,labelIds"
+        or trash_policy.get("minimal_confirmation_fields") != "id,labelIds"
+        or trash_policy.get("uncertain_trash_response_label_reads_maximum") != 1
+        or trash_policy.get("trash_mutation_retries_inside_attempt_maximum") != 0
+        or trash_policy.get("frozen_trash_confirmation_head_shas")
+        != [T0705_TRASH_CONFIRMATION_HEAD]
+        or trash_policy.get("protected_ga_rehearsal_dispatches_consumed") != 13
+        or trash_policy.get("protected_ga_candidate_preflight_dispatches_consumed") != 5
+        or trash_policy.get("rehearsal_schedule_clock_fixture_utc") != "2026-07-26T19:00:00Z"
+        or trash_policy.get("known_data_effect_upper_bound_utc") != "2026-07-26T17:20:17Z"
+        or trash_policy.get("real_time_wait_allowed") is not False
+        or trash_claims.get("protected_ga_data_plane_executed") is not True
+        or trash_claims.get("exact_protected_failure_root_cause_claimed") is not False
+        or trash_claims.get("exact_gmail_mutation_call_count_claimed") is not False
+    ):
+        raise ValueError("protected T0705 Trash-confirmation attempt ledger is not exact")
+
     t0705_authorization = t0705_contract.get("authorization", {})
     t0705_budget = t0705_contract.get("authorized_effect_budget", {})
     if (
@@ -1696,11 +1765,11 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or t0705_contract.get("baseline_commit") != CURRENT_MAINLINE_BASE_COMMIT
         or t0705_contract.get("baseline_manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or t0705_authorization.get("purpose")
-        != "T0705_PROTECTED_GA_RAW_CANONICAL_GIT_BLOB_RECOVERY_AND_ENABLEMENT_ONLY"
+        != "T0705_PROTECTED_GA_TRASH_CONFIRMATION_RECOVERY_AND_ENABLEMENT_ONLY"
         or t0705_authorization.get("original_run_contract_sha256")
         != "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         or t0705_authorization.get("prior_run_contract_sha256")
-        != "4257ed7784285320fd18fce57a546b1560fd9f5d42238e744ba11890cc8457dd"  # pragma: allowlist secret  # noqa: E501
+        != "004f648b027ec68390a864988a537e7064de9224bab738b429c1c093b0ca4722"  # pragma: allowlist secret  # noqa: E501
         or t0705_authorization.get("failed_attempt_ledgers_required") != 9
         or t0705_authorization.get("first_failed_attempt_ledger_sha256")
         != _sha256(root / PROTECTED_GA_ATTEMPT_LEDGER_PATH)
@@ -1758,6 +1827,10 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         != _sha256(root / PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_PATH)
         or t0705_authorization.get("raw_recovery_attempt_ledger_schema_sha256")
         != _sha256(root / PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA_PATH)
+        or t0705_authorization.get("trash_confirmation_attempt_ledger_sha256")
+        != _sha256(root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_PATH)
+        or t0705_authorization.get("trash_confirmation_attempt_ledger_schema_sha256")
+        != _sha256(root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_SCHEMA_PATH)
         or t0705_authorization.get("failed_workflow_head_shas")
         != [
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
@@ -1779,21 +1852,24 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or t0705_authorization.get("failed_authentication_clock_head_shas")
         != [T0705_AUTHENTICATION_CLOCK_HEAD]
         or t0705_authorization.get("failed_raw_recovery_head_shas") != [T0705_RAW_RECOVERY_HEAD]
+        or t0705_authorization.get("failed_trash_confirmation_head_shas")
+        != [T0705_TRASH_CONFIRMATION_HEAD]
         or t0705_authorization.get("failed_head_rerun_allowed") is not False
         or t0705_authorization.get("failed_head_redispatch_allowed") is not False
         or t0705_authorization.get("t0704_receipt_sha256")
         != _sha256(root / PROTECTED_BLUE_GREEN_RECEIPT_PATH)
         or t0705_authorization.get("t0705_authorized") is not True
         or t0705_authorization.get("t0706_authorized") is not False
-        or t0705_authorization.get("controlled_main_delivery_total_limit") != 16
-        or t0705_authorization.get("controlled_main_deliveries_consumed") != 14
+        or t0705_authorization.get("controlled_main_delivery_total_limit") != 17
+        or t0705_authorization.get("controlled_main_deliveries_consumed") != 15
         or t0705_authorization.get("controlled_main_deliveries_remaining") != 2
-        or t0705_authorization.get("ga_rehearsal_dispatches_consumed") != 12
+        or t0705_authorization.get("ga_rehearsal_dispatches_consumed") != 13
         or t0705_authorization.get("ga_candidate_preflight_dispatches_consumed") != 5
         or t0705_authorization.get("ga_authority_context_scope_failures_consumed") != 1
         or t0705_authorization.get("ga_schedule_planning_clock_failures_consumed") != 1
         or t0705_authorization.get("ga_authentication_clock_coupling_failures_consumed") != 1
         or t0705_authorization.get("ga_raw_recovery_representation_failures_consumed") != 1
+        or t0705_authorization.get("ga_trash_confirmation_failures_consumed") != 1
         or t0705_authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or t0705_authorization.get("ga_label_replay_repair_dispatches_consumed") != 1
         or t0705_authorization.get("ga_phase_diagnostic_dispatches_consumed") != 1
@@ -1805,20 +1881,21 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or t0705_authorization.get("ga_deterministic_clock_recovery_dispatch_limit") != 1
         or t0705_authorization.get("ga_security_clock_decoupling_recovery_dispatch_limit") != 1
         or t0705_authorization.get("ga_raw_canonical_git_blob_recovery_dispatch_limit") != 1
+        or t0705_authorization.get("ga_trash_confirmation_recovery_dispatch_limit") != 1
         or t0705_authorization.get("ga_first_import_diagnostic_rerun_limit") != 0
         or t0705_authorization.get("security_clock_mode") != "LIVE_UTC"
         or t0705_authorization.get("rehearsal_schedule_clock_mode")
         != "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
         or t0705_authorization.get("rehearsal_schedule_clock_fixture_utc") != "2026-07-26T19:00:00Z"
-        or t0705_authorization.get("known_data_effect_upper_bound_utc") != "2026-07-26T16:12:21Z"
+        or t0705_authorization.get("known_data_effect_upper_bound_utc") != "2026-07-26T17:20:17Z"
         or t0705_authorization.get("manual_environment_reviewers_required") is not False
         or t0705_authorization.get("fixed_calendar_wait_days") != 0
         or t0705_authorization.get("final_publication_authorized") is not False
-        or t0705_budget.get("controlled_main_deliveries_total_maximum") != 16
+        or t0705_budget.get("controlled_main_deliveries_total_maximum") != 17
         or t0705_budget.get("controlled_main_deliveries_remaining_maximum") != 2
         or t0705_budget.get("protected_environment_secret_names_maximum") != 8
-        or t0705_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 13
-        or t0705_budget.get("protected_ga_rehearsal_dispatches_consumed") != 12
+        or t0705_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 14
+        or t0705_budget.get("protected_ga_rehearsal_dispatches_consumed") != 13
         or t0705_budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") != 6
         or t0705_budget.get("protected_ga_candidate_preflight_dispatches_consumed") != 5
         or t0705_budget.get("protected_ga_authority_context_scope_failures_maximum") != 1
@@ -1829,6 +1906,8 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or t0705_budget.get("protected_ga_authentication_clock_coupling_failures_consumed") != 1
         or t0705_budget.get("protected_ga_raw_recovery_representation_failures_maximum") != 1
         or t0705_budget.get("protected_ga_raw_recovery_representation_failures_consumed") != 1
+        or t0705_budget.get("protected_ga_trash_confirmation_failures_maximum") != 1
+        or t0705_budget.get("protected_ga_trash_confirmation_failures_consumed") != 1
         or t0705_budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or t0705_budget.get("protected_ga_label_replay_repair_dispatches_consumed") != 1
         or t0705_budget.get("protected_ga_phase_diagnostic_dispatches_consumed") != 1
@@ -1845,6 +1924,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or t0705_budget.get("protected_ga_security_clock_decoupling_recovery_dispatches_maximum")
         != 1
         or t0705_budget.get("protected_ga_raw_canonical_git_blob_recovery_dispatches_maximum") != 1
+        or t0705_budget.get("protected_ga_trash_confirmation_recovery_dispatches_maximum") != 1
         or t0705_budget.get("protected_ga_rehearsal_reruns_maximum") != 0
         or t0705_budget.get("failed_head_reruns_maximum") != 0
         or t0705_budget.get("failed_head_redispatches_maximum") != 0
@@ -1858,6 +1938,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         != 1
         or t0705_budget.get("protected_ga_raw_canonical_git_blob_recovery_pipeline_runs_maximum")
         != 1
+        or t0705_budget.get("protected_ga_trash_confirmation_recovery_pipeline_runs_maximum") != 1
         or t0705_budget.get("platform_schedule_events_during_rehearsal_maximum") != 0
         or t0705_budget.get("gmail_exact_message_trash_mutations_maximum") != 1
         or t0705_budget.get("maximum_live_timeline_assets") != 1
@@ -1866,15 +1947,15 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ):
         raise ValueError("T0705 Run Contract is not the exact bounded candidate authority")
     return {
-        "schema_version": "moomooau.source-provenance.v33",
+        "schema_version": "moomooau.source-provenance.v34",
         "authorization": {
             "basis": AUTHORIZATION_BASIS,
             "authorized_on": "2026-07-26",
             "authorized_scope": AUTHORIZED_SCOPE,
         },
         "predecessor": {
-            "package_id": "MMAU-ARCHIVE-TP-2026-07-26-V1.0.32",
-            "version": "1.0.32",
+            "package_id": "MMAU-ARCHIVE-TP-2026-07-26-V1.0.33",
+            "version": "1.0.33",
             "manifest": PREDECESSOR_MANIFEST_PATH.as_posix(),
             "manifest_sha256": PREDECESSOR_MANIFEST_SHA256,
             "status": "IMMUTABLE_CONTROL_PREDECESSOR",
@@ -1912,11 +1993,11 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "package_id": PACKAGE_ID,
             "version": PACKAGE_VERSION,
             "manifest": MANIFEST_PATH.as_posix(),
-            "roadmap": "taskpack/ROADMAP.v1.0.33.md",
+            "roadmap": "taskpack/ROADMAP.v1.0.34.md",
             "status_authority": "machine/status/latest.json",
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
             "publication_status": (
-                "CONTROLLED_T0705_RAW_CANONICAL_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
+                "CONTROLLED_T0705_TRASH_CONFIRMATION_RECOVERY_CANDIDATE_NOT_FINAL"
             ),
         },
         "candidate_snapshot": CANDIDATE_SNAPSHOT,
@@ -1936,15 +2017,15 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_oracles_executed": 5,
             "protected_oracles_passed": 4,
             "protected_oracles_failed": 1,
-            "production_workflow_runs": 14,
+            "production_workflow_runs": 15,
             "protected_workflow_runs": (
-                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 15
+                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 16
             ),
             "remote_workflow_runs": (
-                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 17
+                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 18
             ),
             "controlled_main_deliveries": (
-                attempt_summary["controlled_main_deliveries"] + len(m3_attempts) + 17
+                attempt_summary["controlled_main_deliveries"] + len(m3_attempts) + 18
             ),
             "protected_beta_dispatches": attempt_summary["protected_beta_dispatches"],
             "context_rejected_dispatches": attempt_summary["context_rejected_dispatches"],
@@ -2142,9 +2223,15 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_ga_raw_recovery_attempt_ledger_schema_sha256": _sha256(
                 root / PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA_PATH
             ),
+            "protected_ga_trash_confirmation_attempt_ledger_sha256": _sha256(
+                root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_PATH
+            ),
+            "protected_ga_trash_confirmation_attempt_ledger_schema_sha256": _sha256(
+                root / PROTECTED_GA_TRASH_CONFIRMATION_ATTEMPT_LEDGER_SCHEMA_PATH
+            ),
             "protected_ga_environment_reused": "moomooau-beta",
             "protected_ga_secret_names_exact": 8,
-            "protected_ga_rehearsal_dispatches": 12,
+            "protected_ga_rehearsal_dispatches": 13,
             "protected_ga_rehearsal_reruns": 0,
             "protected_ga_candidate_preflight_dispatches": 5,
             "protected_ga_candidate_preflight_protected_environment_entries": 0,
@@ -2177,9 +2264,17 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_ga_raw_recovery_timeline_mutations": 0,
             "protected_ga_raw_recovery_checkpoint_mutations": 0,
             "protected_ga_raw_recovery_head_frozen": True,
+            "protected_ga_trash_confirmation_failures": 1,
+            "protected_ga_trash_confirmation_exact_root_cause_claimed": False,
+            "protected_ga_trash_confirmation_timeline_mutations": 0,
+            "protected_ga_trash_confirmation_checkpoint_mutations": 0,
+            "protected_ga_trash_confirmation_head_frozen": True,
+            "protected_ga_label_confirmation_fields": "id,labelIds",
+            "protected_ga_uncertain_trash_confirmation_reads_maximum": 1,
+            "protected_ga_trash_mutation_retries_maximum": 0,
             "protected_ga_pipeline_runs": 0,
-            "protected_ga_partial_pipeline_runs": 1,
-            "protected_ga_failed_attempts": 12,
+            "protected_ga_partial_pipeline_runs": 2,
+            "protected_ga_failed_attempts": 13,
             "protected_ga_metadata_quarantine_repair_dispatches_consumed": 1,
             "protected_ga_label_replay_repair_dispatches_consumed": 1,
             "protected_ga_phase_diagnostic_dispatches_consumed": 1,
@@ -2191,6 +2286,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_ga_deterministic_clock_recovery_dispatches_consumed": 1,
             "protected_ga_security_clock_decoupling_recovery_dispatches_consumed": 1,
             "protected_ga_raw_canonical_git_blob_recovery_dispatches_authorized": 1,
+            "protected_ga_trash_confirmation_recovery_dispatches_authorized": 1,
             "protected_ga_closed_phase_diagnostics": True,
             "protected_ga_closed_processed_plan_subphase_diagnostics": True,
             "protected_ga_closed_first_import_subphase_diagnostics": True,
@@ -2234,7 +2330,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_ga_security_clock_mode": "LIVE_UTC",
             "protected_ga_schedule_clock_mode": "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE",
             "protected_ga_schedule_clock_fixture_utc": "2026-07-26T19:00:00Z",
-            "protected_ga_known_data_effect_upper_bound_utc": "2026-07-26T16:12:21Z",
+            "protected_ga_known_data_effect_upper_bound_utc": "2026-07-26T17:20:17Z",
             "protected_ga_schedule_clock_reaches_security_credentials": False,
             "protected_ga_platform_schedule_events": 0,
             "protected_ga_target_time": "04:30",
@@ -2294,17 +2390,17 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     if not isinstance(semantic_delta, dict):
         semantic_delta = {}
     if (
-        provenance.get("schema_version") != "moomooau.source-provenance.v33"
+        provenance.get("schema_version") != "moomooau.source-provenance.v34"
         or authorization.get("basis") != AUTHORIZATION_BASIS
         or authorization.get("authorized_scope") != AUTHORIZED_SCOPE
         or effective.get("package_id") != PACKAGE_ID
         or effective.get("version") != PACKAGE_VERSION
         or effective.get("manifest") != MANIFEST_PATH.as_posix()
-        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.33.md"
+        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.34.md"
         or effective.get("status_authority") != "machine/status/latest.json"
         or effective.get("workflow_validator") != "machine/tools/validate_workflow_matrix.py"
         or effective.get("publication_status")
-        != "CONTROLLED_T0705_RAW_CANONICAL_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
+        != "CONTROLLED_T0705_TRASH_CONFIRMATION_RECOVERY_CANDIDATE_NOT_FINAL"
     ):
         failures.append(f"v{provenance_version} provenance identity or authorization mismatch")
     if (
@@ -2312,7 +2408,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         or predecessor.get("manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or predecessor.get("status") != "IMMUTABLE_CONTROL_PREDECESSOR"
     ):
-        failures.append("v1.0.32 predecessor provenance mismatch")
+        failures.append("v1.0.33 predecessor provenance mismatch")
     if (
         control_predecessor.get("manifest") != CONTROL_PREDECESSOR_MANIFEST_PATH.as_posix()
         or control_predecessor.get("manifest_sha256") != CONTROL_PREDECESSOR_MANIFEST_SHA256
@@ -2479,7 +2575,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         failures.append(f"canonical manifest selection failed: {type(exc).__name__}")
     else:
         if manifest != expected:
-            failures.append("manifest differs from the canonical v1.0.33 package selection")
+            failures.append("manifest differs from the canonical v1.0.34 package selection")
 
     _validate_provenance(root, failures)
     status_result = validate_delivery_status(root)

@@ -2,18 +2,18 @@
 
 Implementation target: `LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU`.
 
-当前控制包为 `1.0.33`。它直接继承不可变 v1.0.32，不改变 v1.0.1 冻结的产品目标、
+当前控制包为 `1.0.34`。它直接继承不可变 v1.0.33，不改变 v1.0.1 冻结的产品目标、
 34 条需求、34 个最终验收、58-task DAG、追踪矩阵、Kill Criteria 或十条不变量。
 
 唯一当前跨维度状态入口是 `machine/status/latest.json`，由
 `machine/tools/build_delivery_status.py` 确定性生成并只读校验。当前事实：
 
 - 58/58 task evidence 结构与绑定有效，58/58 本地或合成机制有证据；
-- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 14；
+- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 15；
 - protected Oracle 已执行 5/43：T0701–T0704 PASS，T0705 当前 FAILED；
-- T0705 十二次失败 run 分别绑定十二个不同 exact-main head，均为 attempt 1、rerun 0；
-- T0705/S7AC-005 尚未关闭；十二个 protected 失败 head 与两个独立 pre-Secret
-  失败 head 均已冻结；只授权一个 Raw canonical Git Blob successor；
+- T0705 十三次失败 run 分别绑定十三个不同 exact-main head，均为 attempt 1、rerun 0；
+- T0705/S7AC-005 尚未关闭；十三个 protected 失败 head 与两个独立 pre-Secret
+  失败 head 均已冻结；只授权一个 Trash-confirmation successor；
   Stage 7、生产健康与最终发布均未完成。
 
 T0704 首次 exact-main head 仍由不可变 failed-attempt ledger 固定为失败，未重跑。唯一新修复
@@ -56,27 +56,22 @@ v1.0.32 的 split-clock attempt 已通过 authority、candidate validation、liv
 checkpoint 均未提交。只读 A/B 证明 Contents raw-media 表示与 metadata size/canonical SHA
 不一致，而 metadata SHA 定址的 Git Blob 同时通过 response SHA、size、age 与 canonical SHA。
 
-v1.0.33 只把 Raw recovery 改为 Contents metadata 校验后读取精确 Git Blob bytes，并对 revision
-drift、编码、size、age envelope 与 canonical Git SHA 全部 fail closed；RunPlanner-only fixture
-移到 `2026-07-26T19:00:00Z`，晚于全部已知数据效果。当前 Run Contract 只处理 T0705：
-总 delivery 最多 16，十四次 launch 已消耗 14；总 protected rehearsal dispatch 最多 13，
-十二个失败 attempt 已消耗 12；candidate-preflight dispatch 最多 6，已消耗 5；只剩一个新
-exact-main Raw canonical Git Blob `SCHEDULE_REHEARSAL` 和后续 receipt/schedule closure delivery。
-运行时在 Gmail credential
-exchange 前生成只绑定唯一 Repository ID 的 Installation Token，
-并核验 installation repository 列表、目标仓 ID/private 属性和实时容量；任何 scope 漂移都失败
-关闭。current pointer 与 Raw recovery 只把 bounded Contents 响应用作 metadata，ciphertext
-必须从精确
-`GET /git/blobs/{metadata_sha}` 的 base64 body 取得，并逐项核对响应 SHA、声明/解码 size、age
-envelope 与 canonical Git blob SHA；不扩大权限或 mutation。
-metadata quarantine、Raw/Processed recovery、second verification、
-ACTIVE/SAFE_DEFERRED、exact-message Trash、单一 Timeline replacement 与 checkpoint-last
-行为不变。入口复用现有 `moomooau-beta` 八个精确
-Secret 名称，先用已安装且已链接私有数据仓的 GitHub App 核验精确 repository scope 并刷新实时
-容量，再允许 Gmail
-credential exchange。只有确定性验证来源可完整读取；Raw 与 Processed 远端恢复和二次验证后，
-精确 `messages.trash` budget 最多 1；唯一最新 Timeline 与 checkpoint-last 必须远端恢复。
-rehearsal 不声称平台 schedule event。
+v1.0.33 已把 Raw recovery 切换到 Contents metadata 定址的精确 Git Blob，并通过 authority、
+candidate validation、live-clock authentication、精确 App repository scope、Gmail OAuth 以及
+canonical Raw/Processed recovery；随后在 `TRASH_MUTATION` 阶段失败。远端只观察到加密
+Raw、Processed 与 current-pointer 写入，Timeline 与 checkpoint 均未提交。公开失败阶段、远端
+拓扑和有界只读 Gmail representation probe 不足以证明精确线上根因，因此保持 unclaimed；该
+第十三个 protected head 已冻结，禁止 rerun/redispatch。
+
+v1.0.34 只把 Gmail label confirmation 固定为 content-excluding
+`fields=id,labelIds`；若 exact-message Trash 返回异常或非 200，mutation retry 为 0，只允许一次
+只读 label 确认，只有明确包含 `TRASH` 才收敛为已 Trash，否则保持 UNKNOWN 并 fail closed。
+当前 Run Contract 只处理 T0705：总 delivery 最多 17，十五次 launch 已消耗 15；总 protected
+rehearsal dispatch 最多 14，十三个失败 attempt 已消耗 13；candidate-preflight dispatch 最多
+6，已消耗 5；只剩一个新 exact-main Trash-confirmation `SCHEDULE_REHEARSAL` 和后续
+receipt/schedule closure delivery。Raw/Processed Git Blob recovery、metadata quarantine、
+second verification、ACTIVE/SAFE_DEFERRED、exact-message Trash budget 1、单一 Timeline
+replacement 与 checkpoint-last 顺序不变。rehearsal 不声称平台 schedule event。
 
 Stage 7 不设置固定日历等待、Soak 或观察窗口。T0705 用 Fake Clock、历史回放、Fixture 与故障
 注入即时覆盖时间、认证时钟隔离和表示层分支，再用一次受保护 workflow_dispatch 验证与生产相同的
@@ -106,8 +101,9 @@ Authoritative artifacts:
 - `machine/stages/S7/reviews/t0705/schedule-planning-clock-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/authentication-clock-coupling-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/raw-recovery-representation-attempt-ledger.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.33.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.32.json`（不可变直接前序）
+- `machine/stages/S7/reviews/t0705/trash-confirmation-attempt-ledger.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.34.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.33.json`（不可变直接前序）
 - `taskpack/PACKAGE_MANIFEST.v1.0.1.json`（不可变历史基线）
 
 Codex 开发线程必须按既定顺序逐 run 推进，一次最多解决一个 stage。本轮只推进

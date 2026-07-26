@@ -5,13 +5,13 @@
 ## 当前目标与状态
 
 - 本轮只处理 Stage 7/T0705，必须停在 T0706 前。
-- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.33`。
-- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.32.json`，SHA-256
-  `f5d59a581c3845c4db122ec06bfbe8980d14e324e9a3f85f0676e34c8bfb7c28`。
+- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.34`。
+- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.33.json`，SHA-256
+  `dbe7e3867c92e5d960bfea2d7e2b9e9e43680751c16fbfb9324e0450a6b1a141`。
 - 唯一状态权威：`machine/status/latest.json` =
-  `PROTECTED_GA_TWELFTH_ATTEMPT_FAILED_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED`。
+  `PROTECTED_GA_THIRTEENTH_ATTEMPT_FAILED_TRASH_CONFIRMATION_RECOVERY_AUTHORIZED`。
 - Protected Oracles 5/43 executed、4 PASS、1 FAILED；final Acceptance 0/34；
-  T0705 production workflow 14，其中两次在 protected Environment 前结束；final publication 0。
+  T0705 production workflow 15，其中两次在 protected Environment 前结束；final publication 0。
 
 ## 已冻结前序
 
@@ -65,19 +65,23 @@
   只读 A/B 证明 Contents raw-media 表示与 metadata size/canonical SHA 不一致，而 metadata SHA
   定址的 Git Blob 通过 response SHA、size、age envelope 与 canonical SHA。该第十二个
   protected head 已冻结，永不得 rerun/redispatch。
+- v1.0.33 Raw canonical Git Blob successor 已通过 authority、candidate validation、live-clock
+  authentication、精确 App repository scope、Gmail OAuth 以及 canonical Raw/Processed
+  recovery，随后在 `TRASH_MUTATION` 阶段失败。Timeline 与 checkpoint 均未提交；有界只读
+  Gmail representation probe 证明 minimal 响应可以包含非空 snippet，但不足以证明精确线上
+  根因。该第十三个 protected head 已冻结，永不得 rerun/redispatch。
 
-## T0705 Raw canonical Git Blob recovery successor
+## T0705 Trash-confirmation recovery successor
 
-- `GitHubAppendOnlyCiphertextStore.fetch` 与 `GitHubProcessedCiphertextStore.fetch_current`
-  先读取 bounded Contents metadata，只把 `type/path/size/sha` 作为绑定；ciphertext 必须由精确
-  `GET /git/blobs/{metadata_sha}` 的 JSON base64 body 取得。
-- 在解密前核对 Git Blob 响应 SHA、声明/解码 size 与 age envelope，再按
-  `blob <size>\0<ciphertext>` 重算 canonical Git blob SHA；任何表示漂移、size mismatch 或
-  revision drift 均 fail closed。
+- Gmail label confirmation 固定请求 `fields=id,labelIds`，排除 snippet 和正文表示。
+- exact-message Trash 返回异常或非 200 时不重试 mutation，只允许一次只读 label 确认；只有明确
+  包含 `TRASH` 才收敛为已 Trash，否则保持 UNKNOWN 并 fail closed。
+- Raw 与 Processed 继续只通过 bounded Contents metadata 定址精确 Git Blob；解密前核对响应
+  SHA、声明/解码 size、age envelope 与 canonical Git blob SHA。
 - 不扩大 allowlist、端点、权限或 mutation；metadata quarantine、pending replay、远端恢复、
   二次验证、Trash、Timeline 与 checkpoint 顺序保持不变。
 - 入口继续绑定 owner、exact main、固定 workflow ref、attempt 1、one-shot exact-head
-  authority、T0702–T0704 receipts、十二份失败账本与当前 Run Contract。
+  authority、T0702–T0704 receipts、十三份失败账本与当前 Run Contract。
 - 复用现有 `moomooau-beta` 八个精确 Secret 名称；值不复制、不写盘、不公开。已安装 GitHub App
   在 Gmail exchange 前必须生成仅绑定唯一 Repository ID 的 token，核验 installation repository
   列表、目标仓 ID/private 属性，并刷新实时容量。
@@ -85,20 +89,21 @@
   exact-message Trash。Timeline snapshot、唯一 latest age Asset 与 checkpoint-last CAS 均须
   远端恢复。
 - `workflow_dispatch` 如实称为 `SCHEDULE_REHEARSAL`，rehearsal platform schedule event 为 0。
-- v1.0.33 只改变 Raw recovery 表示源；认证、GitHub App JWT、installation token、Gmail OAuth、
-  容量和证据时间全部使用 live UTC。只有 workflow_dispatch rehearsal 的
+- v1.0.34 只改变 label confirmation 与 uncertain outcome reconciliation；认证、GitHub App
+  JWT、installation token、Gmail OAuth、容量和证据时间全部使用 live UTC。只有
+  workflow_dispatch rehearsal 的
   `RunPlanner(SCHEDULE)` 接收 `2026-07-26T19:00:00Z` 历史 fixture；它晚于全部已知数据效果并
   位于 Sydney 当日 04:30 之后。live schedule 不注入 fixture。
 
 ## 当前安全边界与下一步
 
-- T0705 总 delivery 最多 16，十四个 launch 已消耗 14；只剩 Raw canonical Git Blob recovery
+- T0705 总 delivery 最多 17，十五个 launch 已消耗 15；只剩 Trash-confirmation recovery
   delivery 1 与 receipt/schedule closure delivery 1。
-- 总 rehearsal dispatch 最多 13，十二个失败 attempt 已消耗 12；只剩一个新 recovery dispatch，
+- 总 rehearsal dispatch 最多 14，十三个失败 attempt 已消耗 13；只剩一个新 recovery dispatch，
   必须为 attempt 1、rerun 0。
 - candidate-preflight dispatch 最多 6，已消耗 5；authority-scope、schedule-planning wall-clock、
-  authentication-clock-coupling 与 Raw-representation failure budget 各 1 且均已消耗；全部失败 head 禁止
-  rerun/redispatch。
+  authentication-clock-coupling、Raw-representation 与 Trash-confirmation failure budget 各 1
+  且均已消耗；全部失败 head 禁止 rerun/redispatch。
 - 不使用真实时间 Soak、观察期或全量测试作为前置；时间与历史分支由 Fake Clock、Fixture、历史
   回放和故障注入即时验证。
 - protected PASS receipt 绑定前，`MOOMOOAU_PRODUCTION_ENABLED` 不得为 true。

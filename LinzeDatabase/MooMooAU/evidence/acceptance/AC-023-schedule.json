@@ -64,15 +64,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0705.json",
-      "evidence_sha256": "5d5889e91a784e73ea3cdb4e2bcd914035b5d322ab0d6ad06009633e76afabdf",
+      "evidence_sha256": "adf0cd92d790b3cfe28c12fc27cbcd64f6cdf3fe67057a99face2695b8ead8fd",
       "final_claim_status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads, the wall-clock schedule-planning head, authentication-clock-coupling head and Raw-recovery representation head are frozen separately; one canonical Raw Git Blob successor may run once with live UTC security time and a deterministic RunPlanner fixture while every failed head remains non-rerunnable.",
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads, the wall-clock schedule-planning head, authentication-clock-coupling head, Raw-recovery representation head and Trash-mutation head are frozen separately; one Trash-confirmation successor may run once with live UTC security time and a deterministic RunPlanner fixture while every failed head remains non-rerunnable.",
       "source_record_status": "BLOCKED",
       "task_id": "T0705"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T16:22:15Z",
+  "observed_at_utc": "2026-07-26T17:34:39Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -99,7 +99,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "0d0b6afd6a0cde606230a3df7378bdd90586de5d",
+  "remediation_base_commit": "4b7442bb635ea1e7cf5a814c3c56047aa288d594",
   "requirement_id": "RQ-023",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

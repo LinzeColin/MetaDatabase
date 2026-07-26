@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linzecolin.example/schemas/moomooau/protected-ga-trash-confirmation-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA Trash confirmation attempt ledger v1",
+  "const": {
+    "schema_version": "moomooau.protected-ga-trash-confirmation-attempt-ledger.v1",
+    "observed_through_utc": "2026-07-26T17:34:39Z",
+    "task_id": "T0705",
+    "scope": "PROTECTED_ENVIRONMENT_VERIFIED_PIPELINE_TRASH_CONFIRMATION_ONLY",
+    "delivery": {
+      "pull_request_number": 135,
+      "pull_request_head_sha": "68c0d2470d8179e386146bb29f82fe6b4b5232e6",
+      "merge_commit_parent_sha": "0d0b6afd6a0cde606230a3df7378bdd90586de5d",
+      "merge_commit_sha": "4b7442bb635ea1e7cf5a814c3c56047aa288d594"
+    },
+    "workflow": {
+      "run_id": 30212089899,
+      "workflow_head_sha": "4b7442bb635ea1e7cf5a814c3c56047aa288d594",
+      "event": "workflow_dispatch",
+      "run_attempt": 1,
+      "reruns": 0,
+      "conclusion": "FAILURE_PROTECTED_TRASH_MUTATION"
+    },
+    "jobs": {
+      "authority_context": "PASS",
+      "candidate_validation": "PASS",
+      "protected_environment": "FAILED",
+      "live_schedule_hold": "SKIPPED",
+      "plaintext_cleanup": "PASS"
+    },
+    "failure": {
+      "phase": "TRASH_MUTATION",
+      "reason_code": "PROTECTED_GA_TRASH_MUTATION_FAILED",
+      "installation_token_failure_class": "UNCLASSIFIED",
+      "finding": "LIVE_MINIMAL_CONFIRMATION_REPRESENTATION_REQUIRES_EXACT_PARTIAL_RESPONSE",
+      "public_payload_exact_root_cause_claimed": false,
+      "ledger_exact_root_cause_claimed": false,
+      "root_cause_basis": "PUBLIC_FAILURE_PHASE_PLUS_REMOTE_COMMIT_TOPOLOGY_PLUS_READ_ONLY_GMAIL_LABEL_STATE_PLUS_LIVE_MINIMAL_REPRESENTATION_PROBE"
+    },
+    "effects": {
+      "protected_environment_entered": true,
+      "protected_secret_names_injected": 8,
+      "github_app_repository_scope": "PASS",
+      "gmail_oauth_exchange": "PASS",
+      "verified_candidate_reads": "MULTIPLE_WITHOUT_EXACT_PUBLIC_COUNT",
+      "raw_and_processed_remote_recovery_reached_before_failure": true,
+      "private_repository_commits": 33,
+      "raw_ciphertext_objects_created": 15,
+      "processed_ciphertext_objects_created": 18,
+      "timeline_mutations": 0,
+      "checkpoint_mutations": 0,
+      "gmail_exact_message_trash_api_calls_claimed": false,
+      "gmail_exact_message_trash_success_claimed": false,
+      "platform_schedule_events": 0,
+      "tmpfs_plaintext_cleanup": "PASS",
+      "repository_scoped_one_shot_authority_after_cleanup": "ABSENT",
+      "production_enablement_variable_after_failure": "ABSENT"
+    },
+    "remote_commit_topology": {
+      "private_repository_locator_disclosed": false,
+      "private_object_paths_disclosed": false,
+      "raw_objects": 10,
+      "raw_manifests": 5,
+      "processed_objects": 6,
+      "processed_manifests": 6,
+      "processed_current_pointers": 6,
+      "timeline_snapshots": 0,
+      "timeline_manifests": 0,
+      "timeline_state_writes": 0,
+      "checkpoint_writes": 0,
+      "other_writes": 0,
+      "timeline_or_checkpoint_commit_present": false
+    },
+    "read_only_gmail_representation_probe": {
+      "query_scope": "BOUNDED_MOOMOO_RELATED_SEARCH_NOT_A_VERIFICATION_REGISTRY",
+      "message_bodies_read": false,
+      "message_mutations": 0,
+      "failed_message_identity_bound": false,
+      "exact_mailbox_counts_disclosed": false,
+      "minimal_response_contains_snippet_key": true,
+      "minimal_response_contains_nonempty_snippet": true,
+      "minimal_response_contains_label_ids": true,
+      "current_confirmation_client_rejects_any_snippet_key": true,
+      "exact_partial_response_required": "id,labelIds"
+    },
+    "remediation_contract": {
+      "minimal_confirmation_fields": "id,labelIds",
+      "snippet_trust_allowed": false,
+      "uncertain_trash_response_label_reads_maximum": 1,
+      "trash_mutation_retries_inside_attempt_maximum": 0,
+      "same_head_rerun_allowed": false,
+      "failed_head_redispatch_allowed": false,
+      "frozen_trash_confirmation_head_shas": [
+        "4b7442bb635ea1e7cf5a814c3c56047aa288d594"
+      ],
+      "next_candidate_scope": "EXACT_MINIMAL_LABEL_PARTIAL_RESPONSE_PLUS_ONE_READ_ONLY_UNCERTAIN_OUTCOME_RECONCILIATION_AND_DERIVED_BINDINGS",
+      "next_candidate_dispatch_limit": 1,
+      "controlled_main_deliveries_consumed": 15,
+      "controlled_main_deliveries_remaining": 2,
+      "protected_ga_rehearsal_dispatches_consumed": 13,
+      "protected_ga_candidate_preflight_dispatches_consumed": 5,
+      "protected_ga_rehearsal_reruns": 0,
+      "rehearsal_schedule_clock_fixture_utc": "2026-07-26T19:00:00Z",
+      "known_data_effect_upper_bound_utc": "2026-07-26T17:20:17Z",
+      "real_time_wait_allowed": false,
+      "t0705_complete": false,
+      "t0706_authorized": false,
+      "final_publication_authorized": false
+    },
+    "claims": {
+      "candidate_validation_executed": true,
+      "protected_ga_data_plane_executed": true,
+      "exact_protected_failure_root_cause_claimed": false,
+      "exact_gmail_mutation_call_count_claimed": false,
+      "production_health_claimed": false,
+      "t0705_pass_claimed": false,
+      "stage7_complete_claimed": false,
+      "final_acceptance_claimed": false,
+      "final_publication_claimed": false
+    }
+  }
+}

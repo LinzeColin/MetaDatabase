@@ -9,7 +9,11 @@ from enum import StrEnum
 from typing import Protocol, cast
 
 from .gmail_discovery import MinimalMessage
-from .gmail_guard import GmailEndpointGuard, get_message_request, trash_message_request
+from .gmail_guard import (
+    GmailEndpointGuard,
+    get_message_label_confirmation_request,
+    trash_message_request,
+)
 from .remote_recovery_gate import MessageRecoveryProof, RecoveryScope
 from .sender_registry import MessageVerification, double_verification_matches
 
@@ -106,7 +110,7 @@ class GmailLabelConfirmationClient:
         self._guard = guard
 
     def confirm(self, message_id: str) -> LabelConfirmation:
-        response = self._guard.send(get_message_request(message_id, message_format="minimal"))
+        response = self._guard.send(get_message_label_confirmation_request(message_id))
         if response.status != 200 or len(response.body) > 1024 * 1024:
             raise M3Error("messages.get minimal confirmation failed")
         try:
@@ -179,9 +183,9 @@ class ExactMessageTrashExecutor:
         try:
             response = self._guard.send(trash_message_request(message.ref.message_id))
         except Exception:
-            return M3Result(M3State.UNKNOWN, 1, False, "TRASH_CALL_OUTCOME_UNKNOWN")
+            return self._reconcile_uncertain_call(message.ref.message_id)
         if response.status != 200:
-            return M3Result(M3State.UNKNOWN, 1, False, "TRASH_RESPONSE_NOT_SUCCESS")
+            return self._reconcile_uncertain_call(message.ref.message_id)
         try:
             confirmation = self._confirmation_reader.confirm(message.ref.message_id)
         except Exception:
@@ -189,6 +193,22 @@ class ExactMessageTrashExecutor:
         if "TRASH" not in confirmation.label_ids:
             return M3Result(M3State.FAILED, 1, False, "TRASH_LABEL_NOT_CONFIRMED")
         return M3Result(M3State.TRASHED, 1, True, "EXACT_MESSAGE_TRASH_CONFIRMED")
+
+    def _reconcile_uncertain_call(self, message_id: str) -> M3Result:
+        """Read once after an uncertain response; never retry the mutation."""
+
+        try:
+            confirmation = self._confirmation_reader.confirm(message_id)
+        except Exception:
+            return M3Result(M3State.UNKNOWN, 1, False, "TRASH_CALL_OUTCOME_UNKNOWN")
+        if "TRASH" in confirmation.label_ids:
+            return M3Result(
+                M3State.TRASHED,
+                1,
+                True,
+                "EXACT_MESSAGE_TRASH_RECONCILED_AFTER_UNCERTAIN_RESPONSE",
+            )
+        return M3Result(M3State.UNKNOWN, 1, False, "TRASH_RESPONSE_NOT_SUCCESS")
 
     def reconcile_already_trashed(
         self,

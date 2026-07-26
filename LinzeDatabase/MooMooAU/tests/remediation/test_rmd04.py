@@ -691,7 +691,7 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.33":
+    if status["package_version"] == "1.0.34":
         assert status["dimensions"]["protected_oracles"] == {
             "status": "FAILED",
             "declared": 43,
@@ -701,8 +701,8 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
             "not_run": 38,
         }
         assert status["dimensions"]["publication"] == {
-            "status": "CONTROLLED_T0705_RAW_CANONICAL_BLOB_RECOVERY_CANDIDATE_NOT_FINAL",
-            "controlled_main_deliveries": 31,
+            "status": "CONTROLLED_T0705_TRASH_CONFIRMATION_RECOVERY_CANDIDATE_NOT_FINAL",
+            "controlled_main_deliveries": 32,
             "remote_publications": 0,
         }
     elif status["package_version"] == "1.0.32":
