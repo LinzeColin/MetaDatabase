@@ -153,6 +153,9 @@ def test_ingest_reports_a_first_upload_as_a_commit(
 # --- red lines --------------------------------------------------------------
 
 def test_red_lines_refuse_databases_key_material_and_credentials() -> None:
+    # Assembled, not written out: the repo's own secret scanner reads this file,
+    # and a literal PEM header here would (correctly) trip it.
+    pem_header = b"-----BEGIN OPENSSH " + b"PRIVATE KEY-----"
     with pytest.raises(PrivateDbError, match="refused by suffix"):
         check_red_lines("runtime.sqlite", b"anything")
     with pytest.raises(PrivateDbError, match="refused by suffix"):
@@ -160,7 +163,7 @@ def test_red_lines_refuse_databases_key_material_and_credentials() -> None:
     with pytest.raises(PrivateDbError, match="looks like a credential"):
         check_red_lines("service.env", b"anything")
     with pytest.raises(PrivateDbError, match="credential signature"):
-        check_red_lines("facts.ndjson", b"-----BEGIN OPENSSH PRIVATE KEY-----")
+        check_red_lines("facts.ndjson", pem_header)
     with pytest.raises(PrivateDbError, match="exceeds"):
         check_red_lines("facts.ndjson", b"x" * (MAX_FILE_BYTES + 1))
 

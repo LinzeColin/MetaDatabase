@@ -1355,7 +1355,7 @@ dd {
   gap: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  background: color-mix(in srgb, var(--panel) 97%, transparent);
   backdrop-filter: blur(6px);
   padding: 8px 12px;
   font-size: 12px;
@@ -1381,7 +1381,7 @@ dd {
   min-width: 148px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  background: color-mix(in srgb, var(--panel) 97%, transparent);
   backdrop-filter: blur(6px);
   padding: 10px 12px;
   font-size: 12px;
@@ -3324,7 +3324,7 @@ dd {
   border: 1px solid var(--line);
   border-radius: 14px;
   /* 不用 backdrop-filter：模糊背板是独立合成层，伤首屏 P75。 */
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  background: color-mix(in srgb, var(--panel) 97%, transparent);
   touch-action: none;
   user-select: none;
 }
@@ -3736,7 +3736,10 @@ dd {
 
 .empireLegend {
   left: calc(var(--map-inset-left) + 14px);
-  bottom: 18px;
+  /* 下方两层都占着位：KPI 条锚 bottom:16px 高 36px，缩略定位图占 bottom
+     66px 起的 96px。图例压在它们上面时「本图 6 实体」会和「供应链覆盖
+     2/16 环节」叠字。让到缩略图之上。 */
+  bottom: 172px;
 }
 
 .canvasOverlay {
@@ -3785,7 +3788,10 @@ dd {
 .canvas > .crossIndustryReroot {
   border: 1px solid rgba(94, 116, 168, 0.28);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  /* 图谱是全屏背板，控件浮在它上面。半透明底会让图上的节点名/关系名
+     直接从控件文字下透出来，读起来是两层字叠在一起——不是「层次」，
+     是坏掉。控件一律不透明，图被挡住是正常的遮挡关系。 */
+  background: color-mix(in srgb, var(--panel) 97%, transparent);
   padding: 8px 10px;
 }
 
@@ -3794,10 +3800,25 @@ dd {
   justify-content: start;
 }
 
+/* 单行横滚：允许换行时 8 个环节会撑成两行，第二行一路顶到右侧时间轴，
+   把年份压掉，同时多盖住 30px 图谱。宁可横向滚动，不吃图的纵深。 */
 .canvas > .stageRail {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.canvas > .stageRail .stagePill {
+  flex: 0 0 auto;
+}
+
+/* 右侧时间轴柱宽 98px + 14px 边距，环节条必须在它之前收住，
+   否则 SC-08 会压在年份上。 */
+.canvas > .stageRail {
+  margin-inline-end: 140px;
 }
 
 .canvas > .stageRail .stagePill {
@@ -3824,7 +3845,7 @@ dd {
 :root[data-theme="deep-space"] .canvas > .breadcrumb,
 :root[data-theme="deep-space"] .canvas > .crossIndustryReroot {
   border-color: #23345a;
-  background: rgba(13, 19, 34, 0.72);
+  background: rgba(10, 15, 28, 0.97);
 }
 
 /* 云模式画布状态卡（载入/错误/空态）：居中于走廊。 */
@@ -5078,7 +5099,16 @@ dd {
 .engineeringDock > summary::before { content: "▸ "; }
 .engineeringDock[open] > summary::before { content: "▾ "; }
 .engineeringDock > summary small { font-size: 11px; opacity: 0.75; }
-.engineeringDockBody { display: flex; flex-direction: column; gap: 12px; padding: 0 10px 12px; }
+/* 折叠态必须真的折叠：UA 的 `details:not([open]) > *:not(summary)` 隐藏规则
+   会被作者写的 display 覆盖，结果是「点了收起、内容照旧铺 754px 压住下文」。
+   所以 display 只在 [open] 下给，收起态显式 none。 */
+.engineeringDock:not([open]) > .engineeringDockBody { display: none; }
+.engineeringDock[open] > .engineeringDockBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 10px 12px;
+}
 
 @media (max-width: 1100px) {
   .pulseTotals, .pulseWindows, .pulseSplit { grid-template-columns: minmax(0, 1fr); }
