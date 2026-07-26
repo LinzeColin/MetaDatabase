@@ -5155,10 +5155,20 @@ export default function Home() {
               <dt>角色</dt>
               <dd>{selectedGraphNode.role}</dd>
             </div>
-            <div>
-              <dt>当前主体</dt>
-              <dd>{CLOUD_MODE ? serverFocusLabel : scenario.heading}</dd>
-            </div>
+            {/* UIUX 重做：选中的就是当前主体时（默认状态就是这样），这一行
+                只是把同一个公司名在同一张窄卡里再印一遍——实测右栏「NVIDIA
+                Corporation」出现三次。同一时说清关系，不同才报出主体名。 */}
+            {(CLOUD_MODE ? serverFocusLabel : scenario.heading) === selectedGraphNode.label ? (
+              <div>
+                <dt>主体关系</dt>
+                <dd>本身即当前主体</dd>
+              </div>
+            ) : (
+              <div>
+                <dt>当前主体</dt>
+                <dd>{CLOUD_MODE ? serverFocusLabel : scenario.heading}</dd>
+              </div>
+            )}
           </dl>
         </section>
 

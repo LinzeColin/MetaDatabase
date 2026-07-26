@@ -46,6 +46,7 @@ US_Corporate_Power_Map_System_Model_Parameter_Architecture_v4.2.md
 US_Corporate_Power_Map_UIUX_Redesign_v4.2.md
 VALIDATION_REPORT.md
 VERSION
+WHERE_IS_THE_DATA.md
 apps/__init__.py
 apps/api/__init__.py
 apps/api/app/__init__.py
@@ -505,6 +506,7 @@ scripts/migrate.py
 scripts/monitor_operator_soak.py
 scripts/monitor_release_continuity.py
 scripts/preflight.sh
+scripts/private_db_client.py
 scripts/publish_reviewed_relationship_facts.py
 scripts/publish_to_cloud_channel.py
 scripts/record_operator_soak_heartbeat.py
@@ -523,6 +525,7 @@ scripts/sec_incremental_sync.py
 scripts/secret_scan.py
 scripts/smoke_test_prototype.py
 scripts/supervise_operator_soak.py
+scripts/sync_facts_to_private_db.py
 scripts/validate_a202_operator_review_packet.py
 scripts/validate_a202_signed_intake_preflight.py
 scripts/validate_brand_clearance.py

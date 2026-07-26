@@ -587,6 +587,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── monitor_operator_soak.py
 │   ├── monitor_release_continuity.py
 │   ├── preflight.sh
+│   ├── private_db_client.py
 │   ├── publish_reviewed_relationship_facts.py
 │   ├── publish_to_cloud_channel.py
 │   ├── record_operator_soak_heartbeat.py
@@ -605,6 +606,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── secret_scan.py
 │   ├── smoke_test_prototype.py
 │   ├── supervise_operator_soak.py
+│   ├── sync_facts_to_private_db.py
 │   ├── validate_a202_operator_review_packet.py
 │   ├── validate_a202_signed_intake_preflight.py
 │   ├── validate_brand_clearance.py
@@ -781,6 +783,7 @@ Enterprise_Ecosystem_Intelligence_release
 ├── US_Corporate_Power_Map_UIUX_Redesign_v4.2.md
 ├── VALIDATION_REPORT.md
 ├── VERSION
+├── WHERE_IS_THE_DATA.md
 ├── docker-compose.ovh.yml
 ├── docker-compose.yml
 ├── manifest.txt

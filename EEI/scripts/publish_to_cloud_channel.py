@@ -746,24 +746,6 @@ INCR_RELATIONSHIP_EVIDENCE_SQL = """
     JOIN source_documents sd ON sd.id = re.source_document_id
     WHERE re.relationship_id = ANY(%s::uuid[])
 """
-# Entities whose published surface changed since a timestamp. Used by the
-# hourly refresh cycle so GLEIF ownership edges and freshly deepened filing
-# history reach the live surface within the hour instead of waiting for the
-# next full republish.
-RECENT_ENTITY_IDS_SQL = """
-    SELECT DISTINCT id::text FROM (
-        SELECT ep.entity_id AS id
-        FROM event_participants ep JOIN events ev ON ev.id = ep.event_id
-        WHERE ev.observed_at >= %(since)s AND ev.derivation_rule = ANY(%(rules)s)
-        UNION
-        SELECT r.subject_entity_id FROM relationships r
-        WHERE r.created_at >= %(since)s AND r.derivation_rule = ANY(%(rules)s)
-        UNION
-        SELECT r.object_entity_id FROM relationships r
-        WHERE r.created_at >= %(since)s AND r.derivation_rule = ANY(%(rules)s)
-    ) s
-    LIMIT %(cap)s
-"""
 
 
 def push_incremental(
@@ -857,29 +839,129 @@ def push_incremental(
     }
 
 
+# Rows that actually arrived since a timestamp — NOT "every row belonging to an
+# entity that gained a row". The difference matters once the deep-history sweep
+# runs: a company whose archive was just walked back to 1994 holds hundreds of
+# events, and re-pushing all of them every cycle would cost hundreds of writes
+# per company per hour for no new information.
+DELTA_EVENTS_SQL = """
+    SELECT ev.id, ev.event_type, ev.title, ev.status::text,
+           ev.announced_at, ev.effective_at, ev.period_start,
+           ev.period_end, ev.observed_at, ev.amount, ev.currency,
+           ev.amount_kind, ev.description, ev.qualifiers
+    FROM events ev
+    WHERE ev.observed_at >= %s AND ev.derivation_rule = ANY(%s)
+      AND ev.status NOT IN ('superseded', 'revoked')
+    LIMIT %s
+"""
+DELTA_RELATIONSHIPS_SQL = """
+    SELECT r.id, r.subject_entity_id, r.object_entity_id, r.relationship_type::text,
+           r.relationship_family::text, r.status::text, r.confidence,
+           r.effective_from, r.effective_to, r.observed_at, r.qualifiers,
+           subject.canonical_name, object.canonical_name
+    FROM relationships r
+    JOIN entities subject ON subject.id = r.subject_entity_id
+    JOIN entities object ON object.id = r.object_entity_id
+    WHERE r.created_at >= %s AND r.derivation_rule = ANY(%s)
+    LIMIT %s
+"""
+
+
 def push_recent(
-    since: str, *, publish_url: str, publish_token: str, cap: int = 4000
+    since: str, *, publish_url: str, publish_token: str, cap: int = 20000
 ) -> dict[str, Any]:
-    """Upsert everything whose published surface changed since `since` (ISO).
+    """Upsert exactly the rows that arrived since `since` (ISO).
 
     This is what makes an hourly collector visible hourly: without it, new
     ownership edges and newly deepened filing history sit in the local
-    system-of-record until the next full republish.
+    system-of-record until the next full republish. Scoped to the delta, so the
+    write cost tracks what actually arrived rather than the size of the
+    entities it arrived for.
     """
+    rules = list(PUBLISHED_RULES)
     with connect_database() as conn:
-        rows = conn.execute(
-            RECENT_ENTITY_IDS_SQL,
-            {"since": since, "rules": list(PUBLISHED_RULES), "cap": cap},
-        ).fetchall()
-    entity_ids = [r[0] for r in rows]
-    if not entity_ids:
-        return {"upserted": {}, "requests": 0, "bytes_sent": 0, "entities_scanned": 0}
-    result = push_incremental(
-        entity_ids, publish_url=publish_url, publish_token=publish_token
+        events = [
+            map_event(r)
+            for r in conn.execute(DELTA_EVENTS_SQL, (since, rules, cap)).fetchall()
+        ]
+        event_ids = [e["id"] for e in events]
+        participants = (
+            [map_event_participant(r)
+             for r in conn.execute(INCR_EVENT_PARTICIPANTS_SQL, (event_ids,)).fetchall()]
+            if event_ids else []
+        )
+        evidence = (
+            [map_event_evidence(r)
+             for r in conn.execute(INCR_EVENT_EVIDENCE_SQL, (event_ids,)).fetchall()]
+            if event_ids else []
+        )
+        relationships = [
+            map_relationship(r)
+            for r in conn.execute(DELTA_RELATIONSHIPS_SQL, (since, rules, cap)).fetchall()
+        ]
+        rel_ids = [r["id"] for r in relationships]
+        relationship_evidence = (
+            [map_relationship_evidence(r)
+             for r in conn.execute(INCR_RELATIONSHIP_EVIDENCE_SQL, (rel_ids,)).fetchall()]
+            if rel_ids else []
+        )
+        # Endpoint entities for whatever we are about to push, so a brand-new
+        # company never lands as an event with a dangling participant. One row
+        # each, and INSERT OR REPLACE keeps it idempotent.
+        entity_ids = sorted(
+            {p["entity_id"] for p in participants}
+            | {r["subject_entity_id"] for r in relationships}
+            | {r["object_entity_id"] for r in relationships}
+        )
+        entities = (
+            [map_entity(r)
+             for r in conn.execute(INCR_ENTITIES_SQL, (entity_ids,)).fetchall()]
+            if entity_ids else []
+        )
+
+    if not (events or relationships):
+        return {"upserted": {}, "requests": 0, "bytes_sent": 0, "delta_rows": 0}
+
+    statements: list[str] = []
+    for table, columns, rows, chunk in (
+        ("entities", ENTITY_COLUMNS, entities, 200),
+        ("events", EVENT_COLUMNS, events, 100),
+        ("event_participants", EVENT_PARTICIPANT_COLUMNS, participants, 200),
+        ("event_evidence", EVENT_EVIDENCE_COLUMNS, evidence, 100),
+        ("relationships", RELATIONSHIP_COLUMNS, relationships, 200),
+        ("relationship_evidence", RELATIONSHIP_EVIDENCE_COLUMNS,
+         relationship_evidence, 200),
+    ):
+        for start in range(0, len(rows), chunk):
+            statements.append(
+                insert_statement(table, columns, rows[start:start + chunk],
+                                 verb="INSERT OR REPLACE")
+            )
+    statements.append(
+        "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+        f" ('published_at', {sql_quote(utc_now_iso())});"
     )
-    result["entities_scanned"] = len(entity_ids)
-    result["capped"] = len(entity_ids) >= cap
-    return result
+
+    channel = WorkerApiTransport(publish_url, publish_token)
+    try:
+        channel.apply_statements(statements)
+    finally:
+        channel.close()
+    upserted = {
+        "entities": len(entities),
+        "events": len(events),
+        "event_participants": len(participants),
+        "event_evidence": len(evidence),
+        "relationships": len(relationships),
+        "relationship_evidence": len(relationship_evidence),
+    }
+    return {
+        "upserted": upserted,
+        "delta_rows": sum(upserted.values()),
+        "capped": len(events) >= cap or len(relationships) >= cap,
+        "requests": channel.requests,
+        "bytes_sent": channel.bytes_sent,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1016,7 +1098,19 @@ def push_pulse(*, publish_url: str, publish_token: str) -> dict[str, Any]:
     """Recompute and upsert the pulse tables only (cheap: ~1 request)."""
     with connect_database() as conn:
         payload = pulse_rows(conn)
-    statements = ["DELETE FROM pulse_composition;", *pulse_statements(payload)]
+    data_as_of = payload.get("data_as_of") or utc_now_iso()
+    statements = [
+        "DELETE FROM pulse_composition;",
+        *pulse_statements(payload),
+        # The header's "数据版本" reads snapshot_meta.as_of. Only the full
+        # republish rewrites that table, so between republishes the site showed
+        # a date up to a day stale — and before this whole change, ten days
+        # stale. Refresh it on every pulse beat instead, so the date on screen
+        # is never more than one cycle behind the newest fact we hold.
+        "UPDATE snapshot_meta SET as_of = "
+        f"{sql_quote(data_as_of)}, activated_at = {sql_quote(utc_now_iso())}"
+        " WHERE status = 'active';",
+    ]
     channel = WorkerApiTransport(publish_url, publish_token)
     try:
         channel.apply_statements(statements)
