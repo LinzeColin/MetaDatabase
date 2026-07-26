@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-26T12:21:11Z",
+  "observed_at_utc": "2026-07-26T13:04:45Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
     "path": ".github/workflows/moomooau-production.yml",
-    "sha256": "d9707aebd4a8a0b8477ef3af7d288ca4cd3de84d59c1f553c2660ddcee1c1776",
+    "sha256": "a3ccbb757957e0c89753e97bdd2e86eef6515cb1ba89d4f0bd7eb1572bfd5d42",
     "cron": "30 4 * * *",
     "timezone": "Australia/Sydney",
     "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
@@ -23,7 +23,7 @@
     "MOOMOOAU_GMAIL_OAUTH"
   ],
   "component_bindings": [
-    "ProtectedGAEntrypoint <- exact-main owner canonical Git Blob recovery dispatch, T0702-T0704 receipts, nine frozen T0705 failure ledgers and one-task authority; exact installation repository scope is verified before Gmail credential exchange",
+    "ProtectedGAEntrypoint <- exact-main owner canonical Git Blob recovery dispatch, T0702-T0704 receipts, nine frozen protected T0705 failure ledgers, one frozen pre-Secret candidate-preflight ledger and one-task format-only successor authority; exact installation repository scope is verified before Gmail credential exchange",
     "ProtectedGADiagnostics <- closed last-entered operation phase/subphase only, never exception text or protected values",
     "DerivedGASecretSource <- existing moomooau-beta inputs plus in-memory GA policy only",
     "LiveRepositoryCapacityProbe <- current private repository tree and single live Release Asset",
@@ -55,7 +55,7 @@
       "sha256": "d21a1cf7de18877c124277d7c7d3a95fc5ceab71c3cf51a1c4ae8f2116e60d36"
     },
     "src/moomooau_archive/processed_commit.py": {
-      "sha256": "b7d9dff8412ea5d39dc2045f6453eadb8617681532201728befe05e0702ca640"
+      "sha256": "bc5ca73be4fa5ff8303763081a295adb4627130439380009722f1419e1018488"
     },
     "src/moomooau_archive/production.py": {
       "sha256": "7f7eb850f66c6f078866d22211af95beb9d9dba2052ed18d647725b4ef8b5dee"
@@ -76,13 +76,13 @@
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "3abfa8ea6a0d8989f50f9ebbfe7a49c241758479bc67e5724433caf3ff1ba0d3"
+      "sha256": "463cf808d4264ebbf016860b821bfe544e4ea8a15dfa896d81af8624cc7cbda4"
     },
     "src/moomooau_archive/protected_ga_diagnostics.py": {
       "sha256": "8ce12e5de0dbdcebe0bc951939a6760d03d457c469abd676263ea1c96eac0221"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "c1ce7501d17dfa0f460cad981f6f2a3560f95fe5f425a9aeb5249cfeb2ff5322"
+      "sha256": "d950b7bca98ba3f5acbc2122e06278fa92f484f5d003d2de833970a65c5a1971"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
@@ -91,10 +91,10 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "2b08a63e334f5b9ac1b49b548bc2cd5d51cfba6ce62fb505d39614e868590f1b"
+      "sha256": "ace4d5edf5d7531ff117f45776f16fcffc5f288dd03a5a2274987b6a7b41a3c6"
     },
     "tests/tasks/test_t0705.py": {
-      "sha256": "cd92fa9bdf37eb950801ffff592e76823ab3f4133ea9580994854b4a80d00f87"
+      "sha256": "ac47ec07ee9c3415e73f9ac0348270c12583d53770f5b164303705eed6aa8a7b"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

@@ -36,43 +36,43 @@
   "invariants": [
     {
       "rule": "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     },
     {
       "rule": "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。",
-      "note": "v1.0.1 产品契约，由 v1.0.28 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.29 原样继承"
     }
   ],
   "terms": [
@@ -365,6 +365,61 @@
       "en": "patched",
       "zh": "已修复",
       "note": "只表示当前候选已应用有界修复"
+    },
+    {
+      "en": "Ruff",
+      "zh": "Python 静态检查与格式工具",
+      "note": "候选在进入受保护环境前执行的确定性工具"
+    },
+    {
+      "en": "format",
+      "zh": "代码格式",
+      "note": "不改变运行语义的规范化代码布局"
+    },
+    {
+      "en": "formatter",
+      "zh": "代码格式化器",
+      "note": "生成确定性规范代码布局的工具"
+    },
+    {
+      "en": "gate",
+      "zh": "确定性校验门",
+      "note": "条件不满足时在远端权限或数据面调用前停止"
+    },
+    {
+      "en": "pre-Secret",
+      "zh": "受保护机密注入前",
+      "note": "尚未进入受保护环境、读取机密或访问数据面"
+    },
+    {
+      "en": "rejected",
+      "zh": "已拒绝",
+      "note": "确定性校验未通过且后续执行未发生"
+    },
+    {
+      "en": "successor",
+      "zh": "后继候选",
+      "note": "冻结失败执行头后形成的新精确主分支候选"
+    },
+    {
+      "en": "format-only",
+      "zh": "仅格式修复",
+      "note": "运行时代码差异仅为格式化器输出"
+    },
+    {
+      "en": "counts",
+      "zh": "计数集合",
+      "note": "独立聚合核验中的有界对象数量统计"
+    },
+    {
+      "en": "path",
+      "zh": "路径",
+      "note": "代码或远端加密对象的受约束位置"
+    },
+    {
+      "en": "reconciliation",
+      "zh": "对账核验",
+      "note": "用独立前后证据验证精确运行效果"
     },
     {
       "en": "closed-enum",
@@ -709,7 +764,7 @@
     {
       "en": "T0703_REPAIR_CANDIDATE_PENDING",
       "zh": "T0703 修复候选待执行",
-      "note": "四次 M3 均零观察副作用失败；第四次只公开 AGGREGATE_GATE；任何失败头不可 rerun/redispatch，仅允许一个 SAFE_DEFERRED 聚合恢复候选 attempt 1"
+      "note": "三次 M3 均零观察副作用失败；任何失败头不可 rerun/redispatch，仅允许一个可选 token 回显恢复候选 attempt 1"
     },
     {
       "en": "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN",

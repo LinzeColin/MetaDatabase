@@ -1,5 +1,18 @@
 # Taskpack Changelog
 
+## 1.0.29 — 2026-07-26
+
+固化 v1.0.28 exact-main recovery 候选的 pre-Secret 确定性预检失败：authority context PASS，
+但 Ruff format check 在进入 protected Environment 前拒绝 `processed_commit.py`。运行没有注入
+protected Secret，没有访问 Gmail 或私有数据仓，所有 mutation 为 0；失败 head 永久禁止
+rerun/redispatch。
+
+v1.0.29 的唯一运行时代码差异是 Ruff formatter 输出，不改变 canonical Git Blob recovery 的
+端点、权限、预算与顺序；其余变化只更新 evidence、status、schema、hash、composition 和 package
+binding。workflow 同构的格式检查、strict mypy、Fixture、历史回放和 revision-drift 故障注入
+即时验证该 successor，不设置 Soak、观察期、真实时间等待、人工审批或全量测试前置。只授权一个
+新 exact-main attempt 1；T0706 与最终发布仍禁止。
+
 ## 1.0.28 — 2026-07-26
 
 固化 T0705 第九次 protected GA 在 `FIRST_IMPORT_POINTER_FETCH` 的零新增副作用失败。精确 App

@@ -8,7 +8,7 @@
     {"id": "T0702", "status": "protected_beta_passed_formal_completion_withheld"},
     {"id": "T0703", "status": "protected_m3_passed_formal_completion_withheld_scope_stop"},
     {"id": "T0704", "status": "protected_blue_green_passed_formal_completion_withheld_scope_stop"},
-    {"id": "T0705", "status": "nine_protected_attempts_failed_heads_frozen_canonical_git_blob_recovery_authorized_pending"},
+    {"id": "T0705", "status": "nine_protected_attempts_and_one_pre_secret_preflight_failed_heads_frozen_format_only_canonical_git_blob_recovery_authorized_pending"},
     {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
     {"id": "T0707", "status": "local_mechanism_ready_blocked_predecessor_owner_key_adapters_and_protected_drill"},
     {"id": "T0708", "status": "local_policy_ready_blocked_recovery_predecessor_candidate_canary_and_protected_operations"}
@@ -20,10 +20,10 @@
   "protected_oracles_passed": 4,
   "protected_oracles_failed": 1,
   "protected_workflow_runs": 29,
-  "production_workflow_runs": 9,
+  "production_workflow_runs": 10,
   "final_acceptances_passed": 0,
   "delivery_status": "CONTROLLED_T0705_CANONICAL_GIT_BLOB_RECOVERY_CANDIDATE_NOT_FINAL",
-  "ordering_status": "T0705_NINE_FAILED_HEADS_FROZEN_ONE_CANONICAL_GIT_BLOB_RECOVERY_ATTEMPT_AUTHORIZED",
+  "ordering_status": "T0705_NINE_PROTECTED_AND_ONE_PREFLIGHT_FAILED_HEADS_FROZEN_ONE_FORMAT_ONLY_RECOVERY_ATTEMPT_AUTHORIZED",
   "diagnostic_repair_status": "GA_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED",
   "new_controlled_delivery_authorized": true,
   "new_protected_dispatch_authorized": true

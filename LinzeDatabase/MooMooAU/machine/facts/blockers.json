@@ -8,14 +8,14 @@
   },
   {
     "id": "T0705_NINE_FAILED_HEADS_FROZEN",
-    "内容": "T0705 九个 exact-main attempt-1 head 均已冻结，rerun 与 redispatch 均为零",
+    "内容": "T0705 九个 protected exact-main attempt-1 head 与一个 pre-Secret formatter rejected head 均已冻结，rerun 与 redispatch 均为零",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
   },
   {
     "id": "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
-    "内容": "第九次 authority、精确 App repository scope 与身份清理通过，随后仍停在 FIRST_IMPORT_POINTER_FETCH，private 数据仓与 Gmail 零新效果。只读 live replay 复现一个 Contents raw-media HTTP 200 非规范 body；同一 metadata SHA 对应的 Git Blobs API 对所有 current pointer 均通过 base64、response SHA、size、age 与 canonical Git SHA 校验，patched adapter 全部恢复。只授权一个新 exact-main canonical Git Blob recovery attempt 1",
+    "内容": "第九次 authority、精确 App repository scope 与身份清理通过，随后仍停在 FIRST_IMPORT_POINTER_FETCH，private 数据仓与 Gmail 零新效果。只读 live replay 复现一个 Contents raw-media HTTP 200 非规范 body；同一 metadata SHA 对应的 Git Blobs API 对所有 current pointer 均通过 base64、response SHA、size、age 与 canonical Git SHA 校验，patched adapter 全部恢复。首次候选在进入 protected Environment 前被确定性 Ruff format gate 拒绝且零 Secret/Gmail/私库调用；只授权一个格式修复 successor exact-main canonical Git Blob recovery attempt 1",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
@@ -36,7 +36,7 @@
   },
   {
     "id": "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "内容": "T0704 已通过；T0705 九个失败头已冻结且 canonical Git Blob recovery 已授权，T0706 及其后的受保护验收未授权",
+    "内容": "T0704 已通过；T0705 九个 protected 失败头及一个 pre-Secret formatter rejected head 已冻结且格式修复 successor 已授权，T0706 及其后的受保护验收未授权",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
