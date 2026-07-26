@@ -142,7 +142,7 @@ def link_industry(conn, entity_id: str, industry_id: str) -> None:
 
 
 def enrich_one(conn, sec: SecClient, sec_src: str, entity_id: str, name: str,
-               cik10: str) -> tuple[int, bool]:
+               cik10: str, *, max_events: int = MAX_EVENTS_PER_COMPANY) -> tuple[int, bool]:
     url = SUBMISSIONS_URL.format(cik=cik10)
     status, body = sec.get(url)
     if status != 200 or not body:
@@ -173,15 +173,17 @@ def enrich_one(conn, sec: SecClient, sec_src: str, entity_id: str, name: str,
     primary_docs = recent.get("primaryDocument") or []
 
     # Bound to the N most-recent MATERIAL filings (count filings considered,
-    # not events inserted) so a refresh is idempotent once they exist and does
-    # not backfill deeper history on every re-run.
+    # not events inserted) so a refresh is idempotent once they exist. The
+    # bound is a parameter, not a constant: the freshness sweep keeps the
+    # cheap default while the deep-history sweep raises it to walk each
+    # company's full EDGAR record back to 1994.
     events = 0
     considered = 0
     for i, form in enumerate(forms):
         mapped = FORM_EVENTS.get(form)
         if not mapped:
             continue
-        if considered >= MAX_EVENTS_PER_COMPANY:
+        if considered >= max_events:
             break
         considered += 1
         event_type, label = mapped
@@ -230,6 +232,11 @@ def main() -> int:
     parser.add_argument("--universe", action="store_true", help="only curated universe companies")
     parser.add_argument("--tickers", type=str, default=None, help="comma-separated tickers")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--max-events", type=int, default=MAX_EVENTS_PER_COMPANY,
+        help="how many material filings per company to walk back through"
+             " (default keeps the sweep cheap; raise it to deepen history)",
+    )
     args = parser.parse_args()
 
     sec = SecClient()
@@ -244,7 +251,8 @@ def main() -> int:
         total_events = industries = done = 0
         for entity_id, name, cik10 in targets:
             try:
-                ev, ind = enrich_one(conn, sec, sec_src, entity_id, name, cik10)
+                ev, ind = enrich_one(conn, sec, sec_src, entity_id, name,
+                                     cik10, max_events=args.max_events)
                 total_events += ev
                 industries += 1 if ind else 0
                 done += 1

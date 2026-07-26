@@ -89,6 +89,36 @@ def run_step(argv: list[str], *, label: str) -> tuple[int, str]:
     return proc.returncode, tail.strip()
 
 
+def _publish_credentials() -> tuple[str, str] | None:
+    url = os.environ.get("EEI_PUBLISH_URL", "").strip()
+    token = os.environ.get("EEI_PUBLISH_TOKEN", "").strip()
+    return (url, token) if url and token else None
+
+
+def publish_incremental_since(since: str) -> dict:
+    creds = _publish_credentials()
+    if not creds:
+        return {"skipped": "EEI_PUBLISH_URL/TOKEN unset"}
+    try:
+        from scripts.publish_to_cloud_channel import push_recent
+
+        return push_recent(since, publish_url=creds[0], publish_token=creds[1])
+    except Exception as exc:  # noqa: BLE001 - retried next cycle; DB already has it
+        return {"error": str(exc)[:200]}
+
+
+def publish_pulse() -> dict:
+    creds = _publish_credentials()
+    if not creds:
+        return {"skipped": "EEI_PUBLISH_URL/TOKEN unset"}
+    try:
+        from scripts.publish_to_cloud_channel import push_pulse
+
+        return push_pulse(publish_url=creds[0], publish_token=creds[1])
+    except Exception as exc:  # noqa: BLE001 - a metrics beat must never break a cycle
+        return {"error": str(exc)[:200]}
+
+
 def one_cycle(args, *, publish: bool = True) -> dict:
     started = datetime.now(UTC).isoformat()
     total = max(universe_size(), 1)
@@ -117,6 +147,34 @@ def one_cycle(args, *, publish: bool = True) -> dict:
         result["gleif_rc"] = rc
         state["gleif_offset"] = (gleif_off + args.gleif_batch) % total
 
+    # Completeness backstop: the minute watcher only sees a 100-entry window,
+    # so anything filed in a burst between two polls is lost to it. The daily
+    # index is the authoritative full list of a day's filings.
+    if not args.skip_daily_index:
+        rc, _ = run_step(
+            ["-m", "scripts.authoritative.sec_daily_index",
+             "--days-back", str(args.daily_index_days_back)],
+            label="daily-index",
+        )
+        result["daily_index_rc"] = rc
+
+    # History depth: the freshness sweep above deliberately stops at each
+    # company's most-recent filings, so once it has caught up it adds nothing
+    # and the corpus stops growing. This cursor walks the same universe far
+    # more slowly with a much deeper per-company bound, so every cycle keeps
+    # pulling real archive back toward 1994.
+    if args.deep_batch > 0:
+        deep_off = state.get("deep_offset", 0) % total
+        rc, _ = run_step(
+            ["-m", "scripts.authoritative.enrich_sec",
+             "--limit", str(args.deep_batch), "--offset", str(deep_off),
+             "--max-events", str(args.deep_max_events)],
+            label=f"deep[{deep_off}:{deep_off + args.deep_batch}]",
+        )
+        result["deep_rc"] = rc
+        result["deep_offset"] = deep_off
+        state["deep_offset"] = (deep_off + args.deep_batch) % total
+
     if not args.skip_publish and publish:
         report = ROOT / ".eei_refresh_publish_report.json"
         sqlout = ROOT / ".eei_refresh_publish.sql"
@@ -129,11 +187,17 @@ def one_cycle(args, *, publish: bool = True) -> dict:
         result["publish_drill_passed"] = '"drill_passed": true' in tail or \
                                          '"drill_passed":true' in tail
     elif not args.skip_publish:
-        # Enrich/gleif ran (backfill into the local system-of-record) but the
-        # full DELETE+INSERT republish is deferred to keep D1 writes within the
-        # free tier; the minute-cadence watcher owns incremental freshness and
-        # the periodic full republish reconciles the backfill.
+        # The full DELETE+INSERT republish is deferred (it rewrites the whole
+        # surface), but everything this cycle collected still goes live now:
+        # upsert just the entities whose published surface changed. Without
+        # this, ownership edges and deepened history sat invisible for up to a
+        # day and the site looked frozen while the collector was working.
         result["publish_skipped_this_cycle"] = True
+        result["incremental"] = publish_incremental_since(started)
+
+    # Recompute the pulse every cycle (a few hundred small rows) so the growth
+    # curve, today's delta and the totals move without waiting for a republish.
+    result["pulse"] = publish_pulse()
 
     save_state(state)
     result["finished_at"] = datetime.now(UTC).isoformat()
@@ -150,6 +214,21 @@ def main() -> int:
     p.add_argument("--skip-enrich", action="store_true")
     p.add_argument("--skip-gleif", action="store_true")
     p.add_argument("--skip-publish", action="store_true")
+    p.add_argument("--skip-daily-index", action="store_true")
+    p.add_argument(
+        "--daily-index-days-back", type=int, default=4,
+        help="how far back the daily-index completeness sweep looks for gaps",
+    )
+    p.add_argument(
+        "--deep-batch", type=int, default=12,
+        help="companies per cycle for the deep-history sweep (0 disables). Kept"
+             " small: each one walks far more of the EDGAR archive than the"
+             " freshness sweep does.",
+    )
+    p.add_argument(
+        "--deep-max-events", type=int, default=400,
+        help="material filings per company for the deep-history sweep",
+    )
     p.add_argument(
         "--publish-every", type=int, default=1,
         help="full republish only every Nth cycle (enrich/gleif still run every"

@@ -1296,6 +1296,159 @@ async function listChanges(env, sinceRaw) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// EEI-PULSE
+// ---------------------------------------------------------------------------
+
+// A collector that has not been heard from in this long is not "live".
+const PULSE_LIVE_SECONDS = 300;
+const PULSE_DELAYED_SECONDS = 3600;
+
+function pulseDelta(series, days) {
+  // Growth over a trailing window, read off the cumulative series: the last
+  // point minus the point `days` back. Falls back to "everything so far" when
+  // the series is shorter than the window (early days of a fresh corpus).
+  if (!series.length) return { entities: 0, relationships: 0, events: 0 };
+  const last = series[series.length - 1];
+  const idx = series.length - 1 - days;
+  const base = idx >= 0 ? series[idx] : { entities: 0, relationships: 0, events: 0 };
+  return {
+    entities: last.entities - base.entities,
+    relationships: last.relationships - base.relationships,
+    events: last.events - base.events
+  };
+}
+
+async function dataPulse(env, url) {
+  const windowDays = Math.min(
+    Math.max(Number(url?.searchParams?.get("days") ?? 60) || 60, 7),
+    400
+  );
+  const [dailyRes, compRes, nowRes] = await Promise.all([
+    env.EEI_PUB.prepare(
+      "SELECT day, entities, relationships, events, entities_added," +
+        " relationships_added, events_added FROM pulse_daily" +
+        " ORDER BY day DESC LIMIT ?"
+    )
+      .bind(windowDays)
+      .all(),
+    env.EEI_PUB.prepare(
+      "SELECT bucket_kind, bucket, label, count FROM pulse_composition" +
+        " ORDER BY bucket_kind, count DESC"
+    ).all(),
+    env.EEI_PUB.prepare("SELECT key, value, updated_at FROM pulse_now").all()
+  ]);
+
+  const series = (dailyRes.results ?? [])
+    .map((r) => ({
+      day: r.day,
+      entities: Number(r.entities),
+      relationships: Number(r.relationships),
+      events: Number(r.events),
+      entities_added: Number(r.entities_added),
+      relationships_added: Number(r.relationships_added),
+      events_added: Number(r.events_added)
+    }))
+    .reverse();
+
+  const live = new Map((nowRes.results ?? []).map((r) => [r.key, r]));
+  const composition = { event_type: [], relationship_family: [] };
+  const sources = [];
+  for (const row of compRes.results ?? []) {
+    const entry = { bucket: row.bucket, count: Number(row.count) };
+    if (row.bucket_kind === "source") {
+      let meta = {};
+      try {
+        meta = row.label ? JSON.parse(row.label) : {};
+      } catch {
+        meta = {};
+      }
+      sources.push({
+        code: row.bucket,
+        name: meta.name ?? row.bucket,
+        documents: entry.count,
+        last_seen_at: meta.last_seen_at ?? null
+      });
+    } else if (composition[row.bucket_kind]) {
+      composition[row.bucket_kind].push(entry);
+    }
+  }
+
+  // Heartbeat: the most recent beat from any collector wins — the pipeline is
+  // alive if *something* is still polling.
+  let lastBeatAt = null;
+  let lastBeatDetail = null;
+  for (const [key, row] of live) {
+    if (!key.startsWith("heartbeat:")) continue;
+    if (!lastBeatAt || String(row.updated_at) > lastBeatAt) {
+      lastBeatAt = String(row.updated_at);
+      try {
+        lastBeatDetail = row.value ? JSON.parse(row.value) : null;
+      } catch {
+        lastBeatDetail = null;
+      }
+    }
+  }
+  const nowMs = Date.now();
+  const lagSeconds = lastBeatAt
+    ? Math.max(0, Math.round((nowMs - Date.parse(lastBeatAt)) / 1000))
+    : null;
+  const state =
+    lagSeconds === null
+      ? "unknown"
+      : lagSeconds <= PULSE_LIVE_SECONDS
+        ? "live"
+        : lagSeconds <= PULSE_DELAYED_SECONDS
+          ? "delayed"
+          : "stalled";
+
+  const latest = series.length ? series[series.length - 1] : null;
+  const totalsRow = live.get("totals");
+  let totals = latest
+    ? {
+        entities: latest.entities,
+        relationships: latest.relationships,
+        events: latest.events
+      }
+    : { entities: 0, relationships: 0, events: 0 };
+  if (totalsRow?.value) {
+    try {
+      totals = { ...totals, ...JSON.parse(totalsRow.value) };
+    } catch {
+      /* keep the series-derived totals */
+    }
+  }
+
+  return {
+    schema_version: "eei-data-pulse-v1",
+    generated_at: new Date().toISOString(),
+    data_as_of: live.get("data_as_of")?.value ?? null,
+    last_publish_at: live.get("last_full_publish_at")?.value ?? null,
+    totals,
+    added: {
+      today: latest
+        ? {
+            entities: latest.entities_added,
+            relationships: latest.relationships_added,
+            events: latest.events_added
+          }
+        : { entities: 0, relationships: 0, events: 0 },
+      d7: pulseDelta(series, 7),
+      d30: pulseDelta(series, 30)
+    },
+    series,
+    composition,
+    sources,
+    heartbeat: {
+      state,
+      last_seen_at: lastBeatAt,
+      lag_seconds: lagSeconds,
+      collector: lastBeatDetail?.collector ?? null,
+      detail: lastBeatDetail
+    }
+  };
+}
+
 async function handleFetch(request, env) {
     const url = new URL(request.url);
     const { pathname } = url;
@@ -1324,6 +1477,27 @@ async function handleFetch(request, env) {
         publication_meta: meta,
         snapshot,
         published_relationship_count: publishedCount
+      });
+    }
+
+    // EEI-PULSE: "did anything actually arrive, and how much?" — the growth
+    // curve, today's delta, what it's made of, and whether the collector is
+    // still breathing. One call, everything the data-center screen needs.
+    if (pathname === "/v1/meta/pulse" && request.method === "GET") {
+      return json(await dataPulse(env, url));
+    }
+
+    // Per-source freshness. The frontend has always asked for this; the cloud
+    // worker never implemented it, so the freshness panel 404'd and fell back
+    // to a stale constant.
+    if (pathname === "/v1/sources/freshness" && request.method === "GET") {
+      const pulse = await dataPulse(env, url);
+      return json({
+        schema_version: "cloud-sources-freshness-v1",
+        generated_at: new Date().toISOString(),
+        data_as_of: pulse.data_as_of,
+        collector: pulse.heartbeat,
+        sources: pulse.sources
       });
     }
 

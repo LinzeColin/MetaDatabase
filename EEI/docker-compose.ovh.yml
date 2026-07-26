@@ -108,6 +108,18 @@ services:
       - "${EEI_ENRICH_BATCH:-500}"
       - --gleif-batch
       - "${EEI_GLEIF_BATCH:-300}"
+      # Completeness backstop: the minute watcher only sees a 100-entry
+      # window, so a filing burst between two polls is lost to it. The daily
+      # index is EDGAR's authoritative full list of a day's filings.
+      - --daily-index-days-back
+      - "${EEI_DAILY_INDEX_DAYS_BACK:-4}"
+      # History depth: the freshness sweep stops at each company's most-recent
+      # filings, so once caught up it adds nothing and the corpus goes flat.
+      # This cursor walks the same universe slowly with a far deeper bound.
+      - --deep-batch
+      - "${EEI_DEEP_BATCH:-12}"
+      - --deep-max-events
+      - "${EEI_DEEP_MAX_EVENTS:-400}"
     volumes:
       - eei-refresh-state:/state
     # ---- HARD CAPS ----

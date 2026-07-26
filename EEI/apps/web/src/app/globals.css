@@ -4774,3 +4774,320 @@ dd {
     display: none;
   }
 }
+
+/* ===========================================================================
+   EEI-PULSE — 数据脉搏
+   Owner 的判词是「数据根本没有更新」。系统其实一直在涨（3 天里事件从 1.3 万
+   到 18.5 万），但界面从不说出来：首屏主指标是当前视图里画了几个点，「数据
+   版本」是一条十天前的治理时间戳。这一层专治看不见——库有多大、今天涨了多
+   少、采集器还在不在跑，全部第一等公民，数字变化时会滚动，让人真的看见。
+   =========================================================================== */
+
+:root {
+  --pulse-accent: var(--amber);
+  --pulse-ink: var(--text);
+  --pulse-muted: color-mix(in srgb, var(--text) 58%, transparent);
+  --pulse-surface: color-mix(in srgb, var(--panel) 92%, var(--bg));
+  --pulse-hairline: color-mix(in srgb, var(--line) 70%, transparent);
+  --pulse-live: var(--green);
+  --pulse-delayed: var(--amber);
+  --pulse-stalled: var(--red);
+}
+
+/* —— 数字本体：等宽字形，滚动只作用于真正变了的那几位 —————————————— */
+.odometer {
+  display: inline-flex;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.odometerDigit {
+  display: inline-block;
+  transform-origin: 50% 60%;
+}
+.odometerDigit.rolled {
+  animation: pulseDigitRoll calc(var(--motion-scale) * 460ms + 0.001s)
+    var(--ease-emphatic);
+  color: var(--pulse-accent);
+}
+@keyframes pulseDigitRoll {
+  0% { transform: translateY(0.42em) scale(0.94); opacity: 0; }
+  55% { opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* —— 常驻条：首屏永远先回答「这个库有多大、今天动了没有」———————— */
+.pulseStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 22px 28px;
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--pulse-hairline);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 180% at 0% 0%,
+      color-mix(in srgb, var(--pulse-accent) 9%, transparent) 0%,
+      transparent 58%),
+    var(--pulse-surface);
+  box-shadow: var(--shadow);
+}
+.pulseStrip.loading { min-height: 74px; align-items: center; }
+.pulseStripLoading { color: var(--pulse-muted); font-size: 13px; }
+.pulseMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 104px;
+}
+.pulseMetricLabel {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pulse-muted);
+}
+.pulseMetric .odometer {
+  font-size: 30px;
+  font-weight: 620;
+  color: var(--pulse-ink);
+}
+.pulseDelta {
+  font-size: 12px;
+  color: var(--pulse-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pulseDelta.up { color: var(--pulse-live); font-weight: 560; }
+.pulseStripTail {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-inline-start: auto;
+  padding-bottom: 2px;
+}
+.pulseStripLink {
+  font-size: 12px;
+  color: var(--pulse-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+}
+.pulseStripLink:hover { color: var(--pulse-ink); border-bottom-color: var(--pulse-hairline); }
+
+/* —— 心跳：呼吸点。live 才呼吸，stalled 不许假装还活着 —————————— */
+.pulseHeartbeat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--pulse-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pulseHeartbeat i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pulse-stalled);
+  box-shadow: 0 0 0 0 currentColor;
+}
+.pulseHeartbeat.state-live i { background: var(--pulse-live); }
+.pulseHeartbeat.state-delayed i { background: var(--pulse-delayed); }
+.pulseHeartbeat.state-live i {
+  animation: pulseBreath calc(var(--motion-scale) * 2200ms + 0.001s)
+    var(--ease-standard) infinite;
+}
+@keyframes pulseBreath {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pulse-live) 55%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--pulse-live) 0%, transparent); }
+}
+
+/* —— 全景面板 —————————————————————————————————————————————————— */
+.pulsePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--pulse-hairline);
+  border-radius: 16px;
+  background: var(--pulse-surface);
+  box-shadow: var(--shadow);
+}
+.pulsePanel.loading { min-height: 320px; }
+.pulsePanelHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.pulsePanelHead h3 { margin: 0 0 4px; font-size: 19px; letter-spacing: -0.01em; }
+.pulsePanelHead p { margin: 0; max-width: 62ch; font-size: 13px; color: var(--pulse-muted); }
+.pulseUnavailable { margin: 0; font-size: 13px; color: var(--pulse-muted); }
+
+.pulseTotals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.pulseTotalCard {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px 18px;
+  text-align: start;
+  border: 1px solid var(--pulse-hairline);
+  border-radius: 13px;
+  background: var(--panel);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-emphatic),
+    box-shadow var(--motion-base) var(--ease-standard);
+}
+.pulseTotalCard:hover { transform: translateY(-1px); }
+.pulseTotalCard.active {
+  border-color: color-mix(in srgb, var(--pulse-accent) 55%, var(--line));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pulse-accent) 26%, transparent);
+}
+.pulseTotalLabel {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pulse-muted);
+}
+.pulseTotalCard .odometer { font-size: 34px; font-weight: 640; }
+.pulseTotalCard small { font-size: 11.5px; color: var(--pulse-muted); }
+
+/* —— 曲线：面积=累计，柱=当日新增 ————————————————————————————— */
+.pulseChart { margin: 0; }
+.pulseChart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.pulseChartArea { stroke: none; }
+.pulseChartLine {
+  fill: none;
+  stroke: var(--pulse-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.pulseChartBar { fill: color-mix(in srgb, var(--pulse-accent) 42%, transparent); }
+.pulseChartHead {
+  fill: var(--pulse-accent);
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+.pulseChart figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--pulse-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pulseChart figcaption span:nth-child(2) { text-align: center; }
+.pulseChartEmpty { margin: 0; font-size: 13px; color: var(--pulse-muted); }
+
+/* —— 时间窗卡片 —————————————————————————————————————————————— */
+.pulseWindows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.pulseWindowCard {
+  padding: 14px 16px;
+  border: 1px solid var(--pulse-hairline);
+  border-radius: 13px;
+  background: var(--panel);
+}
+.pulseWindowCard h4 { margin: 0 0 10px; font-size: 13px; }
+.pulseWindowCard dl { display: flex; gap: 16px; margin: 0 0 8px; }
+.pulseWindowCard dt { font-size: 11px; color: var(--pulse-muted); }
+.pulseWindowCard dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 580;
+  font-variant-numeric: tabular-nums;
+}
+.pulseWindowCard dd.up { color: var(--pulse-live); }
+.pulseWindowCard p { margin: 0; font-size: 11.5px; color: var(--pulse-muted); }
+
+/* —— 构成条 ————————————————————————————————————————————————— */
+.pulseSplit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.pulseSplit h4, .pulseSources h4 { margin: 0 0 10px; font-size: 13px; }
+.pulseComposition { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.pulseComposition li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.pulseCompositionLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pulseCompositionTrack {
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 55%, transparent);
+  overflow: hidden;
+}
+.pulseCompositionTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pulse-accent);
+  transition: width var(--motion-slow) var(--ease-emphatic);
+}
+.pulseCompositionValue { font-variant-numeric: tabular-nums; color: var(--pulse-muted); }
+
+/* —— 来源表 ————————————————————————————————————————————————— */
+.pulseSources table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.pulseSources th, .pulseSources td {
+  padding: 7px 10px;
+  text-align: start;
+  border-bottom: 1px solid var(--pulse-hairline);
+}
+.pulseSources thead th {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pulse-muted);
+  font-weight: 500;
+}
+.pulseSources td { font-variant-numeric: tabular-nums; }
+
+/* —— 工程诊断折叠面 ————————————————————————————————————————— */
+.engineeringDock {
+  border: 1px dashed var(--pulse-hairline);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 60%, transparent);
+}
+.engineeringDock > summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--pulse-muted);
+  list-style: none;
+}
+.engineeringDock > summary::-webkit-details-marker { display: none; }
+.engineeringDock > summary::before { content: "▸ "; }
+.engineeringDock[open] > summary::before { content: "▾ "; }
+.engineeringDock > summary small { font-size: 11px; opacity: 0.75; }
+.engineeringDockBody { display: flex; flex-direction: column; gap: 12px; padding: 0 10px 12px; }
+
+@media (max-width: 1100px) {
+  .pulseTotals, .pulseWindows, .pulseSplit { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 768px) {
+  .pulseStrip { gap: 14px 20px; padding: 12px 14px; }
+  .pulseMetric { min-width: 88px; }
+  .pulseMetric .odometer { font-size: 24px; }
+  .pulseStripTail { margin-inline-start: 0; width: 100%; justify-content: space-between; }
+  .pulsePanel { padding: 16px 14px; }
+  .pulseComposition li { grid-template-columns: minmax(0, 1fr) 56px auto; }
+}
