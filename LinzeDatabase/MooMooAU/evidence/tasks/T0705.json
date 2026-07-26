@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_SAFE_DEFERRED_REPAIR_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_METADATA_QUARANTINE_REPAIR_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T01:24:20Z",
-  "baseline_commit": "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+  "observed_at_utc": "2026-07-26T02:56:46Z",
+  "baseline_commit": "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
   "record_status": "BLOCKED",
-  "scope": "PROTECTED_FAILED_ATTEMPT_AND_LOCAL_SAFE_DEFERRED_REPAIR_PREFLIGHT",
+  "scope": "PROTECTED_TWO_FAILED_ATTEMPTS_AND_LOCAL_METADATA_QUARANTINE_REPAIR_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -79,40 +79,60 @@
       "id": "failed_exact_head_frozen_zero_data_plane_effect",
       "status": "PASS",
       "evidence_ref": "machine/stages/S7/reviews/t0705/attempt-ledger.json and machine/stages/S7/schemas/protected-ga-attempt-ledger-v1.schema.json"
+    },
+    {
+      "id": "second_failed_exact_head_frozen_zero_private_commit",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S7/reviews/t0705/repair-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-repair-attempt-ledger-v1.schema.json"
+    },
+    {
+      "id": "ga_pre_raw_metadata_unverifiable_quarantine",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_quarantines_unverifiable_pre_raw_metadata_without_collateral"
+    },
+    {
+      "id": "ga_prior_pending_metadata_unverifiable_replay",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_keeps_unverifiable_prior_pending_source_for_replay"
+    },
+    {
+      "id": "ga_second_metadata_failure_remains_fail_closed",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_second_metadata_failure_stays_fail_closed_before_trash"
     }
   ],
   "linked_final_acceptance": [
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism and exact protected entrypoint process only deterministically verified candidates; the one authorized protected rehearsal has not run."
+      "reason": "The dependency-injected GA mechanism now quarantines unverifiable pre-Raw metadata and processes only deterministically verified candidates; both protected attempts failed and no T0705 PASS receipt exists."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. The truthful workflow_dispatch schedule-mode rehearsal is authorized but not yet observed."
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A third distinct truthful workflow_dispatch schedule-mode rehearsal is authorized once, while the two failed heads are frozen."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "Only aggregate-safe local candidate output exists; no protected GA result or continuous public health evidence is published."
+      "reason": "Both protected GA attempts emitted aggregate-safe failure only; no protected GA PASS result or continuous public health evidence is published."
     },
     {
       "id": "AC-032",
       "status": "PARTIAL",
-      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus idempotent backlog replay pass; protected GA recovery remains pending."
+      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus metadata quarantine and idempotent backlog replay pass; protected GA recovery remains pending."
     }
   ],
   "production_oracles": [
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
       "status": "FAILED",
-      "reason": "The first exact-main attempt passed authority and cleanup but failed before Gmail credential exchange or any private data-plane write. Its head is frozen; one reviewed paired-safe-deferred compatibility repair attempt is authorized."
+      "reason": "The first two exact-main attempts passed authority and cleanup but failed. Both exact exceptions remain undisclosed; independent verification found no second-attempt private commit or checkpoint and the latest Timeline remained one. Both heads are frozen; one reviewed metadata-quarantine repair attempt is authorized."
     }
   ],
   "blockers": [
-    "T0705_FAILED_HEAD_FROZEN",
-    "T0705_SAFE_DEFERRED_COMPATIBILITY_REPAIR_PENDING",
+    "T0705_TWO_FAILED_HEADS_FROZEN",
+    "T0705_METADATA_QUARANTINE_REPAIR_PENDING",
     "T0705_PROTECTED_RECEIPT_NOT_BOUND",
     "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
   ],
@@ -138,5 +158,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Deliver one reviewed exact-main paired-safe-deferred repair candidate, execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and only after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule; never rerun the failed head and do not enter T0706."
+  "next_action": "Deliver one reviewed exact-main metadata-quarantine repair candidate, execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and only after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule; never rerun either failed head and do not enter T0706."
 }

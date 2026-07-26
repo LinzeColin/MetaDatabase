@@ -245,7 +245,23 @@ rerun/redispatch；只剩一个新 exact-main repair dispatch 与一个 receipt/
 - `SOURCE_PROVENANCE.v1.0.20.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.19.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.18.json`、
+`v1.0.21` 固化 T0705 第二个不同 exact-main protected GA 失败并冻结 head `e38cd60e…`。
+authority 与 identity cleanup PASS，GA FAILED；独立聚合核验确认没有新增 private commit、
+checkpoint 未创建、唯一 latest Timeline 仍为 1。protected 输出没有披露 exact runtime
+exception；同邮箱 T0703 metadata quarantine 回执与 GA 静态路径只支持高置信度
+`MessageMetadataUnverifiable` 隔离缺口。修复只在 GA pre-Raw candidate loop 逐消息隔离该
+typed failure，保留既有 pending replay，并保持 second verification fail closed 与
+ACTIVE/SAFE_DEFERRED 行为不变。两个失败 head 永不 rerun/redispatch；只剩一个新 exact-main
+repair dispatch 与一个 receipt/schedule closure delivery，继续停止在 T0706 前。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.21.md`
+- `ROADMAP.v1.0.21.md`
+- `PACKAGE_MANIFEST.v1.0.21.json`
+- `SOURCE_PROVENANCE.v1.0.21.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.20.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.19.json`、
+`PACKAGE_MANIFEST.v1.0.18.json`、
 `PACKAGE_MANIFEST.v1.0.17.json`、
 `PACKAGE_MANIFEST.v1.0.16.json`、
 `PACKAGE_MANIFEST.v1.0.15.json`、

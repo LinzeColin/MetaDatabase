@@ -1,8 +1,8 @@
 {
-  "version": "1.0.20",
-  "stage": "RMD-06 T0705 首次 GA 失败已冻结，SAFE_DEFERRED 修复已授权待运行",
-  "phase": "T0705 首次 exact-main attempt 1 在数据平面前失败且零私库路径变化；失败头已冻结，paired empty protected 注册表 SAFE_DEFERRED 修复候选待执行",
-  "task": "交付 v1.0.20 paired SAFE_DEFERRED 精确修复候选并执行一次新 head protected SCHEDULE_REHEARSAL；失败头与修复头均 rerun 0，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
+  "version": "1.0.21",
+  "stage": "RMD-06 T0705 两个 GA 失败头已冻结，metadata quarantine 修复已授权待运行",
+  "phase": "T0705 两个 exact-main attempt-1 失败头已冻结；第二次运行无新增 private commit、无 checkpoint 且 latest Timeline 仍为一，metadata quarantine 修复候选待执行",
+  "task": "交付 v1.0.21 metadata-quarantine 精确修复候选并执行一次新 head protected SCHEDULE_REHEARSAL；两个失败头与新候选均 rerun 0，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 5/43（通过 4、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",

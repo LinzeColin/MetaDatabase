@@ -1,5 +1,24 @@
 # Taskpack Changelog
 
+## 1.0.21 — 2026-07-26
+
+固化 T0705 第二次 protected GA 失败，只授权 pre-Raw metadata quarantine repair。
+
+- 绑定 PR #116、main `e38cd60e…`、run `30184702520`、attempt 1、rerun 0；
+- authority 与 identity cleanup PASS，GA FAILED，live schedule hold SKIPPED；
+- 独立后验确认 private commit 0、checkpoint 不存在、唯一 latest Timeline 仍为 1，一次性
+  authority 与 production enablement 均已清除；
+- protected 输出未公开 exact runtime exception；只把同邮箱不可变回执与静态路径共同支持的
+  `MessageMetadataUnverifiable` 隔离缺口记录为 high-confidence diagnosis；
+- GA pre-Raw candidate loop 对该 typed failure 逐消息隔离且不 Full Fetch、不写入、不变更，
+  既有 pending replay 保留；
+- Raw/Processed 恢复后的 second verification 继续 fail closed，ACTIVE 与 paired-empty
+  SAFE_DEFERRED 行为保持不变；
+- 两个失败 head 永不 rerun/redispatch；总 dispatch 预算 3 已消耗 2，只剩一个新 repair
+  dispatch；
+- 总 controlled main delivery 预算 4 已消耗 2，只剩 repair 与 receipt/schedule closure；
+- live schedule 保持关闭；T0706、最终 Acceptance、Stage 7 完成与最终发布仍未授权。
+
 ## 1.0.20 — 2026-07-26
 
 固化 T0705 首次 protected GA 失败，只授权 paired SAFE_DEFERRED compatibility repair。
