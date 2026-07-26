@@ -1,0 +1,153 @@
+{
+  "evidence_boundaries": {
+    "credential_or_secret_persisted": false,
+    "host_ip_persisted": false,
+    "may_replace_live_ovh_evidence": false,
+    "project_rows_persisted": false,
+    "proves_live_ovh_preflight": false,
+    "proves_public_status_contract": true,
+    "raw_page_persisted": false,
+    "raw_snapshot_persisted": false
+  },
+  "observed_at": "2026-07-26T06:53:05.277337Z",
+  "ovh_access_discovery": {
+    "authorized_target_found": false,
+    "configured_host_alias_count": 1,
+    "credential_values_read": false,
+    "discovery_scope": [
+      "ssh_config_host_alias_names",
+      "ovh_host_environment_variable_names"
+    ],
+    "matching_environment_variable_name_count": 0,
+    "matching_ovh_or_cyberboss_alias_count": 0,
+    "private_key_contents_read": false,
+    "ssh_config_readable": true,
+    "target_guessing_performed": false
+  },
+  "page": {
+    "body_bytes": 36869,
+    "body_sha256": "e4906e462179224b7a084644954e54b0297b34aa04a46ad94a8af94d85e4b542",
+    "cache_control": "no-cache",
+    "content_security_policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; frame-ancestors 'self'",
+    "content_type": "text/html",
+    "http_status": 200,
+    "server": "cloudflare",
+    "snapshot_fetch_path_present": true,
+    "title": "云平台总览 · status.linzezhang.com"
+  },
+  "read_only_requests": [
+    {
+      "method": "GET",
+      "url": "https://status.linzezhang.com/"
+    },
+    {
+      "method": "GET",
+      "url": "https://status.linzezhang.com/data/snapshot.json"
+    }
+  ],
+  "schema_version": 1,
+  "snapshot": {
+    "body_bytes": 72413,
+    "body_sha256": "4ab1ad112fdfe559ad0b73cc83f5f28109836d7a11c8cf7b94f478c9033a8e60",
+    "content_type": "application/json",
+    "cyberboss_row_count": 0,
+    "http_status": 200,
+    "project_agent_values_observed": [
+      "中",
+      "低",
+      "无"
+    ],
+    "project_count": 8,
+    "project_field_types": {
+      "agent": [
+        "str"
+      ],
+      "backup": [
+        "str"
+      ],
+      "db": [
+        "str"
+      ],
+      "deploy": [
+        "str"
+      ],
+      "host": [
+        "str"
+      ],
+      "name": [
+        "str"
+      ],
+      "notify": [
+        "str"
+      ],
+      "parts": [
+        "array"
+      ],
+      "status": [
+        "str"
+      ],
+      "store": [
+        "str"
+      ],
+      "url": [
+        "str"
+      ]
+    },
+    "project_keys": [
+      "agent",
+      "backup",
+      "db",
+      "deploy",
+      "host",
+      "name",
+      "notify",
+      "parts",
+      "status",
+      "store",
+      "url"
+    ],
+    "project_part_values_observed": [
+      "前台",
+      "后台"
+    ],
+    "project_status_values_from_page_contract": [
+      "access",
+      "down",
+      "run"
+    ],
+    "project_status_values_observed": [
+      "access",
+      "run"
+    ],
+    "public_host_metrics": {
+      "disk_pct": 60,
+      "disk_total_b": 40483942400,
+      "disk_used_b": 24148606976,
+      "load1": 0.34,
+      "mem_pct": 49,
+      "uptime_days": 8
+    },
+    "top_level_keys": [
+      "cost",
+      "deploy",
+      "externals",
+      "externals_at",
+      "fx",
+      "github",
+      "history",
+      "host",
+      "inventory",
+      "ops",
+      "projects",
+      "selfheal",
+      "summary",
+      "tz",
+      "updated_at",
+      "updated_epoch",
+      "usage",
+      "usage_seats_at"
+    ],
+    "updated_at": "2026-07-26 14:53"
+  },
+  "task_id": "CB-010"
+}

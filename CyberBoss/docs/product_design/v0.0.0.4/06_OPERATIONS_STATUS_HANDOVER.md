@@ -79,30 +79,50 @@ Display timezone: Australia/Sydney
 ### 3.1 Preflight（测量与选档，不是等待 Gate）
 
 ```bash
-sudo bash implementation-kit/scripts/preflight.sh
+bash implementation-kit/scripts/preflight.sh
 ```
 
-脚本只读取并生成：
+脚本不需要 `sudo`，不产生持久写入（自动清理自己的临时目录）；它连续采集三次
+即时 snapshot（不等待真实时间），并仅输出脱敏聚合：
 
 - Linux/architecture；
 - memory/swap/load/disk/inode；
-- ports 8765/8780；
+- listener port 与 bind scope（不输出 IP）；
 - Node/Codex/Git/systemd/SQLite能力；
-- 现有服务、反向代理和status接入；
-- secret slot/activation slot是否存在（不得打印值）；
-- `tiny` 或 `standard` resource profile；
-- protect/recover阈值和安全清理建议。
+- 现有 process/service/container、反向代理和 Status ingestion 摘要；
+- canonical path 是否存在（不读取 secret 或业务文件内容）；
+- `constrained`、`tiny` 或 `standard` resource profile；
+- MemoryHigh/MemoryMax、disk cap、protect/recover 阈值与安全清理建议。
 
 输出：
 
 ```text
 PREFLIGHT=PASS | PASS_WITH_ACTIVATION_PENDING | HAZARD_BLOCKED
-RESOURCE_PROFILE=tiny | standard
-ACTIVATION_PENDING=<comma-separated adapters>
-HAZARD_BLOCK=<only if a specific unsafe action is required>
+CB_RESOURCE_PROFILE=constrained | tiny | standard
+CB_RESOURCE_GUARD_STATE=recover | warn | protect
+CB_RESOURCE_ACTIVATION_SAFE=true | false
+CB_RESOURCE_BLOCK_REASONS=none | <comma-separated reasons>
+WARNING=<zero or more redacted warnings>
+REMEDIATION=<zero or more redacted remediations>
 ```
 
-RAM/磁盘低不会自动终止整个开发：先选择tiny profile、partial/sparse clone、清理可重建cache、关闭非必要build；只有“单一Codex Runtime仍会OOM或破坏既有关键服务”时，才阻止真实Runtime启动，其他代码与验证继续。
+RAM/磁盘低不会自动终止整个开发：先降档、使用 partial/sparse clone、清理可重建
+cache、关闭非必要 build；只有“单一 Codex Runtime 仍会 OOM、越过磁盘保留量或破坏
+既有关键服务”时，才阻止真实 Runtime 启动，其他代码与验证继续。
+
+clean-shell、profile 和有界 pressure 合同可在无真实凭据时立即验证：
+
+```bash
+bash implementation-kit/scripts/preflight.sh --check
+python3 implementation-kit/tests/test_resource_profile.py
+python3 implementation-kit/scripts/resource-pressure-fixture.py
+node --test implementation-kit/tests/status-adapter-contract.test.js
+```
+
+本机或受限容器 pressure fixture 只能证明脚本合同；不得冒充 OVH 实机
+memory/cgroup/port/service 基线。真实启用前仍须在同一获授权 OVH 主机上完成脱敏
+preflight 与有界 induced-load snapshot。后者会分配少量内存并写入自动清理的临时
+文件，不属于纯只读命令；只有在 Owner 明确授权有界实机压力后才能运行。
 
 ### 3.2 Create Service Account and Directories
 
@@ -365,24 +385,31 @@ Enable Cloudflare Web Analytics for page views and unique visitors. Do not send 
 
 ### 5.1 Do Not Replace Existing Status System
 
-The existing global page already reports cloud providers, project composition, runtime host, database, file storage, deployment, backup, Agent dependency, deployment metrics, quotas, dependencies, bills and deterministic self-heal. CyberBoss adds one adapter/snapshot; it must not deploy a second monitoring platform or change unrelated projects.
+The existing global page already reports project inventory plus operational
+metrics and summaries. CyberBoss adds one adapter/snapshot; it must not deploy
+a second monitoring platform or change unrelated projects.
 
 ### 5.2 Project Row
 
-Recommended display:
+The CB-010 read-only observation found this exact `projects[]` contract:
 
 | Field | Value |
 |---|---|
-| Project | CyberBoss Cloud |
-| URL | `cyberboss.linzezhang.com` |
-| Composition | WeChat bridge + Codex Runtime + Timeline + canonical sync |
-| Runtime host | OVH Singapore VPS-1 |
-| Database | Private-MetaDatabase canonical objects; SQLite runtime spool |
-| File storage | Cloudflare R2 cold; OCI backup |
-| Deployment | local CI/artifact through PG-5；final GitHub Actions + systemd blue/green |
-| Backup | SQLite online snapshot → R2 → OCI selected copy |
-| Agent dependency | User tasks depend on Codex; status/self-heal/backup do not use Agent/token |
-| Status | Derived worst state: healthy/degraded/stopped/not_verified |
+| `name` | CyberBoss Cloud |
+| `url` | `https://cyberboss.linzezhang.com` |
+| `parts` | `["前台", "后台"]` |
+| `host` | OVH Singapore VPS-1 |
+| `db` | Private-MetaDatabase + SQLite spool |
+| `store` | R2 + OCI |
+| `deploy` | systemd immutable release |
+| `backup` | R2 snapshots → OCI selected copy |
+| `agent` | `中` |
+| `notify` | `无` until a real notifier is configured |
+| `status` | `access` only for fresh healthy/degraded service; otherwise `down` |
+
+All fields are strings except `parts`. The page also accepts `run`, but the
+CyberBoss route is Access-protected. The adapter may add private diagnostic
+fields, while the required public fields and values above remain stable.
 
 ### 5.3 Status Inputs
 

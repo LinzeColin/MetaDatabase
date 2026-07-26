@@ -528,16 +528,27 @@ No raw token/user ID/full prompt/result.
 
 ### 7.2 Status Mapping to Existing Global Page
 
-| Global status column | CyberBoss value |
+The read-only CB-010 observation found that the existing `projects[]` row uses
+the following exact contract. Internal health fields stay in the private
+snapshot/details and must not be substituted for these public fields.
+
+| `projects[]` field | CyberBoss value |
 |---|---|
-| 组成 | WeChat bridge + Codex + Timeline + canonical sync |
-| Runtime Host | OVH Singapore VPS-1 |
-| DB | Private-MetaDatabase canonical objects + SQLite runtime spool |
-| 文件存储 | Cloudflare R2 cold; OCI backup |
-| Deployment | local CI before PG-5；final GitHub Actions + immutable `candidate/current/previous` symlink promotion |
-| Backup | R2 snapshots → OCI selected copy |
-| Agent dependency | 产品任务依赖 Codex；status/self-heal/backup 不依赖 Agent/token |
-| Status | healthy/degraded/stopped/not_verified |
+| `name` | CyberBoss Cloud |
+| `url` | `https://cyberboss.linzezhang.com` |
+| `parts` | `["前台", "后台"]` |
+| `host` | OVH Singapore VPS-1 |
+| `db` | Private-MetaDatabase + SQLite spool |
+| `store` | R2 + OCI |
+| `deploy` | systemd immutable release |
+| `backup` | R2 snapshots → OCI selected copy |
+| `agent` | `中` |
+| `notify` | `无` until a real notifier is configured |
+| `status` | fresh healthy/degraded Access-protected service → `access`; stale/stopped/not-verified → `down` |
+
+The page contract also recognizes `run`, but CyberBoss must not use it while its
+route is Access-protected. Adding the actual row is a later online activation;
+CB-010 only validates the adapter fixture.
 
 ### 7.3 Health Semantics
 
@@ -575,11 +586,11 @@ Shared safeguards for every profile:
 | Area | Target Cap | Action |
 |---|---:|---|
 | Application releases | `candidate + current + previous` / ≤1.5 GB | count-based cleanup after candidate promotion and rollback proof |
-| Workspaces + worktrees | ≤8 GB total | partial/sparse clone, remove completed worktrees |
+| Workspaces + worktrees | constrained 4 GB；tiny 8 GB；standard 12 GB | partial/sparse clone, remove completed worktrees |
 | Node/npm/Codex caches | ≤2 GB | periodic safe cache cleanup |
 | SQLite/state | ≤2 GB | retention/compaction/snapshot |
-| Logs | 250–500 MB | journald/app rotation |
-| Snapshots/tmp | ≤2 GB | hash-verified upload plus count/size-based cleanup; TTL logic only under virtual-clock tests |
+| Logs | constrained 150 MB；tiny 300 MB；standard 500 MB | journald/app rotation |
+| Snapshots/tmp | constrained 512 MB；tiny 1 GB；standard 2 GB | hash-verified upload plus count/size-based cleanup; TTL logic only under virtual-clock tests |
 | Host reserve | computed by live preflight | select constrained/tiny/standard profile; clean reconstructable cache; only refuse a new mutation when protect predicate is true |
 
 ### 8.3 Throughput

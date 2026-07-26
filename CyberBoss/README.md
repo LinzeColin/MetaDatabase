@@ -9,9 +9,10 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 下一 Run：`P0.2 / CB-010`，只读测量 OVH 与现有 Status 基线
-- Stage 0–5 任务状态：`CB-000` 已通过；其余 29 项与 PG-0–PG-5
-  均为 `not_started`
+- 当前 Run：`P0.2 / CB-010`，repo-local 与公开 Status 只读工作已通过，
+  因缺少明确授权的 OVH 目标而为 `activation_pending`
+- Stage 0–5 任务状态：`CB-000` 已通过；`CB-010` 为
+  `activation_pending`；其余 28 项与 PG-0–PG-5 均为 `not_started`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
 ## 唯一身份
@@ -34,6 +35,11 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 每个 Run 最多执行一个 TaskPack `phase`。Run 结束必须运行对应 Acceptance，
 更新 `task_state.json` 与 `HANDOFF.md`；不得用意图、文档声明或窄测试代替真实证据。
+
+当前 CB-010 只缺同一授权 OVH 主机的三次即时脱敏 preflight 与一次有界
+induced-load/cgroup snapshot。公开 Status 聚合值和本地容器 fixture 均不得
+替代该实机证据；实机 pressure 还需在只读 baseline 安全后另行明确授权。在此
+之前不进入 P0.3。
 
 ## 许可证
 

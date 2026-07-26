@@ -10,8 +10,10 @@
 
 ## Current state
 
-`PS0.1` and `P0.1 / CB-000` passed. `CB-000` is the only completed TaskPack
-task; the other 29 tasks and PG-0–PG-5 remain `not_started`.
+`PS0.1` and `P0.1 / CB-000` passed. `P0.2 / CB-010` has completed all
+repository-local and public read-only work but is `activation_pending` because
+no explicitly authorized OVH target was discoverable. The later 28 tasks and
+PG-0–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources are frozen
 as ordinary-file bundles under `app/` and `vendor/`. Both moving Git
@@ -39,6 +41,10 @@ received, and none may be claimed.
   `machine/source-lock.json`
 - CB-000 evidence:
   `docs/evidence/CB-000/`
+- CB-010 evidence:
+  `docs/evidence/CB-010/`
+- Current Run Contract:
+  `docs/governance/RUN_CONTRACT_P0_2_CB_010.md`
 - Provenance:
   `UPSTREAM_PROVENANCE.md` and `THIRD_PARTY_NOTICES.md`
 - PS0.1 evidence:
@@ -59,6 +65,19 @@ received, and none may be claimed.
   1,000/100/100/20 reliability checks: passed.
 - `validate_cb000.py`, `validate_prestage0.py`, manifests, final Git scope and
   publication checks: passed.
+- Resource profile tests: 6/6 passed; safe outputs are sourceable/mode-bounded
+  and unsafe writer fails closed.
+- Clean-shell preflight contract: three immediate snapshots, no live command,
+  no persistent host write and no real-time wait.
+- Bounded local-container pressure ladder: recover → warn/protect → recover,
+  finite cgroup limit and zero observed OOM-kill delta. It is explicitly not
+  live OVH evidence.
+- Existing public Status contract: both read-only endpoints returned 200;
+  current `projects[]` has 11 required fields, 8 rows and zero CyberBoss rows.
+  Status adapter contract tests: 7/7 passed, including hostile-field
+  sanitization.
+- `validate_cb010.py`: repository-local result passes with
+  `task_state=activation_pending` after the final validation run.
 
 ## Known unknowns
 
@@ -67,20 +86,33 @@ received, and none may be claimed.
   activated in CB-000.
 - The protocol baseline proves schema compatibility and unit behavior, not a
   production Runtime activation.
-- OVH capacity, current ports/processes/filesystems and existing Status
-  contract remain unmeasured until CB-010 has authorized read-only access.
+- The public Status row contract is measured, but OVH total/available memory,
+  swap, ports, processes, units, containers, filesystems/inodes, canonical-path
+  conflicts and ingestion location remain unmeasured.
+- A live `constrained`, `tiny` or `standard` choice must not be asserted until
+  the same authorized host supplies its redacted preflight and bounded
+  induced-load/cgroup snapshot.
 
 ## Next Run
 
-Execute exactly one phase: `P0.2 / CB-010`.
+Resume exactly one phase: `P0.2 / CB-010`.
+
+Required inputs:
+
+1. one explicitly authorized OVH SSH host alias; do not send or inspect
+   secret/key contents, and do not infer the target from a public address;
+2. a separate explicit decision on whether the bounded live fixture may allocate
+   at most 16 MiB RAM and write/clean 8 MiB temporary disk after the read-only
+   baseline proves it safe. The existing “read-only preparation” instruction
+   does not grant that permission.
 
 Required outcome: collect redacted read-only OVH resource/port/process/storage
-evidence, inspect the existing Status contract, select a safe capacity profile
-and prove proposed paths/ports do not conflict. Use three immediate snapshots
-and one induced-load fixture; do not use a real-time waiting window.
+evidence, select a safe capacity profile and prove proposed paths/ports do not
+conflict. Use three immediate snapshots and one bounded induced-load/cgroup
+snapshot; do not use a real-time waiting window.
 
 Stop before mutating unrelated services, requiring unsafe cleanup, exposing
 credentials/data, or choosing a profile that can harm an existing critical
-service. If live access is unavailable, keep only that evidence
+service. If live access remains unavailable, keep CB-010
 `activation_pending`; do not fabricate measurements. Do not start `P0.3`,
-push, create a PR/tag or deploy in that Run.
+push, create a PR/tag or deploy.

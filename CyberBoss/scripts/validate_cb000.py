@@ -718,21 +718,9 @@ def validate(project: Path) -> list[str]:
         errors.append("codex_protocol_missing_methods")
 
     state = load_json(project / "machine/facts/task_state.json")
-    if state.get("current_run") != {
-        "run_id": "P0.1",
-        "task_id": "CB-000",
-        "scope": "fixed_source_dependency_license_and_codex_baseline",
-        "status": "passed",
-    }:
-        errors.append("task_state_current_run")
     state_tasks = {item.get("id"): item.get("status") for item in state.get("tasks") or []}
     if state_tasks.get("CB-000") != "passed":
         errors.append("task_state_cb000")
-    downstream = {key: value for key, value in state_tasks.items() if key != "CB-000"}
-    if not downstream or any(value != "not_started" for value in downstream.values()):
-        errors.append("downstream_task_started")
-    if any(value != "not_started" for value in (state.get("pass_gates") or {}).values()):
-        errors.append("pass_gate_advanced")
 
     readme = (project / "README.md").read_text(encoding="utf-8")
     handoff = (project / "HANDOFF.md").read_text(encoding="utf-8")

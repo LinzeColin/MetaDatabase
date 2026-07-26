@@ -1,5 +1,20 @@
 # Changelog
 
+## P0.2 / CB-010 activation-pending checkpoint — 2026-07-26
+
+- Added a fail-closed `constrained`/`tiny`/`standard` resource calculator with
+  dynamic memory reserve, disk caps and protect/recover predicates.
+- Rebuilt the read-only preflight around three immediate redacted snapshots and
+  added a deterministic clean-shell `--check`.
+- Added a bounded memory/disk/queue pressure fixture and captured local
+  finite-cgroup evidence with zero observed OOM-kill delta; it is explicitly
+  not claimed as OVH evidence.
+- Observed the public Status page/snapshot read-only and aligned the adapter
+  fixture to its current 11-field `projects[]` contract.
+- Added executable Python/Node contract suites and CB-010 validation.
+- Kept the task `activation_pending`: no authorized OVH target was available,
+  no live profile was asserted, and no host or online Status mutation occurred.
+
 ## P0.1 / CB-000 — 2026-07-26
 
 - Imported exact ordinary-file source bundles for CyberBoss,

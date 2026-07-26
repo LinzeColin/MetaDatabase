@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "observed_on": "2026-07-26",
+  "source_page": "https://status.linzezhang.com/",
+  "source_snapshot": "https://status.linzezhang.com/data/snapshot.json",
+  "projects_path": "projects[]",
+  "required_fields": [
+    "name",
+    "url",
+    "parts",
+    "host",
+    "db",
+    "store",
+    "deploy",
+    "backup",
+    "agent",
+    "notify",
+    "status"
+  ],
+  "field_types": {
+    "name": "string",
+    "url": "string",
+    "parts": "array",
+    "host": "string",
+    "db": "string",
+    "store": "string",
+    "deploy": "string",
+    "backup": "string",
+    "agent": "string",
+    "notify": "string",
+    "status": "string"
+  },
+  "allowed_part_values": ["前台", "后台"],
+  "allowed_agent_values": ["无", "低", "中"],
+  "allowed_status_values": ["run", "access", "down"],
+  "cyberboss_row_present_at_observation": false,
+  "online_mutation_authorized_by_cb010": false
+}

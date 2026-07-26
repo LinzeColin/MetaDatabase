@@ -30,7 +30,11 @@ for f in implementation-kit/scripts/*.sh implementation-kit/simulators/*.sh; do
 done
 node --check implementation-kit/status/generate-status.js
 node --check implementation-kit/status/global-status-adapter.js
+node --test implementation-kit/tests/status-adapter-contract.test.js
 node --check implementation-kit/simulators/weixin-ilink-simulator.mjs
+bash implementation-kit/scripts/preflight.sh --check
+python3 implementation-kit/tests/test_resource_profile.py
+python3 implementation-kit/scripts/resource-pressure-fixture.py
 
 db="$(mktemp)"
 sqlite3 "$db" < implementation-kit/sql/runtime-spool.sql
@@ -44,11 +48,15 @@ python implementation-kit/tests/accelerated_reliability.py \
 
 ```bash
 sudo implementation-kit/scripts/bootstrap-host.sh --apply
-sudo implementation-kit/scripts/preflight.sh
+implementation-kit/scripts/preflight.sh
 sudo implementation-kit/scripts/select-resource-profile.sh \
   --write /etc/cyberboss/resource-profile.env \
   --systemd-dropin /etc/systemd/system/cyberboss-cloud.service.d/20-resource-profile.conf
 ```
+
+`preflight.sh` 只读并输出三次即时脱敏 snapshot；profile writer 在安全预算不足时
+拒绝写入。任何本地或容器 pressure 结果都不能替代同一获授权 OVH 主机的基线与
+有界 induced-load/cgroup 证据。
 
 之后按 `06_OPERATIONS_STATUS_HANDOVER.md` 从 `CB_INCOMING_ROOT` 内的已校验本地制品安装
 candidate release。真实凭据缺失时不等待：运行 simulator、完成其余代码和部署槽位，

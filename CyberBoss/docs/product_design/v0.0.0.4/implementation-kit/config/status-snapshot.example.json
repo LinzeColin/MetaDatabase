@@ -1,5 +1,6 @@
 {
   "schema_version": "1.0",
+  "generation_id": "00000000-0000-4000-8000-000000000000",
   "generated_at": "2026-07-26T00:00:00Z",
   "service": {"name": "cyberboss-cloud", "state": "not_verified", "version": "0.0.0.4", "source_commit": "unknown", "deployment": "ovh-singapore", "uptime_seconds": 0},
   "wechat": {"state": "unknown", "last_poll_success_at": null, "poll_age_seconds": null, "last_inbound_at": null, "last_outbound_confirmed_at": null, "outbox_pending": 0, "outbox_failed": 0},

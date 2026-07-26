@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { randomUUID } = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 
 const db = process.env.CB_RUNTIME_DB || '/var/lib/cyberboss/runtime.db';
@@ -112,6 +113,7 @@ const syncPending = number("SELECT COUNT(*) FROM sync_spool WHERE status IN ('pe
 
 const snapshot = {
   schema_version: '1.0',
+  generation_id: randomUUID(),
   generated_at: now.toISOString(),
   service: {
     name: 'cyberboss-cloud',
