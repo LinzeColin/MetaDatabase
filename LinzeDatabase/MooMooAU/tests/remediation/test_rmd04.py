@@ -643,7 +643,21 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.26":
+    if status["package_version"] == "1.0.27":
+        assert status["dimensions"]["protected_oracles"] == {
+            "status": "FAILED",
+            "declared": 43,
+            "executed": 5,
+            "passed": 4,
+            "failed": 1,
+            "not_run": 38,
+        }
+        assert status["dimensions"]["publication"] == {
+            "status": "CONTROLLED_T0705_APP_SCOPE_ACTIVATION_RECOVERY_CANDIDATE_NOT_FINAL",
+            "controlled_main_deliveries": 25,
+            "remote_publications": 0,
+        }
+    elif status["package_version"] == "1.0.26":
         assert status["dimensions"]["protected_oracles"] == {
             "status": "FAILED",
             "declared": 43,

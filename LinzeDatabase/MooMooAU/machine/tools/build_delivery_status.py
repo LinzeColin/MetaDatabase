@@ -105,6 +105,12 @@ PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_PATH = Path(
 PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-pointer-fetch-attempt-ledger-v1.schema.json"
 )
+PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/pointer-blob-attempt-ledger.json"
+)
+PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-pointer-blob-attempt-ledger-v1.schema.json"
+)
 STAGE7_RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
 
 
@@ -938,6 +944,110 @@ def _protected_ga_pointer_fetch_attempt_ledger(root: Path) -> dict[str, Any] | N
     return cast(dict[str, Any], ledger)
 
 
+def _protected_ga_pointer_blob_attempt_ledger(root: Path) -> dict[str, Any] | None:
+    path = root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH
+    if not path.exists():
+        return None
+    schema_path = root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        raise ValueError("protected GA pointer-blob attempt ledger path is unsafe")
+    ledger = _load(path)
+    schema = _load(schema_path)
+    if (
+        _sha256(path)
+        != "092f5a580d905213066a99221f51b9065748dceeb82e48e20b54ed42e82d444f"  # pragma: allowlist secret  # noqa: E501
+        or _sha256(schema_path)
+        != "2945fb030f4154da1d18142f5b239a5b824126010d8dbcc9ae92b7a973f089ab"  # pragma: allowlist secret  # noqa: E501
+        or list(
+            Draft202012Validator(
+                schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ledger)
+        )
+    ):
+        raise ValueError("protected GA pointer-blob attempt ledger violates its exact schema")
+    attempt = ledger.get("attempts", [{}])[0]
+    delivery = attempt.get("delivery", {})
+    workflow = attempt.get("workflow", {})
+    jobs = attempt.get("jobs", {})
+    failure = attempt.get("public_failure", {})
+    effects = attempt.get("effects", {})
+    transition = attempt.get("external_state_transition", {})
+    diagnosis = attempt.get("diagnosis", {})
+    policy = ledger.get("completion_policy", {})
+    claims = ledger.get("claims", {})
+    if (
+        attempt.get("sequence") != 8
+        or delivery.get("pull_request_number") != 123
+        or delivery.get("merge_commit_sha")
+        != "8b6faaf9059661edc3153352b8787ddbc4f733f3"  # pragma: allowlist secret
+        or delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
+        or workflow.get("run_id") != 30199215335
+        or workflow.get("run_attempt") != 1
+        or workflow.get("reruns") != 0
+        or jobs.get("authority_gate", {}).get("status") != "PASS"
+        or jobs.get("ga_schedule_rehearsal", {}).get("status") != "FAILED"
+        or jobs.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+        or jobs.get("live_schedule_hold", {}).get("status") != "SKIPPED"
+        or failure.get("reason_code") != "PROTECTED_GA_FIRST_IMPORT_POINTER_FETCH_FAILED"
+        or failure.get("failure_phase") != "FIRST_IMPORT_POINTER_FETCH"
+        or failure.get("exact_root_cause_claimed") is not False
+        or any(
+            effects.get(key) != 0
+            for key in (
+                "private_repository_new_commits_during_attempt",
+                "private_repository_added_paths",
+                "private_repository_modified_paths",
+                "private_repository_removed_paths",
+                "raw_ciphertext_creations",
+                "processed_immutable_creations",
+                "processed_current_pointer_mutations",
+                "timeline_snapshot_mutations",
+                "timeline_state_mutations",
+                "timeline_publish_attempts",
+                "gmail_checkpoint_mutations",
+                "gmail_source_mutations",
+                "platform_schedule_events",
+            )
+        )
+        or effects.get("matching_private_repositories") != 1
+        or effects.get("private_repository_head_changed") is not False
+        or effects.get("gmail_mutation_api_reached") is not False
+        or effects.get("identity_plaintext_cleanup") != "PASS"
+        or effects.get("one_shot_authority_variable_after_dispatch") != "ABSENT"
+        or effects.get("production_enablement_variable_after_dispatch") != "ABSENT"
+        or transition.get("occurred_after_failed_attempt") is not True
+        or transition.get(
+            "owner_confirmed_github_app_linked_to_existing_single_private_data_repository"
+        )
+        is not True
+        or transition.get("runtime_installation_repository_scope_verification")
+        != "PENDING_NEW_EXACT_HEAD_PROTECTED_ORACLE"
+        or transition.get("retroactive_root_cause_attribution") is not False
+        or transition.get("new_private_repository_created") is not False
+        or transition.get("new_github_app_created") is not False
+        or diagnosis.get("exact_runtime_exception") != "NOT_RECEIVED_OR_INSPECTED"
+        or diagnosis.get("exact_root_cause") != "UNKNOWN"
+        or diagnosis.get("exact_root_cause_claimed") is not False
+        or policy.get("same_head_rerun_allowed") is not False
+        or policy.get("failed_head_redispatch_allowed") is not False
+        or policy.get("exact_app_repository_scope_activation_candidate_allowed") is not True
+        or policy.get("next_candidate_dispatch_limit") != 1
+        or policy.get("historical_ga_rehearsal_dispatches_consumed") != 8
+        or policy.get("historical_ga_rehearsal_reruns") != 0
+        or policy.get("t0705_complete") is not False
+        or policy.get("t0706_authorized") is not False
+        or any(value is not False for value in claims.values())
+    ):
+        raise ValueError("protected GA pointer-blob attempt ledger is not exact")
+    return cast(dict[str, Any], ledger)
+
+
 def _t0705_repair_authorized(root: Path) -> bool:
     path = root / STAGE7_RUN_CONTRACT_PATH
     first_ledger_path = root / PROTECTED_GA_ATTEMPT_LEDGER_PATH
@@ -954,6 +1064,8 @@ def _t0705_repair_authorized(root: Path) -> bool:
     sixth_schema_path = root / PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_SCHEMA_PATH
     seventh_ledger_path = root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_PATH
     seventh_schema_path = root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_PATH
+    eighth_ledger_path = root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH
+    eighth_schema_path = root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH
     if (
         not path.is_file()
         or path.is_symlink()
@@ -985,6 +1097,10 @@ def _t0705_repair_authorized(root: Path) -> bool:
         or seventh_ledger_path.is_symlink()
         or not seventh_schema_path.is_file()
         or seventh_schema_path.is_symlink()
+        or not eighth_ledger_path.is_file()
+        or eighth_ledger_path.is_symlink()
+        or not eighth_schema_path.is_file()
+        or eighth_schema_path.is_symlink()
     ):
         return False
     contract = _load(path)
@@ -995,14 +1111,14 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "2133673b335a384657c8668b62a1c13055c212cd"  # pragma: allowlist secret
+        == "8b6faaf9059661edc3153352b8787ddbc4f733f3"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "ea2ff510ccd929aa4b99dfb49ebbc90184f6cfcfc75ede846a167c502face3a9"  # pragma: allowlist secret  # noqa: E501
+        == "3026fdd7c7a59260b8ed7e68288875f8dc12a99d6b096478168d55012407440d"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_POINTER_BLOB_RECOVERY_REPAIR_AND_ENABLEMENT_ONLY"
+        == "T0705_PROTECTED_GA_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_AND_ENABLEMENT_ONLY"
         and authorization.get("prior_run_contract_sha256")
-        == "c48313bac0a9c3003d80188aa47f4022a33919508f780efa6942868845e3bf85"  # pragma: allowlist secret  # noqa: E501
-        and authorization.get("failed_attempt_ledgers_required") == 7
+        == "2220fb87d2bd089242254b998786aeae4ddd1d83f62bec26d9140af562a1b07d"  # pragma: allowlist secret  # noqa: E501
+        and authorization.get("failed_attempt_ledgers_required") == 8
         and authorization.get("first_failed_attempt_ledger_sha256") == _sha256(first_ledger_path)
         and authorization.get("first_failed_attempt_ledger_schema_sha256")
         == _sha256(first_schema_path)
@@ -1025,6 +1141,9 @@ def _t0705_repair_authorized(root: Path) -> bool:
         == _sha256(seventh_ledger_path)
         and authorization.get("seventh_failed_attempt_ledger_schema_sha256")
         == _sha256(seventh_schema_path)
+        and authorization.get("eighth_failed_attempt_ledger_sha256") == _sha256(eighth_ledger_path)
+        and authorization.get("eighth_failed_attempt_ledger_schema_sha256")
+        == _sha256(eighth_schema_path)
         and authorization.get("failed_workflow_head_shas")
         == [
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
@@ -1034,19 +1153,21 @@ def _t0705_repair_authorized(root: Path) -> bool:
             "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",  # pragma: allowlist secret
             "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",  # pragma: allowlist secret
             "2133673b335a384657c8668b62a1c13055c212cd",  # pragma: allowlist secret
+            "8b6faaf9059661edc3153352b8787ddbc4f733f3",  # pragma: allowlist secret
         ]
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 9
-        and authorization.get("controlled_main_deliveries_consumed") == 7
+        and authorization.get("controlled_main_delivery_total_limit") == 10
+        and authorization.get("controlled_main_deliveries_consumed") == 8
         and authorization.get("controlled_main_deliveries_remaining") == 2
-        and authorization.get("ga_rehearsal_dispatches_consumed") == 7
+        and authorization.get("ga_rehearsal_dispatches_consumed") == 8
         and authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and authorization.get("ga_label_replay_repair_dispatches_consumed") == 1
         and authorization.get("ga_phase_diagnostic_dispatches_consumed") == 1
         and authorization.get("ga_processed_plan_diagnostic_dispatches_consumed") == 1
         and authorization.get("ga_first_import_diagnostic_dispatches_consumed") == 1
-        and authorization.get("ga_exact_repair_or_pass_closure_dispatch_limit") == 1
+        and authorization.get("ga_exact_pointer_blob_repair_dispatches_consumed") == 1
+        and authorization.get("ga_app_repository_scope_activation_dispatch_limit") == 1
         and authorization.get("ga_first_import_diagnostic_rerun_limit") == 0
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256")
@@ -1056,23 +1177,26 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
         and authorization.get("final_publication_authorized") is False
-        and budget.get("controlled_main_deliveries_total_maximum") == 9
+        and budget.get("controlled_main_deliveries_total_maximum") == 10
         and budget.get("controlled_main_deliveries_remaining_maximum") == 2
         and budget.get("protected_environment_secret_names_maximum") == 8
-        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 8
-        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 7
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 9
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 8
         and budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_label_replay_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_phase_diagnostic_dispatches_consumed") == 1
         and budget.get("protected_ga_processed_plan_diagnostic_dispatches_consumed") == 1
         and budget.get("protected_ga_first_import_diagnostic_dispatches_maximum") == 1
         and budget.get("protected_ga_first_import_diagnostic_dispatches_consumed") == 1
-        and budget.get("protected_ga_exact_repair_or_pass_closure_dispatches_maximum") == 1
+        and budget.get("protected_ga_exact_pointer_blob_repair_dispatches_maximum") == 1
+        and budget.get("protected_ga_exact_pointer_blob_repair_dispatches_consumed") == 1
+        and budget.get("protected_ga_app_repository_scope_activation_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
         and budget.get("failed_head_reruns_maximum") == 0
         and budget.get("failed_head_redispatches_maximum") == 0
         and budget.get("protected_ga_first_import_diagnostic_pipeline_runs_maximum") == 1
-        and budget.get("protected_ga_exact_repair_or_pass_closure_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_exact_pointer_blob_repair_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_app_repository_scope_activation_pipeline_runs_maximum") == 1
         and budget.get("gmail_exact_message_trash_mutations_maximum") == 1
         and budget.get("maximum_live_timeline_assets") == 1
         and budget.get("production_schedule_enablement_mutations_maximum") == 1
@@ -1552,6 +1676,7 @@ def _validate_composition_for_state(
                 "1.0.24",
                 "1.0.25",
                 "1.0.26",
+                "1.0.27",
             },
         ),
     )
@@ -1689,6 +1814,7 @@ def _validate_stage6_evidence_transition(
         "1.0.24",
         "1.0.25",
         "1.0.26",
+        "1.0.27",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
@@ -1727,6 +1853,7 @@ def build_status(
     protected_ga_processed_plan_attempt_ledger = _protected_ga_processed_plan_attempt_ledger(root)
     protected_ga_first_import_attempt_ledger = _protected_ga_first_import_attempt_ledger(root)
     protected_ga_pointer_fetch_attempt_ledger = _protected_ga_pointer_fetch_attempt_ledger(root)
+    protected_ga_pointer_blob_attempt_ledger = _protected_ga_pointer_blob_attempt_ledger(root)
     state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
@@ -1845,6 +1972,8 @@ def build_status(
         observed_at.append(str(protected_ga_first_import_attempt_ledger["observed_through_utc"]))
     if protected_ga_pointer_fetch_attempt_ledger is not None:
         observed_at.append(str(protected_ga_pointer_fetch_attempt_ledger["observed_through_utc"]))
+    if protected_ga_pointer_blob_attempt_ledger is not None:
+        observed_at.append(str(protected_ga_pointer_blob_attempt_ledger["observed_through_utc"]))
     formal_counts = Counter(task["status"] for task in tasks)
     if formal_counts != Counter({"completed": 7, "planned": 51}):
         raise ValueError("formal task status is not the inherited 7 completed / 51 planned state")
@@ -2071,24 +2200,27 @@ def build_status(
             or protected_ga_processed_plan_attempt_ledger is None
             or protected_ga_first_import_attempt_ledger is None
             or protected_ga_pointer_fetch_attempt_ledger is None
+            or protected_ga_pointer_blob_attempt_ledger is None
             or protected_executed != 5
             or protected_passed != 4
             or protected_failed != 1
         ):
             raise ValueError(
-                "T0705 pointer-blob recovery repair authority lacks its exact failed lineage"
+                "T0705 App repository-scope recovery authority lacks its exact failed lineage"
             )
         production_reasons = [
             "FORMAL_TASKS_INCOMPLETE",
-            "T0705_POINTER_BLOB_RECOVERY_REPAIR_PENDING",
+            "T0705_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_PENDING",
             "FINAL_ACCEPTANCE_BLOCKED",
             "PRODUCTION_SCHEDULE_DISABLED",
         ]
-        overall_status = "PROTECTED_GA_SEVENTH_ATTEMPT_FAILED_POINTER_BLOB_REPAIR_AUTHORIZED"
+        overall_status = (
+            "PROTECTED_GA_EIGHTH_ATTEMPT_FAILED_APP_SCOPE_ACTIVATION_RECOVERY_AUTHORIZED"
+        )
         protected_status = "FAILED"
-        production_workflow_runs = 7
-        publication_status = "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL"
-        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_SEVEN_T0705_FAILURES"
+        production_workflow_runs = 8
+        publication_status = "CONTROLLED_T0705_APP_SCOPE_ACTIVATION_RECOVERY_CANDIDATE_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_EIGHT_T0705_FAILURES"
     elif passed_t0704_state:
         if (
             protected_receipt is None
@@ -2194,6 +2326,10 @@ def build_status(
         source_digests["protected_ga_pointer_fetch_attempt_ledger_sha256"] = _sha256(
             root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_PATH
         )
+    if protected_ga_pointer_blob_attempt_ledger is not None:
+        source_digests["protected_ga_pointer_blob_attempt_ledger_sha256"] = _sha256(
+            root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH
+        )
 
     return {
         "schema_version": "moomooau.delivery-status.v1",
@@ -2260,7 +2396,7 @@ def build_status(
                         else 0
                     )
                     + (1 if protected_blue_green_receipt is not None else 0)
-                    + (7 if repair_t0705_state else (1 if authorized_t0705_state else 0))
+                    + (8 if repair_t0705_state else (1 if authorized_t0705_state else 0))
                     if protected_receipt is not None
                     else 0
                 ),

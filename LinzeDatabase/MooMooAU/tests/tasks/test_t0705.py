@@ -812,10 +812,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
-    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 7
+    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 8
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
-    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 7
+    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 8
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 

@@ -1,0 +1,167 @@
+{
+  "schema_version": "moomooau.protected-ga-pointer-blob-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "observed_through_utc": "2026-07-26T11:12:44Z",
+  "predecessor_control": {
+    "prior_run_contract_sha256": "2220fb87d2bd089242254b998786aeae4ddd1d83f62bec26d9140af562a1b07d",
+    "seventh_attempt_ledger_sha256": "18d2e1cc29182dea7a94b25d25072d15cbc0ac91b091685faba69bcaa7532066",
+    "seventh_attempt_ledger_schema_sha256": "801e1e44299115958bc838cc6c8e04c45f482a5ee50567345f22ad2295db83d2",
+    "prior_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+      "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+      "2133673b335a384657c8668b62a1c13055c212cd"
+    ],
+    "prior_failed_head_dispatches_after_freeze": 0,
+    "prior_failed_head_reruns_after_freeze": 0
+  },
+  "attempts": [
+    {
+      "sequence": 8,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 123,
+        "pull_request_head_sha": "9858f9f091363ac21e9ebc4a24ceaa073c180521",
+        "merge_commit_parent_sha": "2133673b335a384657c8668b62a1c13055c212cd",
+        "merge_commit_sha": "8b6faaf9059661edc3153352b8787ddbc4f733f3",
+        "merged_at_utc": "2026-07-26T10:56:54Z",
+        "terminal_checks": 40,
+        "successful_checks": 35,
+        "failed_checks": 0,
+        "skipped_checks": 5,
+        "neutral_checks": 0
+      },
+      "workflow": {
+        "run_id": 30199215335,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30199215335",
+        "workflow_id": 318812500,
+        "event": "workflow_dispatch",
+        "workflow_ref": "refs/heads/main",
+        "workflow_head_sha": "8b6faaf9059661edc3153352b8787ddbc4f733f3",
+        "run_attempt": 1,
+        "reruns": 0,
+        "started_at_utc": "2026-07-26T10:57:29Z",
+        "completed_at_utc": "2026-07-26T11:02:22Z"
+      },
+      "jobs": {
+        "authority_gate": {
+          "job_id": 89786147817,
+          "status": "PASS",
+          "started_at_utc": "2026-07-26T10:57:35Z",
+          "completed_at_utc": "2026-07-26T10:59:00Z"
+        },
+        "ga_schedule_rehearsal": {
+          "job_id": 89786263704,
+          "status": "FAILED",
+          "started_at_utc": "2026-07-26T10:59:05Z",
+          "completed_at_utc": "2026-07-26T11:02:21Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-26T11:02:18Z"
+        },
+        "live_schedule_hold": {
+          "job_id": 89786147987,
+          "status": "SKIPPED",
+          "completed_at_utc": "2026-07-26T10:57:31Z"
+        }
+      },
+      "public_failure": {
+        "schema_version": "moomooau.protected-ga-public-failure.v1",
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_GA_FIRST_IMPORT_POINTER_FETCH_FAILED",
+        "failure_phase": "FIRST_IMPORT_POINTER_FETCH",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "diagnostic_taxonomy": "moomooau.protected-ga-failure-taxonomy.v1",
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "platform_schedule_event_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "matching_private_repositories": 1,
+        "private_repository_head_changed": false,
+        "private_repository_new_commits_during_attempt": 0,
+        "private_repository_added_paths": 0,
+        "private_repository_modified_paths": 0,
+        "private_repository_removed_paths": 0,
+        "raw_ciphertext_creations": 0,
+        "processed_immutable_creations": 0,
+        "processed_current_pointer_mutations": 0,
+        "timeline_snapshot_mutations": 0,
+        "timeline_state_mutations": 0,
+        "timeline_publish_attempts": 0,
+        "gmail_checkpoint_mutations": 0,
+        "gmail_source_mutations": 0,
+        "gmail_mutation_api_reached": false,
+        "platform_schedule_events": 0,
+        "identity_plaintext_cleanup": "PASS",
+        "one_shot_authority_variable_after_dispatch": "ABSENT",
+        "production_enablement_variable_after_dispatch": "ABSENT",
+        "protected_environment_secret_names": 8,
+        "exact_private_locator_disclosed": false,
+        "exact_private_path_disclosed": false,
+        "exact_source_identifier_disclosed": false,
+        "exact_mailbox_counts_disclosed": false
+      },
+      "external_state_transition": {
+        "occurred_after_failed_attempt": true,
+        "owner_statement_observed_at_utc": "2026-07-26T11:12:44Z",
+        "owner_confirmed_github_app_linked_to_existing_single_private_data_repository": true,
+        "runtime_installation_repository_scope_verification": "PENDING_NEW_EXACT_HEAD_PROTECTED_ORACLE",
+        "retroactive_root_cause_attribution": false,
+        "new_private_repository_created": false,
+        "new_github_app_created": false,
+        "private_repository_locator_disclosed": false
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "WITHIN_FIRST_IMPORT_POINTER_FETCH_BEFORE_POINTER_DECRYPT_OR_ANY_NEW_PROCESSED_WRITE_OR_GMAIL_MUTATION",
+        "exact_runtime_exception": "NOT_RECEIVED_OR_INSPECTED",
+        "exact_root_cause": "UNKNOWN",
+        "exact_root_cause_claimed": false,
+        "safe_next_action": "NEW_EXACT_HEAD_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_REHEARSAL",
+        "basis": [
+          "the protected failure payload contains only the fixed FIRST_IMPORT_POINTER_FETCH phase, UNCLASSIFIED installation-token failure class and explicit non-disclosure claims",
+          "authority and plaintext cleanup passed, the protected GA step failed, the live schedule hold remained skipped and the eighth failed head remains attempt 1 with rerun zero",
+          "read-only private-repository verification observed one matching repository, no private-repository commit during the eighth attempt and no new private path state",
+          "committed runner ordering reaches pointer fetch before pointer decrypt, any new Processed write, Timeline, checkpoint or Gmail mutation",
+          "the owner confirmed after the failed run that the already installed GitHub App is now linked to the existing single private data repository",
+          "the owner statement is a new external-state precondition and is not used to claim the exact cause of the prior protected failure",
+          "the next exact head must verify installation repository scope inside the protected runner before Gmail credential exchange or any data-plane mutation"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+      "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+      "2133673b335a384657c8668b62a1c13055c212cd",
+      "8b6faaf9059661edc3153352b8787ddbc4f733f3"
+    ],
+    "exact_app_repository_scope_activation_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "historical_ga_rehearsal_dispatches_consumed": 8,
+    "historical_ga_rehearsal_reruns": 0,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_005_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator for the v1.0.26 protected T0705 pointer-blob repair package."""
+"""Read-only validator for the v1.0.27 protected T0705 App scope recovery package."""
 
 from __future__ import annotations
 
@@ -30,12 +30,12 @@ from jsonschema import Draft202012Validator, FormatChecker
 from validate_delivery_status import validate as validate_delivery_status
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.26.json")
+PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.27.json")
 CURRENT_MAINLINE_BASE_COMMIT = (
-    "2133673b335a384657c8668b62a1c13055c212cd"  # pragma: allowlist secret
+    "8b6faaf9059661edc3153352b8787ddbc4f733f3"  # pragma: allowlist secret
 )
 ACCEPTANCE_REMEDIATION_BASE_COMMIT = (
-    "2133673b335a384657c8668b62a1c13055c212cd"  # pragma: allowlist secret
+    "8b6faaf9059661edc3153352b8787ddbc4f733f3"  # pragma: allowlist secret
 )
 T0704_PASS_MAIN_COMMIT = "65cef09935475ab578d28a61817cc92700d6da04"  # pragma: allowlist secret
 CANDIDATE_SNAPSHOT = {
@@ -100,15 +100,22 @@ PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_PATH = Path(
 PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-pointer-fetch-attempt-ledger-v1.schema.json"
 )
+PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/pointer-blob-attempt-ledger.json"
+)
+PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-pointer-blob-attempt-ledger-v1.schema.json"
+)
 T0705_RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
 AUTHORIZATION_BASIS = (
-    "The exact protected T0702, T0703 and T0704 PASS receipts, all seven immutable T0705 "
+    "The exact protected T0702, T0703 and T0704 PASS receipts, all eight immutable T0705 "
     "failed-attempt ledgers, owner no-time-gate direction and one-task successor Run Contract "
-    "freeze all seven failed heads and authorize exactly one new T0705 exact-main pointer-blob "
-    "recovery repair schedule-mode rehearsal without authorizing T0706 or final publication"
+    "freeze all eight failed heads and authorize exactly one new T0705 exact-main App "
+    "repository-scope activation recovery schedule-mode rehearsal without authorizing T0706 "
+    "or final publication"
 )
 AUTHORIZED_SCOPE = (
-    "One T0705 pointer-blob recovery repair candidate: never rerun or "
+    "One T0705 App repository-scope activation recovery candidate: never rerun or "
     "redispatch failed heads "
     "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f, "
     "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0 or "
@@ -116,12 +123,15 @@ AUTHORIZED_SCOPE = (
     "4c207ad539754166fae6642ff4e6850438d3e2fc or "
     "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4 or "
     "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7 or "
-    "2133673b335a384657c8668b62a1c13055c212cd. Recover current pointer bytes from exact raw "
-    "Contents media bound to bounded metadata and canonical Git blob SHA, while "
+    "2133673b335a384657c8668b62a1c13055c212cd or "
+    "8b6faaf9059661edc3153352b8787ddbc4f733f3. Retain current pointer recovery from exact raw "
+    "Contents media bound to bounded metadata and canonical Git blob SHA. Treat the owner's "
+    "post-attempt App-to-repository link confirmation only as a changed external precondition, "
+    "verify exact installation repository scope before Gmail credential exchange, while "
     "preserving "
     "persisted first-import timestamp and label-state replay plus pre-Raw metadata "
     "quarantine, prior pending refs, fail-closed second verification, ACTIVE processing and "
-    "paired-empty SAFE_DEFERRED. Bind all protected predecessor receipts and all seven failed "
+    "paired-empty SAFE_DEFERRED. Bind all protected predecessor receipts and all eight failed "
     "ledgers, reuse the existing "
     "eight-name moomooau-beta Environment and installed GitHub App, refresh live "
     "private-repository capacity before Gmail exchange, then allow one new attempt-1 "
@@ -141,7 +151,7 @@ def _load(path: Path) -> Any:
 
 
 def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
-    """Return the exact RMD-06 and protected T0705 pointer-blob repair authority."""
+    """Return the exact RMD-06 and protected T0705 App scope recovery authority."""
 
     root = root.resolve()
     attempt_ledger = _load(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH)
@@ -178,6 +188,10 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ga_pointer_fetch_ledger = _load(root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_PATH)
     ga_pointer_fetch_ledger_schema = _load(
         root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_PATH
+    )
+    ga_pointer_blob_ledger = _load(root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH)
+    ga_pointer_blob_ledger_schema = _load(
+        root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH
     )
     t0705_contract = _load(root / T0705_RUN_CONTRACT_PATH)
     if (
@@ -977,7 +991,8 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         != "801e1e44299115958bc838cc6c8e04c45f482a5ee50567345f22ad2295db83d2"  # pragma: allowlist secret  # noqa: E501
         or ga_pointer_fetch_attempt.get("sequence") != 7
         or ga_pointer_fetch_delivery.get("pull_request_number") != 122
-        or ga_pointer_fetch_delivery.get("merge_commit_sha") != CURRENT_MAINLINE_BASE_COMMIT
+        or ga_pointer_fetch_delivery.get("merge_commit_sha")
+        != "2133673b335a384657c8668b62a1c13055c212cd"  # pragma: allowlist secret
         or ga_pointer_fetch_delivery.get("merge_commit_sha")
         != ga_pointer_fetch_workflow.get("workflow_head_sha")
         or ga_pointer_fetch_workflow.get("run_id") != 30196968135
@@ -1034,6 +1049,94 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ):
         raise ValueError("protected T0705 pointer-fetch attempt ledger is not exact or frozen")
 
+    ga_pointer_blob_errors = list(
+        Draft202012Validator(
+            ga_pointer_blob_ledger_schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(ga_pointer_blob_ledger)
+    )
+    ga_pointer_blob_attempts = ga_pointer_blob_ledger.get("attempts", [])
+    ga_pointer_blob_attempt = (
+        ga_pointer_blob_attempts[0]
+        if isinstance(ga_pointer_blob_attempts, list) and len(ga_pointer_blob_attempts) == 1
+        else {}
+    )
+    ga_pointer_blob_delivery = ga_pointer_blob_attempt.get("delivery", {})
+    ga_pointer_blob_workflow = ga_pointer_blob_attempt.get("workflow", {})
+    ga_pointer_blob_jobs = ga_pointer_blob_attempt.get("jobs", {})
+    ga_pointer_blob_failure = ga_pointer_blob_attempt.get("public_failure", {})
+    ga_pointer_blob_effects = ga_pointer_blob_attempt.get("effects", {})
+    ga_pointer_blob_transition = ga_pointer_blob_attempt.get("external_state_transition", {})
+    ga_pointer_blob_diagnosis = ga_pointer_blob_attempt.get("diagnosis", {})
+    ga_pointer_blob_policy = ga_pointer_blob_ledger.get("completion_policy", {})
+    ga_pointer_blob_claims = ga_pointer_blob_ledger.get("claims", {})
+    if (
+        ga_pointer_blob_errors
+        or _sha256(root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH)
+        != "092f5a580d905213066a99221f51b9065748dceeb82e48e20b54ed42e82d444f"  # pragma: allowlist secret  # noqa: E501
+        or _sha256(root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH)
+        != "2945fb030f4154da1d18142f5b239a5b824126010d8dbcc9ae92b7a973f089ab"  # pragma: allowlist secret  # noqa: E501
+        or ga_pointer_blob_attempt.get("sequence") != 8
+        or ga_pointer_blob_delivery.get("pull_request_number") != 123
+        or ga_pointer_blob_delivery.get("merge_commit_sha") != CURRENT_MAINLINE_BASE_COMMIT
+        or ga_pointer_blob_delivery.get("merge_commit_sha")
+        != ga_pointer_blob_workflow.get("workflow_head_sha")
+        or ga_pointer_blob_workflow.get("run_id") != 30199215335
+        or ga_pointer_blob_workflow.get("run_attempt") != 1
+        or ga_pointer_blob_workflow.get("reruns") != 0
+        or ga_pointer_blob_jobs.get("authority_gate", {}).get("status") != "PASS"
+        or ga_pointer_blob_jobs.get("ga_schedule_rehearsal", {}).get("status") != "FAILED"
+        or ga_pointer_blob_jobs.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+        or ga_pointer_blob_jobs.get("live_schedule_hold", {}).get("status") != "SKIPPED"
+        or ga_pointer_blob_failure.get("reason_code")
+        != "PROTECTED_GA_FIRST_IMPORT_POINTER_FETCH_FAILED"
+        or ga_pointer_blob_failure.get("failure_phase") != "FIRST_IMPORT_POINTER_FETCH"
+        or ga_pointer_blob_failure.get("exact_root_cause_claimed") is not False
+        or any(
+            ga_pointer_blob_effects.get(key) != 0
+            for key in (
+                "private_repository_new_commits_during_attempt",
+                "private_repository_added_paths",
+                "private_repository_modified_paths",
+                "private_repository_removed_paths",
+                "raw_ciphertext_creations",
+                "processed_immutable_creations",
+                "processed_current_pointer_mutations",
+                "timeline_snapshot_mutations",
+                "timeline_state_mutations",
+                "timeline_publish_attempts",
+                "gmail_checkpoint_mutations",
+                "gmail_source_mutations",
+                "platform_schedule_events",
+            )
+        )
+        or ga_pointer_blob_effects.get("matching_private_repositories") != 1
+        or ga_pointer_blob_effects.get("private_repository_head_changed") is not False
+        or ga_pointer_blob_effects.get("gmail_mutation_api_reached") is not False
+        or ga_pointer_blob_transition.get("occurred_after_failed_attempt") is not True
+        or ga_pointer_blob_transition.get(
+            "owner_confirmed_github_app_linked_to_existing_single_private_data_repository"
+        )
+        is not True
+        or ga_pointer_blob_transition.get("runtime_installation_repository_scope_verification")
+        != "PENDING_NEW_EXACT_HEAD_PROTECTED_ORACLE"
+        or ga_pointer_blob_transition.get("retroactive_root_cause_attribution") is not False
+        or ga_pointer_blob_diagnosis.get("exact_runtime_exception") != "NOT_RECEIVED_OR_INSPECTED"
+        or ga_pointer_blob_diagnosis.get("exact_root_cause") != "UNKNOWN"
+        or ga_pointer_blob_diagnosis.get("exact_root_cause_claimed") is not False
+        or ga_pointer_blob_policy.get("same_head_rerun_allowed") is not False
+        or ga_pointer_blob_policy.get("failed_head_redispatch_allowed") is not False
+        or ga_pointer_blob_policy.get("exact_app_repository_scope_activation_candidate_allowed")
+        is not True
+        or ga_pointer_blob_policy.get("next_candidate_dispatch_limit") != 1
+        or ga_pointer_blob_policy.get("historical_ga_rehearsal_dispatches_consumed") != 8
+        or ga_pointer_blob_policy.get("historical_ga_rehearsal_reruns") != 0
+        or ga_pointer_blob_policy.get("t0705_complete") is not False
+        or ga_pointer_blob_policy.get("t0706_authorized") is not False
+        or any(value is not False for value in ga_pointer_blob_claims.values())
+    ):
+        raise ValueError("protected T0705 pointer-blob attempt ledger is not exact or frozen")
+
     t0705_authorization = t0705_contract.get("authorization", {})
     t0705_budget = t0705_contract.get("authorized_effect_budget", {})
     if (
@@ -1043,12 +1146,12 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or t0705_contract.get("baseline_commit") != CURRENT_MAINLINE_BASE_COMMIT
         or t0705_contract.get("baseline_manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or t0705_authorization.get("purpose")
-        != "T0705_PROTECTED_GA_POINTER_BLOB_RECOVERY_REPAIR_AND_ENABLEMENT_ONLY"
+        != "T0705_PROTECTED_GA_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_AND_ENABLEMENT_ONLY"
         or t0705_authorization.get("original_run_contract_sha256")
         != "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         or t0705_authorization.get("prior_run_contract_sha256")
-        != "c48313bac0a9c3003d80188aa47f4022a33919508f780efa6942868845e3bf85"  # pragma: allowlist secret  # noqa: E501
-        or t0705_authorization.get("failed_attempt_ledgers_required") != 7
+        != "2220fb87d2bd089242254b998786aeae4ddd1d83f62bec26d9140af562a1b07d"  # pragma: allowlist secret  # noqa: E501
+        or t0705_authorization.get("failed_attempt_ledgers_required") != 8
         or t0705_authorization.get("first_failed_attempt_ledger_sha256")
         != _sha256(root / PROTECTED_GA_ATTEMPT_LEDGER_PATH)
         or t0705_authorization.get("first_failed_attempt_ledger_schema_sha256")
@@ -1077,6 +1180,10 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         != _sha256(root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_PATH)
         or t0705_authorization.get("seventh_failed_attempt_ledger_schema_sha256")
         != _sha256(root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_PATH)
+        or t0705_authorization.get("eighth_failed_attempt_ledger_sha256")
+        != _sha256(root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH)
+        or t0705_authorization.get("eighth_failed_attempt_ledger_schema_sha256")
+        != _sha256(root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH)
         or t0705_authorization.get("failed_workflow_head_shas")
         != [
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
@@ -1085,6 +1192,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "4c207ad539754166fae6642ff4e6850438d3e2fc",  # pragma: allowlist secret
             "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",  # pragma: allowlist secret
             "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",  # pragma: allowlist secret
+            "2133673b335a384657c8668b62a1c13055c212cd",  # pragma: allowlist secret
             CURRENT_MAINLINE_BASE_COMMIT,
         ]
         or t0705_authorization.get("failed_head_rerun_allowed") is not False
@@ -1093,37 +1201,42 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         != _sha256(root / PROTECTED_BLUE_GREEN_RECEIPT_PATH)
         or t0705_authorization.get("t0705_authorized") is not True
         or t0705_authorization.get("t0706_authorized") is not False
-        or t0705_authorization.get("controlled_main_delivery_total_limit") != 9
-        or t0705_authorization.get("controlled_main_deliveries_consumed") != 7
+        or t0705_authorization.get("controlled_main_delivery_total_limit") != 10
+        or t0705_authorization.get("controlled_main_deliveries_consumed") != 8
         or t0705_authorization.get("controlled_main_deliveries_remaining") != 2
-        or t0705_authorization.get("ga_rehearsal_dispatches_consumed") != 7
+        or t0705_authorization.get("ga_rehearsal_dispatches_consumed") != 8
         or t0705_authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or t0705_authorization.get("ga_label_replay_repair_dispatches_consumed") != 1
         or t0705_authorization.get("ga_phase_diagnostic_dispatches_consumed") != 1
         or t0705_authorization.get("ga_processed_plan_diagnostic_dispatches_consumed") != 1
         or t0705_authorization.get("ga_first_import_diagnostic_dispatches_consumed") != 1
-        or t0705_authorization.get("ga_exact_repair_or_pass_closure_dispatch_limit") != 1
+        or t0705_authorization.get("ga_exact_pointer_blob_repair_dispatches_consumed") != 1
+        or t0705_authorization.get("ga_app_repository_scope_activation_dispatch_limit") != 1
         or t0705_authorization.get("ga_first_import_diagnostic_rerun_limit") != 0
         or t0705_authorization.get("manual_environment_reviewers_required") is not False
         or t0705_authorization.get("fixed_calendar_wait_days") != 0
         or t0705_authorization.get("final_publication_authorized") is not False
-        or t0705_budget.get("controlled_main_deliveries_total_maximum") != 9
+        or t0705_budget.get("controlled_main_deliveries_total_maximum") != 10
         or t0705_budget.get("controlled_main_deliveries_remaining_maximum") != 2
         or t0705_budget.get("protected_environment_secret_names_maximum") != 8
-        or t0705_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 8
-        or t0705_budget.get("protected_ga_rehearsal_dispatches_consumed") != 7
+        or t0705_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 9
+        or t0705_budget.get("protected_ga_rehearsal_dispatches_consumed") != 8
         or t0705_budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or t0705_budget.get("protected_ga_label_replay_repair_dispatches_consumed") != 1
         or t0705_budget.get("protected_ga_phase_diagnostic_dispatches_consumed") != 1
         or t0705_budget.get("protected_ga_processed_plan_diagnostic_dispatches_consumed") != 1
         or t0705_budget.get("protected_ga_first_import_diagnostic_dispatches_maximum") != 1
         or t0705_budget.get("protected_ga_first_import_diagnostic_dispatches_consumed") != 1
-        or t0705_budget.get("protected_ga_exact_repair_or_pass_closure_dispatches_maximum") != 1
+        or t0705_budget.get("protected_ga_exact_pointer_blob_repair_dispatches_maximum") != 1
+        or t0705_budget.get("protected_ga_exact_pointer_blob_repair_dispatches_consumed") != 1
+        or t0705_budget.get("protected_ga_app_repository_scope_activation_dispatches_maximum") != 1
         or t0705_budget.get("protected_ga_rehearsal_reruns_maximum") != 0
         or t0705_budget.get("failed_head_reruns_maximum") != 0
         or t0705_budget.get("failed_head_redispatches_maximum") != 0
         or t0705_budget.get("protected_ga_first_import_diagnostic_pipeline_runs_maximum") != 1
-        or t0705_budget.get("protected_ga_exact_repair_or_pass_closure_pipeline_runs_maximum") != 1
+        or t0705_budget.get("protected_ga_exact_pointer_blob_repair_pipeline_runs_maximum") != 1
+        or t0705_budget.get("protected_ga_app_repository_scope_activation_pipeline_runs_maximum")
+        != 1
         or t0705_budget.get("platform_schedule_events_during_rehearsal_maximum") != 0
         or t0705_budget.get("gmail_exact_message_trash_mutations_maximum") != 1
         or t0705_budget.get("maximum_live_timeline_assets") != 1
@@ -1132,15 +1245,15 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ):
         raise ValueError("T0705 Run Contract is not the exact bounded candidate authority")
     return {
-        "schema_version": "moomooau.source-provenance.v26",
+        "schema_version": "moomooau.source-provenance.v27",
         "authorization": {
             "basis": AUTHORIZATION_BASIS,
             "authorized_on": "2026-07-26",
             "authorized_scope": AUTHORIZED_SCOPE,
         },
         "predecessor": {
-            "package_id": "MMAU-ARCHIVE-TP-2026-07-26-V1.0.25",
-            "version": "1.0.25",
+            "package_id": "MMAU-ARCHIVE-TP-2026-07-26-V1.0.26",
+            "version": "1.0.26",
             "manifest": PREDECESSOR_MANIFEST_PATH.as_posix(),
             "manifest_sha256": PREDECESSOR_MANIFEST_SHA256,
             "status": "IMMUTABLE_CONTROL_PREDECESSOR",
@@ -1178,10 +1291,12 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "package_id": PACKAGE_ID,
             "version": PACKAGE_VERSION,
             "manifest": MANIFEST_PATH.as_posix(),
-            "roadmap": "taskpack/ROADMAP.v1.0.26.md",
+            "roadmap": "taskpack/ROADMAP.v1.0.27.md",
             "status_authority": "machine/status/latest.json",
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
-            "publication_status": ("CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL"),
+            "publication_status": (
+                "CONTROLLED_T0705_APP_SCOPE_ACTIVATION_RECOVERY_CANDIDATE_NOT_FINAL"
+            ),
         },
         "candidate_snapshot": CANDIDATE_SNAPSHOT,
         "semantic_delta": {
@@ -1200,15 +1315,15 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_oracles_executed": 5,
             "protected_oracles_passed": 4,
             "protected_oracles_failed": 1,
-            "production_workflow_runs": 7,
+            "production_workflow_runs": 8,
             "protected_workflow_runs": (
-                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 10
+                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 11
             ),
             "remote_workflow_runs": (
-                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 10
+                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 11
             ),
             "controlled_main_deliveries": (
-                attempt_summary["controlled_main_deliveries"] + len(m3_attempts) + 10
+                attempt_summary["controlled_main_deliveries"] + len(m3_attempts) + 11
             ),
             "protected_beta_dispatches": attempt_summary["protected_beta_dispatches"],
             "context_rejected_dispatches": attempt_summary["context_rejected_dispatches"],
@@ -1364,18 +1479,25 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_ga_pointer_fetch_failed_attempt_ledger_schema_sha256": _sha256(
                 root / PROTECTED_GA_POINTER_FETCH_ATTEMPT_LEDGER_SCHEMA_PATH
             ),
+            "protected_ga_pointer_blob_failed_attempt_ledger_sha256": _sha256(
+                root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_PATH
+            ),
+            "protected_ga_pointer_blob_failed_attempt_ledger_schema_sha256": _sha256(
+                root / PROTECTED_GA_POINTER_BLOB_ATTEMPT_LEDGER_SCHEMA_PATH
+            ),
             "protected_ga_environment_reused": "moomooau-beta",
             "protected_ga_secret_names_exact": 8,
-            "protected_ga_rehearsal_dispatches": 7,
+            "protected_ga_rehearsal_dispatches": 8,
             "protected_ga_rehearsal_reruns": 0,
             "protected_ga_pipeline_runs": 0,
-            "protected_ga_failed_attempts": 7,
+            "protected_ga_failed_attempts": 8,
             "protected_ga_metadata_quarantine_repair_dispatches_consumed": 1,
             "protected_ga_label_replay_repair_dispatches_consumed": 1,
             "protected_ga_phase_diagnostic_dispatches_consumed": 1,
             "protected_ga_processed_plan_diagnostic_dispatches_consumed": 1,
             "protected_ga_first_import_diagnostic_dispatches_consumed": 1,
-            "protected_ga_exact_repair_or_pass_closure_dispatches_authorized": 1,
+            "protected_ga_exact_pointer_blob_repair_dispatches_consumed": 1,
+            "protected_ga_app_repository_scope_activation_dispatches_authorized": 1,
             "protected_ga_closed_phase_diagnostics": True,
             "protected_ga_closed_processed_plan_subphase_diagnostics": True,
             "protected_ga_closed_first_import_subphase_diagnostics": True,
@@ -1396,6 +1518,12 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_ga_seventh_attempt_gmail_mutations": 0,
             "protected_ga_seventh_attempt_contents_inline_mismatches": 1,
             "protected_ga_seventh_attempt_exact_root_cause": "UNKNOWN",
+            "protected_ga_eighth_attempt_private_repository_commits": 0,
+            "protected_ga_eighth_attempt_processed_writes": 0,
+            "protected_ga_eighth_attempt_gmail_mutations": 0,
+            "protected_ga_eighth_attempt_exact_root_cause": "UNKNOWN",
+            "owner_confirmed_github_app_repository_scope_activated_after_eighth_attempt": True,
+            "protected_ga_repository_scope_verification_pending": True,
             "protected_ga_failed_head_frozen": True,
             "protected_ga_safe_deferred_compatibility_repaired_locally": True,
             "protected_ga_metadata_quarantine_repaired_locally": True,
@@ -1460,17 +1588,17 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     if not isinstance(semantic_delta, dict):
         semantic_delta = {}
     if (
-        provenance.get("schema_version") != "moomooau.source-provenance.v26"
+        provenance.get("schema_version") != "moomooau.source-provenance.v27"
         or authorization.get("basis") != AUTHORIZATION_BASIS
         or authorization.get("authorized_scope") != AUTHORIZED_SCOPE
         or effective.get("package_id") != PACKAGE_ID
         or effective.get("version") != PACKAGE_VERSION
         or effective.get("manifest") != MANIFEST_PATH.as_posix()
-        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.26.md"
+        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.27.md"
         or effective.get("status_authority") != "machine/status/latest.json"
         or effective.get("workflow_validator") != "machine/tools/validate_workflow_matrix.py"
         or effective.get("publication_status")
-        != "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL"
+        != "CONTROLLED_T0705_APP_SCOPE_ACTIVATION_RECOVERY_CANDIDATE_NOT_FINAL"
     ):
         failures.append(f"v{provenance_version} provenance identity or authorization mismatch")
     if (
@@ -1478,7 +1606,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         or predecessor.get("manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or predecessor.get("status") != "IMMUTABLE_CONTROL_PREDECESSOR"
     ):
-        failures.append("v1.0.25 predecessor provenance mismatch")
+        failures.append("v1.0.26 predecessor provenance mismatch")
     if (
         control_predecessor.get("manifest") != CONTROL_PREDECESSOR_MANIFEST_PATH.as_posix()
         or control_predecessor.get("manifest_sha256") != CONTROL_PREDECESSOR_MANIFEST_SHA256
@@ -1645,7 +1773,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         failures.append(f"canonical manifest selection failed: {type(exc).__name__}")
     else:
         if manifest != expected:
-            failures.append("manifest differs from the canonical v1.0.26 package selection")
+            failures.append("manifest differs from the canonical v1.0.27 package selection")
 
     _validate_provenance(root, failures)
     status_result = validate_delivery_status(root)

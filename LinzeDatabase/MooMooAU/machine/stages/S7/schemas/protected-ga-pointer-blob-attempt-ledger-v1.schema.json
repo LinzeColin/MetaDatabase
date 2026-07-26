@@ -1,0 +1,441 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/moomooau/protected-ga-pointer-blob-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA pointer-blob attempt ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "stage_id",
+    "task_id",
+    "observed_through_utc",
+    "predecessor_control",
+    "attempts",
+    "completion_policy",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-ga-pointer-blob-attempt-ledger.v1"
+    },
+    "stage_id": {
+      "const": "S7"
+    },
+    "task_id": {
+      "const": "T0705"
+    },
+    "observed_through_utc": {
+      "const": "2026-07-26T11:12:44Z"
+    },
+    "predecessor_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prior_run_contract_sha256",
+        "seventh_attempt_ledger_sha256",
+        "seventh_attempt_ledger_schema_sha256",
+        "prior_failed_workflow_head_shas",
+        "prior_failed_head_dispatches_after_freeze",
+        "prior_failed_head_reruns_after_freeze"
+      ],
+      "properties": {
+        "prior_run_contract_sha256": {
+          "const": "2220fb87d2bd089242254b998786aeae4ddd1d83f62bec26d9140af562a1b07d"
+        },
+        "seventh_attempt_ledger_sha256": {
+          "const": "18d2e1cc29182dea7a94b25d25072d15cbc0ac91b091685faba69bcaa7532066"
+        },
+        "seventh_attempt_ledger_schema_sha256": {
+          "const": "801e1e44299115958bc838cc6c8e04c45f482a5ee50567345f22ad2295db83d2"
+        },
+        "prior_failed_workflow_head_shas": {
+          "const": [
+            "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+            "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+            "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+            "4c207ad539754166fae6642ff4e6850438d3e2fc",
+            "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+            "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+            "2133673b335a384657c8668b62a1c13055c212cd"
+          ]
+        },
+        "prior_failed_head_dispatches_after_freeze": {
+          "const": 0
+        },
+        "prior_failed_head_reruns_after_freeze": {
+          "const": 0
+        }
+      }
+    },
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sequence",
+          "delivery",
+          "workflow",
+          "jobs",
+          "public_failure",
+          "effects",
+          "external_state_transition",
+          "diagnosis"
+        ],
+        "properties": {
+          "sequence": {
+            "const": 8
+          },
+          "delivery": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "pull_request_number",
+              "pull_request_head_sha",
+              "merge_commit_parent_sha",
+              "merge_commit_sha",
+              "merged_at_utc",
+              "terminal_checks",
+              "successful_checks",
+              "failed_checks",
+              "skipped_checks",
+              "neutral_checks"
+            ],
+            "properties": {
+              "kind": {
+                "const": "CONTROLLED_MOOMOOAU_PR"
+              },
+              "pull_request_number": {
+                "const": 123
+              },
+              "pull_request_head_sha": {
+                "const": "9858f9f091363ac21e9ebc4a24ceaa073c180521"
+              },
+              "merge_commit_parent_sha": {
+                "const": "2133673b335a384657c8668b62a1c13055c212cd"
+              },
+              "merge_commit_sha": {
+                "const": "8b6faaf9059661edc3153352b8787ddbc4f733f3"
+              },
+              "merged_at_utc": {
+                "const": "2026-07-26T10:56:54Z"
+              },
+              "terminal_checks": {
+                "const": 40
+              },
+              "successful_checks": {
+                "const": 35
+              },
+              "failed_checks": {
+                "const": 0
+              },
+              "skipped_checks": {
+                "const": 5
+              },
+              "neutral_checks": {
+                "const": 0
+              }
+            }
+          },
+          "workflow": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "run_id",
+              "run_url",
+              "workflow_id",
+              "event",
+              "workflow_ref",
+              "workflow_head_sha",
+              "run_attempt",
+              "reruns",
+              "started_at_utc",
+              "completed_at_utc"
+            ],
+            "properties": {
+              "run_id": {
+                "const": 30199215335
+              },
+              "run_url": {
+                "const": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30199215335"
+              },
+              "workflow_id": {
+                "const": 318812500
+              },
+              "event": {
+                "const": "workflow_dispatch"
+              },
+              "workflow_ref": {
+                "const": "refs/heads/main"
+              },
+              "workflow_head_sha": {
+                "const": "8b6faaf9059661edc3153352b8787ddbc4f733f3"
+              },
+              "run_attempt": {
+                "const": 1
+              },
+              "reruns": {
+                "const": 0
+              },
+              "started_at_utc": {
+                "const": "2026-07-26T10:57:29Z"
+              },
+              "completed_at_utc": {
+                "const": "2026-07-26T11:02:22Z"
+              }
+            }
+          },
+          "jobs": {
+            "type": "object",
+            "required": [
+              "authority_gate",
+              "ga_schedule_rehearsal",
+              "identity_plaintext_cleanup",
+              "live_schedule_hold"
+            ]
+          },
+          "public_failure": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "status",
+              "reason_code",
+              "failure_phase",
+              "installation_token_failure_class",
+              "diagnostic_taxonomy",
+              "exact_root_cause_claimed",
+              "protected_values_disclosed",
+              "platform_schedule_event_claimed",
+              "production_health_claimed",
+              "final_acceptance_claimed"
+            ],
+            "properties": {
+              "schema_version": {
+                "const": "moomooau.protected-ga-public-failure.v1"
+              },
+              "status": {
+                "const": "BLOCKED"
+              },
+              "reason_code": {
+                "const": "PROTECTED_GA_FIRST_IMPORT_POINTER_FETCH_FAILED"
+              },
+              "failure_phase": {
+                "const": "FIRST_IMPORT_POINTER_FETCH"
+              },
+              "installation_token_failure_class": {
+                "const": "UNCLASSIFIED"
+              },
+              "diagnostic_taxonomy": {
+                "const": "moomooau.protected-ga-failure-taxonomy.v1"
+              },
+              "exact_root_cause_claimed": {
+                "const": false
+              },
+              "protected_values_disclosed": {
+                "const": false
+              },
+              "platform_schedule_event_claimed": {
+                "const": false
+              },
+              "production_health_claimed": {
+                "const": false
+              },
+              "final_acceptance_claimed": {
+                "const": false
+              }
+            }
+          },
+          "effects": {
+            "type": "object",
+            "required": [
+              "matching_private_repositories",
+              "private_repository_head_changed",
+              "private_repository_new_commits_during_attempt",
+              "gmail_source_mutations",
+              "gmail_mutation_api_reached",
+              "identity_plaintext_cleanup",
+              "one_shot_authority_variable_after_dispatch",
+              "production_enablement_variable_after_dispatch",
+              "exact_private_locator_disclosed"
+            ],
+            "properties": {
+              "matching_private_repositories": {
+                "const": 1
+              },
+              "private_repository_head_changed": {
+                "const": false
+              },
+              "private_repository_new_commits_during_attempt": {
+                "const": 0
+              },
+              "gmail_source_mutations": {
+                "const": 0
+              },
+              "gmail_mutation_api_reached": {
+                "const": false
+              },
+              "identity_plaintext_cleanup": {
+                "const": "PASS"
+              },
+              "one_shot_authority_variable_after_dispatch": {
+                "const": "ABSENT"
+              },
+              "production_enablement_variable_after_dispatch": {
+                "const": "ABSENT"
+              },
+              "exact_private_locator_disclosed": {
+                "const": false
+              }
+            }
+          },
+          "external_state_transition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "occurred_after_failed_attempt",
+              "owner_statement_observed_at_utc",
+              "owner_confirmed_github_app_linked_to_existing_single_private_data_repository",
+              "runtime_installation_repository_scope_verification",
+              "retroactive_root_cause_attribution",
+              "new_private_repository_created",
+              "new_github_app_created",
+              "private_repository_locator_disclosed"
+            ],
+            "properties": {
+              "occurred_after_failed_attempt": {
+                "const": true
+              },
+              "owner_statement_observed_at_utc": {
+                "const": "2026-07-26T11:12:44Z"
+              },
+              "owner_confirmed_github_app_linked_to_existing_single_private_data_repository": {
+                "const": true
+              },
+              "runtime_installation_repository_scope_verification": {
+                "const": "PENDING_NEW_EXACT_HEAD_PROTECTED_ORACLE"
+              },
+              "retroactive_root_cause_attribution": {
+                "const": false
+              },
+              "new_private_repository_created": {
+                "const": false
+              },
+              "new_github_app_created": {
+                "const": false
+              },
+              "private_repository_locator_disclosed": {
+                "const": false
+              }
+            }
+          },
+          "diagnosis": {
+            "type": "object",
+            "required": [
+              "observable_failure_boundary",
+              "exact_runtime_exception",
+              "exact_root_cause",
+              "exact_root_cause_claimed",
+              "safe_next_action",
+              "basis"
+            ],
+            "properties": {
+              "observable_failure_boundary": {
+                "const": "WITHIN_FIRST_IMPORT_POINTER_FETCH_BEFORE_POINTER_DECRYPT_OR_ANY_NEW_PROCESSED_WRITE_OR_GMAIL_MUTATION"
+              },
+              "exact_runtime_exception": {
+                "const": "NOT_RECEIVED_OR_INSPECTED"
+              },
+              "exact_root_cause": {
+                "const": "UNKNOWN"
+              },
+              "exact_root_cause_claimed": {
+                "const": false
+              },
+              "safe_next_action": {
+                "const": "NEW_EXACT_HEAD_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_REHEARSAL"
+              },
+              "basis": {
+                "type": "array",
+                "minItems": 7,
+                "maxItems": 7,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "completion_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_head_rerun_allowed",
+        "failed_head_redispatch_allowed",
+        "frozen_failed_workflow_head_shas",
+        "exact_app_repository_scope_activation_candidate_allowed",
+        "next_candidate_dispatch_limit",
+        "historical_ga_rehearsal_dispatches_consumed",
+        "historical_ga_rehearsal_reruns",
+        "t0705_complete",
+        "t0706_authorized",
+        "final_publication_authorized"
+      ],
+      "properties": {
+        "same_head_rerun_allowed": {
+          "const": false
+        },
+        "failed_head_redispatch_allowed": {
+          "const": false
+        },
+        "frozen_failed_workflow_head_shas": {
+          "const": [
+            "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+            "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+            "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+            "4c207ad539754166fae6642ff4e6850438d3e2fc",
+            "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+            "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+            "2133673b335a384657c8668b62a1c13055c212cd",
+            "8b6faaf9059661edc3153352b8787ddbc4f733f3"
+          ]
+        },
+        "exact_app_repository_scope_activation_candidate_allowed": {
+          "const": true
+        },
+        "next_candidate_dispatch_limit": {
+          "const": 1
+        },
+        "historical_ga_rehearsal_dispatches_consumed": {
+          "const": 8
+        },
+        "historical_ga_rehearsal_reruns": {
+          "const": 0
+        },
+        "t0705_complete": {
+          "const": false
+        },
+        "t0706_authorized": {
+          "const": false
+        },
+        "final_publication_authorized": {
+          "const": false
+        }
+      }
+    },
+    "claims": {
+      "const": {
+        "s7ac_005_passed": false,
+        "production_health": false,
+        "final_acceptance": false,
+        "stage7_complete": false
+      }
+    }
+  }
+}

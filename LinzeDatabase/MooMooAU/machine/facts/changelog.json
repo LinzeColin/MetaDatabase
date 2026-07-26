@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.26",
+    "version": "1.0.27",
     "date": "2026-07-26",
-    "summary": "固化 T0705 第七个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出将边界收窄为 FIRST_IMPORT_POINTER_FETCH；只读连接仓核验确认零提交、tree/blob 与 raw media 有效，且一份 Contents 内联表示长度不一致，精确根因仍为 UNKNOWN。七个失败头禁止 rerun/redispatch；只授权一个 exact raw media 与 canonical Git blob SHA 绑定 repair attempt 1，T0706 和最终发布仍禁止。"
+    "summary": "固化 T0705 第八个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出仍为 FIRST_IMPORT_POINTER_FETCH；只读 private 数据仓核验确认该窗口零提交，精确根因仍为 UNKNOWN。Owner 随后确认现有 GitHub App 已链接到唯一 private 数据仓；此变化不倒推既往根因。八个失败头禁止 rerun/redispatch；只授权一个新 exact-main scope-activation recovery attempt 1，T0706 和最终发布仍禁止。"
   },
   {
     "version": "1.0.18",
