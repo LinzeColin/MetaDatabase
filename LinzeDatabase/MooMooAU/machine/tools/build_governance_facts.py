@@ -52,6 +52,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.21",
             "1.0.22",
             "1.0.23",
+            "1.0.24",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -76,6 +77,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.21",
         "1.0.22",
         "1.0.23",
+        "1.0.24",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -96,6 +98,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.21",
         "1.0.22",
         "1.0.23",
+        "1.0.24",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -115,6 +118,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.21",
         "1.0.22",
         "1.0.23",
+        "1.0.24",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -133,6 +137,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.21",
         "1.0.22",
         "1.0.23",
+        "1.0.24",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -164,6 +169,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.21",
         "1.0.22",
         "1.0.23",
+        "1.0.24",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -176,6 +182,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.21",
         "1.0.22",
         "1.0.23",
+        "1.0.24",
     }
     t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] in {
         "1.0.13",
@@ -189,6 +196,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.21",
         "1.0.22",
         "1.0.23",
+        "1.0.24",
     }
     t0703_historical_label_reconciliation_authorized = delivery["package_version"] in {
         "1.0.14",
@@ -207,6 +215,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.21",
             "1.0.22",
             "1.0.23",
+            "1.0.24",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -234,14 +243,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0705_repair_authorized = (
-        delivery["package_version"] == "1.0.23"
+        delivery["package_version"] == "1.0.24"
         and delivery.get("overall_status")
-        == "PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED"
+        == "PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED"
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
-        == "CONTROLLED_T0705_PHASE_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+        == "CONTROLLED_T0705_PROCESSED_PLAN_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
     )
     t0704_protected_passed = (
         delivery["package_version"] in {"1.0.18", "1.0.19"}
@@ -296,8 +305,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702、T0703 与 T0704 均通过；T0705 四次运行失败且四个头已冻结，"
-            "closed-enum phase diagnostic 已授权"
+            "T0702、T0703 与 T0704 均通过；T0705 五次运行失败且五个头已冻结，"
+            "closed-enum Processed-plan subphase diagnostic 已授权"
             if t0705_repair_authorized
             else "T0702、T0703 与 T0704 受保护验证均通过；T0705 一次性 schedule-mode "
             "rehearsal 已授权待运行"
@@ -435,12 +444,20 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "枚举 last-entered phase 诊断候选与一次 attempt 1，诊断不得接收异常、标识、URL、"
             "计数、Secret、仓库定位或邮箱派生值"
         ),
+        "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING": (
+            "T0705 五个 exact-main attempt-1 head 均已冻结；第五次 authority 与身份清理通过，"
+            "公开输出仅为 coarse PROCESSED_PLAN。只读远端核验确认第五次私库零提交、"
+            "Processed/Timeline/checkpoint/Gmail 零变更，精确根因仍为 UNKNOWN。仅授权一个"
+            "封闭枚举 Processed-plan subphase 诊断候选与一次 attempt 1；诊断不得接收异常、"
+            "标识、URL、计数、Secret、仓库定位或邮箱派生值"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 四个失败头已冻结且 phase diagnostic 已授权，T0706 及其后的"
+            "T0704 已通过；T0705 五个失败头已冻结且 Processed-plan subphase diagnostic "
+            "已授权，T0706 及其后的"
             "受保护验收未授权"
             if t0705_repair_authorized
             else "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权"
@@ -469,7 +486,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0705 四个 GA 失败头已冻结，封闭 phase diagnostic 已授权待运行"
+            "RMD-06 T0705 五个 GA 失败头已冻结，封闭 Processed-plan subphase diagnostic "
+            "已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -500,9 +518,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 四个 exact-main attempt-1 失败头已冻结；第四次仅新增六个 age 加密 Raw、"
-            "Processed 与 current 路径，无 Timeline snapshot 或 checkpoint 变化，封闭 "
-            "last-entered phase diagnostic 候选待执行"
+            "T0705 五个 exact-main attempt-1 失败头已冻结；第五次公开输出仅为 coarse "
+            "PROCESSED_PLAN，只读远端核验确认私库零提交、Processed/Timeline/checkpoint/"
+            "Gmail 零变更，封闭 Processed-plan subphase diagnostic 候选待执行"
             if t0705_repair_authorized
             else "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
             "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
@@ -549,8 +567,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.23 closed-enum phase diagnostic 精确候选并执行一次新 head protected "
-            "SCHEDULE_REHEARSAL；四个失败头与新候选均 rerun 0，PASS 后只启用已提交 04:30 "
+            "交付 v1.0.24 closed-enum Processed-plan subphase diagnostic 精确候选并执行一次"
+            "新 head protected SCHEDULE_REHEARSAL；五个失败头与新候选均 rerun 0，PASS 后只"
+            "启用已提交 04:30 "
             "schedule，并停在 T0706 前"
             if t0705_repair_authorized
             else "交付 v1.0.19 精确候选并执行一次 protected SCHEDULE_REHEARSAL；rerun 0，"
@@ -824,9 +843,19 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": "缺少受保护处理证据时的显式非猜测 Processed 状态",
             },
             {
-                "en": "PHASE_DIAGNOSTIC_RECOVERY_PENDING",
-                "zh": "阶段诊断恢复待执行",
-                "note": "T0705 四个失败头冻结后仅剩一个封闭枚举诊断执行权限",
+                "en": "Processed-plan",
+                "zh": "处理计划",
+                "note": "Raw 恢复后、任何 Processed 写入前的封闭处理规划边界",
+            },
+            {
+                "en": "coarse",
+                "zh": "粗粒度",
+                "note": "只定位到大阶段，不能据此声称子阶段或精确根因",
+            },
+            {
+                "en": "PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING",
+                "zh": "处理计划子阶段诊断恢复待执行",
+                "note": "T0705 五个失败头冻结后仅剩一个封闭枚举子阶段诊断执行权限",
             },
             {
                 "en": "closed-enum",
@@ -839,9 +868,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": "只缩小已证明的运行阶段边界，不声称精确根因",
             },
             {
-                "en": "last-entered",
-                "zh": "最后进入",
-                "note": "失败前最后记录的固定运行阶段",
+                "en": "subphase",
+                "zh": "子阶段",
+                "note": "PROCESSED_PLAN 内失败前最后进入的固定封闭枚举步骤",
             },
             {
                 "en": "MessageMetadataUnverifiable",
@@ -1218,7 +1247,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0705 四个 GA 失败头已冻结，closed-enum phase diagnostic 已授权待运行"
+            "RMD-06 T0705 五个 GA 失败头已冻结，closed-enum Processed-plan subphase "
+            "diagnostic 已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1249,7 +1279,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 四个失败头已冻结；仅允许新 exact-main closed-enum phase diagnostic attempt 1"
+            "T0705 五个失败头已冻结；仅允许新 exact-main closed-enum Processed-plan "
+            "subphase diagnostic attempt 1"
             if t0705_repair_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1282,7 +1313,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.23 closed-enum phase diagnostic exact-main 候选、执行一次新 attempt-1 "
+            "交付 v1.0.24 closed-enum Processed-plan subphase diagnostic exact-main 候选、"
+            "执行一次新 attempt-1 "
             "SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
             if t0705_repair_authorized
             else "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，"
@@ -1351,8 +1383,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 四次运行失败，"
-                    "四个失败头已冻结，closed-enum phase diagnostic 待运行）"
+                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 五次运行失败，"
+                    "五个失败头已冻结，closed-enum Processed-plan subphase diagnostic 待运行）"
                     if t0705_repair_authorized
                     else "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 一次性 "
                     "SCHEDULE_REHEARSAL 已授权待运行）"
@@ -1680,15 +1712,15 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         changelog.insert(
             0,
             {
-                "version": "1.0.23",
+                "version": "1.0.24",
                 "date": "2026-07-26",
                 "summary": (
-                    "固化 T0705 第四个 exact-main attempt-1 失败：authority 与身份清理通过，"
-                    "protected 输出未披露精确异常或根因；独立核验观察到六个 age 加密 Raw、"
-                    "Processed 与 current 新增路径，Timeline snapshot/state 与 checkpoint 均"
-                    "未变化，active Moomoo candidate 仍在 Trash 外。四个失败头禁止 rerun/"
-                    "redispatch；只授权一个不接收受保护值的 closed-enum last-entered phase "
-                    "诊断 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
+                    "固化 T0705 第五个 exact-main attempt-1 失败：authority 与身份清理通过，"
+                    "protected 输出仅披露 coarse PROCESSED_PLAN；只读远端核验确认第五次无"
+                    "私库提交、无 Processed/Timeline/checkpoint/Gmail 变更，精确根因仍为 "
+                    "UNKNOWN。五个失败头禁止 rerun/redispatch；只授权一个不接收受保护值的"
+                    "closed-enum Processed-plan subphase 诊断 head 与一次 attempt 1，T0706 "
+                    "和最终发布仍禁止。"
                 ),
             },
         )

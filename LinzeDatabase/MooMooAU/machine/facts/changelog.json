@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.23",
+    "version": "1.0.24",
     "date": "2026-07-26",
-    "summary": "固化 T0705 第四个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出未披露精确异常或根因；独立核验观察到六个 age 加密 Raw、Processed 与 current 新增路径，Timeline snapshot/state 与 checkpoint 均未变化，active Moomoo candidate 仍在 Trash 外。四个失败头禁止 rerun/redispatch；只授权一个不接收受保护值的 closed-enum last-entered phase 诊断 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
+    "summary": "固化 T0705 第五个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出仅披露 coarse PROCESSED_PLAN；只读远端核验确认第五次无私库提交、无 Processed/Timeline/checkpoint/Gmail 变更，精确根因仍为 UNKNOWN。五个失败头禁止 rerun/redispatch；只授权一个不接收受保护值的closed-enum Processed-plan subphase 诊断 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
   },
   {
     "version": "1.0.18",

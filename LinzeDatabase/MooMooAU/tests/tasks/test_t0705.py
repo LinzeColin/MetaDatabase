@@ -698,10 +698,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
-    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 4
+    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 5
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
-    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 4
+    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 5
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 
@@ -855,6 +855,38 @@ def test_t0705_ga_diagnostics_are_closed_and_reach_checkpoint_commit() -> None:
     assert payload["exact_root_cause_claimed"] is False
     assert payload["protected_values_disclosed"] is False
     assert "msg-stage7-ga-diagnostics" not in json.dumps(payload, sort_keys=True)
+
+
+def test_t0705_ga_diagnostics_narrow_processed_plan_without_exception_inspection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    diagnostics = ProtectedGADiagnostics()
+    protected_value = "synthetic-private-replay-value"
+
+    def fail_first_import(*args: object, **kwargs: object) -> datetime:
+        del args, kwargs
+        raise GARuntimeError(protected_value)
+
+    with ga_context(
+        (m3_canary_message("msg-stage7-ga-processed-plan-diagnostics"),),
+        diagnostics=diagnostics,
+    ) as context:
+        monkeypatch.setattr(context.first_import_timestamps, "resolve", fail_first_import)
+        with pytest.raises(GARuntimeError, match=protected_value):
+            context.runner.run(
+                _sunday_plan(),
+                key_epoch="synthetic-epoch-1",
+                parser_current_version="1.0.0",
+                predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+                beta_message_budget=1,
+                ga_mutation_budget_per_run=1,
+                ga_capacity_authorized=True,
+            )
+
+    assert diagnostics.phase is ProtectedGAFailurePhase.FIRST_IMPORT_RECOVERY
+    payload = public_failure_payload(diagnostics)
+    assert payload["reason_code"] == "PROTECTED_GA_FIRST_IMPORT_RECOVERY_FAILED"
+    assert protected_value not in json.dumps(payload, sort_keys=True)
 
 
 def test_t0705_ga_main_redacts_exception_and_emits_only_safe_phase(

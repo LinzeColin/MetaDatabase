@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-交付状态为 `PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED`，Stage 7
+交付状态为 `PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED`，Stage 7
 验收覆盖状态为
-`T0705_FOUR_FAILED_HEADS_FROZEN_PHASE_DIAGNOSTIC_AUTHORIZED_PENDING`。T0701–T0708
+`T0705_FIVE_FAILED_HEADS_FROZEN_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED_PENDING`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -26,22 +26,21 @@ Timeline。受保护 repair 的 Gmail mutation、processed-current、candidate/s
 独立聚合核验只确认一个 encrypted Timeline state commit，未解密或公开私有定位。
 T0704/S7AC-004 因此 PASS，但不等于 Stage 7、最终 Acceptance 或生产 PASS。
 
-T0705 四个不同 exact-main protected head 均只执行 attempt 1。四个 run 的 authority 和
+T0705 五个不同 exact-main protected head 均只执行 attempt 1。五个 run 的 authority 和
 identity cleanup 均 PASS，protected GA 均 FAILED，live schedule hold 均未启用。第四次独立
-核验只确认六个新增、可恢复且具有 age magic 的对象，覆盖 Raw、Processed 与 current pointer；
-Timeline snapshot/manifest、Timeline state 与 checkpoint 均未改变。active Moomoo candidate
-仍在 Trash 外；缺少 exact pre-dispatch baseline 与 protected mutation trace，因此不声明 Gmail
-mutation API 是否到达或消息级变化。一次性 authority 与 production enablement 已清除。四个
-失败 head 均已冻结，rerun 与
-redispatch 为 0。
+核验确认六个新增 age-encrypted Raw、Processed 与 current pointer 对象且无 Timeline/checkpoint
+变化。第五次公开输出只有 coarse `PROCESSED_PLAN`；只读 private 数据仓核验确认零 commit 与
+零路径变化。已提交阶段顺序把第五次 failure boundary 限定在 Raw 远端恢复之后、任何 Processed
+write、Timeline、checkpoint 或 Gmail mutation 之前，精确 root cause 保持 `UNKNOWN`。
+一次性 authority 与 production enablement 已清除，五个失败 head 均已冻结，rerun/redispatch
+为 0。
 
-protected 输出没有披露第四次 exact runtime exception。唯一可证 failure boundary 是已越过
-Raw/Processed/current persistence、尚未产生 Timeline snapshot 或 checkpoint；精确 root cause
-保持 UNKNOWN。新诊断只允许固定 `ProtectedGAFailurePhase` 枚举和固定 installation-token
-failure class，禁止异常文本、URL、标识符、计数、邮箱事实、私仓定位与 Secret 进入公开结果。
+新诊断只允许固定 `ProtectedGAFailurePhase`（含 Processed-plan 子阶段）和固定
+installation-token failure class，禁止异常文本、URL、标识符、计数、邮箱事实、私仓定位与
+Secret 进入公开结果。
 
-当前精确 successor Run Contract 的总 delivery 预算为 6，四个 launch 已消耗 4；总 rehearsal
-dispatch 预算为 5，四个失败 attempt 已消耗 4。只剩一次 closed-enum phase-diagnostic
+当前精确 successor Run Contract 的总 delivery 预算为 7，五个 launch 已消耗 5；总 rehearsal
+dispatch 预算为 6，五个失败 attempt 已消耗 5。只剩一次 closed-enum Processed-plan diagnostic
 delivery、一个新 exact-main attempt-1 protected `SCHEDULE_REHEARSAL`（rerun 0）和一次
 receipt/schedule-closure delivery。它复用现有 `moomooau-beta` Environment 的八个精确 Secret
 名称，不复制 Secret 值；受保护修复运行通过后才启用已提交的 04:30 Australia/Sydney schedule。
@@ -127,11 +126,12 @@ GitHub App 先刷新真实私有仓容量，再允许 Gmail credential exchange�
 与 04:30 生产运行相同的 `RunTrigger.SCHEDULE` planner path，并公开标记为
 `SCHEDULE_REHEARSAL`。
 
-四次 protected rehearsal 都 FAILED，不能计为 PASS；四个 head 均已冻结。第四次已产生可恢复
-Raw/Processed/current age ciphertext，但未产生 Timeline snapshot 或 checkpoint；exact runtime
-exception 与 root cause 均未知。唯一新候选只沿既有执行路径记录最后进入的闭合阶段，不改变
+五次 protected rehearsal 都 FAILED，不能计为 PASS；五个 head 均已冻结。第五次在 Raw recovery
+后进入 coarse `PROCESSED_PLAN`，但未产生新 Processed/Timeline/checkpoint/Gmail 效果；exact
+runtime exception 未接收或检查，root cause 为 `UNKNOWN`。唯一新候选只沿既有执行路径记录固定
+Processed-plan 子阶段，不改变
 metadata quarantine、pending replay、second verification、ACTIVE/SAFE_DEFERRED、Trash、
-Timeline 或 checkpoint 行为。新入口在 Secret 前明确拒绝四个失败 head，并把 authority job
+Timeline 或 checkpoint 行为。新入口在 Secret 前明确拒绝五个失败 head，并把 authority job
 验证后的 exact head 通过 job output 绑定给 protected Environment job。当前新 diagnostic
 rehearsal 尚未运行，因此 T0705 与其 AC 仍为
 `BLOCKED/PARTIAL/FAILED`；本地修复候选不能替代精确 protected receipt。

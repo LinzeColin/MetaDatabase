@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.23",
-  "status_as_of_utc": "2026-07-26T05:44:53Z",
+  "package_version": "1.0.24",
+  "status_as_of_utc": "2026-07-26T07:29:35Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED",
+  "overall_status": "PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -25,7 +25,7 @@
       "status": "LOCAL_MECHANISMS_EVIDENCED",
       "evidenced_tasks": 58,
       "total_tasks": 58,
-      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FOUR_T0705_FAILURES"
+      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FIVE_T0705_FAILURES"
     },
     "formal_task_completion": {
       "status": "INCOMPLETE",
@@ -50,17 +50,17 @@
     },
     "production_readiness": {
       "status": "BLOCKED",
-      "workflow_runs": 4,
+      "workflow_runs": 5,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "T0705_PHASE_DIAGNOSTIC_RECOVERY_PENDING",
+        "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_SCHEDULE_DISABLED"
       ]
     },
     "publication": {
-      "status": "CONTROLLED_T0705_PHASE_DIAGNOSTIC_CANDIDATE_NOT_FINAL",
-      "controlled_main_deliveries": 21,
+      "status": "CONTROLLED_T0705_PROCESSED_PLAN_DIAGNOSTIC_CANDIDATE_NOT_FINAL",
+      "controlled_main_deliveries": 22,
       "remote_publications": 0
     }
   },
@@ -219,7 +219,7 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "T0705_PHASE_DIAGNOSTIC_RECOVERY_PENDING",
+    "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_SCHEDULE_DISABLED",
     "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
@@ -232,18 +232,18 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Deliver one new exact-main T0705 closed-enum phase-diagnostic candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the four failed heads; after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706.",
+  "next_action": "Deliver one new exact-main T0705 closed-enum Processed-plan subphase-diagnostic candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the five failed heads; after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "b8687f141b461d735c1432f63a22257f204d6c034ef0ef9860a1d3c49184fcb9",
+    "acceptance_summary_sha256": "79ad79f350d9c227525b848faceeb82e4749d2e921bbcf4af49439f2c5fdefd4",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "ae0896b2c03407eb421477c0c4fbd7aebc0ae3520f4c2444e1287b615f5424f1",
+    "delivery_status_model_sha256": "2148b1429c7f322963ff94350821c65377bf957fcb77948886249b471622cd50",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "88f1b0c2398be11acace40363398dec307d2078da0c7e2b6442c75248dcc8ea5",
+    "production_composition_sha256": "6fd140c7be5e8d26b8bfbb00616237e01afc43d291049d2be6153bf72846ab3c",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "9a6309865c63c9df4371e9c5381957750d8e5648cfb8b2f1f9a6e524c5df78e0",
+    "task_evidence_root_sha256": "f38d9876161171b8a8c14db859e084e044ceffa0703feacd0f4275db4ac7c73c",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
@@ -257,6 +257,7 @@
     "protected_ga_attempt_ledger_sha256": "7249e7c1190b4a4263aa1e72e8232c697ada4ba65afd5280a3ed5c07cfa0b928",
     "protected_ga_repair_attempt_ledger_sha256": "497b01fecc89be10f2e80f356cabdd3aecdecee4146b79d4b085655e6d722e7b",
     "protected_ga_label_replay_attempt_ledger_sha256": "ed311f5a932c5e0976c70f43df0ebe576a75436981e95ccca413c33eb42a353d",
-    "protected_ga_post_processed_attempt_ledger_sha256": "b8dd28f8fba8c05a847433e5a3e44a467ea25003a388c8bbd152d5d019e2383f"
+    "protected_ga_post_processed_attempt_ledger_sha256": "b8dd28f8fba8c05a847433e5a3e44a467ea25003a388c8bbd152d5d019e2383f",
+    "protected_ga_processed_plan_attempt_ledger_sha256": "9cebe7c23adf11274c645c5b2d87da7d4b435602b6c8bba2b7b6b24b130546dc"
   }
 }

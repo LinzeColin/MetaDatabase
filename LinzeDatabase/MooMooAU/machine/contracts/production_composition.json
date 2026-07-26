@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-26T05:44:53Z",
+  "observed_at_utc": "2026-07-26T07:29:35Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
     "path": ".github/workflows/moomooau-production.yml",
-    "sha256": "61216f6924953125f259d1ccb2300342314a4d0097259b41f1e7149ae5a258e9",
+    "sha256": "161bc9a880a1ea47a8d2f57c80fef9e6361bdca4a0f7baf9e37de58fbe25da79",
     "cron": "30 4 * * *",
     "timezone": "Australia/Sydney",
     "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
@@ -23,8 +23,8 @@
     "MOOMOOAU_GMAIL_OAUTH"
   ],
   "component_bindings": [
-    "ProtectedGAEntrypoint <- exact-main owner closed-enum phase-diagnostic dispatch, T0702-T0704 receipts, four frozen T0705 failure ledgers and one-task authority",
-    "ProtectedGADiagnostics <- closed last-entered operation phase only, never exception text or protected values",
+    "ProtectedGAEntrypoint <- exact-main owner closed-enum Processed-plan subphase-diagnostic dispatch, T0702-T0704 receipts, five frozen T0705 failure ledgers and one-task authority",
+    "ProtectedGADiagnostics <- closed last-entered operation phase/subphase only, never exception text or protected values",
     "DerivedGASecretSource <- existing moomooau-beta inputs plus in-memory GA policy only",
     "LiveRepositoryCapacityProbe <- current private repository tree and single live Release Asset",
     "RunPlanner <- encrypted Gmail Sydney watermark",
@@ -64,19 +64,19 @@
       "sha256": "9c0c364f3e2727bcd43a41825c4ffe9aac1406f99bba00948e5eab1eacbbcbe9"
     },
     "src/moomooau_archive/ga_runtime.py": {
-      "sha256": "fdbe9415be8573203e8cc540a3208a74202116598e9842723af9e5b8b219d81a"
+      "sha256": "41eb9572eb32c0e1fb9b01db270d7201e5df37834dbf0efb43bd6bec4dd68f68"
     },
     "src/moomooau_archive/protected_blue_green.py": {
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "c609f5d0e3ab30302817c4e4f9054ce6aebc97cd63b56c5bf0a790ce5fe91795"
+      "sha256": "d7f381ee7b388e84870b99fd8fc19a9683fefd20473a19bfc3fa35fa57b1217f"
     },
     "src/moomooau_archive/protected_ga_diagnostics.py": {
-      "sha256": "0d99d8d12f865f128db7a50f0fc7c7072314d716a05825f709704127dc2feb07"
+      "sha256": "a38596856d1655aa5b7cace6fc05fd94fe98d43b3370509f52dca4c4a0950497"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "cc1b66a028515181ece8dbde414e0717bb15eed99046187420537bddfa44d8f3"
+      "sha256": "43d0780b0f32ef4a160b581b78d848d0b7f3f3f1ea156740a4d1624a1a4cc9da"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
@@ -85,10 +85,10 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "88440cecf77be13b701bc14a0205a48a439781a0a76071d07169c2fb30d02fca"
+      "sha256": "5713514616e64ad5b5f4cae9f3d772207b254c08921ff71d824fe425d80d8de7"
     },
     "tests/tasks/test_t0705.py": {
-      "sha256": "eff2ee7b435a86db96c23331a6a8c7e311a21c51dee91920404abc5b9dbdc883"
+      "sha256": "2f164ab02002174b31185c69c3c15fa36bd181c6658013525be5a86e5dd4c4c1"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

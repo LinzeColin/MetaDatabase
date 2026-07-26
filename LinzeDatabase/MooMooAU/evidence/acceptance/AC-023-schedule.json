@@ -64,15 +64,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0705.json",
-      "evidence_sha256": "fff697069afff5b20273fe953ff3a22feba27daae9cc6a5c13c14fb036769fba",
+      "evidence_sha256": "0fd68f4fd2d16d9c1733539ba31e04faa0c8fdb6c4627ade0c14687ca672fb30",
       "final_claim_status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A fifth distinct truthful workflow_dispatch schedule-mode rehearsal is authorized once, while all four failed heads are frozen.",
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A sixth distinct truthful workflow_dispatch schedule-mode rehearsal is authorized once, while all five failed heads are frozen.",
       "source_record_status": "BLOCKED",
       "task_id": "T0705"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T05:44:53Z",
+  "observed_at_utc": "2026-07-26T07:29:35Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -99,7 +99,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "4c207ad539754166fae6642ff4e6850438d3e2fc",
+  "remediation_base_commit": "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
   "requirement_id": "RQ-023",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

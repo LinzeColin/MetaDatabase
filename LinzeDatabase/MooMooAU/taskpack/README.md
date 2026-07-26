@@ -276,6 +276,17 @@ delivery，继续停止在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.22.json`
 - `CHANGELOG.md`
 
+`v1.0.24` 直接继承不可变 v1.0.23，固化 T0705 第五个不同 exact-main protected GA
+失败并冻结 head `64d88e91…`。公开输出只有 coarse `PROCESSED_PLAN`；只读 private 数据仓
+核验确认第五次零 commit、零路径变化，精确线上根因保持 `UNKNOWN`。唯一新实现是固定枚举
+Processed-plan 子阶段诊断，不接收或检查异常与 protected 值。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.24.md`
+- `ROADMAP.v1.0.24.md`
+- `PACKAGE_MANIFEST.v1.0.24.json`
+- `SOURCE_PROVENANCE.v1.0.24.json`
+- `CHANGELOG.md`
+
 `v1.0.23` 固化 T0705 第四个不同 exact-main protected GA 失败并冻结 head `4c207ad5…`。
 authority 与 identity cleanup PASS，GA FAILED；独立后验确认六个新增对象均为可恢复 age
 ciphertext，覆盖 Raw、Processed 与 current pointer，而 Timeline snapshot/manifest、Timeline

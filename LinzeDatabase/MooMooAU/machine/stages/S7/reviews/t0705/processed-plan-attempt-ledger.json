@@ -1,0 +1,149 @@
+{
+  "schema_version": "moomooau.protected-ga-processed-plan-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "observed_through_utc": "2026-07-26T07:29:35Z",
+  "predecessor_control": {
+    "prior_run_contract_sha256": "d47b553db56e3c7e01b626832ef7f8fc2bf2bc23f75fca820fc27b232e0753aa",
+    "fourth_attempt_ledger_sha256": "b8dd28f8fba8c05a847433e5a3e44a467ea25003a388c8bbd152d5d019e2383f",
+    "fourth_attempt_ledger_schema_sha256": "2cd4af584ca38f45f8760309f5d38c4b7b076d47720aa400255e4875bce21c63",
+    "prior_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc"
+    ],
+    "prior_failed_head_dispatches_after_freeze": 0,
+    "prior_failed_head_reruns_after_freeze": 0
+  },
+  "attempts": [
+    {
+      "sequence": 5,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 119,
+        "pull_request_head_sha": "2e84a36a129ab22795a79d1bb8c66971c1b26ec8",
+        "merge_commit_parent_sha": "4c207ad539754166fae6642ff4e6850438d3e2fc",
+        "merge_commit_sha": "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+        "merged_at_utc": "2026-07-26T07:07:17Z",
+        "terminal_checks": 40,
+        "successful_checks": 35,
+        "failed_checks": 0,
+        "skipped_checks": 5,
+        "neutral_checks": 0
+      },
+      "workflow": {
+        "run_id": 30192270846,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30192270846",
+        "workflow_id": 318812500,
+        "event": "workflow_dispatch",
+        "workflow_ref": "refs/heads/main",
+        "workflow_head_sha": "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+        "run_attempt": 1,
+        "reruns": 0,
+        "started_at_utc": "2026-07-26T07:08:30Z",
+        "completed_at_utc": "2026-07-26T07:14:06Z"
+      },
+      "jobs": {
+        "authority_gate": {
+          "job_id": 89767546850,
+          "status": "PASS",
+          "started_at_utc": "2026-07-26T07:08:35Z",
+          "completed_at_utc": "2026-07-26T07:09:57Z"
+        },
+        "ga_schedule_rehearsal": {
+          "job_id": 89767666556,
+          "status": "FAILED",
+          "started_at_utc": "2026-07-26T07:10:01Z",
+          "completed_at_utc": "2026-07-26T07:14:05Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-26T07:14:03Z"
+        },
+        "live_schedule_hold": {
+          "job_id": 89767547322,
+          "status": "SKIPPED",
+          "completed_at_utc": "2026-07-26T07:08:32Z"
+        }
+      },
+      "public_failure": {
+        "schema_version": "moomooau.protected-ga-public-failure.v1",
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_GA_PROCESSED_PLAN_FAILED",
+        "failure_phase": "PROCESSED_PLAN",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "diagnostic_taxonomy": "moomooau.protected-ga-failure-taxonomy.v1",
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "platform_schedule_event_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_head_changed": false,
+        "private_repository_new_commits_during_attempt": 0,
+        "private_repository_added_paths": 0,
+        "private_repository_modified_paths": 0,
+        "private_repository_removed_paths": 0,
+        "raw_ciphertext_creations": 0,
+        "processed_immutable_creations": 0,
+        "processed_current_pointer_mutations": 0,
+        "timeline_snapshot_mutations": 0,
+        "timeline_state_mutations": 0,
+        "timeline_publish_attempts": 0,
+        "gmail_checkpoint_mutations": 0,
+        "gmail_source_mutations": 0,
+        "gmail_mutation_api_reached": false,
+        "platform_schedule_events": 0,
+        "identity_plaintext_cleanup": "PASS",
+        "one_shot_authority_variable_after_dispatch": "ABSENT",
+        "production_enablement_variable_after_dispatch": "ABSENT",
+        "protected_environment_secret_names": 8,
+        "exact_private_locator_disclosed": false,
+        "exact_mailbox_counts_disclosed": false
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "AFTER_RAW_REMOTE_RECOVERY_WITHIN_PROCESSED_PLAN_BEFORE_ANY_PROCESSED_WRITE_OR_GMAIL_MUTATION",
+        "exact_runtime_exception": "NOT_RECEIVED_OR_INSPECTED",
+        "exact_root_cause": "UNKNOWN",
+        "exact_root_cause_claimed": false,
+        "safe_next_diagnostic": "CLOSED_ENUM_PROCESSED_PLAN_SUBPHASE_ONLY",
+        "basis": [
+          "the protected failure payload contains only the fixed PROCESSED_PLAN phase, UNCLASSIFIED installation-token failure class and explicit non-disclosure claims",
+          "authority and plaintext cleanup passed, the protected GA step failed, the live schedule hold remained skipped and the fifth failed head remains attempt 1 with rerun zero",
+          "read-only connected-repository verification observed no commit after the fourth-attempt remote head and no path addition, modification or removal during the fifth attempt",
+          "the committed runner enters PROCESSED_PLAN only after Raw remote recovery and enters PROCESSED_COMMIT before any Processed write, so the fifth failure did not reach a Processed mutation",
+          "SECOND_VERIFICATION and TRASH_MUTATION occur strictly after Processed commit and full remote recovery, so the fifth failure could not reach a Gmail mutation",
+          "Timeline snapshot, publish and encrypted checkpoint phases occur later still and were not entered",
+          "synthetic repeated production and synthetic post-Processed recovery both pass, so no exact real-data root cause is inferred from the coarse phase",
+          "the successor diagnostic records only fixed Processed-plan subphase enums and never receives or inspects an exception, identifier, URL, counter, Secret, repository locator or mailbox-derived value"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"
+    ],
+    "new_reviewed_processed_plan_subphase_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "historical_ga_rehearsal_dispatches_consumed": 5,
+    "historical_ga_rehearsal_reruns": 0,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_005_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

@@ -498,23 +498,26 @@ class GAFullPipelineRunner:
                 raise GARuntimeError("GA Raw remote recovery count differs from the plan")
             raw_archived += 1
 
-            self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSED_PLAN)
+            self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSED_CLASSIFICATION)
             classification = self._classifier.classify(
                 canonical,
                 first,
                 attachments,
                 self._classification_registry,
             )
+            self._diagnostics.enter(ProtectedGAFailurePhase.FIRST_IMPORT_RECOVERY)
             imported_at_utc = self._first_import_timestamps.resolve(
                 raw_plan.opaque_message_id,
                 plan.started_at_utc,
             )
             if not _is_utc(imported_at_utc) or imported_at_utc > plan.started_at_utc:
                 raise GARuntimeError("first-import timestamp is invalid")
+            self._diagnostics.enter(ProtectedGAFailurePhase.HISTORICAL_LABEL_RECOVERY)
             historical_label_state = self._first_import_timestamps.resolve_label_state(
                 raw_plan.opaque_message_id,
                 plan.started_at_utc,
             )
+            self._diagnostics.enter(ProtectedGAFailurePhase.DOCUMENT_ENVELOPE_BUILD)
             envelope = self._envelope_factory.issue(
                 canonical,
                 first,
@@ -525,11 +528,14 @@ class GAFullPipelineRunner:
                 recovered_raw_ciphertext_sha256=raw_proof.raw_ciphertext_sha256,
                 label_state_override=historical_label_state,
             )
+            self._diagnostics.enter(ProtectedGAFailurePhase.ATTACHMENT_EXTRACTION)
             extraction = self._extractor.extract(attachments)
+            self._diagnostics.enter(ProtectedGAFailurePhase.PARSER_PROFILE_SELECTION)
             profile = self._profile_for(
                 classification.document_class,
                 parser_current_version,
             )
+            self._diagnostics.enter(ProtectedGAFailurePhase.PARSER_EXECUTION)
             outcome = self._parser.parse(
                 envelope,
                 classification,
@@ -543,7 +549,9 @@ class GAFullPipelineRunner:
                 processing_blocked += 1
                 pending[ref.message_id] = ref
                 continue
+            self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSED_BUNDLE_BUILD)
             bundle = self._product_builder.build(envelope, outcome)
+            self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSED_ENCRYPTION_PLAN)
             processed_plan = self._processed_plan_factory.plan(bundle, key_epoch=key_epoch)
             self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSED_COMMIT)
             self._operational_gate.execute(

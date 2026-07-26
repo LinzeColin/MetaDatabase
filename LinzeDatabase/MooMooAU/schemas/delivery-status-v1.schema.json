@@ -669,13 +669,54 @@
           ]
         }
       }
+    },
+    {
+      "title": "v1.0.24 fifth failed T0705 GA Processed-plan diagnostic authorized",
+      "properties": {
+        "package_version": {"const": "1.0.24"},
+        "overall_status": {
+          "const": "PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_SCHEDULE_DISABLED",
+            "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver one new exact-main T0705 closed-enum Processed-plan subphase-diagnostic candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the five failed heads; after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
+        },
+        "source_digests": {
+          "required": [
+            "protected_blue_green_execution_receipt_sha256",
+            "protected_ga_attempt_ledger_sha256",
+            "protected_ga_repair_attempt_ledger_sha256",
+            "protected_ga_label_replay_attempt_ledger_sha256",
+            "protected_ga_post_processed_attempt_ledger_sha256",
+            "protected_ga_processed_plan_attempt_ledger_sha256"
+          ]
+        }
+      }
     }
   ],
   "properties": {
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17", "1.0.18", "1.0.19", "1.0.20", "1.0.21", "1.0.22", "1.0.23"],
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17", "1.0.18", "1.0.19", "1.0.20", "1.0.21", "1.0.22", "1.0.23", "1.0.24"],
       "description": "Coupled by the root oneOf to the exact historical RMD state or current protected scope-stopped state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
@@ -708,7 +749,8 @@
         "PROTECTED_GA_ATTEMPT_FAILED_REPAIR_AUTHORIZED",
         "PROTECTED_GA_SECOND_ATTEMPT_FAILED_METADATA_REPAIR_AUTHORIZED",
         "PROTECTED_GA_THIRD_ATTEMPT_FAILED_LABEL_REPLAY_REPAIR_AUTHORIZED",
-        "PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED"
+        "PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED",
+        "PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED"
       ]
     },
     "dimensions": {
@@ -811,7 +853,8 @@
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0705_PREFLIGHT",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0705_FAILED_ATTEMPT",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_THREE_T0705_FAILURES",
-            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FOUR_T0705_FAILURES"
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FOUR_T0705_FAILURES",
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FIVE_T0705_FAILURES"
           ]
         }
       }
@@ -858,7 +901,7 @@
       "required": ["status", "workflow_runs", "reason_codes"],
       "properties": {
         "status": {"const": "BLOCKED"},
-        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 4},
+        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 5},
         "reason_codes": {
           "type": "array",
           "minItems": 4,
@@ -884,7 +927,8 @@
             "CONTROLLED_T0705_REPAIR_CANDIDATE_NOT_FINAL",
             "CONTROLLED_T0705_METADATA_REPAIR_CANDIDATE_NOT_FINAL",
             "CONTROLLED_T0705_LABEL_REPLAY_REPAIR_CANDIDATE_NOT_FINAL",
-            "CONTROLLED_T0705_PHASE_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+            "CONTROLLED_T0705_PHASE_DIAGNOSTIC_CANDIDATE_NOT_FINAL",
+            "CONTROLLED_T0705_PROCESSED_PLAN_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
           ]
         },
         "controlled_main_deliveries": {
