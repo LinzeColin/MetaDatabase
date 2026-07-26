@@ -1,17 +1,40 @@
 const os = require("os");
 const path = require("path");
+const { WorkspaceRegistry } = require("./workspace-registry");
 
 function readConfig() {
   const argv = process.argv.slice(2);
   const mode = argv[0] || "";
   const stateDir = process.env.CYBERBOSS_STATE_DIR || path.join(os.homedir(), ".cyberboss");
+  const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
+    || path.join(stateDir, "workspaces.json");
+  const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
+    || "/srv/cyberboss-workspaces";
+  const workspaceRegistry = new WorkspaceRegistry({
+    configPath: workspaceConfigFile,
+    workspaceBase,
+  });
+  const workspaceAlias = readTextEnv("CYBERBOSS_WORKSPACE_ALIAS")
+    || workspaceRegistry.defaultAlias;
+  const workspace = workspaceRegistry.resolve(workspaceAlias);
+  const configuredWorkspaceRoot = readTextEnv("CYBERBOSS_WORKSPACE_ROOT");
+  if (configuredWorkspaceRoot) {
+    const configured = workspaceRegistry.assertAllowedRoot(configuredWorkspaceRoot);
+    if (configured.alias !== workspace.alias) {
+      throw new Error("CYBERBOSS_WORKSPACE_ROOT does not match CYBERBOSS_WORKSPACE_ALIAS");
+    }
+  }
 
   return {
     mode,
     argv,
     stateDir,
     workspaceId: readTextEnv("CYBERBOSS_WORKSPACE_ID") || "default",
-    workspaceRoot: readTextEnv("CYBERBOSS_WORKSPACE_ROOT") || process.cwd(),
+    workspaceAlias: workspace.alias,
+    workspaceRoot: workspace.root,
+    workspaceBase,
+    workspaceConfigFile,
+    workspaceRegistry,
     userName: readTextEnv("CYBERBOSS_USER_NAME") || "User",
     userGender: readTextEnv("CYBERBOSS_USER_GENDER") || "female",
     allowedUserIds: readListEnv("CYBERBOSS_ALLOWED_USER_IDS"),

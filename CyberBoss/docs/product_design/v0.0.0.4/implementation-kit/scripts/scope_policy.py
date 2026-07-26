@@ -41,6 +41,7 @@ def validate_policy(policy: dict[str, Any]) -> None:
     _expect(code.get("repository") == "LinzeColin/MetaDatabase", "code_repository")
     _expect(code.get("project_subpath") == "CyberBoss", "code_subpath")
     _expect(code.get("workspace_alias") == "cyberboss", "workspace_alias")
+    _expect(code.get("execution_identity") == "cyberboss", "code_identity")
     _expect(code.get("allowed_write_globs") == ["CyberBoss/**"], "write_globs")
     _expect(code.get("root_integration_enabled") is False, "root_integration")
     _expect(code.get("new_repository_allowed") is False, "new_repository")
@@ -51,6 +52,21 @@ def validate_policy(policy: dict[str, Any]) -> None:
     _expect(data.get("area") == "Private-MetaDatabase", "data_area")
     _expect(data.get("domain") == "CyberBoss", "data_domain")
     _expect(data.get("access_mode") == "no_clone_client", "data_access_mode")
+    _expect(data.get("execution_identity") == "cyberboss-data", "data_identity")
+    _expect(
+        data.get("credential_config_dir") == "/var/lib/cyberboss-data/.config/gh",
+        "data_credential_dir",
+    )
+    _expect(
+        data.get("client_path")
+        == "/opt/cyberboss-cloud/shared/private_db_client.py",
+        "data_client_path",
+    )
+    _expect(
+        data.get("safe_wrapper_path")
+        == "/opt/cyberboss-cloud/shared/private_db_client_safe.py",
+        "data_wrapper_path",
+    )
     _expect(data.get("client_basename") == "private_db_client.py", "data_client")
     _expect(
         data.get("allowed_operations") == ["ingest", "get", "list", "verify"],
@@ -59,6 +75,19 @@ def validate_policy(policy: dict[str, Any]) -> None:
     _expect(
         set(data.get("forbidden_operations") or []) == {"clone", "put", "delete"},
         "data_forbidden_operations",
+    )
+    separation = policy.get("identity_separation") or {}
+    _expect(
+        separation.get("code_identity_can_execute_data_client") is False,
+        "identity_code_data_client",
+    )
+    _expect(
+        separation.get("data_identity_can_modify_code_workspace") is False,
+        "identity_data_code_write",
+    )
+    _expect(
+        separation.get("shared_secret_material") is False,
+        "identity_shared_secret",
     )
 
     cloudflare = policy.get("cloudflare") or {}

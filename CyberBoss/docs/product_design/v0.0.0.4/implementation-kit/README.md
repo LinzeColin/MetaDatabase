@@ -37,6 +37,19 @@ lifecycle script，并把精确版本及 `node:sqlite`/App Server 命令绑定�
 受控入口默认要求 `CB_CLAUDE_RUNTIME=true` 与
 `CB_CLAUDE_EVAL_PASSED=true` 双门；部署默认均为 `false`。
 
+P1.3 增加单一 root-controlled workspace registry 和运行前 realpath
+复验；`/bind` 只接受 `cyberboss` alias，绝对路径、未知 alias、config/root
+symlink 与未登记 Runtime root 均 fail closed。`workspace-budget.json` 固定
+4 GiB workspace budget、8 GiB absolute stop、4 GiB host reserve 和
+guard/protect/recover 阶梯，维护命令明确禁止 `--prune=now`。
+
+`build-controlled-workspace-artifacts.py` 从 clean 本地 MetaDatabase commit
+产生完整 CyberBoss Corresponding Source、`blob:none` sparse bare seed、
+精确 canonical `private_db_client.py` 与 GitHub CLI archive；不 push，也不
+clone Private-Database。`install-controlled-workspace.sh` 安装 candidate
+release、唯一 sparse workspace 和 `cyberboss`/`cyberboss-data` 独立身份，
+两次 apply 幂等，保持 `current`、service 和真实 data activation 不变。
+
 ## Immediate validation
 
 ```bash
@@ -49,6 +62,7 @@ node implementation-kit/tests/validate_config.js \
   implementation-kit/config/workspaces.json.example
 python3 implementation-kit/scripts/scope_policy.py validate
 python3 implementation-kit/tests/test_identity_scope.py
+python3 implementation-kit/tests/test_workspace_budget.py
 python3 implementation-kit/tests/test_external_adapters.py
 node --test implementation-kit/tests/access-policy-contract.test.js
 node --test implementation-kit/tests/simulator-contract.test.mjs
@@ -69,6 +83,8 @@ bash implementation-kit/scripts/preflight.sh --check
 python3 implementation-kit/tests/test_resource_profile.py
 python3 implementation-kit/scripts/resource-pressure-fixture.py
 bash implementation-kit/scripts/install-runtime-toolchain.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+bash implementation-kit/scripts/install-controlled-workspace.sh \
   --check --release-id 0000000000000000000000000000000000000000
 node --check implementation-kit/scripts/probe-codex-app-server.mjs
 
@@ -92,6 +108,14 @@ sudo implementation-kit/scripts/install-runtime-toolchain.sh \
   --apply --release-id <full-local-implementation-commit>
 sudo implementation-kit/scripts/install-runtime-toolchain.sh \
   --verify --release-id <full-local-implementation-commit>
+sudo implementation-kit/scripts/install-controlled-workspace.sh \
+  --apply \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb120-<full-local-implementation-commit>
+sudo implementation-kit/scripts/install-controlled-workspace.sh \
+  --verify \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb120-<full-local-implementation-commit>
 ```
 
 `preflight.sh` 只读并输出三次即时脱敏 snapshot；有限 cgroup v2 memory/swap
@@ -103,6 +127,12 @@ Runtime installer 的 `--apply` 与 `--verify` 都必须使用同一个完整 40
 implementation commit。Codex device auth 只准备命令，不在该安装序列执行；
 真实认证留到最终一次性激活。App Server 验收结束后必须确认进程和 8765
 listener 都为零，`cyberboss-cloud.service` 继续 disabled/inactive。
+
+CB-120 artifact builder 只能从 branch
+`codex/cyberboss-prestage0` 的 clean exact HEAD 构建。bare seed 的
+artifact remote 不是 GitHub/upstream remote；目标 workspace origin 只指向
+该本地 immutable seed。candidate release 不切换 `current`，data credential
+缺失时准确保持 `activation_pending`，不得为了通过验收执行真实 `gh api`。
 
 `resource-pressure-fixture.py` 默认 `--evidence-scope=local_container`，不得
 改称实机证据。只有目标授权链和只读 baseline 已在外层证据中验证、且 fixture

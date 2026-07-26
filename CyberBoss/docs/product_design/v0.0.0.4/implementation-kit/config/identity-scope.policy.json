@@ -4,6 +4,7 @@
     "repository": "LinzeColin/MetaDatabase",
     "project_subpath": "CyberBoss",
     "workspace_alias": "cyberboss",
+    "execution_identity": "cyberboss",
     "allowed_write_globs": [
       "CyberBoss/**"
     ],
@@ -16,6 +17,10 @@
     "area": "Private-MetaDatabase",
     "domain": "CyberBoss",
     "access_mode": "no_clone_client",
+    "execution_identity": "cyberboss-data",
+    "credential_config_dir": "/var/lib/cyberboss-data/.config/gh",
+    "client_path": "/opt/cyberboss-cloud/shared/private_db_client.py",
+    "safe_wrapper_path": "/opt/cyberboss-cloud/shared/private_db_client_safe.py",
     "client_basename": "private_db_client.py",
     "allowed_operations": [
       "ingest",
@@ -28,6 +33,12 @@
       "put",
       "delete"
     ]
+  },
+  "identity_separation": {
+    "code_identity_can_execute_data_client": false,
+    "data_identity_can_modify_code_workspace": false,
+    "shared_secret_material": false,
+    "missing_data_credential_status": "activation_pending"
   },
   "cloudflare": {
     "account_scope": "single_existing_account",

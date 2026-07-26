@@ -1,4 +1,3 @@
-const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
 const fs = require("fs");
@@ -42,6 +41,7 @@ const {
 } = require("../adapters/runtime/shared/approval-command");
 const { runSystemCheckinPoller } = require("../app/system-checkin-poller");
 const { createProjectTooling } = require("../tools/create-project-tooling");
+const { WorkspaceRegistryError } = require("./workspace-registry");
 const DEFAULT_LONG_POLL_TIMEOUT_MS = 35_000;
 const MIN_LONG_POLL_TIMEOUT_MS = 2_000;
 const SESSION_EXPIRED_ERRCODE = -14;
@@ -61,6 +61,10 @@ function createRuntimeAdapter(config) {
 class CyberbossApp {
   constructor(config) {
     this.config = config;
+    if (!config?.workspaceRegistry) {
+      throw new Error("workspace registry is required");
+    }
+    this.workspaceRegistry = config.workspaceRegistry;
     this.channelAdapter = createWeixinChannelAdapter(config);
     this.timelineIntegration = createTimelineIntegration(config);
     const projectTooling = createProjectTooling(config, {
@@ -426,6 +430,7 @@ class CyberbossApp {
   }
 
   async dispatchPreparedTurn({ bindingKey, workspaceRoot, prepared }) {
+    workspaceRoot = this.workspaceRegistry.assertAllowedRoot(workspaceRoot).root;
     const pendingScopeKey = this.turnGateStore.begin(bindingKey, workspaceRoot);
     await this.channelAdapter.sendTyping({
       userId: prepared.senderId,
@@ -929,7 +934,7 @@ class CyberbossApp {
       accountId: reminder.accountId,
       senderId: reminder.senderId,
     });
-    return this.runtimeAdapter.getSessionStore().getActiveWorkspaceRoot(bindingKey) || this.config.workspaceRoot;
+    return this.resolveWorkspaceRoot(bindingKey);
   }
 
   async dispatchSystemMessage(message) {
@@ -942,7 +947,9 @@ class CyberbossApp {
       accountId: prepared.accountId,
       senderId: prepared.senderId,
     });
-    const workspaceRoot = prepared.workspaceRoot || this.resolveWorkspaceRoot(bindingKey);
+    const workspaceRoot = this.workspaceRegistry.assertAllowedRoot(
+      prepared.workspaceRoot || this.resolveWorkspaceRoot(bindingKey)
+    ).root;
     if (this.isTurnDispatchBlocked(bindingKey, workspaceRoot)) {
       return false;
     }
@@ -1002,39 +1009,26 @@ class CyberbossApp {
   }
 
   async handleBindCommand(normalized, command) {
-    const workspaceRoot = normalizeWorkspacePath(command.args);
-    if (!workspaceRoot) {
+    const workspaceAlias = normalizeCommandArgument(command.args);
+    if (!workspaceAlias) {
       await this.channelAdapter.sendText({
         userId: normalized.senderId,
-        text: "💡 Usage: /bind /absolute/path",
+        text: "💡 Usage: /bind <workspace-alias>",
         contextToken: normalized.contextToken,
       });
       return;
     }
 
-    if (!isAbsoluteWorkspacePath(workspaceRoot)) {
+    let workspace;
+    try {
+      workspace = this.workspaceRegistry.resolve(workspaceAlias);
+    } catch (error) {
+      const code = error instanceof WorkspaceRegistryError
+        ? error.code
+        : "workspace_resolution_failed";
       await this.channelAdapter.sendText({
         userId: normalized.senderId,
-        text: "⚠️ Only absolute paths are supported for /bind.",
-        contextToken: normalized.contextToken,
-      });
-      return;
-    }
-
-    if (!isPathWithinAllowedDirectories(workspaceRoot)) {
-      await this.channelAdapter.sendText({
-        userId: normalized.senderId,
-        text: "⚠️ The path must be within your home directory or the current working directory.",
-        contextToken: normalized.contextToken,
-      });
-      return;
-    }
-
-    const stats = await fs.promises.stat(workspaceRoot).catch(() => null);
-    if (!stats?.isDirectory()) {
-      await this.channelAdapter.sendText({
-        userId: normalized.senderId,
-        text: `❌ Workspace does not exist\n${workspaceRoot}`,
+        text: `⚠️ Workspace alias rejected (${code}).`,
         contextToken: normalized.contextToken,
       });
       return;
@@ -1045,10 +1039,10 @@ class CyberbossApp {
       accountId: normalized.accountId,
       senderId: normalized.senderId,
     });
-    this.runtimeAdapter.getSessionStore().setActiveWorkspaceRoot(bindingKey, workspaceRoot);
+    this.runtimeAdapter.getSessionStore().setActiveWorkspaceRoot(bindingKey, workspace.root);
     await this.channelAdapter.sendText({
       userId: normalized.senderId,
-      text: `✅ Workspace bound\nworkspace: ${workspaceRoot}`,
+      text: `✅ Workspace bound\nworkspace: ${workspace.alias}`,
       contextToken: normalized.contextToken,
     });
   }
@@ -1073,7 +1067,7 @@ class CyberbossApp {
     const effectiveModel = this.runtimeAdapter.describe().model || storedModel;
 
     const lines = [
-      `📍 workspace: ${workspaceRoot}`,
+      `📍 workspace: ${this.workspaceRegistry.aliasForRoot(workspaceRoot)}`,
       `🧵 thread: ${threadId || "(none)"}`,
       `📊 status: ${threadState?.status || "idle"}`,
       `🤖 runtime: ${runtimeName}`,
@@ -1436,18 +1430,12 @@ class CyberbossApp {
     await this.channelAdapter.sendText({
       userId: normalized.senderId,
       text: [
-        "⭐️ Liked this project? Throw me a star on GitHub!",
-        "It really means a lot to an indie dev working on passion projects 💖",
-        "",
-        "https://github.com/WenXiaoWendy/cyberboss",
+        "📦 This deployment uses the fixed local MetaDatabase source bundle.",
+        "No upstream clone, sync, support, endorsement, or star target is configured.",
+        "Original licenses, provenance, source, modifications, and unresolved conflict records are preserved locally.",
       ].join("\n"),
       contextToken: normalized.contextToken,
     });
-    await this.channelAdapter.sendFile({
-      userId: normalized.senderId,
-      filePath: path.join(__dirname, "../../assets/star-guide.jpg"),
-      contextToken: normalized.contextToken,
-    }).catch(() => {});
   }
 
   async handleHelpCommand(normalized) {
@@ -1460,7 +1448,9 @@ class CyberbossApp {
 
   resolveWorkspaceRoot(bindingKey) {
     const sessionStore = this.runtimeAdapter.getSessionStore();
-    return sessionStore.getActiveWorkspaceRoot(bindingKey) || this.config.workspaceRoot;
+    return this.workspaceRegistry.assertAllowedRoot(
+      sessionStore.getActiveWorkspaceRoot(bindingKey) || this.config.workspaceRoot
+    ).root;
   }
 
   async handleRuntimeEvent(event) {
@@ -1937,19 +1927,6 @@ function extractPathFromFileUri(value) {
   } catch {
     return "";
   }
-}
-
-function isPathWithinAllowedDirectories(rawPath) {
-  const resolved = path.resolve(rawPath);
-  const normalized = resolved.replace(/\\/g, "/") + "/";
-  const allowedDirs = [
-    os.homedir(),
-    process.cwd(),
-    this?.config?.workspaceRoot,
-  ]
-    .filter(Boolean)
-    .map((dir) => path.resolve(dir).replace(/\\/g, "/") + "/");
-  return allowedDirs.some((prefix) => normalized.startsWith(prefix));
 }
 
 function normalizeCommandArgument(value) {

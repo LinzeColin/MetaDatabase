@@ -10,6 +10,13 @@ const { createClaudeCodeRuntimeAdapter } = require("../src/adapters/runtime/clau
 const { ClaudeCodeProcessClient } = require("../src/adapters/runtime/claudecode/process-client");
 const { SessionStore } = require("../src/adapters/runtime/codex/session-store");
 
+const TEST_WORKSPACE_REGISTRY = Object.freeze({
+  aliasForRoot(root) {
+    assert.equal(root, "/workspace");
+    return "cyberboss";
+  },
+});
+
 test("claudecode approval events extract command tokens from exec_command input", () => {
   const event = mapClaudeCodeMessageToRuntimeEvent({
     type: "approval.requested",
@@ -1260,6 +1267,7 @@ test("codex session store does not reuse legacy thread ids without runtime-scope
 test("handleStatusCommand asks to configure claudecode context window before showing context", async () => {
   const sent = [];
   const appLike = {
+    workspaceRegistry: TEST_WORKSPACE_REGISTRY,
     config: {
       claudeModel: "claude-sonnet",
     },
@@ -1315,6 +1323,7 @@ test("handleStatusCommand asks to configure claudecode context window before sho
 test("handleStatusCommand shows approximate context details for claudecode when configured", async () => {
   const sent = [];
   const appLike = {
+    workspaceRegistry: TEST_WORKSPACE_REGISTRY,
     config: {
       claudeContextWindow: 130000,
       claudeMaxOutputTokens: 64000,
@@ -1374,6 +1383,7 @@ test("handleStatusCommand shows approximate context details for claudecode when 
 test("handleStatusCommand asks to reduce claudecode max output tokens when reserve exceeds window", async () => {
   const sent = [];
   const appLike = {
+    workspaceRegistry: TEST_WORKSPACE_REGISTRY,
     config: {
       claudeContextWindow: 130000,
       claudeMaxOutputTokens: 140000,
@@ -1433,6 +1443,7 @@ test("handleStatusCommand asks to reduce claudecode max output tokens when reser
 test("handleStatusCommand shows codex context details", async () => {
   const sent = [];
   const appLike = {
+    workspaceRegistry: TEST_WORKSPACE_REGISTRY,
     config: {},
     resolveWorkspaceRoot() {
       return "/workspace";
@@ -1487,6 +1498,7 @@ test("handleStatusCommand shows codex context details", async () => {
 test("handleStatusCommand shows codex context as unavailable when no context data is available", async () => {
   const sent = [];
   const appLike = {
+    workspaceRegistry: TEST_WORKSPACE_REGISTRY,
     config: {},
     resolveWorkspaceRoot() {
       return "/workspace";

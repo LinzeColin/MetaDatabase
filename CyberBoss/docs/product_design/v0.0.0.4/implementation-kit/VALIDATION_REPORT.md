@@ -1,71 +1,84 @@
-# CyberBoss v0.0.0.4 Prestage Validation Report
+# CyberBoss v0.0.0.4 Implementation Kit Validation Report
 
 - Date: 2026-07-26
-- Run: `PS0.1`
-- Scope: governance and TaskPack normalization only
-- Product phase completed: none
+- Current Run: `P1.3 / CB-120`
+- Input commit:
+  `bacb20147b1f9971b8d47c578599fd3494bed5c3`
+- Scope: controlled workspace, fixed candidate source, no-clone client and
+  disk/identity gates
 - Publication: local branch only; no push, PR, tag or release
 
-## Source evidence
+## Current implementation readiness
 
-- Owner-supplied ZIP SHA-256:
-  `6ae91ee1f74b16e660f04d4d06cc744725cd97b9dc8d799c625186449fe3f178`
-- Owner-supplied Roadmap SHA-256:
-  `22a0ef56caab67c95357d60a3a725947f28a2744cecc79e66cacf638de1707b1`
-- ZIP structure: 71 entries, 60 files, zero unsafe paths, symlinks or duplicate
-  names.
-- Both source manifests verified every supplied file.
-- The normalized package preserves the exact 6-Stage/30-Task execution
-  skeleton, task phases, dependency edges, task Acceptance mappings, 53
-  Acceptance Oracle IDs and 53 requirement-to-Oracle pairs.
-- The only package path substitution is
-  `canonical-git-simulator.sh` → `private-db-simulator.sh`.
+- The App now resolves a single root-controlled `cyberboss` alias and validates
+  config type, lexical containment, canonical realpath and symlink boundaries.
+- `/bind` accepts only the registered alias. Absolute paths and unknown aliases
+  are rejected before session mutation.
+- Runtime and system-message dispatch revalidate the registered real root
+  before the turn gate or Runtime is entered.
+- Active App instructions and `/star` behavior no longer clone, sync, link or
+  route users to the historical upstream projects.
+- Original vendor source, original license files, provenance and the unresolved
+  whereabouts metadata/file conflict remain byte-preserved. The conservative
+  treatment remains
+  `AGPL-3.0-only AND GPL-3.0-only`;
+  `upstream_clarification_received=false`.
+- `workspaces.json.example` fixes one `blob:none` sparse MetaDatabase workspace
+  with paths `CyberBoss` and `.github`; root integration is read-only and code
+  write scope remains `CyberBoss/**`.
+- `workspace-budget.json` fixes a 4 GiB workspace budget, 8 GiB absolute stop,
+  4 GiB host reserve and immediate recover/guard/protect/stop ladder. Cleanup
+  explicitly forbids `--prune=now`.
+- Code identity `cyberboss` and data identity `cyberboss-data` use separate
+  groups and credential scope. The code identity cannot read/execute the data
+  client; the data identity cannot modify code.
+- Canonical `private_db_client.py` is pinned by exact SHA-256 and exposed only
+  through a wrapper that allows `ingest/get/list/verify`. Real data execution
+  remains `activation_pending`; Private-Database is never cloned.
+- GitHub CLI Linux amd64 `2.96.0` is pinned to its official release asset and
+  exact SHA-256.
+- The artifact builder creates a complete commit-bound CyberBoss source archive
+  plus a local immutable partial bare seed without pushing.
+- The target installer is commit-bound, validates every artifact before
+  extraction, installs only a candidate release, performs App check/full test,
+  supports idempotent apply/verify, and prohibits changes to `current`, service
+  state, business Runtime and real data activation.
 
 ## Passed locally
 
-- TaskPack structure: 60 files; all 16 required items present.
-- DAG: 30 unique tasks, six Stages, five tasks per Stage, all dependencies
-  exist and the graph is acyclic.
-- Traceability: 53 requirements, 53 Oracles, all Oracles mapped; every
-  referenced `CB-*` task and `PG-*` Gate exists.
-- No-wait: zero real-time Soak nodes, credential-wait nodes or fixed-sleep
-  implementation scripts.
-- A1/B1 and MetaDatabase identity: machine facts, config and workspace
-  validators agree on `LinzeColin/MetaDatabase/CyberBoss`, alias `cyberboss`
-  and default write scope `CyberBoss/**`.
-- Data contract: `Private-MetaDatabase`, `domain=CyberBoss`, no clone, and the
-  actual repository-governed `private_db_client.py` command shape.
-- Private-Database simulator: `ingest/get/list/verify`, idempotent 409 and
-  injected 403/409/429/outage behavior passed.
-- Structured syntax: Python, JSON and YAML parsed; all 15 shell scripts passed
-  `bash -n`; all five JavaScript/MJS files passed `node --check`.
-- SQLite: all eight required tables created and `PRAGMA integrity_check=ok`.
-- Accelerated reliability: 1,000 replays, 100 restart boundaries, 100
-  send-fault attempts and 20 restore cycles passed with zero duplicate
-  executions, duplicate terminal replies or restore mismatches.
-- WeChat simulator: QR status, two-message injection, update retrieval,
-  outbound send and injected send/update 503 behavior passed.
-- Immutable object-store simulator: put/get/hash/list and duplicate-key
-  rejection passed on macOS without GNU-only `find -printf`.
-- Status generator and global adapter produced valid degraded snapshots from
-  an unactivated fixture; simulator state was not reported as healthy
-  provider activation.
-- Normalized inner and outer SHA-256 manifests cover every package file.
-- `validate_prestage0.py` confirms license hash/carve-out, source separation,
-  owner decisions, state/DAG parity, active-identity scans, manifest hashes,
-  local-only publication and Git scope.
+- App syntax and full regression: `166/166`.
+- Workspace registry and active-upstream separation: `11/11` App tests.
+- Controlled cloud workspace contract: `5/5`.
+- Identity/scope policy and no-clone wrapper: `8/8`.
+- Workspace budget policy and pressure-state ladder: `5/5`.
+- Config validator and scope-policy validator: pass.
+- Installer `--check`: full 40-character commit binding, zero persistent writes
+  and zero live commands.
+- Installer/maintenance shell syntax and builder/wrapper/budget Python compile:
+  pass.
+- `git diff --check`: pass.
 
-## Explicit non-claims and remaining activation
+## Pending before CB-120 may pass
 
-- No upstream application source has been imported. `CB-000 / P0.1` remains
-  `not_started`.
-- No OVH, WeChat account, Codex auth, Private-Database, DNS/Access, R2, OCI,
-  Status production integration or deployment was activated.
-- The Codex App Server simulator passed syntax only because the local
-  Prestage workspace intentionally did not install its `ws` runtime
-  dependency.
-- `shellcheck` was not installed locally; all shell files passed `bash -n`.
-- No real credential, private message, business data or runtime database was
-  written to this code repository.
-- PG-0 through PG-5 remain `not_started`. Simulator success cannot advance a
-  real-provider activation state.
+- Create the exact implementation commit and build artifacts from a clean
+  worktree.
+- Re-run the protected target identity and resource preflight.
+- Transfer the exact artifact set into the bounded incoming directory.
+- Run two target applies and one independent verify.
+- Capture target alias/path/symlink, identity/credential, live disk budget and
+  finite-cgroup pressure evidence.
+- Confirm incoming/transient cleanup, no process/listener, unchanged current
+  pointer, disabled/inactive service, and no real data/provider operation.
+- Run final CB-120 and global validators, then change only CB-120 task state.
+
+## Explicit non-claims
+
+- No upstream clarification, support or endorsement is claimed.
+- No source/vendor historical evidence was rewritten to make later App changes
+  appear part of the original import.
+- No Private-MetaDatabase operation, credential activation, WeChat login, Codex
+  authenticated turn, provider write or business Runtime has been performed.
+- A candidate release is not a production activation and will not be described
+  as one.
+- `CB-120`, `CB-130` and every later task remain `not_started` until their own
+  exact Acceptance evidence closes.

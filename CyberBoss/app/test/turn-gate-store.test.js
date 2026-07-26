@@ -4,6 +4,13 @@ const assert = require("node:assert/strict");
 const { CyberbossApp } = require("../src/core/app");
 const { TurnGateStore } = require("../src/core/turn-gate-store");
 
+const TEST_WORKSPACE_REGISTRY = Object.freeze({
+  assertAllowedRoot(root) {
+    assert.equal(root, "/workspace");
+    return { alias: "cyberboss", root };
+  },
+});
+
 test("turn gate tracks pending scopes until the turn is released", () => {
   const gate = new TurnGateStore();
   const scopeKey = gate.begin("binding-1", "/workspace");
@@ -91,6 +98,7 @@ test("handlePreparedMessage queues a normal inbound message while the scope is b
 test("dispatchSystemMessage yields when a local pending turn already owns the workspace thread", async () => {
   let handled = false;
   const appLike = {
+    workspaceRegistry: TEST_WORKSPACE_REGISTRY,
     systemMessageDispatcher: {
       buildPreparedMessage() {
         return {
@@ -221,6 +229,7 @@ test("dispatchPreparedTurn binds reply target to the explicit turn id when runti
   const queuedBindings = [];
   const order = [];
   const appLike = {
+    workspaceRegistry: TEST_WORKSPACE_REGISTRY,
     channelAdapter: {
       async sendTyping() {
         order.push("typing");

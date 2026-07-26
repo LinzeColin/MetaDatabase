@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "project": "CyberBoss",
+  "fixed_source_record": "CyberBoss/docs/evidence/CB-000/baseline-source.md",
+  "license_record": "CyberBoss/docs/evidence/CB-000/LICENSE_COMPLIANCE.md",
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "upstream_clarification_received": false,
+  "upstream_clarification_claimed": false,
+  "original_source_and_licenses_preserved": true,
+  "immutable_original_vendor_paths": [
+    "CyberBoss/vendor/timeline-for-agent",
+    "CyberBoss/vendor/whereabouts-mcp"
+  ],
+  "entries": [
+    {
+      "task_id": "CB-120",
+      "phase": "P1.3",
+      "base_commit": "bacb20147b1f9971b8d47c578599fd3494bed5c3",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/README.en.md",
+        "CyberBoss/app/README.md",
+        "CyberBoss/app/README.zh-CN.md",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/command-registry.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/core/workspace-registry.js",
+        "CyberBoss/app/src/index.js",
+        "CyberBoss/app/src/services/system-message-service.js",
+        "CyberBoss/app/test/claudecode-approval.test.js",
+        "CyberBoss/app/test/turn-gate-store.test.js",
+        "CyberBoss/app/test/upstream-separation.test.js",
+        "CyberBoss/app/test/workspace-scope.test.js"
+      ],
+      "purposes": [
+        "accept only a root-controlled workspace alias and canonical realpath",
+        "revalidate the registered root before every Runtime or system-message dispatch",
+        "remove active App instructions and responses that clone or route users to historical upstream",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records",
+        "add regression tests for path escape, unknown alias, absolute path and active-upstream separation"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source are retained only as original Corresponding Source; they are not install, runtime, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    }
+  ]
+}

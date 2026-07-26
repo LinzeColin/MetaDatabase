@@ -7,6 +7,7 @@ import argparse
 import ast
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -45,10 +46,29 @@ def client_contract(path: Path) -> dict[str, Any]:
     }
 
 
+def pinned_client_hash(path: Path) -> str:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if (
+        value.get("schema_version") != 1
+        or value.get("task_id") != "CB-120"
+        or value.get("private_db_client", {}).get("access_mode")
+        != "no_clone_client"
+    ):
+        raise ScopeViolation("client:version_policy")
+    expected = value["private_db_client"].get("sha256")
+    if not isinstance(expected, str) or len(expected) != 64:
+        raise ScopeViolation("client:version_hash")
+    return expected
+
+
 def main() -> int:
-    default_policy = Path(__file__).resolve().parents[1] / "config/identity-scope.policy.json"
+    source_config = Path(__file__).resolve().parents[1] / "config"
+    config_root = source_config if source_config.is_dir() else Path("/etc/cyberboss")
+    default_policy = config_root / "identity-scope.policy.json"
+    default_versions = config_root / "no-clone-client-versions.json"
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy", type=Path, default=default_policy)
+    parser.add_argument("--versions", type=Path, default=default_versions)
     parser.add_argument("--client", type=Path, required=True)
     parser.add_argument("--domain", required=True)
     parser.add_argument("--execute", action="store_true")
@@ -83,6 +103,8 @@ def main() -> int:
             args.operation,
         )
         contract = client_contract(args.client)
+        if contract["sha256"] != pinned_client_hash(args.versions):
+            raise ScopeViolation("client:sha256")
     except (OSError, SyntaxError, ValueError, ScopeViolation) as error:
         print(f"PRIVATE_DB_SCOPE=FAIL reason={error}", file=sys.stderr)
         return 2
@@ -115,7 +137,26 @@ def main() -> int:
         )
         return 0
 
-    result = subprocess.run(command, check=False)
+    gh_command = os.environ.get("CB_PRIVATE_DB_GH_COMMAND", "")
+    gh_config_dir = os.environ.get("CB_PRIVATE_DB_GH_CONFIG_DIR", "")
+    if gh_command != "/opt/cyberboss-cloud/shared/toolchains/bin/gh":
+        print("PRIVATE_DB_SCOPE=FAIL reason=runtime:gh_command", file=sys.stderr)
+        return 2
+    if gh_config_dir != "/var/lib/cyberboss-data/.config/gh":
+        print("PRIVATE_DB_SCOPE=FAIL reason=runtime:gh_config_dir", file=sys.stderr)
+        return 2
+    gh_path = Path(gh_command)
+    config_path = Path(gh_config_dir)
+    if not gh_path.is_file() or not os.access(gh_path, os.X_OK):
+        print("PRIVATE_DB_SCOPE=FAIL reason=runtime:gh_unavailable", file=sys.stderr)
+        return 2
+    if not config_path.is_dir() or config_path.is_symlink():
+        print("PRIVATE_DB_SCOPE=FAIL reason=runtime:gh_config_unavailable", file=sys.stderr)
+        return 2
+    execution_env = dict(os.environ)
+    execution_env["PATH"] = f"{gh_path.parent}:/usr/bin:/bin"
+    execution_env["GH_CONFIG_DIR"] = gh_config_dir
+    result = subprocess.run(command, check=False, env=execution_env)
     return result.returncode
 
 

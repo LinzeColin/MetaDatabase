@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-120",
+  "platform": "linux-amd64",
+  "private_db_client": {
+    "source_repository": "LinzeColin/KMOS",
+    "source_path": "KMDatabase/machine/tools/private_db_client.py",
+    "sha256": "8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa",
+    "access_mode": "no_clone_client",
+    "real_operation_activation": "activation_pending"
+  },
+  "github_cli": {
+    "version": "2.96.0",
+    "archive": "gh_2.96.0_linux_amd64.tar.gz",
+    "archive_sha256": "83d5c2ccad5498f58bf6368acb1ab32588cf43ab3a4b1c301bf36328b1c8bd60",
+    "url": "https://github.com/cli/cli/releases/download/v2.96.0/gh_2.96.0_linux_amd64.tar.gz",
+    "license": "MIT",
+    "release_immutable": true
+  }
+}

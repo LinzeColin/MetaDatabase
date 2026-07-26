@@ -1,6 +1,4 @@
 const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
 const { loadPersistedContextTokens } = require("../adapters/channel/weixin/context-token-store");
@@ -40,19 +38,7 @@ class SystemMessageService {
     if (!senderId || !resolvedWorkspaceRoot) {
       throw new Error("system send requires a sender and workspace");
     }
-    if (!path.isAbsolute(resolvedWorkspaceRoot)) {
-      throw new Error(`workspace must be an absolute path: ${resolvedWorkspaceRoot}`);
-    }
-
-    let workspaceStats = null;
-    try {
-      workspaceStats = fs.statSync(resolvedWorkspaceRoot);
-    } catch {
-      throw new Error(`workspace does not exist: ${resolvedWorkspaceRoot}`);
-    }
-    if (!workspaceStats.isDirectory()) {
-      throw new Error(`workspace is not a directory: ${resolvedWorkspaceRoot}`);
-    }
+    const workspace = this.config.workspaceRegistry.assertAllowedRoot(resolvedWorkspaceRoot);
 
     const contextTokens = loadPersistedContextTokens(this.config, account.accountId);
     if (!contextTokens[senderId]) {
@@ -63,7 +49,7 @@ class SystemMessageService {
       id: crypto.randomUUID(),
       accountId: account.accountId,
       senderId,
-      workspaceRoot: resolvedWorkspaceRoot,
+      workspaceRoot: workspace.root,
       text: normalizedText,
       createdAt: new Date().toISOString(),
     });

@@ -66,15 +66,11 @@ Reminder 队列不是给用户设的闹钟，而是模型留给未来自己的�
 5. 零成本本地日志 (Zero-Token Diary)
 它会将真正值得留下的生活痕迹沉淀到本地，不依赖第三方云服务，不烧额外上下文，却能留住你们之间最真实的连接。
 
-## 也可以单独使用 Timeline
+## 固定本地 Timeline 源码
 
-如果你对 `Cyberboss` 里最感兴趣的是“生活轨迹自动化报表”这一层，那么也可以直接把时间轴能力单独拿出去用：
-
-- 项目地址：[WenXiaoWendy/timeline-for-agent](https://github.com/WenXiaoWendy/timeline-for-agent)
-- 它本身就是独立项目，不依赖微信桥接才能工作
-- 如果你不想使用 Codex，也完全可以把 `timeline-for-agent` 接进你自己的 agent、bot 或自动化系统里
-
-`Cyberboss` 的时间轴能力本质上也是构建在 `timeline-for-agent` 之上，只是这里额外把它接进了微信、提醒、日记和随机轮询这整套生活监管链路里。
+本发行版只消费 `CyberBoss/vendor/timeline-for-agent` 中完整、固定的本地源码。
+安装和运行时均不 clone、fetch、自动同步或依赖任何移动上游分支。原始源码、
+许可证、来源和修改记录均随 MetaDatabase Corresponding Source 保留。
 
 <a id="technical-stack"></a>
 ## 技术实现
@@ -109,14 +105,15 @@ Cyberboss 假设你是一个完全不可控的个体：你不需要先点开始�
 - 本机已安装 `codex` 或 `claude`
 - 如果需要截图，本机需要可用的 Chrome / Chromium / Edge
 
-### 获取源码与安装依赖
+### 安装固定源码包
 
-当前没有发布 npm 包。正确用法是先拉源码，再在仓库目录里安装依赖：
+当前没有发布 npm 包。受控云安装只使用既有
+`LinzeColin/MetaDatabase` 仓库中绑定精确 commit 的 `CyberBoss` 本地制品；
+不得 clone 历史来源仓库。在获授权的 MetaDatabase worktree 内安装：
 
 ```bash
-git clone https://github.com/WenXiaoWendy/cyberboss.git
-cd cyberboss
-npm install
+cd CyberBoss/app
+npm ci --ignore-scripts
 ```
 
 不要把 README 里的命令理解成“全局安装后直接可用”的 npm package 命令。
@@ -135,7 +132,10 @@ npm install
 CYBERBOSS_USER_NAME=你的名字
 CYBERBOSS_USER_GENDER=female
 CYBERBOSS_ALLOWED_USER_IDS=你的微信 user id
-CYBERBOSS_WORKSPACE_ROOT=/绝对路径/你的项目目录
+CYBERBOSS_WORKSPACE_CONFIG=/etc/cyberboss/workspaces.json
+CYBERBOSS_WORKSPACE_BASE=/srv/cyberboss-workspaces
+CYBERBOSS_WORKSPACE_ALIAS=cyberboss
+CYBERBOSS_WORKSPACE_ROOT=/srv/cyberboss-workspaces/cyberboss
 ```
 
 可选常用项：
@@ -241,7 +241,9 @@ CYBERBOSS_LOCATION_BATTERY_HISTORY_LIMIT=100
 
 另外，如果你想要更强的“push 感”，建议一开始先不要主动大改 instructions 模板。先让 agent 在真实交流里自己更新行为，再回头只修明显不对的部分。
 
-如果你要跑共享线程，建议也在第一次启动前就把 `CYBERBOSS_WORKSPACE_ROOT` 配好。这样 `shared:open` 会优先接到你当前项目对应的那条线程，而不是回退到别的历史绑定。
+如果要跑共享线程，第一次启动前必须配置 root 控制的 workspace registry。
+`CYBERBOSS_WORKSPACE_ALIAS` 与 `CYBERBOSS_WORKSPACE_ROOT` 必须指向同一个登记项；
+任何未登记路径都会 fail closed。
 
 如果你使用 Ollama 这类本地 Codex provider，推荐用一个很小的 wrapper script，不要直接把 provider flags 塞进 `CYBERBOSS_CODEX_COMMAND`。把 [templates/codex-local-provider.sh](./templates/codex-local-provider.sh) 复制到 `${HOME}/.cyberboss/codex-local`，给它执行权限，并让 Cyberboss 使用这个 wrapper：
 
@@ -293,8 +295,9 @@ model_catalog_json = "/绝对路径/.codex/local-models.json"
 
 ### 用户在微信里会用到的命令
 
-- `/bind /绝对路径`
-  绑定当前聊天使用的项目目录
+- `/bind cyberboss`
+  将当前聊天绑定到已登记的 `cyberboss` workspace alias；绝对路径和未知
+  alias 均拒绝
 - `/status`
   查看当前绑定项目、线程、模型和上下文状态
 - `/new`
@@ -322,14 +325,14 @@ model_catalog_json = "/绝对路径/.codex/local-models.json"
 - `/model <id>`
   切换模型
 - `/star`
-  在微信里查看 GitHub star 引导
+  查看固定本地源码与合规状态
 - `/help`
   查看微信内命令帮助
 
 普通文本消息会直接发送到当前绑定线程。如果当前还没绑定项目，先执行：
 
 ```text
-/bind /绝对路径
+/bind cyberboss
 ```
 
 ### 双端监控同一条线程
@@ -481,7 +484,8 @@ ${HOME}/.cyberboss
 
 ### 为什么不是直接 `npm install cyberboss`？
 
-因为当前没有发布 npm package。正确方式是 `git clone` 仓库后，在项目目录里执行 `npm install`。
+因为当前没有发布 npm package。正确方式是在既有 MetaDatabase 的固定本地
+source bundle 中执行 `npm ci --ignore-scripts`；不得 clone 历史来源仓库。
 
 ### `checkin` 到底是什么？
 

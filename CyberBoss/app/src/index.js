@@ -97,6 +97,11 @@ async function main() {
   ensureRuntimeEnv();
   installRuntimeErrorHooks();
   const argv = process.argv.slice(2);
+  const requestedCommand = argv[0] || "help";
+  if (requestedCommand === "help" || requestedCommand === "--help" || requestedCommand === "-h") {
+    console.log(buildTerminalHelpText());
+    return;
+  }
   const config = readConfig();
   ensureBootstrapFiles(config);
   const command = config.mode || "help";
@@ -107,11 +112,6 @@ async function main() {
     }
     return app;
   };
-
-  if (command === "help" || command === "--help" || command === "-h") {
-    console.log(buildTerminalHelpText());
-    return;
-  }
 
   if (command === "doctor") {
     getApp().printDoctor();
@@ -135,7 +135,9 @@ async function main() {
 
   if (command === "tool-mcp-server") {
     const runtimeId = readFlagValue(argv.slice(1), "--runtime-id") || "";
-    const workspaceRoot = readFlagValue(argv.slice(1), "--workspace-root") || process.cwd();
+    const requestedWorkspaceRoot = readFlagValue(argv.slice(1), "--workspace-root")
+      || config.workspaceRoot;
+    const workspaceRoot = config.workspaceRegistry.assertAllowedRoot(requestedWorkspaceRoot).root;
     const { toolHost } = createProjectTooling(config);
     runToolMcpServer({ toolHost, runtimeId, workspaceRoot });
     return;

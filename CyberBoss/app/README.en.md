@@ -63,15 +63,13 @@ Reminders are not primarily a user-facing alarm clock. They are how the model le
 5. Zero-Token Diary
 Daily traces can be written to local files without depending on a cloud note service or burning extra model context every time.
 
-## Timeline also works on its own
+## Fixed local Timeline source
 
-If the most interesting part of Cyberboss is the "ledger of life" layer, you can use that separately:
-
-- Project: [WenXiaoWendy/timeline-for-agent](https://github.com/WenXiaoWendy/timeline-for-agent)
-- It is an independent project and does not require the WeChat bridge
-- You can plug it into your own agent, bot, or automation stack even if you do not use Codex
-
-Cyberboss builds on top of `timeline-for-agent`, then adds WeChat, reminders, diary writing, and random check-ins around it.
+This distribution consumes the complete, fixed local source at
+`CyberBoss/vendor/timeline-for-agent`. It does not clone, fetch, auto-sync or
+depend on a moving upstream branch at install or runtime. The original source,
+license, provenance and modification records remain in the MetaDatabase
+Corresponding Source bundle.
 
 <a id="technical-stack"></a>
 ## Technical Stack
@@ -106,14 +104,17 @@ Cyberboss assumes none of that. It treats the user as someone who may drift, dis
 - `codex` or `claude` installed locally
 - Chrome / Chromium / Edge if you want screenshot features
 
-### Get the source and install dependencies
+### Install the fixed source bundle
 
-This project is not published as an npm package. Clone the repo and install inside the project directory:
+This project is not published as an npm package. The controlled cloud
+installation uses the immutable, commit-bound `CyberBoss` source artifact from
+the existing `LinzeColin/MetaDatabase` repository. Do not clone the historical
+source repository. Inside an authorized MetaDatabase worktree, install from the
+local bundle:
 
 ```bash
-git clone https://github.com/WenXiaoWendy/cyberboss.git
-cd cyberboss
-npm install
+cd CyberBoss/app
+npm ci --ignore-scripts
 ```
 
 ### Configure environment variables before the first command
@@ -130,7 +131,10 @@ Before running the first command, set at least:
 CYBERBOSS_USER_NAME=YourName
 CYBERBOSS_USER_GENDER=female
 CYBERBOSS_ALLOWED_USER_IDS=your_wechat_user_id
-CYBERBOSS_WORKSPACE_ROOT=/absolute/path/to/your/project
+CYBERBOSS_WORKSPACE_CONFIG=/etc/cyberboss/workspaces.json
+CYBERBOSS_WORKSPACE_BASE=/srv/cyberboss-workspaces
+CYBERBOSS_WORKSPACE_ALIAS=cyberboss
+CYBERBOSS_WORKSPACE_ROOT=/srv/cyberboss-workspaces/cyberboss
 ```
 
 Common optional variables:
@@ -218,7 +222,10 @@ Why this matters:
 
 If you want the strongest "push" effect, do not immediately rewrite the persona template by hand. Let the agent develop its rhythm through real conversation first, then edit only the parts that are clearly wrong.
 
-If you plan to use shared mode, set `CYBERBOSS_WORKSPACE_ROOT` before the first start so `shared:open` resolves the right thread for the right project.
+If you plan to use shared mode, configure the root-controlled workspace
+registry before the first start. `CYBERBOSS_WORKSPACE_ALIAS` and
+`CYBERBOSS_WORKSPACE_ROOT` must resolve to the same registered entry;
+unregistered paths fail closed.
 
 If you use a local Codex provider such as Ollama, prefer a small wrapper script instead of putting provider flags directly into `CYBERBOSS_CODEX_COMMAND`. Copy [templates/codex-local-provider.sh](./templates/codex-local-provider.sh) to `${HOME}/.cyberboss/codex-local`, make it executable, and point Cyberboss at it:
 
@@ -270,8 +277,9 @@ Switch the runtime with `CYBERBOSS_RUNTIME`. You do not need a different command
 
 ### WeChat commands for end users
 
-- `/bind /absolute/path`
-  Bind the current chat to a project workspace
+- `/bind cyberboss`
+  Bind the current chat to the registered `cyberboss` workspace alias.
+  Absolute paths and unknown aliases are rejected.
 - `/status`
   Show current workspace, thread, model, and context state
 - `/new`
@@ -299,14 +307,14 @@ Switch the runtime with `CYBERBOSS_RUNTIME`. You do not need a different command
 - `/model <id>`
   Switch model
 - `/star`
-  Show the GitHub star guide inside WeChat
+  Show the fixed local source and compliance status
 - `/help`
   Show WeChat command help
 
 Plain text messages go directly to the bound thread. If nothing is bound yet, bind a workspace first:
 
 ```text
-/bind /absolute/path
+/bind cyberboss
 ```
 
 ### Observe the same thread from WeChat and terminal
@@ -388,7 +396,9 @@ Common contents:
 - `logs/`
   shared bridge and shared runtime logs
 
-This is the runtime state directory, not your project workspace. The WeChat thread and the terminal thread should still be opened against your actual project directory.
+This is the runtime state directory, not the registered project workspace. The
+WeChat thread and terminal thread must use the canonical path resolved from the
+root-controlled workspace registry.
 
 ### Whereabouts Notes
 

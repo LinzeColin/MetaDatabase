@@ -74,9 +74,9 @@ const COMMAND_GROUPS = [
     actions: [
       {
         action: "workspace.bind",
-        summary: "Bind the current chat to a workspace directory",
+        summary: "Bind the current chat to an allowlisted workspace alias",
         terminal: [],
-        weixin: ["/bind"],
+        weixin: ["/bind <workspace-alias>"],
         status: "active",
       },
       {
@@ -240,7 +240,7 @@ const COMMAND_GROUPS = [
       },
       {
         action: "app.star",
-        summary: "Star the project on GitHub",
+        summary: "Show fixed local source and compliance status",
         terminal: [],
         weixin: ["/star"],
         status: "active",

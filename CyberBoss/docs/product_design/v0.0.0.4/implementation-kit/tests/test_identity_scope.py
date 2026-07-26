@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import subprocess
 import sys
@@ -61,6 +62,20 @@ class IdentityScopeTests(unittest.TestCase):
                 )
 
     def test_private_database_scope_and_operations(self) -> None:
+        self.assertEqual(self.policy["code"]["execution_identity"], "cyberboss")
+        self.assertEqual(
+            self.policy["data"]["execution_identity"], "cyberboss-data"
+        )
+        self.assertFalse(
+            self.policy["identity_separation"][
+                "code_identity_can_execute_data_client"
+            ]
+        )
+        self.assertFalse(
+            self.policy["identity_separation"][
+                "data_identity_can_modify_code_workspace"
+            ]
+        )
         for operation in ("ingest", "get", "list", "verify"):
             validate_data_scope(
                 self.policy,
@@ -139,6 +154,13 @@ class IdentityScopeTests(unittest.TestCase):
         self.assertTrue(
             all(item["activation_status"] == "activation_pending" for item in inventory["slots"])
         )
+        private_db = next(
+            item for item in inventory["slots"] if item["id"] == "private-db-gh-login"
+        )
+        self.assertEqual(private_db["execution_identity"], "cyberboss-data")
+        self.assertEqual(
+            private_db["path"], "/var/lib/cyberboss-data/.config/gh/hosts.yml"
+        )
         serialized = json.dumps(inventory)
         self.assertNotIn("BEGIN PRIVATE KEY", serialized)
         self.assertNotRegex(serialized, r"gh[pousr]_[A-Za-z0-9]{20,}")
@@ -158,12 +180,28 @@ class IdentityScopeTests(unittest.TestCase):
                 "    sub.add_parser(\"verify\")\n",
                 encoding="utf-8",
             )
+            versions = root / "versions.json"
+            versions.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "task_id": "CB-120",
+                        "private_db_client": {
+                            "access_mode": "no_clone_client",
+                            "sha256": hashlib.sha256(client.read_bytes()).hexdigest(),
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
             result = subprocess.run(
                 [
                     sys.executable,
                     str(SCRIPTS / "private_db_client_safe.py"),
                     "--policy",
                     str(self.policy_path),
+                    "--versions",
+                    str(versions),
                     "--client",
                     str(client),
                     "--domain",
