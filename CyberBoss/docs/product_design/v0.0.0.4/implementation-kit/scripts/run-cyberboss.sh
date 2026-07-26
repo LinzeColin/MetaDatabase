@@ -51,7 +51,8 @@ if [[ "$CYBERBOSS_CODEX_ENDPOINT" != "ws://127.0.0.1:8765" ]]; then
 fi
 [[ "$CB_HTTP_HOST" == "127.0.0.1" && "$CB_HTTP_PORT" == "8780" ]] ||
   { echo "STOP: status endpoint must be exact loopback port 8780" >&2; exit 2; }
-[[ "$CB_STATUS_TOKEN_FILE" == /run/cyberboss-cb130/* ]] ||
+[[ "$CB_STATUS_TOKEN_FILE" == /run/cyberboss-cb130/* ||
+  "$CB_STATUS_TOKEN_FILE" == /run/cyberboss-cb140/* ]] ||
   { echo "STOP: status token must be ephemeral" >&2; exit 2; }
 
 mkdir -p "$STATE_DIR/locks" "$STATE_DIR/status" "$STATE_DIR/tmp"

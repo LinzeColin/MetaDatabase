@@ -10,7 +10,10 @@ const { once } = require("node:events");
 
 const REQUIRED_RELEASE_PREFIX = "/opt/cyberboss-cloud/releases/";
 const REQUIRED_STATE_PREFIX = "/var/lib/cyberboss/";
-const REQUIRED_TOKEN_PREFIX = "/run/cyberboss-cb130/";
+const REQUIRED_TOKEN_PREFIXES = Object.freeze([
+  "/run/cyberboss-cb130/",
+  "/run/cyberboss-cb140/",
+]);
 const RUNTIME_ENDPOINT = "ws://127.0.0.1:8765";
 const STATUS_HOST = "127.0.0.1";
 const STATUS_PORT = 8780;
@@ -70,6 +73,22 @@ function assertAbsoluteWithin(candidate, prefix, code) {
   return resolved;
 }
 
+function assertAbsoluteWithinOneOf(candidate, prefixes, code) {
+  const raw = readText(candidate);
+  expect(path.isAbsolute(raw), `${code}_absolute`);
+  const resolved = path.resolve(raw);
+  for (const prefix of prefixes) {
+    const normalizedPrefix = path.resolve(prefix);
+    if (
+      resolved === normalizedPrefix
+      || resolved.startsWith(`${normalizedPrefix}${path.sep}`)
+    ) {
+      return resolved;
+    }
+  }
+  throw new SupervisorViolation(`${code}_scope`);
+}
+
 function loadConfiguration(environment = process.env) {
   const releaseCommit = readText(environment.CB_EXPECTED_RELEASE_ID);
   expect(/^[0-9a-f]{40}$/.test(releaseCommit), "release_commit");
@@ -84,9 +103,9 @@ function loadConfiguration(environment = process.env) {
     REQUIRED_STATE_PREFIX,
     "state_dir",
   );
-  const statusTokenFile = assertAbsoluteWithin(
+  const statusTokenFile = assertAbsoluteWithinOneOf(
     environment.CB_STATUS_TOKEN_FILE,
-    REQUIRED_TOKEN_PREFIX,
+    REQUIRED_TOKEN_PREFIXES,
     "status_token_file",
   );
   const runtimeProvider = readText(environment.CB_RUNTIME_PROVIDER);

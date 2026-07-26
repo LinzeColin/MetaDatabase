@@ -74,6 +74,21 @@ drop-in 完成 healthy/unready/snapshot、external scan、100 concurrent start�
 100 singleton denial、100 kill/restart 和四类 fault recovery，最后恢复
 disabled/inactive 且零 process/listener。
 
+P1.5 在同一 process family 上增加 opt-in Walking Skeleton acceptance
+trace。App 先执行精确 sender allowlist 和 `32768` UTF-8 byte gate，再允许
+Runtime dispatch；acceptance trace 只保存派生 `trace_id`、input/output hash、
+Runtime identity hash、阶段和 latency，不保存消息/结果正文、账号、sender、
+token、workspace 或 target address。它只是 CB-140 evidence，不是 CB-200
+SQLite spool。
+
+`build-cloud-walking-skeleton-artifacts.py` 继续复用 exact-commit
+Corresponding Source builder；`install-cloud-walking-skeleton.sh` 只安装
+immutable CB-140 candidate。`accept-cloud-walking-skeleton.sh` 使用 transient
+CB-140 drop-in 完成 simulator E2E `10/10`、unauthorized/32 KiB boundary、
+idle latency `20/20`、trace correlation、Mac-offline 和 loopback/external
+scan，再恢复 disabled/inactive 与零 process/listener。真实 WeChat/Codex
+保持 `activation_pending`；该 Run 不执行 PG-1。
+
 ## Immediate validation
 
 ```bash
@@ -114,6 +129,13 @@ python3 -m py_compile \
   implementation-kit/scripts/build-cloud-process-artifacts.py
 bash implementation-kit/scripts/install-cloud-process-family.sh \
   --check --release-id 0000000000000000000000000000000000000000
+python3 -m py_compile \
+  implementation-kit/scripts/build-cloud-walking-skeleton-artifacts.py
+bash implementation-kit/scripts/install-cloud-walking-skeleton.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+bash implementation-kit/scripts/accept-cloud-walking-skeleton.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+node --check implementation-kit/scripts/run-walking-skeleton-acceptance.mjs
 node --check implementation-kit/scripts/probe-codex-app-server.mjs
 
 db="$(mktemp)"
@@ -152,6 +174,14 @@ sudo implementation-kit/scripts/install-cloud-process-family.sh \
   --verify \
   --release-id <full-local-implementation-commit> \
   --artifacts /var/lib/cyberboss/incoming/cb130-<full-local-implementation-commit>
+sudo implementation-kit/scripts/install-cloud-walking-skeleton.sh \
+  --apply \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb140-<full-local-implementation-commit>
+sudo implementation-kit/scripts/install-cloud-walking-skeleton.sh \
+  --verify \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb140-<full-local-implementation-commit>
 ```
 
 `preflight.sh` 只读并输出三次即时脱敏 snapshot；有限 cgroup v2 memory/swap
@@ -176,6 +206,12 @@ status token，供 operator-host 立即执行外部 8765/8780 scan；随后
 `--cleanup`，不得留下 active service、cgroup child、listener、drop-in 或
 token。candidate 与 staging env 可保留审计，`current` 和 CB-120 workspace
 不得变化。
+
+CB-140 acceptance 使用 operator ready/release marker 让外部端口扫描发生在
+service active 窗口内；marker、status token、trace working file 和 systemd
+drop-in 都只存在于 transient scope。导出的 JSON/NDJSON/HTML 仅含 synthetic
+或 redacted evidence；真实 adapter 缺失时继续 `activation_pending`，不等待、
+不伪造，也不执行 PG-1。
 
 `resource-pressure-fixture.py` 默认 `--evidence-scope=local_container`，不得
 改称实机证据。只有目标授权链和只读 baseline 已在外层证据中验证、且 fixture

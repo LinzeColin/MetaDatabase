@@ -3,12 +3,21 @@ const { sanitizeProtocolLeakText } = require("../adapters/runtime/codex/protocol
 const CURRENT_REPLY_HEADER = "===== 本轮模型回复 =====";
 
 class StreamDelivery {
-  constructor({ channelAdapter, sessionStore, runtimeId = "", onDeferredSystemReply, systemReplyRetryScheduleMs, sameTokenRetryDelayMs }) {
+  constructor({
+    channelAdapter,
+    sessionStore,
+    runtimeId = "",
+    onDeferredSystemReply,
+    onTraceEvent,
+    systemReplyRetryScheduleMs,
+    sameTokenRetryDelayMs,
+  }) {
     this.channelAdapter = channelAdapter;
     this.sessionStore = sessionStore;
     this.runtimeId = normalizeRuntimeId(runtimeId);
     this.systemReplyPolicy = createSystemReplyPolicy(this.runtimeId);
     this.onDeferredSystemReply = typeof onDeferredSystemReply === "function" ? onDeferredSystemReply : null;
+    this.onTraceEvent = typeof onTraceEvent === "function" ? onTraceEvent : null;
     this.systemReplyRetryScheduleMs = Array.isArray(systemReplyRetryScheduleMs) && systemReplyRetryScheduleMs.length
       ? systemReplyRetryScheduleMs.map((value) => Number(value)).filter((value) => Number.isFinite(value) && value >= 0)
       : [1_500, 2_500, 4_000, 6_000];
@@ -31,6 +40,7 @@ class StreamDelivery {
       userId: String(target.userId).trim(),
       contextToken: String(target.contextToken).trim(),
       provider: normalizeText(target.provider),
+      traceId: normalizeText(target.traceId),
     });
   }
 
@@ -114,6 +124,7 @@ class StreamDelivery {
         const state = this.ensureRunState(threadId, turnId);
         state.turnId = turnId || state.turnId;
         this.attachReplyTarget(state);
+        this.emitTraceEvent("runtime_dispatched", state);
         return;
       }
       case "runtime.reply.delta": {
@@ -139,6 +150,11 @@ class StreamDelivery {
         const state = this.ensureRunState(threadId, turnId);
         state.turnId = turnId || state.turnId;
         this.captureTurnCompletionText(state, event.payload.text);
+        this.emitTraceEvent(
+          "runtime_completed",
+          state,
+          buildReplyText(state, { completedOnly: false }),
+        );
         await this.flush(state, { force: true });
         this.disposeRunState(state.runKey);
         return;
@@ -378,7 +394,11 @@ class StreamDelivery {
     if (prependDeferredPrefix) {
       payload.preserveBlock = true;
     }
-    await this.sendTextWithRetry(state, payload, { kind: "plain_reply" });
+    this.emitTraceEvent("outbox_staged", state, payload.text);
+    const outcome = await this.sendTextWithRetry(state, payload, { kind: "plain_reply" });
+    if (outcome?.delivered) {
+      this.emitTraceEvent("delivery_confirmed", state, payload.text);
+    }
   }
 
   async sendSystemReply(state, text) {
@@ -388,20 +408,24 @@ class StreamDelivery {
       text,
       contextToken: initialTarget.contextToken,
     };
-    await this.sendTextWithRetry(state, payload, { kind: "system_reply" });
+    this.emitTraceEvent("outbox_staged", state, payload.text);
+    const outcome = await this.sendTextWithRetry(state, payload, { kind: "system_reply" });
+    if (outcome?.delivered) {
+      this.emitTraceEvent("delivery_confirmed", state, payload.text);
+    }
   }
 
   async sendTextWithRetry(state, payload, { kind }) {
     const initialTarget = state.replyTarget;
     try {
       await this.channelAdapter.sendText(payload);
-      return;
+      return { delivered: true, deferred: false };
     } catch (error) {
       const retryTarget = this.resolveRetriableReplyTarget(initialTarget, error);
       if (!retryTarget) {
         const deferred = await this.deferSystemReply(state, payload.text, error, kind);
         if (deferred) {
-          return;
+          return { delivered: false, deferred: true };
         }
         throw error;
       }
@@ -424,12 +448,14 @@ class StreamDelivery {
             userId: retryTarget.userId,
             contextToken: retryTarget.contextToken,
             provider: retryTarget.provider,
+            traceId: retryTarget.traceId,
           });
         }
+        return { delivered: true, deferred: false };
       } catch (retryError) {
         const deferred = await this.deferSystemReply(state, payload.text, retryError, kind);
         if (deferred) {
-          return;
+          return { delivered: false, deferred: true };
         }
         throw retryError;
       }
@@ -484,6 +510,7 @@ class StreamDelivery {
       userId: currentTarget.userId,
       contextToken: refreshedContextToken,
       provider: currentTarget.provider,
+      traceId: currentTarget.traceId,
     };
   }
 
@@ -537,8 +564,23 @@ class StreamDelivery {
       userId: target.userId,
       contextToken: target.contextToken,
       provider: target.provider,
+      traceId: target.traceId,
     };
     state.threadReplyTargetAttached = true;
+  }
+
+  emitTraceEvent(stage, state, text = "") {
+    const traceId = normalizeText(state?.replyTarget?.traceId);
+    if (!this.onTraceEvent || !traceId) {
+      return null;
+    }
+    return this.onTraceEvent({
+      stage,
+      traceId,
+      threadId: state.threadId,
+      turnId: state.turnId,
+      text,
+    });
   }
 
   markAllItemsSent(state) {
@@ -699,6 +741,7 @@ function normalizeReplyTarget(target) {
     userId: String(target.userId).trim(),
     contextToken: String(target.contextToken).trim(),
     provider: normalizeText(target.provider),
+    traceId: normalizeText(target.traceId),
   };
 }
 

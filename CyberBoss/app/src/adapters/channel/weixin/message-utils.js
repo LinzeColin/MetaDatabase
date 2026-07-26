@@ -6,6 +6,7 @@ const MESSAGE_ITEM_VOICE = 3;
 const MESSAGE_ITEM_FILE = 4;
 const MESSAGE_ITEM_VIDEO = 5;
 const DEDUP_TTL_MS = 5 * 60_000;
+const DEFAULT_MAX_INPUT_BYTES = 32 * 1024;
 
 function createInboundFilter() {
   const seen = new Map();
@@ -45,6 +46,11 @@ function createInboundFilter() {
       if (!text && !attachments.length) {
         return null;
       }
+      const policyDecision = evaluateInboundPolicy({
+        senderId,
+        text,
+        config,
+      });
 
       return {
         provider: "weixin",
@@ -58,9 +64,54 @@ function createInboundFilter() {
         attachments,
         contextToken: normalizeText(message.context_token),
         receivedAt: createdAtMs > 0 ? new Date(createdAtMs).toISOString() : new Date().toISOString(),
+        policyDecision,
       };
     },
   };
+}
+
+function evaluateInboundPolicy({ senderId = "", text = "", config = {} } = {}) {
+  const maxInputBytes = resolveMaxInputBytes(config);
+  const inputBytes = Buffer.byteLength(String(text || ""), "utf8");
+  if (!isSenderAllowed(config, senderId)) {
+    return {
+      accepted: false,
+      code: "sender_not_allowed",
+      inputBytes,
+      maxInputBytes,
+    };
+  }
+  if (inputBytes > maxInputBytes) {
+    return {
+      accepted: false,
+      code: "input_too_large",
+      inputBytes,
+      maxInputBytes,
+    };
+  }
+  return {
+    accepted: true,
+    code: "accepted",
+    inputBytes,
+    maxInputBytes,
+  };
+}
+
+function isSenderAllowed(config, senderId) {
+  const allowlist = Array.isArray(config?.allowedUserIds)
+    ? config.allowedUserIds.map((value) => normalizeText(value)).filter(Boolean)
+    : [];
+  if (!allowlist.length) {
+    return true;
+  }
+  return allowlist.includes(normalizeText(senderId));
+}
+
+function resolveMaxInputBytes(config) {
+  const configured = Number(config?.maxInputBytes);
+  return Number.isInteger(configured) && configured > 0
+    ? configured
+    : DEFAULT_MAX_INPUT_BYTES;
 }
 
 function bodyFromItemList(items) {
@@ -277,6 +328,9 @@ function normalizeText(value) {
 }
 
 module.exports = {
+  DEFAULT_MAX_INPUT_BYTES,
   createInboundFilter,
   bodyFromItemList,
+  evaluateInboundPolicy,
+  isSenderAllowed,
 };

@@ -4,7 +4,7 @@ const { loadPersistedContextTokens, persistContextToken } = require("./context-t
 const { runLoginFlow } = require("./login");
 const { getConfig, sendTyping } = require("./api");
 const { getUpdates, sendText } = require("./api");
-const { createInboundFilter } = require("./message-utils");
+const { createInboundFilter, isSenderAllowed } = require("./message-utils");
 const { sendWeixinMediaFile } = require("./media-send");
 const { loadSyncBuffer, saveSyncBuffer } = require("./sync-buffer-store");
 const { loadWeixinConfig, saveWeixinConfig, DEFAULT_MIN_WEIXIN_CHUNK } = require("./config-store");
@@ -157,7 +157,7 @@ function createWeixinChannelAdapter(config) {
       for (const message of messages) {
         const userId = typeof message?.from_user_id === "string" ? message.from_user_id.trim() : "";
         const contextToken = typeof message?.context_token === "string" ? message.context_token.trim() : "";
-        if (userId && contextToken) {
+        if (userId && contextToken && isSenderAllowed(config, userId)) {
           rememberContextToken(userId, contextToken);
         }
       }

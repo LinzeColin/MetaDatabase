@@ -24,6 +24,7 @@ const {
 const { CheckinConfigStore, parseCheckinRangeMinutes, resolveDefaultCheckinRange } = require("./checkin-config-store");
 const { resolvePreferredSenderId, resolvePreferredWorkspaceRoot } = require("./default-targets");
 const { StreamDelivery } = require("./stream-delivery");
+const { WalkingSkeletonTraceStore } = require("./walking-skeleton-trace");
 const { ThreadStateStore } = require("./thread-state-store");
 const { DeferredSystemReplyStore } = require("./deferred-system-reply-store");
 const { SystemMessageQueueStore } = require("./system-message-queue-store");
@@ -86,11 +87,16 @@ class CyberbossApp {
     this.pendingImageInboundByScope = new Map();
     this.turnBoundaryScopeKeys = new Set();
     this.systemMessageDispatcher = null;
+    this.walkingSkeletonTrace = new WalkingSkeletonTraceStore({
+      filePath: config.walkingSkeletonTraceFile,
+      stateDir: config.stateDir,
+    });
     this.streamDelivery = new StreamDelivery({
       channelAdapter: this.channelAdapter,
       sessionStore: this.runtimeAdapter.getSessionStore(),
       runtimeId: this.runtimeAdapter.describe().id,
       onDeferredSystemReply: (payload) => this.deferSystemReply(payload),
+      onTraceEvent: (event) => this.walkingSkeletonTrace.record(event),
     });
     this.pendingOperationByRunKey = new Map();
     this.runtimeEventChain = Promise.resolve();
@@ -331,6 +337,19 @@ class CyberbossApp {
     if (!normalized) {
       return;
     }
+    normalized.traceId = this.walkingSkeletonTrace?.beginInbound?.(normalized) || "";
+    if (normalized.policyDecision?.accepted === false) {
+      const code = normalized.policyDecision.code || "policy_rejected";
+      console.warn(`[cyberboss] inbound rejected code=${code}`);
+      if (code === "input_too_large") {
+        await this.channelAdapter.sendText({
+          userId: normalized.senderId,
+          text: `⚠️ Input exceeds the ${normalized.policyDecision.maxInputBytes}-byte limit.`,
+          contextToken: normalized.contextToken,
+        }).catch(() => {});
+      }
+      return;
+    }
 
     this.primeDeferredRepliesForSender(normalized);
     await this.handlePreparedMessage(normalized, { allowCommands: true });
@@ -379,6 +398,7 @@ class CyberbossApp {
       userId: normalized.senderId,
       contextToken: normalized.contextToken,
       provider: normalized.provider,
+      ...(normalized.traceId ? { traceId: normalized.traceId } : {}),
     });
 
     const command = parseChannelCommand(normalized.text);
@@ -456,6 +476,12 @@ class CyberbossApp {
           senderId: prepared.senderId,
         },
       });
+      this.walkingSkeletonTrace?.record?.({
+        stage: "runtime_dispatched",
+        traceId: prepared.traceId,
+        threadId: turn.threadId,
+        turnId: turn.turnId,
+      });
       this.runtimeContextStore?.setActiveContext?.({
         workspaceRoot,
         runtimeId: this.runtimeAdapter.describe().id,
@@ -469,6 +495,7 @@ class CyberbossApp {
         userId: prepared.senderId,
         contextToken: prepared.contextToken,
         provider: prepared.provider,
+        ...(prepared.traceId ? { traceId: prepared.traceId } : {}),
       };
       if (turn.turnId) {
         this.streamDelivery.bindReplyTargetForTurn({

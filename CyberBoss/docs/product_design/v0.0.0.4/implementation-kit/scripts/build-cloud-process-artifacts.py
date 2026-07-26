@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a deterministic exact-commit CB-130 Corresponding Source artifact."""
+"""Build a deterministic exact-commit cloud acceptance Corresponding Source artifact."""
 
 from __future__ import annotations
 
@@ -18,21 +18,32 @@ from typing import BinaryIO
 EXPECTED_BRANCH = "codex/cyberboss-prestage0"
 EXPECTED_ORIGIN = "git@github.com:LinzeColin/MetaDatabase.git"
 STRICT_LICENSE = "AGPL-3.0-only AND GPL-3.0-only"
-REQUIRED_SOURCE_PATHS = (
+COMMON_REQUIRED_SOURCE_PATHS = (
     "LICENSE",
     "app/LICENSE",
     "app/package-lock.json",
     "app/scripts/cloud-supervisor.js",
     "docs/evidence/CB-000/LICENSE_COMPLIANCE.md",
-    "docs/governance/RUN_CONTRACT_P1_4_CB_130.md",
     "machine/facts/post-baseline-change-ledger.json",
     "vendor/timeline-for-agent/LICENSE",
     "vendor/whereabouts-mcp/LICENSE",
 )
+TASKS = {
+    "CB-130": {
+        "phase": "P1.4",
+        "contract": "docs/governance/RUN_CONTRACT_P1_4_CB_130.md",
+        "stage_prefix": ".cb130-artifacts-",
+    },
+    "CB-140": {
+        "phase": "P1.5",
+        "contract": "docs/governance/RUN_CONTRACT_P1_5_CB_140.md",
+        "stage_prefix": ".cb140-artifacts-",
+    },
+}
 
 
 class BuildViolation(RuntimeError):
-    """The requested build is not the frozen CB-130 artifact build."""
+    """The requested build violates the frozen cloud artifact contract."""
 
 
 def expect(condition: bool, code: str) -> None:
@@ -124,9 +135,11 @@ def main() -> int:
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--commit", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--task-id", choices=sorted(TASKS), default="CB-130")
     args = parser.parse_args()
 
     try:
+        task = TASKS[args.task_id]
         repo = args.repo.resolve(strict=True)
         output = args.output
         expect(output.is_absolute(), "output_absolute")
@@ -151,12 +164,21 @@ def main() -> int:
                 repo,
             ).splitlines()
         )
-        for required in REQUIRED_SOURCE_PATHS:
+        for required in (*COMMON_REQUIRED_SOURCE_PATHS, task["contract"]):
             expect(required in inventory, f"source_missing:{required}")
+        if args.task_id == "CB-140":
+            for required in (
+                "app/src/core/walking-skeleton-trace.js",
+                "app/test/cloud-walking-skeleton.test.js",
+                "app/test/cloud-walking-skeleton-live.test.js",
+                "docs/product_design/v0.0.0.4/implementation-kit/scripts/"
+                "run-walking-skeleton-acceptance.mjs",
+            ):
+                expect(required in inventory, f"source_missing:{required}")
 
         output.parent.mkdir(parents=True, exist_ok=True)
         stage = Path(
-            tempfile.mkdtemp(prefix=".cb130-artifacts-", dir=output.parent)
+            tempfile.mkdtemp(prefix=task["stage_prefix"], dir=output.parent)
         )
         try:
             archive_name = f"cyberboss-source-{args.commit}.tar.gz"
@@ -164,8 +186,8 @@ def main() -> int:
             create_source_archive(repo, args.commit, archive_path)
             manifest = {
                 "schema_version": 1,
-                "task_id": "CB-130",
-                "phase": "P1.4",
+                "task_id": args.task_id,
+                "phase": task["phase"],
                 "release_commit": args.commit,
                 "branch": EXPECTED_BRANCH,
                 "repository": "LinzeColin/MetaDatabase",
@@ -205,6 +227,17 @@ def main() -> int:
                     "remote_publication": "none",
                 },
             }
+            if args.task_id == "CB-140":
+                manifest["walking_skeleton"] = {
+                    "simulator_e2e_expected": 10,
+                    "latency_samples_expected": 20,
+                    "max_input_bytes": 32768,
+                    "trace_raw_content_allowed": False,
+                    "mac_dependency_allowed": False,
+                    "real_adapters": "activation_pending",
+                    "pg_1_executed": False,
+                    "stage_2_spool_claimed": False,
+                }
             manifest_path = stage / "artifact-manifest.json"
             write_json(manifest_path, manifest)
             checksum_lines = [
@@ -219,11 +252,11 @@ def main() -> int:
             shutil.rmtree(stage, ignore_errors=True)
             raise
     except (BuildViolation, OSError, ValueError) as error:
-        print(f"CB130_ARTIFACT_BUILD=FAIL reason={error}")
+        print(f"{args.task_id.replace('-', '')}_ARTIFACT_BUILD=FAIL reason={error}")
         return 2
 
     print(
-        "CB130_ARTIFACT_BUILD=PASS "
+        f"{args.task_id.replace('-', '')}_ARTIFACT_BUILD=PASS "
         f"release_id={args.commit} artifacts=3 "
         "corresponding_source_complete=true "
         "license_expression=AGPL-3.0-only_AND_GPL-3.0-only "

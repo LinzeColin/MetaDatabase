@@ -6,14 +6,18 @@ KIT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
 MODE=""
 RELEASE_ID=""
 ARTIFACTS=""
+TASK_ID="CB-130"
+PHASE=""
+STAGING_TAG=""
+CONTRACT_PATH=""
+ACCEPTANCE_SCRIPT=""
+REPORT_PREFIX="CLOUD_PROCESS_INSTALL"
 
 APP_ROOT="/opt/cyberboss-cloud"
 RELEASE_ROOT="$APP_ROOT/releases"
 TOOLCHAIN_BIN="$APP_ROOT/shared/toolchains/bin"
 STATE_ROOT="/var/lib/cyberboss"
-STAGING_STATE="$STATE_ROOT/cb130-staging"
 CONFIG_ROOT="/etc/cyberboss"
-STAGING_ENV="$CONFIG_ROOT/cb130-staging.env"
 WORKSPACE="/srv/cyberboss-workspaces/cyberboss"
 CODE_USER="cyberboss"
 CODE_GROUP="cyberboss"
@@ -22,7 +26,7 @@ EXPECTED_WORKSPACE="10d988e908d72ea1a43bbed04a2130a338663363"
 UNIT="cyberboss-cloud.service"
 
 fail() {
-  printf 'CLOUD_PROCESS_INSTALL=FAIL reason=%s\n' "$1"
+  printf '%s=FAIL reason=%s\n' "$REPORT_PREFIX" "$1"
   exit 2
 }
 
@@ -43,6 +47,11 @@ while (($#)); do
       ARTIFACTS="$2"
       shift 2
       ;;
+    --task-id)
+      (($# >= 2)) || fail "task_id_value_missing"
+      TASK_ID="$2"
+      shift 2
+      ;;
     *)
       fail "unknown_arg:$1"
       ;;
@@ -52,13 +61,33 @@ done
 [[ -n "$MODE" ]] || fail "mode_required"
 [[ "$RELEASE_ID" =~ ^[0-9a-f]{40}$ ]] ||
   fail "release_id_must_be_full_lowercase_git_sha"
+case "$TASK_ID" in
+  CB-130)
+    PHASE="P1.4"
+    STAGING_TAG="cb130"
+    CONTRACT_PATH="docs/governance/RUN_CONTRACT_P1_4_CB_130.md"
+    ACCEPTANCE_SCRIPT="accept-cloud-process-family.sh"
+    ;;
+  CB-140)
+    PHASE="P1.5"
+    STAGING_TAG="cb140"
+    CONTRACT_PATH="docs/governance/RUN_CONTRACT_P1_5_CB_140.md"
+    ACCEPTANCE_SCRIPT="accept-cloud-walking-skeleton.sh"
+    REPORT_PREFIX="CLOUD_WALKING_SKELETON_INSTALL"
+    ;;
+  *)
+    fail "unsupported_task_id"
+    ;;
+esac
+STAGING_STATE="$STATE_ROOT/$STAGING_TAG-staging"
+STAGING_ENV="$CONFIG_ROOT/$STAGING_TAG-staging.env"
 
 for required in \
   "$KIT_ROOT/config/cloud-process-health.json" \
   "$KIT_ROOT/config/cloud-process-tree.txt" \
   "$KIT_ROOT/scripts/run-cyberboss.sh" \
   "$KIT_ROOT/scripts/health-check.sh" \
-  "$KIT_ROOT/scripts/accept-cloud-process-family.sh"; do
+  "$KIT_ROOT/scripts/$ACCEPTANCE_SCRIPT"; do
   [[ -f "$required" && ! -L "$required" ]] ||
     fail "kit_contract_missing:$(basename "$required")"
 done
@@ -89,8 +118,8 @@ PY
   fail "kit_contract"
 
 if [[ "$MODE" == "check" ]]; then
-  printf 'CLOUD_PROCESS_INSTALL_CHECK=PASS release_id=%s persistent_writes=false live_commands=false service_started=false current_changed=false\n' \
-    "$RELEASE_ID"
+  printf '%s_CHECK=PASS task_id=%s release_id=%s persistent_writes=false live_commands=false service_started=false current_changed=false\n' \
+    "$REPORT_PREFIX" "$TASK_ID" "$RELEASE_ID"
   exit 0
 fi
 
@@ -144,10 +173,10 @@ done
 ) || fail "artifact_checksum"
 
 MANIFEST="$ARTIFACTS/artifact-manifest.json"
-jq -e --arg release "$RELEASE_ID" '
+jq -e --arg release "$RELEASE_ID" --arg task "$TASK_ID" --arg phase "$PHASE" '
   .schema_version == 1 and
-  .task_id == "CB-130" and
-  .phase == "P1.4" and
+  .task_id == $task and
+  .phase == $phase and
   .release_commit == $release and
   .branch == "codex/cyberboss-prestage0" and
   .repository == "LinzeColin/MetaDatabase" and
@@ -166,7 +195,17 @@ jq -e --arg release "$RELEASE_ID" '
   .deployment.enable_service == false and
   .deployment.activate_real_credentials == false and
   .deployment.clone_private_database == false and
-  .deployment.remote_publication == "none"
+  .deployment.remote_publication == "none" and
+  (if $task == "CB-140" then
+    .walking_skeleton.simulator_e2e_expected == 10 and
+    .walking_skeleton.latency_samples_expected == 20 and
+    .walking_skeleton.max_input_bytes == 32768 and
+    .walking_skeleton.trace_raw_content_allowed == false and
+    .walking_skeleton.mac_dependency_allowed == false and
+    .walking_skeleton.real_adapters == "activation_pending" and
+    .walking_skeleton.pg_1_executed == false and
+    .walking_skeleton.stage_2_spool_claimed == false
+  else true end)
 ' "$MANIFEST" >/dev/null || fail "artifact_manifest_contract"
 
 SOURCE_ARCHIVE="$(jq -er '.source.archive' "$MANIFEST")"
@@ -195,27 +234,27 @@ archive_paths_safe() {
 archive_paths_safe "$ARTIFACTS/$SOURCE_ARCHIVE" ||
   fail "source_archive_paths"
 
-TMP_ROOT="$(mktemp -d /tmp/cyberboss-cb130-install.XXXXXXXX)"
+TMP_ROOT="$(mktemp -d "/tmp/cyberboss-$STAGING_TAG-install.XXXXXXXX")"
 RELEASE_STAGE=""
 cleanup() {
   local exit_code=$?
   if [[ -n "${RELEASE_STAGE:-}" ]]; then
     case "$RELEASE_STAGE" in
-      "$RELEASE_ROOT"/.cb130-"$RELEASE_ID"-*)
+      "$RELEASE_ROOT"/."$STAGING_TAG"-"$RELEASE_ID"-*)
         find "$RELEASE_STAGE" -xdev -depth -delete 2>/dev/null || true
         ;;
       *)
-        printf 'CLOUD_PROCESS_INSTALL=FAIL reason=unsafe_release_cleanup\n' >&2
+        printf '%s=FAIL reason=unsafe_release_cleanup\n' "$REPORT_PREFIX" >&2
         exit 70
         ;;
     esac
   fi
   case "${TMP_ROOT:-}" in
-    /tmp/cyberboss-cb130-install.*)
+    /tmp/cyberboss-"$STAGING_TAG"-install.*)
       find "$TMP_ROOT" -xdev -depth -delete 2>/dev/null || true
       ;;
     *)
-      printf 'CLOUD_PROCESS_INSTALL=FAIL reason=unsafe_tmp_cleanup\n' >&2
+      printf '%s=FAIL reason=unsafe_tmp_cleanup\n' "$REPORT_PREFIX" >&2
       exit 70
       ;;
   esac
@@ -248,7 +287,7 @@ RELEASE_ACTION="verified"
 TEST_COUNT="not_rerun"
 if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
   [[ "$MODE" == "apply" ]] || fail "candidate_release_missing"
-  RELEASE_STAGE="$RELEASE_ROOT/.cb130-$RELEASE_ID-$$"
+  RELEASE_STAGE="$RELEASE_ROOT/.$STAGING_TAG-$RELEASE_ID-$$"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$RELEASE_STAGE"
   tar -xzf "$ARTIFACTS/$SOURCE_ARCHIVE" \
     --strip-components=1 -C "$RELEASE_STAGE"
@@ -257,11 +296,21 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
     app/scripts/cloud-supervisor.js \
     vendor/timeline-for-agent/LICENSE vendor/whereabouts-mcp/LICENSE \
     docs/evidence/CB-000/LICENSE_COMPLIANCE.md \
-    docs/governance/RUN_CONTRACT_P1_4_CB_130.md \
+    "$CONTRACT_PATH" \
     machine/facts/post-baseline-change-ledger.json; do
     [[ -f "$RELEASE_STAGE/$required" && ! -L "$RELEASE_STAGE/$required" ]] ||
       fail "candidate_corresponding_source:$required"
   done
+  if [[ "$TASK_ID" == "CB-140" ]]; then
+    for required in \
+      app/src/core/walking-skeleton-trace.js \
+      app/test/cloud-walking-skeleton.test.js \
+      app/test/cloud-walking-skeleton-live.test.js \
+      docs/product_design/v0.0.0.4/implementation-kit/scripts/run-walking-skeleton-acceptance.mjs; do
+      [[ -f "$RELEASE_STAGE/$required" && ! -L "$RELEASE_STAGE/$required" ]] ||
+        fail "candidate_walking_skeleton_source:$required"
+    done
+  fi
   chown -R "$CODE_USER:$CODE_GROUP" "$RELEASE_STAGE"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$STATE_ROOT/cache/npm"
   sudo -u "$CODE_USER" -H env \
@@ -292,6 +341,8 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
     "$KIT_ROOT/config/cloud-process-tree.txt" \
     "$RELEASE_STAGE/process-tree.txt"
   jq -n \
+    --arg task_id "$TASK_ID" \
+    --arg phase "$PHASE" \
     --arg release_commit "$RELEASE_ID" \
     --arg repository_tree "$(jq -er '.repository_tree' "$MANIFEST")" \
     --arg cyberboss_tree "$(jq -er '.cyberboss_tree' "$MANIFEST")" \
@@ -299,8 +350,8 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
     --argjson app_test_count "$TEST_COUNT" \
     '{
       schema_version: 1,
-      task_id: "CB-130",
-      phase: "P1.4",
+      task_id: $task_id,
+      phase: $phase,
       release_commit: $release_commit,
       repository_tree: $repository_tree,
       cyberboss_tree: $cyberboss_tree,
@@ -330,10 +381,11 @@ elif [[ ! -d "$RELEASE_PATH" || -L "$RELEASE_PATH" ]]; then
 fi
 
 jq -e --arg release "$RELEASE_ID" \
+  --arg task "$TASK_ID" --arg phase "$PHASE" \
   --arg source_sha "$(jq -er '.source.sha256' "$MANIFEST")" '
   .schema_version == 1 and
-  .task_id == "CB-130" and
-  .phase == "P1.4" and
+  .task_id == $task and
+  .phase == $phase and
   .release_commit == $release and
   .source_archive_sha256 == $source_sha and
   .corresponding_source_complete == true and
@@ -364,7 +416,7 @@ assert_no_escaping_symlink "$RELEASE_PATH"
   \( ! -user root -o ! -group "$CODE_GROUP" \) -print -quit)" ]] ||
   fail "candidate_release_symlink_owner"
 
-ENV_STAGE="$TMP_ROOT/cb130-staging.env"
+ENV_STAGE="$TMP_ROOT/$STAGING_TAG-staging.env"
 cat >"$ENV_STAGE" <<ENV
 NODE_ENV=production
 TZ=UTC
@@ -390,7 +442,7 @@ CB_CLAUDE_RUNTIME=false
 CB_CLAUDE_EVAL_PASSED=false
 CB_RELEASE_ROOT=$RELEASE_PATH
 CB_EXPECTED_RELEASE_ID=$RELEASE_ID
-CB_STATUS_TOKEN_FILE=/run/cyberboss-cb130/status.token
+CB_STATUS_TOKEN_FILE=/run/cyberboss-$STAGING_TAG/status.token
 CB_HTTP_HOST=127.0.0.1
 CB_HTTP_PORT=8780
 CB_ENV_FILE=$STAGING_ENV
@@ -410,6 +462,7 @@ CB_STORE_FULL_CONTENT=false
 CB_AUTONOMOUS_MUTATION=false
 CB_JOB_CONCURRENCY=1
 CB_QUEUE_LIMIT=100
+CB_MAX_INPUT_BYTES=32768
 CB_DATA_REPO_SLUG=LinzeColin/Private-Database
 CB_DATA_AREA=Private-MetaDatabase
 CB_DATA_DOMAIN=CyberBoss
@@ -433,6 +486,10 @@ CB_OCI_BUCKET_FILE=$CONFIG_ROOT/credentials/oci-bucket-name
 CB_OCI_PREFIX=cyberboss-cold-backup/ovh-singapore-vps-1/
 CB_PROVIDER_ACTIVATION_CONFIG=$CONFIG_ROOT/provider-activation.json
 ENV
+if [[ "$TASK_ID" == "CB-140" ]]; then
+  printf 'CYBERBOSS_WALKING_SKELETON_TRACE_FILE=%s/evidence/walking-skeleton.ndjson\n' \
+    "$STAGING_STATE" >>"$ENV_STAGE"
+fi
 chmod 0600 "$ENV_STAGE"
 
 if [[ ! -e "$STAGING_ENV" && ! -L "$STAGING_ENV" ]]; then
@@ -449,7 +506,7 @@ fi
 if [[ "$MODE" == "apply" ]]; then
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0700 \
     "$STAGING_STATE" "$STAGING_STATE/logs" "$STAGING_STATE/status" \
-    "$STAGING_STATE/tmp"
+    "$STAGING_STATE/tmp" "$STAGING_STATE/evidence"
 fi
 [[ "$(stat -c '%U:%G:%a' "$STAGING_STATE")" == \
   "$CODE_USER:$CODE_GROUP:700" ]] ||
@@ -471,5 +528,5 @@ systemctl is-enabled --quiet "$UNIT" 2>/dev/null &&
 [[ -z "$(pgrep -u "$CODE_USER" 2>/dev/null || true)" ]] ||
   fail "process_created"
 
-printf 'CLOUD_PROCESS_INSTALL=PASS mode=%s release_id=%s release_action=%s app_tests=%s current_changed=false service_active=false service_enabled=false runtime_started=false real_adapter_activation=activation_pending\n' \
-  "$MODE" "$RELEASE_ID" "$RELEASE_ACTION" "$TEST_COUNT"
+printf '%s=PASS task_id=%s mode=%s release_id=%s release_action=%s app_tests=%s current_changed=false service_active=false service_enabled=false runtime_started=false real_adapter_activation=activation_pending\n' \
+  "$REPORT_PREFIX" "$TASK_ID" "$MODE" "$RELEASE_ID" "$RELEASE_ACTION" "$TEST_COUNT"

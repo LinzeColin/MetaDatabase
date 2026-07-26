@@ -38,6 +38,10 @@ function readConfig() {
     userName: readTextEnv("CYBERBOSS_USER_NAME") || "User",
     userGender: readTextEnv("CYBERBOSS_USER_GENDER") || "female",
     allowedUserIds: readListEnv("CYBERBOSS_ALLOWED_USER_IDS"),
+    maxInputBytes: readIntEnv("CYBERBOSS_MAX_INPUT_BYTES")
+      || readIntEnv("CB_MAX_INPUT_BYTES")
+      || 32 * 1024,
+    walkingSkeletonTraceFile: readTextEnv("CYBERBOSS_WALKING_SKELETON_TRACE_FILE"),
     channel: readTextEnv("CYBERBOSS_CHANNEL") || "weixin",
     runtime: readTextEnv("CYBERBOSS_RUNTIME") || "codex",
     timelineCommand: readTextEnv("CYBERBOSS_TIMELINE_COMMAND") || "timeline-for-agent",
