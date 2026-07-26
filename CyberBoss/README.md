@@ -4,17 +4,18 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 ## 当前状态
 
-- 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 尚未开始
+- 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 的
+  `P1.1 / CB-100` 已通过
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
-  `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`
+  `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
+  `P1.1 / CB-100`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`PG-0` 已通过；在清除凭据相关环境变量、临时 HOME、空
-  CODEX_HOME/WeChat state 下独立复验 sources/licenses、current
-  architecture、simulators、live-measurement、activation sheet、no-wait、
-  TaskPack 与完整 App regression
-- Stage 0–5 任务状态：`CB-000`–`CB-040` 五项 Stage 0 任务已通过；其余 25 项与
+- 最新 Run：`P1.1 / CB-100` 已在 CB-010 同一授权 OVH 目标完成
+  dedicated user、受限目录、immutable release/current、独立 journal
+  namespace 与 disabled/inactive 主 unit；没有真实 Runtime 或网络 route
+- Stage 0–5 任务状态：`CB-000`–`CB-100` 共六项任务已通过；其余 24 项与
   PG-1–PG-5 均为 `not_started`；`PG-0=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -83,7 +84,20 @@ unresolved architecture conflicts、credential values、external writes 均为
 0。原源码、许可证、Corresponding Source、129 项依赖清单和严格
 `GPL-3.0-only AND AGPL-3.0-only` 冲突记录保持不变，且
 `upstream_clarification_received=false`。远端 CyberBoss branch/PR/tag
-仍为空；`P1.1 / CB-100` 保持 `not_started`，只能在下一独立 Run 开始。
+仍为空；该 gate 当时未启动 `P1.1 / CB-100`。
+
+P1.1 以本地 implementation commit
+`b2a603e415a2045b441f31e07cf74ac451ba6240` 作为目标主机 immutable
+release ID。fresh preflight 再次证明 target hash、strict known-host、
+key-only SSH、constrained/recover profile、四个路径和 8765/8780 无冲突。
+两次 apply（第二次不重测资源、不覆盖 rollback prestate）通过；主
+`cyberboss-cloud.service` 固定非 root、`KillMode=control-group`、
+strict filesystem allowlist、资源上限和独立 journal cap。最终验收完成
+100/100 systemd kill/restart、100/100 singleton denial、5 个权限拒绝与
+2 个 allowlisted write，规范化 route topology 不变，unit 回到
+disabled/inactive 且端口为 0。首次验收 harness 的原始 route JSON
+复合哈希冲突及后续纠正记录完整保留。未安装真实 Runtime、Node/Codex，
+未执行 provider/Private-MetaDatabase 写入，也未 push/PR/tag。
 
 ## 许可证
 

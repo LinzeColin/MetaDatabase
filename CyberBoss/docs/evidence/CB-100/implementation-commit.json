@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-100",
+  "phase": "P1.1",
+  "base_commit": "cc00d057ae096e0eccb88c52f7b5f85a10e18a3a",
+  "commit": "b2a603e415a2045b441f31e07cf74ac451ba6240",
+  "parent": "cc00d057ae096e0eccb88c52f7b5f85a10e18a3a",
+  "tree": "1477e41d568d48dc2f3255d021d0435e0791734f",
+  "release_id": "b2a603e415a2045b441f31e07cf74ac451ba6240",
+  "subject": "feat(cyberboss): implement CB-100 host layout",
+  "implementation_paths": [
+    "CyberBoss/docs/governance/RUN_CONTRACT_P1_1_CB_100.md",
+    "CyberBoss/docs/product_design/v0.0.0.4/MANIFEST.sha256",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/MANIFEST.sha256",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/cyberboss-journald.conf",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/cyberboss.env.example",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/install-layout.sh",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/verify-installation.sh",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-cloud.service",
+    "CyberBoss/scripts/validate_cb100.py",
+    "CyberBoss/tests/cloud-install-layout.test.js"
+  ],
+  "archive_manifest_verified_on_target": true,
+  "fixed_app_source_modified": false,
+  "vendor_source_modified": false,
+  "remote_publication": "none"
+}

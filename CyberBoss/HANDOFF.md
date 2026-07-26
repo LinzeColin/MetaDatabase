@@ -10,9 +10,10 @@
 
 ## Current state
 
-`PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, and independent Stage 0
-exit gate `PG-0` passed. Stage 0 is 5/5 tasks plus its gate complete; 25 later
-tasks and PG-1–PG-5 remain `not_started`.
+`PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
+exit gate `PG-0`, and `P1.1 / CB-100` passed. Stage 0 is 5/5 tasks plus its
+gate complete; Stage 1 is 1/5 tasks complete. The 24 tasks from CB-110 onward
+and PG-1–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -108,6 +109,46 @@ App regression passed. Real Codex/WeChat activation remains
 content read. Direct remote checks again found no CyberBoss branch, tag or PR.
 `P1.1 / CB-100` was not started.
 
+CB-100 then resolved the same authorized OVH target from five protected local
+deployment records and revalidated the CB-010 pseudonymous target hash, three
+known-host records, key-only SSH, UID/sudo/systemd identity and zero conflict
+for the four paths, dedicated identity, units, journal config and ports.
+Fresh resources remained `constrained`, guard=`recover`,
+activation-safe=`true`.
+
+The exact local implementation commit is:
+
+```text
+b2a603e415a2045b441f31e07cf74ac451ba6240
+parent = cc00d057ae096e0eccb88c52f7b5f85a10e18a3a
+tree = 1477e41d568d48dc2f3255d021d0435e0791734f
+release = /opt/cyberboss-cloud/releases/<same full SHA>
+publication = none
+```
+
+Its archive manifest passed on target. Two applies passed; the second verified
+the immutable release/profile/drop-in/journal without remeasurement and did
+not overwrite the first-apply `current=absent` rollback record. Only
+`cyberboss-cloud.service` was installed. It runs as the non-root `cyberboss`
+identity with `KillMode=control-group`, constrained resource limits, strict
+filesystem write allowlist and an independently capped `cyberboss` journal
+namespace.
+
+Final executable acceptance passed 100/100 actual systemd kill/restarts,
+100/100 lock contenders denied, one post-stop acquisition, five permission
+denials and two allowlisted writes. Normalized route topology was unchanged;
+the unit returned disabled/inactive, the ephemeral acceptance override was
+removed, and 8765/8780 remained unused. No real Runtime, Node/Codex/Claude
+activation, provider write, Private-MetaDatabase write or GitHub publication
+occurred.
+
+The first acceptance attempt's composite postcheck failed after its exercise
+markers passed. Its exact subcheck was not retained; immediate split checks all
+passed, and the likely source was volatile expiry fields in the raw route JSON
+hash. This is retained as an assessment/conflict, not stated as certainty. A
+second complete 100-cycle Run used a normalized topology oracle and passed
+fully. See `docs/evidence/CB-100/systemd-acceptance.redacted.json`.
+
 ## Canonical inputs and evidence
 
 - Product design: `docs/product_design/v0.0.0.4/`
@@ -117,16 +158,17 @@ content read. Direct remote checks again found no CyberBoss branch, tag or PR.
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_PG_0.md`
+  `docs/governance/RUN_CONTRACT_P1_1_CB_100.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
 - CB-030 simulator/auth/security evidence: `docs/evidence/CB-030/`
 - CB-040 baseline/trace/release evidence: `docs/evidence/CB-040/`
 - PG-0 independent gate evidence: `docs/evidence/PG-0/`
+- CB-100 host-layout/systemd evidence: `docs/evidence/CB-100/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/PG-0/VALIDATION_REPORT.md`
+  `docs/evidence/CB-100/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -163,7 +205,7 @@ content read. Direct remote checks again found no CyberBoss branch, tag or PR.
   `cyberboss.env.example`; all nine stale aliases/non-runtime switches have
   zero active hits.
 - DAG=30/6 pass; traceability=53/53 pass; no-wait has zero real-time soak,
-  credential-wait and fixed-sleep hits; TaskPack=81 files and confirms the
+  credential-wait and fixed-sleep hits; TaskPack=82 files and confirms the
   seven control files are a minimum, not a limit.
 - Accelerated reliability: 1,000 replays, 100 restarts, 100 send faults and 20
   restore cycles passed with zero duplicate execution/reply or restore mismatch.
@@ -186,7 +228,13 @@ content read. Direct remote checks again found no CyberBoss branch, tag or PR.
   CODEX_HOME and empty WeChat state were used.
 - PG-0 clean activation fixture: Codex and WeChat both returned
   `activation_pending`; credential content/value reads and external writes=0.
-- PG-0 decision: `PASS`; PG-1–PG-5 and all 25 later tasks remain
+- PG-0 decision: `PASS`; it did not start CB-100 inside that gate.
+- CB-100 host-layout contract tests: 5/5; frozen App regression: 155/155.
+- CB-100 exact-commit target acceptance: archive manifest, two applies,
+  `systemd-analyze verify`, 100/100 restart, 100/100 singleton denial,
+  permissions, normalized route topology and final disabled/inactive state
+  passed.
+- CB-100 decision: `PASS`; CB-110, all 24 later tasks and PG-1–PG-5 remain
   `not_started`.
 
 ## Known unknowns
@@ -198,19 +246,20 @@ content read. Direct remote checks again found no CyberBoss branch, tag or PR.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
-- The OVH capacity result is point-in-time; deployment must rerun preflight.
+- The OVH capacity/profile remains point-in-time; each later activation must
+  rerun preflight.
 - Node, Codex, rclone and sqlite3 were absent on the target during CB-010 and
-  remain later deployment prerequisites.
+  CB-100 deliberately did not install them; they remain later prerequisites.
 
 ## Next Run
 
-The next eligible Run is exactly `P1.1 / CB-100`, whose scope is the Stage 1
-PostgreSQL schema/migration contract defined by the Task DAG. It remains
-`not_started`; do not treat this handoff as authorization that it was executed
-inside PG-0.
+The next eligible Run is exactly `P1.2 / CB-110`: install and pin Node/Codex
+plus the disabled Claude adapter. It remains `not_started`. CB-100 does not
+authorize package installation, Codex/WeChat authentication, real Runtime
+startup or any network/provider/data activation.
 
 Start it only under a new single-phase Run Contract. Keep source/license and
-CB-000–CB-040/PG-0 evidence immutable, preserve the strict dual-license
+CB-000–CB-100/PG-0 evidence immutable, preserve the strict dual-license
 conflict record, and continue the final-only GitHub publication rule. Do not
-combine `P1.1` with `P1.2`, deploy Runtime or perform a real provider write
-unless the new Run Contract and exact Acceptance authorize it.
+combine `P1.2` with `P1.3`, expose Runtime or perform a real provider/data
+write unless the new Run Contract and exact Acceptance authorize it.

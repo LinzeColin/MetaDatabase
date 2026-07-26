@@ -1,5 +1,35 @@
 # Changelog
 
+## P1.1 / CB-100 — 2026-07-26
+
+- Bound the supplied host-layout installer to one full local implementation
+  commit SHA and deployed that exact archive as immutable
+  `releases/<sha>` plus an atomic `current` pointer.
+- Created the dedicated non-root `cyberboss` identity, exact root/service-owned
+  directories, root-only environment/credential boundaries and a preserved
+  first-apply rollback prestate.
+- Installed only `cyberboss-cloud.service`; no backup/status/self-heal unit,
+  Runtime, public route, provider resource or Private-MetaDatabase object was
+  installed or activated.
+- Hardened the main unit with `KillMode=control-group`, bounded restart and
+  resource policy, strict filesystem sandbox/write allowlist and a size/rate-
+  bounded `cyberboss` journald namespace.
+- Made second apply truly idempotent for the same release: it validates the
+  immutable manifest and existing profile/drop-in/journal instead of
+  remeasuring resources or overwriting the original rollback pointer.
+- Passed exact-target preflight, archive SHA-256 verification, two applies,
+  permission negatives, 100/100 actual systemd kill/restarts and 100/100
+  singleton-lock contention; final state is disabled/inactive with ports
+  8765/8780 unused.
+- Preserved the first acceptance harness's ambiguous raw-route-hash failure;
+  the final complete rerun used a normalized topology that excludes only
+  volatile route timers and passed unchanged-topology plus final verification.
+- Kept the frozen App/vendor source bundles and strict
+  `GPL-3.0-only AND AGPL-3.0-only` conflict record unchanged, with
+  `upstream_clarification_received=false`.
+- Marked only CB-100 passed. CB-110, all later tasks and PG-1–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/publication remains empty.
+
 ## PG-0 — 2026-07-26
 
 - Independently passed the Stage 0 exit Gate without requiring any real

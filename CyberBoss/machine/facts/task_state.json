@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.4",
   "updated_on": "2026-07-26",
   "current_run": {
-    "run_id": "PG-0",
-    "gate_id": "PG-0",
-    "task_id": null,
-    "scope": "stage_0_exit_gate",
+    "run_id": "P1.1",
+    "gate_id": null,
+    "task_id": "CB-100",
+    "scope": "host_layout_and_systemd_walking_skeleton",
     "status": "passed"
   },
   "prestage": [
@@ -30,7 +30,7 @@
     {"id": "CB-020", "stage": "S0", "phase": "P0.3", "status": "passed"},
     {"id": "CB-030", "stage": "S0", "phase": "P0.4", "status": "passed"},
     {"id": "CB-040", "stage": "S0", "phase": "P0.5", "status": "passed"},
-    {"id": "CB-100", "stage": "S1", "phase": "P1.1", "status": "not_started"},
+    {"id": "CB-100", "stage": "S1", "phase": "P1.1", "status": "passed"},
     {"id": "CB-110", "stage": "S1", "phase": "P1.2", "status": "not_started"},
     {"id": "CB-120", "stage": "S1", "phase": "P1.3", "status": "not_started"},
     {"id": "CB-130", "stage": "S1", "phase": "P1.4", "status": "not_started"},
