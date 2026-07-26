@@ -127,10 +127,32 @@ class SyntheticProductionGitHubTransport:
                     "id": self.repository_id,
                     "private": True,
                     "full_name": f"{self.owner}/{self.name}",
+                    "size": 1,
+                    "default_branch": "main",
                 },
             )
 
         prefix = f"/repos/{self.owner}/{self.name}"
+        if (
+            request.method == "GET"
+            and parsed.path == prefix + "/git/trees/main"
+            and parsed.query == "recursive=1"
+        ):
+            self.events.append("github_capacity_tree")
+            return self._json(
+                200,
+                {
+                    "truncated": False,
+                    "tree": [
+                        {
+                            "path": relative,
+                            "type": "blob",
+                            "size": len(value),
+                        }
+                        for relative, value in sorted(self.objects.items())
+                    ],
+                },
+            )
         content_prefix = prefix + "/contents/"
         if parsed.path.startswith(content_prefix):
             relative = unquote(parsed.path.removeprefix(content_prefix))
@@ -251,6 +273,16 @@ class _StoredProcessedView:
         return self._remote.objects.get(relative_path)
 
 
+class _OrderedOAuthTransport(SyntheticOAuthTransport):
+    def __init__(self, events: list[str]) -> None:
+        super().__init__()
+        self._events = events
+
+    def send(self, request: HttpRequest) -> HttpResponse:
+        self._events.append("gmail_oauth_exchange")
+        return super().send(request)
+
+
 @dataclass(frozen=True, slots=True)
 class ProductionSyntheticContext:
     bootstrap: ProductionBootstrap
@@ -291,7 +323,11 @@ def _observation_dict(value: PhaseObservation) -> dict[str, object]:
 
 
 @contextmanager
-def _production_context(*, block_predecessor: bool = False) -> Iterator[ProductionSyntheticContext]:
+def _production_context(
+    *,
+    block_predecessor: bool = False,
+    refresh_capacity_from_remote: bool = False,
+) -> Iterator[ProductionSyntheticContext]:
     now = datetime(2026, 7, 22, 1, tzinfo=UTC)
     repository_id = 7_200_104
     installation_id = 8_200_104
@@ -375,7 +411,7 @@ def _production_context(*, block_predecessor: bool = False) -> Iterator[Producti
             ),
         }
         source = TrackingProtectedSecretSource(values)
-        oauth = SyntheticOAuthTransport()
+        oauth = _OrderedOAuthTransport(events)
         gmail = Stage7GmailTransport(
             (m3_canary_message("msg-rmd04-production"),),
             events=events,
@@ -394,6 +430,7 @@ def _production_context(*, block_predecessor: bool = False) -> Iterator[Producti
             approved_tmpfs_root=Path(temporary.name),
             clock=lambda: now,
             allow_synthetic_ephemeral_root=True,
+            refresh_capacity_from_remote=refresh_capacity_from_remote,
         )
         yield ProductionSyntheticContext(
             bootstrap,
@@ -520,6 +557,17 @@ def test_rmd04_blocked_predecessor_stops_before_any_credential_exchange_or_remot
         assert list(context.tmpfs_root.iterdir()) == []
 
 
+def test_rmd04_live_capacity_refresh_precedes_gmail_credential_exchange() -> None:
+    with _production_context(refresh_capacity_from_remote=True) as context:
+        with context.bootstrap.open():
+            pass
+        assert context.github.events.index("github_capacity_tree") < context.github.events.index(
+            "gmail_oauth_exchange"
+        )
+        assert context.source.all_issued_destroyed is True
+        assert list(context.tmpfs_root.iterdir()) == []
+
+
 def test_rmd04_checkpoint_reads_legacy_v1_and_writes_canonical_v2_watermark() -> None:
     legacy = json.dumps(
         {
@@ -557,7 +605,21 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.18":
+    if status["package_version"] == "1.0.19":
+        assert status["dimensions"]["protected_oracles"] == {
+            "status": "PARTIAL",
+            "declared": 43,
+            "executed": 4,
+            "passed": 4,
+            "failed": 0,
+            "not_run": 39,
+        }
+        assert status["dimensions"]["publication"] == {
+            "status": "CONTROLLED_T0705_CANDIDATE_NOT_FINAL",
+            "controlled_main_deliveries": 18,
+            "remote_publications": 0,
+        }
+    elif status["package_version"] == "1.0.18":
         assert status["dimensions"]["protected_oracles"] == {
             "status": "PARTIAL",
             "declared": 43,

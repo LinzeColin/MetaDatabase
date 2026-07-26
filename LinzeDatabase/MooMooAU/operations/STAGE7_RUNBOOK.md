@@ -2,8 +2,8 @@
 
 ## 当前状态
 
-交付状态为 `PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED`，Stage 7 验收覆盖状态为
-`T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED`。T0701–T0708
+交付状态为 `PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING`，Stage 7 验收覆盖状态为
+`T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -25,8 +25,12 @@ Timeline。受保护 repair 的 Gmail mutation、processed-current、candidate/s
 独立聚合核验只确认一个 encrypted Timeline state commit，未解密或公开私有定位。
 T0704/S7AC-004 因此 PASS，但不等于 Stage 7、最终 Acceptance 或生产 PASS。
 
-当前精确 Run Contract 已消耗全部 T0704 权限，只允许一次零数据面的证据交付。
-T0704 rerun/redispatch、T0705、GA、04:30 调度、最终 Acceptance 与最终发布均未授权。
+当前精确 Run Contract 已消耗全部 T0704 权限，并单独授权 T0705：一次 launch delivery、一次
+exact-main attempt-1 protected `SCHEDULE_REHEARSAL`（rerun 0）和一次 receipt/authority-closure
+delivery。它复用现有 `moomooau-beta` Environment 的八个精确 Secret 名称，不复制 Secret 值；
+受保护运行通过后才启用已提交的 04:30 Australia/Sydney schedule。rehearsal 必须明确记录
+`platform_schedule_event_observed=false`，不能伪称 GitHub schedule event。T0706、Recovery
+Drill、Patch Lifecycle protected execution、最终 Acceptance 与最终发布均未授权。
 
 ## Beta protected bootstrap 契约
 
@@ -99,7 +103,13 @@ Oracle `NOT_RUN`、final Acceptance 0/34、Stage 7 或生产 `BLOCKED`。
 
 Timeline 只聚合远端恢复且仍匹配 current Processed pointer 的 facts；snapshot 再次 age 提交/恢复后才调用单 Asset publisher。健康结果必须为恰好一个 live Asset。最后一步才 strict-CAS Gmail checkpoint，并重新读取、解密和逐字段比较；CAS 或恢复失败时整次运行不完成，下次按旧水位幂等补偿。公开结果只含 bucket/零差异状态，不含 Gmail ID、仓库定位或金融值，也明确 `production_health_claimed=false`。
 
-上述机制仅由合成 ciphertext-only remote 验证。生产 Workflow 仍保持 Stage 5 fail-closed hold；Blue-Green 未完成、GA 容量与 Mutation Budget 未配置、真实 04:30 运行未观察，因此 T0705 与其 AC 仍为 `BLOCKED/PARTIAL/NOT_RUN`，绝不能因本地 runner 存在而启用 GA。
+`ProtectedGAEntrypoint` 已把 T0702、T0703、T0704 精确 PASS 回执、当前 Run Contract、同树 gate
+digest、owner/exact-main/workflow ref、one-shot exact-head authority 与 attempt 1/rerun 0 绑定。
+它只在 Secret 前 context gate 通过后，使用现有八个 protected input 在内存中派生 GA config；
+GitHub App 先刷新真实私有仓容量，再允许 Gmail credential exchange。`workflow_dispatch` 只调用
+与 04:30 生产运行相同的 `RunTrigger.SCHEDULE` planner path，并公开标记为
+`SCHEDULE_REHEARSAL`。当前该 protected rehearsal 尚未运行，因此 T0705 与其 AC 仍为
+`BLOCKED/PARTIAL/NOT_RUN`；本地 runner 和候选入口不能替代其精确 protected receipt。
 
 ## Codex Automation 本地策略
 
@@ -125,7 +135,12 @@ Timeline 只聚合远端恢复且仍匹配 current Processed pointer 的 facts�
 2. **Beta Raw-only**：先给出明确正整数 Beta message budget；只允许 Discovery、Raw、Public Evidence 和 Full Reconcile。Parser、M3、Timeline 关闭。
 3. **M3 Canary**：Processing 必须先启用并产生 `COMPLETE` 或显式 safe-deferred Processed；Mutation Budget 固定为 1；在一次有界受保护运行中，每封消息必须先远端恢复，再调用精确 `messages.trash` 并确认；Timeline 仍关闭。不设自然日等待。
 4. **Blue-Green**：在一次有界受保护运行中，对相同恢复 Raw 并行比较 incumbent/candidate；必须观测真实 Processed、Parser 比较、Timeline 发布和 Full Reconciliation；live Timeline 的最小和最大 Asset 数都必须为 1。不设自然日等待。
-5. **GA**：必须显式配置经容量证据支持的正整数 Mutation Budget；至少观察一次真实 04:30 Australia/Sydney 全流程，且真实 Processed、Timeline 发布和 Full Reconciliation 均至少一次。不得使用代码默认值猜测。
+5. **GA**：必须显式配置经实时容量证据支持的正整数 Mutation Budget；一次 exact-main protected
+   `workflow_dispatch` 可调用与生产调度相同的 SCHEDULE planner path，无需等待墙钟到达
+   04:30。该次运行必须如实称为 `SCHEDULE_REHEARSAL`，证明真实 Processed、Timeline 发布、
+   checkpoint-last 与 Full Reconciliation，并保持 platform schedule event 计数为 0；PASS 回执
+   绑定后才启用已提交的 04:30 Australia/Sydney schedule。不得使用代码默认值或假造 schedule
+   event。
 6. **Codex Automation**：只在 GA 后创建；只读上一份公开健康证据。健康不动作；异常最多更新一个 Ops Issue。不得拥有 Gmail、私有仓、Secret、Workflow Dispatch 或代码写权限。
 7. **Recovery Drill**：从私有密文各随机选一个 Raw、Processed、Timeline；owner Recovery Key 只能在 `/dev/shm`，恢复明文只进入 hash sink，不能进入普通 `runner.temp`、Artifact 或 Cache；公开输出只含聚合。
 8. **Operations / Patch Lifecycle**：只有 T0707 受保护 Recovery Drill 通过后，才可装配不可变 Patch Candidate；供应链、恢复、容量、Kill、Reconcile、单 Timeline、成本与 scope 门全部通过后仍只进入 owner-approved promotion，不能自动关闭 Stage 7。

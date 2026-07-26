@@ -22,7 +22,7 @@ CONTRACT_PATH = Path("machine/contracts/production_composition.json")
 SCHEMA_PATH = Path("schemas/production-composition-v1.schema.json")
 WORKFLOW_PATH = Path(".github/workflows/moomooau-production.yml")
 EXPECTED_SECRET_NAMES = [
-    "MOOMOOAU_PRODUCTION_CONFIG",
+    "MOOMOOAU_BETA_CONFIG",
     "MOOMOOAU_SENDER_REGISTRY",
     "MOOMOOAU_CLASSIFICATION_REGISTRY",
     "MOOMOOAU_PARSER_REGISTRY",
@@ -39,10 +39,13 @@ EXPECTED_SOURCE_PATHS = {
     "src/moomooau_archive/production_adapters.py",
     "src/moomooau_archive/gmail_sync_checkpoint.py",
     "src/moomooau_archive/ga_runtime.py",
+    "src/moomooau_archive/protected_blue_green.py",
+    "src/moomooau_archive/protected_ga_entrypoint.py",
     "tests/remediation/test_rmd04.py",
     "tests/remediation/test_rmd05.py",
     "tests/tasks/test_t0607.py",
     "tests/tasks/test_t0704.py",
+    "tests/tasks/test_t0705.py",
     "schemas/production-config-v1.schema.json",
 }
 
@@ -119,14 +122,15 @@ def validate(
     required_workflow_tokens = (
         'cron: "30 4 * * *"',
         'timezone: "Australia/Sydney"',
-        "MOOMOOAU_PRODUCTION_ENABLED == 'true'",
-        "environment: moomooau-production",
+        "MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD",
+        "environment: moomooau-beta",
         "requirements/stage6.lock",
         "--require-hashes",
         "--no-build-isolation --no-deps .",
-        "python -m moomooau_archive.production",
+        "python -m moomooau_archive.protected_ga_entrypoint",
         "--execute-protected",
-        '--event-name "$EVENT_NAME"',
+        "GA_SCHEDULE_MODE_REHEARSAL_MUTATION_BUDGET_ONE",
+        '--expected-head-sha "$EXPECTED_HEAD_SHA"',
     )
     contract_secret_names = contract.get("secret_names")
     actual_secret_names = re.findall(

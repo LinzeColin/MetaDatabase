@@ -503,10 +503,44 @@ def _validate_workflows(root: Path) -> list[str]:
         and len(production_uses) == 2
         and all(PINNED_ACTION.fullmatch(item) is not None for item in production_uses)
     )
-    if not (legacy_valid or composition_valid):
+    candidate_secret_names = expected_secret_names - {"MOOMOOAU_PRODUCTION_CONFIG"} | {
+        "MOOMOOAU_BETA_CONFIG"
+    }
+    t0705_candidate_required = (
+        'cron: "30 4 * * *"',
+        'timezone: "Australia/Sydney"',
+        "workflow_dispatch:",
+        "expected_head_sha:",
+        "confirm_ga:",
+        "GA_SCHEDULE_MODE_REHEARSAL_MUTATION_BUDGET_ONE",
+        "runs-on: ubuntu-24.04",
+        "cancel-in-progress: false",
+        "requirements/stage6.lock",
+        "--require-hashes",
+        "--no-build-isolation --no-deps .",
+        "bdc69c09cbdd6cf8b1f333d372a1f58247b3a33146406333e30c0f26e8f51377",  # pragma: allowlist secret  # noqa: E501
+        "protected_ga_entrypoint",
+        "--contract-only",
+        "--execute-protected",
+        "MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD",
+        "MOOMOOAU_PRODUCTION_ENABLED",
+        "environment: moomooau-beta",
+        "permissions:\n  contents: read",
+        "persist-credentials: false",
+    )
+    t0705_candidate_valid = (
+        (root / "src/moomooau_archive/protected_ga_entrypoint.py").is_file()
+        and all(token in production for token in t0705_candidate_required)
+        and production_secret_names == candidate_secret_names
+        and production.count("${{ secrets.") == len(candidate_secret_names)
+        and not any(token in production.casefold() for token in common_forbidden_production)
+        and len(production_uses) == 4
+        and all(PINNED_ACTION.fullmatch(item) is not None for item in production_uses)
+    )
+    if not (legacy_valid or composition_valid or t0705_candidate_valid):
         errors.append(
             "protected production workflow is neither the Stage 5 hold nor the later "
-            "fail-closed composition"
+            "fail-closed composition/T0705 candidate"
         )
 
     dockerfile = (root / "container/Dockerfile.stage5-ci").read_text(encoding="utf-8")

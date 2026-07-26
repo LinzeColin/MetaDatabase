@@ -14,7 +14,7 @@ import os
 import re
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import ExitStack, contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import cast
@@ -62,6 +62,8 @@ from .protected_beta import (
     _read_secret,
     _verify_identity_recipient,
 )
+from .protected_blue_green import _LiveRepositoryCapacityProbe
+from .protected_m3 import M3_SECRET_NAMES
 from .raw_commit import (
     GitHubAppendOnlyCiphertextStore,
     OpaqueIdFactory,
@@ -321,9 +323,13 @@ class ProductionBootstrap:
         age: OfficialAgeStream | None = None,
         clock: Callable[[], datetime] | None = None,
         allow_synthetic_ephemeral_root: bool = False,
+        refresh_capacity_from_remote: bool = False,
     ) -> None:
-        if type(allow_synthetic_ephemeral_root) is not bool:
-            raise ProductionBootstrapError("synthetic ephemeral-root flag is invalid")
+        if (
+            type(allow_synthetic_ephemeral_root) is not bool
+            or type(refresh_capacity_from_remote) is not bool
+        ):
+            raise ProductionBootstrapError("production bootstrap policy flag is invalid")
         self._secret_source = secret_source
         self._oauth_transport = oauth_transport
         self._gmail_transport = gmail_transport
@@ -332,12 +338,17 @@ class ProductionBootstrap:
         self._age = age or OfficialAgeStream()
         self._clock = clock or (lambda: datetime.now(UTC))
         self._allow_synthetic_ephemeral_root = allow_synthetic_ephemeral_root
+        self._refresh_capacity_from_remote = refresh_capacity_from_remote
 
     @contextmanager
     def open(self) -> Iterator[ProductionRuntime]:
         now = _require_utc(self._clock())
         with ExitStack() as resources:
-            config = _load_config(self._secret_source, now)
+            config = _load_config(
+                self._secret_source,
+                now,
+                allow_stale_capacity_for_live_refresh=self._refresh_capacity_from_remote,
+            )
             promotion = Stage7ReleaseGate().evaluate_promotion(
                 ReleasePhase.GA,
                 config.predecessor_observations,
@@ -394,15 +405,6 @@ class ProductionBootstrap:
             identity_secret.destroy()
             _verify_identity_recipient(self._age, config.age_recipient, identity)
 
-            gmail_credential = load_gmail_oauth_credential(self._secret_source)
-            resources.callback(gmail_credential.destroy)
-            gmail_token = GmailOAuthTokenClient(self._oauth_transport).exchange(
-                gmail_credential,
-                now_utc=now,
-            )
-            resources.callback(gmail_token.destroy)
-            gmail_credential.destroy()
-
             github_guard = GitHubEndpointGuard(self._github_transport, config.target_repository)
             installation_token = GitHubInstallationTokenClient(
                 github_guard,
@@ -414,6 +416,34 @@ class ProductionBootstrap:
             locator = RepositoryResolver(github_guard, config.target_repository).resolve(
                 installation_token
             )
+            if self._refresh_capacity_from_remote:
+                limits = config.capacity.limits
+                if limits is None:
+                    raise ProductionBootstrapError("production capacity limits are unavailable")
+                try:
+                    live_capacity = _LiveRepositoryCapacityProbe(
+                        github_guard,
+                        locator,
+                        installation_token,
+                    ).observe(config)
+                except Exception as exc:
+                    raise ProductionBootstrapError(
+                        "production live capacity refresh failed"
+                    ) from exc
+                config = replace(
+                    config,
+                    capacity=CapacityPolicy().evaluate(live_capacity, limits),
+                    capacity_observed_at_utc=now,
+                )
+
+            gmail_credential = load_gmail_oauth_credential(self._secret_source)
+            resources.callback(gmail_credential.destroy)
+            gmail_token = GmailOAuthTokenClient(self._oauth_transport).exchange(
+                gmail_credential,
+                now_utc=now,
+            )
+            resources.callback(gmail_token.destroy)
+            gmail_credential.destroy()
 
             gmail_guard = GmailEndpointGuard(
                 GmailBearerTransport(self._gmail_transport, gmail_token, clock=self._clock)
@@ -509,10 +539,11 @@ def composition_contract() -> dict[str, object]:
     return {
         "schema_version": "moomooau.production-composition-public.v1",
         "status": "CONTRACT_ONLY_NO_EXECUTION",
-        "entrypoint": "python -m moomooau_archive.production --execute-protected",
+        "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
         "schedule": {"cron": "30 4 * * *", "timezone": "Australia/Sydney"},
-        "secret_names": list(PRODUCTION_SECRET_NAMES),
+        "secret_names": list(M3_SECRET_NAMES),
         "components": [
+            "ProtectedGAEntrypoint",
             "RunPlanner",
             "EncryptedGmailSyncCheckpoint",
             "GmailReconciler",
@@ -529,7 +560,14 @@ def composition_contract() -> dict[str, object]:
     }
 
 
-def _load_config(source: SecretSource, now: datetime) -> ProductionConfig:
+def _load_config(
+    source: SecretSource,
+    now: datetime,
+    *,
+    allow_stale_capacity_for_live_refresh: bool = False,
+) -> ProductionConfig:
+    if type(allow_stale_capacity_for_live_refresh) is not bool:
+        raise ProductionBootstrapError("production capacity refresh policy is invalid")
     encoded = _read_secret(source, PRODUCTION_CONFIG_SECRET_NAME, maximum_bytes=_MAX_CONFIG_BYTES)
     try:
         try:
@@ -562,7 +600,11 @@ def _load_config(source: SecretSource, now: datetime) -> ProductionConfig:
     if set(github) != {"app_id", "installation_id", "repository_id"}:
         raise ProductionBootstrapError("production GitHub config schema is invalid")
     capacity = _required_object(value, "capacity")
-    assessment, observed_at = _parse_capacity(capacity, now)
+    assessment, observed_at = _parse_capacity(
+        capacity,
+        now,
+        allow_stale_capacity_for_live_refresh=allow_stale_capacity_for_live_refresh,
+    )
     raw_observations = value.get("predecessor_observations")
     if not isinstance(raw_observations, list):
         raise ProductionBootstrapError("production predecessor observations are invalid")
@@ -590,6 +632,8 @@ def _load_config(source: SecretSource, now: datetime) -> ProductionConfig:
 def _parse_capacity(
     value: dict[str, object],
     now: datetime,
+    *,
+    allow_stale_capacity_for_live_refresh: bool,
 ) -> tuple[CapacityAssessment, datetime]:
     if set(value) != {"observed_at_utc", "limits", "snapshot"}:
         raise ProductionBootstrapError("production capacity config schema is invalid")
@@ -606,7 +650,9 @@ def _parse_capacity(
     }:
         raise ProductionBootstrapError("production capacity snapshot schema is invalid")
     observed_at = _parse_utc(value.get("observed_at_utc"))
-    if observed_at > now or now - observed_at > _CAPACITY_MAX_AGE:
+    if observed_at > now or (
+        not allow_stale_capacity_for_live_refresh and now - observed_at > _CAPACITY_MAX_AGE
+    ):
         raise ProductionBootstrapError("production capacity observation is absent or stale")
     limits = CapacityLimits(
         lfs_storage_budget_bytes=_required_positive_int(

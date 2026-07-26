@@ -699,10 +699,10 @@ def test_t0704_stage_aware_evidence_validator_preserves_scope_stopped_truth() ->
         item["status"] in {"PARTIAL", "NOT_RUN"} for item in record["linked_final_acceptance"]
     )
     provenance = json.loads(
-        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.18.json").read_text(encoding="utf-8")
+        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.19.json").read_text(encoding="utf-8")
     )
-    expected_base = "65cef09935475ab578d28a61817cc92700d6da04"  # pragma: allowlist secret
-    assert provenance["schema_version"] == "moomooau.source-provenance.v18"
+    expected_base = "c4d4f6cdd60398fba2724d32a99a59306f4225a1"  # pragma: allowlist secret
+    assert provenance["schema_version"] == "moomooau.source-provenance.v19"
     assert provenance["candidate_snapshot"] == {
         "repository": "LinzeColin/MetaDatabase",
         "mainline_base_commit": expected_base,
@@ -713,7 +713,7 @@ def test_t0704_stage_aware_evidence_validator_preserves_scope_stopped_truth() ->
         encoding="utf-8"
     )
     assert (
-        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v18"'
+        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v19"'
         in acceptance_source
     )
     assert acceptance_source.count(f'"{expected_base}"') == 2

@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.19",
+    "date": "2026-07-26",
+    "summary": "在精确 T0704 protected PASS 后只授权 T0705：复用现有八项 protected input 与安装到唯一私有仓的 GitHub App，在 Secret/Gmail 前刷新实时容量；唯一 exact-main attempt-1 workflow_dispatch 调用生产 SCHEDULE planner path 并如实标记 SCHEDULE_REHEARSAL，rerun 为零。PASS 回执绑定前调度保持关闭，之后只启用已提交的 04:30 Australia/Sydney schedule；T0706、最终Acceptance 与最终发布仍未授权。"
+  },
+  {
     "version": "1.0.18",
     "date": "2026-07-26",
     "summary": "固化唯一新 exact-main T0704 修复 attempt-1 的受保护 PASS：authority、Blue-Green 与身份清理均通过；复用既有 candidate/snapshot，远端恢复并验证恰好一个 age 加密最新 Timeline，processed-current、Raw、Processed 与 Gmail 均无新增效果。失败头保持冻结，T0704/S7AC-004 关闭，全部 T0704 权限已消耗，范围停止于 T0705 前。"

@@ -218,7 +218,21 @@ T0705 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.18.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.17.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.16.json`、
+`v1.0.19` 在精确 T0704 protected PASS 后只授权 T0705。候选复用现有
+`moomooau-beta` 八个 protected input 和已安装 GitHub App，先刷新唯一私有仓实时容量，再执行
+一条 verified-only Raw/Processed recovery、精确 Message Trash、单一 Timeline 与
+checkpoint-last 路径。唯一 workflow_dispatch 必须称为 `SCHEDULE_REHEARSAL`，attempt 1、
+rerun 0；PASS receipt 前 live schedule 关闭，之后只启用已提交 04:30 Australia/Sydney
+schedule，并停在 T0706 前。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.19.md`
+- `ROADMAP.v1.0.19.md`
+- `PACKAGE_MANIFEST.v1.0.19.json`
+- `SOURCE_PROVENANCE.v1.0.19.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.18.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.17.json`、
+`PACKAGE_MANIFEST.v1.0.16.json`、
 `PACKAGE_MANIFEST.v1.0.15.json`、
 `PACKAGE_MANIFEST.v1.0.14.json`、
 `PACKAGE_MANIFEST.v1.0.13.json`、

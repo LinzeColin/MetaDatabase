@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner authorized one fully automatic exact-main T0704 Blue-Green attempt with no artificial calendar or manual-approval blocker after the exact protected T0703 PASS; no failed or successful T0703 head may be rerun",
+    "decision": "Owner authorized one fully automatic exact-main T0705 GA schedule-mode rehearsal with no artificial calendar or manual-approval blocker after the exact protected T0704 PASS; the rehearsal must remain truthfully distinct from a GitHub schedule event",
     "authorized_on": "2026-07-26",
-    "scope": "Stage 7 T0704 only: the protected T0702 and T0703 PASS receipts and all failed T0703 heads remain immutable. One controlled main delivery and one exact-main attempt-1 protected Blue-Green dispatch may reuse the existing Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. Before Gmail exchange or data writes, the run must replace the stale capacity observation with Repository-ID bound metadata, a complete default-branch tree and fixed live Release observation. It may then read and recover the sole current-backed Raw, append and recover one candidate Processed shadow, retain processed-current, commit and recover one Timeline snapshot and replace exactly one recoverable encrypted latest Timeline. Gmail mutation, parser promotion, rerun, schedule, T0705, final Acceptance and final publication remain unauthorized."
+    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts and every frozen failed head remain immutable. One launch delivery, one attempt-1 protected workflow_dispatch schedule-mode rehearsal and one receipt/authority-closure delivery may reuse the existing moomooau-beta Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. Before Gmail exchange or data writes, the run must refresh live capacity. Only deterministically verified candidates may be fully read; Raw and Processed recovery plus second verification precede an exact-message Trash mutation budget of one. One Timeline snapshot and one latest encrypted Timeline must recover remotely, and the encrypted checkpoint CAS is last. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -181,6 +181,22 @@
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
       "next_action": "Close T0704/S7AC-004 from the exact protected receipt and stop before T0705. No T0704 rerun or redispatch is allowed; a new explicit T0705 Run Contract is required."
+    },
+    "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED": {
+      "package_version": "1.0.19",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P1-006",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+        "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal authority variable, and execute exactly one protected schedule-mode GA workflow_dispatch at attempt 1 with rerun zero. Keep the platform schedule disabled until the PASS receipt is bound, then stop before T0706."
     }
   }
 }

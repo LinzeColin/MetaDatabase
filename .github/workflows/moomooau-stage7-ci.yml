@@ -126,6 +126,7 @@ jobs:
             LinzeDatabase/MooMooAU/src/moomooau_archive/blue_green_runtime.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_blue_green.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_blue_green_entrypoint.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_ga_entrypoint.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/ga_runtime.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/production.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/production_adapters.py \

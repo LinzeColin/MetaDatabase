@@ -1,5 +1,19 @@
 # Taskpack Changelog
 
+## 1.0.19 — 2026-07-26
+
+在精确 T0704 protected PASS 后只授权 T0705 protected GA schedule-mode rehearsal。
+
+- 绑定 v1.0.18、T0702–T0704 PASS receipts 与所有 failed-head lineage；
+- 增加 exact owner/main/workflow/attempt/one-shot authority gate，任何漂移均在 Secret 前停止；
+- 复用现有 `moomooau-beta` 八个 protected input，不复制或持久化 Secret 值；
+- GitHub App 在 Gmail exchange 前刷新唯一私有仓实时容量；
+- verified-only full read，Raw/Processed recovery 与二次验证后 exact-message Trash 最多 1；
+- Timeline snapshot、唯一 latest age Asset 与 checkpoint-last CAS 全部要求远端恢复；
+- 唯一 workflow_dispatch 调用 SCHEDULE planner 并如实称为 `SCHEDULE_REHEARSAL`；
+- attempt 1、rerun 0、rehearsal platform schedule event 0；
+- PASS receipt 前 live schedule 关闭；T0706、最终 Acceptance 与最终发布仍未授权。
+
 ## 1.0.18 — 2026-07-26
 
 固化 T0704 Release Asset 302 修复的唯一新 exact-main protected PASS，并在 T0705 前停止。

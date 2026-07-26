@@ -17,7 +17,7 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
+from typing import Protocol, cast
 from urllib.parse import quote
 
 from .age_stream import OfficialAgeStream
@@ -30,7 +30,7 @@ from .blue_green_runtime import (
 )
 from .canary_runtime import ExistingProcessedReconciliationMatcher
 from .canonical_raw import CanonicalRawFetcher
-from .capacity import CapacityPolicy, CapacitySnapshot
+from .capacity import CapacityAssessment, CapacityPolicy, CapacitySnapshot
 from .document_parser import ParserActivation
 from .github_guard import (
     GITHUB_API_ORIGIN,
@@ -124,6 +124,11 @@ class ProtectedBlueGreenBootstrapError(RuntimeError):
     """A protected T0704 prerequisite failed without exposing a protected value."""
 
 
+class _CapacityContext(Protocol):
+    @property
+    def capacity(self) -> CapacityAssessment: ...
+
+
 class _LiveRepositoryCapacityProbe:
     """Refresh bounded capacity facts without granting a write endpoint."""
 
@@ -137,7 +142,7 @@ class _LiveRepositoryCapacityProbe:
         self._locator = locator
         self._token = token
 
-    def observe(self, prior: ProtectedM3Config) -> CapacitySnapshot:
+    def observe(self, prior: _CapacityContext) -> CapacitySnapshot:
         previous = prior.capacity.observed_snapshot
         limits = prior.capacity.limits
         if previous is None or limits is None:
