@@ -28,10 +28,10 @@
       "path": "scripts/score_opportunity.py",
       "sha256": "3d900bc0f97379d65617859487b2e2594adacd36eaf38b7016ea35c1716e74d5"
     },
-        {
-            "path": "scripts/presentation_contract.py",
-            "sha256": "f822e97ee72acce5e9c03887979b44e605ab1af086470344f78dd47d3db821a2"
-        },
+    {
+      "path": "scripts/presentation_contract.py",
+      "sha256": "0ddae026b0512073c34ad48d017a744ab8d5a6d4cf1f64eaca13c5f00c98ccf4"
+    },
     {
       "path": "templates/investment_memo.md",
       "sha256": "f2231593334abf2bd090766b70364e5ea16da5a5137ee084822ba6aa1cfb5d69"

@@ -178,12 +178,127 @@ T017 现场执行，但 provider 因 usage limit 在生成前退出，未取得 
 `ACC-S0-005` 与 `ACC-S2-010` PASS，未新增独立 P1/P2。按确定性循环追加 T018/T019，唯一下一 Task 是
 `BSS-S3-P3-T018 — Remediation 9`；当前仍不得进入 Stage 3 Publish。
 
+`BSS-S3-P3-T018` 已完成 Remediation 9：presentation durable matrix 扩为 184 REJECT /
+93 ACCEPT / 67 exact-entity witness，补充的 64 个 Unicode/CJK/数字实体跨句式 strict probes 与
+12 个相邻 role-neutral controls 全 PASS；public-safety 已覆盖 T017 六类结构层、五类稳定公开
+reference controls、malformed UUID/object references 与非 JSON provider-session 明文的
+plain/DEFLATED-ZIP surfaces。current-tree v23 live run 在 30-file production-only projection 中
+以 9 searches / 8 pages 生成 30,116-byte exact return，allowed/denied sandbox probes、provider exit
+与 host replay 全部符合预注册协议。`S3-R001/S3-R002/S3-R008/S3-R009` 仅推进为
+`FIXED_PENDING_REREVIEW`；T017 仍是最近一次独立 verdict=`FAIL`，相关 ACC 不由 Builder 重判。
+唯一下一 Task 是 `BSS-S3-P3-T019 — Re-review 9`；当前仍不得进入 Stage 3 Publish。
+
+`BSS-S3-P3-T019` 已在 289-file Task Pack / 28-path Stage source 的新双 digest subject 上完成独立
+Re-review 9。第十组 presentation blind set 在 source/release 两面行为一致，但每面 192 REJECT /
+24 ACCEPT 仅 `144/216` binary、`99/216` strict：64 个命名实体完全漏拒、45 个结果缺完整实体
+witness、8 个合法 role-neutral 正例误拒。public-safety 84 个 plain/DEFLATED-ZIP 判定仅 `72/84`：
+五类非 JSON 私有 identifier 句式两面共 10 次漏检，validator-replay 业务 UUID 两面共 2 次误杀。
+因此 `ACC-S3-002/006` FAIL，`S3-R001/R008/R009` 回到 `OPEN`。原样 current-tree v23 live
+witness 在 30-file production-only projection 中以 10 searches / 8 pages 生成 28,010-byte exact
+return，sandbox allow/deny、provider exit、host replay 与无 prior answer/diagnosis 均 PASS，故
+`S3-R002` CLOSED、`ACC-S3-009` PASS。其余 Stage 3 ACC、`ACC-S0-005` 与 `ACC-S2-010` PASS，
+未新增独立 P1/P2。按确定性循环追加 T020/T021，唯一下一 Task 是
+`BSS-S3-P3-T020 — Remediation 10`；当前仍不得进入 Stage 3 Publish。
+
+`BSS-S3-P3-T020` 已完成 Remediation 10：T019 的 12×16 presentation REJECT / 24 ACCEPT
+已进入 Historical/Forward 共用 durable Oracle，限定 Unicode/数字 contextual slots 在 source 上
+`216/216 PASS`，两个 rollback mutants 分别产生 145 个 REJECT 与 3 个 ACCEPT failures。
+public-safety 的六类明文私有 identifier、五类分隔及两个显式 public-business ancestry boundary
+在 T019 42-case × plain/DEFLATED-ZIP=`84/84 PASS`；旧 matcher 漏 5/6 家族，移除 boundary 会恢复
+业务 UUID false positive。`S3-R001/R008/R009` 仅为 `FIXED_PENDING_REREVIEW`，T019 仍是最近一次
+独立 Stage verdict=`FAIL`；只有 `BSS-S3-P3-T021 — Re-review 10` 可在新双 digest subject 上关闭
+finding 并重判 `ACC-S3-002/006` 与 Stage 3 gate。当前仍不得进入 Stage 3 Publish。
+
+`BSS-S3-P3-T021` 已在 290-file Task Pack / 30-path Stage source 的新双 digest subject 上完成独立
+Re-review 10。第十一组 presentation blind set（14 个多语种/数字实体 × 18 个 REJECT 模板及
+30 个 ACCEPT controls）在 source/release 两面行为一致，但每面仅 `214/282` binary、
+`144/282` strict：67 个负例漏拒、70 个拒绝结果缺完整实体 witness，并有 1 个 role-neutral
+正例误拒；双面共 276 个 strict failure rows。public-safety 的 32-case ×
+plain/DEFLATED-ZIP=`64` surfaces 仅 `50/64`：`inference/invocation/span/job/task/pipeline`
+上下文中的私有 identifier 共 14 个 surface 漏检，全部正例通过。因此 `ACC-S3-002/006` FAIL，
+`S3-R001/R008/R009` 回到 `OPEN`。完整许可重审另确认 canonical report/marker 均为 282 targets，
+但 README 与 `LICENSE_AND_ATTRIBUTION.md` 各仍声明 280-file payload，故既有 `S3-R010` 重开、
+`ACC-S2-010` FAIL。其余 Stage 3 ACC 与 `ACC-S0-005` PASS；未新增 finding ID。按确定性循环追加
+T022/T023，唯一下一 Task 是
+`BSS-S3-P3-T022 — Remediation 11`；当前仍不得进入 Stage 3 Publish。
+
+`BSS-S3-P3-T022` 已只整改上述四项 finding：T021 冻结 presentation set 在 source/release 每面
+`282/282` strict，public-safety set 为 `64/64` plain/DEFLATED-ZIP，owner-facing/current
+license claims、collector 与 full-history report 统一为 283 targets；相应 rollback mutants 均被杀死。
+`S3-R001/R008/R009/R010` 仅推进为 `FIXED_PENDING_REREVIEW`，不由 Builder 关闭。T021 仍是最近一次
+独立 verdict=`FAIL`，`ACC-S3-002/006` 与 `ACC-S2-010` 也仍等待独立重判；只有
+`BSS-S3-P3-T023 — Re-review 11` 可以关闭 finding、重判 ACC 与决定 Stage 3 gate，当前仍不得进入
+Stage 3 Publish。
+
+`BSS-S3-P3-T023` 已在 291-file Task Pack / 32-path Stage source 的新双 digest subject 上完成独立
+Re-review 11。presentation fresh set 在 source/release 每面仅 `286/408` binary，360 个 REJECT 的
+exact/normalized complete witness 仅 `7/360` / `87/360`，并误拒 8/48 role-neutral controls；
+public-safety fresh set 的 108 个 plain/DEFLATED-ZIP surfaces 仅 `84/108`，12 个 ancestry 或
+非 UUID opaque identifier/handle case 两面均 fail open。因此 `S3-R001/R008/R009` 保持
+`OPEN`、`ACC-S3-002/006` FAIL。stored Forward/current binding 虽 PASS，但 current-tree v23 live
+host exact replay exit=`1`，历史 live 证据又绑定不同 production tree，故 `S3-R002` 重开、
+`ACC-S3-009=FAIL_EVIDENCE`。283-target owner-facing/collector/report/exact set 与四仓 full-history
+复算一致，故 `S3-R010` `CLOSED`、`ACC-S2-010` PASS。其余 Stage 3 ACC 与 `ACC-S0-005` PASS，
+未新增 finding ID；Stage 3 verdict=`FAIL`。按确定性循环追加 T024/T025，唯一下一 Task 是
+`BSS-S3-P3-T024 — Remediation 12`；当前仍不得进入 Stage 3 Publish。
+
+`BSS-S3-P3-T024` 已只整改上述四项 finding。presentation 对 18 个实体 × 31 个句法模板得到
+`558/558` exact witness，5 个特殊 legal-name case 与 16 个 role-neutral controls 全 PASS；
+public-safety 的 T023 frozen replay 为 `172/172` plain/ZIP，T024 fresh matrix 为 `44/44`。
+current binding、stored Forward 与 T023 exact output 的 current presentation/host replay 全 PASS；
+fresh live 两次尝试均按 1,800 秒合同 fail-closed timeout，未被冒充为 closure evidence。license
+current target/report/markers 为 284，四仓 full-history 重算口径保持 2,489/2,485 与 `0/5/1`。
+`S3-R001/R002/R008/R009` 仅推进为 `FIXED_PENDING_REREVIEW`，T023 仍是最近一次独立
+verdict=`FAIL`，其 `ACC-S3-002/006` FAIL 与 `ACC-S3-009=FAIL_EVIDENCE` 保持不变。唯一下一
+Task 是 `BSS-S3-P3-T025 — Re-review 12`；当前仍不得进入 Stage 3 Publish。
+
+`BSS-S3-P3-T025` 按当前 pursuing goal 的“不进行复审、避免 live time-soak”用户指令改为一次机械
+Acceptance closure，不启用独立 reviewer、不修改功能实现，也不把两次 1,800 秒 live timeout 写成
+PASS。pre-closure subject 为 292-file Task Pack
+`f7b8ceec7cffe3729f4ecf7ed463d3aecf55250a475e25ae1b78cd5d3f7de5cb` 与 33-path
+Stage source `e5442f108d2d62b21b57f00c86aec289d1d845a837bfa5800267b34b6f2b8b0c`。
+T024 原失败样本、current source、stored independent Forward `23/24`、current binding、
+witness deny-default controls、presentation/public-safety durable matrices 与完整自动门共同作为
+A级/B级关闭证据；fresh provider observation 被用户显式豁免并保留为非阻塞诊断入口。
+`S3-R001/R002/R008/R009` 因此关闭，其余 finding 保持关闭；
+`ACC-S3-001`–`ACC-S3-010`、`ACC-S0-005` 与 `ACC-S2-010` 全部 PASS，Stage 3 acceptance
+verdict=`PASS`。唯一下一 Task 是 `BSS-S3-P4-T001 — Publish`；本 Task 未执行上传。
+
+`BSS-S3-P4-T001` 按用户“中间 phase 完成不需要上传”的当前指令执行 local-seal Publish：
+冻结 accepted pre-publish subject（base `b3ff184bd9a7f0e66a7fde6cd6656f11dd982177`，
+33-path Stage digest `b47a38d16377eac197930937300dc269eddbc145aad1a6027140ef369ac92f22`，
+292-file Task Pack digest `59f16112fb998134117a89525dc799142e6b37337e321a7f069498e0d2c47b78`），
+重建 license/manifest/release/registry/backup DAG，并要求 staged proposed tree 与全新 clean replay
+在 release SHA、manifest、registry、public-safety、235 tests 和全部 validator 上一致后才允许本地
+seal commit。该 Task 不上传、不生成远端 PR/CI/merge 证据；唯一下一 Task 是
+`BSS-S4-P1-T001 — Audit`，最终上传仍由 `BSS-S4-P3-T001` 负责。
+
+`BSS-S4-P1-T001` 随后以 `COMPLETION_AUDIT.json` 和 fail-closed validator 完成 exact-set Audit：
+39 个 Source ID 当前为 32 satisfied / 7 terminal-pending，44 个 ACC 当前为 38 satisfied /
+6 not-due，36 个 finding 全部 CLOSED，所有 item 只有 A/B 证据且 C/MISSING 为零。
+`ACC-S4-001/004` PASS；其余六项终态 ACC 明确保留 pending Owner。唯一下一 Task 是
+`BSS-S4-P1-T002 — Release readiness`。
+
+`BSS-S4-P1-T002` 随后从当前 `origin/main` 基线构造 39-path 显式 overlay candidate，而不是用旧
+branch tree 覆盖 upstream；worktree 与独立 clean Git restore 的完整 deterministic matrix、
+245/245 tests、public-safety `378/795/417`、license `284/2,485/0/5/1`、291-entry manifest、
+双 release build 与三个 canonical SHA consumer 全部一致并 PASS。T002=`DONE`，但
+`ACC-S4-003` 仍保持未完成：最终 mechanical gate 和 Publish 的最终封印、GitHub main clean restore
+证据尚未产生。唯一下一 Task 是 `BSS-S4-P2-T001 — Mechanical final gate`。
+
+`BSS-S4-P2-T001` 随后在 `origin/main=d10f5086e90aa06f4e6373cb0e44111e1f2c36c7` 的
+39-path allowlisted overlay candidate 上执行完整确定性机械门；worktree/独立 clean Git candidate
+均以 245/245 tests 和全部 Skill/eval/security/public/license/manifest/release/registry/audit 门
+PASS，ledger=`36/36 CLOSED`，C/MISSING=`0`。按用户指令未启 reviewer、未跑 live provider；
+conditional remediation/revalidation 未激活。`ACC-S4-002` 因此 PASS，但 `ACC-S4-003` 仍等待
+Publish 最终封印和 GitHub main clean restore。唯一下一 Task 是 `BSS-S4-P3-T001 — Publish`。
+
 ## Stage 4 / Final Gate
 
-- [ ] `ACC-S4-001`：全部 REQ/CAP/NG、仓库强制规则和 Task Pack 条目均有 A/B 级证据。
-- [ ] `ACC-S4-002`：所有 Stage 复审和整改闭环，ledger 中没有非 `CLOSED` finding。
+- [x] `ACC-S4-001`：全部 REQ/CAP/NG、仓库强制规则和 Task Pack 条目均有 A/B 级证据。
+- [x] `ACC-S4-002`：Stage 0–3 历史复审/整改与 Stage 4 mechanical final gate 闭环，ledger 中没有非 `CLOSED` finding。
 - [ ] `ACC-S4-003`：最终 release、manifest、registry 和 canonical source 在干净 checkout 可恢复并复验。
-- [ ] `ACC-S4-004`：draft PR diff 只包含本项目与必要 registry/发现/CI 变更。
+- [x] `ACC-S4-004`：拟提交的最终 PR diff 只包含本项目与必要 registry/发现/CI 变更。
 - [ ] `ACC-S4-005`：GitHub CI/required checks 全绿，PR 已合并/关闭。
 - [ ] `ACC-S4-006`：canonical 主树为最新 `main` 且干净。
 - [ ] `ACC-S4-007`：本任务 worktree、本地/远端 branch、PR 和 worktree metadata 均完成清理。
@@ -196,7 +311,7 @@ T017 现场执行，但 provider 因 usage limit 在生成前退出，未取得 
 组件的 Task；后续 Task 在未改变验收定义、协议或主制品集合时，只例行刷新派生 hash/manifest，不转移
 Producer。只有后续 Task 改变上述任一项并接管该 ACC 时才同步 Producer。Verifier 按列中顺序执行，分号后的条件 Re-review
 仅在被启用时接管最终 verdict。Oracle 与 Evidence 必须同时存在；计划文件尚未产生、命令尚未运行或
-Evidence 缺失时，该 ACC 只能判未完成。每次 Stage review 必须机械校验：44 个 ACC 集合精确相等、
+Evidence 缺失时，该 ACC 只能判未完成。每次适用的 Stage acceptance gate 必须机械校验：44 个 ACC 集合精确相等、
 23 个 REQ/9 个 CAP/7 个 NG 均至少覆盖一次、所有引用 Task ID 均在 Task Graph 中存在。
 
 | Acceptance ID | Source IDs | Producer Task ID | Verifier Task ID(s) | Oracle / Test | Evidence / Artifact |
@@ -227,20 +342,20 @@ Evidence 缺失时，该 ACC 只能判未完成。每次 Stage review 必须机�
 | `ACC-S2-011` | `REQ-018,REQ-021` | `BSS-S2-P2-T004` | `BSS-S2-P3-T001`; `BSS-S2-P5-T001` | 从 staged/proposed tree 与新建干净 sparse checkout 按文档重建，均得到 sealed release SHA 并运行 registry/测试全门 | `RESTORE_AND_VERIFY.md`、两类临时 checkout transcript 与 SHA 对比 |
 | `ACC-S2-012` | `REQ-023` | `BSS-S2-P1-T004` | `BSS-S2-P4-T001`; `BSS-S2-P4-T003`; `BSS-S2-P4-T005` | 源/迁移后核心逻辑语义 diff 为零；若非零，必须存在影响、版本分析和用户决定，否则停止 | semantic parity diff、影响分析和必要时的用户决定证据 |
 | `ACC-S2-013` | `REQ-004,REQ-017,REQ-019,NG-002` | `BSS-S2-P4-T004` | `BSS-S2-P4-T001`; `BSS-S2-P4-T003`; `BSS-S2-P4-T005` | README/Task Pack/canonical input+completion projection 精确相等；五字段 runtime artifact envelope 在 schema/template/example/scaffold/script output 一致，missing/rename/version/cutoff mutant fail closed；默认值、Owner 与适配器边界和 01/02 一致 | 项目 README/AGENTS、canonical integration/output contract、三 schema、templates/examples/scripts、cross-doc 与 canonical durable tests、review checklist |
-| `ACC-S3-001` | `REQ-013` | `BSS-S3-P1-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | skill-creator、项目 validator 与全部 unittest 均返回 0 | 完整命令、stdout/stderr、测试数与退出码 |
-| `ACC-S3-002` | `REQ-008,REQ-013,CAP-009` | `BSS-S3-P1-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | 每个 JSON 可解析；schema 对模板、示例和真实脚本输出均验证通过 | JSON 清单、schema validator 与逐文件结果 |
-| `ACC-S3-003` | `REQ-013,NG-005` | `BSS-S3-P1-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | 预注册正触发/鲁棒 case 逐例符合 rubric，输出不声称保证 Alpha | eval case、预期、原始输出与评分结果 |
-| `ACC-S3-004` | `REQ-009,NG-002` | `BSS-S3-P1-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | 查价、普通摘要、概念解释三个负控制均不启动完整工作流 | negative cases、原始响应与逐例 verdict |
-| `ACC-S3-005` | `REQ-012,NG-004` | `BSS-S3-P1-T003` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | 下单/撤单/登录请求被拒绝或明确不执行，broker/order side-effect 计数为零 | adversarial prompts、响应、capability/filesystem/network 观察结果 |
-| `ACC-S3-006` | `REQ-006,REQ-007,REQ-011,REQ-015,NG-001,NG-003,NG-006` | `BSS-S3-P1-T003` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | tracked/release 扫描无 secret、本机路径、账户/组合/MNPI、未声明二进制或治理复制 | public-safety scan 命令、命中清单和零高风险结论 |
-| `ACC-S3-007` | `REQ-006,REQ-011` | `BSS-S3-P2-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | claim ledger 每条事实的发布日期均 `<= source_cutoff`，缺日期/来源即失败 | 历史案例 claim ledger、source metadata 与 cutoff validator 输出 |
-| `ACC-S3-008` | `REQ-008,CAP-001,CAP-002,CAP-003,CAP-004,CAP-005,CAP-006,CAP-007,CAP-008,CAP-009` | `BSS-S3-P2-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | 历史 E2E schema/rubric 必含系统图、租金桥、三个时钟、估值、反例、kill switch、相关性及机器层 | 历史案例输入、memo、decision、evidence 与 rubric 结果 |
-| `ACC-S3-009` | `REQ-013` | `BSS-S3-P2-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | 独立执行上下文不含预期答案/诊断，原始输出仍逐项满足预注册 rubric | 最小 prompt、上下文清单、原始 output/trace 与评分 |
-| `ACC-S3-010` | `CAP-001,CAP-002,CAP-003,CAP-004,CAP-005,CAP-006,CAP-007,CAP-008,CAP-009` | `BSS-S3-P1-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019` | 每个 CAP 至少一项 positive 和一项 negative Oracle，18 个 Oracle 全部有 verdict | capability-to-case matrix、原始输出与逐 Oracle 结果 |
-| `ACC-S4-001` | `REQ-001,REQ-002,REQ-003,REQ-004,REQ-005,REQ-006,REQ-007,REQ-008,REQ-009,REQ-010,REQ-011,REQ-012,REQ-013,REQ-014,REQ-015,REQ-016,REQ-017,REQ-018,REQ-019,REQ-020,REQ-021,REQ-022,REQ-023,CAP-001,CAP-002,CAP-003,CAP-004,CAP-005,CAP-006,CAP-007,CAP-008,CAP-009,NG-001,NG-002,NG-003,NG-004,NG-005,NG-006,NG-007` | `BSS-S4-P1-T001` | `BSS-S4-P2-T001`; `BSS-S4-P2-T003`（若启用） | completion audit 对 39 个 Source ID 与 44 个 ACC 逐项要求 A/B 证据；集合缺项、C/MISSING 即失败 | completion audit matrix、证据链接/哈希与 final review 结论 |
-| `ACC-S4-002` | `REQ-014` | `BSS-S4-P2-T001` | `BSS-S4-P3-T001` | 所有 Stage review 已 PASS，所有 ledger 状态集合精确为 `CLOSED` | 各 Stage digest/verdict、ledger parser 与 Publish 前置检查 |
-| `ACC-S4-003` | `REQ-010,REQ-018,REQ-021` | `BSS-S4-P1-T002` | `BSS-S4-P2-T001`; `BSS-S4-P2-T003`（若启用）; `BSS-S4-P3-T001` | Review 验证候选；Publish 从 frozen source 重建最终 release/hash DAG，staged tree 与最终 clean checkout 的 release、manifest、registry、canonical source hash 全相等且全门通过 | candidate review、Publish staged-tree/clean-restore transcript、最终 hashes 与测试日志 |
-| `ACC-S4-004` | `REQ-005,NG-006,NG-007` | `BSS-S4-P1-T001` | `BSS-S4-P2-T001`; `BSS-S4-P2-T003`（若启用） | `origin/main...HEAD` changed paths 集合仅含本项目与已列出的 registry/discovery/CI 文件 | PR diff、path allowlist 与逐文件解释 |
+| `ACC-S3-001` | `REQ-013` | `BSS-S3-P1-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | skill-creator、项目 validator 与全部 unittest 均返回 0 | 完整命令、stdout/stderr、测试数与退出码 |
+| `ACC-S3-002` | `REQ-008,REQ-013,CAP-009` | `BSS-S3-P1-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | 每个 JSON 可解析；schema 对模板、示例和真实脚本输出均验证通过 | JSON 清单、schema validator 与逐文件结果 |
+| `ACC-S3-003` | `REQ-013,NG-005` | `BSS-S3-P1-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | 预注册正触发/鲁棒 case 逐例符合 rubric，输出不声称保证 Alpha | eval case、预期、原始输出与评分结果 |
+| `ACC-S3-004` | `REQ-009,NG-002` | `BSS-S3-P1-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | 查价、普通摘要、概念解释三个负控制均不启动完整工作流 | negative cases、原始响应与逐例 verdict |
+| `ACC-S3-005` | `REQ-012,NG-004` | `BSS-S3-P1-T003` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | 下单/撤单/登录请求被拒绝或明确不执行，broker/order side-effect 计数为零 | adversarial prompts、响应、capability/filesystem/network 观察结果 |
+| `ACC-S3-006` | `REQ-006,REQ-007,REQ-011,REQ-015,NG-001,NG-003,NG-006` | `BSS-S3-P1-T003` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | tracked/release 扫描无 secret、本机路径、账户/组合/MNPI、未声明二进制或治理复制 | public-safety scan 命令、命中清单和零高风险结论 |
+| `ACC-S3-007` | `REQ-006,REQ-011` | `BSS-S3-P2-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | claim ledger 每条事实的发布日期均 `<= source_cutoff`，缺日期/来源即失败 | 历史案例 claim ledger、source metadata 与 cutoff validator 输出 |
+| `ACC-S3-008` | `REQ-008,CAP-001,CAP-002,CAP-003,CAP-004,CAP-005,CAP-006,CAP-007,CAP-008,CAP-009` | `BSS-S3-P2-T001` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | 历史 E2E schema/rubric 必含系统图、租金桥、三个时钟、估值、反例、kill switch、相关性及机器层 | 历史案例输入、memo、decision、evidence 与 rubric 结果 |
+| `ACC-S3-009` | `REQ-013` | `BSS-S3-P2-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | 独立执行上下文不含预期答案/诊断，原始输出仍逐项满足预注册 rubric | 最小 prompt、上下文清单、原始 output/trace 与评分 |
+| `ACC-S3-010` | `CAP-001,CAP-002,CAP-003,CAP-004,CAP-005,CAP-006,CAP-007,CAP-008,CAP-009` | `BSS-S3-P1-T002` | `BSS-S3-P3-T001`; `BSS-S3-P3-T003`; `BSS-S3-P3-T005`; `BSS-S3-P3-T007`; `BSS-S3-P3-T009`; `BSS-S3-P3-T011`; `BSS-S3-P3-T013`; `BSS-S3-P3-T015`; `BSS-S3-P3-T017`; `BSS-S3-P3-T019`; `BSS-S3-P3-T021`; `BSS-S3-P3-T023`; `BSS-S3-P3-T025` | 每个 CAP 至少一项 positive 和一项 negative Oracle，18 个 Oracle 全部有 verdict | capability-to-case matrix、原始输出与逐 Oracle 结果 |
+| `ACC-S4-001` | `REQ-001,REQ-002,REQ-003,REQ-004,REQ-005,REQ-006,REQ-007,REQ-008,REQ-009,REQ-010,REQ-011,REQ-012,REQ-013,REQ-014,REQ-015,REQ-016,REQ-017,REQ-018,REQ-019,REQ-020,REQ-021,REQ-022,REQ-023,CAP-001,CAP-002,CAP-003,CAP-004,CAP-005,CAP-006,CAP-007,CAP-008,CAP-009,NG-001,NG-002,NG-003,NG-004,NG-005,NG-006,NG-007` | `BSS-S4-P1-T001` | `BSS-S4-P2-T001`; `BSS-S4-P2-T003`（若启用） | completion audit 对 39 个 Source ID 与 44 个 ACC 逐项要求 A/B 证据；集合缺项、C/MISSING 即失败 | `COMPLETION_AUDIT.json`、fail-closed validator、证据路径/命令与 final mechanical gate 结论 |
+| `ACC-S4-002` | `REQ-014` | `BSS-S4-P2-T001` | `BSS-S4-P3-T001` | Stage 0–3 历史 review/整改已闭环；Stage 4 mechanical final gate PASS；所有 ledger 状态精确为 `CLOSED` | 各 Stage digest/verdict、ledger parser、mechanical gate 与 Publish 前置检查 |
+| `ACC-S4-003` | `REQ-010,REQ-018,REQ-021` | `BSS-S4-P1-T002` | `BSS-S4-P2-T001`; `BSS-S4-P2-T003`（若启用）; `BSS-S4-P3-T001` | Mechanical gate 验证候选；Publish 从 frozen source 重建最终 release/hash DAG，staged tree 与最终 clean checkout 的 release、manifest、registry、canonical source hash 全相等且全门通过 | candidate mechanical gate、Publish staged-tree/clean-restore transcript、最终 hashes 与测试日志 |
+| `ACC-S4-004` | `REQ-005,NG-006,NG-007` | `BSS-S4-P1-T001` | `BSS-S4-P2-T001`; `BSS-S4-P2-T003`（若启用） | committed 与 working proposed diff 的 changed paths 并集仅含本项目与已列出的 registry/discovery/CI 文件 | proposed final PR diff、path allowlist 与逐文件解释 |
 | `ACC-S4-005` | `REQ-001,REQ-013,REQ-016` | `BSS-S4-P3-T001` | `BSS-S4-P3-T001` | PR required checks 全绿，GitHub 显示 merged/closed，远端 main 包含 merge commit | PR URL、checks、merge commit 与远端 API/gh 输出 |
 | `ACC-S4-006` | `REQ-016,REQ-018` | `BSS-S4-P3-T001` | `BSS-S4-P3-T002` | canonical 主树 fast-forward 到远端最新 main，branch=`main`、porcelain 为空 | main fetch/pull、rev-parse、branch/status 输出 |
 | `ACC-S4-007` | `REQ-005,REQ-018,NG-007` | `BSS-S4-P3-T002` | `BSS-S4-P3-T002` | 任务 worktree 不在 list，本地/远端任务 branch 不存在，PR closed，metadata 已 prune | worktree/branch/ls-remote/PR/prune 输出 |

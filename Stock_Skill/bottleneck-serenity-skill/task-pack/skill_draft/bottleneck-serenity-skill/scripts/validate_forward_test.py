@@ -374,6 +374,10 @@ EXPECTED_FORWARD_FILES.update(
         "remediation_v18_post_execution_remediation_t012.json",
         "remediation_v18_post_execution_remediation_t014.json",
         "remediation_v18_post_execution_remediation_t016.json",
+        "remediation_v18_post_execution_remediation_t018.json",
+        "remediation_v18_post_execution_remediation_t020.json",
+        "remediation_v18_post_execution_remediation_t022.json",
+        "remediation_v18_post_execution_remediation_t024.json",
         "remediation_v19_context_manifest.json",
         "remediation_v19_execution.json",
         "remediation_v19_judge_a.json",
@@ -594,6 +598,18 @@ CURRENT_FORWARD_T014_REMEDIATION_SHA256 = (
 CURRENT_FORWARD_T016_REMEDIATION_SHA256 = (
     "7f12e752811b49eba58385a91bc7ef61e1b9106c6a3a47c70256a9f561036040"
 )
+CURRENT_FORWARD_T018_REMEDIATION_SHA256 = (
+    "4954f41c15a2c1b6bef45f00d854e761e925f93612193f7aed6cc0f983e1b758"
+)
+CURRENT_FORWARD_T020_REMEDIATION_SHA256 = (
+    "54b75d167af584081a135ca1c689dc3c5752d5244f50c8a3f5bcf6d8a0d9d678"
+)
+CURRENT_FORWARD_T022_REMEDIATION_SHA256 = (
+    "3eeca2614b2146f7c3d419c8cdc359359562ed668ffad26e9293f603e626879e"
+)
+CURRENT_FORWARD_T024_REMEDIATION_SHA256 = (
+    "6923b7e39c3bfe619b07805bdc10e68f55faf986c7906b520aa1eaca7afdba65"
+)
 
 V19_EVAL_ID = "BSS-S3-P3-T008-forward-remediation-v19"
 V19_CASE_ID = "forward-large-power-transformer-hvdc-equipment-20260724-retry-11"
@@ -731,13 +747,13 @@ PROVIDER_GENERATION_V23_ARTIFACT_SHA256 = {
         "e3b1edf32a88568c2cbffe8f714c1972a28f6ca718f2ff76fa32211724f6cf7f"
     ),
     "provider_generation_v23_protocol.json": (
-        "39a8cd62af2729a1471ce16a47b8252f7d19884655cb85aa59bbc289951297fe"
+        "4774a96eecc4d119544a9f31974e03a1291e52e741682bf0df8d2305e38762f0"
     ),
     "provider_generation_v23_task.txt": (
-        "fb5abc961b3a9ab20e0fab8bd596389ed016f583fe5cfc687dbbd90cb10e0cca"
+        "6687840119bab245ff29fccb8e4c9c970070aa8243c99163a3828df00ce92bc7"
     ),
     "provider_generation_witness_v23.py": (
-        "46676fe985cbc9983bf18fff73ecf43bd81c03694c1c096e6de784f9769fba91"
+        "826b08080c4bdbb7b825b95d5d48465ee2a2ae484488e67a1a56aad0cac322fa"
     ),
 }
 
@@ -3489,12 +3505,311 @@ def _validate_current_forward_post_execution_remediation(
     _current_forward_reject_session_metadata(
         remediation, "v18 T016 post-execution remediation"
     )
-    if observed_current != remediation_current:
+    current_path = (
+        forward_dir / "remediation_v18_post_execution_remediation_t018.json"
+    )
+    if (
+        _sha256_path(current_path, "v18 T018 post-execution remediation")
+        != CURRENT_FORWARD_T018_REMEDIATION_SHA256
+    ):
+        raise ForwardTestError("v18 T018 post-execution remediation drift")
+    current_remediation = _exact_keys(
+        _load_json(current_path, "v18 T018 post-execution remediation"),
+        {
+            "schema_version",
+            "eval_id",
+            "remediation_task_id",
+            "relationship",
+            "execution_evidence_rewritten",
+            "current_output_revalidated",
+            "execution_context_tree_sha256",
+            "previous_remediation_sha256",
+            "changes",
+        },
+        "v18 T018 post-execution remediation",
+    )
+    current_changes = current_remediation["changes"]
+    if (
+        current_remediation["schema_version"] != SCHEMA_VERSION
+        or current_remediation["eval_id"] != CURRENT_FORWARD_EVAL_ID
+        or current_remediation["remediation_task_id"] != "BSS-S3-P3-T018"
+        or current_remediation["relationship"]
+        != "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION"
+        or current_remediation["execution_evidence_rewritten"] is not False
+        or current_remediation["current_output_revalidated"] is not True
+        or current_remediation["execution_context_tree_sha256"]
+        != CURRENT_FORWARD_CONTEXT_TREE_SHA256
+        or current_remediation["previous_remediation_sha256"]
+        != CURRENT_FORWARD_T016_REMEDIATION_SHA256
+        or not isinstance(current_changes, list)
+        or len(current_changes) != 1
+    ):
+        raise ForwardTestError("v18 T018 post-execution remediation identity drift")
+    current_change = _exact_keys(
+        current_changes[0],
+        {"path", "previous_current", "current", "semantic_scope"},
+        "v18 T018 post-execution remediation change",
+    )
+    current_target = _exact_keys(
+        current_change["current"],
+        {"mode", "byte_count", "sha256"},
+        "v18 T018 post-execution current target",
+    )
+    if (
+        current_change["path"] != remediation_change["path"]
+        or current_change["previous_current"] != remediation_current
+        or current_target
+        != {
+            "mode": "0644",
+            "byte_count": 33411,
+            "sha256": (
+                "0b7043bef92a90a1ec46d950303d1e0646f7f2a6324fa59f10ee2a86fb7be12a"
+            ),
+        }
+        or current_change["semantic_scope"]
+        != (
+            "add bounded funding and supply source slots, inline named-role "
+            "outcomes, upon dependency objects, and comparison index "
+            "assignments; preserve complete entity witnesses and accept "
+            "generic, negated, unresolved, and placeholder role prose"
+        )
+    ):
+        raise ForwardTestError("v18 T018 post-execution remediation contract drift")
+    _current_forward_reject_session_metadata(
+        current_remediation, "v18 T018 post-execution remediation"
+    )
+    newest_path = (
+        forward_dir / "remediation_v18_post_execution_remediation_t020.json"
+    )
+    if (
+        _sha256_path(newest_path, "v18 T020 post-execution remediation")
+        != CURRENT_FORWARD_T020_REMEDIATION_SHA256
+    ):
+        raise ForwardTestError("v18 T020 post-execution remediation drift")
+    newest_remediation = _exact_keys(
+        _load_json(newest_path, "v18 T020 post-execution remediation"),
+        {
+            "schema_version",
+            "eval_id",
+            "remediation_task_id",
+            "relationship",
+            "execution_evidence_rewritten",
+            "current_output_revalidated",
+            "execution_context_tree_sha256",
+            "previous_remediation_sha256",
+            "changes",
+        },
+        "v18 T020 post-execution remediation",
+    )
+    newest_changes = newest_remediation["changes"]
+    if (
+        newest_remediation["schema_version"] != SCHEMA_VERSION
+        or newest_remediation["eval_id"] != CURRENT_FORWARD_EVAL_ID
+        or newest_remediation["remediation_task_id"] != "BSS-S3-P3-T020"
+        or newest_remediation["relationship"]
+        != "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION"
+        or newest_remediation["execution_evidence_rewritten"] is not False
+        or newest_remediation["current_output_revalidated"] is not True
+        or newest_remediation["execution_context_tree_sha256"]
+        != CURRENT_FORWARD_CONTEXT_TREE_SHA256
+        or newest_remediation["previous_remediation_sha256"]
+        != CURRENT_FORWARD_T018_REMEDIATION_SHA256
+        or not isinstance(newest_changes, list)
+        or len(newest_changes) != 1
+    ):
+        raise ForwardTestError("v18 T020 post-execution remediation identity drift")
+    newest_change = _exact_keys(
+        newest_changes[0],
+        {"path", "previous_current", "current", "semantic_scope"},
+        "v18 T020 post-execution remediation change",
+    )
+    newest_target = _exact_keys(
+        newest_change["current"],
+        {"mode", "byte_count", "sha256"},
+        "v18 T020 post-execution current target",
+    )
+    if (
+        newest_change["path"] != current_change["path"]
+        or newest_change["previous_current"] != current_target
+        or newest_target
+        != {
+            "mode": "0644",
+            "byte_count": 37609,
+            "sha256": (
+                "e13b8a881a58f7b227b95c78025182cc24298dc274bfe6e9c4829211fd3137bf"
+            ),
+        }
+        or newest_change["semantic_scope"]
+        != (
+            "add bounded Unicode and numeric contextual entity slots for "
+            "source, dependency, naming, selection, role-fill, rent-route, "
+            "fronted-source, label, possessive, dash, and parenthetical "
+            "grammar; preserve complete entity witnesses and admit reviewed "
+            "generic role, business-process, and qualification prose"
+        )
+    ):
+        raise ForwardTestError("v18 T020 post-execution remediation contract drift")
+    _current_forward_reject_session_metadata(
+        newest_remediation, "v18 T020 post-execution remediation"
+    )
+    final_path = (
+        forward_dir / "remediation_v18_post_execution_remediation_t022.json"
+    )
+    if (
+        _sha256_path(final_path, "v18 T022 post-execution remediation")
+        != CURRENT_FORWARD_T022_REMEDIATION_SHA256
+    ):
+        raise ForwardTestError("v18 T022 post-execution remediation drift")
+    final_remediation = _exact_keys(
+        _load_json(final_path, "v18 T022 post-execution remediation"),
+        {
+            "schema_version",
+            "eval_id",
+            "remediation_task_id",
+            "relationship",
+            "execution_evidence_rewritten",
+            "current_output_revalidated",
+            "execution_context_tree_sha256",
+            "previous_remediation_sha256",
+            "changes",
+        },
+        "v18 T022 post-execution remediation",
+    )
+    final_changes = final_remediation["changes"]
+    if (
+        final_remediation["schema_version"] != SCHEMA_VERSION
+        or final_remediation["eval_id"] != CURRENT_FORWARD_EVAL_ID
+        or final_remediation["remediation_task_id"] != "BSS-S3-P3-T022"
+        or final_remediation["relationship"]
+        != "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION"
+        or final_remediation["execution_evidence_rewritten"] is not False
+        or final_remediation["current_output_revalidated"] is not True
+        or final_remediation["execution_context_tree_sha256"]
+        != CURRENT_FORWARD_CONTEXT_TREE_SHA256
+        or final_remediation["previous_remediation_sha256"]
+        != CURRENT_FORWARD_T020_REMEDIATION_SHA256
+        or not isinstance(final_changes, list)
+        or len(final_changes) != 1
+    ):
+        raise ForwardTestError("v18 T022 post-execution remediation identity drift")
+    final_change = _exact_keys(
+        final_changes[0],
+        {"path", "previous_current", "current", "semantic_scope"},
+        "v18 T022 post-execution remediation change",
+    )
+    final_target = _exact_keys(
+        final_change["current"],
+        {"mode", "byte_count", "sha256"},
+        "v18 T022 post-execution current target",
+    )
+    if (
+        final_change["path"] != newest_change["path"]
+        or final_change["previous_current"] != newest_target
+        or final_target
+        != {
+            "mode": "0644",
+            "byte_count": 44344,
+            "sha256": (
+                "7bba4e1893196a4cbff5638750ce9bb32b91c8ef7b133f74f8e6d3c7101c05f3"
+            ),
+        }
+        or final_change["semantic_scope"]
+        != (
+            "extend structural semantic parsing across explicit assignment "
+            "delimiters, clause boundaries, role-prefix objects, ownership/"
+            "fill/naming/selection/incumbent relations, and Unicode/numeric "
+            "entities; preserve complete entity witnesses and accept reviewed "
+            "deferred, negated, unresolved, public-business, and role-only prose"
+        )
+    ):
+        raise ForwardTestError("v18 T022 post-execution remediation contract drift")
+    _current_forward_reject_session_metadata(
+        final_remediation, "v18 T022 post-execution remediation"
+    )
+    t024_path = (
+        forward_dir / "remediation_v18_post_execution_remediation_t024.json"
+    )
+    if (
+        _sha256_path(t024_path, "v18 T024 post-execution remediation")
+        != CURRENT_FORWARD_T024_REMEDIATION_SHA256
+    ):
+        raise ForwardTestError("v18 T024 post-execution remediation drift")
+    t024_remediation = _exact_keys(
+        _load_json(t024_path, "v18 T024 post-execution remediation"),
+        {
+            "schema_version",
+            "eval_id",
+            "remediation_task_id",
+            "relationship",
+            "execution_evidence_rewritten",
+            "current_output_revalidated",
+            "execution_context_tree_sha256",
+            "previous_remediation_sha256",
+            "changes",
+        },
+        "v18 T024 post-execution remediation",
+    )
+    t024_changes = t024_remediation["changes"]
+    if (
+        t024_remediation["schema_version"] != SCHEMA_VERSION
+        or t024_remediation["eval_id"] != CURRENT_FORWARD_EVAL_ID
+        or t024_remediation["remediation_task_id"] != "BSS-S3-P3-T024"
+        or t024_remediation["relationship"]
+        != "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION"
+        or t024_remediation["execution_evidence_rewritten"] is not False
+        or t024_remediation["current_output_revalidated"] is not True
+        or t024_remediation["execution_context_tree_sha256"]
+        != CURRENT_FORWARD_CONTEXT_TREE_SHA256
+        or t024_remediation["previous_remediation_sha256"]
+        != CURRENT_FORWARD_T022_REMEDIATION_SHA256
+        or not isinstance(t024_changes, list)
+        or len(t024_changes) != 1
+    ):
+        raise ForwardTestError("v18 T024 post-execution remediation identity drift")
+    t024_change = _exact_keys(
+        t024_changes[0],
+        {"path", "previous_current", "current", "semantic_scope"},
+        "v18 T024 post-execution remediation change",
+    )
+    t024_target = _exact_keys(
+        t024_change["current"],
+        {"mode", "byte_count", "sha256"},
+        "v18 T024 post-execution current target",
+    )
+    if (
+        t024_change["path"] != final_change["path"]
+        or t024_change["previous_current"] != final_target
+        or t024_target
+        != {
+            "mode": "0644",
+            "byte_count": 57763,
+            "sha256": (
+                "0ddae026b0512073c34ad48d017a744ab8d5a6d4cf1f64eaca13c5f00c98ccf4"
+            ),
+        }
+        or t024_change["semantic_scope"]
+        != (
+            "add exact bounded raw-span witnesses for multilingual and "
+            "symbol-bearing entities before lossy tokenization; constrain "
+            "role-copula and verb-preposition bridges so role-neutral status, "
+            "deferral, category-label, and business-process prose remains "
+            "admissible; extract the apostrophe-adjacent noun phrase independent "
+            "of reporting-prefix depth while preserving dotted, connected, "
+            "lowercase, and internally possessive legal names so Historical "
+            "embedded contexts retain the complete raw entity without "
+            "role-neutral false positives"
+        )
+    ):
+        raise ForwardTestError("v18 T024 post-execution remediation contract drift")
+    _current_forward_reject_session_metadata(
+        t024_remediation, "v18 T024 post-execution remediation"
+    )
+    if observed_current != t024_target:
         raise ForwardTestError("v18 post-execution current target drift")
     return {
         change["path"]: {
             "execution": execution,
-            "current": remediation_current,
+            "current": t024_target,
         }
     }
 
@@ -4446,10 +4761,10 @@ def _v19_validate_context(
             if current != {
                 "path": relative,
                 "sha256": (
-                    "f822e97ee72acce5e9c03887979b44e605ab1af086470344f78dd47d3db821a2"
+                    "0ddae026b0512073c34ad48d017a744ab8d5a6d4cf1f64eaca13c5f00c98ccf4"
                 ),
                 "mode": "0644",
-                "byte_count": 30959,
+                "byte_count": 57763,
             }:
                 raise ForwardTestError(
                     "v19 remediated presentation target drift"
@@ -5546,7 +5861,7 @@ def validate_provider_generation_v23(
     skill_root: Path,
     forward_dir: Path,
 ) -> dict[str, int | str]:
-    """Validate the T017-runnable fresh-generation witness without self-closing it."""
+    """Validate the T025-runnable fresh-generation witness without self-closing it."""
 
     for name, expected in PROVIDER_GENERATION_V23_ARTIFACT_SHA256.items():
         if _sha256_path(forward_dir / name, f"provider generation {name}") != expected:
@@ -5601,7 +5916,7 @@ def validate_provider_generation_v23(
         witness.returncode != 0
         or observed.get("status") != PASS
         or observed.get("protocol_id")
-        != "BSS-S3-P3-T016-provider-generation-v23"
+        != "BSS-S3-P3-T018-provider-generation-v23"
         or observed.get("production_file_count") != 30
         or observed.get("live_reviewer_observation_required") is not True
         or observed.get("task_sha256")
@@ -5621,7 +5936,7 @@ def validate_provider_generation_v23(
     return {
         "provider_provenance": "LIVE_WITNESS_READY",
         "provider_generation_protocol": PASS,
-        "provider_live_review_task": "BSS-S3-P3-T017",
+        "provider_live_review_task": "BSS-S3-P3-T025",
     }
 
 

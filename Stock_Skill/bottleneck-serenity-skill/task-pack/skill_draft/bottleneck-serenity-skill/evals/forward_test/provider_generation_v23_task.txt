@@ -9,6 +9,10 @@ Skill files. No prior answer, diagnosis, judge commentary, expected label,
 score, example, test, or Task Pack material is present or readable. Do not try
 to inspect any parent path. Read the production Skill, perform fresh live web
 research, and open current primary sources for unstable claims.
+Use 6–10 current primary sources, with no more than 10 distinct web searches
+and 10 opened pages. Stop browsing once required claims, counterevidence,
+and source dates are covered; keep the memo and embedded JSON complete but
+concise.
 
 Return one JSON object matching the supplied schema. It must contain a complete
 research-only memo plus standalone evidence, opportunity, and portfolio JSON

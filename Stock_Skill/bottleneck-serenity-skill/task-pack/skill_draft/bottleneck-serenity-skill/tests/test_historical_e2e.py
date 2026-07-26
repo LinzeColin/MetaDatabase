@@ -211,6 +211,37 @@ class HistoricalE2ETests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
+        bidirectional_sets = (
+            presentation_oracles["bidirectional_generalization"],
+            presentation_oracles["remediation_bidirectional_generalization"],
+            presentation_oracles["t024_bidirectional_generalization"],
+        )
+        t024_exact_entities = {
+            template["text"].format(entity=entity): entity
+            for entity in presentation_oracles[
+                "t024_bidirectional_generalization"
+            ]["entities"]
+            for template in presentation_oracles[
+                "t024_bidirectional_generalization"
+            ]["reject_templates"]
+        }
+        t024_exact_entities.update(
+            {
+                case["text"]: case["expected_entity"]
+                for case in presentation_oracles[
+                    "t024_bidirectional_generalization"
+                ]["t024_possessive_exact_cases"]
+            }
+        )
+        helper_path = self.root / "scripts/presentation_contract.py"
+        helper_spec = importlib.util.spec_from_file_location(
+            "_bss_historical_embedded_presentation_contract",
+            helper_path,
+        )
+        self.assertIsNotNone(helper_spec)
+        self.assertIsNotNone(helper_spec.loader if helper_spec else None)
+        helper = importlib.util.module_from_spec(helper_spec)
+        helper_spec.loader.exec_module(helper)
         issuer_shapes = (
             "ABB",
             "Acme",
@@ -255,17 +286,47 @@ class HistoricalE2ETests(unittest.TestCase):
             "Funding is supplied by acme",
             "This leaves nvidia as the only listed exposure",
             *presentation_oracles["negative_issuer_slots"],
+            *(
+                template["text"].format(entity=entity)
+                for bidirectional in bidirectional_sets
+                for entity in bidirectional["entities"]
+                for template in bidirectional["reject_templates"]
+            ),
+            *(
+                case["text"]
+                for case in presentation_oracles[
+                    "t024_bidirectional_generalization"
+                ]["t024_possessive_exact_cases"]
+            ),
         )
         for issuer_shape in issuer_shapes:
             with self.subTest(issuer_shape=issuer_shape):
-                path.write_text(
-                    original.replace(
-                        "The payer test passes at the downstream layer.",
-                        f"The payer test passes at the downstream layer. {issuer_shape}.",
-                        1,
+                mutated_memo = original.replace(
+                    "The payer test passes at the downstream layer.",
+                    (
+                        "The payer test passes at the downstream layer.\n\n"
+                        f"{issuer_shape}\n\n"
                     ),
+                    1,
+                )
+                path.write_text(
+                    mutated_memo,
                     encoding="utf-8",
                 )
+                exact_entity = t024_exact_entities.get(issuer_shape)
+                if exact_entity is not None:
+                    violations = helper.find_role_neutral_violations(
+                        mutated_memo,
+                        "## 5. Security map",
+                    )
+                    self.assertIn(
+                        exact_entity,
+                        violations,
+                        msg=(
+                            "embedded exact source entity witness missing: "
+                            f"{exact_entity!r}; violations={violations!r}"
+                        ),
+                    )
                 self.assert_invalid("appears before Security map")
         path.write_text(original, encoding="utf-8")
 
@@ -278,7 +339,30 @@ class HistoricalE2ETests(unittest.TestCase):
             )
         )
         reviewed_positive_prose = " ".join(
-            presentation_oracles["positive_role_neutral_statements"]
+            [
+                *presentation_oracles["positive_role_neutral_statements"],
+                *(
+                    case["text"]
+                    for oracle_key in (
+                        "bidirectional_generalization",
+                        "remediation_bidirectional_generalization",
+                        "t024_bidirectional_generalization",
+                    )
+                    for case in presentation_oracles[oracle_key]["accept_cases"]
+                ),
+                *(
+                    case["text"]
+                    for case in presentation_oracles[
+                        "t024_bidirectional_generalization"
+                    ]["adjacent_replay"]["accept_cases"]
+                ),
+                *(
+                    case["text"]
+                    for case in presentation_oracles[
+                        "t024_bidirectional_generalization"
+                    ]["t024_remediation_accept_controls"]
+                ),
+            ]
         )
         path.write_text(
             original.replace(
@@ -326,7 +410,47 @@ class HistoricalE2ETests(unittest.TestCase):
         def normalized(value: str) -> str:
             return " ".join(re.findall(r"[^\W_]+", value.casefold()))
 
-        for witness in presentation_oracles["negative_entity_witnesses"]:
+        matrix_witnesses = (
+            {
+                "statement": template["text"].format(entity=entity),
+                "entity": entity,
+                "exact_required": (
+                    oracle_key == "t024_bidirectional_generalization"
+                ),
+            }
+            for oracle_key in (
+                "bidirectional_generalization",
+                "remediation_bidirectional_generalization",
+                "t024_bidirectional_generalization",
+            )
+            for bidirectional in (presentation_oracles[oracle_key],)
+            for entity in bidirectional["entities"]
+            for template in bidirectional["reject_templates"]
+        )
+        for witness in (
+            *presentation_oracles["negative_entity_witnesses"],
+            *matrix_witnesses,
+            *(
+                {
+                    "statement": case["text"],
+                    "entity": case["expected_entity"],
+                    "exact_required": True,
+                }
+                for case in presentation_oracles[
+                    "t024_bidirectional_generalization"
+                ]["adjacent_replay"]["reject_cases"]
+            ),
+            *(
+                {
+                    "statement": case["text"],
+                    "entity": case["expected_entity"],
+                    "exact_required": True,
+                }
+                for case in presentation_oracles[
+                    "t024_bidirectional_generalization"
+                ]["t024_possessive_exact_cases"]
+            ),
+        ):
             with self.subTest(statement=witness["statement"]):
                 violations = helper.find_role_neutral_violations(
                     f"{witness['statement']}\n\n## Security map",
@@ -340,6 +464,15 @@ class HistoricalE2ETests(unittest.TestCase):
                         f"violations={violations!r}"
                     ),
                 )
+                if witness.get("exact_required", False):
+                    self.assertIn(
+                        witness["entity"],
+                        violations,
+                        msg=(
+                            "exact source entity witness missing: "
+                            f"{witness['entity']!r}; violations={violations!r}"
+                        ),
+                    )
 
     def test_security_map_order_swap_fails(self) -> None:
         path = self.case / "memo.md"

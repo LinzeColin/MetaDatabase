@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T020",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "4954f41c15a2c1b6bef45f00d854e761e925f93612193f7aed6cc0f983e1b758",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 33411,
+        "sha256": "0b7043bef92a90a1ec46d950303d1e0646f7f2a6324fa59f10ee2a86fb7be12a"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 37609,
+        "sha256": "e13b8a881a58f7b227b95c78025182cc24298dc274bfe6e9c4829211fd3137bf"
+      },
+      "semantic_scope": "add bounded Unicode and numeric contextual entity slots for source, dependency, naming, selection, role-fill, rent-route, fronted-source, label, possessive, dash, and parenthetical grammar; preserve complete entity witnesses and admit reviewed generic role, business-process, and qualification prose"
+    }
+  ]
+}

@@ -43,7 +43,7 @@ PRODUCTION_ARTIFACTS = (
     ),
     (
         "scripts/presentation_contract.py",
-        "f822e97ee72acce5e9c03887979b44e605ab1af086470344f78dd47d3db821a2",
+        "0ddae026b0512073c34ad48d017a744ab8d5a6d4cf1f64eaca13c5f00c98ccf4",
     ),
     (
         "templates/investment_memo.md",

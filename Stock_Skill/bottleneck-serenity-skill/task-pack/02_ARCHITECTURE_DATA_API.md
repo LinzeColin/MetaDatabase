@@ -11,11 +11,14 @@ Stock_Skill/bottleneck-serenity-skill/
 ├── SOURCE_INVENTORY.md
 ├── LICENSE_AND_ATTRIBUTION.md
 ├── LICENSE_SIMILARITY_AUDIT.json
+├── COMPLETION_AUDIT.json
 ├── RESTORE_AND_VERIFY.md
 ├── BACKUP_MANIFEST.sha256
 ├── scripts/
 │   ├── audit_license_similarity.py
-│   └── build_release.py
+│   ├── build_release.py
+│   ├── refresh_task_manifest.py
+│   └── validate_completion_audit.py
 ├── releases/
 │   ├── SHA256SUMS
 │   └── bottleneck-serenity-skill_codex-skill-task-pack_v0.0.0.1.zip
@@ -46,6 +49,30 @@ Stock_Skill/bottleneck-serenity-skill/
 
 Stage 0 即创建 `task-pack/VERSION` 与 `task-pack/MANIFEST.sha256`；后续每个修改 Task 必须同步更新，
 不得等到 Stage 2 才开始完整性保护。
+
+## Completion audit contract
+
+`BSS-S4-P1-T001` 的 `COMPLETION_AUDIT.json` 是 outer project completion 状态的规范机器投影，不进入
+Task Pack/release 输入，避免自引用；它进入 outer backup manifest。审计器必须从 01/03/04 与 review
+ledger 机械派生 exact sets，而不是信任 JSON 自报：
+
+- Source ID 精确为 `23 REQ + 9 CAP + 7 NG = 39`，Acceptance 精确为 44；
+- Task Graph 精确为 82，当前状态计数为 `78 DONE / 2 PENDING / 2 CONDITIONAL`；
+- finding 精确为 36 且全部 `CLOSED`；
+- 证据等级只允许 A/B，C/MISSING、空引用、坏路径或未知引用均失败；
+- 当前未到期终态必须写明 `pending_task_ids`，不得把 PR/CI/merge/cleanup 冒充完成；
+- Audit 可引用 release/manifest 验证面，但不得复制 current release SHA 或 backup manifest SHA；
+  current release SHA 的 canonical consumer 仍精确只有 `SHA256SUMS`、registry 与 backup manifest；
+- T002 readiness evidence 只记录 frozen base、path count/digest、机械结果和三 consumer 路径，不记录
+  current release SHA 或 candidate tree ID，避免派生物自引用；
+- P2-T001 mechanical-gate evidence 只记录 pre-gate frozen subject/tree、确定性门结果与 no-review/
+  no-live policy；final candidate tree 与 current release SHA 不写回自身，最终封印仍由 Publish 负责；
+- Stage 4 future routing 不得出现 `Review`/`Re-review` phase，只允许用户指定的
+  mechanical gate/revalidation；
+- committed/working/untracked changed paths 的并集不得越过明确的 Stock Skill allowlist。
+
+校验器默认只读 `--check`，仅 `--write` 可原子刷新 canonical JSON；仓级 mutation tests 必须证明
+Source/ACC 删项、traceability/status/pending 漂移、C/MISSING、坏路径和非规范 JSON 均 fail closed。
 
 ## 身份迁移规则
 

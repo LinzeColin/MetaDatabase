@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T024",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "3eeca2614b2146f7c3d419c8cdc359359562ed668ffad26e9293f603e626879e",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 44344,
+        "sha256": "7bba4e1893196a4cbff5638750ce9bb32b91c8ef7b133f74f8e6d3c7101c05f3"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 57763,
+        "sha256": "0ddae026b0512073c34ad48d017a744ab8d5a6d4cf1f64eaca13c5f00c98ccf4"
+      },
+      "semantic_scope": "add exact bounded raw-span witnesses for multilingual and symbol-bearing entities before lossy tokenization; constrain role-copula and verb-preposition bridges so role-neutral status, deferral, category-label, and business-process prose remains admissible; extract the apostrophe-adjacent noun phrase independent of reporting-prefix depth while preserving dotted, connected, lowercase, and internally possessive legal names so Historical embedded contexts retain the complete raw entity without role-neutral false positives"
+    }
+  ]
+}
