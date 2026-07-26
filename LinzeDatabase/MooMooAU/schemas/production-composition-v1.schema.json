@@ -32,7 +32,7 @@
         "cron": {"const": "30 4 * * *"},
         "timezone": {"const": "Australia/Sydney"},
         "entrypoint": {
-          "const": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected"
+          "const": "python -m moomooau_archive.protected_ga_entrypoint --execute-scheduled"
         },
         "enabled_default": {"const": false}
       }

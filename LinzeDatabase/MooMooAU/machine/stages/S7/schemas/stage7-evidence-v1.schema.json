@@ -45,7 +45,8 @@
         "27886f54a30a12ca7992a908e97340d1d8234430",
         "c2c057b449fe1cbbd470867c274833242e3f139d",
         "0d0b6afd6a0cde606230a3df7378bdd90586de5d",
-        "4b7442bb635ea1e7cf5a814c3c56047aa288d594"
+        "4b7442bb635ea1e7cf5a814c3c56047aa288d594",
+        "b6265942bfa41afb4fd97fd9c81870f0f75dac61"
       ]
     },
     "record_status": {"enum": ["READY", "BLOCKED"]},
@@ -75,7 +76,8 @@
     "delivery_status": {
       "enum": [
         "LOCAL_ONLY_NOT_PUBLISHED",
-        "CONTROLLED_MAIN_DELIVERY_PENDING"
+        "CONTROLLED_MAIN_DELIVERY_PENDING",
+        "PRODUCTION_SCHEDULE_ENABLED_NOT_FINAL"
       ]
     },
     "checks": {
@@ -127,6 +129,74 @@
         "machine/stages/S7/reviews/t0704/execution-receipt.json"
       ]
     },
+    "protected_execution_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workflow_event",
+        "workflow_attempt",
+        "workflow_reruns",
+        "schedule_mode",
+        "platform_schedule_event_observed",
+        "security_clock_mode",
+        "schedule_clock_mode",
+        "schedule_clock_fixture_utc",
+        "verified_bucket",
+        "processed_or_safe_deferred_bucket",
+        "source_mutation_budget",
+        "source_mutation_calls_bucket",
+        "remote_recovery_one_hundred_percent",
+        "full_reconcile_runs",
+        "full_reconcile_comparison",
+        "timeline_publish_attempts",
+        "live_timeline_assets",
+        "gmail_checkpoint_remote_recovery",
+        "collateral_mutations",
+        "logical_duplicates",
+        "unresolved_failures",
+        "exact_mailbox_counts_disclosed",
+        "identity_plaintext_cleanup",
+        "ga_gate_status",
+        "production_health_claimed",
+        "final_acceptance_claimed"
+      ],
+      "properties": {
+        "workflow_event": {"const": "workflow_dispatch"},
+        "workflow_attempt": {"const": 1},
+        "workflow_reruns": {"const": 0},
+        "schedule_mode": {"const": "SCHEDULE_REHEARSAL"},
+        "platform_schedule_event_observed": {"const": false},
+        "security_clock_mode": {"const": "LIVE_UTC"},
+        "schedule_clock_mode": {
+          "const": "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
+        },
+        "schedule_clock_fixture_utc": {"const": "2026-07-26T19:00:00Z"},
+        "verified_bucket": {
+          "enum": ["ONE", "TWO_TO_NINE", "TEN_PLUS"]
+        },
+        "processed_or_safe_deferred_bucket": {
+          "enum": ["ONE", "TWO_TO_NINE", "TEN_PLUS"]
+        },
+        "source_mutation_budget": {"const": 1},
+        "source_mutation_calls_bucket": {"enum": ["ZERO", "ONE"]},
+        "remote_recovery_one_hundred_percent": {"const": true},
+        "full_reconcile_runs": {"const": 1},
+        "full_reconcile_comparison": {
+          "enum": ["ZERO_DIFFERENCE", "NOT_COMPARABLE_INITIAL_IMPORT"]
+        },
+        "timeline_publish_attempts": {"const": 1},
+        "live_timeline_assets": {"const": 1},
+        "gmail_checkpoint_remote_recovery": {"const": true},
+        "collateral_mutations": {"const": 0},
+        "logical_duplicates": {"const": 0},
+        "unresolved_failures": {"const": 0},
+        "exact_mailbox_counts_disclosed": {"const": false},
+        "identity_plaintext_cleanup": {"const": "PASS"},
+        "ga_gate_status": {"const": "PASS"},
+        "production_health_claimed": {"const": false},
+        "final_acceptance_claimed": {"const": false}
+      }
+    },
     "blockers": {
       "type": "array",
       "minItems": 1,
@@ -159,13 +229,43 @@
         "production_workflow_runs"
       ],
       "properties": {
-        "real_gmail_calls": {"const": 0},
-        "gmail_mutations": {"const": 0},
-        "private_repository_calls": {"const": 0},
-        "real_secrets_read": {"const": 0},
+        "real_gmail_calls": {
+          "oneOf": [
+            {"const": 0},
+            {"const": "PROTECTED_BOUNDED_NONZERO_EXACT_COUNT_WITHHELD"}
+          ]
+        },
+        "gmail_mutations": {
+          "oneOf": [
+            {"const": 0},
+            {"const": "ONE_EXACT_MESSAGE"}
+          ]
+        },
+        "private_repository_calls": {
+          "oneOf": [
+            {"const": 0},
+            {"const": "PROTECTED_BOUNDED_NONZERO_EXACT_COUNT_WITHHELD"}
+          ]
+        },
+        "real_secrets_read": {
+          "oneOf": [
+            {"const": 0},
+            {"const": "EIGHT_ALLOWLISTED_NAMES_VALUES_UNDISCLOSED"}
+          ]
+        },
         "protected_key_deliveries": {"const": 0},
-        "external_writes": {"const": 0},
-        "remote_publication": {"const": 0},
+        "external_writes": {
+          "oneOf": [
+            {"const": 0},
+            {"const": "VERIFIED_PIPELINE_ONLY_EXACT_COUNT_WITHHELD"}
+          ]
+        },
+        "remote_publication": {
+          "oneOf": [
+            {"const": 0},
+            {"const": "ONE_ENCRYPTED_LATEST_TIMELINE"}
+          ]
+        },
         "non_moomoo_full_reads": {"const": 0},
         "non_moomoo_downloads": {"const": 0},
         "non_moomoo_mutations": {"const": 0},
@@ -178,7 +278,7 @@
         "thread_trash_calls": {"const": 0},
         "permanent_delete_calls": {"const": 0},
         "release_assets_above_one": {"const": 0},
-        "production_workflow_runs": {"const": 0}
+        "production_workflow_runs": {"enum": [0, 1]}
       }
     },
     "next_action": {"type": "string", "minLength": 1}

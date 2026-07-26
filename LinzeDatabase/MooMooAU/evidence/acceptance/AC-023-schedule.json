@@ -64,15 +64,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0705.json",
-      "evidence_sha256": "adf0cd92d790b3cfe28c12fc27cbcd64f6cdf3fe67057a99face2695b8ead8fd",
+      "evidence_sha256": "2a0b521de9d835c8551be4d58b33b7ca6ec3b1418b9b0f6d771ac40feb4ebd0b",
       "final_claim_status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads, the wall-clock schedule-planning head, authentication-clock-coupling head, Raw-recovery representation head and Trash-mutation head are frozen separately; one Trash-confirmation successor may run once with live UTC security time and a deterministic RunPlanner fixture while every failed head remains non-rerunnable.",
-      "source_record_status": "BLOCKED",
+      "reason": "The protected rehearsal passed the Australia/Sydney 04:30 schedule branch using the committed historical fixture only for RunPlanner. The committed ordinary schedule uses a platform schedule event and live UTC for both security and planning; no wall-clock observation period is required.",
+      "source_record_status": "READY",
       "task_id": "T0705"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T17:34:39Z",
+  "observed_at_utc": "2026-07-26T19:04:00Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -99,7 +99,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "4b7442bb635ea1e7cf5a814c3c56047aa288d594",
+  "remediation_base_commit": "b6265942bfa41afb4fd97fd9c81870f0f75dac61",
   "requirement_id": "RQ-023",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

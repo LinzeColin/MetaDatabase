@@ -4,18 +4,6 @@ on:
   schedule:
     - cron: "30 4 * * *"
       timezone: "Australia/Sydney"
-  workflow_dispatch:
-    inputs:
-      expected_head_sha:
-        description: Exact main commit to execute
-        required: true
-        type: string
-      confirm_ga:
-        description: Confirm one exact Timeline snapshot recovery rehearsal
-        required: true
-        type: choice
-        options:
-          - GA_SCHEDULE_MODE_TIMELINE_SNAPSHOT_RECOVERY_MUTATION_BUDGET_ONE
 
 permissions:
   contents: read
@@ -25,29 +13,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ga-authority-gate:
-    if: github.event_name == 'workflow_dispatch'
+  live-schedule-hold:
+    if: github.event_name == 'schedule' && vars.MOOMOOAU_PRODUCTION_ENABLED != 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    outputs:
-      authorized_head: ${{ steps.authority.outputs.authorized_head }}
-      blue_green_receipt_sha256: ${{ steps.ga-contract.outputs.blue_green_receipt_sha256 }}
-      ga_gate_sha256: ${{ steps.ga-contract.outputs.ga_gate_sha256 }}
+    steps:
+      - name: Confirm fail-closed schedule disablement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ vars.MOOMOOAU_PRODUCTION_ENABLED }}" != "true"
+
+  scheduled-production:
+    if: github.event_name == 'schedule' && vars.MOOMOOAU_PRODUCTION_ENABLED == 'true'
+    environment: moomooau-beta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     env:
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
-      - name: Fail closed on invalid protected GA dispatch context
-        id: authority
+      - name: Fail closed on invalid protected schedule context
         shell: bash
-        env:
-          EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
-          GA_CONFIRMATION: ${{ inputs.confirm_ga }}
-          GA_AUTHORIZED_HEAD: ${{ vars.MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD }}
         run: |
           set -euo pipefail
           test "$GITHUB_ACTIONS" = "true"
-          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_EVENT_NAME" = "schedule"
           test "$GITHUB_REPOSITORY_ID" = "1300525906"
           test "$GITHUB_REPOSITORY_OWNER_ID" = "68840188"
           test "$GITHUB_ACTOR_ID" = "68840188"
@@ -56,102 +46,8 @@ jobs:
           test "$GITHUB_REF" = "refs/heads/main"
           test "$GITHUB_WORKFLOW_REF" = \
             "LinzeColin/MetaDatabase/.github/workflows/moomooau-production.yml@refs/heads/main"
-          test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"
-          test "$GA_AUTHORIZED_HEAD" = "$GITHUB_SHA"
-          test "$GITHUB_SHA" != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"
-          test "$GITHUB_SHA" != "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"
-          test "$GITHUB_SHA" != "cc7c8af9a40122a61ee2549fb365df813cbd4f16"
-          test "$GITHUB_SHA" != "4c207ad539754166fae6642ff4e6850438d3e2fc"
-          test "$GITHUB_SHA" != "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"
-          test "$GITHUB_SHA" != "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"
-          test "$GITHUB_SHA" != "2133673b335a384657c8668b62a1c13055c212cd"
-          test "$GITHUB_SHA" != "8b6faaf9059661edc3153352b8787ddbc4f733f3"
-          test "$GITHUB_SHA" != "6f82e738611e0d2eeeadd2507f738c9e269c91e0"
-          test "$GITHUB_SHA" != "26949ab5031a21b0c515c282c9ef06ff9417e058"
-          test "$GITHUB_SHA" != "9c79b92bcdf8b027727963dfe52bd183a170954c"
-          test "$GITHUB_SHA" != "27886f54a30a12ca7992a908e97340d1d8234430"
-          test "$GITHUB_SHA" != "c2c057b449fe1cbbd470867c274833242e3f139d"
-          test "$GITHUB_SHA" != "0d0b6afd6a0cde606230a3df7378bdd90586de5d"
-          test "$GITHUB_SHA" != "4b7442bb635ea1e7cf5a814c3c56047aa288d594"
-          test "$GITHUB_SHA" != "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"
-          test "$GA_CONFIRMATION" = \
-            "GA_SCHEDULE_MODE_TIMELINE_SNAPSHOT_RECOVERY_MUTATION_BUDGET_ONE"
-          [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
-          echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-
-      - name: Check out exact main tree without retained credentials
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          persist-credentials: false
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
-        with:
-          python-version: "3.12"
-
-      - name: Install hash-verified official age for the protected oracle
-        shell: bash
-        run: |
-          set -euo pipefail
-          archive="$RUNNER_TEMP/age.tar.gz"
-          curl --fail --location --proto '=https' --tlsv1.2 \
-            --output "$archive" \
-            https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-linux-amd64.tar.gz
-          echo "bdc69c09cbdd6cf8b1f333d372a1f58247b3a33146406333e30c0f26e8f51377  $archive" \
-            | sha256sum --check --strict
-          tar --extract --gzip --file "$archive" --directory "$RUNNER_TEMP"
-          echo "$RUNNER_TEMP/age" >> "$GITHUB_PATH"
-
-      - name: Install cumulative immutable dependencies and package
-        working-directory: LinzeDatabase/MooMooAU
-        run: |
-          python -m pip install --require-hashes -r requirements/stage6.lock
-          python -m pip install --no-build-isolation --no-deps .
-
-      - name: Validate the bounded T0705 Timeline recovery change
-        working-directory: LinzeDatabase/MooMooAU
-        run: |
-          python -m ruff format --check \
-            src/moomooau_archive/processed_commit.py \
-            src/moomooau_archive/protected_ga_entrypoint.py \
-            tests/tasks/test_t0705.py
-          python -m ruff check --no-cache \
-            src/moomooau_archive/processed_commit.py \
-            src/moomooau_archive/protected_ga_entrypoint.py \
-            tests/tasks/test_t0705.py
-          python -m mypy --no-incremental --cache-dir "$RUNNER_TEMP/mypy-cache" \
-            src/moomooau_archive/processed_commit.py \
-            src/moomooau_archive/protected_ga_entrypoint.py
-          python -m pytest -q tests/tasks/test_t0705.py
-
-      - name: Bind dispatch to T0704 PASS and explicit T0705 authority
-        id: ga-contract
-        working-directory: LinzeDatabase/MooMooAU
-        shell: bash
-        run: |
-          set -euo pipefail
-          contract="$RUNNER_TEMP/moomooau-ga-contract.json"
-          python -m moomooau_archive.protected_ga_entrypoint \
-            --contract-only --project-root "$PWD" > "$contract"
-          python -c \
-            'import json,sys; value=json.load(open(sys.argv[1], encoding="utf-8")); assert value["ga_authorized"] is True; output=open(sys.argv[2], "a", encoding="utf-8"); print("blue_green_receipt_sha256="+value["blue_green_receipt_sha256"], file=output); print("ga_gate_sha256="+value["ga_gate_sha256"], file=output)' \
-            "$contract" "$GITHUB_OUTPUT"
-
-  ga-schedule-rehearsal:
-    if: github.event_name == 'workflow_dispatch'
-    needs: ga-authority-gate
-    environment: moomooau-beta
-    runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    env:
-      PIP_DISABLE_PIP_VERSION_CHECK: "1"
-      PYTHONDONTWRITEBYTECODE: "1"
-    steps:
-      - name: Fail closed on non-cloud protected GA runner
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$RUNNER_ENVIRONMENT" = "github-hosted"
+          test "${{ vars.MOOMOOAU_PRODUCTION_ENABLED }}" = "true"
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
 
       - name: Check out exact main tree without retained credentials
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -182,11 +78,11 @@ jobs:
           python -m pip install --require-hashes -r requirements/stage6.lock
           python -m pip install --no-build-isolation --no-deps .
 
-      - name: Execute exactly one protected GA schedule-mode rehearsal
+      - name: Execute one ordinary 04:30 production schedule
         working-directory: LinzeDatabase/MooMooAU
         env:
           MOOMOOAU_PROTECTED_ENVIRONMENT: moomooau-beta
-          MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD: ${{ needs.ga-authority-gate.outputs.authorized_head }}
+          MOOMOOAU_PRODUCTION_ENABLED: ${{ vars.MOOMOOAU_PRODUCTION_ENABLED }}
           MOOMOOAU_BETA_CONFIG: ${{ secrets.MOOMOOAU_BETA_CONFIG }}
           MOOMOOAU_SENDER_REGISTRY: ${{ secrets.MOOMOOAU_SENDER_REGISTRY }}
           MOOMOOAU_CLASSIFICATION_REGISTRY: ${{ secrets.MOOMOOAU_CLASSIFICATION_REGISTRY }}
@@ -195,36 +91,18 @@ jobs:
           MOOMOOAU_AGE_IDENTITY: ${{ secrets.MOOMOOAU_AGE_IDENTITY }}
           MOOMOOAU_OPAQUE_ID_KEY: ${{ secrets.MOOMOOAU_OPAQUE_ID_KEY }}
           MOOMOOAU_GMAIL_OAUTH: ${{ secrets.MOOMOOAU_GMAIL_OAUTH }}
-          EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
-          BLUE_GREEN_RECEIPT_SHA256: ${{ needs.ga-authority-gate.outputs.blue_green_receipt_sha256 }}
-          GA_GATE_SHA256: ${{ needs.ga-authority-gate.outputs.ga_gate_sha256 }}
-          GA_CONFIRMATION: ${{ inputs.confirm_ga }}
         run: >-
           python -m moomooau_archive.protected_ga_entrypoint
-          --execute-protected
+          --execute-scheduled
           --project-root "$PWD"
-          --expected-head-sha "$EXPECTED_HEAD_SHA"
-          --blue-green-receipt-sha256 "$BLUE_GREEN_RECEIPT_SHA256"
-          --ga-gate-sha256 "$GA_GATE_SHA256"
-          --confirm "$GA_CONFIRMATION"
 
-      - name: Verify protected GA plaintext resources were removed
+      - name: Verify protected plaintext resources were removed
         if: ${{ always() }}
         shell: bash
         run: |
           set -euo pipefail
           if find /dev/shm -mindepth 1 -maxdepth 1 -type d \
             -name 'moomooau-protected-production-*' -print -quit | grep -q .; then
-            echo "::error::Protected GA identity directory remains in tmpfs."
+            echo "::error::Protected production identity directory remains in tmpfs."
             exit 1
           fi
-
-  live-schedule-hold:
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Keep 04:30 live execution disabled until the T0705 PASS receipt is committed
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "${{ vars.MOOMOOAU_PRODUCTION_ENABLED }}" != "true"

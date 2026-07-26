@@ -506,10 +506,34 @@ def _validate_later_stage_record(
     counters = record.get("prohibition_counters")
     if not isinstance(counters, dict) or not counters:
         errors.append("prohibition counters must be a non-empty object")
+    elif task_id == "T0705" and record.get("scope") == "PROTECTED_PASS_RECEIPT_BOUND":
+        expected_protected_values = {
+            "real_gmail_calls": "PROTECTED_BOUNDED_NONZERO_EXACT_COUNT_WITHHELD",
+            "gmail_mutations": "ONE_EXACT_MESSAGE",
+            "private_repository_calls": "PROTECTED_BOUNDED_NONZERO_EXACT_COUNT_WITHHELD",
+            "real_secrets_read": "EIGHT_ALLOWLISTED_NAMES_VALUES_UNDISCLOSED",
+            "external_writes": "VERIFIED_PIPELINE_ONLY_EXACT_COUNT_WITHHELD",
+            "remote_publication": "ONE_ENCRYPTED_LATEST_TIMELINE",
+            "production_workflow_runs": 1,
+        }
+        if any(counters.get(key) != value for key, value in expected_protected_values.items()):
+            errors.append("T0705 protected aggregate counters differ")
+        excluded = set(expected_protected_values)
+        if any(
+            type(value) is not int or value != 0
+            for key, value in counters.items()
+            if key not in excluded
+        ):
+            errors.append("T0705 prohibited collateral counters must remain integer zero")
     elif any(type(value) is not int or value != 0 for value in counters.values()):
         errors.append("all prohibition counters must be integer zero")
 
-    if record.get("delivery_status") != "LOCAL_ONLY_NOT_PUBLISHED":
+    expected_delivery_status = (
+        "PRODUCTION_SCHEDULE_ENABLED_NOT_FINAL"
+        if task_id == "T0705" and record.get("scope") == "PROTECTED_PASS_RECEIPT_BOUND"
+        else "LOCAL_ONLY_NOT_PUBLISHED"
+    )
+    if record.get("delivery_status") != expected_delivery_status:
         errors.append("later-stage evidence must remain local and unpublished")
     production_oracles = record.get("production_oracles", [])
     expected_protected_status = {
@@ -517,7 +541,7 @@ def _validate_later_stage_record(
         "T0702": "PASS",
         "T0703": "PASS",
         "T0704": "PASS",
-        "T0705": "FAILED",
+        "T0705": ("PASS" if record.get("scope") == "PROTECTED_PASS_RECEIPT_BOUND" else "FAILED"),
     }.get(task_id, "NOT_RUN")
     if isinstance(production_oracles, list) and any(
         item.get("status") != expected_protected_status

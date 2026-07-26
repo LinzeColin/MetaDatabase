@@ -72,8 +72,10 @@ from moomooau_archive.protected_ga_entrypoint import (
     ProtectedGAEntrypointError,
     blue_green_receipt_sha256,
     execute_protected,
+    execute_scheduled,
     execution_contract,
     ga_gate_sha256,
+    t0705_receipt_sha256,
 )
 from moomooau_archive.raw_commit import GitHubAppendOnlyCiphertextStore, RawCommitError
 from moomooau_archive.release_control import GateStatus, ReleasePhase, Stage7ReleaseGate
@@ -1032,6 +1034,14 @@ def _protected_ga_environment(head_sha: str) -> dict[str, str]:
     }
 
 
+def _scheduled_production_environment(head_sha: str) -> dict[str, str]:
+    environment = _protected_ga_environment(head_sha)
+    environment["GITHUB_EVENT_NAME"] = "schedule"
+    environment.pop("MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD")
+    environment["MOOMOOAU_PRODUCTION_ENABLED"] = "true"
+    return environment
+
+
 class _SyntheticProductionRuntime:
     def __init__(self, execution: ProductionExecutionResult) -> None:
         self._execution = execution
@@ -1186,6 +1196,19 @@ def test_t0705_protected_context_rejects_non_owner_before_bootstrap() -> None:
     assert synthetic.open_calls == 0
 
 
+def test_t0705_scheduled_context_fails_closed_before_bootstrap() -> None:
+    environment = _scheduled_production_environment("a" * 40)
+    environment["MOOMOOAU_PRODUCTION_ENABLED"] = "false"
+    synthetic = _SyntheticProductionBootstrap(cast(ProductionExecutionResult, object()))
+    with pytest.raises(ProtectedGAEntrypointError, match="context"):
+        execute_scheduled(
+            environment,
+            project_root=PROJECT_ROOT,
+            bootstrap=cast(ProductionBootstrap, synthetic),
+        )
+    assert synthetic.open_calls == 0
+
+
 def test_t0705_protected_schedule_rehearsal_is_aggregate_only_and_gate_complete() -> None:
     message_id = "msg-stage7-protected-ga"
     predecessors = observations_through(ReleasePhase.BLUE_GREEN)
@@ -1239,6 +1262,59 @@ def test_t0705_protected_schedule_rehearsal_is_aggregate_only_and_gate_complete(
     assert synthetic.runtime.trigger is RunTrigger.SCHEDULE
     assert message_id not in encoded
     assert "synthetic-private" not in encoded
+
+
+def test_t0705_enabled_platform_schedule_uses_live_schedule_path() -> None:
+    message_id = "msg-stage7-scheduled-production"
+    with ga_context((m3_canary_message(message_id),)) as context:
+        outcome = context.runner.run(
+            _sunday_plan(),
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+            beta_message_budget=1,
+            ga_mutation_budget_per_run=1,
+            ga_capacity_authorized=True,
+        )
+        synthetic = _SyntheticProductionBootstrap(
+            ProductionExecutionResult(_sunday_plan(), outcome)
+        )
+        evidence = execute_scheduled(
+            _scheduled_production_environment("c" * 40),
+            project_root=PROJECT_ROOT,
+            bootstrap=cast(ProductionBootstrap, synthetic),
+            clock=lambda: datetime(2026, 7, 26, 19, tzinfo=UTC),
+        )
+    public = evidence.to_dict()
+    encoded = json.dumps(public, sort_keys=True)
+    assert public["status"] == "PROTECTED_SCHEDULE_RUN_COMPLETED"
+    assert public["schedule"] == {
+        "mode": "PLATFORM_SCHEDULE",
+        "target_time": "04:30",
+        "timezone": "Australia/Sydney",
+        "planner_trigger": "schedule",
+        "platform_schedule_event_observed": True,
+        "security_clock_mode": "LIVE_UTC",
+        "schedule_clock_mode": "LIVE_UTC",
+        "fixed_calendar_wait_days": 0,
+    }
+    assert synthetic.open_calls == 1
+    assert synthetic.runtime.trigger is RunTrigger.SCHEDULE
+    assert evidence.t0705_receipt_sha256 == t0705_receipt_sha256(PROJECT_ROOT)
+    assert message_id not in encoded
+
+
+def test_t0705_committed_workflow_is_schedule_only_after_pass() -> None:
+    workflow = (PROJECT_ROOT.parents[1] / ".github/workflows/moomooau-production.yml").read_text(
+        encoding="utf-8"
+    )
+    assert 'cron: "30 4 * * *"' in workflow
+    assert 'timezone: "Australia/Sydney"' in workflow
+    assert "workflow_dispatch:" not in workflow
+    assert "--execute-scheduled" in workflow
+    assert "MOOMOOAU_PRODUCTION_ENABLED" in workflow
+    assert "GA_REHEARSAL_CLOCK_UTC" not in workflow
+    assert "GA_SCHEDULE_MODE_" not in workflow
 
 
 def test_t0705_ga_diagnostics_are_closed_and_reach_checkpoint_commit() -> None:

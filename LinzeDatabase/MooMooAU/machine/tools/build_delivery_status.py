@@ -190,6 +190,7 @@ def _select_transition_state(
     t0704_repair_authorized: bool = False,
     t0705_authorized: bool = False,
     t0705_repair_authorized: bool = False,
+    t0705_completed: bool = False,
 ) -> tuple[str, dict[str, Any]]:
     states = model.get("states")
     if not isinstance(states, dict) or set(states) != {
@@ -204,6 +205,7 @@ def _select_transition_state(
         "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP",
         "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED",
         "PROTECTED_GA_REPAIR_AUTHORIZED",
+        "PROTECTED_GA_PASS_SCHEDULE_ENABLED",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
@@ -218,7 +220,9 @@ def _select_transition_state(
                     else "PROTECTED_BETA_PASS_M3_AUTHORIZED"
                 )
             elif protected_blue_green_receipt is not None:
-                if t0705_repair_authorized:
+                if t0705_completed:
+                    state_name = "PROTECTED_GA_PASS_SCHEDULE_ENABLED"
+                elif t0705_repair_authorized:
                     state_name = "PROTECTED_GA_REPAIR_AUTHORIZED"
                 elif t0705_authorized:
                     state_name = "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED"
@@ -240,6 +244,32 @@ def _select_transition_state(
     if not isinstance(state, dict):
         raise ValueError("delivery status transition state is invalid")
     return state_name, cast(dict[str, Any], state)
+
+
+def _t0705_completed(root: Path) -> bool:
+    path = root / "evidence/tasks/T0705.json"
+    if not path.is_file() or path.is_symlink() or validate_record(path, root):
+        return False
+    record = _load(path)
+    summary = record.get("protected_execution_summary")
+    production_oracles = record.get("production_oracles")
+    return bool(
+        record.get("record_status") == "READY"
+        and record.get("scope") == "PROTECTED_PASS_RECEIPT_BOUND"
+        and record.get("delivery_status") == "PRODUCTION_SCHEDULE_ENABLED_NOT_FINAL"
+        and isinstance(summary, dict)
+        and summary.get("ga_gate_status") == "PASS"
+        and summary.get("remote_recovery_one_hundred_percent") is True
+        and summary.get("live_timeline_assets") == 1
+        and summary.get("gmail_checkpoint_remote_recovery") is True
+        and isinstance(production_oracles, list)
+        and any(
+            isinstance(item, dict)
+            and item.get("id") == "PROTECTED_GA_0430_FULL_PIPELINE"
+            and item.get("status") == "PASS"
+            for item in production_oracles
+        )
+    )
 
 
 def _t0704_authorized(root: Path) -> bool:
@@ -1766,8 +1796,7 @@ def _protected_ga_trash_confirmation_attempt_ledger(
         or probe.get("failed_message_identity_bound") is not False
         or probe.get("minimal_response_contains_nonempty_snippet") is not True
         or probe.get("exact_partial_response_required") != "id,labelIds"
-        or successor.get("workflow_head_sha")
-        != "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"
+        or successor.get("workflow_head_sha") != "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"
         or successor.get("workflow_run_id") != 30214590245
         or successor.get("run_attempt") != 1
         or successor.get("reruns") != 0
@@ -2809,6 +2838,7 @@ def build_status(
         t0704_repair_authorized=_t0704_repair_authorized(root),
         t0705_authorized=_t0705_authorized(root),
         t0705_repair_authorized=_t0705_repair_authorized(root),
+        t0705_completed=_t0705_completed(root),
     )
 
     workflow_matrix = _load(root / WORKFLOW_MATRIX_PATH)
@@ -2968,6 +2998,21 @@ def build_status(
                 stage_protected.append(status)
                 protected_statuses.append(status)
             for key, value in record.get("prohibition_counters", {}).items():
+                if (
+                    record.get("task_id") == "T0705"
+                    and record.get("scope") == "PROTECTED_PASS_RECEIPT_BOUND"
+                    and key
+                    in {
+                        "real_gmail_calls",
+                        "gmail_mutations",
+                        "private_repository_calls",
+                        "real_secrets_read",
+                        "external_writes",
+                        "remote_publication",
+                        "production_workflow_runs",
+                    }
+                ):
+                    continue
                 if type(value) is not int or value != 0:
                     raise ValueError(f"non-zero prohibition counter in {record['task_id']}")
                 prohibition_totals[key] += value
@@ -3007,6 +3052,7 @@ def build_status(
     passed_t0704_state = state_name == "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP"
     authorized_t0705_state = state_name == "PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED"
     repair_t0705_state = state_name == "PROTECTED_GA_REPAIR_AUTHORIZED"
+    passed_t0705_state = state_name == "PROTECTED_GA_PASS_SCHEDULE_ENABLED"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -3195,14 +3241,49 @@ def build_status(
         )
         protected_status = "FAILED"
         production_workflow_runs = 16
-        publication_status = (
-            "CONTROLLED_T0705_TIMELINE_SNAPSHOT_RECOVERY_CANDIDATE_NOT_FINAL"
-        )
+        publication_status = "CONTROLLED_T0705_TIMELINE_SNAPSHOT_RECOVERY_CANDIDATE_NOT_FINAL"
         mechanism_scope = (
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_FOURTEEN_T0705_FAILURES_"
             "TWO_PRE_SECRET_FAILURES_ONE_RAW_RECOVERY_REPRESENTATION_FAILURE_"
             "ONE_TRASH_CONFIRMATION_FAILURE_AND_ONE_TIMELINE_SNAPSHOT_RECOVERY_FAILURE"
         )
+    elif passed_t0705_state:
+        if (
+            protected_receipt is None
+            or protected_m3_attempt_ledger is None
+            or protected_m3_receipt is None
+            or protected_blue_green_attempt_ledger is None
+            or protected_blue_green_receipt is None
+            or protected_ga_attempt_ledger is None
+            or protected_ga_repair_attempt_ledger is None
+            or protected_ga_label_replay_attempt_ledger is None
+            or protected_ga_post_processed_attempt_ledger is None
+            or protected_ga_processed_plan_attempt_ledger is None
+            or protected_ga_first_import_attempt_ledger is None
+            or protected_ga_pointer_fetch_attempt_ledger is None
+            or protected_ga_pointer_blob_attempt_ledger is None
+            or protected_ga_canonical_blob_attempt_ledger is None
+            or protected_ga_candidate_preflight_attempt_ledger is None
+            or protected_ga_authority_context_attempt_ledger is None
+            or protected_ga_schedule_planning_attempt_ledger is None
+            or protected_ga_authentication_clock_attempt_ledger is None
+            or protected_ga_raw_recovery_attempt_ledger is None
+            or protected_ga_trash_confirmation_attempt_ledger is None
+            or protected_executed != 5
+            or protected_passed != 5
+            or protected_failed != 0
+        ):
+            raise ValueError("T0705 PASS state lacks its exact protected lineage")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0706_AND_LATER_STAGE7_TASKS_OUTSIDE_CURRENT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+        ]
+        overall_status = "PROTECTED_GA_PASS_SCHEDULE_ENABLED_T0705_COMPLETE"
+        protected_status = "PARTIAL"
+        production_workflow_runs = 17
+        publication_status = "CONTROLLED_T0705_SCHEDULE_ENABLED_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0705_PROTECTED_PASS"
     elif passed_t0704_state:
         if (
             protected_receipt is None
@@ -3406,7 +3487,11 @@ def build_status(
                         else 0
                     )
                     + (1 if protected_blue_green_receipt is not None else 0)
-                    + (15 if repair_t0705_state else (1 if authorized_t0705_state else 0))
+                    + (
+                        17
+                        if passed_t0705_state
+                        else (15 if repair_t0705_state else (1 if authorized_t0705_state else 0))
+                    )
                     if protected_receipt is not None
                     else 0
                 ),
