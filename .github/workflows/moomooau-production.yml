@@ -11,11 +11,11 @@ on:
         required: true
         type: string
       confirm_ga:
-        description: Confirm one new metadata-quarantine GA repair rehearsal with budget one
+        description: Confirm one new persisted-label replay GA repair rehearsal with budget one
         required: true
         type: choice
         options:
-          - GA_SCHEDULE_MODE_METADATA_QUARANTINE_REPAIR_MUTATION_BUDGET_ONE
+          - GA_SCHEDULE_MODE_LABEL_REPLAY_REPAIR_MUTATION_BUDGET_ONE
 
 permissions:
   contents: read
@@ -60,8 +60,9 @@ jobs:
           test "$GA_AUTHORIZED_HEAD" = "$GITHUB_SHA"
           test "$GITHUB_SHA" != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"
           test "$GITHUB_SHA" != "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"
+          test "$GITHUB_SHA" != "cc7c8af9a40122a61ee2549fb365df813cbd4f16"
           test "$GA_CONFIRMATION" = \
-            "GA_SCHEDULE_MODE_METADATA_QUARANTINE_REPAIR_MUTATION_BUDGET_ONE"
+            "GA_SCHEDULE_MODE_LABEL_REPLAY_REPAIR_MUTATION_BUDGET_ONE"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
           echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 

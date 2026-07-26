@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.21",
+    "version": "1.0.22",
     "date": "2026-07-26",
-    "summary": "固化 T0705 第二个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出未披露精确异常；独立聚合核验观察到私有仓零新增 commit、checkpoint 未创建、单一加密 Timeline 保持不变，生产调度与一次性变量均关闭。两个失败头禁止 rerun/redispatch；同邮箱 T0703 元数据隔离证据与静态路径仅支持高置信度 GA metadata quarantine 缺口。只授权一个新修复 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
+    "summary": "固化 T0705 第三个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出未披露精确异常；独立核验观察到私有仓零新增 commit、checkpoint 未创建、active Moomoo candidate 仍在 Trash 外、加密 Timeline state 存在，生产调度与一次性变量均关闭。三个失败头禁止 rerun/redispatch；T0704 与静态根构造仅支持高置信度 GA 未重放持久化 first-import label state。只授权一个新修复 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
   },
   {
     "version": "1.0.18",

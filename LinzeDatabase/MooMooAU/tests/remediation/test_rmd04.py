@@ -640,7 +640,7 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.21":
+    if status["package_version"] == "1.0.22":
         assert status["dimensions"]["protected_oracles"] == {
             "status": "FAILED",
             "declared": 43,
@@ -650,11 +650,11 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
             "not_run": 38,
         }
         assert status["dimensions"]["publication"] == {
-            "status": "CONTROLLED_T0705_METADATA_REPAIR_CANDIDATE_NOT_FINAL",
-            "controlled_main_deliveries": 19,
+            "status": "CONTROLLED_T0705_LABEL_REPLAY_REPAIR_CANDIDATE_NOT_FINAL",
+            "controlled_main_deliveries": 20,
             "remote_publications": 0,
         }
-    elif status["package_version"] == "1.0.20":
+    elif status["package_version"] in {"1.0.20", "1.0.21"}:
         raise AssertionError("stale protected GA safe-deferred repair package")
     elif status["package_version"] == "1.0.19":
         assert status["dimensions"]["protected_oracles"] == {

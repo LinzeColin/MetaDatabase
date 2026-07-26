@@ -129,7 +129,7 @@ def validate(
         "--no-build-isolation --no-deps .",
         "python -m moomooau_archive.protected_ga_entrypoint",
         "--execute-protected",
-        "GA_SCHEDULE_MODE_METADATA_QUARANTINE_REPAIR_MUTATION_BUDGET_ONE",
+        "GA_SCHEDULE_MODE_LABEL_REPLAY_REPAIR_MUTATION_BUDGET_ONE",
         '--expected-head-sha "$EXPECTED_HEAD_SHA"',
     )
     contract_secret_names = contract.get("secret_names")

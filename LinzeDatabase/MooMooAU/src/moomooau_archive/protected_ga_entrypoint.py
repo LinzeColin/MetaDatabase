@@ -1,11 +1,11 @@
 """Exact-main protected GA schedule-mode entrypoint for Stage 7 T0705.
 
-The first two T0705 executions failed and both exact heads are permanently frozen.  This
-entrypoint authorizes one new owner-dispatched metadata-quarantine repair rehearsal.  It invokes
+The first three T0705 executions failed and all three exact heads are permanently frozen.  This
+entrypoint authorizes one new owner-dispatched persisted-label replay repair rehearsal.  It invokes
 the same deterministic ``RunTrigger.SCHEDULE`` path used by the committed 04:30
 Australia/Sydney workflow, but it never claims that ``workflow_dispatch`` was a GitHub
 schedule event.  Before any Secret read it binds exact main, the immutable T0702-T0704
-receipts, both failed-attempt ledgers, the current one-task Run Contract and a same-tree gate
+receipts, all three failed-attempt ledgers, the current one-task Run Contract and a same-tree gate
 digest.
 
 The existing ``moomooau-beta`` Environment remains the sole protected credential plane.  Its
@@ -54,12 +54,13 @@ CONTROL_WORKFLOW_REF = (
     "LinzeColin/MetaDatabase/.github/workflows/moomooau-production.yml@refs/heads/main"
 )
 PROTECTED_ENVIRONMENT = "moomooau-beta"
-GA_CONFIRMATION = "GA_SCHEDULE_MODE_METADATA_QUARANTINE_REPAIR_MUTATION_BUDGET_ONE"
+GA_CONFIRMATION = "GA_SCHEDULE_MODE_LABEL_REPLAY_REPAIR_MUTATION_BUDGET_ONE"
 GA_PARSER_CURRENT_VERSION = "1.0.0"
 GA_MUTATION_BUDGET_PER_RUN = 1
 FAILED_GA_HEAD_SHA_SEQUENCE = (
     "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
     "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",  # pragma: allowlist secret
+    "cc7c8af9a40122a61ee2549fb365df813cbd4f16",  # pragma: allowlist secret
 )
 FAILED_GA_HEAD_SHAS = frozenset(FAILED_GA_HEAD_SHA_SEQUENCE)
 
@@ -76,6 +77,12 @@ _SECOND_FAILED_GA_LEDGER_PATH = Path("machine/stages/S7/reviews/t0705/repair-att
 _SECOND_FAILED_GA_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-repair-attempt-ledger-v1.schema.json"
 )
+_THIRD_FAILED_GA_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/label-replay-attempt-ledger.json"
+)
+_THIRD_FAILED_GA_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-label-replay-attempt-ledger-v1.schema.json"
+)
 _GATE_PATHS = (
     Path("machine/stages/S7/reviews/t0702/execution-receipt.json"),
     Path("machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"),
@@ -87,6 +94,8 @@ _GATE_PATHS = (
     _FIRST_FAILED_GA_LEDGER_SCHEMA_PATH,
     _SECOND_FAILED_GA_LEDGER_PATH,
     _SECOND_FAILED_GA_LEDGER_SCHEMA_PATH,
+    _THIRD_FAILED_GA_LEDGER_PATH,
+    _THIRD_FAILED_GA_LEDGER_SCHEMA_PATH,
     _RUN_CONTRACT_PATH,
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("machine/contracts/production_composition.json"),
@@ -328,6 +337,7 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "failed_ga_attempt_ledger_paths": [
             _FIRST_FAILED_GA_LEDGER_PATH.as_posix(),
             _SECOND_FAILED_GA_LEDGER_PATH.as_posix(),
+            _THIRD_FAILED_GA_LEDGER_PATH.as_posix(),
         ],
         "ga_gate_paths": [path.as_posix() for path in _GATE_PATHS],
         "ga_gate_sha256": ga_gate_sha256(root),
@@ -665,16 +675,16 @@ def _ga_authorized(project_root: Path) -> bool:
         contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"  # pragma: allowlist secret
+        == "cc7c8af9a40122a61ee2549fb365df813cbd4f16"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "76b161684d04ccae6e4ff1257542555f961cc3b2e34add6d6079986ebe6560c3"  # pragma: allowlist secret  # noqa: E501
+        == "cc6fcedef3b4af693a905e5f1d12ac73b1ccaf5a5f4985927c9cba0bba10c1e4"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_METADATA_QUARANTINE_REPAIR_AND_ENABLEMENT_ONLY"
+        == "T0705_PROTECTED_GA_LABEL_REPLAY_REPAIR_AND_ENABLEMENT_ONLY"
         and authorization.get("original_run_contract_sha256")
         == "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("prior_run_contract_sha256")
-        == "b213256898f299ea69857c0adc1ee4112de3b68cbe86a6f5a7375d8a087bfab7"  # pragma: allowlist secret  # noqa: E501
-        and authorization.get("failed_attempt_ledgers_required") == 2
+        == "db60c9347010467684f618be12386829782f8b1d64335bd5120727ece8252407"  # pragma: allowlist secret  # noqa: E501
+        and authorization.get("failed_attempt_ledgers_required") == 3
         and authorization.get("first_failed_attempt_ledger_sha256")
         == hashlib.sha256((root / _FIRST_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
         and authorization.get("first_failed_attempt_ledger_schema_sha256")
@@ -683,6 +693,10 @@ def _ga_authorized(project_root: Path) -> bool:
         == hashlib.sha256((root / _SECOND_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
         and authorization.get("second_failed_attempt_ledger_schema_sha256")
         == hashlib.sha256((root / _SECOND_FAILED_GA_LEDGER_SCHEMA_PATH).read_bytes()).hexdigest()
+        and authorization.get("third_failed_attempt_ledger_sha256")
+        == hashlib.sha256((root / _THIRD_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
+        and authorization.get("third_failed_attempt_ledger_schema_sha256")
+        == hashlib.sha256((root / _THIRD_FAILED_GA_LEDGER_SCHEMA_PATH).read_bytes()).hexdigest()
         and authorization.get("failed_workflow_head_shas") == list(FAILED_GA_HEAD_SHA_SEQUENCE)
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
@@ -691,24 +705,26 @@ def _ga_authorized(project_root: Path) -> bool:
         and authorization.get("t0705_authorized") is True
         and authorization.get("t0706_authorized") is False
         and authorization.get("final_publication_authorized") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 4
-        and authorization.get("controlled_main_deliveries_consumed") == 2
+        and authorization.get("controlled_main_delivery_total_limit") == 5
+        and authorization.get("controlled_main_deliveries_consumed") == 3
         and authorization.get("controlled_main_deliveries_remaining") == 2
-        and authorization.get("ga_rehearsal_dispatches_consumed") == 2
-        and authorization.get("ga_metadata_quarantine_repair_dispatch_limit") == 1
-        and authorization.get("ga_metadata_quarantine_repair_rerun_limit") == 0
+        and authorization.get("ga_rehearsal_dispatches_consumed") == 3
+        and authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") == 1
+        and authorization.get("ga_label_replay_repair_dispatch_limit") == 1
+        and authorization.get("ga_label_replay_repair_rerun_limit") == 0
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
-        and budget.get("controlled_main_deliveries_total_maximum") == 4
+        and budget.get("controlled_main_deliveries_total_maximum") == 5
         and budget.get("controlled_main_deliveries_remaining_maximum") == 2
         and budget.get("protected_environment_secret_names_maximum") == len(M3_SECRET_NAMES)
-        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 3
-        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 2
-        and budget.get("protected_ga_metadata_quarantine_repair_dispatches_maximum") == 1
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 4
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 3
+        and budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") == 1
+        and budget.get("protected_ga_label_replay_repair_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
         and budget.get("failed_head_reruns_maximum") == 0
         and budget.get("failed_head_redispatches_maximum") == 0
-        and budget.get("protected_ga_metadata_quarantine_repair_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_label_replay_repair_pipeline_runs_maximum") == 1
         and budget.get("platform_schedule_events_during_rehearsal_maximum") == 0
         and budget.get("gmail_exact_message_trash_mutations_maximum") == GA_MUTATION_BUDGET_PER_RUN
         and budget.get("timeline_snapshot_commit_attempts_maximum") == 1

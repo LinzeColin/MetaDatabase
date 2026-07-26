@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.21 protected T0705 GA metadata-quarantine repair manifest."""
+"""Build the v1.0.22 protected T0705 GA persisted-label replay repair manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.21.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.21"
-PACKAGE_VERSION = "1.0.21"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.20.json")
-PREDECESSOR_MANIFEST_SHA256 = "76b161684d04ccae6e4ff1257542555f961cc3b2e34add6d6079986ebe6560c3"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.22.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.22"
+PACKAGE_VERSION = "1.0.22"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.21.json")
+PREDECESSOR_MANIFEST_SHA256 = "cc6fcedef3b4af693a905e5f1d12ac73b1ccaf5a5f4985927c9cba0bba10c1e4"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.20 manifest drift")
+        raise ValueError("predecessor v1.0.21 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -167,11 +167,11 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
         or status.get("overall_status")
-        != "PROTECTED_GA_SECOND_ATTEMPT_FAILED_METADATA_REPAIR_AUTHORIZED"
-        or "T0705_METADATA_QUARANTINE_REPAIR_PENDING" not in status.get("blockers", [])
+        != "PROTECTED_GA_THIRD_ATTEMPT_FAILED_LABEL_REPLAY_REPAIR_AUTHORIZED"
+        or "T0705_LABEL_REPLAY_REPAIR_PENDING" not in status.get("blockers", [])
     ):
         raise ValueError(
-            "T0705 protected GA repair candidate is not in the exact authorized-pending state"
+            "T0705 protected GA label-replay repair is not in the exact authorized-pending state"
         )
     entries = [
         {
@@ -182,16 +182,18 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v21",
+        "schema_version": "moomooau.package-manifest.v22",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 T0705 only: freeze failed main heads eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f "
-            "and e38cd60ed0458cc6ebe7723c26190d17db0bc5f0, and preserve the exact T0702, "
-            "T0703 and T0704 protected PASS receipts plus both immutable T0705 failed-attempt "
-            "ledgers. One reviewed metadata-quarantine repair delivery, one new exact-main "
+            "Stage 7 T0705 only: freeze failed main heads "
+            "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f, "
+            "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0 and "
+            "cc7c8af9a40122a61ee2549fb365df813cbd4f16, and preserve the exact T0702, "
+            "T0703 and T0704 protected PASS receipts plus all three immutable T0705 failed-attempt "
+            "ledgers. One reviewed persisted-label replay repair delivery, one new exact-main "
             "attempt-1 protected "
             "SCHEDULE_REHEARSAL with rerun zero, and one later receipt/schedule-closure delivery "
             "remain authorized. Reuse only the existing eight-name moomooau-beta protected input "
@@ -199,11 +201,12 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.21 T0705 repair candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.20 predecessor lineage remain unchanged. Both failed GA "
-            "heads are digest-bound and cannot be rerun or redispatched. The only runtime change "
-            "quarantines MessageMetadataUnverifiable at the pre-Raw candidate read while "
-            "preserving fail-closed second verification, ACTIVE processing and the repaired "
+            "Baseline-preserving v1.0.22 T0705 repair candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.21 predecessor lineage remain unchanged. All three failed "
+            "GA heads are digest-bound and cannot be rerun or redispatched. The only runtime "
+            "change replays the persisted first-import label state when rebuilding an existing "
+            "Processed source envelope while preserving pre-Raw metadata quarantine, "
+            "fail-closed second verification, ACTIVE processing and the repaired "
             "paired-empty SAFE_DEFERRED path. "
             "The new exact-main workflow_dispatch must use the production SCHEDULE planner "
             "targeting 04:30 Australia/Sydney, truthfully identify itself as SCHEDULE_REHEARSAL, "

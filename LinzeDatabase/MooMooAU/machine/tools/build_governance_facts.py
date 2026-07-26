@@ -50,6 +50,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.19",
             "1.0.20",
             "1.0.21",
+            "1.0.22",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -72,6 +73,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.19",
         "1.0.20",
         "1.0.21",
+        "1.0.22",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -90,6 +92,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.19",
         "1.0.20",
         "1.0.21",
+        "1.0.22",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -107,6 +110,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.19",
         "1.0.20",
         "1.0.21",
+        "1.0.22",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -123,6 +127,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.19",
         "1.0.20",
         "1.0.21",
+        "1.0.22",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -152,6 +157,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.19",
         "1.0.20",
         "1.0.21",
+        "1.0.22",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -162,6 +168,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.19",
         "1.0.20",
         "1.0.21",
+        "1.0.22",
     }
     t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] in {
         "1.0.13",
@@ -173,6 +180,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.19",
         "1.0.20",
         "1.0.21",
+        "1.0.22",
     }
     t0703_historical_label_reconciliation_authorized = delivery["package_version"] in {
         "1.0.14",
@@ -189,6 +197,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.19",
             "1.0.20",
             "1.0.21",
+            "1.0.22",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -216,14 +225,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0705_repair_authorized = (
-        delivery["package_version"] == "1.0.21"
+        delivery["package_version"] == "1.0.22"
         and delivery.get("overall_status")
-        == "PROTECTED_GA_SECOND_ATTEMPT_FAILED_METADATA_REPAIR_AUTHORIZED"
+        == "PROTECTED_GA_THIRD_ATTEMPT_FAILED_LABEL_REPLAY_REPAIR_AUTHORIZED"
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
-        == "CONTROLLED_T0705_METADATA_REPAIR_CANDIDATE_NOT_FINAL"
+        == "CONTROLLED_T0705_LABEL_REPLAY_REPAIR_CANDIDATE_NOT_FINAL"
     )
     t0704_protected_passed = (
         delivery["package_version"] in {"1.0.18", "1.0.19"}
@@ -410,19 +419,20 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "T0705 exact-main 候选已绑定 T0702–T0704 PASS 回执、现有八项 protected input、"
             "实时容量刷新与 one-shot 权限；唯一 attempt-1 SCHEDULE_REHEARSAL 尚未运行"
         ),
-        "T0705_METADATA_QUARANTINE_REPAIR_PENDING": (
-            "T0705 两个 exact-main attempt-1 head 均已冻结；第二次 authority 与身份清理通过，"
-            "私有仓无新增 commit、checkpoint 未创建、唯一 latest Timeline 保持不变且生产调度"
-            "仍关闭。受保护输出未披露精确异常；同邮箱 T0703 回执与静态路径仅支持高置信度 "
-            "MessageMetadataUnverifiable 隔离缺口。只授权一个新 metadata-quarantine 候选与"
-            "一次 attempt 1，同时保持二次验证、ACTIVE 与 SAFE_DEFERRED 路径不变"
+        "T0705_LABEL_REPLAY_REPAIR_PENDING": (
+            "T0705 三个 exact-main attempt-1 head 均已冻结；第三次 authority 与身份清理通过，"
+            "私有仓无新增 commit、checkpoint 未创建、加密 Timeline state 存在且生产调度仍关闭。"
+            "受保护输出未披露精确异常；T0704 已为相同既有来源重放持久化历史 label state，而 "
+            "GA 只重放 timestamp 并使用可变当前 Gmail labels。只授权一个新 label-replay 候选"
+            "与一次 attempt 1，同时保持 metadata quarantine、二次验证、ACTIVE 与 "
+            "SAFE_DEFERRED 路径不变"
         ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 两个失败头已冻结且 metadata repair 已授权，T0706 及其后的"
+            "T0704 已通过；T0705 三个失败头已冻结且 label replay repair 已授权，T0706 及其后的"
             "受保护验收未授权"
             if t0705_repair_authorized
             else "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权"
@@ -451,7 +461,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0705 两个 GA 失败头已冻结，metadata quarantine 修复已授权待运行"
+            "RMD-06 T0705 三个 GA 失败头已冻结，persisted label replay 修复已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -482,8 +492,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 两个 exact-main attempt-1 失败头已冻结；第二次运行无新增 private commit、"
-            "无 checkpoint 且 latest Timeline 仍为一，metadata quarantine 修复候选待执行"
+            "T0705 三个 exact-main attempt-1 失败头已冻结；第三次运行无新增 private commit、"
+            "无 checkpoint 且 encrypted Timeline state 存在，persisted label replay 修复"
+            "候选待执行"
             if t0705_repair_authorized
             else "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
             "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
@@ -530,8 +541,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.21 metadata-quarantine 精确修复候选并执行一次新 head protected "
-            "SCHEDULE_REHEARSAL；两个失败头与新候选均 rerun 0，PASS 后只启用已提交 04:30 "
+            "交付 v1.0.22 persisted-label replay 精确修复候选并执行一次新 head protected "
+            "SCHEDULE_REHEARSAL；三个失败头与新候选均 rerun 0，PASS 后只启用已提交 04:30 "
             "schedule，并停在 T0706 前"
             if t0705_repair_authorized
             else "交付 v1.0.19 精确候选并执行一次 protected SCHEDULE_REHEARSAL；rerun 0，"
@@ -805,9 +816,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": "缺少受保护处理证据时的显式非猜测 Processed 状态",
             },
             {
-                "en": "METADATA_QUARANTINE_REPAIR_PENDING",
-                "zh": "元数据隔离修复待执行",
-                "note": "T0705 两个失败头冻结后仅剩一个新修复执行权限",
+                "en": "LABEL_REPLAY_REPAIR_PENDING",
+                "zh": "历史标签重放修复待执行",
+                "note": "T0705 三个失败头冻结后仅剩一个新修复执行权限",
             },
             {
                 "en": "MessageMetadataUnverifiable",
@@ -818,6 +829,46 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "metadata-quarantine",
                 "zh": "元数据隔离",
                 "note": "GA 首次读取元数据不可验证时的逐消息安全跳过",
+            },
+            {
+                "en": "label-state",
+                "zh": "标签状态",
+                "note": "首次入库时持久化并在同版本重放的 Gmail 标签集合",
+            },
+            {
+                "en": "label",
+                "zh": "标签",
+                "note": "单个 Gmail 标签或标签状态语境中的固定英文词",
+            },
+            {
+                "en": "labels",
+                "zh": "标签集合",
+                "note": "来源消息当前或首次入库时观察到的 Gmail 标签集合",
+            },
+            {
+                "en": "replay",
+                "zh": "重放",
+                "note": "从已恢复加密证据复用首次入库事实，而非读取可变当前值",
+            },
+            {
+                "en": "label-replay",
+                "zh": "标签重放",
+                "note": "在同版本根比较前恢复首次入库标签状态",
+            },
+            {
+                "en": "timestamp",
+                "zh": "时间戳",
+                "note": "同版本重放的首次入库时间事实",
+            },
+            {
+                "en": "persisted",
+                "zh": "已持久化",
+                "note": "已经由远端加密证据固定并可恢复",
+            },
+            {
+                "en": "persisted-label",
+                "zh": "持久化标签",
+                "note": "首次入库后由加密 Processed 证据固定的标签事实",
             },
             {"en": "repair", "zh": "修复", "note": "不扩大既定行为边界的有界更改"},
             {"en": "checkpoint", "zh": "检查点", "note": "最后写入的加密 Gmail 同步状态"},
@@ -1175,7 +1226,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 两个失败头已冻结；仅允许新 exact-main metadata quarantine 修复 attempt 1"
+            "T0705 三个失败头已冻结；仅允许新 exact-main persisted label replay 修复 attempt 1"
             if t0705_repair_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1208,7 +1259,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.21 metadata-quarantine exact-main 修复候选、执行一次新 attempt-1 "
+            "交付 v1.0.22 persisted-label replay exact-main 修复候选、执行一次新 attempt-1 "
             "SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
             if t0705_repair_authorized
             else "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，"
@@ -1277,8 +1328,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 两次运行失败，"
-                    "两个失败头已冻结，metadata quarantine 修复待运行）"
+                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 三次运行失败，"
+                    "三个失败头已冻结，persisted label replay 修复待运行）"
                     if t0705_repair_authorized
                     else "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 一次性 "
                     "SCHEDULE_REHEARSAL 已授权待运行）"
@@ -1606,15 +1657,15 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         changelog.insert(
             0,
             {
-                "version": "1.0.21",
+                "version": "1.0.22",
                 "date": "2026-07-26",
                 "summary": (
-                    "固化 T0705 第二个 exact-main attempt-1 失败：authority 与身份清理通过，"
-                    "protected 输出未披露精确异常；独立聚合核验观察到私有仓零新增 commit、"
-                    "checkpoint 未创建、单一加密 Timeline 保持不变，生产调度与一次性变量均关闭。"
-                    "两个失败头禁止 rerun/redispatch；同邮箱 T0703 元数据隔离证据与静态路径仅支持"
-                    "高置信度 GA metadata quarantine 缺口。只授权一个新修复 head 与一次 "
-                    "attempt 1，T0706 和最终发布仍禁止。"
+                    "固化 T0705 第三个 exact-main attempt-1 失败：authority 与身份清理通过，"
+                    "protected 输出未披露精确异常；独立核验观察到私有仓零新增 commit、checkpoint "
+                    "未创建、active Moomoo candidate 仍在 Trash 外、加密 Timeline state 存在，"
+                    "生产调度与一次性变量均关闭。三个失败头禁止 rerun/redispatch；T0704 与静态"
+                    "根构造仅支持高置信度 GA 未重放持久化 first-import label state。只授权一个"
+                    "新修复 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
                 ),
             },
         )

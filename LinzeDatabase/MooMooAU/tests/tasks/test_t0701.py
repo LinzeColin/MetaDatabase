@@ -50,7 +50,7 @@ def test_t0701_stage7_contract_catalog_authorizes_t0705_without_final_claim() ->
     ]
     assert (
         contract["overall_status"]
-        == "T0705_TWO_FAILED_HEADS_FROZEN_METADATA_REPAIR_AUTHORIZED_PENDING"
+        == "T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING"
     )
     assert contract["final_acceptances_passed"] == 0
 

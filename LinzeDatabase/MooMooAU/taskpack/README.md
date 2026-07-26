@@ -260,7 +260,24 @@ repair dispatch 与一个 receipt/schedule closure delivery，继续停止在 T0
 - `SOURCE_PROVENANCE.v1.0.21.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.20.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.19.json`、
+`v1.0.22` 固化 T0705 第三个不同 exact-main protected GA 失败并冻结 head `cc7c8af9…`。
+authority 与 identity cleanup PASS，GA FAILED；独立后验确认没有新增 private commit、
+checkpoint 未创建、active Moomoo candidate 仍在 Trash 外且加密 Timeline state 存在。
+protected 输出没有披露 exact runtime exception；T0704 历史 label replay 与 GA 静态 root 构造
+只支持高置信度“GA 未重放持久化 first-import label state”。修复只在既有 Processed 来源
+envelope 构造时同时重放 timestamp 与 label state，保持 metadata quarantine、second
+verification、ACTIVE/SAFE_DEFERRED、远端恢复与 checkpoint-last 不变。三个失败 head 永不
+rerun/redispatch；只剩一个新 exact-main repair dispatch 与一个 receipt/schedule closure
+delivery，继续停止在 T0706 前。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.22.md`
+- `ROADMAP.v1.0.22.md`
+- `PACKAGE_MANIFEST.v1.0.22.json`
+- `SOURCE_PROVENANCE.v1.0.22.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.21.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.20.json`、
+`PACKAGE_MANIFEST.v1.0.19.json`、
 `PACKAGE_MANIFEST.v1.0.18.json`、
 `PACKAGE_MANIFEST.v1.0.17.json`、
 `PACKAGE_MANIFEST.v1.0.16.json`、

@@ -1,5 +1,24 @@
 # Taskpack Changelog
 
+## 1.0.22 — 2026-07-26
+
+固化 T0705 第三次 protected GA 失败，只授权 persisted first-import label-state replay repair。
+
+- 绑定 PR #117、main `cc7c8af9…`、run `30187132406`、attempt 1、rerun 0；
+- authority 与 identity cleanup PASS，GA FAILED，live schedule hold SKIPPED；
+- 独立后验确认 private commit 0、checkpoint 不存在、active Moomoo candidate 仍在 Trash 外，
+  一次性 authority 与 production enablement 均已清除；
+- protected 输出未公开 exact runtime exception；只把 T0704 历史 label replay 与静态
+  Processed root 构造共同支持的缺口记录为 high-confidence diagnosis；
+- GA 为既有 Processed 来源同时重放 first-import timestamp 与 label state，避免当前 `TRASH`
+  label 改变同 parser version 的不可变 roots；
+- pre-Raw metadata quarantine、pending replay、second verification fail closed、远端恢复、
+  ACTIVE 与 paired-empty SAFE_DEFERRED 行为保持不变；
+- 三个失败 head 永不 rerun/redispatch；总 dispatch 预算 4 已消耗 3，只剩一个新 repair
+  dispatch；
+- 总 controlled main delivery 预算 5 已消耗 3，只剩 repair 与 receipt/schedule closure；
+- live schedule 保持关闭；T0706、最终 Acceptance、Stage 7 完成与最终发布仍未授权。
+
 ## 1.0.21 — 2026-07-26
 
 固化 T0705 第二次 protected GA 失败，只授权 pre-Raw metadata quarantine repair。
