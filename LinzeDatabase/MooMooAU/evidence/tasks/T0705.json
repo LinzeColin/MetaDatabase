@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_LABEL_REPLAY_REPAIR_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_PHASE_DIAGNOSTIC_RECOVERY_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T04:06:39Z",
-  "baseline_commit": "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+  "observed_at_utc": "2026-07-26T05:44:53Z",
+  "baseline_commit": "4c207ad539754166fae6642ff4e6850438d3e2fc",
   "record_status": "BLOCKED",
-  "scope": "PROTECTED_THREE_FAILED_ATTEMPTS_AND_LOCAL_LABEL_REPLAY_REPAIR_PREFLIGHT",
+  "scope": "PROTECTED_FOUR_FAILED_ATTEMPTS_AND_LOCAL_CLOSED_PHASE_DIAGNOSTIC_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -91,6 +91,11 @@
       "evidence_ref": "machine/stages/S7/reviews/t0705/label-replay-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-label-replay-attempt-ledger-v1.schema.json"
     },
     {
+      "id": "fourth_failed_exact_head_frozen_post_processed_pre_timeline",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S7/reviews/t0705/post-processed-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-post-processed-attempt-ledger-v1.schema.json"
+    },
+    {
       "id": "ga_pre_raw_metadata_unverifiable_quarantine",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_quarantines_unverifiable_pre_raw_metadata_without_collateral"
@@ -109,40 +114,50 @@
       "id": "ga_persisted_first_import_label_state_replayed",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_replays_persisted_labels_for_an_already_trashed_current_source"
+    },
+    {
+      "id": "ga_closed_phase_diagnostics_reach_checkpoint_commit",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_diagnostics_are_closed_and_reach_checkpoint_commit"
+    },
+    {
+      "id": "ga_failure_output_redacts_exception_and_emits_safe_phase",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_main_redacts_exception_and_emits_only_safe_phase"
     }
   ],
   "linked_final_acceptance": [
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism quarantines unverifiable pre-Raw metadata, processes only deterministically verified candidates and now replays persisted first-import labels; all three protected attempts failed and no T0705 PASS receipt exists."
+      "reason": "The dependency-injected GA mechanism quarantines unverifiable pre-Raw metadata, processes only deterministically verified candidates, replays persisted first-import labels and emits only a closed failure phase; all four protected attempts failed and no T0705 PASS receipt exists."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A fourth distinct truthful workflow_dispatch schedule-mode rehearsal is authorized once, while all three failed heads are frozen."
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A fifth distinct truthful workflow_dispatch schedule-mode rehearsal is authorized once, while all four failed heads are frozen."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "All three protected GA attempts emitted aggregate-safe failure only; no protected GA PASS result or continuous public health evidence is published."
+      "reason": "All four protected GA attempts emitted aggregate-safe failure only; no protected GA PASS result or continuous public health evidence is published."
     },
     {
       "id": "AC-032",
       "status": "PARTIAL",
-      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus metadata quarantine, persisted label replay and idempotent backlog replay pass; protected GA recovery remains pending."
+      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus metadata quarantine, persisted label replay, closed phase diagnostics and idempotent backlog replay pass; protected GA recovery remains pending."
     }
   ],
   "production_oracles": [
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
       "status": "FAILED",
-      "reason": "The first three exact-main attempts passed authority and cleanup but failed. Every exact exception remains undisclosed; independent verification found no third-attempt private commit or checkpoint and retained encrypted Timeline state. All three heads are frozen; one reviewed persisted-label replay repair attempt is authorized."
+      "reason": "The first four exact-main attempts passed authority and cleanup but failed. Every exact exception remains undisclosed; the fourth attempt added six age-encrypted Raw, Processed and current paths before any Timeline snapshot or checkpoint change. All four heads are frozen; one reviewed closed-enum phase-diagnostic attempt is authorized."
     }
   ],
   "blockers": [
-    "T0705_THREE_FAILED_HEADS_FROZEN",
-    "T0705_LABEL_REPLAY_REPAIR_PENDING",
+    "T0705_FOUR_FAILED_HEADS_FROZEN",
+    "T0705_PHASE_DIAGNOSTIC_RECOVERY_PENDING",
     "T0705_PROTECTED_RECEIPT_NOT_BOUND",
     "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
   ],
@@ -168,5 +183,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Deliver one reviewed exact-main persisted-label replay repair candidate, execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and only after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule; never rerun any failed head and do not enter T0706."
+  "next_action": "Deliver one reviewed exact-main closed-enum phase-diagnostic candidate, execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and only after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule; never rerun any failed head and do not enter T0706."
 }

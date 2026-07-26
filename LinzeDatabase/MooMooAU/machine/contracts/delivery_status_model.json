@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar or manual-approval blocker. Two different exact-main GA schedule-mode rehearsals failed and both heads are frozen; exactly one new reviewed pre-Raw metadata-quarantine repair head may run once and must remain truthfully distinct from a GitHub schedule event",
+    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar or manual-approval blocker. Four different exact-main GA schedule-mode rehearsals failed and all four heads are frozen; exactly one new reviewed closed-enum phase-diagnostic head may run once and must remain truthfully distinct from a GitHub schedule event",
     "authorized_on": "2026-07-26",
-    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts and every frozen failed head remain immutable. Both failed launch deliveries and dispatches are consumed; one repair delivery, one new attempt-1 protected workflow_dispatch schedule-mode rehearsal and one receipt/schedule-closure delivery may reuse the existing moomooau-beta Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. The repair is limited to quarantining typed MessageMetadataUnverifiable failures in the GA pre-Raw candidate loop without dropping prior pending replay; second verification remains fail closed and ACTIVE or paired-empty SAFE_DEFERRED behavior remains unchanged. Before Gmail exchange or data writes, the run must refresh live capacity. Only deterministically verified candidates may be fully read; Raw and Processed recovery plus second verification precede an exact-message Trash mutation budget of one. One Timeline snapshot and one latest encrypted Timeline must recover remotely, and encrypted checkpoint CAS is last. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
+    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts and all four frozen failed heads remain immutable. The fourth failure independently proves six new recoverable age ciphertext objects through Raw, Processed and current-pointer persistence, with no Timeline snapshot or checkpoint change; the exact runtime exception remains unknown. One phase-diagnostic delivery, one new attempt-1 protected workflow_dispatch schedule-mode rehearsal and one receipt/schedule-closure delivery may reuse the existing moomooau-beta Environment, exact eight-name Secret allowlist, installed GitHub App and single private data repository. The diagnostic output is limited to a closed public-safe last-entered phase and a fixed installation-token failure class; exception text, URLs, identifiers, counters, mailbox facts, repository locators and secrets are forbidden. Existing metadata quarantine, deterministic verification, remote recovery, second verification, exact-message Trash budget, single latest Timeline replacement and checkpoint-last ordering remain fail closed. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -199,7 +199,7 @@
       "next_action": "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal authority variable, and execute exactly one protected schedule-mode GA workflow_dispatch at attempt 1 with rerun zero. Keep the platform schedule disabled until the PASS receipt is bound, then stop before T0706."
     },
     "PROTECTED_GA_REPAIR_AUTHORIZED": {
-      "package_version": "1.0.22",
+      "package_version": "1.0.23",
       "resolved_review_findings": [
         "REV-P0-002",
         "REV-P0-003",
@@ -209,10 +209,10 @@
       ],
       "current_remediation_blockers": [
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-        "T0705_LABEL_REPLAY_REPAIR_PENDING",
+        "T0705_PHASE_DIAGNOSTIC_RECOVERY_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Deliver one new exact-main T0705 persisted-label replay repair candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the three failed heads; after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
+      "next_action": "Deliver one new exact-main T0705 closed-enum phase-diagnostic candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the four failed heads; after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
     }
   }
 }

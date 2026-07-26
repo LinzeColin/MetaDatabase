@@ -1,8 +1,8 @@
 {
-  "version": "1.0.22",
-  "stage": "RMD-06 T0705 三个 GA 失败头已冻结，persisted label replay 修复已授权待运行",
-  "phase": "T0705 三个 exact-main attempt-1 失败头已冻结；第三次运行无新增 private commit、无 checkpoint 且 encrypted Timeline state 存在，persisted label replay 修复候选待执行",
-  "task": "交付 v1.0.22 persisted-label replay 精确修复候选并执行一次新 head protected SCHEDULE_REHEARSAL；三个失败头与新候选均 rerun 0，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
+  "version": "1.0.23",
+  "stage": "RMD-06 T0705 四个 GA 失败头已冻结，封闭 phase diagnostic 已授权待运行",
+  "phase": "T0705 四个 exact-main attempt-1 失败头已冻结；第四次仅新增六个 age 加密 Raw、Processed 与 current 路径，无 Timeline snapshot 或 checkpoint 变化，封闭 last-entered phase diagnostic 候选待执行",
+  "task": "交付 v1.0.23 closed-enum phase diagnostic 精确候选并执行一次新 head protected SCHEDULE_REHEARSAL；四个失败头与新候选均 rerun 0，PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 5/43（通过 4、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",

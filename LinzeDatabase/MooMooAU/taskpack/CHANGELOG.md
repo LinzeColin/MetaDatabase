@@ -1,5 +1,26 @@
 # Taskpack Changelog
 
+## 1.0.23 — 2026-07-26
+
+固化 T0705 第四次 protected GA 失败，只授权公开安全的闭合阶段诊断候选。
+
+- 绑定第四个不同 exact-main head、attempt 1、rerun 0；authority 与 identity cleanup PASS，
+  GA FAILED，live schedule hold SKIPPED；
+- 独立后验确认六个新增对象全部为可恢复 age ciphertext，覆盖 Raw、Processed 与 current
+  pointer；Timeline snapshot/manifest、Timeline state 与 checkpoint 均未改变；
+- active Moomoo candidate 仍在 Trash 外；缺少 exact baseline 和 mutation trace，因此不声称
+  Gmail mutation API 是否到达或消息级变化；
+- protected 输出未公开 exact runtime exception；只记录可证的 post-Processed/pre-Timeline
+  failure boundary，精确 root cause 保持 UNKNOWN；
+- 增加固定 `ProtectedGAFailurePhase` 枚举和固定 installation-token failure class；公开失败
+  载荷禁止异常文本、URL、标识符、计数、邮箱事实、私仓定位和 Secret；
+- 不改变 metadata quarantine、Raw/Processed 恢复、二次验证、exact-message Trash、单一
+  Timeline replacement 或 checkpoint-last 顺序；
+- 四个失败 head 永不 rerun/redispatch；总 dispatch 预算 5 已消耗 4，只剩一个新 diagnostic
+  dispatch；
+- 总 controlled main delivery 预算 6 已消耗 4，只剩 diagnostic 与 receipt/schedule closure；
+- live schedule 保持关闭；T0706、最终 Acceptance、Stage 7 完成与最终发布仍未授权。
+
 ## 1.0.22 — 2026-07-26
 
 固化 T0705 第三次 protected GA 失败，只授权 persisted first-import label-state replay repair。

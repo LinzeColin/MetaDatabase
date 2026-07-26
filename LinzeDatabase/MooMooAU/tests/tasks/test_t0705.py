@@ -17,6 +17,7 @@ from stage7_support import (
     phase_observation,
 )
 
+import moomooau_archive.protected_ga_entrypoint as protected_ga_entrypoint
 from moomooau_archive.adapters import AGE_HEADER
 from moomooau_archive.ga_runtime import GARuntimeError
 from moomooau_archive.github_guard import (
@@ -43,6 +44,12 @@ from moomooau_archive.production import (
     PRODUCTION_CONFIG_SECRET_NAME,
     ProductionBootstrap,
     ProductionExecutionResult,
+)
+from moomooau_archive.protected_ga_diagnostics import (
+    FAILURE_TAXONOMY_VERSION,
+    ProtectedGADiagnostics,
+    ProtectedGAFailurePhase,
+    public_failure_payload,
 )
 from moomooau_archive.protected_ga_entrypoint import (
     CONTROL_OWNER_ID,
@@ -691,10 +698,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
-    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 3
+    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 4
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
-    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 3
+    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 4
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 
@@ -820,3 +827,73 @@ def test_t0705_protected_schedule_rehearsal_is_aggregate_only_and_gate_complete(
     assert synthetic.runtime.trigger is RunTrigger.SCHEDULE
     assert message_id not in encoded
     assert "synthetic-private" not in encoded
+
+
+def test_t0705_ga_diagnostics_are_closed_and_reach_checkpoint_commit() -> None:
+    diagnostics = ProtectedGADiagnostics()
+    with pytest.raises(TypeError, match="phase"):
+        diagnostics.enter(cast(ProtectedGAFailurePhase, "FULL_RECOVERY"))
+
+    with ga_context(
+        (m3_canary_message("msg-stage7-ga-diagnostics"),),
+        diagnostics=diagnostics,
+    ) as context:
+        context.runner.run(
+            _sunday_plan(),
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+            beta_message_budget=1,
+            ga_mutation_budget_per_run=1,
+            ga_capacity_authorized=True,
+        )
+
+    assert diagnostics.phase is ProtectedGAFailurePhase.CHECKPOINT_COMMIT
+    payload = public_failure_payload(diagnostics)
+    assert payload["reason_code"] == "PROTECTED_GA_CHECKPOINT_COMMIT_FAILED"
+    assert payload["diagnostic_taxonomy"] == FAILURE_TAXONOMY_VERSION
+    assert payload["exact_root_cause_claimed"] is False
+    assert payload["protected_values_disclosed"] is False
+    assert "msg-stage7-ga-diagnostics" not in json.dumps(payload, sort_keys=True)
+
+
+def test_t0705_ga_main_redacts_exception_and_emits_only_safe_phase(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    protected_value = "private-repository-and-message-identifier"
+
+    def fail_after_full_recovery(*args: object, **kwargs: object) -> object:
+        del args
+        diagnostics = cast(ProtectedGADiagnostics, kwargs["diagnostics"])
+        diagnostics.enter(ProtectedGAFailurePhase.FULL_RECOVERY)
+        raise RuntimeError(protected_value)
+
+    monkeypatch.setattr(
+        protected_ga_entrypoint,
+        "execute_protected",
+        fail_after_full_recovery,
+    )
+    result = protected_ga_entrypoint.main(
+        [
+            "--execute-protected",
+            "--project-root",
+            str(PROJECT_ROOT),
+            "--expected-head-sha",
+            "d" * 40,
+            "--blue-green-receipt-sha256",
+            "e" * 64,
+            "--ga-gate-sha256",
+            "f" * 64,
+            "--confirm",
+            GA_CONFIRMATION,
+        ]
+    )
+    output = capsys.readouterr().out
+    payload = json.loads(output)
+
+    assert result == 2
+    assert payload["failure_phase"] == "FULL_RECOVERY"
+    assert payload["reason_code"] == "PROTECTED_GA_FULL_RECOVERY_FAILED"
+    assert payload["exact_root_cause_claimed"] is False
+    assert protected_value not in output

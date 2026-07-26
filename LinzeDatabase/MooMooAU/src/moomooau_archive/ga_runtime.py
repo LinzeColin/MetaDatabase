@@ -55,6 +55,7 @@ from .processed_models import (
     DocumentEnvelopeFactory,
 )
 from .processed_product import ProcessedBundle, ProcessedProductBuilder
+from .protected_ga_diagnostics import ProtectedGADiagnostics, ProtectedGAFailurePhase
 from .raw_commit import RawCommitPlanner, RawCommitSaga
 from .release_control import FeatureFlags, PhaseObservation, ReleasePhase, Stage7ReleaseGate
 from .remote_recovery_gate import RemoteRecoveryGate
@@ -281,6 +282,7 @@ class GAFullPipelineRunner:
         snapshot_recovery: TimelineSnapshotRecoveryGate,
         timeline_publisher: SingleLatestTimelinePublisher,
         operational_gate: OperationalGate,
+        diagnostics: ProtectedGADiagnostics | None = None,
     ) -> None:
         active_processing = (
             classification_registry.activation is ClassificationActivation.ACTIVE
@@ -320,6 +322,7 @@ class GAFullPipelineRunner:
         self._snapshot_recovery = snapshot_recovery
         self._timeline_publisher = timeline_publisher
         self._operational_gate = operational_gate
+        self._diagnostics = diagnostics or ProtectedGADiagnostics()
         self._classifier = DocumentClassifier()
         self._envelope_factory = DocumentEnvelopeFactory()
         self._extractor = SafeArtifactExtractor()
@@ -339,6 +342,7 @@ class GAFullPipelineRunner:
         ga_mutation_budget_per_run: int,
         ga_capacity_authorized: bool,
     ) -> GAFullPipelineOutcome:
+        self._diagnostics.enter(ProtectedGAFailurePhase.RUNTIME_PREFLIGHT)
         if (
             not isinstance(plan, ScheduledRunPlan)
             or not key_epoch
@@ -394,10 +398,12 @@ class GAFullPipelineRunner:
             MutationPhase.STABLE,
             stable_maximum_calls=ga_mutation_budget_per_run,
         )
+        self._diagnostics.enter(ProtectedGAFailurePhase.CHECKPOINT_RECOVERY)
         recovered_checkpoint = self._operational_gate.execute(
             SensitiveOperation.REMOTE_READ,
             self._sync_checkpoint.recover,
         )
+        self._diagnostics.enter(ProtectedGAFailurePhase.MAILBOX_RECONCILIATION)
         audit = self._reconciler.reconcile_for_run(
             (
                 recovered_checkpoint.checkpoint.sync_state
@@ -410,6 +416,7 @@ class GAFullPipelineRunner:
         if audit.full_difference_count not in {None, 0}:
             raise GARuntimeError("Full Reconciliation candidate set differs from full truth")
 
+        self._diagnostics.enter(ProtectedGAFailurePhase.PRIOR_TIMELINE_RECOVERY)
         previous_snapshot_root = self._operational_gate.execute(
             SensitiveOperation.REMOTE_READ,
             self._timeline_publisher.recover_committed_snapshot_root,
@@ -444,6 +451,7 @@ class GAFullPipelineRunner:
         pending: dict[str, MessageRef] = {}
         for ref in candidate_refs:
             metadata_reads += 1
+            self._diagnostics.enter(ProtectedGAFailurePhase.METADATA_VERIFICATION)
             try:
                 message = self._gmail.get_metadata(
                     ref.message_id,
@@ -473,19 +481,24 @@ class GAFullPipelineRunner:
             permit = first.raw_fetch_permit
             if permit is None:
                 raise GARuntimeError("verified PRE_RAW result did not issue a fetch permit")
+            self._diagnostics.enter(ProtectedGAFailurePhase.RAW_FETCH)
             canonical = self._raw_fetcher.fetch(permit, self._sender_registry)
             attachments = self._inspector.inspect(canonical)
+            self._diagnostics.enter(ProtectedGAFailurePhase.RAW_ENCRYPTION_PLAN)
             raw_plan = self._raw_planner.plan(canonical, attachments, key_epoch=key_epoch)
+            self._diagnostics.enter(ProtectedGAFailurePhase.RAW_COMMIT)
             self._operational_gate.execute(
                 SensitiveOperation.RAW_WRITE,
                 partial(self._raw_commit.commit, raw_plan),
                 demand=git_capacity_demand(item.ciphertext for item in raw_plan.objects),
             )
+            self._diagnostics.enter(ProtectedGAFailurePhase.RAW_RECOVERY)
             raw_proof = self._recovery.verify_raw_only(canonical, first, raw_plan)
             if raw_proof.recovered_object_count != len(raw_plan.objects):
                 raise GARuntimeError("GA Raw remote recovery count differs from the plan")
             raw_archived += 1
 
+            self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSED_PLAN)
             classification = self._classifier.classify(
                 canonical,
                 first,
@@ -532,6 +545,7 @@ class GAFullPipelineRunner:
                 continue
             bundle = self._product_builder.build(envelope, outcome)
             processed_plan = self._processed_plan_factory.plan(bundle, key_epoch=key_epoch)
+            self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSED_COMMIT)
             self._operational_gate.execute(
                 SensitiveOperation.PROCESSED_WRITE,
                 partial(self._processed_commit.commit, processed_plan),
@@ -544,6 +558,7 @@ class GAFullPipelineRunner:
                     )
                 ),
             )
+            self._diagnostics.enter(ProtectedGAFailurePhase.FULL_RECOVERY)
             proof = self._recovery.verify(
                 canonical,
                 first,
@@ -567,6 +582,7 @@ class GAFullPipelineRunner:
             timeline_m3_state = M3State.ELIGIBLE
             can_confirm_without_new_call = "TRASH" in message.label_ids
             if budget.consumed_calls < budget.maximum_calls or can_confirm_without_new_call:
+                self._diagnostics.enter(ProtectedGAFailurePhase.SECOND_VERIFICATION)
                 second_message = self._gmail.get_metadata(
                     ref.message_id,
                     header_names=self._sender_registry.requested_header_names,
@@ -577,6 +593,7 @@ class GAFullPipelineRunner:
                     self._sender_registry,
                     phase=VerificationPhase.PRE_M3,
                 )
+                self._diagnostics.enter(ProtectedGAFailurePhase.TRASH_MUTATION)
                 m3_result = self._operational_gate.execute(
                     SensitiveOperation.M3,
                     partial(
@@ -602,9 +619,11 @@ class GAFullPipelineRunner:
                 deferred += 1
                 pending[ref.message_id] = ref
 
+            self._diagnostics.enter(ProtectedGAFailurePhase.CURRENT_POINTER_RECOVERY)
             current = self._current_pointer_source.resolve(bundle.source_id)
             if not _pointer_matches_bundle(current.pointer, bundle, key_epoch):
                 raise GARuntimeError("current Processed pointer differs from recovered output")
+            self._diagnostics.enter(ProtectedGAFailurePhase.TIMELINE_EVENT)
             event = self._timeline_event(
                 envelope,
                 outcome,
@@ -615,15 +634,18 @@ class GAFullPipelineRunner:
 
         if not facts_by_source:
             raise GARuntimeError("GA Timeline has no recovered current Processed facts")
+        self._diagnostics.enter(ProtectedGAFailurePhase.TIMELINE_SNAPSHOT_PLAN)
         snapshot_plan = self._snapshot_planner.plan(
             tuple(facts_by_source.values()),
             key_epoch=key_epoch,
         )
+        self._diagnostics.enter(ProtectedGAFailurePhase.TIMELINE_SNAPSHOT_COMMIT)
         self._operational_gate.execute(
             SensitiveOperation.PROCESSED_WRITE,
             partial(self._snapshot_commit.commit, snapshot_plan),
             demand=git_capacity_demand(item.ciphertext for item in snapshot_plan.objects),
         )
+        self._diagnostics.enter(ProtectedGAFailurePhase.TIMELINE_SNAPSHOT_RECOVERY)
         snapshot_proof = self._snapshot_recovery.verify(snapshot_plan)
         if snapshot_proof.recovered_object_count != len(snapshot_plan.objects):
             raise GARuntimeError("GA Timeline snapshot recovery count differs")
@@ -631,6 +653,7 @@ class GAFullPipelineRunner:
             current = self._current_pointer_source.resolve(fact.event.source_id)
             if current.pointer != fact.current_pointer:
                 raise GARuntimeError("current Processed pointer changed before GA Timeline publish")
+        self._diagnostics.enter(ProtectedGAFailurePhase.TIMELINE_PUBLISH)
         publish = self._operational_gate.execute(
             SensitiveOperation.TIMELINE_WRITE,
             partial(
@@ -649,6 +672,7 @@ class GAFullPipelineRunner:
         if publish.state is not TimelinePublishStateName.HEALTHY or publish.asset_count != 1:
             raise GARuntimeError("GA Timeline did not converge to exactly one recoverable Asset")
 
+        self._diagnostics.enter(ProtectedGAFailurePhase.CHECKPOINT_COMMIT)
         checkpoint = self._operational_gate.execute(
             SensitiveOperation.PROCESSED_WRITE,
             partial(
