@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-040",
+  "phase": "P0.5",
+  "recorded_at": "2026-07-26T09:50:27Z",
+  "commit_sha": "8a75b55e92071bb33f1cae5872feca55ade1c858",
+  "parent_sha": "539a15e0cbebce6b6dd016316721085576dba0d6",
+  "tree_sha": "7d9f2611df5a1633acc56c52b35a7a52192a9014",
+  "branch": "codex/cyberboss-prestage0",
+  "subject": "docs(cyberboss): freeze P0.5 implementation baseline",
+  "state": "local_only",
+  "changed_paths": [
+    "CyberBoss/docs/evidence/CB-040/activation-continuation.json",
+    "CyberBoss/docs/evidence/CB-040/canonical-conflict-scan.json",
+    "CyberBoss/docs/evidence/CB-040/dag-validation.txt",
+    "CyberBoss/docs/evidence/CB-040/environment-substitutions.json",
+    "CyberBoss/docs/evidence/CB-040/implementation-baseline.md",
+    "CyberBoss/docs/evidence/CB-040/implementation-plan.json",
+    "CyberBoss/docs/evidence/CB-040/taskpack-validations.txt",
+    "CyberBoss/docs/evidence/CB-040/traceability-sample.json",
+    "CyberBoss/docs/governance/RUN_CONTRACT_P0_5_CB_040.md",
+    "CyberBoss/docs/product_design/v0.0.0.4/01_PRFAQ_STRATEGY_OKR.md",
+    "CyberBoss/docs/product_design/v0.0.0.4/03_ARCHITECTURE_DATA_SECURITY.md",
+    "CyberBoss/docs/product_design/v0.0.0.4/05_ACCELERATED_VERIFICATION_MODEL_SECURITY_RELEASE.md",
+    "CyberBoss/docs/product_design/v0.0.0.4/09_PREAUTHORIZED_DECISIONS_ACTIVATION_INPUTS.md",
+    "CyberBoss/docs/product_design/v0.0.0.4/MANIFEST.sha256",
+    "CyberBoss/scripts/validate_cb040.py"
+  ],
+  "remote_publication": {
+    "checked_at": "2026-07-26T09:50:27Z",
+    "state": "none",
+    "remote_branch_pattern": "refs/heads/codex/cyberboss*",
+    "remote_branch_matches": [],
+    "open_pull_request_head": "codex/cyberboss-prestage0",
+    "open_pull_request_matches": [],
+    "remote_tag_pattern": "*cyberboss*",
+    "remote_tag_matches": [],
+    "checks": [
+      "git ls-remote --heads origin refs/heads/codex/cyberboss*",
+      "gh pr list --repo LinzeColin/MetaDatabase --state open --head codex/cyberboss-prestage0",
+      "git ls-remote --tags origin *cyberboss*"
+    ]
+  }
+}

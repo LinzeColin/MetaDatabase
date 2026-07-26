@@ -3,9 +3,9 @@
   "taskpack_version": "v0.0.0.4",
   "updated_on": "2026-07-26",
   "current_run": {
-    "run_id": "P0.4",
-    "task_id": "CB-030",
-    "scope": "channel_runtime_simulator_and_auth_activation_gates",
+    "run_id": "P0.5",
+    "task_id": "CB-040",
+    "scope": "implementation_baseline_and_release_plan",
     "status": "passed"
   },
   "prestage": [
@@ -28,7 +28,7 @@
     {"id": "CB-010", "stage": "S0", "phase": "P0.2", "status": "passed"},
     {"id": "CB-020", "stage": "S0", "phase": "P0.3", "status": "passed"},
     {"id": "CB-030", "stage": "S0", "phase": "P0.4", "status": "passed"},
-    {"id": "CB-040", "stage": "S0", "phase": "P0.5", "status": "not_started"},
+    {"id": "CB-040", "stage": "S0", "phase": "P0.5", "status": "passed"},
     {"id": "CB-100", "stage": "S1", "phase": "P1.1", "status": "not_started"},
     {"id": "CB-110", "stage": "S1", "phase": "P1.2", "status": "not_started"},
     {"id": "CB-120", "stage": "S1", "phase": "P1.3", "status": "not_started"},

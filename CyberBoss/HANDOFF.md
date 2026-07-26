@@ -10,9 +10,8 @@
 
 ## Current state
 
-`PS0.1`, `P0.1 / CB-000`, `P0.2 / CB-010`, `P0.3 / CB-020` and
-`P0.4 / CB-030` passed. Stage 0 is 4/5 tasks complete; 26 later tasks and
-PG-0–PG-5 remain `not_started`.
+`PS0.1` and `P0.1 / CB-000` through `P0.5 / CB-040` passed. Stage 0 is
+5/5 tasks complete; 25 later tasks and PG-0–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -79,6 +78,29 @@ CB-030 simulator/non-activation Oracles = passed
 The consolidated activation/re-login commands are prepared but were not
 executed. Development continues under AC-056 without claiming real activation.
 
+CB-040 froze the unique non-secret repository/path/domain/service/port/
+bucket/prefix/identity substitutions and the actual constrained OVH resource
+profile. It found stale Feature Flag aliases across four product documents and
+normalized them to the exact implementation-kit runtime names without changing
+defaults, Acceptance, Task DAG or source code. The outer manifest was rebuilt
+and both manifests validate.
+
+`implementation-plan.json` maps all 25 remaining tasks (`CB-100`–`CB-540`) to
+existing/planned modules, tests, exact Acceptance criteria, evidence and
+immutable release artifacts. A deterministic SHA-256 sample of 10 out of 53
+requirements has the complete Requirement → Acceptance → Task → Test →
+Evidence → Release chain. The local baseline commit is:
+
+```text
+8a75b55e92071bb33f1cae5872feca55ade1c858
+parent = 539a15e0cbebce6b6dd016316721085576dba0d6
+tree = 7d9f2611df5a1633acc56c52b35a7a52192a9014
+publication = none
+```
+
+Direct remote checks found no `codex/cyberboss*` branch, CyberBoss tag or open
+PR. The CB-040 decision is exactly `GO_TO_PG-0`; PG-0 itself was not executed.
+
 ## Canonical inputs and evidence
 
 - Product design: `docs/product_design/v0.0.0.4/`
@@ -88,14 +110,15 @@ executed. Development continues under AC-056 without claiming real activation.
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P0_4_CB_030.md`
+  `docs/governance/RUN_CONTRACT_P0_5_CB_040.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
 - CB-030 simulator/auth/security evidence: `docs/evidence/CB-030/`
+- CB-040 baseline/trace/release evidence: `docs/evidence/CB-040/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/CB-030/VALIDATION_REPORT.md`
+  `docs/evidence/CB-040/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -125,6 +148,17 @@ executed. Development continues under AC-056 without claiming real activation.
 - WeChat/Codex simulator contract: 4/4 tests passed; loopback-only enforcement
   and post-test process cleanup passed.
 - Existing application: check passed; 155/155 tests passed.
+- CB-040 repository validator: 10/10 deterministic requirements located,
+  25/25 future tasks mapped, unresolved Canonical Facts conflicts=0 and remote
+  writes=0.
+- Exact Feature Flag sets/defaults match across architecture, verification and
+  `cyberboss.env.example`; all nine stale aliases/non-runtime switches have
+  zero active hits.
+- DAG=30/6 pass; traceability=53/53 pass; no-wait has zero real-time soak,
+  credential-wait and fixed-sleep hits; TaskPack=81 files and confirms the
+  seven control files are a minimum, not a limit.
+- Accelerated reliability: 1,000 replays, 100 restarts, 100 send faults and 20
+  restore cycles passed with zero duplicate execution/reply or restore mismatch.
 - Clean missing-auth fixture returns both real adapters
   `activation_pending` and continues without a wait node.
 - Local and authorized OVH probes emitted only redacted metadata; credential
@@ -133,8 +167,8 @@ executed. Development continues under AC-056 without claiming real activation.
   seven protected known-secret values; known/pattern hits=0, P0/P1=0, no
   values emitted. Its prior literal word-boundary false-negative defect was
   fixed and every one of seven pattern families now has a hostile fixture.
-- TaskPack, DAG, traceability, no-wait, scope/config, manifests, Prestage and
-  `validate_cb030.py`: passed with `task_state=passed`.
+- TaskPack, DAG, traceability, no-wait, scope/config, manifests, Prestage,
+  CB-000 and CB-040 validation passed with `task_state=passed`.
 - Historical CB-020 validation passed from its exact P0.3 commit on a
   temporary compliant local branch; the detached-HEAD attempt failed only the
   expected branch-scope gate, and both temporary worktree/branch were removed.
@@ -155,23 +189,15 @@ executed. Development continues under AC-056 without claiming real activation.
 
 ## Next Run
 
-Start exactly one phase: `P0.5 / CB-040`.
+Execute exactly the independent Stage 0 exit Gate: `PG-0`. Do not combine it
+with `P1.1 / CB-100`.
 
-Before modifying files, create
-`docs/governance/RUN_CONTRACT_P0_5_CB_040.md` from the canonical DAG and read
-AC-068, AC-056 and AC-070. Keep CB-000/010/020/030 evidence immutable.
+The Gate must independently prove that pinned sources/licenses, current
+architecture, simulators, live-measurement script, activation sheet,
+implementation baseline and no-wait policy validate. Repository preparation
+must pass without a credential. Keep CB-000–CB-040 evidence immutable; create a
+PG-0 Run Contract/evidence/validator and update only the gate state.
 
-Required outcome:
-
-1. freeze the implementation baseline and reuse-vs-change plan from the
-   canonical DAG and fixed-source evidence;
-2. map every planned implementation change to an exact module, test,
-   acceptance criterion and release artifact;
-3. prove source/DAG/TaskPack/traceability parity without starting S1 code;
-4. record the local baseline commit SHA and the immutable release/build plan;
-5. produce `implementation-baseline.md`, DAG validation output and local
-   baseline-commit evidence.
-
-Stop on any Canonical Facts contradiction that affects dependent
-implementation; unrelated evidence work may continue. Do not execute P1.1,
-push, create a PR/tag/release or deploy the CyberBoss Runtime in the P0.5 Run.
+If PG-0 passes, stop with the next node still `P1.1 / CB-100 not_started`.
+Do not push, create a PR/tag/release, deploy CyberBoss or perform real provider
+writes in the PG-0 Run.

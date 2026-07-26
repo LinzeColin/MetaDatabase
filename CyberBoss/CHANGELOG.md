@@ -1,5 +1,30 @@
 # Changelog
 
+## P0.5 / CB-040 — 2026-07-26
+
+- Froze one value-free implementation baseline for the MetaDatabase/CyberBoss
+  repository, OVH paths/services/ports, workspace, Private-MetaDatabase
+  no-clone identity, Cloudflare domain and R2/OCI bucket-prefix boundaries.
+- Resolved nine stale Feature Flag aliases/non-runtime switches by aligning
+  four product documents to the exact validated implementation-kit names;
+  defaults, Acceptance, Task DAG and source code were unchanged.
+- Preserved the AGPL-3.0-only subtree and strict
+  `GPL-3.0-only AND AGPL-3.0-only` whereabouts obligations, original source/
+  licenses/conflict record and `upstream_clarification_received=false`.
+- Mapped all 25 remaining tasks to exact existing/planned modules, tests,
+  Acceptance criteria, evidence directories and immutable release artifacts
+  without starting S1 implementation.
+- Deterministically sampled 10 of 53 requirements from the P0.4 commit SHA;
+  all ten locate Requirement → Acceptance → Task → Test → Evidence → Release.
+- Recorded local baseline commit
+  `8a75b55e92071bb33f1cae5872feca55ade1c858`, its parent/tree/path inventory
+  and direct evidence that no CyberBoss remote branch, open PR or tag exists.
+- Revalidated CB-000, Prestage, manifests, scope/config, DAG, traceability,
+  no-wait, adapters, simulators, resource/SQLite reliability and all 155 App
+  tests. Unresolved Canonical Facts conflicts and remote writes are zero.
+- Marked CB-040 `passed` with decision `GO_TO_PG-0`; PG-0, all later tasks,
+  push/PR/tag/release/deployment and real provider activation remain unstarted.
+
 ## P0.4 / CB-030 — 2026-07-26
 
 - Ran the supplied WeChat simulator successfully and reproduced the supplied

@@ -4,15 +4,16 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 ## 当前状态
 
-- 生命周期：Stage 0（Prestage 0 已通过）
+- 生命周期：Stage 0 已完成，等待独立 `PG-0`
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
-  `P0.3 / CB-020`；`P0.4 / CB-030`
+  `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P0.4 / CB-030` 已通过；WeChat/Codex simulator 全故障矩阵、
-  合并认证/重登录清单、脱敏本机/OVH auth probe 与 fixture 截图齐全
-- Stage 0–5 任务状态：`CB-000`、`CB-010`、`CB-020`、`CB-030` 已通过；其余 26 项与
+- 最新 Run：`P0.5 / CB-040` 已通过；唯一非秘密 environment substitutions、
+  25 个后续任务的实现/测试/证据/发布映射、确定性 10 项追溯审计、immutable
+  release/rollback plan 与本地 baseline commit SHA 均已冻结
+- Stage 0–5 任务状态：`CB-000`–`CB-040` 五项 Stage 0 任务已通过；其余 25 项与
   PG-0–PG-5 均为 `not_started`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -61,6 +62,17 @@ state，真实 Codex/WeChat 与 AC-001/AC-010 均准确保持
 `activation_pending`。安全复核同时修正既有 secret scanner 的字面
 word-boundary 漏报，并用 7 类 hostile fixture 逐项验证；不阻塞下一 Run
 `P0.5 / CB-040`。
+
+P0.5 交叉核验 owner decisions、source lock、identity/credential policy、
+OVH 实机边界和完整 TaskPack，消解旧 Feature Flag 别名后，将运行时名称唯一
+对齐到 implementation-kit 已校验配置；没有改变功能默认值、Acceptance 或
+Task DAG。`implementation-plan.json` 将 `CB-100`–`CB-540` 全部 25 个后续
+任务映射到具体模块、测试、Acceptance、证据和 immutable release artifact。
+确定性 SHA-256 抽取的 10 个 requirement 均能定位完整链，no-wait hits=0。
+本地 baseline commit
+`8a75b55e92071bb33f1cae5872feca55ade1c858` 未推送，远端 branch/PR/tag
+核验均为空。真实 Codex、WeChat、Private-MetaDatabase 与 provider 写入继续
+保持 `activation_pending`/`hazard_blocked`，下一 Run 只能执行 `PG-0`。
 
 ## 许可证
 
