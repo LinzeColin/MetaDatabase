@@ -4,19 +4,21 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 ## 当前状态
 
-- 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 的
-  `P1.1 / CB-100`、`P1.2 / CB-110`、`P1.3 / CB-120` 已通过
+- 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 的五项任务
+  `CB-100`–`CB-140` 已通过，独立退出门 `PG-1` 尚未执行
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
-  `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`
-- 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
+  `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
+  `P1.4 / CB-130`；`P1.5 / CB-140`
+- 当前基线：五个精确 implementation/release commit 的本地 source bundle、
+  完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P1.3 / CB-120` 已在同一目标安装 exact-commit candidate、
-  唯一 `cyberboss` sparse workspace、root 控制的 registry、code/data
-  身份隔离及 exact no-clone client；两次 apply 与 verify 通过，数据和
-  Runtime 仍为 `activation_pending`，`current`/service/公网 route 未变
-- Stage 0–5 任务状态：`CB-000`–`CB-120` 共八项任务已通过；其余 22 项与
+- 最新 Run：`P1.5 / CB-140` 已在同一目标完成 exact-commit candidate、
+  两次 apply、verify、175/175 测试、10/10 simulator E2E、20/20 延迟、
+  输入门与 Mac-offline/loopback 验收；真实 Codex/WeChat 仍为
+  `activation_pending`，`current`/workspace/service/公网 route 未变
+- Stage 0–5 任务状态：`CB-000`–`CB-140` 共十项任务已通过；其余 20 项与
   PG-1–PG-5 均为 `not_started`；`PG-0=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -156,8 +158,29 @@ runtime/channel/bridge/service 4/4 fault recovery 全部通过，每次恢复均
 最终 service 为 disabled/inactive，MainPID、process、listener、transient
 drop-in、token、incoming 均为 0；`current` 仍指向 CB-100，workspace 仍在
 CB-120。真实 Codex/WeChat 仍准确保持 `activation_pending`，没有
-Private-MetaDatabase/provider 写入或 GitHub publication。下一任务
-`P1.5 / CB-140` 仍为 `not_started`。
+Private-MetaDatabase/provider 写入或 GitHub publication。该 Run 当时只将
+`P1.5 / CB-140` 留作下一任务。
+
+P1.5 / CB-140 以本地 implementation commit
+`571438751638a01c4648ff4fdf27403a97a971c3` 固定完整 Corresponding
+Source、pre-Runtime sender/32768-byte 输入门和 opt-in 脱敏关联 trace。
+目标机 check、两次 apply、独立 verify 与 App 175/175 tests 通过；第二次
+apply 幂等，candidate 只读且未切换 `current`。
+
+瞬时 simulator process family 完成 10/10 read-only E2E，194 条记录以 34
+个 trace ID 关联 inbound、Runtime、outbox、confirmed delivery 和 canonical
+event，原始消息/结果/身份字段为 0。未授权与 32769-byte 输入均在 Runtime
+前拒绝且 Runtime 调用为 0；32768-byte 输入调用为 1。20/20 延迟样本为
+P50 372 ms、P95 378 ms。运行源/config/process/connector 的 Mac 命中和
+non-loopback 连接均为 0，操作者主机连续三次确认 8765/8780/19080 不可达。
+
+浏览器安全策略禁止本地 `file://` 抓屏且禁止绕过，因此 PNG 证据使用已验收
+fixture 固定字符串做确定性静态渲染，并在画面与说明中明确标注
+`NOT REAL WECHAT`、`NOT A BROWSER CAPTURE`。真实 Codex/WeChat 和
+AC-001/AC-010 real 仍为 `activation_pending`。证据取回后 staging/env/
+incoming 均已删除，service disabled/inactive、process/listener 为 0，
+`current` 仍在 CB-100、workspace 仍在 CB-120。`PG-1` 未在本 Run 执行；
+下一独立 Run 是 `PG-1`，`CB-200` 仍为 `not_started`。
 
 ## 许可证
 

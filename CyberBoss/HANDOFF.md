@@ -5,15 +5,16 @@
 - Worktree:
   `/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-cyberboss`
 - Local branch: `codex/cyberboss-prestage0`
-- Run base: `9e1c128aa3890f7c0ea0e69000fdb46e32a4bb00`
+- Run base: `20405812e4ebfc51d59093b5916dd624317309a7`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
-exit gate `PG-0`, and `P1.1 / CB-100` through `P1.4 / CB-130` passed.
-Stage 0 is 5/5 tasks plus its gate complete; Stage 1 is 4/5 tasks complete.
-The 21 tasks from CB-140 onward and PG-1–PG-5 remain `not_started`.
+exit gate `PG-0`, and `P1.1 / CB-100` through `P1.5 / CB-140` passed.
+Stage 0 is 5/5 tasks plus its gate complete; Stage 1 is 5/5 tasks complete,
+but its independent exit gate `PG-1` has not run. The 20 tasks from CB-200
+onward and PG-1–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -277,6 +278,46 @@ Private-MetaDatabase operation occurred. Original source/licenses and the
 strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved, and
 no upstream clarification is claimed.
 
+CB-140 fixed the all-cloud Walking Skeleton to local implementation commit:
+
+```text
+implementation/release = 571438751638a01c4648ff4fdf27403a97a971c3
+simulator E2E = 10/10
+input boundary = 32768 accepted / 32769 rejected before Runtime
+idle latency = 20/20 / P50 372 ms / P95 378 ms
+trace evidence = 194 records / 34 trace IDs / raw private fields 0
+Mac/runtime dependency hits = 0
+real Codex = activation_pending
+real WeChat = activation_pending
+publication = none
+```
+
+The exact three-file artifact set contains complete Corresponding Source,
+manifest and checksums. Target check, two applies and an independent verify
+passed; the first apply ran 175/175 App tests and the second was idempotent.
+The immutable candidate remains inactive while `current` stays on CB-100 and
+the controlled workspace remains clean at CB-120.
+
+Ten read-only simulator round trips each reached confirmed channel delivery
+and one canonical event. Unauthorized input and 32769 bytes caused zero Runtime
+calls; exactly 32768 bytes caused one. Operational source/config, cgroup
+process arguments, connections and listener scope had zero Mac dependency.
+The operator-host scan proved SSH reachability and found 8765/8780/19080
+unreachable in three attempts each.
+
+Six correction classes are preserved: stale integrity manifests, unavailable
+local locale, obsolete login-reference selection, SFTP parent traversal,
+unsupported `gh release list` field and browser local-file URL blocking. The
+PNG evidence is explicitly a deterministic static fixture render, not a
+browser capture or real WeChat screenshot.
+
+Final target state is disabled/inactive with process/listener/drop-in/token/
+raw-trace/staging/env/incoming counts zero. The exact CB-140 candidate is
+retained inactive and recoverable; no real credential, provider or
+Private-MetaDatabase operation occurred. Original source/licenses and the
+strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
+`upstream_clarification_received=false`.
+
 ## Canonical inputs and evidence
 
 - Product design: `docs/product_design/v0.0.0.4/`
@@ -286,7 +327,7 @@ no upstream clarification is claimed.
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P1_4_CB_130.md`
+  `docs/governance/RUN_CONTRACT_P1_5_CB_140.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
@@ -298,9 +339,11 @@ no upstream clarification is claimed.
 - CB-120 controlled-workspace/no-clone evidence: `docs/evidence/CB-120/`
 - CB-130 supervised loopback process-family evidence:
   `docs/evidence/CB-130/`
+- CB-140 all-cloud Walking Skeleton evidence:
+  `docs/evidence/CB-140/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/CB-130/VALIDATION_REPORT.md`
+  `docs/evidence/CB-140/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -397,6 +440,19 @@ no upstream clarification is claimed.
   unchanged and real adapters `activation_pending`.
 - CB-130 decision: `PASS`; CB-140, all 20 later tasks and PG-1–PG-5 remain
   `not_started`.
+- CB-140 artifact build, target write-free check, two applies and independent
+  verify passed; target App regression is 175/175.
+- CB-140 simulator E2E 10/10, input-policy Runtime deltas 0/1/0, latency
+  20/20 at P50 372 ms/P95 378 ms, 194 redacted trace records and 34 trace IDs
+  passed.
+- CB-140 Mac-offline/loopback proof passed with zero Mac/runtime dependency,
+  zero non-loopback connection and three externally unreachable service ports.
+- CB-140 final state: exact candidate immutable/inactive, service
+  disabled/inactive, process/listener/drop-in/token/raw-trace/staging/env/
+  incoming zero, current/workspace unchanged and real adapters
+  `activation_pending`.
+- CB-140 decision: `PASS`; PG-1 was not executed. CB-200, all 19 later tasks
+  and PG-1–PG-5 remain `not_started`.
 
 ## Known unknowns
 
@@ -405,7 +461,7 @@ no upstream clarification is claimed.
   fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
   object or authenticated CyberBoss business Runtime was created or modified
-  through CB-130.
+  through CB-140.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
@@ -418,13 +474,14 @@ no upstream clarification is claimed.
 
 ## Next Run
 
-The next eligible Run is exactly `P1.5 / CB-140`. It remains `not_started`.
-CB-130 does not authorize switching `current`, Codex/WeChat authentication,
-real provider/data activation or `PG-1`.
+The next eligible Run is exactly the independent Stage 1 exit gate `PG-1`.
+It remains `not_started`. CB-140 does not authorize switching `current`,
+Codex/WeChat authentication, real provider/data activation or starting
+`P2.1 / CB-200` inside this Run.
 
-Start it only under a new single-phase Run Contract. Keep source/license and
-CB-000–CB-130/PG-0 evidence immutable, preserve the strict dual-license
+Start `PG-1` only under a new single-gate Run Contract. Keep source/license and
+CB-000–CB-140/PG-0 evidence immutable, preserve the strict dual-license
 conflict record, and continue the final-only GitHub publication rule. Do not
-combine `P1.5` with `PG-1`, expose Runtime publicly or perform a real
+combine `PG-1` with `CB-200`, expose Runtime publicly or perform a real
 provider/data write unless the new Run Contract and exact Acceptance authorize
 it.

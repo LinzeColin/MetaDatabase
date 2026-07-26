@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-140",
+  "release_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+  "target_id_sha256": "7865f743d174",
+  "runtime_listener": "127.0.0.1:8765",
+  "status_listener": "127.0.0.1:8780",
+  "channel_fixture_listener": "127.0.0.1:19080",
+  "non_loopback_listener_count": 0,
+  "operator_external_scan": "passed",
+  "operator_scan_baseline_ssh_reachable": true,
+  "operator_scan_attempts_per_port": 3,
+  "operator_scan_port_8765_reachable": false,
+  "operator_scan_port_8780_reachable": false,
+  "operator_scan_port_19080_reachable": false,
+  "target_address_persisted": false,
+  "result": "passed"
+}

@@ -1,5 +1,36 @@
 # Changelog
 
+## P1.5 / CB-140 — 2026-07-27
+
+- Bound the all-cloud Walking Skeleton and complete Corresponding Source to
+  local implementation commit
+  `571438751638a01c4648ff4fdf27403a97a971c3`; target check, two applies,
+  independent verify and target App tests 175/175 passed.
+- Added a pre-Runtime exact sender allowlist and UTF-8 byte gate. Unauthorized
+  input and 32769 bytes caused zero Runtime calls; 32768 bytes caused exactly
+  one.
+- Correlated ten successful simulator E2E traces across inbound, Runtime,
+  outbox, confirmed delivery and canonical event. Final redacted evidence has
+  194 records, 34 trace IDs and no raw private-content or identity field.
+- Passed 20/20 idle latency samples at P50 372 ms and P95 378 ms.
+- Proved zero operational Mac source/config/process/connector dependency, zero
+  non-loopback Runtime connection and three loopback-only listeners. Operator
+  scans found 8765/8780/19080 externally unreachable three times each.
+- Preserved the stale-manifest, locale, login-identity, SCP-permission,
+  unsupported-CLI-field and browser-file-policy corrections with their exact
+  no-mutation/cleanup outcomes.
+- Produced a visibly simulator-labelled deterministic PNG evidence render;
+  disclosed that browser security blocked direct local-file capture and that
+  the PNG is not a browser capture or real WeChat evidence.
+- Removed target staging, staging env and incoming artifacts after evidence
+  retrieval. Left the exact candidate inactive, `current` on CB-100, workspace
+  on CB-120 and service disabled/inactive with zero process/listener.
+- Preserved original source/licenses and the unresolved strict
+  `AGPL-3.0-only AND GPL-3.0-only` conflict record without claiming upstream
+  clarification.
+- Marked only CB-140 passed. PG-1, CB-200 and all later tasks/gates remain
+  `not_started`; GitHub branch/PR/tag/release/publication remains empty.
+
 ## P1.4 / CB-130 — 2026-07-27
 
 - Bound the loopback cloud process family and complete Corresponding Source to

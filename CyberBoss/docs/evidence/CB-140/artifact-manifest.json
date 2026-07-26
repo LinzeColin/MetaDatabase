@@ -1,0 +1,47 @@
+{
+  "branch": "codex/cyberboss-prestage0",
+  "cyberboss_tree": "0218bf497e62a55958b880b18d58ee2847193336",
+  "deployment": {
+    "activate_real_credentials": false,
+    "candidate_only": true,
+    "clone_private_database": false,
+    "enable_service": false,
+    "remote_publication": "none",
+    "switch_current": false
+  },
+  "phase": "P1.5",
+  "process_family": {
+    "configuration_only_provider_switch": true,
+    "detached_children": false,
+    "kill_mode": "control-group",
+    "runtime_endpoint": "ws://127.0.0.1:8765",
+    "simulator_when_auth_pending": true,
+    "status_endpoint": "http://127.0.0.1:8780",
+    "systemd_unit": "cyberboss-cloud.service"
+  },
+  "release_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+  "repository": "LinzeColin/MetaDatabase",
+  "repository_tree": "e7917f0e09e1611d268da973d09af0dd71763a7f",
+  "schema_version": 1,
+  "source": {
+    "archive": "cyberboss-source-571438751638a01c4648ff4fdf27403a97a971c3.tar.gz",
+    "conflict_record": "docs/evidence/CB-000/LICENSE_COMPLIANCE.md",
+    "corresponding_source_complete": true,
+    "license_expression": "AGPL-3.0-only AND GPL-3.0-only",
+    "modification_record": "machine/facts/post-baseline-change-ledger.json",
+    "original_licenses_preserved": true,
+    "sha256": "cf7ba51296e501b3482d0300064f7290f267a18cfca79b1401cbef5d154a4dde",
+    "upstream_clarification_received": false
+  },
+  "task_id": "CB-140",
+  "walking_skeleton": {
+    "latency_samples_expected": 20,
+    "mac_dependency_allowed": false,
+    "max_input_bytes": 32768,
+    "pg_1_executed": false,
+    "real_adapters": "activation_pending",
+    "simulator_e2e_expected": 10,
+    "stage_2_spool_claimed": false,
+    "trace_raw_content_allowed": false
+  }
+}

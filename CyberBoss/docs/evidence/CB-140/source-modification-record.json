@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-140",
+  "phase": "P1.5",
+  "base_commit": "20405812e4ebfc51d59093b5916dd624317309a7",
+  "implementation_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+  "implementation_path_count": 26,
+  "changed_app_paths": [
+    "CyberBoss/app/package.json",
+    "CyberBoss/app/scripts/cloud-supervisor.js",
+    "CyberBoss/app/src/adapters/channel/weixin/index.js",
+    "CyberBoss/app/src/adapters/channel/weixin/message-utils.js",
+    "CyberBoss/app/src/core/app.js",
+    "CyberBoss/app/src/core/config.js",
+    "CyberBoss/app/src/core/inbound-turn.js",
+    "CyberBoss/app/src/core/stream-delivery.js",
+    "CyberBoss/app/src/core/walking-skeleton-trace.js",
+    "CyberBoss/app/test/cloud-walking-skeleton-live.test.js",
+    "CyberBoss/app/test/cloud-walking-skeleton.test.js"
+  ],
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_source_and_licenses_preserved": true,
+  "corresponding_source_complete": true,
+  "conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "upstream_sync_enabled": false,
+  "upstream_support_claimed": false,
+  "upstream_endorsement_claimed": false,
+  "vendor_original_paths_changed": [],
+  "historical_evidence_paths_changed": [],
+  "remote_publication": "none"
+}
