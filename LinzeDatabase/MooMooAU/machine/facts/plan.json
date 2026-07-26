@@ -1,6 +1,6 @@
 {
   "stage": "RMD-06 T0705 九个 GA 失败头已冻结，canonical Git Blob recovery 已授权待运行",
-  "phase": "T0705 十个 protected 失败头与两个 pre-Secret 失败头已冻结；仅允许 deterministic historical-clock successor exact-main attempt 1，无需等待真实 04:30",
-  "task": "交付 v1.0.31 deterministic historical-clock exact-main successor、用固定历史时钟即时执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用真实时钟的 04:30 Australia/Sydney schedule，并停在 T0706 前",
+  "phase": "T0705 十一个 protected 失败头与两个 pre-Secret 失败头已冻结；仅允许 security-clock-decoupling successor exact-main attempt 1，live UTC 安全认证且无需等待真实 04:30",
+  "task": "交付 v1.0.32 security/schedule split-clock exact-main successor、用 live UTC 安全时钟与固定历史 RunPlanner 时钟即时执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用 live UTC 的 04:30 Australia/Sydney schedule，并停在 T0706 前",
   "owner": "Codex 开发线程"
 }

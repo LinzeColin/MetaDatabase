@@ -137,6 +137,7 @@ def validate(
         'test "$GITHUB_SHA" != "26949ab5031a21b0c515c282c9ef06ff9417e058"',
         'test "$GITHUB_SHA" != "9c79b92bcdf8b027727963dfe52bd183a170954c"',
         'test "$GITHUB_SHA" != "27886f54a30a12ca7992a908e97340d1d8234430"',
+        'test "$GITHUB_SHA" != "c2c057b449fe1cbbd470867c274833242e3f139d"',
     )
     contract_secret_names = contract.get("secret_names")
     actual_secret_names = re.findall(

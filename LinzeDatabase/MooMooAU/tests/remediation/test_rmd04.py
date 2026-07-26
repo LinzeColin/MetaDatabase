@@ -4,7 +4,7 @@ import base64
 import hashlib
 import json
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -354,6 +354,7 @@ def _production_context(
     block_predecessor: bool = False,
     refresh_capacity_from_remote: bool = False,
     safe_deferred_registries: bool = False,
+    schedule_clock: Callable[[], datetime] | None = None,
 ) -> Iterator[ProductionSyntheticContext]:
     now = datetime(2026, 7, 22, 1, tzinfo=UTC)
     repository_id = 7_200_104
@@ -472,6 +473,7 @@ def _production_context(
             github_transport=github,
             approved_tmpfs_root=Path(temporary.name),
             clock=lambda: now,
+            schedule_clock=schedule_clock,
             allow_synthetic_ephemeral_root=True,
             refresh_capacity_from_remote=refresh_capacity_from_remote,
         )
@@ -587,6 +589,29 @@ def test_rmd04_production_composition_recovers_before_exact_trash_and_keeps_one_
         assert context.source.all_issued_destroyed is True
 
 
+def test_rmd04_historical_schedule_clock_never_signs_security_credentials() -> None:
+    schedule_now = datetime(2026, 7, 22, 13, tzinfo=UTC)
+    with _production_context(schedule_clock=lambda: schedule_now) as context:
+        with context.bootstrap.open() as runtime:
+            result = runtime.run(RunTrigger.SCHEDULE)
+
+        token_request = next(
+            request
+            for request in context.github.requests
+            if urlsplit(request.url).path.endswith("/access_tokens")
+        )
+        authorization = dict(token_request.headers)["Authorization"]
+        encoded_claims = authorization.removeprefix("Bearer ").split(".")[1]
+        encoded_claims += "=" * (-len(encoded_claims) % 4)
+        claims = json.loads(base64.urlsafe_b64decode(encoded_claims))
+
+        assert result.plan.started_at_utc == schedule_now
+        assert result.plan.schedule_delay_minutes == 1110
+        assert claims["iat"] == int((context.now - timedelta(seconds=60)).timestamp())
+        assert claims["exp"] == int((context.now + timedelta(minutes=9)).timestamp())
+        assert context.source.all_issued_destroyed is True
+
+
 def test_rmd04_blocked_predecessor_stops_before_any_credential_exchange_or_remote_call() -> None:
     with _production_context(block_predecessor=True) as context:
         with pytest.raises(ProductionBootstrapError, match="predecessor"):
@@ -666,7 +691,21 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.31":
+    if status["package_version"] == "1.0.32":
+        assert status["dimensions"]["protected_oracles"] == {
+            "status": "FAILED",
+            "declared": 43,
+            "executed": 5,
+            "passed": 4,
+            "failed": 1,
+            "not_run": 38,
+        }
+        assert status["dimensions"]["publication"] == {
+            "status": "CONTROLLED_T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_CANDIDATE_NOT_FINAL",
+            "controlled_main_deliveries": 30,
+            "remote_publications": 0,
+        }
+    elif status["package_version"] == "1.0.31":
         assert status["dimensions"]["protected_oracles"] == {
             "status": "FAILED",
             "declared": 43,

@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_DETERMINISTIC_HISTORICAL_CLOCK_RECOVERY_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_SECURITY_CLOCK_DECOUPLING_RECOVERY_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T14:24:31Z",
-  "baseline_commit": "27886f54a30a12ca7992a908e97340d1d8234430",
+  "observed_at_utc": "2026-07-26T15:14:43Z",
+  "baseline_commit": "c2c057b449fe1cbbd470867c274833242e3f139d",
   "record_status": "BLOCKED",
-  "scope": "PROTECTED_TEN_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES_AND_DETERMINISTIC_HISTORICAL_CLOCK_RECOVERY_PREFLIGHT",
+  "scope": "PROTECTED_ELEVEN_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES_AND_SECURITY_CLOCK_DECOUPLING_RECOVERY_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -136,9 +136,19 @@
       "evidence_ref": "machine/stages/S7/reviews/t0705/schedule-planning-clock-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-schedule-planning-attempt-ledger-v1.schema.json"
     },
     {
+      "id": "authentication_clock_coupling_head_frozen_before_repository_or_gmail",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S7/reviews/t0705/authentication-clock-coupling-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-authentication-clock-attempt-ledger-v1.schema.json"
+    },
+    {
       "id": "schedule_rehearsal_uses_deterministic_historical_clock_after_target",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_rehearsal_clock_is_deterministic_historical_replay_after_target"
+    },
+    {
+      "id": "historical_schedule_clock_cannot_sign_security_credentials",
+      "status": "PASS",
+      "evidence_ref": "tests/remediation/test_rmd04.py::test_rmd04_historical_schedule_clock_never_signs_security_credentials"
     },
     {
       "id": "processed_current_uses_metadata_addressed_canonical_git_blob",
@@ -200,34 +210,34 @@
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds each current pointer to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All ten protected attempts failed and no T0705 PASS receipt exists; the formatter and authority-context rejections both occurred before protected Secret or data-plane access. The tenth protected attempt reached only schedule planning and made zero Gmail calls or mutations."
+      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds each current pointer to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All eleven protected attempts failed and no T0705 PASS receipt exists; the formatter and authority-context rejections both occurred before protected Secret or data-plane access. The eleventh protected attempt stopped at GitHub App authentication before repository resolution or Gmail OAuth, with zero private-repository calls, Gmail calls or mutations."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads and the wall-clock schedule-planning head are frozen separately; one deterministic historical-clock successor may run once without waiting for wall time while every failed head remains non-rerunnable."
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads, the wall-clock schedule-planning head and the authentication-clock-coupling head are frozen separately; one split-clock successor may run once with live UTC security time and a deterministic RunPlanner fixture while every failed head remains non-rerunnable."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "All ten protected GA attempts emitted aggregate-safe failure only; the candidate preflight and authority-context failures never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published."
+      "reason": "All eleven protected GA attempts emitted aggregate-safe failure only; the candidate preflight and authority-context failures never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published."
     },
     {
       "id": "AC-032",
       "status": "PARTIAL",
-      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus metadata quarantine, persisted label replay, closed phase diagnostics, idempotent backlog replay and deterministic historical schedule planning pass; protected GA recovery remains pending."
+      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus metadata quarantine, persisted label replay, closed phase diagnostics, idempotent backlog replay and split live-security/historical-planner time pass; protected GA recovery remains pending."
     }
   ],
   "production_oracles": [
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
       "status": "FAILED",
-      "reason": "The first nine protected exact-main attempts failed and are frozen. A later candidate failed Ruff format validation before protected Environment entry; its format-only successor failed before checkout because an Environment-scoped variable was unavailable to the pre-Environment authority job. The repository-scoped successor passed authority and protected bootstrap, then failed deterministically in schedule planning because wall time preceded the same-day 04:30 target. The tenth protected head and both pre-Secret heads are frozen; one deterministic historical-clock successor is authorized."
+      "reason": "The first nine protected exact-main attempts failed and are frozen. A later candidate failed Ruff format validation before protected Environment entry; its successor failed before checkout because an Environment-scoped variable was unavailable to the pre-Environment authority job. The repository-scoped successor failed in schedule planning before the same-day target; its deterministic-clock successor then reused that historical clock for GitHub App JWT signing and was rejected before repository resolution or Gmail OAuth. All eleven protected heads and both pre-Secret heads are frozen; one live-security/historical-planner split-clock successor is authorized."
     }
   ],
   "blockers": [
-    "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN",
-    "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING",
+    "T0705_ELEVEN_PROTECTED_FAILED_HEADS_FROZEN",
+    "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING",
     "T0705_PROTECTED_RECEIPT_NOT_BOUND",
     "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
   ],
@@ -253,5 +263,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Freeze the wall-clock schedule-planning failed head, deliver one exact-main T0705 deterministic historical-replay clock successor, and execute exactly one new attempt-1 schedule-mode rehearsal without waiting for 04:30. Never rerun or redispatch any failed protected, preflight, authority-context or schedule-planning head. Set the one-shot repository variable only after the exact merge head exists, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live 04:30 Australia/Sydney schedule and stop before T0706."
+  "next_action": "Freeze the authentication-clock-coupling failed head, deliver one exact-main T0705 split-clock successor, and execute exactly one new attempt-1 schedule-mode rehearsal: live UTC for security/authentication and 2026-07-26T13:00:00Z only for RunPlanner. Never rerun or redispatch any failed head. Set the one-shot repository variable only after merge, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706."
 }

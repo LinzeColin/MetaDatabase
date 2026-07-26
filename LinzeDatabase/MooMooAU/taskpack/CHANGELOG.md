@@ -1,5 +1,19 @@
 # Taskpack Changelog
 
+## 1.0.32 — 2026-07-26
+
+固化 v1.0.31 exact-main protected attempt 的 `GITHUB_APP_TOKEN` 认证拒绝。candidate validation、
+repository-scope one-shot authority 与 protected Environment 已通过；固定历史 planning clock
+被错误复用为安全凭证时钟，使 App JWT 相对真实 job 时间已过期。repository resolution、
+Gmail OAuth、私有仓/Gmail 调用及全部 mutation 均为 0；cleanup PASS、一次性变量已删除，失败
+head 永久禁止 rerun/redispatch。
+
+v1.0.32 不改变数据面，只将认证、token、OAuth、容量与证据时间绑定到 live UTC，并把
+`2026-07-26T13:00:00Z` 历史 fixture 限制在 workflow_dispatch rehearsal 的
+`RunPlanner(SCHEDULE)`。Fault injection 解码 JWT claims，证明安全时间不再受 planning fixture
+影响；Fake Clock、Fixture 和历史回放即时覆盖时间分支，不设置 Soak、观察期、等待窗口、人工审批
+或全量测试前置。只授权一个新 exact-main attempt 1，T0706 与最终发布仍禁止。
+
 ## 1.0.31 — 2026-07-26
 
 固化 v1.0.30 exact-main protected attempt 的 `SCHEDULE_PLANNING` 失败。candidate validation、

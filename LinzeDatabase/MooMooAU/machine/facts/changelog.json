@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.32",
+    "date": "2026-07-26",
+    "summary": "固化 v1.0.31 exact-main protected attempt 的 GitHub App authentication 失败：authority 与 candidate validation 通过并进入 protected Environment，但历史 RunPlanner 时钟误用于 GitHub App JWT，认证在 repository resolution 与 Gmail OAuth 前被拒绝；私库调用、Gmail 调用、完整 Raw 读取及全部 mutation 均为零，一次性变量已删除。失败 head 禁止 rerun/redispatch。v1.0.32 将安全、认证、OAuth、容量与证据时间固定为 live UTC，仅向 RunPlanner 注入已知数据效果之后的 2026-07-26T13:00:00Z 历史 Fixture；故障注入证明 Fixture 不进入 JWT。不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
+  },
+  {
     "version": "1.0.31",
     "date": "2026-07-26",
     "summary": "固化 v1.0.30 exact-main protected attempt 的 SCHEDULE_PLANNING 失败：candidate validation、repository-scope one-shot authority、protected Environment、精确 App repository scope、Gmail OAuth 与加密 checkpoint 恢复均通过；公开时间戳与固定 RunPlanner 分支证明真实墙钟尚未到同日 04:30 Australia/Sydney，Gmail API 调用、完整 Raw 读取及全部 mutation 均为零，一次性变量已删除。失败 head 禁止 rerun/redispatch。v1.0.31 只在 workflow_dispatch rehearsal 注入 2026-07-26T01:00:00Z 历史固定时钟，复用同一 SCHEDULE planner 即时验证；live schedule 保留真实时钟。不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"

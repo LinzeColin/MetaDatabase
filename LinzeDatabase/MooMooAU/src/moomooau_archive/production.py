@@ -233,7 +233,7 @@ class ProductionRuntime:
     _sync_checkpoint: EncryptedGmailSyncCheckpoint
     _operational_gate: OperationalGate
     _config: ProductionConfig
-    _clock: Callable[[], datetime]
+    _schedule_clock: Callable[[], datetime]
     _gmail_token: GmailAccessToken
     _installation_token: InstallationToken
     _opaque_key: SecretBytes
@@ -257,7 +257,7 @@ class ProductionRuntime:
             raise ProductionBootstrapError("production runtime is closed or already used")
         self._run_started = True
         try:
-            now = _require_utc(self._clock())
+            now = _require_utc(self._schedule_clock())
             self._operational_gate.authorize(SensitiveOperation.PRODUCTION_RUN)
             self._diagnostics.enter(ProtectedGAFailurePhase.SCHEDULE_CHECKPOINT_RECOVERY)
             recovered = self._operational_gate.execute(
@@ -328,6 +328,7 @@ class ProductionBootstrap:
         approved_tmpfs_root: Path = Path("/dev/shm"),
         age: OfficialAgeStream | None = None,
         clock: Callable[[], datetime] | None = None,
+        schedule_clock: Callable[[], datetime] | None = None,
         allow_synthetic_ephemeral_root: bool = False,
         refresh_capacity_from_remote: bool = False,
         diagnostics: ProtectedGADiagnostics | None = None,
@@ -344,6 +345,7 @@ class ProductionBootstrap:
         self._approved_tmpfs_root = approved_tmpfs_root
         self._age = age or OfficialAgeStream()
         self._clock = clock or (lambda: datetime.now(UTC))
+        self._schedule_clock = schedule_clock or self._clock
         self._allow_synthetic_ephemeral_root = allow_synthetic_ephemeral_root
         self._refresh_capacity_from_remote = refresh_capacity_from_remote
         self._diagnostics = diagnostics or ProtectedGADiagnostics()
@@ -559,7 +561,7 @@ class ProductionBootstrap:
                 checkpoint,
                 operational_gate,
                 config,
-                self._clock,
+                self._schedule_clock,
                 gmail_token,
                 installation_token,
                 opaque_key,

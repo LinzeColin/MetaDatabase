@@ -2,19 +2,18 @@
 
 Implementation target: `LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU`.
 
-当前控制包为 `1.0.31`。它直接继承不可变 v1.0.30，不改变 v1.0.1 冻结的产品目标、
+当前控制包为 `1.0.32`。它直接继承不可变 v1.0.31，不改变 v1.0.1 冻结的产品目标、
 34 条需求、34 个最终验收、58-task DAG、追踪矩阵、Kill Criteria 或十条不变量。
 
 唯一当前跨维度状态入口是 `machine/status/latest.json`，由
 `machine/tools/build_delivery_status.py` 确定性生成并只读校验。当前事实：
 
 - 58/58 task evidence 结构与绑定有效，58/58 本地或合成机制有证据；
-- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 12；
+- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 13；
 - protected Oracle 已执行 5/43：T0701–T0704 PASS，T0705 当前 FAILED；
-- T0705 十次失败 run 分别绑定十个不同 exact-main head，均为 attempt 1、rerun 0；
-- T0705/S7AC-005 尚未关闭；十个 protected 失败 head 与两个独立 pre-Secret
-  失败 head 均已冻结；一个 deterministic historical-clock successor
-  已授权但未运行；
+- T0705 十一次失败 run 分别绑定十一个不同 exact-main head，均为 attempt 1、rerun 0；
+- T0705/S7AC-005 尚未关闭；十一个 protected 失败 head 与两个独立 pre-Secret
+  失败 head 均已冻结；只授权一个 security-clock-decoupling successor；
   Stage 7、生产健康与最终发布均未完成。
 
 T0704 首次 exact-main head 仍由不可变 failed-attempt ledger 固定为失败，未重跑。唯一新修复
@@ -45,13 +44,21 @@ recovery 均通过；随后因 workflow_dispatch 的真实墙钟早于同日 04:
 `SCHEDULE_PLANNING` 确定性失败。Gmail API、完整 Raw 读取和全部 mutation 均为 0，变量已删除，
 该第十个 protected head 已冻结。
 
-v1.0.31 不改变数据面，只在 workflow_dispatch rehearsal 注入
-`2026-07-26T01:00:00Z` 历史固定时钟；live schedule 保留真实时钟。当前 successor Run Contract
-只处理 T0705：总 delivery 最多 14，十二次 launch 已消耗 12；总 protected rehearsal dispatch
-最多 11，十个失败 attempt 已消耗 10；candidate-preflight dispatch 最多 4，已消耗 3；
-authority-scope failure budget 1 和 schedule-planning wall-clock failure budget 1 均已消耗。
-只剩一个新 exact-main protected deterministic-clock recovery
-`SCHEDULE_REHEARSAL`，以及后续 receipt/schedule closure delivery 1。运行时在 Gmail credential
+v1.0.31 的第十一个 exact-main attempt 已通过 candidate validation、repository-scope authority
+和 protected Environment，但在 `GITHUB_APP_TOKEN` 阶段被拒绝。固定历史 planning clock 被误用
+为 `ProductionBootstrap` 的安全时钟，因而签出相对真实 job 时间已过期的 App JWT。该 attempt
+没有进入 repository resolution、Gmail OAuth、私有仓或 Gmail 调用，全部 mutation 为 0；
+一次性变量已删除，失败 head 永久冻结。
+
+v1.0.32 不改变数据面，只把认证、token、OAuth、容量与证据时间绑定到 live UTC，并把
+`2026-07-26T13:00:00Z` 历史 fixture 限制在 `RunPlanner(SCHEDULE)`。该 fixture 晚于已知数据效果
+上界并位于 Sydney 当日 04:30 之后，可即时验证正 delay；live schedule 同样只用 live UTC。
+当前 successor Run Contract 只处理 T0705：总 delivery 最多 15，十三次 launch 已消耗 13；
+总 protected rehearsal dispatch 最多 12，十一个失败 attempt 已消耗 11；
+candidate-preflight dispatch 最多 5，已消耗 4；authority-scope、schedule-planning wall-clock
+和 authentication-clock-coupling failure budget 各 1 且均已消耗。只剩一个新 exact-main
+protected security-clock-decoupling `SCHEDULE_REHEARSAL`，以及后续 receipt/schedule closure
+delivery 1。运行时在 Gmail credential
 exchange 前生成只绑定唯一 Repository ID 的 Installation Token，
 并核验 installation repository 列表、目标仓 ID/private 属性和实时容量；任何 scope 漂移都失败
 关闭。current pointer 只把 bounded Contents 响应用作 metadata，ciphertext 必须从精确
@@ -67,7 +74,7 @@ credential exchange。只有确定性验证来源可完整读取；Raw 与 Proce
 rehearsal 不声称平台 schedule event。
 
 Stage 7 不设置固定日历等待、Soak 或观察窗口。T0705 用 Fake Clock、历史回放、Fixture 与故障
-注入即时覆盖时间和表示层分支，再用一次受保护 workflow_dispatch 验证与生产相同的
+注入即时覆盖时间、认证时钟隔离和表示层分支，再用一次受保护 workflow_dispatch 验证与生产相同的
 `RunTrigger.SCHEDULE` 路径及 `04:30 Australia/Sydney` 目标；只有 PASS receipt 绑定后才启用
 已提交 live schedule。T0706 与后续阶段仍需新的单任务 Run Contract。
 
@@ -92,8 +99,9 @@ Authoritative artifacts:
 - `machine/stages/S7/reviews/t0704/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/execution-receipt.json`
 - `machine/stages/S7/reviews/t0705/schedule-planning-clock-attempt-ledger.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.31.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.30.json`（不可变直接前序）
+- `machine/stages/S7/reviews/t0705/authentication-clock-coupling-attempt-ledger.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.32.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.31.json`（不可变直接前序）
 - `taskpack/PACKAGE_MANIFEST.v1.0.1.json`（不可变历史基线）
 
 Codex 开发线程必须按既定顺序逐 run 推进，一次最多解决一个 stage。本轮只推进

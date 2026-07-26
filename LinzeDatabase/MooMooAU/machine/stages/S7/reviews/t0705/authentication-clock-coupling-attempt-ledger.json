@@ -1,0 +1,86 @@
+{
+  "schema_version": "moomooau.protected-ga-authentication-clock-attempt-ledger.v1",
+  "observed_through_utc": "2026-07-26T15:14:43Z",
+  "task_id": "T0705",
+  "scope": "PROTECTED_ENVIRONMENT_PRE_REPOSITORY_RESOLUTION_GITHUB_APP_AUTHENTICATION_ONLY",
+  "delivery": {
+    "pull_request_number": 133,
+    "pull_request_head_sha": "9358b673836ed7f1f8bc32bf7cf989a67c1e1439",
+    "merge_commit_parent_sha": "27886f54a30a12ca7992a908e97340d1d8234430",
+    "merge_commit_sha": "c2c057b449fe1cbbd470867c274833242e3f139d"
+  },
+  "workflow": {
+    "run_id": 30207628898,
+    "workflow_head_sha": "c2c057b449fe1cbbd470867c274833242e3f139d",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "reruns": 0,
+    "conclusion": "FAILURE_PROTECTED_GITHUB_APP_AUTHENTICATION"
+  },
+  "jobs": {
+    "authority_context": "PASS",
+    "candidate_validation": "PASS",
+    "protected_environment": "FAILED",
+    "live_schedule_hold": "SKIPPED",
+    "plaintext_cleanup": "PASS"
+  },
+  "failure": {
+    "phase": "GITHUB_APP_TOKEN",
+    "reason_code": "PROTECTED_GA_GITHUB_APP_TOKEN_FAILED",
+    "installation_token_failure_class": "AUTHENTICATION_REJECTED",
+    "finding": "HISTORICAL_REHEARSAL_CLOCK_REUSED_FOR_SECURITY_JWT",
+    "public_payload_exact_root_cause_claimed": false,
+    "ledger_exact_root_cause_claimed": true,
+    "root_cause_basis": "PUBLIC_FAILURE_PHASE_AND_JOB_TIMESTAMPS_PLUS_PINNED_SHARED_CLOCK_PATH"
+  },
+  "effects": {
+    "checkout_started": true,
+    "protected_environment_entered": true,
+    "protected_secret_names_injected": 8,
+    "github_app_token_exchange": "AUTHENTICATION_REJECTED",
+    "repository_resolution_reached": false,
+    "gmail_oauth_exchange_reached": false,
+    "gmail_api_calls": 0,
+    "verified_full_raw_reads": 0,
+    "private_repository_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_mutations": 0,
+    "raw_mutations": 0,
+    "processed_mutations": 0,
+    "timeline_mutations": 0,
+    "checkpoint_mutations": 0,
+    "platform_schedule_events": 0,
+    "tmpfs_plaintext_cleanup": "PASS",
+    "repository_scoped_one_shot_authority_after_cleanup": "ABSENT",
+    "production_enablement_variable_after_failure": "ABSENT"
+  },
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_authentication_clock_head_shas": [
+      "c2c057b449fe1cbbd470867c274833242e3f139d"
+    ],
+    "next_candidate_scope": "SECURITY_AND_SCHEDULE_CLOCK_DECOUPLING_ONLY_PLUS_DERIVED_BINDINGS",
+    "next_candidate_dispatch_limit": 1,
+    "protected_ga_rehearsal_dispatches_consumed": 11,
+    "protected_ga_rehearsal_reruns": 0,
+    "protected_environment_entries_for_failed_dispatch": 1,
+    "security_clock_mode": "LIVE_UTC",
+    "schedule_clock_mode": "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE",
+    "rehearsal_schedule_clock_fixture_utc": "2026-07-26T13:00:00Z",
+    "known_data_effect_upper_bound_utc": "2026-07-26T05:44:53Z",
+    "real_time_wait_allowed": false,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "candidate_validation_executed": true,
+    "protected_ga_data_plane_executed": false,
+    "production_health_claimed": false,
+    "t0705_pass_claimed": false,
+    "stage7_complete_claimed": false,
+    "final_acceptance_claimed": false,
+    "final_publication_claimed": false
+  }
+}
