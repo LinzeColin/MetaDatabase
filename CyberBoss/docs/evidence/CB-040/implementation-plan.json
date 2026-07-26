@@ -1,0 +1,423 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-040",
+  "generated_on": "2026-07-26",
+  "source_task_dag": "CyberBoss/docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml",
+  "claim_boundary": "This is a frozen implementation and release plan. Every task remains not_started and every planned path is a target, not a claim that code or evidence already exists.",
+  "release_contract": {
+    "local_candidate_root": "/opt/cyberboss-cloud/releases/<commit>",
+    "current_pointer": "/opt/cyberboss-cloud/current",
+    "previous_pointer": "/opt/cyberboss-cloud/previous",
+    "release_identity": "git_commit_sha",
+    "remote_publication_before_pg_5": false
+  },
+  "tasks": [
+    {
+      "id": "CB-100",
+      "phase": "P1.1",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/install-layout.sh", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-cloud.service", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/verify-installation.sh", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/cloud-install-layout.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-044", "AC-067"],
+      "evidence": "CyberBoss/docs/evidence/CB-100/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/systemd/", "/opt/cyberboss-cloud/releases/<commit>/install-layout.json"]
+    },
+    {
+      "id": "CB-110",
+      "phase": "P1.2",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/package.json", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/src/adapters/runtime/codex/rpc-client.js", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/app/src/adapters/runtime/claudecode/index.js", "disposition": "retain_disabled"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/codex-rpc-client.test.js", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/cloud-runtime-version.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-011", "AC-017", "AC-065"],
+      "evidence": "CyberBoss/docs/evidence/CB-110/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/version-manifest.json"]
+    },
+    {
+      "id": "CB-120",
+      "phase": "P1.3",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/workspaces.json.example", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/private_db_client_safe.py", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/app/src/core/config.js", "disposition": "extend_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_identity_scope.py", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/workspace-scope.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-013", "AC-014", "AC-064"],
+      "evidence": "CyberBoss/docs/evidence/CB-120/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/config/workspaces.json", "/opt/cyberboss-cloud/releases/<commit>/config/identity-scope.policy.json"]
+    },
+    {
+      "id": "CB-130",
+      "phase": "P1.4",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/scripts/shared-start.js", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/src/adapters/runtime/codex/index.js", "disposition": "extend_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/run-cyberboss.sh", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/cloud-process-family.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/health-check.sh", "disposition": "extend_existing"}
+      ],
+      "acceptance_criteria": ["AC-011", "AC-040", "AC-044", "AC-062"],
+      "evidence": "CyberBoss/docs/evidence/CB-130/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/health-contract.json", "/opt/cyberboss-cloud/releases/<commit>/process-tree.txt"]
+    },
+    {
+      "id": "CB-140",
+      "phase": "P1.5",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/simulators/codex-app-server-simulator.mjs", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/simulators/weixin-ilink-simulator.mjs", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/app/src/core/app.js", "disposition": "extend_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/simulator-contract.test.mjs", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/cloud-walking-skeleton.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-001", "AC-010", "AC-061", "AC-002", "AC-006"],
+      "evidence": "CyberBoss/docs/evidence/CB-140/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/evidence/walking-skeleton.json"]
+    },
+    {
+      "id": "CB-200",
+      "phase": "P2.1",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/sql/runtime-spool.sql", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/app/src/services/db/database-adapter.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/src/services/jobs/job-state-machine.js", "disposition": "planned"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/runtime-spool.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/test/job-state-machine.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-003", "AC-016", "AC-055", "AC-063"],
+      "evidence": "CyberBoss/docs/evidence/CB-200/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/migrations/", "/opt/cyberboss-cloud/releases/<commit>/schema-manifest.json"]
+    },
+    {
+      "id": "CB-210",
+      "phase": "P2.2",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/src/adapters/channel/weixin/index.js", "disposition": "change_later"},
+        {"path": "CyberBoss/app/src/services/inbox/durable-inbox.js", "disposition": "planned"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/durable-inbox-crash-cut.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/test/weixin-cursor-commit.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-004", "AC-023", "AC-063"],
+      "evidence": "CyberBoss/docs/evidence/CB-210/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/evidence/durable-inbox-matrix.json"]
+    },
+    {
+      "id": "CB-220",
+      "phase": "P2.3",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/src/services/jobs/scheduler.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/src/services/runtime/runtime-supervisor.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/src/core/command-registry.js", "disposition": "extend_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/scheduler-resource-gate.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/test/workspace-scope.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-012", "AC-013", "AC-014", "AC-015", "AC-045", "AC-064"],
+      "evidence": "CyberBoss/docs/evidence/CB-220/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/evidence/scheduler-contract.json"]
+    },
+    {
+      "id": "CB-230",
+      "phase": "P2.4",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/src/services/outbox/durable-outbox.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/src/core/stream-delivery.js", "disposition": "extend_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/durable-outbox-crash-cut.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/test/stream-delivery.test.js", "disposition": "extend_existing"}
+      ],
+      "acceptance_criteria": ["AC-020", "AC-021", "AC-022", "AC-024", "AC-025", "AC-062"],
+      "evidence": "CyberBoss/docs/evidence/CB-230/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/evidence/outbox-recovery-matrix.json"]
+    },
+    {
+      "id": "CB-240",
+      "phase": "P2.5",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/src/services/canonical/canonical-sync.js", "disposition": "planned"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/private_db_client_safe.py", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/canonical-sync.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_identity_scope.py", "disposition": "extend_existing"}
+      ],
+      "acceptance_criteria": ["AC-030", "AC-031", "AC-032", "AC-033"],
+      "evidence": "CyberBoss/docs/evidence/CB-240/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/evidence/canonical-sync-report.json"]
+    },
+    {
+      "id": "CB-300",
+      "phase": "P3.1",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/vendor/timeline-for-agent", "disposition": "preserve_existing"},
+        {"path": "CyberBoss/app/src/integrations/timeline/index.js", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/src/services/timeline-service.js", "disposition": "extend_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/timeline-integration.test.js", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/timeline-service.test.js", "disposition": "extend_existing"}
+      ],
+      "acceptance_criteria": ["AC-034", "AC-035", "AC-036"],
+      "evidence": "CyberBoss/docs/evidence/CB-300/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/timeline/", "/opt/cyberboss-cloud/releases/<commit>/timeline-manifest.json"]
+    },
+    {
+      "id": "CB-310",
+      "phase": "P3.2",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/status/generate-status.js", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/status/global-status-adapter.js", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/app/src/services/status/status-exporter.js", "disposition": "planned"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/status-adapter-contract.test.js", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/status-exporter.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-040", "AC-041", "AC-042", "AC-043", "AC-046"],
+      "evidence": "CyberBoss/docs/evidence/CB-310/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/status/snapshot.json", "/opt/cyberboss-cloud/releases/<commit>/status/adapter.json"]
+    },
+    {
+      "id": "CB-320",
+      "phase": "P3.3",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/cloudflare_adapter.py", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/cloudflare-access-policy.fixture.json", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/access-policy-contract.test.js", "disposition": "extend_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_external_adapters.py", "disposition": "extend_existing"}
+      ],
+      "acceptance_criteria": ["AC-011", "AC-047", "AC-065", "AC-066"],
+      "evidence": "CyberBoss/docs/evidence/CB-320/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/provider/cloudflare-plan.json"]
+    },
+    {
+      "id": "CB-330",
+      "phase": "P3.4",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/backup-runtime.sh", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/restore-drill.sh", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/oci_object_adapter.py", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_external_adapters.py", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/online-backup-restore.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-050", "AC-051", "AC-052", "AC-053"],
+      "evidence": "CyberBoss/docs/evidence/CB-330/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/backup-manifest.json", "/opt/cyberboss-cloud/releases/<commit>/restore-report.json"]
+    },
+    {
+      "id": "CB-340",
+      "phase": "P3.5",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/resource_profile.py", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/self-heal.sh", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_resource_profile.py", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/test/retention-self-heal.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-044", "AC-045", "AC-064"],
+      "evidence": "CyberBoss/docs/evidence/CB-340/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/resource-policy.json", "/opt/cyberboss-cloud/releases/<commit>/retention-report.json"]
+    },
+    {
+      "id": "CB-400",
+      "phase": "P4.1",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/github-actions/quality.yml", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/app/test", "disposition": "extend_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/validate_no_wait.py", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/validate_traceability.py", "disposition": "reuse_existing"}
+      ],
+      "acceptance_criteria": ["AC-068", "AC-056", "AC-070"],
+      "evidence": "CyberBoss/docs/evidence/CB-400/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/quality-report.json", "/opt/cyberboss-cloud/releases/<commit>/test-results/"]
+    },
+    {
+      "id": "CB-410",
+      "phase": "P4.2",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/src/adapters/runtime/codex/index.js", "disposition": "evaluate_existing"},
+        {"path": "CyberBoss/docs/evals/codex-critical-cases.json", "disposition": "planned"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/codex-safety-eval.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-065", "AC-066"],
+      "evidence": "CyberBoss/docs/evidence/CB-410/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/eval/codex-scorecard.json"]
+    },
+    {
+      "id": "CB-420",
+      "phase": "P4.3",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/LICENSE", "disposition": "preserve_existing"},
+        {"path": "CyberBoss/THIRD_PARTY_NOTICES.md", "disposition": "preserve_existing"},
+        {"path": "CyberBoss/docs/evidence/CB-000/LICENSE_COMPLIANCE.md", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/secret_scan.py", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/app/test/workspace-scope.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-043", "AC-065", "AC-066", "AC-069"],
+      "evidence": "CyberBoss/docs/evidence/CB-420/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/compliance/SBOM.spdx.json", "/opt/cyberboss-cloud/releases/<commit>/compliance/corresponding-source-manifest.json"]
+    },
+    {
+      "id": "CB-430",
+      "phase": "P4.4",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/accelerated_reliability.py", "disposition": "extend_existing"},
+        {"path": "CyberBoss/app/src/services/clock/clock.js", "disposition": "planned"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/reliability-crash-cut.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/accelerated_reliability.py", "disposition": "extend_existing"}
+      ],
+      "acceptance_criteria": ["AC-004", "AC-020", "AC-021", "AC-023", "AC-041", "AC-053", "AC-062", "AC-063", "AC-070"],
+      "evidence": "CyberBoss/docs/evidence/CB-430/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/reliability/chaos-matrix.json", "/opt/cyberboss-cloud/releases/<commit>/reliability/restore-report.json"]
+    },
+    {
+      "id": "CB-440",
+      "phase": "P4.5",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/deploy-release.sh", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/rollback-release.sh", "disposition": "reuse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/wait-ready.sh", "disposition": "reuse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/immutable-release.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/validate_no_wait.py", "disposition": "reuse_existing"}
+      ],
+      "acceptance_criteria": ["AC-017", "AC-054", "AC-055", "AC-070"],
+      "evidence": "CyberBoss/docs/evidence/CB-440/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/release-manifest.json", "/opt/cyberboss-cloud/releases/<commit>/rollback-plan.json"]
+    },
+    {
+      "id": "CB-500",
+      "phase": "P5.1",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/06_OPERATIONS_STATUS_HANDOVER.md", "disposition": "rehearse_existing"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit", "disposition": "rehearse_existing"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/scripts/validate_cb500.py", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-067", "AC-068", "AC-056", "AC-070"],
+      "evidence": "CyberBoss/docs/evidence/CB-500/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/rehearsal-report.json"]
+    },
+    {
+      "id": "CB-510",
+      "phase": "P5.2",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/deploy-release.sh", "disposition": "execute_later"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/cloudflare_adapter.py", "disposition": "execute_later"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/status/global-status-adapter.js", "disposition": "execute_later"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/scripts/validate_cb510.py", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-011", "AC-040", "AC-046", "AC-054"],
+      "evidence": "CyberBoss/docs/evidence/CB-510/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/production-activation.json", "/opt/cyberboss-cloud/previous"]
+    },
+    {
+      "id": "CB-520",
+      "phase": "P5.3",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/app/src/core/app.js", "disposition": "certify_later"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/accelerated_reliability.py", "disposition": "certify_later"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/app/test/production-request-canary.test.js", "disposition": "planned"},
+        {"path": "CyberBoss/app/test/reliability-crash-cut.test.js", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-005", "AC-010", "AC-023", "AC-031", "AC-035", "AC-046", "AC-064", "AC-070"],
+      "evidence": "CyberBoss/docs/evidence/CB-520/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/canary/request-count-report.json"]
+    },
+    {
+      "id": "CB-530",
+      "phase": "P5.4",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/06_OPERATIONS_STATUS_HANDOVER.md", "disposition": "finalize_later"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/restore-drill.sh", "disposition": "execute_later"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/scripts/validate_cb530.py", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-051", "AC-052", "AC-053", "AC-067", "AC-069"],
+      "evidence": "CyberBoss/docs/evidence/CB-530/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/handover/operator-handover.md", "/opt/cyberboss-cloud/releases/<commit>/handover/latest-restore-point.json"]
+    },
+    {
+      "id": "CB-540",
+      "phase": "P5.5",
+      "status": "not_started",
+      "modules": [
+        {"path": "CyberBoss/machine/facts/task_state.json", "disposition": "evaluate_later"},
+        {"path": "CyberBoss/docs/product_design/v0.0.0.4/10_TRACEABILITY_RELEASE_CHECKLIST.md", "disposition": "evaluate_later"}
+      ],
+      "tests": [
+        {"path": "CyberBoss/scripts/validate_cb540.py", "disposition": "planned"}
+      ],
+      "acceptance_criteria": ["AC-060", "AC-068", "AC-056", "AC-070"],
+      "evidence": "CyberBoss/docs/evidence/CB-540/",
+      "release_artifacts": ["/opt/cyberboss-cloud/releases/<commit>/FINAL_DECISION.json"]
+    }
+  ]
+}

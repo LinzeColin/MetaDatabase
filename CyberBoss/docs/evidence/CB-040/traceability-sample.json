@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-040",
+  "acceptance_criterion": "AC-068",
+  "sampling": {
+    "population_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+    "population_size": 53,
+    "seed": "539a15e0cbebce6b6dd016316721085576dba0d6",
+    "algorithm": "For each requirement ID, SHA-256(seed + ':' + requirement_id); sort ascending by the full digest and take the first 10.",
+    "sample_size": 10
+  },
+  "claim_boundary": "Traceability is located, not implemented. Planned tests, evidence directories and release artifacts remain not_started until their TaskPack phase.",
+  "sample": [
+    {
+      "selection_digest_prefix": "03406060eb9f",
+      "requirement": "FR-043",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-043",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-020", "CB-310", "CB-420"],
+      "tests": [
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/secret_scan.py",
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/status-adapter-contract.test.js"
+      ],
+      "evidence": [
+        "CyberBoss/docs/evidence/CB-020/security-report.md",
+        "CyberBoss/docs/evidence/CB-310/",
+        "CyberBoss/docs/evidence/CB-420/"
+      ],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/compliance/SBOM.spdx.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "03d28906b29c",
+      "requirement": "FR-040",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-040",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-130", "CB-310", "CB-510"],
+      "tests": [
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/health-check.sh",
+        "CyberBoss/app/test/status-exporter.test.js"
+      ],
+      "evidence": [
+        "CyberBoss/docs/evidence/CB-130/",
+        "CyberBoss/docs/evidence/CB-310/",
+        "CyberBoss/docs/evidence/CB-510/"
+      ],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/status/snapshot.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "05f35a3f1e27",
+      "requirement": "FR-014",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-014",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-120", "CB-220"],
+      "tests": [
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_identity_scope.py",
+        "CyberBoss/app/test/workspace-scope.test.js"
+      ],
+      "evidence": [
+        "CyberBoss/docs/evidence/CB-120/",
+        "CyberBoss/docs/evidence/CB-220/"
+      ],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/config/workspaces.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "0aa998cb877c",
+      "requirement": "FR-045",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-045",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-220", "CB-340"],
+      "tests": [
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_resource_profile.py",
+        "CyberBoss/app/test/scheduler-resource-gate.test.js"
+      ],
+      "evidence": [
+        "CyberBoss/docs/evidence/CB-220/",
+        "CyberBoss/docs/evidence/CB-340/"
+      ],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/resource-policy.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "0da131f2a255",
+      "requirement": "FR-030",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-030",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-240"],
+      "tests": [
+        "CyberBoss/app/test/canonical-sync.test.js",
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_identity_scope.py"
+      ],
+      "evidence": ["CyberBoss/docs/evidence/CB-240/"],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/evidence/canonical-sync-report.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "0ec1c788fe82",
+      "requirement": "FR-032",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-032",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-240"],
+      "tests": [
+        "CyberBoss/app/test/canonical-sync.test.js",
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/secret_scan.py"
+      ],
+      "evidence": ["CyberBoss/docs/evidence/CB-240/"],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/evidence/canonical-sync-report.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "0ff1ac869e0f",
+      "requirement": "FR-005",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-005",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-520"],
+      "tests": ["CyberBoss/app/test/production-request-canary.test.js"],
+      "evidence": ["CyberBoss/docs/evidence/CB-520/"],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/canary/request-count-report.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "105c103debcd",
+      "requirement": "NFR-008",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-067",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-010", "CB-100", "CB-500", "CB-530"],
+      "tests": [
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/verify-installation.sh",
+        "CyberBoss/scripts/validate_cb500.py",
+        "CyberBoss/scripts/validate_cb530.py"
+      ],
+      "evidence": [
+        "CyberBoss/docs/evidence/CB-010/resource-baseline.md",
+        "CyberBoss/docs/evidence/CB-100/",
+        "CyberBoss/docs/evidence/CB-500/",
+        "CyberBoss/docs/evidence/CB-530/"
+      ],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/handover/operator-handover.md"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "10da5c7f1410",
+      "requirement": "FR-020",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-020",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-230", "CB-430"],
+      "tests": [
+        "CyberBoss/app/test/durable-outbox-crash-cut.test.js",
+        "CyberBoss/app/test/reliability-crash-cut.test.js"
+      ],
+      "evidence": [
+        "CyberBoss/docs/evidence/CB-230/",
+        "CyberBoss/docs/evidence/CB-430/"
+      ],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/evidence/outbox-recovery-matrix.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    },
+    {
+      "selection_digest_prefix": "12f34ccb2d19",
+      "requirement": "NFR-007",
+      "requirement_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "acceptance": "AC-066",
+      "acceptance_source": "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
+      "tasks": ["CB-320", "CB-410", "CB-420"],
+      "tests": [
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/access-policy-contract.test.js",
+        "CyberBoss/app/test/codex-safety-eval.test.js",
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/secret_scan.py"
+      ],
+      "evidence": [
+        "CyberBoss/docs/evidence/CB-320/",
+        "CyberBoss/docs/evidence/CB-410/",
+        "CyberBoss/docs/evidence/CB-420/"
+      ],
+      "release": ["/opt/cyberboss-cloud/releases/<commit>/eval/codex-scorecard.json", "/opt/cyberboss-cloud/releases/<commit>/compliance/SBOM.spdx.json"],
+      "traceability_status": "located",
+      "acceptance_status": "not_started"
+    }
+  ],
+  "result": "pass"
+}

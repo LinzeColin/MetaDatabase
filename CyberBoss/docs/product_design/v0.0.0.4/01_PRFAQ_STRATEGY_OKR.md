@@ -81,7 +81,7 @@ objects 能满足本阶段；当并发、多用户或数据量触发明确迁移
 
 代码仓不保存业务数据。Private-MetaDatabase 的 canonical ledger 默认只保存脱敏摘要、
 hash、状态、时间、workspace alias、结果证据索引。只有明确开启
-`CB_CANONICAL_STORE_CONTENT=encrypted` 后，才允许加密保存必要正文，并需单独审查密钥和保留期。
+`CB_STORE_FULL_CONTENT=true` 后，才允许加密保存必要正文，并需单独审查密钥和保留期。
 
 ### Q10：24 小时上线遇到外部激活未就绪时怎么办？
 

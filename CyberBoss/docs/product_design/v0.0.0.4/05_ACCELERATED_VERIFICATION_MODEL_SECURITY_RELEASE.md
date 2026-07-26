@@ -560,17 +560,19 @@ GA不属于当前任务包。
 |---|---:|---|
 | `CB_DURABLE_INBOX` | true | TS-003 |
 | `CB_DURABLE_OUTBOX` | true | TS-006 |
-| `CB_CANONICAL_SYNC` | true | TS-007 |
+| `CB_PRIVATE_DB_CANONICAL_SYNC` | true | TS-007 |
 | `CB_TIMELINE_WEB` | true | TS-008 |
-| `CB_TIMELINE_SEARCH` | true | TS-008 |
-| `CB_GLOBAL_STATUS` | true | TS-009 |
-| `CB_R2_BACKUP` | true/activation_pending | TS-010 + real credential state |
+| `CB_STATUS_EXPORTER` | true | TS-009 |
+| `CB_R2_SNAPSHOT` | true/activation_pending | TS-010 + real credential state |
 | `CB_OCI_BACKUP` | false/activation_pending | real adapter verification |
 | `CB_CLAUDE_RUNTIME` | false | full Pipeline A/B parity |
-| `CB_ATTACHMENTS` | false | Stage 2 attachment contract |
-| `CB_MULTI_WORKSPACE_ACTIVE` | false | Stage 2 scheduler/resource contract |
+| `CB_FILE_ATTACHMENTS` | false | Stage 2 attachment contract |
 | `CB_STORE_FULL_CONTENT` | false | separate encryption/privacy authority |
-| `CB_AUTONOMOUS_IRREVERSIBLE` | false | no current enable path |
+| `CB_AUTONOMOUS_MUTATION` | false | no current enable path |
+
+Timeline search is part of `CB_TIMELINE_WEB` in the MVP and has no independent
+runtime flag. Multi-workspace activation remains out of scope and likewise has
+no current enable flag.
 
 ---
 

@@ -933,7 +933,7 @@ Every error has retryability, user-facing text, status severity and required evi
 |---|---:|---|---|
 | `CB_DURABLE_INBOX` | true | durable-before-cursor | mandatory |
 | `CB_DURABLE_OUTBOX` | true | reliable send | mandatory |
-| `CB_GITHUB_CANONICAL_SYNC` | true | unique hot facts | mandatory |
+| `CB_PRIVATE_DB_CANONICAL_SYNC` | true | Private-MetaDatabase canonical facts | mandatory |
 | `CB_TIMELINE_WEB` | true | Access-protected read-only Timeline | AC-035 |
 | `CB_STATUS_EXPORTER` | true | global status integration | AC-046 |
 | `CB_R2_SNAPSHOT` | true | cold snapshot | AC-051 |

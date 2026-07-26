@@ -285,7 +285,7 @@ Agent不可以自动：
 -开启多用户/多Runtime并发；
 -购买资源；
 -绕过微信风控；
--启用`CB_AUTONOMOUS_IRREVERSIBLE`；
+-启用`CB_AUTONOMOUS_MUTATION`；
 -把simulator结果称为真实外部成功。
 
 ## 11. 开发完成状态

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-040",
+  "acceptance_criterion": "AC-056",
+  "fixture": "clean_missing_external_activation",
+  "external_mutation_performed": false,
+  "credential_values_read": false,
+  "credential_values_emitted": false,
+  "states": {
+    "codex_on_authorized_ovh": "activation_pending",
+    "wechat_on_authorized_ovh": "activation_pending",
+    "private_database_real_operation": "activation_pending",
+    "cloudflare_access_real_write": "activation_pending",
+    "cloudflare_dns_real_write": "activation_pending",
+    "cloudflare_r2_real_write": "hazard_blocked",
+    "oci_real_write": "activation_pending"
+  },
+  "continuation": {
+    "local_simulator_and_contract_work_allowed": true,
+    "dependency_independent_tasks_blocked": false,
+    "global_wait_nodes": 0,
+    "real_activation_claimed": false,
+    "next_execution_boundary": "PG-0"
+  },
+  "result": "pass"
+}
