@@ -33,6 +33,7 @@ SKIP_DIRECTORY_NAMES = {
     ".mypy_cache",
     ".pytest_cache",
     ".ruff_cache",
+    ".venv",
     "__pycache__",
 }
 

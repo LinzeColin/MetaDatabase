@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import hmac
 import io
@@ -18,12 +19,14 @@ from .attachment_inspector import AttachmentInspectionReport
 from .canonical_raw import CanonicalRaw
 from .github_guard import (
     CONTENT_APPEND_MESSAGE,
+    CONTENTS_MAX_BYTES,
     GITHUB_API_VERSION,
     GitHubBoundaryError,
     GitHubEndpointGuard,
     InstallationToken,
     RepositoryLocator,
     content_url,
+    git_blob_url,
 )
 from .http_boundary import HttpRequest
 from .secret_values import SecretBytes
@@ -31,6 +34,8 @@ from .secret_values import SecretBytes
 _OPAQUE_ID = re.compile(r"^[0-9a-f]{64}$")
 _PRIVATE_PATH = re.compile(r"^MooMooAU/[A-Za-z0-9._/-]+\.age$")
 _KEY_EPOCH = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+_GIT_REVISION = re.compile(r"^[0-9a-f]{40}$")
+_MAX_GIT_BLOB_BASE64_BYTES = 4 * ((CONTENTS_MAX_BYTES + 2) // 3) + 65_536
 
 
 class RawCommitError(RuntimeError):
@@ -294,18 +299,75 @@ class GitHubAppendOnlyCiphertextStore:
         self._token = token
 
     def fetch(self, relative_path: str) -> bytes | None:
-        response = self._guard.send(
+        metadata_response = self._guard.send(
             HttpRequest(
                 "GET",
                 content_url(self._locator, relative_path),
-                headers=self._headers("application/vnd.github.raw+json"),
+                headers=self._headers("application/vnd.github+json"),
             )
         )
-        if response.status == 404:
+        if metadata_response.status == 404:
             return None
-        if response.status != 200 or not is_age_envelope(response.body):
-            raise RawCommitError("private Contents read failed or returned non-age data")
-        return response.body
+        if metadata_response.status != 200:
+            raise RawCommitError("private Raw metadata read failed")
+        try:
+            metadata = json.loads(metadata_response.body)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RawCommitError("private Raw metadata response is invalid") from exc
+        if not isinstance(metadata, dict):
+            raise RawCommitError("private Raw metadata response is invalid")
+        revision = metadata.get("sha")
+        size = metadata.get("size")
+        if (
+            metadata.get("type") != "file"
+            or metadata.get("path") != relative_path
+            or not isinstance(revision, str)
+            or _GIT_REVISION.fullmatch(revision) is None
+            or type(size) is not int
+            or not 1 <= size <= CONTENTS_MAX_BYTES
+        ):
+            raise RawCommitError("private Raw metadata response is invalid")
+        blob_response = self._guard.send(
+            HttpRequest(
+                "GET",
+                git_blob_url(self._locator, revision),
+                headers=self._headers("application/vnd.github+json"),
+            )
+        )
+        if blob_response.status != 200:
+            raise RawCommitError("private Raw canonical blob read failed")
+        try:
+            blob = json.loads(blob_response.body)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RawCommitError("private Raw canonical blob response is invalid") from exc
+        if not isinstance(blob, dict):
+            raise RawCommitError("private Raw canonical blob response is invalid")
+        encoded = blob.get("content")
+        if (
+            blob.get("encoding") != "base64"
+            or blob.get("sha") != revision
+            or blob.get("size") != size
+            or not isinstance(encoded, str)
+            or not encoded.isascii()
+            or "\r" in encoded
+            or len(encoded) > _MAX_GIT_BLOB_BASE64_BYTES
+        ):
+            raise RawCommitError("private Raw canonical blob response is invalid")
+        try:
+            ciphertext = base64.b64decode(encoded.replace("\n", ""), validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise RawCommitError("private Raw canonical blob response is invalid") from exc
+        if len(ciphertext) != size or not is_age_envelope(ciphertext):
+            raise RawCommitError("private Raw canonical blob read failed")
+        canonical_revision = hashlib.sha1(
+            b"blob " + str(len(ciphertext)).encode("ascii") + b"\0" + ciphertext,
+            usedforsecurity=False,
+        ).hexdigest()
+        if not hmac.compare_digest(canonical_revision, revision):
+            raise RawCommitError(
+                "private Raw canonical blob revision differs: canonical Git blob SHA mismatch"
+            )
+        return ciphertext
 
     def create(self, relative_path: str, ciphertext: bytes) -> bool:
         if not is_age_envelope(ciphertext):

@@ -5,13 +5,13 @@
 ## 当前目标与状态
 
 - 本轮只处理 Stage 7/T0705，必须停在 T0706 前。
-- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.32`。
-- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.31.json`，SHA-256
-  `a34a474f0c7ad3d43234fe50c870c1d106948e6b4ad5da399cdac386d41e87a8`。
+- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.33`。
+- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.32.json`，SHA-256
+  `f5d59a581c3845c4db122ec06bfbe8980d14e324e9a3f85f0676e34c8bfb7c28`。
 - 唯一状态权威：`machine/status/latest.json` =
-  `PROTECTED_GA_ELEVENTH_ATTEMPT_FAILED_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED`。
+  `PROTECTED_GA_TWELFTH_ATTEMPT_FAILED_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED`。
 - Protected Oracles 5/43 executed、4 PASS、1 FAILED；final Acceptance 0/34；
-  T0705 production workflow 13，其中两次在 protected Environment 前结束；final publication 0。
+  T0705 production workflow 14，其中两次在 protected Environment 前结束；final publication 0。
 
 ## 已冻结前序
 
@@ -59,11 +59,17 @@
   已过期。repository resolution、Gmail OAuth、私库/Gmail 调用及全部 mutation 均为 0；
   cleanup PASS，一次性变量已删除。该第十一个 protected head 已冻结，永不得
   rerun/redispatch。
+- v1.0.32 split-clock successor 已通过 live-clock authentication、精确 App repository scope 与
+  Gmail OAuth。首个 verified candidate 完成 Raw/Processed 恢复和二次验证并取得确定 Trash
+  结果；下一 candidate 写入 Raw 后在 `RAW_RECOVERY` 失败，Timeline 与 checkpoint 均未提交。
+  只读 A/B 证明 Contents raw-media 表示与 metadata size/canonical SHA 不一致，而 metadata SHA
+  定址的 Git Blob 通过 response SHA、size、age envelope 与 canonical SHA。该第十二个
+  protected head 已冻结，永不得 rerun/redispatch。
 
-## T0705 security-clock-decoupling recovery successor
+## T0705 Raw canonical Git Blob recovery successor
 
-- `GitHubProcessedCiphertextStore.fetch_current` 先读取 bounded Contents metadata，只把
-  `type/path/size/sha` 作为绑定；ciphertext 必须由精确
+- `GitHubAppendOnlyCiphertextStore.fetch` 与 `GitHubProcessedCiphertextStore.fetch_current`
+  先读取 bounded Contents metadata，只把 `type/path/size/sha` 作为绑定；ciphertext 必须由精确
   `GET /git/blobs/{metadata_sha}` 的 JSON base64 body 取得。
 - 在解密前核对 Git Blob 响应 SHA、声明/解码 size 与 age envelope，再按
   `blob <size>\0<ciphertext>` 重算 canonical Git blob SHA；任何表示漂移、size mismatch 或
@@ -71,7 +77,7 @@
 - 不扩大 allowlist、端点、权限或 mutation；metadata quarantine、pending replay、远端恢复、
   二次验证、Trash、Timeline 与 checkpoint 顺序保持不变。
 - 入口继续绑定 owner、exact main、固定 workflow ref、attempt 1、one-shot exact-head
-  authority、T0702–T0704 receipts、九份失败账本与当前 Run Contract。
+  authority、T0702–T0704 receipts、十二份失败账本与当前 Run Contract。
 - 复用现有 `moomooau-beta` 八个精确 Secret 名称；值不复制、不写盘、不公开。已安装 GitHub App
   在 Gmail exchange 前必须生成仅绑定唯一 Repository ID 的 token，核验 installation repository
   列表、目标仓 ID/private 属性，并刷新实时容量。
@@ -79,19 +85,19 @@
   exact-message Trash。Timeline snapshot、唯一 latest age Asset 与 checkpoint-last CAS 均须
   远端恢复。
 - `workflow_dispatch` 如实称为 `SCHEDULE_REHEARSAL`，rehearsal platform schedule event 为 0。
-- v1.0.32 不改变 canonical Git Blob recovery 或数据面行为；认证、GitHub App JWT、installation
-  token、Gmail OAuth、容量和证据时间全部使用 live UTC。只有 workflow_dispatch rehearsal 的
-  `RunPlanner(SCHEDULE)` 接收 `2026-07-26T13:00:00Z` 历史 fixture；它晚于已知数据效果上界且
+- v1.0.33 只改变 Raw recovery 表示源；认证、GitHub App JWT、installation token、Gmail OAuth、
+  容量和证据时间全部使用 live UTC。只有 workflow_dispatch rehearsal 的
+  `RunPlanner(SCHEDULE)` 接收 `2026-07-26T19:00:00Z` 历史 fixture；它晚于全部已知数据效果并
   位于 Sydney 当日 04:30 之后。live schedule 不注入 fixture。
 
 ## 当前安全边界与下一步
 
-- T0705 总 delivery 最多 15，十三个 launch 已消耗 13；只剩 security-clock-decoupling recovery
+- T0705 总 delivery 最多 16，十四个 launch 已消耗 14；只剩 Raw canonical Git Blob recovery
   delivery 1 与 receipt/schedule closure delivery 1。
-- 总 rehearsal dispatch 最多 12，十一个失败 attempt 已消耗 11；只剩一个新 recovery dispatch，
+- 总 rehearsal dispatch 最多 13，十二个失败 attempt 已消耗 12；只剩一个新 recovery dispatch，
   必须为 attempt 1、rerun 0。
-- candidate-preflight dispatch 最多 5，已消耗 4；authority-scope、schedule-planning wall-clock
-  与 authentication-clock-coupling failure budget 各 1 且均已消耗；全部失败 head 禁止
+- candidate-preflight dispatch 最多 6，已消耗 5；authority-scope、schedule-planning wall-clock、
+  authentication-clock-coupling 与 Raw-representation failure budget 各 1 且均已消耗；全部失败 head 禁止
   rerun/redispatch。
 - 不使用真实时间 Soak、观察期或全量测试作为前置；时间与历史分支由 Fake Clock、Fixture、历史
   回放和故障注入即时验证。

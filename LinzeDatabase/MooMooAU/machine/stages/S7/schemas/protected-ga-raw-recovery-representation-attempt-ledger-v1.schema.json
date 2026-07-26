@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linzecolin.example/schemas/moomooau/protected-ga-raw-recovery-representation-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA Raw recovery representation attempt ledger v1",
+  "const": {
+    "schema_version": "moomooau.protected-ga-raw-recovery-representation-attempt-ledger.v1",
+    "observed_through_utc": "2026-07-26T16:22:15Z",
+    "task_id": "T0705",
+    "scope": "PROTECTED_ENVIRONMENT_VERIFIED_PIPELINE_RAW_RECOVERY_ONLY",
+    "delivery": {
+      "pull_request_number": 134,
+      "pull_request_head_sha": "b206309bafaa5fc3f2be05a00a164771c3f2d79c",
+      "merge_commit_parent_sha": "c2c057b449fe1cbbd470867c274833242e3f139d",
+      "merge_commit_sha": "0d0b6afd6a0cde606230a3df7378bdd90586de5d"
+    },
+    "workflow": {
+      "run_id": 30209560542,
+      "workflow_head_sha": "0d0b6afd6a0cde606230a3df7378bdd90586de5d",
+      "event": "workflow_dispatch",
+      "run_attempt": 1,
+      "reruns": 0,
+      "conclusion": "FAILURE_PROTECTED_RAW_RECOVERY"
+    },
+    "jobs": {
+      "authority_context": "PASS",
+      "candidate_validation": "PASS",
+      "protected_environment": "FAILED",
+      "live_schedule_hold": "SKIPPED",
+      "plaintext_cleanup": "PASS"
+    },
+    "failure": {
+      "phase": "RAW_RECOVERY",
+      "reason_code": "PROTECTED_GA_RAW_RECOVERY_FAILED",
+      "installation_token_failure_class": "UNCLASSIFIED",
+      "finding": "CONTENTS_RAW_MEDIA_REPRESENTATION_DIFFERS_FROM_CANONICAL_GIT_BLOB",
+      "public_payload_exact_root_cause_claimed": false,
+      "ledger_exact_root_cause_claimed": true,
+      "root_cause_basis": "PUBLIC_FAILURE_PHASE_PLUS_REMOTE_COMMIT_TOPOLOGY_PLUS_PINNED_READ_PATH_PLUS_READ_ONLY_REPRESENTATION_AB"
+    },
+    "effects": {
+      "protected_environment_entered": true,
+      "protected_secret_names_injected": 8,
+      "github_app_repository_scope": "PASS",
+      "gmail_oauth_exchange": "PASS",
+      "verified_candidate_reads": "MULTIPLE_WITHOUT_EXACT_PUBLIC_COUNT",
+      "private_repository_commits": 9,
+      "raw_ciphertext_objects_created": 6,
+      "processed_ciphertext_objects_created": 3,
+      "timeline_mutations": 0,
+      "checkpoint_mutations": 0,
+      "first_candidate_full_recovery_before_trash": true,
+      "first_candidate_second_verification_before_trash": true,
+      "first_candidate_trash_outcome": "CONFIRMED_OR_ALREADY_TRASHED",
+      "gmail_exact_message_trash_api_calls_claimed": false,
+      "second_candidate_raw_commit_reached": true,
+      "second_candidate_raw_recovery_completed": false,
+      "platform_schedule_events": 0,
+      "tmpfs_plaintext_cleanup": "PASS",
+      "repository_scoped_one_shot_authority_after_cleanup": "ABSENT",
+      "production_enablement_variable_after_failure": "ABSENT"
+    },
+    "remote_commit_topology": {
+      "private_repository_locator_disclosed": false,
+      "private_object_paths_disclosed": false,
+      "category_order": [
+        "RAW",
+        "RAW",
+        "RAW_MANIFEST",
+        "PROCESSED",
+        "PROCESSED_MANIFEST",
+        "PROCESSED_CURRENT",
+        "RAW",
+        "RAW",
+        "RAW_MANIFEST"
+      ],
+      "timeline_or_checkpoint_commit_present": false
+    },
+    "read_only_representation_ab": {
+      "sample_scope": "ONE_RAW_MESSAGE_AND_ONE_RAW_MANIFEST_FROM_THE_FAILED_ATTEMPT",
+      "contents_metadata": {
+        "path_type_size_sha_valid": true
+      },
+      "contents_raw_media": {
+        "age_header_present": true,
+        "declared_size_match": false,
+        "canonical_git_blob_sha_match": false
+      },
+      "metadata_addressed_git_blob": {
+        "response_sha_match": true,
+        "declared_size_match": true,
+        "decoded_size_match": true,
+        "age_envelope_valid": true,
+        "canonical_git_blob_sha_match": true
+      },
+      "network_mutations": 0
+    },
+    "completion_policy": {
+      "same_head_rerun_allowed": false,
+      "failed_head_redispatch_allowed": false,
+      "frozen_raw_recovery_head_shas": [
+        "0d0b6afd6a0cde606230a3df7378bdd90586de5d"
+      ],
+      "next_candidate_scope": "RAW_CANONICAL_GIT_BLOB_RECOVERY_ONLY_PLUS_LATER_HISTORICAL_FIXTURE_AND_DERIVED_BINDINGS",
+      "next_candidate_dispatch_limit": 1,
+      "controlled_main_deliveries_consumed": 14,
+      "controlled_main_deliveries_remaining": 2,
+      "protected_ga_rehearsal_dispatches_consumed": 12,
+      "protected_ga_candidate_preflight_dispatches_consumed": 5,
+      "protected_ga_rehearsal_reruns": 0,
+      "rehearsal_schedule_clock_fixture_utc": "2026-07-26T19:00:00Z",
+      "known_data_effect_upper_bound_utc": "2026-07-26T16:12:21Z",
+      "real_time_wait_allowed": false,
+      "t0705_complete": false,
+      "t0706_authorized": false,
+      "final_publication_authorized": false
+    },
+    "claims": {
+      "candidate_validation_executed": true,
+      "protected_ga_data_plane_executed": true,
+      "exact_gmail_mutation_call_count_claimed": false,
+      "production_health_claimed": false,
+      "t0705_pass_claimed": false,
+      "stage7_complete_claimed": false,
+      "final_acceptance_claimed": false,
+      "final_publication_claimed": false
+    }
+  }
+}
