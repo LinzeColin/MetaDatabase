@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.33 protected T0705 Raw canonical Git Blob recovery manifest."""
+"""Build the v1.0.34 protected T0705 Trash-confirmation recovery manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.33.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.33"
-PACKAGE_VERSION = "1.0.33"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.32.json")
-PREDECESSOR_MANIFEST_SHA256 = "f5d59a581c3845c4db122ec06bfbe8980d14e324e9a3f85f0676e34c8bfb7c28"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.34.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.34"
+PACKAGE_VERSION = "1.0.34"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.33.json")
+PREDECESSOR_MANIFEST_SHA256 = "dbe7e3867c92e5d960bfea2d7e2b9e9e43680751c16fbfb9324e0450a6b1a141"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.32 manifest drift")
+        raise ValueError("predecessor v1.0.33 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -167,10 +167,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
         or status.get("overall_status")
-        != "PROTECTED_GA_TWELFTH_ATTEMPT_FAILED_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED"
-        or "T0705_RAW_CANONICAL_GIT_BLOB_RECOVERY_PENDING" not in status.get("blockers", [])
+        != "PROTECTED_GA_THIRTEENTH_ATTEMPT_FAILED_TRASH_CONFIRMATION_RECOVERY_AUTHORIZED"
+        or "T0705_TRASH_CONFIRMATION_RECOVERY_PENDING" not in status.get("blockers", [])
     ):
-        raise ValueError("T0705 protected GA Raw canonical recovery is not authorized")
+        raise ValueError("T0705 protected GA Trash-confirmation recovery is not authorized")
     entries = [
         {
             "path": path.relative_to(root).as_posix(),
@@ -180,7 +180,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v33",
+        "schema_version": "moomooau.package-manifest.v34",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
@@ -196,12 +196,14 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "2133673b335a384657c8668b62a1c13055c212cd and "
             "8b6faaf9059661edc3153352b8787ddbc4f733f3 and "
             "6f82e738611e0d2eeeadd2507f738c9e269c91e0 and "
-            "0d0b6afd6a0cde606230a3df7378bdd90586de5d, and preserve the exact T0702, "
-            "T0703 and T0704 protected PASS receipts plus all twelve immutable T0705 protected "
+            "0d0b6afd6a0cde606230a3df7378bdd90586de5d and "
+            "4b7442bb635ea1e7cf5a814c3c56047aa288d594, and preserve the exact T0702, "
+            "T0703 and T0704 protected PASS receipts plus all thirteen immutable T0705 protected "
             "failed-attempt ledgers and both distinct pre-Secret ledgers. The "
             "formatter-rejected, authority-context-rejected and "
             "wall-clock schedule-planning, authentication-clock-coupling and Raw-recovery "
-            "representation heads are frozen. One Raw canonical Git Blob recovery "
+            "representation heads plus the Trash-mutation head are frozen. One "
+            "Trash-confirmation recovery "
             "delivery, one new exact-main attempt-1 protected "
             "SCHEDULE_REHEARSAL with rerun zero and one later receipt/schedule-closure delivery "
             "remain authorized. "
@@ -210,10 +212,12 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.33 T0705 recovery candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.32 predecessor lineage remain unchanged. All twelve failed "
-            "protected GA heads and both pre-Secret failed heads are digest-bound and cannot be "
-            "rerun or redispatched. Runtime data-plane behavior remains unchanged; "
+            "Baseline-preserving v1.0.34 T0705 recovery candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.33 predecessor lineage remain unchanged. All thirteen "
+            "failed protected GA heads and both pre-Secret failed heads are digest-bound and "
+            "cannot be rerun or redispatched. The Gmail label confirmation requests the exact "
+            "content-excluding partial response fields=id,labelIds. An uncertain Trash response "
+            "permits at most one read-only label confirmation and zero mutation retries. "
             "security, authentication, OAuth, capacity and evidence timestamps use live UTC; "
             "only the workflow_dispatch RunPlanner is bound to the committed "
             "2026-07-26T19:00:00Z historical replay fixture after all known data effects, so "
@@ -222,9 +226,9 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "uses bounded Contents metadata only to bind exact path, size and SHA, then requires "
             "the metadata-addressed Git Blobs API base64 body, response SHA, decoded size, age "
             "envelope and canonical Git blob SHA before decrypt; Contents inline and raw-media "
-            "bodies are never trusted for recovery. The twelfth attempt proved live-clock "
-            "authentication and "
-            "exact App repository scope before Gmail credential exchange. It preserves "
+            "bodies are never trusted for recovery. The thirteenth attempt crossed canonical Raw "
+            "and Processed recovery and stopped at TRASH_MUTATION before Timeline/checkpoint; its "
+            "exact protected root cause remains unclaimed. It preserves "
             "persisted first-import label "
             "replay, "
             "pre-Raw metadata quarantine, "
@@ -237,7 +241,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "refresh live private-repository capacity before Gmail exchange, and retain "
             "verified-only full reads, "
             "Raw and Processed remote recovery before exact-message Trash, one recoverable latest "
-            "encrypted Timeline and checkpoint-last CAS. Raw canonical Git Blob recovery "
+            "encrypted Timeline and checkpoint-last CAS. Trash-confirmation recovery "
             "execution, "
             "T0705/S7AC-005 PASS, "
             "T0706, final Acceptance, Stage 7 completion and final publication remain unclaimed."

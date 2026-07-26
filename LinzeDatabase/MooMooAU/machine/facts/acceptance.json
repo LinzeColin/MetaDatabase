@@ -18,7 +18,7 @@
     {
       "id": "`受保护验证`",
       "criteria": "已声明 43、已执行 5、通过 4、失败 1",
-      "status": "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 九次运行失败，九个失败头已冻结，canonical Git Blob recovery 待运行）"
+      "status": "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 十三次 protected 运行失败，失败头已冻结，Trash confirmation recovery 待运行）"
     },
     {
       "id": "`最终验收`",
@@ -33,7 +33,7 @@
     {
       "id": "`发布`",
       "criteria": "最终复审修复后才创建干净快照并一次性上传",
-      "status": "T0705 受控修复候选待执行；最终发布未授权"
+      "status": "T0705 Trash confirmation 受控修复候选待执行；最终发布未授权"
     }
   ]
 }

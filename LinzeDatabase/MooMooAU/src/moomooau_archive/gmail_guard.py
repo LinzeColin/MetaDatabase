@@ -16,6 +16,7 @@ _LABEL_ID = re.compile(r"^[A-Za-z0-9_-]{1,256}$")
 _HEADER_NAME = re.compile(r"^[!-9;-~]{1,64}$")
 _HISTORY_TYPES = {"messageAdded", "messageDeleted", "labelAdded", "labelRemoved"}
 _METADATA_RESPONSE_FIELDS = "id,threadId,labelIds,historyId,internalDate,payload/headers"
+_MINIMAL_LABEL_RESPONSE_FIELDS = "id,labelIds"
 
 
 class GmailEndpointRejected(RuntimeError):
@@ -166,13 +167,17 @@ class GmailEndpointGuard:
                 raise GmailEndpointRejected("Gmail message format is required")
             if "metadataHeaders" in counts and message_format != "metadata":
                 raise GmailEndpointRejected("metadata headers require metadata format")
-            response_fields = values.get("fields")
             if message_format == "metadata":
-                if response_fields != _METADATA_RESPONSE_FIELDS:
+                if values.get("fields") != _METADATA_RESPONSE_FIELDS:
                     raise GmailEndpointRejected(
                         "Gmail metadata partial response fields are required"
                     )
-            elif response_fields is not None:
+            elif message_format == "minimal":
+                if values.get("fields") != _MINIMAL_LABEL_RESPONSE_FIELDS:
+                    raise GmailEndpointRejected(
+                        "Gmail minimal label partial response fields are required"
+                    )
+            elif values.get("fields") is not None:
                 raise GmailEndpointRejected(
                     "Gmail partial response fields are not allowed for this format"
                 )
@@ -217,6 +222,22 @@ def get_message_request(
     query = urlencode(parameters)
     return HttpRequest(
         "GET", GMAIL_API_ORIGIN + f"/gmail/v1/users/me/messages/{message_id}?{query}"
+    )
+
+
+def get_message_label_confirmation_request(message_id: str) -> HttpRequest:
+    """Request only the exact fields needed to confirm one Trash outcome."""
+
+    _require_message_id(message_id)
+    query = urlencode(
+        (
+            ("format", "minimal"),
+            ("fields", _MINIMAL_LABEL_RESPONSE_FIELDS),
+        )
+    )
+    return HttpRequest(
+        "GET",
+        GMAIL_API_ORIGIN + f"/gmail/v1/users/me/messages/{message_id}?{query}",
     )
 
 

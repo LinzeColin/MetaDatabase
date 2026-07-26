@@ -1,8 +1,8 @@
 {
-  "version": "1.0.33",
-  "stage": "RMD-06 T0705 十二个 GA 失败头及两个 pre-Secret 失败头已冻结，Raw canonical Git Blob successor 已授权待运行",
-  "phase": "T0705 十二个 protected exact-main attempt-1 失败头已冻结；第十二次完成首个 verified candidate 的 Raw/Processed 恢复和确定 Trash 结果，随后下一 candidate 在 RAW_RECOVERY 因 Contents raw-media 与 canonical Git Blob 表示不一致而关闭失败。新 head 只把 Raw recovery 切换为 metadata-addressed canonical Git Blob，并将 RunPlanner Fixture 移到所有已知数据效果之后",
-  "task": "交付 v1.0.33 Raw canonical Git Blob 精确 successor，并只向 RunPlanner 注入 2026-07-26T19:00:00Z Fake Clock 即时执行一次新 head protected SCHEDULE_REHEARSAL；十二个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
+  "version": "1.0.34",
+  "stage": "RMD-06 T0705 十三个 GA 失败头及两个 pre-Secret 失败头已冻结，Trash confirmation successor 已授权待运行",
+  "phase": "T0705 十三个 protected exact-main attempt-1 失败头已冻结；第十三次通过 authority、candidate validation、live-clock 认证、精确 App repository scope 与 Gmail OAuth，并完成多件 Raw/Processed 恢复，随后在 TRASH_MUTATION 阶段失败；精确线上根因未宣称，Timeline 与 checkpoint 均未提交。新 head 将 label 确认请求固定为 fields=id,labelIds，并在不确定 Trash response 后最多执行一次只读确认、零 mutation retry",
+  "task": "交付 v1.0.34 Trash confirmation 精确 successor，并只向 RunPlanner 注入 2026-07-26T19:00:00Z Fake Clock 即时执行一次新 head protected SCHEDULE_REHEARSAL；十三个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；确认请求固定 fields=id,labelIds，不确定 response 后最多一次只读确认、零 mutation retry；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 5/43（通过 4、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",

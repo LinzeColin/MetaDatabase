@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0705 十二个 GA 失败头已冻结，Raw canonical Git Blob recovery 已授权待运行",
-  "phase": "T0705 十二个 protected 失败头与两个 pre-Secret 失败头已冻结；仅允许 Raw canonical Git Blob successor exact-main attempt 1，用 Fake Clock 即时验证且无需等待真实 04:30",
-  "task": "交付 v1.0.33 Raw canonical Git Blob exact-main successor、用 live UTC 安全时钟与 2026-07-26T19:00:00Z RunPlanner Fixture 即时执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用 live UTC 的 04:30 Australia/Sydney schedule，并停在 T0706 前",
+  "stage": "RMD-06 T0705 十三个 GA 失败头已冻结，Trash confirmation recovery 已授权待运行",
+  "phase": "T0705 十三个 protected 失败头与两个 pre-Secret 失败头已冻结；仅允许 fields=id,labelIds 与一次只读不确定结果对账、零 mutation retry 的 Trash confirmation successor exact-main attempt 1；用 Fake Clock 即时验证",
+  "task": "交付 v1.0.34 Trash confirmation exact-main successor；只向 RunPlanner 注入 2026-07-26T19:00:00Z Fixture 即时执行一次 attempt-1 SCHEDULE_REHEARSAL，确认请求固定 fields=id,labelIds，不确定 response 后最多一次只读确认、零 mutation retry；PASS 后启用 live UTC 的 04:30 Australia/Sydney schedule，并停在 T0706 前",
   "owner": "Codex 开发线程"
 }

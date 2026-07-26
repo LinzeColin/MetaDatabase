@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.34",
+    "date": "2026-07-26",
+    "summary": "固化 v1.0.33 exact-main protected attempt 的 TRASH_MUTATION 阶段失败：authority、candidate validation、live-clock 认证、精确 App repository scope 与 Gmail OAuth 均通过，并完成多件 Raw/Processed 远端恢复；Timeline 与 checkpoint 未提交。公开失败阶段、远端提交拓扑、只读 Gmail label state 与有界 representation probe 不足以证明精确线上根因，因此保持未宣称。失败 head 禁止 rerun/redispatch。v1.0.34 将 label 确认固定为 fields=id,labelIds；不确定 Trash response 后最多一次只读 label 确认、零 mutation retry。Fake Clock、Fixture 与故障注入即时验证；不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
+  },
+  {
     "version": "1.0.33",
     "date": "2026-07-26",
     "summary": "固化 v1.0.32 exact-main protected attempt 的 RAW_RECOVERY 失败：authority、candidate validation、live-clock 认证、精确 App repository scope 与 Gmail OAuth 均通过；首个 verified candidate 已完成 Raw/Processed 远端恢复并取得确定 Trash 结果，随后下一 candidate 在 Raw 写入后恢复失败，Timeline 与 checkpoint 未提交。只读 A/B 证明 Contents raw-media 表示的 size 与 canonical Git SHA 不一致，而 metadata-addressed Git Blob 通过 response SHA、size、age 与 canonical Git SHA 校验。失败 head 禁止 rerun/redispatch。v1.0.33 仅将 Raw recovery 切换到规范 Git Blob，并把 RunPlanner Fixture 移到 2026-07-26T19:00:00Z。故障注入即时验证；不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"

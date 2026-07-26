@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar, soak, observation-window, full-suite or manual-approval blocker. Twelve different exact-main GA schedule-mode rehearsals failed and all twelve heads are frozen; two additional pre-Secret heads are frozen separately. The twelfth protected attempt passed authority, candidate validation, live-clock authentication, exact App repository scope and Gmail OAuth; it completed one verified candidate through Raw and Processed recovery plus an exact-message Trash outcome, then failed in RAW_RECOVERY for the next candidate. Read-only A/B proves the Contents raw-media representation differs from the valid canonical metadata-addressed Git Blob. Exactly one reviewed Raw canonical Git Blob successor may run once; the committed live schedule continues to use live UTC.",
+    "decision": "Owner authorized fully automatic T0705 completion with no artificial calendar, soak, observation-window, full-suite or manual-approval blocker. Thirteen different exact-main GA schedule-mode rehearsals failed and all thirteen heads are frozen; two additional pre-Secret heads are frozen separately. The thirteenth protected attempt passed authority and candidate validation, crossed canonical Raw and Processed remote recovery, then failed in TRASH_MUTATION before Timeline or checkpoint. Its exact protected root cause is not claimed. A separate bounded live-shape probe proves that Gmail minimal responses can carry a nonempty snippet while the confirmation client rejects any snippet key. Exactly one reviewed successor may require fields=id,labelIds and reconcile an uncertain response with one label read and zero mutation retries; the committed live schedule continues to use live UTC.",
     "authorized_on": "2026-07-26",
-    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts, all twelve protected failed heads and both pre-Secret failed heads remain immutable. The twelfth attempt's public phase, remote commit topology, pinned Raw read path and read-only representation A/B prove Contents raw-media corruption relative to the canonical Git Blob; its one-shot authority was consumed and deleted. One Raw canonical Git Blob recovery delivery/attempt and one receipt/live-schedule closure delivery may reuse the existing protected Environment, exact Secret-name allowlist, installed GitHub App and single private data repository. Security, authentication, OAuth, capacity and evidence timestamps use live UTC; only RunPlanner receives the 2026-07-26T19:00:00Z historical fixture after all known data effects. Raw and Processed canonical Git Blob recovery, metadata quarantine, deterministic verification, remote recovery, second verification, exact-message Trash budget, single latest Timeline replacement and checkpoint-last ordering remain fail closed. Fake Clock, historical replay, fixtures and fault injection replace wall-clock soak or waiting. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
+    "scope": "Stage 7 T0705 only: the protected T0702, T0703 and T0704 PASS receipts, all thirteen protected failed heads and both pre-Secret failed heads remain immutable. The thirteenth attempt's public phase and bounded remote topology prove that the verified pipeline crossed Raw and Processed recovery and stopped in TRASH_MUTATION before Timeline or checkpoint; its exact root cause is intentionally unclaimed and its one-shot authority was consumed and deleted. One Trash-confirmation recovery delivery/attempt and one receipt/live-schedule closure delivery may reuse the existing protected Environment, exact Secret-name allowlist, installed GitHub App and single private data repository. Security, authentication, OAuth, capacity and evidence timestamps use live UTC; only RunPlanner receives the 2026-07-26T19:00:00Z historical fixture after all known data effects. Raw and Processed canonical Git Blob recovery, content-excluding fields=id,labelIds confirmation, one-read uncertain-outcome reconciliation, zero mutation retries, metadata quarantine, deterministic verification, remote recovery, second verification, exact-message Trash budget, single latest Timeline replacement and checkpoint-last ordering remain fail closed. Fake Clock, historical replay, fixtures and fault injection replace wall-clock soak or waiting. The result must call itself SCHEDULE_REHEARSAL, never a platform schedule event. T0706, Recovery Drill, Patch Lifecycle protected execution, final Acceptance and final publication remain unauthorized."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -199,7 +199,7 @@
       "next_action": "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal authority variable, and execute exactly one protected schedule-mode GA workflow_dispatch at attempt 1 with rerun zero. Keep the platform schedule disabled until the PASS receipt is bound, then stop before T0706."
     },
     "PROTECTED_GA_REPAIR_AUTHORIZED": {
-      "package_version": "1.0.33",
+      "package_version": "1.0.34",
       "resolved_review_findings": [
         "REV-P0-002",
         "REV-P0-003",
@@ -209,11 +209,11 @@
       ],
       "current_remediation_blockers": [
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-        "T0705_TWELVE_PROTECTED_FAILED_HEADS_FROZEN",
-        "T0705_RAW_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
+        "T0705_THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN",
+        "T0705_TRASH_CONFIRMATION_RECOVERY_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Freeze the Raw-recovery representation failed head, deliver one exact-main T0705 Raw canonical Git Blob successor, and execute exactly one new attempt-1 schedule-mode rehearsal with 2026-07-26T19:00:00Z only for RunPlanner. Never rerun or redispatch any failed head. Set the one-shot repository variable only after merge, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706."
+      "next_action": "Freeze the Trash-mutation failed head, deliver one exact-main T0705 content-excluding label-confirmation successor, and execute exactly one new attempt-1 schedule-mode rehearsal with 2026-07-26T19:00:00Z only for RunPlanner. Require fields=id,labelIds; after an uncertain Trash response perform at most one label read and zero mutation retries. Never rerun or redispatch any failed head. Set the one-shot repository variable only after merge, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706."
     }
   }
 }

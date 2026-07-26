@@ -1,5 +1,20 @@
 # Taskpack Changelog
 
+## 1.0.34 — 2026-07-26
+
+固化 v1.0.33 exact-main protected attempt 的 `TRASH_MUTATION` 失败。authority、candidate
+validation、live-clock GitHub App authentication、精确 repository scope、Gmail OAuth 以及
+canonical Raw/Processed recovery 均已越过；远端只观察到 age-encrypted Raw、Processed 与
+current-pointer 写入，Timeline 和 checkpoint 均未提交。一次性 authority 已删除，production
+enablement 仍不存在，失败 head 永久禁止 rerun/redispatch。公开证据不足以认定 exact protected
+root cause，因此账本保持 unclaimed。
+
+独立只读 live-shape probe 证明 Gmail `minimal` 响应可含非空 `snippet`。v1.0.34 将 label
+confirmation 固定为 `fields=id,labelIds`；uncertain Trash response 最多执行一次 content-
+excluding label read，mutation retry 为 0。Fake Clock、Fixture、历史回放和故障注入即时覆盖
+该恢复路径，不设置 Soak、观察期、真实时间等待、人工审批或全量测试前置。本轮只完成本地候选；
+后续仍最多授权一个新 exact-main attempt 1，T0706 与最终发布继续禁止。
+
 ## 1.0.33 — 2026-07-26
 
 固化 v1.0.32 exact-main protected attempt 的 `RAW_RECOVERY` 失败。authority、candidate validation、

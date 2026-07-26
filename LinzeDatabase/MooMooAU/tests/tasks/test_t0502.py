@@ -128,7 +128,11 @@ def test_t0502_alpha_beta_zero_budget_and_failed_second_verification_block_netwo
 def test_t0502_uncertain_response_does_not_retry_inside_the_attempt() -> None:
     with recovery_context() as context:
         message, second = pre_m3_message(context)
-        transport = SyntheticM3Transport(message.ref.message_id, trash_status=503)
+        transport = SyntheticM3Transport(
+            message.ref.message_id,
+            trash_status=503,
+            confirm_trash=False,
+        )
         guard = GmailEndpointGuard(transport)
         result = ExactMessageTrashExecutor(
             guard,
@@ -142,4 +146,25 @@ def test_t0502_uncertain_response_does_not_retry_inside_the_attempt() -> None:
         )
         assert result.state is M3State.UNKNOWN
         assert result.mutation_calls == 1
-        assert len(transport.requests) == 1
+        assert [request.method for request in transport.requests] == ["POST", "GET"]
+
+
+def test_t0502_uncertain_response_reconciles_confirmed_trash_without_mutation_retry() -> None:
+    with recovery_context() as context:
+        message, second = pre_m3_message(context)
+        transport = SyntheticM3Transport(message.ref.message_id, trash_status=503)
+        guard = GmailEndpointGuard(transport)
+        result = ExactMessageTrashExecutor(
+            guard,
+            GmailLabelConfirmationClient(guard),
+        ).execute(
+            message,
+            context.first_verification,
+            second,
+            _proof(context),
+            MutationBudget.for_phase(MutationPhase.CANARY),
+        )
+        assert result.state is M3State.TRASHED
+        assert result.mutation_calls == 1
+        assert result.reason_code == "EXACT_MESSAGE_TRASH_RECONCILED_AFTER_UNCERTAIN_RESPONSE"
+        assert [request.method for request in transport.requests] == ["POST", "GET"]
