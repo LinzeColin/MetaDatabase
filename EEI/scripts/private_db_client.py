@@ -163,8 +163,39 @@ def put_file(zone: str, path: str, payload: bytes, *, message: str) -> dict[str,
     return json.loads(out) if out else {}
 
 
-def append_manifest(zone: str, entry: dict[str, Any], *, retries: int = 4) -> None:
-    """Append one line to the zone ledger, re-reading on write conflict."""
+def manifest_identity(entry: dict[str, Any]) -> tuple[str, str, str]:
+    """What makes two ledger lines the same fact.
+
+    Deliberately excludes `ingested_at` and `batch`: those describe the *run*,
+    not the fact. Comparing whole lines would treat a re-ingest one second later
+    as new, appending a duplicate line and manufacturing a commit for facts that
+    did not change — exactly what the data contract forbids.
+    """
+    return (
+        str(entry.get("sha256", "")),
+        str(entry.get("domain", "")),
+        str(entry.get("object_path", "")),
+    )
+
+
+def _manifest_has(current: bytes, entry: dict[str, Any]) -> bool:
+    wanted = manifest_identity(entry)
+    for raw in current.splitlines():
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            existing = json.loads(raw)
+        except json.JSONDecodeError:
+            continue  # a hand-edited line must not block an honest append
+        if isinstance(existing, dict) and manifest_identity(existing) == wanted:
+            return True
+    return False
+
+
+def append_manifest(zone: str, entry: dict[str, Any], *, retries: int = 4) -> bool:
+    """Append one line to the zone ledger. Returns True only if a line was
+    actually written (i.e. this call created a commit)."""
     line = json.dumps(entry, ensure_ascii=False, sort_keys=True) + "\n"
     for attempt in range(retries):
         try:
@@ -181,15 +212,15 @@ def append_manifest(zone: str, entry: dict[str, Any], *, retries: int = 4) -> No
             except PrivateDbError as exc:
                 if "404" not in str(exc) and "Not Found" not in str(exc):
                     raise
-            if line.encode("utf-8") in current:
-                return  # already recorded — ingest is idempotent
+            if _manifest_has(current, entry):
+                return False  # already recorded — ingest is idempotent
             put_file(
                 zone,
                 "manifest.jsonl",
                 current + line.encode("utf-8"),
                 message=f"manifest: {entry.get('domain', '?')} {entry.get('original_name', '?')}",
             )
-            return
+            return True
         except PrivateDbError as exc:
             if attempt == retries - 1 or "409" not in str(exc):
                 raise
@@ -222,8 +253,18 @@ def ingest(
         "object_path": f"{zone}/{path}",
         "ingested_at": _utc_now(),
     }
-    append_manifest(zone, entry)
-    return {**entry, "skipped_upload": already}
+    appended = append_manifest(zone, entry)
+    # `skipped_upload` only ever described the object write. The judge for
+    # "no new facts => no commit" is `created_commit`: appending a ledger line
+    # is a commit too, so an already-present object does not by itself mean
+    # this call was a no-op.
+    return {
+        **entry,
+        "uploaded_object": not already,
+        "appended_manifest": appended,
+        "created_commit": (not already) or appended,
+        "skipped_upload": already,
+    }
 
 
 def _utc_now() -> str:

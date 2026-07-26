@@ -200,14 +200,22 @@ def run(args) -> dict:
             tmp = Path(args.workdir) / name
             tmp.parent.mkdir(parents=True, exist_ok=True)
             tmp.write_bytes(payload)
+            if args.export_only:
+                # The compute node must never hold a GitHub credential — same
+                # rule that keeps account-level Cloudflare keys off it. So the
+                # box only ever *builds* partitions; the upload runs where auth
+                # already lives, and the files are deleted on both sides.
+                result["exported"] = result.get("exported", 0) + 1
+                continue
             try:
                 out = ingest(ZONE, tmp, domain=DOMAIN, batch=batch)
-                # Content addressing means an unchanged day is a no-op upload;
-                # the contract forbids manufacturing commits for unchanged facts.
-                if out.get("skipped_upload"):
-                    result["skipped_unchanged"] += 1
-                else:
+                # The contract forbids manufacturing commits for unchanged
+                # facts, so count what actually hit the repo — a ledger append
+                # is a commit even when the object was already there.
+                if out.get("created_commit"):
                     result["uploaded"] += 1
+                else:
+                    result["skipped_unchanged"] += 1
             finally:
                 tmp.unlink(missing_ok=True)
 
@@ -227,6 +235,9 @@ def main() -> int:
                    help="scratch path for the partition being uploaded; each"
                         " file is deleted immediately after upload (nothing"
                         " lands locally, per iron rule 3)")
+    p.add_argument("--export-only", action="store_true",
+                   help="build partitions into --workdir and stop (no GitHub"
+                        " credential needed, so this is what runs on the box)")
     p.add_argument("--dry-run", action="store_true",
                    help="build and hash partitions, upload nothing")
     args = p.parse_args()

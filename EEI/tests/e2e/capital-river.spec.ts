@@ -292,6 +292,14 @@ test("A110 applies Capital River filters and opens event evidence", async ({ pag
   await page.unroute(`${apiBaseUrl}/v1/**`);
   await mockCapitalApi(page, requestUrls);
   await page.goto("/capital");
+  // Wait for the page's own hydration signal before typing. Filling during the
+  // initial load lets the late response reset the controlled inputs, and the
+  // commit gate below then sees an empty entity field — that is what failed on
+  // CI, not a React scheduling race.
+  await expect(page.getByTestId("capital-river-shell")).toHaveAttribute(
+    "data-load-state",
+    "hydrated"
+  );
 
   await page.getByTestId("capital-filter-entity").fill(
     "00000000-0000-4000-8000-000000000001"

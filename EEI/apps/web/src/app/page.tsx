@@ -1382,6 +1382,10 @@ function labelBoxesIntersect(a: LabelBox, b: LabelBox): boolean {
   return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 }
 
+// viewBox 纵坐标：控制条带（顶栏 / 镜头档位 / 供应链环节）在走廊里占到的
+// 下沿。1440×900 实测条带底 = viewBox y 185，取 178 留一点余量。
+const CHROME_BAND_BOTTOM = 178;
+
 const NODE_LABEL_TIER_LIMIT: Record<string, number> = {
   L0: 0,
   L1: 10,
@@ -1427,6 +1431,11 @@ function computeLabelPlan(
     const midX = (source.x + target.x) / 2;
     const midY = (source.y + target.y) / 2 - 10;
     const labelBox = estimateLabelBox(edge.label, midX, midY - 4, 11);
+    // 走廊顶部被控制条带占着（镜头档位 / 供应链环节），而图谱 svg 是
+    // z-index:3 盖在条带之上——这层关系不能反过来，条带一旦压过 svg 就会
+    // 截胡节点点击（已有 e2e 钉死）。所以不改层叠，改成在这一带不放边标签：
+    // 实测「子公司」「董事」正落在条带文字上。L2/L3 是用户主动放大，照旧。
+    if (!detailZoom && labelBox.top < CHROME_BAND_BOTTOM) continue;
     const box: LabelBox = detailZoom
       ? { ...labelBox, bottom: labelBox.bottom + 18 }
       : labelBox;
