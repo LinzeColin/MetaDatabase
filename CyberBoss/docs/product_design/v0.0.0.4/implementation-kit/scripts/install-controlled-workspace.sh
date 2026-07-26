@@ -227,8 +227,20 @@ fi
 
 TMP_ROOT="$(mktemp -d /tmp/cyberboss-cb120-install.XXXXXXXX)"
 RELEASE_STAGE=""
+WORKSPACE_STAGE=""
 cleanup() {
   local exit_code=$?
+  if [[ -n "${WORKSPACE_STAGE:-}" ]]; then
+    case "$WORKSPACE_STAGE" in
+      "$WORKSPACE_BASE"/.cb120-"$RELEASE_ID"-*)
+        find "$WORKSPACE_STAGE" -xdev -depth -delete 2>/dev/null || true
+        ;;
+      *)
+        printf 'CONTROLLED_WORKSPACE=FAIL reason=unsafe_workspace_cleanup_path\n' >&2
+        exit 70
+        ;;
+    esac
+  fi
   if [[ -n "${RELEASE_STAGE:-}" ]]; then
     case "$RELEASE_STAGE" in
       "$RELEASE_ROOT"/.cb120-"$RELEASE_ID"-*)
@@ -510,21 +522,27 @@ run_as_code() {
 
 if [[ ! -e "$WORKSPACE" && ! -L "$WORKSPACE" ]]; then
   [[ "$MODE" == "apply" ]] || fail "workspace_missing"
+  WORKSPACE_STAGE="$WORKSPACE_BASE/.cb120-$RELEASE_ID-$$"
+  [[ ! -e "$WORKSPACE_STAGE" && ! -L "$WORKSPACE_STAGE" ]] ||
+    fail "workspace_stage_collision"
+  install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$WORKSPACE_STAGE"
   run_as_code git -c protocol.file.allow=always clone \
     --filter=blob:none --no-checkout --single-branch --branch "$BRANCH" \
-    "file://$SEED_PATH" "$WORKSPACE"
-  run_as_code git -C "$WORKSPACE" sparse-checkout init --cone
-  run_as_code git -C "$WORKSPACE" sparse-checkout set CyberBoss .github
-  run_as_code git -C "$WORKSPACE" checkout "$BRANCH"
-  run_as_code git -C "$WORKSPACE" config fetch.prune true
-  run_as_code git -C "$WORKSPACE" config gc.auto 0
-  chown root:"$CODE_GROUP" "$WORKSPACE"
-  chmod 0750 "$WORKSPACE"
-  chown -R "$CODE_USER:$CODE_GROUP" "$WORKSPACE/.git" "$WORKSPACE/CyberBoss"
-  find "$WORKSPACE/.git" "$WORKSPACE/CyberBoss" -perm /022 -exec chmod go-w {} +
+    "file://$SEED_PATH" "$WORKSPACE_STAGE"
+  run_as_code git -C "$WORKSPACE_STAGE" sparse-checkout init --cone
+  run_as_code git -C "$WORKSPACE_STAGE" sparse-checkout set CyberBoss .github
+  run_as_code git -C "$WORKSPACE_STAGE" checkout "$BRANCH"
+  run_as_code git -C "$WORKSPACE_STAGE" config fetch.prune true
+  run_as_code git -C "$WORKSPACE_STAGE" config gc.auto 0
+  chown root:"$CODE_GROUP" "$WORKSPACE_STAGE"
+  chmod 0750 "$WORKSPACE_STAGE"
+  chown -R "$CODE_USER:$CODE_GROUP" \
+    "$WORKSPACE_STAGE/.git" "$WORKSPACE_STAGE/CyberBoss"
+  find "$WORKSPACE_STAGE/.git" "$WORKSPACE_STAGE/CyberBoss" \
+    -perm /022 -exec chmod go-w {} +
   while IFS= read -r -d '' root_entry; do
-    [[ "$root_entry" == "$WORKSPACE/.git" ||
-      "$root_entry" == "$WORKSPACE/CyberBoss" ]] && continue
+    [[ "$root_entry" == "$WORKSPACE_STAGE/.git" ||
+      "$root_entry" == "$WORKSPACE_STAGE/CyberBoss" ]] && continue
     chown -R root:"$CODE_GROUP" "$root_entry"
     if [[ -d "$root_entry" ]]; then
       find "$root_entry" -type d -exec chmod 0550 {} +
@@ -532,7 +550,9 @@ if [[ ! -e "$WORKSPACE" && ! -L "$WORKSPACE" ]]; then
     else
       chmod 0440 "$root_entry"
     fi
-  done < <(find "$WORKSPACE" -mindepth 1 -maxdepth 1 -print0)
+  done < <(find "$WORKSPACE_STAGE" -mindepth 1 -maxdepth 1 -print0)
+  mv -T "$WORKSPACE_STAGE" "$WORKSPACE"
+  WORKSPACE_STAGE=""
 elif [[ ! -d "$WORKSPACE" || -L "$WORKSPACE" ]]; then
   fail "workspace_destination_collision"
 fi

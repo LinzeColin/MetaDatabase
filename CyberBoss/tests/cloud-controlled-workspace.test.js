@@ -106,6 +106,13 @@ test("installer keeps candidate, identities, workspace and data boundaries expli
   assert.match(source, /code_identity_data_client_access/);
   assert.match(source, /--filter=blob:none/);
   assert.match(source, /sparse-checkout set CyberBoss \.github/);
+  assert.match(source, /WORKSPACE_STAGE=.*\.cb120-/);
+  assert.match(
+    source,
+    /install -d -o "\$CODE_USER" -g "\$CODE_GROUP" -m 0750 "\$WORKSPACE_STAGE"/
+  );
+  assert.match(source, /mv -T "\$WORKSPACE_STAGE" "\$WORKSPACE"/);
+  assert.match(source, /unsafe_workspace_cleanup_path/);
   assert.match(source, /remote\.origin\.partialclonefilter/);
   assert.match(source, /private_database_clone=false/);
   assert.match(source, /upstream_clarification_received == false/);
