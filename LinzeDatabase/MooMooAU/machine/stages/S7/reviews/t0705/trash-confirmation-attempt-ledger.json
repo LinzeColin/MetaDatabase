@@ -1,6 +1,6 @@
 {
   "schema_version": "moomooau.protected-ga-trash-confirmation-attempt-ledger.v1",
-  "observed_through_utc": "2026-07-26T17:34:39Z",
+  "observed_through_utc": "2026-07-26T18:31:56Z",
   "task_id": "T0705",
   "scope": "PROTECTED_ENVIRONMENT_VERIFIED_PIPELINE_TRASH_CONFIRMATION_ONLY",
   "delivery": {
@@ -79,6 +79,31 @@
     "current_confirmation_client_rejects_any_snippet_key": true,
     "exact_partial_response_required": "id,labelIds"
   },
+  "timeline_snapshot_recovery_successor_outcome": {
+    "delivery_pull_request_number": 136,
+    "delivery_head_sha": "c7d1276dc5395409e94ca843034a8f94f7a8df11",
+    "merge_commit_sha": "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55",
+    "workflow_run_id": 30214590245,
+    "workflow_head_sha": "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "reruns": 0,
+    "authority_context": "PASS",
+    "candidate_validation": "PASS",
+    "protected_environment": "FAILED",
+    "plaintext_cleanup": "PASS",
+    "failure_phase": "TIMELINE_SNAPSHOT_RECOVERY",
+    "reason_code": "PROTECTED_GA_TIMELINE_SNAPSHOT_RECOVERY_FAILED",
+    "exact_root_cause_claimed": false,
+    "timeline_snapshot_commit_returned_before_failure": true,
+    "timeline_publish_reached": false,
+    "checkpoint_commit_reached": false,
+    "independent_private_repository_topology_inspected": false,
+    "production_enablement_variable_after_failure": "ABSENT",
+    "repository_scoped_one_shot_authority_after_cleanup": "ABSENT",
+    "reachable_code_defect": "IMMUTABLE_RECOVERY_READ_LIMIT_WAS_NARROWER_THAN_APPEND_LIMIT",
+    "defect_exact_production_causality_claimed": false
+  },
   "remediation_contract": {
     "minimal_confirmation_fields": "id,labelIds",
     "snippet_trust_allowed": false,
@@ -89,15 +114,20 @@
     "frozen_trash_confirmation_head_shas": [
       "4b7442bb635ea1e7cf5a814c3c56047aa288d594"
     ],
-    "next_candidate_scope": "EXACT_MINIMAL_LABEL_PARTIAL_RESPONSE_PLUS_ONE_READ_ONLY_UNCERTAIN_OUTCOME_RECONCILIATION_AND_DERIVED_BINDINGS",
+    "frozen_timeline_snapshot_recovery_head_shas": [
+      "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"
+    ],
+    "next_candidate_scope": "IMMUTABLE_RECOVERY_LIMIT_SYMMETRY_AND_DERIVED_BINDINGS_ONLY",
     "next_candidate_dispatch_limit": 1,
-    "controlled_main_deliveries_consumed": 15,
+    "controlled_main_delivery_total_limit": 18,
+    "controlled_main_deliveries_consumed": 16,
     "controlled_main_deliveries_remaining": 2,
-    "protected_ga_rehearsal_dispatches_consumed": 13,
+    "protected_ga_rehearsal_dispatches_total_limit": 15,
+    "protected_ga_rehearsal_dispatches_consumed": 14,
     "protected_ga_candidate_preflight_dispatches_consumed": 5,
     "protected_ga_rehearsal_reruns": 0,
     "rehearsal_schedule_clock_fixture_utc": "2026-07-26T19:00:00Z",
-    "known_data_effect_upper_bound_utc": "2026-07-26T17:20:17Z",
+    "known_data_effect_upper_bound_utc": "2026-07-26T18:31:56Z",
     "real_time_wait_allowed": false,
     "t0705_complete": false,
     "t0706_authorized": false,

@@ -1721,9 +1721,9 @@ def _protected_ga_trash_confirmation_attempt_ledger(
     schema = _load(schema_path)
     if (
         _sha256(path)
-        != "6a05af65bc8f0045bb5c7d4ce511ff643c07fe1b6a1a6c8190962cd4c5ca598b"  # pragma: allowlist secret  # noqa: E501
+        != "5226bc48dc242d225c772b4564cef6e1d31f5715e50e81787bc37b7f21232e75"  # pragma: allowlist secret  # noqa: E501
         or _sha256(schema_path)
-        != "5cee0e8e3dc695251f487f482457ea91cab5b240eed7be81891b0d23bf4cb4e8"  # pragma: allowlist secret  # noqa: E501
+        != "c9b286ddbee075903f4bd5a150740d90592df2b1a9ed8ba872ec41005527a73d"  # pragma: allowlist secret  # noqa: E501
         or list(
             Draft202012Validator(
                 schema,
@@ -1737,6 +1737,7 @@ def _protected_ga_trash_confirmation_attempt_ledger(
     effects = ledger.get("effects", {})
     topology = ledger.get("remote_commit_topology", {})
     probe = ledger.get("read_only_gmail_representation_probe", {})
+    successor = ledger.get("timeline_snapshot_recovery_successor_outcome", {})
     policy = ledger.get("remediation_contract", {})
     claims = ledger.get("claims", {})
     if (
@@ -1765,6 +1766,27 @@ def _protected_ga_trash_confirmation_attempt_ledger(
         or probe.get("failed_message_identity_bound") is not False
         or probe.get("minimal_response_contains_nonempty_snippet") is not True
         or probe.get("exact_partial_response_required") != "id,labelIds"
+        or successor.get("workflow_head_sha")
+        != "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"
+        or successor.get("workflow_run_id") != 30214590245
+        or successor.get("run_attempt") != 1
+        or successor.get("reruns") != 0
+        or successor.get("authority_context") != "PASS"
+        or successor.get("candidate_validation") != "PASS"
+        or successor.get("protected_environment") != "FAILED"
+        or successor.get("plaintext_cleanup") != "PASS"
+        or successor.get("failure_phase") != "TIMELINE_SNAPSHOT_RECOVERY"
+        or successor.get("reason_code") != "PROTECTED_GA_TIMELINE_SNAPSHOT_RECOVERY_FAILED"
+        or successor.get("exact_root_cause_claimed") is not False
+        or successor.get("timeline_snapshot_commit_returned_before_failure") is not True
+        or successor.get("timeline_publish_reached") is not False
+        or successor.get("checkpoint_commit_reached") is not False
+        or successor.get("independent_private_repository_topology_inspected") is not False
+        or successor.get("production_enablement_variable_after_failure") != "ABSENT"
+        or successor.get("repository_scoped_one_shot_authority_after_cleanup") != "ABSENT"
+        or successor.get("reachable_code_defect")
+        != "IMMUTABLE_RECOVERY_READ_LIMIT_WAS_NARROWER_THAN_APPEND_LIMIT"
+        or successor.get("defect_exact_production_causality_claimed") is not False
         or policy.get("minimal_confirmation_fields") != "id,labelIds"
         or policy.get("uncertain_trash_response_label_reads_maximum") != 1
         or policy.get("trash_mutation_retries_inside_attempt_maximum") != 0
@@ -1772,12 +1794,18 @@ def _protected_ga_trash_confirmation_attempt_ledger(
         or policy.get("failed_head_redispatch_allowed") is not False
         or policy.get("frozen_trash_confirmation_head_shas")
         != ["4b7442bb635ea1e7cf5a814c3c56047aa288d594"]
+        or policy.get("frozen_timeline_snapshot_recovery_head_shas")
+        != ["e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"]
         or policy.get("next_candidate_dispatch_limit") != 1
-        or policy.get("protected_ga_rehearsal_dispatches_consumed") != 13
+        or policy.get("controlled_main_delivery_total_limit") != 18
+        or policy.get("controlled_main_deliveries_consumed") != 16
+        or policy.get("controlled_main_deliveries_remaining") != 2
+        or policy.get("protected_ga_rehearsal_dispatches_total_limit") != 15
+        or policy.get("protected_ga_rehearsal_dispatches_consumed") != 14
         or policy.get("protected_ga_candidate_preflight_dispatches_consumed") != 5
         or policy.get("protected_ga_rehearsal_reruns") != 0
         or policy.get("rehearsal_schedule_clock_fixture_utc") != "2026-07-26T19:00:00Z"
-        or policy.get("known_data_effect_upper_bound_utc") != "2026-07-26T17:20:17Z"
+        or policy.get("known_data_effect_upper_bound_utc") != "2026-07-26T18:31:56Z"
         or policy.get("real_time_wait_allowed") is not False
         or policy.get("t0705_complete") is not False
         or policy.get("t0706_authorized") is not False
@@ -1908,13 +1936,13 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "4b7442bb635ea1e7cf5a814c3c56047aa288d594"  # pragma: allowlist secret
+        == "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "dbe7e3867c92e5d960bfea2d7e2b9e9e43680751c16fbfb9324e0450a6b1a141"  # pragma: allowlist secret  # noqa: E501
+        == "f3a78f84a84a3a3f8c12b3549cd7aa44b64d2b526682767b7b70ee10de4a19af"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_TRASH_CONFIRMATION_RECOVERY_AND_ENABLEMENT_ONLY"
+        == "T0705_PROTECTED_GA_TIMELINE_SNAPSHOT_RECOVERY_AND_ENABLEMENT_ONLY"
         and authorization.get("prior_run_contract_sha256")
-        == "004f648b027ec68390a864988a537e7064de9224bab738b429c1c093b0ca4722"  # pragma: allowlist secret  # noqa: E501
+        == "cd3c2caf5d0acaca42061793e2a4202cf27feb743eec6150c7d55a81b88df185"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("failed_attempt_ledgers_required") == 9
         and authorization.get("first_failed_attempt_ledger_sha256") == _sha256(first_ledger_path)
         and authorization.get("first_failed_attempt_ledger_schema_sha256")
@@ -1992,18 +2020,21 @@ def _t0705_repair_authorized(root: Path) -> bool:
         == ["0d0b6afd6a0cde606230a3df7378bdd90586de5d"]
         and authorization.get("failed_trash_confirmation_head_shas")
         == ["4b7442bb635ea1e7cf5a814c3c56047aa288d594"]
+        and authorization.get("failed_timeline_snapshot_recovery_head_shas")
+        == ["e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"]
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 17
-        and authorization.get("controlled_main_deliveries_consumed") == 15
+        and authorization.get("controlled_main_delivery_total_limit") == 18
+        and authorization.get("controlled_main_deliveries_consumed") == 16
         and authorization.get("controlled_main_deliveries_remaining") == 2
-        and authorization.get("ga_rehearsal_dispatches_consumed") == 13
+        and authorization.get("ga_rehearsal_dispatches_consumed") == 14
         and authorization.get("ga_candidate_preflight_dispatches_consumed") == 5
         and authorization.get("ga_authority_context_scope_failures_consumed") == 1
         and authorization.get("ga_schedule_planning_clock_failures_consumed") == 1
         and authorization.get("ga_authentication_clock_coupling_failures_consumed") == 1
         and authorization.get("ga_raw_recovery_representation_failures_consumed") == 1
         and authorization.get("ga_trash_confirmation_failures_consumed") == 1
+        and authorization.get("ga_timeline_snapshot_recovery_failures_consumed") == 1
         and authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and authorization.get("ga_label_replay_repair_dispatches_consumed") == 1
         and authorization.get("ga_phase_diagnostic_dispatches_consumed") == 1
@@ -2016,12 +2047,13 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and authorization.get("ga_security_clock_decoupling_recovery_dispatch_limit") == 1
         and authorization.get("ga_raw_canonical_git_blob_recovery_dispatch_limit") == 1
         and authorization.get("ga_trash_confirmation_recovery_dispatch_limit") == 1
+        and authorization.get("ga_timeline_snapshot_recovery_dispatch_limit") == 1
         and authorization.get("ga_first_import_diagnostic_rerun_limit") == 0
         and authorization.get("security_clock_mode") == "LIVE_UTC"
         and authorization.get("rehearsal_schedule_clock_mode")
         == "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
         and authorization.get("rehearsal_schedule_clock_fixture_utc") == "2026-07-26T19:00:00Z"
-        and authorization.get("known_data_effect_upper_bound_utc") == "2026-07-26T17:20:17Z"
+        and authorization.get("known_data_effect_upper_bound_utc") == "2026-07-26T18:31:56Z"
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256")
         == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"  # pragma: allowlist secret  # noqa: E501
@@ -2030,11 +2062,11 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
         and authorization.get("final_publication_authorized") is False
-        and budget.get("controlled_main_deliveries_total_maximum") == 17
+        and budget.get("controlled_main_deliveries_total_maximum") == 18
         and budget.get("controlled_main_deliveries_remaining_maximum") == 2
         and budget.get("protected_environment_secret_names_maximum") == 8
-        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 14
-        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 13
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 15
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 14
         and budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") == 6
         and budget.get("protected_ga_candidate_preflight_dispatches_consumed") == 5
         and budget.get("protected_ga_authority_context_scope_failures_maximum") == 1
@@ -2047,6 +2079,8 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and budget.get("protected_ga_raw_recovery_representation_failures_consumed") == 1
         and budget.get("protected_ga_trash_confirmation_failures_maximum") == 1
         and budget.get("protected_ga_trash_confirmation_failures_consumed") == 1
+        and budget.get("protected_ga_timeline_snapshot_recovery_failures_maximum") == 1
+        and budget.get("protected_ga_timeline_snapshot_recovery_failures_consumed") == 1
         and budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_label_replay_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_phase_diagnostic_dispatches_consumed") == 1
@@ -2063,6 +2097,7 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and budget.get("protected_ga_security_clock_decoupling_recovery_dispatches_maximum") == 1
         and budget.get("protected_ga_raw_canonical_git_blob_recovery_dispatches_maximum") == 1
         and budget.get("protected_ga_trash_confirmation_recovery_dispatches_maximum") == 1
+        and budget.get("protected_ga_timeline_snapshot_recovery_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
         and budget.get("failed_head_reruns_maximum") == 0
         and budget.get("failed_head_redispatches_maximum") == 0
@@ -2074,6 +2109,7 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and budget.get("protected_ga_security_clock_decoupling_recovery_pipeline_runs_maximum") == 1
         and budget.get("protected_ga_raw_canonical_git_blob_recovery_pipeline_runs_maximum") == 1
         and budget.get("protected_ga_trash_confirmation_recovery_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_timeline_snapshot_recovery_pipeline_runs_maximum") == 1
         and budget.get("gmail_exact_message_trash_mutations_maximum") == 1
         and budget.get("maximum_live_timeline_assets") == 1
         and budget.get("production_schedule_enablement_mutations_maximum") == 1
@@ -3145,25 +3181,27 @@ def build_status(
             or protected_failed != 1
         ):
             raise ValueError(
-                "T0705 Trash-confirmation recovery authority lacks its exact failed lineage"
+                "T0705 Timeline snapshot recovery authority lacks its exact failed lineage"
             )
         production_reasons = [
             "FORMAL_TASKS_INCOMPLETE",
-            "T0705_THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN",
-            "T0705_TRASH_CONFIRMATION_RECOVERY_PENDING",
+            "T0705_FOURTEEN_PROTECTED_FAILED_HEADS_FROZEN",
+            "T0705_TIMELINE_SNAPSHOT_RECOVERY_PENDING",
             "FINAL_ACCEPTANCE_BLOCKED",
             "PRODUCTION_SCHEDULE_DISABLED",
         ]
         overall_status = (
-            "PROTECTED_GA_THIRTEENTH_ATTEMPT_FAILED_TRASH_CONFIRMATION_RECOVERY_AUTHORIZED"
+            "PROTECTED_GA_FOURTEENTH_ATTEMPT_FAILED_TIMELINE_SNAPSHOT_RECOVERY_AUTHORIZED"
         )
         protected_status = "FAILED"
-        production_workflow_runs = 15
-        publication_status = "CONTROLLED_T0705_TRASH_CONFIRMATION_RECOVERY_CANDIDATE_NOT_FINAL"
+        production_workflow_runs = 16
+        publication_status = (
+            "CONTROLLED_T0705_TIMELINE_SNAPSHOT_RECOVERY_CANDIDATE_NOT_FINAL"
+        )
         mechanism_scope = (
-            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_THIRTEEN_T0705_FAILURES_"
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_FOURTEEN_T0705_FAILURES_"
             "TWO_PRE_SECRET_FAILURES_ONE_RAW_RECOVERY_REPRESENTATION_FAILURE_"
-            "AND_ONE_TRASH_CONFIRMATION_FAILURE"
+            "ONE_TRASH_CONFIRMATION_FAILURE_AND_ONE_TIMELINE_SNAPSHOT_RECOVERY_FAILURE"
         )
     elif passed_t0704_state:
         if (

@@ -386,6 +386,101 @@ def test_t0705_processed_current_fails_closed_on_canonical_blob_revision_drift()
         token.destroy()
 
 
+def test_t0705_timeline_snapshot_recovery_allows_immutable_above_pointer_limit() -> None:
+    ciphertext = _synthetic_age_envelope() + b"\x00" * (2 * 1024 * 1024)
+    revision = _git_blob_revision(ciphertext)
+    manifest_path = f"MooMooAU/Manifests/timeline/{'c' * 64}.json.age"
+    config = TargetRepositoryConfig(repository_id=7_500_103, installation_id=8_500_103)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-target")
+
+    class LargeImmutableTransport:
+        def send(self, request: HttpRequest) -> HttpResponse:
+            if request.url == content_url(locator, manifest_path):
+                return HttpResponse(
+                    200,
+                    json.dumps(
+                        {
+                            "path": manifest_path,
+                            "sha": revision,
+                            "size": len(ciphertext),
+                            "type": "file",
+                        },
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ).encode(),
+                )
+            assert request.url == git_blob_url(locator, revision)
+            encoded = base64.b64encode(ciphertext).decode("ascii")
+            wrapped = "\n".join(encoded[index : index + 60] for index in range(0, len(encoded), 60))
+            return HttpResponse(
+                200,
+                json.dumps(
+                    {
+                        "content": wrapped,
+                        "encoding": "base64",
+                        "sha": revision,
+                        "size": len(ciphertext),
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode(),
+            )
+
+    guard = GitHubEndpointGuard(LargeImmutableTransport(), config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-installation-token"),
+        datetime(2026, 7, 26, 10, 0, tzinfo=UTC),
+    )
+    try:
+        recovered = GitHubProcessedCiphertextStore(
+            guard,
+            locator,
+            token,
+        ).fetch_immutable(manifest_path)
+    finally:
+        token.destroy()
+    assert recovered == ciphertext
+
+
+def test_t0705_processed_current_retains_narrow_ciphertext_limit() -> None:
+    ciphertext = _synthetic_age_envelope() + b"\x00" * (2 * 1024 * 1024)
+    revision = _git_blob_revision(ciphertext)
+    pointer_path = f"MooMooAU/State/processed-current/{'c' * 64}.json.age"
+    config = TargetRepositoryConfig(repository_id=7_500_104, installation_id=8_500_104)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-target")
+
+    class OversizedPointerTransport:
+        def send(self, request: HttpRequest) -> HttpResponse:
+            assert request.url == content_url(locator, pointer_path)
+            return HttpResponse(
+                200,
+                json.dumps(
+                    {
+                        "path": pointer_path,
+                        "sha": revision,
+                        "size": len(ciphertext),
+                        "type": "file",
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode(),
+            )
+
+    guard = GitHubEndpointGuard(OversizedPointerTransport(), config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-installation-token"),
+        datetime(2026, 7, 26, 10, 0, tzinfo=UTC),
+    )
+    try:
+        store = GitHubProcessedCiphertextStore(guard, locator, token)
+        with pytest.raises(ProcessedCommitError, match="current response is invalid"):
+            store.fetch_current(pointer_path)
+    finally:
+        token.destroy()
+
+
 def _sunday_plan() -> ScheduledRunPlan:
     return RunPlanner().plan(
         RunTrigger.SCHEDULE,
@@ -965,7 +1060,7 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["required_event"] == "workflow_dispatch"
     assert (
         contract["required_confirmation"]
-        == "GA_SCHEDULE_MODE_TRASH_CONFIRMATION_RECOVERY_MUTATION_BUDGET_ONE"
+        == "GA_SCHEDULE_MODE_TIMELINE_SNAPSHOT_RECOVERY_MUTATION_BUDGET_ONE"
     )
     assert contract["schedule_mode"] == "SCHEDULE_REHEARSAL"
     assert contract["security_clock_mode"] == "LIVE_UTC"
@@ -986,6 +1081,7 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert len(cast(list[str], contract["failed_ga_authentication_clock_head_shas"])) == 1
     assert len(cast(list[str], contract["failed_ga_raw_recovery_head_shas"])) == 1
     assert len(cast(list[str], contract["failed_ga_trash_confirmation_head_shas"])) == 1
+    assert len(cast(list[str], contract["failed_ga_timeline_snapshot_recovery_head_shas"])) == 1
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
     assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 9
