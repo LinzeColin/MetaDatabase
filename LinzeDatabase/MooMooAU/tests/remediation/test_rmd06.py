@@ -273,7 +273,11 @@ def test_rmd06_delivery_status_uses_static_composition_for_portable_successors(
         PROJECT_ROOT,
         {"package_version": "1.0.23"},
     ) == {"status": "PASS"}
-    assert observed == [False, True, False]
+    assert delivery_status._validate_composition_for_state(
+        PROJECT_ROOT,
+        {"package_version": "1.0.24"},
+    ) == {"status": "PASS"}
+    assert observed == [False, True, False, False]
 
 
 def test_rmd06_static_composition_validation_does_not_import_later_runtime(
@@ -389,17 +393,11 @@ def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(
 
 def test_rmd06_package_and_acceptance_use_current_provenance_pins() -> None:
     provenance = json.loads(
-        (PROJECT_ROOT / acceptance_evidence.PORTABLE_SOURCE_PROVENANCE).read_text(
-            encoding="utf-8"
-        )
+        (PROJECT_ROOT / acceptance_evidence.PORTABLE_SOURCE_PROVENANCE).read_text(encoding="utf-8")
     )
+    assert provenance["schema_version"] == acceptance_evidence.PORTABLE_SOURCE_PROVENANCE_SCHEMA
     assert (
-        provenance["schema_version"]
-        == acceptance_evidence.PORTABLE_SOURCE_PROVENANCE_SCHEMA
-    )
-    assert (
-        provenance["effective_package"]["version"]
-        == acceptance_evidence.PORTABLE_PACKAGE_VERSION
+        provenance["effective_package"]["version"] == acceptance_evidence.PORTABLE_PACKAGE_VERSION
     )
     assert package_validation.CANDIDATE_SNAPSHOT == {
         "repository": "LinzeColin/MetaDatabase",

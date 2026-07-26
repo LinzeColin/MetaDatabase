@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.23 protected T0705 GA phase-diagnostic recovery manifest."""
+"""Build the v1.0.24 protected T0705 GA Processed-plan diagnostic manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.23.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.23"
-PACKAGE_VERSION = "1.0.23"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.22.json")
-PREDECESSOR_MANIFEST_SHA256 = "d29bf6c794dadcefe9ead82eccf05a43e126b48d344ae195c000250341b66553"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.24.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.24"
+PACKAGE_VERSION = "1.0.24"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.23.json")
+PREDECESSOR_MANIFEST_SHA256 = "a7193fa487901af87bbafa38c654eae1395914cc9861380a4030c43fe1de00b6"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.22 manifest drift")
+        raise ValueError("predecessor v1.0.23 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -167,11 +167,11 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
         or status.get("overall_status")
-        != "PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED"
-        or "T0705_PHASE_DIAGNOSTIC_RECOVERY_PENDING" not in status.get("blockers", [])
+        != "PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED"
+        or "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING" not in status.get("blockers", [])
     ):
         raise ValueError(
-            "T0705 protected GA phase diagnostic is not in the exact authorized-pending state"
+            "T0705 protected GA Processed-plan diagnostic is not exactly authorized-pending"
         )
     entries = [
         {
@@ -182,7 +182,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v23",
+        "schema_version": "moomooau.package-manifest.v24",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
@@ -192,9 +192,11 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f, "
             "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0 and "
             "cc7c8af9a40122a61ee2549fb365df813cbd4f16 and "
-            "4c207ad539754166fae6642ff4e6850438d3e2fc, and preserve the exact T0702, "
-            "T0703 and T0704 protected PASS receipts plus all four immutable T0705 failed-attempt "
-            "ledgers. One reviewed closed-enum phase-diagnostic delivery, one new exact-main "
+            "4c207ad539754166fae6642ff4e6850438d3e2fc and "
+            "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4, and preserve the exact T0702, "
+            "T0703 and T0704 protected PASS receipts plus all five immutable T0705 failed-attempt "
+            "ledgers. One reviewed closed-enum Processed-plan subphase-diagnostic delivery, "
+            "one new exact-main "
             "attempt-1 protected "
             "SCHEDULE_REHEARSAL with rerun zero, and one later receipt/schedule-closure delivery "
             "remain authorized. Reuse only the existing eight-name moomooau-beta protected input "
@@ -202,12 +204,12 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.23 T0705 diagnostic candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.22 predecessor lineage remain unchanged. All four failed "
+            "Baseline-preserving v1.0.24 T0705 diagnostic candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.23 predecessor lineage remain unchanged. All five failed "
             "GA heads are digest-bound and cannot be rerun or redispatched. The only runtime "
-            "change threads a closed-enum last-entered operation phase through the protected GA "
-            "entrypoint, production bootstrap and runner without inspecting an exception or "
-            "receiving any protected value. It preserves persisted first-import label replay, "
+            "change adds fixed-enum Processed-plan subphases to the existing last-entered phase "
+            "tracker without inspecting an exception or receiving any protected value. It "
+            "preserves persisted first-import label replay, "
             "pre-Raw metadata quarantine, "
             "fail-closed second verification, ACTIVE processing and the repaired "
             "paired-empty SAFE_DEFERRED path. "

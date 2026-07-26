@@ -182,7 +182,7 @@
   "final_acceptances_blocked": 34,
   "final_acceptances_passed": 0,
   "next_action": "Keep the final release blocked until every exact Acceptance Oracle and linked claim passes.",
-  "observed_at_utc": "2026-07-26T05:44:53Z",
+  "observed_at_utc": "2026-07-26T07:29:35Z",
   "passed_acceptance_ids": [],
   "prohibition_counters": {
     "external_writes": 0,
@@ -206,8 +206,8 @@
     "thread_trash_calls": 0,
     "untrusted_content_execution": 0
   },
-  "record_root_sha256": "fa05c65362538a642ffbce8fff23039c17bc473bfc01b9b21e6f6dd5fd7c4fd2",
-  "remediation_base_commit": "4c207ad539754166fae6642ff4e6850438d3e2fc",
+  "record_root_sha256": "2d9c5ebb0fc49e2738350faf58fc7ecba22a78effdd1d385aae91ce20fdd7854",
+  "remediation_base_commit": "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
   "schema_version": "moomooau.acceptance-summary.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
   "status": "BLOCKED",

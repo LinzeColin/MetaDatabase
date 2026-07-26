@@ -1,5 +1,15 @@
 # Taskpack Changelog
 
+## 1.0.24 — 2026-07-26
+
+固化 T0705 第五次 protected GA 在 coarse `PROCESSED_PLAN` 的零新增副作用失败。绑定正常
+PR/main 交付、attempt-1/rerun-0 workflow、authority/cleanup 结果、one-shot authority 清理和
+只读 private 数据仓零 commit/零路径变化核验；精确线上根因保持 `UNKNOWN`。
+
+新增的唯一运行时变化是固定枚举 Processed-plan 子阶段诊断，不接收或检查异常与 protected
+值，不改变控制流。五个失败 head 永久冻结；仅授权一个新候选 attempt 1 和 PASS 后的
+receipt/schedule closure，T0706 与最终发布仍禁止。
+
 ## 1.0.23 — 2026-07-26
 
 固化 T0705 第四次 protected GA 失败，只授权公开安全的闭合阶段诊断候选。

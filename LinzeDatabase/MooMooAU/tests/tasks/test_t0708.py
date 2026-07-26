@@ -403,7 +403,8 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
     assert (
-        aggregate["status"] == "T0705_FOUR_FAILED_HEADS_FROZEN_PHASE_DIAGNOSTIC_AUTHORIZED_PENDING"
+        aggregate["status"]
+        == "T0705_FIVE_FAILED_HEADS_FROZEN_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED_PENDING"
     )
     assert (
         aggregate["scoped_preflight"]
@@ -425,10 +426,13 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
     assert aggregate["protected_oracles_executed"] == 5
     assert aggregate["protected_oracles_passed"] == 4
     assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 24
-    assert aggregate["production_workflow_runs"] == 4
+    assert aggregate["protected_workflow_runs"] == 25
+    assert aggregate["production_workflow_runs"] == 5
     assert aggregate["final_acceptances_passed"] == 0
-    assert aggregate["delivery_status"] == "CONTROLLED_T0705_PHASE_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+    assert (
+        aggregate["delivery_status"]
+        == "CONTROLLED_T0705_PROCESSED_PLAN_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+    )
     assert (
         aggregate["observation"]["m3_deterministic_evidence_run"]
         == "PASS_ZERO_MUTATION_RECONCILIATION_RECOVERY_100_PERCENT_ZERO_NEW_EFFECT"
@@ -437,6 +441,6 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
         aggregate["observation"]["blue_green_protected_entrypoint"]
         == "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED"
     )
-    assert "T0705_FOUR_FAILED_HEADS_FROZEN" in aggregate["blocking_conditions"]
-    assert "T0705_PHASE_DIAGNOSTIC_RECOVERY_PENDING" in aggregate["blocking_conditions"]
+    assert "T0705_FIVE_FAILED_HEADS_FROZEN" in aggregate["blocking_conditions"]
+    assert "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING" in aggregate["blocking_conditions"]
     assert "T0705_PROTECTED_RECEIPT_NOT_BOUND" in aggregate["blocking_conditions"]
