@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-120",
+  "target_id_sha256": "7865f743d174",
+  "implementation_commit": "10d988e908d72ea1a43bbed04a2130a338663363",
+  "check_passed": true,
+  "check_persistent_writes": false,
+  "check_live_commands": false,
+  "apply_passes": 2,
+  "verify_passed": true,
+  "second_apply_idempotent": true,
+  "candidate_release_immutable": true,
+  "candidate_tests_passed": true,
+  "candidate_test_count": 166,
+  "candidate_test_failures": 0,
+  "candidate_corresponding_source_complete": true,
+  "candidate_license_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "workspace_head": "10d988e908d72ea1a43bbed04a2130a338663363",
+  "workspace_branch": "codex/cyberboss-prestage0",
+  "workspace_filter": "blob:none",
+  "workspace_promisor": true,
+  "workspace_sparse_paths": [
+    ".github",
+    "CyberBoss"
+  ],
+  "workspace_remote_kind": "local_immutable_seed",
+  "workspace_clean": true,
+  "workspace_canonical_realpath": true,
+  "workspace_object_hardlinks": 0,
+  "current_changed": false,
+  "service_active": false,
+  "service_enabled": false,
+  "business_runtime_started": false,
+  "public_listeners_created": 0,
+  "private_database_cloned": false,
+  "real_data_operations": 0,
+  "data_activation": "activation_pending",
+  "incoming_artifacts_after_acceptance": 0,
+  "transient_transfer_artifacts_after_acceptance": 0,
+  "acceptance_budget_temp_files_after_acceptance": 0,
+  "final_code_processes": 0,
+  "final_data_processes": 0,
+  "final_listeners_8765_8780": 0,
+  "pre_acceptance_corrections": [
+    {
+      "commit": "7132d0c023987a3ed39e40ca15d6c6dc45ddc283",
+      "outcome": "workspace creation permission failed before candidate install",
+      "cleanup": "workspace and candidate absent"
+    },
+    {
+      "commit": "25a3cabc84c2c5ea6090dc4e4817b959eefe2231",
+      "outcome": "check-only seed safe-directory Oracle failed",
+      "cleanup": "no apply; transient material removed"
+    },
+    {
+      "commit": "6ba5bf53125fc268fbd9355cc91a2f925c9fd398",
+      "outcome": "check-only iteration completed without apply",
+      "cleanup": "transient material removed"
+    },
+    {
+      "commit": "60475e74460302ad8727b3990021c7a4fbd7a144",
+      "outcome": "root-owned staging check failed before workspace or candidate",
+      "cleanup": "exact rollback passed"
+    },
+    {
+      "commit": "368abdb624b9604a520ffe4b88cb54daffda94b3",
+      "outcome": "Linux sticker regression passed 163 of 166 tests",
+      "cleanup": "candidate absent; workspace and staging removed"
+    },
+    {
+      "commit": "e29ea552a2f19643385e703e0cd304cdca5228fa",
+      "outcome": "166 tests passed but root budget invocation lacked the controlled safe.directory",
+      "cleanup": "candidate, workspace and settings restored before the final implementation"
+    }
+  ],
+  "acceptance_harness_corrections": [
+    {
+      "issue": "direct node test inherited an inaccessible operator cwd",
+      "correction": "reran from the immutable release app directory",
+      "final_result": "9/9 passed"
+    },
+    {
+      "issue": "local shasum inherited an unsupported C.UTF-8 locale before SSH",
+      "correction": "used OpenSSL SHA-256 and target C locale",
+      "target_mutation": false
+    },
+    {
+      "issue": "current symlink was initially compared as absolute although its stored target is relative",
+      "correction": "validated the canonical target with readlink -f",
+      "current_changed": false
+    },
+    {
+      "issue": "root pressure fixture generated one pyc and its __pycache__ directory in the candidate",
+      "correction": "deleted only those two rebuildable transient entries and rechecked the complete immutable tree",
+      "source_files_removed": 0,
+      "repeat_requires_python_dont_write_bytecode": true
+    }
+  ],
+  "target_address_persisted": false,
+  "result": "passed"
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-120",
+  "target_id_sha256": "7865f743d174",
+  "code_identity": "cyberboss",
+  "data_identity": "cyberboss-data",
+  "code_identity_can_read_client": false,
+  "code_identity_can_execute_wrapper": false,
+  "data_identity_can_modify_workspace": false,
+  "data_identity_plan_only_passed": true,
+  "plan_only_operation": "verify",
+  "plan_only_area": "Private-MetaDatabase",
+  "plan_only_domain": "CyberBoss",
+  "client_sha256": "8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa",
+  "client_repository": "LinzeColin/Private-Database",
+  "client_branch": "main",
+  "allowed_operations": [
+    "ingest",
+    "get",
+    "list",
+    "verify"
+  ],
+  "forbidden_operations": [
+    "clone",
+    "put",
+    "delete"
+  ],
+  "credential_file_present": false,
+  "credential_content_reads": 0,
+  "private_database_clone_present": false,
+  "real_data_operations": 0,
+  "data_activation": "activation_pending",
+  "target_address_persisted": false,
+  "result": "passed"
+}

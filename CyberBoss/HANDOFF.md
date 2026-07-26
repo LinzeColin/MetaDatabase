@@ -11,10 +11,9 @@
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
-exit gate `PG-0`, `P1.1 / CB-100` and `P1.2 / CB-110` passed. Stage 0 is
-5/5 tasks plus its gate complete; Stage 1 is 2/5 tasks complete. The 23 tasks
-from CB-120 onward
-and PG-1–PG-5 remain `not_started`.
+exit gate `PG-0`, and `P1.1 / CB-100` through `P1.3 / CB-120` passed.
+Stage 0 is 5/5 tasks plus its gate complete; Stage 1 is 3/5 tasks complete.
+The 22 tasks from CB-130 onward and PG-1–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -189,6 +188,52 @@ The final full rerun exported via a separate 0600 path and passed. All three
 attempts and cleanup outcomes are retained in
 `docs/evidence/CB-110/readyz.redacted.json`.
 
+CB-120 fixed the complete controlled workspace boundary to local implementation
+commit:
+
+```text
+implementation/release = 10d988e908d72ea1a43bbed04a2130a338663363
+workspace = /srv/cyberboss-workspaces/cyberboss
+branch = codex/cyberboss-prestage0
+filter = blob:none
+sparse = .github + CyberBoss
+origin = local immutable seed only
+private_db_client SHA-256 = 8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa
+GitHub CLI = 2.96.0
+publication = none
+```
+
+The clean commit generated six exact artifacts: complete Corresponding Source,
+a hydrated partial seed verified with lazy fetch disabled, the canonical
+no-clone client, the pinned official GitHub CLI archive, manifest and checksum
+file. Target check, two applies and an independent verify passed. The first
+apply ran all 166 App tests; the second was idempotent. Candidate release,
+seed, registry and workspace resolve to that exact commit while `current`
+still resolves to CB-100 and the service remains disabled/inactive.
+
+The only registry alias is `cyberboss`. Nine target tests plus an actual config
+resolution passed; `/bind cyberboss` succeeds, while absolute paths, unknown
+aliases, workspace/config/base symlink escape and an unregistered Runtime root
+fail closed without changing binding/filesystem state. Workspace status is
+clean, `.github` is root-owned read-only, `CyberBoss/**` is code-owned, and
+there are no object hardlinks.
+
+The code identity cannot read the canonical data client or execute its
+wrapper. The data identity cannot write the code workspace and has no
+credential file. Its exact-hash wrapper passed only a `verify` plan:
+Private-Database clone and real data operations remain zero. Live workspace
+use is 29,058,557 bytes, state=`recover`, with more than 20 GiB target free
+space. Deterministic guard/protect/stop/recovery and a bounded 128 MiB target
+cgroup fixture passed with no OOM or real-time soak.
+
+Six superseded implementation attempts and all rollback outcomes are retained
+in CB-120 evidence. The pressure fixture also exposed an acceptance-harness
+defect: root Python created one `.pyc` and its `__pycache__` in the candidate.
+Only those two verified rebuildable transient entries were removed; no source
+file was deleted. Final candidate immutability/cache-absence, zero process/
+listener state, source/license/conflict preservation and
+`upstream_clarification_received=false` all revalidated.
+
 ## Canonical inputs and evidence
 
 - Product design: `docs/product_design/v0.0.0.4/`
@@ -198,7 +243,7 @@ attempts and cleanup outcomes are retained in
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P1_2_CB_110.md`
+  `docs/governance/RUN_CONTRACT_P1_3_CB_120.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
@@ -207,9 +252,10 @@ attempts and cleanup outcomes are retained in
 - PG-0 independent gate evidence: `docs/evidence/PG-0/`
 - CB-100 host-layout/systemd evidence: `docs/evidence/CB-100/`
 - CB-110 runtime-toolchain/loopback evidence: `docs/evidence/CB-110/`
+- CB-120 controlled-workspace/no-clone evidence: `docs/evidence/CB-120/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/CB-110/VALIDATION_REPORT.md`
+  `docs/evidence/CB-120/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -281,7 +327,19 @@ attempts and cleanup outcomes are retained in
   independent verify, `node:sqlite`, `/readyz=200`, protocol initialize,
   loopback-only listener, external-unreachable scan, Claude gate matrix and
   final zero-process/listener cleanup passed.
-- CB-110 decision: `PASS`; CB-120, all 23 later tasks and PG-1–PG-5 remain
+- CB-110 decision: `PASS`; it did not start CB-120 inside that Run.
+- CB-120 implementation artifact build passed with six exact files and no
+  external source fetch/publication; source, seed and client hashes matched on
+  target.
+- CB-120 target App regression: 166/166; workspace registry/dispatch boundary:
+  9/9.
+- CB-120 target installer check, two applies, independent verify,
+  identity negatives, plan-only no-clone client, live budget and bounded
+  pressure passed.
+- CB-120 final state: candidate immutable, workspace clean, code/data
+  processes=0, 8765/8780 listeners=0, service disabled/inactive and current
+  unchanged.
+- CB-120 decision: `PASS`; CB-130, all 21 later tasks and PG-1–PG-5 remain
   `not_started`.
 
 ## Known unknowns
@@ -290,25 +348,25 @@ attempts and cleanup outcomes are retained in
   tested. Codex is installed but target auth remains `activation_pending`; the
   fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
-  object or CyberBoss Runtime was created or modified in CB-020 or CB-030.
+  object or CyberBoss business Runtime was created or modified through CB-120.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
 - The OVH capacity/profile remains point-in-time; each later activation must
   rerun preflight.
-- Project-local Node/Codex are installed and verified. The full CyberBoss App,
-  workspace copy, pinned App dependencies, business process family, rclone and
-  sqlite3 CLI remain later-task boundaries.
+- Project-local Node/Codex, the immutable App candidate and the controlled
+  workspace are installed and verified. Current switching, authenticated
+  Runtime, business process family, rclone and sqlite3 CLI remain later-task
+  boundaries.
 
 ## Next Run
 
-The next eligible Run is exactly `P1.3 / CB-120`: prepare the single controlled
-workspace and no-clone data boundary. It remains `not_started`. CB-110 does not
-authorize a workspace copy, App dependency deployment, Codex/WeChat
-authentication, real business Runtime startup or provider/data activation.
+The next eligible Run is exactly `P1.4 / CB-130`. It remains `not_started`.
+CB-120 does not authorize switching `current`, Codex/WeChat authentication,
+real business Runtime startup, provider/data activation or `PG-1`.
 
 Start it only under a new single-phase Run Contract. Keep source/license and
-CB-000–CB-110/PG-0 evidence immutable, preserve the strict dual-license
+CB-000–CB-120/PG-0 evidence immutable, preserve the strict dual-license
 conflict record, and continue the final-only GitHub publication rule. Do not
-combine `P1.3` with `P1.4`, expose Runtime or perform a real provider/data
+combine `P1.4` with `P1.5`, expose Runtime or perform a real provider/data
 write unless the new Run Contract and exact Acceptance authorize it.

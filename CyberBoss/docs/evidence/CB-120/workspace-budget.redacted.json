@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-120",
+  "target_id_sha256": "7865f743d174",
+  "workspace_alias": "cyberboss",
+  "evidence_scope": "live_filesystem",
+  "result": "pass",
+  "state": "recover",
+  "usage": {
+    "workspace_bytes": 29058557,
+    "repository_objects_bytes": 12978109,
+    "worktree_bytes": 14603933,
+    "cache_bytes": 49635087,
+    "host_available_bytes": 20061839360
+  },
+  "limits": {
+    "workspace_bytes": 4294967296,
+    "repository_objects_bytes": 1610612736,
+    "worktree_bytes": 2684354560,
+    "cache_bytes": 536870912
+  },
+  "ratios": {
+    "workspace_bytes": 0.006766,
+    "repository_objects_bytes": 0.008058,
+    "worktree_bytes": 0.00544,
+    "cache_bytes": 0.092453
+  },
+  "reasons": [],
+  "hard_stop_workspace_bytes": 8589934592,
+  "host_reserve_min_bytes": 4294967296,
+  "cleanup_commands": [
+    "git -C /srv/cyberboss-workspaces/cyberboss worktree prune",
+    "git -C /srv/cyberboss-workspaces/cyberboss gc",
+    "workspace-maintenance.sh --alias cyberboss --apply-cache-cleanup"
+  ],
+  "no_prune_now": true,
+  "deterministic_guard_ladder_passed": true,
+  "deterministic_protect_ladder_passed": true,
+  "deterministic_stop_ladder_passed": true,
+  "deterministic_recovery_passed": true,
+  "target_address_persisted": false
+}

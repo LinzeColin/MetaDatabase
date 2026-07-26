@@ -5,18 +5,18 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 的
-  `P1.1 / CB-100`、`P1.2 / CB-110` 已通过
+  `P1.1 / CB-100`、`P1.2 / CB-110`、`P1.3 / CB-120` 已通过
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
-  `P1.1 / CB-100`；`P1.2 / CB-110`
+  `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P1.2 / CB-110` 已在同一目标可复现安装 Node.js
-  `24.18.0` 与 Codex CLI `0.146.0-alpha.3.1`，完成 loopback
-  ready/protocol/external-scan 和 Claude 双门负向验收；Codex auth 仍为
-  `activation_pending`，没有业务 Runtime 或公网 route
-- Stage 0–5 任务状态：`CB-000`–`CB-110` 共七项任务已通过；其余 23 项与
+- 最新 Run：`P1.3 / CB-120` 已在同一目标安装 exact-commit candidate、
+  唯一 `cyberboss` sparse workspace、root 控制的 registry、code/data
+  身份隔离及 exact no-clone client；两次 apply 与 verify 通过，数据和
+  Runtime 仍为 `activation_pending`，`current`/service/公网 route 未变
+- Stage 0–5 任务状态：`CB-000`–`CB-120` 共八项任务已通过；其余 22 项与
   PG-1–PG-5 均为 `not_started`；`PG-0=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -117,6 +117,25 @@ binary/credential 均未安装；默认 feature/eval 双门为 false，三个负
 marker 编排超时和第二次 0700 staging 导出失败均保留在 CB-110 evidence，
 最终完整重跑通过。没有真实 WeChat/Runtime、provider/
 Private-MetaDatabase 写入或 GitHub publication。
+
+P1.3 以本地 implementation commit
+`10d988e908d72ea1a43bbed04a2130a338663363` 生成完整 Corresponding
+Source、`blob:none` partial seed、exact canonical no-clone client 与官方
+GitHub CLI `2.96.0` artifact。目标机 check、两次 apply、独立 verify 和
+App 166/166 tests 通过；第二次 apply 幂等。唯一 workspace
+`/srv/cyberboss-workspaces/cyberboss` 固定 exact head、`.github` /
+`CyberBoss` sparse paths、本地 immutable seed remote 和 root-controlled
+alias/realpath gate。
+
+目标 9/9 workspace 专项测试证明 `/bind cyberboss` 通过，绝对路径、未知
+alias、symlink escape 与未登记 Runtime root 全部 fail-closed。code identity
+不能读/执行 data client，data identity 不能写 code workspace；wrapper
+只执行 plan-only，credential 文件缺失，Private-Database clone 和真实数据
+操作为 0。Live workspace 约 29.1 MB、预算状态 `recover`；有界 target
+cgroup pressure 零 OOM。验收过程中 root Python 产生的两个 cache entry 已
+作为精确 transient artifact 删除并保留纠正记录。最终 candidate 只读，
+process/listener 为 0，`current` 仍指向 CB-100，service 仍
+disabled/inactive；没有 push/PR/tag/release。
 
 ## 许可证
 

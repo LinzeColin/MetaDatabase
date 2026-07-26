@@ -1,5 +1,34 @@
 # Changelog
 
+## P1.3 / CB-120 — 2026-07-26
+
+- Bound complete Corresponding Source, a no-external-fetch partial repository
+  seed, the canonical no-clone client and GitHub CLI `2.96.0` to local commit
+  `10d988e908d72ea1a43bbed04a2130a338663363`.
+- Installed one root-controlled `cyberboss` registry and exact sparse
+  workspace with `.github`/`CyberBoss`, `blob:none`, a local immutable seed
+  remote, clean status and no object hardlinks.
+- Added code/data OS identity separation: code cannot read/execute the data
+  client, data cannot modify the workspace, credential state remains absent,
+  and the wrapper passed plan-only with no Private-Database clone/operation.
+- Replaced the macOS-only sticker conversion path with a bounded,
+  dependency-free Linux PNG-to-GIF implementation; the full target App suite
+  passed 166/166.
+- Passed installer check, two exact-commit applies, independent verify, 9/9
+  target workspace/Runtime-boundary tests and live `recover` budget checks.
+- Passed the bounded 128 MiB target cgroup pressure fixture with 16 MiB
+  memory, 8 MiB disk, 100 queue items, no fixed sleep and zero OOM events.
+- Preserved six superseded implementation/acceptance outcomes and the final
+  pressure-created Python cache correction. Only the two verified transient
+  cache entries were deleted; no source file was removed.
+- Kept `current` on CB-100, service disabled/inactive, business process and
+  8765/8780 listener counts at zero, and provider/data writes at zero.
+- Preserved original source/licenses and the unresolved strict
+  `AGPL-3.0-only AND GPL-3.0-only` conflict record without claiming upstream
+  clarification.
+- Marked only CB-120 passed. CB-130, all later tasks and PG-1–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/release/publication remains empty.
+
 ## P1.2 / CB-110 — 2026-07-26
 
 - Pinned Node.js `24.18.0`, Codex CLI `0.146.0-alpha.3.1` and all three
