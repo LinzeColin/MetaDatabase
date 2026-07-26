@@ -1,6 +1,6 @@
 # Changelog
 
-## P0.2 / CB-010 activation-pending checkpoint — 2026-07-26
+## P0.2 / CB-010 — 2026-07-26
 
 - Added a fail-closed `constrained`/`tiny`/`standard` resource calculator with
   dynamic memory reserve, disk caps and protect/recover predicates.
@@ -15,8 +15,16 @@
 - Made live measurement cgroup-v2-aware so a finite container/service memory
   ceiling cannot be mistaken for larger host `/proc` capacity; verified the
   default Linux collector in a no-network, read-only local container.
-- Kept the task `activation_pending`: no authorized OVH target was available,
-  no live profile was asserted, and no host or online Status mutation occurred.
+- Resolved the authorized primary OVH asset from protected local deployment
+  records under the Owner's explicit instruction, using strict known-host and
+  key-only SSH without persisting its address or credential material.
+- Captured three same-host immediate snapshots and selected the safe
+  `constrained` profile; verified 8765/8780, four proposed paths, existing
+  Status ingestion and Traefik integration without online mutation.
+- Ran the exact 16 MiB memory / 8 MiB temporary disk / 100-item pressure
+  fixture in an ephemeral no-network, read-only 128 MiB cgroup; all guard
+  transitions passed and OOM-kill delta was zero.
+- Marked CB-010 `passed`; CB-020 and every later task/gate remain unstarted.
 
 ## P0.1 / CB-000 — 2026-07-26
 

@@ -39,6 +39,9 @@ capacity/profile/protect/recover 计算与压力 fixture，为后续部署提供
 - `implementation-kit/scripts/select-resource-profile.sh`
 - `implementation-kit/status/`
 - 现有 SSH config 中已明确授权的 host alias
+- Owner 明确指示后，可从本机 `_protected` 既有 Alpha/OVH 部署记录解析唯一
+  目标与认证文件位置；只可读取身份/模式/一致性元数据，不得复制、输出或提交
+  地址、credential 或 private-key material
 - `https://status.linzezhang.com/` 与
   `https://status.linzezhang.com/data/snapshot.json`
 
@@ -128,3 +131,21 @@ git diff --check
 没有授权 OVH 入口时，本 Run 可完成所有 repo-local 与公共只读工作，但
 `CB-010` 必须保持 `activation_pending`，不得以 simulator/public Status
 代替真实 host evidence。
+
+## 10. Run result — 2026-07-26
+
+- Owner 明确要求从本机既有部署记录自动解决目标发现；受保护 Alpha/OVH
+  baseline、operate status 与 handover 对同一主资产一致。
+- strict known-host、key-only BatchMode SSH 通过；地址、credential 与 key
+  material 未进入日志或仓库。
+- 同一 host 三次即时 snapshot 完成，选择 `constrained`、
+  guard=`recover`、activation-safe=`true`；8765/8780 与四个 canonical
+  path 无冲突。
+- 现有 Status compose/collector/data/web、cron ingestion、mount 与 Traefik
+  只读 whitelist probe 通过，未持久化 raw rows/config。
+- baseline 安全门通过后，使用现有镜像、无 pull/network、只读 rootfs、
+  非 root、128 MiB memory/swap、32 PID、0.25 CPU 的 ephemeral container
+  执行 16 MiB/8 MiB/100 fixture；guard ladder 完整、OOM-kill delta=0，
+  container 与远端临时目录已清理。
+- `CB-010=passed`；未执行 CB-020、未作 persistent OVH/Status mutation、
+  未 push/PR/tag/release。

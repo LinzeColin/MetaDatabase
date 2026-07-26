@@ -32,7 +32,7 @@ def rss_kib() -> int:
 
 
 def cgroup_snapshot() -> dict[str, Any] | None:
-    root = Path("/sys/fs/cgroup")
+    root = RESOURCE_PROFILE.current_cgroup_v2_root()
     required = ("memory.current", "memory.max", "memory.events")
     if not all((root / name).is_file() for name in required):
         return None
@@ -133,6 +133,11 @@ def main() -> int:
     parser.add_argument("--memory-mb", type=int, default=16)
     parser.add_argument("--disk-mb", type=int, default=8)
     parser.add_argument("--queue-items", type=int, default=100)
+    parser.add_argument(
+        "--evidence-scope",
+        choices=("local_container", "authorized_live_host_container"),
+        default="local_container",
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
@@ -181,10 +186,21 @@ def main() -> int:
     oom_kill_delta = after_oom_kill - before_oom_kill
     oom_observed = oom_kill_delta > 0
     cgroup_verified = finite_memory_max and not oom_observed
+    live_host_scope = args.evidence_scope == "authorized_live_host_container"
+    verified_state = (
+        "verified_bounded_authorized_live_host_container"
+        if live_host_scope
+        else "verified_bounded_local_container"
+    )
     result = {
         "schema_version": 1,
         "result": "fail" if oom_observed else "pass",
-        "mode": "bounded_local_process_fixture",
+        "mode": (
+            "bounded_authorized_live_host_container_fixture"
+            if live_host_scope
+            else "bounded_local_process_fixture"
+        ),
+        "evidence_scope": args.evidence_scope,
         "no_sleep": True,
         "oom_observed": oom_observed,
         "hard_caps": {
@@ -202,20 +218,20 @@ def main() -> int:
         "guard_ladder": ladder,
         "cgroup_evidence": {
             "state": (
-                "verified_bounded_local_container"
+                verified_state
                 if cgroup_verified
                 else "activation_pending"
             ),
             "reason": (
                 "finite_cgroup_memory_limit_and_no_oom_kill"
                 if cgroup_verified
-                else "authorized_ovh_host_required"
+                else "finite_cgroup_memory_limit_required"
             ),
             "before": cgroup_before,
             "during": cgroup_during,
             "after": cgroup_after,
             "oom_kill_delta": oom_kill_delta,
-            "claimed_as_live_host_evidence": False,
+            "claimed_as_live_host_evidence": live_host_scope,
         },
     }
     if args.output:

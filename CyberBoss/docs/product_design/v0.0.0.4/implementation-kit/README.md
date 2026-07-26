@@ -59,6 +59,11 @@ ceiling 会覆盖更大的 host `/proc` 数值，profile writer 在安全预算�
 任何本地或容器 pressure 结果都不能替代同一获授权 OVH 主机的基线与有界
 induced-load/cgroup 证据。
 
+`resource-pressure-fixture.py` 默认 `--evidence-scope=local_container`，不得
+改称实机证据。只有目标授权链和只读 baseline 已在外层证据中验证、且 fixture
+确实运行于该 host 的有限 ephemeral container 时，才可使用
+`--evidence-scope=authorized_live_host_container`；该标志本身不授予权限。
+
 之后按 `06_OPERATIONS_STATUS_HANDOVER.md` 从 `CB_INCOMING_ROOT` 内的已校验本地制品安装
 candidate release。真实凭据缺失时不等待：运行 simulator、完成其余代码和部署槽位，
 把对应 adapter 标记 `activation_pending`。

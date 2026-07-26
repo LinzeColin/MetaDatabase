@@ -567,6 +567,12 @@ CB-010 only validates the adapter fixture.
 
 Do not hard-code a single memory budget before reading the live OVH baseline. `implementation-kit/scripts/select-resource-profile.sh` deterministically selects one of the following profiles from measured total/available RAM and swap; the generated environment and systemd drop-in become the runtime source of truth.
 
+CB-010 于 2026-07-26 在同一获授权 host 的三次即时 snapshot 上选择
+`constrained`：`MemoryHigh=768M`、`MemoryMax=1152M`、`TasksMax=256`、
+queue limit 20、memory reserve 512 MiB、disk reserve 4 GiB。该证据只锁定当前
+部署候选边界；真正写入 systemd 前仍须重新运行 preflight，若 guard 变为
+`protect` 或 reserve 不足则 fail closed。
+
 | Profile | Intended host condition | `MemoryHigh` | `MemoryMax` | Runtime policy |
 |---|---|---:|---:|---|
 | `constrained` | very limited free RAM; only minimum viable bridge/runtime can fit | 768 MB | 1152 MB | one job, Timeline build and backup serialized, reject only new mutation when protection predicate is true |

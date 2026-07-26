@@ -2,12 +2,12 @@
 
 ## Decision
 
-`activation_pending`
+`passed`
 
-All safe repository-local and public read-only work for P0.2 is complete. Real OVH
-acceptance is not complete because no explicitly authorized host target was available,
-and read-only preparation does not authorize live induced load. Public Status aggregates
-and a local bounded container are not substituted for live host evidence.
+Repository-local, public read-only and authorized OVH live acceptance for P0.2 are
+complete. The target was resolved from protected local deployment records under the
+Owner's explicit instruction, authenticated with strict known-host/key-only SSH, and
+represented only by pseudonymous hashes in committed evidence.
 
 ## Verification matrix
 
@@ -23,19 +23,34 @@ and a local bounded container are not substituted for live host evidence.
 | Guard → warn/protect → recover ladder | pass | seven expected transitions |
 | Bounded local cgroup pressure | pass | 128 MiB memory limit, 64 PID limit, zero OOM-kill delta |
 | Status adapter contract | pass | 7/7 Node tests, including hostile-field sanitization |
-| Live OVH preflight | pending | no authorized target; required evidence intentionally absent |
-| Live OVH bounded induced load | pending | must run only after host safety budget is known |
+| Live OVH preflight | pass | three same-host immediate snapshots; constrained/recover/safe; proposed ports and paths free |
+| Live Status/reverse-proxy ingestion probe | pass | host-direct compose, collector/data/web, mounts, fresh snapshot, cron and Traefik counts |
+| Live OVH bounded induced load | pass | existing image, no pull/network, 128 MiB cgroup, 16 MiB/8 MiB/100, zero OOM-kill delta |
 | Online CyberBoss Status row | out of scope | no online mutation was made |
 
 ## Acceptance accounting
 
-- AC-067 repository-local clean-shell and runbook requirements are executable and aligned.
-- AC-064 repository-local pressure ladder is executable, but real-host/cgroup proof remains
-  pending.
+- AC-067 clean-shell, live collector and runbook requirements are executable and aligned.
+- AC-064 guard ladder and authorized-host finite-cgroup proof both pass.
 - CB-020 and all later tasks remain `not_started`.
 - PG-0 through PG-5 remain `not_started`.
-- No push, PR, tag, release, OVH mutation or online Status mutation occurred.
+- No push, PR, tag, release, persistent OVH mutation or online Status mutation occurred.
 
-CB-010 may become `passed` only after the same authorized OVH host supplies the redacted
-three-snapshot preflight and bounded induced-load/cgroup evidence required by the Run
-Contract.
+The collector's `PASS_WITH_ACTIVATION_PENDING` line refers only to later Runtime
+dependencies (Node, Codex, rclone and sqlite3) not yet installed. Core collection,
+capacity, reserve, port/path and pressure acceptance passed; runtime activation remains
+outside CB-010.
+
+## Final regression
+
+- `validate_cb010.py`: PASS, `task_state=passed`, `live_ovh=true`
+- `validate_cb000.py`: PASS
+- `validate_prestage0.py`: PASS, 6 stages / 30 tasks / 53 oracles / 53 requirements
+- Resource profile: 7/7 PASS
+- Status adapter contract: 7/7 PASS
+- TaskPack: PASS, 65 files / 16 required items
+- DAG: PASS, 30 tasks / 6 stages
+- Traceability: PASS, 53 requirements / 53 mapped oracles
+- No-wait: PASS, zero real-time soak, credential-wait and fixed-sleep nodes
+- Config: PASS, one workspace
+- Both SHA-256 manifests and `git diff --check`: PASS

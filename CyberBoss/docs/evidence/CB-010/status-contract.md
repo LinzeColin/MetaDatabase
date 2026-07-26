@@ -45,5 +45,8 @@ sanitization, DLP and atomic CLI output.
 ## Boundary
 
 This Run validates an adapter fixture only. It does not add a CyberBoss row, change the
-online snapshot, install a collector or establish OVH ingestion. Those operations remain
-outside P0.2 and cannot be reported as verified.
+online snapshot or install a CyberBoss collector. A separate authorized-host, read-only
+whitelist probe confirmed the *existing* Status compose/collector/data/web surface,
+mounted containers, cron ingestion, fresh snapshot and Traefik routing counts. It did not
+read or retain route values, config, project rows or credentials and made no online
+change. CyberBoss row publication remains outside P0.2.

@@ -125,6 +125,13 @@ memory/cgroup/port/service 基线。真实启用前仍须在同一获授权 OVH 
 preflight 与有界 induced-load snapshot。后者会分配少量内存并写入自动清理的临时
 文件，不属于纯只读命令；只有在 Owner 明确授权有界实机压力后才能运行。
 
+CB-010 已于 2026-07-26 完成该首次实机证据：三次 snapshot 选择
+`constrained`，8765/8780 与四个拟用路径无冲突；有界 fixture 在无网络、
+只读 rootfs、128 MiB memory/swap、32 PID、0.25 CPU 的 ephemeral container
+中以 `--evidence-scope=authorized_live_host_container` 运行，16 MiB RAM、
+8 MiB temporary disk、100 queue items，OOM-kill delta=0。容器与临时目录已
+清理。该历史证据不替代实际激活前的重新 preflight。
+
 ### 3.2 Create Service Account and Directories
 
 ```bash

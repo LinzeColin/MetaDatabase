@@ -6,7 +6,7 @@
     "run_id": "P0.2",
     "task_id": "CB-010",
     "scope": "ovh_resource_and_existing_status_baseline",
-    "status": "activation_pending"
+    "status": "passed"
   },
   "prestage": [
     {
@@ -25,7 +25,7 @@
   },
   "tasks": [
     {"id": "CB-000", "stage": "S0", "phase": "P0.1", "status": "passed"},
-    {"id": "CB-010", "stage": "S0", "phase": "P0.2", "status": "activation_pending"},
+    {"id": "CB-010", "stage": "S0", "phase": "P0.2", "status": "passed"},
     {"id": "CB-020", "stage": "S0", "phase": "P0.3", "status": "not_started"},
     {"id": "CB-030", "stage": "S0", "phase": "P0.4", "status": "not_started"},
     {"id": "CB-040", "stage": "S0", "phase": "P0.5", "status": "not_started"},

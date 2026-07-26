@@ -10,10 +10,17 @@
 
 ## Current state
 
-`PS0.1` and `P0.1 / CB-000` passed. `P0.2 / CB-010` has completed all
-repository-local and public read-only work but is `activation_pending` because
-no explicitly authorized OVH target was discoverable. The later 28 tasks and
-PG-0–PG-5 remain `not_started`.
+`PS0.1`, `P0.1 / CB-000` and `P0.2 / CB-010` passed. The Owner directed
+CB-010 to resolve OVH access from existing local deployment records. A unique
+primary asset, strict known-host identity and key-only deployment identity were
+verified without persisting its address or credential material.
+
+Three same-host immediate snapshots selected `constrained`, guard=`recover`,
+activation-safe=`true`; 8765/8780 and all four proposed CyberBoss paths are
+free. Existing Status ingestion/Traefik integration was confirmed read-only.
+The authorized-host 16 MiB/8 MiB/100 fixture passed in a finite 128 MiB
+ephemeral container with zero OOM-kill delta and complete cleanup. The later
+28 tasks and PG-0–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources are frozen
 as ordinary-file bundles under `app/` and `vendor/`. Both moving Git
@@ -82,43 +89,58 @@ received, and none may be claimed.
   current `projects[]` has 11 required fields, 8 rows and zero CyberBoss rows.
   Status adapter contract tests: 7/7 passed, including hostile-field
   sanitization.
-- `validate_cb010.py`: repository-local result passes with
-  `task_state=activation_pending` after the final validation run.
+- Authorized OVH preflight: strict known-host/key-only authentication; three
+  snapshots in under one second; 3819 MiB total and 1948–1955 MiB available
+  memory, 1095 MiB swap free, 15,558 MiB root free, low inode use.
+- Live selection: `constrained`, MemoryHigh 768 MiB, MemoryMax 1152 MiB,
+  TasksMax 256, memory reserve 512 MiB, disk reserve 4 GiB, guard recover.
+- Conflict/integration inventory: 8765/8780 free, four proposed paths absent,
+  21 existing containers; Status compose/collector/data/web, mounts, cron,
+  fresh snapshot and Traefik route counts confirmed without raw-row retention.
+- Authorized bounded pressure: existing image, no pull/network, read-only
+  rootfs, non-root, 128 MiB memory/swap, 32 PID, 0.25 CPU; exact
+  16 MiB/8 MiB/100 fixture, full guard ladder, zero OOM-kill delta, cleanup.
+- `validate_cb010.py`: strengthened to validate live evidence semantics rather
+  than file presence; final result passes with `task_state=passed`.
 
 ## Known unknowns
 
-- No real authenticated Codex turn, WeChat account/API, OVH host, Status
-  ingestion, Private-Database, R2, OCI, DNS/Access or deployment was tested or
-  activated in CB-000.
+- No real authenticated Codex turn, WeChat account/API, Private-MetaDatabase
+  data operation, R2, OCI, DNS/Access route or CyberBoss deployment has been
+  tested or activated.
 - The protocol baseline proves schema compatibility and unit behavior, not a
   production Runtime activation.
-- The public Status row contract is measured, but OVH total/available memory,
-  swap, ports, processes, units, containers, filesystems/inodes, canonical-path
-  conflicts and ingestion location remain unmeasured.
-- A live `constrained`, `tiny` or `standard` choice must not be asserted until
-  the same authorized host supplies its redacted preflight and bounded
-  induced-load/cgroup snapshot.
+- The measured `constrained` baseline is point-in-time. Activation must rerun
+  preflight and fail closed if guard/reserve changes.
+- Node, Codex, rclone and sqlite3 are not currently available on the target;
+  these are later deployment prerequisites, not CB-010 capacity failures.
+- The online Status surface still has no CyberBoss row; CB-010 made no online
+  mutation.
 
 ## Next Run
 
-Resume exactly one phase: `P0.2 / CB-010`.
+Start exactly one phase: `P0.3 / CB-020`.
 
-Required inputs:
+Before modifying files, create
+`docs/governance/RUN_CONTRACT_P0_3_CB_020.md` from the canonical DAG and read
+AC-043/AC-065. Keep P0.2 evidence immutable.
 
-1. one explicitly authorized OVH SSH host alias; do not send or inspect
-   secret/key contents, and do not infer the target from a public address;
-2. a separate explicit decision on whether the bounded live fixture may allocate
-   at most 16 MiB RAM and write/clean 8 MiB temporary disk after the read-only
-   baseline proves it safe. The existing “read-only preparation” instruction
-   does not grant that permission.
+Required outcome:
 
-Required outcome: collect redacted read-only OVH resource/port/process/storage
-evidence, select a safe capacity profile and prove proposed paths/ports do not
-conflict. Use three immediate snapshots and one bounded induced-load/cgroup
-snapshot; do not use a real-time waiting window.
+1. lock `LinzeColin/MetaDatabase` + `CyberBoss/` + workspace alias
+   `cyberboss`, with no new/forked repository;
+2. enforce `Private-MetaDatabase`, `domain=CyberBoss`, no-clone access through
+   `private_db_client.py`, including negative scope tests;
+3. add least-privilege credential *slots* and a secret inventory without real
+   values in the repository;
+4. prepare idempotent DNS/Access/Analytics/R2 and OCI activation adapters plus
+   mock endpoints;
+5. prove anonymous/unauthorized Access denial and out-of-scope
+   repo/path/domain/bucket rejection;
+6. run secret scanning and keep unavailable external activations precisely
+   `activation_pending` without blocking dependency-independent work.
 
-Stop before mutating unrelated services, requiring unsafe cleanup, exposing
-credentials/data, or choosing a profile that can harm an existing critical
-service. If live access remains unavailable, keep CB-010
-`activation_pending`; do not fabricate measurements. Do not start `P0.3`,
-push, create a PR/tag or deploy.
+Stop on broad account-level write credentials, anonymous management exposure,
+secret leakage or any attempt to clone Private-Database/create another repo.
+Do not execute P0.4, push, create a PR/tag/release or deploy a CyberBoss
+Runtime in the P0.3 Run.

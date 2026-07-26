@@ -669,6 +669,417 @@ def validate(project: Path) -> list[str]:
     if cb010_status == "passed":
         expect(live_preflight.is_file(), "passed_without_live_preflight")
         expect(live_pressure.is_file(), "passed_without_live_pressure")
+        if live_preflight.is_file() and live_pressure.is_file():
+            live_text = live_preflight.read_text(encoding="utf-8")
+
+            def live_value(name: str) -> str | None:
+                match = re.search(
+                    rf"^{re.escape(name)}=(.+)$",
+                    live_text,
+                    re.MULTILINE,
+                )
+                return match.group(1).strip() if match else None
+
+            expect(
+                live_value("EVIDENCE_KIND")
+                == "authorized_ovh_live_read_only_preflight",
+                "live_preflight_kind",
+            )
+            expect(
+                live_value("AUTHORIZATION_SOURCE")
+                == "owner_instruction_plus_protected_local_deployment_records",
+                "live_preflight_access_source",
+            )
+            expect(
+                live_value("TARGET_RESOLUTION") == "unique_consistent_asset",
+                "live_preflight_target_resolution",
+            )
+            expect(
+                re.fullmatch(
+                    r"[0-9a-f]{12}",
+                    str(live_value("TARGET_ID_SHA256") or ""),
+                )
+                is not None,
+                "live_preflight_target_id",
+            )
+            expect(
+                re.fullmatch(
+                    r"[0-9a-f]{64}",
+                    str(live_value("HOST_ID_SHA256") or ""),
+                )
+                is not None,
+                "live_preflight_host_id",
+            )
+            for name, expected in {
+                "STRICT_HOST_KEY_CHECKING": "true",
+                "SSH_AUTH_MODE": "key_only_batch",
+                "CREDENTIAL_VALUE_PERSISTED": "false",
+                "PRIVATE_KEY_MATERIAL_PERSISTED": "false",
+                "TARGET_ADDRESS_PERSISTED": "false",
+                "REMOTE_PERSISTENT_WRITE": "false",
+                "REMOTE_EPHEMERAL_DIRECTORY_CLEANED": "true",
+                "RAW_PROCESS_ARGV_PERSISTED": "false",
+                "RAW_CONTAINER_ROW_PERSISTED": "false",
+                "RAW_STATUS_SNAPSHOT_PERSISTED": "false",
+                "SNAPSHOT_MODE": "three_immediate_no_sleep",
+                "KERNEL_FAMILY": "Linux",
+                "ARCH": "x86_64",
+                "CB_RESOURCE_PROFILE": "constrained",
+                "CB_MEASUREMENT_MEMORY_SCOPE": "host",
+                "CB_RESOURCE_GUARD_STATE": "recover",
+                "CB_RESOURCE_ACTIVATION_SAFE": "true",
+                "CB_RESOURCE_BLOCK_REASONS": "none",
+                "PROPOSED_PORT_8765_IN_USE": "false",
+                "PROPOSED_PORT_8780_IN_USE": "false",
+                "SYSTEMD_STATE": "readable",
+                "CONTAINER_RUNTIME": "docker:readable:21",
+                "PATH_STATE": "app_root:absent",
+                "STATUS_DOCKER_INVENTORY_READABLE": "true",
+                "STATUS_ROOT_STATE": "directory",
+                "STATUS_COMPOSE_STATE": "file",
+                "STATUS_COLLECTOR_DIR_STATE": "directory",
+                "STATUS_WEB_DIR_STATE": "directory",
+                "STATUS_DATA_DIR_STATE": "directory",
+                "STATUS_SNAPSHOT_STATE": "file",
+                "STATUS_PROPOSED_PORT_8765_DOCKER_PUBLISHED": "false",
+                "STATUS_PROPOSED_PORT_8780_DOCKER_PUBLISHED": "false",
+            }.items():
+                expect(
+                    live_value(name) == expected,
+                    f"live_preflight_value:{name}",
+                )
+            for name in (
+                "CB_MEASURED_AVAILABLE_MEMORY_MB",
+                "CB_MEASURED_SWAP_FREE_MB",
+                "CB_MEASURED_FREE_DISK_MB",
+                "CB_SYSTEMD_MEMORY_MAX",
+                "CB_EFFECTIVE_MEMORY_SAFETY_RESERVE_MB",
+                "CB_SAFE_RUNTIME_BUDGET_MB",
+                "RUNNING_UNIT_COUNT",
+                "STATUS_RUNNING_CONTAINER_COUNT",
+                "STATUS_CONTAINER_COUNT",
+                "STATUS_TRAEFIK_CONTAINER_COUNT",
+                "STATUS_TRAEFIK_ROUTED_CONTAINER_COUNT",
+                "STATUS_HOST_MOUNT_COUNT",
+                "STATUS_MOUNTED_CONTAINER_COUNT",
+                "STATUS_SNAPSHOT_BYTES",
+                "STATUS_SNAPSHOT_AGE_SECONDS",
+                "STATUS_CRON_FILE_COUNT",
+                "STATUS_CRON_ACTIVE_LINE_COUNT",
+            ):
+                expect(
+                    str(live_value(name) or "").removesuffix("M").isdigit(),
+                    f"live_preflight_numeric:{name}",
+                )
+            if str(live_value("CB_MEASURED_AVAILABLE_MEMORY_MB") or "").isdigit():
+                expect(
+                    int(live_value("CB_MEASURED_AVAILABLE_MEMORY_MB") or 0)
+                    >= 1536,
+                    "live_preflight_memory_headroom",
+                )
+            if str(live_value("CB_MEASURED_FREE_DISK_MB") or "").isdigit():
+                expect(
+                    int(live_value("CB_MEASURED_FREE_DISK_MB") or 0)
+                    >= 12000,
+                    "live_preflight_disk_headroom",
+                )
+            expect(
+                live_value("CB_SYSTEMD_MEMORY_MAX") == "1152M",
+                "live_preflight_memory_max",
+            )
+            expect(
+                live_value("CB_EFFECTIVE_MEMORY_SAFETY_RESERVE_MB") == "512",
+                "live_preflight_memory_reserve",
+            )
+            expect(
+                int(live_value("CB_SAFE_RUNTIME_BUDGET_MB") or 0) >= 1152,
+                "live_preflight_runtime_budget",
+            )
+            expect(
+                int(live_value("STATUS_TRAEFIK_CONTAINER_COUNT") or 0) >= 1,
+                "live_preflight_reverse_proxy",
+            )
+            expect(
+                int(live_value("STATUS_TRAEFIK_ROUTED_CONTAINER_COUNT") or 0)
+                >= 1,
+                "live_preflight_routed_containers",
+            )
+            expect(
+                int(live_value("STATUS_CONTAINER_COUNT") or 0) >= 1,
+                "live_preflight_status_container",
+            )
+            expect(
+                int(live_value("STATUS_HOST_MOUNT_COUNT") or 0) >= 1,
+                "live_preflight_status_mount",
+            )
+            expect(
+                int(live_value("STATUS_CRON_ACTIVE_LINE_COUNT") or 0) >= 1,
+                "live_preflight_status_ingestion",
+            )
+            expect(
+                int(live_value("STATUS_SNAPSHOT_AGE_SECONDS") or 999999) <= 300,
+                "live_preflight_status_snapshot_freshness",
+            )
+            expect(
+                re.fullmatch(
+                    r"[0-9a-f]{64}",
+                    str(live_value("STATUS_SNAPSHOT_SHA256") or ""),
+                )
+                is not None,
+                "live_preflight_status_snapshot_hash",
+            )
+            expect(
+                "projects"
+                in str(
+                    live_value("STATUS_SNAPSHOT_TOP_LEVEL_KEYS") or ""
+                ).split(","),
+                "live_preflight_status_projects",
+            )
+            expect(
+                re.search(
+                    r"^LISTENER=(?:tcp|udp):(?:8765|8780):",
+                    live_text,
+                    re.MULTILINE,
+                )
+                is None,
+                "live_preflight_proposed_listener_conflict",
+            )
+
+            live_snapshots: list[dict[str, Any]] = []
+            for index in range(1, 4):
+                match = re.search(
+                    rf"^SNAPSHOT_{index}_BEGIN\n(.+?)\n"
+                    rf"SNAPSHOT_{index}_END$",
+                    live_text,
+                    re.MULTILINE | re.DOTALL,
+                )
+                expect(match is not None, f"live_snapshot_missing:{index}")
+                if match:
+                    try:
+                        live_snapshots.append(json.loads(match.group(1)))
+                    except json.JSONDecodeError:
+                        errors.append(f"live_snapshot_invalid:{index}")
+            if len(live_snapshots) == 3:
+                expect(
+                    all(item.get("source") == "live" for item in live_snapshots),
+                    "live_snapshot_source",
+                )
+                expect(
+                    {
+                        (item.get("memory") or {}).get("total_mb")
+                        for item in live_snapshots
+                    }
+                    == {3819},
+                    "live_snapshot_host_consistency",
+                )
+                expect(
+                    all(
+                        (item.get("memory") or {}).get("available_mb", 0)
+                        >= 1536
+                        for item in live_snapshots
+                    ),
+                    "live_snapshot_memory_floor",
+                )
+                expect(
+                    all(
+                        ((item.get("storage") or {}).get("root") or {}).get(
+                            "free_mb", 0
+                        )
+                        >= 12000
+                        for item in live_snapshots
+                    ),
+                    "live_snapshot_disk_floor",
+                )
+                try:
+                    captured = [
+                        datetime.fromisoformat(
+                            str(item["captured_at"]).replace("Z", "+00:00")
+                        )
+                        for item in live_snapshots
+                    ]
+                    expect(
+                        captured == sorted(captured),
+                        "live_snapshot_time_order",
+                    )
+                    expect(
+                        (captured[-1] - captured[0]).total_seconds() <= 2,
+                        "live_snapshot_not_immediate",
+                    )
+                except (KeyError, TypeError, ValueError):
+                    errors.append("live_snapshot_time_invalid")
+
+            live_pressure_data = load_json(live_pressure)
+            live_target = live_pressure_data.get("target") or {}
+            access_proof = live_pressure_data.get("access_proof") or {}
+            safety_gate = live_pressure_data.get("safety_gate") or {}
+            execution = live_pressure_data.get("execution") or {}
+            fixture = live_pressure_data.get("fixture") or {}
+            live_cgroup = fixture.get("cgroup_evidence") or {}
+            evidence_boundaries = (
+                live_pressure_data.get("evidence_boundaries") or {}
+            )
+            expect(
+                live_pressure_data.get("task_id") == "CB-010",
+                "live_pressure_task",
+            )
+            expect(
+                live_target.get("target_id_sha256")
+                == live_value("TARGET_ID_SHA256"),
+                "live_pressure_target_mismatch",
+            )
+            expect(
+                live_target.get("host_id_sha256")
+                == live_value("HOST_ID_SHA256"),
+                "live_pressure_host_mismatch",
+            )
+            expect(
+                live_target.get("address_persisted") is False,
+                "live_pressure_address",
+            )
+            expect(
+                access_proof.get("source")
+                == "owner_instruction_plus_protected_local_deployment_records",
+                "live_pressure_access_source",
+            )
+            expect(
+                access_proof.get("target_resolution")
+                == "unique_consistent_asset",
+                "live_pressure_target_resolution",
+            )
+            expect(
+                access_proof.get("strict_host_key_checking") is True,
+                "live_pressure_host_key",
+            )
+            expect(
+                access_proof.get("credential_value_persisted") is False,
+                "live_pressure_credential",
+            )
+            expect(
+                safety_gate.get("result") == "pass",
+                "live_pressure_safety_gate",
+            )
+            expect(
+                safety_gate.get("available_memory_mb", 0)
+                >= safety_gate.get("minimum_available_memory_mb", 999999),
+                "live_pressure_memory_gate",
+            )
+            expect(
+                safety_gate.get("free_disk_mb", 0)
+                >= safety_gate.get("minimum_free_disk_mb", 999999),
+                "live_pressure_disk_gate",
+            )
+            for name, expected in {
+                "existing_local_image": True,
+                "image_pull_performed": False,
+                "network_mode": "none",
+                "rootfs_read_only": True,
+                "capabilities_dropped": "ALL",
+                "no_new_privileges": True,
+                "non_root_user": True,
+                "memory_limit_mb": 128,
+                "memory_swap_limit_mb": 128,
+                "pids_limit": 32,
+                "scripts_mount_read_only": True,
+                "ephemeral_container_removed": True,
+                "ephemeral_remote_directory_cleaned": True,
+                "persistent_target_artifact": False,
+                "host_configuration_changed": False,
+            }.items():
+                expect(
+                    execution.get(name) == expected,
+                    f"live_pressure_execution:{name}",
+                )
+            expect(
+                re.fullmatch(
+                    r"sha256:[0-9a-f]{64}",
+                    str(execution.get("image_id") or ""),
+                )
+                is not None,
+                "live_pressure_image_id",
+            )
+            expect(
+                fixture.get("result") == "pass",
+                "live_pressure_result",
+            )
+            expect(fixture.get("no_sleep") is True, "live_pressure_no_sleep")
+            expect(
+                fixture.get("oom_observed") is False,
+                "live_pressure_oom",
+            )
+            expect(
+                fixture.get("evidence_scope")
+                == "authorized_live_host_container",
+                "live_pressure_scope",
+            )
+            expect(
+                live_cgroup.get("state")
+                == "verified_bounded_authorized_live_host_container",
+                "live_pressure_cgroup_state",
+            )
+            expect(
+                live_cgroup.get("claimed_as_live_host_evidence") is True,
+                "live_pressure_live_claim",
+            )
+            expect(
+                live_cgroup.get("oom_kill_delta") == 0,
+                "live_pressure_oom_delta",
+            )
+            for stage in ("before", "during", "after"):
+                cgroup_stage = live_cgroup.get(stage) or {}
+                expect(
+                    cgroup_stage.get("memory_max") == str(128 * 1024 * 1024),
+                    f"live_pressure_memory_max:{stage}",
+                )
+                expect(
+                    cgroup_stage.get("pids_max") == "32",
+                    f"live_pressure_pids_max:{stage}",
+                )
+                events = cgroup_stage.get("memory_events") or {}
+                expect(
+                    events.get("oom") == 0 and events.get("oom_kill") == 0,
+                    f"live_pressure_memory_events:{stage}",
+                )
+            induced = fixture.get("induced_snapshot") or {}
+            expect(
+                induced.get("memory_allocated_bytes") == 16 * 1024 * 1024,
+                "live_pressure_memory_allocation",
+            )
+            expect(
+                induced.get("disk_written_bytes") == 8 * 1024 * 1024,
+                "live_pressure_disk_write",
+            )
+            expect(
+                induced.get("queue_items") == 100,
+                "live_pressure_queue",
+            )
+            live_ladder = fixture.get("guard_ladder") or []
+            expect(
+                [
+                    (item.get("step"), item.get("actual"))
+                    for item in live_ladder
+                ]
+                == [
+                    ("baseline", "recover"),
+                    ("queue_burst", "warn"),
+                    ("memory_protect", "protect"),
+                    ("disk_protect", "protect"),
+                    ("inode_protect", "protect"),
+                    ("queue_protect", "protect"),
+                    ("recovered", "recover"),
+                ],
+                "live_pressure_guard_ladder",
+            )
+            expect(
+                evidence_boundaries.get(
+                    "proves_live_ovh_bounded_fixture"
+                )
+                is True,
+                "live_pressure_evidence_claim",
+            )
+            expect(
+                evidence_boundaries.get("proves_runtime_deployment") is False,
+                "live_pressure_runtime_claim",
+            )
     else:
         expect(
             access.get("authorized_target_found") is False,

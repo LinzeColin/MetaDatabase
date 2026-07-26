@@ -6,13 +6,13 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 - 生命周期：Stage 0（Prestage 0 已通过）
 - 当前产品设计：`v0.0.0.4`
-- 已完成 Run：`PS0.1`；`P0.1 / CB-000`
+- 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 当前 Run：`P0.2 / CB-010`，repo-local 与公开 Status 只读工作已通过，
-  因缺少明确授权的 OVH 目标而为 `activation_pending`
-- Stage 0–5 任务状态：`CB-000` 已通过；`CB-010` 为
-  `activation_pending`；其余 28 项与 PG-0–PG-5 均为 `not_started`
+- 最新 Run：`P0.2 / CB-010` 已通过；授权 OVH 三次即时 preflight、
+  constrained profile、端口/路径/Status 接入面与有限 cgroup 压力证据齐全
+- Stage 0–5 任务状态：`CB-000`、`CB-010` 已通过；其余 28 项与
+  PG-0–PG-5 均为 `not_started`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
 ## 唯一身份
@@ -36,14 +36,15 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 每个 Run 最多执行一个 TaskPack `phase`。Run 结束必须运行对应 Acceptance，
 更新 `task_state.json` 与 `HANDOFF.md`；不得用意图、文档声明或窄测试代替真实证据。
 
-当前 CB-010 只缺同一授权 OVH 主机的三次即时脱敏 preflight 与一次有界
-induced-load/cgroup snapshot。公开 Status 聚合值和本地容器 fixture 均不得
-替代该实机证据；实机 pressure 还需在只读 baseline 安全后另行明确授权。在此
-之前不进入 P0.3。
+CB-010 使用受保护本地部署记录解析同一授权 OVH 资产，严格 known-host、
+key-only SSH 完成三次即时脱敏 preflight；选择 `constrained`，确认
+8765/8780 和四个拟用路径无冲突，并在 128 MiB 有限容器中完成
+16 MiB/8 MiB/100 有界 pressure，OOM-kill delta 为 0。地址、凭据、私钥、
+原始进程/容器/Status 数据均未进入仓库。
 
 默认 Linux collector 已在无网络、只读本地容器中执行验证；有限 cgroup v2
 memory/swap ceiling 会覆盖更大的 host `/proc` 数值并 fail closed，但该结果不
-冒充 OVH evidence。
+冒充 OVH evidence。下一 Run 才可进入 `P0.3 / CB-020`，本 Run 不提前实施。
 
 ## 许可证
 

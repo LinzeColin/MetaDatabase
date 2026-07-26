@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-010",
+  "recorded_at": "2026-07-26T07:39:55Z",
+  "target": {
+    "asset_class": "authorized_ovh_primary_host",
+    "target_id_sha256": "7865f743d174",
+    "host_id_sha256": "ad8247c44f48e66acbd764d9a6aa1e79e2e81c9ca2bd766975607bd1d04f71ef",
+    "address_persisted": false
+  },
+  "access_proof": {
+    "source": "owner_instruction_plus_protected_local_deployment_records",
+    "target_resolution": "unique_consistent_asset",
+    "strict_host_key_checking": true,
+    "known_host_record_matches": 3,
+    "ssh_auth_mode": "key_only_batch",
+    "credential_value_persisted": false,
+    "private_key_material_persisted": false
+  },
+  "safety_gate": {
+    "result": "pass",
+    "available_memory_mb": 1926,
+    "free_disk_mb": 15559,
+    "load_one_minute": 1.37,
+    "minimum_available_memory_mb": 1536,
+    "minimum_free_disk_mb": 12000
+  },
+  "execution": {
+    "existing_local_image": true,
+    "image_pull_performed": false,
+    "image_id": "sha256:733aa0090e8b7c0da719657dbc258003d03e50539baec543ac0f395e539fcbb7",
+    "network_mode": "none",
+    "rootfs_read_only": true,
+    "capabilities_dropped": "ALL",
+    "no_new_privileges": true,
+    "non_root_user": true,
+    "memory_limit_mb": 128,
+    "memory_swap_limit_mb": 128,
+    "pids_limit": 32,
+    "cpu_limit": 0.25,
+    "tmpfs_mb": 32,
+    "scripts_mount_read_only": true,
+    "ephemeral_container_removed": true,
+    "ephemeral_remote_directory_cleaned": true,
+    "persistent_target_artifact": false,
+    "host_configuration_changed": false
+  },
+  "fixture": {
+    "cgroup_evidence": {
+      "after": {
+        "memory_current": "13959168",
+        "memory_events": {
+          "high": 0,
+          "low": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_group_kill": 0,
+          "oom_kill": 0
+        },
+        "memory_max": "134217728",
+        "memory_peak": "39161856",
+        "pids_current": "1",
+        "pids_max": "32"
+      },
+      "before": {
+        "memory_current": "12861440",
+        "memory_events": {
+          "high": 0,
+          "low": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_group_kill": 0,
+          "oom_kill": 0
+        },
+        "memory_max": "134217728",
+        "memory_peak": "16834560",
+        "pids_current": "1",
+        "pids_max": "32"
+      },
+      "claimed_as_live_host_evidence": true,
+      "during": {
+        "memory_current": "39161856",
+        "memory_events": {
+          "high": 0,
+          "low": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_group_kill": 0,
+          "oom_kill": 0
+        },
+        "memory_max": "134217728",
+        "memory_peak": "39161856",
+        "pids_current": "1",
+        "pids_max": "32"
+      },
+      "oom_kill_delta": 0,
+      "reason": "finite_cgroup_memory_limit_and_no_oom_kill",
+      "state": "verified_bounded_authorized_live_host_container"
+    },
+    "evidence_scope": "authorized_live_host_container",
+    "guard_ladder": [
+      {
+        "actual": "recover",
+        "expected": "recover",
+        "profile": "tiny",
+        "protect_reasons": [],
+        "step": "baseline",
+        "warn_reasons": []
+      },
+      {
+        "actual": "warn",
+        "expected": "warn",
+        "profile": "tiny",
+        "protect_reasons": [],
+        "step": "queue_burst",
+        "warn_reasons": [
+          "queue"
+        ]
+      },
+      {
+        "actual": "protect",
+        "expected": "protect",
+        "profile": "constrained",
+        "protect_reasons": [
+          "memory"
+        ],
+        "step": "memory_protect",
+        "warn_reasons": []
+      },
+      {
+        "actual": "protect",
+        "expected": "protect",
+        "profile": "constrained",
+        "protect_reasons": [
+          "disk"
+        ],
+        "step": "disk_protect",
+        "warn_reasons": []
+      },
+      {
+        "actual": "protect",
+        "expected": "protect",
+        "profile": "constrained",
+        "protect_reasons": [
+          "inode"
+        ],
+        "step": "inode_protect",
+        "warn_reasons": []
+      },
+      {
+        "actual": "protect",
+        "expected": "protect",
+        "profile": "tiny",
+        "protect_reasons": [
+          "queue"
+        ],
+        "step": "queue_protect",
+        "warn_reasons": []
+      },
+      {
+        "actual": "recover",
+        "expected": "recover",
+        "profile": "tiny",
+        "protect_reasons": [],
+        "step": "recovered",
+        "warn_reasons": []
+      }
+    ],
+    "hard_caps": {
+      "disk_mb_max": 64,
+      "memory_mb_max": 64,
+      "queue_items_max": 1000
+    },
+    "induced_snapshot": {
+      "disk_written_bytes": 8388608,
+      "memory_allocated_bytes": 16777216,
+      "queue_items": 100,
+      "rss_before_kib": 16864,
+      "rss_peak_kib": 30708
+    },
+    "mode": "bounded_authorized_live_host_container_fixture",
+    "no_sleep": true,
+    "oom_observed": false,
+    "result": "pass",
+    "schema_version": 1
+  },
+  "evidence_boundaries": {
+    "raw_container_rows_persisted": false,
+    "raw_process_argv_persisted": false,
+    "target_address_persisted": false,
+    "credential_or_secret_persisted": false,
+    "proves_live_ovh_bounded_fixture": true,
+    "proves_runtime_deployment": false
+  }
+}
