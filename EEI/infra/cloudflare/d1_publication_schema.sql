@@ -128,3 +128,34 @@ CREATE TABLE IF NOT EXISTS supply_chain_stages (
   default_direction TEXT NOT NULL,
   examples TEXT
 );
+
+-- EEI-PULSE: the data pulse surface. Answers "did anything actually arrive,
+-- and how much" without opening a database. Aggregate counts only.
+CREATE TABLE IF NOT EXISTS pulse_daily (
+  day TEXT PRIMARY KEY,
+  entities INTEGER NOT NULL DEFAULT 0,
+  relationships INTEGER NOT NULL DEFAULT 0,
+  events INTEGER NOT NULL DEFAULT 0,
+  entities_added INTEGER NOT NULL DEFAULT 0,
+  relationships_added INTEGER NOT NULL DEFAULT 0,
+  events_added INTEGER NOT NULL DEFAULT 0
+);
+
+-- Composition buckets (event_type / source / filing decade). bucket_kind keeps
+-- several independent breakdowns in one small table.
+CREATE TABLE IF NOT EXISTS pulse_composition (
+  bucket_kind TEXT NOT NULL,
+  bucket TEXT NOT NULL,
+  label TEXT,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (bucket_kind, bucket)
+);
+
+-- Live single-row signals: collector heartbeat, last publish, totals.
+-- Written by the minute-cadence watcher as well as the full publisher, so a
+-- stalled collector is visible within one minute.
+CREATE TABLE IF NOT EXISTS pulse_now (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  updated_at TEXT
+);

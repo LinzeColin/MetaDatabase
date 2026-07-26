@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { ACTIVE_ANALYSIS_CONTEXT } from "../analysis-contract";
 import { WorkspaceNavigationRail } from "../workspace-navigation";
+import { PulseDashboard } from "../components/data-pulse";
 
 type CsvRow = Record<string, string>;
 
@@ -234,6 +235,12 @@ export default function ObjectsScopePage() {
             <span>商业版图</span>
           </a>
         </header>
+
+        {/* EEI-PULSE：这一页的标题问的是「数据从哪来、多新、覆盖多少」，
+            但它此前只列了静态目录 CSV，没有一个数字回答「多新」。活体脉搏
+            放在最前面：全库规模、当日/7 日/30 日增量、增长曲线、来源新鲜度、
+            采集器心跳。下面的目录仍然是静态口径定义，保持不变。 */}
+        <PulseDashboard />
 
         <section className="scopeSummary" aria-label="覆盖摘要">
           <div>

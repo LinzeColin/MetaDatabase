@@ -90,3 +90,27 @@ INSERT INTO supply_chain_stages(stage_id, stage_order, slug, name_zh, name_en,
   default_direction, examples) VALUES
   ('SC-04', 4, 'equipment', '设备', 'Equipment', 'upstream', 'lithography'),
   ('SC-06', 6, 'manufacturing', '制造', 'Manufacturing', 'upstream', 'foundry');
+
+-- EEI-PULSE: two days of arrivals so the growth curve, the "added today"
+-- delta and the trailing-window deltas all have something real to compute.
+DELETE FROM pulse_daily;
+INSERT INTO pulse_daily(day, entities, relationships, events,
+  entities_added, relationships_added, events_added) VALUES
+  ('2026-07-14', 100, 40, 900, 100, 40, 900),
+  ('2026-07-15', 140, 55, 1500, 40, 15, 600);
+
+DELETE FROM pulse_composition;
+INSERT INTO pulse_composition(bucket_kind, bucket, label, count) VALUES
+  ('event_type', 'material_disclosure', NULL, 1200),
+  ('event_type', 'annual_report', NULL, 300),
+  ('relationship_family', 'corporate_structure', NULL, 55),
+  ('source', 'sec_edgar', '{"name":"SEC EDGAR","last_seen_at":"2026-07-15T00:00:00Z"}', 1500);
+
+DELETE FROM pulse_now;
+INSERT INTO pulse_now(key, value, updated_at) VALUES
+  ('totals', '{"entities":140,"relationships":55,"events":1500}', '2026-07-15T00:00:00+00:00'),
+  ('data_as_of', '2026-07-15T00:00:00+00:00', '2026-07-15T00:00:00+00:00'),
+  ('last_full_publish_at', '2026-07-15T00:00:00+00:00', '2026-07-15T00:00:00+00:00'),
+  ('heartbeat:sec_getcurrent_watch',
+   '{"collector":"sec_getcurrent_watch","at":"2026-07-15T00:00:00+00:00","feed_candidates":8,"fresh":0,"matched_universe":0,"new_events":0}',
+   '2026-07-15T00:00:00+00:00');

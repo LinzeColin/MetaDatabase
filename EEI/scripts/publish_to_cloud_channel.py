@@ -102,6 +102,8 @@ DELETE_ORDER = (
     "snapshot_meta",
     "filing_year_counts",
     "supply_chain_stages",
+    "pulse_daily",
+    "pulse_composition",
 )
 COUNT_TABLES = (
     "entities",
@@ -113,6 +115,8 @@ COUNT_TABLES = (
     "snapshot_meta",
     "filing_year_counts",
     "supply_chain_stages",
+    "pulse_daily",
+    "pulse_composition",
 )
 
 
@@ -430,9 +434,18 @@ def stream_statements(conn: Any, counts: dict[str, int]) -> Iterator[str]:
     )
 
     # Small reference/meta tables (a handful of rows each; plain fetch).
+    #
+    # as_of/activated_at are recomputed at publish time. The stored
+    # data_snapshots row is a governance record created when the analysis
+    # context was activated; publishing it verbatim made the UI announce a
+    # "数据版本" that stayed frozen while facts kept arriving daily. The honest
+    # answer to "data as of when?" is the newest fact in the published corpus.
+    as_of_row = conn.execute(PULSE_DATA_AS_OF_SQL).fetchone()
+    data_as_of = (as_of_row[0] if as_of_row and as_of_row[0] else None) or utc_now_iso()
+    published_at = utc_now_iso()
     for r in conn.execute(
         """
-        SELECT snapshot_key, scope, record_mode, status, as_of, activated_at
+        SELECT snapshot_key, scope, record_mode, status
         FROM data_snapshots WHERE status = 'active'
         """
     ).fetchall():
@@ -442,7 +455,7 @@ def stream_statements(conn: Any, counts: dict[str, int]) -> Iterator[str]:
             " as_of, activated_at) VALUES ("
             + ", ".join(
                 sql_quote(v)
-                for v in (r[0], r[1], r[2], r[3], iso(r[4]), iso(r[5]))
+                for v in (r[0], r[1], r[2], r[3], data_as_of, published_at)
             )
             + ");"
         )
@@ -482,10 +495,17 @@ def stream_statements(conn: Any, counts: dict[str, int]) -> Iterator[str]:
             + ");"
         )
 
+    # EEI-PULSE: daily arrival series + composition + live signals.
+    pulse = pulse_rows(conn)
+    counts["pulse_daily"] += len(pulse["series"])
+    counts["pulse_composition"] += len(pulse["composition"])
+    for statement in pulse_statements(pulse, replace=False):
+        yield statement
+
     counts["_meta_rows"] = counts.get("_meta_rows", 0) + 2
     yield (
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
-        f" ('published_at', {sql_quote(utc_now_iso())});"
+        f" ('published_at', {sql_quote(published_at)});"
     )
     yield (
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
@@ -708,10 +728,49 @@ INCR_EVENT_EVIDENCE_SQL = """
 """
 
 
+INCR_RELATIONSHIPS_SQL = """
+    SELECT r.id, r.subject_entity_id, r.object_entity_id, r.relationship_type::text,
+           r.relationship_family::text, r.status::text, r.confidence,
+           r.effective_from, r.effective_to, r.observed_at, r.qualifiers,
+           subject.canonical_name, object.canonical_name
+    FROM relationships r
+    JOIN entities subject ON subject.id = r.subject_entity_id
+    JOIN entities object ON object.id = r.object_entity_id
+    WHERE r.derivation_rule = ANY(%s)
+      AND (r.subject_entity_id = ANY(%s::uuid[]) OR r.object_entity_id = ANY(%s::uuid[]))
+"""
+INCR_RELATIONSHIP_EVIDENCE_SQL = """
+    SELECT re.relationship_id, re.source_document_id, re.role::text, re.locator,
+           re.support_excerpt, sd.url, sd.title, sd.publisher, sd.document_date
+    FROM relationship_evidence re
+    JOIN source_documents sd ON sd.id = re.source_document_id
+    WHERE re.relationship_id = ANY(%s::uuid[])
+"""
+# Entities whose published surface changed since a timestamp. Used by the
+# hourly refresh cycle so GLEIF ownership edges and freshly deepened filing
+# history reach the live surface within the hour instead of waiting for the
+# next full republish.
+RECENT_ENTITY_IDS_SQL = """
+    SELECT DISTINCT id::text FROM (
+        SELECT ep.entity_id AS id
+        FROM event_participants ep JOIN events ev ON ev.id = ep.event_id
+        WHERE ev.observed_at >= %(since)s AND ev.derivation_rule = ANY(%(rules)s)
+        UNION
+        SELECT r.subject_entity_id FROM relationships r
+        WHERE r.created_at >= %(since)s AND r.derivation_rule = ANY(%(rules)s)
+        UNION
+        SELECT r.object_entity_id FROM relationships r
+        WHERE r.created_at >= %(since)s AND r.derivation_rule = ANY(%(rules)s)
+    ) s
+    LIMIT %(cap)s
+"""
+
+
 def push_incremental(
-    entity_ids: list[str], *, publish_url: str, publish_token: str
+    entity_ids: list[str], *, publish_url: str, publish_token: str,
+    include_relationships: bool = True,
 ) -> dict[str, Any]:
-    """Upsert only the event surface touched by the given entities to live D1.
+    """Upsert only the surface touched by the given entities to live D1.
 
     Returns {upserted: {table: n}, requests, bytes_sent}. Small by construction.
     """
@@ -738,15 +797,36 @@ def push_incremental(
              for r in conn.execute(INCR_EVENT_EVIDENCE_SQL, (event_ids,)).fetchall()]
             if event_ids else []
         )
+        relationships: list[dict[str, Any]] = []
+        relationship_evidence: list[dict[str, Any]] = []
+        if include_relationships:
+            relationships = [
+                map_relationship(r)
+                for r in conn.execute(
+                    INCR_RELATIONSHIPS_SQL, (rules, entity_ids, entity_ids)
+                ).fetchall()
+            ]
+            rel_ids = [r["id"] for r in relationships]
+            if rel_ids:
+                relationship_evidence = [
+                    map_relationship_evidence(r)
+                    for r in conn.execute(
+                        INCR_RELATIONSHIP_EVIDENCE_SQL, (rel_ids,)
+                    ).fetchall()
+                ]
 
     statements: list[str] = []
-    # Entities first (FK-ish ordering mirrors the full publisher); events before
-    # their participants/evidence. All INSERT OR REPLACE => idempotent upsert.
+    # Entities first (FK-ish ordering mirrors the full publisher); events and
+    # relationships before their participants/evidence. All INSERT OR REPLACE
+    # (every table has a PK) => idempotent upsert, no DELETE.
     for table, columns, rows, chunk in (
         ("entities", ENTITY_COLUMNS, entities, 200),
         ("events", EVENT_COLUMNS, events, 100),
         ("event_participants", EVENT_PARTICIPANT_COLUMNS, participants, 200),
         ("event_evidence", EVENT_EVIDENCE_COLUMNS, evidence, 100),
+        ("relationships", RELATIONSHIP_COLUMNS, relationships, 200),
+        ("relationship_evidence", RELATIONSHIP_EVIDENCE_COLUMNS,
+         relationship_evidence, 200),
     ):
         for start in range(0, len(rows), chunk):
             statements.append(
@@ -769,10 +849,200 @@ def push_incremental(
             "events": len(events),
             "event_participants": len(participants),
             "event_evidence": len(evidence),
+            "relationships": len(relationships),
+            "relationship_evidence": len(relationship_evidence),
         },
         "requests": channel.requests,
         "bytes_sent": channel.bytes_sent,
     }
+
+
+def push_recent(
+    since: str, *, publish_url: str, publish_token: str, cap: int = 4000
+) -> dict[str, Any]:
+    """Upsert everything whose published surface changed since `since` (ISO).
+
+    This is what makes an hourly collector visible hourly: without it, new
+    ownership edges and newly deepened filing history sit in the local
+    system-of-record until the next full republish.
+    """
+    with connect_database() as conn:
+        rows = conn.execute(
+            RECENT_ENTITY_IDS_SQL,
+            {"since": since, "rules": list(PUBLISHED_RULES), "cap": cap},
+        ).fetchall()
+    entity_ids = [r[0] for r in rows]
+    if not entity_ids:
+        return {"upserted": {}, "requests": 0, "bytes_sent": 0, "entities_scanned": 0}
+    result = push_incremental(
+        entity_ids, publish_url=publish_url, publish_token=publish_token
+    )
+    result["entities_scanned"] = len(entity_ids)
+    result["capped"] = len(entity_ids) >= cap
+    return result
+
+
+# ---------------------------------------------------------------------------
+# EEI-PULSE: the "is anything actually arriving" surface.
+# ---------------------------------------------------------------------------
+
+# Daily arrival series, derived straight from the ingestion timestamps we
+# already store, so the growth curve is real history — no metrics table to
+# migrate, backfill or keep in sync.
+PULSE_ENTITIES_DAILY_SQL = """
+    SELECT to_char(date(created_at), 'YYYY-MM-DD') AS day, count(*)::int
+    FROM entities
+    WHERE status = 'research_target'
+       OR id IN (
+            SELECT subject_entity_id FROM relationships WHERE derivation_rule = ANY(%s)
+            UNION
+            SELECT object_entity_id FROM relationships WHERE derivation_rule = ANY(%s)
+       )
+    GROUP BY 1
+"""
+PULSE_RELATIONSHIPS_DAILY_SQL = """
+    SELECT to_char(date(created_at), 'YYYY-MM-DD') AS day, count(*)::int
+    FROM relationships WHERE derivation_rule = ANY(%s) GROUP BY 1
+"""
+PULSE_EVENTS_DAILY_SQL = """
+    SELECT to_char(date(observed_at), 'YYYY-MM-DD') AS day, count(*)::int
+    FROM events
+    WHERE derivation_rule = ANY(%s) AND status NOT IN ('superseded', 'revoked')
+    GROUP BY 1
+"""
+PULSE_EVENT_TYPES_SQL = """
+    SELECT event_type::text, count(*)::int FROM events
+    WHERE derivation_rule = ANY(%s) AND status NOT IN ('superseded', 'revoked')
+    GROUP BY 1 ORDER BY 2 DESC
+"""
+PULSE_RELATIONSHIP_FAMILIES_SQL = """
+    SELECT relationship_family::text, count(*)::int FROM relationships
+    WHERE derivation_rule = ANY(%s) GROUP BY 1 ORDER BY 2 DESC
+"""
+PULSE_SOURCES_SQL = """
+    SELECT src.code, src.name,
+           count(*)::int AS documents,
+           to_char(max(sd.retrieved_at), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_seen
+    FROM source_documents sd
+    JOIN sources src ON src.id = sd.source_id
+    GROUP BY 1, 2 ORDER BY 3 DESC
+"""
+# The newest fact we hold — the honest answer to "data as of when?".
+PULSE_DATA_AS_OF_SQL = """
+    SELECT to_char(max(t), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') FROM (
+        SELECT max(observed_at) t FROM events
+        UNION ALL SELECT max(observed_at) FROM relationships
+        UNION ALL SELECT max(updated_at) FROM entities
+    ) s
+"""
+
+
+def _daily_map(conn: Any, sql: str, params: tuple) -> dict[str, int]:
+    return {row[0]: int(row[1]) for row in conn.execute(sql, params).fetchall() if row[0]}
+
+
+def pulse_rows(conn: Any) -> dict[str, Any]:
+    """Compute the full pulse payload from the local system of record."""
+    rules = list(PUBLISHED_RULES)
+    ents = _daily_map(conn, PULSE_ENTITIES_DAILY_SQL, (rules, rules))
+    rels = _daily_map(conn, PULSE_RELATIONSHIPS_DAILY_SQL, (rules,))
+    evs = _daily_map(conn, PULSE_EVENTS_DAILY_SQL, (rules,))
+
+    days = sorted(set(ents) | set(rels) | set(evs))
+    series: list[dict[str, Any]] = []
+    ce = cr = cv = 0
+    for day in days:
+        de, dr, dv = ents.get(day, 0), rels.get(day, 0), evs.get(day, 0)
+        ce += de
+        cr += dr
+        cv += dv
+        series.append({
+            "day": day, "entities": ce, "relationships": cr, "events": cv,
+            "entities_added": de, "relationships_added": dr, "events_added": dv,
+        })
+
+    composition: list[dict[str, Any]] = []
+    for kind, sql in (("event_type", PULSE_EVENT_TYPES_SQL),
+                      ("relationship_family", PULSE_RELATIONSHIP_FAMILIES_SQL)):
+        for bucket, count in conn.execute(sql, (rules,)).fetchall():
+            if bucket:
+                composition.append({"bucket_kind": kind, "bucket": str(bucket),
+                                    "label": None, "count": int(count)})
+    for code, name, documents, last_seen in conn.execute(PULSE_SOURCES_SQL).fetchall():
+        composition.append({
+            "bucket_kind": "source", "bucket": str(code),
+            "label": json.dumps({"name": name, "last_seen_at": last_seen},
+                                ensure_ascii=False),
+            "count": int(documents),
+        })
+
+    row = conn.execute(PULSE_DATA_AS_OF_SQL).fetchone()
+    data_as_of = row[0] if row and row[0] else None
+    return {"series": series, "composition": composition, "data_as_of": data_as_of}
+
+
+PULSE_DAILY_COLUMNS = ("day", "entities", "relationships", "events",
+                       "entities_added", "relationships_added", "events_added")
+PULSE_COMPOSITION_COLUMNS = ("bucket_kind", "bucket", "label", "count")
+
+
+def pulse_statements(payload: dict[str, Any], *, replace: bool = True) -> list[str]:
+    """SQL for the pulse tables. Tiny: one row per day plus a few buckets."""
+    verb = "INSERT OR REPLACE" if replace else "INSERT"
+    out: list[str] = []
+    series, composition = payload["series"], payload["composition"]
+    for start in range(0, len(series), 200):
+        out.append(insert_statement("pulse_daily", PULSE_DAILY_COLUMNS,
+                                    series[start:start + 200], verb=verb))
+    for start in range(0, len(composition), 200):
+        out.append(insert_statement("pulse_composition", PULSE_COMPOSITION_COLUMNS,
+                                    composition[start:start + 200], verb=verb))
+    latest = series[-1] if series else {"entities": 0, "relationships": 0, "events": 0}
+    now = utc_now_iso()
+    for key, value in (
+        ("totals", json.dumps({k: latest.get(k, 0)
+                               for k in ("entities", "relationships", "events")})),
+        ("data_as_of", payload.get("data_as_of") or now),
+        ("last_full_publish_at", now),
+    ):
+        out.append(
+            "INSERT OR REPLACE INTO pulse_now(key, value, updated_at) VALUES ("
+            f"{sql_quote(key)}, {sql_quote(value)}, {sql_quote(now)});"
+        )
+    return out
+
+
+def push_pulse(*, publish_url: str, publish_token: str) -> dict[str, Any]:
+    """Recompute and upsert the pulse tables only (cheap: ~1 request)."""
+    with connect_database() as conn:
+        payload = pulse_rows(conn)
+    statements = ["DELETE FROM pulse_composition;", *pulse_statements(payload)]
+    channel = WorkerApiTransport(publish_url, publish_token)
+    try:
+        channel.apply_statements(statements)
+    finally:
+        channel.close()
+    return {"days": len(payload["series"]), "buckets": len(payload["composition"]),
+            "requests": channel.requests, "bytes_sent": channel.bytes_sent}
+
+
+def push_heartbeat(
+    *, publish_url: str, publish_token: str, collector: str, detail: dict[str, Any]
+) -> None:
+    """One-row liveness beat. Called every collector poll so a stalled pipeline
+    shows up within a minute instead of at the next full publish."""
+    now = utc_now_iso()
+    payload = json.dumps({"collector": collector, "at": now, **detail},
+                         ensure_ascii=False)
+    channel = WorkerApiTransport(publish_url, publish_token)
+    try:
+        channel.apply_statements([
+            "INSERT OR REPLACE INTO pulse_now(key, value, updated_at) VALUES ("
+            f"{sql_quote('heartbeat:' + collector)}, {sql_quote(payload)},"
+            f" {sql_quote(now)});"
+        ])
+    finally:
+        channel.close()
 
 
 # ---------------------------------------------------------------------------

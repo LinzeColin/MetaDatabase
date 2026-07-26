@@ -37,7 +37,7 @@ from scripts.authoritative.common import (
     source_id_for,
 )
 from scripts.authoritative.enrich_sec import enrich_one
-from scripts.publish_to_cloud_channel import push_incremental
+from scripts.publish_to_cloud_channel import push_heartbeat, push_incremental
 
 ROOT = Path(__file__).resolve().parents[2]
 # Global "latest filings" firehose (Atom). count=100 covers normal load between
@@ -174,17 +174,35 @@ def one_poll(sec: SecClient, *, apply: bool) -> dict:
     result["new_events"] = new_events
     result["enriched"] = len(affected)
 
-    if apply and affected:
+    if apply:
         publish_url = os.environ.get("EEI_PUBLISH_URL", "").strip()
         publish_token = os.environ.get("EEI_PUBLISH_TOKEN", "").strip()
         if publish_url and publish_token:
+            if affected:
+                try:
+                    push = push_incremental(
+                        [eid for eid in affected], publish_url=publish_url, publish_token=publish_token
+                    )
+                    result["published"] = push
+                except Exception as exc:  # noqa: BLE001 - publish retry next poll; DB already has it
+                    result["publish_error"] = str(exc)[:200]
+            # A beat every poll, findings or not. Without it "no new filings"
+            # and "the collector died three days ago" look identical from the
+            # outside — which is exactly how a stalled pipeline stays hidden.
             try:
-                push = push_incremental(
-                    [eid for eid in affected], publish_url=publish_url, publish_token=publish_token
+                push_heartbeat(
+                    publish_url=publish_url,
+                    publish_token=publish_token,
+                    collector="sec_getcurrent_watch",
+                    detail={
+                        "feed_candidates": result.get("feed_candidates", 0),
+                        "fresh": result.get("fresh", 0),
+                        "matched_universe": result.get("matched_universe", 0),
+                        "new_events": new_events,
+                    },
                 )
-                result["published"] = push
-            except Exception as exc:  # noqa: BLE001 - publish retry next poll; DB already has it
-                result["publish_error"] = str(exc)[:200]
+            except Exception as exc:  # noqa: BLE001 - liveness beat is best-effort
+                result["heartbeat_error"] = str(exc)[:200]
         else:
             result["publish_skipped"] = "EEI_PUBLISH_URL/TOKEN unset"
 

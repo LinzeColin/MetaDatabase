@@ -88,6 +88,7 @@ import {
   WorkspaceContextProvider
 } from "./workspace-context";
 import { WorkspaceNavigationRail } from "./workspace-navigation";
+import { PulseStrip } from "./components/data-pulse";
 import { ZONE_LABELS, zhLabel } from "./labels";
 
 type FocusKey =
@@ -575,6 +576,21 @@ const SERVER_DEFAULT_FOCUS = {
 } as const;
 const UUID_PATTERN =
   /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+// UIUX 重做：工程诊断面的容器。已发布面折叠（DOM 与 data-* 契约完全保留，
+// 只是不再占据一级侧栏），样例工作台维持展开——契约用例都跑在样例模式。
+function EngineeringDock({ children }: { children: React.ReactNode }) {
+  if (!CLOUD_MODE) return <>{children}</>;
+  return (
+    <details className="engineeringDock" data-testid="engineering-dock">
+      <summary>
+        <span>工程诊断</span>
+        <small>模型上下文 · 图谱同步 · 生产数据装载</small>
+      </summary>
+      <div className="engineeringDockBody">{children}</div>
+    </details>
+  );
+}
 // EEI-F07：构建指纹进 DOM，生产可与 /v1/meta/build、x-eei-build 头对账。
 const BUILD_SHA = process.env.NEXT_PUBLIC_EEI_BUILD_SHA?.trim() || "dev";
 
@@ -3485,11 +3501,14 @@ export default function Home() {
               : "样例数据"}
           </span>
         </div>
-        {/* P0-2 §E.1：Budget/快照 key/评分模型/刷新代全部退出首屏——
-            本图规模说人话，数据版本给日期；机器状态收进下方〈诊断详情〉。 */}
+        {/* EEI-PULSE：全库规模 + 今日新增 + 采集心跳。首屏此前的主指标是
+            「本图 6 家实体·8 条关系」——那是当前视图的取景框大小，不是库有
+            多大，于是 14,000+ 实体、18 万+ 事件的库看上去像个玩具，Owner 判
+            「数据根本没有更新」。真实规模现在是一等公民，取景框降为次要行。 */}
+        {CLOUD_MODE ? <PulseStrip /> : null}
         <dl className="subjectStats" data-testid="home-model-status">
           <div>
-            <dt>本图</dt>
+            <dt>当前视图</dt>
             <dd data-testid="graph-budget">
               {graphViewNodes.length} 家实体 · {graphViewEdges.length} 条关系
             </dd>
@@ -3520,6 +3539,12 @@ export default function Home() {
             </div>
           )}
         </dl>
+        {/* UIUX 重做：模型工作台 / 图谱同步 / 生产数据这三块是工程诊断面。
+            它们扛着 data-* 状态契约必须留在 DOM，但把「预热覆盖 / 清缓存 /
+            激活模型 / 校验副本 / 重算评分」这类内部按钮摆在一级侧栏，看客
+            得到的就是一台调试控制台。已发布面把它们收进折叠的〈工程诊断〉，
+            样例工作台保持原样（契约用例在样例模式下跑）。 */}
+        <EngineeringDock>
         <section
           className="modelPreviewPanel"
           data-active-profile-id={serverModelContext?.active_scoring_profile_version_id ?? "local"}
@@ -3923,6 +3948,7 @@ export default function Home() {
             </button>
           </div>
         </section>
+        </EngineeringDock>
         {CLOUD_MODE ? (
           <div
             className="fixtureDisclosure"

@@ -330,6 +330,40 @@ assert.ok(
 );
 assert.ok(!("owner_actor" in (explanation.body.qualifiers ?? {})));
 
+
+// --- EEI-PULSE: the data-volume surface ---
+// This is the screen that answers "did anything actually arrive?", so the
+// contract is asserted end to end: totals, today's delta, the cumulative
+// series, composition buckets, per-source rows and the collector heartbeat.
+const pulse = await getJson("/v1/meta/pulse");
+assert.equal(pulse.status, 200);
+assert.equal(pulse.body.schema_version, "eei-data-pulse-v1");
+assert.deepEqual(pulse.body.totals, { entities: 140, relationships: 55, events: 1500 });
+assert.deepEqual(pulse.body.added.today, { entities: 40, relationships: 15, events: 600 });
+// Trailing windows are shorter than the series here, so they report all growth.
+assert.equal(pulse.body.added.d7.events, 1500);
+assert.equal(pulse.body.series.length, 2);
+assert.equal(pulse.body.series[0].day, "2026-07-14", "series is oldest-first");
+assert.equal(pulse.body.series[1].events, 1500, "series carries cumulative totals");
+assert.equal(pulse.body.data_as_of, "2026-07-15T00:00:00+00:00");
+assert.equal(pulse.body.composition.event_type[0].bucket, "material_disclosure");
+assert.equal(pulse.body.composition.relationship_family.length, 1);
+assert.equal(pulse.body.sources[0].code, "sec_edgar");
+assert.equal(pulse.body.sources[0].name, "SEC EDGAR");
+assert.equal(pulse.body.sources[0].documents, 1500);
+// A beat from 2026-07-15 is far older than PULSE_DELAYED_SECONDS, so a stalled
+// collector must read as stalled rather than silently as "live".
+assert.equal(pulse.body.heartbeat.state, "stalled");
+assert.equal(pulse.body.heartbeat.collector, "sec_getcurrent_watch");
+assert.ok(pulse.body.heartbeat.lag_seconds > 0);
+
+// The frontend has always requested this; it used to 404 in the cloud.
+const freshness = await getJson("/v1/sources/freshness");
+assert.equal(freshness.status, 200);
+assert.equal(freshness.body.schema_version, "cloud-sources-freshness-v1");
+assert.equal(freshness.body.sources[0].code, "sec_edgar");
+assert.equal(freshness.body.collector.state, "stalled");
+
 // --- EEI-F07/F08: build binding + security headers on every response ---
 const headerProbe = await fetch(`${base}/health`);
 assert.ok(headerProbe.headers.get("x-eei-build"), "x-eei-build header present");
@@ -341,4 +375,4 @@ assert.equal(buildMeta.status, 200);
 assert.equal(buildMeta.body.repo, "LinzeColin/MetaDatabase");
 assert.ok("commit" in buildMeta.body);
 
-console.log("SMOKE_ASSERT_OK routes=30 (+module surfaces)");
+console.log("SMOKE_ASSERT_OK routes=32 (+module surfaces)");
