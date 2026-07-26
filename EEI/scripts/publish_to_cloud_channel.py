@@ -1016,7 +1016,19 @@ def push_pulse(*, publish_url: str, publish_token: str) -> dict[str, Any]:
     """Recompute and upsert the pulse tables only (cheap: ~1 request)."""
     with connect_database() as conn:
         payload = pulse_rows(conn)
-    statements = ["DELETE FROM pulse_composition;", *pulse_statements(payload)]
+    data_as_of = payload.get("data_as_of") or utc_now_iso()
+    statements = [
+        "DELETE FROM pulse_composition;",
+        *pulse_statements(payload),
+        # The header's "数据版本" reads snapshot_meta.as_of. Only the full
+        # republish rewrites that table, so between republishes the site showed
+        # a date up to a day stale — and before this whole change, ten days
+        # stale. Refresh it on every pulse beat instead, so the date on screen
+        # is never more than one cycle behind the newest fact we hold.
+        "UPDATE snapshot_meta SET as_of = "
+        f"{sql_quote(data_as_of)}, activated_at = {sql_quote(utc_now_iso())}"
+        " WHERE status = 'active';",
+    ]
     channel = WorkerApiTransport(publish_url, publish_token)
     try:
         channel.apply_statements(statements)
