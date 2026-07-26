@@ -5,60 +5,54 @@
 ## 当前目标与状态
 
 - 本轮只处理 Stage 7/T0705，必须停在 T0706 前。
-- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.22`。
-- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.21.json`，SHA-256
-  `cc6fcedef3b4af693a905e5f1d12ac73b1ccaf5a5f4985927c9cba0bba10c1e4`。
+- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.23`。
+- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.22.json`，SHA-256
+  `d29bf6c794dadcefe9ead82eccf05a43e126b48d344ae195c000250341b66553`。
 - 唯一状态权威：`machine/status/latest.json` =
-  `PROTECTED_GA_THIRD_ATTEMPT_FAILED_LABEL_REPLAY_REPAIR_AUTHORIZED`。
+  `PROTECTED_GA_FOURTH_ATTEMPT_FAILED_PHASE_DIAGNOSTIC_AUTHORIZED`。
 - Protected Oracles 5/43 executed、4 PASS、1 FAILED；final Acceptance 0/34；
-  T0705 production workflow 3；final publication 0。
+  T0705 production workflow 4；final publication 0。
 
 ## 已冻结前序
 
 - T0702、T0703、T0704 protected PASS receipts 及全部 failed-attempt ledgers 不可变。
-- T0704 成功 run `30178201201` 绑定 main `65cef099…`，attempt 1、rerun 0；一个可恢复
-  age-encrypted latest Timeline 已验证。
-- T0705 首次 run `30182491342` 绑定 PR #115/main `eb7ad073…`；authority 与 cleanup PASS，
-  protected GA FAILED，live schedule hold SKIPPED，attempt 1、rerun 0。
-- T0705 第二次 run `30184702520` 绑定 PR #116/main `e38cd60e…`；authority 与 cleanup PASS，
-  protected GA FAILED，live schedule hold SKIPPED，attempt 1、rerun 0。
-- T0705 第三次 run `30187132406` 绑定 PR #117/main `cc7c8af9…`；authority 与 cleanup PASS，
-  protected GA FAILED，live schedule hold SKIPPED，attempt 1、rerun 0。
-- 第三次独立后验确认新增 private commit 0、checkpoint 未创建、active Moomoo candidate
-  仍在 Trash 外且加密 Timeline state 存在；
-  一次性 authority 和 production enablement 均已清除。
-- protected 输出未披露 exact runtime exception；只记录
-  `GA_DID_NOT_REPLAY_PERSISTED_FIRST_IMPORT_LABEL_STATE` high-confidence diagnosis。
-- 任何历史失败或成功 head 均不得 rerun/redispatch；尤其不得重新触发三个 T0705 失败 head。
+- T0705 四个不同 exact-main head 均只执行 attempt 1、rerun 0；authority 与 identity cleanup
+  均 PASS，protected GA 均 FAILED，live schedule hold 均 SKIPPED。
+- 第四次独立后验只确认六个新增、可恢复且具有 age magic 的对象，覆盖 Raw、Processed 与
+  current pointer；Timeline snapshot/manifest、Timeline state 和 checkpoint 均未改变。
+- active Moomoo candidate 仍在 Trash 外；缺少 exact pre-dispatch baseline 与 protected
+  mutation trace，因此不声明 Gmail mutation API 是否到达或消息级变化。
+- protected 输出未披露 exact runtime exception；唯一可证边界为
+  `AFTER_RAW_PROCESSED_CURRENT_BEFORE_TIMELINE_OR_CHECKPOINT`，精确 root cause 仍 UNKNOWN。
+- 一次性 authority 与 production enablement 均已清除；四个失败 head 永不得
+  rerun/redispatch。
 
-## T0705 repair 候选
+## T0705 phase-diagnostic 候选
 
-- `protected_ga_entrypoint.py` 绑定 owner、exact main、固定 workflow ref、attempt 1、
-  one-shot exact-head authority、T0702–T0704 receipts 与当前 Run Contract。
-- 复用现有 `moomooau-beta` 八个精确 Secret 名称，值不复制、不写盘、不公开。
-- 已安装 GitHub App 必须在 Gmail exchange 前刷新唯一私有仓实时容量。
-- 只完整读取确定性 `VERIFIED` 来源；Raw/Processed 恢复及二次验证后才允许最多一次精确
-  `users.messages.trash`。
-- Timeline snapshot、唯一 latest age Asset 与最后一步 encrypted checkpoint CAS 均需恢复。
-- workflow_dispatch 如实称为 `SCHEDULE_REHEARSAL`，只调用与生产一致的 SCHEDULE planner；
-  rehearsal 的 platform schedule event 必须为 0。
-- GA pre-Raw metadata read 的 typed `MessageMetadataUnverifiable` 继续只计入 quarantine 并跳过；
-  不 Full Fetch、不写入、不 Trash，既有 pending replay 不得丢失。
-- 对已有 Processed 版本的来源，在 envelope/root 比较前同时重放持久化 first-import
-  timestamp 与 label state；不得使用来源当前可变 Gmail labels 改写既有版本根。
-- Raw/Processed 恢复后的 second verification 仍 fail closed；ACTIVE 与 paired-empty
-  SAFE_DEFERRED 行为保持不变。
-- authority job 把已验证的新 exact head 作为 job output 传入 protected job；删除一次性仓库变量
-  不会令 job 回退到未绑定 head。
+- `ProtectedGADiagnostics` 只接受固定 `ProtectedGAFailurePhase` 和固定 GitHub App
+  installation-token failure class。
+- 公开失败载荷禁止异常文本、URL、标识符、计数、邮箱事实、私仓定位与 Secret，并显式声明
+  `exact_root_cause_claimed=false`。
+- `production.py`、`ga_runtime.py` 与 protected entrypoint 只记录最后进入阶段，不改变
+  metadata quarantine、pending replay、远端恢复、二次验证、Trash、Timeline 或 checkpoint
+  执行顺序。
+- 入口继续绑定 owner、exact main、固定 workflow ref、attempt 1、one-shot exact-head
+  authority、T0702–T0704 receipts、四份失败账本与当前 Run Contract。
+- 复用现有 `moomooau-beta` 八个精确 Secret 名称；值不复制、不写盘、不公开。已安装 GitHub App
+  在 Gmail exchange 前刷新实时容量。
+- 只完整读取确定性 `VERIFIED` 来源；Raw/Processed recovery 与二次验证后才允许最多一次
+  exact-message Trash。Timeline snapshot、唯一 latest age Asset 与 checkpoint-last CAS 均须
+  远端恢复。
+- `workflow_dispatch` 如实称为 `SCHEDULE_REHEARSAL`，rehearsal platform schedule event 为 0。
 
 ## 当前安全边界与下一步
 
-- T0705 总 delivery 最多 5，三个失败 launch 已消耗 3；只剩 label-replay repair delivery 1
-  与 closure delivery 1。
-- 总 rehearsal dispatch 最多 4，三个失败 attempt 已消耗 3；只剩一个新 repair dispatch，
+- T0705 总 delivery 最多 6，四个失败 launch 已消耗 4；只剩 diagnostic delivery 1 与 closure
+  delivery 1。
+- 总 rehearsal dispatch 最多 5，四个失败 attempt 已消耗 4；只剩一个新 diagnostic dispatch，
   rerun 0。
 - protected PASS receipt 绑定前，`MOOMOOAU_PRODUCTION_ENABLED` 不得为 true。
-- 合入新 exact-main label-replay repair candidate 后只设置一个 exact-head authority，运行一次；
-  无论结果如何立即删除；绝不 rerun 或 redispatch 失败 head。
+- 合入新 exact-main diagnostic candidate 后只设置一个 exact-head authority，运行一次；无论
+  结果如何立即删除，绝不 rerun 或 redispatch 失败 head。
 - PASS 后才固化 receipt、关闭 rehearsal 入口并启用已提交 04:30 Australia/Sydney schedule。
 - 不进入 T0706，不创建 Codex Automation，不运行 Recovery Drill/Patch Lifecycle，不做最终发布。

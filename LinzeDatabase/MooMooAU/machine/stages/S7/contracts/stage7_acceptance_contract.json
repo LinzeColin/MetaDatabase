@@ -2,7 +2,7 @@
   "schema_version": "moomooau.stage-local-acceptance.v1",
   "stage_id": "S7",
   "policy": "FAIL_CLOSED",
-  "overall_status": "T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING",
+  "overall_status": "T0705_FOUR_FAILED_HEADS_FROZEN_PHASE_DIAGNOSTIC_AUTHORIZED_PENDING",
   "final_acceptances_passed": 0,
   "final_acceptance_policy": "Stage 7 cannot pass until protected GitHub Actions evidence covers real Beta, one evidence-complete M3 Canary run, one evidence-complete Blue-Green run, one evidence-complete GA schedule-mode rehearsal followed by committed 04:30 Australia/Sydney enablement, and a real three-role recovery drill. No fixed calendar observation period or wall-clock 04:30 wait applies; the workflow_dispatch rehearsal must truthfully remain distinct from a platform schedule event, and Local implementation preflight proves mechanisms only.",
   "acceptance_contracts": [
@@ -65,8 +65,8 @@
       "title": "GA 04:30 全流程",
       "environment": "protected single-writer GitHub Actions schedule-mode rehearsal after every predecessor gate, followed by committed 04:30 Australia/Sydney schedule enablement",
       "input": "explicit capacity-backed positive mutation budget, current parser and protected phase evidence",
-      "oracle": "After all three failed heads are frozen, one new exact-main protected label-replay repair workflow_dispatch truthfully invokes the same deterministic SCHEDULE planner path targeting 04:30 Australia/Sydney, replays the persisted first-import timestamp and label state for existing Processed sources, quarantines unverifiable pre-Raw metadata without a full read or mutation, preserves fail-closed second verification plus ACTIVE and paired-empty SAFE_DEFERRED processing, completes the full verified pipeline with recovery and reconciliation evidence, and only then enables the committed schedule without claiming the rehearsal was a platform schedule event.",
-      "threshold": "failed head reruns and redispatches 0; total T0705 dispatches exactly 4; successful protected schedule-mode rehearsals exactly 1; label-replay repair workflow reruns 0; platform schedule events during rehearsal 0; target time 04:30 Australia/Sydney; collateral/leak/duplicate/unresolved reconciliation differences 0; recovery 100%; live Timeline exactly 1; committed schedule enabled after PASS",
+      "oracle": "After all four failed heads are frozen, one new exact-main protected closed-enum phase-diagnostic workflow_dispatch truthfully invokes the same deterministic SCHEDULE planner path targeting 04:30 Australia/Sydney, emits only the last entered public-safe phase on failure without receiving or inspecting protected values, replays the persisted first-import timestamp and label state for existing Processed sources, quarantines unverifiable pre-Raw metadata without a full read or mutation, preserves fail-closed second verification plus ACTIVE and paired-empty SAFE_DEFERRED processing, completes the full verified pipeline with recovery and reconciliation evidence, and only then enables the committed schedule without claiming the rehearsal was a platform schedule event.",
+      "threshold": "failed head reruns and redispatches 0; total T0705 dispatches exactly 5; successful protected schedule-mode rehearsals exactly 1; phase-diagnostic workflow reruns 0; platform schedule events during rehearsal 0; target time 04:30 Australia/Sydney; collateral/leak/duplicate/unresolved reconciliation differences 0; recovery 100%; live Timeline exactly 1; committed schedule enabled after PASS",
       "evidence_required": "evidence/tasks/T0705.json",
       "verification": "python -m pytest -q tests/tasks/test_t0705.py plus protected GA evidence",
       "failure_action": "Freeze the exact failed head, keep the production schedule disabled, return to the last protected phase and retain immutable Raw."

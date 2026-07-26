@@ -106,6 +106,7 @@ from moomooau_archive.protected_beta import (
 )
 from moomooau_archive.protected_beta_diagnostics import ProtectedBetaDiagnostics
 from moomooau_archive.protected_blue_green import ProtectedBlueGreenBootstrap
+from moomooau_archive.protected_ga_diagnostics import ProtectedGADiagnostics
 from moomooau_archive.protected_m3 import (
     CLASSIFICATION_REGISTRY_SECRET_NAME,
     M3_CONFIG_SECRET_NAME,
@@ -916,6 +917,7 @@ def ga_context(
     malformed_metadata_ids: frozenset[str] = frozenset(),
     malformed_metadata_after_first_ids: frozenset[str] = frozenset(),
     historical_label_state: tuple[str, ...] | None = None,
+    diagnostics: ProtectedGADiagnostics | None = None,
 ) -> Iterator[GAContext]:
     """Build the T0705 full pipeline with one synthetic ciphertext-only private remote."""
 
@@ -1029,6 +1031,7 @@ def ga_context(
                 timeline_state,
             ),
             operational_gate,
+            diagnostics=diagnostics,
         )
         yield GAContext(
             runner,

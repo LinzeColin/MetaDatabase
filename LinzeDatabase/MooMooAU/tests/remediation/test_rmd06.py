@@ -247,7 +247,7 @@ def test_rmd06_delivery_status_uses_portable_stage6_binding_validation(
     assert observed_roots == [None, repository_root]
 
 
-def test_rmd06_delivery_status_uses_static_composition_only_for_v106(
+def test_rmd06_delivery_status_uses_static_composition_for_portable_successors(
     monkeypatch: MonkeyPatch,
 ) -> None:
     observed: list[bool] = []
@@ -269,7 +269,11 @@ def test_rmd06_delivery_status_uses_static_composition_only_for_v106(
         PROJECT_ROOT,
         {"package_version": "1.0.5"},
     ) == {"status": "PASS"}
-    assert observed == [False, True]
+    assert delivery_status._validate_composition_for_state(
+        PROJECT_ROOT,
+        {"package_version": "1.0.23"},
+    ) == {"status": "PASS"}
+    assert observed == [False, True, False]
 
 
 def test_rmd06_static_composition_validation_does_not_import_later_runtime(

@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/moomooau/protected-ga-post-processed-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA post-Processed attempt ledger v1",
+  "const": {
+    "schema_version": "moomooau.protected-ga-post-processed-attempt-ledger.v1",
+    "stage_id": "S7",
+    "task_id": "T0705",
+    "observed_through_utc": "2026-07-26T05:44:53Z",
+    "predecessor_control": {
+      "prior_run_contract_sha256": "6892f0812f4e050b4e16cef44e47e3387060c950339f0df654f2a2b214d3daf6",
+      "first_attempt_ledger_sha256": "7249e7c1190b4a4263aa1e72e8232c697ada4ba65afd5280a3ed5c07cfa0b928",
+      "first_attempt_ledger_schema_sha256": "89779fecb7090722c616ae056318eea3119429f8c5e011830393d9f39aba47eb",
+      "second_attempt_ledger_sha256": "497b01fecc89be10f2e80f356cabdd3aecdecee4146b79d4b085655e6d722e7b",
+      "second_attempt_ledger_schema_sha256": "71779086ba7ee3210e77894f63b987a5ab9feaac5a56ee422062e49db2f92df9",
+      "third_attempt_ledger_sha256": "ed311f5a932c5e0976c70f43df0ebe576a75436981e95ccca413c33eb42a353d",
+      "third_attempt_ledger_schema_sha256": "85a8f4448fb1a1f47e01a880685694ddabccc222ee6a554ac65bbc88fbd33cea",
+      "prior_failed_workflow_head_shas": [
+        "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+        "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+        "cc7c8af9a40122a61ee2549fb365df813cbd4f16"
+      ],
+      "prior_failed_head_dispatches_after_freeze": 0,
+      "prior_failed_head_reruns_after_freeze": 0
+    },
+    "attempts": [
+      {
+        "sequence": 4,
+        "delivery": {
+          "kind": "CONTROLLED_MOOMOOAU_PR",
+          "pull_request_number": 118,
+          "pull_request_head_sha": "5693dbf09c472046530f4ff3bb23ed425deccf34",
+          "merge_commit_parent_sha": "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+          "merge_commit_sha": "4c207ad539754166fae6642ff4e6850438d3e2fc",
+          "merged_at_utc": "2026-07-26T05:21:15Z",
+          "terminal_checks": 23,
+          "successful_checks": 23,
+          "failed_checks": 0,
+          "skipped_checks": 0,
+          "neutral_checks": 0
+        },
+        "workflow": {
+          "run_id": 30189278592,
+          "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30189278592",
+          "workflow_id": 318812500,
+          "event": "workflow_dispatch",
+          "workflow_ref": "refs/heads/main",
+          "workflow_head_sha": "4c207ad539754166fae6642ff4e6850438d3e2fc",
+          "run_attempt": 1,
+          "reruns": 0,
+          "started_at_utc": "2026-07-26T05:22:25Z",
+          "completed_at_utc": "2026-07-26T05:27:27Z"
+        },
+        "jobs": {
+          "authority_gate": {
+            "job_id": 89759379249,
+            "status": "PASS",
+            "started_at_utc": "2026-07-26T05:22:30Z",
+            "completed_at_utc": "2026-07-26T05:23:54Z"
+          },
+          "ga_schedule_rehearsal": {
+            "job_id": 89759488174,
+            "status": "FAILED",
+            "started_at_utc": "2026-07-26T05:23:58Z",
+            "completed_at_utc": "2026-07-26T05:27:26Z"
+          },
+          "identity_plaintext_cleanup": {
+            "status": "PASS",
+            "completed_at_utc": "2026-07-26T05:27:23Z"
+          },
+          "live_schedule_hold": {
+            "job_id": 89759379470,
+            "status": "SKIPPED",
+            "completed_at_utc": "2026-07-26T05:22:26Z"
+          }
+        },
+        "public_failure": {
+          "status": "BLOCKED",
+          "reason_code": "PROTECTED_GA_FAILED",
+          "exact_root_cause_claimed": false,
+          "protected_values_disclosed": false,
+          "platform_schedule_event_claimed": false,
+          "production_health_claimed": false,
+          "final_acceptance_claimed": false
+        },
+        "effects": {
+          "private_repository_new_commits_during_attempt": 6,
+          "private_repository_added_encrypted_paths": 6,
+          "private_repository_modified_paths": 0,
+          "private_repository_removed_paths": 0,
+          "raw_content_paths_added": 2,
+          "raw_manifest_paths_added": 1,
+          "processed_content_paths_added": 1,
+          "processed_manifest_paths_added": 1,
+          "processed_current_pointer_paths_added": 1,
+          "timeline_snapshot_or_manifest_paths_changed": 0,
+          "timeline_state_paths_changed": 0,
+          "gmail_checkpoint_paths_changed": 0,
+          "added_paths_with_age_magic": 6,
+          "added_paths_without_age_magic": 0,
+          "gmail_checkpoint_exists_after_dispatch": false,
+          "timeline_state_exists_after_dispatch": true,
+          "live_timeline_assets_after_dispatch": 1,
+          "active_moomoo_candidate_outside_trash_after_dispatch": true,
+          "gmail_mutation_api_reached": "NOT_CLAIMED_WITHOUT_PROTECTED_TRACE",
+          "gmail_mutation_independent_remeasurement": "NOT_CLAIMED_WITHOUT_EXACT_PRE_DISPATCH_BASELINE",
+          "platform_schedule_events": 0,
+          "identity_plaintext_cleanup": "PASS",
+          "one_shot_authority_variable_after_dispatch": "ABSENT",
+          "production_enablement_variable_after_dispatch": "ABSENT",
+          "protected_environment_secret_names": 8
+        },
+        "diagnosis": {
+          "observable_failure_boundary": "AFTER_SIX_ENCRYPTED_RAW_PROCESSED_CURRENT_ADDITIONS_BEFORE_TIMELINE_SNAPSHOT_OR_CHECKPOINT",
+          "exact_runtime_exception": "NOT_DISCLOSED_BY_PROTECTED_OUTPUT",
+          "exact_root_cause_claimed": false,
+          "safe_next_diagnostic": "CLOSED_ENUM_LAST_ENTERED_GA_PHASE_ONLY",
+          "basis": [
+            "the protected output disclosed only PROTECTED_GA_FAILED with exact_root_cause_claimed false, so no exact runtime exception or exact root cause is asserted",
+            "authority and plaintext cleanup passed, the protected GA step failed, the live schedule hold remained skipped and the fourth failed head remains attempt 1 with rerun zero",
+            "independent post-run repository reads observed six new commits and six added paths, with zero modified or removed paths",
+            "independent byte-prefix checks observed all six added paths as age envelopes without exposing any private repository locator or signed URL",
+            "the six additions were confined to Raw content and manifest, Processed content and manifest, and one Processed current pointer",
+            "no Timeline snapshot or manifest path, Timeline state path or encrypted Gmail checkpoint path changed during the attempt",
+            "the existing encrypted Timeline state and exactly one live Timeline Asset remained present while the encrypted Gmail checkpoint remained absent",
+            "an active Moomoo candidate remained outside Trash, but no exact Gmail mutation trace or pre-dispatch exact-message baseline is claimed",
+            "the successor diagnostic records only a closed operation-phase enum and never receives an exception, identifier, URL, counter, Secret, repository locator or mailbox-derived value"
+          ]
+        }
+      }
+    ],
+    "completion_policy": {
+      "same_head_rerun_allowed": false,
+      "failed_head_redispatch_allowed": false,
+      "frozen_failed_workflow_head_shas": [
+        "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+        "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+        "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+        "4c207ad539754166fae6642ff4e6850438d3e2fc"
+      ],
+      "new_reviewed_phase_diagnostic_candidate_allowed": true,
+      "next_candidate_dispatch_limit": 1,
+      "historical_ga_rehearsal_dispatches_consumed": 4,
+      "historical_ga_rehearsal_reruns": 0,
+      "t0705_complete": false,
+      "t0706_authorized": false,
+      "final_publication_authorized": false
+    },
+    "claims": {
+      "s7ac_005_passed": false,
+      "production_health": false,
+      "final_acceptance": false,
+      "stage7_complete": false
+    }
+  }
+}

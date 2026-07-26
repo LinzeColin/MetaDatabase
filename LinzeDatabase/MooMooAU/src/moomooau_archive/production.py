@@ -32,6 +32,7 @@ from .github_guard import (
     GitHubAppJwtSigner,
     GitHubEndpointGuard,
     GitHubInstallationTokenClient,
+    GitHubInstallationTokenError,
     InstallationToken,
     RepositoryResolver,
     TargetRepositoryConfig,
@@ -63,6 +64,7 @@ from .protected_beta import (
     _verify_identity_recipient,
 )
 from .protected_blue_green import _LiveRepositoryCapacityProbe
+from .protected_ga_diagnostics import ProtectedGADiagnostics, ProtectedGAFailurePhase
 from .protected_m3 import M3_SECRET_NAMES
 from .raw_commit import (
     GitHubAppendOnlyCiphertextStore,
@@ -236,6 +238,7 @@ class ProductionRuntime:
     _installation_token: InstallationToken
     _opaque_key: SecretBytes
     _identity: _ProtectedIdentityFile
+    _diagnostics: ProtectedGADiagnostics
     _closed: bool = False
     _run_started: bool = False
 
@@ -256,6 +259,7 @@ class ProductionRuntime:
         try:
             now = _require_utc(self._clock())
             self._operational_gate.authorize(SensitiveOperation.PRODUCTION_RUN)
+            self._diagnostics.enter(ProtectedGAFailurePhase.SCHEDULE_CHECKPOINT_RECOVERY)
             recovered = self._operational_gate.execute(
                 SensitiveOperation.REMOTE_READ,
                 self._sync_checkpoint.recover,
@@ -265,6 +269,7 @@ class ProductionRuntime:
                 if recovered is not None
                 else None
             )
+            self._diagnostics.enter(ProtectedGAFailurePhase.SCHEDULE_PLANNING)
             plan = RunPlanner().plan(
                 trigger,
                 started_at_utc=now,
@@ -301,6 +306,7 @@ class ProductionRuntime:
             try:
                 action()
             except BaseException as exc:
+                self._diagnostics.enter(ProtectedGAFailurePhase.RESOURCE_CLEANUP)
                 cleanup_failure = cleanup_failure or exc
         self._closed = True
         if cleanup_failure is not None:
@@ -324,6 +330,7 @@ class ProductionBootstrap:
         clock: Callable[[], datetime] | None = None,
         allow_synthetic_ephemeral_root: bool = False,
         refresh_capacity_from_remote: bool = False,
+        diagnostics: ProtectedGADiagnostics | None = None,
     ) -> None:
         if (
             type(allow_synthetic_ephemeral_root) is not bool
@@ -339,11 +346,13 @@ class ProductionBootstrap:
         self._clock = clock or (lambda: datetime.now(UTC))
         self._allow_synthetic_ephemeral_root = allow_synthetic_ephemeral_root
         self._refresh_capacity_from_remote = refresh_capacity_from_remote
+        self._diagnostics = diagnostics or ProtectedGADiagnostics()
 
     @contextmanager
     def open(self) -> Iterator[ProductionRuntime]:
         now = _require_utc(self._clock())
         with ExitStack() as resources:
+            self._diagnostics.enter(ProtectedGAFailurePhase.CONFIG_CAPACITY)
             config = _load_config(
                 self._secret_source,
                 now,
@@ -360,6 +369,7 @@ class ProductionBootstrap:
             if not promotion.ready:
                 raise ProductionBootstrapError("protected GA predecessor gate is blocked")
 
+            self._diagnostics.enter(ProtectedGAFailurePhase.PROCESSING_REGISTRIES)
             sender_registry = _load_sender_registry(self._secret_source)
             classification_registry = _load_classification_registry(self._secret_source)
             parser_registry = _load_parser_registry(self._secret_source)
@@ -383,6 +393,7 @@ class ProductionBootstrap:
             ):
                 raise ProductionBootstrapError("protected production registries are incompatible")
 
+            self._diagnostics.enter(ProtectedGAFailurePhase.GITHUB_APP_KEY)
             github_private_key = _load_secret_bytes(
                 self._secret_source,
                 GITHUB_APP_PRIVATE_KEY_SECRET_NAME,
@@ -396,6 +407,7 @@ class ProductionBootstrap:
                 raise ProductionBootstrapError("GitHub App private key is invalid") from exc
             local_jwt_probe.destroy()
 
+            self._diagnostics.enter(ProtectedGAFailurePhase.AGE_IDENTITY)
             opaque_key = _load_base64_key(self._secret_source)
             resources.callback(opaque_key.destroy)
             identity_secret = _read_secret(
@@ -415,17 +427,26 @@ class ProductionBootstrap:
             _verify_identity_recipient(self._age, config.age_recipient, identity)
 
             github_guard = GitHubEndpointGuard(self._github_transport, config.target_repository)
-            installation_token = GitHubInstallationTokenClient(
-                github_guard,
-                config.target_repository,
-                signer,
-            ).mint(now)
+            self._diagnostics.enter(ProtectedGAFailurePhase.GITHUB_APP_TOKEN)
+            try:
+                installation_token = GitHubInstallationTokenClient(
+                    github_guard,
+                    config.target_repository,
+                    signer,
+                ).mint(now)
+            except GitHubInstallationTokenError as exc:
+                self._diagnostics.enter_installation_token_failure(exc.failure_class)
+                raise ProductionBootstrapError(
+                    "GitHub App installation token is unavailable"
+                ) from exc
             resources.callback(installation_token.destroy)
             github_private_key.destroy()
+            self._diagnostics.enter(ProtectedGAFailurePhase.REPOSITORY_RESOLUTION)
             locator = RepositoryResolver(github_guard, config.target_repository).resolve(
                 installation_token
             )
             if self._refresh_capacity_from_remote:
+                self._diagnostics.enter(ProtectedGAFailurePhase.LIVE_CAPACITY_REFRESH)
                 limits = config.capacity.limits
                 if limits is None:
                     raise ProductionBootstrapError("production capacity limits are unavailable")
@@ -445,6 +466,7 @@ class ProductionBootstrap:
                     capacity_observed_at_utc=now,
                 )
 
+            self._diagnostics.enter(ProtectedGAFailurePhase.GMAIL_OAUTH)
             gmail_credential = load_gmail_oauth_credential(self._secret_source)
             resources.callback(gmail_credential.destroy)
             gmail_token = GmailOAuthTokenClient(self._oauth_transport).exchange(
@@ -526,6 +548,7 @@ class ProductionBootstrap:
                     ),
                 ),
                 operational_gate,
+                diagnostics=self._diagnostics,
             )
             runtime = ProductionRuntime(
                 runner,
@@ -537,6 +560,7 @@ class ProductionBootstrap:
                 installation_token,
                 opaque_key,
                 identity,
+                self._diagnostics,
             )
             resources.callback(runtime.close)
             yield runtime

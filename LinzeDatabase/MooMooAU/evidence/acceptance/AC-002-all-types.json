@@ -55,15 +55,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0705.json",
-      "evidence_sha256": "4ae15403148d1d07e366fc096c35ffc9ada320f2f48215cf827032ff66586e90",
+      "evidence_sha256": "fff697069afff5b20273fe953ff3a22feba27daae9cc6a5c13c14fb036769fba",
       "final_claim_status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism quarantines unverifiable pre-Raw metadata, processes only deterministically verified candidates and now replays persisted first-import labels; all three protected attempts failed and no T0705 PASS receipt exists.",
+      "reason": "The dependency-injected GA mechanism quarantines unverifiable pre-Raw metadata, processes only deterministically verified candidates, replays persisted first-import labels and emits only a closed failure phase; all four protected attempts failed and no T0705 PASS receipt exists.",
       "source_record_status": "BLOCKED",
       "task_id": "T0705"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T04:06:39Z",
+  "observed_at_utc": "2026-07-26T05:44:53Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -90,7 +90,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+  "remediation_base_commit": "4c207ad539754166fae6642ff4e6850438d3e2fc",
   "requirement_id": "RQ-002",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
