@@ -1,0 +1,47 @@
+name: 微信读书笔记迁移持续验证
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "WeReadPort/**"
+      - ".github/workflows/weread-port-*.yml"
+  push:
+    branches: [main]
+    paths:
+      - "WeReadPort/**"
+      - ".github/workflows/weread-port-*.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 微信读书笔记迁移-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  验证:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: WeReadPort
+    steps:
+      - name: 读取代码
+        uses: actions/checkout@v4
+      - name: 配置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.16.0"
+          cache: npm
+          cache-dependency-path: WeReadPort/package-lock.json
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: 安装精确依赖
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: 验证核心、中文、安全和运维
+        run: npm run verify:all
+      - name: 构建 ChatGPT Sites 制品
+        run: npm run build

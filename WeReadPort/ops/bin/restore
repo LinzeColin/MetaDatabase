@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SNAPSHOT="${1:?用法：restore <快照> [--apply]}"
+MODE="${2:-}"
+if [[ "$MODE" == "--apply" ]]; then
+  exec /opt/weread-port-ops/current/bin/weread-port-ops restore "$SNAPSHOT" --apply
+fi
+exec /opt/weread-port-ops/current/bin/weread-port-ops restore-check "$SNAPSHOT"

@@ -1,0 +1,23 @@
+[Unit]
+Description=清理微信读书笔记迁移过期可重建运行态
+
+[Service]
+Type=oneshot
+User=weread-port-ops
+Group=weread-port-ops
+EnvironmentFile=-/etc/weread-port/ops.env
+WorkingDirectory=/opt/weread-port-ops/current
+ExecStart=/opt/weread-port-ops/current/bin/weread-port-ops purge
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+StateDirectory=weread-port-ops
+ReadWritePaths=/var/lib/weread-port-ops
+UMask=0077
+TimeoutStartSec=60

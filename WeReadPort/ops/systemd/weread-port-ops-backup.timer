@@ -1,0 +1,11 @@
+[Unit]
+Description=微信读书笔记迁移每日运维备份
+
+[Timer]
+OnCalendar=*-*-* 04:11:00 UTC
+RandomizedDelaySec=900
+Persistent=true
+Unit=weread-port-ops-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,33 @@
+{
+  "name": "weread-port",
+  "version": "0.0.3",
+  "private": true,
+  "type": "module",
+  "description": "全局中文的微信读书与本地阅读笔记迁移工具：浏览器内上传、四类 Markdown/结构化导出、明确下载、安全跳转 ChatGPT，以及不接触用户内容的自运行运维平面。",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "build:portable": "node scripts/build-static.js",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs",
+    "check:syntax": "node scripts/check-syntax.js",
+    "check:secrets": "node scripts/check-secrets.js",
+    "verify": "node scripts/verify.js",
+    "dev:portable": "node scripts/dev-server.js",
+    "export": "node scripts/export-cli.js",
+    "benchmark": "node scripts/benchmark.js",
+    "test:ops": "python3 -m unittest discover -s ops/tests -p \"test_*.py\"",
+    "verify:all": "npm run verify && npm run test:ops && npm run benchmark",
+    "check:zh-cn": "node scripts/check-zh-cn.js"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.47.0",
+    "@openai/sites-vite-plugin": "0.1.0",
+    "vite": "8.1.5",
+    "wrangler": "4.114.0"
+  },
+  "taskpackVersion": "v0.0.0.1.3"
+}

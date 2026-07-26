@@ -1,0 +1,11 @@
+[Unit]
+Description=每日同步微信读书笔记迁移脱敏完成态事实
+
+[Timer]
+OnCalendar=*-*-* 03:17:00 UTC
+RandomizedDelaySec=900
+Persistent=true
+Unit=weread-port-ops-private-sync.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=每日执行微信读书笔记迁移运行态保留策略
+
+[Timer]
+OnCalendar=*-*-* 02:43:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+Unit=weread-port-ops-purge.service
+
+[Install]
+WantedBy=timers.target

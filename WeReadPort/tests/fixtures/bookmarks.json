@@ -1,0 +1,32 @@
+{
+  "updated": [
+    {
+      "bookmarkId": "hl-1",
+      "bookId": "book-001",
+      "chapterUid": 10,
+      "markText": "系统的行为来自关系，而不只是组成部分。",
+      "createTime": 1760000000,
+      "type": 1,
+      "range": "100-130",
+      "colorStyle": 2
+    },
+    {
+      "bookmarkId": "bookmark-position",
+      "bookId": "book-001",
+      "chapterUid": 10,
+      "type": 0
+    }
+  ],
+  "chapters": [
+    {
+      "chapterUid": 10,
+      "chapterIdx": 1,
+      "title": "第一章 系统与关系"
+    }
+  ],
+  "book": {
+    "bookId": "book-001",
+    "title": "复杂系统入门",
+    "author": "林示例"
+  }
+}

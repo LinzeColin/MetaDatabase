@@ -1,0 +1,25 @@
+[Unit]
+Description=本地快照可重建运维状态，并把 GitHub 权威事实库加密冷备到 R2 与 OCI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=weread-port-ops
+Group=weread-port-ops
+EnvironmentFile=-/etc/weread-port/ops.env
+WorkingDirectory=/opt/weread-port-ops/current
+ExecStart=/opt/weread-port-ops/current/bin/weread-port-ops backup
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+StateDirectory=weread-port-ops
+ReadWritePaths=/var/lib/weread-port-ops
+UMask=0077
+TimeoutStartSec=2100
