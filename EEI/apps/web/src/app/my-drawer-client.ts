@@ -257,3 +257,27 @@ function normalizeLogEntry(value: unknown): ExplorationLogEntry {
 function errorName(error: unknown): string {
   return error instanceof Error ? error.name : "fetch_failed";
 }
+
+// —— 「上次看过」基线 ————————————————————————————————————————
+// 未读数必须是「我上次看过之后新增的」。没有基线就没有未读的概念——首次
+// 访问不该被一个 99+ 迎面砸中。基线只存本地：它是这台设备上的阅读进度，
+// 不是需要跨端同步的事实。
+const LAST_SEEN_KEY = "eei.my-drawer.last-seen-at";
+
+export function readLastSeenAt(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(LAST_SEEN_KEY);
+  } catch {
+    return null; // 隐私模式/禁用存储：降级为「无基线」，即不报未读
+  }
+}
+
+export function writeLastSeenAt(iso: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAST_SEEN_KEY, iso);
+  } catch {
+    /* 存不下就算了，最坏情况是角标不清零，不影响功能 */
+  }
+}
