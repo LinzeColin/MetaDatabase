@@ -1,15 +1,15 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-26T17:34:39Z",
+  "observed_at_utc": "2026-07-26T19:04:00Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
     "path": ".github/workflows/moomooau-production.yml",
-    "sha256": "6ea6fbe0a6cea7b1ad1f33dcf1655e20fbf93efa9654f818978bd097e8325dd0",
+    "sha256": "b7b2c7d19e5033c20ee80dac7b9c2b901da23d81088b1341ab5e66a07d911abe",
     "cron": "30 4 * * *",
     "timezone": "Australia/Sydney",
-    "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
+    "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-scheduled",
     "enabled_default": false
   },
   "secret_names": [
@@ -23,7 +23,7 @@
     "MOOMOOAU_GMAIL_OAUTH"
   ],
   "component_bindings": [
-    "ProtectedGAEntrypoint <- exact-main owner dispatch, T0702-T0704 receipts, thirteen frozen protected T0705 failure ledgers including the Trash-mutation ledger, frozen candidate-preflight and authority-context ledgers, and one-task repository-scoped one-shot successor authority; security/authentication uses live UTC while workflow_dispatch RunPlanner alone uses 2026-07-26T19:00:00Z after all known data effects, the live schedule also uses live UTC, and exact installation repository scope is verified before Gmail credential exchange",
+    "ProtectedGAEntrypoint <- enabled platform schedule event on exact main, committed T0705 protected PASS evidence, owner context, GitHub-hosted attempt 1 and the existing protected Environment; security and RunPlanner both use live UTC, exact installation repository scope is verified before Gmail credential exchange, and the historical workflow_dispatch rehearsal entry is absent from the committed workflow",
     "ProtectedGADiagnostics <- closed last-entered operation phase/subphase only, never exception text or protected values",
     "DerivedGASecretSource <- existing moomooau-beta inputs plus in-memory GA policy only",
     "LiveRepositoryCapacityProbe <- current private repository tree and single live Release Asset",
@@ -55,7 +55,7 @@
       "sha256": "d21a1cf7de18877c124277d7c7d3a95fc5ceab71c3cf51a1c4ae8f2116e60d36"
     },
     "src/moomooau_archive/processed_commit.py": {
-      "sha256": "bc5ca73be4fa5ff8303763081a295adb4627130439380009722f1419e1018488"
+      "sha256": "93a91b60c51c5723c0de0b7c71b4f9be4e82b357be98db7dac446b65d13b4e5c"
     },
     "src/moomooau_archive/raw_commit.py": {
       "sha256": "002b3006237848cdde3e77da8a0f56814ea1da4490a5993b2e06ad88223a0b2d"
@@ -85,13 +85,13 @@
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "1dc43d496a549c467bc018d3d88607ac50fba59eef9b4daef7ab63406eb2f75a"
+      "sha256": "802e92efd5a0b22c35afcb22b5bca1000cb48308d0abaa9f79735bb2e901cf9b"
     },
     "src/moomooau_archive/protected_ga_diagnostics.py": {
       "sha256": "8ce12e5de0dbdcebe0bc951939a6760d03d457c469abd676263ea1c96eac0221"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "f39ab28e143df1a70ff767cf2ab83ee16f68ef207fa160a2a154291ba22fad82"
+      "sha256": "46078d6bef353c4d77b8ec91ea1080e396284d273352098ba23fae79848f55b9"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
@@ -109,7 +109,7 @@
       "sha256": "a81164fa9c6f8d985ae978d370fe548b1294d0c0bb5605dd7e6e9dc1db79644c"
     },
     "tests/tasks/test_t0705.py": {
-      "sha256": "0c7a4a158187ba84155e40c8e5e1c3261b323d5cd475aad83c57b8bb2341cdff"
+      "sha256": "8c8b9685181ad0664443a49c65b8144b9e387611da6be56da2ed52b988174b16"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

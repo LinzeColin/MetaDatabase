@@ -1,14 +1,14 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_TRASH_CONFIRMATION_RECOVERY_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_PASS_SCHEDULE_ENABLED_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T17:34:39Z",
-  "baseline_commit": "4b7442bb635ea1e7cf5a814c3c56047aa288d594",
-  "record_status": "BLOCKED",
-  "scope": "PROTECTED_THIRTEEN_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES_AND_TRASH_CONFIRMATION_RECOVERY_PREFLIGHT",
-  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "observed_at_utc": "2026-07-26T19:04:00Z",
+  "baseline_commit": "b6265942bfa41afb4fd97fd9c81870f0f75dac61",
+  "record_status": "READY",
+  "scope": "PROTECTED_PASS_RECEIPT_BOUND",
+  "delivery_status": "PRODUCTION_SCHEDULE_ENABLED_NOT_FINAL",
   "checks": [
     {
       "id": "ga_predecessor_and_explicit_budget_gate",
@@ -234,51 +234,92 @@
       "id": "ga_label_recovery_retains_its_own_closed_phase",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_label_recovery_does_not_misreport_first_import_subphase"
+    },
+    {
+      "id": "protected_ga_0430_full_pipeline",
+      "status": "PASS",
+      "evidence_ref": "GitHub Actions protected schedule-mode rehearsal on exact main, attempt 1: authority, candidate validation, full protected pipeline and tmpfs cleanup PASS"
+    },
+    {
+      "id": "committed_live_schedule",
+      "status": "PASS",
+      "evidence_ref": ".github/workflows/moomooau-production.yml and tests/tasks/test_t0705.py::test_t0705_committed_workflow_is_schedule_only_after_pass"
+    },
+    {
+      "id": "one_shot_rehearsal_authority_removed",
+      "status": "PASS",
+      "evidence_ref": "Repository variable inventory after authority consumption contains no rehearsal-authority variable"
     }
   ],
   "linked_final_acceptance": [
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds Processed current pointers and Raw recovery to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All thirteen protected attempts failed and no T0705 PASS receipt exists; the formatter and authority-context rejections both occurred before protected Secret or data-plane access. The thirteenth protected attempt crossed canonical Raw/Processed recovery and stopped in TRASH_MUTATION before Timeline or checkpoint; its exact root cause remains unclaimed."
+      "reason": "The protected GA rehearsal completed the deterministic verified-message pipeline with canonical Raw and Processed recovery, exactly bounded source mutation, one recovered encrypted Timeline and checkpoint-last ordering. Final Acceptance remains outside T0705."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads, the wall-clock schedule-planning head, authentication-clock-coupling head, Raw-recovery representation head and Trash-mutation head are frozen separately; one Trash-confirmation successor may run once with live UTC security time and a deterministic RunPlanner fixture while every failed head remains non-rerunnable."
+      "reason": "The protected rehearsal passed the Australia/Sydney 04:30 schedule branch using the committed historical fixture only for RunPlanner. The committed ordinary schedule uses a platform schedule event and live UTC for both security and planning; no wall-clock observation period is required."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "All thirteen protected GA attempts emitted aggregate-safe failure only; the candidate preflight and authority-context failures never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published."
+      "reason": "The protected GA mechanism passed with aggregate-safe evidence, but continuous public health publication and final Acceptance are later-scope work and are not claimed by T0705."
     },
     {
       "id": "AC-032",
       "status": "PARTIAL",
-      "reason": "Synthetic canonical Git Blob Raw/Processed recovery, content-excluding label confirmation, uncertain Trash response reconciliation with one read and zero mutation retries, Timeline and Gmail checkpoint recovery plus metadata quarantine, persisted label replay, closed phase diagnostics, idempotent backlog replay and split live-security/historical-planner time pass; protected GA recovery remains pending."
+      "reason": "Canonical Git Blob recovery, content-excluding label confirmation, zero mutation retry, one encrypted latest Timeline, Gmail checkpoint recovery and idempotent backlog handling passed protected rehearsal. Final Acceptance remains outside this run."
     }
   ],
   "production_oracles": [
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
-      "status": "FAILED",
-      "reason": "The first nine protected exact-main attempts failed and are frozen. A later candidate failed Ruff format validation before protected Environment entry; its successor failed before checkout because an Environment-scoped variable was unavailable to the pre-Environment authority job. The repository-scoped successor failed in schedule planning before the same-day target; its deterministic-clock successor reused that clock for GitHub App JWT signing. The split-clock successor failed Raw recovery; its canonical Raw successor crossed Raw and Processed recovery and stopped in TRASH_MUTATION before Timeline or checkpoint. All thirteen protected heads and both pre-Secret heads are frozen; one content-excluding Trash-confirmation successor is authorized without claiming the exact protected root cause."
+      "status": "PASS",
+      "reason": "One exact-main attempt-1 protected rehearsal passed authority, bounded candidate validation, live-clock authentication, exact App repository scope, Gmail OAuth, canonical Raw and Processed recovery, deterministic verification, at-most-one exact-message Trash mutation, one encrypted latest Timeline, checkpoint-last recovery and tmpfs cleanup. All prior failed heads remain frozen with rerun and redispatch zero."
     }
   ],
+  "protected_execution_summary": {
+    "workflow_event": "workflow_dispatch",
+    "workflow_attempt": 1,
+    "workflow_reruns": 0,
+    "schedule_mode": "SCHEDULE_REHEARSAL",
+    "platform_schedule_event_observed": false,
+    "security_clock_mode": "LIVE_UTC",
+    "schedule_clock_mode": "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE",
+    "schedule_clock_fixture_utc": "2026-07-26T19:00:00Z",
+    "verified_bucket": "TEN_PLUS",
+    "processed_or_safe_deferred_bucket": "TEN_PLUS",
+    "source_mutation_budget": 1,
+    "source_mutation_calls_bucket": "ONE",
+    "remote_recovery_one_hundred_percent": true,
+    "full_reconcile_runs": 1,
+    "full_reconcile_comparison": "NOT_COMPARABLE_INITIAL_IMPORT",
+    "timeline_publish_attempts": 1,
+    "live_timeline_assets": 1,
+    "gmail_checkpoint_remote_recovery": true,
+    "collateral_mutations": 0,
+    "logical_duplicates": 0,
+    "unresolved_failures": 0,
+    "exact_mailbox_counts_disclosed": false,
+    "identity_plaintext_cleanup": "PASS",
+    "ga_gate_status": "PASS",
+    "production_health_claimed": false,
+    "final_acceptance_claimed": false
+  },
   "blockers": [
-    "T0705_THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN",
-    "T0705_TRASH_CONFIRMATION_RECOVERY_PENDING",
-    "T0705_PROTECTED_RECEIPT_NOT_BOUND",
-    "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
+    "T0706_AND_LATER_STAGE7_TASKS_OUTSIDE_THIS_RUN",
+    "FINAL_ACCEPTANCE_AND_FINAL_PUBLICATION_NOT_CLAIMED"
   ],
   "prohibition_counters": {
-    "real_gmail_calls": 0,
-    "gmail_mutations": 0,
-    "private_repository_calls": 0,
-    "real_secrets_read": 0,
+    "real_gmail_calls": "PROTECTED_BOUNDED_NONZERO_EXACT_COUNT_WITHHELD",
+    "gmail_mutations": "ONE_EXACT_MESSAGE",
+    "private_repository_calls": "PROTECTED_BOUNDED_NONZERO_EXACT_COUNT_WITHHELD",
+    "real_secrets_read": "EIGHT_ALLOWLISTED_NAMES_VALUES_UNDISCLOSED",
     "protected_key_deliveries": 0,
-    "external_writes": 0,
-    "remote_publication": 0,
+    "external_writes": "VERIFIED_PIPELINE_ONLY_EXACT_COUNT_WITHHELD",
+    "remote_publication": "ONE_ENCRYPTED_LATEST_TIMELINE",
     "non_moomoo_full_reads": 0,
     "non_moomoo_downloads": 0,
     "non_moomoo_mutations": 0,
@@ -291,7 +332,7 @@
     "thread_trash_calls": 0,
     "permanent_delete_calls": 0,
     "release_assets_above_one": 0,
-    "production_workflow_runs": 0
+    "production_workflow_runs": 1
   },
-  "next_action": "Freeze the Trash-mutation failed head, deliver one exact-main T0705 content-excluding label-confirmation successor, and execute exactly one new attempt-1 schedule-mode rehearsal with 2026-07-26T19:00:00Z only for RunPlanner. Require fields=id,labelIds; after an uncertain Trash response perform at most one label read and zero mutation retries. Never rerun or redispatch any failed head. Set the one-shot repository variable only after merge, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706."
+  "next_action": "No T0705 routine action remains. Keep the committed 04:30 Australia/Sydney schedule enabled with live UTC clocks, preserve every prior failed head as non-rerunnable, and stop before T0706 or final publication."
 }

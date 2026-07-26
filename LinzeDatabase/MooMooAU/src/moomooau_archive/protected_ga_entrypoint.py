@@ -114,6 +114,8 @@ _BLUE_GREEN_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-blue-green-execution-receipt-v1.schema.json"
 )
 _RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
+_T0705_EVIDENCE_PATH = Path("evidence/tasks/T0705.json")
+_T0705_EVIDENCE_SCHEMA_PATH = Path("machine/stages/S7/schemas/stage7-evidence-v1.schema.json")
 _FIRST_FAILED_GA_LEDGER_PATH = Path("machine/stages/S7/reviews/t0705/attempt-ledger.json")
 _FIRST_FAILED_GA_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-attempt-ledger-v1.schema.json"
@@ -349,6 +351,68 @@ class ProtectedGAGitHubContext:
 
 
 @dataclass(frozen=True, slots=True)
+class ScheduledProductionGitHubContext:
+    """Exact GitHub context for an enabled platform-schedule execution."""
+
+    repository_id: int
+    owner_id: int
+    actor_id: int
+    run_id: int
+    run_attempt: int
+    head_sha: str
+    ref: str
+    workflow_ref: str
+    runner_environment: str
+    environment_name: str
+    event_name: str
+    production_enabled: str
+
+    @classmethod
+    def from_environment(
+        cls,
+        environment: Mapping[str, str],
+    ) -> ScheduledProductionGitHubContext:
+        if environment.get("GITHUB_ACTIONS") != "true":
+            raise ProtectedGAEntrypointError("scheduled production requires GitHub Actions")
+        context = cls(
+            repository_id=_positive_environment_integer(environment, "GITHUB_REPOSITORY_ID"),
+            owner_id=_positive_environment_integer(environment, "GITHUB_REPOSITORY_OWNER_ID"),
+            actor_id=_positive_environment_integer(environment, "GITHUB_ACTOR_ID"),
+            run_id=_positive_environment_integer(environment, "GITHUB_RUN_ID"),
+            run_attempt=_positive_environment_integer(environment, "GITHUB_RUN_ATTEMPT"),
+            head_sha=_environment_string(environment, "GITHUB_SHA"),
+            ref=_environment_string(environment, "GITHUB_REF"),
+            workflow_ref=_environment_string(environment, "GITHUB_WORKFLOW_REF"),
+            runner_environment=_environment_string(environment, "RUNNER_ENVIRONMENT"),
+            environment_name=_environment_string(
+                environment,
+                "MOOMOOAU_PROTECTED_ENVIRONMENT",
+            ),
+            event_name=_environment_string(environment, "GITHUB_EVENT_NAME"),
+            production_enabled=_environment_string(
+                environment,
+                "MOOMOOAU_PRODUCTION_ENABLED",
+            ),
+        )
+        if (
+            context.repository_id != CONTROL_REPOSITORY_ID
+            or context.owner_id != CONTROL_OWNER_ID
+            or context.actor_id != CONTROL_OWNER_ID
+            or context.ref != CONTROL_REF
+            or context.workflow_ref != CONTROL_WORKFLOW_REF
+            or context.runner_environment != "github-hosted"
+            or context.environment_name != PROTECTED_ENVIRONMENT
+            or context.event_name != RunTrigger.SCHEDULE.value
+            or context.production_enabled != "true"
+            or context.run_attempt != 1
+            or _COMMIT.fullmatch(context.head_sha) is None
+            or context.head_sha in FAILED_GA_HEAD_SHAS
+        ):
+            raise ProtectedGAEntrypointError("scheduled production GitHub context is not allowed")
+        return context
+
+
+@dataclass(frozen=True, slots=True)
 class ProtectedGAExecutionEvidence:
     """Public-safe aggregate evidence for one successful protected GA rehearsal."""
 
@@ -433,6 +497,55 @@ class ProtectedGAExecutionEvidence:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class ScheduledProductionExecutionEvidence:
+    """Public-safe evidence for one ordinary platform-schedule execution."""
+
+    context: ScheduledProductionGitHubContext
+    t0705_receipt_sha256: str
+    execution: ProductionExecutionResult
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": "moomooau.scheduled-production-execution.v1",
+            "status": "PROTECTED_SCHEDULE_RUN_COMPLETED",
+            "control": {
+                "repository_id": self.context.repository_id,
+                "run_id": self.context.run_id,
+                "run_attempt": self.context.run_attempt,
+                "head_sha": self.context.head_sha,
+                "ref": self.context.ref,
+                "workflow_ref": self.context.workflow_ref,
+                "runner_environment": self.context.runner_environment,
+                "environment": self.context.environment_name,
+                "github_event": self.context.event_name,
+                "t0705_receipt_sha256": self.t0705_receipt_sha256,
+            },
+            "schedule": {
+                "mode": "PLATFORM_SCHEDULE",
+                "target_time": "04:30",
+                "timezone": "Australia/Sydney",
+                "planner_trigger": RunTrigger.SCHEDULE.value,
+                "platform_schedule_event_observed": True,
+                "security_clock_mode": "LIVE_UTC",
+                "schedule_clock_mode": "LIVE_UTC",
+                "fixed_calendar_wait_days": 0,
+            },
+            "public_result": self.execution.to_public_dict(),
+            "boundaries": {
+                "maximum_gmail_mutation_calls_per_run": GA_MUTATION_BUDGET_PER_RUN,
+                "only_exact_message_trash": True,
+                "thread_trash_enabled": False,
+                "permanent_delete_enabled": False,
+                "maximum_live_timeline_assets": 1,
+                "checkpoint_committed_last": True,
+                "persistent_plaintext_objects": 0,
+            },
+            "production_health_claimed": False,
+            "final_acceptance_claimed": False,
+        }
+
+
 def blue_green_receipt_sha256(project_root: Path) -> str:
     """Return the digest of the exact committed T0704 protected PASS receipt."""
 
@@ -440,6 +553,82 @@ def blue_green_receipt_sha256(project_root: Path) -> str:
     path = root / _BLUE_GREEN_RECEIPT_PATH
     if not path.is_file() or path.is_symlink():
         raise ProtectedGAEntrypointError("protected Blue-Green receipt is missing or unsafe")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def t0705_receipt_sha256(project_root: Path) -> str:
+    """Validate and bind the committed T0705 PASS evidence before Secret reads."""
+
+    root = _validated_project_root(project_root)
+    path = root / _T0705_EVIDENCE_PATH
+    schema_path = root / _T0705_EVIDENCE_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        raise ProtectedGAEntrypointError("T0705 production evidence is missing or unsafe")
+    try:
+        receipt = _load_object(path)
+        schema = _load_object(schema_path)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ProtectedGAEntrypointError("T0705 production evidence is unreadable") from exc
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(receipt)
+    ):
+        raise ProtectedGAEntrypointError("T0705 production evidence schema is invalid")
+    checks = receipt.get("checks")
+    production_oracles = receipt.get("production_oracles")
+    protected_summary = receipt.get("protected_execution_summary")
+    blockers = receipt.get("blockers")
+    if (
+        receipt.get("task_id") != "T0705"
+        or receipt.get("stage_acceptance_id") != "S7AC-005"
+        or receipt.get("record_status") != "READY"
+        or receipt.get("scope") != "PROTECTED_PASS_RECEIPT_BOUND"
+        or receipt.get("delivery_status") != "PRODUCTION_SCHEDULE_ENABLED_NOT_FINAL"
+        or not isinstance(checks, list)
+        or not all(isinstance(item, dict) and item.get("status") == "PASS" for item in checks)
+        or not any(
+            isinstance(item, dict)
+            and item.get("id") == "protected_ga_0430_full_pipeline"
+            and item.get("status") == "PASS"
+            for item in checks
+        )
+        or not any(
+            isinstance(item, dict)
+            and item.get("id") == "committed_live_schedule"
+            and item.get("status") == "PASS"
+            for item in checks
+        )
+        or not isinstance(production_oracles, list)
+        or not any(
+            isinstance(item, dict)
+            and item.get("id") == "PROTECTED_GA_0430_FULL_PIPELINE"
+            and item.get("status") == "PASS"
+            for item in production_oracles
+        )
+        or not isinstance(protected_summary, dict)
+        or protected_summary.get("ga_gate_status") != "PASS"
+        or protected_summary.get("remote_recovery_one_hundred_percent") is not True
+        or protected_summary.get("source_mutation_budget") != GA_MUTATION_BUDGET_PER_RUN
+        or protected_summary.get("source_mutation_calls_bucket") not in {"ZERO", "ONE"}
+        or protected_summary.get("timeline_publish_attempts") != 1
+        or protected_summary.get("live_timeline_assets") != 1
+        or protected_summary.get("gmail_checkpoint_remote_recovery") is not True
+        or protected_summary.get("collateral_mutations") != 0
+        or protected_summary.get("logical_duplicates") != 0
+        or protected_summary.get("unresolved_failures") != 0
+        or protected_summary.get("identity_plaintext_cleanup") != "PASS"
+        or not isinstance(blockers, list)
+        or "T0705_PROTECTED_RECEIPT_NOT_BOUND" in blockers
+        or "T0705_PRODUCTION_SCHEDULE_DISABLED" in blockers
+    ):
+        raise ProtectedGAEntrypointError("T0705 production evidence is not schedule-ready")
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
@@ -628,6 +817,53 @@ def execute_protected(
         observation,
         execution,
     )
+
+
+def execute_scheduled(
+    environment: Mapping[str, str],
+    *,
+    project_root: Path,
+    bootstrap: ProductionBootstrap | None = None,
+    clock: Callable[[], datetime] | None = None,
+    diagnostics: ProtectedGADiagnostics | None = None,
+) -> ScheduledProductionExecutionEvidence:
+    """Execute one enabled 04:30 platform schedule with live UTC clocks."""
+
+    active_diagnostics = diagnostics or ProtectedGADiagnostics()
+    active_diagnostics.enter(ProtectedGAFailurePhase.CONTEXT_GATE)
+    context = ScheduledProductionGitHubContext.from_environment(environment)
+    active_diagnostics.enter(ProtectedGAFailurePhase.PREDECESSOR_BINDING)
+    receipt_sha256 = t0705_receipt_sha256(project_root)
+    predecessors = _load_predecessors(project_root)
+    now = clock or (lambda: datetime.now(UTC))
+    active_bootstrap = bootstrap
+    if active_bootstrap is None:
+        from .http_transport import StdlibHttpsTransport
+
+        transport = StdlibHttpsTransport()
+        active_bootstrap = ProductionBootstrap(
+            DerivedGASecretSource(environment, predecessors),
+            oauth_transport=transport,
+            gmail_transport=transport,
+            github_transport=transport,
+            clock=now,
+            schedule_clock=now,
+            refresh_capacity_from_remote=True,
+            diagnostics=active_diagnostics,
+        )
+    with active_bootstrap.open() as runtime:
+        execution = runtime.run(RunTrigger.SCHEDULE)
+    public_plan = execution.plan.to_public_dict()
+    if (
+        execution.plan.trigger is not RunTrigger.SCHEDULE
+        or public_plan.get("target_time") != "04:30"
+        or public_plan.get("timezone") != "Australia/Sydney"
+        or execution.outcome.result.mutation_budget_max != GA_MUTATION_BUDGET_PER_RUN
+        or execution.outcome.result.mutation_calls > GA_MUTATION_BUDGET_PER_RUN
+        or execution.outcome.result.final_live_timeline_assets != 1
+    ):
+        raise ProtectedGAEntrypointError("scheduled production result is not bounded")
+    return ScheduledProductionExecutionEvidence(context, receipt_sha256, execution)
 
 
 def _load_predecessors(project_root: Path) -> tuple[PhaseObservation, ...]:
@@ -1158,6 +1394,7 @@ def main(argv: list[str] | None = None) -> int:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--contract-only", action="store_true")
     mode.add_argument("--execute-protected", action="store_true")
+    mode.add_argument("--execute-scheduled", action="store_true")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     parser.add_argument("--expected-head-sha")
     parser.add_argument("--blue-green-receipt-sha256")
@@ -1181,6 +1418,33 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         return 0
+    if args.execute_scheduled:
+        if any(value is not None for value in execution_values):
+            parser.error("protected rehearsal arguments are invalid with --execute-scheduled")
+        diagnostics = ProtectedGADiagnostics()
+        try:
+            scheduled_evidence = execute_scheduled(
+                os.environ,
+                project_root=args.project_root,
+                diagnostics=diagnostics,
+            )
+            print(
+                json.dumps(
+                    scheduled_evidence.to_dict(),
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+            )
+            return 0
+        except Exception:
+            print(
+                json.dumps(
+                    public_failure_payload(diagnostics),
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+            )
+            return 2
     if any(value is None for value in execution_values):
         parser.error("protected GA execution requires exact gate inputs and confirmation")
     diagnostics = ProtectedGADiagnostics()

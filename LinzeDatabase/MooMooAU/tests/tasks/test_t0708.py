@@ -404,7 +404,7 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
     )
     assert (
         aggregate["status"]
-        == "T0705_THIRTEEN_FAILED_HEADS_FROZEN_TRASH_CONFIRMATION_RECOVERY_AUTHORIZED_PENDING"
+        == "T0705_PROTECTED_PASS_SCHEDULE_ENABLED_SCOPE_STOP"
     )
     assert (
         aggregate["scoped_preflight"]
@@ -424,14 +424,14 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
         == "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
     )
     assert aggregate["protected_oracles_executed"] == 5
-    assert aggregate["protected_oracles_passed"] == 4
-    assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 33
-    assert aggregate["production_workflow_runs"] == 15
+    assert aggregate["protected_oracles_passed"] == 5
+    assert aggregate["protected_oracles_failed"] == 0
+    assert aggregate["protected_workflow_runs"] == 34
+    assert aggregate["production_workflow_runs"] == 17
     assert aggregate["final_acceptances_passed"] == 0
     assert (
         aggregate["delivery_status"]
-        == "CONTROLLED_T0705_TRASH_CONFIRMATION_RECOVERY_CANDIDATE_NOT_FINAL"
+        == "CONTROLLED_T0705_SCHEDULE_ENABLED_NOT_FINAL"
     )
     assert (
         aggregate["observation"]["m3_deterministic_evidence_run"]
@@ -441,6 +441,8 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
         aggregate["observation"]["blue_green_protected_entrypoint"]
         == "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED"
     )
-    assert "T0705_THIRTEEN_PROTECTED_FAILED_HEADS_FROZEN" in aggregate["blocking_conditions"]
-    assert "T0705_TRASH_CONFIRMATION_RECOVERY_PENDING" in aggregate["blocking_conditions"]
-    assert "T0705_PROTECTED_RECEIPT_NOT_BOUND" in aggregate["blocking_conditions"]
+    assert (
+        "T0706_AND_LATER_STAGE7_TASKS_OUTSIDE_CURRENT_RUN"
+        in aggregate["blocking_conditions"]
+    )
+    assert "T0705_PROTECTED_RECEIPT_NOT_BOUND" not in aggregate["blocking_conditions"]

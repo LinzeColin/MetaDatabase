@@ -130,22 +130,15 @@ def validate(
     required_workflow_tokens = (
         'cron: "30 4 * * *"',
         'timezone: "Australia/Sydney"',
-        "MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD",
+        "MOOMOOAU_PRODUCTION_ENABLED",
         "environment: moomooau-beta",
         "requirements/stage6.lock",
         "--require-hashes",
         "--no-build-isolation --no-deps .",
         "python -m moomooau_archive.protected_ga_entrypoint",
-        "--execute-protected",
-        "GA_SCHEDULE_MODE_TIMELINE_SNAPSHOT_RECOVERY_MUTATION_BUDGET_ONE",
-        '--expected-head-sha "$EXPECTED_HEAD_SHA"',
-        'test "$GITHUB_SHA" != "26949ab5031a21b0c515c282c9ef06ff9417e058"',
-        'test "$GITHUB_SHA" != "9c79b92bcdf8b027727963dfe52bd183a170954c"',
-        'test "$GITHUB_SHA" != "27886f54a30a12ca7992a908e97340d1d8234430"',
-        'test "$GITHUB_SHA" != "c2c057b449fe1cbbd470867c274833242e3f139d"',
-        'test "$GITHUB_SHA" != "0d0b6afd6a0cde606230a3df7378bdd90586de5d"',
-        'test "$GITHUB_SHA" != "4b7442bb635ea1e7cf5a814c3c56047aa288d594"',
-        'test "$GITHUB_SHA" != "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"',
+        "--execute-scheduled",
+        'test "$GITHUB_EVENT_NAME" = "schedule"',
+        'test "${{ vars.MOOMOOAU_PRODUCTION_ENABLED }}" = "true"',
     )
     contract_secret_names = contract.get("secret_names")
     actual_secret_names = re.findall(
@@ -154,6 +147,9 @@ def validate(
     )
     if (
         any(token not in workflow for token in required_workflow_tokens)
+        or "workflow_dispatch:" in workflow
+        or "--execute-protected" in workflow
+        or "MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD" in workflow
         or contract_secret_names != EXPECTED_SECRET_NAMES
         or actual_secret_names != EXPECTED_SECRET_NAMES
     ):
