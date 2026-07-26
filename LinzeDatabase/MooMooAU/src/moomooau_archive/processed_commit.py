@@ -42,8 +42,9 @@ _MANIFEST_PATH = re.compile(
     r"^MooMooAU/Manifests/processed/[a-z][a-z0-9_-]{2,63}/"
     r"[1-9][0-9]*\.[0-9]+\.[0-9]+/[0-9a-f]{64}\.json\.age$"
 )
+_MAX_IMMUTABLE_CIPHERTEXT_BYTES = 64 * 1024 * 1024
 _MAX_CURRENT_POINTER_CIPHERTEXT_BYTES = 2 * 1024 * 1024
-_MAX_GIT_BLOB_BASE64_BYTES = 4 * ((_MAX_CURRENT_POINTER_CIPHERTEXT_BYTES + 2) // 3) + 65_536
+_GIT_BLOB_BASE64_WRAPPING_ALLOWANCE = 65_536
 _APPROVAL_SENTINEL = object()
 _POINTER_SENTINEL = object()
 
@@ -694,13 +695,17 @@ class GitHubProcessedCiphertextStore:
             or _CURRENT_PATH.fullmatch(relative_path) is not None
         ):
             raise ProcessedCommitError("private Processed immutable path is invalid")
-        revisioned = self._fetch_canonical_blob(relative_path)
+        revisioned = self._fetch_canonical_blob(
+            relative_path,
+            maximum_ciphertext_bytes=_MAX_IMMUTABLE_CIPHERTEXT_BYTES,
+        )
         return revisioned.ciphertext if revisioned is not None else None
 
     def append_immutable(self, relative_path: str, ciphertext: bytes) -> bool:
         if (
             _PRIVATE_PATH.fullmatch(relative_path) is None
             or _CURRENT_PATH.fullmatch(relative_path) is not None
+            or len(ciphertext) > _MAX_IMMUTABLE_CIPHERTEXT_BYTES
             or not is_age_envelope(ciphertext)
         ):
             raise ProcessedCommitError("private Processed append rejected input")
@@ -727,9 +732,17 @@ class GitHubProcessedCiphertextStore:
     def fetch_current(self, relative_path: str) -> RevisionedCiphertext | None:
         if _CURRENT_PATH.fullmatch(relative_path) is None:
             raise ProcessedCommitError("private Processed current path is invalid")
-        return self._fetch_canonical_blob(relative_path)
+        return self._fetch_canonical_blob(
+            relative_path,
+            maximum_ciphertext_bytes=_MAX_CURRENT_POINTER_CIPHERTEXT_BYTES,
+        )
 
-    def _fetch_canonical_blob(self, relative_path: str) -> RevisionedCiphertext | None:
+    def _fetch_canonical_blob(
+        self,
+        relative_path: str,
+        *,
+        maximum_ciphertext_bytes: int,
+    ) -> RevisionedCiphertext | None:
         url = content_url(self._locator, relative_path)
         metadata_response = self._guard.send(
             HttpRequest(
@@ -756,7 +769,7 @@ class GitHubProcessedCiphertextStore:
             or not isinstance(revision, str)
             or _GIT_REVISION.fullmatch(revision) is None
             or type(size) is not int
-            or not 1 <= size <= _MAX_CURRENT_POINTER_CIPHERTEXT_BYTES
+            or not 1 <= size <= maximum_ciphertext_bytes
         ):
             raise ProcessedCommitError("private Processed current response is invalid")
         blob_response = self._guard.send(
@@ -784,7 +797,8 @@ class GitHubProcessedCiphertextStore:
             or not isinstance(encoded, str)
             or not encoded.isascii()
             or "\r" in encoded
-            or len(encoded) > _MAX_GIT_BLOB_BASE64_BYTES
+            or len(encoded)
+            > 4 * ((maximum_ciphertext_bytes + 2) // 3) + _GIT_BLOB_BASE64_WRAPPING_ALLOWANCE
         ):
             raise ProcessedCommitError("private Processed current blob response is invalid")
         compact_encoded = encoded.replace("\n", "")

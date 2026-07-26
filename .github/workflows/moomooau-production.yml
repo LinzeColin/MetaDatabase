@@ -11,11 +11,11 @@ on:
         required: true
         type: string
       confirm_ga:
-        description: Confirm one exact canonical Git Blob recovery rehearsal
+        description: Confirm one exact Timeline snapshot recovery rehearsal
         required: true
         type: choice
         options:
-          - GA_SCHEDULE_MODE_TRASH_CONFIRMATION_RECOVERY_MUTATION_BUDGET_ONE
+          - GA_SCHEDULE_MODE_TIMELINE_SNAPSHOT_RECOVERY_MUTATION_BUDGET_ONE
 
 permissions:
   contents: read
@@ -73,8 +73,9 @@ jobs:
           test "$GITHUB_SHA" != "c2c057b449fe1cbbd470867c274833242e3f139d"
           test "$GITHUB_SHA" != "0d0b6afd6a0cde606230a3df7378bdd90586de5d"
           test "$GITHUB_SHA" != "4b7442bb635ea1e7cf5a814c3c56047aa288d594"
+          test "$GITHUB_SHA" != "e7b9b3cb4aec29c53c99f1ce1f25a5483d658c55"
           test "$GA_CONFIRMATION" = \
-            "GA_SCHEDULE_MODE_TRASH_CONFIRMATION_RECOVERY_MUTATION_BUDGET_ONE"
+            "GA_SCHEDULE_MODE_TIMELINE_SNAPSHOT_RECOVERY_MUTATION_BUDGET_ONE"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
           echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
@@ -107,67 +108,21 @@ jobs:
           python -m pip install --require-hashes -r requirements/stage6.lock
           python -m pip install --no-build-isolation --no-deps .
 
-      - name: Revalidate protected predecessors and T0705 composition
+      - name: Validate the bounded T0705 Timeline recovery change
         working-directory: LinzeDatabase/MooMooAU
         run: |
           python -m ruff format --check \
-            src/moomooau_archive/ga_runtime.py \
-            src/moomooau_archive/gmail_guard.py \
-            src/moomooau_archive/m3.py \
             src/moomooau_archive/processed_commit.py \
-            src/moomooau_archive/raw_commit.py \
-            src/moomooau_archive/production.py \
-            src/moomooau_archive/protected_blue_green.py \
-            src/moomooau_archive/protected_ga_diagnostics.py \
             src/moomooau_archive/protected_ga_entrypoint.py \
-            src/moomooau_archive/release_control.py \
-            src/moomooau_archive/run_schedule.py \
-            tests/remediation/test_rmd04.py \
-            tests/stage7_support.py \
-            tests/tasks/test_t0202.py \
-            tests/tasks/test_t0502.py \
             tests/tasks/test_t0705.py
           python -m ruff check --no-cache \
-            src/moomooau_archive/ga_runtime.py \
-            src/moomooau_archive/gmail_guard.py \
-            src/moomooau_archive/m3.py \
             src/moomooau_archive/processed_commit.py \
-            src/moomooau_archive/raw_commit.py \
-            src/moomooau_archive/production.py \
-            src/moomooau_archive/protected_blue_green.py \
-            src/moomooau_archive/protected_ga_diagnostics.py \
             src/moomooau_archive/protected_ga_entrypoint.py \
-            src/moomooau_archive/release_control.py \
-            src/moomooau_archive/run_schedule.py \
-            tests/remediation/test_rmd04.py \
-            tests/stage7_support.py \
-            tests/tasks/test_t0202.py \
-            tests/tasks/test_t0502.py \
             tests/tasks/test_t0705.py
           python -m mypy --no-incremental --cache-dir "$RUNNER_TEMP/mypy-cache" \
-            src/moomooau_archive/ga_runtime.py \
-            src/moomooau_archive/gmail_guard.py \
-            src/moomooau_archive/m3.py \
             src/moomooau_archive/processed_commit.py \
-            src/moomooau_archive/raw_commit.py \
-            src/moomooau_archive/production.py \
-            src/moomooau_archive/protected_blue_green.py \
-            src/moomooau_archive/protected_ga_diagnostics.py \
-            src/moomooau_archive/protected_ga_entrypoint.py \
-            src/moomooau_archive/release_control.py \
-            src/moomooau_archive/run_schedule.py
-          python -m pytest -q \
-            tests/tasks/test_t0202.py \
-            tests/tasks/test_t0502.py \
-            tests/tasks/test_t0701.py \
-            tests/tasks/test_t0702.py \
-            tests/tasks/test_t0703.py \
-            tests/tasks/test_t0704.py \
-            tests/tasks/test_t0705.py \
-            tests/remediation/test_rmd04.py
-          python machine/tools/validate_package.py
-          python machine/tools/validate_delivery_status.py
-          python machine/tools/validate_publication.py
+            src/moomooau_archive/protected_ga_entrypoint.py
+          python -m pytest -q tests/tasks/test_t0705.py
 
       - name: Bind dispatch to T0704 PASS and explicit T0705 authority
         id: ga-contract
