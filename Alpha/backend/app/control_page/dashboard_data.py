@@ -279,6 +279,9 @@ OPS_EVENTS = {
     "ACTIVATION_BLOCKED": ("实盘切换暂缓(失败关闭)", "fault"),
     "LIVE_ACTIVATED": ("已自动切换微实盘", "auto"),
     "UNIT_FAILED": ("定时任务运行失败", "fault"),
+    "PREFLIGHT_OK": ("盘前自检通过(系统在岗)", "auto"),
+    "PREFLIGHT_ALERT": ("盘前自检发现问题", "fault"),
+    "LEDGER_BACKUP": ("交易账本备份", "auto"),
 }
 
 #: 自愈能力清单(与部署单元一一对应;运维记录页如实展示)
@@ -328,6 +331,11 @@ def build_ops_view(*, session_factory, heartbeats, kill_switch,
         recovered_after: list[datetime] = [x.created_at for x in rows
                                            if x.event_type in ("WORKER_RECOVERED",
                                                                "KILL_SWITCH_CLEARED")]
+        # 定时任务失败(UNIT_FAILED)不会有 WORKER_RECOVERED,只能靠"之后该类任务成功跑过"来销账;
+        # 否则修好的失败会永远挂在"待处理",让真故障淹没在噪音里(2026-07-25 深度自查)。
+        success_after: list[datetime] = [
+            x.created_at for x in rows
+            if x.event_type in ("PREFLIGHT_OK", "LEDGER_BACKUP", "WORKER_RECOVERED")]
         for x in rows[:40]:
             title, kind = OPS_EVENTS[x.event_type]
             if x.delivery_status == "DELIVERED" and x.delivered_at:
@@ -340,7 +348,9 @@ def build_ops_view(*, session_factory, heartbeats, kill_switch,
             else:
                 mail = "邮件投递失败"
             resolved = (kind != "fault"
-                        or any(r > x.created_at for r in recovered_after))
+                        or any(r > x.created_at for r in recovered_after)
+                        or (x.event_type == "UNIT_FAILED"
+                            and any(r > x.created_at for r in success_after)))
             created = x.created_at if x.created_at.tzinfo else x.created_at.replace(tzinfo=timezone.utc)
             events.append({
                 "at_syd": f"{created.astimezone(SYD):%m-%d %H:%M}",
@@ -425,6 +435,10 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
                         now: Optional[datetime] = None) -> dict:
     """投资策略页数据:生产策略人话档案 + 晋级门禁(实时读契约配置)+ 研究史(读 CSV)。只读。"""
     now = now or datetime.now(timezone.utc)
+    # 已在实盘时,"晋级四道门"是已走完的准入条件,不是待过的关卡——标题与说明随之切换,
+    # 避免"已实盘却像还在等晋级"的第二处自相矛盾(2026-07-25 深度自查)。
+    is_live = (os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
+               and os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
     gates = []
     try:
         import yaml
@@ -461,6 +475,9 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
             "语言模型与外部接口永远无权触发订单",
         ],
         "gates": gates,
+        "is_live": is_live,
+        "gates_title": ("准入门禁(已于 2026-07-24 由 owner 书面裁定直接实盘,以下为契约留档条件)"
+                        if is_live else "晋级实盘的四道门(实时读契约配置)"),
         "honesty_note": honesty,
         "research_cols": RESEARCH_COLS,
         "research": research,
@@ -665,8 +682,12 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                         if p.get("date") == _today and not p.get("live")), None)
     prev_equity = _today_open if _today_open is not None else equity_aud
     today_pnl_aud = equity_aud - prev_equity
+    # 实盘判定要在考核卡之前算:一旦进入微实盘,纸面阶段的晋级门禁就不再是"当前状态",
+    # 否则会出现"页头写微实盘、门禁写保持 Paper"的自相矛盾(2026-07-25 外部复审抓到)。
+    _env_live = (os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
+                 and os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
     exam = None
-    if report:
+    if report and not _env_live:
         promo = report.get("promotion", {})
         exam = {
             "report_date": report.get("_report_date", ""),
@@ -686,6 +707,23 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                  "note": f"可用性 {promo.get('PROMO-4', {}).get('uptime_pct', 0)}%,"
                          f"通知延迟 p95 {promo.get('PROMO-4', {}).get('notify_p95_seconds', 0)} 秒"},
             ],
+        }
+    #: 实盘阶段替代卡:纸面考核已是历史,这里只说当前实盘事实,不再展示已被推翻的旧结论
+    live_stage = None
+    if _env_live:
+        live_stage = {
+            "title": "实盘运行中(纸面考核已完成使命)",
+            "lines": [
+                "已于 2026-07-24 按 owner 书面裁定换帅并直接进入微实盘,真实资金、真实订单。",
+                (f"纸面阶段最后一份考核报告为 {report.get('_report_date','')}(合格日 "
+                 f"{report.get('promotion',{}).get('days_qualified',0)}/"
+                 f"{report.get('promotion',{}).get('days_required',3)}),其『保持 Paper』的结论"
+                 "已被 owner 换帅裁定取代,仅作历史存档,不代表当前状态。"
+                 if report else "纸面阶段报告已归档。"),
+                "当前生效的约束是硬风控(总敞口 3000 澳元、单笔≤90%、每小时≤5 笔、失败关闭),"
+                "以及每交易日开盘前的自动盘前自检。",
+            ],
+            "archived_report_date": (report or {}).get("_report_date", ""),
         }
 
     # ---------- 动作时间线 ----------
@@ -740,9 +778,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             trading_status = h["status"]
             mode_hint = h.get("detail", "") or ""
     all_fresh = bool(components) and all(c["ok"] for c in components)
-    import os as _os
-    env_live = (_os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
-                and _os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
+    env_live = _env_live          # 与考核卡判定同源,杜绝"页头与门禁互相矛盾"
     halted = kill_switch.active() or trading_status == "HALTED"
     if halted:
         banner = {"kind": "halted", "text": "⏸️ 系统已暂停(紧急刹车拉下,不会再下任何单)"}
@@ -780,6 +816,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         "curve_skipped_days": skipped_days,
         "positions": positions,
         "exam": exam,
+        "live_stage": live_stage,
         "next_decision": _next_decision(now, Path(runtime_dir)),
         "timeline": timeline,
         "health": {"components": components, "kill_switch": kill_switch.active(),

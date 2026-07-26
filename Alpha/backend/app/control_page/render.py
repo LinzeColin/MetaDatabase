@@ -415,7 +415,7 @@ def render_strategy_html(d: dict) -> str:
 <div class=grid>
 <div class=card><h2>硬风控约束(写死在代码与契约,页面无权改)</h2>
 <ul class=muted style="line-height:2;margin:0;padding-left:18px">{limits}</ul></div>
-<div class=card><h2>晋级实盘的四道门(实时读契约配置)</h2><div class=lights>{gates}</div></div>
+<div class=card><h2>{_esc(d.get("gates_title", "晋级实盘的四道门(实时读契约配置)"))}</h2><div class=lights>{gates}</div></div>
 <div class="card span2"><h2>候选策略研究史(同一把尺子,全部证据公开可复验)</h2>
 {table}
 <a class=dl href="{_esc(d.get('research_csv_url', '/strategy/history.csv'))}" download>⬇ 下载全部策略 CSV</a>
@@ -466,8 +466,12 @@ def render_dashboard_html(d: dict) -> str:
         if d["positions"] else
         "<div class=big>空仓</div><div class=muted>钱都在手里,还没出手——按纪律,到下一个决策时间才会动。</div>")
 
-    exam = d["exam"]
-    if exam:
+    exam, live_stage = d["exam"], d.get("live_stage")
+    if live_stage:      # 已进入实盘:只讲当前事实,不再展示已被推翻的纸面晋级门禁
+        exam_block = ("<div class=lights>"
+                      + "".join(f"<div class=light><i class='dot g'></i><div>{_esc(x)}</div></div>"
+                                for x in live_stage["lines"]) + "</div>")
+    elif exam:
         lights = "".join(
             f"<div class=light><i class='dot {'g' if li['ok'] else 'r'}'></i>"
             f"<div><b>{_esc(li['name'])}</b> {'达标' if li['ok'] else '未达标'}"
@@ -541,7 +545,7 @@ def render_dashboard_html(d: dict) -> str:
   <div class=muted style="margin-top:6px">{_esc(mkt['next'])}</div>
 </div>
 <div class=card>
-  <h2>三日模拟盘考核(历史存档,已进入实盘)</h2>
+  <h2>{'实盘运行阶段' if d.get('live_stage') else '三日模拟盘考核'}</h2>
   {exam_block}
 </div>
 <div class=card>
