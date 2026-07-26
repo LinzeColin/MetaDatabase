@@ -133,8 +133,11 @@ OPAQUE_RUNTIME_ACTIVITY_TOKENS = frozenset(
         "inference",
         "invocation",
         "job",
+        "orchestration",
+        "pipeline",
         "process",
         "span",
+        "task",
         "trace",
         "worker",
     }
@@ -151,6 +154,7 @@ PRIVATE_DETAIL_TOKENS = frozenset(
         "info",
         "locator",
         "metadata",
+        "pointer",
         "receipt",
         "reference",
         "state",
@@ -184,20 +188,48 @@ NEUTRAL_CONTEXT_CONTAINER_TOKENS = frozenset(
         "events",
         "item",
         "items",
+        "list",
+        "lists",
+        "node",
+        "nodes",
+        "nest",
+        "nested",
+        "object",
+        "objects",
+        "page",
+        "pages",
         "payload",
         "payloads",
         "record",
         "records",
+        "detail",
+        "details",
+        "segment",
+        "segments",
+        "array",
+        "arrays",
+        "collection",
+        "collections",
         "trail",
         "trails",
         "wrapper",
         "wrappers",
     }
 )
+PUBLIC_BUSINESS_CONTEXT_BOUNDARY_KEYS = frozenset(
+    {
+        "marketobservation",
+        "publictask",
+        "validatorreplay",
+    }
+)
 PRIVATE_VALUE_MARKER = re.compile(
     r"(?i)(?:^|[^a-z0-9])(?:chat|conversation|dialog|interaction|"
     r"sess(?:ion)?|thread|turn)"
     r"(?:[_:-](?:id|live|prod|session|synthetic|[a-z0-9]{8,}))"
+)
+PRIVATE_TASK_IDENTIFIER_MARKER = re.compile(
+    r"(?i)(?:^|-)(?:execution|host|live|private|runtime|session)(?:-|$)"
 )
 PRIVATE_UUID_CONTEXT_KEYS = FORBIDDEN_PRIVATE_METADATA_KEYS | frozenset(
     {
@@ -207,25 +239,81 @@ PRIVATE_UUID_CONTEXT_KEYS = FORBIDDEN_PRIVATE_METADATA_KEYS | frozenset(
 )
 PRIVATE_TEXT_IDENTIFIER = re.compile(
     rb"""(?ix)
-    \b(?:
-        session(?:[_\x20-]?(?:id|identifier|info|metadata|state))?
-        | execution[_\x20-]?session(?:[_\x20-]?metadata)?
-        | model[_\x20-]?session
-        | run[_\x20-]?session
-        | conversation[_\x20-]?id
-        | thread[_\x20-]?id
-        | chat[_\x20-]?id
-        | turn[_\x20-]?id
-        | executor[_\x20-]?receipt
-        | execution[_\x20-]?(?:context|receipt|record)
-        | agent[_\x20-]?run
+    (?<![a-z0-9])(?:
+        session(?:[._\x20\t-]*(?:id|identifier|info|metadata|state))?
+        |
+        (?:provider|runtime|generation|execution|model|run|conversation|
+           thread|chat|turn|executor|agent|attempt|call|completion|
+           inference|invocation|job|orchestration|pipeline|process|span|task|trace|worker|
+           response)
+        [._\x20\t\r\n\]-]*
+        (?:
+            (?:session|request|execution|context|receipt|record|run|attempt|
+               call|completion|generation|inference|invocation|job|pipeline|
+               process|span|task|trace|worker|provider|runtime|response|
+               orchestration|continuation)
+            [._\x20\t\r\n\]-]*
+        )?
+        (?:private[._\x20\t-]*)?
+        (?:id|identifier|info|metadata|state|locator|cursor|receipt|alias|pointer|
+           context|record|run|handle)
     )
-    [\x20\t]*[:=][\x20\t]*["']?
-    [0-9a-f]{8}-[0-9a-f]{4}-[47][0-9a-f]{3}-
-    [89ab][0-9a-f]{3}-[0-9a-f]{12}
-    \b
+    (?:
+        [\x20\t]*(?:->|=>|[:=/]|\()[\x20\t]*
+        | [\x20\t]+
+    )
+    ["']?
+    (?:
+        [0-9a-f]{8}-[0-9a-f]{4}-[47][0-9a-f]{3}-
+        [89ab][0-9a-f]{3}-[0-9a-f]{12}\b
+        |
+        (?:
+            (?=[a-z0-9._@%+#=/~-]{8,128}
+               (?![a-z0-9._@%+#=/~-]))
+            (?=(?:[a-z0-9.@%+#=/~]*[-_]){2})
+            (?=[a-z0-9._@%+#=/~-]*(?:[0-9]|private|opaque|synthetic|live))
+            [a-z0-9][a-z0-9._@%+#=/~-]{7,127}
+            (?![a-z0-9._@%+#=/~-])
+            |
+            (?P<alpha_opaque>[a-z]{16,128})
+            (?=["']?(?:[\x20\t]*(?:[,;:.!?)}\]\r\n]|$)))
+        )
+    )
     """
 )
+STRONG_ALPHA_IDENTIFIER_LABEL = re.compile(
+    rb"""(?ix)
+    (?:
+        session(?:[._\x20\t-]*(?:id|identifier|info|metadata|state))?
+        |
+        (?:id|identifier|metadata|locator|cursor|receipt|alias|pointer|handle)
+    )
+    [._\x20\t\r\n\]-]*
+    (?:
+        (?:->|=>|[:=/]|\()[\x20\t]*
+    )?
+    ["']?$
+    """
+)
+EXPLICIT_TEXT_VALUE_DELIMITER = re.compile(
+    rb"""(?x)(?:->|=>|[:=/]|\()[\x20\t]*["']?$"""
+)
+
+
+def contains_private_text_identifier(data: bytes) -> bool:
+    """Reject bounded opaque values without treating ordinary prose as IDs."""
+
+    for match in PRIVATE_TEXT_IDENTIFIER.finditer(data):
+        alpha_opaque = match.groupdict().get("alpha_opaque")
+        if alpha_opaque is None:
+            return True
+        prefix = data[match.start() : match.start("alpha_opaque")]
+        if (
+            STRONG_ALPHA_IDENTIFIER_LABEL.search(prefix) is not None
+            or EXPLICIT_TEXT_VALUE_DELIMITER.search(prefix) is not None
+        ):
+            return True
+    return False
 
 
 def normalized_key_parts(raw_key: str) -> tuple[str, frozenset[str]]:
@@ -248,25 +336,75 @@ def is_stable_public_logical_identifier(value: object) -> bool:
     )
 
 
-def is_stable_public_request_reference(
-    tokens: frozenset[str],
+def is_stable_public_task_identifier(
+    raw_key: str,
     value: object,
+    ancestor_tokens: frozenset[str] = frozenset(),
 ) -> bool:
-    """Allow an explicitly public request reference, never a private receipt."""
+    """Allow explicit project task labels, never opaque runtime identifiers."""
+
+    _, tokens = normalized_key_parts(raw_key)
+    combined = ancestor_tokens | tokens
+    private_runtime_tokens = (
+        COMMUNICATION_TOKENS
+        | RUNTIME_TOKENS
+        | (OPAQUE_RUNTIME_ACTIVITY_TOKENS - {"task"})
+    )
+    return (
+        {"task", "id"} <= combined
+        and not bool(combined & private_runtime_tokens)
+        and isinstance(value, str)
+        and re.fullmatch(
+            r"[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,12}",
+            value,
+        )
+        is not None
+        and len(value) <= 64
+        and UUID_ANY.search(value) is None
+        and PRIVATE_VALUE_MARKER.search(value) is None
+        and PRIVATE_TASK_IDENTIFIER_MARKER.search(value) is None
+    )
+
+
+def is_explicit_public_reference_key(tokens: frozenset[str]) -> bool:
+    """Recognize only the five reviewed public reference domains."""
 
     return (
-        {"public", "request"} <= tokens
-        and bool(tokens & {"ref", "reference"})
+        "public" in tokens
+        and bool(
+            tokens
+            & {"catalog", "documentation", "evidence", "example", "request"}
+        )
+        and bool(tokens & {"alias", "cursor", "locator", "ref", "reference"})
         and not (
             tokens
             & (
                 COMMUNICATION_TOKENS
                 | RUNTIME_TOKENS
                 | OPAQUE_RUNTIME_ACTIVITY_TOKENS
-                | (PRIVATE_DETAIL_TOKENS - {"ref", "reference"})
+                | (
+                    PRIVATE_DETAIL_TOKENS
+                    - {"alias", "cursor", "locator", "reference"}
+                )
             )
         )
-        and is_stable_public_logical_identifier(value)
+    )
+
+
+def is_stable_public_reference(
+    tokens: frozenset[str],
+    value: object,
+) -> bool:
+    """Allow a narrow explicit public reference, never runtime metadata."""
+
+    return (
+        is_explicit_public_reference_key(tokens)
+        and isinstance(value, str)
+        and re.fullmatch(r"[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+){0,7}", value)
+        is not None
+        and len(value) <= 64
+        and PRIVATE_VALUE_MARKER.search(value) is None
+        and UUID_ANY.search(value) is None
     )
 
 
@@ -293,14 +431,18 @@ def private_metadata_key_reason(raw_key: str, child: object) -> str | None:
         and is_stable_public_logical_identifier(child)
     ):
         return None
+    if is_stable_public_task_identifier(raw_key, child):
+        return None
     if (
         tokens & {"byte", "bytes", "code", "count"}
         and isinstance(child, (int, float))
         and not isinstance(child, bool)
     ):
         return None
-    if is_stable_public_request_reference(tokens, child):
+    if is_stable_public_reference(tokens, child):
         return None
+    if is_explicit_public_reference_key(tokens):
+        return "malformed public reference metadata"
     if compact in FORBIDDEN_PRIVATE_METADATA_KEYS:
         return "explicit private metadata key"
     if "session" in tokens or "session" in compact:
@@ -350,8 +492,12 @@ def inherited_private_metadata_reason(
         and is_stable_public_logical_identifier(child)
     ):
         return None
-    if is_stable_public_request_reference(combined, child):
+    if is_stable_public_task_identifier(raw_key, child, ancestor_tokens):
         return None
+    if is_stable_public_reference(tokens, child):
+        return None
+    if is_explicit_public_reference_key(tokens):
+        return "malformed public reference metadata"
     if (
         "sha256" in tokens
         and isinstance(child, str)
@@ -422,6 +568,16 @@ def is_neutral_context_container(raw_key: str, child: object) -> bool:
         isinstance(child, (dict, list))
         and bool(tokens)
         and tokens <= NEUTRAL_CONTEXT_CONTAINER_TOKENS
+    )
+
+
+def is_public_business_context_boundary(raw_key: str, child: object) -> bool:
+    """Recognize reviewed public subtrees that terminate runtime ancestry."""
+
+    compact, _ = normalized_key_parts(raw_key)
+    return (
+        isinstance(child, (dict, list))
+        and compact in PUBLIC_BUSINESS_CONTEXT_BOUNDARY_KEYS
     )
 
 
@@ -499,6 +655,7 @@ def scan_json_session_metadata(label: str, data: bytes, state: ScanState) -> Non
         node: object,
         location: str = "$",
         private_identifier_context: bool = False,
+        private_task_identifier_context: bool = False,
         ancestor_tokens: frozenset[str] = frozenset(),
     ) -> None:
         if isinstance(node, dict):
@@ -531,17 +688,40 @@ def scan_json_session_metadata(label: str, data: bytes, state: ScanState) -> Non
                         f"{location}.{key}"
                     )
                 root_tokens = private_context_root_tokens(key)
-                if root_tokens:
+                public_boundary = (
+                    is_public_business_context_boundary(key, child)
+                    or (
+                        location == "$.executor"
+                        and normalized == "cases"
+                        and isinstance(child, (dict, list))
+                    )
+                )
+                if public_boundary:
+                    next_ancestor_tokens = frozenset()
+                elif root_tokens:
                     next_ancestor_tokens = ancestor_tokens | root_tokens
-                elif is_neutral_context_container(key, child):
+                elif isinstance(child, (dict, list)):
                     next_ancestor_tokens = ancestor_tokens
                 else:
                     next_ancestor_tokens = frozenset()
+                key_private_identifier_context = (
+                    key_implies_private_identifier_context(key)
+                )
+                next_private_identifier_context = (
+                    key_private_identifier_context
+                    or (
+                        private_identifier_context
+                        and not public_boundary
+                    )
+                )
+                next_private_task_identifier_context = (
+                    private_task_identifier_context or "task" in tokens
+                )
                 walk(
                     child,
                     f"{location}.{key}",
-                    private_identifier_context
-                    or key_implies_private_identifier_context(key),
+                    next_private_identifier_context,
+                    next_private_task_identifier_context,
                     next_ancestor_tokens,
                 )
         elif isinstance(node, list):
@@ -550,6 +730,7 @@ def scan_json_session_metadata(label: str, data: bytes, state: ScanState) -> Non
                     child,
                     f"{location}[{index}]",
                     private_identifier_context,
+                    private_task_identifier_context,
                     ancestor_tokens,
                 )
         elif isinstance(node, str):
@@ -560,6 +741,10 @@ def scan_json_session_metadata(label: str, data: bytes, state: ScanState) -> Non
                 or (
                     private_identifier_context
                     and PRIVATE_VALUE_MARKER.search(node)
+                )
+                or (
+                    private_task_identifier_context
+                    and PRIVATE_TASK_IDENTIFIER_MARKER.search(node)
                 )
             ):
                 state.errors.append(
@@ -587,7 +772,7 @@ def scan_blob(label: str, data: bytes, state: ScanState) -> None:
             ):
                 continue
             state.errors.append(f"{label}: forbidden {pattern_name}")
-    if PRIVATE_TEXT_IDENTIFIER.search(data):
+    if contains_private_text_identifier(data):
         state.errors.append(
             f"{label}: forbidden plaintext execution session identifier"
         )

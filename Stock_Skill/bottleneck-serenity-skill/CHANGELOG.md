@@ -1,15 +1,88 @@
 # Changelog
 
-## 0.0.0.1 — Stage 3 deterministic validation
+## 0.0.0.1 — Stage 4 candidate readiness
 
 - 固定全局 stable ID、Skill basename、display name 与 invocation 为 `bottleneck-serenity-skill`，机器版本为
   `0.0.0.1`，展示/release label 为 `v0.0.0.1`。
+- Stage 4 Mechanical final gate 绑定 `origin/main=d10f5086…`、21-path Stage digest、292-file
+  Task Pack digest 与 39-path allowlisted overlay；worktree/独立 clean Git candidate 的 245 tests、
+  全 Skill/eval/security/public/license/manifest/release/registry/audit 门均 PASS。ledger=`36/36
+  CLOSED`，`ACC-S4-001/002/004` PASS；未启 reviewer/live provider，conditional remediation 未激活。
+  唯一下一 Task 是 Publish；本 Task 未 push、创建 PR、merge、安装 runtime 或 Cleanup。
+- Stage 4 Release readiness 从当前 `origin/main` 构造 39-path allowlisted overlay candidate；
+  worktree 与独立 clean Git restore 均通过 245 tests、全 validator/eval、public-safety
+  `378/795/417`、license `284/2,485/0/5/1`、291-entry manifest、双 deterministic build 与三 SHA
+  consumer 检查。T002=`DONE`；未启 reviewer、push、创建 PR、merge、安装 runtime 或执行终态 cleanup。
+- Stage 4 Audit 新增 `COMPLETION_AUDIT.json`、fail-closed validator 与 10 个 durable tests：
+  精确覆盖 39 Source IDs、44 ACC、82 Tasks、36 findings 和 11 项仓库/用户规则；当前
+  Source=`32 satisfied + 7 terminal-pending`、ACC=`38 satisfied + 6 not-due`、
+  finding=`36/36 CLOSED`，且 C/MISSING=`0`。所有未到期终态都具名后续 Owner；
+  public-safety=`378/795/417`，四仓完整历史 license report 仍为 `284/2,485/0/5/1`。
+  Stage 4 后续按用户指令只运行 mechanical gate/revalidation。
+- T001 按用户“中间 phase 完成不需要上传”的指令执行 Stage 3 local-seal Publish：冻结 accepted
+  pre-publish 双 digest，重算四仓许可报告，重建 task manifest/release/registry/backup DAG，并要求
+  staged proposed tree 与全新 clean replay 的 SHA/全门一致后创建本地 seal commit。该 Task 不 push、
+  不生成 PR/CI/merge 证据；唯一下一 Task 是 Stage 4 Audit。
+- T025 按当前用户“不复审、避免 live time-soak”指令完成机械 Acceptance closure：冻结 subject
+  为 292-file Task Pack `f7b8ceec…de5cb` 与 33-path Stage source `e5442f10…b8b0c`；
+  不启 reviewer、不修改实现，也不把两次 live timeout 写成 PASS。skill/Trigger/Security/
+  Historical/Forward/current binding/witness controls、235 tests、public/license/registry/hash DAG
+  全门通过，`S3-R001/R002/R008/R009` 关闭，Stage 3 verdict=`PASS`。唯一下一 Task 是
+  Stage 3 Publish；本 Task 未上传。
+- T024 Remediation 12 只整改 `S3-R001/R002/R008/R009`：presentation 对 18 个实体 ×
+  31 个句法模板得到 `558/558` exact witness，5 个特殊 legal-name case 与 16 个 role-neutral
+  controls 全 PASS；public-safety 的 frozen/fresh plain-ZIP matrices 分别为 `172/172` 与
+  `44/44`。current binding、stored Forward 与 T023 exact output 的 current presentation/host
+  replay PASS；fresh live 两次尝试均按 1,800 秒合同 fail-closed timeout，未冒充 closure evidence。
+  license current set/report/markers 统一为 284 targets。四项 finding 仅推进为
+  `FIXED_PENDING_REREVIEW`，T023 仍是最近独立 verdict=`FAIL`，唯一下一 Task 是 T025；
+  未执行复审、Publish、stage/commit/push、runtime 安装或 PR 操作。
+- T023 Re-review 11 在 291-file Task Pack / 32-path Stage source 的新双 digest subject 上判定
+  `FAIL`：presentation fresh set 在 source/release 每面仅 `286/408` binary，360 个 REJECT 的
+  exact/normalized complete witness 仅 `7/360` / `87/360`，并误拒 8/48 role-neutral controls；
+  public-safety 108 个 plain/DEFLATED-ZIP surfaces 仅 `84/108`。current-tree v23 live host
+  exact replay exit=`1`，故 `S3-R001/R002/R008/R009` 为 `OPEN`、`ACC-S3-002/006` FAIL、
+  `ACC-S3-009=FAIL_EVIDENCE`。283-target license/full-history gate PASS，`S3-R010` CLOSED、
+  `ACC-S2-010` PASS；未新增 finding ID。按确定性循环追加 T024/T025，唯一下一 Task 是
+  T024 Remediation 12；未执行 Publish、stage/commit/push、runtime 安装或 PR 操作。
+- T022 Remediation 11 只整改 `S3-R001/S3-R008/S3-R009/S3-R010`：T021 冻结 presentation set
+  在 source/release 每面均 `282/282` strict，public-safety 32-case × plain/ZIP=`64/64`；
+  README、LICENSE、SOURCE_INVENTORY、RESTORE_AND_VERIFY、collector 与 committed report
+  统一为 283 targets，四仓 full-history 重算 byte-identical。对应 rollback mutants 全部被杀死，
+  四项 finding 仅推进为 `FIXED_PENDING_REREVIEW`。T021 仍是最近一次独立 verdict=`FAIL`，
+  唯一下一 Task 是 T023 Re-review 11；未执行 Publish、stage/commit/push、runtime 安装或 PR 操作。
+- T021 Re-review 10 在 290-file Task Pack / 30-path Stage source 新双 digest subject 上判定
+  `FAIL`：presentation 每面 252 REJECT / 30 ACCEPT 仅 `214/282` binary、`144/282` strict；
+  public-safety 64 个 plain/DEFLATED-ZIP surfaces 仅 `50/64`；两处 owner-facing 文案仍写
+  280-file、与 canonical 282-target report/marker 冲突。`S3-R001/R008/R009/R010` 为 `OPEN`，
+  `ACC-S3-002/006` 与 `ACC-S2-010` FAIL，其余 Stage 3 ACC 与 `ACC-S0-005` PASS。
+  未新增 finding ID；按确定性循环追加 T022/T023，唯一下一 Task 是 T022 Remediation 11。
+- T020 Remediation 10 只整改 `S3-R001/S3-R008/S3-R009`：presentation 新增限定 Unicode/数字实体
+  contextual slots，并把 T019 的 192 REJECT / 24 ACCEPT 固化为 Historical/Forward 共用 durable
+  Oracle；源码 `216/216` PASS，两个 rollback mutant 分别产生 145 个 REJECT 与 3 个 ACCEPT
+  failures。public-safety 对六类明文私有键与五类值分隔归一化，并在两个显式 public-business
+  boundary 终止 runtime ancestry；T019 84 个 plain/ZIP 判定全 PASS，旧 matcher 与移除 boundary
+  mutant 均被杀死。三项 finding 仅推进为 `FIXED_PENDING_REREVIEW`；最近独立 verdict 仍为
+  T019=`FAIL`，唯一下一 Task 是 T021 Re-review 10，未执行 Publish、stage/commit/push 或安装。
+- T019 Re-review 9 在 289-file Task Pack / 28-path Stage source 新双 digest subject 上判定 `FAIL`：
+  presentation 每面 192 REJECT / 24 ACCEPT 仅 `144/216` binary、`99/216` strict；public-safety
+  84 个 plain/ZIP 判定仅 `72/84`。current-tree v23 fresh live witness 以 10 searches / 8 pages、
+  28,010-byte exact return 与 host replay PASS，故 `S3-R002` CLOSED、`ACC-S3-009` PASS；
+  `S3-R001/R008/R009` 回到 `OPEN`、`ACC-S3-002/006` FAIL。未新增独立 P1/P2；按确定性循环追加
+  T020/T021，唯一下一 Task 是 T020 Remediation 10。
+- T018 Remediation 9 只整改 `S3-R001/S3-R002/S3-R008/S3-R009`：presentation durable matrix
+  扩为 184 REJECT / 93 ACCEPT / 67 exact witnesses，补充 64/64 strict entity probes 与 12/12
+  role-neutral controls；public-safety 覆盖六类结构层、稳定 public references、malformed
+  UUID/object references 与 provider-session 明文。current v23 fresh live run 在 30-file
+  production-only projection 中以 9 searches / 8 pages 生成 30,116-byte exact return，sandbox
+  probes、provider exit 与 host replay 全 PASS。四项仅推进为 `FIXED_PENDING_REREVIEW`；
+  T017 仍是最近一次独立 Stage verdict=`FAIL`，唯一下一 Task 是 T019 Re-review 9。
 - T017 Re-review 8 在 288-file Task Pack / 278-path Stage source 新双 digest subject 上判定 `FAIL`：
   presentation 第九组 blind set 仅 `67/100` binary、`62/100` strict；public-safety 72-case /
   144-surface set 仅 `67/72` / `134/144`，非重复结构层 probe 另有 12/24 surfaces 失败。
   current-tree v23 live witness 因 provider usage limit 未取得 exact return/host replay，因此
   `S3-R001/R002/R008/R009` 为 `OPEN`，`ACC-S3-002/006` FAIL、`ACC-S3-009=FAIL_EVIDENCE`。
-  未新增独立 P1/P2；按确定性循环追加 T018/T019，唯一下一 Task 是 T018 Remediation 9。
+  未新增独立 P1/P2；按确定性循环追加 T018/T019，当时的唯一下一 Task 是 T018 Remediation 9。
 - T016 Remediation 8 仅整改 `S3-R001/S3-R008/S3-R009`：presentation durable matrix 扩为
   175 REJECT / 85 ACCEPT / 58 exact-entity witness，全部通过；public-safety 覆盖
   `locator/cursor/alias`、neutral-container 深层 ancestry、private-context 任意 UUID 与

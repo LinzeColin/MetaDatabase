@@ -48,7 +48,7 @@ MetaDatabase proprietary `LICENSE`，Stage 2 必须逐项确认没有复制许�
 | `REQ-011` | Compliance | `REPO_MANDATED` | 公开仓安全；不得包含账户、真实组合、客户、MNPI、凭据或本机路径。 |
 | `REQ-012` | Research boundary | `CONFIRMED` | 研究决策支持；无自动下单、券商认证、保证收益或个性化杠杆执行。 |
 | `REQ-013` | Quality | `CONFIRMED` | 满足结构、单测、schema、trigger、负控制、安全、历史截断 E2E 与 registry 全门。 |
-| `REQ-014` | Acceptance | `CONFIRMED` | 每个 Stage 整体复审并消除问题后才上传；最终证据覆盖全部显式要求。 |
+| `REQ-014` | Acceptance | `CONFIRMED` | Stage 0–3 的历史复审/整改已闭环；按用户当前“不复审”指令，Stage 4 仅运行 fail-closed 机械门，最终证据仍须覆盖全部显式要求后才上传。 |
 | `REQ-015` | Budget/cost | `DEFAULTED` | 使用本地与公开一手证据；未经明确授权不产生付费 API 或服务成本。 |
 | `REQ-016` | Launch method | `REPO_MANDATED` | GitHub source/release 交付，不在本机安装；最终经 PR/CI 合并。 |
 | `REQ-017` | Maintenance owner | `DEFAULTED` | `LinzeColin/MetaDatabase` 维护者；Task Pack 与 registry 为交接真源。 |
@@ -80,7 +80,7 @@ MetaDatabase proprietary `LICENSE`，Stage 2 必须逐项确认没有复制许�
 - registry、validator、发现文档及相应测试；
 - 单元测试、schema/example 检查、trigger/negative eval、安全扫描；
 - 一个严格按历史截止日运行的端到端案例及未来信息泄漏检查；
-- 每 Stage 复审、整改、上传证据和最终 PR/CI/清理证据。
+- Stage 0–3 历史复审/整改证据、Stage 4 机械门、上传及最终 PR/CI/清理证据。
 
 ## 明确 Non-goals
 

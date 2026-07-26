@@ -27,7 +27,8 @@
 1. 先读仓库根 `AGENTS.md`、`Stock_Skill/AGENTS.md`、本文件、`Stock_Skill/REGISTRY.json` 和
    `task-pack/00_RUN_CONTRACT.md`，再从仓根运行 registry validator。
 2. 只在隔离 worktree 修改；主树必须保持 `main` 且干净。一次 run 最多完成 Task Graph 中一个 Task。
-3. Phase 完成不上传；只有整个 Stage Review PASS、全部 finding 闭环后，才能统一 commit/push。
+3. Phase 完成不上传；Stage 0–3 历史 Review/整改已闭环。按用户当前“不复审”指令，Stage 4 只运行
+   fail-closed mechanical gate/revalidation；全部 finding 闭环且适用 gate PASS 后才能最终 commit/push。
 4. `SOURCE_INVENTORY.md` 的源路径、源 SHA、53-entry 集合和原始决定不可改写；只能追加后续 destination 与
    独立审计证据。
 5. 身份迁移和工程化不得改变四道非补偿门、三个时钟、每股价值桥、证据标准、几何/门控评分、因果聚类、
@@ -51,4 +52,5 @@
 - 官方 skill-creator validator、项目 validator、全部 unittest、JSON/schema、trigger/negative、安全与历史截断
   E2E 均通过。
 - Task/backup manifests、release、`SHA256SUMS` 与 registry 可从 proposed tree 和最终干净 checkout 重建并同 SHA。
-- 每个 Stage 的独立 Review ledger 零未关闭 finding；最终 PR/CI/merge 与 worktree/branch/PR/cache 清理均有实证。
+- Stage 0–3 历史 Review ledger 与 Stage 4 mechanical gate 均零未关闭 finding；最终 PR/CI/merge 与
+  worktree/branch/PR/cache 清理均有实证。

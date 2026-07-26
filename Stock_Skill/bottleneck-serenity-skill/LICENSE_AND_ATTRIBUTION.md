@@ -46,13 +46,13 @@ Copyright (c) 2026 LinzeZhang，All Rights Reserved。未经版权人书面许�
 
 ### 独立相似性审计
 
-<!-- CURRENT_LICENSE_TARGET_COUNT=280 -->
+<!-- CURRENT_LICENSE_TARGET_COUNT=284 -->
 
 可执行真源是 `scripts/audit_license_similarity.py`；确定性结果是 `LICENSE_SIMILARITY_AUDIT.json`。审计器
 不联网、不记录 clone 路径或上游文本，要求调用者提供四个完整、非 shallow clone，并逐个验证 origin、冻结
 commit 和 LICENSE/COPYING 历史。算法固定为：
 
-1. target 从 canonical Skill 当前树动态推导，当前为全部 280 个普通文件；任一 symlink、非严格 UTF-8 或含 NUL 的
+1. target 从 canonical Skill 当前树动态推导，当前为全部 284 个普通文件；任一 symlink、非严格 UTF-8 或含 NUL 的
    target 直接失败，不允许静默缩小集合；
 2. upstream 是每个冻结 commit 及全部 ancestors 可达的每个 unique Git blob，不按 path 或 size 排除；严格
    UTF-8 解码成功且原始 bytes 无 NUL 才计为 text blob；
@@ -62,7 +62,7 @@ commit 和 LICENSE/COPYING 历史。算法固定为：
    pair；`token20` 仅表示至少一个命中 window 含 20 个 ASCII `[A-Za-z0-9]+` token，是人工复核候选而非
    法律结论；报告只保存行号、window hash 和 token count。
 
-当前完整重算得到可复现报告：280 个 target files 对四仓 2,489 个 reachable unique blob
+当前完整重算得到可复现报告：284 个 target files 对四仓 2,489 个 reachable unique blob
 instances，其中 2,485 个符合 text eligibility（muxuuu 34、yan-labs 2,265、Mrjie7205 139、wesson9527 47）；
 四个被排除 blob 均含 NUL，没有依赖尺寸捷径。结果为 exact pairs=`0`、规范化四行 pairs=`5`、token20
 pairs=`1`：
@@ -75,7 +75,7 @@ pairs=`1`：
 - yan-labs 与 Mrjie7205 没有任何 exact 或四行 pair。两个无明确许可仓合计 exact=`0`、token20=`0`。
 
 前两个 muxuuu scaffolding 继续按 `POSSIBLE_ADAPTATION / MIT-COVERED` 保守归属并保留完整 notice。该审计证明
-当前 280-file payload 与冻结历史之间没有未声明的整文件复制，并把所有宽匹配显式留给人工判断；它不能替代
+当前 284-file payload 与冻结历史之间没有未声明的整文件复制，并把所有宽匹配显式留给人工判断；它不能替代
 未来每次新增来源的许可审查。若 canonical file set/hash、上游冻结点、license 历史、算法或结果漂移，
 `--verify-targets`/`--verify-report` 必须失败，release 状态降级为 `UNKNOWN`，更新 attribution 后再重审。
 

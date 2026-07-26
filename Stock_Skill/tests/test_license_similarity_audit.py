@@ -29,6 +29,16 @@ OWNER_COUNT_DOCS = (
 OWNER_COUNT_MARKER = re.compile(
     r"<!-- CURRENT_LICENSE_TARGET_COUNT=([0-9]+) -->"
 )
+OWNER_CURRENT_COUNT_CLAIM = re.compile(
+    r"(?i)(?<![0-9])([0-9]+)(?="
+    r"(?:`)?-file\b|"
+    r"[ \t]*个[ \t\r\n]*(?:"
+    r"(?:普通[ \t]+(?:UTF-8[ \t]+)?(?:files?|文件))|"
+    r"target[ \t]+files?|canonical[ \t]+paths?"
+    r")|"
+    r"[ \t]+(?:target[ \t]+files?|canonical[ \t]+paths?)"
+    r")"
+)
 CANONICAL = (
     PROJECT_ROOT / "task-pack/skill_draft/bottleneck-serenity-skill"
 )
@@ -233,15 +243,78 @@ class LicenseSimilarityAuditTests(unittest.TestCase):
     def test_owner_facing_target_counts_match_committed_report(self) -> None:
         report = MODULE.load_report(REPORT)
         expected = report["summary"]["target_file_count"]
+        reviewed_claims: dict[Path, list[int]] = {}
         for path in OWNER_COUNT_DOCS:
             with self.subTest(path=path.name):
                 text = path.read_text(encoding="utf-8")
-                matches = OWNER_COUNT_MARKER.findall(text)
-                self.assertEqual(matches, [str(expected)])
-                self.assertIsNone(
-                    re.search(r"(?<![0-9])229(?![0-9])", text),
-                    f"{path.name} retains the stale target count",
+                markers = list(OWNER_COUNT_MARKER.finditer(text))
+                self.assertEqual(
+                    [match.group(1) for match in markers],
+                    [str(expected)],
                 )
+                section_start = markers[0].end()
+                next_heading = re.search(
+                    r"^##[ \t]+",
+                    text[section_start:],
+                    flags=re.MULTILINE,
+                )
+                section_end = (
+                    section_start + next_heading.start()
+                    if next_heading
+                    else len(text)
+                )
+                claims = [
+                    int(match.group(1))
+                    for match in OWNER_CURRENT_COUNT_CLAIM.finditer(
+                        text[section_start:section_end]
+                    )
+                ]
+                reviewed_claims[path] = claims
+                self.assertTrue(
+                    claims,
+                    f"{path.name} lacks a current count claim after its marker",
+                )
+                self.assertEqual(
+                    set(claims),
+                    {expected},
+                    f"{path.name} has a stale current target-count claim",
+                )
+
+        mutant_path = OWNER_COUNT_DOCS[0]
+        mutant_text = mutant_path.read_text(encoding="utf-8")
+        mutant_marker = next(OWNER_COUNT_MARKER.finditer(mutant_text))
+        mutant_section_start = mutant_marker.end()
+        mutant_heading = re.search(
+            r"^##[ \t]+",
+            mutant_text[mutant_section_start:],
+            flags=re.MULTILINE,
+        )
+        mutant_section_end = (
+            mutant_section_start + mutant_heading.start()
+            if mutant_heading
+            else len(mutant_text)
+        )
+        claim = next(
+            OWNER_CURRENT_COUNT_CLAIM.finditer(
+                mutant_text[mutant_section_start:mutant_section_end]
+            )
+        )
+        absolute_start = mutant_section_start + claim.start(1)
+        absolute_end = mutant_section_start + claim.end(1)
+        mutated_text = (
+            mutant_text[:absolute_start]
+            + str(expected - 1)
+            + mutant_text[absolute_end:]
+        )
+        mutated_section = mutated_text[
+            mutant_section_start:mutant_section_end
+        ]
+        mutated_claims = {
+            int(match.group(1))
+            for match in OWNER_CURRENT_COUNT_CLAIM.finditer(mutated_section)
+        }
+        self.assertNotEqual(mutated_claims, {expected})
+        self.assertTrue(all(reviewed_claims.values()))
 
 
 if __name__ == "__main__":
