@@ -402,7 +402,8 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         ga_ledger_errors
         or ga_ledger.get("task_id") != "T0705"
         or ga_delivery.get("pull_request_number") != 115
-        or ga_delivery.get("merge_commit_sha") != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"
+        or ga_delivery.get("merge_commit_sha")
+        != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"  # pragma: allowlist secret
         or ga_delivery.get("terminal_checks") != 39
         or ga_delivery.get("successful_checks") != 22
         or ga_delivery.get("failed_checks") != 11
@@ -411,7 +412,8 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or ga_workflow.get("run_id") != 30182491342
         or ga_workflow.get("workflow_id") != 318812500
         or ga_workflow.get("event") != "workflow_dispatch"
-        or ga_workflow.get("workflow_head_sha") != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"
+        or ga_workflow.get("workflow_head_sha")
+        != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"  # pragma: allowlist secret
         or ga_workflow.get("run_attempt") != 1
         or ga_workflow.get("reruns") != 0
         or ga_jobs.get("authority_gate", {}).get("status") != "PASS"
