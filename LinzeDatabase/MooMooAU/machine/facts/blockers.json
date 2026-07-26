@@ -7,15 +7,15 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN",
-    "内容": "T0705 十个 protected exact-main attempt-1 head 与两个独立 pre-Secret 失败 head 均已冻结；所有失败 head 的 rerun 与 redispatch 均为零",
+    "id": "T0705_ELEVEN_PROTECTED_FAILED_HEADS_FROZEN",
+    "内容": "T0705 十一个 protected exact-main attempt-1 head 与两个独立 pre-Secret 失败 head 均已冻结；所有失败 head 的 rerun 与 redispatch 均为零",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING",
-    "内容": "第十次已通过 candidate validation、repository-scope one-shot authority、protected Environment、精确 App repository scope、Gmail OAuth 与加密 checkpoint 恢复；随后因 workflow_dispatch 使用真实墙钟且当时尚未到同日 04:30 Australia/Sydney，在 SCHEDULE_PLANNING 确定性失败。Gmail API 调用、完整 Raw 读取及全部 mutation 均为零，一次性变量已删除。仅授权一个新 exact-main successor，在 rehearsal 中注入 2026-07-26T01:00:00Z 历史固定时钟即时回放；live schedule 保留真实时钟，不等待、不重跑",
+    "id": "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING",
+    "内容": "第十一次已通过 repository-scope authority 与 candidate validation 并进入 protected Environment，但确定性历史 RunPlanner 时钟误用于 GitHub App JWT，GitHub 在 repository resolution 与 Gmail OAuth 前拒绝认证；私库调用、Gmail 调用、完整 Raw 读取及全部 mutation 均为零，一次性变量已删除。仅授权一个 split-clock successor：安全、认证、OAuth、容量与证据时间使用 live UTC，仅 RunPlanner 使用 2026-07-26T13:00:00Z 历史 Fixture；故障注入即时验证，不等待、不重跑",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
@@ -36,7 +36,7 @@
   },
   {
     "id": "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "内容": "T0704 已通过；T0705 十个 protected 失败头及两个 pre-Secret 失败头已冻结，历史固定时钟 successor 已授权且无需等待 04:30；T0706 及其后的受保护验收未授权",
+    "内容": "T0704 已通过；T0705 十一个 protected 失败头及两个 pre-Secret 失败头已冻结，split-clock successor 已授权且无需等待 04:30；T0706 及其后的受保护验收未授权",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

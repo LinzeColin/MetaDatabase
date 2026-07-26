@@ -36,43 +36,43 @@
   "invariants": [
     {
       "rule": "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     },
     {
       "rule": "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。",
-      "note": "v1.0.1 产品契约，由 v1.0.31 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.32 原样继承"
     }
   ],
   "terms": [
@@ -340,6 +340,51 @@
       "en": "TEN_PROTECTED_FAILED_HEADS_FROZEN",
       "zh": "十个受保护失败执行头已冻结",
       "note": "T0705 十个不同主分支 protected 提交均禁止重跑或再次派发"
+    },
+    {
+      "en": "JWT",
+      "zh": "签名令牌声明",
+      "note": "GitHub App 安装令牌认证前的短期凭证"
+    },
+    {
+      "en": "OAuth",
+      "zh": "开放授权协议",
+      "note": "Gmail 短期访问令牌交换边界"
+    },
+    {
+      "en": "resolution",
+      "zh": "仓库解析",
+      "note": "安装令牌通过后解析唯一目标仓身份"
+    },
+    {
+      "en": "validation",
+      "zh": "确定性校验",
+      "note": "受契约约束的即时验证步骤"
+    },
+    {
+      "en": "security",
+      "zh": "安全",
+      "note": "凭证、权限和敏感边界的统称"
+    },
+    {
+      "en": "split-clock",
+      "zh": "分离时钟",
+      "note": "安全时间使用实时 UTC，规划时间可使用历史 Fixture"
+    },
+    {
+      "en": "security-clock-decoupling",
+      "zh": "安全时钟解耦",
+      "note": "禁止历史规划时钟参与认证与安全凭证计算"
+    },
+    {
+      "en": "SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING",
+      "zh": "安全时钟解耦恢复待执行",
+      "note": "安全与认证使用 live UTC，仅 RunPlanner 使用历史 Fixture"
+    },
+    {
+      "en": "ELEVEN_PROTECTED_FAILED_HEADS_FROZEN",
+      "zh": "十一个受保护失败执行头已冻结",
+      "note": "T0705 十一个不同主分支 protected 提交均禁止重跑或再次派发"
     },
     {
       "en": "Git Blobs",

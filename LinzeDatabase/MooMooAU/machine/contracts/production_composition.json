@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-26T14:24:31Z",
+  "observed_at_utc": "2026-07-26T15:14:43Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
     "path": ".github/workflows/moomooau-production.yml",
-    "sha256": "1e5c7750547cf0fdbefaa83ff48f1cbf0556fc5a69e506d37978496dd13b1e9a",
+    "sha256": "16eb23a4832e7a278042bba54e89779816a90542c8281bcb5067c496bc070dbb",
     "cron": "30 4 * * *",
     "timezone": "Australia/Sydney",
     "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
@@ -23,7 +23,7 @@
     "MOOMOOAU_GMAIL_OAUTH"
   ],
   "component_bindings": [
-    "ProtectedGAEntrypoint <- exact-main owner deterministic historical-clock dispatch, T0702-T0704 receipts, ten frozen protected T0705 failure ledgers, frozen candidate-preflight and authority-context ledgers, and one-task repository-scoped one-shot successor authority; workflow_dispatch rehearsal alone uses 2026-07-26T01:00:00Z while live schedule retains real clock, and exact installation repository scope is verified before Gmail credential exchange",
+    "ProtectedGAEntrypoint <- exact-main owner split-clock dispatch, T0702-T0704 receipts, eleven frozen protected T0705 failure ledgers, frozen candidate-preflight and authority-context ledgers, and one-task repository-scoped one-shot successor authority; security/authentication uses live UTC while workflow_dispatch RunPlanner alone uses 2026-07-26T13:00:00Z after all known data effects, the live schedule also uses live UTC, and exact installation repository scope is verified before Gmail credential exchange",
     "ProtectedGADiagnostics <- closed last-entered operation phase/subphase only, never exception text or protected values",
     "DerivedGASecretSource <- existing moomooau-beta inputs plus in-memory GA policy only",
     "LiveRepositoryCapacityProbe <- current private repository tree and single live Release Asset",
@@ -58,7 +58,7 @@
       "sha256": "bc5ca73be4fa5ff8303763081a295adb4627130439380009722f1419e1018488"
     },
     "src/moomooau_archive/production.py": {
-      "sha256": "7f7eb850f66c6f078866d22211af95beb9d9dba2052ed18d647725b4ef8b5dee"
+      "sha256": "5e0b07c2942be2a7bc01b52de9a29ea07eee4dc3eea55f76fe662ccc3bc8abd8"
     },
     "src/moomooau_archive/production_adapters.py": {
       "sha256": "9bfce6e2850bf22b5828746cc488244ac5c5ee44ffa222ab9b9deda6011a3ef8"
@@ -76,13 +76,13 @@
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "e7a68e75863f4428152480f767d3b8d282393570c51a655759f698b9b9787133"
+      "sha256": "907e314a71d48fc461666416425b2d660da29a4f74c22064461294774301abce"
     },
     "src/moomooau_archive/protected_ga_diagnostics.py": {
       "sha256": "8ce12e5de0dbdcebe0bc951939a6760d03d457c469abd676263ea1c96eac0221"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "a6ca33c9d9c27f87934f2b2a5eeb7179ee866918a75d80e8f59296aa3b22c6d9"
+      "sha256": "f3837cc4bd11874aeba7715592512e5bd6a4c9ab94a6e87c780d5a5dab73d6ce"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
@@ -91,10 +91,10 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "e094c1fc5c921ea531380818130b241cc0ee9c021d75cb9f48e87bc3d926a5f7"
+      "sha256": "8269493ef8429c20a20c27435db56e2f7b711a90327786f56b7079544d1de3b8"
     },
     "tests/tasks/test_t0705.py": {
-      "sha256": "058a63acc685f12ffb82ca6f2e7fb6d0dac5f6e800dbbdf4a7e347e54736c503"
+      "sha256": "24be69ce85de4b928843d1e36fe8d88ce10ec927c2989d0c8e99e3a7b1b64ad3"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

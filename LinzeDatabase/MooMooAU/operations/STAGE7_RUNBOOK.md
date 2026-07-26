@@ -2,9 +2,10 @@
 
 ## 当前状态
 
-交付状态为 `PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED`，Stage 7
+交付状态为
+`PROTECTED_GA_ELEVENTH_ATTEMPT_FAILED_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED`，Stage 7
 验收覆盖状态为
-`T0705_TEN_FAILED_HEADS_FROZEN_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED_PENDING`。T0701–T0708
+`T0705_ELEVEN_FAILED_HEADS_FROZEN_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED_PENDING`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -67,10 +68,16 @@ protected Environment、精确 App repository scope、Gmail OAuth 与加密 chec
 04:30 Australia/Sydney，Gmail API 调用、完整 Raw 读取与全部 mutation 均为 0；one-shot
 repository variable 已删除。该第十个 protected head 已冻结，不重跑。
 
-当前精确 successor Run Contract 的总 delivery 预算为 14，十二个 launch 已消耗 12；总 protected
-rehearsal dispatch 预算为 11，十个失败 attempt 已消耗 10；candidate-preflight dispatch 预算为
-4，已消耗 3；authority-scope failure budget 1 和 schedule-planning wall-clock failure budget 1
-均已消耗。只剩一次 deterministic historical-clock recovery delivery/attempt 和一次
+v1.0.31 deterministic historical-clock successor 已通过 candidate validation、
+repository-scope authority 与 protected Environment，随后在 `GITHUB_APP_TOKEN` 被拒绝。历史
+planning fixture 被错误复用为 `ProductionBootstrap` 的安全时钟，因而签出相对真实 job 时间已
+过期的 App JWT。该运行没有进入 repository resolution、Gmail OAuth、私有仓/Gmail 调用或任何
+mutation；cleanup PASS、one-shot variable 已删除。该第十一个 protected head 已冻结，不重跑。
+
+当前精确 successor Run Contract 的总 delivery 预算为 15，十三个 launch 已消耗 13；总 protected
+rehearsal dispatch 预算为 12，十一个失败 attempt 已消耗 11；candidate-preflight dispatch 预算为
+5，已消耗 4；authority-scope、schedule-planning wall-clock 和 authentication-clock-coupling
+failure budget 各 1 且均已消耗。只剩一次 security-clock-decoupling recovery delivery/attempt 和一次
 receipt/schedule-closure
 delivery。它复用现有 `moomooau-beta`
 Environment 的八个精确 Secret
@@ -163,7 +170,7 @@ GitHub App 必须先证明 installation token 的精确 repository scope 只包�
 04:30 生产运行相同的 `RunTrigger.SCHEDULE` planner path，并公开标记为
 `SCHEDULE_REHEARSAL`。
 
-十次 protected rehearsal 都 FAILED，不能计为 PASS；十个 protected head 均已冻结。第九次仍进入
+十一次 protected rehearsal 都 FAILED，不能计为 PASS；十一个 protected head 均已冻结。第九次仍进入
 `FIRST_IMPORT_POINTER_FETCH`，但没有产生 private commit、Processed、Timeline、checkpoint 或
 Gmail mutation；exact runtime exception 未接收或检查。只读 live A/B 已把直接表示层差异确定为
 Contents raw-media body 与 metadata blob 不一致，而 exact Git Blobs API 可以恢复 canonical
@@ -172,13 +179,15 @@ ciphertext。
 第十次已跨过上述数据恢复前置并只在墙钟 schedule planning 失败，Gmail API 调用、完整 Raw
 读取与全部 mutation 均为 0。v1.0.28 recovery 候选另在 pre-Secret Ruff format gate 失败，未进入 protected Environment，
 没有 Secret/Gmail/私库效果且 head 已冻结。v1.0.29 formatter successor 又因 authority variable
-scope 错误在 checkout 前失败，同样为零远端效果且 head 已冻结。当前唯一后继候选
+scope 错误在 checkout 前失败，同样为零远端效果且 head 已冻结。第十一次使用历史 planning
+fixture 跨过 schedule planning，但该 fixture 同时污染安全凭证时钟，使 GitHub App JWT 在
+repository resolution 前被拒绝；私库/Gmail 调用与 mutation 均为 0。当前唯一后继候选
 不再改变 pointer、metadata quarantine、pending replay、second verification、
 ACTIVE/SAFE_DEFERRED、Trash、Timeline 或 checkpoint 行为；只要求 merge 后用 repository
 variable 绑定 exact main head，并在 authority 消耗后删除。新入口在 Secret 前明确拒绝十个
-protected 失败 head 与两个 pre-Secret 失败 head，
+protected 失败 head、authentication-clock-coupling 失败 head与两个 pre-Secret 失败 head，
 并把 authority job 验证后的 exact head 通过 job output 绑定给 protected Environment job。
-当前 deterministic historical-clock recovery rehearsal 尚未运行，且只允许一个新 exact-main head
+当前 security-clock-decoupling recovery rehearsal 尚未运行，且只允许一个新 exact-main head
 执行 attempt 1。因此 T0705 与其 AC 仍为 `BLOCKED/PARTIAL/FAILED`；App 链接确认和本地候选都
 不能替代精确 protected receipt。
 
@@ -208,7 +217,8 @@ protected 失败 head 与两个 pre-Secret 失败 head，
 4. **Blue-Green**：在一次有界受保护运行中，对相同恢复 Raw 并行比较 incumbent/candidate；必须观测真实 Processed、Parser 比较、Timeline 发布和 Full Reconciliation；live Timeline 的最小和最大 Asset 数都必须为 1。不设自然日等待。
 5. **GA**：必须显式配置经实时容量证据支持的正整数 Mutation Budget；一次 exact-main protected
    `workflow_dispatch` 可调用与生产调度相同的 SCHEDULE planner path，无需等待墙钟到达
-   04:30。rehearsal 固定使用 `2026-07-26T01:00:00Z` 历史 UTC；live schedule 不注入该 fixture。
+   04:30。安全凭证、OAuth、容量与证据时间固定使用 live UTC；只有 rehearsal planner 使用
+   `2026-07-26T13:00:00Z` 历史 UTC fixture，live schedule 不注入该 fixture。
    时间与历史分支使用 Fake Clock、Fixture、历史回放和故障注入即时验证，不要求真实时间
    Soak、观察窗口或全量测试。该次运行必须如实称为 `SCHEDULE_REHEARSAL`，证明真实 Processed、Timeline 发布、
    checkpoint-last 与 Full Reconciliation，并保持 platform schedule event 计数为 0；PASS 回执

@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.31",
-  "status_as_of_utc": "2026-07-26T14:24:31Z",
+  "package_version": "1.0.32",
+  "status_as_of_utc": "2026-07-26T15:14:43Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED",
+  "overall_status": "PROTECTED_GA_ELEVENTH_ATTEMPT_FAILED_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -25,7 +25,7 @@
       "status": "LOCAL_MECHANISMS_EVIDENCED",
       "evidenced_tasks": 58,
       "total_tasks": 58,
-      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_TEN_T0705_FAILURES_TWO_PRE_SECRET_FAILURES_AND_ONE_SCHEDULE_PLANNING_FAILURE"
+      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_ELEVEN_T0705_FAILURES_TWO_PRE_SECRET_FAILURES_AND_ONE_AUTHENTICATION_CLOCK_COUPLING_FAILURE"
     },
     "formal_task_completion": {
       "status": "INCOMPLETE",
@@ -50,18 +50,18 @@
     },
     "production_readiness": {
       "status": "BLOCKED",
-      "workflow_runs": 12,
+      "workflow_runs": 13,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN",
-        "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING",
+        "T0705_ELEVEN_PROTECTED_FAILED_HEADS_FROZEN",
+        "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_SCHEDULE_DISABLED"
       ]
     },
     "publication": {
-      "status": "CONTROLLED_T0705_DETERMINISTIC_CLOCK_RECOVERY_CANDIDATE_NOT_FINAL",
-      "controlled_main_deliveries": 29,
+      "status": "CONTROLLED_T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_CANDIDATE_NOT_FINAL",
+      "controlled_main_deliveries": 30,
       "remote_publications": 0
     }
   },
@@ -220,8 +220,8 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN",
-    "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING",
+    "T0705_ELEVEN_PROTECTED_FAILED_HEADS_FROZEN",
+    "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_SCHEDULE_DISABLED",
     "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
@@ -234,18 +234,18 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Freeze the wall-clock schedule-planning failed head, deliver one exact-main T0705 deterministic historical-replay clock successor, and execute exactly one new attempt-1 schedule-mode rehearsal without waiting for 04:30. Never rerun or redispatch any failed protected, preflight, authority-context or schedule-planning head. Set the one-shot repository variable only after the exact merge head exists, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live 04:30 Australia/Sydney schedule and stop before T0706.",
+  "next_action": "Freeze the authentication-clock-coupling failed head, deliver one exact-main T0705 split-clock successor, and execute exactly one new attempt-1 schedule-mode rehearsal: live UTC for security/authentication and 2026-07-26T13:00:00Z only for RunPlanner. Never rerun or redispatch any failed head. Set the one-shot repository variable only after merge, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "c12a34d9b4979461052756f3424731d850bb5d3abf823c806705b8025e584d32",
+    "acceptance_summary_sha256": "218e7ef417102b4643241fb907efae4080bca66b34651872e6c89f5bb1db67ff",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "d0f58de8861f97dc61229aeaad15e160bba0cabfbeb12151d3a352347fcdadff",
+    "delivery_status_model_sha256": "0f9f45f99ae4f6efc747612e5ade7ad242af739e4fc9b297334b0a4d6d48af6a",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "b00d23921d48e8f70bdb182a8637b4a9a3a02ef590e6c893d276d37d8e8a2e01",
+    "production_composition_sha256": "67861109d5a3474df5a662f39476d6171aa99071b6d50d4e72390d0c134c750d",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "6044b9ebfa996d524d182d768821ce19895ebe7b90f38224221ca09c5e63ac90",
+    "task_evidence_root_sha256": "7226bf4eda7528624e2bc4c9165f4fc4341d883658ce56b7f7f3213158bd224d",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
@@ -267,6 +267,7 @@
     "protected_ga_canonical_blob_attempt_ledger_sha256": "264cfa33f6e3662485d4abc2b3b69d70ba31fdba4d76b49102c16d7dfaa7e4bd",
     "protected_ga_candidate_preflight_attempt_ledger_sha256": "f6e5707059df47549cbb92e58157578c872f53d23e2770b83b03ba50d100173d",
     "protected_ga_authority_context_attempt_ledger_sha256": "04a1f579c29e384c7db16545f5babf4b5feee63333af53f2fc560ba5728fdbab",
-    "protected_ga_schedule_planning_attempt_ledger_sha256": "c4b746090050897b8548a0ec07ed162e807477ed5f3e9047c8c185fb083e45eb"
+    "protected_ga_schedule_planning_attempt_ledger_sha256": "c4b746090050897b8548a0ec07ed162e807477ed5f3e9047c8c185fb083e45eb",
+    "protected_ga_authentication_clock_attempt_ledger_sha256": "4881b45d1013bc68a8b2f4549b88bc42eb7d9c7d3e2897d76270bb6c83c1efe9"
   }
 }

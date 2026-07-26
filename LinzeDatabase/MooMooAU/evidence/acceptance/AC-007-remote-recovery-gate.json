@@ -71,7 +71,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T14:24:31Z",
+  "observed_at_utc": "2026-07-26T15:14:43Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -98,7 +98,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "27886f54a30a12ca7992a908e97340d1d8234430",
+  "remediation_base_commit": "c2c057b449fe1cbbd470867c274833242e3f139d",
   "requirement_id": "RQ-007",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

@@ -60,6 +60,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.29",
             "1.0.30",
             "1.0.31",
+            "1.0.32",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -92,6 +93,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.29",
         "1.0.30",
         "1.0.31",
+        "1.0.32",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -120,6 +122,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.29",
         "1.0.30",
         "1.0.31",
+        "1.0.32",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -147,6 +150,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.29",
         "1.0.30",
         "1.0.31",
+        "1.0.32",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -173,6 +177,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.29",
         "1.0.30",
         "1.0.31",
+        "1.0.32",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -212,6 +217,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.29",
         "1.0.30",
         "1.0.31",
+        "1.0.32",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -269,6 +275,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.29",
             "1.0.30",
             "1.0.31",
+            "1.0.32",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -296,14 +303,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0705_repair_authorized = (
-        delivery["package_version"] == "1.0.31"
+        delivery["package_version"] == "1.0.32"
         and delivery.get("overall_status")
-        == "PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED"
+        == "PROTECTED_GA_ELEVENTH_ATTEMPT_FAILED_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED"
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
-        == "CONTROLLED_T0705_DETERMINISTIC_CLOCK_RECOVERY_CANDIDATE_NOT_FINAL"
+        == "CONTROLLED_T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_CANDIDATE_NOT_FINAL"
     )
     t0704_protected_passed = (
         delivery["package_version"] in {"1.0.18", "1.0.19"}
@@ -540,13 +547,25 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "successor，在 rehearsal 中注入 2026-07-26T01:00:00Z 历史固定时钟即时回放；"
             "live schedule 保留真实时钟，不等待、不重跑"
         ),
+        "T0705_ELEVEN_PROTECTED_FAILED_HEADS_FROZEN": (
+            "T0705 十一个 protected exact-main attempt-1 head 与两个独立 pre-Secret "
+            "失败 head 均已冻结；所有失败 head 的 rerun 与 redispatch 均为零"
+        ),
+        "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING": (
+            "第十一次已通过 repository-scope authority 与 candidate validation 并进入 protected "
+            "Environment，但确定性历史 RunPlanner 时钟误用于 GitHub App JWT，GitHub 在 repository "
+            "resolution 与 Gmail OAuth 前拒绝认证；私库调用、Gmail 调用、完整 Raw 读取及全部 "
+            "mutation 均为零，一次性变量已删除。仅授权一个 split-clock successor：安全、认证、"
+            "OAuth、容量与证据时间使用 live UTC，仅 RunPlanner 使用 2026-07-26T13:00:00Z "
+            "历史 Fixture；故障注入即时验证，不等待、不重跑"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 十个 protected 失败头及两个 pre-Secret 失败头"
-            "已冻结，历史固定时钟 successor 已授权且无需等待 04:30；T0706 及其后的"
+            "T0704 已通过；T0705 十一个 protected 失败头及两个 pre-Secret 失败头"
+            "已冻结，split-clock successor 已授权且无需等待 04:30；T0706 及其后的"
             "受保护验收未授权"
             if t0705_repair_authorized
             else "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权"
@@ -575,8 +594,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0705 九个 GA 失败头及两个 pre-Secret 失败头已冻结，"
-            "repository-scope authority successor 已授权待运行"
+            "RMD-06 T0705 十一个 GA 失败头及两个 pre-Secret 失败头已冻结，"
+            "security-clock-decoupling successor 已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -607,13 +626,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 九个 protected exact-main attempt-1 失败头已冻结；第九次已验证 App "
-            "repository scope，随后仍止于 FIRST_IMPORT_POINTER_FETCH 且 private 数据仓零提交。"
-            "Live replay 证明 Contents raw-media 非规范而 metadata-addressed Git Blob 全部"
-            "规范；首个 recovery 候选在 pre-Secret Ruff format gate 被拒绝且零远端效果，"
-            "格式 successor 又因 one-shot authority 变量作用域错误在 checkout 前拒绝；"
-            "新 head 仅修复 repository-scope authority 与派生绑定后执行 canonical Git Blob "
-            "recovery"
+            "T0705 十一个 protected exact-main attempt-1 失败头已冻结；第十一次在 repository "
+            "resolution 前因历史 RunPlanner 时钟误用于 GitHub App JWT 而被拒绝，私库、Gmail 与"
+            "全部 mutation 均为零。新 head 保持 data plane 不变：security/authentication 使用 "
+            "live UTC，仅 RunPlanner 使用已知数据效果之后的固定历史 Fixture"
             if t0705_repair_authorized
             else "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
             "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
@@ -660,9 +676,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.31 deterministic historical-clock 精确 successor，并以 "
-            "2026-07-26T01:00:00Z Fake Clock 即时执行一次新 head protected "
-            "SCHEDULE_REHEARSAL；十个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；"
+            "交付 v1.0.32 security/schedule split-clock 精确 successor，以 live UTC 完成安全"
+            "认证，并只向 RunPlanner 注入 2026-07-26T13:00:00Z Fake Clock 即时执行一次新 "
+            "head protected SCHEDULE_REHEARSAL；十一个 protected 失败头与两个 pre-Secret "
+            "失败头均 rerun 0；"
             "PASS 后只"
             "启用已提交 04:30 "
             "schedule，并停在 T0706 前"
@@ -1029,12 +1046,40 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             {
                 "en": "DETERMINISTIC_HISTORICAL_CLOCK_RECOVERY_PENDING",
                 "zh": "确定性历史时钟恢复待执行",
-                "note": "只在 workflow_dispatch rehearsal 注入固定历史 UTC；live 04:30 schedule 保留真实时钟",
+                "note": (
+                    "只在 workflow_dispatch rehearsal 注入固定历史 UTC；"
+                    "live 04:30 schedule 保留真实时钟"
+                ),
             },
             {
                 "en": "TEN_PROTECTED_FAILED_HEADS_FROZEN",
                 "zh": "十个受保护失败执行头已冻结",
                 "note": "T0705 十个不同主分支 protected 提交均禁止重跑或再次派发",
+            },
+            {"en": "JWT", "zh": "签名令牌声明", "note": "GitHub App 安装令牌认证前的短期凭证"},
+            {"en": "OAuth", "zh": "开放授权协议", "note": "Gmail 短期访问令牌交换边界"},
+            {"en": "resolution", "zh": "仓库解析", "note": "安装令牌通过后解析唯一目标仓身份"},
+            {"en": "validation", "zh": "确定性校验", "note": "受契约约束的即时验证步骤"},
+            {"en": "security", "zh": "安全", "note": "凭证、权限和敏感边界的统称"},
+            {
+                "en": "split-clock",
+                "zh": "分离时钟",
+                "note": "安全时间使用实时 UTC，规划时间可使用历史 Fixture",
+            },
+            {
+                "en": "security-clock-decoupling",
+                "zh": "安全时钟解耦",
+                "note": "禁止历史规划时钟参与认证与安全凭证计算",
+            },
+            {
+                "en": "SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING",
+                "zh": "安全时钟解耦恢复待执行",
+                "note": "安全与认证使用 live UTC，仅 RunPlanner 使用历史 Fixture",
+            },
+            {
+                "en": "ELEVEN_PROTECTED_FAILED_HEADS_FROZEN",
+                "zh": "十一个受保护失败执行头已冻结",
+                "note": "T0705 十一个不同主分支 protected 提交均禁止重跑或再次派发",
             },
             {
                 "en": "Git Blobs",
@@ -1555,9 +1600,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 十个 protected 失败头与两个 pre-Secret 失败头已冻结；"
-            "仅允许 deterministic historical-clock successor exact-main attempt 1，"
-            "无需等待真实 04:30"
+            "T0705 十一个 protected 失败头与两个 pre-Secret 失败头已冻结；"
+            "仅允许 security-clock-decoupling successor exact-main attempt 1，"
+            "live UTC 安全认证且无需等待真实 04:30"
             if t0705_repair_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1590,9 +1635,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.31 deterministic historical-clock exact-main successor、"
-            "用固定历史时钟即时执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用真实时钟的 "
-            "04:30 Australia/Sydney schedule，并停在 T0706 前"
+            "交付 v1.0.32 security/schedule split-clock exact-main successor、"
+            "用 live UTC 安全时钟与固定历史 RunPlanner 时钟即时执行一次新 attempt-1 "
+            "SCHEDULE_REHEARSAL，PASS 后启用 live UTC 的 04:30 Australia/Sydney schedule，"
+            "并停在 T0706 前"
             if t0705_repair_authorized
             else "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，"
             "PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
@@ -2048,6 +2094,23 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "均为零，一次性变量已删除。失败 head 禁止 rerun/redispatch。v1.0.31 "
                     "只在 workflow_dispatch rehearsal 注入 2026-07-26T01:00:00Z 历史固定"
                     "时钟，复用同一 SCHEDULE planner 即时验证；live schedule 保留真实时钟。"
+                    "不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
+                ),
+            },
+        )
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.32",
+                "date": "2026-07-26",
+                "summary": (
+                    "固化 v1.0.31 exact-main protected attempt 的 GitHub App authentication "
+                    "失败：authority 与 candidate validation 通过并进入 protected Environment，"
+                    "但历史 RunPlanner 时钟误用于 GitHub App JWT，认证在 repository resolution "
+                    "与 Gmail OAuth 前被拒绝；私库调用、Gmail 调用、完整 Raw 读取及全部 mutation "
+                    "均为零，一次性变量已删除。失败 head 禁止 rerun/redispatch。v1.0.32 将安全、"
+                    "认证、OAuth、容量与证据时间固定为 live UTC，仅向 RunPlanner 注入已知数据效果"
+                    "之后的 2026-07-26T13:00:00Z 历史 Fixture；故障注入证明 Fixture 不进入 JWT。"
                     "不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
                 ),
             },
