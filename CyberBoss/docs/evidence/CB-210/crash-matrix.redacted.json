@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-210",
+  "phase": "P2.2",
+  "release_commit": "5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea",
+  "generated_from_synthetic_state": true,
+  "cases": [
+    {
+      "cut": "after_fetch_before_durable",
+      "cursor_committed": true,
+      "inbox_count": 1,
+      "job_count": 1,
+      "execution_count": 1,
+      "message_lost": false,
+      "integrity_check": "ok",
+      "result": "passed"
+    },
+    {
+      "cut": "after_durable_before_cursor",
+      "cursor_committed": true,
+      "inbox_count": 1,
+      "job_count": 1,
+      "execution_count": 1,
+      "message_lost": false,
+      "integrity_check": "ok",
+      "result": "passed"
+    },
+    {
+      "cut": "after_cursor",
+      "cursor_committed": true,
+      "inbox_count": 1,
+      "job_count": 1,
+      "execution_count": 1,
+      "message_lost": false,
+      "integrity_check": "ok",
+      "result": "passed"
+    }
+  ],
+  "accepted_but_lost": 0,
+  "duplicate_executions": 0,
+  "result": "passed"
+}

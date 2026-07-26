@@ -5,21 +5,23 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0、Stage 1 及各自独立退出门 `PG-0`、`PG-1` 已通过；
-  Stage 2 的 `P2.1 / CB-200` 已通过，`PG-2` 尚未开始
+  Stage 2 的 `P2.1 / CB-200`、`P2.2 / CB-210` 已通过，`PG-2` 尚未开始
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
-  `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`
-- 当前基线：六个精确 implementation/release commit 的本地 source bundle、
+  `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
+  `P2.2 / CB-210`
+- 当前基线：七个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P2.1 / CB-200` 已完成 SQLite WAL spool、严格 job 状态机、
-  稳定 ID、事务去重、AES-256-GCM active payload、TTL redaction、五个真实
-  子进程 crash cut point 与合成 canonical reconcile；本地及候选 App
-  185/185 通过。候选未激活，真实 Codex/WeChat/canonical sync 仍为
-  `activation_pending`，`current`/workspace/service 未变
-- Stage 0–5 任务状态：`CB-000`–`CB-200` 共十一项任务已通过；其余 19 项与
+- 最新 Run：`P2.2 / CB-210` 已完成 candidate-cursor、durable-before-cursor、
+  stable provider ID、numeric highest-continuous ordering、原子 CAS cursor
+  和三处真实子进程 crash cut；1,000 次 replay 最终仍为一条 inbox、一个
+  job、一次 synthetic execution。本地及候选 App 195/195 通过。候选未
+  激活，真实 Codex/WeChat/canonical sync 仍为 `activation_pending`，
+  `current`/workspace/service 未变
+- Stage 0–5 任务状态：`CB-000`–`CB-210` 共十二项任务已通过；其余 18 项与
   PG-2–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -213,6 +215,27 @@ redaction；scheduler、channel poll、outbox worker 与真实 canonical sync
 runtime DB。证据取回后 staging/env/incoming/bootstrap/synthetic key/
 acceptance DB-WAL-SHM 均删除；精确候选仅保留为 inactive。CB-210、PG-2 与
 所有后续任务/退出门仍为 `not_started`，GitHub publication 仍为空。
+
+P2.2 / CB-210 以本地 implementation commit
+`5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea` 将 WeChat fetch 与 cursor
+commit 分离。raw batch 的每条 user、policy-rejected 或 non-user update
+都先进入 CB-200 AES-256-GCM spool；accepted update 只创建一个 job，
+随后才以 compare-and-set 原子推进 cursor。numeric cursor 额外要求最高
+连续序列；gap、duplicate sequence、regression、缺少稳定 provider identity、
+symlink、oversize 和 stale writer 全部 fail closed。
+
+本地及 immutable candidate App 195/195、十个专项测试、三种真实子进程
+`SIGKILL` cut、1,000 次 replay、ordering/property、DB integrity、
+canonical reconcile 与 DB/WAL/SHM plaintext/key scan 全部通过。每个 crash
+case 最终均为一条 inbox、一个 job、一次 synthetic execution，message loss
+和 duplicate execution 为 0；synthetic execution 不代表真实 Runtime。
+
+目标机 check、两次 apply、独立 verify 和 synthetic acceptance 通过。
+证据读取后 staging/env/incoming/bootstrap/synthetic runtime/key 均已删除；
+精确候选只保留为 immutable/inactive，service disabled/inactive，
+process/listener/incoming/canonical runtime DB 为 0 或不存在，`current` 与
+workspace 保持原基线。CB-220、CB-230、PG-2 与全部后续节点仍未开始，
+GitHub publication 仍为空。
 
 ## 许可证
 

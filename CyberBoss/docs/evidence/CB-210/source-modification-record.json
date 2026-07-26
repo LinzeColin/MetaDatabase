@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-210",
+  "phase": "P2.2",
+  "base_commit": "4f914e3b6ed3145a16c1572f4176068b9829b920",
+  "implementation_commit": "5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea",
+  "implementation_path_count": 27,
+  "changed_runtime_paths": [
+    "CyberBoss/app/package.json",
+    "CyberBoss/app/scripts/durable-inbox-acceptance.js",
+    "CyberBoss/app/src/adapters/channel/weixin/index.js",
+    "CyberBoss/app/src/adapters/channel/weixin/message-utils.js",
+    "CyberBoss/app/src/adapters/channel/weixin/sync-buffer-store.js",
+    "CyberBoss/app/src/core/app.js",
+    "CyberBoss/app/src/core/config.js",
+    "CyberBoss/app/src/services/db/database-adapter.js",
+    "CyberBoss/app/src/services/inbox/durable-inbox.js",
+    "CyberBoss/app/test/cloud-walking-skeleton-live.test.js",
+    "CyberBoss/app/test/durable-inbox-crash-cut.test.js",
+    "CyberBoss/app/test/weixin-cursor-commit.test.js"
+  ],
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_source_and_licenses_preserved": true,
+  "corresponding_source_complete": true,
+  "conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "upstream_sync_enabled": false,
+  "upstream_support_claimed": false,
+  "upstream_endorsement_claimed": false,
+  "vendor_original_paths_changed": [],
+  "historical_evidence_paths_changed": [],
+  "preserved_corrections": [
+    {
+      "stage": "local_config_validation",
+      "result": "cli_contract_corrected",
+      "finding": "example config validation omitted the documented allow-placeholders option",
+      "correction": "rerun the exact documented command with allow-placeholders",
+      "final_result": "passed"
+    },
+    {
+      "stage": "target_preflight",
+      "result": "read_only_orchestration_corrected",
+      "finding": "strict record parsing stopped before SSH, then zero-process pgrep tripped pipefail",
+      "correction": "parse the protected record by labeled field and count a normal empty process result safely",
+      "target_mutation": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "local_artifact_checksum",
+      "result": "tool_locale_fallback",
+      "finding": "macOS shasum rejected the inherited C.UTF-8 locale after artifact build",
+      "correction": "independently recompute every artifact checksum with Python",
+      "artifact_changed": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "target_transfer_streaming",
+      "result": "two_fail_closed_attempts",
+      "finding": "two tar-stream orchestration variants exited before retaining remote state",
+      "correction": "verify all exact target paths absent, then use bounded scp staging plus target inventory and checksum gates",
+      "candidate_created_before_correction": false,
+      "staging_created_before_correction": false,
+      "incoming_retained_before_correction": false,
+      "bootstrap_retained_before_correction": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "github_publication_query",
+      "result": "read_only_cli_corrected",
+      "finding": "gh api rejected a standalone jq argument flag",
+      "correction": "pipe the official API result to jq and rerun all publication counts",
+      "external_mutation": false,
+      "final_result": "passed"
+    }
+  ],
+  "remote_publication": "none"
+}

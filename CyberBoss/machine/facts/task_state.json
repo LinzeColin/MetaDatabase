@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.4",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P2.1",
+    "run_id": "P2.2",
     "gate_id": null,
-    "task_id": "CB-200",
-    "scope": "sqlite_wal_spool_and_job_state_machine",
+    "task_id": "CB-210",
+    "scope": "durable_inbox_before_weixin_cursor",
     "status": "passed"
   },
   "prestage": [
@@ -36,7 +36,7 @@
     {"id": "CB-130", "stage": "S1", "phase": "P1.4", "status": "passed"},
     {"id": "CB-140", "stage": "S1", "phase": "P1.5", "status": "passed"},
     {"id": "CB-200", "stage": "S2", "phase": "P2.1", "status": "passed"},
-    {"id": "CB-210", "stage": "S2", "phase": "P2.2", "status": "not_started"},
+    {"id": "CB-210", "stage": "S2", "phase": "P2.2", "status": "passed"},
     {"id": "CB-220", "stage": "S2", "phase": "P2.3", "status": "not_started"},
     {"id": "CB-230", "stage": "S2", "phase": "P2.4", "status": "not_started"},
     {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "not_started"},

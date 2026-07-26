@@ -1,5 +1,32 @@
 # Changelog
 
+## P2.2 / CB-210 — 2026-07-27
+
+- Bound durable inbox-before-cursor and complete Corresponding Source to local
+  implementation commit
+  `5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea`.
+- Split WeChat fetch from explicit candidate cursor commit; added stable
+  provider identity, accepted/rejected durable records, one-job replay,
+  numeric highest-continuous ordering and atomic compare-and-set cursor writes.
+- Passed ten named CB-210 tests, three real child-process `SIGKILL` cuts,
+  1,000 replays, ordering/property, database integrity, canonical reconcile and
+  plaintext/key scans with zero message loss or duplicate synthetic execution.
+- Passed local and immutable-candidate App regressions at 195/195; target
+  write-free check, two applies, independent verify and synthetic acceptance
+  all passed.
+- Preserved the local CLI, read-only preflight, checksum-locale, two fail-closed
+  streaming-transfer and read-only GitHub-query correction records, including
+  their zero-target-mutation or verified cleanup outcomes.
+- Removed target staging, staging environment, incoming, bootstrap and
+  synthetic runtime/key state after report readback. Left the exact candidate
+  immutable/inactive, `current` and workspace unchanged, service
+  disabled/inactive, and process/listener/canonical runtime DB absent.
+- Preserved original source/licenses and the unresolved strict
+  `AGPL-3.0-only AND GPL-3.0-only` conflict record with
+  `upstream_clarification_received=false`.
+- Marked only CB-210 passed. CB-220 and all later tasks plus PG-2–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/release/publication remains empty.
+
 ## P2.1 / CB-200 — 2026-07-27
 
 - Bound the SQLite WAL spool, strict job state machine and complete
