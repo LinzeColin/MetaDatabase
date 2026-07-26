@@ -22,25 +22,38 @@ TimeoutStopSec=90
 KillMode=control-group
 SuccessExitStatus=0 143
 
-# Starting limits; CB-010 must revise only after measuring the shared host.
-MemoryHigh=1100M
-MemoryMax=1600M
-TasksMax=384
+# Conservative CB-010 measured baseline; the generated drop-in is authoritative.
+MemoryHigh=768M
+MemoryMax=1152M
+TasksMax=256
 LimitNOFILE=8192
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cyberboss-cloud
+LogNamespace=cyberboss
 
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=full
+PrivateDevices=true
+ProtectSystem=strict
 ProtectHome=true
+ProtectHostname=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
+ProtectKernelLogs=true
 ProtectControlGroups=true
 ProtectClock=true
+ProtectProc=invisible
 RestrictSUIDSGID=true
+RestrictRealtime=true
 LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 SystemCallArchitectures=native
-ReadWritePaths=/var/lib/cyberboss /srv/cyberboss-workspaces /opt/cyberboss-cloud
+ReadOnlyPaths=/opt/cyberboss-cloud /etc/cyberboss
+ReadWritePaths=/var/lib/cyberboss /srv/cyberboss-workspaces
 
 [Install]
 WantedBy=multi-user.target
