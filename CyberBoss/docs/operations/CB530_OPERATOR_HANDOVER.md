@@ -29,6 +29,11 @@ sudo systemctl list-timers cyberboss-backup.timer --all --no-pager
 remote object。凭据由 systemd credential slots 临时注入；日志和 receipt 不包含 token、
 PAR、Prompt、微信内容或绝对路径。
 
+R2 使用仅在 Linux backup service 内刷新的 OAuth access token：初始 refresh credential 由
+systemd credential slot 提供，轮换后的 refresh state 与短期 access token 仅在受限
+`/var/lib/cyberboss`/`/run` 路径保存。刷新失败会阻断本次 backup，绝不降级为 Mac 常驻进程、
+手工复制 token 或模型调用。
+
 ## 隔离恢复
 
 从上一条 backup journal 的 JSON 读取 `backup_id`，再运行：

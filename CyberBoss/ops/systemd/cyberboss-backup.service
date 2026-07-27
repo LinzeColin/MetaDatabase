@@ -13,11 +13,16 @@ Environment=PATH=/opt/cyberboss-cloud/shared/toolchains/bin:/usr/bin:/bin
 Environment=CB_RELEASE_ROOT=/opt/cyberboss-cloud/current
 EnvironmentFile=/etc/cyberboss/cyberboss.env
 LoadCredential=r2_account_id:/etc/cyberboss/credentials/r2_account_id
-LoadCredential=r2_api_token:/etc/cyberboss/credentials/r2_api_token
+LoadCredential=r2_oauth_refresh_token:/etc/cyberboss/credentials/r2_oauth_refresh_token
 LoadCredential=oci_par_url:/srv/linze/secrets/oci_par_url
 Environment=CB_R2_ACCOUNT_ID_FILE=%d/r2_account_id
-Environment=CB_R2_TOKEN_FILE=%d/r2_api_token
+Environment=CB_R2_OAUTH_REFRESH_TOKEN_FILE=%d/r2_oauth_refresh_token
+Environment=CB_R2_OAUTH_STATE_DIR=/var/lib/cyberboss/credentials
+Environment=CB_R2_TOKEN_FILE=/run/cyberboss-r2-oauth/r2_api_token
 Environment=CB_OCI_PAR_FILE=%d/oci_par_url
+RuntimeDirectory=cyberboss-r2-oauth
+RuntimeDirectoryMode=0700
+ExecStartPre=/opt/cyberboss-cloud/shared/toolchains/bin/node /opt/cyberboss-cloud/current/ops/systemd/cb530-refresh-r2-oauth.js
 ExecStart=/opt/cyberboss-cloud/shared/toolchains/bin/node /opt/cyberboss-cloud/current/app/scripts/cb530-cloud-backup.js backup --bootstrap-if-missing
 UMask=0077
 Nice=15
