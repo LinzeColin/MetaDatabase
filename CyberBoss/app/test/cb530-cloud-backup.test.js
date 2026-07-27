@@ -15,6 +15,7 @@ const {
   restoreRemoteBackup,
   runCloudBackup,
 } = require("../src/services/backup/cb530-cloud-backup");
+const { backupRequest } = require("../scripts/cb530-cloud-backup");
 
 const SOURCE_COMMIT = "b".repeat(40);
 const CREATED_AT = "2026-07-27T12:00:00.000Z";
@@ -194,4 +195,16 @@ test("CB-530 bootstrap creates only the frozen Runtime spool schema", (t) => {
   } finally {
     database.close();
   }
+});
+
+test("CB-530 CLI request preserves the managed Runtime source path", () => {
+  const config = { sourceDb: "/var/lib/cyberboss/runtime.db", outputDir: "/var/lib/cyberboss/snapshots" };
+  const request = backupRequest(config, SOURCE_COMMIT, CREATED_AT);
+  assert.equal(request.sourceDbPath, config.sourceDb);
+  assert.equal(request.sourceCommit, SOURCE_COMMIT);
+  assert.equal(request.createdAt, CREATED_AT);
+  assert.throws(
+    () => backupRequest({}, SOURCE_COMMIT, CREATED_AT),
+    (error) => error instanceof CloudBackupError && error.code === "CB530_RUNTIME_DB_PATH_INVALID",
+  );
 });

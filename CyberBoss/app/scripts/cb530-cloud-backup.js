@@ -33,11 +33,7 @@ async function main(argv = process.argv.slice(2)) {
       const bootstrap = options.bootstrapIfMissing
         ? bootstrapRuntimeDatabase({ sourceDbPath: config.sourceDb, schemaPath: config.schemaPath })
         : Object.freeze({ created: false });
-      const result = await runCloudBackup({
-        ...config,
-        sourceCommit: releaseCommit(config.releaseRoot),
-        createdAt: new Date().toISOString(),
-      });
+      const result = await runCloudBackup(backupRequest(config, releaseCommit(config.releaseRoot), new Date().toISOString()));
       process.stdout.write(`${JSON.stringify(redactResult({ ...result, runtime_db_bootstrapped: bootstrap.created }))}\n`);
       return 0;
     }
@@ -127,6 +123,18 @@ function releaseCommit(releaseRoot) {
   return commit;
 }
 
+function backupRequest(config, sourceCommit, createdAt) {
+  if (!config || typeof config !== "object" || typeof config.sourceDb !== "string") {
+    throw new CloudBackupError("CB530_RUNTIME_DB_PATH_INVALID");
+  }
+  return Object.freeze({
+    ...config,
+    sourceDbPath: config.sourceDb,
+    sourceCommit,
+    createdAt,
+  });
+}
+
 function readJson(filePath, code) {
   try {
     const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -177,4 +185,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, parseArgs };
+module.exports = { backupRequest, main, parseArgs };
