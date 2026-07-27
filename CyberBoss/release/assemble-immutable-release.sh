@@ -30,4 +30,26 @@ if [[ ! -x "${link_path}/scripts/run-cyberboss.sh" ]]; then
   exit 2
 fi
 
+declare -a contract_aliases=(
+  'health-contract.json:docs/product_design/v0.0.0.4/implementation-kit/config/cloud-process-health.json'
+  'process-tree.txt:docs/product_design/v0.0.0.4/implementation-kit/config/cloud-process-tree.txt'
+)
+for pair in "${contract_aliases[@]}"; do
+  name="${pair%%:*}"
+  target="${pair#*:}"
+  alias_path="${release_root}/${name}"
+  if [[ -e "$alias_path" || -L "$alias_path" ]]; then
+    if [[ ! -L "$alias_path" || "$(readlink "$alias_path")" != "$target" ]]; then
+      printf '%s\n' 'CB530_RELEASE_ASSEMBLY=FAIL release_contract_conflict' >&2
+      exit 2
+    fi
+  else
+    ln -s "$target" "$alias_path"
+  fi
+  if [[ ! -f "$alias_path" ]]; then
+    printf '%s\n' 'CB530_RELEASE_ASSEMBLY=FAIL release_contract_missing' >&2
+    exit 2
+  fi
+done
+
 printf '%s\n' 'CB530_RELEASE_ASSEMBLY=PASS'
