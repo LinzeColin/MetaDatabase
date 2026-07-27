@@ -1,5 +1,28 @@
 # Changelog
 
+## P5.4 / CB-530 — 2026-07-27
+
+- Promoted immutable release `25670bf32c6d27e3668fcf59bc9ab754035e161d` under
+  Linux systemd without changing the Owner-locked product version `v0.0.0.5`
+  or frozen design baseline `v0.0.0.4`; a valid immutable `previous` release
+  remains retained as the rollback target.
+- Executed one real online Runtime SQLite snapshot and wrote the same immutable
+  backup id to the frozen R2 and OCI scopes. R2 runtime/manifest objects passed
+  exact PUT/GET SHA-256 and network-disabled, non-promoted isolated restore.
+  OCI runtime/manifest PUT receipts, ETags and local hashes passed. Its normal
+  daily PAR is deliberately write-only, so routine OCI readback remains
+  `activation_pending_write_only_par`; a one-object Owner ObjectRead check
+  hash-matched then revoked its temporary credential.
+- Installed and enabled the Linux-only `cyberboss-backup.timer`; backup/restore
+  units use systemd credential slots and Linux OAuth refresh rather than a
+  static Mac-side process. Cloud service, dedicated Tunnel, unauthenticated
+  Cloudflare Access challenge, global Status collector and both no-clone
+  Private-Database dispatches were rechecked after the final switch.
+- Control-plane and operations model calls remain `0`, no authenticated turn or
+  simulator was started, and no macOS `launchd` dependency exists. WeChat stays
+  fail-closed pending (`/readyz=503`), and `FORMAL_FINAL_ACCEPTANCE` remains
+  pending. The next native node is `CB-540`.
+
 ## P5.3 / CB-520 — 2026-07-27
 
 - Promoted immutable release `bb5a201a0aec38117a7e14f470662b6f45bd49c7`

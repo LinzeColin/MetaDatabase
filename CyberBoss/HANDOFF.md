@@ -7,10 +7,10 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `bb5a201a0aec38117a7e14f470662b6f45bd49c7`
+  `25670bf32c6d27e3668fcf59bc9ab754035e161d`
 - Remote activation: OVH/Linux systemd, dedicated Cloudflare Tunnel and
   Owner-only Access, plus the existing LinzeHomeHub global Status collector
-  (`CB-520`); no MetaDatabase GitHub publication yet.
+  (`CB-530`); no MetaDatabase GitHub publication yet.
 
 ## Current state
 
@@ -25,7 +25,8 @@ complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420`,
 passed. `P5.1 / CB-500` passed as a local clean-staging rehearsal and
 `P5.2 / CB-510` passed with explicit, fail-closed channel pending status.
 `P5.3 / CB-520` passed with explicit, fail-closed channel pending status.
-CB-530–CB-540 and PG-5 remain `not_started`.
+`P5.4 / CB-530` passed with explicit channel and daily OCI-PAR-readback pending
+status. CB-540 and PG-5 remain `not_started`.
 
 CB-500 is bound to implementation commit
 `ddda629feb4455da5dba213a5d5f827001ce8c71` and tree
@@ -72,6 +73,28 @@ and verified active/enabled before a post-canary global Status refresh. The
 channel remains pending for lack of a real credential, `/readyz=503`, and no
 authenticated Codex turn or control/operations model call occurred. See
 `docs/evidence/CB-520/`.
+
+CB-530 is bound to implementation commit
+`25670bf32c6d27e3668fcf59bc9ab754035e161d` and tree
+`5e590295e804d2532351b3c4757019fa7df66e75`; the immutable release manifest
+separately binds the frozen `CyberBoss/` source tree
+`f7513a03e3760830fcd53dedda74fe2fbef45e2e`. Its TaskPack Router selected
+`output-skill`; the frozen embedded microplaybook applied with actual Skill body
+loads=0. The final Linux immutable release is current and retains a valid
+immutable previous pointer. `backup_5233145600b2b004151de2bb` is a real online
+SQLite snapshot with R2 runtime/manifest exact PUT/GET hash verification and a
+network-disabled, non-promoted isolated restore. OCI runtime/manifest exact PUT
+receipts, ETags and local hashes also passed. The daily OCI PAR is intentionally
+write-only, therefore routine readback remains
+`activation_pending_write_only_par`; a one-object Owner ObjectRead hash check
+was performed with a temporary credential that was immediately revoked.
+
+The Linux backup timer is enabled/active. The final switch rechecked cloud
+health, Timeline, Owner-only Cloudflare Access challenge, global Status refresh,
+and both daily/material no-clone Private-Database sync paths. Real WeChat stays
+pending and `/readyz=503`; no authenticated turn, simulator, control-plane model
+call or operations model call occurred. See `docs/evidence/CB-530/` and
+`docs/operations/CB530_OPERATOR_HANDOVER.md`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -877,19 +900,21 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 - The minimal Cloudflare Access token cannot administer a Status service token;
   the service-token route stays pending while Owner-only browser access and the
   same-host protected snapshot are verified.
-- R2 remains `hazard_blocked`; OCI backup/restore remains CB-530. Analytics and
-  automatic tunnel lifecycle/self-heal remain CB-540; the final Stage 5 gate
-  remains a later native task boundary.
+- R2 backup/readback and isolated restore are verified. OCI exact PUT receipts
+  are verified, while the daily write-only PAR's normal readback remains
+  `activation_pending_write_only_par`; a one-shot Owner ObjectRead check was
+  hash-verified and revoked. Analytics and automatic tunnel lifecycle/self-heal
+  remain CB-540; the final Stage 5 gate remains a later native task boundary.
 - OVH capacity/profile is point-in-time and must be rechecked at each later
-  activation, without reclassifying a successful CB-520 receipt as final
+  activation, without reclassifying a successful CB-530 receipt as final
   acceptance.
 
 ## Next Run
 
-The next eligible Run is exactly `P5.4 / CB-530`. It remains `not_started`.
-Run its own package Skill Router first, then perform only the authority-bounded
-R2/OCI backup and isolated restore contract. Preserve the locked product version,
-frozen design, all earlier evidence, permanent zero-model invariant, no-clone
+The next eligible Run is exactly `P5.5 / CB-540`. Run its own package Skill
+Router first, then issue the single final MVP_LIVE / MVP_DEGRADED /
+ACTIVATION_PENDING / STOPPED decision from the sealed evidence. Preserve the
+locked product version, frozen design, permanent zero-model invariant, no-clone
 data boundary and final-only MetaDatabase GitHub publication rule. Do not use
-the pending WeChat channel as a substitute for backup/restore proof or claim it
-ready without an authorized real credential.
+the pending WeChat channel as a substitute for real acceptance or claim it ready
+without an authorized credential.

@@ -62,3 +62,18 @@ sudo systemctl stop cyberboss-backup.service
 release，沿用已验收的 `previous` 指针流程；在回退前先停 timer，回退后重新检查
 `cyberboss-cloud.service`、Cloudflare Access 和 Status。任何 hash mismatch、scope drift、
 secret/PII 检测或非零模型计数均应 fail closed，不得重试覆盖对象。
+
+## P5.4 实测 closure
+
+最终 immutable release 为 `25670bf32c6d27e3668fcf59bc9ab754035e161d`，产品版本仍为
+`v0.0.0.5`。本 Run 的可恢复点为 `backup_5233145600b2b004151de2bb`：R2 的
+runtime 与 manifest 均完成 exact PUT/GET SHA-256 comparison，随后获得 network-disabled、
+`promoted=false` 的 SQLite isolated restore。OCI 两个 exact PUT 亦有 HTTP/ETag/本地 hash
+receipt；日常 PAR 是 write-only，因此它的常规 readback 准确记录为
+`activation_pending_write_only_par`，而不是 restore PASS。
+
+为单次检查同一 OCI runtime object 的字节一致性，Owner 临时创建了只读、精确对象的
+ObjectRead PAR；SHA-256 比对成功后已立即撤销。该临时 credential 不进入 service、timer、
+release、日志或证据，日常写入权限模型没有放宽。Cloudflare Tunnel 与 Owner-only Access
+在 final switch 后重新确认；未认证 Timeline 请求返回 Access challenge。真实 WeChat
+credential 仍未授权，`/readyz=503` 是预期 fail-closed 状态。

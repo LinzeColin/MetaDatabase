@@ -1,0 +1,89 @@
+{
+  "schema_version": "cyberboss.cb530.operations-summary.v1",
+  "task_id": "CB-530",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb_520_closure_commit": "1e0ed85cb55b980b67a748b55968db8cac01eeec",
+  "implementation_commit": "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+  "implementation_tree": "5e590295e804d2532351b3c4757019fa7df66e75",
+  "previous_release_commit": "77aea54878408f6e7d7136e48b17aff1bf8049ee",
+  "skill_router": {
+    "task_id": "CB-530",
+    "selected_skill": "output-skill",
+    "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+    "max_lightweight_skill_loads": 1,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 0,
+    "fallback": "machine/skill_microplaybooks.json"
+  },
+  "acceptance": {
+    "FA-AC-012": "passed_real_online_snapshot_hash_and_isolated_r2_restore",
+    "FA-AC-013": "passed_r2_put_get_hash_and_oci_put_metadata_with_explicit_daily_readback_pending",
+    "FA-AC-024": "passed_linux_systemd_operator_handover",
+    "FA-AC-029": "passed_traceable_immutable_release_and_provider_receipt",
+    "FA-AC-031": "passed_chinese_operator_explanation"
+  },
+  "release": {
+    "current": "verified_immutable_cb530_release",
+    "previous": "verified_retained_immutable_release",
+    "source_tree": "f7513a03e3760830fcd53dedda74fe2fbef45e2e",
+    "release_manifest_sha256": "962b8d8cfe6b22c0f10a5cb4cc4eae794d2b12b456c85ceffdde4f5d29ed58c3",
+    "source_archive_sha256": "2673993b0ced81ae6fe7878dcb5cf220f622d7a4e713261d5421bbb69e711d0b",
+    "current_previous_pointer": "verified",
+    "rollback_target": "verified_retained_previous"
+  },
+  "latest_backup": {
+    "backup_id": "backup_5233145600b2b004151de2bb",
+    "sqlite_integrity": "ok",
+    "logical_digest_verified": true,
+    "r2": {
+      "state": "verified",
+      "object_count": 2,
+      "put_get_hash_verified": true,
+      "metadata_verified": true,
+      "provider_requests": 6,
+      "isolated_restore": "passed_network_disabled_not_promoted"
+    },
+    "oci": {
+      "daily_service_state": "write_verified_read_pending",
+      "object_count": 2,
+      "put_hash_metadata_verified": true,
+      "daily_par_readback": "activation_pending_write_only_par",
+      "temporary_exact_object_readback": "verified_sha256_match_then_revoked",
+      "provider_requests": 3
+    }
+  },
+  "operations": {
+    "linux_systemd": "verified",
+    "backup_timer": "enabled_active",
+    "cloud_service": "active",
+    "cloudflare_tunnel": "active",
+    "cloudflare_access_unauthenticated": "302",
+    "loopback_healthz": "200",
+    "timeline": "200",
+    "readyz": "503_channel_pending",
+    "global_status_collector": "refreshed_with_cyberboss_marker",
+    "private_database_daily_sync": "passed_no_clone",
+    "private_database_material_sync": "passed_no_clone"
+  },
+  "safety": {
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "authenticated_turn": "not_executed_zero_model_invariant",
+    "real_time_waits": 0,
+    "macos_launchd_dependency": false,
+    "private_database_clone": false,
+    "simulator_started": false,
+    "pending_claimed_as_ready": false
+  },
+  "known_limitations": {
+    "channel_wechat": "pending_missing_real_wechat_credential",
+    "daily_oci_readback": "activation_pending_write_only_par",
+    "access_service_token": "pending_minimal_scope_unavailable",
+    "analytics": "activation_pending_next_cb540",
+    "automatic_self_heal": "activation_pending_next_cb540"
+  },
+  "result": "passed_with_explicit_channel_and_daily_oci_par_pending",
+  "next_native_node": "CB-540"
+}
