@@ -20,7 +20,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  验证:
+  verify:
+    name: 验证
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
