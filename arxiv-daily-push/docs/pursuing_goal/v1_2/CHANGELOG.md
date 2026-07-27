@@ -1,5 +1,12 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — Owner handoff and non-blocking observation decision — 2026-07-27
+
+- Owner 取消 14 日连续健康观察作为开发、推进或部署验收的阻断；部署后的即时健康验收、
+  canary、回滚、SLO、P0/P1/UNKNOWN 和独立 verifier 门仍保持。
+- 当前开发在已验收的 S4.2 后停止并交接；S4.3 及后续任务均未启动、未创建 Run Contract，
+  也没有部署。下一位开发 agent 必须等待新的明确 Owner 指令。
+
 ## 1.2.0 — S4.2 closeout — 2026-07-24
 
 - fresh-context verifier 对冻结 commit `e5460ef2` / tree `6b3cfce2` / materialized artifact

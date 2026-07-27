@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-27 Australia/Sydney - ADP v1.2 Owner handoff and non-blocking observation
+
+- Owner 明确取消 14 日健康观察/soak 作为正常开发、推进或部署验收的阻断；持续观测保留，
+  但即时健康验收、canary、回滚、SLO、P0/P1/UNKNOWN 和独立 verifier 门不变。
+- S4.2 维持已验收状态；当前 agent 停止 S4.3 及一切后续开发并交接给另一开发 agent。
+  本轮不部署、不改 canonical Worker、live、D1/R2、来源/板块或 cron。
+
 ## 2026-07-24 Australia/Sydney - ADP v1.2 S4.2 closeout (DEVELOPER CHECK PASS; NOT DEPLOYED)
 
 - fresh-context verifier 对 commit `e5460ef2` / tree `6b3cfce2` / materialized artifact

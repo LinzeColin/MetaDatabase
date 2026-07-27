@@ -90,6 +90,14 @@ def old_task_mapping(task_id: str, stage: str):
         "ADP-S0-P01-T001", "ADP-S0-P01-T002", "ADP-S0-P01-T003",
         "ADP-S0-P03-T008",
     }
+    if task_id == "ADP-S8-P02-T089":
+        return (
+            "SUPERSEDED_WITH_REASON",
+            "Owner 于 2026-07-27 取消 14 日 soak 作为阻断；持续观测保留，但以部署后即时健康验收替代等待门。",
+            "arxiv-daily-push/docs/HANDOFF.md;arxiv-daily-push/docs/pursuing_goal/v1_2/TECHNICAL_DESIGN.md",
+            "ADP-V12-S6-T001",
+            "ACC-V12-S6-005",
+        )
     if task_id in active:
         tasks, acceptances = active[task_id]
         return (
@@ -157,7 +165,7 @@ REQ_MAP = {
     "REQ-017": ("V1_2_ACTIVE", "Google/stats 来源仍必须给出 provenance 和来源同步证据。", "ADP-V12-S1-T001;ADP-V12-S2-T001", "ACC-V12-S1-005;ACC-V12-S2-002"),
     "REQ-018": ("SUPERSEDED_WITH_REASON", "v1.2 不新增 as-of/版本视图；既有行为只做发布回归，不声称完成旧扩张任务。", "ADP-V12-S6-T001", "ACC-V12-S6-001"),
     "REQ-019": ("V1_2_ACTIVE", "不加新服务，Google/Stats/PubMed 均采用最小 adapter 与免费边界。", "ADP-V12-S1-T001;ADP-V12-S2-T001;ADP-V12-S3-T001", "ACC-V12-S1-005;ACC-V12-S2-003;ACC-V12-S3-003"),
-    "REQ-020": ("V1_2_ACTIVE", "SLO、探针覆盖、capacity 和 14 日 soak 都要求原始测量。", "ADP-V12-S5-T002;ADP-V12-S6-T001", "ACC-V12-S5-002;ACC-V12-S5-004;ACC-V12-S6-005"),
+    "REQ-020": ("V1_2_ACTIVE", "SLO、探针覆盖和 capacity 要求原始测量；持续观测保留，但 Owner 已取消 14 日 soak 等待门。", "ADP-V12-S5-T002;ADP-V12-S6-T001", "ACC-V12-S5-002;ACC-V12-S5-004;ACC-V12-S6-005"),
 }
 
 

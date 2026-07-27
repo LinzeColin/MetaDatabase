@@ -3,7 +3,7 @@ taskpack_version: 1.2.0
 target_product_version: 1.2.0
 current_product_version: 0.41.0
 contract_status: AUTHORITATIVE_INCREMENTAL_EXECUTION_CONTRACT
-as_of: "2026-07-20"
+as_of: "2026-07-27"
 timezone: Australia/Sydney
 
 repository:
@@ -76,7 +76,9 @@ release_model:
   deployment_authority: ALL_BLOCKING_GATES_PASS_THEN_DEPLOY
   automatic_spend_authority: false
   rollback_on_blocking_post_deploy_failure: true
-  production_accepted_after_consecutive_healthy_days: 14
+  production_accepted_after_consecutive_healthy_days: null
+  post_deploy_observation: CONTINUOUS_NON_BLOCKING
+  owner_soak_decision_date: "2026-07-27"
 
 slo:
   probe_interval_minutes: 15

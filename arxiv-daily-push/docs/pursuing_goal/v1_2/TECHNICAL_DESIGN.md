@@ -68,7 +68,7 @@ Science Advances 使用 PubMed E-utilities：`ESearch` 以 `"Science Advances"[j
 
 发布顺序固定为 fixture/local → CI replay → isolated D1/R2 → shadow → canary → production。生产前必须锁定上一版本、回滚命令、数据不变量、abort 阈值和 Owner/on-call。用户已预授权“所有阻断门 PASS 后自动部署”，但未运行、缺证据、UNKNOWN、BLOCKED、开放 P0/P1 或无法验证回滚一律不部署。
 
-生产后立即核对 build identity、核心路由、数据新鲜度、来源健康、六主题和 console。任一阻断检查失败自动回滚并标记 `ROLLED_BACK`。只有完成 14 个连续健康日后才标记 `PRODUCTION_ACCEPTED`，不得用 waiver 跳过。
+生产后立即核对 build identity、核心路由、数据新鲜度、来源健康、六主题和 console。任一阻断检查失败自动回滚并标记 `ROLLED_BACK`。Owner 于 2026-07-27 决定：通过该即时健康验收即可标记 `PRODUCTION_ACCEPTED`；持续观测保留为运维信息，但不以 14 个连续健康日或 soak 阻断开发、推进或部署验收。
 
 ## 7. 安全与公开归档
 

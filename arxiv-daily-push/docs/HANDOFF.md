@@ -1,4 +1,4 @@
-# ADP canonical HANDOFF — 2026-07-24
+# ADP canonical HANDOFF — 2026-07-27
 
 本文件是 ADP 迁入 MetaDatabase 后的**唯一当前交接入口**。先读本文件，再按任务路由到
 被点名的最小文件集；不要把 V0.1、V0.3、V7.2 或旧 CodexProject 根级文档各自解释成
@@ -38,9 +38,9 @@
 - `ADP-V12-S4-T002` 已通过全新上下文复审，`ACC-V12-S4-003 = PASS / ACTION NONE`，
   findings、`P0/P1/UNKNOWN/BLOCKED/waiver = 0`；公开 receipt 位于
   [`PHASE_ADP_V12_S4_MOBILE_FOUR_TAB_NAV.md`](phase_records/PHASE_ADP_V12_S4_MOBILE_FOUR_TAB_NAV.md)。
-- 当前下一任务是 `ADP-V12-S4-T003`（可承重视觉、动效与像素回归门）；
-  `ACC-V12-S4-004..006` 均为 `NOT_RUN`，Run Contract 尚未创建。下一轮只允许先锁定唯一
-  合同，不得从 S4.2 结果预签 S4.3、整 S4、部署或 live。
+- Owner 已在 2026-07-27 停止当前开发并交接给另一开发 agent。`ADP-V12-S4-T003` 与
+  `ACC-V12-S4-004..006` 均保持 `NOT_RUN`，Run Contract 未创建；不得自动锁定 S4.3 或启动
+  任何后续实现，下一位 agent 必须等待新的明确 Owner 指令。
 - S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
   `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
   `gnews-us-tech` 仍是 Bing News RSS；机器登记见
@@ -53,8 +53,9 @@
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
   不迁 OVH/Coolify；不修 V0.1 `TASK_INDEX.csv` 的死状态列。
 - S1–S4.2 已按独立 Run Contract 完成各自 candidate-only 验收；S4.3 仍为 `NOT_RUN` 且
-  Run Contract 未创建，下一动作只允许锁定唯一合同，不得提前实现、发布或部署。
-  前九个任务仍只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
+  Run Contract 未创建，当前没有获授权的下一开发任务。Owner 已取消 14 日健康观察作为正常开发、
+  推进或部署验收的阻断；持续观测保留为运维信息。本轮只进行 GitHub `main` 推送与交接，未部署或
+  改动 live；后续部署仍须当时的 canary、回滚、即时健康验收及其他阻断门实际通过。
 
 ## 1. 合同路由与优先级
 
@@ -96,7 +97,9 @@ secret、恢复旧源目录、弱化 fail-closed 测试，或把历史 artifact 
 | Google News | 加重试/退避后评估回切 | S1 5/5 PASS；仍为 candidate_not_live，历史采样是间歇 503，不是“被墙” |
 | OVH VPS / Coolify | 不迁 | Cloudflare 免费档保持 canonical live 面 |
 | `TASK_INDEX.csv.status` | 不修 | 90 行 `NOT_STARTED` 不代表代码未完成；只把它当历史字段 |
-| v1.2 部署 | 全部门禁通过即部署 | P0/P1/UNKNOWN 为零、独立验收和回滚门均 PASS 后才生效 |
+| v1.2 健康观察 | 不需要 14 日 soak 阻断 | 持续观测保留；不妨碍正常开发、推进或部署验收；即时健康验收仍是门 |
+| 当前开发 | 停止并交接给另一开发 agent | S4.3 及后续任务不得自动启动，等待新的明确 Owner 指令 |
+| v1.2 部署 | 全部其余阻断门通过即部署 | P0/P1/UNKNOWN 为零、独立验收、canary、回滚与即时健康验收均 PASS 后才生效 |
 | 费用 | Cloudflare Free 优先 | 容量不足时生成升级提案；不得自动付费 |
 | 本地任务包 | GitHub 恢复证明后删除 | 任一远端 hash/unzip/ingest 失败则删除零文件 |
 
@@ -248,7 +251,7 @@ P0/P1/UNKNOWN/BLOCKED/waiver 均为零，evidence root 为
 与 sealed baseline 的失败/错误测试名集合精确一致，`candidate_only=[]`、
 `baseline_only=[]`。这只关闭 S3 candidate 开发验收，不签署接入、部署、S4–S6 或生产验收。
 
-## 9. v1.2 S4.1/S4.2 收尾与 S4.3（NOT_RUN）
+## 9. v1.2 S4.1/S4.2 收尾与 Owner 交接（S4.3 NOT_RUN）
 
 **S4.1 已完成**：`ADP-V12-S4-T001` 关闭真实英文论文的中文人话结构与无可靠翻译时的诚实
 fail-closed 回退。第二轮全新上下文独立复核对 commit `c50d7f7b` / tree `d40fb7b` 裁定
@@ -272,9 +275,11 @@ evidence root 为 `ac80b4f62bb235eaa4d21301c042672eef5e7f9fdf49a0c4658818c603ddb
 原位与解包 finalizer verify、`58` 项内部 checksum、路径/加密/symlink/秘密扫描均通过。
 canonical Worker/live、来源/板块、cron、D1/R2 与部署均未改。
 
-**下一动作**：`ADP-V12-S4-T003` / `ACC-V12-S4-004..006` 当前均为 `NOT_RUN`，Run Contract
-尚未创建。下一轮只能先锁定唯一合同；不得从 S4.2 结果预签 S4.3、整 S4、模型、版本、
-运维或部署。
+**当前交接动作**：Owner 已停止本 agent 的后续开发。`ADP-V12-S4-T003` /
+`ACC-V12-S4-004..006` 当前均为 `NOT_RUN`，Run Contract 尚未创建；下一位开发 agent 必须先获得
+新的明确 Owner 指令，不能从 S4.2 结果自动开启 S4.3、整 S4、模型、版本、运维或部署。Owner 已
+取消 14 日 soak 等待门，但这不把本次 GitHub 推送伪装成部署，也不免除未来的 canary、回滚、即时
+健康验收或其他实际阻断门。
 
 ## 10. 永久提醒
 

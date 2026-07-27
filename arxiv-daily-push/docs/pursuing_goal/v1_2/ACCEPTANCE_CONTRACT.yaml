@@ -256,9 +256,9 @@ acceptances:
   - acceptance_id: ACC-V12-S6-005
     requirement_ids: [REQ-V12-RELEASE-005]
     task_ids: [ADP-V12-S6-T001]
-    oracle: 实际生产连续 14 个健康日满足 SLO、无 P0/P1、无静默零数据；中断后序列重新开始。
-    test_ids: [TST-V12-FOURTEEN-DAY-SOAK]
-    evidence: 14 daily manifests、probe ledger、incident/abort history
+    oracle: 实际生产部署后立即健康验收满足 SLO、无 P0/P1、无静默零数据和无未解释 UNKNOWN；持续观测保留但不以 14 日 soak 阻断验收。
+    test_ids: [TST-V12-POST-DEPLOY-HEALTH-CHECK]
+    evidence: post-deploy probe snapshot、probe ledger、incident/abort history
     blocking: true
 
   - acceptance_id: ACC-V12-S6-006

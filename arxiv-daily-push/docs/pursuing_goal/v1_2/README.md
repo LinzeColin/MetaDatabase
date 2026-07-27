@@ -27,9 +27,9 @@
   `ACC-V12-S4-003 = PASS / ACTION NONE`；六主题移动/桌面、`779/780px`、四条路由、
   十二张截图和十项负控均通过，findings、P0/P1/UNKNOWN/BLOCKED/waiver 均为零。
   canonical Worker、live、schema/data、来源/板块、cron 与部署均未改。
-- 当前下一任务是 `ADP-V12-S4-T003`；只允许先创建并锁定唯一 S4.3 Run Contract。
-  `ACC-V12-S4-004..006` 均为 `NOT_RUN`，不得从 S4.2 收尾预签或启动实现、整 S4、版本、
-  运维或部署。
+- Owner 已在 2026-07-27 停止当前开发并交接给另一开发 agent；`ADP-V12-S4-T003` 与
+  `ACC-V12-S4-004..006` 均保持 `NOT_RUN`，不得自动创建 S4.3 Run Contract 或启动任何后续实现。
+  只有下一位 agent 获得新的明确 Owner 指令后才能锁定唯一合同；14 日 soak 不再是推进或部署验收阻断。
 - v0.1 和 V7.2 保留为历史/兼容面，不恢复 CodexProject 旧源。
 
 ## 本地验证

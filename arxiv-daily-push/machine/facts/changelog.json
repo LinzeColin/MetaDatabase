@@ -1,5 +1,10 @@
 [
   {
+    "version": "任务包 1.2.0 / Owner 交接",
+    "date": "2026-07-27",
+    "summary": "Owner 取消 14 日健康观察作为开发、推进或部署验收阻断；持续观测、即时健康验收、canary、回滚、SLO、P0/P1/UNKNOWN 与独立 verifier 门保留。S4.2 已验收后停止后续开发并交接，S4.3 及后续任务未启动、未创建 Run Contract、未部署。"
+  },
+  {
     "version": "任务包 1.2.0",
     "date": "2026-07-20",
     "summary": "建立 ADP v1.2 七角色任务包、历史追溯、免费档 SLO 和严格串行 Roadmap；当前产品仍为 0.41.0。"

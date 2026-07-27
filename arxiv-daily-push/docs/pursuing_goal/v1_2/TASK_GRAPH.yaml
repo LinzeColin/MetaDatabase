@@ -132,7 +132,7 @@ tasks:
 
   - task_id: ADP-V12-S6-T001
     stage: S6
-    title: 集成 RC、canary、生产部署、回滚与 14 日封账
+    title: 集成 RC、canary、生产部署、回滚与即时健康验收
     dependencies: [ADP-V12-S5-T002]
     acceptance_ids:
       - ACC-V12-S6-001
@@ -146,4 +146,4 @@ tasks:
       - new_p0_or_p1
       - unknown_or_missing_probe
       - rollback_fails
-      - healthy_day_sequence_breaks
+      - post_deploy_health_check_fails
