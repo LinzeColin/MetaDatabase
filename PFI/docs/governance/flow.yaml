@@ -1,0 +1,155 @@
+# 业务流登记 —— PFI(个人财务信息整合)
+#
+# 阶段:「上传受理 → 来源归一 → 账本 → 账户持仓 → 财务计算 → 报告」六段。
+# 这是 v0.2.5 十二个 Stage 的业务语义压缩:S2 数据根 / S3 来源归一 → normalize;
+# S4 账户持仓 → position;S5 财务计算 → finance;S6/S9 信息与报告 → report;
+# S7 上传与原子落库 → upload;S11 SQLite 与公开面 → 贯穿各段。
+#
+# ★ current_status = `delivered_remote_recovery_ready_local_retirement_authorized`:
+#   已交付,远端可恢复,本机版本获准退役。所以主线是通的 ——
+#   但公开面按 L2 脱敏输出,前台看到的不是全量财务数据,引用前必须知道这层口径差。
+# ★ pfi.linzezhang.com 是**纯静态前台**(登记表里 db = 无)。前台 200 只证明壳可达,
+#   不证明数据管线在跑 —— 所以 upload/normalize/ledger 三段不配 http 探针,如实标为自报。
+
+schema: linze.flow.v1
+project: PFI
+repo: MetaDatabase
+authority: PFI/docs/governance/(project.yaml / VERSION_MATRIX.yaml / TRACEABILITY_MATRIX.csv)
+stages: [upload, normalize, ledger, position, finance, report]
+stage_names:
+  upload: 上传受理
+  normalize: 来源归一
+  ledger: 账本
+  position: 账户持仓
+  finance: 财务计算
+  report: 报告
+stage_meaning:
+  upload: 受理上传并原子落库,失败不留半份
+  normalize: 多来源字段与时间轴归一到统一口径
+  ledger: 形成可追溯的流水账本
+  position: 由流水推出账户与持仓
+  finance: 公式、财务指标与真实快照校验
+  report: 产出报告并交到人手上做决策
+
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因。
+
+sources:
+  - id: SRC-PFI-UPLOAD
+    name: owner 上传的原始财务文件
+  - id: SRC-PFI-SNAPSHOT
+    name: 真实快照(用于 S5/S12 精确校验)
+
+baselines:
+  - id: BL-PFI-PIPELINE
+    name: 数据主线(上传到报告)
+    priority: P0
+    note: v0.2.5 Stage 1–12 已 whole-stage release,S12 独立复核已 rereview_pass_final_acceptance_received。
+    cells:
+      upload:
+        state: healthy
+        evidence: 上传受理 + 原子落库 + 正式配对(S7 P71/P72/P73 whole-stage 已完成)
+      normalize:
+        state: healthy
+        evidence: 来源分析与归一(S3 P31/P32/P33 whole-stage ledger 已完成)
+      ledger:
+        state: healthy
+        evidence: 时间轴与真实数据根(S2 whole-stage data 已完成)
+      position:
+        state: healthy
+        evidence: 账户、持仓与严格 Meta 校验(S4 whole-stage product 已完成)
+      finance:
+        state: healthy
+        evidence: 公式、财务指标与真实快照(S5 whole-stage financial 已完成)
+      report:
+        state: healthy
+        evidence: 报告构成、财务视图与人工决策(S9 whole-stage product 已完成)
+
+  - id: BL-PFI-PUBLIC
+    name: 公开脱敏前台
+    priority: P1
+    note: ★ 前台是纯静态壳,可达 ≠ 管线在跑。
+    upstream: [BL-PFI-PIPELINE]
+    cells:
+      upload:
+        state: blocked_by_policy
+        evidence: 公开面**不接受上传** —— 安全边界的设计,不需要任何人去修
+      normalize:
+        state: healthy
+        evidence: 公开面消费的是已归一的派生数据
+      ledger:
+        state: blocked_by_policy
+        evidence: 明细账本不出公开面(L2 脱敏,FEAT-PFI-CF-L2-001)
+      position:
+        state: degraded
+        evidence: 只出聚合口径的持仓视图,与内部全量存在口径差
+      finance:
+        state: degraded
+        evidence: 同上;引用前台数字前须知这是脱敏派生结果
+      report:
+        state: healthy
+        probe: http
+        args: {url: "https://pfi.linzezhang.com"}
+        evidence: 对外前台可达(静态壳)
+
+  - id: BL-PFI-DURABLE
+    name: 持久化与可观测
+    priority: P1
+    cells:
+      upload:
+        state: healthy
+        evidence: 上传路径具备原子性(S7 P72 atomic hold)
+      normalize:
+        state: healthy
+        evidence: 依赖关系明确(S10 P102)
+      ledger:
+        state: healthy
+        evidence: SQLite 落库与校验(S11 P111/P112)
+      position:
+        state: healthy
+        evidence: 持久层保证(S10 P101 durable)
+      finance:
+        state: healthy
+        evidence: 计算结果随账本一并持久化
+      report:
+        state: degraded
+        evidence: >-
+          可观测性(S10 P103)已实现,但本项目**没有主机侧常驻单元**,
+          运行期只有静态前台 —— 数据管线的运行证据只能靠本地执行记录,本站探不到。
+
+  - id: BL-PFI-RECOVERY
+    name: 远端恢复与本机退役
+    priority: P0
+    note: 这条是 current_status 的落点:远端可恢复 + 本机获准退役。
+    cells:
+      upload:
+        state: healthy
+        evidence: 恢复流程从远端拉取,不依赖本机上传
+      normalize:
+        state: healthy
+        evidence: 归一逻辑随仓库版本一起恢复
+      ledger:
+        state: healthy
+        evidence: 账本可从远端快照重建
+      position:
+        state: healthy
+        evidence: 持仓由账本推导,不单独存
+      finance:
+        state: healthy
+        evidence: S12 P123 exact figure 校验已 accepted_release_frozen
+      report:
+        state: healthy
+        evidence: S12 独立复核 rereview_pass_final_acceptance_received
+
+known_defects:
+  - id: DEF-PFI-001
+    baseline: BL-PFI-DURABLE
+    stage: report
+    desc: >-
+      本项目主机侧只有静态前台、没有常驻单元,数据管线的运行证据本站探不到 ——
+      这张表里 upload/normalize/ledger 三段全部只能是自报。
+  - id: DEF-PFI-002
+    baseline: BL-PFI-PUBLIC
+    stage: finance
+    desc: 公开面为 L2 脱敏派生数据,与内部全量存在口径差,不可直接引用为财务结论。
