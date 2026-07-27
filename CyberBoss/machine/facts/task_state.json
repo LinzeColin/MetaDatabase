@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P4.3",
+    "run_id": "P4.4",
     "gate_id": null,
-    "task_id": "CB-420",
-    "scope": "security_supply_chain_privacy_agpl_assurance",
+    "task_id": "CB-430",
+    "scope": "deterministic_fault_crash_cut_recovery_restore_matrix",
     "status": "passed"
   },
   "prestage": [
@@ -48,7 +48,7 @@
     {"id": "CB-400", "stage": "S4", "phase": "P4.1", "status": "passed"},
     {"id": "CB-410", "stage": "S4", "phase": "P4.2", "status": "passed"},
     {"id": "CB-420", "stage": "S4", "phase": "P4.3", "status": "passed"},
-    {"id": "CB-430", "stage": "S4", "phase": "P4.4", "status": "not_started"},
+    {"id": "CB-430", "stage": "S4", "phase": "P4.4", "status": "passed"},
     {"id": "CB-440", "stage": "S4", "phase": "P4.5", "status": "not_started"},
     {"id": "CB-500", "stage": "S5", "phase": "P5.1", "status": "not_started"},
     {"id": "CB-510", "stage": "S5", "phase": "P5.2", "status": "not_started"},
@@ -64,7 +64,7 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-420",
+      "task_id": "CB-430",
       "selected_skill": "output-skill",
       "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
       "max_lightweight_skill_loads": 1,
@@ -117,6 +117,12 @@
     "sbom_status": "passed",
     "corresponding_source_status": "passed",
     "analytics_privacy_assurance_status": "passed",
-    "security_assurance_real_activation": "activation_pending"
+    "security_assurance_real_activation": "activation_pending",
+    "fault_recovery_matrix_status": "passed",
+    "fault_recovery_case_count": 14,
+    "fault_recovery_matrix_report_digest": "c366ae9973ddb46eed5e02cfbe1539bdcd9c1fd403fcc6958d413b5c400c8e99",
+    "postdeploy_fault_matrix_status": "passed",
+    "postdeploy_fault_matrix_plan_digest": "0a942dd2f9db5955630806f7d507f47ee8903c8db3c1bab9c0c62182a5ea2d11",
+    "fault_recovery_real_execution": "activation_pending"
   }
 }

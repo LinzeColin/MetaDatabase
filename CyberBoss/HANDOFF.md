@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `307810329127910b4e0ef64e435099d02c74bd6e`
+  `088f04c786870c176681d92b8d01027baa7314b7`
 - Remote publication: none
 
 ## Current state
@@ -18,8 +18,8 @@ Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent
 Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 `P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` and independent Stage 3 exit
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
-complete. `P4.1 / CB-400`, `P4.2 / CB-410` and `P4.3 / CB-420` passed;
-CB-430–CB-540 and PG-4–PG-5 remain `not_started`.
+complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420` and
+`P4.4 / CB-430` passed; CB-440–CB-540 and PG-4–PG-5 remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -137,7 +137,7 @@ write-scope attestation. Timeline/global Status and Cloudflare Access/DNS/
 Analytics publication are also `activation_pending`. R2 remains `hazard_blocked`
 pending exact write-scope attestation; OCI, self-heal and timer remain
 `activation_pending`. The next Run must run its own package Skill Router before
-executing native node `CB-430`.
+executing native node `CB-440`.
 
 CB-410 is bound to implementation commit
 `911d14c83a313f5a611d595acd72ee80415d97fa` and tree
@@ -183,8 +183,27 @@ checks.
 Cloudflare Web Analytics and source distribution are `activation_pending`, not
 verified or enabled. Real provider/data/service operations are zero; model,
 control-plane and operations LLM calls remain zero; macOS launchd is absent.
-The next native node is `CB-430` and must first run its own package Skill
-Router.
+
+CB-430 is bound to implementation commit
+`088f04c786870c176681d92b8d01027baa7314b7` and tree
+`db648d19ee2650d1be59bfde7f4b9ad39166ae18`. The package router selected
+`output-skill` and loaded exactly that one local body. Its deterministic,
+no-network 14-case matrix binds fake-clock daily/material dispatch, historical
+replay, persist-before-cursor, scheduler lease recovery, outbox/canonical
+unknown outcomes, service/runtime/channel faults, isolated restore and bounded
+resource recovery. Loss, duplicate execution/side effects, unbounded retries,
+real-time waits, provider operations and model calls fail closed.
+
+Twenty-three credential-scrubbed commands and both manifests passed, including
+the focused existing component suites, official secret scan, immutable
+CB-420/CB-410/CB-400 evidence anchors, App check/full regression, identity,
+config, DAG, traceability, no-wait and TaskPack. The postdeploy fault matrix is
+manual-or-CI/nonblocking only: no timer installation, deployment mutation or
+external recovery execution occurred. Real Private-Database/R2/Cloudflare/OCI/
+service operations remain zero; R2 remains `hazard_blocked`, every other
+external recovery truth remains `activation_pending`, control-plane and
+operations LLM calls remain zero, and macOS launchd is absent. The next native
+node is `CB-440` and must first run its own package Skill Router.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL

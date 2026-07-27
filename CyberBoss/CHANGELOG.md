@@ -1,5 +1,28 @@
 # Changelog
 
+## P4.4 / CB-430 — 2026-07-27
+
+- Closed the local deterministic fault/crash-cut/recovery/restore core set
+  against CB-420 closure `9f70eb6629d84e675d8df7183ae072b7e9bff7d7`, bound to
+  implementation commit `088f04c786870c176681d92b8d01027baa7314b7` and tree
+  `db648d19ee2650d1be59bfde7f4b9ad39166ae18`, without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Added a fixed 14-case, no-network matrix for fake-clock daily/material
+  dispatch, historical replay, persist-before-cursor, lease, unknown outcomes,
+  service/runtime/channel recovery, isolated restore and bounded resource
+  recovery. Every loss, duplicate execution/side effect, unbounded retry,
+  real-time wait, provider operation or model call fails closed.
+- The package router selected `output-skill` and exactly one local body was
+  loaded. Twenty-three credential-free local validations plus both immutable
+  manifests passed, including focused component suites, official secret scan,
+  full App regression, TaskPack/DAG/traceability/no-wait and all prior evidence
+  anchors.
+- Marked only CB-430 passed in the local deterministic scope. Postdeploy matrix
+  is manual-or-CI and nonblocking; timer and all real provider/service recovery
+  remain `activation_pending` (R2 remains `hazard_blocked`); control-plane and
+  operations LLM calls remain zero and macOS launchd remains absent. The next
+  native node is CB-440.
+
 ## P4.3 / CB-420 — 2026-07-27
 
 - Closed the local deterministic security, supply-chain, privacy and AGPL
