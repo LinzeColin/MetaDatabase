@@ -1,0 +1,173 @@
+# 业务流登记 —— EEI(企业情报关系探索器)
+#
+# 阶段由本项目自己定义:EEI 是「证据采集 → 评分衰减 → 关系构建 → 变化告警 → 对外发布」五段。
+# 统一的只有 schema 字段、探针类型、状态语义与呈现语言(见 CodexProject STANDARD.md)。
+#
+# ★ 本项目 docs/governance/project.yaml 的 current_status 是 `failed_delivery_readiness`。
+#   这不是「基本能用」——交付就绪判定是**没通过**的,矩阵里必须如实反映,
+#   不能因为容器在跑就把每一格都涂绿。「部署好了」和「业务跑通了」是两件事。
+
+schema: linze.flow.v1
+project: EEI
+repo: MetaDatabase
+authority: EEI/docs/governance/(project.yaml / ASSURANCE_STATUS.yaml / MODEL_SPEC.md)
+stages: [collect, score, relate, alert, publish]
+stage_names:
+  collect: 证据采集
+  score: 评分衰减
+  relate: 关系构建
+  alert: 变化告警
+  publish: 对外发布
+stage_meaning:
+  collect: 把研究对象的原始证据抓进库
+  score: 按证据质量与时间衰减算出优先级
+  relate: 算关系重要性,决定哪些边值得显示
+  alert: 变化触发告警并进 Watchlist 排序
+  publish: 推到 CF D1 与公开前台
+
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因。
+
+sources:
+  - id: SRC-EEI-CORPUS
+    name: 研究对象证据语料
+  - id: SRC-EEI-GOLDEN
+    name: 黄金集(发布决策阈值的基准)
+
+baselines:
+  - id: BL-EEI-PRIORITY
+    name: 研究对象优先级
+    priority: P0
+    cells:
+      collect:
+        state: healthy
+        probe: container
+        args: {name: eei-db}
+        evidence: 证据库容器常驻(OVH Postgres · eei-db)
+      score:
+        state: healthy
+        probe: container
+        args: {name: eei-refresh}
+        evidence: 刷新进程常驻,负责证据质量与时间衰减的重算(FEAT-EEI-001)
+      relate:
+        state: healthy
+        evidence: 关系重要性与边显示控制(FEAT-EEI-002)
+      alert:
+        state: healthy
+        probe: container
+        args: {name: eei-watch}
+        evidence: 变化监视进程常驻
+      publish:
+        state: healthy
+        probe: http
+        args: {url: "https://eei.linzezhang.com"}
+        evidence: 对外前台可达;CF D1 eei-publication 承接派生数据
+
+  - id: BL-EEI-SIGNAL
+    name: 供应链 / 控制影响 / 资本动量 / 政策暴露
+    priority: P0
+    upstream: [BL-EEI-PRIORITY]
+    cells:
+      collect:
+        state: healthy
+        probe: container
+        args: {name: eei-db}
+        evidence: 与优先级同源,不另取数
+      score:
+        state: healthy
+        evidence: 五类战略信号各自的评分函数已实现(FEAT-EEI-003)
+      relate:
+        state: healthy
+        evidence: 信号落到关系图的边权
+      alert:
+        state: healthy
+        evidence: 信号跃变进 Watchlist
+      publish:
+        state: degraded
+        evidence: >-
+          公开面按 L2 脱敏输出(FEAT-EEI-CF-L2-001),前台看到的是派生结果而非全量信号 ——
+          这是安全边界带来的功能缺口,不是故障。
+
+  - id: BL-EEI-WATCHLIST
+    name: 变化告警与 Watchlist 优先级
+    priority: P1
+    upstream: [BL-EEI-SIGNAL]
+    cells:
+      collect:
+        state: healthy
+        probe: container
+        args: {name: eei-watch}
+        evidence: 监视进程常驻
+      score:
+        state: healthy
+        evidence: 变化幅度与时间衰减共同决定告警优先级(FEAT-EEI-004)
+      relate:
+        state: healthy
+        evidence: 告警挂到具体关系上,而不是孤立事件
+      alert:
+        state: healthy
+        evidence: Watchlist 排序已实现
+      publish:
+        state: degraded
+        evidence: 告警只在前台呈现,尚无对外推送通道
+
+  - id: BL-EEI-RELEASE
+    name: 发布决策与黄金集阈值
+    priority: P0
+    note: >-
+      ★ 这条是本项目 `failed_delivery_readiness` 的落点 ——
+      交付就绪判定没通过,不能因为服务在线就当它通了。
+    upstream: [BL-EEI-SIGNAL]
+    cells:
+      collect:
+        state: healthy
+        evidence: 黄金集样本齐备
+      score:
+        state: healthy
+        evidence: 运行、视觉与发布决策的阈值控制已实现(FEAT-EEI-005)
+      relate:
+        state: healthy
+        evidence: 阈值作用在关系与信号两层
+      alert:
+        state: degraded
+        evidence: 阈值越界能报出来,但缺长时窗口的稳定性证据
+      publish:
+        state: blocked_by_input
+        evidence: >-
+          **缺 A209 长时稳定性证据链**(FEAT-EEI-006 仍 in_progress)。
+          没有这条证据链就无法判定发布是否稳定 —— 属于要催人补证据的阻断,
+          不是按规定不通。
+
+  - id: BL-EEI-SHELL
+    name: 前台外壳与品牌入口
+    priority: P2
+    cells:
+      collect:
+        state: healthy
+        evidence: 静态资源随镜像发布
+      score:
+        state: healthy
+        evidence: 无需评分
+      relate:
+        state: healthy
+        evidence: 无需关系计算
+      alert:
+        state: healthy
+        evidence: 无需告警
+      publish:
+        state: healthy
+        probe: http
+        args: {url: "https://eei.linzezhang.com"}
+        evidence: app shell 图标与品牌入口已上线(FEAT-EEI-007)
+
+known_defects:
+  - id: DEF-EEI-001
+    baseline: BL-EEI-RELEASE
+    stage: publish
+    desc: >-
+      A209 长时稳定性证据链尚未完成,交付就绪判定为 failed —— 服务在线不等于可交付。
+  - id: DEF-EEI-002
+    baseline: BL-EEI-SIGNAL
+    stage: publish
+    desc: 公开面为 L2 脱敏派生数据,与内部全量信号存在口径差,引用前台数字前需注意。
