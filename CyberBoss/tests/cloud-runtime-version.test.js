@@ -117,16 +117,47 @@ test("Codex probe is fixed to loopback and performs readiness plus protocol init
 test("Claude dispatch stays disabled unless both feature and eval gates are true", () => {
   const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cyberboss-cb110-gate-"));
   const appRoot = path.join(fixtureRoot, "app");
+  const releaseRoot = path.join(appRoot, "releases", releaseId);
   const stateDir = path.join(fixtureRoot, "state");
-  fs.mkdirSync(path.join(appRoot, "current"), { recursive: true });
+  const pinnedNode = path.join(appRoot, "shared", "toolchains", "node", "v24", "bin", "node");
+  const nodeLauncher = path.join(appRoot, "shared", "toolchains", "bin", "node");
+  fs.mkdirSync(path.join(releaseRoot, "app", "scripts"), { recursive: true });
   fs.mkdirSync(stateDir, { recursive: true });
+  fs.mkdirSync(path.dirname(pinnedNode), { recursive: true });
+  fs.mkdirSync(path.dirname(nodeLauncher), { recursive: true });
+  fs.writeFileSync(
+    pinnedNode,
+    `#!/usr/bin/env bash\nexec ${JSON.stringify(process.execPath)} "$@"\n`,
+    { mode: 0o755 },
+  );
+  fs.symlinkSync(pinnedNode, nodeLauncher);
+  fs.writeFileSync(
+    path.join(releaseRoot, "release-manifest.json"),
+    `${JSON.stringify({ release_commit: releaseId })}\n`,
+  );
+  fs.writeFileSync(path.join(releaseRoot, "health-contract.json"), "{}\n");
+  fs.writeFileSync(path.join(releaseRoot, "process-tree.txt"), "fixture\n");
+  fs.writeFileSync(
+    path.join(releaseRoot, "app", "scripts", "cloud-supervisor.js"),
+    "process.exitCode = 0;\n",
+  );
+  const canonicalAppRoot = fs.realpathSync(appRoot);
+  const canonicalReleaseRoot = fs.realpathSync(releaseRoot);
 
   const baseEnv = {
     PATH: process.env.PATH,
     HOME: fixtureRoot,
-    CB_APP_ROOT: appRoot,
+    CB_APP_ROOT: canonicalAppRoot,
+    CB_RELEASE_ROOT: canonicalReleaseRoot,
+    CB_EXPECTED_RELEASE_ID: releaseId,
     CYBERBOSS_STATE_DIR: stateDir,
     CYBERBOSS_CODEX_ENDPOINT: "ws://127.0.0.1:8765",
+    CYBERBOSS_WEIXIN_BASE_URL: "http://127.0.0.1:19080/",
+    CB_RUNTIME_PROVIDER: "simulator",
+    CB_CHANNEL_PROVIDER: "simulator",
+    CB_STATUS_TOKEN_FILE: "/run/cyberboss-cb130/fixture.token",
+    CB_HTTP_HOST: "127.0.0.1",
+    CB_HTTP_PORT: "8780",
     CB_RUNTIME_DB: path.join(stateDir, "runtime.db"),
     CB_START_COMMAND: "true",
     CYBERBOSS_RUNTIME: "claudecode",
