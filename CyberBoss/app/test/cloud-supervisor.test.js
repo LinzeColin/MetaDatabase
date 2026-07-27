@@ -1,5 +1,8 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const http = require("node:http");
+const os = require("node:os");
+const path = require("node:path");
 const test = require("node:test");
 const { once } = require("node:events");
 
@@ -45,9 +48,12 @@ function request(server, pathname, authorization = "") {
         const chunks = [];
         response.on("data", (chunk) => chunks.push(chunk));
         response.on("end", () => {
+          const body = Buffer.concat(chunks).toString("utf8");
+          const contentType = String(response.headers["content-type"] || "");
           resolve({
             status: response.statusCode,
-            value: JSON.parse(Buffer.concat(chunks).toString("utf8")),
+            body,
+            value: contentType.includes("application/json") ? JSON.parse(body) : undefined,
           });
         });
       },
@@ -183,4 +189,49 @@ test("status snapshot is bounded, protected and contains no operational identity
     assert.equal(serialized.toLowerCase().includes(forbidden), false);
   }
   assert.deepEqual(authorized.value, buildStatusSnapshot(config, state));
+});
+
+test("timeline and compact status are served only from the derived static surface", async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cb-supervisor-timeline-"));
+  const timelineRoot = path.join(root, "site");
+  fs.mkdirSync(path.join(timelineRoot, "assets"), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(path.join(timelineRoot, "index.html"), "<h1>时间线</h1>", "utf8");
+  fs.writeFileSync(path.join(timelineRoot, "assets", "dashboard.js"), "window.ok=true;", "utf8");
+  const config = {
+    ...loadConfiguration(validEnvironment({
+      CB_DEPLOYMENT_PHASE: "P5.2",
+      CB_DEPLOYMENT_TASK_ID: "CB-510",
+    })),
+    timelinePublicRoot: timelineRoot,
+  };
+  const state = createLifecycleState();
+  state.runtime = true;
+  state.channel = true;
+  state.bridge = true;
+  const server = http.createServer(createStatusHandler(config, state, "b".repeat(64)));
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(async () => {
+    server.close();
+    await once(server, "close").catch(() => {});
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  const rootResponse = await request(server, "/");
+  assert.equal(rootResponse.status, 302);
+  const timeline = await request(server, "/timeline/");
+  assert.equal(timeline.status, 200);
+  assert.equal(timeline.value, undefined);
+  assert.equal(timeline.body, "<h1>时间线</h1>");
+  const status = await request(server, "/status/");
+  assert.deepEqual(status.value, {
+    project: "CyberBoss",
+    phase: "P5.2",
+    task_id: "CB-510",
+    status: "ready",
+    healthy: true,
+    ready: true,
+  });
+  assert.equal((await request(server, "/timeline/../index.html")).status, 404);
+  assert.equal((await request(server, "/timeline/missing.svg")).status, 404);
 });

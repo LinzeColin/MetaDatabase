@@ -22,6 +22,12 @@ const SIM_WEIXIN_TOKEN = "sim-token-not-secret";
 const CRITICAL_ROLES = Object.freeze(["runtime", "channel", "bridge"]);
 const DEFAULT_DEPLOYMENT_PHASE = "P1.4";
 const DEFAULT_DEPLOYMENT_TASK_ID = "CB-130";
+const TIMELINE_CONTENT_TYPES = Object.freeze({
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+});
 
 class SupervisorViolation extends Error {
   constructor(code) {
@@ -165,6 +171,7 @@ function loadConfiguration(environment = process.env) {
     channelUrl,
     statusHost: STATUS_HOST,
     statusPort: STATUS_PORT,
+    timelinePublicRoot: path.join(stateDir, "timeline", "current", "site"),
     forcedUnreadyRole,
     deploymentPhase,
     deploymentTaskId,
@@ -275,6 +282,51 @@ function writeJson(response, statusCode, value, extraHeaders = {}) {
   response.end(body);
 }
 
+function writeBytes(response, statusCode, bytes, contentType, extraHeaders = {}) {
+  response.writeHead(statusCode, {
+    "cache-control": "no-store",
+    "content-type": contentType,
+    "content-length": bytes.length,
+    "x-content-type-options": "nosniff",
+    ...extraHeaders,
+  });
+  response.end(bytes);
+}
+
+function resolveTimelineAsset(timelineRoot, pathname) {
+  const suffix = pathname === "/timeline/" ? "index.html" : pathname.slice("/timeline/".length);
+  let decoded;
+  try {
+    decoded = decodeURIComponent(suffix);
+  } catch {
+    return null;
+  }
+  if (!decoded || decoded.includes("\0")) {
+    return null;
+  }
+  const root = path.resolve(timelineRoot);
+  const candidate = path.resolve(root, decoded);
+  if (!candidate.startsWith(`${root}${path.sep}`)) {
+    return null;
+  }
+  const extension = path.extname(candidate).toLowerCase();
+  if (!Object.hasOwn(TIMELINE_CONTENT_TYPES, extension)) {
+    return null;
+  }
+  try {
+    const metadata = fs.lstatSync(candidate);
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      return null;
+    }
+    return {
+      bytes: fs.readFileSync(candidate),
+      contentType: TIMELINE_CONTENT_TYPES[extension],
+    };
+  } catch {
+    return null;
+  }
+}
+
 function createStatusHandler(config, state, statusToken) {
   return (request, response) => {
     if (request.method !== "GET") {
@@ -303,6 +355,32 @@ function createStatusHandler(config, state, statusToken) {
         );
       }
       return writeJson(response, 200, buildStatusSnapshot(config, state));
+    }
+    if (pathname === "/") {
+      response.writeHead(302, { location: "/timeline/", "content-length": "0" });
+      return response.end();
+    }
+    if (pathname === "/timeline") {
+      response.writeHead(302, { location: "/timeline/", "content-length": "0" });
+      return response.end();
+    }
+    if (pathname === "/timeline/" || pathname.startsWith("/timeline/")) {
+      const asset = resolveTimelineAsset(config.timelinePublicRoot, pathname);
+      if (!asset) {
+        return writeJson(response, 404, { error: "not_found" });
+      }
+      return writeBytes(response, 200, asset.bytes, asset.contentType);
+    }
+    if (pathname === "/status/") {
+      const snapshot = buildStatusSnapshot(config, state);
+      return writeJson(response, 200, {
+        project: snapshot.project,
+        phase: snapshot.phase,
+        task_id: snapshot.task_id,
+        status: snapshot.status,
+        healthy: snapshot.healthy,
+        ready: snapshot.ready,
+      });
     }
     return writeJson(response, 404, { error: "not_found" });
   };
@@ -659,5 +737,6 @@ module.exports = {
   evaluateHealth,
   isLoopbackHost,
   loadConfiguration,
+  resolveTimelineAsset,
   safeTokenEqual,
 };

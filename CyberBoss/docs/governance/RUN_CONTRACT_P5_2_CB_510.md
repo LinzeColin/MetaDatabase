@@ -9,7 +9,8 @@
 ## 最小范围
 
 - `CyberBoss/app/scripts/cloud-supervisor.js` 与其单测：Status 的阶段/任务元数据只能由
-  受校验环境值覆写，默认保持历史兼容。
+  受校验环境值覆写，默认保持历史兼容；从同一 loopback-only 进程暴露派生的
+  Timeline 静态面和最小 Status 面，不新增 Web 服务或数据源。
 - OVH 的既有 `/opt/cyberboss-cloud` release/current/previous、
   `cyberboss-cloud.service` 及既有 Status collector。
 - 现有 Cloudflare DNS 与 Access 账户资源。
