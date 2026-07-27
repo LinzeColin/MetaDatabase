@@ -24,6 +24,10 @@ fetch_loopback() {
   fi
   HTTP_CODE="${response##*$'\n'}"
   HTTP_BODY="${response%$'\n'*}"
+  while [[ "$HTTP_BODY" == *$'\n' || "$HTTP_BODY" == *$'\r' ]]; do
+    HTTP_BODY="${HTTP_BODY%$'\n'}"
+    HTTP_BODY="${HTTP_BODY%$'\r'}"
+  done
   [[ "$HTTP_CODE" =~ ^[0-9]{3}$ ]] || fail_closed "response_${path//\//_}"
 }
 

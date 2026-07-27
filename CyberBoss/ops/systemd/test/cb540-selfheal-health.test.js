@@ -25,13 +25,13 @@ exit 3
   writeExecutable(curl, `#!/usr/bin/env bash
 url="\${!#}"
 case "$url" in
-  */healthz) printf '{"status":"healthy"}\\n200' ;;
+  */healthz) printf '{"status":"healthy"}\\n\\n200' ;;
   */timeline/) printf '200' ;;
   */readyz)
     case "\${CB540_TEST_READY:-pending}" in
-      ready) printf '{"status":"ready","unready_components":[]}\\n200' ;;
-      pending) printf '{"status":"unready","unready_components":["channel","bridge"]}\\n503' ;;
-      *) printf '{"status":"unready","unready_components":["runtime"]}\\n503' ;;
+      ready) printf '{"status":"ready","unready_components":[]}\\n\\n200' ;;
+      pending) printf '{"status":"unready","unready_components":["channel","bridge"]}\\n\\n503' ;;
+      *) printf '{"status":"unready","unready_components":["runtime"]}\\n\\n503' ;;
     esac
     ;;
   *) exit 9 ;;
