@@ -66,6 +66,8 @@ baselines:
           **按规定就不该通,不需要任何人去修。**
       deliver:
         state: blocked_by_input
+        probe: repo_state
+        args: {key: "BL-ADP-DAILY.deliver", max_age_h: 30}
         evidence: >-
           **缺 `FINAL_ACCEPTANCE_BUNDLE/daily_operation_persistent_enablement_authorization.json`** ——
           这是当前唯一剩余的 S3 阻断,拿到 owner 的持久运行授权才能开。属于要催人的那种。
