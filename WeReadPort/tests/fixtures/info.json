@@ -1,0 +1,16 @@
+{
+  "bookId": "book-001",
+  "title": "复杂系统入门",
+  "author": "林示例",
+  "translator": "译者甲",
+  "publisher": "示例出版社",
+  "publishTime": "2026-01",
+  "isbn": "9780000000001",
+  "intro": "讨论系统、反馈与涌现。",
+  "category": [
+    "科学",
+    "思维"
+  ],
+  "deepLink": "weread://book-001",
+  "newRating": 8.6
+}

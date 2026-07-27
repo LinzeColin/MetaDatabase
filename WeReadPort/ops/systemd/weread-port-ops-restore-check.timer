@@ -1,0 +1,11 @@
+[Unit]
+Description=定时校验微信读书笔记迁移最新本地快照
+
+[Timer]
+OnCalendar=Sun *-*-* 05:07:00 UTC
+RandomizedDelaySec=900
+Persistent=true
+Unit=weread-port-ops-restore-check.service
+
+[Install]
+WantedBy=timers.target

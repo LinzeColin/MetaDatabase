@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+/opt/weread-port-ops/current/bin/weread-port-ops diagnose
+/opt/weread-port-ops/current/bin/weread-port-ops selfheal
+journalctl --no-pager -n 120 -u 'weread-port-ops-*' || true

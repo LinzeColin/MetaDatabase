@@ -1,0 +1,10 @@
+{
+  "name": "微信读书笔记迁移｜微信读书个人笔记导出",
+  "short_name": "微信读书笔记迁移",
+  "description": "将微信读书个人划线、想法和点评导出为高兼容标记文本、结构化数据、离线搜索页和可校验压缩包。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7faf9",
+  "theme_color": "#0f766e",
+  "lang": "zh-CN"
+}

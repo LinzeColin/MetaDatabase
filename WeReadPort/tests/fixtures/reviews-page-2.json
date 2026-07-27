@@ -1,0 +1,16 @@
+{
+  "reviews": [
+    {
+      "review": {
+        "reviewId": "review-1",
+        "content": "一本值得重读的入门书。",
+        "createTime": 1760000200,
+        "star": 4,
+        "isFinish": 1
+      }
+    }
+  ],
+  "totalCount": 2,
+  "hasMore": 0,
+  "synckey": 60
+}

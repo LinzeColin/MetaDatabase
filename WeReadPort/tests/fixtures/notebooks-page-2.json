@@ -1,0 +1,20 @@
+{
+  "totalBookCount": 2,
+  "totalNoteCount": 8,
+  "hasMore": 0,
+  "books": [
+    {
+      "bookId": "book-002",
+      "book": {
+        "bookId": "book-002",
+        "title": "第二本书",
+        "author": "作者乙"
+      },
+      "reviewCount": 1,
+      "noteCount": 1,
+      "bookmarkCount": 1,
+      "readingProgress": 1,
+      "sort": 100
+    }
+  ]
+}

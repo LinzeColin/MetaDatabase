@@ -1,0 +1,10 @@
+{
+  "bookId": "book-001",
+  "book": {
+    "chapterUid": 10,
+    "progress": 45,
+    "recordReadingTime": 3661,
+    "updateTime": 1760000300,
+    "isStartReading": 1
+  }
+}
