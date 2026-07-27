@@ -48,6 +48,8 @@ sudo journalctl -u cyberboss-restore@backup_<24位十六进制>.service -n 80 --
 SQLite integrity 和 logical digest；恢复目录使用 network-disabled 的临时隔离路径，
 `promoted=false`，绝不覆盖运行中的 Runtime DB。OCI 现有 PAR 若为 write-only，日志会
 明确为 `activation_pending_write_only_par`，但 R2 readback 仍是有效的恢复 Oracle。
+restore unit 与 backup unit 使用同一 Linux OAuth refresh 机制；不能复用过期的静态 API
+token，也不需要本机常驻进程。
 
 ## 回滚与安全边界
 
