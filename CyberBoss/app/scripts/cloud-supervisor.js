@@ -241,6 +241,7 @@ function notifySystemdReady(environment = process.env, execute = spawnSync) {
       "/usr/bin/systemd-notify",
       [
         "--ready",
+        `--pid=${process.pid}`,
         "--status=CyberBoss loopback status listener ready",
         "--no-block",
       ],

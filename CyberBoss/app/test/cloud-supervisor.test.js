@@ -149,6 +149,7 @@ test("systemd readiness is emitted only after a listener exists and fails closed
     command: "/usr/bin/systemd-notify",
     args: [
       "--ready",
+      `--pid=${process.pid}`,
       "--status=CyberBoss loopback status listener ready",
       "--no-block",
     ],
