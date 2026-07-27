@@ -1,0 +1,202 @@
+# 业务流登记 —— Alpha(本地优先个人量化工作台)
+#
+# 统一的是**接口**,不是阶段:段数与段名由本项目按自己的业务语义定义。
+# Alpha 是交易执行链,所以走「行情接入 → 盘前自检 → 策略决策 → 风控审批 → 下单执行 → 结算记账」六段;
+# KMFA 是 intake/parse/compute/verify/output/deliver,status 是采集五段,各画各的矩阵。
+#
+# 状态五态(缺一态就会造出假红或排不出优先级):
+#   healthy            通
+#   degraded           有缺陷但没断
+#   blocked_by_input   缺输入才算不出来 —— **必须催人**
+#   blocked_by_policy  按规定就不该通 —— **不需要任何人做事**
+#   not_built          还没做
+# ★ Alpha 的实盘下单是 fail-closed(`live_trading.enabled` committed active value = false),
+#   那是**设计如此**,不是故障 —— 必须是 blocked_by_policy,判成红的话这条线天天误报。
+#
+# 双向:`state` 是本项目自报,`probe` 是 status 在主机上做的只读实测,不符会被单独标出。
+# ★ 探针只看元信息(单元存活/退出码/产出条数/时间戳),**绝不读交易数据内容**。
+
+schema: linze.flow.v1
+project: Alpha
+repo: MetaDatabase
+authority: Alpha/AGENTS.md(Live MVP v1 受控许可模型)+ Alpha/machine/facts/
+stages: [feed, preflight, decide, approve, execute, settle]
+stage_names:
+  feed: 行情接入
+  preflight: 盘前自检
+  decide: 策略决策
+  approve: 风控审批
+  execute: 下单执行
+  settle: 结算记账
+stage_meaning:
+  feed: 从券商网关取到当日可用行情
+  preflight: 开盘前把账户、连通性、参数与风控阈值全过一遍
+  decide: 生成候选与排序,得出当日意图
+  approve: 交易前风控 + owner 人工审批,未批准不得进入下一段
+  execute: 真正向券商提交订单
+  settle: 净值快照与账本落盘,并轮转备份
+
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因,禁止静默出错数。
+
+sources:
+  - id: SRC-FUTU-OPEND
+    name: 券商行情网关(OpenD)
+  - id: SRC-FIXTURE
+    name: fixture 价格样本(研究与回测用)
+  - id: SRC-OWNER-APPROVAL
+    name: owner 人工审批
+
+baselines:
+  - id: BL-ALPHA-LIVE
+    name: 实盘交易执行
+    priority: P0
+    note: >-
+      当前**不声明实盘就绪**。执行段按设计 fail-closed,这是受控许可模型的核心约束,
+      不是等着被修的故障。
+    upstream: [BL-ALPHA-RISK]
+    cells:
+      feed:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-opend.service}
+        evidence: 行情网关常驻;由 status 直接读 systemd 单元状态,不看日志
+      preflight:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-preflight.service}
+        evidence: 盘前自检为 timer 驱动的 oneshot,平时 inactive 即正常
+      decide:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-supervisor.service}
+        evidence: 监督进程常驻,负责把策略意图推进到审批队列
+      approve:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-control-page.service}
+        evidence: 控制页常驻(查询/停机/恢复/授权确认;**永不下单**)
+      execute:
+        state: blocked_by_policy
+        probe: systemd
+        args: {unit: alpha-trading-worker.service}
+        evidence: >-
+          交易进程在跑,但 live_trading.enabled 的 committed active value = false,
+          实盘提交保持 fail-closed。**按规定就不该通**,不需要任何人去修。
+      settle:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-equity-snapshot.service}
+        evidence: 净值快照 timer 驱动,让净值曲线随时间生长
+
+  - id: BL-ALPHA-RESEARCH
+    name: 策略研究与回测
+    priority: P1
+    note: 只有 fixture 数据与单步 OOS,生产市场数据/多年样本外/成本滑点校准均未证实。
+    cells:
+      feed:
+        state: blocked_by_input
+        evidence: >-
+          **缺生产市场数据**。当前只有 fixture 价格样本,拿它跑出来的绩效不能外推到实盘 ——
+          这是要催人补数据的那种阻断,不是按规定不通。
+      preflight:
+        state: healthy
+        evidence: fixture 基准与参数注册表齐备(parameter_registry.csv / formula_registry.yaml)
+      decide:
+        state: healthy
+        evidence: 动量策略锦标赛 + 风险排序 + 等权买入持有基准(FEAT-ALPHA-001)
+      approve:
+        state: degraded
+        evidence: 13 个 branch-rule 参数在语义抽取中仍标 HUMAN_REVIEW_REQUIRED,未全量机器校验
+      execute:
+        state: healthy
+        evidence: paper trading loop + PaperBroker,本地 JSON 持久化已改为锁定事务与原子替换
+      settle:
+        state: healthy
+        evidence: S3PBT01 已证本地 queue/broker 持久化的原子性与并发序列化
+
+  - id: BL-ALPHA-RISK
+    name: 交易前风控与人工审批
+    priority: P0
+    note: 这条是实盘链的闸门 —— 它降级,下游执行段一律不得自称健康。
+    cells:
+      feed:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-opend.service}
+        evidence: 风控读取的行情与执行链同源
+      preflight:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-preflight.service}
+        evidence: 盘前把账户、连通性、参数与阈值全过一遍
+      decide:
+        state: healthy
+        evidence: 交易前风控与 owner-review 门禁(FEAT-ALPHA-002)
+      approve:
+        state: degraded
+        evidence: >-
+          审批队列新鲜度与 dashboard actionability(FEAT-ALPHA-005)已实现,
+          但陈旧 PID 复用与 stop 后不写入等故障注入只覆盖到本地路径
+      execute:
+        state: blocked_by_policy
+        evidence: 未获实盘许可前,审批通过也不落到真实下单 —— 受控许可模型的设计如此
+      settle:
+        state: healthy
+        evidence: 审批记录与账本同源落盘
+
+  - id: BL-ALPHA-LEDGER
+    name: 账本与净值留存
+    priority: P1
+    cells:
+      feed:
+        state: healthy
+        evidence: 成交与净值来自执行链自身,不依赖外部输入
+      preflight:
+        state: healthy
+        evidence: 备份前检查磁盘与目标路径
+      decide:
+        state: healthy
+        evidence: 按 timer 决定何时打快照与轮转
+      approve:
+        state: healthy
+        evidence: 备份与快照属自动运维动作,无需人工审批
+      execute:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-backup.service}
+        evidence: 交易账本 pg_dump 轮转,防库损坏与误清
+      settle:
+        state: healthy
+        probe: systemd
+        args: {unit: alpha-equity-snapshot.service}
+        evidence: 净值快照 timer 驱动
+
+  - id: BL-ALPHA-ALERT
+    name: 单元失败自告警
+    priority: P2
+    note: 用 systemd 的 OnFailure 模板实例实现;**平时就该是 inactive**,那是正常态不是故障。
+    cells:
+      feed:
+        state: healthy
+        evidence: 告警不依赖行情
+      preflight:
+        state: healthy
+        evidence: 每个被守护单元各有一个 alpha-alert@ 模板实例
+      decide:
+        state: healthy
+        evidence: 由 systemd OnFailure 触发,无需自行判断
+      approve:
+        state: healthy
+        evidence: 告警属自动动作,无需审批
+      execute:
+        state: healthy
+        probe: systemd
+        args: {unit: "alpha-alert@alpha-backup.service.service"}
+        evidence: >-
+          模板实例平时 inactive 即正常。★ 把它判成 failed 是典型假红 ——
+          status 侧已按 TriggeredBy/oneshot 语义处理。
+      settle:
+        state: not_built
+        evidence: 告警只发出,不做落库归档 —— 这一段确实还没做
