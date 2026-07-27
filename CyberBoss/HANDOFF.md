@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `911d14c83a313f5a611d595acd72ee80415d97fa`
+  `307810329127910b4e0ef64e435099d02c74bd6e`
 - Remote publication: none
 
 ## Current state
@@ -18,8 +18,8 @@ Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent
 Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 `P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` and independent Stage 3 exit
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
-complete. `P4.1 / CB-400` and `P4.2 / CB-410` passed; CB-420–CB-540 and
-PG-4–PG-5 remain `not_started`.
+complete. `P4.1 / CB-400`, `P4.2 / CB-410` and `P4.3 / CB-420` passed;
+CB-430–CB-540 and PG-4–PG-5 remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -137,7 +137,7 @@ write-scope attestation. Timeline/global Status and Cloudflare Access/DNS/
 Analytics publication are also `activation_pending`. R2 remains `hazard_blocked`
 pending exact write-scope attestation; OCI, self-heal and timer remain
 `activation_pending`. The next Run must run its own package Skill Router before
-executing native node `CB-420`.
+executing native node `CB-430`.
 
 CB-410 is bound to implementation commit
 `911d14c83a313f5a611d595acd72ee80415d97fa` and tree
@@ -157,8 +157,34 @@ traceability/no-wait/TaskPack checks. This is not a real Codex trial:
 golden/abuse/recovery trials and budget/latency remain `activation_pending`,
 the release recommendation remains disabled, and real model/control-plane/
 operations LLM calls remain zero. No Private-Database, provider, service or
-macOS launchd operation occurred. The next native node is `CB-420` and must
+macOS launchd operation occurred. The next native node is `CB-430` and must
 first run its own package Skill Router.
+
+CB-420 is bound to implementation commit
+`307810329127910b4e0ef64e435099d02c74bd6e` and tree
+`5d9bc218bc8be077d3d793562aaf74d5f47b0d0b`. The package router selected
+`output-skill` and loaded exactly that one local body. The deterministic,
+read-only assurance evaluator reuses the immutable 129-component dependency/
+license inventory, source-lock, original license files and existing CB-320
+Access/Analytics guard. It reports a full source-tree per-file SHA-256 package
+manifest rather than creating a copied archive, a second source repository or
+a parallel SBOM.
+
+The official bounded secret scanner now reports P0=0/P1=0. A pre-existing
+synthetic private-key marker in the CB-330 backup privacy test was assembled at
+runtime instead of stored as a full literal; the same sensitive-runtime-image
+rejection remains tested. The strict `AGPL-3.0-only AND GPL-3.0-only`
+whereabouts conflict remains unresolved and fully preserved. Nineteen
+credential-scrubbed local commands plus both manifests passed, including
+source/SBOM closure, Access/8765, workspace, approval, backup privacy,
+CB-410/CB-400 immutable evidence anchors, full App regression and TaskPack
+checks.
+
+Cloudflare Web Analytics and source distribution are `activation_pending`, not
+verified or enabled. Real provider/data/service operations are zero; model,
+control-plane and operations LLM calls remain zero; macOS launchd is absent.
+The next native node is `CB-430` and must first run its own package Skill
+Router.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL

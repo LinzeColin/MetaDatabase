@@ -1,5 +1,33 @@
 # Changelog
 
+## P4.3 / CB-420 — 2026-07-27
+
+- Closed the local deterministic security, supply-chain, privacy and AGPL
+  assurance gate against CB-410 closure
+  `ea82f02b175e864d754ab5bdfaccd0e84a89e6d4`, bound to implementation commit
+  `307810329127910b4e0ef64e435099d02c74bd6e` and tree
+  `5d9bc218bc8be077d3d793562aaf74d5f47b0d0b`, without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Added a no-network, read-only assurance evaluator that binds the existing
+  129-component canonical SBOM, locked three-source Corresponding Source
+  closure, strict unresolved whereabouts dual-license posture, secret scan and
+  existing Access/Analytics privacy guards. It creates neither a new source
+  repository nor a parallel SBOM/source truth.
+- Replaced one pre-existing synthetic PEM marker in a CB-330 privacy fixture
+  with semantically identical runtime assembly. The current official bounded
+  scanner therefore reports P0=0/P1=0 without weakening the runtime-image
+  privacy rejection test.
+- The package router selected `output-skill` and exactly one local body was
+  loaded. Nineteen credential-free local validation commands plus both
+  immutable manifests passed, including secret scan, Access/workspace/runtime
+  boundaries, CB-410/CB-400 evidence anchors, full App regression, DAG,
+  traceability and no-wait checks.
+- Marked only CB-420 passed in the local deterministic scope. Cloudflare Web
+  Analytics/source distribution and all provider/service activation remain
+  `activation_pending` (R2 remains `hazard_blocked`); model, control-plane and
+  operations LLM calls remain zero and macOS launchd remains absent. The next
+  native node is CB-430.
+
 ## P4.2 / CB-410 — 2026-07-27
 
 - Closed the local deterministic Codex model-safety fixture gate against CB-400

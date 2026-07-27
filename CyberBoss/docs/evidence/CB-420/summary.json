@@ -1,0 +1,158 @@
+{
+  "schema_version": "cyberboss.cb420.closure-summary.v1",
+  "task_id": "CB-420",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb_410_closure_commit": "ea82f02b175e864d754ab5bdfaccd0e84a89e6d4",
+  "cb_410_tree": "a8d110cc271dbce7fc8f0e8f36d2f16d815e8ddc",
+  "implementation_commit": "307810329127910b4e0ef64e435099d02c74bd6e",
+  "implementation_tree": "5d9bc218bc8be077d3d793562aaf74d5f47b0d0b",
+  "assurance_card_sha256": "95025624ea8e920f702529b9f6b5819474474be9d79f14e28ffaf6be30c258ed",
+  "acceptance": {
+    "FA-AC-011": "passed",
+    "FA-AC-017": "passed",
+    "FA-AC-028": "passed",
+    "FA-AC-032": "passed"
+  },
+  "security_assurance_report": {
+    "schema_version": "cyberboss.security-assurance.v1",
+    "product_version": "v0.0.0.5",
+    "taskpack_version": "v0.0.0.7",
+    "evaluation_mode": "local_deterministic_read_only",
+    "security": {
+      "scanned_source_file_count": 107,
+      "high_confidence_secret_hits": 0,
+      "environment_file_hits": 0,
+      "unaccepted_p0_p1_findings": 0,
+      "control_plane_llm_calls": 0,
+      "operations_llm_calls": 0,
+      "macos_launchd_dependency": false
+    },
+    "sbom": {
+      "canonical_inventory": "docs/evidence/CB-000/dependency-license-inventory.json",
+      "inventory_sha256": "ac17df609417c8bff6612cf9191ae64768a98d828b54cc89eb1a382c550cef3a",
+      "lockfile_sha256": "0932f1d169965da5453e0a5803457988840200b2489e914e3ace5238f714f555",
+      "component_count": 129,
+      "unresolved_license_count": 0,
+      "strict_dual_license_component_count": 1,
+      "component_digest": "2f3a85d0a37436ffc8b14653bd86db776a25a8bb797cad4e5f5df62484923538"
+    },
+    "corresponding_source": {
+      "schema_version": "cyberboss.corresponding-source-package.v1",
+      "source_count": 3,
+      "source_ids": [
+        "cyberboss",
+        "timeline-for-agent",
+        "whereabouts-mcp"
+      ],
+      "source_lock_sha256": "796dd31d9d4e8b44f178b9243b28e852017437c8983e45a1f731788173086fbf",
+      "release_source_file_count": 286,
+      "release_source_manifest_digest": "e7ce7ce100ea55f6dcbc033c8179adb9eedf80097ce7dd7b1bf819179f07766f",
+      "original_source_and_license_preserved": true,
+      "strict_license_expression": "AGPL-3.0-only AND GPL-3.0-only",
+      "upstream_clarification_received": false,
+      "corresponding_source_complete": true,
+      "distribution_state": "activation_pending",
+      "sources": [
+        {
+          "id": "cyberboss",
+          "bundle_path": "app",
+          "bundle_manifest": "docs/evidence/CB-000/manifests/bundle-cyberboss.sha256",
+          "bundle_manifest_sha256": "ddab31c724f4b8d97a6196d6d7f71a7347b7f715aa6a3db5fe54815c6fbbadd9",
+          "compliance_expression": "AGPL-3.0-only",
+          "license_sha256": "526520455b0c01e09c1a23f6322a11d9e867de44dc833de8a94af6766dced64b"
+        },
+        {
+          "id": "timeline-for-agent",
+          "bundle_path": "vendor/timeline-for-agent",
+          "bundle_manifest": "docs/evidence/CB-000/manifests/bundle-timeline-for-agent.sha256",
+          "bundle_manifest_sha256": "9ab9bb47b5b7a0222ebb9cda56d96839e37d780e77359dff6a3cfc081de40986",
+          "compliance_expression": "AGPL-3.0-only",
+          "license_sha256": "526520455b0c01e09c1a23f6322a11d9e867de44dc833de8a94af6766dced64b"
+        },
+        {
+          "id": "whereabouts-mcp",
+          "bundle_path": "vendor/whereabouts-mcp",
+          "bundle_manifest": "docs/evidence/CB-000/manifests/bundle-whereabouts-mcp.sha256",
+          "bundle_manifest_sha256": "13f55a13f1891cc859fde7f8b5177a85b9e01904a555265479c2d9c92d8ffe2c",
+          "compliance_expression": "GPL-3.0-only AND AGPL-3.0-only",
+          "license_sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        }
+      ]
+    },
+    "access_and_analytics_privacy": {
+      "access_boundary": "existing_contract_verified",
+      "anonymous_or_origin_bypass": "denied_by_existing_contract",
+      "external_8765": "unreachable",
+      "analytics_provider": "Cloudflare Web Analytics",
+      "analytics_state": "activation_pending",
+      "safe_aggregate_payload_count": 3,
+      "forbidden_analytics_payloads_rejected": 5,
+      "second_analytics_database_allowed": false
+    },
+    "external_activation": {
+      "cloudflare_web_analytics": "activation_pending",
+      "release_distribution": "activation_pending",
+      "real_cloudflare_operations": 0,
+      "network_or_provider_operations": 0
+    },
+    "report_digest": "49852bb4449942d0bc9df2623a2e340748144c2a3ae56b414280b696db90cab9",
+    "status": "passed"
+  },
+  "local_validation": {
+    "assurance_unit": "passed",
+    "assurance_cli": "passed",
+    "assurance_root_cli": "passed",
+    "secret_scan": "passed",
+    "access_domain": "passed",
+    "workspace_scope": "passed",
+    "approval_policy": "passed",
+    "cloud_runtime_boundary": "passed",
+    "backup_privacy": "passed",
+    "cb410_anchor": "passed",
+    "cb400_anchor": "passed",
+    "app_check": "passed",
+    "app_regression": "passed",
+    "identity_scope": "passed",
+    "config": "passed",
+    "dag": "passed",
+    "traceability": "passed",
+    "no_wait": "passed",
+    "taskpack": "passed",
+    "manifests": "passed"
+  },
+  "skill_router": {
+    "task_id": "CB-420",
+    "selected_skill": "output-skill",
+    "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+    "max_lightweight_skill_loads": 1,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 1,
+    "fallback": "machine/skill_microplaybooks.json"
+  },
+  "external_activation": {
+    "cloudflare_web_analytics": "activation_pending",
+    "release_distribution": "activation_pending",
+    "private_database": "activation_pending",
+    "r2": "hazard_blocked",
+    "cloudflare_access": "activation_pending",
+    "dns_route": "activation_pending",
+    "oci": "activation_pending",
+    "timeline": "activation_pending",
+    "global_status": "activation_pending",
+    "self_heal": "activation_pending",
+    "timer": "activation_pending"
+  },
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "real_cloudflare_operations": 0,
+  "real_oci_operations": 0,
+  "real_service_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0,
+  "macos_launchd_dependency": false,
+  "result": "passed",
+  "evidence_scope": "local_deterministic_only",
+  "next_native_node": "CB-430"
+}
