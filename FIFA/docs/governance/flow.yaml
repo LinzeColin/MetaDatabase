@@ -1,0 +1,86 @@
+# 业务流登记 —— FIFA(TAB 赛事研究流水线)
+#
+# ★ 全部状态取自本项目自己的 docs/governance/ASSURANCE_STATUS.yaml,
+#   **不另起一套说法**。两份登记各写各的必然漂移,漂移之后没人知道该信哪份。
+#
+#   delivery_readiness.status = UNVERIFIED
+#   release_gate = S3PD-GATE-IN-PROGRESS; S5PB-GATE-IN-PROGRESS
+#   → 这不是生产上线声明,整表不得出现「已交付」口径的绿。
+#
+# ★★ 运行口径:**research-only,executable new stake = AUD 0**。
+#   README 明写「不触发投注、TAB 点击、OpenD、邮件、launchd、app 打包或外部自动化」。
+#   所以「下注/投递」那一格是 blocked_by_policy ——**本来就该不通,谁也不用去修**。
+#   任何把它标成红色待办的做法都是误判;标成绿更是危险。
+#
+# ★ 没有任何自动探针:本项目没有部署单元(不在 OVH / Cloudflare 清单里)、
+#   没有 CI 回写 flow_state.json,**一格也探不到,实测覆盖 0%**,整表为自报。
+#   ——「跑过测试」不等于「被 status 实测到」。README 里那句
+#   `Ran 6 tests / OK` 是**本机手动**跑出来的,不是持续核查。
+
+schema: linze.flow.v1
+project: FIFA
+repo: MetaDatabase
+authority: FIFA/docs/governance/(ASSURANCE_STATUS.yaml / STATUS.md / OWNER_STATUS.md)
+stages: [raw, parse, model, validate, export]
+stage_names:
+  raw: 取原始数据
+  parse: 解析与校验
+  model: 建模计算
+  validate: 实证验证
+  export: 结果产出
+stage_meaning:
+  raw: 从 TAB 取原始赔率与赛事数据
+  parse: 解析市场对、拒绝非法赔率(tab-research-pipeline)
+  model: 按 formula_registry 的公式与参数计算
+  validate: 方法依据与实证证据的验证
+  export: 产出研究结果(research-only,不下注)
+
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因。
+
+measurement: >-
+  本项目**没有任何自动探针**:无部署单元、无 CI 回写。整表为自报,实测覆盖 0%。
+
+sources:
+  - id: SRC-TAB-RAW
+    name: TAB 原始赔率与赛事数据
+
+baselines:
+  - id: BL-FIFA-RESEARCH
+    name: TAB 赛事研究流水线
+    priority: P3
+    upstream: [SRC-TAB-RAW]
+    note: >-
+      休眠项目,research-only。结构完整性已核过,但实证与运行验证都没过,
+      交付就绪 UNVERIFIED。
+    cells:
+      raw:
+        state: blocked_by_input
+        evidence: >-
+          next_executable_task TASK-FIFA-C-001 状态 blocked,原因
+          「Recover authorized raw data path without violating TAB access-policy
+          boundaries」;解除条件「Public raw remains blocked by
+          ai_controlled_access_rejected」—— 卡在授权,只有 owner 能解
+      parse:
+        state: healthy
+        evidence: >-
+          tab-research-pipeline 的解析与拒绝非法赔率有测试覆盖
+          (test_parse_market_pairs / *_rejects_invalid_decimal_odds_tokens 等 6 条)
+        defect: 仅本机手动跑过,未接入持续核查
+      model:
+        state: degraded
+        evidence: >-
+          implementation_congruence = PARTIAL(公式 10/10 已核,参数仅 92/109);
+          parameter_source_quality = PARTIAL,fact_level UNKNOWN
+      validate:
+        state: blocked
+        evidence: >-
+          empirical_validation = UNVERIFIED、methodological_rationale = UNVERIFIED、
+          **operational_validation = FAILED**;阻塞项 FACT-FIFA-EMPIRICAL-EVIDENCE、
+          FACT-FIFA-OPERATIONAL-EVIDENCE
+      export:
+        state: blocked_by_policy
+        evidence: >-
+          **既定约束,不是待办**:运行口径 research-only,executable new stake = AUD 0,
+          README 明写不触发投注/TAB 点击/OpenD/邮件/外部自动化
