@@ -1,5 +1,29 @@
 # Changelog
 
+## P5.2 / CB-510 — 2026-07-27
+
+- Activated immutable release `82b47668c33cc403fee9194ad42b77e49c8b7da3` on the
+  authorized Linux host without changing the Owner-locked product version
+  `v0.0.0.5` or the frozen design baseline. `current` binds that exact release,
+  `previous` remains distinct and retained, and both the CyberBoss service and
+  its dedicated Cloudflare Tunnel are enabled under Linux systemd.
+- Verified a real no-clone Private-MetaDatabase material roundtrip under the
+  separated data identity; enabled the daily timer and material-event path;
+  rebuilt the public Chinese Timeline only from the redacted canonical projection
+  and passed a direct privacy scan before switching its current pointer.
+- Created and verified proxied Cloudflare DNS plus an Owner-email allow-only,
+  default-deny Access application. The public route presents an Access challenge;
+  the existing global Status collector now publishes the CyberBoss row and owns
+  both cloud and tunnel units.
+- Real Codex login and the loopback app-server are live, while control-plane and
+  operations model calls remain `0`. No authenticated turn was started because
+  that would violate the permanent zero-model invariant. No authorized real
+  WeChat credential was present, so channel/bridge remain fail-closed pending
+  (`/readyz=503`) with no simulator fallback or false readiness claim.
+- R2/OCI, request-count Canary and live rollback remain later native task
+  boundaries. The next node is `CB-520`; `FORMAL_FINAL_ACCEPTANCE` remains
+  pending.
+
 ## P5.1 / CB-500 — 2026-07-27
 
 - Closed the clean, isolated local staging dress rehearsal against PG-4 closure

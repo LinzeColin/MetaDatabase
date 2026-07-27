@@ -1,0 +1,103 @@
+{
+  "schema_version": "cyberboss.cb510.activation-summary.v1",
+  "task_id": "CB-510",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb_500_closure_commit": "b219606f5f395624775ce761f2b2be6a55aab75e",
+  "implementation_commit": "82b47668c33cc403fee9194ad42b77e49c8b7da3",
+  "implementation_tree": "0a472d2846d6478e01f3d392624ab2c825ad7b40",
+  "skill_router": {
+    "task_id": "CB-510",
+    "selected_skill": "webapp-testing",
+    "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+    "max_lightweight_skill_loads": 1,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 0,
+    "fallback": "machine/skill_microplaybooks.json"
+  },
+  "acceptance": {
+    "FA-AC-020": "pending_missing_real_wechat_credential",
+    "FA-AC-021": "passed_real_codex_login_and_loopback_runtime",
+    "FA-AC-022": "passed_owner_only_access_dns_and_protected_status",
+    "FA-AC-028": "passed_redacted_timeline_and_evidence",
+    "FA-AC-031": "passed_chinese_timeline_and_global_status"
+  },
+  "release": {
+    "manifest_binding": "verified",
+    "manifest_product_version": "v0.0.0.5",
+    "current_pointer": "verified",
+    "previous_pointer": "verified_distinct_retained",
+    "rollback_mode": "previous_pointer_available"
+  },
+  "runtime": {
+    "codex_login": "verified",
+    "codex_app_server": "verified_loopback",
+    "codex_authenticated_turn": "not_executed_zero_model_invariant",
+    "healthz": "200",
+    "readyz": "503_channel_pending",
+    "protected_snapshot": "verified_authorized_200_unauthorized_401",
+    "timeline": "verified_loopback_200",
+    "channel": "pending_missing_real_wechat_credential",
+    "channel_simulator_started": false,
+    "bridge_started": false,
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0
+  },
+  "canonical": {
+    "private_database": "verified_no_clone_material_roundtrip",
+    "verified_batch_count_minimum": 1,
+    "daily_timer": "verified_active_enabled",
+    "material_path": "verified_active_enabled",
+    "material_result": "success"
+  },
+  "timeline": {
+    "canonical_rebuild": "verified_event_count_at_least_one",
+    "public_pointer": "verified",
+    "direct_canonical_writes": 0,
+    "fallback_used": false,
+    "privacy_scan": "passed"
+  },
+  "cloudflare": {
+    "tunnel": "verified_active_enabled",
+    "dns": "verified_cname_proxied",
+    "access": "verified_owner_allow_only_default_deny",
+    "public_probe": "verified_access_challenge",
+    "status_service_token": "pending_minimal_scope_unavailable"
+  },
+  "global_status": {
+    "source": "LinzeHomeHub_PR_47_merged",
+    "collector": "verified_live_snapshot",
+    "access_entry": "verified",
+    "owned_systemd_units": "verified"
+  },
+  "external_activation": {
+    "candidate_installation": "verified",
+    "current_switch": "verified",
+    "private_database": "verified",
+    "cloudflare_access": "verified",
+    "dns_route": "verified",
+    "timeline": "verified",
+    "global_status": "verified",
+    "self_heal": "verified_systemd",
+    "timer": "verified_daily_and_material",
+    "service": "verified",
+    "channel_wechat": "pending_missing_real_credential",
+    "access_service_token": "pending_minimal_scope_unavailable",
+    "live_request_count_canary": "activation_pending_next_cb520",
+    "live_rollback": "activation_pending_next_cb520",
+    "r2": "activation_pending_next_cb530",
+    "oci": "activation_pending_next_cb530",
+    "analytics": "activation_pending_next_cb540"
+  },
+  "safety": {
+    "real_time_waits": 0,
+    "macos_launchd_dependency": false,
+    "private_database_clone": false,
+    "simulator_claimed_as_real": false,
+    "pending_claimed_as_ready": false
+  },
+  "result": "passed_with_explicit_pending",
+  "evidence_scope": "real_cloud_activation_with_fail_closed_channel_pending",
+  "next_native_node": "CB-520"
+}

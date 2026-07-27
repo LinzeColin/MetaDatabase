@@ -7,8 +7,10 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `ddda629feb4455da5dba213a5d5f827001ce8c71`
-- Remote publication: none
+  `82b47668c33cc403fee9194ad42b77e49c8b7da3`
+- Remote activation: OVH/Linux systemd, dedicated Cloudflare Tunnel and
+  Owner-only Access, plus the existing LinzeHomeHub global Status collector
+  (`CB-510`); no MetaDatabase GitHub publication yet.
 
 ## Current state
 
@@ -20,8 +22,9 @@ Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
 complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420`,
 `P4.4 / CB-430`, `P4.5 / CB-440` and independent Stage 4 exit gate `PG-4`
-passed. `P5.1 / CB-500` passed as a local clean-staging rehearsal. CB-510–CB-540
-and PG-5 remain `not_started`.
+passed. `P5.1 / CB-500` passed as a local clean-staging rehearsal and
+`P5.2 / CB-510` passed with explicit, fail-closed channel pending status.
+CB-520–CB-540 and PG-5 remain `not_started`.
 
 CB-500 is bound to implementation commit
 `ddda629feb4455da5dba213a5d5f827001ce8c71` and tree
@@ -33,8 +36,25 @@ Status, Access, simulator E2E, canonical sync, fault/restore, backup,
 immutable candidate/request predicates/rollback, both pipelines, App regression
 and TaskPack constraints. The sealed rehearsal digest is
 `dec0e1518a5f99751a3c04b2c59ed3079f78f5a9ac807ba44add179a206448e1`;
-the activation plan is contract-only. Current did not switch and all external
-operations remain activation_pending except R2, which remains hazard_blocked.
+the activation plan is contract-only. At CB-500, `current` did not switch and
+all external operations remained activation_pending except R2, which remained
+hazard_blocked.
+
+CB-510 is bound to implementation commit
+`82b47668c33cc403fee9194ad42b77e49c8b7da3` and tree
+`0a472d2846d6478e01f3d392624ab2c825ad7b40`. Its TaskPack Router selected
+`webapp-testing`; the native body is unavailable locally, so the frozen embedded
+microplaybook applied with Skill body loads=0. The immutable Linux release is
+running under systemd with a distinct retained `previous` pointer, a dedicated
+Cloudflare Tunnel, proxied DNS and Owner-email allow-only/default-deny Access.
+The canonical data identity completed a verified no-clone material roundtrip;
+the daily timer and major-event path are enabled. Timeline is a redacted,
+privacy-scanned canonical projection, and the existing global Status collector
+publishes the CyberBoss row. The runtime has real Codex login plus the loopback
+app-server, but no authenticated turn was made: control-plane and operations
+model calls remain exactly zero. No authorized real WeChat credential exists, so
+channel and bridge intentionally remain unready (`/readyz=503`) with neither a
+simulator fallback nor a false-ready result. See `docs/evidence/CB-510/`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -833,33 +853,25 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Known unknowns
 
-- No real authenticated target Codex turn or WeChat QR/account call has been
-  tested. Codex is installed but target auth remains `activation_pending`; the
-  fixture screenshot is deliberately marked non-real.
-- No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
-  object or authenticated CyberBoss business Runtime was created or modified
-  through CB-230.
-- Exact provider write-scope attestations remain external activation inputs;
-  successful GETs are not treated as proof of safe writes.
-- The online Status surface still has no CyberBoss row, and the CB-300 static
-  Timeline projection has not been published behind Cloudflare Access.
-- The OVH capacity/profile remains point-in-time; each later activation must
-  rerun preflight.
-- Project-local Node/Codex, the immutable App candidates, controlled workspace
-  and simulator-backed supervised process family are installed and verified.
-  Current switching, authenticated Runtime/WeChat, rclone and sqlite3 CLI
-  remain later-task boundaries.
+- No authorized real WeChat credential is present. Channel/bridge must remain
+  `pending_missing_real_wechat_credential`; a real authenticated Codex turn is
+  deliberately not started because it would violate the permanent zero-model
+  invariant.
+- The minimal Cloudflare Access token cannot administer a Status service token;
+  the service-token route stays pending while Owner-only browser access and the
+  same-host protected snapshot are verified.
+- R2 remains `hazard_blocked`; OCI backup, request-count Canary, live rollback,
+  Analytics and the final Stage 5 gate remain later native task boundaries.
+- OVH capacity/profile is point-in-time and must be rechecked at each later
+  activation, without reclassifying a successful CB-510 receipt as final
+  acceptance.
 
 ## Next Run
 
-The next eligible Run is exactly `P5.2 / CB-510`. It remains `not_started`.
-CB-500 closes only a local clean-staging rehearsal; it does not authorize
-production promotion, Cloudflare Access/DNS, Status publication, canonical
-writeback, real provider activation, live Canary or live rollback.
-
-Start `P5.2 / CB-510` only under a new single-phase Run Contract after its own
-package Skill Router. Preserve source/license, CB-000–CB-500 and PG-0–PG-4
-evidence, the strict dual-license conflict record and the final-only GitHub
-publication rule. Do not treat local rehearsal as external proof: no provider,
-data or service action may be claimed verified without a new, authority-bound
-receipt.
+The next eligible Run is exactly `P5.3 / CB-520`. It remains `not_started`.
+Run its own package Skill Router first, then perform only the bounded real
+request-count Canary and immutable live rollback contract. Preserve the locked
+product version, frozen design, all earlier evidence, permanent zero-model
+invariant, no-clone data boundary and final-only MetaDatabase GitHub publication
+rule. Do not use the pending WeChat channel as a substitute canary or claim it
+ready without an authorized real credential.

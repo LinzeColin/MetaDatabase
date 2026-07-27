@@ -5,8 +5,8 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0–4 与独立退出门 PG-0–PG-4 已通过；Stage 5 的
-  P5.1 / CB-500 clean-staging dress rehearsal 已通过。下一节点为
-  P5.2 / CB-510。
+  P5.1 / CB-500 clean-staging dress rehearsal 与 P5.2 / CB-510 真实云激活
+  已完成。下一节点为 P5.3 / CB-520。
 - Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
@@ -15,25 +15,24 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
   `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`；
   `P3.1 / CB-300`；`P3.2 / CB-310`；`P3.3 / CB-320`；`P3.4 / CB-330`；
   `P3.5 / CB-340`；`PG-3`；`P4.1 / CB-400`；`P4.2 / CB-410`；`P4.3 / CB-420`；
-  `P4.4 / CB-430`；`P4.5 / CB-440`；`PG-4`；`P5.1 / CB-500`
-- 当前基线：Stage 5 clean-staging 的精确 implementation/release commit、冻结 Subject/evidence tree、
-  完整许可证/依赖清单及 Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`CB-500` 已完成 clean, isolated, local deterministic
-  dress rehearsal。30 项无凭据本地命令重跑 Timeline、Status、Access、canonical
-  sync、fault/restore、backup、immutable candidate、双流水线、App regression
-  与 TaskPack constraints；封口证据见 `docs/evidence/CB-500/`。这只闭合
-  本地 rehearsal，`FORMAL_FINAL_ACCEPTANCE` 与所有真实 activation 仍为
-  `activation_pending`（R2 为 `hazard_blocked`）。
-- Stage 0–5 任务状态：`CB-000`–`CB-500` 共二十六项任务已通过；CB-510–CB-540
-  共四项任务与 `PG-5` 为 `not_started`；`PG-0=passed`、`PG-1=passed`、
-  `PG-2=passed`、`PG-3=passed`、`PG-4=passed`。下一原生节点只能是独立 Run 的
-  `CB-510`，并须先运行其自己的 TaskPack Router。
-- 真实 Private-Database/Cloudflare/OCI、目标 candidate 安装与服务激活均为
-  `activation_pending`；Timeline、Status、Cloudflare Access/DNS/Analytics 静态
-  发布也为 `activation_pending`；R2 为 `hazard_blocked`，OCI 为
-  `activation_pending`，自愈与 timer 也为 `activation_pending`，直至精确
-  write-scope/真实对象验证或未来的独立 activation attestation。
-  本地 fixture 不折算真实验证，`current`/workspace/service 未变
+  `P4.4 / CB-430`；`P4.5 / CB-440`；`PG-4`；`P5.1 / CB-500`；`P5.2 / CB-510`
+- 当前基线：不可变 release `82b47668c33cc403fee9194ad42b77e49c8b7da3` 已在
+  Linux systemd、Cloudflare Tunnel 与 Owner-only Access 后真实运行；`previous`
+  指针保留为立即回滚面。产品版本仍为 `v0.0.0.5`。
+- 最新 Run：`CB-510` 已以真实 Private-MetaDatabase material roundtrip、受控
+  Timeline 指针、Cloudflare Access/DNS/Tunnel、全局 Status 与 Linux 日频/重大
+  事件同步完成 activation receipt，证据在 `docs/evidence/CB-510/`。运行时
+  Codex 登录与 loopback app-server 已验证，控制面/运维模型调用为 `0`。
+- 真实 WeChat credential 不在已授权受保护范围内：channel/bridge 故意保持
+  `pending_missing_real_wechat_credential` 和 `/readyz=503`，没有启动 simulator
+  或把 pending 写成 ready。最小 Access service-token scope 同样保留 pending，
+  不影响 Owner-only 登录或同机受保护 Status snapshot。
+- Stage 0–5 任务状态：`CB-000`–`CB-510` 已通过；`CB-520`–`CB-540` 与 `PG-5`
+  为 `not_started`；`PG-0=passed` 至 `PG-4=passed`。下一原生节点只能是独立 Run
+  的 `CB-520`，并须先运行其自己的 TaskPack Router。
+- R2 仍为 `hazard_blocked`；OCI、Analytics、请求数 Canary 与真实 rollback 分别
+  留给其后续原生节点。`FORMAL_FINAL_ACCEPTANCE` 仍为 `activation_pending`，不得
+  因 CB-510 的已验证子面提前封口。
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
 ## 唯一身份

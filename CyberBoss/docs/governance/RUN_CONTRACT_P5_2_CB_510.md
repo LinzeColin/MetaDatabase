@@ -1,4 +1,4 @@
-# CB-510 Run Contract — 一次性真实激活、升级、DNS 与 Status
+# P5.2 / CB-510 Run Contract — 一次性真实激活、升级、DNS 与 Status
 
 ## 目标
 
@@ -39,7 +39,7 @@ Private-Database clone、macOS launchd、控制面或运维模型调用。
 - Cloudflare Access/DNS、Status 注册和真实适配器探针均写入
   `docs/evidence/CB-510/summary.json` 与 `subject.json`，不可达项明确为 pending，
   不得标绿。
-- 验证不使用真实时间等待；发生 P0 时只执行确定性停止/回滚。
+- 验证不使用真实时间（real-time）等待；发生 P0 时只执行确定性停止/回滚。
 
 ## 回滚
 
