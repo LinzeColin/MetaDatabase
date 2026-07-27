@@ -1,5 +1,5 @@
 [Unit]
-Description=CyberBoss no-clone canonical data-plane sync
+Description=CyberBoss no-clone material canonical data-plane sync
 After=network-online.target
 Wants=network-online.target
 
@@ -12,7 +12,7 @@ WorkingDirectory=/opt/cyberboss-cloud/current
 Environment=HOME=/var/lib/cyberboss-data
 EnvironmentFile=/etc/cyberboss/cyberboss.env
 UMask=0027
-ExecStart=/usr/bin/flock -n /var/lib/cyberboss-data/canonical-sync/locks/canonical-sync.lock /opt/cyberboss-cloud/shared/toolchains/bin/node /opt/cyberboss-cloud/current/app/scripts/canonical-sync-data.js --mode=daily
+ExecStart=/usr/bin/flock -n /var/lib/cyberboss-data/canonical-sync/locks/canonical-sync.lock /opt/cyberboss-cloud/shared/toolchains/bin/node /opt/cyberboss-cloud/current/app/scripts/canonical-sync-data.js --mode=material
 TimeoutStartSec=300
 
 NoNewPrivileges=true

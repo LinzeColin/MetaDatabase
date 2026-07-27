@@ -128,6 +128,12 @@ test("implementation kit keeps canonical units inactive and candidate-only", () 
   const unit = source(
     "docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync.service",
   );
+  const materialUnit = source(
+    "docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync-material.service",
+  );
+  const materialPath = source(
+    "docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync-material.path",
+  );
   for (const marker of [
     "Type=oneshot",
     "User=cyberboss-data",
@@ -142,8 +148,31 @@ test("implementation kit keeps canonical units inactive and candidate-only", () 
   const timer = source(
     "docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync.timer",
   );
-  assert.match(timer, /OnUnitActiveSec=1min/);
-  assert.match(timer, /Persistent=false/);
+  assert.match(timer, /OnCalendar=\*-\*-\* 03:20:00 UTC/);
+  assert.match(timer, /Persistent=true/);
+  assert.doesNotMatch(timer, /OnUnitActiveSec=1min/);
+  assert.match(unit, /canonical-sync-data\.js --mode=daily/);
+  for (const marker of [
+    "Type=oneshot",
+    "User=cyberboss-data",
+    "Group=cyberboss",
+    "SupplementaryGroups=cyberboss-data",
+    "NoNewPrivileges=true",
+    "ReadOnlyPaths=/opt/cyberboss-cloud /etc/cyberboss",
+    "ReadWritePaths=/var/lib/cyberboss-data /var/lib/cyberboss/canonical-spool",
+  ]) {
+    assert.match(materialUnit, new RegExp(marker));
+  }
+  assert.match(materialUnit, /canonical-sync-data\.js --mode=material/);
+  assert.match(
+    materialPath,
+    /PathChanged=\/var\/lib\/cyberboss\/canonical-spool\/outgoing/,
+  );
+  assert.match(
+    materialPath,
+    /Unit=cyberboss-canonical-sync-material\.service/,
+  );
+  assert.doesNotMatch(materialPath, /launchd|OnUnitActiveSec/);
   const builder = source(
     "docs/product_design/v0.0.0.4/implementation-kit/scripts/build-cloud-process-artifacts.py",
   );
@@ -241,8 +270,40 @@ test("CB-240 executable acceptance proves bounded synthetic claims", (t) => {
   assert.equal(report.ac_030_rebuild.canonical_event_count, 1000);
   assert.equal(report.ac_030_rebuild.terminal_job_count, 1000);
   assert.equal(report.ac_030_rebuild.r2_fixture_only, true);
-  assert.equal(report.ac_031_batching_latency.terminal_jobs, 50);
-  assert.ok(report.ac_031_batching_latency.latency_p95_seconds <= 60);
+  assert.equal(report.ac_031_batching_latency.ordinary_events, 50);
+  assert.equal(report.ac_031_batching_latency.material_events, 3);
+  assert.deepEqual(
+    report.ac_031_batching_latency.material_event_types,
+    ["incident_declared", "recovery_completed", "release_completed"],
+  );
+  assert.equal(
+    report.ac_031_batching_latency.ordinary_sync_schedule,
+    "daily",
+  );
+  assert.equal(
+    report.ac_031_batching_latency.ordinary_sync_on_calendar,
+    "*-*-* 03:20:00 UTC",
+  );
+  assert.equal(
+    report.ac_031_batching_latency.ordinary_remote_commits_before_daily,
+    0,
+  );
+  assert.equal(report.ac_031_batching_latency.empty_commits, 0);
+  assert.equal(
+    report.ac_031_batching_latency.no_new_fact_status,
+    "noop_no_commit",
+  );
+  assert.equal(
+    report.ac_031_batching_latency.ordinary_age_blocks_mutation,
+    false,
+  );
+  assert.equal(
+    report.ac_031_batching_latency.ordinary_age_remote_trigger,
+    false,
+  );
+  assert.ok(
+    report.ac_031_batching_latency.material_latency_p95_seconds <= 60,
+  );
   assert.equal(report.ac_031_batching_latency.terminal_events, 1000);
   assert.equal(report.ac_031_batching_latency.set_diff, 0);
   assert.equal(

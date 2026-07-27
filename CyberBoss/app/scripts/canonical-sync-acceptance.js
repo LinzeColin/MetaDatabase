@@ -340,44 +340,115 @@ function createTerminalJobs(database, count, privateValues) {
   return Object.freeze(jobIds);
 }
 
-async function runTerminalJobLatency(
+async function runCadencePolicy(
   runtimeRoot,
   key,
   releaseCommit,
-  privateValues,
 ) {
-  const root = childDirectory(runtimeRoot, "terminal-latency");
-  let clock = new Date(FIXED_TIME);
+  const root = childDirectory(runtimeRoot, "cadence-policy");
+  let clock = new Date("2026-07-27T02:00:00.000Z");
   const now = () => clock;
   const database = openDatabase(path.join(root, "runtime.db"), key, now);
-  const jobIds = createTerminalJobs(database, 50, privateValues);
+  const ordinaryRecords = Array.from(
+    { length: 50 },
+    (_, index) => fixtureRecord(50_000 + index, releaseCommit, {
+      event_type: "job_summary",
+    }),
+  );
+  const materialEventTypes = [
+    "release_completed",
+    "incident_declared",
+    "recovery_completed",
+  ];
+  const materialRecords = materialEventTypes.map((eventType, index) =>
+    fixtureRecord(51_000 + index, releaseCommit, { event_type: eventType }));
+  enqueueRecords(database, [...ordinaryRecords, ...materialRecords]);
   const spool = childDirectory(root, "spool");
   const coordinator = coordinatorFor(
     spool,
     database,
     now,
     releaseCommit,
+    { maxLagSeconds: 1 },
   );
   const adapter = new FilesystemPrivateDatabaseAdapter({
     root: childDirectory(root, "private-db"),
     now,
   });
   const worker = workerFor(spool, adapter, now);
-  const first = await coordinator.runCycle({ force: true });
-  expect(first.staged >= 50, "TERMINAL_EVENTS_NOT_STAGED");
-  clock = new Date(Date.parse(FIXED_TIME) + 1_000);
-  const drained = await drainCoordinator(coordinator, worker, 50);
-  const status = coordinator.status();
-  expect(status.pendingEvents === 0, "TERMINAL_JOB_SYNC_PENDING");
+  const first = await coordinator.runCycle();
+  expect(
+    first.staged === 0 && first.batch?.deliveryClass === "material",
+    "MATERIAL_BATCH_NOT_PRIORITIZED",
+  );
+  const immediate = await worker.runOnce({ mode: "material" });
+  expect(
+    immediate.status === "completed" &&
+      immediate.results.length === 1 &&
+      immediate.results[0].deliveryClass === "material",
+    "MATERIAL_IMMEDIATE_FLUSH_FAILED",
+  );
+  const operationsAfterMaterial = { ...adapter.operationCounts };
+
+  clock = new Date("2026-07-27T04:00:00.000Z");
+  const second = await coordinator.runCycle();
+  expect(
+    second.batch?.deliveryClass === "ordinary" &&
+      second.status.ordinaryLagExceeded === true &&
+      second.status.mutationAllowed === true,
+    "ORDINARY_LOCAL_BATCH_OR_PROTECTION_DRIFT",
+  );
+  const beforeDaily = await worker.runOnce({ mode: "material" });
+  expect(
+    beforeDaily.status === "noop_no_commit" &&
+      JSON.stringify(adapter.operationCounts) ===
+        JSON.stringify(operationsAfterMaterial),
+    "ORDINARY_REMOTE_EARLY_COMMIT",
+  );
+  clock = new Date("2026-07-28T03:20:00.000Z");
+  const dailyBatch = await coordinator.runCycle();
+  expect(
+    dailyBatch.batch?.deliveryClass === "ordinary",
+    "ORDINARY_DAILY_OBJECT_MATERIALIZATION_FAILED",
+  );
+  const daily = await worker.runOnce({ mode: "daily" });
+  expect(
+    daily.status === "completed" &&
+      daily.results.length === 1 &&
+      daily.results[0].deliveryClass === "ordinary",
+    "ORDINARY_DAILY_SYNC_FAILED",
+  );
+  await coordinator.runCycle();
+  const remote = await readRemoteCanonical(adapter);
+  expect(
+    coordinator.status().pendingEvents === 0 &&
+      remote.events.size === ordinaryRecords.length + materialRecords.length,
+    "CADENCE_RECONCILIATION_FAILED",
+  );
+  const operationsAfterDaily = { ...adapter.operationCounts };
+  const noop = await worker.runOnce({ mode: "daily" });
+  expect(
+    noop.status === "noop_no_commit" &&
+      JSON.stringify(adapter.operationCounts) ===
+        JSON.stringify(operationsAfterDaily),
+    "EMPTY_COMMIT_NOT_NOOP",
+  );
   database.close();
   return Object.freeze({
-    terminal_jobs: jobIds.length,
-    canonical_events: first.staged,
-    batch_count: drained.batchIds.length,
+    ordinary_events: ordinaryRecords.length,
+    material_events: materialRecords.length,
+    material_event_types: Object.freeze([...materialEventTypes].sort()),
+    canonical_events: ordinaryRecords.length + materialRecords.length,
+    ordinary_sync_schedule: "daily",
+    ordinary_sync_on_calendar: "*-*-* 03:20:00 UTC",
+    ordinary_remote_commits_before_daily: 0,
+    empty_commits: 0,
+    no_new_fact_status: noop.status,
+    ordinary_age_blocks_mutation: false,
     latency_clock: "virtual",
-    latency_samples: jobIds.length,
-    latency_p95_seconds: 1,
-    latency_limit_seconds: 60,
+    latency_samples: materialRecords.length,
+    material_latency_p95_seconds: 0,
+    material_latency_limit_seconds: 60,
     within_limit: true,
     real_wait_calls: 0,
   });
@@ -509,14 +580,16 @@ async function runBatchThresholds(
   );
   byteDatabase.close();
 
-  const ageRoot = childDirectory(runtimeRoot, "age-threshold");
+  const ageRoot = childDirectory(runtimeRoot, "ordinary-age");
   clock = new Date(FIXED_TIME);
   const ageDatabase = openDatabase(
     path.join(ageRoot, "runtime.db"),
     key,
     now,
   );
-  enqueueRecords(ageDatabase, [fixtureRecord(20_000, releaseCommit)]);
+  enqueueRecords(ageDatabase, [fixtureRecord(20_000, releaseCommit, {
+    event_type: "job_summary",
+  })]);
   const ageCoordinator = coordinatorFor(
     childDirectory(ageRoot, "spool"),
     ageDatabase,
@@ -525,26 +598,43 @@ async function runBatchThresholds(
     {
       flushOnTerminal: false,
       maxAgeMs: 60_000,
+      maxLagSeconds: 1,
     },
   );
-  expect((await ageCoordinator.runCycle()).batch === null, "AGE_EARLY_FLUSH");
+  expect(
+    (await ageCoordinator.runCycle()).batch === null,
+    "AGE_EARLY_OBJECT_FLUSH",
+  );
   clock = new Date(Date.parse(FIXED_TIME) + 59_999);
-  expect((await ageCoordinator.runCycle()).batch === null, "AGE_EARLY_FLUSH");
+  expect(
+    (await ageCoordinator.runCycle()).batch === null,
+    "AGE_EARLY_OBJECT_FLUSH",
+  );
   clock = new Date(Date.parse(FIXED_TIME) + 60_000);
   const ageCycle = await ageCoordinator.runCycle();
-  expect(ageCycle.batch?.eventCount === 1, "AGE_THRESHOLD_INVALID");
+  expect(
+    ageCycle.batch === null &&
+      ageCycle.status.ordinaryLagExceeded === true &&
+      ageCycle.status.mutationAllowed === true,
+    "ORDINARY_AGE_REMOTE_TRIGGER_OR_PROTECTION",
+  );
+  const operatorCycle = await ageCoordinator.runCycle({ force: true });
+  expect(
+    operatorCycle.batch?.eventCount === 1,
+    "OPERATOR_OBJECT_MATERIALIZATION_INVALID",
+  );
   ageDatabase.close();
 
   return Object.freeze({
     terminal_events: records.length,
     max_records: 50,
     max_uncompressed_bytes: 262_144,
-    max_age_seconds: 60,
+    ordinary_age_remote_trigger: false,
     count_threshold_batch_count: batchSizes.length,
     count_threshold_batch_sizes: Object.freeze([...batchSizes]),
     byte_threshold_selected_events: byteCycle.batch.eventCount,
     byte_threshold_uncompressed_limit: twoRecordBytes,
-    age_threshold_flush_at_seconds: 60,
+    ordinary_age_blocks_mutation: false,
     pending_during_failure: true,
     backlog_mutation_stopped: true,
     mutation_restored_after_catchup: true,
@@ -862,11 +952,10 @@ async function runAcceptance(args) {
     result: ["CB240", "PRIVATE", "RESULT", "31ab"].join("-"),
   });
   const executableSuite = runExecutableSuite();
-  const terminalLatency = await runTerminalJobLatency(
+  const cadence = await runCadencePolicy(
     runtimeRoot,
     key,
     args["release-commit"],
-    privateValues,
   );
   const thresholds = await runBatchThresholds(
     runtimeRoot,
@@ -902,11 +991,12 @@ async function runAcceptance(args) {
     executable_suite: executableSuite,
     ac_030_rebuild: thresholds.rebuild,
     ac_031_batching_latency: {
-      ...terminalLatency,
+      ...cadence,
       terminal_events: thresholds.terminal_events,
       max_records: thresholds.max_records,
       max_uncompressed_bytes: thresholds.max_uncompressed_bytes,
-      max_age_seconds: thresholds.max_age_seconds,
+      ordinary_age_remote_trigger:
+        thresholds.ordinary_age_remote_trigger,
       count_threshold_batch_count:
         thresholds.count_threshold_batch_count,
       count_threshold_batch_sizes:
@@ -915,8 +1005,8 @@ async function runAcceptance(args) {
         thresholds.byte_threshold_selected_events,
       byte_threshold_uncompressed_limit:
         thresholds.byte_threshold_uncompressed_limit,
-      age_threshold_flush_at_seconds:
-        thresholds.age_threshold_flush_at_seconds,
+      ordinary_age_blocks_mutation:
+        thresholds.ordinary_age_blocks_mutation,
       pending_during_failure: thresholds.pending_during_failure,
       backlog_mutation_stopped:
         thresholds.backlog_mutation_stopped,

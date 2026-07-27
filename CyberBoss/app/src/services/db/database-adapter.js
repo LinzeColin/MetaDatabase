@@ -3219,7 +3219,7 @@ class RuntimeSpoolDatabase {
     at = this.#timestamp(),
   } = {}) {
     this.#assertOpen();
-    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50) {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 10_000) {
       throw new RuntimeSpoolError("CANONICAL_BATCH_LIMIT_INVALID");
     }
     const now = timestampFrom(at);
@@ -3583,6 +3583,11 @@ class RuntimeSpoolDatabase {
     maxPendingEvents = 10_000,
     maxPendingBytes = 64 * 1024 * 1024,
     maxLagSeconds = 900,
+    materialEventTypes = [
+      "incident_declared",
+      "recovery_completed",
+      "release_completed",
+    ],
   } = {}) {
     this.#assertOpen();
     const now = timestampFrom(at);
@@ -3592,10 +3597,33 @@ class RuntimeSpoolDatabase {
       !Number.isSafeInteger(maxPendingBytes) ||
       maxPendingBytes < 1 ||
       !Number.isSafeInteger(maxLagSeconds) ||
-      maxLagSeconds < 1
+      maxLagSeconds < 1 ||
+      !Array.isArray(materialEventTypes)
     ) {
       throw new RuntimeSpoolError("CANONICAL_STATUS_LIMIT_INVALID");
     }
+    const normalizedMaterialEventTypes = [...new Set(
+      materialEventTypes.map((value) => String(value || "").trim()),
+    )].sort();
+    const expectedMaterialEventTypes = [
+      "incident_declared",
+      "recovery_completed",
+      "release_completed",
+    ];
+    if (
+      normalizedMaterialEventTypes.length !== expectedMaterialEventTypes.length ||
+      normalizedMaterialEventTypes.some(
+        (value, index) => value !== expectedMaterialEventTypes[index],
+      )
+    ) {
+      throw new RuntimeSpoolError("CANONICAL_MATERIAL_EVENT_TYPES_INVALID");
+    }
+    const materialCanonicalEventTypes = normalizedMaterialEventTypes.map(
+      (value) => `job.${value}`,
+    );
+    const materialPlaceholders = materialCanonicalEventTypes
+      .map(() => "?")
+      .join(", ");
     const pending = this.database
       .prepare(
         `SELECT
@@ -3605,11 +3633,20 @@ class RuntimeSpoolDatabase {
            MIN(created_at) AS oldest_at,
            SUM(CASE WHEN status='integrity_error' THEN 1 ELSE 0 END)
              AS integrity_count,
+           SUM(
+             CASE
+               WHEN status='retry'
+                 AND json_extract(payload_redacted_json, '$.event_type')
+                   IN (${materialPlaceholders})
+               THEN 1
+               ELSE 0
+             END
+           ) AS material_retry_count,
            MAX(last_error_class) AS last_error_class
          FROM sync_spool
          WHERE status IN ('pending','syncing','retry','integrity_error')`,
       )
-      .get();
+      .get(...materialCanonicalEventTypes);
     const last = this.database
       .prepare(
         `SELECT canonical_object_sha256, verified_at
@@ -3630,11 +3667,12 @@ class RuntimeSpoolDatabase {
         )
       : 0;
     const integrityCount = Number(pending.integrity_count || 0);
+    const materialRetryCount = Number(pending.material_retry_count || 0);
     const mutationAllowed =
       integrityCount === 0 &&
       pendingEvents < maxPendingEvents &&
       pendingBytes < maxPendingBytes &&
-      oldestPendingAgeSeconds <= maxLagSeconds;
+      materialRetryCount === 0;
     return Object.freeze({
       state:
         integrityCount > 0
@@ -3649,7 +3687,9 @@ class RuntimeSpoolDatabase {
       pendingEvents,
       pendingBytes,
       oldestPendingAgeSeconds,
+      ordinaryLagExceeded: oldestPendingAgeSeconds > maxLagSeconds,
       integrityCount,
+      materialRetryCount,
       lastObjectSha256: last?.canonical_object_sha256 || null,
       lastVerifiedAt: last?.verified_at || null,
       lastErrorClass: pending.last_error_class || null,

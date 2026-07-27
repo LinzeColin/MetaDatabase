@@ -186,10 +186,18 @@ clock。它不切 `current`、不 enable/start service、不读取真实凭据�
 真实 WeChat/Runtime/Private-MetaDatabase。canonical sync 属于 CB-240，
 PG-2 仍须在五个 Stage 2 tasks 全部通过后独立执行。
 
-P2.5 增加 identity-separated canonical sync。code plane 只把 terminal
-job/material event 映射为严格 allowlist 的脱敏记录，按最多 50 条、
-262144 bytes 或 60 秒生成 deterministic gzip content-addressed object；
-`cyberboss-data` data plane 才能经 fail-closed wrapper 调用
+P2.5 在 Owner 锁定的产品 `v0.0.0.5` 下增加 identity-separated canonical
+sync。code plane 只把 terminal job/material event 映射为严格 allowlist 的
+脱敏记录，按最多 50 条、262144 bytes 生成本地 deterministic gzip
+content-addressed object；普通事实即时进入 SQLite/redacted outgoing spool，
+不会因 60 秒 age 产生远端提交。ordinary 远端同步仅由 `daily` timer 或
+operator `sync`（默认 `03:20 UTC`）触发；`release_completed`、
+`incident_declared`、`recovery_completed` 三类 material event 使用有界
+`material` invocation，目标不超过 60 秒。新 outgoing object 由受控的
+`cyberboss-canonical-sync-material.path` 触发同一 data identity 的 oneshot
+worker；它只处理 material object，和 daily worker 共用单一 flock。`cyberboss-data`
+data plane 才能经
+fail-closed wrapper 调用
 `private_db_client.py ingest|get|list|verify`。wrapper 绑定实际 OS identity，
 禁止 code identity 执行 data client，且全流程不 clone
 Private-Database。
@@ -197,7 +205,9 @@ Private-Database。
 sync worker 在 ingest 前后均重取 manifest/object/event set；409、429、
 403、transient 与 partial-success 保持 pending 或安全确认，不做
 last-write-wins。同 event ID/different record hash 进入 P0 quarantine 并
-阻断新的 bounded mutation，read-only 仍可 drain。专项验收执行 1,000
+阻断新的 bounded mutation；material retry 与 resource budget 同样保护，
+普通 backlog age 只观测不保护，read-only 仍可 drain。无新事实返回
+`noop_no_commit`，不得创建空 commit。专项验收执行 1,000
 terminal events、50 concurrent sync groups、10 分钟虚拟 outage/catch-up，
 删除隔离 SQLite 后仅从 canonical objects 与 deterministic R2 pointer
 fixture 重建 terminal index 和供 CB-300 消费的 Timeline source。真实

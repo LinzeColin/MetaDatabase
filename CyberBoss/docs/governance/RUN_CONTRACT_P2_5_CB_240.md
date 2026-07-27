@@ -7,20 +7,29 @@
 > Implement redacted append-only Private-MetaDatabase canonical sync.
 
 以已通过的 `P2.4 / CB-230` closure
-`8793e186f4baa2767dc3da0378492ffa17984d4d` 为冻结输入，在 schema v4、
-durable inbox/job/outbox 与 delivery truth 之上交付：
+`8793e186f4baa2767dc3da0378492ffa17984d4d` 为冻结输入，并应用 Owner 提供的
+`CyberBoss_v0.0.0.5_TASKPACK.zip`（SHA-256
+`77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a`）中的
+v0.0.0.7 closure amendment。产品版本固定为 `v0.0.0.5`，设计基线保持
+`v0.0.0.4`；本 Run 不修改版本。在 schema v4、durable inbox/job/outbox 与
+delivery truth 之上交付：
 
 - terminal job/material event 到严格 allowlist canonical event 的稳定映射；
-- 最多 50 条、262144 bytes 或 60 秒触发的 deterministic compressed
-  content-addressed batch；
+- 最多 50 条、262144 bytes 的本地 deterministic compressed
+  content-addressed object；普通事实即时写入 SQLite/redacted spool，60 秒 age
+  不得触发远端提交；
+- ordinary 远端同步只由 `daily` timer/operator `sync` 触发，默认
+  `03:20 UTC`；`release_completed`、`incident_declared`、
+  `recovery_completed` 三类 material event 走有界即时 invocation，目标
+  `<=60s`；无新事实返回 `noop_no_commit`；
 - code identity 只生成脱敏 spool、消费 hash-only receipt；
   `cyberboss-data` identity 才能调用 no-clone
   `private_db_client.py ingest|get|list|verify`；
 - manifest 409、403/429、连接故障和 partial-success 后的幂等重取、重试与
   event-ID set verification；
 - same event ID/different record hash 的 P0 integrity quarantine；
-- pending count、oldest age、last object、last verification 与 backlog
-  mutation-stop 状态；
+- pending count、oldest age（观测，不作为普通事实保护条件）、last object、last
+  verification 与仅 integrity/resource/material-retry 触发的 mutation-stop 状态；
 - 不依赖原 SQLite 的 terminal index 与 canonical Timeline source 重建。
 
 本 Run 不执行 `PG-2` 或 `CB-300`，不交付 Timeline Web/build/search，不激活
@@ -30,14 +39,18 @@ durable inbox/job/outbox 与 delivery truth 之上交付：
 ## 2. Authoritative scope
 
 - Task：`04_TASK_DAG_EXECUTION_PACK.yaml / CB-240`；
+- Owner amendment：TaskPack v0.0.0.7 / product v0.0.0.5 的
+  `patch_specs/CB-240_OWNER_AMENDMENT.md`；每个边界已运行该包 local Skill
+  Router，CB-240 只使用 `output-skill` 对应的轻量输出完整性约束；
 - dependencies：`CB-120`、`CB-200`、`CB-230`，均已 `passed`；
 - Acceptance：
   - `AC-030`：删除隔离 SQLite 后，只用 no-clone canonical objects 与
     deterministic R2 recovery-pointer fixture 重建 terminal index/Timeline
     source，event/index hashes 一致；
-  - `AC-031`：1,000 个 terminal events 覆盖 record/byte/60-second
-    threshold；失败显式 pending，恢复后 set diff=0；50 个 terminal jobs
-    的 sync latency P95 `<=60s`；
+  - `AC-031`：1,000 个 terminal events 覆盖 record/byte object boundary；
+    普通事实仅日频提交、三类 material event 虚拟时钟即时 flush
+    P95 `<=60s`、无空提交、普通 age 不阻断 bounded mutation；失败显式 pending，
+    恢复后 set diff=0；
   - `AC-032`：50 组并发 sync、manifest 409、403/429、outage 与 partial
     success 均不覆盖、不丢失，event ID/hash 集合一致并尊重 retry hint；
   - `AC-033`：canonical object、spool、receipt、rebuild output、DB/WAL/SHM
@@ -49,8 +62,9 @@ durable inbox/job/outbox 与 delivery truth 之上交付：
     冲突绝不 last-write-wins；
   - code identity 不得执行 data client，data identity 不得读取 active
     prompt/result 或写 code workspace；
-  - short outage 不阻塞 durable inbox/outbox；达到 count/byte/lag
-    protect threshold 后只阻断新的 bounded mutation；
+  - short outage 不阻塞 durable inbox/outbox；达到 count/byte resource 预算、
+    integrity incident 或 material retry 后才阻断新的 bounded mutation；普通
+    backlog age 仅记录为 degraded observation，不单独阻断 mutation；
 - release artifact：
   `/opt/cyberboss-cloud/releases/<implementation-commit>/evidence/canonical-sync-report.json`。
 
@@ -78,8 +92,10 @@ Timeline Web/build/search 与完整恢复推广分别仍属于 `CB-400`、`CB-30
 
 ### 3.2 Deterministic batching and identity-separated worker
 
-- batch 同时受 `max_records=50`、`max_bytes=262144`、`max_age=60s`
-  约束，显式 terminal flush 可提前触发；clock/timer 可注入；
+- local object 同时受 `max_records=50`、`max_bytes=262144` 约束；旧
+  `max_age=60s` 变量仅 parse-compatible，绝不触发远端提交。ordinary 由
+  `daily` / `03:20 UTC` dispatch，material allowlist 由显式 `material`
+  invocation dispatch；clock/timer 可注入且测试无真实等待；
 - events 先按 stable event ID 排序，写 deterministic NDJSON header +
   records，再用 deterministic gzip 压缩；object SHA-256、event-set SHA-256、
   first/last event ID 和 logical type 可复算；
@@ -104,9 +120,9 @@ Timeline Web/build/search 与完整恢复推广分别仍属于 `CB-400`、`CB-30
   停止新的 mutation，不覆盖、不删除源 event/object；
 - status 至少暴露 state、pending events/bytes、oldest age、last object
   SHA-256、last verified time、last error class、mutation allowed；
-- pending count/bytes 超配置预算、oldest normal lag `>900s` 或 integrity
-  incident 时，scheduler 拒绝新的 `bounded_mutation`，仍允许 read-only、
-  status 和既有 durable drain。
+- pending count/bytes 超配置预算、integrity incident 或 material retry 时，
+  scheduler 拒绝新的 `bounded_mutation`，仍允许 read-only、status 和既有
+  durable drain；普通 normal lag `>900s` 只暴露 observation，不改变该决定。
 
 ### 3.4 Rebuild
 
@@ -164,6 +180,8 @@ Timeline Web/build/search 与完整恢复推广分别仍属于 `CB-400`、`CB-30
 - `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/simulators/private-db-simulator.sh`
 - `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync.service`
 - `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync.timer`
+- `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync-material.service`
+- `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync-material.path`
 - `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/simulator-contract.test.mjs`
 - `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_identity_scope.py`
 - `CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/validate_config.js`
@@ -188,16 +206,22 @@ cd CyberBoss/app && npm run check && npm test
 python3 \
   CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_identity_scope.py
 python3 CyberBoss/scripts/validate_cb240.py --prepare
-python3 CyberBoss/scripts/validate_prestage0.py
 python3 \
   CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/validate_taskpack.py \
   CyberBoss/docs/product_design/v0.0.0.4
 ```
 
+`validate_prestage0.py` 的冻结断言止于 `P2.4 / CB-230`（包括当时的
+`taskpack_version` 和 `CB-240=not_started`），因此不是 P2.5 的可执行验收。
+本 Run 以同路径的 merge-safe `validate_cb240.py --prepare` 替代；不得把
+前一阶段的预检失败误报为 CB-240 实现失败。
+
 专项测试必须真实执行：
 
-- 50 terminal jobs，sync latency P95 `<=60s`；
-- 1,000 terminal events，record/byte/age batching、集合完整、set diff=0；
+- 50 ordinary facts 在 material mode 下远端提交数为 0，daily mode 于
+  `03:20 UTC` 语义下提交；三类 material event 的虚拟 P95 `<=60s`；
+- 1,000 terminal events，record/byte batching、集合完整、set diff=0；普通
+  age 不生成远端提交且不单独阻断 bounded mutation；
 - fake-clock Private-Database outage 10 分钟后完整 catch-up；
 - 50 concurrent sync sets、manifest 409、403、429 retry hint、transient 与
   partial-success；
@@ -241,8 +265,9 @@ python3 \
   并停止 mutation；
 - **Privacy leak：**完整 prompt/result、secret、原始 identity/thread/target
   进入 object/spool/receipt/rebuild/evidence，立即停止；
-- **Lag/commit storm：**正常网络下 lag 持续 `>15min`、batch 超 50/byte
-  budget 或逐 event remote commit，立即停止；
+- **Lag/commit storm：**material retry 未保护、batch 超 50/byte budget、普通
+  事实在 daily/operator 之外远端提交或出现空 commit，立即停止；普通 lag age
+  本身不是停止条件。
 - **Identity escape：** code identity 可执行 data client、data identity 可写
   code workspace、出现 clone/put/delete，立即停止；
 - **Rollback：** disable canonical data worker/timer，保留 SQLite sync spool、
@@ -252,9 +277,11 @@ python3 \
 
 ## 9. Completion rule
 
-只有 `AC-030`、`AC-031`、`AC-032`、`AC-033` 的全部 executable evidence、
-本地完整回归、exact-commit target candidate install/acceptance 和最终清理都
-通过，才能把 `CB-240` 标为 `passed`。
+只有 `AC-030`、`AC-031`、`AC-032`、`AC-033` 与 Owner amendment
+`FA-AC-001`–`FA-AC-006` 的全部可执行证据、本地完整回归、exact Subject
+digest 和原子 current-truth metadata 都通过，才能把 `CB-240` 标为 `passed`。
+真实 target candidate install/activation 不在本次 closure 中伪造；无真实
+Private-Database credential 的 provider 状态必须保持 `activation_pending`。
 
 真实 Private-MetaDatabase operation 保持 `activation_pending`，不妨碍
 simulator/no-clone adapter contract 通过，但不得报告为真实验证。

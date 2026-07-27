@@ -14,16 +14,26 @@ const {
 
 const DEFAULT_BATCH_MAX_RECORDS = 50;
 const DEFAULT_BATCH_MAX_BYTES = 262_144;
+// Retained only to parse pre-amendment configuration. Age is never a remote
+// dispatch trigger after the CB-240 owner amendment.
 const DEFAULT_BATCH_MAX_AGE_MS = 60_000;
 const DEFAULT_BACKLOG_MAX_EVENTS = 10_000;
 const DEFAULT_BACKLOG_MAX_BYTES = 64 * 1024 * 1024;
 const DEFAULT_MAX_LAG_SECONDS = 900;
+const DEFAULT_MAX_EVENTS_PER_INVOCATION = 2_000;
+const DEFAULT_MAX_UNCOMPRESSED_BYTES_PER_INVOCATION = 10 * 1024 * 1024;
+const DEFAULT_MAX_ATTEMPTS_PER_INVOCATION = 5;
 const DEFAULT_RETRY_BASE_MS = 1_000;
 const DEFAULT_RETRY_MAX_MS = 15 * 60 * 1_000;
 const CANONICAL_AREA = "Private-MetaDatabase";
 const CANONICAL_DOMAIN = "CyberBoss";
 const OBJECT_NAME_PREFIX = "cyberboss-canonical-events-v1_";
 const RECEIPT_STATUSES = new Set(["verified", "retry", "integrity_error"]);
+const DEFAULT_MATERIAL_EVENT_TYPES = Object.freeze([
+  "incident_declared",
+  "recovery_completed",
+  "release_completed",
+]);
 const TERMINAL_STATUSES = new Set([
   "replied",
   "reply_failed",
@@ -98,6 +108,67 @@ function requireSha256(value, code) {
     throw new CanonicalSyncError(code);
   }
   return normalized;
+}
+
+function validateMaterialEventTypes(value) {
+  if (!Array.isArray(value)) {
+    throw new CanonicalSyncError("CANONICAL_MATERIAL_EVENT_TYPES_INVALID");
+  }
+  const normalized = [...new Set(value.map((item) => requireSafeToken(
+    item,
+    "CANONICAL_MATERIAL_EVENT_TYPE_INVALID",
+    160,
+  )))].sort(stableTokenCompare);
+  if (
+    normalized.length !== DEFAULT_MATERIAL_EVENT_TYPES.length ||
+    normalized.some((item, index) => item !== DEFAULT_MATERIAL_EVENT_TYPES[index])
+  ) {
+    throw new CanonicalSyncError("CANONICAL_MATERIAL_EVENT_TYPES_INVALID");
+  }
+  return Object.freeze(normalized);
+}
+
+function canonicalDeliveryClass(record, {
+  materialEventTypes = DEFAULT_MATERIAL_EVENT_TYPES,
+} = {}) {
+  const allowed = validateMaterialEventTypes(materialEventTypes);
+  const eventType = requireSafeToken(
+    record?.event_type,
+    "CANONICAL_EVENT_TYPE_INVALID",
+    160,
+  );
+  const normalized = eventType.startsWith("job.")
+    ? eventType.slice("job.".length)
+    : eventType;
+  return allowed.includes(normalized) ? "material" : "ordinary";
+}
+
+function canonicalBatchDeliveryClass(records, options = {}) {
+  if (!Array.isArray(records) || records.length < 1) {
+    throw new CanonicalSyncError("CANONICAL_BATCH_DELIVERY_CLASS_INVALID");
+  }
+  const classes = new Set(records.map((record) => canonicalDeliveryClass(
+    record,
+    options,
+  )));
+  if (classes.size !== 1) {
+    throw new CanonicalIntegrityError("CANONICAL_BATCH_DELIVERY_CLASS_MIXED");
+  }
+  return classes.values().next().value;
+}
+
+function normalizeWorkerMode(value) {
+  const mode = normalizedText(value);
+  if (!new Set(["daily", "material", "manual"]).has(mode)) {
+    throw new CanonicalSyncError("CANONICAL_WORKER_MODE_INVALID");
+  }
+  return mode;
+}
+
+function workerModeAllows(mode, deliveryClass) {
+  return mode === "material"
+    ? deliveryClass === "material"
+    : mode === "daily" || mode === "manual";
 }
 
 function stableTokenCompare(left, right) {
@@ -1078,6 +1149,8 @@ class CanonicalSpoolCoordinator {
     backlogMaxEvents = DEFAULT_BACKLOG_MAX_EVENTS,
     backlogMaxBytes = DEFAULT_BACKLOG_MAX_BYTES,
     maxLagSeconds = DEFAULT_MAX_LAG_SECONDS,
+    materialEventTypes = DEFAULT_MATERIAL_EVENT_TYPES,
+    ordinarySyncOnCalendar = "*-*-* 03:20:00 UTC",
     flushOnTerminal = true,
     intervalMs = 1_000,
     setIntervalFn = setInterval,
@@ -1094,10 +1167,17 @@ class CanonicalSpoolCoordinator {
       maxBytes < 1 ||
       !Number.isSafeInteger(maxAgeMs) ||
       maxAgeMs < 1 ||
+      ordinarySyncOnCalendar !== "*-*-* 03:20:00 UTC" ||
       typeof now !== "function" ||
       typeof setIntervalFn !== "function" ||
       typeof clearIntervalFn !== "function"
     ) {
+      throw new CanonicalSyncError("CANONICAL_COORDINATOR_CONFIG_INVALID");
+    }
+    const normalizedMaterialEventTypes = validateMaterialEventTypes(
+      materialEventTypes,
+    );
+    if (typeof flushOnTerminal !== "boolean") {
       throw new CanonicalSyncError("CANONICAL_COORDINATOR_CONFIG_INVALID");
     }
     this.database = database;
@@ -1108,11 +1188,14 @@ class CanonicalSpoolCoordinator {
     this.now = now;
     this.maxRecords = maxRecords;
     this.maxBytes = maxBytes;
-    this.maxAgeMs = maxAgeMs;
+    this.legacyMaxAgeMs = maxAgeMs;
     this.backlogMaxEvents = backlogMaxEvents;
     this.backlogMaxBytes = backlogMaxBytes;
     this.maxLagSeconds = maxLagSeconds;
-    this.flushOnTerminal = flushOnTerminal === true;
+    this.materialEventTypes = normalizedMaterialEventTypes;
+    this.ordinarySyncOnCalendar = ordinarySyncOnCalendar;
+    this.materialFlushEnabled = flushOnTerminal;
+    this.lastDailyOrdinarySlot = null;
     this.intervalMs = intervalMs;
     this.setIntervalFn = setIntervalFn;
     this.clearIntervalFn = clearIntervalFn;
@@ -1141,15 +1224,34 @@ class CanonicalSpoolCoordinator {
     return staged;
   }
 
-  #selectBatch(rows) {
+  #parseRow(row) {
+    try {
+      return JSON.parse(row.payload_redacted_json);
+    } catch {
+      throw new CanonicalIntegrityError("CANONICAL_LOCAL_EVENT_JSON_INVALID");
+    }
+  }
+
+  #rowDeliveryClass(row) {
+    return canonicalDeliveryClass(this.#parseRow(row), {
+      materialEventTypes: this.materialEventTypes,
+    });
+  }
+
+  #selectBatch(rows, deliveryClass) {
     const records = [];
     let reachedByteBoundary = false;
     for (const row of rows) {
-      let candidate;
-      try {
-        candidate = JSON.parse(row.payload_redacted_json);
-      } catch {
-        throw new CanonicalIntegrityError("CANONICAL_LOCAL_EVENT_JSON_INVALID");
+      const candidate = this.#parseRow(row);
+      if (
+        canonicalDeliveryClass(candidate, {
+          materialEventTypes: this.materialEventTypes,
+        }) !== deliveryClass
+      ) {
+        continue;
+      }
+      if (records.length >= this.maxRecords) {
+        break;
       }
       try {
         encodeCanonicalBatch([...records, candidate], {
@@ -1169,7 +1271,18 @@ class CanonicalSpoolCoordinator {
         break;
       }
     }
-    return Object.freeze({ records, reachedByteBoundary });
+    return Object.freeze({ records, reachedByteBoundary, deliveryClass });
+  }
+
+  #dailyOrdinarySlot(at) {
+    const date = new Date(at);
+    if (
+      date.getUTCHours() !== 3 ||
+      date.getUTCMinutes() !== 20
+    ) {
+      return null;
+    }
+    return date.toISOString().slice(0, 16);
   }
 
   materializeAssignedBatch() {
@@ -1183,6 +1296,9 @@ class CanonicalSpoolCoordinator {
     }
     const records = rows.map((row) => JSON.parse(row.payload_redacted_json));
     const batch = encodeCanonicalBatch(records, { maxBytes: this.maxBytes });
+    const deliveryClass = canonicalBatchDeliveryClass(batch.records, {
+      materialEventTypes: this.materialEventTypes,
+    });
     if (
       batch.batchId !== assigned.batch_id ||
       rows.some(
@@ -1210,36 +1326,44 @@ class CanonicalSpoolCoordinator {
     } else {
       atomicWrite(target, batch.compressed, 0o640);
     }
-    return Object.freeze({ ...batch, filePath: target });
+    return Object.freeze({ ...batch, deliveryClass, filePath: target });
   }
 
-  buildDueBatch({ force = false } = {}) {
+  buildDueBatch({ force = false, dailyOrdinarySlot = null } = {}) {
     const existing = this.materializeAssignedBatch();
     if (existing) {
       return existing;
     }
     const now = isoTimestamp(this.now());
     const rows = this.database.listUnbatchedCanonicalEvents({
-      limit: this.maxRecords,
+      limit: 10_000,
       at: now,
     });
     if (rows.length === 0) {
       return null;
     }
-    const selected = this.#selectBatch(rows);
+    const deliveryClass = rows.some((row) => (
+      this.#rowDeliveryClass(row) === "material"
+    ))
+      ? "material"
+      : "ordinary";
+    const selected = this.#selectBatch(rows, deliveryClass);
+    if (selected.records.length === 0) {
+      throw new CanonicalIntegrityError("CANONICAL_BATCH_SELECTION_EMPTY");
+    }
     const batch = encodeCanonicalBatch(selected.records, {
       maxBytes: this.maxBytes,
     });
-    const oldestAgeMs = Math.max(
-      0,
-      Date.parse(now) - Date.parse(rows[0].created_at),
-    );
     const due =
       force === true ||
-      this.flushOnTerminal ||
-      rows.length >= this.maxRecords ||
+      (deliveryClass === "material" && this.materialFlushEnabled) ||
+      selected.records.length >= this.maxRecords ||
       selected.reachedByteBoundary ||
-      oldestAgeMs >= this.maxAgeMs;
+      (
+        deliveryClass === "ordinary" &&
+        dailyOrdinarySlot !== null &&
+        dailyOrdinarySlot !== this.lastDailyOrdinarySlot
+      );
     if (!due) {
       return null;
     }
@@ -1249,9 +1373,12 @@ class CanonicalSpoolCoordinator {
       eventSetSha256: batch.eventSetSha256,
       objectSha256: batch.objectSha256,
     });
+    if (deliveryClass === "ordinary" && dailyOrdinarySlot !== null) {
+      this.lastDailyOrdinarySlot = dailyOrdinarySlot;
+    }
     const target = path.join(this.outgoingDirectory, batch.objectName);
     atomicWrite(target, batch.compressed, 0o640);
-    return Object.freeze({ ...batch, filePath: target });
+    return Object.freeze({ ...batch, deliveryClass, filePath: target });
   }
 
   reconcileReceipts() {
@@ -1340,6 +1467,7 @@ class CanonicalSpoolCoordinator {
       maxPendingEvents: this.backlogMaxEvents,
       maxPendingBytes: this.backlogMaxBytes,
       maxLagSeconds: this.maxLagSeconds,
+      materialEventTypes: this.materialEventTypes,
     });
   }
 
@@ -1351,6 +1479,8 @@ class CanonicalSpoolCoordinator {
         ? "canonical_ready"
         : status.integrityCount > 0
           ? "canonical_integrity_error"
+          : status.materialRetryCount > 0
+            ? "canonical_material_backlog_protect"
           : "canonical_backlog_protect",
       status,
     });
@@ -1363,7 +1493,10 @@ class CanonicalSpoolCoordinator {
     this.cyclePromise = Promise.resolve().then(() => {
       const receipts = this.reconcileReceipts();
       const staged = this.stageCandidates();
-      const batch = this.buildDueBatch(options);
+      const batch = this.buildDueBatch({
+        ...options,
+        dailyOrdinarySlot: this.#dailyOrdinarySlot(this.now()),
+      });
       const status = this.status();
       this.database.setServiceState("canonical_sync", {
         integrity_count: status.integrityCount,
@@ -1380,6 +1513,7 @@ class CanonicalSpoolCoordinator {
               eventCount: batch.eventCount,
               eventSetSha256: batch.eventSetSha256,
               objectSha256: batch.objectSha256,
+              deliveryClass: batch.deliveryClass,
             })
           : null,
         status,
@@ -1444,12 +1578,26 @@ class CanonicalDataWorker {
     stateFile,
     adapter,
     now = () => new Date(),
+    materialEventTypes = DEFAULT_MATERIAL_EVENT_TYPES,
+    maxEventsPerInvocation = DEFAULT_MAX_EVENTS_PER_INVOCATION,
+    maxUncompressedBytesPerInvocation =
+      DEFAULT_MAX_UNCOMPRESSED_BYTES_PER_INVOCATION,
+    maxAttemptsPerInvocation = DEFAULT_MAX_ATTEMPTS_PER_INVOCATION,
   } = {}) {
     if (
       !adapter ||
       typeof adapter.ingest !== "function" ||
       !path.isAbsolute(normalizedText(stateFile)) ||
-      typeof now !== "function"
+      typeof now !== "function" ||
+      !Number.isSafeInteger(maxEventsPerInvocation) ||
+      maxEventsPerInvocation < 1 ||
+      maxEventsPerInvocation > 10_000 ||
+      !Number.isSafeInteger(maxUncompressedBytesPerInvocation) ||
+      maxUncompressedBytesPerInvocation < DEFAULT_BATCH_MAX_BYTES ||
+      maxUncompressedBytesPerInvocation > 95 * 1024 * 1024 ||
+      !Number.isSafeInteger(maxAttemptsPerInvocation) ||
+      maxAttemptsPerInvocation < 1 ||
+      maxAttemptsPerInvocation > 100
     ) {
       throw new CanonicalSyncError("CANONICAL_DATA_WORKER_CONFIG_INVALID");
     }
@@ -1459,6 +1607,11 @@ class CanonicalDataWorker {
     this.stateFile = stateFile;
     this.adapter = adapter;
     this.now = now;
+    this.materialEventTypes = validateMaterialEventTypes(materialEventTypes);
+    this.maxEventsPerInvocation = maxEventsPerInvocation;
+    this.maxUncompressedBytesPerInvocation =
+      maxUncompressedBytesPerInvocation;
+    this.maxAttemptsPerInvocation = maxAttemptsPerInvocation;
     this.state = fs.existsSync(stateFile)
       ? readJsonFile(stateFile, "CANONICAL_DATA_STATE_INVALID")
       : dataStateDefault();
@@ -1518,10 +1671,14 @@ class CanonicalDataWorker {
     };
   }
 
-  async #process(filePath) {
-    const batch = decodeCanonicalBatch(fs.readFileSync(filePath));
+  async #process(filePath, batch = null) {
+    const decodedBatch = batch || decodeCanonicalBatch(fs.readFileSync(filePath));
+    const deliveryClass = canonicalBatchDeliveryClass(decodedBatch.records, {
+      materialEventTypes: this.materialEventTypes,
+    });
+    const batchToProcess = decodedBatch;
     const now = isoTimestamp(this.now());
-    const previous = this.state.batches[batch.batchId] || {
+    const previous = this.state.batches[batchToProcess.batchId] || {
       attempt_count: 0,
       status: "pending",
       next_attempt_at: null,
@@ -1533,54 +1690,58 @@ class CanonicalDataWorker {
         Date.parse(previous.next_attempt_at) > Date.parse(now)
       )
     ) {
-      return Object.freeze({ batchId: batch.batchId, status: "skipped" });
+      return Object.freeze({
+        batchId: batchToProcess.batchId,
+        deliveryClass,
+        status: "skipped",
+      });
     }
 
     try {
-      const before = await this.#remoteVerification(batch);
+      const before = await this.#remoteVerification(batchToProcess);
       if (before.match) {
         const receipt = this.#writeReceipt(
-          this.#verifiedReceipt(batch, before.match, now),
+          this.#verifiedReceipt(batchToProcess, before.match, now),
         );
-        this.state.batches[batch.batchId] = {
+        this.state.batches[batchToProcess.batchId] = {
           attempt_count: Number(previous.attempt_count || 0),
           status: "verified",
           next_attempt_at: null,
-          object_sha256: batch.objectSha256,
+          object_sha256: batchToProcess.objectSha256,
         };
         this.#saveState();
-        return receipt;
+        return Object.freeze({ ...receipt, deliveryClass });
       }
 
       try {
         await this.adapter.ingest({
           filePath,
-          batchLabel: batch.batchLabel,
+          batchLabel: batchToProcess.batchLabel,
         });
       } catch (error) {
         if (
           [409, 429, 500, 502, 503, 504].includes(error?.httpStatus) ||
           error?.outcomeUnknown === true
         ) {
-          const afterFailure = await this.#remoteVerification(batch);
+          const afterFailure = await this.#remoteVerification(batchToProcess);
           if (afterFailure.match) {
             const receipt = this.#writeReceipt(
-              this.#verifiedReceipt(batch, afterFailure.match, now),
+              this.#verifiedReceipt(batchToProcess, afterFailure.match, now),
             );
-            this.state.batches[batch.batchId] = {
+            this.state.batches[batchToProcess.batchId] = {
               attempt_count: Number(previous.attempt_count || 0) + 1,
               status: "verified",
               next_attempt_at: null,
-              object_sha256: batch.objectSha256,
+              object_sha256: batchToProcess.objectSha256,
             };
             this.#saveState();
-            return receipt;
+            return Object.freeze({ ...receipt, deliveryClass });
           }
         }
         throw error;
       }
 
-      const after = await this.#remoteVerification(batch);
+      const after = await this.#remoteVerification(batchToProcess);
       if (!after.match) {
         throw new PrivateDatabaseCommandError(
           "CANONICAL_REMOTE_SET_INCOMPLETE",
@@ -1588,37 +1749,37 @@ class CanonicalDataWorker {
         );
       }
       const receipt = this.#writeReceipt(
-        this.#verifiedReceipt(batch, after.match, now),
+        this.#verifiedReceipt(batchToProcess, after.match, now),
       );
-      this.state.batches[batch.batchId] = {
+      this.state.batches[batchToProcess.batchId] = {
         attempt_count: Number(previous.attempt_count || 0) + 1,
         status: "verified",
         next_attempt_at: null,
-        object_sha256: batch.objectSha256,
+        object_sha256: batchToProcess.objectSha256,
       };
       this.#saveState();
-      return receipt;
+      return Object.freeze({ ...receipt, deliveryClass });
     } catch (error) {
       if (error instanceof CanonicalIntegrityError) {
         const receipt = this.#writeReceipt({
           schema_version: 1,
           task_id: "CB-240",
           status: "integrity_error",
-          batch_id: batch.batchId,
-          object_sha256: batch.objectSha256,
-          event_set_sha256: batch.eventSetSha256,
+          batch_id: batchToProcess.batchId,
+          object_sha256: batchToProcess.objectSha256,
+          event_set_sha256: batchToProcess.eventSetSha256,
           error_class: "event_hash_conflict",
           no_clone: true,
           real_data_operation: this.adapter.realDataOperation === true,
         });
-        this.state.batches[batch.batchId] = {
+        this.state.batches[batchToProcess.batchId] = {
           attempt_count: Number(previous.attempt_count || 0) + 1,
           status: "integrity_error",
           next_attempt_at: null,
-          object_sha256: batch.objectSha256,
+          object_sha256: batchToProcess.objectSha256,
         };
         this.#saveState();
-        return receipt;
+        return Object.freeze({ ...receipt, deliveryClass });
       }
       const attempt = Number(previous.attempt_count || 0) + 1;
       const httpStatus = Number(error?.httpStatus || 0) || null;
@@ -1640,37 +1801,83 @@ class CanonicalDataWorker {
         schema_version: 1,
         task_id: "CB-240",
         status: "retry",
-        batch_id: batch.batchId,
-        object_sha256: batch.objectSha256,
-        event_set_sha256: batch.eventSetSha256,
+        batch_id: batchToProcess.batchId,
+        object_sha256: batchToProcess.objectSha256,
+        event_set_sha256: batchToProcess.eventSetSha256,
         error_class: errorClass,
         retry_after_ms: delay,
         next_attempt_at: nextAttemptAt,
         no_clone: true,
         real_data_operation: this.adapter.realDataOperation === true,
       });
-      this.state.batches[batch.batchId] = {
+      this.state.batches[batchToProcess.batchId] = {
         attempt_count: attempt,
         status: "retry",
         next_attempt_at: nextAttemptAt,
-        object_sha256: batch.objectSha256,
+        object_sha256: batchToProcess.objectSha256,
       };
       this.#saveState();
-      return receipt;
+      return Object.freeze({ ...receipt, deliveryClass });
     }
   }
 
-  async runOnce() {
+  async runOnce({ mode = "manual" } = {}) {
+    const normalizedMode = normalizeWorkerMode(mode);
     const files = listRegularFiles(
       this.outgoingDirectory,
       ".ndjson.gz",
     );
     const results = [];
+    let eligible = 0;
+    let deferred = 0;
+    let skipped = 0;
+    let eventCount = 0;
+    let uncompressedBytes = 0;
+    const invocationNow = isoTimestamp(this.now());
     for (const filePath of files) {
-      results.push(await this.#process(filePath));
+      const batch = decodeCanonicalBatch(fs.readFileSync(filePath));
+      const deliveryClass = canonicalBatchDeliveryClass(batch.records, {
+        materialEventTypes: this.materialEventTypes,
+      });
+      if (!workerModeAllows(normalizedMode, deliveryClass)) {
+        deferred += 1;
+        continue;
+      }
+      const previous = this.state.batches[batch.batchId];
+      if (previous?.status === "verified") {
+        skipped += 1;
+        continue;
+      }
+      if (
+        previous?.next_attempt_at &&
+        Date.parse(previous.next_attempt_at) > Date.parse(invocationNow)
+      ) {
+        deferred += 1;
+        continue;
+      }
+      eligible += 1;
+      if (
+        results.length >= this.maxAttemptsPerInvocation ||
+        eventCount + batch.eventCount > this.maxEventsPerInvocation ||
+        uncompressedBytes + batch.uncompressedBytes >
+          this.maxUncompressedBytesPerInvocation
+      ) {
+        deferred += 1;
+        continue;
+      }
+      eventCount += batch.eventCount;
+      uncompressedBytes += batch.uncompressedBytes;
+      results.push(await this.#process(filePath, batch));
     }
     return Object.freeze({
+      status: results.length === 0 ? "noop_no_commit" : "completed",
+      mode: normalizedMode,
       inspected: files.length,
+      eligible,
+      deferred,
+      skipped,
+      eventCount,
+      uncompressedBytes,
       results: Object.freeze(results),
       operations: Object.freeze({ ...this.adapter.operationCounts }),
       realDataOperation: this.adapter.realDataOperation === true,
@@ -1823,11 +2030,17 @@ module.exports = {
   DEFAULT_BATCH_MAX_AGE_MS,
   DEFAULT_BATCH_MAX_BYTES,
   DEFAULT_BATCH_MAX_RECORDS,
+  DEFAULT_MATERIAL_EVENT_TYPES,
+  DEFAULT_MAX_ATTEMPTS_PER_INVOCATION,
+  DEFAULT_MAX_EVENTS_PER_INVOCATION,
   DEFAULT_MAX_LAG_SECONDS,
+  DEFAULT_MAX_UNCOMPRESSED_BYTES_PER_INVOCATION,
   CanonicalDataWorker,
   CanonicalIntegrityError,
   CanonicalSpoolCoordinator,
   CanonicalSyncError,
+  canonicalBatchDeliveryClass,
+  canonicalDeliveryClass,
   FilesystemPrivateDatabaseAdapter,
   NoClonePrivateDatabaseAdapter,
   PrivateDatabaseCommandError,

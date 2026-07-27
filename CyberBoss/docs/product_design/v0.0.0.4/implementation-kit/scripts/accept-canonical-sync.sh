@@ -24,6 +24,8 @@ DATA_GROUP="cyberboss-data"
 CLOUD_UNIT="cyberboss-cloud.service"
 SYNC_UNIT="cyberboss-canonical-sync.service"
 SYNC_TIMER="cyberboss-canonical-sync.timer"
+SYNC_MATERIAL_UNIT="cyberboss-canonical-sync-material.service"
+SYNC_MATERIAL_PATH="cyberboss-canonical-sync-material.path"
 
 fail() {
   printf 'CANONICAL_SYNC_ACCEPTANCE=FAIL reason=%s\n' "$1"
@@ -104,7 +106,17 @@ jq -e --arg release "$RELEASE_ID" '
   .canonical_sync.allowed_operations == ["ingest","get","list","verify"] and
   .canonical_sync.max_records == 50 and
   .canonical_sync.max_uncompressed_bytes == 262144 and
-  .canonical_sync.max_age_seconds == 60 and
+  .canonical_sync.ordinary_sync_schedule == "daily" and
+  .canonical_sync.ordinary_sync_on_calendar == "*-*-* 03:20:00 UTC" and
+  .canonical_sync.ordinary_remote_age_trigger == false and
+  .canonical_sync.immediate_event_types == ["incident_declared","recovery_completed","release_completed"] and
+  .canonical_sync.immediate_flush_target_seconds == 60 and
+  .canonical_sync.empty_commit_allowed == false and
+  .canonical_sync.ordinary_age_blocks_mutation == false and
+  .canonical_sync.material_backlog_protects_mutation == true and
+  .canonical_sync.max_events_per_invocation == 2000 and
+  .canonical_sync.max_uncompressed_bytes_per_invocation == 10485760 and
+  .canonical_sync.max_attempts_per_invocation == 5 and
   .canonical_sync.deterministic_gzip == true and
   .canonical_sync.content_addressed == true and
   .canonical_sync.manifest_conflict_last_write_wins == false and
@@ -123,7 +135,8 @@ jq -e --arg release "$RELEASE_ID" '
 ' "$RELEASE_PATH/release-manifest.json" >/dev/null ||
   fail "candidate_manifest_contract"
 
-for unit in "$CLOUD_UNIT" "$SYNC_UNIT" "$SYNC_TIMER"; do
+for unit in "$CLOUD_UNIT" "$SYNC_UNIT" "$SYNC_TIMER" \
+  "$SYNC_MATERIAL_UNIT" "$SYNC_MATERIAL_PATH"; do
   systemctl is-active --quiet "$unit" && fail "unit_must_be_inactive:$unit"
   systemctl is-enabled --quiet "$unit" 2>/dev/null &&
     fail "unit_must_be_disabled:$unit"
@@ -239,12 +252,20 @@ jq -e --arg release "$RELEASE_ID" --arg target "$EXPECTED_TARGET_HASH" '
   .ac_030_rebuild.terminal_job_count == 1000 and
   .ac_030_rebuild.r2_fixture_only == true and
   .ac_030_rebuild.real_r2_operation == false and
-  .ac_031_batching_latency.terminal_jobs == 50 and
-  .ac_031_batching_latency.latency_p95_seconds <= 60 and
+  .ac_031_batching_latency.ordinary_events == 50 and
+  .ac_031_batching_latency.material_events == 3 and
+  .ac_031_batching_latency.material_event_types == ["incident_declared","recovery_completed","release_completed"] and
+  .ac_031_batching_latency.ordinary_sync_schedule == "daily" and
+  .ac_031_batching_latency.ordinary_sync_on_calendar == "*-*-* 03:20:00 UTC" and
+  .ac_031_batching_latency.ordinary_remote_commits_before_daily == 0 and
+  .ac_031_batching_latency.empty_commits == 0 and
+  .ac_031_batching_latency.no_new_fact_status == "noop_no_commit" and
+  .ac_031_batching_latency.ordinary_age_blocks_mutation == false and
+  .ac_031_batching_latency.ordinary_age_remote_trigger == false and
+  .ac_031_batching_latency.material_latency_p95_seconds <= 60 and
   .ac_031_batching_latency.terminal_events == 1000 and
   .ac_031_batching_latency.count_threshold_batch_count == 20 and
   ([.ac_031_batching_latency.count_threshold_batch_sizes[] == 50] | all) and
-  .ac_031_batching_latency.age_threshold_flush_at_seconds == 60 and
   .ac_031_batching_latency.pending_during_failure == true and
   .ac_031_batching_latency.set_diff == 0 and
   .ac_032_conflict_retry.concurrent_sync_groups == 50 and
@@ -298,7 +319,8 @@ for directory in outgoing receipts quarantine; do
     -mindepth 1 -maxdepth 1 -print -quit)" ]] ||
     fail "canonical_spool_changed:$directory"
 done
-for unit in "$CLOUD_UNIT" "$SYNC_UNIT" "$SYNC_TIMER"; do
+for unit in "$CLOUD_UNIT" "$SYNC_UNIT" "$SYNC_TIMER" \
+  "$SYNC_MATERIAL_UNIT" "$SYNC_MATERIAL_PATH"; do
   systemctl is-active --quiet "$unit" && fail "unit_active_after:$unit"
   systemctl is-enabled --quiet "$unit" 2>/dev/null &&
     fail "unit_enabled_after:$unit"

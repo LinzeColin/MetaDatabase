@@ -321,6 +321,118 @@ test("429 retry hint and fake-clock ten-minute outage catch up without real wait
   database.close();
 });
 
+test("ordinary facts wait for daily dispatch while material facts flush immediately", async (t) => {
+  const root = temporaryDirectory(t);
+  let clock = new Date("2026-07-27T02:00:00.000Z");
+  const now = () => clock;
+  const database = openDatabase(path.join(root, "runtime.db"), now);
+  const ordinary = fixtureRecord(60_000, { event_type: "job_summary" });
+  const material = fixtureRecord(60_001, {
+    event_type: "release_completed",
+  });
+  for (const record of [ordinary, material]) {
+    database.enqueueSyncEvent({
+      eventId: record.event_id,
+      objectType: "fixture_terminal_event",
+      objectId: record.job_id,
+      canonicalPath:
+        `Private-MetaDatabase/CyberBoss/events/${record.event_id}.json`,
+      payloadRedacted: record,
+    });
+  }
+  const coordinator = createCoordinator(root, database, now, {
+    maxLagSeconds: 1,
+  });
+  const first = await coordinator.runCycle();
+  assert.equal(first.batch.deliveryClass, "material");
+
+  const adapter = new FilesystemPrivateDatabaseAdapter({
+    root: path.join(root, "private-db"),
+    now,
+  });
+  const worker = new CanonicalDataWorker({
+    outgoingDirectory: path.join(root, "spool", "outgoing"),
+    receiptDirectory: path.join(root, "spool", "receipts"),
+    stateFile: path.join(root, "data-state", "state.json"),
+    adapter,
+    now,
+  });
+  const immediate = await worker.runOnce({ mode: "material" });
+  assert.equal(immediate.status, "completed");
+  assert.equal(immediate.results.length, 1);
+  assert.equal(immediate.results[0].deliveryClass, "material");
+  const operationsAfterMaterial = { ...adapter.operationCounts };
+
+  clock = new Date("2026-07-27T04:00:00.000Z");
+  const second = await coordinator.runCycle();
+  assert.equal(second.batch, null);
+  assert.equal(second.status.ordinaryLagExceeded, true);
+  assert.equal(second.status.mutationAllowed, true);
+  assert.equal(coordinator.mutationGuard().reason, "canonical_ready");
+
+  const beforeDaily = await worker.runOnce({ mode: "material" });
+  assert.equal(beforeDaily.status, "noop_no_commit");
+  assert.deepEqual(adapter.operationCounts, operationsAfterMaterial);
+
+  clock = new Date("2026-07-28T03:20:00.000Z");
+  const dailyBatch = await coordinator.runCycle();
+  assert.equal(dailyBatch.batch.deliveryClass, "ordinary");
+  const daily = await worker.runOnce({ mode: "daily" });
+  assert.equal(daily.status, "completed");
+  assert.equal(daily.results.length, 1);
+  assert.equal(daily.results[0].deliveryClass, "ordinary");
+  await coordinator.runCycle();
+  assert.equal(coordinator.status().pendingEvents, 0);
+
+  const operationsAfterDaily = { ...adapter.operationCounts };
+  const noop = await worker.runOnce({ mode: "daily" });
+  assert.equal(noop.status, "noop_no_commit");
+  assert.deepEqual(adapter.operationCounts, operationsAfterDaily);
+  database.close();
+});
+
+test("material retry protects bounded mutation without ordinary-age protection", async (t) => {
+  const root = temporaryDirectory(t);
+  const now = () => new Date("2026-07-27T02:00:00.000Z");
+  const database = openDatabase(path.join(root, "runtime.db"), now);
+  const material = fixtureRecord(61_000, {
+    event_type: "incident_declared",
+  });
+  database.enqueueSyncEvent({
+    eventId: material.event_id,
+    objectType: "fixture_terminal_event",
+    objectId: material.job_id,
+    canonicalPath:
+      `Private-MetaDatabase/CyberBoss/events/${material.event_id}.json`,
+    payloadRedacted: material,
+  });
+  const coordinator = createCoordinator(root, database, now);
+  await coordinator.runCycle();
+  const adapter = new FilesystemPrivateDatabaseAdapter({
+    root: path.join(root, "private-db"),
+    now,
+    faults: [{ httpStatus: 429, retryAfterMs: 120_000 }],
+  });
+  const worker = new CanonicalDataWorker({
+    outgoingDirectory: path.join(root, "spool", "outgoing"),
+    receiptDirectory: path.join(root, "spool", "receipts"),
+    stateFile: path.join(root, "data-state", "state.json"),
+    adapter,
+    now,
+  });
+  const retry = await worker.runOnce({ mode: "material" });
+  assert.equal(retry.results[0].status, "retry");
+  await coordinator.runCycle();
+  const status = coordinator.status();
+  assert.equal(status.materialRetryCount, 1);
+  assert.equal(status.mutationAllowed, false);
+  assert.equal(
+    coordinator.mutationGuard().reason,
+    "canonical_material_backlog_protect",
+  );
+  database.close();
+});
+
 test("same event id with a different remote record hash quarantines and stops mutation", async (t) => {
   const root = temporaryDirectory(t);
   const now = () => new Date("2026-07-27T00:00:00.000Z");

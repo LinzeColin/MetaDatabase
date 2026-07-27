@@ -1,0 +1,9 @@
+[Unit]
+Description=Trigger CyberBoss material canonical sync for new outgoing objects
+
+[Path]
+PathChanged=/var/lib/cyberboss/canonical-spool/outgoing
+Unit=cyberboss-canonical-sync-material.service
+
+[Install]
+WantedBy=multi-user.target

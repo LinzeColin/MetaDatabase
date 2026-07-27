@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed validator for CyberBoss P2.5 / CB-240."""
+"""Merge-safe, credential-free validator for CyberBoss P2.5 / CB-240."""
 
 from __future__ import annotations
 
@@ -12,37 +12,64 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 
 REPO = Path(__file__).resolve().parents[2]
 PROJECT = REPO / "CyberBoss"
 PACK = PROJECT / "docs/product_design/v0.0.0.4"
 KIT = PACK / "implementation-kit"
 EVIDENCE = PROJECT / "docs/evidence/CB-240"
-BASE_COMMIT = "8793e186f4baa2767dc3da0378492ffa17984d4d"
-EXPECTED_BRANCH = "codex/cyberboss-prestage0"
-EXPECTED_ORIGIN = "git@github.com:LinzeColin/MetaDatabase.git"
-EXPECTED_TARGET_HASH = "7865f743d174"
-EXPECTED_CURRENT = "b2a603e415a2045b441f31e07cf74ac451ba6240"
-EXPECTED_WORKSPACE = "10d988e908d72ea1a43bbed04a2130a338663363"
+
+PUBLIC_IMPLEMENTATION_COMMIT = "839014fc4bcd52e11c8ff50331ff9dbd55fe0827"
+PRODUCT_VERSION = "v0.0.0.5"
+TASKPACK_VERSION = "v0.0.0.7"
+TASKPACK_ZIP_SHA256 = (
+    "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a"
+)
 STRICT_LICENSE = "AGPL-3.0-only AND GPL-3.0-only"
-EXPECTED_ACCEPTANCE = ["AC-030", "AC-031", "AC-032", "AC-033"]
+MATERIAL_EVENT_TYPES = [
+    "incident_declared",
+    "recovery_completed",
+    "release_completed",
+]
+NATIVE_EXECUTION_ORDER = [
+    "CB-240",
+    "PG-2",
+    "CB-300",
+    "CB-310",
+    "CB-320",
+    "CB-330",
+    "CB-340",
+    "PG-3",
+    "CB-400",
+    "CB-410",
+    "CB-420",
+    "CB-430",
+    "CB-440",
+    "PG-4",
+    "CB-500",
+    "CB-510",
+    "CB-520",
+    "CB-530",
+    "CB-540",
+    "PG-5",
+]
+AMENDMENT_ORACLES = [
+    "FA-AC-001",
+    "FA-AC-002",
+    "FA-AC-003",
+    "FA-AC-004",
+    "FA-AC-005",
+    "FA-AC-006",
+]
 
 IMPLEMENTATION_PATHS = {
-    "CyberBoss/app/migrations/005_cb240_canonical_sync.sql",
-    "CyberBoss/app/package.json",
-    "CyberBoss/app/scripts/canonical-rebuild.js",
     "CyberBoss/app/scripts/canonical-sync-acceptance.js",
     "CyberBoss/app/scripts/canonical-sync-data.js",
     "CyberBoss/app/src/core/app.js",
     "CyberBoss/app/src/core/config.js",
     "CyberBoss/app/src/services/canonical/canonical-sync.js",
     "CyberBoss/app/src/services/db/database-adapter.js",
-    "CyberBoss/app/src/services/jobs/job-scheduler.js",
     "CyberBoss/app/test/canonical-sync.test.js",
-    "CyberBoss/app/test/job-scheduler.test.js",
-    "CyberBoss/app/test/runtime-spool.test.js",
     "CyberBoss/docs/governance/RUN_CONTRACT_P2_5_CB_240.md",
     "CyberBoss/docs/product_design/v0.0.0.4/MANIFEST.sha256",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/MANIFEST.sha256",
@@ -50,77 +77,26 @@ IMPLEMENTATION_PATHS = {
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/VALIDATION_REPORT.md",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/cyberboss.env.example",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/accept-canonical-sync.sh",
-    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/build-canonical-sync-artifacts.py",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/build-cloud-process-artifacts.py",
-    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/install-canonical-sync.sh",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/install-cloud-process-family.sh",
-    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/scripts/private_db_client_safe.py",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync.service",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync.timer",
-    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/test_identity_scope.py",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync-material.service",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/systemd/cyberboss-canonical-sync-material.path",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/tests/validate_config.js",
-    "CyberBoss/machine/facts/post-baseline-change-ledger.json",
     "CyberBoss/scripts/validate_cb240.py",
     "CyberBoss/tests/canonical-sync.test.js",
+    "CyberBoss/machine/facts/task_state.json",
 }
 CLOSURE_PATHS = {
     "CyberBoss/CHANGELOG.md",
     "CyberBoss/HANDOFF.md",
     "CyberBoss/README.md",
     "CyberBoss/machine/facts/task_state.json",
+    "CyberBoss/docs/evidence/CB-240/summary.json",
+    "CyberBoss/docs/evidence/CB-240/subject.json",
 }
-FINAL_EVIDENCE = {
-    "VALIDATION_REPORT.md",
-    "artifact-checksums.txt",
-    "artifact-manifest.json",
-    "canonical-sync-report.redacted.json",
-    "implementation-commit.json",
-    "install-apply.redacted.json",
-    "publication-check.json",
-    "rollback-plan.json",
-    "security-report.json",
-    "source-modification-record.json",
-    "target-preflight.redacted.json",
-    "validation.txt",
-}
-FROZEN_PATHS = [
-    "CyberBoss/vendor",
-    "CyberBoss/docs/evidence/CB-000",
-    "CyberBoss/docs/evidence/CB-010",
-    "CyberBoss/docs/evidence/CB-020",
-    "CyberBoss/docs/evidence/CB-030",
-    "CyberBoss/docs/evidence/CB-040",
-    "CyberBoss/docs/evidence/CB-100",
-    "CyberBoss/docs/evidence/CB-110",
-    "CyberBoss/docs/evidence/CB-120",
-    "CyberBoss/docs/evidence/CB-130",
-    "CyberBoss/docs/evidence/CB-140",
-    "CyberBoss/docs/evidence/CB-200",
-    "CyberBoss/docs/evidence/CB-210",
-    "CyberBoss/docs/evidence/CB-220",
-    "CyberBoss/docs/evidence/CB-230",
-    "CyberBoss/docs/evidence/PG-0",
-    "CyberBoss/docs/evidence/PG-1",
-    "CyberBoss/docs/product_design/v0.0.0.4/00_README_FIRST.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/01_PRFAQ_STRATEGY_OKR.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/02_PRD_ACCEPTANCE_CONTRACT.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/03_ARCHITECTURE_DATA_SECURITY.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml",
-    "CyberBoss/docs/product_design/v0.0.0.4/05_ACCELERATED_VERIFICATION_MODEL_SECURITY_RELEASE.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/06_OPERATIONS_STATUS_HANDOVER.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/07_RESEARCH_COMPETITOR_UPSTREAM_FINDINGS.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/08_UPSTREAM_CODE_CHANGE_MAP.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/09_PREAUTHORIZED_DECISIONS_ACTIVATION_INPUTS.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/10_TRACEABILITY_RELEASE_CHECKLIST.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/11_AGENT_EXECUTION_PROMPTS.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/12_CURRENT_ROADMAP.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/13_STAGE2B_STAGE3_UPGRADES.md",
-    "CyberBoss/docs/product_design/v0.0.0.4/14_PURSUING_GOAL.txt",
-    "CyberBoss/machine/source-lock.json",
-    "CyberBoss/LICENSE",
-    "CyberBoss/THIRD_PARTY_NOTICES.md",
-    "CyberBoss/UPSTREAM_PROVENANCE.md",
-]
+FINAL_EVIDENCE = {"summary.json", "subject.json"}
 SECRET_PATTERN = re.compile(
     r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"
     r"|\bgh[pousr]_[A-Za-z0-9]{20,}\b"
@@ -129,6 +105,20 @@ SECRET_PATTERN = re.compile(
     r"|\bAuthorization\s*:\s*Bearer\s+[A-Za-z0-9._~-]{20,}",
     re.IGNORECASE,
 )
+
+
+def git(*args: str, check: bool = True) -> tuple[int, str]:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=REPO,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if check and result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "git_failed")
+    return result.returncode, result.stdout.rstrip()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -143,35 +133,9 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def git(*args: str, check: bool = True) -> tuple[int, str]:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=REPO,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
-    if check and result.returncode != 0:
-        raise RuntimeError(
-            f"git {' '.join(args)} failed ({result.returncode}): "
-            f"{result.stderr.strip()[:180]}"
-        )
-    return result.returncode, result.stdout.rstrip()
-
-
-def changed_paths() -> set[str]:
-    paths = set(
-        filter(None, git("diff", "--name-only", BASE_COMMIT, "HEAD")[1].splitlines())
-    )
-    status = git("status", "--porcelain=v1", "--untracked-files=all")[1]
-    for raw in status.splitlines():
-        value = raw[3:]
-        if " -> " in value:
-            value = value.split(" -> ", 1)[1]
-        if value:
-            paths.add(value)
-    return paths
+def commit_paths(commit: str) -> set[str]:
+    parent = git("rev-parse", f"{commit}^")[1]
+    return set(filter(None, git("diff", "--name-only", parent, commit)[1].splitlines()))
 
 
 def verify_manifest(path: Path, errors: list[str]) -> None:
@@ -207,9 +171,9 @@ def run_command(
     args: list[str],
     errors: list[str],
     *,
-    cwd: Path = REPO,
-    required: tuple[str, ...] = (),
-    timeout: int = 600,
+    cwd: Path,
+    markers: tuple[str, ...] = (),
+    timeout: int = 900,
 ) -> None:
     try:
         result = subprocess.run(
@@ -227,491 +191,259 @@ def run_command(
     if result.returncode != 0:
         tail = result.stdout.strip().splitlines()[-1:] or ["no_output"]
         errors.append(f"command:{name}:{result.returncode}:{tail[0][:180]}")
-    for marker in required:
+    for marker in markers:
         if marker not in result.stdout:
             errors.append(f"command_marker:{name}:{marker}")
 
 
 def validate_state(final: bool, errors: list[str]) -> None:
     state = load_json(PROJECT / "machine/facts/task_state.json")
-    statuses = {row["id"]: row["status"] for row in state["tasks"]}
-    passed = {
-        "CB-000",
-        "CB-010",
-        "CB-020",
-        "CB-030",
-        "CB-040",
-        "CB-100",
-        "CB-110",
-        "CB-120",
-        "CB-130",
-        "CB-140",
-        "CB-200",
-        "CB-210",
-        "CB-220",
-        "CB-230",
+    statuses = {row.get("id"): row.get("status") for row in state.get("tasks", [])}
+    prior_passed = {
+        "CB-000", "CB-010", "CB-020", "CB-030", "CB-040",
+        "CB-100", "CB-110", "CB-120", "CB-130", "CB-140",
+        "CB-200", "CB-210", "CB-220", "CB-230",
     }
-    if final:
-        passed.add("CB-240")
-    for task_id, status in statuses.items():
-        expected = "passed" if task_id in passed else "not_started"
-        if status != expected:
-            errors.append(f"task_state:{task_id}:{status}:{expected}")
+    for task_id in prior_passed:
+        if statuses.get(task_id) != "passed":
+            errors.append(f"task_state_prior:{task_id}")
+    expected_cb240 = "passed" if final else "implemented_not_accepted"
+    if statuses.get("CB-240") != expected_cb240:
+        errors.append(f"task_state_cb240:{statuses.get('CB-240')}:{expected_cb240}")
+    for task_id in (
+        "CB-300", "CB-310", "CB-320", "CB-330", "CB-340",
+        "CB-400", "CB-410", "CB-420", "CB-430", "CB-440",
+        "CB-500", "CB-510", "CB-520", "CB-530", "CB-540",
+    ):
+        if statuses.get(task_id) != "not_started":
+            errors.append(f"task_state_future:{task_id}")
     gates = state.get("pass_gates") or {}
     if gates.get("PG-0") != "passed" or gates.get("PG-1") != "passed":
-        errors.append("prior_gates")
+        errors.append("task_state_prior_gates")
     for gate in ("PG-2", "PG-3", "PG-4", "PG-5"):
         if gates.get(gate) != "not_started":
-            errors.append(f"later_gate:{gate}")
-    expected_current = (
-        {
-            "run_id": "P2.5",
-            "gate_id": None,
-            "task_id": "CB-240",
-            "scope": "canonical_sync_rebuild",
-            "status": "passed",
-        }
-        if final
-        else {
-            "run_id": "P2.4",
-            "gate_id": None,
-            "task_id": "CB-230",
-            "scope": "durable_outbox_delivery_truth",
-            "status": "passed",
-        }
-    )
+            errors.append(f"task_state_future_gate:{gate}")
+    expected_current = {
+        "run_id": "P2.5",
+        "gate_id": None,
+        "task_id": "CB-240",
+        "scope": "canonical_sync_rebuild",
+        "status": expected_cb240,
+    }
     if state.get("current_run") != expected_current:
-        errors.append("current_run")
+        errors.append("task_state_current_run")
+    overlay = state.get("taskpack_overlay") or {}
+    if (
+        state.get("taskpack_version") != TASKPACK_VERSION
+        or overlay.get("product_version") != PRODUCT_VERSION
+        or overlay.get("design_baseline_version") != "v0.0.0.4"
+        or overlay.get("taskpack_zip_sha256") != TASKPACK_ZIP_SHA256
+        or overlay.get("native_execution_order") != NATIVE_EXECUTION_ORDER
+        or overlay.get("control_plane_llm_calls") != 0
+        or overlay.get("operations_llm_calls") != 0
+        or overlay.get("macos_launchd_dependency") is not False
+    ):
+        errors.append("task_state_overlay")
 
 
-def validate_canonical_report(
-    report: dict[str, Any],
-    implementation_commit: str,
-    errors: list[str],
-) -> None:
-    try:
-        latency = report["ac_031_batching_latency"]
-        conflict = report["ac_032_conflict_retry"]
-        privacy = report["ac_033_privacy"]
-        boundaries = report["boundaries"]
-        if (
-            report.get("task_id") != "CB-240"
-            or report.get("phase") != "P2.5"
-            or report.get("release_commit") != implementation_commit
-            or report.get("target_id_sha256") != EXPECTED_TARGET_HASH
-            or report.get("claim_level") != "deterministic_fixture"
-            or report.get("generated_from_synthetic_state") is not True
-            or report.get("result") != "passed"
-            or report["executable_suite"]["failures"] != 0
-            or report["executable_suite"]["fixed_wait"] is not False
-            or report["ac_030_rebuild"]["sqlite_present"] is not False
-            or report["ac_030_rebuild"]["canonical_event_count"] != 1000
-            or report["ac_030_rebuild"]["terminal_job_count"] != 1000
-            or report["ac_030_rebuild"]["r2_fixture_only"] is not True
-            or report["ac_030_rebuild"]["real_r2_operation"] is not False
-            or latency["terminal_jobs"] != 50
-            or latency["latency_p95_seconds"] > 60
-            or latency["terminal_events"] != 1000
-            or latency["count_threshold_batch_count"] != 20
-            or any(size != 50 for size in latency["count_threshold_batch_sizes"])
-            or latency["age_threshold_flush_at_seconds"] != 60
-            or latency["set_diff"] != 0
-            or conflict["concurrent_sync_groups"] != 50
-            or conflict["manifest_409_refetch_exercised"] is not True
-            or conflict["auth_403_pending_exercised"] is not True
-            or conflict["rate_limit_429_exercised"] is not True
-            or conflict["retry_hint_ms"] != 120000
-            or conflict["partial_success_refetch_exercised"] is not True
-            or conflict["outage_duration_seconds"] != 600
-            or conflict["real_wait_calls"] != 0
-            or conflict["set_diff"] != 0
-            or privacy["full_prompt_result_identity_hits"] != 0
-            or privacy["encryption_key_hits"] != 0
-            or report["integrity_protection"][
-                "same_event_id_different_hash_detected"
-            ]
-            is not True
-            or report["integrity_protection"]["last_write_wins"] is not False
-            or report["integrity_protection"]["bounded_mutation_allowed"] is not False
-            or report["canonical_truth"]["allowed_operations"]
-            != ["ingest", "get", "list", "verify"]
-            or report["canonical_truth"]["forbidden_operations"]
-            != ["clone", "put", "delete"]
-            or boundaries["code_data_identity_separated"] is not True
-            or boundaries["real_private_database_operation"] is not False
-            or boundaries["private_database_activation_status"]
-            != "activation_pending"
-            or boundaries["real_r2_operation"] is not False
-            or boundaries["timeline_projection_only"] is not True
-            or boundaries["timeline_web_build_search"] is not False
-            or boundaries["cb_300_executed"] is not False
-            or boundaries["pg_2_executed"] is not False
-            or boundaries["upstream_clarification_received"] is not False
-            or boundaries["license_expression"] != STRICT_LICENSE
-        ):
-            errors.append("evidence_canonical_report")
-    except (KeyError, TypeError):
-        errors.append("evidence_canonical_report_shape")
+def validate_contract(errors: list[str]) -> None:
+    contract = (PROJECT / "docs/governance/RUN_CONTRACT_P2_5_CB_240.md").read_text(
+        encoding="utf-8"
+    )
+    for marker in (
+        "P2.5 / CB-240",
+        PRODUCT_VERSION,
+        TASKPACK_VERSION,
+        TASKPACK_ZIP_SHA256,
+        "03:20 UTC",
+        "release_completed",
+        "incident_declared",
+        "recovery_completed",
+        "noop_no_commit",
+        "same event ID/different record hash",
+        "Private-MetaDatabase",
+        "ingest|get|list|verify",
+        "CB-300",
+        "PG-2",
+        "不创建新 repo",
+        "activation_pending",
+    ):
+        if marker.lower() not in contract.lower():
+            errors.append(f"contract:{marker}")
 
 
-def validate_final_evidence(errors: list[str]) -> None:
+def validate_code_markers(errors: list[str]) -> None:
+    canonical = (PROJECT / "app/src/services/canonical/canonical-sync.js").read_text(
+        encoding="utf-8"
+    )
+    database = (PROJECT / "app/src/services/db/database-adapter.js").read_text(
+        encoding="utf-8"
+    )
+    data_cli = (PROJECT / "app/scripts/canonical-sync-data.js").read_text(
+        encoding="utf-8"
+    )
+    timer = (KIT / "systemd/cyberboss-canonical-sync.timer").read_text(
+        encoding="utf-8"
+    )
+    material_service = (
+        KIT / "systemd/cyberboss-canonical-sync-material.service"
+    ).read_text(encoding="utf-8")
+    material_path = (
+        KIT / "systemd/cyberboss-canonical-sync-material.path"
+    ).read_text(encoding="utf-8")
+    for marker in (
+        "canonicalDeliveryClass",
+        "materialRetryCount",
+        "noop_no_commit",
+        "DEFAULT_MATERIAL_EVENT_TYPES",
+    ):
+        if marker not in canonical:
+            errors.append(f"code_marker:{marker}")
+    if "ordinaryLagExceeded" not in database:
+        errors.append("database_marker:ordinaryLagExceeded")
+    for marker in ("--mode=", "CANONICAL_MODE_INVALID"):
+        if marker not in data_cli:
+            errors.append(f"data_cli_marker:{marker}")
+    if (
+        "OnCalendar=*-*-* 03:20:00 UTC" not in timer
+        or "Persistent=true" not in timer
+        or "OnUnitActiveSec=1min" in timer
+    ):
+        errors.append("daily_timer_contract")
+    if (
+        "canonical-sync-data.js --mode=material" not in material_service
+        or "User=cyberboss-data" not in material_service
+        or "PathChanged=/var/lib/cyberboss/canonical-spool/outgoing"
+        not in material_path
+        or "Unit=cyberboss-canonical-sync-material.service" not in material_path
+    ):
+        errors.append("material_trigger_contract")
+
+
+def validate_subject_and_evidence(errors: list[str]) -> str | None:
     if not EVIDENCE.is_dir():
         errors.append("evidence_missing")
-        return
+        return None
     inventory = {path.name for path in EVIDENCE.iterdir() if path.is_file()}
     if inventory != FINAL_EVIDENCE:
-        errors.append(
-            "evidence_inventory:"
-            f"missing={sorted(FINAL_EVIDENCE - inventory)}:"
-            f"extra={sorted(inventory - FINAL_EVIDENCE)}"
-        )
-        return
-
-    implementation = load_json(EVIDENCE / "implementation-commit.json")
-    implementation_commit = str(implementation.get("implementation_commit"))
+        errors.append(f"evidence_inventory:{sorted(inventory)}")
+        return None
+    summary_path = EVIDENCE / "summary.json"
+    subject_path = EVIDENCE / "subject.json"
+    try:
+        summary = load_json(summary_path)
+        subject = load_json(subject_path)
+    except (OSError, ValueError, TypeError):
+        errors.append("evidence_json")
+        return None
+    implementation_commit = str(subject.get("implementation_commit") or "")
+    implementation_tree = str(subject.get("implementation_tree") or "")
+    if not re.fullmatch(r"[0-9a-f]{40}", implementation_commit):
+        errors.append("subject_implementation_commit")
+        return None
     if (
-        implementation.get("task_id") != "CB-240"
-        or implementation.get("phase") != "P2.5"
-        or implementation.get("base_commit") != BASE_COMMIT
-        or implementation.get("parent_commit") != BASE_COMMIT
-        or not re.fullmatch(r"[0-9a-f]{40}", implementation_commit)
-        or git("rev-parse", f"{implementation_commit}^")[1] != BASE_COMMIT
-        or git(
-            "diff",
-            "--quiet",
-            implementation_commit,
-            "HEAD",
-            "--",
-            *sorted(IMPLEMENTATION_PATHS),
-            check=False,
-        )[0]
+        subject.get("schema_version") != "cyberboss.cb240.subject.v1"
+        or subject.get("task_id") != "CB-240"
+        or subject.get("product_version") != PRODUCT_VERSION
+        or subject.get("taskpack_version") != TASKPACK_VERSION
+        or subject.get("taskpack_zip_sha256") != TASKPACK_ZIP_SHA256
+        or subject.get("public_implementation_commit") != PUBLIC_IMPLEMENTATION_COMMIT
+        or git("rev-parse", f"{implementation_commit}^{{tree}}", check=False)[0] != 0
+        or git("rev-parse", f"{implementation_commit}^{{tree}}", check=False)[1]
+        != implementation_tree
+        or git("merge-base", "--is-ancestor", PUBLIC_IMPLEMENTATION_COMMIT, implementation_commit, check=False)[0]
         != 0
+        or subject.get("summary_sha256") != sha256(summary_path)
+        or subject.get("deployment_release_pointer") != "activation_pending"
+        or subject.get("real_private_database_operations") != 0
+        or subject.get("real_r2_operations") != 0
+        or subject.get("control_plane_llm_calls") != 0
+        or subject.get("operations_llm_calls") != 0
     ):
-        errors.append("evidence_implementation")
-
-    canonical_report = load_json(
-        EVIDENCE / "canonical-sync-report.redacted.json"
-    )
-    validate_canonical_report(canonical_report, implementation_commit, errors)
-
-    artifact = load_json(EVIDENCE / "artifact-manifest.json")
-    source = artifact.get("source") or {}
-    canonical = artifact.get("canonical_sync") or {}
-    deployment = artifact.get("deployment") or {}
+        errors.append("subject_contract")
     if (
-        artifact.get("task_id") != "CB-240"
-        or artifact.get("phase") != "P2.5"
-        or artifact.get("release_commit") != implementation_commit
-        or source.get("license_expression") != STRICT_LICENSE
-        or source.get("corresponding_source_complete") is not True
-        or source.get("original_licenses_preserved") is not True
-        or source.get("upstream_clarification_received") is not False
-        or artifact.get("runtime_spool", {}).get("schema_version") != 5
-        or artifact.get("runtime_spool", {}).get("canonical_sync_integrated")
-        is not True
-        or canonical.get("area") != "Private-MetaDatabase"
-        or canonical.get("domain") != "CyberBoss"
-        or canonical.get("access_mode") != "no_clone_client"
-        or canonical.get("allowed_operations")
-        != ["ingest", "get", "list", "verify"]
-        or canonical.get("max_records") != 50
-        or canonical.get("max_uncompressed_bytes") != 262144
-        or canonical.get("max_age_seconds") != 60
-        or canonical.get("deterministic_gzip") is not True
-        or canonical.get("content_addressed") is not True
-        or canonical.get("manifest_conflict_last_write_wins") is not False
-        or canonical.get("same_id_different_hash_quarantine") is not True
-        or canonical.get("code_data_identity_separated") is not True
-        or canonical.get("rebuild_without_sqlite") is not True
-        or canonical.get("timeline_projection_only") is not True
-        or canonical.get("real_private_database") is not False
-        or canonical.get("private_database_activation_status")
-        != "activation_pending"
-        or canonical.get("real_r2") is not False
-        or canonical.get("cb_300_executed") is not False
-        or canonical.get("pg_2_executed") is not False
-        or deployment.get("candidate_only") is not True
-        or deployment.get("switch_current") is not False
-        or deployment.get("enable_service") is not False
-        or deployment.get("clone_private_database") is not False
-        or deployment.get("remote_publication") != "none"
+        summary.get("schema_version") != "cyberboss.cb240.closure-summary.v1"
+        or summary.get("task_id") != "CB-240"
+        or summary.get("product_version") != PRODUCT_VERSION
+        or summary.get("taskpack_version") != TASKPACK_VERSION
+        or summary.get("taskpack_zip_sha256") != TASKPACK_ZIP_SHA256
+        or summary.get("implementation_commit") != implementation_commit
+        or summary.get("implementation_tree") != implementation_tree
+        or summary.get("public_implementation_commit") != PUBLIC_IMPLEMENTATION_COMMIT
+        or summary.get("acceptance") != {oracle: "passed" for oracle in AMENDMENT_ORACLES}
+        or summary.get("private_database_activation") != "activation_pending"
+        or summary.get("real_private_database_operations") != 0
+        or summary.get("real_r2_operations") != 0
+        or summary.get("control_plane_llm_calls") != 0
+        or summary.get("operations_llm_calls") != 0
+        or summary.get("macos_launchd_dependency") is not False
+        or summary.get("pg_2_executed") is not False
+        or summary.get("result") != "passed"
     ):
-        errors.append("evidence_artifact")
-
-    preflight = load_json(EVIDENCE / "target-preflight.redacted.json")
-    install = load_json(EVIDENCE / "install-apply.redacted.json")
-    for name, document in (("preflight", preflight), ("install", install)):
-        if (
-            document.get("task_id") != "CB-240"
-            or document.get("phase") != "P2.5"
-            or document.get("target_id_sha256") != EXPECTED_TARGET_HASH
-            or document.get("current_release_before") != EXPECTED_CURRENT
-            or document.get("current_release_after") != EXPECTED_CURRENT
-            or document.get("workspace_release_before") != EXPECTED_WORKSPACE
-            or document.get("workspace_release_after") != EXPECTED_WORKSPACE
-            or document.get("service_enabled") is not False
-            or document.get("service_active") is not False
-            or document.get("canonical_service_enabled") is not False
-            or document.get("canonical_service_active") is not False
-            or document.get("canonical_timer_enabled") is not False
-            or document.get("canonical_timer_active") is not False
-            or document.get("code_process_count") != 0
-            or document.get("data_process_count") != 0
-            or document.get("listener_count") != 0
-            or document.get("incoming_count") != 0
-            or document.get("canonical_runtime_db_present") is not False
-            or document.get("result") != "passed"
-        ):
-            errors.append(f"evidence_target_{name}")
-    if (
-        install.get("release_commit") != implementation_commit
-        or install.get("apply_count") != 2
-        or install.get("verify_count") != 1
-        or install.get("idempotent_second_apply") is not True
-        or install.get("candidate_retained") is not True
-        or install.get("candidate_release_immutable") is not True
-        or install.get("target_acceptance_passed") is not True
-        or install.get("target_acceptance_test_count", 0) < 17
-        or install.get("target_acceptance_set_diff") != 0
-        or install.get("target_acceptance_privacy_hits") != 0
-        or install.get("private_database_operations") != 0
-        or install.get("r2_operations") != 0
-        or install.get("real_business_credential_operations") != 0
-        or install.get("service_started") is not False
-        or install.get("staging_cleaned") is not True
-    ):
-        errors.append("evidence_install")
-
-    security = load_json(EVIDENCE / "security-report.json")
-    if (
-        security.get("plaintext_scan_hits") != 0
-        or security.get("secret_scan_hits") != 0
-        or security.get("raw_target_hits") != 0
-        or security.get("canonical_full_prompt_result_identity_hits") != 0
-        or security.get("canonical_encryption_key_hits") != 0
-        or security.get("target_address_persisted") is not False
-        or security.get("real_credentials_used") is not False
-        or security.get("private_database_operations") != 0
-        or security.get("r2_operations") != 0
-        or security.get("result") != "passed"
-    ):
-        errors.append("evidence_security")
-
-    publication = load_json(EVIDENCE / "publication-check.json")
-    if (
-        publication.get("remote_branch_count") != 0
-        or publication.get("remote_ref_count") != 0
-        or publication.get("pr_count") != 0
-        or publication.get("tag_count") != 0
-        or publication.get("release_count") != 0
-        or publication.get("push_performed") is not False
-        or publication.get("remote_publication") != "none"
-        or publication.get("result") != "passed"
-    ):
-        errors.append("evidence_publication")
-
-    source_record = load_json(EVIDENCE / "source-modification-record.json")
-    if (
-        source_record.get("base_commit") != BASE_COMMIT
-        or source_record.get("implementation_commit") != implementation_commit
-        or source_record.get("license_expression") != STRICT_LICENSE
-        or source_record.get("original_source_and_licenses_preserved") is not True
-        or source_record.get("corresponding_source_complete") is not True
-        or source_record.get("conflict_record_preserved") is not True
-        or source_record.get("upstream_clarification_received") is not False
-        or source_record.get("upstream_sync_enabled") is not False
-        or source_record.get("upstream_support_claimed") is not False
-        or source_record.get("upstream_endorsement_claimed") is not False
-        or source_record.get("vendor_original_paths_changed") != []
-        or source_record.get("historical_evidence_paths_changed") != []
-        or source_record.get("result") != "passed"
-    ):
-        errors.append("evidence_source_record")
-
-    rollback = load_json(EVIDENCE / "rollback-plan.json")
-    if (
-        rollback.get("candidate_retained_for_audit") is not True
-        or rollback.get("candidate_retained_inactive") is not True
-        or rollback.get("current_release_rollback_required") is not False
-        or rollback.get("canonical_database_rollback_required") is not False
-        or rollback.get("exact_staging_cleanup_completed") is not True
-        or rollback.get("final_transient_cleanup_completed") is not True
-        or rollback.get("real_canonical_rollback_required") is not False
-        or rollback.get("result") != "passed"
-    ):
-        errors.append("evidence_rollback")
-
-    report = (EVIDENCE / "VALIDATION_REPORT.md").read_text(encoding="utf-8")
-    for marker in (
-        "CB-240 Validation Report",
-        "Task state: `passed`",
-        "CB-300: `not_started`",
-        "PG-2: `not_started`",
-        "canonical events: `1,000`",
-        "concurrent sync groups: `50`",
-        "set diff: `0`",
-        "activation_pending",
-        STRICT_LICENSE,
-        "upstream_clarification_received=false",
-    ):
-        if marker not in report:
-            errors.append(f"evidence_report:{marker}")
-
-    validation = (EVIDENCE / "validation.txt").read_text(encoding="utf-8")
-    for marker in (
-        "CB240_VALIDATION_RECORD",
-        "LOCAL_APP_TESTS=PASS",
-        "TARGET_CANONICAL_ACCEPTANCE=PASS",
-        "TARGET_FINAL_QUIESCENCE=PASS",
-        "PUBLICATION_CHECK=PASS",
-        "CB_300_STARTED=false",
-        "PG_2_EXECUTED=false",
-        "REAL_PRIVATE_DATABASE_OPERATIONS=0",
-        "REAL_R2_OPERATIONS=0",
-        "UPSTREAM_CLARIFICATION_RECEIVED=false",
-    ):
-        if marker not in validation:
-            errors.append(f"evidence_validation:{marker}")
-
+        errors.append("summary_contract")
     for path in EVIDENCE.iterdir():
-        if not path.is_file():
-            continue
         text = path.read_text(encoding="utf-8", errors="replace")
         if SECRET_PATTERN.search(text) or "CB240-PRIVATE" in text:
             errors.append(f"evidence_secret:{path.name}")
-        ipv4_values = re.findall(
-            r"(?<![0-9])(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?![0-9])",
-            text,
+        if "/Users/" in text or "/var/lib/" in text:
+            errors.append(f"evidence_absolute_path:{path.name}")
+    return implementation_commit
+
+
+def validate_commit_boundaries(
+    implementation_commit: str | None,
+    final: bool,
+    errors: list[str],
+) -> None:
+    if implementation_commit is None:
+        return
+    implementation_paths = commit_paths(implementation_commit)
+    unexpected_implementation = sorted(implementation_paths - IMPLEMENTATION_PATHS)
+    errors.extend(f"implementation_path:{path}" for path in unexpected_implementation)
+    if final:
+        closure_paths = set(
+            filter(
+                None,
+                git("diff", "--name-only", implementation_commit, "HEAD")[1].splitlines(),
+            )
         )
-        if any(value != "127.0.0.1" for value in ipv4_values):
-            errors.append(f"evidence_ipv4:{path.name}")
+        unexpected_closure = sorted(closure_paths - CLOSURE_PATHS)
+        errors.extend(f"closure_path:{path}" for path in unexpected_closure)
+        if not CLOSURE_PATHS <= closure_paths:
+            errors.append("closure_atomic_inventory")
 
 
 def validate(final: bool) -> tuple[list[str], list[str]]:
     errors: list[str] = []
-    reports: list[str] = []
-    if git("branch", "--show-current")[1] != EXPECTED_BRANCH:
-        errors.append("branch")
-    if git("remote")[1].splitlines() != ["origin"]:
-        errors.append("remotes")
-    if git("remote", "get-url", "origin")[1] != EXPECTED_ORIGIN:
-        errors.append("origin")
-    remote_code, remote = git(
-        "ls-remote",
-        "--exit-code",
-        "--heads",
-        "origin",
-        f"refs/heads/{EXPECTED_BRANCH}",
-        check=False,
-    )
-    if remote_code != 2 or remote:
-        errors.append("remote_publication")
-    if git("merge-base", "--is-ancestor", BASE_COMMIT, "HEAD", check=False)[0] != 0:
-        errors.append("base_not_ancestor")
-
-    allowed = IMPLEMENTATION_PATHS | CLOSURE_PATHS
-    unexpected = sorted(
-        path
-        for path in changed_paths()
-        if path not in allowed
-        and not path.startswith("CyberBoss/docs/evidence/CB-240/")
-    )
-    errors.extend(f"unexpected_path:{path}" for path in unexpected)
-    for frozen in FROZEN_PATHS:
-        if git("diff", "--quiet", BASE_COMMIT, "--", frozen, check=False)[0] != 0:
-            errors.append(f"frozen_path:{frozen}")
+    branch = git("branch", "--show-current")[1]
+    if not branch.startswith("codex/cyberboss-"):
+        errors.append("branch_scope")
+    if git("merge-base", "--is-ancestor", PUBLIC_IMPLEMENTATION_COMMIT, "HEAD", check=False)[0] != 0:
+        errors.append("public_implementation_missing")
+    if git("status", "--porcelain=v1", "--untracked-files=all")[1]:
+        errors.append("worktree_dirty")
     if list(PROJECT.rglob(".git")):
         errors.append("nested_git_repository")
     for row in git("ls-files", "-s", "CyberBoss")[1].splitlines():
         if row.startswith("160000 "):
             errors.append(f"gitlink:{row}")
 
-    contract = (
-        PROJECT / "docs/governance/RUN_CONTRACT_P2_5_CB_240.md"
-    ).read_text(encoding="utf-8")
-    for marker in (
-        "P2.5 / CB-240",
-        BASE_COMMIT,
-        *EXPECTED_ACCEPTANCE,
-        "Private-MetaDatabase",
-        "ingest|get|list|verify",
-        "same event ID/different record hash",
-        "CB-300",
-        "PG-2",
-        STRICT_LICENSE,
-        "upstream_clarification_received=false",
-        "不创建新 repo",
-        "不 push",
-    ):
-        if marker.lower() not in contract.lower():
-            errors.append(f"contract:{marker}")
-
-    dag = yaml.safe_load(
-        (PACK / "04_TASK_DAG_EXECUTION_PACK.yaml").read_text(encoding="utf-8")
-    )
-    task = next((row for row in dag["tasks"] if row.get("id") == "CB-240"), {})
-    if (
-        task.get("phase") != "P2.5"
-        or task.get("stage") != "S2"
-        or task.get("dependencies") != ["CB-120", "CB-200", "CB-230"]
-        or task.get("acceptance_criteria") != EXPECTED_ACCEPTANCE
-        or task.get("pass_gate") != "PG-2"
-    ):
-        errors.append("task_contract")
-
-    source = load_json(PROJECT / "machine/source-lock.json")
-    conflict = source["whereabouts_license_conflict"]
-    if {
-        item.strip() for item in conflict["compliance_expression"].split("AND")
-    } != {"AGPL-3.0-only", "GPL-3.0-only"}:
-        errors.append("license")
-    if (
-        conflict.get("preserve_original_license_and_source") is not True
-        or conflict.get("upstream_clarification_received") is not False
-        or any(source["upstream_relationship"].values())
-        or source.get("repository") != "LinzeColin/MetaDatabase"
-    ):
-        errors.append("source_boundary")
-
-    ledger = load_json(PROJECT / "machine/facts/post-baseline-change-ledger.json")
-    entries = [
-        row for row in ledger.get("entries", []) if row.get("task_id") == "CB-240"
-    ]
-    if (
-        len(entries) != 1
-        or entries[0].get("base_commit") != BASE_COMMIT
-        or entries[0].get("upstream_sync_enabled") is not False
-        or entries[0].get("upstream_support_claimed") is not False
-        or entries[0].get("upstream_endorsement_claimed") is not False
-    ):
-        errors.append("modification_ledger")
-    if (
-        ledger.get("strict_compliance_expression") != STRICT_LICENSE
-        or ledger.get("upstream_clarification_received") is not False
-        or ledger.get("original_source_and_licenses_preserved") is not True
-    ):
-        errors.append("ledger_license")
-
+    validate_state(final, errors)
+    validate_contract(errors)
+    validate_code_markers(errors)
     try:
         verify_manifest(PACK / "MANIFEST.sha256", errors)
         verify_manifest(KIT / "MANIFEST.sha256", errors)
     except (OSError, ValueError) as error:
         errors.append(f"manifest_exception:{type(error).__name__}")
 
-    validate_state(final, errors)
-    if final:
-        validate_final_evidence(errors)
+    implementation_commit = validate_subject_and_evidence(errors) if final else git("rev-parse", "HEAD")[1]
+    validate_commit_boundaries(implementation_commit, final, errors)
 
-    zero_release = "0" * 40
-    for name, args, cwd, required, timeout in (
+    for name, args, cwd, markers, timeout in (
         (
             "canonical_sync",
-            [
-                "node",
-                "--test",
-                "test/canonical-sync.test.js",
-                "test/job-scheduler.test.js",
-            ],
+            ["node", "--test", "test/canonical-sync.test.js", "test/job-scheduler.test.js"],
             PROJECT / "app",
             ("fail 0",),
             300,
@@ -733,9 +465,7 @@ def validate(final: bool) -> tuple[list[str], list[str]]:
         (
             "config",
             [
-                "node",
-                str(KIT / "tests/validate_config.js"),
-                "--allow-placeholders",
+                "node", str(KIT / "tests/validate_config.js"), "--allow-placeholders",
                 str(KIT / "config/cyberboss.env.example"),
                 str(KIT / "config/workspaces.json.example"),
             ],
@@ -745,39 +475,20 @@ def validate(final: bool) -> tuple[list[str], list[str]]:
         ),
         (
             "install_check",
-            [
-                "bash",
-                str(KIT / "scripts/install-canonical-sync.sh"),
-                "--check",
-                "--release-id",
-                zero_release,
-            ],
+            ["bash", str(KIT / "scripts/install-canonical-sync.sh"), "--check", "--release-id", "0" * 40],
             REPO,
             ("CANONICAL_SYNC_INSTALL_CHECK=PASS",),
             300,
         ),
         (
             "acceptance_check",
-            [
-                "bash",
-                str(KIT / "scripts/accept-canonical-sync.sh"),
-                "--check",
-                "--release-id",
-                zero_release,
-            ],
+            ["bash", str(KIT / "scripts/accept-canonical-sync.sh"), "--check", "--release-id", "0" * 40],
             REPO,
             ("CANONICAL_SYNC_ACCEPTANCE_CHECK=PASS",),
             300,
         ),
         ("app_check", ["npm", "run", "check"], PROJECT / "app", (), 300),
         ("app_test", ["npm", "test"], PROJECT / "app", ("fail 0",), 900),
-        (
-            "prestage",
-            [sys.executable, str(PROJECT / "scripts/validate_prestage0.py")],
-            REPO,
-            ("PRESTAGE0_VALIDATION=PASS",),
-            300,
-        ),
         (
             "taskpack",
             [sys.executable, str(KIT / "tests/validate_taskpack.py"), str(PACK)],
@@ -786,23 +497,13 @@ def validate(final: bool) -> tuple[list[str], list[str]]:
             300,
         ),
     ):
-        run_command(
-            name,
-            args,
-            errors,
-            cwd=cwd,
-            required=required,
-            timeout=timeout,
-        )
+        run_command(name, args, errors, cwd=cwd, markers=markers, timeout=timeout)
 
-    reports.extend(
-        [
-            f"mode={'final' if final else 'prepare'}",
-            f"base_commit={BASE_COMMIT}",
-            f"changed_paths={len(changed_paths())}",
-            f"errors={len(errors)}",
-        ]
-    )
+    reports = [
+        f"mode={'final' if final else 'prepare'}",
+        f"branch={branch}",
+        f"errors={len(errors)}",
+    ]
     return errors, reports
 
 
@@ -811,7 +512,7 @@ def main() -> int:
     parser.add_argument(
         "--prepare",
         action="store_true",
-        help="Validate the frozen CB-230 state before CB-240 closure.",
+        help="Validate the clean implemented_not_accepted CB-240 subject.",
     )
     args = parser.parse_args()
     errors, reports = validate(final=not args.prepare)

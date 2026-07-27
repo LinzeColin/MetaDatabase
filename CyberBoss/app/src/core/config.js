@@ -41,6 +41,31 @@ function readConfig() {
       "CB_PRIVATE_DB_CANONICAL_SYNC=false is allowed only in explicit non-production staging",
     );
   }
+  const canonicalLegacyFlushOverride = readOptionalBoolEnv(
+    "CB_CANONICAL_FLUSH_ON_TERMINAL",
+  );
+  const canonicalMaterialFlush = canonicalLegacyFlushOverride !== false;
+  const canonicalOrdinarySyncSchedule = readTextEnv(
+    "CB_CANONICAL_ORDINARY_SYNC_SCHEDULE",
+  ) || "daily";
+  const canonicalOrdinarySyncOnCalendar = readTextEnv(
+    "CB_CANONICAL_ORDINARY_SYNC_ON_CALENDAR",
+  ) || "*-*-* 03:20:00 UTC";
+  const canonicalMaterialEventTypes = readListEnv(
+    "CB_CANONICAL_MATERIAL_EVENT_TYPES",
+  );
+  if (
+    !canonicalMaterialFlush ||
+    canonicalOrdinarySyncSchedule !== "daily" ||
+    canonicalOrdinarySyncOnCalendar !== "*-*-* 03:20:00 UTC" ||
+    (
+      canonicalMaterialEventTypes.length > 0 &&
+      canonicalMaterialEventTypes.slice().sort().join(",") !==
+        "incident_declared,recovery_completed,release_completed"
+    )
+  ) {
+    throw new Error("CB_CANONICAL_SYNC_POLICY_INVALID");
+  }
   const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
     || path.join(stateDir, "workspaces.json");
   const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
@@ -103,8 +128,24 @@ function readConfig() {
       readIntEnv("CB_CANONICAL_BATCH_MAX_BYTES") || 262_144,
     canonicalBatchMaxAgeMs:
       readIntEnv("CB_CANONICAL_BATCH_MAX_AGE_MS") || 60_000,
-    canonicalFlushOnTerminal:
-      readOptionalBoolEnv("CB_CANONICAL_FLUSH_ON_TERMINAL") !== false,
+    canonicalMaterialFlush,
+    canonicalOrdinarySyncSchedule,
+    canonicalOrdinarySyncOnCalendar,
+    canonicalMaterialEventTypes:
+      canonicalMaterialEventTypes.length > 0
+        ? canonicalMaterialEventTypes.slice().sort()
+        : [
+            "incident_declared",
+            "recovery_completed",
+            "release_completed",
+          ],
+    canonicalMaxEventsPerInvocation:
+      readIntEnv("CB_CANONICAL_MAX_EVENTS_PER_INVOCATION") || 2_000,
+    canonicalMaxUncompressedBytesPerInvocation:
+      readIntEnv("CB_CANONICAL_MAX_UNCOMPRESSED_BYTES_PER_INVOCATION") ||
+      10 * 1024 * 1024,
+    canonicalMaxAttemptsPerInvocation:
+      readIntEnv("CB_CANONICAL_MAX_ATTEMPTS_PER_INVOCATION") || 5,
     canonicalBacklogMaxEvents:
       readIntEnv("CB_CANONICAL_BACKLOG_MAX_EVENTS") || 10_000,
     canonicalBacklogMaxBytes:

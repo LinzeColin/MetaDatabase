@@ -1,7 +1,9 @@
-# CyberBoss v0.0.0.4 Implementation Kit Validation Report
+# CyberBoss v0.0.0.4 Design Baseline / v0.0.0.5 Product Validation Report
 
 - Date: 2026-07-27
 - Current Run: `P2.5 / CB-240`
+- Owner amendment: TaskPack `v0.0.0.7`; product version remains locked at
+  `v0.0.0.5`.
 - Input closure:
   `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Scope: redacted append-only canonical sync、identity-separated no-clone
@@ -18,9 +20,13 @@
   recomputes every `record_sha256`, and writes only redacted stable fields.
   Full prompt/result、raw provider identity、credential and encryption key are
   excluded.
-- Batches are stable NDJSON in deterministic gzip (`mtime=0`) and are bounded by
-  50 records、262144 uncompressed bytes or 60 seconds. Object and event-set
-  identities are content addressed and order independent.
+- Local objects are stable NDJSON in deterministic gzip (`mtime=0`) and are
+  bounded by 50 records、262144 uncompressed bytes. Ordinary facts stage
+  immediately but only a daily `03:20 UTC`/operator dispatch may write them
+  remotely; 60-second age is parse-compatible only and never a remote trigger.
+  The fixed material allowlist is `release_completed`、`incident_declared`、
+  `recovery_completed`, with bounded immediate invocation, a material-only
+  systemd path trigger and no empty commit.
 - The code identity can stage outgoing objects and consume hash-only receipts.
   Only the separate `cyberboss-data` OS identity can execute the fail-closed
   wrapper around the pinned `private_db_client.py`; the only allowed operations
@@ -30,8 +36,9 @@
   ingest. Manifest 409、403、429、transient and partial-success outcomes remain
   pending or reconcile by event-ID/hash set; last-write-wins is forbidden.
 - Same event ID with a different record hash is quarantined as an integrity
-  incident and blocks new bounded mutation. An existing read-only job may still
-  drain while the protected mutation remains queued.
+  incident and blocks new bounded mutation. Resource breach and material retry
+  also protect mutation; ordinary backlog age alone does not. An existing
+  read-only job may still drain while the protected mutation remains queued.
 - Rebuild starts from no-clone canonical objects and an optional deterministic
   R2 pointer fixture, does not require the prior SQLite, and emits only a
   terminal index、CB-300 Timeline source projection and rebuild report.
@@ -44,10 +51,12 @@
 
 ## Passed locally
 
-- Focused App suite passed `18/18`: 50-record batching、ingest/list/get/verify,
+- Focused App suite passed `20/20`: 50-record batching、ingest/list/get/verify,
   deterministic compression, 409 partial success, 429 retry hint, virtual
-  ten-minute outage/catch-up, metadata-only receipt allowlisting, integrity
-  quarantine, rebuild and scheduler mutation protection.
+  ten-minute outage/catch-up, daily ordinary dispatch, three material-event
+  immediate dispatches, empty-commit NOOP, ordinary-age non-protection,
+  metadata-only receipt allowlisting, integrity quarantine, rebuild and
+  scheduler mutation protection.
 - Root CB-240 contract/acceptance passed `7/7`, including the executable
   deterministic acceptance.
 - Executable acceptance generated 1,000 canonical events as 20 objects of 50,
@@ -55,8 +64,11 @@
   `set_diff=0`.
 - AC-030 rebuild deleted the isolated SQLite and reconstructed 1,000 terminal
   events/jobs from canonical fixture objects plus an R2 pointer fixture.
-- AC-031 measured 50 terminal jobs at virtual P95 `1s <= 60s`; the 60-second
-  age threshold and byte threshold were exercised without a real wait.
+- AC-031 proved 50 ordinary facts perform zero remote commits before daily
+  dispatch, daily cadence is `03:20 UTC`, no-new-fact returns
+  `noop_no_commit`, and all three material event types flush at virtual
+  P95 `0s <= 60s`. Record/byte boundaries remain deterministic; ordinary age
+  does not block bounded mutation.
 - AC-032 exercised manifest 409、403、429 (`retry_hint_ms=120000`)、503,
   partial success and 600 seconds of virtual outage, with zero real wait calls
   and zero event loss.
@@ -84,20 +96,19 @@
   receipt parser that ignored extra fields. Event-set hashing now uses explicit
   UTF-8 byte ordering, and every receipt status has an exact metadata-only
   field allowlist.
-- The first manifest regeneration inherited an unsupported `C.UTF-8` locale
-  and produced empty temporary outputs. The non-empty gate stopped replacement;
-  both manifests were regenerated from unchanged inputs under the supported
-  `C` locale.
+- The first local manifest regeneration inherited an unsupported `C.UTF-8`
+  locale and produced empty outputs. The next local validation caught the
+  defect before any commit; both manifests were regenerated from unchanged
+  inputs under the supported `C` locale.
 
-## Pending before CB-240 may pass
+## Closure boundary
 
-- Regenerate both exact SHA-256 manifests and pass prestage、TaskPack and
-  CB-240 prepare validators.
-- Create the exact implementation commit and build the bounded Corresponding
-  Source、artifact manifest、canonical acceptance report and checksums from its
-  clean tree.
-- Resolve the existing protected target from local deployment records and run a
-  fresh read-only preflight.
+- This report documents deterministic local readiness only. It does not claim
+  real Private-Database/R2/Cloudflare/OCI activation, target service start,
+  `current` switch, PG-2, or CB-300.
+- Provider activation remains `activation_pending` until a later authorized
+  native task supplies real credential-scoped evidence; simulator evidence is
+  never promoted to real verification.
 - Transfer only the bounded artifact set, apply the inactive candidate twice,
   verify once, and execute target deterministic canonical acceptance.
 - Export redacted evidence, delete exact CB-240 staging/env/incoming/synthetic
@@ -123,5 +134,7 @@
 - No original vendor source, license, provenance, conflict or prior evidence is
   rewritten.
 - No GitHub branch, PR, tag or release is created.
-- CB-230 and PG-1 remain passed. CB-240 remains `not_started` until exact target
-  acceptance closes; CB-300 onward and every later gate remain `not_started`.
+- CB-230 and PG-1 remain passed. `machine/facts/task_state.json` together with
+  the sealed CB-240 closure evidence is the authoritative task state; this
+  implementation report does not independently advance it. CB-300 onward and
+  every later gate remain `not_started`.

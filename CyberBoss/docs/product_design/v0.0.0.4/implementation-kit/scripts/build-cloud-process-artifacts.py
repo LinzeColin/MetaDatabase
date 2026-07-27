@@ -415,7 +415,35 @@ def build_canonical_sync_report(
             )
             == 1000
             and report.get("ac_031_batching_latency", {}).get(
-                "latency_p95_seconds"
+                "ordinary_sync_schedule"
+            )
+            == "daily"
+            and report.get("ac_031_batching_latency", {}).get(
+                "ordinary_sync_on_calendar"
+            )
+            == "*-*-* 03:20:00 UTC"
+            and report.get("ac_031_batching_latency", {}).get(
+                "material_event_types"
+            )
+            == [
+                "incident_declared",
+                "recovery_completed",
+                "release_completed",
+            ]
+            and report.get("ac_031_batching_latency", {}).get(
+                "ordinary_remote_commits_before_daily"
+            )
+            == 0
+            and report.get("ac_031_batching_latency", {}).get(
+                "empty_commits"
+            )
+            == 0
+            and report.get("ac_031_batching_latency", {}).get(
+                "ordinary_age_blocks_mutation"
+            )
+            is False
+            and report.get("ac_031_batching_latency", {}).get(
+                "material_latency_p95_seconds"
             )
             <= 60
             and report.get("ac_031_batching_latency", {}).get("set_diff")
@@ -568,6 +596,10 @@ def main() -> int:
                 "cyberboss-canonical-sync.service",
                 "docs/product_design/v0.0.0.4/implementation-kit/systemd/"
                 "cyberboss-canonical-sync.timer",
+                "docs/product_design/v0.0.0.4/implementation-kit/systemd/"
+                "cyberboss-canonical-sync-material.service",
+                "docs/product_design/v0.0.0.4/implementation-kit/systemd/"
+                "cyberboss-canonical-sync-material.path",
                 "tests/canonical-sync.test.js",
             ):
                 expect(required in inventory, f"source_missing:{required}")
@@ -919,7 +951,21 @@ def main() -> int:
                     "allowed_operations": ["ingest", "get", "list", "verify"],
                     "max_records": 50,
                     "max_uncompressed_bytes": 262144,
-                    "max_age_seconds": 60,
+                    "ordinary_sync_schedule": "daily",
+                    "ordinary_sync_on_calendar": "*-*-* 03:20:00 UTC",
+                    "ordinary_remote_age_trigger": False,
+                    "immediate_event_types": [
+                        "incident_declared",
+                        "recovery_completed",
+                        "release_completed",
+                    ],
+                    "immediate_flush_target_seconds": 60,
+                    "empty_commit_allowed": False,
+                    "ordinary_age_blocks_mutation": False,
+                    "material_backlog_protects_mutation": True,
+                    "max_events_per_invocation": 2000,
+                    "max_uncompressed_bytes_per_invocation": 10485760,
+                    "max_attempts_per_invocation": 5,
                     "deterministic_gzip": True,
                     "content_addressed": True,
                     "manifest_conflict_last_write_wins": False,

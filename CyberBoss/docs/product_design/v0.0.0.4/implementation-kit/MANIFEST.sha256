@@ -1,11 +1,11 @@
-f85867498802988a33ecc55bb43083c9830115a893e294dd356248e15daa44fd  ./README.md
-802b0d78ed34a58e35685a1c773d3f7ec2020ee22761477381577e5812989e8b  ./VALIDATION_REPORT.md
+3df152baac90a2161d8124457793ed46e6c7ffcd410bdc1e04527337c2f0fefc  ./README.md
+5f8723ea62e44f1f77483d5664bd50bad91e397b366a41a0abc8dd7adc337063  ./VALIDATION_REPORT.md
 f74aeb6f0ba6ab042725ecd23badb410c9eb914d1fa6c8f8b3a3ff0e7584c486  ./config/cloud-process-health.json
 dd6cc040397d8e1da343154e79c552a8ef1a26155cc2af690b903eb1a7b4effb  ./config/cloud-process-tree.txt
 322f057517ef412611b6f662a8285d7ffe6939c380cbe3ff1de958553c6bc03d  ./config/cloudflare-access-policy.fixture.json
 7549860d761a04d34d0c6bad2dbb4d72bc6d8f444fa34b318a0896eacc4c88b8  ./config/credential-slots.json
 f4e583e826be888237a141a9a9463773f5a24a22fee936037ec89d9324c74cc0  ./config/cyberboss-journald.conf
-8d0d52d292ce1a1a3a5a3df829c36749e4571b409f21138881aab1904e6227e2  ./config/cyberboss.env.example
+1df9f9654249b74a78f2675b2fd3d0f2da8f873601c85b571b0d3feed00e2baa  ./config/cyberboss.env.example
 292ce219929f7a085c68a82675e0f9477aa4a29005ce1f677fb271cea7d28e77  ./config/cyberboss.gitconfig
 18b0098e83e7ba0875076777ef95b8704d68051ea54cd5702ef0b95df2a28b91  ./config/identity-scope.policy.json
 c27a0c0b172bceef9483eb56afff4a95f28cf12a07a9e6a4ae541ff5fb19ecdb  ./config/no-clone-client-versions.json
@@ -16,7 +16,7 @@ fee34b0845cb2d6d93f7642d88c83ea2fac77fc7d2eab191b1ec726adc306754  ./config/works
 3861abd90ffb186d08511d5224a08d7d9991d055831d23c21a651320ed886f33  ./config/workspaces.json.example
 6457a6e3c54c4c95326f13f7a4c332844d3845487ffea3a1fe57604e9e5b85ec  ./github-actions/quality.yml
 d8f7c5edd24e817e3212b027d043cfb642e548fc6f6c219c18b40170039720cc  ./references/research-links.md
-d84a5a4c674eb419d49d14d17b1dbdcaa67703121e420949d733078fc3b02e2a  ./scripts/accept-canonical-sync.sh
+859c9107562c6d1c21df85aa2cf16101e9e361de1a810a7358470e4ca7a90c73  ./scripts/accept-canonical-sync.sh
 49621b7a5ed48dc2b7034b45c1c122ce584bc76e9aea061338b5e06e1f598402  ./scripts/accept-cloud-process-family.sh
 bac7f45ca3e8f2019d2307ced209c52585e3cc7987b809e674894096270131ef  ./scripts/accept-cloud-walking-skeleton.sh
 9fbfd97506955f645e22d69b1cd9a88540cf0d869b8234bcf71d3ee65ef92d03  ./scripts/accept-durable-inbox.sh
@@ -27,7 +27,7 @@ a596d1bfad48cd8cfc8cd58145f06d3927a129e246ee875060e0b441f9793e09  ./scripts/auth
 f636d26990ef0a1baf667edf72fe478b35613dca669ee2bc2fe0ff34ece88fd5  ./scripts/backup-runtime.sh
 ebbef38ca46667165f8636ad24a89029b13754d3e6d8654bc8b1f81ffcc78fa0  ./scripts/bootstrap-host.sh
 6b1a85046d868778a99ac8a08fdda38180a6993163632ec32f645ebdf9989c1b  ./scripts/build-canonical-sync-artifacts.py
-59da3f080c7f0f410be76f866f1f999bf6a2bdd265fa499c35df289b4018b173  ./scripts/build-cloud-process-artifacts.py
+52fbcb509dcb41fe5a16e71c7eca446ab8bd9f5e5fd9a02b97e75205203842d1  ./scripts/build-cloud-process-artifacts.py
 bb74cfa41c8c177e63b1ea858ae58a8747051eb4795a5e49ae68b10a46815545  ./scripts/build-cloud-walking-skeleton-artifacts.py
 23d11f386b63618677af6b8cd5d5b5ec55f734d3b5badb972695374f710a5c5f  ./scripts/build-controlled-workspace-artifacts.py
 708cd68742ba0bd99e51baaa8ae0f41cb09871c5b76c199fe4175d463cd8145e  ./scripts/build-durable-inbox-artifacts.py
@@ -38,7 +38,7 @@ bdb5f25e6399c88d3937bc33bae516667c7514b8c41bd1968beaade06071b67b  ./scripts/clou
 1cd00a67d8fba12a16b8545e1073272a08938347e0c14a89c053a6a10275100a  ./scripts/deploy-release.sh
 f05beab7e9399882a63290559b2bd331eac0889e10fefb699bfa939108c6563d  ./scripts/health-check.sh
 d9132f5a2f05429c3f6fed7433e22231a7c71f185494a701de34bf18e87d8ffd  ./scripts/install-canonical-sync.sh
-51e73a1e788114f12bf885777c472aa1eb2b384149544e3998a3837a2c46a655  ./scripts/install-cloud-process-family.sh
+692532b4872b90fe4ca8c8f31d9f6ced2ac65923f4da9598b9f84faab01901c3  ./scripts/install-cloud-process-family.sh
 2b9742af1baefbf6e2566c31218b4e6ae7c8cf41feb57d8ab31e40833317fbf1  ./scripts/install-cloud-walking-skeleton.sh
 e3ac46aa9522e0cfe0174fc4c6da74efcf1e4a7becf6eaeb8a7dee166d730271  ./scripts/install-controlled-workspace.sh
 d74b3c99706b292905e64ab873eba65ae6f3fd49452659e7b34fbd4715d88600  ./scripts/install-durable-inbox.sh
@@ -78,8 +78,10 @@ e5f139b84e927ff0a2aa519810f74a4482b6ebb82dd0a80fa4bc72b281e02754  ./status/gener
 ed021710d6203c5babb40797a36a3edf6f3e6bddd7a7b770a8021659be1516f1  ./status/global-status-contract.fixture.json
 b17749145de10d1c0fe812fdb017e4ee102cb4309d7dca2ff988ef781acb1af5  ./systemd/cyberboss-backup.service
 b47b116e358d8c4322022c96c69c0fee377964e0511a6345627eb1e2dea10f79  ./systemd/cyberboss-backup.timer
-59a11c184327a726951a093f5c819a105d8a23740a012de4fe1cc99c39501b8e  ./systemd/cyberboss-canonical-sync.service
-2af7cdaced19edb1befee8bb6ae427dc7f9d9d20ae183929441ff642a31cf987  ./systemd/cyberboss-canonical-sync.timer
+6691c0c8b27d1e42751ce54b36731f86e0a6a55cb5ca56317bf56145a37ab3e0  ./systemd/cyberboss-canonical-sync-material.path
+7976ec809964680062f6fa35a6644f462961b6b454672e353ef775e2614ad0bb  ./systemd/cyberboss-canonical-sync-material.service
+a099b86f4c788c070b48b6d4b01294de1200ccba762dff683e70745013f6c573  ./systemd/cyberboss-canonical-sync.service
+4d0f921c05f4d23c79709c5fa3857d1c3b5c4b606ed9462dce0ca5cb6a7a6093  ./systemd/cyberboss-canonical-sync.timer
 29b6237c41277eefaad51badbfde184d1f7b0640412dea71e5666226b0fff766  ./systemd/cyberboss-cloud.service
 2b5fd8c77594097207c846dec345b74a619350d8dd4a73eba3060e7c7c9093ac  ./systemd/cyberboss-selfheal.service
 5040dca94d482f794afc9ce29ff9d6c6d021e077a61e8ce4dc50fdb2156a67dc  ./systemd/cyberboss-selfheal.timer
@@ -95,7 +97,7 @@ daaaeb92adabbc6e5500187633286552fe82b8f544f64396fac1211a18948721  ./tests/test_e
 9516fb30f81f196ac7edab9bf82cf2ad11d2f9a52eeb78d91390a50cf16975b2  ./tests/test_identity_scope.py
 4a5b79008bb0a12c0840577d02e3e82a16a87a6cfbeb7d8428e5d485a8e30de3  ./tests/test_resource_profile.py
 088e2b5aef45d8816decdd95305fded8d771f669bcbb0ea4bf84a994508fbf59  ./tests/test_workspace_budget.py
-ab5cadfaff47d7a4dd77487bba73c7f1570d527cf7cc8755357ff7f71c3764f2  ./tests/validate_config.js
+b29e6328084eae0aadbc94141fdd41c98609726c3c9e026799063519e9e38fc1  ./tests/validate_config.js
 e43e329cedb3c0f643188a16b28441d23122be96a2f5c51540dfc6d1ac81b0ec  ./tests/validate_no_wait.py
 421628914c089b77d93cc7aec06f99dae90d0675963bb20cb3bd167cdfeb1857  ./tests/validate_task_dag.py
 f9ee300eb8276cd6e32c21b9179d36f7b2ed8ce02f85c30912205e689f9370ee  ./tests/validate_taskpack.py

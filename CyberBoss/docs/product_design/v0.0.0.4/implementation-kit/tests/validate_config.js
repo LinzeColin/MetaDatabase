@@ -56,6 +56,12 @@ for (const key of [
   'CB_CANONICAL_SPOOL_ROOT',
   'CB_CANONICAL_DATA_STATE_ROOT',
   'CB_CANONICAL_FLUSH_ON_TERMINAL',
+  'CB_CANONICAL_ORDINARY_SYNC_SCHEDULE',
+  'CB_CANONICAL_ORDINARY_SYNC_ON_CALENDAR',
+  'CB_CANONICAL_MATERIAL_EVENT_TYPES',
+  'CB_CANONICAL_MAX_EVENTS_PER_INVOCATION',
+  'CB_CANONICAL_MAX_UNCOMPRESSED_BYTES_PER_INVOCATION',
+  'CB_CANONICAL_MAX_ATTEMPTS_PER_INVOCATION',
   'CB_CANONICAL_BATCH_MAX',
   'CB_CANONICAL_BATCH_MAX_BYTES',
   'CB_CANONICAL_BATCH_MAX_AGE_MS',
@@ -126,7 +132,28 @@ if (env.CB_CANONICAL_DATA_STATE_ROOT !== '/var/lib/cyberboss-data/canonical-sync
   errors.push('canonical_data_state_root');
 }
 if (env.CB_CANONICAL_FLUSH_ON_TERMINAL !== 'true') {
-  errors.push('canonical_terminal_flush');
+  errors.push('canonical_legacy_local_flush');
+}
+if (env.CB_CANONICAL_ORDINARY_SYNC_SCHEDULE !== 'daily') {
+  errors.push('canonical_ordinary_schedule');
+}
+if (env.CB_CANONICAL_ORDINARY_SYNC_ON_CALENDAR !== '*-*-* 03:20:00 UTC') {
+  errors.push('canonical_ordinary_calendar');
+}
+if (
+  String(env.CB_CANONICAL_MATERIAL_EVENT_TYPES || '').split(',').sort().join(',') !==
+  'incident_declared,recovery_completed,release_completed'
+) {
+  errors.push('canonical_material_event_types');
+}
+if (Number(env.CB_CANONICAL_MAX_EVENTS_PER_INVOCATION) !== 2000) {
+  errors.push('canonical_max_events_per_invocation');
+}
+if (Number(env.CB_CANONICAL_MAX_UNCOMPRESSED_BYTES_PER_INVOCATION) !== 10485760) {
+  errors.push('canonical_max_uncompressed_bytes_per_invocation');
+}
+if (Number(env.CB_CANONICAL_MAX_ATTEMPTS_PER_INVOCATION) !== 5) {
+  errors.push('canonical_max_attempts_per_invocation');
 }
 if (Number(env.CB_CANONICAL_BATCH_MAX) !== 50) {
   errors.push('canonical_batch_max');
@@ -135,7 +162,7 @@ if (Number(env.CB_CANONICAL_BATCH_MAX_BYTES) !== 262144) {
   errors.push('canonical_batch_max_bytes');
 }
 if (Number(env.CB_CANONICAL_BATCH_MAX_AGE_MS) !== 60000) {
-  errors.push('canonical_batch_max_age');
+  errors.push('canonical_legacy_age_compatibility');
 }
 if (Number(env.CB_CANONICAL_BACKLOG_MAX_EVENTS) !== 10000) {
   errors.push('canonical_backlog_max_events');

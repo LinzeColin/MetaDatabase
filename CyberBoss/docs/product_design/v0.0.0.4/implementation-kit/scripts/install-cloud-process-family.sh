@@ -132,6 +132,8 @@ if [[ "$TASK_ID" == "CB-240" ]]; then
   for required in \
     "$KIT_ROOT/systemd/cyberboss-canonical-sync.service" \
     "$KIT_ROOT/systemd/cyberboss-canonical-sync.timer" \
+    "$KIT_ROOT/systemd/cyberboss-canonical-sync-material.service" \
+    "$KIT_ROOT/systemd/cyberboss-canonical-sync-material.path" \
     "$KIT_ROOT/scripts/private_db_client_safe.py"; do
     [[ -f "$required" && ! -L "$required" ]] ||
       fail "kit_contract_missing:$(basename "$required")"
@@ -387,7 +389,17 @@ jq -e --arg release "$RELEASE_ID" --arg task "$TASK_ID" --arg phase "$PHASE" '
     .canonical_sync.allowed_operations == ["ingest","get","list","verify"] and
     .canonical_sync.max_records == 50 and
     .canonical_sync.max_uncompressed_bytes == 262144 and
-    .canonical_sync.max_age_seconds == 60 and
+    .canonical_sync.ordinary_sync_schedule == "daily" and
+    .canonical_sync.ordinary_sync_on_calendar == "*-*-* 03:20:00 UTC" and
+    .canonical_sync.ordinary_remote_age_trigger == false and
+    .canonical_sync.immediate_event_types == ["incident_declared","recovery_completed","release_completed"] and
+    .canonical_sync.immediate_flush_target_seconds == 60 and
+    .canonical_sync.empty_commit_allowed == false and
+    .canonical_sync.ordinary_age_blocks_mutation == false and
+    .canonical_sync.material_backlog_protects_mutation == true and
+    .canonical_sync.max_events_per_invocation == 2000 and
+    .canonical_sync.max_uncompressed_bytes_per_invocation == 10485760 and
+    .canonical_sync.max_attempts_per_invocation == 5 and
     .canonical_sync.deterministic_gzip == true and
     .canonical_sync.content_addressed == true and
     .canonical_sync.manifest_conflict_last_write_wins == false and
@@ -514,8 +526,18 @@ if [[ "$TASK_ID" == "CB-240" ]]; then
     .ac_030_rebuild.terminal_job_count == 1000 and
     .ac_030_rebuild.r2_fixture_only == true and
     .ac_030_rebuild.real_r2_operation == false and
+    .ac_031_batching_latency.ordinary_events == 50 and
+    .ac_031_batching_latency.material_events == 3 and
+    .ac_031_batching_latency.material_event_types == ["incident_declared","recovery_completed","release_completed"] and
+    .ac_031_batching_latency.ordinary_sync_schedule == "daily" and
+    .ac_031_batching_latency.ordinary_sync_on_calendar == "*-*-* 03:20:00 UTC" and
+    .ac_031_batching_latency.ordinary_remote_commits_before_daily == 0 and
+    .ac_031_batching_latency.empty_commits == 0 and
+    .ac_031_batching_latency.no_new_fact_status == "noop_no_commit" and
+    .ac_031_batching_latency.ordinary_age_blocks_mutation == false and
+    .ac_031_batching_latency.ordinary_age_remote_trigger == false and
+    .ac_031_batching_latency.material_latency_p95_seconds <= 60 and
     .ac_031_batching_latency.terminal_events == 1000 and
-    .ac_031_batching_latency.latency_p95_seconds <= 60 and
     .ac_031_batching_latency.count_threshold_batch_count == 20 and
     .ac_031_batching_latency.set_diff == 0 and
     .ac_032_conflict_retry.concurrent_sync_groups == 50 and
@@ -1001,7 +1023,17 @@ jq -e --arg release "$RELEASE_ID" \
     .canonical_sync.access_mode == "no_clone_client" and
     .canonical_sync.max_records == 50 and
     .canonical_sync.max_uncompressed_bytes == 262144 and
-    .canonical_sync.max_age_seconds == 60 and
+    .canonical_sync.ordinary_sync_schedule == "daily" and
+    .canonical_sync.ordinary_sync_on_calendar == "*-*-* 03:20:00 UTC" and
+    .canonical_sync.ordinary_remote_age_trigger == false and
+    .canonical_sync.immediate_event_types == ["incident_declared","recovery_completed","release_completed"] and
+    .canonical_sync.immediate_flush_target_seconds == 60 and
+    .canonical_sync.empty_commit_allowed == false and
+    .canonical_sync.ordinary_age_blocks_mutation == false and
+    .canonical_sync.material_backlog_protects_mutation == true and
+    .canonical_sync.max_events_per_invocation == 2000 and
+    .canonical_sync.max_uncompressed_bytes_per_invocation == 10485760 and
+    .canonical_sync.max_attempts_per_invocation == 5 and
     .canonical_sync.deterministic_gzip == true and
     .canonical_sync.content_addressed == true and
     .canonical_sync.manifest_conflict_last_write_wins == false and
@@ -1138,7 +1170,7 @@ ENV_STAGE="$TMP_ROOT/$STAGING_TAG-staging.env"
 cat >"$ENV_STAGE" <<ENV
 NODE_ENV=production
 TZ=UTC
-CB_PRODUCT_VERSION=0.0.0.4
+CB_PRODUCT_VERSION=0.0.0.5
 CYBERBOSS_USER_NAME=Fixture
 CYBERBOSS_USER_GENDER=neutral
 CYBERBOSS_ALLOWED_USER_IDS=sim-authorized-user
@@ -1178,12 +1210,19 @@ CB_OUTBOX_BASE_DELAY_MS=1000
 CB_OUTBOX_MAX_DELAY_MS=60000
 CB_OUTBOX_CHUNK_CHARS=3600
 CB_PRIVATE_DB_CANONICAL_SYNC=true
+# Legacy aliases stay parse-compatible, but never trigger a remote sync by age.
 CB_CANONICAL_FLUSH_ON_TERMINAL=true
+CB_CANONICAL_BATCH_MAX_AGE_MS=60000
+CB_CANONICAL_ORDINARY_SYNC_SCHEDULE=daily
+CB_CANONICAL_ORDINARY_SYNC_ON_CALENDAR=*-*-* 03:20:00 UTC
+CB_CANONICAL_MATERIAL_EVENT_TYPES=release_completed,incident_declared,recovery_completed
+CB_CANONICAL_MAX_EVENTS_PER_INVOCATION=2000
+CB_CANONICAL_MAX_UNCOMPRESSED_BYTES_PER_INVOCATION=10485760
+CB_CANONICAL_MAX_ATTEMPTS_PER_INVOCATION=5
 CB_CANONICAL_SPOOL_ROOT=$STATE_ROOT/canonical-spool
 CB_CANONICAL_DATA_STATE_ROOT=/var/lib/cyberboss-data/canonical-sync
 CB_CANONICAL_BATCH_MAX=50
 CB_CANONICAL_BATCH_MAX_BYTES=262144
-CB_CANONICAL_BATCH_MAX_AGE_MS=60000
 CB_CANONICAL_BACKLOG_MAX_EVENTS=10000
 CB_CANONICAL_BACKLOG_MAX_BYTES=67108864
 CB_CANONICAL_MAX_LAG_SECONDS=900
@@ -1261,14 +1300,22 @@ if [[ "$TASK_ID" == "CB-240" ]]; then
   getent group "$DATA_GROUP" >/dev/null || fail "data_group_missing"
   CANONICAL_UNIT_SOURCE="$KIT_ROOT/systemd/cyberboss-canonical-sync.service"
   CANONICAL_TIMER_SOURCE="$KIT_ROOT/systemd/cyberboss-canonical-sync.timer"
+  CANONICAL_MATERIAL_UNIT_SOURCE="$KIT_ROOT/systemd/cyberboss-canonical-sync-material.service"
+  CANONICAL_MATERIAL_PATH_SOURCE="$KIT_ROOT/systemd/cyberboss-canonical-sync-material.path"
   CANONICAL_UNIT_TARGET="/etc/systemd/system/cyberboss-canonical-sync.service"
   CANONICAL_TIMER_TARGET="/etc/systemd/system/cyberboss-canonical-sync.timer"
+  CANONICAL_MATERIAL_UNIT_TARGET="/etc/systemd/system/cyberboss-canonical-sync-material.service"
+  CANONICAL_MATERIAL_PATH_TARGET="/etc/systemd/system/cyberboss-canonical-sync-material.path"
   SAFE_WRAPPER_TARGET="$APP_ROOT/shared/private_db_client_safe.py"
   if [[ "$MODE" == "apply" ]]; then
     install -o root -g root -m 0644 \
       "$CANONICAL_UNIT_SOURCE" "$CANONICAL_UNIT_TARGET"
     install -o root -g root -m 0644 \
       "$CANONICAL_TIMER_SOURCE" "$CANONICAL_TIMER_TARGET"
+    install -o root -g root -m 0644 \
+      "$CANONICAL_MATERIAL_UNIT_SOURCE" "$CANONICAL_MATERIAL_UNIT_TARGET"
+    install -o root -g root -m 0644 \
+      "$CANONICAL_MATERIAL_PATH_SOURCE" "$CANONICAL_MATERIAL_PATH_TARGET"
     install -o root -g "$DATA_GROUP" -m 0550 \
       "$KIT_ROOT/scripts/private_db_client_safe.py" "$SAFE_WRAPPER_TARGET"
     install -d -o root -g "$CODE_GROUP" -m 0750 \
@@ -1288,6 +1335,10 @@ if [[ "$TASK_ID" == "CB-240" ]]; then
     fail "canonical_unit_drift"
   cmp -s "$CANONICAL_TIMER_SOURCE" "$CANONICAL_TIMER_TARGET" ||
     fail "canonical_timer_drift"
+  cmp -s "$CANONICAL_MATERIAL_UNIT_SOURCE" "$CANONICAL_MATERIAL_UNIT_TARGET" ||
+    fail "canonical_material_unit_drift"
+  cmp -s "$CANONICAL_MATERIAL_PATH_SOURCE" "$CANONICAL_MATERIAL_PATH_TARGET" ||
+    fail "canonical_material_path_drift"
   cmp -s "$KIT_ROOT/scripts/private_db_client_safe.py" \
     "$SAFE_WRAPPER_TARGET" || fail "safe_wrapper_drift"
   [[ "$(stat -c '%U:%G:%a' "$SAFE_WRAPPER_TARGET")" == \
@@ -1307,6 +1358,7 @@ if [[ "$TASK_ID" == "CB-240" ]]; then
     "$DATA_USER:$DATA_GROUP:700" ]] ||
     fail "canonical_data_state_owner_mode"
   systemd-analyze verify "$CANONICAL_UNIT_TARGET" "$CANONICAL_TIMER_TARGET" \
+    "$CANONICAL_MATERIAL_UNIT_TARGET" "$CANONICAL_MATERIAL_PATH_TARGET" \
     >/dev/null || fail "canonical_systemd_verify"
   systemctl is-active --quiet cyberboss-canonical-sync.service &&
     fail "canonical_service_active"
@@ -1316,6 +1368,14 @@ if [[ "$TASK_ID" == "CB-240" ]]; then
     fail "canonical_timer_active"
   systemctl is-enabled --quiet cyberboss-canonical-sync.timer 2>/dev/null &&
     fail "canonical_timer_enabled"
+  systemctl is-active --quiet cyberboss-canonical-sync-material.service &&
+    fail "canonical_material_service_active"
+  systemctl is-enabled --quiet cyberboss-canonical-sync-material.service 2>/dev/null &&
+    fail "canonical_material_service_enabled"
+  systemctl is-active --quiet cyberboss-canonical-sync-material.path &&
+    fail "canonical_material_path_active"
+  systemctl is-enabled --quiet cyberboss-canonical-sync-material.path 2>/dev/null &&
+    fail "canonical_material_path_enabled"
 fi
 
 [[ "$(basename "$(readlink -f "$APP_ROOT/current")")" == "$EXPECTED_CURRENT" ]] ||
@@ -1335,6 +1395,14 @@ if [[ "$TASK_ID" == "CB-240" ]]; then
     fail "canonical_timer_active_after"
   systemctl is-enabled --quiet cyberboss-canonical-sync.timer 2>/dev/null &&
     fail "canonical_timer_enabled_after"
+  systemctl is-active --quiet cyberboss-canonical-sync-material.service &&
+    fail "canonical_material_service_active_after"
+  systemctl is-enabled --quiet cyberboss-canonical-sync-material.service 2>/dev/null &&
+    fail "canonical_material_service_enabled_after"
+  systemctl is-active --quiet cyberboss-canonical-sync-material.path &&
+    fail "canonical_material_path_active_after"
+  systemctl is-enabled --quiet cyberboss-canonical-sync-material.path 2>/dev/null &&
+    fail "canonical_material_path_enabled_after"
 fi
 [[ -z "$(ss -lntH '( sport = :8765 or sport = :8780 )')" ]] ||
   fail "listener_created"

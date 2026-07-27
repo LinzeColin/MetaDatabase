@@ -1,11 +1,9 @@
 [Unit]
-Description=Run CyberBoss canonical sync every minute
+Description=Run CyberBoss ordinary canonical sync daily at 03:20 UTC
 
 [Timer]
-OnBootSec=1min
-OnUnitActiveSec=1min
-AccuracySec=1s
-Persistent=false
+OnCalendar=*-*-* 03:20:00 UTC
+Persistent=true
 Unit=cyberboss-canonical-sync.service
 
 [Install]

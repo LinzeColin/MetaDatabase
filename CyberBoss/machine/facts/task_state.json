@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "taskpack_version": "v0.0.0.4",
+  "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P2.4",
+    "run_id": "P2.5",
     "gate_id": null,
-    "task_id": "CB-230",
-    "scope": "durable_outbox_delivery_truth",
-    "status": "passed"
+    "task_id": "CB-240",
+    "scope": "canonical_sync_rebuild",
+    "status": "implemented_not_accepted"
   },
   "prestage": [
     {
@@ -39,7 +39,7 @@
     {"id": "CB-210", "stage": "S2", "phase": "P2.2", "status": "passed"},
     {"id": "CB-220", "stage": "S2", "phase": "P2.3", "status": "passed"},
     {"id": "CB-230", "stage": "S2", "phase": "P2.4", "status": "passed"},
-    {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "not_started"},
+    {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "implemented_not_accepted"},
     {"id": "CB-300", "stage": "S3", "phase": "P3.1", "status": "not_started"},
     {"id": "CB-310", "stage": "S3", "phase": "P3.2", "status": "not_started"},
     {"id": "CB-320", "stage": "S3", "phase": "P3.3", "status": "not_started"},
@@ -55,5 +55,31 @@
     {"id": "CB-520", "stage": "S5", "phase": "P5.3", "status": "not_started"},
     {"id": "CB-530", "stage": "S5", "phase": "P5.4", "status": "not_started"},
     {"id": "CB-540", "stage": "S5", "phase": "P5.5", "status": "not_started"}
-  ]
+  ],
+  "taskpack_overlay": {
+    "product_version": "v0.0.0.5",
+    "design_baseline_version": "v0.0.0.4",
+    "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+    "native_execution_order": [
+      "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
+    ],
+    "skill_router": {
+      "task_id": "CB-240",
+      "selected_skill": "output-skill",
+      "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+      "max_lightweight_skill_loads": 1,
+      "prohibited_skill_loads": 0
+    },
+    "ordinary_sync": "daily at 03:20 UTC",
+    "material_event_types": [
+      "release_completed",
+      "incident_declared",
+      "recovery_completed"
+    ],
+    "private_database_activation": "activation_pending",
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "macos_launchd_dependency": false,
+    "pg_2_executed": false
+  }
 }
