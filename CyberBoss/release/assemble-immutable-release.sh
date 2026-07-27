@@ -53,3 +53,6 @@ for pair in "${contract_aliases[@]}"; do
 done
 
 printf '%s\n' 'CB530_RELEASE_ASSEMBLY=PASS'
+
+# The caller must invoke release/write-release-manifest.js exactly once after
+# assembly and before recursively removing write permissions from this release.

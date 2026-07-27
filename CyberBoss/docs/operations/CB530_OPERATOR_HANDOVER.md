@@ -4,6 +4,15 @@
 immutable release、不要复制 Private-Database、不要把 Codex/微信凭据写入 Runtime
 snapshot，也不要使用 macOS `launchd`。
 
+## 不可变发布清单
+
+release staging 在冻结权限前，必须只运行一次仓库内的
+`release/write-release-manifest.js`。它以 create-once 模式写入严格 JSON 的
+`release-manifest.json`，固定产品版本 `v0.0.0.5`，并绑定 release commit、source tree、
+source archive SHA-256 与非敏感运行时版本事实。禁止用 shell 拼接 JSON；已有清单、格式错误
+或身份不匹配都必须 fail closed。随后才可移除 release 的写权限并原子更新
+`current`/`previous`。
+
 ## 每日备份与诊断
 
 ```bash
