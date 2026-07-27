@@ -13,7 +13,8 @@
   R2/OCI receipt；不创建仓库、数据库或新的业务事实源。
 - 新增一个只请求 `127.0.0.1:8780` 的 deterministic self-heal health wrapper；它仅把
   精确的 `channel,bridge` pending shape 归为受控 degraded，其他状态均 fail closed。
-- Linux `systemd` 的现有 self-heal unit 通过最小 drop-in 使用该 wrapper；没有
+- Linux `systemd` 的现有 self-heal unit 通过最小 drop-in 清空冻结的 `ExecStart`，再用
+  `/usr/bin/env` 在进程启动处固定该 wrapper，避免 `EnvironmentFile` 的遗留值覆盖；没有
   launchd、sleep、轮询等待、控制面/运维模型调用或第二模型。
 - `docs/evidence/CB-540/`、`docs/evidence/PG-5/`、任务状态和本地 validator 只在全部
   subject inputs 已由真实命令回证后更新。

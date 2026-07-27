@@ -8,6 +8,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const SCRIPT = path.resolve(__dirname, "..", "cb540-selfheal-health.sh");
+const DROP_IN = path.resolve(__dirname, "..", "cb540-selfheal-degraded-channel.conf");
 
 function writeExecutable(target, contents) {
   fs.writeFileSync(target, contents, { encoding: "utf8", mode: 0o700 });
@@ -75,4 +76,14 @@ test("CB-540 fails closed for any other readiness shape or inactive cloud servic
   const inactive = run(files, { CB540_TEST_SERVICE_ACTIVE: "false" });
   assert.equal(inactive.status, 2);
   assert.equal(inactive.stdout, "CB540_SELFHEAL_HEALTH=FAILED reason=cloud_inactive\n");
+});
+
+test("CB-540 systemd override pins the wrapper after any EnvironmentFile value", () => {
+  assert.equal(
+    fs.readFileSync(DROP_IN, "utf8"),
+    "[Service]\n" +
+      "ExecStart=\n" +
+      "ExecStart=/usr/bin/env CB_HEALTH_SCRIPT=/opt/cyberboss-cloud/current/ops/systemd/cb540-selfheal-health.sh /opt/cyberboss-cloud/current/implementation-kit/scripts/self-heal.sh\n" +
+      "SuccessExitStatus=1\n",
+  );
 });
