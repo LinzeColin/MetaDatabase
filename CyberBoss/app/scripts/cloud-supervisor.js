@@ -5,7 +5,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const { spawn } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const { once } = require("node:events");
 
 const REQUIRED_RELEASE_PREFIX = "/opt/cyberboss-cloud/releases/";
@@ -229,6 +229,35 @@ function providerClaim(provider, ready) {
 
 function holdPendingChannel(config) {
   return config.channelProvider === "real" && config.channelActivationMode === "pending";
+}
+
+function notifySystemdReady(environment = process.env, execute = spawnSync) {
+  if (!readText(environment.NOTIFY_SOCKET)) {
+    return false;
+  }
+  let outcome;
+  try {
+    outcome = execute(
+      "/usr/bin/systemd-notify",
+      [
+        "--ready",
+        "--status=CyberBoss loopback status listener ready",
+        "--no-block",
+      ],
+      {
+        env: environment,
+        shell: false,
+        stdio: "ignore",
+      },
+    );
+  } catch {
+    throw new SupervisorViolation("systemd_notify_ready");
+  }
+  expect(
+    outcome && !outcome.error && outcome.status === 0,
+    "systemd_notify_ready",
+  );
+  return true;
 }
 
 function buildStatusSnapshot(config, state) {
@@ -645,6 +674,9 @@ async function main() {
   statusServer.listen(config.statusPort, config.statusHost);
   await once(statusServer, "listening");
   logEvent("status_listening", { bind: "loopback", port: config.statusPort });
+  if (notifySystemdReady()) {
+    logEvent("systemd_ready", { status: "loopback_listener" });
+  }
 
   let runtime;
   if (config.runtimeProvider === "simulator") {
@@ -753,6 +785,7 @@ module.exports = {
   holdPendingChannel,
   isLoopbackHost,
   loadConfiguration,
+  notifySystemdReady,
   resolveTimelineAsset,
   safeTokenEqual,
 };

@@ -14,6 +14,7 @@ const {
   evaluateHealth,
   holdPendingChannel,
   loadConfiguration,
+  notifySystemdReady,
 } = require("../scripts/cloud-supervisor");
 
 const releaseCommit = "1".repeat(40);
@@ -126,6 +127,44 @@ test("managed children are never detached and never use a shell", () => {
   assert.equal(options.detached, false);
   assert.equal(options.shell, false);
   assert.deepEqual(options.stdio, ["ignore", "pipe", "pipe"]);
+});
+
+test("systemd readiness is emitted only after a listener exists and fails closed", () => {
+  assert.equal(notifySystemdReady({}, () => {
+    throw new Error("must not execute without NOTIFY_SOCKET");
+  }), false);
+
+  const calls = [];
+  assert.equal(
+    notifySystemdReady(
+      { NOTIFY_SOCKET: "/run/systemd/notify" },
+      (command, args, options) => {
+        calls.push({ command, args, options });
+        return { status: 0 };
+      },
+    ),
+    true,
+  );
+  assert.deepEqual(calls, [{
+    command: "/usr/bin/systemd-notify",
+    args: [
+      "--ready",
+      "--status=CyberBoss loopback status listener ready",
+      "--no-block",
+    ],
+    options: {
+      env: { NOTIFY_SOCKET: "/run/systemd/notify" },
+      shell: false,
+      stdio: "ignore",
+    },
+  }]);
+  assert.throws(
+    () => notifySystemdReady(
+      { NOTIFY_SOCKET: "/run/systemd/notify" },
+      () => ({ status: 1 }),
+    ),
+    /systemd_notify_ready/,
+  );
 });
 
 test("health and readiness are independent and a forced fixture cannot fake green", () => {
