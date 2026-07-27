@@ -24,7 +24,12 @@ def origin(value: str) -> str:
 
 def fetch(url: str, *, method: str = "GET", body: bytes | None = None, headers: dict[str, str] | None = None, timeout: float = 15.0):
     started = time.monotonic()
-    request = Request(url, data=body, method=method, headers=headers or {})
+    request_headers = {
+        "User-Agent": "WeReadPort-Smoke/0.0.0.1.3",
+        "Accept": "application/json, text/html;q=0.9",
+    }
+    request_headers.update(headers or {})
+    request = Request(url, data=body, method=method, headers=request_headers)
     try:
         with urlopen(request, timeout=timeout) as response:
             raw = response.read(MAX_BYTES + 1)
