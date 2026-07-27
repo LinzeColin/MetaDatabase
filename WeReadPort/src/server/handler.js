@@ -91,7 +91,7 @@ async function proxyGateway(request, env) {
         Accept: "application/json",
       },
       body: JSON.stringify(body),
-      redirect: "error",
+      redirect: "manual",
       cache: "no-store",
       signal: combineSignals(request.signal, timeoutController.signal),
     });

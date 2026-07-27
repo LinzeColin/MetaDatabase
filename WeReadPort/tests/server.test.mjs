@@ -38,6 +38,7 @@ test("proxy pins official endpoint and rebuilds the untrusted body", async () =>
   assert.equal(captured.url, OFFICIAL_WEREAD_GATEWAY);
   assert.deepEqual(JSON.parse(captured.init.body), { api_name: "/book/info", skill_version: SOURCE_SKILL_VERSION, bookId: "book-1" });
   assert.equal(captured.init.headers.Authorization, `Bearer ${userKey()}`);
+  assert.equal(captured.init.redirect, "manual", "服务端必须拒绝自动重定向，避免转发 Authorization");
 });
 
 test("proxy rejects cross-origin and unknown parameters without leaking key", async () => {
