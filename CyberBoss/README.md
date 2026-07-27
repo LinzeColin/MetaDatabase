@@ -4,12 +4,9 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 ## 当前状态
 
-- 生命周期：Stage 0、Stage 1、Stage 2 及各自独立退出门 `PG-0`、`PG-1`、
-  `PG-2` 已通过；Stage 3 的 `P3.1 / CB-300`、`P3.2 / CB-310`、`P3.3 / CB-320`、
-  `P3.4 / CB-330`、`P3.5 / CB-340` 与独立退出门 `PG-3` 已通过；下一节点为
-  Stage 4 的 `P4.1 / CB-400`、`P4.2 / CB-410`、`P4.3 / CB-420`、`P4.4 / CB-430`、
-  `P4.5 / CB-440` 与独立退出门 `PG-4` 已通过；下一节点为 Stage 5 的
-  `P5.1 / CB-500`
+- 生命周期：Stage 0–4 与独立退出门 PG-0–PG-4 已通过；Stage 5 的
+  P5.1 / CB-500 clean-staging dress rehearsal 已通过。下一节点为
+  P5.2 / CB-510。
 - Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
@@ -18,19 +15,19 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
   `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`；
   `P3.1 / CB-300`；`P3.2 / CB-310`；`P3.3 / CB-320`；`P3.4 / CB-330`；
   `P3.5 / CB-340`；`PG-3`；`P4.1 / CB-400`；`P4.2 / CB-410`；`P4.3 / CB-420`；
-  `P4.4 / CB-430`；`P4.5 / CB-440`；`PG-4`
-- 当前基线：Stage 4 的精确 implementation/release commit、冻结 Subject/evidence tree、
+  `P4.4 / CB-430`；`P4.5 / CB-440`；`PG-4`；`P5.1 / CB-500`
+- 当前基线：Stage 5 clean-staging 的精确 implementation/release commit、冻结 Subject/evidence tree、
   完整许可证/依赖清单及 Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`PG-4` 已对 CB-400–CB-440 的软件正确性、模型安全 fixture、安全隐私、
-  故障恢复与 immutable candidate 密封进行独立聚合。22 项无凭据本地命令、两个
-  manifest、Subject/evidence hash 与完整 App 回归通过；封口证据见
-  `docs/evidence/PG-4/`。它只闭合本地 deterministic gate，`FORMAL_FINAL_ACCEPTANCE`、
-  candidate install/current switch/live Canary/live rollback 仍为
-  `activation_pending`。
-- Stage 0–5 任务状态：`CB-000`–`CB-440` 共二十五项任务已通过；CB-500–CB-540
-  共五项任务与 `PG-5` 为 `not_started`；`PG-0=passed`、`PG-1=passed`、
+- 最新 Run：`CB-500` 已完成 clean, isolated, local deterministic
+  dress rehearsal。30 项无凭据本地命令重跑 Timeline、Status、Access、canonical
+  sync、fault/restore、backup、immutable candidate、双流水线、App regression
+  与 TaskPack constraints；封口证据见 `docs/evidence/CB-500/`。这只闭合
+  本地 rehearsal，`FORMAL_FINAL_ACCEPTANCE` 与所有真实 activation 仍为
+  `activation_pending`（R2 为 `hazard_blocked`）。
+- Stage 0–5 任务状态：`CB-000`–`CB-500` 共二十六项任务已通过；CB-510–CB-540
+  共四项任务与 `PG-5` 为 `not_started`；`PG-0=passed`、`PG-1=passed`、
   `PG-2=passed`、`PG-3=passed`、`PG-4=passed`。下一原生节点只能是独立 Run 的
-  `CB-500`，并须先运行其自己的 TaskPack Router。
+  `CB-510`，并须先运行其自己的 TaskPack Router。
 - 真实 Private-Database/Cloudflare/OCI、目标 candidate 安装与服务激活均为
   `activation_pending`；Timeline、Status、Cloudflare Access/DNS/Analytics 静态
   发布也为 `activation_pending`；R2 为 `hazard_blocked`，OCI 为

@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "PG-4",
-    "gate_id": "PG-4",
-    "task_id": null,
-    "scope": "stage_4_dual_pipeline_safe_release_gate",
+    "run_id": "P5.1",
+    "gate_id": null,
+    "task_id": "CB-500",
+    "scope": "clean_ephemeral_staging_dress_rehearsal_activation_plan",
     "status": "passed"
   },
   "prestage": [
@@ -50,7 +50,7 @@
     {"id": "CB-420", "stage": "S4", "phase": "P4.3", "status": "passed"},
     {"id": "CB-430", "stage": "S4", "phase": "P4.4", "status": "passed"},
     {"id": "CB-440", "stage": "S4", "phase": "P4.5", "status": "passed"},
-    {"id": "CB-500", "stage": "S5", "phase": "P5.1", "status": "not_started"},
+    {"id": "CB-500", "stage": "S5", "phase": "P5.1", "status": "passed"},
     {"id": "CB-510", "stage": "S5", "phase": "P5.2", "status": "not_started"},
     {"id": "CB-520", "stage": "S5", "phase": "P5.3", "status": "not_started"},
     {"id": "CB-530", "stage": "S5", "phase": "P5.4", "status": "not_started"},
@@ -64,11 +64,13 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "PG-4",
-      "selected_skill": null,
-      "mode": "DETERMINISTIC_TEST_ONLY",
-      "max_lightweight_skill_loads": 0,
-      "prohibited_skill_loads": 0
+      "task_id": "CB-500",
+      "selected_skill": "webapp-testing",
+      "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+      "max_lightweight_skill_loads": 1,
+      "prohibited_skill_loads": 0,
+      "actual_skill_body_loads": 0,
+      "fallback": "machine/skill_microplaybooks.json"
     },
     "ordinary_sync": "daily at 03:20 UTC",
     "material_event_types": [
@@ -128,6 +130,11 @@
     "immutable_release_operator_runbook_status": "passed",
     "immutable_release_operator_runbook_digest": "d26533392f38e0de26e1deab4c07a9365cdbc97a5f948503554c1db35afc9c9f",
     "release_candidate_real_activation": "activation_pending",
+    "clean_staging_rehearsal_status": "passed",
+    "clean_staging_rehearsal_digest": "dec0e1518a5f99751a3c04b2c59ed3079f78f5a9ac807ba44add179a206448e1",
+    "clean_staging_activation_plan_digest": "cbfde621243f8dba41650895765aa4ecdd994899ee1b47a018bb9f8e89af125c",
+    "clean_staging_operator_contract_status": "passed",
+    "clean_staging_real_activation": "activation_pending",
     "pg_4_executed": true,
     "stage_4_anchor_commit": "5ac84f31e6889dc416cad405011dda572a463d38",
     "stage_4_anchor_tree": "70913b5a040bed7929e01de9d3492b0b7187dce9",

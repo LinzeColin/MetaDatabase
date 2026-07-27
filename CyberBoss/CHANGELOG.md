@@ -1,5 +1,29 @@
 # Changelog
 
+## P5.1 / CB-500 — 2026-07-27
+
+- Closed the clean, isolated local staging dress rehearsal against PG-4 closure
+  a5802bca6ac63c435121ab3bc970a6adededb7de, bound to implementation commit
+  ddda629feb4455da5dba213a5d5f827001ce8c71 and tree
+  c93bf0154468b379e3bd12e124fd1d894569f802, without changing the Owner-locked
+  product version v0.0.0.5 or design baseline v0.0.0.4.
+- The TaskPack Router selected webapp-testing. Its native body is unavailable
+  in the local catalog, so the frozen embedded microplaybook was used with
+  actual Skill body loads=0. No verifier, secondary model, external research,
+  browser persistence, provider call, macOS launchd dependency or real-time
+  wait was used.
+- Thirty credential-scrubbed local commands passed: clean staging fixture,
+  Timeline/Status/Access, simulator E2E, canonical sync, fault matrix,
+  backup/isolated restore, immutable candidate/request predicates/rollback,
+  dual pipelines, secret scan, App regression and all pack constraints.
+  The sealed rehearsal digest is dec0e1518a5f99751a3c04b2c59ed3079f78f5a9ac807ba44add179a206448e1.
+- Marked only CB-500 passed in the local deterministic scope. Current remains
+  unchanged; production promotion, candidate installation, live request-count
+  Canary, live rollback, Private-Database, Cloudflare Access/DNS/Analytics,
+  Timeline/Status, OCI, self-heal, timer and service activation remain
+  activation_pending. R2 remains hazard_blocked. The next native node is
+  CB-510.
+
 ## PG-4 — 2026-07-27
 
 - Closed the independent Stage 4 dual-pipeline and safe-release gate against

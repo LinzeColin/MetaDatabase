@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `d9960a4de965500802afb08758a43d7fb8d5032d`
+  `ddda629feb4455da5dba213a5d5f827001ce8c71`
 - Remote publication: none
 
 ## Current state
@@ -20,7 +20,21 @@ Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
 complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420`,
 `P4.4 / CB-430`, `P4.5 / CB-440` and independent Stage 4 exit gate `PG-4`
-passed. CB-500–CB-540 and PG-5 remain `not_started`.
+passed. `P5.1 / CB-500` passed as a local clean-staging rehearsal. CB-510–CB-540
+and PG-5 remain `not_started`.
+
+CB-500 is bound to implementation commit
+`ddda629feb4455da5dba213a5d5f827001ce8c71` and tree
+`c93bf0154468b379e3bd12e124fd1d894569f802`. The TaskPack Router selected
+webapp-testing, whose native body is unavailable locally; the frozen embedded
+microplaybook was therefore used with actual Skill body loads=0. Its 30-command
+credential-scrubbed validator passed clean staging creation/cleanup, Timeline,
+Status, Access, simulator E2E, canonical sync, fault/restore, backup,
+immutable candidate/request predicates/rollback, both pipelines, App regression
+and TaskPack constraints. The sealed rehearsal digest is
+`dec0e1518a5f99751a3c04b2c59ed3079f78f5a9ac807ba44add179a206448e1`;
+the activation plan is contract-only. Current did not switch and all external
+operations remain activation_pending except R2, which remains hazard_blocked.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -838,15 +852,14 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Next Run
 
-The next eligible Run is exactly `P5.1 / CB-500`. It remains `not_started`.
-PG-4 does not authorize clean-staging execution, Timeline publication,
-Cloudflare Access, Status activation, canonical writeback, real provider
-activation, promotion, Canary or rollback in the same Run.
+The next eligible Run is exactly `P5.2 / CB-510`. It remains `not_started`.
+CB-500 closes only a local clean-staging rehearsal; it does not authorize
+production promotion, Cloudflare Access/DNS, Status publication, canonical
+writeback, real provider activation, live Canary or live rollback.
 
-Start `P5.1 / CB-500` only under a new single-phase Run Contract after its own
-package Skill Router. Keep source/license, CB-000–CB-440 and PG-0–PG-4 evidence
-immutable, preserve the strict dual-license conflict record and continue the
-final-only GitHub publication rule. Scope CB-500 to a clean, local staging
-dress-rehearsal contract only; do not create a second source of truth, expose
-Runtime publicly, invoke a model, claim cloud activation or revise PG-4's
-activation-pending truth.
+Start `P5.2 / CB-510` only under a new single-phase Run Contract after its own
+package Skill Router. Preserve source/license, CB-000–CB-500 and PG-0–PG-4
+evidence, the strict dual-license conflict record and the final-only GitHub
+publication rule. Do not treat local rehearsal as external proof: no provider,
+data or service action may be claimed verified without a new, authority-bound
+receipt.
