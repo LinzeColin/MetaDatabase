@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "PG-3",
-    "gate_id": "PG-3",
-    "task_id": null,
-    "scope": "stage_3_adapter_timeline_status_backup_ops_gate",
+    "run_id": "P4.1",
+    "gate_id": null,
+    "task_id": "CB-400",
+    "scope": "software_correctness_pipeline",
     "status": "passed"
   },
   "prestage": [
@@ -45,7 +45,7 @@
     {"id": "CB-320", "stage": "S3", "phase": "P3.3", "status": "passed"},
     {"id": "CB-330", "stage": "S3", "phase": "P3.4", "status": "passed"},
     {"id": "CB-340", "stage": "S3", "phase": "P3.5", "status": "passed"},
-    {"id": "CB-400", "stage": "S4", "phase": "P4.1", "status": "not_started"},
+    {"id": "CB-400", "stage": "S4", "phase": "P4.1", "status": "passed"},
     {"id": "CB-410", "stage": "S4", "phase": "P4.2", "status": "not_started"},
     {"id": "CB-420", "stage": "S4", "phase": "P4.3", "status": "not_started"},
     {"id": "CB-430", "stage": "S4", "phase": "P4.4", "status": "not_started"},
@@ -64,11 +64,13 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "PG-3",
-      "selected_skill": null,
-      "mode": "DETERMINISTIC_TEST_ONLY",
-      "max_lightweight_skill_loads": 0,
-      "prohibited_skill_loads": 0
+      "task_id": "CB-400",
+      "selected_skill": "output-skill",
+      "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+      "max_lightweight_skill_loads": 1,
+      "prohibited_skill_loads": 0,
+      "actual_skill_body_loads": 1,
+      "fallback": "machine/skill_microplaybooks.json"
     },
     "ordinary_sync": "daily at 03:20 UTC",
     "material_event_types": [
@@ -102,6 +104,10 @@
     "timer_activation": "activation_pending",
     "pg_3_executed": true,
     "stage_3_anchor_commit": "c132ee648ab2ad0f5f66c0dc3ee923c11cabfa42",
-    "stage_3_subject_digest": "0948241079908a7c4a6cc73c4ac5e6b64284c200528a0f5e65fdf7ed8f044af6"
+    "stage_3_subject_digest": "0948241079908a7c4a6cc73c4ac5e6b64284c200528a0f5e65fdf7ed8f044af6",
+    "software_correctness_status": "passed",
+    "frozen_core_suite_schema": "cyberboss.software-correctness.v1",
+    "postdeploy_automation_status": "passed",
+    "rollback_discrimination_status": "passed"
   }
 }

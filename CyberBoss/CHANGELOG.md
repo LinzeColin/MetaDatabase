@@ -1,5 +1,30 @@
 # Changelog
 
+## P4.1 / CB-400 — 2026-07-27
+
+- Closed the local software-correctness pipeline against PG-3 closure
+  `3845d560591311c7e2b11e77e1dbdfc256486903`, bound to implementation commit
+  `3e203ba760cab21b1a8d0bbd5d7f1b76d2fb884c` and tree
+  `3717f5aa708f96ccaf3ae298d0312c18756576a6`, without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Added one frozen 10-slice core suite covering install/build/start,
+  migration compatibility, inbox/outbox crash recovery, scheduler singleton,
+  canonical conflict/privacy, Timeline/Status/Access, backup/restore,
+  resource self-heal and rollback discrimination. A failed slice produces only
+  `discard_candidate_keep_accepted_baseline` and no deployment mutation.
+- Repaired the existing Claude-gate fixture to provide its full local immutable
+  release/toolchain preconditions and canonical temporary paths. The test still
+  proves Claude stays disabled unless both explicit gates are true; it invokes
+  no model or real service.
+- The package router selected `output-skill`; exactly one local body was loaded.
+  Thirteen credential-free local checks passed, including the real frozen suite,
+  nonblocking postdeploy plan, App/root regressions, PG-3 evidence anchor,
+  identity/config, DAG, traceability, no-wait and manifests.
+- Marked only CB-400 passed. No deployment, service, Provider, data-plane or
+  model operation occurred; macOS launchd remains absent. R2 remains
+  `hazard_blocked`; all other external activation truth remains
+  `activation_pending`. The next native node is CB-410.
+
 ## PG-3 — 2026-07-27
 
 - Closed the independent Stage 3 exit gate against immutable anchor

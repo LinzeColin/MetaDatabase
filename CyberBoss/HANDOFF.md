@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `67b1f7419a10154d17872ae18aa47b6b97e6d2df`
+  `3e203ba760cab21b1a8d0bbd5d7f1b76d2fb884c`
 - Remote publication: none
 
 ## Current state
@@ -18,7 +18,8 @@ Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent
 Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 `P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` and independent Stage 3 exit
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
-complete. CB-400–CB-540 and PG-4–PG-5 remain `not_started`.
+complete. `P4.1 / CB-400` passed; CB-410–CB-540 and PG-4–PG-5 remain
+`not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -115,6 +116,19 @@ regression, frozen adapter truth-state and rollback-contract review, full App,
 DAG, traceability, no-wait and both manifests. Its closure makes no external
 claim and does not authorize cloud/service activation.
 
+CB-400 is bound to implementation commit
+`3e203ba760cab21b1a8d0bbd5d7f1b76d2fb884c` and tree
+`3717f5aa708f96ccaf3ae298d0312c18756576a6`. The package router selected
+`output-skill` and loaded exactly that one local body. The frozen 10-slice core
+suite reuses existing tests for immutable start gates, migrations, crash-cut
+recovery, singleton scheduling, canonical privacy, projections/access,
+backup/restore, resource policy and rollback discrimination. Any failing slice
+returns `discard_candidate_keep_accepted_baseline` with zero deployment
+mutation. The postdeploy contract is manual-or-CI and nonblocking; it creates
+no wait node, timer, external call or release promotion. Thirteen
+credential-scrubbed local checks passed, including full App regression and the
+immutable PG-3 evidence anchor review.
+
 The closure is local and credential-free. Private-Database/R2/Cloudflare/OCI
 real operations are `0`, control-plane and operations LLM calls are `0`, no
 macOS launchd dependency exists, Private-Database/Cloudflare/OCI activation
@@ -123,7 +137,7 @@ write-scope attestation. Timeline/global Status and Cloudflare Access/DNS/
 Analytics publication are also `activation_pending`. R2 remains `hazard_blocked`
 pending exact write-scope attestation; OCI, self-heal and timer remain
 `activation_pending`. The next Run must run its own package Skill Router before
-executing native node `CB-400`.
+executing native node `CB-410`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
