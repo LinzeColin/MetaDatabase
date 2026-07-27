@@ -674,9 +674,6 @@ async function main() {
   statusServer.listen(config.statusPort, config.statusHost);
   await once(statusServer, "listening");
   logEvent("status_listening", { bind: "loopback", port: config.statusPort });
-  if (notifySystemdReady()) {
-    logEvent("systemd_ready", { status: "loopback_listener" });
-  }
 
   let runtime;
   if (config.runtimeProvider === "simulator") {
@@ -709,6 +706,10 @@ async function main() {
     runtime.readyPromise.catch(() => {});
     await waitForRuntimeProbe(config.runtimeUrl, runtime.child);
     runtime.markReady();
+  }
+
+  if (notifySystemdReady()) {
+    logEvent("systemd_ready", { status: "loopback_runtime_ready" });
   }
 
   if (config.channelProvider === "simulator") {
