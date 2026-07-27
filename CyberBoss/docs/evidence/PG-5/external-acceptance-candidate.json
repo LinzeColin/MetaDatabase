@@ -1,0 +1,56 @@
+{
+  "verdict": "BLOCKED",
+  "target_project": "LinzeColin/MetaDatabase/CyberBoss",
+  "subject": {
+    "deployment_digest": "feb6ee99d3c13960a93d912f7878c48b51c587419618b79cef75eea2a890a5c9",
+    "development_candidate": "MVP_DEGRADED"
+  },
+  "taskpack_digest_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "contract_digest_sha256": "07842d7520d5a43e94c2c5283133f4bbd43415ee1877a86937d060e9c59ac943",
+  "deployment_identity": {
+    "current": "fd3cd1e19d70caa148c3785288aaabfb909fed85",
+    "previous": "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+    "release_manifest_sha256": "4829f41e002e5c6fa242182d851317df376d6f407a8c593577612af738490ff7"
+  },
+  "critical_acceptance": {
+    "FA-AC-001": "PASS",
+    "FA-AC-020": "PASS",
+    "FA-AC-021": "PASS",
+    "FA-AC-022": "PASS",
+    "FA-AC-023": "PASS",
+    "FA-AC-024": "PASS",
+    "FA-AC-025": "PASS",
+    "FA-AC-027": "PASS",
+    "FA-AC-028": "PASS",
+    "FA-AC-029": "PASS",
+    "FA-AC-030": "PASS"
+  },
+  "real_e2e_receipt": {
+    "status": "PASS",
+    "sha256": "6a0cc9772bea75aaf2b3f1c42cee56d7277bef07fe0909b8df7fc8ed90a1d035"
+  },
+  "private_database_receipt": {
+    "status": "PASS",
+    "sha256": "6a0cc9772bea75aaf2b3f1c42cee56d7277bef07fe0909b8df7fc8ed90a1d035"
+  },
+  "r2_restore_receipt": {
+    "status": "PASS",
+    "sha256": "f5ca8a5ee6a21dcf91fcc6fe767c6d0f07cdd5d5d31e5373cec558b4a9cea1be"
+  },
+  "oci_restore_receipt": {
+    "status": "PASS",
+    "sha256": "f5ca8a5ee6a21dcf91fcc6fe767c6d0f07cdd5d5d31e5373cec558b4a9cea1be"
+  },
+  "access_status_receipt": {
+    "status": "PASS",
+    "sha256": "6a0cc9772bea75aaf2b3f1c42cee56d7277bef07fe0909b8df7fc8ed90a1d035"
+  },
+  "rollback_receipt": {
+    "status": "PASS",
+    "sha256": "6a0cc9772bea75aaf2b3f1c42cee56d7277bef07fe0909b8df7fc8ed90a1d035"
+  },
+  "independent_verifier_receipts": [],
+  "unaccepted_p0": [],
+  "unaccepted_p1": [],
+  "reason": "开发 DAG 禁止执行外部独立 verifier；缺少两个独立 contexts 时正式标签必须保持 BLOCKED"
+}

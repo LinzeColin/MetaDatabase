@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P5.5",
-    "gate_id": null,
-    "task_id": "CB-540",
-    "scope": "exact_mvp_degraded_decision_subject_seal_and_real_selfheal_rollback",
+    "run_id": "PG-5",
+    "gate_id": "PG-5",
+    "task_id": null,
+    "scope": "native_final_exit_gate_mvp_degraded_subject_seal_and_external_candidate",
     "status": "passed"
   },
   "prestage": [
@@ -22,7 +22,7 @@
     "PG-2": "passed",
     "PG-3": "passed",
     "PG-4": "passed",
-    "PG-5": "not_started"
+    "PG-5": "passed"
   },
   "tasks": [
     {"id": "CB-000", "stage": "S0", "phase": "P0.1", "status": "passed"},
@@ -64,13 +64,12 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-540",
-      "selected_skill": "output-skill",
-      "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
-      "max_lightweight_skill_loads": 1,
+      "task_id": "PG-5",
+      "selected_skill": null,
+      "mode": "DETERMINISTIC_TEST_ONLY",
+      "max_lightweight_skill_loads": 0,
       "prohibited_skill_loads": 0,
-      "actual_skill_body_loads": 0,
-      "fallback": "machine/skill_microplaybooks.json"
+      "actual_skill_body_loads": 0
     },
     "ordinary_sync": "daily at 03:20 UTC",
     "material_event_types": [
@@ -79,8 +78,8 @@
       "recovery_completed"
     ],
     "private_database_activation": "verified",
-    "acceptance_state": "mvp_degraded_with_explicit_channel_and_provider_pending",
-    "acceptance_scope": "real_cloud_crossplane_selfheal_and_current_release_rollback_subject_seal",
+    "acceptance_state": "pg5_passed_mvp_degraded_external_formal_blocked",
+    "acceptance_scope": "native_final_exit_gate_real_crossplane_subject_and_external_candidate",
     "control_plane_llm_calls": 0,
     "operations_llm_calls": 0,
     "macos_launchd_dependency": false,
@@ -192,6 +191,12 @@
     "cb_540_live_rollback": "verified_current_previous_current",
     "cb_540_controlled_release_transitions": 3,
     "cb_540_candidate_decision": "MVP_DEGRADED",
-    "cb_540_deployment_digest": "feb6ee99d3c13960a93d912f7878c48b51c587419618b79cef75eea2a890a5c9"
+    "cb_540_deployment_digest": "feb6ee99d3c13960a93d912f7878c48b51c587419618b79cef75eea2a890a5c9",
+    "pg_5_executed": true,
+    "pg_5_native_decision": "MVP_DEGRADED",
+    "pg_5_external_formal_acceptance": "BLOCKED_EXTERNAL_INDEPENDENT_CONTEXTS_NOT_RUN",
+    "pg_5_deployment_digest": "feb6ee99d3c13960a93d912f7878c48b51c587419618b79cef75eea2a890a5c9",
+    "pg_5_critical_acceptance": "all_pass",
+    "pg_5_publication": "single_existing_branch_post_seal"
   }
 }

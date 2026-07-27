@@ -1,0 +1,82 @@
+{
+  "schema_version": "cyberboss.pg5.final-exit-summary.v1",
+  "task_id": "PG-5",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb_540_closure_commit": "70086d4686975dd4dea39ef30ccefa1562f7302d",
+  "cb_540_subject_sha256": "0286ab849a57769557ac661a906cae29443e6a4babc367f992d085e04ef9ee00",
+  "deployment": {
+    "digest": "feb6ee99d3c13960a93d912f7878c48b51c587419618b79cef75eea2a890a5c9",
+    "current": "fd3cd1e19d70caa148c3785288aaabfb909fed85",
+    "previous": "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+    "source_archive_sha256": "288147fde6622cb76c5e21a3600d16d71134510b9215554a8a8261bbe309c1c2",
+    "release_manifest_sha256": "4829f41e002e5c6fa242182d851317df376d6f407a8c593577612af738490ff7"
+  },
+  "skill_router": {
+    "task_id": "PG-5",
+    "selected_skill": null,
+    "mode": "DETERMINISTIC_TEST_ONLY",
+    "max_lightweight_skill_loads": 0,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 0
+  },
+  "critical_acceptance": {
+    "FA-AC-001": "PASS",
+    "FA-AC-020": "PASS",
+    "FA-AC-021": "PASS",
+    "FA-AC-022": "PASS",
+    "FA-AC-023": "PASS",
+    "FA-AC-024": "PASS",
+    "FA-AC-025": "PASS",
+    "FA-AC-027": "PASS",
+    "FA-AC-028": "PASS",
+    "FA-AC-029": "PASS",
+    "FA-AC-030": "PASS"
+  },
+  "development_candidate": {
+    "decision": "MVP_DEGRADED",
+    "reason": "accepted degraded components present",
+    "unaccepted_p0": [],
+    "unaccepted_p1": [],
+    "degraded_components": [
+      "channel_pending_missing_real_wechat_credential",
+      "access_service_token_minimal_scope_pending",
+      "cloudflare_web_analytics_pending",
+      "oci_daily_par_readback_pending_write_only"
+    ]
+  },
+  "receipts": {
+    "real_e2e": "PASS_loopback_timeline_status_access",
+    "private_database": "PASS_daily_and_material_no_clone",
+    "r2_restore": "PASS_isolated_not_promoted",
+    "oci_restore": "PASS_exact_readback_ephemeral_daily_par_pending",
+    "access_status": "PASS_access_302_status_401_global_marker",
+    "rollback": "PASS_current_previous_current",
+    "self_heal": "PASS_exact_channel_pending_no_restart"
+  },
+  "external_formal_acceptance": {
+    "verdict": "BLOCKED",
+    "blockers": [
+      "two independent verifier contexts missing"
+    ],
+    "development_must_not_wait": true
+  },
+  "publication": {
+    "intermediate_pushes": 0,
+    "intermediate_pull_requests": 0,
+    "intermediate_tags": 0,
+    "post_seal_single_branch_publication": "required_and_executed_after_closure_commit"
+  },
+  "safety": {
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "real_time_waits": 0,
+    "macos_launchd_dependency": false,
+    "private_database_clone": false,
+    "new_repository": false,
+    "parallel_fact_source": false
+  },
+  "result": "passed_mvp_degraded_external_formal_blocked",
+  "formal_final_acceptance": "BLOCKED_EXTERNAL_INDEPENDENT_CONTEXTS_NOT_RUN"
+}
