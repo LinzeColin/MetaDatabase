@@ -1,0 +1,43 @@
+# 业务流登记 —— Stock Skill Registry
+#
+# ★ 状态如实填。没跑起来的写 not_built,本地验收通过**不等于**线上跑通 ——
+#   填成 healthy 就是造假绿。
+# ★ 本项目主机上零部署单元,status 主机侧探针**永远探不到它**。
+#   等它真跑起来后,按 LinzeHomeHub/status/docs/FLOW_STATE_CONTRACT.md
+#   自己吐 docs/governance/flow_state.json,本站只读不写 —— 那是唯一能被实测的通道。
+# ★ 后期改名时,这份文件的 project 与路径要一起改。
+
+schema: linze.flow.v1
+project: Stock_Skill
+repo: MetaDatabase
+authority: Stock_Skill/(README.md / AGENTS.md)
+stages: [declare, validate, publish]
+stage_names:
+  declare: 规范声明
+  validate: 一致性校验
+  publish: 分发
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因。
+
+baselines:
+  - id: BL-STOCK-REGISTRY
+    name: Skill 规范注册表
+    priority: P2
+    note: >-
+      REGISTRY.json 用 schema 1.1,每个 entry 必须显式声明 version_scheme,不允许缺字段时按默认解释。
+    cells:
+      declare:
+        state: healthy
+        evidence: >-
+          五个 skill 均已在 REGISTRY.json 登记,各自显式声明 version_scheme
+      validate:
+        state: healthy
+        evidence: >-
+          validator 校验所有重复声明没有漂移
+      publish:
+        state: blocked_by_policy
+        evidence: >-
+          **按规定就不该通** —— 全部标注 source-only、禁止本地安装。不需要任何人去修
+
+known_defects: []

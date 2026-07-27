@@ -1,0 +1,31 @@
+# Stock Skill Registry —— 治理事实档
+#
+# ★ owner 2026-07-27 确认:这四个目录**全部都是项目**（之前一个治理文件都没有,
+#   于是 status 对它们彻底看不见 —— 不在分母里,覆盖率不掉、未登记数不涨、
+#   看板一切正常。隐形不会让任何指标变红,这是最危险的一类漏）。
+#
+# ★ owner 同时说明:**后期会改名**。登记的 key 跟着目录名走,
+#   改名时这份文件要一起改,否则 status 会同时看到「新目录未登记」+「旧登记找不到」。
+#
+# ★ 本文件只写能从仓内 README/AGENTS 核对到的事实,不替这条线声称任何未验证的进度。
+
+schema: linze.project.v1
+project: Stock_Skill
+repo: MetaDatabase
+path: Stock_Skill/
+authority: Stock_Skill/(README.md / AGENTS.md)
+
+summary: >-
+  MetaDatabase 的股票类 Codex Skill 规范集合。人看 README,机器读 REGISTRY.json,validator 校验重复声明不漂移。
+
+current_status: registry_maintained
+status_detail: >-
+  五个 skill 已登记(股票商业机会拆解 v3、bottleneck-serenity、股势前瞻、全球股市时序联动图谱、股票事件航图)。★ 全部标注为 **source-only,禁止本地安装** —— 这是规范集合,不是运行中的服务。
+
+# ★ 关键:这条线**没有任何线上运行的东西** —— 不在 OVH/Cloudflare 的部署清单里
+#   (实测 49 个在跑的程序,一个都不属于它)。所以 status 主机侧探针探不到它,
+#   实测覆盖会是 0% 并被整体标注为「仅自报」—— 这是如实,不是缺失。
+runtime:
+  deployed: false
+  where: "未部署;source-only 规范集合,按设计就不该有运行实例"
+  host_units: 0
