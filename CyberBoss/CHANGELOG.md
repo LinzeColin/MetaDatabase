@@ -1,5 +1,27 @@
 # Changelog
 
+## P3.1 / CB-300 — 2026-07-27
+
+- Closed the canonical Timeline projection against PG-2 closure
+  `f3848fd3b694871f04aba59838704fe91f27cdc0`, bound to local implementation
+  commit `02ac88119fc864c37b5346c2ad334e17c6bc7702` (tree
+  `22415bfe64ebd8ea8c09120af6b8cc501ca56da8`), without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Reused the locked `timeline-for-agent` renderer only as a static view layer.
+  The adapter accepts CB-240 canonical NDJSON only, removes raw identifiers and
+  summaries, emits opaque public IDs/fixed Chinese titles, atomically publishes
+  content-addressed releases, indexes search and preserves `last-good` on
+  invalid input or build failure.
+- The package router selected `webapp-testing`, whose body was unavailable;
+  the frozen embedded microplaybook used existing unit/DOM fixtures with zero
+  Skill body loads. The 12-command credential-free local validation passed,
+  including clean/reused rebuild, search, privacy, Chinese UI, empty-state and
+  last-good cases.
+- Marked only CB-300 passed. No Private-Database, R2, Cloudflare, OCI, WeChat,
+  Codex, OVH or GitHub operation occurred; control-plane/operations model calls
+  remain zero, macOS launchd remains absent, and Timeline publication remains
+  `activation_pending`. The next native node is CB-310.
+
 ## PG-2 — 2026-07-27
 
 - Closed the independent Stage 2 durable messaging/canonical gate against the

@@ -5,28 +5,28 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0、Stage 1、Stage 2 及各自独立退出门 `PG-0`、`PG-1`、
-  `PG-2` 已通过；下一节点为 `P3.1 / CB-300`
+  `PG-2` 已通过；Stage 3 的 `P3.1 / CB-300` 已通过；下一节点为 `P3.2 / CB-310`
 - Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
   `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
-  `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`
+  `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`；
+  `P3.1 / CB-300`
 - 当前基线：九个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`PG-2` 将 `CB-200`–`CB-240` 的 durable inbox/outbox、cursor、
-  idempotency、singleton、crash-cut recovery 与 canonical sync 机器证据绑定至
-  Gate implementation subject `352ed7dfd9a77b93ae7667b7a208eae964625925`。
-  10 项无凭据本地确定性回归、DAG、traceability、no-wait、TaskPack、config 与
-  identity scope 均通过；封口证据见 `docs/evidence/PG-2/`。这只关闭本地
-  Stage 2 Gate，不折算任何真实云端激活。
-- Stage 0–5 任务状态：`CB-000`–`CB-240` 共十五项任务已通过；CB-300–CB-540
-  共十五项任务与 PG-3–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
-  `PG-2=passed`。下一原生节点只能是独立 Run 的 `CB-300`，并须先运行该任务
+- 最新 Run：`CB-300` 将 CB-240 的 canonical Timeline source 映射为
+  `timeline-for-agent` 的只读静态 projection，使用 hash 派生 public ID、中文
+  UI、内容寻址 rebuild、search index 与 `last-good` fallback。12 项无凭据本地
+  确定性检查通过；封口证据见 `docs/evidence/CB-300/`。这不折算任何真实云端激活。
+- Stage 0–5 任务状态：`CB-000`–`CB-300` 共十六项任务已通过；CB-310–CB-540
+  共十四项任务与 PG-3–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
+  `PG-2=passed`。下一原生节点只能是独立 Run 的 `CB-310`，并须先运行该任务
   边界的 Skill Router。
 - 真实 Private-Database/Cloudflare/OCI、目标 candidate 安装与服务激活均为
-  `activation_pending`；R2 为 `hazard_blocked`，直至精确 write-scope attestation。
+  `activation_pending`；Timeline 静态发布也为 `activation_pending`；R2 为
+  `hazard_blocked`，直至精确 write-scope attestation。
   本地 fixture 不折算真实验证，`current`/workspace/service 未变
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 

@@ -7,17 +7,17 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `352ed7dfd9a77b93ae7667b7a208eae964625925`
+  `02ac88119fc864c37b5346c2ad334e17c6bc7702`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
-Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, and
-independent Stage 2 exit gate `PG-2` passed. Stage 0, Stage 1 and Stage 2 are
-each 5/5 tasks plus their independent gate complete. CB-300–CB-540 and
-PG-3–PG-5 remain `not_started`.
+Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent
+Stage 2 exit gate `PG-2`, and `P3.1 / CB-300` passed. Stage 0, Stage 1 and
+Stage 2 are each 5/5 tasks plus their independent gate complete. CB-310–CB-540
+and PG-3–PG-5 remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -37,15 +37,28 @@ PG-2 is bound to implementation commit
 fail-closed aggregator confirmed all five immutable Stage 2 evidence trees,
 re-ran focused App/root suites plus full App, DAG, traceability, no-wait,
 TaskPack, config and identity checks in a scrubbed environment, and sealed a
-Stage 2 evidence digest. It did not revise an implementation claim or begin
-CB-300.
+Stage 2 evidence digest. Its frozen evidence remains unchanged by CB-300.
+
+CB-300 is bound to implementation commit
+`02ac88119fc864c37b5346c2ad334e17c6bc7702` and tree
+`22415bfe64ebd8ea8c09120af6b8cc501ca56da8`. The package router selected
+`webapp-testing`; because that body is unavailable locally, the frozen embedded
+microplaybook was used with zero Skill body loads. The implementation reads only
+CB-240 canonical NDJSON, rejects unknown/noncanonical input, reuses the locked
+`timeline-for-agent` renderer without its writer, and emits only a redacted
+Chinese static projection/search index. It has content-addressed rebuild
+deduplication, an atomic last-good pointer, explicit no-data state and no
+canonical write path. Its 12-command credential-scrubbed validation passed;
+the static fixture proves no event/job IDs, summaries or record hashes enter
+the output.
 
 The closure is local and credential-free. Private-Database/R2/Cloudflare/OCI
 real operations are `0`, control-plane and operations LLM calls are `0`, no
 macOS launchd dependency exists, Private-Database/Cloudflare/OCI activation
 remains `activation_pending`, and R2 remains `hazard_blocked` pending exact
-write-scope attestation. The next Run must run its own package Skill Router
-before executing native node `CB-300`.
+write-scope attestation. Timeline static publication is also
+`activation_pending`. The next Run must run its own package Skill Router before
+executing native node `CB-310`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -630,7 +643,8 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   through CB-230.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
-- The online Status surface still has no CyberBoss row.
+- The online Status surface still has no CyberBoss row, and the CB-300 static
+  Timeline projection has not been published behind Cloudflare Access.
 - The OVH capacity/profile remains point-in-time; each later activation must
   rerun preflight.
 - Project-local Node/Codex, the immutable App candidates, controlled workspace
@@ -640,15 +654,15 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Next Run
 
-The next eligible Run is exactly `P2.5 / CB-240`. It remains `not_started`.
-CB-230 does not authorize switching `current`, Codex/WeChat authentication,
-real provider activation or PG-2 inside the same Run.
+The next eligible Run is exactly `P3.2 / CB-310`. It remains `not_started`.
+CB-300 does not authorize Timeline publication, Cloudflare Access, Status
+activation, canonical writeback, real provider activation or PG-3 in the same
+Run.
 
-Start `P2.5 / CB-240` only under a new single-phase Run Contract. Keep
-source/license, CB-000–CB-230 and PG-0/PG-1 evidence immutable, preserve the
-strict dual-license conflict record, and continue the final-only GitHub
-publication rule. Scope CB-240 to canonical sync/reconcile, the no-clone
-Private-MetaDatabase client and Timeline source required by its frozen
-Acceptance. Do not combine it with PG-2, start real provider delivery, expose
-Runtime publicly, weaken outbox ambiguity handling or claim a real canonical
-write without the exact Acceptance and new Run Contract authorizing it.
+Start `P3.2 / CB-310` only under a new single-phase Run Contract after its own
+package Skill Router. Keep source/license, CB-000–CB-300 and PG-0–PG-2 evidence
+immutable, preserve the strict dual-license conflict record and continue the
+final-only GitHub publication rule. Scope CB-310 to an atomic redacted Status
+snapshot and the existing collector adapter; do not create a second Status
+platform, expose Runtime publicly, invoke a model, claim Cloudflare activation
+or revise CB-300's static-only truth.

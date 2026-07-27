@@ -1,0 +1,51 @@
+{
+  "schema_version": "cyberboss.cb300.closure-summary.v1",
+  "task_id": "CB-300",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "pg2_closure_commit": "f3848fd3b694871f04aba59838704fe91f27cdc0",
+  "implementation_commit": "02ac88119fc864c37b5346c2ad334e17c6bc7702",
+  "implementation_tree": "22415bfe64ebd8ea8c09120af6b8cc501ca56da8",
+  "acceptance": {
+    "FA-AC-008": "passed",
+    "FA-AC-028": "passed",
+    "FA-AC-031": "passed"
+  },
+  "local_validation": {
+    "canonical_timeline_projection": "passed",
+    "cli_search": "passed",
+    "static_ui_fixture": "passed",
+    "last_good_fallback": "passed",
+    "privacy_scan": "passed",
+    "app_regression": "passed",
+    "manifests": "passed",
+    "taskpack": "passed"
+  },
+  "skill_router": {
+    "task_id": "CB-300",
+    "selected_skill": "webapp-testing",
+    "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+    "max_lightweight_skill_loads": 1,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 0,
+    "fallback": "machine/skill_microplaybooks.json"
+  },
+  "external_activation": {
+    "private_database": "activation_pending",
+    "r2": "hazard_blocked",
+    "cloudflare_access": "activation_pending",
+    "oci": "activation_pending",
+    "timeline": "activation_pending"
+  },
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "real_cloudflare_operations": 0,
+  "real_oci_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0,
+  "macos_launchd_dependency": false,
+  "result": "passed",
+  "evidence_scope": "local_deterministic_only",
+  "next_native_node": "CB-310"
+}
