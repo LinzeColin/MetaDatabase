@@ -1,0 +1,172 @@
+# 业务流登记 —— arxiv-daily-push / ADP(arXiv 日报推送)
+#
+# 阶段:「全库扫描 → 候选排序 → 中文讲解 → 副作用门禁 → 投递」五段。
+#
+# ★★ 这个项目最容易被误读成健康,必须先说清楚:
+#   adp.linzezhang.com 对外 200、证书有效、CF Workers 在跑 —— 但这**只说明部署好了**。
+#   本项目 current_status 是
+#   `stage2_integrated_acceptance_recorded_s3_daily_operation_blocked_persistent_authorization_missing_no_runtime_enablement`:
+#   SMTP、scheduler、Release、restore 与后台持久运行**全部保持关闭**,
+#   唯一剩余阻断是缺 `FINAL_ACCEPTANCE_BUNDLE/daily_operation_persistent_enablement_authorization.json`。
+#   也就是说:**每日推送这条业务线现在一封信也不会发出去**。
+#   「运行」页答的是"部署好了吗",这张表答的是"业务跑通了吗",两者结论相反是正常的。
+#
+# ★ 关掉 SMTP/scheduler 是 fail-closed 的设计(FEAT-ADP-005),属 blocked_by_policy;
+#   缺那份授权 artifact 才是 blocked_by_input —— 两者处置动作相反,不能合成一态。
+
+schema: linze.flow.v1
+project: arxiv-daily-push
+repo: MetaDatabase
+authority: arxiv-daily-push/docs/governance/(project.yaml / OWNER_STATUS.md / delivery_tasks.yaml)
+stages: [scan, rank, compose, gate, deliver]
+stage_names:
+  scan: 全库扫描
+  rank: 候选排序
+  compose: 中文讲解
+  gate: 副作用门禁
+  deliver: 投递
+stage_meaning:
+  scan: 从 arXiv 主档案桶取候选,保持真实 metadata 与来源身份
+  rank: 按 ROI / 学习价值排序并落内容账本
+  compose: 生成中文讲解邮件与教学型前台
+  gate: 生产 fail-closed 闸门,决定允不允许产生对外副作用
+  deliver: 真正把邮件发出去
+
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy。★ gate 段按规定不通时,deliver 一定拿不到东西 ——
+  下游必须如实降级,不得因为"前台能打开"就自称健康。
+
+sources:
+  - id: SRC-ARXIV
+    name: arXiv 主档案桶
+  - id: SRC-OWNER-AUTH
+    name: owner 的持久运行授权 artifact
+
+baselines:
+  - id: BL-ADP-DAILY
+    name: 每日推送主线
+    priority: P0
+    note: 这条是产品本体。scan/rank/compose 都通,卡在 gate 与 deliver。
+    cells:
+      scan:
+        state: healthy
+        evidence: 全 arXiv 扫描与来源输入已完成(FEAT-ADP-001),保持真实 metadata、日期与 source identity
+      rank:
+        state: healthy
+        evidence: 候选队列、ROI / 学习价值排序与内容账本已完成(FEAT-ADP-002)
+      compose:
+        state: healthy
+        evidence: 中文讲解邮件与教学型前台已完成(FEAT-ADP-003)
+      gate:
+        state: blocked_by_policy
+        evidence: >-
+          生产 fail-closed gate 与副作用边界(FEAT-ADP-005)按设计保持关闭:
+          SMTP / scheduler / Release / restore / 后台持久运行全部不启用。
+          **按规定就不该通,不需要任何人去修。**
+      deliver:
+        state: blocked_by_input
+        evidence: >-
+          **缺 `FINAL_ACCEPTANCE_BUNDLE/daily_operation_persistent_enablement_authorization.json`** ——
+          这是当前唯一剩余的 S3 阻断,拿到 owner 的持久运行授权才能开。属于要催人的那种。
+
+  - id: BL-ADP-ACCEPT
+    name: Stage 1 严格验收
+    priority: P1
+    cells:
+      scan:
+        state: healthy
+        evidence: Stage 1 B1 / arXiv accepted,真实 30 天 backfill 已完成
+      rank:
+        state: healthy
+        evidence: 排序在 30 天真实回放上验证过
+      compose:
+        state: healthy
+        evidence: test10 Gmail SMTP 证据已留存(FEAT-ADP-006)
+      gate:
+        state: healthy
+        evidence: 验收路径本身允许受控发信,与生产 gate 分开
+      deliver:
+        state: degraded
+        evidence: >-
+          delivery_readiness 为 VERIFIED / ARXIV_PRODUCTION_ACCEPTED,
+          但真实本地生产邮件仍需 owner 控制的本机 env/Keychain smoke(LOCAL_SMTP_SMOKE 未完成)
+
+  - id: BL-ADP-SHADOW
+    name: Stage 2 影子来源(bioRxiv / medRxiv / Nature / Science)
+    priority: P2
+    note: >-
+      ★ 全部是 metadata-only、no-send 的影子验证。**不得纳入正式生产**,
+      也不得据此宣称 D2_SOURCE_DOMAIN_ACCEPTED 或 STAGE2_PRODUCTION_ACCEPTED。
+    cells:
+      scan:
+        state: healthy
+        evidence: S2PBT01 / S2P1T01 bioRxiv/medRxiv 与 S2PCT01/02 Nature/Science 影子来源已完成
+      rank:
+        state: healthy
+        evidence: 真实 30-date replay 已跑过
+      compose:
+        state: healthy
+        evidence: metadata-only,不生成正式讲解内容
+      gate:
+        state: blocked_by_policy
+        evidence: no-send 是这条基线的定义本身 —— 影子来源按规定就不许发
+      deliver:
+        state: blocked_by_policy
+        evidence: 同上;S2PMT07 仍未完成,不得提升为生产来源
+
+  - id: BL-ADP-RUNNER
+    name: 本机 runner 与迁移准备
+    priority: P2
+    cells:
+      scan:
+        state: healthy
+        evidence: 本机 Codex / local runner 运行与迁移准备已完成(FEAT-ADP-004)
+      rank:
+        state: healthy
+        evidence: 与主线共用排序实现
+      compose:
+        state: healthy
+        evidence: 与主线共用讲解实现
+      gate:
+        state: blocked_by_policy
+        evidence: GitHub cloud schedule 明确**不作为生产 runner**
+      deliver:
+        state: not_built
+        evidence: 本机持久运行(DAILY_OPERATION)尚未启用,这一段还没做
+
+  - id: BL-ADP-GOV
+    name: 治理与证据绑定
+    priority: P3
+    cells:
+      scan:
+        state: healthy
+        evidence: 364/364 active parameters 与 54/54 active formulas 为 MACHINE_VERIFIED
+      rank:
+        state: degraded
+        evidence: >-
+          52 个 active models 只从 model_registry EXTRACTED,registry 未提供逐模型
+          semantic_status,不能写成模型级机器校验
+      compose:
+        state: healthy
+        evidence: V7.2 为当前产品合同,V7.1 保持只读历史基线并继续 hash-check
+      gate:
+        state: healthy
+        evidence: 所有 Stage2 agent 开新任务前必须先提交 V7.2 revalidation
+      deliver:
+        state: degraded
+        evidence: >-
+          evidence_freshness 仍为 PARTIAL(15 tree-bound / 10 commit-bound /
+          334 legacy unbound / 40 precommit pending)—— 是历史事件绑定完整度,
+          不是当前 S3 阻断,不能把所有历史事件写成 PR CI attested
+
+known_defects:
+  - id: DEF-ADP-001
+    baseline: BL-ADP-DAILY
+    stage: deliver
+    desc: >-
+      缺持久运行授权 artifact,每日推送一封信也发不出去 —— 前台可访问容易被误读成业务在跑。
+  - id: DEF-ADP-002
+    baseline: BL-ADP-GOV
+    stage: deliver
+    desc: 334 条 legacy 事件未绑定到 tree/commit,历史证据链的完整度只能算 PARTIAL。

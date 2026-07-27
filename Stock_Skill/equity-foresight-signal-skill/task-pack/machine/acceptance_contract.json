@@ -1,0 +1,123 @@
+{
+  "builder_context_max_verdict": "READY_FOR_OWNER_TASKPACK_DELIVERY_AUTHORIZATION",
+  "capability_ceiling": "SHADOW_ONLY",
+  "developer_agent_review_reexecution_permitted": false,
+  "developer_agent_version_creation_permitted": false,
+  "engineering_oracles": {
+    "agent_llm_mcp_network_calls_max": 0,
+    "all_tests": "PASS",
+    "applicable_skill_method_runs_min": 3,
+    "archive_manifest_mismatches_max": 0,
+    "business_baseline_matrix_oracle": "PASS",
+    "business_line_cycles_max": 0,
+    "business_line_missing_stage_status_relation_max": 0,
+    "dag_cycles_max": 0,
+    "determinism_replays_min": 10000,
+    "determinism_unique_hashes_max": 1,
+    "developer_agent_review_reruns_max": 0,
+    "developer_agent_version_changes_max": 0,
+    "fuzz_cases_min": 10000,
+    "kernel_seccomp": "PASS",
+    "local_persistent_bytes_after_invocation_max": 0,
+    "local_persistent_files_after_invocation_max": 0,
+    "macos_launchd_units_max": 0,
+    "macos_zero_footprint_oracle": "PASS",
+    "network_namespace": "PASS",
+    "prepackaging_review_closure_oracle": "PASS",
+    "resident_background_processes_after_invocation_max": 0,
+    "runtime_external_dependencies_max": 0,
+    "secret_findings_max": 0,
+    "status_business_lines_exact": 5,
+    "status_integration_patch_oracle": "PASS",
+    "status_macos_runtime_permitted": false,
+    "status_new_daemons_max": 0,
+    "status_new_databases_max": 0,
+    "status_new_domains_max": 0,
+    "status_writer_agent_calls_max": 0,
+    "status_writer_llm_tokens_max": 0,
+    "uncaught_exceptions_max": 0,
+    "unresolved_markers_max": 0,
+    "untraced_requirements_max": 0
+  },
+  "external_independence_claim_permitted": false,
+  "forbidden_equivalence": "ENGINEERING_PASS != OUTCOME_PROVEN",
+  "formal_verdicts": [
+    "PASS",
+    "PASS_WITH_RISKS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_RUN",
+    "UNKNOWN"
+  ],
+  "frozen_for_candidate": true,
+  "outcome_expected_state": "NOT_PROVEN",
+  "outcome_required_for_this_version": false,
+  "owner_final_delivery_authorization": "REQUIRED_EXTERNAL_DECISION_NOT_PART_OF_SUBJECT_BYTES",
+  "prepackaging_review_loop": "CLOSED",
+  "requirements": [
+    {
+      "id": "R-001",
+      "statement": "作为 MetaDatabase/Stock_Skill 的 SOURCE_ONLY 嵌入节点，不建立独立运行系统"
+    },
+    {
+      "id": "R-002",
+      "statement": "EFS 是 5D/20D/60D 净正收益校准概率乘以100，Baseline/Lift 独立"
+    },
+    {
+      "id": "R-003",
+      "statement": "PIT、revision、来源、许可、Universe、标签和成本可机械验证"
+    },
+    {
+      "id": "R-004",
+      "statement": "推断、训练、评测、状态和恢复计划全链路 0 Agent、0 LLM Token、0 网络依赖"
+    },
+    {
+      "id": "R-005",
+      "statement": "所有不合格输入和证据 fail closed 为受控错误或 ABSTAIN"
+    },
+    {
+      "id": "R-006",
+      "statement": "幅度、经济 Edge、障碍时机、可靠性和证据成熟度独立输出"
+    },
+    {
+      "id": "R-007",
+      "statement": "Candidate 不自动替换 LKG；Outcome 不自动授权用途"
+    },
+    {
+      "id": "R-008",
+      "statement": "v0.0.0.1 只允许 RESEARCH/SHADOW，Decision Support 被发布边界阻断"
+    },
+    {
+      "id": "R-009",
+      "statement": "宿主负责数据、状态、持久化、备份与渲染，Skill 无副作用"
+    },
+    {
+      "id": "R-010",
+      "statement": "工程验收与 Outcome 验收分离；负向基线不可删除"
+    },
+    {
+      "id": "R-011",
+      "statement": "目标 Registry、版本、Skill identity、release、manifest 和文档声明一致"
+    },
+    {
+      "id": "R-012",
+      "statement": "最终单 ZIP 可重复构建、可验证、可原样落库与回滚"
+    },
+    {
+      "id": "R-013",
+      "statement": "上线与全生命周期禁止 macOS 运行安装和 launchd；显式调用结束后本机持久文件、缓存、状态、日志与常驻进程均为0，运行只允许宿主远程嵌入"
+    },
+    {
+      "id": "R-014",
+      "statement": "上线后将可哈希的五行业务基线纵向切片矩阵通过既有 LinzeStatus 采集器登记并在 status.linzezhang.com 全中文展示；逐行显示阶段、阶段环节、状态、上下游、耦合控制、阻塞原因和下一动作，不新增 daemon、数据库、域名、Agent 或 LLM"
+    },
+    {
+      "id": "R-015",
+      "statement": "封包前适用 Skill 方法各执行至少3次并生成绑定精确 Subject、Acceptance Contract 与 Release Oracle 的关闭证明；不声称外部独立 verdict；Codex 仅核验 Hash 与冻结测试且不得新建/修改版本号"
+    }
+  ],
+  "schema": "efs.acceptance_contract.v5",
+  "taskpack_delivery_requires_external_independence": false,
+  "taskpack_delivery_requires_owner_authorization": true,
+  "version": "0.0.0.1"
+}

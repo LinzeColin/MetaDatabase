@@ -85,9 +85,41 @@ with sync_playwright() as playwright:
 
         check(f"{label}：页面标题为全中文产品名", "微信读书笔记迁移" in page.title(), page.title())
         check(f"{label}：文档语言为简体中文", page.locator("html").get_attribute("lang") == "zh-CN")
+        check(f"{label}：真实微信读书连接是线上主路径", page.locator("#hero-connect").count() == 1 and "primary" in (page.locator("#hero-connect").get_attribute("class") or ""))
+        check(f"{label}：演示入口明确降级为体验入口", page.locator("#hero-demo").count() == 1 and "ghost" in (page.locator("#hero-demo").get_attribute("class") or ""))
         dims = page.locator("body").evaluate("e => ({scrollWidth:e.scrollWidth,clientWidth:e.clientWidth})")
         check(f"{label}：无横向溢出", dims["scrollWidth"] <= dims["clientWidth"], dims)
         page.screenshot(path=str(OUT / f"{label}-首页.png"), full_page=True)
+
+        # 生产公开页面和机器状态必须真实可用，且不使用用户密钥探测。
+        for route, phrase in (("/privacy/", "我们处理哪些数据"), ("/terms/", "禁止用途"), ("/status/", "系统状态")):
+            response = page.goto(BASE.rstrip("/") + route, wait_until="networkidle")
+            check(f"{label}：{route} 可访问", response is not None and response.ok, response.status if response else None)
+            body_text = page.locator("body").inner_text()
+            check(f"{label}：{route} 不是空壳", phrase in body_text, body_text[:200])
+            if route == "/status/":
+                check(f"{label}：状态页展示业务纵向切片矩阵", all(text in body_text for text in ["端到端白箱治理矩阵", "依赖与耦合", "验收 Oracle"]))
+                check(f"{label}：状态页登记七条业务线", page.locator("[data-business-line]").count() == 7, page.locator("[data-business-line]").count())
+                status_dims = page.locator("body").evaluate("e => ({scrollWidth:e.scrollWidth,clientWidth:e.clientWidth})")
+                check(f"{label}：状态页无页面级横向溢出", status_dims["scrollWidth"] <= status_dims["clientWidth"], status_dims)
+        health = page.request.get(BASE.rstrip("/") + "/healthz")
+        ready = page.request.get(BASE.rstrip("/") + "/readyz")
+        public_status = page.request.get(BASE.rstrip("/") + "/api/status")
+        version = page.request.get(BASE.rstrip("/") + "/api/version")
+        check(f"{label}：存活端点可用", health.ok and health.json().get("status") == "ALIVE", health.text())
+        ready_payload = ready.json() if ready.ok else {}
+        check(f"{label}：就绪端点独立可用", ready.ok and ready_payload.get("status") == "READY", ready.text())
+        check(f"{label}：业务依赖图通过就绪 Oracle", ready_payload.get("checks", {}).get("businessGovernanceContract", {}).get("ready") is True, ready_payload)
+        status_payload = public_status.json() if public_status.ok else {}
+        governance = status_payload.get("businessGovernance", {})
+        expected_lines = {"public-trust", "weread-direct-export", "local-import", "normalize-export", "chatgpt-handoff", "release-supply-chain", "operations-recovery"}
+        observed_lines = {line.get("id") for line in governance.get("lines", []) if isinstance(line, dict)}
+        check(f"{label}：公开状态不含用户内容", public_status.ok and status_payload.get("dataBoundary", {}).get("statusContainsUserContent") is False and status_payload.get("dataBoundary", {}).get("businessGovernanceContainsUserContent") is False, status_payload)
+        check(f"{label}：公开业务矩阵 schema 与依赖图有效", governance.get("schemaVersion") == "1.0.0" and governance.get("graphStatus") == "VALID", governance)
+        check(f"{label}：公开业务矩阵七条业务线完整且无阻塞", observed_lines == expected_lines and all(line.get("state") != "BLOCKED" for line in governance.get("lines", [])), governance)
+        version_payload = version.json() if version.ok else {}
+        check(f"{label}：版本端点公开治理 schema", version.ok and version_payload.get("appVersion") == "v0.0.0.1.7" and version_payload.get("businessGovernanceSchemaVersion") == "1.0.0", version_payload)
+        page.goto(BASE, wait_until="networkidle")
 
         # 上传入口：真实选择本地 Markdown，浏览器 Worker 本地解析。
         page.set_input_files("#local-files", [

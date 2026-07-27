@@ -1,0 +1,4 @@
+interface:
+  display_name: "股票事件航图"
+  short_description: "以官方证据和事件状态生成可审计的股票事件分析"
+  default_prompt: "使用 $equity-event-atlas 分析用户提供的股票事件证据，并输出带边界条件的中文研究结论。"

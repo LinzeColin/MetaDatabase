@@ -9,7 +9,7 @@ import pathlib
 import shutil
 import sys
 
-VERSION = "0.0.0.1.3"
+VERSION = "0.0.0.1.7"
 BEGIN = "# BEGIN WEREAD PORT EXTERNAL ADAPTERS"
 END = "# END WEREAD PORT EXTERNAL ADAPTERS"
 DEFAULT_DIR = "/srv/linze/apps/status/data/external-projects"
@@ -72,7 +72,7 @@ def main() -> int:
         if not backup.exists():
             shutil.copy2(collector, backup)
         temporary = collector.with_suffix(collector.suffix + ".weread-port.tmp")
-        temporary.write_text(updated, encoding="utf-8", newline="\n")
+        temporary.write_text(updated, encoding="utf-8")
         os.replace(temporary, collector)
     result = {
         "status": "applied" if changed and args.apply else "planned" if changed else "already_present",

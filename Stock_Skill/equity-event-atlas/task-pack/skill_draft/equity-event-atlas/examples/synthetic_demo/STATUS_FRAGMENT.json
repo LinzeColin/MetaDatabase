@@ -1,0 +1,34 @@
+{
+  "as_of": "2026-07-26T12:00:00+10:00",
+  "gates": {
+    "action": "PASS",
+    "evidence": "PASS",
+    "forecast": "PASS",
+    "identity": "PASS"
+  },
+  "market_capability": {
+    "calendar_timezone": "America/New_York",
+    "calendar_verified": true,
+    "coverage_tier": "DEEP",
+    "default_currency": "USD",
+    "market": "美国",
+    "market_data_verified": true,
+    "mic": "XNAS",
+    "official_sources_verified": true,
+    "reasons": [],
+    "run_capability": "FULL",
+    "schema": "equity-event-atlas/market-capabilities-v1"
+  },
+  "runtime_state": "STATELESS_OUTPUT_RENDERED",
+  "schema": "equity-event-atlas/status-fragment-v1",
+  "security": {
+    "currency": "USD",
+    "instrument_type": "COMMON_STOCK",
+    "mic": "XNAS",
+    "name": "合成航天公司",
+    "ticker": "SYN"
+  },
+  "service_required": false,
+  "skill": "equity-event-atlas",
+  "version": "0.0.0.1"
+}

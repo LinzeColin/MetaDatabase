@@ -1,0 +1,4 @@
+interface:
+  display_name: "股势前瞻"
+  short_description: "可审计、可拒绝预测的确定性股票前瞻节点"
+  default_prompt: "使用 $equity-foresight-signal 验证宿主提供的 point-in-time 证据并调用确定性本地命令；不要用语言模型自行计算、补全或改写 EFS 分数。"

@@ -1,0 +1,209 @@
+{
+  "no_real_time_soak": true,
+  "no_wait_nodes": true,
+  "schema": "efs.landing_task_dag.v4",
+  "tasks": [
+    {
+      "acceptance_criteria": [
+        "两目标仓相关路径 clean",
+        "MetaDatabase 逐文件 Hash/目标路径缺失满足",
+        "LinzeHomeHub 两个状态文件唯一精确锚点满足",
+        "版本固定 0.0.0.1 且 Codex 无新建版本权限"
+      ],
+      "category": "research",
+      "dependencies": [],
+      "evidence": [
+        "receipt bound to exact hashes"
+      ],
+      "id": "T-001",
+      "implementation_steps": [
+        "execute only the named bounded command",
+        "record argv/exit/stdout/stderr/hash",
+        "do not research or alter implementation"
+      ],
+      "inputs": [
+        "frozen taskpack",
+        "MetaDatabase worktree",
+        "LinzeHomeHub worktree"
+      ],
+      "outputs": [
+        "machine-readable receipt"
+      ],
+      "risk": "scope drift or false PASS",
+      "rollback": "restore exact base snapshots or do not write",
+      "stop_condition": "any base mismatch",
+      "threshold": "PASS",
+      "title": "只读核验 MetaDatabase 与 LinzeHomeHub/status 基线",
+      "verification_oracle": "apply_to_target.py preflight"
+    },
+    {
+      "acceptance_criteria": [
+        "named oracle returns PASS on exact inputs",
+        "taskpack contains no macOS launchd/service artifact and zero-footprint oracle is present",
+        "prepackaging review closure receipt binds exact Subject/Acceptance/Release Oracle and records at least three runs per applicable method",
+        "developer agent review rerun is prohibited and version is fixed at 0.0.0.1 with no Codex version creation/change authority"
+      ],
+      "category": "testing",
+      "dependencies": [
+        "T-001"
+      ],
+      "evidence": [
+        "receipt bound to exact hashes",
+        "prepackaging review closure proof hash",
+        "fixed version authority proof"
+      ],
+      "id": "T-002",
+      "implementation_steps": [
+        "execute only the named bounded command",
+        "record argv/exit/stdout/stderr/hash",
+        "do not research or alter implementation"
+      ],
+      "inputs": [
+        "frozen taskpack and target facts"
+      ],
+      "outputs": [
+        "machine-readable receipt"
+      ],
+      "risk": "scope drift or false PASS",
+      "rollback": "restore exact base snapshots or do not write",
+      "stop_condition": "any manifest/path/hash mismatch",
+      "threshold": "PASS",
+      "title": "验证外层任务包",
+      "verification_oracle": "verify_taskpack.py"
+    },
+    {
+      "acceptance_criteria": [
+        "两套原子补丁只修改声明路径",
+        "Status 复用既有 cron/静态页且不新增 daemon/database/domain",
+        "macOS 运行和 launchd 继续禁止"
+      ],
+      "category": "release",
+      "dependencies": [
+        "T-002"
+      ],
+      "evidence": [
+        "receipt bound to exact hashes"
+      ],
+      "id": "T-003",
+      "implementation_steps": [
+        "运行 apply_to_target.py apply",
+        "运行 status_integration/apply_status_integration.py apply",
+        "禁止手改、格式化、改阈值或新建版本"
+      ],
+      "inputs": [
+        "frozen taskpack and target facts"
+      ],
+      "outputs": [
+        "MetaDatabase Skill/Registry 精确差异",
+        "LinzeHomeHub status collector/web 精确差异"
+      ],
+      "risk": "scope drift or false PASS",
+      "rollback": "restore exact base snapshots or do not write",
+      "stop_condition": "unexpected path or partial write",
+      "threshold": "PASS",
+      "title": "原样应用 Skill、Registry 与既有 Status 页面适配补丁",
+      "verification_oracle": "apply_to_target.py apply"
+    },
+    {
+      "acceptance_criteria": [
+        "所有冻结命令返回 PASS 且绑定精确 Hash",
+        "verify_macos_zero_footprint.py 返回 PASS 且所有阈值为 0",
+        "build_host_status_payload 输出哈希绑定、无环、全中文展示字段的五行业务矩阵",
+        "status_integration preflight/apply/verify/rollback 测试通过，既有 status 四入口保持不变且业务矩阵嵌入运行页并接入健康行动清单",
+        "Host status writer 无 Agent/LLM/网络并拒绝 macOS"
+      ],
+      "category": "testing",
+      "dependencies": [
+        "T-003"
+      ],
+      "evidence": [
+        "receipt bound to exact hashes",
+        "business baseline matrix and coupling oracle"
+      ],
+      "id": "T-004",
+      "implementation_steps": [
+        "execute only the named bounded command",
+        "record argv/exit/stdout/stderr/hash",
+        "do not research or alter implementation"
+      ],
+      "inputs": [
+        "frozen taskpack and target facts"
+      ],
+      "outputs": [
+        "machine-readable receipt"
+      ],
+      "risk": "scope drift or false PASS",
+      "rollback": "restore exact base snapshots or do not write",
+      "stop_condition": "any non-zero or UNKNOWN",
+      "threshold": "PASS",
+      "title": "运行两目标仓与项目冻结 Oracle",
+      "verification_oracle": "MetaDatabase registry validator + run_release_oracles.py + status integration verify + LinzeHomeHub npm validate"
+    },
+    {
+      "acceptance_criteria": [
+        "named oracle returns PASS on exact inputs"
+      ],
+      "category": "remediation",
+      "condition": "only_if_T-004_fails",
+      "dependencies": [
+        "T-004"
+      ],
+      "evidence": [
+        "receipt bound to exact hashes"
+      ],
+      "id": "T-005",
+      "implementation_steps": [
+        "先回滚 LinzeHomeHub status 补丁",
+        "再回滚 MetaDatabase 补丁",
+        "确认两仓相关路径恢复原始 clean 状态",
+        "原样记录命令、退出码、stdout/stderr 和 HEAD"
+      ],
+      "inputs": [
+        "frozen taskpack and target facts"
+      ],
+      "outputs": [
+        "machine-readable receipt"
+      ],
+      "risk": "scope drift or false PASS",
+      "rollback": "restore exact base snapshots or do not write",
+      "stop_condition": "unexpected pre-existing target change",
+      "threshold": "PASS",
+      "title": "任一失败时回滚两目标仓并原样回报",
+      "verification_oracle": "apply_to_target.py rollback"
+    },
+    {
+      "acceptance_criteria": [
+        "MetaDatabase 与 LinzeHomeHub 仅提交冻结差异",
+        "不新建或改变版本号",
+        "复用既有 status host-direct rsync/cron，不创建服务",
+        "返回两仓 commit/CI/PR/merge/部署/备份证据"
+      ],
+      "category": "release",
+      "condition": "only_if_T-004_passes",
+      "dependencies": [
+        "T-004"
+      ],
+      "evidence": [
+        "receipt bound to exact hashes"
+      ],
+      "id": "T-006",
+      "implementation_steps": [
+        "execute only the named bounded command",
+        "record argv/exit/stdout/stderr/hash",
+        "do not research or alter implementation"
+      ],
+      "inputs": [
+        "frozen taskpack and target facts"
+      ],
+      "outputs": [
+        "machine-readable receipt"
+      ],
+      "risk": "scope drift or false PASS",
+      "rollback": "restore exact base snapshots or do not write",
+      "stop_condition": "diff outside LANDING_MAP",
+      "threshold": "PASS",
+      "title": "全部通过后分别提交、合并、部署既有 Status 并备份",
+      "verification_oracle": "git/platform receipts"
+    }
+  ]
+}

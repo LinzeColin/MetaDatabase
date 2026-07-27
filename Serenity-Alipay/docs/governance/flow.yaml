@@ -1,0 +1,161 @@
+# 业务流登记 —— Serenity-Alipay(只读投资驾驶舱)
+#
+# 阶段:「候选取数 → 打分与风险门 → Top5 与目标配置 → 对比与纪律告警 → 只读发布」五段。
+#
+# ★ 本项目是**只读**驾驶舱:它不下单、不动钱。所以「执行」那一段在这里根本不存在,
+#   不是 not_built,而是压根不在业务语义里 —— 这正是「统一接口不统一阶段」的意义:
+#   硬套一个六段模板会逼出一格永远解释不清的空白。
+# ★ serenity.linzezhang.com 是**纯静态前台**(登记表 db = 无)。
+#   前台 200 只证明壳可达,不证明打分与排序在跑。
+
+schema: linze.flow.v1
+project: Serenity-Alipay
+repo: MetaDatabase
+authority: Serenity-Alipay/docs/governance/(project.yaml / evidence_index.yaml / model_extraction.yaml)
+stages: [fetch, score, rank, compare, publish]
+stage_names:
+  fetch: 候选取数
+  score: 打分与风险门
+  rank: Top5 与目标配置
+  compare: 对比与纪律告警
+  publish: 只读发布
+stage_meaning:
+  fetch: 取到当期候选标的与必要行情
+  score: 打分并过风险门,不合格的直接挡掉
+  rank: 排出 Top5 并给出目标配置比例
+  compare: 与上期对比,偏离纪律就告警
+  publish: 推到只读驾驶舱前台
+
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因。
+
+sources:
+  - id: SRC-SER-CANDIDATES
+    name: 候选标的与行情
+  - id: SRC-SER-BUSINESS-DAY
+    name: 交易日历(决定当期是否应该跑)
+
+baselines:
+  - id: BL-SER-SCORING
+    name: 打分与风险门
+    priority: P0
+    cells:
+      fetch:
+        state: healthy
+        evidence: 候选取数已实现(FEAT-SER-001)
+      score:
+        state: healthy
+        evidence: Candidate scoring and risk gates 已实现
+      rank:
+        state: healthy
+        evidence: 打分结果直接进排序
+      compare:
+        state: healthy
+        evidence: 风险门结果参与纪律对比
+      publish:
+        state: degraded
+        evidence: >-
+          公开面按 L2 脱敏输出(FEAT-SER-CF-L2-001),前台看到的是聚合结果,
+          不含个人持仓明细 —— 安全边界带来的口径差,不是故障
+
+  - id: BL-SER-ALLOCATION
+    name: Top5 排序与目标配置
+    priority: P0
+    upstream: [BL-SER-SCORING]
+    cells:
+      fetch:
+        state: healthy
+        evidence: 与打分同源取数
+      score:
+        state: healthy
+        evidence: 目标配置基于打分结果
+      rank:
+        state: healthy
+        evidence: Top5 ranking and target allocation 已实现(FEAT-SER-002)
+      compare:
+        state: healthy
+        evidence: 配置变化进入对比
+      publish:
+        state: healthy
+        probe: http
+        args: {url: "https://serenity.linzezhang.com"}
+        evidence: 只读驾驶舱可达
+
+  - id: BL-SER-DISCIPLINE
+    name: 对比与纪律告警
+    priority: P1
+    upstream: [BL-SER-ALLOCATION]
+    cells:
+      fetch:
+        state: healthy
+        evidence: 需要上期结果做基准
+      score:
+        state: healthy
+        evidence: 偏离度按打分口径计算
+      rank:
+        state: healthy
+        evidence: 排名变化是纪律信号之一
+      compare:
+        state: healthy
+        evidence: Comparison and discipline alerts 已实现(FEAT-SER-003)
+      publish:
+        state: degraded
+        evidence: 告警只在前台呈现,没有对外推送通道 —— 要看得主动打开页面
+
+  - id: BL-SER-CALENDAR
+    name: 交易日自动化安全
+    priority: P1
+    note: >-
+      非交易日不该跑、也不该产出 —— 这一段的「不通」多数时候是**按规定不通**,
+      不是故障。判成红会天天误报。
+    cells:
+      fetch:
+        state: healthy
+        evidence: Business-day automation safety 已实现(FEAT-SER-004)
+      score:
+        state: healthy
+        evidence: 非交易日直接短路,不做无意义计算
+      rank:
+        state: healthy
+        evidence: 同上
+      compare:
+        state: healthy
+        evidence: 同上
+      publish:
+        state: healthy
+        evidence: 非交易日保留上一交易日结果,不清空、不补零
+
+  - id: BL-SER-EVIDENCE
+    name: 证据链与回滚
+    priority: P2
+    cells:
+      fetch:
+        state: healthy
+        evidence: evidence_index.yaml 登记了各环节证据
+      score:
+        state: healthy
+        evidence: model_extraction.yaml 记录模型抽取结果
+      rank:
+        state: healthy
+        evidence: performance_report.yaml 留存绩效证据
+      compare:
+        state: healthy
+        evidence: owner_roa_review.yaml 记录 owner 复核
+      publish:
+        state: degraded
+        evidence: >-
+          rollback_test.yaml 已存在,但本项目主机侧只有静态前台、没有常驻单元,
+          回滚演练的运行证据本站探不到 —— 这一段只能是自报
+
+known_defects:
+  - id: DEF-SER-001
+    baseline: BL-SER-EVIDENCE
+    stage: publish
+    desc: >-
+      主机侧无常驻单元,打分/排序/告警三段的运行证据本站探不到,
+      整张表除前台可达外全部为自报。
+  - id: DEF-SER-002
+    baseline: BL-SER-DISCIPLINE
+    stage: publish
+    desc: 纪律告警没有对外推送通道,owner 不主动打开页面就看不到。

@@ -1,0 +1,35 @@
+{
+  "files": [
+    {
+      "bytes": 2989,
+      "path": "REPORT.md",
+      "sha256": "e1a61e964d176d8120738a44043d918e80adea554f183ade2457a9103307d2b8"
+    },
+    {
+      "bytes": 886,
+      "path": "STATUS_FRAGMENT.json",
+      "sha256": "bf8635971e1bf3c1cdc077e89d9a368e68525bfe8f1ab2c8f1c96b6c43badc19"
+    },
+    {
+      "bytes": 187,
+      "path": "event_graph.mmd",
+      "sha256": "2a669a511ccdd5837dbbafc2b92273b96946d150d83fef192cd034207981025f"
+    },
+    {
+      "bytes": 180,
+      "path": "event_timeline.mmd",
+      "sha256": "c1126619fdc34d5633e56d20892588e61f0f7d805d7fc8dc430ba5501557f29a"
+    },
+    {
+      "bytes": 5209,
+      "path": "scenario_fan.svg",
+      "sha256": "4bdc85ec1f75e75a2e39e1c929e078b5536168785a42647987b9df70ebfc1e5b"
+    },
+    {
+      "bytes": 2425,
+      "path": "supply_waterfall.svg",
+      "sha256": "13e40a85769bc9f506dbcc9c2545c54dd31eea2eafdee11163cd89a3b65fd327"
+    }
+  ],
+  "schema": "equity-event-atlas/render-manifest-v1"
+}

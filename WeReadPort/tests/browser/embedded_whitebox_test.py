@@ -32,6 +32,7 @@ def source_bundle() -> str:
     app = (APP / "src/ui/app.js").read_text(encoding="utf-8")
     app = re.sub(r'^import\s+\{.*?\}\s+from\s+"\.\./core/constants\.js";\s*', "", app, count=1, flags=re.S)
     app = re.sub(r'^import\s+\{\s*validateLocalFileDescriptors\s*\}\s+from\s+"\.\./core/local-import\.js";\s*', "", app, count=1, flags=re.M)
+    app = re.sub(r'^import\s+\{\s*legalMainHtml,\s*statusMainHtml\s*\}\s+from\s+"\.\./core/public-pages\.js";\s*', "", app, count=1, flags=re.M)
     app = app.replace('new URL("./export-worker.js", import.meta.url)', '"about:blank"')
     validator = r'''
       function validateLocalFileDescriptors(files) {
@@ -43,7 +44,8 @@ def source_bundle() -> str:
         return true;
       }
     '''
-    return constants + "\n" + validator + "\n" + app
+    page_stubs = "function legalMainHtml(){ return '<main>法律页面</main>'; }\nfunction statusMainHtml(){ return '<main>系统状态</main>'; }"
+    return constants + "\n" + page_stubs + "\n" + validator + "\n" + app
 
 
 CSS = (APP / "src/ui/styles.css").read_text(encoding="utf-8")
@@ -84,6 +86,22 @@ FAKE_WORKER = r'''
     terminate(){ this.closed=true; }
   }
   window.Worker = ReviewWorker;
+  window.fetch = async input => {
+    const url = String(input);
+    if (url.endsWith('/api/status')) return new Response(JSON.stringify({
+      ok:true,status:'OPERATIONAL',statusLabel:'运行正常',app:'微信读书笔记迁移',appVersion:'v0.0.0.1.7',sourceSkillVersion:'1.0.4',
+      runtimeMode:'production',runtimeLabel:'线上生产环境',checkedAt:'2026-07-27T00:00:00Z',
+      components:{
+        publicApplication:{status:'AVAILABLE',label:'公开应用可用',detail:'主页静态资源已通过同源探测。'},
+        localImportAndExport:{status:'AVAILABLE',label:'本地上传与导出内核可加载',detail:'本地处理。'},
+        wereadGatewayProxy:{status:'AVAILABLE',label:'微信读书代理合同已加载',detail:'只验证代理合同。'},
+        operationsOverview:{status:'EXTERNAL',label:'供应商与基础设施状态',detail:'外部状态入口。',url:'https://status.linzezhang.com'}
+      },
+      businessGovernance:{schemaVersion:'1.0.0',graphStatus:'VALID',graphErrors:[],summary:{total:7,counts:{READY:4,DEGRADED:0,BLOCKED:0,NOT_VERIFIED:2,EXTERNAL:1},blocking:[],notVerified:['weread-direct-export','release-supply-chain']},lines:[]},
+      dataBoundary:{serverSideUserNotePersistence:false,serverSideUserKeyPersistence:false,statusContainsUserContent:false,businessGovernanceContainsUserContent:false}
+    }), {status:200, headers:{'content-type':'application/json'}});
+    throw new Error('unexpected fetch: ' + url);
+  };
   window.__openedUrls = [];
   window.open = url => { window.__openedUrls.push(String(url)); return null; };
   Object.defineProperty(navigator, 'clipboard', {value:{writeText: async text => { window.__copiedText = String(text); }}});

@@ -1,0 +1,53 @@
+# 业务流登记 —— ABD
+#
+# ★ 状态如实填。没跑起来的写 not_built,本地验收通过**不等于**线上跑通 ——
+#   填成 healthy 就是造假绿。
+# ★ 本项目主机上零部署单元,status 主机侧探针**永远探不到它**。
+#   等它真跑起来后,按 LinzeHomeHub/status/docs/FLOW_STATE_CONTRACT.md
+#   自己吐 docs/governance/flow_state.json,本站只读不写 —— 那是唯一能被实测的通道。
+# ★ 后期改名时,这份文件的 project 与路径要一起改。
+
+schema: linze.flow.v1
+project: ABD
+repo: MetaDatabase
+authority: ABD/(README.md / AGENTS.md)
+stages: [contract, freeze, build, verify, deliver]
+stage_names:
+  contract: 合同定义
+  freeze: 需求冻结
+  build: 实现
+  verify: 验收
+  deliver: 交付上线
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / blocked_by_policy / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因。
+
+baselines:
+  - id: BL-ABD-TASKPACK
+    name: 开发任务包主线
+    priority: P1
+    note: >-
+      Stage 0 与 S01/P01–P04 的门禁证据齐全;但任务包 PASS ≠ 软件上线。
+    cells:
+      contract:
+        state: healthy
+        evidence: >-
+          Stage 0 四个 Phase 全 PASS,已经 PR #58 合入 main,两条 main CI 记录已固化
+      freeze:
+        state: healthy
+        evidence: >-
+          S01/P03 冻结 21 条需求、5 条业务线、18 个功能模块、8 条主流程、13 条安全错误路径;S01/P04 冻结 31 个指标与 19 条 kill criteria
+      build:
+        state: not_built
+        evidence: >-
+          任务包是开发合同,实现尚未开始
+      verify:
+        state: not_built
+        evidence: >-
+          没有实现就没有可验收的运行产物;现有 PASS 全部是任务包自身的门禁
+      deliver:
+        state: not_built
+        evidence: >-
+          README 明确:任务包 PASS 不表示已上线/已部署/已验证收益
+
+known_defects: []

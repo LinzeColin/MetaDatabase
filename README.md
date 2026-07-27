@@ -16,6 +16,9 @@
 | EEI | ✅ 已迁入 | 商域帝国（Enterprise Ecosystem Intelligence）；自带 CI：`eei-validation` |
 | Stock_Skill/stock-commercial-opportunities-skill | ✅ 3.0.0（v3）当前 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；以 `Stock_Skill/REGISTRY.json` 为机器可读索引，未安装运行时 |
 | Stock_Skill/bottleneck-serenity-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | source-only、`numeric-quad`；canonical source、确定性 release、manifest 与 registry entry 已在 Stage 2 用真实 SHA 激活，未安装本机运行时 |
+| Stock_Skill/equity-foresight-signal-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | 股势前瞻；source-only、`numeric-quad`，未安装本机运行时 |
+| Stock_Skill/global-equity-lead-lag-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 全球股市时序联动图谱；source-only、`numeric-quad`，未安装本机运行时 |
+| Stock_Skill/equity-event-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 股票事件航图；source-only、`numeric-quad`，未安装本机运行时 |
 | xhs-douyin-2notion | 🚧 Stage 0 | 个人小红书/抖音内容知识治理；Public Code / Private Runtime |
 | PFI | ✅ 已在仓 | 个人财务智能 Streamlit 应用（顶层 `PFI/`，运行时读本机 `~/.pfi/runtime/`）；与 `LinzeDatabase/PFI` 数据目录不是同一个东西 |
 | ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
@@ -38,8 +41,9 @@ arity、前导零、archive 自声明 scheme、跨 scheme 比较，或 identity�
 冲突都会 fail closed；此时 current/latest 状态只能报告为 `UNKNOWN`。
 
 当前 active entries 为 `stock-commercial-opportunities=3.0.0`（v3，`semver`）与
-`bottleneck-serenity-skill=0.0.0.1`（`v0.0.0.1`，`numeric-quad`）。两者均为 source-only，未写入本机
-Codex/Agents Skill 运行时。权威判定必须从仓库根运行：
+`bottleneck-serenity-skill=0.0.0.1`、`equity-foresight-signal=0.0.0.1`、
+`global-equity-lead-lag-atlas=0.0.0.1`、`equity-event-atlas=0.0.0.1`（均为
+`v0.0.0.1`，`numeric-quad`）。所有条目均为 source-only，未写入本机 Codex/Agents Skill 运行时。权威判定必须从仓库根运行：
 
 ```bash
 python3 Stock_Skill/scripts/validate_registry.py

@@ -1,0 +1,130 @@
+{
+  "$id": "urn:linzecolin:gela:config:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "alpha": {
+      "exclusiveMaximum": 1,
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "analysis_id": {
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "type": "string"
+    },
+    "bootstrap_block": {
+      "maximum": 5040,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "bootstrap_repetitions": {
+      "maximum": 10000,
+      "minimum": 20,
+      "type": "integer"
+    },
+    "causal_claims": {
+      "const": false
+    },
+    "currency_mode": {
+      "enum": [
+        "local",
+        "usd"
+      ]
+    },
+    "data_usage_mode": {
+      "enum": [
+        "user_provided",
+        "licensed_provider",
+        "synthetic_fixture"
+      ]
+    },
+    "fdr_scope": {
+      "const": "global"
+    },
+    "generated_at": {
+      "pattern": "(?:Z|[+]00:00)$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "horizons": {
+      "items": {
+        "maximum": 5040,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "input_csv": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "license_acknowledgement": {
+      "const": true
+    },
+    "max_base_staleness_hours": {
+      "exclusiveMinimum": 0,
+      "maximum": 744,
+      "type": "number"
+    },
+    "min_abs_effect": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "min_effective_n": {
+      "minimum": 3,
+      "type": "integer"
+    },
+    "min_oos_improvement": {
+      "maximum": 1,
+      "minimum": -1,
+      "type": "number"
+    },
+    "min_raw_n": {
+      "minimum": 8,
+      "type": "integer"
+    },
+    "min_stability": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "output_dir": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "random_seed": {
+      "type": "integer"
+    },
+    "rolling_windows": {
+      "maximum": 100,
+      "minimum": 2,
+      "type": "integer"
+    },
+    "source_lags": {
+      "items": {
+        "maximum": 2520,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "analysis_id",
+    "input_csv",
+    "output_dir",
+    "license_acknowledgement"
+  ],
+  "title": "GELA Analysis Config",
+  "type": "object"
+}

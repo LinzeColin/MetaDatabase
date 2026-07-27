@@ -1,0 +1,377 @@
+{
+  "accessed_date": "2026-07-27",
+  "external_independence_claim": false,
+  "inventory_count": 57,
+  "items": [
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前工作不需要外部 Agent 触达，且运行时禁止 Agent。",
+      "skill": "agent-reach",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "awesome-design-md",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "awesome-design-systems",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "beautiful-html-templates",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前版本不存在对应内容转换、画像、宠物、通信或记录场景。",
+      "skill": "book-to-skill",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "canvas-design",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前版本不存在对应内容转换、画像、宠物、通信或记录场景。",
+      "skill": "chronicle",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本 Skill Runtime 无 Secret；最终制品由既有仓库与冷备治理，不新增备份平面。",
+      "skill": "codex-encrypted-backup",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "contract_read",
+      "reason": "会形成额外语义/治理层，违反唯一 Canonical Facts 和低治理成本。",
+      "skill": "context-kernel",
+      "status": "NOT_APPLICABLE_DUPLICATE_GOVERNANCE"
+    },
+    {
+      "assessment_depth": "contract_read",
+      "reason": "七文件与机器合同已在 exact public snapshot 及隔离落库/回滚中验证；真实目标工作树由 fail-closed landing preflight 与官方 Validator 复核。",
+      "skill": "domain-dual-plane",
+      "status": "APPLICABLE_EXECUTED_PUBLIC_SNAPSHOT_REAL_WORKTREE_PENDING"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "专用业务域与股票预测节点无关。",
+      "skill": "dws",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前版本不存在对应内容转换、画像、宠物、通信或记录场景。",
+      "skill": "dynamic-personal-profile-update",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "frontend-slides",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "contract_read",
+      "reason": "目标、范围、公式、数据、验收、停止与交付边界已形成正式候选。",
+      "skill": "goal-to-delivery-sop",
+      "status": "APPLICABLE_EXECUTED_BUILDER_CONTEXT"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "专用业务域与股票预测节点无关。",
+      "skill": "gongzi-fafang-biaozhun",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前版本不存在对应内容转换、画像、宠物、通信或记录场景。",
+      "skill": "gpt-tasteskill",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "contract_read",
+      "reason": "已生成无环、无等待 landing DAG；未冒充多 Agent 图执行。",
+      "skill": "graphify",
+      "status": "APPLICABLE_EXECUTED_DETERMINISTIC_DAG"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-core",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-frameworks",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-performance",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-plugins",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-react",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-scrolltrigger",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-skills",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-timeline",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "gsap-utils",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "guizang-ppt-skill",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前版本不存在对应内容转换、画像、宠物、通信或记录场景。",
+      "skill": "hatch-pet",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "专用业务域与股票预测节点无关。",
+      "skill": "hongquan-main-contract-dws",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "html-anything",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "image-enhancer",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "专用业务域与股票预测节点无关。",
+      "skill": "info-fee-update",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前版本不存在对应内容转换、画像、宠物、通信或记录场景。",
+      "skill": "internal-comms",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-adjudicate",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-audit",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-brief",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-discover",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-evidence",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-evolve",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-lifecycle",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-qualify",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "投标业务域与股票预测节点无关。",
+      "skill": "km-bid-scout",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "当前研究由直接官方/一手来源完成，不增加另一个研究运行依赖。",
+      "skill": "last30days",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "0 Agent/0 Token 运行边界禁止 MCP；开发期也无必要。",
+      "skill": "mcp-builder",
+      "status": "PROHIBITED_AT_RUNTIME"
+    },
+    {
+      "assessment_depth": "contract_read",
+      "reason": "确定性候选封包、Manifest、双构建和外层验证已实现；Owner 未授权前不作为最终交付。",
+      "skill": "output-skill",
+      "status": "APPLICABLE_CANDIDATE_PACKAGING_EXECUTED_NOT_OWNER_DELIVERED"
+    },
+    {
+      "assessment_depth": "prepackaging_method_closed",
+      "reason": "封包前多视角反证/裁决流程已闭合；不声称外部独立 SubAgent 证据。开发 Agent 禁止重新委托、等待或扩展复审，只核验封包证明 Hash。",
+      "skill": "persona-distiller-group",
+      "status": "APPLICABLE_PREPACKAGING_REVIEW_CLOSED_NO_EXTERNAL_INDEPENDENCE_CLAIM"
+    },
+    {
+      "assessment_depth": "prepackaging_method_closed",
+      "reason": "已用于专家能力、冲突角色和证据边界选择并在封包前闭合；不进入 Runtime，开发 Agent 不重跑。",
+      "skill": "persona-distiller",
+      "status": "APPLICABLE_PREPACKAGING_BOUNDARY_SELECTION_CLOSED"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "该 Skill 的专用业务域与当前节点不匹配；成本以本任务 Acceptance 合同治理。",
+      "skill": "project-cost-table-skill",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "contract_read",
+      "reason": "仅采用金融研究、证伪和风险边界，不引入独立系统形态。",
+      "skill": "serenity-skill",
+      "status": "APPLICABLE_CONCEPTS"
+    },
+    {
+      "assessment_depth": "contract_read",
+      "reason": "默认同步目标与本项目 MetaDatabase/Stock_Skill 规范路径冲突。",
+      "skill": "skill-github-sync",
+      "status": "NOT_APPLICABLE_CONFLICT"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本任务是股票预测节点 Skill，不是学习项目。",
+      "skill": "study-project-orchestrator",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "prepackaging_method_closed",
+      "reason": "白箱负优化、停止条件和回退检查在封包前闭合；Outcome 保持 NOT_PROVEN/SHADOW_ONLY。开发 Agent 只核验证明 Hash 与冻结测试。",
+      "skill": "teleiosis",
+      "status": "APPLICABLE_PREPACKAGING_CONTROL_RUNS_CLOSED_SHADOW_ONLY"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "theme-factory",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本没有独立服务或 Railway 部署。",
+      "skill": "use-railway",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "prepackaging_method_closed",
+      "reason": "冻结 Acceptance/Subject 的确定性契约检查在封包前闭合；不声称外部独立 verdict。开发 Agent 禁止重新执行或等待 Verifier。",
+      "skill": "verifier",
+      "status": "APPLICABLE_PREPACKAGING_CONTRACT_RUNS_CLOSED_NO_EXTERNAL_VERDICT_CLAIM"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本无独立前端、幻灯片、动画、视频或视觉制品。",
+      "skill": "video-replica",
+      "status": "NOT_APPLICABLE"
+    },
+    {
+      "assessment_depth": "directory_inventory",
+      "reason": "本版本没有独立 Web Surface。",
+      "skill": "webapp-testing",
+      "status": "NOT_APPLICABLE"
+    }
+  ],
+  "limitations": [
+    "当前会话无独立 SubAgent/provider 执行面；不得把同模型隔离角色或脚本复跑称为外部独立 2×6 review。",
+    "私有仓库与未公开文件不可访问。",
+    "Owner 尚未授权最终 ZIP 交付。"
+  ],
+  "policy": "inventory_all_deep_read_applicable_execute_when_preconditions_exist",
+  "review_execution_policy": "PREPACKAGING_CLOSED_DEVELOPER_AGENT_VERIFY_HASHES_AND_FROZEN_TESTS_ONLY",
+  "runtime_policy": "no_development_skill_is_a_runtime_dependency",
+  "schema": "efs.skill_applicability.v2",
+  "source": {
+    "commit": "bfa9b1da006172d877425275b6ae2d16ca652ba3",
+    "repo": "LinzeColin/AgentDatabase"
+  },
+  "status_counts": {
+    "APPLICABLE_CANDIDATE_PACKAGING_EXECUTED_NOT_OWNER_DELIVERED": 1,
+    "APPLICABLE_CONCEPTS": 1,
+    "APPLICABLE_EXECUTED_BUILDER_CONTEXT": 1,
+    "APPLICABLE_EXECUTED_DETERMINISTIC_DAG": 1,
+    "APPLICABLE_EXECUTED_PUBLIC_SNAPSHOT_REAL_WORKTREE_PENDING": 1,
+    "APPLICABLE_PREPACKAGING_BOUNDARY_SELECTION_CLOSED": 1,
+    "APPLICABLE_PREPACKAGING_CONTRACT_RUNS_CLOSED_NO_EXTERNAL_VERDICT_CLAIM": 1,
+    "APPLICABLE_PREPACKAGING_CONTROL_RUNS_CLOSED_SHADOW_ONLY": 1,
+    "APPLICABLE_PREPACKAGING_REVIEW_CLOSED_NO_EXTERNAL_INDEPENDENCE_CLAIM": 1,
+    "NOT_APPLICABLE": 45,
+    "NOT_APPLICABLE_CONFLICT": 1,
+    "NOT_APPLICABLE_DUPLICATE_GOVERNANCE": 1,
+    "PROHIBITED_AT_RUNTIME": 1
+  }
+}

@@ -12,7 +12,7 @@ import subprocess
 import sys
 from urllib.parse import urlparse
 
-VERSION = "0.0.0.1.3"
+VERSION = "0.0.0.1.7"
 UNITS = (
     "weread-port-ops-monitor.timer",
     "weread-port-ops-private-sync.timer",
@@ -76,7 +76,7 @@ def update_env(path: pathlib.Path, template: pathlib.Path, site_url: str, privat
     for key, value in replacements.items():
         if key not in seen:
             lines.append(f"{key}={value}")
-    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8", newline="\n")
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     path.chmod(0o600)
 
 

@@ -39,6 +39,9 @@
 - `bottleneck-serenity-skill=0.0.0.1` 已按 `numeric-quad` 登记为 active/current source entry，展示与
   release label 是完整 `v0.0.0.1`；该状态必须由 canonical source、真实 release SHA、manifest、registry
   entry 与 validator 共同证明，且不代表已安装到本机运行时。
+- `equity-foresight-signal=0.0.0.1`、`global-equity-lead-lag-atlas=0.0.0.1` 与
+  `equity-event-atlas=0.0.0.1` 均为 `numeric-quad`、`SOURCE_ONLY`、禁止本机安装的 current entries；
+  三者均只提供研究/决策支持，不连接账户、不执行交易。
 - Validator 的 current 输出保留 semver major shorthand（例如 `3.0.0` 显示 `v3`），但
   `numeric-quad` 必须显示完整版本（`0.0.0.1` 显示 `v0.0.0.1`，不得缩写为 `v0`）；release 文件名使用
   完整的 `v<latest_version>`。

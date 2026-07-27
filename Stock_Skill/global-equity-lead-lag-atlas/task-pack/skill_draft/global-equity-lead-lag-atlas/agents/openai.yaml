@@ -1,0 +1,4 @@
+interface:
+  display_name: "全球股市时序联动图谱"
+  short_description: "分析全球股市的会话感知领先—滞后关系"
+  default_prompt: "使用 $global-equity-lead-lag-atlas 分析宿主提供的市场收益数据，并输出可审计的研究结论。"

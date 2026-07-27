@@ -1,0 +1,74 @@
+{
+  "adoption_policy": "核心为标准库零依赖实现；以下项目用于方法、接口和拒绝决策研究，不复制其代码。",
+  "sources": [
+    {
+      "decision": "ADOPT_BOUNDARY",
+      "name": "AgentDatabase repository contract",
+      "observed_commit": "21235d49fca818b74677172711cfe279d2da68a6",
+      "reason": "新增目录仅进入 CodexSkills；禁止 PR/merge/reset/rebase；运行数据不入代码仓。",
+      "url": "https://github.com/LinzeColin/AgentDatabase/blob/main/AGENTS.md"
+    },
+    {
+      "decision": "OPTIONAL_HOST_ADAPTER",
+      "license": "Apache-2.0",
+      "name": "exchange_calendars",
+      "reason": "成熟交易会话和节假日底座；不作为核心硬依赖以保持 Skill 轻量可安装。",
+      "url": "https://github.com/gerrymanoim/exchange_calendars/releases/tag/4.13.2",
+      "version_or_tag": "4.13.2"
+    },
+    {
+      "commit_short": "40e6a84",
+      "decision": "METHOD_REFERENCE_ONLY",
+      "license": "BSD-3-Clause",
+      "name": "statsmodels",
+      "reason": "VAR/Granger/HAC 等可用于宿主研究扩展；本版避免重依赖和因果语义污染。",
+      "url": "https://github.com/statsmodels/statsmodels/releases/tag/v0.14.6",
+      "version_or_tag": "v0.14.6"
+    },
+    {
+      "commit_short": "495134a",
+      "decision": "REJECT_CORE_DEPENDENCY",
+      "license": "MIT",
+      "name": "Plotly.py",
+      "reason": "交互图能力成熟，但纯 HTML/SVG 可满足首版且显著降低依赖和安装成本。",
+      "url": "https://github.com/plotly/plotly.py/releases/tag/v6.9.0",
+      "version_or_tag": "v6.9.0"
+    },
+    {
+      "decision": "FUTURE_OPTIONAL_ADAPTER",
+      "license": "BSD-3-Clause",
+      "name": "NetworkX",
+      "reason": "适合复杂网络指标；首版只需方向边和基础排名，不引入额外依赖。",
+      "url": "https://networkx.org/documentation/stable/",
+      "version_or_tag": "3.6.1"
+    },
+    {
+      "commit_short": "dddc3b3",
+      "decision": "PROVIDER_PATTERN_ONLY",
+      "license": "AGPL-3.0-or-later / component-specific",
+      "name": "OpenBB",
+      "reason": "复用多 Provider 适配思想，不复制代码、不硬绑定，避免许可和供应商漂移。",
+      "url": "https://github.com/OpenBB-finance/OpenBB/releases/tag/v4.7.0",
+      "version_or_tag": "v4.7.0"
+    },
+    {
+      "decision": "ADOPT_ASSURANCE_CONTRACT",
+      "name": "Verifier Skill",
+      "url": "https://github.com/LinzeColin/AgentDatabase/blob/main/CodexSkills/registry/codex/verifier/SKILL.md",
+      "version_or_tag": "0.0.2.2"
+    },
+    {
+      "decision": "ADOPT_WHITEBOX_RULES",
+      "name": "Teleiosis Skill",
+      "url": "https://github.com/LinzeColin/AgentDatabase/blob/main/CodexSkills/registry/codex/teleiosis/SKILL.md",
+      "version_or_tag": "0.0.0.2"
+    },
+    {
+      "decision": "ADOPT_REVIEW_BOUNDARIES",
+      "name": "Persona Distiller Group",
+      "url": "https://github.com/LinzeColin/AgentDatabase/blob/main/CodexSkills/registry/codex/persona-distiller-group/SKILL.md",
+      "version_or_tag": "main@2026-07-26"
+    }
+  ],
+  "valid_as_of": "2026-07-26"
+}

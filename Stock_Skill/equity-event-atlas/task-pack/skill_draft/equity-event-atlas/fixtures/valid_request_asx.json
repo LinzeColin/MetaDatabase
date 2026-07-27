@@ -1,0 +1,15 @@
+{
+  "as_of": "2026-07-26T12:00:00+10:00",
+  "horizon_trading_days": 90,
+  "locale": "zh-CN",
+  "objective": "RESEARCH",
+  "requested_mode": "DEEP_DIVE",
+  "schema": "equity-event-atlas/request-v1",
+  "security": {
+    "currency": "AUD",
+    "instrument_type": "COMMON_STOCK",
+    "mic": "XASX",
+    "name": "合成澳洲资源公司",
+    "ticker": "AUX"
+  }
+}
