@@ -1,0 +1,25 @@
+[Unit]
+Description=同步微信读书笔记迁移脱敏完成态事实到 Private-Database
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=weread-port-ops
+Group=weread-port-ops
+EnvironmentFile=-/etc/weread-port/ops.env
+WorkingDirectory=/opt/weread-port-ops/current
+ExecStart=/opt/weread-port-ops/current/bin/weread-port-ops sync-private
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+StateDirectory=weread-port-ops
+ReadWritePaths=/var/lib/weread-port-ops
+UMask=0077
+TimeoutStartSec=180

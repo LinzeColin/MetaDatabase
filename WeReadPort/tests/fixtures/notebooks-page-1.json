@@ -1,0 +1,21 @@
+{
+  "totalBookCount": 2,
+  "totalNoteCount": 8,
+  "hasMore": 1,
+  "books": [
+    {
+      "bookId": "book-001",
+      "book": {
+        "bookId": "book-001",
+        "title": "复杂系统入门",
+        "author": "林示例",
+        "deepLink": "weread://book-001"
+      },
+      "reviewCount": 2,
+      "noteCount": 2,
+      "bookmarkCount": 1,
+      "readingProgress": 45,
+      "sort": 200
+    }
+  ]
+}

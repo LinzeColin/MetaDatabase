@@ -1,0 +1,20 @@
+{
+  "reviews": [
+    {
+      "review": {
+        "reviewId": "thought-1",
+        "content": "这说明局部优化可能损害整体。",
+        "abstract": "系统的行为来自关系，而不只是组成部分。",
+        "range": "100-130",
+        "chapterUid": 10,
+        "chapterIdx": 1,
+        "chapterName": "第一章 系统与关系",
+        "createTime": 1760000100,
+        "star": -1
+      }
+    }
+  ],
+  "totalCount": 2,
+  "hasMore": 1,
+  "synckey": 50
+}

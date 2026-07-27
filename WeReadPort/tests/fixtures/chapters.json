@@ -1,0 +1,18 @@
+{
+  "bookId": "book-001",
+  "synckey": 1,
+  "chapters": [
+    {
+      "chapterUid": 10,
+      "chapterIdx": 1,
+      "title": "第一章 系统与关系",
+      "level": 1
+    },
+    {
+      "chapterUid": 20,
+      "chapterIdx": 2,
+      "title": "第二章 反馈",
+      "level": 1
+    }
+  ]
+}

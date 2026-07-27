@@ -1,0 +1,23 @@
+[Unit]
+Description=非破坏校验微信读书笔记迁移最新本地快照
+After=weread-port-ops-backup.service
+
+[Service]
+Type=oneshot
+User=weread-port-ops
+Group=weread-port-ops
+EnvironmentFile=-/etc/weread-port/ops.env
+WorkingDirectory=/opt/weread-port-ops/current
+ExecStart=/bin/sh -c 'snapshot=$(find /var/lib/weread-port-ops/snapshots -maxdepth 1 -type f -name "runtime-*.sqlite3" -printf "%T@ %p\n" 2>/dev/null | sort -nr | head -1 | cut -d" " -f2-); test -n "$snapshot" && exec /opt/weread-port-ops/current/bin/weread-port-ops restore-check "$snapshot" || exit 0'
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadOnlyPaths=/var/lib/weread-port-ops
+UMask=0077
+TimeoutStartSec=120

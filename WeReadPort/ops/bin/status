@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+systemctl --no-pager --full status weread-port-ops-monitor.timer weread-port-ops-private-sync.timer weread-port-ops-backup.timer weread-port-ops-purge.timer weread-port-ops-restore-check.timer || true
+/opt/weread-port-ops/current/bin/weread-port-ops diagnose
