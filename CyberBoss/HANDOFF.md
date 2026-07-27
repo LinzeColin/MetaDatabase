@@ -3,22 +3,38 @@
 - Updated: 2026-07-27
 - Repository: `LinzeColin/MetaDatabase`
 - Worktree:
-  `/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-cyberboss`
-- Local branch: `codex/cyberboss-prestage0`
-- Run base: `916651854a6402254724c885398060b2e267e496`
+  `/Users/linzezhang/.codex/worktrees/86c3/MetaDatabase`
+- Local branch: `codex/cyberboss-v5-cb240-closure`
+- Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `1b3e338847d8819869a5e12091f25b5463a8d3be`
+  `fcfac053cab6944b2fc13a62491cce8ddb93e649`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
-Stage 1 exit gate `PG-1`, plus `P2.1 / CB-200`、`P2.2 / CB-210` and
-`P2.3 / CB-220`、`P2.4 / CB-230` passed. Stage 0 and Stage 1 are each
-5/5 tasks plus their gate complete; Stage 2 is 4/5 before `PG-2`. The 16 tasks
-from CB-240 onward and PG-2–PG-5 remain
-`not_started`.
+Stage 1 exit gate `PG-1`, plus `P2.1 / CB-200` through `P2.5 / CB-240`
+passed. Stage 0 and Stage 1 are each 5/5 tasks plus their gate complete;
+Stage 2 is 5/5 before the independent `PG-2`. CB-300–CB-540 and PG-2–PG-5
+remain `not_started`.
+
+CB-240 local deterministic closure is bound to implementation commit
+`fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
+`781a8e32d2c3248c4cc4aebfe164a033efd45949`. It passed the merge-safe
+`validate_cb240.py --prepare`, focused canonical and root contract suites,
+identity/config checks and manifest verification. Ordinary canonical remote
+dispatch is daily at `03:20 UTC`; the exact material set is
+`release_completed`、`incident_declared`、`recovery_completed`, delivered by a
+material-only data-plane path/oneshot worker sharing the canonical lock.
+No new fact produces `noop_no_commit`; normal ordinary age is observational,
+while integrity/resource/material-retry conditions protect bounded mutation.
+
+The closure is local and credential-free. Private-Database/R2/Cloudflare/OCI
+real operations are `0`, control-plane and operations LLM calls are `0`, no
+macOS launchd dependency exists, and all real-provider/candidate activation
+remains `activation_pending`. Do not start PG-2 in this Run. The next Run must
+run its own package Skill Router before executing native node `PG-2`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL

@@ -1,0 +1,16 @@
+{
+  "schema_version": "cyberboss.cb240.subject.v1",
+  "task_id": "CB-240",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "public_implementation_commit": "839014fc4bcd52e11c8ff50331ff9dbd55fe0827",
+  "implementation_commit": "fcfac053cab6944b2fc13a62491cce8ddb93e649",
+  "implementation_tree": "781a8e32d2c3248c4cc4aebfe164a033efd45949",
+  "summary_sha256": "3facc3474b6e592abd1050898433c2466a56c531c6478a15a6c167e618386236",
+  "deployment_release_pointer": "activation_pending",
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0
+}

@@ -7,7 +7,7 @@
     "gate_id": null,
     "task_id": "CB-240",
     "scope": "canonical_sync_rebuild",
-    "status": "implemented_not_accepted"
+    "status": "passed"
   },
   "prestage": [
     {
@@ -39,7 +39,7 @@
     {"id": "CB-210", "stage": "S2", "phase": "P2.2", "status": "passed"},
     {"id": "CB-220", "stage": "S2", "phase": "P2.3", "status": "passed"},
     {"id": "CB-230", "stage": "S2", "phase": "P2.4", "status": "passed"},
-    {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "implemented_not_accepted"},
+    {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "passed"},
     {"id": "CB-300", "stage": "S3", "phase": "P3.1", "status": "not_started"},
     {"id": "CB-310", "stage": "S3", "phase": "P3.2", "status": "not_started"},
     {"id": "CB-320", "stage": "S3", "phase": "P3.3", "status": "not_started"},
@@ -77,6 +77,8 @@
       "recovery_completed"
     ],
     "private_database_activation": "activation_pending",
+    "acceptance_state": "passed",
+    "acceptance_scope": "local_deterministic_only",
     "control_plane_llm_calls": 0,
     "operations_llm_calls": 0,
     "macos_launchd_dependency": false,

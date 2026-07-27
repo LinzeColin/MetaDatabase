@@ -5,26 +5,28 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0、Stage 1 及各自独立退出门 `PG-0`、`PG-1` 已通过；
-  Stage 2 的 `P2.1 / CB-200` 至 `P2.4 / CB-230` 已通过，`P2.5 /
-  CB-240` 与 `PG-2` 尚未开始
-- 当前产品设计：`v0.0.0.4`
+  Stage 2 的 `P2.1 / CB-200` 至 `P2.5 / CB-240` 已通过，`PG-2` 尚未开始
+- Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
   `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
-  `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`
+  `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`
 - 当前基线：九个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P2.4 / CB-230` 已完成 accepted/final/error/cancelled
-  staged-before-provider、稳定 chunk/dedupe/provider client ID、最多 5 次
-  bounded jittered retry、provider confirmation truth 和 crash recovery。
-  本地及候选 App 227/227、目标 synthetic acceptance 37/37 均通过；
-  unknown dispatch 自动重发为 0，confirmed delivery count 为 1。候选未
-  激活，真实 Codex/WeChat/canonical sync 仍为 `activation_pending`，
-  `current`/workspace/service 未变
-- Stage 0–5 任务状态：`CB-000`–`CB-230` 共十四项任务已通过；其余 16 项与
-  PG-2–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`
+- 最新 Run：`P2.5 / CB-240` 将 ordinary canonical facts 固定为 `03:20 UTC`
+  日频远端 dispatch，并将 `release_completed`、`incident_declared`、
+  `recovery_completed` 固定为 material-only bounded invocation。实现 subject 为
+  `fcfac053cab6944b2fc13a62491cce8ddb93e649`，本地 closure evidence 见
+  `docs/evidence/CB-240/`；普通 age 不触发远端提交或阻断 bounded mutation，
+  无新事实为 `noop_no_commit`。
+- Stage 0–5 任务状态：`CB-000`–`CB-240` 共十五项任务已通过；CB-300–CB-540
+  共十五项任务与 PG-2–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`。
+  下一原生节点只能是独立 Run 的 `PG-2`，并须先运行该任务边界的 Skill Router。
+- 真实 Private-Database/R2/Cloudflare/OCI、目标 candidate 安装与服务激活均为
+  `activation_pending`；本地 fixture 不折算真实验证，`current`/workspace/service
+  未变
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
 ## 唯一身份

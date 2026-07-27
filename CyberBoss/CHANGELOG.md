@@ -1,5 +1,34 @@
 # Changelog
 
+## P2.5 / CB-240 — 2026-07-27
+
+- Bound the redacted append-only canonical-sync implementation to local commit
+  `fcfac053cab6944b2fc13a62491cce8ddb93e649` (tree
+  `781a8e32d2c3248c4cc4aebfe164a033efd45949`) without changing the Owner-locked
+  product version `v0.0.0.5` or the `v0.0.0.4` design baseline.
+- Split local deterministic object formation from remote dispatch: ordinary
+  facts stage immediately but remote dispatch is only daily at `03:20 UTC` or
+  an explicit operator invocation; legacy 60-second age remains parse-compatible
+  and cannot create a remote commit.
+- Fixed the material allowlist to `release_completed`, `incident_declared` and
+  `recovery_completed`. A material-only systemd path/oneshot data worker shares
+  the existing canonical lock, never invokes a model, and remains disabled and
+  inactive in the candidate-only installation path.
+- Added bounded `daily|material|manual` data-worker modes (2,000 events,
+  10 MiB uncompressed bytes, five attempts), `noop_no_commit` for no eligible
+  work, material retry protection, ordinary-age observation without mutation
+  blocking, and no-clone/reconcile/quarantine preservation.
+- Passed local deterministic canonical acceptance, root CB-240 contract,
+  identity/config/manifest checks and merge-safe `validate_cb240.py --prepare`.
+  The acceptance covers 1,000 canonical fixture events, 50 concurrent groups,
+  virtual 429/outage recovery, 409/partial success, same-ID/different-hash
+  quarantine, daily/material cadence, no empty commit and rebuild.
+- Sealed only the local CB-240 subject in `docs/evidence/CB-240/`. Real
+  Private-Database/R2/Cloudflare/OCI activity, target candidate installation,
+  `current` switching and service activation remain `activation_pending`; no
+  credential content, external mutation, GitHub publication, PG-2 or CB-300
+  execution is claimed.
+
 ## P2.4 / CB-230 — 2026-07-27
 
 - Bound durable outbox and complete Corresponding Source to local

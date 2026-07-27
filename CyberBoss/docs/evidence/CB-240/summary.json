@@ -1,0 +1,46 @@
+{
+  "schema_version": "cyberboss.cb240.closure-summary.v1",
+  "task_id": "CB-240",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "public_implementation_commit": "839014fc4bcd52e11c8ff50331ff9dbd55fe0827",
+  "implementation_commit": "fcfac053cab6944b2fc13a62491cce8ddb93e649",
+  "implementation_tree": "781a8e32d2c3248c4cc4aebfe164a033efd45949",
+  "acceptance": {
+    "FA-AC-001": "passed",
+    "FA-AC-002": "passed",
+    "FA-AC-003": "passed",
+    "FA-AC-004": "passed",
+    "FA-AC-005": "passed",
+    "FA-AC-006": "passed"
+  },
+  "local_validation": {
+    "merge_safe_prepare": "passed",
+    "canonical_app_tests": "10/10",
+    "root_contract_tests": "7/7",
+    "identity_scope_tests": "9/9",
+    "configuration": "passed",
+    "taskpack_manifest": "passed"
+  },
+  "cadence": {
+    "ordinary_sync": "daily at 03:20 UTC",
+    "material_event_types": [
+      "incident_declared",
+      "recovery_completed",
+      "release_completed"
+    ],
+    "empty_commit_allowed": false,
+    "ordinary_age_blocks_mutation": false
+  },
+  "private_database_activation": "activation_pending",
+  "candidate_artifact_status": "not_run_main_branch_guard",
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0,
+  "macos_launchd_dependency": false,
+  "pg_2_executed": false,
+  "result": "passed",
+  "evidence_scope": "local_deterministic_only"
+}
