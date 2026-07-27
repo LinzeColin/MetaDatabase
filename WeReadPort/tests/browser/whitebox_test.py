@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
 
 BASE = os.environ.get("WEREAD_PORT_URL", "http://127.0.0.1:4187")
+BASE_HOSTNAME = urlparse(BASE).hostname
 OUT = Path(os.environ.get("WEREAD_PORT_EVIDENCE", "/tmp/weread-port-browser-evidence"))
 OUT.mkdir(parents=True, exist_ok=True)
 CHROMIUM = os.environ.get("CHROMIUM_PATH")
@@ -73,7 +74,7 @@ with sync_playwright() as playwright:
         external: list[str] = []
         automatic_downloads: list[str] = []
         opened: list[str] = []
-        page.on("request", lambda request: external.append(request.url) if urlparse(request.url).hostname not in {"127.0.0.1", "localhost"} and not request.url.startswith("blob:") else None)
+        page.on("request", lambda request: external.append(request.url) if urlparse(request.url).hostname != BASE_HOSTNAME and not request.url.startswith("blob:") else None)
         page.on("download", lambda download: automatic_downloads.append(download.suggested_filename))
         page.add_init_script("""
           window.__openedUrls = [];
@@ -102,6 +103,7 @@ with sync_playwright() as playwright:
         page.screenshot(path=str(OUT / f"{label}-上传后选择.png"), full_page=True)
 
         # Fake Clock：即时验证，不等待 13 分钟。
+        page.evaluate("window.__WEREAD_PORT_TEST_CLOCK__.advance(200)")
         page.evaluate("window.__WEREAD_PORT_TEST_CLOCK__.advance(13 * 60 * 1000)")
         check(f"{label}：会话过期预警可即时触发", page.locator("#session-banner:not(.hidden)").count() == 1)
         page.click("#extend-session")
@@ -130,7 +132,7 @@ with sync_playwright() as playwright:
         page.click("#copy-open-chatgpt")
         copied = page.evaluate("window.__copiedText || ''")
         opened = page.evaluate("window.__openedUrls || []")
-        check(f"{label}：中文提问词已复制", "请阅读我上传的文件" in copied, copied[:160])
+        check(f"{label}：中文提问词已复制", "我刚刚上传了" in copied and "请先完整读取文件" in copied, copied[:160])
         check(f"{label}：按钮只请求打开固定 ChatGPT 入口", opened == ["https://chatgpt.com/"], opened)
 
         storage = page.evaluate("""async () => ({

@@ -12,6 +12,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -252,18 +253,20 @@ class OpsTests(unittest.TestCase):
         client = self.root / "private_db_client.py"
         client.write_text("# capture-double\n", encoding="utf-8")
         settings = Settings(**{**self.settings.__dict__, "private_db_client": client})
-        self.db.enqueue("service.status.changed", {"to": "degraded"}, outbox_id="status-change")
+        at = datetime(2026, 7, 26, tzinfo=timezone.utc)
+        with patch("weread_port_ops.db.utc_now", return_value=at):
+            self.db.enqueue("service.status.changed", {"to": "degraded"}, outbox_id="status-change")
         first_batch = build_fact_batch(self.db)
         self.assertEqual(first_batch, build_fact_batch(self.db), "same pending rows must produce the same bytes")
-        result = sync_daily(settings, self.db, at=datetime(2026, 7, 26, tzinfo=timezone.utc), runner=runner)
+        result = sync_daily(settings, self.db, at=at, runner=runner)
         self.assertEqual(result["status"], "delivered")
         self.assertEqual(result["mode"], "ingest")
         ingest = seen[-1]
         self.assertEqual(ingest[:4], ["python3", str(client), "ingest", "Private-MetaDatabase"])
-        self.assertEqual(ingest[5:], ["--domain", "weread-port-operations", "--batch", "2026-07-26"])
+        self.assertEqual(ingest[5:], ["--domain", "weread-port-operations", "--batch", at.date().isoformat()])
         self.assertEqual(payloads[0]["batchId"], first_batch["batchId"])
         self.assertEqual(len(self.db.pending()), 0)
-        self.assertEqual(sync_daily(settings, self.db, at=datetime(2026, 7, 26, tzinfo=timezone.utc), runner=runner)["status"], "idle")
+        self.assertEqual(sync_daily(settings, self.db, at=at, runner=runner)["status"], "idle")
 
     def test_release_state_preserves_previous_version(self):
         self.db.set_release(commit="a", saved_version="s1", production_version="p1", production_origin="https://status.linzezhang.com")
