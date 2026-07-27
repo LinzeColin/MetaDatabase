@@ -1,0 +1,23 @@
+{
+  "schema_version": "cyberboss.cb330.subject.v1",
+  "task_id": "CB-330",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb320_closure_commit": "202e99cee168f0a2fb618e22819bc350e7f5261c",
+  "implementation_commit": "d994f6272d056812683a920a0baaaba65539f27b",
+  "implementation_tree": "56a230b3f70cbcb87ba4b20c118a4973b02539f8",
+  "summary_sha256": "c51b8b70e2ace3db6e9c0aace84460aaa87be5c6c6b7e4eaf6899019e7cc21e7",
+  "artifact_manifest_sha256": "9a09a0dbbe5f22b21392947710c406f2ce89c2c476c670dc84c2c5763bebeb86",
+  "implementation_kit_manifest_sha256": "fdc23d74438900b17aa1ede98359158457446f15cbe4369dd37a3023d94f3bba",
+  "deployment_release_pointer": "activation_pending",
+  "local_simulator_receipts": 2,
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "real_cloudflare_operations": 0,
+  "real_oci_operations": 0,
+  "real_global_status_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0,
+  "macos_launchd_dependency": false
+}

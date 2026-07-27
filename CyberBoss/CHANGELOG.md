@@ -1,5 +1,33 @@
 # Changelog
 
+## P3.4 / CB-330 — 2026-07-27
+
+- Closed the local deterministic online-snapshot/backup/isolated-restore
+  contract against CB-320 closure
+  `202e99cee168f0a2fb618e22819bc350e7f5261c`, bound to local implementation
+  commit `d994f6272d056812683a920a0baaaba65539f27b` (tree
+  `56a230b3f70cbcb87ba4b20c118a4973b02539f8`), without changing Owner-locked
+  product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Added the `cyberboss.backup-manifest.v3` thin layer using the built-in
+  `node:sqlite` `DatabaseSync.serialize()` consistent-image API. It captures
+  Runtime SQLite only, records source commit/schema/integrity/logic digest and
+  archive SHA-256, excludes authentication/cookie/token/cache/build content,
+  fsyncs files/directories and uses atomic publish. Concurrent-write, crash-cut,
+  hash-tamper and privacy/scope tests all fail closed.
+- Added isolated, network-disabled restore and local R2/OCI object simulators
+  constrained to the frozen bucket/prefix policy. Both simulator receipts prove
+  local object metadata/hash only and are labeled `simulator_verified`; they
+  are not real remote receipts and cannot promote R2/OCI to `verified`.
+- The package router selected `output-skill`; exactly one local Skill body was
+  loaded and no other Skill/model/research path was used. The 13-command
+  credential-free prepare validation passed, and the full App regression also
+  passed against the same sealed implementation tree.
+- Marked only CB-330 passed. No Private-Database, R2, Cloudflare, DNS,
+  Analytics, global Status, OCI, WeChat, Codex, OVH or GitHub operation occurred;
+  control-plane and operations model calls remain zero, macOS launchd remains
+  absent, real R2 remains `hazard_blocked`, and OCI remains
+  `activation_pending`. The next native node is CB-340.
+
 ## P3.3 / CB-320 — 2026-07-27
 
 - Closed the local Access/domain/origin contract against CB-310 closure
