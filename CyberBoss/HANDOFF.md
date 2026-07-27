@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `3e203ba760cab21b1a8d0bbd5d7f1b76d2fb884c`
+  `911d14c83a313f5a611d595acd72ee80415d97fa`
 - Remote publication: none
 
 ## Current state
@@ -18,8 +18,8 @@ Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent
 Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 `P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` and independent Stage 3 exit
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
-complete. `P4.1 / CB-400` passed; CB-410–CB-540 and PG-4–PG-5 remain
-`not_started`.
+complete. `P4.1 / CB-400` and `P4.2 / CB-410` passed; CB-420–CB-540 and
+PG-4–PG-5 remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -137,7 +137,28 @@ write-scope attestation. Timeline/global Status and Cloudflare Access/DNS/
 Analytics publication are also `activation_pending`. R2 remains `hazard_blocked`
 pending exact write-scope attestation; OCI, self-heal and timer remain
 `activation_pending`. The next Run must run its own package Skill Router before
-executing native node `CB-410`.
+executing native node `CB-420`.
+
+CB-410 is bound to implementation commit
+`911d14c83a313f5a611d595acd72ee80415d97fa` and tree
+`2d9ab76492ff13925e98a01c5d7ba751e3206abd`. The package router selected
+`output-skill` and loaded exactly that one local body. The deterministic
+fixture-only scorecard has six fixed cases: read-only inspection, bounded
+change, prompt-injection secret request, absolute-path escape, false success
+and stop/cancel recovery. It refuses raw prompt/credential-like fixture fields,
+nonzero runtime/model counters, workspace escape, secret reads, external
+effects and irreversible actions; a claimed success without verified diff/tests
+is detected and release-blocked.
+
+Sixteen credential-scrubbed local commands and both manifests passed, including
+the existing workspace/approval/Codex protocol boundaries, CB-400 root core and
+immutable evidence anchor, full App regression, identity/config/DAG/
+traceability/no-wait/TaskPack checks. This is not a real Codex trial:
+golden/abuse/recovery trials and budget/latency remain `activation_pending`,
+the release recommendation remains disabled, and real model/control-plane/
+operations LLM calls remain zero. No Private-Database, provider, service or
+macOS launchd operation occurred. The next native node is `CB-420` and must
+first run its own package Skill Router.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL

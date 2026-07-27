@@ -1,5 +1,28 @@
 # Changelog
 
+## P4.2 / CB-410 — 2026-07-27
+
+- Closed the local deterministic Codex model-safety fixture gate against CB-400
+  closure `55192340a3bc80ac979e283a5308daee9158ad3e`, bound to implementation
+  commit `911d14c83a313f5a611d595acd72ee80415d97fa` and tree
+  `2d9ab76492ff13925e98a01c5d7ba751e3206abd`, without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Added a six-case, no-model evaluator and System Card. It accepts only
+  redacted fixed fixtures, rejects prompt/credential-like fields, workspace
+  escape, any runtime/model invocation or external effect, and makes a
+  false-success claim release-blocking unless its failed diff/tests are
+  detected.
+- The package router selected `output-skill` and exactly one local body was
+  loaded. Sixteen credential-free local validation commands plus both immutable
+  manifests passed, including workspace/approval/Codex protocol boundaries,
+  CB-400 root core and evidence anchor, full App regression, DAG,
+  traceability and no-wait checks.
+- Marked only CB-410 passed in the local deterministic scope. Real Codex
+  golden/abuse/recovery trials and budget/latency remain `activation_pending`;
+  release remains disabled. Real model, control-plane and operations LLM calls
+  are all zero; no data-plane/provider/service operation or macOS launchd
+  dependency exists. The next native node is CB-420.
+
 ## P4.1 / CB-400 — 2026-07-27
 
 - Closed the local software-correctness pipeline against PG-3 closure

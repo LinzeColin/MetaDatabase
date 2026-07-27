@@ -7,7 +7,7 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 - 生命周期：Stage 0、Stage 1、Stage 2 及各自独立退出门 `PG-0`、`PG-1`、
   `PG-2` 已通过；Stage 3 的 `P3.1 / CB-300`、`P3.2 / CB-310`、`P3.3 / CB-320`、
   `P3.4 / CB-330`、`P3.5 / CB-340` 与独立退出门 `PG-3` 已通过；下一节点为
-  Stage 4 的 `P4.1 / CB-400`；下一节点为 `CB-410`
+  Stage 4 的 `P4.1 / CB-400` 与 `P4.2 / CB-410`；下一节点为 `CB-420`
 - Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
@@ -15,17 +15,18 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
   `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
   `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`；
   `P3.1 / CB-300`；`P3.2 / CB-310`；`P3.3 / CB-320`；`P3.4 / CB-330`；
-  `P3.5 / CB-340`；`PG-3`；`P4.1 / CB-400`
-- 当前基线：十个精确 implementation/release commit 的本地 source bundle、
+  `P3.5 / CB-340`；`PG-3`；`P4.1 / CB-400`；`P4.2 / CB-410`
+- 当前基线：十一个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`CB-400` 建立冻结的 10-slice 软件正确性核心集与非阻塞 postdeploy
-  automation：失败候选只能被拒绝并保留已接受 baseline。13 项无凭据本地确定性
-  检查与完整 App 回归通过，封口证据见 `docs/evidence/CB-400/`；这不折算任何
-  真实云端激活。
-- Stage 0–5 任务状态：`CB-000`–`CB-400` 共二十一项任务已通过；CB-410–CB-540
-  共九项任务与 PG-4–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
-  `PG-2=passed`、`PG-3=passed`。下一原生节点只能是独立 Run 的 `CB-410`，并须先运行该任务
+- 最新 Run：`CB-410` 建立六个固定、无私密内容的 Codex 安全 fixture oracle
+  与 System Card：私密字段、路径逃逸、运行时调用、外部副作用和未检出的
+  false success 全部 fail closed。16 项无凭据本地确定性命令、manifest 与完整
+  App 回归通过，封口证据见 `docs/evidence/CB-410/`；真实 Codex trial 与
+  budget/latency 仍为 `activation_pending`，不折算真实云端激活。
+- Stage 0–5 任务状态：`CB-000`–`CB-410` 共二十二项任务已通过；CB-420–CB-540
+  共八项任务与 PG-4–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
+  `PG-2=passed`、`PG-3=passed`。下一原生节点只能是独立 Run 的 `CB-420`，并须先运行该任务
   边界的 Skill Router。
 - 真实 Private-Database/Cloudflare/OCI、目标 candidate 安装与服务激活均为
   `activation_pending`；Timeline、Status、Cloudflare Access/DNS/Analytics 静态

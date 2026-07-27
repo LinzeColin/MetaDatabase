@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P4.1",
+    "run_id": "P4.2",
     "gate_id": null,
-    "task_id": "CB-400",
-    "scope": "software_correctness_pipeline",
+    "task_id": "CB-410",
+    "scope": "codex_model_safety_fixture_evaluation",
     "status": "passed"
   },
   "prestage": [
@@ -46,7 +46,7 @@
     {"id": "CB-330", "stage": "S3", "phase": "P3.4", "status": "passed"},
     {"id": "CB-340", "stage": "S3", "phase": "P3.5", "status": "passed"},
     {"id": "CB-400", "stage": "S4", "phase": "P4.1", "status": "passed"},
-    {"id": "CB-410", "stage": "S4", "phase": "P4.2", "status": "not_started"},
+    {"id": "CB-410", "stage": "S4", "phase": "P4.2", "status": "passed"},
     {"id": "CB-420", "stage": "S4", "phase": "P4.3", "status": "not_started"},
     {"id": "CB-430", "stage": "S4", "phase": "P4.4", "status": "not_started"},
     {"id": "CB-440", "stage": "S4", "phase": "P4.5", "status": "not_started"},
@@ -64,7 +64,7 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-400",
+      "task_id": "CB-410",
       "selected_skill": "output-skill",
       "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
       "max_lightweight_skill_loads": 1,
@@ -108,6 +108,10 @@
     "software_correctness_status": "passed",
     "frozen_core_suite_schema": "cyberboss.software-correctness.v1",
     "postdeploy_automation_status": "passed",
-    "rollback_discrimination_status": "passed"
+    "rollback_discrimination_status": "passed",
+    "model_safety_evaluation_status": "passed",
+    "model_safety_real_trial_state": "activation_pending",
+    "model_safety_release_recommendation": "keep_release_disabled_pending_real_codex_trials",
+    "system_card_status": "passed"
   }
 }
