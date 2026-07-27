@@ -1,5 +1,36 @@
 # Changelog
 
+## P3.3 / CB-320 — 2026-07-27
+
+- Closed the local Access/domain/origin contract against CB-310 closure
+  `183c2a7b624e5ae25c4ba27bb39651ebf207bfb4`, bound to local implementation
+  commit `beb92bfa1121f35ee008b10055962a24118a5ec7` (tree
+  `d7fe8e698b5b5a3a7bb6b0ed0b50f9ee34621b84`), without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Reused the frozen identity-scope policy as the sole Cloudflare configuration
+  authority. The new `cyberboss.access-domain.v1` plan creates no provider
+  resource: it specifies a proxied CNAME only after Access application/policy,
+  self-hosted deny-by-default Access, narrow Owner/service-token slots and a
+  loopback `127.0.0.1:8780` tunnel origin.
+- Added local RS256 JWT signature, issuer, audience, `exp`/`nbf`, host, tunnel
+  and origin-port checks. Every displayed route requires Access JWT; direct
+  origin, wrong audience/signature, unknown route and any non-loopback 8765
+  Runtime boundary fail closed. No JWT, identity or request header is persisted.
+- Added privacy-first Cloudflare Web Analytics payload guards: only fixed UI
+  page views and aggregate Core Web Vitals are accepted; query/fragment, prompt,
+  result, private message, Access identity, job/thread IDs, cookie/token and a
+  second analytics database are rejected. Atomic plan crash cuts preserve a
+  complete last-good JSON.
+- The package router selected `webapp-testing`, whose body was unavailable;
+  the frozen embedded microplaybook used unit/HTTP fixtures with zero Skill body
+  loads. The 14-command credential-free local validation passed, including the
+  frozen Access policy and plan-only adapter.
+- Marked only CB-320 passed. No Private-Database, R2, Cloudflare, DNS,
+  Analytics, global Status, OCI, WeChat, Codex, OVH or GitHub operation occurred;
+  control-plane and operations model calls remain zero, macOS launchd remains
+  absent, and all real Access/DNS/Analytics states remain `activation_pending`
+  (R2 remains `hazard_blocked`). The next native node is CB-330.
+
 ## P3.2 / CB-310 — 2026-07-27
 
 - Closed the atomic redacted Status snapshot against CB-300 closure

@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P3.2",
+    "run_id": "P3.3",
     "gate_id": null,
-    "task_id": "CB-310",
-    "scope": "redacted_status_snapshot",
+    "task_id": "CB-320",
+    "scope": "access_domain_origin_policy",
     "status": "passed"
   },
   "prestage": [
@@ -42,7 +42,7 @@
     {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "passed"},
     {"id": "CB-300", "stage": "S3", "phase": "P3.1", "status": "passed"},
     {"id": "CB-310", "stage": "S3", "phase": "P3.2", "status": "passed"},
-    {"id": "CB-320", "stage": "S3", "phase": "P3.3", "status": "not_started"},
+    {"id": "CB-320", "stage": "S3", "phase": "P3.3", "status": "passed"},
     {"id": "CB-330", "stage": "S3", "phase": "P3.4", "status": "not_started"},
     {"id": "CB-340", "stage": "S3", "phase": "P3.5", "status": "not_started"},
     {"id": "CB-400", "stage": "S4", "phase": "P4.1", "status": "not_started"},
@@ -64,7 +64,7 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-310",
+      "task_id": "CB-320",
       "selected_skill": "webapp-testing",
       "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
       "max_lightweight_skill_loads": 1,
@@ -90,6 +90,9 @@
     "timeline_projection_status": "passed",
     "timeline_activation": "activation_pending",
     "status_snapshot_status": "passed",
-    "status_activation": "activation_pending"
+    "status_activation": "activation_pending",
+    "access_domain_status": "passed",
+    "access_activation": "activation_pending",
+    "analytics_activation": "activation_pending"
   }
 }

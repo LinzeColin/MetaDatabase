@@ -5,30 +5,32 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0、Stage 1、Stage 2 及各自独立退出门 `PG-0`、`PG-1`、
-  `PG-2` 已通过；Stage 3 的 `P3.1 / CB-300`、`P3.2 / CB-310` 已通过；下一节点为
-  `P3.3 / CB-320`
+  `PG-2` 已通过；Stage 3 的 `P3.1 / CB-300`、`P3.2 / CB-310`、`P3.3 / CB-320`
+  已通过；下一节点为 `P3.4 / CB-330`
 - Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
   `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
   `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`；
-  `P3.1 / CB-300`；`P3.2 / CB-310`
+  `P3.1 / CB-300`；`P3.2 / CB-310`；`P3.3 / CB-320`
 - 当前基线：九个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`CB-310` 在不新建 Status 平台的前提下，输出 `cyberboss.status.v2`
-  原子脱敏 snapshot，并用既有全局 Status adapter 的 `buildRow` 生成兼容行。组件
-  故障、`UNKNOWN`/`activation_pending`、DLP/schema 与 crash-cut 均 fail-closed；
-  模型计数固定为 0。12 项无凭据本地确定性检查通过；封口证据见
-  `docs/evidence/CB-310/`。这不折算任何真实云端激活。
-- Stage 0–5 任务状态：`CB-000`–`CB-310` 共十七项任务已通过；CB-320–CB-540
-  共十三项任务与 PG-3–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
-  `PG-2=passed`。下一原生节点只能是独立 Run 的 `CB-320`，并须先运行该任务
+- 最新 Run：`CB-320` 从既有 scope policy 派生唯一 `cyberboss.access-domain.v1`
+  route/Access/Origin/Analytics plan。所有域名路由都要求 RS256 Access JWT、
+  issuer/audience 与 tunnel origin；8765 始终 loopback、不能 proxy。Analytics 仅
+  允许固定 UI surface 的聚合 page-view/Core Web Vitals，且不存在第二统计库。14 项
+  无凭据本地确定性检查通过；封口证据见 `docs/evidence/CB-320/`。这不折算任何
+  真实云端激活。
+- Stage 0–5 任务状态：`CB-000`–`CB-320` 共十八项任务已通过；CB-330–CB-540
+  共十二项任务与 PG-3–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
+  `PG-2=passed`。下一原生节点只能是独立 Run 的 `CB-330`，并须先运行该任务
   边界的 Skill Router。
 - 真实 Private-Database/Cloudflare/OCI、目标 candidate 安装与服务激活均为
-  `activation_pending`；Timeline 与 Status 静态发布也为 `activation_pending`；R2 为
-  `hazard_blocked`，直至精确 write-scope attestation。
+  `activation_pending`；Timeline、Status、Cloudflare Access/DNS/Analytics 静态
+  发布也为 `activation_pending`；R2 为 `hazard_blocked`，直至精确 write-scope
+  attestation。
   本地 fixture 不折算真实验证，`current`/workspace/service 未变
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
