@@ -1,0 +1,88 @@
+# 业务流登记 —— CyberBoss（全云微信驱动 Codex MVP）
+#
+# ★ 状态全部是 not_built / unknown，这是**如实**而不是偷懒：
+#   README 写明「候选未激活，真实 Codex/WeChat/canonical sync 仍为
+#   activation_pending」，也就是说这条线**目前没有任何线上运行的东西**。
+#   把它填成 healthy 才是造假绿。
+#
+# ★ 本项目主机上零部署单元，status 主机侧探针**永远探不到它**。
+#   等它真正跑起来之后，按 FLOW_STATE_CONTRACT.md 自己吐
+#   docs/governance/flow_state.json，本站只读不写 —— 那才是它能被实测的唯一通道。
+
+schema: linze.flow.v1
+project: CyberBoss
+repo: MetaDatabase
+authority: CyberBoss/(README.md / AGENTS.md / HANDOFF.md)
+stages: [intake, understand, dispatch, execute, confirm]
+stage_names:
+  intake: 消息接入
+  understand: 意图理解
+  dispatch: 任务派发
+  execute: 执行
+  confirm: 回执确认
+stage_meaning:
+  intake: 从微信侧收到用户消息
+  understand: 把消息解析成可执行意图
+  dispatch: 把意图派给 Codex 侧执行
+  execute: Codex 真正把活干完
+  confirm: 把结果回执给用户并确认送达
+
+coupling_rule: >-
+  上游任一 stage 为 blocked / blocked_by_input / not_built 时,
+  下游依赖它的 stage 不得标 healthy —— 必须降级并具名上游原因。
+
+baselines:
+  - id: BL-CB-MVP
+    name: 微信驱动主链路
+    priority: P0
+    note: >-
+      P2.4(CB-230) 已通过:staged-before-provider、稳定 chunk/dedupe、
+      最多 5 次 bounded jittered retry、crash recovery;
+      本地与候选 App 227/227、synthetic acceptance 37/37 通过。
+      ★ 但候选**未激活** —— 以上全部是合成验收,不是真实链路跑通。
+    cells:
+      intake:
+        state: not_built
+        evidence: >-
+          真实 WeChat 接入为 activation_pending;现有证据来自合成验收,
+          不能据此声称真实消息进得来。
+      understand:
+        state: not_built
+        evidence: 依赖真实接入,尚未激活。
+      dispatch:
+        state: not_built
+        evidence: >-
+          派发逻辑已通过合成验收(unknown dispatch 自动重发 0),
+          但真实 Codex 侧未激活。
+      execute:
+        state: not_built
+        evidence: 真实 Codex sync 为 activation_pending。
+      confirm:
+        state: not_built
+        evidence: >-
+          合成验收里 confirmed delivery count = 1;真实回执链路未激活。
+
+  - id: BL-CB-GATE
+    name: 阶段门禁与发布纪律
+    priority: P1
+    note: PG-0 / PG-1 已通过;PG-2–PG-5 未开始。全部完成前禁止 push/PR 到发布面。
+    cells:
+      intake:
+        state: healthy
+        evidence: Stage 0/1 的 TaskPack 已按 Run Contract 归档。
+      understand:
+        state: healthy
+        evidence: PG-0、PG-1 已通过。
+      dispatch:
+        state: blocked_by_policy
+        evidence: >-
+          **按规定就不该通** —— 全部 TaskPack 与 PG-0–PG-5 完成前
+          禁止 push/PR 到发布面。不需要任何人去修。
+      execute:
+        state: not_built
+        evidence: PG-2 尚未开始（P2.5 / CB-240 未开工）。
+      confirm:
+        state: not_built
+        evidence: PG-3–PG-5 均为 not_started。
+
+known_defects: []

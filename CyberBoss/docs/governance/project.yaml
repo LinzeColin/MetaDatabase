@@ -1,0 +1,43 @@
+# CyberBoss —— 治理事实档
+#
+# ★ 这份文件是 owner 2026-07-27 指出「cyberboss 是活跃项目」之后补的。
+#   在此之前 CyberBoss 有 634 个文件却**一个治理文件都没有**，
+#   于是 status 对它彻底看不见 —— 不在分母里，所以覆盖率不掉、
+#   未登记数不涨、看板一切正常。隐形不会让任何指标变红，这是最危险的一类。
+#
+# ★ 本文件只写**能从仓内 README / AGENTS / HANDOFF 核对到的事实**，
+#   不替这条线声称任何未验证的进度。
+
+schema: linze.project.v1
+project: CyberBoss
+repo: MetaDatabase
+path: CyberBoss/
+license: AGPL-3.0-only        # 子树独立许可，与本仓其余部分不同
+authority: CyberBoss/(README.md / AGENTS.md / HANDOFF.md)
+
+summary: >-
+  全云微信驱动的 Codex MVP。唯一代码身份为 MetaDatabase 仓的 CyberBoss/ 子树；
+  长期数据落 Private-Database 的 Private-MetaDatabase 区（domain=CyberBoss）。
+
+current_status: stage2_in_progress
+status_detail: >-
+  Stage 0 / Stage 1 及各自退出门 PG-0、PG-1 已通过；
+  Stage 2 的 P2.1(CB-200) 至 P2.4(CB-230) 已通过，
+  P2.5(CB-240) 与 PG-2 尚未开始。
+  Stage 0–5 共 30 项任务中 14 项通过，其余 16 项与 PG-2–PG-5 均为 not_started。
+
+# ★ 关键约束:候选未激活。真实 Codex / WeChat / canonical sync 仍是
+#   activation_pending —— 所以本项目**目前没有任何线上运行的东西**，
+#   status 主机侧探针探不到它，这是如实，不是缺失。
+runtime:
+  deployed: false
+  where: "尚未部署;候选未激活,真实 Codex/WeChat/canonical sync 为 activation_pending"
+  host_units: 0
+
+release_policy: >-
+  全部 TaskPack 与 PG-0–PG-5 完成前禁止 push / PR 到发布面。
+
+data:
+  store: Private-Database / Private-MetaDatabase
+  domain: CyberBoss
+  access: private_db_client.py（免 clone）
