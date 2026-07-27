@@ -42,6 +42,10 @@ jobs:
     env:
       INPUT_MODE: ${{ inputs.mode }}
       INPUT_CONFIRM_SCHEDULED_PRODUCTION: ${{ inputs.confirm_scheduled_production }}
+    # ★ 只有 gate 作业需要写权限(回写状态);其余作业保持顶层的 contents:read。
+    #   权限跟着最小需要走,不给整个 workflow 开写。
+    permissions:
+      contents: write
     outputs:
       mode: ${{ steps.mode.outputs.value }}
       should_run: ${{ steps.mode.outputs.should_run }}
@@ -65,6 +69,44 @@ jobs:
           fi
           printf 'value=%s\n' "$mode" >> "$GITHUB_OUTPUT"
           printf 'should_run=%s\n' "$should_run" >> "$GITHUB_OUTPUT"
+
+      # ★ 把**每天真实的门禁判定**写回业务流状态。
+      #   之前这一格是人手写死的自报 —— 写死的东西会过期,而且没人会去改。
+      #   现在它每天由机器重新判一次:生产开关一开,状态自己就从「等你」变成实测。
+      #
+      #   ★ 绝不拿「workflow 成功」当投递成功 —— 实测发现这条 workflow
+      #     每天都 success,但真正干活的 scheduled 作业**每天都被跳过**
+      #     (vars.ADP_PRODUCTION_ENABLED 没设成 true)。
+      #     照 workflow 结论上报会造出一个永远绿、什么都不代表的格子。
+      - name: 回写投递段的真实门禁状态
+        if: github.event_name == 'schedule'
+        env:
+          SHOULD_RUN: ${{ steps.mode.outputs.should_run }}
+          MODE: ${{ steps.mode.outputs.value }}
+        run: |
+          set -euo pipefail
+          if [ "$SHOULD_RUN" = "true" ]; then
+            # 门开着:这一轮真的会投递。具体成没成由下游作业再报,这里只报「门是开的」
+            STATE=degraded
+            NOTE="生产开关已开(mode=$MODE);本轮会真实投递,结果由投递作业另报"
+          else
+            # 门关着:真正投递的作业**每天都被跳过**。这不是坏了,是等你开开关
+            STATE=blocked_by_input
+            NOTE="生产开关 ADP_PRODUCTION_ENABLED 未设为 true,投递作业每天被跳过(mode=$MODE)"
+          fi
+          python3 arxiv-daily-push/tools/report_flow_state.py \
+            --project-dir arxiv-daily-push --key 'BL-ADP-DAILY.deliver' \
+            --state "$STATE" --note "$NOTE"
+
+      - name: 提交状态
+        if: github.event_name == 'schedule'
+        run: |
+          git config user.name  "adp-flow-state"
+          git config user.email "adp-flow-state@users.noreply.github.com"
+          git add arxiv-daily-push/docs/governance/flow_state.json
+          git diff --cached --quiet && echo "状态没变，不产生空提交" && exit 0
+          git commit -m "chore(adp): 回写投递段门禁状态 [skip ci]"
+          git push
 
   scheduled:
     needs: gate
