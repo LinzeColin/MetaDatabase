@@ -6,7 +6,8 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 - 生命周期：Stage 0、Stage 1、Stage 2 及各自独立退出门 `PG-0`、`PG-1`、
   `PG-2` 已通过；Stage 3 的 `P3.1 / CB-300`、`P3.2 / CB-310`、`P3.3 / CB-320`、
-  `P3.4 / CB-330` 与 `P3.5 / CB-340` 已通过；下一节点为 `PG-3`
+  `P3.4 / CB-330`、`P3.5 / CB-340` 与独立退出门 `PG-3` 已通过；下一节点为
+  `CB-400`
 - Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
@@ -14,18 +15,17 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
   `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
   `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`；`P2.5 / CB-240`；
   `P3.1 / CB-300`；`P3.2 / CB-310`；`P3.3 / CB-320`；`P3.4 / CB-330`；
-  `P3.5 / CB-340`
+  `P3.5 / CB-340`；`PG-3`
 - 当前基线：九个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`CB-340` 复用 ResourceReadinessGate 完成本地确定性的资源闸门、
-  protect/recover 滞回、单一有界自愈 action、假时钟重启预算及 retention report。
-  它不安装/启用 timer、不重启服务、不删除 spool 或 backup；14 项无凭据本地
-  确定性检查与完整 App 回归通过，封口证据见 `docs/evidence/CB-340/`。这不折算
-  任何真实云端激活。
+- 最新 Run：`PG-3` 对 CB-300–CB-340 的五份 immutable closure evidence、
+  implementation commit/tree 与 Stage 3 anchor 进行了 fail-closed 聚合并密封
+  subject。13 项无凭据本地确定性检查与完整 App 回归通过，封口证据见
+  `docs/evidence/PG-3/`；这不折算任何真实云端激活。
 - Stage 0–5 任务状态：`CB-000`–`CB-340` 共二十项任务已通过；CB-400–CB-540
-  共十项任务与 PG-3–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
-  `PG-2=passed`。下一原生节点只能是独立 Run 的 `PG-3`，并须先运行该任务
+  共十项任务与 PG-4–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`、
+  `PG-2=passed`、`PG-3=passed`。下一原生节点只能是独立 Run 的 `CB-400`，并须先运行该任务
   边界的 Skill Router。
 - 真实 Private-Database/Cloudflare/OCI、目标 candidate 安装与服务激活均为
   `activation_pending`；Timeline、Status、Cloudflare Access/DNS/Analytics 静态

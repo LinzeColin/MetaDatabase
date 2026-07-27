@@ -1,5 +1,22 @@
 # Changelog
 
+## PG-3 — 2026-07-27
+
+- Closed the independent Stage 3 exit gate against immutable anchor
+  `c132ee648ab2ad0f5f66c0dc3ee923c11cabfa42` and its tree
+  `7b82c30f2937dd8a17f69055f520ebc7b66dd806`; all five CB-300–CB-340
+  implementation trees and frozen closure evidence trees were re-attested and
+  sealed in one deterministic subject digest.
+- The package Skill Router selected no Skill in `DETERMINISTIC_TEST_ONLY`
+  mode. Thirteen credential-free local checks passed, including the focused
+  Stage 3 suites, frozen adapter truth-state and rollback-contract review,
+  full App regression, DAG, traceability, no-wait and manifest checks.
+- Marked only PG-3 passed. No Private-Database, R2, Cloudflare, DNS, Analytics,
+  Timeline, Status, OCI or service operation occurred; all model calls remain
+  zero and macOS launchd remains absent. External activation truth is unchanged:
+  R2 is `hazard_blocked` and every other provider/service state remains
+  `activation_pending`. The next native node is CB-400.
+
 ## P3.5 / CB-340 — 2026-07-27
 
 - Closed the local deterministic resource/self-heal/retention contract against

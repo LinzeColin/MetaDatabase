@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P3.5",
-    "gate_id": null,
-    "task_id": "CB-340",
-    "scope": "resource_self_heal_retention",
+    "run_id": "PG-3",
+    "gate_id": "PG-3",
+    "task_id": null,
+    "scope": "stage_3_adapter_timeline_status_backup_ops_gate",
     "status": "passed"
   },
   "prestage": [
@@ -20,7 +20,7 @@
     "PG-0": "passed",
     "PG-1": "passed",
     "PG-2": "passed",
-    "PG-3": "not_started",
+    "PG-3": "passed",
     "PG-4": "not_started",
     "PG-5": "not_started"
   },
@@ -64,13 +64,11 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-340",
-      "selected_skill": "output-skill",
-      "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
-      "max_lightweight_skill_loads": 1,
-      "prohibited_skill_loads": 0,
-      "actual_skill_body_loads": 1,
-      "fallback": "machine/skill_microplaybooks.json"
+      "task_id": "PG-3",
+      "selected_skill": null,
+      "mode": "DETERMINISTIC_TEST_ONLY",
+      "max_lightweight_skill_loads": 0,
+      "prohibited_skill_loads": 0
     },
     "ordinary_sync": "daily at 03:20 UTC",
     "material_event_types": [
@@ -101,6 +99,9 @@
     "operations_policy_status": "passed",
     "retention_status": "passed",
     "self_heal_activation": "activation_pending",
-    "timer_activation": "activation_pending"
+    "timer_activation": "activation_pending",
+    "pg_3_executed": true,
+    "stage_3_anchor_commit": "c132ee648ab2ad0f5f66c0dc3ee923c11cabfa42",
+    "stage_3_subject_digest": "0948241079908a7c4a6cc73c4ac5e6b64284c200528a0f5e65fdf7ed8f044af6"
   }
 }

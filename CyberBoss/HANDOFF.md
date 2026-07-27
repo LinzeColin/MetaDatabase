@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `9bed78ee1824eebbc4134811993667cb3ca72a9b`
+  `67b1f7419a10154d17872ae18aa47b6b97e6d2df`
 - Remote publication: none
 
 ## Current state
@@ -16,9 +16,9 @@
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
 Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent
 Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
-`P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` passed. Stage 0, Stage 1 and
-Stage 2 are each 5/5 tasks plus their independent gate complete. PG-3 and
-CB-400–CB-540 remain `not_started`.
+`P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` and independent Stage 3 exit
+gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
+complete. CB-400–CB-540 and PG-4–PG-5 remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -103,6 +103,18 @@ receipts. The timer is a future contract only: not installed, not enabled and
 automatic backup/log deletion remain protected. Its 14-command
 credential-scrubbed prepare validation and full App regression passed.
 
+PG-3 is bound to implementation commit
+`67b1f7419a10154d17872ae18aa47b6b97e6d2df` and tree
+`08441a9ef987a4ead2a22a856aaf0408dfe19d6e`. The package router passed with
+`DETERMINISTIC_TEST_ONLY`, `selected_skill=null` and zero Skill body loads. The
+fail-closed gate re-attested CB-300–CB-340 implementation commits, trees and
+immutable closure evidence against anchor
+`c132ee648ab2ad0f5f66c0dc3ee923c11cabfa42`, then sealed their exact Stage 3
+subject digest. Thirteen credential-free local checks passed: focused Stage 3
+regression, frozen adapter truth-state and rollback-contract review, full App,
+DAG, traceability, no-wait and both manifests. Its closure makes no external
+claim and does not authorize cloud/service activation.
+
 The closure is local and credential-free. Private-Database/R2/Cloudflare/OCI
 real operations are `0`, control-plane and operations LLM calls are `0`, no
 macOS launchd dependency exists, Private-Database/Cloudflare/OCI activation
@@ -111,7 +123,7 @@ write-scope attestation. Timeline/global Status and Cloudflare Access/DNS/
 Analytics publication are also `activation_pending`. R2 remains `hazard_blocked`
 pending exact write-scope attestation; OCI, self-heal and timer remain
 `activation_pending`. The next Run must run its own package Skill Router before
-executing native node `PG-3`.
+executing native node `CB-400`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
