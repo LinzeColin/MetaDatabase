@@ -20,6 +20,8 @@ const STATUS_PORT = 8780;
 const SIM_WEIXIN_ACCOUNT_ID = "sim-ilink-bot";
 const SIM_WEIXIN_TOKEN = "sim-token-not-secret";
 const CRITICAL_ROLES = Object.freeze(["runtime", "channel", "bridge"]);
+const DEFAULT_DEPLOYMENT_PHASE = "P1.4";
+const DEFAULT_DEPLOYMENT_TASK_ID = "CB-130";
 
 class SupervisorViolation extends Error {
   constructor(code) {
@@ -144,6 +146,13 @@ function loadConfiguration(environment = process.env) {
   expect(!forcedUnreadyRole || acceptanceMode, "unready_fixture_gate");
   expect(!forcedUnreadyRole || CRITICAL_ROLES.includes(forcedUnreadyRole), "unready_fixture_role");
 
+  const deploymentPhase = readText(environment.CB_DEPLOYMENT_PHASE)
+    || DEFAULT_DEPLOYMENT_PHASE;
+  const deploymentTaskId = readText(environment.CB_DEPLOYMENT_TASK_ID)
+    || DEFAULT_DEPLOYMENT_TASK_ID;
+  expect(/^P[1-9][0-9]*\.[0-9]+$/.test(deploymentPhase), "deployment_phase");
+  expect(/^CB-[0-9]{3}$/.test(deploymentTaskId), "deployment_task_id");
+
   return {
     releaseCommit,
     releaseRoot,
@@ -157,6 +166,8 @@ function loadConfiguration(environment = process.env) {
     statusHost: STATUS_HOST,
     statusPort: STATUS_PORT,
     forcedUnreadyRole,
+    deploymentPhase,
+    deploymentTaskId,
     codexCommand: readText(environment.CYBERBOSS_CODEX_COMMAND)
       || "/opt/cyberboss-cloud/shared/toolchains/bin/codex",
     simulatorDirectory: path.join(releaseRoot, "implementation-kit", "simulators"),
@@ -207,8 +218,8 @@ function buildStatusSnapshot(config, state) {
   return {
     schema_version: 1,
     project: "CyberBoss",
-    phase: "P1.4",
-    task_id: "CB-130",
+    phase: config.deploymentPhase,
+    task_id: config.deploymentTaskId,
     release_commit: config.releaseCommit,
     claim_level:
       config.runtimeProvider === "simulator" && config.channelProvider === "simulator"

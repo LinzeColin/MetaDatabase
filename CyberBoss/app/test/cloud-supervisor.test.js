@@ -60,6 +60,14 @@ test("cloud configuration is exact-commit and loopback fail-closed", () => {
   const config = loadConfiguration(validEnvironment());
   assert.equal(config.runtimeUrl.toString(), "ws://127.0.0.1:8765/");
   assert.equal(config.channelUrl.toString(), "http://127.0.0.1:19080/");
+  assert.equal(config.deploymentPhase, "P1.4");
+  assert.equal(config.deploymentTaskId, "CB-130");
+  const cb510 = loadConfiguration(validEnvironment({
+    CB_DEPLOYMENT_PHASE: "P5.2",
+    CB_DEPLOYMENT_TASK_ID: "CB-510",
+  }));
+  assert.equal(cb510.deploymentPhase, "P5.2");
+  assert.equal(cb510.deploymentTaskId, "CB-510");
   assert.throws(
     () => loadConfiguration(validEnvironment({
       CYBERBOSS_CODEX_ENDPOINT: "ws://0.0.0.0:8765",
@@ -77,6 +85,18 @@ test("cloud configuration is exact-commit and loopback fail-closed", () => {
       CB_ACCEPTANCE_UNREADY_ROLE: "runtime",
     })),
     /unready_fixture_gate/,
+  );
+  assert.throws(
+    () => loadConfiguration(validEnvironment({
+      CB_DEPLOYMENT_PHASE: "P5",
+    })),
+    /deployment_phase/,
+  );
+  assert.throws(
+    () => loadConfiguration(validEnvironment({
+      CB_DEPLOYMENT_TASK_ID: "CB-51",
+    })),
+    /deployment_task_id/,
   );
 });
 
@@ -114,7 +134,10 @@ test("health and readiness are independent and a forced fixture cannot fake gree
 });
 
 test("status snapshot is bounded, protected and contains no operational identity", async (t) => {
-  const config = loadConfiguration(validEnvironment());
+  const config = loadConfiguration(validEnvironment({
+    CB_DEPLOYMENT_PHASE: "P5.2",
+    CB_DEPLOYMENT_TASK_ID: "CB-510",
+  }));
   const state = createLifecycleState();
   state.runtime = true;
   state.channel = true;
@@ -142,6 +165,8 @@ test("status snapshot is bounded, protected and contains no operational identity
   );
   assert.equal(authorized.status, 200);
   assert.equal(authorized.value.ready, true);
+  assert.equal(authorized.value.phase, "P5.2");
+  assert.equal(authorized.value.task_id, "CB-510");
   assert.equal(authorized.value.providers.runtime, "simulator_verified");
   const serialized = JSON.stringify(authorized.value);
   for (const forbidden of [
