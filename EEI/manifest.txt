@@ -370,6 +370,7 @@ docs/governance/VERSION_MATRIX.yaml
 docs/governance/delivery_tasks.yaml
 docs/governance/development_events.jsonl
 docs/governance/events.jsonl
+docs/governance/flow.yaml
 docs/governance/formula_registry.yaml
 docs/governance/model_registry.yaml
 docs/governance/parameter_registry.csv
