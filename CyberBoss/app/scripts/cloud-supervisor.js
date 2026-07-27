@@ -118,8 +118,14 @@ function loadConfiguration(environment = process.env) {
   );
   const runtimeProvider = readText(environment.CB_RUNTIME_PROVIDER);
   const channelProvider = readText(environment.CB_CHANNEL_PROVIDER);
+  const channelActivationMode = readText(environment.CB_CHANNEL_ACTIVATION_MODE) || "required";
   expect(["simulator", "real"].includes(runtimeProvider), "runtime_provider");
   expect(["simulator", "real"].includes(channelProvider), "channel_provider");
+  expect(["required", "pending"].includes(channelActivationMode), "channel_activation_mode");
+  expect(
+    channelActivationMode === "required" || channelProvider === "real",
+    "channel_activation_mode_provider",
+  );
   expect(readText(environment.CYBERBOSS_RUNTIME) === "codex", "runtime_kind");
   const runtimeUrl = parseLoopbackUrl(
     readText(environment.CYBERBOSS_CODEX_ENDPOINT),
@@ -167,6 +173,7 @@ function loadConfiguration(environment = process.env) {
     statusTokenFile,
     runtimeProvider,
     channelProvider,
+    channelActivationMode,
     runtimeUrl,
     channelUrl,
     statusHost: STATUS_HOST,
@@ -218,6 +225,10 @@ function providerClaim(provider, ready) {
     return ready ? "simulator_verified" : "simulator_unready";
   }
   return "activation_pending";
+}
+
+function holdPendingChannel(config) {
+  return config.channelProvider === "real" && config.channelActivationMode === "pending";
 }
 
 function buildStatusSnapshot(config, state) {
@@ -685,6 +696,10 @@ async function main() {
     });
     children.push(channel);
     await withSafetyDeadline(channel.readyPromise, 30_000, "channel_ready_deadline");
+  } else if (holdPendingChannel(config)) {
+    logEvent("component_pending", { role: "channel", activation: "credential_pending" });
+    await new Promise(() => {});
+    return;
   } else {
     state.channel = true;
     logEvent("component_configured", { role: "channel", activation: "pending" });
@@ -735,6 +750,7 @@ module.exports = {
   createLifecycleState,
   createStatusHandler,
   evaluateHealth,
+  holdPendingChannel,
   isLoopbackHost,
   loadConfiguration,
   resolveTimelineAsset,

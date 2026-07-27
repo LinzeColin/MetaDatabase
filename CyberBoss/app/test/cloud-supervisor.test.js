@@ -12,6 +12,7 @@ const {
   createLifecycleState,
   createStatusHandler,
   evaluateHealth,
+  holdPendingChannel,
   loadConfiguration,
 } = require("../scripts/cloud-supervisor");
 
@@ -74,6 +75,13 @@ test("cloud configuration is exact-commit and loopback fail-closed", () => {
   }));
   assert.equal(cb510.deploymentPhase, "P5.2");
   assert.equal(cb510.deploymentTaskId, "CB-510");
+  const pendingChannel = loadConfiguration(validEnvironment({
+    CB_CHANNEL_PROVIDER: "real",
+    CYBERBOSS_WEIXIN_BASE_URL: "https://ilinkai.weixin.qq.com/",
+    CB_CHANNEL_ACTIVATION_MODE: "pending",
+  }));
+  assert.equal(pendingChannel.channelActivationMode, "pending");
+  assert.equal(holdPendingChannel(pendingChannel), true);
   assert.throws(
     () => loadConfiguration(validEnvironment({
       CYBERBOSS_CODEX_ENDPOINT: "ws://0.0.0.0:8765",
@@ -103,6 +111,12 @@ test("cloud configuration is exact-commit and loopback fail-closed", () => {
       CB_DEPLOYMENT_TASK_ID: "CB-51",
     })),
     /deployment_task_id/,
+  );
+  assert.throws(
+    () => loadConfiguration(validEnvironment({
+      CB_CHANNEL_ACTIVATION_MODE: "pending",
+    })),
+    /channel_activation_mode_provider/,
   );
 });
 
@@ -137,6 +151,24 @@ test("health and readiness are independent and a forced fixture cannot fake gree
   assert.deepEqual(forced.unready, ["runtime"]);
   state.fatalReason = "bridge_exited";
   assert.equal(evaluateHealth(state).healthy, false);
+});
+
+test("a missing real channel credential holds only the channel and bridge pending", () => {
+  const config = loadConfiguration(validEnvironment({
+    CB_RUNTIME_PROVIDER: "real",
+    CB_CHANNEL_PROVIDER: "real",
+    CYBERBOSS_WEIXIN_BASE_URL: "https://ilinkai.weixin.qq.com/",
+    CB_CHANNEL_ACTIVATION_MODE: "pending",
+  }));
+  const state = createLifecycleState();
+  state.runtime = true;
+  assert.equal(holdPendingChannel(config), true);
+  const snapshot = buildStatusSnapshot(config, state);
+  assert.equal(snapshot.healthy, true);
+  assert.equal(snapshot.ready, false);
+  assert.deepEqual(snapshot.unready_components, ["channel", "bridge"]);
+  assert.equal(snapshot.providers.runtime, "activation_pending");
+  assert.equal(snapshot.providers.channel, "activation_pending");
 });
 
 test("status snapshot is bounded, protected and contains no operational identity", async (t) => {

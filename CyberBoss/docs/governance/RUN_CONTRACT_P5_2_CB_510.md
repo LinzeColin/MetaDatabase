@@ -26,6 +26,9 @@ Private-Database clone、macOS launchd、控制面或运维模型调用。
    service-token 管理权限。
 4. DNS 只在公开 origin 与 Access 已可验证时写入；任何失败先停止 intake 并切回
    `previous`。
+5. 若真实 WeChat account 凭据不存在，`CB_CHANNEL_ACTIVATION_MODE=pending` 只能保留
+   channel/bridge 为 unready；真实 Codex、Timeline 和 Status 仍可启动，且不得启动
+   simulator 或把 pending 写成 ready。
 
 ## 验收与证据
 
