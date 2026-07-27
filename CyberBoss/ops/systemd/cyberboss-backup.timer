@@ -1,0 +1,11 @@
+[Unit]
+Description=Run CyberBoss daily immutable backup
+
+[Timer]
+OnCalendar=*-*-* 03:35:00 UTC
+Persistent=true
+AccuracySec=1min
+Unit=cyberboss-backup.service
+
+[Install]
+WantedBy=timers.target

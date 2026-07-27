@@ -1,0 +1,35 @@
+[Unit]
+Description=CyberBoss immutable Runtime SQLite backup to R2 and OCI
+After=network-online.target cyberboss-cloud.service
+Wants=network-online.target
+ConditionPathExists=/opt/cyberboss-cloud/current/app/scripts/cb530-cloud-backup.js
+
+[Service]
+Type=oneshot
+User=cyberboss
+Group=cyberboss
+Environment=HOME=/var/lib/cyberboss
+Environment=PATH=/opt/cyberboss-cloud/shared/toolchains/bin:/usr/bin:/bin
+Environment=CB_RELEASE_ROOT=/opt/cyberboss-cloud/current
+EnvironmentFile=/etc/cyberboss/cyberboss.env
+LoadCredential=r2_account_id:/etc/cyberboss/credentials/r2_account_id
+LoadCredential=r2_api_token:/etc/cyberboss/credentials/r2_api_token
+LoadCredential=oci_par_url:/srv/linze/secrets/oci_par_url
+Environment=CB_R2_ACCOUNT_ID_FILE=%d/r2_account_id
+Environment=CB_R2_TOKEN_FILE=%d/r2_api_token
+Environment=CB_OCI_PAR_FILE=%d/oci_par_url
+ExecStart=/opt/cyberboss-cloud/shared/toolchains/bin/node /opt/cyberboss-cloud/current/app/scripts/cb530-cloud-backup.js backup --bootstrap-if-missing
+UMask=0077
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=5min
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/cyberboss
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
