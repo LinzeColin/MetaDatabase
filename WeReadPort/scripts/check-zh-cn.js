@@ -9,6 +9,7 @@ const requiredFiles = [
   "src/ui/app.js",
   "src/ui/export-worker.js",
   "src/core/constants.js",
+  "src/core/public-pages.js",
   "src/core/exporter.js",
   "src/core/local-import.js",
   "src/core/chatgpt-bridge.js",
@@ -18,6 +19,9 @@ const requiredFiles = [
   "README.md",
   "AGENTS.md",
   "ops/status/adapter-contract.md",
+  "privacy/index.html",
+  "terms/index.html",
+  "status/index.html",
 ];
 
 const forbiddenVisiblePhrases = [
@@ -65,7 +69,7 @@ if (!String(manifest.name ?? "").includes("微信读书笔记迁移")) errors.pu
 
 const constants = await readFile(path.join(root, "src/core/constants.js"), "utf8");
 if (!constants.includes('APP_NAME = "微信读书笔记迁移"')) errors.push("APP_NAME 必须为中文产品名。");
-if (!constants.includes('APP_VERSION = "v0.0.0.1.3"')) errors.push("APP_VERSION 必须为 v0.0.0.1.3。");
+if (!constants.includes('APP_VERSION = "v0.0.0.1.7"')) errors.push("APP_VERSION 必须为 v0.0.0.1.7。");
 
 // “WeRead Port”仅允许作为向后兼容的内部稳定标识，不得进入页面、文案或导出显示名。
 const allFiles = await walk(root);

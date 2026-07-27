@@ -5,12 +5,20 @@ import {
   MAX_GATEWAY_REQUEST_BYTES,
   MAX_GATEWAY_RESPONSE_BYTES,
   OFFICIAL_WEREAD_GATEWAY,
+  OPERATIONS_STATUS_URL,
   SOURCE_SKILL_VERSION,
 } from "../core/constants.js";
+import {
+  BUSINESS_GOVERNANCE_SCHEMA_VERSION,
+  buildBusinessLineStatus,
+  summarizeBusinessLines,
+  validateBusinessLineGraph,
+} from "../core/business-governance.js";
 import { parseProxyBody, validateUserKey } from "../core/contract.js";
 import { WeReadPortError, toSafeFailure } from "../core/errors.js";
 import { combineSignals } from "../core/util.js";
 
+const BUSINESS_GRAPH_ERRORS = Object.freeze(validateBusinessLineGraph());
 const RATE_LIMIT_PER_MINUTE = 240;
 const rateBuckets = new Map();
 const SECURITY_HEADERS = Object.freeze({
@@ -27,29 +35,185 @@ const SECURITY_HEADERS = Object.freeze({
 /** ChatGPT Sites / Cloudflare Worker 请求入口。@param {Request} request @param {Record<string,any>} env */
 export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
+  const rawPath = url.pathname;
+  const path = normalizePath(rawPath);
   try {
-    if (url.pathname === "/healthz" || url.pathname === "/readyz") {
-      return secure(json({ ok: true, app: APP_NAME, version: APP_VERSION }));
+    if (["/privacy", "/terms", "/status"].includes(rawPath)) {
+      return secure(redirectForRequest(request, `${rawPath}/`));
     }
-    if (url.pathname === "/api/version") {
-      return secure(json({ app: APP_NAME, appVersion: APP_VERSION, sourceSkillVersion: SOURCE_SKILL_VERSION }));
+    if (path === "/healthz") return secure(machineHealth(request, url, env));
+    if (path === "/readyz") return secure(await machineReadiness(request, url, env));
+    if (path === "/api/status") return secure(await publicStatusResponse(request, url, env));
+    if (path === "/api/version") {
+      return secure(jsonForRequest(request, {
+        app: APP_NAME,
+        appVersion: APP_VERSION,
+        sourceSkillVersion: SOURCE_SKILL_VERSION,
+        businessGovernanceSchemaVersion: BUSINESS_GOVERNANCE_SCHEMA_VERSION,
+      }));
     }
-    if (url.pathname === "/api/weread/gateway") {
+    if (path === "/api/weread/gateway") {
       if (request.method === "OPTIONS") return secure(new Response(null, { status: 204, headers: { Allow: "POST, OPTIONS" } }));
       return secure(await proxyGateway(request, env));
     }
-    if (url.pathname.startsWith("/api/")) {
-      return secure(json({ error: { code: "NOT_FOUND", message: "接口不存在。" } }, 404));
+    if (path.startsWith("/api/")) {
+      return secure(jsonForRequest(request, { error: { code: "NOT_FOUND", message: "接口不存在。" } }, 404));
     }
     if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
-      return secure(new Response("静态资源绑定不可用。", { status: 503 }));
+      return secure(new Response(request.method === "HEAD" ? null : "静态资源绑定不可用。", { status: 503 }));
     }
     return secure(await env.ASSETS.fetch(request));
   } catch (error) {
     const safe = toSafeFailure(error);
     const status = error instanceof WeReadPortError && error.status ? error.status : 500;
-    return secure(json({ error: safe }, status));
+    return secure(jsonForRequest(request, { error: safe }, status));
   }
+}
+
+function machineHealth(request, url, env) {
+  assertMachineMethod(request);
+  return jsonForRequest(request, {
+    ok: true,
+    status: "ALIVE",
+    app: APP_NAME,
+    version: APP_VERSION,
+    runtimeMode: runtimeMode(url, env),
+    checkedAt: new Date().toISOString(),
+  });
+}
+
+async function machineReadiness(request, url, env) {
+  assertMachineMethod(request);
+  const assets = await inspectAssets(request, env);
+  const governanceReady = BUSINESS_GRAPH_ERRORS.length === 0;
+  const ready = assets.ready && governanceReady;
+  return jsonForRequest(request, {
+    ok: ready,
+    status: ready ? "READY" : "NOT_READY",
+    app: APP_NAME,
+    version: APP_VERSION,
+    runtimeMode: runtimeMode(url, env),
+    checkedAt: new Date().toISOString(),
+    checks: {
+      staticAssets: assets,
+      gatewayProxyContract: { ready: true, detail: "代理地址、接口白名单、参数白名单和上游技能版本已加载；未使用用户密钥探测上游。" },
+      businessGovernanceContract: {
+        ready: governanceReady,
+        schemaVersion: BUSINESS_GOVERNANCE_SCHEMA_VERSION,
+        detail: governanceReady ? "业务线标识唯一、依赖存在且依赖图无环。" : "业务治理合同无效。",
+        errorCodes: BUSINESS_GRAPH_ERRORS,
+      },
+    },
+  }, ready ? 200 : 503);
+}
+
+async function publicStatusResponse(request, url, env) {
+  assertMachineMethod(request);
+  const assets = await inspectAssets(request, env);
+  const mode = runtimeMode(url, env);
+  const checkedAt = new Date().toISOString();
+  const businessLines = buildBusinessLineStatus({ assetsReady: assets.ready, checkedAt });
+  const governanceReady = BUSINESS_GRAPH_ERRORS.length === 0;
+  const operational = assets.ready && governanceReady;
+  return jsonForRequest(request, {
+    ok: operational,
+    status: operational ? "OPERATIONAL" : "DEGRADED",
+    statusLabel: operational ? "运行正常" : "部分降级",
+    app: APP_NAME,
+    appVersion: APP_VERSION,
+    sourceSkillVersion: SOURCE_SKILL_VERSION,
+    runtimeMode: mode,
+    runtimeLabel: runtimeLabel(mode),
+    checkedAt,
+    components: {
+      publicApplication: {
+        status: assets.ready ? "AVAILABLE" : "UNAVAILABLE",
+        label: assets.ready ? "公开应用可用" : "静态资源不可用",
+        detail: assets.detail,
+      },
+      localImportAndExport: {
+        status: assets.ready ? "AVAILABLE" : "UNAVAILABLE",
+        label: assets.ready ? "本地上传与导出内核可加载" : "无法加载浏览器应用",
+        detail: "ZIP、JSON、Markdown 和 TXT 在当前浏览器中处理；不会通过状态检查读取用户文件。",
+      },
+      wereadGatewayProxy: {
+        status: "AVAILABLE",
+        label: "微信读书代理合同已加载",
+        detail: "这里只验证本站代理合同，不使用任何用户密钥调用腾讯上游。真实连接结果取决于用户权限与上游可用性。",
+      },
+      operationsOverview: {
+        status: "EXTERNAL",
+        label: "供应商与基础设施状态",
+        detail: "外部状态入口独立运行，不接收用户密钥或笔记。",
+        url: OPERATIONS_STATUS_URL,
+      },
+    },
+    businessGovernance: {
+      schemaVersion: BUSINESS_GOVERNANCE_SCHEMA_VERSION,
+      graphStatus: governanceReady ? "VALID" : "INVALID",
+      graphErrors: BUSINESS_GRAPH_ERRORS,
+      summary: summarizeBusinessLines(businessLines),
+      lines: businessLines,
+    },
+    dataBoundary: {
+      serverSideUserNotePersistence: false,
+      serverSideUserKeyPersistence: false,
+      statusContainsUserContent: false,
+      businessGovernanceContainsUserContent: false,
+    },
+  });
+}
+
+
+function redirectForRequest(request, pathname) {
+  if (!['GET', 'HEAD'].includes(request.method)) {
+    throw new WeReadPortError("METHOD", "只允许 GET 或 HEAD。", { status: 405 });
+  }
+  const target = new URL(pathname, request.url);
+  return new Response(null, { status: 308, headers: { Location: target.toString(), "Cache-Control": "no-cache" } });
+}
+
+function assertMachineMethod(request) {
+  if (!["GET", "HEAD"].includes(request.method)) {
+    throw new WeReadPortError("METHOD", "只允许 GET 或 HEAD。", { status: 405 });
+  }
+}
+
+async function inspectAssets(request, env) {
+  if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
+    return { ready: false, detail: "静态资源绑定不可用。" };
+  }
+  const probeUrl = new URL("/index.html", request.url);
+  let response;
+  try {
+    response = await env.ASSETS.fetch(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }));
+    const contentType = response.headers.get("content-type") ?? "";
+    const ready = response.ok && contentType.toLowerCase().includes("text/html");
+    await response.body?.cancel().catch(() => {});
+    return {
+      ready,
+      detail: ready ? "主页静态资源已通过同源探测。" : `主页静态资源探测失败（HTTP ${response.status}）。`,
+    };
+  } catch {
+    return { ready: false, detail: "主页静态资源探测发生异常。" };
+  }
+}
+
+function runtimeMode(url, env) {
+  const configured = String(env.DEPLOYMENT_ENV ?? "").trim().toLowerCase();
+  if (["production", "preview", "local"].includes(configured)) return configured;
+  if (["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)) return "local";
+  if (url.hostname.endsWith(".chatgpt.site")) return "production";
+  return "preview";
+}
+
+function runtimeLabel(mode) {
+  return ({ production: "线上生产环境", preview: "预览或自定义环境", local: "本地预览环境" })[mode] ?? "未知环境";
+}
+
+function normalizePath(value) {
+  if (value === "/") return value;
+  return value.replace(/\/+$/u, "") || "/";
 }
 
 /** @param {Request} request @param {Record<string,any>} env */
@@ -228,6 +392,12 @@ function json(value, status = 200) {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
+}
+
+function jsonForRequest(request, value, status = 200) {
+  const response = json(value, status);
+  if (request.method !== "HEAD") return response;
+  return new Response(null, { status, headers: response.headers });
 }
 
 /** @param {Response} response */

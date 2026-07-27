@@ -7,15 +7,18 @@ import {
   MAX_LOCAL_IMPORT_FILES,
   MAX_LOCAL_IMPORT_TOTAL_BYTES,
   MAX_PREVIOUS_ARCHIVE_BYTES,
+  OFFICIAL_WEREAD_SKILL_URL,
   PROFILE_LABELS,
   SOURCE_SKILL_VERSION,
 } from "../core/constants.js";
 import { validateLocalFileDescriptors } from "../core/local-import.js";
+import { legalMainHtml, statusMainHtml } from "../core/public-pages.js";
 
 const app = document.querySelector("#app");
 const path = location.pathname.replace(/\/+$/, "") || "/";
 if (path === "/privacy") renderLegal("privacy");
 else if (path === "/terms") renderLegal("terms");
+else if (path === "/status") renderStatus();
 else renderProduct();
 
 function renderProduct() {
@@ -27,7 +30,7 @@ function renderProduct() {
         <span class="brand-copy"><strong>${APP_NAME}</strong><small>上传、整理、下载并继续询问</small></span>
       </a>
       <div class="header-trust" aria-label="隐私状态"><span class="status-dot" aria-hidden="true"></span>密钥、上传文件与笔记默认不落库</div>
-      <nav aria-label="站点导航"><a href="#how">输出内容</a><a href="/privacy">隐私</a><a href="/terms">条款</a><a href="/healthz">系统状态</a></nav>
+      <nav aria-label="站点导航"><a href="#how">输出内容</a><a href="/privacy/">隐私</a><a href="/terms/">条款</a><a href="/status/">系统状态</a></nav>
     </header>
 
     <main>
@@ -37,10 +40,11 @@ function renderProduct() {
           <h1 id="page-title">把阅读带走。<br><span>继续在 ChatGPT 里追问。</span></h1>
           <p class="hero-lede">连接本人微信读书、上传已有笔记，或先用演示数据体验。系统会在浏览器内整理为中文标记文本、结构化数据、离线搜索和可校验压缩包，并额外生成一份适合上传到 ChatGPT 的单文件笔记。</p>
           <div class="hero-actions">
-            <button id="hero-demo" class="button primary" type="button">用演示数据试一次 <span aria-hidden="true">→</span></button>
+            <button id="hero-connect" class="button primary" type="button">连接我的微信读书 <span aria-hidden="true">→</span></button>
             <button id="hero-upload" class="button secondary" type="button">上传已有笔记</button>
-            <button id="hero-connect" class="button ghost" type="button">连接我的微信读书</button>
+            <button id="hero-demo" class="button ghost" type="button">用演示数据试一次</button>
           </div>
+          <div id="runtime-banner" class="runtime-banner neutral" role="status" aria-live="polite"><span class="status-dot" aria-hidden="true"></span><div><strong>正在确认运行环境</strong><p>加载系统状态后会说明真实微信读书连接是否可用。</p></div><a href="/status/">查看状态</a></div>
           <ul class="trust-list" aria-label="产品边界">
             <li><span aria-hidden="true">✓</span>本地文件只在浏览器中读取</li>
             <li><span aria-hidden="true">✓</span>完整导出与单文件下载</li>
@@ -84,8 +88,8 @@ function renderProduct() {
             </div>
 
             <div class="choice-grid three">
-              <article class="choice-card recommended">
-                <div class="choice-top"><span class="choice-icon" aria-hidden="true">✦</span><span class="choice-tag">最快体验</span></div>
+              <article class="choice-card demo-choice">
+                <div class="choice-top"><span class="choice-icon" aria-hidden="true">✦</span><span class="choice-tag quiet">演示数据</span></div>
                 <h4>用演示数据体验</h4>
                 <p>无需密钥或文件。完整走通选择、整理、压缩包下载与 ChatGPT 继续询问。</p>
                 <ul><li>完全虚构的中文演示数据</li><li>不会发出微信读书请求</li><li>会生成真实可校验文件</li></ul>
@@ -105,8 +109,8 @@ function renderProduct() {
                 <button id="local-import-button" class="button secondary full" type="button" disabled>读取所选笔记</button>
               </article>
 
-              <article class="choice-card">
-                <div class="choice-top"><span class="choice-icon" aria-hidden="true">⌁</span><span class="choice-tag quiet">连接本人数据</span></div>
+              <article class="choice-card connect-choice recommended" id="connect-choice">
+                <div class="choice-top"><span class="choice-icon" aria-hidden="true">⌁</span><span class="choice-tag">线上主路径</span></div>
                 <h4>连接我的微信读书</h4>
                 <p>读取你有权访问的个人书架与笔记。本站不提供共享密钥，也不会保存你的密钥。</p>
                 <form id="connect-form">
@@ -114,7 +118,8 @@ function renderProduct() {
                   <div class="key-field"><input id="api-key" name="api-key" type="password" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="wrk-…" required /><button id="key-visibility" class="key-addon" type="button" aria-label="显示微信读书密钥" aria-pressed="false">显示</button><button id="key-clear" class="key-addon" type="button">清空</button></div>
                   <button class="button secondary full" type="submit">连接并预览</button>
                 </form>
-                <p class="microcopy">密钥不进入网址、浏览器长期存储、OVH、私有事实库、R2、OCI、日志或分析系统。</p>
+                <p id="connect-capability-note" class="microcopy">密钥不进入网址、浏览器长期存储、OVH、私有事实库、R2、OCI、日志或分析系统。</p>
+                <p class="microcopy"><a href="${OFFICIAL_WEREAD_SKILL_URL}" target="_blank" rel="noopener noreferrer">查看腾讯官方接口与密钥使用说明</a></p>
               </article>
             </div>
 
@@ -168,7 +173,7 @@ function renderProduct() {
     <footer>
       <div class="footer-brand"><strong>${APP_NAME} ${APP_VERSION}</strong><span>微信读书上游技能版本 ${SOURCE_SKILL_VERSION}</span></div>
       <p>非腾讯、微信读书或 OpenAI 官方产品。只处理当前用户有权访问或主动上传的数据，不提供整书内容导出。</p>
-      <div class="footer-links"><a href="/privacy">隐私政策</a><a href="/terms">使用条款</a><a href="/healthz">系统健康</a></div>
+      <div class="footer-links"><a href="/privacy/">隐私政策</a><a href="/terms/">使用条款</a><a href="/status/">系统状态</a></div>
     </footer>`;
 
   const state = {
@@ -189,6 +194,8 @@ function renderProduct() {
     inactivityExpiry: undefined,
     lastResult: undefined,
   };
+
+  void hydrateRuntimeBanner();
 
   const form = $("connect-form");
   const keyInput = $("api-key");
@@ -672,16 +679,93 @@ function renderProduct() {
 }
 
 function renderLegal(kind) {
-  const privacy = kind === "privacy";
-  app.innerHTML = `<a class="skip-link" href="#legal-content">跳到正文</a><header class="topbar"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true">阅</span><span class="brand-copy"><strong>${APP_NAME}</strong><small>上传、整理、下载并继续询问</small></span></a><nav aria-label="站点导航"><a href="/">返回迁移工具</a></nav></header><main class="legal" id="legal-content"><p class="section-label">${privacy ? "隐私说明" : "使用边界"}</p><h1>${privacy ? "隐私政策" : "使用条款"}</h1>${privacy ? privacyText() : termsText()}<p class="legal-version">版本 ${APP_VERSION} · 2026-07-26</p></main>`;
+  app.innerHTML = legalMainHtml(kind);
 }
 
-function privacyText() {
-  return `<h2>核心承诺</h2><p>${APP_NAME}的公开首版服务不主动持久化微信读书密钥、上传文件、原始接口响应、书名、划线、想法、点评、搜索词或生成的下载文件。</p><h2>本地上传</h2><p>你主动选择的 ZIP、JSON、Markdown 或 TXT 文件只在当前浏览器隔离任务中解析。应用不会把上传文件发送到 OVH、私有事实库、R2、OCI、日志或分析系统。</p><h2>连接微信读书</h2><p>当你主动连接时，密钥会在当前浏览器隔离任务和同源服务器薄代理的单次请求内存中短暂处理，再转发到腾讯公开的微信读书智能接口网关。标记文本、结构化数据、离线搜索和压缩包在浏览器内生成。</p><h2>继续使用 ChatGPT</h2><p>结果页会生成一份适合上传到 ChatGPT 的 Markdown 文件、中文提问词和指向 ${CHATGPT_HANDOFF_URL} 的固定官方入口。本站不会把笔记、密钥或提问词放入跳转网址，也不会代表你自动添加附件；文件必须由你本人在自己的 ChatGPT 会话或项目中确认添加。</p><h2>统计与清除</h2><p>匿名使用不要求登录。ChatGPT Sites 可提供站点级访问统计，应用不把密钥、文件名、书名、搜索词或笔记内容发送给统计系统。关闭页面、点击“断开并清除当前会话”或 15 分钟无操作后，浏览器会终止隔离任务。</p>`;
+function renderStatus() {
+  app.innerHTML = statusMainHtml();
+  void hydrateStatusPage();
 }
 
-function termsText() {
-  return `<h2>允许用途</h2><p>你只能处理自己有权访问的微信读书个人数据，或自己有权使用的本地笔记文件，并自行保管密钥与下载结果。</p><h2>禁止用途</h2><ul><li>不得共享、收集、猜测或滥用他人的微信读书密钥。</li><li>不得通过本工具抓取、破解、分发整本受版权保护的书籍内容。</li><li>不得上传恶意归档、实施自动化滥用或造成异常负载。</li><li>不得把跳转到 ChatGPT 理解为本站、OpenAI 或腾讯已经替你审核、保存或背书笔记内容。</li></ul><h2>服务边界</h2><p>本工具与腾讯、微信、微信读书或 OpenAI 无隶属、授权、背书或代理关系。上游接口与 ChatGPT Sites 托管能力可能变化；系统遇到上游升级指令、凭证失败、文件完整性失败或数据冲突时会安全停止受影响操作。</p><h2>数据责任</h2><p>结果可能因上游字段、权限、上传文件质量或临时故障而不完整。请查看压缩包内的《导出报告》和文件清单；“部分完成”不能当作完整备份。</p>`;
+async function hydrateRuntimeBanner() {
+  const banner = $("runtime-banner");
+  if (!banner) return;
+  const connectButtons = [$("hero-connect"), document.querySelector('#connect-form button[type="submit"]')].filter(Boolean);
+  try {
+    const response = await fetch("/api/status", { cache: "no-store", headers: { Accept: "application/json" } });
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("application/json")) throw new Error("状态接口不是 JSON");
+    const payload = await response.json();
+    const online = response.ok && payload?.components?.wereadGatewayProxy?.status === "AVAILABLE";
+    banner.className = `runtime-banner ${online ? "success" : "warning"}`;
+    banner.querySelector("strong").textContent = online ? payload.runtimeLabel ?? "线上服务已就绪" : "服务部分降级";
+    banner.querySelector("p").textContent = online
+      ? "真实微信读书连接、本地上传、导出和 ChatGPT 交接均可使用；上游可用性会在连接时单独验证。"
+      : "演示和本地上传仍可使用；真实微信读书连接暂不可确认。";
+    for (const button of connectButtons) button.disabled = !online;
+    const note = $("connect-capability-note");
+    if (note && !online) note.textContent = "当前环境未确认同源代理可用；请先使用演示或本地上传，查看系统状态了解原因。";
+  } catch {
+    banner.className = "runtime-banner warning";
+    banner.querySelector("strong").textContent = "本地静态预览模式";
+    banner.querySelector("p").textContent = "演示与本地上传可直接使用；真实微信读书连接需要部署后的同源代理。";
+    for (const button of connectButtons) button.disabled = true;
+    const note = $("connect-capability-note");
+    if (note) note.textContent = "本地静态预览不转发微信读书密钥；部署到 ChatGPT Sites 后才启用真实连接。";
+  }
+}
+
+async function hydrateStatusPage() {
+  const overview = $("status-overview");
+  const components = $("status-components");
+  const businessBody = $("business-governance-body");
+  const businessSummary = $("business-governance-summary");
+  if (!overview || !components) return;
+  try {
+    const response = await fetch("/api/status", { cache: "no-store", headers: { Accept: "application/json" } });
+    if (!(response.headers.get("content-type") ?? "").toLowerCase().includes("application/json")) throw new Error("状态接口不是 JSON");
+    const payload = await response.json();
+    const tone = payload.status === "OPERATIONAL" ? "complete" : "partial";
+    const icon = payload.status === "OPERATIONAL" ? "✓" : "!";
+    overview.innerHTML = `<article class="status-hero ${tone}"><span class="outcome-icon" aria-hidden="true">${icon}</span><div><p class="outcome-label">${escapeHtml(payload.runtimeLabel ?? "当前环境")}</p><h2>${escapeHtml(payload.statusLabel ?? "状态未知")}</h2><p>检查时间：${escapeHtml(formatStatusTime(payload.checkedAt))}。状态检查不会读取任何用户密钥或笔记。</p></div></article>`;
+    components.innerHTML = Object.values(payload.components ?? {}).map(component => `<article><div class="component-heading"><span class="component-state ${escapeAttr(String(component.status ?? "UNKNOWN").toLowerCase())}">${escapeHtml(statusChinese(component.status))}</span><h2>${escapeHtml(component.label ?? "未命名组件")}</h2></div><p>${escapeHtml(component.detail ?? "暂无说明。")}</p>${component.url ? `<p><a href="${escapeAttr(component.url)}" rel="noreferrer">打开外部运行状态</a></p>` : ""}</article>`).join("");
+    renderBusinessGovernance(payload.businessGovernance, businessBody, businessSummary);
+  } catch (error) {
+    overview.innerHTML = `<article class="status-hero failed"><span class="outcome-icon" aria-hidden="true">×</span><div><p class="outcome-label">状态接口不可用</p><h2>无法读取动态状态</h2><p>${escapeHtml(error?.message ?? "请稍后重试。")}</p></div></article>`;
+    components.innerHTML = `<article><h2>本地静态能力</h2><p>隐私政策、使用条款、演示数据和本地上传仍可检查。真实微信读书连接需要同源代理。</p></article>`;
+    if (businessSummary) businessSummary.textContent = "动态状态不可用；保留静态业务合同，不把未知状态伪装成正常。";
+  }
+}
+
+function renderBusinessGovernance(governance, body, summary) {
+  if (!body || !summary) return;
+  const lines = Array.isArray(governance?.lines) ? governance.lines : [];
+  if (governance?.graphStatus !== "VALID" || !lines.length) {
+    summary.textContent = "业务治理合同不可用；保留静态矩阵并停止动态覆盖。";
+    return;
+  }
+  const names = new Map(lines.map(line => [line.id, line.name]));
+  const dependencyText = line => {
+    const all = Array.isArray(line.dependsOnAll) && line.dependsOnAll.length
+      ? `全部：${line.dependsOnAll.map(id => names.get(id) ?? id).join("、")}`
+      : "无强制前置";
+    const any = Array.isArray(line.dependsOnAny) && line.dependsOnAny.length
+      ? `；任一：${line.dependsOnAny.map(id => names.get(id) ?? id).join("、")}`
+      : "";
+    return `${all}${any}`;
+  };
+  body.innerHTML = lines.map(line => `<tr data-business-line="${escapeAttr(line.id)}"><th scope="row"><strong>${escapeHtml(line.name)}</strong><span>${escapeHtml(line.id)}</span></th><td>${escapeHtml(line.phase)}</td><td><span class="business-state ${escapeAttr(String(line.state ?? "UNKNOWN").toLowerCase().replaceAll("_", "-"))}">${escapeHtml(line.stateLabel ?? statusChinese(line.state))}</span><small>${escapeHtml(line.reasonCode ?? "已取得当前 Oracle")}</small></td><td>${escapeHtml(dependencyText(line))}<small>${escapeHtml(line.relation ?? "")}</small></td><td>${escapeHtml(line.oracle ?? "未登记")}</td><td>${escapeHtml(line.recoveryAction ?? "读取运行证据。")}</td></tr>`).join("");
+  const counts = governance.summary?.counts ?? {};
+  summary.textContent = `共 ${Number(governance.summary?.total ?? lines.length)} 条业务线：已就绪 ${Number(counts.READY ?? 0)}，尚未实证 ${Number(counts.NOT_VERIFIED ?? 0)}，外部受控 ${Number(counts.EXTERNAL ?? 0)}，已阻塞 ${Number(counts.BLOCKED ?? 0)}。`;
+}
+
+function statusChinese(value) {
+  return ({ AVAILABLE: "可用", UNAVAILABLE: "不可用", READY: "已就绪", BLOCKED: "已阻塞", NOT_VERIFIED: "尚未实证", EXTERNAL: "外部状态", DEGRADED: "部分降级", UNKNOWN: "未知" })[String(value ?? "UNKNOWN")] ?? "未知";
+}
+
+function formatStatusTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "未知" : new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeStyle: "medium" }).format(date);
 }
 
 function profileDescription(value) {

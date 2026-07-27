@@ -161,14 +161,14 @@ class RuntimeDB:
                 ),
             )
 
-    def enqueue(self, topic: str, payload: dict[str, Any], *, outbox_id: str) -> bool:
+    def enqueue(self, topic: str, payload: dict[str, Any], *, outbox_id: str, at: datetime | None = None) -> bool:
         clean = sanitize_public(payload)
         assert_public_safe(clean)
         encoded = json.dumps(clean, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         with self.connect() as connection:
             cursor = connection.execute(
                 "INSERT OR IGNORE INTO outbox(outbox_id,topic,payload_json,created_at) VALUES(?,?,?,?)",
-                (outbox_id, topic, encoded, iso(utc_now())),
+                (outbox_id, topic, encoded, iso(at or utc_now())),
             )
         return cursor.rowcount == 1
 

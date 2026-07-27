@@ -2,12 +2,17 @@
 export const APP_PRODUCT_ID = "WeRead Port"; // 兼容 v0.0.0.7 及更早导出包的不可变产品标识。
 export const APP_NAME = "微信读书笔记迁移";
 export const APP_SHORT_NAME = "笔记迁移";
-export const APP_VERSION = "v0.0.0.1.3";
+export const APP_VERSION = "v0.0.0.1.7";
 export const EXPORT_CONTRACT_VERSION = "1.0.0";
 export const CANONICAL_SCHEMA_VERSION = "1.0.0";
 export const SOURCE_SKILL_VERSION = "1.0.4";
 export const LOCAL_IMPORT_CONTRACT_VERSION = "1.0.0";
 export const CHATGPT_HANDOFF_URL = "https://chatgpt.com/";
+export const PRODUCTION_SITE_URL = "https://weread-port.linzezhang35.chatgpt.site";
+export const OPERATIONS_STATUS_URL = "https://status.linzezhang.com/";
+export const SOURCE_REPOSITORY_URL = "https://github.com/LinzeColin/MetaDatabase/tree/main/WeReadPort";
+export const SUPPORT_ISSUES_URL = "https://github.com/LinzeColin/MetaDatabase/issues";
+export const OFFICIAL_WEREAD_SKILL_URL = "https://github.com/Tencent/WeChatReading/blob/main/skills/SKILL.md";
 export const OFFICIAL_WEREAD_GATEWAY = "https://i.weread.qq.com/api/agent/gateway";
 
 export const EXPORT_PROFILES = Object.freeze({

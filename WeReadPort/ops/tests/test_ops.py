@@ -12,7 +12,6 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -34,6 +33,76 @@ from weread_port_ops.monitor import (
 )
 from weread_port_ops.private_db import build_fact_batch, sync_daily
 from weread_port_ops.sanitize import assert_public_safe, sanitize_public
+
+
+BUSINESS_LINE_IDS = [
+    "public-trust",
+    "weread-direct-export",
+    "local-import",
+    "normalize-export",
+    "chatgpt-handoff",
+    "release-supply-chain",
+    "operations-recovery",
+]
+
+
+def readiness_payload(*, ready: bool = True):
+    return {
+        "ok": ready,
+        "status": "READY" if ready else "NOT_READY",
+        "checks": {
+            "businessGovernanceContract": {
+                "ready": ready,
+                "schemaVersion": "1.0.0",
+                "errorCodes": [] if ready else ["TEST_FAILURE"],
+            }
+        },
+    }
+
+
+def version_payload(*, app_version: str = "v0.0.0.1.7", source_version: str = "1.0.4", governance_version: str = "1.0.0"):
+    return {
+        "appVersion": app_version,
+        "sourceSkillVersion": source_version,
+        "businessGovernanceSchemaVersion": governance_version,
+    }
+
+
+def public_status_payload(*, operational: bool = True, omit_business_line: str | None = None):
+    lines = []
+    for line_id in BUSINESS_LINE_IDS:
+        if line_id == omit_business_line:
+            continue
+        state = "READY"
+        if line_id in {"weread-direct-export", "release-supply-chain"}:
+            state = "NOT_VERIFIED"
+        elif line_id == "operations-recovery":
+            state = "EXTERNAL"
+        lines.append({
+            "id": line_id,
+            "name": line_id,
+            "phase": "Stage 1 / P0",
+            "state": state if operational else "BLOCKED",
+            "dependsOnAll": [],
+            "dependsOnAny": [],
+            "reasonCode": "TEST_FIXTURE",
+        })
+    return {
+        "ok": operational,
+        "status": "OPERATIONAL" if operational else "DEGRADED",
+        "runtimeMode": "production",
+        "businessGovernance": {
+            "schemaVersion": "1.0.0",
+            "graphStatus": "VALID",
+            "lines": lines,
+        },
+        "dataBoundary": {
+            "serverSideUserNotePersistence": False,
+            "serverSideUserKeyPersistence": False,
+            "statusContainsUserContent": False,
+            "businessGovernanceContainsUserContent": False,
+        },
+    }
 
 
 def load_module(name: str, path: Path):
@@ -94,9 +163,13 @@ class OpsTests(unittest.TestCase):
     def test_monitor_and_official_source_are_combined_without_waiting(self):
         def site_fetcher(url: str, timeout: float):
             del timeout
-            if url.endswith("healthz"):
-                return 200, {"ok": True}, 3.0
-            return 200, {"appVersion": "v0.0.0.1.3", "sourceSkillVersion": "1.0.4"}, 4.0
+            if url.endswith("/healthz"):
+                return 200, {"ok": True, "status": "ALIVE"}, 1.0
+            if url.endswith("/readyz"):
+                return 200, readiness_payload(), 2.0
+            if url.endswith("/api/status"):
+                return 200, public_status_payload(), 3.0
+            return 200, version_payload(), 4.0
 
         def source_fetcher(url: str, timeout: float):
             del url, timeout
@@ -107,8 +180,10 @@ class OpsTests(unittest.TestCase):
         source = check_official_source(self.settings, fetcher=source_fetcher, at=at)
         payload = combine_monitor(site, source)
         self.assertEqual(payload["status"], "operational")
-        self.assertEqual(payload["productPlane"]["latencyMs"], 7.0)
+        self.assertEqual(payload["productPlane"]["latencyMs"], 10.0)
         self.assertEqual(payload["officialSource"]["observedVersion"], "1.0.4")
+        self.assertTrue(payload["productPlane"]["businessGovernanceOk"])
+        self.assertEqual(len(payload["businessLines"]), 7)
         write_atomic_json(self.settings.status_path, payload)
         written = json.loads(self.settings.status_path.read_text(encoding="utf-8"))
         self.assertEqual(written["status"], "operational")
@@ -117,13 +192,70 @@ class OpsTests(unittest.TestCase):
     def test_version_drift_is_degraded_immediately(self):
         def fetcher(url: str, timeout: float):
             del timeout
-            if url.endswith("healthz"):
-                return 200, {"ok": True}, 1.0
-            return 200, {"appVersion": "0.0.0.0", "sourceSkillVersion": "0.0.0"}, 1.0
+            if url.endswith("/healthz"):
+                return 200, {"ok": True, "status": "ALIVE"}, 1.0
+            if url.endswith("/readyz"):
+                return 200, readiness_payload(), 1.0
+            if url.endswith("/api/status"):
+                return 200, public_status_payload(), 1.0
+            return 200, version_payload(app_version="0.0.0.0", source_version="0.0.0"), 1.0
 
         payload = check_site(self.settings, fetcher=fetcher)
         self.assertEqual(payload["status"], "degraded")
         self.assertEqual(payload["productPlane"]["errorCode"], "VERSION_CONTRACT_FAILED")
+
+
+    def test_business_governance_version_schema_drift_degrades_immediately(self):
+        def fetcher(url: str, timeout: float):
+            del timeout
+            if url.endswith("/healthz"):
+                return 200, {"ok": True, "status": "ALIVE"}, 1.0
+            if url.endswith("/readyz"):
+                return 200, readiness_payload(), 1.0
+            if url.endswith("/api/status"):
+                return 200, public_status_payload(), 1.0
+            return 200, version_payload(governance_version="9.9.9"), 1.0
+
+        payload = check_site(self.settings, fetcher=fetcher)
+        self.assertEqual(payload["status"], "degraded")
+        self.assertEqual(payload["productPlane"]["errorCode"], "VERSION_CONTRACT_FAILED")
+
+
+    def test_readiness_or_public_status_failure_degrades_even_when_liveness_and_version_pass(self):
+        def fetcher(url: str, timeout: float):
+            del timeout
+            if url.endswith("/healthz"):
+                return 200, {"ok": True, "status": "ALIVE"}, 1.0
+            if url.endswith("/readyz"):
+                return 503, readiness_payload(ready=False), 1.0
+            if url.endswith("/api/status"):
+                return 503, public_status_payload(operational=False), 1.0
+            return 200, version_payload(), 1.0
+
+        payload = check_site(self.settings, fetcher=fetcher)
+        self.assertEqual(payload["status"], "degraded")
+        self.assertTrue(payload["productPlane"]["livenessOk"])
+        self.assertFalse(payload["productPlane"]["readinessOk"])
+        self.assertFalse(payload["productPlane"]["publicStatusOk"])
+        self.assertEqual(payload["productPlane"]["errorCode"], "READINESS_CONTRACT_FAILED")
+
+
+    def test_business_governance_missing_line_degrades_fail_closed(self):
+        def fetcher(url: str, timeout: float):
+            del timeout
+            if url.endswith("/healthz"):
+                return 200, {"ok": True, "status": "ALIVE"}, 1.0
+            if url.endswith("/readyz"):
+                return 200, readiness_payload(), 1.0
+            if url.endswith("/api/status"):
+                return 200, public_status_payload(omit_business_line="operations-recovery"), 1.0
+            return 200, version_payload(), 1.0
+
+        payload = check_site(self.settings, fetcher=fetcher)
+        self.assertEqual(payload["status"], "degraded")
+        self.assertFalse(payload["productPlane"]["businessGovernanceOk"])
+        self.assertEqual(payload["productPlane"]["errorCode"], "BUSINESS_GOVERNANCE_CONTRACT_FAILED")
+        self.assertEqual(payload["businessLines"], [])
 
     def test_snapshot_backup_verify_and_explicit_restore(self):
         self.db.record_event("release", "ok", {"commit": "abc"}, event_id="event")
@@ -253,20 +385,20 @@ class OpsTests(unittest.TestCase):
         client = self.root / "private_db_client.py"
         client.write_text("# capture-double\n", encoding="utf-8")
         settings = Settings(**{**self.settings.__dict__, "private_db_client": client})
-        at = datetime(2026, 7, 26, tzinfo=timezone.utc)
-        with patch("weread_port_ops.db.utc_now", return_value=at):
-            self.db.enqueue("service.status.changed", {"to": "degraded"}, outbox_id="status-change")
+        fake_now = datetime(2026, 7, 26, tzinfo=timezone.utc)
+        self.db.enqueue("service.status.changed", {"to": "degraded"}, outbox_id="status-change", at=fake_now)
         first_batch = build_fact_batch(self.db)
         self.assertEqual(first_batch, build_fact_batch(self.db), "same pending rows must produce the same bytes")
-        result = sync_daily(settings, self.db, at=at, runner=runner)
+        result = sync_daily(settings, self.db, at=datetime(2026, 7, 26, tzinfo=timezone.utc), runner=runner)
         self.assertEqual(result["status"], "delivered")
         self.assertEqual(result["mode"], "ingest")
         ingest = seen[-1]
+        self.assertEqual(first_batch["date"], datetime(2026, 7, 26, tzinfo=timezone.utc).date().isoformat())
         self.assertEqual(ingest[:4], ["python3", str(client), "ingest", "Private-MetaDatabase"])
-        self.assertEqual(ingest[5:], ["--domain", "weread-port-operations", "--batch", at.date().isoformat()])
+        self.assertEqual(ingest[5:], ["--domain", "weread-port-operations", "--batch", first_batch["date"]])
         self.assertEqual(payloads[0]["batchId"], first_batch["batchId"])
         self.assertEqual(len(self.db.pending()), 0)
-        self.assertEqual(sync_daily(settings, self.db, at=at, runner=runner)["status"], "idle")
+        self.assertEqual(sync_daily(settings, self.db, at=datetime(2026, 7, 26, tzinfo=timezone.utc), runner=runner)["status"], "idle")
 
     def test_release_state_preserves_previous_version(self):
         self.db.set_release(commit="a", saved_version="s1", production_version="p1", production_origin="https://status.linzezhang.com")
@@ -339,7 +471,7 @@ class OpsTests(unittest.TestCase):
         self.assertEqual(payload["status"], "prepared")
         current = fake_root / "opt/weread-port-ops/current"
         self.assertTrue(current.is_symlink())
-        self.assertTrue((fake_root / "opt/weread-port-ops/releases/0.0.0.1.3/bin/weread-port-ops").is_file())
+        self.assertTrue((fake_root / "opt/weread-port-ops/releases/0.0.0.1.7/bin/weread-port-ops").is_file())
         env = (fake_root / "etc/weread-port/ops.env").read_text(encoding="utf-8")
         self.assertIn("WEREAD_PORT_SITE_URL=https://status.linzezhang.com", env)
         adapter = fake_root / "srv/linze/apps/status/data/external-projects/weread-port.json"
