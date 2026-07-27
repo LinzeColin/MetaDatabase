@@ -1,0 +1,59 @@
+{
+  "schema_version": "cyberboss.cb340.closure-summary.v1",
+  "task_id": "CB-340",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb330_closure_commit": "69012f32ae99ea35960c3dc08db059905a4f29ec",
+  "implementation_commit": "9bed78ee1824eebbc4134811993667cb3ca72a9b",
+  "implementation_tree": "83d61b1efd8656353d4c02a23b26aec67c6af14a",
+  "acceptance": {
+    "FA-AC-010": "passed",
+    "FA-AC-014": "passed",
+    "FA-AC-027": "passed"
+  },
+  "local_validation": {
+    "resource_matrix": "passed",
+    "hysteresis": "passed",
+    "bounded_action_receipts": "passed",
+    "retention_caps": "passed",
+    "timer_contract": "passed",
+    "privacy_scope": "passed",
+    "app_regression": "passed",
+    "manifests": "passed",
+    "taskpack": "passed"
+  },
+  "skill_router": {
+    "task_id": "CB-340",
+    "selected_skill": "output-skill",
+    "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+    "max_lightweight_skill_loads": 1,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 1,
+    "fallback": "machine/skill_microplaybooks.json"
+  },
+  "external_activation": {
+    "private_database": "activation_pending",
+    "r2": "hazard_blocked",
+    "cloudflare_access": "activation_pending",
+    "dns_route": "activation_pending",
+    "analytics": "activation_pending",
+    "oci": "activation_pending",
+    "timeline": "activation_pending",
+    "global_status": "activation_pending",
+    "self_heal": "activation_pending",
+    "timer": "activation_pending"
+  },
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "real_cloudflare_operations": 0,
+  "real_oci_operations": 0,
+  "real_global_status_operations": 0,
+  "real_service_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0,
+  "macos_launchd_dependency": false,
+  "result": "passed",
+  "evidence_scope": "local_deterministic_only",
+  "next_native_node": "PG-3"
+}

@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P3.4",
+    "run_id": "P3.5",
     "gate_id": null,
-    "task_id": "CB-330",
-    "scope": "online_snapshot_backup_restore",
+    "task_id": "CB-340",
+    "scope": "resource_self_heal_retention",
     "status": "passed"
   },
   "prestage": [
@@ -44,7 +44,7 @@
     {"id": "CB-310", "stage": "S3", "phase": "P3.2", "status": "passed"},
     {"id": "CB-320", "stage": "S3", "phase": "P3.3", "status": "passed"},
     {"id": "CB-330", "stage": "S3", "phase": "P3.4", "status": "passed"},
-    {"id": "CB-340", "stage": "S3", "phase": "P3.5", "status": "not_started"},
+    {"id": "CB-340", "stage": "S3", "phase": "P3.5", "status": "passed"},
     {"id": "CB-400", "stage": "S4", "phase": "P4.1", "status": "not_started"},
     {"id": "CB-410", "stage": "S4", "phase": "P4.2", "status": "not_started"},
     {"id": "CB-420", "stage": "S4", "phase": "P4.3", "status": "not_started"},
@@ -64,7 +64,7 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-330",
+      "task_id": "CB-340",
       "selected_skill": "output-skill",
       "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
       "max_lightweight_skill_loads": 1,
@@ -97,6 +97,10 @@
     "backup_runtime_status": "passed",
     "backup_restore_status": "passed",
     "r2_backup_activation": "hazard_blocked",
-    "oci_backup_activation": "activation_pending"
+    "oci_backup_activation": "activation_pending",
+    "operations_policy_status": "passed",
+    "retention_status": "passed",
+    "self_heal_activation": "activation_pending",
+    "timer_activation": "activation_pending"
   }
 }

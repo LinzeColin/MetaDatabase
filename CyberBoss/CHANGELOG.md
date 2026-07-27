@@ -1,5 +1,32 @@
 # Changelog
 
+## P3.5 / CB-340 — 2026-07-27
+
+- Closed the local deterministic resource/self-heal/retention contract against
+  CB-330 closure `69012f32ae99ea35960c3dc08db059905a4f29ec`, bound to local
+  implementation commit `9bed78ee1824eebbc4134811993667cb3ca72a9b` (tree
+  `83d61b1efd8656353d4c02a23b26aec67c6af14a`), without changing Owner-locked
+  product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Reused the existing ResourceReadinessGate and frozen retention values to build
+  a strict local policy: recover/warn/protect hysteresis, six-action allowlist,
+  one injected action at most, 120-second restart cooldown, three restart
+  attempts per ten-minute fake-clock window, and a no-executor
+  `activation_pending` result. It contains no systemd command, timer install,
+  polling loop, sleep or model call.
+- Added a retention report for two latest local-verified backups, seven-day
+  logs, thirty-day diagnostics, current/previous immutable release slots and a
+  512 MiB reconstructable-cache cap. It only reports review/isolation candidates;
+  automatic backup/log/spool deletion is false.
+- The package router selected `output-skill`; exactly one local Skill body was
+  loaded and no other Skill/model/research path was used. The 14-command
+  credential-free prepare validation passed, including frozen resource/external
+  fixtures and the complete App regression.
+- Marked only CB-340 passed. No service restart, timer install, data deletion,
+  Private-Database, R2, Cloudflare, DNS, Analytics, global Status, OCI, WeChat,
+  Codex, OVH or GitHub operation occurred; all model calls remain zero, macOS
+  launchd remains absent, and self-heal/timer activation remains
+  `activation_pending`. The next native node is PG-3.
+
 ## P3.4 / CB-330 — 2026-07-27
 
 - Closed the local deterministic online-snapshot/backup/isolated-restore
