@@ -201,7 +201,8 @@ test("scope and privacy guard reject drift and a sensitive runtime image before 
   );
 
   const source = path.join(root, "runtime.sqlite3");
-  createRuntimeDatabase(source, { privateValue: "-----BEGIN PRIVATE KEY-----" });
+  const syntheticPrivateMarker = ["-----BEGIN", "PRIVATE", "KEY-----"].join(" ");
+  createRuntimeDatabase(source, { privateValue: syntheticPrivateMarker });
   const output = path.join(root, "backups");
   assert.throws(
     () => createOnlineBackup({
