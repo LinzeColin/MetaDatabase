@@ -1,5 +1,24 @@
 # Changelog
 
+## P5.3 / CB-520 — 2026-07-27
+
+- Promoted immutable release `bb5a201a0aec38117a7e14f470662b6f45bd49c7`
+  without changing the Owner-locked product version `v0.0.0.5`; retained
+  verified CB-510 release `82b47668c33cc403fee9194ad42b77e49c8b7da3` as
+  `previous` and executed a real `current → previous → current` rollback
+  receipt under Linux systemd.
+- Passed the finite request-count Canary: loopback health/Timeline/protected
+  Status success, anonymous protected Status rejection, public Cloudflare Access
+  challenge, release-code accepted/reject/oversize checks and bounded `/stop`
+  cancellation semantics. No actual Codex turn, simulator or control/operations
+  model call was made.
+- The controlled service switch also stopped the dedicated tunnel unit; it was
+  deterministically restarted, verified active/enabled, and the existing global
+  Status collector was refreshed after the final release restore. Automatic
+  tunnel lifecycle hardening remains scoped to CB-540.
+- Real WeChat delivery stays fail-closed pending (`/readyz=503`); R2/OCI backup
+  work is next in `CB-530`, and `FORMAL_FINAL_ACCEPTANCE` remains pending.
+
 ## P5.2 / CB-510 — 2026-07-27
 
 - Activated immutable release `82b47668c33cc403fee9194ad42b77e49c8b7da3` on the

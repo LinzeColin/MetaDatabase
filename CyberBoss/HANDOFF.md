@@ -7,10 +7,10 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `82b47668c33cc403fee9194ad42b77e49c8b7da3`
+  `bb5a201a0aec38117a7e14f470662b6f45bd49c7`
 - Remote activation: OVH/Linux systemd, dedicated Cloudflare Tunnel and
   Owner-only Access, plus the existing LinzeHomeHub global Status collector
-  (`CB-510`); no MetaDatabase GitHub publication yet.
+  (`CB-520`); no MetaDatabase GitHub publication yet.
 
 ## Current state
 
@@ -24,7 +24,8 @@ complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420`,
 `P4.4 / CB-430`, `P4.5 / CB-440` and independent Stage 4 exit gate `PG-4`
 passed. `P5.1 / CB-500` passed as a local clean-staging rehearsal and
 `P5.2 / CB-510` passed with explicit, fail-closed channel pending status.
-CB-520–CB-540 and PG-5 remain `not_started`.
+`P5.3 / CB-520` passed with explicit, fail-closed channel pending status.
+CB-530–CB-540 and PG-5 remain `not_started`.
 
 CB-500 is bound to implementation commit
 `ddda629feb4455da5dba213a5d5f827001ce8c71` and tree
@@ -55,6 +56,22 @@ app-server, but no authenticated turn was made: control-plane and operations
 model calls remain exactly zero. No authorized real WeChat credential exists, so
 channel and bridge intentionally remain unready (`/readyz=503`) with neither a
 simulator fallback nor a false-ready result. See `docs/evidence/CB-510/`.
+
+CB-520 is bound to implementation commit
+`bb5a201a0aec38117a7e14f470662b6f45bd49c7` and tree
+`99ae8068eee9ae8b5bd78207386eb65067fe7c30`. Its TaskPack Router selected
+`webapp-testing`; the native body is unavailable locally, so the frozen embedded
+microplaybook applied with Skill body loads=0. The immutable release is current,
+with CB-510 release `82b47668c33cc403fee9194ad42b77e49c8b7da3` retained as a
+valid previous release. A finite real request set passed loopback health,
+Timeline, protected Status, anonymous denial, public Access challenge, policy
+rejection and `/stop` control-handler semantics. The live pointer sequence
+`current → previous → current` and every service start passed without a time
+soak. The controlled switch stopped the dedicated tunnel unit; it was restarted
+and verified active/enabled before a post-canary global Status refresh. The
+channel remains pending for lack of a real credential, `/readyz=503`, and no
+authenticated Codex turn or control/operations model call occurred. See
+`docs/evidence/CB-520/`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -860,18 +877,19 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 - The minimal Cloudflare Access token cannot administer a Status service token;
   the service-token route stays pending while Owner-only browser access and the
   same-host protected snapshot are verified.
-- R2 remains `hazard_blocked`; OCI backup, request-count Canary, live rollback,
-  Analytics and the final Stage 5 gate remain later native task boundaries.
+- R2 remains `hazard_blocked`; OCI backup/restore remains CB-530. Analytics and
+  automatic tunnel lifecycle/self-heal remain CB-540; the final Stage 5 gate
+  remains a later native task boundary.
 - OVH capacity/profile is point-in-time and must be rechecked at each later
-  activation, without reclassifying a successful CB-510 receipt as final
+  activation, without reclassifying a successful CB-520 receipt as final
   acceptance.
 
 ## Next Run
 
-The next eligible Run is exactly `P5.3 / CB-520`. It remains `not_started`.
-Run its own package Skill Router first, then perform only the bounded real
-request-count Canary and immutable live rollback contract. Preserve the locked
-product version, frozen design, all earlier evidence, permanent zero-model
-invariant, no-clone data boundary and final-only MetaDatabase GitHub publication
-rule. Do not use the pending WeChat channel as a substitute canary or claim it
+The next eligible Run is exactly `P5.4 / CB-530`. It remains `not_started`.
+Run its own package Skill Router first, then perform only the authority-bounded
+R2/OCI backup and isolated restore contract. Preserve the locked product version,
+frozen design, all earlier evidence, permanent zero-model invariant, no-clone
+data boundary and final-only MetaDatabase GitHub publication rule. Do not use
+the pending WeChat channel as a substitute for backup/restore proof or claim it
 ready without an authorized real credential.

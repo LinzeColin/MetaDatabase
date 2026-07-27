@@ -1,0 +1,94 @@
+{
+  "schema_version": "cyberboss.cb520.canary-summary.v1",
+  "task_id": "CB-520",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb_510_closure_commit": "2770380d3efa93b5632ef03581c0d76088b38cc2",
+  "implementation_commit": "bb5a201a0aec38117a7e14f470662b6f45bd49c7",
+  "implementation_tree": "99ae8068eee9ae8b5bd78207386eb65067fe7c30",
+  "previous_release_commit": "82b47668c33cc403fee9194ad42b77e49c8b7da3",
+  "skill_router": {
+    "task_id": "CB-520",
+    "selected_skill": "webapp-testing",
+    "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+    "max_lightweight_skill_loads": 1,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 0,
+    "fallback": "machine/skill_microplaybooks.json"
+  },
+  "acceptance": {
+    "FA-AC-018": "passed_bounded_restart_and_rollback_recovery",
+    "FA-AC-019": "passed_immutable_current_previous_release_transition",
+    "FA-AC-023": "passed_finite_request_count_without_time_wait",
+    "real_wechat": "pending_missing_real_wechat_credential"
+  },
+  "release": {
+    "current": "verified_immutable_cb520_release",
+    "previous": "verified_immutable_cb510_release",
+    "current_manifest_sha256": "d8d6bf36069f66ca6e013c119e5a84e3d03875955550fdeeca0b03ce99c710e6",
+    "source_archive_sha256": "78b089303e0fc7a846d0c862fd45c70c5a597d898f2a8cb45d7bd317ffa1fa63",
+    "promotion": "verified",
+    "rollback_to_previous": "verified",
+    "restore_to_current": "verified"
+  },
+  "canary": {
+    "loopback_healthz": "200",
+    "timeline": "200",
+    "protected_status_authorized": "200",
+    "protected_status_anonymous": "401",
+    "readyz": "503_channel_pending",
+    "public_access_challenge": "302",
+    "release_code_policy": {
+      "accepted_read_only": true,
+      "unauthorized_rejected": true,
+      "oversize_rejected": true,
+      "stop_handler_cancelled_bound_turn": true,
+      "runtime_turn_start_calls": 0
+    },
+    "controlled_release_transitions": 3,
+    "channel_delivery": "pending_missing_real_wechat_credential"
+  },
+  "runtime": {
+    "status_phase": "P5.3",
+    "status_task_id": "CB-520",
+    "healthy": true,
+    "ready": false,
+    "runtime_component": true,
+    "channel_component": false,
+    "bridge_component": false,
+    "recovery_llm_call": false,
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "authenticated_turn": "not_executed_zero_model_invariant"
+  },
+  "platform": {
+    "cloud_service": "active_enabled",
+    "dedicated_tunnel": "active_enabled_recovered_after_controlled_switch",
+    "global_status": "verified_post_canary_refresh",
+    "canonical_state": "verified_no_clone_material_history_retained"
+  },
+  "external_activation": {
+    "candidate_installation": "verified",
+    "current_switch": "verified",
+    "live_request_count_canary": "verified",
+    "live_rollback": "verified",
+    "cloudflare_access_continuity": "verified_access_challenge",
+    "channel_wechat": "pending_missing_real_credential",
+    "access_service_token": "pending_minimal_scope_unavailable",
+    "r2": "activation_pending_next_cb530",
+    "oci": "activation_pending_next_cb530",
+    "analytics": "activation_pending_next_cb540"
+  },
+  "safety": {
+    "real_time_waits": 0,
+    "macos_launchd_dependency": false,
+    "private_database_clone": false,
+    "simulator_started": false,
+    "simulator_claimed_as_real": false,
+    "pending_claimed_as_ready": false
+  },
+  "result": "passed_with_explicit_wechat_pending",
+  "evidence_scope": "real_request_count_canary_and_reversible_live_rollback",
+  "next_native_node": "CB-530"
+}
