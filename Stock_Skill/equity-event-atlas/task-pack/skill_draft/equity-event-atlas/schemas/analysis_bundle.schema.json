@@ -1,0 +1,84 @@
+{
+  "$id": "urn:linze:equity-event-atlas:analysis-bundle:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "actions": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "as_of": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "claims": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "disclosures": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "events": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "gates": {
+      "type": "object"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "locale": {
+      "pattern": "^zh",
+      "type": "string"
+    },
+    "market_capability": {
+      "type": "object"
+    },
+    "scenarios": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema": {
+      "const": "equity-event-atlas/analysis-bundle-v1"
+    },
+    "security": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "locale",
+    "as_of",
+    "generated_at",
+    "security",
+    "market_capability",
+    "gates",
+    "evidence",
+    "claims",
+    "events",
+    "scenarios",
+    "actions",
+    "disclosures"
+  ],
+  "title": "股票事件航图分析包",
+  "type": "object"
+}

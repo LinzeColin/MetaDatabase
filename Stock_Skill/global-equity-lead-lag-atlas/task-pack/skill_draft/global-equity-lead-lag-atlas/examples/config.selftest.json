@@ -1,0 +1,31 @@
+{
+  "alpha": 0.05,
+  "analysis_id": "synthetic-selftest",
+  "bootstrap_block": 10,
+  "bootstrap_repetitions": 120,
+  "causal_claims": false,
+  "currency_mode": "local",
+  "data_usage_mode": "synthetic_fixture",
+  "fdr_scope": "global",
+  "generated_at": "2026-07-26T00:00:00Z",
+  "horizons": [
+    1,
+    5
+  ],
+  "input_csv": "input.synthetic.csv",
+  "license_acknowledgement": true,
+  "max_base_staleness_hours": 96.0,
+  "min_abs_effect": 0.12,
+  "min_effective_n": 30,
+  "min_oos_improvement": 0.0,
+  "min_raw_n": 80,
+  "min_stability": 0.67,
+  "output_dir": "out/selftest",
+  "random_seed": 20260726,
+  "rolling_windows": 4,
+  "source_lags": [
+    0,
+    1,
+    2
+  ]
+}

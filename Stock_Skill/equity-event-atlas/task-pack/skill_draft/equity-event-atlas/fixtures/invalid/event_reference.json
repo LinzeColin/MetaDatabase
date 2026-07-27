@@ -1,0 +1,292 @@
+{
+  "actions": [
+    {
+      "action": "REDUCE",
+      "invalidators": [
+        "事件状态变为 AMENDED、CANCELLED 或 DISPUTED",
+        "用户税务约束改变净收益判断"
+      ],
+      "rationale_claim_ids": [
+        "CL-001",
+        "CL-002",
+        "CL-004"
+      ],
+      "risk_limit": "事件前后合计暴露不超过当前持仓的 35%",
+      "size": {
+        "unit": "PERCENT_CURRENT_POSITION",
+        "value": 25.0
+      },
+      "trigger": "事件仍为 CONFIRMED，且价格进入 BASE 末端区间上沿以上"
+    },
+    {
+      "action": "WATCH",
+      "rationale_claim_ids": [
+        "CL-002",
+        "CL-003"
+      ],
+      "trigger": "监测实际成交供应、指数资金流与事件状态变化"
+    }
+  ],
+  "as_of": "2026-07-26T12:00:00+10:00",
+  "calibration": {
+    "forecast_id": "SYN-20260726-001",
+    "registered_at": "2026-07-26T12:05:00+10:00",
+    "settlement_status": "OPEN"
+  },
+  "claims": [
+    {
+      "claim_id": "CL-001",
+      "confidence": 1.0,
+      "evidence_ids": [
+        "EV-001"
+      ],
+      "layer": "FACT",
+      "text": "合成条款规定首批锁定股份在 2026-08-15 进入可出售状态。"
+    },
+    {
+      "claim_id": "CL-002",
+      "confidence": 0.72,
+      "evidence_ids": [
+        "EV-001"
+      ],
+      "layer": "INFERENCE",
+      "text": "新增法律可售股份可能提高潜在供应，但不等同于实际出售。"
+    },
+    {
+      "claim_id": "CL-003",
+      "confidence": 0.55,
+      "evidence_ids": [
+        "EV-001"
+      ],
+      "layer": "FORECAST",
+      "text": "若被动需求弱于潜在供应，事件后波动区间可能向下扩展。"
+    },
+    {
+      "claim_id": "CL-004",
+      "confidence": 0.6,
+      "evidence_ids": [
+        "EV-001"
+      ],
+      "layer": "ACTION",
+      "text": "只有事件仍为确认状态且价格进入预设高估带时，才执行分档减仓。"
+    }
+  ],
+  "disclosures": [
+    "全部证券、事件与数字均为离线合成 Fixture，不对应真实投资标的。",
+    "概率区间用于表达不确定性，不是收益承诺，也不保证真实价格落入区间。",
+    "税务信息未验证，因此动作结果必须由宿主在用户确认后再使用。"
+  ],
+  "events": [
+    {
+      "announced_at": "2026-06-01T09:00:00-04:00",
+      "claim_ids": [
+        "CL-001",
+        "CL-002"
+      ],
+      "effective_at": "2026-08-15T00:00:00-04:00",
+      "event_id": "E-001",
+      "event_type": "IPO_LOCKUP",
+      "expected_supply": {
+        "unit": "PERCENT_CURRENT_FLOAT",
+        "value": 25.0
+      },
+      "impact_mechanisms": [
+        "SUPPLY",
+        "LIQUIDITY",
+        "EXPECTATIONS"
+      ],
+      "relationships": [
+        {
+          "target_event_id": "E-999",
+          "type": "OVERLAPS"
+        }
+      ],
+      "status": "CONFIRMED",
+      "timezone": "America/New_York",
+      "title": "首批锁定股份进入可出售状态"
+    },
+    {
+      "announced_at": "2026-07-01T09:00:00-04:00",
+      "claim_ids": [
+        "CL-003"
+      ],
+      "effective_at": "2026-08-20T16:00:00-04:00",
+      "event_id": "E-002",
+      "event_type": "INDEX_REBALANCE",
+      "impact_mechanisms": [
+        "DEMAND",
+        "LIQUIDITY",
+        "POSITIONING"
+      ],
+      "relationships": [
+        {
+          "target_event_id": "E-001",
+          "type": "OFFSETS"
+        }
+      ],
+      "status": "SCHEDULED",
+      "timezone": "America/New_York",
+      "title": "合成指数季度调整"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-001",
+      "locator": "synthetic_evidence.txt",
+      "observed_at": "2026-06-01T10:00:00-04:00",
+      "published_at": "2026-06-01T09:00:00-04:00",
+      "sha256": "033f668c1f72156fae5600c6b0001b8342a43d2f38df6137336e593e2d640258",
+      "source_type": "SYNTHETIC_FIXTURE",
+      "tier": "T0",
+      "title": "合成锁定期条款"
+    }
+  ],
+  "gates": {
+    "action": "PASS",
+    "evidence": "PASS",
+    "forecast": "PASS",
+    "identity": "PASS"
+  },
+  "generated_at": "2026-07-26T12:05:00+10:00",
+  "locale": "zh-CN",
+  "market_capability": {
+    "calendar_timezone": "America/New_York",
+    "calendar_verified": true,
+    "coverage_tier": "DEEP",
+    "default_currency": "USD",
+    "market": "美国",
+    "market_data_verified": true,
+    "mic": "XNAS",
+    "official_sources_verified": true,
+    "reasons": [],
+    "run_capability": "FULL",
+    "schema": "equity-event-atlas/market-capabilities-v1"
+  },
+  "scenarios": [
+    {
+      "confidence": "LOW",
+      "horizon_trading_days": 30,
+      "invalidators": [
+        "实际出售量显著低于潜在可售股份",
+        "指数被动需求显著高于假设"
+      ],
+      "method": "合成事件窗与供应吸收压力测试",
+      "price_path": [
+        {
+          "day": 0,
+          "high": 104.0,
+          "low": 96.0,
+          "mid": 100.0
+        },
+        {
+          "day": 10,
+          "high": 96.0,
+          "low": 78.0,
+          "mid": 86.0
+        },
+        {
+          "day": 30,
+          "high": 94.0,
+          "low": 72.0,
+          "mid": 82.0
+        }
+      ],
+      "probability": 0.25,
+      "sample_size": 36,
+      "scenario": "BEAR"
+    },
+    {
+      "confidence": "MEDIUM",
+      "horizon_trading_days": 30,
+      "invalidators": [
+        "锁定期条款被修订或取消",
+        "重大基本面事件改变估值锚"
+      ],
+      "method": "合成事件交互基准与区间校准",
+      "price_path": [
+        {
+          "day": 0,
+          "high": 104.0,
+          "low": 96.0,
+          "mid": 100.0
+        },
+        {
+          "day": 10,
+          "high": 111.0,
+          "low": 88.0,
+          "mid": 99.0
+        },
+        {
+          "day": 30,
+          "high": 118.0,
+          "low": 86.0,
+          "mid": 102.0
+        }
+      ],
+      "probability": 0.5,
+      "sample_size": 36,
+      "scenario": "BASE"
+    },
+    {
+      "confidence": "LOW",
+      "horizon_trading_days": 30,
+      "invalidators": [
+        "被动需求未形成",
+        "成交量不足以支持上行情景"
+      ],
+      "method": "合成需求挤压与低流通盘压力测试",
+      "price_path": [
+        {
+          "day": 0,
+          "high": 104.0,
+          "low": 96.0,
+          "mid": 100.0
+        },
+        {
+          "day": 10,
+          "high": 130.0,
+          "low": 102.0,
+          "mid": 115.0
+        },
+        {
+          "day": 30,
+          "high": 146.0,
+          "low": 108.0,
+          "mid": 124.0
+        }
+      ],
+      "probability": 0.25,
+      "sample_size": 36,
+      "scenario": "BULL"
+    }
+  ],
+  "schema": "equity-event-atlas/analysis-bundle-v1",
+  "security": {
+    "currency": "USD",
+    "instrument_type": "COMMON_STOCK",
+    "mic": "XNAS",
+    "name": "合成航天公司",
+    "ticker": "SYN"
+  },
+  "supply_waterfall": [
+    {
+      "delta": 100.0,
+      "label": "当前可交易基数"
+    },
+    {
+      "delta": 25.0,
+      "label": "首批潜在解禁"
+    },
+    {
+      "delta": -8.0,
+      "label": "被动需求抵消假设"
+    }
+  ],
+  "user_context": {
+    "max_event_exposure": "当前持仓的 35%",
+    "position_status": "HOLDING",
+    "risk_budget": "BALANCED",
+    "sufficient_for_action": true,
+    "tax_context_verified": false
+  }
+}

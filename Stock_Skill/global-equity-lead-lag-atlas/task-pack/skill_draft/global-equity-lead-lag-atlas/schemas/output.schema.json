@@ -1,0 +1,50 @@
+{
+  "$id": "urn:linzecolin:gela:analysis-output:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "best_candidates": {
+      "type": "array"
+    },
+    "claim_boundary": {
+      "properties": {
+        "causal_claims": {
+          "const": false
+        }
+      },
+      "required": [
+        "causal_claims"
+      ],
+      "type": "object"
+    },
+    "co_movement": {
+      "type": "array"
+    },
+    "confirmed_co_movements": {
+      "type": "array"
+    },
+    "confirmed_edges": {
+      "type": "array"
+    },
+    "hypotheses": {
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0"
+    }
+  },
+  "required": [
+    "schema_version",
+    "skill",
+    "analysis_id",
+    "markets",
+    "co_movement",
+    "confirmed_co_movements",
+    "hypotheses",
+    "best_candidates",
+    "confirmed_edges",
+    "claim_boundary",
+    "counts"
+  ],
+  "title": "GELA Analysis Output",
+  "type": "object"
+}

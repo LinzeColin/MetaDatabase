@@ -1,0 +1,427 @@
+{
+  "mappings": [
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-001",
+      "statement": "作为 MetaDatabase/Stock_Skill 的 SOURCE_ONLY 嵌入节点，不建立独立运行系统",
+      "tasks": [
+        "T-001",
+        "T-002",
+        "T-003",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-002",
+      "statement": "EFS 是 5D/20D/60D 净正收益校准概率乘以100，Baseline/Lift 独立",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-003",
+      "statement": "PIT、revision、来源、许可、Universe、标签和成本可机械验证",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-004",
+      "statement": "推断、训练、评测、状态和恢复计划全链路 0 Agent、0 LLM Token、0 网络依赖",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-005",
+      "statement": "所有不合格输入和证据 fail closed 为受控错误或 ABSTAIN",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-006",
+      "statement": "幅度、经济 Edge、障碍时机、可靠性和证据成熟度独立输出",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-007",
+      "statement": "Candidate 不自动替换 LKG；Outcome 不自动授权用途",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-008",
+      "statement": "v0.0.0.1 只允许 RESEARCH/SHADOW，Decision Support 被发布边界阻断",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-009",
+      "statement": "宿主负责数据、状态、持久化、备份与渲染，Skill 无副作用",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-010",
+      "statement": "工程验收与 Outcome 验收分离；负向基线不可删除",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-011",
+      "statement": "目标 Registry、版本、Skill identity、release、manifest 和文档声明一致",
+      "tasks": [
+        "T-001",
+        "T-002",
+        "T-003",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "project payload",
+        "nested release ZIP",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "formal candidate receipt",
+        "landing receipt"
+      ],
+      "oracles": [
+        "run_release_oracles.py",
+        "target registry validator"
+      ],
+      "requirement_id": "R-012",
+      "statement": "最终单 ZIP 可重复构建、可验证、可原样落库与回滚",
+      "tasks": [
+        "T-001",
+        "T-002",
+        "T-003",
+        "T-004"
+      ],
+      "tests": [
+        "unit/integration suite",
+        "kernel isolation",
+        "network namespace isolation",
+        "release manifest/registry validation"
+      ]
+    },
+    {
+      "artifacts": [
+        "runtime self-check",
+        "zero-footprint verifier",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "zero-footprint receipt bound to exact candidate hash",
+        "target landing receipt"
+      ],
+      "oracles": [
+        "verify_macos_zero_footprint.py",
+        "run_release_oracles.py"
+      ],
+      "requirement_id": "R-013",
+      "statement": "上线与全生命周期禁止 macOS 运行安装和 launchd；显式调用结束后本机持久文件、缓存、状态、日志与常驻进程均为0，运行只允许宿主远程嵌入",
+      "tasks": [
+        "T-002",
+        "T-004"
+      ],
+      "tests": [
+        "test_macos_zero_footprint.py",
+        "verify_macos_zero_footprint.py",
+        "run_release_oracles.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "status adapter",
+        "host integration contract",
+        "status_integration/apply_status_integration.py",
+        "status_integration/write_status_fact.py",
+        "status_integration/STATUS_LANDING_MAP.json",
+        "outer taskpack"
+      ],
+      "evidence": [
+        "matrix_sha256 bound in host status payload",
+        "status patch round-trip receipt",
+        "host fact writer receipt",
+        "formal runtime receipt",
+        "landing receipts for both repositories"
+      ],
+      "oracles": [
+        "build_host_status_payload business_baseline_matrix",
+        "apply_status_integration.py preflight/apply/verify/rollback",
+        "write_status_fact.py valid/tamper/macOS refusal",
+        "run_release_oracles.py",
+        "verify_taskpack.py"
+      ],
+      "requirement_id": "R-014",
+      "statement": "上线后将可哈希五行业务基线矩阵接入既有 LinzeStatus 并在 status.linzezhang.com 全中文展示，保持宿主传输/持久化所有权和零 Agent/LLM",
+      "tasks": [
+        "T-001",
+        "T-002",
+        "T-003",
+        "T-004",
+        "T-005",
+        "T-006"
+      ],
+      "tests": [
+        "test_host.py business matrix tests",
+        "status_integration/tests/test_status_integration.py",
+        "run_release_oracles.py",
+        "verify_taskpack.py status integration oracle"
+      ]
+    },
+    {
+      "artifacts": [
+        "machine/skill_applicability.json",
+        "machine/acceptance_contract.json",
+        "CODEX_LANDING_INSTRUCTIONS.md"
+      ],
+      "evidence": [
+        "PREPACKAGING_RELEASE_ORACLES.json",
+        "PREPACKAGING_REVIEW_CLOSURE.json"
+      ],
+      "oracles": [
+        "receipt status PASS_FOR_OWNER_TASKPACK_DELIVERY_AUTHORIZATION",
+        "method run_count >= 3",
+        "external_independence_claim=false",
+        "developer review/version authority=false"
+      ],
+      "requirement_id": "R-015",
+      "statement": "封包前适用 Skill 方法各执行至少3次并生成绑定精确 Subject、Acceptance Contract 与 Release Oracle 的关闭证明；不声称外部独立 verdict；Codex 仅核验 Hash 与冻结测试且不得新建/修改版本号",
+      "tasks": [
+        "T-002"
+      ],
+      "tests": [
+        "PREPACKAGING_REVIEW_CLOSURE.json self-hash and method-run oracle",
+        "verify_taskpack.py prepackaging closure tamper test"
+      ]
+    }
+  ],
+  "schema": "efs.traceability.v4"
+}

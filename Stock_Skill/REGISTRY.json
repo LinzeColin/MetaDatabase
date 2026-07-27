@@ -77,6 +77,93 @@
         "sha256": "7bbfd5ef5228fdc63c1129986be1045c3bea41f1ab33a2c4b93e0bd1529b9544"
       },
       "superseded_archives": []
+    },
+    {
+      "id": "equity-foresight-signal",
+      "display_name": "股势前瞻",
+      "latest_version": "0.0.0.1",
+      "version_scheme": "numeric-quad",
+      "latest_major": 0,
+      "current": true,
+      "distribution_mode": "SOURCE_ONLY",
+      "local_install_policy": "PROHIBITED",
+      "canonical_project_path": "Stock_Skill/equity-foresight-signal-skill",
+      "canonical_skill_path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal",
+      "version_sources": [
+        "Stock_Skill/equity-foresight-signal-skill/VERSION",
+        "Stock_Skill/equity-foresight-signal-skill/task-pack/VERSION"
+      ],
+      "version_claim_paths": [
+        "AGENTS.md",
+        "README.md",
+        "Stock_Skill/AGENTS.md",
+        "Stock_Skill/README.md",
+        "Stock_Skill/equity-foresight-signal-skill/AGENTS.md",
+        "Stock_Skill/equity-foresight-signal-skill/README.md"
+      ],
+      "release": {
+        "path": "Stock_Skill/equity-foresight-signal-skill/releases/equity-foresight-signal_codex-skill-task-pack_v0.0.0.1.zip",
+        "sha256": "25778f896b31d92d5f2f42736af4afb836be25693903ec5a22d0d44c2074b3d1"
+      },
+      "superseded_archives": []
+    },
+    {
+      "id": "global-equity-lead-lag-atlas",
+      "display_name": "全球股市时序联动图谱",
+      "latest_version": "0.0.0.1",
+      "version_scheme": "numeric-quad",
+      "latest_major": 0,
+      "current": true,
+      "distribution_mode": "SOURCE_ONLY",
+      "local_install_policy": "PROHIBITED",
+      "canonical_project_path": "Stock_Skill/global-equity-lead-lag-atlas",
+      "canonical_skill_path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas",
+      "version_sources": [
+        "Stock_Skill/global-equity-lead-lag-atlas/VERSION",
+        "Stock_Skill/global-equity-lead-lag-atlas/task-pack/VERSION"
+      ],
+      "version_claim_paths": [
+        "AGENTS.md",
+        "README.md",
+        "Stock_Skill/AGENTS.md",
+        "Stock_Skill/README.md",
+        "Stock_Skill/global-equity-lead-lag-atlas/AGENTS.md",
+        "Stock_Skill/global-equity-lead-lag-atlas/README.md"
+      ],
+      "release": {
+        "path": "Stock_Skill/global-equity-lead-lag-atlas/releases/global-equity-lead-lag-atlas_v0.0.0.1-final.zip",
+        "sha256": "7feec5de94346a0e72462e9b7fa54be343692ed0b648f57bf11ed580c18b6bdf"
+      },
+      "superseded_archives": []
+    },
+    {
+      "id": "equity-event-atlas",
+      "display_name": "股票事件航图",
+      "latest_version": "0.0.0.1",
+      "version_scheme": "numeric-quad",
+      "latest_major": 0,
+      "current": true,
+      "distribution_mode": "SOURCE_ONLY",
+      "local_install_policy": "PROHIBITED",
+      "canonical_project_path": "Stock_Skill/equity-event-atlas",
+      "canonical_skill_path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas",
+      "version_sources": [
+        "Stock_Skill/equity-event-atlas/VERSION",
+        "Stock_Skill/equity-event-atlas/task-pack/VERSION"
+      ],
+      "version_claim_paths": [
+        "AGENTS.md",
+        "README.md",
+        "Stock_Skill/AGENTS.md",
+        "Stock_Skill/README.md",
+        "Stock_Skill/equity-event-atlas/AGENTS.md",
+        "Stock_Skill/equity-event-atlas/README.md"
+      ],
+      "release": {
+        "path": "Stock_Skill/equity-event-atlas/releases/equity-event-atlas_v0.0.0.1-final.zip",
+        "sha256": "653847fecb44d95a5e64546c834bd0913933c070e03546da7fc1eed88268c5da"
+      },
+      "superseded_archives": []
     }
   ]
 }

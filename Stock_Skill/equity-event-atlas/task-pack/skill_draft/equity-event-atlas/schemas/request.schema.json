@@ -1,0 +1,85 @@
+{
+  "$id": "urn:linze:equity-event-atlas:request:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "horizon_trading_days": {
+      "maximum": 756,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "locale": {
+      "pattern": "^zh",
+      "type": "string"
+    },
+    "objective": {
+      "enum": [
+        "RESEARCH",
+        "RISK_ADJUSTED_DECISION_SUPPORT"
+      ]
+    },
+    "requested_mode": {
+      "enum": [
+        "SCAN",
+        "DEEP_DIVE",
+        "COMPARE",
+        "REFRESH",
+        "REVIEW",
+        "SIMULATE"
+      ]
+    },
+    "schema": {
+      "const": "equity-event-atlas/request-v1"
+    },
+    "security": {
+      "properties": {
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "type": "string"
+        },
+        "instrument_type": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "mic": {
+          "pattern": "^[A-Z0-9]{4}$",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "ticker": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "ticker",
+        "mic",
+        "instrument_type",
+        "currency"
+      ],
+      "type": "object"
+    },
+    "user_context": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "locale",
+    "as_of",
+    "security",
+    "horizon_trading_days",
+    "requested_mode",
+    "objective"
+  ],
+  "title": "股票事件航图宿主请求",
+  "type": "object"
+}

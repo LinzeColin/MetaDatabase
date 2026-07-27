@@ -1,0 +1,238 @@
+{
+  "calendar_id": "XNYS",
+  "cost_contract_sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+  "created_at": "2026-01-01T00:00:00Z",
+  "dataset_id": "fixture_spy_pit_20d_v1",
+  "feature_names": [
+    "mom_20",
+    "realized_vol_20",
+    "vix_level"
+  ],
+  "horizon": 20,
+  "label_contract_id": "net_return_next_open_20d_gt_zero_v1",
+  "label_hurdle": "0",
+  "payload_sha256": "1ff6f173f6d84d850502ce55bd1f47650360736a2b4700ecc4159be1abd15f18",
+  "rows": [
+    {
+      "features": {
+        "mom_20": "-0.12",
+        "realized_vol_20": "0.35",
+        "vix_level": "32"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 0,
+      "label_matured_at": "2025-02-03T21:00:00Z",
+      "net_return_1x": "-0.08",
+      "net_return_2x": "-0.081",
+      "net_return_3x": "-0.082",
+      "row_id": "r001",
+      "row_payload_sha256": "7ba84ce9b395ada9d153c96e751d2645c642d9c819e3221c8e7841186c40a88a",
+      "signal_as_of": "2025-01-02T21:00:00Z",
+      "source_snapshot_sha256": "71d3e257978aed9fe8bfd1ccc0a2c2b55b3812b5e1dbf687c74dda0fbf5041b4",
+      "split": "TRAIN"
+    },
+    {
+      "features": {
+        "mom_20": "0.10",
+        "realized_vol_20": "0.15",
+        "vix_level": "16"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 1,
+      "label_matured_at": "2025-02-04T21:00:00Z",
+      "net_return_1x": "0.07",
+      "net_return_2x": "0.069",
+      "net_return_3x": "0.068",
+      "row_id": "r002",
+      "row_payload_sha256": "fff75a6f3772224b0a306b80b06f5c06fec1a21c2fbfe9f96717a6c7461d65e5",
+      "signal_as_of": "2025-01-03T21:00:00Z",
+      "source_snapshot_sha256": "0b78d7c28c43f58cf87e23a232d4971f852eb9e72a65ed6321b8a9084a673a7c",
+      "split": "TRAIN"
+    },
+    {
+      "features": {
+        "mom_20": "-0.07",
+        "realized_vol_20": "0.28",
+        "vix_level": "28"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 0,
+      "label_matured_at": "2025-02-05T21:00:00Z",
+      "net_return_1x": "-0.04",
+      "net_return_2x": "-0.041",
+      "net_return_3x": "-0.042",
+      "row_id": "r003",
+      "row_payload_sha256": "d15c7f1ef5073240027030e60c4942db8232420e8b585fb30f4875408f7905be",
+      "signal_as_of": "2025-01-06T21:00:00Z",
+      "source_snapshot_sha256": "3ae0c6acb2938294846067b9416350cc66eccdee499de740f555d20baa3a29c9",
+      "split": "TRAIN"
+    },
+    {
+      "features": {
+        "mom_20": "0.08",
+        "realized_vol_20": "0.17",
+        "vix_level": "18"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 1,
+      "label_matured_at": "2025-02-06T21:00:00Z",
+      "net_return_1x": "0.05",
+      "net_return_2x": "0.049",
+      "net_return_3x": "0.048",
+      "row_id": "r004",
+      "row_payload_sha256": "e45e1f84808061f80a05ae096d35b736ce6efca430ff9cf1706581e7302806d5",
+      "signal_as_of": "2025-01-07T21:00:00Z",
+      "source_snapshot_sha256": "7d7822e43cd1b499c9918e890c91e00bbeb35c24dc8b62cf1e916cc92ae1da21",
+      "split": "TRAIN"
+    },
+    {
+      "features": {
+        "mom_20": "-0.09",
+        "realized_vol_20": "0.30",
+        "vix_level": "30"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 0,
+      "label_matured_at": "2025-04-02T21:00:00Z",
+      "net_return_1x": "-0.06",
+      "net_return_2x": "-0.061",
+      "net_return_3x": "-0.062",
+      "row_id": "r005",
+      "row_payload_sha256": "73a458e1c9ab1b5a8dba2b0476fa0e7c9158d61f51e875f51a56969b09b98c45",
+      "signal_as_of": "2025-03-03T21:00:00Z",
+      "source_snapshot_sha256": "f8b2cac26f72f78e62c60774c2a3f111cde86c500a00896d9709b28a13b21e16",
+      "split": "CALIBRATION"
+    },
+    {
+      "features": {
+        "mom_20": "0.12",
+        "realized_vol_20": "0.14",
+        "vix_level": "15"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 1,
+      "label_matured_at": "2025-04-03T21:00:00Z",
+      "net_return_1x": "0.08",
+      "net_return_2x": "0.079",
+      "net_return_3x": "0.078",
+      "row_id": "r006",
+      "row_payload_sha256": "5aa37ec97894f8a31c050c8ddf668c9b7034704a6b87a19d5afe1bc15c7506af",
+      "signal_as_of": "2025-03-04T21:00:00Z",
+      "source_snapshot_sha256": "58697106e5e6da74d123caf807aed0d278bfb9e8b688b245265b5f7b6853589b",
+      "split": "CALIBRATION"
+    },
+    {
+      "features": {
+        "mom_20": "-0.04",
+        "realized_vol_20": "0.25",
+        "vix_level": "25"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 0,
+      "label_matured_at": "2025-04-04T21:00:00Z",
+      "net_return_1x": "-0.02",
+      "net_return_2x": "-0.021",
+      "net_return_3x": "-0.022",
+      "row_id": "r007",
+      "row_payload_sha256": "36217c5d0334dc88461e1de27062bb6bfb6b12a9f9eb9e4e373dd67169f48073",
+      "signal_as_of": "2025-03-05T21:00:00Z",
+      "source_snapshot_sha256": "25b6bcb90c16d093f7e8fdf34a4ce2287c5f91c20812b53a33202207d5e095cb",
+      "split": "CALIBRATION"
+    },
+    {
+      "features": {
+        "mom_20": "0.06",
+        "realized_vol_20": "0.18",
+        "vix_level": "19"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 1,
+      "label_matured_at": "2025-04-07T21:00:00Z",
+      "net_return_1x": "0.04",
+      "net_return_2x": "0.039",
+      "net_return_3x": "0.038",
+      "row_id": "r008",
+      "row_payload_sha256": "393060bd331137ad0c11674dd50a8a7d88ab269fdc8441bc69a1d99c75a09252",
+      "signal_as_of": "2025-03-06T21:00:00Z",
+      "source_snapshot_sha256": "dc30df99f05b7cb96be4ac249341ec6fa9cf954cad7eefe4837f86570780df1e",
+      "split": "CALIBRATION"
+    },
+    {
+      "features": {
+        "mom_20": "-0.11",
+        "realized_vol_20": "0.33",
+        "vix_level": "31"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 0,
+      "label_matured_at": "2025-06-02T21:00:00Z",
+      "net_return_1x": "-0.07",
+      "net_return_2x": "-0.071",
+      "net_return_3x": "-0.072",
+      "row_id": "r009",
+      "row_payload_sha256": "9d6ecf147200bb098534fe22575c1162a5b75abd63091cfef904f5b9af9cab33",
+      "signal_as_of": "2025-05-01T21:00:00Z",
+      "source_snapshot_sha256": "8eeeea27a152249e43918b8a6575686205c1520a26863717203ca22fe6cecd41",
+      "split": "HOLDOUT"
+    },
+    {
+      "features": {
+        "mom_20": "0.11",
+        "realized_vol_20": "0.16",
+        "vix_level": "17"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 1,
+      "label_matured_at": "2025-06-03T21:00:00Z",
+      "net_return_1x": "0.06",
+      "net_return_2x": "0.059",
+      "net_return_3x": "0.058",
+      "row_id": "r010",
+      "row_payload_sha256": "5db035ab612c129d1bebd22a68988ddfcd8f09e9cc7fc106fa5a1b2a26db56b5",
+      "signal_as_of": "2025-05-02T21:00:00Z",
+      "source_snapshot_sha256": "4d4c73811281aab148682f06daac2ca046b78f1763e70f76168e228a73295bce",
+      "split": "HOLDOUT"
+    },
+    {
+      "features": {
+        "mom_20": "-0.05",
+        "realized_vol_20": "0.27",
+        "vix_level": "27"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 0,
+      "label_matured_at": "2025-06-04T21:00:00Z",
+      "net_return_1x": "-0.03",
+      "net_return_2x": "-0.031",
+      "net_return_3x": "-0.032",
+      "row_id": "r011",
+      "row_payload_sha256": "94d5c240d82b3b73d23f8a568502bfbb007ac22ccdd3300c7faea623feac03aa",
+      "signal_as_of": "2025-05-05T21:00:00Z",
+      "source_snapshot_sha256": "74c5cb3b279cc7d4f6d6a74a674caa3403404cc384204a204378620818fe0a74",
+      "split": "HOLDOUT"
+    },
+    {
+      "features": {
+        "mom_20": "0.09",
+        "realized_vol_20": "0.17",
+        "vix_level": "18"
+      },
+      "instrument_id": "FIGI:BBG000BDTBL9",
+      "label": 1,
+      "label_matured_at": "2025-06-05T21:00:00Z",
+      "net_return_1x": "0.05",
+      "net_return_2x": "0.049",
+      "net_return_3x": "0.048",
+      "row_id": "r012",
+      "row_payload_sha256": "4254fbd24992ccc4dbd9be89502f34789c4741f69b0b2cd6e3fdb6fccfb34766",
+      "signal_as_of": "2025-05-06T21:00:00Z",
+      "source_snapshot_sha256": "abe3172d1cf583be63047040bcab97f8cb302fd822e26600a4d596a4306bfed3",
+      "split": "HOLDOUT"
+    }
+  ],
+  "schema": "efs.pit_training_dataset.v1",
+  "scope": {
+    "instrument_id": "FIGI:BBG000BDTBL9",
+    "type": "single_instrument_v1"
+  }
+}

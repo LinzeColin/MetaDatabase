@@ -28,6 +28,11 @@ Active registry 使用 schema `1.1`，版本字段合同如下：
 前者的 `1.0.0` 与 `2.0.0` 只允许作为不可变历史；后者首版 archive 数组为 `[]`。两者均 source-only，
 禁止把 registry current 解释为本机安装、默认回退或交易执行能力。
 
+新增 current source entries：`equity-foresight-signal=0.0.0.1`、
+`global-equity-lead-lag-atlas=0.0.0.1`、`equity-event-atlas=0.0.0.1`（均为 `numeric-quad`）。
+它们均禁止本机安装、账户访问、订单生成或交易执行；Atlas 项目的 canonical source 在 Python 3.9
+验证了冻结 payload 的一处 `Path.write_text` 兼容修正，原始 ZIP 作为 release 证据保留。
+
 ## 修改边界
 
 - 每个 Skill 项目放在 `Stock_Skill/<project>/`；实际 Skill 文件夹名必须等于稳定 ID。

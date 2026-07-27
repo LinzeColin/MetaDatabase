@@ -1,0 +1,100 @@
+{
+  "$id": "urn:linzecolin:gela:dataset-row:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "close": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "close_ts_utc": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "country_iso3": {
+      "pattern": "^[A-Za-z]{3}$",
+      "type": "string"
+    },
+    "country_name_zh": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "currency": {
+      "pattern": "^[A-Za-z]{3}$",
+      "type": "string"
+    },
+    "index_name": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "instrument_type": {
+      "const": "cash_index"
+    },
+    "latitude": {
+      "maximum": 90,
+      "minimum": -90,
+      "type": "number"
+    },
+    "longitude": {
+      "maximum": 180,
+      "minimum": -180,
+      "type": "number"
+    },
+    "market_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "open_ts_utc": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "return_type": {
+      "enum": [
+        "price",
+        "total_return",
+        "net_total_return"
+      ]
+    },
+    "session_date": {
+      "format": "date",
+      "type": "string"
+    },
+    "source": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_retrieved_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "source_symbol": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "timezone": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "market_id",
+    "country_iso3",
+    "country_name_zh",
+    "index_name",
+    "instrument_type",
+    "return_type",
+    "currency",
+    "timezone",
+    "latitude",
+    "longitude",
+    "session_date",
+    "open_ts_utc",
+    "close_ts_utc",
+    "close",
+    "source",
+    "source_symbol",
+    "source_retrieved_at"
+  ],
+  "title": "GELA Session Dataset Row",
+  "type": "object"
+}

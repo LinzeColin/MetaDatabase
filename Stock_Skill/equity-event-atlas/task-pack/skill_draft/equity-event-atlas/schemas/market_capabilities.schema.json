@@ -1,0 +1,43 @@
+{
+  "$id": "urn:linze:equity-event-atlas:market-capabilities:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "coverage_tier": {
+      "enum": [
+        "DEEP",
+        "STANDARD",
+        "GENERIC"
+      ]
+    },
+    "reasons": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "run_capability": {
+      "enum": [
+        "FULL",
+        "SUPPORTED_WITH_HOST_DATA",
+        "RESEARCH_ONLY",
+        "BLOCKED"
+      ]
+    },
+    "schema": {
+      "const": "equity-event-atlas/market-capabilities-v1"
+    }
+  },
+  "required": [
+    "schema",
+    "mic",
+    "market",
+    "coverage_tier",
+    "run_capability",
+    "official_sources_verified",
+    "calendar_verified",
+    "market_data_verified",
+    "reasons"
+  ],
+  "title": "股票事件航图市场能力",
+  "type": "object"
+}
