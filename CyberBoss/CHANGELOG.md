@@ -1,5 +1,32 @@
 # Changelog
 
+## P3.2 / CB-310 — 2026-07-27
+
+- Closed the atomic redacted Status snapshot against CB-300 closure
+  `e8243ea81b5ecf239a8ec2df44189259c661adfa`, bound to local implementation
+  commit `5f977da0ed8c449aeaec3ae769982f6beccfd35e` (tree
+  `ea1985fe90e1fdb8f31e893c2cece946455ba866`), without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Added strict `cyberboss.status.v2` snapshot/schema validation, allowlisted
+  component states, deterministic generation IDs and fsync/rename publication.
+  Existing last-good JSON survives the before-rename crash cut; after rename,
+  the replacement is always complete JSON. Sensitive values, nonmonotonic
+  generations and any nonzero control-plane/self-heal agent counter fail closed.
+- Reused only the frozen global Status collector adapter's local `buildRow`
+  function; it performs no fetch, introduces no second Status platform and maps
+  `unknown`/`activation_pending` to non-green state. User-facing row labels
+  remain Chinese and `agent`/notification are fixed to `无`.
+- The package router selected `webapp-testing`, whose body was unavailable;
+  the frozen embedded microplaybook used existing unit/DOM fixtures with zero
+  Skill body loads. The 12-command credential-free local validation passed,
+  including component fault matrix, atomic crash cuts, DLP/schema and zero
+  model counter checks.
+- Marked only CB-310 passed. No Private-Database, R2, Cloudflare, OCI, global
+  Status, WeChat, Codex, OVH or GitHub operation occurred; control-plane and
+  operations model calls remain zero, macOS launchd remains absent, and all
+  external Status/Cloud activation remains `activation_pending` (R2 stays
+  `hazard_blocked`). The next native node is CB-320.
+
 ## P3.1 / CB-300 — 2026-07-27
 
 - Closed the canonical Timeline projection against PG-2 closure
