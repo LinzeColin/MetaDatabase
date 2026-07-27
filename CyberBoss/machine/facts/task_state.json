@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P4.4",
+    "run_id": "P4.5",
     "gate_id": null,
-    "task_id": "CB-430",
-    "scope": "deterministic_fault_crash_cut_recovery_restore_matrix",
+    "task_id": "CB-440",
+    "scope": "immutable_release_candidate_slots_canary_rollback_contract",
     "status": "passed"
   },
   "prestage": [
@@ -49,7 +49,7 @@
     {"id": "CB-410", "stage": "S4", "phase": "P4.2", "status": "passed"},
     {"id": "CB-420", "stage": "S4", "phase": "P4.3", "status": "passed"},
     {"id": "CB-430", "stage": "S4", "phase": "P4.4", "status": "passed"},
-    {"id": "CB-440", "stage": "S4", "phase": "P4.5", "status": "not_started"},
+    {"id": "CB-440", "stage": "S4", "phase": "P4.5", "status": "passed"},
     {"id": "CB-500", "stage": "S5", "phase": "P5.1", "status": "not_started"},
     {"id": "CB-510", "stage": "S5", "phase": "P5.2", "status": "not_started"},
     {"id": "CB-520", "stage": "S5", "phase": "P5.3", "status": "not_started"},
@@ -64,7 +64,7 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-430",
+      "task_id": "CB-440",
       "selected_skill": "output-skill",
       "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
       "max_lightweight_skill_loads": 1,
@@ -123,6 +123,12 @@
     "fault_recovery_matrix_report_digest": "c366ae9973ddb46eed5e02cfbe1539bdcd9c1fd403fcc6958d413b5c400c8e99",
     "postdeploy_fault_matrix_status": "passed",
     "postdeploy_fault_matrix_plan_digest": "0a942dd2f9db5955630806f7d507f47ee8903c8db3c1bab9c0c62182a5ea2d11",
-    "fault_recovery_real_execution": "activation_pending"
+    "fault_recovery_real_execution": "activation_pending",
+    "immutable_release_candidate_status": "passed",
+    "immutable_release_candidate_id": "bb86be91fedac363301d7704030a67925c166dc826b11f97a0f5cf4222495ad0",
+    "immutable_release_manifest_digest": "4f83d414e4d950506c9430665e2b4875d9ad58e68b2e75bd31c5722dca9a66e4",
+    "immutable_release_operator_runbook_status": "passed",
+    "immutable_release_operator_runbook_digest": "d26533392f38e0de26e1deab4c07a9365cdbc97a5f948503554c1db35afc9c9f",
+    "release_candidate_real_activation": "activation_pending"
   }
 }

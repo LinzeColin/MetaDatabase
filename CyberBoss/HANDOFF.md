@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `088f04c786870c176681d92b8d01027baa7314b7`
+  `78cdc61a484fee5ae05e4ac63cd146557a32a7e9`
 - Remote publication: none
 
 ## Current state
@@ -18,8 +18,9 @@ Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent
 Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 `P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` and independent Stage 3 exit
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
-complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420` and
-`P4.4 / CB-430` passed; CB-440–CB-540 and PG-4–PG-5 remain `not_started`.
+complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420`,
+`P4.4 / CB-430` and `P4.5 / CB-440` passed; CB-500–CB-540 and PG-4–PG-5
+remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -136,8 +137,8 @@ remains `activation_pending`, and R2 remains `hazard_blocked` pending exact
 write-scope attestation. Timeline/global Status and Cloudflare Access/DNS/
 Analytics publication are also `activation_pending`. R2 remains `hazard_blocked`
 pending exact write-scope attestation; OCI, self-heal and timer remain
-`activation_pending`. The next Run must run its own package Skill Router before
-executing native node `CB-440`.
+`activation_pending`. The next Run is the native deterministic gate `PG-4`;
+its package Router loads no Skill.
 
 CB-410 is bound to implementation commit
 `911d14c83a313f5a611d595acd72ee80415d97fa` and tree
@@ -204,6 +205,26 @@ service operations remain zero; R2 remains `hazard_blocked`, every other
 external recovery truth remains `activation_pending`, control-plane and
 operations LLM calls remain zero, and macOS launchd is absent. The next native
 node is `CB-440` and must first run its own package Skill Router.
+
+CB-440 is bound to implementation commit
+`78cdc61a484fee5ae05e4ac63cd146557a32a7e9` and tree
+`8c2a400d5063876955a790b65e892aded696976d`. The package router selected
+`output-skill` and loaded exactly that one local body. The local candidate is
+content-addressed from the CB-430 closure/tree, app lockfile and source lock;
+it is not installed and it cannot switch current. It holds immutable
+candidate/current/previous fixture slots, strict MVP flags (Claude,
+attachments, full content and autonomous mutation disabled), additive
+backward-read fixture and a P0/P1 immediate-pointer rollback contract.
+
+Twenty-two credential-scrubbed commands and both manifests passed, including
+8 request-count predicates, cloud-layout/current/previous contract, migration
+fixture, frozen core predeploy, security assurance, secret scan, immutable
+CB-430/CB-420/CB-410/CB-400 anchors, full App regression, identity/config,
+DAG, traceability, no-wait and TaskPack. Candidate installation, current switch,
+live request-count Canary and live rollback are all `activation_pending`; no
+provider/data/service operation occurred, R2 remains `hazard_blocked`, model
+calls remain zero, and macOS launchd is absent. The next native node is `PG-4`;
+its package Router is deterministic and loads no Skill.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL

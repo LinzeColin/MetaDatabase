@@ -1,5 +1,25 @@
 # Changelog
 
+## P4.5 / CB-440 — 2026-07-27
+
+- Closed the local deterministic immutable-release candidate contract against
+  CB-430 closure `045682e330f20ce4a5271f1a444c17bf1e2bf42c`, bound to
+  implementation commit `78cdc61a484fee5ae05e4ac63cd146557a32a7e9` and tree
+  `8c2a400d5063876955a790b65e892aded696976d`, without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Added a content-addressed local candidate, frozen MVP flags, additive
+  backward-read fixture, immutable candidate/current/previous slots and eight
+  request-count predicates. P0/P1 fixture failure immediately requires the
+  previous pointer and keeps current unchanged; no fixed wait is allowed.
+- The package router selected `output-skill` and exactly one local body was
+  loaded. Twenty-two credential-free local checks plus both immutable manifests
+  passed, including cloud layout, migration fixture, frozen core predeploy,
+  security assurance, secret scan, App regression and prior evidence anchors.
+- Marked only CB-440 passed in the local deterministic scope. Candidate install,
+  current switch, live request-count Canary and live rollback remain
+  `activation_pending`; R2 remains `hazard_blocked`, model calls remain zero,
+  and macOS launchd remains absent. The next native node is PG-4.
+
 ## P4.4 / CB-430 — 2026-07-27
 
 - Closed the local deterministic fault/crash-cut/recovery/restore core set
