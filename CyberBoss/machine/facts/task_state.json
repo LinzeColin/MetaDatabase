@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P4.5",
-    "gate_id": null,
-    "task_id": "CB-440",
-    "scope": "immutable_release_candidate_slots_canary_rollback_contract",
+    "run_id": "PG-4",
+    "gate_id": "PG-4",
+    "task_id": null,
+    "scope": "stage_4_dual_pipeline_safe_release_gate",
     "status": "passed"
   },
   "prestage": [
@@ -21,7 +21,7 @@
     "PG-1": "passed",
     "PG-2": "passed",
     "PG-3": "passed",
-    "PG-4": "not_started",
+    "PG-4": "passed",
     "PG-5": "not_started"
   },
   "tasks": [
@@ -64,13 +64,11 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-440",
-      "selected_skill": "output-skill",
-      "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
-      "max_lightweight_skill_loads": 1,
-      "prohibited_skill_loads": 0,
-      "actual_skill_body_loads": 1,
-      "fallback": "machine/skill_microplaybooks.json"
+      "task_id": "PG-4",
+      "selected_skill": null,
+      "mode": "DETERMINISTIC_TEST_ONLY",
+      "max_lightweight_skill_loads": 0,
+      "prohibited_skill_loads": 0
     },
     "ordinary_sync": "daily at 03:20 UTC",
     "material_event_types": [
@@ -129,6 +127,13 @@
     "immutable_release_manifest_digest": "4f83d414e4d950506c9430665e2b4875d9ad58e68b2e75bd31c5722dca9a66e4",
     "immutable_release_operator_runbook_status": "passed",
     "immutable_release_operator_runbook_digest": "d26533392f38e0de26e1deab4c07a9365cdbc97a5f948503554c1db35afc9c9f",
-    "release_candidate_real_activation": "activation_pending"
+    "release_candidate_real_activation": "activation_pending",
+    "pg_4_executed": true,
+    "stage_4_anchor_commit": "5ac84f31e6889dc416cad405011dda572a463d38",
+    "stage_4_anchor_tree": "70913b5a040bed7929e01de9d3492b0b7187dce9",
+    "stage_4_subject_digest": "34f540bea38fbb4dfef0d6a08f15e06bf8fa5827b9023198a1fcaff639a8a512",
+    "stage_4_safe_release_gate_status": "passed",
+    "stage_4_unaccepted_p0_p1_findings": 0,
+    "formal_final_acceptance": "activation_pending"
   }
 }

@@ -1,5 +1,28 @@
 # Changelog
 
+## PG-4 — 2026-07-27
+
+- Closed the independent Stage 4 dual-pipeline and safe-release gate against
+  immutable CB-440 anchor `5ac84f31e6889dc416cad405011dda572a463d38`, bound to
+  implementation commit `d9960a4de965500802afb08758a43d7fb8d5032d` and tree
+  `1a2befd9a124551eebfd103e7cbc3859485168ec`, without changing the
+  Owner-locked product version `v0.0.0.5` or design baseline `v0.0.0.4`.
+- Re-attested the five frozen CB-400–CB-440 Subject/evidence/implementation
+  bindings and sealed Stage 4 evidence digest
+  `34f540bea38fbb4dfef0d6a08f15e06bf8fa5827b9023198a1fcaff639a8a512`.
+  Software correctness, model-safety fixture, security/privacy/supply-chain,
+  fault/restore and immutable release candidate contracts all passed with
+  unaccepted P0/P1 findings=0.
+- The package Router selected no Skill in `DETERMINISTIC_TEST_ONLY` mode.
+  Twenty-two credential-free local commands and both immutable manifests passed;
+  no verifier, model, provider operation, macOS launchd dependency or real-time
+  wait was used.
+- Marked only PG-4 passed in the local deterministic scope. This is not
+  FORMAL_FINAL_ACCEPTANCE: candidate installation, current switch, live
+  request-count Canary, live rollback and all unapproved cloud/data/service
+  operations remain `activation_pending` (R2 remains `hazard_blocked`).
+  The next native node is CB-500.
+
 ## P4.5 / CB-440 — 2026-07-27
 
 - Closed the local deterministic immutable-release candidate contract against

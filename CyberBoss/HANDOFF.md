@@ -7,7 +7,7 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `78cdc61a484fee5ae05e4ac63cd146557a32a7e9`
+  `d9960a4de965500802afb08758a43d7fb8d5032d`
 - Remote publication: none
 
 ## Current state
@@ -19,8 +19,8 @@ Stage 2 exit gate `PG-2`, `P3.1 / CB-300`, `P3.2 / CB-310`, and
 `P3.3 / CB-320`, `P3.4 / CB-330`, `P3.5 / CB-340` and independent Stage 3 exit
 gate `PG-3` passed. Stages 0–3 are each 5/5 tasks plus their independent gate
 complete. `P4.1 / CB-400`, `P4.2 / CB-410`, `P4.3 / CB-420`,
-`P4.4 / CB-430` and `P4.5 / CB-440` passed; CB-500–CB-540 and PG-4–PG-5
-remain `not_started`.
+`P4.4 / CB-430`, `P4.5 / CB-440` and independent Stage 4 exit gate `PG-4`
+passed. CB-500–CB-540 and PG-5 remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -223,8 +223,26 @@ CB-430/CB-420/CB-410/CB-400 anchors, full App regression, identity/config,
 DAG, traceability, no-wait and TaskPack. Candidate installation, current switch,
 live request-count Canary and live rollback are all `activation_pending`; no
 provider/data/service operation occurred, R2 remains `hazard_blocked`, model
-calls remain zero, and macOS launchd is absent. The next native node is `PG-4`;
-its package Router is deterministic and loads no Skill.
+calls remain zero, and macOS launchd is absent.
+
+PG-4 is bound to implementation commit
+`d9960a4de965500802afb08758a43d7fb8d5032d` and tree
+`1a2befd9a124551eebfd103e7cbc3859485168ec`. The package Router passed with
+`DETERMINISTIC_TEST_ONLY`, `selected_skill=null` and zero Skill body loads.
+The independent gate re-attested all CB-400–CB-440 implementation trees and
+frozen evidence trees against anchor
+`5ac84f31e6889dc416cad405011dda572a463d38`, sealed Stage 4 evidence digest
+`34f540bea38fbb4dfef0d6a08f15e06bf8fa5827b9023198a1fcaff639a8a512`, and
+reviewed software correctness, model-safety fixture, security/privacy, fault/
+restore and immutable candidate seals for unaccepted P0/P1 findings.
+
+Twenty-two credential-free deterministic commands and both manifests passed.
+Candidate installation, current switch, live request-count Canary, live rollback
+and all other unapproved provider/data/service operations remain
+`activation_pending` (R2 remains `hazard_blocked`). The local PG-4 result is
+not FORMAL_FINAL_ACCEPTANCE; control-plane and operations LLM calls remain zero
+and macOS launchd is absent. The next native node is `CB-500` and must first
+run its own package Skill Router.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -820,15 +838,15 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Next Run
 
-The next eligible Run is exactly `P3.2 / CB-310`. It remains `not_started`.
-CB-300 does not authorize Timeline publication, Cloudflare Access, Status
-activation, canonical writeback, real provider activation or PG-3 in the same
-Run.
+The next eligible Run is exactly `P5.1 / CB-500`. It remains `not_started`.
+PG-4 does not authorize clean-staging execution, Timeline publication,
+Cloudflare Access, Status activation, canonical writeback, real provider
+activation, promotion, Canary or rollback in the same Run.
 
-Start `P3.2 / CB-310` only under a new single-phase Run Contract after its own
-package Skill Router. Keep source/license, CB-000–CB-300 and PG-0–PG-2 evidence
+Start `P5.1 / CB-500` only under a new single-phase Run Contract after its own
+package Skill Router. Keep source/license, CB-000–CB-440 and PG-0–PG-4 evidence
 immutable, preserve the strict dual-license conflict record and continue the
-final-only GitHub publication rule. Scope CB-310 to an atomic redacted Status
-snapshot and the existing collector adapter; do not create a second Status
-platform, expose Runtime publicly, invoke a model, claim Cloudflare activation
-or revise CB-300's static-only truth.
+final-only GitHub publication rule. Scope CB-500 to a clean, local staging
+dress-rehearsal contract only; do not create a second source of truth, expose
+Runtime publicly, invoke a model, claim cloud activation or revise PG-4's
+activation-pending truth.
