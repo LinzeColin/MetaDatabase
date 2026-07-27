@@ -1,0 +1,88 @@
+{
+  "schema_version": "cyberboss.cb540.final-decision-summary.v1",
+  "task_id": "CB-540",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "cb_530_closure_commit": "5e01bb9fc61fd932359e32667fc2cd5495aa724d",
+  "implementation_commit": "fd3cd1e19d70caa148c3785288aaabfb909fed85",
+  "implementation_tree": "9bc30622d34b11271c390420fa37e89d1ed1e5d8",
+  "release": {
+    "current": "fd3cd1e19d70caa148c3785288aaabfb909fed85",
+    "previous": "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+    "source_tree": "bccd6aa8ade7b9fa19c6c54f5472df342844ebca",
+    "source_archive_sha256": "288147fde6622cb76c5e21a3600d16d71134510b9215554a8a8261bbe309c1c2",
+    "release_manifest_sha256": "4829f41e002e5c6fa242182d851317df376d6f407a8c593577612af738490ff7",
+    "immutable": true,
+    "current_previous_pointer": "verified"
+  },
+  "skill_router": {
+    "task_id": "CB-540",
+    "selected_skill": "output-skill",
+    "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
+    "max_lightweight_skill_loads": 1,
+    "prohibited_skill_loads": 0,
+    "actual_skill_body_loads": 0,
+    "fallback": "machine/skill_microplaybooks.json"
+  },
+  "critical_acceptance": {
+    "FA-AC-001": "PASS",
+    "FA-AC-020": "PASS",
+    "FA-AC-021": "PASS",
+    "FA-AC-022": "PASS",
+    "FA-AC-023": "PASS",
+    "FA-AC-024": "PASS",
+    "FA-AC-025": "PASS",
+    "FA-AC-027": "PASS",
+    "FA-AC-028": "PASS",
+    "FA-AC-029": "PASS",
+    "FA-AC-030": "PASS"
+  },
+  "crossplane_receipts": {
+    "cloud_service": "active",
+    "loopback_healthz": "200",
+    "timeline": "200",
+    "readyz": "503_channel_pending",
+    "status_snapshot_anonymous": "401",
+    "cloudflare_tunnel": "active",
+    "cloudflare_access_unauthenticated": "302",
+    "global_status_collector": "refreshed_with_cyberboss_marker",
+    "private_database_daily_sync": "success_no_clone",
+    "private_database_material_sync": "success_no_clone",
+    "backup_timer": "active",
+    "self_heal": "verified_exact_channel_pending_no_active_process_restart",
+    "self_heal_timer": "enabled_active",
+    "live_rollback": "verified_current_previous_current",
+    "live_rollback_transitions": 3
+  },
+  "backup_restore_reuse": {
+    "latest_backup_id": "backup_5233145600b2b004151de2bb",
+    "r2_restore": "verified_put_get_hash_and_isolated_restore",
+    "oci_daily_par": "activation_pending_write_only_par",
+    "oci_exact_object_readback": "verified_ephemeral_then_revoked"
+  },
+  "development_candidate": {
+    "decision": "MVP_DEGRADED",
+    "unaccepted_p0": [],
+    "unaccepted_p1": [],
+    "degraded_components": [
+      "channel_pending_missing_real_wechat_credential",
+      "access_service_token_minimal_scope_pending",
+      "cloudflare_web_analytics_pending",
+      "oci_daily_par_readback_pending_write_only"
+    ]
+  },
+  "safety": {
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "real_time_waits": 0,
+    "macos_launchd_dependency": false,
+    "private_database_clone": false,
+    "new_repository": false,
+    "parallel_fact_source": false,
+    "pending_claimed_as_ready": false
+  },
+  "formal_final_acceptance": "BLOCKED_EXTERNAL_INDEPENDENT_CONTEXTS_NOT_RUN",
+  "result": "passed_mvp_degraded_subject_ready_for_pg5",
+  "next_native_node": "PG-5"
+}

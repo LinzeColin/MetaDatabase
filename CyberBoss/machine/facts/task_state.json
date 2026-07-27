@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.7",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P5.4",
+    "run_id": "P5.5",
     "gate_id": null,
-    "task_id": "CB-530",
-    "scope": "real_r2_oci_backup_isolated_restore_and_operator_handover",
+    "task_id": "CB-540",
+    "scope": "exact_mvp_degraded_decision_subject_seal_and_real_selfheal_rollback",
     "status": "passed"
   },
   "prestage": [
@@ -54,7 +54,7 @@
     {"id": "CB-510", "stage": "S5", "phase": "P5.2", "status": "passed"},
     {"id": "CB-520", "stage": "S5", "phase": "P5.3", "status": "passed"},
     {"id": "CB-530", "stage": "S5", "phase": "P5.4", "status": "passed"},
-    {"id": "CB-540", "stage": "S5", "phase": "P5.5", "status": "not_started"}
+    {"id": "CB-540", "stage": "S5", "phase": "P5.5", "status": "passed"}
   ],
   "taskpack_overlay": {
     "product_version": "v0.0.0.5",
@@ -64,7 +64,7 @@
       "CB-240", "PG-2", "CB-300", "CB-310", "CB-320", "CB-330", "CB-340", "PG-3", "CB-400", "CB-410", "CB-420", "CB-430", "CB-440", "PG-4", "CB-500", "CB-510", "CB-520", "CB-530", "CB-540", "PG-5"
     ],
     "skill_router": {
-      "task_id": "CB-530",
+      "task_id": "CB-540",
       "selected_skill": "output-skill",
       "mode": "NATIVE_IF_PRESENT_ELSE_EMBEDDED",
       "max_lightweight_skill_loads": 1,
@@ -79,8 +79,8 @@
       "recovery_completed"
     ],
     "private_database_activation": "verified",
-    "acceptance_state": "passed_with_explicit_channel_and_daily_oci_par_pending",
-    "acceptance_scope": "real_r2_oci_backup_and_isolated_restore_with_explicit_pending",
+    "acceptance_state": "mvp_degraded_with_explicit_channel_and_provider_pending",
+    "acceptance_scope": "real_cloud_crossplane_selfheal_and_current_release_rollback_subject_seal",
     "control_plane_llm_calls": 0,
     "operations_llm_calls": 0,
     "macos_launchd_dependency": false,
@@ -141,7 +141,7 @@
     "stage_4_subject_digest": "34f540bea38fbb4dfef0d6a08f15e06bf8fa5827b9023198a1fcaff639a8a512",
     "stage_4_safe_release_gate_status": "passed",
     "stage_4_unaccepted_p0_p1_findings": 0,
-    "formal_final_acceptance": "activation_pending",
+    "formal_final_acceptance": "blocked_external_independent_contexts_not_run",
     "cb_510_implementation_commit": "82b47668c33cc403fee9194ad42b77e49c8b7da3",
     "cb_510_implementation_tree": "0a472d2846d6478e01f3d392624ab2c825ad7b40",
     "channel_activation": "pending_missing_real_wechat_credential",
@@ -173,6 +173,25 @@
     "cb_530_cloudflare_access_continuity": "verified_unauthenticated_302",
     "cb_530_status_refresh": "verified",
     "cb_530_private_database_daily_sync": "verified_no_clone",
-    "cb_530_private_database_material_sync": "verified_no_clone"
+    "cb_530_private_database_material_sync": "verified_no_clone",
+    "cb_540_implementation_commit": "fd3cd1e19d70caa148c3785288aaabfb909fed85",
+    "cb_540_implementation_tree": "9bc30622d34b11271c390420fa37e89d1ed1e5d8",
+    "cb_540_release_source_tree": "bccd6aa8ade7b9fa19c6c54f5472df342844ebca",
+    "cb_540_release_source_archive_sha256": "288147fde6622cb76c5e21a3600d16d71134510b9215554a8a8261bbe309c1c2",
+    "cb_540_release_manifest_sha256": "4829f41e002e5c6fa242182d851317df376d6f407a8c593577612af738490ff7",
+    "cb_540_release_current": "verified",
+    "cb_540_release_previous": "verified",
+    "cb_540_timeline": "verified",
+    "cb_540_status_anonymous": "verified_401",
+    "cb_540_cloudflare_access": "verified_unauthenticated_302",
+    "cb_540_global_status": "verified_cyberboss_marker",
+    "cb_540_private_database_daily_sync": "verified_no_clone",
+    "cb_540_private_database_material_sync": "verified_no_clone",
+    "cb_540_self_heal": "verified_channel_pending_no_restart",
+    "cb_540_self_heal_timer": "enabled_active",
+    "cb_540_live_rollback": "verified_current_previous_current",
+    "cb_540_controlled_release_transitions": 3,
+    "cb_540_candidate_decision": "MVP_DEGRADED",
+    "cb_540_deployment_digest": "feb6ee99d3c13960a93d912f7878c48b51c587419618b79cef75eea2a890a5c9"
   }
 }
