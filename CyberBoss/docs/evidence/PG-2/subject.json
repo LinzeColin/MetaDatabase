@@ -1,0 +1,23 @@
+{
+  "schema_version": "cyberboss.pg2.subject.v1",
+  "task_id": "PG-2",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "stage_2_anchor_commit": "91e9c267a775b138e27b196f0cc96de552ba958b",
+  "stage_2_anchor_tree": "53cac81bc4a63af9844e40dbea7d04ce14e35199",
+  "implementation_commit": "352ed7dfd9a77b93ae7667b7a208eae964625925",
+  "implementation_tree": "fd49e3f6e12bcf71d6c8101e6476643f263a1c8d",
+  "stage_2_evidence_digest": "631568476f165850c53d46c08ca2ee13db2b378408fd92289bd56565d09a7bb2",
+  "summary_sha256": "ced7d055370618be1fa5b1613afb697cf1b1a7cb283c78a86bc890bb4f0cb746",
+  "artifact_manifest_sha256": "9a09a0dbbe5f22b21392947710c406f2ce89c2c476c670dc84c2c5763bebeb86",
+  "implementation_kit_manifest_sha256": "fdc23d74438900b17aa1ede98359158457446f15cbe4369dd37a3023d94f3bba",
+  "deployment_release_pointer": "activation_pending",
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "real_cloudflare_operations": 0,
+  "real_oci_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0,
+  "macos_launchd_dependency": false
+}

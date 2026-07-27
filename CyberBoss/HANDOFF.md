@@ -7,17 +7,17 @@
 - Local branch: `codex/cyberboss-v5-cb240-closure`
 - Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
 - Latest implementation:
-  `fcfac053cab6944b2fc13a62491cce8ddb93e649`
+  `352ed7dfd9a77b93ae7667b7a208eae964625925`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
-Stage 1 exit gate `PG-1`, plus `P2.1 / CB-200` through `P2.5 / CB-240`
-passed. Stage 0 and Stage 1 are each 5/5 tasks plus their gate complete;
-Stage 2 is 5/5 before the independent `PG-2`. CB-300–CB-540 and PG-2–PG-5
-remain `not_started`.
+Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, and
+independent Stage 2 exit gate `PG-2` passed. Stage 0, Stage 1 and Stage 2 are
+each 5/5 tasks plus their independent gate complete. CB-300–CB-540 and
+PG-3–PG-5 remain `not_started`.
 
 CB-240 local deterministic closure is bound to implementation commit
 `fcfac053cab6944b2fc13a62491cce8ddb93e649` and tree
@@ -30,11 +30,22 @@ material-only data-plane path/oneshot worker sharing the canonical lock.
 No new fact produces `noop_no_commit`; normal ordinary age is observational,
 while integrity/resource/material-retry conditions protect bounded mutation.
 
+PG-2 is bound to implementation commit
+`352ed7dfd9a77b93ae7667b7a208eae964625925` and tree
+`fd49e3f6e12bcf71d6c8101e6476643f263a1c8d`. The package router passed with
+`DETERMINISTIC_TEST_ONLY`, `selected_skill=null` and zero Skill loads. The
+fail-closed aggregator confirmed all five immutable Stage 2 evidence trees,
+re-ran focused App/root suites plus full App, DAG, traceability, no-wait,
+TaskPack, config and identity checks in a scrubbed environment, and sealed a
+Stage 2 evidence digest. It did not revise an implementation claim or begin
+CB-300.
+
 The closure is local and credential-free. Private-Database/R2/Cloudflare/OCI
 real operations are `0`, control-plane and operations LLM calls are `0`, no
-macOS launchd dependency exists, and all real-provider/candidate activation
-remains `activation_pending`. Do not start PG-2 in this Run. The next Run must
-run its own package Skill Router before executing native node `PG-2`.
+macOS launchd dependency exists, Private-Database/Cloudflare/OCI activation
+remains `activation_pending`, and R2 remains `hazard_blocked` pending exact
+write-scope attestation. The next Run must run its own package Skill Router
+before executing native node `CB-300`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL

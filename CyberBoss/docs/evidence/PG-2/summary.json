@@ -1,0 +1,91 @@
+{
+  "schema_version": "cyberboss.pg2.closure-summary.v1",
+  "task_id": "PG-2",
+  "product_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.7",
+  "taskpack_zip_sha256": "77666f5d2fdb60be6f103540d1d8947a1eb20c7084ed6036c97f213534fda48a",
+  "stage_2_anchor_commit": "91e9c267a775b138e27b196f0cc96de552ba958b",
+  "stage_2_anchor_tree": "53cac81bc4a63af9844e40dbea7d04ce14e35199",
+  "implementation_commit": "352ed7dfd9a77b93ae7667b7a208eae964625925",
+  "implementation_tree": "fd49e3f6e12bcf71d6c8101e6476643f263a1c8d",
+  "stage_2_evidence": [
+    {
+      "task_id": "CB-200",
+      "phase": "P2.1",
+      "status": "passed",
+      "implementation_commit": "6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287",
+      "repository_tree": "2bcca638945ce192c425755bba9b5a5769b5b491",
+      "evidence_tree": "7125f4a49eb452aeca634c482b9e2457f5f3cffa"
+    },
+    {
+      "task_id": "CB-210",
+      "phase": "P2.2",
+      "status": "passed",
+      "implementation_commit": "5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea",
+      "repository_tree": "ebc1f9d6befc0c2f21086747d98b3c378950431a",
+      "evidence_tree": "e3f5c830a1f015578123d071459bfe22a7208e4a"
+    },
+    {
+      "task_id": "CB-220",
+      "phase": "P2.3",
+      "status": "passed",
+      "implementation_commit": "ac51cd2511a45def88068aef6d23fd10d7f507e4",
+      "repository_tree": "77fa3a7c830921fcfd7cab449532e194af8ef74d",
+      "evidence_tree": "b93190104f2ed7c0597eac4ee46538362a163904"
+    },
+    {
+      "task_id": "CB-230",
+      "phase": "P2.4",
+      "status": "passed",
+      "implementation_commit": "1b3e338847d8819869a5e12091f25b5463a8d3be",
+      "repository_tree": "ae9305f9e5c9746af4c1aab4f8fc4a44f54ddd7c",
+      "evidence_tree": "b18116fadeb2f5e345ab92cd6c62a43ea839ebd5"
+    },
+    {
+      "task_id": "CB-240",
+      "phase": "P2.5",
+      "status": "passed",
+      "implementation_commit": "fcfac053cab6944b2fc13a62491cce8ddb93e649",
+      "repository_tree": "781a8e32d2c3248c4cc4aebfe164a033efd45949",
+      "evidence_tree": "35a8e46c4a2e7c92b2d47d0133ba632500929ebf"
+    }
+  ],
+  "stage_2_evidence_digest": "631568476f165850c53d46c08ca2ee13db2b378408fd92289bd56565d09a7bb2",
+  "acceptance": {
+    "FA-AC-007": "passed",
+    "FA-AC-027": "passed",
+    "FA-AC-029": "passed"
+  },
+  "local_validation": {
+    "stage2_focused_regression": "passed",
+    "clean_state_replay": "passed",
+    "dag": "passed",
+    "traceability": "passed",
+    "no_wait": "passed",
+    "taskpack": "passed",
+    "manifests": "passed"
+  },
+  "skill_router": {
+    "task_id": "PG-2",
+    "selected_skill": null,
+    "mode": "DETERMINISTIC_TEST_ONLY",
+    "max_lightweight_skill_loads": 0,
+    "prohibited_skill_loads": 0
+  },
+  "external_activation": {
+    "private_database": "activation_pending",
+    "r2": "hazard_blocked",
+    "cloudflare_access": "activation_pending",
+    "oci": "activation_pending"
+  },
+  "real_private_database_operations": 0,
+  "real_r2_operations": 0,
+  "real_cloudflare_operations": 0,
+  "real_oci_operations": 0,
+  "control_plane_llm_calls": 0,
+  "operations_llm_calls": 0,
+  "macos_launchd_dependency": false,
+  "result": "passed",
+  "evidence_scope": "local_deterministic_only",
+  "next_native_node": "CB-300"
+}

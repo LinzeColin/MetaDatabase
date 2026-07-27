@@ -1,5 +1,21 @@
 # Changelog
 
+## PG-2 — 2026-07-27
+
+- Closed the independent Stage 2 durable messaging/canonical gate against the
+  immutable CB-240 closure anchor `91e9c267a775b138e27b196f0cc96de552ba958b`.
+  The sealed Stage 2 subject binds all five implementation commits, evidence
+  trees, aggregate evidence digest and both frozen manifest digests without
+  changing the Owner-locked product version `v0.0.0.5`.
+- The package Skill Router returned `DETERMINISTIC_TEST_ONLY` for PG-2;
+  no Skill was loaded. The fail-closed local gate actually reran focused Stage
+  2 App/root suites, full App regression, identity/config, DAG, traceability,
+  no-wait and TaskPack checks in a credential-name-scrubbed temporary state.
+- Marked `PG-2=passed` only for the local deterministic Gate. No provider,
+  Private-Database, R2, Cloudflare, OCI, WeChat, Codex, OVH or GitHub mutation
+  occurred; real activation remains pending (R2 remains hazard-blocked), and
+  the next independent native Run is `CB-300`.
+
 ## P2.5 / CB-240 — 2026-07-27
 
 - Bound the redacted append-only canonical-sync implementation to local commit
