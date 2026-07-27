@@ -8,12 +8,19 @@ MetaDatabase 的股票类 Codex Skill 规范集合。人工先看本页，agent 
 |---|---|---|---:|---|---|
 | `stock-commercial-opportunities` | 股票商业机会拆解 | `semver` | `3.0.0`（v3） | `Stock_Skill/stock-commercial-opportunities-skill/` | source-only，禁止本地安装 |
 | `bottleneck-serenity-skill` | bottleneck-serenity-skill | `numeric-quad` | `0.0.0.1`（v0.0.0.1） | `Stock_Skill/bottleneck-serenity-skill/` | source-only，禁止本地安装 |
+| `equity-foresight-signal` | 股势前瞻 | `numeric-quad` | `0.0.0.1`（v0.0.0.1） | `Stock_Skill/equity-foresight-signal-skill/` | source-only，禁止本地安装 |
+| `global-equity-lead-lag-atlas` | 全球股市时序联动图谱 | `numeric-quad` | `0.0.0.1`（v0.0.0.1） | `Stock_Skill/global-equity-lead-lag-atlas/` | source-only，禁止本地安装 |
+| `equity-event-atlas` | 股票事件航图 | `numeric-quad` | `0.0.0.1`（v0.0.0.1） | `Stock_Skill/equity-event-atlas/` | source-only，禁止本地安装 |
 
 v1 (`1.0.0`) 与 v2 (`2.0.0`) 只作为不可变历史 ZIP 保存在项目 `archives/` 中；它们不是当前版本、默认恢复源或安装目标。
 
 `bottleneck-serenity-skill=0.0.0.1` 使用完整展示/release label `v0.0.0.1`，首版 archive 数组为 `[]`；
 其 current 状态由 canonical source、真实 release SHA、两个 manifest、发现文档和 registry validator
 共同证明，不构成本机安装或自动交易能力。
+
+`equity-foresight-signal=0.0.0.1`、`global-equity-lead-lag-atlas=0.0.0.1` 与
+`equity-event-atlas=0.0.0.1` 均是 source-only current entries，禁止本机安装。两项 Atlas 的 canonical
+source 修复了冻结包在 Python 3.9 上的 `Path.write_text` 调用兼容性，原始冻结 ZIP 仍保留为 release 证据。
 
 ## Schema `1.1` 版本模型
 

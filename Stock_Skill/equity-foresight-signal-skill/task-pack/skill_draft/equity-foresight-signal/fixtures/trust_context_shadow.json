@@ -1,0 +1,15 @@
+{
+  "allowed_usage_modes": [
+    "SHADOW"
+  ],
+  "approved_bundle_sha256": "5ea0b674a59821cbc0ee3a8676d4c73d8076ef440a877359e62a2946fcc84578",
+  "approved_promotion_receipt_sha256": "00ed35dd312dbb193e87de3bde3a07161c9950bde01e669ea7b723d15b9b278e",
+  "assurance_level": "HOST_POLICY_BOUND",
+  "authority_id": "host:efs_release_controller",
+  "policy_id": "fixture_host_policy_v1",
+  "policy_sha256": "eaa040d44ec4c5538419c5386b79d11f439487b1bae38139b4ff92b5782aa90c",
+  "schema": "efs.host_trust_context.v1",
+  "source": "HOST_INJECTED_OUT_OF_BAND",
+  "valid_from": "2026-01-01T00:00:00Z",
+  "valid_until": "2027-01-01T00:00:00Z"
+}

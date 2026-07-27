@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" role="img" aria-labelledby="title desc">
+<title id="title">合成航天公司 股份供应瀑布</title>
+<desc id="desc">展示分析包中明确提供的潜在供应增减，不把可出售股份等同于实际出售。</desc>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="550.0" y="34.0" font-family="Arial, sans-serif" font-size="22" text-anchor="middle" font-weight="bold">合成航天公司：潜在供应变化瀑布图</text>
+<text x="550.0" y="58.0" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="normal">可出售 ≠ 实际出售 ≠ 净新增市场供给</text>
+<line x1="110" y1="484.2" x2="1040" y2="484.2" stroke="#333333" stroke-width="1.5"/>
+<rect x="165.8" y="197.5" width="198.4" height="286.7" fill="#2f855a" fill-opacity="0.78"/>
+<text x="265.0" y="189.5" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold">+100.00</text>
+<text x="265.0" y="548.0" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="normal">当前可交易基数</text>
+<line x1="364.2" y1="197.5" x2="475.8" y2="197.5" stroke="#777777" stroke-dasharray="4 3"/>
+<rect x="475.8" y="125.8" width="198.4" height="71.7" fill="#2f855a" fill-opacity="0.78"/>
+<text x="575.0" y="117.8" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold">+25.00</text>
+<text x="575.0" y="548.0" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="normal">首批潜在解禁</text>
+<line x1="674.2" y1="125.8" x2="785.8" y2="125.8" stroke="#777777" stroke-dasharray="4 3"/>
+<rect x="785.8" y="125.8" width="198.4" height="22.9" fill="#9b2c2c" fill-opacity="0.78"/>
+<text x="885.0" y="117.8" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold">-8.00</text>
+<text x="885.0" y="548.0" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="normal">被动需求抵消假设</text>
+<text x="28.0" y="305.0" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" font-weight="normal">供应单位（由输入定义）</text>
+<text x="550.0" y="596.0" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="normal">图表只渲染输入事实与假设；没有证据时不得自动补值。</text>
+</svg>

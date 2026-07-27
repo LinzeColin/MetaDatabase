@@ -1,0 +1,380 @@
+{
+  "admissible_expert_sets": [
+    {
+      "aggregator": {
+        "intercept": "0.00000000",
+        "weights": {
+          "macro": "0.30000000",
+          "price": "0.70000000"
+        }
+      },
+      "artifact_sha256": "d85f0a3c188be5e360d6330fa92ec5348ba65315a74c3612051d0de01e2336f6",
+      "experts": [
+        "price",
+        "macro"
+      ],
+      "fit_method": "engineering_fixture_aggregator_v1",
+      "set_id": "price_macro_v1",
+      "status": "ENGINEERING_VALIDATED"
+    },
+    {
+      "aggregator": {
+        "intercept": "0.00000000",
+        "weights": {
+          "price": "1.00000000"
+        }
+      },
+      "artifact_sha256": "11317649066da485aab38c4f43935fd3a2f559ebc7b6c89a87306372a2f1c7e0",
+      "experts": [
+        "price"
+      ],
+      "fit_method": "engineering_fixture_aggregator_v1",
+      "set_id": "price_only_v1",
+      "status": "ENGINEERING_VALIDATED"
+    }
+  ],
+  "baseline": {
+    "artifact_sha256": "ab64131b9fd2888c7e76152a45f3bb4c79107ea3b5554949f21af77e46c15821",
+    "calendar_id": "XNYS",
+    "cost_contract_sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+    "estimation_method": "engineering_fixture_constant_v1",
+    "horizon": 20,
+    "label_contract_id": "net_return_next_open_20d_gt_zero_v1",
+    "prob_up": "0.60000000",
+    "status": "ENGINEERING_VALIDATED"
+  },
+  "bundle_id": "fixture_spy_20d_v0_0_0_1",
+  "calendar_id": "XNYS",
+  "calibration": {
+    "a": "1.00000000",
+    "artifact_sha256": "2f3f449ba88935cd14e361644d0b9e3788b2d6b9203f54046b5d20a79e72d618",
+    "b": "0.00000000",
+    "calendar_id": "XNYS",
+    "cost_contract_sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+    "expires_at": "2027-01-01T00:00:00Z",
+    "fit_method": "engineering_fixture_identity_v1",
+    "horizon": 20,
+    "label_contract_id": "net_return_next_open_20d_gt_zero_v1",
+    "status": "ENGINEERING_VALIDATED",
+    "type": "platt_v1"
+  },
+  "cost_contract": {
+    "borrow_bps": "0",
+    "commission_bps": "0",
+    "id": "us_etf_round_trip_10bps_v1",
+    "sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+    "spread_slippage_bps": "10",
+    "tax_bps": "0"
+  },
+  "created_at": "2026-01-01T00:00:00Z",
+  "economic_edge_head": {
+    "aggregate_slope": "0.01000000",
+    "artifact_sha256": "545856babd548a14f1956ca0101062afdceea15c02d811689d2d4e8c81d9ca10",
+    "base_mean_net_return": "0.00200000",
+    "calendar_id": "XNYS",
+    "cost_contract_sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+    "fit_method": "engineering_fixture_linear_net_return_v1",
+    "horizon": 20,
+    "label_contract_id": "net_return_next_open_20d_gt_zero_v1",
+    "status": "ENGINEERING_VALIDATED",
+    "type": "linear_expected_net_return_v1"
+  },
+  "experts": {
+    "macro": {
+      "artifact_sha256": "359cb89bad4924e19c04955ddd5dc3d51e49bb15226f6608dec70f08af33e4e0",
+      "fit_method": "engineering_fixture_linear_v1",
+      "intercept": "0.60000000",
+      "max_age_seconds": 172800,
+      "minimum_evidence_grade": "SOURCE_VERIFIED",
+      "model_type": "linear_logit_v1",
+      "required_features": [
+        "vix_level"
+      ],
+      "status": "ENGINEERING_VALIDATED",
+      "weights": {
+        "vix_level": "-0.03000000"
+      }
+    },
+    "price": {
+      "artifact_sha256": "61451bf88cb43586bcc48d5e386babf7e1ffad16e25c5f64acceb172a1ba14f1",
+      "fit_method": "engineering_fixture_linear_v1",
+      "intercept": "0.00000000",
+      "max_age_seconds": 172800,
+      "minimum_evidence_grade": "POINT_IN_TIME_VERIFIED",
+      "model_type": "linear_logit_v1",
+      "required_features": [
+        "mom_20",
+        "realized_vol_20"
+      ],
+      "status": "ENGINEERING_VALIDATED",
+      "weights": {
+        "mom_20": "1.20000000",
+        "realized_vol_20": "-0.80000000"
+      }
+    }
+  },
+  "expires_at": "2027-01-01T00:00:00Z",
+  "feature_contracts": {
+    "earnings_date_known": {
+      "allowed_license_ids": [
+        "license:public_fixture_v1"
+      ],
+      "allowed_source_dataset_ids": [
+        "dataset:fixture_calendar_v1"
+      ],
+      "allowed_temporal_semantics": [
+        "SCHEDULED_FUTURE"
+      ],
+      "artifact_sha256": "1920bf2eb2253ad56c9f13aa0fc9e6d3f3f1ee3dd99b1e6ea34411bc0964bd2a",
+      "freshness_clock": "PUBLISHED_AT",
+      "max_value": "1.00000000",
+      "min_value": "0.00000000",
+      "model_max_value": "1.00000000",
+      "model_min_value": "0.00000000",
+      "null_policy": "REJECT",
+      "source_policy": "DECLARED_LICENSED_SOURCE",
+      "transform_id": "identity_v1",
+      "transform_sha256": "2900b2c49cb4a74fa927ae2954becfbaec14a2995a9a5256c26973c1843e245b",
+      "unit": "binary_flag"
+    },
+    "mom_20": {
+      "allowed_license_ids": [
+        "license:public_fixture_v1"
+      ],
+      "allowed_source_dataset_ids": [
+        "dataset:fixture_price_v1"
+      ],
+      "allowed_temporal_semantics": [
+        "MARKET_QUOTE",
+        "OBSERVED_FACT"
+      ],
+      "artifact_sha256": "9aea486bbdff72089eaefbd8d04d9faec44520584447348b73a1382a874fc83b",
+      "freshness_clock": "EFFECTIVE_AT",
+      "max_value": "10.00000000",
+      "min_value": "-1.00000000",
+      "model_max_value": "0.50000000",
+      "model_min_value": "-0.50000000",
+      "null_policy": "REJECT",
+      "source_policy": "DECLARED_LICENSED_SOURCE",
+      "transform_id": "identity_v1",
+      "transform_sha256": "2900b2c49cb4a74fa927ae2954becfbaec14a2995a9a5256c26973c1843e245b",
+      "unit": "decimal_return"
+    },
+    "realized_vol_20": {
+      "allowed_license_ids": [
+        "license:public_fixture_v1"
+      ],
+      "allowed_source_dataset_ids": [
+        "dataset:fixture_price_v1"
+      ],
+      "allowed_temporal_semantics": [
+        "OBSERVED_FACT",
+        "REVISED_SERIES"
+      ],
+      "artifact_sha256": "afaa980332a9b3df353a0bc3773784e9b4855660cff356f5c4a0a5c37ff8044f",
+      "freshness_clock": "EFFECTIVE_AT",
+      "max_value": "10.00000000",
+      "min_value": "0.00000000",
+      "model_max_value": "2.00000000",
+      "model_min_value": "0.00000000",
+      "null_policy": "REJECT",
+      "source_policy": "DECLARED_LICENSED_SOURCE",
+      "transform_id": "identity_v1",
+      "transform_sha256": "2900b2c49cb4a74fa927ae2954becfbaec14a2995a9a5256c26973c1843e245b",
+      "unit": "annualized_decimal_volatility"
+    },
+    "vix_level": {
+      "allowed_license_ids": [
+        "license:public_fixture_v1"
+      ],
+      "allowed_source_dataset_ids": [
+        "dataset:fixture_vix_v1"
+      ],
+      "allowed_temporal_semantics": [
+        "MARKET_QUOTE",
+        "OBSERVED_FACT"
+      ],
+      "artifact_sha256": "5c8aaca30bae24e5830406957c17d998ffd85d0994e6e8bb2d1179a5f7292249",
+      "freshness_clock": "EFFECTIVE_AT",
+      "max_value": "200.00000000",
+      "min_value": "0.00000000",
+      "model_max_value": "100.00000000",
+      "model_min_value": "5.00000000",
+      "null_policy": "REJECT",
+      "source_policy": "DECLARED_LICENSED_SOURCE",
+      "transform_id": "identity_v1",
+      "transform_sha256": "2900b2c49cb4a74fa927ae2954becfbaec14a2995a9a5256c26973c1843e245b",
+      "unit": "index_points"
+    }
+  },
+  "horizons": [
+    20
+  ],
+  "label_contract": {
+    "entry_price": "open_t_plus_1",
+    "exit_price": "open_t_plus_21",
+    "hurdle": "0",
+    "id": "net_return_next_open_20d_gt_zero_v1",
+    "signal_price": "close_t"
+  },
+  "magnitude_head": {
+    "aggregate_slope": "0.01000000",
+    "artifact_sha256": "165d5a83c733fdcac2a692a312c743ecb3783eff9ed08921861b40c20b65043b",
+    "base_quantiles": {
+      "p10": "-0.07000000",
+      "p50": "0.01000000",
+      "p90": "0.10000000"
+    },
+    "calendar_id": "XNYS",
+    "cost_contract_sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+    "fit_method": "engineering_fixture_linear_quantile_v1",
+    "horizon": 20,
+    "label_contract_id": "net_return_next_open_20d_gt_zero_v1",
+    "status": "ENGINEERING_VALIDATED"
+  },
+  "model_set_sha256": "66706ad34e1d4b9bd975773efa4926faf40370af8e1684950c2ce92bb9421e31",
+  "payload_sha256": "5ea0b674a59821cbc0ee3a8676d4c73d8076ef440a877359e62a2946fcc84578",
+  "promotion_evidence": {
+    "evidence_set_sha256": "a04c83c719f8a9ef7adf0b9c81d772012366b90bc8d611b489b2ba43c43d8de8",
+    "heads": {
+      "baseline": {
+        "cost_stress_2x_pass": false,
+        "effective_sample_size": 0,
+        "evaluation_end": null,
+        "evaluation_start": null,
+        "oos_predictions_sha256": null,
+        "status": "ENGINEERING_VALIDATED",
+        "untouched_holdout_sha256": null
+      },
+      "direction": {
+        "cost_stress_2x_pass": false,
+        "effective_sample_size": 0,
+        "evaluation_end": null,
+        "evaluation_start": null,
+        "oos_predictions_sha256": null,
+        "status": "ENGINEERING_VALIDATED",
+        "untouched_holdout_sha256": null
+      },
+      "economic_edge": {
+        "cost_stress_2x_pass": false,
+        "effective_sample_size": 0,
+        "evaluation_end": null,
+        "evaluation_start": null,
+        "oos_predictions_sha256": null,
+        "status": "ENGINEERING_VALIDATED",
+        "untouched_holdout_sha256": null
+      },
+      "magnitude": {
+        "cost_stress_2x_pass": false,
+        "effective_sample_size": 0,
+        "evaluation_end": null,
+        "evaluation_start": null,
+        "oos_predictions_sha256": null,
+        "status": "ENGINEERING_VALIDATED",
+        "untouched_holdout_sha256": null
+      },
+      "reliability": {
+        "cost_stress_2x_pass": false,
+        "effective_sample_size": 0,
+        "evaluation_end": null,
+        "evaluation_start": null,
+        "oos_predictions_sha256": null,
+        "status": "ENGINEERING_VALIDATED",
+        "untouched_holdout_sha256": null
+      },
+      "timing": {
+        "cost_stress_2x_pass": false,
+        "effective_sample_size": 0,
+        "evaluation_end": null,
+        "evaluation_start": null,
+        "oos_predictions_sha256": null,
+        "status": "ENGINEERING_VALIDATED",
+        "untouched_holdout_sha256": null
+      }
+    },
+    "receipt_id": "fixture_promotion_receipt_v0_0_0_1",
+    "receipt_sha256": "00ed35dd312dbb193e87de3bde3a07161c9950bde01e669ea7b723d15b9b278e",
+    "schema": "efs.promotion_evidence.v1",
+    "subject_model_set_sha256": "66706ad34e1d4b9bd975773efa4926faf40370af8e1684950c2ce92bb9421e31",
+    "trial_ledger_sha256": "c318809ae8a70d1913c24abe93a5fc5d8fc4e6bbb3c0b0c60f83a2d24eed5dcd"
+  },
+  "reliability_head": {
+    "artifact_sha256": "36833202c5c7cdb7aa19865772628c6bfd48bc878e96e07824b5e7f3edbc5ca4",
+    "base_score": "80.00000000",
+    "calendar_id": "XNYS",
+    "cost_contract_sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+    "disagreement_penalty": "5.00000000",
+    "fit_method": "engineering_fixture_penalty_v1",
+    "horizon": 20,
+    "label_contract_id": "net_return_next_open_20d_gt_zero_v1",
+    "missing_expert_penalty": "10.00000000",
+    "status": "ENGINEERING_VALIDATED",
+    "type": "deterministic_penalty_v1"
+  },
+  "runtime_limits": {
+    "max_batch": 64,
+    "max_buckets": 16,
+    "max_experts": 8,
+    "max_features": 32
+  },
+  "runtime_version": "0.0.0.1",
+  "schema": "efs.forecast_bundle.v3",
+  "scope": {
+    "instrument_id": "FIGI:BBG000BDTBL9",
+    "type": "single_instrument_v1"
+  },
+  "stable_id": "equity-foresight-signal",
+  "timing_head": {
+    "aggregate_sensitivity": "0.30000000",
+    "artifact_sha256": "790c9377897ea3a4e79ff0d7c37ac19f6c38530d652062137c70a2f54ab4b1bc",
+    "buckets": [
+      {
+        "down_logit": "0.00000000",
+        "end_day": 5,
+        "start_day": 1,
+        "up_logit": "0.10000000"
+      },
+      {
+        "down_logit": "-0.10000000",
+        "end_day": 10,
+        "start_day": 6,
+        "up_logit": "0.20000000"
+      },
+      {
+        "down_logit": "0.00000000",
+        "end_day": 15,
+        "start_day": 11,
+        "up_logit": "0.10000000"
+      },
+      {
+        "down_logit": "0.10000000",
+        "end_day": 20,
+        "start_day": 16,
+        "up_logit": "0.00000000"
+      }
+    ],
+    "calendar_id": "XNYS",
+    "cost_contract_sha256": "49f805cd31c757063c47b08746dc8b8e5dbd4dc8f68c9c03516db89379a97a98",
+    "down_hurdle": "-0.05000000",
+    "fit_method": "engineering_fixture_competing_risk_v1",
+    "horizon": 20,
+    "label_contract_id": "net_return_next_open_20d_gt_zero_v1",
+    "status": "ENGINEERING_VALIDATED",
+    "timeout_logit": "0.10000000",
+    "up_hurdle": "0.05000000"
+  },
+  "usage_policy": {
+    "DECISION_SUPPORT": {
+      "minimum_head_status": "OUTCOME_PROVEN",
+      "minimum_trust_assurance": "CRYPTOGRAPHICALLY_VERIFIED"
+    },
+    "RESEARCH": {
+      "minimum_head_status": "ENGINEERING_VALIDATED",
+      "minimum_trust_assurance": "NONE"
+    },
+    "SHADOW": {
+      "minimum_head_status": "OOS_VALIDATED",
+      "minimum_trust_assurance": "HOST_POLICY_BOUND"
+    }
+  }
+}

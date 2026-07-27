@@ -1,0 +1,28 @@
+{
+  "agent_invocations_total": 0,
+  "claim_boundary": {
+    "cross_cpu_architecture_proven": false,
+    "cross_python_matrix_proven": false,
+    "os_network_isolation_proven": false,
+    "same_runtime_semantics_required": true
+  },
+  "expected_hashes": {
+    "forecast_result_sha256": "0212cd927649e5eeff6a9d3bdcb34688c9ec4f89daab5dab5a114780cd5fa3ad",
+    "runtime_self_check_sha256": "cae0d54e33cfbeb281ee1965c26faf713ce81925cbed492b6f56aa40f9ccdb9c",
+    "training_run_sha256": "ccb1d369a7ae9a7a76641af0a8e6790a5f212b31402d94c9403aee6bb503eb93"
+  },
+  "input_hashes": {
+    "bundle_sha256": "5ea0b674a59821cbc0ee3a8676d4c73d8076ef440a877359e62a2946fcc84578",
+    "pit_dataset_sha256": "1ff6f173f6d84d850502ce55bd1f47650360736a2b4700ecc4159be1abd15f18",
+    "request_sha256": "61c3f00391f4dd560ef3cf8ea8c3777c85570be5d397ff0aa8fc670bd7ab62a0",
+    "training_config_sha256": "37571c5721b8d32ca49ab37aaa531d2d00d816ed12968e5eac15894426b862cb"
+  },
+  "llm_input_tokens_total": 0,
+  "llm_output_tokens_total": 0,
+  "llm_requests_total": 0,
+  "network_requests_total": 0,
+  "runtime_version": "0.0.0.1",
+  "schema": "efs.portability_golden_vector.v1",
+  "stable_id": "equity-foresight-signal",
+  "vector_sha256": "c886bd21733c4bd25ad52255561b44c709984918a42405a681a2560af9760a49"
+}

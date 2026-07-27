@@ -1,0 +1,5 @@
+flowchart LR
+    E_001["首批锁定股份进入可出售状态 | CONFIRMED"]
+    E_002["合成指数季度调整 | SCHEDULED"]
+    E_001 -->|OVERLAPS| E_002
+    E_002 -->|OFFSETS| E_001

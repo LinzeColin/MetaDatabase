@@ -1,0 +1,193 @@
+{
+  "display_name_zh": "股票事件航图",
+  "files": [
+    {
+      "bytes": 598,
+      "path": "NOTICE.md",
+      "sha256": "164dec135929437359d5b2b1f45e2f5eece14b140d408315a28c5937d5c4de82"
+    },
+    {
+      "bytes": 10369,
+      "path": "SKILL.md",
+      "sha256": "d75b8fc060c34bacf4447660347b9cc21e0da917064ace7a29236b5f1a5ab0fe"
+    },
+    {
+      "bytes": 8,
+      "path": "VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+    },
+    {
+      "bytes": 2989,
+      "path": "examples/synthetic_demo/REPORT.md",
+      "sha256": "e1a61e964d176d8120738a44043d918e80adea554f183ade2457a9103307d2b8"
+    },
+    {
+      "bytes": 886,
+      "path": "examples/synthetic_demo/STATUS_FRAGMENT.json",
+      "sha256": "bf8635971e1bf3c1cdc077e89d9a368e68525bfe8f1ab2c8f1c96b6c43badc19"
+    },
+    {
+      "bytes": 187,
+      "path": "examples/synthetic_demo/event_graph.mmd",
+      "sha256": "2a669a511ccdd5837dbbafc2b92273b96946d150d83fef192cd034207981025f"
+    },
+    {
+      "bytes": 180,
+      "path": "examples/synthetic_demo/event_timeline.mmd",
+      "sha256": "c1126619fdc34d5633e56d20892588e61f0f7d805d7fc8dc430ba5501557f29a"
+    },
+    {
+      "bytes": 7262,
+      "path": "examples/synthetic_demo/input_bundle.json",
+      "sha256": "a334bb1f260573d15bbd16812a8ea7b075982d86c30d473c41799e42013cc1db"
+    },
+    {
+      "bytes": 978,
+      "path": "examples/synthetic_demo/render_manifest.json",
+      "sha256": "407a446b8997b251125d74a90b8a4c55fb765d751bdd80f7f932b9004019176a"
+    },
+    {
+      "bytes": 5209,
+      "path": "examples/synthetic_demo/scenario_fan.svg",
+      "sha256": "4bdc85ec1f75e75a2e39e1c929e078b5536168785a42647987b9df70ebfc1e5b"
+    },
+    {
+      "bytes": 2425,
+      "path": "examples/synthetic_demo/supply_waterfall.svg",
+      "sha256": "13e40a85769bc9f506dbcc9c2545c54dd31eea2eafdee11163cd89a3b65fd327"
+    },
+    {
+      "bytes": 344,
+      "path": "examples/synthetic_demo/synthetic_evidence.txt",
+      "sha256": "033f668c1f72156fae5600c6b0001b8342a43d2f38df6137336e593e2d640258"
+    },
+    {
+      "bytes": 7114,
+      "path": "fixtures/invalid/action_without_context.json",
+      "sha256": "6b17428c42e50f405f97fa2bd4d3f58f06f52ab025288b721d1bc6106cc48e4c"
+    },
+    {
+      "bytes": 7262,
+      "path": "fixtures/invalid/event_reference.json",
+      "sha256": "29f2494f7fd99d31d2bfc8911accee22bf500d9d1646d8d2014c7cd5f28dd28b"
+    },
+    {
+      "bytes": 7238,
+      "path": "fixtures/invalid/fact_without_evidence.json",
+      "sha256": "f233a03488e81361b7b499edd68c15430ad8f0f1af53a3db95a2edccd21f179d"
+    },
+    {
+      "bytes": 7263,
+      "path": "fixtures/invalid/market_gate.json",
+      "sha256": "35a374e0fb0d10fc2e952b0c20623c8845e17fcba8b7610b2caaf51460f5a0a8"
+    },
+    {
+      "bytes": 7262,
+      "path": "fixtures/invalid/point_in_time_leak.json",
+      "sha256": "9542a9f1b22cea7865787d68aed1258845a447e2806a9baeee69d6707fb5097e"
+    },
+    {
+      "bytes": 7261,
+      "path": "fixtures/invalid/probability_sum.json",
+      "sha256": "b9d87f33f4297bd7471cf4fcb72e3aabccc80e75bfdf57d71c938551d0dc1460"
+    },
+    {
+      "bytes": 344,
+      "path": "fixtures/invalid/synthetic_evidence.txt",
+      "sha256": "033f668c1f72156fae5600c6b0001b8342a43d2f38df6137336e593e2d640258"
+    },
+    {
+      "bytes": 344,
+      "path": "fixtures/synthetic_evidence.txt",
+      "sha256": "033f668c1f72156fae5600c6b0001b8342a43d2f38df6137336e593e2d640258"
+    },
+    {
+      "bytes": 7262,
+      "path": "fixtures/valid_bundle_synthetic.json",
+      "sha256": "a334bb1f260573d15bbd16812a8ea7b075982d86c30d473c41799e42013cc1db"
+    },
+    {
+      "bytes": 361,
+      "path": "fixtures/valid_request_asx.json",
+      "sha256": "92016ce5f69bb7d7f89bccebf06d2059f9bd12e2d2444e3f16c78865d11cabed"
+    },
+    {
+      "bytes": 361,
+      "path": "fixtures/valid_request_global.json",
+      "sha256": "f2717566acdfe0d98a68d5ddd1bc052c3c10c44b69e7b844dbbbcbac32b6e5ca"
+    },
+    {
+      "bytes": 515,
+      "path": "fixtures/valid_request_us.json",
+      "sha256": "5f70b6b134df23f7f7a9c7aff9ad9aec4f1288ac67abba0b16928b5d3eb5269c"
+    },
+    {
+      "bytes": 2238,
+      "path": "references/contract.md",
+      "sha256": "69fbf3824bea44d34ba510810409daf9e017ae3b51c9cc49157e4af87d224c84"
+    },
+    {
+      "bytes": 2708,
+      "path": "references/event_ontology.md",
+      "sha256": "02612c691717cf60af1c557f8379a9937b2b9e6b60dac31e36e78ce875b40676"
+    },
+    {
+      "bytes": 1982,
+      "path": "references/evidence_time_policy.md",
+      "sha256": "ecd22ede4118ff451ac58c30a10feea3d25be04304d2ebee0fd35b56576fc4d4"
+    },
+    {
+      "bytes": 2223,
+      "path": "references/forecast_action_policy.md",
+      "sha256": "1fc8539b700489fcd7a29a4d025aceba09f481581dfffb32cb37886977e21b9b"
+    },
+    {
+      "bytes": 2268,
+      "path": "references/host_integration.md",
+      "sha256": "88f2f669a88a0a82801b8c432d86608d390e57fc210c983bb808324351a052e1"
+    },
+    {
+      "bytes": 2958,
+      "path": "references/market_capability_registry.md",
+      "sha256": "857e23cad38f545f145f4633928e10a2418de74e41340d0ed0cccac03983b630"
+    },
+    {
+      "bytes": 2003,
+      "path": "references/safety_limits.md",
+      "sha256": "ae0774e5a17218e235b60bd4fb366e6b87de116e0c08ef5e9995c270c994c124"
+    },
+    {
+      "bytes": 1743,
+      "path": "references/visualization_integration.md",
+      "sha256": "bbd3a628b2102808e946cedc9af05e3e010b29cfada529895a958101ecb53f7f"
+    },
+    {
+      "bytes": 1510,
+      "path": "schemas/analysis_bundle.schema.json",
+      "sha256": "fc4df93a93d645e8d3aadd1e449a201599267b0aa206f477e819e39712d505f6"
+    },
+    {
+      "bytes": 855,
+      "path": "schemas/market_capabilities.schema.json",
+      "sha256": "d2afdb5ad629b33f9d1ba4643b3a908f3acacbcad1f55baae8d25765f6fe07e1"
+    },
+    {
+      "bytes": 1675,
+      "path": "schemas/request.schema.json",
+      "sha256": "3e4eead3accbe6c3ae192fc4d7e45a4fb61e1a86deb1d8e4b3b8ddb61756d78b"
+    },
+    {
+      "bytes": 51217,
+      "path": "scripts/equity_event_atlas.py",
+      "sha256": "d97c8f687769ee4df46ad80ce5d473e525a3425d8203c357b003176360a7eb72"
+    },
+    {
+      "bytes": 4501,
+      "path": "tests/test_equity_event_atlas.py",
+      "sha256": "42f171846449c17991b3e0cdc76567a183cb628df769e1d9ae00dc630484b166"
+    }
+  ],
+  "name": "equity-event-atlas",
+  "schema": "equity-event-atlas/skill-manifest-v1",
+  "version": "0.0.0.1"
+}

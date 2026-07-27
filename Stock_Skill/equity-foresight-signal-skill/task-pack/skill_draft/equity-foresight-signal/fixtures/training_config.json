@@ -1,0 +1,17 @@
+{
+  "calibration_iterations": 120,
+  "calibration_learning_rate": "0.05",
+  "config_id": "fixture_linear_direction_v1",
+  "config_sha256": "37571c5721b8d32ca49ab37aaa531d2d00d816ed12968e5eac15894426b862cb",
+  "feature_names": [
+    "mom_20",
+    "realized_vol_20",
+    "vix_level"
+  ],
+  "iterations": 160,
+  "l2": "0.01",
+  "learning_rate": "0.08",
+  "probability_clip": "0.0001",
+  "schema": "efs.deterministic_training_config.v1",
+  "score_clip": "30"
+}

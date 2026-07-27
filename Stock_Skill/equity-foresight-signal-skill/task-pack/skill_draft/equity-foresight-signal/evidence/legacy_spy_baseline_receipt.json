@@ -1,0 +1,82 @@
+{
+  "agent_invocations_total": 0,
+  "blocking_reasons": [
+    "MODEL_DID_NOT_BEAT_ROLLING_BASELINE_AT_ANY_FROZEN_HORIZON",
+    "RAW_POINT_IN_TIME_OBSERVATIONS_NOT_BUNDLED_IN_RECEIPT",
+    "SINGLE_ASSET_RESEARCH_BASELINE",
+    "NOT_AN_IMMUTABLE_CURRENT_CANDIDATE_SUBJECT"
+  ],
+  "capability_limit": "SHADOW_ONLY",
+  "evidence_class": "LEGACY_RESEARCH_SUMMARY_ONLY",
+  "formal_outcome_eligible": false,
+  "horizon_results": [
+    {
+      "baseline_brier": "0.24539355",
+      "brier_difference_candidate_minus_baseline": "0.00067100",
+      "brier_skill": "-0.00273438",
+      "candidate_auc": "0.49031541",
+      "candidate_brier": "0.24606455",
+      "end": "2022-07-14",
+      "horizon_trading_days": 5,
+      "passed_frozen_null_baseline": false,
+      "positive_rate": "0.57409155",
+      "sample_count": 4238,
+      "start": "2005-09-13"
+    },
+    {
+      "baseline_brier": "0.22608127",
+      "brier_difference_candidate_minus_baseline": "0.00058653",
+      "brier_skill": "-0.00259432",
+      "candidate_auc": "0.46851248",
+      "candidate_brier": "0.22666780",
+      "end": "2022-06-22",
+      "horizon_trading_days": 20,
+      "passed_frozen_null_baseline": false,
+      "positive_rate": "0.66611018",
+      "sample_count": 4193,
+      "start": "2005-10-25"
+    },
+    {
+      "baseline_brier": "0.20994715",
+      "brier_difference_candidate_minus_baseline": "0.01035619",
+      "brier_skill": "-0.04932761",
+      "candidate_auc": "0.44168136",
+      "candidate_brier": "0.22030334",
+      "end": "2022-04-25",
+      "horizon_trading_days": 60,
+      "passed_frozen_null_baseline": false,
+      "positive_rate": "0.71004174",
+      "sample_count": 4073,
+      "start": "2006-02-21"
+    }
+  ],
+  "llm_input_tokens_total": 0,
+  "llm_output_tokens_total": 0,
+  "llm_requests_total": 0,
+  "network_requests_total": 0,
+  "overall_status": "FAIL",
+  "preservation_purpose": "NULL_BASELINE_AND_REGRESSION_GUARD",
+  "promotion_evidence_eligible": false,
+  "receipt_sha256": "0b95288ee7afee31357e7d8505edffb05b32808e0d637120a2ad7e8224c0f8b7",
+  "schema": "efs.legacy_backtest_receipt.v1",
+  "source_hashes": {
+    "model_metrics_csv_sha256": "42b73015969f9202f0fb65b04914aa5ada31adb31ea11c2c81f17ec9c63d9957",
+    "report_markdown_sha256": "eb87b09c81971e92a662c1eb05a878bce86aab9ab563afbb70418f32b5dbd7b3",
+    "run_manifest_json_sha256": "c4ded89f1b9e49e0d0dc588f41ead883d4ca364a02a56d5a7288c5c6380f2f70"
+  },
+  "source_label": "FPMT_readonly_discovery_2026-07-22",
+  "subject": {
+    "baseline_model": "rolling_base_rate",
+    "candidate_model": "regularized_logistic_online_platt",
+    "data_end": "2022-07-22",
+    "data_start": "2000-01-03",
+    "horizons_trading_days": [
+      5,
+      20,
+      60
+    ],
+    "instrument": "SPY",
+    "round_trip_cost": "0.00100000",
+    "row_count": 5675
+  }
+}
