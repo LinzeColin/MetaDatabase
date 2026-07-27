@@ -27,7 +27,10 @@ closure 是 `CB-520` 的 `1e0ed85c`；本 Run 结束后才可进入 `CB-540`。
 1. **本地 source（可能修改）**：仅新增可测试的 CB-530 backup/restore protocol、
    Linux systemd unit、focused tests、Run Contract 和 closure evidence/validator。
    不修改 `docs/product_design/v0.0.0.4/**`、TaskPack 或产品版本。
-2. **OVH release**：从该 source commit 构建新的 immutable release；`current` 指向
+2. **OVH release**：从该 source commit 构建新的 immutable release；release staging
+   只创建一个指向同一 release 内
+   `docs/product_design/v0.0.0.4/implementation-kit` 的相对 `implementation-kit`
+   symlink，以保持既有 systemd runner 路径且不复制/修改冻结设计；`current` 指向
    新 release，`previous` 保持已接受的 CB-520 release。绝不编辑已发布 release。
 3. **Runtime DB**：只在缺失时用既有 Runtime spool schema 初始化
    `/var/lib/cyberboss/runtime.db`；不读或备份 Codex auth、WeChat state、workspace cache、
