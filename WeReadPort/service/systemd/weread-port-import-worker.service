@@ -1,0 +1,36 @@
+[Unit]
+Description=阅迁 Notion、Obsidian、GitHub、Google 导入工作器 v0.0.0.1.8
+After=network-online.target weread-port-platform.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=weread-port
+Group=weread-port
+EnvironmentFile=/etc/weread-port/platform.env
+WorkingDirectory=/opt/weread-port/current
+ExecStart=/usr/bin/node service/worker.mjs
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+StateDirectory=weread-port
+ReadWritePaths=/var/lib/weread-port
+UMask=0077
+LimitNOFILE=4096
+MemoryMax=768M
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target

@@ -14,11 +14,11 @@ test("产品入口与清单使用简体中文", async () => {
   const manifest = JSON.parse(await readFile(new URL("public/manifest.webmanifest", root), "utf8"));
   const appSource = await readFile(new URL("src/ui/app.js", root), "utf8");
   assert.match(index, /<html lang="zh-CN">/u);
-  assert.match(index, /微信读书笔记迁移/u);
+  assert.match(index, /阅迁｜个人阅读资产中心/u);
   assert.equal(manifest.lang, "zh-CN");
-  assert.match(manifest.name, /微信读书笔记迁移/u);
+  assert.match(manifest.name, /阅迁｜个人阅读资产中心/u);
   assert.equal(APP_NAME, "微信读书笔记迁移");
-  assert.equal(APP_VERSION, "v0.0.0.1.7");
+  assert.equal(APP_VERSION, "v0.0.0.1.8");
   assert.ok(!appSource.includes("v${APP_VERSION}"), "版本号前不得重复添加 v");
 });
 

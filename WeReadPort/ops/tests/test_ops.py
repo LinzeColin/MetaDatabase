@@ -37,12 +37,16 @@ from weread_port_ops.sanitize import assert_public_safe, sanitize_public
 
 BUSINESS_LINE_IDS = [
     "public-trust",
-    "weread-direct-export",
-    "local-import",
-    "normalize-export",
-    "chatgpt-handoff",
+    "identity-access",
+    "account-storage",
+    "cross-device-sync",
+    "provider-imports",
+    "weread-wide-sync",
+    "analytics-recommendations",
+    "legacy-migration",
     "release-supply-chain",
     "operations-recovery",
+    "facts-backup",
 ]
 
 
@@ -53,14 +57,14 @@ def readiness_payload(*, ready: bool = True):
         "checks": {
             "businessGovernanceContract": {
                 "ready": ready,
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "2.0.0",
                 "errorCodes": [] if ready else ["TEST_FAILURE"],
             }
         },
     }
 
 
-def version_payload(*, app_version: str = "v0.0.0.1.7", source_version: str = "1.0.4", governance_version: str = "1.0.0"):
+def version_payload(*, app_version: str = "v0.0.0.1.8", source_version: str = "1.0.4", governance_version: str = "2.0.0"):
     return {
         "appVersion": app_version,
         "sourceSkillVersion": source_version,
@@ -74,14 +78,14 @@ def public_status_payload(*, operational: bool = True, omit_business_line: str |
         if line_id == omit_business_line:
             continue
         state = "READY"
-        if line_id in {"weread-direct-export", "release-supply-chain"}:
+        if line_id in {"weread-wide-sync", "release-supply-chain", "facts-backup"}:
             state = "NOT_VERIFIED"
         elif line_id == "operations-recovery":
             state = "EXTERNAL"
         lines.append({
             "id": line_id,
             "name": line_id,
-            "phase": "Stage 1 / P0",
+            "phase": "Stage 2 / v1.8",
             "state": state if operational else "BLOCKED",
             "dependsOnAll": [],
             "dependsOnAny": [],
@@ -92,13 +96,15 @@ def public_status_payload(*, operational: bool = True, omit_business_line: str |
         "status": "OPERATIONAL" if operational else "DEGRADED",
         "runtimeMode": "production",
         "businessGovernance": {
-            "schemaVersion": "1.0.0",
+            "schemaVersion": "2.0.0",
             "graphStatus": "VALID",
             "lines": lines,
         },
         "dataBoundary": {
-            "serverSideUserNotePersistence": False,
-            "serverSideUserKeyPersistence": False,
+            "serverSideUserNotePersistence": True,
+            "serverSideUserKeyPersistence": "encrypted",
+            "accountScopedEncryption": True,
+            "multiTenantIsolation": True,
             "statusContainsUserContent": False,
             "businessGovernanceContainsUserContent": False,
         },
@@ -183,7 +189,7 @@ class OpsTests(unittest.TestCase):
         self.assertEqual(payload["productPlane"]["latencyMs"], 10.0)
         self.assertEqual(payload["officialSource"]["observedVersion"], "1.0.4")
         self.assertTrue(payload["productPlane"]["businessGovernanceOk"])
-        self.assertEqual(len(payload["businessLines"]), 7)
+        self.assertEqual(len(payload["businessLines"]), 11)
         write_atomic_json(self.settings.status_path, payload)
         written = json.loads(self.settings.status_path.read_text(encoding="utf-8"))
         self.assertEqual(written["status"], "operational")
@@ -471,7 +477,7 @@ class OpsTests(unittest.TestCase):
         self.assertEqual(payload["status"], "prepared")
         current = fake_root / "opt/weread-port-ops/current"
         self.assertTrue(current.is_symlink())
-        self.assertTrue((fake_root / "opt/weread-port-ops/releases/0.0.0.1.7/bin/weread-port-ops").is_file())
+        self.assertTrue((fake_root / "opt/weread-port-ops/releases/0.0.0.1.8/bin/weread-port-ops").is_file())
         env = (fake_root / "etc/weread-port/ops.env").read_text(encoding="utf-8")
         self.assertIn("WEREAD_PORT_SITE_URL=https://status.linzezhang.com", env)
         adapter = fake_root / "srv/linze/apps/status/data/external-projects/weread-port.json"

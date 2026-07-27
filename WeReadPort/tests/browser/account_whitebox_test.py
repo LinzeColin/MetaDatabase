@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+"""Embedded browser acceptance for v0.0.0.1.8 account-first UI.
+
+This executes the real account UI source and real CSS with a deterministic API
+fixture. It never contacts OAuth providers, WeChat Reading, or production.
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+import traceback
+from pathlib import Path
+from typing import Any
+
+from playwright.sync_api import Browser, Page, sync_playwright
+
+APP = Path(__file__).resolve().parents[2]
+CHROMIUM = os.environ.get("CHROMIUM_PATH", "/usr/bin/chromium")
+CSS = (APP / "src/ui/styles.css").read_text(encoding="utf-8")
+
+
+def bundle() -> str:
+    api = (APP / "src/ui/account-api.js").read_text(encoding="utf-8")
+    api = re.sub(r"\bexport\s+", "", api)
+    platform = (APP / "src/ui/account-platform.js").read_text(encoding="utf-8")
+    platform = re.sub(r'^import\s+\{\s*AccountApi\s*\}\s+from\s+"\./account-api\.js";\s*', "", platform, count=1, flags=re.M)
+    platform = re.sub(r'^import\s+\{\s*readObsidianSelection\s*\}\s+from\s+"\./obsidian-import\.js";\s*', "", platform, count=1, flags=re.M)
+    platform = re.sub(r"\bexport\s+", "", platform)
+    obsidian_double = "async function readObsidianSelection(){ return {items:[],sourceLabel:'浏览器夹具',totalFiles:0,totalBytes:0}; }"
+    return api + "\n" + obsidian_double + "\n" + platform + "\nvoid renderAccountPlatform(document.querySelector('#app'));"
+
+
+
+BUNDLE = bundle()
+HTML = f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>阅迁账户平台浏览器验收</title><style>{CSS}</style></head><body><div id="app"></div></body></html>'''
+ACCOUNT = {
+    "id": "acct_browser_fixture_001", "displayName": "新手读者", "email": "reader@example.com", "createdAt": 1785196800000,
+    "credentials": [
+        {"kind": "key", "provider": "weread", "label": "微信读书密钥", "updatedAt": 1785196800000},
+        {"kind": "password", "provider": "email", "label": "reader@example.com", "updatedAt": 1785196800000},
+    ],
+    "connections": [
+        {"provider": "notion", "metadata": {"workspaceName": "我的 Notion"}},
+        {"provider": "github", "metadata": {"emailHint": "已授权仓库"}},
+        {"provider": "google", "metadata": {"emailHint": "r***@example.com"}},
+    ],
+    "consent": {"behaviorAnalytics": True, "recommendationPersonalization": True},
+}
+SESSIONS = [
+    {"id": "sess-current", "current": True, "createdAt": 1785196800, "lastSeenAt": 1785196800, "expiresAt": 1787788800, "ipHint": "abc12345"},
+    {"id": "sess-other", "current": False, "createdAt": 1785110400, "lastSeenAt": 1785110400, "expiresAt": 1787702400, "ipHint": "def67890"},
+]
+NOTES = [
+    {"id": "note-1", "title": "系统思维摘录", "source": "weread", "category": "管理", "updatedAt": 1785196800000, "version": 3},
+    {"id": "note-2", "title": "第二大脑方法", "source": "notion", "category": "知识管理", "updatedAt": 1785110400000, "version": 1},
+]
+DASHBOARD = {
+    "consent": ACCOUNT["consent"],
+    "summary": {"noteCount": 2, "sourceCount": 4, "estimatedWords": 18340, "activeDays90": 17},
+    "weeklyTrend": [{"week": f"2026-{i:02d}", "value": (i % 5) + 1} for i in range(1, 13)],
+    "sourceDistribution": [
+        {"label": "weread", "value": 8}, {"label": "notion", "value": 5},
+        {"label": "obsidian", "value": 3}, {"label": "github", "value": 2}, {"label": "google", "value": 1},
+    ],
+    "readingHeatmap": [
+        {"date": f"2026-07-{(i % 28) + 1:02d}", "value": i % 6, "level": min(4, i % 5)} for i in range(90)
+    ],
+    "recommendations": [
+        {"source": "account-pattern", "title": "继续整理系统思维主题", "reason": "最近 30 天该主题笔记增长最快。"},
+        {"source": "weread-official", "title": "回顾高频划线章节", "reason": "该书划线密度较高且两周未回顾。"},
+    ],
+}
+
+
+def fixture_script(authenticated: bool) -> str:
+    fixture = {"account": ACCOUNT, "notes": NOTES, "dashboard": DASHBOARD, "sessions": SESSIONS, "authenticated": authenticated}
+    return f'''(() => {{
+      const f = {json.dumps(fixture, ensure_ascii=False)};
+      window.__browserFixture = f;
+      window.fetch = async (input, init={{}}) => {{
+        const url = String(input);
+        const path = url.includes('/api/platform/v1') ? url.split('/api/platform/v1')[1] : url;
+        const ok = value => new Response(JSON.stringify(value), {{status:200, headers:{{'content-type':'application/json'}}}});
+        if (path.startsWith('/session')) return f.authenticated ? ok({{account:f.account, csrf:'csrf-browser-fixture'}}) : new Response(JSON.stringify({{error:{{code:'UNAUTHENTICATED',message:'请先登录'}}}}), {{status:401,headers:{{'content-type':'application/json'}}}});
+        if (path.startsWith('/notes?')) return ok({{notes:f.notes}});
+        if (path === '/analytics/dashboard') return ok({{dashboard:f.dashboard}});
+        if (path === '/profile') return ok({{account:f.account}});
+        if (path === '/consent') return ok({{consent:f.account.consent}});
+        if (path === '/account/sessions') return ok({{sessions:f.sessions}});
+        if (path.startsWith('/status/business-lines')) return ok({{businessLines:[]}});
+        if (path.startsWith('/imports/')) return ok({{items:[{{id:'fixture-1',label:'阅读笔记',detail:'只读内容'}}]}});
+        return ok({{}});
+      }};
+      window.confirm = () => false;
+      window.open = () => null;
+    }})();'''
+
+
+def load(page: Page, authenticated: bool) -> None:
+    page.set_default_timeout(8000)
+    page.set_content(HTML, wait_until="domcontentloaded")
+    page.evaluate(fixture_script(authenticated))
+    page.add_script_tag(type="module", content=BUNDLE)
+    page.wait_for_selector("#platform-main")
+
+
+def no_overflow(page: Page, label: str) -> None:
+    values = page.evaluate("() => ({viewport:document.documentElement.clientWidth,html:document.documentElement.scrollWidth,body:document.body.scrollWidth})")
+    assert values["html"] <= values["viewport"] + 1, f"{label}: html overflow {values}"
+    assert values["body"] <= values["viewport"] + 1, f"{label}: body overflow {values}"
+
+
+def touch_targets(page: Page, label: str) -> None:
+    undersized = page.evaluate("""() => [...document.querySelectorAll('button')]
+      .filter(el => { const r=el.getBoundingClientRect(); const s=getComputedStyle(el); return r.width>0 && r.height>0 && s.visibility!=='hidden' && !el.disabled && r.height<43.5; })
+      .map(el => ({text:(el.textContent||'').trim().slice(0,50),height:el.getBoundingClientRect().height,cls:el.className}))""")
+    assert not undersized, f"{label}: controls below 44px {undersized[:8]}"
+
+
+def assert_clean(page_errors: list[str], console_errors: list[str], label: str) -> None:
+    assert not page_errors, f"{label}: page errors {page_errors}"
+    assert not console_errors, f"{label}: console errors {console_errors}"
+
+
+def auth_contract(browser: Browser, width: int) -> dict[str, Any]:
+    context = browser.new_context(viewport={"width": width, "height": 1000}, locale="zh-CN")
+    page = context.new_page(); page_errors: list[str] = []; console_errors: list[str] = []
+    page.on("pageerror", lambda exc: page_errors.append(str(exc)))
+    page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
+    load(page, False)
+    page.get_by_role("heading", name="一个账户，统一保存、同步和理解你的全部阅读笔记。").wait_for()
+    for name in ["验证密钥并创建账户", "用 Google 创建", "用 GitHub 创建", "用 Notion 创建"]:
+        assert page.get_by_role("button", name=name).is_visible(), name
+    page.get_by_text("使用邮箱和密码", exact=True).click()
+    assert page.locator("#account-email").is_visible()
+    font_size = float(page.locator("#account-email").evaluate("e=>parseFloat(getComputedStyle(e).fontSize)"))
+    assert font_size >= 16, font_size
+    page.get_by_role("tab", name="登录").click()
+    assert page.get_by_role("button", name="邮箱密码登录").is_visible()
+    assert page.get_by_role("button", name="用密钥登录").is_visible()
+    page.keyboard.press("Tab")
+    focus = page.evaluate("() => ({tag:document.activeElement.tagName, outline:getComputedStyle(document.activeElement).outlineStyle})")
+    assert focus["outline"] != "none", f"keyboard focus not visible: {focus}"
+    no_overflow(page, f"auth-{width}"); touch_targets(page, f"auth-{width}")
+    assert_clean(page_errors, console_errors, f"auth-{width}")
+    context.close()
+    return {"surface": "auth", "width": width, "status": "PASS"}
+
+
+def account_contract(browser: Browser, width: int) -> dict[str, Any]:
+    context = browser.new_context(viewport={"width": width, "height": 1050}, locale="zh-CN", reduced_motion="reduce")
+    page = context.new_page(); page_errors: list[str] = []; console_errors: list[str] = []
+    page.on("pageerror", lambda exc: page_errors.append(str(exc)))
+    page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
+    load(page, True)
+    page.get_by_role("heading", name="早上好，新手读者").wait_for()
+    assert page.get_by_text("不需要理解 API、仓库或 Vault。按顺序点按钮即可。").is_visible()
+    assert page.get_by_text("你的笔记、连接与画像已经绑定到同一账户", exact=False).is_visible()
+
+    page.get_by_role("button", name="导入与连接").click()
+    page.get_by_role("heading", name="选择你现在使用的应用").wait_for()
+    for name in ["微信读书", "Notion", "Obsidian", "GitHub", "Google Drive"]:
+        assert page.get_by_role("heading", name=name).is_visible(), name
+    assert page.get_by_text("你在哪里写笔记，就点哪个图标。", exact=False).is_visible()
+    page.locator("button[data-source='obsidian']").click()
+    assert page.get_by_role("heading", name="选择 Obsidian 笔记").is_visible()
+    assert page.get_by_role("button", name="选择 Vault 文件夹").is_visible()
+    assert page.get_by_role("button", name="我只有 ZIP 或 Markdown").is_visible()
+
+    page.get_by_role("button", name="阅读画像").click()
+    page.get_by_role("heading", name="你的阅读热度、主题与潜在下一步").wait_for()
+    assert page.get_by_role("img", name="近九十天阅读热度").is_visible()
+    assert page.get_by_role("heading", name="潜在推荐").is_visible()
+    assert page.get_by_text("继续整理系统思维主题").is_visible()
+    assert page.get_by_text("不会把笔记正文发送给模型", exact=False).is_visible()
+
+    page.get_by_role("button", name="账户与安全").click()
+    page.get_by_role("heading", name="管理你的身份、设备、连接和数据选择").wait_for()
+    assert page.get_by_text("账户 ID 不随密钥或登录方式变化", exact=False).is_visible()
+    assert page.get_by_text("不会因为 Google、GitHub、Notion 或邮箱相同而静默合并账户", exact=False).is_visible()
+    assert page.get_by_role("heading", name="已登录设备").is_visible()
+    for name in ["修改邮箱和密码", "退出其他设备", "轮换微信读书密钥", "导出我的全部数据", "永久删除账户"]:
+        assert page.get_by_role("button", name=name).is_visible(), name
+
+    no_overflow(page, f"account-{width}"); touch_targets(page, f"account-{width}")
+    assert page.evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches") is True
+    assert_clean(page_errors, console_errors, f"account-{width}")
+    context.close()
+    return {"surface": "account", "width": width, "status": "PASS", "imports": "PASS", "analytics": "PASS", "security": "PASS"}
+
+
+def main() -> int:
+    report: dict[str, Any] = {"suite": "v0.0.0.1.8-account-whitebox", "mode": "embedded-real-ui-source-deterministic-api-double", "status": "FAIL", "checks": []}
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, executable_path=CHROMIUM, args=["--no-sandbox", "--disable-dev-shm-usage"])
+            try:
+                for width in (320, 390, 1440):
+                    report["checks"].append(auth_contract(browser, width))
+                    report["checks"].append(account_contract(browser, width))
+            finally:
+                browser.close()
+        report["status"] = "PASS"; report["passed"] = len(report["checks"])
+        print(json.dumps(report, ensure_ascii=False, indent=2)); return 0
+    except Exception as exc:
+        report["error"] = f"{type(exc).__name__}: {exc}"; report["traceback"] = traceback.format_exc()
+        print(json.dumps(report, ensure_ascii=False, indent=2)); return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,73 +1,72 @@
-# 微信读书笔记迁移
+# 阅迁｜微信读书与个人阅读资产账户平台
 
-“微信读书笔记迁移”是面向 ChatGPT Sites 的微信读书个人笔记导出应用。用户使用本人从官方渠道取得的微信读书密钥，在一次性会话内读取有权访问的书架、划线、想法、个人书评、阅读进度和必要元数据，并导出为可长期保存的标记文本、结构化数据、离线搜索页和可校验压缩包。
+阅迁 v0.0.0.1.8 将原来的匿名迁移工具升级为账户中心化、多租户的个人阅读资产平台。首页提供用户注册、邮箱密码登录、微信读书密钥建账/登录，以及 Google、GitHub、Notion 登录；旧匿名迁移能力保留在 `/migrate/`，但不再代表当前产品主合同。
 
-## 生产候选能力
+## 当前版本能力
 
-- 无需登录的一次性会话；不依赖账户数据库。
-- 生产主入口为“连接本人微信读书”；本地上传为第二入口；虚构演示数据仅用于无密钥体验与验收，不代表生产上游已连接。
-- 本地支持一个已校验导出 ZIP、一个规范化 JSON，或最多 50 个 Markdown/TXT 文件。
-- 两类明确下载：完整迁移压缩包，以及适合用户本人上传到 ChatGPT 的单文件中文笔记。
-- 安全 ChatGPT 交接：复制中文提问词并打开固定官方入口；笔记、密钥和提问词不进入跳转网址，附件不自动传输。
-- 固定调用腾讯官方微信读书智能接口网关；接口名、参数、请求与响应大小均使用白名单。
-- 每次上游请求携带冻结的官方技能版本；出现 `upgrade_info` 时立即安全停止受影响操作。
-- 有界分页、并发、超时、瞬时错误重试、取消和部分失败报告。
-- 单一规范化阅读模型，输出便携纯文本、代码仓库兼容、双链笔记库和协作笔记导入四种格式。
-- 确定性压缩包、稳定路径、SHA-256 文件清单、结构化数据、中文导出报告和离线全文搜索。
-- 经过校验的旧导出包可逐字节保留“我的永久补充”区域；上游消失书籍进入非破坏存档，不静默删除。
-- 不使用 D1；不在服务端持久化用户密钥、书名、笔记、搜索词或导出压缩包。
-- 本地命令行工具与站点共用同一导出内核。
-- 独立 OVH 运维平面只处理脱敏健康、发布、备份与恢复事实，不接触用户内容。
+- **统一账户**：不可变 `account_id` 是唯一身份主体；微信读书密钥、邮箱密码和 OAuth 身份只是可轮换、可显式绑定的凭据。系统不会因为邮箱相同自动合并账户。
+- **密码与多平台登录**：支持用户注册和密码登录，以及 Google/Gmail、GitHub、Notion OAuth 登录或创建账户；支持登录后显式绑定平台身份。密钥或 OAuth 建账用户可在账户中心补设邮箱密码，并查看、撤销其他设备会话。
+- **微信读书密钥**：支持密钥创建账户、登录、绑定与轮换。只保存不可逆指纹和账户级加密凭据，不把密钥写入 URL、日志、状态、行为事件或导出文件。
+- **个人笔记长期存储**：OVH SQLite 保存账户索引、会话、游标、幂等、队列、Runtime Journal 与 Outbox；Cloudflare R2 保存账户级 AES-256-GCM 加密正文对象；Private-Database 只接收脱敏结构化完成态事实和对象引用；OCI 保存异地冷备。
+- **四平台一键导入**：Google Drive、GitHub App、Notion 使用官方授权和最小权限完成“连接—选择—预览—确认—导入”；Obsidian 使用用户在本机选择的 Vault 文件夹、ZIP 或 Markdown/TXT，不伪造不存在的统一 Obsidian 登录。导入选择正文只以账户级加密暂存，任务结束立即清除。
+- **小白流程**：首页直接展示三种登录路径；登录后提供三步向导和中文解释，不要求用户理解仓库、Vault、OAuth、JSON 或 API。移动端、320px、键盘、减少动态和高对比模式均有冻结检查。
+- **跨设备同步**：服务端提供账户级增量游标、幂等键、乐观版本冲突和删除事件；并发修改不会静默覆盖。
+- **画像与可视化**：在明确同意后，以确定性聚合生成阅读热度、来源分布、主题偏好、活跃趋势和可解释推荐；关闭同意后删除非必要行为事件；运行期不调用模型，Agent 与 Token 依赖均为零。
+- **更广微信读书读取**：通过冻结的官方 gateway/Skill 合同先做能力发现，再有界分页读取书架、笔记本、划线、想法、个人书评、书籍信息、进度、章节、阅读统计、热门划线和推荐；不再限制 Top 5。
+- **账户权利**：支持查看和修改资料、导出账户数据、撤销平台连接、删除笔记与永久删除账户。高风险操作要求近期重新验证。
+- **生产运行**：OVH Linux systemd 运行账户 API、导入工作器、健康、自愈、备份、事实同步和 R2→OCI 冷备；不使用 macOS launchd，不依赖开发 Agent 会话或后台模型。
 
-## 业务基线白箱治理
+## 运行平面
 
-`/status/` 不是单一“绿灯”，而是由同一运行时合同驱动的七条纵向业务线矩阵：公开信任面、微信读书直连导出、本地文件导入、规范化与确定性导出、ChatGPT 安全交接、发布与供应链、运维恢复与事实同步。每条业务线显示阶段、状态、依赖、耦合关系、验收 Oracle 和恢复动作。
+```text
+浏览器 / ChatGPT Sites
+  ├─ 静态中文账户 UI、隐私、条款、状态和匿名兼容入口
+  └─ 同源 Worker 薄代理（不持久化用户数据）
+        └─ HTTPS → OVH 账户服务（Node.js 22 + systemd）
+              ├─ SQLite：实时事务、索引、同步、队列、Outbox
+              ├─ R2：加密笔记与用户对象
+              ├─ Private-Database：脱敏结构化事实和恢复记录
+              └─ OCI：R2/D1 异地冷备
+```
 
-- 状态只允许 `READY`、`DEGRADED`、`BLOCKED`、`NOT_VERIFIED`、`EXTERNAL`；未取得真实证据不得标为正常。
-- `/readyz` 同时校验业务线 ID 唯一、依赖存在且依赖图无环；合同失效时 fail-closed。
-- `/api/status`、无需 JavaScript 的静态 `/status/`、OVH 脱敏适配和生产 Smoke 使用同一 schema。
-- 状态数据不得包含密钥、书名、文件名、笔记、用户标识、内部项目 ID 或私有基础设施凭据。
+ChatGPT Sites 必须配置 `WEREAD_ACCOUNT_SERVICE_URL` 与 `WRP_INTERNAL_PROXY_SECRET`。OVH 账户服务默认只监听 `127.0.0.1:8788`，必须由现有 HTTPS 反向代理或 Cloudflare Tunnel 暴露；不得直接开放明文 HTTP 端口。
 
-## 本地验证
+## 本地冻结验证
 
-要求 Node.js 22.13 或更高版本、Python 3.11 或更高版本：
+要求 Node.js 22.13+、Python 3.11+：
 
 ```bash
-npm install --ignore-scripts --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
 npm run verify:all
 npm run build
 ```
 
-不安装依赖也可先运行确定性核心验证与便携预览：
+不安装第三方依赖时仍可运行核心、账户、运维、静态页面和安全验证：
 
 ```bash
-npm run verify
-npm run dev:portable
+npm run verify:integration
 ```
 
-真实微信读书导出需要在 ChatGPT Sites 开发环境或已部署站点中运行，使同源薄代理能够访问官方接口。
+## OVH 安装与回滚
 
-## 安全边界
+先在隔离目录验证安装布局：
 
-P0 不存在可共享的公共微信读书密钥。不得把用户密钥放入 `.env`、Sites 设置、源代码、提示词、测试夹具、网址、日志、分析系统或错误追踪。用户只在当前会话输入本人密钥；密钥仅在浏览器隔离任务与同源代理的单次请求内存中短暂处理。
+```bash
+python3 service/install_platform.py --root /tmp/weread-port-install-check
+```
 
-## ChatGPT Sites 部署
+真实环境由 Owner 填写 `/etc/weread-port/platform.env` 中的 R2、OAuth、Private-Database 工作树和可选 OCI 输入；Codex先运行不会回显 Secret 的确定性预检，再执行安装：
 
-1. 运行 `npm run verify:all && npm run build`。
-2. 在 ChatGPT Sites 保存版本；平台可能把 `project_id` 写入 `.openai/hosting.json`。
-3. 部署到 Sites 默认生产网址并运行任务包内的生产冒烟检查。
-4. 自定义域名 `weread.linzezhang.com` 可在能力可用时绑定，但不得阻塞默认生产网址上线。
+```bash
+sudo python3 service/scripts/platform_preflight.py --env-file /etc/weread-port/platform.env --require-paths --strict
+sudo python3 service/install_platform.py --apply
+```
 
-核心上线不依赖数据库迁移、登录、服务器笔记库、真实时间观察期或新增公共密钥。
+启动、停止、诊断、备份、恢复、回滚、状态适配和生产 Smoke 的精确命令见正式任务包 `assets/OPERATIONS_RUNBOOK.md`。安装器采用版本化 release 和 `current` 软链接，失败时不得覆盖 Owner 的后续修改。
 
-## 公开页面与运行状态
+## 安全与真实性边界
 
-- `/privacy/`：无需 JavaScript 即可阅读的完整中文隐私政策；
-- `/terms/`：无需 JavaScript 即可阅读的完整中文使用条款；
-- `/status/`：面向使用者的系统状态页；
-- `/healthz`：仅判断请求入口存活；
-- `/readyz`：判断静态资源绑定是否真实可读；
-- `/api/status`：脱敏公开状态，不使用任何用户密钥探测腾讯上游；
-- `/api/version`：应用与官方 Skill 版本合同。
-
-OVH 运维平面同时检查上述四个机器合同，只有全部通过才向 `status.linzezhang.com` 报告产品面正常。上线后 GitHub Actions 每日运行同一有界生产冒烟；没有真实时间 Soak，也不依赖开发 Agent 会话。
+- 任何曾在聊天、工单或日志出现的真实密钥一律视为泄露，不能进入代码、任务包、测试或部署配置，必须撤销并轮换后才能执行真实 E2E。
+- 7×24 是架构、恢复、监控与运维目标，不是尚未发生的长期运行证明。
+- `/healthz` 只证明公开入口存活；`/readyz` 主动验证 SQLite、R2 写读删、worker 心跳、OAuth 配置和业务依赖图，失败返回 503；`/api/status` 只发布脱敏状态，不读取用户正文或凭据。
+- 生产 OAuth、R2、OVH、Private-Database、OCI 与 ChatGPT Sites 的真实可用性只能由目标环境证据裁决，不能由本地测试冒充。

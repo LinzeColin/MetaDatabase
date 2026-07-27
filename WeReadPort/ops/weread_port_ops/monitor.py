@@ -14,17 +14,21 @@ from urllib.request import Request, urlopen
 from .config import Settings
 from .sanitize import assert_public_safe, sanitize_public
 
-APP_VERSION = "v0.0.0.1.7"
+APP_VERSION = "v0.0.0.1.8"
 EXPECTED_SOURCE_SKILL_VERSION = "1.0.4"
-EXPECTED_BUSINESS_GOVERNANCE_SCHEMA_VERSION = "1.0.0"
+EXPECTED_BUSINESS_GOVERNANCE_SCHEMA_VERSION = "2.0.0"
 EXPECTED_BUSINESS_LINE_IDS = {
     "public-trust",
-    "weread-direct-export",
-    "local-import",
-    "normalize-export",
-    "chatgpt-handoff",
+    "identity-access",
+    "account-storage",
+    "cross-device-sync",
+    "provider-imports",
+    "weread-wide-sync",
+    "analytics-recommendations",
+    "legacy-migration",
     "release-supply-chain",
     "operations-recovery",
+    "facts-backup",
 }
 MAX_RESPONSE_BYTES = 1024 * 1024
 _VERSION_PATTERN = re.compile(r"(?m)^version:\s*([0-9]+(?:\.[0-9]+){2,})\s*$")
@@ -68,12 +72,12 @@ def fetch_text(url: str, timeout: float) -> tuple[int, str, float]:
 
 def project_descriptor(site_url: str) -> dict[str, Any]:
     return {
-        "name": "微信读书笔记迁移",
+        "name": "阅迁｜个人阅读资产中心",
         "url": site_url,
-        "parts": ["前台", "运维"],
-        "host": "ChatGPT Sites + OVH 运维面",
-        "db": "OVH SQLite · 可重建运行日志",
-        "store": "Private-Database 事实 + R2/OCI 冷备",
+        "parts": ["账户前台", "OVH 账户服务", "运维与恢复"],
+        "host": "ChatGPT Sites + OVH Node.js/systemd",
+        "db": "OVH SQLite 实时事务索引 + R2 加密用户对象",
+        "store": "Private-Database 结构化事实 + R2 用户对象 + OCI 冷备",
         "deploy": "Sites Version + systemd timers",
         "backup": "Private-Database + R2 + OCI",
         "agent": "无",
@@ -115,7 +119,7 @@ def check_site(
             },
             "businessLines": [],
             "operationsPlane": {"status": "operational", "runtimeJournal": "ready"},
-            "privacy": {"sensitiveDataRetention": "none", "userContentRetention": "none", "archiveRetention": "none"},
+            "privacy": {"sensitiveDataRetention": "encrypted-account-scoped", "userContentRetention": "account-controlled", "archiveRetention": "bounded-backup-rotation"},
         }
         assert_public_safe(payload)
         return payload
@@ -192,8 +196,9 @@ def check_site(
             statuses["public"] == 200
             and public.get("ok") is True
             and public.get("status") == "OPERATIONAL"
-            and boundary.get("serverSideUserNotePersistence") is False
-            and boundary.get("serverSideUserKeyPersistence") is False
+            and boundary.get("serverSideUserNotePersistence") is True
+            and boundary.get("accountScopedEncryption") is True
+            and boundary.get("multiTenantIsolation") is True
             and boundary.get("statusContainsUserContent") is False
             and business_governance_ok
         )
@@ -245,7 +250,7 @@ def check_site(
         },
         "businessLines": business_lines,
         "operationsPlane": {"status": "operational", "runtimeJournal": "ready"},
-        "privacy": {"sensitiveDataRetention": "none", "userContentRetention": "none", "archiveRetention": "none"},
+        "privacy": {"sensitiveDataRetention": "encrypted-account-scoped", "userContentRetention": "account-controlled", "archiveRetention": "bounded-backup-rotation"},
     }
     clean = sanitize_public(payload)
     assert_public_safe(clean)

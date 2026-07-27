@@ -1,9 +1,9 @@
 {
   "name": "weread-port",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "private": true,
   "type": "module",
-  "description": "全局中文的微信读书与本地阅读笔记迁移工具：浏览器内上传、四类 Markdown/结构化导出、明确下载、安全跳转 ChatGPT，以及不接触用户内容的自运行运维平面。",
+  "description": "全局中文的账户中心化个人阅读资产平台：多方式登录、微信读书与四平台导入、加密笔记、跨设备同步、画像与匿名迁移兼容。",
   "engines": {
     "node": ">=22.13.0"
   },
@@ -15,7 +15,7 @@
     "build": "vite build",
     "build:portable": "node scripts/build-static.js",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --test tests/*.test.mjs tests/service/*.test.mjs",
     "check:syntax": "node scripts/check-syntax.js",
     "check:secrets": "node scripts/check-secrets.js",
     "verify": "node scripts/verify.js",
@@ -23,10 +23,13 @@
     "export": "node scripts/export-cli.js",
     "benchmark": "node scripts/benchmark.js",
     "test:ops": "python3 -m unittest discover -s ops/tests -p \"test_*.py\"",
-    "verify:integration": "npm run verify && npm run test:ops",
-    "verify:all": "npm run verify:integration && npm run benchmark",
+    "verify:integration": "npm run verify && npm run test:platform && npm run test:ops && npm run test:platform-ops",
+    "verify:all": "npm run verify:integration && npm run benchmark && npm run benchmark:platform",
     "check:zh-cn": "node scripts/check-zh-cn.js",
-    "check:release": "node scripts/check-release-metadata.js"
+    "check:release": "node scripts/check-release-metadata.js",
+    "test:platform": "node --test tests/service/*.test.mjs tests/account-*.test.mjs",
+    "benchmark:platform": "node scripts/benchmark-platform.mjs",
+    "test:platform-ops": "python3 -m unittest discover -s service/tests -p \"test_*.py\""
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.47.0",
@@ -34,6 +37,6 @@
     "vite": "8.1.5",
     "wrangler": "4.114.0"
   },
-  "taskpackVersion": "v0.0.0.1.7",
+  "taskpackVersion": "v0.0.0.1.8",
   "releaseStage": "stage2-formal-development-taskpack-delivery"
 }

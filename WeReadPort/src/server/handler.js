@@ -52,6 +52,10 @@ export async function handleRequest(request, env = {}) {
         businessGovernanceSchemaVersion: BUSINESS_GOVERNANCE_SCHEMA_VERSION,
       }));
     }
+    if (path.startsWith("/api/platform/")) {
+      if (request.method === "OPTIONS") return secure(new Response(null, { status: 204, headers: { Allow: "GET, POST, PUT, PATCH, DELETE, OPTIONS" } }));
+      return secure(await proxyAccountPlatform(request, env));
+    }
     if (path === "/api/weread/gateway") {
       if (request.method === "OPTIONS") return secure(new Response(null, { status: 204, headers: { Allow: "POST, OPTIONS" } }));
       return secure(await proxyGateway(request, env));
@@ -85,8 +89,9 @@ function machineHealth(request, url, env) {
 async function machineReadiness(request, url, env) {
   assertMachineMethod(request);
   const assets = await inspectAssets(request, env);
+  const accountService = await inspectAccountService(request, env);
   const governanceReady = BUSINESS_GRAPH_ERRORS.length === 0;
-  const ready = assets.ready && governanceReady;
+  const ready = assets.ready && accountService.ready && governanceReady;
   return jsonForRequest(request, {
     ok: ready,
     status: ready ? "READY" : "NOT_READY",
@@ -96,6 +101,7 @@ async function machineReadiness(request, url, env) {
     checkedAt: new Date().toISOString(),
     checks: {
       staticAssets: assets,
+      accountPlatformService: accountService,
       gatewayProxyContract: { ready: true, detail: "代理地址、接口白名单、参数白名单和上游技能版本已加载；未使用用户密钥探测上游。" },
       businessGovernanceContract: {
         ready: governanceReady,
@@ -110,11 +116,12 @@ async function machineReadiness(request, url, env) {
 async function publicStatusResponse(request, url, env) {
   assertMachineMethod(request);
   const assets = await inspectAssets(request, env);
+  const accountService = await inspectAccountService(request, env);
   const mode = runtimeMode(url, env);
   const checkedAt = new Date().toISOString();
-  const businessLines = buildBusinessLineStatus({ assetsReady: assets.ready, checkedAt });
+  const businessLines = buildBusinessLineStatus({ assetsReady: assets.ready, accountServiceReady: accountService.ready, checkedAt });
   const governanceReady = BUSINESS_GRAPH_ERRORS.length === 0;
-  const operational = assets.ready && governanceReady;
+  const operational = assets.ready && accountService.ready && governanceReady;
   return jsonForRequest(request, {
     ok: operational,
     status: operational ? "OPERATIONAL" : "DEGRADED",
@@ -130,6 +137,11 @@ async function publicStatusResponse(request, url, env) {
         status: assets.ready ? "AVAILABLE" : "UNAVAILABLE",
         label: assets.ready ? "公开应用可用" : "静态资源不可用",
         detail: assets.detail,
+      },
+      accountPlatform: {
+        status: accountService.ready ? "AVAILABLE" : "UNAVAILABLE",
+        label: accountService.ready ? "账户、同步与云端存储服务可用" : "账户平台服务不可用",
+        detail: accountService.detail,
       },
       localImportAndExport: {
         status: assets.ready ? "AVAILABLE" : "UNAVAILABLE",
@@ -156,8 +168,10 @@ async function publicStatusResponse(request, url, env) {
       lines: businessLines,
     },
     dataBoundary: {
-      serverSideUserNotePersistence: false,
-      serverSideUserKeyPersistence: false,
+      serverSideUserNotePersistence: true,
+      serverSideUserKeyPersistence: "账户级加密凭据；不明文存储",
+      accountScopedEncryption: true,
+      multiTenantIsolation: true,
       statusContainsUserContent: false,
       businessGovernanceContainsUserContent: false,
     },
@@ -197,6 +211,63 @@ async function inspectAssets(request, env) {
   } catch {
     return { ready: false, detail: "主页静态资源探测发生异常。" };
   }
+}
+
+
+async function inspectAccountService(request, env) {
+  const raw = String(env.WEREAD_ACCOUNT_SERVICE_URL || "").trim();
+  if (!raw) return { ready: false, detail: "未配置账户平台服务地址。" };
+  let base;
+  try { base = new URL(raw); } catch { return { ready: false, detail: "账户平台服务地址无效。" }; }
+  if (base.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(base.hostname)) return { ready: false, detail: "账户平台服务必须使用 HTTPS。" };
+  try {
+    const probe = new URL("/readyz", base);
+    const fetchImpl = typeof env.ACCOUNT_SERVICE_FETCH === "function" ? env.ACCOUNT_SERVICE_FETCH : fetch;
+    const response = await fetchImpl(probe, { method: "GET", redirect: "manual", headers: { Accept: "application/json", "User-Agent": "WeReadPort-Readiness/0.0.0.1.8" } });
+    const ready = response.ok;
+    await response.body?.cancel().catch(() => {});
+    return { ready, detail: ready ? "账户平台服务通过即时就绪探测。" : `账户平台服务就绪探测失败（HTTP ${response.status}）。` };
+  } catch { return { ready: false, detail: "账户平台服务就绪探测发生异常。" }; }
+}
+
+async function proxyAccountPlatform(request, env) {
+  assertSameOrigin(request);
+  enforceRateLimit(request);
+  const rawBase = String(env.WEREAD_ACCOUNT_SERVICE_URL || "").trim();
+  const internalSecret = String(env.WRP_INTERNAL_PROXY_SECRET || "");
+  if (!rawBase || !internalSecret) throw new WeReadPortError("NOT_READY", "账户平台服务尚未配置。", { status: 503 });
+  let base;
+  try { base = new URL(rawBase); } catch { throw new WeReadPortError("NOT_READY", "账户平台服务配置无效。", { status: 503 }); }
+  if (base.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(base.hostname)) throw new WeReadPortError("NOT_READY", "账户平台服务必须使用 HTTPS。", { status: 503 });
+  const incoming = new URL(request.url);
+  const target = new URL(incoming.pathname.replace(/^\/api\/platform/, "") || "/", base);
+  target.search = incoming.search;
+  const headers = new Headers();
+  for (const name of ["accept", "content-type", "cookie", "idempotency-key", "origin", "sec-fetch-site", "user-agent", "x-csrf-token"]) {
+    const value = request.headers.get(name); if (value) headers.set(name, value);
+  }
+  headers.set("x-wrp-internal-secret", internalSecret);
+  const ip = request.headers.get("cf-connecting-ip"); if (ip) headers.set("x-forwarded-for", ip);
+  const fetchImpl = typeof env.ACCOUNT_SERVICE_FETCH === "function" ? env.ACCOUNT_SERVICE_FETCH : fetch;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 35_000);
+  try {
+    const response = await fetchImpl(target, { method: request.method, headers, body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body, redirect: "manual", signal: combineSignals(request.signal, controller.signal) });
+    const outputHeaders = new Headers();
+    for (const name of ["content-type", "cache-control", "set-cookie", "location", "retry-after"]) {
+      const value = response.headers.get(name); if (value) outputHeaders.set(name, value);
+    }
+    if (outputHeaders.has("location")) {
+      const location = new URL(outputHeaders.get("location"), incoming.origin);
+      if (location.origin !== incoming.origin) throw new WeReadPortError("UPSTREAM_REDIRECT", "账户服务返回了非同源重定向。", { status: 502 });
+      outputHeaders.set("location", location.toString());
+    }
+    return new Response(response.body, { status: response.status, headers: outputHeaders });
+  } catch (error) {
+    if (controller.signal.aborted) throw new WeReadPortError("TIMEOUT", "账户平台服务响应超时。", { status: 504, retryable: true });
+    if (error instanceof WeReadPortError) throw error;
+    throw new WeReadPortError("NETWORK", "无法连接账户平台服务。", { status: 502, retryable: true });
+  } finally { clearTimeout(timer); }
 }
 
 function runtimeMode(url, env) {

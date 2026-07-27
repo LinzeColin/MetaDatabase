@@ -11,17 +11,13 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 MAX_BYTES = 2 * 1024 * 1024
-EXPECTED_APP_VERSION = "v0.0.0.1.7"
+EXPECTED_APP_VERSION = "v0.0.0.1.8"
 EXPECTED_SKILL_VERSION = "1.0.4"
-EXPECTED_BUSINESS_SCHEMA_VERSION = "1.0.0"
+EXPECTED_BUSINESS_SCHEMA_VERSION = "2.0.0"
 EXPECTED_BUSINESS_LINES = {
-    "public-trust",
-    "weread-direct-export",
-    "local-import",
-    "normalize-export",
-    "chatgpt-handoff",
-    "release-supply-chain",
-    "operations-recovery",
+    "public-trust", "identity-access", "account-storage", "cross-device-sync",
+    "provider-imports", "weread-wide-sync", "analytics-recommendations",
+    "legacy-migration", "release-supply-chain", "operations-recovery", "facts-backup",
 }
 
 
@@ -37,7 +33,7 @@ def origin(value: str) -> str:
 def fetch(url: str, *, method: str = "GET", body: bytes | None = None, headers: dict[str, str] | None = None, timeout: float = 15.0):
     started = time.monotonic()
     request_headers = {
-        "User-Agent": "WeReadPort-Smoke/0.0.0.1.7",
+        "User-Agent": "WeReadPort-Smoke/0.0.0.1.8",
         "Accept": "application/json, text/html;q=0.9",
     }
     request_headers.update(headers or {})
@@ -72,7 +68,14 @@ def main() -> int:
 
     status, headers, raw, latency = fetch(base + "/readyz", timeout=args.timeout)
     readiness = json.loads(raw.decode("utf-8"))
-    add(checks, "readiness", status, latency, status == 200 and readiness.get("status") == "READY" and readiness.get("checks", {}).get("staticAssets", {}).get("ready") is True, str(readiness.get("status")))
+    readiness_ok = (
+        status == 200
+        and readiness.get("status") == "READY"
+        and readiness.get("checks", {}).get("staticAssets", {}).get("ready") is True
+        and readiness.get("checks", {}).get("accountPlatformService", {}).get("ready") is True
+        and readiness.get("checks", {}).get("businessGovernanceContract", {}).get("schemaVersion") == EXPECTED_BUSINESS_SCHEMA_VERSION
+    )
+    add(checks, "readiness", status, latency, readiness_ok, str(readiness.get("status")))
 
     status, headers, raw, latency = fetch(base + "/api/status", timeout=args.timeout)
     public_status = json.loads(raw.decode("utf-8"))
@@ -97,10 +100,10 @@ def main() -> int:
     add(checks, "version", status, latency, status == 200 and version.get("appVersion") == EXPECTED_APP_VERSION and version.get("sourceSkillVersion") == EXPECTED_SKILL_VERSION and version.get("businessGovernanceSchemaVersion") == EXPECTED_BUSINESS_SCHEMA_VERSION, str(version))
 
     for route, required in [
-        ("/", ["微信读书笔记迁移"]),
-        ("/privacy/", ["隐私政策", "我们处理哪些数据", "保存、清除与备份边界"]),
-        ("/terms/", ["使用条款", "禁止用途", "可用性、上游变化与安全停止"]),
-        ("/status/", ["系统状态", "/healthz", "/readyz", "/api/status", "端到端白箱治理矩阵", "依赖与耦合", "验收 Oracle"]),
+        ("/", ["一个账户", "用密钥快速开始", "用 Google 创建", "使用邮箱和密码"]),
+        ("/privacy/", ["隐私政策", "账户隔离", "长期存储", "一键导入"]),
+        ("/terms/", ["使用条款", "禁止用途", "账户", "同步"]),
+        ("/status/", ["系统状态", "/healthz", "/readyz", "/api/status", "账户与多平台身份", "四平台一键导入", "画像、热度与推荐"]),
     ]:
         status, headers, raw, latency = fetch(base + route, timeout=args.timeout)
         page = raw.decode("utf-8", errors="replace")
