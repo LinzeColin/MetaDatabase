@@ -255,8 +255,21 @@ def inject_failure(kind: str, settings: Settings, db: RuntimeDB, *, at: datetime
     if kind == "version-drift":
         def fetcher(url: str, timeout: float):
             del timeout
-            if url.endswith("healthz"):
-                return 200, {"ok": True}, 1.0
+            if url.endswith("/healthz"):
+                return 200, {"ok": True, "status": "ALIVE"}, 1.0
+            if url.endswith("/readyz"):
+                return 200, {"ok": True, "status": "READY"}, 1.0
+            if url.endswith("/api/status"):
+                return 200, {
+                    "ok": True,
+                    "status": "OPERATIONAL",
+                    "runtimeMode": "production",
+                    "dataBoundary": {
+                        "serverSideUserNotePersistence": False,
+                        "serverSideUserKeyPersistence": False,
+                        "statusContainsUserContent": False,
+                    },
+                }, 1.0
             return 200, {"appVersion": "0.0.0.0", "sourceSkillVersion": "0.0.0"}, 1.0
         configured = settings if settings.site_url else Settings(**{**settings.__dict__, "site_url": "https://weread.invalid"})
         return check_site(configured, fetcher=fetcher, at=at)

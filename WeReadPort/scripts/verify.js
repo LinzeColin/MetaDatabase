@@ -12,6 +12,8 @@ try {
   run(process.execPath, ["scripts/check-syntax.js"]);
   run(process.execPath, ["scripts/check-secrets.js"]);
   run(process.execPath, ["scripts/check-zh-cn.js"]);
+  run(process.execPath, ["scripts/check-public-pages.js"]);
+  run(process.execPath, ["scripts/check-release-metadata.js"]);
   run(process.execPath, ["--test", ...tests.map(name => path.join("tests", name))]);
   run(process.execPath, ["scripts/build-static.js"], { WEREAD_PORT_PORTABLE_DIST: portableDist });
   for (const expected of [
@@ -21,8 +23,11 @@ try {
     "src/core/exporter.js",
     ".openai/hosting.json",
     "build-manifest.json",
+    "privacy/index.html",
+    "terms/index.html",
+    "status/index.html",
   ]) await access(path.join(portableDist, expected));
-  console.log("\n全部无依赖验证均已通过：测试集非空、全局中文检查通过，并完成隔离式便携构建。");
+  console.log("\n全部无依赖验证均已通过：测试集非空、全局中文与静态公开页面检查通过，并完成隔离式便携构建。");
 } finally {
   await rm(portableDist, { recursive: true, force: true });
 }

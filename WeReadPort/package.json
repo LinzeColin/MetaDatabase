@@ -1,6 +1,6 @@
 {
   "name": "weread-port",
-  "version": "0.0.3",
+  "version": "0.0.7",
   "private": true,
   "type": "module",
   "description": "全局中文的微信读书与本地阅读笔记迁移工具：浏览器内上传、四类 Markdown/结构化导出、明确下载、安全跳转 ChatGPT，以及不接触用户内容的自运行运维平面。",
@@ -9,6 +9,9 @@
   },
   "scripts": {
     "dev": "vite dev",
+    "generate:public": "node scripts/generate-public-pages.js",
+    "check:public": "node scripts/check-public-pages.js",
+    "prebuild": "npm run generate:public",
     "build": "vite build",
     "build:portable": "node scripts/build-static.js",
     "preview": "vite preview",
@@ -20,8 +23,10 @@
     "export": "node scripts/export-cli.js",
     "benchmark": "node scripts/benchmark.js",
     "test:ops": "python3 -m unittest discover -s ops/tests -p \"test_*.py\"",
-    "verify:all": "npm run verify && npm run test:ops && npm run benchmark",
-    "check:zh-cn": "node scripts/check-zh-cn.js"
+    "verify:integration": "npm run verify && npm run test:ops",
+    "verify:all": "npm run verify:integration && npm run benchmark",
+    "check:zh-cn": "node scripts/check-zh-cn.js",
+    "check:release": "node scripts/check-release-metadata.js"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.47.0",
@@ -29,5 +34,6 @@
     "vite": "8.1.5",
     "wrangler": "4.114.0"
   },
-  "taskpackVersion": "v0.0.0.1.3"
+  "taskpackVersion": "v0.0.0.1.7",
+  "releaseStage": "stage2-formal-development-taskpack-delivery"
 }

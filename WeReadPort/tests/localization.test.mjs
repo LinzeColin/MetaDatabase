@@ -18,7 +18,7 @@ test("产品入口与清单使用简体中文", async () => {
   assert.equal(manifest.lang, "zh-CN");
   assert.match(manifest.name, /微信读书笔记迁移/u);
   assert.equal(APP_NAME, "微信读书笔记迁移");
-  assert.equal(APP_VERSION, "v0.0.0.1.3");
+  assert.equal(APP_VERSION, "v0.0.0.1.7");
   assert.ok(!appSource.includes("v${APP_VERSION}"), "版本号前不得重复添加 v");
 });
 

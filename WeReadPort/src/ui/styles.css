@@ -307,7 +307,28 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
   .footer-links { flex-wrap: wrap; }
 }
 
-@media (max-width: 760px) {
+
+.business-governance { margin-top: 28px; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-sm); }
+.business-governance-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 18px; }
+.business-governance-heading .section-label { margin-bottom: 8px; }
+.business-governance-heading h2 { margin: 0; color: var(--text-strong); font-size: clamp(1.4rem, 3vw, 2rem); }
+.business-governance-heading > p { max-width: 48ch; margin: 0; text-align: right; }
+.business-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.business-governance table { width: 100%; min-width: 980px; border-collapse: collapse; font-size: .86rem; }
+.business-governance th, .business-governance td { padding: 14px 13px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; line-height: 1.55; }
+.business-governance thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-subtle); color: var(--muted-strong); font-size: .74rem; letter-spacing: .04em; }
+.business-governance tbody tr:last-child > * { border-bottom: 0; }
+.business-governance tbody tr:hover { background: var(--surface-subtle); }
+.business-governance tbody th { width: 170px; color: var(--text-strong); }
+.business-governance tbody th strong { display: block; }
+.business-governance tbody th span, .business-governance td small { display: block; margin-top: 5px; color: var(--muted); font-size: .72rem; overflow-wrap: anywhere; }
+.business-state { display: inline-flex; align-items: center; min-height: 25px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: .7rem; font-weight: 780; white-space: nowrap; }
+.business-state.ready { color: var(--success); border-color: color-mix(in srgb, var(--success) 35%, var(--line)); background: var(--success-soft); }
+.business-state.degraded, .business-state.not-verified { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 35%, var(--line)); background: var(--warning-soft); }
+.business-state.blocked { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); background: var(--danger-soft); }
+.business-state.external { color: var(--info); border-color: color-mix(in srgb, var(--info) 35%, var(--line)); background: var(--info-soft); }
+
+@media (max-width: 768px) {
   .topbar { min-height: 60px; padding-inline: 14px; }
   .brand-copy small { display: none; }
   .topbar nav { justify-self: end; gap: 10px; }
@@ -351,7 +372,7 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
 }
 
 @media (max-width: 430px) {
-  body { font-size: 15px; }
+  body { font-size: 16px; }
   .topbar nav a:nth-last-child(2) { display: none; }
   .hero { padding-top: 30px; }
   .hero h1 { font-size: 2.65rem; }
@@ -377,7 +398,7 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
 
-/* v0.0.0.1.3：本地上传、双重下载与 ChatGPT 安全交接。 */
+/* v0.0.0.1.7：生产化公开页面、可辨识状态与集成整改。 */
 .choice-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .upload-choice .file-drop { margin-top: 14px; }
 .start-upload { min-height: 92px; align-content: center; text-align: center; }
@@ -404,10 +425,148 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
   .choice-grid.three .choice-card:last-child { grid-column: 1 / -1; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .choice-grid.three { grid-template-columns: 1fr; }
   .choice-grid.three .choice-card:last-child { grid-column: auto; }
   .chatgpt-file { grid-template-columns: 1fr; }
   .chatgpt-file .button { width: 100%; }
   .chatgpt-actions { display: grid; grid-template-columns: 1fr; }
+}
+
+/* v0.0.0.1.7：生产运行状态、静态法律页与线上主路径。 */
+.runtime-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  max-width: 700px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.runtime-banner > div { display: grid; gap: 2px; }
+.runtime-banner strong { color: var(--text-strong); font-size: .88rem; }
+.runtime-banner p { margin: 0; color: var(--muted); font-size: .78rem; }
+.runtime-banner > a { min-height: 44px; display: inline-flex; align-items: center; color: var(--accent-strong); font-size: .8rem; font-weight: 720; }
+.runtime-banner.success { border-color: color-mix(in srgb, var(--success) 35%, var(--line)); background: var(--success-soft); }
+.runtime-banner.warning { border-color: color-mix(in srgb, var(--warning) 35%, var(--line)); background: var(--warning-soft); }
+.runtime-banner.warning .status-dot { background: var(--warning); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warning-soft) 80%, transparent); }
+.choice-grid.three .connect-choice { order: 1; }
+.choice-grid.three .upload-choice { order: 2; }
+.choice-grid.three .demo-choice { order: 3; }
+
+.legal-summary {
+  max-width: 66ch;
+  margin: -26px 0 44px;
+  padding: 18px 20px;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--muted-strong);
+}
+.legal-section { padding-top: 4px; }
+.legal-section + .legal-section { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--line); }
+.legal-section h2 { margin-top: 0; }
+.legal-section a, .legal-contact a { color: var(--accent-strong); font-weight: 680; }
+.legal-contact { margin-top: 54px; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+.legal-contact h2 { margin-top: 0; }
+
+.status-page { max-width: var(--content); margin: 0 auto; padding: 72px 24px 110px; }
+.status-page > h1 { margin: 0; color: var(--text-strong); font-size: clamp(2.8rem, 6vw, 5rem); line-height: 1; letter-spacing: -.05em; }
+.status-intro { max-width: 70ch; margin: 22px 0 34px; color: var(--muted-strong); font-size: 1.04rem; line-height: 1.75; }
+.status-overview { margin-bottom: 18px; }
+.status-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: start; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-sm); }
+.status-hero.complete { border-color: color-mix(in srgb, var(--success) 36%, var(--line)); background: var(--success-soft); }
+.status-hero.partial { border-color: color-mix(in srgb, var(--warning) 36%, var(--line)); background: var(--warning-soft); }
+.status-hero.failed { border-color: color-mix(in srgb, var(--danger) 36%, var(--line)); background: var(--danger-soft); }
+.status-hero.neutral { background: var(--surface-subtle); }
+.status-large-dot { width: 18px; height: 18px; margin-top: 7px; border-radius: 50%; background: var(--info); box-shadow: 0 0 0 7px var(--info-soft); }
+.status-hero h2 { margin: 0; color: var(--text-strong); font-size: clamp(1.45rem, 3vw, 2.2rem); }
+.status-hero p:not(.outcome-label) { margin: 8px 0 0; color: var(--muted-strong); }
+.status-components { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.status-components article, .status-links { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+.status-components h2, .status-links h2 { margin: 0; color: var(--text-strong); font-size: 1.05rem; }
+.status-components p, .status-links p { color: var(--muted); line-height: 1.65; }
+.component-heading { display: flex; align-items: center; gap: 10px; }
+.component-state { flex: 0 0 auto; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: .7rem; font-weight: 780; }
+.component-state.available { color: var(--success); border-color: color-mix(in srgb, var(--success) 35%, var(--line)); background: var(--success-soft); }
+.component-state.unavailable { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); background: var(--danger-soft); }
+.component-state.external { color: var(--info); border-color: color-mix(in srgb, var(--info) 35%, var(--line)); background: var(--info-soft); }
+.status-links { margin-top: 12px; }
+.status-links a { color: var(--accent-strong); font-weight: 720; }
+.status-noscript { margin-top: 18px; padding: 14px; border: 1px solid var(--warning); border-radius: var(--radius-sm); background: var(--warning-soft); color: var(--muted-strong); }
+
+@media (max-width: 768px) {
+  .runtime-banner { grid-template-columns: auto minmax(0, 1fr); }
+  .runtime-banner > a { grid-column: 2; }
+  .status-page { padding: 48px 16px 82px; }
+  .status-components { grid-template-columns: 1fr; }
+  .business-governance { padding: 18px; }
+  .business-governance-heading { display: block; }
+  .business-governance-heading > p { margin-top: 10px; text-align: left; }
+  .legal-summary { margin-top: -18px; }
+}
+
+
+/* v0.0.0.1.7：UI UX Pro Max / Webapp Testing 定点整改，不改变既有品牌与主流程。 */
+@media (max-width: 768px) {
+  .hero-actions { display: grid; grid-template-columns: 1fr; }
+  .hero-actions .button { width: 100%; min-height: 48px; }
+  .hero-lede, .workspace-heading > p, .panel-head > div > p { font-size: 1rem; }
+  .microcopy, .choice-card ul, .runtime-banner p, .trust-list, footer { font-size: .875rem; }
+  .choice-card { padding: 20px; }
+  .business-table-wrap { overflow: visible; border: 0; background: transparent; }
+  .business-governance table,
+  .business-governance tbody,
+  .business-governance tr,
+  .business-governance th,
+  .business-governance td { display: block; width: 100%; min-width: 0; }
+  .business-governance thead {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .business-governance tbody { display: grid; gap: 12px; }
+  .business-governance tbody tr {
+    overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md);
+    background: var(--surface); box-shadow: var(--shadow-sm);
+  }
+  .business-governance tbody th {
+    padding: 16px; border: 0; border-bottom: 1px solid var(--line);
+    background: var(--surface-subtle); font-size: 1rem;
+  }
+  .business-governance tbody td {
+    display: grid; grid-template-columns: minmax(92px, .36fr) minmax(0, 1fr);
+    gap: 10px; padding: 11px 16px; border: 0; border-bottom: 1px solid var(--line);
+    font-size: .875rem; overflow-wrap: anywhere;
+  }
+  .business-governance tbody td:last-child { border-bottom: 0; }
+  .business-governance tbody td::before {
+    color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .04em;
+  }
+  .business-governance tbody td:nth-of-type(1)::before { content: "阶段"; }
+  .business-governance tbody td:nth-of-type(2)::before { content: "状态"; }
+  .business-governance tbody td:nth-of-type(3)::before { content: "依赖与耦合"; }
+  .business-governance tbody td:nth-of-type(4)::before { content: "验收 Oracle"; }
+  .business-governance tbody td:nth-of-type(5)::before { content: "恢复或下一步"; }
+  .legal, .status-page { overflow: visible; }
+}
+
+@media (max-width: 430px) {
+  .hero h1 { font-size: clamp(2.35rem, 12vw, 2.75rem); line-height: 1.02; }
+  .brand-copy small { display: none; }
+  .topbar nav a { font-size: .875rem; }
+  .panel, .choice-card, .status-components article, .status-links { border-radius: 10px; }
+  .business-governance tbody td { grid-template-columns: 1fr; gap: 4px; }
+}
+
+@media (prefers-contrast: more) {
+  :root { --line: var(--line-strong); }
+  .button, .choice-card, .panel, .status-components article, .business-governance tbody tr { box-shadow: none; }
+  a { text-decoration-thickness: 2px; }
+}
+
+@media (forced-colors: active) {
+  .status-dot, .status-large-dot, .brand-mark { forced-color-adjust: none; }
+  .button, .choice-card, .panel, .runtime-banner, .business-governance tbody tr { border: 1px solid CanvasText; }
 }

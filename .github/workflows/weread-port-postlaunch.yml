@@ -8,32 +8,23 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: 微信读书笔记迁移-生产冒烟
+  cancel-in-progress: true
+
 jobs:
   production-smoke:
-    name: 生产冒烟
+    name: 生产公开页面、就绪与安全边界冒烟
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: 读取代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: 配置 Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
-      - name: 检查生产网址配置
-        id: config
-        env:
-          WEREAD_PORT_SITE_URL: ${{ vars.WEREAD_PORT_SITE_URL }}
-        shell: bash
-        run: |
-          if [[ "$WEREAD_PORT_SITE_URL" == https://* ]]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "生产网址尚未配置；上线前保持非阻塞跳过，不制造失败噪音。" >> "$GITHUB_STEP_SUMMARY"
-          fi
       - name: 运行有界生产冒烟
-        if: steps.config.outputs.configured == 'true'
         env:
-          WEREAD_PORT_SITE_URL: ${{ vars.WEREAD_PORT_SITE_URL }}
+          WEREAD_PORT_SITE_URL: ${{ vars.WEREAD_PORT_SITE_URL || 'https://weread-port.linzezhang35.chatgpt.site' }}
         run: python3 WeReadPort/scripts/smoke-site.py "$WEREAD_PORT_SITE_URL"

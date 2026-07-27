@@ -14,8 +14,18 @@ from urllib.request import Request, urlopen
 from .config import Settings
 from .sanitize import assert_public_safe, sanitize_public
 
-APP_VERSION = "v0.0.0.1.3"
+APP_VERSION = "v0.0.0.1.7"
 EXPECTED_SOURCE_SKILL_VERSION = "1.0.4"
+EXPECTED_BUSINESS_GOVERNANCE_SCHEMA_VERSION = "1.0.0"
+EXPECTED_BUSINESS_LINE_IDS = {
+    "public-trust",
+    "weread-direct-export",
+    "local-import",
+    "normalize-export",
+    "chatgpt-handoff",
+    "release-supply-chain",
+    "operations-recovery",
+}
 MAX_RESPONSE_BYTES = 1024 * 1024
 _VERSION_PATTERN = re.compile(r"(?m)^version:\s*([0-9]+(?:\.[0-9]+){2,})\s*$")
 
@@ -81,54 +91,135 @@ def check_site(
     base = settings.site_url
     if not base:
         payload = {
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "service": "weread-port",
             "checkedAt": iso(checked_at),
             "status": "unconfigured",
             "project": project_descriptor(""),
             "productPlane": {
                 "configured": False,
-                "healthOk": False,
+                "livenessOk": False,
+                "readinessOk": False,
+                "publicStatusOk": False,
+                "businessGovernanceOk": False,
                 "versionOk": False,
                 "healthHttpStatus": None,
+                "readinessHttpStatus": None,
+                "publicStatusHttpStatus": None,
                 "versionHttpStatus": None,
                 "latencyMs": None,
                 "appVersion": None,
                 "sourceSkillVersion": None,
+                "runtimeMode": None,
                 "errorCode": "PRODUCTION_ORIGIN_UNCONFIGURED",
             },
+            "businessLines": [],
             "operationsPlane": {"status": "operational", "runtimeJournal": "ready"},
             "privacy": {"sensitiveDataRetention": "none", "userContentRetention": "none", "archiveRetention": "none"},
         }
         assert_public_safe(payload)
         return payload
-    health_status = version_status = None
-    total_latency = 0.0
-    error_code = None
-    app_version = source_version = None
-    health_ok = version_ok = False
-    try:
-        health_status, health, health_latency = fetcher(f"{base}/healthz", settings.timeout_seconds)
-        total_latency += health_latency
-        health_ok = health_status == 200 and health.get("ok") is True
-        if not health_ok:
-            error_code = "HEALTH_CONTRACT_FAILED"
-    except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError, OSError) as exc:
-        error_code = classify_error(exc, "HEALTH")
-    try:
-        version_status, version, version_latency = fetcher(f"{base}/api/version", settings.timeout_seconds)
-        total_latency += version_latency
+
+    statuses: dict[str, int | None] = {"health": None, "readiness": None, "public": None, "version": None}
+    latency = 0.0
+    errors: list[str] = []
+    app_version = source_version = runtime_mode = business_schema_version = None
+    liveness_ok = readiness_ok = public_status_ok = business_governance_ok = version_ok = False
+    business_lines: list[dict[str, Any]] = []
+
+    def request_json(path: str, prefix: str) -> dict[str, Any] | None:
+        nonlocal latency
+        try:
+            http_status, payload, observed_latency = fetcher(f"{base}{path}", settings.timeout_seconds)
+            statuses[prefix] = http_status
+            latency += observed_latency
+            return payload
+        except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError, OSError) as exc:
+            errors.append(classify_error(exc, prefix.upper()))
+            return None
+
+    health = request_json("/healthz", "health")
+    if health is not None:
+        liveness_ok = statuses["health"] == 200 and health.get("ok") is True and health.get("status") == "ALIVE"
+        if not liveness_ok:
+            errors.append("LIVENESS_CONTRACT_FAILED")
+
+    readiness = request_json("/readyz", "readiness")
+    if readiness is not None:
+        readiness_contract = readiness.get("checks", {}).get("businessGovernanceContract", {}) if isinstance(readiness.get("checks"), dict) else {}
+        readiness_ok = (
+            statuses["readiness"] == 200
+            and readiness.get("ok") is True
+            and readiness.get("status") == "READY"
+            and readiness_contract.get("ready") is True
+            and readiness_contract.get("schemaVersion") == EXPECTED_BUSINESS_GOVERNANCE_SCHEMA_VERSION
+        )
+        if not readiness_ok:
+            errors.append("READINESS_CONTRACT_FAILED")
+
+    public = request_json("/api/status", "public")
+    if public is not None:
+        boundary = public.get("dataBoundary") if isinstance(public.get("dataBoundary"), dict) else {}
+        governance = public.get("businessGovernance") if isinstance(public.get("businessGovernance"), dict) else {}
+        raw_lines = governance.get("lines") if isinstance(governance.get("lines"), list) else []
+        compact_lines: list[dict[str, Any]] = []
+        observed_ids: set[str] = set()
+        for raw_line in raw_lines:
+            if not isinstance(raw_line, dict):
+                continue
+            line_id = str(raw_line.get("id", ""))
+            observed_ids.add(line_id)
+            compact_lines.append({
+                "id": line_id,
+                "name": str(raw_line.get("name", "")),
+                "phase": str(raw_line.get("phase", "")),
+                "state": str(raw_line.get("state", "")),
+                "dependsOnAll": [str(item) for item in raw_line.get("dependsOnAll", []) if isinstance(item, str)],
+                "dependsOnAny": [str(item) for item in raw_line.get("dependsOnAny", []) if isinstance(item, str)],
+                "reasonCode": str(raw_line.get("reasonCode", "")) or None,
+            })
+        business_governance_ok = (
+            governance.get("schemaVersion") == EXPECTED_BUSINESS_GOVERNANCE_SCHEMA_VERSION
+            and governance.get("graphStatus") == "VALID"
+            and observed_ids == EXPECTED_BUSINESS_LINE_IDS
+            and len(compact_lines) == len(EXPECTED_BUSINESS_LINE_IDS)
+            and all(line.get("state") != "BLOCKED" for line in compact_lines)
+            and boundary.get("businessGovernanceContainsUserContent") is False
+        )
+        if business_governance_ok:
+            business_lines = compact_lines
+        public_status_ok = (
+            statuses["public"] == 200
+            and public.get("ok") is True
+            and public.get("status") == "OPERATIONAL"
+            and boundary.get("serverSideUserNotePersistence") is False
+            and boundary.get("serverSideUserKeyPersistence") is False
+            and boundary.get("statusContainsUserContent") is False
+            and business_governance_ok
+        )
+        runtime_mode = str(public.get("runtimeMode", "")) or None
+        if not business_governance_ok:
+            errors.append("BUSINESS_GOVERNANCE_CONTRACT_FAILED")
+        if not public_status_ok:
+            errors.append("PUBLIC_STATUS_CONTRACT_FAILED")
+
+    version = request_json("/api/version", "version")
+    if version is not None:
         app_version = str(version.get("appVersion", "")) or None
         source_version = str(version.get("sourceSkillVersion", "")) or None
-        version_ok = version_status == 200 and app_version == APP_VERSION and source_version == EXPECTED_SOURCE_SKILL_VERSION
-        if not version_ok and error_code is None:
-            error_code = "VERSION_CONTRACT_FAILED"
-    except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError, OSError) as exc:
-        if error_code is None:
-            error_code = classify_error(exc, "VERSION")
-    service_status = "operational" if health_ok and version_ok else "degraded"
+        business_schema_version = str(version.get("businessGovernanceSchemaVersion", "")) or None
+        version_ok = (
+            statuses["version"] == 200
+            and app_version == APP_VERSION
+            and source_version == EXPECTED_SOURCE_SKILL_VERSION
+            and business_schema_version == EXPECTED_BUSINESS_GOVERNANCE_SCHEMA_VERSION
+        )
+        if not version_ok:
+            errors.append("VERSION_CONTRACT_FAILED")
+
+    service_status = "operational" if all((liveness_ok, readiness_ok, public_status_ok, business_governance_ok, version_ok)) else "degraded"
     payload = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "service": "weread-port",
         "checkedAt": iso(checked_at),
         "status": service_status,
@@ -136,15 +227,23 @@ def check_site(
         "productPlane": {
             "configured": True,
             "siteOrigin": base,
-            "healthOk": health_ok,
+            "livenessOk": liveness_ok,
+            "readinessOk": readiness_ok,
+            "publicStatusOk": public_status_ok,
+            "businessGovernanceOk": business_governance_ok,
             "versionOk": version_ok,
-            "healthHttpStatus": health_status,
-            "versionHttpStatus": version_status,
-            "latencyMs": round(total_latency, 2),
+            "healthHttpStatus": statuses["health"],
+            "readinessHttpStatus": statuses["readiness"],
+            "publicStatusHttpStatus": statuses["public"],
+            "versionHttpStatus": statuses["version"],
+            "latencyMs": round(latency, 2),
             "appVersion": app_version,
             "sourceSkillVersion": source_version,
-            "errorCode": error_code,
+            "businessGovernanceSchemaVersion": business_schema_version,
+            "runtimeMode": runtime_mode,
+            "errorCode": errors[0] if errors else None,
         },
+        "businessLines": business_lines,
         "operationsPlane": {"status": "operational", "runtimeJournal": "ready"},
         "privacy": {"sensitiveDataRetention": "none", "userContentRetention": "none", "archiveRetention": "none"},
     }
