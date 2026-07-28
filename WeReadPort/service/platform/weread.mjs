@@ -10,7 +10,9 @@ import {
 
 const GATEWAY = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.4";
-export const WEREAD_COLLECTION_FORMAT_VERSION = "3";
+// v4 persists book/author/chapter/type metadata so the account UI can filter
+// true source fields without decrypting every note body on each keystroke.
+export const WEREAD_COLLECTION_FORMAT_VERSION = "4";
 const MAX_RESPONSE_BYTES = 12 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 20_000;
 const MIN_TRUSTED_SOURCE_TIME = 946_684_800; // 2000-01-01 UTC
@@ -188,6 +190,10 @@ export function normalizeWeReadDocuments(dataset) {
         source: "weread",
         title: wereadNoteTitle(title, mark.text || mark.markText, "书摘"),
         category: item.info?.category || item.notebook?.category || "微信读书",
+        bookTitle: title,
+        author,
+        chapterTitle: mark.chapterTitle || chapters.get(String(mark.chapterUid)) || "",
+        noteKind: "highlight",
         content: [`# ${title}`, author ? `作者：${author}` : "", mark.chapterTitle || chapters.get(String(mark.chapterUid)) ? `章节：${mark.chapterTitle || chapters.get(String(mark.chapterUid))}` : "", `> ${mark.text || mark.markText || ""}`].filter(Boolean).join("\n\n"),
         eventAt: sourceEventAt(mark.sourceUpdatedAt, mark.createdAt, mark.updateTime, mark.createTime),
       });
@@ -198,6 +204,10 @@ export function normalizeWeReadDocuments(dataset) {
         source: "weread",
         title: wereadNoteTitle(title, review.content || review.abstract, "想法"),
         category: item.info?.category || item.notebook?.category || "微信读书",
+        bookTitle: title,
+        author,
+        chapterTitle: review.chapterTitle || review.chapterName || "",
+        noteKind: review.kind || "review",
         content: [`# ${title}`, author ? `作者：${author}` : "", review.chapterTitle || review.chapterName ? `章节：${review.chapterTitle || review.chapterName}` : "", review.abstract ? `> ${review.abstract}` : "", review.content || ""].filter(Boolean).join("\n\n"),
         eventAt: sourceEventAt(review.sourceUpdatedAt, review.createdAt, review.updateTime, review.createTime),
       });
@@ -207,15 +217,19 @@ export function normalizeWeReadDocuments(dataset) {
 }
 
 export function recommendationRows(dataset) {
-  return (dataset.recommendations || []).map((book, index) => ({
-    id: `weread:${recommendationBookId(book) || index}`,
-    source: "weread-official",
-    title: String(book.title || book.bookInfo?.title || "未命名书籍").slice(0, 180),
-    author: book.author || book.bookInfo?.author ? String(book.author || book.bookInfo?.author).slice(0, 120) : null,
-    reason: String(book.reason || "根据你的微信读书阅读记录推荐").slice(0, 240),
-    deepLink: officialRecommendationLink(book),
-    score: Number(book.newRating || 0) + Math.log10(Math.max(1, Number(book.readingCount || 1))),
-  }));
+  return (dataset.recommendations || []).map((book, index) => {
+    const deepLink = officialRecommendationLink(book);
+    return {
+      id: `weread:${recommendationBookId(book) || index}`,
+      source: "weread-official",
+      title: String(book.title || book.bookInfo?.title || "未命名书籍").slice(0, 180),
+      author: book.author || book.bookInfo?.author ? String(book.author || book.bookInfo?.author).slice(0, 120) : null,
+      reason: String(book.reason || "根据你的微信读书阅读记录推荐").slice(0, 240),
+      deepLink,
+      deepLinkVerified: Boolean(deepLink),
+      score: Number(book.newRating || 0) + Math.log10(Math.max(1, Number(book.readingCount || 1))),
+    };
+  });
 }
 
 async function collectNotebooks(call, maxBooks) {
@@ -430,16 +444,14 @@ function recommendationBookId(book) {
 }
 
 function officialRecommendationLink(book) {
-  const supplied = safeOfficialWebLink(book?.deepLink || book?.deeplink || book?.url || book?.bookInfo?.deepLink);
-  if (supplied) return supplied;
-  const bookId = recommendationBookId(book);
-  return /^[A-Za-z0-9_-]{6,256}$/.test(bookId) ? `https://weread.qq.com/web/bookDetail/${encodeURIComponent(bookId)}` : null;
+  return safeOfficialWeReadLink(book?.deepLink || book?.deeplink || book?.url || book?.bookInfo?.deepLink);
 }
 
-function safeOfficialWebLink(value) {
+function safeOfficialWeReadLink(value) {
   try {
     const url = new URL(String(value));
-    return url.protocol === "https:" && url.hostname === "weread.qq.com" && url.pathname.startsWith("/web/") ? url.toString() : null;
+    if (url.protocol === "weread:") return url.toString();
+    return url.protocol === "https:" && url.hostname === "weread.qq.com" ? url.toString() : null;
   } catch { return null; }
 }
 

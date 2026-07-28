@@ -1,8 +1,12 @@
 import { AccountApi } from "./account-api.js";
 import { readObsidianSelection } from "./obsidian-import.js";
+import { CHATGPT_HANDOFF_URL } from "../core/constants.js";
+import { buildAccountNotesArchive, renderAccountNotesChatGPTContext } from "../core/account-note-handoff.js";
 
 const api = new AccountApi();
-const AUTO_SYNC_STALE_SECONDS = 60;
+// Login-triggered refreshes are intentionally quick. The server still decides
+// whether the source needs a cheap delta pass or a full reconciliation.
+const AUTO_SYNC_STALE_SECONDS = 15;
 const state = { account: null, view: "overview", busy: false, wereadSyncing: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null, serviceReady: null, serviceDetail: "", autoSyncAccountId: "" };
 
 export async function renderAccountPlatform(root) {
@@ -218,7 +222,9 @@ function homeReadingProfile(dashboard, account, hasWeRead) {
   const exportable = Number(coverage?.sourceReportedExportableDocuments ?? coverage?.sourceReportedNotes ?? 0);
   const bookmarks = Number(coverage?.sourceReportedBookmarks || 0);
   const bookmarkNote = bookmarks > 0 ? `另有 ${bookmarks} 条书签只有官方计数。` : "";
-  const coverageText = !hasWeRead ? "绑定微信读书后会显示官方数据核对结果。" : coverage ? (coverage.verified ? `已核对 ${coverage.accountedDocuments || 0} 条可导入正文；官方可导出正文 ${exportable} 条。${bookmarkNote}` : `当前尚有 ${coverage.unresolvedDocuments || 0} 条待确认；可从“导入与连接”发起完整核对。`) : "尚未完成首次数据核对。";
+  const sourceRange = coverage?.sourceEventRange;
+  const rangeText = sourceRange?.earliest && sourceRange?.latest ? `微信读书当前可导出的真实事件时间：${formatDate(sourceRange.earliest)} 至 ${formatDate(sourceRange.latest)}。` : "";
+  const coverageText = !hasWeRead ? "绑定微信读书后会显示官方数据核对结果。" : coverage ? (coverage.verified ? `已核对 ${coverage.accountedDocuments || 0} 条可导入正文；官方可导出正文 ${exportable} 条。${rangeText}${bookmarkNote}` : `当前尚有 ${coverage.unresolvedDocuments || 0} 条待确认；可从“导入与连接”发起完整核对。${rangeText}`) : "尚未完成首次数据核对。";
   return `<section class="home-profile-card" aria-labelledby="home-profile-title"><div class="section-title"><div><p class="eyebrow">阅读画像</p><h2 id="home-profile-title">你的阅读偏好，已经整合到首页</h2><p>${escapeHtml(coverageText)}</p></div><button class="button secondary" data-go-analytics type="button">查看完整画像</button></div><div class="home-profile-grid"><div><span>近 90 天活跃</span><strong>${escapeHtml(String(dashboard.summary?.activeDays90 ?? 0))} 天</strong></div><div><span>已汇总来源</span><strong>${escapeHtml(String(dashboard.summary?.sourceCount ?? 0))} 个</strong></div><div><span>估算字数</span><strong>${escapeHtml(numberFormat(dashboard.summary?.estimatedWords || 0))}</strong></div></div>${categories.length ? `<div class="profile-topics"><strong>高频主题</strong><div>${categories.map(item => `<span>${escapeHtml(item.label)} · ${escapeHtml(String(item.value))}</span>`).join("")}</div></div>` : ""}${recommendations.length ? `<div class="home-recommendations"><strong>潜在下一步</strong><div>${recommendations.map(item => `<article><div><small>${escapeHtml(sourceName(item.source))}</small><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div></div>` : ""}${hasWeRead ? `<div class="home-profile-actions"><button class="button ghost" data-download-weread type="button">下载微信读书数据（JSON）</button></div>` : ""}</section>`;
 }
 
@@ -260,7 +266,9 @@ function wereadDataControls(account) {
   const accounted = Number(coverage?.accountedDocuments || 0);
   const unresolved = Number(coverage?.unresolvedDocuments || 0);
   const bookmarkNote = sourceBookmarks > 0 ? `另有 ${sourceBookmarks} 条书签只有官方计数，不会被伪装成正文。` : "";
-  const summary = !coverage ? "尚未完成首次完整核对；首次同步会读取当前可访问的书籍、划线和想法。" : verified ? `核对通过：官方可导出正文 ${sourceExportable} 条，已确认 ${accounted} 条。${bookmarkNote}` : `尚未完成完整确认：当前已核对 ${accounted} 条，仍有 ${unresolved} 条待确认。完整核对不会删除你现有笔记。`;
+  const sourceRange = coverage?.sourceEventRange;
+  const rangeText = sourceRange?.earliest && sourceRange?.latest ? `官方当前返回的真实事件时间：${formatDate(sourceRange.earliest)} 至 ${formatDate(sourceRange.latest)}。` : "";
+  const summary = !coverage ? "尚未完成首次完整核对；首次同步会读取当前可访问的书籍、划线和想法。" : verified ? `内容数量核对通过：官方可导出正文 ${sourceExportable} 条，已确认 ${accounted} 条。${rangeText}${bookmarkNote}` : `尚未完成完整确认：当前已核对 ${accounted} 条，仍有 ${unresolved} 条待确认。完整核对不会删除你现有笔记。${rangeText}`;
   return `<section class="weread-data-controls"><div><p class="eyebrow">微信读书数据</p><h2>${verified ? "数据覆盖已核验" : "先核对，再判断是否完整"}</h2><p>${escapeHtml(summary)}</p></div><div class="button-row"><button id="weread-full-sync" class="button secondary" type="button">完整核对全部数据</button><button id="weread-download" class="button primary" type="button">下载已同步数据（JSON）</button></div></section>`;
 }
 
@@ -366,19 +374,108 @@ async function waitForJob(id) { for (let attempt = 0; attempt < 40; attempt += 1
 
 async function loadNotes(main) {
   const content = main.querySelector("#account-content");
-  let result; try { result = await api.notes(); } catch (error) { toast(error.message, "error"); result = { notes: [] }; }
+  let result; try { result = await api.notes(5_000); } catch (error) { toast(error.message, "error"); result = { notes: [] }; }
   state.notes = result.notes || [];
-  content.innerHTML = `<header class="content-heading"><div><p class="eyebrow">我的笔记</p><h1>所有来源，统一保存在你的账户</h1><p>每条笔记都有来源、版本与更新时间；跨设备修改使用乐观冲突保护。</p></div><button class="button primary" id="add-note" type="button">新建笔记</button></header><div class="note-toolbar"><label for="note-search">搜索笔记</label><input id="note-search" type="search" placeholder="输入标题或来源"><span>${state.notes.length} 条</span></div><div id="notes-list">${state.notes.length ? noteList(state.notes, true) : emptyStateMarkup("还没有笔记", "从微信读书、Notion、Obsidian、GitHub 或 Google Drive 导入，或手动新建。", "去导入", "imports")}</div>`;
+  const filters = { query: "", book: "", author: "", source: "", kind: "", from: "", to: "" };
+  const books = noteFieldValues(state.notes, "bookTitle");
+  const authors = noteFieldValues(state.notes, "author");
+  const sources = noteFieldValues(state.notes, "source");
+  const kinds = noteFieldValues(state.notes, "noteKind");
+  const hasWeRead = hasWeReadCredential();
+  content.innerHTML = `<header class="content-heading"><div><p class="eyebrow">我的笔记</p><h1>所有来源，统一保存在你的账户</h1><p>按书籍、作者、真实事件时间与来源实时筛选；下载和 ChatGPT 交接只处理当前显示结果。</p></div><div class="button-row"><button class="button secondary" id="notes-sync" type="button" ${hasWeRead ? "" : "disabled"}>${hasWeRead ? "立即同步微信读书" : "未绑定微信读书"}</button><button class="button primary" id="add-note" type="button">新建笔记</button></div></header><section class="note-filter-panel" aria-label="笔记实时筛选"><div class="note-filter-grid"><label class="note-query" for="note-search">模糊搜索<input id="note-search" data-note-filter="query" type="search" autocomplete="off" placeholder="标题、书籍、作者、章节、分类或来源"></label><label for="note-book">书籍<input id="note-book" data-note-filter="book" list="note-books" autocomplete="off" placeholder="输入书名的一部分"></label><datalist id="note-books">${books.map(value => `<option value="${escapeAttr(value)}"></option>`).join("")}</datalist><label for="note-author">作者<input id="note-author" data-note-filter="author" list="note-authors" autocomplete="off" placeholder="输入作者的一部分"></label><datalist id="note-authors">${authors.map(value => `<option value="${escapeAttr(value)}"></option>`).join("")}</datalist><label for="note-source-filter">来源<select id="note-source-filter" data-note-filter="source"><option value="">全部来源</option>${sources.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(sourceName(value))}</option>`).join("")}</select></label><label for="note-kind-filter">笔记类型<select id="note-kind-filter" data-note-filter="kind"><option value="">全部类型</option>${kinds.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(noteKindLabel(value))}</option>`).join("")}</select></label><label for="note-from">开始时间<input id="note-from" data-note-filter="from" type="date"></label><label for="note-to">结束时间<input id="note-to" data-note-filter="to" type="date"></label></div><div class="note-filter-actions"><p id="notes-result-summary" aria-live="polite"></p><div class="button-row"><button class="button ghost" id="notes-reset" type="button">清除条件</button><button class="button secondary" id="notes-download" type="button">打包下载当前结果</button><button class="button primary" id="notes-chatgpt" type="button">带当前结果问 ChatGPT</button></div></div></section><div id="notes-list"></div>`;
+  const renderFiltered = () => {
+    const visible = filterNotes(state.notes, filters);
+    content.querySelector("#notes-result-summary").textContent = filtersActive(filters) ? `已实时筛选：显示 ${visible.length} / ${state.notes.length} 条笔记` : `当前显示全部 ${visible.length} 条笔记`;
+    content.querySelector("#notes-list").innerHTML = visible.length ? noteList(visible, true) : state.notes.length ? `<div class="empty-inline"><strong>没有匹配笔记</strong><p>条件已实时应用；可以删除关键词或放宽时间范围。</p></div>` : emptyStateMarkup("还没有笔记", "从微信读书、Notion、Obsidian、GitHub 或 Google Drive 导入，或手动新建。", "去导入", "imports");
+    bindNoteRows(content);
+    content.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => { state.view = button.dataset.go; renderCurrent(document); }));
+    return visible;
+  };
   content.querySelector("#add-note").addEventListener("click", () => noteEditor(content));
-  content.querySelector("#note-search").addEventListener("input", event => { const q = event.target.value.trim().toLowerCase(); const filtered = state.notes.filter(note => `${note.title} ${note.source} ${note.category}`.toLowerCase().includes(q)); content.querySelector("#notes-list").innerHTML = filtered.length ? noteList(filtered, true) : `<div class="empty-inline"><strong>没有匹配笔记</strong><p>换一个关键词试试。</p></div>`; bindNoteRows(content); });
-  bindNoteRows(content);
-  content.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => { state.view = button.dataset.go; renderCurrent(document); }));
+  content.querySelector("#notes-sync").addEventListener("click", () => runWeReadSync(content, { preserveView: true }));
+  content.querySelectorAll("[data-note-filter]").forEach(input => input.addEventListener(input.tagName === "SELECT" ? "change" : "input", event => { filters[event.currentTarget.dataset.noteFilter] = event.currentTarget.value; renderFiltered(); }));
+  content.querySelector("#notes-reset").addEventListener("click", () => { for (const key of Object.keys(filters)) filters[key] = ""; content.querySelectorAll("[data-note-filter]").forEach(input => { input.value = ""; }); renderFiltered(); content.querySelector("#note-search").focus(); });
+  content.querySelector("#notes-download").addEventListener("click", () => exportVisibleNotes(renderFiltered(), notesScopeLabel(filters), { chatgpt: false }));
+  content.querySelector("#notes-chatgpt").addEventListener("click", () => exportVisibleNotes(renderFiltered(), notesScopeLabel(filters), { chatgpt: true }));
+  renderFiltered();
 }
-function noteList(notes, interactive) { return `<div class="note-list">${notes.map(note => `<article class="note-row" ${interactive ? `data-note="${escapeAttr(note.id)}" tabindex="0"` : ""}><span class="note-source">${sourceName(note.source)}</span><div><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.category || "未分类")} · ${noteTimeLabel(note)} · 版本 ${note.version}</p></div><span class="note-arrow" aria-hidden="true">›</span></article>`).join("")}</div>`; }
-function bindNoteRows(content) { content.querySelectorAll("[data-note]").forEach(row => { const open = () => openNote(content, row.dataset.note); row.addEventListener("click", open); row.addEventListener("keydown", event => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); open(); } }); }); }
+function noteList(notes, interactive) { return `<div class="note-list">${notes.map(note => { const detail = [note.bookTitle ? `《${note.bookTitle}》` : "", note.author ? `作者 ${note.author}` : "", note.chapterTitle ? `章节 ${note.chapterTitle}` : "", noteKindLabel(note.noteKind), note.category || "未分类", noteTimeLabel(note), `版本 ${note.version}`].filter(Boolean).join(" · "); return `<article class="note-row" ${interactive ? `data-note="${escapeAttr(note.id)}" tabindex="0"` : ""}><span class="note-source">${escapeHtml(sourceName(note.source))}</span><div><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(detail)}</p></div>${interactive ? `<button class="button ghost note-chatgpt-button" data-note-chatgpt="${escapeAttr(note.id)}" type="button">问 ChatGPT</button>` : ""}<span class="note-arrow" aria-hidden="true">›</span></article>`; }).join("")}</div>`; }
+function bindNoteRows(content) {
+  content.querySelectorAll("[data-note]").forEach(row => {
+    const open = event => { if (event?.target?.closest("[data-note-chatgpt]")) return; openNote(content, row.dataset.note); };
+    row.addEventListener("click", open);
+    row.addEventListener("keydown", event => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); open(event); } });
+  });
+  content.querySelectorAll("[data-note-chatgpt]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); askSingleNoteInChatGPT(button.dataset.noteChatgpt); }));
+}
 async function openNote(content, id) { await action("正在解密笔记…", async () => { const result = await api.note(id); noteEditor(content, result.note); }); }
 function noteEditor(content, note = null) {
-  const host = document.createElement("div"); host.className = "modal-backdrop"; host.innerHTML = `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="note-editor-title"><div class="modal-head"><div><p class="eyebrow">${note ? "编辑笔记" : "新建笔记"}</p><h2 id="note-editor-title">${note ? escapeHtml(note.title) : "记录新的阅读想法"}</h2></div><button class="modal-close" type="button" aria-label="关闭">×</button></div><form id="note-editor"><label for="note-title">标题</label><input id="note-title" name="title" required maxlength="180" value="${escapeAttr(note?.title || "")}"><label for="note-category">分类</label><input id="note-category" name="category" maxlength="80" value="${escapeAttr(note?.category || "手动笔记")}"><label for="note-content">正文</label><textarea id="note-content" name="content" required rows="14">${escapeHtml(note?.content || "")}</textarea><div class="modal-actions">${note ? `<button class="button danger" id="delete-note" type="button">删除</button>` : ""}<button class="button secondary modal-close-action" type="button">取消</button><button class="button primary" type="submit">加密保存</button></div></form></section>`; document.body.append(host); const close = () => host.remove(); host.querySelectorAll(".modal-close,.modal-close-action").forEach(button => button.addEventListener("click", close)); host.addEventListener("click", event => { if (event.target === host) close(); }); host.querySelector("#note-editor").addEventListener("submit", async event => { event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget)); await action("正在加密保存…", async () => { await api.saveNote({ ...data, source: note?.source || "manual", externalId: note?.externalId || crypto.randomUUID(), expectedVersion: note?.version ?? null }); close(); toast("笔记已保存并加入跨设备同步。", "success"); await loadNotes(document.querySelector("#platform-main")); }); }); const del = host.querySelector("#delete-note"); if (del) del.addEventListener("click", () => action("正在删除…", async () => { await api.deleteNote(note.id, note.version); close(); toast("笔记已删除。", "success"); await loadNotes(document.querySelector("#platform-main")); })); host.querySelector("input")?.focus();
+  const host = document.createElement("div"); host.className = "modal-backdrop"; host.innerHTML = `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="note-editor-title"><div class="modal-head"><div><p class="eyebrow">${note ? "编辑笔记" : "新建笔记"}</p><h2 id="note-editor-title">${note ? escapeHtml(note.title) : "记录新的阅读想法"}</h2></div><button class="modal-close" type="button" aria-label="关闭">×</button></div><form id="note-editor"><label for="note-title">标题</label><input id="note-title" name="title" required maxlength="180" value="${escapeAttr(note?.title || "")}"><label for="note-category">分类</label><input id="note-category" name="category" maxlength="80" value="${escapeAttr(note?.category || "手动笔记")}"><label for="note-content">正文</label><textarea id="note-content" name="content" required rows="14">${escapeHtml(note?.content || "")}</textarea><div class="modal-actions">${note ? `<button class="button ghost" id="ask-note-chatgpt" type="button">带这条笔记问 ChatGPT</button><button class="button danger" id="delete-note" type="button">删除</button>` : ""}<button class="button secondary modal-close-action" type="button">取消</button><button class="button primary" type="submit">加密保存</button></div></form></section>`; document.body.append(host); const close = () => host.remove(); host.querySelectorAll(".modal-close,.modal-close-action").forEach(button => button.addEventListener("click", close)); host.addEventListener("click", event => { if (event.target === host) close(); }); host.querySelector("#note-editor").addEventListener("submit", async event => { event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget)); await action("正在加密保存…", async () => { await api.saveNote({ ...data, source: note?.source || "manual", externalId: note?.externalId || crypto.randomUUID(), expectedVersion: note?.version ?? null }); close(); toast("笔记已保存并加入跨设备同步。", "success"); await loadNotes(document.querySelector("#platform-main")); }); }); const ask = host.querySelector("#ask-note-chatgpt"); if (ask) ask.addEventListener("click", () => askNotesInChatGPT([note], "单条笔记")); const del = host.querySelector("#delete-note"); if (del) del.addEventListener("click", () => action("正在删除…", async () => { await api.deleteNote(note.id, note.version); close(); toast("笔记已删除。", "success"); await loadNotes(document.querySelector("#platform-main")); })); host.querySelector("input")?.focus();
+}
+
+function noteFieldValues(notes, field) { return [...new Set(notes.map(note => String(note?.[field] || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN")); }
+function noteKindLabel(kind) { return ({ highlight: "划线", review: "想法", unclassified: "想法", "highlight-thought": "划线想法", "chapter-comment": "章节点评", "book-review": "整本书评", "local-import": "本地笔记" })[String(kind || "")] || String(kind || ""); }
+function noteSearchText(note) { return [note.title, note.bookTitle, note.author, note.chapterTitle, note.category, note.noteKind, sourceName(note.source)].map(value => String(value || "").toLocaleLowerCase("zh-CN")).join("\n"); }
+function noteFilterTime(note) { return Number(note.eventAt || note.updatedAt || note.createdAt || 0); }
+function dateStart(value) { const timestamp = Date.parse(`${value}T00:00:00`); return Number.isFinite(timestamp) ? Math.floor(timestamp / 1000) : 0; }
+function dateEnd(value) { const timestamp = Date.parse(`${value}T23:59:59.999`); return Number.isFinite(timestamp) ? Math.floor(timestamp / 1000) : 0; }
+function filterNotes(notes, filters) {
+  const query = String(filters.query || "").trim().toLocaleLowerCase("zh-CN");
+  const book = String(filters.book || "").trim().toLocaleLowerCase("zh-CN");
+  const author = String(filters.author || "").trim().toLocaleLowerCase("zh-CN");
+  const from = dateStart(filters.from);
+  const to = dateEnd(filters.to);
+  return notes.filter(note => {
+    const eventAt = noteFilterTime(note);
+    return (!query || noteSearchText(note).includes(query))
+      && (!book || String(note.bookTitle || "").toLocaleLowerCase("zh-CN").includes(book))
+      && (!author || String(note.author || "").toLocaleLowerCase("zh-CN").includes(author))
+      && (!filters.source || note.source === filters.source)
+      && (!filters.kind || note.noteKind === filters.kind)
+      && (!from || eventAt >= from)
+      && (!to || eventAt <= to);
+  });
+}
+function filtersActive(filters) { return Object.values(filters).some(value => String(value || "").trim()); }
+function notesScopeLabel(filters) {
+  const labels = [
+    filters.query ? `关键词“${filters.query}”` : "",
+    filters.book ? `书籍“${filters.book}”` : "",
+    filters.author ? `作者“${filters.author}”` : "",
+    filters.source ? `来源“${sourceName(filters.source)}”` : "",
+    filters.kind ? `类型“${noteKindLabel(filters.kind)}”` : "",
+    filters.from ? `${filters.from} 起` : "",
+    filters.to ? `${filters.to} 止` : "",
+  ].filter(Boolean);
+  return labels.length ? `实时筛选：${labels.join("；")}` : "当前显示的全部笔记";
+}
+async function askSingleNoteInChatGPT(id) {
+  await action("正在准备这条笔记的 ChatGPT 文件…", async () => {
+    const result = await api.note(id);
+    await askNotesInChatGPT([result.note], "单条笔记", { withinAction: true });
+  });
+}
+async function exportVisibleNotes(visible, scopeLabel, { chatgpt }) {
+  if (!visible.length) { toast("当前没有可处理的笔记，请先调整筛选条件。", "warning"); return; }
+  await guardedSensitive(chatgpt ? "正在准备 ChatGPT 阅读资料…" : "正在打包当前显示的笔记…", "notes-export", async () => {
+    const payload = await api.exportNotes(visible.map(note => note.id));
+    if (chatgpt) return askNotesInChatGPT(payload.notes, scopeLabel, { withinAction: true });
+    const archive = buildAccountNotesArchive(payload.notes, { scopeLabel });
+    downloadBytes(archive.bytes, archive.filename, "application/zip");
+    toast(archive.chatgptIssue ? "笔记下载包已生成；其中一条内容触发了 ChatGPT 安全保护。" : "当前显示的笔记已打包下载。", archive.chatgptIssue ? "warning" : "success");
+    return archive;
+  });
+}
+async function askNotesInChatGPT(notes, scopeLabel, { withinAction = false } = {}) {
+  const perform = () => {
+    const text = renderAccountNotesChatGPTContext(notes, { scopeLabel });
+    const filename = `阅迁-${new Date().toISOString().slice(0, 10)}-${notes.length}条笔记-ChatGPT阅读资料.md`;
+    downloadText(text, filename);
+    const target = window.open(CHATGPT_HANDOFF_URL, "_blank", "noopener,noreferrer");
+    toast(target ? "已下载阅读资料，并打开 ChatGPT；请手动添加该文件后提问。" : "已下载阅读资料；请打开 ChatGPT 后手动添加该文件。", "success");
+    return { filename, text };
+  };
+  return withinAction ? perform() : action("正在准备 ChatGPT 阅读资料…", perform);
 }
 
 async function loadAnalytics(main) {
@@ -389,7 +486,7 @@ async function loadAnalytics(main) {
     <section class="metric-grid">${metric("笔记", d.summary.noteCount, "账户内加密正文")}${metric("来源", d.summary.sourceCount, "已汇总来源")}${metric("估算字数", numberFormat(d.summary.estimatedWords), "仅用于个人统计")}${metric("活跃天数", d.summary.activeDays90, "最近 90 天")}</section>
     <section class="analytics-grid"><article class="chart-card"><div class="section-title"><div><h2>12 周笔记趋势</h2><p>每周新增或更新的笔记数量</p></div></div>${barChart(d.weeklyTrend || [])}</article><article class="chart-card"><div class="section-title"><div><h2>来源分布</h2><p>你的笔记主要来自哪里</p></div></div>${distribution(d.sourceDistribution || [])}</article></section>
     <section class="heatmap-card"><div class="section-title"><div><h2>近 90 天阅读热度</h2><p>颜色越深表示当天记录或阅读活动越多</p></div><span class="heat-legend">少 <i></i><i></i><i></i><i></i> 多</span></div>${heatmap(d.readingHeatmap || [])}</section>
-    <section class="recommend-card"><div class="section-title"><div><h2>潜在推荐</h2><p>每条都显示来源和理由；微信读书官方推荐会直达真实书籍详情页。</p></div></div>${d.recommendations?.length ? `<div class="recommend-list">${d.recommendations.map(item => `<article><span>${escapeHtml(sourceName(item.source))}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有足够数据</strong><p>导入第一批笔记并开启推荐个性化后，这里会出现可解释建议。</p></div>`}</section>`;
+    <section class="recommend-card"><div class="section-title"><div><h2>潜在推荐</h2><p>每条都显示来源和理由；微信读书入口只使用官方实际返回的可验证直链。</p></div></div>${d.recommendations?.length ? `<div class="recommend-list">${d.recommendations.map(item => `<article><span>${escapeHtml(sourceName(item.source))}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有足够数据</strong><p>导入第一批笔记并开启推荐个性化后，这里会出现可解释建议。</p></div>`}</section>`;
   content.querySelector("#analytics-settings").addEventListener("click", () => { state.view = "account"; renderCurrent(document); });
   content.querySelector("#toggle-analytics").addEventListener("click", () => action("正在更新隐私选择…", async () => { const consent = state.account.consent || {}; await api.updateConsent({ behaviorAnalytics: !d.consent.behaviorAnalytics, recommendationPersonalization: consent.recommendationPersonalization || false }); const profile = await api.profile(); state.account = profile.account; await loadAnalytics(document.querySelector("#platform-main")); }));
 }
@@ -398,17 +495,20 @@ function distribution(items) { const total = Math.max(1, items.reduce((sum, item
 function heatmap(items) { return `<div class="heatmap" role="img" aria-label="近九十天阅读热度">${items.map(item => `<span class="level-${item.level}" title="${item.date}：${item.value}" aria-label="${item.date}，热度 ${item.value}"></span>`).join("")}</div>`; }
 function recommendationLink(item) {
   const link = officialRecommendationLink(item);
-  return link ? `<a href="${escapeAttr(link)}" rel="noopener noreferrer" target="_blank">${item.source === "weread-official" ? "在微信读书打开" : "查看"}</a>` : "";
+  if (link) {
+    const native = link.startsWith("weread:");
+    return `<a href="${escapeAttr(link)}" rel="noopener noreferrer" ${native ? "" : "target=\"_blank\""}>${item.source === "weread-official" ? "在微信读书打开" : "查看"}</a>`;
+  }
+  return item.source === "weread-official" ? `<span class="recommendation-unavailable">官方未返回可验证跳转</span>` : "";
 }
 function officialRecommendationLink(item) {
   const raw = String(item?.deepLink || "");
   try {
     const url = new URL(raw);
-    if (url.protocol === "https:" && url.hostname === "weread.qq.com" && url.pathname.startsWith("/web/")) return url.toString();
-  } catch { /* 继续从官方推荐 ID 补全链接 */ }
-  if (item?.source !== "weread-official") return "";
-  const bookId = String(item?.id || "").replace(/^weread:/u, "").trim();
-  return /^[A-Za-z0-9_-]{6,256}$/.test(bookId) ? `https://weread.qq.com/web/bookDetail/${encodeURIComponent(bookId)}` : "";
+    if (url.protocol === "weread:") return url.toString();
+    if (url.protocol === "https:" && url.hostname === "weread.qq.com") return url.toString();
+  } catch { /* 缺少官方直链时必须明确降级，不能从 ID 伪造页面地址。 */ }
+  return "";
 }
 
 async function renderAccount(main) {
@@ -505,7 +605,7 @@ function openRecentAuthDialog(actionName, continuation = () => completeSensitive
     hasWeRead ? `<form class="reauth-option" data-method="weread"><h3>用微信读书密钥验证</h3><label for="reauth-weread">微信读书密钥</label><input id="reauth-weread" name="secret" type="password" autocomplete="off" required placeholder="wrk-…"><button class="button primary full" type="submit">验证并继续</button></form>` : "",
     oauthProviders.length ? `<div class="reauth-option"><h3>用已绑定平台验证</h3><p>跳转官方授权页确认身份后自动返回，不会按邮箱合并账户。</p><div class="button-row">${oauthProviders.map(provider => `<button class="button secondary oauth-reauth" data-provider="${provider}" type="button">用 ${providerLabel(provider)} 验证</button>`).join("")}</div></div>` : "",
   ].join("");
-  const title = ({ delete: "删除前再次确认身份", export: "导出前再次确认身份", "weread-export": "下载微信读书数据前再次确认身份", password: "设置密码前再次确认身份", session: "管理设备前再次确认身份" })[actionName] || "再次确认身份";
+  const title = ({ delete: "删除前再次确认身份", export: "导出前再次确认身份", "weread-export": "下载微信读书数据前再次确认身份", "notes-export": "导出笔记前再次确认身份", password: "设置密码前再次确认身份", session: "管理设备前再次确认身份" })[actionName] || "再次确认身份";
   const host = modal(`<p class="eyebrow">账户安全</p><h2>${title}</h2><p>选择你已经绑定的任一登录方式。验证只更新当前会话，不会创建或合并账户。</p><div class="reauth-grid">${forms}</div>`);
   host.querySelectorAll("form[data-method]").forEach(form => form.addEventListener("submit", async event => {
     event.preventDefault();
@@ -548,4 +648,6 @@ function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, char
 function escapeAttr(value) { return escapeHtml(value).replace(/`/g, "&#96;"); }
 function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 function reduceMotion() { return matchMedia("(prefers-reduced-motion: reduce)").matches; }
-function downloadJson(data, name) { const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" }); const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+function downloadJson(data, name) { downloadBytes(JSON.stringify(data, null, 2), name, "application/json;charset=utf-8"); }
+function downloadText(text, name) { downloadBytes(text, name, "text/markdown;charset=utf-8"); }
+function downloadBytes(data, name, type) { const blob = new Blob([data], { type }); const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.rel = "noopener"; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1_000); }

@@ -41,6 +41,15 @@ test("画像、热度、推荐、跨设备和隐私控制都在账户 UI 中可�
   for (const phrase of ["阅读偏好，已经整合到首页", "阅读热度", "潜在推荐", "在微信读书打开", "行为分析", "个性化推荐", "跨设备", "永久删除账户", "导出我的全部数据", "下载微信读书数据（JSON）"]) assert.ok(ui.includes(phrase), phrase);
 });
 
+test("笔记页按真实字段实时筛选，并只对当前显示结果下载或交接 ChatGPT", () => {
+  for (const phrase of ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "实时筛选", "打包下载当前结果", "带当前结果问 ChatGPT", "带这条笔记问 ChatGPT", "官方当前返回的真实事件时间"]) assert.ok(ui.includes(phrase), phrase);
+  assert.ok(ui.includes("data-note-filter"));
+  assert.ok(ui.includes("renderAccountNotesChatGPTContext"));
+  assert.ok(ui.includes("CHATGPT_HANDOFF_URL"));
+  assert.ok(api.includes("/notes/export"));
+  assert.equal(ui.includes("web/bookDetail"), false, "不得用书籍 ID 伪造微信读书详情地址");
+});
+
 test("UI UX Pro Max 关键可访问性合同：44px 触控、焦点、减弱动态和 320px", () => {
   assert.match(css, /min-height:\s*44px/u);
   assert.match(css, /:focus-visible/u);

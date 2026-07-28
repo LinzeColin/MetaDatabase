@@ -98,6 +98,10 @@ CREATE TABLE IF NOT EXISTS notes (
   content_hash TEXT NOT NULL,
   word_count INTEGER NOT NULL DEFAULT 0,
   category TEXT,
+  book_title TEXT,
+  author TEXT,
+  chapter_title TEXT,
+  note_kind TEXT,
   version INTEGER NOT NULL,
   event_at INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
@@ -186,6 +190,7 @@ CREATE TABLE IF NOT EXISTS recommendations (
   author TEXT,
   reason TEXT NOT NULL,
   deep_link TEXT,
+  deep_link_verified INTEGER NOT NULL DEFAULT 0,
   score REAL NOT NULL DEFAULT 0,
   updated_at INTEGER NOT NULL
 ) STRICT;
@@ -204,4 +209,4 @@ CREATE TABLE IF NOT EXISTS outbox (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS outbox_state_idx ON outbox(state, available_at);
 
-PRAGMA user_version = 18;
+PRAGMA user_version = 20;

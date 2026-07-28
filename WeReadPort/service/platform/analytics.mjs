@@ -97,15 +97,15 @@ function hash(value) { return createHash("sha256").update(value).digest("hex").s
 function dedupeRecommendations(items) { const seen = new Set(); return items.filter(item => { const key = `${item.title}\u0000${item.author || ""}`.toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; }).sort((a, b) => Number(b.score || 0) - Number(a.score || 0)); }
 function withOfficialWeReadLink(item) {
   if (item?.source !== "weread-official") return item;
+  if (item?.deepLinkVerified !== true) return { ...item, deepLink: null };
   const existing = safeOfficialWeReadLink(item.deepLink);
-  if (existing) return { ...item, deepLink: existing };
-  const bookId = String(item.id || "").replace(/^weread:/u, "").trim();
-  return /^[A-Za-z0-9_-]{6,256}$/.test(bookId) ? { ...item, deepLink: `https://weread.qq.com/web/bookDetail/${encodeURIComponent(bookId)}` } : item;
+  return existing ? { ...item, deepLink: existing } : { ...item, deepLink: null };
 }
 function safeOfficialWeReadLink(value) {
   try {
     const url = new URL(String(value));
-    return url.protocol === "https:" && url.hostname === "weread.qq.com" && url.pathname.startsWith("/web/") ? url.toString() : null;
+    if (url.protocol === "weread:") return url.toString();
+    return url.protocol === "https:" && url.hostname === "weread.qq.com" ? url.toString() : null;
   } catch { return null; }
 }
 function noteEventAt(note) { return Number(note?.eventAt || note?.updatedAt || 0); }

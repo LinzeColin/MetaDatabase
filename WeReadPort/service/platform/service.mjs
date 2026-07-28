@@ -381,6 +381,10 @@ export class PlatformService {
     const category = sanitizeText(document.category || "未分类", 80);
     const contentHash = sha256(content);
     const current = this.store.findNote(accountId, source, externalId);
+    const bookTitle = sanitizeText(document.bookTitle ?? current?.bookTitle ?? "", 180) || null;
+    const author = sanitizeText(document.author ?? current?.author ?? "", 120) || null;
+    const chapterTitle = sanitizeText(document.chapterTitle ?? current?.chapterTitle ?? "", 180) || null;
+    const noteKind = sanitizeText(document.noteKind ?? current?.noteKind ?? "", 80) || null;
     const eventAt = normalizeSourceEventAt(document.eventAt ?? document.updatedAt ?? document.createdAt);
     if (!content.trim()) throw new PlatformError("EMPTY_NOTE", "笔记内容不能为空。", 400);
     if (Buffer.byteLength(content, "utf8") > this.config.maxImportBytes) throw new PlatformError("NOTE_TOO_LARGE", "单条笔记超过安全上限。", 413);
@@ -388,7 +392,7 @@ export class PlatformService {
       return reportStatus ? { note: current, conflict: true, unchanged: false } : { conflict: true, current };
     }
     const effectiveEventAt = eventAt || Number(current?.eventAt || current?.createdAt || 0);
-    if (current && !current.deletedAt && current.contentHash === contentHash && current.title === title && String(current.category || "") === category && Number(current.eventAt || current.createdAt || 0) === effectiveEventAt) {
+    if (current && !current.deletedAt && current.contentHash === contentHash && current.title === title && String(current.category || "") === category && String(current.bookTitle || "") === String(bookTitle || "") && String(current.author || "") === String(author || "") && String(current.chapterTitle || "") === String(chapterTitle || "") && String(current.noteKind || "") === String(noteKind || "") && Number(current.eventAt || current.createdAt || 0) === effectiveEventAt) {
       return reportStatus ? { note: current, unchanged: true } : current;
     }
     const accountKey = this.accountKey(accountId);
@@ -396,13 +400,13 @@ export class PlatformService {
     const noteId = current?.id || id;
     const nextVersion = Number(current?.version || 0) + 1;
     const objectKey = `${this.config.primaryObjectPrefix}/accounts/${accountId}/notes/${noteId}/v${nextVersion}.enc`;
-    const envelope = encryptForAccount(accountKey, { content, title, source, externalId }, `note:${accountId}:${noteId}:v${nextVersion}`);
+    const envelope = encryptForAccount(accountKey, { content, title, source, externalId, bookTitle, author, chapterTitle, noteKind }, `note:${accountId}:${noteId}:v${nextVersion}`);
     await this.objectStore.put(objectKey, Buffer.from(envelope, "utf8"), { account: sha256(accountId).slice(0, 16), note: noteId, version: nextVersion });
     let result;
     try {
       result = this.store.upsertNote({
         id: noteId, accountId, source, externalId, title, objectKey,
-        contentHash, wordCount: countWords(content), category, eventAt, expectedVersion,
+        contentHash, wordCount: countWords(content), category, bookTitle, author, chapterTitle, noteKind, eventAt, expectedVersion,
       });
     } catch (error) {
       await this.objectStore.delete(objectKey).catch(() => undefined);
@@ -488,6 +492,12 @@ export class PlatformService {
     const unresolvedDocuments = Math.max(0, sourceReportedExportableDocuments - accountedDocuments);
     const sourceCountersAvailable = sourceReportedExportableDocuments > 0 || (sourceReportedNotes === 0 && accountedDocuments === 0);
     const priorCoverageWasVerified = priorState?.summary?.coverage?.verified === true && Number(priorState.summary.coverage.unresolvedDocuments || 0) === 0;
+    const currentSourceEventRange = eventRange(documents.map(document => document.eventAt));
+    const currentNotebookRange = eventRange((dataset.notebooks?.books || []).map(book => book.sort));
+    // An incremental pass deliberately skips unchanged books, so its timestamps
+    // cannot honestly replace the last full source window.
+    const sourceEventRange = syncMode === "full" ? currentSourceEventRange : priorState?.summary?.coverage?.sourceEventRange || currentSourceEventRange;
+    const sourceNotebookRange = syncMode === "full" ? currentNotebookRange : priorState?.summary?.coverage?.sourceNotebookRange || currentNotebookRange;
     const coverage = {
       sourceReportedNotes,
       sourceReportedHighlights: Number(dataset.summary.sourceHighlightCount || 0),
@@ -498,6 +508,8 @@ export class PlatformService {
       accountedDocuments,
       unresolvedDocuments,
       sourceCountersAvailable,
+      sourceEventRange,
+      sourceNotebookRange,
       // A successful full reconciliation remains valid across a complete
       // incremental pass. Only an incomplete/truncated pass or a new gap may
       // downgrade it; otherwise the UI would falsely claim a clean account is
@@ -545,6 +557,22 @@ export class PlatformService {
   }
 
   listNotes(accountId, options = {}) { return this.store.listNotes(accountId, options).map(publicNote); }
+  async exportNotes(accountId, noteIds) {
+    if (!Array.isArray(noteIds) || noteIds.length === 0) throw new PlatformError("NOTES_EXPORT_EMPTY", "请先保留至少一条笔记再导出。", 400);
+    if (noteIds.length > 5_000) throw new PlatformError("NOTES_EXPORT_LIMIT", "一次最多导出 5,000 条笔记，请缩小筛选范围。", 413);
+    const ids = [...new Set(noteIds.map(value => String(value || "").trim()).filter(Boolean))];
+    if (!ids.length) throw new PlatformError("NOTES_EXPORT_EMPTY", "请先保留至少一条笔记再导出。", 400);
+    const notes = [];
+    let bytes = 0;
+    for (const id of ids) {
+      const note = await this.readNote(accountId, id);
+      if (!note) throw new PlatformError("NOT_FOUND", "筛选结果中的笔记已不存在，请刷新后重试。", 404);
+      bytes += Buffer.byteLength(JSON.stringify(note), "utf8");
+      if (bytes > this.config.maxImportBytes) throw new PlatformError("NOTES_EXPORT_TOO_LARGE", "筛选结果正文超过 50 MiB 安全上限，请缩小时间范围后重试。", 413);
+      notes.push(note);
+    }
+    return { exportedAt: new Date(this.clock()).toISOString(), schemaVersion: "1.0.0", scope: "filtered-notes", notes };
+  }
   getImportJob(accountId, id) { return publicImportJob(this.store.getImportJob(accountId, id)); }
   analytics(accountId) { return buildAnalyticsDashboard(this.store, accountId, { now: this.clock() }); }
   updateConsent(accountId, input) { return this.store.updateConsent(accountId, input); }
@@ -705,6 +733,10 @@ function publicImportJob(job) {
 }
 
 function publicNote(note) { const { objectKey, ...publicRow } = note; return publicRow; }
+function eventRange(values) {
+  const times = values.map(value => normalizeSourceEventAt(value)).filter(value => value !== null).sort((a, b) => a - b);
+  return times.length ? { earliest: times[0], latest: times.at(-1) } : null;
+}
 function normalizeSourceEventAt(value) { const raw = Number(value); if (!Number.isFinite(raw) || raw <= 0) return null; const seconds = raw >= 10_000_000_000 ? Math.floor(raw / 1000) : Math.floor(raw); return seconds > 0 ? seconds : null; }
 function requireValidWeReadKey(value) {
   try { return validateWeReadKey(value); }

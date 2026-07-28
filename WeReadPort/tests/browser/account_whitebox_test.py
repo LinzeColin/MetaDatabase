@@ -26,9 +26,12 @@ def bundle() -> str:
     platform = (APP / "src/ui/account-platform.js").read_text(encoding="utf-8")
     platform = re.sub(r'^import\s+\{\s*AccountApi\s*\}\s+from\s+"\./account-api\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r'^import\s+\{\s*readObsidianSelection\s*\}\s+from\s+"\./obsidian-import\.js";\s*', "", platform, count=1, flags=re.M)
+    platform = re.sub(r'^import\s+\{\s*CHATGPT_HANDOFF_URL\s*\}\s+from\s+"\.\./core/constants\.js";\s*', "", platform, count=1, flags=re.M)
+    platform = re.sub(r'^import\s+\{\s*buildAccountNotesArchive,\s*renderAccountNotesChatGPTContext\s*\}\s+from\s+"\.\./core/account-note-handoff\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r"\bexport\s+", "", platform)
     obsidian_double = "async function readObsidianSelection(){ return {items:[],sourceLabel:'浏览器夹具',totalFiles:0,totalBytes:0}; }"
-    return api + "\n" + obsidian_double + "\n" + platform + "\nvoid renderAccountPlatform(document.querySelector('#app'));"
+    handoff_double = "const CHATGPT_HANDOFF_URL='https://chatgpt.com/'; function renderAccountNotesChatGPTContext(notes){ return '# 浏览器夹具笔记\\n'; } function buildAccountNotesArchive(notes){ return {bytes:new Uint8Array([1]),filename:'fixture.zip'}; }"
+    return api + "\n" + obsidian_double + "\n" + handoff_double + "\n" + platform + "\nvoid renderAccountPlatform(document.querySelector('#app'));"
 
 
 
@@ -68,7 +71,7 @@ DASHBOARD = {
     ],
     "recommendations": [
         {"source": "account-pattern", "title": "继续整理系统思维主题", "reason": "最近 30 天该主题笔记增长最快。"},
-        {"id": "weread:fixture-book-123", "source": "weread-official", "title": "回顾高频划线章节", "reason": "该书划线密度较高且两周未回顾。"},
+        {"id": "weread:fixture-book-123", "source": "weread-official", "title": "回顾高频划线章节", "reason": "该书划线密度较高且两周未回顾。", "deepLink": "https://weread.qq.com/web/reader/fixture-book-123"},
     ],
 }
 
@@ -178,8 +181,13 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     assert page.get_by_text("继续整理系统思维主题").is_visible()
     weread_link = page.get_by_role("link", name="在微信读书打开")
     assert weread_link.is_visible()
-    assert weread_link.get_attribute("href") == "https://weread.qq.com/web/bookDetail/fixture-book-123"
+    assert weread_link.get_attribute("href") == "https://weread.qq.com/web/reader/fixture-book-123"
     assert page.get_by_text("不会把笔记正文发送给模型", exact=False).is_visible()
+
+    page.get_by_role("button", name="我的笔记").click()
+    page.get_by_role("heading", name="所有来源，统一保存在你的账户").wait_for()
+    for name in ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "打包下载当前结果", "带当前结果问 ChatGPT"]:
+        assert page.get_by_text(name, exact=True).is_visible(), name
 
     page.get_by_role("button", name="账户与安全").click()
     page.get_by_role("heading", name="管理你的身份、设备、连接和数据选择").wait_for()

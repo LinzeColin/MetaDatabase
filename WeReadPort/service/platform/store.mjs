@@ -32,11 +32,17 @@ export class PlatformStore {
     this.ensureColumn("import_jobs", "worker_id", "TEXT");
     this.ensureColumn("import_jobs", "lease_until", "INTEGER");
     this.ensureColumn("notes", "event_at", "INTEGER NOT NULL DEFAULT 0");
+    this.ensureColumn("notes", "book_title", "TEXT");
+    this.ensureColumn("notes", "author", "TEXT");
+    this.ensureColumn("notes", "chapter_title", "TEXT");
+    this.ensureColumn("notes", "note_kind", "TEXT");
+    this.ensureColumn("recommendations", "deep_link_verified", "INTEGER NOT NULL DEFAULT 0");
     this.ensureColumn("weread_sync_state", "book_state_json", "TEXT NOT NULL DEFAULT '{}'");
     this.db.exec("UPDATE notes SET event_at=created_at WHERE event_at IS NULL OR event_at=0");
     this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS sessions_public_id_idx ON sessions(id) WHERE id IS NOT NULL");
     this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_queue_idx ON import_jobs(state, lease_until, created_at)");
     this.db.exec("CREATE INDEX IF NOT EXISTS notes_account_event_idx ON notes(account_id, event_at DESC, id DESC)");
+    this.db.exec("CREATE INDEX IF NOT EXISTS notes_account_book_author_idx ON notes(account_id, book_title, author, event_at DESC, id DESC)");
   }
 
   ensureColumn(table, column, definition) {
@@ -220,7 +226,7 @@ export class PlatformStore {
     return Number(this.db.prepare("DELETE FROM provider_connections WHERE account_id=? AND provider=?").run(accountId, provider).changes) === 1;
   }
 
-  upsertNote({ id, accountId, source, externalId, title, objectKey, contentHash, wordCount = 0, category = null, eventAt = null, expectedVersion = null }) {
+  upsertNote({ id, accountId, source, externalId, title, objectKey, contentHash, wordCount = 0, category = null, bookTitle = null, author = null, chapterTitle = null, noteKind = null, eventAt = null, expectedVersion = null }) {
     const now = this.now();
     return this.transaction(() => {
       const current = this.findNote(accountId, source, externalId);
@@ -229,10 +235,10 @@ export class PlatformStore {
       const version = Number(current?.version || 0) + 1;
       const createdAt = current?.createdAt || now;
       const effectiveEventAt = normalizeEventAt(eventAt, Number(current?.eventAt || createdAt || now));
-      this.db.prepare(`INSERT INTO notes(id,account_id,source,external_id,title,object_key,content_hash,word_count,category,version,event_at,created_at,updated_at,deleted_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)
-        ON CONFLICT(account_id,source,external_id) DO UPDATE SET title=excluded.title,object_key=excluded.object_key,content_hash=excluded.content_hash,word_count=excluded.word_count,category=excluded.category,version=excluded.version,event_at=excluded.event_at,updated_at=excluded.updated_at,deleted_at=NULL`)
-        .run(noteId, accountId, source, externalId, title, objectKey, contentHash, wordCount, category, version, effectiveEventAt, createdAt, now);
+      this.db.prepare(`INSERT INTO notes(id,account_id,source,external_id,title,object_key,content_hash,word_count,category,book_title,author,chapter_title,note_kind,version,event_at,created_at,updated_at,deleted_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)
+        ON CONFLICT(account_id,source,external_id) DO UPDATE SET title=excluded.title,object_key=excluded.object_key,content_hash=excluded.content_hash,word_count=excluded.word_count,category=excluded.category,book_title=excluded.book_title,author=excluded.author,chapter_title=excluded.chapter_title,note_kind=excluded.note_kind,version=excluded.version,event_at=excluded.event_at,updated_at=excluded.updated_at,deleted_at=NULL`)
+        .run(noteId, accountId, source, externalId, title, objectKey, contentHash, wordCount, category, bookTitle, author, chapterTitle, noteKind, version, effectiveEventAt, createdAt, now);
       this.db.prepare("INSERT OR IGNORE INTO note_objects(object_key,account_id,note_id,created_at) VALUES(?,?,?,?)").run(objectKey, accountId, noteId, now);
       this.appendSyncEvent({ accountId, entityType: "note", entityId: noteId, operation: current ? "UPDATE" : "CREATE", entityVersion: version, payloadHash: contentHash, occurredAt: now });
       return { conflict: false, note: this.getNote(accountId, noteId) };
@@ -240,16 +246,16 @@ export class PlatformStore {
   }
 
   getNote(accountId, id) {
-    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND id=?").get(accountId, id) ?? null;
+    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,book_title AS bookTitle,author,chapter_title AS chapterTitle,note_kind AS noteKind,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND id=?").get(accountId, id) ?? null;
   }
 
   findNote(accountId, source, externalId) {
-    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND source=? AND external_id=?").get(accountId, source, externalId) ?? null;
+    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,book_title AS bookTitle,author,chapter_title AS chapterTitle,note_kind AS noteKind,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND source=? AND external_id=?").get(accountId, source, externalId) ?? null;
   }
 
   listNotes(accountId, { includeDeleted = false, limit = 200, afterUpdatedAt = 0, afterId = "", sort = "event" } = {}) {
     const deleted = includeDeleted ? "" : "AND deleted_at IS NULL";
-    const columns = "id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt";
+    const columns = "id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,book_title AS bookTitle,author,chapter_title AS chapterTitle,note_kind AS noteKind,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt";
     if (sort === "updated") return this.db.prepare(`SELECT ${columns} FROM notes WHERE account_id=? ${deleted} AND (updated_at>? OR (updated_at=? AND id>?)) ORDER BY updated_at,id LIMIT ?`)
       .all(accountId, afterUpdatedAt, afterUpdatedAt, afterId, limit);
     return this.db.prepare(`SELECT ${columns} FROM notes WHERE account_id=? ${deleted} ORDER BY CASE WHEN event_at>0 THEN event_at ELSE updated_at END DESC,id DESC LIMIT ?`)
@@ -380,13 +386,13 @@ export class PlatformStore {
     const now = this.now();
     this.transaction(() => {
       this.db.prepare("DELETE FROM recommendations WHERE account_id=?").run(accountId);
-      const insert = this.db.prepare("INSERT INTO recommendations(id,account_id,source,title,author,reason,deep_link,score,updated_at) VALUES(?,?,?,?,?,?,?,?,?)");
-      for (const item of recommendations.slice(0, 100)) insert.run(item.id, accountId, item.source, item.title, item.author ?? null, item.reason, item.deepLink ?? null, Number(item.score ?? 0), now);
+      const insert = this.db.prepare("INSERT INTO recommendations(id,account_id,source,title,author,reason,deep_link,deep_link_verified,score,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)");
+      for (const item of recommendations.slice(0, 100)) insert.run(item.id, accountId, item.source, item.title, item.author ?? null, item.reason, item.deepLink ?? null, item.deepLinkVerified ? 1 : 0, Number(item.score ?? 0), now);
     });
   }
 
   listRecommendations(accountId, limit = 20) {
-    return this.db.prepare("SELECT id,source,title,author,reason,deep_link AS deepLink,score,updated_at AS updatedAt FROM recommendations WHERE account_id=? ORDER BY score DESC,updated_at DESC LIMIT ?").all(accountId, limit);
+    return this.db.prepare("SELECT id,source,title,author,reason,deep_link AS deepLink,deep_link_verified AS deepLinkVerified,score,updated_at AS updatedAt FROM recommendations WHERE account_id=? ORDER BY score DESC,updated_at DESC LIMIT ?").all(accountId, limit).map(item => ({ ...item, deepLinkVerified: Boolean(item.deepLinkVerified) }));
   }
 
   enqueueOutbox({ id, eventType, aggregateId, payload, availableAt = this.now() }) {

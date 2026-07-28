@@ -21,8 +21,9 @@ export class AccountApi {
   sessions() { return this.request("/account/sessions"); }
   revokeSession(id) { return this.request(`/account/sessions/${encodeURIComponent(id)}`, { method: "DELETE", body: {} }); }
   revokeOtherSessions() { return this.request("/account/sessions/revoke-others", { method: "POST", body: {} }); }
-  notes() { return this.request("/notes?limit=500"); }
+  notes(limit = 5_000) { return this.request(`/notes?limit=${encodeURIComponent(Math.min(Math.max(Number(limit) || 200, 1), 5_000))}`); }
   note(id) { return this.request(`/notes/${encodeURIComponent(id)}`); }
+  exportNotes(ids) { return this.request("/notes/export", { method: "POST", body: { ids } }); }
   saveNote(note) { return this.request("/notes", { method: "POST", body: note }); }
   deleteNote(id, expectedVersion) { return this.request(`/notes/${encodeURIComponent(id)}?expectedVersion=${encodeURIComponent(expectedVersion)}`, { method: "DELETE", body: {} }); }
   syncPull(cursor = 0) { return this.request("/sync/pull", { method: "POST", body: { cursor, limit: 500 } }); }

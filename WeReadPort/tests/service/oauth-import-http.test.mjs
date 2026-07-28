@@ -69,6 +69,10 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   assert.equal(rejected.status, 403);
   const saved = await app(new Request(`${platform.config.baseUrl}/v1/notes`, { method: "POST", headers: { ...baseHeaders, cookie, "x-csrf-token": payload.csrf }, body: JSON.stringify({ source: "manual", externalId: "http-one", title: "HTTP 笔记", content: "跨设备正文" }) }));
   assert.equal(saved.status, 201);
+  const savedPayload = await saved.json();
+  const filteredExport = await app(new Request(`${platform.config.baseUrl}/v1/notes/export`, { method: "POST", headers: { ...baseHeaders, cookie, "x-csrf-token": payload.csrf }, body: JSON.stringify({ ids: [savedPayload.note.id] }) }));
+  assert.equal(filteredExport.status, 200);
+  assert.equal((await filteredExport.json()).notes[0].content, "跨设备正文");
   const session = await app(new Request(`${platform.config.baseUrl}/v1/session`, { headers: { ...baseHeaders, cookie } }));
   assert.equal(session.status, 200);
   const refreshedCookie = session.headers.get("set-cookie").split(";")[0];

@@ -72,6 +72,8 @@ test("微信读书将书摘和想法显示为可区分的具体笔记标题", as
   assert.match(highlight.title, /^书摘｜《书籍 book-1》 · 划线 book-1$/u);
   assert.match(review.title, /^想法｜《书籍 book-1》 · 想法 book-1$/u);
   assert.notEqual(highlight.title, review.title);
+  assert.deepEqual({ bookTitle: highlight.bookTitle, author: highlight.author, chapterTitle: highlight.chapterTitle, noteKind: highlight.noteKind }, { bookTitle: "书籍 book-1", author: "作者", chapterTitle: "未分章", noteKind: "highlight" });
+  assert.deepEqual({ bookTitle: review.bookTitle, author: review.author, noteKind: review.noteKind }, { bookTitle: "书籍 book-1", author: "作者", noteKind: "unclassified" });
 });
 
 test("广范围微信读书同步保存到账户并生成官方可解释推荐", async t => {
@@ -84,6 +86,7 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
   assert.equal(result.summary.importedDocuments, 16);
   assert.equal(result.summary.coverage.verified, true);
   assert.equal(result.summary.coverage.unresolvedDocuments, 0);
+  assert.ok(result.summary.coverage.sourceEventRange.earliest <= result.summary.coverage.sourceEventRange.latest);
   assert.deepEqual(platform.service.publicAccount(user.account.id).weread.summary.coverage, result.summary.coverage);
   assert.equal(platform.service.listNotes(user.account.id, { limit: 100 }).length, 16);
   platform.service.updateConsent(user.account.id, { behaviorAnalytics: false, recommendationPersonalization: true });
@@ -147,7 +150,7 @@ test("微信读书后续同步只读取来源明确变化的书籍，并保留�
   assert.equal(calls.filter(api => api === "/review/list/mine").length, 1);
 });
 
-test("微信读书兼容包装字段、分页重叠并为官方推荐生成真实详情链接", async () => {
+test("微信读书兼容包装字段、分页重叠并仅使用官方返回的真实详情链接", async () => {
   const calls = [];
   const ids = ["alias-book-a", "alias-book-b", "alias-book-c"];
   const fetchImpl = async (_url, init) => {
@@ -164,7 +167,7 @@ test("微信读书兼容包装字段、分页重叠并为官方推荐生成真�
     else if (body.api_name === "/book/info") payload = { errcode: 0, data: { book: { bookId: body.bookId, title: `别名书 ${body.bookId}`, author: "作者", category: "研究" } } };
     else if (body.api_name === "/book/getprogress") payload = { errcode: 0, data: { readingProgress: 30 } };
     else if (body.api_name === "/book/chapterinfo") payload = { errcode: 0, result: { chapterList: [{ uid: 1, name: "第一章" }] } };
-    else if (body.api_name === "/book/recommend") payload = body.maxIdx ? { errcode: 0, data: { books: [] } } : { errcode: 0, data: { books: [{ bookInfo: { bookId: "abc123-official-book", title: "官方推荐", author: "推荐作者" }, searchIdx: 1, reason: "官方理由" }] } };
+    else if (body.api_name === "/book/recommend") payload = body.maxIdx ? { errcode: 0, data: { books: [] } } : { errcode: 0, data: { books: [{ bookInfo: { bookId: "abc123-official-book", title: "官方推荐", author: "推荐作者", deepLink: "https://weread.qq.com/web/reader/abc123-official-book" }, searchIdx: 1, reason: "官方理由" }] } };
     return new Response(JSON.stringify(payload), { status: 200, headers: { "Content-Type": "application/json" } });
   };
   const dataset = await syncWeReadDataset(KEY, { fetchImpl, maxBooks: 100, recommendationPages: 2 });
@@ -173,7 +176,8 @@ test("微信读书兼容包装字段、分页重叠并为官方推荐生成真�
   assert.equal(documents.length, 3);
   assert.equal(new Set(documents.map(item => item.externalId)).size, 3, "重叠分页不得重复导入");
   assert.equal(calls.filter(api => api === "/user/notebooks").length, 2);
-  assert.equal(recommendationRows(dataset)[0].deepLink, "https://weread.qq.com/web/bookDetail/abc123-official-book");
+  assert.equal(recommendationRows(dataset)[0].deepLink, "https://weread.qq.com/web/reader/abc123-official-book");
+  assert.equal(recommendationRows({ recommendations: [{ bookId: "abc123-official-book", title: "无直链推荐" }] })[0].deepLink, null);
 });
 
 test("微信读书分页游标异常时拒绝把不完整结果当成完整同步", async () => {

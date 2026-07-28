@@ -82,8 +82,9 @@ export function createPlatformApp({ service, config }) {
       if (method === "GET" && path === "/consent") return json({ consent: service.store.getConsent(session.accountId) });
       if (method === "PATCH" && path === "/consent") return json({ consent: service.updateConsent(session.accountId, await body(request, config.maxJsonBytes)) });
 
-      if (method === "GET" && path === "/notes") return json({ notes: service.listNotes(session.accountId, { limit: boundedInt(url.searchParams.get("limit"), 200, 1, 500) }) });
+      if (method === "GET" && path === "/notes") return json({ notes: service.listNotes(session.accountId, { limit: boundedInt(url.searchParams.get("limit"), 200, 1, 5_000) }) });
       if (method === "POST" && path === "/notes") { const input = await body(request, config.maxJsonBytes); return json({ note: await service.saveDocument(session.accountId, input, { expectedVersion: input.expectedVersion ?? null }) }, 201); }
+      if (method === "POST" && path === "/notes/export") { service.requireRecentAuth(session); const input = await body(request, config.maxJsonBytes); return json(await service.exportNotes(session.accountId, input.ids)); }
       const noteMatch = path.match(/^\/notes\/([A-Za-z0-9_-]+)$/);
       if (method === "GET" && noteMatch) { const note = await service.readNote(session.accountId, noteMatch[1]); if (!note) throw new PlatformError("NOT_FOUND", "笔记不存在。", 404); return json({ note }); }
       if (method === "PUT" && noteMatch) { const input = await body(request, config.maxJsonBytes); return json({ note: await service.saveDocument(session.accountId, { ...input, externalId: input.externalId || noteMatch[1] }, { expectedVersion: input.expectedVersion ?? null }) }); }

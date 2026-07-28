@@ -112,7 +112,7 @@ test("账户导出包含本人内容但不泄漏密码摘要、密钥、OAuth To
     source: "manual", externalId: "export-note", title: "我的导出笔记", content: "这是账户持有者有权导出的正文。",
   });
   await platform.service.saveDocument(user.account.id, {
-    source: "weread", externalId: "highlight:export-note", title: "微信读书导出笔记", content: "这是微信读书同步的正文。",
+    source: "weread", externalId: "highlight:export-note", title: "微信读书导出笔记", content: "这是微信读书同步的正文。", bookTitle: "导出测试书", author: "测试作者", chapterTitle: "第一章", noteKind: "highlight", eventAt: 1_780_000_000,
   });
   const exported = await platform.service.exportAccount(user.account.id);
   const serialized = JSON.stringify(exported);
@@ -126,6 +126,11 @@ test("账户导出包含本人内容但不泄漏密码摘要、密钥、OAuth To
   assert.equal(wereadExport.source, "WeChat Reading");
   assert.equal(wereadExport.notes.length, 1);
   assert.equal(wereadExport.notes[0].source, "weread");
+  assert.deepEqual({ bookTitle: wereadExport.notes[0].bookTitle, author: wereadExport.notes[0].author, chapterTitle: wereadExport.notes[0].chapterTitle, noteKind: wereadExport.notes[0].noteKind }, { bookTitle: "导出测试书", author: "测试作者", chapterTitle: "第一章", noteKind: "highlight" });
+  const filtered = await platform.service.exportNotes(user.account.id, [wereadExport.notes[0].id]);
+  assert.equal(filtered.scope, "filtered-notes");
+  assert.equal(filtered.notes.length, 1);
+  assert.equal(filtered.notes[0].content, "这是微信读书同步的正文。");
   assert.equal(JSON.stringify(wereadExport).includes("ciphertext-access-token-do-not-export"), false);
 });
 
