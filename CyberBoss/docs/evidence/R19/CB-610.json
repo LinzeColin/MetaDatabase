@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "taskpack": "CyberBoss_v0.0.0.8_SEALED_TASKPACK_FINAL_R19_SHARED_BOT_DEEPSEEK_V4_PRO_20260728",
+  "task_id": "CB-610",
+  "scope": "SQLite v8 增量迁移、Owner backfill 与用户身份仓",
+  "acceptance": ["AC-003", "AC-005", "AC-030"],
+  "depends_on": "CB-600",
+  "implementation": {
+    "migration_number_materialized_from_target": true,
+    "materializer": "scripts/materialize_migration.py",
+    "dry_run_first": true,
+    "dry_run_mutated_nothing": true,
+    "existing_highest_prefix": 7,
+    "selected_prefix": 8,
+    "artifact": "CyberBoss/app/migrations/008_r19_shared_bot_seats_and_token_ledger.sql",
+    "template_sha256": "5f8b188b7f1d140e4a148f4ced26270899f2e90dad59e1b7e60a809fea065e66",
+    "additive_only": {
+      "create_table_total": 17,
+      "create_table_if_not_exists": 17,
+      "drop_or_alter_statements": 0
+    },
+    "tables_new_to_target": [
+      "ordinary_user_seats",
+      "shared_token_daily",
+      "shared_token_reservations",
+      "shared_provider_circuit"
+    ],
+    "tables_already_present_from_006": 13
+  },
+  "fixture_verification": {
+    "fixture_source": "copy of production /var/lib/cyberboss/runtime.db on OVH 139.99.61.6",
+    "executed_on_server_no_data_egress": true,
+    "tables_before": 31,
+    "tables_after": 35,
+    "users_rows_before": 1,
+    "users_rows_after": 1,
+    "applied_times": 2,
+    "idempotent": true,
+    "integrity_check": "ok",
+    "foreign_key_check_violations": 0,
+    "fixture_deleted_after_run": true
+  },
+  "tests": [
+    { "script": "scripts/test_materialize_migration.py", "exit_code": 0, "result": "2/2 PASS" },
+    {
+      "script": "starter_kit/test/sqlite-users-migration.test.js + sqlite-token-stores.test.js",
+      "exit_code": 0,
+      "result": "4/4 PASS",
+      "note": "DAG 文档写作 sqlite-migration.test.js / sqlite-stores.test.js，产物中实际文件名为 sqlite-users-migration.test.js / sqlite-token-stores.test.js；按实际文件执行并如实记录此命名漂移"
+    },
+    { "script": "目标树自身套件 CyberBoss/app `node --test`", "exit_code": 0, "result": "556/556 PASS" }
+  ],
+  "rollback": {
+    "procedure": "删除 CyberBoss/app/migrations/008_r19_shared_bot_seats_and_token_ledger.sql 并 revert 本条提交；生产库尚未应用该迁移，因此无需恢复在线备份",
+    "production_applied": false,
+    "old_migrations_unedited": true,
+    "immutable_release_repoint_available": "ops/deploy-to-cloud.sh --rollback"
+  },
+  "claims_not_made": [
+    "production_database_migrated",
+    "five_seat_semantics_implemented",
+    "token_ledger_enforced"
+  ]
+}
