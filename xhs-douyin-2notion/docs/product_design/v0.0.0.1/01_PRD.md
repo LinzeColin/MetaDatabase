@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK005_LIFECYCLE_CI_SYNTH_PASS_G5_REVIEW_NEXT
+status: STAGE_5_G5_CI_SYNTH_PASS_ASSURANCE001_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_5_task005_lifecycle_pass_g5_review_next_real_runtime_not_run
-implementation_authorized: stage_5_g5_review_only_no_new_dag_task
+current_run_scope: stage_6_assurance001_planned_real_runtime_not_run
+implementation_authorized: stage_6_assurance001_only_single_dag_task
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -31,8 +31,8 @@ owner: LinzeColin
 | 运行数据 | Private；持久业务/运行数据进入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion` |
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
-| 产品阶段 | Stage 5 Task001–Task005 已完成，下一步为独立 G5 评审 |
-| 开发状态 | 独立 G3 与 G4 CI-synth 复核均已通过；五个 Stage 4 Task receipt 不变。Stage 5 Task001–Task004 的 Notion Mock、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/recovery 均已完成。Task005 已完成 domain-bound Private-MetaDatabase archive/restore、Schema v5 deletion epoch/tombstone、TTL、preview/confirm、runtime wipe gate 与 whole-root `tmutil` 合同的 CI-synth 验收；真实 Private-Database transfer、`tmutil`、物理删除、Runtime/Notion/Owner Canary 均未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。下一独立 Run 为 G5 评审；上传、部署和发布仍未授权 |
+| 产品阶段 | Stage 5 G5 已通过 CI-synth，下一步为独立 `TSK.x2n.assurance.001 / PH.X2N.6.1` |
+| 开发状态 | 独立 G3、G4 与 G5 CI-synth 复核均已通过；Stage 4 五份和 Stage 5 五份 Task receipt 均不可变。G5 已复核 Notion Mock reconciliation、Markdown 10,000-item deterministic rebuild、loopback Local WebUI/Owner review、诊断/doctor/recovery 与 Task005 history replay。真实 Private-Database transfer、`tmutil`、物理删除、Runtime/Notion/Owner Canary 均未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。G5 不授权上传、部署或发布 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 

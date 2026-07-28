@@ -3,10 +3,10 @@ artifact: PRFAQ
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK005_LIFECYCLE_CI_SYNTH_PASS_G5_REVIEW_NEXT
+status: STAGE_5_G5_CI_SYNTH_PASS_ASSURANCE001_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-decision: DIRECT_MVP_TASK005_ACCEPTED_G5_REVIEW_NEXT
-implementation_authorized: stage_5_g5_review_only_no_new_dag_task
+decision: DIRECT_MVP_G5_PASS_ASSURANCE001_NEXT
+implementation_authorized: stage_6_assurance001_only_single_dag_task
 owner: LinzeColin
 repository_target: LinzeColin/MetaDatabase
 skill_path: xhs-douyin-2notion/
@@ -41,7 +41,7 @@ timezone: Australia/Sydney
 | 多模态 | 标题/正文 + ASR + OCR + 关键帧视觉理解 + 融合摘要 + 自动分类 + 人工复核 |
 | 公共仓库边界 | 只提交代码、契约、合成 Fixture、脱敏证据；Cookie、Token、浏览器 Profile、私人内容和运行数据库禁止进入 Git |
 | 发布策略 | G0–G5＋前置任务/最终任务自有集合外 Acceptance → assurance.005 内完成 80 条 XHS/DY 基线＋每个额外启用能力独立 ≤20 条激活/安全/回滚/签字 → 部署运行/online smoke → G6 PASS；合法外部门可关闭结算、技术阻断不可结算；无预发布阶段、固定健康观察期或 soak |
-| 开发授权 | Stage 0–2 已合并；G3 与 G4 均已独立签发 PASS_CI_SYNTH。Stage 5 Task001–Task004 的 Notion Mock、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/recovery receipt 已完成；Task005 已完成 domain-bound Private-MetaDatabase archive/restore、tombstone epoch、TTL、preview/confirm 与 `tmutil` 合同的 CI-synth 验收。真实 transfer、Runtime、Notion、Owner Canary、账号与系统备份设置均未运行；ASR/OCR/Vision/分类私有 Gold 仍未运行，相关能力保持关闭或 suggestion-only，自动分类仍为 false。下一独立 Run 仅为 G5 评审；上传、真实账号、部署与发布仍未授权 |
+| 开发授权 | G3、G4 与 G5 均已独立签发 PASS_CI_SYNTH。G5 复核 Stage 5 的五份固定 receipt，并重跑 Notion Mock reconciliation、10,000-item Markdown rebuild、loopback review/diagnostics/recovery 与 Task005 历史 verifier；真实 transfer、Runtime、Notion、Owner Canary、账号与系统备份设置均未运行。ASR/OCR/Vision/分类私有 Gold 仍未运行，相关能力保持关闭或 suggestion-only，自动分类仍为 false。下一独立 Run 仅为 `TSK.x2n.assurance.001`；上传、真实账号、部署与发布仍未授权 |
 
 **Pursuing Goal**
 
@@ -417,7 +417,7 @@ Monthly Net Monetary Value
 
 ## 未授权
 
-- 上传、部署或发布；完成的 G3/Task001–Task005 仅授权下一单 G5 评审，不授权这些外部动作；
+- 上传、部署或发布；完成的 G5 只授权下一单 `TSK.x2n.assurance.001`，不授权这些外部动作；
 - 真实账号运行或真实平台调用；
 - 向公共仓库提交私人数据；
 - VPS 数据平面；

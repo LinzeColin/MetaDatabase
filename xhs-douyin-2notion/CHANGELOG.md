@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 5 / G5 Review
+
+- 独立签发 `G5=PASS_CI_SYNTH`：固定 Stage 5 Task001–005 receipt，复跑 G4 preservation、Notion Mock/outbox reconcile、10,000-item Markdown rebuild、loopback Owner review/redacted diagnostics/doctor/recovery，并在 disposable Git checkout 中重放 Task005 final verifier。
+- 新增 G5 Run Contract、review fact/schema、acceptance runner、Task005 historical replay、fail-closed verifier 与脱敏 Gate/finding/verification evidence。所有控制面保持 Public Code / Private Runtime 边界，不含本机绝对路径、凭据或平台媒体 CDN URL。
+- 该结论只授权下一单 `TSK.x2n.assurance.001 / PH.X2N.6.1`；真实账号、平台、Notion、Private-Database transfer、`tmutil`、物理删除、上传、部署和发布仍为 0/NOT_RUN 或未授权。无 Alpha/Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 5 / UX-Ops 005
 
 - 完成 `TSK.x2n.uxops.005 / PH.X2N.5.5` 的 CI-synth 数据生命周期控制：SQLite Canonical Store 的一致性归档经 domain-bound opaque envelope 分片、精确 manifest、逐对象 hash/reassembly/integrity 复原；其他 domain 的缺失或畸形记录既不阻断也不泄露。

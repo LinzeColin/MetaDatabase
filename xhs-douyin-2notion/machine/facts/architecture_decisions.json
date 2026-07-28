@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.4",
-  "phase": "PH.X2N.5.5",
-  "status": "stage_5_task005_lifecycle_ci_synth_pass_g5_review_next_real_runtime_not_run",
-  "review_id": "STG.X2N.4.REVIEW",
+  "schema_version": "1.5",
+  "phase": "G5",
+  "status": "stage_5_g5_pass_ci_synth_stage_6_assurance001_next_real_runtime_not_run",
+  "review_id": "STG.X2N.5.REVIEW",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
@@ -24,10 +24,11 @@
     {"id": "ADR-017", "topic": "notion_projection_schema_views_outbox", "state": "accepted_implementation", "implementation_state": "versioned_additive_items_categories_schema_exact_long_text_chunks_bounded_child_batches_two_rps_mock_rate_gate_outbox_dead_letter_kill_reconcile_fourteen_x2n_owned_view_definitions_conflict_fail_closed_fallback_documented_real_notion_not_run"},
     {"id": "ADR-018", "topic": "markdown_library_rebuildable_category_indexes", "state": "accepted_implementation", "implementation_state": "renderer_v1_1_single_sqlite_read_snapshot_fixed_platform_content_id_paths_atomic_content_and_index_replace_generated_category_links_manifest_link_checker_ten_thousand_synthetic_rebuild_zero_duplicate_copies_real_runtime_not_run"},
     {"id": "ADR-019", "topic": "local_loopback_webui_owner_review_and_v2_nomenclature", "state": "accepted_implementation", "implementation_state": "loopback_127_0_0_1_exact_host_origin_csrf_csp_no_cors_static_textcontent_redacted_diagnostics_owner_append_only_review_historical_v1_fixed_commit_replay"},
-    {"id": "ADR-020", "topic": "private_metadatabase_lifecycle_and_governed_deletion", "state": "accepted_implementation", "implementation_state": "domain_bound_opaque_archive_chunks_exact_manifest_per_object_restore_latest_tombstone_epoch_ttl_preview_confirm_and_tmutil_contract_ci_synth_verified_real_transfer_tmutil_and_physical_delete_not_run"}
+    {"id": "ADR-020", "topic": "private_metadatabase_lifecycle_and_governed_deletion", "state": "accepted_implementation", "implementation_state": "domain_bound_opaque_archive_chunks_exact_manifest_per_object_restore_latest_tombstone_epoch_ttl_preview_confirm_and_tmutil_contract_ci_synth_verified_real_transfer_tmutil_and_physical_delete_not_run"},
+    {"id": "ADR-021", "topic": "stage_5_operability_lifecycle_gate_review", "state": "accepted_implementation", "implementation_state": "g5_independent_ci_synth_fixed_task_receipts_g4_preservation_task005_historical_replay_notion_mock_markdown_rebuild_loopback_review_diagnostics_recovery_private_lifecycle_contract_pass_real_external_runtime_not_run"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001-005_plus_TSK.x2n.uxops.001-005_ci_synth_only",
+  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001-005_plus_TSK.x2n.uxops.001-005_plus_G5_review_ci_synth_only",
   "real_account_execution": false,
-  "stage_gate": "g4_pass_ci_synth_preserved_stage5_task005_pass_g5_review_pending_private_gold_disabled"
+  "stage_gate": "g5_pass_ci_synth_stage6_assurance001_authorized_private_gold_disabled"
 }

@@ -3,7 +3,7 @@ artifact: ROADMAP
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK005_LIFECYCLE_CI_SYNTH_PASS_G5_REVIEW_NEXT
+status: STAGE_5_G5_CI_SYNTH_PASS_ASSURANCE001_NEXT
 owner_change_event: CE-X2N-20260719-S00-P01
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 planning_unit: stage-phase-task
@@ -42,7 +42,7 @@ v0.0.0.1 MVP deployed, running and online
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。Stage 5 Task001–Task004 的 Notion Mock、Markdown Library/10k rebuild、loopback Local WebUI/Owner review/v2 nomenclature 与 diagnostics/doctor/bounded recovery 验收已完成；Task005 的 Private-MetaDatabase domain-bound archive/restore、tombstone epoch、TTL、preview/confirm 和 `tmutil` 合同亦已完成 CI-synth。真实 transfer/Runtime/Notion/Owner Canary 未运行。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为 G5 评审；上传、部署/发布仍禁止 |
+| Dev Taskpack | 独立 G3/G4/G5 均为 PASS_CI_SYNTH；Stage 4 与 Stage 5 各五份 receipt 已固定。G5 重跑 Notion Mock/outbox reconcile、Markdown Library/10k rebuild、loopback Local WebUI/Owner review、diagnostics/doctor/bounded recovery 与 Task005 historical replay。真实 transfer/Runtime/Notion/Owner Canary 未运行；私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为 `TSK.x2n.assurance.001`；上传、部署/发布仍禁止 |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |
@@ -617,6 +617,7 @@ Stage 3 的测试样本全部为 `ENV-CI-SYNTH`；真实激活只属于 Stage 6 
 
 ### Gate G5 — Operable Product
 
+- `PASS_CI_SYNTH`：四项 Gate condition 均以固定 receipt 与 fresh CI-synth recheck 通过；只授权 Stage 6 `TSK.x2n.assurance.001`，不授权上传、部署、发布或真实外部运行。
 - Notion 故障矩阵通过；
 - Markdown 可全量重建且 Hash 稳定；
 - 分类视图和 Notion View 一致；

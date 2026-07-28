@@ -3,7 +3,7 @@ artifact: RELEASE_OPERATIONS
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK005_LIFECYCLE_CI_SYNTH_PASS_G5_REVIEW_NEXT
+status: STAGE_5_G5_CI_SYNTH_PASS_ASSURANCE001_NEXT
 owner_change_event: CE-X2N-20260719-S00-P01
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_target: owner-mvp
@@ -25,11 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 独立 G3/G4 CI-synth 复核已通过；Stage 5 Task001–Task004 的 Notion Mock、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 均已完成。`TSK.x2n.uxops.005 / PH.X2N.5.5` 已完成 domain-bound Private-MetaDatabase archive/restore、deletion epoch/tombstone、TTL、preview/confirm、runtime wipe gate 与 `tmutil` 合同的 CI-synth 验收。真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。下一单是 G5 评审。
+- 独立 G3/G4/G5 CI-synth 复核已通过；G5 固定并重跑 Stage 5 Task001–005 的 Notion Mock/outbox reconciliation、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 和 Task005 history replay。真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。下一单是 `TSK.x2n.assurance.001 / PH.X2N.6.1`。
 
 ### 当前未授权
 
-- 上传、部署或发布；当前 Task005 PASS 只授权下一单 G5 评审；
+- 上传、部署或发布；当前 G5 PASS 只授权下一单 `TSK.x2n.assurance.001`；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；
