@@ -75,7 +75,12 @@ function createInboundFilter() {
 function evaluateInboundPolicy({ senderId = "", text = "", config = {} } = {}) {
   const maxInputBytes = resolveMaxInputBytes(config);
   const inputBytes = Buffer.byteLength(String(text || ""), "utf8");
-  if (!isSenderAllowed(config, senderId)) {
+  // With multi-user admission on, the allowlist stops being a channel filter
+  // and becomes the Owner set: a sender who is not on it is not rejected here,
+  // it is admitted as an ordinary user by CyberbossApp#handleIncomingMessage,
+  // which decides invite, consent or refusal from stored state. The size limit
+  // still applies to everyone.
+  if (config?.multiUser !== true && !isSenderAllowed(config, senderId)) {
     return {
       accepted: false,
       code: "sender_not_allowed",

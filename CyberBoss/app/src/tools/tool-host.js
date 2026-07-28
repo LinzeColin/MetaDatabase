@@ -15,19 +15,32 @@ class ProjectToolHost {
   // CB-630 / AC-006: project tools are an Owner-only capability. When an
   // inbound turn carries a UserContext, an ordinary user is refused here —
   // before any tool is located, validated or executed — so the count of
-  // non-Owner tool invocations is structurally zero. A turn with no context at
-  // all is the Owner-only local/CLI path that predates multi-user admission.
+  // non-Owner tool invocations is structurally zero.
+  //
+  // A tool call that arrives without a context of its own (the MCP transport
+  // carries no UserContext) is not waved through: the active runtime context
+  // published by the admitted turn is consulted instead. Only where no turn has
+  // ever been admitted — the Owner-only local/CLI path that predates
+  // multi-user admission — is an absent context still the Owner.
   #assertOwnerCapability(context) {
     const userContext = context && context.userContext;
-    if (!userContext) {
+    if (userContext) {
+      if (typeof userContext.requireCapability !== "function") {
+        throw ownerOnly();
+      }
+      userContext.requireCapability("project.tool");
       return;
     }
-    if (typeof userContext.requireCapability !== "function") {
-      const error = new Error("OWNER_ONLY_CAPABILITY");
-      error.code = "OWNER_ONLY_CAPABILITY";
-      throw error;
+    const active = this.runtimeContextStore?.resolveActiveContext?.({
+      workspaceRoot: normalizeText(context && context.workspaceRoot),
+      runtimeId: normalizeText(context && context.runtimeId),
+    });
+    if (!active || active.admissionEnforced !== true) {
+      return;
     }
-    userContext.requireCapability("project.tool");
+    if (active.userRole !== "owner" || active.userStatus !== "active") {
+      throw ownerOnly();
+    }
   }
 
   listTools() {
@@ -77,6 +90,12 @@ class ProjectToolHost {
       senderId: normalizeText(context.senderId) || normalizeText(active.senderId),
     };
   }
+}
+
+function ownerOnly() {
+  const error = new Error("OWNER_ONLY_CAPABILITY");
+  error.code = "OWNER_ONLY_CAPABILITY";
+  return error;
 }
 
 function listProjectToolNames() {

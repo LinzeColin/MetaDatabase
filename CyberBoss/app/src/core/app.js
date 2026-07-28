@@ -53,6 +53,8 @@ const {
   normalizeCommandTokens,
   splitCommandLine,
 } = require("../adapters/runtime/shared/approval-command");
+const { UserAdmissionService } = require("./user-admission");
+const { UserTurnRuntime } = require("./user-turn-runtime");
 const { runSystemCheckinPoller } = require("../app/system-checkin-poller");
 const { createProjectTooling } = require("../tools/create-project-tooling");
 const { WorkspaceRegistryError } = require("./workspace-registry");
@@ -157,6 +159,8 @@ class CyberbossApp {
     this.jobScheduler = null;
     this.outboxWorker = null;
     this.canonicalSyncCoordinator = null;
+    this.userAdmission = null;
+    this.userTurnRuntime = null;
     this.runtimeAdapter.onEvent((event) => {
       this.threadStateStore.applyRuntimeEvent(event);
       this.runtimeEventChain = this.runtimeEventChain
@@ -202,6 +206,26 @@ class CyberbossApp {
           this.config.activePayloadTtlHours,
         ),
       });
+      // The v0.0.0.8 admission anchor. It is built here because this is the one
+      // place where the runtime database is open and both owner-only keys are
+      // still live; they are zeroed in the finally below.
+      if (this.config.multiUser === true) {
+        this.userAdmission = new UserAdmissionService({
+          database: this.runtimeSpoolDatabase.database,
+          identityKey,
+          ownerUserId: this.runtimeSpoolDatabase.ownerUserId,
+          ownerSenderIds: this.config.ownerSenderIds || this.config.allowedUserIds,
+          registrationMode: this.config.registrationMode || "invite",
+        });
+        this.userTurnRuntime = new UserTurnRuntime({
+          database: this.runtimeSpoolDatabase.database,
+          userRepository: this.userAdmission.users,
+          encryptionKey,
+          ...(Number.isSafeInteger(this.config.userTurnTimeoutMs)
+            ? { requestTimeoutMs: this.config.userTurnTimeoutMs }
+            : {}),
+        });
+      }
       if (this.config.durableOutbox === true) {
         this.outboxWorker = new DurableOutboxWorker({
           database: this.runtimeSpoolDatabase,
@@ -319,6 +343,8 @@ class CyberbossApp {
       this.canonicalSyncCoordinator = null;
     }
     this.durableInboxCoordinator = null;
+    this.userAdmission = null;
+    this.userTurnRuntime = null;
     if (this.runtimeSpoolDatabase) {
       this.runtimeSpoolDatabase.close();
       this.runtimeSpoolDatabase = null;
@@ -613,8 +639,114 @@ class CyberbossApp {
       return;
     }
 
+    // v0.0.0.8 anchor. Every real inbound message is resolved to a server-owned
+    // UserContext here, before any command is parsed, any workspace is bound
+    // and any runtime is reached. A turn with no admission decision never
+    // continues.
+    const admission = await this.admitInboundMessage(normalized);
+    if (!admission) {
+      return;
+    }
+
     this.primeDeferredRepliesForSender(normalized);
-    await this.handlePreparedMessage(normalized, { allowCommands: true });
+    await this.handlePreparedMessage(normalized, {
+      allowCommands: true,
+      userContext: admission.userContext,
+      route: admission.route,
+    });
+  }
+
+  // Returns the admission decision to continue with, or null when the turn was
+  // fully answered here (onboarding, consent, suspension, or an ordinary-user
+  // model turn). Returns an owner-shaped decision when multi-user admission is
+  // off, which is the pre-existing single-user behaviour.
+  async admitInboundMessage(normalized) {
+    if (!this.userAdmission) {
+      return Object.freeze({ route: "owner", userContext: null });
+    }
+    let decision;
+    try {
+      decision = this.userAdmission.admit({
+        botAccountRef: normalized.accountId,
+        senderRef: normalized.senderId,
+        text: normalized.text,
+      });
+    } catch (error) {
+      // Fail closed: an admission that cannot be decided is not a turn.
+      console.warn(
+        `[cyberboss] admission refused code=${normalizeErrorCode(error?.code) || "admission_failed"}`,
+      );
+      return null;
+    }
+
+    if (decision.route === "reply") {
+      await this.sendAdmissionReply(normalized, decision.text);
+      return null;
+    }
+    if (decision.route === "user") {
+      await this.runUserModelTurn(normalized, decision.userContext);
+      return null;
+    }
+    return decision;
+  }
+
+  async sendAdmissionReply(normalized, text) {
+    if (!text) {
+      return;
+    }
+    await this.channelAdapter.sendText({
+      userId: normalized.senderId,
+      text,
+      contextToken: normalized.contextToken,
+    }).catch(() => {});
+  }
+
+  // The ordinary-user lane. It never touches the Owner runtime adapter, the
+  // workspace registry or the project tool host: those are Owner-only
+  // capabilities, and this path holds a non-Owner UserContext.
+  async runUserModelTurn(normalized, userContext) {
+    if (!this.userTurnRuntime) {
+      await this.sendAdmissionReply(
+        normalized,
+        "服务还在启动中，请稍后再发一次。",
+      );
+      return;
+    }
+    await this.channelAdapter.sendTyping({
+      userId: normalized.senderId,
+      status: 1,
+      contextToken: normalized.contextToken,
+    }).catch(() => {});
+    let result;
+    try {
+      result = await this.userTurnRuntime.handleTurn({
+        userContext,
+        text: normalized.text,
+        // The channel message id is the idempotency key, so a redelivered
+        // message is refused by the queue instead of charged twice.
+        requestId: buildUserTurnRequestId(normalized),
+      });
+    } catch (error) {
+      console.warn(
+        `[cyberboss] user turn failed code=${normalizeErrorCode(error?.code) || "user_turn_failed"}`,
+      );
+      await this.sendAdmissionReply(normalized, "刚才没能处理成功，请再发一次。");
+      return;
+    } finally {
+      await this.stopTypingForUser(normalized);
+    }
+    if (result.suppressReply) {
+      return;
+    }
+    await this.sendAdmissionReply(normalized, result.text);
+  }
+
+  async stopTypingForUser(normalized) {
+    await this.channelAdapter.sendTyping({
+      userId: normalized.senderId,
+      status: 0,
+      contextToken: normalized.contextToken,
+    }).catch(() => {});
   }
 
   deferSystemReply({ threadId = "", userId = "", text = "", error = null, kind = "plain_reply" }) {
@@ -650,7 +782,10 @@ class CyberbossApp {
     );
   }
 
-  async handlePreparedMessage(normalized, { allowCommands }) {
+  async handlePreparedMessage(normalized, { allowCommands, userContext = null }) {
+    // The context travels with the message rather than being re-derived, so
+    // every downstream step in this turn sees the same admission decision.
+    this.activeUserContext = userContext || null;
     const bindingKey = this.runtimeAdapter.getSessionStore().buildBindingKey({
       workspaceId: normalized.workspaceId,
       accountId: normalized.accountId,
@@ -673,6 +808,9 @@ class CyberbossApp {
     const prepared = await this.prepareIncomingMessageForRuntime(normalized, workspaceRoot);
     if (!prepared) {
       return;
+    }
+    if (userContext) {
+      prepared.userContext = userContext;
     }
 
     if (shouldBatchImageOnlyInbound(prepared)) {
@@ -830,6 +968,25 @@ class CyberbossApp {
     returnRun = false,
     deliveryContext = null,
   }) {
+    // AC-006 at the runtime boundary: `codex.turn` and `claudecode.turn` are
+    // Owner-only. When admission is on, a turn that reaches the Owner runtime
+    // without an Owner context is refused here rather than downgraded, so the
+    // count of non-Owner runtime dispatches is structurally zero.
+    const turnContext = prepared?.userContext || this.activeUserContext || null;
+    if (this.userAdmission && prepared?.provider !== "system") {
+      const capability = this.runtimeAdapter.describe().id === "claudecode"
+        ? "claudecode.turn"
+        : "codex.turn";
+      if (!turnContext || !turnContext.may(capability)) {
+        console.warn("[cyberboss] runtime dispatch refused code=owner_only_capability");
+        await this.channelAdapter.sendText({
+          userId: prepared.senderId,
+          text: "这个操作只有管理员可以使用。",
+          contextToken: prepared.contextToken,
+        }).catch(() => {});
+        return false;
+      }
+    }
     workspaceRoot = this.workspaceRegistry.assertAllowedRoot(workspaceRoot).root;
     const pendingScopeKey = this.turnGateStore.begin(bindingKey, workspaceRoot);
     await this.channelAdapter.sendTyping({
@@ -869,6 +1026,11 @@ class CyberbossApp {
         bindingKey,
         accountId: prepared.accountId,
         senderId: prepared.senderId,
+        // Published so the project tool host can gate on the admitted role even
+        // when a tool call arrives over MCP without a context of its own.
+        userRole: turnContext ? turnContext.role : "",
+        userStatus: turnContext ? turnContext.status : "",
+        admissionEnforced: Boolean(this.userAdmission),
       });
       this.turnGateStore.attachThread(pendingScopeKey, turn.threadId);
       const replyTarget = {
@@ -2218,6 +2380,22 @@ class CyberbossApp {
       provider: "weixin",
     };
   }
+}
+
+// The idempotency key for an ordinary-user turn. It is derived from channel
+// identifiers only — never from message text — so a redelivery of the same
+// WeChat message maps to the same key and is refused as a duplicate, while two
+// different messages never collide.
+function buildUserTurnRequestId(normalized) {
+  const parts = [
+    normalizeText(normalized?.accountId),
+    normalizeText(normalized?.senderId),
+    normalizeText(normalized?.messageId),
+  ];
+  if (!parts[2]) {
+    parts[2] = `${normalizeText(normalized?.receivedAt)}:${crypto.randomUUID()}`;
+  }
+  return `utr_${crypto.createHash("sha256").update(parts.join(" ")).digest("hex").slice(0, 32)}`;
 }
 
 function buildRunKey(threadId, turnId) {

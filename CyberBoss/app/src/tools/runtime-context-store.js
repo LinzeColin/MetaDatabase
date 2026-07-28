@@ -34,6 +34,9 @@ class RuntimeContextStore {
     bindingKey = "",
     accountId = "",
     senderId = "",
+    userRole = "",
+    userStatus = "",
+    admissionEnforced = false,
   } = {}) {
     const normalizedWorkspaceRoot = normalizeText(workspaceRoot);
     if (!normalizedWorkspaceRoot) {
@@ -46,6 +49,11 @@ class RuntimeContextStore {
       bindingKey: normalizeText(bindingKey),
       accountId: normalizeText(accountId),
       senderId: normalizeText(senderId),
+      // The admitted role for the turn that owns this runtime context. No user
+      // identifier is stored: the tool host only needs the capability decision.
+      userRole: normalizeText(userRole),
+      userStatus: normalizeText(userStatus),
+      admissionEnforced: admissionEnforced === true,
       updatedAt: new Date().toISOString(),
     };
     this.state.contextsByWorkspaceRoot = {

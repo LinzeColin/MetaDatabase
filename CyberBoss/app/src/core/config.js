@@ -66,6 +66,26 @@ function readConfig() {
   ) {
     throw new Error("CB_CANONICAL_SYNC_POLICY_INVALID");
   }
+  // v0.0.0.8 multi-user admission. It rides on the runtime database, so it can
+  // only be on where that database exists; with no database there is no user
+  // table, no UserContext and therefore no safe way to admit a second sender.
+  const allowedUserIds = readListEnv("CYBERBOSS_ALLOWED_USER_IDS");
+  const multiUserOverride = readOptionalBoolEnv("CB_MULTI_USER");
+  const multiUser = durableInbox && (
+    multiUserOverride === undefined ? true : multiUserOverride
+  );
+  const registrationMode = readTextEnv("CB_REGISTRATION_MODE") || "invite";
+  if (!["invite", "open"].includes(registrationMode)) {
+    throw new Error("CB_REGISTRATION_MODE must be invite or open");
+  }
+  // The Owner senders default to the pre-existing allowlist, so an installation
+  // that already names its Owner keeps exactly the behaviour it has today and
+  // every other sender becomes an ordinary, isolated user instead of a silent
+  // rejection.
+  const ownerSenderIds = readListEnv("CB_OWNER_SENDER_IDS").length
+    ? readListEnv("CB_OWNER_SENDER_IDS")
+    : allowedUserIds;
+
   const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
     || path.join(stateDir, "workspaces.json");
   const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
@@ -97,7 +117,11 @@ function readConfig() {
     workspaceRegistry,
     userName: readTextEnv("CYBERBOSS_USER_NAME") || "User",
     userGender: readTextEnv("CYBERBOSS_USER_GENDER") || "female",
-    allowedUserIds: readListEnv("CYBERBOSS_ALLOWED_USER_IDS"),
+    allowedUserIds,
+    multiUser,
+    registrationMode,
+    ownerSenderIds,
+    userTurnTimeoutMs: readIntEnv("CB_USER_TURN_TIMEOUT_MS"),
     maxInputBytes: readIntEnv("CYBERBOSS_MAX_INPUT_BYTES")
       || readIntEnv("CB_MAX_INPUT_BYTES")
       || 32 * 1024,
