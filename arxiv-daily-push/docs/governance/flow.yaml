@@ -47,11 +47,28 @@ baselines:
   - id: BL-ADP-DAILY
     name: 每日推送主线
     priority: P0
-    note: 这条是产品本体。scan/rank/compose 都通,卡在 gate 与 deliver。
+    note: >-
+      这条是产品本体。**scan 段实测已断**(见下),rank/compose 仍为自报,
+      卡在 gate 与 deliver。
     cells:
       scan:
-        state: healthy
-        evidence: 全 arXiv 扫描与来源输入已完成(FEAT-ADP-001),保持真实 metadata、日期与 source identity
+        # ★ 这一格原本是写死的自报 healthy:「全 arXiv 扫描与来源输入已完成」。
+        #   而 arXiv Daily Push Liveness 看门狗**从 2026-07-25 起连红三天**:
+        #     SILENT ZERO: newest completed run ingested arXiv=0
+        #       -- ingest broken (P08-class silent failure behind a green cron)
+        #   写死的自报不会过期,于是「三天没抓到一篇论文」在看板上完全看不出来。
+        #   **这就是这套系统存在的意义所在,而它自己犯了。**
+        #
+        #   改法:不给 status 加新探针类型(http 探针只看状态码,而 /system 抓到 0 篇时
+        #   照样返回 200 —— 用它只会再造一个假绿)。判定的知识在看门狗脚本里,
+        #   让它每天跑完把结论写回 flow_state.json,status 只读。
+        #   超过 max_age_h 没有新记录就退成「不确定」,绝不停在旧的绿。
+        probe: repo_state
+        args: {key: "BL-ADP-DAILY.scan", max_age_h: 30}
+        state: blocked
+        evidence: >-
+          看门狗自 2026-07-25 起连续判定静默归零(ingested arXiv=0);
+          在回流生效前,这里如实写 blocked —— 先前写死的 healthy 是假绿。
       rank:
         state: healthy
         evidence: 候选队列、ROI / 学习价值排序与内容账本已完成(FEAT-ADP-002)

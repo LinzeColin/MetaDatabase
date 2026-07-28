@@ -50,6 +50,12 @@ jobs:
       mode: ${{ steps.mode.outputs.value }}
       should_run: ${{ steps.mode.outputs.should_run }}
     steps:
+      # ★ 这个作业原本不需要工作区(只解析模式),我加了回写步骤却忘了 checkout ——
+      #   实测 20:42 那轮定时直接挂:can't open .../tools/report_flow_state.py。
+      #   **我改坏了一条在跑的生产定时流水线。**
+      - uses: actions/checkout@v4
+        with: {ref: main}
+
       - name: Resolve scheduled mode
         id: mode
         shell: bash
@@ -79,6 +85,9 @@ jobs:
       #     (vars.ADP_PRODUCTION_ENABLED 没设成 true)。
       #     照 workflow 结论上报会造出一个永远绿、什么都不代表的格子。
       - name: 回写投递段的真实门禁状态
+        # ★ 状态回写**绝不能拖垮门禁本身**。门禁判定是这条流水线的正事,
+        #   回写只是附带的观测。观测挂了要留痕,但不该让正事跟着挂。
+        continue-on-error: true
         if: github.event_name == 'schedule'
         env:
           SHOULD_RUN: ${{ steps.mode.outputs.should_run }}
@@ -99,6 +108,7 @@ jobs:
             --state "$STATE" --note "$NOTE"
 
       - name: 提交状态
+        continue-on-error: true
         if: github.event_name == 'schedule'
         run: |
           git config user.name  "adp-flow-state"

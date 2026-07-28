@@ -6,6 +6,13 @@ name: arXiv Daily Push Liveness
 # network-free by tests/governance/test_adp_liveness_check.py.
 #
 # To stop scheduled alerts, delete the `schedule:` block below (workflow_dispatch stays for manual runs).
+#
+# ★ 2026-07-28 追加回写:把这个看门狗的判定**写进业务流状态**。
+#   起因是一个真实的假绿 —— status 上 BL-ADP-DAILY.scan 长期显示「通」,
+#   证据是 flow.yaml 里写死的一句「全 arXiv 扫描与来源输入已完成」;
+#   而这个看门狗**从 07-25 起连红三天**:newest completed run ingested arXiv=0。
+#   写死的自报不会过期,于是「三天没抓到一篇论文」在看板上完全看不出来。
+#   判定的知识本来就在这个脚本里 —— 让它自己说,status 只读。
 
 on:
   schedule:
@@ -23,10 +30,77 @@ jobs:
   liveness:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # ★ 只给这个作业写权限(回写状态用),顶层仍是 read。
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with: {ref: main}
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
+
+      # ★ 这一步**刻意不加 continue-on-error** —— 看门狗红就该红,那是它的全部意义。
+      #   输出另存一份给下面的回写用;告警本身一点不打折。
       - name: ADP liveness + silent-zero watchdog
-        run: python3 scripts/adp_liveness_check.py --max-run-age-days 3
+        id: watchdog
+        run: |
+          set -o pipefail
+          python3 scripts/adp_liveness_check.py --max-run-age-days 3 2>&1 \
+            | tee "${RUNNER_TEMP}/liveness.txt"
+
+      # ★ 回写放在**同一个作业**里,紧跟看门狗之后:
+      #     · 看门狗红 → 作业红(告警保留),这一步靠 if: always() 照样跑
+      #     · 看门狗绿、回写自己坏了 → continue-on-error 兜住,不把绿作业染红
+      #   隔离的方向必须是这个:观测绝不能拖垮被观测的东西,但也绝不能盖住它的红。
+      #   (MetaDatabase#145 的教训:我给 gate 加回写忘了 checkout,
+      #    直接把在跑的生产定时流水线弄挂。)
+      #
+      #   隔离 ≠ 沉默:这一步失败时在 Actions 里照样显示为失败;而且回写没成功
+      #   ⇒ flow_state.json 不更新 ⇒ 超过 max_age_h 后 status 那格自动退成
+      #   「不确定」,不会停在旧的绿。
+      - name: 把看门狗判定写回业务流状态
+        if: always()
+        continue-on-error: true
+        env:
+          WATCHDOG: ${{ steps.watchdog.outcome }}
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/liveness.txt"
+          [ -f "$OUT" ] || OUT=/dev/null
+
+          if [ "$WATCHDOG" = "success" ]; then
+            STATE=healthy
+            NOTE="看门狗全绿:最新一轮真的抓到了论文、候选非空,页面路由与新鲜度都正常"
+          elif grep -q "SILENT ZERO" "$OUT"; then
+            # ★ 静默归零 = 抓取真的坏了,**绝不能报成 degraded**。
+            #   「能用但打折」会让人以为还在出货,而实际一篇都没有。
+            LINE="$(grep -m1 'SILENT ZERO' "$OUT" | sed 's/^[[:space:]]*//' | cut -c1-110)"
+            STATE=blocked
+            NOTE="静默归零(绿着的 cron 背后什么都没产出):${LINE}"
+          elif [ "$WATCHDOG" = "failure" ]; then
+            # 红了但不是静默归零:路由 / 新鲜度 / 构建等别的不变量破了
+            LINE="$(grep -m1 -E '^[[:space:]]*(FAIL|RED)' "$OUT" | sed 's/^[[:space:]]*//' | cut -c1-110 || true)"
+            STATE=degraded
+            NOTE="看门狗有不变量被破坏(非静默归零):${LINE:-见 Actions 日志}"
+          else
+            # ★ 取消 / 跳过:如实报「这一轮测不出来」,不猜,更不报绿
+            STATE=blocked_by_input
+            NOTE="看门狗本轮没跑完(${WATCHDOG}),测不出扫描是否真的有产出"
+          fi
+
+          python3 arxiv-daily-push/tools/report_flow_state.py \
+            --project-dir arxiv-daily-push --key 'BL-ADP-DAILY.scan' \
+            --state "$STATE" --note "$NOTE"
+
+      - name: 提交状态
+        if: always()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git config user.name  "adp-flow-state"
+          git config user.email "adp-flow-state@users.noreply.github.com"
+          git add arxiv-daily-push/docs/governance/flow_state.json
+          git diff --cached --quiet && echo "状态没变，不产生空提交" && exit 0
+          git commit -m "chore(adp): 回写扫描段的看门狗判定 [skip ci]"
+          git push

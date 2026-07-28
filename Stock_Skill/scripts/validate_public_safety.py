@@ -408,6 +408,115 @@ def is_stable_public_reference(
     )
 
 
+# ── 按**值的形态**豁免,不是按字段名放行 ────────────────────────────────
+# 这个扫描器本来就是按值形态判的(上面已有 sha256、计数、稳定标识符等豁免)。
+# 但 "session" 与 runtime/私有词元这两条走的是**纯关键词匹配,完全不看值**,
+# 于是把这些全判成「禁止的执行会话元数据」:
+#     properties.session_date     一个 JSON Schema 类型声明(format/type 两个键)
+#     first_session / last_session 股市**交易时段**的起止日历日
+#     strict_utc_session_order     交易时段排序检查的布尔结果
+#     runtime_state                一个全大写枚举常量
+#     runtime_llm_token_usage      数值 0 —— 恰恰是零 token 达标的证据
+#
+# ★ 上面这几行刻意不写成「键 = 带引号的值」的样子:第一版那么写,
+#   本扫描器自己就把这份源码判成了「明文执行会话标识符」——
+#   因为 `…session= "…"` 正是它要拦的赋值形状。它拦得对,是我写错了写法。
+#
+# 同一个文件里的 session_count(数值 440)却**没被报** —— 因为它命中了既有的
+# 「数值 + count 词元」豁免。这说明按值形态豁免正是本扫描器的既定设计,
+# 下面几条只是把同一条路子补到 session / runtime 这两支上。
+#
+# ★ 每条豁免都必须窄到**举得出反例**:见 tests 里逐条的负控 ——
+#   真的 session id / 时间戳 / 主机名 / 路径 / uuid 一律仍然拦下。
+
+# 这些词元表示「这是一个标识/句柄」——带它们的键绝不走日期或常量豁免
+IDENTITY_TOKENS = frozenset(
+    {
+        "alias",
+        "correlation",
+        "cursor",
+        "handle",
+        "id",
+        "identifier",
+        "locator",
+        "pointer",
+        "receipt",
+        "reference",
+        "uuid",
+    }
+)
+# 只认**纯日历日**:YYYY-MM-DD。执行时刻会带时间与时区,不在此列。
+CALENDAR_DATE_ONLY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+# 枚举常量:全大写、下划线分段、**每段纯字母**(带数字的随机串因此不通过)
+ENUM_CONSTANT = re.compile(r"[A-Z]+(?:_[A-Z]+)*")
+# JSON Schema 的类型声明关键字 —— 这类字典描述的是「字段长什么样」,不是值本身
+JSON_SCHEMA_KEYWORDS = frozenset(
+    {
+        "additionalproperties",
+        "default",
+        "description",
+        "enum",
+        "examples",
+        "format",
+        "items",
+        "maximum",
+        "maxlength",
+        "minimum",
+        "minlength",
+        "pattern",
+        "properties",
+        "required",
+        "title",
+        "type",
+    }
+)
+
+
+def is_public_calendar_date(tokens: frozenset[str], value: object) -> bool:
+    """业务日历日(如交易时段日期),不是执行时刻。
+
+    只认 `YYYY-MM-DD`。带时间/时区的 ISO 时刻仍然是执行痕迹,不豁免。
+    键上一旦出现标识类词元(id/uuid/handle...)就不走这条 —— 那种情况下
+    「日期」很可能只是标识的一部分。
+    """
+    return (
+        isinstance(value, str)
+        and not (tokens & IDENTITY_TOKENS)
+        and CALENDAR_DATE_ONLY.fullmatch(value) is not None
+    )
+
+
+def is_public_enum_constant(tokens: frozenset[str], value: object) -> bool:
+    """全大写纯字母的枚举常量(如 STATELESS_OUTPUT_RENDERED)。
+
+    每段必须是纯字母:带随机串的(哪怕全大写)因此**不通过** ——
+    base32 含 2-7、base64 含大小写与 +/=、十六进制含数字,机器令牌几乎
+    不可能是「纯 A-Z + 下划线」。
+
+    ★ 如实写明已知边界:一个纯 A-Z、无数字、≤64 字符的串仍会被放行。
+      这不是密不透风的证明,而是一个「令牌几乎不长这样」的形状判断。
+      字节级 PATTERNS(私钥 / AKIA / gh*_ / sk- / Bearer 等)仍然独立
+      扫描整份文件,不受这条豁免影响 —— 两层不是一层。
+    """
+    return (
+        isinstance(value, str)
+        and not (tokens & IDENTITY_TOKENS)
+        and len(value) <= 64
+        and ENUM_CONSTANT.fullmatch(value) is not None
+        and PRIVATE_VALUE_MARKER.search(value) is None
+        and UUID_ANY.search(value) is None
+    )
+
+
+def is_json_schema_type_declaration(value: object) -> bool:
+    """`{"type": "string", "format": "date"}` 这类 —— 描述字段形状,不含任何值。"""
+    if not isinstance(value, dict) or not value:
+        return False
+    return all(
+        normalized_key_parts(str(k))[0] in JSON_SCHEMA_KEYWORDS for k in value
+    )
+
+
 def private_metadata_key_reason(raw_key: str, child: object) -> str | None:
     """Classify private execution metadata by meaning rather than a finite key list."""
 
@@ -445,6 +554,25 @@ def private_metadata_key_reason(raw_key: str, child: object) -> str | None:
         return "malformed public reference metadata"
     if compact in FORBIDDEN_PRIVATE_METADATA_KEYS:
         return "explicit private metadata key"
+    # ★ 值形态豁免一律排在**显式禁止键之后** —— FORBIDDEN_PRIVATE_METADATA_KEYS
+    #   里的键(conversationid / executioncontext 等)不论值长什么样都拦下。
+    #   布尔量按信息量就装不下标识,永远安全。
+    if isinstance(child, bool):
+        return None
+    if is_json_schema_type_declaration(child):
+        return None
+    if is_public_calendar_date(tokens, child):
+        return None
+    if is_public_enum_constant(tokens, child):
+        return None
+    # 用量是计数,不是秘密。窄到只认带 usage 词元的数值 ——
+    # `session_id: 12345` 这种没有 usage 词元,照样拦下。
+    if (
+        "usage" in tokens
+        and isinstance(child, (int, float))
+        and not isinstance(child, bool)
+    ):
+        return None
     if "session" in tokens or "session" in compact:
         return "session-bearing metadata key"
     if tokens & COMMUNICATION_TOKENS and tokens & PRIVATE_DETAIL_TOKENS:
@@ -907,7 +1035,93 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def self_check() -> list[str]:
+    """放宽了什么,就必须证明真泄露仍然被拦 —— 每条豁免配一条负控。
+
+    ★ 为什么内建在扫描器里、而不是写成 tests/ 下的测试文件:
+      bottleneck-serenity-skill 的完成度审计有一份改动路径允许清单,
+      `Stock_Skill/tests/` 下只有三个文件在里面,新增测试文件会被判
+      `changed paths escape Stock Skill allowlist`;而把自己要加的文件塞进
+      那份审计允许清单来让自己变绿 —— 不做。本文件**本来就在**清单里。
+      内建还有个好处:负控跟着规则走,改规则的人不可能忘了跑它。
+
+    ★ 所有「像真泄露」的样本都在运行时拼出来,**不在源码里留字面量** ——
+      否则本扫描器扫到自己这份源码就会(正确地)报明文标识符。
+      这一条是实测踩出来的:第一版我在注释里写了一个 `…session= "…"` 形状的
+      例子,扫描器当场把这份源码判成「明文执行会话标识符」。它拦得对。
+    """
+    uuid_like = "-".join(["a1b2c3d4", "e5f6", "4a7b", "9c0d", "ef1234567890"])
+    opaque = "".join(["7f3a9b2c", "5d8e1f04", "6a2b7c9d"])
+    # 主机名与用户路径同样必须运行时拼:第二版我把它们写成字面量,
+    # 扫描器立刻(正确地)报了「forbidden Linux user path」。
+    host_like = ".".join(["ip-10-0-3-17", "ec2", "internal"])
+    path_like = "/".join(["", "home", "runner", "work", "_temp", "x"])
+    failures: list[str] = []
+
+    def must_block(key: str, value: object, why: str) -> None:
+        if private_metadata_key_reason(key, value) is None:
+            failures.append(f"self-check regression: {why} ({key})")
+
+    def must_allow(key: str, value: object, why: str) -> None:
+        reason = private_metadata_key_reason(key, value)
+        if reason is not None:
+            failures.append(f"self-check false positive: {why} ({key}: {reason})")
+
+    # ── 负控:每条豁免对应一个「真的该拦」的形状 ──
+    # 布尔豁免 -> 不得让带值的会话标识过关
+    must_block("session_id", uuid_like, "uuid 形会话标识")
+    must_block("session_id", opaque, "不透明会话标识")
+    must_block("session_id", 12345, "数值会话标识(没有 usage 词元)")
+    # 日历日豁免 -> 带时间/时区的执行时刻不是业务日历日
+    must_block("session_start", "2024-01-02T03:04:05Z", "执行时刻(带时间)")
+    must_block("session_start", "2024-01-02 03:04:05+08:00", "执行时刻(带时区)")
+    must_block("session_date_id", "2024-01-02", "键上带标识词元")
+    # 枚举常量豁免 -> 带随机串/主机名/路径的不算枚举
+    # ★ 这两条必须**只被它们各自那条规则拦住**,否则证明不了那条规则还在。
+    #   实测踩到:第一版用 "SESSION_"+随机串,其实是被 PRIVATE_VALUE_MARKER 拦的,
+    #   把「纯字母段」那条规则改宽照样绿 —— 负控被别的守卫挡住就什么都没证明。
+    must_block("runtime_state", "RUN_" + opaque.upper()[:14],
+               "枚举里混了随机串(不带 session 词,只有纯字母段规则拦得住)")
+    must_block("runtime_state", host_like, "主机名")
+    must_block("runtime_state", path_like, "路径")
+    must_block("runtime_state", "SESSION_LIVE",
+               "全大写但含私有标记(只有 PRIVATE_VALUE_MARKER 拦得住)")
+    must_block("runtime_state", uuid_like, "uuid")
+    # usage 数值豁免 -> 只放数值,字符串仍然拦
+    must_block("runtime_llm_token_usage", uuid_like, "usage 键上挂了标识串")
+    # JSON Schema 豁免 -> 真实的嵌套值不是类型声明
+    # ★ 键不能用 "session" —— 它在 FORBIDDEN_PRIVATE_METADATA_KEYS 里,
+    #   会被更早那条拦掉,根本走不到 JSON Schema 这条豁免。
+    must_block("first_session", {"id": uuid_like}, "伪装成对象的会话标识")
+    must_block("first_session", {"type": "string", "id": uuid_like},
+               "混入 id 的类型声明")
+    # 显式禁止键:不论值形态,一律拦
+    must_block("conversationid", True, "显式禁止键 + 布尔值")
+    must_block("executioncontext", "2024-01-02", "显式禁止键 + 日历日")
+
+    # ── 正控:这次要消掉的 14 条误报,形状逐个确认放行 ──
+    must_allow("strict_utc_session_order", True, "交易时段排序检查(布尔)")
+    must_allow("first_session", "2024-01-02", "交易时段起始日")
+    must_allow("last_session", "2025-09-08", "交易时段结束日")
+    must_allow("session_date", {"format": "date", "type": "string"},
+               "JSON Schema 类型声明")
+    must_allow("runtime_state", "STATELESS_OUTPUT_RENDERED", "全大写枚举常量")
+    must_allow("runtime_llm_token_usage", 0, "零 token 用量")
+    return failures
+
+
 def main() -> int:
+    # ★ 自检失败一律 fail-closed:规则被改松了就不许再扫下去,
+    #   否则会拿一个已经失效的扫描器给出「PASS」。
+    regressions = self_check()
+    if regressions:
+        print(
+            f"FAIL: public-safety self-check ({len(regressions)} regression(s))",
+            file=sys.stderr,
+        )
+        for item in regressions:
+            print(f"- {item}", file=sys.stderr)
+        return 1
     try:
         repo_root = parse_args().repo_root.resolve(strict=True)
         files, blobs, zip_entries, errors = scan_public_surfaces(repo_root)
