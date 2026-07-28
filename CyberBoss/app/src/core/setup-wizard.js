@@ -11,6 +11,36 @@ const path = require("node:path");
 const readline = require("node:readline");
 
 const { bootstrapInstallation, readEnvFile, updateEnvFile } = require("./bootstrap");
+const {
+  buildTunnelInstructions,
+  defaultCredentialsFile,
+  originForHostname,
+  writeTunnelConfig,
+} = require("./cloudflare-tunnel");
+
+const DEFAULT_PORTAL_PORT = 8787;
+const TUNNEL_NAME = "cyberboss";
+
+// 把 cloudflared 的配置写好并返回该给用户看的那段说明。凭据文件的路径按
+// cloudflared 自己的约定给出：`tunnel create` 执行完它就会出现在那儿。
+function prepareTunnel({ stateDir, hostname, port = DEFAULT_PORTAL_PORT, homeDir = require("node:os").homedir() }) {
+  const configPath = writeTunnelConfig({
+    stateDir,
+    tunnelName: TUNNEL_NAME,
+    hostname,
+    credentialsFile: defaultCredentialsFile(homeDir, TUNNEL_NAME),
+    localPort: port,
+  });
+  return {
+    configPath,
+    hostname,
+    instructions: buildTunnelInstructions({
+      tunnelName: TUNNEL_NAME,
+      hostname,
+      configPath,
+    }),
+  };
+}
 
 const LINE = "─".repeat(46);
 
@@ -37,13 +67,16 @@ const COPY = Object.freeze({
     "",
   ].join("\n"),
   askPortal: [
-    "② 设置页面（可跳过）",
-    "   用户要填自己的 AI 密钥时，会打开一个网页。",
-    "   如果你有自己的网址（必须是 https 开头），填在这里；",
-    "   没有就直接按回车跳过——软件照样能跑，只是暂时打不开那个网页。",
+    "② 设置页面的域名（可跳过）",
+    "   用户要填自己的 AI 密钥时，会打开一个网页。这个网页需要一个域名。",
+    "",
+    "   有域名就填域名本身，不用带 https，比如：  boss.example.com",
+    "   （我会顺便把 Cloudflare 隧道的配置也替你写好）",
+    "",
+    "   没有就直接回车跳过——软件照样能跑，只是那个网页暂时打不开。",
     "",
   ].join("\n"),
-  portalInvalid: "   ⚠ 网址要以 https:// 开头，而且后面不带斜杠和路径。再填一次，或直接回车跳过。",
+  portalInvalid: "   ⚠ 只填域名本身就行，像 boss.example.com。再填一次，或直接回车跳过。",
   askRegistration: [
     "③ 谁可以使用（可跳过）",
     "   1) 邀请制——只有拿到你给的邀请码的人才能用（推荐）",
@@ -115,6 +148,7 @@ async function runSetupWizard({
   output = process.stdout,
   prompt = null,
   login = null,
+  port = DEFAULT_PORTAL_PORT,
   now = () => new Date(),
 } = {}) {
   const write = (text) => output.write(`${text}\n`);
@@ -128,15 +162,23 @@ async function runSetupWizard({
     write(COPY.bootstrapDone(result));
 
     write(COPY.askPortal);
+    let tunnel = null;
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const answer = await io.ask("   网址（回车跳过）> ");
+      const answer = await io.ask("   域名（回车跳过）> ");
       if (!answer) break;
-      if (isBareHttpsOrigin(answer)) {
-        updates.CB_PORTAL_ORIGIN = answer;
-        write("   ✓ 已记住\n");
-        break;
+      // 用户很可能连 https:// 一起粘进来，这不是错误，去掉就是。
+      const hostname = answer.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").trim();
+      let origin;
+      try {
+        origin = originForHostname(hostname);
+      } catch {
+        write(COPY.portalInvalid);
+        continue;
       }
-      write(COPY.portalInvalid);
+      updates.CB_PORTAL_ORIGIN = origin;
+      write(`   ✓ 已记住 ${origin}\n`);
+      tunnel = prepareTunnel({ stateDir: result.stateDir, hostname, port });
+      break;
     }
 
     write(COPY.askRegistration);
@@ -163,11 +205,15 @@ async function runSetupWizard({
     }
 
     write(COPY.done(result.stateDir));
+    if (tunnel) {
+      write(tunnel.instructions);
+    }
     return Object.freeze({
       stateDir: result.stateDir,
       envFile,
       settings: Object.freeze({ ...updates }),
       loggedIn: shouldLogin,
+      tunnel: tunnel ? Object.freeze({ configPath: tunnel.configPath, hostname: tunnel.hostname }) : null,
     });
   } finally {
     if (!prompt) {
@@ -186,8 +232,11 @@ function friendlyLoginError(error) {
 
 module.exports = {
   COPY,
+  DEFAULT_PORTAL_PORT,
+  TUNNEL_NAME,
   createPrompt,
   isBareHttpsOrigin,
   looksConfigured,
+  prepareTunnel,
   runSetupWizard,
 };

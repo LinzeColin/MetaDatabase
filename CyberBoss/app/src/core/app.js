@@ -59,6 +59,7 @@ const { UserTurnRuntime } = require("./user-turn-runtime");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
 const { SetupPortal } = require("../services/portal/setup-portal");
 const { buildPortalHandlers } = require("../services/portal/portal-handlers");
+const { PortalHttpServer } = require("../services/portal/portal-server");
 const { runSystemCheckinPoller } = require("../app/system-checkin-poller");
 const { createProjectTooling } = require("../tools/create-project-tooling");
 const { WorkspaceRegistryError } = require("./workspace-registry");
@@ -499,7 +500,8 @@ class CyberbossApp {
       channelReady: Boolean(this.activeAccountId),
       admissionEnabled: Boolean(this.userAdmission),
       activeUsers,
-      portalMounted: Boolean(this.setupPortal),
+      // 服务真的在监听才算挂上了；只是把对象 new 出来不算。
+      portalMounted: Boolean(this.portalServer),
       providersConfigured,
       importsReady: Boolean(this.projectServices),
       profileReady: Boolean(this.runtimeSpoolDatabase),
@@ -536,6 +538,7 @@ class CyberbossApp {
       runtimeState = await this.runtimeAdapter.initialize();
       await this.outboxWorker?.start();
       await this.canonicalSyncCoordinator?.start();
+      await this.startPortalServer();
       this.jobScheduler?.start();
     } catch (error) {
       this.closeDurableInbox();
@@ -584,6 +587,7 @@ class CyberbossApp {
     const shutdown = createShutdownController(async () => {
       this.clearPendingImageInboundTimers();
       await this.closeLocationServer();
+      await this.closePortalServer();
       this.jobScheduler?.stop();
       await this.runtimeAdapter.close();
       this.closeDurableInbox();
@@ -660,6 +664,70 @@ class CyberbossApp {
       this.jobScheduler?.stop();
       await this.runtimeAdapter.close();
       this.closeDurableInbox();
+    }
+  }
+
+  // 设置页面的 HTTP 服务。只监听 127.0.0.1：公网入口由 Cloudflare Tunnel
+  // 提供，本机不开任何入站端口。没配域名就不启动，并说明原因。
+  async startPortalServer() {
+    if (!this.setupPortal || this.portalServer) {
+      return null;
+    }
+    this.portalServer = new PortalHttpServer({
+      portal: this.setupPortal,
+      host: this.config.portalHost || "127.0.0.1",
+      port: this.config.portalPort || 8787,
+      usageProvider: () => this.remainingUsagePercent(),
+    });
+    try {
+      const address = await this.portalServer.start();
+      console.log(
+        `[cyberboss] 设置页面已启动 ${this.config.portalOrigin}/setup`
+        + `（本机 ${address.host}:${address.port}，只接受来自隧道的请求）`,
+      );
+      return address;
+    } catch (error) {
+      this.portalServer = null;
+      const code = normalizeErrorCode(error?.code) || "portal_server_failed";
+      console.error(
+        code === "EADDRINUSE"
+          ? `[cyberboss] 设置页面启动失败：端口 ${this.config.portalPort || 8787} 被别的程序占用了。`
+            + "换一个端口：在 .env 里加一行 CB_PORTAL_PORT=8788"
+          : `[cyberboss] 设置页面启动失败 code=${code}`,
+      );
+      // 设置页面起不来不影响聊天，所以不中断启动——但状态里会如实显示。
+      return null;
+    }
+  }
+
+  async closePortalServer() {
+    if (!this.portalServer) {
+      return;
+    }
+    const server = this.portalServer;
+    this.portalServer = null;
+    await server.stop();
+  }
+
+  // 页面上那个进度条要的数字。读不到就按满额显示；真正的限额判定在每次模型
+  // 调用之前由预算守卫做，不靠这个数。
+  remainingUsagePercent() {
+    if (!this.runtimeSpoolDatabase) {
+      return 100;
+    }
+    try {
+      const row = this.runtimeSpoolDatabase.database
+        .prepare(
+          `SELECT SUM(charged_tokens) AS charged
+           FROM model_token_usage_daily
+           WHERE day_utc = strftime('%Y-%m-%d','now')`,
+        )
+        .get();
+      const charged = Number(row?.charged) || 0;
+      const budget = Number(this.config.dailyTokenBudget) || 200_000;
+      return Math.max(0, Math.min(100, Math.round(((budget - charged) / budget) * 100)));
+    } catch {
+      return 100;
     }
   }
 

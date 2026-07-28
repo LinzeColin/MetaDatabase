@@ -129,6 +129,10 @@ function readConfig() {
     registrationMode,
     ownerSenderIds,
     portalOrigin,
+    // 只监听回环地址。公网入口是 Cloudflare Tunnel，本机不开任何入站端口。
+    portalHost: readTextEnv("CB_PORTAL_HOST") || "127.0.0.1",
+    portalPort: readIntEnv("CB_PORTAL_PORT") || 8787,
+    dailyTokenBudget: readIntEnv("CB_DAILY_TOKEN_BUDGET") || 200_000,
     userTurnTimeoutMs: readIntEnv("CB_USER_TURN_TIMEOUT_MS"),
     maxInputBytes: readIntEnv("CYBERBOSS_MAX_INPUT_BYTES")
       || readIntEnv("CB_MAX_INPUT_BYTES")

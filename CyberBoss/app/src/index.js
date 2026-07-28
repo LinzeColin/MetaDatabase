@@ -7,7 +7,7 @@ const { readConfig } = require("./core/config");
 const { renderInstructionTemplate } = require("./core/instructions-template");
 const { CyberbossApp } = require("./core/app");
 const { bootstrapInstallation, defaultStateDir } = require("./core/bootstrap");
-const { looksConfigured, runSetupWizard } = require("./core/setup-wizard");
+const { looksConfigured, prepareTunnel, runSetupWizard } = require("./core/setup-wizard");
 const { runSystemCheckinPoller } = require("./app/system-checkin-poller");
 const { buildTerminalHelpText } = require("./core/command-registry");
 const { ensureStickerCatalogFilesSync } = require("./services/sticker-service");
@@ -141,6 +141,27 @@ async function main() {
     }
     return app;
   };
+
+  // 重新生成隧道配置并把命令再打一遍。域名换了、配置删了、忘了命令，都敲它。
+  if (command === "tunnel") {
+    if (!config.portalOrigin) {
+      console.log([
+        "",
+        "还没有设置域名，所以没有隧道要建。",
+        "",
+        "运行 cyberboss setup，在第 ② 步填上你的域名就行。",
+        "",
+      ].join("\n"));
+      return;
+    }
+    const { instructions } = prepareTunnel({
+      stateDir: config.stateDir,
+      hostname: new URL(config.portalOrigin).hostname,
+      port: config.portalPort,
+    });
+    console.log(instructions);
+    return;
+  }
 
   if (command === "doctor") {
     getApp().printDoctor();

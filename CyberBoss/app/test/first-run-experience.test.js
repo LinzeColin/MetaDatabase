@@ -130,12 +130,13 @@ test("向导只问能用大白话回答的问题，而且都可以直接回车�
   assert.ok(env.get("CB_SETUP_COMPLETED_AT"));
 });
 
-test("向导拒绝写不成立的网址，而不是默默存下一个打不开的链接", async (t) => {
+test("向导拒绝填不成立的域名，而不是默默存下一个打不开的链接", async (t) => {
   const home = tempHome(t);
   const output = new PassThrough();
   const seen = [];
   output.on("data", (chunk) => seen.push(String(chunk)));
-  const prompt = scriptedPrompt(["我的网站", "http://example.com", "https://portal.example.com", "1", "n"]);
+  // 第一个不是域名；第二个用户把 https:// 一起粘了进来——这不是错误，去掉即可。
+  const prompt = scriptedPrompt(["我的网站", "https://boss.example.com/", "1", "n"]);
 
   const result = await runSetupWizard({
     stateDir: path.join(home, ".cyberboss"),
@@ -143,8 +144,16 @@ test("向导拒绝写不成立的网址，而不是默默存下一个打不开�
     prompt,
   });
 
-  assert.equal(result.settings.CB_PORTAL_ORIGIN, "https://portal.example.com");
-  assert.match(seen.join(""), /要以 https:\/\/ 开头/);
+  assert.equal(result.settings.CB_PORTAL_ORIGIN, "https://boss.example.com");
+  assert.match(seen.join(""), /只填域名本身/);
+
+  // 填了域名就必须把隧道配置一并写好，否则用户还是不知道下一步做什么。
+  assert.ok(result.tunnel);
+  const config = fs.readFileSync(result.tunnel.configPath, "utf8");
+  assert.match(config, /hostname: boss\.example\.com/);
+  assert.match(config, /service: http:\/\/127\.0\.0\.1:8787/);
+  assert.match(config, /http_status:404/, "ingress 最后一条必须是兜底");
+  assert.match(seen.join(""), /cloudflared tunnel create/);
 });
 
 test("装过之后再运行不会重复走向导", (t) => {

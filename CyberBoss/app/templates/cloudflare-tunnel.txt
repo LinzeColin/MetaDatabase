@@ -1,0 +1,30 @@
+
+把设置页面接到你的域名上，一共四步（只做一次）：
+
+  第 1 步 · 装 cloudflared
+    macOS：
+      brew install cloudflared
+    Debian / Ubuntu：
+      按 Cloudflare 官方文档添加 apt 源后安装 cloudflared
+      文档：https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+
+  第 2 步 · 授权（会打开浏览器，选你的域名）
+    cloudflared tunnel login
+
+  第 3 步 · 建隧道并把域名指过来
+    cloudflared tunnel create __TUNNEL_NAME__
+    cloudflared tunnel route dns __TUNNEL_NAME__ __HOSTNAME__
+
+  第 4 步 · 启动隧道
+    cloudflared tunnel --config __CONFIG_PATH__ run __TUNNEL_NAME__
+
+  配置文件已经替你写好了：__CONFIG_PATH__
+  （里面 credentials-file 那一行指向的文件，第 3 步执行完就会出现）
+
+  想让它开机自启：
+    sudo cloudflared --config __CONFIG_PATH__ service install
+
+  完成之后，用户在微信里发「设置」拿到的链接就能打开了。
+
+  提示：隧道是从这台机器主动向外建连的，所以你的路由器和防火墙上
+  不需要开任何入站端口，设置页面也只监听 127.0.0.1。

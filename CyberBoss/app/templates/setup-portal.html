@@ -162,6 +162,122 @@
         if (node) { node.hidden = views[name] !== target; }
       });
     }
+
+    // CSRF 令牌只放在内存里。会话 cookie 是 HttpOnly，脚本读不到它，所以
+    // 一个注入进来的脚本拿不到重放这次会话所需要的东西。
+    var csrf = "";
+
+    function show(id) {
+      ["view-provider", "view-import", "view-error"].forEach(function (name) {
+        var node = document.getElementById(name);
+        if (node) { node.hidden = name !== id; }
+      });
+    }
+
+    function fail(text) {
+      var node = document.getElementById("error-text");
+      if (node) { node.textContent = text; }
+      show("view-error");
+    }
+
+    // 每个错误码都换成一句人话。没见过的码照实说"没成功"，不编原因。
+    var REASONS = {
+      SETUP_TOKEN_USED: "这个链接已经用过了。回微信发「设置」再要一个。",
+      SETUP_TOKEN_EXPIRED: "这个链接过期了。回微信发「设置」再要一个。",
+      SETUP_TOKEN_NOT_FOUND: "这个链接无效。回微信发「设置」再要一个。",
+      LINK_INVALID: "这个链接无效。回微信发「设置」再要一个。",
+      SESSION_INVALID: "登录状态失效了。回微信发「设置」再要一个链接。",
+      SESSION_EXPIRED: "登录状态过期了。回微信发「设置」再要一个链接。",
+      CSRF_INVALID: "安全校验没通过。请重新打开链接。",
+      ORIGIN_NOT_ALLOWED: "这个网址不在允许的范围内。",
+      HOST_NOT_ALLOWED: "这个网址不在允许的范围内。",
+      PROVIDER_NOT_SUPPORTED: "暂时不支持这个服务商。",
+      API_KEY_REQUIRED: "请把密钥粘贴进去再保存。",
+      BODY_TOO_LARGE: "内容太大了。"
+    };
+
+    function post(action, payload) {
+      var headers = { "Content-Type": "application/json" };
+      if (csrf) { headers["X-CSRF-Token"] = csrf; }
+      return fetch("/api/" + action, {
+        method: "POST",
+        headers: headers,
+        credentials: "same-origin",
+        body: JSON.stringify(payload || {})
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (data) {
+          if (!response.ok || data.ok === false) {
+            var error = new Error(data.code || "REQUEST_FAILED");
+            error.code = data.code || "REQUEST_FAILED";
+            throw error;
+          }
+          return data;
+        });
+      });
+    }
+
+    function reason(error) {
+      return REASONS[error && error.code] || "刚才没成功，请再试一次。";
+    }
+
+    // 打开页面第一件事：用一次性令牌换一个短会话，然后令牌就作废了。
+    if (!token) {
+      fail("这个链接不完整。回微信发「设置」再要一个。");
+      return;
+    }
+    post("session.exchange", { token: token, purpose: purpose })
+      .then(function (data) {
+        csrf = data.csrf || "";
+      })
+      .catch(function (error) {
+        fail(reason(error));
+      });
+
+    var saveButton = document.getElementById("save-provider");
+    if (saveButton) {
+      saveButton.addEventListener("click", function () {
+        var provider = document.getElementById("provider");
+        var apikey = document.getElementById("apikey");
+        var hint = document.getElementById("provider-hint");
+        if (!apikey || !apikey.value) {
+          if (hint) { hint.textContent = "请先把密钥粘贴进去。"; }
+          return;
+        }
+        saveButton.disabled = true;
+        saveButton.textContent = "正在保存……";
+        post("provider.save", {
+          provider_id: provider ? provider.value : "",
+          api_key: apikey.value
+        }).then(function (data) {
+          // 明文密钥不在页面上多留一秒。
+          apikey.value = "";
+          saveButton.textContent = "已保存 ✓";
+          if (hint) {
+            hint.textContent = "已经连上了（密钥末尾 " + (data.last4 || "") + "）。回微信直接跟它说话就行。";
+          }
+        }).catch(function (error) {
+          saveButton.disabled = false;
+          saveButton.textContent = "保存并继续";
+          if (hint) { hint.textContent = reason(error); }
+        });
+      });
+    }
+
+    var skipButton = document.getElementById("skip-provider");
+    if (skipButton) {
+      skipButton.addEventListener("click", function () {
+        var hint = document.getElementById("provider-hint");
+        if (hint) { hint.textContent = "好，随时可以回微信发「设置」再来填。"; }
+      });
+    }
+
+    var repairButton = document.getElementById("error-repair");
+    if (repairButton) {
+      repairButton.addEventListener("click", function () {
+        var node = document.getElementById("error-text");
+        if (node) { node.textContent = "回到微信，给它发「设置」，会收到一个新链接。"; }
+      });
+    }
   })();
 </script>
 </body>
