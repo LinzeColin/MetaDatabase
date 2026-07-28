@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 5 / UX-Ops 003
+
+- 完成 `TSK.x2n.uxops.003 / PH.X2N.5.3` 的 CI-synth Local WebUI：仅绑定 `127.0.0.1`，提供 Dashboard、Source、Taxonomy、低置信度 Review、Job、Sink、Model 与脱敏 Diagnostics；Host/Origin/仅内存 CSRF、CSP、no-CORS、静态 DOM `textContent` 与 Owner append-only review 均 Fail Closed。
+- 活跃 CLI/Schema/证据迁移为 v2 `owner-mvp-plan`；已退休 v1 仅通过固定 `a67ba091239297b5c9c38a349e0a839680d1c411` 的 disposable Git replay 验证，不在当前运行面复活。21 个合成单测、三类 CSRF/Origin 拒绝、诊断脱敏与历史回放通过；平台、账号、Notion、外网和真实运行时写入均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.004`；G5、上传、部署与发布仍未授权。无预发布、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 5 / UX-Ops 002
 
 - 完成 `TSK.x2n.uxops.002 / PH.X2N.5.2` 的 CI-synth Markdown Library 加固：Renderer `1.1.0`、一次 SQLite 读快照、固定 `platform/content_id` Canonical 路径、生成分类 `INDEX.md` 链接、Hash Manifest、Link Checker 与逐文件原子恢复；重建不写 Canonical 或 Outbox。

@@ -2165,7 +2165,7 @@ tasks:
   title: Build local WebUI and review workflow
   stage: STG.X2N.5
   phase: PH.X2N.5.3
-  status: implemented_ci_synth_pending_evidence
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

@@ -25,11 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 独立 G3/G4 CI-synth 复核已通过；`TSK.x2n.uxops.001 / PH.X2N.5.1` 已完成 Notion Mock，`TSK.x2n.uxops.002 / PH.X2N.5.2` 已完成 Renderer `1.1.0` 的单 SQLite snapshot、分类 Link Index、Manifest/Link Checker 与 10k 合成 rebuild。真实 Runtime/Notion/Owner Canary 未运行。下一单可本地执行 `TSK.x2n.uxops.003 / PH.X2N.5.3`；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。
+- 独立 G3/G4 CI-synth 复核已通过；`TSK.x2n.uxops.001 / PH.X2N.5.1` 已完成 Notion Mock，`TSK.x2n.uxops.002 / PH.X2N.5.2` 已完成 Renderer `1.1.0` 的单 SQLite snapshot、分类 Link Index、Manifest/Link Checker 与 10k 合成 rebuild，`TSK.x2n.uxops.003 / PH.X2N.5.3` 已完成 loopback Local WebUI、Owner review、v2 nomenclature 与固定历史 replay。真实 Runtime/Notion/Owner Canary 未运行。下一单可本地执行 `TSK.x2n.uxops.004 / PH.X2N.5.4`；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。
 
 ### 当前未授权
 
-- 上传、部署或发布；当前 Task002 PASS 只授权下一单本地 `PH.X2N.5.3`；
+- 上传、部署或发布；当前 Task003 PASS 只授权下一单本地 `PH.X2N.5.4`；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；

@@ -42,7 +42,7 @@ v0.0.0.1 MVP deployed, running and online
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。Stage 5 Task001 Notion Mock 与 Task002 Markdown Library `1.1.0`/10k rebuild 验收已完成，真实 Runtime/Notion/Owner Canary 未运行。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为本地 TSK.x2n.uxops.003；上传、部署/发布仍禁止 |
+| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。Stage 5 Task001 Notion Mock、Task002 Markdown Library `1.1.0`/10k rebuild 与 Task003 loopback Local WebUI/Owner review/v2 nomenclature 验收已完成，真实 Runtime/Notion/Owner Canary 未运行。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为本地 TSK.x2n.uxops.004；上传、部署/发布仍禁止 |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |
