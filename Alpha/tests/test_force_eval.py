@@ -10,7 +10,7 @@ from backend.app.workers.live_cycle import eval_trigger, in_eval_window, market_
 
 ET = ZoneInfo("America/New_York")
 
-MON_OPEN = datetime(2026, 7, 27, 10, 0, tzinfo=ET)      # 周一 10:00 ET(开市中)
+MON_OPEN = datetime(2026, 7, 27, 10, 15, tzinfo=ET)     # 周一 10:15 ET(执行窗内)
 MON_PREMKT = datetime(2026, 7, 27, 8, 0, tzinfo=ET)     # 周一盘前
 MON_CLOSED = datetime(2026, 7, 27, 17, 0, tzinfo=ET)    # 周一盘后
 SUN = datetime(2026, 7, 26, 12, 0, tzinfo=ET)           # 周日
@@ -22,6 +22,14 @@ def test_force_fires_immediately_on_any_open_day():
     trig, forced = eval_trigger(MON_OPEN, force_exists=True, makeup_today=False)
     assert trig is True and forced is True
     assert in_eval_window(MON_OPEN) is False, "周一本不在常规窗,证明确实是被强制触发的"
+
+
+def test_force_only_in_validated_exec_window():
+    """强制评估只在回测验证过的执行窗(开盘后30-90分钟)触发,避开开盘竞价宽点差。"""
+    bell = datetime(2026, 7, 27, 9, 31, tzinfo=ET)      # 刚开盘:点差最烂,不该触发
+    late = datetime(2026, 7, 27, 14, 0, tzinfo=ET)      # 午后:窗口外
+    for t in (bell, late):
+        assert eval_trigger(t, force_exists=True, makeup_today=False)[0] is False, t
 
 
 def test_force_does_not_fire_when_market_closed():

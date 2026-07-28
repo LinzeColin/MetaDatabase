@@ -82,7 +82,10 @@ def eval_trigger(now_et: datetime, *, force_exists: bool, makeup_today: bool) ->
     ③补评估(当日标记 + 开盘后 60-120 分钟)。只决定"何时评估",绝不影响任何风控。
     """
     minute = now_et.hour * 60 + now_et.minute
-    forced = force_exists and market_open_now(now_et)
+    # 强制评估只改"哪一天",不改"一天里的哪一刻":沿用策略回测验证过的开盘后 30-90 分钟
+    # 执行窗,避开开盘竞价的宽点差(9:30 瞬间成交质量最差)。
+    in_exec_window = (9 * 60 + 60) <= minute <= (9 * 60 + 120)
+    forced = force_exists and now_et.weekday() < 5 and in_exec_window
     makeup_ok = (makeup_today and now_et.weekday() < 5
                  and (9 * 60 + 60) <= minute <= (9 * 60 + 120))
     return (in_eval_window(now_et) or forced or makeup_ok), forced
