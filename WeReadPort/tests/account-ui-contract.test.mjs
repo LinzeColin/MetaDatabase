@@ -23,6 +23,10 @@ test("四平台导入均使用连接、选择、预览/确认和进度式新手�
   assert.ok(obsidian.includes("ZIP"));
 });
 
+test("直接用微信读书密钥建账或缺少微信读书笔记的登录会自动同步", () => {
+  assert.match(ui, /const result = await action\(mode === "register" \? "正在验证密钥并创建账户…" : "正在安全登录…", async \(\) => \{[\s\S]*?return result;[\s\S]*?if \(result && \(mode === "register" \|\| !state\.notes\.some\(note => note\.source === "weread"\)\)\) await runWeReadSync/u);
+});
+
 test("画像、热度、推荐、跨设备和隐私控制都在账户 UI 中可见", () => {
   for (const phrase of ["阅读热度", "潜在推荐", "行为分析", "个性化推荐", "跨设备", "永久删除账户", "导出我的全部数据"]) assert.ok(ui.includes(phrase), phrase);
 });

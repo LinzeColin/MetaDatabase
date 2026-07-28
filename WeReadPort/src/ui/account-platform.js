@@ -151,10 +151,12 @@ function bindAuth(main) {
   main.querySelector(".reveal-secret").addEventListener("click", event => { const input = main.querySelector("#account-weread-key"); const showing = input.type === "text"; input.type = showing ? "password" : "text"; event.currentTarget.textContent = showing ? "显示" : "隐藏"; event.currentTarget.setAttribute("aria-pressed", String(!showing)); });
   main.querySelector("#key-auth-form").addEventListener("submit", async event => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
-    await action(mode === "register" ? "正在验证密钥并创建账户…" : "正在安全登录…", async () => {
+    const result = await action(mode === "register" ? "正在验证密钥并创建账户…" : "正在安全登录…", async () => {
       const result = mode === "register" ? await api.registerWeRead(data) : await api.loginWeRead(data);
-      state.account = result.account; state.view = "overview"; await renderCurrent(document);
+      state.account = result.account; state.view = "overview"; state.notes = []; state.dashboard = null; await renderCurrent(document);
+      return result;
     });
+    if (result && (mode === "register" || !state.notes.some(note => note.source === "weread"))) await runWeReadSync(document.querySelector("#account-content"));
   });
   main.querySelector("#password-auth-form").addEventListener("submit", async event => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));

@@ -11,6 +11,7 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -76,6 +77,23 @@ class PlatformOperationsTests(unittest.TestCase):
         self.assertIn("WRP_R2_SECRET_ACCESS_KEY", result["missingDeploymentInputs"])
         self.assertTrue((self.root / "install/etc/systemd/system/weread-port-platform.service").is_file())
         self.assertTrue((self.root / "install/etc/systemd/system/weread-port-private-database-backup.timer").is_file())
+
+    def test_active_installer_restarts_platform_and_import_worker_after_switching_release(self):
+        runtime_root = self.root / "active-install"
+        calls = []
+        required = {key: "configured" for key in INSTALLER.REQUIRED_DEPLOY_KEYS}
+
+        def rooted(_root, absolute):
+            return runtime_root / absolute.lstrip("/")
+
+        def record(command, **_kwargs):
+            calls.append(command)
+            return subprocess.CompletedProcess(command, 0)
+
+        with patch.object(INSTALLER, "root_path", side_effect=rooted), patch.object(INSTALLER, "run_preflight", return_value={"status": "PASS"}), patch.object(INSTALLER, "update_env", return_value=required), patch.object(INSTALLER.os, "geteuid", return_value=0), patch.object(INSTALLER.pwd, "getpwnam", return_value=object()), patch.object(INSTALLER.subprocess, "run", side_effect=record), patch.object(sys, "argv", ["install_platform.py", "--apply", "--release-commit", "b" * 40, "--ovh-release-id", "ovh-active-v019", "--sites-project-id", "sites-active-v019"]):
+            self.assertEqual(INSTALLER.main(), 0)
+
+        self.assertIn(["systemctl", "restart", "weread-port-platform.service", "weread-port-import-worker.service"], calls)
 
     def test_preflight_is_secret_safe_and_closes_all_last_mile_inputs(self):
         private_db_client = self.root / "private_db_client.py"

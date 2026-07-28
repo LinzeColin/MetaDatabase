@@ -120,7 +120,7 @@ def main()->int:
   if tmp.exists() or tmp.is_symlink(): tmp.unlink()
   tmp.symlink_to(pathlib.Path("releases")/release.name); os.replace(tmp,current)
   try:
-   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
+   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service"],check=True); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
   except Exception:
    if previous_target:
     rollback=current.with_name(f".current-rollback-{os.getpid()}"); rollback.symlink_to(previous_target); os.replace(rollback,current); subprocess.run(["systemctl","daemon-reload"],check=False); subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service"],check=False)
