@@ -204,10 +204,8 @@ class PortalHttpServer {
     }
   }
 
-  #adminAuthorized(request) {
-    if (this.#firstRun()) {
-      return true;
-    }
+  // 定长比较，避免字符串比较的提前返回泄漏令牌前缀。
+  #tokenMatches(request) {
     if (!this.adminToken) {
       return false;
     }
@@ -215,6 +213,13 @@ class PortalHttpServer {
     const a = Buffer.from(supplied);
     const b = Buffer.from(this.adminToken);
     return a.length === b.length && crypto.timingSafeEqual(a, b);
+  }
+
+  #adminAuthorized(request) {
+    if (this.#firstRun()) {
+      return true;
+    }
+    return this.#tokenMatches(request);
   }
 
   #json(response, status, payload) {
@@ -266,7 +271,12 @@ class PortalHttpServer {
   }
 
   async #handleOwnerActivation(request, response, name, url) {
-    if (!this.#adminAuthorized(request)) {
+    // 这里**不走**首次运行免令牌那条规则。
+    //
+    // 后台首次免令牌是安全的：那时库里没有用户、没有凭据、没有聊天记录，页面上
+    // 唯一能做的事就是把自己绑成主人。但这个路由不一样——它能发起一次真实的微信
+    // 授权，谁先扫谁的微信就成了机器人号。所以无论首次与否，一律要令牌。
+    if (!this.adminToken || !this.#tokenMatches(request)) {
       this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
       return;
     }

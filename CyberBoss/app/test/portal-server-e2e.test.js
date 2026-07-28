@@ -75,7 +75,7 @@ const POLICIES = Object.freeze({
   anthropic: { providerId: "anthropic", origin: OFFICIAL_ORIGINS.anthropic, models: ["claude-sonnet-5"] },
 });
 
-async function harness(t) {
+async function harness(t, { firstRun = false } = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-httpd-"));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const spool = new RuntimeSpoolDatabase({
@@ -128,6 +128,12 @@ async function harness(t) {
     // 端口 0：让内核挑一个空闲端口，测试之间不会互相抢。
     port: 0,
     usageProvider: () => 73,
+    // 首次运行（还没有主人绑定）时后台数据接口免令牌；但 Owner 激活路由必须
+    // 始终要令牌，这个测试就是来钉住这条区别的。
+    firstRunProvider: () => firstRun,
+    adminToken: "test-admin-token",
+    ownerActivationStart: async () => ({ ok: true, qrcode: "x", content: "data:image/svg+xml;base64,AA==" }),
+    ownerActivationPoll: async () => ({ ok: true, state: "wait" }),
     logger: { warn() {} },
   });
   const address = await server.start();
@@ -325,6 +331,16 @@ test("R19 Owner 私有激活路由 /ops/wechat 存在，且数据接口要令牌
     method: "POST", requestPath: "/ops/api/wechat/start", headers: { host: HOSTNAME },
   });
   assert.equal(start.status, 401, "没有令牌不得触发真实的微信授权请求");
+});
+
+test("Owner 激活路由不套用「首次运行免令牌」——那会让先到的人授权自己的微信", async (t) => {
+  // 后台首次免令牌是安全的：那时库里没有任何数据。但这个路由能发起一次真实的
+  // 微信授权，谁先扫谁的号就成了机器人。所以无论首次与否都必须要令牌。
+  const h = await harness(t, { firstRun: true });
+  for (const p of ["/ops/api/wechat/start", "/ops/api/wechat/poll?qrcode=x"]) {
+    const res = await raw(h.address.port, { requestPath: p, headers: { host: HOSTNAME } });
+    assert.equal(res.status, 401, `${p} 在首次运行时也必须要令牌`);
+  }
 });
 
 test("公开入口与 Owner 激活是两个不同的 URL", async (t) => {
