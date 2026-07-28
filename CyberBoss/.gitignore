@@ -6,9 +6,18 @@ auth.json
 credentials/
 wechat/
 
-# Runtime and private data
-runtime/
-work/
+# Runtime and private data.
+#
+# These are anchored to the project root on purpose. The unanchored form
+# `runtime/` matches a directory of that name at ANY depth, and it silently
+# swallowed app/src/services/runtime/ — eight source files (the fair queue,
+# budget guard, circuit breaker and model runtime controller) that never
+# reached a single commit. Every test passed anyway, because the tests run in
+# a working tree where the files exist on disk; a fresh clone was broken.
+/runtime/
+/work/
+/app/runtime/
+/app/work/
 *.sqlite
 *.sqlite3
 *.sqlite-wal
@@ -19,10 +28,13 @@ work/
 
 # Generated or deploy-local artifacts
 node_modules/
-dist/
+/dist/
+/app/dist/
 coverage/
 .cache/
-tmp/
+# 同样锚定：源码树里出现名为 tmp/ 或 dist/ 的目录是完全正当的。
+/tmp/
+/app/tmp/
 artifacts/private/
 artifacts/runtime/
 *.log
