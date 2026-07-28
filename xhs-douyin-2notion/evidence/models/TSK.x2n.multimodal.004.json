@@ -4,8 +4,8 @@
   "phase": "PH.X2N.4.4",
   "run_id": "RUN-X2N-S04-M004",
   "status": "PASS_CI_SYNTH_SCOPED_FUSION_MODEL_NOT_RUN",
-  "task_commit": "PENDING_LOCAL_AUDIT_PIN",
-  "source_receipt_sha256": "PENDING_LOCAL_SOURCE_RECEIPT",
+  "task_commit": "439dbb587972690a4a2fce79515ff4396dd3e970",
+  "source_receipt_sha256": "de39d9e51f340e313d03e4fce2650a7db3767c35dbfd8debb1eb29da899c707e",
   "acceptance_status": {
     "ACC.x2n.ai.004": "PASS_CI_SYNTH_FUSION_SCHEMA_INJECTION_ISOLATION_MODEL_NOT_RUN",
     "ACC.x2n.ai.007": "PASS_CI_SYNTH_TASK004_PROVENANCE_CACHE_BUDGET_CLOUD_ZERO"
