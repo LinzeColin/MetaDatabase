@@ -95,9 +95,9 @@ def main() -> int:
         if label == args.kill_label:
             os._exit(79)
 
-    KuaishouSelectedAdapter(
-        CanonicalStore(paths, busy_timeout_ms=30_000), fault_injector=abrupt_exit
-    ).commit_batch(args.scan_id, batch)
+    KuaishouSelectedAdapter(CanonicalStore(paths, busy_timeout_ms=30_000), fault_injector=abrupt_exit).commit_batch(
+        args.scan_id, batch
+    )
     return 3
 
 

@@ -256,8 +256,7 @@ def _chaos_acceptance() -> dict[str, Any]:
         store = CanonicalStore(paths, busy_timeout_ms=30_000)
         store.initialize()
         scan_ids = {
-            mode: str(uuid.uuid5(uuid.NAMESPACE_URL, f"x2n-a004-chaos:{mode}"))
-            for mode in ("favorites", "likes")
+            mode: str(uuid.uuid5(uuid.NAMESPACE_URL, f"x2n-a004-chaos:{mode}")) for mode in ("favorites", "likes")
         }
         for offset, mode in enumerate(("favorites", "likes")):
             DouyinAdapter(store).begin_scan(
@@ -280,10 +279,11 @@ def _chaos_acceptance() -> dict[str, Any]:
             "X2N_DATA_ROOT": str(root),
             "X2N_DOWNLOAD_DESTINATION": str(destination),
         }
-        labels = (
-            [f"after_item_{index}" for index in range(20)]
-            + ["before_checkpoint", "after_checkpoint", "before_commit"]
-        )
+        labels = [f"after_item_{index}" for index in range(20)] + [
+            "before_checkpoint",
+            "after_checkpoint",
+            "before_commit",
+        ]
         exercised: set[str] = set()
         for index in range(50):
             mode = ("favorites", "likes")[index % 2]

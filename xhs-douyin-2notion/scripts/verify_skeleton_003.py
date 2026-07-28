@@ -147,10 +147,27 @@ def validate_scope() -> Check:
             "signed platform parameter entered x2n",
         )
     forbidden_suffixes = {
-        ".db", ".jpeg", ".jpg", ".m4a", ".mov", ".mp3", ".mp4", ".p12", ".pem",
-        ".pfx", ".png", ".sqlite", ".sqlite3", ".wav", ".webm", ".webp",
+        ".db",
+        ".jpeg",
+        ".jpg",
+        ".m4a",
+        ".mov",
+        ".mp3",
+        ".mp4",
+        ".p12",
+        ".pem",
+        ".pfx",
+        ".png",
+        ".sqlite",
+        ".sqlite3",
+        ".wav",
+        ".webm",
+        ".webp",
     }
-    _require(not any(path.suffix.lower() in forbidden_suffixes for path in files), "private media/runtime artifact entered x2n")
+    _require(
+        not any(path.suffix.lower() in forbidden_suffixes for path in files),
+        "private media/runtime artifact entered x2n",
+    )
     return Check(
         "scope_and_privacy",
         "PASS",
@@ -271,7 +288,10 @@ def validate_task_and_state() -> Check:
         == ["ACC.x2n.media.001", "ACC.x2n.media.002", "ACC.x2n.media.003", "ACC.x2n.media.004"],
         "Skeleton003 Acceptance drifted",
     )
-    _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Skeleton003 Task changed beyond status")
+    _require(
+        task == base_task.replace("  status: planned\n", "  status: completed\n", 1),
+        "Skeleton003 Task changed beyond status",
+    )
     _require("  status: STAGE_2_SKELETON_003_PASS_G2_NOT_RUN\n" in taskpack, "Task Pack status drifted")
     _require(
         _task_block(taskpack, "TSK.x2n.skeleton.004") == _task_block(base_taskpack, "TSK.x2n.skeleton.004"),
@@ -300,9 +320,17 @@ def validate_task_and_state() -> Check:
         "ACC.x2n.media.003": "pass_ci_synth_512_url_fuzz_32_ssrf_forbidden_success_0_local_file_reads_0",
         "ACC.x2n.media.004": "pass_ci_synth_8_acquisition_resource_blocks_companion_crash_0_processor_ffmpeg_image_decode_keyframe_downstream_not_run",
     }
-    _require(all(acceptance.get(key) == value for key, value in expected_acceptance.items()), "media Acceptance state drifted")
+    _require(
+        all(acceptance.get(key) == value for key, value in expected_acceptance.items()),
+        "media Acceptance state drifted",
+    )
     for field in (
-        "real_account_execution", "platform_calls", "notion_calls", "model_calls", "media_processing", "real_sink_execution",
+        "real_account_execution",
+        "platform_calls",
+        "notion_calls",
+        "model_calls",
+        "media_processing",
+        "real_sink_execution",
     ):
         _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
     _require(
@@ -317,7 +345,9 @@ def validate_task_and_state() -> Check:
     architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(architecture.get("phase") == PHASE and architecture.get("stage_gate") == "g2_not_run", "ADR drifted")
     adr8 = next((item for item in architecture.get("decisions", []) if item.get("id") == "ADR-008"), {})
-    _require("url_firewall_ip_pinned_transport_contract" in adr8.get("implementation_state", ""), "ADR-008 not implemented")
+    _require(
+        "url_firewall_ip_pinned_transport_contract" in adr8.get("implementation_state", ""), "ADR-008 not implemented"
+    )
     contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
     for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
@@ -346,7 +376,10 @@ def validate_policy_and_implementation() -> Check:
         "media policy identity drifted",
     )
     suffixes = policy.get("platform_cdn_suffixes", {})
-    _require(set(suffixes) == {"xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"}, "six-platform CDN policy drifted")
+    _require(
+        set(suffixes) == {"xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"},
+        "six-platform CDN policy drifted",
+    )
     firewall = policy.get("url_firewall", {})
     _require(
         firewall.get("schemes") == ["https"]
@@ -403,9 +436,17 @@ def validate_policy_and_implementation() -> Check:
         "address.is_global",
     ):
         _require(marker in source, f"media safety implementation missing: {marker}")
-    for forbidden in ("import requests", "import httpx", "import aiohttp", "urllib.request", "socket.create_connection"):
+    for forbidden in (
+        "import requests",
+        "import httpx",
+        "import aiohttp",
+        "urllib.request",
+        "socket.create_connection",
+    ):
         _require(forbidden not in source, "production network implementation entered Skeleton003")
-    _require("__getstate__" in source and source.count("cannot be serialized") >= 4, "ephemeral objects are serializable")
+    _require(
+        "__getstate__" in source and source.count("cannot be serialized") >= 4, "ephemeral objects are serializable"
+    )
 
     migrations = _read_blob_at(FINAL_COMMIT, MIGRATION_SOURCE).decode("utf-8")
     media_schema = migrations.split("CREATE TABLE media_lease", 1)[1].split(") STRICT", 1)[0]
@@ -420,7 +461,10 @@ def validate_policy_and_implementation() -> Check:
     ):
         _require(marker in store, f"Store lease primitive missing: {marker}")
     cli = _read_blob_at(FINAL_COMMIT, RUNTIME_CLI).decode("utf-8")
-    _require("cdn-zero" in cli and "scan_persisted_scopes" in cli and 'MEDIA_TASK_ID = "TSK.x2n.skeleton.003"' in cli, "CDN-zero CLI missing")
+    _require(
+        "cdn-zero" in cli and "scan_persisted_scopes" in cli and 'MEDIA_TASK_ID = "TSK.x2n.skeleton.003"' in cli,
+        "CDN-zero CLI missing",
+    )
     _require("--path" not in cli and "--root" not in cli, "media CLI acquired an arbitrary path input")
     package = _read_blob_at(FINAL_COMMIT, COMPANION_PACKAGE).decode("utf-8")
     _require('x2n = "x2n_companion.runtime_cli:main"' in package, "x2n CLI entry point missing")
@@ -474,9 +518,14 @@ def validate_fixtures() -> Check:
     )
     rendered = _read_blob_at(FINAL_COMMIT, FIXTURE_MANIFEST).decode("utf-8")
     _require(re.search(r"https?://", rendered) is None, "media fixture contains a URL literal")
-    _require("/" + "Users/" not in rendered and "github" + "_pat_" not in rendered, "media fixture contains private data")
+    _require(
+        "/" + "Users/" not in rendered and "github" + "_pat_" not in rendered, "media fixture contains private data"
+    )
     global_manifest = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST)
-    _require(global_manifest.get("manifest_id") == "FIXTURE.X2N.012" and global_manifest.get("phase") == PHASE, "global fixture manifest drifted")
+    _require(
+        global_manifest.get("manifest_id") == "FIXTURE.X2N.012" and global_manifest.get("phase") == PHASE,
+        "global fixture manifest drifted",
+    )
     _require(
         {
             "id": "FIXTURE.X2N.S02.S003.001",
@@ -539,9 +588,7 @@ def validate_execution() -> Check:
     )
     ssrf = acceptance.get("ssrf", {})
     _require(
-        ssrf.get("cases") == 32
-        and ssrf.get("forbidden_target_successes") == 0
-        and ssrf.get("local_file_reads") == 0,
+        ssrf.get("cases") == 32 and ssrf.get("forbidden_target_successes") == 0 and ssrf.get("local_file_reads") == 0,
         "SSRF acceptance drifted",
     )
     cleanup = acceptance.get("cleanup", {})
@@ -628,9 +675,7 @@ def validate_full_lane_report(path: Path) -> Check:
     ]
     _require(report.get("blocking_results") == expected_results, "full lane execution identity or result drifted")
     _require(
-        report.get("platform_calls") == 0
-        and report.get("model_calls") == 0
-        and report.get("real_accounts") == 0,
+        report.get("platform_calls") == 0 and report.get("model_calls") == 0 and report.get("real_accounts") == 0,
         "full lane executed a forbidden external surface",
     )
     coverage = report.get("coverage", {})
@@ -780,7 +825,9 @@ def verify_evidence() -> Check:
     )
     _require(evidence.get("matched_values_included") is False, "evidence includes scanner matches")
     _require(evidence.get("acceptance_input_sha256") == _acceptance_input_receipt(), "evidence input receipt is stale")
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
+    )
     metrics = evidence.get("task_metrics", {})
     _require(
         metrics.get("url_fuzz_cases") == 512

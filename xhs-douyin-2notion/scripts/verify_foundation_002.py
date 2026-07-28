@@ -249,12 +249,36 @@ def validate_scope() -> Check:
     for path in _iter_files():
         scanned += 1
         text = path.read_text(encoding="utf-8", errors="replace")
-        _require(not any(token in text for token in forbidden_tokens), "forbidden repository, path or credential-shaped token entered x2n")
+        _require(
+            not any(token in text for token in forbidden_tokens),
+            "forbidden repository, path or credential-shaped token entered x2n",
+        )
         relative = str(path.relative_to(PROJECT_ROOT))
         pattern = expanded_cdn_pattern if relative in changed_relative else legacy_cdn_pattern
         _require(pattern.search(text) is None, "platform media CDN URL entered x2n changed scope")
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".mov", ".m4a", ".mp3", ".wav", ".webm", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".pem", ".p12", ".pfx"}
-    _require(not any(path.suffix.lower() in forbidden_suffixes for path in _iter_files()), "private/runtime file type entered x2n")
+    forbidden_suffixes = {
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".mov",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".webm",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".heic",
+        ".pem",
+        ".p12",
+        ".pfx",
+    }
+    _require(
+        not any(path.suffix.lower() in forbidden_suffixes for path in _iter_files()),
+        "private/runtime file type entered x2n",
+    )
     return Check(
         "scope_and_privacy",
         "PASS",
@@ -272,7 +296,8 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Stage 1 worktree branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
-        re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote) is not None,
+        re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
+        is not None,
         "wrong or authenticated persisted origin",
     )
     for commit in (TASK_BASE_COMMIT, FINAL_COMMIT):
@@ -297,16 +322,26 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     )
     _git(["cat-file", "-e", f"{ORIGIN_CUTOFF}^{{commit}}"])
     _require(
-        subprocess.run(["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"], cwd=REPOSITORY_ROOT, check=False).returncode == 0,
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"], cwd=REPOSITORY_ROOT, check=False
+        ).returncode
+        == 0,
         "foundation.002 branch no longer descends from its Task base",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
-        subprocess.run(["git", "merge-base", "--is-ancestor", ORIGIN_CUTOFF, live_origin], cwd=REPOSITORY_ROOT, check=False).returncode == 0,
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ORIGIN_CUTOFF, live_origin], cwd=REPOSITORY_ROOT, check=False
+        ).returncode
+        == 0,
         "origin/main no longer descends from the review cutoff",
     )
-    origin_paths = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{ORIGIN_CUTOFF}..{live_origin}"]).splitlines()
-    origin_overlap = sum(path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in origin_paths)
+    origin_paths = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{ORIGIN_CUTOFF}..{live_origin}"]
+    ).splitlines()
+    origin_overlap = sum(
+        path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in origin_paths
+    )
     _require(origin_overlap == 0, "origin/main changed x2n after the review cutoff")
 
     main_path: Optional[Path] = None
@@ -317,7 +352,10 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         if worktree and branch == "branch refs/heads/main":
             main_path = Path(worktree)
             break
-    _require(main_path is not None and _git(["branch", "--show-current"], main_path) == "main", "MetaDatabase main worktree is unavailable or off main")
+    _require(
+        main_path is not None and _git(["branch", "--show-current"], main_path) == "main",
+        "MetaDatabase main worktree is unavailable or off main",
+    )
     main_paths = _porcelain_paths(
         _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"], main_path)
     )
@@ -342,26 +380,61 @@ def validate_task_and_state() -> Check:
     task = _task_block(taskpack, TASK_ID)
     taskpack_relative = TASKPACK.relative_to(REPOSITORY_ROOT).as_posix()
     review_taskpack = _git(["show", f"{STAGE_1_REVIEW_COMMIT}:{taskpack_relative}"])
-    _require(task == _task_block(review_taskpack, TASK_ID), "foundation.002 Task block drifted after its completed Review")
+    _require(
+        task == _task_block(review_taskpack, TASK_ID), "foundation.002 Task block drifted after its completed Review"
+    )
     _require(_field(task, "status") == "completed", "foundation.002 Task is not completed")
-    _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.2", "foundation.002 routing drifted")
-    _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.001", "TSK.x2n.discovery.005"], "foundation.002 dependency drifted")
-    _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.ext.003", "ACC.x2n.data.001", "ACC.x2n.data.003"], "foundation.002 Acceptance drifted")
-    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack, "historical Stage 1 Review Taskpack status drifted")
+    _require(
+        _field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.2", "foundation.002 routing drifted"
+    )
+    _require(
+        _list_field(task, "depends_on") == ["TSK.x2n.foundation.001", "TSK.x2n.discovery.005"],
+        "foundation.002 dependency drifted",
+    )
+    _require(
+        _list_field(task, "acceptance_ids") == ["ACC.x2n.ext.003", "ACC.x2n.data.001", "ACC.x2n.data.003"],
+        "foundation.002 Acceptance drifted",
+    )
+    _require(
+        "  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack,
+        "historical Stage 1 Review Taskpack status drifted",
+    )
 
     state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing drifted")
-    _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
+    _require(
+        state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4",
+        "current Stage routing drifted",
+    )
+    _require(
+        state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task",
+        "current Run identity drifted",
+    )
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation.002 Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005", "next Task routing drifted")
-    _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+    _require(
+        state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005",
+        "next Task routing drifted",
+    )
+    _require(
+        state.get("current_stage_gate") == "not_run"
+        and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass",
+        "G1/upload overstated",
+    )
     acceptance = state.get("acceptance_status", {})
-    _require(acceptance.get("ACC.x2n.ext.003") == "pass_temp_native_host_contract_idempotency_injection", "Native Acceptance did not advance through foundation.004")
-    _require(acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity", "data schema Acceptance did not advance through foundation.003")
-    _require(acceptance.get("ACC.x2n.data.003") == "pass_synthetic_contract_scope_real_sinks_downstream_not_run", "provenance Acceptance overstated")
+    _require(
+        acceptance.get("ACC.x2n.ext.003") == "pass_temp_native_host_contract_idempotency_injection",
+        "Native Acceptance did not advance through foundation.004",
+    )
+    _require(
+        acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity",
+        "data schema Acceptance did not advance through foundation.003",
+    )
+    _require(
+        acceptance.get("ACC.x2n.data.003") == "pass_synthetic_contract_scope_real_sinks_downstream_not_run",
+        "provenance Acceptance overstated",
+    )
     project = _load_baseline_json(PROJECT_FACT)
     _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
     return Check(
@@ -393,31 +466,75 @@ def _visit_schema(value: Any, *, object_count: list[int], properties: set[str]) 
 
 def validate_contract_artifacts() -> Check:
     schema_paths = sorted((CONTRACT_ROOT / "schemas/v1").glob("*.schema.json"))
-    _require([path.stem.removesuffix(".schema") for path in schema_paths] == sorted(EXPECTED_CONTRACTS), "JSON Schema set drifted")
+    _require(
+        [path.stem.removesuffix(".schema") for path in schema_paths] == sorted(EXPECTED_CONTRACTS),
+        "JSON Schema set drifted",
+    )
     manifest = _load_json(CONTRACT_ROOT / "registry/contracts.v1.json")
     rows = manifest.get("contracts", [])
     _require([item.get("name") for item in rows] == list(EXPECTED_CONTRACTS), "contract registry order/set drifted")
-    _require(manifest.get("contract_version") == "1.0" and manifest.get("unknown_fields") == "reject" and manifest.get("unknown_versions") == "reject", "compatibility policy weakened")
-    _require(manifest.get("payload_hash") == {
-        "algorithm": "sha256",
-        "canonicalization": "utf8_json_sorted_keys_compact_safe_integer_v1",
-        "typescript_helpers": ["canonicalPayloadJson", "computePayloadHash"],
-    }, "payload-hash cross-language contract drifted")
+    _require(
+        manifest.get("contract_version") == "1.0"
+        and manifest.get("unknown_fields") == "reject"
+        and manifest.get("unknown_versions") == "reject",
+        "compatibility policy weakened",
+    )
+    _require(
+        manifest.get("payload_hash")
+        == {
+            "algorithm": "sha256",
+            "canonicalization": "utf8_json_sorted_keys_compact_safe_integer_v1",
+            "typescript_helpers": ["canonicalPayloadJson", "computePayloadHash"],
+        },
+        "payload-hash cross-language contract drifted",
+    )
     object_count = [0]
     properties: set[str] = set()
     for path in schema_paths:
         schema = _load_json(path)
         _require(schema.get("$id") == f"urn:x2n:contract:1.0:{path.stem.removesuffix('.schema')}", "Schema ID drifted")
-        _require(schema.get("x-x2n-contract-version") == "1.0" and schema.get("x-x2n-compatibility") == "exact_match_fail_closed", "Schema version metadata drifted")
+        _require(
+            schema.get("x-x2n-contract-version") == "1.0"
+            and schema.get("x-x2n-compatibility") == "exact_match_fail_closed",
+            "Schema version metadata drifted",
+        )
         _visit_schema(schema, object_count=object_count, properties=properties)
-    forbidden = {"argv", "authorization", "command", "cookie", "cookies", "download_url", "executable", "file_path", "headers", "local_path", "media_url", "path", "proxy_url", "shell", "token"}
+    forbidden = {
+        "argv",
+        "authorization",
+        "command",
+        "cookie",
+        "cookies",
+        "download_url",
+        "executable",
+        "file_path",
+        "headers",
+        "local_path",
+        "media_url",
+        "path",
+        "proxy_url",
+        "shell",
+        "token",
+    }
     _require(not properties.intersection(forbidden), "dangerous persistent property entered Contract")
-    _require("page_url" in properties and "ephemeral_media_ref_ids" in properties, "canonical page/opaque media representation is incomplete")
-    _require("private_payload_ref" in properties and "private_payload_hash" in properties, "private artifact indirection is incomplete")
+    _require(
+        "page_url" in properties and "ephemeral_media_ref_ids" in properties,
+        "canonical page/opaque media representation is incomplete",
+    )
+    _require(
+        "private_payload_ref" in properties and "private_payload_hash" in properties,
+        "private artifact indirection is incomplete",
+    )
     typescript = (CONTRACT_ROOT / "types/contracts.ts").read_text(encoding="utf-8")
     _require(all(f'"{name}"' in typescript for name in ERROR_CLASSES), "TypeScript error-class parity drifted")
-    _require("created_by: \"owner\"" in typescript and "append_only: true" in typescript, "TypeScript governance constraints drifted")
-    _require("canonicalPayloadJson" in typescript and "computePayloadHash" in typescript, "TypeScript payload-hash helpers missing")
+    _require(
+        'created_by: "owner"' in typescript and "append_only: true" in typescript,
+        "TypeScript governance constraints drifted",
+    )
+    _require(
+        "canonicalPayloadJson" in typescript and "computePayloadHash" in typescript,
+        "TypeScript payload-hash helpers missing",
+    )
     return Check(
         "contract_artifacts",
         "PASS",
@@ -441,28 +558,58 @@ def validate_error_registry() -> Check:
     _require(all(isinstance(item.get("retryable"), bool) for item in rows), "error retryability is ambiguous")
     rendered = json.dumps(registry, ensure_ascii=False)
     _require(re.search(r"https?://|/" + "Users/", rendered) is None, "error registry contains unsafe diagnostic data")
-    return Check("error_taxonomy", "PASS", {"classes": len(ERROR_CLASSES), "codes": len(codes), "unknown_code_policy": "reject"})
+    return Check(
+        "error_taxonomy", "PASS", {"classes": len(ERROR_CLASSES), "codes": len(codes), "unknown_code_policy": "reject"}
+    )
 
 
 def validate_fixtures() -> Check:
     main = _load_json(FIXTURE_MANIFEST)
     rows = main.get("fixtures", [])
-    _require(len(rows) >= 5, "synthetic fixture registration must preserve foundation.002 and append later Task fixtures")
-    _require(rows[2] == {
-        "id": "FIXTURE.X2N.S01.F002.001",
-        "path": "packages/test-fixtures/contracts/v1/fixture_manifest.json",
-        "case_count": 144,
-        "purpose": "strict v1 contract round-trip, compatibility, provenance and Native security fuzz",
-    }, "foundation.002 fixture registration drifted")
+    _require(
+        len(rows) >= 5, "synthetic fixture registration must preserve foundation.002 and append later Task fixtures"
+    )
+    _require(
+        rows[2]
+        == {
+            "id": "FIXTURE.X2N.S01.F002.001",
+            "path": "packages/test-fixtures/contracts/v1/fixture_manifest.json",
+            "case_count": 144,
+            "purpose": "strict v1 contract round-trip, compatibility, provenance and Native security fuzz",
+        },
+        "foundation.002 fixture registration drifted",
+    )
     suite = _load_json(FIXTURE_ROOT / "fixture_manifest.json")
     invalid = _load_json(FIXTURE_ROOT / "invalid_cases.json")
-    _require(suite.get("valid_case_count") == 16 and len(suite.get("valid_cases", [])) == 16, "valid fixture count drifted")
-    _require(suite.get("invalid_case_count") == 22 and len(invalid.get("cases", [])) == 22, "invalid fixture count drifted")
-    _require(suite.get("generated_fuzz_case_count") == 106 and suite.get("case_count") == 144, "fuzz/total fixture count drifted")
-    _require([item.get("id") for item in suite["valid_cases"]] == [f"F002-VALID-{index:03d}" for index in range(1, 17)], "valid fixture IDs drifted")
-    _require([item.get("id") for item in invalid["cases"]] == [f"F002-INVALID-{index:03d}" for index in range(1, 23)], "invalid fixture IDs drifted")
-    _require(all((FIXTURE_ROOT / item["path"]).is_file() for item in suite["valid_cases"]), "registered valid fixture missing")
-    for key in ("real_accounts", "contains_credentials", "contains_private_content", "contains_media_urls", "contains_local_absolute_paths"):
+    _require(
+        suite.get("valid_case_count") == 16 and len(suite.get("valid_cases", [])) == 16, "valid fixture count drifted"
+    )
+    _require(
+        suite.get("invalid_case_count") == 22 and len(invalid.get("cases", [])) == 22, "invalid fixture count drifted"
+    )
+    _require(
+        suite.get("generated_fuzz_case_count") == 106 and suite.get("case_count") == 144,
+        "fuzz/total fixture count drifted",
+    )
+    _require(
+        [item.get("id") for item in suite["valid_cases"]] == [f"F002-VALID-{index:03d}" for index in range(1, 17)],
+        "valid fixture IDs drifted",
+    )
+    _require(
+        [item.get("id") for item in invalid["cases"]] == [f"F002-INVALID-{index:03d}" for index in range(1, 23)],
+        "invalid fixture IDs drifted",
+    )
+    _require(
+        all((FIXTURE_ROOT / item["path"]).is_file() for item in suite["valid_cases"]),
+        "registered valid fixture missing",
+    )
+    for key in (
+        "real_accounts",
+        "contains_credentials",
+        "contains_private_content",
+        "contains_media_urls",
+        "contains_local_absolute_paths",
+    ):
         _require(suite.get(key) is False, f"fixture public boundary weakened: {key}")
     return Check(
         "contract_fixtures",
@@ -480,7 +627,10 @@ def validate_fixtures() -> Check:
 def validate_dependencies() -> Check:
     package = _load_json(PROJECT_ROOT / "package.json")
     lock = _load_json(PROJECT_ROOT / "package-lock.json")
-    _require(package.get("scripts", {}).get("check:contracts:types") == "npm run check:types --workspace @x2n/contracts", "root TypeScript check script drifted")
+    _require(
+        package.get("scripts", {}).get("check:contracts:types") == "npm run check:types --workspace @x2n/contracts",
+        "root TypeScript check script drifted",
+    )
     contract_package = _load_json(CONTRACT_ROOT / "package.json")
     _require(contract_package.get("devDependencies") == {"typescript": "7.0.2"}, "TypeScript direct pin drifted")
     registry_npm: dict[str, dict[str, Any]] = {}
@@ -490,9 +640,18 @@ def validate_dependencies() -> Check:
             if name == "typescript" or name.startswith("@typescript/typescript-"):
                 registry_npm[name] = metadata
     _require(len(registry_npm) == 21 and "typescript" in registry_npm, "npm registry dependency set drifted")
-    _require(all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_npm), "unexpected npm dependency entered lock")
-    _require(all(item.get("version") == "7.0.2" and item.get("license") == "Apache-2.0" for item in registry_npm.values()), "TypeScript version/license drifted")
-    _require(all("hasInstallScript" not in item for item in registry_npm.values()), "npm install script entered historical Contract dependency set")
+    _require(
+        all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_npm),
+        "unexpected npm dependency entered lock",
+    )
+    _require(
+        all(item.get("version") == "7.0.2" and item.get("license") == "Apache-2.0" for item in registry_npm.values()),
+        "TypeScript version/license drifted",
+    )
+    _require(
+        all("hasInstallScript" not in item for item in registry_npm.values()),
+        "npm install script entered historical Contract dependency set",
+    )
 
     registry_python: dict[str, str] = {}
     for block in (PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8").split("[[package]]")[1:]:
@@ -506,13 +665,27 @@ def validate_dependencies() -> Check:
         "Python runtime or later CI dependency set/version drifted",
     )
     contract_pyproject = (CONTRACT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    _require(re.findall(r'(?m)^\s*"([^"]+)",?$', contract_pyproject) == ["pydantic==2.13.4"], "Pydantic direct pin drifted")
+    _require(
+        re.findall(r'(?m)^\s*"([^"]+)",?$', contract_pyproject) == ["pydantic==2.13.4"], "Pydantic direct pin drifted"
+    )
 
     sbom = _load_json(SBOM)
-    _require(sbom.get("bomFormat") == "CycloneDX" and sbom.get("specVersion") == "1.5", "foundation.002 SBOM format drifted")
+    _require(
+        sbom.get("bomFormat") == "CycloneDX" and sbom.get("specVersion") == "1.5", "foundation.002 SBOM format drifted"
+    )
     _require(len(sbom.get("components", [])) == 26, "foundation.002 SBOM component count drifted")
     notices = (PROJECT_ROOT / "THIRD_PARTY_NOTICES.md").read_text(encoding="utf-8")
-    for token in ("pydantic", "2.13.4", "pydantic-core", "2.46.4", "typing-extensions", "PSF-2.0", "typescript", "7.0.2", "Apache-2.0"):
+    for token in (
+        "pydantic",
+        "2.13.4",
+        "pydantic-core",
+        "2.46.4",
+        "typing-extensions",
+        "PSF-2.0",
+        "typescript",
+        "7.0.2",
+        "Apache-2.0",
+    ):
         _require(token in notices, "dependency NOTICE is incomplete")
     return Check(
         "dependency_supply_chain",
@@ -547,12 +720,18 @@ def _run_external(label: str, command: Sequence[str], cwd: Path, env: dict[str, 
     result = subprocess.run(command, cwd=cwd, env=env, check=False, capture_output=True, text=True)
     _require(result.returncode == 0, f"external contract verification failed: {label}")
     combined = result.stdout + result.stderr
-    _require("/" + "Users/" not in combined and "github" + "_pat_" not in combined, f"external verification exposed private data: {label}")
+    _require(
+        "/" + "Users/" not in combined and "github" + "_pat_" not in combined,
+        f"external verification exposed private data: {label}",
+    )
     return combined
 
 
 def validate_external_contracts() -> Check:
-    _require(shutil.which("uv") is not None and shutil.which("npm") is not None and shutil.which("node") is not None, "uv, npm and node are required for contract verification")
+    _require(
+        shutil.which("uv") is not None and shutil.which("npm") is not None and shutil.which("node") is not None,
+        "uv, npm and node are required for contract verification",
+    )
     with tempfile.TemporaryDirectory(prefix="x2n-f002-verify-") as temporary:
         root = Path(temporary)
         home = root / "home"
@@ -568,7 +747,12 @@ def validate_external_contracts() -> Check:
         )
         match = re.search(r"Ran (\d+) tests", tests)
         _require(match is not None and int(match.group(1)) == 12, "Python contract test count drifted")
-        _run_external("sbom_check", (sys.executable, "-B", "scripts/generate_foundation_002_sbom.py", "--check"), PROJECT_ROOT, env)
+        _run_external(
+            "sbom_check",
+            (sys.executable, "-B", "scripts/generate_foundation_002_sbom.py", "--check"),
+            PROJECT_ROOT,
+            env,
+        )
 
         fresh = root / "project"
         fresh.mkdir()
@@ -591,7 +775,9 @@ def validate_external_contracts() -> Check:
             "NPM_CONFIG_USERCONFIG": str(home / "npmrc"),
         }
         (home / "npmrc").write_text("", encoding="utf-8")
-        _run_external("npm_frozen_install", ("npm", "ci", "--ignore-scripts", "--audit=false", "--fund=false"), fresh, npm_env)
+        _run_external(
+            "npm_frozen_install", ("npm", "ci", "--ignore-scripts", "--audit=false", "--fund=false"), fresh, npm_env
+        )
         _run_external("typescript_strict_compile", ("npm", "run", "check:contracts:types"), fresh, npm_env)
         _run_external(
             "typescript_hash_helper_emit",
@@ -662,7 +848,9 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 
 
 def write_evidence(checks: list[Check]) -> None:
-    _require(any(check.name == "contract_execution" for check in checks), "evidence requires external contract execution")
+    _require(
+        any(check.name == "contract_execution" for check in checks), "evidence requires external contract execution"
+    )
     payload = {
         "acceptance_ids": ["ACC.x2n.ext.003", "ACC.x2n.data.001", "ACC.x2n.data.003"],
         "acceptance_status": {
@@ -694,10 +882,16 @@ def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
-    _require(evidence.get("status") == "PASS" and evidence.get("stage_gate") == "G1_NOT_RUN", "evidence status overstated")
+    _require(
+        evidence.get("status") == "PASS" and evidence.get("stage_gate") == "G1_NOT_RUN", "evidence status overstated"
+    )
     _require(evidence.get("product_lifecycle") == "DOWNSTREAM_NOT_RUN", "evidence overstated product lifecycle")
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
-    return Check("evidence", "PASS", {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID})
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
+    )
+    return Check(
+        "evidence", "PASS", {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID}
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -722,10 +916,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             write_evidence(checks)
         if args.require_evidence:
             checks.append(verify_evidence())
-        print(json.dumps({"checks": [{"name": item.name, "status": item.status} for item in checks], "status": "PASS", "task": TASK_ID}, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "checks": [{"name": item.name, "status": item.status} for item in checks],
+                    "status": "PASS",
+                    "task": TASK_ID,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 0
     except VerificationError as error:
-        print(json.dumps({"reason": str(error), "status": "FAIL_CLOSED", "task": TASK_ID}, ensure_ascii=False, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps(
+                {"reason": str(error), "status": "FAIL_CLOSED", "task": TASK_ID}, ensure_ascii=False, sort_keys=True
+            ),
+            file=sys.stderr,
+        )
         return 1
 
 

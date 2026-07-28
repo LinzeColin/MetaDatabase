@@ -174,12 +174,32 @@ class NativeHostTests(unittest.TestCase):
         cases = [
             (baseline, "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/", ErrorCode.NATIVE_ORIGIN_REJECTED),
             (_request("unknown", {}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.NATIVE_ACTION_UNKNOWN),
-            (_request("health", {}, schema_version="2.0"), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.INVALID_SCHEMA_VERSION),
+            (
+                _request("health", {}, schema_version="2.0"),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.INVALID_SCHEMA_VERSION,
+            ),
             (_request("health", {}, extra={"undeclared": True}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.UNKNOWN_FIELD),
-            (_request("capture_current", {**_capture_payload(), "shell": "synthetic"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.SECURITY_INJECTION_BLOCKED),
-            (_request("capture_current", {**_capture_payload(), "local_path": "synthetic"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.SECURITY_INJECTION_BLOCKED),
-            (_request("capture_current", {**_capture_payload(), "download_url": "synthetic"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.SECURITY_INJECTION_BLOCKED),
-            (_request("capture_current", {**_capture_payload(), "page_url": "https://example.invalid/content"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.URL_REJECTED),
+            (
+                _request("capture_current", {**_capture_payload(), "shell": "synthetic"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.SECURITY_INJECTION_BLOCKED,
+            ),
+            (
+                _request("capture_current", {**_capture_payload(), "local_path": "synthetic"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.SECURITY_INJECTION_BLOCKED,
+            ),
+            (
+                _request("capture_current", {**_capture_payload(), "download_url": "synthetic"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.SECURITY_INJECTION_BLOCKED,
+            ),
+            (
+                _request("capture_current", {**_capture_payload(), "page_url": "https://example.invalid/content"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.URL_REJECTED,
+            ),
             (b"x" * (MAX_MESSAGE_BYTES + 1), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.NATIVE_MESSAGE_TOO_LARGE),
         ]
         for raw, origin, code in cases:
@@ -308,9 +328,7 @@ class NativeHostTests(unittest.TestCase):
 
         execute_plan(install, confirmation=INSTALL_CONFIRMATION)
         runtime_python = install.runtime_path / "bin/python"
-        previous_runtime_hash = canonical_json_sha256(
-            {"python": runtime_python.read_bytes().hex()}
-        )
+        previous_runtime_hash = canonical_json_sha256({"python": runtime_python.read_bytes().hex()})
         with mock.patch(
             "x2n_companion.native_host_installer._run_provision",
             side_effect=fail_after_partial_venv,

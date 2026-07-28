@@ -32,8 +32,7 @@ def build_snapshot() -> dict[str, Any]:
         store.initialize()
         snapshot = store.snapshot_schema()
     object_counts = {
-        kind: sum(item["type"] == kind for item in snapshot["objects"])
-        for kind in ("index", "table", "trigger")
+        kind: sum(item["type"] == kind for item in snapshot["objects"]) for kind in ("index", "table", "trigger")
     }
     return {
         "contract_version": "1.0",

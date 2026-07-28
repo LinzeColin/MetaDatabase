@@ -96,23 +96,26 @@ def _launcher_content(*, runtime_python: Path, data_root: str, download_destinat
         "LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONNOUSERSITE=1 "
         f"{ROOT_ENV}={shlex.quote(data_root)} "
         f"{DOWNLOAD_ENV}={shlex.quote(download_destination)} "
-        f"{command} \"$@\"\n"
+        f'{command} "$@"\n'
     )
 
 
 def _manifest_content(*, launcher: Path) -> str:
-    return json.dumps(
-        {
-            "allowed_origins": [DEVELOPMENT_EXTENSION_ORIGIN],
-            "description": "x2n local companion development host",
-            "name": HOST_NAME,
-            "path": str(launcher),
-            "type": "stdio",
-        },
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
-    ) + "\n"
+    return (
+        json.dumps(
+            {
+                "allowed_origins": [DEVELOPMENT_EXTENSION_ORIGIN],
+                "description": "x2n local companion development host",
+                "name": HOST_NAME,
+                "path": str(launcher),
+                "type": "stdio",
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
 
 
 def create_plan(
@@ -213,7 +216,9 @@ def _bundle_receipt(path: Path) -> dict[str, Any] | None:
         return None
     if set(value) != set(expected) | {"launcher_sha256", "manifest_sha256"}:
         return None
-    if any(re.fullmatch(r"[0-9a-f]{64}", str(value.get(key, ""))) is None for key in ("launcher_sha256", "manifest_sha256")):
+    if any(
+        re.fullmatch(r"[0-9a-f]{64}", str(value.get(key, ""))) is None for key in ("launcher_sha256", "manifest_sha256")
+    ):
         return None
     return value
 
@@ -247,19 +252,22 @@ def _owned_launcher(path: Path, receipt: Mapping[str, Any]) -> bool:
 
 
 def _bundle_marker_content(*, launcher_content: str, manifest_content: str) -> str:
-    return json.dumps(
-        {
-            "host": HOST_NAME,
-            "launcher_sha256": hashlib.sha256(launcher_content.encode("utf-8")).hexdigest(),
-            "manifest_sha256": hashlib.sha256(manifest_content.encode("utf-8")).hexdigest(),
-            "owner": "x2n-native-host-installer",
-            "runtime_requirements": list(RUNTIME_REQUIREMENTS),
-            "schema_version": "1.1",
-        },
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
-    ) + "\n"
+    return (
+        json.dumps(
+            {
+                "host": HOST_NAME,
+                "launcher_sha256": hashlib.sha256(launcher_content.encode("utf-8")).hexdigest(),
+                "manifest_sha256": hashlib.sha256(manifest_content.encode("utf-8")).hexdigest(),
+                "owner": "x2n-native-host-installer",
+                "runtime_requirements": list(RUNTIME_REQUIREMENTS),
+                "schema_version": "1.1",
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
 
 
 def _owned_bundle(path: Path) -> bool:
@@ -333,7 +341,9 @@ def _provision_runtime(plan: InstallPlan) -> Path:
         requirements = requirements_path.read_text(encoding="utf-8")
         locked_requirements = dict(re.findall(r"(?m)^([a-z0-9-]+)==([0-9][^ \\\n]+)", requirements))
         expected_requirements = dict(item.split("==", 1) for item in RUNTIME_REQUIREMENTS)
-        if locked_requirements != expected_requirements or requirements.count("--hash=sha256:") < len(locked_requirements):
+        if locked_requirements != expected_requirements or requirements.count("--hash=sha256:") < len(
+            locked_requirements
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Native Host locked requirements are incomplete")
         _run_provision(
             [
@@ -419,9 +429,7 @@ def _remove_transaction_path(path: Path) -> None:
 def _transaction_residuals(plan: InstallPlan) -> list[Path]:
     destinations = (plan.runtime_path, plan.launcher_path, plan.manifest_path)
     return [
-        candidate
-        for destination in destinations
-        for candidate in destination.parent.glob(f".{destination.name}.x2n-*")
+        candidate for destination in destinations for candidate in destination.parent.glob(f".{destination.name}.x2n-*")
     ]
 
 
@@ -501,11 +509,11 @@ def execute_plan(plan: InstallPlan, *, confirmation: str | None) -> dict[str, An
         if any(path.is_symlink() for path in (plan.runtime_path, plan.launcher_path, plan.manifest_path)):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses symbolic-link destinations")
         receipt = _bundle_receipt(plan.bundle_marker_path)
-        if (plan.runtime_path.exists() or plan.launcher_path.exists() or plan.manifest_path.exists()) and receipt is None:
+        if (
+            plan.runtime_path.exists() or plan.launcher_path.exists() or plan.manifest_path.exists()
+        ) and receipt is None:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses an incomplete or unowned installation")
-        if plan.launcher_path.exists() and (
-            receipt is None or not _owned_launcher(plan.launcher_path, receipt)
-        ):
+        if plan.launcher_path.exists() and (receipt is None or not _owned_launcher(plan.launcher_path, receipt)):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses to replace an unowned launcher")
         if plan.manifest_path.exists() and (
             receipt is None or not _owned_manifest(plan.manifest_path, plan.launcher_path, receipt)
@@ -533,9 +541,7 @@ def execute_plan(plan: InstallPlan, *, confirmation: str | None) -> dict[str, An
         receipt is None or not _owned_manifest(plan.manifest_path, plan.launcher_path, receipt)
     ):
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses to remove an unowned manifest")
-    if plan.launcher_path.exists() and (
-        receipt is None or not _owned_launcher(plan.launcher_path, receipt)
-    ):
+    if plan.launcher_path.exists() and (receipt is None or not _owned_launcher(plan.launcher_path, receipt)):
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses to remove an unowned launcher")
     if (plan.runtime_path.exists() or plan.bundle_marker_path.exists()) and (
         plan.runtime_path.is_symlink() or not _owned_bundle(plan.bundle_marker_path)

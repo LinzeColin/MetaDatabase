@@ -142,10 +142,16 @@ def _remove_private_file(path: Path) -> None:
         raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "OCR/Vision temporary cleanup failed closed") from None
 
 
-def _validate_ephemeral_image(paths: RuntimePaths, image: EphemeralDerivedArtifact, *, policy: "OcrVisionPolicy") -> Path:
+def _validate_ephemeral_image(
+    paths: RuntimePaths, image: EphemeralDerivedArtifact, *, policy: "OcrVisionPolicy"
+) -> Path:
     if image.mime != "image/jpeg" or _SHA256.fullmatch(image.sha256) is None:
         _fail(ErrorCode.POLICY_BLOCKED, "OCR/Vision accepts only Task001 JPEG artifacts")
-    if isinstance(image.size_bytes, bool) or not isinstance(image.size_bytes, int) or not 0 < image.size_bytes <= policy.max_image_bytes:
+    if (
+        isinstance(image.size_bytes, bool)
+        or not isinstance(image.size_bytes, int)
+        or not 0 < image.size_bytes <= policy.max_image_bytes
+    ):
         _fail(ErrorCode.POLICY_BLOCKED, "OCR/Vision image exceeds its resource policy")
     try:
         root = paths.temp_media_directory.resolve(strict=True)
@@ -195,7 +201,11 @@ def _normalized_box(value: object) -> tuple[float, float, float, float] | None:
         _fail(ErrorCode.DATA_INTEGRITY_FAILED, "OCR bounding box is invalid")
     parsed: list[float] = []
     for coordinate in value:
-        if isinstance(coordinate, bool) or not isinstance(coordinate, (int, float)) or not math.isfinite(float(coordinate)):
+        if (
+            isinstance(coordinate, bool)
+            or not isinstance(coordinate, (int, float))
+            or not math.isfinite(float(coordinate))
+        ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "OCR bounding box is invalid")
         parsed.append(float(coordinate))
     left, top, width, height = parsed
@@ -306,7 +316,11 @@ class ProviderCapabilities:
             _fail(ErrorCode.INVALID_INPUT, "OCR/Vision capability is invalid")
         if self.supported_mime_types != ("image/jpeg",):
             _fail(ErrorCode.POLICY_BLOCKED, "OCR/Vision MIME capability exceeds Task001 artifacts")
-        if isinstance(self.max_image_bytes, bool) or not isinstance(self.max_image_bytes, int) or not 0 < self.max_image_bytes <= MAX_IMAGE_BYTES:
+        if (
+            isinstance(self.max_image_bytes, bool)
+            or not isinstance(self.max_image_bytes, int)
+            or not 0 < self.max_image_bytes <= MAX_IMAGE_BYTES
+        ):
             _fail(ErrorCode.POLICY_BLOCKED, "OCR/Vision image capability exceeds its policy")
         if not isinstance(self.supports_bounding_boxes, bool) or not isinstance(self.supports_sensitive_refusal, bool):
             _fail(ErrorCode.INVALID_INPUT, "OCR/Vision capability flags are invalid")
@@ -395,7 +409,9 @@ def _descriptor_from_private_payload(value: object) -> ImageProviderDescriptor:
         "supports_bounding_boxes",
         "supports_sensitive_refusal",
     }
-    if set(capabilities_payload) != capabilities_expected or not isinstance(capabilities_payload["supported_mime_types"], list):
+    if set(capabilities_payload) != capabilities_expected or not isinstance(
+        capabilities_payload["supported_mime_types"], list
+    ):
         _fail(ErrorCode.DATA_INTEGRITY_FAILED, "OCR/Vision private Gold Set capability shape is invalid")
     try:
         capabilities = ProviderCapabilities(
@@ -418,7 +434,9 @@ def _descriptor_from_private_payload(value: object) -> ImageProviderDescriptor:
             capabilities=capabilities,
         )
     except (TypeError, X2NRuntimeError):
-        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "OCR/Vision private Gold Set provider is invalid") from None
+        raise X2NRuntimeError(
+            ErrorCode.DATA_INTEGRITY_FAILED, "OCR/Vision private Gold Set provider is invalid"
+        ) from None
 
 
 def _prompt_sha256(descriptor: ImageProviderDescriptor, *, policy: OcrVisionPolicy) -> str:
@@ -598,7 +616,11 @@ class OcrResult:
         _safe_token(self.artifact_id, label="OCR artifact id")
 
     def safe_dict(self) -> dict[str, object]:
-        return {"artifact": self.artifact.safe_dict(), "artifact_id": self.artifact_id, "invocation": self.invocation.safe_dict()}
+        return {
+            "artifact": self.artifact.safe_dict(),
+            "artifact_id": self.artifact_id,
+            "invocation": self.invocation.safe_dict(),
+        }
 
     def __getstate__(self) -> None:
         raise TypeError("Ephemeral OCR results cannot be serialized")
@@ -618,7 +640,11 @@ class VisionResult:
         _safe_token(self.artifact_id, label="Vision artifact id")
 
     def safe_dict(self) -> dict[str, object]:
-        return {"artifact": self.artifact.safe_dict(), "artifact_id": self.artifact_id, "invocation": self.invocation.safe_dict()}
+        return {
+            "artifact": self.artifact.safe_dict(),
+            "artifact_id": self.artifact_id,
+            "invocation": self.invocation.safe_dict(),
+        }
 
     def __getstate__(self) -> None:
         raise TypeError("Ephemeral Vision results cannot be serialized")
@@ -902,7 +928,9 @@ class OcrVisionSession:
         return provider
 
     @staticmethod
-    def _cache_key(descriptor: ImageProviderDescriptor, *, input_hash: str, prompt_sha256: str) -> tuple[str, str, str, str, str, str]:
+    def _cache_key(
+        descriptor: ImageProviderDescriptor, *, input_hash: str, prompt_sha256: str
+    ) -> tuple[str, str, str, str, str, str]:
         return (
             descriptor.capability,
             descriptor.provider_id,
@@ -977,7 +1005,9 @@ class OcrVisionSession:
             output_hash=artifact.output_sha256,
         )
         artifact_seed = "|".join((*cache_key, artifact.output_sha256))
-        return OcrResult(artifact, invocation, f"ocr_artifact_{hashlib.sha256(artifact_seed.encode('utf-8')).hexdigest()[:32]}")
+        return OcrResult(
+            artifact, invocation, f"ocr_artifact_{hashlib.sha256(artifact_seed.encode('utf-8')).hexdigest()[:32]}"
+        )
 
     def describe_vision(self, image: EphemeralDerivedArtifact, *, provider_id: str) -> VisionResult:
         _validate_ephemeral_image(self._paths, image, policy=self._policy)
@@ -1075,13 +1105,25 @@ class OcrGoldCase:
 
     def __post_init__(self) -> None:
         _safe_token(self.case_id, label="OCR Gold Set case id")
-        if self.stratum not in _OCR_STRATA or not isinstance(self.reference_text, str) or not isinstance(self.predicted_text, str):
+        if (
+            self.stratum not in _OCR_STRATA
+            or not isinstance(self.reference_text, str)
+            or not isinstance(self.predicted_text, str)
+        ):
             _fail(ErrorCode.INVALID_INPUT, "OCR Gold Set case is invalid")
         if len(self.reference_text) > MAX_OCR_TEXT_CHARS or len(self.predicted_text) > MAX_OCR_TEXT_CHARS:
             _fail(ErrorCode.POLICY_BLOCKED, "OCR Gold Set text exceeds its policy")
-        if not isinstance(self.text_order_correct, bool) or not isinstance(self.duplicate_spans, int) or isinstance(self.duplicate_spans, bool):
+        if (
+            not isinstance(self.text_order_correct, bool)
+            or not isinstance(self.duplicate_spans, int)
+            or isinstance(self.duplicate_spans, bool)
+        ):
             _fail(ErrorCode.INVALID_INPUT, "OCR Gold Set quality marker is invalid")
-        if not 0 <= self.duplicate_spans <= MAX_OCR_SPANS or not isinstance(self.synthetic, bool) or not isinstance(self.provider_failed, bool):
+        if (
+            not 0 <= self.duplicate_spans <= MAX_OCR_SPANS
+            or not isinstance(self.synthetic, bool)
+            or not isinstance(self.provider_failed, bool)
+        ):
             _fail(ErrorCode.INVALID_INPUT, "OCR Gold Set quality marker is invalid")
         if self.stratum == "no_text" and self.reference_text.strip():
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "OCR no-text Gold Set reference is invalid")
@@ -1281,7 +1323,8 @@ class OcrEvaluator:
         duplicates = sum(case.duplicate_spans for case in cases)
         failures = sum(case.provider_failed for case in cases)
         provenance_complete = sum(
-            case.provider is not None and case.input_hash is not None and case.prompt_sha256 is not None for case in cases
+            case.provider is not None and case.input_hash is not None and case.prompt_sha256 is not None
+            for case in cases
         )
         if private_gold and provenance_complete != len(cases):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "OCR private Gold Set provenance is incomplete")
@@ -1318,7 +1361,9 @@ class OcrEvaluator:
 @dataclass(frozen=True)
 class VisionGoldCase:
     case_id: str
-    stratum: Literal["image_post", "product_interface", "chart", "scene_change", "irrelevant_frame", "sensitive", "unsupported"]
+    stratum: Literal[
+        "image_post", "product_interface", "chart", "scene_change", "irrelevant_frame", "sensitive", "unsupported"
+    ]
     expected_status: Literal["described", "unsupported_sensitive", "unsupported_content"]
     actual_status: Literal["described", "unsupported_sensitive", "unsupported_content"]
     human_rating: int
@@ -1335,7 +1380,11 @@ class VisionGoldCase:
 
     def __post_init__(self) -> None:
         _safe_token(self.case_id, label="Vision Gold Set case id")
-        if self.stratum not in _VISION_STRATA or self.expected_status not in _VISION_STATUSES or self.actual_status not in _VISION_STATUSES:
+        if (
+            self.stratum not in _VISION_STRATA
+            or self.expected_status not in _VISION_STATUSES
+            or self.actual_status not in _VISION_STATUSES
+        ):
             _fail(ErrorCode.INVALID_INPUT, "Vision Gold Set case is invalid")
         if self.stratum == "sensitive" and self.expected_status != "unsupported_sensitive":
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Vision sensitive Gold Set expectation is invalid")
@@ -1343,7 +1392,11 @@ class VisionGoldCase:
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Vision unsupported Gold Set expectation is invalid")
         if self.stratum not in {"sensitive", "unsupported"} and self.expected_status != "described":
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Vision normal Gold Set expectation is invalid")
-        if isinstance(self.human_rating, bool) or not isinstance(self.human_rating, int) or not 1 <= self.human_rating <= 5:
+        if (
+            isinstance(self.human_rating, bool)
+            or not isinstance(self.human_rating, int)
+            or not 1 <= self.human_rating <= 5
+        ):
             _fail(ErrorCode.INVALID_INPUT, "Vision human rating is invalid")
         flags = (
             self.major_visible_content_correct,
@@ -1355,7 +1408,11 @@ class VisionGoldCase:
         )
         if not all(isinstance(value, bool) for value in flags):
             _fail(ErrorCode.INVALID_INPUT, "Vision Gold Set marker is invalid")
-        if isinstance(self.reviewer_count, bool) or not isinstance(self.reviewer_count, int) or not 1 <= self.reviewer_count <= 3:
+        if (
+            isinstance(self.reviewer_count, bool)
+            or not isinstance(self.reviewer_count, int)
+            or not 1 <= self.reviewer_count <= 3
+        ):
             _fail(ErrorCode.INVALID_INPUT, "Vision reviewer count is invalid")
         provenance = (self.provider, self.input_hash, self.prompt_sha256)
         if any(value is None for value in provenance) and any(value is not None for value in provenance):
@@ -1508,7 +1565,11 @@ class VisionEvaluator:
             _fail(ErrorCode.POLICY_BLOCKED, "Vision private Gold Set cannot contain synthetic cases")
         if private_gold:
             strata = {case.stratum for case in cases}
-            if len(cases) < 40 or not {"sensitive", "unsupported"}.issubset(strata) or any(case.reviewer_count < 2 for case in cases):
+            if (
+                len(cases) < 40
+                or not {"sensitive", "unsupported"}.issubset(strata)
+                or any(case.reviewer_count < 2 for case in cases)
+            ):
                 _fail(ErrorCode.POLICY_BLOCKED, "Vision private Gold Set lacks representative human review")
         described = [case for case in cases if case.expected_status == "described"]
         qualifying = [
@@ -1529,7 +1590,8 @@ class VisionEvaluator:
         disagreements = sum(case.reviewer_disagreement for case in cases)
         failures = sum(case.provider_failed for case in cases)
         provenance_complete = sum(
-            case.provider is not None and case.input_hash is not None and case.prompt_sha256 is not None for case in cases
+            case.provider is not None and case.input_hash is not None and case.prompt_sha256 is not None
+            for case in cases
         )
         if private_gold and provenance_complete != len(cases):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Vision private Gold Set provenance is incomplete")

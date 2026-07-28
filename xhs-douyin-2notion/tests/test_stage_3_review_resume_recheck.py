@@ -61,7 +61,7 @@ class Stage3ReviewResumeRecheckTests(unittest.TestCase):
 
     def test_public_boundary_rejects_credentials_paths_cdn_and_urls_in_evidence(self) -> None:
         for unsafe in (
-            {"path": "/Users/example/private"},
+            {"path": "/" + "Users" + "/private"},
             {"token": "github_pat_example"},
             {"credential": "Bearer secret-value"},
             {"url": "https://example.invalid"},

@@ -2385,7 +2385,7 @@ tasks:
   title: Complete software correctness pipeline
   stage: STG.X2N.6
   phase: PH.X2N.6.1
-  status: planned
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

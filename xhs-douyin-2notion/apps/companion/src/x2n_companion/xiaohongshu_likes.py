@@ -318,11 +318,7 @@ class XhsLikesBatch:
                         ErrorCode.PROVENANCE_INCOMPLETE,
                         "Likes partial result lacks per-card error evidence",
                     )
-            elif (
-                visible_card_count != 0
-                or len(error_codes) != 1
-                or card_indices
-            ):
+            elif visible_card_count != 0 or len(error_codes) != 1 or card_indices:
                 raise X2NRuntimeError(
                     ErrorCode.PROVENANCE_INCOMPLETE,
                     "Likes blocked result must contain one surface-level error",

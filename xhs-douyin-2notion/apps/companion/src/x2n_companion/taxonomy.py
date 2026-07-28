@@ -185,7 +185,11 @@ class TaxonomyRevision:
         _opaque_ref(self.revision_id, label="revision id")
         if self.operation not in {"create", "update", "disable", "merge"} or self.actor != "owner":
             _fail(ErrorCode.POLICY_BLOCKED, "Taxonomy revision actor or operation is invalid")
-        if isinstance(self.category_version, bool) or not isinstance(self.category_version, int) or self.category_version < 1:
+        if (
+            isinstance(self.category_version, bool)
+            or not isinstance(self.category_version, int)
+            or self.category_version < 1
+        ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy revision version is invalid")
         if self.previous_version is not None and (
             isinstance(self.previous_version, bool)
@@ -193,7 +197,9 @@ class TaxonomyRevision:
             or not 1 <= self.previous_version < self.category_version
         ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy revision prior version is invalid")
-        if self.operation == "create" and (self.previous_version is not None or self.merge_target_category_id is not None):
+        if self.operation == "create" and (
+            self.previous_version is not None or self.merge_target_category_id is not None
+        ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy create revision is invalid")
         if self.operation in {"update", "disable"} and (
             self.previous_version is None or self.merge_target_category_id is not None
@@ -215,7 +221,9 @@ class TaxonomyRevision:
             "category_id": str(self.category_id),
             "category_version": self.category_version,
             "created_at": self.created_at,
-            "merge_target_category_id": None if self.merge_target_category_id is None else str(self.merge_target_category_id),
+            "merge_target_category_id": None
+            if self.merge_target_category_id is None
+            else str(self.merge_target_category_id),
             "operation": self.operation,
             "payload_sha256": self.payload_sha256,
             "previous_version": self.previous_version,
@@ -556,7 +564,10 @@ class CalibrationBucket:
     def __post_init__(self) -> None:
         _safe_token(self.name, label="calibration bucket")
         values = (self.lower_bound, self.upper_bound)
-        if not all(isinstance(value, (float, int)) and not isinstance(value, bool) and math.isfinite(float(value)) for value in values):
+        if not all(
+            isinstance(value, (float, int)) and not isinstance(value, bool) and math.isfinite(float(value))
+            for value in values
+        ):
             _fail(ErrorCode.INVALID_INPUT, "Classification calibration bounds are invalid")
         if not 0 <= float(self.lower_bound) < float(self.upper_bound) <= 1:
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Classification calibration bounds are invalid")
@@ -596,8 +607,10 @@ class CalibrationProfile:
         _safe_token(self.version, label="calibration version")
         _hash(self.taxonomy_snapshot_sha256, label="calibration taxonomy snapshot")
         _hash(self.dataset_sha256, label="calibration dataset")
-        if not isinstance(self.buckets, tuple) or not self.buckets or not all(
-            isinstance(bucket, CalibrationBucket) for bucket in self.buckets
+        if (
+            not isinstance(self.buckets, tuple)
+            or not self.buckets
+            or not all(isinstance(bucket, CalibrationBucket) for bucket in self.buckets)
         ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Classification calibration buckets are invalid")
         if self.buckets[0].lower_bound != 0.0 or self.buckets[-1].upper_bound != 1.0:
@@ -650,7 +663,11 @@ class ClassificationSuggestion:
         _opaque_ref(self.suggestion_id, label="suggestion id")
         if not isinstance(self.content_key, str) or not 3 <= len(self.content_key) <= 768:
             _fail(ErrorCode.INVALID_INPUT, "Classification suggestion content key is invalid")
-        if isinstance(self.taxonomy_version, bool) or not isinstance(self.taxonomy_version, int) or self.taxonomy_version < 0:
+        if (
+            isinstance(self.taxonomy_version, bool)
+            or not isinstance(self.taxonomy_version, int)
+            or self.taxonomy_version < 0
+        ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Classification suggestion taxonomy version is invalid")
         for value, label in (
             (self.taxonomy_snapshot_sha256, "suggestion taxonomy snapshot"),
@@ -671,12 +688,19 @@ class ClassificationSuggestion:
         if len(set(ids)) != len(ids) or scores != sorted(scores, reverse=True):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Classification suggestion ranking is invalid")
         values = (self.confidence_raw, self.calibrated_confidence)
-        if any(value is not None and (not isinstance(value, (float, int)) or not 0 <= float(value) <= 1) for value in values):
+        if any(
+            value is not None and (not isinstance(value, (float, int)) or not 0 <= float(value) <= 1)
+            for value in values
+        ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Classification suggestion confidence is invalid")
         if self.calibration_bucket is not None:
             _safe_token(self.calibration_bucket, label="suggestion calibration bucket")
         if self.disposition == "unclassified":
-            if self.primary_category_id is not None or self.candidate_ranking or any(value is not None for value in values):
+            if (
+                self.primary_category_id is not None
+                or self.candidate_ranking
+                or any(value is not None for value in values)
+            ):
                 _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Unclassified suggestion is invalid")
         elif self.disposition in {"suggested", "auto_accepted"}:
             if (
@@ -792,7 +816,11 @@ class AutoClassificationGate:
 
 def _category_terms(category: TaxonomyCategory) -> tuple[tuple[str, float], tuple[tuple[str, float], ...]]:
     positive: dict[str, float] = {}
-    for value, weight in ((category.name, 1.0), *((alias, 0.95) for alias in category.aliases), *((example, 0.80) for example in category.positive_examples)):
+    for value, weight in (
+        (category.name, 1.0),
+        *((alias, 0.95) for alias in category.aliases),
+        *((example, 0.80) for example in category.positive_examples),
+    ):
         normalized = _normalize_term(value)
         if len(normalized) >= 2:
             positive[normalized] = max(weight, positive.get(normalized, 0.0))
@@ -839,7 +867,13 @@ class ClassificationSession:
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Classification calibration does not match the taxonomy snapshot")
         calibration_hash = "uncalibrated" if calibration is None else calibration.profile_sha256
         gate_hash = "suggestion_only" if not gate.enabled else gate.evaluation_sha256 or "invalid"
-        cache_key = (self._descriptor.fingerprint, snapshot.snapshot_sha256, calibration_hash, gate_hash, request.input_hash)
+        cache_key = (
+            self._descriptor.fingerprint,
+            snapshot.snapshot_sha256,
+            calibration_hash,
+            gate_hash,
+            request.input_hash,
+        )
         cached = self._cache.get(cache_key)
         if cached is not None:
             self._cache_hits += 1
@@ -869,7 +903,9 @@ class ClassificationSession:
                 if raw <= 0.0:
                     continue
                 bucket, calibrated = ("uncalibrated", raw) if calibration is None else calibration.calibrate(raw)
-                scored.append((calibrated, raw, category.priority, str(category.category_id), category.category_id, bucket))
+                scored.append(
+                    (calibrated, raw, category.priority, str(category.category_id), category.category_id, bucket)
+                )
             scored.sort(key=lambda item: (-item[0], -item[1], -item[2], item[3]))
             if not scored:
                 suggestion = ClassificationSuggestion(
@@ -1028,7 +1064,9 @@ def _gold_case_from_private_payload(value: object) -> ClassificationGoldCase:
             synthetic=False,
         )
     except (TypeError, ValueError, X2NRuntimeError):
-        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Classification private Gold Set case is invalid") from None
+        raise X2NRuntimeError(
+            ErrorCode.DATA_INTEGRITY_FAILED, "Classification private Gold Set case is invalid"
+        ) from None
 
 
 def load_private_classification_gold_dataset(
@@ -1204,7 +1242,10 @@ class ClassificationEvaluator:
             _fail(ErrorCode.POLICY_BLOCKED, "Classification evaluation requires an Owner taxonomy")
         if private_gold and any(case.synthetic for case in cases):
             _fail(ErrorCode.POLICY_BLOCKED, "Classification private Gold Set cannot contain synthetic cases")
-        if expected_classifier_fingerprint is not None and expected_classifier_fingerprint != self.classifier.descriptor.fingerprint:
+        if (
+            expected_classifier_fingerprint is not None
+            and expected_classifier_fingerprint != self.classifier.descriptor.fingerprint
+        ):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Classification Gold Set classifier provenance is stale")
         enabled_ids = {category.category_id for category in snapshot.enabled_categories}
         if any(case.expected_category_id not in enabled_ids for case in cases):
@@ -1221,9 +1262,18 @@ class ClassificationEvaluator:
         per_category: list[CategoryEvaluation] = []
         for category_id in sorted(enabled_ids, key=str):
             expected = [row for row in predictions if row[0].expected_category_id == category_id]
-            true_positives = sum(predicted == category_id and case.expected_category_id == category_id for case, predicted, _ in predictions)
-            false_positives = sum(predicted == category_id and case.expected_category_id != category_id for case, predicted, _ in predictions)
-            false_negatives = sum(predicted != category_id and case.expected_category_id == category_id for case, predicted, _ in predictions)
+            true_positives = sum(
+                predicted == category_id and case.expected_category_id == category_id
+                for case, predicted, _ in predictions
+            )
+            false_positives = sum(
+                predicted == category_id and case.expected_category_id != category_id
+                for case, predicted, _ in predictions
+            )
+            false_negatives = sum(
+                predicted != category_id and case.expected_category_id == category_id
+                for case, predicted, _ in predictions
+            )
             denominator = 2 * true_positives + false_positives + false_negatives
             f1 = 0.0 if denominator == 0 else 2 * true_positives / denominator
             per_category.append(

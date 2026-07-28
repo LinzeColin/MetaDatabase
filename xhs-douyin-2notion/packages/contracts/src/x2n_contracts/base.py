@@ -39,9 +39,7 @@ CANONICAL_PAGE_HOSTS: dict[str, frozenset[str]] = {
 }
 
 _URL_RE = re.compile(r"https?://[^\s<>\"']+", flags=re.IGNORECASE)
-_RFC3339_RE = re.compile(
-    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
-)
+_RFC3339_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$")
 
 
 def _parse_rfc3339(value: Any) -> Any:

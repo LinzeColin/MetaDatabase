@@ -73,7 +73,10 @@ def _json_line(output: str, *, label: str) -> dict[str, Any]:
 def _zero_execution(execution: object, *, fields: tuple[str, ...]) -> None:
     _require(isinstance(execution, dict), "execution receipt is invalid")
     _require(all(execution.get(field) == 0 for field in fields), "external execution counter is nonzero")
-    _require(execution.get("platform_calls") == 0 and execution.get("real_account_execution") == "NOT_RUN", "platform or account execution was claimed")
+    _require(
+        execution.get("platform_calls") == 0 and execution.get("real_account_execution") == "NOT_RUN",
+        "platform or account execution was claimed",
+    )
 
 
 def _validate_g4(receipt: dict[str, Any]) -> None:
@@ -109,8 +112,13 @@ def _validate_task001(receipt: dict[str, Any]) -> None:
         "Task001 Notion receipt is invalid",
     )
     execution = receipt.get("execution")
-    _zero_execution(execution, fields=("network_calls", "notion_mock_socket_opens", "notion_real_calls", "platform_calls"))
-    _require(isinstance(execution, dict) and execution.get("owner_notion_canary") == "NOT_RUN", "Task001 Owner Notion canary ran")
+    _zero_execution(
+        execution, fields=("network_calls", "notion_mock_socket_opens", "notion_real_calls", "platform_calls")
+    )
+    _require(
+        isinstance(execution, dict) and execution.get("owner_notion_canary") == "NOT_RUN",
+        "Task001 Owner Notion canary ran",
+    )
 
 
 def _validate_task002(receipt: dict[str, Any]) -> None:
@@ -138,7 +146,10 @@ def _validate_task003(receipt: dict[str, Any]) -> None:
         and int(receipt.get("metrics", {}).get("synthetic_unit_tests", 0)) >= 21,
         "Task003 review receipt is invalid",
     )
-    _zero_execution(receipt.get("execution"), fields=("external_network_calls", "platform_calls", "real_notion_calls", "runtime_data_writes"))
+    _zero_execution(
+        receipt.get("execution"),
+        fields=("external_network_calls", "platform_calls", "real_notion_calls", "runtime_data_writes"),
+    )
 
 
 def _validate_task004(receipt: dict[str, Any]) -> None:
@@ -153,7 +164,10 @@ def _validate_task004(receipt: dict[str, Any]) -> None:
         and int(receipt.get("metrics", {}).get("synthetic_unit_tests", 0)) >= 60,
         "Task004 diagnostics receipt is invalid",
     )
-    _zero_execution(receipt.get("execution"), fields=("external_network_calls", "platform_calls", "real_notion_calls", "runtime_data_writes"))
+    _zero_execution(
+        receipt.get("execution"),
+        fields=("external_network_calls", "platform_calls", "real_notion_calls", "runtime_data_writes"),
+    )
 
 
 def _validate_task005_replay(receipt: dict[str, Any]) -> None:
@@ -172,14 +186,38 @@ def run_acceptance() -> dict[str, Any]:
         home.mkdir(mode=0o700)
         environment = _isolated_env(home)
         g4 = _json_line(
-            _run("G4 preservation acceptance", (sys.executable, "-B", "scripts/run_stage_4_review_acceptance.py"), env=environment),
+            _run(
+                "G4 preservation acceptance",
+                (sys.executable, "-B", "scripts/run_stage_4_review_acceptance.py"),
+                env=environment,
+            ),
             label="G4 preservation acceptance",
         )
-        task001 = _json_line(_run("Task001 acceptance", (sys.executable, "-B", "scripts/run_uxops_001_acceptance.py"), env=environment), label="Task001")
-        task002 = _json_line(_run("Task002 acceptance", (sys.executable, "-B", "scripts/run_uxops_002_acceptance.py"), env=environment), label="Task002")
-        task003 = _json_line(_run("Task003 acceptance", (sys.executable, "-B", "scripts/run_uxops_003_acceptance.py"), env=environment), label="Task003")
-        task004 = _json_line(_run("Task004 acceptance", (sys.executable, "-B", "scripts/run_uxops_004_acceptance.py"), env=environment), label="Task004")
-        task005 = _json_line(_run("Task005 historical replay", (sys.executable, "-B", "scripts/replay_uxops_005_historical.py"), env=environment, timeout=1800), label="Task005 historical replay")
+        task001 = _json_line(
+            _run("Task001 acceptance", (sys.executable, "-B", "scripts/run_uxops_001_acceptance.py"), env=environment),
+            label="Task001",
+        )
+        task002 = _json_line(
+            _run("Task002 acceptance", (sys.executable, "-B", "scripts/run_uxops_002_acceptance.py"), env=environment),
+            label="Task002",
+        )
+        task003 = _json_line(
+            _run("Task003 acceptance", (sys.executable, "-B", "scripts/run_uxops_003_acceptance.py"), env=environment),
+            label="Task003",
+        )
+        task004 = _json_line(
+            _run("Task004 acceptance", (sys.executable, "-B", "scripts/run_uxops_004_acceptance.py"), env=environment),
+            label="Task004",
+        )
+        task005 = _json_line(
+            _run(
+                "Task005 historical replay",
+                (sys.executable, "-B", "scripts/replay_uxops_005_historical.py"),
+                env=environment,
+                timeout=1800,
+            ),
+            label="Task005 historical replay",
+        )
         _run(
             "G5 review ruff",
             (
@@ -202,7 +240,11 @@ def run_acceptance() -> dict[str, Any]:
     _validate_task004(task004)
     _validate_task005_replay(task005)
     task_receipts = {
-        item["task_id"]: {"phase": item["phase"], "status": item["status"], "synthetic_unit_tests": item["metrics"]["synthetic_unit_tests"]}
+        item["task_id"]: {
+            "phase": item["phase"],
+            "status": item["status"],
+            "synthetic_unit_tests": item["metrics"]["synthetic_unit_tests"],
+        }
         for item in (task001, task002, task003, task004)
     }
     task_receipts["TSK.x2n.uxops.005"] = {

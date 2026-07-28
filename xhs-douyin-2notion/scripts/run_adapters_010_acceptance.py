@@ -129,11 +129,20 @@ def run_acceptance() -> dict[str, Any]:
         )
         _run("TypeScript contracts", ("npm", "run", "check:contracts:types"), env=environment)
         extension_self_test = _json_line(
-            _run("Extension static self-test", ("npm", "run", "self-test", "--workspace", "@x2n/extension"), env=environment),
+            _run(
+                "Extension static self-test",
+                ("npm", "run", "self-test", "--workspace", "@x2n/extension"),
+                env=environment,
+            ),
             label="Extension static self-test",
         )
         extension_e2e = _json_line(
-            _run("Extension E2E", ("npm", "run", "test:e2e", "--workspace", "@x2n/extension"), env=environment, timeout=240),
+            _run(
+                "Extension E2E",
+                ("npm", "run", "test:e2e", "--workspace", "@x2n/extension"),
+                env=environment,
+                timeout=240,
+            ),
             label="Extension E2E",
         )
 

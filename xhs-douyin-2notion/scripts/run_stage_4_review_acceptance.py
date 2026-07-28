@@ -191,9 +191,7 @@ def run_acceptance() -> dict[str, Any]:
                 task_id=task_id,
             )
             _require(
-                receipt.get("task_id") == task_id
-                and receipt.get("phase") == phase
-                and receipt.get("status") == status,
+                receipt.get("task_id") == task_id and receipt.get("phase") == phase and receipt.get("status") == status,
                 f"{task_id} identity or status drifted",
             )
             receipts[task_id] = receipt

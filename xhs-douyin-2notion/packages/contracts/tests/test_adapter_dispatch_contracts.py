@@ -70,7 +70,9 @@ class AdapterDispatchContractTests(unittest.TestCase):
         parsed = []
         for payload in SCOPE_PAYLOADS:
             request = NativeMessageRequest.model_validate_json(json.dumps(_request("start_sync", payload))).root
-            parsed.append((request.payload.scope_id.value, request.payload.platform.value, request.payload.relation.value))
+            parsed.append(
+                (request.payload.scope_id.value, request.payload.platform.value, request.payload.relation.value)
+            )
         self.assertEqual(
             parsed,
             [
@@ -169,7 +171,9 @@ class AdapterDispatchContractTests(unittest.TestCase):
             "status": "queued",
             "error": None,
         }
-        rendered = json.loads(NativeMessageResponse.model_validate_json(json.dumps(legacy)).model_dump_json(by_alias=True))
+        rendered = json.loads(
+            NativeMessageResponse.model_validate_json(json.dumps(legacy)).model_dump_json(by_alias=True)
+        )
         self.assertEqual(rendered, legacy)
 
 

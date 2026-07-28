@@ -30,7 +30,12 @@ from x2n_companion.asr import (
     load_private_asr_gold_dataset,
     word_error_rate,
 )
-from x2n_companion.media_preprocessing import EphemeralDerivedArtifact, MediaCommand, MediaProcessingPolicy, MediaToolchain
+from x2n_companion.media_preprocessing import (
+    EphemeralDerivedArtifact,
+    MediaCommand,
+    MediaProcessingPolicy,
+    MediaToolchain,
+)
 from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRuntimeError
 from x2n_companion.runtime_cli import build_parser, run
 

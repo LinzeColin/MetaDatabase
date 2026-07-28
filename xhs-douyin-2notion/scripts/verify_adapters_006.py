@@ -299,13 +299,11 @@ def validate_task_and_state() -> Check:
     _require(_field(task, "status") == "completed", "Adapters006 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.3" and _field(task, "phase") == PHASE, "Task routing drifted")
     _require(
-        _list_field(task, "depends_on")
-        == ["TSK.x2n.adapters.001", "TSK.x2n.skeleton.006", "TSK.x2n.skeleton.004"],
+        _list_field(task, "depends_on") == ["TSK.x2n.adapters.001", "TSK.x2n.skeleton.006", "TSK.x2n.skeleton.004"],
         "Adapters006 dependency drifted",
     )
     _require(
-        _list_field(task, "acceptance_ids")
-        == ["ACC.x2n.bili.001", "ACC.x2n.bili.002", "ACC.x2n.batch.001"],
+        _list_field(task, "acceptance_ids") == ["ACC.x2n.bili.001", "ACC.x2n.bili.002", "ACC.x2n.batch.001"],
         "Adapters006 Acceptance drifted",
     )
     _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Task changed beyond status")

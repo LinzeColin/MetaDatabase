@@ -111,7 +111,11 @@ def replay() -> dict[str, Any]:
         payload = json.loads(output)
     except json.JSONDecodeError as error:
         raise HistoricalReplayError("historical verifier output is invalid") from error
-    if not isinstance(payload, dict) or payload.get("status") != "PASS" or payload.get("task") != "TSK.x2n.adapters.005":
+    if (
+        not isinstance(payload, dict)
+        or payload.get("status") != "PASS"
+        or payload.get("task") != "TSK.x2n.adapters.005"
+    ):
         raise HistoricalReplayError("historical verifier did not pass")
     return {
         "current_v2_tree_evaluated": False,

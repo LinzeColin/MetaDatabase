@@ -48,7 +48,10 @@ _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _MODALITIES = ("text", "asr", "ocr", "vision")
 _BIDI_CONTROLS = frozenset({"RLE", "LRE", "RLO", "LRO", "PDF", "RLI", "LRI", "FSI", "PDI"})
 _INSTRUCTION_PATTERNS = (
-    re.compile(r"\b(?:ignore|disregard|override|forget)\b.{0,96}\b(?:instruction|rule|policy|prompt)\b", re.IGNORECASE | re.DOTALL),
+    re.compile(
+        r"\b(?:ignore|disregard|override|forget)\b.{0,96}\b(?:instruction|rule|policy|prompt)\b",
+        re.IGNORECASE | re.DOTALL,
+    ),
     re.compile(r"\b(?:system|developer|assistant)\s+(?:prompt|message|instruction)\b", re.IGNORECASE),
     re.compile(r"<\s*/?\s*(?:system|developer|assistant|tool|instruction)\b", re.IGNORECASE),
     re.compile(r"\b(?:tool|function)[_ -]?(?:call|invoke)\b", re.IGNORECASE),
@@ -399,12 +402,17 @@ def build_isolated_prompt(
             for source in request.ordered_sources
         ],
     }
-    rendered = _FUSION_TEMPLATE + "\n<untrusted-source>\n" + json.dumps(
-        payload,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ) + "\n</untrusted-source>"
+    rendered = (
+        _FUSION_TEMPLATE
+        + "\n<untrusted-source>\n"
+        + json.dumps(
+            payload,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        + "\n</untrusted-source>"
+    )
     if len(rendered) > policy.max_prompt_chars:
         _fail(ErrorCode.POLICY_BLOCKED, "Fusion prompt exceeds its resource policy")
     return EphemeralFusionPrompt(FUSION_TEMPLATE_VERSION, _sha256(rendered), rendered)
@@ -594,7 +602,11 @@ class FusionResult:
         _safe_token(self.artifact_id, label="artifact id")
 
     def safe_dict(self) -> dict[str, object]:
-        return {"artifact": self.artifact.safe_dict(), "artifact_id": self.artifact_id, "invocation": self.invocation.safe_dict()}
+        return {
+            "artifact": self.artifact.safe_dict(),
+            "artifact_id": self.artifact_id,
+            "invocation": self.invocation.safe_dict(),
+        }
 
     def __getstate__(self) -> None:
         raise TypeError("Ephemeral Fusion results cannot be serialized")
@@ -672,7 +684,9 @@ def _expected_response_payload(request: FusionRequest, *, policy: FusionPolicy) 
 def build_deterministic_fusion_response(request: FusionRequest, *, policy: FusionPolicy = FusionPolicy()) -> str:
     """Return the CI-synthetic local response that the strict parser can accept."""
 
-    return json.dumps(_expected_response_payload(request, policy=policy), ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return json.dumps(
+        _expected_response_payload(request, policy=policy), ensure_ascii=False, separators=(",", ":"), sort_keys=True
+    )
 
 
 def parse_untrusted_fusion_response(
@@ -696,7 +710,9 @@ def parse_untrusted_fusion_response(
         _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Fusion response is not the strict grounded schema")
     facts_payload = payload["facts"]
     inferences_payload = payload["inferences"]
-    if not isinstance(facts_payload, list) or not isinstance(inferences_payload, list):  # pragma: no cover - equality above guards it.
+    if not isinstance(facts_payload, list) or not isinstance(
+        inferences_payload, list
+    ):  # pragma: no cover - equality above guards it.
         _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Fusion response shape is invalid")
     facts = tuple(
         FusionFact(
@@ -708,7 +724,10 @@ def parse_untrusted_fusion_response(
         )
         for item in facts_payload
         if isinstance(item, Mapping)
-        and all(isinstance(item.get(key), str) for key in ("fact_id", "modality", "source_artifact_id", "quote", "quote_sha256"))
+        and all(
+            isinstance(item.get(key), str)
+            for key in ("fact_id", "modality", "source_artifact_id", "quote", "quote_sha256")
+        )
     )
     if len(facts) != len(facts_payload):  # pragma: no cover - equality above guards it.
         _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Fusion facts are invalid")
@@ -730,7 +749,9 @@ def parse_untrusted_fusion_response(
     missing = payload["missing_modalities"]
     summary = payload["summary"]
     search_text = payload["search_text"]
-    if not isinstance(missing, list) or not all(isinstance(item, str) for item in missing):  # pragma: no cover - equality above guards it.
+    if not isinstance(missing, list) or not all(
+        isinstance(item, str) for item in missing
+    ):  # pragma: no cover - equality above guards it.
         _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Fusion missing modalities are invalid")
     if not isinstance(summary, str) or not isinstance(search_text, str):  # pragma: no cover - equality above guards it.
         _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Fusion output text is invalid")
@@ -770,7 +791,9 @@ class FusionSession:
         del exc_type, exc_value, traceback
         self.close()
 
-    def _invocation(self, artifact: EphemeralFusionArtifact, prompt: EphemeralFusionPrompt, *, cache_hit: bool) -> FusionInvocation:
+    def _invocation(
+        self, artifact: EphemeralFusionArtifact, prompt: EphemeralFusionPrompt, *, cache_hit: bool
+    ) -> FusionInvocation:
         descriptor = self.processor.descriptor
         invocation_material = "|".join(
             (

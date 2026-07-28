@@ -152,7 +152,9 @@ def _source_receipt(commit: str) -> str:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task004 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task004 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -223,14 +225,19 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 def validate_scope_and_boundary() -> Check:
     commit = _task_commit()
-    changed = [item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item]
+    changed = [
+        item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item
+    ]
     scoped = [_task_relative(item) for item in changed]
     _require(changed and all(item is not None for item in scoped), "Task004 changed scope escaped x2n")
     relative = sorted(item for item in scoped if item is not None)
     _require(all(path in SOURCE_CHANGED_EXACT for path in relative), "Task004 source changed scope is invalid")
     _scan_public_boundary([PROJECT_ROOT / path for path in relative], commit=commit)
     suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
-    _require(not any(Path(path).suffix.lower() in suffixes for path in relative), "Task004 runtime artifact entered public source")
+    _require(
+        not any(Path(path).suffix.lower() in suffixes for path in relative),
+        "Task004 runtime artifact entered public source",
+    )
     return Check(
         "scope_and_public_private_boundary",
         "PASS",
@@ -248,7 +255,9 @@ def validate_current_scope() -> Check:
 
 
 def validate_predecessor() -> Check:
-    _require(TASK003_EVIDENCE.read_bytes() == _blob_at(TASK_BASE_COMMIT, TASK003_EVIDENCE), "Task003 evidence was rewritten")
+    _require(
+        TASK003_EVIDENCE.read_bytes() == _blob_at(TASK_BASE_COMMIT, TASK003_EVIDENCE), "Task003 evidence was rewritten"
+    )
     receipt = _load_json(TASK003_EVIDENCE)
     _require(receipt.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task003 receipt is invalid")
     _require(receipt.get("task_id") == "TSK.x2n.uxops.003", "Task003 receipt identity is invalid")
@@ -268,11 +277,16 @@ def validate_taskpack_and_state() -> Check:
     _require(isinstance(tasks, list), "Taskpack task list is invalid")
     task = next((item for item in tasks if isinstance(item, dict) and item.get("id") == TASK_ID), None)
     _require(isinstance(task, dict), "Task004 is absent from Taskpack")
-    _require(task.get("phase") == PHASE and task.get("status") == "complete_ci_synth", "Task004 Taskpack state is invalid")
+    _require(
+        task.get("phase") == PHASE and task.get("status") == "complete_ci_synth", "Task004 Taskpack state is invalid"
+    )
     state = _load_json(TASK_STATE)
     project = _load_json(PROJECT_FACT)
     architecture = _load_json(ARCHITECTURE)
-    _require(state.get("phase") == PHASE and state.get("next_task") == "TSK.x2n.uxops.005", "Task004 state transition is invalid")
+    _require(
+        state.get("phase") == PHASE and state.get("next_task") == "TSK.x2n.uxops.005",
+        "Task004 state transition is invalid",
+    )
     _require(state.get("stage_5_task004_complete") is True, "Task004 completion fact is missing")
     _require(
         project.get("status") == "stage_5_task004_operations_ci_synth_pass_task005_next_real_runtime_not_run",
@@ -367,9 +381,14 @@ def validate_historical_replay() -> Check:
 
 def validate_acceptance() -> Check:
     payload = _run_json((sys.executable, "-B", "scripts/run_uxops_004_acceptance.py"), timeout=420)
-    _require(payload.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task004 acceptance state is invalid")
+    _require(
+        payload.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task004 acceptance state is invalid"
+    )
     statuses = payload.get("acceptance_status")
-    _require(isinstance(statuses, dict) and set(statuses) == {"ACC.x2n.ops.001", "ACC.x2n.ops.002", "ACC.x2n.ops.004"}, "Task004 acceptance coverage is incomplete")
+    _require(
+        isinstance(statuses, dict) and set(statuses) == {"ACC.x2n.ops.001", "ACC.x2n.ops.002", "ACC.x2n.ops.004"},
+        "Task004 acceptance coverage is incomplete",
+    )
     execution = payload.get("execution")
     _require(
         isinstance(execution, dict)
@@ -394,9 +413,17 @@ def validate_acceptance() -> Check:
 def validate_evidence() -> Check:
     commit = _task_commit()
     evidence = _load_json(EVIDENCE)
-    _require(evidence.get("task_id") == TASK_ID and evidence.get("phase") == PHASE and evidence.get("run_id") == RUN_ID, "Task004 evidence identity is invalid")
-    _require(evidence.get("task_commit") == commit and evidence.get("source_receipt_sha256") == _source_receipt(commit), "Task004 evidence receipt is invalid")
-    _require(evidence.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task004 evidence overstates completion")
+    _require(
+        evidence.get("task_id") == TASK_ID and evidence.get("phase") == PHASE and evidence.get("run_id") == RUN_ID,
+        "Task004 evidence identity is invalid",
+    )
+    _require(
+        evidence.get("task_commit") == commit and evidence.get("source_receipt_sha256") == _source_receipt(commit),
+        "Task004 evidence receipt is invalid",
+    )
+    _require(
+        evidence.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task004 evidence overstates completion"
+    )
     execution = evidence.get("execution")
     _require(
         isinstance(execution, dict)
@@ -407,7 +434,10 @@ def validate_evidence() -> Check:
         "Task004 evidence crossed the runtime boundary",
     )
     rendered = json.dumps(evidence, ensure_ascii=False, sort_keys=True)
-    _require("/" + "Users/" not in rendered and "github" + "_pat_" not in rendered and "Bear" + "er " not in rendered, "Task004 evidence is unsafe")
+    _require(
+        "/" + "Users/" not in rendered and "github" + "_pat_" not in rendered and "Bear" + "er " not in rendered,
+        "Task004 evidence is unsafe",
+    )
     _require("https://" not in rendered and "http://" not in rendered, "Task004 evidence contains a URL")
     return Check(
         "immutable_task_evidence",

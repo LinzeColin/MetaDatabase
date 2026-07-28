@@ -574,9 +574,7 @@ def build_notion_projection(
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Notion projection exceeds the bounded child block limit")
     child_batches = _child_batches(tuple(children))
     if any(
-        len(
-            json.dumps(list(batch), ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
-        )
+        len(json.dumps(list(batch), ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8"))
         > NOTION_MAX_REQUEST_BYTES
         for batch in child_batches
     ):
@@ -779,9 +777,7 @@ class NotionMockServer:
             page_ref=page_ref,
             content_key=projection.content_key,
             projection_hash=projection.desired_projection_hash,
-            output_hash=canonical_json_sha256(
-                {"children": list(copied_children), "properties": managed_properties}
-            ),
+            output_hash=canonical_json_sha256({"children": list(copied_children), "properties": managed_properties}),
             properties=properties,
             managed_properties=managed_properties,
             children=copied_children,
@@ -867,7 +863,9 @@ class NotionMockServer:
             for item in self.views.values()
             if item.data_source_id == specification.data_source_id and item.name == specification.name
         )
-        view_ref = str(uuid.uuid5(_MOCK_NAMESPACE, f"view:{specification.data_source_id}:{specification.name}:{duplicate}"))
+        view_ref = str(
+            uuid.uuid5(_MOCK_NAMESPACE, f"view:{specification.data_source_id}:{specification.name}:{duplicate}")
+        )
         view = NotionView(
             view_ref=view_ref,
             name=specification.name,

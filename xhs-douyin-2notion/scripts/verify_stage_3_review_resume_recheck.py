@@ -259,7 +259,8 @@ def validate_fact_and_historical_receipts() -> Check:
     _require(_sha256(RESUME_FACT) == RESUME_FACT_SHA256, "Resume contract was rewritten")
     task010 = fact.get("task_receipts", {}).get("task010", {})
     _require(
-        task010 == {
+        task010
+        == {
             "task_id": "TSK.x2n.adapters.010",
             "final_commit": TASK010_FINAL_COMMIT,
             "evidence_path": "evidence/adapters/TSK.x2n.adapters.010.json",
@@ -519,7 +520,12 @@ def validate_taskpack_and_current_transition() -> Check:
                 and state.get("tasks", {}).get("TSK.x2n.adapters.010") == "pass"
                 and all(
                     state.get("tasks", {}).get(task_id) == "pass"
-                    for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", "TSK.x2n.multimodal.004")
+                    for task_id in (
+                        "TSK.x2n.multimodal.001",
+                        "TSK.x2n.multimodal.002",
+                        "TSK.x2n.multimodal.003",
+                        "TSK.x2n.multimodal.004",
+                    )
                 )
                 and state.get("next_phase") == "PH.X2N.4.5"
                 and state.get("next_run") == "TSK.x2n.multimodal.005"
@@ -619,7 +625,9 @@ def validate_runtime_shape() -> Check:
     from x2n_companion.adapter_dispatch import CapabilityRegistry, SCOPE_BINDINGS  # noqa: PLC0415
     from x2n_companion.runtime import X2NRuntimeError  # noqa: PLC0415
 
-    _require(tuple(binding.scope_id for binding in SCOPE_BINDINGS) == tuple(SyncScopeId), "scope binding matrix drifted")
+    _require(
+        tuple(binding.scope_id for binding in SCOPE_BINDINGS) == tuple(SyncScopeId), "scope binding matrix drifted"
+    )
     manifest = CapabilityRegistry().evaluate(evaluated_at="2026-07-28T00:00:00Z")
     _require(
         [item.scope_id.value for item in manifest.outcomes] == EXPECTED_SCOPE_IDS
@@ -690,7 +698,8 @@ def validate_docs_and_public_boundary() -> Check:
                     and "status: STAGE_5_TASK001_NOTION_PROJECTION_CI_SYNTH_PASS_TASK002_NEXT" in prfaq_text
                     and "implementation_authorized: stage_5_task_002_next_single_phase_run" in prfaq_text
                     and "status: STAGE_5_TASK001_NOTION_PROJECTION_CI_SYNTH_PASS_TASK002_NEXT" in prd_text
-                    and "current_run_scope: stage_5_task001_notion_projection_pass_task002_next_real_notion_not_run" in prd_text
+                    and "current_run_scope: stage_5_task001_notion_projection_pass_task002_next_real_notion_not_run"
+                    in prd_text
                     and "implementation_authorized: stage_5_task_002_next_single_phase_run" in prd_text
                 )
                 or (
@@ -772,7 +781,10 @@ def validate_docs_and_public_boundary() -> Check:
 def validate_worktree() -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
     _require(_git(["branch", "--show-current"]) != "main", "recheck must not run in main")
-    _require(_git(["merge-base", "--is-ancestor", TASK010_FINAL_COMMIT, "HEAD"]) == "", "recheck does not descend from Task010 final")
+    _require(
+        _git(["merge-base", "--is-ancestor", TASK010_FINAL_COMMIT, "HEAD"]) == "",
+        "recheck does not descend from Task010 final",
+    )
     main_worktree: Path | None = None
     for block in _git(["worktree", "list", "--porcelain"]).split("\n\n"):
         fields = dict(line.split(" ", 1) for line in block.splitlines() if " " in line)
@@ -871,9 +883,13 @@ def write_evidence(checks: Sequence[Check]) -> None:
     for payload in (verification, gate, findings):
         _safe_payload(payload)
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-    VERIFICATION_EVIDENCE.write_text(json.dumps(verification, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    VERIFICATION_EVIDENCE.write_text(
+        json.dumps(verification, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     GATE_EVIDENCE.write_text(json.dumps(gate, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    FINDINGS_EVIDENCE.write_text(json.dumps(findings, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    FINDINGS_EVIDENCE.write_text(
+        json.dumps(findings, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def validate_evidence() -> Check:
@@ -888,7 +904,12 @@ def validate_evidence() -> Check:
         and verification.get("run_id") == RUN_ID
         and verification.get("status") == "PASS_CI_SYNTH_G3_RECHECK"
         and verification.get("execution")
-        == {"platform_calls": 0, "real_account_execution": "NOT_RUN", "stage_3_remote_upload": "NOT_RUN", "stage_4_executed": False}
+        == {
+            "platform_calls": 0,
+            "real_account_execution": "NOT_RUN",
+            "stage_3_remote_upload": "NOT_RUN",
+            "stage_4_executed": False,
+        }
         and all(item.get("status") == "PASS" for item in verification.get("checks", [])),
         "verification evidence drifted",
     )
@@ -955,10 +976,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             _require(not args.skip_acceptance, "evidence requires a fresh acceptance replay")
             write_evidence(checks)
             checks.append(validate_evidence())
-        print(json.dumps({"checks": [item.name for item in checks], "review_id": REVIEW_ID, "status": "PASS"}, sort_keys=True))
+        print(
+            json.dumps(
+                {"checks": [item.name for item in checks], "review_id": REVIEW_ID, "status": "PASS"}, sort_keys=True
+            )
+        )
         return 0
     except (OSError, RecheckError, subprocess.TimeoutExpired) as error:
-        print(json.dumps({"reason": str(error), "review_id": REVIEW_ID, "status": "FAIL_CLOSED"}, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps({"reason": str(error), "review_id": REVIEW_ID, "status": "FAIL_CLOSED"}, sort_keys=True),
+            file=sys.stderr,
+        )
         return 1
 
 

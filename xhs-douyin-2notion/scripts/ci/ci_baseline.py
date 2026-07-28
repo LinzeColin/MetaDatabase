@@ -243,7 +243,10 @@ def validate_unittest_skips(output: str) -> dict[str, Any]:
     summary = re.search(r"OK \(skipped=(\d+)\)", output)
     expected_count = int(policy["per_repetition"])
     _require(observed == expected, "unit test skip reason/count drifted")
-    _require(summary is not None and int(summary.group(1)) == expected_count, "unit test skip summary drifted")
+    if expected_count == 0:
+        _require(summary is None, "unit test unexpectedly reported skipped cases")
+    else:
+        _require(summary is not None and int(summary.group(1)) == expected_count, "unit test skip summary drifted")
     _require(sum(observed.values()) == expected_count, "optional skip policy count drifted")
     return {
         "explicit_nonblocking_skips": expected_count,

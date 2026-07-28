@@ -123,7 +123,9 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task002 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task002 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -204,7 +206,19 @@ def validate_scope_and_boundary() -> Check:
     _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task002 contains an out-of-scope change")
     files = [PROJECT_ROOT / path for path in scoped if (PROJECT_ROOT / path).is_file()]
     _safety_scan(files, commit=commit)
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
+    forbidden_suffixes = {
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+    }
     _require(
         not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped),
         "Task002 Runtime media or database entered public source",
@@ -384,13 +398,17 @@ def validate_task_and_transition() -> Check:
         )
         next_task = NEXT_TASK
     statuses = state.get("acceptance_status", {})
-    _require(statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass", "Task002 ASR acceptance state is invalid")
+    _require(
+        statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass",
+        "Task002 ASR acceptance state is invalid",
+    )
     if task005_completed:
         _require(
             statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
             and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
             and statuses.get("ACC.x2n.ai.004") == "pass_ci_synth_fusion_schema_injection_isolation_model_not_run"
-            and statuses.get("ACC.x2n.ai.005") == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
+            and statuses.get("ACC.x2n.ai.005")
+            == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
             and statuses.get("ACC.x2n.ai.006") == "pending_private_gold_classification_suggestion_only_ci_contract_pass"
             and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task005_provenance_cache_budget_cloud_zero",
             "Task002 historical acceptance boundary was not preserved after Task005 completion",
@@ -440,10 +458,7 @@ def validate_implementation_shape() -> Check:
     )
     _require(all(token in source for token in required), "Task002 local-first ASR implementation is incomplete")
     _require(
-        "raw_url" not in source
-        and "requests." not in source
-        and "httpx" not in source
-        and "sqlite3" not in source,
+        "raw_url" not in source and "requests." not in source and "httpx" not in source and "sqlite3" not in source,
         "Task002 ASR implementation crossed its no-network/no-persistence boundary",
     )
     _require(
@@ -552,7 +567,11 @@ def validate_acceptance_execution() -> Check:
     return Check(
         "fresh_synthetic_acceptance",
         "PASS",
-        {"cloud_uploads": 0, "private_gold": "NOT_RUN", "synthetic_unit_tests": receipt["metrics"]["synthetic_unit_tests"]},
+        {
+            "cloud_uploads": 0,
+            "private_gold": "NOT_RUN",
+            "synthetic_unit_tests": receipt["metrics"]["synthetic_unit_tests"],
+        },
     )
 
 
@@ -563,7 +582,12 @@ def validate_worktree() -> Check:
 
 
 def run_checks(*, verify_worktree: bool, run_acceptance: bool) -> list[Check]:
-    checks = [validate_scope_and_boundary(), validate_task_and_transition(), validate_implementation_shape(), validate_facts_and_evidence()]
+    checks = [
+        validate_scope_and_boundary(),
+        validate_task_and_transition(),
+        validate_implementation_shape(),
+        validate_facts_and_evidence(),
+    ]
     if verify_worktree:
         checks.append(validate_worktree())
     if run_acceptance:

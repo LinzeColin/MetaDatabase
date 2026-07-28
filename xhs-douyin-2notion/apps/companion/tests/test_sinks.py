@@ -677,9 +677,7 @@ class SinkTests(unittest.TestCase):
         notion = build_notion_projection(projection)
         self.assertGreater(len(notion.children), NOTION_MAX_CHILD_BLOCKS_PER_REQUEST)
         self.assertEqual(len(notion.child_batches), 2)
-        self.assertTrue(
-            all(len(batch) <= NOTION_MAX_CHILD_BLOCKS_PER_REQUEST for batch in notion.child_batches)
-        )
+        self.assertTrue(all(len(batch) <= NOTION_MAX_CHILD_BLOCKS_PER_REQUEST for batch in notion.child_batches))
         summary_start = next(
             index
             for index, block in enumerate(notion.children)

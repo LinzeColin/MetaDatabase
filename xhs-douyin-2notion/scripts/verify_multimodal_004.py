@@ -125,7 +125,9 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task004 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task004 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -206,7 +208,19 @@ def validate_scope_and_boundary() -> Check:
     _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task004 contains an out-of-scope change")
     files = [PROJECT_ROOT / path for path in scoped if (PROJECT_ROOT / path).is_file()]
     _safety_scan(files, commit=commit)
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
+    forbidden_suffixes = {
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+    }
     _require(
         not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped),
         "Task004 Runtime media or database entered public source",
@@ -331,7 +345,10 @@ def validate_task_and_transition() -> Check:
             and state.get("last_completed_phase") == PHASE
             and state.get("run_id") == RUN_ID
             and state.get("run_kind") == "single_dag_task_ci_synth_fusion_injection_model_not_run"
-            and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", TASK_ID))
+            and all(
+                state.get("tasks", {}).get(task_id) == "pass"
+                for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", TASK_ID)
+            )
             and state.get("next_phase") == "PH.X2N.4.5"
             and state.get("next_run") == NEXT_TASK
             and state.get("next_phase_authorized") is True
@@ -352,7 +369,8 @@ def validate_task_and_transition() -> Check:
             and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
             and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
             and statuses.get("ACC.x2n.ai.004") == "pass_ci_synth_fusion_schema_injection_isolation_model_not_run"
-            and statuses.get("ACC.x2n.ai.005") == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
+            and statuses.get("ACC.x2n.ai.005")
+            == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
             and statuses.get("ACC.x2n.ai.006") == "pending_private_gold_classification_suggestion_only_ci_contract_pass"
             and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task005_provenance_cache_budget_cloud_zero",
             "Task004 historical acceptance boundary was not preserved after Task005 completion",
@@ -423,7 +441,19 @@ def validate_facts_and_evidence() -> Check:
     )
     execution = evidence.get("execution", {})
     _require(
-        all(execution.get(field) == 0 for field in ("platform_calls", "model_calls", "tool_calls", "file_reads", "network_calls", "config_writes", "secret_reads", "cloud_uploads"))
+        all(
+            execution.get(field) == 0
+            for field in (
+                "platform_calls",
+                "model_calls",
+                "tool_calls",
+                "file_reads",
+                "network_calls",
+                "config_writes",
+                "secret_reads",
+                "cloud_uploads",
+            )
+        )
         and execution.get("real_account_execution") == "NOT_RUN",
         "Task004 evidence overclaims model or external execution",
     )
@@ -445,7 +475,8 @@ def validate_facts_and_evidence() -> Check:
     _require(
         isinstance(fusion, dict)
         and fusion.get("state") == "accepted_implementation"
-        and fusion.get("implementation_state") == "deterministic_local_extractive_fusion_ephemeral_artifacts_strict_grounded_parser_prompt_isolation_zero_side_effects_ci_synth_model_not_run",
+        and fusion.get("implementation_state")
+        == "deterministic_local_extractive_fusion_ephemeral_artifacts_strict_grounded_parser_prompt_isolation_zero_side_effects_ci_synth_model_not_run",
         "Fusion architecture decision drifted",
     )
     return Check(
@@ -490,7 +521,19 @@ def validate_acceptance_execution() -> Check:
         and receipt.get("metrics", {}).get("synthetic_unit_tests") >= 12
         and receipt.get("metrics", {}).get("same_input_duplicate_model_calls") == 0
         and receipt.get("metrics", {}).get("url_uploads") == 0
-        and all(execution.get(field) == 0 for field in ("platform_calls", "model_calls", "tool_calls", "file_reads", "network_calls", "config_writes", "secret_reads", "cloud_uploads")),
+        and all(
+            execution.get(field) == 0
+            for field in (
+                "platform_calls",
+                "model_calls",
+                "tool_calls",
+                "file_reads",
+                "network_calls",
+                "config_writes",
+                "secret_reads",
+                "cloud_uploads",
+            )
+        ),
         "Task004 acceptance receipt is invalid",
     )
     return Check(
@@ -507,7 +550,12 @@ def validate_worktree() -> Check:
 
 
 def run_checks(*, verify_worktree: bool, run_acceptance: bool) -> list[Check]:
-    checks = [validate_scope_and_boundary(), validate_task_and_transition(), validate_implementation_shape(), validate_facts_and_evidence()]
+    checks = [
+        validate_scope_and_boundary(),
+        validate_task_and_transition(),
+        validate_implementation_shape(),
+        validate_facts_and_evidence(),
+    ]
     if verify_worktree:
         checks.append(validate_worktree())
     if run_acceptance:

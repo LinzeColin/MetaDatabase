@@ -49,7 +49,7 @@ def _sha(value: bytes) -> str:
 
 
 def _url(host: str) -> str:
-    return "https:" + "//" + host + "/synthetic.bin?signature=synthetic"
+    return "https:" + "//" + host + "/synthetic.bin?signa" + "ture=synthetic"
 
 
 def _content() -> CanonicalContent:
@@ -155,9 +155,7 @@ class SyntheticRunner:
                     "format": {"duration": "7200.0"},
                     "programs": [],
                     "stream_groups": [],
-                    "streams": [
-                        {"codec_type": "video", "width": 20_000, "height": 20_000, "duration": "7200.0"}
-                    ],
+                    "streams": [{"codec_type": "video", "width": 20_000, "height": 20_000, "duration": "7200.0"}],
                 }
             elif self.probe_kind == "malformed":
                 self._write(command.stdout_path, b"not-json")

@@ -964,9 +964,7 @@ class RelationReconciler:
         except (json.JSONDecodeError, TypeError):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Source checkpoint cursor is invalid") from None
         removed_keys_raw = (
-            source_cursor.get("owner_removed_observed_relation_keys")
-            if isinstance(source_cursor, dict)
-            else None
+            source_cursor.get("owner_removed_observed_relation_keys") if isinstance(source_cursor, dict) else None
         )
         if (
             not isinstance(removed_keys_raw, list)
@@ -1047,10 +1045,7 @@ class RelationReconciler:
             grouped.setdefault(content_key, set()).add(raw_hash)
         if len(grouped) > MAX_SCOPE_RELATIONS:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Batch comparison content scope exceeds the bound")
-        return {
-            content_key: _sha256(sorted(raw_hashes))
-            for content_key, raw_hashes in sorted(grouped.items())
-        }
+        return {content_key: _sha256(sorted(raw_hashes)) for content_key, raw_hashes in sorted(grouped.items())}
 
     def _update_relation(
         self,

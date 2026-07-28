@@ -89,12 +89,22 @@ def build_sbom() -> dict[str, Any]:
     # Preserve the historical Foundation002 Contract SBOM. Later Task
     # dependencies are inventoried by an additive, Task-specific SBOM.
     _require("typescript" in registry_npm, "TypeScript build dependency missing")
-    _require(all(item.get("version") == "7.0.2" for item in registry_npm.values()), "TypeScript package version drifted")
-    _require(all(item.get("license") == "Apache-2.0" for item in registry_npm.values()), "TypeScript package license drifted")
-    _require(all("hasInstallScript" not in item for item in registry_npm.values()), "npm install script entered historical dependency set")
+    _require(
+        all(item.get("version") == "7.0.2" for item in registry_npm.values()), "TypeScript package version drifted"
+    )
+    _require(
+        all(item.get("license") == "Apache-2.0" for item in registry_npm.values()), "TypeScript package license drifted"
+    )
+    _require(
+        all("hasInstallScript" not in item for item in registry_npm.values()),
+        "npm install script entered historical dependency set",
+    )
     platform_packages = sorted(name for name in registry_npm if name != "typescript")
     _require(len(platform_packages) == 20, "TypeScript platform package set drifted")
-    _require(all(registry_npm[name].get("optional") is True for name in platform_packages), "TypeScript platform package is not optional")
+    _require(
+        all(registry_npm[name].get("optional") is True for name in platform_packages),
+        "TypeScript platform package is not optional",
+    )
 
     components: list[dict[str, Any]] = []
     for name, (version, license_id, role) in PYTHON_EXPECTED.items():

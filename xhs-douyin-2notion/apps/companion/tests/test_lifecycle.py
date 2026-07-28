@@ -324,7 +324,9 @@ class LifecycleTests(unittest.TestCase):
         connection = sqlite3.connect(self.paths.database)
         try:
             self.assertEqual(
-                connection.execute("SELECT status FROM content WHERE content_key = ?", (content.content_key,)).fetchone(),
+                connection.execute(
+                    "SELECT status FROM content WHERE content_key = ?", (content.content_key,)
+                ).fetchone(),
                 ("deleted_by_user",),
             )
             with self.assertRaises(sqlite3.IntegrityError):

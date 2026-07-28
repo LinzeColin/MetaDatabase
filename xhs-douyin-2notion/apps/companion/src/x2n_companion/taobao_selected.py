@@ -378,9 +378,7 @@ def evaluate_taobao_capability(receipt: TaobaoCapabilityReceipt) -> TaobaoCapabi
     }
     retention_missing = tuple(sorted(name for name, present in retention_requirements.items() if not present))
     if retention_missing:
-        return TaobaoCapabilityDecision(
-            "BLOCKED_RETENTION_UNKNOWN", False, False, retention_missing, False, *values
-        )
+        return TaobaoCapabilityDecision("BLOCKED_RETENTION_UNKNOWN", False, False, retention_missing, False, *values)
     requirements = {
         "application_approval": receipt.application_approved,
         "canonical_route_attestation": receipt.canonical_route_attested,

@@ -199,9 +199,14 @@ def _source_receipt(commit: str) -> str:
 def _safe_payload(payload: Any) -> None:
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True)
     _require("/" + "Users/" not in rendered, "local user path entered public review artifact")
-    _require("github" + "_pat_" not in rendered and "Bearer" + " " not in rendered, "credential entered public review artifact")
     _require(
-        re.search(r"(?:xhscdn|douyinvod|byteimg|pstatp|bilivideo|hdslb|kscdn|yximgs|sinaimg|tbcdn|alicdn)", rendered, re.I)
+        "github" + "_pat_" not in rendered and "Bearer" + " " not in rendered,
+        "credential entered public review artifact",
+    )
+    _require(
+        re.search(
+            r"(?:xhscdn|douyinvod|byteimg|pstatp|bilivideo|hdslb|kscdn|yximgs|sinaimg|tbcdn|alicdn)", rendered, re.I
+        )
         is None,
         "platform media CDN value entered public review artifact",
     )
@@ -380,8 +385,7 @@ def validate_taskpack_and_current_transition() -> Check:
     gates = {item.get("id"): item for item in taskpack.get("stage_gates", []) if isinstance(item, dict)}
     _require(
         all(
-            tasks.get(task_id, {}).get("status") == "completed"
-            and tasks[task_id].get("phase") == expected["phase"]
+            tasks.get(task_id, {}).get("status") == "completed" and tasks[task_id].get("phase") == expected["phase"]
             for task_id, expected in EXPECTED_TASKS.items()
         ),
         "Stage 4 task completion contract drifted",
@@ -463,8 +467,7 @@ def validate_public_private_boundary() -> Check:
     architecture = _load_json(ARCHITECTURE)
     g4_project_facts = (
         project.get("status") == "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
-        and project.get("stage_4_current_task")
-        == "G4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
+        and project.get("stage_4_current_task") == "G4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
     )
     task001_project_facts = (
         project.get("status") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
@@ -495,14 +498,16 @@ def validate_public_private_boundary() -> Check:
     )
     task001_architecture_facts = (
         architecture.get("phase") == "PH.X2N.5.1"
-        and architecture.get("status") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and architecture.get("status")
+        == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
         and architecture.get("review_id") == REVIEW_ID
         and architecture.get("stage_gate")
         == "g4_pass_ci_synth_preserved_stage5_task001_pass_task002_authorized_private_gold_disabled"
     )
     task002_architecture_facts = (
         architecture.get("phase") == "PH.X2N.5.2"
-        and architecture.get("status") == "stage_5_task002_markdown_library_ci_synth_pass_task003_next_real_runtime_not_run"
+        and architecture.get("status")
+        == "stage_5_task002_markdown_library_ci_synth_pass_task003_next_real_runtime_not_run"
         and architecture.get("review_id") == REVIEW_ID
         and architecture.get("stage_gate")
         == "g4_pass_ci_synth_preserved_stage5_task002_pass_task003_authorized_private_gold_disabled"
@@ -537,7 +542,12 @@ def validate_historical_task_and_g3_compatibility() -> Check:
         ("scripts/verify_multimodal_004.py", "--verify-worktree"),
         ("scripts/verify_multimodal_005.py", "--verify-worktree"),
         ("scripts/verify_adapters_010.py", "--verify-worktree", "--skip-external", "--require-evidence"),
-        ("scripts/verify_stage_3_review_resume_recheck.py", "--verify-worktree", "--skip-acceptance", "--require-evidence"),
+        (
+            "scripts/verify_stage_3_review_resume_recheck.py",
+            "--verify-worktree",
+            "--skip-acceptance",
+            "--require-evidence",
+        ),
         ("scripts/verify_stage_3_review_resume.py", "--require-evidence"),
     )
     for command in commands:
@@ -648,7 +658,10 @@ def validate_evidence() -> Check:
     for payload in (gate, findings, verification):
         _safe_payload(payload)
     review_commit = gate.get("review_commit")
-    _require(isinstance(review_commit, str) and re.fullmatch(r"[0-9a-f]{40}", review_commit) is not None, "G4 review commit is invalid")
+    _require(
+        isinstance(review_commit, str) and re.fullmatch(r"[0-9a-f]{40}", review_commit) is not None,
+        "G4 review commit is invalid",
+    )
     _git(["cat-file", "-e", f"{review_commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -670,7 +683,11 @@ def validate_evidence() -> Check:
         == 0,
         "current worktree no longer contains the G4 review commit",
     )
-    changed = [path for path in _git(["diff", "--name-only", "-z", f"{REVIEW_BASE_COMMIT}..{review_commit}"]).split("\0") if path]
+    changed = [
+        path
+        for path in _git(["diff", "--name-only", "-z", f"{REVIEW_BASE_COMMIT}..{review_commit}"]).split("\0")
+        if path
+    ]
     relative: list[str] = []
     for path in changed:
         prefix = "xhs-douyin-2notion/"
@@ -785,7 +802,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0
     except (OSError, ReviewError, subprocess.TimeoutExpired) as error:
-        print(json.dumps({"reason": str(error), "review_id": REVIEW_ID, "status": "FAIL_CLOSED"}, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps({"reason": str(error), "review_id": REVIEW_ID, "status": "FAIL_CLOSED"}, sort_keys=True),
+            file=sys.stderr,
+        )
         return 1
 
 

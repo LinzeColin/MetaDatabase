@@ -223,8 +223,13 @@ def _source_receipt(commit: str) -> str:
 
 def _safe_payload(payload: Any) -> None:
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-    _require("/" + "Users/" not in rendered and "/" + "home/" not in rendered, "local path entered public review artifact")
-    _require("github" + "_pat_" not in rendered and "Bearer" + " " not in rendered, "credential entered public review artifact")
+    _require(
+        "/" + "Users/" not in rendered and "/" + "home/" not in rendered, "local path entered public review artifact"
+    )
+    _require(
+        "github" + "_pat_" not in rendered and "Bearer" + " " not in rendered,
+        "credential entered public review artifact",
+    )
     _require(PLATFORM_CDN_PATTERN.search(rendered) is None, "platform media CDN value entered public review artifact")
 
 
@@ -335,7 +340,9 @@ def validate_review_fact_and_task_receipts() -> Check:
         "G5 authorization drifted",
     )
     _safe_payload(fact)
-    return Check("review_fact_and_immutable_task_receipts", "PASS", {"gate": "G5", "task_receipts": len(EXPECTED_TASKS)})
+    return Check(
+        "review_fact_and_immutable_task_receipts", "PASS", {"gate": "G5", "task_receipts": len(EXPECTED_TASKS)}
+    )
 
 
 def validate_taskpack_and_state_transition() -> Check:
@@ -382,7 +389,9 @@ def validate_taskpack_and_state_transition() -> Check:
         == {"gate_id": "G4", "remote_upload": "not_uploaded", "stage": "STG.X2N.4", "status": "pass"},
         "G5 state transition is invalid",
     )
-    return Check("taskpack_and_g5_transition", "PASS", {"next_task": "TSK.x2n.assurance.001", "stage_6_authorized": True})
+    return Check(
+        "taskpack_and_g5_transition", "PASS", {"next_task": "TSK.x2n.assurance.001", "stage_6_authorized": True}
+    )
 
 
 def validate_g4_preservation() -> Check:
@@ -404,7 +413,9 @@ def validate_g4_preservation() -> Check:
         and evidence.get("review_commit") == "ec76e812ca47e1c943fb6193c197bb16d4eead6e",
         "G4 evidence identity drifted",
     )
-    return Check("immutable_g4_predecessor", "PASS", {"g4_evidence_commit": G4_EVIDENCE_COMMIT, "g4_status": "PASS_CI_SYNTH"})
+    return Check(
+        "immutable_g4_predecessor", "PASS", {"g4_evidence_commit": G4_EVIDENCE_COMMIT, "g4_status": "PASS_CI_SYNTH"}
+    )
 
 
 def validate_public_private_boundary() -> Check:
@@ -432,9 +443,17 @@ def validate_public_private_boundary() -> Check:
     )
     contract = RUN_CONTRACT.read_text(encoding="utf-8")
     report = REPORT.read_text(encoding="utf-8")
-    for token in (REVIEW_ID, RUN_ID, "不执行新的 DAG Task", "不上传、不部署、不发布", "Alpha、Beta、固定健康观察或 soak"):
+    for token in (
+        REVIEW_ID,
+        RUN_ID,
+        "不执行新的 DAG Task",
+        "不上传、不部署、不发布",
+        "Alpha、Beta、固定健康观察或 soak",
+    ):
         _require(token in contract or token in report, "G5 public run boundary is incomplete")
-    return Check("documents_and_public_private_boundary", "PASS", {"controls_scanned": len(controls), "sensitive_value_hits": 0})
+    return Check(
+        "documents_and_public_private_boundary", "PASS", {"controls_scanned": len(controls), "sensitive_value_hits": 0}
+    )
 
 
 def _json_line(output: str) -> dict[str, Any]:
@@ -508,7 +527,10 @@ def validate_fresh_acceptance() -> Check:
     return Check(
         "fresh_ci_synth_g5_acceptance",
         "PASS",
-        {"g4_synthetic_unit_tests": receipt["metrics"]["g4_synthetic_unit_tests"], "stage_5_synthetic_unit_tests": receipt["metrics"]["stage_5_synthetic_unit_tests"]},
+        {
+            "g4_synthetic_unit_tests": receipt["metrics"]["g4_synthetic_unit_tests"],
+            "stage_5_synthetic_unit_tests": receipt["metrics"]["stage_5_synthetic_unit_tests"],
+        },
     )
 
 
@@ -517,7 +539,10 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     branch = _git(("branch", "--show-current"))
     _require(branch not in {"", "main"}, "G5 review must run in a non-main worktree")
     _require(
-        re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", _git(("config", "--local", "--get", "remote.origin.url")))
+        re.fullmatch(
+            r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?",
+            _git(("config", "--local", "--get", "remote.origin.url")),
+        )
         is not None,
         "wrong or authenticated persisted origin",
     )
@@ -529,20 +554,34 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
             main_path = Path(worktree)
             break
     _require(main_path is not None and _git(("branch", "--show-current"), cwd=main_path) == "main", "main unavailable")
-    main_paths = _git(("-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"), cwd=main_path).splitlines()
+    main_paths = _git(
+        ("-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"), cwd=main_path
+    ).splitlines()
     _require(sum("xhs-douyin-2notion" in item for item in main_paths) == 0, "main dirty state overlaps x2n")
     _require(allow_external_main_dirty or not main_paths, "MetaDatabase main worktree is dirty")
     _require(
-        subprocess.run(("git", "merge-base", "--is-ancestor", REVIEW_BASE_COMMIT, "HEAD"), cwd=REPOSITORY_ROOT, stdin=subprocess.DEVNULL, check=False).returncode == 0,
+        subprocess.run(
+            ("git", "merge-base", "--is-ancestor", REVIEW_BASE_COMMIT, "HEAD"),
+            cwd=REPOSITORY_ROOT,
+            stdin=subprocess.DEVNULL,
+            check=False,
+        ).returncode
+        == 0,
         "G5 review does not descend from Task005 evidence receipt",
     )
-    return Check("worktree_isolation", "PASS", {"branch": branch, "external_main_dirty_paths": len(main_paths), "main_mutated": False})
+    return Check(
+        "worktree_isolation",
+        "PASS",
+        {"branch": branch, "external_main_dirty_paths": len(main_paths), "main_mutated": False},
+    )
 
 
 def _review_commit_from_evidence() -> str:
     gate = _load_json(GATE_EVIDENCE)
     commit = gate.get("review_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "G5 review commit is invalid")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "G5 review commit is invalid"
+    )
     _git(("cat-file", "-e", f"{commit}^{{commit}}"))
     return commit
 
@@ -555,16 +594,40 @@ def validate_evidence_and_scope() -> Check:
         _safe_payload(payload)
     review_commit = _review_commit_from_evidence()
     _require(
-        subprocess.run(("git", "merge-base", "--is-ancestor", REVIEW_BASE_COMMIT, review_commit), cwd=REPOSITORY_ROOT, stdin=subprocess.DEVNULL, check=False).returncode == 0
-        and subprocess.run(("git", "merge-base", "--is-ancestor", review_commit, "HEAD"), cwd=REPOSITORY_ROOT, stdin=subprocess.DEVNULL, check=False).returncode == 0,
+        subprocess.run(
+            ("git", "merge-base", "--is-ancestor", REVIEW_BASE_COMMIT, review_commit),
+            cwd=REPOSITORY_ROOT,
+            stdin=subprocess.DEVNULL,
+            check=False,
+        ).returncode
+        == 0
+        and subprocess.run(
+            ("git", "merge-base", "--is-ancestor", review_commit, "HEAD"),
+            cwd=REPOSITORY_ROOT,
+            stdin=subprocess.DEVNULL,
+            check=False,
+        ).returncode
+        == 0,
         "G5 review commit ancestry is invalid",
     )
-    changed = [item for item in _git(("diff", "--name-only", "-z", f"{REVIEW_BASE_COMMIT}..{review_commit}")).split("\0") if item]
+    changed = [
+        item
+        for item in _git(("diff", "--name-only", "-z", f"{REVIEW_BASE_COMMIT}..{review_commit}")).split("\0")
+        if item
+    ]
     relative = [_scope_name(item) for item in changed]
-    _require(changed and all(item is not None for item in relative) and set(relative) == SOURCE_CHANGED_EXACT, "G5 source scope drifted")
+    _require(
+        changed and all(item is not None for item in relative) and set(relative) == SOURCE_CHANGED_EXACT,
+        "G5 source scope drifted",
+    )
     current = [item for item in _git(("diff", "--name-only", "-z", f"{REVIEW_BASE_COMMIT}..HEAD")).split("\0") if item]
     current_relative = [_scope_name(item) for item in current]
-    _require(current and all(item is not None for item in current_relative) and set(current_relative) <= CURRENT_ALLOWED_EXACT, "G5 current scope escaped allowed paths")
+    _require(
+        current
+        and all(item is not None for item in current_relative)
+        and set(current_relative) <= CURRENT_ALLOWED_EXACT,
+        "G5 current scope escaped allowed paths",
+    )
     _require(
         gate
         == {
@@ -618,11 +681,21 @@ def validate_evidence_and_scope() -> Check:
         and all(item.get("status") == "PASS" for item in verification.get("checks", [])),
         "G5 verification evidence drifted",
     )
-    return Check("g5_evidence_and_scope", "PASS", {"evidence_files": 3, "review_source": "verified", "current_paths": len(current_relative)})
+    return Check(
+        "g5_evidence_and_scope",
+        "PASS",
+        {"evidence_files": 3, "review_source": "verified", "current_paths": len(current_relative)},
+    )
 
 
-def run_checks(*, verify_worktree: bool, allow_external_main_dirty: bool, run_acceptance: bool, require_evidence: bool) -> list[Check]:
-    checks = [validate_review_fact_and_task_receipts(), validate_taskpack_and_state_transition(), validate_g4_preservation()]
+def run_checks(
+    *, verify_worktree: bool, allow_external_main_dirty: bool, run_acceptance: bool, require_evidence: bool
+) -> list[Check]:
+    checks = [
+        validate_review_fact_and_task_receipts(),
+        validate_taskpack_and_state_transition(),
+        validate_g4_preservation(),
+    ]
     if verify_worktree:
         checks.insert(0, validate_worktree(allow_external_main_dirty))
     if run_acceptance:

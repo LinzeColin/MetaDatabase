@@ -299,13 +299,11 @@ def validate_task_and_state() -> Check:
     _require(_field(task, "status") == "completed", "Adapters007 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.3" and _field(task, "phase") == PHASE, "Task routing drifted")
     _require(
-        _list_field(task, "depends_on")
-        == ["TSK.x2n.adapters.001", "TSK.x2n.skeleton.007", "TSK.x2n.skeleton.004"],
+        _list_field(task, "depends_on") == ["TSK.x2n.adapters.001", "TSK.x2n.skeleton.007", "TSK.x2n.skeleton.004"],
         "Adapters007 dependency drifted",
     )
     _require(
-        _list_field(task, "acceptance_ids")
-        == ["ACC.x2n.ks.001", "ACC.x2n.ks.002", "ACC.x2n.batch.001"],
+        _list_field(task, "acceptance_ids") == ["ACC.x2n.ks.001", "ACC.x2n.ks.002", "ACC.x2n.batch.001"],
         "Adapters007 Acceptance drifted",
     )
     _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Task changed beyond status")
@@ -645,8 +643,7 @@ def validate_fixtures() -> Check:
     _require(len(cases) == 43 and len(set(cases)) == 43, "Adapters007 fixture cases drifted")
     global_manifest = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST)
     _require(
-        global_manifest.get("manifest_id") == "FIXTURE.X2N.016"
-        and global_manifest.get("phase") == PHASE,
+        global_manifest.get("manifest_id") == "FIXTURE.X2N.016" and global_manifest.get("phase") == PHASE,
         "global fixture manifest identity drifted",
     )
     global_rows = global_manifest.get("fixtures", [])

@@ -291,9 +291,7 @@ class BilibiliSelectedTests(unittest.TestCase):
         self.assertEqual(receipt.observation_count, 20)
         self.assertEqual(receipt.next_sequence, 1)
         self.assertFalse(receipt.platform_killed)
-        relations = self._rows(
-            "SELECT relation_type, confirmed_by, source_collection_id, status FROM user_relation"
-        )
+        relations = self._rows("SELECT relation_type, confirmed_by, source_collection_id, status FROM user_relation")
         self.assertEqual({row["relation_type"] for row in relations}, {"saved_current"})
         self.assertEqual({row["confirmed_by"] for row in relations}, {"owner"})
         self.assertEqual({row["source_collection_id"] for row in relations}, {SELECTION_ID})

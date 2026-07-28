@@ -247,7 +247,9 @@ class CapabilityRegistry:
     def __init__(self, inputs: Mapping[SyncScopeId, CapabilityGateInputs] | None = None) -> None:
         actual = dict(inputs) if inputs is not None else {scope: CapabilityGateInputs() for scope in SyncScopeId}
         if set(actual) != set(SyncScopeId):
-            raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability scope input registry is incomplete")
+            raise X2NRuntimeError(
+                ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability scope input registry is incomplete"
+            )
         if any(not isinstance(value, CapabilityGateInputs) for value in actual.values()):
             raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability input registry is invalid")
         self._inputs = actual

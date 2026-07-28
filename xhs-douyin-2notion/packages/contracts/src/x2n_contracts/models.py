@@ -660,7 +660,11 @@ def parse_native_message(raw: bytes | str, *, origin: str, policy: NativeHostPol
     try:
         request = NativeMessageRequest.model_validate_json(decoded).root
     except ValidationError as error:
-        code = ErrorCode.UNKNOWN_FIELD if any(item.get("type") == "extra_forbidden" for item in error.errors()) else ErrorCode.INVALID_INPUT
+        code = (
+            ErrorCode.UNKNOWN_FIELD
+            if any(item.get("type") == "extra_forbidden" for item in error.errors())
+            else ErrorCode.INVALID_INPUT
+        )
         raise ContractViolation(code, "消息未通过严格 Schema") from error
     return request
 

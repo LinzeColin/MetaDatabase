@@ -56,9 +56,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
         taskpack = VERIFY._load_yaml_unique(VERIFY.TASKPACK)
         changed = copy.deepcopy(taskpack)
         changed["execution_policy"]["previous_stage_gate_pass_required"] = False
-        stage_4_entry = next(
-            item for item in changed["tasks"] if item["id"] == "TSK.x2n.multimodal.001"
-        )
+        stage_4_entry = next(item for item in changed["tasks"] if item["id"] == "TSK.x2n.multimodal.001")
         stage_4_entry["depends_on"].remove(VERIFY.NEXT_TASK)
         with self.assertRaises(VERIFY.ResumeError):
             VERIFY._validate_taskpack_payload(changed)
@@ -94,10 +92,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
     def test_assurance005_in_task_output_cannot_be_a_start_condition(self) -> None:
         taskpack = VERIFY._load_yaml_unique(VERIFY.TASKPACK)
         changed = copy.deepcopy(taskpack)
-        task = next(
-            item for item in changed["tasks"]
-            if item["id"] == "TSK.x2n.assurance.005"
-        )
+        task = next(item for item in changed["tasks"] if item["id"] == "TSK.x2n.assurance.005")
         task["task_start_conditions"].append("eighty-item owner mvp passes")
         with self.assertRaises(VERIFY.ResumeError):
             VERIFY._validate_taskpack_payload(changed)
@@ -154,9 +149,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
     def test_capability_snapshot_cardinality_cannot_hide_technical_veto(self) -> None:
         fact = json.loads(VERIFY.RESUME_FACT.read_text(encoding="utf-8"))
         changed = copy.deepcopy(fact)
-        changed["capability_terminal_contract"]["persistence"] = (
-            "ONE_DERIVED_RUNTIME_OUTCOME_ROW_PER_SCOPE"
-        )
+        changed["capability_terminal_contract"]["persistence"] = "ONE_DERIVED_RUNTIME_OUTCOME_ROW_PER_SCOPE"
         changed["capability_terminal_contract"]["technical_reason_semantics"] = (
             "TECHNICAL_CAN_SETTLE_AS_DISABLED_EXTERNAL_GATE"
         )
@@ -168,7 +161,8 @@ class Stage3ReviewResumeTests(unittest.TestCase):
         changed = copy.deepcopy(taskpack)
         task = next(item for item in changed["tasks"] if item["id"] == VERIFY.NEXT_TASK)
         task["outputs"] = [
-            output for output in task["outputs"]
+            output
+            for output in task["outputs"]
             if "versioned discriminated GET_CAPABILITIES result" not in output
             and "saved_current allowed in START_SYNC only" not in output
         ]
@@ -178,14 +172,8 @@ class Stage3ReviewResumeTests(unittest.TestCase):
     def test_assurance005_owned_acceptance_set_is_exact(self) -> None:
         taskpack = VERIFY._load_yaml_unique(VERIFY.TASKPACK)
         changed = copy.deepcopy(taskpack)
-        changed["execution_policy"]["assurance_005_owned_in_task_acceptance_ids"].remove(
-            "ACC.x2n.data.002"
-        )
-        release_task = next(
-            item
-            for item in changed["tasks"]
-            if item["id"] == "TSK.x2n.assurance.005"
-        )
+        changed["execution_policy"]["assurance_005_owned_in_task_acceptance_ids"].remove("ACC.x2n.data.002")
+        release_task = next(item for item in changed["tasks"] if item["id"] == "TSK.x2n.assurance.005")
         release_task["acceptance_ids"].remove("ACC.x2n.data.002")
         with self.assertRaises(VERIFY.ResumeError):
             VERIFY._validate_taskpack_payload(changed)
@@ -193,9 +181,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
     def test_time_machine_target_cannot_be_claimed_implemented_in_resume(self) -> None:
         fact = json.loads(VERIFY.RESUME_FACT.read_text(encoding="utf-8"))
         changed = copy.deepcopy(fact)
-        changed["data_routing"]["os_backup_policy"] = (
-            "ENTIRE_X2N_DATA_ROOT_EXCLUDED_AND_VERIFIED"
-        )
+        changed["data_routing"]["os_backup_policy"] = "ENTIRE_X2N_DATA_ROOT_EXCLUDED_AND_VERIFIED"
         with self.assertRaises(VERIFY.ResumeError):
             VERIFY._validate_data_routing_payload(changed)
 
@@ -203,9 +189,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
         allowed = next(iter(VERIFY.RESUME_CHANGED_PATH_ALLOWLIST))
         self.assertEqual(VERIFY._validate_changed_scope([allowed]), [allowed])
         with self.assertRaises(VERIFY.ResumeError):
-            VERIFY._validate_changed_scope(
-                ["xhs-douyin-2notion/packages/companion/src/unrelated.py"]
-            )
+            VERIFY._validate_changed_scope(["xhs-douyin-2notion/packages/companion/src/unrelated.py"])
 
     def test_lane_report_cannot_vacuously_pass_without_exact_gates(self) -> None:
         baseline = {
@@ -253,9 +237,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
                 VERIFY._validate_lane_report_payload(changed)
         with self.subTest("duplicate"):
             changed = copy.deepcopy(baseline)
-            changed["blocking_results"][-1] = copy.deepcopy(
-                changed["blocking_results"][0]
-            )
+            changed["blocking_results"][-1] = copy.deepcopy(changed["blocking_results"][0])
             with self.assertRaises(VERIFY.ResumeError):
                 VERIFY._validate_lane_report_payload(changed)
         with self.subTest("remote"):
@@ -278,9 +260,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
         self.assertNotIn("real_platform_calls", decision)
 
     def test_active_product_contract_has_no_prerelease_label_or_version(self) -> None:
-        product_text = "\n".join(
-            path.read_text(encoding="utf-8") for path in VERIFY.ACTIVE_PRODUCT_DOCS
-        )
+        product_text = "\n".join(path.read_text(encoding="utf-8") for path in VERIFY.ACTIVE_PRODUCT_DOCS)
         self.assertIsNone(VERIFY.re.search(r"\b(?:alpha|beta)\b", product_text, flags=VERIFY.re.IGNORECASE))
         self.assertIsNone(VERIFY.re.search(r"v0\.0\.0\.1-[a-z0-9]", product_text, flags=VERIFY.re.IGNORECASE))
 

@@ -176,7 +176,9 @@ def _task_relative(path: str) -> str | None:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task002 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task002 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -217,14 +219,31 @@ def _safety_scan(paths: Iterable[Path], *, commit: str) -> None:
 
 def validate_scope_and_boundary() -> Check:
     commit = _task_commit()
-    changed = [item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item]
+    changed = [
+        item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item
+    ]
     relative = [_task_relative(item) for item in changed]
     _require(changed and all(item is not None for item in relative), "Task002 changed scope escaped x2n")
     scoped = sorted(item for item in relative if item is not None)
     _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task002 changed scope is invalid")
     _safety_scan([PROJECT_ROOT / path for path in scoped if (PROJECT_ROOT / path).is_file()], commit=commit)
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
-    _require(not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped), "Task002 runtime artifact entered public source")
+    forbidden_suffixes = {
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+    }
+    _require(
+        not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped),
+        "Task002 runtime artifact entered public source",
+    )
     return Check(
         "scope_and_public_private_boundary",
         "PASS",
@@ -306,7 +325,10 @@ def validate_task_and_state() -> Check:
         "ACC.x2n.md.001": "pass_ci_synth_six_platform_fixed_path_valid_frontmatter_cdn_zero_atomic_provenance",
         "ACC.x2n.md.002": "pass_ci_synth_ten_thousand_sqlite_rebuild_manifest_match_category_index_links_zero_duplicate_copies",
     }
-    _require(all(state.get("acceptance_status", {}).get(key) == value for key, value in expected.items()), "Task002 acceptance state drifted")
+    _require(
+        all(state.get("acceptance_status", {}).get(key) == value for key, value in expected.items()),
+        "Task002 acceptance state drifted",
+    )
     return Check(
         "taskpack_and_state_transition",
         "PASS",
@@ -463,7 +485,9 @@ def run_checks(
     if run_acceptance:
         checks.append(validate_fresh_acceptance())
     if require_evidence:
-        checks.extend((validate_scope_and_boundary(), validate_predecessor(allow_external_main_dirty), validate_evidence()))
+        checks.extend(
+            (validate_scope_and_boundary(), validate_predecessor(allow_external_main_dirty), validate_evidence())
+        )
     return checks
 
 

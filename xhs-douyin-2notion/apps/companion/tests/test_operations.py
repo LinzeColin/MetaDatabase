@@ -285,7 +285,9 @@ class OperationsTests(unittest.TestCase):
 
         server, worker = self._notion_worker()
         reconciled = self.service.startup_recovery(now="2026-07-29T00:00:03Z", notion_worker=worker)
-        self.assertEqual((reconciled.notion_mode, server.page_create_count, len(server.pages)), ("explicit_worker", 1, 1))
+        self.assertEqual(
+            (reconciled.notion_mode, server.page_create_count, len(server.pages)), ("explicit_worker", 1, 1)
+        )
         repeated = self.service.startup_recovery(now="2026-07-29T00:00:04Z", notion_worker=worker)
         self.assertEqual((repeated.current_page_resumed, server.page_create_count, len(server.pages)), (0, 1, 1))
         self.assertEqual(self.store.counts()["artifact"], 1)

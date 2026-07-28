@@ -208,7 +208,9 @@ class CurrentPageOrchestrator:
             observation=observation,
             adapter_name=adapter_name,
             adapter_version=adapter_version,
-            fallback_from_job_id=(str(payload.fallback_from_job_id) if payload.fallback_from_job_id is not None else None),
+            fallback_from_job_id=(
+                str(payload.fallback_from_job_id) if payload.fallback_from_job_id is not None else None
+            ),
         )
         self._notify(transition_hook, TRANSITION_AFTER_CANONICAL)
         if receipt.state == "running":

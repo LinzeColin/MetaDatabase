@@ -93,13 +93,13 @@ def _error_response(
     return NativeMessageResponse.model_validate_json(
         json.dumps(
             {
-            "schema_version": "1.0",
-            "request_id": request_id,
-            "accepted": False,
-            "job_id": job_id,
-            "status": "rejected",
-            "error": error,
-            "capabilities": None,
+                "schema_version": "1.0",
+                "request_id": request_id,
+                "accepted": False,
+                "job_id": job_id,
+                "status": "rejected",
+                "error": error,
+                "capabilities": None,
             },
             ensure_ascii=False,
         )
@@ -116,13 +116,13 @@ def _accepted(
     return NativeMessageResponse.model_validate_json(
         json.dumps(
             {
-            "schema_version": "1.0",
-            "request_id": request_id,
-            "accepted": True,
-            "job_id": job_id,
-            "status": status,
-            "error": None,
-            "capabilities": capabilities.model_dump(mode="json") if capabilities is not None else None,
+                "schema_version": "1.0",
+                "request_id": request_id,
+                "accepted": True,
+                "job_id": job_id,
+                "status": status,
+                "error": None,
+                "capabilities": capabilities.model_dump(mode="json") if capabilities is not None else None,
             },
             ensure_ascii=False,
         )
@@ -163,10 +163,7 @@ def _capability_snapshot(store: CanonicalStore, registry: CapabilityRegistry) ->
 
 
 def _failed_job_response(*, request_id: str, job: SkeletonJob) -> NativeMessageResponse:
-    if (
-        job.failure_code is not ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE
-        or not job.fallback_eligible
-    ):
+    if job.failure_code is not ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE or not job.fallback_eligible:
         return _error_response(ErrorCode.DATA_INTEGRITY_FAILED, request_id=request_id, job_id=job.job_id)
     return _error_response(
         ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE,

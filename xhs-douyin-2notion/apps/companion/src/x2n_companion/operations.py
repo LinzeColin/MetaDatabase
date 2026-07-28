@@ -116,9 +116,7 @@ _FORBIDDEN_FIELD_NAMES = frozenset(
         "url",
     }
 )
-_EVENT_FIELDS = frozenset(
-    {"attempt", "component", "error_code", "event_id", "occurred_at", "run_id", "stage", "state"}
-)
+_EVENT_FIELDS = frozenset({"attempt", "component", "error_code", "event_id", "occurred_at", "run_id", "stage", "state"})
 _JOURNAL_FIELDS = frozenset({"events", "schema_version"})
 _DOCTOR_FIELDS = frozenset(
     {
@@ -264,8 +262,10 @@ def assert_diagnostic_safe(payload: object) -> None:
             return
         if value is None or isinstance(value, bool) or isinstance(value, int):
             return
-        if isinstance(value, str) and len(value) <= 512 and not any(
-            pattern.search(value) for pattern in _FORBIDDEN_VALUE_PATTERNS
+        if (
+            isinstance(value, str)
+            and len(value) <= 512
+            and not any(pattern.search(value) for pattern in _FORBIDDEN_VALUE_PATTERNS)
         ):
             return
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Diagnostic payload violated the allowlist")
@@ -395,7 +395,9 @@ class DiagnosticJournal:
         if len(raw["events"]) > MAX_JOURNAL_EVENTS:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Diagnostic journal is oversized")
         events = [DiagnosticEvent.from_safe_dict(item) for item in raw["events"]]
-        assert_diagnostic_safe({"events": [item.safe_dict() for item in events], "schema_version": DIAGNOSTIC_SCHEMA_VERSION})
+        assert_diagnostic_safe(
+            {"events": [item.safe_dict() for item in events], "schema_version": DIAGNOSTIC_SCHEMA_VERSION}
+        )
         return events
 
     def events(self, *, limit: int = 20) -> tuple[DiagnosticEvent, ...]:
@@ -449,9 +451,7 @@ def build_local_doctor_probe(
             for platform in PROFILE_PLATFORMS
         )
     home_value = values.get("HOME")
-    host_registered = bool(
-        home_value and Path(home_value).is_absolute() and native_host_registered(Path(home_value))
-    )
+    host_registered = bool(home_value and Path(home_value).is_absolute() and native_host_registered(Path(home_value)))
     return DoctorProbe(
         extension_reachable=host_registered,
         native_host_registered=host_registered,
@@ -612,7 +612,9 @@ class OperationsService:
         if worker is None:
             return "disabled_not_configured", {"not_run": 1}
         if worker.store is not self.store:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion recovery worker does not match Canonical Store")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Notion recovery worker does not match Canonical Store"
+            )
         deliveries: Counter[str] = Counter()
         for canonical in self.store.projection_snapshots():
             result = worker.reconcile(build_sink_projection(canonical), now=now)

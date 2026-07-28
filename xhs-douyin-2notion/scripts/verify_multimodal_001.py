@@ -120,7 +120,9 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task001 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task001 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -275,7 +277,8 @@ def validate_task_and_transition() -> Check:
         and task.get("stage") == "STG.X2N.4"
         and task.get("phase") == PHASE
         and task.get("acceptance_ids") == ["ACC.x2n.media.002", "ACC.x2n.media.004", "ACC.x2n.rel.004"]
-        and task.get("depends_on") == [
+        and task.get("depends_on")
+        == [
             "TSK.x2n.skeleton.003",
             "TSK.x2n.skeleton.004",
             "TSK.x2n.adapters.010",
@@ -433,7 +436,10 @@ def validate_implementation_shape() -> Check:
         "subprocess.Popen",
     )
     _require(all(token in source for token in required), "Task001 bounded preprocessing implementation is incomplete")
-    _require("derived_media_workspace" in source and "_lease_derived_path" in lease_source, "Task001 cleanup integration is incomplete")
+    _require(
+        "derived_media_workspace" in source and "_lease_derived_path" in lease_source,
+        "Task001 cleanup integration is incomplete",
+    )
     _require(
         "raw_url" not in source
         and "reserve_media_lease" not in source
@@ -496,7 +502,8 @@ def validate_facts_and_evidence() -> Check:
     _require(
         isinstance(media, dict)
         and media.get("state") == "accepted_implementation"
-        and media.get("implementation_state") == "lease_scoped_bounded_ffmpeg_ffprobe_audio_keyframe_dedup_and_derivative_cleanup_ci_synth_pass",
+        and media.get("implementation_state")
+        == "lease_scoped_bounded_ffmpeg_ffprobe_audio_keyframe_dedup_and_derivative_cleanup_ci_synth_pass",
         "media architecture decision drifted",
     )
     return Check(
@@ -553,7 +560,12 @@ def validate_worktree() -> Check:
 
 
 def run_checks(*, verify_worktree: bool, run_acceptance: bool) -> list[Check]:
-    checks = [validate_scope_and_boundary(), validate_task_and_transition(), validate_implementation_shape(), validate_facts_and_evidence()]
+    checks = [
+        validate_scope_and_boundary(),
+        validate_task_and_transition(),
+        validate_implementation_shape(),
+        validate_facts_and_evidence(),
+    ]
     if verify_worktree:
         checks.append(validate_worktree())
     if run_acceptance:

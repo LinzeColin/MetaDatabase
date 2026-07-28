@@ -54,19 +54,19 @@ def _category(
     return TaxonomyCategory.model_validate_json(
         json.dumps(
             {
-            "schema_version": "1.0",
-            "category_id": str(category_id),
-            "name": name,
-            "slug": slug,
-            "description": f"Owner managed {name} category.",
-            "aliases": list(aliases),
-            "positive_examples": list(positive_examples),
-            "negative_examples": list(negative_examples),
-            "priority": 10,
-            "enabled": enabled,
-            "version": version,
-            "level": 1,
-            "created_by": "owner",
+                "schema_version": "1.0",
+                "category_id": str(category_id),
+                "name": name,
+                "slug": slug,
+                "description": f"Owner managed {name} category.",
+                "aliases": list(aliases),
+                "positive_examples": list(positive_examples),
+                "negative_examples": list(negative_examples),
+                "priority": 10,
+                "enabled": enabled,
+                "version": version,
+                "level": 1,
+                "created_by": "owner",
             },
             ensure_ascii=False,
         )
@@ -78,22 +78,22 @@ def _content(index: int) -> CanonicalContent:
     return CanonicalContent.model_validate_json(
         json.dumps(
             {
-            "schema_version": "1.0",
-            "content_key": build_content_key("xiaohongshu", content_id),
-            "platform": "xiaohongshu",
-            "platform_content_id": content_id,
-            "canonical_source_url": f"https://www.xiaohongshu.com/content/{content_id}",
-            "content_type": "video",
-            "title": f"Synthetic taxonomy content {index}",
-            "description": "Synthetic content used only by the taxonomy contract test.",
-            "author_name": "Synthetic owner",
-            "author_platform_id": "synthetic-owner",
-            "published_at": "2026-07-28T00:00:00Z",
-            "content_hash": _sha(f"content:{index}"),
-            "first_observed_at": "2026-07-28T00:00:00Z",
-            "last_observed_at": "2026-07-28T00:00:00Z",
-            "record_version": 1,
-            "status": "active",
+                "schema_version": "1.0",
+                "content_key": build_content_key("xiaohongshu", content_id),
+                "platform": "xiaohongshu",
+                "platform_content_id": content_id,
+                "canonical_source_url": f"https://www.xiaohongshu.com/content/{content_id}",
+                "content_type": "video",
+                "title": f"Synthetic taxonomy content {index}",
+                "description": "Synthetic content used only by the taxonomy contract test.",
+                "author_name": "Synthetic owner",
+                "author_platform_id": "synthetic-owner",
+                "published_at": "2026-07-28T00:00:00Z",
+                "content_hash": _sha(f"content:{index}"),
+                "first_observed_at": "2026-07-28T00:00:00Z",
+                "last_observed_at": "2026-07-28T00:00:00Z",
+                "record_version": 1,
+                "status": "active",
             },
             ensure_ascii=False,
         )
@@ -105,27 +105,29 @@ def _artifact(content: CanonicalContent, index: int) -> Artifact:
     return Artifact.model_validate_json(
         json.dumps(
             {
-            "schema_version": "1.0",
-            "artifact_id": f"art_taxonomy{index:05d}",
-            "artifact_key": build_artifact_key(content.content_key, "fusion_summary", input_hash, "taxonomy-test-1"),
-            "content_key": content.content_key,
-            "artifact_type": "fusion_summary",
-            "input_hash": input_hash,
-            "processor": "taxonomy-test",
-            "processor_version": "taxonomy-test-1",
-            "model_provider": None,
-            "model_name": None,
-            "model_snapshot": None,
-            "prompt_version": None,
-            "language": "zh-CN",
-            "quality": {"grade": "high", "metric_name": "confidence", "metric_value": 1.0},
-            "private_payload_present": True,
-            "private_payload_ref": f"prv_taxonomy{index:05d}",
-            "private_payload_hash": _sha(f"payload:{index}"),
-            "append_only": True,
-            "artifact_sequence": 1,
-            "created_at": "2026-07-28T00:00:00Z",
-            "supersedes_artifact_id": None,
+                "schema_version": "1.0",
+                "artifact_id": f"art_taxonomy{index:05d}",
+                "artifact_key": build_artifact_key(
+                    content.content_key, "fusion_summary", input_hash, "taxonomy-test-1"
+                ),
+                "content_key": content.content_key,
+                "artifact_type": "fusion_summary",
+                "input_hash": input_hash,
+                "processor": "taxonomy-test",
+                "processor_version": "taxonomy-test-1",
+                "model_provider": None,
+                "model_name": None,
+                "model_snapshot": None,
+                "prompt_version": None,
+                "language": "zh-CN",
+                "quality": {"grade": "high", "metric_name": "confidence", "metric_value": 1.0},
+                "private_payload_present": True,
+                "private_payload_ref": f"prv_taxonomy{index:05d}",
+                "private_payload_hash": _sha(f"payload:{index}"),
+                "append_only": True,
+                "artifact_sequence": 1,
+                "created_at": "2026-07-28T00:00:00Z",
+                "supersedes_artifact_id": None,
             },
             ensure_ascii=False,
         )
@@ -295,7 +297,9 @@ class TaxonomyTests(unittest.TestCase):
         snapshot = self.registry.snapshot()
         with ConstrainedClassifier().session() as session:
             finance = session.suggest(
-                ClassificationRequest("xiaohongshu:finance-test", (ClassificationSource("art_taxonomy00098", "quarterly earnings"),)),
+                ClassificationRequest(
+                    "xiaohongshu:finance-test", (ClassificationSource("art_taxonomy00098", "quarterly earnings"),)
+                ),
                 snapshot,
             )
         self.assertEqual(finance.disposition, "unclassified")
@@ -304,7 +308,9 @@ class TaxonomyTests(unittest.TestCase):
         self.store.ingest_bundle(content, artifacts=(artifact,))
         with ConstrainedClassifier().session() as session:
             ai = session.suggest(
-                ClassificationRequest(content.content_key, (ClassificationSource(artifact.artifact_id, "machine learning"),)),
+                ClassificationRequest(
+                    content.content_key, (ClassificationSource(artifact.artifact_id, "machine learning"),)
+                ),
                 snapshot,
             )
         disabled_classification = ai.to_classification(
@@ -397,7 +403,9 @@ class TaxonomyTests(unittest.TestCase):
         self.store.ingest_bundle(content, artifacts=(artifact,))
         with ConstrainedClassifier().session() as session:
             suggestion = session.suggest(
-                ClassificationRequest(content.content_key, (ClassificationSource(artifact.artifact_id, "machine learning"),)),
+                ClassificationRequest(
+                    content.content_key, (ClassificationSource(artifact.artifact_id, "machine learning"),)
+                ),
                 snapshot,
             )
         review = OwnerReviewService(self.store)

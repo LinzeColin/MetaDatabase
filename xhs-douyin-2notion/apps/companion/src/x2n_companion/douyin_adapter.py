@@ -218,8 +218,7 @@ class DouyinAdapter:
             isinstance(last_sequence, int) and not isinstance(last_sequence, bool) and last_sequence >= 0
         )
         valid_last_hash = value.get("last_batch_hash") is None or (
-            isinstance(value.get("last_batch_hash"), str)
-            and SHA256.fullmatch(value["last_batch_hash"]) is not None
+            isinstance(value.get("last_batch_hash"), str) and SHA256.fullmatch(value["last_batch_hash"]) is not None
         )
         outcomes = {
             "not_started",
@@ -248,8 +247,7 @@ class DouyinAdapter:
             and valid_last_hash
             and value.get("last_batch_hash") is not None
             and value.get("last_outcome") in outcomes - {"not_started"}
-            and value.get("next_sequence")
-            == last_sequence + (1 if value.get("last_outcome") == "ready" else 0)
+            and value.get("next_sequence") == last_sequence + (1 if value.get("last_outcome") == "ready" else 0)
             and value.get("error_evidence_count") >= len(value.get("last_error_codes", []))
         )
         if (

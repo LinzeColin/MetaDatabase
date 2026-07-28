@@ -362,7 +362,9 @@ def _historical_protected_paths() -> tuple[Path, ...]:
         _require(candidate.is_relative_to(PROJECT_ROOT), "historical receipt path escaped project")
         receipt_paths.append(candidate)
     protected = tuple(HISTORICAL_CORE_PATHS) + tuple(receipt_paths)
-    _require(len(protected) == 16 and len(set(protected)) == 16, "historical protected set must contain 16 unique files")
+    _require(
+        len(protected) == 16 and len(set(protected)) == 16, "historical protected set must contain 16 unique files"
+    )
     return tuple(sorted(protected, key=lambda item: item.relative_to(REPOSITORY_ROOT).as_posix()))
 
 
@@ -381,10 +383,7 @@ def _historical_manifest(protected: Iterable[Path]) -> tuple[int, str]:
 
 def _lane_input_paths() -> tuple[Path, ...]:
     output_path = VERIFICATION_EVIDENCE.relative_to(REPOSITORY_ROOT).as_posix()
-    paths = tuple(
-        REPOSITORY_ROOT / relative
-        for relative in sorted(RESUME_CHANGED_PATH_ALLOWLIST - {output_path})
-    )
+    paths = tuple(REPOSITORY_ROOT / relative for relative in sorted(RESUME_CHANGED_PATH_ALLOWLIST - {output_path}))
     _require(all(path.is_file() for path in paths), "lane input allowlist contains a missing source file")
     return paths
 
@@ -458,7 +457,8 @@ def _validate_resume_fact(fact: dict[str, Any]) -> None:
     )
     _validate_schema_instance(schema, fact)
     _require(
-        fact["decision"] == {
+        fact["decision"]
+        == {
             "review_status": "contract_versioned",
             "gate_id": "G3",
             "gate_status": "BLOCKED_TECHNICAL",
@@ -496,10 +496,8 @@ def _validate_resume_fact(fact: dict[str, Any]) -> None:
         and capability.get("ready_reason") == "CI_SYNTH_READY"
         and capability.get("technical_reason_semantics")
         == "GLOBAL_VETO_BEFORE_EXTERNAL_PRECEDENCE_FAIL_CLOSED_NO_LEGAL_TERMINAL_G3_BLOCKED"
-        and capability.get("runtime_authority")
-        == "SQLITE_CAPABILITY_GATE_OUTCOME_DERIVED_SNAPSHOT"
-        and capability.get("registry_role")
-        == "VERSIONED_INPUT_NOT_COMPETING_RUNTIME_STATE",
+        and capability.get("runtime_authority") == "SQLITE_CAPABILITY_GATE_OUTCOME_DERIVED_SNAPSHOT"
+        and capability.get("registry_role") == "VERSIONED_INPUT_NOT_COMPETING_RUNTIME_STATE",
         "capability terminal persistence, authority, or reason precedence drifted",
     )
     _require(
@@ -588,7 +586,10 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
     project = taskpack.get("project", {})
     authorization = taskpack.get("authorization", {})
     execution = taskpack.get("execution_policy", {})
-    _require(project.get("status") == "STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL", "Taskpack status drifted")
+    _require(
+        project.get("status") == "STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL",
+        "Taskpack status drifted",
+    )
     _require(project.get("owner_change_event") == CHANGE_EVENT, "Owner Change Event missing")
     _require(authorization.get("stage_3_review_resume") is True, "Resume is not authorized")
     _require(
@@ -608,8 +609,7 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
         "release gate order is circular or drifted",
     )
     _require(
-        execution.get("assurance_005_owned_in_task_acceptance_ids")
-        == EXPECTED_ASSURANCE_005_OWNED_ACCEPTANCES,
+        execution.get("assurance_005_owned_in_task_acceptance_ids") == EXPECTED_ASSURANCE_005_OWNED_ACCEPTANCES,
         "assurance.005 in-task Acceptance ownership set drifted",
     )
     _require(
@@ -633,8 +633,7 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
     acceptance_set = set(acceptances)
     for task in tasks:
         _require(
-            task.get("acceptance_ids")
-            and set(task["acceptance_ids"]).issubset(acceptance_set),
+            task.get("acceptance_ids") and set(task["acceptance_ids"]).issubset(acceptance_set),
             f"task acceptance trace drifted: {task.get('id')}",
         )
 
@@ -645,8 +644,7 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
     _require(stage_counts == EXPECTED_STAGE_COUNTS, f"stage task counts drifted: {stage_counts}")
 
     effort_totals = {
-        key: sum(item.get("effort_hours", {}).get(key, 0) for item in tasks)
-        for key in ("low", "likely", "high")
+        key: sum(item.get("effort_hours", {}).get(key, 0) for item in tasks) for key in ("low", "likely", "high")
     }
     _require(effort_totals == EXPECTED_EFFORTS, f"task effort arithmetic drifted: {effort_totals}")
     rollup = taskpack.get("effort_rollup_policy", {}).get("task_arithmetic_total", {})
@@ -687,8 +685,7 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
         "task010 dependencies drifted",
     )
     _require(
-        task010.get("acceptance_ids")
-        == ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"],
+        task010.get("acceptance_ids") == ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"],
         "task010 Acceptance contract drifted",
     )
     rendered010 = json.dumps(task010, ensure_ascii=False, sort_keys=True)
@@ -722,7 +719,9 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
     gates = {item.get("id"): item for item in taskpack.get("stage_gates", [])}
     _require(gates.get("G3", {}).get("pass_conditions") == EXPECTED_G3_CONDITIONS, "G3 conditions drifted")
     _require(NEXT_TASK in gates.get("G3", {}).get("requires_tasks", []), "G3 does not require task010")
-    _require(gates.get("G6", {}).get("pass_conditions") == EXPECTED_G6_CONDITIONS, "G6 direct go-live conditions drifted")
+    _require(
+        gates.get("G6", {}).get("pass_conditions") == EXPECTED_G6_CONDITIONS, "G6 direct go-live conditions drifted"
+    )
     _require("optional_future_backlog" not in taskpack, "fixed-delay future backlog key remains active")
 
     release_task = by_id.get("TSK.x2n.assurance.005", {})
@@ -811,8 +810,7 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
     for assurance_id in ("TSK.x2n.assurance.003", "TSK.x2n.assurance.005"):
         rendered = json.dumps(by_id.get(assurance_id, {}), ensure_ascii=False, sort_keys=True)
         _require(
-            "owner-mvp-plan" in rendered
-            and "legacy pre-release-named command" in rendered,
+            "owner-mvp-plan" in rendered and "legacy pre-release-named command" in rendered,
             f"{assurance_id} does not enforce active runtime terminology",
         )
 
@@ -846,10 +844,8 @@ def _validate_release_payload(fact: dict[str, Any]) -> None:
     _require(
         release.get("gate_order") == EXPECTED_RELEASE_GATE_ORDER
         and release.get("assurance_005_start_conditions") == EXPECTED_ASSURANCE_005_START_CONDITIONS
-        and release.get("assurance_005_owned_in_task_acceptance_ids")
-        == EXPECTED_ASSURANCE_005_OWNED_ACCEPTANCES
-        and release.get("assurance_005_in_task_pre_switch_checks")
-        == EXPECTED_ASSURANCE_005_IN_TASK_PRE_SWITCH_CHECKS,
+        and release.get("assurance_005_owned_in_task_acceptance_ids") == EXPECTED_ASSURANCE_005_OWNED_ACCEPTANCES
+        and release.get("assurance_005_in_task_pre_switch_checks") == EXPECTED_ASSURANCE_005_IN_TASK_PRE_SWITCH_CHECKS,
         "release gate order is circular or assurance.005 start/in-task boundaries drifted",
     )
     _require(
@@ -902,8 +898,7 @@ def _validate_data_routing_payload(fact: dict[str, Any]) -> None:
     )
     _require(
         data.get("client_verify_exit_semantics") == "AREA_GLOBAL_VERIFY_REDACTED_ADVISORY_NOT_X2N_GATE"
-        and data.get("other_domain_isolation")
-        == "OTHER_DOMAIN_MISSING_NON_BLOCKING_ZERO_PATH_DISCLOSURE"
+        and data.get("other_domain_isolation") == "OTHER_DOMAIN_MISSING_NON_BLOCKING_ZERO_PATH_DISCLOSURE"
         and data.get("global_manifest_sha_idempotency_mitigation") == "DOMAIN_BOUND_CHUNK_ENVELOPE"
         and data.get("private_db_auth")
         == "OWNER_AUTHORIZED_EXISTING_GH_SESSION_CLIENT_ONLY_NO_TOKEN_VALUE_OR_AUTH_MUTATION"
@@ -925,7 +920,10 @@ def validate_release_and_data_contracts() -> Check:
     path = _load_json(PATH_CONTRACT)
     project = _load_json(PROJECT_FACT)
     state = _load_json(TASK_STATE)
-    _require(path.get("local_root_role") == "ephemeral_execution_download_and_active_sqlite_working_copy", "path local-role drifted")
+    _require(
+        path.get("local_root_role") == "ephemeral_execution_download_and_active_sqlite_working_copy",
+        "path local-role drifted",
+    )
     _require(
         path.get("durable_data_repository") == "LinzeColin/Private-Database"
         and path.get("durable_data_area") == "Private-MetaDatabase"
@@ -937,15 +935,12 @@ def validate_release_and_data_contracts() -> Check:
         path.get("raw_sqlite_db_upload") == "forbidden_by_client"
         and path.get("archival_chunk_max_bytes") == 94371840
         and path.get("client_object_hard_limit_bytes") == 99614720
-        and path.get("project_verification")
-        == "exact_domain_rows_then_get_hash_reassemble_and_sqlite_integrity",
+        and path.get("project_verification") == "exact_domain_rows_then_get_hash_reassemble_and_sqlite_integrity",
         "path client-limit or restore verification contract drifted",
     )
     _require(
-        path.get("client_verify_exit_semantics")
-        == "area_global_verify_redacted_advisory_not_x2n_gate"
-        and path.get("other_domain_isolation")
-        == "other_domain_missing_nonblocking_zero_path_disclosure"
+        path.get("client_verify_exit_semantics") == "area_global_verify_redacted_advisory_not_x2n_gate"
+        and path.get("other_domain_isolation") == "other_domain_missing_nonblocking_zero_path_disclosure"
         and path.get("global_manifest_sha_idempotency_mitigation") == "domain_bound_chunk_envelope"
         and path.get("private_db_auth")
         == "owner_authorized_existing_gh_session_client_only_no_token_value_or_auth_mutation"
@@ -958,8 +953,7 @@ def validate_release_and_data_contracts() -> Check:
         and path.get("time_machine_included") == []
         and path.get("time_machine_semantics")
         == "entire_x2n_data_root_excluded_only_private_metadatabase_verified_receipt_is_durable"
-        and path.get("time_machine_implementation_state")
-        == "planned_task_uxops_005_not_claimed_current",
+        and path.get("time_machine_implementation_state") == "planned_task_uxops_005_not_claimed_current",
         "whole-root Time Machine target or current implementation state drifted",
     )
     task001_state = state.get("tasks", {}).get(STAGE4_NEXT_TASK)
@@ -1299,7 +1293,12 @@ def validate_release_and_data_contracts() -> Check:
                 and state.get("stage") == "STG.X2N.4"
                 and all(
                     state.get("tasks", {}).get(task_id) == "pass"
-                    for task_id in (STAGE4_NEXT_TASK, "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", "TSK.x2n.multimodal.004")
+                    for task_id in (
+                        STAGE4_NEXT_TASK,
+                        "TSK.x2n.multimodal.002",
+                        "TSK.x2n.multimodal.003",
+                        "TSK.x2n.multimodal.004",
+                    )
                 )
                 and state.get("next_run") == "TSK.x2n.multimodal.005"
                 and state.get("next_phase") == "PH.X2N.4.5"
@@ -1485,7 +1484,8 @@ def validate_release_and_data_contracts() -> Check:
             "status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING" in prfaq_text
             and "decision: DIRECT_MVP_TASK005_ACCEPTED_G4_REVIEW_NEXT" in prfaq_text
             and "implementation_authorized: stage_4_g4_review_next_single_phase_run" in prfaq_text
-            and "status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING" in prd_text
+            and "status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING"
+            in prd_text
             and "current_run_scope: stage_4_task005_complete_g4_review_next_private_gold_pending" in prd_text
             and "implementation_authorized: stage_4_g4_review_next_single_phase_run" in prd_text,
             "PRFAQ/PRD completed Task005 state drifted",
@@ -1593,8 +1593,13 @@ def validate_documents_and_source_safety() -> Check:
             raise ResumeError(f"changed artifact is not UTF-8 text: {relative}") from error
     all_text = "\n".join((active_text, *changed_parts))
     product_text = "\n".join(path.read_text(encoding="utf-8") for path in ACTIVE_PRODUCT_DOCS)
-    _require(not re.search(r"\b(?:alpha|beta)\b", product_text, flags=re.IGNORECASE), "prerelease phase label remains in active product docs")
-    _require(not re.search(r"v0\.0\.0\.1-[a-z0-9]", product_text, flags=re.IGNORECASE), "prerelease version label remains")
+    _require(
+        not re.search(r"\b(?:alpha|beta)\b", product_text, flags=re.IGNORECASE),
+        "prerelease phase label remains in active product docs",
+    )
+    _require(
+        not re.search(r"v0\.0\.0\.1-[a-z0-9]", product_text, flags=re.IGNORECASE), "prerelease version label remains"
+    )
     _require("30 stable owner days" not in product_text.lower(), "fixed 30-day entry gate remains")
     _require(("/" + "Users/") not in all_text, "local absolute user path entered an active contract")
 
@@ -1752,9 +1757,7 @@ def validate_private_db_client_audit(*, verify_local_source: bool) -> Check:
     )
     digest_observation = "NOT_RECOMPUTED_STATIC_CONTRACT_CHECK"
     if verify_local_source:
-        common_dir = Path(
-            _git(["rev-parse", "--path-format=absolute", "--git-common-dir"])
-        ).resolve()
+        common_dir = Path(_git(["rev-parse", "--path-format=absolute", "--git-common-dir"])).resolve()
         _require(common_dir.name == ".git", "unexpected Git common-dir layout")
         github_project_root = common_dir.parent.parent
         actual_client = github_project_root / audit["client_path"]
@@ -1800,12 +1803,9 @@ def _validate_lane_report_payload(report: dict[str, Any]) -> None:
         isinstance(blocking_results, list)
         and len(blocking_results) == len(EXPECTED_FAST_LANE_GATES)
         and [item.get("gate") for item in blocking_results] == EXPECTED_FAST_LANE_GATES
-        and [item.get("label") for item in blocking_results]
-        == [f"{gate}_r1" for gate in EXPECTED_FAST_LANE_GATES]
+        and [item.get("label") for item in blocking_results] == [f"{gate}_r1" for gate in EXPECTED_FAST_LANE_GATES]
         and all(
-            item.get("status") == "PASS"
-            and item.get("blocking") is True
-            and item.get("repetition") == 1
+            item.get("status") == "PASS" and item.get("blocking") is True and item.get("repetition") == 1
             for item in blocking_results
         ),
         "software lane must contain each expected blocking gate exactly once and PASS",
@@ -1900,18 +1900,16 @@ def _validate_changed_scope(changed: Iterable[str]) -> list[str]:
 def validate_worktree() -> Check:
     branch = _git(["branch", "--show-current"])
     _require(branch == EXPECTED_BRANCH, f"wrong Resume branch: {branch or 'DETACHED'}")
-    _require(_git(["merge-base", "--is-ancestor", BASE_COMMIT, "HEAD"]) == "", "Resume branch is not based on first Review")
+    _require(
+        _git(["merge-base", "--is-ancestor", BASE_COMMIT, "HEAD"]) == "", "Resume branch is not based on first Review"
+    )
 
     porcelain = _git(["worktree", "list", "--porcelain"])
     blocks = [block for block in porcelain.split("\n\n") if block.strip()]
     x2n_worktrees = 0
     main_worktree: Path | None = None
     for block in blocks:
-        fields = dict(
-            line.split(" ", 1)
-            for line in block.splitlines()
-            if " " in line
-        )
+        fields = dict(line.split(" ", 1) for line in block.splitlines() if " " in line)
         worktree = fields.get("worktree", "")
         worktree_branch = fields.get("branch", "")
         if "xhs-douyin-2notion" in worktree or "xhs-douyin-2notion" in worktree_branch:
@@ -1949,10 +1947,7 @@ def validate_worktree() -> Check:
 
 def _artifact_digests(*, commit: str | None = None) -> dict[str, str]:
     if commit is None:
-        return {
-            path.relative_to(PROJECT_ROOT).as_posix(): _sha256(path)
-            for path in EVIDENCE_DIGEST_PATHS
-        }
+        return {path.relative_to(PROJECT_ROOT).as_posix(): _sha256(path) for path in EVIDENCE_DIGEST_PATHS}
     return {
         path.relative_to(PROJECT_ROOT).as_posix(): _sha256_bytes(_blob_at(commit, path))
         for path in EVIDENCE_DIGEST_PATHS
@@ -1967,8 +1962,7 @@ def _verification_payload(checks: list[Check]) -> dict[str, Any]:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "status": "PASS_LOCAL_CONTRACT_VERIFICATION_G3_BLOCKED_TECHNICAL",
         "checks": [
-            {"name": item.name, "status": item.status, "details": copy.deepcopy(item.details)}
-            for item in checks
+            {"name": item.name, "status": item.status, "details": copy.deepcopy(item.details)} for item in checks
         ],
         "gate_status": "BLOCKED_TECHNICAL",
         "stage_3_remote_upload_authorized": False,
@@ -2050,9 +2044,7 @@ def validate_verification_evidence() -> Check:
         "verification evidence contains a failed, duplicate, extra, or missing check",
     )
     lane_details = next(
-        item.get("details", {})
-        for item in recorded_checks
-        if item.get("name") == "bounded_fast_software_lane"
+        item.get("details", {}) for item in recorded_checks if item.get("name") == "bounded_fast_software_lane"
     )
     _require(
         lane_details.get("blocking_executions") == 9

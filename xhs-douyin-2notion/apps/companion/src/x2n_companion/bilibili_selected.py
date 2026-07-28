@@ -152,7 +152,10 @@ class BilibiliCapabilityReceipt:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Bilibili capability environment is invalid")
         if self.source_kind != SOURCE_KIND or self.policy_revision != POLICY_REVISION:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Bilibili capability policy is stale")
-        if not isinstance(self.authorization_ref_sha256, str) or SHA256.fullmatch(self.authorization_ref_sha256) is None:
+        if (
+            not isinstance(self.authorization_ref_sha256, str)
+            or SHA256.fullmatch(self.authorization_ref_sha256) is None
+        ):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Bilibili authorization reference is invalid")
         flags = (
             self.application_approved,
@@ -314,7 +317,10 @@ class BilibiliSelectedBatch:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Bilibili batch requires one explicit no-pagination action")
         if not isinstance(self.owner_selection_id, str) or SELECTION_ID.fullmatch(self.owner_selection_id) is None:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Bilibili owner selection identity is invalid")
-        if not isinstance(self.selection_manifest_sha256, str) or SHA256.fullmatch(self.selection_manifest_sha256) is None:
+        if (
+            not isinstance(self.selection_manifest_sha256, str)
+            or SHA256.fullmatch(self.selection_manifest_sha256) is None
+        ):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Bilibili selection manifest reference is invalid")
         if (
             not isinstance(self.selected_manifest_count, int)
@@ -564,9 +570,7 @@ class BilibiliSelectedAdapter:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Bilibili checkpoint cursor is invalid")
         integer_fields = ("error_evidence_count", "identified_items", "manifest_items", "next_sequence")
         valid_integers = all(
-            isinstance(value.get(field), int)
-            and not isinstance(value.get(field), bool)
-            and value[field] >= 0
+            isinstance(value.get(field), int) and not isinstance(value.get(field), bool) and value[field] >= 0
             for field in integer_fields
         )
         last_sequence = value.get("last_sequence")
@@ -906,7 +910,9 @@ class BilibiliSelectedAdapter:
             if cursor["last_sequence"] == batch.sequence and cursor["last_batch_hash"] == batch_hash:
                 return self._receipt(connection, scan_id, checkpoint, disposition="replayed")
             if checkpoint["state"] != "active" or run["state"] != "running":
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Bilibili completed scan cannot accept another batch")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Bilibili completed scan cannot accept another batch"
+                )
             if batch.sequence != cursor["next_sequence"]:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Bilibili batch is not the checkpoint successor")
             if timestamp < str(checkpoint["updated_at"]):
@@ -938,7 +944,10 @@ class BilibiliSelectedAdapter:
                         run_id=identity["run_id"],
                         observed_at=observed_at,
                     )
-                    if self.store._append_observation(connection, observation, timestamp) is not WriteDisposition.UNCHANGED:
+                    if (
+                        self.store._append_observation(connection, observation, timestamp)
+                        is not WriteDisposition.UNCHANGED
+                    ):
                         observation_writes += 1
                     self._fault(f"after_item_{index}")
 

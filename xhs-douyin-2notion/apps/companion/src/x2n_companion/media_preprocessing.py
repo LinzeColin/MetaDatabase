@@ -805,7 +805,11 @@ class MediaPreprocessor:
             metadata = lease.local_path.stat()
         except OSError:
             raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Temporary media source is unavailable") from None
-        if lease.local_path.is_symlink() or not stat.S_ISREG(metadata.st_mode) or stat.S_IMODE(metadata.st_mode) != 0o600:
+        if (
+            lease.local_path.is_symlink()
+            or not stat.S_ISREG(metadata.st_mode)
+            or stat.S_IMODE(metadata.st_mode) != 0o600
+        ):
             _fail(ErrorCode.POLICY_BLOCKED, "Temporary media source is not owner-only")
         digest, size = _sha256_file(lease.local_path, maximum_bytes=self.policy.max_input_bytes)
         if digest != lease.content_hash or size != lease.size_bytes:
@@ -819,7 +823,9 @@ class MediaPreprocessor:
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Media probe duration conflicts with the lease")
 
     @staticmethod
-    def _frame_candidate(path: Path, fingerprint_path: Path, *, timestamp_seconds: float, policy: MediaProcessingPolicy) -> FrameCandidate:
+    def _frame_candidate(
+        path: Path, fingerprint_path: Path, *, timestamp_seconds: float, policy: MediaProcessingPolicy
+    ) -> FrameCandidate:
         size = _owned_regular_file(path, maximum_bytes=policy.max_frame_bytes, suffix=".jpg")
         _owned_regular_file(fingerprint_path, maximum_bytes=_PERCEPTUAL_HASH_BYTES, suffix=".raw")
         try:
@@ -884,7 +890,9 @@ class MediaPreprocessor:
                 )
             candidates: list[FrameCandidate] = []
             if probe.source_kind != "audio":
-                for index, timestamp in enumerate(select_representative_timestamps(probe.duration_seconds, policy=self.policy)):
+                for index, timestamp in enumerate(
+                    select_representative_timestamps(probe.duration_seconds, policy=self.policy)
+                ):
                     frame_path, fingerprint_path = self.toolchain.extract_frame(
                         lease.local_path,
                         workspace,

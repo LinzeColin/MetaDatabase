@@ -33,12 +33,8 @@ TRANSITION_AFTER_ATOMIC_REPLACE = "after_markdown_atomic_replace"
 _FRONTMATTER_KEY = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 _CATEGORY_SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 _CONTENT_IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$")
-_INDEX_LINK = re.compile(
-    r"^- \[(?:\\.|[^\]])*\]\((\.\./\.\./content/[a-z0-9_-]+/[A-Za-z0-9._-]+\.md)\)$"
-)
-_SUPPORTED_PLATFORM_DIRECTORIES = frozenset(
-    {"xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"}
-)
+_INDEX_LINK = re.compile(r"^- \[(?:\\.|[^\]])*\]\((\.\./\.\./content/[a-z0-9_-]+/[A-Za-z0-9._-]+\.md)\)$")
+_SUPPORTED_PLATFORM_DIRECTORIES = frozenset({"xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"})
 
 
 @dataclass(frozen=True)
@@ -593,9 +589,13 @@ class MarkdownSink:
                     payload = candidate.read_bytes()
                     validate_persistable_text(payload.decode("utf-8"))
                 except UnicodeDecodeError:
-                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Markdown generated file is not UTF-8") from None
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED, "Markdown generated file is not UTF-8"
+                    ) from None
                 except OSError:
-                    raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Markdown generated file could not be read") from None
+                    raise X2NRuntimeError(
+                        ErrorCode.STORAGE_FAILED, "Markdown generated file could not be read"
+                    ) from None
                 entries[relative_path] = payload
         return entries
 
@@ -647,7 +647,9 @@ class MarkdownSink:
                 try:
                     directory.rmdir()
                 except OSError:
-                    raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Markdown generated directory could not be removed") from None
+                    raise X2NRuntimeError(
+                        ErrorCode.STORAGE_FAILED, "Markdown generated directory could not be removed"
+                    ) from None
         return removed
 
     def library_manifest(self) -> MarkdownLibraryManifest:
@@ -698,7 +700,9 @@ class MarkdownSink:
                     raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Category index contains a dead link")
                 target_relative = target.relative_to(self._library).as_posix()
                 if target_relative in seen_targets:
-                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Category indexes duplicate Canonical content")
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED, "Category indexes duplicate Canonical content"
+                    )
                 try:
                     content_frontmatter, _ = parse_frontmatter(target.read_text(encoding="utf-8"))
                 except OSError:

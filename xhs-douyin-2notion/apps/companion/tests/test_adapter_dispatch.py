@@ -136,7 +136,10 @@ class AdapterDispatchTests(unittest.TestCase):
         self.assertTrue(capabilities.accepted)
         self.assertEqual(tuple(item.scope_id for item in capabilities.capabilities.outcomes), tuple(SyncScopeId))
         self.assertTrue(
-            all(item.terminal is CapabilityTerminal.READY_FOR_MVP_ACTIVATION for item in capabilities.capabilities.outcomes)
+            all(
+                item.terminal is CapabilityTerminal.READY_FOR_MVP_ACTIVATION
+                for item in capabilities.capabilities.outcomes
+            )
         )
         self.assertTrue(
             all(item.reason_code is CapabilityReasonCode.CI_SYNTH_READY for item in capabilities.capabilities.outcomes)
@@ -241,7 +244,9 @@ class AdapterDispatchTests(unittest.TestCase):
             registry=external,
         )
         self.assertTrue(settled.accepted)
-        outcome = next(item for item in settled.capabilities.outcomes if item.scope_id is SyncScopeId.XIAOHONGSHU_FAVORITES)
+        outcome = next(
+            item for item in settled.capabilities.outcomes if item.scope_id is SyncScopeId.XIAOHONGSHU_FAVORITES
+        )
         self.assertIs(outcome.terminal, CapabilityTerminal.DISABLED_EXTERNAL_GATE)
         self.assertIs(outcome.reason_code, CapabilityReasonCode.UNKNOWN_DISABLED)
         self.assertEqual(self.store.counts()["capability_gate_outcome"], 8)

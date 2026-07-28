@@ -182,7 +182,9 @@ def _source_receipt(commit: str) -> str:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task005 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task005 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -253,14 +255,19 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 def validate_scope_and_boundary() -> Check:
     commit = _task_commit()
-    changed = [item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item]
+    changed = [
+        item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item
+    ]
     scoped = [_scope_name(item) for item in changed]
     _require(changed and all(item is not None for item in scoped), "Task005 changed scope escaped x2n")
     relative = sorted(item for item in scoped if item is not None)
     _require(set(relative) == SOURCE_CHANGED_EXACT, "Task005 source changed scope is invalid")
     _scan_public_boundary([PROJECT_ROOT / path for path in relative], commit=commit)
     suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
-    _require(not any(Path(path).suffix.lower() in suffixes for path in relative), "Task005 runtime artifact entered public source")
+    _require(
+        not any(Path(path).suffix.lower() in suffixes for path in relative),
+        "Task005 runtime artifact entered public source",
+    )
     return Check(
         "scope_and_public_private_boundary",
         "PASS",
@@ -278,7 +285,9 @@ def validate_current_scope() -> Check:
 
 
 def validate_predecessor() -> Check:
-    _require(TASK004_EVIDENCE.read_bytes() == _blob_at(TASK_BASE_COMMIT, TASK004_EVIDENCE), "Task004 evidence was rewritten")
+    _require(
+        TASK004_EVIDENCE.read_bytes() == _blob_at(TASK_BASE_COMMIT, TASK004_EVIDENCE), "Task004 evidence was rewritten"
+    )
     receipt = _load_json(TASK004_EVIDENCE)
     _require(receipt.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task004 receipt is invalid")
     _require(receipt.get("task_id") == "TSK.x2n.uxops.004", "Task004 receipt identity is invalid")
@@ -298,7 +307,9 @@ def validate_taskpack() -> Check:
     _require(isinstance(tasks, list), "Taskpack task list is invalid")
     task = next((item for item in tasks if isinstance(item, dict) and item.get("id") == TASK_ID), None)
     _require(isinstance(task, dict), "Task005 is absent from Taskpack")
-    _require(task.get("phase") == PHASE and task.get("status") == "complete_ci_synth", "Task005 Taskpack state is invalid")
+    _require(
+        task.get("phase") == PHASE and task.get("status") == "complete_ci_synth", "Task005 Taskpack state is invalid"
+    )
     acceptance_ids = task.get("acceptance_ids")
     _require(
         isinstance(acceptance_ids, list)
@@ -319,8 +330,8 @@ def validate_lifecycle_surface() -> Check:
     tests = LIFECYCLE_TEST.read_text(encoding="utf-8")
     contract = RUN_CONTRACT.read_text(encoding="utf-8")
     for token in (
-        "PRIVATE_AREA = \"Private-MetaDatabase\"",
-        "PRIVATE_DOMAIN = \"xhs-douyin-2notion\"",
+        'PRIVATE_AREA = "Private-MetaDatabase"',
+        'PRIVATE_DOMAIN = "xhs-douyin-2notion"',
         "DigestPinnedPrivateDbClient",
         "ARCHIVE_CHUNK_MAX_BYTES = 90 * 1024 * 1024",
         "RESTORE_MANIFEST_FORMAT",
@@ -331,15 +342,23 @@ def validate_lifecycle_surface() -> Check:
         "UNSUPPORTED_OWNER_PRIVATE_DB_GOVERNANCE_REQUIRED",
     ):
         _require(token in lifecycle_source, "lifecycle implementation surface is incomplete")
-    _require("{\"ingest\", \"get\", \"list\", \"verify\"}" in lifecycle_source, "client allowlist is incomplete")
+    _require('{"ingest", "get", "list", "verify"}' in lifecycle_source, "client allowlist is incomplete")
     _require("Raw SQLite cannot enter Private-MetaDatabase" in lifecycle_source, "raw SQLite rejection is missing")
     for token in ("lifecycle_state", "lifecycle_tombstone", "deletion_epoch"):
         _require(token in canonical and token in migrations, "Canonical lifecycle state is incomplete")
     _require("restore_archival_snapshot" in canonical, "Canonical archive restore guard is incomplete")
     _require('"runtime/lifecycle"' in runtime, "private lifecycle workspace is not registered")
-    for token in ("if args.action == \"lifecycle\"", "runtime-wipe-apply", "time-machine-exclusion", "PRIVATE_EXPORT_CONFIRMATION"):
+    for token in (
+        'if args.action == "lifecycle"',
+        "runtime-wipe-apply",
+        "time-machine-exclusion",
+        "PRIVATE_EXPORT_CONFIRMATION",
+    ):
         _require(token in cli, "lifecycle CLI confirmation surface is incomplete")
-    _require("/api/v2/lifecycle" in webui and "CLI_TWO_STEP_EXPLICIT_CONFIRMATION_REQUIRED" in webui, "WebUI lifecycle is unsafe")
+    _require(
+        "/api/v2/lifecycle" in webui and "CLI_TWO_STEP_EXPLICIT_CONFIRMATION_REQUIRED" in webui,
+        "WebUI lifecycle is unsafe",
+    )
     for token in (
         "test_domain_bound_export_verifies",
         "test_missing_exact_domain_object_fails_closed",
@@ -406,7 +425,9 @@ def validate_historical_replay() -> Check:
 
 def validate_acceptance() -> Check:
     payload = _run_json((sys.executable, "-B", "scripts/run_uxops_005_acceptance.py"), timeout=540)
-    _require(payload.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task005 acceptance state is invalid")
+    _require(
+        payload.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task005 acceptance state is invalid"
+    )
     statuses = payload.get("acceptance_status")
     _require(statuses == ACCEPTANCE_STATUS, "Task005 acceptance coverage is incomplete")
     execution = payload.get("execution")
@@ -453,14 +474,29 @@ def validate_task_state_and_docs() -> Check:
     downstream = state.get("downstream_acceptances")
     _require(isinstance(accepted, dict) and isinstance(downstream, dict), "Task005 acceptance facts are invalid")
     for acceptance, value in FACT_ACCEPTANCE_STATUS.items():
-        _require(accepted.get(acceptance) == value and downstream.get(acceptance) == value, "Task005 acceptance fact diverged")
+        _require(
+            accepted.get(acceptance) == value and downstream.get(acceptance) == value,
+            "Task005 acceptance fact diverged",
+        )
     expected_project = "stage_5_task005_lifecycle_ci_synth_pass_g5_review_next_real_runtime_not_run"
     _require(project.get("status") == expected_project, "project fact does not record Task005 boundary")
-    _require(project.get("data_lifecycle") == "ci_synth_verified_private_metadatabase_archive_tombstone_ttl_tmutil_contract_real_runtime_not_run", "project lifecycle fact is invalid")
-    _require(architecture.get("phase") == PHASE and architecture.get("status") == expected_project, "architecture fact does not record Task005")
+    _require(
+        project.get("data_lifecycle")
+        == "ci_synth_verified_private_metadatabase_archive_tombstone_ttl_tmutil_contract_real_runtime_not_run",
+        "project lifecycle fact is invalid",
+    )
+    _require(
+        architecture.get("phase") == PHASE and architecture.get("status") == expected_project,
+        "architecture fact does not record Task005",
+    )
     rendered = WHERE_IS_PROJECT_DATA.read_text(encoding="utf-8")
-    _require("| xhs-douyin-2notion |" in rendered and "Private-MetaDatabase" in rendered, "WHERE_IS_PROJECT_DATA row is unsynchronized")
-    _require("/" + "Users/" not in rendered and "github" + "_pat_" not in rendered, "WHERE_IS_PROJECT_DATA row is unsafe")
+    _require(
+        "| xhs-douyin-2notion |" in rendered and "Private-MetaDatabase" in rendered,
+        "WHERE_IS_PROJECT_DATA row is unsynchronized",
+    )
+    _require(
+        "/" + "Users/" not in rendered and "github" + "_pat_" not in rendered, "WHERE_IS_PROJECT_DATA row is unsafe"
+    )
     return Check(
         "task_state_project_architecture_and_private_data_route",
         "PASS",
@@ -479,7 +515,9 @@ def validate_evidence() -> Check:
         evidence.get("task_commit") == commit and evidence.get("source_receipt_sha256") == _source_receipt(commit),
         "Task005 evidence receipt is invalid",
     )
-    _require(evidence.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task005 evidence overstates completion")
+    _require(
+        evidence.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task005 evidence overstates completion"
+    )
     _require(evidence.get("acceptance_status") == ACCEPTANCE_STATUS, "Task005 evidence acceptance set is invalid")
     execution = evidence.get("execution")
     _require(
@@ -494,7 +532,10 @@ def validate_evidence() -> Check:
         "Task005 evidence crossed the runtime boundary",
     )
     rendered = json.dumps(evidence, ensure_ascii=False, sort_keys=True)
-    _require("/" + "Users/" not in rendered and "github" + "_pat_" not in rendered and "Bear" + "er " not in rendered, "Task005 evidence is unsafe")
+    _require(
+        "/" + "Users/" not in rendered and "github" + "_pat_" not in rendered and "Bear" + "er " not in rendered,
+        "Task005 evidence is unsafe",
+    )
     _require("https://" not in rendered and "http://" not in rendered, "Task005 evidence contains a URL")
     return Check(
         "immutable_task_evidence",

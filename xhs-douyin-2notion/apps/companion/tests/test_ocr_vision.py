@@ -132,7 +132,9 @@ class OcrVisionTests(unittest.TestCase):
             supports_sensitive_refusal=True,
         )
 
-    def _descriptor(self, capability: str, *, version: str = "1", model_payload: bytes = b"synthetic-image-model") -> ImageProviderDescriptor:
+    def _descriptor(
+        self, capability: str, *, version: str = "1", model_payload: bytes = b"synthetic-image-model"
+    ) -> ImageProviderDescriptor:
         return ImageProviderDescriptor(
             provider_id=f"local-{capability}",
             provider_version=version,
@@ -344,7 +346,9 @@ class OcrVisionTests(unittest.TestCase):
             ledger = session.safe_ledger()
             self.assertEqual(ledger["cloud_uploads"], 0)
             self.assertEqual(ledger["cache_hits"], 1)
-            self.assertEqual(ledger["budget"], {"cloud_cost_microunits": 0, "image_bytes": image.size_bytes, "provider_calls": 1})
+            self.assertEqual(
+                ledger["budget"], {"cloud_cost_microunits": 0, "image_bytes": image.size_bytes, "provider_calls": 1}
+            )
             rendered = json.dumps(first.safe_dict(), ensure_ascii=False, sort_keys=True)
             self.assertNotIn(str(self.paths.data_root), rendered)
             self.assertNotIn("合成OCR文本", rendered)
@@ -380,7 +384,9 @@ class OcrVisionTests(unittest.TestCase):
         with OcrVisionProcessor(self.paths, (second_provider,)).session() as session:
             second = session.extract_ocr(image, provider_id="local-ocr")
         self.assertNotEqual(first.artifact_id, second.artifact_id)
-        self.assertNotEqual(first.invocation.provider.model_snapshot_sha256, second.invocation.provider.model_snapshot_sha256)
+        self.assertNotEqual(
+            first.invocation.provider.model_snapshot_sha256, second.invocation.provider.model_snapshot_sha256
+        )
 
     def test_malformed_or_failing_local_adapter_cleans_output_and_fails_closed(self) -> None:
         for runner in (SyntheticImageRunner(invalid_json=True), SyntheticImageRunner(fail=True)):
@@ -455,7 +461,9 @@ class OcrVisionTests(unittest.TestCase):
 
     def test_vision_evaluator_uses_human_rubric_and_requires_structured_refusals(self) -> None:
         synthetic = (
-            VisionGoldCase("synthetic-visible", "image_post", "described", "described", 5, True, False, False, 1, False, True),
+            VisionGoldCase(
+                "synthetic-visible", "image_post", "described", "described", 5, True, False, False, 1, False, True
+            ),
             VisionGoldCase(
                 "synthetic-sensitive",
                 "sensitive",

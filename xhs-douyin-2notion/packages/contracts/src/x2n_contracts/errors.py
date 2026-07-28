@@ -84,30 +84,114 @@ class ErrorSpec:
 
 
 ERROR_SPECS: dict[ErrorCode, ErrorSpec] = {
-    ErrorCode.INVALID_SCHEMA_VERSION: ErrorSpec(ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息版本不受支持"),
-    ErrorCode.UNKNOWN_FIELD: ErrorSpec(ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息包含未声明字段"),
-    ErrorCode.INVALID_INPUT: ErrorSpec(ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "输入未通过严格合同"),
-    ErrorCode.NATIVE_ORIGIN_REJECTED: ErrorSpec(ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.REVIEW_SECURITY_EVENT, "调用来源未获允许"),
-    ErrorCode.NATIVE_MESSAGE_TOO_LARGE: ErrorSpec(ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息超过允许大小"),
-    ErrorCode.NATIVE_ACTION_UNKNOWN: ErrorSpec(ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息动作不受支持"),
-    ErrorCode.NATIVE_DUPLICATE_REQUEST: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.NONE, NextAction.USE_EXISTING_JOB, "请求标识与既有请求冲突"),
-    ErrorCode.CANONICAL_KEY_INVALID: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "内容键不符合确定性规则"),
-    ErrorCode.RELATION_KEY_INVALID: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "关系键不符合确定性规则"),
-    ErrorCode.ARTIFACT_VERSION_CONFLICT: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.CANONICAL_UNCHANGED, NextAction.RESTORE_BACKUP, "派生资产版本发生冲突"),
-    ErrorCode.PROVENANCE_INCOMPLETE: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.CANONICAL_UNCHANGED, NextAction.CORRECT_INPUT, "来源链不完整"),
-    ErrorCode.CDN_PERSISTENCE_BLOCKED: ErrorSpec(ErrorClass.POLICY, False, DataEffect.NONE, NextAction.REVIEW_POLICY, "平台媒体地址不得持久化"),
-    ErrorCode.URL_REJECTED: ErrorSpec(ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.REVIEW_SECURITY_EVENT, "地址不在允许范围"),
-    ErrorCode.SECURITY_INJECTION_BLOCKED: ErrorSpec(ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.REVIEW_SECURITY_EVENT, "危险输入已阻断"),
-    ErrorCode.ADAPTER_AUTH_EXPIRED: ErrorSpec(ErrorClass.USER_ACTION_REQUIRED, False, DataEffect.CANONICAL_UNCHANGED, NextAction.OPEN_LOGIN_PROFILE, "请在专用浏览器配置中重新登录"),
-    ErrorCode.PLATFORM_CHANGED: ErrorSpec(ErrorClass.PLATFORM_CHANGED, False, DataEffect.CANONICAL_UNCHANGED, NextAction.INSPECT_PLATFORM_FIXTURE, "平台页面结构已变化"),
-    ErrorCode.RATE_LIMITED: ErrorSpec(ErrorClass.RATE_LIMITED, True, DataEffect.CANONICAL_UNCHANGED, NextAction.WAIT_AND_RETRY, "请求受到速率限制"),
-    ErrorCode.NETWORK_FAILED: ErrorSpec(ErrorClass.NETWORK, True, DataEffect.CANONICAL_UNCHANGED, NextAction.RETRY, "网络请求失败"),
-    ErrorCode.DEPENDENCY_MISSING: ErrorSpec(ErrorClass.DEPENDENCY_MISSING, False, DataEffect.CANONICAL_UNCHANGED, NextAction.INSTALL_DEPENDENCY, "所需本地依赖不可用"),
-    ErrorCode.PROVIDER_FAILED: ErrorSpec(ErrorClass.PROVIDER, True, DataEffect.DERIVED_OUTPUT_MISSING, NextAction.INSPECT_PROVIDER, "处理服务失败"),
-    ErrorCode.STORAGE_FAILED: ErrorSpec(ErrorClass.STORAGE, True, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.FREE_DISK_SPACE, "本地存储操作失败"),
-    ErrorCode.DATA_INTEGRITY_FAILED: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.RESTORE_BACKUP, "数据完整性检查失败"),
-    ErrorCode.POLICY_BLOCKED: ErrorSpec(ErrorClass.POLICY, False, DataEffect.NONE, NextAction.REVIEW_POLICY, "当前策略禁止此操作"),
-    ErrorCode.CAPABILITY_TECHNICAL_BLOCKED: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.INSPECT_DIAGNOSTICS, "能力门技术校验未通过，未执行任何操作"),
-    ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE: ErrorSpec(ErrorClass.PROVIDER, False, DataEffect.CANONICAL_UNCHANGED, NextAction.CAPTURE_CURRENT, "已停止此列表任务；可由您再次明确选择当前页保存"),
-    ErrorCode.UNKNOWN_FAILURE: ErrorSpec(ErrorClass.UNKNOWN, False, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.INSPECT_DIAGNOSTICS, "发生未知错误，系统已停止副作用"),
+    ErrorCode.INVALID_SCHEMA_VERSION: ErrorSpec(
+        ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息版本不受支持"
+    ),
+    ErrorCode.UNKNOWN_FIELD: ErrorSpec(
+        ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息包含未声明字段"
+    ),
+    ErrorCode.INVALID_INPUT: ErrorSpec(
+        ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "输入未通过严格合同"
+    ),
+    ErrorCode.NATIVE_ORIGIN_REJECTED: ErrorSpec(
+        ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.REVIEW_SECURITY_EVENT, "调用来源未获允许"
+    ),
+    ErrorCode.NATIVE_MESSAGE_TOO_LARGE: ErrorSpec(
+        ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息超过允许大小"
+    ),
+    ErrorCode.NATIVE_ACTION_UNKNOWN: ErrorSpec(
+        ErrorClass.INVALID_INPUT, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "消息动作不受支持"
+    ),
+    ErrorCode.NATIVE_DUPLICATE_REQUEST: ErrorSpec(
+        ErrorClass.DATA_INTEGRITY, False, DataEffect.NONE, NextAction.USE_EXISTING_JOB, "请求标识与既有请求冲突"
+    ),
+    ErrorCode.CANONICAL_KEY_INVALID: ErrorSpec(
+        ErrorClass.DATA_INTEGRITY, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "内容键不符合确定性规则"
+    ),
+    ErrorCode.RELATION_KEY_INVALID: ErrorSpec(
+        ErrorClass.DATA_INTEGRITY, False, DataEffect.NONE, NextAction.CORRECT_INPUT, "关系键不符合确定性规则"
+    ),
+    ErrorCode.ARTIFACT_VERSION_CONFLICT: ErrorSpec(
+        ErrorClass.DATA_INTEGRITY,
+        False,
+        DataEffect.CANONICAL_UNCHANGED,
+        NextAction.RESTORE_BACKUP,
+        "派生资产版本发生冲突",
+    ),
+    ErrorCode.PROVENANCE_INCOMPLETE: ErrorSpec(
+        ErrorClass.DATA_INTEGRITY, False, DataEffect.CANONICAL_UNCHANGED, NextAction.CORRECT_INPUT, "来源链不完整"
+    ),
+    ErrorCode.CDN_PERSISTENCE_BLOCKED: ErrorSpec(
+        ErrorClass.POLICY, False, DataEffect.NONE, NextAction.REVIEW_POLICY, "平台媒体地址不得持久化"
+    ),
+    ErrorCode.URL_REJECTED: ErrorSpec(
+        ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.REVIEW_SECURITY_EVENT, "地址不在允许范围"
+    ),
+    ErrorCode.SECURITY_INJECTION_BLOCKED: ErrorSpec(
+        ErrorClass.SECURITY_BLOCKED, False, DataEffect.NONE, NextAction.REVIEW_SECURITY_EVENT, "危险输入已阻断"
+    ),
+    ErrorCode.ADAPTER_AUTH_EXPIRED: ErrorSpec(
+        ErrorClass.USER_ACTION_REQUIRED,
+        False,
+        DataEffect.CANONICAL_UNCHANGED,
+        NextAction.OPEN_LOGIN_PROFILE,
+        "请在专用浏览器配置中重新登录",
+    ),
+    ErrorCode.PLATFORM_CHANGED: ErrorSpec(
+        ErrorClass.PLATFORM_CHANGED,
+        False,
+        DataEffect.CANONICAL_UNCHANGED,
+        NextAction.INSPECT_PLATFORM_FIXTURE,
+        "平台页面结构已变化",
+    ),
+    ErrorCode.RATE_LIMITED: ErrorSpec(
+        ErrorClass.RATE_LIMITED, True, DataEffect.CANONICAL_UNCHANGED, NextAction.WAIT_AND_RETRY, "请求受到速率限制"
+    ),
+    ErrorCode.NETWORK_FAILED: ErrorSpec(
+        ErrorClass.NETWORK, True, DataEffect.CANONICAL_UNCHANGED, NextAction.RETRY, "网络请求失败"
+    ),
+    ErrorCode.DEPENDENCY_MISSING: ErrorSpec(
+        ErrorClass.DEPENDENCY_MISSING,
+        False,
+        DataEffect.CANONICAL_UNCHANGED,
+        NextAction.INSTALL_DEPENDENCY,
+        "所需本地依赖不可用",
+    ),
+    ErrorCode.PROVIDER_FAILED: ErrorSpec(
+        ErrorClass.PROVIDER, True, DataEffect.DERIVED_OUTPUT_MISSING, NextAction.INSPECT_PROVIDER, "处理服务失败"
+    ),
+    ErrorCode.STORAGE_FAILED: ErrorSpec(
+        ErrorClass.STORAGE, True, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.FREE_DISK_SPACE, "本地存储操作失败"
+    ),
+    ErrorCode.DATA_INTEGRITY_FAILED: ErrorSpec(
+        ErrorClass.DATA_INTEGRITY,
+        False,
+        DataEffect.UNKNOWN_FAIL_CLOSED,
+        NextAction.RESTORE_BACKUP,
+        "数据完整性检查失败",
+    ),
+    ErrorCode.POLICY_BLOCKED: ErrorSpec(
+        ErrorClass.POLICY, False, DataEffect.NONE, NextAction.REVIEW_POLICY, "当前策略禁止此操作"
+    ),
+    ErrorCode.CAPABILITY_TECHNICAL_BLOCKED: ErrorSpec(
+        ErrorClass.DATA_INTEGRITY,
+        False,
+        DataEffect.UNKNOWN_FAIL_CLOSED,
+        NextAction.INSPECT_DIAGNOSTICS,
+        "能力门技术校验未通过，未执行任何操作",
+    ),
+    ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE: ErrorSpec(
+        ErrorClass.PROVIDER,
+        False,
+        DataEffect.CANONICAL_UNCHANGED,
+        NextAction.CAPTURE_CURRENT,
+        "已停止此列表任务；可由您再次明确选择当前页保存",
+    ),
+    ErrorCode.UNKNOWN_FAILURE: ErrorSpec(
+        ErrorClass.UNKNOWN,
+        False,
+        DataEffect.UNKNOWN_FAIL_CLOSED,
+        NextAction.INSPECT_DIAGNOSTICS,
+        "发生未知错误，系统已停止副作用",
+    ),
 }

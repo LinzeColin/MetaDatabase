@@ -291,7 +291,9 @@ class RestoreManifest:
         }
 
     def to_bytes(self) -> bytes:
-        return (json.dumps(self.payload(), ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n").encode("utf-8")
+        return (json.dumps(self.payload(), ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n").encode(
+            "utf-8"
+        )
 
     @property
     def sha256(self) -> str:
@@ -315,7 +317,11 @@ class RestoreManifest:
             raw = json.loads(value.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore manifest is invalid") from None
-        if not isinstance(raw, Mapping) or raw.get("format") != RESTORE_MANIFEST_FORMAT or raw.get("domain") != PRIVATE_DOMAIN:
+        if (
+            not isinstance(raw, Mapping)
+            or raw.get("format") != RESTORE_MANIFEST_FORMAT
+            or raw.get("domain") != PRIVATE_DOMAIN
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore manifest identity is invalid")
         archive = raw.get("archive")
         database = raw.get("database")
@@ -418,7 +424,9 @@ class DigestPinnedPrivateDbClient:
         try:
             self._client_path = candidate.resolve(strict=True)
         except OSError:
-            raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Approved Private-Database client is unavailable") from None
+            raise X2NRuntimeError(
+                ErrorCode.DEPENDENCY_MISSING, "Approved Private-Database client is unavailable"
+            ) from None
         if self._client_path.is_symlink() or not self._client_path.is_file():
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Approved Private-Database client is unsafe")
         if _sha256_file(self._client_path) != TRUSTED_PRIVATE_CLIENT_SHA256:
@@ -464,7 +472,9 @@ class DigestPinnedPrivateDbClient:
         except (OSError, subprocess.SubprocessError):
             raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Approved Private-Database client failed closed") from None
         if result.returncode != 0:
-            raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Approved Private-Database client rejected lifecycle transfer")
+            raise X2NRuntimeError(
+                ErrorCode.STORAGE_FAILED, "Approved Private-Database client rejected lifecycle transfer"
+            )
         self._actions.append(action)
 
     def ingest(self, local: Path, *, opaque_name: str, batch: str) -> PrivateObject:
@@ -597,9 +607,9 @@ def _write_archive(*, output: Path, snapshot: Path, jsonl: Path, metadata: Mappi
     if output.exists() or output.is_symlink():
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Lifecycle archive output already exists")
     _private_directory(output.parent)
-    metadata_payload = (json.dumps(dict(metadata), ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n").encode(
-        "utf-8"
-    )
+    metadata_payload = (
+        json.dumps(dict(metadata), ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n"
+    ).encode("utf-8")
     temporary = output.with_name(f".{output.name}.tmp-{uuid.uuid4().hex}")
     descriptor: int | None = None
     try:
@@ -768,8 +778,14 @@ def _load_private_manifest(client: PrivateDbTransport, *, workspace: Path) -> di
 def _validate_expected_objects(records: Mapping[str, Mapping[str, Any]], objects: Sequence[PrivateObject]) -> None:
     for expected in objects:
         row = records.get(expected.object_path)
-        if row is None or row.get("sha256") != expected.object_sha256 or row.get("original_name") != expected.opaque_name:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Private-MetaDatabase exact-domain manifest is incomplete")
+        if (
+            row is None
+            or row.get("sha256") != expected.object_sha256
+            or row.get("original_name") != expected.opaque_name
+        ):
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Private-MetaDatabase exact-domain manifest is incomplete"
+            )
 
 
 @dataclass(frozen=True)
@@ -898,7 +914,12 @@ class LifecycleService:
             target_key_private=target_key_private,
             now=now,
         )
-        markdown = {"category_index_writes": 0, "content_writes": 0, "removed_category_indexes": 0, "removed_content_files": 0}
+        markdown = {
+            "category_index_writes": 0,
+            "content_writes": 0,
+            "removed_category_indexes": 0,
+            "removed_content_files": 0,
+        }
         if target_kind in {"content", "relation", "sink"}:
             rebuild = MarkdownSink(self.store).rebuild_from_canonical(build_sink_projection)
             markdown = {
@@ -930,7 +951,9 @@ class LifecycleService:
         state = self.store.lifecycle_state()
         runtime_tombstones = [item for item in self.store.lifecycle_tombstones() if item.target_kind == "runtime"]
         if state.durability_state != "durability_verified" or not runtime_tombstones:
-            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Runtime wipe requires a verified latest tombstone manifest")
+            raise X2NRuntimeError(
+                ErrorCode.POLICY_BLOCKED, "Runtime wipe requires a verified latest tombstone manifest"
+            )
         deleted = 0
         with self.store._file_lock(exclusive=True):
             for path in (self.paths.database, Path(f"{self.paths.database}-wal"), Path(f"{self.paths.database}-shm")):
@@ -1051,7 +1074,9 @@ class LifecycleService:
                             len(envelope) != chunk.private_object.size_bytes
                             or _sha256_bytes(envelope) != chunk.private_object.object_sha256
                         ):
-                            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Downloaded archive object hash is invalid")
+                            raise X2NRuntimeError(
+                                ErrorCode.DATA_INTEGRITY_FAILED, "Downloaded archive object hash is invalid"
+                            )
                         destination.write(_decode_chunk_envelope(envelope, chunk, manifest=manifest))
                     finally:
                         if output.exists() or output.is_symlink():
@@ -1064,7 +1089,10 @@ class LifecycleService:
             raise
         except OSError:
             raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Lifecycle archive reassembly failed") from None
-        if _sha256_file(archive_path) != manifest.archive_sha256 or archive_path.stat().st_size != manifest.archive_size_bytes:
+        if (
+            _sha256_file(archive_path) != manifest.archive_sha256
+            or archive_path.stat().st_size != manifest.archive_size_bytes
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle archive reassembly hash is invalid")
         extracted = _extract_archive(archive_path, workspace=workspace, manifest=manifest)
         _verify_archived_database(extracted.snapshot_path, manifest)
@@ -1076,7 +1104,9 @@ class LifecycleService:
             transferred: list[PrivateObject] = []
             for chunk in prepared.chunks:
                 local = prepared.workspace / chunk.private_object.opaque_name
-                object_receipt = client.ingest(local, opaque_name=chunk.private_object.opaque_name, batch=prepared.manifest.snapshot_id)
+                object_receipt = client.ingest(
+                    local, opaque_name=chunk.private_object.opaque_name, batch=prepared.manifest.snapshot_id
+                )
                 if object_receipt != chunk.private_object:
                     raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Private archive object receipt diverged")
                 transferred.append(object_receipt)
@@ -1111,13 +1141,19 @@ class LifecycleService:
         finally:
             _remove_private_tree(prepared.workspace)
 
-    def _discover_latest_manifest(self, client: PrivateDbTransport, *, workspace: Path) -> tuple[RestoreManifest, PrivateObject]:
+    def _discover_latest_manifest(
+        self, client: PrivateDbTransport, *, workspace: Path
+    ) -> tuple[RestoreManifest, PrivateObject]:
         records = _load_private_manifest(client, workspace=workspace)
         candidates: list[tuple[RestoreManifest, PrivateObject]] = []
         for object_path, row in records.items():
             opaque_name = row.get("original_name")
             sha = row.get("sha256")
-            if not isinstance(opaque_name, str) or _MANIFEST_NAME.fullmatch(opaque_name) is None or not isinstance(sha, str):
+            if (
+                not isinstance(opaque_name, str)
+                or _MANIFEST_NAME.fullmatch(opaque_name) is None
+                or not isinstance(sha, str)
+            ):
                 continue
             object_receipt = PrivateObject(
                 object_sha256=_require_sha256(sha, label="manifest_object_sha256"),
@@ -1134,7 +1170,9 @@ class LifecycleService:
                     raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Latest restore manifest hash is invalid")
                 manifest = RestoreManifest.from_bytes(payload)
                 if manifest.opaque_name != opaque_name:
-                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Latest restore manifest identity is invalid")
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED, "Latest restore manifest identity is invalid"
+                    )
                 candidates.append((manifest, object_receipt))
             finally:
                 if output.exists() or output.is_symlink():
@@ -1171,7 +1209,11 @@ class LifecycleService:
 
     def recovery_plan(self) -> dict[str, Any]:
         if self.paths.database.is_file() and not self.paths.database.is_symlink():
-            return {"action": "none", "durability": self.store.lifecycle_state().safe_dict(), "state": "active_sqlite_present"}
+            return {
+                "action": "none",
+                "durability": self.store.lifecycle_state().safe_dict(),
+                "state": "active_sqlite_present",
+            }
         return {
             "action": "restore_latest_requires_explicit_confirmation",
             "durability": "durability_pending",
@@ -1183,7 +1225,11 @@ class LifecycleService:
         root = _lifecycle_root(self.paths)
         deleted = blocked = 0
         for candidate in sorted(root.iterdir(), key=lambda item: item.name):
-            if candidate.is_symlink() or not candidate.is_dir() or not re.fullmatch(r"snapshot_[0-9a-f]{32}", candidate.name):
+            if (
+                candidate.is_symlink()
+                or not candidate.is_dir()
+                or not re.fullmatch(r"snapshot_[0-9a-f]{32}", candidate.name)
+            ):
                 blocked += 1
                 continue
             marker = candidate / "workspace.json"

@@ -611,9 +611,7 @@ MIGRATIONS = (
     Migration(5, "lifecycle_tombstones_and_durability", LIFECYCLE_TOMBSTONES_UP, LIFECYCLE_TOMBSTONES_DOWN),
 )
 LATEST_SCHEMA_VERSION = MIGRATIONS[-1].version
-MIGRATION_SET_SHA256 = hashlib.sha256(
-    "\n".join(item.checksum for item in MIGRATIONS).encode("ascii")
-).hexdigest()
+MIGRATION_SET_SHA256 = hashlib.sha256("\n".join(item.checksum for item in MIGRATIONS).encode("ascii")).hexdigest()
 
 
 def ensure_migration_table(connection: sqlite3.Connection) -> None:
@@ -637,9 +635,7 @@ def ensure_migration_table(connection: sqlite3.Connection) -> None:
 def current_version(connection: sqlite3.Connection) -> int:
     ensure_migration_table(connection)
     pragma = int(connection.execute("PRAGMA user_version").fetchone()[0])
-    rows = connection.execute(
-        "SELECT version, name, checksum FROM schema_migration ORDER BY version"
-    ).fetchall()
+    rows = connection.execute("SELECT version, name, checksum FROM schema_migration ORDER BY version").fetchall()
     expected = [(item.version, item.name, item.checksum) for item in MIGRATIONS if item.version <= pragma]
     actual = [(int(row[0]), str(row[1]), str(row[2])) for row in rows]
     if actual != expected:

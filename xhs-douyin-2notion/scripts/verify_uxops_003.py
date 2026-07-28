@@ -170,7 +170,9 @@ def _source_receipt(commit: str) -> str:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task003 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task003 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -241,14 +243,19 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 def validate_scope_and_boundary() -> Check:
     commit = _task_commit()
-    changed = [item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item]
+    changed = [
+        item for item in _git(["diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{commit}"]).split("\0") if item
+    ]
     scoped = [_task_relative(item) for item in changed]
     _require(changed and all(item is not None for item in scoped), "Task003 changed scope escaped x2n")
     relative = sorted(item for item in scoped if item is not None)
     _require(all(path in SOURCE_CHANGED_EXACT for path in relative), "Task003 source changed scope is invalid")
     _scan_public_boundary([PROJECT_ROOT / path for path in relative], commit=commit)
     suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
-    _require(not any(Path(path).suffix.lower() in suffixes for path in relative), "Task003 runtime artifact entered public source")
+    _require(
+        not any(Path(path).suffix.lower() in suffixes for path in relative),
+        "Task003 runtime artifact entered public source",
+    )
     return Check(
         "scope_and_public_private_boundary",
         "PASS",
@@ -266,7 +273,9 @@ def validate_current_scope() -> Check:
 
 
 def validate_predecessor() -> Check:
-    _require(TASK002_EVIDENCE.read_bytes() == _blob_at(TASK_BASE_COMMIT, TASK002_EVIDENCE), "Task002 evidence was rewritten")
+    _require(
+        TASK002_EVIDENCE.read_bytes() == _blob_at(TASK_BASE_COMMIT, TASK002_EVIDENCE), "Task002 evidence was rewritten"
+    )
     receipt = _load_json(TASK002_EVIDENCE)
     _require(receipt.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task002 receipt is invalid")
     _require(receipt.get("task_id") == "TSK.x2n.uxops.002", "Task002 receipt identity is invalid")
@@ -286,11 +295,16 @@ def validate_taskpack_and_state() -> Check:
     _require(isinstance(tasks, list), "Taskpack task list is invalid")
     task = next((item for item in tasks if isinstance(item, dict) and item.get("id") == TASK_ID), None)
     _require(isinstance(task, dict), "Task003 is absent from Taskpack")
-    _require(task.get("phase") == PHASE and task.get("status") == "complete_ci_synth", "Task003 Taskpack state is invalid")
+    _require(
+        task.get("phase") == PHASE and task.get("status") == "complete_ci_synth", "Task003 Taskpack state is invalid"
+    )
     state = _load_json(TASK_STATE)
     project = _load_json(PROJECT_FACT)
     architecture = _load_json(ARCHITECTURE)
-    _require(state.get("phase") == PHASE and state.get("next_task") == "TSK.x2n.uxops.004", "Task003 state transition is invalid")
+    _require(
+        state.get("phase") == PHASE and state.get("next_task") == "TSK.x2n.uxops.004",
+        "Task003 state transition is invalid",
+    )
     _require(state.get("stage_5_task003_complete") is True, "Task003 completion fact is missing")
     _require(state.get("runtime_nomenclature") == "v2_owner_mvp_plan", "Task003 nomenclature fact is invalid")
     _require(
@@ -322,7 +336,10 @@ def validate_webui_security_and_review_surface() -> Check:
         "TaxonomyRegistry",
     ):
         _require(token in text, "Local WebUI security or review surface is incomplete")
-    _require("Access-Control-Allow-Origin" not in text and "innerHTML" not in text, "Local WebUI exposes unsafe browser surface")
+    _require(
+        "Access-Control-Allow-Origin" not in text and "innerHTML" not in text,
+        "Local WebUI exposes unsafe browser surface",
+    )
     for token in ("test_csrf_origin", "test_loopback_ui_e2e", "test_owner_taxonomy_create", "owner-mvp-plan"):
         _require(token in test_text, "Local WebUI test coverage is incomplete")
     return Check(
@@ -338,7 +355,10 @@ def validate_active_nomenclature() -> Check:
     legacy_constant = "OWNER_" + "ALPHA"
     for path in ACTIVE_NOMENCLATURE_PATHS:
         text = path.read_text(encoding="utf-8")
-        _require(legacy_alias not in text and legacy_key not in text and legacy_constant not in text, "retired v1 name remains active")
+        _require(
+            legacy_alias not in text and legacy_key not in text and legacy_constant not in text,
+            "retired v1 name remains active",
+        )
     cli_text = CLI_SOURCE.read_text(encoding="utf-8")
     reconciliation_text = RECONCILIATION_SOURCE.read_text(encoding="utf-8")
     _require("owner-mvp-plan" in cli_text and "owner_mvp" in reconciliation_text, "v2 nomenclature is incomplete")
@@ -394,7 +414,9 @@ def validate_historical_replay() -> Check:
 
 def validate_acceptance() -> Check:
     payload = _run_json((sys.executable, "-B", "scripts/run_uxops_003_acceptance.py"), timeout=300)
-    _require(payload.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task003 acceptance state is invalid")
+    _require(
+        payload.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task003 acceptance state is invalid"
+    )
     statuses = payload.get("acceptance_status")
     _require(isinstance(statuses, dict) and len(statuses) == 4, "Task003 acceptance coverage is incomplete")
     execution = payload.get("execution")
@@ -411,9 +433,17 @@ def validate_acceptance() -> Check:
 def validate_evidence() -> Check:
     commit = _task_commit()
     evidence = _load_json(EVIDENCE)
-    _require(evidence.get("task_id") == TASK_ID and evidence.get("phase") == PHASE and evidence.get("run_id") == RUN_ID, "Task003 evidence identity is invalid")
-    _require(evidence.get("task_commit") == commit and evidence.get("source_receipt_sha256") == _source_receipt(commit), "Task003 evidence receipt is invalid")
-    _require(evidence.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task003 evidence overstates completion")
+    _require(
+        evidence.get("task_id") == TASK_ID and evidence.get("phase") == PHASE and evidence.get("run_id") == RUN_ID,
+        "Task003 evidence identity is invalid",
+    )
+    _require(
+        evidence.get("task_commit") == commit and evidence.get("source_receipt_sha256") == _source_receipt(commit),
+        "Task003 evidence receipt is invalid",
+    )
+    _require(
+        evidence.get("status") == "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN", "Task003 evidence overstates completion"
+    )
     execution = evidence.get("execution")
     _require(
         isinstance(execution, dict)
@@ -424,7 +454,10 @@ def validate_evidence() -> Check:
         "Task003 evidence crossed the runtime boundary",
     )
     rendered = json.dumps(evidence, ensure_ascii=False, sort_keys=True)
-    _require("/" + "Users/" not in rendered and "github" + "_pat_" not in rendered and "Bearer" + " " not in rendered, "Task003 evidence is unsafe")
+    _require(
+        "/" + "Users/" not in rendered and "github" + "_pat_" not in rendered and "Bearer" + " " not in rendered,
+        "Task003 evidence is unsafe",
+    )
     _require("https://" not in rendered and "http://" not in rendered, "Task003 evidence contains a URL")
     return Check(
         "immutable_task_evidence",

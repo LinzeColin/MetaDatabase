@@ -46,7 +46,7 @@ from x2n_companion.notion_sink import (  # noqa: E402
 from x2n_companion.relation_reconciliation import (  # noqa: E402
     ReconciliationManifest,
     RelationReconciler,
-    build_owner_alpha_80_manifest_plan,
+    build_owner_mvp_80_manifest_plan,
     compare_batch_snapshots,
 )
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError  # noqa: E402
@@ -708,7 +708,7 @@ def _acceptance() -> dict[str, Any]:
             _rows(store, "SELECT COUNT(*) AS total FROM content WHERE status != 'active'")[0]["total"]
         )
         markdown_files = len(list(root.rglob("*.md")))
-        owner_plan = build_owner_alpha_80_manifest_plan()
+        owner_plan = build_owner_mvp_80_manifest_plan()
 
         if first_counts["content"] != 80 or first_counts["user_relation"] != 80:
             raise AssertionError("Adapters005 first 80-input Canonical cardinality differs")
@@ -761,7 +761,7 @@ def _acceptance() -> dict[str, Any]:
         if integrity.get("integrity_check") != "ok" or integrity.get("foreign_key_violations") != 0:
             raise AssertionError("Adapters005 Canonical integrity differs")
         if owner_plan["execution"] != "NOT_RUN" or owner_plan["item_count"] != 80:
-            raise AssertionError("Adapters005 Owner Alpha tooling boundary differs")
+            raise AssertionError("Adapters005 Owner MVP tooling boundary differs")
 
         return {
             "batch_protection": {
@@ -801,7 +801,7 @@ def _acceptance() -> dict[str, Any]:
                 "integrity_check": integrity["integrity_check"],
                 "orphan_relations": 0,
             },
-            "owner_alpha_tooling": owner_plan,
+            "owner_mvp_tooling": owner_plan,
             "source_observations": final_counts["source_observation"],
         }
 
@@ -827,9 +827,9 @@ def main() -> int:
         "incremental_comparison": report["incremental_comparison"],
         "integrity": report["integrity"],
         "model_calls": 0,
-        "owner_alpha": "NOT_RUN",
-        "owner_alpha_private_manifest": "NOT_CREATED",
-        "owner_alpha_tooling": report["owner_alpha_tooling"],
+        "owner_mvp": "NOT_RUN",
+        "owner_mvp_private_manifest": "NOT_CREATED",
+        "owner_mvp_tooling": report["owner_mvp_tooling"],
         "owner_profile_login": "NOT_RUN",
         "phase": PHASE,
         "platform_calls": 0,

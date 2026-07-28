@@ -685,8 +685,7 @@ class CanonicalStore:
                 "Removed relation requires Owner confirmation",
             )
         existing = connection.execute(
-            "SELECT payload_sha256, last_seen_at, status, confirmed_by "
-            "FROM user_relation WHERE relation_key = ?",
+            "SELECT payload_sha256, last_seen_at, status, confirmed_by FROM user_relation WHERE relation_key = ?",
             (relation.relation_key,),
         ).fetchone()
         last_seen = relation.last_seen_at.isoformat().replace("+00:00", "Z")
@@ -956,7 +955,9 @@ class CanonicalStore:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy merge has no source revision")
             return WriteDisposition.UNCHANGED
         if existing is not None and category.version <= int(existing["version"]):
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth"
+            )
         if existing is None:
             if category.version != 1 or forced_operation not in {None, "create"}:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "New taxonomy category revision is invalid")
@@ -1312,9 +1313,7 @@ class CanonicalStore:
         _validate_token(adapter_name, label="adapter_name")
         _validate_token(adapter_version, label="adapter_version")
         fallback_job_id = (
-            str(_uuid(fallback_from_job_id, label="fallback_from_job_id"))
-            if fallback_from_job_id is not None
-            else None
+            str(_uuid(fallback_from_job_id, label="fallback_from_job_id")) if fallback_from_job_id is not None else None
         )
         if (
             relation.content_key != content.content_key
@@ -1716,7 +1715,12 @@ class CanonicalStore:
                         rendered["scope_id"],
                         rendered["terminal"],
                         rendered["reason_code"],
-                        json.dumps(rendered["source_registry_digests"], ensure_ascii=False, separators=(",", ":"), sort_keys=True),
+                        json.dumps(
+                            rendered["source_registry_digests"],
+                            ensure_ascii=False,
+                            separators=(",", ":"),
+                            sort_keys=True,
+                        ),
                         rendered["feature_flag"],
                         rendered["evidence_hash"],
                         rendered["evaluated_at"],
@@ -1743,10 +1747,14 @@ class CanonicalStore:
     def invalidate_capability_scopes(self, scope_ids: Sequence[SyncScopeId]) -> int:
         """Remove stale rows for a technical veto; never serialize that veto as a terminal."""
 
-        normalized = tuple(scope_id.value if isinstance(scope_id, SyncScopeId) else str(scope_id) for scope_id in scope_ids)
+        normalized = tuple(
+            scope_id.value if isinstance(scope_id, SyncScopeId) else str(scope_id) for scope_id in scope_ids
+        )
         allowed = {scope_id.value for scope_id in SyncScopeId}
         if not normalized or any(scope_id not in allowed for scope_id in normalized):
-            raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability technical invalidation is invalid")
+            raise X2NRuntimeError(
+                ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability technical invalidation is invalid"
+            )
         with self._transaction() as connection:
             placeholders = ",".join("?" for _ in normalized)
             cursor = connection.execute(
@@ -2884,11 +2892,7 @@ class CanonicalStore:
         if str(row["review_status"]) == "suggested":
             return True
         confidence = row["confidence_raw"]
-        return (
-            str(row["decision_mode"]) in {"model", "hybrid"}
-            and confidence is not None
-            and float(confidence) < 0.90
-        )
+        return str(row["decision_mode"]) in {"model", "hybrid"} and confidence is not None and float(confidence) < 0.90
 
     @staticmethod
     def _local_ui_review_record(row: sqlite3.Row, artifact_ids: Sequence[str]) -> dict[str, Any]:
@@ -2897,9 +2901,7 @@ class CanonicalStore:
             "classification_id": None if row["classification_id"] is None else str(row["classification_id"]),
             "confidence_raw": None if row["confidence_raw"] is None else float(row["confidence_raw"]),
             "content_key": str(row["content_key"]),
-            "current_category_id": (
-                None if row["primary_category_id"] is None else str(row["primary_category_id"])
-            ),
+            "current_category_id": (None if row["primary_category_id"] is None else str(row["primary_category_id"])),
             "decision_mode": None if row["decision_mode"] is None else str(row["decision_mode"]),
             "evidence_artifact_count": len(artifact_ids),
             "platform": str(row["platform"]),
@@ -3426,10 +3428,14 @@ class CanonicalStore:
                 content_rows = relation_rows = pending_outbox = 0
                 if target_kind == "content":
                     content_rows = int(
-                        connection.execute("SELECT COUNT(*) FROM content WHERE content_key = ?", (target,)).fetchone()[0]
+                        connection.execute("SELECT COUNT(*) FROM content WHERE content_key = ?", (target,)).fetchone()[
+                            0
+                        ]
                     )
                     relation_rows = int(
-                        connection.execute("SELECT COUNT(*) FROM user_relation WHERE content_key = ?", (target,)).fetchone()[0]
+                        connection.execute(
+                            "SELECT COUNT(*) FROM user_relation WHERE content_key = ?", (target,)
+                        ).fetchone()[0]
                     )
                     pending_outbox = int(
                         connection.execute(
@@ -3439,7 +3445,9 @@ class CanonicalStore:
                     )
                 elif target_kind == "relation":
                     relation_rows = int(
-                        connection.execute("SELECT COUNT(*) FROM user_relation WHERE relation_key = ?", (target,)).fetchone()[0]
+                        connection.execute(
+                            "SELECT COUNT(*) FROM user_relation WHERE relation_key = ?", (target,)
+                        ).fetchone()[0]
                     )
                 elif target_kind == "sink":
                     pending_outbox = int(
@@ -3532,7 +3540,9 @@ class CanonicalStore:
             (now, content_key),
         )
 
-    def record_owner_tombstone(self, *, target_kind: str, target_key_private: str, now: str | None = None) -> LifecycleTombstone:
+    def record_owner_tombstone(
+        self, *, target_kind: str, target_key_private: str, now: str | None = None
+    ) -> LifecycleTombstone:
         if target_kind not in LIFECYCLE_TOMBSTONE_KINDS:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle target kind is invalid")
         target = _validate_lifecycle_target(target_key_private, label="lifecycle_target")
@@ -3548,9 +3558,7 @@ class CanonicalStore:
             ).fetchone()
             if existing is not None:
                 return self._lifecycle_tombstone_from_row(existing)
-            state_row = connection.execute(
-                "SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1"
-            ).fetchone()
+            state_row = connection.execute("SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1").fetchone()
             if state_row is None:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle state is unavailable")
             next_epoch = int(state_row["deletion_epoch"]) + 1
@@ -3858,7 +3866,9 @@ class CanonicalStore:
                     "SELECT status, confirmed_by FROM user_relation WHERE relation_key = ?", (target,)
                 ).fetchone()
                 if state is None or str(state["status"]) != "removed" or str(state["confirmed_by"]) != "owner":
-                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored relation tombstone was not applied")
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED, "Restored relation tombstone was not applied"
+                    )
             elif kind == "sink":
                 pending = connection.execute(
                     "SELECT 1 FROM outbox_event WHERE content_key = ? AND status IN ('pending', 'leased')", (target,)
@@ -3911,9 +3921,7 @@ class CanonicalStore:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive snapshot schema is invalid")
             if self._logical_digest(source) != expected_logical_sha256:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive snapshot logical digest is invalid")
-            state_row = source.execute(
-                "SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1"
-            ).fetchone()
+            state_row = source.execute("SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1").fetchone()
             if state_row is None or int(state_row["deletion_epoch"]) != expected_deletion_epoch:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive deletion epoch is invalid")
             self._verify_tombstone_application(source)
@@ -3931,7 +3939,9 @@ class CanonicalStore:
                             "SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1"
                         ).fetchone()
                         if state_row is None:
-                            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current lifecycle state is unavailable")
+                            raise X2NRuntimeError(
+                                ErrorCode.DATA_INTEGRITY_FAILED, "Current lifecycle state is unavailable"
+                            )
                         if expected_deletion_epoch < int(state_row["deletion_epoch"]):
                             raise X2NRuntimeError(
                                 ErrorCode.POLICY_BLOCKED,

@@ -100,7 +100,11 @@ def replay() -> dict[str, Any]:
         payload = json.loads(output)
     except json.JSONDecodeError as error:
         raise HistoricalReplayError("historical Task005 verifier output is invalid") from error
-    if not isinstance(payload, dict) or payload.get("status") != "PASS" or payload.get("task_id") != "TSK.x2n.uxops.005":
+    if (
+        not isinstance(payload, dict)
+        or payload.get("status") != "PASS"
+        or payload.get("task_id") != "TSK.x2n.uxops.005"
+    ):
         raise HistoricalReplayError("historical Task005 verifier did not pass")
     return {
         "current_g5_tree_evaluated": False,

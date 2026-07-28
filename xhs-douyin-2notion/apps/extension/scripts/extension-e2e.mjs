@@ -238,7 +238,12 @@ try {
 
   currentStep = "runtime_init";
   const initialized = runJson(uvPython("x2n_companion.runtime_cli", "init"), env, "runtime_init");
-  requireCondition(initialized.status === "PASS" && initialized.schema_version === 4, "runtime_init_status");
+  requireCondition(
+    initialized.status === "PASS"
+      && Number.isInteger(initialized.schema_version)
+      && initialized.schema_version === initialized.latest_schema_version,
+    "runtime_init_status",
+  );
 
   currentStep = "native_host_install";
   const hostInstall = runJson(

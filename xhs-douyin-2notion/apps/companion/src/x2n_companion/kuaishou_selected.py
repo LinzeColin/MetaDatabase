@@ -157,7 +157,10 @@ class KuaishouCapabilityReceipt:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Kuaishou capability environment is invalid")
         if self.source_kind != SOURCE_KIND or self.policy_revision != POLICY_REVISION:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Kuaishou capability policy is stale")
-        if not isinstance(self.authorization_ref_sha256, str) or SHA256.fullmatch(self.authorization_ref_sha256) is None:
+        if (
+            not isinstance(self.authorization_ref_sha256, str)
+            or SHA256.fullmatch(self.authorization_ref_sha256) is None
+        ):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Kuaishou authorization reference is invalid")
         flags = (
             self.application_approved,
@@ -256,9 +259,7 @@ def evaluate_kuaishou_capability(receipt: KuaishouCapabilityReceipt) -> Kuaishou
     missing = tuple(sorted(name for name, present in requirements.items() if not present))
     if missing:
         return KuaishouCapabilityDecision("BLOCKED_MISSING_AUTHORIZATION", False, False, missing, False)
-    return KuaishouCapabilityDecision(
-        "BLOCKED_FEATURE_DISABLED", False, False, ("production_feature_flag",), False
-    )
+    return KuaishouCapabilityDecision("BLOCKED_FEATURE_DISABLED", False, False, ("production_feature_flag",), False)
 
 
 @dataclass(frozen=True)
@@ -341,7 +342,10 @@ class KuaishouSelectedBatch:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Kuaishou batch requires one explicit no-pagination action")
         if not isinstance(self.owner_selection_id, str) or SELECTION_ID.fullmatch(self.owner_selection_id) is None:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Kuaishou owner selection identity is invalid")
-        if not isinstance(self.selection_manifest_sha256, str) or SHA256.fullmatch(self.selection_manifest_sha256) is None:
+        if (
+            not isinstance(self.selection_manifest_sha256, str)
+            or SHA256.fullmatch(self.selection_manifest_sha256) is None
+        ):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Kuaishou selection manifest reference is invalid")
         if (
             not isinstance(self.selected_manifest_count, int)
@@ -604,9 +608,7 @@ class KuaishouSelectedAdapter:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Kuaishou checkpoint cursor is invalid")
         integer_fields = ("error_evidence_count", "identified_items", "manifest_items", "next_sequence")
         valid_integers = all(
-            isinstance(value.get(field), int)
-            and not isinstance(value.get(field), bool)
-            and value[field] >= 0
+            isinstance(value.get(field), int) and not isinstance(value.get(field), bool) and value[field] >= 0
             for field in integer_fields
         )
         last_sequence = value.get("last_sequence")
@@ -648,10 +650,7 @@ class KuaishouSelectedAdapter:
             and value.get("error_evidence_count") >= len(value.get("last_error_codes", []))
             and value.get("next_sequence") == (1 if value.get("last_outcome") == "ready" else 0)
             and value.get("platform_killed")
-            == (
-                value.get("last_outcome")
-                in {"auth_required", "scope_revoked", "policy_blocked", "captcha_required"}
-            )
+            == (value.get("last_outcome") in {"auth_required", "scope_revoked", "policy_blocked", "captcha_required"})
             and value.get("retention_delete_required") == (value.get("last_outcome") == "scope_revoked")
         )
         if (
@@ -953,7 +952,9 @@ class KuaishouSelectedAdapter:
             if cursor["last_sequence"] == batch.sequence and cursor["last_batch_hash"] == batch_hash:
                 return self._receipt(connection, scan_id, checkpoint, disposition="replayed")
             if checkpoint["state"] != "active" or run["state"] != "running":
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Kuaishou completed scan cannot accept another batch")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Kuaishou completed scan cannot accept another batch"
+                )
             if batch.sequence != cursor["next_sequence"]:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Kuaishou batch is not the checkpoint successor")
             if timestamp < str(checkpoint["updated_at"]):
@@ -985,7 +986,10 @@ class KuaishouSelectedAdapter:
                         run_id=identity["run_id"],
                         observed_at=observed_at,
                     )
-                    if self.store._append_observation(connection, observation, timestamp) is not WriteDisposition.UNCHANGED:
+                    if (
+                        self.store._append_observation(connection, observation, timestamp)
+                        is not WriteDisposition.UNCHANGED
+                    ):
                         observation_writes += 1
                     self._fault(f"after_item_{index}")
 

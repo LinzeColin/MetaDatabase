@@ -115,7 +115,11 @@ class LocalReviewItem:
     @classmethod
     def from_store(cls, value: Mapping[str, Any]) -> "LocalReviewItem":
         artifact_ids = value.get("artifact_ids")
-        if not isinstance(artifact_ids, list) or not artifact_ids or not all(isinstance(item, str) for item in artifact_ids):
+        if (
+            not isinstance(artifact_ids, list)
+            or not artifact_ids
+            or not all(isinstance(item, str) for item in artifact_ids)
+        ):
             raise WebUIError(409, "review_evidence_missing", "Review requires immutable Artifact evidence")
         content_key = value.get("content_key")
         platform = value.get("platform")
@@ -327,13 +331,22 @@ class LocalWebUI:
         existing: TaxonomyCategory | None,
         enabled: bool,
     ) -> TaxonomyCategory:
-        aliases = _string_list(payload.get("aliases", list(existing.aliases) if existing is not None else []), label="aliases", maximum_items=20, maximum_item_length=100)
+        aliases = _string_list(
+            payload.get("aliases", list(existing.aliases) if existing is not None else []),
+            label="aliases",
+            maximum_items=20,
+            maximum_item_length=100,
+        )
         try:
             return TaxonomyCategory(
                 schema_version="1.0",
                 category_id=category_id,
-                name=_string(payload.get("name", existing.name if existing is not None else None), label="name", maximum=100),
-                slug=_string(payload.get("slug", existing.slug if existing is not None else None), label="slug", maximum=63),
+                name=_string(
+                    payload.get("name", existing.name if existing is not None else None), label="name", maximum=100
+                ),
+                slug=_string(
+                    payload.get("slug", existing.slug if existing is not None else None), label="slug", maximum=63
+                ),
                 description=_string(
                     payload.get("description", existing.description if existing is not None else None),
                     label="description",
@@ -445,7 +458,9 @@ class LocalWebUI:
                 taxonomy_version=snapshot.version,
                 primary_category_id=selected_category.category_id,
                 tags=(),
-                candidate_ranking=(ClassificationCandidate(category_id=selected_category.category_id, calibrated_score=1.0),),
+                candidate_ranking=(
+                    ClassificationCandidate(category_id=selected_category.category_id, calibrated_score=1.0),
+                ),
                 decision_mode=DecisionMode.HUMAN,
                 confidence_raw=None,
                 calibration_bucket=None,
@@ -686,7 +701,9 @@ class _LocalWebUIHandler(BaseHTTPRequestHandler):
     def _json(self, status: int, payload: Mapping[str, Any], *, attachment: str | None = None) -> None:
         self._send(
             status,
-            json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True).encode("utf-8"),
+            json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True).encode(
+                "utf-8"
+            ),
             content_type="application/json; charset=utf-8",
             attachment=attachment,
         )

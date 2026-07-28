@@ -1050,7 +1050,10 @@ class AsrEvaluator:
             character_error_rate(case.reference_text, case.predicted_text, maximum_chars=self.policy.max_cer_chars)
             for case in clear
         ]
-        wer_rates = [word_error_rate(case.reference_text, case.predicted_text, maximum_chars=self.policy.max_cer_chars) for case in clear]
+        wer_rates = [
+            word_error_rate(case.reference_text, case.predicted_text, maximum_chars=self.policy.max_cer_chars)
+            for case in clear
+        ]
         median_cer = None if not cer_rates else _median(cer_rates)
         median_wer = None if not wer_rates else _median(wer_rates)
         hallucinations = sum(
@@ -1064,7 +1067,8 @@ class AsrEvaluator:
         )
         failures = sum(case.provider_failed for case in cases)
         provenance_complete = sum(
-            case.provider is not None and case.input_hash is not None and case.prompt_sha256 is not None for case in cases
+            case.provider is not None and case.input_hash is not None and case.prompt_sha256 is not None
+            for case in cases
         )
         if private_gold and provenance_complete != len(cases):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "ASR private Gold Set provenance is incomplete")

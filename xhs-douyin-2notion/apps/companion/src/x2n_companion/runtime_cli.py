@@ -26,6 +26,7 @@ from .lifecycle import (
     DigestPinnedPrivateDbClient,
     LifecycleService,
 )
+from .migrations import LATEST_SCHEMA_VERSION
 from .media_safety import scan_persisted_scopes
 from .operations import RECOVERY_CONFIRMATION, OperationsService, build_local_doctor_probe
 from .ocr_vision import (
@@ -165,7 +166,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             snapshot = TaxonomySnapshot.from_categories(store.list_taxonomy_categories())
             dataset = load_private_classification_gold_dataset(paths, args.dataset)
             if dataset.taxonomy_snapshot_sha256 != snapshot.snapshot_sha256:
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Classification Gold Set taxonomy snapshot is stale")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Classification Gold Set taxonomy snapshot is stale"
+                )
             classifier = ConstrainedClassifier()
             report = ClassificationEvaluator(classifier=classifier).evaluate(
                 dataset.cases,
@@ -275,7 +278,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             )
         if args.lifecycle_action == "export":
             if args.confirm != PRIVATE_EXPORT_CONFIRMATION:
-                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Private lifecycle export requires explicit confirmation")
+                raise X2NRuntimeError(
+                    ErrorCode.POLICY_BLOCKED, "Private lifecycle export requires explicit confirmation"
+                )
             return _success(
                 "lifecycle_export_verified",
                 acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_EXPORT",
@@ -433,7 +438,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             **report.safe_dict(),
         )
     if args.action == "init":
-        return _success("store_init", **_store(create=True).initialize())
+        return _success(
+            "store_init",
+            **_store(create=True).initialize(),
+            latest_schema_version=LATEST_SCHEMA_VERSION,
+        )
     store = _store(create=False)
     if args.action == "health":
         health = store.health()

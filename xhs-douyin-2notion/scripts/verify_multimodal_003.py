@@ -125,7 +125,9 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task003 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task003 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -206,7 +208,19 @@ def validate_scope_and_boundary() -> Check:
     _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task003 contains an out-of-scope change")
     files = [PROJECT_ROOT / path for path in scoped if (PROJECT_ROOT / path).is_file()]
     _safety_scan(files, commit=commit)
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
+    forbidden_suffixes = {
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+    }
     _require(
         not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped),
         "Task003 Runtime media or database entered public source",
@@ -327,7 +341,10 @@ def validate_task_and_transition() -> Check:
             and state.get("last_completed_phase") == "PH.X2N.4.4"
             and state.get("run_id") == "RUN-X2N-S04-M004"
             and state.get("run_kind") == "single_dag_task_ci_synth_fusion_injection_model_not_run"
-            and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", TASK_ID, NEXT_TASK))
+            and all(
+                state.get("tasks", {}).get(task_id) == "pass"
+                for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", TASK_ID, NEXT_TASK)
+            )
             and state.get("next_phase") == "PH.X2N.4.5"
             and state.get("next_run") == "TSK.x2n.multimodal.005"
             and state.get("next_phase_authorized") is True
@@ -370,7 +387,8 @@ def validate_task_and_transition() -> Check:
             and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
             and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
             and statuses.get("ACC.x2n.ai.004") == "pass_ci_synth_fusion_schema_injection_isolation_model_not_run"
-            and statuses.get("ACC.x2n.ai.005") == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
+            and statuses.get("ACC.x2n.ai.005")
+            == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
             and statuses.get("ACC.x2n.ai.006") == "pending_private_gold_classification_suggestion_only_ci_contract_pass"
             and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task005_provenance_cache_budget_cloud_zero",
             "Task003 historical acceptance boundary was not preserved after Task005 completion",
@@ -419,10 +437,7 @@ def validate_implementation_shape() -> Check:
     )
     _require(all(token in source for token in required), "Task003 local-first OCR/Vision implementation is incomplete")
     _require(
-        "raw_url" not in source
-        and "requests." not in source
-        and "httpx" not in source
-        and "sqlite3" not in source,
+        "raw_url" not in source and "requests." not in source and "httpx" not in source and "sqlite3" not in source,
         "Task003 OCR/Vision implementation crossed its no-network/no-persistence boundary",
     )
     _require(
@@ -533,7 +548,11 @@ def validate_acceptance_execution() -> Check:
     return Check(
         "fresh_synthetic_acceptance",
         "PASS",
-        {"cloud_uploads": 0, "private_gold": "NOT_RUN", "synthetic_unit_tests": receipt["metrics"]["synthetic_unit_tests"]},
+        {
+            "cloud_uploads": 0,
+            "private_gold": "NOT_RUN",
+            "synthetic_unit_tests": receipt["metrics"]["synthetic_unit_tests"],
+        },
     )
 
 
@@ -544,7 +563,12 @@ def validate_worktree() -> Check:
 
 
 def run_checks(*, verify_worktree: bool, run_acceptance: bool) -> list[Check]:
-    checks = [validate_scope_and_boundary(), validate_task_and_transition(), validate_implementation_shape(), validate_facts_and_evidence()]
+    checks = [
+        validate_scope_and_boundary(),
+        validate_task_and_transition(),
+        validate_implementation_shape(),
+        validate_facts_and_evidence(),
+    ]
     if verify_worktree:
         checks.append(validate_worktree())
     if run_acceptance:

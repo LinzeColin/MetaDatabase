@@ -199,9 +199,7 @@ def _source_receipt() -> str:
 def _changed_paths() -> list[str]:
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
     candidates: set[str] = set()
-    for arguments in (
-        ("diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{TASK010_FINAL_COMMIT}"),
-    ):
+    for arguments in (("diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{TASK010_FINAL_COMMIT}"),):
         candidates.update(path for path in _git(arguments).split("\0") if path)
     return sorted(candidates)
 
@@ -234,7 +232,12 @@ def validate_scope_and_boundary() -> Check:
     _require(all(path in ALLOWED_CHANGED_EXACT for path in relative_paths), "Task010 contains an out-of-scope change")
     files = [PROJECT_ROOT / path for path in relative_paths if (PROJECT_ROOT / path).is_file()]
     _safety_scan(files)
-    _require(not any(path.endswith((".sqlite", ".sqlite3", ".db", ".mp4", ".mp3", ".jpg", ".png")) for path in relative_paths), "runtime data entered Task010")
+    _require(
+        not any(
+            path.endswith((".sqlite", ".sqlite3", ".db", ".mp4", ".mp3", ".jpg", ".png")) for path in relative_paths
+        ),
+        "runtime data entered Task010",
+    )
     return Check(
         "scope_and_public_private_boundary",
         "PASS",
@@ -293,7 +296,10 @@ def validate_task_state_and_historical_resume() -> Check:
     state = _load_json(TASK_STATE)
     resume = _load_json(RESUME_FACT)
     _require(task.get("phase") == PHASE and task.get("status") == "completed", "Task010 is not completed")
-    _require(task.get("acceptance_ids") == ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"], "Task010 acceptance IDs drifted")
+    _require(
+        task.get("acceptance_ids") == ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"],
+        "Task010 acceptance IDs drifted",
+    )
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Task010 current state is not pass")
     task001_state = state.get("tasks", {}).get("TSK.x2n.multimodal.001")
     task005_state = state.get("tasks", {}).get("TSK.x2n.multimodal.005")
@@ -608,7 +614,10 @@ def validate_execution() -> Check:
     }
     for key, expected_value in expected.items():
         _require(output.get(key) == expected_value, "Task010 acceptance metric drifted")
-    _require(isinstance(output.get("python_tests"), int) and output["python_tests"] >= 30, "Task010 unit coverage is too small")
+    _require(
+        isinstance(output.get("python_tests"), int) and output["python_tests"] >= 30,
+        "Task010 unit coverage is too small",
+    )
     return Check(
         "extension_native_adapter_failure_fallback_and_restart_acceptance",
         "PASS",
@@ -693,7 +702,9 @@ def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(EVIDENCE.read_bytes() == _blob_at(TASK010_FINAL_COMMIT, EVIDENCE), "Task010 evidence was rewritten")
-    _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "Task010 evidence identity drifted")
+    _require(
+        evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "Task010 evidence identity drifted"
+    )
     _require(evidence.get("acceptance_input_sha256") == _source_receipt(), "Task010 evidence receipt is stale")
     _require(
         evidence.get("status") == "PASS_CI_SYNTH_SCOPED_REVIEW_PENDING"
@@ -703,7 +714,10 @@ def verify_evidence() -> Check:
         and evidence.get("stage_4") == "UNAUTHORIZED_PENDING_INDEPENDENT_G3_REVIEW",
         "Task010 evidence overstates authorization",
     )
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "Task010 evidence contains a failed check")
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])),
+        "Task010 evidence contains a failed check",
+    )
     return Check("evidence_receipt", "PASS", {"input_sha256": evidence["acceptance_input_sha256"], "platform_calls": 0})
 
 
@@ -744,10 +758,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.write_evidence:
             write_evidence(checks)
             checks.append(verify_evidence())
-        print(json.dumps({"checks": [check.name for check in checks], "status": "PASS", "task_id": TASK_ID}, sort_keys=True))
+        print(
+            json.dumps(
+                {"checks": [check.name for check in checks], "status": "PASS", "task_id": TASK_ID}, sort_keys=True
+            )
+        )
         return 0
     except (OSError, subprocess.TimeoutExpired, VerificationError) as error:
-        print(json.dumps({"reason": str(error), "status": "FAIL_CLOSED", "task_id": TASK_ID}, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps({"reason": str(error), "status": "FAIL_CLOSED", "task_id": TASK_ID}, sort_keys=True),
+            file=sys.stderr,
+        )
         return 1
 
 

@@ -203,9 +203,18 @@ def run_concurrency(request_count: int) -> dict[str, int]:
         existing_count = sum(item.disposition.value == "return_existing_job" for item in receipts)
         if (job_count, new_count, existing_count) != (1, 1, request_count - 1):
             raise AssertionError("Concurrent duplicate request identity diverged")
-        if any(store.counts()[table] != 1 for table in (
-            "artifact", "checkpoint", "content", "request_ledger", "run_record", "source_observation", "user_relation"
-        )):
+        if any(
+            store.counts()[table] != 1
+            for table in (
+                "artifact",
+                "checkpoint",
+                "content",
+                "request_ledger",
+                "run_record",
+                "source_observation",
+                "user_relation",
+            )
+        ):
             raise AssertionError("Concurrent duplicate created more than one canonical graph")
         return {
             "duplicate_entities": 0,

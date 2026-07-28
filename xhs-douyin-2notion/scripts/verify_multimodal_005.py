@@ -145,7 +145,9 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task005 audit pin is missing")
+    _require(
+        isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task005 audit pin is missing"
+    )
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -228,7 +230,19 @@ def validate_scope_and_boundary() -> Check:
     _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task005 contains an out-of-scope change")
     files = [PROJECT_ROOT / path for path in scoped if (PROJECT_ROOT / path).is_file()]
     _safety_scan(files, commit=commit)
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
+    forbidden_suffixes = {
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+    }
     _require(
         not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped),
         "Task005 Runtime media or database entered public source",
@@ -387,7 +401,9 @@ def validate_implementation_shape() -> Check:
         all(token not in taxonomy for token in ("requests.", "httpx", "sqlite3", "subprocess")),
         "Task005 taxonomy implementation crossed its no-network/no-Store boundary",
     )
-    classifier = taxonomy[taxonomy.index("class ConstrainedClassifier") : taxonomy.index("class ClassificationGoldCase")]
+    classifier = taxonomy[
+        taxonomy.index("class ConstrainedClassifier") : taxonomy.index("class ClassificationGoldCase")
+    ]
     _require(
         "TaxonomyRegistry" not in classifier and "CanonicalStore" not in classifier and "open(" not in classifier,
         "classifier retains a taxonomy mutation or file route",
@@ -417,7 +433,9 @@ def validate_implementation_shape() -> Check:
 def _safe_evidence(payload: dict[str, Any]) -> None:
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True)
     _require("/" + "Users/" not in rendered, "Task005 evidence contains a local user path")
-    _require("github" + "_pat_" not in rendered and "Bearer" + " " not in rendered, "Task005 evidence contains a secret")
+    _require(
+        "github" + "_pat_" not in rendered and "Bearer" + " " not in rendered, "Task005 evidence contains a secret"
+    )
     _require("https://" not in rendered and "http://" not in rendered, "Task005 evidence contains a URL")
 
 
@@ -439,7 +457,17 @@ def validate_facts_and_evidence() -> Check:
     execution = evidence.get("execution", {})
     policy = evidence.get("policy", {})
     _require(
-        all(execution.get(field) == 0 for field in ("ai_top_level_category_mutations", "cloud_uploads", "model_calls", "network_calls", "notion_calls", "platform_calls"))
+        all(
+            execution.get(field) == 0
+            for field in (
+                "ai_top_level_category_mutations",
+                "cloud_uploads",
+                "model_calls",
+                "network_calls",
+                "notion_calls",
+                "platform_calls",
+            )
+        )
         and execution.get("owner_private_gold_evaluation") == "NOT_RUN"
         and execution.get("real_account_execution") == "NOT_RUN"
         and policy.get("auto_classify") == "DISABLED_PENDING_PRIVATE_GOLD"
@@ -462,8 +490,12 @@ def validate_facts_and_evidence() -> Check:
     )
     decisions = architecture.get("decisions")
     _require(isinstance(decisions, list), "architecture decisions are invalid")
-    taxonomy_decision = next((item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-009"), None)
-    classifier_decision = next((item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-016"), None)
+    taxonomy_decision = next(
+        (item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-009"), None
+    )
+    classifier_decision = next(
+        (item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-016"), None
+    )
     _require(
         isinstance(taxonomy_decision, dict)
         and taxonomy_decision.get("state") == "accepted_implementation"
@@ -514,7 +546,17 @@ def validate_acceptance_execution() -> Check:
         and receipt.get("status") == "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
         and receipt.get("metrics", {}).get("synthetic_unit_tests", 0) >= 22
         and receipt.get("metrics", {}).get("automatic_classification_writes") == 0
-        and all(execution.get(field) == 0 for field in ("ai_top_level_category_mutations", "cloud_uploads", "model_calls", "network_calls", "notion_calls", "platform_calls"))
+        and all(
+            execution.get(field) == 0
+            for field in (
+                "ai_top_level_category_mutations",
+                "cloud_uploads",
+                "model_calls",
+                "network_calls",
+                "notion_calls",
+                "platform_calls",
+            )
+        )
         and execution.get("owner_private_gold_evaluation") == "NOT_RUN"
         and policy.get("auto_classify") == "DISABLED_PENDING_PRIVATE_GOLD"
         and policy.get("taxonomy_actor") == "OWNER_ONLY",
@@ -523,7 +565,10 @@ def validate_acceptance_execution() -> Check:
     return Check(
         "fresh_synthetic_acceptance",
         "PASS",
-        {"auto_classify": "DISABLED_PENDING_PRIVATE_GOLD", "synthetic_unit_tests": receipt["metrics"]["synthetic_unit_tests"]},
+        {
+            "auto_classify": "DISABLED_PENDING_PRIVATE_GOLD",
+            "synthetic_unit_tests": receipt["metrics"]["synthetic_unit_tests"],
+        },
     )
 
 
@@ -534,7 +579,12 @@ def validate_historical_compatibility() -> Check:
         ("scripts/verify_multimodal_003.py", "--verify-worktree"),
         ("scripts/verify_multimodal_004.py", "--verify-worktree"),
         ("scripts/verify_adapters_010.py", "--verify-worktree", "--skip-external", "--require-evidence"),
-        ("scripts/verify_stage_3_review_resume_recheck.py", "--verify-worktree", "--skip-acceptance", "--require-evidence"),
+        (
+            "scripts/verify_stage_3_review_resume_recheck.py",
+            "--verify-worktree",
+            "--skip-acceptance",
+            "--require-evidence",
+        ),
         ("scripts/verify_stage_3_review_resume.py", "--require-evidence"),
     )
     for command in commands:

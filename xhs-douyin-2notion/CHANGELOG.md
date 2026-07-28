@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 6 / Assurance001
+
+- 完成 TSK.x2n.assurance.001 / PH.X2N.6.1 的当前软件 CI-synth assurance：全树 format/lint/compile/TypeScript、Companion/Contract、browser E2E、风险覆盖与 source scan 均为 blocking pass。
+- 复验 80x2/100 concurrent 的跨层 Canonical→Artifact→Markdown→Notion Mock/Outbox 幂等，10,000 migration/backup/rollback，七个 fresh-copy Skill lifecycle rehearsal，以及两个关键不变量 mutation；重复、data loss、unreadable record、runtime write 和 platform call 均为 0。
+- 新增固定 G5 历史 replay、Assurance001 Run Contract/state/schema/fail-closed verifier 与公开脱敏证据。当前 Task 只授权下一单 TSK.x2n.assurance.002；无 Alpha/Beta、固定观察或 soak，真实 MVP deploy/run/online smoke 仍只在 assurance.005。
+
 ## v0.0.0.1 — Stage 5 / G5 Review
 
 - 独立签发 `G5=PASS_CI_SYNTH`：固定 Stage 5 Task001–005 receipt，复跑 G4 preservation、Notion Mock/outbox reconcile、10,000-item Markdown rebuild、loopback Owner review/redacted diagnostics/doctor/recovery，并在 disposable Git checkout 中重放 Task005 final verifier。

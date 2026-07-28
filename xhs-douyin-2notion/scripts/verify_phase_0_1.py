@@ -109,10 +109,18 @@ def validate_taskpack() -> Check:
     _require(project.get("skill_path") == "xhs-douyin-2notion/", "wrong project path")
     _require(project.get("data_root_ref") == "X2N_DATA_ROOT", "runtime root contract missing")
     _require(project.get("downloads_root_ref") == "X2N_DATA_ROOT", "download root is not unified")
-    _require(project.get("download_destination_ref") == "X2N_DOWNLOAD_DESTINATION", "owner download destination reference missing")
-    _require(project.get("download_destination_required_basename") == "MediaCrawler", "owner download destination drifted")
+    _require(
+        project.get("download_destination_ref") == "X2N_DOWNLOAD_DESTINATION",
+        "owner download destination reference missing",
+    )
+    _require(
+        project.get("download_destination_required_basename") == "MediaCrawler", "owner download destination drifted"
+    )
     _require(project.get("data_root_namespace") == "xhs-douyin-2notion", "private namespace drifted")
-    _require(project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "source path ambiguity is not recorded")
+    _require(
+        project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved",
+        "source path ambiguity is not recorded",
+    )
 
     execution = taskpack.get("execution_policy", {})
     _require(execution.get("single_task_focus") is True, "single-task run policy missing")
@@ -120,12 +128,13 @@ def validate_taskpack() -> Check:
     _require(execution.get("single_phase_focus") is True, "single-phase run policy missing")
     _require(execution.get("max_phases_per_run") == 1, "run may exceed one phase")
     _require(execution.get("intermediate_phase_push") == "forbidden", "intermediate push is not forbidden")
-    _require(execution.get("default_git_allowed_paths") == ["xhs-douyin-2notion/**"], "default changed scope is ambiguous")
+    _require(
+        execution.get("default_git_allowed_paths") == ["xhs-douyin-2notion/**"], "default changed scope is ambiguous"
+    )
     _require(execution.get("external_writes_require_explicit_run_contract") is True, "external writes are not gated")
     _require(execution.get("missing_or_ambiguous_scope") == "fail_closed", "ambiguous scope is not fail-closed")
     _require(
-        execution.get("stage_0_runnable_phase_sequence")
-        == ["PH.X2N.0.1", "PH.X2N.0.2", "PH.X2N.0.5"],
+        execution.get("stage_0_runnable_phase_sequence") == ["PH.X2N.0.1", "PH.X2N.0.2", "PH.X2N.0.5"],
         "Stage 0 runnable phase sequence is ambiguous",
     )
     _require(
@@ -187,10 +196,15 @@ def validate_taskpack() -> Check:
         stage_number = task["stage"].rsplit(".", 1)[1]
         _require(task.get("phase", "").startswith(f"PH.X2N.{stage_number}."), f"phase/stage mismatch for {task['id']}")
         effort = task.get("effort_hours", {})
-        _require(effort.get("low", 0) <= effort.get("likely", 0) <= effort.get("high", 0), f"invalid effort range for {task['id']}")
+        _require(
+            effort.get("low", 0) <= effort.get("likely", 0) <= effort.get("high", 0),
+            f"invalid effort range for {task['id']}",
+        )
         for dependency in task.get("depends_on", []):
             _require(dependency in task_id_set, f"missing dependency {dependency}")
-            _require(task_positions[dependency] < task_positions[task["id"]], f"dependency listed after task: {dependency}")
+            _require(
+                task_positions[dependency] < task_positions[task["id"]], f"dependency listed after task: {dependency}"
+            )
         for acceptance_id in task.get("acceptance_ids", []):
             _require(acceptance_id in acceptance_id_set, f"missing acceptance {acceptance_id}")
     expected_stage_task_counts = {
@@ -224,9 +238,7 @@ def validate_taskpack() -> Check:
     phase_tasks = tuple(task["id"] for task in tasks if task.get("phase") == "PH.X2N.0.1")
     _require(phase_tasks == PHASE_TASKS, f"unexpected Phase 0.1 task order: {phase_tasks}")
     _require(set(PHASE_ACCEPTANCES).issubset(acceptance_id_set), "Phase 0.1 acceptance registration incomplete")
-    stage_0_phase_map = {
-        task["id"]: task["phase"] for task in tasks if task.get("stage") == "STG.X2N.0"
-    }
+    stage_0_phase_map = {task["id"]: task["phase"] for task in tasks if task.get("stage") == "STG.X2N.0"}
     _require(
         stage_0_phase_map
         == {
@@ -241,7 +253,10 @@ def validate_taskpack() -> Check:
     roadmap_text = (PROJECT_ROOT / "docs/product_design/v0.0.0.1/02_ROADMAP.md").read_text(encoding="utf-8")
     phase_0_2_text = roadmap_text.split("## Phase 0.2", 1)[1].split("## Phase 0.3", 1)[0]
     phase_0_5_text = roadmap_text.split("## Phase 0.5", 1)[1].split("### Gate G0", 1)[0]
-    _require("TSK.x2n.discovery.004" in phase_0_2_text and "TSK.x2n.discovery.005" not in phase_0_2_text, "Roadmap Phase 0.2 task mapping conflicts with DAG")
+    _require(
+        "TSK.x2n.discovery.004" in phase_0_2_text and "TSK.x2n.discovery.005" not in phase_0_2_text,
+        "Roadmap Phase 0.2 task mapping conflicts with DAG",
+    )
     _require("TSK.x2n.discovery.005" in phase_0_5_text, "Roadmap Phase 0.5 task missing")
     _require(roadmap_text.count("非独立准备域") == 2, "Roadmap Phase 0.3/0.4 preparation semantics missing")
 
@@ -251,7 +266,10 @@ def validate_taskpack() -> Check:
     task_low = sum(task.get("effort_hours", {}).get("low", 0) for task in tasks)
     task_likely = sum(task.get("effort_hours", {}).get("likely", 0) for task in tasks)
     task_high = sum(task.get("effort_hours", {}).get("high", 0) for task in tasks)
-    _require(effort_policy.get("stage_envelope_total") == {"low": stage_low, "high": stage_high}, "stage effort envelope is ambiguous")
+    _require(
+        effort_policy.get("stage_envelope_total") == {"low": stage_low, "high": stage_high},
+        "stage effort envelope is ambiguous",
+    )
     _require(
         effort_policy.get("task_arithmetic_total")
         == {"low": task_low, "likely": task_likely, "isolated_high": task_high},
@@ -304,9 +322,16 @@ def validate_registration() -> Check:
     _require(project.get("parent_repository") == "LinzeColin/MetaDatabase", "project fact parent mismatch")
     _require(project.get("project_path") == "xhs-douyin-2notion/", "project fact path mismatch")
     _require(project.get("stage_min") == 0 and project.get("stage_max") == 6, "project stage range mismatch")
-    _require(project.get("runtime_root_ref") == project.get("downloads_root_ref") == "X2N_DATA_ROOT", "project roots differ")
-    _require(project.get("download_destination_ref") == "X2N_DOWNLOAD_DESTINATION", "project download destination reference missing")
-    _require(project.get("download_destination_required_basename") == "MediaCrawler", "project download destination drifted")
+    _require(
+        project.get("runtime_root_ref") == project.get("downloads_root_ref") == "X2N_DATA_ROOT", "project roots differ"
+    )
+    _require(
+        project.get("download_destination_ref") == "X2N_DOWNLOAD_DESTINATION",
+        "project download destination reference missing",
+    )
+    _require(
+        project.get("download_destination_required_basename") == "MediaCrawler", "project download destination drifted"
+    )
     _require(project.get("data_root_namespace") == "xhs-douyin-2notion", "project private namespace drifted")
     _require(project.get("license_policy") == "proprietary_all_rights_reserved", "proprietary policy missing")
     _require(project.get("run_maximum") == "one_task", "Owner single-task run limit drifted")
@@ -316,13 +341,20 @@ def validate_registration() -> Check:
     _require(source.get("roadmap_sha256") == EXPECTED_ROADMAP_SHA256, "roadmap source hash mismatch")
     _require(source.get("taskpack_zip_sha256") == EXPECTED_TASKPACK_ZIP_SHA256, "taskpack source hash mismatch")
     _require(source.get("zip_member_count") == 7, "source member count mismatch")
-    _require(source.get("source_download_absolute_path_status") == "not_specified_in_original_inputs", "original path gap is not recorded")
-    _require(source.get("owner_adaptations") == [
-        "CE-X2N-20260719-S00-P01",
-        "CE-X2N-20260719-S00-P05",
-        "CE-X2N-20260720-S00-REVIEW",
-        "CE-X2N-20260720-S00-REVIEW-RESUME",
-    ], "owner adaptations missing")
+    _require(
+        source.get("source_download_absolute_path_status") == "not_specified_in_original_inputs",
+        "original path gap is not recorded",
+    )
+    _require(
+        source.get("owner_adaptations")
+        == [
+            "CE-X2N-20260719-S00-P01",
+            "CE-X2N-20260719-S00-P05",
+            "CE-X2N-20260720-S00-REVIEW",
+            "CE-X2N-20260720-S00-REVIEW-RESUME",
+        ],
+        "owner adaptations missing",
+    )
 
     repository_root = PROJECT_ROOT.parent
     root_readme = (repository_root / "README.md").read_text(encoding="utf-8")
@@ -355,7 +387,12 @@ def validate_registration() -> Check:
     return Check(
         "project_registration",
         "PASS",
-        {"required_files": len(required), "missing": 0, "product_design_documents": len(imported), "root_project_index_rows": 1},
+        {
+            "required_files": len(required),
+            "missing": 0,
+            "product_design_documents": len(imported),
+            "root_project_index_rows": 1,
+        },
     )
 
 
@@ -459,14 +496,36 @@ def validate_path_contract() -> Check:
     contract = _load_json(PATH_CONTRACT)
     _require(contract.get("root_ref") == "X2N_DATA_ROOT", "wrong root reference")
     _require(contract.get("required_basename") == "xhs-douyin-2notion", "wrong root basename")
-    _require(contract.get("owner_resolution_method") == "owner_download_destination_namespaced_child", "owner root resolution is ambiguous")
-    _require(contract.get("owner_download_destination_ref") == "X2N_DOWNLOAD_DESTINATION", "download destination reference missing")
-    _require(contract.get("owner_download_destination_required_basename") == "MediaCrawler", "download destination basename drifted")
+    _require(
+        contract.get("owner_resolution_method") == "owner_download_destination_namespaced_child",
+        "owner root resolution is ambiguous",
+    )
+    _require(
+        contract.get("owner_download_destination_ref") == "X2N_DOWNLOAD_DESTINATION",
+        "download destination reference missing",
+    )
+    _require(
+        contract.get("owner_download_destination_required_basename") == "MediaCrawler",
+        "download destination basename drifted",
+    )
     _require(contract.get("owner_namespace") == "xhs-douyin-2notion", "download namespace drifted")
-    _require(contract.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "source path ambiguity not recorded")
-    _require(contract.get("existing_destination_entries_policy") == "preserve_metadata_only_audit_no_content_read_no_import_no_link_no_write_no_delete", "existing destination protection weakened")
-    _require(contract.get("existing_destination_metadata_audit") == "aggregate_count_and_fingerprint_no_names_in_evidence", "destination metadata audit boundary drifted")
-    _require(contract.get("destination_name_semantics") == "storage_parent_only_no_upstream_authorization", "download directory name accidentally authorized an upstream")
+    _require(
+        contract.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved",
+        "source path ambiguity not recorded",
+    )
+    _require(
+        contract.get("existing_destination_entries_policy")
+        == "preserve_metadata_only_audit_no_content_read_no_import_no_link_no_write_no_delete",
+        "existing destination protection weakened",
+    )
+    _require(
+        contract.get("existing_destination_metadata_audit") == "aggregate_count_and_fingerprint_no_names_in_evidence",
+        "destination metadata audit boundary drifted",
+    )
+    _require(
+        contract.get("destination_name_semantics") == "storage_parent_only_no_upstream_authorization",
+        "download directory name accidentally authorized an upstream",
+    )
     _require(contract.get("must_be_outside_git") is True, "root may enter Git")
     _require(contract.get("runtime_and_downloads_share_root") is True, "runtime/download roots differ")
     _require(contract.get("root_mode") == "0700", "root mode contract mismatch")
@@ -505,12 +564,22 @@ def validate_local_root(root: Path) -> Check:
     _require(root.name == "xhs-douyin-2notion", "private root basename mismatch")
     expected_destination = (Path.home() / "Downloads" / "MediaCrawler").resolve()
     expected_owner_root = (expected_destination / "xhs-douyin-2notion").resolve()
-    _require(root == expected_owner_root, "private root is not namespaced under the owner-approved download destination")
-    _require(expected_destination.is_dir() and not expected_destination.is_symlink(), "owner-approved download destination is missing or symlinked")
-    _require(stat.S_IMODE(expected_destination.stat().st_mode) == 0o700, "owner-approved download destination must be 0700")
+    _require(
+        root == expected_owner_root, "private root is not namespaced under the owner-approved download destination"
+    )
+    _require(
+        expected_destination.is_dir() and not expected_destination.is_symlink(),
+        "owner-approved download destination is missing or symlinked",
+    )
+    _require(
+        stat.S_IMODE(expected_destination.stat().st_mode) == 0o700, "owner-approved download destination must be 0700"
+    )
     _require(root.is_dir(), "private root missing")
     _require(not root.is_symlink(), "private root must not be a symlink")
-    _require(PROJECT_ROOT.resolve() not in root.parents and root not in PROJECT_ROOT.resolve().parents, "private root overlaps Git")
+    _require(
+        PROJECT_ROOT.resolve() not in root.parents and root not in PROJECT_ROOT.resolve().parents,
+        "private root overlaps Git",
+    )
     _require(stat.S_IMODE(root.stat().st_mode) == 0o700, "private root mode must be 0700")
 
     contract = _load_json(PATH_CONTRACT)
@@ -542,7 +611,9 @@ def validate_local_root(root: Path) -> Check:
     all_directories = [path for path in root.rglob("*") if path.is_dir()]
     for directory in all_directories:
         _require(not directory.is_symlink(), f"symlinked directory forbidden: {directory.name}")
-        _require(stat.S_IMODE(directory.stat().st_mode) == 0o700, f"all private directories must be 0700: {directory.name}")
+        _require(
+            stat.S_IMODE(directory.stat().st_mode) == 0o700, f"all private directories must be 0700: {directory.name}"
+        )
 
     allowed_system_files = set(contract.get("allowed_system_files", []))
     allowed_top_level = {"downloads", "runtime", contract["private_marker"], *allowed_system_files}
@@ -560,7 +631,9 @@ def validate_local_root(root: Path) -> Check:
             "runtime/canonical/store.lock",
         }
         for required_store_file in ("runtime/canonical/canonical.sqlite", "runtime/canonical/store.lock"):
-            _require((root / required_store_file).is_file(), f"initialized private Store file missing: {required_store_file}")
+            _require(
+                (root / required_store_file).is_file(), f"initialized private Store file missing: {required_store_file}"
+            )
     else:
         _require(marker_data.get("canonical_store_schema_version") is None, "pre-Store marker contains a schema claim")
     allowed_files = {
@@ -588,8 +661,12 @@ def validate_local_root(root: Path) -> Check:
     for relative in allowed_private_files:
         private_file = root / relative
         if private_file.exists():
-            _require(private_file.is_file() and not private_file.is_symlink(), f"invalid private contract file: {relative}")
-            _require(stat.S_IMODE(private_file.stat().st_mode) == 0o600, f"private contract file must be 0600: {relative}")
+            _require(
+                private_file.is_file() and not private_file.is_symlink(), f"invalid private contract file: {relative}"
+            )
+            _require(
+                stat.S_IMODE(private_file.stat().st_mode) == 0o600, f"private contract file must be 0600: {relative}"
+            )
     system_mode = int(contract.get("system_file_mode", "0600"), 8)
     system_max_bytes = int(contract.get("system_file_max_bytes", 65536))
     present_system_files = []
@@ -615,9 +692,7 @@ def validate_local_root(root: Path) -> Check:
         time_machine_verification = "PASS_CURRENT_RUNTIME"
     else:
         _require(
-            time_machine_state == "planned_task_uxops_005_not_claimed_current"
-            and excluded == ["."]
-            and included == [],
+            time_machine_state == "planned_task_uxops_005_not_claimed_current" and excluded == ["."] and included == [],
             "planned whole-root Time Machine target drifted",
         )
         time_machine_verification = "NOT_RUN_PLANNED_TASK_UXOPS_005"
@@ -684,15 +759,18 @@ def _scope_status(status: str) -> tuple[bool, int]:
 def _validate_parent_index_diff(diff: str) -> None:
     legacy_name = "xiao" + "hongshu-douyin-2notion"
     changed_lines = [
-        line
-        for line in diff.splitlines()
-        if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))
+        line for line in diff.splitlines() if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))
     ]
     _require(len(changed_lines) == 2, "parent README change must be one project-index rename")
     removed, added = changed_lines
     _require(removed.startswith(f"-| {legacy_name} |"), "parent README removed line is not the legacy project index")
-    _require(added.startswith("+| xhs-douyin-2notion |"), "parent README added line is not the owner-approved project index")
-    _require(removed[1:].replace(legacy_name, "xhs-douyin-2notion", 1) == added[1:], "parent README change modified more than the project name")
+    _require(
+        added.startswith("+| xhs-douyin-2notion |"), "parent README added line is not the owner-approved project index"
+    )
+    _require(
+        removed[1:].replace(legacy_name, "xhs-douyin-2notion", 1) == added[1:],
+        "parent README change modified more than the project name",
+    )
 
 
 def _evaluate_main_isolation(changed_paths: list[str], allow_external_main_dirty: bool) -> dict[str, Any]:
@@ -730,7 +808,9 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
     scope_allowed, legacy_deletions = _scope_status(status)
     _require(scope_allowed, f"changed scope escaped project: {changed_paths}")
     if "README.md" in changed_paths:
-        _validate_parent_index_diff(_run_git(["diff", "HEAD", "--unified=0", "--no-color", "--", "README.md"], repo_root))
+        _validate_parent_index_diff(
+            _run_git(["diff", "HEAD", "--unified=0", "--no-color", "--", "README.md"], repo_root)
+        )
 
     blocks = _run_git(["worktree", "list", "--porcelain"], repo_root).split("\n\n")
     main_worktree: Optional[Path] = None
@@ -791,7 +871,10 @@ def write_evidence(checks: list[Check]) -> None:
     _require(state.get("state") in {"phase_pass", "review_complete_gate_blocked"}, "task_state is not finalized")
     _require(all(value == "pass" for value in state.get("tasks", {}).values()), "all Phase tasks must be pass")
     _require(state.get("stage_gate") in {"not_run", "blocked_owner_action"}, "Stage gate state is invalid")
-    _require(state.get("remote_upload") in {"forbidden_until_stage_gate", "forbidden_until_g0_pass"}, "remote upload gate weakened")
+    _require(
+        state.get("remote_upload") in {"forbidden_until_stage_gate", "forbidden_until_g0_pass"},
+        "remote upload gate weakened",
+    )
 
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     source = _load_json(SOURCE_MANIFEST)
@@ -866,11 +949,16 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        _require(not args.allow_external_main_dirty or args.verify_worktree, "--allow-external-main-dirty requires --verify-worktree")
+        _require(
+            not args.allow_external_main_dirty or args.verify_worktree,
+            "--allow-external-main-dirty requires --verify-worktree",
+        )
         checks = run_core_checks()
         if args.verify_local_root:
             root_value = os.environ.get("X2N_DATA_ROOT")
-            local_root = Path(root_value) if root_value else Path.home() / "Downloads" / "MediaCrawler" / "xhs-douyin-2notion"
+            local_root = (
+                Path(root_value) if root_value else Path.home() / "Downloads" / "MediaCrawler" / "xhs-douyin-2notion"
+            )
             checks.append(validate_local_root(local_root))
         if args.verify_worktree:
             checks.append(validate_worktree_scope(args.allow_external_main_dirty))
@@ -880,7 +968,9 @@ def main() -> int:
         if args.write_evidence:
             _require(args.verify_local_root, "local root verification is required before evidence")
             _require(args.verify_worktree, "worktree scope verification is required before evidence")
-            _require(bool(args.source_roadmap and args.source_taskpack), "source verification is required before evidence")
+            _require(
+                bool(args.source_roadmap and args.source_taskpack), "source verification is required before evidence"
+            )
             write_evidence(checks)
         current = _load_json(TASK_STATE)
         result = {

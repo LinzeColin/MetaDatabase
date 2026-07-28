@@ -64,7 +64,9 @@ _MEDIA_HOST_MARKERS = tuple(
     sorted({suffix.split(".", 1)[0] for suffixes in PLATFORM_CDN_SUFFIXES.values() for suffix in suffixes})
 )
 _CDN_URL_PATTERN = re.compile(
-    rb"https?://[^\s<>\"']{0,2048}(?:" + b"|".join(re.escape(item.encode("ascii")) for item in _MEDIA_HOST_MARKERS) + rb")[^\s<>\"']*",
+    rb"https?://[^\s<>\"']{0,2048}(?:"
+    + b"|".join(re.escape(item.encode("ascii")) for item in _MEDIA_HOST_MARKERS)
+    + rb")[^\s<>\"']*",
     flags=re.IGNORECASE,
 )
 _SENSITIVE_QUERY_PATTERN = re.compile(
@@ -1014,7 +1016,9 @@ class MediaLeaseManager:
                 else:
                     run_directory.mkdir(mode=0o700)
             except OSError:
-                raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Temporary media run directory is unavailable") from None
+                raise X2NRuntimeError(
+                    ErrorCode.STORAGE_FAILED, "Temporary media run directory is unavailable"
+                ) from None
             destination = run_directory / f"{lease_id}.bin"
             observed_at = now or datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
             self.store.reserve_media_lease(
@@ -1207,9 +1211,7 @@ class MediaLeaseCleaner:
                 )
             }
             registered_derived_prefixes = {
-                f"{record.run_id}/{record.lease_id}.derived/"
-                for record in all_records
-                if record.status != "deleted"
+                f"{record.run_id}/{record.lease_id}.derived/" for record in all_records if record.status != "deleted"
             }
             deleted = missing = errors = 0
             for record in candidates:
@@ -1267,6 +1269,7 @@ def _scope_files(paths: RuntimePaths, scope: str) -> Iterator[Path]:
         root = paths.data_root / relative
         if root.is_symlink() or not root.is_dir():
             _fail(ErrorCode.POLICY_BLOCKED, "Persistence scanner scope is invalid")
+
         def fail_walk(_error: OSError) -> None:
             raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Persistence scanner could not traverse a sink") from None
 
@@ -1316,7 +1319,11 @@ def scan_persisted_scopes(paths: RuntimePaths, scopes: Sequence[str]) -> CdnScan
     """Scan fixed logical sinks without accepting caller-controlled paths."""
 
     normalized = tuple(sorted(set(scopes)))
-    if not normalized or len(normalized) != len(scopes) or any(scope not in _SCOPE_RELATIVE_DIRECTORIES for scope in normalized):
+    if (
+        not normalized
+        or len(normalized) != len(scopes)
+        or any(scope not in _SCOPE_RELATIVE_DIRECTORIES for scope in normalized)
+    ):
         _fail(ErrorCode.INVALID_INPUT, "Persistence scanner scopes are invalid")
     findings = {name: 0 for name in _SCAN_PATTERNS}
     scanned_files = 0
@@ -1327,7 +1334,9 @@ def scan_persisted_scopes(paths: RuntimePaths, scopes: Sequence[str]) -> CdnScan
             try:
                 resolved = path.resolve(strict=False)
             except OSError:
-                raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Persistence scanner could not resolve a sink") from None
+                raise X2NRuntimeError(
+                    ErrorCode.STORAGE_FAILED, "Persistence scanner could not resolve a sink"
+                ) from None
             if resolved in seen:
                 continue
             seen.add(resolved)
