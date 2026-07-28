@@ -342,6 +342,10 @@ class CyberbossApp {
         channelAdapter: this.channelAdapter,
         database: this.runtimeSpoolDatabase,
         config: this.config,
+        // 在建 job 之前分流。非主人的三条路（入门回复、普通用户确定性口令、
+        // 席位已满的拒绝）到了调度阶段就没有出口了——JobScheduler 要求
+        // dispatchRuntime 返回真实的 threadId/turnId，等于强制走一次模型。
+        admissionFilter: (normalized) => this.admissionHandledBeforeJob(normalized),
         onAccepted: this.outboxWorker
           ? ({ accepted, normalized }) => {
               this.outboxWorker.stageMessage({
@@ -1059,6 +1063,46 @@ class CyberbossApp {
   // fully answered here (onboarding, consent, suspension, or an ordinary-user
   // model turn). Returns an owner-shaped decision when multi-user admission is
   // off, which is the pre-existing single-user behaviour.
+  // 在 durable inbox 建 job 之前跑的分流判定。返回 true 表示这一轮已经办完，
+  // 不需要 runtime job，因此也不会发生任何模型调用。
+  //
+  // 只处理"不需要模型"的路由；主人与需要模型的普通用户 turn 一律返回 false，
+  // 照常进入 job 队列。判不出来时同样返回 false——宁可多建一个 job，也不能因为
+  // 准入层出问题就把用户的消息静默吞掉。
+  admissionHandledBeforeJob(normalized) {
+    if (!this.userAdmission) {
+      return false;
+    }
+    let decision;
+    try {
+      decision = this.userAdmission.admit({
+        botAccountRef: normalized.accountId,
+        senderRef: normalized.senderId,
+        text: normalized.text,
+      });
+    } catch (error) {
+      console.warn(
+        `[cyberboss] admission refused code=${normalizeErrorCode(error?.code) || "admission_failed"}`,
+      );
+      return false;
+    }
+    if (decision.route === "reply") {
+      void this.sendAdmissionReply(normalized, decision.text);
+      return true;
+    }
+    if (decision.route === "status") {
+      void this.sendAdmissionReply(normalized, this.buildPlainLanguageStatus());
+      return true;
+    }
+    if (decision.ownerClaimed) {
+      this.rememberOwnerSender(normalized.senderId);
+      this.noteForDashboard("有一个微信号绑成了主人");
+      void this.sendAdmissionReply(normalized, OWNER_CLAIMED_NOTICE);
+    }
+    // owner 与 user 两条路都要真正的 turn，交给 job 队列。
+    return false;
+  }
+
   // 同步准入，只回答一个问题：这一轮是不是主人的。
   //
   // 调度器要求 dispatchRuntime 返回真实的 threadId/turnId，所以非主人的分支

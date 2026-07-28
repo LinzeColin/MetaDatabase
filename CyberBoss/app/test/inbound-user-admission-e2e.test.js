@@ -654,3 +654,49 @@ test("已经有主人时，门开不了", (t) => {
 
   assert.throws(() => admission.armOwnerBinding(), /OWNER_ALREADY_BOUND/);
 });
+
+// ── 建 job 之前分流 ──────────────────────────────────────
+//
+// R19 的 AC-039 要求第六个用户在 DeepSeek 调用**之前**被拒绝。到了调度阶段就
+// 没有这个出口了：JobScheduler 要求 dispatchRuntime 返回真实的 threadId/turnId，
+// 等于强制走一次模型。所以分流必须发生在 durable inbox 建 job 之前。
+
+test("不需要模型的轮次在建 job 之前就被分流掉", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  const sent = [];
+  const app = {
+    userAdmission: admission,
+    channelAdapter: { async sendText(payload) { sent.push(payload); } },
+    sendAdmissionReply: CyberbossApp.prototype.sendAdmissionReply,
+    rememberOwnerSender() {},
+    noteForDashboard() {},
+    buildPlainLanguageStatus: () => "状态正常",
+    admissionHandledBeforeJob: CyberbossApp.prototype.admissionHandledBeforeJob,
+  };
+
+  // 陌生人说一句话：拿到入门回复，不建 job。
+  const handled = app.admissionHandledBeforeJob({
+    accountId: BOT, senderId: ALICE, text: "你好", contextToken: "ctx",
+  });
+  assert.equal(handled, true, "入门回复不该变成 runtime job");
+
+  // 主人的轮次要真的进队列。
+  admission.armOwnerBinding();
+  admission.admit({ botAccountRef: BOT, senderRef: BOB, text: "绑定" });
+  const ownerTurn = app.admissionHandledBeforeJob({
+    accountId: BOT, senderId: BOB, text: "帮我看看这段代码",
+  });
+  assert.equal(ownerTurn, false, "主人的真实轮次必须进 job 队列");
+});
+
+test("准入层抛错时不分流——宁可多建一个 job，也不静默吞掉用户消息", (t) => {
+  const app = {
+    userAdmission: { admit() { throw Object.assign(new Error("boom"), { code: "ADMISSION_BROKEN" }); } },
+    admissionHandledBeforeJob: CyberbossApp.prototype.admissionHandledBeforeJob,
+  };
+  assert.equal(
+    app.admissionHandledBeforeJob({ accountId: BOT, senderId: ALICE, text: "你好" }),
+    false,
+    "准入层出问题时必须放行给 job 队列，而不是把消息丢掉",
+  );
+});

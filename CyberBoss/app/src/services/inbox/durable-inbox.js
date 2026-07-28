@@ -221,6 +221,7 @@ class DurableInboxCoordinator {
     config,
     faultInjector = () => {},
     onAccepted = null,
+    admissionFilter = null,
   }) {
     if (!channelAdapter || typeof channelAdapter.fetchUpdates !== "function") {
       throw new DurableInboxError("CHANNEL_FETCH_API_REQUIRED");
@@ -246,10 +247,33 @@ class DurableInboxCoordinator {
       typeof faultInjector === "function" ? faultInjector : () => {};
     this.onAccepted =
       typeof onAccepted === "function" ? onAccepted : null;
+    // 准入分流钩子。必须同步，理由和 onAccepted 一样：它在游标提交之前跑，
+    // 一个 await 会让「已收下但游标未提交」的窗口无限拉长。
+    this.admissionFilter =
+      typeof admissionFilter === "function" ? admissionFilter : null;
   }
 
   #fault(point) {
     this.faultInjector(point);
+  }
+
+  // 返回 true 表示这一轮已经被准入层处理掉，不要建 runtime job。
+  // 钩子自己抛错时按「不分流」处理：宁可多建一个 job，也不能因为准入层出问题
+  // 就把用户的消息静默吞掉。
+  #refusedByAdmission(normalized) {
+    if (!this.admissionFilter) {
+      return false;
+    }
+    let verdict;
+    try {
+      verdict = this.admissionFilter(Object.freeze({ ...normalized }));
+    } catch {
+      return false;
+    }
+    if (verdict && typeof verdict.then === "function") {
+      throw new DurableInboxError("ADMISSION_FILTER_MUST_BE_SYNCHRONOUS");
+    }
+    return verdict === true;
   }
 
   async pollOnce({ timeoutMs } = {}) {
@@ -370,6 +394,26 @@ class DurableInboxCoordinator {
           payload: encryptedPayload(normalized),
           contextToken,
           rejectReason: reason,
+          cursorBatchId,
+        });
+        rejections.push(rejected);
+      } else if (this.#refusedByAdmission(normalized)) {
+        // 这一轮在准入层就办完了：入门回复、普通用户的确定性口令、席位已满的
+        // 拒绝——都不该变成一个 runtime job。
+        //
+        // 这条分流必须在建 job **之前**：JobScheduler 要求 dispatchRuntime 返回
+        // 真实的 threadId/turnId，所以到了调度阶段就再也没有「不调用模型就结束
+        // 这一轮」的出口。R19 要求第六个用户在 DeepSeek 调用之前被拒绝，这是唯一
+        // 能兑现它的位置。
+        const rejected = this.database.rejectInbound({
+          source: "weixin",
+          sourceAccountRef,
+          sourceMessageId: identity.sourceMessageId,
+          userRef: senderId,
+          messageType: classifyMessageType(normalized),
+          payload: encryptedPayload(normalized),
+          contextToken,
+          rejectReason: "handled_by_admission",
           cursorBatchId,
         });
         rejections.push(rejected);
