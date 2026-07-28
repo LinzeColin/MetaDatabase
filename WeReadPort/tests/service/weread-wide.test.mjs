@@ -4,7 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
+import { normalizeWeReadDocuments, syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
 import { PlatformStore } from "../../service/platform/store.mjs";
 import { testPlatform } from "./helpers.mjs";
 
@@ -30,7 +30,7 @@ test("旧账户数据库启动时为笔记补齐事件时间列且不丢数据",
   assert.ok(store.db.prepare("PRAGMA table_info(notes)").all().some(column => column.name === "event_at"));
 });
 
-function gatewayMock(calls) {
+function gatewayMock(calls, { changedBook = () => "" } = {}) {
   return async (_url, init) => {
     const body = JSON.parse(init.body);
     const api = body.api_name;
@@ -39,7 +39,7 @@ function gatewayMock(calls) {
     let payload = { errcode: 0 };
     if (api === "/_list") payload.apis = [...WIDE_SCOPE_APIS];
     else if (api === "/shelf/sync") payload.books = ids.map(bookId => ({ bookId }));
-    else if (api === "/user/notebooks") payload = { errcode: 0, books: ids.map((bookId, index) => ({ bookId, sort: 1000 - index, book: { bookId, title: `书籍 ${index + 1}`, author: "作者", category: "研究" } })), totalNoteCount: 16, hasMore: false };
+    else if (api === "/user/notebooks") payload = { errcode: 0, books: ids.map((bookId, index) => ({ bookId, sort: EVENT_BASE + 1_000 - index + (changedBook() === bookId ? 3_600 : 0), noteCount: 1, reviewCount: 1, bookmarkCount: 0, book: { bookId, title: `书籍 ${index + 1}`, author: "作者", category: "研究" } })), totalNoteCount: 16, hasMore: false };
     else if (api === "/book/bookmarklist") { const index = Number(String(body.bookId).replace(/\D/g, "")); const updateTime = EVENT_BASE + 10 + index; payload = { errcode: 0, updated: [{ bookmarkId: `bm-${body.bookId}`, bookId: body.bookId, markText: `划线 ${body.bookId}`, createTime: EVENT_BASE + index, updateTime: index === 1 ? updateTime * 1000 : updateTime }], chapters: [{ chapterUid: 1, title: "第一章" }] }; }
     else if (api === "/review/list/mine") { const index = Number(String(body.bookid).replace(/\D/g, "")); payload = { errcode: 0, reviews: [{ review: { reviewId: `rv-${body.bookid}`, content: `想法 ${body.bookid}`, createTime: EVENT_BASE + 100 + index } }], totalCount: 1, hasMore: false, synckey: 1 }; }
     else if (api === "/book/info") payload = { errcode: 0, bookId: body.bookId, title: `书籍 ${body.bookId}`, author: "作者", category: "研究" };
@@ -62,6 +62,16 @@ test("微信读书按能力发现读取超过 Top 5 的书架、全量笔记、�
   assert.equal(dataset.recommendations.length, 1);
   for (const api of ["/_list", "/shelf/sync", "/user/notebooks", "/book/bookmarklist", "/review/list/mine", "/book/info", "/book/getprogress", "/book/chapterinfo", "/readdata/detail", "/book/recommend"]) assert.ok(calls.includes(api), api);
   assert.ok(calls.filter(api => api === "/book/info").length > 5, "不得回退为 Top 5");
+});
+
+test("微信读书将书摘和想法显示为可区分的具体笔记标题", async () => {
+  const dataset = await syncWeReadDataset(KEY, { fetchImpl: gatewayMock([]), maxBooks: 100, recommendationPages: 1 });
+  const documents = normalizeWeReadDocuments(dataset);
+  const highlight = documents.find(item => item.externalId === "highlight:bm-book-1");
+  const review = documents.find(item => item.externalId === "review:rv-book-1");
+  assert.match(highlight.title, /^书摘｜《书籍 book-1》 · 划线 book-1$/u);
+  assert.match(review.title, /^想法｜《书籍 book-1》 · 想法 book-1$/u);
+  assert.notEqual(highlight.title, review.title);
 });
 
 test("广范围微信读书同步保存到账户并生成官方可解释推荐", async t => {
@@ -100,4 +110,34 @@ test("微信读书保留真实事件时间、按事件倒序且重复同步不�
   for (const note of after) assert.deepEqual({ version: note.version, updatedAt: note.updatedAt, eventAt: note.eventAt }, original.get(note.id));
   const eventDate = new Date((EVENT_BASE + 108) * 1000).toISOString().slice(0, 10);
   assert.ok(platform.service.analytics(user.account.id).readingHeatmap.some(day => day.date === eventDate && day.value > 0));
+});
+
+test("微信读书后续同步只读取来源明确变化的书籍，并保留每日完整核对回退", async t => {
+  const calls = [];
+  let changedBook = "";
+  const platform = testPlatform({ fetchImpl: gatewayMock(calls, { changedBook: () => changedBook }) });
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY, displayName: "增量同步用户" }, {}, { verify: false });
+  const first = await platform.service.syncWeRead(user.account.id, { recommendationPages: 1 });
+  assert.equal(first.summary.syncMode, "full");
+  assert.equal(Object.hasOwn(platform.service.publicAccount(user.account.id).weread, "bookState"), false);
+
+  calls.length = 0;
+  const second = await platform.service.syncWeRead(user.account.id, { recommendationPages: 1 });
+  assert.equal(second.summary.syncMode, "incremental");
+  assert.equal(second.summary.detailedBooks, 0);
+  assert.equal(second.summary.skippedUnchangedBooks, 8);
+  assert.equal(second.summary.unchangedDocuments, 16);
+  assert.equal(calls.filter(api => api === "/book/bookmarklist").length, 0);
+  assert.equal(calls.filter(api => api === "/review/list/mine").length, 0);
+  for (const api of ["/_list", "/shelf/sync", "/user/notebooks"]) assert.ok(calls.includes(api), api);
+
+  changedBook = "book-3";
+  calls.length = 0;
+  const third = await platform.service.syncWeRead(user.account.id, { recommendationPages: 1 });
+  assert.equal(third.summary.syncMode, "incremental");
+  assert.equal(third.summary.detailedBooks, 1);
+  assert.equal(third.summary.skippedUnchangedBooks, 7);
+  assert.equal(calls.filter(api => api === "/book/bookmarklist").length, 1);
+  assert.equal(calls.filter(api => api === "/review/list/mine").length, 1);
 });

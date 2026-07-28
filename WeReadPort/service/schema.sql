@@ -173,6 +173,7 @@ CREATE TABLE IF NOT EXISTS weread_sync_state (
   account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
   capabilities_json TEXT NOT NULL DEFAULT '[]',
   summary_json TEXT NOT NULL DEFAULT '{}',
+  book_state_json TEXT NOT NULL DEFAULT '{}',
   last_sync_at INTEGER,
   updated_at INTEGER NOT NULL
 ) STRICT;

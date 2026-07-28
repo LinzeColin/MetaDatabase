@@ -2,6 +2,8 @@ const GATEWAY = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.4";
 const MAX_RESPONSE_BYTES = 12 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 20_000;
+const MIN_TRUSTED_SOURCE_TIME = 946_684_800; // 2000-01-01 UTC
+const MAX_TRUSTED_SOURCE_TIME = 4_102_444_800; // 2100-01-01 UTC
 
 export const WIDE_SCOPE_APIS = Object.freeze([
   "/_list",
@@ -33,8 +35,11 @@ export async function syncWeReadDataset(key, {
   timeoutMs = DEFAULT_TIMEOUT_MS,
   popularBookLimit = 40,
   recommendationPages = 3,
+  mode = "full",
+  previousBookState = {},
 } = {}) {
   validateWeReadKey(key);
+  const syncMode = mode === "incremental" ? "incremental" : "full";
   const options = { fetchImpl, timeoutMs };
   const failures = [];
   const capabilityPayload = await gatewayCall(key, "/_list", {}, options);
@@ -53,48 +58,79 @@ export async function syncWeReadDataset(key, {
   const shelf = await call("/shelf/sync", {}, true);
   const notebooks = await collectNotebooks(call, maxBooks);
   const books = notebooks.books.slice(0, maxBooks);
-  const details = await mapLimit(books, 3, async (entry, index) => {
-    const bookId = String(entry.bookId || entry.book?.bookId || "");
-    if (!bookId) return null;
+  const priorState = isPlainObject(previousBookState) ? previousBookState : {};
+  const candidates = books.map((entry, index) => {
+    const bookId = notebookBookId(entry);
+    const fingerprint = notebookFingerprint(entry);
+    const previous = normalizeBookState(priorState[bookId]);
+    const skip = syncMode === "incremental"
+      && Boolean(bookId && fingerprint && previous?.fingerprint === fingerprint && Number.isInteger(previous.documentCount) && previous.documentCount >= 0);
+    return { entry, index, bookId, fingerprint, previous, skip };
+  }).filter(item => item.bookId);
+  const detailedCandidates = candidates.filter(item => !item.skip);
+  const details = await mapLimit(detailedCandidates, syncMode === "incremental" ? 4 : 3, async ({ entry, index, bookId }) => {
+    const needMetadataFallback = !entry?.book?.title && !entry?.title;
     const [bookmarks, reviews, info, progress, chapters, popular] = await Promise.all([
       call("/book/bookmarklist", { bookId }),
       collectReviews(call, bookId),
-      call("/book/info", { bookId }),
-      call("/book/getprogress", { bookId }),
-      call("/book/chapterinfo", { bookId }),
-      index < popularBookLimit ? call("/book/bestbookmarks", { bookId, chapterUid: 0, synckey: 0 }) : null,
+      syncMode === "full" || needMetadataFallback ? call("/book/info", { bookId }) : null,
+      syncMode === "full" ? call("/book/getprogress", { bookId }) : null,
+      syncMode === "full" ? call("/book/chapterinfo", { bookId }) : null,
+      syncMode === "full" && index < popularBookLimit ? call("/book/bestbookmarks", { bookId, chapterUid: 0, synckey: 0 }) : null,
     ]);
-    return { bookId, notebook: entry, bookmarks, reviews, info, progress, chapters, popularHighlights: popular };
+    const coreComplete = (!supported("/book/bookmarklist") || bookmarks !== null)
+      && (!supported("/review/list/mine") || reviews?.complete === true);
+    return { bookId, notebook: entry, bookmarks, reviews, info, progress, chapters, popularHighlights: popular, coreComplete };
   });
+  const detailsByBookId = new Map(details.filter(Boolean).map(item => [item.bookId, item]));
+  const bookState = {};
+  for (const candidate of candidates) {
+    const detail = detailsByBookId.get(candidate.bookId);
+    if (candidate.skip && candidate.previous) {
+      bookState[candidate.bookId] = candidate.previous;
+      continue;
+    }
+    if (detail?.coreComplete && candidate.fingerprint) {
+      bookState[candidate.bookId] = { fingerprint: candidate.fingerprint, documentCount: documentCountForDetail(detail) };
+      continue;
+    }
+    bookState[candidate.bookId] = { fingerprint: candidate.fingerprint, documentCount: null };
+  }
 
   const readingStats = {};
-  for (const mode of ["weekly", "monthly", "annually", "overall"]) {
-    readingStats[mode] = await call("/readdata/detail", { mode, baseTime: 0 });
+  if (syncMode === "full") {
+    for (const statsMode of ["weekly", "monthly", "annually", "overall"]) {
+      readingStats[statsMode] = await call("/readdata/detail", { mode: statsMode, baseTime: 0 });
+    }
   }
 
   const recommendations = [];
-  let maxIdx = 0;
-  for (let page = 0; page < recommendationPages; page += 1) {
-    const result = await call("/book/recommend", { count: 20, maxIdx });
-    const items = Array.isArray(result?.books) ? result.books : [];
-    recommendations.push(...items);
-    if (!items.length) break;
-    const next = Number(items.at(-1)?.searchIdx ?? 0);
-    if (!Number.isFinite(next) || next <= maxIdx) break;
-    maxIdx = next;
+  if (syncMode === "full") {
+    let maxIdx = 0;
+    for (let page = 0; page < recommendationPages; page += 1) {
+      const result = await call("/book/recommend", { count: 20, maxIdx });
+      const items = Array.isArray(result?.books) ? result.books : [];
+      recommendations.push(...items);
+      if (!items.length) break;
+      const next = Number(items.at(-1)?.searchIdx ?? 0);
+      if (!Number.isFinite(next) || next <= maxIdx) break;
+      maxIdx = next;
+    }
   }
 
   const shelfBooks = Array.isArray(shelf?.books) ? shelf.books : [];
   const shelfAlbums = Array.isArray(shelf?.albums) ? shelf.albums : [];
   const shelfTotal = shelfBooks.length + shelfAlbums.length + (shelf?.mp ? 1 : 0);
   return {
-    contract: { gateway: GATEWAY, skillVersion: SKILL_VERSION, scope: "full-supported-capability-discovery", maxBooks },
+    contract: { gateway: GATEWAY, skillVersion: SKILL_VERSION, scope: syncMode === "full" ? "full-supported-capability-discovery" : "incremental-notebook-delta", maxBooks },
     capabilities,
     shelf: { ...shelf, computedTotal: shelfTotal },
     notebooks,
     books: details.filter(Boolean),
+    bookState,
     readingStats,
     recommendations,
+    recommendationsRefreshed: syncMode === "full",
     failures,
     partial: failures.length > 0,
     summary: {
@@ -105,9 +141,12 @@ export async function syncWeReadDataset(key, {
       notebookBooks: books.length,
       totalNoteCount: Number(notebooks.totalNoteCount || 0),
       detailedBooks: details.filter(Boolean).length,
+      skippedUnchangedBooks: candidates.filter(item => item.skip).length,
+      skippedUnchangedDocuments: candidates.filter(item => item.skip).reduce((total, item) => total + Number(item.previous?.documentCount || 0), 0),
       recommendationCount: recommendations.length,
       failedCalls: failures.length,
       truncatedBySafetyLimit: notebooks.truncated,
+      syncMode,
     },
   };
 }
@@ -122,7 +161,7 @@ export function normalizeWeReadDocuments(dataset) {
       documents.push({
         externalId: `highlight:${mark.bookmarkId || `${item.bookId}:${mark.range || mark.createTime}`}`,
         source: "weread",
-        title,
+        title: wereadNoteTitle(title, mark.markText, "书摘"),
         category: item.info?.category || item.notebook?.book?.category || "微信读书",
         content: [`# ${title}`, author ? `作者：${author}` : "", chapters.get(String(mark.chapterUid)) ? `章节：${chapters.get(String(mark.chapterUid))}` : "", `> ${mark.markText || ""}`].filter(Boolean).join("\n\n"),
         eventAt: sourceEventAt(mark.updateTime, mark.createTime),
@@ -133,7 +172,7 @@ export function normalizeWeReadDocuments(dataset) {
       documents.push({
         externalId: `review:${review.reviewId || `${item.bookId}:${review.createTime || documents.length}`}`,
         source: "weread",
-        title,
+        title: wereadNoteTitle(title, review.content || review.abstract, "想法"),
         category: item.info?.category || item.notebook?.book?.category || "微信读书",
         content: [`# ${title}`, author ? `作者：${author}` : "", review.chapterName ? `章节：${review.chapterName}` : "", review.abstract ? `> ${review.abstract}` : "", review.content || ""].filter(Boolean).join("\n\n"),
         eventAt: sourceEventAt(review.updateTime, review.createTime),
@@ -183,9 +222,10 @@ async function collectReviews(call, bookId) {
   let synckey = 0;
   let page = 0;
   let totalCount = 0;
+  let complete = true;
   while (page < 1000) {
     const result = await call("/review/list/mine", { bookid: bookId, synckey, count: 100 });
-    if (!result) break;
+    if (!result) { complete = false; break; }
     const current = Array.isArray(result.reviews) ? result.reviews : [];
     reviews.push(...current);
     totalCount = Number(result.totalCount ?? totalCount);
@@ -195,7 +235,7 @@ async function collectReviews(call, bookId) {
     synckey = next;
     page += 1;
   }
-  return { reviews, totalCount, synckey };
+  return { reviews, totalCount, synckey, complete };
 }
 
 export async function gatewayCall(key, apiName, params = {}, { fetchImpl = fetch, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
@@ -261,6 +301,66 @@ async function mapLimit(items, limit, mapper) {
 function safeDeepLink(value) {
   try { const url = new URL(String(value)); return ["https:", "weread:"].includes(url.protocol) ? url.toString() : null; }
   catch { return null; }
+}
+
+function notebookBookId(entry) {
+  return String(entry?.bookId || entry?.book?.bookId || "").trim();
+}
+
+function notebookFingerprint(entry) {
+  const book = entry?.book || {};
+  const sourceTime = trustedSourceTime(
+    entry?.updateTime, entry?.updatedAt, entry?.modifiedTime, entry?.lastUpdateTime,
+    book?.updateTime, book?.updatedAt, entry?.sort,
+  );
+  if (!sourceTime) return null;
+  return JSON.stringify({
+    sourceTime,
+    highlights: nonNegativeInteger(entry?.noteCount ?? entry?.note_count),
+    reviews: nonNegativeInteger(entry?.reviewCount ?? entry?.review_count),
+    bookmarks: nonNegativeInteger(entry?.bookmarkCount ?? entry?.bookmark_count),
+    progress: normalizedProgress(entry?.readingProgress ?? entry?.progress),
+  });
+}
+
+function normalizeBookState(value) {
+  if (!isPlainObject(value) || typeof value.fingerprint !== "string") return null;
+  const documentCount = Number(value.documentCount);
+  return { fingerprint: value.fingerprint, documentCount: Number.isInteger(documentCount) && documentCount >= 0 ? documentCount : null };
+}
+
+function documentCountForDetail(detail) {
+  return (Array.isArray(detail?.bookmarks?.updated) ? detail.bookmarks.updated.length : 0)
+    + (Array.isArray(detail?.reviews?.reviews) ? detail.reviews.reviews.length : 0);
+}
+
+function wereadNoteTitle(bookTitle, detail, kind) {
+  const book = compactText(bookTitle || "微信读书").slice(0, 48);
+  const excerpt = compactText(detail).slice(0, 96);
+  return `${kind}｜《${book || "微信读书"}》${excerpt ? ` · ${excerpt}` : ""}`.slice(0, 180);
+}
+
+function compactText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function trustedSourceTime(...values) {
+  const seconds = sourceEventAt(...values);
+  return seconds >= MIN_TRUSTED_SOURCE_TIME && seconds <= MAX_TRUSTED_SOURCE_TIME ? seconds : null;
+}
+
+function nonNegativeInteger(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? Math.floor(number) : null;
+}
+
+function normalizedProgress(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 && number <= 100 ? Math.round(number * 1000) / 1000 : null;
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function sourceEventAt(...values) {

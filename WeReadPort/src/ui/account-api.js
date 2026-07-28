@@ -27,7 +27,7 @@ export class AccountApi {
   deleteNote(id, expectedVersion) { return this.request(`/notes/${encodeURIComponent(id)}?expectedVersion=${encodeURIComponent(expectedVersion)}`, { method: "DELETE", body: {} }); }
   syncPull(cursor = 0) { return this.request("/sync/pull", { method: "POST", body: { cursor, limit: 500 } }); }
   syncPush(operations) { return this.request("/sync/push", { method: "POST", body: { operations } }); }
-  wereadSync() { return this.request("/weread/sync", { method: "POST", body: { recommendationPages: 3 } }); }
+  wereadSync(mode = "auto") { return this.request("/weread/sync", { method: "POST", body: { mode, recommendationPages: 3 } }); }
   providerItems(provider, params = {}) { const query = new URLSearchParams(params); return this.request(`/imports/${provider}/items?${query}`); }
   startImport(provider, selection) { return this.request(`/imports/${provider}/start`, { method: "POST", body: { selection }, headers: { "Idempotency-Key": crypto.randomUUID() } }); }
   importJob(id) { return this.request(`/imports/jobs/${encodeURIComponent(id)}`); }

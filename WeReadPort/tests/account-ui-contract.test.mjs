@@ -25,9 +25,10 @@ test("四平台导入均使用连接、选择、预览/确认和进度式新手�
 
 test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读书", () => {
   assert.match(ui, /function syncWeReadAfterLogin\(root, \{ force = false \} = \{\}\)/u);
-  assert.equal((ui.match(/if \(result\) await syncWeReadAfterLogin\(document, \{ force: true \}\);/gu) || []).length, 2);
+  assert.equal((ui.match(/if \(result\) void syncWeReadAfterLogin\(document, \{ force: true \}\);/gu) || []).length, 2);
   assert.match(ui, /void syncWeReadAfterLogin\(root, \{ force: oauthReturned \}\)/u);
-  assert.ok(ui.includes("登录成功，正在自动同步微信读书数据…"));
+  assert.ok(ui.includes("已登录，正在后台检查微信读书最新变化…"));
+  assert.ok(api.includes("wereadSync(mode = \"auto\")"));
   assert.ok(ui.includes("真实事件时间"));
 });
 

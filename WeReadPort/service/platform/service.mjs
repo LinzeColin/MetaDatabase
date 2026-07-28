@@ -35,6 +35,8 @@ import {
 } from "./weread.mjs";
 import { buildAnalyticsDashboard } from "./analytics.mjs";
 
+const WEREAD_FULL_RECONCILE_SECONDS = 24 * 60 * 60;
+
 export class PlatformError extends Error {
   constructor(code, message, status = 400, details = undefined) {
     super(message);
@@ -451,23 +453,51 @@ export class PlatformService {
     return { results };
   }
 
-  async syncWeRead(accountId, { recommendationPages = 3 } = {}) {
+  async syncWeRead(accountId, { recommendationPages = 3, mode = "auto" } = {}) {
     const credential = this.store.findCredentialByAccount(accountId, "key", "weread");
     if (!credential?.secretEncrypted) throw new PlatformError("WEREAD_NOT_BOUND", "请先绑定微信读书密钥。", 409);
     const key = decryptForAccount(this.accountKey(accountId), credential.secretEncrypted, `credential:weread:${accountId}:v1`).toString("utf8");
-    const dataset = await syncWeReadDataset(key, { fetchImpl: this.fetchImpl, maxBooks: this.config.maxWereadBooks, timeoutMs: this.config.upstreamTimeoutMs, recommendationPages: Math.min(Math.max(Number(recommendationPages || 3), 1), 10) });
+    const priorState = this.store.getWereadState(accountId, { includeBookState: true });
+    const priorBookState = priorState?.bookState && typeof priorState.bookState === "object" ? priorState.bookState : {};
+    const priorFullSyncAt = Number(priorState?.summary?.lastFullSyncAt || 0);
+    const hasIncrementalBaseline = Number(priorState?.lastSyncAt || 0) > 0 && Object.keys(priorBookState).length > 0;
+    const fullReconcileDue = priorFullSyncAt <= 0 || this.now() - priorFullSyncAt >= WEREAD_FULL_RECONCILE_SECONDS;
+    const syncMode = mode === "full" || !hasIncrementalBaseline || fullReconcileDue ? "full" : "incremental";
+    const dataset = await syncWeReadDataset(key, {
+      fetchImpl: this.fetchImpl,
+      maxBooks: this.config.maxWereadBooks,
+      timeoutMs: this.config.upstreamTimeoutMs,
+      recommendationPages: Math.min(Math.max(Number(recommendationPages || 3), 1), 10),
+      mode: syncMode,
+      previousBookState: priorBookState,
+    });
     const documents = normalizeWeReadDocuments(dataset);
     let updatedDocuments = 0;
-    let unchangedDocuments = 0;
+    let unchangedDocuments = Number(dataset.summary.skippedUnchangedDocuments || 0);
     for (const document of documents) {
       const outcome = await this.saveDocument(accountId, document, { reportStatus: true });
       if (outcome.unchanged) unchangedDocuments += 1;
       else updatedDocuments += 1;
     }
-    const summary = { ...dataset.summary, importedDocuments: documents.length, updatedDocuments, unchangedDocuments };
-    this.store.updateWereadState(accountId, { capabilities: dataset.capabilities, summary });
-    this.store.replaceRecommendations(accountId, recommendationRows(dataset));
-    this.audit(accountId, "weread_sync_completed", { imported: documents.length, updated: updatedDocuments, unchanged: unchangedDocuments, books: dataset.summary.detailedBooks, partial: dataset.partial });
+    const summary = {
+      ...dataset.summary,
+      importedDocuments: documents.length,
+      updatedDocuments,
+      unchangedDocuments,
+      lastFullSyncAt: syncMode === "full" ? this.now() : priorFullSyncAt,
+    };
+    this.store.updateWereadState(accountId, { capabilities: dataset.capabilities, summary, bookState: dataset.bookState });
+    if (dataset.recommendationsRefreshed) this.store.replaceRecommendations(accountId, recommendationRows(dataset));
+    this.audit(accountId, "weread_sync_completed", {
+      mode: syncMode,
+      imported: documents.length,
+      updated: updatedDocuments,
+      unchanged: unchangedDocuments,
+      scannedBooks: dataset.summary.notebookBooks,
+      books: dataset.summary.detailedBooks,
+      skippedBooks: dataset.summary.skippedUnchangedBooks,
+      partial: dataset.partial,
+    });
     return {
       summary,
       capabilities: dataset.capabilities,
@@ -476,8 +506,10 @@ export class PlatformService {
         scope: dataset.contract?.scope || "unknown",
         gatewaySkillVersion: dataset.contract?.skillVersion || null,
         capabilityCount: dataset.capabilities.length,
+        mode: syncMode,
         notebookBooks: dataset.summary.notebookBooks,
         detailedBooks: dataset.summary.detailedBooks,
+        skippedUnchangedBooks: dataset.summary.skippedUnchangedBooks,
         legacyTop5CeilingRemoved: this.config.maxWereadBooks > 5,
         truncatedBySafetyLimit: Boolean(dataset.summary.truncatedBySafetyLimit),
       },

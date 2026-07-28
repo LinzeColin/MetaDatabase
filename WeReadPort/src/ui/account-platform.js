@@ -2,8 +2,8 @@ import { AccountApi } from "./account-api.js";
 import { readObsidianSelection } from "./obsidian-import.js";
 
 const api = new AccountApi();
-const AUTO_SYNC_STALE_SECONDS = 300;
-const state = { account: null, view: "overview", busy: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null, serviceReady: null, serviceDetail: "", autoSyncAccountId: "" };
+const AUTO_SYNC_STALE_SECONDS = 60;
+const state = { account: null, view: "overview", busy: false, wereadSyncing: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null, serviceReady: null, serviceDetail: "", autoSyncAccountId: "" };
 
 export async function renderAccountPlatform(root) {
   const oauthReturned = consumeOAuthLoginReturn();
@@ -159,7 +159,7 @@ function bindAuth(main) {
       state.account = result.account; state.view = "overview"; state.notes = []; state.dashboard = null; await renderCurrent(document);
       return result;
     });
-    if (result) await syncWeReadAfterLogin(document, { force: true });
+    if (result) void syncWeReadAfterLogin(document, { force: true });
   });
   main.querySelector("#password-auth-form").addEventListener("submit", async event => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -168,7 +168,7 @@ function bindAuth(main) {
       state.account = result.account; state.view = "overview"; await renderCurrent(document);
       return result;
     });
-    if (result) await syncWeReadAfterLogin(document, { force: true });
+    if (result) void syncWeReadAfterLogin(document, { force: true });
   });
   main.querySelectorAll("[data-provider]").forEach(button => button.addEventListener("click", () => action(`正在前往 ${providerLabel(button.dataset.provider)} 授权…`, () => api.oauth(button.dataset.provider, "login"))));
 }
@@ -195,7 +195,7 @@ async function loadOverview(main) {
     <section class="metric-grid" aria-label="账户概览">
       ${metric("笔记总数", state.notes.length, "所有来源统一保存")}${metric("已连接来源", providers.size + (hasWeRead ? 1 : 0), "可随时新增或解绑")}${metric("近 90 天活跃", state.dashboard?.summary?.activeDays90 ?? 0, "只在你同意后统计")}${metric("潜在推荐", state.dashboard?.recommendations?.length ?? 0, "每条都有推荐理由")}
     </section>
-    <section class="quick-grid"><article><div><span class="source-logo weread">微</span><div><h2>微信读书同步</h2><p>${hasWeRead ? "读取完整书架、笔记、书评、进度、统计与推荐。" : "先绑定本人密钥；密钥不是账户主键，可安全轮换。"}</p></div></div><button id="quick-weread" class="button ${hasWeRead ? "secondary" : "primary"}" type="button">${hasWeRead ? "立即同步" : "绑定密钥"}</button></article>
+    <section class="quick-grid"><article><div><span class="source-logo weread">微</span><div><h2>微信读书同步</h2><p>${hasWeRead ? "首次完整整理；之后只检查真实变化的书籍与笔记。" : "先绑定本人密钥；密钥不是账户主键，可安全轮换。"}</p></div></div><button id="quick-weread" class="button ${hasWeRead ? "secondary" : "primary"}" type="button">${hasWeRead ? "立即同步" : "绑定密钥"}</button></article>
       <article><div><span class="source-logo cloud">云</span><div><h2>一键导入</h2><p>Notion、Obsidian、GitHub、Google Drive 都会用中文一步一步引导。</p></div></div><button id="quick-import" class="button secondary" type="button">选择来源</button></article>
       <article><div><span class="source-logo chart">析</span><div><h2>阅读画像</h2><p>热度、趋势、主题偏好和潜在推荐，不使用模型 Token。</p></div></div><button id="quick-analytics" class="button secondary" type="button">查看画像</button></article></section>
     ${state.notes.length ? `<section class="recent-section"><div class="section-title"><h2>最近更新</h2><button data-go="notes" type="button">查看全部</button></div>${noteList(state.notes.slice(0, 5), false)}</section>` : emptyState("还没有笔记", "先连接一个来源，系统会把不同平台的笔记整理到同一个账户。", "去导入", "imports")}`;
@@ -217,7 +217,7 @@ function renderImportHub(main) {
     <header class="content-heading"><div><p class="eyebrow">导入与连接</p><h1>选择你现在使用的应用</h1><p>每个入口都只要求你做一件事；系统自动处理格式、分页和重复内容。</p></div></header>
     <div class="beginner-notice"><strong>不知道怎么选？</strong><p>你在哪里写笔记，就点哪个图标。Obsidian 选本机文件夹；其他平台会打开官方授权页面。</p></div>
     <section class="source-card-grid" aria-label="可导入来源">
-      ${sourceCard("weread", "微信读书", "微", hasWeRead, hasWeRead ? "同步书架、划线、想法、书评、进度、统计和推荐" : "粘贴本人密钥并绑定账户", hasWeRead ? "立即同步" : "绑定并同步")}
+      ${sourceCard("weread", "微信读书", "微", hasWeRead, hasWeRead ? "首次完整整理；之后只同步真实变化的书籍、划线和想法" : "粘贴本人密钥并绑定账户", hasWeRead ? "立即同步" : "绑定并同步")}
       ${sourceCard("notion", "Notion", "N", connected.has("notion"), "授权后选择页面；系统自动展开页面内容", connected.has("notion") ? "选择页面" : "一键连接")}
       ${sourceCard("obsidian", "Obsidian", "O", true, "直接选择 Vault 文件夹或导出的 ZIP，无需安装插件", "选择文件夹")}
       ${sourceCard("github", "GitHub", "GH", connected.has("github"), "先授权读取仓库，再勾选 Markdown、TXT 或 JSON；平台只执行读取", connected.has("github") ? "选择仓库" : "授权读取")}
@@ -241,7 +241,19 @@ function openWeReadDialog(content) {
   workspace.classList.remove("hidden");
   workspace.innerHTML = `<div class="guided-panel"><div class="guide-number">1</div><div><h2>绑定你的微信读书密钥</h2><p>复制以 <code>wrk-</code> 开头的本人密钥并粘贴。系统验证成功后会加密保存到你的账户；密钥可随时轮换，不会成为数据库主键。</p><form id="bind-weread"><label for="bind-weread-key">微信读书密钥</label><input id="bind-weread-key" name="key" type="password" autocomplete="off" required placeholder="wrk-…"><button class="button primary" type="submit">验证、绑定并开始同步</button></form><p class="form-help">不要使用他人的密钥。系统不会把密钥写入日志、状态页或导出文件。</p></div></div>`;
   workspace.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
-  workspace.querySelector("#bind-weread").addEventListener("submit", async event => { event.preventDefault(); const key = new FormData(event.currentTarget).get("key"); await action("正在验证并绑定微信读书…", async () => { const result = await api.bindWeRead(key); state.account = result.account; toast("微信读书已绑定，正在同步完整数据。", "success"); await runWeReadSync(content); }); });
+  workspace.querySelector("#bind-weread").addEventListener("submit", async event => {
+    event.preventDefault();
+    const key = new FormData(event.currentTarget).get("key");
+    const result = await action("正在验证并绑定微信读书…", async () => {
+      const response = await api.bindWeRead(key);
+      state.account = response.account;
+      return response;
+    });
+    if (result) {
+      toast("微信读书已绑定，正在后台同步数据。", "success");
+      void runWeReadSync(content, { automatic: true });
+    }
+  });
 }
 function consumeOAuthLoginReturn() {
   const url = new URL(location.href);
@@ -263,12 +275,33 @@ async function syncWeReadAfterLogin(root, { force = false } = {}) {
   await runWeReadSync(root.querySelector("#account-content"), { automatic: true });
 }
 async function runWeReadSync(content, { automatic = false } = {}) {
-  return action(automatic ? "登录成功，正在自动同步微信读书数据…" : "正在同步完整微信读书数据；书籍较多时会分批处理…", async () => {
-    const result = await api.wereadSync();
+  if (state.wereadSyncing) { toast("微信读书正在同步，请稍候。", "info"); return undefined; }
+  const complete = async () => {
+    const result = await api.wereadSync("auto");
     const summary = result.summary || {};
-    toast(`同步完成：${summary.updatedDocuments ?? summary.importedDocuments ?? 0} 条更新，${summary.unchangedDocuments || 0} 条已是最新。`, result.failures?.length ? "warning" : "success");
-    const profile = await api.profile(); state.account = profile.account; state.view = "notes"; await renderCurrent(document); return result;
-  });
+    const scope = summary.syncMode === "incremental"
+      ? `快速核对 ${summary.notebookBooks || 0} 本书，跳过 ${summary.skippedUnchangedBooks || 0} 本无变化书籍`
+      : `完整整理 ${summary.notebookBooks || 0} 本书`;
+    toast(`同步完成：${scope}；${summary.updatedDocuments ?? summary.importedDocuments ?? 0} 条更新，${summary.unchangedDocuments || 0} 条已是最新。`, result.failures?.length ? "warning" : "success");
+    const profile = await api.profile();
+    state.account = profile.account;
+    if (automatic) {
+      if (["overview", "notes"].includes(state.view)) await renderCurrent(document);
+    } else {
+      state.view = "notes";
+      await renderCurrent(document);
+    }
+    return result;
+  };
+  if (!automatic) return action("正在同步微信读书最新变化…", complete);
+  state.wereadSyncing = true;
+  toast("已登录，正在后台检查微信读书最新变化…", "info");
+  try { return await complete(); }
+  catch (error) {
+    toast(error?.message || "微信读书同步失败，请稍后重试。", "error");
+    console.error(JSON.stringify({ event: "weread_background_sync_failed", code: String(error?.code || "REQUEST_FAILED") }));
+    return undefined;
+  } finally { state.wereadSyncing = false; }
 }
 function openObsidianChooser(content) {
   const workspace = content.querySelector("#import-workspace");

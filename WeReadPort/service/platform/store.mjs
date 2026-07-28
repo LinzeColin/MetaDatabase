@@ -32,6 +32,7 @@ export class PlatformStore {
     this.ensureColumn("import_jobs", "worker_id", "TEXT");
     this.ensureColumn("import_jobs", "lease_until", "INTEGER");
     this.ensureColumn("notes", "event_at", "INTEGER NOT NULL DEFAULT 0");
+    this.ensureColumn("weread_sync_state", "book_state_json", "TEXT NOT NULL DEFAULT '{}'");
     this.db.exec("UPDATE notes SET event_at=created_at WHERE event_at IS NULL OR event_at=0");
     this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS sessions_public_id_idx ON sessions(id) WHERE id IS NOT NULL");
     this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_queue_idx ON import_jobs(state, lease_until, created_at)");
@@ -362,14 +363,17 @@ export class PlatformStore {
     return { ok: ageSeconds !== null && ageSeconds <= maxAgeSeconds, workerId: row?.workerId || null, version: row?.version || null, heartbeatAt: row?.heartbeatAt || null, ageSeconds };
   }
 
-  updateWereadState(accountId, { capabilities, summary, lastSyncAt = this.now() }) {
-    this.db.prepare("UPDATE weread_sync_state SET capabilities_json=?,summary_json=?,last_sync_at=?,updated_at=? WHERE account_id=?")
-      .run(JSON.stringify(capabilities ?? []), JSON.stringify(summary ?? {}), lastSyncAt, this.now(), accountId);
+  updateWereadState(accountId, { capabilities, summary, bookState = undefined, lastSyncAt = this.now() }) {
+    this.db.prepare("UPDATE weread_sync_state SET capabilities_json=?,summary_json=?,book_state_json=COALESCE(?,book_state_json),last_sync_at=?,updated_at=? WHERE account_id=?")
+      .run(JSON.stringify(capabilities ?? []), JSON.stringify(summary ?? {}), bookState === undefined ? null : JSON.stringify(bookState ?? {}), lastSyncAt, this.now(), accountId);
   }
 
-  getWereadState(accountId) {
-    const row = this.db.prepare("SELECT capabilities_json AS capabilitiesJson,summary_json AS summaryJson,last_sync_at AS lastSyncAt,updated_at AS updatedAt FROM weread_sync_state WHERE account_id=?").get(accountId);
-    return row ? { capabilities: parseArray(row.capabilitiesJson), summary: parseJson(row.summaryJson), lastSyncAt: row.lastSyncAt, updatedAt: row.updatedAt } : null;
+  getWereadState(accountId, { includeBookState = false } = {}) {
+    const row = this.db.prepare("SELECT capabilities_json AS capabilitiesJson,summary_json AS summaryJson,book_state_json AS bookStateJson,last_sync_at AS lastSyncAt,updated_at AS updatedAt FROM weread_sync_state WHERE account_id=?").get(accountId);
+    if (!row) return null;
+    const state = { capabilities: parseArray(row.capabilitiesJson), summary: parseJson(row.summaryJson), lastSyncAt: row.lastSyncAt, updatedAt: row.updatedAt };
+    if (includeBookState) state.bookState = parseJson(row.bookStateJson);
+    return state;
   }
 
   replaceRecommendations(accountId, recommendations) {
