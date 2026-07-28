@@ -1,0 +1,283 @@
+{
+  "schema_version": "cyberboss.cb820.validation.v1",
+  "task_id": "CB-820",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-006",
+    "AC-012",
+    "AC-026",
+    "AC-038"
+  ],
+  "check_count": 36,
+  "pass_count": 36,
+  "fail_count": 0,
+  "activation_pending_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_verdict": "PASS",
+  "supply_chain": {
+    "sources": [
+      "cyberboss",
+      "timeline-for-agent",
+      "whereabouts-mcp"
+    ],
+    "compliance": {
+      "cyberboss": "AGPL-3.0-only",
+      "timeline-for-agent": "AGPL-3.0-only",
+      "whereabouts-mcp": "GPL-3.0-only AND AGPL-3.0-only"
+    }
+  },
+  "secret_scan": {
+    "declared_vector_files": [
+      "app/src/services/canonical/user-fact-envelope.js",
+      "app/src/services/status/business-matrix.js",
+      "app/test/cb700-provider-vault-budget-circuit.test.js",
+      "app/test/cb800-data-boundary-backup-lifecycle.test.js",
+      "app/test/cb810-status-resource-selfheal.test.js",
+      "app/test/cb820-security-privacy-supply-chain.test.js"
+    ]
+  },
+  "repeat_runs": [
+    {
+      "suite": "test/cb820-security-privacy-supply-chain.test.js",
+      "returncode": 0,
+      "tests": 24,
+      "pass": 24,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb820-security-privacy-supply-chain.test.js",
+      "returncode": 0,
+      "tests": 24,
+      "pass": 24,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb820-security-privacy-supply-chain.test.js",
+      "returncode": 0,
+      "tests": 24,
+      "pass": 24,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 24,
+  "checks": [
+    {
+      "check": "ac006.owner_surface_is_declared",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "owner_only=['codex.turn', 'claudecode.turn', 'workspace.read', 'workspace.write', 'shell.execute', 'project.tool', 'mcp.invoke', 'ops.manage', 'release.manage', 'invite.issue', 'status.internal']"
+    },
+    {
+      "check": "ac006.capability_sets_do_not_overlap",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "overlap=[]"
+    },
+    {
+      "check": "ac006.owner_capability_needs_owner_role",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "an Owner-only capability resolves to the stored owner role, not a claim"
+    },
+    {
+      "check": "ac006.tool_host_checks_first",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "the Owner guard runs before any tool is resolved"
+    },
+    {
+      "check": "ac006.suspended_user_reaches_nothing",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "a suspended user loses every capability"
+    },
+    {
+      "check": "ac012.algorithm_matches_the_frozen_contract",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "contract=AES-256-GCM"
+    },
+    {
+      "check": "ac012.dek_is_random_per_user",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "contract=random_32_bytes_per_user"
+    },
+    {
+      "check": "ac012.dek_wrapped_by_master_kek",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "contract=root_owned_master_kek"
+    },
+    {
+      "check": "ac012.user_scope_in_the_aad",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "contract=user_id_scope"
+    },
+    {
+      "check": "ac012.provider_scope_in_the_aad",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "contract=user_id_provider_scope"
+    },
+    {
+      "check": "ac012.provider_key_derived_from_the_dek",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "contract=provider_subkey_derived_from_user_dek"
+    },
+    {
+      "check": "ac012.rotation_and_shred_exist",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "contract=destroy_wrapped_dek_record"
+    },
+    {
+      "check": "ac012.key_material_is_zeroed_after_use",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "derived key material is wiped rather than left on the heap"
+    },
+    {
+      "check": "ac012.error_path_carries_no_body_or_credential",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "the diagnostic reflects shape only; the message comes from a fixed table"
+    },
+    {
+      "check": "ac012.status_refuses_credential_values",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "plaintext_destinations=[]"
+    },
+    {
+      "check": "ac026.sensitive_set_is_declared",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "sensitive_categories=['biometric', 'criminal_risk', 'ethnicity', 'financial_distress', 'health_diagnosis', 'mental_illness', 'politics', 'religion', 'sexual_orientation']"
+    },
+    {
+      "check": "ac026.inference_is_forbidden_at_any_confidence",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "a sensitive attribute is refused before any confidence test runs"
+    },
+    {
+      "check": "ac026.consent_is_required_and_per_category",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "consent for one category does not unlock another"
+    },
+    {
+      "check": "ac026.default_count_is_observable",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "the number of inferred sensitive attributes is directly countable"
+    },
+    {
+      "check": "ac038.every_source_is_pinned_to_a_commit",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "sources=['cyberboss', 'timeline-for-agent', 'whereabouts-mcp']"
+    },
+    {
+      "check": "ac038.licence_discrepancies_are_resolved",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "unresolved=[]; recorded=[('cyberboss', 'AGPL-3.0-only'), ('timeline-for-agent', 'AGPL-3.0-only'), ('whereabouts-mcp', 'GPL-3.0-only AND AGPL-3.0-only')]"
+    },
+    {
+      "check": "ac038.modifications_are_recorded",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "each source records what was added, modified and removed"
+    },
+    {
+      "check": "ac038.no_fetch_remote_is_retained",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "no temporary fetch remote survives in the repository"
+    },
+    {
+      "check": "ac038.license_present",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "LICENSE is present"
+    },
+    {
+      "check": "ac038.third_party_notices_md_present",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "THIRD_PARTY_NOTICES.md is present"
+    },
+    {
+      "check": "ac038.upstream_provenance_md_present",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "UPSTREAM_PROVENANCE.md is present"
+    },
+    {
+      "check": "ac038.agpl_text_retained",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "the AGPL text itself is kept, not only a reference to it"
+    },
+    {
+      "check": "ac038.no_runtime_upstream_fetch",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb820.no_credential_in_shipped_tree",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb820.every_test_vector_is_declared",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "undeclared=[]"
+    },
+    {
+      "check": "cb820.every_declared_vector_is_synthetic",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "non_synthetic=[]"
+    },
+    {
+      "check": "cb820.fault_matrix_is_byte_identical",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "sha256=fd0b837be08230fa424406050d8ede6a73ab780738d627857c90011b72f9b4fe"
+    },
+    {
+      "check": "cb820.zero_agent_cases_are_byte_identical",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "sha256=3536918a5072d637056eee4dbe09aa321726415c5d7c9eead1c221ccca9ad35a"
+    },
+    {
+      "check": "cb820.every_frozen_fault_case_is_covered",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "cases=7"
+    },
+    {
+      "check": "cb820.no_real_time_wait_in_the_fault_replay",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "wait_call_forms=[]"
+    },
+    {
+      "check": "cb820.suite_is_deterministic",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "clean_runs=3/3 tests=24"
+    }
+  ]
+}

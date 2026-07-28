@@ -25,12 +25,29 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P6.4 / CB-630`；`P6.5 / CB-640`；`PG-6`；
   `P7.1 / CB-700`；`P7.2 / CB-710`；
   `P7.3 / CB-720`；`P7.4 / CB-730`；
-  `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`；`P8.2 / CB-810`
+  `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`；`P8.2 / CB-810`；`P8.3 / CB-820`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
-- 最新 Run：`CB-810`。Status 业务矩阵、资源闸门与 Zero-Agent 自愈。14 条冻结业务线
+- 最新 Run：`CB-820`。安全、隐私、模型边界、供应链与故障注入闭环——不加任何新功能，
+  只把安全性质端到端重证一遍。普通用户扫过全部 11 个 Owner-only 能力：授予 `0` 次、
+  拒绝 11 次（含 Codex / Workspace / Shell / 工具面）；暂停用户在两套能力上都拿不到
+  任何东西；客户端自称 owner 不作数。保险箱：每用户 32 字节随机 DEK（两次包装密文
+  不同，证明是随机而非派生），AES-256-GCM + master KEK，AAD 绑定用户域（换用户或换
+  master key 都解不开），Provider 子密钥按 provider 与 key version 派生（换任一个都
+  读不了），明文只留后 4 位；写入凭据后直接读数据库文件与 WAL 原始字节，`0` 处明文。
+  敏感属性：默认推断数 `0`，0.01–1 全区间推断一律拒绝，跨类目同意不解锁。
+  冻结故障矩阵按 sha256 逐字节复放 7 个用例，全程假时钟、真实等待 `0`；畸形输出永远
+  不算成功，导入文本始终是惰性数据（导入层没有任何通往 Provider 适配器的路径）。
+  供应链：3 个来源全部钉死 40 位 commit、改动有记录、无残留 fetch remote、运行期
+  拉取上游 `0` 处；凭据形态扫描覆盖整棵树，出货侧 `0`，测试侧全部是登记在册的合成
+  向量。**已发现并如实记录一处真实许可证不一致**：`whereabouts-mcp` 的 package 元数据
+  声明 AGPL-3.0-only，实际随附 LICENSE 是 GPL-3.0-only；本节点直接读了 vendored 文件
+  确认 lock 记录准确，合规表达式按更严的 `GPL-3.0-only AND AGPL-3.0-only` 执行。
+  **`CB-820` = `PASS`**（无条件）：`AC-006`/`AC-012`/`AC-026`/`AC-038` 全部通过，
+  无 `activation_pending`。证据在 `docs/evidence/CB-820/`。
+- 上一 Run：`CB-810`。Status 业务矩阵、资源闸门与 Zero-Agent 自愈。14 条冻结业务线
   ×14 个必填字段：少一条线、多一条线、少一个字段、多一个字段都整份拒绝，绝不"悄悄少
   一行照样发布"。字段名和字段值都按深度 8 递归扫描：冻结禁字段、嵌在值里的禁字段，
   以及以合法字段名承载的微信 id、用户 id、邮箱、Bearer、Provider key、私钥头、macOS
@@ -116,9 +133,9 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
   v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-740`（Stage 7 全部 5 项）
-  与 `CB-800`、`CB-810`（Stage 8 前 2 项）已通过；`PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
+  与 `CB-800`、`CB-810`、`CB-820`（Stage 8 前 3 项）已通过；`PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
 
-- 尚未开始：`CB-820`、`CB-830`、`CB-840` 与 `PG-8` 均为 `not_started`，
+- 尚未开始：`CB-830`、`CB-840` 与 `PG-8` 均为 `not_started`，
   权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；
   每个节点必须作为独立 Run 按冻结 DAG 依赖顺序执行。
 - R2 backup/readback 与 isolated restore 已 verified；OCI 日常 write-only PAR 的读回

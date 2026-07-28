@@ -1,0 +1,63 @@
+{
+  "schema_version": "cyberboss.cb820.acceptance.v1",
+  "task_id": "CB-820",
+  "stage": "S8",
+  "phase": "P8.3",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "eeec38b49ec7378f0e234ad0f37f5f365f061543",
+  "closure_commit_recorded_by": "CB-830",
+  "results": [
+    {
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "check_count": 7,
+      "note": "Sweeping every one of the eleven Owner-only capabilities with an ordinary user context yields zero grants and eleven typed refusals, including the four AC-006 names explicitly — Codex, Workspace, Shell and the tool surface. The Owner-only and ordinary sets do not overlap, a suspended user reaches nothing at all across both sets, a context claiming the owner role is still resolved against the stored row, and the tool host runs its Owner guard before it resolves a tool."
+    },
+    {
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "check_count": 13,
+      "note": "The DEK is 32 random bytes per user — two users never share a wrapped key and the same user re-wrapped twice never produces the same ciphertext, so it is random rather than derived. It is wrapped with AES-256-GCM under a master-KEK-derived wrapping key, with the user scope in the AAD: another user presenting the envelope, or the right user with the wrong master key, both fail. The provider sub-key is derived by HKDF and bound to the provider and key version, so a different provider or a rotated version derives a different leaf and cannot read the record. Only the last four characters are ever stored in the clear. Reading the raw database file and its WAL after storing a credential finds no plaintext. Rotation re-wraps and preserves the credential; crypto-shred is final. Error paths carry a fixed message and a shape-only diagnostic, never the credential or the response body, and the Status surface refuses credential-shaped values."
+    },
+    {
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "The default count of inferred sensitive attributes is zero while ordinary facts still project. A sensitive attribute is refused as an inference at every confidence from 0.01 to 1 — the refusal precedes any confidence test, so there is no threshold at which it becomes allowed. Consent is per category: consent for one sensitive category does not unlock another, and consent only ever permits an explicit user statement, never an inference."
+    },
+    {
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "check_count": 12,
+      "note": "All three sources are pinned to exact 40-character commits with their modifications recorded and no temporary fetch remote retained. The AGPL text itself is kept, alongside third-party notices and upstream provenance. No runtime source clones, installs or fetches an upstream. Every declared dependency is pinned, caret-ranged against a lockfile, or vendored in the repository. One real licence discrepancy exists and is resolved rather than hidden: whereabouts-mcp declares AGPL-3.0-only in its package metadata while shipping a plain GPL-3.0 licence file; this node read the vendored file directly to confirm the lock is accurate, and the lock applies the combined expression GPL-3.0-only AND AGPL-3.0-only. The credential scan over the whole tree finds zero shapes in shipped code, docs or evidence; every match in the test tree is a declared synthetic vector."
+    }
+  ],
+  "fault_injection_receipts": {
+    "frozen_matrix_sha256": "fd0b837be08230fa424406050d8ede6a73ab780738d627857c90011b72f9b4fe",
+    "cases_replayed": 7,
+    "real_time_waits": 0,
+    "clock": "fake",
+    "false_success_on_malformed_output": false,
+    "cross_user_effect_from_a_per_user_fault": false,
+    "imported_text_became_an_instruction": false
+  },
+  "validator": "CyberBoss/scripts/validate_cb820.py",
+  "validator_status": "PASS",
+  "node_verdict": "PASS",
+  "node_verdict_reason": "every mapped acceptance id passes on the exact target subject with no activation_pending item; this node exercises no external endpoint",
+  "check_count": 36,
+  "pass_count": 36,
+  "fail_count": 0,
+  "activation_pending_count": 0,
+  "node_test_total": 24,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [],
+  "status": "passed"
+}

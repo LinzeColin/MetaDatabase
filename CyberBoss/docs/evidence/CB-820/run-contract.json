@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-820",
+  "stage": "S8",
+  "phase": "P8.3",
+  "gate_id": "PG-8",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "eeec38b49ec7378f0e234ad0f37f5f365f061543",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-830"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-006",
+    "AC-012",
+    "AC-026",
+    "AC-038"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "run cross-user and abuse paths",
+    "inject crash/provider/budget/backup failures with fake clock",
+    "scan supply chain, secrets, PII and AGPL corresponding source"
+  ],
+  "outputs": [
+    "security/privacy/model safety closure",
+    "dependency/license lock",
+    "fault-injection receipts"
+  ],
+  "risks_addressed": [
+    "false green from mocks",
+    "license/source omission",
+    "unhandled destructive retry"
+  ],
+  "rollback": [
+    "reject candidate release",
+    "retain exact previous release",
+    "record only merged findings without new scope",
+    "revert to base eeec38b49ec7378f0e234ad0f37f5f365f061543"
+  ],
+  "no_new_feature": true,
+  "files_added": [
+    "CyberBoss/app/test/cb820-security-privacy-supply-chain.test.js",
+    "CyberBoss/app/test/fixtures/provider-fault-matrix.json",
+    "CyberBoss/app/test/fixtures/zero-agent-runtime-cases.json",
+    "CyberBoss/scripts/validate_cb820.py"
+  ]
+}

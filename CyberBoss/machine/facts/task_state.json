@@ -6,10 +6,10 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-810",
+    "run_id": "CB-820",
     "gate_id": "PG-8",
-    "task_id": "CB-810",
-    "scope": "status_business_matrix_resource_gate_and_zero_agent_self_heal",
+    "task_id": "CB-820",
+    "scope": "security_privacy_model_boundary_supply_chain_and_fault_injection_closure",
     "status": "passed"
   },
   "prestage": [
@@ -287,7 +287,7 @@
       "id": "CB-820",
       "stage": "S8",
       "phase": "P8.3",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-830",
@@ -702,6 +702,22 @@
     "cb_810_no_mac_prohibition_sites": 24,
     "cb_810_app_suite": "434_pass_0_fail",
     "cb_810_verdict": "PASS",
-    "cb_810_activation_pending": []
+    "cb_810_activation_pending": [],
+    "cb_810_closure_commit": "eeec38b49ec7378f0e234ad0f37f5f365f061543",
+    "cb_820_base_head": "eeec38b49ec7378f0e234ad0f37f5f365f061543",
+    "cb_820_owner_capability_grants_to_ordinary_user": 0,
+    "cb_820_suspended_user_capability_grants": 0,
+    "cb_820_plaintext_credential_on_disk": false,
+    "cb_820_cross_user_envelope_replay": "refused",
+    "cb_820_default_sensitive_inferences": 0,
+    "cb_820_fault_matrix_sha256": "fd0b837be08230fa424406050d8ede6a73ab780738d627857c90011b72f9b4fe",
+    "cb_820_fault_cases_replayed": 7,
+    "cb_820_real_time_waits": 0,
+    "cb_820_runtime_upstream_fetch_sites": 0,
+    "cb_820_credential_shapes_in_shipped_tree": 0,
+    "cb_820_licence_discrepancy": "whereabouts-mcp declares AGPL-3.0-only and ships GPL-3.0-only; recorded and resolved as 'GPL-3.0-only AND AGPL-3.0-only', pre-existing",
+    "cb_820_app_suite": "458_pass_0_fail",
+    "cb_820_verdict": "PASS",
+    "cb_820_activation_pending": []
   }
 }

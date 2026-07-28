@@ -1,0 +1,138 @@
+{
+  "schema_version": "cyberboss.cb820.subject.v1",
+  "task_id": "CB-820",
+  "stage": "S8",
+  "phase": "P8.3",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "eeec38b49ec7378f0e234ad0f37f5f365f061543",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_810_closure_commit": "eeec38b49ec7378f0e234ad0f37f5f365f061543",
+    "closure_commit_recorded_by": "CB-830"
+  },
+  "owner_boundary": {
+    "owner_only_capabilities": 11,
+    "user_capabilities": 10,
+    "sets_overlap": false,
+    "ordinary_user_owner_capability_grants": 0,
+    "suspended_user_capability_grants": 0,
+    "client_declared_owner_role_accepted": false,
+    "owner_guard_runs_before_tool_resolution": true
+  },
+  "credential_vault": {
+    "algorithm": "AES-256-GCM",
+    "dek": "random_32_bytes_per_user",
+    "two_users_share_a_wrapped_key": false,
+    "dek_derived_from_user_id": false,
+    "wrapped_by": "master_kek_derived_wrapping_key",
+    "aad_user_scope_enforced": true,
+    "cross_user_envelope_replay": "refused",
+    "wrong_master_key": "refused",
+    "provider_subkey_derivation": "HKDF-SHA256",
+    "per_provider_subkeys_differ": true,
+    "per_key_version_subkeys_differ": true,
+    "cross_provider_decrypt": "refused",
+    "plaintext_stored": "last four characters only, so a user can recognise their own key",
+    "plaintext_credential_in_database_file": false,
+    "plaintext_credential_in_wal": false,
+    "rotation_rewraps_and_preserves_credentials": true,
+    "crypto_shred_is_final": true,
+    "error_message_carries_credential_or_body": false,
+    "diagnostic_hash_is_shape_only": true,
+    "key_material_zeroed_after_use": true
+  },
+  "sensitive_attributes": {
+    "default_inferred_sensitive_count": 0,
+    "inference_refused_at_every_confidence": [0.01, 0.5, 0.99, 1],
+    "consent_is_per_category": true,
+    "consent_for_one_category_unlocks_another": false,
+    "consent_permits_explicit_statement_only": true
+  },
+  "fault_injection": {
+    "frozen_matrix": "app/test/fixtures/provider-fault-matrix.json",
+    "frozen_matrix_sha256": "fd0b837be08230fa424406050d8ede6a73ab780738d627857c90011b72f9b4fe",
+    "byte_identical_to_taskpack": true,
+    "cases": 7,
+    "http_401_403": "CREDENTIAL_INVALID, not retryable, single user",
+    "http_429": "RATE_LIMITED, retryable, single user",
+    "http_500": "PROVIDER_UNAVAILABLE, retryable, no secret in the log",
+    "timeout": "bounded retry with a capped backoff",
+    "malformed_json": "PROVIDER_BAD_RESPONSE, never a false success",
+    "prompt_injection_from_import": "imported text stays inert data; the import layer has no path to a provider adapter",
+    "clock": "fake, supplied by the test",
+    "real_time_waits": 0,
+    "unknown_import_role": "mapped to unknown rather than trusted"
+  },
+  "zero_agent_surfaces": {
+    "frozen_cases": "app/test/fixtures/zero-agent-runtime-cases.json",
+    "frozen_cases_sha256": "3536918a5072d637056eee4dbe09aa321726415c5d7c9eead1c221ccca9ad35a",
+    "surfaces_that_must_remain_zero": 16,
+    "permitted_model_triggers": 3,
+    "deterministic_modules_verified": 9,
+    "direct_requests_from_those_modules": 0,
+    "provider_adapter_imports_from_those_modules": 0
+  },
+  "supply_chain": {
+    "sources": ["cyberboss", "timeline-for-agent", "whereabouts-mcp"],
+    "every_source_pinned_to_a_commit": true,
+    "modifications_recorded": true,
+    "temporary_fetch_remotes_retained": 0,
+    "runtime_upstream_fetch_sites": 0,
+    "agpl_text_retained": true,
+    "third_party_notices_present": true,
+    "upstream_provenance_present": true,
+    "compliance_expressions": {
+      "cyberboss": "AGPL-3.0-only",
+      "timeline-for-agent": "AGPL-3.0-only",
+      "whereabouts-mcp": "GPL-3.0-only AND AGPL-3.0-only"
+    },
+    "licence_discrepancy_recorded": {
+      "source": "whereabouts-mcp",
+      "declared_in_package_metadata": "AGPL-3.0-only",
+      "licence_file_actually_shipped": "GPL-3.0-only",
+      "resolution": "the source lock records both and applies the combined expression GPL-3.0-only AND AGPL-3.0-only",
+      "verified_at_this_node": "the vendored LICENSE file was read directly and is the plain GPL-3.0 text, confirming the lock is accurate rather than accepted on faith",
+      "pre_existing": true,
+      "introduced_by_this_node": false
+    }
+  },
+  "secret_and_pii_scan": {
+    "scope": "the whole CyberBoss tree except node_modules, .git and vendor",
+    "patterns": ["private_key", "github_token", "slack_token", "aws_key_id", "provider_key", "wechat_id"],
+    "credential_shapes_in_shipped_tree": 0,
+    "undeclared_test_vectors": 0,
+    "non_synthetic_declared_vectors": 0,
+    "declared_vector_files": [
+      "app/src/services/canonical/user-fact-envelope.js",
+      "app/src/services/status/business-matrix.js",
+      "app/test/cb700-provider-vault-budget-circuit.test.js",
+      "app/test/cb800-data-boundary-backup-lifecycle.test.js",
+      "app/test/cb810-status-resource-selfheal.test.js",
+      "app/test/cb820-security-privacy-supply-chain.test.js"
+    ],
+    "note": "the declared files carry credential-shaped strings on purpose — the detection patterns themselves and synthetic negative vectors. Each is an alphabet run or an obvious placeholder, and the scan fails if a match appears outside the declared list or if a declared match stops looking synthetic."
+  },
+  "tests": {
+    "cb820_suite_tests": 24,
+    "cb820_suite_failures": 0,
+    "cb820_repeat_clean_runs": "3/3",
+    "app_suite_tests": 458,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "new_feature_added": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [],
+  "status": "passed"
+}

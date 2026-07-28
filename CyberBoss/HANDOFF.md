@@ -19,12 +19,39 @@
 
 ## Current state
 
-Latest accepted node: `P8.2 / CB-810` passed unconditionally on base
-`b51180e847af52983155eea1f9d71df27bea8a96`. Stage 6 and Stage 7 are complete
+Latest accepted node: `P8.3 / CB-820` passed unconditionally on base
+`eeec38b49ec7378f0e234ad0f37f5f365f061543`. Stage 6 and Stage 7 are complete
 with `PG-6` and `PG-7` both sealed as CONDITIONAL PASS; `PG-8` has not started.
-Stage 8 remaining: `CB-820`, `CB-830`, `CB-840`.
+Stage 8 remaining: `CB-830`, `CB-840`.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
+
+`P8.3 / CB-820` is the security, privacy, model-boundary, supply-chain and
+fault-injection closure. It adds no feature; it re-proves the safety properties
+end to end against the real modules. Sweeping all eleven Owner-only
+capabilities with an ordinary user context yields zero grants and eleven typed
+refusals; a suspended user reaches nothing across both capability sets, and a
+context claiming the owner role is still resolved against the stored row. The
+vault gives each user 32 random bytes — two wrappings of the same user differ,
+so the DEK is random rather than derived — wrapped with AES-256-GCM under a
+master-KEK-derived key with the user scope in the AAD, so a cross-user envelope
+replay and a wrong master key both fail; provider sub-keys are bound to both
+provider and key version, and only the last four characters of a credential are
+ever stored in the clear. Reading the raw database file and its WAL after
+storing a credential finds no plaintext. Sensitive attributes cannot be
+inferred at any confidence from 0.01 to 1, and consent for one category does
+not unlock another. The frozen provider fault matrix is replayed byte-identical
+against a fake clock with zero real-time waits: malformed output is never a
+false success, a per-user fault has no cross-user effect, and imported text
+stays inert data because the import layer has no path to a provider adapter.
+All three sources are pinned to exact commits with modifications recorded and
+no runtime upstream fetch anywhere. One real licence discrepancy was found and
+is recorded rather than hidden: `whereabouts-mcp` declares `AGPL-3.0-only` in
+its package metadata while shipping a plain GPL-3.0 licence file — the vendored
+file was read directly to confirm the source lock is accurate, and the lock
+applies the stricter combined expression `GPL-3.0-only AND AGPL-3.0-only`. It
+is pre-existing and was not introduced here. `AC-006`, `AC-012`, `AC-026` and
+`AC-038` all pass. Evidence in `docs/evidence/CB-820/`.
 
 `P8.2 / CB-810` closed the Status business matrix, the resource admission gate
 and zero-agent self-heal, and is the first Stage 8 node with no
