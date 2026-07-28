@@ -1,0 +1,57 @@
+{
+  "schema_version": "cyberboss.cb730.browser_check.v1",
+  "task_id": "CB-730",
+  "tool": "in-app Chromium browser pane, live page served over http://127.0.0.1",
+  "page": "app/templates/setup-portal.html rendered through SetupPortal.renderSetupPage",
+  "render_inputs": { "nonce": "Cb730RenderNonce01", "remaining_percent": 72 },
+  "note": "Playwright and Chromium are not installed on this host, so the frozen taskpack prototype harness (tests/browser/test_prototype.py) could not be executed. These measurements were taken in a real Chromium engine against the actual served page instead, and the deterministic static audit runs in app/test/cb730-novice-experience.test.js.",
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "horizontal_overflow": false,
+      "inline_style_attributes": 0,
+      "visible_controls": 4,
+      "controls_below_44px": [],
+      "visible_primary_actions": 1,
+      "visible_sections": ["view-provider"],
+      "body_font_px": 16,
+      "contrast_ratios": {
+        "body_on_background": 17.76,
+        "hint_on_background": 8.23,
+        "usage_panel": 9.31,
+        "primary_button": 8.02,
+        "minimum_required": 4.5
+      },
+      "focusable_controls": 4,
+      "lang": "zh-CN",
+      "usage_bar_fill_percent": 72
+    },
+    {
+      "name": "mobile",
+      "width": 375,
+      "height": 812,
+      "document_scroll_width": 375,
+      "horizontal_overflow": false,
+      "elements_past_right_edge": [],
+      "inline_style_attributes": 0,
+      "visible_controls": 4,
+      "controls_below_44px": [],
+      "visible_primary_actions": 1,
+      "usage_bar_fill_percent": 72,
+      "tab_order": ["provider", "apikey", "save-provider", "skip-provider"],
+      "tab_order_matches_visual_order": true,
+      "screenshot_reviewed": true
+    }
+  ],
+  "findings_fixed_during_this_check": [
+    {
+      "finding": "the page script set bar.style.width at runtime, creating one inline style attribute",
+      "impact": "an inline style attribute contradicts the strict style-src nonce policy and the frozen prototype's no-inline-style check",
+      "fix": "the usage fill width is substituted server-side into the nonce-guarded stylesheet; the runtime style mutation was removed",
+      "verified": "inline_style_attributes measured as 0 at both viewports after the fix"
+    }
+  ],
+  "result": "PASS"
+}

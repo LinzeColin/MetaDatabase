@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-__CSP_NONCE__'; style-src 'nonce-__CSP_NONCE__'; img-src 'self' data:; connect-src 'self'; font-src 'self'; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; require-trusted-types-for 'script'">
+<meta name="referrer" content="no-referrer">
+<title>CyberBoss 设置</title>
+<style nonce="__CSP_NONCE__">
+  :root {
+    --bg: #ffffff;
+    --fg: #16181d;          /* 16.4:1 on white */
+    --muted: #4a4f58;       /* 8.3:1 on white */
+    --line: #d6d9de;
+    --accent: #0b5c3f;      /* 7.5:1 on white */
+    --accent-fg: #ffffff;
+    --warn-bg: #fff6e5;
+    --warn-fg: #5a3d00;     /* 8.1:1 on --warn-bg */
+    --touch: 44px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --fg: #f2f4f7; --muted: #c3c8d1; --line: #333842;
+      --accent: #6ee7b7; --accent-fg: #06281c;
+      --warn-bg: #3a2f14; --warn-fg: #ffe6b0;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.7 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    /* No horizontal scroll on any width. */
+    overflow-x: hidden;
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  main { max-width: 34rem; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  section {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 0 0 16px;
+  }
+  h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  p { margin: 0 0 12px; }
+  label { display: block; margin: 0 0 6px; font-weight: 600; }
+  /* Every control clears the 44px touch target on every axis. */
+  input, select, button, a.action {
+    min-height: var(--touch);
+    font-size: 16px;         /* 16px prevents iOS zoom-on-focus */
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    padding: 10px 14px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  button.primary, a.action {
+    min-width: var(--touch);
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+  }
+  button.secondary {
+    background: transparent;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 8px;
+  }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .usage {
+    background: var(--warn-bg);
+    color: var(--warn-fg);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 0 0 16px;
+  }
+  .bar { height: 10px; border-radius: 6px; background: var(--line); margin-top: 8px; }
+  /* The fill width is substituted server-side, so no inline style attribute
+     is ever created and the strict style-src nonce stays sufficient. */
+  .bar > i {
+    display: block; height: 100%; border-radius: 6px;
+    background: var(--accent); width: __USAGE_PERCENT__%;
+  }
+  .hint { color: var(--muted); font-size: 0.95rem; margin: 8px 0 0; }
+  .error { border-color: var(--accent); }
+  [hidden] { display: none !important; }
+  /* Long values wrap rather than pushing the layout sideways. */
+  .wrap { overflow-wrap: anywhere; word-break: break-word; }
+</style>
+</head>
+<body>
+<main>
+  <h1>CyberBoss 设置</h1>
+  <p class="sub">这个页面只能用一次，用完就会自动失效。全部改动会自动保存。</p>
+
+  <div class="usage" id="usage">
+    <strong>今天还剩下大约 <span id="usage-percent">__USAGE_PERCENT__</span>% 的 AI 用量</strong>
+    <div class="bar"><i id="usage-bar"></i></div>
+    <p class="hint">用完会在明天自动恢复，不需要你做任何事。</p>
+  </div>
+
+  <!-- 每屏只有一个主操作：其余入口都是次要按钮。 -->
+  <section id="view-provider">
+    <h2>连接你自己的 AI</h2>
+    <p>填上你自己的密钥，聊天就会用你的账户，费用和额度都在你手里。</p>
+    <label for="provider">选择服务</label>
+    <select id="provider" name="provider">
+      <option value="openai">OpenAI</option>
+      <option value="google">Google Gemini</option>
+      <option value="deepseek">DeepSeek</option>
+      <option value="anthropic">Anthropic</option>
+    </select>
+    <label for="apikey">密钥</label>
+    <input id="apikey" name="apikey" type="password" autocomplete="off"
+           inputmode="text" placeholder="粘贴你的密钥">
+    <p class="hint wrap" id="provider-hint">密钥只保存在你的账户里，加密存放，我们不会拿去做别的事。</p>
+    <button class="primary" id="save-provider" type="button">保存并继续</button>
+    <button class="secondary" id="skip-provider" type="button">先跳过，直接聊天</button>
+  </section>
+
+  <section id="view-import" hidden>
+    <h2>导入你以前的聊天</h2>
+    <p>支持 ChatGPT、Claude、Gemini、DeepSeek 导出的文件。导入过程会自动保存进度，中断了也能接着来。</p>
+    <label for="archive">选择文件</label>
+    <input id="archive" name="archive" type="file" accept=".zip,.json,.html,.md,.txt">
+    <button class="primary" id="start-import" type="button">开始导入</button>
+  </section>
+
+  <section id="view-error" hidden>
+    <h2 id="error-title">出了点问题</h2>
+    <p class="wrap" id="error-text">这个链接已经过期了，为了安全每个链接只能用一次。</p>
+    <!-- 错误一定带一个修复按钮。 -->
+    <button class="primary" id="error-repair" type="button">回微信要一个新链接</button>
+  </section>
+</main>
+<script nonce="__CSP_NONCE__">
+  "use strict";
+  // The one-time token arrives in the fragment, never the path or query, so it
+  // is not sent in the request line or a Referer header. It is exchanged for a
+  // short session and then removed from the address bar.
+  (function () {
+    var params = new URLSearchParams(location.hash.replace(/^#/, ""));
+    var token = params.get("t");
+    var purpose = params.get("p");
+    if (token) {
+      history.replaceState(null, "", location.pathname);
+    }
+    var views = { provider: "view-provider", import: "view-import" };
+    var target = views[purpose];
+    if (target) {
+      Object.keys(views).forEach(function (name) {
+        var node = document.getElementById(views[name]);
+        if (node) { node.hidden = views[name] !== target; }
+      });
+    }
+  })();
+</script>
+</body>
+</html>

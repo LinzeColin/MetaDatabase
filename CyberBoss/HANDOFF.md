@@ -19,9 +19,9 @@
 
 ## Current state
 
-Latest accepted node: `P7.3 / CB-720` passed. Stage 6 is complete with exit gate
-`PG-6` sealed as CONDITIONAL PASS, and Stage 7 has `CB-700`, `CB-710` and
-`CB-720` passed.
+Latest accepted node: `P7.4 / CB-730` passed. Stage 6 is complete with exit gate
+`PG-6` sealed as CONDITIONAL PASS, and Stage 7 has `CB-700` through `CB-730`
+passed.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
 
@@ -200,6 +200,30 @@ one and resurrect an inference the user had refused. It reproduced in six of
 eight runs. Ordering is now by insertion (rowid), the frozen flag is no longer
 cleared implicitly, and ten consecutive suite runs plus five repeat runs inside
 the validator are clean.
+
+`P7.4 / CB-730` passed on base `e11f4a5873b536f6a36ee492e87b674a275d3b1b`.
+Natural Chinese phrasings resolve to frozen actions through a table lookup with
+zero model calls, and operator phrasings resolve to nothing rather than
+partially matching an operator surface. Every user-facing message is Chinese and
+jargon-free, and each one that reports a problem carries exactly one repair
+action. The setup page was measured in a real Chromium engine over a served URL
+at 375x812 and 1280x720: no horizontal overflow and nothing past the right edge,
+every visible control at least 44px, exactly one primary action per view, 16px
+body text, contrast from 8.02 to 17.76 against a 4.5 requirement, keyboard order
+matching visual order, and remaining usage protection visible before anything
+goes wrong. The one-time token travels in the fragment and is removed from the
+address bar immediately, under a strict CSP with no unsafe directive, no inline
+handlers and no unsafe HTML sinks.
+
+That live measurement found a defect static review had missed: the page script
+set the usage bar width at runtime, creating one inline style attribute. The
+fill width is now substituted server-side into the nonce-guarded stylesheet and
+the measurement reports zero inline style attributes.
+
+The frozen taskpack browser harness needs Playwright and Chromium, neither of
+which is installed on this host, so it is recorded as `not_run`. The live
+Chromium measurement stands in its place and is labelled as a substitute — it is
+never presented as the frozen harness result.
 
 The rest of Stage 7, Stage 8 and gates PG-7 and PG-8 are `not_started`; the
 authoritative list is `machine/facts/task_state.json`.

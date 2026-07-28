@@ -1,0 +1,96 @@
+{
+  "schema_version": "cyberboss.cb730.subject.v1",
+  "task_id": "CB-730",
+  "stage": "S7",
+  "phase": "P7.4",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "e11f4a5873b536f6a36ee492e87b674a275d3b1b",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_720_closure_commit": "e11f4a5873b536f6a36ee492e87b674a275d3b1b",
+    "closure_commit_recorded_by": "CB-740"
+  },
+  "ui_contract_conformance": {
+    "language": "zh-CN",
+    "base_font_px": 16,
+    "min_touch_target_px": 44,
+    "measured_controls_below_44px": 0,
+    "primary_actions_per_visible_view": 1,
+    "horizontal_overflow_mobile": false,
+    "measured_elements_past_right_edge": 0,
+    "min_measured_contrast_ratio": 8.02,
+    "required_contrast_ratio": 4.5,
+    "error_requires_repair_action": true,
+    "keyboard_operable": true,
+    "tab_order_matches_visual_order": true,
+    "usage_protection_visible": true,
+    "end_user_cli_steps": 0,
+    "novice_jargon_exposure": 0
+  },
+  "intent_resolution": {
+    "mechanism": "frozen table lookup",
+    "model_calls": 0,
+    "phrasings_covered": "multiple natural forms per action including punctuation and spacing variants",
+    "operator_phrases_resolve": false,
+    "user_actions_disjoint_from_owner_capabilities": true
+  },
+  "page_security": {
+    "csp": "default-src 'none' with nonce-guarded script and style, no unsafe-inline or unsafe-eval",
+    "frame_ancestors": "none",
+    "base_uri": "none",
+    "inline_event_handlers": 0,
+    "unsafe_html_sinks": 0,
+    "inline_style_attributes_measured": 0,
+    "token_location": "url_fragment",
+    "token_removed_from_address_bar": true,
+    "referrer_policy": "no-referrer",
+    "remote_origins_referenced": 0
+  },
+  "browser_verification": {
+    "engine": "Chromium (in-app browser pane)",
+    "served_over": "http://127.0.0.1",
+    "viewports": [
+      "375x812",
+      "1280x720"
+    ],
+    "screenshot_reviewed": true,
+    "receipt": "docs/evidence/CB-730/browser-check.json",
+    "frozen_prototype_harness": "NOT_RUN — Playwright and Chromium are not installed on this host",
+    "substitute_is_a_real_engine": true,
+    "substitute_claimed_as_the_frozen_harness": false
+  },
+  "defect_fixed_in_this_node": {
+    "issue": "the page script set the usage bar width at runtime, creating one inline style attribute",
+    "detection": "live browser measurement, not static review",
+    "fix": "the fill width is substituted server-side into the nonce-guarded stylesheet and the runtime mutation was removed",
+    "verification": "inline style attributes measured as 0 at both viewports"
+  },
+  "tests": {
+    "cb730_suite_tests": 7,
+    "cb730_suite_failures": 0,
+    "app_suite_tests": 368,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [
+    {
+      "item": "frozen_taskpack_browser_harness",
+      "state": "not_run",
+      "reason": "Playwright and Chromium are not installed on this host",
+      "substitute": "live Chromium measurement over a served URL, recorded in browser-check.json",
+      "not_claimed_as": "the frozen harness result"
+    }
+  ],
+  "status": "passed"
+}

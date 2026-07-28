@@ -6,10 +6,10 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-720",
+    "run_id": "CB-730",
     "gate_id": null,
-    "task_id": "CB-720",
-    "scope": "evidence_backed_profile_projection_user_control_and_deterministic_analytics",
+    "task_id": "CB-730",
+    "scope": "chinese_novice_onboarding_intent_map_and_one_time_setup_page",
     "status": "passed"
   },
   "prestage": [
@@ -263,7 +263,7 @@
       "id": "CB-730",
       "stage": "S7",
       "phase": "P7.4",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-740",
@@ -620,6 +620,22 @@
     "cb_720_analytics_model_calls": 0,
     "cb_720_analytics_second_authority": false,
     "cb_720_profile_analytics_ambiguity": "cb600_resolution_applied_additive_read_only",
-    "cb_720_app_suite": "361_pass_0_fail"
+    "cb_720_app_suite": "361_pass_0_fail",
+    "cb_720_closure_commit": "e11f4a5873b536f6a36ee492e87b674a275d3b1b",
+    "cb_730_base_head": "e11f4a5873b536f6a36ee492e87b674a275d3b1b",
+    "cb_730_measured_viewports": [
+      "375x812",
+      "1280x720"
+    ],
+    "cb_730_measured_controls_below_44px": 0,
+    "cb_730_measured_horizontal_overflow": false,
+    "cb_730_measured_min_contrast": 8.02,
+    "cb_730_measured_inline_style_attributes": 0,
+    "cb_730_primary_actions_per_view": 1,
+    "cb_730_end_user_cli_steps": 0,
+    "cb_730_intent_resolution_model_calls": 0,
+    "cb_730_frozen_browser_harness": "not_run_playwright_and_chromium_unavailable",
+    "cb_730_browser_substitute": "live_chromium_measurement_recorded",
+    "cb_730_app_suite": "368_pass_0_fail"
   }
 }

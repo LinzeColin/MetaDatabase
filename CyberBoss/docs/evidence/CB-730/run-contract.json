@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-730",
+  "stage": "S7",
+  "phase": "P7.4",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "e11f4a5873b536f6a36ee492e87b674a275d3b1b",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-740"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-004",
+    "AC-010",
+    "AC-037",
+    "AC-049"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "map natural Chinese intents to frozen actions",
+    "implement setup/import/profile/privacy screens",
+    "run responsive/keyboard/touch/console checks"
+  ],
+  "rollback": [
+    "keep WeChat core path available",
+    "disable portal mutation endpoints",
+    "serve previous immutable static assets",
+    "revert to base e11f4a5873b536f6a36ee492e87b674a275d3b1b"
+  ]
+}

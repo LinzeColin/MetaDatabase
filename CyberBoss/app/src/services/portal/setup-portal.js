@@ -226,3 +226,25 @@ module.exports = {
   PortalError,
   SetupPortal,
 };
+
+// CB-730: server-side rendering of the setup page. The CSP nonce and the usage
+// percentage are substituted here, so the delivered page contains no inline
+// style attribute and no runtime style mutation, and the strict style-src nonce
+// remains sufficient.
+const TEMPLATE_PATH = require("node:path").join(
+  __dirname,
+  "../../../templates/setup-portal.html",
+);
+
+function renderSetupPage({ nonce, remainingPercent = 100, readFile = require("node:fs").readFileSync }) {
+  if (typeof nonce !== "string" || !/^[A-Za-z0-9_-]{16,64}$/.test(nonce)) {
+    throw new PortalError("CSP_NONCE_INVALID", 500);
+  }
+  const percent = Math.max(0, Math.min(100, Math.round(Number(remainingPercent) || 0)));
+  return readFile(TEMPLATE_PATH, "utf8")
+    .replaceAll("__CSP_NONCE__", nonce)
+    .replaceAll("__USAGE_PERCENT__", String(percent));
+}
+
+module.exports.TEMPLATE_PATH = TEMPLATE_PATH;
+module.exports.renderSetupPage = renderSetupPage;

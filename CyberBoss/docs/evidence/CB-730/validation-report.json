@@ -1,0 +1,216 @@
+{
+  "schema_version": "cyberboss.cb730.validation.v1",
+  "task_id": "CB-730",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-004",
+    "AC-010",
+    "AC-037",
+    "AC-049"
+  ],
+  "ui_contract": {
+    "base_font_px": 16,
+    "min_touch_target_px": 44,
+    "min_text_contrast_ratio": 4.5,
+    "primary_actions_per_view": 1,
+    "horizontal_overflow_mobile": false,
+    "end_user_cli_steps": 0,
+    "novice_jargon_exposure": 0
+  },
+  "check_count": 29,
+  "pass_count": 29,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "browser_engine": "in-app Chromium browser pane, live page served over http://127.0.0.1",
+  "frozen_prototype_harness": "NOT_RUN_PLAYWRIGHT_AND_CHROMIUM_UNAVAILABLE_ON_HOST",
+  "frozen_prototype_harness_substitute": "live Chromium measurement recorded in browser-check.json",
+  "node_suite": {
+    "suite": "test/cb730-novice-experience.test.js",
+    "returncode": 0,
+    "tests": 7,
+    "pass": 7,
+    "fail": 0
+  },
+  "node_test_total": 7,
+  "checks": [
+    {
+      "check": "ac049.language_is_chinese",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "the page declares and uses Chinese"
+    },
+    {
+      "check": "ac049.mobile_viewport",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "a mobile viewport is declared"
+    },
+    {
+      "check": "ac049.touch_target_44",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "controls are at least 44px"
+    },
+    {
+      "check": "ac049.base_font_16",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "body and input font size is 16px"
+    },
+    {
+      "check": "ac049.no_horizontal_overflow_rule",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "long values wrap instead of pushing the layout sideways"
+    },
+    {
+      "check": "ac049.one_primary_action",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "each view carries exactly one primary action and one view is visible"
+    },
+    {
+      "check": "ac037.error_has_repair_action",
+      "acceptance_id": "AC-037",
+      "result": "PASS",
+      "detail": "the error view carries a repair button"
+    },
+    {
+      "check": "ac049.keyboard_operable",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "focus is visible and every input is labelled"
+    },
+    {
+      "check": "ac049.usage_protection_visible",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "remaining protected usage is visible before anything goes wrong"
+    },
+    {
+      "check": "ac010.strict_csp",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "a strict CSP with no unsafe directive"
+    },
+    {
+      "check": "ac010.no_inline_handlers_or_sinks",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "no inline handlers and no unsafe HTML sinks"
+    },
+    {
+      "check": "ac010.no_inline_style_attribute",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "no inline style attribute in the delivered markup"
+    },
+    {
+      "check": "ac010.no_runtime_style_mutation",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "the usage fill is server-rendered rather than set at runtime"
+    },
+    {
+      "check": "ac010.token_stripped_from_address_bar",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "the one-time token arrives in the fragment and is removed immediately"
+    },
+    {
+      "check": "ac004.one_time_and_autosave_stated",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "the page states the one-time rule and auto-save in Chinese"
+    },
+    {
+      "check": "cb730.browser_receipt_present",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "viewports=['desktop', 'mobile']"
+    },
+    {
+      "check": "ac049.measured_no_horizontal_overflow",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "measured: nothing extends past the viewport at 375px or 1280px"
+    },
+    {
+      "check": "ac049.measured_touch_targets",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "measured controls below 44px: []"
+    },
+    {
+      "check": "ac049.measured_one_primary_action",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "measured: exactly one primary action visible"
+    },
+    {
+      "check": "ac049.measured_contrast",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "measured contrast minimum=8.02"
+    },
+    {
+      "check": "ac010.measured_no_inline_style",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "measured: zero inline style attributes"
+    },
+    {
+      "check": "ac049.measured_tab_order",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "measured: keyboard order follows visual order"
+    },
+    {
+      "check": "cb730.browser_finding_recorded",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "findings from the browser check are recorded rather than silently fixed"
+    },
+    {
+      "check": "ac037.copy_audit_exists",
+      "acceptance_id": "AC-037",
+      "result": "PASS",
+      "detail": "every message is audited for jargon and repair actions"
+    },
+    {
+      "check": "ac037.repair_actions_declared",
+      "acceptance_id": "AC-037",
+      "result": "PASS",
+      "detail": "messages that report a problem must declare a repair action"
+    },
+    {
+      "check": "ac037.command_map_is_a_lookup",
+      "acceptance_id": "AC-037",
+      "result": "PASS",
+      "detail": "intent resolution is a table lookup, not a model call"
+    },
+    {
+      "check": "ac037.owner_phrases_never_resolve",
+      "acceptance_id": "AC-037",
+      "result": "PASS",
+      "detail": "operator phrasings resolve to nothing rather than partially matching"
+    },
+    {
+      "check": "ac049.no_cli_instruction_in_novice_surface",
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "detail": "no novice surface instructs a command-line step"
+    },
+    {
+      "check": "cb730.suite",
+      "acceptance_id": "AC-037",
+      "result": "PASS",
+      "detail": "tests=7 pass=7 fail=0"
+    }
+  ],
+  "artifact_sha256": {
+    "app/templates/setup-portal.html": "0d5eae4fa4c5447f55223bbdedfcbe5573f440cc1d9595b32c6070593ed27ec2"
+  }
+}

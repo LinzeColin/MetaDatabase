@@ -1,0 +1,52 @@
+{
+  "schema_version": "cyberboss.cb730.acceptance.v1",
+  "task_id": "CB-730",
+  "stage": "S7",
+  "phase": "P7.4",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "e11f4a5873b536f6a36ee492e87b674a275d3b1b",
+  "closure_commit_recorded_by": "CB-740",
+  "results": [
+    {
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "check_count": 1,
+      "note": "The setup page states in Chinese that it works once and that changes save automatically, and the consent copy names 「同意并开始」 as the exact action that activates."
+    },
+    {
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "check_count": 7,
+      "note": "The one-time token arrives in the URL fragment, is removed from the address bar immediately, and is never read from the query. The page ships a strict CSP with no unsafe directive, no inline handlers, no unsafe HTML sinks and — measured in a real engine — zero inline style attributes."
+    },
+    {
+      "acceptance_id": "AC-037",
+      "result": "PASS",
+      "check_count": 6,
+      "note": "Natural Chinese phrasings resolve to frozen actions through a table lookup with zero model calls, operator phrasings resolve to nothing rather than partially matching, and every user-facing message is Chinese, jargon-free and — when it reports a problem — carries exactly one repair action."
+    },
+    {
+      "acceptance_id": "AC-049",
+      "result": "PASS",
+      "check_count": 15,
+      "note": "Measured in Chromium at 375x812 and 1280x720: no horizontal overflow, nothing past the right edge, every visible control at least 44px, exactly one primary action per view, 16px body text, contrast from 8.02 to 17.76 against a 4.5 requirement, keyboard order following visual order, and usage protection visible before anything goes wrong. No novice surface instructs a command-line step."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb730.py",
+  "validator_status": "PASS",
+  "check_count": 29,
+  "pass_count": 29,
+  "fail_count": 0,
+  "node_test_total": 7,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [
+    "frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)"
+  ],
+  "status": "passed"
+}
