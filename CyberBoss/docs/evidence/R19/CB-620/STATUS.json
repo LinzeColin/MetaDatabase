@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "taskpack": "CyberBoss_v0.0.0.8_SEALED_TASKPACK_FINAL_R19_SHARED_BOT_DEEPSEEK_V4_PRO_20260728",
+  "task_id": "CB-620",
+  "status": "NOT_CLOSED",
+  "reason": "prebuilt overlay is not self-consistent once installed under the mandated add-only namespace",
+  "tests_run_in_starter_kit_native_layout": [
+    { "script": "starter_kit/test/onboarding.test.js", "result": "1/1 PASS" },
+    { "script": "starter_kit/test/token-services.test.js", "result": "2/2 PASS", "note": "DAG 文档写作 setup-token-service.test.js，产物实际为 token-services.test.js" },
+    { "script": "starter_kit/test/status-portal.test.js", "result": "5/5 PASS" },
+    { "script": "starter_kit/test/public-entry.test.js", "result": "3/3 PASS" },
+    { "script": "starter_kit/test/public-entry-server.test.js", "result": "3/3 PASS" },
+    { "script": "tests/browser/test_public_scan_mvp.py", "result": "PASS 18 checks, 0 console errors", "evidence": "browser_public_scan_report.json", "host": "OVH Linux（macOS 无法运行：密封测试硬编码 executable_path=/usr/bin/chromium）" }
+  ],
+  "blocking_defect": {
+    "summary": "apply_overlay.py 把 155 个文件装进 v8-prebuilt/ 命名子树，但没有改写这些文件内部的相对路径",
+    "observed_after_apply": {
+      "prebuilt_tests_total": 34,
+      "passing_after_mechanical_require_rewrite": 26,
+      "still_failing": 8
+    },
+    "failure_classes": [
+      "测试按相对路径读取 fixture/migration 文件（ENOENT）",
+      "vendor 落到 app/vendor/v8/ 但引用写的是 ../../vendor/",
+      "src/v8-prebuilt 内部源码之间的交叉引用仍指向 starter_kit 布局"
+    ],
+    "why_not_worked_around": "改写这些测试的断言或删除失败测试都属于降低验收标准，明令禁止"
+  },
+  "action_taken": "回退本次 overlay 与未提交的 009 迁移（纯 add-only，git clean 即可复原），目标树恢复 556/556 全绿；已提交的 008 迁移保留不动",
+  "rollback_verified": {
+    "repo_suite_after_revert": "556/556 PASS",
+    "server_untouched": true,
+    "production_service": "active",
+    "tunnel": "active",
+    "test_host_restored": "playwright、chromium 缓存与 /usr/bin/chromium 符号链接全部删除；仅保留标准包 python3-pip"
+  },
+  "claims_not_made": ["CB-620 complete", "public scan entry live", "owner ilink activation implemented"]
+}
