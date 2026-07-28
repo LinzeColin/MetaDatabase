@@ -6,11 +6,11 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-830",
+    "run_id": "PG-8",
     "gate_id": "PG-8",
-    "task_id": "CB-830",
-    "scope": "clean_install_contract_request_count_canary_rollback_and_operator_lifecycle",
-    "status": "passed_conditional"
+    "task_id": "CB-840",
+    "scope": "exact_subject_seal_final_handoff_and_stage_8_exit_gate",
+    "status": "conditional_pass"
   },
   "prestage": [
     {
@@ -28,7 +28,7 @@
     "PG-5": "passed",
     "PG-6": "conditional_pass",
     "PG-7": "conditional_pass",
-    "PG-8": "not_started"
+    "PG-8": "conditional_pass"
   },
   "tasks": [
     {
@@ -299,7 +299,7 @@
       "id": "CB-840",
       "stage": "S8",
       "phase": "P8.5",
-      "status": "not_started"
+      "status": "passed"
     }
   ],
   "taskpack_overlay": {
@@ -743,6 +743,39 @@
       "live BYOK provider credentials for two distinct providers",
       "clean install on the authorised OVH target with root",
       "root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json"
-    ]
+    ],
+    "cb_830_closure_commit": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+    "cb_840_base_head": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+    "cb_840_nodes_accepted": "15/15",
+    "cb_840_acceptance_items_recorded": "50/50",
+    "cb_840_acceptance_failures": 0,
+    "cb_840_acceptance_outstanding": [
+      "AC-035",
+      "AC-039",
+      "AC-040",
+      "AC-050"
+    ],
+    "cb_840_conditional_nodes": [
+      "CB-640",
+      "CB-740",
+      "CB-800",
+      "CB-830"
+    ],
+    "cb_840_traceability_matrix": "machine/facts/traceability_matrix.csv",
+    "cb_840_manifest": "docs/evidence/CB-840/MANIFEST.sha256.json",
+    "cb_840_app_suite": "474_pass_0_fail",
+    "pg_8_executed": true,
+    "pg_8_verdict": "CONDITIONAL_PASS",
+    "pg_8_acceptance": "docs/evidence/PG-8/acceptance.json",
+    "pg_8_carried_activation_pending": [
+      "real WeChat channel credential",
+      "AC-039 real dual-user WeChat (no partial credit claimed)",
+      "live BYOK provider credentials for two distinct providers",
+      "frozen Playwright browser harness (live Chromium substitute, labelled)",
+      "real R2, real OCI and real Private-Database endpoints",
+      "clean install on the authorised OVH target with root",
+      "root-owned cyberbossctl and operator-actions.json"
+    ],
+    "formal_final_acceptance": "activation_pending"
   }
 }

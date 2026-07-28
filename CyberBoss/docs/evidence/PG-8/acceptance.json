@@ -1,0 +1,76 @@
+{
+  "schema_version": "cyberboss.pg8.gate.v1",
+  "gate_id": "PG-8",
+  "stage": "S8",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "taskpack_revision": "R7-FINAL",
+  "sealed_by": "CB-840",
+  "exact_subject_pre_seal_head": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+  "gate_verdict": "CONDITIONAL_PASS",
+  "gate_verdict_reason": "all fifteen v0.0.0.8 nodes are accepted, all fifty frozen acceptance items have a recorded result on the exact target subject, and none recorded a failure. Four items remain outstanding — AC-035, AC-039, AC-040 and AC-050 — every one of them because a credential or the authorised target host is not in scope. The gate inherits those items and is therefore not sealed as a full product acceptance.",
+  "stage_summary": {
+    "stage_6": { "nodes": ["CB-600", "CB-610", "CB-620", "CB-630", "CB-640"], "gate": "PG-6", "verdict": "CONDITIONAL_PASS" },
+    "stage_7": { "nodes": ["CB-700", "CB-710", "CB-720", "CB-730", "CB-740"], "gate": "PG-7", "verdict": "CONDITIONAL_PASS" },
+    "stage_8": { "nodes": ["CB-800", "CB-810", "CB-820", "CB-830", "CB-840"], "gate": "PG-8", "verdict": "CONDITIONAL_PASS" }
+  },
+  "node_verdicts": {
+    "CB-600": "PASS", "CB-610": "PASS", "CB-620": "PASS", "CB-630": "PASS",
+    "CB-640": "CONDITIONAL_PASS", "CB-700": "PASS", "CB-710": "PASS",
+    "CB-720": "PASS", "CB-730": "PASS", "CB-740": "CONDITIONAL_PASS",
+    "CB-800": "CONDITIONAL_PASS", "CB-810": "PASS", "CB-820": "PASS",
+    "CB-830": "CONDITIONAL_PASS", "CB-840": "CONDITIONAL_PASS"
+  },
+  "acceptance_accounting": {
+    "frozen_items": 50,
+    "items_with_a_recorded_result": 50,
+    "items_recording_a_failure": 0,
+    "items_outstanding": ["AC-035", "AC-039", "AC-040", "AC-050"],
+    "items_fully_passed": 46
+  },
+  "carried_activation_pending": [
+    "real WeChat channel credential (CB-620, CB-630)",
+    "AC-039 real dual-user WeChat: two real senders, distinct providers, independent replies, negative isolation (CB-640, CB-830) — recorded with no partial credit anywhere",
+    "live BYOK provider credentials for two distinct providers (CB-700, CB-830)",
+    "the frozen taskpack Playwright browser harness (CB-730) — Playwright and Chromium are absent on this host; a live Chromium measurement stands in and is labelled a substitute wherever it appears",
+    "real Cloudflare R2 bucket credential (CB-800)",
+    "real OCI object storage pre-authenticated request (CB-800)",
+    "real Private-Database endpoint (CB-800)",
+    "clean install, start, stop, doctor, backup, restore and rollback on the authorised OVH target with root (CB-830)",
+    "root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json (CB-830)"
+  ],
+  "what_would_turn_this_into_an_unconditional_pass": [
+    "an authorised WeChat credential and two real senders, to execute AC-039 end to end",
+    "live BYOK credentials for two distinct providers, to replace the frozen fake transports with a real activation",
+    "the authorised OVH target host with root, to execute the install, start, stop, doctor, backup, restore and rollback path and to place the uid-0-owned operator surface",
+    "R2, OCI and Private-Database credentials, to prove the dual copy and the canonical commit against live endpoints",
+    "Playwright and Chromium on the verification host, to run the frozen browser harness rather than the labelled substitute"
+  ],
+  "engineering_defects_found_and_fixed_during_the_run": [
+    "CB-700: owner bootstrap took a write lock on every database open — surfaced only under 32 concurrent workers",
+    "CB-700/CB-710/CB-800/CB-830: raw NUL bytes in JavaScript sources, caught four separate times by the control-byte guard added after the first",
+    "CB-720: profile decisions ordered by millisecond timestamp let a rejected inference reappear — reproduced in 6 of 8 runs",
+    "CB-730: the setup page created an inline style attribute at runtime, contradicting the strict style-src nonce — visible only in a live browser",
+    "CB-740: diary and reminder ids collided within one millisecond",
+    "CB-810: the additive status field guard banned the bare substring \"token\", which would have refused the reserved_tokens and charged_tokens fields AC-048 mandates",
+    "CB-810: evaluateResourceGate(null) threw instead of rejecting, because Number(null) is 0 and an absent measurement read as a plausible zero that satisfied the queue and load ceilings"
+  ],
+  "findings_recorded_not_hidden": [
+    "whereabouts-mcp declares AGPL-3.0-only in its package metadata while shipping a plain GPL-3.0 licence file; the source lock records both and applies the stricter combined expression GPL-3.0-only AND AGPL-3.0-only. Pre-existing, verified directly at CB-820, not introduced by this run.",
+    "a split_brain Current Truth was caused during CB-710 when the HANDOFF narrative fell outside the frozen probe's 140-line window; it was closed by leading the section with the latest accepted node, and scripts/validate_current_truth.py was added so the same failure is caught at every node close."
+  ],
+  "constraints_held_throughout": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "acceptance_standard_lowered": false,
+    "simulator_presented_as_a_real_activation": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "macos_launchd_dependency": false,
+    "github_push_pr_or_tag": "none — all work is local commits on the worktree branch, as the TaskPack requires until every stage and gate is complete"
+  },
+  "status": "conditional_pass"
+}

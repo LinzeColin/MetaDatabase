@@ -1,0 +1,70 @@
+{
+  "schema_version": "cyberboss.cb840.acceptance.v1",
+  "task_id": "CB-840",
+  "stage": "S8",
+  "phase": "P8.5",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+  "results": [
+    {
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "HEAD and tree resolve to exact 40-character object ids, and the three Current Truth sources — machine/facts/task_state.json, the README status section and the HANDOFF Current state section — agree on the accepted high watermark. The consensus rule is not reimplemented here: the seal delegates to the in-repo guard scripts/validate_current_truth.py, because a second, subtly different implementation of that rule is exactly the drift AC-001 exists to catch. The clean-tree assertion is answered by the second seal run against the committed tree; the first run records a genuine FAIL on it rather than skipping it."
+    },
+    {
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "check_count": 6,
+      "note": "The product version, the TaskPack version and revision, and the TaskPack zip hash are all unchanged from the values bound at CB-600. The version lock still records agent_may_bump false, the acceptance set is still FROZEN at fifty items, and exactly one Owner Change Event is applied. No node in this run changed a version or an acceptance item."
+    },
+    {
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "check_count": 2,
+      "note": "The sealed Subject still carries the fail-closed business matrix, and CB-810's recorded result for AC-032 is PASS. The carried result is re-read from the evidence file rather than restated."
+    },
+    {
+      "acceptance_id": "AC-040",
+      "result": "CONDITIONAL_PASS",
+      "check_count": 1,
+      "activation_pending_count": 1,
+      "note": "CB-830 recorded AC-040 as CONDITIONAL_PASS: every lifecycle verb has a command behind it and rollback is a pointer move, but nothing has been installed or run on the authorised target host. The seal inherits that pending item rather than resolving it. The frozen privacy contract already records target_environment_proof as NOT_RUN_REQUIRES_AUTHORIZED_TARGET."
+    }
+  ],
+  "pg8_accounting": {
+    "v8_nodes_accepted": "15/15",
+    "acceptance_items_with_a_recorded_result": "50/50",
+    "acceptance_items_recording_a_failure": 0,
+    "acceptance_items_outstanding": ["AC-035", "AC-039", "AC-040", "AC-050"],
+    "carried_activation_pending_items": 12,
+    "conditional_nodes": ["CB-640", "CB-740", "CB-800", "CB-830"],
+    "prior_gates": { "PG-6": "conditional_pass", "PG-7": "conditional_pass" },
+    "app_suite": "474 pass / 0 fail",
+    "npm_run_check": "PASS"
+  },
+  "validator": "CyberBoss/scripts/validate_cb840.py",
+  "validator_status": "PASS on the sealed tree; see docs/evidence/PG-8/seal-confirmation.json",
+  "gate_verdict": "CONDITIONAL_PASS",
+  "gate_verdict_reason": "every one of the fifty frozen acceptance items has a recorded result on the exact target subject and none recorded a failure, but four items remain outstanding because the credentials and the target host needed to prove them are not in scope. PG-8 is therefore a conditional gate result and not a full product acceptance.",
+  "not_claimed": [
+    "AC-039 real dual-user WeChat — no part of it is claimed; two real senders never registered",
+    "execution of the install and recovery path on the authorised OVH target",
+    "live BYOK provider activation against a real provider endpoint",
+    "the frozen Playwright browser harness — a live Chromium measurement stands in and is labelled a substitute everywhere it appears",
+    "real R2, real OCI and a real Private-Database endpoint"
+  ],
+  "check_count": 39,
+  "pass_count": 22,
+  "fail_count": 0,
+  "activation_pending_count": 17,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "status": "passed_conditional"
+}

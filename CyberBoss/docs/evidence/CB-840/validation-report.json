@@ -1,0 +1,493 @@
+{
+  "schema_version": "cyberboss.cb840.validation.v1",
+  "task_id": "CB-840",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "taskpack_revision": "R7-FINAL",
+  "acceptance_ids": [
+    "AC-001",
+    "AC-002",
+    "AC-032",
+    "AC-040"
+  ],
+  "exact_subject": {
+    "head": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+    "tree": "34a22437f34d121ba79e36b0e07d2483c9856697",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "claims": {
+      "machine_task_state": "CB-830",
+      "readme": "CB-830",
+      "handoff": "CB-830"
+    },
+    "working_tree_clean": false
+  },
+  "check_count": 39,
+  "pass_count": 21,
+  "fail_count": 1,
+  "activation_pending_count": 17,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "FAIL",
+  "gate_verdict": "FAIL",
+  "gate_verdict_reason": "every one of the fifty frozen acceptance items has a recorded result on the exact target subject and none recorded a failure; the outstanding activation_pending items — the real WeChat channel, live provider credentials and the authorised target host — are inherited by the gate, so it is sealed as CONDITIONAL PASS and not as a full product acceptance",
+  "acceptance_ledger": {
+    "AC-001": {
+      "CB-600": "PASS"
+    },
+    "AC-002": {
+      "CB-600": "PASS"
+    },
+    "AC-038": {
+      "CB-600": "PASS",
+      "CB-820": "PASS"
+    },
+    "AC-003": {
+      "CB-610": "PASS",
+      "CB-640": "PASS"
+    },
+    "AC-005": {
+      "CB-610": "PASS"
+    },
+    "AC-030": {
+      "CB-610": "PASS",
+      "CB-800": "PASS"
+    },
+    "AC-004": {
+      "CB-620": "PASS",
+      "CB-730": "PASS"
+    },
+    "AC-010": {
+      "CB-620": "PASS",
+      "CB-730": "PASS"
+    },
+    "AC-011": {
+      "CB-620": "PASS"
+    },
+    "AC-028": {
+      "CB-620": "PASS",
+      "CB-740": "PASS"
+    },
+    "AC-041": {
+      "CB-620": "PASS"
+    },
+    "AC-006": {
+      "CB-630": "PASS",
+      "CB-820": "PASS"
+    },
+    "AC-007": {
+      "CB-630": "PASS",
+      "CB-640": "PASS"
+    },
+    "AC-008": {
+      "CB-630": "PASS"
+    },
+    "AC-009": {
+      "CB-630": "PASS"
+    },
+    "AC-042": {
+      "CB-630": "PASS"
+    },
+    "AC-044": {
+      "CB-630": "PASS"
+    },
+    "AC-039": {
+      "CB-640": "ACTIVATION_PENDING",
+      "CB-830": "ACTIVATION_PENDING"
+    },
+    "AC-012": {
+      "CB-700": "PASS",
+      "CB-820": "PASS"
+    },
+    "AC-013": {
+      "CB-700": "PASS"
+    },
+    "AC-014": {
+      "CB-700": "PASS"
+    },
+    "AC-015": {
+      "CB-700": "PASS"
+    },
+    "AC-016": {
+      "CB-700": "PASS"
+    },
+    "AC-017": {
+      "CB-700": "PASS"
+    },
+    "AC-045": {
+      "CB-700": "PASS"
+    },
+    "AC-046": {
+      "CB-700": "PASS"
+    },
+    "AC-047": {
+      "CB-700": "PASS"
+    },
+    "AC-018": {
+      "CB-710": "PASS"
+    },
+    "AC-019": {
+      "CB-710": "PASS"
+    },
+    "AC-020": {
+      "CB-710": "PASS"
+    },
+    "AC-021": {
+      "CB-710": "PASS"
+    },
+    "AC-022": {
+      "CB-710": "PASS"
+    },
+    "AC-023": {
+      "CB-710": "PASS"
+    },
+    "AC-024": {
+      "CB-720": "PASS"
+    },
+    "AC-025": {
+      "CB-720": "PASS"
+    },
+    "AC-026": {
+      "CB-720": "PASS",
+      "CB-820": "PASS"
+    },
+    "AC-027": {
+      "CB-720": "PASS"
+    },
+    "AC-037": {
+      "CB-730": "PASS"
+    },
+    "AC-049": {
+      "CB-730": "PASS"
+    },
+    "AC-031": {
+      "CB-740": "PASS"
+    },
+    "AC-043": {
+      "CB-740": "PASS"
+    },
+    "AC-029": {
+      "CB-800": "PASS"
+    },
+    "AC-035": {
+      "CB-800": "PASS"
+    },
+    "AC-032": {
+      "CB-810": "PASS"
+    },
+    "AC-033": {
+      "CB-810": "PASS"
+    },
+    "AC-034": {
+      "CB-810": "PASS"
+    },
+    "AC-048": {
+      "CB-810": "PASS"
+    },
+    "AC-036": {
+      "CB-830": "PASS"
+    },
+    "AC-040": {
+      "CB-830": "CONDITIONAL_PASS"
+    },
+    "AC-050": {
+      "CB-830": "CONDITIONAL_PASS"
+    }
+  },
+  "node_verdicts": {
+    "CB-600": "PASS",
+    "CB-610": "PASS",
+    "CB-620": "PASS",
+    "CB-630": "PASS",
+    "CB-640": "CONDITIONAL_PASS",
+    "CB-700": "PASS",
+    "CB-710": "PASS",
+    "CB-720": "PASS",
+    "CB-730": "PASS",
+    "CB-740": "CONDITIONAL_PASS",
+    "CB-800": "CONDITIONAL_PASS",
+    "CB-810": "PASS",
+    "CB-820": "PASS",
+    "CB-830": "CONDITIONAL_PASS"
+  },
+  "conditional_nodes": [
+    "CB-640",
+    "CB-740",
+    "CB-800",
+    "CB-830"
+  ],
+  "activation_pending_items": {
+    "AC-035": [
+      "CB-800:PASS"
+    ],
+    "AC-039": [
+      "CB-640:ACTIVATION_PENDING",
+      "CB-830:ACTIVATION_PENDING"
+    ],
+    "AC-040": [
+      "CB-830:CONDITIONAL_PASS"
+    ],
+    "AC-050": [
+      "CB-830:CONDITIONAL_PASS"
+    ]
+  },
+  "carried_activation_pending": [
+    "CB-620: real_wechat_channel_credential",
+    "CB-630: real_wechat_channel_credential",
+    "CB-640: AC-039 real dual-user WeChat",
+    "CB-700: real BYOK provider credentials (activated at CB-830)",
+    "CB-730: frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)",
+    "CB-800: real Cloudflare R2 bucket credential: the encrypted object upload and the cold-copy restore are proved against an in-memory object client, never against a live bucket",
+    "CB-800: real OCI object storage pre-authenticated request: the second copy is proved structurally, never against a live offsite bucket",
+    "CB-800: real Private-Database endpoint: the user-scoped canonical envelope is proved against the frozen contract, and its remote commit is not exercised here",
+    "CB-830: AC-039 real dual-user WeChat: two real senders, distinct providers, independent replies, negative isolation",
+    "CB-830: clean install, start, stop, doctor, backup, restore and rollback on the authorised OVH target with root",
+    "CB-830: live BYOK provider credentials for two distinct providers",
+    "CB-830: root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json"
+  ],
+  "suites": {
+    "app_suite": {
+      "tests": 474,
+      "pass": 474,
+      "fail": 0
+    },
+    "npm_run_check": true
+  },
+  "manifest_file_count": 243,
+  "manifest_sha256": "ebc527e4faf914da37520ee770261539f110490a05fac1e5752b23ecb6dbe269",
+  "checks": [
+    {
+      "check": "ac001.working_tree_is_clean",
+      "acceptance_id": "AC-001",
+      "result": "FAIL",
+      "detail": "uncommitted_paths=2"
+    },
+    {
+      "check": "ac001.head_and_tree_are_resolvable",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "head=166ccef0bbe434757a5a819ef50cb68fa1188515 tree=34a22437f34d121ba79e36b0e07d2483c9856697"
+    },
+    {
+      "check": "ac001.three_sources_agree",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "status=consistent claims={'machine_task_state': 'CB-830', 'readme': 'CB-830', 'handoff': 'CB-830'}"
+    },
+    {
+      "check": "ac001.subject_identity_is_recorded",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "the version lock records the release identity of the Subject"
+    },
+    {
+      "check": "ac002.product_version_unchanged",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "state=v0.0.0.8 lock=v0.0.0.8"
+    },
+    {
+      "check": "ac002.taskpack_version_unchanged",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "taskpack=v0.0.0.8 revision=R7-FINAL"
+    },
+    {
+      "check": "ac002.taskpack_zip_hash_unchanged",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "sha256=6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be"
+    },
+    {
+      "check": "ac002.agent_may_not_bump",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "agent_may_bump=False"
+    },
+    {
+      "check": "ac002.acceptance_set_frozen",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "acceptance_set=FROZEN count=50"
+    },
+    {
+      "check": "ac002.one_owner_change_event",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "event=owner-change-cyberboss-v0.0.0.8-multiuser-weixin"
+    },
+    {
+      "check": "ac032.status_matrix_still_present_at_the_seal",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "the sealed Subject still carries the fail-closed business matrix"
+    },
+    {
+      "check": "ac032.carried_result_is_pass",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "CB-810 AC-032=PASS"
+    },
+    {
+      "check": "ac040.carried_result_is_recorded",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "CB-830 AC-040=CONDITIONAL_PASS"
+    },
+    {
+      "check": "ac040.target_environment_proof",
+      "acceptance_id": "AC-040",
+      "result": "ACTIVATION_PENDING",
+      "detail": "clean install, start, stop, doctor, backup, restore and rollback on the authorised target host: NOT_RUN_REQUIRES_AUTHORIZED_TARGET, as already recorded in the frozen privacy contract; the seal inherits it rather than resolving it"
+    },
+    {
+      "check": "pg8.every_v8_node_accepted",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "accepted=15/15 missing=[]"
+    },
+    {
+      "check": "pg8.every_node_has_a_complete_evidence_bundle",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "missing=[]"
+    },
+    {
+      "check": "pg8.frozen_acceptance_set_is_fifty_items",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "distinct_ids_in_the_dag=50"
+    },
+    {
+      "check": "pg8.every_acceptance_item_has_a_recorded_result",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "unaccounted=[]"
+    },
+    {
+      "check": "pg8.no_acceptance_item_recorded_a_failure",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "failures={}"
+    },
+    {
+      "check": "pg8.carried_activation_pending_item",
+      "acceptance_id": "AC-035",
+      "result": "ACTIVATION_PENDING",
+      "detail": "AC-035 is outstanding at ['CB-800:PASS']"
+    },
+    {
+      "check": "pg8.carried_activation_pending_item",
+      "acceptance_id": "AC-039",
+      "result": "ACTIVATION_PENDING",
+      "detail": "AC-039 is outstanding at ['CB-640:ACTIVATION_PENDING', 'CB-830:ACTIVATION_PENDING']"
+    },
+    {
+      "check": "pg8.carried_activation_pending_item",
+      "acceptance_id": "AC-040",
+      "result": "ACTIVATION_PENDING",
+      "detail": "AC-040 is outstanding at ['CB-830:CONDITIONAL_PASS']"
+    },
+    {
+      "check": "pg8.carried_activation_pending_item",
+      "acceptance_id": "AC-050",
+      "result": "ACTIVATION_PENDING",
+      "detail": "AC-050 is outstanding at ['CB-830:CONDITIONAL_PASS']"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-620: real_wechat_channel_credential"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-630: real_wechat_channel_credential"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-640: AC-039 real dual-user WeChat"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-700: real BYOK provider credentials (activated at CB-830)"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-730: frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-800: real Cloudflare R2 bucket credential: the encrypted object upload and the cold-copy restore are proved against an in-memory object client, never against a live bucket"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-800: real OCI object storage pre-authenticated request: the second copy is proved structurally, never against a live offsite bucket"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-800: real Private-Database endpoint: the user-scoped canonical envelope is proved against the frozen contract, and its remote commit is not exercised here"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-830: AC-039 real dual-user WeChat: two real senders, distinct providers, independent replies, negative isolation"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-830: live BYOK provider credentials for two distinct providers"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-830: clean install, start, stop, doctor, backup, restore and rollback on the authorised OVH target with root"
+    },
+    {
+      "check": "pg8.carried_activation_pending_detail",
+      "acceptance_id": "AC-001",
+      "result": "ACTIVATION_PENDING",
+      "detail": "CB-830: root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json"
+    },
+    {
+      "check": "pg8.prior_gates_are_sealed",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "PG-6=conditional_pass PG-7=conditional_pass"
+    },
+    {
+      "check": "pg8.full_app_suite_is_clean",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "tests=474 pass=474 fail=0"
+    },
+    {
+      "check": "pg8.syntax_check_is_clean",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "returncode=0"
+    },
+    {
+      "check": "pg8.manifest_is_deterministic",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "files=243 digest=ebc527e4faf914da37520ee770261539f110490a05fac1e5752b23ecb6dbe269"
+    }
+  ]
+}

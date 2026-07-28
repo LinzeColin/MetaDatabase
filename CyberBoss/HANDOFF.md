@@ -19,12 +19,52 @@
 
 ## Current state
 
-Latest accepted node: `P8.4 / CB-830` passed as CONDITIONAL PASS on base
-`e4521653056f37450b7f85db490ee4bc94912ab0`. Stage 6 and Stage 7 are complete
-with `PG-6` and `PG-7` both sealed as CONDITIONAL PASS; `PG-8` has not started.
-Stage 8 remaining: `CB-840`.
+Latest accepted node: `P8.5 / CB-840` passed as CONDITIONAL PASS, and Stage 8
+exit gate `PG-8` is sealed as CONDITIONAL PASS. All fifteen v0.0.0.8 nodes have
+passed and all three gates — `PG-6`, `PG-7`, `PG-8` — are sealed CONDITIONAL
+PASS. Nothing in the frozen DAG remains unexecuted.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
+
+**`PG-8` is a conditional gate result, not a full product acceptance.** All
+fifty frozen acceptance items have a recorded result on the exact target
+subject and none recorded a failure, but four are still outstanding —
+`AC-035`, `AC-039`, `AC-040`, `AC-050` — every one of them because a credential
+or the authorised target host is not in scope. `FORMAL_FINAL_ACCEPTANCE`
+remains `activation_pending`. What would close the gap: an authorised WeChat
+credential and two real senders; live BYOK credentials for two distinct
+providers; the authorised OVH host with root, to execute the install and
+recovery path and place the uid-0-owned operator surface; R2, OCI and
+Private-Database credentials; and Playwright with Chromium on the verification
+host, to run the frozen browser harness instead of the labelled live-Chromium
+substitute.
+
+`AC-039` is recorded entirely as `activation_pending` with no partial credit
+anywhere in the evidence. Two real WeChat senders never registered. The CB-640
+blind set proved the isolation *logic* against frozen cases; that is a
+different claim and is never re-used as though it satisfied AC-039.
+
+The seal runs twice by construction, and this is deliberate rather than a
+workaround: a report written into the tree makes that tree dirty, so the
+clean-tree assertion can only be true of the commit that already contains the
+report. Run 1 (`docs/evidence/CB-840/validation-report.json`) records a genuine
+FAIL on the clean-tree check; run 2
+(`docs/evidence/PG-8/seal-confirmation.json`) records the real result on the
+sealed tree. No check was relaxed or skipped in either run. Every number in the
+seal is recomputed from the evidence files on disk by
+`scripts/validate_cb840.py`, and the Current Truth consensus rule is delegated
+to the in-repo guard rather than reimplemented — a second, subtly different
+implementation of that rule is precisely the drift `AC-001` exists to catch.
+
+Deliverables: `machine/facts/traceability_matrix.csv` (all fifty items mapped
+to owning nodes, recorded results and evidence paths),
+`docs/evidence/CB-840/MANIFEST.sha256.json` (per-file digests over the evidence
+and the v0.0.0.8 artefacts), `docs/evidence/PG-8/acceptance.json` (the gate
+result, the carried pending items, the seven engineering defects found and
+fixed during the run, and the two findings recorded rather than hidden).
+
+No push, PR or tag was created. All work is local commits on the worktree
+branch, as the TaskPack requires.
 
 `P8.4 / CB-830` closed the clean-install contract, the request-count canary,
 rollback and the Owner's single-command lifecycle. The canary oracle contains

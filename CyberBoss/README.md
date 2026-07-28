@@ -26,12 +26,26 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P7.1 / CB-700`；`P7.2 / CB-710`；
   `P7.3 / CB-720`；`P7.4 / CB-730`；
   `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`；`P8.2 / CB-810`；`P8.3 / CB-820`；
-  `P8.4 / CB-830`
+  `P8.4 / CB-830`；`P8.5 / CB-840`；`PG-8`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
-- 最新 Run：`CB-830`。干净安装契约、请求数 Canary、回滚与 Owner 单命令生命周期。
+- 最新 Run：`CB-840` / `PG-8`。exact Subject 密封与最终交接。15/15 个 v0.0.0.8 节点
+  全部通过，50/50 条冻结验收项都有落到证据文件里的结果，`0` 条记录为失败。
+  所有数字都由 `scripts/validate_cb840.py` 从磁盘上的证据重新算出来，Current Truth
+  一致性规则直接委托给仓内 `validate_current_truth.py`——不另写第二份实现，因为
+  "同一条规则两个略有出入的实现"正是 AC-001 要防的漂移。
+  密封跑两遍：第一遍在提交前产出账本与判定（它的"工作树干净"检查如实记为 FAIL，
+  没有跳过也没有放宽），第二遍在闭合提交之后跑在干净的已密封树上，结果写进
+  `docs/evidence/PG-8/seal-confirmation.json`。
+  **`PG-8` = `CONDITIONAL_PASS`，不是完整产品验收。** 还有 4 条验收项未结清
+  （`AC-035`/`AC-039`/`AC-040`/`AC-050`），原因全都一样：需要的凭据或授权目标机不在
+  本次范围内。其中 **`AC-039` 整项 `activation_pending`，任何地方都没有算部分分**。
+  证据在 `docs/evidence/CB-840/` 与 `docs/evidence/PG-8/`；
+  可追溯矩阵 `machine/facts/traceability_matrix.csv`，
+  清单 `docs/evidence/CB-840/MANIFEST.sha256.json`。
+- 上一 Run：`CB-830`。干净安装契约、请求数 Canary、回滚与 Owner 单命令生命周期。
   Canary 只看请求数不看时间：oracle 里没有任何计时调用，唯一一次取时间是决策做完之后
   盖收据；样本不够时给的是"还差几个请求"而不是"再等几分钟"，同一样本重算结果完全一致。
   错误率、p95、1 次隐私违规、1 次重复副作用、任一未测量字段、错误数大于请求数、阈值非法
@@ -150,12 +164,15 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
   v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-740`（Stage 7 全部 5 项）
-  与 `CB-800`、`CB-810`、`CB-820`、`CB-830`（Stage 8 前 4 项）已通过；
-  `PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
+  与 `CB-800`–`CB-840`（Stage 8 全部 5 项）已通过；`PG-6`、`PG-7` 与 `PG-8`
+  均为 `CONDITIONAL_PASS`。v0.0.0.8 的 15 个节点与 3 个门全部执行完毕，
+  权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)。
 
-- 尚未开始：`CB-840` 与 `PG-8` 为 `not_started`，
-  权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；
-  每个节点必须作为独立 Run 按冻结 DAG 依赖顺序执行。
+- 未结清（不因已验证的子面提前封口）：`AC-035`、`AC-039`、`AC-040`、`AC-050`
+  四条验收项仍为 `activation_pending`，`FORMAL_FINAL_ACCEPTANCE` 同样保持
+  `activation_pending`。要把 `PG-8` 变成无条件 PASS，需要的是授权微信凭据与两个
+  真实发送者、两家 Provider 的真实 BYOK 凭据、带 root 的授权 OVH 目标机、
+  R2/OCI/Private-Database 凭据，以及验证机上的 Playwright + Chromium。
 - R2 backup/readback 与 isolated restore 已 verified；OCI 日常 write-only PAR 的读回
   保持 `activation_pending_write_only_par`。`FORMAL_FINAL_ACCEPTANCE`
   仍为 `activation_pending`，不得因已验证子面提前封口。

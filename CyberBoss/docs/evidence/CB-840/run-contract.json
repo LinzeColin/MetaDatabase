@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-840",
+  "stage": "S8",
+  "phase": "P8.5",
+  "gate_id": "PG-8",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "docs/evidence/PG-8/seal-confirmation.json"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-001",
+    "AC-002",
+    "AC-032",
+    "AC-040"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "freeze exact commit/tree/release/config/evidence identity",
+    "run deterministic package and target acceptance",
+    "write PASS/CONDITIONAL PASS/FAIL without changing acceptance"
+  ],
+  "outputs": [
+    "exact Subject seal",
+    "final handoff/restore contract",
+    "PG-8 result"
+  ],
+  "risks_addressed": [
+    "subject drift between test and release",
+    "missing evidence",
+    "builder self-certification"
+  ],
+  "rollback": [
+    "do not promote unsealed subject",
+    "return to previous immutable release",
+    "preserve failed receipt and exact hashes"
+  ],
+  "seal_procedure": {
+    "why_two_runs": "the seal asserts that the working tree is clean, and a report written into that tree makes it dirty. A node cannot hash the tree that will contain its own hash.",
+    "run_1": "executed at HEAD 166ccef0bbe434757a5a819ef50cb68fa1188515 before this node's artefacts were committed; produces the acceptance ledger and the verdict, and is stored as validation-report.json. Its ac001.working_tree_is_clean check FAILS by construction, because this node's own uncommitted files are present.",
+    "run_2": "executed after the closure commit, against the clean sealed tree; stored as docs/evidence/PG-8/seal-confirmation.json. This is the run whose exact commit and tree identify the sealed Subject.",
+    "no_check_was_relaxed": "the clean-tree check is not weakened or skipped in either run; run 1 records it as a genuine FAIL and run 2 records the real result on the sealed tree."
+  },
+  "no_new_feature": true,
+  "acceptance_set_changed": false
+}

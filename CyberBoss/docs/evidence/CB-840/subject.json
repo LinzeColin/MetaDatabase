@@ -1,0 +1,85 @@
+{
+  "schema_version": "cyberboss.cb840.subject.v1",
+  "task_id": "CB-840",
+  "stage": "S8",
+  "phase": "P8.5",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "taskpack_revision": "R7-FINAL",
+  "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "pre_seal_head": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+    "cb_830_closure_commit": "166ccef0bbe434757a5a819ef50cb68fa1188515",
+    "sealed_head": "recorded in docs/evidence/PG-8/seal-confirmation.json",
+    "note": "the seal runs twice by construction: a report written into the tree makes that tree dirty, so the clean-tree assertion can only be true of the commit that already contains the report. Run 1 records a genuine FAIL on the clean-tree check; run 2 records the real result on the sealed tree. No check was relaxed to make either run pass."
+  },
+  "version_lock": {
+    "product_version_changed_by_agent": false,
+    "taskpack_version_changed_by_agent": false,
+    "taskpack_zip_hash_changed": false,
+    "agent_may_bump": false,
+    "acceptance_set": "FROZEN",
+    "acceptance_item_count": 50,
+    "owner_change_events": 1
+  },
+  "accounting": {
+    "v8_nodes": 15,
+    "nodes_accepted": 15,
+    "nodes_with_a_complete_evidence_bundle": 14,
+    "cb_840_bundle_completed_at_this_node": true,
+    "acceptance_items_in_the_frozen_set": 50,
+    "acceptance_items_with_a_recorded_result": 50,
+    "acceptance_items_recording_a_failure": 0,
+    "acceptance_items_outstanding": ["AC-035", "AC-039", "AC-040", "AC-050"],
+    "conditional_nodes": ["CB-640", "CB-740", "CB-800", "CB-830"],
+    "unconditional_nodes": [
+      "CB-600", "CB-610", "CB-620", "CB-630", "CB-700", "CB-710",
+      "CB-720", "CB-730", "CB-810", "CB-820"
+    ]
+  },
+  "carried_activation_pending": [
+    "CB-620: real WeChat channel credential",
+    "CB-630: real WeChat channel credential",
+    "CB-640: AC-039 real dual-user WeChat",
+    "CB-700: real BYOK provider credentials",
+    "CB-730: the frozen taskpack browser harness (Playwright and Chromium are absent on this host; the page was measured in a real Chromium engine instead and that substitution is labelled everywhere it appears)",
+    "CB-800: real Cloudflare R2 bucket credential",
+    "CB-800: real OCI object storage pre-authenticated request",
+    "CB-800: real Private-Database endpoint",
+    "CB-830: AC-039 real dual-user WeChat",
+    "CB-830: live BYOK provider credentials for two distinct providers",
+    "CB-830: clean install on the authorised OVH target with root",
+    "CB-830: root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json"
+  ],
+  "what_this_seal_does_not_claim": {
+    "product_acceptance": "PG-8 is not a full product acceptance. Four of the fifty acceptance items are still outstanding, and every one of them is outstanding for the same reason: the credentials and the target host needed to prove them are not in scope here.",
+    "ac_039": "no part of AC-039 is claimed. Two real WeChat senders never registered, so the item is recorded entirely as activation_pending with no partial credit anywhere in the evidence.",
+    "target_environment": "no code in this Subject has ever run on the authorised OVH target. The install, start, stop, doctor, backup, restore and rollback path is proved as a contract, not as an execution.",
+    "browser_harness": "the frozen Playwright harness did not run. A live Chromium measurement stands in for it and is labelled a substitute in CB-730's evidence, the CB-730 validator and this seal.",
+    "builder_self_certification": "every number in the seal is recomputed from the evidence files on disk by scripts/validate_cb840.py rather than restated from a summary, and the Current Truth consensus rule is delegated to the in-repo guard rather than reimplemented."
+  },
+  "deliverables": {
+    "manifest": "docs/evidence/CB-840/MANIFEST.sha256.json",
+    "traceability_matrix": "machine/facts/traceability_matrix.csv",
+    "validation_report": "docs/evidence/CB-840/validation-report.json",
+    "seal_confirmation": "docs/evidence/PG-8/seal-confirmation.json",
+    "gate_result": "docs/evidence/PG-8/acceptance.json"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "new_feature_added": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "macos_launchd_dependency": false,
+    "github_publication": "none — no push, PR or tag was created; all work is local commits on the worktree branch"
+  },
+  "status": "passed_conditional"
+}
