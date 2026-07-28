@@ -50,6 +50,15 @@ const MIGRATIONS = Object.freeze([
     name: "007_cb800_lifecycle_receipts.sql",
     sourceCommit: "CB-800",
   }),
+  // 文件名是 010 而版本号是 8：008/009 两份 R19 迁移已经在 migrations/ 里，但
+  // 还没有登记进这张表，因此运行时并不会执行它们。版本号必须连续 1..N，所以
+  // 下一个真正会被执行的版本就是 8。等 008/009 登记进来时它们顺延即可——版本
+  // 到文件的映射由这张表决定，不由文件名决定。
+  Object.freeze({
+    version: 8,
+    name: "010_owner_persona.sql",
+    sourceCommit: "PANEL-2",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
@@ -3994,6 +4003,180 @@ class RuntimeSpoolDatabase {
       row.payload_ciphertext,
       `inbox:${inboxId}:payload`,
     );
+  }
+
+  // ── 主人设定的语气 ─────────────────────────────────────────
+  //
+  // 走和 inbox/outbox 载荷同一套信封（AES-256-GCM + AAD）。不用 service_state：
+  // 那张表是明文列，只收枚举和安全形状的短串，而这里有主人自己写的自由文本。
+
+  writeOwnerPersona(value) {
+    this.#assertOpen();
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      throw new RuntimeSpoolError("PERSONA_OBJECT_REQUIRED");
+    }
+    const plain = Buffer.from(stableJson(value), "utf8");
+    if (plain.length > 8 * 1024) {
+      throw new RuntimeSpoolError("PERSONA_TOO_LARGE");
+    }
+    const now = this.#timestamp();
+    this.database
+      .prepare(
+        `INSERT INTO owner_persona(id, payload_ciphertext, payload_sha256, updated_at)
+         VALUES (1, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           payload_ciphertext=excluded.payload_ciphertext,
+           payload_sha256=excluded.payload_sha256,
+           updated_at=excluded.updated_at`,
+      )
+      .run(
+        this.cipher.encrypt(plain, "owner_persona:1:payload"),
+        sha256(plain),
+        now,
+      );
+    return Object.freeze({ updatedAt: now });
+  }
+
+  readOwnerPersona() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        "SELECT payload_ciphertext, payload_sha256, updated_at FROM owner_persona WHERE id=1",
+      )
+      .get();
+    if (!row) {
+      return null;
+    }
+    const plain = this.cipher.decrypt(
+      row.payload_ciphertext,
+      "owner_persona:1:payload",
+    );
+    if (sha256(plain) !== row.payload_sha256) {
+      throw new IntegrityConflictError();
+    }
+    return Object.freeze({
+      value: JSON.parse(plain.toString("utf8")),
+      updatedAt: row.updated_at,
+    });
+  }
+
+  // ── 主人后台的「对话」一栏 ──────────────────────────────────
+  //
+  // 下面两个方法解密真实聊天内容，是这个类里权限最高的读。名字带 ForOwner 是为
+  // 了让调用点一眼看出这件事：它们只允许挂在带真令牌的后台路由上，不得进日志、
+  // 不得进证据文件、不得进 canonical 同步。
+  //
+  // 载荷过了保留期会被 redactExpiredPayloads 置空，那时 ciphertext 是 NULL；这
+  // 里返回 payloadAvailable=false 而不是抛错——"已经按保留期清掉了"本身就是要显
+  // 示给主人看的状态。
+
+  listRecentInboundForOwner({ limit = 50 } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(200, Number(limit) || 50));
+    const rows = this.database
+      .prepare(
+        `SELECT id, correlation_id, user_id, message_type, status,
+                reject_reason, received_at, payload_ciphertext
+         FROM inbox_messages
+         ORDER BY received_at DESC, id DESC
+         LIMIT ?`,
+      )
+      .all(bounded);
+    return rows.map((row) => {
+      let payload = null;
+      let payloadAvailable = false;
+      if (row.payload_ciphertext !== null) {
+        try {
+          payload = JSON.parse(
+            this.cipher
+              .decrypt(row.payload_ciphertext, `inbox:${row.id}:payload`)
+              .toString("utf8"),
+          );
+          payloadAvailable = true;
+        } catch {
+          // 单条读坏不该让整栏空白。
+          payload = null;
+        }
+      }
+      return Object.freeze({
+        inboxId: row.id,
+        correlationId: row.correlation_id,
+        userId: row.user_id || "",
+        messageType: row.message_type,
+        status: row.status,
+        rejectReason: row.reject_reason || "",
+        receivedAt: row.received_at,
+        payloadAvailable,
+        payload,
+      });
+    });
+  }
+
+  listRecentOutboundForOwner({ limit = 80 } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(400, Number(limit) || 80));
+    const rows = this.database
+      .prepare(
+        `SELECT id, job_id, correlation_id, message_kind, chunk_index,
+                chunk_count, status, attempt_count, last_error_class,
+                created_at, confirmed_at, payload_ciphertext
+         FROM outbox_messages
+         ORDER BY created_at DESC, id DESC
+         LIMIT ?`,
+      )
+      .all(bounded);
+    return rows.map((row) => {
+      let text = "";
+      let payloadAvailable = false;
+      if (row.payload_ciphertext !== null) {
+        try {
+          text = this.cipher
+            .decrypt(row.payload_ciphertext, `outbox:${row.id}:payload`)
+            .toString("utf8");
+          payloadAvailable = true;
+        } catch {
+          text = "";
+        }
+      }
+      return Object.freeze({
+        outboxId: row.id,
+        jobId: row.job_id,
+        correlationId: row.correlation_id,
+        messageKind: row.message_kind,
+        chunkIndex: Number(row.chunk_index),
+        chunkCount: Number(row.chunk_count),
+        status: row.status,
+        attemptCount: Number(row.attempt_count),
+        lastErrorClass: row.last_error_class || "",
+        createdAt: row.created_at,
+        confirmedAt: row.confirmed_at || "",
+        payloadAvailable,
+        text,
+      });
+    });
+  }
+
+  listRecentJobsForOwner({ limit = 80 } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(400, Number(limit) || 80));
+    return this.database
+      .prepare(
+        `SELECT id, correlation_id, status, error_class, attempt_count,
+                created_at, finished_at
+         FROM jobs
+         ORDER BY created_at DESC, id DESC
+         LIMIT ?`,
+      )
+      .all(bounded)
+      .map((row) => Object.freeze({
+        jobId: row.id,
+        correlationId: row.correlation_id,
+        status: row.status,
+        errorClass: row.error_class || "",
+        attemptCount: Number(row.attempt_count),
+        createdAt: row.created_at,
+        finishedAt: row.finished_at || "",
+      }));
   }
 
   readInboundContextToken(inboxId) {

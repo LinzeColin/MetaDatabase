@@ -33,6 +33,10 @@ const ROOT_PATHS = Object.freeze(["/", "/index.html"]);
 // R19 规定的 Owner 私有激活路由。和公开入口严格分开：公开入口给普通用户扫，
 // 这里给主人扫 iLink 授权码，两者不共用任何一个 URL。
 const OPS_WECHAT_PATHS = Object.freeze(["/ops/wechat", "/ops/wechat/"]);
+// 后台里碰真实用户数据的接口名单。它们和其它 /admin/api/ 走不同的鉴权：永远
+// 要令牌，没有首次运行免令牌这一说。名单写死在这里而不是靠前缀猜，是为了让
+// "又加了一个读聊天的接口却忘了改鉴权"变成改不动的事——不进名单就进不了这条路。
+const OWNER_ONLY_ADMIN_APIS = Object.freeze(["conversations", "persona"]);
 const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templates/ops-wechat.html");
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
@@ -110,6 +114,10 @@ class PortalHttpServer {
     adminInvite = null,
     adminOwnerClaim = null,
     adminOwnerBind = null,
+    // 这三个读写真实聊天内容与语气设置。它们走 #handleOwnerOnlyApi，永远要令牌。
+    adminConversations = null,
+    adminPersonaRead = null,
+    adminPersonaWrite = null,
     ownerActivationStart = null,
     ownerActivationPoll = null,
     firstRunProvider = () => false,
@@ -127,6 +135,9 @@ class PortalHttpServer {
     this.adminInvite = adminInvite;
     this.adminOwnerClaim = adminOwnerClaim;
     this.adminOwnerBind = adminOwnerBind;
+    this.adminConversations = adminConversations;
+    this.adminPersonaRead = adminPersonaRead;
+    this.adminPersonaWrite = adminPersonaWrite;
     this.ownerActivationStart = ownerActivationStart;
     this.ownerActivationPoll = ownerActivationPoll;
     this.firstRunProvider = firstRunProvider;
@@ -270,6 +281,48 @@ class PortalHttpServer {
     this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
   }
 
+  // 后台里真正碰用户数据的那几个接口。
+  //
+  // 和 #handleAdminApi 的区别只有一条，但那一条是全部：**不走首次运行免令牌**。
+  // 概览页免令牌是安全的——还没有主人时库里没有任何用户数据。但对话一栏读的是
+  // 解密后的真实聊天，语气一栏改的是每个人都会收到的说话方式，这两件事在任何
+  // 时候都必须先证明你是服务器的管理者。
+  async #handleOwnerOnlyApi(request, response, name, url) {
+    if (!this.adminToken || !this.#tokenMatches(request)) {
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return;
+    }
+    try {
+      if (name === "conversations" && typeof this.adminConversations === "function") {
+        const limit = Number(url.searchParams.get("limit")) || 40;
+        this.#json(response, 200, await this.adminConversations(limit));
+        return;
+      }
+      if (name === "persona" && request.method === "GET" && typeof this.adminPersonaRead === "function") {
+        this.#json(response, 200, await this.adminPersonaRead());
+        return;
+      }
+      if (name === "persona" && request.method === "POST" && typeof this.adminPersonaWrite === "function") {
+        const raw = await readBody(request);
+        let input = {};
+        try {
+          input = raw.length ? JSON.parse(raw.toString("utf8")) : {};
+        } catch {
+          this.#json(response, 400, { ok: false, code: "PERSONA_BODY_INVALID" });
+          return;
+        }
+        this.#json(response, 200, await this.adminPersonaWrite(input));
+        return;
+      }
+    } catch (error) {
+      // 只记码。这条路上的 body 是真实聊天内容和主人写的语气，一个字都不进日志。
+      this.logger.warn?.(`[cyberboss] 后台 ${name} 失败 code=${error?.code || "unknown"}`);
+      this.#json(response, 500, { ok: false, code: "ADMIN_ACTION_FAILED" });
+      return;
+    }
+    this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+  }
+
   async #handleOwnerActivation(request, response, name, url) {
     // 这里**不走**首次运行免令牌那条规则。
     //
@@ -330,6 +383,16 @@ class PortalHttpServer {
     if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
       this.#handleAdminPage(response);
       return null;
+    }
+    // 顺序要紧：这一条必须排在 /admin/api/ 的通用分支前面，否则对话和语气会掉
+    // 进 #handleAdminApi，跟着继承首次运行免令牌那条规则。
+    if (OWNER_ONLY_ADMIN_APIS.some((name) => pathname === `/admin/api/${name}`)) {
+      return this.#handleOwnerOnlyApi(
+        request,
+        response,
+        pathname.slice("/admin/api/".length),
+        url,
+      );
     }
     if (pathname.startsWith("/admin/api/")) {
       return this.#handleAdminApi(request, response, pathname.slice("/admin/api/".length));

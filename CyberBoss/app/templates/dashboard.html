@@ -7,16 +7,19 @@
 <meta name="referrer" content="no-referrer">
 <title>CyberBoss 后台</title>
 <style nonce="__CSP_NONCE__">
-  :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--ok:#0b6b45;--warn:#8a5a00;--bad:#a1211a;--card:#f7f8fa}
-  @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#f2f4f7;--muted:#c3c8d1;--line:#333842;--ok:#6ee7b7;--warn:#ffcf70;--bad:#ff9b91;--card:#1c1f25}}
+  :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--ok:#0b6b45;--warn:#8a5a00;--bad:#a1211a;--card:#f7f8fa;--mine:#e8f0fe;--theirs:#eef7ee}
+  @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#f2f4f7;--muted:#c3c8d1;--line:#333842;--ok:#6ee7b7;--warn:#ffcf70;--bad:#ff9b91;--card:#1c1f25;--mine:#1e2a3c;--theirs:#1d2a22}}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
   main{max-width:760px;margin:0 auto;padding:24px 20px 64px}
   h1{font-size:24px;margin:0 0 4px}
-  .sub{color:var(--muted);margin:0 0 24px;font-size:14px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:14px}
+  .tabs{display:flex;gap:8px;margin:0 0 22px;border-bottom:1px solid var(--line)}
+  .tabs button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:10px 4px;margin-right:14px;min-height:44px;cursor:pointer;border-bottom:2px solid transparent}
+  .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--fg)}
   .big{display:flex;align-items:center;gap:12px;padding:20px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-bottom:20px}
   .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
-  .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+  .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)} .dot.wait{background:var(--warn)}
   .big strong{font-size:19px;display:block}
   .big span{color:var(--muted);font-size:14px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
@@ -24,6 +27,7 @@
   .stat b{display:block;font-size:26px;line-height:1.2}
   .stat span{color:var(--muted);font-size:13px}
   h2{font-size:16px;margin:28px 0 10px}
+  h2:first-child{margin-top:0}
   ul{list-style:none;padding:0;margin:0}
   li{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--card)}
   li .name{flex:1}
@@ -33,6 +37,35 @@
   .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:19px;letter-spacing:.08em;padding:14px;background:var(--card);border:1px dashed var(--line);border-radius:10px;margin-top:10px;word-break:break-all;user-select:all}
   .hint{color:var(--muted);font-size:13px;margin:8px 0 0}
   .log{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-all;color:var(--muted)}
+  /* 对话 */
+  .turn{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--card)}
+  .turn.stuck{border-color:var(--bad)}
+  .turn-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .who{font-weight:600;font-size:14px;word-break:break-all}
+  .when{color:var(--muted);font-size:12px}
+  .badge{margin-left:auto;font-size:12px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);white-space:nowrap}
+  .badge.ok{color:var(--ok);border-color:var(--ok)}
+  .badge.bad{color:var(--bad);border-color:var(--bad)}
+  .badge.wait{color:var(--warn);border-color:var(--warn)}
+  .bubble{padding:10px 13px;border-radius:12px;white-space:pre-wrap;word-break:break-word;font-size:15px}
+  .bubble.in{background:var(--theirs);border-top-left-radius:3px}
+  .bubble.out{background:var(--mine);border-top-right-radius:3px;margin-top:8px}
+  .bubble.empty{color:var(--muted);font-style:italic;background:none;border:1px dashed var(--line)}
+  .reply-meta{color:var(--muted);font-size:12px;margin:4px 0 0 2px}
+  /* 语气 */
+  fieldset{border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;margin:0 0 16px;background:var(--card)}
+  legend{font-size:14px;font-weight:600;padding:0 6px}
+  .opt{display:flex;align-items:flex-start;gap:10px;padding:9px 2px;cursor:pointer}
+  .opt input{margin-top:5px;flex:0 0 auto;width:18px;height:18px}
+  .opt .lab{font-weight:600}
+  .opt .exp{display:block;color:var(--muted);font-size:13px;font-weight:400}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row .opt{padding-right:14px}
+  input[type=text],textarea{font:inherit;width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+  textarea{min-height:96px;resize:vertical}
+  .saverow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}
+  .saved{color:var(--ok);font-size:14px;font-weight:600}
+  pre.preview{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--muted);margin:8px 0 0;max-height:260px;overflow:auto}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -41,39 +74,91 @@
   <h1>CyberBoss 后台</h1>
   <p class="sub">这一页就是全部。不用开终端。</p>
 
-  <div class="big">
-    <i class="dot warn" id="dot"></i>
-    <div><strong id="headline">正在读取……</strong><span id="subline">稍等一下</span></div>
-  </div>
+  <nav class="tabs" id="tabs">
+    <button type="button" data-tab="overview" aria-selected="true">概览</button>
+    <button type="button" data-tab="talk" aria-selected="false">对话</button>
+    <button type="button" data-tab="tone" aria-selected="false">语气</button>
+  </nav>
 
-  <div class="grid">
-    <div class="stat"><b id="s-users">–</b><span>已开通的人</span></div>
-    <div class="stat"><b id="s-today">–</b><span>今天的消息</span></div>
-    <div class="stat"><b id="s-uptime">–</b><span>已连续运行</span></div>
-  </div>
+  <!-- ── 概览 ────────────────────────────────────────────── -->
+  <section id="tab-overview">
+    <div class="big">
+      <i class="dot warn" id="dot"></i>
+      <div><strong id="headline">正在读取……</strong><span id="subline">稍等一下</span></div>
+    </div>
 
-  <section id="owner-section">
-  <h2>把我的微信绑成主人</h2>
-  <p class="hint" style="margin:0 0 10px">机器人只听主人的。点一下开门，然后<b>用你自己的微信随便对机器人说句话</b>，那个号就是主人了。不用复制任何东西，只需要做一次。</p>
-  <button class="primary" id="mkbind">开门，现在去微信说句话</button>
-  <p class="hint" id="bind-hint" hidden></p>
-  <p class="hint"><a href="#" id="showcode" style="color:inherit">用不了？改用认领码</a></p>
-  <button class="primary" id="mkowner" hidden>生成主人认领码</button>
-  <div class="code" id="ownercode" hidden></div>
-  <p class="hint" id="ownercode-hint" hidden>把上面这一串，用你自己的微信发给机器人。只能用一次，30 分钟内有效。</p>
+    <div class="grid">
+      <div class="stat"><b id="s-users">–</b><span>已开通的人</span></div>
+      <div class="stat"><b id="s-today">–</b><span>今天的消息</span></div>
+      <div class="stat"><b id="s-uptime">–</b><span>已连续运行</span></div>
+    </div>
 
+    <section id="owner-section">
+    <h2>把我的微信绑成主人</h2>
+    <p class="hint" style="margin:0 0 10px">机器人只听主人的。点一下开门，然后<b>用你自己的微信随便对机器人说句话</b>，那个号就是主人了。不用复制任何东西，只需要做一次。</p>
+    <button class="primary" id="mkbind">开门，现在去微信说句话</button>
+    <p class="hint" id="bind-hint" hidden></p>
+    <p class="hint"><a href="#" id="showcode" style="color:inherit">用不了？改用认领码</a></p>
+    <button class="primary" id="mkowner" hidden>生成主人认领码</button>
+    <div class="code" id="ownercode" hidden></div>
+    <p class="hint" id="ownercode-hint" hidden>把上面这一串，用你自己的微信发给机器人。只能用一次，30 分钟内有效。</p>
+    </section>
+
+    <h2>加人</h2>
+    <button class="primary" id="mk">生成一个邀请码</button>
+    <div class="code" id="code" hidden></div>
+    <p class="hint" id="code-hint" hidden>把这一串发给朋友。他加了微信之后，直接把码发过来就能开通。只能用一次，7 天有效。</p>
+
+    <h2>各项功能</h2>
+    <ul id="lines"></ul>
+
+    <h2>最近发生了什么</h2>
+    <div class="log" id="log">正在读取……</div>
   </section>
 
-  <h2>加人</h2>
-  <button class="primary" id="mk">生成一个邀请码</button>
-  <div class="code" id="code" hidden></div>
-  <p class="hint" id="code-hint" hidden>把这一串发给朋友。他加了微信之后，直接把码发过来就能开通。只能用一次，7 天有效。</p>
+  <!-- ── 对话 ────────────────────────────────────────────── -->
+  <section id="tab-talk" hidden>
+    <div class="big">
+      <i class="dot ok" id="talk-dot"></i>
+      <div><strong id="talk-headline">正在读取……</strong><span id="talk-subline">每个人发来的每一句，和它回的每一句</span></div>
+    </div>
+    <div id="talk-list"></div>
+    <p class="hint" id="talk-note"></p>
+  </section>
 
-  <h2>各项功能</h2>
-  <ul id="lines"></ul>
+  <!-- ── 语气 ────────────────────────────────────────────── -->
+  <section id="tab-tone" hidden>
+    <p class="hint" style="margin:0 0 16px">改完点保存，<b>下一句话就是新语气</b>，不用重启，也不影响正在进行的对话。</p>
 
-  <h2>最近发生了什么</h2>
-  <div class="log" id="log">正在读取……</div>
+    <fieldset>
+      <legend>说话的调子</legend>
+      <div id="tone-list"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>一次说多长</legend>
+      <div class="row" id="length-list"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>细节</legend>
+      <label class="opt"><input type="checkbox" id="p-emoji"><span class="lab">可以用 emoji<span class="exp">不勾的话一个都不用</span></span></label>
+      <p class="hint" style="margin-top:12px">怎么称呼你（留空就不特别称呼）</p>
+      <input type="text" id="p-callme" maxlength="24" placeholder="比如：老板、林哥">
+      <p class="hint" style="margin-top:14px">还想让它注意什么（自己写，一行一条）</p>
+      <textarea id="p-note" placeholder="比如：晚上十点之后说话轻一点；不要问我今天过得怎么样"></textarea>
+      <p class="hint" id="note-count"></p>
+    </fieldset>
+
+    <div class="saverow">
+      <button class="primary" id="p-save">保存</button>
+      <span class="saved" id="p-saved" hidden>已保存</span>
+    </div>
+
+    <h2>它实际收到的原话</h2>
+    <p class="hint" style="margin:0">上面这些设置会变成下面这段，贴在每一条消息前面发给它。</p>
+    <pre class="preview" id="p-preview">正在读取……</pre>
+  </section>
 </main>
 <script nonce="__CSP_NONCE__">
 "use strict";
@@ -86,6 +171,14 @@
     not_started: ["warn", "没开"]
   };
   function set(id, text) { var n = document.getElementById(id); if (n) { n.textContent = text; } }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) { n.className = cls; }
+    // 一律 textContent。对话一栏里全是别人发来的原文，任何一处 innerHTML
+    // 都等于把注入的口子开在主人自己的后台上。
+    if (text !== undefined) { n.textContent = text; }
+    return n;
+  }
 
   // 管理员令牌从地址栏的 # 后面取，只留在内存里，然后立刻从地址栏抹掉：
   // 片段不会出现在请求行里，服务器和中间代理的访问日志都记不到它。
@@ -105,6 +198,32 @@
     return m + " 分钟";
   }
 
+  function clock(iso) {
+    if (!iso) { return ""; }
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) { return String(iso); }
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    return pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  // ── 标签页 ───────────────────────────────────────────────
+  var current = "overview";
+  document.getElementById("tabs").addEventListener("click", function (event) {
+    var name = event.target && event.target.getAttribute("data-tab");
+    if (!name) { return; }
+    current = name;
+    var buttons = this.querySelectorAll("button");
+    for (var i = 0; i < buttons.length; i += 1) {
+      buttons[i].setAttribute("aria-selected", buttons[i].getAttribute("data-tab") === name ? "true" : "false");
+    }
+    ["overview", "talk", "tone"].forEach(function (key) {
+      document.getElementById("tab-" + key).hidden = key !== name;
+    });
+    if (name === "talk") { loadTalk(); }
+    if (name === "tone") { loadTone(); }
+  });
+
+  // ── 概览 ─────────────────────────────────────────────────
   function render(data) {
     var bad = data.lines.filter(function (l) { return l.state === "blocked" || l.state === "degraded"; });
     var dot = document.getElementById("dot");
@@ -123,10 +242,10 @@
     data.lines.forEach(function (line) {
       var pair = STATE[line.state] || ["warn", line.state];
       var li = document.createElement("li");
-      var i = document.createElement("i"); i.className = "dot " + pair[0];
-      var name = document.createElement("span"); name.className = "name"; name.textContent = line.label;
-      var tag = document.createElement("span"); tag.className = "tag"; tag.textContent = pair[1];
-      li.appendChild(i); li.appendChild(name); li.appendChild(tag);
+      var i = el("i", "dot " + pair[0]);
+      li.appendChild(i);
+      li.appendChild(el("span", "name", line.label));
+      li.appendChild(el("span", "tag", pair[1]));
       ul.appendChild(li);
     });
 
@@ -152,6 +271,175 @@
       });
   }
 
+  // ── 对话 ─────────────────────────────────────────────────
+  function renderTalk(data) {
+    var list = document.getElementById("talk-list");
+    list.textContent = "";
+    if (!data.ok) {
+      document.getElementById("talk-dot").className = "dot bad";
+      set("talk-headline", "读不出来");
+      set("talk-subline", data.code === "ADMIN_TOKEN_INVALID"
+        ? "这一栏要完整的后台链接（末尾带 #k=…… 那一段）。"
+        : "错误码：" + (data.code || "未知"));
+      return;
+    }
+    var threads = data.threads || [];
+    document.getElementById("talk-dot").className = "dot " + (data.unanswered ? "bad" : "ok");
+    set("talk-headline", data.unanswered
+      ? data.unanswered + " 条没答上"
+      : (threads.length ? "都答上了" : "还没有人说过话"));
+    set("talk-subline", "最近 " + threads.length + " 条来信，从新到旧");
+
+    threads.forEach(function (thread) {
+      var box = el("div", "turn" + (thread.state && thread.state.stuck ? " stuck" : ""));
+      var head = el("div", "turn-head");
+      head.appendChild(el("span", "who", thread.who || "（不知道是谁）"));
+      head.appendChild(el("span", "when", clock(thread.at)));
+      if (thread.state) {
+        head.appendChild(el("span", "badge " + (thread.state.tone || ""), thread.state.label));
+      }
+      box.appendChild(head);
+
+      if (thread.available) {
+        box.appendChild(el("div", "bubble in", thread.text || "（空消息）"));
+      } else {
+        box.appendChild(el("div", "bubble in empty", "内容已按保留期清除"));
+      }
+
+      (thread.replies || []).forEach(function (reply) {
+        if (reply.available && reply.text) {
+          box.appendChild(el("div", "bubble out", reply.text));
+        } else {
+          box.appendChild(el("div", "bubble out empty", "内容已按保留期清除"));
+        }
+        var bits = [clock(reply.at), reply.state];
+        if (reply.error) { bits.push("错误：" + reply.error); }
+        if (reply.attempts > 1) { bits.push("试了 " + reply.attempts + " 次"); }
+        if (reply.source) { bits.push(reply.source); }
+        box.appendChild(el("div", "reply-meta", bits.filter(Boolean).join(" · ")));
+      });
+
+      if (!(thread.replies || []).length) {
+        var why = thread.jobError || thread.rejectReason;
+        box.appendChild(el("div", "reply-meta", why ? "还没有回复 · " + why : "还没有回复"));
+      }
+      list.appendChild(box);
+    });
+
+    set("talk-note", "「直接回复」那几条是入门引导和口令，走的不是队列，重启后这一栏里就看不到了（微信上照样收到过）。");
+  }
+
+  var talkTimer = null;
+  function loadTalk() {
+    fetch("/admin/api/conversations?limit=40", { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(renderTalk)
+      .catch(function () {
+        renderTalk({ ok: false, code: "连不上服务" });
+      });
+    // 只有停在这一栏时才继续刷。解密是实打实的开销，没人看的时候不该一直做。
+    if (talkTimer) { clearTimeout(talkTimer); }
+    talkTimer = setTimeout(function () { if (current === "talk") { loadTalk(); } }, 8000);
+  }
+
+  // ── 语气 ─────────────────────────────────────────────────
+  var toneLoaded = false;
+  function renderTone(data) {
+    if (!data.ok) {
+      document.getElementById("p-preview").textContent = data.code === "ADMIN_TOKEN_INVALID"
+        ? "这一栏要完整的后台链接（末尾带 #k=…… 那一段）。"
+        : "读不出来：" + (data.code || "未知");
+      return;
+    }
+    var persona = data.persona || {};
+    if (!toneLoaded) {
+      var toneList = document.getElementById("tone-list");
+      toneList.textContent = "";
+      (data.tones || []).forEach(function (tone) {
+        var label = el("label", "opt");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "tone"; input.value = tone.id;
+        input.checked = tone.id === persona.tone;
+        var span = el("span", "lab", tone.label);
+        span.appendChild(el("span", "exp", tone.hint || ""));
+        label.appendChild(input); label.appendChild(span);
+        toneList.appendChild(label);
+      });
+      var lengthList = document.getElementById("length-list");
+      lengthList.textContent = "";
+      (data.lengths || []).forEach(function (item) {
+        var label = el("label", "opt");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "length"; input.value = item.id;
+        input.checked = item.id === persona.length;
+        label.appendChild(input); label.appendChild(el("span", "lab", item.label));
+        lengthList.appendChild(label);
+      });
+      document.getElementById("p-emoji").checked = persona.emoji === true;
+      document.getElementById("p-callme").value = persona.callMe || "";
+      var note = document.getElementById("p-note");
+      note.value = persona.note || "";
+      note.setAttribute("maxlength", String(data.maxNoteChars || 500));
+      countNote(data.maxNoteChars || 500);
+      note.addEventListener("input", function () { countNote(data.maxNoteChars || 500); });
+      toneLoaded = true;
+    }
+    document.getElementById("p-preview").textContent = data.preview || "（空）";
+  }
+
+  function countNote(max) {
+    var note = document.getElementById("p-note");
+    set("note-count", note.value.length + " / " + max + " 字");
+  }
+
+  function loadTone() {
+    fetch("/admin/api/persona", { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(renderTone)
+      .catch(function () { renderTone({ ok: false, code: "连不上服务" }); });
+  }
+
+  function checkedValue(name, fallback) {
+    var node = document.querySelector('input[name="' + name + '"]:checked');
+    return node ? node.value : fallback;
+  }
+
+  document.getElementById("p-save").addEventListener("click", function () {
+    var button = this;
+    var saved = document.getElementById("p-saved");
+    button.disabled = true; button.textContent = "正在保存……";
+    saved.hidden = true;
+    fetch("/admin/api/persona", {
+      method: "POST",
+      headers: authed({ "Content-Type": "application/json" }),
+      credentials: "same-origin",
+      body: JSON.stringify({
+        tone: checkedValue("tone", "warm"),
+        length: checkedValue("length", "medium"),
+        emoji: document.getElementById("p-emoji").checked,
+        callMe: document.getElementById("p-callme").value,
+        note: document.getElementById("p-note").value
+      })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        button.disabled = false; button.textContent = "保存";
+        if (data.ok) {
+          // 只刷预览，不重建表单——重建会把光标和刚打的字弄没。
+          document.getElementById("p-preview").textContent = data.preview || "（空）";
+          saved.hidden = false;
+          setTimeout(function () { saved.hidden = true; }, 2500);
+        } else {
+          saved.hidden = false;
+          saved.textContent = "没保存成功：" + (data.code || "未知");
+        }
+      })
+      .catch(function () {
+        button.disabled = false; button.textContent = "再试一次";
+      });
+  });
+
+  // ── 概览里的几个按钮 ─────────────────────────────────────
   function wireCodeButton(buttonId, boxId, hintId, url, busyLabel, againLabel) {
     document.getElementById(buttonId).addEventListener("click", function () {
       var button = this;

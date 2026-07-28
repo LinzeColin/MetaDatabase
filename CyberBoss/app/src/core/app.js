@@ -59,6 +59,13 @@ const { UserTurnRuntime } = require("./user-turn-runtime");
 const { UserCompanionTurn } = require("./user-companion-turn");
 const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
+const {
+  PersonaStore,
+  TONE_PRESETS,
+  LENGTH_PRESETS,
+  MAX_NOTE_CHARS,
+  renderPersonaInstruction,
+} = require("../services/persona/persona-store");
 const { SetupPortal } = require("../services/portal/setup-portal");
 const { buildPortalHandlers } = require("../services/portal/portal-handlers");
 const { PortalHttpServer } = require("../services/portal/portal-server");
@@ -98,6 +105,55 @@ const PLAIN_LINE_NAMES = Object.freeze({
   release_rollback: "发布与回滚",
   model_usage_budget_circuit: "用量与限额",
 });
+
+// 后台「对话」一栏用的人话标签。出站队列的状态码原样显示等于没显示。
+const OUTBOX_STATE_LABELS = Object.freeze({
+  pending: "排队中",
+  sending: "发送中",
+  retry: "发送失败，正在重试",
+  confirmed: "已送达",
+  failed_terminal: "发送失败，已放弃",
+});
+
+// 一条来信最终怎么了。stuck 为 true 表示"人发了但没得到答复"——去掉自动回执
+// 之后，这是唯一能看出这件事的地方，所以它必须判得准，不能一律显示成功。
+function describeTurnState({ message, job, replies }) {
+  const delivered = replies.some((reply) => reply.delivered && reply.kind !== "accepted");
+  if (delivered) {
+    return Object.freeze({ label: "已回复", tone: "ok", stuck: false });
+  }
+  if (message.status === "rejected") {
+    // handled_by_admission 是准入层当场办掉的（入门引导、状态、口令），不是错误。
+    return message.rejectReason === "handled_by_admission"
+      ? Object.freeze({ label: "已当场答复", tone: "ok", stuck: false })
+      : Object.freeze({ label: `没有收下：${message.rejectReason || "未说明"}`, tone: "bad", stuck: true });
+  }
+  if (job && ["failed_terminal", "reply_failed", "expired", "cancelled", "rejected"].includes(job.status)) {
+    return Object.freeze({
+      label: `没答上：${job.errorClass || job.status}`,
+      tone: "bad",
+      stuck: true,
+    });
+  }
+  if (replies.length) {
+    // 判"发不出去"看的是队列状态，不是有没有错误码——投递失败时 last_error_class
+    // 可能是空的，只看错误码会把一条彻底放弃的回复显示成"正在回复"。
+    const failed = replies.find((reply) => reply.rawStatus === "failed_terminal");
+    if (failed) {
+      return Object.freeze({
+        label: failed.error ? `回复发不出去：${failed.error}` : "回复发不出去",
+        tone: "bad",
+        stuck: true,
+      });
+    }
+    return Object.freeze({ label: "正在回复", tone: "wait", stuck: false });
+  }
+  if (job && ["succeeded", "replied", "canonical_synced", "canonical_pending"].includes(job.status)) {
+    // 任务成了却没有任何一条出站消息——这是个真问题，不能显示成"已回复"。
+    return Object.freeze({ label: "想好了但没发出来", tone: "bad", stuck: true });
+  }
+  return Object.freeze({ label: "正在处理", tone: "wait", stuck: false });
+}
 
 const PLAIN_RESOURCE_REASONS = Object.freeze({
   MIN_FREE_MEMORY: "内存不太够了",
@@ -204,6 +260,7 @@ class CyberbossApp {
     this.userTurnRuntime = null;
     this.userCompanionTurn = null;
     this.backupRunner = null;
+    this.personaStore = null;
     this.setupPortal = null;
     this.portalServer = null;
     this.runtimeRestartTimestamps = [];
@@ -252,6 +309,8 @@ class CyberbossApp {
           this.config.activePayloadTtlHours,
         ),
       });
+      // 语气设置。放在 multiUser 判断之外：单人跑的时候也该能调语气。
+      this.personaStore = new PersonaStore({ database: this.runtimeSpoolDatabase });
       // The v0.0.0.8 admission anchor. It is built here because this is the one
       // place where the runtime database is open and both owner-only keys are
       // still live; they are zeroed in the finally below.
@@ -346,21 +405,15 @@ class CyberbossApp {
         // 席位已满的拒绝）到了调度阶段就没有出口了——JobScheduler 要求
         // dispatchRuntime 返回真实的 threadId/turnId，等于强制走一次模型。
         admissionFilter: (normalized) => this.admissionHandledBeforeJob(normalized),
-        onAccepted: this.outboxWorker
-          ? ({ accepted, normalized }) => {
-              this.outboxWorker.stageMessage({
-                jobId: accepted.jobId,
-                messageKind: "accepted",
-                logicalKey: `accepted:${accepted.jobId}`,
-                target: {
-                  userId: normalized.senderId,
-                  contextToken: normalized.contextToken,
-                },
-                // 用户不需要看见 job 编号。收到就收到了，回执由真正的答复承担。
-                text: "收到，正在处理……",
-              });
-            }
-          : null,
+        // 收下消息不回执。
+        //
+        // 人不会先说一句"收到，正在处理"再回答。真实的"我在听"信号是微信自己的
+        // "对方正在输入"——dispatchPreparedTurn 里已经发了 sendTyping，那一条就够。
+        //
+        // 代价要写明白：回执没了以后，答复失败就是彻底安静。所以这条路的可见性
+        // 移到了后台的「对话」一栏——每一条来信、每一条回复、以及回复失败的原因
+        // 都在那里，见 buildConversationFeed()。
+        onAccepted: null,
       });
       if (this.config.jobScheduler === true) {
         const gate = new ResourceReadinessGate({
@@ -425,6 +478,7 @@ class CyberbossApp {
     this.userTurnRuntime = null;
     this.userCompanionTurn = null;
     this.backupRunner = null;
+    this.personaStore = null;
     this.setupPortal = null;
     if (this.runtimeSpoolDatabase) {
       this.runtimeSpoolDatabase.close();
@@ -743,6 +797,10 @@ class CyberbossApp {
       adminInvite: () => this.issueDashboardInvite(),
       adminOwnerClaim: () => this.issueDashboardOwnerClaim(),
       adminOwnerBind: () => this.armDashboardOwnerBinding(),
+      // 下面两个读写真实聊天内容与语气设置，一律要真令牌，不走首次免令牌。
+      adminConversations: (limit) => this.buildConversationFeed({ limit }),
+      adminPersonaRead: () => this.readDashboardPersona(),
+      adminPersonaWrite: (input) => this.writeDashboardPersona(input),
       ownerActivationStart: () => this.startOwnerActivation(),
       ownerActivationPoll: (qrcode) => this.pollOwnerActivation(qrcode),
       // 还没有主人时，这套系统里不存在任何用户数据，后台也就没有什么可保护
@@ -829,6 +887,166 @@ class CyberbossApp {
     if (this.dashboardLog.length > 200) {
       this.dashboardLog = this.dashboardLog.slice(-200);
     }
+  }
+
+  // ── 语气面板 ───────────────────────────────────────────────
+
+  readDashboardPersona() {
+    const persona = this.personaStore ? this.personaStore.read() : null;
+    return Object.freeze({
+      ok: true,
+      persona: persona || {},
+      tones: TONE_PRESETS.map(({ id, label, hint }) => ({ id, label, hint })),
+      lengths: LENGTH_PRESETS.map(({ id, label }) => ({ id, label })),
+      maxNoteChars: MAX_NOTE_CHARS,
+      // 让主人看到真正发给模型的那段字。语气这种东西不给看就只能靠猜。
+      preview: this.currentPersonaInstruction(),
+    });
+  }
+
+  writeDashboardPersona(input) {
+    if (!this.personaStore) {
+      return Object.freeze({ ok: false, code: "PERSONA_STORE_UNAVAILABLE" });
+    }
+    try {
+      this.personaStore.write(input);
+      this.noteForDashboard("改了说话的语气");
+      return this.readDashboardPersona();
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "PERSONA_WRITE_FAILED",
+      });
+    }
+  }
+
+  // ── 对话一栏：每个人发来的每一条，和机器人回的每一条 ─────────
+  //
+  // 这一栏是唯一会把真实聊天内容读出来的地方。它只挂在带真令牌的后台路由上
+  // （见 portal-server 的 #handleOwnerOnlyApi），不写日志、不进证据、不进
+  // canonical。去掉「收到，正在处理」之后，"我发的到底进去没有"这个问题就只
+  // 能在这里回答，所以它必须把失败也照实显示出来，不能只显示成功的。
+
+  // 走 admission 直接回掉的那些消息（入门引导、状态、口令）不经过 outbox，
+  // 因此数据库里没有它们的回复。这里在内存里留一份，重启即丢——把真实聊天内容
+  // 写进 service_state 那种未加密的列换取"重启还在"，不值得。
+  noteDirectReply(userId, text) {
+    if (!text) {
+      return;
+    }
+    if (!this.directReplyLog) {
+      this.directReplyLog = [];
+    }
+    this.directReplyLog.push({
+      at: new Date().toISOString(),
+      userId: String(userId || ""),
+      text: String(text),
+    });
+    if (this.directReplyLog.length > 120) {
+      this.directReplyLog = this.directReplyLog.slice(-120);
+    }
+  }
+
+  buildConversationFeed({ limit = 40 } = {}) {
+    if (!this.runtimeSpoolDatabase) {
+      return Object.freeze({ ok: false, code: "SPOOL_DB_UNAVAILABLE", threads: [] });
+    }
+    let inbound = [];
+    let outbound = [];
+    let jobs = [];
+    try {
+      inbound = this.runtimeSpoolDatabase.listRecentInboundForOwner({ limit });
+      outbound = this.runtimeSpoolDatabase.listRecentOutboundForOwner({ limit: limit * 4 });
+      jobs = this.runtimeSpoolDatabase.listRecentJobsForOwner({ limit: limit * 4 });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "CONVERSATION_READ_FAILED",
+        threads: [],
+      });
+    }
+
+    const repliesByCorrelation = new Map();
+    for (const item of outbound) {
+      const list = repliesByCorrelation.get(item.correlationId) || [];
+      list.push(item);
+      repliesByCorrelation.set(item.correlationId, list);
+    }
+    const jobByCorrelation = new Map(jobs.map((job) => [job.correlationId, job]));
+
+    // 直接回复按发件人挂到"时间上紧挨着它之前"的那条来信上。inbound 是倒序的，
+    // 所以对每条直接回复找第一条 receivedAt <= at 的同发件人来信。
+    const directBySender = new Map();
+    for (const entry of this.directReplyLog || []) {
+      const list = directBySender.get(entry.userId) || [];
+      list.push(entry);
+      directBySender.set(entry.userId, list);
+    }
+    const claimedDirect = new Set();
+
+    const threads = inbound.map((message) => {
+      const sender = message.payload?.senderId || "";
+      const replies = (repliesByCorrelation.get(message.correlationId) || [])
+        .slice()
+        .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1))
+        .map((item) => ({
+          at: item.createdAt,
+          kind: item.messageKind,
+          text: item.payloadAvailable ? item.text : "",
+          available: item.payloadAvailable,
+          state: OUTBOX_STATE_LABELS[item.status] || item.status,
+          rawStatus: item.status,
+          delivered: item.status === "confirmed",
+          error: item.lastErrorClass,
+          attempts: item.attemptCount,
+          source: "队列",
+        }));
+
+      for (const entry of directBySender.get(sender) || []) {
+        if (claimedDirect.has(entry)) {
+          continue;
+        }
+        if (entry.at >= message.receivedAt) {
+          claimedDirect.add(entry);
+          replies.push({
+            at: entry.at,
+            kind: "direct",
+            text: entry.text,
+            available: true,
+            state: "已发出",
+            rawStatus: "confirmed",
+            delivered: true,
+            error: "",
+            attempts: 1,
+            source: "直接回复（重启后不保留）",
+          });
+        }
+      }
+      replies.sort((a, b) => (a.at < b.at ? -1 : 1));
+
+      const job = jobByCorrelation.get(message.correlationId) || null;
+      return {
+        at: message.receivedAt,
+        // 发件人的微信 id。主人要分得清谁是谁，就只能给真的；这一栏本身要真令牌。
+        who: sender,
+        text: message.payloadAvailable
+          ? String(message.payload?.text || "")
+          : "",
+        available: message.payloadAvailable,
+        state: describeTurnState({ message, job, replies }),
+        jobStatus: job ? job.status : "",
+        jobError: job ? job.errorClass : "",
+        rejectReason: message.rejectReason,
+        replies,
+      };
+    });
+
+    return Object.freeze({
+      ok: true,
+      threads,
+      // 数出来给主人一眼看的：这一屏里有几条根本没答上。
+      unanswered: threads.filter((thread) => thread.state.stuck).length,
+    });
   }
 
   issueDashboardInvite() {
@@ -1224,6 +1442,8 @@ class CyberbossApp {
     if (!text) {
       return;
     }
+    // 这条不走 outbox，数据库里查不到，所以在这里留一份给后台「对话」栏。
+    this.noteDirectReply(normalized.senderId, text);
     await this.channelAdapter.sendText({
       userId: normalized.senderId,
       text,
@@ -1691,10 +1911,24 @@ class CyberbossApp {
         prepared,
         config: this.config,
         visionContext,
+        // 每一轮现读一次，不缓存：主人在后台改完语气，下一句话就该变。
+        personaInstruction: this.currentPersonaInstruction(),
       }),
       attachments: Array.isArray(visionContext.runtimeAttachments) ? visionContext.runtimeAttachments : [],
       visionContext,
     };
+  }
+
+  // 语气块。读不出来就返回空串——语气不是必需品，不能因为它发不出消息。
+  currentPersonaInstruction() {
+    if (!this.personaStore) {
+      return "";
+    }
+    try {
+      return renderPersonaInstruction(this.personaStore.read());
+    } catch {
+      return "";
+    }
   }
 
   async routePreparedInbound({ bindingKey, workspaceRoot, prepared }) {
