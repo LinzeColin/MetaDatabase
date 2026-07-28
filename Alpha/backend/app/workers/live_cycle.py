@@ -69,6 +69,25 @@ def in_eval_window(now_et: datetime, *, weekday: int = 1,
     return open_minute + window[0] <= minute <= open_minute + window[1]
 
 
+def market_open_now(now_et: datetime) -> bool:
+    """美股常规交易时段(周一至周五 09:30-16:00 ET)。"""
+    minute = now_et.hour * 60 + now_et.minute
+    return now_et.weekday() < 5 and (9 * 60 + 30) <= minute <= (16 * 60)
+
+
+def eval_trigger(now_et: datetime, *, force_exists: bool, makeup_today: bool) -> tuple[bool, bool]:
+    """评估触发判定(纯函数,可脱离真实时间测试)。返回 (是否触发, 是否为强制触发)。
+
+    三条通路:①周二常规窗;②FORCE_EVAL 立即触发(任意开市时刻,owner 说跑就跑);
+    ③补评估(当日标记 + 开盘后 60-120 分钟)。只决定"何时评估",绝不影响任何风控。
+    """
+    minute = now_et.hour * 60 + now_et.minute
+    forced = force_exists and market_open_now(now_et)
+    makeup_ok = (makeup_today and now_et.weekday() < 5
+                 and (9 * 60 + 60) <= minute <= (9 * 60 + 120))
+    return (in_eval_window(now_et) or forced or makeup_ok), forced
+
+
 def plan_rebalance(
     target_weights: dict[str, float],
     positions: dict[str, int],
@@ -249,15 +268,20 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     today_tag = now_et.date().isoformat()
     makeup = d.marker_path.parent / "makeup_eval.txt"
     makeup_today = makeup.exists() and makeup.read_text().strip() == today_tag
-    minute = now_et.hour * 60 + now_et.minute
-    in_window_any_day = (9 * 60 + 60) <= minute <= (9 * 60 + 120)
-    trigger = in_eval_window(now_et) or (makeup_today and in_window_any_day
-                                         and now_et.weekday() < 5)
+    # 立即评估开关(owner 2026-07-26:"不能用真实时间等待浪费"):放一个 FORCE_EVAL 文件,
+    # 下一个开市时刻立刻评估并按纪律下单,不必枯等周二。用后即焚,只生效一次;
+    # 只放宽"什么时候评估",绝不放宽任何风控——敞口/单笔/频控/行情新鲜度一律照旧。
+    force = d.marker_path.parent / "FORCE_EVAL.txt"
+    trigger, forced = eval_trigger(now_et, force_exists=force.exists(),
+                                   makeup_today=makeup_today)
     already = d.marker_path.exists() and d.marker_path.read_text().strip() == today_tag
     if not trigger or already:
         return summary
     if makeup_today:
         makeup.unlink(missing_ok=True)
+    if forced:
+        force.unlink(missing_ok=True)       # 用后即焚:绝不因残留文件反复触发
+        summary["forced_eval"] = True
 
     d.marker_path.parent.mkdir(parents=True, exist_ok=True)
     d.marker_path.write_text(today_tag)   # 先落标记:崩溃重启宁可错过,不重复下单
