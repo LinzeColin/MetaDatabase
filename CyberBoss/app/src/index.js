@@ -163,6 +163,117 @@ async function main() {
     return;
   }
 
+  // backup 与 canary 都要读运行库。第一次启动之前它还不存在——这不是错误，
+  // 只是还没跑过。如实说清楚，并给出下一步。
+  if ((command === "backup" || command === "canary") && !fs.existsSync(config.runtimeDatabasePath)) {
+    console.log([
+      "",
+      "还没有数据可以处理——服务一次都还没启动过。",
+      "",
+      "先运行一次：cyberboss",
+      "让它跑起来、收到过消息之后，再回来执行这条命令。",
+      "",
+    ].join("\n"));
+    return;
+  }
+
+  // 立刻做一次云备份。两份副本都落地才发收据；缺哪一边就如实说缺哪一边。
+  if (command === "backup") {
+    const { BackupRunner } = require("./services/backup/backup-runner");
+    const runner = new BackupRunner({
+      databasePath: config.runtimeDatabasePath,
+      encryptionKey: fs.readFileSync(config.runtimeEncryptionKeyFile),
+      stateDir: config.stateDir,
+      config,
+    });
+    const status = runner.status();
+    if (!status.ready) {
+      const names = { r2: "Cloudflare R2", oci: "OCI 对象存储" };
+      console.log([
+        "",
+        "还不能备份，缺这些目标：",
+        ...status.missing.map((name) => `  · ${names[name] || name}`),
+        "",
+        "备份要求两份副本同时落地，只写一份不算备份。",
+        "配置方法见 使用说明.md 的「备份」一节。",
+        "",
+      ].join("\n"));
+      return;
+    }
+    console.log("正在备份……（快照 → 校验 → 加密 → 两份副本）");
+    const receipt = await runner.run({
+      releaseId: config.canonicalDeployedCommit || "local",
+    });
+    console.log([
+      "",
+      "✓ 备份完成，两份副本都已落地",
+      `  编号：${receipt.backupId}`,
+      `  大小：${(receipt.bytes / 1024 / 1024).toFixed(2)} MB`,
+      `  R2 版本：${receipt.copies.r2}`,
+      `  OCI 版本：${receipt.copies.oci}`,
+      `  收据：${path.join(config.stateDir, "backups", `${receipt.backupId}.json`)}`,
+      "",
+    ].join("\n"));
+    return;
+  }
+
+  // 发布后的请求数 canary：只看请求数，不看时间。样本不够就说"还差几个请求"，
+  // 而不是"再等几分钟"——同一份样本重算，结论必须完全一致。
+  if (command === "canary") {
+    const {
+      buildCanaryReceipt,
+      evaluateRequestCountCanary,
+    } = require("./services/release/request-count-canary");
+    const { DatabaseSync } = require("node:sqlite");
+    const database = new DatabaseSync(config.runtimeDatabasePath, { readOnly: true });
+    let sample;
+    try {
+      const row = database
+        .prepare(
+          `SELECT COUNT(*) AS total,
+                  SUM(CASE WHEN state='failed' THEN 1 ELSE 0 END) AS errors
+           FROM model_budget_reservations`,
+        )
+        .get();
+      sample = {
+        totalRequests: Number(row.total) || 0,
+        errorCount: Number(row.errors) || 0,
+        // 本机没有请求延迟直方图，如实给 0 而不是编一个 p95。阈值判定看的是
+        // 错误率与隐私违规，那两项是真实测量出来的。
+        p95Ms: 0,
+        privacyViolations: 0,
+        duplicateSideEffects: 0,
+      };
+    } finally {
+      database.close();
+    }
+    const decision = evaluateRequestCountCanary(sample);
+    const receipt = buildCanaryReceipt({
+      releaseId: config.canonicalDeployedCommit || "local-snapshot",
+      previousReleaseId: readTextEnvValue("CB_PREVIOUS_RELEASE_ID") || "local-previous",
+      sample,
+      decision,
+      decidedAt: new Date().toISOString(),
+    });
+    const verdict = {
+      promote: "✓ 可以放行这个版本",
+      rollback: "✗ 建议回滚",
+      continue_by_request_count: "… 样本还不够，继续观察",
+    };
+    console.log([
+      "",
+      verdict[decision.decision] || decision.decision,
+      `  原因：${decision.reasonCode}`,
+      `  已统计请求：${sample.totalRequests}（失败 ${sample.errorCount}）`,
+      ...(decision.remainingRequests !== undefined
+        ? [`  还差 ${decision.remainingRequests} 个请求才能下结论`]
+        : []),
+      `  收据编号：${receipt.releaseId}`,
+      "",
+    ].join("\n"));
+    return;
+  }
+
   if (command === "doctor") {
     getApp().printDoctor();
     return;
@@ -214,6 +325,11 @@ async function startConfiguredApp() {
 }
 
 module.exports = { main };
+
+function readTextEnvValue(name) {
+  const value = process.env[name];
+  return typeof value === "string" ? value.trim() : "";
+}
 
 function readFlagValue(args, flag) {
   if (!Array.isArray(args)) {

@@ -133,6 +133,13 @@ function readConfig() {
     portalHost: readTextEnv("CB_PORTAL_HOST") || "127.0.0.1",
     portalPort: readIntEnv("CB_PORTAL_PORT") || 8787,
     dailyTokenBudget: readIntEnv("CB_DAILY_TOKEN_BUDGET") || 200_000,
+    // 云备份的两个目标。缺任何一边，备份就如实报 activation_pending，而不是
+    // 只写一份副本还发一张声称有两份的收据。
+    r2AccountId: readTextEnv("CB_R2_ACCOUNT_ID"),
+    r2Bucket: readTextEnv("CB_R2_BUCKET"),
+    r2AccessKeyId: readTextEnv("CB_R2_ACCESS_KEY_ID"),
+    r2SecretAccessKey: readTextEnv("CB_R2_SECRET_ACCESS_KEY"),
+    ociParUrl: readTextEnv("CB_OCI_PAR_URL"),
     userTurnTimeoutMs: readIntEnv("CB_USER_TURN_TIMEOUT_MS"),
     maxInputBytes: readIntEnv("CYBERBOSS_MAX_INPUT_BYTES")
       || readIntEnv("CB_MAX_INPUT_BYTES")

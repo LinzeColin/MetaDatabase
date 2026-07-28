@@ -56,6 +56,8 @@ const {
 const { updateEnvFile } = require("./bootstrap");
 const { UserAdmissionService } = require("./user-admission");
 const { UserTurnRuntime } = require("./user-turn-runtime");
+const { UserCompanionTurn } = require("./user-companion-turn");
+const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
 const { SetupPortal } = require("../services/portal/setup-portal");
 const { buildPortalHandlers } = require("../services/portal/portal-handlers");
@@ -200,7 +202,10 @@ class CyberbossApp {
     this.canonicalSyncCoordinator = null;
     this.userAdmission = null;
     this.userTurnRuntime = null;
+    this.userCompanionTurn = null;
+    this.backupRunner = null;
     this.setupPortal = null;
+    this.portalServer = null;
     this.runtimeRestartTimestamps = [];
     this.runtimeAdapter.onEvent((event) => {
       this.threadStateStore.applyRuntimeEvent(event);
@@ -272,6 +277,15 @@ class CyberbossApp {
             }),
           });
         }
+        this.userCompanionTurn = new UserCompanionTurn({
+          database: this.runtimeSpoolDatabase.database,
+        });
+        this.backupRunner = new BackupRunner({
+          databasePath: this.config.runtimeDatabasePath,
+          encryptionKey,
+          stateDir: this.config.stateDir,
+          config: this.config,
+        });
         this.userTurnRuntime = new UserTurnRuntime({
           database: this.runtimeSpoolDatabase.database,
           userRepository: this.userAdmission.users,
@@ -400,6 +414,8 @@ class CyberbossApp {
     this.durableInboxCoordinator = null;
     this.userAdmission = null;
     this.userTurnRuntime = null;
+    this.userCompanionTurn = null;
+    this.backupRunner = null;
     this.setupPortal = null;
     if (this.runtimeSpoolDatabase) {
       this.runtimeSpoolDatabase.close();
@@ -508,8 +524,8 @@ class CyberbossApp {
       timelineReady: Boolean(this.timelineIntegration),
       canonicalReady: Boolean(this.canonicalSyncCoordinator),
       canonicalQueueDepth: Number(canonicalStatus?.pending || 0),
-      objectStoreConfigured: false,
-      backupConfigured: false,
+      objectStoreConfigured: this.backupRunner?.status().ready === true,
+      backupConfigured: this.backupRunner?.status().ready === true,
       ownerRuntimeReady: runtimeReadiness?.ready === true,
       releaseConfigured: false,
       budgetReady: Boolean(this.userTurnRuntime),
@@ -935,6 +951,25 @@ class CyberbossApp {
   // workspace registry or the project tool host: those are Owner-only
   // capabilities, and this path holds a non-Owner UserContext.
   async runUserModelTurn(normalized, userContext) {
+    // 先看是不是确定性口令：记一下 / 提醒我 / 我的记忆 / 最近7天 / 别再问我。
+    // 是的话当场办掉，一次模型调用都不花——用户说"记一下"就必须真的记下来，
+    // 而不是看模型这次会不会替他记。
+    if (this.userCompanionTurn) {
+      let handled = null;
+      try {
+        handled = this.userCompanionTurn.handle(userContext, normalized.text);
+      } catch (error) {
+        console.warn(
+          `[cyberboss] companion turn failed code=${normalizeErrorCode(error?.code) || "companion_failed"}`,
+        );
+        handled = null;
+      }
+      if (handled) {
+        await this.sendAdmissionReply(normalized, handled.text);
+        return;
+      }
+      this.userCompanionTurn.recordMessage(userContext);
+    }
     if (!this.userTurnRuntime) {
       await this.sendAdmissionReply(
         normalized,

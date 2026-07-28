@@ -154,7 +154,14 @@ function buildPortalHandlers({
         sourceHash: String(payload.source_hash ?? ""),
         objectRef: String(payload.object_ref ?? ""),
       });
-      return Object.freeze({ ok: true, manifest, import_id: ticket.import_id ?? ticket.importId ?? null });
+      return Object.freeze({
+        ok: true,
+        manifest,
+        import_id: ticket.import_id,
+        // 同一个文件重复上传会命中同一个 import_id，如实告诉页面这是重复的，
+        // 而不是假装又导入了一遍。
+        duplicate: ticket.duplicate === true,
+      });
     },
 
     // AC-020: parsing is isolated per conversation, so one malformed record

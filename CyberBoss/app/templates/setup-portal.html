@@ -130,9 +130,17 @@
   <section id="view-import" hidden>
     <h2>导入你以前的聊天</h2>
     <p>支持 ChatGPT、Claude、Gemini、DeepSeek 导出的文件。导入过程会自动保存进度，中断了也能接着来。</p>
+    <label for="import-source">来自哪里</label>
+    <select id="import-source" name="import-source">
+      <option value="chatgpt">ChatGPT</option>
+      <option value="claude">Claude</option>
+      <option value="gemini">Gemini</option>
+      <option value="deepseek">DeepSeek</option>
+    </select>
     <label for="archive">选择文件</label>
     <input id="archive" name="archive" type="file" accept=".zip,.json,.html,.md,.txt">
     <button class="primary" id="start-import" type="button">开始导入</button>
+    <p class="hint wrap" id="import-status">文件不会离开你自己的机器。</p>
   </section>
 
   <section id="view-error" hidden>
@@ -268,6 +276,55 @@
       skipButton.addEventListener("click", function () {
         var hint = document.getElementById("provider-hint");
         if (hint) { hint.textContent = "好，随时可以回微信发「设置」再来填。"; }
+      });
+    }
+
+    // 导入：先把清单送去预检（大小、条目数、有没有穿越路径），通过了才读文件
+    // 内容送去解析。顺序是刻意的——一个恶意压缩包不该先被读进内存再判断。
+    var importButton = document.getElementById("start-import");
+    if (importButton) {
+      importButton.addEventListener("click", function () {
+        var picker = document.getElementById("archive");
+        var file = picker && picker.files && picker.files[0];
+        var section = document.getElementById("view-import");
+        var status = document.getElementById("import-status");
+        if (!status) {
+          status = document.createElement("p");
+          status.id = "import-status";
+          status.className = "hint wrap";
+          if (section) { section.appendChild(status); }
+        }
+        if (!file) {
+          status.textContent = "请先选一个文件。";
+          return;
+        }
+        var source = (document.getElementById("import-source") || {}).value || "chatgpt";
+        importButton.disabled = true;
+        importButton.textContent = "正在检查……";
+        post("import.presign", {
+          source: source,
+          archive_bytes: file.size,
+          files: [{ path: file.name, bytes: file.size }],
+          source_hash: String(file.size) + "-" + file.lastModified,
+          object_ref: "browser-upload"
+        }).then(function (presign) {
+          importButton.textContent = "正在导入……";
+          return file.text().then(function (content) {
+            return post("import.commit", {
+              source: source,
+              import_id: presign.import_id,
+              input: content
+            });
+          });
+        }).then(function (done) {
+          importButton.textContent = "导入完成 ✓";
+          status.textContent = "导入了 " + done.conversations + " 段对话"
+            + (done.skipped ? "，跳过 " + done.skipped + " 段读不懂的" : "") + "。";
+        }).catch(function (error) {
+          importButton.disabled = false;
+          importButton.textContent = "开始导入";
+          status.textContent = reason(error);
+        });
       });
     }
 

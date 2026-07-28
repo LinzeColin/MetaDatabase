@@ -24,22 +24,21 @@ exit gate `PG-8` is sealed as CONDITIONAL PASS. All fifteen v0.0.0.8 nodes have
 passed and all three gates — `PG-6`, `PG-7`, `PG-8` — are sealed CONDITIONAL
 PASS. Nothing in the frozen DAG remains unexecuted.
 
-> **Read the seal correctly: the v0.0.0.8 overlay is now live on the message
-> path, with four wiring items still outstanding.** The overlay map's strategy
-> is `additive_overlay_then_anchor_based_integration`. The additive half was
-> completed and sealed at PG-8; the anchor half was missing, and
+> **Read the seal correctly: the v0.0.0.8 overlay is live.** The overlay map's
+> strategy is `additive_overlay_then_anchor_based_integration`. The additive
+> half was sealed at PG-8; the anchor half was missing, and
 > `docs/evidence/PG-8/integration-gap.json` records that finding as it stood.
-> It has since been performed for the live message path, the ordinary-user
-> model path, the Owner capability boundary, the canonical write path, the
-> setup portal and the operations projection. Measured from `bin/cyberboss.js`,
-> the entrypoint an operator actually runs: **29 of 36 v0.0.0.8 modules are in
-> the live require graph, up from 0**, and admission resolves a server-owned
-> `UserContext` on every real inbound message. Four modules remain unwired —
-> `users/scoped-repository`, `analytics/activity-aggregator`,
-> `companion/user-companion-service`, `checkin/deterministic-checkin` — and
-> three more stay `activation_pending` for the same credential and target-host
-> reasons PG-8 already carried. Every count is recomputed rather than restated;
-> the full accounting is in `docs/evidence/PG-8/integration-closure.json`.
+> It is now complete. Measured by transitive require-graph walk from the real
+> entrypoints: **36 of 36 v0.0.0.8 modules are reachable, up from 0** — thirty-five
+> from `bin/cyberboss.js`, and `ops/operator-dispatcher` from the root-owned
+> `cyberbossctl` entrypoint, which is the privilege boundary it was built for
+> and the only place it should be reachable from. Admission resolves a
+> server-owned `UserContext` on every real inbound message. Four items remain
+> outstanding for PG-8 (`AC-035`, `AC-039`, `AC-040`, `AC-050`), all for the
+> original reason: the credentials and the authorised target host are not in
+> scope. Every count is recomputed rather than restated; the full accounting,
+> including what is still not claimed, is in
+> `docs/evidence/PG-8/integration-closure.json`.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
 
