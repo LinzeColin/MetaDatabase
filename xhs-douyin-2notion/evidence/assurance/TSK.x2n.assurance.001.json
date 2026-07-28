@@ -1,0 +1,62 @@
+{
+  "acceptance_status": {
+    "ACC.x2n.data.002": "PASS_CI_SYNTH_80X2_100_CONCURRENT_FULL_SERVICE_GRAPH_DUPLICATES_ZERO_OWNER_MVP_NOT_RUN",
+    "ACC.x2n.data.004": "PASS_CI_SYNTH_10K_MIGRATION_BACKUP_ROLLBACK_DATA_LOSS_ZERO_REAL_RUNTIME_NOT_RUN",
+    "ACC.x2n.rel.001": "PASS_CI_SYNTH_CURRENT_FORMAT_LINT_TYPE_UNIT_CONTRACT_MIGRATION_INTEGRATION_BROWSER_E2E_RISK_COVERAGE",
+    "ACC.x2n.rel.008": "PASS_CI_SYNTH_FRESH_COPY_SKILL_LIFECYCLE_REAL_INSTALL_NOT_RUN"
+  },
+  "execution": {
+    "external_network_calls": 0,
+    "model_calls": 0,
+    "notion_real_calls": 0,
+    "physical_delete_execution": "NOT_RUN",
+    "platform_calls": 0,
+    "private_database_client_calls": 0,
+    "real_account_execution": "NOT_RUN",
+    "real_runtime_deployment": "NOT_RUN",
+    "tmutil_calls": 0
+  },
+  "fresh_copy": {
+    "commands": 7,
+    "private_path_output": 0,
+    "real_canary": "NOT_RUN",
+    "runtime_writes": 0
+  },
+  "historical_replay": {
+    "current_stage_6_tree_evaluated": false,
+    "historical_commit": "34fac27299e1b5599b78456ee825814f456f2df7",
+    "historical_review": "STG.X2N.5.REVIEW",
+    "status": "PASS"
+  },
+  "idempotency": {
+    "artifact_duplicates": 0,
+    "concurrent_duplicate_messages": 100,
+    "content_duplicates": 0,
+    "input_items": 80,
+    "markdown_duplicates": 0,
+    "notion_mock_pages": 80,
+    "notion_page_duplicates": 0,
+    "outbox_receipts": 160,
+    "relation_duplicates": 0,
+    "sequential_runs": 2
+  },
+  "migration": {
+    "data_loss": 0,
+    "destructive_migration_without_verified_backup": 0,
+    "tombstone_epoch_regressions_accepted": 0,
+    "unreadable_records": 0
+  },
+  "mutation": {
+    "killed_mutants": 2,
+    "mutants": 2,
+    "surviving_mutants": 0
+  },
+  "phase": "PH.X2N.6.1",
+  "run_id": "RUN-X2N-S06-A001",
+  "schema_version": "1.0",
+  "source_receipt_sha256": "6031cad3920ca38790ab673a4bad2e5f49a7e26d5b41cebec50915d9d72f5888",
+  "status": "PASS_CI_SYNTH_CURRENT_SOFTWARE_ASSURANCE_REAL_MVP_NOT_RUN",
+  "task_base_commit": "34fac27299e1b5599b78456ee825814f456f2df7",
+  "task_commit": "64bac7c0e5d58a4e4365419ce9745d6217b69a39",
+  "task_id": "TSK.x2n.assurance.001"
+}
