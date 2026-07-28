@@ -135,7 +135,7 @@ test("部署验证必须走一次公网，而不是只看本机端口", () => {
   assert.match(deployScript, /^TUNNEL_SERVICE=/m, "必须知道隧道服务叫什么");
   assert.match(
     deployScript,
-    /systemctl enable --now \$TUNNEL_SERVICE/,
+    /systemctl enable \$TUNNEL_SERVICE/,
     "隧道必须开机自启：它 dead 过一整天没人发现",
   );
   assert.match(
@@ -154,4 +154,11 @@ test("设置页面对外地址不能指向挂着登录墙的那个域名", () =>
     /^PUBLIC_ORIGIN="\$\{CB_PUBLIC_ORIGIN:-https:\/\/cyberboss\./m,
     "cyberboss.* 前面有 Access，不能作为对外地址",
   );
+});
+
+test("部署后必须重启隧道，而不是只 enable --now", () => {
+  // 隧道 unit 写了 Requires=cyberboss-cloud.service：每次部署重启应用，systemd
+  // 会顺带停掉隧道；对一个已经停了的 unit，enable --now 不会再拉起来。上一次
+  // 部署就是这样——应用好好的，隧道 inactive，公网 530。
+  assert.match(deployScript, /systemctl restart \$TUNNEL_SERVICE/);
 });

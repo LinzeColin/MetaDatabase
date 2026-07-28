@@ -117,7 +117,13 @@ verify_live() {
   done
   [ "$ready" -eq 0 ] || return 1
   # 隧道必须活着并且开机自启，否则公网入口是空的。
-  remote "sudo systemctl enable --now $TUNNEL_SERVICE >/dev/null 2>&1 || true"
+  #
+  # 这里必须 restart 而不是 enable --now：隧道的 unit 写了
+  # Requires=cyberboss-cloud.service，所以每次部署重启应用，systemd 都会顺带把
+  # 隧道停掉；而对一个「已经停了」的 unit，enable --now 不会再把它拉起来。
+  # 上一次部署就是这样：应用起得好好的，隧道却是 inactive，公网 530。
+  remote "sudo systemctl enable $TUNNEL_SERVICE >/dev/null 2>&1 || true"
+  remote "sudo systemctl restart $TUNNEL_SERVICE >/dev/null 2>&1 || true"
   remote "systemctl is-active $TUNNEL_SERVICE" >/dev/null 2>&1 || return 1
   # 最后一关：从这台开发机走公网真的打开后台。本机 200 不代表别人打得开。
   for attempt in $(seq 1 20); do
