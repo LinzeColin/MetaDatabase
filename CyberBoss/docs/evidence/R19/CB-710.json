@@ -1,0 +1,14 @@
+{
+  "schema_version": 1, "task_id": "CB-710",
+  "scope": "安全上传、四平台 Parser、预检、幂等与恢复",
+  "acceptance": ["AC-018","AC-019","AC-020","AC-021","AC-022","AC-023"],
+  "depends_on": "CB-700", "status": "CLOSED",
+  "tests": [
+    { "script": "test/v8-prebuilt/imports.test.js", "result": "2/2 PASS", "note": "DAG 写作 import-parsers.test.js，产物实际为 imports.test.js" },
+    { "script": "test/v8-prebuilt/safe-zip-reader.test.js", "result": "2/2 PASS", "fixtures": ["safe-import.zip","traversal.zip"] },
+    { "script": "目标树全量", "result": "656/656 PASS" }
+  ],
+  "doc_artifact_discrepancies": [{"listed_in_dag":"starter_kit/test/core.test.js","finding":"任务包内不存在该文件（第三次出现的同一悬空引用）","handling":"未以其它文件冒名顶替"}],
+  "rollback": { "procedure": "删除未提交的暂存对象 → 保留导入台账的失败收据 → 既有成功记录不动" },
+  "claims_not_made": ["real four-platform archives imported in production"]
+}

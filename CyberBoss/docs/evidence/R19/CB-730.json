@@ -1,0 +1,21 @@
+{
+  "schema_version": 1, "task_id": "CB-730",
+  "scope": "公开共享入口、微信「开始」中文防呆 Onboarding 与 DeepSeek 账户页",
+  "acceptance": ["AC-004","AC-010","AC-037","AC-049","AC-051","AC-055"],
+  "depends_on": "CB-720", "status": "CLOSED",
+  "non_test_requirements_verified": {
+    "no_provider_model_or_api_key_choice_in_ordinary_user_ui": "grep public/v8 的全部 html 与 js，零命中",
+    "fixed_service_and_aggregate_usage_only": "公开页仅出现固定服务与聚合用量表述，无逐次调用明细"
+  },
+  "tests": [
+    { "script": "tests/browser/test_public_scan_mvp.py", "result": "PASS 18 checks, 0 console errors", "host": "OVH Linux 真实运行", "evidence": "CB-620/browser_public_scan_report.json" },
+    { "script": "test/v8-prebuilt/public-entry.test.js", "result": "3/3 PASS" },
+    { "script": "test/v8-prebuilt/public-entry-server.test.js", "result": "3/3 PASS" },
+    { "script": "test/v8-prebuilt/deepseek-user-message-runtime.test.js", "result": "4/4 PASS" },
+    { "script": "test/v8-prebuilt/novice-operator.test.js", "result": "2/2 PASS" },
+    { "script": "test/v8-prebuilt/status-portal.test.js", "result": "5/5 PASS" },
+    { "script": "目标树全量", "result": "656/656 PASS" }
+  ],
+  "rollback": { "procedure": "保留微信主路径可用 → 关闭 portal 变更端点 → 回退到上一份不可变静态资源" },
+  "claims_not_made": ["public entry served from production domain", "real users onboarded"]
+}
