@@ -18,7 +18,7 @@ from x2n_companion.canonical_store import CanonicalStore
 from x2n_companion.relation_reconciliation import (
     ReconciliationManifest,
     RelationReconciler,
-    build_owner_alpha_80_manifest_plan,
+    build_owner_mvp_80_manifest_plan,
     compare_batch_snapshots,
 )
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
@@ -800,18 +800,18 @@ class RelationReconciliationTests(unittest.TestCase):
             ("removed", "owner", "receipt_owner_removed_pending"),
         )
 
-    def test_owner_alpha_plan_and_cli_are_fixed_nonexecuting_tooling(self) -> None:
-        plan = build_owner_alpha_80_manifest_plan()
+    def test_owner_mvp_plan_and_cli_are_fixed_nonexecuting_tooling(self) -> None:
+        plan = build_owner_mvp_80_manifest_plan()
         self.assertEqual(plan["item_count"], 80)
         self.assertEqual(plan["execution"], "NOT_RUN")
         self.assertEqual(sum(scope["count"] for scope in plan["scopes"]), 80)
         self.assertEqual(plan["platform_calls"], 0)
         self.assertEqual(plan["relation_keys_in_plan"], 0)
         with self.assertRaises(X2NRuntimeError) as blocked:
-            build_owner_alpha_80_manifest_plan(79)
+            build_owner_mvp_80_manifest_plan(79)
         self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
 
-        args = runtime_cli.build_parser().parse_args(["reconcile", "owner-alpha-plan", "--items", "80"])
+        args = runtime_cli.build_parser().parse_args(["reconcile", "owner-mvp-plan", "--items", "80"])
         receipt = runtime_cli.run(args)
         self.assertEqual(receipt["task_id"], "TSK.x2n.adapters.005")
         self.assertEqual(receipt["real_account_execution"], "NOT_RUN")

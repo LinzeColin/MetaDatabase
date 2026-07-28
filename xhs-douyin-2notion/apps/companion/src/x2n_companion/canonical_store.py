@@ -2817,6 +2817,246 @@ class CanonicalStore:
             finally:
                 connection.close()
 
+    @staticmethod
+    def _local_ui_review_required(row: sqlite3.Row) -> bool:
+        """Return whether a redacted Canonical row still needs Owner review."""
+
+        classification_id = row["classification_id"]
+        if classification_id is None:
+            return True
+        if str(row["review_status"]) == "suggested":
+            return True
+        confidence = row["confidence_raw"]
+        return (
+            str(row["decision_mode"]) in {"model", "hybrid"}
+            and confidence is not None
+            and float(confidence) < 0.90
+        )
+
+    @staticmethod
+    def _local_ui_review_record(row: sqlite3.Row, artifact_ids: Sequence[str]) -> dict[str, Any]:
+        return {
+            "artifact_ids": list(artifact_ids),
+            "classification_id": None if row["classification_id"] is None else str(row["classification_id"]),
+            "confidence_raw": None if row["confidence_raw"] is None else float(row["confidence_raw"]),
+            "content_key": str(row["content_key"]),
+            "current_category_id": (
+                None if row["primary_category_id"] is None else str(row["primary_category_id"])
+            ),
+            "decision_mode": None if row["decision_mode"] is None else str(row["decision_mode"]),
+            "evidence_artifact_count": len(artifact_ids),
+            "platform": str(row["platform"]),
+            "review_status": None if row["review_status"] is None else str(row["review_status"]),
+            "taxonomy_version": None if row["taxonomy_version"] is None else int(row["taxonomy_version"]),
+        }
+
+    @staticmethod
+    def _local_ui_review_rows(connection: sqlite3.Connection, *, limit: int) -> tuple[sqlite3.Row, ...]:
+        return tuple(
+            connection.execute(
+                """
+                SELECT c.content_key, c.platform, latest.classification_id, latest.primary_category_id,
+                       latest.taxonomy_version, latest.decision_mode, latest.confidence_raw,
+                       latest.review_status
+                FROM content AS c
+                LEFT JOIN classification AS latest ON latest.classification_id = (
+                    SELECT candidate.classification_id
+                    FROM classification AS candidate
+                    WHERE candidate.content_key = c.content_key
+                    ORDER BY candidate.created_at DESC, candidate.classification_id DESC
+                    LIMIT 1
+                )
+                ORDER BY c.content_key
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        )
+
+    @staticmethod
+    def _local_ui_artifact_ids(connection: sqlite3.Connection, content_key: str) -> tuple[str, ...]:
+        return tuple(
+            str(row["artifact_id"])
+            for row in connection.execute(
+                """
+                SELECT artifact_id
+                FROM artifact
+                WHERE content_key = ?
+                ORDER BY artifact_type, artifact_sequence DESC, artifact_id DESC
+                """,
+                (content_key,),
+            ).fetchall()
+        )
+
+    def local_ui_snapshot(self, *, limit: int = 100) -> dict[str, Any]:
+        """Return an allowlisted local-UI view without payload text or private paths."""
+
+        if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 200:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Local UI result limit is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                connection.execute("BEGIN")
+                health = self._integrity(connection)
+                health["foreign_keys"] = int(connection.execute("PRAGMA foreign_keys").fetchone()[0]) == 1
+                health["schema_version"] = current_version(connection)
+                health["status"] = (
+                    "healthy"
+                    if all(health.get(name) == value for name, value in HEALTHY_CHECKS.items())
+                    and health["foreign_keys"]
+                    else "failed"
+                )
+                counts = self._table_counts(connection)
+                job_rows = connection.execute(
+                    """
+                    SELECT r.run_id, r.run_kind, r.state, r.created_at, r.finished_at,
+                           d.scope_id, f.error_code, f.fallback_eligible
+                    FROM run_record AS r
+                    LEFT JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                    LEFT JOIN run_failure AS f ON f.run_id = r.run_id
+                    ORDER BY r.created_at DESC, r.run_id DESC
+                    LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+                outbox_rows = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, sink_schema_version, status, attempt_count,
+                           last_error_code, updated_at
+                    FROM outbox_event
+                    ORDER BY updated_at DESC, event_id DESC
+                    LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+                capability_rows = connection.execute(
+                    """
+                    SELECT scope_id, terminal, reason_code, feature_flag, evaluated_at
+                    FROM capability_gate_outcome
+                    ORDER BY scope_id
+                    """
+                ).fetchall()
+                review_rows = self._local_ui_review_rows(connection, limit=limit)
+                reviews: list[dict[str, Any]] = []
+                for row in review_rows:
+                    if not self._local_ui_review_required(row):
+                        continue
+                    artifact_ids = self._local_ui_artifact_ids(connection, str(row["content_key"]))
+                    reviews.append(self._local_ui_review_record(row, artifact_ids))
+            finally:
+                if connection.in_transaction:
+                    connection.rollback()
+                connection.close()
+        return {
+            "capabilities": [
+                {
+                    "evaluated_at": str(row["evaluated_at"]),
+                    "feature_flag": str(row["feature_flag"]),
+                    "reason_code": str(row["reason_code"]),
+                    "scope_id": str(row["scope_id"]),
+                    "terminal": str(row["terminal"]),
+                }
+                for row in capability_rows
+            ],
+            "counts": counts,
+            "health": health,
+            "jobs": [
+                {
+                    "created_at": str(row["created_at"]),
+                    "error_code": None if row["error_code"] is None else str(row["error_code"]),
+                    "fallback_eligible": bool(row["fallback_eligible"] or 0),
+                    "finished_at": None if row["finished_at"] is None else str(row["finished_at"]),
+                    "job_id": str(row["run_id"]),
+                    "run_kind": str(row["run_kind"]),
+                    "scope_id": None if row["scope_id"] is None else str(row["scope_id"]),
+                    "state": str(row["state"]),
+                }
+                for row in job_rows
+            ],
+            "outbox": [
+                {
+                    "attempt_count": int(row["attempt_count"]),
+                    "content_key": str(row["content_key"]),
+                    "event_id": str(row["event_id"]),
+                    "last_error_code": None if row["last_error_code"] is None else str(row["last_error_code"]),
+                    "sink": str(row["sink"]),
+                    "sink_schema_version": str(row["sink_schema_version"]),
+                    "status": str(row["status"]),
+                    "updated_at": str(row["updated_at"]),
+                }
+                for row in outbox_rows
+            ],
+            "review_queue": reviews,
+        }
+
+    def local_ui_review_item(self, content_key: str) -> dict[str, Any] | None:
+        """Return a single reviewable item using only immutable identifiers and metadata."""
+
+        if not isinstance(content_key, str) or not 3 <= len(content_key) <= 768 or "\x00" in content_key:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Local UI content key is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                connection.execute("BEGIN")
+                row = connection.execute(
+                    """
+                    SELECT c.content_key, c.platform, latest.classification_id, latest.primary_category_id,
+                           latest.taxonomy_version, latest.decision_mode, latest.confidence_raw,
+                           latest.review_status
+                    FROM content AS c
+                    LEFT JOIN classification AS latest ON latest.classification_id = (
+                        SELECT candidate.classification_id
+                        FROM classification AS candidate
+                        WHERE candidate.content_key = c.content_key
+                        ORDER BY candidate.created_at DESC, candidate.classification_id DESC
+                        LIMIT 1
+                    )
+                    WHERE c.content_key = ?
+                    """,
+                    (content_key,),
+                ).fetchone()
+                if row is None or not self._local_ui_review_required(row):
+                    return None
+                artifact_ids = self._local_ui_artifact_ids(connection, content_key)
+                return self._local_ui_review_record(row, artifact_ids)
+            finally:
+                if connection.in_transaction:
+                    connection.rollback()
+                connection.close()
+
+    def local_ui_job(self, job_id: str) -> dict[str, Any] | None:
+        """Return one durable job's non-sensitive operational state."""
+
+        _validate_token(job_id, label="job_id")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT r.run_id, r.run_kind, r.state, r.created_at, r.finished_at,
+                           d.scope_id, f.error_code, f.fallback_eligible
+                    FROM run_record AS r
+                    LEFT JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                    LEFT JOIN run_failure AS f ON f.run_id = r.run_id
+                    WHERE r.run_id = ?
+                    """,
+                    (job_id,),
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            return None
+        return {
+            "created_at": str(row["created_at"]),
+            "error_code": None if row["error_code"] is None else str(row["error_code"]),
+            "fallback_eligible": bool(row["fallback_eligible"] or 0),
+            "finished_at": None if row["finished_at"] is None else str(row["finished_at"]),
+            "job_id": str(row["run_id"]),
+            "run_kind": str(row["run_kind"]),
+            "scope_id": None if row["scope_id"] is None else str(row["scope_id"]),
+            "state": str(row["state"]),
+        }
+
     def content_exists(self, content_key: str) -> bool:
         return self.content_platform(content_key) is not None
 

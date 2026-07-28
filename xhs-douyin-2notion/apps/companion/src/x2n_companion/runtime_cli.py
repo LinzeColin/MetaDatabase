@@ -37,7 +37,7 @@ from .profile_session import (
     native_host_registered,
     safe_reference_configured,
 )
-from .relation_reconciliation import build_owner_alpha_80_manifest_plan
+from .relation_reconciliation import build_owner_mvp_80_manifest_plan
 from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
 from .taxonomy import (
     ClassificationEvaluator,
@@ -47,6 +47,7 @@ from .taxonomy import (
 )
 from .taobao_selected import build_taobao_canary_plan
 from .weibo_selected import build_weibo_canary_plan
+from .webui import serve_local_webui
 from .xiaohongshu_favorites import build_xhs_favorites_canary_plan
 from .xiaohongshu_likes import build_xhs_likes_canary_plan
 
@@ -66,6 +67,7 @@ ASR_TASK_ID = "TSK.x2n.multimodal.002"
 OCR_VISION_TASK_ID = "TSK.x2n.multimodal.003"
 CLASSIFICATION_TASK_ID = "TSK.x2n.multimodal.005"
 RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
+WEBUI_TASK_ID = "TSK.x2n.uxops.003"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -215,14 +217,18 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "task_id": CLASSIFICATION_TASK_ID,
             }
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown model evaluation action")
+    if args.action == "webui":
+        if args.webui_action != "serve":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Local WebUI action")
+        return serve_local_webui(_store(create=False), port=args.port)
     if args.action == "reconcile":
-        if args.reconcile_action != "owner-alpha-plan":
+        if args.reconcile_action != "owner-mvp-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown reconciliation action")
         return _success(
-            "reconciliation_owner_alpha_plan",
-            acceptance_scope="ADAPTERS_005_OWNER_ALPHA_TOOLING",
+            "reconciliation_owner_mvp_plan",
+            acceptance_scope="ADAPTERS_005_OWNER_MVP_TOOLING",
             task_id=RECONCILIATION_TASK_ID,
-            plan=build_owner_alpha_80_manifest_plan(args.items),
+            plan=build_owner_mvp_80_manifest_plan(args.items),
         )
     if args.action == "taobao":
         if args.taobao_action != "canary-plan":
@@ -395,8 +401,12 @@ def build_parser() -> argparse.ArgumentParser:
     classify.add_argument("--dataset", required=True)
     reconcile = subparsers.add_parser("reconcile")
     reconcile_actions = reconcile.add_subparsers(dest="reconcile_action", required=True)
-    owner_alpha_plan = reconcile_actions.add_parser("owner-alpha-plan")
-    owner_alpha_plan.add_argument("--items", type=int, default=80)
+    owner_mvp_plan = reconcile_actions.add_parser("owner-mvp-plan")
+    owner_mvp_plan.add_argument("--items", type=int, default=80)
+    webui = subparsers.add_parser("webui")
+    webui_actions = webui.add_subparsers(dest="webui_action", required=True)
+    serve = webui_actions.add_parser("serve")
+    serve.add_argument("--port", type=int, default=8765)
     bilibili = subparsers.add_parser("bilibili")
     bilibili_actions = bilibili.add_subparsers(dest="bilibili_action", required=True)
     bilibili_canary_plan = bilibili_actions.add_parser("canary-plan")
@@ -473,6 +483,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.action == "verify"
         else RECONCILIATION_TASK_ID
         if args.action == "reconcile"
+        else WEBUI_TASK_ID
+        if args.action == "webui"
         else TAOBAO_TASK_ID
         if args.action == "taobao"
         else WEIBO_TASK_ID

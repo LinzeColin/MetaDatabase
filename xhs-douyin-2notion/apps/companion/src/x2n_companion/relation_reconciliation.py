@@ -36,7 +36,7 @@ ADAPTER_VERSION = "1.0.0"
 RESUME_COMPATIBILITY_VERSION = "relation-reconciliation-1.1.0"
 RUN_KIND = "relation_reconciliation_v1"
 POLICY_REVISION = "2026-07-23"
-OWNER_ALPHA_ITEM_LIMIT = 80
+OWNER_MVP_ITEM_LIMIT = 80
 MAX_SCOPE_RELATIONS = 10_000
 
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -510,7 +510,7 @@ class ReconciliationReceipt:
             "missing_relation_count": self.missing_relation_count,
             "observed_relation_count": self.observed_relation_count,
             "outcome": self.outcome,
-            "owner_alpha": "NOT_RUN",
+            "owner_mvp": "NOT_RUN",
             "pending_missing_count": self.pending_missing_count,
             "physical_deletes": 0,
             "platform_calls": 0,
@@ -529,15 +529,15 @@ class ReconciliationReceipt:
         }
 
 
-def build_owner_alpha_80_manifest_plan(item_count: int = OWNER_ALPHA_ITEM_LIMIT) -> dict[str, Any]:
-    if not isinstance(item_count, int) or isinstance(item_count, bool) or item_count != OWNER_ALPHA_ITEM_LIMIT:
-        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner Alpha manifest is fixed to 80 items")
+def build_owner_mvp_80_manifest_plan(item_count: int = OWNER_MVP_ITEM_LIMIT) -> dict[str, Any]:
+    if not isinstance(item_count, int) or isinstance(item_count, bool) or item_count != OWNER_MVP_ITEM_LIMIT:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP manifest is fixed to 80 items")
     return {
         "acceptance_id": "ACC.x2n.rel.006",
         "automatic_pagination": False,
         "automatic_scroll": False,
         "execution": "NOT_RUN",
-        "item_count": OWNER_ALPHA_ITEM_LIMIT,
+        "item_count": OWNER_MVP_ITEM_LIMIT,
         "owner_profile_required": True,
         "physical_delete_enabled": False,
         "platform_calls": 0,
@@ -549,7 +549,7 @@ def build_owner_alpha_80_manifest_plan(item_count: int = OWNER_ALPHA_ITEM_LIMIT)
             {"count": 20, "platform": "douyin", "relation": "favorited"},
             {"count": 20, "platform": "douyin", "relation": "liked"},
         ],
-        "status": "TOOLING_READY_OWNER_ALPHA_NOT_RUN",
+        "status": "TOOLING_READY_OWNER_MVP_NOT_RUN",
         "task_id": TASK_ID,
     }
 
