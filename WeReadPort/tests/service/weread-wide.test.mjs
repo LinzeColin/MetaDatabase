@@ -1,9 +1,35 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
+import { PlatformStore } from "../../service/platform/store.mjs";
 import { testPlatform } from "./helpers.mjs";
 
 const KEY = `wrk-${"W".repeat(32)}`;
+const EVENT_BASE = 1_700_000_000;
+
+test("旧账户数据库启动时为笔记补齐事件时间列且不丢数据", async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), "weread-event-time-"));
+  const databasePath = path.join(directory, "platform.sqlite3");
+  const legacy = new DatabaseSync(databasePath);
+  legacy.exec(`CREATE TABLE notes (
+    id TEXT PRIMARY KEY, account_id TEXT NOT NULL, source TEXT NOT NULL, external_id TEXT NOT NULL,
+    title TEXT NOT NULL, object_key TEXT NOT NULL, content_hash TEXT NOT NULL, word_count INTEGER NOT NULL DEFAULT 0,
+    category TEXT, version INTEGER NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, deleted_at INTEGER,
+    UNIQUE(account_id, source, external_id)
+  ) STRICT;`);
+  legacy.prepare("INSERT INTO notes(id,account_id,source,external_id,title,object_key,content_hash,word_count,category,version,created_at,updated_at,deleted_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
+    .run("note_legacy", "acct_legacy", "weread", "highlight:legacy", "旧书摘", "legacy.enc", "hash", 2, "微信读书", 1, EVENT_BASE, EVENT_BASE + 50, null);
+  legacy.close();
+  const store = new PlatformStore(databasePath, { clock: () => (EVENT_BASE + 100) * 1000 });
+  t.after(async () => { store.close(); await rm(directory, { recursive: true, force: true }); });
+  assert.equal(store.getNote("acct_legacy", "note_legacy").eventAt, EVENT_BASE);
+  assert.ok(store.db.prepare("PRAGMA table_info(notes)").all().some(column => column.name === "event_at"));
+});
+
 function gatewayMock(calls) {
   return async (_url, init) => {
     const body = JSON.parse(init.body);
@@ -14,8 +40,8 @@ function gatewayMock(calls) {
     if (api === "/_list") payload.apis = [...WIDE_SCOPE_APIS];
     else if (api === "/shelf/sync") payload.books = ids.map(bookId => ({ bookId }));
     else if (api === "/user/notebooks") payload = { errcode: 0, books: ids.map((bookId, index) => ({ bookId, sort: 1000 - index, book: { bookId, title: `书籍 ${index + 1}`, author: "作者", category: "研究" } })), totalNoteCount: 16, hasMore: false };
-    else if (api === "/book/bookmarklist") payload = { errcode: 0, updated: [{ bookmarkId: `bm-${body.bookId}`, bookId: body.bookId, markText: `划线 ${body.bookId}`, createTime: 100 }], chapters: [{ chapterUid: 1, title: "第一章" }] };
-    else if (api === "/review/list/mine") payload = { errcode: 0, reviews: [{ review: { reviewId: `rv-${body.bookid}`, content: `想法 ${body.bookid}`, createTime: 101 } }], totalCount: 1, hasMore: false, synckey: 1 };
+    else if (api === "/book/bookmarklist") { const index = Number(String(body.bookId).replace(/\D/g, "")); const updateTime = EVENT_BASE + 10 + index; payload = { errcode: 0, updated: [{ bookmarkId: `bm-${body.bookId}`, bookId: body.bookId, markText: `划线 ${body.bookId}`, createTime: EVENT_BASE + index, updateTime: index === 1 ? updateTime * 1000 : updateTime }], chapters: [{ chapterUid: 1, title: "第一章" }] }; }
+    else if (api === "/review/list/mine") { const index = Number(String(body.bookid).replace(/\D/g, "")); payload = { errcode: 0, reviews: [{ review: { reviewId: `rv-${body.bookid}`, content: `想法 ${body.bookid}`, createTime: EVENT_BASE + 100 + index } }], totalCount: 1, hasMore: false, synckey: 1 }; }
     else if (api === "/book/info") payload = { errcode: 0, bookId: body.bookId, title: `书籍 ${body.bookId}`, author: "作者", category: "研究" };
     else if (api === "/book/getprogress") payload = { errcode: 0, bookId: body.bookId, progress: 42 };
     else if (api === "/book/chapterinfo") payload = { errcode: 0, chapters: [{ chapterUid: 1, title: "第一章" }] };
@@ -49,4 +75,29 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
   assert.equal(platform.service.listNotes(user.account.id, { limit: 100 }).length, 16);
   platform.service.updateConsent(user.account.id, { behaviorAnalytics: false, recommendationPersonalization: true });
   assert.ok(platform.service.analytics(user.account.id).recommendations.some(item => item.source === "weread-official"));
+});
+
+test("微信读书保留真实事件时间、按事件倒序且重复同步不重写历史", async t => {
+  const calls = [];
+  let now = (EVENT_BASE + 86_400) * 1000;
+  const platform = testPlatform({ fetchImpl: gatewayMock(calls), clock: () => now });
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY, displayName: "事件时间用户" }, {}, { verify: false });
+  const first = await platform.service.syncWeRead(user.account.id, { recommendationPages: 1 });
+  const before = platform.service.listNotes(user.account.id, { limit: 100 });
+  assert.equal(first.summary.updatedDocuments, 16);
+  assert.equal(first.summary.unchangedDocuments, 0);
+  assert.equal(before[0].eventAt, EVENT_BASE + 108);
+  assert.equal(before.find(note => note.externalId === "highlight:bm-book-1").eventAt, EVENT_BASE + 11);
+  assert.ok(before.every((note, index) => index === 0 || Number(before[index - 1].eventAt) >= Number(note.eventAt)));
+  const original = new Map(before.map(note => [note.id, { version: note.version, updatedAt: note.updatedAt, eventAt: note.eventAt }]));
+
+  now += 3_600_000;
+  const second = await platform.service.syncWeRead(user.account.id, { recommendationPages: 1 });
+  const after = platform.service.listNotes(user.account.id, { limit: 100 });
+  assert.equal(second.summary.updatedDocuments, 0);
+  assert.equal(second.summary.unchangedDocuments, 16);
+  for (const note of after) assert.deepEqual({ version: note.version, updatedAt: note.updatedAt, eventAt: note.eventAt }, original.get(note.id));
+  const eventDate = new Date((EVENT_BASE + 108) * 1000).toISOString().slice(0, 10);
+  assert.ok(platform.service.analytics(user.account.id).readingHeatmap.some(day => day.date === eventDate && day.value > 0));
 });

@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS notes (
   word_count INTEGER NOT NULL DEFAULT 0,
   category TEXT,
   version INTEGER NOT NULL,
+  event_at INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   deleted_at INTEGER,

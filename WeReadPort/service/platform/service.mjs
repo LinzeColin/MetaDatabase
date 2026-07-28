@@ -370,16 +370,26 @@ export class PlatformService {
     }
   }
 
-  async saveDocument(accountId, document, { expectedVersion = null } = {}) {
+  async saveDocument(accountId, document, { expectedVersion = null, reportStatus = false } = {}) {
     const source = sanitizeSource(document.source || "manual");
     const externalId = sanitizeText(document.externalId || randomId("manual_"), 240);
     const title = sanitizeText(document.title || "未命名笔记", 180) || "未命名笔记";
     const content = String(document.content || "");
+    const category = sanitizeText(document.category || "未分类", 80);
+    const contentHash = sha256(content);
+    const current = this.store.findNote(accountId, source, externalId);
+    const eventAt = normalizeSourceEventAt(document.eventAt ?? document.updatedAt ?? document.createdAt);
     if (!content.trim()) throw new PlatformError("EMPTY_NOTE", "笔记内容不能为空。", 400);
     if (Buffer.byteLength(content, "utf8") > this.config.maxImportBytes) throw new PlatformError("NOTE_TOO_LARGE", "单条笔记超过安全上限。", 413);
+    if (current && expectedVersion !== null && Number(current.version) !== Number(expectedVersion)) {
+      return reportStatus ? { note: current, conflict: true, unchanged: false } : { conflict: true, current };
+    }
+    const effectiveEventAt = eventAt || Number(current?.eventAt || current?.createdAt || 0);
+    if (current && !current.deletedAt && current.contentHash === contentHash && current.title === title && String(current.category || "") === category && Number(current.eventAt || current.createdAt || 0) === effectiveEventAt) {
+      return reportStatus ? { note: current, unchanged: true } : current;
+    }
     const accountKey = this.accountKey(accountId);
     const id = randomId("note_");
-    const current = this.store.findNote(accountId, source, externalId);
     const noteId = current?.id || id;
     const nextVersion = Number(current?.version || 0) + 1;
     const objectKey = `${this.config.primaryObjectPrefix}/accounts/${accountId}/notes/${noteId}/v${nextVersion}.enc`;
@@ -389,15 +399,18 @@ export class PlatformService {
     try {
       result = this.store.upsertNote({
         id: noteId, accountId, source, externalId, title, objectKey,
-        contentHash: sha256(content), wordCount: countWords(content), category: sanitizeText(document.category || "未分类", 80), expectedVersion,
+        contentHash, wordCount: countWords(content), category, eventAt, expectedVersion,
       });
     } catch (error) {
       await this.objectStore.delete(objectKey).catch(() => undefined);
       throw error;
     }
-    if (result.conflict) { await this.objectStore.delete(objectKey); return result; }
+    if (result.conflict) {
+      await this.objectStore.delete(objectKey);
+      return reportStatus ? { note: result.current, conflict: true, unchanged: false } : result;
+    }
     this.outbox(accountId, "NOTE_UPSERTED", { noteId: result.note.id, source, version: result.note.version, contentHash: result.note.contentHash, objectKey });
-    return result.note;
+    return reportStatus ? { note: result.note, unchanged: false } : result.note;
   }
 
   async readNote(accountId, noteId) {
@@ -444,13 +457,19 @@ export class PlatformService {
     const key = decryptForAccount(this.accountKey(accountId), credential.secretEncrypted, `credential:weread:${accountId}:v1`).toString("utf8");
     const dataset = await syncWeReadDataset(key, { fetchImpl: this.fetchImpl, maxBooks: this.config.maxWereadBooks, timeoutMs: this.config.upstreamTimeoutMs, recommendationPages: Math.min(Math.max(Number(recommendationPages || 3), 1), 10) });
     const documents = normalizeWeReadDocuments(dataset);
-    let saved = 0;
-    for (const document of documents) { await this.saveDocument(accountId, document); saved += 1; }
-    this.store.updateWereadState(accountId, { capabilities: dataset.capabilities, summary: { ...dataset.summary, importedDocuments: saved } });
+    let updatedDocuments = 0;
+    let unchangedDocuments = 0;
+    for (const document of documents) {
+      const outcome = await this.saveDocument(accountId, document, { reportStatus: true });
+      if (outcome.unchanged) unchangedDocuments += 1;
+      else updatedDocuments += 1;
+    }
+    const summary = { ...dataset.summary, importedDocuments: documents.length, updatedDocuments, unchangedDocuments };
+    this.store.updateWereadState(accountId, { capabilities: dataset.capabilities, summary });
     this.store.replaceRecommendations(accountId, recommendationRows(dataset));
-    this.audit(accountId, "weread_sync_completed", { imported: saved, books: dataset.summary.detailedBooks, partial: dataset.partial });
+    this.audit(accountId, "weread_sync_completed", { imported: documents.length, updated: updatedDocuments, unchanged: unchangedDocuments, books: dataset.summary.detailedBooks, partial: dataset.partial });
     return {
-      summary: { ...dataset.summary, importedDocuments: saved },
+      summary,
       capabilities: dataset.capabilities,
       failures: dataset.failures,
       coverage: {
@@ -611,6 +630,7 @@ function publicImportJob(job) {
 }
 
 function publicNote(note) { const { objectKey, ...publicRow } = note; return publicRow; }
+function normalizeSourceEventAt(value) { const raw = Number(value); if (!Number.isFinite(raw) || raw <= 0) return null; const seconds = raw >= 10_000_000_000 ? Math.floor(raw / 1000) : Math.floor(raw); return seconds > 0 ? seconds : null; }
 function requireValidWeReadKey(value) {
   try { return validateWeReadKey(value); }
   catch (error) {

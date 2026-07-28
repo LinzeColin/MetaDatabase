@@ -2,9 +2,11 @@ import { AccountApi } from "./account-api.js";
 import { readObsidianSelection } from "./obsidian-import.js";
 
 const api = new AccountApi();
-const state = { account: null, view: "overview", busy: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null, serviceReady: null, serviceDetail: "" };
+const AUTO_SYNC_STALE_SECONDS = 300;
+const state = { account: null, view: "overview", busy: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null, serviceReady: null, serviceDetail: "", autoSyncAccountId: "" };
 
 export async function renderAccountPlatform(root) {
+  const oauthReturned = consumeOAuthLoginReturn();
   root.innerHTML = shell();
   bindGlobal(root);
   setBusy(true, "正在安全检查登录状态…");
@@ -22,6 +24,7 @@ export async function renderAccountPlatform(root) {
   }
   setBusy(false);
   await renderCurrent(root);
+  if (state.account) void syncWeReadAfterLogin(root, { force: oauthReturned });
 }
 
 function shell() {
@@ -156,20 +159,22 @@ function bindAuth(main) {
       state.account = result.account; state.view = "overview"; state.notes = []; state.dashboard = null; await renderCurrent(document);
       return result;
     });
-    if (result && (mode === "register" || !state.notes.some(note => note.source === "weread"))) await runWeReadSync(document.querySelector("#account-content"));
+    if (result) await syncWeReadAfterLogin(document, { force: true });
   });
   main.querySelector("#password-auth-form").addEventListener("submit", async event => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
-    await action(mode === "register" ? "正在创建加密账户…" : "正在安全登录…", async () => {
+    const result = await action(mode === "register" ? "正在创建加密账户…" : "正在安全登录…", async () => {
       const result = mode === "register" ? await api.registerPassword(data) : await api.loginPassword(data);
       state.account = result.account; state.view = "overview"; await renderCurrent(document);
+      return result;
     });
+    if (result) await syncWeReadAfterLogin(document, { force: true });
   });
   main.querySelectorAll("[data-provider]").forEach(button => button.addEventListener("click", () => action(`正在前往 ${providerLabel(button.dataset.provider)} 授权…`, () => api.oauth(button.dataset.provider, "login"))));
 }
 function bindApp(main) {
   main.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", async () => { state.view = button.dataset.view; await renderCurrent(document); }));
-  main.querySelector("#logout-button").addEventListener("click", () => action("正在安全退出…", async () => { await api.logout(); state.account = null; state.view = "overview"; state.notes = []; state.dashboard = null; await renderCurrent(document); }));
+  main.querySelector("#logout-button").addEventListener("click", () => action("正在安全退出…", async () => { await api.logout(); state.account = null; state.view = "overview"; state.notes = []; state.dashboard = null; state.autoSyncAccountId = ""; await renderCurrent(document); }));
 }
 
 async function loadOverview(main) {
@@ -238,8 +243,32 @@ function openWeReadDialog(content) {
   workspace.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
   workspace.querySelector("#bind-weread").addEventListener("submit", async event => { event.preventDefault(); const key = new FormData(event.currentTarget).get("key"); await action("正在验证并绑定微信读书…", async () => { const result = await api.bindWeRead(key); state.account = result.account; toast("微信读书已绑定，正在同步完整数据。", "success"); await runWeReadSync(content); }); });
 }
-async function runWeReadSync(content) {
-  await action("正在同步完整微信读书数据；书籍较多时会分批处理…", async () => { const result = await api.wereadSync(); toast(`同步完成：${result.summary.importedDocuments || 0} 条笔记，${result.summary.detailedBooks || 0} 本书。`, result.failures?.length ? "warning" : "success"); const profile = await api.profile(); state.account = profile.account; state.view = "notes"; await renderCurrent(document); });
+function consumeOAuthLoginReturn() {
+  const url = new URL(location.href);
+  const returned = Boolean(url.searchParams.get("oauth")) && url.searchParams.get("status") === "connected";
+  if (returned) {
+    url.searchParams.delete("oauth");
+    url.searchParams.delete("status");
+    history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+  return returned;
+}
+function hasWeReadCredential(account = state.account) { return Boolean(account?.credentials?.some(item => item.provider === "weread")); }
+async function syncWeReadAfterLogin(root, { force = false } = {}) {
+  const account = state.account;
+  if (!hasWeReadCredential(account) || state.autoSyncAccountId === account.id) return;
+  const lastSyncAt = Number(account.weread?.lastSyncAt || 0);
+  if (!force && lastSyncAt > 0 && Date.now() / 1000 - lastSyncAt < AUTO_SYNC_STALE_SECONDS) return;
+  state.autoSyncAccountId = account.id;
+  await runWeReadSync(root.querySelector("#account-content"), { automatic: true });
+}
+async function runWeReadSync(content, { automatic = false } = {}) {
+  return action(automatic ? "登录成功，正在自动同步微信读书数据…" : "正在同步完整微信读书数据；书籍较多时会分批处理…", async () => {
+    const result = await api.wereadSync();
+    const summary = result.summary || {};
+    toast(`同步完成：${summary.updatedDocuments ?? summary.importedDocuments ?? 0} 条更新，${summary.unchangedDocuments || 0} 条已是最新。`, result.failures?.length ? "warning" : "success");
+    const profile = await api.profile(); state.account = profile.account; state.view = "notes"; await renderCurrent(document); return result;
+  });
 }
 function openObsidianChooser(content) {
   const workspace = content.querySelector("#import-workspace");
@@ -282,7 +311,7 @@ async function loadNotes(main) {
   bindNoteRows(content);
   content.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => { state.view = button.dataset.go; renderCurrent(document); }));
 }
-function noteList(notes, interactive) { return `<div class="note-list">${notes.map(note => `<article class="note-row" ${interactive ? `data-note="${escapeAttr(note.id)}" tabindex="0"` : ""}><span class="note-source">${sourceName(note.source)}</span><div><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.category || "未分类")} · ${formatDate(note.updatedAt)} · 版本 ${note.version}</p></div><span class="note-arrow" aria-hidden="true">›</span></article>`).join("")}</div>`; }
+function noteList(notes, interactive) { return `<div class="note-list">${notes.map(note => `<article class="note-row" ${interactive ? `data-note="${escapeAttr(note.id)}" tabindex="0"` : ""}><span class="note-source">${sourceName(note.source)}</span><div><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.category || "未分类")} · ${noteTimeLabel(note)} · 版本 ${note.version}</p></div><span class="note-arrow" aria-hidden="true">›</span></article>`).join("")}</div>`; }
 function bindNoteRows(content) { content.querySelectorAll("[data-note]").forEach(row => { const open = () => openNote(content, row.dataset.note); row.addEventListener("click", open); row.addEventListener("keydown", event => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); open(); } }); }); }
 async function openNote(content, id) { await action("正在解密笔记…", async () => { const result = await api.note(id); noteEditor(content, result.note); }); }
 function noteEditor(content, note = null) {
@@ -429,6 +458,7 @@ function sourceName(source) { return ({ weread: "微信读书", notion: "Notion"
 function initials(value) { return String(value || "阅").trim().slice(0, 2).toUpperCase(); }
 function formatDate(value) { const timestamp = Number(value || 0) < 1e12 ? Number(value || 0) * 1000 : Number(value || 0); if (!timestamp) return "未知时间"; return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric" }).format(timestamp); }
 function formatDateTime(value) { const timestamp = Number(value || 0) < 1e12 ? Number(value || 0) * 1000 : Number(value || 0); if (!timestamp) return "未知时间"; return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(timestamp); }
+function noteTimeLabel(note) { return note.eventAt ? `真实事件时间 ${formatDate(note.eventAt)}` : `更新时间 ${formatDate(note.updatedAt)}`; }
 function numberFormat(value) { return new Intl.NumberFormat("zh-CN", { notation: Number(value) > 9999 ? "compact" : "standard" }).format(Number(value || 0)); }
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]); }
 function escapeAttr(value) { return escapeHtml(value).replace(/`/g, "&#96;"); }

@@ -31,8 +31,11 @@ export class PlatformStore {
     this.ensureColumn("import_jobs", "attempts", "INTEGER NOT NULL DEFAULT 0");
     this.ensureColumn("import_jobs", "worker_id", "TEXT");
     this.ensureColumn("import_jobs", "lease_until", "INTEGER");
+    this.ensureColumn("notes", "event_at", "INTEGER NOT NULL DEFAULT 0");
+    this.db.exec("UPDATE notes SET event_at=created_at WHERE event_at IS NULL OR event_at=0");
     this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS sessions_public_id_idx ON sessions(id) WHERE id IS NOT NULL");
     this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_queue_idx ON import_jobs(state, lease_until, created_at)");
+    this.db.exec("CREATE INDEX IF NOT EXISTS notes_account_event_idx ON notes(account_id, event_at DESC, id DESC)");
   }
 
   ensureColumn(table, column, definition) {
@@ -216,7 +219,7 @@ export class PlatformStore {
     return Number(this.db.prepare("DELETE FROM provider_connections WHERE account_id=? AND provider=?").run(accountId, provider).changes) === 1;
   }
 
-  upsertNote({ id, accountId, source, externalId, title, objectKey, contentHash, wordCount = 0, category = null, expectedVersion = null }) {
+  upsertNote({ id, accountId, source, externalId, title, objectKey, contentHash, wordCount = 0, category = null, eventAt = null, expectedVersion = null }) {
     const now = this.now();
     return this.transaction(() => {
       const current = this.findNote(accountId, source, externalId);
@@ -224,10 +227,11 @@ export class PlatformStore {
       const noteId = current?.id || id;
       const version = Number(current?.version || 0) + 1;
       const createdAt = current?.createdAt || now;
-      this.db.prepare(`INSERT INTO notes(id,account_id,source,external_id,title,object_key,content_hash,word_count,category,version,created_at,updated_at,deleted_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,NULL)
-        ON CONFLICT(account_id,source,external_id) DO UPDATE SET title=excluded.title,object_key=excluded.object_key,content_hash=excluded.content_hash,word_count=excluded.word_count,category=excluded.category,version=excluded.version,updated_at=excluded.updated_at,deleted_at=NULL`)
-        .run(noteId, accountId, source, externalId, title, objectKey, contentHash, wordCount, category, version, createdAt, now);
+      const effectiveEventAt = normalizeEventAt(eventAt, Number(current?.eventAt || createdAt || now));
+      this.db.prepare(`INSERT INTO notes(id,account_id,source,external_id,title,object_key,content_hash,word_count,category,version,event_at,created_at,updated_at,deleted_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)
+        ON CONFLICT(account_id,source,external_id) DO UPDATE SET title=excluded.title,object_key=excluded.object_key,content_hash=excluded.content_hash,word_count=excluded.word_count,category=excluded.category,version=excluded.version,event_at=excluded.event_at,updated_at=excluded.updated_at,deleted_at=NULL`)
+        .run(noteId, accountId, source, externalId, title, objectKey, contentHash, wordCount, category, version, effectiveEventAt, createdAt, now);
       this.db.prepare("INSERT OR IGNORE INTO note_objects(object_key,account_id,note_id,created_at) VALUES(?,?,?,?)").run(objectKey, accountId, noteId, now);
       this.appendSyncEvent({ accountId, entityType: "note", entityId: noteId, operation: current ? "UPDATE" : "CREATE", entityVersion: version, payloadHash: contentHash, occurredAt: now });
       return { conflict: false, note: this.getNote(accountId, noteId) };
@@ -235,17 +239,20 @@ export class PlatformStore {
   }
 
   getNote(accountId, id) {
-    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND id=?").get(accountId, id) ?? null;
+    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND id=?").get(accountId, id) ?? null;
   }
 
   findNote(accountId, source, externalId) {
-    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND source=? AND external_id=?").get(accountId, source, externalId) ?? null;
+    return this.db.prepare("SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? AND source=? AND external_id=?").get(accountId, source, externalId) ?? null;
   }
 
-  listNotes(accountId, { includeDeleted = false, limit = 200, afterUpdatedAt = 0, afterId = "" } = {}) {
+  listNotes(accountId, { includeDeleted = false, limit = 200, afterUpdatedAt = 0, afterId = "", sort = "event" } = {}) {
     const deleted = includeDeleted ? "" : "AND deleted_at IS NULL";
-    return this.db.prepare(`SELECT id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt FROM notes WHERE account_id=? ${deleted} AND (updated_at>? OR (updated_at=? AND id>?)) ORDER BY updated_at,id LIMIT ?`)
+    const columns = "id,account_id AS accountId,source,external_id AS externalId,title,object_key AS objectKey,content_hash AS contentHash,word_count AS wordCount,category,version,event_at AS eventAt,created_at AS createdAt,updated_at AS updatedAt,deleted_at AS deletedAt";
+    if (sort === "updated") return this.db.prepare(`SELECT ${columns} FROM notes WHERE account_id=? ${deleted} AND (updated_at>? OR (updated_at=? AND id>?)) ORDER BY updated_at,id LIMIT ?`)
       .all(accountId, afterUpdatedAt, afterUpdatedAt, afterId, limit);
+    return this.db.prepare(`SELECT ${columns} FROM notes WHERE account_id=? ${deleted} ORDER BY CASE WHEN event_at>0 THEN event_at ELSE updated_at END DESC,id DESC LIMIT ?`)
+      .all(accountId, limit);
   }
 
   deleteNote(accountId, id, expectedVersion = null) {
@@ -428,6 +435,7 @@ export class PlatformStore {
 
 function parseJson(value) { try { const result = JSON.parse(value || "{}"); return result && typeof result === "object" && !Array.isArray(result) ? result : {}; } catch { return {}; } }
 function parseArray(value) { try { const result = JSON.parse(value || "[]"); return Array.isArray(result) ? result : []; } catch { return []; } }
+function normalizeEventAt(value, fallback) { const raw = Number(value); if (!Number.isFinite(raw) || raw <= 0) return fallback; const seconds = raw >= 10_000_000_000 ? Math.floor(raw / 1000) : Math.floor(raw); return seconds > 0 ? seconds : fallback; }
 function redactSubject(provider, subject) {
   const value = String(subject ?? "");
   if (provider === "email") return value.replace(/^(.).+(@.+)$/, "$1***$2");

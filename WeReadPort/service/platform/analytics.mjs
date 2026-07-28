@@ -44,7 +44,7 @@ function buildHeatmap(notes, events, now) {
     days.set(key, 0);
   }
   for (const note of notes) {
-    const key = new Date(Number(note.updatedAt) * 1000).toISOString().slice(0, 10);
+    const key = new Date(noteEventAt(note) * 1000).toISOString().slice(0, 10);
     if (days.has(key)) days.set(key, days.get(key) + 1);
   }
   for (const event of events) {
@@ -60,7 +60,7 @@ function buildWeeklyTrend(notes, now) {
   for (let index = 11; index >= 0; index -= 1) {
     const end = new Date(now - index * 7 * 86400000);
     const start = new Date(end.getTime() - 7 * 86400000);
-    const value = notes.filter(note => Number(note.updatedAt) * 1000 >= start.getTime() && Number(note.updatedAt) * 1000 < end.getTime()).length;
+    const value = notes.filter(note => noteEventAt(note) * 1000 >= start.getTime() && noteEventAt(note) * 1000 < end.getTime()).length;
     weeks.push({ week: start.toISOString().slice(0, 10), value });
   }
   return weeks;
@@ -95,3 +95,4 @@ function countBy(items, keyFn) {
 function toSeries(record) { return Object.entries(record).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value })); }
 function hash(value) { return createHash("sha256").update(value).digest("hex").slice(0, 16); }
 function dedupeRecommendations(items) { const seen = new Set(); return items.filter(item => { const key = `${item.title}\u0000${item.author || ""}`.toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; }).sort((a, b) => Number(b.score || 0) - Number(a.score || 0)); }
+function noteEventAt(note) { return Number(note?.eventAt || note?.updatedAt || 0); }

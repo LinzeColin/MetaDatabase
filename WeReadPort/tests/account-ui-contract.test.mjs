@@ -23,8 +23,12 @@ test("四平台导入均使用连接、选择、预览/确认和进度式新手�
   assert.ok(obsidian.includes("ZIP"));
 });
 
-test("直接用微信读书密钥建账或缺少微信读书笔记的登录会自动同步", () => {
-  assert.match(ui, /const result = await action\(mode === "register" \? "正在验证密钥并创建账户…" : "正在安全登录…", async \(\) => \{[\s\S]*?return result;[\s\S]*?if \(result && \(mode === "register" \|\| !state\.notes\.some\(note => note\.source === "weread"\)\)\) await runWeReadSync/u);
+test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读书", () => {
+  assert.match(ui, /function syncWeReadAfterLogin\(root, \{ force = false \} = \{\}\)/u);
+  assert.equal((ui.match(/if \(result\) await syncWeReadAfterLogin\(document, \{ force: true \}\);/gu) || []).length, 2);
+  assert.match(ui, /void syncWeReadAfterLogin\(root, \{ force: oauthReturned \}\)/u);
+  assert.ok(ui.includes("登录成功，正在自动同步微信读书数据…"));
+  assert.ok(ui.includes("真实事件时间"));
 });
 
 test("画像、热度、推荐、跨设备和隐私控制都在账户 UI 中可见", () => {

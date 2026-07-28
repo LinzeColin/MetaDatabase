@@ -125,7 +125,7 @@ export function normalizeWeReadDocuments(dataset) {
         title,
         category: item.info?.category || item.notebook?.book?.category || "微信读书",
         content: [`# ${title}`, author ? `作者：${author}` : "", chapters.get(String(mark.chapterUid)) ? `章节：${chapters.get(String(mark.chapterUid))}` : "", `> ${mark.markText || ""}`].filter(Boolean).join("\n\n"),
-        createdAt: Number(mark.createTime || 0),
+        eventAt: sourceEventAt(mark.updateTime, mark.createTime),
       });
     }
     for (const wrapper of item.reviews?.reviews || []) {
@@ -136,7 +136,7 @@ export function normalizeWeReadDocuments(dataset) {
         title,
         category: item.info?.category || item.notebook?.book?.category || "微信读书",
         content: [`# ${title}`, author ? `作者：${author}` : "", review.chapterName ? `章节：${review.chapterName}` : "", review.abstract ? `> ${review.abstract}` : "", review.content || ""].filter(Boolean).join("\n\n"),
-        createdAt: Number(review.createTime || 0),
+        eventAt: sourceEventAt(review.updateTime, review.createTime),
       });
     }
   }
@@ -261,4 +261,14 @@ async function mapLimit(items, limit, mapper) {
 function safeDeepLink(value) {
   try { const url = new URL(String(value)); return ["https:", "weread:"].includes(url.protocol) ? url.toString() : null; }
   catch { return null; }
+}
+
+function sourceEventAt(...values) {
+  for (const value of values) {
+    const raw = Number(value);
+    if (!Number.isFinite(raw) || raw <= 0) continue;
+    const seconds = raw >= 10_000_000_000 ? Math.floor(raw / 1000) : Math.floor(raw);
+    if (seconds > 0) return seconds;
+  }
+  return null;
 }
