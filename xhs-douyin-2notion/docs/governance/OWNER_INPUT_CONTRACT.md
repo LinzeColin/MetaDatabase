@@ -10,8 +10,8 @@ Owner 输入只保存于 `X2N_DATA_ROOT/runtime/owner_input_contract.local.json`
 |---|---|---|
 | OS/硬件 | 运行时自动检测；先支持当前本机 | Stage 1 记录脱敏能力，不提交用户名/绝对路径 |
 | 账号状态 | 六平台均 `NOT_RUN` | Owner 在专用 Chrome Profile 手工登录；不提供凭据值 |
-| 数据规模 | `UNKNOWN`；20 条 Canary、1000 条 Job 分段 | 私有 Manifest 统计 |
-| 首次同步 | 禁用；仅合成 Fixture | 对应平台政策、实现、Canary Gate 全部 PASS |
+| 数据规模 | `UNKNOWN`；仅允许每个已启用范围由 Owner 选定的 20 条直接 MVP 批次、1000 条 Job 分段 | 私有 Manifest 统计 |
+| 首次同步 | 禁用；仅合成 Fixture | 对应平台政策、实现、精确 20 条 Manifest 与 Owner 直接 MVP 签核全部 PASS |
 | 一级分类 | 仅 `Unclassified` | Owner 明确创建/导入分类；AI 只能从允许集选择 |
 | Notion | Disabled | Owner 提供 Integration 与 Parent；Secret 进系统 Keychain |
 | 云模型 | Disabled，月预算 0 | Owner 明确 Provider、数据边界与预算 |

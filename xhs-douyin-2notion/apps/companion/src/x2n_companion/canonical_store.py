@@ -70,6 +70,18 @@ CURRENT_PAGE_PLACEHOLDER_PROCESSOR = "x2n-canonical-placeholder"
 CURRENT_PAGE_PLACEHOLDER_VERSION = "placeholder-1.0.0"
 SCOPE_SYNC_RUN_KIND = "native_scope_dispatch_v1"
 LIFECYCLE_TOMBSTONE_KINDS = frozenset({"content", "relation", "sink", "runtime"})
+OWNER_MVP_BASELINE_SCOPES: dict[SyncScopeId, tuple[str, str, str, str, str]] = {
+    SyncScopeId.XIAOHONGSHU_FAVORITES: (
+        "xiaohongshu",
+        "favorited",
+        "receipt_xhsfav_",
+        "run_xhsfav_",
+        "checkpoint_xhsfav_",
+    ),
+    SyncScopeId.XIAOHONGSHU_LIKES: ("xiaohongshu", "liked", "receipt_xhslike_", "run_xhslike_", "checkpoint_xhslike_"),
+    SyncScopeId.DOUYIN_FAVORITES: ("douyin", "favorited", "receipt_dy_", "run_dy_", "checkpoint_dy_"),
+    SyncScopeId.DOUYIN_LIKES: ("douyin", "liked", "receipt_dy_", "run_dy_", "checkpoint_dy_"),
+}
 
 
 class WriteDisposition(str, Enum):
@@ -2882,6 +2894,111 @@ class CanonicalStore:
             finally:
                 connection.close()
 
+    def owner_mvp_baseline_snapshot(self, *, scope_scan_ids: dict[SyncScopeId, str]) -> dict[str, Any]:
+        """Return an aggregate-only proof for the fixed four-scope MVP baseline.
+
+        The release controller owns the private scan identifiers.  This Store
+        method intentionally returns only counts and opaque hashes, so neither
+        content IDs, account references, collection names nor local paths can
+        become public release evidence.
+        """
+
+        if set(scope_scan_ids) != set(OWNER_MVP_BASELINE_SCOPES):
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Owner MVP baseline scope set is incomplete")
+        rows: dict[str, dict[str, Any]] = {}
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                for scope_id in SyncScopeId:
+                    if scope_id not in OWNER_MVP_BASELINE_SCOPES:
+                        continue
+                    platform, relation, receipt_prefix, run_prefix, checkpoint_prefix = OWNER_MVP_BASELINE_SCOPES[scope_id]
+                    scan_id = str(_uuid(scope_scan_ids[scope_id], label="owner_mvp_scan_id"))
+                    suffix = UUID(scan_id).hex
+                    run = connection.execute(
+                        "SELECT state FROM run_record WHERE run_id = ?",
+                        (f"{run_prefix}{suffix}",),
+                    ).fetchone()
+                    checkpoint = connection.execute(
+                        """
+                        SELECT cursor_kind, cursor_value_private, full_scan_id, observed_count,
+                               completion_confidence, state
+                        FROM checkpoint WHERE checkpoint_id = ?
+                        """,
+                        (f"{checkpoint_prefix}{suffix}",),
+                    ).fetchone()
+                    checkpoint_complete = False
+                    if checkpoint is not None:
+                        try:
+                            cursor = json.loads(str(checkpoint["cursor_value_private"]))
+                        except (TypeError, json.JSONDecodeError):
+                            cursor = None
+                        checkpoint_complete = (
+                            isinstance(cursor, dict)
+                            and cursor.get("scope_mode") == "owner_mvp_20"
+                            and checkpoint["state"] == "complete"
+                            and checkpoint["cursor_kind"] == "bounded_scope_complete"
+                            and checkpoint["full_scan_id"] is None
+                            and int(checkpoint["observed_count"]) == 20
+                            and float(checkpoint["completion_confidence"]) == 1.0
+                        )
+                    row = connection.execute(
+                        """
+                        SELECT
+                            COUNT(DISTINCT r.relation_key) AS relation_count,
+                            COUNT(DISTINCT r.content_key) AS content_count,
+                            COUNT(DISTINCT o.observation_id) AS observation_count,
+                            COUNT(DISTINCT CASE WHEN r.status = 'active' THEN r.relation_key END) AS active_count
+                        FROM user_relation AS r
+                        INNER JOIN content AS c ON c.content_key = r.content_key
+                        LEFT JOIN source_observation AS o
+                          ON o.run_id = ? AND o.content_key = r.content_key
+                        WHERE r.scan_receipt_id = ?
+                          AND c.platform = ?
+                          AND r.relation_type = ?
+                        """,
+                        (f"{run_prefix}{suffix}", f"{receipt_prefix}{suffix}", platform, relation),
+                    ).fetchone()
+                    assert row is not None
+                    counts = {
+                        "active_count": int(row["active_count"]),
+                        "content_count": int(row["content_count"]),
+                        "observation_count": int(row["observation_count"]),
+                        "relation_count": int(row["relation_count"]),
+                        "scan_complete": run is not None and run["state"] == "succeeded" and checkpoint_complete,
+                    }
+                    rows[scope_id.value] = {
+                        **counts,
+                        "scan_ref_sha256": hashlib.sha256(scan_id.encode("ascii")).hexdigest(),
+                    }
+            finally:
+                connection.close()
+        exact = all(
+            row["active_count"] == 20
+            and row["content_count"] == 20
+            and row["observation_count"] == 20
+            and row["relation_count"] == 20
+            and row["scan_complete"] is True
+            for row in rows.values()
+        )
+        total_relations = sum(int(row["relation_count"]) for row in rows.values())
+        digest_basis = {
+            scope_id: {
+                key: value
+                for key, value in row.items()
+                if key != "scan_ref_sha256"
+            }
+            for scope_id, row in sorted(rows.items())
+        }
+        return {
+            "baseline_hash": hashlib.sha256(
+                json.dumps(digest_basis, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
+            ).hexdigest(),
+            "exact_four_scope_baseline": exact,
+            "scopes": rows,
+            "total_relations": total_relations,
+        }
+
     @staticmethod
     def _local_ui_review_required(row: sqlite3.Row) -> bool:
         """Return whether a redacted Canonical row still needs Owner review."""
@@ -3707,6 +3824,70 @@ class CanonicalStore:
             if target.exists() and not manifest_path.exists():
                 target.unlink()
             raise
+
+    def rehearse_backup_restore(self, *, backup_id: str, expected_sha256: str) -> dict[str, Any]:
+        """Restore a verified backup into a disposable private SQLite copy.
+
+        The rehearsal proves that rollback material is readable and compatible
+        without replacing the active Canonical Store or deleting Owner data.
+        """
+
+        _validate_token(backup_id, label="backup_id")
+        _validate_sha256(expected_sha256, label="backup_sha256")
+        backup_path, _manifest_path = self._backup_paths(backup_id)
+        if not backup_path.is_file() or backup_path.is_symlink() or _file_sha256(backup_path) != expected_sha256:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Rollback backup does not match its receipt")
+        rehearsal = backup_path.with_name(f".{backup_path.name}.rehearsal-{uuid.uuid4().hex}")
+        completed = False
+        try:
+            with self._file_lock(exclusive=False):
+                source: sqlite3.Connection | None = None
+                restored: sqlite3.Connection | None = None
+                try:
+                    source = sqlite3.connect(backup_path)
+                    restored = sqlite3.connect(rehearsal)
+                    source.row_factory = sqlite3.Row
+                    restored.row_factory = sqlite3.Row
+                    restored.execute("PRAGMA foreign_keys = ON")
+                    source.backup(restored)
+                    source_checks = self._integrity(source)
+                    restored_checks = self._integrity(restored)
+                    source_version = current_version(source)
+                    restored_version = current_version(restored)
+                    source_counts = self._table_counts(source)
+                    restored_counts = self._table_counts(restored)
+                    source_digest = self._logical_digest(source)
+                    restored_digest = self._logical_digest(restored)
+                finally:
+                    if restored is not None:
+                        restored.close()
+                    if source is not None:
+                        source.close()
+            rehearsal.chmod(0o600)
+            if (
+                source_checks != HEALTHY_CHECKS
+                or restored_checks != HEALTHY_CHECKS
+                or source_version != restored_version
+                or source_counts != restored_counts
+                or source_digest != restored_digest
+            ):
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Rollback rehearsal did not preserve the Canonical Store")
+            completed = True
+            return {
+                "backup_sha256": expected_sha256,
+                "logical_digest_match": True,
+                "restored_to_disposable_private_copy": True,
+                "schema_version": restored_version,
+                "table_counts_match": True,
+                "temporary_copy_removed": True,
+            }
+        finally:
+            if rehearsal.exists() or rehearsal.is_symlink():
+                if rehearsal.is_symlink() or not rehearsal.is_file():
+                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Rollback rehearsal temporary target became unsafe")
+                rehearsal.unlink()
+            if not completed and rehearsal.exists():
+                rehearsal.unlink()
 
     def verify_backup(self, backup_id: str, *, expected_sha256: str | None = None) -> BackupReceipt:
         target, manifest_path = self._backup_paths(backup_id)

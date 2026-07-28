@@ -63,7 +63,7 @@ BatchStatus = Literal[
     "empty_unverified",
 ]
 CompletionSignal = Literal["more_available", "unknown", "bounded_limit_reached", "authoritative_end"]
-ScopeMode = Literal["canary_20", "full_scan"]
+ScopeMode = Literal["canary_20", "owner_mvp_20", "full_scan"]
 FaultInjector = Callable[[str], None]
 
 
@@ -453,7 +453,7 @@ class XhsLikesAdapter:
         if (
             not isinstance(value, dict)
             or set(value) != expected
-            or value["scope_mode"] not in {"canary_20", "full_scan"}
+            or value["scope_mode"] not in {"canary_20", "owner_mvp_20", "full_scan"}
             or not isinstance(value["next_sequence"], int)
             or value["next_sequence"] < 0
             or not isinstance(value["error_evidence_count"], int)
@@ -481,7 +481,7 @@ class XhsLikesAdapter:
         identity = _identity(scan_id)
         if SHA256.fullmatch(account_ref_hash) is None:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Likes account reference is invalid")
-        if scope_mode not in {"canary_20", "full_scan"}:
+        if scope_mode not in {"canary_20", "owner_mvp_20", "full_scan"}:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Likes scan scope is invalid")
         timestamp = _timestamp(started_at)
         input_hash = _sha256({"account_ref_hash": account_ref_hash, "scope_mode": scope_mode})
@@ -756,8 +756,8 @@ class XhsLikesAdapter:
                 ).fetchone()[0]
             )
             if batch.completion_signal == "bounded_limit_reached":
-                if cursor["scope_mode"] != "canary_20" or observed_count != CANARY_ITEM_LIMIT:
-                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Likes bounded Canary completion is invalid")
+                if cursor["scope_mode"] not in {"canary_20", "owner_mvp_20"} or observed_count != CANARY_ITEM_LIMIT:
+                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Likes bounded completion is invalid")
                 state = "complete"
                 cursor_kind = "bounded_scope_complete"
                 confidence = 1.0

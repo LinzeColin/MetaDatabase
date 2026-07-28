@@ -405,11 +405,37 @@
       "title": "DouyinLikesStartSyncPayload",
       "type": "object"
     },
-    "EmptyPayload": {
-      "additionalProperties": false,
-      "properties": {},
-      "title": "EmptyPayload",
-      "type": "object"
+    "ErrorCode": {
+      "enum": [
+        "X2N_INVALID_SCHEMA_VERSION",
+        "X2N_UNKNOWN_FIELD",
+        "X2N_INVALID_INPUT",
+        "X2N_NATIVE_ORIGIN_REJECTED",
+        "X2N_NATIVE_MESSAGE_TOO_LARGE",
+        "X2N_NATIVE_ACTION_UNKNOWN",
+        "X2N_NATIVE_DUPLICATE_REQUEST",
+        "X2N_CANONICAL_KEY_INVALID",
+        "X2N_RELATION_KEY_INVALID",
+        "X2N_ARTIFACT_VERSION_CONFLICT",
+        "X2N_PROVENANCE_INCOMPLETE",
+        "X2N_CDN_PERSISTENCE_BLOCKED",
+        "X2N_URL_REJECTED",
+        "X2N_SECURITY_INJECTION_BLOCKED",
+        "X2N_ADAPTER_AUTH_EXPIRED",
+        "X2N_PLATFORM_CHANGED",
+        "X2N_RATE_LIMITED",
+        "X2N_NETWORK_FAILED",
+        "X2N_DEPENDENCY_MISSING",
+        "X2N_PROVIDER_FAILED",
+        "X2N_STORAGE_FAILED",
+        "X2N_DATA_INTEGRITY_FAILED",
+        "X2N_POLICY_BLOCKED",
+        "X2N_CAPABILITY_TECHNICAL_BLOCKED",
+        "X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE",
+        "X2N_UNKNOWN_FAILURE"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
     },
     "GetCapabilitiesPayload": {
       "additionalProperties": false,
@@ -511,6 +537,40 @@
       "title": "GetJobRequest",
       "type": "object"
     },
+    "HealthPayload": {
+      "additionalProperties": false,
+      "description": "A facts-only Native Host health request.\n\nThe optional marker is emitted only by the staged Side Panel.  Its release\nartifact digest gives the local release controller bounded proof that the\nexact staged extension reached the installed Native Host; it does not carry\na page, profile or platform value.",
+      "properties": {
+        "mvp_browser_handshake": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mvp Browser Handshake"
+        },
+        "mvp_release_artifact_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mvp Release Artifact Sha256"
+        }
+      },
+      "title": "HealthPayload",
+      "type": "object"
+    },
     "HealthRequest": {
       "additionalProperties": false,
       "properties": {
@@ -520,7 +580,7 @@
           "type": "string"
         },
         "payload": {
-          "$ref": "#/$defs/EmptyPayload"
+          "$ref": "#/$defs/HealthPayload"
         },
         "payload_hash": {
           "pattern": "^[0-9a-f]{64}$",
@@ -993,6 +1053,412 @@
       "title": "WeiboSelectedCollectionStartSyncPayload",
       "type": "object"
     },
+    "XhsFavoritesVisibleBatch": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "$ref": "#/$defs/XhsVisibleBatchBoundary"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "collection": {
+          "$ref": "#/$defs/XhsVisibleBatchCollection"
+        },
+        "errors": {
+          "items": {
+            "$ref": "#/$defs/XhsVisibleBatchError"
+          },
+          "maxItems": 20,
+          "title": "Errors",
+          "type": "array"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/XhsFavoritesVisibleItem"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "platform": {
+          "const": "xiaohongshu",
+          "title": "Platform",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "auth_required",
+            "empty_unverified",
+            "partial",
+            "platform_changed",
+            "ready",
+            "verification_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "batch",
+        "code",
+        "collection",
+        "errors",
+        "items",
+        "platform",
+        "schema_version",
+        "status"
+      ],
+      "title": "XhsFavoritesVisibleBatch",
+      "type": "object"
+    },
+    "XhsFavoritesVisibleItem": {
+      "additionalProperties": false,
+      "properties": {
+        "collection_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Collection Id"
+        },
+        "collection_name_private": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Collection Name Private"
+        },
+        "content_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "title": "Content Id",
+          "type": "string"
+        },
+        "content_type": {
+          "enum": [
+            "image_gallery",
+            "unknown",
+            "video"
+          ],
+          "title": "Content Type",
+          "type": "string"
+        },
+        "page_url": {
+          "maxLength": 2048,
+          "minLength": 9,
+          "title": "Page Url",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Title"
+        }
+      },
+      "required": [
+        "collection_id",
+        "collection_name_private",
+        "content_id",
+        "content_type",
+        "page_url",
+        "title"
+      ],
+      "title": "XhsFavoritesVisibleItem",
+      "type": "object"
+    },
+    "XhsLikesInbox": {
+      "additionalProperties": false,
+      "properties": {
+        "automatic_filing": {
+          "const": false,
+          "title": "Automatic Filing",
+          "type": "boolean"
+        },
+        "disposition": {
+          "const": "unclassified",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "taxonomy_mutation": {
+          "const": false,
+          "title": "Taxonomy Mutation",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "automatic_filing",
+        "disposition",
+        "taxonomy_mutation"
+      ],
+      "title": "XhsLikesInbox",
+      "type": "object"
+    },
+    "XhsLikesVisibleBatch": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "$ref": "#/$defs/XhsVisibleBatchBoundary"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "errors": {
+          "items": {
+            "$ref": "#/$defs/XhsVisibleBatchError"
+          },
+          "maxItems": 20,
+          "title": "Errors",
+          "type": "array"
+        },
+        "inbox": {
+          "$ref": "#/$defs/XhsLikesInbox"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/XhsLikesVisibleItem"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "platform": {
+          "const": "xiaohongshu",
+          "title": "Platform",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "auth_required",
+            "empty_unverified",
+            "partial",
+            "platform_changed",
+            "ready",
+            "verification_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "batch",
+        "code",
+        "errors",
+        "inbox",
+        "items",
+        "platform",
+        "schema_version",
+        "status"
+      ],
+      "title": "XhsLikesVisibleBatch",
+      "type": "object"
+    },
+    "XhsLikesVisibleItem": {
+      "additionalProperties": false,
+      "properties": {
+        "content_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "title": "Content Id",
+          "type": "string"
+        },
+        "content_type": {
+          "enum": [
+            "image_gallery",
+            "unknown",
+            "video"
+          ],
+          "title": "Content Type",
+          "type": "string"
+        },
+        "inbox_disposition": {
+          "const": "unclassified",
+          "title": "Inbox Disposition",
+          "type": "string"
+        },
+        "page_url": {
+          "maxLength": 2048,
+          "minLength": 9,
+          "title": "Page Url",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Title"
+        }
+      },
+      "required": [
+        "content_id",
+        "content_type",
+        "inbox_disposition",
+        "page_url",
+        "title"
+      ],
+      "title": "XhsLikesVisibleItem",
+      "type": "object"
+    },
+    "XhsVisibleBatchBoundary": {
+      "additionalProperties": false,
+      "description": "The bounded, sanitized browser observation accepted for an XHS MVP action.\n\nThis is deliberately a facts-only envelope.  It carries neither DOM, browser\nprofile state, cookies, media addresses nor arbitrary source URLs.  The\nCompanion re-validates it against the adapter's stricter semantic parser\nbefore any Canonical Store write.",
+      "properties": {
+        "automatic_scroll": {
+          "const": false,
+          "title": "Automatic Scroll",
+          "type": "boolean"
+        },
+        "completion_signal": {
+          "enum": [
+            "authoritative_end",
+            "bounded_limit_reached",
+            "more_available",
+            "unknown"
+          ],
+          "title": "Completion Signal",
+          "type": "string"
+        },
+        "explicit_owner_action": {
+          "const": true,
+          "title": "Explicit Owner Action",
+          "type": "boolean"
+        },
+        "visible_card_count": {
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Visible Card Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "automatic_scroll",
+        "completion_signal",
+        "explicit_owner_action",
+        "visible_card_count"
+      ],
+      "title": "XhsVisibleBatchBoundary",
+      "type": "object"
+    },
+    "XhsVisibleBatchCollection": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Id"
+        },
+        "name_private": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Name Private"
+        },
+        "status": {
+          "enum": [
+            "observed",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name_private",
+        "status"
+      ],
+      "title": "XhsVisibleBatchCollection",
+      "type": "object"
+    },
+    "XhsVisibleBatchError": {
+      "additionalProperties": false,
+      "properties": {
+        "card_index": {
+          "anyOf": [
+            {
+              "maximum": 19,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Card Index"
+        },
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        }
+      },
+      "required": [
+        "card_index",
+        "code"
+      ],
+      "title": "XhsVisibleBatchError",
+      "type": "object"
+    },
     "XiaohongshuFavoritesStartSyncPayload": {
       "additionalProperties": false,
       "properties": {
@@ -1054,6 +1520,17 @@
           "const": true,
           "title": "User Gesture",
           "type": "boolean"
+        },
+        "visible_batch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/XhsFavoritesVisibleBatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -1131,6 +1608,17 @@
           "const": true,
           "title": "User Gesture",
           "type": "boolean"
+        },
+        "visible_batch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/XhsLikesVisibleBatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [

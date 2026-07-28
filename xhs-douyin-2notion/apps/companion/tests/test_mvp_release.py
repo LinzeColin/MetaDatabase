@@ -1,0 +1,462 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import tempfile
+import unittest
+import uuid
+from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
+
+from x2n_contracts import canonical_json_sha256
+from x2n_contracts.models import CapabilityFeatureFlag, CapabilityTerminal, Platform, RelationType, SyncScopeId
+
+from x2n_companion.adapter_dispatch import AdapterDispatcher
+from x2n_companion.canonical_store import CanonicalStore
+from x2n_companion import mvp_deployment
+from x2n_companion.mvp_deployment import MvpDeploymentManager
+from x2n_companion.mvp_release import (
+    ARM_CONFIRMATION,
+    MVP_SCOPE_IDS,
+    MvpActivationExecutor,
+    MvpReleaseController,
+    OwnerMvpReleaseInput,
+)
+from x2n_companion.douyin_upstream import DouyinBatch, DouyinItem
+from x2n_companion.native_host import DEVELOPMENT_EXTENSION_ORIGIN, dispatch_wire
+from x2n_companion.native_host_installer import create_plan
+from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRuntimeError
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _write_private(path: Path, value: dict[str, object]) -> None:
+    path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+    path.chmod(0o600)
+
+
+def _owner_input() -> dict[str, object]:
+    platform = {"login_state": "not_run", "real_execution_authorized": False}
+    return {
+        "schema_version": "1.0",
+        "project": "x2n",
+        "input_state": "owner_confirmed",
+        "environment": {
+            "os_strategy": "auto_detect",
+            "hardware_strategy": "auto_detect",
+            "detected_snapshot": "private_runtime_only",
+        },
+        "platforms": {
+            "xiaohongshu": {"login_state": "owner_managed_profile", "real_execution_authorized": True},
+            "douyin": {"login_state": "owner_managed_profile", "real_execution_authorized": True},
+            "bilibili": dict(platform),
+            "kuaishou": dict(platform),
+            "weibo": dict(platform),
+            "taobao": dict(platform),
+        },
+        "data_scale": "owner_manifested",
+        "first_sync": "owner_authorized_direct_mvp",
+        "taxonomy": {"top_level_categories": ["Unclassified"], "ai_may_create_top_level": False},
+        "notion": {"enabled": False, "credential_reference": "unset", "parent_reference": "unset"},
+        "models": {"cloud_enabled": False, "monthly_budget": 0, "currency": "AUD"},
+        "gold_set": "synthetic_only",
+        "media_retention": {
+            "success": "delete_immediately",
+            "failure_max_hours": 24,
+            "persist_platform_cdn_urls": False,
+            "persist_raw_media": False,
+        },
+    }
+
+
+def _release_input() -> dict[str, object]:
+    digest = "a" * 64
+    owner_contract = hashlib.sha256(
+        (PROJECT_ROOT / "docs/governance/OWNER_INPUT_CONTRACT.md").read_bytes()
+    ).hexdigest()
+    return {
+        "schema_version": "1.0",
+        "project": "xhs-douyin-2notion",
+        "release_version": "v0.0.0.1",
+        "owner_authorization": "owner_authorized_direct_mvp",
+        "owner_input_contract_sha256": owner_contract,
+        "enabled_scopes": [
+            {"scope_id": "xiaohongshu_favorites", "max_items": 20, "transport": "chrome_visible_dom"},
+            {"scope_id": "xiaohongshu_likes", "max_items": 20, "transport": "chrome_visible_dom"},
+            {
+                "scope_id": "douyin_favorites",
+                "max_items": 20,
+                "transport": "owner_private_loopback_sidecar",
+            },
+            {"scope_id": "douyin_likes", "max_items": 20, "transport": "owner_private_loopback_sidecar"},
+        ],
+        "owner_private_manifests": [
+            {
+                "scope_id": scope,
+                "content_id_sha256": [
+                    hashlib.sha256(f"{prefix}-{index:02d}".encode("utf-8")).hexdigest() for index in range(20)
+                ],
+            }
+            for scope, prefix in (
+                ("xiaohongshu_favorites", "mvp-favorite"),
+                ("xiaohongshu_likes", "mvp-like"),
+                ("douyin_favorites", "mvp-douyin-favorite"),
+                ("douyin_likes", "mvp-douyin-like"),
+            )
+        ],
+        "disabled_external_scopes": [
+            {
+                "scope_id": scope,
+                "reason_code": "BLOCKED_AUTH",
+                "flag_off": True,
+                "platform_calls": 0,
+                "live_support_claim": False,
+            }
+            for scope in (
+                "bilibili_selected_collection",
+                "kuaishou_selected_collection",
+                "weibo_selected_collection",
+                "taobao_selected_collection",
+            )
+        ],
+        "douyin_sidecar": {
+            "port": 1,
+            "attestation": {
+                "scope": "owner_private_build",
+                "executable_sha256": digest,
+                "resolved_lock_sha256": digest,
+                "transitive_license_report_sha256": digest,
+                "sbom_sha256": digest,
+            },
+        },
+        "model_mode": "disabled",
+        "rollback_target": "previous_stable_or_disable",
+    }
+
+
+def _wire(payload: dict[str, object], *, request_id: str | None = None) -> bytes:
+    return json.dumps(
+        {
+            "action": "start_sync",
+            "payload": payload,
+            "payload_hash": canonical_json_sha256(payload),
+            "request_id": request_id or str(uuid.uuid4()),
+            "schema_version": "1.0",
+            "sent_at": "2026-07-29T00:00:00Z",
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _health_wire(artifact_sha256: str = "c" * 64) -> bytes:
+    payload = {"mvp_browser_handshake": True, "mvp_release_artifact_sha256": artifact_sha256}
+    return json.dumps(
+        {
+            "action": "health",
+            "payload": payload,
+            "payload_hash": canonical_json_sha256(payload),
+            "request_id": str(uuid.uuid4()),
+            "schema_version": "1.0",
+            "sent_at": "2026-07-29T00:00:00Z",
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _favorite_batch() -> dict[str, object]:
+    items = [
+        {
+            "collection_id": None,
+            "collection_name_private": None,
+            "content_id": f"mvp-favorite-{index:02d}",
+            "content_type": "video",
+            "page_url": f"https://www.xiaohongshu.com/explore/mvp-favorite-{index:02d}",
+            "title": f"Owner item {index:02d}",
+        }
+        for index in range(20)
+    ]
+    return {
+        "batch": {
+            "automatic_scroll": False,
+            "completion_signal": "bounded_limit_reached",
+            "explicit_owner_action": True,
+            "visible_card_count": 20,
+        },
+        "code": None,
+        "collection": {"id": None, "name_private": None, "status": "unavailable"},
+        "errors": [],
+        "items": items,
+        "platform": "xiaohongshu",
+        "schema_version": "1.0",
+        "status": "ready",
+    }
+
+
+class MvpReleaseTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory(prefix="x2n-mvp-release-")
+        destination = Path(self.temporary.name) / "MediaCrawler"
+        destination.mkdir(mode=0o700)
+        destination.chmod(0o700)
+        self.paths = RuntimePaths.from_values(
+            str(destination / "xhs-douyin-2notion"),
+            str(destination),
+            repository_root=PROJECT_ROOT,
+            create=True,
+        )
+        self.store = CanonicalStore(self.paths)
+        self.store.initialize()
+        _write_private(self.paths.data_root / "runtime/owner_input_contract.local.json", _owner_input())
+        self.paths.ensure_private_directory("runtime/release")
+        _write_private(self.paths.owner_mvp_release_input, _release_input())
+
+    def tearDown(self) -> None:
+        self.temporary.cleanup()
+
+    def test_arm_exposes_exact_four_candidate_scopes_and_external_gates(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        outcomes = controller.capability_registry().evaluate(evaluated_at="2026-07-29T00:00:00Z").outcomes
+        enabled = [item for item in outcomes if item.scope_id in set(SyncScopeId) and item.scope_id.value.startswith(("xiaohongshu", "douyin"))]
+        self.assertEqual(len(enabled), 4)
+        self.assertTrue(all(item.feature_flag is CapabilityFeatureFlag.MVP_ACTIVATION_CANDIDATE for item in enabled))
+        self.assertTrue(all(item.terminal is CapabilityTerminal.READY_FOR_MVP_ACTIVATION for item in enabled))
+        self.assertTrue(
+            all(item.feature_flag is CapabilityFeatureFlag.DISABLED for item in outcomes if item not in enabled)
+        )
+        self.assertTrue(self.paths._validate_marker()["product_execution_authorized"])
+
+    def test_native_host_commits_only_one_sanitized_twenty_item_xhs_action(self) -> None:
+        MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        payload: dict[str, object] = {
+            "auto_scroll": False,
+            "bounded_batch": True,
+            "change_account_state": False,
+            "dispatch_version": "1.0",
+            "max_items": 20,
+            "platform": "xiaohongshu",
+            "relation": "favorited",
+            "scope_id": "xiaohongshu_favorites",
+            "source_collection_id": None,
+            "user_gesture": True,
+            "visible_batch": _favorite_batch(),
+        }
+        response = dispatch_wire(_wire(payload), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertTrue(response.accepted)
+        self.assertEqual(response.status.value, "completed")
+        self.assertEqual(self.store.counts()["content"], 20)
+        self.assertEqual(self.store.counts()["user_relation"], 20)
+        controller = MvpReleaseController.load(self.paths)
+        assert controller is not None
+        self.assertEqual(set(controller.state["scope_jobs"]), {"xiaohongshu_favorites"})
+        snapshot = self.store.owner_mvp_baseline_snapshot(
+            scope_scan_ids={scope: controller.scope_scan_id(scope) for scope in MVP_SCOPE_IDS}
+        )
+        self.assertFalse(snapshot["exact_four_scope_baseline"])
+        self.assertTrue(snapshot["scopes"]["xiaohongshu_favorites"]["scan_complete"])
+        second_action = dispatch_wire(_wire(payload), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertFalse(second_action.accepted)
+        self.assertEqual(self.store.counts()["content"], 20)
+        self.assertEqual(self.store.counts()["user_relation"], 20)
+        self.assertEqual(self.store.counts()["source_observation"], 20)
+        connection = self.store._open(writable=False)
+        try:
+            checkpoint = connection.execute(
+                "SELECT cursor_value_private FROM checkpoint WHERE checkpoint_id LIKE 'checkpoint_xhsfav_%'"
+            ).fetchone()
+        finally:
+            connection.close()
+        assert checkpoint is not None
+        self.assertEqual(json.loads(str(checkpoint["cursor_value_private"]))["scope_mode"], "owner_mvp_20")
+
+    def test_private_manifest_mismatch_blocks_before_any_canonical_write(self) -> None:
+        MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        malformed = _favorite_batch()
+        item = malformed["items"][0]
+        assert isinstance(item, dict)
+        item["content_id"] = "unselected-favorite-00"
+        item["page_url"] = "https://www.xiaohongshu.com/explore/unselected-favorite-00"
+        payload: dict[str, object] = {
+            "auto_scroll": False,
+            "bounded_batch": True,
+            "change_account_state": False,
+            "dispatch_version": "1.0",
+            "max_items": 20,
+            "platform": "xiaohongshu",
+            "relation": "favorited",
+            "scope_id": "xiaohongshu_favorites",
+            "source_collection_id": None,
+            "user_gesture": True,
+            "visible_batch": malformed,
+        }
+        response = dispatch_wire(_wire(payload), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertFalse(response.accepted)
+        self.assertEqual(self.store.counts()["content"], 0)
+        self.assertEqual(self.store.counts()["user_relation"], 0)
+
+    def test_douyin_manifest_mismatch_stops_before_the_adapter_scan_is_initialized(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        binding = AdapterDispatcher.binding_for(
+            SyncScopeId.DOUYIN_FAVORITES,
+            platform=Platform.DOUYIN,
+            relation=RelationType.FAVORITED,
+        )
+        batch = DouyinBatch(
+            mode="favorites",
+            sequence=0,
+            status="ready",
+            completion_signal="bounded_limit_reached",
+            items=tuple(
+                DouyinItem(content_id=f"unselected-douyin-{index:02d}", content_type="video", title=None, collection=None)
+                for index in range(20)
+            ),
+            error_codes=(),
+            upstream_error_count=0,
+        )
+
+        def deliver_mismatched_batch(*_args: object, **kwargs: object) -> object:
+            validator = kwargs["batch_validator"]
+            assert callable(validator)
+            return validator(batch)
+
+        with mock.patch("x2n_companion.mvp_release.DouyinAdapter.begin_scan") as begin_scan:
+            with mock.patch(
+                "x2n_companion.mvp_release.DouyinBatchCoordinator.apply_owner_action",
+                side_effect=deliver_mismatched_batch,
+            ):
+                with self.assertRaises(X2NRuntimeError):
+                    MvpActivationExecutor(controller, self.store)._execute_douyin(
+                        binding=binding,
+                        payload=SimpleNamespace(max_items=20),
+                        scan_id=controller.scope_scan_id(SyncScopeId.DOUYIN_FAVORITES),
+                    )
+        begin_scan.assert_not_called()
+        self.assertEqual(self.store.counts()["content"], 0)
+        self.assertEqual(self.store.counts()["user_relation"], 0)
+        self.assertEqual(self.store.counts()["source_observation"], 0)
+
+    def test_secret_or_extra_release_input_field_is_rejected(self) -> None:
+        invalid = _release_input()
+        invalid["token"] = "not-allowed"
+        with self.assertRaises(X2NRuntimeError):
+            OwnerMvpReleaseInput.from_mapping(invalid)
+
+    def test_installed_native_host_uses_the_pinned_owner_contract_digest_without_repo_docs(self) -> None:
+        with mock.patch(
+            "x2n_companion.mvp_release.OWNER_INPUT_CONTRACT",
+            Path(self.temporary.name) / "not-present-in-native-host-runtime.md",
+        ):
+            release_input = OwnerMvpReleaseInput.from_mapping(_release_input())
+        self.assertEqual(release_input.input_sha256, canonical_json_sha256(_release_input()))
+
+    def test_blue_green_stage_does_not_switch_before_explicit_activation_and_rolls_back_to_disabled(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage()
+        current = self.paths.ensure_private_directory("runtime/install") / "current"
+        self.assertFalse(current.exists() or current.is_symlink())
+        switched = manager.switch(staged)
+        self.assertEqual(switched.current_version, "v0.0.0.1")
+        rollback = manager.rollback_pointer()
+        self.assertEqual(rollback["current_version"], "disabled")
+
+    def test_blue_green_switch_restores_both_pointers_after_a_partial_failure(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage()
+        install = self.paths.ensure_private_directory("runtime/install")
+        current = install / "current"
+        previous = install / "previous"
+        real_replace = mvp_deployment._replace_link
+
+        def fail_current(path: Path, *, target_name: str | None) -> None:
+            if path == current and target_name == "v0.0.0.1":
+                raise OSError("synthetic current pointer failure")
+            real_replace(path, target_name=target_name)
+
+        with mock.patch("x2n_companion.mvp_deployment._replace_link", side_effect=fail_current):
+            with self.assertRaises(X2NRuntimeError):
+                manager.switch(staged)
+        self.assertFalse(current.exists() or current.is_symlink())
+        self.assertFalse(previous.exists() or previous.is_symlink())
+        manager.discard_staged()
+
+    def test_rollback_pointer_restores_the_release_pair_after_a_partial_failure(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        manager.stage()
+        install = self.paths.ensure_private_directory("runtime/install")
+        versions = install / "versions"
+        previous_version = "v0.0.0.0"
+        (versions / previous_version).mkdir(mode=0o700)
+        current = install / "current"
+        previous = install / "previous"
+        mvp_deployment._replace_link(current, target_name="v0.0.0.1")
+        mvp_deployment._replace_link(previous, target_name=previous_version)
+        real_replace = mvp_deployment._replace_link
+
+        def fail_previous(path: Path, *, target_name: str | None) -> None:
+            if path == previous and target_name == "v0.0.0.1":
+                raise OSError("synthetic previous pointer failure")
+            real_replace(path, target_name=target_name)
+
+        with mock.patch("x2n_companion.mvp_deployment._replace_link", side_effect=fail_previous):
+            with self.assertRaises(X2NRuntimeError):
+                manager.rollback_pointer()
+        self.assertEqual(mvp_deployment._controlled_link(current, versions=versions), "v0.0.0.1")
+        self.assertEqual(mvp_deployment._controlled_link(previous, versions=versions), previous_version)
+
+    def test_staged_native_host_plan_binds_private_artifact_sources(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage()
+        release_root = manager._staged_target(staged)
+        plan = create_plan(
+            action="uninstall",
+            browser="chromium",
+            home=Path(self.temporary.name) / "home",
+            env={ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+            release_source_root=release_root,
+            release_artifact_sha256=staged.artifact_sha256,
+        )
+        self.assertEqual(plan.release_artifact_sha256, staged.artifact_sha256)
+        self.assertEqual(plan.companion_source, release_root / "companion/x2n_companion")
+        self.assertEqual(plan.contracts_source, release_root / "contracts/x2n_contracts")
+        self.assertTrue(plan.companion_source.is_dir())
+        self.assertTrue(plan.contracts_source.is_dir())
+        identity = json.loads((release_root / "extension/release_identity.json").read_text(encoding="utf-8"))
+        self.assertEqual(identity, {"artifact_sha256": staged.artifact_sha256, "schema_version": "1.0"})
+
+    def test_sidepanel_handshake_requires_deployment_and_is_bound_to_the_artifact(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        self.assertFalse(controller.record_browser_handshake(artifact_sha256="c" * 64))
+        controller.state["baseline"] = {"baseline_hash": "b" * 64, "passed": True, "total_relations": 80}
+        controller.state["rollback"]["rehearsed"] = True
+        controller.state["owner_signoff"] = True
+        controller.state["phase"] = "pre_switch_ready"
+        controller._persist()
+        controller.mark_deployed(artifact_sha256="c" * 64, browser="chrome")
+        mismatched = dispatch_wire(_health_wire("d" * 64), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertFalse(mismatched.accepted)
+        self.assertFalse(self.paths.owner_mvp_browser_handshake.exists())
+        response = dispatch_wire(_health_wire(), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertTrue(response.accepted)
+        reloaded = MvpReleaseController.load(self.paths)
+        assert reloaded is not None
+        self.assertEqual(reloaded.verify_browser_handshake()["browser_sidepanel_handshake"], "PASS")
+        reloaded.state["deployment"]["online_smoke"] = True
+        reloaded.state["phase"] = "active"
+        reloaded._persist()
+        refreshed = dispatch_wire(_health_wire(), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertTrue(refreshed.accepted)
+
+    def test_passing_release_state_cannot_replace_the_exact_eighty_item_baseline(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        controller.state["baseline"] = {"baseline_hash": "b" * 64, "passed": True, "total_relations": 79}
+        with self.assertRaises(X2NRuntimeError):
+            controller._persist()
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -46,7 +46,7 @@
       }
     },
     "data_scale": {"enum": ["unknown", "owner_manifested"]},
-    "first_sync": {"enum": ["disabled_synthetic_only", "owner_authorized_canary"]},
+    "first_sync": {"enum": ["disabled_synthetic_only", "owner_authorized_direct_mvp"]},
     "taxonomy": {
       "type": "object",
       "additionalProperties": false,

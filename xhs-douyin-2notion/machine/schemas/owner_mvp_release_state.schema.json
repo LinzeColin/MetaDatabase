@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:x2n:owner-mvp-release-state:1.0",
+  "title": "x2n private direct-MVP release state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "project",
+    "release_version",
+    "input_sha256",
+    "phase",
+    "scope_jobs",
+    "scope_receipts",
+    "baseline",
+    "rollback",
+    "owner_signoff",
+    "deployment"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "task_id": {"const": "TSK.x2n.assurance.005"},
+    "project": {"const": "xhs-douyin-2notion"},
+    "release_version": {"const": "v0.0.0.1"},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "phase": {"enum": ["activation_armed", "pre_switch_ready", "active", "rolled_back"]},
+    "scope_jobs": {"type": "object"},
+    "scope_receipts": {"type": "object"},
+    "baseline": {"type": "object"},
+    "rollback": {"type": "object"},
+    "owner_signoff": {"type": "boolean"},
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_sha256", "browser", "state", "online_smoke"],
+      "properties": {
+        "artifact_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "browser": {"type": ["string", "null"], "enum": ["chrome", "chrome-for-testing", "chromium", null]},
+        "state": {"enum": ["not_deployed", "deployed", "rolled_back"]},
+        "online_smoke": {"type": "boolean"}
+      }
+    }
+  }
+}

@@ -139,15 +139,23 @@ function syncPayload() {
   if (
     outcome?.terminal !== "READY_FOR_MVP_ACTIVATION"
     || outcome?.reason_code !== "CI_SYNTH_READY"
-    || outcome?.feature_flag !== "ci_synthetic_only"
   ) return null;
+  const mvpActivation = outcome.feature_flag === "mvp_activation_candidate";
+  const synthetic = outcome.feature_flag === "ci_synthetic_only";
+  if (!mvpActivation && !synthetic) return null;
+  if (mvpActivation && (
+    maxItems !== 20
+    || !new Set(["xiaohongshu_favorites", "xiaohongshu_likes", "douyin_favorites", "douyin_likes"]).has(syncScope.value)
+  )) return null;
   if (!rule.selectedCollection) {
     const sourceCollectionId = syncSourceCollection.value.trim();
     if (sourceCollectionId && !SAFE_TOKEN.test(sourceCollectionId)) return null;
     return {
+      activationMode: mvpActivation ? "mvp_activation_candidate" : "ci_synthetic_only",
       maxItems,
       scopeId: syncScope.value,
       sourceCollectionId: sourceCollectionId || null,
+      tabId: mvpActivation && syncScope.value.startsWith("xiaohongshu_") ? activeTabId : undefined,
     };
   }
   const selectionId = ownerSelectionId.value.trim();
@@ -155,6 +163,7 @@ function syncPayload() {
   const source = sourceIdentity.value.trim();
   if (!SAFE_TOKEN.test(selectionId) || !SAFE_TOKEN.test(source) || !SHA256.test(manifest)) return null;
   return {
+    activationMode: "ci_synthetic_only",
     maxItems,
     ownerSelectionId: selectionId,
     ownerSelectionManifestSha256: manifest,
@@ -169,14 +178,21 @@ function renderSyncScope() {
   selectedCollectionFields.hidden = !selectedCollection;
   syncSourceCollection.disabled = selectedCollection;
   if (selectedCollection) syncSourceCollection.value = "";
-  const maximum = String(rule?.maxItems ?? 1);
+  const outcome = selectedOutcome();
+  const mvpActivation = outcome?.feature_flag === "mvp_activation_candidate";
+  const maximum = String(mvpActivation ? 20 : (rule?.maxItems ?? 1));
   syncMaxItems.max = maximum;
-  if (!Number.isSafeInteger(Number(syncMaxItems.value)) || Number(syncMaxItems.value) > Number(maximum)) {
+  if (
+    !Number.isSafeInteger(Number(syncMaxItems.value))
+    || Number(syncMaxItems.value) > Number(maximum)
+    || (mvpActivation && Number(syncMaxItems.value) !== 20)
+  ) {
     syncMaxItems.value = maximum;
   }
-  const outcome = selectedOutcome();
   if (outcome) {
-    syncPolicy.textContent = outcome.terminal === "READY_FOR_MVP_ACTIVATION"
+    syncPolicy.textContent = outcome.feature_flag === "mvp_activation_candidate"
+      ? "Owner-authorized MVP action: exactly 20 items, one explicit gesture, no automatic scroll."
+      : outcome.terminal === "READY_FOR_MVP_ACTIVATION"
       ? "CI-synthetic dispatch only. This does not enable any live platform request."
       : `Scope disabled by local external gate: ${outcome.reason_code}`;
   }
@@ -257,11 +273,15 @@ async function startSelectedSync() {
     return;
   }
   startSyncButton.disabled = true;
-  syncStatus.textContent = "Requesting local synthetic dispatch…";
+  syncStatus.textContent = payload.activationMode === "mvp_activation_candidate"
+    ? "Reading one owner-selected, sanitized 20-item batch…"
+    : "Requesting local synthetic dispatch…";
   try {
     const result = await chrome.runtime.sendMessage({ type: "X2N_START_SYNC", ...payload });
     if (result?.ok && result.response?.job_id) {
-      syncStatus.textContent = "Local synthetic adapter dispatch completed with zero platform calls.";
+      syncStatus.textContent = payload.activationMode === "mvp_activation_candidate"
+        ? "Bounded owner action committed to the local canonical store."
+        : "Local synthetic adapter dispatch completed with zero platform calls.";
     } else if (result?.fallbackAvailable) {
       syncStatus.textContent = "List dispatch stopped; a separate current-page fallback is available.";
       renderFallback(result);

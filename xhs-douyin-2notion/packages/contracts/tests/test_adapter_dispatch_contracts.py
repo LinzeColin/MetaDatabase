@@ -162,6 +162,20 @@ class AdapterDispatchContractTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             NativeMessageResponse.model_validate_json(json.dumps(invalid))
 
+    def test_sidepanel_health_handshake_requires_the_staged_release_identity(self) -> None:
+        payload = {"mvp_browser_handshake": True, "mvp_release_artifact_sha256": "a" * 64}
+        request = NativeMessageRequest.model_validate_json(json.dumps(_request("health", payload))).root
+        self.assertEqual(request.payload.mvp_release_artifact_sha256, "a" * 64)
+
+        for invalid_payload in (
+            {"mvp_browser_handshake": True},
+            {"mvp_release_artifact_sha256": "a" * 64},
+            {"mvp_browser_handshake": True, "mvp_release_artifact_sha256": "not-a-digest"},
+        ):
+            with self.subTest(payload=invalid_payload):
+                with self.assertRaises(ValidationError):
+                    NativeMessageRequest.model_validate_json(json.dumps(_request("health", invalid_payload)))
+
     def test_pre_task_native_response_vector_omits_additive_capabilities_field(self) -> None:
         legacy = {
             "schema_version": "1.0",

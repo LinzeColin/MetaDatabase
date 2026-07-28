@@ -22,8 +22,9 @@ from x2n_contracts import (
 from x2n_contracts.errors import ERROR_SPECS
 from x2n_contracts.models import CapabilityFeatureFlag, CapabilityTerminal, NativeAction, SyncScopeId
 
-from .adapter_dispatch import AdapterDispatchFailure, AdapterDispatcher, CapabilityRegistry
+from .adapter_dispatch import AdapterDispatcher, CapabilityRegistry
 from .canonical_store import CURRENT_PAGE_RUN_KIND, CanonicalStore, SkeletonJob
+from .mvp_release import MvpActivationExecutor, MvpReleaseController, expected_mvp_receipt_hash
 from .orchestrator import CurrentPageOrchestrator
 from .runtime import RuntimePaths, X2NRuntimeError
 
@@ -172,6 +173,17 @@ def _failed_job_response(*, request_id: str, job: SkeletonJob) -> NativeMessageR
     )
 
 
+def _runtime_release_controller(store: CanonicalStore) -> MvpReleaseController | None:
+    """Load Task005 private activation state only when it has been armed.
+
+    A missing input/state pair keeps the established CI-synthetic route
+    available for development and tests.  A partial or malformed private state
+    raises through the caller and therefore fails closed.
+    """
+
+    return MvpReleaseController.load(store.paths, require_state=False)
+
+
 def dispatch_wire(
     raw: bytes,
     *,
@@ -189,14 +201,24 @@ def dispatch_wire(
         if request.action is NativeAction.GET_CAPABILITIES and _legacy_empty_capabilities_request(raw):
             return _accepted(request_id=request_id, status="completed")
         active_store = store or _store()
+        release_controller = None if capability_registry is not None else _runtime_release_controller(active_store)
+        active_registry = (
+            capability_registry
+            or (release_controller.capability_registry() if release_controller is not None else CapabilityRegistry())
+        )
         if request.action is NativeAction.GET_CAPABILITIES:
-            manifest = _capability_snapshot(active_store, capability_registry or CapabilityRegistry())
+            manifest = _capability_snapshot(active_store, active_registry)
             return _accepted(request_id=request_id, status="completed", capabilities=manifest)
 
         if request.action is NativeAction.HEALTH:
             health = active_store.health()
             if health.get("status") != "healthy":
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Canonical Store health check failed")
+            if request.payload.mvp_browser_handshake is True and release_controller is not None:
+                if not release_controller.record_browser_handshake(
+                    artifact_sha256=str(request.payload.mvp_release_artifact_sha256)
+                ):
+                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP Side Panel handshake is not eligible")
             return _accepted(request_id=request_id, status="completed")
         if request.action is NativeAction.CAPTURE_CURRENT:
             if request.payload.fallback_from_job_id is not None:
@@ -217,7 +239,7 @@ def dispatch_wire(
             )
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         if request.action is NativeAction.START_SYNC:
-            manifest = _capability_snapshot(active_store, capability_registry or CapabilityRegistry())
+            manifest = _capability_snapshot(active_store, active_registry)
             outcome = next(
                 (item for item in manifest.outcomes if item.scope_id is request.payload.scope_id),
                 None,
@@ -225,7 +247,6 @@ def dispatch_wire(
             if (
                 outcome is None
                 or outcome.terminal is not CapabilityTerminal.READY_FOR_MVP_ACTIVATION
-                or outcome.feature_flag is not CapabilityFeatureFlag.CI_SYNTHETIC_ONLY
             ):
                 raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Requested scope is disabled by its external gate")
             dispatcher = adapter_dispatcher or AdapterDispatcher()
@@ -234,7 +255,18 @@ def dispatch_wire(
                 platform=request.payload.platform,
                 relation=request.payload.relation,
             )
-            expected_receipt_hash = dispatcher.expected_receipt_hash(binding, payload_hash=request.payload_hash)
+            if outcome.feature_flag is CapabilityFeatureFlag.CI_SYNTHETIC_ONLY:
+                expected_receipt_hash = dispatcher.expected_receipt_hash(binding, payload_hash=request.payload_hash)
+                execution = "ci_synthetic"
+            elif outcome.feature_flag is CapabilityFeatureFlag.MVP_ACTIVATION_CANDIDATE and release_controller is not None:
+                expected_receipt_hash = expected_mvp_receipt_hash(
+                    binding=binding,
+                    payload_hash=request.payload_hash,
+                    input_sha256=release_controller.release_input.input_sha256,
+                )
+                execution = "owner_mvp"
+            else:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Requested scope has no active execution authority")
             job = active_store.submit_scope_dispatch_job(
                 request_id=request_id,
                 payload_hash=request.payload_hash,
@@ -243,14 +275,25 @@ def dispatch_wire(
             )
             if job.disposition is DuplicateDisposition.NEW_REQUEST:
                 try:
-                    receipt = dispatcher.execute_synthetic(binding, payload_hash=request.payload_hash)
-                    if receipt.platform_calls != 0 or receipt.receipt_hash != expected_receipt_hash:
-                        raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Dispatch receipt is invalid")
+                    if execution == "ci_synthetic":
+                        receipt = dispatcher.execute_synthetic(binding, payload_hash=request.payload_hash)
+                        if receipt.platform_calls != 0 or receipt.receipt_hash != expected_receipt_hash:
+                            raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Dispatch receipt is invalid")
+                    else:
+                        assert release_controller is not None
+                        actual_receipt_hash = MvpActivationExecutor(release_controller, active_store).execute(
+                            binding=binding,
+                            payload=request.payload,
+                            job_id=job.job_id,
+                            payload_hash=request.payload_hash,
+                        )
+                        if actual_receipt_hash != expected_receipt_hash:
+                            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "MVP dispatch receipt is invalid")
                     job = active_store.complete_scope_dispatch_job(
                         job_id=job.job_id,
-                        dispatch_receipt_hash=receipt.receipt_hash,
+                        dispatch_receipt_hash=expected_receipt_hash,
                     )
-                except AdapterDispatchFailure:
+                except Exception:
                     provenance_hash = canonical_json_sha256(
                         {
                             "dispatch_receipt_hash": expected_receipt_hash,

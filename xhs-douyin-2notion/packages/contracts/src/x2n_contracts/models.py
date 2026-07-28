@@ -252,11 +252,124 @@ class _RelationListStartSyncPayload(StartSyncPayloadBase):
     max_items: Annotated[int, Field(ge=1, le=80)]
 
 
+class XhsVisibleBatchBoundary(StrictContract):
+    """The bounded, sanitized browser observation accepted for an XHS MVP action.
+
+    This is deliberately a facts-only envelope.  It carries neither DOM, browser
+    profile state, cookies, media addresses nor arbitrary source URLs.  The
+    Companion re-validates it against the adapter's stricter semantic parser
+    before any Canonical Store write.
+    """
+
+    automatic_scroll: Literal[False]
+    completion_signal: Literal["authoritative_end", "bounded_limit_reached", "more_available", "unknown"]
+    explicit_owner_action: Literal[True]
+    visible_card_count: Annotated[int, Field(ge=0, le=20)]
+
+
+class XhsVisibleBatchError(StrictContract):
+    card_index: Annotated[int, Field(ge=0, le=19)] | None
+    code: ErrorCode
+
+
+class XhsVisibleBatchCollection(StrictContract):
+    id: SafeToken | None
+    name_private: ShortText | None
+    status: Literal["observed", "unavailable"]
+
+    @model_validator(mode="after")
+    def collection_fields_are_coherent(self) -> "XhsVisibleBatchCollection":
+        if (self.id is None) != (self.name_private is None):
+            raise ValueError("collection identity and name must be present together")
+        if (self.status == "unavailable") != (self.id is None):
+            raise ValueError("collection availability does not match its identity")
+        return self
+
+
+class XhsFavoritesVisibleItem(StrictContract):
+    collection_id: SafeToken | None
+    collection_name_private: ShortText | None
+    content_id: PlatformContentId
+    content_type: Literal["image_gallery", "unknown", "video"]
+    page_url: Annotated[str, StringConstraints(min_length=9, max_length=2_048)]
+    title: ShortText | None
+
+    @model_validator(mode="after")
+    def canonical_xhs_favorite_item(self) -> "XhsFavoritesVisibleItem":
+        if (self.collection_id is None) != (self.collection_name_private is None):
+            raise ValueError("favorite collection mapping is incomplete")
+        expected = f"https://www.xiaohongshu.com/explore/{self.content_id}"
+        if self.page_url != expected:
+            raise ValueError("favorite page URL is not the canonical XHS item address")
+        return self
+
+
+class XhsLikesVisibleItem(StrictContract):
+    content_id: PlatformContentId
+    content_type: Literal["image_gallery", "unknown", "video"]
+    inbox_disposition: Literal["unclassified"]
+    page_url: Annotated[str, StringConstraints(min_length=9, max_length=2_048)]
+    title: ShortText | None
+
+    @model_validator(mode="after")
+    def canonical_xhs_like_item(self) -> "XhsLikesVisibleItem":
+        expected = f"https://www.xiaohongshu.com/explore/{self.content_id}"
+        if self.page_url != expected:
+            raise ValueError("like page URL is not the canonical XHS item address")
+        return self
+
+
+class XhsLikesInbox(StrictContract):
+    automatic_filing: Literal[False]
+    disposition: Literal["unclassified"]
+    taxonomy_mutation: Literal[False]
+
+
+class XhsFavoritesVisibleBatch(StrictContract):
+    batch: XhsVisibleBatchBoundary
+    code: ErrorCode | None
+    collection: XhsVisibleBatchCollection
+    # Native Messaging is JSON.  These must therefore be JSON arrays rather
+    # than Python-only tuples; the Companion converts them to immutable
+    # adapter batches only after semantic validation.
+    errors: Annotated[list[XhsVisibleBatchError], Field(max_length=20)]
+    items: Annotated[list[XhsFavoritesVisibleItem], Field(max_length=20)]
+    platform: Literal[Platform.XIAOHONGSHU]
+    schema_version: SchemaVersion
+    status: Literal[
+        "auth_required",
+        "empty_unverified",
+        "partial",
+        "platform_changed",
+        "ready",
+        "verification_required",
+    ]
+
+
+class XhsLikesVisibleBatch(StrictContract):
+    batch: XhsVisibleBatchBoundary
+    code: ErrorCode | None
+    errors: Annotated[list[XhsVisibleBatchError], Field(max_length=20)]
+    inbox: XhsLikesInbox
+    items: Annotated[list[XhsLikesVisibleItem], Field(max_length=20)]
+    platform: Literal[Platform.XIAOHONGSHU]
+    schema_version: SchemaVersion
+    status: Literal[
+        "auth_required",
+        "empty_unverified",
+        "partial",
+        "platform_changed",
+        "ready",
+        "verification_required",
+    ]
+
+
 class XiaohongshuFavoritesStartSyncPayload(_RelationListStartSyncPayload):
     scope_id: Literal[SyncScopeId.XIAOHONGSHU_FAVORITES]
     platform: Literal[Platform.XIAOHONGSHU]
     relation: Literal[RelationType.FAVORITED]
     source_collection_id: SafeToken | None = None
+    visible_batch: XhsFavoritesVisibleBatch | None = None
 
 
 class XiaohongshuLikesStartSyncPayload(_RelationListStartSyncPayload):
@@ -264,6 +377,7 @@ class XiaohongshuLikesStartSyncPayload(_RelationListStartSyncPayload):
     platform: Literal[Platform.XIAOHONGSHU]
     relation: Literal[RelationType.LIKED]
     source_collection_id: SafeToken | None = None
+    visible_batch: XhsLikesVisibleBatch | None = None
 
 
 class DouyinFavoritesStartSyncPayload(_RelationListStartSyncPayload):
@@ -393,9 +507,30 @@ class GetCapabilitiesRequest(NativeRequestBase):
     payload: GetCapabilitiesPayload
 
 
+class HealthPayload(StrictContract):
+    """A facts-only Native Host health request.
+
+    The optional marker is emitted only by the staged Side Panel.  Its release
+    artifact digest gives the local release controller bounded proof that the
+    exact staged extension reached the installed Native Host; it does not carry
+    a page, profile or platform value.
+    """
+
+    mvp_browser_handshake: Literal[True] | None = None
+    mvp_release_artifact_sha256: Sha256 | None = None
+
+    @model_validator(mode="after")
+    def release_identity_requires_handshake_marker(self) -> "HealthPayload":
+        if self.mvp_release_artifact_sha256 is not None and self.mvp_browser_handshake is not True:
+            raise ValueError("MVP release artifact identity requires the Side Panel handshake marker")
+        if self.mvp_browser_handshake is True and self.mvp_release_artifact_sha256 is None:
+            raise ValueError("MVP Side Panel handshake requires a release artifact identity")
+        return self
+
+
 class HealthRequest(NativeRequestBase):
     action: Literal[NativeAction.HEALTH]
-    payload: EmptyPayload
+    payload: HealthPayload
 
 
 NativeRequestUnion = Annotated[

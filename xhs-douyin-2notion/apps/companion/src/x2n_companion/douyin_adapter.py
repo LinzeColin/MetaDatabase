@@ -40,7 +40,7 @@ RESUME_COMPATIBILITY_VERSION = "douyin-upstream-1.0.0"
 RUN_KIND = "douyin_owner_bounded_scan_v1"
 CANARY_ITEM_LIMIT = 20
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
-ScopeMode = Literal["canary_20", "owner_bounded"]
+ScopeMode = Literal["canary_20", "owner_mvp_20", "owner_bounded"]
 FaultInjector = Callable[[str], None]
 
 
@@ -252,7 +252,7 @@ class DouyinAdapter:
         )
         if (
             value["mode"] not in {"favorites", "likes"}
-            or value["scope_mode"] not in {"canary_20", "owner_bounded"}
+            or value["scope_mode"] not in {"canary_20", "owner_mvp_20", "owner_bounded"}
             or not valid_next_sequence
             or not valid_error_count
             or not isinstance(value["last_error_codes"], list)
@@ -277,7 +277,7 @@ class DouyinAdapter:
         identity = _identity(scan_id)
         if SHA256.fullmatch(account_ref_hash) is None:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Douyin account reference is invalid")
-        if mode not in {"favorites", "likes"} or scope_mode not in {"canary_20", "owner_bounded"}:
+        if mode not in {"favorites", "likes"} or scope_mode not in {"canary_20", "owner_mvp_20", "owner_bounded"}:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Douyin scan scope is invalid")
         timestamp = _timestamp(started_at)
         input_hash = _sha256({"account_ref_hash": account_ref_hash, "mode": mode, "scope_mode": scope_mode})
@@ -677,8 +677,11 @@ class DouyinBatchCoordinator:
         observed_at: datetime,
         monotonic_batch_time: float,
         monotonic_observation_time: float,
+        batch_validator: Callable[[DouyinBatch], None] | None = None,
     ) -> DouyinReceipt:
         with self.guard.acquire(Platform.DOUYIN.value, now=monotonic_batch_time) as lease:
             lease.permit_item_observation(now=monotonic_observation_time)
             _health, batch = self.client.fetch_owner_batch(request)
+            if batch_validator is not None:
+                batch_validator(batch)
             return self.adapter.commit_batch(scan_id, batch, observed_at=observed_at)

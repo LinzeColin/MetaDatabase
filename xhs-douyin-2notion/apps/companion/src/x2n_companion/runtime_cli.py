@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections.abc import Sequence
@@ -28,6 +29,19 @@ from .lifecycle import (
 )
 from .migrations import LATEST_SCHEMA_VERSION
 from .media_safety import scan_persisted_scopes
+from .mvp_deployment import (
+    DEPLOY_CONFIRMATION,
+    ONLINE_SMOKE_CONFIRMATION,
+    MvpDeploymentManager,
+)
+from .mvp_release import (
+    ARM_CONFIRMATION,
+    ROLLBACK_CONFIRMATION,
+    SIGNOFF_CONFIRMATION,
+    MvpReleaseController,
+    load_owner_mvp_release_input,
+    owner_input_contract_sha256,
+)
 from .operations import RECOVERY_CONFIRMATION, OperationsService, build_local_doctor_probe
 from .ocr_vision import (
     OcrEvaluator,
@@ -75,6 +89,7 @@ RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
 WEBUI_TASK_ID = "TSK.x2n.uxops.003"
 OPERATIONS_TASK_ID = "TSK.x2n.uxops.004"
 LIFECYCLE_TASK_ID = "TSK.x2n.uxops.005"
+MVP_RELEASE_TASK_ID = "TSK.x2n.assurance.005"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -113,7 +128,201 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
     return build_local_doctor_probe(paths)
 
 
+def _owner_mvp_input_template() -> dict[str, Any]:
+    """Return a public, non-secret shape; this command never writes Runtime input."""
+
+    owner_contract_sha256 = owner_input_contract_sha256(verify_source=True)
+    digest = "0" * 64
+    return {
+        "disabled_external_scopes": [
+            {
+                "flag_off": True,
+                "live_support_claim": False,
+                "platform_calls": 0,
+                "reason_code": "BLOCKED_AUTH",
+                "scope_id": scope,
+            }
+            for scope in (
+                "bilibili_selected_collection",
+                "kuaishou_selected_collection",
+                "weibo_selected_collection",
+                "taobao_selected_collection",
+            )
+        ],
+        "douyin_sidecar": {
+            "attestation": {
+                "executable_sha256": digest,
+                "resolved_lock_sha256": digest,
+                "sbom_sha256": digest,
+                "scope": "owner_private_build",
+                "transitive_license_report_sha256": digest,
+            },
+            "port": 1,
+        },
+        "enabled_scopes": [
+            {"max_items": 20, "scope_id": "xiaohongshu_favorites", "transport": "chrome_visible_dom"},
+            {"max_items": 20, "scope_id": "xiaohongshu_likes", "transport": "chrome_visible_dom"},
+            {
+                "max_items": 20,
+                "scope_id": "douyin_favorites",
+                "transport": "owner_private_loopback_sidecar",
+            },
+            {"max_items": 20, "scope_id": "douyin_likes", "transport": "owner_private_loopback_sidecar"},
+        ],
+        "owner_private_manifests": [
+            {
+                "content_id_sha256": [
+                    hashlib.sha256(f"replace-with-owner-private-content-id:{scope}:{index}".encode("utf-8")).hexdigest()
+                    for index in range(20)
+                ],
+                "scope_id": scope,
+            }
+            for scope in (
+                "xiaohongshu_favorites",
+                "xiaohongshu_likes",
+                "douyin_favorites",
+                "douyin_likes",
+            )
+        ],
+        "model_mode": "disabled",
+        "owner_authorization": "owner_authorized_direct_mvp",
+        "owner_input_contract_sha256": owner_contract_sha256,
+        "project": "xhs-douyin-2notion",
+        "release_version": "v0.0.0.1",
+        "rollback_target": "previous_stable_or_disable",
+        "schema_version": "1.0",
+    }
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "release":
+        if args.release_action == "input-template":
+            return _success(
+                "release_input_template",
+                acceptance_scope="ASSURANCE_005_PRIVATE_INPUT_TEMPLATE",
+                task_id=MVP_RELEASE_TASK_ID,
+                template=_owner_mvp_input_template(),
+            )
+        paths = _paths()
+        if args.release_action == "validate-input":
+            release_input = load_owner_mvp_release_input(paths)
+            return _success(
+                "release_validate_input",
+                acceptance_scope="ASSURANCE_005_OWNER_INPUT_GATE",
+                task_id=MVP_RELEASE_TASK_ID,
+                release_input=release_input.safe_summary(),
+            )
+        if args.release_action == "arm":
+            controller = MvpReleaseController.arm(paths, CanonicalStore(paths), confirmation=args.confirm)
+            return _success(
+                "release_arm",
+                acceptance_scope="ASSURANCE_005_BOUNDED_ACTIVATION_ARM",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=ARM_CONFIRMATION,
+                release=controller.safe_status(),
+            )
+        controller = MvpReleaseController.load(paths)
+        assert controller is not None
+        store = CanonicalStore(paths)
+        if args.release_action == "baseline-verify":
+            baseline = controller.verify_baseline(store)
+            return _success(
+                "release_baseline_verify",
+                acceptance_scope="ASSURANCE_005_EXACT_FOUR_SCOPE_80_ITEM_BASELINE",
+                task_id=MVP_RELEASE_TASK_ID,
+                baseline=baseline,
+                real_account_execution=(
+                    "OWNER_MVP_BASELINE_RECORDED" if baseline["exact_four_scope_baseline"] else "NOT_RUN"
+                ),
+            )
+        if args.release_action == "rollback-rehearse":
+            return _success(
+                "release_rollback_rehearse",
+                acceptance_scope="ASSURANCE_005_ROLLBACK_REHEARSAL",
+                task_id=MVP_RELEASE_TASK_ID,
+                **controller.rehearse_rollback(store),
+            )
+        if args.release_action == "signoff":
+            controller.owner_signoff(confirmation=args.confirm)
+            return _success(
+                "release_owner_signoff",
+                acceptance_scope="ASSURANCE_005_OWNER_SIGNOFF",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=SIGNOFF_CONFIRMATION,
+                release=controller.safe_status(),
+            )
+        if args.release_action == "deploy":
+            manager = MvpDeploymentManager(paths)
+            deployment = manager.deploy(confirmation=args.confirm, browser=args.browser)
+            try:
+                controller.mark_deployed(artifact_sha256=deployment["artifact_sha256"], browser=args.browser)
+            except Exception as error:
+                try:
+                    manager.rollback_deployment(browser=args.browser)
+                except X2NRuntimeError as cleanup_error:
+                    raise X2NRuntimeError(
+                        ErrorCode.POLICY_BLOCKED,
+                        "MVP deployment state failed and its rollback requires owner recovery",
+                    ) from cleanup_error
+                if isinstance(error, X2NRuntimeError):
+                    raise
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP deployment state could not be recorded") from error
+            return _success(
+                "release_deploy",
+                acceptance_scope="ASSURANCE_005_BLUE_GREEN_DEPLOYMENT",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=DEPLOY_CONFIRMATION,
+                deployment=deployment,
+                release=controller.safe_status(),
+            )
+        if args.release_action == "online-smoke":
+            manager = MvpDeploymentManager(paths)
+            smoke = manager.online_smoke(confirmation=args.confirm, browser=args.browser, controller=controller)
+            controller.mark_online_smoke()
+            return _success(
+                "release_online_smoke",
+                acceptance_scope="ASSURANCE_005_DEPLOYED_RUNTIME_ONLINE_SMOKE",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=ONLINE_SMOKE_CONFIRMATION,
+                online_smoke=smoke,
+                release=controller.safe_status(),
+            )
+        if args.release_action == "rollback":
+            if args.confirm != ROLLBACK_CONFIRMATION:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP rollback confirmation is missing")
+            controller.rollback_disable(confirmation=args.confirm)
+            rollback = MvpDeploymentManager(paths).rollback_deployment(
+                browser=controller.state["deployment"]["browser"]
+            )
+            return _success(
+                "release_rollback_disable",
+                acceptance_scope="ASSURANCE_005_ROLLBACK_DISABLE",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=ROLLBACK_CONFIRMATION,
+                rollback=rollback,
+                release=controller.safe_status(),
+            )
+        if args.release_action == "status":
+            return _success(
+                "release_status",
+                acceptance_scope="ASSURANCE_005_RELEASE_STATUS",
+                task_id=MVP_RELEASE_TASK_ID,
+                release=controller.safe_status(),
+            )
+        if args.release_action == "verify":
+            go_live = controller.verify_go_live(store)
+            artifact = MvpDeploymentManager(paths).verify_current_artifact()
+            MvpDeploymentManager.assert_release_source_tagged()
+            return _success(
+                "release_verify",
+                acceptance_scope="ASSURANCE_005_DIRECT_MVP_GO_LIVE",
+                task_id=MVP_RELEASE_TASK_ID,
+                artifact=artifact,
+                go_live=go_live,
+                release=controller.safe_status(),
+                real_account_execution="OWNER_MVP_RELEASE_ACTIVE",
+            )
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown release action")
     if args.action == "eval":
         if args.eval_action == "asr":
             dataset = load_private_asr_gold_dataset(_paths(), args.dataset)
@@ -509,6 +718,26 @@ def build_parser() -> argparse.ArgumentParser:
     reconcile_actions = reconcile.add_subparsers(dest="reconcile_action", required=True)
     owner_mvp_plan = reconcile_actions.add_parser("owner-mvp-plan")
     owner_mvp_plan.add_argument("--items", type=int, default=80)
+    release = subparsers.add_parser("release")
+    release_actions = release.add_subparsers(dest="release_action", required=True)
+    release_actions.add_parser("input-template")
+    release_actions.add_parser("validate-input")
+    release_arm = release_actions.add_parser("arm")
+    release_arm.add_argument("--confirm", required=True, help=f"Required literal: {ARM_CONFIRMATION}")
+    release_actions.add_parser("baseline-verify")
+    release_actions.add_parser("rollback-rehearse")
+    release_signoff = release_actions.add_parser("signoff")
+    release_signoff.add_argument("--confirm", required=True, help=f"Required literal: {SIGNOFF_CONFIRMATION}")
+    release_actions.add_parser("status")
+    release_actions.add_parser("verify")
+    release_deploy = release_actions.add_parser("deploy")
+    release_deploy.add_argument("--browser", choices=("chrome", "chrome-for-testing", "chromium"), default="chrome")
+    release_deploy.add_argument("--confirm", required=True, help=f"Required literal: {DEPLOY_CONFIRMATION}")
+    release_smoke = release_actions.add_parser("online-smoke")
+    release_smoke.add_argument("--browser", choices=("chrome", "chrome-for-testing", "chromium"), default="chrome")
+    release_smoke.add_argument("--confirm", required=True, help=f"Required literal: {ONLINE_SMOKE_CONFIRMATION}")
+    release_rollback = release_actions.add_parser("rollback")
+    release_rollback.add_argument("--confirm", required=True, help=f"Required literal: {ROLLBACK_CONFIRMATION}")
     webui = subparsers.add_parser("webui")
     webui_actions = webui.add_subparsers(dest="webui_action", required=True)
     serve = webui_actions.add_parser("serve")
@@ -619,6 +848,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.action == "verify"
         else RECONCILIATION_TASK_ID
         if args.action == "reconcile"
+        else MVP_RELEASE_TASK_ID
+        if args.action == "release"
         else OPERATIONS_TASK_ID
         if args.action == "operations"
         else LIFECYCLE_TASK_ID

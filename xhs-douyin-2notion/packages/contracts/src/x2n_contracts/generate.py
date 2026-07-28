@@ -153,6 +153,70 @@ export interface RelationListStartSyncPayload extends StartSyncBasePayload {
   readonly scope_id: "xiaohongshu_favorites" | "xiaohongshu_likes" | "douyin_favorites" | "douyin_likes";
   readonly relation: "liked" | "favorited";
   readonly source_collection_id?: string | null;
+  readonly visible_batch?: XhsFavoritesVisibleBatch | XhsLikesVisibleBatch | null;
+}
+
+export interface XhsVisibleBatchBoundary {
+  readonly automatic_scroll: false;
+  readonly completion_signal: "authoritative_end" | "bounded_limit_reached" | "more_available" | "unknown";
+  readonly explicit_owner_action: true;
+  readonly visible_card_count: number;
+}
+
+export interface XhsVisibleBatchError {
+  readonly card_index: number | null;
+  readonly code: ErrorCode;
+}
+
+export interface XhsVisibleBatchCollection {
+  readonly id: string | null;
+  readonly name_private: string | null;
+  readonly status: "observed" | "unavailable";
+}
+
+export interface XhsFavoritesVisibleItem {
+  readonly collection_id: string | null;
+  readonly collection_name_private: string | null;
+  readonly content_id: string;
+  readonly content_type: "image_gallery" | "unknown" | "video";
+  readonly page_url: string;
+  readonly title: string | null;
+}
+
+export interface XhsLikesVisibleItem {
+  readonly content_id: string;
+  readonly content_type: "image_gallery" | "unknown" | "video";
+  readonly inbox_disposition: "unclassified";
+  readonly page_url: string;
+  readonly title: string | null;
+}
+
+export interface XhsLikesInbox {
+  readonly automatic_filing: false;
+  readonly disposition: "unclassified";
+  readonly taxonomy_mutation: false;
+}
+
+export interface XhsFavoritesVisibleBatch {
+  readonly batch: XhsVisibleBatchBoundary;
+  readonly code: ErrorCode | null;
+  readonly collection: XhsVisibleBatchCollection;
+  readonly errors: readonly XhsVisibleBatchError[];
+  readonly items: readonly XhsFavoritesVisibleItem[];
+  readonly platform: "xiaohongshu";
+  readonly schema_version: "1.0";
+  readonly status: "auth_required" | "empty_unverified" | "partial" | "platform_changed" | "ready" | "verification_required";
+}
+
+export interface XhsLikesVisibleBatch {
+  readonly batch: XhsVisibleBatchBoundary;
+  readonly code: ErrorCode | null;
+  readonly errors: readonly XhsVisibleBatchError[];
+  readonly inbox: XhsLikesInbox;
+  readonly items: readonly XhsLikesVisibleItem[];
+  readonly platform: "xiaohongshu";
+  readonly schema_version: "1.0";
+  readonly status: "auth_required" | "empty_unverified" | "partial" | "platform_changed" | "ready" | "verification_required";
 }
 
 export interface SelectedCollectionStartSyncPayload extends StartSyncBasePayload {
@@ -172,6 +236,9 @@ export type EmptyPayload = Record<string, never>;
 export interface GetCapabilitiesPayload {
   readonly capability_contract_version?: "1.0";
 }
+export interface HealthPayload {
+  readonly mvp_browser_handshake?: true | null;
+}
 
 export interface NativeRequestEnvelope<A extends NativeAction, P> {
   readonly schema_version: SchemaVersion;
@@ -189,7 +256,7 @@ export type NativeMessageRequest =
   | NativeRequestEnvelope<"cancel_job", JobPayload>
   | NativeRequestEnvelope<"retry_job", JobPayload>
   | NativeRequestEnvelope<"get_capabilities", GetCapabilitiesPayload>
-  | NativeRequestEnvelope<"health", EmptyPayload>;
+  | NativeRequestEnvelope<"health", HealthPayload>;
 
 export type NativeResponseStatus = "queued" | "running" | "completed" | "rejected";
 
