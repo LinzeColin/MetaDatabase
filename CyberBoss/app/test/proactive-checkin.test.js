@@ -175,3 +175,74 @@ test("分钟换成毫秒，且最短不低于一分钟", () => {
   assert.ok(floor.minIntervalMs >= 60_000, "最短间隔不得低于一分钟");
   assert.ok(floor.maxIntervalMs >= floor.minIntervalMs);
 });
+
+// ── context_token：主动消息能不能发出去，全看这一条 ─────────
+//
+// 这是本仓第七次"代码存在但真实链路走不到"。往 channelAdapter 的 context_token
+// 缓存里写的只有 rememberBaselineStagingContextTokens，而它只在**非 durable**
+// 那条分支上被调用；线上跑的是 durable 那条，于是缓存永远是空的：
+//   · cyberboss_reminder_create 一律抛 "Let this user talk to the bot once
+//     first"，哪怕这个人刚刚说完话
+//   · 主动打招呼能唤醒模型，但答复没有投递目标，发不出去
+// 生产上 accounts/ 目录里连 .context-tokens.json 这个文件都不存在，就是证据。
+
+
+test("durable 路收下消息时，必须把 context_token 记进渠道缓存", () => {
+  // 直接钉住线上那条分支的接线。onAccepted 是唯一同时握着 senderId 和
+  // context_token 的地方——去掉自动回执之后它空着，正好用来干这件事。
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "core", "app.js"),
+    "utf8",
+  );
+  const hook = source.slice(
+    source.indexOf("onAccepted:"),
+    source.indexOf("onAccepted:") + 400,
+  );
+  assert.match(
+    hook,
+    /rememberContextToken/,
+    "durable inbox 收下消息时必须记住 context_token，否则主动消息和提醒都发不出去",
+  );
+  assert.match(hook, /normalized\.senderId/);
+  assert.match(hook, /normalized\.contextToken/);
+});
+
+test("记 context_token 失败不得把消息挡在门外", () => {
+  // 记不住最坏是主动消息暂时发不出去；让它把整条来信挡下来就是本末倒置。
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "core", "app.js"),
+    "utf8",
+  );
+  const start = source.indexOf("onAccepted: ({ normalized })");
+  assert.ok(start > 0, "onAccepted 必须是那个记 token 的形状");
+  const hook = source.slice(start, start + 420);
+  assert.match(hook, /try\s*\{/, "记不住要吞掉，不能往上抛");
+  assert.match(hook, /catch/);
+});
+
+test("真的调得到：渠道适配器上确实有 rememberContextToken 这个方法", () => {
+  // 上面两条扫的是接线，这条确认被调的那个名字真的存在——名字打错了
+  // 上面照样能通过，而线上会静默什么都不做（?. 会把它吞掉）。
+  const adapterSource = fs.readFileSync(
+    path.join(__dirname, "..", "src", "adapters", "channel", "weixin", "index.js"),
+    "utf8",
+  );
+  assert.match(
+    adapterSource,
+    /^\s{4}rememberContextToken,\s*$/m,
+    "weixin 适配器必须把 rememberContextToken 导出到返回的对象上",
+  );
+});
+
+test("重启之后不能等人先说话——启动时要把会话上下文补回来", () => {
+  // onAccepted 只在新消息进来时记。光有它的话，每次部署重启缓存又空了，主动
+  // 打招呼要等有人先说一句才发得出去——而"主动"的意思恰恰是不等人先说话。
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "core", "app.js"),
+    "utf8",
+  );
+  assert.match(source, /backfillContextTokensFromInbox\(\)/, "启动流程里必须调这个补回");
+  const boot = source.indexOf("this.backfillContextTokensFromInbox()");
+  const loopStarted = source.indexOf("bridge loop started");
+  assert.ok(boot > 0 && boot < loopStarted, "补回必须排在轮询启动之前");
+});

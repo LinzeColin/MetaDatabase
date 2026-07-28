@@ -438,15 +438,31 @@ class CyberbossApp {
         // 席位已满的拒绝）到了调度阶段就没有出口了——JobScheduler 要求
         // dispatchRuntime 返回真实的 threadId/turnId，等于强制走一次模型。
         admissionFilter: (normalized) => this.admissionHandledBeforeJob(normalized),
-        // 收下消息不回执。
+        // 收下消息**不回执**，但要记一件事：这个人的 context_token。
         //
-        // 人不会先说一句"收到，正在处理"再回答。真实的"我在听"信号是微信自己的
-        // "对方正在输入"——dispatchPreparedTurn 里已经发了 sendTyping，那一条就够。
+        // 不回执的理由：人不会先说一句"收到，正在处理"再回答。真实的"我在听"
+        // 信号是微信自己的"对方正在输入"——dispatchPreparedTurn 里已经发了
+        // sendTyping。代价是答复失败就彻底安静，所以可见性移到了后台「对话」栏。
         //
-        // 代价要写明白：回执没了以后，答复失败就是彻底安静。所以这条路的可见性
-        // 移到了后台的「对话」一栏——每一条来信、每一条回复、以及回复失败的原因
-        // 都在那里，见 buildConversationFeed()。
-        onAccepted: null,
+        // 记 context_token 的理由（这是个真实故障，不是保险）：
+        // 主动打招呼、提醒到点、任何系统消息，都要靠 senderId 反查 context_token
+        // 才能发回微信，而它们查的是 channelAdapter 的那份缓存。往那份缓存里写的
+        // 只有 rememberBaselineStagingContextTokens，**而它只在非 durable 那条
+        // 分支上被调用**——线上跑的是 durable 这条，于是缓存永远是空的：
+        //   · cyberboss_reminder_create 一律抛 "Let this user talk to the bot
+        //     once first"，哪怕这个人刚说完话
+        //   · 主动打招呼能唤醒模型，但答复没有投递目标，发不出去
+        // 收下消息这一刻是唯一同时握着 senderId 和 context_token 的地方。
+        onAccepted: ({ normalized }) => {
+          try {
+            this.channelAdapter.rememberContextToken?.(
+              normalized.senderId,
+              normalized.contextToken,
+            );
+          } catch {
+            // 记不住不该让这条消息进不来；最坏结果是主动消息暂时发不出去。
+          }
+        },
       });
       if (this.config.jobScheduler === true) {
         const gate = new ResourceReadinessGate({
@@ -723,6 +739,9 @@ class CyberbossApp {
     if (this.config.startWithLocationServer) {
       await this.ensureLocationServerStarted();
     }
+    // 先把会话上下文补回来，再启动主动轮询——顺序反了的话，重启后的第一次
+    // 主动打招呼会因为找不到投递目标而白跑一次模型。
+    this.backfillContextTokensFromInbox();
     console.log("[cyberboss] bridge loop started; waiting for WeChat messages.");
     // 主动打招呼。轮询器常驻，开不开由主人在后台那一格决定——每一轮现读一次，
     // 所以关掉之后下一轮就停，打开也不用重启。
@@ -1336,6 +1355,49 @@ class CyberbossApp {
       scanned: scanLimit,
       query: Object.freeze({ person: onlyPerson, keyword: String(keyword || "").trim(), from, to }),
     });
+  }
+
+  // 启动时把 context_token 缓存补回来。
+  //
+  // onAccepted 只在**新消息进来**时记。光有它的话，每次部署重启之后缓存又是空的，
+  // 主动打招呼和到点的提醒都发不出去，直到有人先说一句话——而"主动"的意思恰恰是
+  // 不等人先说话。所以启动时从已经收下的消息里把它们捞回来。
+  //
+  // 载荷是加密的，只有本进程解得开；补进去的是同一台机器上本来就有的东西，
+  // 不产生任何新的暴露面。
+  backfillContextTokensFromInbox({ limit = 200 } = {}) {
+    if (!this.runtimeSpoolDatabase || typeof this.channelAdapter.rememberContextToken !== "function") {
+      return 0;
+    }
+    const seen = new Set();
+    let restored = 0;
+    try {
+      for (const message of this.runtimeSpoolDatabase.listRecentInboundForOwner({ limit })) {
+        const senderId = message.payload?.senderId || "";
+        // 载荷里刻意不存 contextToken（encryptedPayload 会删掉它），所以要去
+        // inbox_messages 那一列单独解。
+        if (!senderId || seen.has(senderId)) {
+          continue;
+        }
+        seen.add(senderId);
+        let token = "";
+        try {
+          const buffer = this.runtimeSpoolDatabase.readInboundContextToken(message.inboxId);
+          token = buffer ? buffer.toString("utf8") : "";
+        } catch {
+          token = "";
+        }
+        if (token && this.channelAdapter.rememberContextToken(senderId, token)) {
+          restored += 1;
+        }
+      }
+    } catch {
+      // 补不回来不影响收发；最坏是主动消息要等这个人先说一句话。
+    }
+    if (restored) {
+      console.log(`[cyberboss] 补回 ${restored} 个会话上下文（主动消息和提醒要用）`);
+    }
+    return restored;
   }
 
   // 主动打招呼该发给谁。

@@ -88,12 +88,17 @@ test("真实构造出来的 durable inbox 不再挂自动回执", (t) => {
 
   assert.ok(app.durableInboxCoordinator, "durable inbox 必须真的建起来了，否则这条测试什么都没证明");
   assert.ok(app.outboxWorker, "outbox 也必须建起来——回执之所以曾经存在，正是因为它在");
-  // 关键那一条：outbox 在、协调器在，但收下消息时不再有任何回调去 stage 消息。
+
+  // onAccepted 现在不再是 null：它改去记 context_token（主动消息和提醒要用）。
+  // 所以这一条不能再断言"钩子为空"，要断言的是**那个钩子不发消息**——真正要
+  // 守住的是"用户看不到回执"，不是"钩子不存在"。
+  const hook = String(app.durableInboxCoordinator.onAccepted || "");
   assert.equal(
-    app.durableInboxCoordinator.onAccepted,
-    null,
+    /stageMessage|sendText|收到/.test(hook),
+    false,
     "收下消息不得再自动回一句「收到，正在处理」——那句话让它一点也不像人",
   );
+  assert.match(hook, /rememberContextToken/, "这个钩子现在的职责是记住会话上下文");
 });
 
 test("整个 src 里不再有任何地方 stage accepted 回执", () => {
