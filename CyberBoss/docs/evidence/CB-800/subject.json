@@ -1,0 +1,143 @@
+{
+  "schema_version": "cyberboss.cb800.subject.v1",
+  "task_id": "CB-800",
+  "stage": "S8",
+  "phase": "P8.1",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "9384e1ec6e425098f6d2da37be2225b4965f502f",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_740_closure_commit": "9384e1ec6e425098f6d2da37be2225b4965f502f",
+    "closure_commit_recorded_by": "CB-810"
+  },
+  "data_boundary": {
+    "single_long_term_fact_authority": "app/src/services/canonical/canonical-sync.js",
+    "envelope_is_a_validator_not_a_store": true,
+    "envelope_opens_no_table_file_or_socket": true,
+    "forbidden_fields_enforced": [
+      "raw_message",
+      "raw_chat",
+      "prompt",
+      "response",
+      "api_key",
+      "secret"
+    ],
+    "forbidden_field_scan_depth": "recursive_to_depth_6",
+    "forbidden_field_substring_match": true,
+    "value_level_secret_scan": true,
+    "refusal_names_field_path_not_field_value": true,
+    "normal_cadence": "daily_batch",
+    "critical_cadence": "immediate",
+    "critical_classes_covered": {
+      "release": ["release.published"],
+      "incident": ["incident.opened", "incident.resolved"],
+      "recovery": ["recovery.completed", "backup.restored"],
+      "deletion": ["user.deleted"],
+      "revocation": ["security.credential_revoked"]
+    },
+    "empty_commit": "refused_CANONICAL_EMPTY_COMMIT_FORBIDDEN",
+    "duplicate_source_event_collapses_to_one_fact": true,
+    "object_keys_per_user_prefixed": true,
+    "object_key_traversal": "refused",
+    "object_versions_are_immutable_new_keys": true
+  },
+  "backup_recovery": {
+    "receipt_requires_both_copies": true,
+    "single_copy_upload_yields_no_receipt": true,
+    "one_copy_receipt_cannot_restore": true,
+    "integrity_verified_before_decryption": true,
+    "decrypt_never_attempted_on_corrupt_object": true,
+    "plaintext_digest_verified_after_decryption": true,
+    "encrypt_step_returning_plaintext": "refused_BACKUP_NOT_ENCRYPTED",
+    "restore_target": "explicit_isolated_root_never_the_live_runtime",
+    "relations_verified_before_restore_is_called_good": true,
+    "second_copy_carries_restore_when_first_is_unreadable": true,
+    "degraded_dual_copy_is_reported_not_hidden": true,
+    "existing_backup_runtime_reused_not_forked": [
+      "app/src/services/backup/canonical-backup-runtime.js",
+      "app/src/services/backup/cb530-cloud-backup.js"
+    ]
+  },
+  "export_deletion": {
+    "export_scope_applied_in_query_and_reproved_on_result": true,
+    "two_user_exports_share_no_row": true,
+    "export_excludes": {
+      "user_data_keys": "wrapped_key_material_is_never_exported",
+      "provider_credentials": "credential_ciphertext_is_never_exported",
+      "setup_tokens": "single_use_authentication_material",
+      "web_sessions": "live_session_material",
+      "model_budget_reservations": "rebuildable_operational_state"
+    },
+    "export_manifest_cannot_name_another_users_object": true,
+    "deletion_order": [
+      "suspend_user",
+      "revoke_web_sessions",
+      "revoke_provider_credentials",
+      "cancel_pending_jobs",
+      "delete_r2_user_objects",
+      "delete_search_and_profile_projections",
+      "write_private_database_tombstone",
+      "destroy_user_data_key",
+      "mark_user_deleted"
+    ],
+    "access_cut_before_data_touched": true,
+    "shred_is_second_to_last": true,
+    "irreversible_steps_declared": ["delete_r2_user_objects", "destroy_user_data_key"],
+    "completed_request_reruns_no_handler": true,
+    "interrupted_request_resumes_at_the_failed_step": true,
+    "crypto_shred_ran_exactly_once_across_both_attempts": true,
+    "receipt_is_insert_only": "UPDATE and DELETE both raise deletion_receipt_immutable",
+    "one_users_receipt_never_satisfies_another_users_step": true,
+    "crypto_shred_effect": "wrapped DEK destroyed; getCredential and ensureUserKey both refuse; residual ciphertext is unreadable by any key path",
+    "tombstone_carries_no_raw_user_id": true,
+    "deletion_syncs_immediately": true
+  },
+  "migration_007": {
+    "additive_only": true,
+    "drops_renames_deletes": 0,
+    "transactional": "BEGIN IMMEDIATE with PRAGMA integrity_check",
+    "registered_source_commit": "CB-800",
+    "ledger_after_migration": [1, 2, 3, 4, 5, 6, 7],
+    "pre_v8_upgrade_path_verified": true,
+    "tables_added": ["deletion_requests", "deletion_receipts", "export_receipts"]
+  },
+  "defect_fixed_in_this_node": {
+    "issue": "app/src/services/canonical/object-key.js carried three raw NUL bytes as the hash-input separators, and the CB-800 test file carried one inside a fixture string",
+    "detection": "the CB-800 validator's control-byte guard, which exists because the same defect class appeared at CB-700 and CB-710",
+    "fix": "the separators are now written as explicit \\u0000 escapes; the hash input is byte-identical at runtime and the sources are ASCII-clean",
+    "verification": "a full scan of app/**/*.js reports no remaining raw NUL, and the validator guard is part of the fail-closed seal"
+  },
+  "validator_findings_during_this_node": [
+    "the frozen critical classes 'deletion' and 'revocation' are carried by the type names user.deleted and security.credential_revoked; the validator now asserts an explicit class-to-type mapping instead of a substring match that silently missed them"
+  ],
+  "tests": {
+    "cb800_suite_tests": 33,
+    "cb800_suite_failures": 0,
+    "cb800_repeat_clean_runs": "3/3",
+    "app_suite_tests": 407,
+    "app_suite_failures": 0,
+    "app_suite_consecutive_clean_runs": 2,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "background_model_calls": 0,
+    "macos_launchd_dependency": false,
+    "raw_chat_in_repository": false,
+    "secret_in_repository": false
+  },
+  "activation_pending": [
+    "real Cloudflare R2 bucket credential: the encrypted object upload and the cold-copy restore are proved against an in-memory object client, never against a live bucket",
+    "real OCI object storage pre-authenticated request: the second copy is proved structurally, never against a live offsite bucket",
+    "real Private-Database endpoint: the user-scoped canonical envelope is proved against the frozen contract, and its remote commit is not exercised here"
+  ],
+  "status": "passed_conditional"
+}

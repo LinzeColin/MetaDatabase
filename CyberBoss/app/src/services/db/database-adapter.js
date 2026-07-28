@@ -45,6 +45,11 @@ const MIGRATIONS = Object.freeze([
     name: "006_multiuser_foundation.sql",
     sourceCommit: "CB-610",
   }),
+  Object.freeze({
+    version: 7,
+    name: "007_cb800_lifecycle_receipts.sql",
+    sourceCommit: "CB-800",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";

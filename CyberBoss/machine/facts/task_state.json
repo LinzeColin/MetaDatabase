@@ -6,11 +6,11 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "PG-7",
-    "gate_id": "PG-7",
-    "task_id": "CB-740",
-    "scope": "user_scoped_companion_deterministic_checkin_and_stage_7_exit_gate",
-    "status": "passed"
+    "run_id": "CB-800",
+    "gate_id": "PG-8",
+    "task_id": "CB-800",
+    "scope": "private_database_envelope_dual_copy_backup_scoped_export_deletion_and_crypto_shred",
+    "status": "passed_conditional"
   },
   "prestage": [
     {
@@ -275,7 +275,7 @@
       "id": "CB-800",
       "stage": "S8",
       "phase": "P8.1",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-810",
@@ -659,6 +659,31 @@
       "AC-039 real dual-user WeChat",
       "real BYOK provider credentials (activated at CB-830)",
       "frozen taskpack browser harness (Playwright/Chromium absent on host)"
+    ],
+    "cb_740_closure_commit": "9384e1ec6e425098f6d2da37be2225b4965f502f",
+    "cb_800_base_head": "9384e1ec6e425098f6d2da37be2225b4965f502f",
+    "cb_800_migration": "007_cb800_lifecycle_receipts.sql",
+    "cb_800_migration_sha256": "54cf3e144b2c1104d75c65332040fe97ab348f6bde8251acd2608ab08390d95e",
+    "cb_800_schema_version": 7,
+    "cb_800_long_term_fact_authorities": 1,
+    "cb_800_envelope_forbidden_field_scan": "recursive_depth_6_plus_value_scan",
+    "cb_800_empty_commit": "forbidden",
+    "cb_800_critical_classes_immediate": 5,
+    "cb_800_dual_copy_receipt_requires_both": true,
+    "cb_800_integrity_before_decryption": true,
+    "cb_800_restore_isolation": "explicit_root_never_live_runtime",
+    "cb_800_export_cross_user_rows": 0,
+    "cb_800_export_key_material": "excluded",
+    "cb_800_deletion_steps": 9,
+    "cb_800_crypto_shred_runs_per_request": 1,
+    "cb_800_deletion_receipt_mutability": "insert_only",
+    "cb_800_raw_control_bytes_in_sources": 0,
+    "cb_800_app_suite": "407_pass_0_fail",
+    "cb_800_verdict": "CONDITIONAL_PASS",
+    "cb_800_activation_pending": [
+      "real Cloudflare R2 bucket credential",
+      "real OCI object storage pre-authenticated request",
+      "real Private-Database endpoint"
     ]
   }
 }

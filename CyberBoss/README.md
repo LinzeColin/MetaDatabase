@@ -25,12 +25,25 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P6.4 / CB-630`；`P6.5 / CB-640`；`PG-6`；
   `P7.1 / CB-700`；`P7.2 / CB-710`；
   `P7.3 / CB-720`；`P7.4 / CB-730`；
-  `P7.5 / CB-740`；`PG-7`
+  `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
-- 最新 Run：`CB-740` / `PG-7`。Timeline、日记、提醒全部经服务端 user scope 包装
+- 最新 Run：`CB-800`。数据边界、备份与用户生命周期闭环，全部叠加在既有实现之上，
+  没有第二个事实源、第二套备份运行时或第二个数据库：既有 canonical spool 仍是唯一
+  长期事实权威，新 envelope 只做校验，自身不开表、不开文件、不开连接。六个冻结禁字段
+  在任意深度、作为更长字段名的子串、以及仅凭字段值命中密钥模式时都被拒绝，拒绝信息
+  只报字段路径不报字段值；普通事实走日频、五类重大事件即时、无新事实不空提交。
+  备份必须两份都落盘才发收据，完整性在解密之前校验（损坏对象根本不进密码学路径），
+  恢复只进隔离目录并校验关系；第一份不可读时第二份可独立完成恢复，降级状态如实上报。
+  导出只含自己的行（查询里限定、装配后再验一次），钱包类材料（wrapped DEK、凭据密文）
+  永不进导出；删除按冻结九步执行，先断访问再动数据，收据只增不改，中断后可续跑且
+  crypto-shred 两次尝试合计只执行一次，Tombstone 不带原始用户 id。
+  **`CB-800` = `CONDITIONAL_PASS`**：`AC-029`/`AC-030`/`AC-035` 全部通过，但真实 R2、
+  真实 OCI 与真实 Private-Database 端点无授权凭据，记为 `activation_pending`，
+  未按 PASS 折算。证据在 `docs/evidence/CB-800/`。
+- 上一 Run：`CB-740` / `PG-7`。Timeline、日记、提醒全部经服务端 user scope 包装
   （不 fork 既有服务）：跨用户读为空、跨用户删除无效、暂停用户失去入口、无
   context 或伪造 context 一律拒绝；主动关心模块零依赖，任何路径模型调用都是 `0`，
   按小时扫一整周，关闭状态下主动消息数为 `0`。
@@ -89,11 +102,11 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   或把 pending 写成 ready。最小 Access service-token scope 同样保留 pending，
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
-  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-740`（Stage 7 全部 5 项）已通过；
-  `PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
+  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-740`（Stage 7 全部 5 项）
+  与 `CB-800`（Stage 8 第 1 项）已通过；`PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
 
-- 尚未开始：Stage 6 余下节点、Stage 7、Stage 8 与 PG-6–PG-8 均为
-  `not_started`，权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；
+- 尚未开始：`CB-810`、`CB-820`、`CB-830`、`CB-840` 与 `PG-8` 均为 `not_started`，
+  权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；
   每个节点必须作为独立 Run 按冻结 DAG 依赖顺序执行。
 - R2 backup/readback 与 isolated restore 已 verified；OCI 日常 write-only PAR 的读回
   保持 `activation_pending_write_only_par`。`FORMAL_FINAL_ACCEPTANCE`

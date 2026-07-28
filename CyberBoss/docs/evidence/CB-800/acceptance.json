@@ -1,0 +1,58 @@
+{
+  "schema_version": "cyberboss.cb800.acceptance.v1",
+  "task_id": "CB-800",
+  "stage": "S8",
+  "phase": "P8.1",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "9384e1ec6e425098f6d2da37be2225b4965f502f",
+  "closure_commit_recorded_by": "CB-810",
+  "results": [
+    {
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "check_count": 17,
+      "note": "A user's export is built from rows scoped in the query and re-proved on the assembled result, so two users' exports share no row, and wrapped key material and credential ciphertext are excluded by name with the reason recorded in the manifest. A manifest cannot name another user's object. The deletion plan runs the frozen nine-step order: access is cut before any data is touched, the tombstone precedes the shred, and the shred is second to last. Every step writes an insert-only receipt keyed by user and request, so a completed request re-runs no handler and an interrupted one resumes at the failed step — verified by killing the run after the shred and confirming the crypto-shred executed exactly once across both attempts. Destroying the wrapped DEK leaves the residual ciphertext unreadable by any key path, and the tombstone proves the deletion without carrying the raw user id."
+    },
+    {
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "check_count": 16,
+      "note": "The pre-existing canonical spool remains the only long-term fact authority; the new envelope is a validator that opens no table, file or socket, so it cannot become a second store. All six frozen forbidden fields are refused, recursively to depth six rather than only at the top level, as a substring of a longer field name, and on the value alone when a credential appears under an innocent name — and a refusal names the field path, never the value. Ordinary facts take the daily batch, every frozen critical class maps to an immediate type, a window with no new fact creates no commit at all, and a replayed source event collapses to one fact. Object keys sit under their owner's prefix, refuse traversal, and version immutably so a rollback can repoint to the previous object."
+    },
+    {
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "check_count": 8,
+      "activation_pending_count": 3,
+      "note": "A receipt is issued only when both copies land: a failed second upload produces no receipt at all rather than a document claiming a copy that does not exist, and a receipt that never had two copies cannot be used to restore. Integrity is proved before the ciphertext reaches the cipher — a corrupted object is refused with decryption never attempted — and the plaintext digest is checked after decryption. An encrypt step that returned the plaintext is refused. Restore targets an explicit isolated root, verifies the relational shape before being called good, and the second copy carries a full restore on its own when the first is unreadable, with the resulting degraded state reported rather than hidden. The existing SQLite online backup and cloud client are reused, not forked.",
+      "activation_pending": [
+        "real Cloudflare R2 bucket credential",
+        "real OCI object storage pre-authenticated request",
+        "real Private-Database endpoint"
+      ]
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb800.py",
+  "validator_status": "PASS",
+  "node_verdict": "CONDITIONAL_PASS",
+  "node_verdict_reason": "every mapped acceptance id passes on the exact target subject, but three cloud endpoints have no authorised credential in scope; they are carried as activation_pending and are not counted as PASS",
+  "check_count": 44,
+  "pass_count": 41,
+  "fail_count": 0,
+  "activation_pending_count": 3,
+  "node_test_total": 33,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [
+    "real Cloudflare R2 bucket credential: the encrypted object upload and the cold-copy restore are proved against an in-memory object client, never against a live bucket",
+    "real OCI object storage pre-authenticated request: the second copy is proved structurally, never against a live offsite bucket",
+    "real Private-Database endpoint: the user-scoped canonical envelope is proved against the frozen contract, and its remote commit is not exercised here"
+  ],
+  "status": "passed_conditional"
+}

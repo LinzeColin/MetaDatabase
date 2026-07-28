@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-800",
+  "stage": "S8",
+  "phase": "P8.1",
+  "gate_id": "PG-8",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "9384e1ec6e425098f6d2da37be2225b4965f502f",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-810"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-029",
+    "AC-030",
+    "AC-035"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "adapt no-clone canonical client and object references",
+    "create encrypted runtime snapshot and dual-copy receipt",
+    "execute scoped export/deletion with idempotent receipts and isolated restore"
+  ],
+  "outputs": [
+    "Private-Database fact sync adapter",
+    "encrypted R2/OCI backup receipts",
+    "user export/delete/crypto-shred recovery closure"
+  ],
+  "risks_addressed": [
+    "second fact source",
+    "corrupt backup",
+    "incomplete deletion",
+    "raw chat in Git"
+  ],
+  "rollback": [
+    "restore previous runtime snapshot in isolation",
+    "repoint object version",
+    "never undo completed crypto-shred",
+    "revert to base 9384e1ec6e425098f6d2da37be2225b4965f502f"
+  ],
+  "files_touched_outside_new_modules": [
+    "CyberBoss/app/src/services/db/database-adapter.js — registers migration 7 in the frozen ledger array",
+    "CyberBoss/app/package.json — adds the five new modules to the syntax check",
+    "CyberBoss/app/test/runtime-spool.test.js — migration ledger assertion extended to include version 7",
+    "CyberBoss/app/test/cb610-multiuser-foundation.test.js — migration ledger assertion extended to version 7, and migration 006 addressed by version rather than by last position"
+  ]
+}

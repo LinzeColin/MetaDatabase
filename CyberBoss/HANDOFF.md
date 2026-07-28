@@ -19,11 +19,37 @@
 
 ## Current state
 
-Latest accepted node: `P7.5 / CB-740` passed and Stage 7 exit gate `PG-7` is
-sealed as CONDITIONAL PASS. Stage 6 is complete with `PG-6` also CONDITIONAL
-PASS. Stage 8 has not started.
+Latest accepted node: `P8.1 / CB-800` passed as CONDITIONAL PASS on base
+`9384e1ec6e425098f6d2da37be2225b4965f502f`. Stage 6 and Stage 7 are complete
+with `PG-6` and `PG-7` both sealed as CONDITIONAL PASS; `PG-8` has not started.
+Stage 8 remaining: `CB-810`, `CB-820`, `CB-830`, `CB-840`.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
+
+`P8.1 / CB-800` closed the data boundary, backup and user-lifecycle loop as an
+additive layer over what already existed — no second fact source, no second
+backup runtime, no second database. The pre-existing canonical spool is still
+the only long-term fact authority; the new envelope is a validator that opens no
+table, file or socket of its own, and the validator proves that rather than
+assuming it. All six frozen forbidden fields are refused recursively to depth
+six (the starter reference only checked the top level, so a nested `prompt`
+walked straight through), as a substring of a longer field name, and on the
+value alone when a credential hides under an innocent name; a refusal reports
+the field path and never the field value. Ordinary facts take the daily batch,
+each of the five frozen critical classes maps to an immediate type, a window
+with no new fact creates no commit at all, and a replayed source event collapses
+to one fact. A backup receipt is issued only when both copies land, integrity is
+proved before the ciphertext reaches the cipher, restore targets an explicit
+isolated root and verifies the relational shape, and the second copy carries a
+full restore on its own when the first is unreadable. An export is scoped in the
+query and re-proved on the assembled result, excludes wrapped key material and
+credential ciphertext by name, and cannot name another user's object. Deletion
+runs the frozen nine-step order with insert-only receipts: a completed request
+re-runs no handler, an interrupted one resumes at the failed step, and the
+crypto-shred executed exactly once across a kill-and-resume. `AC-029`, `AC-030`
+and `AC-035` all pass; real R2, real OCI and a real Private-Database endpoint
+have no authorised credential in scope and are carried as `activation_pending`
+rather than counted as PASS. Evidence in `docs/evidence/CB-800/`.
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent

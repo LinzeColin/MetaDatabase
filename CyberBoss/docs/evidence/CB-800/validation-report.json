@@ -1,0 +1,321 @@
+{
+  "schema_version": "cyberboss.cb800.validation.v1",
+  "task_id": "CB-800",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-029",
+    "AC-030",
+    "AC-035"
+  ],
+  "check_count": 44,
+  "pass_count": 41,
+  "fail_count": 0,
+  "activation_pending_count": 3,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_verdict": "CONDITIONAL_PASS",
+  "activation_pending": [
+    "real Cloudflare R2 bucket credential: the encrypted object upload and the cold-copy restore are proved against an in-memory object client, never against a live bucket",
+    "real OCI object storage pre-authenticated request: the second copy is proved structurally, never against a live offsite bucket",
+    "real Private-Database endpoint: the user-scoped canonical envelope is proved against the frozen contract, and its remote commit is not exercised here"
+  ],
+  "repeat_runs": [
+    {
+      "suite": "test/cb800-data-boundary-backup-lifecycle.test.js",
+      "returncode": 0,
+      "tests": 33,
+      "pass": 33,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb800-data-boundary-backup-lifecycle.test.js",
+      "returncode": 0,
+      "tests": 33,
+      "pass": 33,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb800-data-boundary-backup-lifecycle.test.js",
+      "returncode": 0,
+      "tests": 33,
+      "pass": 33,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 33,
+  "checks": [
+    {
+      "check": "ac030.forbidden_fields_match_the_frozen_contract",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "declared=['raw_message', 'raw_chat', 'prompt', 'response', 'api_key', 'secret']"
+    },
+    {
+      "check": "ac030.scan_is_recursive",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "a forbidden field is refused at any depth, not only at the top level"
+    },
+    {
+      "check": "ac030.substring_match_on_field_names",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "a forbidden name embedded in a longer name is still refused"
+    },
+    {
+      "check": "ac030.value_level_secret_scan",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "a credential is refused on its value even under an innocent field name"
+    },
+    {
+      "check": "ac030.error_carries_path_not_value",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "a refusal names the field path, never the field value"
+    },
+    {
+      "check": "ac030.daily_is_the_normal_cadence",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "ordinary facts default to the daily batch"
+    },
+    {
+      "check": "ac030.every_critical_class_is_immediate",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "critical coverage={'release': ['release.published'], 'incident': ['incident.opened', 'incident.resolved'], 'recovery': ['recovery.completed', 'backup.restored'], 'deletion': ['user.deleted'], 'revocation': ['security.credential_revoked']}"
+    },
+    {
+      "check": "ac030.empty_commit_forbidden",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "a window with no new fact creates no commit"
+    },
+    {
+      "check": "ac030.duplicate_source_event_collapses",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "replaying a source event does not create a second fact"
+    },
+    {
+      "check": "ac030.no_parallel_fact_store",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "ac030.single_canonical_authority_retained",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "the pre-existing canonical spool remains the only sync path"
+    },
+    {
+      "check": "ac030.object_keys_are_per_user_prefixed",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "every object sits under its owner's prefix and scope is enforced"
+    },
+    {
+      "check": "ac030.object_keys_reject_traversal",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "no segment can escape the owning prefix"
+    },
+    {
+      "check": "ac030.object_version_supports_rollback",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "a new version writes a new key, so the previous object survives a rollback"
+    },
+    {
+      "check": "ac035.receipt_requires_both_copies",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "a single-copy upload yields no receipt, and a one-copy receipt cannot restore"
+    },
+    {
+      "check": "ac035.integrity_precedes_decryption",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "the ciphertext hash is verified before the cipher is reached"
+    },
+    {
+      "check": "ac035.plaintext_is_verified_after_decryption",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "the restored plaintext is checked against the recorded digest"
+    },
+    {
+      "check": "ac035.unencrypted_snapshot_refused",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "an encrypt step that returned the plaintext is refused"
+    },
+    {
+      "check": "ac035.restore_is_isolated",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "restore targets an explicit isolated root, never the live runtime"
+    },
+    {
+      "check": "ac035.relations_verified_after_restore",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "the relational shape is checked before a restore is called good"
+    },
+    {
+      "check": "ac035.both_copies_proved_independently",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "each copy is proved able to carry a restore on its own"
+    },
+    {
+      "check": "ac035.existing_backup_runtime_not_forked",
+      "acceptance_id": "AC-035",
+      "result": "PASS",
+      "detail": "the pre-existing SQLite online backup and cloud client remain the implementation"
+    },
+    {
+      "check": "ac029.deletion_order_is_frozen_and_complete",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "order=['suspend_user', 'revoke_web_sessions', 'revoke_provider_credentials', 'cancel_pending_jobs', 'delete_r2_user_objects', 'delete_search_and_profile_projections', 'write_private_database_tombstone', 'destroy_user_data_key', 'mark_user_deleted']"
+    },
+    {
+      "check": "ac029.access_is_cut_before_data_is_touched",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "no session can write back while the deletion runs"
+    },
+    {
+      "check": "ac029.shred_is_last_but_one",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "nothing after the shred needs to read what the key protected"
+    },
+    {
+      "check": "ac029.irreversible_steps_are_declared",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "a completed crypto-shred is recorded as irreversible"
+    },
+    {
+      "check": "ac029.resume_knows_it_passed_the_shred",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "an interrupted request resumes rather than restarting"
+    },
+    {
+      "check": "ac029.export_is_scoped_in_query_and_result",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "the scope is applied in the query and re-proved on the assembled rows"
+    },
+    {
+      "check": "ac029.export_excludes_key_material",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "wrapped keys and credential ciphertext never enter an export"
+    },
+    {
+      "check": "ac029.export_objects_must_be_owned",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "a manifest cannot name another user's object"
+    },
+    {
+      "check": "ac029.receipts_are_idempotent_and_scoped",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "a receipt from one user's request cannot satisfy another user's step"
+    },
+    {
+      "check": "ac029.crypto_shred_destroys_the_wrapped_dek",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "contract=delete_wrapped_user_dek"
+    },
+    {
+      "check": "ac029.tombstone_has_no_reconstructible_identity",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "the tombstone proves the deletion without keeping a pointer to the person"
+    },
+    {
+      "check": "ac029.deletion_is_a_critical_canonical_fact",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "the deletion syncs immediately rather than waiting for the daily batch"
+    },
+    {
+      "check": "cb800.migration_is_additive",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "migration 007 drops, renames and deletes nothing"
+    },
+    {
+      "check": "cb800.migration_is_transactional",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "migration 007 applies in one transaction and checks integrity"
+    },
+    {
+      "check": "cb800.migration_is_registered",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "migration 007 is registered in the ledger with its source node"
+    },
+    {
+      "check": "cb800.receipts_are_immutable",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "a deletion receipt cannot be rewritten or removed after the fact"
+    },
+    {
+      "check": "cb800.no_provider_or_mac_or_control_bytes",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb800.modules_are_syntax_checked",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "missing_from_check_script=[]"
+    },
+    {
+      "check": "cb800.activation_pending",
+      "acceptance_id": "AC-035",
+      "result": "ACTIVATION_PENDING",
+      "detail": "real Cloudflare R2 bucket credential: the encrypted object upload and the cold-copy restore are proved against an in-memory object client, never against a live bucket"
+    },
+    {
+      "check": "cb800.activation_pending",
+      "acceptance_id": "AC-035",
+      "result": "ACTIVATION_PENDING",
+      "detail": "real OCI object storage pre-authenticated request: the second copy is proved structurally, never against a live offsite bucket"
+    },
+    {
+      "check": "cb800.activation_pending",
+      "acceptance_id": "AC-035",
+      "result": "ACTIVATION_PENDING",
+      "detail": "real Private-Database endpoint: the user-scoped canonical envelope is proved against the frozen contract, and its remote commit is not exercised here"
+    },
+    {
+      "check": "cb800.suite_is_deterministic",
+      "acceptance_id": "AC-029",
+      "result": "PASS",
+      "detail": "clean_runs=3/3 tests=33"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/canonical/user-fact-envelope.js": "46f99127d4ff8aa4c303dfb0f97e912e8510262919d413037c3deea83613d53d",
+    "app/src/services/canonical/object-key.js": "803f6a5a2c60e2ffe34ea0013d21c34a3982ecf78ef8ed0f6b9660129d1a3d17",
+    "app/src/services/backup/dual-copy-receipt.js": "47ac8df2f7faee69605f3a1d22b9cb1a7795180c5d2c83b4a800cd4959cee512",
+    "app/src/services/privacy/deletion-plan.js": "ea62faba5f19b93c386dfd542a32a6ffe0b51ace16f972a201a8e891a86cd5b8",
+    "app/src/services/privacy/user-data-lifecycle.js": "2224100da755ce1fabe2a90b616871116986fef7d78509e51b7a8939bf189a12",
+    "app/migrations/007_cb800_lifecycle_receipts.sql": "54cf3e144b2c1104d75c65332040fe97ab348f6bde8251acd2608ab08390d95e"
+  }
+}
