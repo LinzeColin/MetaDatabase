@@ -254,6 +254,7 @@ def validate_taskpack_and_current_transition() -> Check:
     following_task = by_id.get("TSK.x2n.multimodal.002", {})
     task003 = by_id.get("TSK.x2n.multimodal.003", {})
     task004 = by_id.get("TSK.x2n.multimodal.004", {})
+    task005 = by_id.get("TSK.x2n.multimodal.005", {})
     gates = {item.get("id"): item for item in taskpack.get("stage_gates", []) if isinstance(item, dict)}
     _require(
         task010.get("status") == "completed"
@@ -317,7 +318,43 @@ def validate_taskpack_and_current_transition() -> Check:
         completed_task = "TSK.x2n.multimodal.001"
         next_task_id = "TSK.x2n.multimodal.002"
     else:
-        if task003.get("status") == "completed":
+        if task004.get("status") == "completed":
+            _require(
+                following_task.get("status") == "completed"
+                and following_task.get("phase") == "PH.X2N.4.2"
+                and task003.get("status") == "completed"
+                and task003.get("phase") == "PH.X2N.4.3"
+                and task004.get("phase") == "PH.X2N.4.4"
+                and task004.get("depends_on") == ["TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003"]
+                and task005.get("status") == "planned"
+                and task005.get("phase") == "PH.X2N.4.5"
+                and "TSK.x2n.multimodal.004" in task005.get("depends_on", []),
+                "Stage 4 Task005 contract drifted after completed fusion Task004",
+            )
+            _require(
+                state.get("last_completed_phase") == "PH.X2N.4.4"
+                and state.get("review_id") == REVIEW_ID
+                and state.get("run_id") == "RUN-X2N-S04-M004"
+                and state.get("stage") == "STG.X2N.4"
+                and state.get("tasks", {}).get("TSK.x2n.adapters.010") == "pass"
+                and all(
+                    state.get("tasks", {}).get(task_id) == "pass"
+                    for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", "TSK.x2n.multimodal.004")
+                )
+                and state.get("next_phase") == "PH.X2N.4.5"
+                and state.get("next_run") == "TSK.x2n.multimodal.005"
+                and state.get("next_phase_authorized") is True
+                and state.get("stage_3_review_complete") is True
+                and state.get("stage_3_remote_upload_authorized") is False
+                and state.get("stage_4_authorized") is True
+                and state.get("public_release_authorized") is False
+                and state.get("stage_gate") == "pass"
+                and state.get("current_stage_gate") == "not_run",
+                "completed Task004 does not preserve the bounded G3 and Stage4 state transition",
+            )
+            completed_task = "TSK.x2n.multimodal.004"
+            next_task_id = "TSK.x2n.multimodal.005"
+        elif task003.get("status") == "completed":
             _require(
                 following_task.get("status") == "completed"
                 and following_task.get("phase") == "PH.X2N.4.2"
@@ -439,7 +476,18 @@ def validate_docs_and_public_boundary() -> Check:
     task001_completed = current_tasks.get("TSK.x2n.multimodal.001") == "pass"
     task002_completed = current_tasks.get("TSK.x2n.multimodal.002") == "pass"
     task003_completed = current_tasks.get("TSK.x2n.multimodal.003") == "pass"
-    if task003_completed:
+    task004_completed = current_tasks.get("TSK.x2n.multimodal.004") == "pass"
+    if task004_completed:
+        _require(
+            task003_completed
+            and "status: STAGE_4_TASK004_FUSION_INJECTION_CI_SYNTH_MODEL_NOT_RUN" in prfaq_text
+            and "implementation_authorized: stage_4_task_005_next_single_phase_run" in prfaq_text
+            and "status: STAGE_4_TASK004_FUSION_INJECTION_CI_SYNTH_MODEL_NOT_RUN" in prd_text
+            and "current_run_scope: stage_4_task004_complete_task005_next_model_not_run" in prd_text
+            and "implementation_authorized: stage_4_task_005_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD do not describe the completed fusion Task004",
+        )
+    elif task003_completed:
         _require(
             "status: STAGE_4_TASK003_LOCAL_FIRST_OCR_VISION_CI_SYNTH_PRIVATE_GOLD_PENDING" in prfaq_text
             and "implementation_authorized: stage_4_task_004_next_single_phase_run" in prfaq_text

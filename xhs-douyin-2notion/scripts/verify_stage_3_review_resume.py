@@ -964,8 +964,12 @@ def validate_release_and_data_contracts() -> Check:
     _require(task002_state in {None, "pass"}, "Task002 current state is invalid")
     task003_state = state.get("tasks", {}).get("TSK.x2n.multimodal.003")
     _require(task003_state in {None, "pass"}, "Task003 current state is invalid")
+    task004_state = state.get("tasks", {}).get("TSK.x2n.multimodal.004")
+    _require(task004_state in {None, "pass"}, "Task004 current state is invalid")
     expected_project_status = (
-        "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending"
+        "stage_4_task004_fusion_injection_ci_synth_model_not_run"
+        if task004_state == "pass"
+        else "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending"
         if task003_state == "pass"
         else "stage_4_task002_local_first_asr_ci_synth_private_gold_pending"
         if task002_state == "pass"
@@ -1027,7 +1031,36 @@ def validate_release_and_data_contracts() -> Check:
             and recheck.get("next_task", {}).get("id") == STAGE4_NEXT_TASK,
             "G3 recheck fact is not a bounded local Stage 4 authorization",
         )
-        if task003_state == "pass":
+        if task004_state == "pass":
+            _require(
+                task002_state == "pass"
+                and task003_state == "pass"
+                and state.get("last_completed_phase") == "PH.X2N.4.4"
+                and state.get("review_id") == TASK010_RECHECK
+                and state.get("run_id") == "RUN-X2N-S04-M004"
+                and state.get("stage") == "STG.X2N.4"
+                and all(
+                    state.get("tasks", {}).get(task_id) == "pass"
+                    for task_id in (STAGE4_NEXT_TASK, "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", "TSK.x2n.multimodal.004")
+                )
+                and state.get("next_run") == "TSK.x2n.multimodal.005"
+                and state.get("next_phase") == "PH.X2N.4.5"
+                and state.get("next_phase_authorized") is True
+                and state.get("stage_3_review_complete") is True
+                and state.get("stage_4_authorized") is True
+                and state.get("current_stage_gate") == "not_run"
+                and state.get("remote_upload") == "not_required_for_local_stage_transition",
+                "completed Task004 did not preserve the bounded Stage 4 routing",
+            )
+            expected_local_ci = (
+                "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_"
+                "technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_"
+                "reconciliation_task002_local_first_asr_cache_budget_cloud_zero_private_gold_pending_task003_local_first_"
+                "ocr_vision_cache_budget_cloud_zero_private_gold_pending_task004_deterministic_fusion_strict_parser_"
+                "injection_isolation_platform_model_real_account_calls_0"
+            )
+            task_state_mode = "stage4_task004_complete"
+        elif task003_state == "pass":
             _require(
                 task002_state == "pass"
                 and state.get("last_completed_phase") == "PH.X2N.4.3"
@@ -1158,6 +1191,16 @@ def validate_release_and_data_contracts() -> Check:
             and "current_run_scope: stage_3_task010_ci_synth_accepted_g3_recheck_pending" in prd_text
             and "implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run" in prd_text,
             "PRFAQ/PRD completed Task010 state drifted",
+        )
+    elif task_state_mode == "stage4_task004_complete":
+        _require(
+            "status: STAGE_4_TASK004_FUSION_INJECTION_CI_SYNTH_MODEL_NOT_RUN" in prfaq_text
+            and "decision: DIRECT_MVP_TASK004_ACCEPTED_TASK005_NEXT" in prfaq_text
+            and "implementation_authorized: stage_4_task_005_next_single_phase_run" in prfaq_text
+            and "status: STAGE_4_TASK004_FUSION_INJECTION_CI_SYNTH_MODEL_NOT_RUN" in prd_text
+            and "current_run_scope: stage_4_task004_complete_task005_next_model_not_run" in prd_text
+            and "implementation_authorized: stage_4_task_005_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD completed Task004 state drifted",
         )
     elif task_state_mode == "stage4_task003_complete":
         _require(

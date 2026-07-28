@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 4 / Multimodal 004
+
+- 完成 `TSK.x2n.multimodal.004 / PH.X2N.4.4`：增加仅内存 deterministic extractive fusion、来源归因事实/检索文本、缺失模态和非行动性分歧标记、固定 prompt 数据隔离、Unicode/Bidi/超长/恶意指令与 secret-shaped 输入拦截，以及只接受 grounded schema 的严格 parser。
+- 12 个专项合成测试覆盖正常/冲突/缺失模态、恶意 caption/OCR/subtitle、Unicode/Bidi、超长输入、schema 篡改、缓存/版本 Artifact、零 side effect 和不可序列化边界；真实模型、工具、文件、网络、配置、密钥、云、平台、账号与 Notion 调用均为 0/NOT_RUN。
+- `ACC.x2n.ai.004` 取得 CI-synth fusion schema/injection isolation 贡献；`ACC.x2n.ai.007` 仅取得 Task004 provenance/cache/budget/cloud-zero 贡献。未创建或修改分类；下一单仅为 `TSK.x2n.multimodal.005 / PH.X2N.4.5`。
+
 ## v0.0.0.1 — Stage 4 / Multimodal 003
 
 - 完成 `TSK.x2n.multimodal.003 / PH.X2N.4.3`：增加 owner-managed 本地 JSON OCR/Vision Provider、不可序列化 OCR 文本/视觉描述、Provider/Model/Snapshot/Prompt/Input provenance、同版本缓存、图片/provider-call/超时预算、禁云路由与 `x2n eval ocr|vision --dataset` 私有聚合 Oracle。

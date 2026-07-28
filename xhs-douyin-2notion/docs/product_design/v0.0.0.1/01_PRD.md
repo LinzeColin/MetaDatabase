@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_4_TASK003_LOCAL_FIRST_OCR_VISION_CI_SYNTH_PRIVATE_GOLD_PENDING
+status: STAGE_4_TASK004_FUSION_INJECTION_CI_SYNTH_MODEL_NOT_RUN
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_4_task003_complete_task004_next_private_gold_pending
-implementation_authorized: stage_4_task_004_next_single_phase_run
+current_run_scope: stage_4_task004_complete_task005_next_model_not_run
+implementation_authorized: stage_4_task_005_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -32,7 +32,7 @@ owner: LinzeColin
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
 | 产品阶段 | Stage 4 Multimodal |
-| 开发状态 | 独立 G3 CI-synth 复验、Task001 有界媒体、Task002 本地优先 ASR 和 `TSK.x2n.multimodal.003 / PH.X2N.4.3` 本地优先 OCR/Vision 合同均已完成；真实模型与私有 Gold Set 未运行，ASR/OCR/Vision 保持禁用，下一单为 `TSK.x2n.multimodal.004 / PH.X2N.4.4`；Stage 3 上传、部署和发布仍未授权 |
+| 开发状态 | 独立 G3 CI-synth 复验、Task001 有界媒体、Task002 本地优先 ASR、Task003 本地优先 OCR/Vision 与 `TSK.x2n.multimodal.004 / PH.X2N.4.4` 融合/提示注入防护合同均已完成；Task004 真实模型未运行，ASR/OCR/Vision 私有 Gold 仍未运行且保持禁用，下一单为 `TSK.x2n.multimodal.005 / PH.X2N.4.5`；Stage 3 上传、部署和发布仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 
@@ -57,6 +57,12 @@ Set 的真实评测时，ASR 质量状态为 `pending` 且 Feature Flag 必须�
 路由及 `x2n eval ocr|vision --dataset` 私有聚合 Oracle。它不下载模型、不读取或写入凭据、不持久化原始媒体、
 OCR 文本或视觉描述；没有 Owner 私有 Gold Set 的真实评测时，OCR/Vision 质量状态均为 `pending`，Feature Flag
 必须保持关闭，不得宣称通过。敏感或不支持视觉输入必须返回结构化拒绝。
+
+`TSK.x2n.multimodal.004` 在短生命周期 text/ASR/OCR/Vision 工件之上增加 deterministic extractive fusion：
+它只保留来源归因事实、明确缺失模态、非行动性 source-divergence、检索文本和摘要于不可序列化会话对象。固定
+prompt 把所有内容标为 untrusted data，Unicode/Bidi/control、恶意 instruction、secret-shaped 和超长输入在
+进入输出前 Fail Closed；strict parser 只接受逐字 grounding 的 versioned JSON schema。当前 renderer 无真实模型、
+工具、文件、网络、配置或密钥访问，也不创建或修改分类；因此该 CI-synth 合同不是模型质量或发布通过声明。
 
 ### 1.1 事实标记
 

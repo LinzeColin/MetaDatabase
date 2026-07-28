@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "project_id": "PRJ.X2N",
   "name": "xhs-douyin-2notion",
   "token": "x2n",
@@ -41,9 +41,10 @@
     "weibo",
     "taobao"
   ],
-  "stage_4_current_task": "TSK.x2n.multimodal.003_pass_ci_synth_private_gold_pending",
+  "stage_4_current_task": "TSK.x2n.multimodal.004_pass_ci_synth_fusion_model_not_run",
   "media_preprocessing": "lease_scoped_ffmpeg_ffprobe_audio_keyframe_dedup_temporary_only",
   "asr": "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
   "ocr_vision": "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
-  "status": "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending"
+  "fusion": "deterministic_local_extractive_ephemeral_artifacts_strict_grounded_parser_prompt_isolation_zero_side_effects_ci_synth_model_not_run",
+  "status": "stage_4_task004_fusion_injection_ci_synth_model_not_run"
 }

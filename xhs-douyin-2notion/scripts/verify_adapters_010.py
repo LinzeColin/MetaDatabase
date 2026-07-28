@@ -264,19 +264,35 @@ def validate_task_state_and_historical_resume() -> Check:
         if task002_state == "pass":
             task003_state = state.get("tasks", {}).get("TSK.x2n.multimodal.003")
             if task003_state == "pass":
-                _require(
-                    state.get("last_completed_phase") == "PH.X2N.4.3"
-                    and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK"
-                    and state.get("run_id") == "RUN-X2N-S04-M003"
-                    and state.get("stage") == "STG.X2N.4"
-                    and state.get("current_stage_gate") == "not_run"
-                    and state.get("stage_gate") == "pass"
-                    and state.get("stage_3_remote_upload_authorized") is False
-                    and state.get("stage_4_authorized") is True
-                    and state.get("next_run") == "TSK.x2n.multimodal.004",
-                    "Task010 historical boundary was not preserved after Task003 completion",
-                )
-                current_stage = "stage4_task003_complete"
+                task004_state = state.get("tasks", {}).get("TSK.x2n.multimodal.004")
+                if task004_state == "pass":
+                    _require(
+                        state.get("last_completed_phase") == "PH.X2N.4.4"
+                        and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK"
+                        and state.get("run_id") == "RUN-X2N-S04-M004"
+                        and state.get("stage") == "STG.X2N.4"
+                        and state.get("current_stage_gate") == "not_run"
+                        and state.get("stage_gate") == "pass"
+                        and state.get("stage_3_remote_upload_authorized") is False
+                        and state.get("stage_4_authorized") is True
+                        and state.get("next_run") == "TSK.x2n.multimodal.005",
+                        "Task010 historical boundary was not preserved after Task004 completion",
+                    )
+                    current_stage = "stage4_task004_complete"
+                else:
+                    _require(
+                        state.get("last_completed_phase") == "PH.X2N.4.3"
+                        and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK"
+                        and state.get("run_id") == "RUN-X2N-S04-M003"
+                        and state.get("stage") == "STG.X2N.4"
+                        and state.get("current_stage_gate") == "not_run"
+                        and state.get("stage_gate") == "pass"
+                        and state.get("stage_3_remote_upload_authorized") is False
+                        and state.get("stage_4_authorized") is True
+                        and state.get("next_run") == "TSK.x2n.multimodal.004",
+                        "Task010 historical boundary was not preserved after Task003 completion",
+                    )
+                    current_stage = "stage4_task003_complete"
             else:
                 _require(
                     state.get("last_completed_phase") == "PH.X2N.4.2"

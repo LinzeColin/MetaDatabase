@@ -1971,7 +1971,7 @@ tasks:
   title: Implement multimodal fusion and prompt-injection defenses
   stage: STG.X2N.4
   phase: PH.X2N.4.4
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
