@@ -1,0 +1,61 @@
+{
+  "schema_version": "cyberboss.cb830.acceptance.v1",
+  "task_id": "CB-830",
+  "stage": "S8",
+  "phase": "P8.4",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "e4521653056f37450b7f85db490ee4bc94912ab0",
+  "closure_commit_recorded_by": "CB-840",
+  "results": [
+    {
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "check_count": 11,
+      "note": "The oracle contains no clock call at all — no timer, no Date.now, no elapsed or window field — and imports nothing; its single use of a clock stamps the receipt after the decision is already made. The hold decision counts remaining requests rather than remaining seconds, and evaluating the same sample again returns the identical decision, so waiting changes nothing. A healthy sample promotes; an error ratio above the threshold, a p95 above the ceiling, one privacy violation, one duplicate side effect, an unmeasured field, a sample with more errors than requests, or an invalid threshold each roll back immediately. A single privacy violation outranks both a perfect ten-thousand-request sample and the insufficient-request hold, so it is acted on rather than waited out. Rollback names the exact previous release, so a second rollback cannot walk further back, and the receipt records aggregate counts with no identity and states that no time-based wait was used."
+    },
+    {
+      "acceptance_id": "AC-039",
+      "result": "ACTIVATION_PENDING",
+      "check_count": 0,
+      "note": "Not executed and not simulated. Two real WeChat senders completing registration, using different providers, receiving independent replies and failing negative isolation requires an authorised WeChat credential, which is not in scope. This acceptance has no non-credential half: a structural proof of the messaging path is not a proof that two real people registered, so no partial pass is claimed and no check under AC-039 is counted as PASS. The dual-user isolation logic itself was proved at CB-640 against the frozen blind set, which is a different claim and is not re-used here as if it satisfied this one."
+    },
+    {
+      "acceptance_id": "AC-040",
+      "result": "CONDITIONAL_PASS",
+      "check_count": 9,
+      "activation_pending_count": 2,
+      "note": "Every lifecycle verb the contract names — install, start, stop, doctor, backup, restore, rollback — has a real command behind it in the immutable action configuration, the repository carries the release assembly the install path is built from, and rollback is a pointer move rather than a reinstall, with the candidate installed beside the current release. What cannot be proved here is the execution: no authorised OVH target host or root credential is in scope, and the frozen privacy contract already records target_environment_proof as NOT_RUN_REQUIRES_AUTHORIZED_TARGET. That half stays activation_pending rather than being counted."
+    },
+    {
+      "acceptance_id": "AC-050",
+      "result": "CONDITIONAL_PASS",
+      "check_count": 12,
+      "activation_pending_count": 1,
+      "note": "The nine documented actions are exactly the nine implemented ones, and a documented action with no command is refused rather than skipped. Every command is an absolute executable with bounded parts and a per-action timeout; a part containing a control character or a shell metacharacter is refused at validation, and an action outside the allowlist never reaches the runner at all. Commands spawn with shell:false, so the operator's word never reaches a shell. The child environment is built from a fixed base plus three bounded variables: a hostile PATH, LD_PRELOAD, NODE_OPTIONS and HOME are all dropped, and a pass-through variable carrying a control character is dropped rather than sanitized in place. A timed-out action is killed and reported with one repair instruction and no retry loop. The root-ownership guards were exercised against real filesystem objects: a wrong owner, a group-writable bit, a symlinked config, a relative path and a directory are each refused with their own code, while the same file with a matching owner passes — proving the guard checks ownership rather than always failing. The operator surface asks for no systemd, SQLite or cloud-console knowledge, and refuses an unknown word and an extra argument rather than ignoring them. What remains pending is installing the uid-0-owned copies at /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json, which this host cannot create."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb830.py",
+  "validator_status": "PASS",
+  "node_verdict": "CONDITIONAL_PASS",
+  "node_verdict_reason": "AC-036 passes outright; AC-040 and AC-050 pass every part that does not need the authorised target host; AC-039 is entirely activation_pending and no substitute is offered as a partial pass",
+  "check_count": 36,
+  "pass_count": 32,
+  "fail_count": 0,
+  "activation_pending_count": 4,
+  "node_test_total": 16,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [
+    "AC-039 real dual-user WeChat: two real senders, distinct providers, independent replies, negative isolation",
+    "live BYOK provider credentials for two distinct providers",
+    "clean install, start, stop, doctor, backup, restore and rollback on the authorised OVH target with root",
+    "root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json"
+  ],
+  "status": "passed_conditional"
+}

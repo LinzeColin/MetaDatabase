@@ -19,12 +19,46 @@
 
 ## Current state
 
-Latest accepted node: `P8.3 / CB-820` passed unconditionally on base
-`eeec38b49ec7378f0e234ad0f37f5f365f061543`. Stage 6 and Stage 7 are complete
+Latest accepted node: `P8.4 / CB-830` passed as CONDITIONAL PASS on base
+`e4521653056f37450b7f85db490ee4bc94912ab0`. Stage 6 and Stage 7 are complete
 with `PG-6` and `PG-7` both sealed as CONDITIONAL PASS; `PG-8` has not started.
-Stage 8 remaining: `CB-830`, `CB-840`.
+Stage 8 remaining: `CB-840`.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
+
+`P8.4 / CB-830` closed the clean-install contract, the request-count canary,
+rollback and the Owner's single-command lifecycle. The canary oracle contains
+no clock call at all and imports nothing; its one use of a clock stamps the
+receipt after the decision is made. An insufficient sample yields a remaining
+request count rather than a remaining duration, and re-evaluating the same
+sample returns the identical decision, so waiting changes nothing. One privacy
+violation or one duplicate side effect rolls back immediately and outranks both
+a perfect ten-thousand-request sample and the insufficient-request hold; an
+unmeasured field, a sample with more errors than requests, and an invalid
+threshold all roll back too. Rollback names the exact previous release, so a
+second rollback cannot walk further back. The operator surface is nine words:
+documented and implemented sets are identical, every command is an absolute
+executable spawned with `shell:false` under a per-action timeout, the child
+environment is a fixed base plus three bounded variables with a hostile PATH,
+LD_PRELOAD, NODE_OPTIONS and HOME all dropped, and a timed-out action is killed
+and reported with one repair instruction and no retry loop. The root-ownership
+guards were exercised against real filesystem objects — wrong owner,
+group-writable, symlinked config, relative path and directory each refused with
+their own code, while a matching owner passes, proving the guard checks
+ownership rather than always failing.
+
+**`AC-039` is recorded entirely as `activation_pending` with no partial
+credit.** There is no authorised WeChat credential in scope, and this
+acceptance has no non-credential half: a structural proof of the messaging path
+is not a proof that two real senders registered, used different providers,
+received independent replies and failed negative isolation. The CB-640 blind
+set proved the isolation *logic*; that is a different claim and is not re-used
+here as if it satisfied this one. `AC-040` and `AC-050` pass every part that
+does not need the authorised OVH host and root — the installed uid-0 copies at
+`/usr/local/sbin/cyberbossctl` and `/etc/cyberboss/operator-actions.json`
+cannot be created here, and the frozen privacy contract already records
+`target_environment_proof` as `NOT_RUN_REQUIRES_AUTHORIZED_TARGET`. `AC-036`
+passes outright. Evidence in `docs/evidence/CB-830/`.
 
 `P8.3 / CB-820` is the security, privacy, model-boundary, supply-chain and
 fault-injection closure. It adds no feature; it re-proves the safety properties

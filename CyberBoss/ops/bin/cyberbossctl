@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+"use strict";
+
+// CB-830 / AC-050: the Owner's whole operational vocabulary.
+//
+// Nine words, no flags to learn, and no systemd, SQLite or cloud-console
+// knowledge required. Everything this script does is look the word up in a
+// root-owned configuration file and run the fixed command it finds there.
+//
+// Installed to /usr/local/sbin/cyberbossctl, owned by root, mode 0755. The
+// configuration lives at /etc/cyberboss/operator-actions.json, owned by root,
+// mode 0644. Both are verified on every invocation; a wrong owner, a symlink
+// or a group-writable bit refuses the command rather than running it.
+
+const {
+  ALLOWED_ACTIONS,
+  OperatorDispatchError,
+  loadActionConfig,
+  runOperatorAction,
+} = require("../../app/src/services/ops/operator-dispatcher");
+
+const CONFIG_PATH = process.env.CYBERBOSS_OPERATOR_CONFIG
+  || "/etc/cyberboss/operator-actions.json";
+
+const HELP = [
+  "CyberBoss 运维命令（一次一个词，不需要懂 systemd、SQLite 或云端目录）：",
+  "",
+  "  cyberbossctl install    安装或升级到当前候选版本",
+  "  cyberbossctl doctor     体检，并给出唯一一条修复建议",
+  "  cyberbossctl start      启动服务",
+  "  cyberbossctl stop       停止服务",
+  "  cyberbossctl restart    重启服务",
+  "  cyberbossctl status     查看运行状态",
+  "  cyberbossctl backup     立即备份",
+  "  cyberbossctl restore    从最近一次已校验的备份恢复",
+  "  cyberbossctl rollback   回到上一个可用版本",
+  "",
+  "出错时只做一件事：运行 cyberbossctl doctor，按它说的做，不要反复重试。",
+].join("\n");
+
+function main(argv) {
+  const action = argv[2];
+  if (!action || action === "help" || action === "--help" || action === "-h") {
+    process.stdout.write(`${HELP}\n`);
+    return action ? 0 : 1;
+  }
+  if (!ALLOWED_ACTIONS.includes(action)) {
+    process.stderr.write(`不认识这个命令：${action}\n\n${HELP}\n`);
+    return 2;
+  }
+  // Extra words are refused rather than ignored: a command that silently drops
+  // an argument teaches the operator that arguments work.
+  if (argv.length > 3) {
+    process.stderr.write("这个命令不需要其它参数。\n");
+    return 2;
+  }
+  let config;
+  try {
+    config = loadActionConfig(CONFIG_PATH);
+  } catch (error) {
+    const code = error instanceof OperatorDispatchError ? error.code : "OPERATOR_CONFIG_UNREADABLE";
+    process.stderr.write(
+      `运维配置无法使用（${code}）。请让管理员确认 ${CONFIG_PATH} 属于 root 且未被改成软链接。\n`,
+    );
+    return 3;
+  }
+  const result = runOperatorAction({ action, config, environment: process.env });
+  process.stdout.write(`${result.title}\n${result.next}\n`);
+  return result.ok ? 0 : result.code;
+}
+
+if (require.main === module) {
+  process.exitCode = main(process.argv);
+}
+
+module.exports = { CONFIG_PATH, HELP, main };

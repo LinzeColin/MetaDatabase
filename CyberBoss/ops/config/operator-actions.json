@@ -1,0 +1,35 @@
+{
+  "install": [
+    "/opt/cyberboss-cloud/current/scripts/install.sh"
+  ],
+  "doctor": [
+    "/opt/cyberboss-cloud/current/scripts/doctor.sh"
+  ],
+  "start": [
+    "/usr/bin/systemctl",
+    "start",
+    "cyberboss-cloud.service"
+  ],
+  "stop": [
+    "/usr/bin/systemctl",
+    "stop",
+    "cyberboss-cloud.service"
+  ],
+  "restart": [
+    "/usr/bin/systemctl",
+    "restart",
+    "cyberboss-cloud.service"
+  ],
+  "status": [
+    "/opt/cyberboss-cloud/current/scripts/status.sh"
+  ],
+  "backup": [
+    "/opt/cyberboss-cloud/current/scripts/backup.sh"
+  ],
+  "restore": [
+    "/opt/cyberboss-cloud/current/scripts/restore-latest-verified.sh"
+  ],
+  "rollback": [
+    "/opt/cyberboss-cloud/current/scripts/rollback.sh"
+  ]
+}

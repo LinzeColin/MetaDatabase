@@ -1,0 +1,123 @@
+{
+  "schema_version": "cyberboss.cb830.subject.v1",
+  "task_id": "CB-830",
+  "stage": "S8",
+  "phase": "P8.4",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "e4521653056f37450b7f85db490ee4bc94912ab0",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_820_closure_commit": "e4521653056f37450b7f85db490ee4bc94912ab0",
+    "closure_commit_recorded_by": "CB-840"
+  },
+  "request_count_canary": {
+    "decision_input": "request counts only",
+    "clock_call_forms_in_the_oracle": 0,
+    "module_imports": 0,
+    "time_based_wait": false,
+    "real_time_waits": 0,
+    "hold_decision": "continue_by_request_count with a remaining count, not a remaining duration",
+    "waiting_longer_changes_the_decision": false,
+    "rollback_triggers": [
+      "ERROR_RATIO_EXCEEDED",
+      "LATENCY_EXCEEDED",
+      "PRIVACY_VIOLATION",
+      "DUPLICATE_SIDE_EFFECT",
+      "CANARY_MEASUREMENT_INVALID",
+      "CANARY_MEASUREMENT_INCONSISTENT",
+      "CANARY_THRESHOLD_INVALID"
+    ],
+    "single_privacy_violation_outranks_every_good_number": true,
+    "single_privacy_violation_outranks_the_request_count_hold": true,
+    "unmeasured_canary": "rollback",
+    "more_errors_than_requests": "rollback as a broken measurement, not a 100% error rate",
+    "rollback_target": "the exact previous release id, named rather than computed",
+    "second_rollback_walks_further_back": false,
+    "receipt_fields": ["totalRequests", "errorCount", "p95Ms", "privacyViolations", "duplicateSideEffects"],
+    "receipt_carries_identity": false,
+    "model_calls": 0
+  },
+  "operator_lifecycle": {
+    "actions": 9,
+    "documented_equals_implemented": true,
+    "documented_action_without_a_command": "refused_OPERATOR_CONFIG_ACTION_MISSING",
+    "action_outside_the_allowlist": "never reaches the runner",
+    "shell": false,
+    "executables": "absolute only",
+    "command_parts_bounded": 12,
+    "control_characters_in_a_command_part": "refused",
+    "timeout_per_action_ms": {
+      "install": 900000, "doctor": 120000, "start": 120000, "stop": 120000,
+      "restart": 180000, "status": 60000, "backup": 900000, "restore": 900000,
+      "rollback": 300000
+    },
+    "timed_out_action": "killed with SIGTERM, reported as 124, one repair instruction, no retry loop",
+    "environment": {
+      "inherited": false,
+      "base": ["PATH", "LANG", "LC_ALL"],
+      "passthrough_allowed": ["CYBERBOSS_RELEASE_ID", "CYBERBOSS_DATA_ROOT", "CYBERBOSS_BACKUP_ROOT"],
+      "hostile_variables_dropped": ["LD_PRELOAD", "NODE_OPTIONS", "HOME", "attacker PATH"],
+      "passthrough_with_a_control_character": "dropped, not sanitized in place"
+    },
+    "config_guards_exercised_against_real_filesystem_objects": {
+      "wrong_owner": "refused_OPERATOR_FILE_OWNER_INVALID",
+      "matching_owner": "accepted, proving the guard checks ownership rather than always failing",
+      "group_writable": "refused_OPERATOR_FILE_WRITABLE_BY_NON_OWNER",
+      "symlinked_config": "refused_OPERATOR_SYMLINK_NOT_ALLOWED",
+      "symlinked_executable": "allowed when the target is owned correctly, because /usr/bin/systemctl legitimately is one",
+      "relative_path": "refused_OPERATOR_ABSOLUTE_PATH_REQUIRED",
+      "directory_instead_of_file": "refused_OPERATOR_FILE_REQUIRED",
+      "malformed_json": "refused_OPERATOR_CONFIG_NOT_JSON before anything runs"
+    },
+    "novice_operability": {
+      "systemd_knowledge_required": false,
+      "sqlite_knowledge_required": false,
+      "cloud_console_knowledge_required": false,
+      "unknown_word": "refused with the nine-word help",
+      "extra_argument": "refused rather than ignored, so the operator never learns that flags might work",
+      "failure_instruction": "run cyberbossctl doctor once; do not retry repeatedly"
+    }
+  },
+  "install_and_recovery": {
+    "lifecycle_verbs_with_a_command": [
+      "install", "start", "stop", "doctor", "backup", "restore", "rollback"
+    ],
+    "release_assembly_in_the_repository": true,
+    "rollback_is_a_pointer_move_not_a_reinstall": true,
+    "candidate_installs_beside_the_current_release": true
+  },
+  "not_executed_and_not_simulated": {
+    "AC-039": "no authorised WeChat credential is in scope. This acceptance has no non-credential half — a structural proof of the messaging path is not a proof that two real senders registered, used different providers, received independent replies and failed negative isolation — so nothing is counted as a partial pass and the whole item stays activation_pending.",
+    "real_provider_activation": "no live BYOK credential for two distinct providers; the adapters remain proved against frozen fake transports and no simulator is presented as a live activation",
+    "clean_install_on_the_target": "no authorised OVH host or root credential; machine/privacy_storage_contract.json already records target_environment_proof as NOT_RUN_REQUIRES_AUTHORIZED_TARGET",
+    "root_owned_installed_paths": "the ownership guard is exercised against real filesystem objects using this host's uid, which proves the guard; a uid-0-owned copy at /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json cannot be created here"
+  },
+  "tests": {
+    "cb830_suite_tests": 16,
+    "cb830_suite_failures": 0,
+    "cb830_repeat_clean_runs": "3/3",
+    "app_suite_tests": 474,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "macos_launchd_dependency": false,
+    "simulator_presented_as_real_activation": false
+  },
+  "activation_pending": [
+    "AC-039 real dual-user WeChat: two real senders, distinct providers, independent replies, negative isolation",
+    "live BYOK provider credentials for two distinct providers",
+    "clean install, start, stop, doctor, backup, restore and rollback on the authorised OVH target with root",
+    "root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json"
+  ],
+  "status": "passed_conditional"
+}

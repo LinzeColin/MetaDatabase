@@ -6,11 +6,11 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-820",
+    "run_id": "CB-830",
     "gate_id": "PG-8",
-    "task_id": "CB-820",
-    "scope": "security_privacy_model_boundary_supply_chain_and_fault_injection_closure",
-    "status": "passed"
+    "task_id": "CB-830",
+    "scope": "clean_install_contract_request_count_canary_rollback_and_operator_lifecycle",
+    "status": "passed_conditional"
   },
   "prestage": [
     {
@@ -293,7 +293,7 @@
       "id": "CB-830",
       "stage": "S8",
       "phase": "P8.4",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-840",
@@ -518,8 +518,8 @@
     "cb_600_unresolved_ambiguities": 0,
     "cb_600_selected_migration_prefix": 6,
     "multiuser_activation": "not_started",
-    "provider_activation": "not_started",
-    "wechat_dual_user_activation": "not_started",
+    "provider_activation": "activation_pending",
+    "wechat_dual_user_activation": "activation_pending",
     "cb_600_closure_commit": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
     "cb_610_base_head": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
     "cb_610_migration": "006_multiuser_foundation.sql",
@@ -718,6 +718,31 @@
     "cb_820_licence_discrepancy": "whereabouts-mcp declares AGPL-3.0-only and ships GPL-3.0-only; recorded and resolved as 'GPL-3.0-only AND AGPL-3.0-only', pre-existing",
     "cb_820_app_suite": "458_pass_0_fail",
     "cb_820_verdict": "PASS",
-    "cb_820_activation_pending": []
+    "cb_820_activation_pending": [],
+    "cb_820_closure_commit": "e4521653056f37450b7f85db490ee4bc94912ab0",
+    "cb_830_base_head": "e4521653056f37450b7f85db490ee4bc94912ab0",
+    "cb_830_canary_decision_input": "request_count_only",
+    "cb_830_canary_clock_call_forms": 0,
+    "cb_830_real_time_waits": 0,
+    "cb_830_rollback_target": "exact_previous_release_named",
+    "cb_830_operator_actions": 9,
+    "cb_830_operator_shell": false,
+    "cb_830_operator_environment": "sanitized_fixed_base_plus_three_bounded_passthrough",
+    "cb_830_operator_timeouts": "per_action_bounded",
+    "cb_830_root_ownership_guard": "exercised_against_real_filesystem_objects",
+    "cb_830_app_suite": "474_pass_0_fail",
+    "cb_830_verdict": "CONDITIONAL_PASS",
+    "cb_830_acceptance_results": {
+      "AC-036": "PASS",
+      "AC-039": "ACTIVATION_PENDING",
+      "AC-040": "CONDITIONAL_PASS",
+      "AC-050": "CONDITIONAL_PASS"
+    },
+    "cb_830_activation_pending": [
+      "AC-039 real dual-user WeChat",
+      "live BYOK provider credentials for two distinct providers",
+      "clean install on the authorised OVH target with root",
+      "root-owned /usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json"
+    ]
   }
 }

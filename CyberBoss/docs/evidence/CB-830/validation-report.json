@@ -1,0 +1,279 @@
+{
+  "schema_version": "cyberboss.cb830.validation.v1",
+  "task_id": "CB-830",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-036",
+    "AC-039",
+    "AC-040",
+    "AC-050"
+  ],
+  "check_count": 36,
+  "pass_count": 32,
+  "fail_count": 0,
+  "activation_pending_count": 4,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_verdict": "CONDITIONAL_PASS",
+  "acceptance_results": {
+    "AC-036": "PASS",
+    "AC-039": "ACTIVATION_PENDING",
+    "AC-040": "CONDITIONAL_PASS",
+    "AC-050": "CONDITIONAL_PASS"
+  },
+  "activation_pending": [
+    "clean install, start, stop, doctor, backup, restore and rollback on the authorised OVH target with root: no authorised target host or root credential is in scope, and machine/privacy_storage_contract.json already records target_environment_proof as NOT_RUN_REQUIRES_AUTHORIZED_TARGET",
+    "/usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json owned by uid 0: the ownership guard is exercised against real filesystem objects with this host's uid, but a uid-0-owned installed copy cannot be created here",
+    "two real WeChat senders completing registration, using different providers, receiving independent replies and failing negative isolation: no authorised WeChat credential is in scope. This has no non-credential half — a structural proof of the messaging path is not a proof that two real people registered — so nothing here is counted as a partial pass",
+    "live BYOK provider credentials for two distinct providers: adapters are proved against frozen fake transports, and no simulator is presented as a live activation"
+  ],
+  "repeat_runs": [
+    {
+      "suite": "test/cb830-install-canary-rollback.test.js",
+      "returncode": 0,
+      "tests": 16,
+      "pass": 16,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb830-install-canary-rollback.test.js",
+      "returncode": 0,
+      "tests": 16,
+      "pass": 16,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb830-install-canary-rollback.test.js",
+      "returncode": 0,
+      "tests": 16,
+      "pass": 16,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 16,
+  "checks": [
+    {
+      "check": "ac036.decision_uses_no_clock",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "clock_forms_found=[]"
+    },
+    {
+      "check": "ac036.oracle_imports_nothing",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "the oracle imports nothing, so it cannot reach a model or a timer"
+    },
+    {
+      "check": "ac036.decision_is_request_count_based",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "the hold decision counts requests, not seconds"
+    },
+    {
+      "check": "ac036.unmeasured_canary_rolls_back",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "an absent measurement rolls back rather than coercing to zero"
+    },
+    {
+      "check": "ac036.privacy_and_duplicates_are_absolute",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "a single privacy violation or duplicate side effect outranks the request-count hold"
+    },
+    {
+      "check": "ac036.inconsistent_sample_rolls_back",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "more errors than requests is a broken measurement, not a 100% error rate"
+    },
+    {
+      "check": "ac036.rollback_target_is_named",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "rollback points at an exact release, so a second rollback cannot walk further back"
+    },
+    {
+      "check": "ac036.receipt_carries_counts_not_identity",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "the receipt records aggregate counts and states that no time wait was used"
+    },
+    {
+      "check": "ac050.nine_frozen_actions",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "declared=['install', 'doctor', 'start', 'stop', 'restart', 'status', 'backup', 'restore', 'rollback']"
+    },
+    {
+      "check": "ac050.config_implements_every_action",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "config_actions=['backup', 'doctor', 'install', 'restart', 'restore', 'rollback', 'start', 'status', 'stop']"
+    },
+    {
+      "check": "ac050.documented_action_without_a_command_fails",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "a documented action with no command is a failure, not a silent skip"
+    },
+    {
+      "check": "ac050.absolute_executables_only",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "every action runs an absolute executable"
+    },
+    {
+      "check": "ac050.shell_is_false",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "commands are spawned without a shell, so there is nothing to inject into"
+    },
+    {
+      "check": "ac050.environment_is_sanitized",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "the child environment is built from a fixed base plus three bounded variables"
+    },
+    {
+      "check": "ac050.every_action_has_a_bounded_timeout",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "each of the nine actions carries its own timeout"
+    },
+    {
+      "check": "ac050.root_ownership_is_verified",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "a wrong owner, a group-writable bit or a symlinked config all refuse"
+    },
+    {
+      "check": "ac050.config_is_read_only_after_validation",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "the config is validated before it is parsed and frozen after"
+    },
+    {
+      "check": "ac050.no_systemd_or_sqlite_knowledge_required",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "the operator surface asks for no infrastructure knowledge and no retry loop"
+    },
+    {
+      "check": "ac050.unknown_word_and_extra_argument_refused",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "an unknown word and an extra argument are both refused rather than ignored"
+    },
+    {
+      "check": "ac050.ctl_is_executable_and_not_group_writable",
+      "acceptance_id": "AC-050",
+      "result": "PASS",
+      "detail": "mode=0o755"
+    },
+    {
+      "check": "ac040.lifecycle_verb_install",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "install has a command behind it"
+    },
+    {
+      "check": "ac040.lifecycle_verb_start",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "start has a command behind it"
+    },
+    {
+      "check": "ac040.lifecycle_verb_stop",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "stop has a command behind it"
+    },
+    {
+      "check": "ac040.lifecycle_verb_doctor",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "doctor has a command behind it"
+    },
+    {
+      "check": "ac040.lifecycle_verb_backup",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "backup has a command behind it"
+    },
+    {
+      "check": "ac040.lifecycle_verb_restore",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "restore has a command behind it"
+    },
+    {
+      "check": "ac040.lifecycle_verb_rollback",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "rollback has a command behind it"
+    },
+    {
+      "check": "ac040.release_assembly_present",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "the repository carries the immutable release assembly"
+    },
+    {
+      "check": "ac040.rollback_is_a_pointer_move",
+      "acceptance_id": "AC-040",
+      "result": "PASS",
+      "detail": "the candidate installs beside the current release and the pointer moves"
+    },
+    {
+      "check": "ac040.clean_install_on_the_authorized_target",
+      "acceptance_id": "AC-040",
+      "result": "ACTIVATION_PENDING",
+      "detail": "clean install, start, stop, doctor, backup, restore and rollback on the authorised OVH target with root: no authorised target host or root credential is in scope, and machine/privacy_storage_contract.json already records target_environment_proof as NOT_RUN_REQUIRES_AUTHORIZED_TARGET"
+    },
+    {
+      "check": "ac040.root_owned_installed_paths",
+      "acceptance_id": "AC-040",
+      "result": "ACTIVATION_PENDING",
+      "detail": "/usr/local/sbin/cyberbossctl and /etc/cyberboss/operator-actions.json owned by uid 0: the ownership guard is exercised against real filesystem objects with this host's uid, but a uid-0-owned installed copy cannot be created here"
+    },
+    {
+      "check": "ac039.real_dual_user_wechat",
+      "acceptance_id": "AC-039",
+      "result": "ACTIVATION_PENDING",
+      "detail": "two real WeChat senders completing registration, using different providers, receiving independent replies and failing negative isolation: no authorised WeChat credential is in scope. This has no non-credential half — a structural proof of the messaging path is not a proof that two real people registered — so nothing here is counted as a partial pass"
+    },
+    {
+      "check": "ac039.real_provider_activation",
+      "acceptance_id": "AC-039",
+      "result": "ACTIVATION_PENDING",
+      "detail": "live BYOK provider credentials for two distinct providers: adapters are proved against frozen fake transports, and no simulator is presented as a live activation"
+    },
+    {
+      "check": "cb830.no_control_bytes_or_mac_markers",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb830.modules_are_syntax_checked",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "missing_from_check_script=[]"
+    },
+    {
+      "check": "cb830.suite_is_deterministic",
+      "acceptance_id": "AC-036",
+      "result": "PASS",
+      "detail": "clean_runs=3/3 tests=16"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/release/request-count-canary.js": "575167dda807009449917b3c7d8e2a66dc8cae57ecfc7434077c40a9c5670286",
+    "app/src/services/ops/operator-dispatcher.js": "0ea6741a99e71b31fc1126f30e3c8e0dbc24bec4ced60e5dbfaafd118214ae60",
+    "ops/config/operator-actions.json": "95e1291d1191bc1c93ab43dd1665676dd24d3458dde17826ed5aed55a3574cc7",
+    "ops/bin/cyberbossctl": "9797f7b7d67d9626498ed16be2198de493a4b8da841de716716626b1ddb0ed9d"
+  }
+}

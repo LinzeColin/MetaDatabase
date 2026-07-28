@@ -25,12 +25,29 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P6.4 / CB-630`；`P6.5 / CB-640`；`PG-6`；
   `P7.1 / CB-700`；`P7.2 / CB-710`；
   `P7.3 / CB-720`；`P7.4 / CB-730`；
-  `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`；`P8.2 / CB-810`；`P8.3 / CB-820`
+  `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`；`P8.2 / CB-810`；`P8.3 / CB-820`；
+  `P8.4 / CB-830`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
-- 最新 Run：`CB-820`。安全、隐私、模型边界、供应链与故障注入闭环——不加任何新功能，
+- 最新 Run：`CB-830`。干净安装契约、请求数 Canary、回滚与 Owner 单命令生命周期。
+  Canary 只看请求数不看时间：oracle 里没有任何计时调用，唯一一次取时间是决策做完之后
+  盖收据；样本不够时给的是"还差几个请求"而不是"再等几分钟"，同一样本重算结果完全一致。
+  错误率、p95、1 次隐私违规、1 次重复副作用、任一未测量字段、错误数大于请求数、阈值非法
+  ——全部立即回滚；1 次隐私违规既压过一万请求的完美样本，也压过"请求数不够先等等"，
+  不会被等过去。回滚点名精确的上一个 release，回滚两次也不会再往前走一格。
+  运维面：9 个动作文档与实现完全一致（文档里有、配置里没有 → 直接失败），全部绝对路径
+  可执行文件 + `shell:false` + 每动作独立超时；环境不继承（恶意 `PATH`/`LD_PRELOAD`/
+  `NODE_OPTIONS`/`HOME` 全丢弃，放行的 3 个变量带控制字符也是丢弃而不是就地清洗）；
+  超时的动作会被 SIGTERM 停掉并只给一条修复建议，不做重试循环。root 属主守卫用真实
+  文件对象跑通：属主不符/组可写/软链接配置/相对路径/传目录各自拒绝，属主匹配时通过
+  ——证明它在检查属主而不是一律失败。
+  **`CB-830` = `CONDITIONAL_PASS`**：`AC-036` 无条件通过；`AC-040`/`AC-050` 除需要
+  授权目标机的部分外全部通过；**`AC-039` 整项记为 `activation_pending`，不给任何部分
+  分**——没有授权微信凭据，而"消息通路的结构性证明"不等于"两个真实用户真的注册了"。
+  证据在 `docs/evidence/CB-830/`。
+- 上一 Run：`CB-820`。安全、隐私、模型边界、供应链与故障注入闭环——不加任何新功能，
   只把安全性质端到端重证一遍。普通用户扫过全部 11 个 Owner-only 能力：授予 `0` 次、
   拒绝 11 次（含 Codex / Workspace / Shell / 工具面）；暂停用户在两套能力上都拿不到
   任何东西；客户端自称 owner 不作数。保险箱：每用户 32 字节随机 DEK（两次包装密文
@@ -133,9 +150,10 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
   v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-740`（Stage 7 全部 5 项）
-  与 `CB-800`、`CB-810`、`CB-820`（Stage 8 前 3 项）已通过；`PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
+  与 `CB-800`、`CB-810`、`CB-820`、`CB-830`（Stage 8 前 4 项）已通过；
+  `PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
 
-- 尚未开始：`CB-830`、`CB-840` 与 `PG-8` 均为 `not_started`，
+- 尚未开始：`CB-840` 与 `PG-8` 为 `not_started`，
   权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；
   每个节点必须作为独立 Run 按冻结 DAG 依赖顺序执行。
 - R2 backup/readback 与 isolated restore 已 verified；OCI 日常 write-only PAR 的读回

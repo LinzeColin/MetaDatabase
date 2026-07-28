@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-830",
+  "stage": "S8",
+  "phase": "P8.4",
+  "gate_id": "PG-8",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "e4521653056f37450b7f85db490ee4bc94912ab0",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-840"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-036",
+    "AC-039",
+    "AC-040",
+    "AC-050"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "install immutable candidate beside current release",
+    "run preflight and real provider/channel activation",
+    "promote or rollback using request-count oracle without time wait",
+    "install root-owned cyberbossctl and immutable action config",
+    "verify root ownership, non-writable executables, no symlink config, sanitized environment and action timeout"
+  ],
+  "outputs": [
+    "clean install and cyberbossctl lifecycle",
+    "credential-backed activation",
+    "request-count canary and immediate rollback",
+    "root-controlled allowlisted operator dispatcher",
+    "bounded no-shell lifecycle execution with safe environment"
+  ],
+  "risks_addressed": [
+    "provider credential/permission mismatch",
+    "partial install",
+    "canary privacy or duplicate side effect",
+    "operator command injection or inherited hostile environment",
+    "unbounded lifecycle command hang",
+    "documented action not implemented"
+  ],
+  "rollback": [
+    "atomic current symlink/release pointer rollback",
+    "stop candidate process family",
+    "preserve diagnostic receipt without secrets",
+    "remove candidate cyberbossctl and restore previous root-owned operator surface",
+    "revert to base e4521653056f37450b7f85db490ee4bc94912ab0"
+  ],
+  "steps_not_executed_here": [
+    "run preflight and real provider/channel activation — no authorised WeChat credential and no live BYOK provider credential is in scope; recorded as activation_pending rather than simulated",
+    "install immutable candidate on the authorised OVH target — no authorised target host or root credential is in scope; machine/privacy_storage_contract.json already records target_environment_proof as NOT_RUN_REQUIRES_AUTHORIZED_TARGET"
+  ],
+  "files_added": [
+    "CyberBoss/app/src/services/release/request-count-canary.js",
+    "CyberBoss/app/src/services/ops/operator-dispatcher.js",
+    "CyberBoss/ops/config/operator-actions.json",
+    "CyberBoss/ops/bin/cyberbossctl",
+    "CyberBoss/app/test/cb830-install-canary-rollback.test.js",
+    "CyberBoss/scripts/validate_cb830.py"
+  ]
+}
