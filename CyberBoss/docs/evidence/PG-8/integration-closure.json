@@ -70,8 +70,25 @@
     "product_acceptance": "PG-8 remains CONDITIONAL_PASS. AC-035, AC-039, AC-040 and AC-050 stay outstanding for the same reason as before.",
     "ac_039": "no part of it is claimed. Two real WeChat senders have never registered against a real channel credential.",
     "live_provider_activation": "no real BYOK key has been exercised against a real provider endpoint. The provider path is proved against a transport that records the origin and the authorization header.",
-    "live_cloud_backup": "no bytes have been written to a real R2 bucket or a real OCI pre-authenticated request. The dual-copy path is proved against a transport that stores and returns the bytes and version identifiers; the snapshot, validation, encryption, decryption and isolated restore in that path are all real.",
+    "live_cloud_backup": "the OCI copy is now proved against the real endpoint. The R2 copy is not: the recorded credential lacks write permission on the target bucket, so no bytes have reached R2. A successful dual-copy receipt has therefore never been produced against live endpoints, and none is claimed.",
     "target_environment": "no code in this Subject has run on the authorised OVH target."
   },
-  "recorded_because": "the goal directive forbids 伪完成. The gap file said the overlay was built but not live. This file says it is live, names the one module that is deliberately reachable only from the root entrypoint, and keeps every unproven claim in the not-claimed list."
+  "recorded_because": "the goal directive forbids 伪完成. The gap file said the overlay was built but not live. This file says it is live, names the one module that is deliberately reachable only from the root entrypoint, and keeps every unproven claim in the not-claimed list.",
+  "live_credential_verification": {
+    "performed_at": "2026-07-28, against the Owner's real endpoints, using credentials the Owner pointed to in _protected/",
+    "credential_handling": "read directly from _protected/, written only into the state directory's .env at mode 0600, never into the repository, never into a log, never printed. A post-run scan confirmed zero occurrences of any credential value anywhere under CyberBoss/.",
+    "oci_object_storage": {
+      "result": "VERIFIED",
+      "evidence": "a real object was written through the Owner's pre-authenticated request and the endpoint returned a version identifier. This is the first time any byte has left this machine for a real object store.",
+      "note": "the PAR is documented as write-only (no delete, no list), which is exactly what the dual-copy create path needs; restoring from OCI would require a separate read-capable PAR."
+    },
+    "cloudflare_r2": {
+      "result": "NOT_VERIFIED_PERMISSION",
+      "evidence": "R2 answered 403 AccessDenied, not SignatureDoesNotMatch. The distinction was checked deliberately: it proves the hand-rolled SigV4 signature is correct and the request was rejected on permissions alone.",
+      "cause": "the only R2 S3 credential recorded in _protected/ is weread_port_r2_v0019.env, which cannot write to cyberboss-cold or to weread-port-private. No credential for the cyberboss-cold bucket is recorded anywhere.",
+      "not_done_deliberately": "no API token was minted and no bucket was created. Both are account-level changes to the Owner's Cloudflare account and are the Owner's to make."
+    },
+    "the_property_this_actually_proved": "With OCI live and R2 refused, `cyberboss backup` refused the whole backup and wrote zero receipts — the no-half-receipt rule, verified against a real endpoint rather than a fake transport. A receipt claiming two copies when only one exists is the failure that surfaces only on the day it is needed, and it did not happen.",
+    "defect_found_by_running_it_for_real": "the backup command passed releaseId 'local' (five characters) where CB-800 requires at least eight, so every invocation failed before a single byte was written. The runner's own default had already been corrected; the command's explicit argument had not. Running it against real endpoints is what surfaced the second copy."
+  }
 }

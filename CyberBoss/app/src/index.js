@@ -201,9 +201,44 @@ async function main() {
       return;
     }
     console.log("正在备份……（快照 → 校验 → 加密 → 两份副本）");
-    const receipt = await runner.run({
-      releaseId: config.canonicalDeployedCommit || "local",
-    });
+    let receipt;
+    try {
+      receipt = await runner.run({
+      // 收据上的 release 编号至少 8 位（CB-800 的格式约束）。没有部署编号时给
+      // 的这个占位值本身就合法——上一版这里是 "local"，5 位，于是每一次
+      // cyberboss backup 都会在写任何字节之前就失败。
+        releaseId: config.canonicalDeployedCommit || "local-snapshot",
+      });
+    } catch (error) {
+      if (error?.code !== "BACKUP_DUAL_COPY_INCOMPLETE") {
+        throw error;
+      }
+      // 这里必须说清楚是哪一边、什么原因。detail 的形状是 `r2:CODE,oci:CODE`，
+      // 只列出真正失败的那些；成功的那一边也没有留下收据——这正是设计。
+      const names = { r2: "Cloudflare R2", oci: "OCI 对象存储" };
+      const reasons = {
+        R2_REQUEST_FAILED: "被拒绝（多半是这把密钥没有写这个桶的权限）",
+        R2_VERSION_MISSING: "写进去了但没返回版本号，无法追溯，按失败处理",
+        OCI_REQUEST_FAILED: "被拒绝（检查预授权地址是否过期或只读）",
+        OCI_VERSION_MISSING: "写进去了但没返回标识，无法追溯，按失败处理",
+        no_version: "没有返回版本号，无法追溯，按失败处理",
+      };
+      console.log([
+        "",
+        "✗ 备份没有完成，这一次什么收据都没有留下。",
+        "",
+        ...String(error.detail || "").split(",").filter(Boolean).map((part) => {
+          const [side, ...rest] = part.split(":");
+          const code = rest.join(":");
+          return `  · ${names[side] || side}：${reasons[code] || code}`;
+        }),
+        "",
+        "  备份要求两份副本同时落地。只成功一份就发收据，会在你真正需要",
+        "  恢复的那天才发现另一份根本不存在——所以这里宁可整次失败。",
+        "",
+      ].join("\n"));
+      return;
+    }
     console.log([
       "",
       "✓ 备份完成，两份副本都已落地",
