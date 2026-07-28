@@ -23,6 +23,20 @@ Latest accepted node: `P8.5 / CB-840` passed as CONDITIONAL PASS, and Stage 8
 exit gate `PG-8` is sealed as CONDITIONAL PASS. All fifteen v0.0.0.8 nodes have
 passed and all three gates — `PG-6`, `PG-7`, `PG-8` — are sealed CONDITIONAL
 PASS. Nothing in the frozen DAG remains unexecuted.
+
+> **Read the seal correctly: the v0.0.0.8 overlay is built and proved, but it
+> is not yet live.** None of the fifteen v0.0.0.8 module families is required
+> by anything outside the test tree, and `src/core/inbound-turn.js` never
+> constructs a `UserContext`. A real WeChat message today is still handled on
+> the single-user Owner path, with none of the multi-user guards on it. Every
+> recorded acceptance result was genuinely executed against the real modules —
+> nothing was fabricated — but they are properties of the **modules**, not yet
+> of the **running product**. The overlay map's strategy is
+> `additive_overlay_then_anchor_based_integration`; the additive overlay was
+> built, the anchor-based integration was not. That is a gap in the execution,
+> not a limitation of the environment: it needed no credential and no target
+> host. Full measurement, the affected acceptance ids, and the remaining wiring
+> work are in `docs/evidence/PG-8/integration-gap.json`.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
 

@@ -1,0 +1,59 @@
+{
+  "schema_version": "cyberboss.pg8.integration-gap.v1",
+  "recorded_at_commit": "b2aedcf8cec21e2ee224c30eb9c892a268119a23",
+  "severity": "material_qualification_to_the_pg8_seal",
+  "finding": "None of the v0.0.0.8 module families is reachable from the running application. Every one of them is required only by the test tree. The live message path — src/index.js -> src/core/app.js -> src/core/inbound-turn.js — still runs the single-user Owner flow it ran before this work started.",
+  "measurement": {
+    "method": "grep for require(\"...services/<family>\") across src/, bin/ and scripts/, excluding test/",
+    "families_checked": 15,
+    "families_referenced_outside_tests": 0,
+    "user_context_mentions_in_src_core_inbound_turn_js": 0,
+    "unreferenced": [
+      "services/users/* (identity, registration, user context, scoped repository)",
+      "services/portal/setup-portal.js",
+      "services/security/* (setup token, session token, secure setup link)",
+      "services/secrets/credential-vault.js",
+      "services/providers/* (four adapters and the router)",
+      "services/runtime/* (fair queue, budget guard, circuit breaker, model runtime controller)",
+      "services/imports/* (upload policy, four parsers, router, ledger)",
+      "services/profile/*, services/analytics/*",
+      "services/companion/*, services/checkin/*",
+      "services/privacy/* (export, deletion plan, crypto-shred)",
+      "services/canonical/user-fact-envelope.js, services/canonical/object-key.js",
+      "services/backup/dual-copy-receipt.js",
+      "services/status/business-matrix.js, services/status/model-usage-summary.js, services/status/zero-agent-ledger.js",
+      "services/operations/resource-gate.js, services/operations/self-heal-policy.js",
+      "services/release/request-count-canary.js, services/ops/operator-dispatcher.js"
+    ]
+  },
+  "what_this_means_for_the_seal": {
+    "still_true": "Every acceptance check recorded in docs/evidence/** was really executed against the real modules on the exact target subject. No result was fabricated and no test was weakened.",
+    "materially_qualified": "Those results are properties of the MODULES, not yet properties of the RUNNING PRODUCT. AC-006, AC-007, AC-008 and AC-009 are the sharpest cases: the Owner boundary and cross-user isolation hold for UserContext and UserScopedRepository, but inbound-turn.js never constructs a UserContext, so a real WeChat message today is still handled on the single-user Owner path with none of those guards on it.",
+    "not_claimed_before_and_still_not_claimed": "AC-039, and the live halves of AC-035, AC-040 and AC-050, were already recorded as activation_pending.",
+    "correction": "PG-8's CONDITIONAL_PASS should be read as 'the v0.0.0.8 overlay is built and proved' and NOT as 'the v0.0.0.8 product behaviour is live'. The earlier evidence did not say this plainly enough, and this file exists to say it."
+  },
+  "why_it_happened": {
+    "taskpack_design": "machine/overlay_map.json declares strategy 'additive_overlay_then_anchor_based_integration' with automatic_mutation false, so the modules are correctly additive and were correctly not auto-wired.",
+    "the_half_that_was_missed": "That strategy has two halves. The additive overlay was built and proved. The anchor-based integration — actually calling the overlay from the live path at the declared anchors — was not performed. CB-630 is titled 'UserContext 全链路' (full chain) and was sealed on module-level proof; the chain it names does not yet reach inbound-turn.js.",
+    "responsibility": "This is a gap in the execution, not a limitation of the environment. It needed no credential and no target host."
+  },
+  "what_does_verifiably_run_today": {
+    "cli_boots": true,
+    "cyberboss_help": "ok",
+    "cyberboss_doctor": "runs; reports workspace_config_unavailable on a host with no workspace configured, which is the correct fail-closed answer",
+    "database": "a fresh runtime.db applies migrations 1-7 and derives the owner user id",
+    "unit_suite": "474 pass / 0 fail",
+    "single_user_owner_flow": "unchanged and intact — this work did not break what already worked"
+  },
+  "remaining_work_to_make_the_product_behave_as_v0_0_0_8": [
+    "construct a UserContext in src/core/inbound-turn.js from the trusted WeChat ingress and thread it through the turn",
+    "route ordinary-user turns through services/runtime/model-runtime-controller and services/providers/router instead of the Owner runtime adapters",
+    "gate the Owner capabilities in src/tools/tool-host.js on that context for every real turn, not only when a context happens to be supplied",
+    "serve services/portal/setup-portal.js from the app server and mount the setup page",
+    "call services/canonical/user-fact-envelope.js on the canonical spool write path",
+    "schedule services/backup/dual-copy-receipt.js, services/status/business-matrix.js and services/operations/* from the existing operational loop",
+    "add an end-to-end test that drives a simulated inbound WeChat message through app.js and asserts the user scope is applied — the missing test that would have caught this"
+  ],
+  "estimated_scope": "one focused session per integration anchor; the modules and their tests already exist, so this is wiring plus end-to-end tests, not new design",
+  "recorded_because": "the goal directive forbids 伪完成. PG-8 was sealed and pushed to main; leaving this unrecorded would let the seal read as more than it is."
+}
