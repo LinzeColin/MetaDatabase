@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "project_id": "PRJ.X2N",
   "name": "xhs-douyin-2notion",
   "token": "x2n",
@@ -20,8 +20,19 @@
   "download_destination_ref": "X2N_DOWNLOAD_DESTINATION",
   "download_destination_required_basename": "MediaCrawler",
   "data_root_namespace": "xhs-douyin-2notion",
+  "local_data_root_role": "ephemeral_execution_download_and_active_sqlite_working_copy",
+  "durable_data_repository": "LinzeColin/Private-Database",
+  "durable_data_area": "Private-MetaDatabase",
+  "durable_data_domain": "xhs-douyin-2notion",
+  "durable_data_client": "KMOS/KMDatabase/machine/tools/private_db_client.py",
+  "durable_data_object_model": "content_addressed_objects_with_global_manifest_domain_field",
+  "raw_sqlite_db_upload": "forbidden_by_client",
+  "durable_chunk_envelope": "domain_bound_opaque_name_index_total_payload_sha256",
+  "private_db_auth": "owner_authorized_existing_gh_session_client_only_no_token_value_or_auth_mutation",
+  "private_database_clone": "forbidden",
   "source_taskpack_absolute_path_status": "unspecified_owner_resolved",
-  "canonical_store": "local_sqlite",
+  "canonical_store": "active_local_sqlite_logical_truth",
+  "durable_recovery_copy": "private_metadatabase_verified_snapshot_manifest_and_receipt",
   "platform_scope": [
     "xiaohongshu",
     "douyin",
@@ -30,5 +41,5 @@
     "weibo",
     "taobao"
   ],
-  "status": "stage_3_review_complete_g3_blocked_technical_and_owner_clarification"
+  "status": "stage_3_review_resume_contract_versioned_g3_blocked_technical"
 }

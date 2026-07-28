@@ -5,6 +5,7 @@ project_token: x2n
 version: v0.0.0.1
 status: FINAL_PRODUCT_DESIGN_BASELINE
 owner_change_event: CE-X2N-20260719-S00-P01
+release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 planning_unit: stage-phase-task
 schedule_type: dependency-and-effort-range
 calendar_commitment: none
@@ -13,6 +14,8 @@ calendar_commitment: none
 # `xhs-douyin-2notion` Roadmap
 
 > Scope amendment `CE-X2N-20260719-S00-P05`：稳定项目名不限制平台范围；Stage 2–3 已扩为六平台，所有新增平台逐一通过 Policy/Auth/Technical/Canary Gate。执行粒度已由 `CE-X2N-20260720-S00-REVIEW` 收紧为每普通 Run 一个 DAG Task。
+>
+> Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：不设置预发布阶段、固定 30 日观察或 soak。`G0–G5`、前置任务与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动该 Task；任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署和在线 smoke 后签发 `G6 PASS`。合法外部门可关闭结算，技术阻断不可结算，安全未知或失败不能降级结算；任务内 Oracle 不反向成为启动条件；上线后监控不阻断后续开发。
 
 ## 1. Roadmap 总览
 
@@ -29,9 +32,9 @@ Stage 4  Multimodal / Taxonomy / Classification
    ↓ G4
 Stage 5  Markdown / Notion / Review / Operations
    ↓ G5
-Stage 6  Dual Assurance / Chaos / Owner Alpha
+Stage 6  Assurance / Chaos / MVP Deploy & Go-live
    ↓ G6
-Optional Beta：OVH Control Plane、跨 OS 包装、扩展平台
+v0.0.0.1 MVP deployed, running and online
 ```
 
 ## 1.1 状态与默认方案
@@ -39,7 +42,7 @@ Optional Beta：OVH Control Plane、跨 OS 包装、扩展平台
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 已生成，等待 Owner 启动 Codex Dev |
+| Dev Taskpack | 已执行至 Stage 3 Resume；`TSK.x2n.adapters.010 / PH.X2N.3.10` 已授权为下一单 Phase Run，当前 `G3=BLOCKED_TECHNICAL` |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |
@@ -52,12 +55,12 @@ Optional Beta：OVH Control Plane、跨 OS 包装、扩展平台
 | Canonical | SQLite |
 | Sinks | Markdown + Notion |
 | 公开仓库 | 允许代码；禁止真实运行数据 |
-| OVH VPS | Alpha 禁用 |
-| Alpha 工程量区间 | 约 `350–764` 工程小时；取决于六平台授权/稳定性、目标 OS 和模型策略 |
+| OVH VPS | MVP 禁用 |
+| MVP 工程量区间 | 约 `360–799` 工程小时；取决于六平台授权/稳定性、目标 OS 和模型策略 |
 | Walking Skeleton | Stage 包络约 `59–129` 工程小时 |
 | 日历承诺 | 无；必须以 Gate 和证据推进，不能用日期替代验收 |
 
-工时口径：六平台 Scope Amendment 后 Stage 区间合计的机器基线为 `350–764h`；43 个 Task 的算术基线为 `350/674/1288h`（low/likely/isolated-high）。Stage 包络考虑相关风险，单 Task `high` 不直接相加。工时只用于规划，不是 Acceptance；每个 Phase 完成后用实际工时校准。
+工时口径：增加 Stage 3 编排闭环后 Stage 区间合计的机器基线为 `360–799h`；44 个 Task 的算术基线为 `360/692/1323h`（low/likely/isolated-high）。Stage 包络考虑相关风险，单 Task `high` 不直接相加。工时只用于规划，不是 Acceptance；每个 Phase 完成后用实际工时校准。
 
 ## 1.2 里程碑
 
@@ -67,9 +70,9 @@ Optional Beta：OVH Control Plane、跨 OS 包装、扩展平台
 | M1 — Walking Skeleton | 六平台合成当前页逐一完成 Canonical→Markdown→Notion Mock，真实 Canary 独立授权 | E2E Record、DB/Markdown/Notion Receipt、CDN Scan |
 | M2 — Six-platform Batch | 两个原平台关系＋四个新增平台所选列表可 Canary、Checkpoint、Resume | 每能力私有 Manifest、重复/丢失报告 |
 | M3 — Governed Multimodal | ASR/OCR/Vision/Fusion＋一级分类＋复核 | Gold Set、System Card、模型评测 |
-| M4 — Assured Alpha | 双流水线、混沌、安全、回滚和 Owner Alpha 通过 | Final Acceptance Bundle |
-| M5 — Value Review | 连续两个月收益/维护数据 | Go/Pivot/Kill Review |
-| M6 — Optional Beta | 仅在价值成立后评估控制平面和跨 OS | 新 PRD/ADR，不自动进入 |
+| M4 — MVP Go-live | 双流水线、混沌、安全、回滚、Owner MVP 与直接上线通过 | Final Acceptance Bundle＋Go-live Receipt |
+| 上线后价值复盘 | 非阻断、无固定观察期；用实际收益/维护事件持续 Go/Pivot/Kill | 运行指标与决策记录 |
+| 未排期未来范围 | 控制平面、跨 OS、Store 或新来源均需新 PRD/ADR | 不自动进入 v0.0.0.1 |
 
 ---
 
@@ -87,7 +90,7 @@ Optional Beta：OVH Control Plane、跨 OS 包装、扩展平台
 | `TSK.x2n.discovery.002` 项目注册 | `project.yaml`/roadmap/events 计划、ID Registry、Task Record 目录 | ID 唯一、单一事实源 |
 | `TSK.x2n.discovery.003` Artifact Policy | 允许/禁止路径、尺寸、Receipt 和 CI Artifact 边界 | Public/Private Contract 可机器验证 |
 
-Phase 0.1 的固定路由：母仓库 `LinzeColin/MetaDatabase`、子项目 `xhs-douyin-2notion/`。原始输入未指定本机绝对下载路径；Owner Change Event 将 `X2N_DATA_ROOT` 解析为 `${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`。Runtime 与所有 Adapter 下载共用该隔离命名空间；真实绝对路径仅存在于 Owner 私有 marker。目的地已有同级条目只做不回显名称的聚合数量/元数据指纹审计，不读取内容、不迁移、不链接、不修改、不删除。
+Phase 0.1 的固定路由：母仓库 `LinzeColin/MetaDatabase`、子项目 `xhs-douyin-2notion/`。原始输入未指定本机绝对下载路径；Owner Change Event 将 `X2N_DATA_ROOT` 解析为 `${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`。该根只承担短暂下载、执行和 SQLite 工作副本，真实绝对路径仅存在于 Owner 私有 marker。数据库、Canonical 快照、Markdown/导出、Receipt 和运行时快照等持久资产必须经 `KMOS/KMDatabase/machine/tools/private_db_client.py` 写入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定为 `xhs-douyin-2notion`，禁止 clone。客户端拒绝直接 `.sqlite/.db` 且单对象上限 95 MiB；一致性 SQLite 快照必须封装为非运行时归档、≤90 MiB 分片并以 restore manifest 验证重组。目的地已有同级条目只做不回显名称的聚合数量/元数据指纹审计，不读取内容、不迁移、不链接、不修改、不删除。
 
 ## Phase 0.2 — 上游、License 与 Evidence
 
@@ -430,12 +433,24 @@ Contract 以 JSON Schema/Pydantic/TypeScript 类型生成或交叉验证。
 - 首次/最后见到；
 - Full Scan Completeness Receipt；
 - 双成功扫描后 Tombstone Candidate；
-- Alpha 人工确认；
+- MVP 人工确认；
 - 绝不因空结果自动删除。
+
+## Phase 3.10 — Capability Dispatch 与 Explicit Fallback
+
+- 八个 relation/list scope 使用严格 allowlist 从 Side Panel 经 Native Host 路由到对应 Adapter；
+- 能力终态只能是 `READY_FOR_MVP_ACTIVATION` 或 `DISABLED_EXTERNAL_GATE`；后者不得宣称已支持；
+- Adapter 失败必须原子持久化 `run_record.state=failed` 与脱敏 `run_failure`；Side Panel 只从
+  `fallback_eligible` 确定性派生 `FALLBACK_AVAILABLE`，不得新增第二种 Run state；
+- 失败 `GET_JOB` 必须以 rejected envelope 保留 `job_id`；当前页 fallback 必须由 Owner 第二次明确
+  动作以新 `request_id`＋`fallback_from_job_id` 创建独立 Request，自动 fallback 次数固定为 `0`；
+- Pydantic/error registry、JSON Schema、generated TypeScript、Extension consumer 与 versioned
+  SQLite migration 必须同 Phase 同步，并保留原 current-page/Job response compatibility vectors；
+- 该 Phase 只运行合成/Chaos，不接触真实账号、平台、Notion 或媒体。
 
 ### Gate G3 — Batch
 
-测试样本：
+Stage 3 的测试样本全部为 `ENV-CI-SYNTH`；真实激活只属于 Stage 6 MVP 发布 Task：
 
 ```text
 小红书 收藏 20
@@ -450,13 +465,17 @@ Contract 以 JSON Schema/Pydantic/TypeScript 类型生成或交叉验证。
 
 通过：
 
-- 页面/平台可见样本与 Observation ID 对账；
+- 八个 scope 均有可执行 Native dispatch，并落入合法能力终态；
+- `READY_FOR_MVP_ACTIVATION` 只代表技术路径就绪，不能替代真实 Policy/Auth/Activation Gate；
+- `DISABLED_EXTERNAL_GATE` 是合法 Fail-Closed 终态，但必须保持 Flag off、平台调用 0、支持声明 false；
+- 失败路径持久化 failed/run_failure，restart 后派生 `FALLBACK_AVAILABLE`；第二次 Owner 当前页动作前副作用为 0；
 - 必填字段完整率 `>=95%`；
 - 静默丢失 `0`；
 - 二次同步新增重复 `0`；
 - 新增一条只处理新增/变化；
 - 登录过期不改变历史关系；
 - 中途 Kill 可从 Checkpoint 继续；
+- 空响应删除为 `0`；
 - 不出现 CDN URL、Cookie 或 Profile 路径。
 
 **Pivot 条件**：任一平台批量 Adapter 两轮修复后仍低于 `90%` 已识别条目成功率，则关闭其批量 Flag，保留当前页保存。
@@ -612,7 +631,7 @@ Contract 以 JSON Schema/Pydantic/TypeScript 类型生成或交叉验证。
 
 ---
 
-# 8. Stage 6 — Assurance、Chaos 与 Owner Alpha
+# 8. Stage 6 — Assurance、Chaos、MVP 部署与上线
 
 **目标**：主动制造故障，验证正确性、安全、模型能力和发布恢复。
 
@@ -680,22 +699,23 @@ Contract 以 JSON Schema/Pydantic/TypeScript 类型生成或交叉验证。
 - Clock Skew；
 - Process Restart Loop。
 
-## Phase 6.5 — Canary / Blue-Green / Alpha
+## Phase 6.5 — 直接部署、运行与 Go-live
 
-1. 合成 Fixture；
-2. 六平台合成当前页全通过；真实当前页逐平台独立授权；
-3. 每个启用平台/能力 20 条以内 Canary；
-4. 每个启用平台/能力独立 Owner Alpha Manifest；
-5. Shadow 新版本；
-6. Backup；
-7. Green Install；
-8. Schema Migration Dry-run；
-9. Owner Alpha；
-10. Rollback Drill；
-11. Final Acceptance Bundle；
-12. Release Tag `v0.0.0.1-alpha.1` 或项目约定等价标签。
+1. 固定 `v0.0.0.1` Release Candidate 与 Backup；
+2. 干净环境 Fresh Install、Schema Migration Dry-run 和版本兼容检查；
+3. 完成 XHS 收藏/点赞、Douyin 收藏/点赞各 20 条的 80 条 Owner MVP 基线；
+4. Bilibili/Kuaishou/Weibo/Taobao 每个额外实际启用能力分别使用独立 Owner Manifest 做不超过
+   20 条的激活检查；合法外部门能力以 flag off/0 call/0 live claim 结算，技术阻断不得结算；
+5. 完成 Markdown/Notion 对账和 Private-MetaDatabase 持久化 Receipt；
+6. 执行 Rollback Drill，恢复候选并复验 Canonical；
+7. 上述任务内 Gate 全部通过后立即切换 `current`、启动服务、完成 Go-live Smoke；
+8. 生成 Final Acceptance Bundle、Release Notes、System Card、Go-live Receipt；
+9. 签发唯一正式标签 `v0.0.0.1`。
 
-### Gate G6 — Assured Alpha
+这些步骤在一个 Release Task 内连续完成；不插入预发布阶段、固定天数健康观察或 soak 等待。
+`G6` 只在第 7–9 步的部署、在线 smoke 与发布证据成功后签发，不得作为本 Release Task 的前置条件。
+
+### Gate G6 — MVP Go-live
 
 - `04_ACCEPTANCE_CONTRACT_TRACEABILITY.md` 所有 Blocking Acceptance 通过；
 - 双流水线通过；
@@ -706,19 +726,17 @@ Contract 以 JSON Schema/Pydantic/TypeScript 类型生成或交叉验证。
 - Owner Sign-off；
 - 回滚演练成功；
 - 已知限制进入 System Card 和 Release Notes；
-- Release Artifact 不包含 Runtime 数据。
+- Release Artifact 不包含 Runtime 数据；
+- `v0.0.0.1` 已部署、运行并通过启动/回滚 Smoke；
+- 上线后监控不作为继续开发的定时等待门；告警触发降级、修复或回滚。
 
 ---
 
-# 9. Optional Beta Roadmap（非当前授权）
+# 9. 未排期未来范围（非当前授权、非 MVP 后置门）
 
-## Beta A — 跨 OS 包装
+## Future A — 跨 OS 包装
 
-进入条件：
-
-- Owner Alpha 连续稳定 30 天；
-- 核心价值成立；
-- 有第二目标 OS 的真实需求和测试设备。
+启动条件：Owner 另行发起独立 PRD/ADR，并提供第二目标 OS 的真实需求和测试设备；不设固定等待天数。
 
 内容：
 
@@ -728,14 +746,9 @@ Contract 以 JSON Schema/Pydantic/TypeScript 类型生成或交叉验证。
 - OS-specific Keychain 和权限；
 - Cross-platform Recovery。
 
-## Beta B — OVH VPS-1 Control Plane
+## Future B — OVH VPS-1 Control Plane
 
-进入条件：
-
-- 明确需要远程触发；
-- Threat Model、成本和隐私复核通过；
-- Alpha 本地 Agent 已稳定；
-- Owner 另行授权。
+启动条件：Owner 明确需要远程触发并另行授权，且独立 Threat Model、成本和隐私复核通过；不依赖固定观察期。
 
 允许：
 
@@ -754,7 +767,7 @@ Contract 以 JSON Schema/Pydantic/TypeScript 类型生成或交叉验证。
 - VPS 直接采集；
 - 远程任意命令。
 
-## Beta C — 新来源
+## Future C — 新来源
 
 通过相同 Adapter Contract 增加六平台之外的来源，必须独立 PRD、License 和 Acceptance；不得降低现有六平台各自的合规与质量门禁。
 
@@ -803,7 +816,7 @@ Governance + License
 → Taxonomy/Review
 → Notion/Markdown Production
 → Dual Assurance
-→ Owner Alpha
+→ Owner MVP
 ```
 
 非 Critical Path：
@@ -826,7 +839,7 @@ Governance + License
 | O1 | Stage 0 | 登录、Notion、分类、Provider/预算、保留默认 |
 | O2 | G2 | 查看 4 条 Walking Skeleton 结果，确认信息结构 |
 | O3 | G4 | 标注/确认 Gold Set 和分类阈值 |
-| O4 | G6 | 80 条验收、回滚演练和 Alpha Sign-off |
+| O4 | G6 | 80 条验收、回滚演练和 MVP Sign-off |
 
 其他可逆工程决策由任务包预授权；暂停时必须输出：
 
@@ -851,7 +864,7 @@ Roadmap 本身通过条件：
 - 依赖无循环；
 - 每个 Gate 有输入、Oracle、证据和 Stop Condition；
 - P0 需求全部映射到任务；
-- Beta 不被误当作 Alpha 授权；
+- Future 不被误当作 MVP 授权；
 - 工程量是区间，不是伪精确日期；
 - Owner 输入集中在开发前；
 - Pivot/Kill 路径可执行。

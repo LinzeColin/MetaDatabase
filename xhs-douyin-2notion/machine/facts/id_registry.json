@@ -33,9 +33,9 @@
   ],
   "registered_counts": {
     "stages": 7,
-    "tasks": 43,
+    "tasks": 44,
     "requirements": 32,
-    "acceptances": 61,
+    "acceptances": 62,
     "platforms": 6
   },
   "duplication_policy": "IDs are listed only for registration; definitions remain in canonical registries."

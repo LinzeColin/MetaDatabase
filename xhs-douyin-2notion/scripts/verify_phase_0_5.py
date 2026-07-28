@@ -234,12 +234,12 @@ def validate_taskpack_amendment() -> Check:
     historical_taskpack = _load_yaml_unique_at(PHASE_FINAL_COMMIT, TASKPACK)
     tasks = taskpack.get("tasks", [])
     requirements = [item.get("id") for item in taskpack.get("requirements", [])]
-    _require(len(tasks) == 43, "six-platform DAG must contain 43 tasks")
+    _require(len(tasks) == 44, "six-platform DAG must contain 44 tasks")
     _require(requirements == [f"REQ.X2N.{index:03d}" for index in range(1, 33)], "REQ.X2N.001-032 registry drifted")
     by_id = {item.get("id"): item for item in tasks}
     historical_by_id = {item.get("id"): item for item in historical_taskpack.get("tasks", [])}
     current_state = _load_json(TASK_STATE)
-    _require(len(by_id) == 43 and None not in by_id, "task IDs missing or duplicated")
+    _require(len(by_id) == 44 and None not in by_id, "task IDs missing or duplicated")
     for task_id, phase in NEW_PLATFORM_TASKS.items():
         _require(by_id.get(task_id, {}).get("phase") == phase, f"new platform task phase mismatch: {task_id}")
         _require(
@@ -257,11 +257,11 @@ def validate_taskpack_amendment() -> Check:
         stage_counts[task["stage"]] += 1
     _require(stage_counts == {
         "STG.X2N.0": 5, "STG.X2N.1": 5, "STG.X2N.2": 9,
-        "STG.X2N.3": 9, "STG.X2N.4": 5, "STG.X2N.5": 5, "STG.X2N.6": 5,
+        "STG.X2N.3": 10, "STG.X2N.4": 5, "STG.X2N.5": 5, "STG.X2N.6": 5,
     }, "six-platform stage counts drifted")
 
     acceptance_ids = set(re.findall(r"^## (ACC\.x2n\.[a-z]+\.\d{3})\b", ACCEPTANCE.read_text(encoding="utf-8"), re.MULTILINE))
-    _require(len(acceptance_ids) == 61, "acceptance registry must contain 61 unique IDs")
+    _require(len(acceptance_ids) == 62, "acceptance registry must contain 62 unique IDs")
     _require(NEW_ACCEPTANCES.issubset(acceptance_ids), "new platform acceptances missing")
     for task in tasks:
         task_id = task["id"]
@@ -271,9 +271,9 @@ def validate_taskpack_amendment() -> Check:
 
     validation = taskpack.get("validation_contract", {})
     order = validation.get("topological_order", [])
-    _require(validation.get("task_count_expected") == 43, "validation task count drifted")
-    _require(validation.get("calculated_task_count") == 43 and validation.get("calculated_dag_cycles") == 0, "declared DAG arithmetic drifted")
-    _require(len(order) == 43 and len(set(order)) == 43 and set(order) == set(by_id), "topological order coverage drifted")
+    _require(validation.get("task_count_expected") == 44, "validation task count drifted")
+    _require(validation.get("calculated_task_count") == 44 and validation.get("calculated_dag_cycles") == 0, "declared DAG arithmetic drifted")
+    _require(len(order) == 44 and len(set(order)) == 44 and set(order) == set(by_id), "topological order coverage drifted")
     position = {task_id: index for index, task_id in enumerate(order)}
     for task in tasks:
         for dependency in task.get("depends_on", []):
@@ -290,11 +290,11 @@ def validate_taskpack_amendment() -> Check:
         key: sum(task.get("effort_hours", {}).get(key, 0) for task in tasks)
         for key in ("low", "likely", "high")
     }
-    _require(effort_totals == {"low": 350, "likely": 674, "high": 1288}, "task effort arithmetic drifted")
+    _require(effort_totals == {"low": 360, "likely": 692, "high": 1323}, "task effort arithmetic drifted")
     return Check("six_platform_taskpack", "PASS", {
-        "tasks": 43,
+        "tasks": 44,
         "requirements": 32,
-        "acceptances": 61,
+        "acceptances": 62,
         "stage_counts": stage_counts,
         "dag_cycles": 0,
         "stage_gates": 7,

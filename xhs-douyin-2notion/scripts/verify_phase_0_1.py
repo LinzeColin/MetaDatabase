@@ -139,7 +139,7 @@ def validate_taskpack() -> Check:
     _require(stage_ids == expected_stages, f"expected Stage 0-6, got {stage_ids}")
 
     tasks = taskpack.get("tasks", [])
-    _require(len(tasks) == 43, f"expected 43 tasks, got {len(tasks)}")
+    _require(len(tasks) == 44, f"expected 44 tasks, got {len(tasks)}")
     task_ids = [task.get("id") for task in tasks]
     _require(None not in task_ids, "task without id")
     _require(len(task_ids) == len(set(task_ids)), "duplicate task IDs")
@@ -153,7 +153,7 @@ def validate_taskpack() -> Check:
 
     acceptance_text = ACCEPTANCE_DOC.read_text(encoding="utf-8")
     acceptance_ids = re.findall(r"^## (ACC\.x2n\.[a-z]+\.\d{3})\b", acceptance_text, flags=re.MULTILINE)
-    _require(len(acceptance_ids) == 61, f"expected 61 acceptances, got {len(acceptance_ids)}")
+    _require(len(acceptance_ids) == 62, f"expected 62 acceptances, got {len(acceptance_ids)}")
     _require(len(acceptance_ids) == len(set(acceptance_ids)), "duplicate acceptance IDs")
     acceptance_id_set = set(acceptance_ids)
 
@@ -197,7 +197,7 @@ def validate_taskpack() -> Check:
         "STG.X2N.0": 5,
         "STG.X2N.1": 5,
         "STG.X2N.2": 9,
-        "STG.X2N.3": 9,
+        "STG.X2N.3": 10,
         "STG.X2N.4": 5,
         "STG.X2N.5": 5,
         "STG.X2N.6": 5,
@@ -342,7 +342,15 @@ def validate_registration() -> Check:
         front_matter = yaml.safe_load(front_matter_text)
         _require(front_matter.get("project") == "xhs-douyin-2notion", f"project drift in {filename}")
         _require(front_matter.get("version") == "v0.0.0.1", f"version drift in {filename}")
-        _require(front_matter.get("owner_change_event") == "CE-X2N-20260719-S00-P01", f"change event missing in {filename}")
+        expected_change_event = (
+            "CE-X2N-20260728-S03-REVIEW-RESUME-MVP"
+            if filename in {"00_PRFAQ.md", "01_PRD.md"}
+            else "CE-X2N-20260719-S00-P01"
+        )
+        _require(
+            front_matter.get("owner_change_event") == expected_change_event,
+            f"versioned current change event missing in {filename}",
+        )
 
     return Check(
         "project_registration",
@@ -595,11 +603,24 @@ def validate_local_root(root: Path) -> Check:
         present_system_files.append(filename)
 
     excluded = contract["time_machine_excluded"]
-    for relative in excluded:
-        _require(_tmutil_excluded(root / relative), f"Time Machine exclusion missing: {relative}")
     included = contract["time_machine_included"]
-    for relative in included:
-        _require(not _tmutil_excluded(root / relative), f"recovery data unexpectedly excluded: {relative}")
+    time_machine_state = contract.get("time_machine_implementation_state")
+    if time_machine_state == "implemented_and_verified":
+        for relative in excluded:
+            target = root if relative == "." else root / relative
+            _require(_tmutil_excluded(target), f"Time Machine exclusion missing: {relative}")
+        for relative in included:
+            target = root if relative == "." else root / relative
+            _require(not _tmutil_excluded(target), f"recovery data unexpectedly excluded: {relative}")
+        time_machine_verification = "PASS_CURRENT_RUNTIME"
+    else:
+        _require(
+            time_machine_state == "planned_task_uxops_005_not_claimed_current"
+            and excluded == ["."]
+            and included == [],
+            "planned whole-root Time Machine target drifted",
+        )
+        time_machine_verification = "NOT_RUN_PLANNED_TASK_UXOPS_005"
 
     _require((root / ".metadata_never_index").is_file(), "Spotlight exclusion marker missing")
     return Check(
@@ -612,6 +633,7 @@ def validate_local_root(root: Path) -> Check:
             "marker_mode": "0600",
             "required_directories": len(contract["required_directories"]),
             "time_machine_exclusions": len(excluded),
+            "time_machine_verification": time_machine_verification,
             "directories_checked": len(all_directories),
             "system_metadata_files": len(present_system_files),
             "real_data_files": 0,

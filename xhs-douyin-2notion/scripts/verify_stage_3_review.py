@@ -27,6 +27,7 @@ RUN_ID = "RUN-X2N-S03-REVIEW"
 REVIEW_BRANCH = "codex/xhs-douyin-2notion-v0001-s03-review"
 STAGE_BASE_COMMIT = "ee5d251ca30eab226c4df75c53965f312c2d9b05"
 REVIEW_BASE_COMMIT = "a67ba091239297b5c9c38a349e0a839680d1c411"
+REVIEW_FINAL_COMMIT = "6b3f5464d1ed645d31c3650b9b51998c9e4fe1ab"
 TASK_COMMITS = {
     "TSK.x2n.adapters.001": "ea44053528a6cdec342fff946a35a525e8daf385",
     "TSK.x2n.adapters.002": "050ec0c93ff4b1d6020a5c8e12f79320fc401f53",
@@ -321,7 +322,10 @@ def validate_history_and_receipts() -> Check:
 
 
 def validate_taskpack_roadmap_and_acceptance_union() -> Check:
-    taskpack = yaml.safe_load(TASKPACK.read_text(encoding="utf-8"))
+    # This verifier preserves the immutable first Review decision. Later
+    # Review Resume contracts may add tasks or clarify gates, but they must
+    # not rewrite what the original Review actually evaluated.
+    taskpack = yaml.safe_load(_blob_at(REVIEW_FINAL_COMMIT, TASKPACK).decode("utf-8"))
     _require(isinstance(taskpack, dict), "Taskpack is invalid")
     stage_tasks = [
         item for item in taskpack.get("tasks", []) if isinstance(item, dict) and item.get("stage") == "STG.X2N.3"
@@ -346,7 +350,7 @@ def validate_taskpack_roadmap_and_acceptance_union() -> Check:
         ],
         "Taskpack G3 conditions drifted",
     )
-    roadmap = ROADMAP.read_text(encoding="utf-8")
+    roadmap = _blob_at(REVIEW_FINAL_COMMIT, ROADMAP).decode("utf-8")
     for token in (
         "小红书 收藏 20",
         "小红书 点赞 20",
@@ -361,7 +365,7 @@ def validate_taskpack_roadmap_and_acceptance_union() -> Check:
         "新增一条只处理新增/变化",
     ):
         _require(token in roadmap, f"Roadmap G3 oracle missing: {token}")
-    acceptance = ACCEPTANCE.read_text(encoding="utf-8")
+    acceptance = _blob_at(REVIEW_FINAL_COMMIT, ACCEPTANCE).decode("utf-8")
     for token in (
         "不可获得真实样本时，对应 Acceptance 状态是 `BLOCKED_EVIDENCE`，不能记为 Pass",
         "## ACC.x2n.data.002 — 端到端幂等",

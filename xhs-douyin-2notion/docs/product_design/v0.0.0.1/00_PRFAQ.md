@@ -3,15 +3,15 @@ artifact: PRFAQ
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: FINAL_PRODUCT_DESIGN_BASELINE
-owner_change_event: CE-X2N-20260719-S00-P01
-decision: GO_TO_IMPLEMENTATION_TASKPACK
-implementation_authorized: stage_0_governance_preparation_only
+status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL
+owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
+decision: DIRECT_MVP_TASKPACK_TASK010_NEXT
+implementation_authorized: stage_3_task_010_next_single_phase_run
 owner: LinzeColin
 repository_target: LinzeColin/MetaDatabase
 skill_path: xhs-douyin-2notion/
 repository_visibility: public
-runtime_data_visibility: private-local-only
+runtime_data_visibility: private_runtime_with_private_metadatabase_durable_recovery_copy
 data_root_ref: X2N_DATA_ROOT
 research_cutoff: 2026-07-19
 timezone: Australia/Sydney
@@ -27,7 +27,7 @@ timezone: Australia/Sydney
 |---|---|
 | 产品形态 | Chrome Manifest V3 Side Panel + 本地 Companion Service/WebUI + Codex Skill |
 | 主运行位置 | 用户桌面本地；仅监听 `127.0.0.1`，通过 Chrome Native Messaging 连接 |
-| OVH VPS-1 Singapore | Alpha 不承载采集、账号、媒体或模型数据；未来仅可作为可选控制平面 |
+| OVH VPS-1 Singapore | MVP 不承载采集、账号、媒体或模型数据；未来仅可作为可选控制平面 |
 | 小红书 | Clean-room 浏览器适配器；借鉴 `xiaohongshu-exporter` 的 UX/交互，不复制未验证实现 |
 | 抖音 | 以固定版本的 `jiji262/douyin-downloader` 作为受控上游，通过稳定 Adapter Contract 包装 |
 | 哔哩哔哩/快手/微博/淘宝 | 官方 API/OAuth 优先；当前页 clean-room fallback 与个人列表能力逐平台 Policy/Auth/Technical/Canary Gate |
@@ -40,8 +40,8 @@ timezone: Australia/Sydney
 | “文件夹式”浏览 | Canonical 内容不因重分类移动；生成分类目录索引 + Notion 分类视图，避免重复和断链 |
 | 多模态 | 标题/正文 + ASR + OCR + 关键帧视觉理解 + 融合摘要 + 自动分类 + 人工复核 |
 | 公共仓库边界 | 只提交代码、契约、合成 Fixture、脱敏证据；Cookie、Token、浏览器 Profile、私人内容和运行数据库禁止进入 Git |
-| 发布策略 | 六平台合成 Walking Skeleton → 每个启用能力 20 条以内 Canary → 分层 Owner Alpha；功能均受独立 Feature Flag 控制 |
-| 开发授权 | Owner 已授权 Stage 0 治理准备；产品代码、真实账号、外部写入、Stage 1 与远端上传仍未授权 |
+| 发布策略 | G0–G5＋前置任务/最终任务自有集合外 Acceptance → assurance.005 内完成 80 条 XHS/DY 基线＋每个额外启用能力独立 ≤20 条激活/安全/回滚/签字 → 部署运行/online smoke → G6 PASS；合法外部门可关闭结算、技术阻断不可结算；无预发布阶段、固定健康观察期或 soak |
+| 开发授权 | Stage 0–2 已合并；Stage 3 Resume 合同已版本化；下一单 Phase Run 只授权 `TSK.x2n.adapters.010 / PH.X2N.3.10`，真实账号、Stage 3 上传与 Stage 4 仍未授权 |
 
 **Pursuing Goal**
 
@@ -97,7 +97,7 @@ Chrome Manifest V3 后台采用 Service Worker。官方文档说明，Service Wo
 
 账号型采集依赖真实浏览器登录态、二维码/手机验证和平台页面变化。本地真实 Chrome 更自然，也减少将 Cookie、浏览器 Profile、私人内容和媒体上传服务器的风险。VPS 长久在线并不能消除会话过期或验证码，也会增加持续轮询和维护成本。
 
-Alpha 明确禁止 VPS 承载平台登录、采集、媒体、多模态内容和 Notion/模型密钥。未来若需要远程触发，可增设只保存脱敏状态的可选控制平面，本地 Agent 主动出站连接并实际执行。
+MVP 明确禁止 VPS 承载平台登录、采集、媒体、多模态内容和 Notion/模型密钥。未来若需要远程触发，可增设只保存脱敏状态的可选控制平面，本地 Agent 主动出站连接并实际执行。
 
 ## Q4：系统会保存图片和视频吗？
 
@@ -109,7 +109,7 @@ Alpha 明确禁止 VPS 承载平台登录、采集、媒体、多模态内容和
 - 图像或关键帧视觉理解；
 - 内容 Hash 和重复检测。
 
-成功处理后立即删除；失败任务最多保留 24 小时并自动清理。`retain_local_media` 不属于 Alpha 默认能力，未来即使加入也必须逐条显式启用。
+成功处理后立即删除；失败任务最多保留 24 小时并自动清理。`retain_local_media` 不属于 MVP 默认能力，未来即使加入也必须逐条显式启用。
 
 ## Q5：是否保存平台 CDN URL？
 
@@ -217,12 +217,12 @@ library/
 
 ## Q14：如何防止平台空响应误删历史数据？
 
-平台返回空列表可能由登录过期、页面改版、限流或接口失败造成。Alpha 默认：
+平台返回空列表可能由登录过期、页面改版、限流或接口失败造成。MVP 默认：
 
 1. 采集失败或结果异常时，已有关系状态不变；
 2. 取消点赞/收藏只标记为 `unknown`；
 3. 只有连续两次“明确成功的完整扫描”均确认缺失，且删除功能 Flag 已启用，才可生成 Tombstone；
-4. Alpha 的物理删除必须人工确认；
+4. MVP 的物理删除必须人工确认；
 5. Canonical Content 永不因关系移除而自动删除。
 
 ## Q15：如何控制 AI 成本与错误？
@@ -252,7 +252,9 @@ Canonical Markdown 按平台和内容 ID 固定路径保存，分类仅生成 In
 - 采集完整性在两轮适配后仍低于最低 Gate：停做批量同步，保留当前页面手动保存；
 - 自动分类达不到高置信度精度：降级为建议模式，不停止整个产品；
 - 维护成本持续大于实际节省：暂停增量开发；
-- 发生 Secret/CDN URL 泄露：立即阻断发布并轮换凭据；
+- 发生 Secret/CDN URL 泄露：立即阻断相关 x2n 制品；仅对 Owner 明确授权且属于 x2n 的
+  product-owned credential 走隔离撤销/轮换。外部共享 GitHub Token 明确排除，x2n 只报告、不读取
+  或处置它，且其项目外存在不是 Gate blocker；
 - 任何不可逆迁移无可验证回滚：不得发布。
 
 ---
@@ -265,7 +267,7 @@ Canonical Markdown 按平台和内容 ID 固定路径保存，分类仅生成 In
 | WB-002 | Chrome＋本地 Companion 比纯插件更可靠 | 对同一 20 条视频分别运行纯插件 PoC 与 Native Host PoC，并在 30 秒、5 分钟处注入中断 | Native Host 可恢复且扩展重启不丢任务 | 若纯插件足够，则移除本地 UI；预计不成立 |
 | WB-003 | 用户一级分类可稳定约束模型 | Owner 定义 5–20 类，标注 100 条 Gold Set | 高置信度自动路由精度达到 Gate，低置信度可复核 | 降级为建议模式或改用规则优先 |
 | WB-004 | 不保存原始媒体仍能满足复用需求 | 对 20 条内容完成 ASR/OCR/Vision 后删除媒体，隔日复查 | 文本资产足以完成检索和回顾 | 对少量高价值内容提供逐条显式本地保留 |
-| WB-005 | Notion 应作为 Sink 而非主库 | 注入 429、529、断网和错误 Schema | 本地入库不受影响，恢复后无重复补写 | 若无法可靠恢复，Alpha 关闭 Notion Sink |
+| WB-005 | Notion 应作为 Sink 而非主库 | 注入 429、529、断网和错误 Schema | 本地入库不受影响，恢复后无重复补写 | 若无法可靠恢复，MVP 关闭 Notion Sink |
 | WB-006 | 批量账号同步维护成本可接受 | 每个启用平台/能力运行独立 Canary/Owner Manifest 并记录修复工时 | 完整性达 Gate，月维护估计低于节省时间 | 单平台退回“当前页面保存＋手动批量导入” |
 | WB-007 | 多模态提高分类和检索质量 | 比较仅正文与正文+ASR/OCR/Vision 的盲测 | 关键内容召回和分类准确性有可测提升 | 对无收益内容类型关闭昂贵模态 |
 | WB-008 | 公开仓库可以安全承载代码 | 使用合成数据执行完整 CI、制品和 Release Secret Scan | 0 Secret、0 私人内容、0 CDN 媒体 URL | 阻断发布并重构运行边界 |
@@ -368,9 +370,9 @@ Monthly Net Monetary Value
 | 层级 | 范围 | 典型工程投入 |
 |---|---|---|
 | Walking Skeleton | 六平台当前页、Canonical、Markdown、Notion Mock、单模态最小链路 | Stage 包络约 59–129 工程小时 |
-| Usable Alpha | 六平台所选关系/列表、断点、ASR/OCR/Vision、分类复核、安装器 | 由逐平台 Gate 与实际工时校准 |
-| Assured Alpha | 双流水线、E2E、性能/混沌、安全供应链、跨系统回滚 | Stage 总包络约 350–764 工程小时 |
-| Beta/长期维护 | 平台适配、跨 OS 包装、可选控制平面 | 由真实变化率决定 |
+| Usable MVP | 六平台所选关系/列表、断点、ASR/OCR/Vision、分类复核、安装器 | 由逐平台 Gate 与实际工时校准 |
+| Assured MVP | 双流水线、E2E、性能/混沌、安全供应链、跨系统回滚 | Stage 总包络约 360–799 工程小时 |
+| Future/长期维护 | 平台适配、跨 OS 包装、可选控制平面 | 由真实变化率决定 |
 
 影响区间的主要变量是：平台 DOM/API 稳定性、Owner 样本量、目标 OS 数量、本地模型要求和 Notion 页面复杂度。
 
@@ -397,7 +399,7 @@ Monthly Net Monetary Value
 - 媒体临时处理；
 - 平台媒体 CDN URL 零持久化；
 - MediaCrawler 仅作审计研究参考，产品 Runtime 永不启用；
-- VPS Alpha 禁用；
+- VPS MVP 禁用；
 - Feature Flag + Canary + 可回滚发布。
 
 ## 开发时自动探测、不得阻塞的未知
@@ -415,7 +417,8 @@ Monthly Net Monetary Value
 
 ## 未授权
 
-- 产品代码变更或真实账号运行；
+- 本 Resume Run 内执行 task010 或其他新产品代码；task010 只能在下一单 Phase Run 独立执行；
+- 真实账号运行或真实平台调用；
 - 向公共仓库提交私人数据；
 - VPS 数据平面；
 - Chrome Web Store 发布；

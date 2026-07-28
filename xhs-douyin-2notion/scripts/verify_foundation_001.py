@@ -213,9 +213,9 @@ def validate_governance() -> Check:
         flags=re.MULTILINE,
     )
     _require(stage_ids == [f"STG.X2N.{index}" for index in range(7)], "Stage registry drifted")
-    _require(len(task_ids) == 43, "Task registry count drifted")
+    _require(len(task_ids) == 44, "Task registry count drifted")
     _require(requirement_ids == [f"REQ.X2N.{index:03d}" for index in range(1, 33)], "Requirement registry drifted")
-    _require(len(acceptance_ids) == 61, "Acceptance registry count drifted")
+    _require(len(acceptance_ids) == 62, "Acceptance registry count drifted")
     _require(len(task_ids) == len(set(task_ids)), "duplicate Task IDs")
     _require(len(acceptance_ids) == len(set(acceptance_ids)), "duplicate Acceptance IDs")
     _require("  name: xhs-douyin-2notion\n" in taskpack_text, "project identity drifted")

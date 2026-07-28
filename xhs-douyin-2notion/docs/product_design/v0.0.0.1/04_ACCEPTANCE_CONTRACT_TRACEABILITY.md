@@ -5,12 +5,30 @@ project_token: x2n
 version: v0.0.0.1
 status: FINAL_PRODUCT_DESIGN_BASELINE
 owner_change_event: CE-X2N-20260719-S00-P01
+release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 contract_mutability: owner-approved-versioned-change-only
 ---
 
 # `xhs-douyin-2notion` Acceptance Contract 与 Traceability
 
 > Scope amendment `CE-X2N-20260719-S00-P05`：产品名保持不变，Acceptance 已扩展到小红书、抖音、哔哩哔哩、快手、微博、淘宝；每个平台独立 Policy/Auth/Technical Gate，未运行或未知不得宣称支持。
+>
+> Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：Stage 3 只验可执行编排、恢复与合法禁用终态；真实平台激活和完整 Owner/Sink 验收属于 Stage 6。`G0–G5`、前置 Stage6 Tasks 与下列最终任务自有集合之外的 Blocking Acceptance 通过后启动 `assurance.005`；任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署与在线 smoke 后签发 `G6 PASS`。安全未知或失败不能降级结算；任务内 Oracle 不是启动条件；没有预发布阶段、固定观察期或 soak Gate。
+
+`assurance_005_owned_in_task_acceptance_ids` 精确为：
+
+```text
+capture.001-.006
+xhs.001, xhs.002, dy.001, dy.002
+bili.001, ks.001, wb.001, tb.001
+data.002
+rel.006, rel.007, rel.008
+```
+
+其中 Bilibili/Kuaishou/Weibo/Taobao 的 `.001` 若外部门未满足，只能以
+`PASS_DISABLED_EXTERNAL_GATE` 结算：必须有合法的 Policy/Auth/Budget/Capability/Unknown reason、
+Feature Flag 关闭、平台调用 0、live-support claim 0。`BLOCKED_TECHNICAL` 不能使用该结算，必须阻断
+最终任务与 G6。
 
 ## 1. Contract 规则
 
@@ -24,6 +42,7 @@ contract_mutability: owner-approved-versioned-change-only
 8. Notion、平台或模型故障不得使 Canonical Acceptance 失效。
 9. 所有证据必须包含版本、时间、环境摘要、输入集 ID、命令、结果和 Hash。
 10. 公共证据只含合成/脱敏内容；私人证据留在 Runtime/受控 CI Artifact。
+11. 本地 `X2N_DATA_ROOT` 只作短暂执行区；持久数据库、业务资产和运行快照必须经 `private_db_client.py` 进入 Private-MetaDatabase，禁止 clone。
 
 ## 1.1 标准状态
 
@@ -39,6 +58,11 @@ NOT_APPLICABLE
 
 `WAIVED_WITH_OWNER_DECISION` 不允许用于 Secret/CDN、未授权删除、数据丢失、许可证和不可回滚迁移。
 
+Stage 3 能力终态不是 Acceptance 状态，只允许：
+
+- `READY_FOR_MVP_ACTIVATION`：合成技术路径完整，真实 Policy/Auth/Activation 仍须在 Stage 6 通过；
+- `DISABLED_EXTERNAL_GATE`：官方授权、政策、预算或能力证据不满足，Feature Flag 保持关闭、平台调用为 0，且不得宣称支持。
+
 ## 1.2 标准环境
 
 | Env ID | 环境 |
@@ -46,7 +70,7 @@ NOT_APPLICABLE
 | ENV-CI-SYNTH | Public CI，合成 Fixture，无真实 Secret/账号 |
 | ENV-LOCAL-DEV | 本地开发环境，假平台/Notion Server |
 | ENV-OWNER-CANARY | Owner 专用 Chrome Profile，真实账号，20 条以内 |
-| ENV-OWNER-ALPHA | Owner 私有分层验收样本；每个启用平台/能力需独立 Manifest，不以固定总数替代覆盖 |
+| ENV-OWNER-MVP | Owner 私有分层验收样本；每个启用平台/能力需独立 Manifest，不以固定总数替代覆盖 |
 | ENV-CHAOS | 隔离本地运行目录，允许 Kill/磁盘/网络/错误注入 |
 | ENV-RELEASE | 干净机器/用户环境安装与回滚 |
 | ENV-MODEL-EVAL | 私有 Gold Set；公共仓库只存合成集 |
@@ -74,7 +98,7 @@ x2n eval vision --dataset <id>
 x2n eval fusion --dataset <id>
 x2n eval classify --dataset <id>
 x2n redteam model --suite all
-x2n chaos run --suite alpha
+x2n chaos run --suite mvp
 x2n release verify --artifact <path>
 ```
 
@@ -111,10 +135,16 @@ x2n release verify --artifact <path>
   - `x2n verify secret-zero`
   - 自定义 Private-data Canary；
   - 禁止扩展：SQLite/WAL/SHM、浏览器 Profile、媒体、真实 Markdown、`.env`；
-  - 检查本地绝对路径和用户名。
-- **阈值**：Secret `0`；Private Content `0`；Browser State `0`；真实本地路径 `0`。
-- **证据**：扫描 SARIF/JSON、Release manifest。
-- **失败处置**：阻断发布；轮换 Secret；必要时清理 Git 历史。
+  - 检查本地绝对路径和用户名；
+  - 校验持久资产只经 `private_db_client.py ingest/get/list/verify` 进入 area `Private-MetaDatabase`，全局 manifest 中精确使用 `domain=xhs-douyin-2notion`，且没有 Private-Database clone。
+  - 校验直接 `.sqlite/.db` 与 >95 MiB 对象被客户端拒绝；一致性快照只能以非运行时归档、≤90 MiB 分片和项目 restore manifest 入库，并通过 domain 过滤、逐片 SHA-256、重组与 SQLite integrity。
+  - 校验 domain-bound chunk envelope 阻断全局 SHA 幂等导致的跨 domain 丢账；x2n Gate 只使用精确 `domain=xhs-douyin-2notion` 行与逐对象 `get`/hash/reassemble/integrity。area-global `verify` 仅为不含路径/名称的 redacted advisory，其他 domain 缺失不阻断 x2n，x2n domain 缺失即 Fail Closed，exit 0 本身不算 PASS。
+  - 校验 `put/delete` 不可调用、object name 不含标题/Content ID/账号标识/源 URL、所有 `get` 临时文件均删除；显式授权的远端写入只允许现有 Owner-authorized authenticated session 经 `private_db_client.py` 使用，Token value contact 与 auth/config/Credential Helper mutation 均为 0。
+- **阈值**：Secret `0`；Private Content `0`；Browser State `0`；真实本地路径 `0`；Private-Database clone/直接 Git 写入 `0`；x2n domain 缺失持久 Receipt `0`；其他 domain 路径/名称披露 `0`。
+- **证据**：扫描 SARIF/JSON、精确 domain restore manifest 与 redacted advisory。
+- **失败处置**：阻断相关 x2n 制品；仅由 Owner 明确授权的隔离流程处置 x2n product-owned
+  credential；外部共享 GitHub Token 只报告、不读取/显示其值、不修改认证、不撤销/轮换，且其项目外存在不是 Gate
+  blocker；必要时清理 x2n Git 历史。
 
 ## ACC.x2n.gov.003 — 上游 Pin、License 与 NOTICE
 
@@ -258,7 +288,7 @@ x2n release verify --artifact <path>
 
 - **Blocking**：是
 - **关联需求**：REQ.X2N.004、008、009
-- **环境**：ENV-OWNER-ALPHA
+- **环境**：ENV-OWNER-MVP
 - **输入**：人工可见收藏 20 条，覆盖图文、视频和至少 2 个收藏夹（若账号存在）
 - **Oracle**：人工 Manifest ID 与 Observation/Relation 差集。
 - **阈值**：
@@ -288,7 +318,7 @@ x2n release verify --artifact <path>
 
 - **Blocking**：是
 - **关联需求**：REQ.X2N.006、008、009
-- **环境**：ENV-OWNER-ALPHA
+- **环境**：ENV-OWNER-MVP
 - **输入**：收藏 20 条，尽可能覆盖收藏夹
 - **Oracle/阈值/证据**：同 XHS，额外验证上游输出经 Adapter 正规化。
 - **失败处置**：两轮后 `<90%` 关闭批量。
@@ -385,10 +415,36 @@ x2n release verify --artifact <path>
 - **阈值**：
   - 前五类情况产生 removed `0`；
   - 两次完整成功只生成 `tombstone_candidate`；
-  - Alpha 无人工确认的物理删除 `0`；
+  - MVP 无人工确认的物理删除 `0`；
   - Content 自动删除 `0`。
 - **证据**：State transition report。
 - **失败处置**：阻断发布。
+
+## ACC.x2n.batch.002 — Capability Dispatch 与显式 Fallback
+
+- **Blocking**：是；G3 不可 Waive
+- **关联需求**：REQ.X2N.001、002、004–009、022
+- **环境**：ENV-CI-SYNTH、ENV-CHAOS
+- **输入**：八个 relation/list scope 的合法/未知 Native Action、完整 platform/relation/scope 交叉组合、重复 `request_id`、Adapter Failure、External Gate Disabled、Worker/Companion Restart
+- **Oracle**：Extension→Native Host→Companion Orchestrator→Adapter E2E、Versioned Migration/Durable Job State Diff、Native Contract Compatibility、Owner Gesture Audit。
+- **阈值**：
+  - 八个 scope 的 allowlisted dispatch 覆盖 `8/8`；
+  - `START_SYNC` 使用严格 `scope_id` 判别合同；XHS/Douyin 收藏与点赞、Weibo 收藏各绑定其唯一 relation，只有 Bilibili/Kuaishou/Taobao 的 selected-collection scope 可用 `saved_current`，且必须绑定 Owner-selected manifest、source identity 与 `max_items`；
+  - `CAPTURE_CURRENT` 仍是独立的单条 `saved_current` 动作；不得与 selected-collection Sync 互换；
+  - 未知 scope/action、任意非法 platform/relation/scope 交叉组合拒绝 `100%`；
+  - 重复 Request 产生重复 Job/副作用 `0`；
+  - `GET_CAPABILITIES` 使用 versioned typed result 返回恰好八个 scope 的 terminal、细粒度 `reason_code`、source registry digests 与 Feature Flag；未知字段、重复/缺失 scope、陈旧 digest 与 disabled 支持误报均拒绝；
+  - SQLite `capability_gate_outcome` 每个固定 scope 最多一行，只有完整有效评估才恰好八行，保存 terminal、`reason_code`、source registry digests、evidence hash 与 `evaluated_at`；它是重启后唯一 runtime derived snapshot，Policy/Capability/Feature registries 只是 versioned 输入；
+  - `BLOCKED_TECHNICAL` 是先于一切外部门原因的 global veto；它阻止完整八行 snapshot、使受影响当前 row 失效/移除，并让 `GET_CAPABILITIES` Fail Closed，旧 digest/READY row 不可服务。technical=false 后才按 `UNKNOWN_DISABLED > BLOCKED_POLICY > BLOCKED_AUTH > BLOCKED_BUDGET > BLOCKED_CAPABILITY > CI_SYNTH_READY` 选择；
+  - `DISABLED_EXTERNAL_GATE` 的 Feature Flag 开启、平台调用和支持声明均为 `0`；
+  - Adapter 失败在同一事务把 `run_record.state=failed` 与一条脱敏 `run_failure`（stable error code、`fallback_eligible`、provenance hash）持久化；`FALLBACK_AVAILABLE` 仅由两者确定性派生为 Side Panel affordance，不是第二种 DB/Run 状态；
+  - `GET_JOB` 对失败 Job 返回 rejected envelope 但保留原 `job_id`，使用稳定 `X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE / next_action=capture_current`；accepted response 携带 error 仍为非法，禁止虚构新的 Native status enum；
+  - Owner 第二次明确当前页动作前 fallback Request/Canonical/Sink 副作用 `0`；
+  - 第二次动作创建新 `request_id` 的独立 `CAPTURE_CURRENT` Request，以可选 `fallback_from_job_id` 保留原失败与新当前页 Provenance；
+  - Restart 后 Job/UI 状态与 SQLite 一致，自动 fallback `0`。
+  - versioned migration up/down、原 health/current-page/Job response vector、Pydantic/JSON Schema/generated TypeScript/Extension consumer 同步通过。
+- **证据**：八 scope dispatch matrix、failure/fallback E2E trace、Migration/Job/Request/Receipt diff、Contract compatibility/drift report、零平台调用扫描。
+- **失败处置**：G3 保持 `BLOCKED_TECHNICAL`，Stage 3 不上传、Stage 4 不开始。
 
 ---
 
@@ -414,7 +470,7 @@ x2n release verify --artifact <path>
 
 - **Blocking**：是
 - **关联需求**：REQ.X2N.009、017–019
-- **环境**：ENV-CI-SYNTH、ENV-OWNER-ALPHA
+- **环境**：ENV-CI-SYNTH、ENV-OWNER-MVP
 - **输入**：相同 80 条输入连续运行 2 次；并发重复消息 100 次
 - **Oracle**：
   - DB row/key diff；
@@ -424,6 +480,8 @@ x2n release verify --artifact <path>
 - **阈值**：新增重复 Content/Relation/Artifact/Markdown/Notion Page 均 `0`。
 - **证据**：Idempotency report。
 - **失败处置**：阻断。
+
+Stage 归属：Stage 3 只需以同一批合成 Adapter 输入证明 Canonical→Artifact→Markdown→Notion Mock/Outbox 的重复副作用为 0；这可以记为 `PASS_CI_SYNTH_CONTRIBUTION`。真实 Sink/Owner 样本的完整合同只在 Stage 6 MVP 发布 Task 判定，不能反向阻断已完成的 Stage 3 合成贡献，也不能用合成结果冒充 MVP PASS。
 
 ## ACC.x2n.data.003 — Provenance 完整性
 
@@ -455,7 +513,7 @@ x2n release verify --artifact <path>
 
 - **Blocking**：是，不可 Waive
 - **关联需求**：REQ.X2N.010、017–021
-- **环境**：ENV-CI-SYNTH、ENV-OWNER-ALPHA、ENV-RELEASE
+- **环境**：ENV-CI-SYNTH、ENV-OWNER-MVP、ENV-RELEASE
 - **输入**：包含已知 XHS/Douyin CDN、签名参数、封面、头像、短链和追踪参数的 Fixture/真实样本
 - **Oracle**：
   - `x2n verify cdn-zero --scopes db,markdown,logs,notion-export,artifacts`
@@ -481,7 +539,7 @@ x2n release verify --artifact <path>
   - 活跃 Lease 被误删 `0`；
   - 删除失败有高优先级 Error `100%`。
 - **证据**：Lease/FS report。
-- **失败处置**：阻断 Alpha。
+- **失败处置**：阻断 MVP。
 
 ## ACC.x2n.media.003 — SSRF、Path 与恶意 URL
 
@@ -582,7 +640,7 @@ x2n release verify --artifact <path>
 
 - **Blocking**：是
 - **关联需求**：REQ.X2N.015、016
-- **环境**：ENV-CI-SYNTH、ENV-OWNER-ALPHA
+- **环境**：ENV-CI-SYNTH、ENV-OWNER-MVP
 - **输入**：正常/禁用/未知/合并分类、模型返回新名字/未知 ID
 - **Oracle**：Category Registry ACL/Contract。
 - **阈值**：
@@ -597,7 +655,7 @@ x2n release verify --artifact <path>
 
 - **Blocking**：是
 - **关联需求**：REQ.X2N.016、028
-- **环境**：ENV-MODEL-EVAL、ENV-OWNER-ALPHA
+- **环境**：ENV-MODEL-EVAL、ENV-OWNER-MVP
 - **输入**：40 条 Smoke，最终至少 100 条 Owner Gold Set；每类至少有代表样本，否则报告不足
 - **Oracle**：`x2n eval classify`。
 - **阈值**：
@@ -633,7 +691,7 @@ x2n release verify --artifact <path>
 
 - **Blocking**：是
 - **关联需求**：REQ.X2N.017、020
-- **环境**：ENV-CI-SYNTH、ENV-OWNER-ALPHA
+- **环境**：ENV-CI-SYNTH、ENV-OWNER-MVP
 - **输入**：六平台代表内容、长 Transcript/OCR、特殊字符、重分类
 - **Oracle**：Schema/Markdown parser、Link checker、CDN scan。
 - **阈值**：
@@ -696,7 +754,7 @@ x2n release verify --artifact <path>
   - 最大尝试后 Dead Letter；
   - Retry Storm `0`。
 - **证据**：Request timeline、outbox state。
-- **失败处置**：阻断 Notion Alpha。
+- **失败处置**：阻断 Notion MVP。
 
 ## ACC.x2n.notion.003 — Outage 与最终一致性
 
@@ -764,9 +822,12 @@ x2n release verify --artifact <path>
   - 删除前影响预览；
   - 无确认物理删除 `0`；
   - 关系删除不删除 Content；
-  - 备份恢复一致；
+  - 删除仅作用于 active SQLite/派生 Sink；最新 restore manifest 持有单调 `deletion_epoch` 与逻辑 tombstone；
+  - 恢复拒绝旧 `deletion_epoch` 并重放当前 tombstone，历史快照复活已删内容 `0`；
+  - x2n 禁用 Private-Database `delete`，durable hard erase 明确为 `UNSUPPORTED_OWNER_PRIVATE_DB_GOVERNANCE_REQUIRED`；本地 runtime wipe 不得冒充耐久删除；
+  - 备份恢复在当前 deletion epoch 下一致；
   - Notion 不自动反向删除本地。
-- **证据**：Audit/backup/restore report。
+- **证据**：Audit/backup/restore/deletion-epoch report。
 - **失败处置**：关闭物理删除功能。
 
 ## ACC.x2n.ops.004 — Health 与 Doctor
@@ -782,7 +843,7 @@ x2n release verify --artifact <path>
   - 不泄露 Secret；
   - 非核心依赖缺失不误报系统完全不可用。
 - **证据**：Doctor report。
-- **失败处置**：阻断 Owner Alpha 安装。
+- **失败处置**：阻断 Owner MVP 安装。
 
 ---
 
@@ -856,16 +917,16 @@ x2n release verify --artifact <path>
 - **关联需求**：REQ.X2N.009、019、022、023
 - **环境**：ENV-CHAOS
 - **输入**：定义的全量故障矩阵，每个 Critical 点至少 10 Seed
-- **Oracle**：`x2n chaos run --suite alpha`。
+- **Oracle**：`x2n chaos run --suite mvp`。
 - **阈值**：所有 Blocking Scenario Pass；无数据丢失、重复、未授权删除、Secret/CDN 泄露。
 - **证据**：Chaos matrix。
 - **失败处置**：阻断。
 
-## ACC.x2n.rel.006 — 80 条 Owner Alpha
+## ACC.x2n.rel.006 — 80 条 Owner MVP
 
 - **Blocking**：是
 - **关联需求**：REQ.X2N.003–020
-- **环境**：ENV-OWNER-ALPHA
+- **环境**：ENV-OWNER-MVP
 - **输入**：
   - XHS 收藏 20；
   - XHS 点赞 20；
@@ -881,7 +942,9 @@ x2n release verify --artifact <path>
   - 失败有可理解证据；
   - 不满足模型 Gate 的能力明确降级。
 - **证据**：Private Acceptance Bundle＋公共聚合 Receipt。
-- **失败处置**：不得声明 Alpha。
+- **失败处置**：不得声明 MVP。
+
+Stage 归属：本 Acceptance 仅由 `TSK.x2n.assurance.005` 在 Stage 6 的同次 MVP 部署任务判定，不属于 G3。Stage 3 的旧 80 条非执行计划与合成幂等证据只作为工具/前置贡献。
 
 ## ACC.x2n.rel.007 — Blue-Green、Migration 与 Rollback
 
@@ -997,15 +1060,15 @@ x2n release verify --artifact <path>
 
 | Requirement | Tasks | Tests/Acceptance | Evidence | Deliverable |
 |---|---|---|---|---|
-| REQ.X2N.001 | foundation.004, skeleton.001/002/006–009, uxops.003 | ext.001/002/004 | E2E trace | Extension |
-| REQ.X2N.002 | foundation.002/004 | ext.002/003 | Contract/Fuzz | Native Host |
+| REQ.X2N.001 | foundation.004, skeleton.001/002/006–009, adapters.010, uxops.003 | ext.001/002/004, batch.002 | E2E trace | Extension |
+| REQ.X2N.002 | foundation.002/004, adapters.010 | ext.002/003, batch.002 | Contract/Fuzz | Native Host |
 | REQ.X2N.003 | skeleton.001/002/006–009/004 | capture.001–006, rel.006 | Observation diff | Current Capture |
-| REQ.X2N.004 | adapters.001/002/005 | xhs.001/003, batch.001 | XHS manifest | XHS Favorites |
-| REQ.X2N.005 | adapters.001/003/005 | xhs.002/003, batch.001 | XHS manifest | XHS Likes |
-| REQ.X2N.006 | discovery.004/005, adapters.004/005 | dy.001/003, batch.001 | Upstream contract | Douyin Favorites |
-| REQ.X2N.007 | discovery.004/005, adapters.004/005 | dy.002/003, batch.001 | Upstream contract | Douyin Likes |
+| REQ.X2N.004 | adapters.001/002/005/010 | xhs.001/003, batch.001/002 | XHS manifest | XHS Favorites |
+| REQ.X2N.005 | adapters.001/003/005/010 | xhs.002/003, batch.001/002 | XHS manifest | XHS Likes |
+| REQ.X2N.006 | discovery.004/005, adapters.004/005/010 | dy.001/003, batch.001/002 | Upstream contract | Douyin Favorites |
+| REQ.X2N.007 | discovery.004/005, adapters.004/005/010 | dy.002/003, batch.001/002 | Upstream contract | Douyin Likes |
 | REQ.X2N.008 | foundation.002/003, skeleton.004 | data.001/003 | Schema/trace | Canonical DB |
-| REQ.X2N.009 | foundation.003, adapters.005, uxops.004 | data.002/004, ops.001 | Idempotency/recovery | Orchestrator |
+| REQ.X2N.009 | foundation.003, adapters.005/010, uxops.004 | batch.002, data.002/004, ops.001 | Idempotency/recovery | Orchestrator |
 | REQ.X2N.010 | skeleton.003, multimodal.001, uxops.005 | media.001–004 | Scanner/lease | Media Pipeline |
 | REQ.X2N.011 | multimodal.002 | ai.001/007 | ASR eval | Transcript |
 | REQ.X2N.012 | multimodal.003 | ai.002/007 | OCR eval | OCR |
@@ -1017,8 +1080,8 @@ x2n release verify --artifact <path>
 | REQ.X2N.018 | skeleton.005, uxops.001 | notion.001/004 | Schema/view | Notion |
 | REQ.X2N.019 | foundation.003, skeleton.005, uxops.001/004 | notion.002/003, ops.001 | Outbox/reconcile | Notion Queue |
 | REQ.X2N.020 | foundation.002/003, skeleton.004, uxops.004 | data.003, ops.002 | Trace/log | Evidence |
-| REQ.X2N.021 | discovery.003, foundation.001/004/005, assurance.003 | gov.002, ext.003/004, media.003, rel.003 | Scan/SARIF | Security |
-| REQ.X2N.022 | foundation.003, uxops.003/004 | ops.001/002/004, rel.005 | Health/chaos | Operations |
+| REQ.X2N.021 | discovery.003, foundation.001/004/005, uxops.005, assurance.003 | gov.002, ext.003/004, media.003, rel.003 | Scan/SARIF | Security |
+| REQ.X2N.022 | foundation.003, adapters.010, uxops.003/004 | batch.002, ops.001/002/004, rel.005 | Health/chaos | Operations |
 | REQ.X2N.023 | discovery.005, foundation.005, assurance.005 | data.004, rel.005/007 | Release rehearsal | Safe Release |
 | REQ.X2N.024 | discovery.004/005 | gov.003 | Dependency/License/zero-runtime scan | Restricted Upstream Isolation |
 | REQ.X2N.025 | uxops.005 | media.002, ops.003 | lifecycle report | Data Control |
@@ -1094,6 +1157,14 @@ x2n release verify --artifact <path>
 
 ```yaml
 release_gate:
+  gate_order:
+    - G0_TO_G5_PASS
+    - ASSURANCE_001_TO_004_AND_UXOPS_005_COMPLETE
+    - DEPLOYMENT_INDEPENDENT_BLOCKING_ACCEPTANCES_PASS
+    - START_ASSURANCE_005
+    - ASSURANCE_005_BOUNDED_ACTIVATION_OWNER_MVP_SECURITY_PASS_MODEL_PASS_OR_DISABLED_ROLLBACK_SIGNOFF_PASS
+    - ASSURANCE_005_DEPLOY_RUN_ONLINE_SMOKE
+    - G6_PASS
   blocking_acceptance_status: PASS
   traceability_gaps: 0
   dag_cycles: 0
@@ -1107,7 +1178,12 @@ release_gate:
   unknown_runtime_licenses: 0
   migration_backup_restore: PASS
   rollback_rehearsal: PASS
-  owner_alpha_80: PASS
+  owner_mvp_80: PASS
+  private_metadatabase_durability: PASS
+  release_version: v0.0.0.1
+  deployed_running_online: PASS
+  fixed_wait_or_soak_gate: PROHIBITED
+  post_go_live_monitoring: NON_BLOCKING
   model_auto_classification:
     enabled_only_if: ACC.x2n.ai.006 == PASS
   vision:
@@ -1119,4 +1195,4 @@ release_gate:
       - ACC.x2n.notion.003 == PASS
 ```
 
-任何 Blocking Acceptance Fail 时，Release 状态只能是 `BLOCKED`；不能用总体通过率覆盖关键失败。
+任何 Blocking Acceptance Fail 时，Release 状态只能是 `BLOCKED`；不能用总体通过率覆盖关键失败。全部通过时直接部署并上线，不插入预发布阶段或定时观察门；上线后的健康异常触发降级、修复或回滚。

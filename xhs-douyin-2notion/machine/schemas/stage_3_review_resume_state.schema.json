@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:x2n:stage-3-review-resume-state:1.0",
+  "title": "x2n Stage 3 Review Resume state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "stage",
+    "review_id",
+    "run_id",
+    "owner_change_event",
+    "prior_review",
+    "decision",
+    "resolved_blockers",
+    "remaining_blockers",
+    "capability_terminal_contract",
+    "acceptance_attribution",
+    "release_policy",
+    "data_routing",
+    "authorization",
+    "next_task",
+    "external_execution",
+    "isolation"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project": {"const": "x2n"},
+    "stage": {"const": "STG.X2N.3"},
+    "review_id": {"const": "STG.X2N.3.REVIEW.RESUME"},
+    "run_id": {"const": "RUN-X2N-S03-REVIEW-RESUME-MVP"},
+    "owner_change_event": {"const": "CE-X2N-20260728-S03-REVIEW-RESUME-MVP"},
+    "prior_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["final_commit", "gate_fact", "gate_fact_sha256", "immutable"],
+      "properties": {
+        "final_commit": {"const": "6b3f5464d1ed645d31c3650b9b51998c9e4fe1ab"},
+        "gate_fact": {"const": "machine/facts/stage_3_gate_state.json"},
+        "gate_fact_sha256": {"const": "0243a478273de9bda16803e7311ef56c7e461c2bc3b8c871c5d2c1c87cdd6772"},
+        "immutable": {"const": true}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_status", "gate_id", "gate_status", "gate_decision"],
+      "properties": {
+        "review_status": {"const": "contract_versioned"},
+        "gate_id": {"const": "G3"},
+        "gate_status": {"const": "BLOCKED_TECHNICAL"},
+        "gate_decision": {"const": "FAIL_CLOSED"}
+      }
+    },
+    "resolved_blockers": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "BLK-X2N-S03-CANARY-TERMINALS",
+          "BLK-X2N-S03-ACCEPTANCE-SCOPE",
+          "BLK-X2N-S03-OWNER-CANARIES"
+        ]
+      }
+    },
+    "remaining_blockers": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "BLK-X2N-S03-NATIVE-DISPATCH",
+          "BLK-X2N-S03-EXPLICIT-FALLBACK"
+        ]
+      }
+    },
+    "capability_terminal_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed",
+        "scope_ids",
+        "durable_table",
+        "persistence",
+        "required_columns",
+        "reason_precedence",
+        "ready_reason",
+        "technical_reason_semantics",
+        "runtime_authority",
+        "registry_role",
+        "ready_semantics",
+        "disabled_semantics",
+        "disabled_feature_flag",
+        "disabled_platform_calls",
+        "disabled_live_support_claim"
+      ],
+      "properties": {
+        "allowed": {
+          "const": ["READY_FOR_MVP_ACTIVATION", "DISABLED_EXTERNAL_GATE"]
+        },
+        "scope_ids": {
+          "const": [
+            "xiaohongshu_favorites",
+            "xiaohongshu_likes",
+            "douyin_favorites",
+            "douyin_likes",
+            "bilibili_selected_collection",
+            "kuaishou_selected_collection",
+            "weibo_selected_collection",
+            "taobao_selected_collection"
+          ]
+        },
+        "durable_table": {"const": "capability_gate_outcome"},
+        "persistence": {"const": "AT_MOST_ONE_ROW_PER_SCOPE_EXACTLY_EIGHT_ONLY_FOR_VALID_COMPLETE_EVALUATION"},
+        "required_columns": {
+          "const": [
+            "scope_id",
+            "terminal",
+            "reason_code",
+            "source_registry_digests",
+            "evidence_hash",
+            "evaluated_at"
+          ]
+        },
+        "reason_precedence": {
+          "const": [
+            "BLOCKED_TECHNICAL",
+            "UNKNOWN_DISABLED",
+            "BLOCKED_POLICY",
+            "BLOCKED_AUTH",
+            "BLOCKED_BUDGET",
+            "BLOCKED_CAPABILITY",
+            "CI_SYNTH_READY"
+          ]
+        },
+        "ready_reason": {"const": "CI_SYNTH_READY"},
+        "technical_reason_semantics": {"const": "GLOBAL_VETO_BEFORE_EXTERNAL_PRECEDENCE_FAIL_CLOSED_NO_LEGAL_TERMINAL_G3_BLOCKED"},
+        "runtime_authority": {"const": "SQLITE_CAPABILITY_GATE_OUTCOME_DERIVED_SNAPSHOT"},
+        "registry_role": {"const": "VERSIONED_INPUT_NOT_COMPETING_RUNTIME_STATE"},
+        "ready_semantics": {"const": "synthetic_technical_path_ready_live_policy_auth_activation_remain_stage_6"},
+        "disabled_semantics": {"const": "official_policy_auth_budget_or_capability_gate_unmet_valid_g3_fail_closed_terminal"},
+        "disabled_feature_flag": {"const": false},
+        "disabled_platform_calls": {"const": 0},
+        "disabled_live_support_claim": {"const": false}
+      }
+    },
+    "acceptance_attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage_3", "stage_6", "real_owner_canaries"],
+      "properties": {
+        "stage_3": {"const": "PASS_CI_SYNTH_CONTRIBUTION"},
+        "stage_6": {"const": "ACC.x2n.rel.006_FULL_CONTRACT"},
+        "real_owner_canaries": {"const": "STAGE_6_ONLY_NOT_RUN"}
+      }
+    },
+    "release_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "pre_release_phases",
+        "alpha_beta",
+        "fixed_health_observation",
+        "fixed_soak",
+        "gate_order",
+        "assurance_005_start_conditions",
+        "assurance_005_owned_in_task_acceptance_ids",
+        "assurance_005_in_task_pre_switch_checks",
+        "same_task_actions",
+        "post_go_live_monitoring"
+      ],
+      "properties": {
+        "target": {"const": "v0.0.0.1"},
+        "pre_release_phases": {"const": "PROHIBITED"},
+        "alpha_beta": {"const": "PROHIBITED"},
+        "fixed_health_observation": {"const": "PROHIBITED"},
+        "fixed_soak": {"const": "PROHIBITED"},
+        "gate_order": {
+          "const": [
+            "G0_TO_G5_PASS",
+            "ASSURANCE_001_TO_004_AND_UXOPS_005_COMPLETE",
+            "DEPLOYMENT_INDEPENDENT_BLOCKING_ACCEPTANCES_PASS",
+            "START_ASSURANCE_005",
+            "ASSURANCE_005_BOUNDED_ACTIVATION_OWNER_MVP_SECURITY_PASS_MODEL_PASS_OR_DISABLED_ROLLBACK_SIGNOFF_PASS",
+            "ASSURANCE_005_DEPLOY_RUN_ONLINE_SMOKE",
+            "G6_PASS"
+          ]
+        },
+        "assurance_005_start_conditions": {
+          "const": [
+            "G0_TO_G5_PASS",
+            "ASSURANCE_001_TO_004_AND_UXOPS_005_COMPLETE",
+            "ALL_BLOCKING_ACCEPTANCES_OUTSIDE_ASSURANCE_005_OWNED_IN_TASK_SET_PASS"
+          ]
+        },
+        "assurance_005_owned_in_task_acceptance_ids": {
+          "const": [
+            "ACC.x2n.capture.001",
+            "ACC.x2n.capture.002",
+            "ACC.x2n.capture.003",
+            "ACC.x2n.capture.004",
+            "ACC.x2n.capture.005",
+            "ACC.x2n.capture.006",
+            "ACC.x2n.xhs.001",
+            "ACC.x2n.xhs.002",
+            "ACC.x2n.dy.001",
+            "ACC.x2n.dy.002",
+            "ACC.x2n.bili.001",
+            "ACC.x2n.ks.001",
+            "ACC.x2n.wb.001",
+            "ACC.x2n.tb.001",
+            "ACC.x2n.data.002",
+            "ACC.x2n.rel.006",
+            "ACC.x2n.rel.007",
+            "ACC.x2n.rel.008"
+          ]
+        },
+        "assurance_005_in_task_pre_switch_checks": {
+          "const": [
+            "EIGHTY_ITEM_XHS_DOUYIN_OWNER_MVP_BASELINE_PASS",
+            "EACH_ADDITIONAL_ENABLED_CAPABILITY_INDEPENDENT_MAX_TWENTY_ITEM_ACTIVATION_PASS",
+            "SECURITY_ASSURANCE_PASS_MODEL_PASS_OR_EXPLICITLY_DISABLED_OR_SUGGESTION_ONLY",
+            "ROLLBACK_REHEARSAL_PASS",
+            "OWNER_SIGNOFF"
+          ]
+        },
+        "same_task_actions": {
+          "const": [
+            "bounded_activation_checks",
+            "rollback_verification",
+            "deploy",
+            "run",
+            "online_smoke"
+          ]
+        },
+        "post_go_live_monitoring": {"const": "NON_BLOCKING_FIX_DEGRADE_OR_ROLLBACK_TRIGGER"}
+      }
+    },
+    "data_routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_root_ref",
+        "local_role",
+        "os_backup_policy",
+        "durable_repository",
+        "durable_area",
+        "durable_domain",
+        "client",
+        "operations",
+        "object_model",
+        "raw_sqlite_db_upload",
+        "archival_chunk_max_bytes",
+        "project_verification",
+        "client_verify_exit_semantics",
+        "other_domain_isolation",
+        "global_manifest_sha_idempotency_mitigation",
+        "private_db_auth",
+        "forbidden_operations",
+        "clone",
+        "logical_truth",
+        "durability_before_verified_receipt"
+      ],
+      "properties": {
+        "local_root_ref": {"const": "X2N_DATA_ROOT"},
+        "local_role": {"const": "EPHEMERAL_EXECUTION_DOWNLOAD_AND_ACTIVE_SQLITE_WORKING_COPY"},
+        "os_backup_policy": {"const": "TARGET_ENTIRE_X2N_DATA_ROOT_EXCLUDED_FROM_TIME_MACHINE_IMPLEMENTATION_PLANNED_TASK005"},
+        "durable_repository": {"const": "LinzeColin/Private-Database"},
+        "durable_area": {"const": "Private-MetaDatabase"},
+        "durable_domain": {"const": "xhs-douyin-2notion"},
+        "client": {"const": "KMOS/KMDatabase/machine/tools/private_db_client.py"},
+        "operations": {"const": ["ingest", "get", "list", "verify"]},
+        "object_model": {"const": "CONTENT_ADDRESSED_OBJECTS_WITH_GLOBAL_MANIFEST_DOMAIN_FIELD"},
+        "raw_sqlite_db_upload": {"const": "FORBIDDEN_BY_CLIENT"},
+        "archival_chunk_max_bytes": {"const": 94371840},
+        "project_verification": {"const": "EXACT_DOMAIN_ROWS_GET_HASH_REASSEMBLE_SQLITE_INTEGRITY"},
+        "client_verify_exit_semantics": {"const": "AREA_GLOBAL_VERIFY_REDACTED_ADVISORY_NOT_X2N_GATE"},
+        "other_domain_isolation": {"const": "OTHER_DOMAIN_MISSING_NON_BLOCKING_ZERO_PATH_DISCLOSURE"},
+        "global_manifest_sha_idempotency_mitigation": {"const": "DOMAIN_BOUND_CHUNK_ENVELOPE"},
+        "private_db_auth": {"const": "OWNER_AUTHORIZED_EXISTING_GH_SESSION_CLIENT_ONLY_NO_TOKEN_VALUE_OR_AUTH_MUTATION"},
+        "forbidden_operations": {"const": ["put", "delete"]},
+        "clone": {"const": "FORBIDDEN"},
+        "logical_truth": {"const": "ACTIVE_SQLITE_CANONICAL_STORE"},
+        "durability_before_verified_receipt": {"const": "DURABILITY_PENDING"}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_only",
+        "new_dag_task_executed",
+        "stage_3_upload",
+        "stage_4",
+        "deployment"
+      ],
+      "properties": {
+        "contract_only": {"const": true},
+        "new_dag_task_executed": {"const": false},
+        "stage_3_upload": {"const": false},
+        "stage_4": {"const": false},
+        "deployment": {"const": false}
+      }
+    },
+    "next_task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "phase", "status", "real_platform_calls"],
+      "properties": {
+        "id": {"const": "TSK.x2n.adapters.010"},
+        "phase": {"const": "PH.X2N.3.10"},
+        "status": {"const": "PLANNED"},
+        "real_platform_calls": {"const": 0}
+      }
+    },
+    "external_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_class",
+        "owner_profile_login",
+        "real_account_execution",
+        "platform_calls",
+        "notion_real_calls",
+        "model_calls",
+        "media_processing"
+      ],
+      "properties": {
+        "evidence_class": {"const": "PROCESS_ATTESTATION_NOT_INDEPENDENTLY_OBSERVED_BY_OFFLINE_VERIFIER"},
+        "owner_profile_login": {"const": "NOT_RUN"},
+        "real_account_execution": {"const": "NOT_RUN"},
+        "platform_calls": {"const": 0},
+        "notion_real_calls": {"const": 0},
+        "model_calls": {"const": 0},
+        "media_processing": {"const": "NOT_RUN"}
+      }
+    },
+    "isolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_state_evidence_class",
+        "external_state_evidence_class",
+        "active_x2n_worktrees",
+        "active_x2n_local_branches",
+        "open_x2n_pull_requests",
+        "other_project_overlap",
+        "shared_github_token_value_contact",
+        "shared_github_auth_mutation",
+        "authenticated_session_use"
+      ],
+      "properties": {
+        "local_state_evidence_class": {"const": "OFFLINE_GIT_VERIFIED"},
+        "external_state_evidence_class": {"const": "PRIOR_READ_ONLY_CHECK_AND_PROCESS_ATTESTATION_NOT_REVERIFIED_OFFLINE"},
+        "active_x2n_worktrees": {"const": 1},
+        "active_x2n_local_branches": {"const": 1},
+        "open_x2n_pull_requests": {"const": 0},
+        "other_project_overlap": {"const": 0},
+        "shared_github_token_value_contact": {"const": "ZERO"},
+        "shared_github_auth_mutation": {"const": "ZERO"},
+        "authenticated_session_use": {"const": "NOT_USED_THIS_RUN_FUTURE_TASK_AUTHORIZED_CLIENT_ONLY"}
+      }
+    }
+  }
+}

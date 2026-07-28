@@ -4,16 +4,19 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 3 Review` 已完成九个 Adapter Task 的独立复核、六项范围内修复和公开合成重验。Owner removed 终态、XHS envelope、Douyin 真实子进程 Kill、增量 batch report 与 Adapter 驱动的 80 条 Canonical→Artifact→Markdown→Notion Mock/Outbox 幂等已经闭合。`G3` 仍为 `BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`：8 个批量 scope 尚无 Chrome→Native Host→Adapter dispatch，failure→current-page fallback 只有文案，8 个真实 Canary 全部 `NOT_RUN`，并有两项契约边界需 Owner 版本化确认。下一独立 Run 只能是 `STG.X2N.3.REVIEW.RESUME`；Stage 3 上传和 Stage 4 均禁止。旧 Task Evidence 不改写，共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / STG.X2N.3.REVIEW.RESUME` 已完成合同版本化，未执行新 DAG Task。原五个 blocker 中，能力合法终态、Stage 3/6 Acceptance 归属和真实激活归属三个问题已闭合；`G3` 当前准确为 `BLOCKED_TECHNICAL`。唯一下一任务 `TSK.x2n.adapters.010` 将实现 8 scope 严格 Native dispatch；SQLite `run_record.failed`＋脱敏 `run_failure` 是耐久真相，Side Panel 只派生 `FALLBACK_AVAILABLE` affordance，失败 `GET_JOB` 保留 `job_id`，第二次 Owner 当前页动作以新 request 关联原失败 job。Stage 3 上传和 Stage 4 仍禁止；旧 Review/Task Evidence 不改写，其他长期开发零重叠。本 Resume 未使用 authenticated session；未来显式授权 Task 可仅经 `private_db_client.py` 使用现有 session，但不得接触 Token 值或修改/删除/撤销/轮换认证。
+
+发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
 ## 固定边界
 
 - 母仓库：`LinzeColin/MetaDatabase`
 - 子项目：`xhs-douyin-2notion/`
 - 下载目的地逻辑名：`X2N_DOWNLOAD_DESTINATION`；原始 taskpack 未指定本机绝对路径
-- 数据根逻辑名：`X2N_DATA_ROOT=${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`（Runtime 与全部下载共用隔离命名空间；真实解析值不进 Git；已有同级条目不触碰）
+- 本机工作根：`X2N_DATA_ROOT=${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`（下载、执行与活跃 SQLite working copy 的易失工作区；真实解析值不进 Git；已有同级条目不触碰）
+- 耐久数据：`LinzeColin/Private-Database` 的 `Private-MetaDatabase` area＋manifest `domain=xhs-douyin-2notion`，只经 `KMOS/KMDatabase/machine/tools/private_db_client.py ingest|get|list|verify`，禁止 clone；SQLite 以一致性非运行时归档、≤90 MiB 分片和 restore manifest 入库，不直接上传 `.sqlite/.db`
 - 路径名边界：下载父目录名不授权安装、运行或接入同名 `MediaCrawler` 上游
-- 真相源：本地 SQLite Canonical Store
+- 真相源：活跃本地 SQLite Canonical Store 是逻辑真相源；经验证的 Private-MetaDatabase snapshot/manifest/receipt 是耐久恢复副本
 - 交互/执行：Chrome Side Panel / Local Companion
 - 发布边界：Public Code / Private Runtime，专有许可
 
@@ -21,7 +24,21 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 3 / Review 与 G3 判定
+## Stage 3 / Review Resume 与当前 G3
+
+```bash
+python3 -B scripts/verify_stage_3_review_resume.py --verify-worktree
+python3 -B -m unittest tests.test_stage_3_review_resume tests.test_stage_3_review
+```
+
+当前机器真源是 `machine/facts/stage_3_review_resume_state.json`。G3 允许
+`READY_FOR_MVP_ACTIVATION` 与 `DISABLED_EXTERNAL_GATE` 两种技术终态；后者必须保持 Feature Flag
+关闭、平台调用 0、live support claim 0。真实账号激活和完整 `ACC.x2n.rel.006` 只在 Stage 6
+判定，不再冒充 Stage 3 证据。44-Task DAG 中新增的 `TSK.x2n.adapters.010` 仍为 `planned`，所以
+G3 不是 PASS。完整合同见 `docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
+`docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。
+
+## Stage 3 / 首次 Review 历史判定
 
 ```bash
 .venv/bin/python -B scripts/run_stage_3_review_acceptance.py
@@ -41,12 +58,12 @@ Acceptance、8 个 Canary 和 5 个 Blocker，并通过负向测试保证 blocke
 最终本地回归为 263 个 root tests（260 PASS、3 个固定 Owner-private 可选 skip）、227 个
 Companion tests 和 12 个 Contract tests；full lane 两轮 24/24 Blocking Gate PASS，0
 failure/flaky/silent skip，coverage 79.66%，33 个依赖漏洞 0，78-member candidate 可确定重建且
-Runtime Data 0。软件验收通过不改变下述 G3 blocked 判定。
+Runtime Data 0。软件验收通过不改变首次 Review 当时的 G3 blocked 判定。
 
-`G3` 没有通过。技术上缺少批量 Native dispatch 和显式 fallback 状态机；证据上 8 个真实 Canary
-均未运行；合同上需要 Owner 定义每个 disabled/conditioned scope 的合法终态，并拆分 Stage 3
-CI-SYNTH contribution 与 Stage 6 完整 `ACC.x2n.rel.006` Owner Alpha。完整结论见
-`docs/governance/STAGE_3_REVIEW.md`；恢复只能走 `STG.X2N.3.REVIEW.RESUME`。
+首次 Review 的 `G3` 没有通过：技术上缺少批量 Native dispatch 和显式 fallback 状态机；当时
+8 个真实 Canary 未运行，能力合法终态与 Stage 3/6 Acceptance 归属也未版本化。历史完整结论见
+`docs/governance/STAGE_3_REVIEW.md`。这些历史事实保持不可变；当前合同/归属问题已由 Resume
+闭合，剩余两个技术 blocker 统一由下一单任务 `TSK.x2n.adapters.010` 闭合。
 
 ## Stage 3 / Adapters 005 验证
 
@@ -62,7 +79,7 @@ PYTHONPATH=apps/companion/src:packages/contracts/src \
 
 对账状态存在 SQLite `run_record + checkpoint`，不新增 Schema。完整扫描必须精确绑定 succeeded source Run、complete checkpoint、`authoritative_visible_end`、confidence 1.0、receipt、Relation 与 Observation；空响应、bounded scan、重复或旧 source scan 均 Fail Closed。两次独立完整缺失扫描只把 10 条关系推进到 `tombstone_candidate`，不会写 `removed` 或删除 Content/Relation。
 
-80 条合成输入连续两轮与 100 个并发重复消息通过，重复 Content/Relation/Artifact/Markdown/Notion Page 均为 0；五类非权威结果 no-write，50 次真实子进程 Kill 后 partial write/checkpoint advance 为 0。Owner Alpha 固定 20+20+20+20 计划为 `NOT_RUN`，公开计划不含 relation key，平台调用 0。
+80 条合成输入连续两轮与 100 个并发重复消息通过，重复 Content/Relation/Artifact/Markdown/Notion Page 均为 0；五类非权威结果 no-write，50 次真实子进程 Kill 后 partial write/checkpoint advance 为 0。Owner 80 条真实验收固定 20+20+20+20 计划为 `NOT_RUN`，公开计划不含 relation key，平台调用 0。
 
 最终 256 个 root tests（253 PASS、3 个固定可选 skip）、221 个 Companion tests、12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.61%、33 个依赖漏洞 0、78-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传未运行。
 
@@ -176,7 +193,7 @@ scope，不会冒充 full scan；full scan 只接受权威可见结束信号。C
 Content、写入独立 `liked` Relation、Observation 与 Checkpoint，精确最后批次 replay 无副作用；点赞固定为
 `unclassified`，自动归档、Classification/Taxonomy 写入和 Owner 既有分类覆盖均为 0。
 
-公共合成验收为 7 个 DOM cases、100 条点赞、其中 20 条已收藏、5 个显式批次和 50 次真实子进程事务内退出；最终精确为 100 Content、100 `liked`、20 `favorited`，lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete/分类写入均为 0。最终本地回归为 208 个 root tests PASS（3 个固定可选 skip）、119 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.79%，33 个依赖漏洞 0，71-member source candidate 无 Runtime Data。Owner Alpha 20 条/private-gold Canary 仍 `NOT_RUN`，真实页面保持禁用。
+公共合成验收为 7 个 DOM cases、100 条点赞、其中 20 条已收藏、5 个显式批次和 50 次真实子进程事务内退出；最终精确为 100 Content、100 `liked`、20 `favorited`，lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete/分类写入均为 0。最终本地回归为 208 个 root tests PASS（3 个固定可选 skip）、119 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.79%，33 个依赖漏洞 0，71-member source candidate 无 Runtime Data。Owner 20 条真实验收/private-gold Canary 仍 `NOT_RUN`，真实页面保持禁用。
 
 ## Stage 3 / Adapters 001 历史验证
 
@@ -515,7 +532,7 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 完整门禁使用 80 条合成输入连续两次、100 个并发重复消息和 10k 合成 DB，验证
 SQLite WAL/FK/Unique/append-only、Outbox、Lease、迁移降级、备份 Hash、恢复后逻辑
-摘要与 `integrity_check`。Markdown、Notion、Owner Alpha、Release 与异地灾备仍为
+摘要与 `integrity_check`。Markdown、Notion、Owner 真实验收、Release 与异地灾备仍为
 `DOWNSTREAM_NOT_RUN`。
 
 Owner 私有空库初始化及复验必须显式提供逻辑环境变量，输出不得包含解析路径：

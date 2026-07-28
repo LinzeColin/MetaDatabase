@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 Review Resume / Direct MVP Contract
+
+- 版本化 `STG.X2N.3.REVIEW.RESUME`，不执行新 DAG Task；原 Stage 3 Review gate fact 与 final commit 字节一致。
+- 将八个 relation/list scope 的合法技术终态固定为 `READY_FOR_MVP_ACTIVATION` / `DISABLED_EXTERNAL_GATE`；后者必须 Feature Flag 关闭、平台调用 0、live support claim 0。
+- 拆分 Stage 3 `PASS_CI_SYNTH_CONTRIBUTION` 与 Stage 6 完整 `ACC.x2n.rel.006`；真实账号激活和私有 Manifest 移至 Stage 6，仍保持 `NOT_RUN`。
+- 新增 `TSK.x2n.adapters.010 / ACC.x2n.batch.002`，DAG 更新为 44 Tasks / 62 Acceptances / 0 cycles；G3 当前只剩 Native dispatch 与 explicit fallback 两个技术 blocker。
+- 明确无预发布阶段、固定 30 日健康观察或 soak；G0–G5、前置 Stage6 Tasks 与
+  `assurance.005` 精确自有 18 项 Acceptance 之外的 Blocking Acceptance 通过后启动该任务，
+  任务内完成激活、Owner MVP、安全门硬通过、模型通过或明确关闭/降级为仅建议模式、回滚、签字、
+  部署与 online smoke 后才签发 G6 PASS；安全未知或失败不能降级结算，任务输出也不反向成为启动条件。
+- 将 `X2N_DATA_ROOT` 定义为易失 working copy；耐久资产只经 `private_db_client.py ingest|get|list|verify` 写 `Private-MetaDatabase` area＋`domain=xhs-douyin-2notion`。根据客户端真实红线补充：不直接上传 `.sqlite/.db`，一致性快照封装为非运行时归档并按 ≤90 MiB 分片，以 restore manifest 验证重组；禁止 clone。
+- 专用 verifier、严格 schema 与 fail-closed 负向突变测试已加入；Resume 20 tests＋旧 Review
+  7 tests 共 27/27 PASS，Phase0.1/0.5 回归 PASS。source-freeze 后的 fresh fast lane 结果只以
+  `machine/evidence/stage_3/review_resume_mvp/verification.json` 为准，禁止复用旧 lane 成功结论。
+  Stage 3 upload、Stage 4、deployment 与真实平台调用保持 false/0。
+
 ## v0.0.0.1 — Stage 3 Review / G3 Blocked
 
 - 独立复核 Stage 3 九个 Task、19 条 Acceptance、8 个 Canary 和 G3 四项条件；不执行新 DAG Task、不接触共享认证材料、不吸收其他长期开发线。

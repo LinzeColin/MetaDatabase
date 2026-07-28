@@ -5,7 +5,8 @@ project_token: x2n
 version: v0.0.0.1
 status: FINAL_PRODUCT_DESIGN_BASELINE
 owner_change_event: CE-X2N-20260719-S00-P01
-release_target: owner-alpha
+release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
+release_target: owner-mvp
 distribution: local-developer-mode
 vps_data_plane: prohibited
 ---
@@ -13,21 +14,23 @@ vps_data_plane: prohibited
 # `xhs-douyin-2notion` Release、Operations 与 Codex 执行手册
 
 > Scope amendment `CE-X2N-20260719-S00-P05`：终态平台范围为六平台，每个平台/能力独立 Gate；固定“80 条两平台样本”已改为逐能力私有 Manifest，不允许用一个平台的通过外推其他平台。
+>
+> Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：没有预发布阶段、固定 30 日观察或 soak。`G0–G5`、前置任务与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动该 Task；任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行与 online smoke 后签发 `G6 PASS`。合法外部门可关闭结算，技术阻断不可结算，安全未知或失败不能降级结算；任务内 Oracle 不是启动条件。
 
 ## 1. 交付边界
 
-本文件定义从 Codex Dev 启动到 Owner Alpha 的安全执行、构建、发布、运维和回滚方式。
+本文件定义从 Codex Dev 启动到 Owner MVP 的安全执行、构建、发布、运维和回滚方式。
 
 ### 当前已授权
 
 - Product Design `v0.0.0.1` 定版；
-- 双平面七文件任务包交付；
-- Roadmap 和机器任务 DAG。
-- Stage 0 / Phase 0.1、0.2、0.5 的治理准备、竞品/政策研究、Artifact/Runtime Policy 与仓库外私有数据根契约。
+- Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
+- 本 Resume 只版本化直接 MVP 发布、Stage 3 终态、数据路由和下一 Task。
 
 ### 当前未授权
 
-- 修改产品代码或进入 Stage 1；
+- 本 Resume Run 内执行 `TSK.x2n.adapters.010`；该任务只允许在下一单 Phase Run 独立执行；
+- 上传 Stage 3 或进入 Stage 4；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；
@@ -119,8 +122,8 @@ verify rollback
 ## 3.1 Version
 
 - Product Design：`v0.0.0.1`
-- 开发预发布建议：`v0.0.0.1-alpha.N`
-- 修复不改变范围：增加 Alpha Build/Tag；
+- 唯一 MVP Release/Tag：`v0.0.0.1`
+- 不生成预发布标签；修复在 MVP 上线前进入同一候选，在上线后使用新的正式修复版本；
 - PRD/Acceptance/边界改变：提升 Taskpack Patch；
 - 破坏性 Contract：提升更高版本并提供迁移。
 
@@ -132,7 +135,7 @@ verify rollback
 main
 codex/xhs-douyin-2notion-<version>-s<stage>-p<phase>
 codex/xhs-douyin-2notion-<version>-s<stage>-integration
-release/v0.0.0.1-alpha.N
+release/v0.0.0.1
 hotfix/<incident-id>
 ```
 
@@ -191,7 +194,7 @@ Release 采用 Allowlist 构建，不从工作树“排除几个目录”后整�
 
 # 4. Feature Flag 运行策略
 
-| Flag | Dev | Walking | Canary | Alpha |
+| Flag | Dev | Walking | Activation Check | MVP Live |
 |---|---:|---:|---:|---:|
 | `xhs_current_page` | 合成 | 开 | 开 | 开 |
 | `douyin_current_page` | 合成 | 开 | 开 | 开 |
@@ -262,6 +265,10 @@ All fast gates
 - 真实 Canary 只在 Owner Local Runtime；
 - CI Secret 即使存在也不能使私人内容可达；
 - Fork PR 不获得 Secret。
+- 外部共享 fine-grained GitHub Token 的值永不由 x2n 读取、导出、显示或持久化；x2n 永不修改
+  auth/config/Credential Helper，也永不删除、撤销或轮换 Token。其项目外存在不是 Release Gate
+  blocker。显式授权 Task 可仅经 `private_db_client.py` 使用现有 authenticated session；其他凭据
+  处置只适用于 Owner 明确授权且可证明属于 x2n 的 product-owned credential。
 
 ## 5.4 Flaky Policy
 
@@ -396,22 +403,24 @@ Pin new snapshot
 
 ---
 
-# 8. Canary 与 Alpha
+# 8. MVP 激活检查与直接上线
 
-## 8.1 Canary 顺序
+## 8.1 同次发布的有界激活顺序
 
 ```text
 Synthetic
 → XHS 当前页 1 图文 + 1 视频
 → Douyin 当前页 1 图集 + 1 视频
-→ 每平台/关系最多 5 条
-→ 总计 20 条
-→ 每个启用平台/能力的独立完整验收
+→ 六个平台当前页各自独立 smoke
+→ XHS 收藏/点赞与 Douyin 收藏/点赞各 20 条，形成 80 条 Owner MVP 基线
+→ Bilibili/Kuaishou/Weibo/Taobao 每个额外实际启用能力各自使用独立 Manifest，最多 20 条
+→ 外部门能力以 flag off/0 call/0 live claim 结算；技术阻断不得结算
 ```
 
-不得从 0 直接跑全部历史收藏。
+不得从 0 直接跑全部历史收藏，也不得用一个总量替代逐能力覆盖；这些检查都在同一最终发布任务内，
+不形成独立发布阶段或等待期。
 
-## 8.2 Canary 预检
+## 8.2 激活预检
 
 - Backup；
 - Runtime 磁盘；
@@ -426,7 +435,7 @@ Synthetic
 - CDN/Secret Scanner；
 - Rollback Version。
 
-## 8.3 Canary 通过
+## 8.3 激活检查通过
 
 - 0 静默丢失；
 - 0 重复；
@@ -438,7 +447,7 @@ Synthetic
 - Notion 和 Markdown可追溯；
 - 失败可恢复。
 
-## 8.4 分层 Owner Alpha
+## 8.4 Owner MVP Manifest
 
 每个实际启用的平台/能力必须有独立私有 Manifest；以下是每能力上限 20 条的初始 Canary，不是用总数替代覆盖：
 
@@ -462,10 +471,9 @@ Synthetic
 ```text
 install/
 ├── versions/
-│   ├── v0.0.0.1-alpha.1/
-│   └── v0.0.0.1-alpha.2/
+│   └── v0.0.0.1/
 ├── current -> versions/<green>
-└── previous -> versions/<blue>
+└── previous -> versions/<prior-stable-if-any>
 ```
 
 Windows 使用等价 launcher/version registry，不依赖不稳定 Symlink 权限。
@@ -478,11 +486,11 @@ Windows 使用等价 launcher/version registry，不依赖不稳定 Symlink 权�
 4. DB Backup；
 5. Migration Dry-run；
 6. Green 读取兼容；
-7. 20 条 Canary；
+7. 完成 80 条 XHS/Douyin 基线与每个额外实际启用能力各自不超过 20 条的独立激活；
 8. 切换 `current`；
 9. 保留 Blue；
-10. 观察；
-11. 再清理旧版本。
+10. 立即执行 bounded online smoke/health 判定并签发或回滚，不设置任何定时观察等待；
+11. 旧版本保留与异步清理不阻断上线或后续开发。
 
 ## 9.3 DB Expand-Migrate-Contract
 
@@ -492,7 +500,7 @@ Windows 使用等价 launcher/version registry，不依赖不稳定 Symlink 权�
 - Switch；
 - 验证；
 - Contract 仅在旧版本不再需要时；
-- `v0.0.0.1` Alpha 不做无法回滚的 Contract Migration。
+- `v0.0.0.1` MVP 不做无法回滚的 Contract Migration。
 
 ## 9.4 Extension/Host 兼容
 
@@ -526,7 +534,7 @@ Stop accepting new jobs
 ## 10.2 Adapter 回滚
 
 - 恢复前一 Pin；
-- 清除仅属于 Staging 的输出；
+- 清除仅属于未激活本地候选的输出；
 - Canonical 不回滚；
 - 重新运行受影响 Observation；
 - 禁止用旧 Adapter 的空结果删除关系。
@@ -560,7 +568,8 @@ Stop accepting new jobs
 
 - 立即停止 Release和外部写入；
 - 识别 Secret/数据范围；
-- 轮换 Token/Cookie/Profile；
+- 通知 Owner；仅对 Owner 明确授权且属于 x2n 的 product-owned Token/Cookie/Profile 执行隔离
+  撤销/轮换/重建；外部共享 GitHub Token 明确排除，只报告、不接触；
 - 删除本地暴露制品；
 - Git History/Release Asset 清理；
 - 通知 Owner；
@@ -744,7 +753,8 @@ MediaCrawler 即使更新也不进入核心更新流程；它有独立研究工�
 1. Stop；
 2. 保存不含 Secret 的证据；
 3. 识别 Token/Cookie/Key；
-4. 撤销/轮换；
+4. 通知 Owner；仅对 Owner 明确授权且可证明属于 x2n 的 product-owned credential 执行隔离
+   撤销/轮换；外部共享 GitHub Token 只报告、不读取/撤销/轮换；
 5. 删除 Release/Artifact；
 6. Git history清理（若进入）；
 7. Profile重建；
@@ -788,7 +798,7 @@ MediaCrawler 即使更新也不进入核心更新流程；它有独立研究工�
 - 关闭相关 Model Flag；
 - 保留输入/输出私有证据；
 - 检查是否发生工具/Secret/配置影响；
-- 轮换受影响 Secret；
+- 仅由 Owner 授权的隔离流程处置受影响的 x2n product-owned Secret；外部共享 GitHub Token 不接触；
 - 增加 Red Team；
 - 更新 System Card；
 - Suggestion-only或停用。
@@ -838,9 +848,9 @@ net_time_saved
 
 ---
 
-# 16. Alpha → Beta → GA
+# 16. MVP 直接上线与未排期未来范围
 
-## Alpha
+## MVP
 
 - 单用户；
 - Owner主 OS；
@@ -851,16 +861,13 @@ net_time_saved
 - VPS关闭；
 - 功能 Flag；
 - 私有 Gold Set；
-- Known Limitations明确。
+- Known Limitations明确；
+- `G0–G5`、前置任务与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动 `assurance.005`；任务内完成 80 条 XHS/Douyin 基线与每个额外启用能力各自 ≤20 条激活，Oracle 通过后立即部署、运行和上线 `v0.0.0.1`，online smoke 后签发 `G6 PASS`；
+- 没有预发布阶段、固定健康观察期或 soak 门。
 
-## Beta Entry
+## 未排期未来范围
 
-- Owner Alpha稳定 30 天；
-- 至少两个月价值数据；
-- 关键 Adapter维护可接受；
-- 0未解决 Security/Data Integrity Incident；
-- 第二 OS/VPS/Store有真实需求；
-- 新 PRD。
+第二 OS、VPS、Store 或新增来源只在 Owner 另开 PRD/ADR 后启动；没有固定等待天数，也不是 MVP 上线或后续开发的后置门。
 
 ## GA Entry
 
@@ -882,7 +889,7 @@ net_time_saved
 - [ ] Changed Scope 合法
 - [ ] Human Task Records 完整
 - [ ] Canonical facts单一写入者
-- [ ] Beta能力未误启用
+- [ ] Future能力未误启用
 
 ## Source/Dependencies
 
@@ -921,7 +928,7 @@ net_time_saved
 
 - [ ] Walking Skeleton
 - [ ] Four relation canaries
-- [ ] 80-item Alpha
+- [ ] 80-item MVP
 - [ ] Markdown rebuild
 - [ ] Notion reconciliation
 - [ ] Taxonomy ownership
@@ -962,7 +969,7 @@ net_time_saved
 - [ ] Gold Set
 - [ ] 80-item review
 - [ ] Known limitations
-- [ ] Alpha Sign-off
+- [ ] MVP Sign-off
 
 ---
 
@@ -980,7 +987,7 @@ FINAL_ACCEPTANCE_BUNDLE/
 ├── security_supply_chain_summary.json
 ├── chaos_recovery_summary.json
 ├── canary_summary.json
-├── owner_alpha_summary.json
+├── owner_mvp_summary.json
 ├── migration_rollback_summary.json
 ├── system_card.md
 ├── release_notes.md
