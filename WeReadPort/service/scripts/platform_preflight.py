@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import json
 import os
 import re
@@ -21,7 +22,9 @@ REQUIRED = (
     "WRP_INTERNAL_PROXY_SECRET", "WRP_R2_ENDPOINT", "WRP_R2_BUCKET",
     "WRP_R2_ACCESS_KEY_ID", "WRP_R2_SECRET_ACCESS_KEY", "WRP_GOOGLE_CLIENT_ID",
     "WRP_GOOGLE_CLIENT_SECRET", "WRP_GITHUB_CLIENT_ID", "WRP_GITHUB_CLIENT_SECRET",
-    "WRP_NOTION_CLIENT_ID", "WRP_NOTION_CLIENT_SECRET", "WRP_PRIVATE_DATABASE_WORKTREE",
+    "WRP_NOTION_CLIENT_ID", "WRP_NOTION_CLIENT_SECRET", "WRP_PRIVATE_DATABASE_CLIENT_PATH",
+    "WRP_PRIVATE_DATABASE_CLIENT_SHA256", "WRP_PRIVATE_DATABASE_AREA", "WRP_PRIVATE_DATABASE_DOMAIN",
+    "WRP_PRIVATE_DATABASE_GH_TOKEN",
     "WRP_TASKPACK_VERSION", "WRP_RELEASE_COMMIT", "WRP_OVH_RELEASE_ID", "WRP_SITES_PROJECT_ID",
     "WRP_PRIMARY_OBJECT_PREFIX", "WRP_PRIVATE_DATABASE_BACKUP_PREFIX",
     "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "WRP_R2_RCLONE_SOURCE", "WRP_OCI_RCLONE_TARGET",
@@ -120,13 +123,28 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
                     raise ValueError
             except ValueError:
                 block("INTEGER", name, "必须是正整数。")
-    worktree_raw = values.get("WRP_PRIVATE_DATABASE_WORKTREE", "")
-    if worktree_raw:
-        worktree = Path(worktree_raw).expanduser()
-        if not worktree.is_absolute():
-            block("FACTS_WORKTREE", "WRP_PRIVATE_DATABASE_WORKTREE", "Private-Database 工作树必须是绝对路径。")
-        elif require_paths and not ((worktree / ".git").exists() or (worktree / "HEAD").exists()):
-            block("FACTS_WORKTREE", "WRP_PRIVATE_DATABASE_WORKTREE", "目标机上未找到已认证的 Private-Database Git 工作树。")
+    area = values.get("WRP_PRIVATE_DATABASE_AREA", "")
+    if area != "Private-MetaDatabase":
+        block("PRIVATE_DATABASE_AREA", "WRP_PRIVATE_DATABASE_AREA", "阅迁结构化事实必须写入 Private-MetaDatabase。")
+    domain = values.get("WRP_PRIVATE_DATABASE_DOMAIN", "")
+    if domain and not re.fullmatch(r"[A-Za-z0-9._:-]{3,80}", domain):
+        block("PRIVATE_DATABASE_DOMAIN", "WRP_PRIVATE_DATABASE_DOMAIN", "Private-Database domain 标识格式无效。")
+    token = values.get("WRP_PRIVATE_DATABASE_GH_TOKEN", "")
+    if token and len(token) < 20:
+        block("PRIVATE_DATABASE_TOKEN", "WRP_PRIVATE_DATABASE_GH_TOKEN", "clone-free 客户端令牌格式无效。")
+    client_raw = values.get("WRP_PRIVATE_DATABASE_CLIENT_PATH", "")
+    expected_client_sha = values.get("WRP_PRIVATE_DATABASE_CLIENT_SHA256", "")
+    if client_raw:
+        client = Path(client_raw).expanduser()
+        if not client.is_absolute():
+            block("PRIVATE_DATABASE_CLIENT", "WRP_PRIVATE_DATABASE_CLIENT_PATH", "clone-free 客户端路径必须是绝对路径。")
+        elif require_paths:
+            if not client.is_file():
+                block("PRIVATE_DATABASE_CLIENT", "WRP_PRIVATE_DATABASE_CLIENT_PATH", "目标机上未找到 canonical clone-free Private-Database 客户端。")
+            elif re.fullmatch(r"[0-9a-f]{64}", expected_client_sha) and _sha256(client) != expected_client_sha:
+                block("PRIVATE_DATABASE_CLIENT_HASH", "WRP_PRIVATE_DATABASE_CLIENT_SHA256", "客户端 SHA-256 与冻结 canonical 身份不一致。")
+    if expected_client_sha and not re.fullmatch(r"[0-9a-f]{64}", expected_client_sha):
+        block("PRIVATE_DATABASE_CLIENT_HASH", "WRP_PRIVATE_DATABASE_CLIENT_SHA256", "客户端 SHA-256 必须是 64 位小写十六进制。")
     if env_file and env_file.exists():
         mode = stat.S_IMODE(env_file.stat().st_mode)
         if mode & 0o077:
@@ -152,6 +170,14 @@ def _check_b64(raw: str, field: str, block) -> None:
             raise ValueError
     except (ValueError, TypeError):
         block("BASE64_SECRET", field, "必须是至少 32 字节的 Base64 随机值。")
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def main() -> int:

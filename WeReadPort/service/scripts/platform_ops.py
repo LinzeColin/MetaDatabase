@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -45,17 +46,21 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def open_db(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
+def open_db(path: Path, *, readonly: bool = False, immutable: bool = False) -> sqlite3.Connection:
     if readonly:
-        return sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=10)
+        suffix = "&immutable=1" if immutable else ""
+        return sqlite3.connect(f"file:{path}?mode=ro{suffix}", uri=True, timeout=10)
     return sqlite3.connect(path, timeout=10)
 
 
-def integrity(path: Path) -> str:
+def integrity(path: Path, *, immutable: bool = False) -> str:
     if not path.is_file():
         return "missing"
-    with open_db(path, readonly=True) as connection:
+    connection = open_db(path, readonly=True, immutable=immutable)
+    try:
         row = connection.execute("PRAGMA integrity_check").fetchone()
+    finally:
+        connection.close()
     return str(row[0] if row else "unknown")
 
 
@@ -89,9 +94,16 @@ def backup() -> dict:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     target = snapshot_dir / f"platform-{stamp}.sqlite3"
     temp = snapshot_dir / f".{target.name}.tmp"
-    with open_db(source) as source_db, open_db(temp) as destination:
-        source_db.backup(destination)
-    if integrity(temp) != "ok":
+    source_db = open_db(source)
+    try:
+        destination = open_db(temp)
+        try:
+            source_db.backup(destination)
+        finally:
+            destination.close()
+    finally:
+        source_db.close()
+    if integrity(temp, immutable=True) != "ok":
         temp.unlink(missing_ok=True)
         raise RuntimeError("SNAPSHOT_INTEGRITY_FAILED")
     os.replace(temp, target)
@@ -106,8 +118,9 @@ def verify_snapshot(snapshot: Path) -> dict:
     snapshot = snapshot.expanduser().resolve()
     manifest_path = snapshot.with_suffix(".json")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
-    ok = snapshot.is_file() and integrity(snapshot) == "ok" and (not manifest.get("sha256") or manifest["sha256"] == sha256(snapshot))
-    return {"ok": ok, "snapshot": str(snapshot), "integrity": integrity(snapshot), "sha256": sha256(snapshot) if snapshot.is_file() else None}
+    snapshot_integrity = integrity(snapshot, immutable=True)
+    ok = snapshot.is_file() and snapshot_integrity == "ok" and (not manifest.get("sha256") or manifest["sha256"] == sha256(snapshot))
+    return {"ok": ok, "snapshot": str(snapshot), "integrity": snapshot_integrity, "sha256": sha256(snapshot) if snapshot.is_file() else None}
 
 
 def restore(snapshot: Path, *, apply: bool) -> dict:
@@ -125,7 +138,7 @@ def restore(snapshot: Path, *, apply: bool) -> dict:
             shutil.copy2(destination, previous)
         temp = destination.with_suffix(".restore.tmp")
         shutil.copy2(Path(snapshot), temp)
-        if integrity(temp) != "ok":
+        if integrity(temp, immutable=True) != "ok":
             raise RuntimeError("RESTORE_INTEGRITY_FAILED")
         os.replace(temp, destination)
         destination.chmod(0o600)
@@ -142,9 +155,12 @@ def fact_snapshot() -> dict:
     source = database_path()
     counts: dict[str, int] = {}
     if source.is_file() and integrity(source) == "ok":
-        with open_db(source, readonly=True) as connection:
+        connection = open_db(source, readonly=True)
+        try:
             for table, name in (("accounts", "accounts"), ("notes", "notes"), ("provider_connections", "providerConnections"), ("import_jobs", "imports"), ("outbox", "outbox")):
                 counts[name] = int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+        finally:
+            connection.close()
     return {
         "schemaVersion": 1,
         "system": "weread-port",
@@ -156,62 +172,145 @@ def fact_snapshot() -> dict:
     }
 
 
+def clone_free_private_database() -> tuple[Path, str, str, str]:
+    client_raw = os.environ.get("WRP_PRIVATE_DATABASE_CLIENT_PATH", "").strip()
+    expected_sha = os.environ.get("WRP_PRIVATE_DATABASE_CLIENT_SHA256", "").strip()
+    area = os.environ.get("WRP_PRIVATE_DATABASE_AREA", "").strip()
+    domain = os.environ.get("WRP_PRIVATE_DATABASE_DOMAIN", "").strip()
+    token = os.environ.get("WRP_PRIVATE_DATABASE_GH_TOKEN", "").strip()
+    if not client_raw:
+        raise RuntimeError("PRIVATE_DATABASE_CLIENT_NOT_CONFIGURED")
+    client = Path(client_raw).expanduser()
+    if not client.is_absolute() or not client.is_file():
+        raise RuntimeError("PRIVATE_DATABASE_CLIENT_INVALID")
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_sha) or sha256(client) != expected_sha:
+        raise RuntimeError("PRIVATE_DATABASE_CLIENT_IDENTITY_INVALID")
+    if area != "Private-MetaDatabase":
+        raise RuntimeError("PRIVATE_DATABASE_AREA_INVALID")
+    if not re.fullmatch(r"[A-Za-z0-9._:-]{3,80}", domain):
+        raise RuntimeError("PRIVATE_DATABASE_DOMAIN_INVALID")
+    if len(token) < 20:
+        raise RuntimeError("PRIVATE_DATABASE_TOKEN_NOT_CONFIGURED")
+    return client, area, domain, token
+
+
+def run_clone_free_private_database(arguments: list[str], *, timeout: int = 180) -> None:
+    client, _, _, token = clone_free_private_database()
+    environment = os.environ.copy()
+    environment["GH_TOKEN"] = token
+    completed = subprocess.run([sys.executable, str(client), *arguments], capture_output=True, text=True, timeout=timeout, env=environment)
+    if completed.returncode != 0:
+        raise RuntimeError("PRIVATE_DATABASE_CLIENT_FAILED")
+
+
+def rclone_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    for key in ("WRP_PRIVATE_DATABASE_GH_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
+        environment.pop(key, None)
+    return environment
+
+
+def private_database_directory() -> Path:
+    directory = state_root() / "private-database"
+    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    return directory
+
+
+def private_database_object_path(digest: str) -> str:
+    return f"objects/{digest[:2]}/{digest}_runtime-facts.json"
+
+
+def read_private_database_state(path: Path) -> dict:
+    if not path.is_file():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("PRIVATE_DATABASE_STATE_INVALID") from exc
+    if not isinstance(loaded, dict):
+        raise RuntimeError("PRIVATE_DATABASE_STATE_INVALID")
+    return loaded
+
+
 def facts_sync() -> dict:
-    worktree_raw = os.environ.get("WRP_PRIVATE_DATABASE_WORKTREE", "").strip()
-    if not worktree_raw:
-        raise RuntimeError("WRP_PRIVATE_DATABASE_WORKTREE_NOT_CONFIGURED")
-    worktree = Path(worktree_raw).expanduser().resolve()
-    if not (worktree / ".git").exists() and not (worktree / "HEAD").exists():
-        raise RuntimeError("PRIVATE_DATABASE_WORKTREE_INVALID")
-    relative = os.environ.get("WRP_PRIVATE_DATABASE_FACTS_PATH", "systems/weread-port").strip("/")
-    if not relative or any(part in {"", ".", ".."} for part in relative.split("/")):
-        raise RuntimeError("PRIVATE_DATABASE_FACTS_PATH_INVALID")
+    _, area, domain, _ = clone_free_private_database()
     payload = fact_snapshot()
-    # generatedAt is intentionally excluded from change detection to prevent empty daily commits.
+    # generatedAt is intentionally excluded so unchanged facts stay content-addressed and idempotent.
     stable = {key: value for key, value in payload.items() if key != "generatedAt"}
-    destination = worktree / relative / "runtime-facts.json"
-    existing = None
-    if destination.is_file():
-        existing_payload = json.loads(destination.read_text(encoding="utf-8"))
-        existing = {key: value for key, value in existing_payload.items() if key != "generatedAt"}
-    if existing == stable:
-        return {"status": "UNCHANGED", "path": str(destination)}
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    atomic_json(destination, payload)
-    run_git(worktree, ["add", "--", str(destination.relative_to(worktree))])
-    run_git(worktree, ["commit", "-m", f"weread-port: sync structured facts {VERSION}"])
-    branch = os.environ.get("WRP_PRIVATE_DATABASE_BRANCH", "main")
-    run_git(worktree, ["push", "origin", f"HEAD:{branch}"])
-    return {"status": "PUSHED", "path": str(destination)}
+    encoded = (json.dumps(stable, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    digest = hashlib.sha256(encoded).hexdigest()
+    object_path = private_database_object_path(digest)
+    directory = private_database_directory()
+    snapshot = directory / "runtime-facts.json"
+    state_path = directory / "facts-state.json"
+    previous = read_private_database_state(state_path)
+    if previous.get("sha256") == digest and previous.get("objectPath") == object_path and snapshot.is_file() and sha256(snapshot) == digest:
+        return {"status": "UNCHANGED", "area": area, "objectPath": object_path, "sha256": digest}
+    atomic_json(snapshot, stable)
+    if sha256(snapshot) != digest:
+        raise RuntimeError("PRIVATE_DATABASE_FACTS_HASH_INVALID")
+    run_clone_free_private_database(["ingest", area, str(snapshot), "--domain", domain, "--batch", VERSION])
+    state = {
+        "schemaVersion": 1,
+        "system": "weread-port",
+        "area": area,
+        "domain": domain,
+        "objectPath": object_path,
+        "sha256": digest,
+        "updatedAt": utc_now(),
+    }
+    atomic_json(state_path, state)
+    return {"status": "PUSHED", "area": area, "objectPath": object_path, "sha256": digest}
 
 
 def private_database_backup() -> dict:
-    worktree_raw = os.environ.get("WRP_PRIVATE_DATABASE_WORKTREE", "").strip()
     target_root = os.environ.get("WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "").strip().rstrip("/")
-    branch = os.environ.get("WRP_PRIVATE_DATABASE_BRANCH", "main").strip()
-    if not worktree_raw or not target_root or "backups/private-database" not in target_root:
+    if not target_root or "backups/private-database" not in target_root:
         raise RuntimeError("PRIVATE_DATABASE_BACKUP_NOT_CONFIGURED")
-    worktree = Path(worktree_raw).expanduser().resolve()
-    if not (worktree / ".git").exists(): raise RuntimeError("PRIVATE_DATABASE_WORKTREE_INVALID")
-    if subprocess.run(["git", "-C", str(worktree), "status", "--porcelain"], capture_output=True, text=True, timeout=30, check=True).stdout.strip():
-        raise RuntimeError("PRIVATE_DATABASE_WORKTREE_DIRTY")
-    commit = subprocess.check_output(["git", "-C", str(worktree), "rev-parse", "HEAD"], text=True, timeout=30).strip()
-    if not __import__("re").fullmatch(r"[0-9a-f]{40}", commit): raise RuntimeError("PRIVATE_DATABASE_HEAD_INVALID")
-    directory = state_root() / "private-database-backups"; directory.mkdir(parents=True, exist_ok=True, mode=0o700)
-    bundle = directory / f"private-database-{commit}.bundle"; meta = bundle.with_suffix(".json")
-    temp = bundle.with_suffix(".tmp"); temp.unlink(missing_ok=True)
-    completed = subprocess.run(["git", "-C", str(worktree), "bundle", "create", str(temp), branch], capture_output=True, text=True, timeout=300)
-    if completed.returncode != 0: raise RuntimeError("PRIVATE_DATABASE_BUNDLE_FAILED")
-    verify = subprocess.run(["git", "-C", str(worktree), "bundle", "verify", str(temp)], capture_output=True, text=True, timeout=60)
-    if verify.returncode != 0: temp.unlink(missing_ok=True); raise RuntimeError("PRIVATE_DATABASE_BUNDLE_VERIFY_FAILED")
-    os.replace(temp, bundle); bundle.chmod(0o600)
-    payload = {"schemaVersion":1,"system":"weread-port","createdAt":utc_now(),"commit":commit,"branch":branch,"bundle":bundle.name,"size":bundle.stat().st_size,"sha256":sha256(bundle),"containsUserContent":False,"authority":"Private-Database","coldBackup":"Cloudflare R2 backups/private-database"}
-    atomic_json(meta, payload)
-    for local, remote_name in ((bundle,bundle.name),(meta,meta.name)):
-        result=subprocess.run(["rclone","copyto",str(local),f"{target_root}/{remote_name}","--checksum","--immutable","--log-level","NOTICE"],capture_output=True,text=True,timeout=900)
-        if result.returncode != 0: raise RuntimeError("PRIVATE_DATABASE_R2_COPY_FAILED")
-    for old in sorted(directory.glob("private-database-*.*"), key=lambda x:x.stat().st_mtime, reverse=True)[28:]: old.unlink(missing_ok=True)
-    return {**payload,"status":"COMPLETE","remotePrefix":"backups/private-database"}
+    synced = facts_sync()
+    _, area, _, _ = clone_free_private_database()
+    digest = str(synced["sha256"])
+    object_path = str(synced["objectPath"])
+    directory = private_database_directory()
+    backup_state = directory / "backup-state.json"
+    previous = read_private_database_state(backup_state)
+    if previous.get("sha256") == digest and previous.get("objectPath") == object_path:
+        return {**previous, "status": "UNCHANGED", "remotePrefix": "backups/private-database"}
+    fd, temporary_name = tempfile.mkstemp(prefix=f"private-database-{digest[:12]}-", suffix=".json", dir=directory)
+    os.close(fd)
+    restored = Path(temporary_name)
+    restored.unlink(missing_ok=True)
+    artifact_name = f"private-database-{digest}.json"
+    manifest_name = f"private-database-{digest}.manifest.json"
+    manifest = directory / manifest_name
+    try:
+        run_clone_free_private_database(["get", area, object_path, str(restored)])
+        if not restored.is_file() or sha256(restored) != digest:
+            raise RuntimeError("PRIVATE_DATABASE_RESTORE_VERIFY_FAILED")
+        payload = {
+            "schemaVersion": 1,
+            "system": "weread-port",
+            "createdAt": utc_now(),
+            "area": area,
+            "objectPath": object_path,
+            "artifact": artifact_name,
+            "sha256": digest,
+            "size": restored.stat().st_size,
+            "containsUserContent": False,
+            "authority": "Private-Database clone-free REST",
+            "coldBackup": "Cloudflare R2 backups/private-database",
+            "restoreVerified": True,
+        }
+        atomic_json(manifest, payload)
+        for local, remote_name in ((restored, artifact_name), (manifest, manifest_name)):
+            result = subprocess.run(["rclone", "copyto", str(local), f"{target_root}/{remote_name}", "--checksum", "--immutable", "--log-level", "NOTICE"], capture_output=True, text=True, timeout=900, env=rclone_environment())
+            if result.returncode != 0:
+                raise RuntimeError("PRIVATE_DATABASE_R2_COPY_FAILED")
+        state = {**payload, "remotePrefix": "backups/private-database"}
+        atomic_json(backup_state, state)
+        return {**state, "status": "COMPLETE"}
+    finally:
+        restored.unlink(missing_ok=True)
 
 
 def r2_to_oci() -> dict:
@@ -220,7 +319,7 @@ def r2_to_oci() -> dict:
     if not source or not target:
         raise RuntimeError("R2_OR_OCI_REMOTE_NOT_CONFIGURED")
     command = ["rclone", "sync", source, target, "--checksum", "--immutable", "--transfers", "4", "--checkers", "8", "--log-level", "NOTICE"]
-    completed = subprocess.run(command, capture_output=True, text=True, timeout=3600)
+    completed = subprocess.run(command, capture_output=True, text=True, timeout=3600, env=rclone_environment())
     if completed.returncode != 0:
         raise RuntimeError("R2_OCI_SYNC_FAILED")
     return {"status": "COMPLETE", "checkedAt": utc_now()}
