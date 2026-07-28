@@ -86,6 +86,24 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   assert.equal((await lines.json()).lines.length, 11);
 });
 
+test("格式错误的微信读书密钥返回可恢复客户端错误", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const app = createPlatformApp({ service: platform.service, config: platform.config });
+  const response = await app(new Request(`${platform.config.baseUrl}/v1/auth/login/weread`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: platform.config.baseUrl,
+      "sec-fetch-site": "same-origin",
+      "x-wrp-internal-secret": platform.config.internalProxySecret,
+    },
+    body: JSON.stringify({ key: "not-a-real-weread-key" }),
+  }));
+  assert.equal(response.status, 400);
+  assert.deepEqual((await response.json()).error, { code: "INVALID_KEY", message: "微信读书密钥格式无效。" });
+});
+
 test("OAuth 回调仅放行无 Origin 的跨站顶层导航", async t => {
   const platform = testPlatform({ fetchImpl: oauthFetch });
   t.after(platform.close);

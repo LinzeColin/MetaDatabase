@@ -85,7 +85,7 @@ export class PlatformService {
   }
 
   async registerWeRead({ key, displayName = "微信读书用户" }, context = {}, { verify = true } = {}) {
-    const cleanKey = validateWeReadKey(key);
+    const cleanKey = requireValidWeReadKey(key);
     const subject = this.wereadSubject(cleanKey);
     if (this.store.findCredential("key", "weread", subject)) throw new PlatformError("ACCOUNT_EXISTS", "该微信读书密钥已经绑定账户。", 409);
     if (verify) await this.verifyWeReadKey(cleanKey);
@@ -106,7 +106,7 @@ export class PlatformService {
   }
 
   async loginWeRead({ key }, context = {}) {
-    const cleanKey = validateWeReadKey(key);
+    const cleanKey = requireValidWeReadKey(key);
     const subject = this.wereadSubject(cleanKey);
     const bucketKey = this.authBucket("weread-login", subject, context);
     this.assertAuthAllowed(bucketKey);
@@ -118,7 +118,7 @@ export class PlatformService {
   }
 
   async bindWeRead(accountId, key, { verify = true } = {}) {
-    const cleanKey = validateWeReadKey(key);
+    const cleanKey = requireValidWeReadKey(key);
     const subject = this.wereadSubject(cleanKey);
     const other = this.store.findCredential("key", "weread", subject);
     if (other && other.accountId !== accountId) throw new PlatformError("CREDENTIAL_IN_USE", "该密钥已绑定其他账户。", 409);
@@ -147,7 +147,7 @@ export class PlatformService {
   }
 
   async reauthenticateWeRead(accountId, key, sessionToken) {
-    const cleanKey = validateWeReadKey(key);
+    const cleanKey = requireValidWeReadKey(key);
     const bucketKey = this.authBucket("weread-reauth", accountId, { ipPrefix: accountId });
     this.assertAuthAllowed(bucketKey);
     const credential = this.store.findCredentialByAccount(accountId, "key", "weread");
@@ -611,6 +611,13 @@ function publicImportJob(job) {
 }
 
 function publicNote(note) { const { objectKey, ...publicRow } = note; return publicRow; }
+function requireValidWeReadKey(value) {
+  try { return validateWeReadKey(value); }
+  catch (error) {
+    if (error?.code === "INVALID_KEY") throw new PlatformError("INVALID_KEY", "微信读书密钥格式无效。", 400);
+    throw error;
+  }
+}
 function credentialLabel(item) {
   if (item.provider === "email") return item.subject.replace(/^(.).+(@.+)$/, "$1***$2");
   if (item.provider === "weread") return `微信读书密钥 ····${item.metadata?.lastFour || "已绑定"}`;
