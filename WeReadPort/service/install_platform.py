@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prepare or activate an immutable, rollback-capable WeRead Port v0.0.0.1.9 systemd release."""
 from __future__ import annotations
-import argparse, base64, json, os, pathlib, pwd, re, secrets, shutil, subprocess, sys, tempfile
+import argparse, base64, json, os, pathlib, pwd, re, secrets, shutil, subprocess, sys, tempfile, time, urllib.request
 VERSION = "0.0.0.1.9"
 TASKPACK_VERSION = f"v{VERSION}"
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -86,6 +86,17 @@ def run_preflight(source_root,path,strict,require_paths):
  except json.JSONDecodeError as exc: raise RuntimeError("PREFLIGHT_OUTPUT_INVALID") from exc
  payload["exitCode"]=done.returncode; return payload
 
+def wait_for_platform_ready(port: int, timeout_seconds: float = 30.0) -> None:
+ deadline=time.monotonic()+timeout_seconds; url=f"http://127.0.0.1:{port}/readyz"
+ while time.monotonic()<deadline:
+  try:
+   with urllib.request.urlopen(url,timeout=3) as response:
+    payload=json.loads(response.read(1024*1024).decode("utf-8"))
+    if response.status==200 and payload.get("ready") is True: return
+  except Exception: pass
+  time.sleep(0.5)
+ raise RuntimeError("PLATFORM_READY_TIMEOUT")
+
 def validate_identity(commit,ovh,sites):
  if not SHA40.fullmatch(commit): raise RuntimeError("--release-commit 必须是 40 位小写 Git SHA")
  if not SAFE_ID.fullmatch(ovh): raise RuntimeError("--ovh-release-id 无效")
@@ -120,7 +131,7 @@ def main()->int:
   if tmp.exists() or tmp.is_symlink(): tmp.unlink()
   tmp.symlink_to(pathlib.Path("releases")/release.name); os.replace(tmp,current)
   try:
-   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service"],check=True); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
+   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service"],check=True); wait_for_platform_ready(int(values.get("WRP_SERVICE_PORT","8788"))); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
   except Exception:
    if previous_target:
     rollback=current.with_name(f".current-rollback-{os.getpid()}"); rollback.symlink_to(previous_target); os.replace(rollback,current); subprocess.run(["systemctl","daemon-reload"],check=False); subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service"],check=False)

@@ -82,6 +82,7 @@ class PlatformOperationsTests(unittest.TestCase):
         runtime_root = self.root / "active-install"
         calls = []
         required = {key: "configured" for key in INSTALLER.REQUIRED_DEPLOY_KEYS}
+        required["WRP_SERVICE_PORT"] = "8788"
 
         def rooted(_root, absolute):
             return runtime_root / absolute.lstrip("/")
@@ -90,9 +91,10 @@ class PlatformOperationsTests(unittest.TestCase):
             calls.append(command)
             return subprocess.CompletedProcess(command, 0)
 
-        with patch.object(INSTALLER, "root_path", side_effect=rooted), patch.object(INSTALLER, "run_preflight", return_value={"status": "PASS"}), patch.object(INSTALLER, "update_env", return_value=required), patch.object(INSTALLER.os, "geteuid", return_value=0), patch.object(INSTALLER.pwd, "getpwnam", return_value=object()), patch.object(INSTALLER.subprocess, "run", side_effect=record), patch.object(sys, "argv", ["install_platform.py", "--apply", "--release-commit", "b" * 40, "--ovh-release-id", "ovh-active-v019", "--sites-project-id", "sites-active-v019"]):
+        with patch.object(INSTALLER, "root_path", side_effect=rooted), patch.object(INSTALLER, "run_preflight", return_value={"status": "PASS"}), patch.object(INSTALLER, "update_env", return_value=required), patch.object(INSTALLER, "wait_for_platform_ready") as wait_ready, patch.object(INSTALLER.os, "geteuid", return_value=0), patch.object(INSTALLER.pwd, "getpwnam", return_value=object()), patch.object(INSTALLER.subprocess, "run", side_effect=record), patch.object(sys, "argv", ["install_platform.py", "--apply", "--release-commit", "b" * 40, "--ovh-release-id", "ovh-active-v019", "--sites-project-id", "sites-active-v019"]):
             self.assertEqual(INSTALLER.main(), 0)
 
+        wait_ready.assert_called_once_with(8788)
         self.assertIn(["systemctl", "restart", "weread-port-platform.service", "weread-port-import-worker.service"], calls)
 
     def test_preflight_is_secret_safe_and_closes_all_last_mile_inputs(self):
