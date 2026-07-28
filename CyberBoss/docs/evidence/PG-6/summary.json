@@ -1,0 +1,27 @@
+{
+  "schema_version": "cyberboss.pg6.summary.v1",
+  "gate_id": "PG-6",
+  "verdict": "CONDITIONAL_PASS",
+  "stage": "S6 multi-user identity and isolation foundation",
+  "blind_set_sha256": "31ee151fdb2bff0d07f07df3949bd3c433e454392c67a4733f0ce0c0e22f36d8",
+  "blind_set_cases": 8,
+  "blind_set_failures": 0,
+  "personal_data_in_evidence": false,
+  "acceptance_pass": [
+    "AC-003",
+    "AC-007"
+  ],
+  "acceptance_activation_pending": [
+    "AC-039"
+  ],
+  "acceptance_fail": [],
+  "unknown_or_not_run_counted_as_pass": false,
+  "evidence": [
+    "docs/evidence/CB-600",
+    "docs/evidence/CB-610",
+    "docs/evidence/CB-620",
+    "docs/evidence/CB-630",
+    "docs/evidence/CB-640",
+    "docs/evidence/PG-6"
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "schema_version": "cyberboss.cb640.subject.v1",
+  "task_id": "CB-640",
+  "stage": "S6",
+  "phase": "P6.5",
+  "gate_id": "PG-6",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "379177cd90b240ff101aeb6bbe0965f78d17155c",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_630_closure_commit": "379177cd90b240ff101aeb6bbe0965f78d17155c",
+    "closure_commit_recorded_by": "CB-700"
+  },
+  "blind_set": {
+    "fixture": "app/test/fixtures/dual-user-blind-set.json",
+    "sha256": "31ee151fdb2bff0d07f07df3949bd3c433e454392c67a4733f0ce0c0e22f36d8",
+    "source": "frozen taskpack starter_kit/fixtures/dual_user_blind_set.json, copied byte-identical",
+    "case_count": 8,
+    "pass_count": 8,
+    "fail_count": 0,
+    "cases": [
+      {
+        "case": "DU-01",
+        "oracle": "different user_id, session and reply route",
+        "result": "PASS",
+        "detail": "distinct user_id, job, correlation and route hash"
+      },
+      {
+        "case": "DU-02",
+        "oracle": "USER_SCOPE_VIOLATION before data return",
+        "result": "PASS",
+        "detail": "read, search, update and delete all refused"
+      },
+      {
+        "case": "DU-03",
+        "oracle": "LINK_INVALID",
+        "result": "PASS",
+        "detail": "LINK_INVALID on reuse; token always resolves to its own user"
+      },
+      {
+        "case": "DU-04",
+        "oracle": "one inbox, one job, one final reply",
+        "result": "PASS",
+        "detail": "1 inbox, 1 job, 1 final reply after five deliveries"
+      },
+      {
+        "case": "DU-05",
+        "oracle": "OWNER_ONLY_CAPABILITY and runtime calls=0",
+        "result": "PASS",
+        "detail": "OWNER_ONLY_CAPABILITY on every tool; runtime calls 0"
+      },
+      {
+        "case": "DU-06",
+        "oracle": "model calls=0 and Chinese status",
+        "result": "PASS",
+        "detail": "model calls 0 and a Chinese suspended notice"
+      },
+      {
+        "case": "DU-07",
+        "oracle": "REPLY_ROUTE_MISMATCH",
+        "result": "PASS",
+        "detail": "REPLY_ROUTE_MISMATCH on both swap directions"
+      },
+      {
+        "case": "DU-08",
+        "oracle": "other user still receives fair slot",
+        "result": "PASS",
+        "detail": "queue-full refusal is per user; both users get a slot"
+      }
+    ],
+    "personal_data_in_receipt": false,
+    "simulator_presented_as_real_channel": false
+  },
+  "negative_authorization_receipts": {
+    "cross_user_read": "USER_SCOPE_VIOLATION",
+    "cross_user_search": "empty_result_own_scope_only",
+    "cross_user_update_rows": 0,
+    "cross_user_delete_rows": 0,
+    "cross_user_setup_token_reuse": "LINK_INVALID",
+    "ordinary_user_owner_capability": "OWNER_ONLY_CAPABILITY",
+    "ordinary_user_runtime_calls": 0,
+    "suspended_user_model_calls": 0,
+    "swapped_reply_destination": "REPLY_ROUTE_MISMATCH",
+    "replayed_provider_message": "one inbox, one job, one final reply",
+    "queue_full_refusal_scope": "per_user_only"
+  },
+  "migration_integrity": {
+    "schema_version": 6,
+    "unscoped_rows": 0,
+    "foreign_key_check": "ok",
+    "integrity_check": "ok"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "new_acceptance_categories": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "runtime_mutation_in_gate": false
+  },
+  "activation_pending": [
+    {
+      "acceptance_id": "AC-039",
+      "item": "two_real_wechat_senders",
+      "state": "activation_pending",
+      "reason": "no authorised real WeChat credential exists inside the protected scope",
+      "not_claimed_as": "PASS",
+      "retest_at": "CB-830"
+    }
+  ],
+  "status": "passed"
+}

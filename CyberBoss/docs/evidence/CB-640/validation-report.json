@@ -1,0 +1,169 @@
+{
+  "schema_version": "cyberboss.cb640.validation.v1",
+  "task_id": "CB-640",
+  "gate_id": "PG-6",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-003",
+    "AC-007",
+    "AC-039"
+  ],
+  "check_count": 19,
+  "pass_count": 18,
+  "fail_count": 0,
+  "activation_pending_count": 1,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "gate_verdict": "CONDITIONAL_PASS",
+  "gate_verdict_reason": "isolation foundation proved on the exact target subject; AC-039 needs a real WeChat credential and stays activation_pending, so the gate is not sealed as an unconditional PASS",
+  "blind_set_case_count": 8,
+  "blind_set_sha256": "31ee151fdb2bff0d07f07df3949bd3c433e454392c67a4733f0ce0c0e22f36d8",
+  "node_suites": [
+    {
+      "suite": "test/cb630-usercontext-guard-queue.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb620-registration-consent-portal.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb610-multiuser-foundation.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/runtime-spool.test.js",
+      "returncode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 33,
+  "checks": [
+    {
+      "check": "cb640.blind_set_frozen",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "sha256=31ee151fdb2bff0d07f07df3949bd3c433e454392c67a4733f0ce0c0e22f36d8 cases=8"
+    },
+    {
+      "check": "cb640.blind_set_replay",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb640.every_case_covered",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "covered=8/8 fail_count=0"
+    },
+    {
+      "check": "cb640.receipt_has_no_personal_data",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "leaked_patterns=[]"
+    },
+    {
+      "check": "ac003.case.DU-01",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "two senders on one bot account produce two users and two routes"
+    },
+    {
+      "check": "ac003.case.DU-04",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "a replayed message stays one inbox, one job and one reply"
+    },
+    {
+      "check": "ac003.case.DU-08",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "a queue-full refusal is per user"
+    },
+    {
+      "check": "ac007.case.DU-02",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "cross-user read, search, update and delete all refused"
+    },
+    {
+      "check": "ac007.case.DU-03",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "a setup token always resolves to its own user and dies on reuse"
+    },
+    {
+      "check": "ac007.case.DU-05",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "an ordinary user reaches no Owner capability; runtime calls 0"
+    },
+    {
+      "check": "ac007.case.DU-06",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "a suspended user gets Chinese status with model calls 0"
+    },
+    {
+      "check": "ac007.case.DU-07",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "a swapped reply destination is refused in both directions"
+    },
+    {
+      "check": "ac039.real_dual_user_wechat",
+      "acceptance_id": "AC-039",
+      "result": "ACTIVATION_PENDING",
+      "detail": "two real WeChat senders are required; no authorised WeChat credential exists in the protected scope, so the channel adapter stays activation_pending. This is reported as ACTIVATION_PENDING, never PASS, and is re-tested at CB-830."
+    },
+    {
+      "check": "ac039.no_simulator_substitution",
+      "acceptance_id": "AC-039",
+      "result": "PASS",
+      "detail": "no simulator is presented as a real-channel proof"
+    },
+    {
+      "check": "ac039.pending_recorded_in_task_state",
+      "acceptance_id": "AC-039",
+      "result": "PASS",
+      "detail": "the pending channel activation is recorded in the single task state"
+    },
+    {
+      "check": "pg6.suite.cb630-usercontext-guard-queue.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "pg6.suite.cb620-registration-consent-portal.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "pg6.suite.cb610-multiuser-foundation.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "pg6.suite.runtime-spool.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=6 pass=6 fail=0"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": "cyberboss.cb640.acceptance.v1",
+  "task_id": "CB-640",
+  "stage": "S6",
+  "phase": "P6.5",
+  "gate_id": "PG-6",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "379177cd90b240ff101aeb6bbe0965f78d17155c",
+  "closure_commit_recorded_by": "CB-700",
+  "results": [
+    {
+      "acceptance_id": "AC-003",
+      "name": "单 Bot 多用户",
+      "result": "PASS",
+      "check_count": 7,
+      "note": "DU-01, DU-04 and DU-08 replayed on the exact target: one bot account gives two senders two user ids, two jobs, two correlations and two route hashes; a replayed message stays one inbox/job/reply; a queue-full refusal is scoped to the offending user."
+    },
+    {
+      "acceptance_id": "AC-007",
+      "name": "跨用户数据隔离",
+      "result": "PASS",
+      "check_count": 9,
+      "note": "DU-02, DU-03, DU-05, DU-06 and DU-07 replayed: cross-user read is refused before any data is returned, search returns only the caller's own rows, cross-user update and delete affect zero rows, a setup token always resolves to its own user and dies on reuse, an ordinary user reaches no Owner capability with runtime calls 0, a suspended user gets a Chinese notice with model calls 0, and a swapped reply destination is refused in both directions."
+    },
+    {
+      "acceptance_id": "AC-039",
+      "name": "真实双用户微信",
+      "result": "ACTIVATION_PENDING",
+      "check_count": 3,
+      "note": "Requires two real WeChat senders. No authorised WeChat credential exists inside the protected scope, so the channel adapter stays activation_pending. No simulator is presented as a real-channel proof and this is not counted as PASS. Re-tested at CB-830."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb640.py",
+  "validator_status": "PASS",
+  "gate_verdict": "CONDITIONAL_PASS",
+  "check_count": 19,
+  "pass_count": 18,
+  "fail_count": 0,
+  "activation_pending_count": 1,
+  "node_test_total": 33,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [
+    "AC-039 real dual-user WeChat"
+  ],
+  "status": "passed"
+}

@@ -94,9 +94,28 @@ substitutions are refused in constant time and the outbound path reads the bound
 destination instead of choosing one. Quota refusals are fixed Chinese strings
 with zero model calls. App suite 324/324 and `npm run check` pass.
 
-The remaining Stage 6 node, all of Stage 7 and Stage 8, and gates PG-6 through
-PG-8 are `not_started`; the authoritative list is
-`machine/facts/task_state.json`.
+`P6.5 / CB-640` passed on base `379177cd90b240ff101aeb6bbe0965f78d17155c` and
+Stage 6 exit gate `PG-6` sealed as **CONDITIONAL PASS**. The frozen dual-user
+blind set was copied byte-identical from the taskpack and replayed case by case
+against the real implementation: 8/8 cases pass. Two senders on one bot account
+produce two user ids, jobs, correlations and route hashes; a cross-user read is
+refused before any data is returned and cross-user search, update and delete
+change nothing; a setup token always resolves to its own user and dies on reuse;
+an ordinary user reaches no Owner capability with runtime calls 0; a suspended
+user receives a Chinese notice with model calls 0; a swapped reply destination is
+refused in both directions; a replayed provider message stays one inbox, one job
+and one final reply; and a queue-full refusal is scoped to the offending user
+only. The sealed receipt contains no user id, WeChat identifier, phone number or
+email.
+
+`PG-6` is CONDITIONAL, not unconditional, because `AC-039` (two real WeChat
+senders) needs an authorised WeChat credential that does not exist inside the
+protected scope. It is recorded as `activation_pending`, is never counted as
+PASS, and no simulator is presented as a real-channel proof. It is re-tested at
+`CB-830`.
+
+Stage 7, Stage 8 and gates PG-7 and PG-8 are `not_started`; the authoritative
+list is `machine/facts/task_state.json`.
 
 Real WeChat channel credentials remain outside the authorised protected scope,
 so the channel stays `activation_pending`. Registration and consent are proved

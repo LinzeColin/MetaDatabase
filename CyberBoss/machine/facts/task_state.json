@@ -6,10 +6,10 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-630",
-    "gate_id": null,
-    "task_id": "CB-630",
-    "scope": "server_owned_usercontext_owner_guard_scoped_repositories_fair_queue_and_idempotency",
+    "run_id": "PG-6",
+    "gate_id": "PG-6",
+    "task_id": "CB-640",
+    "scope": "dual_user_blind_set_cross_user_negative_matrix_and_stage_6_exit_gate",
     "status": "passed"
   },
   "prestage": [
@@ -26,7 +26,7 @@
     "PG-3": "passed",
     "PG-4": "passed",
     "PG-5": "passed",
-    "PG-6": "not_started",
+    "PG-6": "conditional_pass",
     "PG-7": "not_started",
     "PG-8": "not_started"
   },
@@ -239,7 +239,7 @@
       "id": "CB-640",
       "stage": "S6",
       "phase": "P6.5",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-700",
@@ -550,6 +550,20 @@
     "cb_630_global_provider_active": 2,
     "cb_630_reply_route_binding": "hmac_immutable_four_field",
     "cb_630_duplicate_message_rows": "one_inbox_one_job_one_reply",
-    "cb_630_app_suite": "324_pass_0_fail"
+    "cb_630_app_suite": "324_pass_0_fail",
+    "cb_630_closure_commit": "379177cd90b240ff101aeb6bbe0965f78d17155c",
+    "cb_640_base_head": "379177cd90b240ff101aeb6bbe0965f78d17155c",
+    "cb_640_blind_set_sha256": "31ee151fdb2bff0d07f07df3949bd3c433e454392c67a4733f0ce0c0e22f36d8",
+    "cb_640_blind_set_cases": "8_pass_0_fail",
+    "cb_640_personal_data_in_evidence": false,
+    "pg_6_executed": true,
+    "pg_6_verdict": "CONDITIONAL_PASS",
+    "pg_6_acceptance": {
+      "AC-003": "PASS",
+      "AC-007": "PASS",
+      "AC-039": "activation_pending"
+    },
+    "pg_6_blocked_by": "AC-039 real dual-user WeChat requires an authorised WeChat credential",
+    "cb_640_app_suite": "333_pass_0_fail"
   }
 }

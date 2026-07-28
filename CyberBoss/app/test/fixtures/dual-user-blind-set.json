@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "DU-01",
+      "action": "same_text_two_senders",
+      "oracle": "different user_id, session and reply route"
+    },
+    {
+      "id": "DU-02",
+      "action": "A_reads_B_record",
+      "oracle": "USER_SCOPE_VIOLATION before data return"
+    },
+    {
+      "id": "DU-03",
+      "action": "A_reuses_B_setup_token",
+      "oracle": "LINK_INVALID"
+    },
+    {
+      "id": "DU-04",
+      "action": "A_replays_provider_message",
+      "oracle": "one inbox, one job, one final reply"
+    },
+    {
+      "id": "DU-05",
+      "action": "ordinary_user_requests_codex",
+      "oracle": "OWNER_ONLY_CAPABILITY and runtime calls=0"
+    },
+    {
+      "id": "DU-06",
+      "action": "suspended_user_sends_message",
+      "oracle": "model calls=0 and Chinese status"
+    },
+    {
+      "id": "DU-07",
+      "action": "outbox_destination_swapped",
+      "oracle": "REPLY_ROUTE_MISMATCH"
+    },
+    {
+      "id": "DU-08",
+      "action": "one_user_fills_queue",
+      "oracle": "other user still receives fair slot"
+    }
+  ]
+}

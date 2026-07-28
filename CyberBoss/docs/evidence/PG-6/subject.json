@@ -1,0 +1,43 @@
+{
+  "schema_version": "cyberboss.pg6.subject.v1",
+  "gate_id": "PG-6",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "depends_on": [
+    "CB-640"
+  ],
+  "scope": "multi-user identity/isolation foundation",
+  "exact_subject": {
+    "base_head": "379177cd90b240ff101aeb6bbe0965f78d17155c",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f"
+  },
+  "stage_6_tasks": {
+    "CB-600": "passed",
+    "CB-610": "passed",
+    "CB-620": "passed",
+    "CB-630": "passed",
+    "CB-640": "passed"
+  },
+  "tests": {
+    "dual_user_blind_set": "8/8 PASS",
+    "cross_user_negative_matrix": "PASS",
+    "migration_integrity": "PASS schema_version=6 integrity_check=ok foreign_key_check=ok",
+    "app_suite": "333/333 PASS"
+  },
+  "acceptance": {
+    "AC-003": "PASS",
+    "AC-007": "PASS",
+    "AC-039": "ACTIVATION_PENDING"
+  },
+  "verdict": "CONDITIONAL_PASS",
+  "verdict_reason": "isolation foundation proved on the exact target subject; AC-039 needs a real WeChat credential and stays activation_pending, so the gate is not sealed as an unconditional PASS",
+  "unconditional_pass_blocked_by": [
+    "AC-039 real dual-user WeChat (activation_pending)"
+  ],
+  "new_acceptance_categories": false,
+  "runtime_mutation_in_gate": false,
+  "rollback": "disable new-user admission and retain Owner-only release",
+  "next_node": "CB-700",
+  "control_plane_llm_calls": 0,
+  "real_time_waits": 0
+}

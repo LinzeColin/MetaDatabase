@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-640",
+  "stage": "S6",
+  "phase": "P6.5",
+  "gate_id": "PG-6",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "379177cd90b240ff101aeb6bbe0965f78d17155c",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-700"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-003",
+    "AC-007",
+    "AC-039"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "run blind two-user replay",
+    "attempt cross-user read/write/search/reply",
+    "seal exact evidence without personal data"
+  ],
+  "rollback": [
+    "no runtime mutation in gate",
+    "reopen only failed acceptance IDs"
+  ]
+}
