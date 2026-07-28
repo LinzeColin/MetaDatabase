@@ -31,7 +31,7 @@
   <p class="sub">这一页只有你能用。用你要当机器人的那个微信扫下面的码。</p>
 
   <div class="card">
-    <button id="start">生成二维码</button>
+    <button id="start" hidden>重新生成</button>
     <img id="qr" alt="微信授权二维码" hidden>
     <div class="state" id="state"></div>
     <ol id="steps" hidden>
@@ -41,7 +41,7 @@
     </ol>
   </div>
 
-  <p class="hint">码大约两分钟过期，过期了再点一次「重新生成」就行。</p>
+  <p class="hint">码大约 40 秒过期，过期了这一页会自己换新的，你不用管。扫上去就行。</p>
 </main>
 <script nonce="__CSP_NONCE__">
 "use strict";
@@ -87,10 +87,11 @@
         }
         if (d.state === "scaned") { say("已扫码，请在手机上点确认……"); return; }
         if (d.state === "expired") {
+          // 码只活 40 秒左右，让人手动点等于让人一直点。自动换一张，位置不变，
+          // 扫的人不用管这件事。
           clearInterval(timer);
-          say("二维码过期了，请重新生成", "bad");
-          startBtn.hidden = false;
-          startBtn.textContent = "重新生成";
+          say("正在换一张新码……");
+          begin();
           return;
         }
         say("等待扫码……");
@@ -98,7 +99,7 @@
       .catch(function () { say("连不上服务，正在重试……"); });
   }
 
-  startBtn.addEventListener("click", function () {
+  function begin() {
     startBtn.disabled = true;
     say("正在生成……");
     fetch("/ops/api/wechat/start", { method: "POST", headers: authed(), credentials: "same-origin" })
@@ -124,7 +125,11 @@
         startBtn.disabled = false;
         say("连不上服务，请稍后再试", "bad");
       });
-  });
+  }
+
+  startBtn.addEventListener("click", begin);
+  // 打开就直接出码，少一次点击。
+  begin();
 })();
 </script>
 </body>
