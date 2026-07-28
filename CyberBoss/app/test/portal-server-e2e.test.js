@@ -300,3 +300,14 @@ test("健康检查活着，但不透露任何状态", async (t) => {
   assert.equal(response.status, 200);
   assert.equal(response.text, "ok");
 });
+
+test("只输域名（根路径）跳到后台，而不是回一行 NOT_FOUND", async (t) => {
+  // 用户在浏览器里输域名，落到 "/"。之前这里走最后那个 404 分支，屏幕上只有
+  // {"ok":false,"code":"NOT_FOUND"}——服务好好的，看起来却像彻底坏了。
+  const h = await harness(t);
+  for (const requestPath of ["/", "/index.html"]) {
+    const response = await raw(h.address.port, { requestPath, headers: { host: HOSTNAME } });
+    assert.equal(response.status, 302, `${requestPath} 应当跳转`);
+    assert.equal(response.headers.location, "/admin");
+  }
+});

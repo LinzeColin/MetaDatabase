@@ -27,6 +27,9 @@ const DEFAULT_PORT = 8787;
 const API_PREFIX = "/api/";
 const SETUP_PATHS = Object.freeze(["/setup", "/setup/"]);
 const ADMIN_PATHS = Object.freeze(["/admin", "/admin/"]);
+// 只输一个域名就该看到东西。之前根路径落到最后那个 404 分支，用户看到的是一行
+// {"ok":false,"code":"NOT_FOUND"}——服务其实好好的，却像是彻底坏了。
+const ROOT_PATHS = Object.freeze(["/", "/index.html"]);
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
 const MAX_REQUEST_BYTES = 64 * 1024;
@@ -237,6 +240,13 @@ class PortalHttpServer {
     const url = new URL(request.url || "/", "http://placeholder.invalid");
     const pathname = url.pathname;
 
+    if (request.method === "GET" && ROOT_PATHS.includes(pathname)) {
+      // 带上原来的 query 和后面的 fragment 由浏览器自己保留（fragment 根本不会
+      // 发到服务器），所以 /#k=…… 这种链接跳过去之后钥匙还在。
+      response.writeHead(302, { ...SECURITY_HEADERS, Location: "/admin" });
+      response.end();
+      return null;
+    }
     if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
       this.#handleAdminPage(response);
       return null;
