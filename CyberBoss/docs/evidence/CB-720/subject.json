@@ -1,0 +1,91 @@
+{
+  "schema_version": "cyberboss.cb720.subject.v1",
+  "task_id": "CB-720",
+  "stage": "S7",
+  "phase": "P7.3",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "49edbabae0ffb449d750a4a9eef523780442d3d7",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_710_closure_commit": "49edbabae0ffb449d750a4a9eef523780442d3d7",
+    "closure_commit_recorded_by": "CB-730"
+  },
+  "ambiguity_resolution_applied": {
+    "domain": "profile_analytics",
+    "decision_from": "CB-600 target-adaptation-plan.json",
+    "implementation": "additive read-only modules over the existing canonical/timeline/diary path",
+    "existing_module_forked_or_replaced": false,
+    "second_fact_authority_created": false
+  },
+  "explainability": {
+    "inferred_fact_requires": [
+      "sourceRef",
+      "evidenceRef",
+      "confidence",
+      "counterevidence"
+    ],
+    "each_element_individually_enforced": true,
+    "confidence_domain": "0 < c <= 1",
+    "explanation_surface": "explainFact",
+    "evidence_stored_as": "reference_not_text"
+  },
+  "user_control": {
+    "controls": [
+      "accepted",
+      "modified",
+      "rejected",
+      "frozen",
+      "deleted"
+    ],
+    "decision_and_effect_atomic": true,
+    "rejected_reappears": false,
+    "frozen_overwritten_by_suggestion": false,
+    "freeze_cleared_implicitly": false,
+    "cross_user_effect": "none",
+    "standing_decision_order": "insertion_order_rowid"
+  },
+  "sensitive_protection": {
+    "sensitive_categories": 9,
+    "inference_possible": false,
+    "consent_scope": "per_category_exact_match",
+    "sensitive_in_ordinary_allowlist": false,
+    "default_sensitive_inference_count": 0
+  },
+  "behaviour_analytics": {
+    "model_calls": 0,
+    "module_imports": 0,
+    "deterministic_under_input_reordering": true,
+    "second_authority": false,
+    "rebuild_removes_deleted_events": true,
+    "cross_user_leakage": false,
+    "unknown_event_type": "ignored"
+  },
+  "defect_fixed_in_this_node": {
+    "issue": "the standing profile decision was chosen by ORDER BY occurred_at DESC; several decisions can share one millisecond, so an older accepted decision could outrank a newer rejected one and a rejected inference could reappear",
+    "detection": "an intermittent suite failure, reproduced in 6 of 8 runs",
+    "fix": "order by insertion (rowid) instead of timestamp, and stop clearing the frozen flag implicitly",
+    "verification": "10 consecutive clean suite runs plus 5 repeat runs inside the validator"
+  },
+  "tests": {
+    "cb720_suite_tests": 7,
+    "cb720_suite_failures": 0,
+    "cb720_repeat_clean_runs": "5/5",
+    "app_suite_tests": 361,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "analytics_model_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [],
+  "status": "passed"
+}

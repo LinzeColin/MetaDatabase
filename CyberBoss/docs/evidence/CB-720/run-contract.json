@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-720",
+  "stage": "S7",
+  "phase": "P7.3",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "49edbabae0ffb449d750a4a9eef523780442d3d7",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-730"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-024",
+    "AC-025",
+    "AC-026",
+    "AC-027"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "project only allowlisted attributes",
+    "bind every inference to evidence/confidence/counterevidence",
+    "apply user decision before downstream use"
+  ],
+  "rollback": [
+    "disable inference projection",
+    "retain explicit user facts only",
+    "rebuild projections from canonical facts",
+    "revert to base 49edbabae0ffb449d750a4a9eef523780442d3d7"
+  ]
+}

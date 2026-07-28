@@ -23,11 +23,17 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P5.3 / CB-520`；`P5.4 / CB-530`；`P5.5 / CB-540`；`PG-5`；`P6.1 / CB-600`；
   `P6.2 / CB-610`；`P6.3 / CB-620`；
   `P6.4 / CB-630`；`P6.5 / CB-640`；`PG-6`；
-  `P7.1 / CB-700`；`P7.2 / CB-710`
+  `P7.1 / CB-700`；`P7.2 / CB-710`；
+  `P7.3 / CB-720`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
+- 最新 Run：`CB-720` 已落地可解释画像与确定性行为分析：每条推断必须带来源、
+  证据、置信度与反证（缺一即拒），9 类敏感属性在任何置信度下都不可推断且同意
+  按类精确匹配，默认敏感推断数为 `0`；接受/修改/拒绝/冻结/删除与其效果在同一
+  事务内生效，被拒绝的推断不会复活，冻结不会被隐式解除；日聚合模块零依赖、
+  与输入顺序无关，且是可重建的投影而非第二事实源。证据在 `docs/evidence/CB-720/`。
 - 最新 Run：`CB-710` 已完成上传安全与四源导入：路径穿越（4 种写法）、符号链接、
   加密条目、不支持算法、可执行/脚本/嵌套压缩包、超深路径、重复归一目标、
   超大与两种压缩炸弹全部在解压前被拒，解压后再校验 CRC 与长度；ChatGPT/Claude
@@ -68,7 +74,7 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   或把 pending 写成 ready。最小 Access service-token scope 同样保留 pending，
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
-  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700` 与 `CB-710` 已通过；
+  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-720` 已通过；
   `PG-6` 为 `CONDITIONAL_PASS`。
 
 - 尚未开始：Stage 6 余下节点、Stage 7、Stage 8 与 PG-6–PG-8 均为

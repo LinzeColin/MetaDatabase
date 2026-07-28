@@ -1,0 +1,50 @@
+{
+  "schema_version": "cyberboss.cb720.acceptance.v1",
+  "task_id": "CB-720",
+  "stage": "S7",
+  "phase": "P7.3",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "49edbabae0ffb449d750a4a9eef523780442d3d7",
+  "closure_commit_recorded_by": "CB-730",
+  "results": [
+    {
+      "acceptance_id": "AC-024",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "An inferred fact is unstorable without source, evidence, a real-probability confidence and a counterevidence list; each element is enforced individually and the suite removes them one at a time. explainFact surfaces exactly that basis to the user, and the projection keeps references to evidence rather than the evidence text."
+    },
+    {
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "check_count": 8,
+      "note": "Accept, modify, reject, freeze and delete each record a decision and apply it to the fact in one transaction, so the projection never lags the user. A rejected key cannot be re-suggested, a frozen fact cannot be overwritten and is not implicitly unfrozen, and one user's decision leaves another user's profile untouched. The standing decision is chosen by insertion order, so decisions sharing a millisecond resolve deterministically."
+    },
+    {
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "check_count": 5,
+      "note": "Nine sensitive categories can never be inferred at any confidence; consent is matched per category so consenting to one does not unlock another, none of them appears in the ordinary allowlist, and the default projection contains zero sensitive inferences."
+    },
+    {
+      "acceptance_id": "AC-027",
+      "result": "PASS",
+      "check_count": 6,
+      "note": "The aggregator imports nothing at all, so it cannot reach a model. Output is deterministic under input reordering, an unknown event type is ignored rather than mis-counted, a series contains only the requesting user's counts, and the aggregate is rebuilt from events so a deleted event disappears rather than persisting as a second authority."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb720.py",
+  "validator_status": "PASS",
+  "check_count": 23,
+  "pass_count": 23,
+  "fail_count": 0,
+  "node_test_total": 7,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [],
+  "status": "passed"
+}

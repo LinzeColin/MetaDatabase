@@ -1,0 +1,200 @@
+{
+  "schema_version": "cyberboss.cb720.validation.v1",
+  "task_id": "CB-720",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-024",
+    "AC-025",
+    "AC-026",
+    "AC-027"
+  ],
+  "check_count": 23,
+  "pass_count": 23,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "repeat_runs": [
+    {
+      "suite": "test/cb720-profile-analytics.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb720-profile-analytics.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb720-profile-analytics.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb720-profile-analytics.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb720-profile-analytics.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 7,
+  "checks": [
+    {
+      "check": "ac024.inference_requires_full_basis",
+      "acceptance_id": "AC-024",
+      "result": "PASS",
+      "detail": "an inference without source, evidence, confidence or counterevidence is refused"
+    },
+    {
+      "check": "ac024.confidence_is_a_probability",
+      "acceptance_id": "AC-024",
+      "result": "PASS",
+      "detail": "confidence must be a real probability, not a label"
+    },
+    {
+      "check": "ac024.explain_exposes_the_basis",
+      "acceptance_id": "AC-024",
+      "result": "PASS",
+      "detail": "the user-facing explanation carries the basis and the counterevidence"
+    },
+    {
+      "check": "ac024.projection_keeps_references_not_text",
+      "acceptance_id": "AC-024",
+      "result": "PASS",
+      "detail": "the projection stores references to evidence, never the evidence text"
+    },
+    {
+      "check": "ac025.all_five_controls",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "declared_decisions=['accepted', 'deleted', 'modified', 'proposed', 'rejected'] plus freeze handled by the store"
+    },
+    {
+      "check": "ac025.decision_and_effect_are_atomic",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "the decision and its effect are applied in one transaction"
+    },
+    {
+      "check": "ac025.rejected_never_reappears",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "a later suggestion for a rejected key is refused"
+    },
+    {
+      "check": "ac025.frozen_blocks_overwrite",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "a frozen fact is not overwritten by a newer suggestion"
+    },
+    {
+      "check": "ac025.decision_order_is_deterministic",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "the standing decision is chosen by insertion order, not by a millisecond timestamp"
+    },
+    {
+      "check": "ac025.freeze_not_cleared_implicitly",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "an accept arriving after a freeze does not silently unfreeze the fact"
+    },
+    {
+      "check": "ac025.suppressed_leave_projection",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "rejected and deleted facts leave the projection immediately"
+    },
+    {
+      "check": "ac026.sensitive_set_is_complete",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "sensitive categories=['biometric', 'criminal_risk', 'ethnicity', 'financial_distress', 'health_diagnosis', 'mental_illness', 'politics', 'religion', 'sexual_orientation']"
+    },
+    {
+      "check": "ac026.sensitive_never_inferred",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "a sensitive attribute can never be inferred, at any confidence"
+    },
+    {
+      "check": "ac026.consent_is_per_category",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "consent for one category does not unlock another"
+    },
+    {
+      "check": "ac026.sensitive_not_in_allowlist",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "no sensitive category appears in the ordinary allowlist"
+    },
+    {
+      "check": "ac026.default_inference_count_zero",
+      "acceptance_id": "AC-026",
+      "result": "PASS",
+      "detail": "the count of sensitive inferences is directly observable"
+    },
+    {
+      "check": "ac027.no_model_dependency",
+      "acceptance_id": "AC-027",
+      "result": "PASS",
+      "detail": "the aggregator imports nothing, so it cannot reach a model"
+    },
+    {
+      "check": "ac027.deterministic_ordering",
+      "acceptance_id": "AC-027",
+      "result": "PASS",
+      "detail": "output ordering is deterministic regardless of input order"
+    },
+    {
+      "check": "ac027.not_a_second_authority",
+      "acceptance_id": "AC-027",
+      "result": "PASS",
+      "detail": "the aggregate is rebuilt from events, so a deleted event disappears"
+    },
+    {
+      "check": "ac027.per_user_scope",
+      "acceptance_id": "AC-027",
+      "result": "PASS",
+      "detail": "a series contains only the requesting user's counts"
+    },
+    {
+      "check": "ac027.unknown_event_ignored",
+      "acceptance_id": "AC-027",
+      "result": "PASS",
+      "detail": "an unknown event type is ignored rather than mis-counted"
+    },
+    {
+      "check": "cb720.no_provider_or_mac_or_control_bytes",
+      "acceptance_id": "AC-027",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb720.suite_is_deterministic",
+      "acceptance_id": "AC-025",
+      "result": "PASS",
+      "detail": "clean_runs=5/5 tests=7"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/profile/profile-projector.js": "004a4d8dc66c3a9cbb701556b3cbdc6e00917f9cab9d4bc7c5ab939a15d30174",
+    "app/src/services/profile/profile-store.js": "7046cb97ffca929e67be7cecc8a59aa9381f723a53b7c2f71723c437817a10e9",
+    "app/src/services/analytics/activity-aggregator.js": "abd1ffdb99c7ce93176bf92410100fc9d1b305128877d74ae92adc4a7b80190d"
+  }
+}

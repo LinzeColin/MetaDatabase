@@ -19,8 +19,9 @@
 
 ## Current state
 
-Latest accepted node: `P7.2 / CB-710` passed. Stage 6 is complete with exit gate
-`PG-6` sealed as CONDITIONAL PASS, and Stage 7 has `CB-700` and `CB-710` passed.
+Latest accepted node: `P7.3 / CB-720` passed. Stage 6 is complete with exit gate
+`PG-6` sealed as CONDITIONAL PASS, and Stage 7 has `CB-700`, `CB-710` and
+`CB-720` passed.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
 
@@ -175,6 +176,30 @@ bytes had been written into three JavaScript sources. Runtime behaviour was
 already correct, but the sources carried unprintable control bytes; they are now
 explicit `\u0000` escapes and the CB-710 validator fails if any import module
 regains a raw control byte.
+
+`P7.3 / CB-720` passed on base `49edbabae0ffb449d750a4a9eef523780442d3d7`,
+applying the CB-600 resolution of the one ambiguous integration domain: profile
+and analytics are additive read-only modules over the existing canonical,
+timeline and diary path, forking nothing and creating no second fact authority.
+An inferred fact is unstorable without source, evidence, a real-probability
+confidence and a counterevidence list, and the suite removes each element in
+turn to prove it. Nine sensitive categories can never be inferred at any
+confidence, consent is matched per category so one does not unlock another, and
+the default projection contains zero sensitive inferences. Accept, modify,
+reject, freeze and delete each record a decision and apply it in one
+transaction; a rejected key cannot be re-suggested, a frozen fact is neither
+overwritten nor implicitly unfrozen, and one user's decision never touches
+another's profile. The aggregator imports nothing at all, is deterministic under
+input reordering, keeps every series inside one user, and is rebuilt from events
+so a deleted event disappears instead of lingering.
+
+This node also fixed a real determinism defect: the standing profile decision
+was selected with ORDER BY occurred_at DESC, and because several decisions can
+share a millisecond, an older accepted decision could outrank a newer rejected
+one and resurrect an inference the user had refused. It reproduced in six of
+eight runs. Ordering is now by insertion (rowid), the frozen flag is no longer
+cleared implicitly, and ten consecutive suite runs plus five repeat runs inside
+the validator are clean.
 
 The rest of Stage 7, Stage 8 and gates PG-7 and PG-8 are `not_started`; the
 authoritative list is `machine/facts/task_state.json`.
