@@ -16,7 +16,11 @@ for (const entry of await readdir(client)) {
   await rename(path.join(client, entry), path.join(site, entry));
 }
 
-for (const required of ["index.html", "assets", "privacy/index.html", "terms/index.html", "status/index.html"]) {
+for (const [from, to] of [["index.html", "home.html"], ["privacy/index.html", "privacy/page.html"], ["terms/index.html", "terms/page.html"], ["status/index.html", "status/page.html"]]) {
+  await rename(path.join(site, from), path.join(site, to));
+}
+
+for (const required of ["home.html", "assets", "privacy/page.html", "terms/page.html", "status/page.html"]) {
   try { await access(path.join(site, required)); }
   catch { throw new Error(`Sites 静态前缀构建缺少：${required}`); }
 }
