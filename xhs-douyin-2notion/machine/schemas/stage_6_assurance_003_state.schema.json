@@ -1,0 +1,36 @@
+{
+  "$id": "urn:x2n:stage-6-assurance-003-state:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "acceptance_status": {"type": "object"},
+    "execution": {"type": "object"},
+    "next_task": {"type": "object"},
+    "phase": {"const": "PH.X2N.6.3"},
+    "project": {"const": "x2n"},
+    "release_policy": {"type": "object"},
+    "reports": {"type": "object"},
+    "run_id": {"const": "RUN-X2N-S06-A003"},
+    "schema_version": {"const": "1.0"},
+    "stage": {"const": "STG.X2N.6"},
+    "status": {"const": "PASS_CI_SYNTH_SECURITY_PRIVACY_SUPPLY_CHAIN_REAL_MVP_NOT_RUN"},
+    "task_base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "task_id": {"const": "TSK.x2n.assurance.003"}
+  },
+  "required": [
+    "acceptance_status",
+    "execution",
+    "next_task",
+    "phase",
+    "project",
+    "release_policy",
+    "reports",
+    "run_id",
+    "schema_version",
+    "stage",
+    "status",
+    "task_base_commit",
+    "task_id"
+  ],
+  "type": "object"
+}

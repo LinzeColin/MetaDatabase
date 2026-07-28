@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.7",
-  "phase": "PH.X2N.6.2",
-  "status": "stage_6_assurance002_ci_synth_features_disabled_assurance003_next_real_runtime_not_run",
+  "schema_version": "1.8",
+  "phase": "PH.X2N.6.3",
+  "status": "stage_6_assurance003_ci_synth_security_privacy_supply_chain_pass_assurance004_next_real_runtime_not_run",
   "review_id": "STG.X2N.5.REVIEW",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
@@ -27,10 +27,11 @@
     {"id": "ADR-020", "topic": "private_metadatabase_lifecycle_and_governed_deletion", "state": "accepted_implementation", "implementation_state": "domain_bound_opaque_archive_chunks_exact_manifest_per_object_restore_latest_tombstone_epoch_ttl_preview_confirm_and_tmutil_contract_ci_synth_verified_real_transfer_tmutil_and_physical_delete_not_run"},
     {"id": "ADR-021", "topic": "stage_5_operability_lifecycle_gate_review", "state": "accepted_implementation", "implementation_state": "g5_independent_ci_synth_fixed_task_receipts_g4_preservation_task005_historical_replay_notion_mock_markdown_rebuild_loopback_review_diagnostics_recovery_private_lifecycle_contract_pass_real_external_runtime_not_run"},
     {"id": "ADR-022", "topic": "stage_6_software_assurance_current_pipeline_and_historical_replay", "state": "accepted_implementation", "implementation_state": "current_format_lint_type_companion_contract_browser_e2e_risk_coverage_80x2_100_concurrent_10k_migration_backup_rollback_two_critical_mutants_fresh_copy_lifecycle_and_fixed_g5_replay_ci_synth_pass_real_mvp_not_run"},
-    {"id": "ADR-023", "topic": "stage_6_model_assurance_explicit_feature_disabled_decision", "state": "accepted_implementation", "implementation_state": "asr_ocr_vision_disabled_fusion_model_not_run_classification_suggestion_only_auto_classify_false_private_gold_not_read_ci_synth_redteam_provenance_cache_budget_pass"}
+    {"id": "ADR-023", "topic": "stage_6_model_assurance_explicit_feature_disabled_decision", "state": "accepted_implementation", "implementation_state": "asr_ocr_vision_disabled_fusion_model_not_run_classification_suggestion_only_auto_classify_false_private_gold_not_read_ci_synth_redteam_provenance_cache_budget_pass"},
+    {"id": "ADR-024", "topic": "stage_6_security_privacy_license_supply_chain_assurance", "state": "accepted_implementation", "implementation_state": "isolated_credential_free_environment_history_credential_scan_current_source_candidate_artifact_private_cdn_zero_sast_zero_live_osv_33_dependencies_zero_vulnerabilities_sbom_33_license_unknown_zero_csp_ssrf_media_pass"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001-005_plus_TSK.x2n.uxops.001-005_plus_G5_review_ci_synth_only_plus_TSK.x2n.assurance.001-002_ci_synth_only",
+  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001-005_plus_TSK.x2n.uxops.001-005_plus_G5_review_ci_synth_only_plus_TSK.x2n.assurance.001-003_ci_synth_only",
   "real_account_execution": false,
-  "stage_gate": "g5_pass_assurance001_pass_assurance002_features_disabled_assurance003_authorized"
+  "stage_gate": "g5_pass_assurance001_pass_assurance002_features_disabled_assurance003_security_pass_assurance004_authorized"
 }

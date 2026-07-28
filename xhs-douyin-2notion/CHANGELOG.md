@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 6 / Assurance003
+
+- 完成 `TSK.x2n.assurance.003 / PH.X2N.6.3` 的安全、隐私、许可证与供应链 CI-synth gate：当前源码/fixture、SAST、SBOM 33 components、license unknown=0、匿名 OSV 33 dependencies、CSP、SSRF/media、active nomenclature 与两次确定性候选制品均通过。
+- 公开回执只含聚合结果：current source/candidate artifact private/CDN 为零、历史 credential/authenticated-remote aggregate 为零；执行环境不继承认证变量，不读取、显示或修改共享认证材料。
+- 仅授权下一单 `TSK.x2n.assurance.004 / PH.X2N.6.4`；无 Alpha/Beta、固定观察或 soak，真实 MVP deploy/run/online smoke 仍只在 assurance.005。
+
 ## v0.0.0.1 — Stage 6 / Assurance002
 
 - 完成 `TSK.x2n.assurance.002 / PH.X2N.6.2` 的模型安全与 System Card gate：私有 Gold 没有被读取，四个缺失 Gold eval 入口均 Fail Closed，38 个 ASR/OCR/Vision/Fusion/Taxonomy 合成合同与 provenance/cache/budget/cloud-zero 控制通过。

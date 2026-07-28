@@ -2486,7 +2486,7 @@ tasks:
   title: Complete security, privacy, license and supply-chain assurance
   stage: STG.X2N.6
   phase: PH.X2N.6.3
-  status: planned
+  status: complete_ci_synth_security_privacy_supply_chain
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

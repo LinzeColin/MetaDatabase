@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.6",
+  "task_id": "TSK.x2n.assurance.003",
+  "phase": "PH.X2N.6.3",
+  "run_id": "RUN-X2N-S06-A003",
+  "task_base_commit": "28499818c2f99a2046a386d88c2ed0c85004bc56",
+  "status": "PASS_CI_SYNTH_SECURITY_PRIVACY_SUPPLY_CHAIN_REAL_MVP_NOT_RUN",
+  "acceptance_status": {
+    "ACC.x2n.gov.002": "PASS_CI_SYNTH_PRIVATE_AUTH_ZERO_CONTACT_CURRENT_AND_HISTORY_SCAN_ZERO",
+    "ACC.x2n.gov.003": "PASS_CI_SYNTH_PUBLIC_SOURCE_RELEASE_ALLOWLIST_LICENSE_ZERO_UNKNOWN",
+    "ACC.x2n.media.001": "PASS_CI_SYNTH_FIVE_SCOPE_PERSISTENCE_CDN_PRIVATE_ZERO",
+    "ACC.x2n.media.003": "PASS_CI_SYNTH_512_URL_FUZZ_32_SSRF_FORBIDDEN_ZERO_LOCAL_FILE_READS",
+    "ACC.x2n.media.004": "PASS_CI_SYNTH_BOUNDED_FFMPEG_FFPROBE_TEMPORARY_ONLY",
+    "ACC.x2n.rel.003": "PASS_CI_SYNTH_SAST_OSV_SBOM_LICENSE_ARTIFACT_HISTORY_ZERO"
+  },
+  "execution": {
+    "anonymous_osv_batch_requests": 1,
+    "external_release_uploads": 0,
+    "model_calls": 0,
+    "platform_calls": 0,
+    "private_gold_reads": 0,
+    "real_account_execution": "NOT_RUN",
+    "runtime_deployment": "NOT_RUN",
+    "secret_reads": 0
+  },
+  "reports": {
+    "artifact": {"allowlist_findings": 0, "deterministic": true, "runtime_data_files": 0},
+    "csp": {"host_permissions": 0, "remote_resources": 0},
+    "history": {"credential_history_hits": 0},
+    "license": {"unknown_licenses": 0},
+    "media": {"cdn_persistence_findings": 0, "forbidden_target_successes": 0, "local_file_reads": 0},
+    "osv": {"critical_high_unresolved": 0, "dependencies_queried": 33, "vulnerabilities_reported": 0},
+    "sast": {"critical_high_findings": 0},
+    "source": {"finding_count": 0},
+    "terminology": {"active_legacy_aliases": 0}
+  },
+  "next_task": {
+    "id": "TSK.x2n.assurance.004",
+    "phase": "PH.X2N.6.4",
+    "status": "PLANNED"
+  },
+  "release_policy": {
+    "alpha_beta": "PROHIBITED",
+    "direct_mvp_deploy_run_online_smoke": "TSK.x2n.assurance.005_ONLY",
+    "fixed_health_observation": "PROHIBITED",
+    "fixed_soak": "PROHIBITED"
+  }
+}

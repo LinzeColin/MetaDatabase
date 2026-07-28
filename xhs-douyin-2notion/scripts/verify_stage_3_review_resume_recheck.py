@@ -226,6 +226,20 @@ def _stage5_task002_completed(state: dict[str, Any]) -> bool:
     )
 
 
+def _stage6_started(state: dict[str, Any]) -> bool:
+    return (
+        _stage4_review_completed(state)
+        and state.get("stage_5_review_complete") is True
+        and state.get("stage_5_review_id") == "STG.X2N.5.REVIEW"
+        and state.get("stage_5_gate_status") == "pass_ci_synth"
+        and all(state.get(f"stage_5_task{index:03d}_complete") is True for index in range(1, 6))
+        and state.get("stage_6_authorized") is True
+        and state.get("tasks", {}).get("TSK.x2n.assurance.001") == "pass"
+        and state.get("stage") == "STG.X2N.6"
+        and state.get("public_release_authorized") is False
+    )
+
+
 def validate_fact_and_historical_receipts() -> Check:
     schema = _load_json(RECHECK_SCHEMA)
     fact = _load_json(RECHECK_FACT)
@@ -306,6 +320,11 @@ def validate_taskpack_and_current_transition() -> Check:
     uxops001 = by_id.get("TSK.x2n.uxops.001", {})
     uxops002 = by_id.get("TSK.x2n.uxops.002", {})
     uxops003 = by_id.get("TSK.x2n.uxops.003", {})
+    assurance001 = by_id.get("TSK.x2n.assurance.001", {})
+    assurance002 = by_id.get("TSK.x2n.assurance.002", {})
+    assurance003 = by_id.get("TSK.x2n.assurance.003", {})
+    assurance004 = by_id.get("TSK.x2n.assurance.004", {})
+    assurance005 = by_id.get("TSK.x2n.assurance.005", {})
     gates = {item.get("id"): item for item in taskpack.get("stage_gates", []) if isinstance(item, dict)}
     _require(
         task010.get("status") == "completed"
@@ -321,7 +340,45 @@ def validate_taskpack_and_current_transition() -> Check:
     )
     _require(gates.get("G3", {}).get("pass_conditions") == EXPECTED_G3_CONDITIONS, "G3 taskpack conditions drifted")
     state = _load_json(TASK_STATE)
-    if _stage5_task002_completed(state):
+    if _stage6_started(state):
+        completed_assurance003 = state.get("tasks", {}).get("TSK.x2n.assurance.003") == "pass"
+        _require(
+            all(
+                state.get("tasks", {}).get(task_id) == "pass"
+                for task_id in (
+                    "TSK.x2n.uxops.001",
+                    "TSK.x2n.uxops.002",
+                    "TSK.x2n.uxops.003",
+                    "TSK.x2n.uxops.004",
+                    "TSK.x2n.uxops.005",
+                )
+            )
+            and assurance001.get("status") == "complete_ci_synth"
+            and assurance002.get("status") == "complete_ci_synth_features_disabled"
+            and assurance003.get("phase") == "PH.X2N.6.3"
+            and assurance003.get("status")
+            == ("complete_ci_synth_security_privacy_supply_chain" if completed_assurance003 else "planned")
+            and assurance004.get("phase") == "PH.X2N.6.4"
+            and assurance005.get("phase") == "PH.X2N.6.5"
+            and state.get("next_task")
+            == ("TSK.x2n.assurance.004" if completed_assurance003 else "TSK.x2n.assurance.003")
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_5_remote_upload_authorized") is False
+            and state.get("public_release_authorized") is False,
+            "Stage6 no longer preserves the bounded G3/G4/G5 history",
+        )
+        completed_task = next(
+            task_id
+            for task_id in (
+                "TSK.x2n.assurance.003",
+                "TSK.x2n.assurance.002",
+                "TSK.x2n.assurance.001",
+            )
+            if state.get("tasks", {}).get(task_id) == "pass"
+        )
+        next_task_id = str(state.get("next_task"))
+    elif _stage5_task002_completed(state):
         _require(
             uxops001.get("status") == "completed"
             and uxops001.get("phase") == "PH.X2N.5.1"
@@ -660,14 +717,28 @@ def validate_docs_and_public_boundary() -> Check:
     _safe_payload({"controls": combined}, forbid_all_urls=False)
     prfaq_text = PRFAQ.read_text(encoding="utf-8")
     prd_text = PRD.read_text(encoding="utf-8")
-    current_tasks = _load_json(TASK_STATE).get("tasks", {})
+    current_state = _load_json(TASK_STATE)
+    current_tasks = current_state.get("tasks", {})
     task001_completed = current_tasks.get("TSK.x2n.multimodal.001") == "pass"
     task002_completed = current_tasks.get("TSK.x2n.multimodal.002") == "pass"
     task003_completed = current_tasks.get("TSK.x2n.multimodal.003") == "pass"
     task004_completed = current_tasks.get("TSK.x2n.multimodal.004") == "pass"
     task005_completed = current_tasks.get("TSK.x2n.multimodal.005") == "pass"
-    if task005_completed:
-        current_state = _load_json(TASK_STATE)
+    if _stage6_started(current_state):
+        next_task = str(current_state.get("next_task", ""))
+        next_marker = next_task.removeprefix("TSK.x2n.").replace(".", "").upper()
+        authorization = "stage_6_" + next_task.removeprefix("TSK.x2n.").replace(".", "") + "_only_single_dag_task"
+        _require(
+            next_marker in prfaq_text
+            and next_marker in prd_text
+            and authorization in prfaq_text
+            and authorization in prd_text
+            and "status: STAGE_6_" in prfaq_text
+            and "status: STAGE_6_" in prd_text
+            and "current_run_scope: stage_6_" in prd_text,
+            "PRFAQ/PRD do not describe the current bounded Stage6 task transition",
+        )
+    elif task005_completed:
         g4_completed = _stage4_review_completed(current_state)
         stage5_task001_completed = _stage5_task001_completed(current_state)
         stage5_task002_completed = _stage5_task002_completed(current_state)

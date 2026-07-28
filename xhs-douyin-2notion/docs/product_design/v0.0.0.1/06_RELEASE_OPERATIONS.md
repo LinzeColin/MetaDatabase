@@ -3,7 +3,7 @@ artifact: RELEASE_OPERATIONS
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_6_ASSURANCE001_CI_SYNTH_PASS_ASSURANCE002_NEXT
+status: STAGE_6_ASSURANCE003_CI_SYNTH_SECURITY_PRIVACY_SUPPLY_CHAIN_PASS_ASSURANCE004_NEXT
 owner_change_event: CE-X2N-20260719-S00-P01
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_target: owner-mvp
@@ -25,11 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 独立 G3/G4/G5 CI-synth 复核已通过；G5 固定并重跑 Stage 5 Task001–005 的 Notion Mock/outbox reconciliation、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 和 Task005 history replay。Assurance001 已完成当前 format/lint/type/Companion/Contract/browser E2E、80x2/100 concurrent idempotency、10,000 migration/backup/rollback、fresh-copy lifecycle、两项 critical mutation 与固定 G5 history replay；Assurance002 已完成私有 Gold 不读取、缺失 Gold Fail Closed、模型 Feature disabled/suggestion-only 与 System Card decision。真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/Fusion 关闭，Classification 仅 suggestion-only，`auto_classify=false`。下一单是 `TSK.x2n.assurance.003 / PH.X2N.6.3`。
+- 独立 G3/G4/G5 CI-synth 复核已通过；G5 固定并重跑 Stage 5 Task001–005 的 Notion Mock/outbox reconciliation、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 和 Task005 history replay。Assurance001 已完成当前软件验收，Assurance002 已完成私有 Gold 不读取与 feature-disabled/suggestion-only 决策。Assurance003 已完成 current source/candidate artifact 的 private/CDN、SAST、SBOM/license、匿名 OSV、CSP、SSRF/media、release allowlist 与历史 credential/authenticated-remote 聚合检查，均为零阻断。真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/Fusion 关闭，Classification 仅 suggestion-only，`auto_classify=false`。下一单是 `TSK.x2n.assurance.004 / PH.X2N.6.4`。
 
 ### 当前未授权
 
-- 上传、部署或发布；Assurance002 PASS 只授权下一单 `TSK.x2n.assurance.003`；
+- 上传、部署或发布；Assurance003 PASS 只授权下一单 `TSK.x2n.assurance.004`；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；
