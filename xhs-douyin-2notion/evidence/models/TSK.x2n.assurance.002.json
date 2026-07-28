@@ -1,0 +1,53 @@
+{
+  "acceptance_status": {
+    "ACC.x2n.ai.001": "PASS_CI_SYNTH_FEATURE_GATE_ASR_DISABLED_PRIVATE_GOLD_NOT_RUN",
+    "ACC.x2n.ai.002": "PASS_CI_SYNTH_FEATURE_GATE_OCR_DISABLED_PRIVATE_GOLD_NOT_RUN",
+    "ACC.x2n.ai.003": "PASS_CI_SYNTH_FEATURE_GATE_VISION_DISABLED_PRIVATE_GOLD_NOT_RUN",
+    "ACC.x2n.ai.004": "PASS_CI_SYNTH_FUSION_RED_TEAM_SCHEMA_ISOLATION_MODEL_NOT_RUN",
+    "ACC.x2n.ai.005": "PASS_CI_SYNTH_OWNER_TAXONOMY_GUARD_SUGGESTION_ONLY",
+    "ACC.x2n.ai.006": "PASS_CI_SYNTH_FEATURE_GATE_CLASSIFICATION_SUGGESTION_ONLY_PRIVATE_GOLD_NOT_RUN",
+    "ACC.x2n.ai.007": "PASS_CI_SYNTH_PROVENANCE_CACHE_BUDGET_CLOUD_ZERO",
+    "ACC.x2n.rel.002": "PASS_CI_SYNTH_MODEL_PIPELINE_FEATURES_DISABLED_PRIVATE_GOLD_NOT_RUN"
+  },
+  "execution": {
+    "cloud_uploads": 0,
+    "config_writes": 0,
+    "model_calls": 0,
+    "network_calls": 0,
+    "platform_calls": 0,
+    "private_gold_evaluation": "NOT_RUN",
+    "real_account_execution": "NOT_RUN",
+    "secret_reads": 0,
+    "tool_calls": 0
+  },
+  "feature_gates": {
+    "asr": "DISABLED_PENDING_PRIVATE_GOLD",
+    "automatic_classification": "DISABLED_PENDING_ACC.x2n.ai.006",
+    "classification": "SUGGESTION_ONLY_PENDING_PRIVATE_GOLD",
+    "fusion": "DISABLED_MODEL_NOT_RUN",
+    "ocr": "DISABLED_PENDING_PRIVATE_GOLD",
+    "vision": "DISABLED_PENDING_PRIVATE_GOLD"
+  },
+  "model_reports": {
+    "asr": "NOT_RUN_PRIVATE_GOLD",
+    "classification": "SUGGESTION_ONLY_PENDING_PRIVATE_GOLD",
+    "cross_model_disagreement": "NOT_RUN_FEATURES_DISABLED",
+    "fusion": "PASS_CI_SYNTH_SCHEMA_AND_ISOLATION_MODEL_NOT_RUN",
+    "ocr": "NOT_RUN_PRIVATE_GOLD",
+    "system_card": "UPDATED_FEATURES_DISABLED",
+    "vision": "NOT_RUN_PRIVATE_GOLD"
+  },
+  "phase": "PH.X2N.6.2",
+  "private_gold": {
+    "accessed": false,
+    "quality_claim": "NONE",
+    "status": "NOT_RUN_BY_CI_SYNTH"
+  },
+  "run_id": "RUN-X2N-S06-A002",
+  "schema_version": "1.0",
+  "source_receipt_sha256": "f42e208cd63377241bf28323c430ab9a8054b9cb253dfc155b1d9b22e869185d",
+  "status": "PASS_CI_SYNTH_MODEL_ASSURANCE_FEATURES_DISABLED_PRIVATE_GOLD_NOT_RUN",
+  "task_base_commit": "bc9bd26d425bcee524981d74fa89d2315d966ec8",
+  "task_commit": "e78b7f861d22ff994e7532e5c071f2eaa1cfa077",
+  "task_id": "TSK.x2n.assurance.002"
+}
