@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "project_id": "PRJ.X2N",
   "name": "xhs-douyin-2notion",
   "token": "x2n",
@@ -41,7 +41,7 @@
     "weibo",
     "taobao"
   ],
-  "stage_4_current_task": "G4_pass_ci_synth_preserved_private_gold_disabled_stage_5_task003_local_webui_complete",
+  "stage_4_current_task": "G4_pass_ci_synth_preserved_private_gold_disabled_stage_5_task004_operations_complete",
   "media_preprocessing": "lease_scoped_ffmpeg_ffprobe_audio_keyframe_dedup_temporary_only",
   "asr": "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
   "ocr_vision": "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
@@ -50,6 +50,7 @@
   "notion_projection": "versioned_additive_schema_long_text_bounded_batches_x2n_owned_views_conflict_fail_closed_fallback_documented_outbox_reconcile_ci_synth_real_notion_not_run",
   "markdown_library": "renderer_v1_1_single_sqlite_snapshot_derived_rebuild_fixed_platform_content_id_paths_generated_category_links_manifest_link_checker_ten_thousand_ci_synth_real_runtime_not_run",
   "local_webui": "loopback_127_0_0_1_owner_review_exact_host_origin_csrf_csp_no_cors_redacted_diagnostics_ci_synth_real_runtime_not_run",
+  "operations": "allowlisted_redacted_journal_opaque_run_id_derived_metrics_eight_component_doctor_bounded_startup_recovery_markdown_rebuild_notion_mock_reconcile_ci_synth_real_runtime_not_run",
   "runtime_nomenclature": "v2_owner_mvp_plan",
-  "status": "stage_5_task003_local_webui_ci_synth_pass_task004_next_real_runtime_not_run"
+  "status": "stage_5_task004_operations_ci_synth_pass_task005_next_real_runtime_not_run"
 }

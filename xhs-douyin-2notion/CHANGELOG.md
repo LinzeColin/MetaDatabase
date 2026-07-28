@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 5 / UX-Ops 004
+
+- 完成 `TSK.x2n.uxops.004 / PH.X2N.5.4` 的 CI-synth 可观测性与恢复范围：只允许固定 stage/component/error-code/opaque run ID 的脱敏诊断 journal，指标只从 SQLite Canonical Store 派生，不建立第二真相源。
+- 增加八组件 local doctor 与一次有界 startup recovery：先执行 SQLite recovery、再恢复当前页 job、确定性重建 Markdown，最后仅用进程内 Notion Mock reconcile；十个 kill point 后 Canonical loss=0、duplicate side effect=0、terminal state=0，真实账号、平台、Notion、网络与运行时数据写入均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.005`；G5、上传、部署与发布仍未授权。无 Alpha/Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 5 / UX-Ops 003
 
 - 完成 `TSK.x2n.uxops.003 / PH.X2N.5.3` 的 CI-synth Local WebUI：仅绑定 `127.0.0.1`，提供 Dashboard、Source、Taxonomy、低置信度 Review、Job、Sink、Model 与脱敏 Diagnostics；Host/Origin/仅内存 CSRF、CSP、no-CORS、静态 DOM `textContent` 与 Owner append-only review 均 Fail Closed。

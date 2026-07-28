@@ -3,10 +3,10 @@ artifact: PRFAQ
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK003_LOCAL_WEBUI_CI_SYNTH_PASS_TASK004_NEXT
+status: STAGE_5_TASK004_OPERATIONS_CI_SYNTH_PASS_TASK005_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-decision: DIRECT_MVP_TASK003_ACCEPTED_TASK004_NEXT
-implementation_authorized: stage_5_task_004_next_single_phase_run
+decision: DIRECT_MVP_TASK004_ACCEPTED_TASK005_NEXT
+implementation_authorized: stage_5_task_005_next_single_phase_run
 owner: LinzeColin
 repository_target: LinzeColin/MetaDatabase
 skill_path: xhs-douyin-2notion/
@@ -41,7 +41,7 @@ timezone: Australia/Sydney
 | 多模态 | 标题/正文 + ASR + OCR + 关键帧视觉理解 + 融合摘要 + 自动分类 + 人工复核 |
 | 公共仓库边界 | 只提交代码、契约、合成 Fixture、脱敏证据；Cookie、Token、浏览器 Profile、私人内容和运行数据库禁止进入 Git |
 | 发布策略 | G0–G5＋前置任务/最终任务自有集合外 Acceptance → assurance.005 内完成 80 条 XHS/DY 基线＋每个额外启用能力独立 ≤20 条激活/安全/回滚/签字 → 部署运行/online smoke → G6 PASS；合法外部门可关闭结算、技术阻断不可结算；无预发布阶段、固定健康观察期或 soak |
-| 开发授权 | Stage 0–2 已合并；G3 与 G4 均已独立签发 PASS_CI_SYNTH。Stage 5 Task001 已完成 versioned/additive Notion Mock，Task002 已完成 Renderer `1.1.0`、单 SQLite snapshot、固定 Canonical 路径、生成分类链接索引、Manifest/Link Checker 和 10k 合成 rebuild，Task003 已完成 loopback Local WebUI、Owner append-only review、v2 `owner-mvp-plan` 与固定历史 replay。真实 Runtime/Notion/Owner Canary 均未运行；ASR/OCR/Vision/分类私有 Gold 仍未运行，相关能力保持关闭或 suggestion-only，自动分类仍为 false。下一独立 Run 仅为本地 TSK.x2n.uxops.004；上传、真实账号、部署与发布仍未授权 |
+| 开发授权 | Stage 0–2 已合并；G3 与 G4 均已独立签发 PASS_CI_SYNTH。Stage 5 Task001 已完成 versioned/additive Notion Mock，Task002 已完成 Renderer `1.1.0`、单 SQLite snapshot、固定 Canonical 路径、生成分类链接索引、Manifest/Link Checker 和 10k 合成 rebuild，Task003 已完成 loopback Local WebUI、Owner append-only review、v2 `owner-mvp-plan` 与固定历史 replay，Task004 已完成 allowlisted diagnostics、opaque run ID、Canonical-derived metrics、eight-component doctor、ten-stage recovery 与 bounded startup recovery。真实 Runtime/Notion/Owner Canary 均未运行；ASR/OCR/Vision/分类私有 Gold 仍未运行，相关能力保持关闭或 suggestion-only，自动分类仍为 false。下一独立 Run 仅为本地 TSK.x2n.uxops.005；上传、真实账号、部署与发布仍未授权 |
 
 **Pursuing Goal**
 
@@ -417,7 +417,7 @@ Monthly Net Monetary Value
 
 ## 未授权
 
-- 上传 Stage 3、部署或发布；完成的 G3/Task001–Task004 仅授权下一单本地 `PH.X2N.4.5`，不授权这些外部动作；
+- 上传、部署或发布；完成的 G3/Task001–Task004 仅授权下一单本地 `PH.X2N.5.5`，不授权这些外部动作；
 - 真实账号运行或真实平台调用；
 - 向公共仓库提交私人数据；
 - VPS 数据平面；

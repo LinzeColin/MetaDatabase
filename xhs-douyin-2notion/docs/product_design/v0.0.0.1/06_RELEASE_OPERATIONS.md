@@ -3,7 +3,7 @@ artifact: RELEASE_OPERATIONS
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: FINAL_PRODUCT_DESIGN_BASELINE
+status: STAGE_5_TASK004_OPERATIONS_CI_SYNTH_PASS_TASK005_NEXT
 owner_change_event: CE-X2N-20260719-S00-P01
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_target: owner-mvp
@@ -25,11 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 独立 G3/G4 CI-synth 复核已通过；`TSK.x2n.uxops.001 / PH.X2N.5.1` 已完成 Notion Mock，`TSK.x2n.uxops.002 / PH.X2N.5.2` 已完成 Renderer `1.1.0` 的单 SQLite snapshot、分类 Link Index、Manifest/Link Checker 与 10k 合成 rebuild，`TSK.x2n.uxops.003 / PH.X2N.5.3` 已完成 loopback Local WebUI、Owner review、v2 nomenclature 与固定历史 replay。真实 Runtime/Notion/Owner Canary 未运行。下一单可本地执行 `TSK.x2n.uxops.004 / PH.X2N.5.4`；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。
+- 独立 G3/G4 CI-synth 复核已通过；`TSK.x2n.uxops.001 / PH.X2N.5.1` 已完成 Notion Mock，`TSK.x2n.uxops.002 / PH.X2N.5.2` 已完成 Renderer `1.1.0` 的单 SQLite snapshot、分类 Link Index、Manifest/Link Checker 与 10k 合成 rebuild，`TSK.x2n.uxops.003 / PH.X2N.5.3` 已完成 loopback Local WebUI、Owner review、v2 nomenclature 与固定历史 replay，`TSK.x2n.uxops.004 / PH.X2N.5.4` 已完成 allowlisted diagnostics、opaque run ID、Canonical-derived metrics、八组件 doctor、十阶段 recovery 与 bounded startup recovery。真实 Runtime/Notion/Owner Canary 未运行。下一单可本地执行 `TSK.x2n.uxops.005 / PH.X2N.5.5`；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。
 
 ### 当前未授权
 
-- 上传、部署或发布；当前 Task003 PASS 只授权下一单本地 `PH.X2N.5.4`；
+- 上传、部署或发布；当前 Task004 PASS 只授权下一单本地 `PH.X2N.5.5`；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；

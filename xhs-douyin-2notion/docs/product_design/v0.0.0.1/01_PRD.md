@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK003_LOCAL_WEBUI_CI_SYNTH_PASS_TASK004_NEXT
+status: STAGE_5_TASK004_OPERATIONS_CI_SYNTH_PASS_TASK005_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_5_task003_local_webui_pass_task004_next_real_runtime_not_run
-implementation_authorized: stage_5_task_004_next_single_phase_run
+current_run_scope: stage_5_task004_operations_pass_task005_next_real_runtime_not_run
+implementation_authorized: stage_5_task_005_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -31,8 +31,8 @@ owner: LinzeColin
 | 运行数据 | Private；持久业务/运行数据进入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion` |
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
-| 产品阶段 | Stage 5 Task001–Task003 已完成，Task004 已授权 |
-| 开发状态 | 独立 G3 与 G4 CI-synth 复核均已通过；五个 Stage 4 Task receipt 不变。Stage 5 Task001 已完成 versioned/additive Notion Mock；Task002 已完成 Renderer `1.1.0`、单 SQLite 读快照、固定 Canonical 路径、生成分类 Index、Manifest/Link Checker、原子恢复与 10k 合成 rebuild；Task003 已完成仅监听 `127.0.0.1` 的 Local WebUI、精确 Host/Origin/CSRF、CSP/no-CORS、Owner append-only review、v2 `owner-mvp-plan` 与固定历史 replay。真实 Runtime/Notion/Owner Canary 未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。下一独立 Run 为本地 TSK.x2n.uxops.004；上传、部署和发布仍未授权 |
+| 产品阶段 | Stage 5 Task001–Task004 已完成，Task005 已授权 |
+| 开发状态 | 独立 G3 与 G4 CI-synth 复核均已通过；五个 Stage 4 Task receipt 不变。Stage 5 Task001 已完成 versioned/additive Notion Mock；Task002 已完成 Renderer `1.1.0`、单 SQLite 读快照、固定 Canonical 路径、生成分类 Index、Manifest/Link Checker、原子恢复与 10k 合成 rebuild；Task003 已完成仅监听 `127.0.0.1` 的 Local WebUI、精确 Host/Origin/CSRF、CSP/no-CORS、Owner append-only review、v2 `owner-mvp-plan` 与固定历史 replay；Task004 已完成 allowlisted 脱敏 journal、opaque run ID、Canonical-derived metrics、八组件 doctor、十阶段 kill/recovery 与有界 startup recovery。真实 Runtime/Notion/Owner Canary 未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。下一独立 Run 为本地 TSK.x2n.uxops.005；上传、部署和发布仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 
