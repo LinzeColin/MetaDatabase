@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "IMP-01",
+      "input": "../escape.json",
+      "expected": "reject_path_traversal"
+    },
+    {
+      "id": "IMP-02",
+      "input": "duplicate_normalized_paths",
+      "expected": "reject_duplicate_target"
+    },
+    {
+      "id": "IMP-03",
+      "input": "zip_bomb_ratio",
+      "expected": "reject_expansion_ratio"
+    },
+    {
+      "id": "IMP-04",
+      "input": "nested_depth_13",
+      "expected": "reject_depth"
+    },
+    {
+      "id": "IMP-05",
+      "input": "script_or_executable",
+      "expected": "reject_active_content"
+    },
+    {
+      "id": "IMP-06",
+      "input": "same_file_twice",
+      "expected": "same_import_identity_no_duplicate_facts"
+    },
+    {
+      "id": "IMP-07",
+      "input": "one_corrupt_conversation",
+      "expected": "quarantine_record_continue_valid_records"
+    }
+  ]
+}

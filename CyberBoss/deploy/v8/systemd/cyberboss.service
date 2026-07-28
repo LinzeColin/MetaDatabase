@@ -1,0 +1,54 @@
+[Unit]
+Description=CyberBoss v0.0.0.8 full-cloud WeChat service
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=cyberboss
+Group=cyberboss
+WorkingDirectory=/opt/cyberboss-cloud/current
+EnvironmentFile=/etc/cyberboss/runtime.env
+LoadCredential=master-key:/etc/cyberboss/credentials/master-key
+LoadCredential=identity-key:/etc/cyberboss/credentials/identity-key
+LoadCredential=session-key:/etc/cyberboss/credentials/session-key
+LoadCredential=payload-key:/etc/cyberboss/credentials/payload-key
+LoadCredential=route-key:/etc/cyberboss/credentials/route-key
+LoadCredential=deepseek-api-key:/etc/cyberboss/credentials/deepseek-api-key
+ExecStartPre=/opt/cyberboss-cloud/current/scripts/doctor.sh --preflight
+ExecStart=/usr/bin/node /opt/cyberboss-cloud/current/starter_kit/bin/cyberboss-mvp
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=90
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadWritePaths=/var/lib/cyberboss /var/log/cyberboss /run/cyberboss
+ReadOnlyPaths=/opt/cyberboss-cloud /etc/cyberboss
+UMask=0077
+MemoryHigh=1600M
+MemoryMax=2200M
+CPUQuota=150%
+TasksMax=256
+LimitNOFILE=8192
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cyberboss
+
+[Install]
+WantedBy=multi-user.target

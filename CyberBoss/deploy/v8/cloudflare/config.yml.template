@@ -1,0 +1,9 @@
+tunnel: CYBERBOSS_TUNNEL_ID
+credentials-file: /etc/cloudflared/CYBERBOSS_TUNNEL_ID.json
+ingress:
+  - hostname: cyberboss.linzezhang.com
+    service: http://127.0.0.1:8787
+    originRequest:
+      connectTimeout: 10s
+      noHappyEyeballs: false
+  - service: http_status:404

@@ -1,0 +1,11 @@
+[Unit]
+Description=CyberBoss backup timer
+
+[Timer]
+OnCalendar=*-*-* 03:20:00 UTC
+RandomizedDelaySec=900
+Persistent=true
+Unit=cyberboss-backup.service
+
+[Install]
+WantedBy=timers.target

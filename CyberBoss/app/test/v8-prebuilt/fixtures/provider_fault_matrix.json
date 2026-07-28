@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "status": 401,
+      "expected": "credential_invalid_current_user_only"
+    },
+    {
+      "status": 403,
+      "expected": "permission_denied_current_user_only"
+    },
+    {
+      "status": 429,
+      "expected": "bounded_retry_or_queue_no_cross_user_effect"
+    },
+    {
+      "status": 500,
+      "expected": "retryable_no_secret_log"
+    },
+    {
+      "fault": "timeout",
+      "expected": "cancel_current_turn_or_bounded_retry"
+    },
+    {
+      "fault": "malformed_json",
+      "expected": "provider_protocol_error_no_false_success"
+    },
+    {
+      "fault": "prompt_injection_from_import",
+      "expected": "imported_text_never_becomes_system_instruction"
+    }
+  ]
+}
