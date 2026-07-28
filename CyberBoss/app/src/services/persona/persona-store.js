@@ -70,6 +70,67 @@ const BASELINE = Object.freeze([
   "不知道就说不知道，不要编。",
 ]);
 
+// 「主动找我」。参考仓（WenXiaoWendy/cyberboss）的随机轮询唤醒就是这件事：
+// 系统在随机时刻戳醒模型，让它自己判断该说什么、还是什么都不说。
+//
+// 两条必须写死的边界：
+//   一、只对**主人**做。R19 冻结的 zero-agent 面里 checkin 属于"必须零模型
+//       调用"，那说的是给普通用户的确定性关心（deterministic-checkin，纯模板）。
+//       唤醒模型的这一条落在 permitted_model_triggers 的 owner_codex_turn 上，
+//       所以目标一旦不是主人，就真的违规了。
+//   二、有静默时段。半夜三点戳人一下不叫陪伴。
+const PROACTIVE_DEFAULTS = Object.freeze({
+  enabled: false,
+  // 参考仓默认 3~60 分钟——那是给 ADHD 监工用的密度，每天四五十次模型调用。
+  // 这里默认放缓到 45 分钟~4 小时，想更密就自己在面板上调。
+  minMinutes: 45,
+  maxMinutes: 240,
+  // 本地时间（Asia/Shanghai）的静默区间，[start, end) 之间不打扰。
+  quietStart: 23,
+  quietEnd: 8,
+});
+const MIN_ALLOWED_MINUTES = 5;
+const MAX_ALLOWED_MINUTES = 24 * 60;
+
+function boundedHour(value, fallback) {
+  const hour = Number(value);
+  return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : fallback;
+}
+
+function boundedMinutes(value, fallback) {
+  const minutes = Math.round(Number(value));
+  if (!Number.isFinite(minutes)) {
+    return fallback;
+  }
+  return Math.min(MAX_ALLOWED_MINUTES, Math.max(MIN_ALLOWED_MINUTES, minutes));
+}
+
+function normalizeProactive(raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const minMinutes = boundedMinutes(source.minMinutes, PROACTIVE_DEFAULTS.minMinutes);
+  // 上限不得低于下限，否则随机区间是空的。
+  const maxMinutes = Math.max(minMinutes, boundedMinutes(source.maxMinutes, PROACTIVE_DEFAULTS.maxMinutes));
+  return Object.freeze({
+    enabled: source.enabled === true,
+    minMinutes,
+    maxMinutes,
+    quietStart: boundedHour(source.quietStart, PROACTIVE_DEFAULTS.quietStart),
+    quietEnd: boundedHour(source.quietEnd, PROACTIVE_DEFAULTS.quietEnd),
+  });
+}
+
+// 现在是不是静默时段。start > end 表示跨过午夜（23 点到次日 8 点）。
+// start === end 表示不静默——不能让它变成"整天都静默"。
+function inQuietHours(proactive, hour) {
+  const { quietStart, quietEnd } = normalizeProactive(proactive);
+  if (quietStart === quietEnd) {
+    return false;
+  }
+  return quietStart < quietEnd
+    ? hour >= quietStart && hour < quietEnd
+    : hour >= quietStart || hour < quietEnd;
+}
+
 function toneById(id) {
   return TONE_PRESETS.find((entry) => entry.id === id) || null;
 }
@@ -101,6 +162,7 @@ function normalizePersona(raw) {
     emoji: source.emoji === true,
     callMe: boundedText(source.callMe, MAX_CALL_ME_CHARS),
     note: boundedText(source.note, MAX_NOTE_CHARS),
+    proactive: normalizeProactive(source.proactive),
     updatedAt: typeof source.updatedAt === "string" ? source.updatedAt : "",
   });
 }
@@ -177,6 +239,7 @@ class PersonaStore {
       emoji: next.emoji,
       callMe: next.callMe,
       note: next.note,
+      proactive: next.proactive,
     });
     return this.read();
   }
@@ -184,6 +247,11 @@ class PersonaStore {
 
 module.exports = {
   BASELINE,
+  MAX_ALLOWED_MINUTES,
+  MIN_ALLOWED_MINUTES,
+  PROACTIVE_DEFAULTS,
+  inQuietHours,
+  normalizeProactive,
   DEFAULT_LENGTH,
   DEFAULT_TONE,
   LENGTH_PRESETS,

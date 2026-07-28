@@ -63,6 +63,8 @@ const {
   PersonaStore,
   TONE_PRESETS,
   LENGTH_PRESETS,
+  MAX_ALLOWED_MINUTES,
+  MIN_ALLOWED_MINUTES,
   MAX_NOTE_CHARS,
   renderPersonaInstruction,
 } = require("../services/persona/persona-store");
@@ -722,9 +724,24 @@ class CyberbossApp {
       await this.ensureLocationServerStarted();
     }
     console.log("[cyberboss] bridge loop started; waiting for WeChat messages.");
-    if (this.config.startWithCheckin) {
-      console.log("[cyberboss] checkin: enabled");
-      void runSystemCheckinPoller(this.config).catch((error) => {
+    // 主动打招呼。轮询器常驻，开不开由主人在后台那一格决定——每一轮现读一次，
+    // 所以关掉之后下一轮就停，打开也不用重启。
+    //
+    // startWithCheckin 保留：本地 `cyberboss start --checkin` 那条老路不变。
+    // 云上没有那个参数，靠的是面板里的开关。
+    if (this.config.startWithCheckin || this.personaStore) {
+      console.log(
+        `[cyberboss] checkin: 轮询器已启动（当前${
+          this.personaStore?.read().proactive.enabled ? "开着" : "关着，可在后台打开"
+        }）`,
+      );
+      void runSystemCheckinPoller(this.config, {
+        readProactive: () => (this.personaStore
+          ? this.personaStore.read().proactive
+          : { enabled: this.config.startWithCheckin === true, minMinutes: 45, maxMinutes: 240, quietStart: 23, quietEnd: 8 }),
+        // 主人是谁以 users 表的 role 为准。发错人就是一次非主人的模型调用。
+        resolveOwnerSenderId: () => this.resolveOwnerSenderIdForCheckin(),
+      }).catch((error) => {
         console.error(`[cyberboss] checkin poller stopped: ${error.message}`);
       });
     }
@@ -1070,6 +1087,9 @@ class CyberbossApp {
       tones: TONE_PRESETS.map(({ id, label, hint }) => ({ id, label, hint })),
       lengths: LENGTH_PRESETS.map(({ id, label }) => ({ id, label })),
       maxNoteChars: MAX_NOTE_CHARS,
+      proactiveLimits: { minMinutes: MIN_ALLOWED_MINUTES, maxMinutes: MAX_ALLOWED_MINUTES },
+      // 主动打招呼要发给谁。空串表示还认不出主人，那时轮询器什么都不会做。
+      proactiveTarget: this.resolveOwnerSenderIdForCheckin(),
       // 让主人看到真正发给模型的那段字。语气这种东西不给看就只能靠猜。
       preview: this.currentPersonaInstruction(),
     });
@@ -1316,6 +1336,34 @@ class CyberbossApp {
       scanned: scanLimit,
       query: Object.freeze({ person: onlyPerson, keyword: String(keyword || "").trim(), from, to }),
     });
+  }
+
+  // 主动打招呼该发给谁。
+  //
+  // 以 users 表的 role 为准，从最近一条属于主人的来信里取出他的微信号。取不到
+  // 就返回空串——上层会退回旧的推断逻辑，再取不到轮询器直接不启动。这是刻意的：
+  // 主动打招呼会真的唤醒模型，发错人就是一次非主人的模型调用，而 R19 冻结的
+  // zero-agent 面明令禁止那件事。宁可不发。
+  resolveOwnerSenderIdForCheckin() {
+    if (!this.runtimeSpoolDatabase) {
+      return "";
+    }
+    try {
+      const ownerUserId = this.runtimeSpoolDatabase.ownerUserId;
+      const roles = this.runtimeSpoolDatabase.listUserRolesForOwner();
+      for (const message of this.runtimeSpoolDatabase.listRecentInboundForOwner({ limit: 200 })) {
+        const sender = message.payload?.senderId || "";
+        if (!sender) {
+          continue;
+        }
+        if (message.userId === ownerUserId || roles.get(message.userId) === "owner") {
+          return sender;
+        }
+      }
+    } catch {
+      // 读不出来就当不知道，让上层决定。
+    }
+    return "";
   }
 
   // 已知的主人发件号。只用来给对话栏打个「主人」标签，判权限不走这里。

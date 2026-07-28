@@ -174,6 +174,19 @@
       <p class="hint" id="note-count"></p>
     </fieldset>
 
+    <fieldset>
+      <legend>主动找我</legend>
+      <p class="hint" style="margin:0 0 8px">打开之后，它会在随机的时刻自己想起你，看看要不要说点什么 —— 也可能什么都不说。<b>只会找你一个人</b>，不会去打扰别人。</p>
+      <label class="opt"><input type="checkbox" id="p-active"><span class="lab">让它主动找我<span class="exp" id="p-target"></span></span></label>
+      <div class="dates" style="margin-top:10px">
+        <label>每隔 <input type="number" id="p-min" min="5" max="1440" step="5"> ~ <input type="number" id="p-max" min="5" max="1440" step="5"> 分钟</label>
+      </div>
+      <div class="dates" style="margin-top:10px">
+        <label>这段时间别打扰 <input type="number" id="p-qs" min="0" max="23" step="1"> 点 ~ <input type="number" id="p-qe" min="0" max="23" step="1"> 点</label>
+      </div>
+      <p class="hint">两个时间填成一样＝全天都可以找我。</p>
+    </fieldset>
+
     <div class="saverow">
       <button class="primary" id="p-save">保存</button>
       <span class="saved" id="p-saved" hidden>已保存</span>
@@ -524,6 +537,16 @@
       });
       document.getElementById("p-emoji").checked = persona.emoji === true;
       document.getElementById("p-callme").value = persona.callMe || "";
+      var pro = persona.proactive || {};
+      document.getElementById("p-active").checked = pro.enabled === true;
+      document.getElementById("p-min").value = pro.minMinutes;
+      document.getElementById("p-max").value = pro.maxMinutes;
+      document.getElementById("p-qs").value = pro.quietStart;
+      document.getElementById("p-qe").value = pro.quietEnd;
+      // 认不出主人时说清楚，别让人打开开关之后干等。
+      set("p-target", data.proactiveTarget
+        ? "会发到 " + String(data.proactiveTarget).slice(0, 10) + "…"
+        : "还认不出主人是哪个微信号——先给它发一句话");
       var note = document.getElementById("p-note");
       note.value = persona.note || "";
       note.setAttribute("maxlength", String(data.maxNoteChars || 500));
@@ -565,15 +588,27 @@
         length: checkedValue("length", "medium"),
         emoji: document.getElementById("p-emoji").checked,
         callMe: document.getElementById("p-callme").value,
-        note: document.getElementById("p-note").value
+        note: document.getElementById("p-note").value,
+        proactive: {
+          enabled: document.getElementById("p-active").checked,
+          minMinutes: Number(document.getElementById("p-min").value),
+          maxMinutes: Number(document.getElementById("p-max").value),
+          quietStart: Number(document.getElementById("p-qs").value),
+          quietEnd: Number(document.getElementById("p-qe").value)
+        }
       })
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         button.disabled = false; button.textContent = "保存";
         if (data.ok) {
-          // 只刷预览，不重建表单——重建会把光标和刚打的字弄没。
+          // 只刷预览和主动那几格，不重建整个表单——重建会把光标和刚打的字弄没。
           document.getElementById("p-preview").textContent = data.preview || "（空）";
+          var saved2 = (data.persona || {}).proactive || {};
+          document.getElementById("p-min").value = saved2.minMinutes;
+          document.getElementById("p-max").value = saved2.maxMinutes;
+          document.getElementById("p-qs").value = saved2.quietStart;
+          document.getElementById("p-qe").value = saved2.quietEnd;
           saved.hidden = false;
           setTimeout(function () { saved.hidden = true; }, 2500);
         } else {
