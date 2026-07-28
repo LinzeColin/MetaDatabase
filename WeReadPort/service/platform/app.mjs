@@ -117,7 +117,20 @@ function authResponse(result, config) {
 }
 function requireInternal(request, expected) { const actual = request.headers.get("x-wrp-internal-secret") || ""; if (!secureEqual(actual, expected)) throw new PlatformError("INTERNAL_AUTH", "服务身份验证失败。", 401); }
 function requireSession(session) { if (!session) throw new PlatformError("AUTH_REQUIRED", "请先登录。", 401); }
-function enforceOrigin(request, baseUrl) { const origin = request.headers.get("origin"); if (origin && origin !== new URL(baseUrl).origin) throw new PlatformError("ORIGIN", "拒绝跨站请求。", 403); const site = request.headers.get("sec-fetch-site"); if (site && !["same-origin", "same-site", "none"].includes(site)) throw new PlatformError("ORIGIN", "拒绝跨站请求。", 403); }
+function enforceOrigin(request, baseUrl) {
+  const origin = request.headers.get("origin");
+  if (origin && origin !== new URL(baseUrl).origin) throw new PlatformError("ORIGIN", "拒绝跨站请求。", 403);
+  const site = request.headers.get("sec-fetch-site");
+  if (site && !["same-origin", "same-site", "none"].includes(site) && !isOAuthCallbackNavigation(request, origin, site)) throw new PlatformError("ORIGIN", "拒绝跨站请求。", 403);
+}
+function isOAuthCallbackNavigation(request, origin, site) {
+  return request.method.toUpperCase() === "GET"
+    && origin === null
+    && site === "cross-site"
+    && request.headers.get("sec-fetch-mode") === "navigate"
+    && request.headers.get("sec-fetch-dest") === "document"
+    && /^\/v1\/oauth\/(google|github|notion)\/callback$/.test(new URL(request.url).pathname);
+}
 function enforceJson(request) { if (!String(request.headers.get("content-type") || "").toLowerCase().startsWith("application/json")) throw new PlatformError("CONTENT_TYPE", "Content-Type 必须是 application/json。", 415); }
 function isMutation(method) { return ["POST", "PUT", "PATCH", "DELETE"].includes(method); }
 function requestContext(request) { return { userAgent: request.headers.get("user-agent") || "", ipPrefix: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().replace(/(\d+\.\d+\.\d+)\.\d+/, "$1.0") || "" }; }

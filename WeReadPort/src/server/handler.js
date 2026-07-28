@@ -253,7 +253,7 @@ async function inspectAccountService(request, env) {
 }
 
 async function proxyAccountPlatform(request, env) {
-  assertSameOrigin(request);
+  assertSameOrigin(request, { allowOAuthCallbackNavigation: true });
   enforceRateLimit(request);
   const rawBase = String(env.WEREAD_ACCOUNT_SERVICE_URL || "").trim();
   const internalSecret = String(env.WRP_INTERNAL_PROXY_SECRET || "");
@@ -265,7 +265,7 @@ async function proxyAccountPlatform(request, env) {
   const target = new URL(incoming.pathname.replace(/^\/api\/platform/, "") || "/", base);
   target.search = incoming.search;
   const headers = new Headers();
-  for (const name of ["accept", "content-type", "cookie", "idempotency-key", "origin", "sec-fetch-site", "user-agent", "x-csrf-token"]) {
+  for (const name of ["accept", "content-type", "cookie", "idempotency-key", "origin", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "user-agent", "x-csrf-token"]) {
     const value = request.headers.get(name); if (value) headers.set(name, value);
   }
   headers.set("x-wrp-internal-secret", internalSecret);
@@ -377,17 +377,28 @@ async function proxyGateway(request, env) {
   });
 }
 
-/** @param {Request} request */
-function assertSameOrigin(request) {
+/** @param {Request} request @param {{allowOAuthCallbackNavigation?: boolean}} [options] */
+function assertSameOrigin(request, { allowOAuthCallbackNavigation = false } = {}) {
   const url = new URL(request.url);
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
   if (origin && origin !== url.origin) {
     throw new WeReadPortError("FORBIDDEN", "拒绝跨站请求。", { status: 403 });
   }
-  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite)) {
+  const oauthCallbackNavigation = allowOAuthCallbackNavigation && isOAuthCallbackNavigation(request, url, origin, fetchSite);
+  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite) && !oauthCallbackNavigation) {
     throw new WeReadPortError("FORBIDDEN", "拒绝跨站请求。", { status: 403 });
   }
+}
+
+/** OAuth 提供方只能经跨站顶层导航回调；状态码与 PKCE 仍由账户服务验证。 */
+function isOAuthCallbackNavigation(request, url, origin, fetchSite) {
+  return request.method === "GET"
+    && origin === null
+    && fetchSite === "cross-site"
+    && request.headers.get("sec-fetch-mode") === "navigate"
+    && request.headers.get("sec-fetch-dest") === "document"
+    && /^\/api\/platform\/v1\/oauth\/(google|github|notion)\/callback$/.test(url.pathname);
 }
 
 /** Best-effort per-isolate abuse control; upstream/user-key limits remain authoritative. @param {Request} request */

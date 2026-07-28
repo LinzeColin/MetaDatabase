@@ -86,6 +86,31 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   assert.equal((await lines.json()).lines.length, 11);
 });
 
+test("OAuth 回调仅放行无 Origin 的跨站顶层导航", async t => {
+  const platform = testPlatform({ fetchImpl: oauthFetch });
+  t.after(platform.close);
+  const app = createPlatformApp({ service: platform.service, config: platform.config });
+  const start = await platform.service.startOAuth("google", { intent: "login" });
+  const callbackHeaders = {
+    "x-wrp-internal-secret": platform.config.internalProxySecret,
+    "sec-fetch-site": "cross-site",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-dest": "document",
+  };
+  const accepted = await app(new Request(`${platform.config.baseUrl}/v1/oauth/google/callback?state=${encodeURIComponent(stateFrom(start))}&code=google-login`, { headers: callbackHeaders }));
+  assert.equal(accepted.status, 303);
+  assert.equal(new URL(accepted.headers.get("location")).origin, platform.config.baseUrl);
+
+  const crossSiteFetch = await app(new Request(`${platform.config.baseUrl}/v1/oauth/google/callback?state=blocked&code=blocked`, {
+    headers: { ...callbackHeaders, "sec-fetch-mode": "cors", "sec-fetch-dest": "empty" },
+  }));
+  assert.equal(crossSiteFetch.status, 403);
+  const forgedOrigin = await app(new Request(`${platform.config.baseUrl}/v1/oauth/google/callback?state=blocked&code=blocked`, {
+    headers: { ...callbackHeaders, origin: "https://attacker.invalid" },
+  }));
+  assert.equal(forgedOrigin.status, 403);
+});
+
 test("Google 登录与 Drive 导入权限分离，重新授权后才允许读取", async t => {
   const platform = testPlatform({ fetchImpl: oauthFetch });
   t.after(platform.close);
