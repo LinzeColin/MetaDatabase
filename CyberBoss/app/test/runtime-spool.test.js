@@ -106,7 +106,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const clean = openSpool(cleanPath);
     assert.deepEqual(
       clean.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4, 5],
+      [1, 2, 3, 4, 5, 6],
     );
     assert.deepEqual(clean.pragmaStatus(), {
       journalMode: "wal",
@@ -176,7 +176,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const upgraded = openSpool(v1Path);
     assert.deepEqual(
       upgraded.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4, 5],
+      [1, 2, 3, 4, 5, 6],
     );
     const legacyOutbox = upgraded.getOutbox("legacy-outbox");
     assert.equal(
@@ -243,6 +243,13 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     );
     assert.doesNotMatch(migration5, /\b(?:DROP|RENAME|VACUUM)\b/i);
     assert.match(migration5, /ALTER TABLE sync_spool ADD COLUMN/);
+    const migration6 = fs.readFileSync(
+      path.join(MIGRATION_ROOT, "006_multiuser_foundation.sql"),
+      "utf8",
+    );
+    assert.doesNotMatch(migration6, /\b(?:DROP|RENAME|VACUUM)\b/i);
+    assert.match(migration6, /ALTER TABLE inbox_messages ADD COLUMN user_id/);
+    assert.match(migration6, /CREATE TABLE IF NOT EXISTS users/);
   });
 
   test("10,000 durable fixtures have stable collision-free source, correlation and job IDs", { timeout: 60000 }, (t) => {

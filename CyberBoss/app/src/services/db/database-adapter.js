@@ -40,7 +40,20 @@ const MIGRATIONS = Object.freeze([
     name: "005_cb240_canonical_sync.sql",
     sourceCommit: "CB-240",
   }),
+  Object.freeze({
+    version: 6,
+    name: "006_multiuser_foundation.sql",
+    sourceCommit: "CB-610",
+  }),
 ]);
+const OWNER_ROLE = "owner";
+const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
+const USER_SCOPED_LEGACY_TABLES = Object.freeze([
+  "inbox_messages",
+  "jobs",
+  "outbox_messages",
+]);
+const USER_ID_PATTERN = /^usr_[A-Za-z0-9_-]{20,64}$/;
 const ENVELOPE_VERSION = 1;
 const NONCE_BYTES = 12;
 const TAG_BYTES = 16;
@@ -311,6 +324,28 @@ function deriveStableIds({
   }
 }
 
+function requireUserId(value, field = "user_id") {
+  if (typeof value !== "string" || !USER_ID_PATTERN.test(value)) {
+    throw new RuntimeSpoolError(`INVALID_${field.toUpperCase()}`);
+  }
+  return value;
+}
+
+// The Owner user id is derived server-side from the runtime identity key alone,
+// so it is stable across restarts, never guessable from a client message and
+// available before any real channel credential exists.
+function deriveOwnerUserId(identityKey) {
+  const key = requireKey(identityKey, "IDENTITY_KEY");
+  try {
+    const digest = createHmac("sha256", key)
+      .update("cyberboss-owner-user")
+      .digest();
+    return `usr_${digest.toString("base64url").slice(0, 32)}`;
+  } finally {
+    key.fill(0);
+  }
+}
+
 function redactedJson(value = {}) {
   if (
     value === null ||
@@ -456,6 +491,7 @@ class RuntimeSpoolDatabase {
     databasePath,
     encryptionKey,
     identityKey = encryptionKey,
+    ownerUserId = null,
     now = () => new Date(),
     payloadTtlMs = DEFAULT_PAYLOAD_TTL_MS,
     faultInjector = () => {},
@@ -483,6 +519,10 @@ class RuntimeSpoolDatabase {
 
     this.databasePath = databasePath;
     this.identityKey = requireKey(identityKey, "IDENTITY_KEY");
+    this.ownerUserId =
+      ownerUserId === null
+        ? deriveOwnerUserId(this.identityKey)
+        : requireUserId(ownerUserId, "owner_user_id");
     this.cipher = new PayloadCipher(encryptionKey);
     this.now = now;
     this.payloadTtlMs = payloadTtlMs;
@@ -494,6 +534,7 @@ class RuntimeSpoolDatabase {
       this.#configure();
       this.#migrate();
       this.#backfillLegacyOutboxIdentity();
+      this.#bootstrapOwnerScope();
       this.#verifyRuntimeContract();
       this.#secureDatabaseFiles();
     } catch (error) {
@@ -656,6 +697,84 @@ class RuntimeSpoolDatabase {
       this.#rollbackQuietly();
       throw error;
     }
+  }
+
+  // CB-610: create the Owner row once, backfill every legacy runtime-spool row
+  // to the Owner, then prove no unscoped row survives. The valid-user triggers
+  // installed by migration 006 reject anything unscoped from here on.
+  #bootstrapOwnerScope() {
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.database
+        .prepare(
+          `INSERT INTO users(
+             user_id, role, status, consent_version, consented_at,
+             created_at, updated_at
+           ) VALUES (?, ?, 'active', ?, ?, ?, ?)
+           ON CONFLICT(user_id) DO UPDATE SET role=excluded.role,
+             updated_at=excluded.updated_at`,
+        )
+        .run(
+          this.ownerUserId,
+          OWNER_ROLE,
+          OWNER_CONSENT_VERSION,
+          now,
+          now,
+          now,
+        );
+      this.database
+        .prepare(
+          `INSERT INTO user_settings(user_id, locale, checkin_enabled, updated_at)
+           VALUES (?, 'zh-CN', 0, ?)
+           ON CONFLICT(user_id) DO NOTHING`,
+        )
+        .run(this.ownerUserId, now);
+
+      for (const table of USER_SCOPED_LEGACY_TABLES) {
+        this.database
+          .prepare(
+            `UPDATE ${table} SET user_id=? WHERE user_id IS NULL OR user_id=''`,
+          )
+          .run(this.ownerUserId);
+        const unscoped = this.database
+          .prepare(
+            `SELECT COUNT(*) AS count FROM ${table}
+             WHERE user_id IS NULL
+               OR user_id=''
+               OR NOT EXISTS (SELECT 1 FROM users WHERE user_id=${table}.user_id)`,
+          )
+          .get();
+        if (Number(unscoped.count) !== 0) {
+          throw new RuntimeSpoolError("OWNER_SCOPE_BACKFILL_INCOMPLETE");
+        }
+      }
+
+      const foreignKeyErrors = this.database
+        .prepare("PRAGMA foreign_key_check")
+        .all();
+      if (foreignKeyErrors.length !== 0) {
+        throw new RuntimeSpoolError("FOREIGN_KEY_CHECK_FAILED");
+      }
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  #resolveScopeUserId(userId) {
+    if (userId === null || userId === undefined) {
+      return this.ownerUserId;
+    }
+    requireUserId(userId);
+    const known = this.database
+      .prepare("SELECT status FROM users WHERE user_id=?")
+      .get(userId);
+    if (!known) {
+      throw new RuntimeSpoolError("USER_NOT_FOUND");
+    }
+    return userId;
   }
 
   #verifyRuntimeContract() {
@@ -884,6 +1003,7 @@ class RuntimeSpoolDatabase {
     operationClass = "read_only",
     maxAttempts = 1,
     cursorBatchId = null,
+    userId = null,
   }) {
     this.#assertOpen();
     if (!["text", "command", "unsupported"].includes(messageType)) {
@@ -913,6 +1033,7 @@ class RuntimeSpoolDatabase {
       [source, boundedUserRef],
       "user",
     );
+    const scopeUserId = this.#resolveScopeUserId(userId);
     const now = this.#timestamp();
     const expiresAt = this.#expiresAt(now);
     const payloadCiphertext = this.cipher.encrypt(
@@ -937,8 +1058,9 @@ class RuntimeSpoolDatabase {
             id, source, source_account_hash, source_message_id,
             correlation_id, user_ref_hash, message_type, payload_ciphertext,
             payload_sha256, context_token_ciphertext, cursor_batch_id, status,
-            received_at, durable_at, payload_expires_at, context_expires_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, ?)
+            received_at, durable_at, payload_expires_at, context_expires_at,
+            user_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, ?, ?)
           ON CONFLICT(source, source_account_hash, source_message_id)
           DO NOTHING`,
         )
@@ -958,13 +1080,14 @@ class RuntimeSpoolDatabase {
           now,
           expiresAt,
           contextCiphertext ? expiresAt : null,
+          scopeUserId,
         );
       inserted = Number(result.changes) === 1;
       this.#fault("after_inbox_insert");
 
       const inbox = this.database
         .prepare(
-          `SELECT id, correlation_id, payload_sha256
+          `SELECT id, correlation_id, payload_sha256, user_id
            FROM inbox_messages
            WHERE source = ? AND source_account_hash = ?
              AND source_message_id = ?`,
@@ -974,7 +1097,8 @@ class RuntimeSpoolDatabase {
         !inbox ||
         inbox.id !== ids.inboxId ||
         inbox.correlation_id !== ids.correlationId ||
-        inbox.payload_sha256 !== payloadHash
+        inbox.payload_sha256 !== payloadHash ||
+        inbox.user_id !== scopeUserId
       ) {
         throw new IntegrityConflictError();
       }
@@ -985,8 +1109,8 @@ class RuntimeSpoolDatabase {
             `INSERT INTO jobs(
               id, correlation_id, inbox_id, workspace_alias, runtime,
               operation_class, status, state_version, max_attempts,
-              input_sha256, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 'received', 1, ?, ?, ?, ?)`,
+              input_sha256, created_at, updated_at, user_id
+            ) VALUES (?, ?, ?, ?, ?, ?, 'received', 1, ?, ?, ?, ?, ?)`,
           )
           .run(
             ids.jobId,
@@ -999,6 +1123,7 @@ class RuntimeSpoolDatabase {
             payloadHash,
             now,
             now,
+            scopeUserId,
           );
         this.#fault("after_job_insert");
         this.#appendJobEvent({
@@ -1069,6 +1194,7 @@ class RuntimeSpoolDatabase {
     contextToken = null,
     rejectReason,
     cursorBatchId = null,
+    userId = null,
   }) {
     this.#assertOpen();
     if (!["text", "command", "unsupported"].includes(messageType)) {
@@ -1087,6 +1213,7 @@ class RuntimeSpoolDatabase {
       [source, boundedUserRef],
       "user",
     );
+    const scopeUserId = this.#resolveScopeUserId(userId);
     const now = this.#timestamp();
     const expiresAt = this.#expiresAt(now);
     const payloadCiphertext = this.cipher.encrypt(
@@ -1112,8 +1239,8 @@ class RuntimeSpoolDatabase {
             correlation_id, user_ref_hash, message_type, payload_ciphertext,
             payload_sha256, context_token_ciphertext, cursor_batch_id, status,
             reject_reason, received_at, durable_at, payload_expires_at,
-            context_expires_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'rejected', ?, ?, ?, ?, ?)
+            context_expires_at, user_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'rejected', ?, ?, ?, ?, ?, ?)
           ON CONFLICT(source, source_account_hash, source_message_id)
           DO NOTHING`,
         )
@@ -1134,12 +1261,14 @@ class RuntimeSpoolDatabase {
           now,
           expiresAt,
           contextCiphertext ? expiresAt : null,
+          scopeUserId,
         );
       inserted = Number(result.changes) === 1;
       this.#fault("after_inbox_insert");
       const inbox = this.database
         .prepare(
-          `SELECT id, correlation_id, payload_sha256, status, reject_reason
+          `SELECT id, correlation_id, payload_sha256, status, reject_reason,
+                  user_id
            FROM inbox_messages
            WHERE source = ? AND source_account_hash = ?
              AND source_message_id = ?`,
@@ -1152,6 +1281,7 @@ class RuntimeSpoolDatabase {
         || inbox.payload_sha256 !== payloadHash
         || inbox.status !== "rejected"
         || inbox.reject_reason !== rejectReason
+        || inbox.user_id !== scopeUserId
       ) {
         throw new IntegrityConflictError();
       }
@@ -2217,6 +2347,14 @@ class RuntimeSpoolDatabase {
     if (!job) {
       throw new RuntimeSpoolError("JOB_NOT_FOUND");
     }
+    // The reply scope is inherited from the job and is never caller-supplied,
+    // so an outbox row can only ever be addressed to the job's own user.
+    const scopeUserId = requireUserId(
+      this.database
+        .prepare("SELECT user_id FROM jobs WHERE id=?")
+        .get(jobId).user_id,
+      "job_user_id",
+    );
     const outboxId = this.#identity("outbox", [dedupeKey], "outbox");
     const now = this.#timestamp();
     const expiresAt = this.#expiresAt(now);
@@ -2249,10 +2387,10 @@ class RuntimeSpoolDatabase {
             dedupe_key, message_kind, chunk_index, chunk_count,
             payload_ciphertext, payload_sha256, status, max_attempts,
             created_at, updated_at, payload_expires_at, target_ref_expires_at,
-            logical_message_sha256, provider_client_id
+            logical_message_sha256, provider_client_id, user_id
           ) VALUES (
             ?, ?, ?, 'weixin', ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?,
-            ?, ?
+            ?, ?, ?
           )
           ON CONFLICT(dedupe_key) DO NOTHING`,
         )
@@ -2274,12 +2412,13 @@ class RuntimeSpoolDatabase {
           targetCiphertext ? expiresAt : null,
           logicalHash,
           clientId,
+          scopeUserId,
         );
       const row = this.database
         .prepare(
           `SELECT id, job_id, payload_sha256, status, message_kind,
                   chunk_index, chunk_count, max_attempts,
-                  logical_message_sha256, provider_client_id
+                  logical_message_sha256, provider_client_id, user_id
            FROM outbox_messages WHERE dedupe_key=?`,
         )
         .get(dedupeKey);
@@ -2293,7 +2432,8 @@ class RuntimeSpoolDatabase {
         Number(row.chunk_count) !== chunkCount ||
         Number(row.max_attempts) !== maxAttempts ||
         row.logical_message_sha256 !== logicalHash ||
-        row.provider_client_id !== clientId
+        row.provider_client_id !== clientId ||
+        row.user_id !== scopeUserId
       ) {
         throw new IntegrityConflictError();
       }
@@ -2318,7 +2458,7 @@ class RuntimeSpoolDatabase {
                 target_ref_redacted_at, logical_message_sha256,
                 provider_client_id, claim_owner, claim_expires_at,
                 dispatch_started_at, last_attempt_at, confirmation_state,
-                dispatch_outcome, recovery_class
+                dispatch_outcome, recovery_class, user_id
          FROM outbox_messages WHERE id=?`,
       )
       .get(outboxId);
@@ -3849,7 +3989,7 @@ class RuntimeSpoolDatabase {
                 scheduler_managed, lease_owner, lease_heartbeat_at,
                 lease_expires_at, dispatch_started_at, cancel_requested_at,
                 runtime_thread_hash, runtime_turn_hash, last_runtime_event_at,
-                error_class, error_redacted
+                error_class, error_redacted, user_id
          FROM jobs WHERE id=?`,
       )
       .get(jobId);
@@ -3864,7 +4004,7 @@ class RuntimeSpoolDatabase {
                 correlation_id, user_ref_hash, message_type, payload_sha256,
                 cursor_batch_id, status, reject_reason, received_at, durable_at,
                 consumed_at, payload_expires_at, payload_redacted_at,
-                context_redacted_at
+                context_redacted_at, user_id
          FROM inbox_messages WHERE id=?`,
       )
       .get(inboxId);
@@ -3975,8 +4115,11 @@ module.exports = {
   PayloadRedactedError,
   RuntimeSpoolDatabase,
   RuntimeSpoolError,
+  USER_SCOPED_LEGACY_TABLES,
   canonicalEventJson,
+  deriveOwnerUserId,
   deriveStableIds,
   redactedJson,
+  requireUserId,
   stableJson,
 };

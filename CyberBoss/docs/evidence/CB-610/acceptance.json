@@ -1,0 +1,60 @@
+{
+  "schema_version": "cyberboss.cb610.acceptance.v1",
+  "task_id": "CB-610",
+  "stage": "S6",
+  "phase": "P6.2",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
+  "results": [
+    {
+      "acceptance_id": "AC-003",
+      "name": "单 Bot 多用户",
+      "result": "PASS",
+      "check_count": 18,
+      "oracle_evidence": [
+        "app/test/cb610-multiuser-foundation.test.js::one bot account resolves two senders to two isolated users",
+        "app/migrations/006_multiuser_foundation.sql (users, user_channels, valid-user guards)"
+      ],
+      "note": "Two senders on one bot account produce two distinct user_ids with independent status; consent by one never activates the other."
+    },
+    {
+      "acceptance_id": "AC-005",
+      "name": "服务端身份",
+      "result": "PASS",
+      "check_count": 6,
+      "oracle_evidence": [
+        "app/src/services/users/user-identity.js",
+        "app/test/cb610-multiuser-foundation.test.js::user identity is server-derived and ignores client claims"
+      ],
+      "note": "user_id is an HMAC over the runtime identity key, bot account and sender with length-prefixed fields; a client-declared id is only ever compared in constant time, never used to select scope."
+    },
+    {
+      "acceptance_id": "AC-030",
+      "name": "数据边界",
+      "result": "PASS",
+      "check_count": 12,
+      "oracle_evidence": [
+        "app/migrations/006_multiuser_foundation.sql",
+        "app/src/services/users/invite-code-store.js",
+        "validation-report.json"
+      ],
+      "note": "One additive migration ledger, no parallel database or runtime, canonical sync keeps system scope, invite plaintext is never persisted, and no Mac/launchd or plaintext-secret marker appears in the touched sources. R2/OCI/Private-Database object split is closed at CB-800."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb610.py",
+  "validator_status": "PASS",
+  "check_count": 36,
+  "pass_count": 36,
+  "fail_count": 0,
+  "node_test_total": 51,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [],
+  "status": "passed",
+  "closure_commit_recorded_by": "CB-620"
+}

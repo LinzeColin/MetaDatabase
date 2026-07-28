@@ -6,10 +6,10 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-600",
+    "run_id": "CB-610",
     "gate_id": null,
-    "task_id": "CB-600",
-    "scope": "owner_change_event_version_lock_and_exact_target_compatibility_mapping",
+    "task_id": "CB-610",
+    "scope": "sqlite_v8_additive_migration_owner_backfill_and_user_identity_stores",
     "status": "passed"
   },
   "prestage": [
@@ -221,7 +221,7 @@
       "id": "CB-610",
       "stage": "S6",
       "phase": "P6.2",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-620",
@@ -519,6 +519,15 @@
     "cb_600_selected_migration_prefix": 6,
     "multiuser_activation": "not_started",
     "provider_activation": "not_started",
-    "wechat_dual_user_activation": "not_started"
+    "wechat_dual_user_activation": "not_started",
+    "cb_600_closure_commit": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
+    "cb_610_base_head": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
+    "cb_610_migration": "006_multiuser_foundation.sql",
+    "cb_610_migration_sha256": "fc0f3d6e0754f3293efda4f707fd9cba80c9d343712ae30c3ea2eb91e3fa0ba5",
+    "cb_610_schema_version": 6,
+    "cb_610_owner_backfill": "verified_zero_unscoped_rows",
+    "cb_610_valid_user_guards": "verified_insert_and_update_on_inbox_jobs_outbox",
+    "cb_610_app_suite": "306_pass_0_fail",
+    "cb_610_project_suite": "72_pass_0_fail"
   }
 }

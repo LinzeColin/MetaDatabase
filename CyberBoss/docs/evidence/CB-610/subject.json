@@ -1,0 +1,85 @@
+{
+  "schema_version": "cyberboss.cb610.subject.v1",
+  "task_id": "CB-610",
+  "stage": "S6",
+  "phase": "P6.2",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
+  "exact_subject": {
+    "base_head": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_600_closure_commit": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
+    "closure_commit_recorded_by": "CB-620",
+    "closure_commit_note": "the closure commit and tree for this node are recorded by the next node in machine/facts/task_state.json, exactly as CB-610 recorded CB-600's; a node cannot hash the tree that contains its own hash"
+  },
+  "migration": {
+    "selected_numeric_prefix": 6,
+    "selected_filename": "006_multiuser_foundation.sql",
+    "prefix_source": "materialized from the exact target inventory (highest existing prefix 5)",
+    "fixed_prefix_used": false,
+    "frozen_template_sha256": "49ab8cc87233de11f0bc9a21c15754b21509089a732f9139fb903e72470ea63e",
+    "materialized_migration_sha256": "fc0f3d6e0754f3293efda4f707fd9cba80c9d343712ae30c3ea2eb91e3fa0ba5",
+    "adaptation": "frozen template tables verbatim, wrapped in the repository's existing BEGIN IMMEDIATE / schema_migrations / PRAGMA integrity_check convention and extended with legacy user-scope columns, indices and valid-user guards",
+    "registered_version": 6,
+    "registered_source_commit": "CB-610",
+    "additive_only": true,
+    "destructive_statements": 0,
+    "idempotent_reopen_verified": true,
+    "foreign_key_check": "ok",
+    "integrity_check": "ok"
+  },
+  "owner_backfill": {
+    "owner_user_id_derivation": "HMAC-SHA256 over the runtime identity key, label cyberboss-owner-user",
+    "owner_user_id_recorded_in_repository": false,
+    "owner_user_id_recorded_reason": "the value is a live-runtime identity; only its derivation rule is public evidence",
+    "backfilled_tables": [
+      "inbox_messages",
+      "jobs",
+      "outbox_messages"
+    ],
+    "unscoped_rows_after_backfill": 0,
+    "fail_closed_code": "OWNER_SCOPE_BACKFILL_INCOMPLETE",
+    "legacy_upgrade_path_tested_from_migration": 5
+  },
+  "identity": {
+    "derivation": "HMAC-SHA256(identity_key, 'cyberboss-channel-principal' || len-prefixed[channel, bot_account_ref, sender_ref])",
+    "client_declared_identity_accepted": false,
+    "principal_stored_as": "keyed hash only",
+    "channels_supported": [
+      "weixin"
+    ],
+    "second_account_system_created": false
+  },
+  "data_boundary": {
+    "migration_ledgers": 1,
+    "parallel_database_created": false,
+    "parallel_runtime_created": false,
+    "raw_chat_in_repository": false,
+    "plaintext_secret_pattern_hits": 0,
+    "macos_launchd_dependency": false,
+    "canonical_sync_system_scope_preserved": true
+  },
+  "tests": {
+    "app_suite_tests": 306,
+    "app_suite_failures": 0,
+    "project_suite_tests": 72,
+    "project_suite_failures": 0,
+    "release_suite_tests": 2,
+    "ops_suite_tests": 6,
+    "cb610_suite_tests": 9,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0
+  },
+  "activation_pending": [],
+  "status": "passed"
+}

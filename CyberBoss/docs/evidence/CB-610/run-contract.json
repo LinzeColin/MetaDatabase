@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-610",
+  "stage": "S6",
+  "phase": "P6.2",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-620",
+    "closure_commit_note": "the closure commit and tree for this node are recorded by the next node in machine/facts/task_state.json, exactly as CB-610 recorded CB-600's; a node cannot hash the tree that contains its own hash"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-003",
+    "AC-005",
+    "AC-030"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "stop_output_contract": [
+    "minimal_decision_question",
+    "evidence",
+    "default_recommendation",
+    "consequence_of_no_decision"
+  ],
+  "steps": [
+    "materialize next migration number from exact target",
+    "dry-run migration on copied fixture",
+    "apply once and verify idempotency/FK/integrity"
+  ],
+  "rollback": [
+    "restore pre-migration online backup",
+    "repoint immutable release without editing old migration",
+    "revert to base_head eff35ba86790fd569711bb7ca1a8344e80aa06e6"
+  ]
+}

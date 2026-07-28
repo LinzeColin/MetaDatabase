@@ -1,0 +1,285 @@
+{
+  "schema_version": "cyberboss.cb610.validation.v1",
+  "task_id": "CB-610",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-003",
+    "AC-005",
+    "AC-030"
+  ],
+  "check_count": 36,
+  "pass_count": 36,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_suites": [
+    {
+      "suite": "test/cb610-multiuser-foundation.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/runtime-spool.test.js",
+      "returncode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "suite": "test/durable-inbox-crash-cut.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/durable-outbox-crash-cut.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/job-scheduler.test.js",
+      "returncode": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    {
+      "suite": "test/canonical-sync.test.js",
+      "returncode": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 51,
+  "checks": [
+    {
+      "check": "cb610.migration_dynamic_prefix",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "migration=006_multiuser_foundation.sql"
+    },
+    {
+      "check": "cb610.migration_additive_only",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "no DROP/RENAME/VACUUM/TRUNCATE/DELETE FROM in migration 006"
+    },
+    {
+      "check": "cb610.migration_transactional",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "BEGIN IMMEDIATE / COMMIT / PRAGMA integrity_check present"
+    },
+    {
+      "check": "cb610.migration_registered",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "migration self-registers version 6 with a checksum placeholder"
+    },
+    {
+      "check": "cb610.frozen_template_tables_present",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "missing_tables=[]"
+    },
+    {
+      "check": "cb610.template_provenance_recorded",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "frozen template sha256 recorded in the migration header"
+    },
+    {
+      "check": "cb610.user_scope_column.inbox_messages",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "inbox_messages.user_id added additively"
+    },
+    {
+      "check": "cb610.valid_user_guard.inbox_messages.insert",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "trg_inbox_messages_valid_user_insert present"
+    },
+    {
+      "check": "cb610.valid_user_guard.inbox_messages.update",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "trg_inbox_messages_valid_user_update present"
+    },
+    {
+      "check": "cb610.user_scope_column.jobs",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "jobs.user_id added additively"
+    },
+    {
+      "check": "cb610.valid_user_guard.jobs.insert",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "trg_jobs_valid_user_insert present"
+    },
+    {
+      "check": "cb610.valid_user_guard.jobs.update",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "trg_jobs_valid_user_update present"
+    },
+    {
+      "check": "cb610.user_scope_column.outbox_messages",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "outbox_messages.user_id added additively"
+    },
+    {
+      "check": "cb610.valid_user_guard.outbox_messages.insert",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "trg_outbox_messages_valid_user_insert present"
+    },
+    {
+      "check": "cb610.valid_user_guard.outbox_messages.update",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "trg_outbox_messages_valid_user_update present"
+    },
+    {
+      "check": "cb610.user_delete_guard",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "a user row cannot be deleted while scoped rows reference it"
+    },
+    {
+      "check": "cb610.sync_spool_system_scope_allowed",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "canonical sync keeps system scope (NULL) but rejects unknown users"
+    },
+    {
+      "check": "cb610.identity_is_hmac_derived",
+      "acceptance_id": "AC-005",
+      "result": "PASS",
+      "detail": "user_id derives from an HMAC over channel + bot account + sender"
+    },
+    {
+      "check": "cb610.identity_binds_bot_and_sender",
+      "acceptance_id": "AC-005",
+      "result": "PASS",
+      "detail": "both the bot account and the sender enter the derivation"
+    },
+    {
+      "check": "cb610.identity_length_prefixed",
+      "acceptance_id": "AC-005",
+      "result": "PASS",
+      "detail": "fields are length-prefixed, so no two field splits collide"
+    },
+    {
+      "check": "cb610.client_claim_never_trusted",
+      "acceptance_id": "AC-005",
+      "result": "PASS",
+      "detail": "a client-declared id can only be compared, never used to select scope"
+    },
+    {
+      "check": "cb610.principal_stored_as_hash",
+      "acceptance_id": "AC-005",
+      "result": "PASS",
+      "detail": "user_channels stores only the keyed principal hash"
+    },
+    {
+      "check": "cb610.owner_id_server_derived",
+      "acceptance_id": "AC-005",
+      "result": "PASS",
+      "detail": "the Owner user id derives from the runtime identity key alone"
+    },
+    {
+      "check": "cb610.owner_backfill_before_guards",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "backfill runs once, then fails closed if any row stays unscoped"
+    },
+    {
+      "check": "cb610.reply_scope_inherited_from_job",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "outbox scope is inherited from the job, never caller-supplied"
+    },
+    {
+      "check": "cb610.model_gate_on_status",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "pending, suspended, deleting and deleted users cannot reach a model"
+    },
+    {
+      "check": "cb610.no_mac_markers_in_sources",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb610.no_plaintext_secret_pattern",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "leaks=[]"
+    },
+    {
+      "check": "cb610.invite_plaintext_never_persisted",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "only the keyed invite hash reaches the database"
+    },
+    {
+      "check": "cb610.no_parallel_database",
+      "acceptance_id": "AC-030",
+      "result": "PASS",
+      "detail": "one migration ledger, no second database plane"
+    },
+    {
+      "check": "cb610.suite.cb610-multiuser-foundation.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb610.suite.runtime-spool.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=6 pass=6 fail=0"
+    },
+    {
+      "check": "cb610.suite.durable-inbox-crash-cut.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=7 pass=7 fail=0"
+    },
+    {
+      "check": "cb610.suite.durable-outbox-crash-cut.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb610.suite.job-scheduler.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=10 pass=10 fail=0"
+    },
+    {
+      "check": "cb610.suite.canonical-sync.test",
+      "acceptance_id": "AC-003",
+      "result": "PASS",
+      "detail": "tests=10 pass=10 fail=0"
+    }
+  ],
+  "artifact_sha256": {
+    "app/migrations/006_multiuser_foundation.sql": "fc0f3d6e0754f3293efda4f707fd9cba80c9d343712ae30c3ea2eb91e3fa0ba5",
+    "app/src/services/users/invite-code-store.js": "26ca74ee3194e7a9512560aa9728a704f5bf66db4cfbce4fe3fa564f315a8a71",
+    "app/src/services/users/user-identity.js": "7a7be12049f066cb08db76c6ffbeca42093721365a5c0f6ec4ee21ecdf9613f4",
+    "app/src/services/users/user-repository.js": "4cd31b7a706abc5d82751105d32d47b119beeba41ae1e89ebb639f69d5e001f2"
+  }
+}

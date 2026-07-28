@@ -6,8 +6,9 @@
   (host-specific absolute paths are deliberately not recorded here; the runtime
   has no Mac, `/Users`, `.plist` or `launchd` dependency)
 - Local branch: `claude/cyberboss-v0-0-0-8-taskpack-fc4d1f`
-- Run base: `bb716bd9cf2760aa9639ef85c626f0fd19c6ec94`
-  (tree `a6426566cdba7dce4d1990eb888d308838b26ef1`, clean at run start)
+- Run base: `eff35ba86790fd569711bb7ca1a8344e80aa06e6`
+  (v0.0.0.8 base was `bb716bd9cf2760aa9639ef85c626f0fd19c6ec94`,
+  tree `a6426566cdba7dce4d1990eb888d308838b26ef1`, clean at Stage 6 start)
 - Latest implementation:
   `fd3cd1e19d70caa148c3785288aaabfb909fed85`
 - Product version: `v0.0.0.8`; TaskPack `v0.0.0.8` (R7-FINAL); Owner Change
@@ -40,6 +41,20 @@ neither replayed nor downgraded, and its single-user acceptance is never
 inherited as a multi-user PASS. `P6.1 / CB-600` passed: the exact Subject is
 bound read-only, the version lock is active, one Owner Change Event is applied
 and all 18 required integration domains are mapped to exact target paths.
+
+`P6.2 / CB-610` passed on base `eff35ba86790fd569711bb7ca1a8344e80aa06e6`
+with candidate tree `d520bf94fb522623182ed5935f2efa39e7e9d746`. The additive
+migration `006_multiuser_foundation.sql` was materialised from the exact target
+inventory rather than a fixed prefix, registers itself as schema version 6 with
+source commit `CB-610`, and contains no DROP, RENAME, VACUUM or DELETE. Legacy
+`inbox_messages`, `jobs` and `outbox_messages` rows are backfilled to the
+server-derived Owner user before the valid-user INSERT/UPDATE guards can reject
+anything, and the adapter fails closed if any row would stay unscoped. Canonical
+sync keeps NULL as system scope while rejecting an unknown user scope. The new
+identity, user and invite stores derive every user id server-side from the
+runtime identity key, the bot account and the sender; a client-declared id is
+only ever compared, never trusted. App suite 306/306, project suite 72/72,
+release 2/2, ops 6/6 and `npm run check` all pass.
 
 The remaining Stage 6 nodes, all of Stage 7 and Stage 8, and gates PG-6 through
 PG-8 are `not_started`; the authoritative list is
