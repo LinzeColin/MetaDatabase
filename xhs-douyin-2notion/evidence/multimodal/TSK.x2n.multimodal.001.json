@@ -5,8 +5,8 @@
   "stage": "STG.X2N.4",
   "run_id": "RUN-X2N-S04-M001",
   "status": "PASS_CI_SYNTH_SCOPED",
-  "task_commit": "PENDING_AUDIT_PIN",
-  "source_receipt_sha256": "PENDING_AUDIT_PIN",
+  "task_commit": "e8e026833a6ed052d5366794f123c2f7916c5369",
+  "source_receipt_sha256": "6f65cb4b61e42cc1f278e20816772237f1faf5b80af4f0242e73f32d71982297",
   "acceptance_status": {
     "ACC.x2n.media.002": "PASS_CI_SYNTH_LEASE_AND_DERIVATIVE_CLEANUP",
     "ACC.x2n.media.004": "PASS_CI_SYNTH_BOUNDED_FFMPEG_FFPROBE",
