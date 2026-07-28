@@ -60,6 +60,7 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
 
   const register = await app(new Request(`${platform.config.baseUrl}/v1/auth/register/password`, { method: "POST", headers: baseHeaders, body: JSON.stringify({ email: "http@example.com", password: PASSWORD, displayName: "HTTP 用户" }) }));
   assert.equal(register.status, 200);
+  assert.equal(register.headers.get("cache-control"), "no-store");
   const payload = await register.json();
   const cookie = register.headers.get("set-cookie").split(";")[0];
   assert.ok(cookie.startsWith("wrp_session="));

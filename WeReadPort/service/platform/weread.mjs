@@ -10,7 +10,7 @@ import {
 
 const GATEWAY = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.4";
-export const WEREAD_COLLECTION_FORMAT_VERSION = "2";
+export const WEREAD_COLLECTION_FORMAT_VERSION = "3";
 const MAX_RESPONSE_BYTES = 12 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 20_000;
 const MIN_TRUSTED_SOURCE_TIME = 946_684_800; // 2000-01-01 UTC
@@ -203,7 +203,7 @@ export function normalizeWeReadDocuments(dataset) {
       });
     }
   }
-  return documents;
+  return dedupeDocuments(documents);
 }
 
 export function recommendationRows(dataset) {
@@ -415,6 +415,15 @@ function normalizeReviewPayload(payload, bookId) {
 }
 
 function sourceItemId(row, preferred) { return String(row?.[preferred] || row?.id || "").trim(); }
+
+function dedupeDocuments(documents) {
+  const byExternalId = new Map();
+  for (const document of documents) {
+    const current = byExternalId.get(document.externalId);
+    if (!current || Number(document.eventAt || 0) >= Number(current.eventAt || 0)) byExternalId.set(document.externalId, document);
+  }
+  return [...byExternalId.values()];
+}
 
 function recommendationBookId(book) {
   return String(book?.bookId || book?.bookInfo?.bookId || book?.id || "").trim();

@@ -82,6 +82,8 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
   const result = await platform.service.syncWeRead(user.account.id, { recommendationPages: 2 });
   assert.equal(result.summary.detailedBooks, 8);
   assert.equal(result.summary.importedDocuments, 16);
+  assert.equal(result.summary.coverage.verified, true);
+  assert.equal(result.summary.coverage.unresolvedDocuments, 0);
   assert.equal(platform.service.listNotes(user.account.id, { limit: 100 }).length, 16);
   platform.service.updateConsent(user.account.id, { behaviorAnalytics: false, recommendationPersonalization: true });
   assert.ok(platform.service.analytics(user.account.id).recommendations.some(item => item.source === "weread-official"));

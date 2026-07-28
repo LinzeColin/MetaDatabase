@@ -483,15 +483,17 @@ export class PlatformService {
     }
     const sourceContentCount = Number(dataset.summary.sourceContentCount || 0);
     const sourceReportedNotes = Number(dataset.summary.totalNoteCount || 0);
+    const sourceReportedExportableDocuments = sourceContentCount || sourceReportedNotes;
     const accountedDocuments = documents.length + Number(dataset.summary.skippedUnchangedDocuments || 0);
-    const unresolvedDocuments = Math.max(0, sourceContentCount - accountedDocuments);
-    const sourceCountersAvailable = sourceContentCount > 0 || (sourceReportedNotes === 0 && accountedDocuments === 0);
+    const unresolvedDocuments = Math.max(0, sourceReportedExportableDocuments - accountedDocuments);
+    const sourceCountersAvailable = sourceReportedExportableDocuments > 0 || (sourceReportedNotes === 0 && accountedDocuments === 0);
     const coverage = {
       sourceReportedNotes,
       sourceReportedHighlights: Number(dataset.summary.sourceHighlightCount || 0),
       sourceReportedThoughts: Number(dataset.summary.sourceReviewCount || 0),
       sourceReportedBookmarks: Number(dataset.summary.sourceBookmarkCount || 0),
-      sourceReportedExportableDocuments: sourceContentCount,
+      sourceReportedExportableDocuments,
+      coverageBasis: sourceContentCount > 0 ? "官方分项划线与想法计数" : sourceReportedNotes > 0 ? "官方笔记总数" : "官方空集",
       accountedDocuments,
       unresolvedDocuments,
       sourceCountersAvailable,

@@ -144,7 +144,7 @@ async function body(request, maxBytes) {
   if (bytes.length > maxBytes) throw new PlatformError("TOO_LARGE", "请求超过安全上限。", 413);
   try { return JSON.parse(bytes.toString("utf8") || "{}"); } catch { throw new PlatformError("INVALID_JSON", "请求不是有效 JSON。", 400); }
 }
-function json(payload, status = 200, extraHeaders = {}) { return secure(new Response(JSON.stringify(payload), { status, headers: { "Content-Type": "application/json; charset=utf-8", ...extraHeaders } })); }
+function json(payload, status = 200, extraHeaders = {}) { return secure(new Response(JSON.stringify(payload), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extraHeaders } })); }
 function secure(response) { const headers = new Headers(response.headers); for (const [key, value] of Object.entries(SECURITY_HEADERS)) if (!headers.has(key)) headers.set(key, value); return new Response(response.body, { status: response.status, statusText: response.statusText, headers }); }
 function errorResponse(error) { const known = error instanceof PlatformError; const status = known ? error.status : 500; const payload = { error: { code: known ? error.code : "INTERNAL", message: known ? error.message : "服务暂时不可用，请稍后重试。" } }; return json(payload, status); }
 function cookieValue(header, name) { for (const item of String(header || "").split(";")) { const [key, ...rest] = item.trim().split("="); if (key === name) return rest.join("="); } return ""; }
