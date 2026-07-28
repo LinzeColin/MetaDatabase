@@ -10,22 +10,67 @@
   "gate_verdict": "CONDITIONAL_PASS",
   "gate_verdict_reason": "all fifteen v0.0.0.8 nodes are accepted, all fifty frozen acceptance items have a recorded result on the exact target subject, and none recorded a failure. Four items remain outstanding — AC-035, AC-039, AC-040 and AC-050 — every one of them because a credential or the authorised target host is not in scope. The gate inherits those items and is therefore not sealed as a full product acceptance.",
   "stage_summary": {
-    "stage_6": { "nodes": ["CB-600", "CB-610", "CB-620", "CB-630", "CB-640"], "gate": "PG-6", "verdict": "CONDITIONAL_PASS" },
-    "stage_7": { "nodes": ["CB-700", "CB-710", "CB-720", "CB-730", "CB-740"], "gate": "PG-7", "verdict": "CONDITIONAL_PASS" },
-    "stage_8": { "nodes": ["CB-800", "CB-810", "CB-820", "CB-830", "CB-840"], "gate": "PG-8", "verdict": "CONDITIONAL_PASS" }
+    "stage_6": {
+      "nodes": [
+        "CB-600",
+        "CB-610",
+        "CB-620",
+        "CB-630",
+        "CB-640"
+      ],
+      "gate": "PG-6",
+      "verdict": "CONDITIONAL_PASS"
+    },
+    "stage_7": {
+      "nodes": [
+        "CB-700",
+        "CB-710",
+        "CB-720",
+        "CB-730",
+        "CB-740"
+      ],
+      "gate": "PG-7",
+      "verdict": "CONDITIONAL_PASS"
+    },
+    "stage_8": {
+      "nodes": [
+        "CB-800",
+        "CB-810",
+        "CB-820",
+        "CB-830",
+        "CB-840"
+      ],
+      "gate": "PG-8",
+      "verdict": "CONDITIONAL_PASS"
+    }
   },
   "node_verdicts": {
-    "CB-600": "PASS", "CB-610": "PASS", "CB-620": "PASS", "CB-630": "PASS",
-    "CB-640": "CONDITIONAL_PASS", "CB-700": "PASS", "CB-710": "PASS",
-    "CB-720": "PASS", "CB-730": "PASS", "CB-740": "CONDITIONAL_PASS",
-    "CB-800": "CONDITIONAL_PASS", "CB-810": "PASS", "CB-820": "PASS",
-    "CB-830": "CONDITIONAL_PASS", "CB-840": "CONDITIONAL_PASS"
+    "CB-600": "PASS",
+    "CB-610": "PASS",
+    "CB-620": "PASS",
+    "CB-630": "PASS",
+    "CB-640": "CONDITIONAL_PASS",
+    "CB-700": "PASS",
+    "CB-710": "PASS",
+    "CB-720": "PASS",
+    "CB-730": "PASS",
+    "CB-740": "CONDITIONAL_PASS",
+    "CB-800": "CONDITIONAL_PASS",
+    "CB-810": "PASS",
+    "CB-820": "PASS",
+    "CB-830": "CONDITIONAL_PASS",
+    "CB-840": "CONDITIONAL_PASS"
   },
   "acceptance_accounting": {
     "frozen_items": 50,
     "items_with_a_recorded_result": 50,
     "items_recording_a_failure": 0,
-    "items_outstanding": ["AC-035", "AC-039", "AC-040", "AC-050"],
+    "items_outstanding": [
+      "AC-035",
+      "AC-039",
+      "AC-040",
+      "AC-050"
+    ],
     "items_fully_passed": 46
   },
   "carried_activation_pending": [
@@ -72,5 +117,8 @@
     "macos_launchd_dependency": false,
     "github_push_pr_or_tag": "none — all work is local commits on the worktree branch, as the TaskPack requires until every stage and gate is complete"
   },
-  "status": "conditional_pass"
+  "status": "conditional_pass",
+  "sealed_head": "ebc711c34e6af313d884874d89edc8e96d5b84f0",
+  "sealed_tree": "fa4077c1e808095bc765d00c6a29742b141687ec",
+  "seal_confirmation": "docs/evidence/PG-8/seal-confirmation.json"
 }

@@ -38,15 +38,28 @@
     "v8_nodes_accepted": "15/15",
     "acceptance_items_with_a_recorded_result": "50/50",
     "acceptance_items_recording_a_failure": 0,
-    "acceptance_items_outstanding": ["AC-035", "AC-039", "AC-040", "AC-050"],
+    "acceptance_items_outstanding": [
+      "AC-035",
+      "AC-039",
+      "AC-040",
+      "AC-050"
+    ],
     "carried_activation_pending_items": 12,
-    "conditional_nodes": ["CB-640", "CB-740", "CB-800", "CB-830"],
-    "prior_gates": { "PG-6": "conditional_pass", "PG-7": "conditional_pass" },
+    "conditional_nodes": [
+      "CB-640",
+      "CB-740",
+      "CB-800",
+      "CB-830"
+    ],
+    "prior_gates": {
+      "PG-6": "conditional_pass",
+      "PG-7": "conditional_pass"
+    },
     "app_suite": "474 pass / 0 fail",
     "npm_run_check": "PASS"
   },
   "validator": "CyberBoss/scripts/validate_cb840.py",
-  "validator_status": "PASS on the sealed tree; see docs/evidence/PG-8/seal-confirmation.json",
+  "validator_status": "PASS on the sealed tree (docs/evidence/PG-8/seal-confirmation.json): 22 pass, 0 fail, 17 activation_pending",
   "gate_verdict": "CONDITIONAL_PASS",
   "gate_verdict_reason": "every one of the fifty frozen acceptance items has a recorded result on the exact target subject and none recorded a failure, but four items remain outstanding because the credentials and the target host needed to prove them are not in scope. PG-8 is therefore a conditional gate result and not a full product acceptance.",
   "not_claimed": [
@@ -66,5 +79,7 @@
   "max_remediation_rounds": 2,
   "real_time_waits": 0,
   "control_plane_llm_calls": 0,
-  "status": "passed_conditional"
+  "status": "passed_conditional",
+  "sealed_head": "ebc711c34e6af313d884874d89edc8e96d5b84f0",
+  "sealed_tree": "fa4077c1e808095bc765d00c6a29742b141687ec"
 }

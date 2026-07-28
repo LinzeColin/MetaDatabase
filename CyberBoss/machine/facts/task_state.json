@@ -776,6 +776,9 @@
       "clean install on the authorised OVH target with root",
       "root-owned cyberbossctl and operator-actions.json"
     ],
-    "formal_final_acceptance": "activation_pending"
+    "formal_final_acceptance": "activation_pending",
+    "cb_840_sealed_head": "ebc711c34e6af313d884874d89edc8e96d5b84f0",
+    "cb_840_sealed_tree": "fa4077c1e808095bc765d00c6a29742b141687ec",
+    "pg_8_seal_confirmation": "docs/evidence/PG-8/seal-confirmation.json"
   }
 }

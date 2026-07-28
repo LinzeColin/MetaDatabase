@@ -14,8 +14,23 @@
     "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
     "pre_seal_head": "166ccef0bbe434757a5a819ef50cb68fa1188515",
     "cb_830_closure_commit": "166ccef0bbe434757a5a819ef50cb68fa1188515",
-    "sealed_head": "recorded in docs/evidence/PG-8/seal-confirmation.json",
-    "note": "the seal runs twice by construction: a report written into the tree makes that tree dirty, so the clean-tree assertion can only be true of the commit that already contains the report. Run 1 records a genuine FAIL on the clean-tree check; run 2 records the real result on the sealed tree. No check was relaxed to make either run pass."
+    "sealed_head": "ebc711c34e6af313d884874d89edc8e96d5b84f0",
+    "note": "the seal runs twice by construction: a report written into the tree makes that tree dirty, so the clean-tree assertion can only be true of the commit that already contains the report. Run 1 records a genuine FAIL on the clean-tree check; run 2 records the real result on the sealed tree. No check was relaxed to make either run pass.",
+    "sealed_tree": "fa4077c1e808095bc765d00c6a29742b141687ec",
+    "seal_confirmation": {
+      "run": "docs/evidence/PG-8/seal-confirmation.json",
+      "status": "PASS",
+      "gate_verdict": "CONDITIONAL_PASS",
+      "checks": 39,
+      "pass": 22,
+      "fail": 0,
+      "activation_pending": 17,
+      "working_tree_clean": true,
+      "manifest_file_count": 248,
+      "manifest_sha256": "da14307fcd8b44d063381fcf6b7a990e130cf267143d55739346d80dc6c67831",
+      "app_suite": "474 pass / 0 fail",
+      "note": "this run attests commit ebc711c34e6af313d884874d89edc8e96d5b84f0 and tree fa4077c1e808095bc765d00c6a29742b141687ec. The commit that carries the confirmation file is necessarily a later one; the attested identity is the pair named here, not the commit this file happens to live in."
+    }
   },
   "version_lock": {
     "product_version_changed_by_agent": false,
@@ -34,11 +49,29 @@
     "acceptance_items_in_the_frozen_set": 50,
     "acceptance_items_with_a_recorded_result": 50,
     "acceptance_items_recording_a_failure": 0,
-    "acceptance_items_outstanding": ["AC-035", "AC-039", "AC-040", "AC-050"],
-    "conditional_nodes": ["CB-640", "CB-740", "CB-800", "CB-830"],
+    "acceptance_items_outstanding": [
+      "AC-035",
+      "AC-039",
+      "AC-040",
+      "AC-050"
+    ],
+    "conditional_nodes": [
+      "CB-640",
+      "CB-740",
+      "CB-800",
+      "CB-830"
+    ],
     "unconditional_nodes": [
-      "CB-600", "CB-610", "CB-620", "CB-630", "CB-700", "CB-710",
-      "CB-720", "CB-730", "CB-810", "CB-820"
+      "CB-600",
+      "CB-610",
+      "CB-620",
+      "CB-630",
+      "CB-700",
+      "CB-710",
+      "CB-720",
+      "CB-730",
+      "CB-810",
+      "CB-820"
     ]
   },
   "carried_activation_pending": [
