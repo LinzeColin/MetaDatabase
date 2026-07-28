@@ -126,3 +126,32 @@ test("回滚目标取自绑定，不取自 current 指针", () => {
     "OLD_SHA 必须从绑定文件里的 CB_EXPECTED_RELEASE_ID 读出来",
   );
 });
+
+test("部署验证必须走一次公网，而不是只看本机端口", () => {
+  // 真实事故：本机 8787 返回 200、隧道服务却是 dead，公网上什么都打不开。
+  // Cloudflare Access 在隧道之前就把请求挡了，于是公网返回 302 而不是 530，
+  // 看起来"至少有东西在응"，实际上后台从来没有真的对外可用过。
+  assert.match(deployScript, /^PUBLIC_ORIGIN=/m, "必须有一个公网地址可验");
+  assert.match(deployScript, /^TUNNEL_SERVICE=/m, "必须知道隧道服务叫什么");
+  assert.match(
+    deployScript,
+    /systemctl enable --now \$TUNNEL_SERVICE/,
+    "隧道必须开机自启：它 dead 过一整天没人发现",
+  );
+  assert.match(
+    deployScript,
+    /curl[^\n]*"\$PUBLIC_ORIGIN\/admin"/,
+    "验证的最后一关必须是从外面真的打开后台",
+  );
+});
+
+test("设置页面对外地址不能指向挂着登录墙的那个域名", () => {
+  // 朋友在微信里说「设置」拿到的链接是用这个地址拼的。指到 cyberboss.* 上，
+  // 他会被 Cloudflare Access 拦在一个他根本登不进去的页面上。
+  assert.match(deployScript, /^CB_PORTAL_ORIGIN=\$PUBLIC_ORIGIN$/m);
+  assert.doesNotMatch(
+    deployScript,
+    /^PUBLIC_ORIGIN="\$\{CB_PUBLIC_ORIGIN:-https:\/\/cyberboss\./m,
+    "cyberboss.* 前面有 Access，不能作为对外地址",
+  );
+});

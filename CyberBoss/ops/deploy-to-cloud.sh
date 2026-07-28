@@ -36,6 +36,12 @@ STATE_DIR="/var/lib/cyberboss"
 # 放进版本控制才不会再漂回去。
 WORKSPACE_ROOT="${CB_WORKSPACE_ROOT:-/srv/cyberboss-workspaces/cyberboss}"
 PORTAL_PORT="${CB_PORTAL_PORT:-8787}"
+# 后台和设置页面对外的地址。用 boss.* 而不是 cyberboss.*：后者前面挂着
+# Cloudflare Access，朋友点开设置链接会被拦在一个他登不进去的登录页上。
+PUBLIC_ORIGIN="${CB_PUBLIC_ORIGIN:-https://boss.linzezhang.com}"
+# 这条隧道是公网唯一入口。它挂了的话，本机 8787 照样 200，公网却什么都打不开
+# ——上一次它 dead 了一整天都没人发现，因为 Access 在隧道之前就把请求挡了。
+TUNNEL_SERVICE="${CB_TUNNEL_SERVICE:-cyberboss-cf-tunnel.service}"
 NODE="$APP_ROOT/shared/toolchains/bin/node"
 
 GREEN=$'\033[32m'; RED=$'\033[31m'; DIM=$'\033[2m'; RESET=$'\033[0m'
@@ -83,6 +89,7 @@ CB_EXPECTED_RELEASE_ID=$sha
 CB_CHANNEL_ACTIVATION_MODE=required
 CYBERBOSS_STATE_DIR=$STATE_DIR
 CYBERBOSS_WORKSPACE_ROOT=$WORKSPACE_ROOT
+CB_PORTAL_ORIGIN=$PUBLIC_ORIGIN
 EOF
     sudo chmod 0644 $LIVE_ENV
     sudo tee $DROPIN >/dev/null <<EOF
@@ -100,11 +107,24 @@ verify_live() {
   remote "systemctl is-active $SERVICE" >/dev/null 2>&1 || return 1
   # 日志在独立 namespace 里（LogNamespace=cyberboss），不带 --namespace 查不到。
   remote "sudo journalctl --namespace=cyberboss -u $SERVICE --since '-2min' --no-pager 2>/dev/null | grep -q 'release=$short'" || return 1
+  local ready=1
   for attempt in $(seq 1 30); do
     if remote "curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:$PORTAL_PORT/healthz 2>/dev/null | grep -q '^200$'"; then
-      return 0
+      ready=0
+      break
     fi
     sleep 2
+  done
+  [ "$ready" -eq 0 ] || return 1
+  # 隧道必须活着并且开机自启，否则公网入口是空的。
+  remote "sudo systemctl enable --now $TUNNEL_SERVICE >/dev/null 2>&1 || true"
+  remote "systemctl is-active $TUNNEL_SERVICE" >/dev/null 2>&1 || return 1
+  # 最后一关：从这台开发机走公网真的打开后台。本机 200 不代表别人打得开。
+  for attempt in $(seq 1 20); do
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$PUBLIC_ORIGIN/admin")" = "200" ]; then
+      return 0
+    fi
+    sleep 5
   done
   return 1
 }
@@ -221,7 +241,7 @@ remote "sudo systemctl restart $SERVICE" || true
 # 6. 真的起来了吗。没起来就自动回滚——不留一个"部署成功但服务是死的"状态。
 step "正在验证（服务在跑 + 版本号对得上 + 后台在应答）……"
 if verify_live "$SHA"; then
-  ok "验证通过：跑的就是 ${SHA:0:12}，后台端口 $PORTAL_PORT 在应答"
+  ok "验证通过：跑的就是 ${SHA:0:12}，公网 $PUBLIC_ORIGIN/admin 打得开"
 else
   printf '\n%s新版本没能通过验证，正在自动回滚……%s\n' "$RED" "$RESET"
   printf '\n最近的日志：\n'
