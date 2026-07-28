@@ -70,7 +70,7 @@ export async function handleRequest(request, env = {}) {
     if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
       return secure(new Response(request.method === "HEAD" ? null : "静态资源绑定不可用。", { status: 503 }));
     }
-    return secure(await env.ASSETS.fetch(staticAssetRequest(request, url)));
+    return secure(await fetchAssetWithCanonicalRedirect(staticAssetRequest(request, url), env));
   } catch (error) {
     const safe = toSafeFailure(error);
     const status = error instanceof WeReadPortError && error.status ? error.status : 500;
@@ -204,7 +204,7 @@ async function inspectAssets(request, env) {
   const probeUrl = new URL("/site/home.html", request.url);
   let response;
   try {
-    response = await env.ASSETS.fetch(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }));
+    response = await fetchAssetWithCanonicalRedirect(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }), env);
     const contentType = response.headers.get("content-type") ?? "";
     const ready = response.ok && contentType.toLowerCase().includes("text/html");
     await response.body?.cancel().catch(() => {});
@@ -315,6 +315,18 @@ function staticAssetRequest(request, url) {
   const target = new URL(url);
   target.pathname = staticAssetPath(url.pathname);
   return new Request(target.toString(), request);
+}
+
+async function fetchAssetWithCanonicalRedirect(request, env) {
+  let response = await env.ASSETS.fetch(request);
+  const location = response.headers.get("location");
+  if (response.status < 300 || response.status >= 400 || !location) return response;
+  let canonical;
+  try { canonical = new URL(location, request.url); } catch { return response; }
+  const source = new URL(request.url);
+  if (canonical.origin !== source.origin || !canonical.pathname.startsWith("/site/")) return response;
+  response = await env.ASSETS.fetch(new Request(canonical.toString(), request));
+  return response;
 }
 
 function staticAssetPath(pathname) {

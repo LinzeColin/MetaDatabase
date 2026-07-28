@@ -84,6 +84,27 @@ test("公开静态入口由 Worker 映射到内部资产前缀并统一附加安
   }
 });
 
+test("静态资产规范化跳转只在 Worker 内部跟随，不暴露内部路径", async () => {
+  const requested = [];
+  const env = {
+    ...healthyEnv,
+    ASSETS: {
+      fetch: async request => {
+        const path = new URL(request.url).pathname;
+        requested.push(path);
+        if (path === "/site/home.html") return new Response(null, { status: 307, headers: { Location: "/site/home" } });
+        if (path === "/site/home") return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁</title></html>", { headers: { "Content-Type": "text/html; charset=utf-8" } });
+        return new Response("未找到", { status: 404 });
+      },
+    },
+  };
+  const response = await handleRequest(new Request("https://example.test/"), env);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("location"), null);
+  assert.equal(response.headers.get("content-security-policy")?.startsWith("default-src 'self'"), true);
+  assert.deepEqual(requested, ["/site/home.html", "/site/home"]);
+});
+
 test("法律页面链接不会吞入中文标点且安全入口明确", () => {
   const html = legalMainHtml("privacy") + legalMainHtml("terms");
   assert.ok(!/href="[^"]+[，。；：！？、）》】」』]"/u.test(html));
