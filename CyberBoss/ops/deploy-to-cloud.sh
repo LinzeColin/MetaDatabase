@@ -27,6 +27,7 @@ APP_ROOT="/opt/cyberboss-cloud"
 SERVICE="cyberboss-cloud.service"
 DROPIN_DIR="/etc/systemd/system/$SERVICE.d"
 DROPIN="$DROPIN_DIR/99-cyberboss-live.conf"
+LIVE_ENV="/etc/cyberboss/cyberboss-live.env"
 STATE_DIR="/var/lib/cyberboss"
 # 注册表校验要求这个值正好是某一个工作区的根目录。服务器上它被设成了**工作区
 # 基目录**（少一层），于是 assertAllowedRoot 拒绝，报 workspace_root_not_
@@ -58,17 +59,35 @@ write_binding() {
   # 结果"自动回滚"把服务从"跑着旧版本"变成了"彻底起不来"。
   remote "sudo test -f $APP_ROOT/releases/$sha/release-manifest.json" \
     || die "release $sha 缺 release-manifest.json，绑上去只会让服务起不来"
+  # 值写在 EnvironmentFile 里，不写成 Environment=。
+  #
+  # systemd 的规则是「EnvironmentFile 里的设置覆盖 Environment= 的设置」，与
+  # 文件排序无关。主 unit 引了 /etc/cyberboss/cyberboss.env，里面有一份旧的
+  # CYBERBOSS_WORKSPACE_ROOT；drop-in 50 又引了一份 cb510-state.env，里面有
+  # 旧的 CYBERBOSS_STATE_DIR。于是不管这个 drop-in 排在多后面，只要用
+  # Environment= 写，这两个值都会被那两个文件悄悄盖掉——而
+  # `systemctl show -p Environment` 只打印 Environment= 指令、不展开
+  # EnvironmentFile，所以查出来一切正常，实际进程里却是旧值。
+  #
+  # 换成自己的 EnvironmentFile，并且让它排在最后被引入，才真的覆盖得掉。
   remote "
     set -e
     sudo mkdir -p $DROPIN_DIR
     [ -f $DROPIN ] && sudo cp -a $DROPIN $DROPIN.prev || true
+    [ -f $LIVE_ENV ] && sudo cp -a $LIVE_ENV $LIVE_ENV.prev || true
+    sudo tee $LIVE_ENV >/dev/null <<EOF
+# 由 ops/deploy-to-cloud.sh 生成。这里的值覆盖 /etc/cyberboss/cyberboss.env
+# 和各 drop-in 里的同名项——手改会在下一次部署时被覆盖。
+CB_RELEASE_ROOT=$APP_ROOT/releases/$sha
+CB_EXPECTED_RELEASE_ID=$sha
+CB_CHANNEL_ACTIVATION_MODE=required
+CYBERBOSS_STATE_DIR=$STATE_DIR
+CYBERBOSS_WORKSPACE_ROOT=$WORKSPACE_ROOT
+EOF
+    sudo chmod 0644 $LIVE_ENV
     sudo tee $DROPIN >/dev/null <<EOF
 [Service]
-Environment=CB_RELEASE_ROOT=$APP_ROOT/releases/$sha
-Environment=CB_EXPECTED_RELEASE_ID=$sha
-Environment=CB_CHANNEL_ACTIVATION_MODE=required
-Environment=CYBERBOSS_STATE_DIR=$STATE_DIR
-Environment=CYBERBOSS_WORKSPACE_ROOT=$WORKSPACE_ROOT
+EnvironmentFile=$LIVE_ENV
 EOF
     sudo systemctl daemon-reload
   "
@@ -121,7 +140,7 @@ printf '\n部署 %s 到 %s\n\n' "${SHA:0:12}" "$HOST"
 # 回滚要回到**真正在跑的**那个 release，也就是绑定里写的那个——不是 current
 # 指针指的那个。这两者在事故期间可以差好几个版本，照着 current 回滚等于把服务
 # 推到一个从来没跑起来过的版本上。
-OLD_SHA="$(remote "sudo sed -n 's|^Environment=CB_EXPECTED_RELEASE_ID=||p' $DROPIN 2>/dev/null | tail -1" 2>/dev/null || true)"
+OLD_SHA="$(remote "sudo sed -n 's|^CB_EXPECTED_RELEASE_ID=||p' $LIVE_ENV 2>/dev/null | tail -1" 2>/dev/null || true)"
 [ -n "$OLD_SHA" ] || OLD_SHA="$(remote "basename \$(readlink -f $APP_ROOT/current)" 2>/dev/null || true)"
 [ -n "$OLD_SHA" ] && step "当前在跑：${OLD_SHA:0:12}"
 

@@ -23,10 +23,10 @@ const logsScript = fs.readFileSync(path.join(OPS, "cloud-logs.sh"), "utf8");
 test("发布绑定写进 drop-in，而不是去改主 unit 文件", () => {
   assert.match(
     deployScript,
-    /Environment=CB_RELEASE_ROOT=/,
+    /^CB_RELEASE_ROOT=/m,
     "部署脚本必须自己写 CB_RELEASE_ROOT，否则 systemd 用的还是旧绑定",
   );
-  assert.match(deployScript, /Environment=CB_EXPECTED_RELEASE_ID=/);
+  assert.match(deployScript, /^CB_EXPECTED_RELEASE_ID=/m);
   assert.match(
     deployScript,
     /\.service\.d/,
@@ -61,16 +61,32 @@ test("channel 激活模式要设成 required，否则 supervisor 永远不拉起
   // pending 模式下 cloud-supervisor 打一行 component_pending 就 await 一个
   // 永不 resolve 的 Promise：微信、后台页面、整个 app 一个都不会启动，而
   // systemctl 依然显示 active。
-  assert.match(deployScript, /CB_CHANNEL_ACTIVATION_MODE=required/);
+  assert.match(deployScript, /^CB_CHANNEL_ACTIVATION_MODE=required$/m);
 });
 
 test("状态目录指向真正存着账号和密钥的那个目录", () => {
   assert.match(
     deployScript,
-    /Environment=CYBERBOSS_STATE_DIR=\$STATE_DIR/,
+    /^CYBERBOSS_STATE_DIR=\$STATE_DIR$/m,
     "50- 那个 drop-in 把状态目录改到了子目录，必须显式覆盖回来",
   );
   assert.match(deployScript, /^STATE_DIR="?\/var\/lib\/cyberboss"?$/m);
+});
+
+test("覆盖值走 EnvironmentFile，不走 Environment=", () => {
+  // systemd 的规则：EnvironmentFile 里的设置覆盖 Environment= 的设置，和 drop-in
+  // 的排序无关。主 unit 和 drop-in 50 各引了一个 env 文件，里面有旧的
+  // CYBERBOSS_WORKSPACE_ROOT 和 CYBERBOSS_STATE_DIR；用 Environment= 写的覆盖
+  // 值会被它们悄悄盖掉，而 `systemctl show -p Environment` 不展开
+  // EnvironmentFile，所以查出来一切正常、进程里却是旧值。这一条曾经让
+  // workspace_root_not_allowlisted 反复出现在一个"看起来已经改对了"的配置上。
+  assert.match(deployScript, /EnvironmentFile=\$LIVE_ENV/, "drop-in 必须引用自己的 env 文件");
+  assert.match(deployScript, /^LIVE_ENV=/m);
+  assert.doesNotMatch(
+    deployScript,
+    /^Environment=(CYBERBOSS_WORKSPACE_ROOT|CYBERBOSS_STATE_DIR|CB_RELEASE_ROOT)=/m,
+    "这些值一旦用 Environment= 写就会被已有的 EnvironmentFile 覆盖",
+  );
 });
 
 test("部署后的验证必须核对真实运行的版本号和后台端口", () => {
@@ -106,7 +122,7 @@ test("回滚目标取自绑定，不取自 current 指针", () => {
   // 照着 current 回滚，等于把服务推到一个从来没跑起来过的版本上。
   assert.match(
     deployScript,
-    /OLD_SHA="\$\(remote "sudo sed -n 's\|\^Environment=CB_EXPECTED_RELEASE_ID=\|\|p'/,
-    "OLD_SHA 必须从 drop-in 里的 CB_EXPECTED_RELEASE_ID 读出来",
+    /OLD_SHA="\$\(remote "sudo sed -n 's\|\^CB_EXPECTED_RELEASE_ID=\|\|p' \$LIVE_ENV/,
+    "OLD_SHA 必须从绑定文件里的 CB_EXPECTED_RELEASE_ID 读出来",
   );
 });
