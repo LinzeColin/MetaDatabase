@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-810",
+  "stage": "S8",
+  "phase": "P8.2",
+  "gate_id": "PG-8",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "b51180e847af52983155eea1f9d71df27bea8a96",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-820"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-032",
+    "AC-033",
+    "AC-034",
+    "AC-048"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "map runtime metrics to frozen business lines",
+    "scan field names and values for PII/secrets",
+    "enforce resource floors and restart budget without model calls"
+  ],
+  "outputs": [
+    "sanitized business-line Status snapshot",
+    "resource admission gate",
+    "bounded deterministic self-heal"
+  ],
+  "risks_addressed": [
+    "status PII leak",
+    "restart storm",
+    "false healthy state",
+    "OVH resource contention"
+  ],
+  "rollback": [
+    "disable new status adapter",
+    "stop restart loop and alert",
+    "retain last known safe release",
+    "revert to base b51180e847af52983155eea1f9d71df27bea8a96"
+  ],
+  "files_touched_outside_new_modules": [
+    "CyberBoss/app/package.json — adds the five new modules to the syntax check"
+  ]
+}

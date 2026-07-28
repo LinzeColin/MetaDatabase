@@ -1,0 +1,54 @@
+{
+  "schema_version": "cyberboss.cb810.acceptance.v1",
+  "task_id": "CB-810",
+  "stage": "S8",
+  "phase": "P8.2",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "b51180e847af52983155eea1f9d71df27bea8a96",
+  "closure_commit_recorded_by": "CB-820",
+  "results": [
+    {
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "check_count": 14,
+      "note": "All fourteen frozen business lines carry all fourteen frozen fields. A snapshot that omits or duplicates a line, or that adds or drops a field, is refused whole rather than published with the broken row quietly missing. Field names and field values are scanned recursively to depth eight: every frozen forbidden name is refused, so is a forbidden name nested inside a value, and so is a WeChat id, a user id, an email address, a bearer token, a provider key, a private key header or a macOS path appearing as a value under an allowed name. The refusal reports the field path and never the value. The snapshot orders by business line and carries its own digest, so the same state produces the same document regardless of input order."
+    },
+    {
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "check_count": 15,
+      "note": "The resource gate, the self-heal policy and the zero-agent ledger import nothing at all, so no admission, healing or accounting decision has a path to a model, and every outcome on every path reports modelCalls 0. An unmeasured floor rejects rather than being coerced to a plausible zero; hard floors are reported before pressure signals; degraded admits no new work. The restart budget is counted in a sliding window and then stops with an alert instead of trying harder, a restart inside the cooldown is deferred rather than amplified, old restarts age out while future-dated ones still count so clock skew buys nothing, and an unrestartable failure is isolated instead of restarted. All eleven zero-agent counters must be reported and zero — an unreported counter fails rather than reading as zero — and only the three declared purposes may reach a model."
+    },
+    {
+      "acceptance_id": "AC-034",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "Scanning the whole runtime tree — app/src, app/migrations and app/bin, every .js, .sql and .json — for /Users/, /Library/, .plist, LaunchAgent, LaunchDaemon, launchd and osascript yields zero dependency sites and twenty-four prohibition sites. Every occurrence is the rule being asserted: macos_launchd_dependency set false, a !== false guard, or a rejection guard on a /Users/ path. The package manifest declares a Node engine floor and names no macOS runtime."
+    },
+    {
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "check_count": 8,
+      "note": "The summary carries exactly the nine frozen aggregate fields — provider, budget state, soft warning, hard block, reserved and charged tokens, circuit state, last transition and reason code — enforced as an exact allowlist rather than a filter. The per-user dimension is collapsed inside the aggregation, before any summary object exists, so no user id, WeChat id, prompt, response, key, credential token or raw message can appear in the output. An unknown provider, circuit state or budget state is refused, and a reason code must match a code shape rather than being free text. A provider with no circuit row reports closed rather than unknown."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb810.py",
+  "validator_status": "PASS",
+  "node_verdict": "PASS",
+  "node_verdict_reason": "every mapped acceptance id passes on the exact target subject with no activation_pending item; this node needs no external credential",
+  "check_count": 41,
+  "pass_count": 41,
+  "fail_count": 0,
+  "activation_pending_count": 0,
+  "node_test_total": 27,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [],
+  "status": "passed"
+}

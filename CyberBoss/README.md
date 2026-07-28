@@ -25,12 +25,25 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P6.4 / CB-630`；`P6.5 / CB-640`；`PG-6`；
   `P7.1 / CB-700`；`P7.2 / CB-710`；
   `P7.3 / CB-720`；`P7.4 / CB-730`；
-  `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`
+  `P7.5 / CB-740`；`PG-7`；`P8.1 / CB-800`；`P8.2 / CB-810`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
-- 最新 Run：`CB-800`。数据边界、备份与用户生命周期闭环，全部叠加在既有实现之上，
+- 最新 Run：`CB-810`。Status 业务矩阵、资源闸门与 Zero-Agent 自愈。14 条冻结业务线
+  ×14 个必填字段：少一条线、多一条线、少一个字段、多一个字段都整份拒绝，绝不"悄悄少
+  一行照样发布"。字段名和字段值都按深度 8 递归扫描：冻结禁字段、嵌在值里的禁字段，
+  以及以合法字段名承载的微信 id、用户 id、邮箱、Bearer、Provider key、私钥头、macOS
+  路径，全部拒绝；拒绝信息只报字段路径不报值。用量摘要严格按冻结的 9 个聚合字段
+  白名单输出，per-user 维度在聚合内部就被丢弃（不是事后过滤），未知 Provider/熔断
+  状态/预算状态与自由文本 reason 一律拒绝。资源闸门、自愈策略与 Zero-Agent 台账三个
+  模块零 import，任何路径 `modelCalls` 都是 `0`；未测量的下限按拒绝处理，硬下限先于
+  压力信号上报，重启预算滑窗内耗尽即停并告警，冷却期内的重启是延后而不是放大，
+  时钟前跳买不到额外重启，不可重启的故障隔离而非重启；11 个必须为 0 的计数器少报
+  即失败（未上报 ≠ 0）。No-Mac 扫描覆盖整个运行时树：依赖点 `0`，禁令点 `24`。
+  **`CB-810` = `PASS`**（无条件）：`AC-032`/`AC-033`/`AC-034`/`AC-048` 全部通过，
+  无 `activation_pending`。证据在 `docs/evidence/CB-810/`。
+- 上一 Run：`CB-800`。数据边界、备份与用户生命周期闭环，全部叠加在既有实现之上，
   没有第二个事实源、第二套备份运行时或第二个数据库：既有 canonical spool 仍是唯一
   长期事实权威，新 envelope 只做校验，自身不开表、不开文件、不开连接。六个冻结禁字段
   在任意深度、作为更长字段名的子串、以及仅凭字段值命中密钥模式时都被拒绝，拒绝信息
@@ -103,9 +116,9 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
   v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-740`（Stage 7 全部 5 项）
-  与 `CB-800`（Stage 8 第 1 项）已通过；`PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
+  与 `CB-800`、`CB-810`（Stage 8 前 2 项）已通过；`PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
 
-- 尚未开始：`CB-810`、`CB-820`、`CB-830`、`CB-840` 与 `PG-8` 均为 `not_started`，
+- 尚未开始：`CB-820`、`CB-830`、`CB-840` 与 `PG-8` 均为 `not_started`，
   权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；
   每个节点必须作为独立 Run 按冻结 DAG 依赖顺序执行。
 - R2 backup/readback 与 isolated restore 已 verified；OCI 日常 write-only PAR 的读回

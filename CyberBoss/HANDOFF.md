@@ -19,12 +19,37 @@
 
 ## Current state
 
-Latest accepted node: `P8.1 / CB-800` passed as CONDITIONAL PASS on base
-`9384e1ec6e425098f6d2da37be2225b4965f502f`. Stage 6 and Stage 7 are complete
+Latest accepted node: `P8.2 / CB-810` passed unconditionally on base
+`b51180e847af52983155eea1f9d71df27bea8a96`. Stage 6 and Stage 7 are complete
 with `PG-6` and `PG-7` both sealed as CONDITIONAL PASS; `PG-8` has not started.
-Stage 8 remaining: `CB-810`, `CB-820`, `CB-830`, `CB-840`.
+Stage 8 remaining: `CB-820`, `CB-830`, `CB-840`.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
+
+`P8.2 / CB-810` closed the Status business matrix, the resource admission gate
+and zero-agent self-heal, and is the first Stage 8 node with no
+`activation_pending` item — it needs no external credential. All fourteen
+frozen business lines carry all fourteen frozen fields, and a snapshot that
+omits or duplicates a line, or adds or drops a field, is refused whole rather
+than published with the broken row quietly missing. Field names and values are
+scanned recursively to depth eight, so a forbidden name nested inside a value,
+or a WeChat id, user id, email, bearer token, provider key, private-key header
+or macOS path appearing under an allowed name, are all refused; the refusal
+reports the field path and never the value. The usage summary emits exactly the
+nine frozen aggregate fields as an exact allowlist, and the per-user dimension
+is collapsed inside the aggregation before any summary object exists. The
+resource gate, self-heal policy and zero-agent ledger import nothing at all and
+report zero model calls on every path; an unmeasured floor rejects, the restart
+budget stops with an alert instead of trying harder, clock skew buys no extra
+restarts, and an unreported zero-agent counter fails rather than reading as
+zero. Scanning the whole runtime tree for Mac markers found zero dependency
+sites and twenty-four prohibition sites. Two defects were found and fixed here:
+the additive status guard banned the bare substring "token", which would have
+refused the `reserved_tokens` and `charged_tokens` fields AC-048 mandates; and
+`evaluateResourceGate(null)` threw instead of rejecting, because `Number(null)`
+is `0` and an absent measurement read as a plausible zero that satisfied the
+queue and load ceilings. `AC-032`, `AC-033`, `AC-034` and `AC-048` all pass.
+Evidence in `docs/evidence/CB-810/`.
 
 `P8.1 / CB-800` closed the data boundary, backup and user-lifecycle loop as an
 additive layer over what already existed — no second fact source, no second

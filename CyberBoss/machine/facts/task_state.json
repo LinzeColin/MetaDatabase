@@ -6,11 +6,11 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-800",
+    "run_id": "CB-810",
     "gate_id": "PG-8",
-    "task_id": "CB-800",
-    "scope": "private_database_envelope_dual_copy_backup_scoped_export_deletion_and_crypto_shred",
-    "status": "passed_conditional"
+    "task_id": "CB-810",
+    "scope": "status_business_matrix_resource_gate_and_zero_agent_self_heal",
+    "status": "passed"
   },
   "prestage": [
     {
@@ -281,7 +281,7 @@
       "id": "CB-810",
       "stage": "S8",
       "phase": "P8.2",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-820",
@@ -684,6 +684,24 @@
       "real Cloudflare R2 bucket credential",
       "real OCI object storage pre-authenticated request",
       "real Private-Database endpoint"
-    ]
+    ],
+    "cb_800_closure_commit": "b51180e847af52983155eea1f9d71df27bea8a96",
+    "cb_810_base_head": "b51180e847af52983155eea1f9d71df27bea8a96",
+    "cb_810_business_lines": 14,
+    "cb_810_required_fields_per_line": 14,
+    "cb_810_status_scan": "recursive_depth_8_names_and_values",
+    "cb_810_missing_line_behaviour": "refuse_whole_snapshot",
+    "cb_810_usage_allowed_fields": 9,
+    "cb_810_usage_user_dimension": "dropped_before_summary_exists",
+    "cb_810_resource_unmeasured_metric": "reject",
+    "cb_810_self_heal_restart_budget": 3,
+    "cb_810_self_heal_module_imports": 0,
+    "cb_810_zero_agent_counters": 11,
+    "cb_810_unreported_counter": "fails_rather_than_reading_as_zero",
+    "cb_810_no_mac_dependency_sites": 0,
+    "cb_810_no_mac_prohibition_sites": 24,
+    "cb_810_app_suite": "434_pass_0_fail",
+    "cb_810_verdict": "PASS",
+    "cb_810_activation_pending": []
   }
 }

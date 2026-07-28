@@ -1,0 +1,148 @@
+{
+  "schema_version": "cyberboss.cb810.subject.v1",
+  "task_id": "CB-810",
+  "stage": "S8",
+  "phase": "P8.2",
+  "gate_id": "PG-8",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "b51180e847af52983155eea1f9d71df27bea8a96",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_800_closure_commit": "b51180e847af52983155eea1f9d71df27bea8a96",
+    "closure_commit_recorded_by": "CB-820"
+  },
+  "status_business_matrix": {
+    "business_lines": 14,
+    "required_fields_per_line": 14,
+    "frozen_contract_match": true,
+    "missing_line_refuses_whole_snapshot": true,
+    "duplicate_line_refuses_whole_snapshot": true,
+    "missing_field_refused": true,
+    "extra_field_refused": true,
+    "unknown_business_line_refused": true,
+    "unknown_state_refused": true,
+    "unknown_dependency_refused": true,
+    "field_name_scan": "recursive_to_depth_8",
+    "field_value_scan": "recursive_to_depth_8",
+    "value_patterns_refused": [
+      "wxid_",
+      "usr_",
+      "email address",
+      "Bearer token",
+      "provider api key",
+      "private key header",
+      "macOS /Users/ path"
+    ],
+    "refusal_names_field_path_not_value": true,
+    "assembled_snapshot_rescanned": true,
+    "snapshot_ordering": "by_business_line_name",
+    "snapshot_digest": "sha256_over_the_payload",
+    "input_order_changes_digest": false
+  },
+  "model_usage_observability": {
+    "allowed_fields": [
+      "provider",
+      "budget_state",
+      "soft_warning",
+      "hard_block",
+      "reserved_tokens",
+      "charged_tokens",
+      "circuit_state",
+      "last_transition_at",
+      "reason_code"
+    ],
+    "field_set_is_an_exact_allowlist": true,
+    "user_dimension_dropped_before_summary_exists": true,
+    "forbidden_dimensions_absent_from_output": [
+      "user_id",
+      "wechat_id",
+      "prompt",
+      "response",
+      "api_key",
+      "credential_token",
+      "raw_message"
+    ],
+    "unknown_provider_refused": true,
+    "unknown_circuit_state_refused": true,
+    "unknown_budget_state_refused": true,
+    "free_text_reason_code_refused": true,
+    "provider_without_circuit_row": "reports closed, not unknown",
+    "summary_model_calls": 0
+  },
+  "resource_gate": {
+    "required_metrics": 5,
+    "unmeasured_metric": "reject_RESOURCE_MEASUREMENT_UNAVAILABLE",
+    "null_metrics_object": "reject",
+    "negative_or_nan_metric": "reject",
+    "hard_floors_reported_before_pressure": true,
+    "floor_breach": "reject",
+    "pressure_breach": "degraded",
+    "degraded_admits_new_work": false,
+    "exactly_at_the_floor": "allow",
+    "model_calls_on_every_path": 0
+  },
+  "self_heal": {
+    "module_imports": 0,
+    "restart_budget": 3,
+    "window_ms": 900000,
+    "cooldown_ms": 60000,
+    "budget_exhausted": "stop_restart_loop_and_alert",
+    "restart_inside_cooldown": "deferred_not_amplified",
+    "restarts_age_out_of_the_window": true,
+    "future_timestamps_counted_so_clock_skew_buys_nothing": true,
+    "unrestartable_failure": "isolate_and_alert",
+    "model_calls_on_every_path": 0
+  },
+  "zero_agent": {
+    "counters_that_must_equal_zero": 11,
+    "unreported_counter": "fails_rather_than_reading_as_zero",
+    "allowed_model_call_purposes": 3,
+    "forbidden_background_model_calls_declared": 5,
+    "purpose_checked_at_the_boundary": true
+  },
+  "no_mac": {
+    "scanned_trees": ["app/src", "app/migrations", "app/bin"],
+    "markers": ["/Users/", "/Library/", ".plist", "LaunchAgent", "LaunchDaemon", "launchd", "osascript"],
+    "dependency_sites": 0,
+    "prohibition_sites": 24,
+    "node_engine_floor_declared": true,
+    "manifest_names_a_mac_runtime": false,
+    "note": "every marker occurrence in the runtime tree is a prohibition — macos_launchd_dependency:false, a !== false guard, or a rejection guard on /Users/ — so the rule is actively asserted rather than merely unmentioned"
+  },
+  "defects_fixed_in_this_node": [
+    {
+      "issue": "the additive status field guard banned the bare substring \"token\", which would have refused reserved_tokens and charged_tokens — the two aggregate fields the frozen AC-048 contract requires",
+      "detection": "the CB-810 suite failed on the model usage summary with STATUS_FIELD_FORBIDDEN",
+      "fix": "the credential-bearing token names are listed individually instead of banning the substring",
+      "verification": "a validator check now proves that no frozen usage field is blocked by the guard"
+    },
+    {
+      "issue": "evaluateResourceGate(null) threw a TypeError instead of rejecting, because `metrics && metrics[key]` yields null and Number(null) is 0 — an absent measurement read as a plausible zero and satisfied the queue and load ceilings",
+      "detection": "the CB-810 suite's null-metrics case",
+      "fix": "null, undefined and boolean are rejected before the numeric coercion",
+      "verification": "a null metrics object and every single-metric omission all reject with RESOURCE_MEASUREMENT_UNAVAILABLE"
+    }
+  ],
+  "tests": {
+    "cb810_suite_tests": 27,
+    "cb810_suite_failures": 0,
+    "cb810_repeat_clean_runs": "3/3",
+    "app_suite_tests": 434,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "background_model_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [],
+  "status": "passed"
+}

@@ -1,0 +1,302 @@
+{
+  "schema_version": "cyberboss.cb810.validation.v1",
+  "task_id": "CB-810",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-032",
+    "AC-033",
+    "AC-034",
+    "AC-048"
+  ],
+  "check_count": 41,
+  "pass_count": 41,
+  "fail_count": 0,
+  "activation_pending_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_verdict": "PASS",
+  "no_mac_scan": {
+    "offenders": [],
+    "prohibition_sites": 24
+  },
+  "repeat_runs": [
+    {
+      "suite": "test/cb810-status-resource-selfheal.test.js",
+      "returncode": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb810-status-resource-selfheal.test.js",
+      "returncode": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb810-status-resource-selfheal.test.js",
+      "returncode": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 27,
+  "checks": [
+    {
+      "check": "ac032.business_lines_match_the_frozen_contract",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "declared=['wechat_channel', 'user_registration_consent', 'user_isolation', 'secure_setup_portal', 'ai_provider_connection', 'four_source_import', 'profile_memory', 'timeline_diary_reminder', 'canonical_sync', 'r2_oci_objects', 'backup_restore', 'owner_codex_runtime', 'release_rollback', 'model_usage_budget_circuit']"
+    },
+    {
+      "check": "ac032.required_fields_match_the_frozen_contract",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "declared=['business_line', 'stage', 'state', 'upstream', 'downstream', 'slo', 'queue_depth', 'oldest_job_seconds', 'error_rate', 'last_success_at', 'last_recovery_at', 'release', 'rollback_release', 'reason_code']"
+    },
+    {
+      "check": "ac032.forbidden_fields_match_the_frozen_contract",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "declared=['wechat_id', 'user_id', 'name', 'message', 'prompt', 'response', 'api_key', 'file_name', 'profile', 'object_key']"
+    },
+    {
+      "check": "ac032.every_line_must_be_present",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "a snapshot that omits or duplicates a line is refused whole"
+    },
+    {
+      "check": "ac032.field_set_is_exact",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "a missing field and an extra field are both refused"
+    },
+    {
+      "check": "ac032.scan_is_recursive_on_names_and_values",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "field names and field values are scanned at every depth"
+    },
+    {
+      "check": "ac032.value_scan_covers_identity_and_secrets",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "wechat ids, user ids, bearer tokens, private keys and Mac paths are refused"
+    },
+    {
+      "check": "ac032.refusal_names_path_not_value",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "the refusal carries the field path, never the field value"
+    },
+    {
+      "check": "ac032.snapshot_is_rescanned_after_assembly",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "the assembled document is scanned again, including caller-supplied sections"
+    },
+    {
+      "check": "ac032.snapshot_is_deterministic",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "ordering is by name and the snapshot carries its own digest"
+    },
+    {
+      "check": "ac032.guard_does_not_forbid_a_required_usage_field",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "fields the guard would have blocked=[]"
+    },
+    {
+      "check": "ac048.allowed_fields_match_the_frozen_contract",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "declared=['provider', 'budget_state', 'soft_warning', 'hard_block', 'reserved_tokens', 'charged_tokens', 'circuit_state', 'last_transition_at', 'reason_code']"
+    },
+    {
+      "check": "ac048.forbidden_dimensions_match_the_frozen_contract",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "declared=['user_id', 'wechat_id', 'prompt', 'response', 'api_key', 'credential_token', 'raw_message']"
+    },
+    {
+      "check": "ac048.field_set_is_an_exact_allowlist",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "a field outside the frozen set cannot be published even by accident"
+    },
+    {
+      "check": "ac048.user_dimension_dropped_before_the_summary_exists",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "the aggregation collapses to provider totals; no user dimension is carried"
+    },
+    {
+      "check": "ac048.provider_budget_and_circuit_are_all_present",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "provider, budget state, reserved/charged tokens, circuit state and reason code"
+    },
+    {
+      "check": "ac048.unknown_provider_state_or_reason_is_refused",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "an unknown provider, circuit state, budget state or free-text reason is refused"
+    },
+    {
+      "check": "ac048.summary_passes_the_status_privacy_scan",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "the summary is scanned by the same fail-closed status scan"
+    },
+    {
+      "check": "ac048.summary_declares_zero_model_calls",
+      "acceptance_id": "AC-048",
+      "result": "PASS",
+      "detail": "the summary is arithmetic over stored rows, never a narration"
+    },
+    {
+      "check": "ac033.operational_modules_import_nothing",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "modules_with_imports=[]"
+    },
+    {
+      "check": "ac033.unmeasured_floor_rejects",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "an absent measurement rejects rather than coercing to a plausible zero"
+    },
+    {
+      "check": "ac033.floors_precede_pressure",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "a hard floor is reported before a pressure signal"
+    },
+    {
+      "check": "ac033.degraded_admits_nothing_new",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "only an explicit allow admits work"
+    },
+    {
+      "check": "ac033.gate_reports_zero_model_calls",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "every gate outcome reports zero model calls"
+    },
+    {
+      "check": "ac033.restart_budget_is_bounded",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "the restart budget is counted in a sliding window and then stops"
+    },
+    {
+      "check": "ac033.cooldown_defers_a_storm",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "a restart inside the cooldown is deferred rather than amplified"
+    },
+    {
+      "check": "ac033.clock_skew_buys_no_restarts",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "a future timestamp is counted, so a skewed clock cannot reset the budget"
+    },
+    {
+      "check": "ac033.unrestartable_failure_is_isolated",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "a corrupt database or a rejected credential is isolated, not restarted"
+    },
+    {
+      "check": "ac033.heal_reports_zero_model_calls",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "every self-heal outcome reports zero model calls"
+    },
+    {
+      "check": "ac033.zero_counters_match_the_frozen_contract",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "declared=['control_plane_llm_calls_total', 'scheduler_agent_invocations_total', 'health_agent_invocations_total', 'self_heal_agent_invocations_total', 'backup_agent_invocations_total', 'restore_agent_invocations_total', 'status_agent_invocations_total', 'sync_agent_invocations_total', 'import_parser_agent_invocations_total', 'analytics_agent_invocations_total', 'release_agent_invocations_total']"
+    },
+    {
+      "check": "ac033.allowed_model_calls_match_the_frozen_contract",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "declared=['user_initiated_ai_turn', 'user_explicit_profile_suggestion', 'owner_initiated_codex_turn']"
+    },
+    {
+      "check": "ac033.forbidden_background_calls_match_the_frozen_contract",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "declared=['provider_health_probe', 'budget_summary', 'analytics_summary', 'self_heal_decision', 'status_narration']"
+    },
+    {
+      "check": "ac033.unreported_counter_is_not_zero",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "a counter that was never reported fails rather than reading as zero"
+    },
+    {
+      "check": "ac033.purpose_is_checked_at_the_boundary",
+      "acceptance_id": "AC-033",
+      "result": "PASS",
+      "detail": "a call site declares its purpose and anything off the allowlist is refused"
+    },
+    {
+      "check": "ac034.no_mac_dependency_in_the_runtime_tree",
+      "acceptance_id": "AC-034",
+      "result": "PASS",
+      "detail": "offenders=[] total=0"
+    },
+    {
+      "check": "ac034.no_mac_rule_is_actively_asserted",
+      "acceptance_id": "AC-034",
+      "result": "PASS",
+      "detail": "prohibition_sites=24"
+    },
+    {
+      "check": "ac034.node_engine_floor_declared",
+      "acceptance_id": "AC-034",
+      "result": "PASS",
+      "detail": "engines.node=>=22"
+    },
+    {
+      "check": "ac034.manifest_names_no_mac_runtime",
+      "acceptance_id": "AC-034",
+      "result": "PASS",
+      "detail": "the package manifest names no macOS runtime"
+    },
+    {
+      "check": "cb810.no_control_bytes",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb810.modules_are_syntax_checked",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "missing_from_check_script=[]"
+    },
+    {
+      "check": "cb810.suite_is_deterministic",
+      "acceptance_id": "AC-032",
+      "result": "PASS",
+      "detail": "clean_runs=3/3 tests=27"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/status/business-matrix.js": "e726bdc850f85f444d9fd032eeca5dee8779eae3a1b572a9d535fbaf6ff16fb7",
+    "app/src/services/status/model-usage-summary.js": "32c20acbbb0266f5f399a05e1be4da3b014bca5c93a118dbfb9b06ce748bc39e",
+    "app/src/services/status/zero-agent-ledger.js": "cbc5e329b3e683eb93a3a1067b201b400b50244c1c4f3686399eff821a304071",
+    "app/src/services/operations/resource-gate.js": "89efa2f344fab74ddaf50d5f37d7ce655660a07cc57477964268a7d9f77c49e2",
+    "app/src/services/operations/self-heal-policy.js": "7d4213cc17c26d5f33debaeb192341f24294192989254490f03283225e449497"
+  }
+}
