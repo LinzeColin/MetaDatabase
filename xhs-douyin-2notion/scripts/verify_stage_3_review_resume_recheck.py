@@ -251,6 +251,7 @@ def validate_taskpack_and_current_transition() -> Check:
     by_id = {item.get("id"): item for item in taskpack["tasks"] if isinstance(item, dict)}
     task010 = by_id.get("TSK.x2n.adapters.010", {})
     next_task = by_id.get("TSK.x2n.multimodal.001", {})
+    following_task = by_id.get("TSK.x2n.multimodal.002", {})
     gates = {item.get("id"): item for item in taskpack.get("stage_gates", []) if isinstance(item, dict)}
     _require(
         task010.get("status") == "completed"
@@ -259,30 +260,60 @@ def validate_taskpack_and_current_transition() -> Check:
         "Task010 completion receipt no longer matches Taskpack",
     )
     _require(
-        next_task.get("status") == "planned"
+        next_task.get("status") in {"planned", "completed"}
         and next_task.get("phase") == "PH.X2N.4.1"
         and "TSK.x2n.adapters.010" in next_task.get("depends_on", []),
         "Stage 4 Task001 bypasses G3 predecessor",
     )
     _require(gates.get("G3", {}).get("pass_conditions") == EXPECTED_G3_CONDITIONS, "G3 taskpack conditions drifted")
     state = _load_json(TASK_STATE)
-    _require(
-        state.get("last_completed_phase") == REVIEW_ID
-        and state.get("review_id") == REVIEW_ID
-        and state.get("run_id") == RUN_ID
-        and state.get("stage") == "STG.X2N.3"
-        and state.get("tasks", {}).get("TSK.x2n.adapters.010") == "pass"
-        and state.get("next_phase") == "PH.X2N.4.1"
-        and state.get("next_run") == "TSK.x2n.multimodal.001"
-        and state.get("next_phase_authorized") is True
-        and state.get("stage_3_review_complete") is True
-        and state.get("stage_3_remote_upload_authorized") is False
-        and state.get("stage_4_authorized") is True
-        and state.get("public_release_authorized") is False
-        and state.get("stage_gate") == "pass"
-        and state.get("current_stage_gate") == "pass",
-        "current task-state transition is not a bounded G3 pass",
-    )
+    if next_task.get("status") == "planned":
+        _require(
+            state.get("last_completed_phase") == REVIEW_ID
+            and state.get("review_id") == REVIEW_ID
+            and state.get("run_id") == RUN_ID
+            and state.get("stage") == "STG.X2N.3"
+            and state.get("tasks", {}).get("TSK.x2n.adapters.010") == "pass"
+            and state.get("next_phase") == "PH.X2N.4.1"
+            and state.get("next_run") == "TSK.x2n.multimodal.001"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False
+            and state.get("stage_gate") == "pass"
+            and state.get("current_stage_gate") == "pass",
+            "current task-state transition is not a bounded G3 pass",
+        )
+        completed_task = "TSK.x2n.adapters.010"
+        next_task_id = "TSK.x2n.multimodal.001"
+    else:
+        _require(
+            following_task.get("status") == "planned"
+            and following_task.get("phase") == "PH.X2N.4.2"
+            and "TSK.x2n.multimodal.001" in following_task.get("depends_on", []),
+            "Stage 4 Task002 bypasses the completed media-preprocessing Task001",
+        )
+        _require(
+            state.get("last_completed_phase") == "PH.X2N.4.1"
+            and state.get("review_id") == REVIEW_ID
+            and state.get("run_id") == "RUN-X2N-S04-M001"
+            and state.get("stage") == "STG.X2N.4"
+            and state.get("tasks", {}).get("TSK.x2n.adapters.010") == "pass"
+            and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
+            and state.get("next_phase") == "PH.X2N.4.2"
+            and state.get("next_run") == "TSK.x2n.multimodal.002"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False
+            and state.get("stage_gate") == "pass"
+            and state.get("current_stage_gate") == "not_run",
+            "completed Task001 does not preserve the bounded G3 and Stage4 state transition",
+        )
+        completed_task = "TSK.x2n.multimodal.001"
+        next_task_id = "TSK.x2n.multimodal.002"
     _require(
         state.get("remote_upload") == "not_required_for_local_stage_transition"
         and state.get("current_stage_remote_upload") == "not_required_for_local_stage_transition",
@@ -291,7 +322,7 @@ def validate_taskpack_and_current_transition() -> Check:
     return Check(
         "taskpack_and_current_stage_transition",
         "PASS",
-        {"completed_task": "TSK.x2n.adapters.010", "next_task": "TSK.x2n.multimodal.001", "remote_upload": 0},
+        {"completed_task": completed_task, "next_task": next_task_id, "remote_upload": 0},
     )
 
 
@@ -334,14 +365,27 @@ def validate_docs_and_public_boundary() -> Check:
         texts.append(text)
     combined = "\n".join(texts)
     _safe_payload({"controls": combined}, forbid_all_urls=False)
-    _require(
-        "status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED" in PRFAQ.read_text(encoding="utf-8")
-        and "implementation_authorized: stage_4_task_001_next_single_phase_run" in PRFAQ.read_text(encoding="utf-8")
-        and "status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED" in PRD.read_text(encoding="utf-8")
-        and "current_run_scope: stage_3_g3_recheck_pass_stage_4_task001_next" in PRD.read_text(encoding="utf-8")
-        and "implementation_authorized: stage_4_task_001_next_single_phase_run" in PRD.read_text(encoding="utf-8"),
-        "PRFAQ/PRD do not describe the bounded G3 pass",
-    )
+    prfaq_text = PRFAQ.read_text(encoding="utf-8")
+    prd_text = PRD.read_text(encoding="utf-8")
+    task001_completed = _load_json(TASK_STATE).get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
+    if task001_completed:
+        _require(
+            "status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH" in prfaq_text
+            and "implementation_authorized: stage_4_task_002_next_single_phase_run" in prfaq_text
+            and "status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH" in prd_text
+            and "current_run_scope: stage_4_task001_complete_task002_next" in prd_text
+            and "implementation_authorized: stage_4_task_002_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD do not describe the completed bounded Task001",
+        )
+    else:
+        _require(
+            "status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED" in prfaq_text
+            and "implementation_authorized: stage_4_task_001_next_single_phase_run" in prfaq_text
+            and "status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED" in prd_text
+            and "current_run_scope: stage_3_g3_recheck_pass_stage_4_task001_next" in prd_text
+            and "implementation_authorized: stage_4_task_001_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD do not describe the bounded G3 pass",
+        )
     for token in (
         REVIEW_ID,
         RUN_ID,

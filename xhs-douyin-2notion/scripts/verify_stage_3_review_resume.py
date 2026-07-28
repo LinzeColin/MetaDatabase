@@ -958,7 +958,14 @@ def validate_release_and_data_contracts() -> Check:
         == "planned_task_uxops_005_not_claimed_current",
         "whole-root Time Machine target or current implementation state drifted",
     )
-    _require(project.get("status") == "stage_3_review_resume_contract_versioned_g3_blocked_technical", "project status drifted")
+    task001_state = state.get("tasks", {}).get(STAGE4_NEXT_TASK)
+    _require(task001_state in {None, "pass"}, "Task001 current state is invalid")
+    expected_project_status = (
+        "stage_4_task001_bounded_media_preprocessing_pass_ci_synth"
+        if task001_state == "pass"
+        else "stage_3_review_resume_contract_versioned_g3_blocked_technical"
+    )
+    _require(project.get("status") == expected_project_status, "project status drifted")
     _require(project.get("canonical_store") == "active_local_sqlite_logical_truth", "project truth-source drifted")
     _require(
         project.get("private_db_auth")
@@ -1012,25 +1019,42 @@ def validate_release_and_data_contracts() -> Check:
             and recheck.get("next_task", {}).get("id") == STAGE4_NEXT_TASK,
             "G3 recheck fact is not a bounded local Stage 4 authorization",
         )
-        _require(
-            state.get("last_completed_phase") == TASK010_RECHECK
-            and state.get("review_id") == TASK010_RECHECK
-            and state.get("run_id") == G3_RECHECK_RUN_ID
-            and state.get("next_run") == STAGE4_NEXT_TASK
-            and state.get("next_phase") == "PH.X2N.4.1"
-            and state.get("next_phase_authorized") is True
-            and state.get("stage_3_review_complete") is True
-            and state.get("stage_4_authorized") is True
-            and state.get("remote_upload") == "not_required_for_local_stage_transition",
-            "G3 pass did not produce the exact bounded Stage 4 routing",
-        )
+        if task001_state == "pass":
+            _require(
+                state.get("last_completed_phase") == "PH.X2N.4.1"
+                and state.get("review_id") == TASK010_RECHECK
+                and state.get("run_id") == "RUN-X2N-S04-M001"
+                and state.get("stage") == "STG.X2N.4"
+                and state.get("tasks", {}).get(STAGE4_NEXT_TASK) == "pass"
+                and state.get("next_run") == "TSK.x2n.multimodal.002"
+                and state.get("next_phase") == "PH.X2N.4.2"
+                and state.get("next_phase_authorized") is True
+                and state.get("stage_3_review_complete") is True
+                and state.get("stage_4_authorized") is True
+                and state.get("current_stage_gate") == "not_run"
+                and state.get("remote_upload") == "not_required_for_local_stage_transition",
+                "completed Task001 did not preserve the bounded Stage 4 routing",
+            )
+        else:
+            _require(
+                state.get("last_completed_phase") == TASK010_RECHECK
+                and state.get("review_id") == TASK010_RECHECK
+                and state.get("run_id") == G3_RECHECK_RUN_ID
+                and state.get("next_run") == STAGE4_NEXT_TASK
+                and state.get("next_phase") == "PH.X2N.4.1"
+                and state.get("next_phase_authorized") is True
+                and state.get("stage_3_review_complete") is True
+                and state.get("stage_4_authorized") is True
+                and state.get("remote_upload") == "not_required_for_local_stage_transition",
+                "G3 pass did not produce the exact bounded Stage 4 routing",
+            )
         expected_local_ci = (
             "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_"
             "technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_"
             "reconciliation_platform_model_real_account_calls_0"
         )
         stage_4_authorized = True
-        task_state_mode = "g3_pass_stage4_local_next"
+        task_state_mode = "stage4_task001_complete" if task001_state == "pass" else "g3_pass_stage4_local_next"
     else:
         raise ResumeError("Task010 current state is neither planned nor pass")
     _require(
@@ -1071,6 +1095,16 @@ def validate_release_and_data_contracts() -> Check:
             and "current_run_scope: stage_3_task010_ci_synth_accepted_g3_recheck_pending" in prd_text
             and "implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run" in prd_text,
             "PRFAQ/PRD completed Task010 state drifted",
+        )
+    elif task_state_mode == "stage4_task001_complete":
+        _require(
+            "status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH" in prfaq_text
+            and "decision: DIRECT_MVP_TASK001_ACCEPTED_TASK002_NEXT" in prfaq_text
+            and "implementation_authorized: stage_4_task_002_next_single_phase_run" in prfaq_text
+            and "status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH" in prd_text
+            and "current_run_scope: stage_4_task001_complete_task002_next" in prd_text
+            and "implementation_authorized: stage_4_task_002_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD completed Task001 state drifted",
         )
     else:
         _require(

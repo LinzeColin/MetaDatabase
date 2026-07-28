@@ -249,6 +249,7 @@ def validate_task_state_and_historical_resume() -> Check:
     _require(task.get("phase") == PHASE and task.get("status") == "completed", "Task010 is not completed")
     _require(task.get("acceptance_ids") == ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"], "Task010 acceptance IDs drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Task010 current state is not pass")
+    task001_state = state.get("tasks", {}).get("TSK.x2n.multimodal.001")
     if state.get("stage_gate") == "review_pending":
         _require(
             state.get("last_completed_phase") == PHASE
@@ -258,6 +259,20 @@ def validate_task_state_and_historical_resume() -> Check:
             "Task010 pending-review state drifted",
         )
         current_stage = "review_pending"
+    elif task001_state == "pass":
+        _require(
+            state.get("last_completed_phase") == "PH.X2N.4.1"
+            and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK"
+            and state.get("run_id") == "RUN-X2N-S04-M001"
+            and state.get("stage") == "STG.X2N.4"
+            and state.get("current_stage_gate") == "not_run"
+            and state.get("stage_gate") == "pass"
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("next_run") == "TSK.x2n.multimodal.002",
+            "Task010 historical boundary was not preserved after Task001 completion",
+        )
+        current_stage = "stage4_task001_complete"
     else:
         _require(
             state.get("last_completed_phase") == "STG.X2N.3.REVIEW.RESUME.RECHECK"

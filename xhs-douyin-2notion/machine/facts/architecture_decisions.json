@@ -1,25 +1,25 @@
 {
   "schema_version": "1.1",
-  "phase": "STG.X2N.3.REVIEW.RESUME",
-  "status": "stage_3_review_resume_contract_versioned_g3_blocked_technical",
+  "phase": "PH.X2N.4.1",
+  "status": "stage_4_task001_bounded_media_preprocessing_pass_ci_synth",
   "review_id": "STG.X2N.3.REVIEW.RESUME",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
     {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design", "implementation_state": "sqlite_schema_v2_store_plus_owner_removed_terminal_guard_exact_private_scan_proof_batch_comparison_and_adapter_driven_eighty_row_artifact_markdown_notion_mock_outbox_replay_ci_synth_pass"},
-    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "six_platform_current_page_ci_synth_pass_relation_list_native_dispatch_and_explicit_failure_fallback_are_the_only_g3_technical_blocker_task_010_planned"},
+    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "six_platform_current_page_ci_synth_pass_relation_list_native_dispatch_and_explicit_failure_fallback_g3_pass_stage4_task001_complete"},
     {"id": "ADR-004", "topic": "single_private_data_root_and_credentials", "state": "accepted_design", "implementation_state": "x2n_data_root_is_ephemeral_working_copy_whole_root_time_machine_exclusion_target_not_currently_implemented_durable_assets_route_to_private_metadatabase_exact_domain_per_object_gate_area_global_verify_redacted_advisory_logical_tombstone_deletion_epoch_no_hard_erase_via_x2n_implementation_planned_in_uxops_005"},
     {"id": "ADR-005", "topic": "six_platform_policy_and_clean_room", "state": "accepted_design", "implementation_state": "xhs_visible_dom_only_plus_douyin_exact_pin_owner_managed_sidecar_protocol_plus_bilibili_arc_base_kuaishou_user_video_info_weibo_current_user_favorites_and_taobao_owner_explicit_item_get_minimum_field_sanitized_contracts_ci_synth_with_zero_budget_unknown_scope_retention_price_quota_raw_api_cookie_signing_and_all_production_batch_features_disabled"},
     {"id": "ADR-006", "topic": "capability_negotiation", "state": "accepted_design", "implementation_state": "eight_component_doctor_ok_degraded_blocked_and_short_ttl_session_health_ci_synth_pass_task010_plans_exact_eight_scope_typed_get_capabilities_and_single_sqlite_derived_outcome_authority_technical_block_has_no_legal_terminal"},
     {"id": "ADR-007", "topic": "user_gesture_and_bounded_batches", "state": "accepted_design", "implementation_state": "single_adapter_mutex_low_frequency_plus_xhs_visible_batches_douyin_single_exchange_and_bilibili_kuaishou_weibo_taobao_single_owner_selection_twenty_item_batches_no_auto_scroll_pagination_retry_strict_successor_exact_replay_plus_two_distinct_xhs_full_scan_missing_state_machine_ci_synth_pass"},
-    {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_design", "implementation_state": "url_firewall_ip_pinned_transport_contract_bounded_download_temporary_lease_cleaner_and_fixed_scope_scanner_ci_synth_pass_real_network_and_media_processors_not_run"},
+    {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_implementation", "implementation_state": "lease_scoped_bounded_ffmpeg_ffprobe_audio_keyframe_dedup_and_derivative_cleanup_ci_synth_pass"},
     {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_design", "implementation_state": "owner_only_top_level_taxonomy_plus_unclassified_projection_seed_and_xhs_likes_conservative_inbox_ci_synth_pass_ai_category_creation_not_run"},
-    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "resume_versions_exact_scope_id_start_sync_typed_get_capabilities_single_capability_gate_outcome_authority_and_explicit_failure_fallback_real_activation_owned_by_stage6_g3_remains_blocked_only_on_task010_upload_and_stage4_forbidden"},
+    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "resume_versions_exact_scope_id_start_sync_typed_get_capabilities_single_capability_gate_outcome_authority_and_explicit_failure_fallback_g3_pass_task001_evidence_complete_real_activation_owned_by_stage6"},
     {"id": "ADR-011", "topic": "pinned_upstream_sidecar_containment", "state": "accepted_implementation", "implementation_state": "douyin_commit_tree_version_license_protocol_and_private_build_attestation_exact_match_subprocess_no_shell_loopback_rest_strict_schema_url_path_raw_storage_leakage_block_shadow_cannot_promote"},
     {"id": "ADR-012", "topic": "direct_mvp_release_without_prerelease_or_fixed_soak", "state": "accepted_design", "implementation_state": "g0_g5_plus_prior_stage6_tasks_and_blocking_acceptances_outside_exact_assurance005_owned_set_start_assurance005_then_in_task_eighty_xhs_douyin_baseline_each_additional_enabled_capability_independent_max_twenty_security_rollback_signoff_deploy_run_online_smoke_then_g6_pass_for_unique_v0_0_0_1_post_live_monitoring_non_blocking"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-009_and_stage3_review_fixes_ci_synth_only_task010_contract_planned_not_implemented",
+  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001_ci_synth_only",
   "real_account_execution": false,
-  "stage_gate": "g3_blocked_technical"
+  "stage_gate": "g3_pass_stage4_in_progress"
 }

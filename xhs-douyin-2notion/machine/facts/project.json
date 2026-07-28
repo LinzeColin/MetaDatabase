@@ -41,5 +41,7 @@
     "weibo",
     "taobao"
   ],
-  "status": "stage_3_review_resume_contract_versioned_g3_blocked_technical"
+  "stage_4_current_task": "TSK.x2n.multimodal.001_pass_ci_synth",
+  "media_preprocessing": "lease_scoped_ffmpeg_ffprobe_audio_keyframe_dedup_temporary_only",
+  "status": "stage_4_task001_bounded_media_preprocessing_pass_ci_synth"
 }

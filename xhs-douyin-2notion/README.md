@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：独立 `STG.X2N.3.REVIEW.RESUME.RECHECK` 已签发 `G3=PASS_CI_SYNTH`：重新验证 8 scope 严格 Extension→Native→Adapter dispatch、完整 SQLite capability snapshot 与技术 veto、restart/reconciliation、空响应不删除，以及 failed `run_record`＋脱敏 `run_failure` 到第二次 Owner fallback。下一单可本地执行 `TSK.x2n.multimodal.001 / PH.X2N.4.1`；Stage 3 上传、部署、发布、真实账号和平台调用仍禁止。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本任务未使用 authenticated session，未来显式授权 Task 也只能经 `private_db_client.py` 使用现有 session，不能接触 Token 值或修改/删除/撤销/轮换认证。
+当前状态：独立 `STG.X2N.3.REVIEW.RESUME.RECHECK` 已签发 `G3=PASS_CI_SYNTH`，其后唯一允许的 `TSK.x2n.multimodal.001 / PH.X2N.4.1` 已完成。它把本机 FFmpeg/FFprobe、可选音频、代表帧、近重复过滤和派生文件清理限制在现有临时 lease 内；32 个合成测试及临时本机工具 smoke 通过，平台、账号、Notion、模型调用均为 0。下一单为 `TSK.x2n.multimodal.002 / PH.X2N.4.2`；Stage 3 上传、部署、发布和真实平台执行仍禁止。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本任务未使用 authenticated session，未来显式授权 Task 也只能经 `private_db_client.py` 使用现有 session，不能接触 Token 值或修改/删除/撤销/轮换认证。
 
 发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
@@ -24,19 +24,17 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 3 / Review Resume 与当前 G3
+## Stage 4 / 当前有界媒体预处理
 
 ```bash
-.venv/bin/python -B scripts/verify_stage_3_review_resume_recheck.py \
-  --verify-worktree --write-evidence --require-evidence
-.venv/bin/python -B -m unittest tests.test_stage_3_review_resume_recheck
+.venv/bin/python -B scripts/run_multimodal_001_acceptance.py
+.venv/bin/python -B scripts/verify_multimodal_001.py --verify-worktree --run-acceptance
 ```
 
 当前运行状态真源是 `machine/facts/task_state.json`；`machine/facts/stage_3_review_resume_state.json`
-是冻结的 Resume 历史事实，`machine/facts/stage_3_review_resume_recheck_state.json` 是独立 G3
-决定事实。G3 允许 `READY_FOR_MVP_ACTIVATION` 与 `DISABLED_EXTERNAL_GATE` 两种技术终态；后者必须
-保持 Feature Flag 关闭、平台调用 0、live support claim 0。真实账号激活和完整 `ACC.x2n.rel.006`
-只在 Stage 6 判定，不再冒充 Stage 3 证据。完整历史合同见
+与 `machine/facts/stage_3_review_resume_recheck_state.json` 仍分别是冻结 Resume/G3 历史事实。
+Task001 的公开证据在 `evidence/multimodal/TSK.x2n.multimodal.001.json`；它不是 ASR/OCR、分类、
+真实媒体或任何外部平台能力的通过声明。下一单仍必须遵循 DAG，历史 G3 合同见
 `docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
 `docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。
 

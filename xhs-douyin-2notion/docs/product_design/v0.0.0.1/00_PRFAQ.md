@@ -3,10 +3,10 @@ artifact: PRFAQ
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED
+status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-decision: DIRECT_MVP_G3_RECHECK_PASS_STAGE4_LOCAL_NEXT
-implementation_authorized: stage_4_task_001_next_single_phase_run
+decision: DIRECT_MVP_TASK001_ACCEPTED_TASK002_NEXT
+implementation_authorized: stage_4_task_002_next_single_phase_run
 owner: LinzeColin
 repository_target: LinzeColin/MetaDatabase
 skill_path: xhs-douyin-2notion/
@@ -41,7 +41,7 @@ timezone: Australia/Sydney
 | 多模态 | 标题/正文 + ASR + OCR + 关键帧视觉理解 + 融合摘要 + 自动分类 + 人工复核 |
 | 公共仓库边界 | 只提交代码、契约、合成 Fixture、脱敏证据；Cookie、Token、浏览器 Profile、私人内容和运行数据库禁止进入 Git |
 | 发布策略 | G0–G5＋前置任务/最终任务自有集合外 Acceptance → assurance.005 内完成 80 条 XHS/DY 基线＋每个额外启用能力独立 ≤20 条激活/安全/回滚/签字 → 部署运行/online smoke → G6 PASS；合法外部门可关闭结算、技术阻断不可结算；无预发布阶段、固定健康观察期或 soak |
-| 开发授权 | Stage 0–2 已合并；独立 G3 CI-synth 复验已通过，下一单可本地执行 `TSK.x2n.multimodal.001 / PH.X2N.4.1`；真实账号、Stage 3 上传、部署与发布仍未授权 |
+| 开发授权 | Stage 0–2 已合并；独立 G3 CI-synth 复验与 `TSK.x2n.multimodal.001 / PH.X2N.4.1` 均已通过，下一单可本地执行 `TSK.x2n.multimodal.002 / PH.X2N.4.2`；真实账号、Stage 3 上传、部署与发布仍未授权 |
 
 **Pursuing Goal**
 
@@ -417,7 +417,7 @@ Monthly Net Monetary Value
 
 ## 未授权
 
-- 上传 Stage 3、部署或发布；G3 仅授权下一单本地 `PH.X2N.4.1`，不授权这些外部动作；
+- 上传 Stage 3、部署或发布；完成的 G3/Task001 仅授权下一单本地 `PH.X2N.4.2`，不授权这些外部动作；
 - 真实账号运行或真实平台调用；
 - 向公共仓库提交私人数据；
 - VPS 数据平面；

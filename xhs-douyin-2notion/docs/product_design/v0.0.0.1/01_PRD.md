@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED
+status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_3_g3_recheck_pass_stage_4_task001_next
-implementation_authorized: stage_4_task_001_next_single_phase_run
+current_run_scope: stage_4_task001_complete_task002_next
+implementation_authorized: stage_4_task_002_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -31,8 +31,8 @@ owner: LinzeColin
 | 运行数据 | Private；持久业务/运行数据进入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion` |
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
-| 产品阶段 | Stage 3 Review Resume |
-| 开发状态 | 独立 G3 CI-synth 复验已通过；`TSK.x2n.multimodal.001 / PH.X2N.4.1` 为下一单本地授权任务，Stage 3 上传、部署和发布仍未授权 |
+| 产品阶段 | Stage 4 Multimodal |
+| 开发状态 | 独立 G3 CI-synth 复验已通过；`TSK.x2n.multimodal.001 / PH.X2N.4.1` 已完成 lease-scoped 有界媒体预处理，下一单为 `TSK.x2n.multimodal.002 / PH.X2N.4.2`；Stage 3 上传、部署和发布仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 
@@ -41,6 +41,11 @@ derived outcome、失败 provenance 与第二次 Owner fallback 替换无法表�
 `START_SYNC` 形状，并禁止 Side Panel 猜测 `GET_CAPABILITIES`。独立 G3 复验已重新验证八 scope、
 完整 capability snapshot、技术 veto、restart/reconciliation、空响应保护与显式 fallback；它仍不替代
 Stage 6 的真实账号激活或最终上线验收。
+
+`TSK.x2n.multimodal.001` 只在临时 lease 内运行本机 FFmpeg/FFprobe：音频、代表帧和指纹均为
+不可序列化的短生命周期派生产物，退出处理上下文即清理；cleaner 可恢复进程中断遗留物。它以 64 MiB、
+120 分钟、50 帧、解码像素、CPU/file-size/open-file/wall-time 与 FFmpeg allocation 预算 Fail Closed，
+并不执行 ASR、OCR、视觉融合、分类、真实平台媒体或任何外部调用。
 
 ### 1.1 事实标记
 

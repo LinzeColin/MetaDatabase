@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 4 / Multimodal 001
+
+- 完成 `TSK.x2n.multimodal.001 / PH.X2N.4.1`：已有临时媒体 lease 内的 FFprobe、可选音频提取、代表帧采样、近重复过滤和派生文件清理均有硬上限；不新增持久化、平台、账号、Notion 或模型调用。
+- 合成边界覆盖损坏/超限/假 MIME/image bomb/FFmpeg hang/120 分钟与 50 帧上限/清理竞态/24 小时孤儿派生物；32 个专项测试和临时合成本机 FFmpeg/FFprobe smoke 通过，平台调用为 0。
+- 历史 G3/Task010 verifier 现可同时复验冻结事实与 Task001 已完成状态；仅授权下一单本地 `TSK.x2n.multimodal.002 / PH.X2N.4.2`，不引入 Alpha、Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 3 G3 Independent Recheck
 
 - 独立复验签发 `G3=PASS_CI_SYNTH`：Task010 八 scope Extension→Native→Adapter、完整 capability snapshot/技术 veto、Task005 空响应不删除与 Extension 100 次 restart reconciliation 均重新运行；真实平台调用、自动 fallback、上传、部署和发布均为 0/NOT_RUN。
