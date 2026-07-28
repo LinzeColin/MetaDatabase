@@ -39,6 +39,12 @@ from .profile_session import (
 )
 from .relation_reconciliation import build_owner_alpha_80_manifest_plan
 from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
+from .taxonomy import (
+    ClassificationEvaluator,
+    ConstrainedClassifier,
+    TaxonomySnapshot,
+    load_private_classification_gold_dataset,
+)
 from .taobao_selected import build_taobao_canary_plan
 from .weibo_selected import build_weibo_canary_plan
 from .xiaohongshu_favorites import build_xhs_favorites_canary_plan
@@ -58,6 +64,7 @@ WEIBO_TASK_ID = "TSK.x2n.adapters.008"
 TAOBAO_TASK_ID = "TSK.x2n.adapters.009"
 ASR_TASK_ID = "TSK.x2n.multimodal.002"
 OCR_VISION_TASK_ID = "TSK.x2n.multimodal.003"
+CLASSIFICATION_TASK_ID = "TSK.x2n.multimodal.005"
 RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
@@ -178,6 +185,34 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "real_account_execution": "NOT_RUN",
                 "status": "PASS" if report.status == "pass" else "LOW_QUALITY",
                 "task_id": OCR_VISION_TASK_ID,
+            }
+        if args.eval_action == "classify":
+            paths = _paths()
+            store = CanonicalStore(paths)
+            snapshot = TaxonomySnapshot.from_categories(store.list_taxonomy_categories())
+            dataset = load_private_classification_gold_dataset(paths, args.dataset)
+            if dataset.taxonomy_snapshot_sha256 != snapshot.snapshot_sha256:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Classification Gold Set taxonomy snapshot is stale")
+            classifier = ConstrainedClassifier()
+            report = ClassificationEvaluator(classifier=classifier).evaluate(
+                dataset.cases,
+                snapshot,
+                private_gold=True,
+                dataset_sha256=dataset.sha256,
+                expected_classifier_fingerprint=dataset.classifier_fingerprint,
+            )
+            return {
+                "acceptance_scope": "MULTIMODAL_005_CLASSIFICATION_PRIVATE_EVAL",
+                "action": "eval_classify",
+                "auto_classify": "ENABLED" if report.auto_classify_allowed else "SUGGESTION_ONLY",
+                "cloud_uploads": 0,
+                "dataset": dataset.safe_dict(),
+                "evaluation": report.safe_dict(),
+                "model_calls": 0,
+                "private_path_emitted": False,
+                "real_account_execution": "NOT_RUN",
+                "status": "PASS" if report.status == "pass" else "LOW_QUALITY",
+                "task_id": CLASSIFICATION_TASK_ID,
             }
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown model evaluation action")
     if args.action == "reconcile":
@@ -356,6 +391,8 @@ def build_parser() -> argparse.ArgumentParser:
     ocr.add_argument("--dataset", required=True)
     vision = evaluation_actions.add_parser("vision")
     vision.add_argument("--dataset", required=True)
+    classify = evaluation_actions.add_parser("classify")
+    classify.add_argument("--dataset", required=True)
     reconcile = subparsers.add_parser("reconcile")
     reconcile_actions = reconcile.add_subparsers(dest="reconcile_action", required=True)
     owner_alpha_plan = reconcile_actions.add_parser("owner-alpha-plan")
@@ -426,7 +463,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     task_id = (
-        OCR_VISION_TASK_ID
+        CLASSIFICATION_TASK_ID
+        if args.action == "eval" and args.eval_action == "classify"
+        else OCR_VISION_TASK_ID
         if args.action == "eval" and args.eval_action in {"ocr", "vision"}
         else ASR_TASK_ID
         if args.action == "eval"

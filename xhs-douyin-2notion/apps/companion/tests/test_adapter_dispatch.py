@@ -11,6 +11,7 @@ from x2n_contracts.models import CapabilityFeatureFlag, CapabilityReasonCode, Ca
 
 from x2n_companion.adapter_dispatch import AdapterDispatcher, CapabilityRegistry
 from x2n_companion.canonical_store import CanonicalStore
+from x2n_companion.migrations import LATEST_SCHEMA_VERSION
 from x2n_companion.native_host import DEVELOPMENT_EXTENSION_ORIGIN, dispatch_wire
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
 
@@ -289,14 +290,14 @@ class AdapterDispatchTests(unittest.TestCase):
         self.assertEqual(replay.job_id, fallback.job_id)
         self.assertEqual(self.store.counts()["request_ledger"], 2)
 
-    def test_scope_migration_down_requires_verified_backup_and_restores_v3_tables(self) -> None:
+    def test_scope_migration_down_requires_verified_backup_and_restores_later_schema_and_v3_tables(self) -> None:
         self._dispatch("get_capabilities", {"capability_contract_version": "1.0"})
         before = self.store.backup(label="before_scope_dispatch_downgrade")
         receipt = self.store.downgrade_with_backup(2)
         self.assertEqual(self.store.health()["schema_version"], 2)
         self.assertNotIn("capability_gate_outcome", self.store.counts())
         self.store.restore(receipt.backup_id, expected_sha256=receipt.database_sha256)
-        self.assertEqual(self.store.health()["schema_version"], 3)
+        self.assertEqual(self.store.health()["schema_version"], LATEST_SCHEMA_VERSION)
         self.assertEqual(self.store.counts()["capability_gate_outcome"], 8)
         self.assertNotEqual(before.database_sha256, "")
 

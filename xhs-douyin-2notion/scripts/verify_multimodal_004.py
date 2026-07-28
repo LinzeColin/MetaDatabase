@@ -23,6 +23,7 @@ PHASE = "PH.X2N.4.4"
 RUN_ID = "RUN-X2N-S04-M004"
 TASK_BASE_COMMIT = "85e26fb3c85f72f848c784cb8ad615f57b79c8fd"
 NEXT_TASK = "TSK.x2n.multimodal.005"
+TASK005 = NEXT_TASK
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
@@ -239,37 +240,72 @@ def validate_task_and_transition() -> Check:
         and task.get("depends_on") == ["TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003"],
         "Task004 contract drifted",
     )
-    _require(
-        state.get("stage") == "STG.X2N.4"
-        and state.get("last_completed_phase") == PHASE
-        and state.get("run_id") == RUN_ID
-        and state.get("run_kind") == "single_dag_task_ci_synth_fusion_injection_model_not_run"
-        and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", TASK_ID))
-        and state.get("next_phase") == "PH.X2N.4.5"
-        and state.get("next_run") == NEXT_TASK
-        and state.get("next_phase_authorized") is True
-        and state.get("stage_gate") == "pass"
-        and state.get("current_stage_gate") == "not_run"
-        and state.get("stage_3_review_complete") is True
-        and state.get("stage_3_remote_upload_authorized") is False
-        and state.get("stage_4_authorized") is True
-        and state.get("public_release_authorized") is False
-        and state.get("remote_upload") == "not_required_for_local_stage_transition",
-        "Task004 state transition is invalid",
-    )
+    task005_completed = state.get("tasks", {}).get(TASK005) == "pass"
+    if task005_completed:
+        _require(
+            state.get("stage") == "STG.X2N.4"
+            and state.get("last_completed_phase") == "PH.X2N.4.5"
+            and state.get("run_id") == "RUN-X2N-S04-M005"
+            and state.get("run_kind") == "single_dag_task_ci_synth_owner_taxonomy_classifier_private_gold_pending"
+            and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", TASK_ID, TASK005))
+            and state.get("next_phase") == "G4"
+            and state.get("next_run") == "G4"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_gate") == "review_pending"
+            and state.get("current_stage_gate") == "review_pending"
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False
+            and state.get("remote_upload") == "not_required_for_local_stage_transition",
+            "Task004 historical boundary was not preserved after Task005 completion",
+        )
+        next_task = "G4"
+    else:
+        _require(
+            state.get("stage") == "STG.X2N.4"
+            and state.get("last_completed_phase") == PHASE
+            and state.get("run_id") == RUN_ID
+            and state.get("run_kind") == "single_dag_task_ci_synth_fusion_injection_model_not_run"
+            and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", "TSK.x2n.multimodal.003", TASK_ID))
+            and state.get("next_phase") == "PH.X2N.4.5"
+            and state.get("next_run") == NEXT_TASK
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_gate") == "pass"
+            and state.get("current_stage_gate") == "not_run"
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False
+            and state.get("remote_upload") == "not_required_for_local_stage_transition",
+            "Task004 state transition is invalid",
+        )
+        next_task = NEXT_TASK
     statuses = state.get("acceptance_status", {})
-    _require(
-        statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass"
-        and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
-        and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
-        and statuses.get("ACC.x2n.ai.004") == "pass_ci_synth_fusion_schema_injection_isolation_model_not_run"
-        and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task004_provenance_cache_budget_cloud_zero",
-        "Task004 acceptance state is invalid",
-    )
+    if task005_completed:
+        _require(
+            statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.004") == "pass_ci_synth_fusion_schema_injection_isolation_model_not_run"
+            and statuses.get("ACC.x2n.ai.005") == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
+            and statuses.get("ACC.x2n.ai.006") == "pending_private_gold_classification_suggestion_only_ci_contract_pass"
+            and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task005_provenance_cache_budget_cloud_zero",
+            "Task004 historical acceptance boundary was not preserved after Task005 completion",
+        )
+    else:
+        _require(
+            statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.004") == "pass_ci_synth_fusion_schema_injection_isolation_model_not_run"
+            and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task004_provenance_cache_budget_cloud_zero",
+            "Task004 acceptance state is invalid",
+        )
     return Check(
         "taskpack_and_stage4_transition",
         "PASS",
-        {"completed_task": TASK_ID, "next_task": NEXT_TASK, "model_execution": "NOT_RUN"},
+        {"completed_task": TASK_ID, "next_task": next_task, "model_execution": "NOT_RUN"},
     )
 
 
@@ -328,7 +364,11 @@ def validate_facts_and_evidence() -> Check:
         "Task004 evidence overclaims model or external execution",
     )
     _require(
-        project.get("status") == "stage_4_task004_fusion_injection_ci_synth_model_not_run"
+        project.get("status")
+        in {
+            "stage_4_task004_fusion_injection_ci_synth_model_not_run",
+            "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending",
+        }
         and project.get("canonical_store") == "active_local_sqlite_logical_truth",
         "project fact drifted",
     )

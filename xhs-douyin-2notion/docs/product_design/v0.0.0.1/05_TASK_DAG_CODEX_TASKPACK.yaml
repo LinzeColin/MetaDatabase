@@ -2021,7 +2021,7 @@ tasks:
   title: Implement taxonomy registry, constrained classifier and review revisions
   stage: STG.X2N.4
   phase: PH.X2N.4.5
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: owner provides taxonomy and private Gold Set at G4; until then all items remain unclassified/suggestion-only

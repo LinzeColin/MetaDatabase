@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 4 / Multimodal 005
+
+- 完成 `TSK.x2n.multimodal.005 / PH.X2N.4.5` 的 CI-synth 范围：Owner-only 一级 taxonomy registry、稳定 ID、保留 `unclassified`、全局歧义拒绝、disable/merge、SQLite append-only revision 与物理删除阻断。
+- 增加无 Store/Registry mutator 的 deterministic local classifier、不可变 taxonomy snapshot、短生命周期不可序列化输入、cache/provenance ledger、私有 Gold 聚合评测与 calibration/coverage/precision 门；CI synthetic 不能开启自动分类。
+- 22 个专项/Store 合成测试覆盖未知或 disabled 分类、分类 registry/revision、阈值/覆盖、私有 Gold 接口、Owner 确认/跨内容纠正拒绝和 CLI 聚合 receipt。Owner taxonomy/private Gold 未提供，`ACC.x2n.ai.006` 仍 pending，`auto_classify=false`，下一独立 Run 仅为 `G4` 复核。
+
 ## v0.0.0.1 — Stage 4 / Multimodal 004
 
 - 完成 `TSK.x2n.multimodal.004 / PH.X2N.4.4`：增加仅内存 deterministic extractive fusion、来源归因事实/检索文本、缺失模态和非行动性分歧标记、固定 prompt 数据隔离、Unicode/Bidi/超长/恶意指令与 secret-shaped 输入拦截，以及只接受 grounded schema 的严格 parser。

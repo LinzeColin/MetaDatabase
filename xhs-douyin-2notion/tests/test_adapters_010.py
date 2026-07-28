@@ -27,9 +27,10 @@ class Adapters010VerifierTests(unittest.TestCase):
         task = VERIFY._load_task()
         self.assertEqual(task["status"], "completed")
         state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
-        self.assertEqual(state["stage_gate"], "pass")
+        self.assertEqual(state["stage_gate"], "review_pending")
         self.assertFalse(state["stage_3_remote_upload_authorized"])
         self.assertTrue(state["stage_4_authorized"])
+        self.assertEqual(state["tasks"]["TSK.x2n.multimodal.005"], "pass")
 
     def test_static_contract_checks_pass_without_external_execution(self) -> None:
         checks = VERIFY.run_checks(verify_worktree=False, run_external=False, require_evidence=False)

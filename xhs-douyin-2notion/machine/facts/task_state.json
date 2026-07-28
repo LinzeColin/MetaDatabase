@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.34",
+  "schema_version": "1.35",
   "project": "x2n",
   "stage": "STG.X2N.4",
-  "last_completed_phase": "PH.X2N.4.4",
+  "last_completed_phase": "PH.X2N.4.5",
   "review_id": "STG.X2N.3.REVIEW.RESUME.RECHECK",
-  "run_id": "RUN-X2N-S04-M004",
-  "run_kind": "single_dag_task_ci_synth_fusion_injection_model_not_run",
-  "state": "stage_4_task004_fusion_injection_ci_synth_model_not_run_task005_next",
+  "run_id": "RUN-X2N-S04-M005",
+  "run_kind": "single_dag_task_ci_synth_owner_taxonomy_classifier_private_gold_pending",
+  "state": "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_next",
   "tasks": {
     "TSK.x2n.discovery.001": "pass",
     "TSK.x2n.discovery.002": "pass",
@@ -40,7 +40,8 @@
     "TSK.x2n.multimodal.001": "pass",
     "TSK.x2n.multimodal.002": "pass",
     "TSK.x2n.multimodal.003": "pass",
-    "TSK.x2n.multimodal.004": "pass"
+    "TSK.x2n.multimodal.004": "pass",
+    "TSK.x2n.multimodal.005": "pass"
   },
   "downstream_acceptances": {
     "ACC.x2n.gov.001": "pass",
@@ -81,7 +82,9 @@
     "ACC.x2n.ai.002": "pending_private_gold_ocr_disabled_ci_synth_contract_pass",
     "ACC.x2n.ai.003": "pending_private_gold_vision_disabled_ci_synth_contract_pass",
     "ACC.x2n.ai.004": "pass_ci_synth_fusion_schema_injection_isolation_model_not_run",
-    "ACC.x2n.ai.007": "pass_ci_synth_task004_provenance_cache_budget_cloud_zero"
+    "ACC.x2n.ai.005": "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only",
+    "ACC.x2n.ai.006": "pending_private_gold_classification_suggestion_only_ci_contract_pass",
+    "ACC.x2n.ai.007": "pass_ci_synth_task005_provenance_cache_budget_cloud_zero"
   },
   "acceptance_status": {
     "ACC.x2n.gov.001": "pass_current_scaffold_scope",
@@ -137,7 +140,9 @@
     "ACC.x2n.ai.002": "pending_private_gold_ocr_disabled_ci_synth_contract_pass",
     "ACC.x2n.ai.003": "pending_private_gold_vision_disabled_ci_synth_contract_pass",
     "ACC.x2n.ai.004": "pass_ci_synth_fusion_schema_injection_isolation_model_not_run",
-    "ACC.x2n.ai.007": "pass_ci_synth_task004_provenance_cache_budget_cloud_zero"
+    "ACC.x2n.ai.005": "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only",
+    "ACC.x2n.ai.006": "pending_private_gold_classification_suggestion_only_ci_contract_pass",
+    "ACC.x2n.ai.007": "pass_ci_synth_task005_provenance_cache_budget_cloud_zero"
   },
   "blocking_followups": [
     {
@@ -159,8 +164,8 @@
     "stage": "STG.X2N.3",
     "remote_upload": "not_uploaded"
   },
-  "next_phase": "PH.X2N.4.5",
-  "next_run": "TSK.x2n.multimodal.005",
+  "next_phase": "G4",
+  "next_run": "G4",
   "next_phase_authorized": true,
   "stage_1_authorized": true,
   "stage_2_authorized": true,
@@ -172,14 +177,14 @@
   "stage_3_remote_upload_authorized": false,
   "stage_4_authorized": true,
   "public_release_authorized": false,
-  "stage_gate": "pass",
+  "stage_gate": "review_pending",
   "remote_upload": "not_required_for_local_stage_transition",
-  "current_stage_gate": "not_run",
+  "current_stage_gate": "review_pending",
   "current_stage_remote_upload": "not_required_for_local_stage_transition",
-  "product_code": "foundation_plus_six_platform_current_page_capture_plus_profile_session_guard_plus_bounded_adapter_contracts_plus_xhs_authoritative_relation_reconciliation_plus_media_safety_orchestration_sinks_ci_synth_relation_list_dispatch_complete_g3_pass_stage4_task001_media_preprocessing_task002_local_first_asr_task003_local_first_ocr_vision_and_task004_fusion_injection_ci_synth_model_not_run_task005_next",
+  "product_code": "foundation_plus_six_platform_current_page_capture_plus_profile_session_guard_plus_bounded_adapter_contracts_plus_xhs_authoritative_relation_reconciliation_plus_media_safety_orchestration_sinks_ci_synth_relation_list_dispatch_complete_g3_pass_stage4_task001_media_preprocessing_task002_local_first_asr_task003_local_first_ocr_vision_task004_fusion_injection_and_task005_owner_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_next",
   "contract_version": "1.0",
   "native_host_execution": "pass_isolated_synthetic_six_platform_capture_to_canonical_store_owner_install_not_run",
-  "local_ci_execution": "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_reconciliation_task002_local_first_asr_cache_budget_cloud_zero_private_gold_pending_task003_local_first_ocr_vision_cache_budget_cloud_zero_private_gold_pending_task004_deterministic_fusion_strict_parser_injection_isolation_platform_model_real_account_calls_0",
+  "local_ci_execution": "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_reconciliation_task002_local_first_asr_cache_budget_cloud_zero_private_gold_pending_task003_local_first_ocr_vision_cache_budget_cloud_zero_private_gold_pending_task004_deterministic_fusion_strict_parser_injection_isolation_task005_owner_taxonomy_revision_constrained_classifier_review_private_gold_oracle_platform_model_real_account_calls_0",
   "remote_ci_execution": "pass_stage_2_post_merge_stage_3_local_g3_recheck_remote_not_uploaded",
   "xhs_current_page_execution": "pass_ci_synth_real_page_policy_disabled_action_before_grant_rejected_owner_canary_not_run",
   "xhs_favorites_execution": "pass_ci_synth_visible_dom_100_items_50_process_kills_two_collections_canary_tooling_owner_alpha_not_run_real_page_disabled",
@@ -202,7 +207,7 @@
   "profile_launcher_execution": "pass_ci_synth_fixed_chrome_candidates_private_runtime_profile_no_arbitrary_path_url_login_or_cookie_owner_launch_not_run",
   "session_health_execution": "pass_ci_synth_enum_only_short_ttl_expired_verification_and_stale_blocked_user_action_profile_path_cookie_0",
   "adapter_guard_execution": "pass_ci_synth_global_mutex_nonwaiting_low_frequency_no_auto_retry_and_batch_deletion_protection",
-  "sqlite_store": "pass_schema_v3_capability_dispatch_failure_recovery_owner_empty_runtime_initialized",
+  "sqlite_store": "pass_schema_v4_owner_taxonomy_revision_append_only_classifier_fk_disabled_category_guard_owner_empty_runtime_initialized",
   "adapter_dispatch_execution": "pass_ci_synth_eight_scope_extension_native_verified_adapter_binding_zero_platform_calls_failed_run_failure_explicit_owner_fallback_g3_pass",
   "real_sink_execution": "pass_ci_synth_markdown_and_notion_mock_real_notion_not_run",
   "owner_profile_login": "not_run",
@@ -210,11 +215,12 @@
   "real_account_execution": "not_run",
   "platform_calls": "zero_independent_g3_recheck_real_platform_not_run",
   "notion_calls": "mock_only_real_api_not_run",
-  "model_calls": "not_run_real_model_owner_managed_dependency_not_provisioned_ci_synth_asr_ocr_vision_contracts_pass_private_gold_pending_task004_deterministic_fusion_contract_pass",
+  "model_calls": "not_run_real_model_owner_managed_dependency_not_provisioned_ci_synth_asr_ocr_vision_contracts_pass_private_gold_pending_task004_deterministic_fusion_contract_pass_task005_deterministic_classifier_contract_pass",
   "media_processing": "pass_ci_synth_local_ffmpeg_ffprobe_temporary_synthetic_media_audio_keyframe_dedup_cleanup_platform_calls_0",
   "asr_execution": "pass_ci_synth_local_whispercpp_cli_contract_ephemeral_transcript_provenance_cache_budget_cloud_upload_0_private_gold_not_run_asr_feature_disabled",
   "ocr_vision_execution": "pass_ci_synth_local_json_ocr_vision_contract_ephemeral_text_description_provenance_cache_budget_cloud_upload_0_private_gold_not_run_ocr_vision_features_disabled",
   "fusion_execution": "pass_ci_synth_deterministic_extractive_ephemeral_fusion_strict_grounded_parser_prompt_isolation_injection_block_zero_model_tool_file_network_config_secret_cloud_calls",
+  "classification_execution": "pass_ci_synth_owner_registry_append_only_revision_constrained_deterministic_local_suggestion_only_review_correction_private_gold_oracle_auto_classify_disabled_pending_private_gold_zero_ai_taxonomy_mutations",
   "release_policy": "direct_v0_0_0_1_mvp_g0_g5_prior_tasks_and_acceptances_outside_exact_assurance005_owned_set_start_then_in_task_eighty_xhs_douyin_each_additional_enabled_max_twenty_security_must_pass_model_pass_or_disabled_suggestion_only_rollback_signoff_deploy_run_online_then_g6_pass_no_prerelease_no_fixed_wait_no_soak",
   "post_go_live_monitoring": "non_blocking_fix_degrade_or_rollback_trigger",
   "local_data_root_role": "ephemeral_execution_download_and_active_sqlite_working_copy",

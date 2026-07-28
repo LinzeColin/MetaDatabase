@@ -250,7 +250,23 @@ def validate_task_state_and_historical_resume() -> Check:
     _require(task.get("acceptance_ids") == ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"], "Task010 acceptance IDs drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Task010 current state is not pass")
     task001_state = state.get("tasks", {}).get("TSK.x2n.multimodal.001")
-    if state.get("stage_gate") == "review_pending":
+    task005_state = state.get("tasks", {}).get("TSK.x2n.multimodal.005")
+    if task005_state == "pass":
+        _require(
+            state.get("last_completed_phase") == "PH.X2N.4.5"
+            and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK"
+            and state.get("run_id") == "RUN-X2N-S04-M005"
+            and state.get("stage") == "STG.X2N.4"
+            and state.get("current_stage_gate") == "review_pending"
+            and state.get("stage_gate") == "review_pending"
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("next_run") == "G4"
+            and state.get("next_phase") == "G4",
+            "Task010 historical boundary was not preserved after Task005 completion",
+        )
+        current_stage = "stage4_task005_complete_g4_pending"
+    elif state.get("stage_gate") == "review_pending":
         _require(
             state.get("last_completed_phase") == PHASE
             and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK_PENDING"
@@ -364,7 +380,11 @@ def validate_contract_and_runtime_shape() -> Check:
     from x2n_companion.runtime import X2NRuntimeError  # noqa: PLC0415
 
     _require(tuple(binding.scope_id for binding in SCOPE_BINDINGS) == tuple(SyncScopeId), "scope registry is not exact")
-    _require(LATEST_SCHEMA_VERSION == 3 and len(MIGRATIONS) == 3, "Task010 migration version drifted")
+    task005_completed = _load_json(TASK_STATE).get("tasks", {}).get("TSK.x2n.multimodal.005") == "pass"
+    if task005_completed:
+        _require(LATEST_SCHEMA_VERSION == 4 and len(MIGRATIONS) == 4, "Task005 taxonomy migration is missing")
+    else:
+        _require(LATEST_SCHEMA_VERSION == 3 and len(MIGRATIONS) == 3, "Task010 migration version drifted")
     manifest = CapabilityRegistry().evaluate(evaluated_at="2026-07-28T00:00:00Z")
     _require(len(manifest.outcomes) == 8, "typed capability outcome count drifted")
     _require(

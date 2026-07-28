@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.1",
-  "phase": "PH.X2N.4.4",
-  "status": "stage_4_task004_fusion_injection_ci_synth_model_not_run",
+  "schema_version": "1.2",
+  "phase": "PH.X2N.4.5",
+  "status": "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending",
   "review_id": "STG.X2N.3.REVIEW.RESUME",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
@@ -13,16 +13,17 @@
     {"id": "ADR-006", "topic": "capability_negotiation", "state": "accepted_design", "implementation_state": "eight_component_doctor_ok_degraded_blocked_and_short_ttl_session_health_ci_synth_pass_task010_plans_exact_eight_scope_typed_get_capabilities_and_single_sqlite_derived_outcome_authority_technical_block_has_no_legal_terminal"},
     {"id": "ADR-007", "topic": "user_gesture_and_bounded_batches", "state": "accepted_design", "implementation_state": "single_adapter_mutex_low_frequency_plus_xhs_visible_batches_douyin_single_exchange_and_bilibili_kuaishou_weibo_taobao_single_owner_selection_twenty_item_batches_no_auto_scroll_pagination_retry_strict_successor_exact_replay_plus_two_distinct_xhs_full_scan_missing_state_machine_ci_synth_pass"},
     {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_implementation", "implementation_state": "lease_scoped_bounded_ffmpeg_ffprobe_audio_keyframe_dedup_and_derivative_cleanup_ci_synth_pass"},
-    {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_design", "implementation_state": "owner_only_top_level_taxonomy_plus_unclassified_projection_seed_and_xhs_likes_conservative_inbox_ci_synth_pass_ai_category_creation_not_run"},
+    {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_implementation", "implementation_state": "owner_only_top_level_taxonomy_registry_stable_ids_reserved_unclassified_append_only_revision_disable_merge_guard_and_constrained_classifier_has_no_store_mutator_ci_synth_pass"},
     {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "resume_versions_exact_scope_id_start_sync_typed_get_capabilities_single_capability_gate_outcome_authority_and_explicit_failure_fallback_g3_pass_task001_evidence_complete_real_activation_owned_by_stage6"},
     {"id": "ADR-011", "topic": "pinned_upstream_sidecar_containment", "state": "accepted_implementation", "implementation_state": "douyin_commit_tree_version_license_protocol_and_private_build_attestation_exact_match_subprocess_no_shell_loopback_rest_strict_schema_url_path_raw_storage_leakage_block_shadow_cannot_promote"},
     {"id": "ADR-012", "topic": "direct_mvp_release_without_prerelease_or_fixed_soak", "state": "accepted_design", "implementation_state": "g0_g5_plus_prior_stage6_tasks_and_blocking_acceptances_outside_exact_assurance005_owned_set_start_assurance005_then_in_task_eighty_xhs_douyin_baseline_each_additional_enabled_capability_independent_max_twenty_security_rollback_signoff_deploy_run_online_smoke_then_g6_pass_for_unique_v0_0_0_1_post_live_monitoring_non_blocking"},
     {"id": "ADR-013", "topic": "local_first_asr_provenance_and_private_gold_gate", "state": "accepted_implementation", "implementation_state": "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending"},
     {"id": "ADR-014", "topic": "local_first_ocr_vision_provenance_and_private_gold_gate", "state": "accepted_implementation", "implementation_state": "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending"},
-    {"id": "ADR-015", "topic": "strict_grounded_fusion_and_prompt_injection_isolation", "state": "accepted_implementation", "implementation_state": "deterministic_local_extractive_fusion_ephemeral_artifacts_strict_grounded_parser_prompt_isolation_zero_side_effects_ci_synth_model_not_run"}
+    {"id": "ADR-015", "topic": "strict_grounded_fusion_and_prompt_injection_isolation", "state": "accepted_implementation", "implementation_state": "deterministic_local_extractive_fusion_ephemeral_artifacts_strict_grounded_parser_prompt_isolation_zero_side_effects_ci_synth_model_not_run"},
+    {"id": "ADR-016", "topic": "constrained_classification_calibration_and_owner_review", "state": "accepted_implementation", "implementation_state": "deterministic_local_lexical_classifier_immutable_taxonomy_snapshot_session_cache_provenance_private_gold_calibration_auto_gate_disabled_by_default_owner_confirmation_correction_append_only_ci_synth_private_gold_pending"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001-004_ci_synth_only",
+  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001-005_ci_synth_only",
   "real_account_execution": false,
-  "stage_gate": "g3_pass_stage4_in_progress"
+  "stage_gate": "g3_pass_stage4_complete_g4_review_pending"
 }

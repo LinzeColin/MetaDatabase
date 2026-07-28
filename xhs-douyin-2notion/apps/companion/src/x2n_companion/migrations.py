@@ -501,10 +501,52 @@ CAPABILITY_DISPATCH_DOWN = (
 )
 
 
+TAXONOMY_REVISIONS_UP = (
+    """
+    CREATE TABLE taxonomy_revision (
+        revision_id TEXT PRIMARY KEY,
+        category_id TEXT NOT NULL REFERENCES taxonomy_category(category_id),
+        operation TEXT NOT NULL CHECK(operation IN ('create','update','disable','merge')),
+        actor TEXT NOT NULL CHECK(actor = 'owner'),
+        category_version INTEGER NOT NULL CHECK(category_version >= 1),
+        previous_version INTEGER CHECK(previous_version IS NULL OR previous_version >= 1),
+        merge_target_category_id TEXT REFERENCES taxonomy_category(category_id),
+        payload_json TEXT NOT NULL,
+        payload_sha256 TEXT NOT NULL
+            CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL,
+        UNIQUE(category_id, category_version),
+        CHECK(
+            (operation = 'create' AND previous_version IS NULL AND merge_target_category_id IS NULL)
+            OR
+            (operation IN ('update','disable') AND previous_version IS NOT NULL AND merge_target_category_id IS NULL)
+            OR
+            (operation = 'merge' AND previous_version IS NOT NULL AND merge_target_category_id IS NOT NULL
+                AND merge_target_category_id <> category_id)
+        ),
+        CHECK(previous_version IS NULL OR previous_version < category_version)
+    ) STRICT
+    """,
+    "CREATE INDEX idx_taxonomy_revision_category ON taxonomy_revision(category_id, category_version)",
+    "CREATE TRIGGER taxonomy_category_no_delete BEFORE DELETE ON taxonomy_category BEGIN SELECT RAISE(ABORT, 'X2N_TAXONOMY_CATEGORY_DELETE_BLOCKED'); END",
+    "CREATE TRIGGER taxonomy_revision_no_update BEFORE UPDATE ON taxonomy_revision BEGIN SELECT RAISE(ABORT, 'X2N_TAXONOMY_REVISION_APPEND_ONLY'); END",
+    "CREATE TRIGGER taxonomy_revision_no_delete BEFORE DELETE ON taxonomy_revision BEGIN SELECT RAISE(ABORT, 'X2N_TAXONOMY_REVISION_APPEND_ONLY'); END",
+)
+
+TAXONOMY_REVISIONS_DOWN = (
+    "DROP TRIGGER IF EXISTS taxonomy_revision_no_delete",
+    "DROP TRIGGER IF EXISTS taxonomy_revision_no_update",
+    "DROP TRIGGER IF EXISTS taxonomy_category_no_delete",
+    "DROP INDEX IF EXISTS idx_taxonomy_revision_category",
+    "DROP TABLE taxonomy_revision",
+)
+
+
 MIGRATIONS = (
     Migration(1, "canonical_core", CORE_UP, CORE_DOWN),
     Migration(2, "reliability_outbox_and_leases", RELIABILITY_UP, RELIABILITY_DOWN),
     Migration(3, "capability_dispatch_and_failure_recovery", CAPABILITY_DISPATCH_UP, CAPABILITY_DISPATCH_DOWN),
+    Migration(4, "owner_taxonomy_revisions", TAXONOMY_REVISIONS_UP, TAXONOMY_REVISIONS_DOWN),
 )
 LATEST_SCHEMA_VERSION = MIGRATIONS[-1].version
 MIGRATION_SET_SHA256 = hashlib.sha256(

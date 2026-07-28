@@ -23,6 +23,7 @@ PHASE = "PH.X2N.4.3"
 RUN_ID = "RUN-X2N-S04-M003"
 TASK_BASE_COMMIT = "60f03caa39cc2accc6e1304c743f041c84122b8c"
 NEXT_TASK = "TSK.x2n.multimodal.004"
+TASK005 = "TSK.x2n.multimodal.005"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
@@ -240,7 +241,29 @@ def validate_task_and_transition() -> Check:
         "Task003 contract drifted",
     )
     task004_completed = state.get("tasks", {}).get(NEXT_TASK) == "pass"
-    if task004_completed:
+    task005_completed = state.get("tasks", {}).get(TASK005) == "pass"
+    if task005_completed:
+        _require(
+            task004_completed
+            and state.get("stage") == "STG.X2N.4"
+            and state.get("last_completed_phase") == "PH.X2N.4.5"
+            and state.get("run_id") == "RUN-X2N-S04-M005"
+            and state.get("run_kind") == "single_dag_task_ci_synth_owner_taxonomy_classifier_private_gold_pending"
+            and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in ("TSK.x2n.multimodal.001", "TSK.x2n.multimodal.002", TASK_ID, NEXT_TASK))
+            and state.get("next_phase") == "G4"
+            and state.get("next_run") == "G4"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_gate") == "review_pending"
+            and state.get("current_stage_gate") == "review_pending"
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False
+            and state.get("remote_upload") == "not_required_for_local_stage_transition",
+            "Task003 historical boundary was not preserved after Task005 completion",
+        )
+        next_task = "G4"
+    elif task004_completed:
         _require(
             state.get("stage") == "STG.X2N.4"
             and state.get("last_completed_phase") == "PH.X2N.4.4"
@@ -283,7 +306,18 @@ def validate_task_and_transition() -> Check:
         )
         next_task = NEXT_TASK
     statuses = state.get("acceptance_status", {})
-    if task004_completed:
+    if task005_completed:
+        _require(
+            statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
+            and statuses.get("ACC.x2n.ai.004") == "pass_ci_synth_fusion_schema_injection_isolation_model_not_run"
+            and statuses.get("ACC.x2n.ai.005") == "pass_ci_synth_owner_taxonomy_registry_revision_review_suggestion_only"
+            and statuses.get("ACC.x2n.ai.006") == "pending_private_gold_classification_suggestion_only_ci_contract_pass"
+            and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task005_provenance_cache_budget_cloud_zero",
+            "Task003 historical acceptance boundary was not preserved after Task005 completion",
+        )
+    elif task004_completed:
         _require(
             statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass"
             and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
@@ -373,6 +407,7 @@ def validate_facts_and_evidence() -> Check:
         in {
             "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending",
             "stage_4_task004_fusion_injection_ci_synth_model_not_run",
+            "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending",
         }
         and project.get("canonical_store") == "active_local_sqlite_logical_truth",
         "project fact drifted",

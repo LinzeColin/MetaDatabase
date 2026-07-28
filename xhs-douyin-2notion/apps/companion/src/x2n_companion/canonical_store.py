@@ -17,6 +17,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
+from uuid import UUID
 
 from x2n_contracts import (
     Artifact,
@@ -42,6 +43,7 @@ from .migrations import (
     schema_snapshot,
 )
 from .runtime import RuntimePaths, X2NRuntimeError, _atomic_private_json
+from .taxonomy import TaxonomyRevision
 
 
 SAFE_TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$")
@@ -829,68 +831,262 @@ class CanonicalStore:
                 totals[self._upsert_content(connection, content, now).value] += 1
         return totals
 
-    def put_taxonomy_category(self, category: TaxonomyCategory) -> WriteDisposition:
+    @staticmethod
+    def _append_taxonomy_revision(
+        connection: sqlite3.Connection,
+        *,
+        category: TaxonomyCategory,
+        operation: str,
+        previous_version: int | None,
+        merge_target_category_id: UUID | None,
+        payload_json: str,
+        payload_sha: str,
+        created_at: str,
+    ) -> None:
+        seed = "|".join(
+            (
+                str(category.category_id),
+                operation,
+                str(category.version),
+                "" if merge_target_category_id is None else str(merge_target_category_id),
+                payload_sha,
+            )
+        )
+        revision = TaxonomyRevision(
+            revision_id=f"taxonomy_rev_{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:32]}",
+            category_id=category.category_id,
+            operation=operation,  # type: ignore[arg-type]
+            actor="owner",
+            category_version=category.version,
+            previous_version=previous_version,
+            merge_target_category_id=merge_target_category_id,
+            payload_sha256=payload_sha,
+            created_at=created_at,
+        )
+        connection.execute(
+            """
+            INSERT INTO taxonomy_revision(
+                revision_id, category_id, operation, actor, category_version, previous_version,
+                merge_target_category_id, payload_json, payload_sha256, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                revision.revision_id,
+                str(revision.category_id),
+                revision.operation,
+                revision.actor,
+                revision.category_version,
+                revision.previous_version,
+                None if revision.merge_target_category_id is None else str(revision.merge_target_category_id),
+                payload_json,
+                revision.payload_sha256,
+                revision.created_at,
+            ),
+        )
+
+    def _put_taxonomy_category(
+        self,
+        connection: sqlite3.Connection,
+        category: TaxonomyCategory,
+        *,
+        now: str,
+        forced_operation: str | None = None,
+        merge_target_category_id: UUID | None = None,
+    ) -> WriteDisposition:
         payload_json, payload_sha = _payload(category)
-        now = _now()
-        with self._transaction() as connection:
-            existing = connection.execute(
-                "SELECT payload_sha256, version FROM taxonomy_category WHERE category_id = ?",
-                (str(category.category_id),),
-            ).fetchone()
-            if existing is not None and str(existing["payload_sha256"]) == payload_sha:
-                return WriteDisposition.UNCHANGED
-            if existing is not None and category.version <= int(existing["version"]):
-                raise X2NRuntimeError(
-                    ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth"
-                )
-            if existing is None:
-                connection.execute(
-                    """
-                    INSERT INTO taxonomy_category(
-                        category_id, name, slug, priority, enabled, version, level, created_by,
-                        payload_json, payload_sha256, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        str(category.category_id),
-                        category.name,
-                        category.slug,
-                        category.priority,
-                        int(category.enabled),
-                        category.version,
-                        category.level,
-                        category.created_by,
-                        payload_json,
-                        payload_sha,
-                        now,
-                        now,
-                    ),
-                )
-                return WriteDisposition.INSERTED
+        existing = connection.execute(
+            "SELECT payload_sha256, version, enabled FROM taxonomy_category WHERE category_id = ?",
+            (str(category.category_id),),
+        ).fetchone()
+        if existing is not None and str(existing["payload_sha256"]) == payload_sha:
+            if forced_operation is not None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy merge has no source revision")
+            return WriteDisposition.UNCHANGED
+        if existing is not None and category.version <= int(existing["version"]):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth")
+        if existing is None:
+            if category.version != 1 or forced_operation not in {None, "create"}:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "New taxonomy category revision is invalid")
             connection.execute(
                 """
-                UPDATE taxonomy_category SET
-                    name = ?, slug = ?, priority = ?, enabled = ?, version = ?, payload_json = ?,
-                    payload_sha256 = ?, updated_at = ?
-                WHERE category_id = ?
+                INSERT INTO taxonomy_category(
+                    category_id, name, slug, priority, enabled, version, level, created_by,
+                    payload_json, payload_sha256, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
+                    str(category.category_id),
                     category.name,
                     category.slug,
                     category.priority,
                     int(category.enabled),
                     category.version,
+                    category.level,
+                    category.created_by,
                     payload_json,
                     payload_sha,
                     now,
-                    str(category.category_id),
+                    now,
                 ),
             )
-            return WriteDisposition.UPDATED
+            self._append_taxonomy_revision(
+                connection,
+                category=category,
+                operation="create",
+                previous_version=None,
+                merge_target_category_id=None,
+                payload_json=payload_json,
+                payload_sha=payload_sha,
+                created_at=now,
+            )
+            return WriteDisposition.INSERTED
+        prior_version = int(existing["version"])
+        operation = forced_operation or ("disable" if bool(existing["enabled"]) and not category.enabled else "update")
+        if operation not in {"update", "disable", "merge"}:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy revision operation is invalid")
+        if operation == "merge" and (category.enabled or merge_target_category_id is None):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy merge source is invalid")
+        connection.execute(
+            """
+            UPDATE taxonomy_category SET
+                name = ?, slug = ?, priority = ?, enabled = ?, version = ?, payload_json = ?,
+                payload_sha256 = ?, updated_at = ?
+            WHERE category_id = ?
+            """,
+            (
+                category.name,
+                category.slug,
+                category.priority,
+                int(category.enabled),
+                category.version,
+                payload_json,
+                payload_sha,
+                now,
+                str(category.category_id),
+            ),
+        )
+        self._append_taxonomy_revision(
+            connection,
+            category=category,
+            operation=operation,
+            previous_version=prior_version,
+            merge_target_category_id=merge_target_category_id,
+            payload_json=payload_json,
+            payload_sha=payload_sha,
+            created_at=now,
+        )
+        return WriteDisposition.UPDATED
+
+    def put_taxonomy_category(self, category: TaxonomyCategory) -> WriteDisposition:
+        if category.created_by != "owner" or category.level != 1:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Only Owner top-level taxonomy categories are permitted")
+        with self._transaction() as connection:
+            return self._put_taxonomy_category(connection, category, now=_now())
+
+    def merge_taxonomy_category(
+        self,
+        source: TaxonomyCategory,
+        target_category_id: UUID,
+    ) -> WriteDisposition:
+        if source.created_by != "owner" or source.level != 1 or source.enabled:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Taxonomy merge requires a disabled Owner source")
+        if source.category_id == target_category_id:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy merge cannot target itself")
+        with self._transaction() as connection:
+            target = connection.execute(
+                "SELECT enabled FROM taxonomy_category WHERE category_id = ?", (str(target_category_id),)
+            ).fetchone()
+            if target is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy merge target is unknown")
+            if not bool(target["enabled"]):
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Taxonomy merge target is disabled")
+            return self._put_taxonomy_category(
+                connection,
+                source,
+                now=_now(),
+                forced_operation="merge",
+                merge_target_category_id=target_category_id,
+            )
+
+    def list_taxonomy_categories(self, *, include_disabled: bool = True) -> tuple[TaxonomyCategory, ...]:
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    "SELECT payload_json FROM taxonomy_category "
+                    + ("" if include_disabled else "WHERE enabled = 1 ")
+                    + "ORDER BY category_id"
+                ).fetchall()
+            finally:
+                connection.close()
+        try:
+            return tuple(TaxonomyCategory.model_validate_json(str(row["payload_json"])) for row in rows)
+        except Exception as error:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category payload is invalid") from error
+
+    def taxonomy_revisions(self, category_id: UUID | None = None) -> tuple[TaxonomyRevision, ...]:
+        if category_id is not None and not isinstance(category_id, UUID):
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Taxonomy revision category id is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    "SELECT revision_id, category_id, operation, actor, category_version, previous_version, "
+                    "merge_target_category_id, payload_sha256, created_at FROM taxonomy_revision "
+                    + ("WHERE category_id = ? " if category_id is not None else "")
+                    + "ORDER BY category_id, category_version",
+                    () if category_id is None else (str(category_id),),
+                ).fetchall()
+            finally:
+                connection.close()
+        try:
+            return tuple(
+                TaxonomyRevision(
+                    revision_id=str(row["revision_id"]),
+                    category_id=UUID(str(row["category_id"])),
+                    operation=str(row["operation"]),  # type: ignore[arg-type]
+                    actor=str(row["actor"]),  # type: ignore[arg-type]
+                    category_version=int(row["category_version"]),
+                    previous_version=None if row["previous_version"] is None else int(row["previous_version"]),
+                    merge_target_category_id=(
+                        None if row["merge_target_category_id"] is None else UUID(str(row["merge_target_category_id"]))
+                    ),
+                    payload_sha256=str(row["payload_sha256"]),
+                    created_at=str(row["created_at"]),
+                )
+                for row in rows
+            )
+        except (TypeError, ValueError, X2NRuntimeError) as error:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy revision payload is invalid") from error
 
     def append_classification(self, classification: Classification) -> WriteDisposition:
         payload_json, payload_sha = _payload(classification)
         with self._transaction() as connection:
+            category = connection.execute(
+                "SELECT enabled, version FROM taxonomy_category WHERE category_id = ?",
+                (str(classification.primary_category_id),),
+            ).fetchone()
+            if category is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Classification category is unknown")
+            if not bool(category["enabled"]):
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Classification category is disabled")
+            if classification.taxonomy_version < int(category["version"]):
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Classification taxonomy version is stale")
+            if classification.supersedes_classification_id is not None:
+                superseded = connection.execute(
+                    "SELECT content_key FROM classification WHERE classification_id = ?",
+                    (classification.supersedes_classification_id,),
+                ).fetchone()
+                if superseded is None:
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED,
+                        "Classification review revision must supersede an existing classification",
+                    )
+                if str(superseded["content_key"]) != classification.content_key:
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED,
+                        "Classification review revision cannot supersede another content item",
+                    )
             existing = connection.execute(
                 "SELECT payload_sha256 FROM classification WHERE classification_id = ?",
                 (classification.classification_id,),
@@ -2592,6 +2788,11 @@ class CanonicalStore:
                     "job_id",
                     "lease_id",
                     "category_id",
+                    "revision_id",
+                    "taxonomy_version",
+                    "operation",
+                    "actor",
+                    "merge_target_category_id",
                     "checkpoint_id",
                     "schema_version",
                     "status",
