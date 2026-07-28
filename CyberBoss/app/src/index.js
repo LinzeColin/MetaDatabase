@@ -163,9 +163,57 @@ async function main() {
     return;
   }
 
+  // 主人自己就是那个登录的微信号时，他没法给自己发微信——所以「邀请」和「状态」
+  // 这两个主人口令，在终端里也给一份。
+  if (command === "invite" || command === "status") {
+    const fsMod = require("fs");
+    const { RuntimeSpoolDatabase } = require("./services/db/database-adapter");
+    const { UserAdmissionService } = require("./core/user-admission");
+    const identityKey = fsMod.readFileSync(config.runtimeIdentityKeyFile);
+    const spool = new RuntimeSpoolDatabase({
+      databasePath: config.runtimeDatabasePath,
+      encryptionKey: fsMod.readFileSync(config.runtimeEncryptionKeyFile),
+      identityKey,
+    });
+    try {
+      if (command === "status") {
+        const app2 = new CyberbossApp(config);
+        app2.runtimeSpoolDatabase = spool;
+        console.log("\n" + app2.buildPlainLanguageStatus() + "\n");
+        return;
+      }
+      const admission = new UserAdmissionService({
+        database: spool.database,
+        identityKey,
+        ownerUserId: spool.ownerUserId,
+        ownerSenderIds: config.ownerSenderIds,
+        registrationMode: config.registrationMode || "invite",
+        portalOrigin: config.portalOrigin || "",
+      });
+      if (config.registrationMode === "open") {
+        console.log("\n现在是开放模式，任何人加你之后直接说话就能用，不需要邀请码。\n");
+        return;
+      }
+      const invite = admission.issueInvite({ maxUses: 1, ttlMs: 7 * 24 * 60 * 60 * 1000 });
+      console.log([
+        "",
+        "邀请码：",
+        "",
+        `    ${invite.code}`,
+        "",
+        "  把这一串发给朋友，让他加你微信之后直接把码发过来。",
+        "  只能用一次，7 天内有效。想再加人就再运行一次 cyberboss invite。",
+        "",
+      ].join("\n"));
+    } finally {
+      spool.close();
+    }
+    return;
+  }
+
   // backup 与 canary 都要读运行库。第一次启动之前它还不存在——这不是错误，
   // 只是还没跑过。如实说清楚，并给出下一步。
-  if ((command === "backup" || command === "canary") && !fs.existsSync(config.runtimeDatabasePath)) {
+  if (["backup", "canary"].includes(command) && !fs.existsSync(config.runtimeDatabasePath)) {
     console.log([
       "",
       "还没有数据可以处理——服务一次都还没启动过。",

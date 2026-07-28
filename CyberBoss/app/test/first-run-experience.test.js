@@ -19,6 +19,7 @@ const {
 } = require("../src/core/bootstrap");
 const { explainError } = require("../src/core/friendly-errors");
 const { looksConfigured, runSetupWizard } = require("../src/core/setup-wizard");
+const { CyberbossApp } = require("../src/core/app");
 const { UserAdmissionService } = require("../src/core/user-admission");
 const { RuntimeSpoolDatabase } = require("../src/services/db/database-adapter");
 const { WorkspaceRegistry } = require("../src/core/workspace-registry");
@@ -122,8 +123,8 @@ test("向导只问能用大白话回答的问题，而且都可以直接回车�
     assert.equal(transcript.includes(jargon), false, `向导里不该出现术语：${jargon}`);
   }
   // 但必须明确告诉用户下一步做什么。
-  assert.match(transcript, /第一个给它发消息的人就是主人/);
-  assert.match(transcript, /发「邀请」/);
+  assert.match(transcript, /扫码登录的那个微信号本身就是主人/);
+  assert.match(transcript, /cyberboss invite/);
 
   const env = readEnvFile(result.envFile);
   assert.equal(env.get("CB_REGISTRATION_MODE"), "invite");
@@ -311,4 +312,50 @@ test("错误信息是中文，而且每条都给出下一步该做什么", () =>
   const unknown = explainError(new Error("SOME_BRAND_NEW_FAILURE"));
   assert.match(unknown, /没见过的问题/);
   assert.match(unknown, /SOME_BRAND_NEW_FAILURE/);
+});
+
+test("扫码登录的那个微信号本身就是主人，认领窗口一秒都不开", (t) => {
+  const home = tempHome(t);
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(home, "runtime.db"),
+    encryptionKey: Buffer.alloc(32, 81),
+    identityKey: Buffer.alloc(32, 83),
+  });
+  t.after(() => spool.close());
+
+  // 很多人拿自己的常用微信登录。那样他没法给自己发消息，而"第一个发消息的人
+  // 是主人"会把 Owner 权限交给第一个来找他聊天的朋友。所以只要登录带回了账号
+  // 自己的标识，就用它。
+  const SELF = "o9cq80yp-self@im.wechat";
+  const app = {
+    config: { ownerSenderIds: [], stateDir: null },
+    rememberOwnerSender: CyberbossApp.prototype.rememberOwnerSender,
+  };
+  const bound = CyberbossApp.prototype.bindOwnerFromAccount.call(app, { userId: SELF });
+  assert.deepEqual(bound, [SELF]);
+  assert.deepEqual(app.config.ownerSenderIds, [SELF]);
+
+  const admission = new UserAdmissionService({
+    database: spool.database,
+    identityKey: Buffer.alloc(32, 83),
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds: app.config.ownerSenderIds,
+    registrationMode: "invite",
+  });
+
+  // 朋友先来说话，也拿不到 Owner——他拿到的是邀请码提示。
+  const friend = admission.admit({ botAccountRef: "bot", senderRef: "friend", text: "你好" });
+  assert.equal(friend.route, "reply");
+  assert.match(friend.text, /邀请码/);
+  assert.equal(friend.ownerClaimed, undefined, "认领窗口必须从来没有打开过");
+});
+
+test("已经配了 Owner 时，登录信息不会把它顶掉", () => {
+  const app = {
+    config: { ownerSenderIds: ["configured-owner"], stateDir: null },
+    rememberOwnerSender: CyberbossApp.prototype.rememberOwnerSender,
+  };
+  const bound = CyberbossApp.prototype.bindOwnerFromAccount.call(app, { userId: "someone-else" });
+  assert.deepEqual(bound, ["configured-owner"]);
+  assert.deepEqual(app.config.ownerSenderIds, ["configured-owner"]);
 });

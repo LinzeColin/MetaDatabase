@@ -532,6 +532,38 @@ class CyberbossApp {
     };
   }
 
+  // 扫码登录的那个微信号，本身就是主人。
+  //
+  // 这条必须优先于「第一个发消息的人是主人」。很多人是拿自己的常用微信登录的，
+  // 那样他没法给自己发消息，而"第一个发消息的人"会变成第一个来找他聊天的朋友
+  // ——朋友就拿到了 Owner 权限。所以只要登录信息里带着账号自己的身份，就用它，
+  // 认领窗口一秒都不开。
+  bindOwnerFromAccount(account) {
+    const selfId = normalizeText(account?.userId);
+    if (!selfId) {
+      // 老版本登录没存这个字段。此时才退回认领窗口，并且明说。
+      console.warn(
+        "[cyberboss] 这次登录没有带回账号自己的微信标识，"
+        + "所以主人要靠「第一个发消息的人」来认领。"
+        + "如果这个号是你自己的常用微信，请先运行 cyberboss login 重新扫一次码。",
+      );
+      return null;
+    }
+    const configured = Array.isArray(this.config.ownerSenderIds)
+      ? this.config.ownerSenderIds.filter(Boolean)
+      : [];
+    if (configured.length) {
+      return configured;
+    }
+    this.config.ownerSenderIds = [selfId];
+    this.rememberOwnerSender(selfId);
+    console.log(
+      "[cyberboss] 主人 = 扫码登录的这个微信号本身。"
+      + "别人给它发消息都是普通用户，要邀请码才能开通。",
+    );
+    return this.config.ownerSenderIds;
+  }
+
   async login() {
     await this.channelAdapter.login();
   }
@@ -543,6 +575,9 @@ class CyberbossApp {
   async start() {
     const account = this.channelAdapter.resolveAccount();
     this.activeAccountId = account.accountId;
+    // 必须在 initializeDurableInbox 之前：admission 服务是在那里用
+    // ownerSenderIds 构造的。
+    this.bindOwnerFromAccount(account);
     this.systemMessageDispatcher = new SystemMessageDispatcher({
       queueStore: this.systemMessageQueue,
       config: this.config,
