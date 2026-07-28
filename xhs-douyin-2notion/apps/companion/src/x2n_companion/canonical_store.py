@@ -2834,6 +2834,64 @@ class CanonicalStore:
                 connection.close()
         return None if row is None else str(row["platform"])
 
+    @staticmethod
+    def _canonical_projection_from_rows(
+        *,
+        content_row: sqlite3.Row | None,
+        relation_rows: Sequence[sqlite3.Row],
+        observation_row: sqlite3.Row | None,
+        artifact_rows: Sequence[sqlite3.Row],
+        classification_row: sqlite3.Row | None,
+        category_row: sqlite3.Row | None,
+    ) -> CanonicalProjection:
+        """Validate and assemble one derived-sink projection from one read snapshot."""
+
+        if content_row is None or observation_row is None:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection lacks Canonical provenance")
+        if classification_row is not None and category_row is None:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection category is missing")
+        try:
+            content = CanonicalContent.model_validate_json(str(content_row["payload_json"]))
+            observation = SourceObservation.model_validate_json(str(observation_row["payload_json"]))
+            latest_artifacts: list[Artifact] = []
+            seen_types: set[str] = set()
+            for row in artifact_rows:
+                artifact_type = str(row["artifact_type"])
+                if artifact_type in seen_types:
+                    continue
+                seen_types.add(artifact_type)
+                latest_artifacts.append(Artifact.model_validate_json(str(row["payload_json"])))
+            classification = (
+                Classification.model_validate_json(str(classification_row["payload_json"]))
+                if classification_row is not None
+                else None
+            )
+            category = (
+                TaxonomyCategory.model_validate_json(str(category_row["payload_json"]))
+                if category_row is not None
+                else None
+            )
+        except (TypeError, ValueError):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection payload is invalid") from None
+        if observation.content_key != content.content_key:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection provenance diverged")
+        if classification is not None and (
+            classification.content_key != content.content_key
+            or category is None
+            or str(classification.primary_category_id) != str(category.category_id)
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection classification diverged")
+        if any(artifact.content_key != content.content_key for artifact in latest_artifacts):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection Artifact diverged")
+        return CanonicalProjection(
+            content=content,
+            relations=tuple(str(row["relation_type"]) for row in relation_rows),
+            observation=observation,
+            artifacts=tuple(latest_artifacts),
+            classification=classification,
+            category=category,
+        )
+
     def projection_snapshot(self, content_key: str) -> CanonicalProjection:
         """Read one internally consistent private snapshot for derived sinks."""
 
@@ -2889,51 +2947,100 @@ class CanonicalStore:
                 if connection.in_transaction:
                     connection.rollback()
                 connection.close()
-        if content_row is None or observation_row is None:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection lacks Canonical provenance")
-        if classification_row is not None and category_row is None:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection category is missing")
-        try:
-            content = CanonicalContent.model_validate_json(str(content_row["payload_json"]))
-            observation = SourceObservation.model_validate_json(str(observation_row["payload_json"]))
-            latest_artifacts: list[Artifact] = []
-            seen_types: set[str] = set()
-            for row in artifact_rows:
-                artifact_type = str(row["artifact_type"])
-                if artifact_type in seen_types:
-                    continue
-                seen_types.add(artifact_type)
-                latest_artifacts.append(Artifact.model_validate_json(str(row["payload_json"])))
-            classification = (
-                Classification.model_validate_json(str(classification_row["payload_json"]))
-                if classification_row is not None
-                else None
-            )
-            category = (
-                TaxonomyCategory.model_validate_json(str(category_row["payload_json"]))
-                if category_row is not None
-                else None
-            )
-        except (TypeError, ValueError):
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection payload is invalid") from None
-        if observation.content_key != content.content_key:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection provenance diverged")
-        if classification is not None and (
-            classification.content_key != content.content_key
-            or category is None
-            or str(classification.primary_category_id) != str(category.category_id)
-        ):
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection classification diverged")
-        if any(artifact.content_key != content.content_key for artifact in latest_artifacts):
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection Artifact diverged")
-        return CanonicalProjection(
-            content=content,
-            relations=tuple(str(row["relation_type"]) for row in relation_rows),
-            observation=observation,
-            artifacts=tuple(latest_artifacts),
-            classification=classification,
-            category=category,
+        return self._canonical_projection_from_rows(
+            content_row=content_row,
+            relation_rows=relation_rows,
+            observation_row=observation_row,
+            artifact_rows=artifact_rows,
+            classification_row=classification_row,
+            category_row=category_row,
         )
+
+    def projection_snapshots(self) -> tuple[CanonicalProjection, ...]:
+        """Read the complete Canonical sink input from one SQLite read transaction.
+
+        Rebuild callers must not stitch together independently-read Content,
+        Classification, and Artifact rows.  This bounded in-memory snapshot keeps
+        one deterministic source-of-truth view for a derived Markdown rebuild.
+        """
+
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                connection.execute("BEGIN")
+                content_rows = connection.execute(
+                    "SELECT content_key, payload_json FROM content ORDER BY content_key"
+                ).fetchall()
+                relation_rows = connection.execute(
+                    """
+                    SELECT content_key, relation_type FROM user_relation
+                    WHERE status = 'active'
+                    ORDER BY content_key, relation_type
+                    """
+                ).fetchall()
+                observation_rows = connection.execute(
+                    """
+                    SELECT content_key, payload_json FROM source_observation
+                    ORDER BY content_key, observed_at DESC, observation_id DESC
+                    """
+                ).fetchall()
+                artifact_rows = connection.execute(
+                    """
+                    SELECT content_key, artifact_type, payload_json FROM artifact
+                    ORDER BY content_key, artifact_type, artifact_sequence DESC, artifact_id DESC
+                    """
+                ).fetchall()
+                classification_rows = connection.execute(
+                    """
+                    SELECT content_key, payload_json, primary_category_id FROM classification
+                    ORDER BY content_key, created_at DESC, classification_id DESC
+                    """
+                ).fetchall()
+                category_rows = connection.execute(
+                    "SELECT category_id, payload_json FROM taxonomy_category ORDER BY category_id"
+                ).fetchall()
+            finally:
+                if connection.in_transaction:
+                    connection.rollback()
+                connection.close()
+
+        relations_by_content: dict[str, list[sqlite3.Row]] = {}
+        for row in relation_rows:
+            relations_by_content.setdefault(str(row["content_key"]), []).append(row)
+
+        latest_observation_by_content: dict[str, sqlite3.Row] = {}
+        for row in observation_rows:
+            latest_observation_by_content.setdefault(str(row["content_key"]), row)
+
+        artifacts_by_content: dict[str, list[sqlite3.Row]] = {}
+        for row in artifact_rows:
+            artifacts_by_content.setdefault(str(row["content_key"]), []).append(row)
+
+        latest_classification_by_content: dict[str, sqlite3.Row] = {}
+        for row in classification_rows:
+            latest_classification_by_content.setdefault(str(row["content_key"]), row)
+        categories_by_id = {str(row["category_id"]): row for row in category_rows}
+
+        snapshots: list[CanonicalProjection] = []
+        for content_row in content_rows:
+            content_key = str(content_row["content_key"])
+            classification_row = latest_classification_by_content.get(content_key)
+            category_row = (
+                None
+                if classification_row is None
+                else categories_by_id.get(str(classification_row["primary_category_id"]))
+            )
+            snapshots.append(
+                self._canonical_projection_from_rows(
+                    content_row=content_row,
+                    relation_rows=relations_by_content.get(content_key, ()),
+                    observation_row=latest_observation_by_content.get(content_key),
+                    artifact_rows=artifacts_by_content.get(content_key, ()),
+                    classification_row=classification_row,
+                    category_row=category_row,
+                )
+            )
+        return tuple(snapshots)
 
     def logical_digest(self) -> str:
         with self._file_lock(exclusive=False):

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 5 / UX-Ops 002
+
+- 完成 `TSK.x2n.uxops.002 / PH.X2N.5.2` 的 CI-synth Markdown Library 加固：Renderer `1.1.0`、一次 SQLite 读快照、固定 `platform/content_id` Canonical 路径、生成分类 `INDEX.md` 链接、Hash Manifest、Link Checker 与逐文件原子恢复；重建不写 Canonical 或 Outbox。
+- 10,000 条合成 SQLite 输入在删除派生目录后可完整重建，Canonical 内容数/Hash 与 Manifest 一致，分类重命名、合并和重分类不移动主文件，死链/重复内容副本为 0，第二次 rebuild 写入为 0。真实 Runtime、账号、平台、媒体、Notion、网络和下载目录写入均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.003`；G5、上传、部署、发布仍未授权。无 Alpha/Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 5 / UX-Ops 001
 
 - 完成 `TSK.x2n.uxops.001 / PH.X2N.5.1` 的 CI-synth Mock 范围：Items/Categories 版本化加法 schema、精确长文本分块与首批创建/后续 append 均最多 100 block/request、2 req/s 闸门、429/529 Retry-After、Dead Letter、Outbox outage/kill 后 reconcile。

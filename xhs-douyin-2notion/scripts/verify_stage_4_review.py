@@ -267,6 +267,37 @@ def _stage5_task001_to_task002_transition(state: dict[str, Any]) -> bool:
     )
 
 
+def _stage5_task002_to_task003_transition(state: dict[str, Any]) -> bool:
+    """Accept the audited Markdown successor while preserving the immutable G4 record."""
+
+    return (
+        state.get("schema_version") == "1.38"
+        and state.get("stage") == "STG.X2N.5"
+        and state.get("last_completed_phase") == "PH.X2N.5.2"
+        and state.get("review_id") == REVIEW_ID
+        and state.get("run_id") == "RUN-X2N-S05-U002"
+        and state.get("run_kind") == "single_dag_task_ci_synth_markdown_library_hardening"
+        and state.get("state") == "stage_5_task002_markdown_library_ci_synth_pass_task003_next_real_runtime_not_run"
+        and state.get("next_phase") == "PH.X2N.5.3"
+        and state.get("next_run") == "TSK.x2n.uxops.003"
+        and state.get("next_phase_authorized") is True
+        and state.get("stage_gate") == "pass"
+        and state.get("current_stage_gate") == "review_pending"
+        and state.get("stage_4_review_complete") is True
+        and state.get("stage_4_gate_status") == "pass_ci_synth"
+        and state.get("stage_4_remote_upload_authorized") is False
+        and state.get("stage_5_authorized") is True
+        and state.get("stage_5_task001_complete") is True
+        and state.get("stage_5_task002_complete") is True
+        and state.get("stage_5_remote_upload_authorized") is False
+        and state.get("tasks", {}).get("TSK.x2n.uxops.001") == "pass"
+        and state.get("tasks", {}).get("TSK.x2n.uxops.002") == "pass"
+        and state.get("remote_upload") == "not_required_for_local_stage_transition"
+        and state.get("current_stage_remote_upload") == "not_required_for_local_stage_transition"
+        and state.get("public_release_authorized") is False
+    )
+
+
 def validate_review_fact_and_task_receipts() -> Check:
     schema = _load_json(REVIEW_SCHEMA)
     fact = _load_json(REVIEW_FACT)
@@ -373,16 +404,24 @@ def validate_taskpack_and_current_transition() -> Check:
         and "TSK.x2n.multimodal.005" in next_task.get("depends_on", []),
         "Stage 5 next task bypasses G4 taxonomy predecessor",
     )
+    markdown_task = tasks.get("TSK.x2n.uxops.002", {})
+    _require(
+        markdown_task.get("status") in {"planned", "completed"}
+        and markdown_task.get("phase") == "PH.X2N.5.2"
+        and markdown_task.get("depends_on") == ["TSK.x2n.skeleton.005", "TSK.x2n.multimodal.005"],
+        "Stage 5 Markdown task contract drifted",
+    )
     state = _load_json(TASK_STATE)
     task001_successor = _stage5_task001_to_task002_transition(state)
+    task002_successor = _stage5_task002_to_task003_transition(state)
     _require(
-        (_g4_to_stage5_task001_transition(state) or task001_successor)
+        (_g4_to_stage5_task001_transition(state) or task001_successor or task002_successor)
         and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in EXPECTED_TASKS)
         and state.get("previous_stage_gate")
         == {"gate_id": "G3", "remote_upload": "not_uploaded", "stage": "STG.X2N.3", "status": "pass"}
         and state.get("completed_stage_gate")
         == {"gate_id": "G4", "remote_upload": "not_uploaded", "stage": "STG.X2N.4", "status": "pass"},
-        "current state is not the bounded G4 transition or its audited Task001 successor",
+        "current state is not the bounded G4 transition or an audited Stage 5 successor",
     )
     statuses = state.get("acceptance_status", {})
     _require(
@@ -399,7 +438,13 @@ def validate_taskpack_and_current_transition() -> Check:
         "taskpack_and_stage4_transition",
         "PASS",
         {
-            "next_task": "TSK.x2n.uxops.002" if task001_successor else "TSK.x2n.uxops.001",
+            "next_task": (
+                "TSK.x2n.uxops.003"
+                if task002_successor
+                else "TSK.x2n.uxops.002"
+                if task001_successor
+                else "TSK.x2n.uxops.001"
+            ),
             "stage_4_remote_upload": 0,
             "stage_5_authorized": True,
         },
@@ -428,8 +473,15 @@ def validate_public_private_boundary() -> Check:
         and project.get("notion_projection")
         == "versioned_additive_schema_long_text_bounded_batches_x2n_owned_views_conflict_fail_closed_fallback_documented_outbox_reconcile_ci_synth_real_notion_not_run"
     )
+    task002_project_facts = (
+        project.get("status") == "stage_5_task002_markdown_library_ci_synth_pass_task003_next_real_runtime_not_run"
+        and project.get("stage_4_current_task")
+        == "G4_pass_ci_synth_preserved_private_gold_disabled_stage_5_task002_markdown_library_complete"
+        and project.get("markdown_library")
+        == "renderer_v1_1_single_sqlite_snapshot_derived_rebuild_fixed_platform_content_id_paths_generated_category_links_manifest_link_checker_ten_thousand_ci_synth_real_runtime_not_run"
+    )
     _require(
-        (g4_project_facts or task001_project_facts)
+        (g4_project_facts or task001_project_facts or task002_project_facts)
         and project.get("canonical_store") == "active_local_sqlite_logical_truth"
         and project.get("taxonomy_classification")
         == "owner_registry_append_only_revisions_constrained_deterministic_local_suggestion_only_review_private_gold_oracle_auto_classify_disabled_pending_private_gold",
@@ -448,7 +500,17 @@ def validate_public_private_boundary() -> Check:
         and architecture.get("stage_gate")
         == "g4_pass_ci_synth_preserved_stage5_task001_pass_task002_authorized_private_gold_disabled"
     )
-    _require(g4_architecture_facts or task001_architecture_facts, "architecture fact overclaims G4 capability")
+    task002_architecture_facts = (
+        architecture.get("phase") == "PH.X2N.5.2"
+        and architecture.get("status") == "stage_5_task002_markdown_library_ci_synth_pass_task003_next_real_runtime_not_run"
+        and architecture.get("review_id") == REVIEW_ID
+        and architecture.get("stage_gate")
+        == "g4_pass_ci_synth_preserved_stage5_task002_pass_task003_authorized_private_gold_disabled"
+    )
+    _require(
+        g4_architecture_facts or task001_architecture_facts or task002_architecture_facts,
+        "architecture fact overclaims G4 capability",
+    )
     contract = RUN_CONTRACT.read_text(encoding="utf-8")
     report = REPORT.read_text(encoding="utf-8")
     for token in (

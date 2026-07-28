@@ -2120,7 +2120,7 @@ tasks:
   title: Harden Markdown library and generated category indexes
   stage: STG.X2N.5
   phase: PH.X2N.5.2
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

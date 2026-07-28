@@ -42,7 +42,7 @@ v0.0.0.1 MVP deployed, running and online
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。Stage 5 Task001 的 Notion schema/view/outbox/reconcile Mock 验收已完成，真实 Notion/Owner Canary 未运行。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为本地 TSK.x2n.uxops.002；上传、部署/发布仍禁止 |
+| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。Stage 5 Task001 Notion Mock 与 Task002 Markdown Library `1.1.0`/10k rebuild 验收已完成，真实 Runtime/Notion/Owner Canary 未运行。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为本地 TSK.x2n.uxops.003；上传、部署/发布仍禁止 |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |
@@ -575,6 +575,7 @@ Stage 3 的测试样本全部为 `ENV-CI-SYNTH`；真实激活只属于 Stage 6 
 
 ## Phase 5.2 — Markdown Library
 
+- 已完成 CI-synth：Renderer `1.1.0`、一次 SQLite 读快照、10,000 条重建、Hash Manifest、Link Checker、原子恢复、零重复 Canonical 副本与第二次零写入；真实 Runtime 未运行。
 - Stable Canonical Path；
 - Frontmatter Schema；
 - Transcript/OCR/Vision Sections；

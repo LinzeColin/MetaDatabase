@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK001_NOTION_PROJECTION_CI_SYNTH_PASS_TASK002_NEXT
+status: STAGE_5_TASK002_MARKDOWN_LIBRARY_CI_SYNTH_PASS_TASK003_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_5_task001_notion_projection_pass_task002_next_real_notion_not_run
-implementation_authorized: stage_5_task_002_next_single_phase_run
+current_run_scope: stage_5_task002_markdown_library_pass_task003_next_real_runtime_not_run
+implementation_authorized: stage_5_task_003_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -31,8 +31,8 @@ owner: LinzeColin
 | 运行数据 | Private；持久业务/运行数据进入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion` |
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
-| 产品阶段 | Stage 5 Task001 已完成，Task002 已授权 |
-| 开发状态 | 独立 G3 与 G4 CI-synth 复核均已通过；五个 Stage 4 Task receipt 不变。Stage 5 Task001 已完成 versioned/additive Notion schema、受管视图、长文本有界 child batch、Outbox/reconcile 的 CI-synth Mock 验收；真实 Notion/Owner Canary 未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。下一独立 Run 为本地 TSK.x2n.uxops.002；上传、部署和发布仍未授权 |
+| 产品阶段 | Stage 5 Task001/Task002 已完成，Task003 已授权 |
+| 开发状态 | 独立 G3 与 G4 CI-synth 复核均已通过；五个 Stage 4 Task receipt 不变。Stage 5 Task001 已完成 versioned/additive Notion Mock；Task002 已完成 Renderer `1.1.0`、单 SQLite 读快照、固定 Canonical 路径、生成分类 Index、Manifest/Link Checker、原子恢复与 10k 合成 rebuild。真实 Runtime/Notion/Owner Canary 未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。下一独立 Run 为本地 TSK.x2n.uxops.003；上传、部署和发布仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 
@@ -546,6 +546,7 @@ X2N_DATA_ROOT/runtime/library/categories/<category_slug>/INDEX.md
 - 不把 Transcript/OCR 过长内容塞入 Frontmatter。
 - 使用原子写入和确定性渲染，支持全量重建。
 - 分类 Index 是生成文件，不是第二事实源。
+- Content 与 Index 必须标记 Renderer Version；全量重建从一次 SQLite 读快照取得投影，以 Hash Manifest 和 Link Checker 验证零死链、零重复 Canonical 副本与第二次零写入。
 
 ### REQ.X2N.018/019 — Notion Sink 与 Outbox
 

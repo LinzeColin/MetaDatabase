@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import os
+import shutil
 import tempfile
 import unittest
 import uuid
@@ -22,6 +23,7 @@ from x2n_contracts.models import CaptureCurrentPayload
 
 from x2n_companion.canonical_store import CanonicalProjection, CanonicalStore
 from x2n_companion.markdown_sink import (
+    MARKDOWN_RENDERER_VERSION,
     TRANSITION_AFTER_ATOMIC_REPLACE,
     TRANSITION_BEFORE_ATOMIC_REPLACE,
     MarkdownSink,
@@ -45,7 +47,7 @@ from x2n_companion.notion_sink import (
     RequestRateGate,
     build_notion_projection,
 )
-from x2n_companion.orchestrator import CurrentPageOrchestrator
+from x2n_companion.orchestrator import CurrentPageOrchestrator, _plan
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
 from x2n_companion.sink_projection import ProjectionText, build_sink_projection
 
@@ -154,6 +156,25 @@ class SinkTests(unittest.TestCase):
         self.assertEqual(receipt.state, "succeeded")
         return f"{payload.platform.value}:{payload.page_context.content_id}"
 
+    def seed_rebuild_canonical(self, count: int) -> None:
+        """Load a real, validated Canonical fixture in one SQLite transaction for 10k rebuild tests."""
+
+        observed_at = self.clock.iso()
+        with self.store._transaction() as connection:
+            for index in range(count):
+                payload = _payload(index)
+                request_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"x2n-s005:rebuild-seed:{index}"))
+                payload_hash = canonical_json_sha256(payload.model_dump(mode="json", by_alias=True))
+                content, relation, observation, _, _ = _plan(
+                    payload,
+                    request_id=request_id,
+                    payload_hash=payload_hash,
+                    observed_at=observed_at,
+                )
+                self.store._upsert_content(connection, content, observed_at)
+                self.store._upsert_relation(connection, relation, content.platform.value, observed_at)
+                self.store._append_observation(connection, observation, observed_at)
+
     def projection(self, index: int, *, text: ProjectionText | None = None) -> Any:
         key = self.capture(index)
         return build_sink_projection(self.store.projection_snapshot(key), text)
@@ -167,6 +188,68 @@ class SinkTests(unittest.TestCase):
         gate = RequestRateGate(monotonic=self.clock.monotonic, sleeper=self.clock.sleep)
         client = RateLimitedNotionClient(server, gate)
         return server, NotionSinkWorker(self.store, client, category_page_refs=category_page_refs)
+
+    @staticmethod
+    def _owner_category(*, category_id: str, slug: str, name: str, version: int) -> TaxonomyCategory:
+        return _model(
+            TaxonomyCategory,
+            {
+                "aliases": [],
+                "category_id": category_id,
+                "created_by": "owner",
+                "description": f"Synthetic {name} category",
+                "enabled": True,
+                "level": 1,
+                "name": name,
+                "negative_examples": [],
+                "positive_examples": [],
+                "priority": 1,
+                "schema_version": "1.0",
+                "slug": slug,
+                "version": version,
+            },
+        )
+
+    @staticmethod
+    def _reclassified_projection(
+        projection: Any,
+        *,
+        category: TaxonomyCategory,
+        revision: int,
+    ) -> Any:
+        classification = _model(
+            Classification,
+            {
+                "calibration_bucket": "owner",
+                "candidate_ranking": [{"calibrated_score": 1.0, "category_id": str(category.category_id)}],
+                "classification_id": f"class_s005_rebuild_{revision:04d}",
+                "confidence_raw": 1.0,
+                "content_key": projection.canonical.content.content_key,
+                "created_at": f"2026-07-22T10:{revision:02d}:00Z",
+                "decision_mode": "human",
+                "evidence_artifact_ids": [
+                    projection.canonical.artifacts[0].artifact_id
+                    if projection.canonical.artifacts
+                    else "art_s005_rebuild_evidence"
+                ],
+                "explanation_private_ref": None,
+                "primary_category_id": str(category.category_id),
+                "review_status": "owner_confirmed",
+                "schema_version": "1.0",
+                "supersedes_classification_id": None,
+                "tags": ["owner"],
+                "taxonomy_version": category.version,
+            },
+        )
+        canonical = CanonicalProjection(
+            content=projection.canonical.content,
+            relations=projection.canonical.relations,
+            observation=projection.canonical.observation,
+            artifacts=projection.canonical.artifacts,
+            classification=classification,
+            category=category,
+        )
+        return build_sink_projection(canonical, projection.text)
 
     def test_six_platform_markdown_frontmatter_paths_index_and_cdn_scan(self) -> None:
         sink = MarkdownSink(self.store)
@@ -379,6 +462,133 @@ class SinkTests(unittest.TestCase):
         replay = sink.deliver(changed, now=self.clock.iso())
         self.assertEqual(replay.state, "delivered")
         self.assertEqual(self.store.counts()["sink_receipt"], 2)
+
+    def test_rebuild_is_atomic_per_file_and_repairs_category_index_after_kill(self) -> None:
+        sink = MarkdownSink(self.store)
+        original = self.projection(0, text=ProjectionText(summary="old rebuild summary"))
+        first = sink.rebuild([original])
+        original_path = sink.content_path(original)
+        old = original_path.read_bytes()
+        self.assertEqual((first.manifest.content_count, first.checked_links), (1, 1))
+
+        self.clock.advance(1)
+        payload = _payload(0, title_suffix=" rebuild changed")
+        CurrentPageOrchestrator(self.store, clock=self.clock.iso).execute(
+            payload,
+            request_id=str(uuid.uuid5(uuid.NAMESPACE_URL, "x2n-s005:rebuild-kill:0")),
+            payload_hash=canonical_json_sha256(payload.model_dump(mode="json", by_alias=True)),
+        )
+        changed = build_sink_projection(
+            self.store.projection_snapshot(original.canonical.content.content_key),
+            ProjectionText(summary="new rebuild summary"),
+        )
+        self.assertEqual(sink.content_path(changed), original_path)
+
+        def before(transition: str) -> None:
+            if transition == TRANSITION_BEFORE_ATOMIC_REPLACE:
+                raise InjectedKill(transition)
+
+        with self.assertRaises(InjectedKill):
+            sink.rebuild([changed], transition_hook=before)
+        self.assertEqual(original_path.read_bytes(), old)
+        self.assertEqual(list(original_path.parent.glob(".*.tmp-*")), [])
+
+        def after(transition: str) -> None:
+            if transition == TRANSITION_AFTER_ATOMIC_REPLACE:
+                raise InjectedKill(transition)
+
+        with self.assertRaises(InjectedKill):
+            sink.rebuild([changed], transition_hook=after)
+        self.assertEqual(original_path.read_bytes(), render_markdown(changed).encode("utf-8"))
+        repaired = sink.rebuild([changed])
+        self.assertEqual((repaired.checked_links, repaired.manifest.content_count), (1, 1))
+        self.assertEqual(sink.validate_category_links(), 1)
+
+    @mock.patch("x2n_companion.markdown_sink.os.fsync")
+    def test_ten_thousand_canonical_rebuild_is_deterministic_and_category_only_reclassifies(
+        self,
+        _fsync: Any,
+    ) -> None:
+        self.seed_rebuild_canonical(10_000)
+        sink = MarkdownSink(self.store)
+        canonical_counts = self.store.counts()
+        first = sink.rebuild_from_canonical(build_sink_projection)
+        self.assertEqual(first.manifest.content_count, 10_000)
+        self.assertEqual((first.manifest.category_index_count, first.checked_links), (1, 10_000))
+        self.assertEqual(first.content_writes, 10_000)
+        self.assertEqual(first.removed_content_files, 0)
+        self.assertEqual(self.store.counts(), canonical_counts)
+        self.assertEqual(sink.library_manifest(), first.manifest)
+
+        library = self.paths.data_root / "runtime/library"
+        shutil.rmtree(library)
+        restored = sink.rebuild_from_canonical(build_sink_projection)
+        self.assertEqual(restored.manifest, first.manifest)
+        self.assertEqual((restored.manifest.content_count, restored.checked_links), (10_000, 10_000))
+        second = sink.rebuild_from_canonical(build_sink_projection)
+        self.assertEqual(second.manifest, first.manifest)
+        self.assertEqual(
+            (
+                second.content_writes,
+                second.category_index_writes,
+                second.removed_content_files,
+                second.removed_category_indexes,
+            ),
+            (0, 0, 0, 0),
+        )
+
+        projections = [build_sink_projection(snapshot) for snapshot in self.store.projection_snapshots()]
+        original_path = sink.content_path(projections[0])
+        research = self._owner_category(
+            category_id="11111111-1111-4111-8111-111111111111",
+            slug="owner-research",
+            name="Owner Research",
+            version=1,
+        )
+        categorized = list(projections)
+        categorized[0] = self._reclassified_projection(categorized[0], category=research, revision=1)
+        category_result = sink.rebuild(categorized)
+        self.assertEqual(sink.content_path(categorized[0]), original_path)
+        self.assertEqual((category_result.manifest.content_count, category_result.checked_links), (10_000, 10_000))
+        research_index = library / "categories/owner-research/INDEX.md"
+        self.assertTrue(research_index.is_file())
+
+        renamed = self._owner_category(
+            category_id=str(research.category_id),
+            slug="owner-research",
+            name="Owner Research Renamed",
+            version=2,
+        )
+        renamed_projections = list(categorized)
+        renamed_projections[0] = self._reclassified_projection(renamed_projections[0], category=renamed, revision=2)
+        renamed_result = sink.rebuild(renamed_projections)
+        self.assertEqual(sink.content_path(renamed_projections[0]), original_path)
+        self.assertEqual(renamed_result.manifest.content_count, 10_000)
+        self.assertIn("# Owner Research Renamed", research_index.read_text(encoding="utf-8"))
+
+        merged = self._owner_category(
+            category_id="22222222-2222-4222-8222-222222222222",
+            slug="owner-library",
+            name="Owner Library",
+            version=1,
+        )
+        merged_projections = list(renamed_projections)
+        merged_projections[0] = self._reclassified_projection(merged_projections[0], category=merged, revision=3)
+        merged_result = sink.rebuild(merged_projections)
+        self.assertEqual(sink.content_path(merged_projections[0]), original_path)
+        self.assertEqual((merged_result.manifest.content_count, merged_result.checked_links), (10_000, 10_000))
+        self.assertFalse(research_index.exists())
+        library_index = library / "categories/owner-library/INDEX.md"
+        index_frontmatter, _ = parse_frontmatter(library_index.read_text(encoding="utf-8"))
+        self.assertEqual(index_frontmatter["renderer_version"], MARKDOWN_RENDERER_VERSION)
+        content_frontmatter, _ = parse_frontmatter(original_path.read_text(encoding="utf-8"))
+        self.assertEqual(content_frontmatter["renderer_version"], MARKDOWN_RENDERER_VERSION)
+        self.assertEqual(
+            len(list((library / "content").glob("*/*.md"))),
+            10_000,
+        )
+        self.assertEqual(len(list((library / "categories").glob("*/*.md"))), 2)
+        self.assertEqual(sink.validate_category_links(), 10_000)
 
     def test_projection_rejects_prohibited_private_text(self) -> None:
         key = self.capture(3)
