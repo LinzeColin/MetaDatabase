@@ -56,7 +56,7 @@
           <label for="source-identity">Documented source identity</label>
           <input id="source-identity" type="text" maxlength="128" autocomplete="off">
         </div>
-        <button id="start-sync" type="button" disabled>Start selected synthetic dispatch</button>
+        <button id="start-sync" type="button" disabled>Start selected action</button>
         <p id="sync-status" aria-live="polite"></p>
       </section>
       <section id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
@@ -73,12 +73,12 @@
         <dl>
           <div><dt>Runtime truth</dt><dd>Local SQLite only</dd></div>
           <div><dt>Extension storage</dt><dd>Not used</dd></div>
-          <div><dt>Platform gates</dt><dd>XHS current page only</dd></div>
+          <div><dt>Platform gates</dt><dd>Only owner-authorized bounded scopes may run</dd></div>
         </dl>
       </section>
     </main>
 
-    <footer>Stage 3 · capability-gated local dispatch · fail closed</footer>
+    <footer>Capability-gated local dispatch · fail closed</footer>
     <script type="module" src="src/sidepanel.js"></script>
   </body>
 </html>

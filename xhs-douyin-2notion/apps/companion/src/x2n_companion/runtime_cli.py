@@ -36,6 +36,7 @@ from .mvp_deployment import (
 )
 from .mvp_release import (
     ARM_CONFIRMATION,
+    MATERIALIZE_CONFIRMATION,
     ROLLBACK_CONFIRMATION,
     SIGNOFF_CONFIRMATION,
     MvpReleaseController,
@@ -235,6 +236,29 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     "OWNER_MVP_BASELINE_RECORDED" if baseline["exact_four_scope_baseline"] else "NOT_RUN"
                 ),
             )
+        if args.release_action == "materialize-knowledge-assets":
+            private_client = None
+            if (
+                args.confirm == MATERIALIZE_CONFIRMATION
+                and controller.state["knowledge_assets"]["materialized"] is not True
+                and controller.state["phase"] == "activation_armed"
+                and controller.state["baseline"]["passed"] is True
+            ):
+                private_client = DigestPinnedPrivateDbClient.from_environment()
+            knowledge_assets = controller.materialize_knowledge_assets(
+                store,
+                confirmation=args.confirm,
+                private_client=private_client,
+            )
+            return _success(
+                "release_materialize_knowledge_assets",
+                acceptance_scope="ASSURANCE_005_MARKDOWN_PRIVATE_DURABILITY",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=MATERIALIZE_CONFIRMATION,
+                knowledge_assets=knowledge_assets,
+                release=controller.safe_status(),
+                real_account_execution="OWNER_MVP_BASELINE_RECORDED",
+            )
         if args.release_action == "rollback-rehearse":
             return _success(
                 "release_rollback_rehearse",
@@ -243,7 +267,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 **controller.rehearse_rollback(store),
             )
         if args.release_action == "signoff":
-            controller.owner_signoff(confirmation=args.confirm)
+            controller.owner_signoff(store, confirmation=args.confirm)
             return _success(
                 "release_owner_signoff",
                 acceptance_scope="ASSURANCE_005_OWNER_SIGNOFF",
@@ -725,6 +749,8 @@ def build_parser() -> argparse.ArgumentParser:
     release_arm = release_actions.add_parser("arm")
     release_arm.add_argument("--confirm", required=True, help=f"Required literal: {ARM_CONFIRMATION}")
     release_actions.add_parser("baseline-verify")
+    release_materialize = release_actions.add_parser("materialize-knowledge-assets")
+    release_materialize.add_argument("--confirm", required=True, help=f"Required literal: {MATERIALIZE_CONFIRMATION}")
     release_actions.add_parser("rollback-rehearse")
     release_signoff = release_actions.add_parser("signoff")
     release_signoff.add_argument("--confirm", required=True, help=f"Required literal: {SIGNOFF_CONFIRMATION}")

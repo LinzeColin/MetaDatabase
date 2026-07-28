@@ -39,6 +39,7 @@ try {
   let failures = 0;
   let totalItems = 0;
   let totalErrorEvidence = 0;
+  let ownerMvpModeCases = 0;
   let readySample = null;
   for (const fixtureCase of manifest.cases) {
     currentCase = fixtureCase.id;
@@ -65,6 +66,13 @@ try {
     if (result.status === "ready") {
       ready += 1;
       readySample ??= JSON.parse(JSON.stringify(result));
+      const ownerMvpResult = validateXhsFavoritesBatch(await page.evaluate(
+        extractXhsFavoritesVisibleBatch,
+        { maxItems: 20, ownerGesture: true, scopeMode: "owner_mvp_20" },
+      ));
+      requireCondition(ownerMvpResult.status === "ready", "owner_mvp_mode_rejected");
+      requireCondition(ownerMvpResult.batch.automatic_scroll === false, "owner_mvp_automatic_scroll");
+      ownerMvpModeCases += 1;
     }
     else failures += 1;
     totalItems += result.items.length;
@@ -111,6 +119,7 @@ try {
     identified_items: totalItems,
     network_calls: unexpectedRequests.length,
     owner_canary: "NOT_RUN",
+    owner_mvp_mode_cases: ownerMvpModeCases,
     platform_calls: 0,
     ready_cases: ready,
     rejected_or_partial_cases: failures,

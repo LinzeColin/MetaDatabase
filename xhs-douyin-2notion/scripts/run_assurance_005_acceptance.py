@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -30,6 +31,10 @@ sys.path.insert(0, str(PROJECT_ROOT / "packages/contracts/src"))
 
 from scripts.ci.ci_baseline import BaselineError, build_artifact  # noqa: E402
 from x2n_companion.canonical_store import CanonicalStore  # noqa: E402
+from x2n_companion.final_acceptance_bundle import (  # noqa: E402
+    FinalAcceptanceBundleError,
+    build_final_acceptance_bundle,
+)
 from x2n_companion.mvp_deployment import MvpDeploymentManager  # noqa: E402
 from x2n_companion.mvp_release import MvpReleaseController, RELEASE_VERSION  # noqa: E402
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError  # noqa: E402
@@ -40,6 +45,7 @@ PHASE = "PH.X2N.6.5"
 STATUS = "PASS_OWNER_MVP_DIRECT_RELEASE_CORE"
 WRITE_CONFIRMATION = "WRITE_X2N_ASSURANCE_005_PUBLIC_RECEIPT"
 PUBLIC_RECEIPT = PROJECT_ROOT / "evidence/release/TSK.x2n.assurance.005.json"
+PUBLIC_BUNDLE = PROJECT_ROOT / "evidence/release/FINAL_ACCEPTANCE_BUNDLE"
 _PLATFORM_CDN = re.compile(
     "|".join(
         re.escape("".join(parts))
@@ -142,7 +148,52 @@ def build_receipt() -> dict[str, Any]:
         and native_host["native_host_release_bound"] is True,
         "direct Owner MVP release proof is incomplete",
     )
-    receipt = {
+    external_gates = go_live["external_gates"]
+    knowledge_assets = go_live["knowledge_assets"]
+    _require(
+        isinstance(external_gates, list)
+        and len(external_gates) == 4
+        and all(
+            isinstance(item, dict)
+            and set(item)
+            == {
+                "feature_flag",
+                "live_support_claim",
+                "platform_calls",
+                "reason_code",
+                "scope_id",
+                "status",
+            }
+            and item["feature_flag"] == "disabled"
+            and item["live_support_claim"] is False
+            and item["platform_calls"] == 0
+            and item["status"] == "PASS_DISABLED_EXTERNAL_GATE"
+            for item in external_gates
+        ),
+        "external-gate settlement proof is incomplete",
+    )
+    _require(
+        isinstance(knowledge_assets, dict)
+        and set(knowledge_assets)
+        == {
+            "markdown_content_count",
+            "markdown_library_sha256",
+            "markdown_renderer_version",
+            "notion_mode",
+            "notion_platform_calls",
+            "private_durability_manifest_sha256",
+        }
+        and type(knowledge_assets["markdown_content_count"]) is int
+        and knowledge_assets["markdown_content_count"] >= 1
+        and re.fullmatch(r"[0-9a-f]{64}", str(knowledge_assets["markdown_library_sha256"])) is not None
+        and isinstance(knowledge_assets["markdown_renderer_version"], str)
+        and knowledge_assets["notion_mode"] == "DISABLED_OWNER_INPUT"
+        and type(knowledge_assets["notion_platform_calls"]) is int
+        and knowledge_assets["notion_platform_calls"] == 0
+        and re.fullmatch(r"[0-9a-f]{64}", str(knowledge_assets["private_durability_manifest_sha256"])) is not None,
+        "knowledge-asset and durability proof is incomplete",
+    )
+    receipt_without_bundle_hash = {
         "artifact": {
             "artifact_sha256": artifact["artifact_sha256"],
             "runtime_data_files": 0,
@@ -155,6 +206,8 @@ def build_receipt() -> dict[str, Any]:
             "private_manifest_item_count": 80,
             "private_manifest_scope_count": 4,
         },
+        "external_gates": external_gates,
+        "knowledge_assets": knowledge_assets,
         "go_live": {
             "baseline_hash": go_live["baseline_hash"],
             "owner_mvp_baseline_relations": 80,
@@ -172,14 +225,26 @@ def build_receipt() -> dict[str, Any]:
         "status": STATUS,
         "task_id": TASK_ID,
     }
+    _bundle, bundle_sha256 = build_final_acceptance_bundle(receipt_without_bundle_hash)
+    receipt = {**receipt_without_bundle_hash, "final_acceptance_bundle_sha256": bundle_sha256}
     _safe_payload(receipt)
     return receipt
 
 
 def _write_public_receipt(receipt: dict[str, Any]) -> None:
     _safe_payload(receipt)
-    if PUBLIC_RECEIPT.exists() or PUBLIC_RECEIPT.is_symlink():
-        raise Assurance005Error("public go-live receipt already exists and is immutable")
+    try:
+        bundle, bundle_sha256 = build_final_acceptance_bundle(receipt)
+    except FinalAcceptanceBundleError as error:
+        raise Assurance005Error("final acceptance bundle cannot be generated safely") from error
+    _require(
+        bundle_sha256 == receipt.get("final_acceptance_bundle_sha256"),
+        "final acceptance bundle root identity drifted",
+    )
+    for document in bundle.values():
+        _safe_payload(document)
+    if PUBLIC_RECEIPT.exists() or PUBLIC_RECEIPT.is_symlink() or PUBLIC_BUNDLE.exists() or PUBLIC_BUNDLE.is_symlink():
+        raise Assurance005Error("public go-live evidence already exists and is immutable")
     parent = PUBLIC_RECEIPT.parent
     if parent.exists():
         if parent.is_symlink() or not parent.is_dir():
@@ -187,18 +252,44 @@ def _write_public_receipt(receipt: dict[str, Any]) -> None:
     else:
         parent.mkdir(parents=True, exist_ok=False)
     temporary = PUBLIC_RECEIPT.with_name(f".{PUBLIC_RECEIPT.name}.tmp-{uuid.uuid4().hex}")
+    temporary_bundle = PUBLIC_BUNDLE.with_name(f".{PUBLIC_BUNDLE.name}.tmp-{uuid.uuid4().hex}")
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    bundle_published = False
+    receipt_published = False
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
             json.dump(receipt, handle, ensure_ascii=False, indent=2, sort_keys=True)
             handle.write("\n")
             handle.flush()
             os.fsync(handle.fileno())
+        temporary_bundle.mkdir(mode=0o700)
+        for name, document in bundle.items():
+            destination = temporary_bundle / name
+            document_descriptor = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(document_descriptor, "w", encoding="utf-8") as handle:
+                handle.write(document)
+                handle.flush()
+                os.fsync(handle.fileno())
+            destination.chmod(0o644)
+        temporary_bundle.chmod(0o755)
+        os.replace(temporary_bundle, PUBLIC_BUNDLE)
+        bundle_published = True
         os.replace(temporary, PUBLIC_RECEIPT)
+        receipt_published = True
         PUBLIC_RECEIPT.chmod(0o644)
+    except BaseException:
+        if bundle_published and not receipt_published:
+            if PUBLIC_BUNDLE.is_symlink() or not PUBLIC_BUNDLE.is_dir():
+                raise Assurance005Error("published final acceptance bundle became unsafe") from None
+            shutil.rmtree(PUBLIC_BUNDLE)
+        raise
     finally:
         if temporary.exists() or temporary.is_symlink():
             temporary.unlink()
+        if temporary_bundle.exists() or temporary_bundle.is_symlink():
+            if temporary_bundle.is_symlink() or not temporary_bundle.is_dir():
+                raise Assurance005Error("temporary final acceptance bundle became unsafe")
+            shutil.rmtree(temporary_bundle)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -227,7 +318,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         _safe_payload(failure)
         print(json.dumps(failure, ensure_ascii=False, sort_keys=True), file=sys.stderr)
         return 2
-    except (Assurance005Error, OSError, ValueError):
+    except (Assurance005Error, FinalAcceptanceBundleError, OSError, ValueError):
         failure = {
             "code": "X2N_ASSURANCE_005_INCOMPLETE",
             "paths_emitted": False,

@@ -12,10 +12,12 @@ from typing import Any, Sequence
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "apps/companion/src"))
 TASK_ID = "TSK.x2n.assurance.005"
 RELEASE_VERSION = "v0.0.0.1"
 STATUS = "PASS_OWNER_MVP_DIRECT_RELEASE_CORE"
 RECEIPT = PROJECT_ROOT / "evidence/release/TSK.x2n.assurance.005.json"
+BUNDLE = PROJECT_ROOT / "evidence/release/FINAL_ACCEPTANCE_BUNDLE"
 SCHEMA = PROJECT_ROOT / "machine/schemas/stage_6_assurance_005_go_live_receipt.schema.json"
 ARTIFACT_POLICY = PROJECT_ROOT / "machine/policy/artifact_allowlist.json"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -38,6 +40,12 @@ _PLATFORM_CDN = re.compile(
         )
     ),
     re.I,
+)
+
+from x2n_companion.final_acceptance_bundle import (  # noqa: E402
+    BUNDLE_FILENAMES,
+    FinalAcceptanceBundleError,
+    verify_final_acceptance_bundle,
 )
 
 
@@ -84,7 +92,10 @@ def validate_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
         "artifact",
         "artifact_scan",
         "boundaries",
+        "external_gates",
+        "final_acceptance_bundle_sha256",
         "go_live",
+        "knowledge_assets",
         "native_host",
         "phase",
         "release_source",
@@ -106,6 +117,9 @@ def validate_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
     artifact = receipt["artifact"]
     scan = receipt["artifact_scan"]
     boundaries = receipt["boundaries"]
+    external_gates = receipt["external_gates"]
+    knowledge_assets = receipt["knowledge_assets"]
+    bundle_sha256 = receipt["final_acceptance_bundle_sha256"]
     go_live = receipt["go_live"]
     host = receipt["native_host"]
     _require(
@@ -150,6 +164,64 @@ def validate_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
         "public receipt release boundaries are invalid",
     )
     _require(
+        isinstance(external_gates, list)
+        and [item.get("scope_id") if isinstance(item, dict) else None for item in external_gates]
+        == [
+            "bilibili_selected_collection",
+            "kuaishou_selected_collection",
+            "weibo_selected_collection",
+            "taobao_selected_collection",
+        ]
+        and all(
+            isinstance(item, dict)
+            and set(item)
+            == {
+                "feature_flag",
+                "live_support_claim",
+                "platform_calls",
+                "reason_code",
+                "scope_id",
+                "status",
+            }
+            and item.get("feature_flag") == "disabled"
+            and item.get("live_support_claim") is False
+            and item.get("platform_calls") == 0
+            and item.get("reason_code")
+            in {
+                "UNKNOWN_DISABLED",
+                "BLOCKED_POLICY",
+                "BLOCKED_AUTH",
+                "BLOCKED_BUDGET",
+                "BLOCKED_CAPABILITY",
+            }
+            and item.get("status") == "PASS_DISABLED_EXTERNAL_GATE"
+            for item in external_gates
+        ),
+        "public receipt external-gate settlement is invalid",
+    )
+    _require(_SHA256.fullmatch(str(bundle_sha256)) is not None, "public receipt bundle root is invalid")
+    _require(
+        isinstance(knowledge_assets, dict)
+        and set(knowledge_assets)
+        == {
+            "markdown_content_count",
+            "markdown_library_sha256",
+            "markdown_renderer_version",
+            "notion_mode",
+            "notion_platform_calls",
+            "private_durability_manifest_sha256",
+        }
+        and type(knowledge_assets.get("markdown_content_count")) is int
+        and knowledge_assets.get("markdown_content_count") >= 1
+        and _SHA256.fullmatch(str(knowledge_assets.get("markdown_library_sha256"))) is not None
+        and isinstance(knowledge_assets.get("markdown_renderer_version"), str)
+        and knowledge_assets.get("notion_mode") == "DISABLED_OWNER_INPUT"
+        and type(knowledge_assets.get("notion_platform_calls")) is int
+        and knowledge_assets.get("notion_platform_calls") == 0
+        and _SHA256.fullmatch(str(knowledge_assets.get("private_durability_manifest_sha256"))) is not None,
+        "public receipt knowledge-asset and durability proof is invalid",
+    )
+    _require(
         isinstance(go_live, dict)
         and set(go_live)
         == {"baseline_hash", "owner_mvp_baseline_relations", "rollback_rehearsed", "sidepanel_native_handshake"}
@@ -169,8 +241,15 @@ def validate_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
     _safe_payload(receipt)
     tags = {line for line in _git(("tag", "--points-at", str(source["commit"]))).splitlines() if line}
     _require(RELEASE_VERSION in tags, "public receipt source commit is not release-tagged")
+    try:
+        bundle = verify_final_acceptance_bundle(BUNDLE, receipt)
+        for name in BUNDLE_FILENAMES:
+            _safe_payload((BUNDLE / name).read_text(encoding="utf-8"))
+    except (FinalAcceptanceBundleError, OSError, UnicodeDecodeError) as error:
+        raise Assurance005VerificationError("public final acceptance bundle is invalid") from error
     return {
         "artifact_sha256": artifact["artifact_sha256"],
+        "final_acceptance_bundle_sha256": bundle["bundle_sha256"],
         "paths_emitted": False,
         "release_commit": source["commit"],
         "status": "PASS",
@@ -189,7 +268,7 @@ def main() -> int:
             "public artifact policy does not register assurance005 verification",
         )
         result = validate_receipt(_load_json(RECEIPT))
-    except Assurance005VerificationError:
+    except (Assurance005VerificationError, FinalAcceptanceBundleError):
         failure = {"paths_emitted": False, "status": "FAIL_CLOSED", "task_id": TASK_ID}
         print(json.dumps(failure, ensure_ascii=False, sort_keys=True), file=sys.stderr)
         return 2

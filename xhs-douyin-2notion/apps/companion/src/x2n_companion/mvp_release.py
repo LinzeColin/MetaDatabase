@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from x2n_contracts import ErrorCode, canonical_json_sha256
-from x2n_contracts.models import CapabilityFeatureFlag, CapabilityReasonCode, SyncScopeId
+from x2n_contracts.models import CapabilityFeatureFlag, CapabilityReasonCode, CapabilityTerminal, SyncScopeId
 
 from .adapter_dispatch import CapabilityGateInputs, CapabilityRegistry, ScopeBinding
 from .adapter_guard import AdapterExecutionGate
@@ -36,7 +36,10 @@ from .douyin_upstream import (
     PinnedDouyinClient,
     SidecarBuildAttestation,
 )
+from .lifecycle import LifecycleService, PrivateDbTransport
+from .markdown_sink import MARKDOWN_RENDERER_VERSION, MarkdownSink
 from .runtime import RuntimePaths, X2NRuntimeError, _atomic_private_json
+from .sink_projection import build_sink_projection
 from .xiaohongshu_favorites import XhsFavoritesAdapter, XhsFavoritesBatch, XhsFavoritesBatchCoordinator
 from .xiaohongshu_likes import XhsLikesAdapter, XhsLikesBatch, XhsLikesBatchCoordinator
 
@@ -44,8 +47,9 @@ from .xiaohongshu_likes import XhsLikesAdapter, XhsLikesBatch, XhsLikesBatchCoor
 TASK_ID = "TSK.x2n.assurance.005"
 RELEASE_VERSION = "v0.0.0.1"
 INPUT_SCHEMA_VERSION = "1.0"
-STATE_SCHEMA_VERSION = "1.0"
+STATE_SCHEMA_VERSION = "1.1"
 ARM_CONFIRMATION = "ARM_X2N_OWNER_MVP_ACTIVATION"
+MATERIALIZE_CONFIRMATION = "MATERIALIZE_X2N_OWNER_MVP_KNOWLEDGE_ASSETS"
 SIGNOFF_CONFIRMATION = "SIGN_OFF_X2N_OWNER_MVP"
 ROLLBACK_CONFIRMATION = "ROLLBACK_X2N_OWNER_MVP"
 OWNER_INPUT_CONTRACT = Path(__file__).resolve().parents[4] / "docs/governance/OWNER_INPUT_CONTRACT.md"
@@ -445,11 +449,68 @@ def _validate_owner_input_contract(paths: RuntimePaths) -> None:
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner external model or Notion boundary is invalid")
 
 
+def _initial_knowledge_assets() -> dict[str, Any]:
+    """Return the fail-closed post-baseline asset state.
+
+    The direct MVP creates deterministic Markdown before a release switch.  A
+    live Notion transport remains explicitly disabled until a separately
+    authorized Owner configuration exists; Markdown and Canonical durability
+    therefore never depend on it.
+    """
+
+    return {
+        "markdown_content_count": 0,
+        "markdown_library_sha256": None,
+        "markdown_renderer_version": None,
+        "materialized": False,
+        "notion_mode": "DISABLED_OWNER_INPUT",
+        "notion_platform_calls": 0,
+        "private_durability_manifest_sha256": None,
+    }
+
+
+def _validate_knowledge_assets(value: Any) -> dict[str, Any]:
+    assets = _require_exact_mapping(
+        value,
+        {
+            "markdown_content_count",
+            "markdown_library_sha256",
+            "markdown_renderer_version",
+            "materialized",
+            "notion_mode",
+            "notion_platform_calls",
+            "private_durability_manifest_sha256",
+        },
+        label="Owner MVP knowledge assets",
+    )
+    materialized = assets["materialized"]
+    if (
+        type(materialized) is not bool
+        or assets["notion_mode"] != "DISABLED_OWNER_INPUT"
+        or type(assets["notion_platform_calls"]) is not int
+        or assets["notion_platform_calls"] != 0
+    ):
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP knowledge-asset boundary is invalid")
+    if materialized:
+        if (
+            type(assets["markdown_content_count"]) is not int
+            or assets["markdown_content_count"] < 1
+            or _SHA256.fullmatch(str(assets["markdown_library_sha256"])) is None
+            or assets["markdown_renderer_version"] != MARKDOWN_RENDERER_VERSION
+            or _SHA256.fullmatch(str(assets["private_durability_manifest_sha256"])) is None
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP knowledge-asset proof is invalid")
+    elif dict(assets) != _initial_knowledge_assets():
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP knowledge assets are partially materialized")
+    return dict(assets)
+
+
 def _initial_state(*, release_input: OwnerMvpReleaseInput, backup: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "baseline": {"baseline_hash": None, "passed": False, "total_relations": 0},
         "deployment": {"artifact_sha256": None, "browser": None, "online_smoke": False, "state": "not_deployed"},
         "input_sha256": release_input.input_sha256,
+        "knowledge_assets": _initial_knowledge_assets(),
         "owner_signoff": False,
         "phase": "activation_armed",
         "project": "xhs-douyin-2notion",
@@ -473,6 +534,7 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
             "baseline",
             "deployment",
             "input_sha256",
+            "knowledge_assets",
             "owner_signoff",
             "phase",
             "project",
@@ -502,6 +564,7 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP baseline state is invalid")
     if baseline["passed"] is True and (baseline["baseline_hash"] is None or baseline["total_relations"] != 80):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP baseline is not the exact 80-item release gate")
+    knowledge_assets = _validate_knowledge_assets(state["knowledge_assets"])
     deployment = _require_exact_mapping(
         state["deployment"],
         {"artifact_sha256", "browser", "online_smoke", "state"},
@@ -534,7 +597,10 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
     if set(state["scope_jobs"]) != set(state["scope_receipts"]):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP scope receipt mapping diverged")
     if state["phase"] in {"pre_switch_ready", "active"} and (
-        baseline["passed"] is not True or rollback["rehearsed"] is not True or state["owner_signoff"] is not True
+        baseline["passed"] is not True
+        or knowledge_assets["materialized"] is not True
+        or rollback["rehearsed"] is not True
+        or state["owner_signoff"] is not True
     ):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "MVP release bypassed a pre-switch gate")
     if state["phase"] == "active" and (deployment["state"] != "deployed" or deployment["online_smoke"] is not True):
@@ -609,6 +675,58 @@ class MvpReleaseController:
         for scope_id in EXTERNAL_SCOPE_IDS:
             inputs[scope_id] = CapabilityGateInputs(**reason_to_kwargs[self.release_input.external_reasons[scope_id]])
         return CapabilityRegistry(inputs)
+
+    def external_gate_settlements(self, *, store: CanonicalStore | None = None) -> list[dict[str, Any]]:
+        """Prove every non-enabled platform remains legally disabled.
+
+        This is not a count-only assertion: the release checks each typed
+        capability result, its permitted external reason, disabled feature
+        flag, zero calls, and absent live-support claim before Owner sign-off
+        and again when go-live evidence is emitted.
+        """
+
+        manifest = self.capability_registry().evaluate()
+        outcomes = {outcome.scope_id: outcome for outcome in manifest.outcomes}
+        if set(outcomes) != set(SyncScopeId):
+            raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability gate snapshot is incomplete")
+        persisted = None
+        if store is not None:
+            persisted = {outcome.scope_id: outcome for outcome in store.capability_snapshot().outcomes}
+            if set(persisted) != set(SyncScopeId):
+                raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Persisted capability snapshot is incomplete")
+        settlements: list[dict[str, Any]] = []
+        for scope_id in EXTERNAL_SCOPE_IDS:
+            outcome = outcomes[scope_id]
+            expected_reason = self.release_input.external_reasons[scope_id]
+            if (
+                outcome.terminal is not CapabilityTerminal.DISABLED_EXTERNAL_GATE
+                or outcome.feature_flag is not CapabilityFeatureFlag.DISABLED
+                or outcome.reason_code is not expected_reason
+            ):
+                raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "External-gate settlement drifted")
+            if persisted is not None:
+                persisted_outcome = persisted[scope_id]
+                if (
+                    persisted_outcome.terminal is not outcome.terminal
+                    or persisted_outcome.feature_flag is not outcome.feature_flag
+                    or persisted_outcome.reason_code is not outcome.reason_code
+                    or persisted_outcome.evidence_hash != outcome.evidence_hash
+                ):
+                    raise X2NRuntimeError(
+                        ErrorCode.CAPABILITY_TECHNICAL_BLOCKED,
+                        "Persisted external-gate settlement drifted",
+                    )
+            settlements.append(
+                {
+                    "feature_flag": CapabilityFeatureFlag.DISABLED.value,
+                    "live_support_claim": False,
+                    "platform_calls": 0,
+                    "reason_code": expected_reason.value,
+                    "scope_id": scope_id.value,
+                    "status": "PASS_DISABLED_EXTERNAL_GATE",
+                }
+            )
+        return settlements
 
     def require_scope(self, scope_id: SyncScopeId) -> None:
         if self.state["phase"] not in {"activation_armed", "pre_switch_ready", "active"} or scope_id not in MVP_SCOPE_IDS:
@@ -689,9 +807,110 @@ class MvpReleaseController:
         self._persist()
         return snapshot
 
+    def verify_knowledge_assets(self, store: CanonicalStore) -> dict[str, Any]:
+        """Re-read the post-baseline Markdown and durability proof without side effects."""
+
+        assets = _validate_knowledge_assets(self.state["knowledge_assets"])
+        if assets["materialized"] is not True:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP knowledge assets are not materialized")
+        sink = MarkdownSink(store)
+        manifest = sink.library_manifest()
+        checked_links = sink.validate_category_links()
+        canonical_content_count = len(store.projection_snapshots())
+        lifecycle = store.lifecycle_state()
+        if (
+            manifest.content_count != canonical_content_count
+            or manifest.content_count != assets["markdown_content_count"]
+            or manifest.library_sha256 != assets["markdown_library_sha256"]
+            or manifest.renderer_version != assets["markdown_renderer_version"]
+            or checked_links != manifest.content_count
+            or lifecycle.durability_state != "durability_verified"
+            or lifecycle.latest_manifest_sha256 != assets["private_durability_manifest_sha256"]
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP knowledge-asset evidence drifted")
+        return {
+            "markdown_content_count": manifest.content_count,
+            "markdown_library_sha256": manifest.library_sha256,
+            "markdown_renderer_version": manifest.renderer_version,
+            "notion_mode": "DISABLED_OWNER_INPUT",
+            "notion_platform_calls": 0,
+            "private_durability_manifest_sha256": lifecycle.latest_manifest_sha256,
+        }
+
+    def materialize_knowledge_assets(
+        self,
+        store: CanonicalStore,
+        *,
+        confirmation: str,
+        private_client: PrivateDbTransport | None,
+    ) -> dict[str, Any]:
+        """Build Markdown and verify Private-MetaDatabase durability before sign-off.
+
+        The Owner input contract keeps Notion explicitly disabled here, so this
+        bounded release action never initiates a Notion request or treats a
+        missing configuration as a successful Notion synchronization.
+        """
+
+        if confirmation != MATERIALIZE_CONFIRMATION:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP knowledge-asset confirmation is missing")
+        if self.state["phase"] != "activation_armed" or self.state["baseline"]["passed"] is not True:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Knowledge assets require a passing bounded MVP baseline")
+        existing = _validate_knowledge_assets(self.state["knowledge_assets"])
+        if existing["materialized"] is True:
+            return self.verify_knowledge_assets(store)
+        if private_client is None:
+            raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Approved Private-MetaDatabase client is unavailable")
+        self.verify_baseline_snapshot(store)
+        sink = MarkdownSink(store)
+        first = sink.rebuild_from_canonical(build_sink_projection)
+        second = sink.rebuild_from_canonical(build_sink_projection)
+        if (
+            first.manifest.content_count < 1
+            or first.checked_links != first.manifest.content_count
+            or second.manifest != first.manifest
+            or (
+                second.content_writes,
+                second.category_index_writes,
+                second.removed_content_files,
+                second.removed_category_indexes,
+            )
+            != (0, 0, 0, 0)
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Markdown rebuild is not deterministic")
+        durable = LifecycleService(store).export_and_verify(private_client)
+        durability = durable.get("durability")
+        execution = durable.get("execution")
+        attestation = durable.get("attestation")
+        if (
+            not isinstance(durability, Mapping)
+            or durability.get("durability_state") != "durability_verified"
+            or _SHA256.fullmatch(str(durability.get("latest_manifest_sha256"))) is None
+            or not isinstance(execution, Mapping)
+            or execution.get("platform_calls") != 0
+            or execution.get("real_notion_calls") != 0
+            or execution.get("token_value_contact") != 0
+            or not isinstance(attestation, Mapping)
+            or attestation.get("auth_mutations") != 0
+            or attestation.get("client_digest_verified") is not True
+            or attestation.get("token_value_contact") != 0
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Private-MetaDatabase durability proof is invalid")
+        self.state["knowledge_assets"] = {
+            "markdown_content_count": first.manifest.content_count,
+            "markdown_library_sha256": first.manifest.library_sha256,
+            "markdown_renderer_version": first.manifest.renderer_version,
+            "materialized": True,
+            "notion_mode": "DISABLED_OWNER_INPUT",
+            "notion_platform_calls": 0,
+            "private_durability_manifest_sha256": durability["latest_manifest_sha256"],
+        }
+        self._persist()
+        return self.verify_knowledge_assets(store)
+
     def rehearse_rollback(self, store: CanonicalStore) -> dict[str, Any]:
         if self.state["baseline"]["passed"] is not True:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Rollback rehearsal requires a passing MVP baseline")
+        self.verify_knowledge_assets(store)
         receipt = store.rehearse_backup_restore(
             backup_id=self.state["rollback"]["backup_id"],
             expected_sha256=self.state["rollback"]["backup_sha256"],
@@ -700,11 +919,13 @@ class MvpReleaseController:
         self._persist()
         return receipt
 
-    def owner_signoff(self, *, confirmation: str) -> None:
+    def owner_signoff(self, store: CanonicalStore, *, confirmation: str) -> None:
         if confirmation != SIGNOFF_CONFIRMATION:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP signoff confirmation is missing")
         if self.state["baseline"]["passed"] is not True or self.state["rollback"]["rehearsed"] is not True:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP pre-switch checks are incomplete")
+        self.verify_knowledge_assets(store)
+        self.external_gate_settlements(store=store)
         self.state["owner_signoff"] = True
         self.state["phase"] = "pre_switch_ready"
         self._persist()
@@ -807,9 +1028,13 @@ class MvpReleaseController:
         ):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP go-live verification is incomplete")
         baseline = self.verify_baseline_snapshot(store)
+        knowledge_assets = self.verify_knowledge_assets(store)
+        external_gates = self.external_gate_settlements(store=store)
         return {
             "baseline_hash": baseline["baseline_hash"],
-            "external_disabled_scope_count": len(EXTERNAL_SCOPE_IDS),
+            "external_disabled_scope_count": len(external_gates),
+            "external_gates": external_gates,
+            "knowledge_assets": knowledge_assets,
             "model_mode": self.release_input.model_mode,
             "owner_mvp_baseline_relations": baseline["total_relations"],
             "paths_emitted": False,
@@ -850,6 +1075,13 @@ class MvpReleaseController:
             },
             "deployment": dict(self.state["deployment"]),
             "external_disabled_scope_count": len(EXTERNAL_SCOPE_IDS),
+            "knowledge_assets": {
+                "markdown_content_count": self.state["knowledge_assets"]["markdown_content_count"],
+                "materialized": self.state["knowledge_assets"]["materialized"],
+                "notion_mode": self.state["knowledge_assets"]["notion_mode"],
+                "private_durability_verified": self.state["knowledge_assets"]["private_durability_manifest_sha256"]
+                is not None,
+            },
             "model_mode": self.release_input.model_mode,
             "owner_signoff": self.state["owner_signoff"],
             "phase": self.state["phase"],

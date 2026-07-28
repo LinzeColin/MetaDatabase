@@ -180,6 +180,9 @@ function renderSyncScope() {
   if (selectedCollection) syncSourceCollection.value = "";
   const outcome = selectedOutcome();
   const mvpActivation = outcome?.feature_flag === "mvp_activation_candidate";
+  startSyncButton.textContent = mvpActivation
+    ? "Run owner-selected 20-item MVP action"
+    : "Start selected synthetic dispatch";
   const maximum = String(mvpActivation ? 20 : (rule?.maxItems ?? 1));
   syncMaxItems.max = maximum;
   if (

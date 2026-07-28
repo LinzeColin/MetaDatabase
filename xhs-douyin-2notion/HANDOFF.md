@@ -10,16 +10,22 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 - Branch: `codex/xhs-douyin-2notion-v0001-s03-review-resume`
 - Stage 0–5 and Assurance001–004 are historical completed evidence; Assurance005 is the only active Task.
-- The A005 source implementation has been committed locally and the source tree is clean. It adds private owner input/state contracts, four exact 20-item
-  scopes with hash-only Owner manifests, XHS visible-batch handoff, Douyin private Sidecar boundary,
-  aggregate-only 80-item verification, source-only staging, Native Host install/disable, and a Side Panel health
-  handshake that is bound to the same staged artifact as the Host.
+- The A005 source implementation adds private owner input/state contracts, four exact 20-item scopes with hash-only
+  Owner manifests, XHS visible-batch handoff, Douyin private Sidecar boundary, aggregate-only 80-item verification,
+  source-only staging, Native Host install/disable, and a Side Panel health handshake bound to the same staged
+  artifact as the Host.
+- Before sign-off it now runs two deterministic Markdown rebuilds from the Canonical SQLite baseline, requires the
+  second pass to make zero derived writes, and verifies the resulting archive through the approved
+  Private-MetaDatabase client. The private release-state schema is `1.1` and persists only aggregate hashes/counts.
+  Notion remains explicitly disabled by the current Owner input, with zero Notion calls rather than a false write
+  claim.
 - The staged extension receives one generated, hash-only `release_identity.json`; it is never present in public
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
   Companion, so the installed Native Host does not need a repository checkout to validate private release input.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
-  runtime proof. It cannot mint G6 or a release receipt from fixtures.
+  runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
+  only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
 - Real Owner Runtime, profiles, platform calls, Notion, models, media, private-database transfer, exact release tag,
   deploy, Side Panel handshake, and online smoke are `NOT_RUN`.
 
@@ -36,19 +42,23 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
-- Full Companion, root, and contract `unittest discover` suites passed locally.
-- Focused MVP/Native Host/acceptance tests passed; the MVP suite covers exact scopes, hash-manifest mismatch before
-  adapter initialization, pointer rollback, staged Native Host binding, and stale Side Panel identity rejection.
-- Contract generation, TypeScript contract checking, extension self-test/full E2E/XHS fixture suites, Ruff,
-  `compileall`, source privacy scan, and a temporary candidate-artifact scan passed. All fixture platform calls remain
-  `0`.
-- `x2n release verify` and the acceptance runner with no private runtime fail closed as expected.
+- Full Companion `unittest discover` passed: 319 tests. Focused A005 bundle/release/acceptance tests passed: 20
+  tests, covering exact scopes, hash-manifest mismatch before adapter initialization, Markdown idempotency, durable
+  archive proof, external gates, pointer rollback, staged Native Host binding, and stale Side Panel identity rejection.
+- Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
+  Ruff, schema parsing, source privacy scan, and a temporary candidate-artifact scan passed. All fixture platform
+  calls remain `0`; the candidate artifact has 91 members and 0 runtime-data files.
+- The A005 verifier fails closed without a real immutable receipt, as expected. A broad historical root-suite run has
+  18 failures that assert earlier Stage 0–5 states/files must still be the current state; they are outside A005 and
+  must not be "fixed" by rewriting historical evidence. No A005-required suite failed.
 
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
 2. When the Owner is ready, create the private input and four private 20-ID hash manifests, then perform the four
-   explicit actions, baseline verification, rollback rehearsal, sign-off, exact tag, deploy, staged-extension reload,
-   handshake, and immediate online smoke in the documented order.
+   explicit actions, baseline verification, Markdown/durability materialization, rollback rehearsal, sign-off, exact
+   tag, deploy, staged-extension reload, handshake, and immediate online smoke in the documented order.
 3. Only after that real sequence succeeds, run the read-only acceptance verifier and explicitly write the immutable
-   receipt. Do not claim G6 from this direct-core receipt.
+   receipt and `FINAL_ACCEPTANCE_BUNDLE`. Do not claim G6 from this direct-core receipt.
+4. A real Notion write needs a separately authorized Owner Integration and Parent configuration; until then A005's
+   explicit zero-call Notion-disabled outcome is the only truthful release state.

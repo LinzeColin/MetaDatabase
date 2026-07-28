@@ -9,11 +9,15 @@
 - owner-only release input, pre-switch backup, restore rehearsal, signoff, fresh Native Host transaction bound to the
   verified staged Companion/contracts artifact, source-only staged extension artifact, immediate rollback/disable,
   and Side Panel-to-Native Host online handshake;
+- two-pass deterministic Markdown materialization from the exact Canonical baseline plus a verified durable
+  Private-MetaDatabase archive before signoff; Notion is explicitly `DISABLED_OWNER_INPUT` with zero calls until a
+  separately authorized Owner configuration exists;
 - local tagged-source and staged-artifact checks that refuse to claim a release from dirty or untagged source.
 
 The owner-operated Assurance005 verifier is read-only. It can emit a single aggregate-only, immutable public receipt
-only after the active runtime, Side Panel handshake, Native Host artifact binding, exact 80-item baseline, rollback
-rehearsal, and source-artifact scan all verify in the same direct release task.
+and checksum-bound `FINAL_ACCEPTANCE_BUNDLE` (release manifest, summaries, release notes, and System Card) only
+after the active runtime, Side Panel handshake, Native Host artifact binding, exact 80-item baseline, per-scope
+external-gate settlement, rollback rehearsal, and source-artifact scan all verify in the same direct release task.
 
 No Owner Runtime, account, Chrome profile, Side Panel handshake, private Sidecar, Notion credential, platform,
 model, media, or external release upload has been used by this source implementation. Therefore there is no

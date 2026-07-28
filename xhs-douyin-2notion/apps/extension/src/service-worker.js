@@ -262,7 +262,11 @@ async function captureVisibleXhsBatch(message, payload) {
   let injected;
   try {
     injected = await chrome.scripting.executeScript({
-      args: [{ maxItems: 20, ownerGesture: true, scopeMode: "canary_20" }],
+      args: [{
+        maxItems: 20,
+        ownerGesture: true,
+        scopeMode: message.activationMode === "mvp_activation_candidate" ? "owner_mvp_20" : "canary_20",
+      }],
       func: adapter.extract,
       target: { tabId: tab.id },
       world: "ISOLATED",

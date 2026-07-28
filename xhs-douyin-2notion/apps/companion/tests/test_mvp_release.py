@@ -18,6 +18,7 @@ from x2n_companion import mvp_deployment
 from x2n_companion.mvp_deployment import MvpDeploymentManager
 from x2n_companion.mvp_release import (
     ARM_CONFIRMATION,
+    MATERIALIZE_CONFIRMATION,
     MVP_SCOPE_IDS,
     MvpActivationExecutor,
     MvpReleaseController,
@@ -30,6 +31,7 @@ from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRunti
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
+OWNER_MVP_STATE_SCHEMA = PROJECT_ROOT / "machine/schemas/owner_mvp_release_state.schema.json"
 
 
 def _write_private(path: Path, value: dict[str, object]) -> None:
@@ -199,6 +201,21 @@ def _favorite_batch() -> dict[str, object]:
 
 
 class MvpReleaseTests(unittest.TestCase):
+    def test_owner_mvp_state_schema_tracks_runtime_knowledge_asset_gate(self) -> None:
+        schema = json.loads(OWNER_MVP_STATE_SCHEMA.read_text(encoding="utf-8"))
+        rendered = json.dumps(schema, ensure_ascii=False, sort_keys=True)
+        self.assertEqual(schema["$id"], "urn:x2n:owner-mvp-release-state:1.1")
+        self.assertEqual(schema["properties"]["schema_version"], {"const": "1.1"})
+        self.assertIn("knowledge_assets", schema["required"])
+        self.assertEqual(
+            schema["properties"]["knowledge_assets"]["properties"]["notion_mode"],
+            {"const": "DISABLED_OWNER_INPUT"},
+        )
+        self.assertEqual(
+            schema["properties"]["knowledge_assets"]["properties"]["notion_platform_calls"], {"const": 0}
+        )
+        self.assertNotIn("/" + "Users/", rendered)
+
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="x2n-mvp-release-")
         destination = Path(self.temporary.name) / "MediaCrawler"
@@ -229,6 +246,27 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertTrue(
             all(item.feature_flag is CapabilityFeatureFlag.DISABLED for item in outcomes if item not in enabled)
         )
+        external_gates = controller.external_gate_settlements()
+        self.assertEqual(
+            [row["scope_id"] for row in external_gates],
+            [
+                "bilibili_selected_collection",
+                "kuaishou_selected_collection",
+                "weibo_selected_collection",
+                "taobao_selected_collection",
+            ],
+        )
+        self.assertTrue(
+            all(
+                row["status"] == "PASS_DISABLED_EXTERNAL_GATE"
+                and row["feature_flag"] == "disabled"
+                and row["platform_calls"] == 0
+                and row["live_support_claim"] is False
+                for row in external_gates
+            )
+        )
+        self.store.persist_capability_snapshot(controller.capability_registry().evaluate())
+        self.assertEqual(controller.external_gate_settlements(store=self.store), external_gates)
         self.assertTrue(self.paths._validate_marker()["product_execution_authorized"])
 
     def test_native_host_commits_only_one_sanitized_twenty_item_xhs_action(self) -> None:
@@ -432,6 +470,15 @@ class MvpReleaseTests(unittest.TestCase):
         controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
         self.assertFalse(controller.record_browser_handshake(artifact_sha256="c" * 64))
         controller.state["baseline"] = {"baseline_hash": "b" * 64, "passed": True, "total_relations": 80}
+        controller.state["knowledge_assets"] = {
+            "markdown_content_count": 1,
+            "markdown_library_sha256": "d" * 64,
+            "markdown_renderer_version": "1.1.0",
+            "materialized": True,
+            "notion_mode": "DISABLED_OWNER_INPUT",
+            "notion_platform_calls": 0,
+            "private_durability_manifest_sha256": "e" * 64,
+        }
         controller.state["rollback"]["rehearsed"] = True
         controller.state["owner_signoff"] = True
         controller.state["phase"] = "pre_switch_ready"
@@ -450,6 +497,55 @@ class MvpReleaseTests(unittest.TestCase):
         reloaded._persist()
         refreshed = dispatch_wire(_health_wire(), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
         self.assertTrue(refreshed.accepted)
+
+    def test_materialize_knowledge_assets_rebuilds_markdown_idempotently_and_requires_durability(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        payload: dict[str, object] = {
+            "auto_scroll": False,
+            "bounded_batch": True,
+            "change_account_state": False,
+            "dispatch_version": "1.0",
+            "max_items": 20,
+            "platform": "xiaohongshu",
+            "relation": "favorited",
+            "scope_id": "xiaohongshu_favorites",
+            "source_collection_id": None,
+            "user_gesture": True,
+            "visible_batch": _favorite_batch(),
+        }
+        self.assertTrue(dispatch_wire(_wire(payload), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store).accepted)
+        controller = MvpReleaseController.load(self.paths)
+        assert controller is not None
+        controller.state["baseline"] = {"baseline_hash": "b" * 64, "passed": True, "total_relations": 80}
+        controller._persist()
+        self.store.mark_durability_verified("d" * 64)
+        durable_receipt = {
+            "attestation": {"auth_mutations": 0, "client_digest_verified": True, "token_value_contact": 0},
+            "durability": {"durability_state": "durability_verified", "latest_manifest_sha256": "d" * 64},
+            "execution": {"platform_calls": 0, "real_notion_calls": 0, "token_value_contact": 0},
+        }
+        baseline = {"baseline_hash": "b" * 64, "exact_four_scope_baseline": True, "total_relations": 80}
+        with mock.patch.object(controller, "verify_baseline_snapshot", return_value=baseline):
+            with mock.patch(
+                "x2n_companion.mvp_release.LifecycleService.export_and_verify",
+                return_value=durable_receipt,
+            ) as export:
+                assets = controller.materialize_knowledge_assets(
+                    self.store,
+                    confirmation=MATERIALIZE_CONFIRMATION,
+                    private_client=SimpleNamespace(),
+                )
+                repeated = controller.materialize_knowledge_assets(
+                    self.store,
+                    confirmation=MATERIALIZE_CONFIRMATION,
+                    private_client=SimpleNamespace(),
+                )
+        self.assertEqual(export.call_count, 1)
+        self.assertEqual(assets, repeated)
+        self.assertEqual(assets["markdown_content_count"], 20)
+        self.assertEqual(assets["notion_mode"], "DISABLED_OWNER_INPUT")
+        self.assertEqual(assets["notion_platform_calls"], 0)
+        self.assertEqual(assets["private_durability_manifest_sha256"], "d" * 64)
 
     def test_passing_release_state_cannot_replace_the_exact_eighty_item_baseline(self) -> None:
         controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)

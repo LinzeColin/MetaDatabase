@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:x2n:owner-mvp-release-state:1.0",
+  "$id": "urn:x2n:owner-mvp-release-state:1.1",
   "title": "x2n private direct-MVP release state",
   "type": "object",
   "additionalProperties": false,
@@ -16,10 +16,11 @@
     "baseline",
     "rollback",
     "owner_signoff",
-    "deployment"
+    "deployment",
+    "knowledge_assets"
   ],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"const": "1.1"},
     "task_id": {"const": "TSK.x2n.assurance.005"},
     "project": {"const": "xhs-douyin-2notion"},
     "release_version": {"const": "v0.0.0.1"},
@@ -30,6 +31,28 @@
     "baseline": {"type": "object"},
     "rollback": {"type": "object"},
     "owner_signoff": {"type": "boolean"},
+    "knowledge_assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "markdown_content_count",
+        "markdown_library_sha256",
+        "markdown_renderer_version",
+        "materialized",
+        "notion_mode",
+        "notion_platform_calls",
+        "private_durability_manifest_sha256"
+      ],
+      "properties": {
+        "markdown_content_count": {"type": "integer", "minimum": 0},
+        "markdown_library_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "markdown_renderer_version": {"type": ["string", "null"]},
+        "materialized": {"type": "boolean"},
+        "notion_mode": {"const": "DISABLED_OWNER_INPUT"},
+        "notion_platform_calls": {"const": 0},
+        "private_durability_manifest_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
     "deployment": {
       "type": "object",
       "additionalProperties": false,

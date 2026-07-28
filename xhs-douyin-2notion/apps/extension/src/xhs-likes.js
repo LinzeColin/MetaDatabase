@@ -106,7 +106,7 @@ export function extractXhsLikesVisibleBatch(input) {
       !input
       || input.ownerGesture !== true
       || input.maxItems !== maxItems
-      || !new Set(["canary_20", "full_scan"]).has(input.scopeMode)
+      || !new Set(["canary_20", "owner_mvp_20", "full_scan"]).has(input.scopeMode)
     ) return surfaceFailure("platform_changed", "X2N_POLICY_BLOCKED");
     if (!globalThis.document || !globalThis.location) {
       return surfaceFailure("platform_changed", "X2N_PLATFORM_CHANGED");
@@ -199,7 +199,7 @@ export function extractXhsLikesVisibleBatch(input) {
     const paginationEnd = globalThis.document.querySelector(
       'button[aria-label="下一页"][disabled], [role="button"][aria-label="下一页"][aria-disabled="true"]',
     );
-    if (input.scopeMode === "canary_20" && result.items.length === maxItems) {
+    if (new Set(["canary_20", "owner_mvp_20"]).has(input.scopeMode) && result.items.length === maxItems) {
       result.batch.completion_signal = "bounded_limit_reached";
     } else if (declaredCompletion === "authoritative_end" || paginationEnd) {
       result.batch.completion_signal = "authoritative_end";

@@ -21,6 +21,8 @@ This is the only Task that may make the bounded Owner MVP live. It may activate 
 The four scopes form one exact 80-relation baseline. Bilibili, Kuaishou, Weibo, and Taobao remain
 `DISABLED_EXTERNAL_GATE` unless a separate owner-authorized activation provides an independent manifest and at
 most 20 actual items. `BLOCKED_TECHNICAL` never settles as disabled.
+For every disabled external scope, public-safe evidence records the permitted external reason, disabled flag, zero
+platform calls, and no live-support claim; a count-only assertion is not sufficient.
 
 ## Preconditions and public software lane
 
@@ -67,10 +69,17 @@ scroll, alter platform account state, or run a background batch. Then complete t
 
 ```bash
 x2n release baseline-verify
+x2n release materialize-knowledge-assets --confirm MATERIALIZE_X2N_OWNER_MVP_KNOWLEDGE_ASSETS
 x2n release rollback-rehearse
 x2n release signoff --confirm SIGN_OFF_X2N_OWNER_MVP
 x2n release deploy --browser chrome --confirm DEPLOY_X2N_OWNER_MVP_V0_0_0_1
 ```
+
+`materialize-knowledge-assets` runs two deterministic local Markdown rebuilds from the Canonical SQLite baseline and
+requires the second pass to have zero derived writes. It then verifies a current Canonical archive through the
+approved Private-MetaDatabase client without exposing or contacting any credential value. The current Owner input
+keeps Notion explicitly disabled, so this action records zero Notion calls rather than claiming a Notion write.
+Any missing or invalid Markdown/durability proof blocks rollback rehearsal and sign-off; it is not a waiting period.
 
 `deploy` stages the source-only artifact, writes one hash-only Side Panel release identity into that private staged
 copy, installs a fresh Native Host transactionally **from that staged Companion and contract source**, verifies the
@@ -92,9 +101,11 @@ PYTHONPATH=apps/companion/src:packages/contracts/src \
 `online-smoke` requires both the Side Panel handshake and a local Native Host health frame. It makes zero platform,
 model, media, or Notion calls. `verify` re-reads the aggregate four-scope baseline, validates the staged artifact,
 and requires the source tag; it cannot mint a go-live claim from a synthetic or incomplete state. The final
-Assurance005 verifier is read-only: it repeats the aggregate runtime proof, verifies that the Native Host is bound to
-the same staged artifact, and runs the public source-artifact scan in a temporary directory. After the Owner reviews
-its safe JSON output, the same command may write the one immutable public receipt only with an explicit confirmation:
+Assurance005 verifier is read-only: it repeats the aggregate runtime proof, checks all four external-gate settlements,
+verifies that the Native Host is bound to the same staged artifact, and runs the public source-artifact scan in a
+temporary directory. After the Owner reviews its safe JSON output, the same command may write the immutable public
+receipt together with the aggregate-only `FINAL_ACCEPTANCE_BUNDLE` (including release notes and System Card) only
+with an explicit confirmation:
 
 ```bash
 PYTHONPATH=apps/companion/src:packages/contracts/src \
