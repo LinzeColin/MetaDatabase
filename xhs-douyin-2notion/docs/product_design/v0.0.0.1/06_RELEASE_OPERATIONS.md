@@ -25,11 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 独立 G3/G4/G5 CI-synth 复核已通过；G5 固定并重跑 Stage 5 Task001–005 的 Notion Mock/outbox reconciliation、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 和 Task005 history replay。Assurance001 已完成当前 format/lint/type/Companion/Contract/browser E2E、80x2/100 concurrent idempotency、10,000 migration/backup/rollback、fresh-copy lifecycle、两项 critical mutation 与固定 G5 history replay；真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。下一单是 `TSK.x2n.assurance.002 / PH.X2N.6.2`。
+- 独立 G3/G4/G5 CI-synth 复核已通过；G5 固定并重跑 Stage 5 Task001–005 的 Notion Mock/outbox reconciliation、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 和 Task005 history replay。Assurance001 已完成当前 format/lint/type/Companion/Contract/browser E2E、80x2/100 concurrent idempotency、10,000 migration/backup/rollback、fresh-copy lifecycle、两项 critical mutation 与固定 G5 history replay；Assurance002 已完成私有 Gold 不读取、缺失 Gold Fail Closed、模型 Feature disabled/suggestion-only 与 System Card decision。真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/Fusion 关闭，Classification 仅 suggestion-only，`auto_classify=false`。下一单是 `TSK.x2n.assurance.003 / PH.X2N.6.3`。
 
 ### 当前未授权
 
-- 上传、部署或发布；Assurance001 PASS 只授权下一单 `TSK.x2n.assurance.002`；
+- 上传、部署或发布；Assurance002 PASS 只授权下一单 `TSK.x2n.assurance.003`；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；
@@ -325,6 +325,8 @@ Dataset Contract
 ```
 
 ## 6.3 Promote/Degrade
+
+Assurance002 的当前结论是 feature-disabled/suggestion-only：未读取私有 Gold，不能作真实模型质量、校准或跨模型比较通过声明。该降级路径可以随最终 MVP 的 `assurance.005` 一并部署，但不授予当前 Run 提前部署或开启模型功能的权限。
 
 - ASR/OCR 未达 Gate：显示低质量、可替换 Provider，不阻断元数据。
 - Vision 未达 Gate：关闭。

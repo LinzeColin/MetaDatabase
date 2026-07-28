@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：独立 G3、G4 与 G5 均已签发 `PASS_CI_SYNTH`；Stage 5 五份固定 Task receipt 保持不可变。Assurance001 已在当前源码完成 format/lint/type/Companion/Contract/browser E2E、风险覆盖、80x2/100 concurrent 幂等、10,000 migration/backup/rollback、fresh-copy Skill lifecycle 与两项关键不变量 mutation；G5 只在固定历史提交上隔离重放。真实 Private-Database transfer、`tmutil`、物理删除、Runtime、Notion、Owner Canary、账号和网络调用均为 0/NOT_RUN。没有 Owner taxonomy/private Gold 时自动分类继续关闭，内容保持 Unclassified 或 suggestion-only，AI 无法创建或修改一级分类。下一独立 Run 只可执行 `TSK.x2n.assurance.002 / PH.X2N.6.2`；Assurance001 不授权上传、部署、发布或真实平台执行，也没有预发布、固定观察或 soak 门禁。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本 Task 对共享认证材料保持零接触。
+当前状态：独立 G3、G4 与 G5 均已签发 `PASS_CI_SYNTH`；Stage 5 五份固定 Task receipt 保持不可变。Assurance001 已在当前源码完成 format/lint/type/Companion/Contract/browser E2E、风险覆盖、80x2/100 concurrent 幂等、10,000 migration/backup/rollback、fresh-copy Skill lifecycle 与两项关键不变量 mutation；G5 只在固定历史提交上隔离重放。Assurance002 已复验模型 gate、私有 Gold 缺失时的四个 Fail Closed 入口及 38 个 ASR/OCR/Vision/Fusion/Taxonomy 合成合同；未读取私有 Gold，模型、网络、平台、账号与外部写入均为 0，ASR/OCR/Vision/Fusion 显式关闭，Classification 仅 suggestion-only 且 `auto_classify=false`。真实 Private-Database transfer、`tmutil`、物理删除、Runtime、Notion、Owner Canary、账号和网络调用仍为 0/NOT_RUN。下一独立 Run 只可执行 `TSK.x2n.assurance.003 / PH.X2N.6.3`；.002 不授权上传、部署、发布或真实平台执行，也没有预发布、固定观察或 soak 门禁。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本 Task 对共享认证材料保持零接触。
 
 发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
@@ -48,7 +48,10 @@ Task001 的公开证据在 `evidence/multimodal/TSK.x2n.multimodal.001.json`，T
 `evidence/models/TSK.x2n.multimodal.003.json`、`evidence/models/TSK.x2n.multimodal.004.json` 和
 `evidence/models/TSK.x2n.multimodal.005.json`；它们都不是真实模型、私有 Gold Set、真实媒体或任何外部平台能力的通过声明。G4 的独立事实在 `machine/facts/stage_4_review_state.json`，公开证据在 `machine/evidence/stage_4/review/`。Task001 的公开 Mock 证据在 `evidence/sinks/TSK.x2n.uxops.001.json`，Task002 的公开合成重建证据在 `evidence/sinks/TSK.x2n.uxops.002.json`，Task003 的公开 Local WebUI 证据在 `evidence/ui/TSK.x2n.uxops.003.json`，Task004 的公开 operations 证据在 `evidence/operations/TSK.x2n.uxops.004.json`，Task005 的公开 lifecycle 证据在 `evidence/lifecycle/TSK.x2n.uxops.005.json`。G5 的独立事实在 `machine/facts/stage_5_review_state.json`，公开 review evidence 在 `machine/evidence/stage_5/review/`；Assurance001 的状态事实在 `machine/facts/stage_6_assurance_001_state.json`，公开证据在 `evidence/assurance/TSK.x2n.assurance.001.json`；真实 Runtime/Notion 均为 `NOT_RUN`，自动分类仍为关闭的 suggestion-only，下一独立 Run 是 `TSK.x2n.assurance.002`；历史 G3 合同见
 `docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
-`docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。
+`docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。Assurance002 的状态事实在
+`machine/facts/stage_6_assurance_002_state.json`，公开证据将在
+`evidence/models/TSK.x2n.assurance.002.json` 固定；其结论是 feature-disabled/suggestion-only，
+不是私有 Gold 或真实模型质量通过，下一独立 Run 为 `TSK.x2n.assurance.003`。
 
 ## Stage 3 / 首次 Review 历史判定
 

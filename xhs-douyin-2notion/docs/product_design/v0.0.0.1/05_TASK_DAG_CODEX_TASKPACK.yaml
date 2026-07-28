@@ -2432,7 +2432,7 @@ tasks:
   title: Complete model capability, safety and System Card pipeline
   stage: STG.X2N.6
   phase: PH.X2N.6.2
-  status: planned
+  status: complete_ci_synth_features_disabled
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: owner completes/approves private 100-item Gold Set and reviews model errors

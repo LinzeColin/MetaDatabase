@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 6 / Assurance002
+
+- 完成 `TSK.x2n.assurance.002 / PH.X2N.6.2` 的模型安全与 System Card gate：私有 Gold 没有被读取，四个缺失 Gold eval 入口均 Fail Closed，38 个 ASR/OCR/Vision/Fusion/Taxonomy 合成合同与 provenance/cache/budget/cloud-zero 控制通过。
+- ASR/OCR/Vision/Fusion 均显式 disabled；Classification 保持 suggestion-only，`auto_classify=false`。这不是模型质量通过或私有 Gold 结果，模型、平台、网络、账号与外部写入均为 0/NOT_RUN。
+- 仅授权下一单 `TSK.x2n.assurance.003 / PH.X2N.6.3`；无 Alpha/Beta、固定观察或 soak，真实 MVP deploy/run/online smoke 仍只在 assurance.005。
+
 ## v0.0.0.1 — Stage 6 / Assurance001
 
 - 完成 TSK.x2n.assurance.001 / PH.X2N.6.1 的当前软件 CI-synth assurance：全树 format/lint/compile/TypeScript、Companion/Contract、browser E2E、风险覆盖与 source scan 均为 blocking pass。

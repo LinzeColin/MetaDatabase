@@ -78,6 +78,7 @@
     "fusion": false,
     "classification": false,
     "automatic_classification": false,
+    "vision": false,
     "automatic_classification_gate": "ACC.x2n.ai.006"
   },
   "release": {
