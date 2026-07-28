@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.31",
+  "schema_version": "1.32",
   "project": "x2n",
   "stage": "STG.X2N.4",
-  "last_completed_phase": "PH.X2N.4.1",
+  "last_completed_phase": "PH.X2N.4.2",
   "review_id": "STG.X2N.3.REVIEW.RESUME.RECHECK",
-  "run_id": "RUN-X2N-S04-M001",
-  "run_kind": "single_dag_task_ci_synth_bounded_media_preprocessing",
-  "state": "stage_4_task001_bounded_media_preprocessing_pass_ci_synth_task002_next",
+  "run_id": "RUN-X2N-S04-M002",
+  "run_kind": "single_dag_task_ci_synth_local_first_asr_private_gold_pending",
+  "state": "stage_4_task002_local_first_asr_ci_synth_private_gold_pending_task003_next",
   "tasks": {
     "TSK.x2n.discovery.001": "pass",
     "TSK.x2n.discovery.002": "pass",
@@ -37,7 +37,8 @@
     "TSK.x2n.adapters.009": "pass",
     "TSK.x2n.adapters.005": "pass",
     "TSK.x2n.adapters.010": "pass",
-    "TSK.x2n.multimodal.001": "pass"
+    "TSK.x2n.multimodal.001": "pass",
+    "TSK.x2n.multimodal.002": "pass"
   },
   "downstream_acceptances": {
     "ACC.x2n.gov.001": "pass",
@@ -73,7 +74,9 @@
     "ACC.x2n.tb.002": "pass_ci_synth_50_process_kills_lost_duplicate_0_auth_oauth_budget_retention_policy_platform_kill_5_cookie_signing_undocumented_endpoint_0_http_429_retry_after_120_auto_retry_proxy_rotation_0",
     "ACC.x2n.ops.004": "pass_ci_synth_doctor_contract_owner_alpha_install_downstream_not_run",
     "ACC.x2n.batch.002": "pass_ci_synth_eight_scope_native_dispatch_typed_capability_snapshot_explicit_fallback_platform_calls_0",
-    "ACC.x2n.rel.004": "pass_ci_synth_task001_media_capacity_contribution"
+    "ACC.x2n.rel.004": "pass_ci_synth_task001_media_capacity_contribution",
+    "ACC.x2n.ai.001": "pending_private_gold_asr_disabled_ci_synth_contract_pass",
+    "ACC.x2n.ai.007": "pass_ci_synth_task002_provenance_cache_budget_cloud_zero"
   },
   "acceptance_status": {
     "ACC.x2n.gov.001": "pass_current_scaffold_scope",
@@ -124,7 +127,9 @@
     "ACC.x2n.xhs.003": "pass_ci_synth_100_items_50_process_kills_exact_resume_auto_scroll_0",
     "ACC.x2n.ops.004": "pass_ci_synth_8_components_missing_dependency_profile_and_db_busy_ok_degraded_blocked_path_sensitive_0_owner_alpha_not_run",
     "ACC.x2n.batch.002": "pass_ci_synth_eight_scope_native_dispatch_typed_capability_snapshot_explicit_fallback_platform_calls_0",
-    "ACC.x2n.rel.004": "pass_ci_synth_task001_media_capacity_contribution"
+    "ACC.x2n.rel.004": "pass_ci_synth_task001_media_capacity_contribution",
+    "ACC.x2n.ai.001": "pending_private_gold_asr_disabled_ci_synth_contract_pass",
+    "ACC.x2n.ai.007": "pass_ci_synth_task002_provenance_cache_budget_cloud_zero"
   },
   "blocking_followups": [
     {
@@ -146,8 +151,8 @@
     "stage": "STG.X2N.3",
     "remote_upload": "not_uploaded"
   },
-  "next_phase": "PH.X2N.4.2",
-  "next_run": "TSK.x2n.multimodal.002",
+  "next_phase": "PH.X2N.4.3",
+  "next_run": "TSK.x2n.multimodal.003",
   "next_phase_authorized": true,
   "stage_1_authorized": true,
   "stage_2_authorized": true,
@@ -163,10 +168,10 @@
   "remote_upload": "not_required_for_local_stage_transition",
   "current_stage_gate": "not_run",
   "current_stage_remote_upload": "not_required_for_local_stage_transition",
-  "product_code": "foundation_plus_six_platform_current_page_capture_plus_profile_session_guard_plus_bounded_adapter_contracts_plus_xhs_authoritative_relation_reconciliation_plus_media_safety_orchestration_sinks_ci_synth_relation_list_dispatch_complete_g3_pass_stage4_task001_bounded_media_preprocessing_pass_task002_next",
+  "product_code": "foundation_plus_six_platform_current_page_capture_plus_profile_session_guard_plus_bounded_adapter_contracts_plus_xhs_authoritative_relation_reconciliation_plus_media_safety_orchestration_sinks_ci_synth_relation_list_dispatch_complete_g3_pass_stage4_task001_media_preprocessing_and_task002_local_first_asr_ci_synth_private_gold_pending_task003_next",
   "contract_version": "1.0",
   "native_host_execution": "pass_isolated_synthetic_six_platform_capture_to_canonical_store_owner_install_not_run",
-  "local_ci_execution": "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_reconciliation_platform_model_real_account_calls_0",
+  "local_ci_execution": "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_reconciliation_task002_local_first_asr_cache_budget_cloud_zero_private_gold_pending_platform_model_real_account_calls_0",
   "remote_ci_execution": "pass_stage_2_post_merge_stage_3_local_g3_recheck_remote_not_uploaded",
   "xhs_current_page_execution": "pass_ci_synth_real_page_policy_disabled_action_before_grant_rejected_owner_canary_not_run",
   "xhs_favorites_execution": "pass_ci_synth_visible_dom_100_items_50_process_kills_two_collections_canary_tooling_owner_alpha_not_run_real_page_disabled",
@@ -197,8 +202,9 @@
   "real_account_execution": "not_run",
   "platform_calls": "zero_independent_g3_recheck_real_platform_not_run",
   "notion_calls": "mock_only_real_api_not_run",
-  "model_calls": "not_run",
+  "model_calls": "not_run_real_model_owner_managed_dependency_not_provisioned_ci_synth_asr_contract_pass_private_gold_pending",
   "media_processing": "pass_ci_synth_local_ffmpeg_ffprobe_temporary_synthetic_media_audio_keyframe_dedup_cleanup_platform_calls_0",
+  "asr_execution": "pass_ci_synth_local_whispercpp_cli_contract_ephemeral_transcript_provenance_cache_budget_cloud_upload_0_private_gold_not_run_asr_feature_disabled",
   "release_policy": "direct_v0_0_0_1_mvp_g0_g5_prior_tasks_and_acceptances_outside_exact_assurance005_owned_set_start_then_in_task_eighty_xhs_douyin_each_additional_enabled_max_twenty_security_must_pass_model_pass_or_disabled_suggestion_only_rollback_signoff_deploy_run_online_then_g6_pass_no_prerelease_no_fixed_wait_no_soak",
   "post_go_live_monitoring": "non_blocking_fix_degrade_or_rollback_trigger",
   "local_data_root_role": "ephemeral_execution_download_and_active_sqlite_working_copy",

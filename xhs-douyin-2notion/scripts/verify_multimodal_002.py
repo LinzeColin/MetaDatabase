@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed verifier for bounded media preprocessing (TSK.x2n.multimodal.001)."""
+"""Fail-closed verifier for local-first ASR (TSK.x2n.multimodal.002)."""
 
 from __future__ import annotations
 
@@ -18,24 +18,29 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
-TASK_ID = "TSK.x2n.multimodal.001"
-PHASE = "PH.X2N.4.1"
-RUN_ID = "RUN-X2N-S04-M001"
-TASK_BASE_COMMIT = "f0018ec5"
-NEXT_TASK = "TSK.x2n.multimodal.002"
+TASK_ID = "TSK.x2n.multimodal.002"
+PHASE = "PH.X2N.4.2"
+RUN_ID = "RUN-X2N-S04-M002"
+TASK_BASE_COMMIT = "db902304ef4231fa78f1e84109938511cac9b046"
+NEXT_TASK = "TSK.x2n.multimodal.003"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 ARCHITECTURE = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
-RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_001.md"
-ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_multimodal_001_acceptance.py"
-EVIDENCE = PROJECT_ROOT / "evidence/multimodal/TSK.x2n.multimodal.001.json"
+RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_002.md"
+ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_multimodal_002_acceptance.py"
+EVIDENCE = PROJECT_ROOT / "evidence/models/TSK.x2n.multimodal.002.json"
 
 SOURCE_RECEIPT_PATHS = (
-    PROJECT_ROOT / "apps/companion/src/x2n_companion/media_preprocessing.py",
-    PROJECT_ROOT / "apps/companion/src/x2n_companion/media_safety.py",
-    PROJECT_ROOT / "apps/companion/tests/test_media_preprocessing.py",
+    PROJECT_ROOT / "apps/companion/src/x2n_companion/asr.py",
+    PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime_cli.py",
+    PROJECT_ROOT / "apps/companion/tests/test_asr.py",
     ACCEPTANCE_RUNNER,
+    PROJECT_ROOT / "scripts/verify_multimodal_001.py",
+    PROJECT_ROOT / "scripts/verify_stage_3_review_resume.py",
+    PROJECT_ROOT / "scripts/verify_stage_3_review_resume_recheck.py",
+    PROJECT_ROOT / "scripts/verify_adapters_010.py",
+    PROJECT_ROOT / "scripts/verify_multimodal_002.py",
     RUN_CONTRACT,
     TASKPACK,
     TASK_STATE,
@@ -47,27 +52,25 @@ ALLOWED_CHANGED_EXACT = frozenset(
     {
         "CHANGELOG.md",
         "HANDOFF.md",
-        "PURSUING_GOAL.md",
         "README.md",
-        "apps/companion/src/x2n_companion/media_preprocessing.py",
-        "apps/companion/src/x2n_companion/media_safety.py",
-        "apps/companion/tests/test_media_preprocessing.py",
-        "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_001.md",
+        "apps/companion/src/x2n_companion/asr.py",
+        "apps/companion/src/x2n_companion/runtime_cli.py",
+        "apps/companion/tests/test_asr.py",
+        "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_002.md",
         "docs/product_design/v0.0.0.1/00_PRFAQ.md",
         "docs/product_design/v0.0.0.1/01_PRD.md",
         "docs/product_design/v0.0.0.1/02_ROADMAP.md",
         "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
-        "evidence/multimodal/TSK.x2n.multimodal.001.json",
+        "evidence/models/TSK.x2n.multimodal.002.json",
         "machine/facts/architecture_decisions.json",
         "machine/facts/project.json",
         "machine/facts/task_state.json",
-        "scripts/run_multimodal_001_acceptance.py",
+        "scripts/run_multimodal_002_acceptance.py",
         "scripts/verify_adapters_010.py",
         "scripts/verify_multimodal_001.py",
+        "scripts/verify_multimodal_002.py",
         "scripts/verify_stage_3_review_resume.py",
         "scripts/verify_stage_3_review_resume_recheck.py",
-        "tests/test_stage_3_review_resume.py",
-        "tests/test_stage_3_review_resume_recheck.py",
         "功能清单.md",
         "开发记录.md",
     }
@@ -118,7 +121,7 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task001 audit pin is missing")
+    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task002 audit pin is missing")
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -127,7 +130,7 @@ def _task_commit() -> str:
             check=False,
         ).returncode
         == 0,
-        "Task001 audit pin does not descend from the G3 recheck",
+        "Task002 audit pin does not descend from Task001 evidence pin",
     )
     _require(
         subprocess.run(
@@ -136,7 +139,7 @@ def _task_commit() -> str:
             check=False,
         ).returncode
         == 0,
-        "current worktree no longer contains the Task001 audit pin",
+        "current worktree no longer contains the Task002 audit pin",
     )
     return commit
 
@@ -152,7 +155,7 @@ def _blob_at(commit: str, path: Path) -> bytes:
         check=False,
     )
     if result.returncode != 0:
-        raise VerificationError("Task001 historical source blob is missing")
+        raise VerificationError("Task002 historical source blob is missing")
     return result.stdout
 
 
@@ -185,24 +188,24 @@ def _safety_scan(paths: Iterable[Path], *, commit: str) -> None:
     )
     for path in paths:
         text = _blob_at(commit, path).decode("utf-8", errors="replace")
-        _require(not any(item in text for item in forbidden_literals), "Task001 public boundary violated")
-        _require(private_path.search(text) is None, "Task001 local path entered public source")
-        _require(cdn.search(text) is None, "Task001 media CDN URL entered public source")
+        _require(not any(item in text for item in forbidden_literals), "Task002 public boundary violated")
+        _require(private_path.search(text) is None, "Task002 local path entered public source")
+        _require(cdn.search(text) is None, "Task002 media CDN URL entered public source")
 
 
 def validate_scope_and_boundary() -> Check:
     commit = _task_commit()
     changed = _changed_paths(commit)
     relative = [_task_relative(path) for path in changed]
-    _require(changed and all(path is not None for path in relative), "Task001 change escaped the child project")
+    _require(changed and all(path is not None for path in relative), "Task002 change escaped the child project")
     scoped = [path for path in relative if path is not None]
-    _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task001 contains an out-of-scope change")
+    _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task002 contains an out-of-scope change")
     files = [PROJECT_ROOT / path for path in scoped if (PROJECT_ROOT / path).is_file()]
     _safety_scan(files, commit=commit)
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".jpg", ".jpeg", ".png", ".webp"}
+    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
     _require(
         not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped),
-        "Task001 Runtime media or database entered public source",
+        "Task002 Runtime media or database entered public source",
     )
     return Check(
         "scope_and_public_private_boundary",
@@ -219,7 +222,7 @@ def _load_task() -> dict[str, Any]:
     if not isinstance(payload, dict) or not isinstance(payload.get("tasks"), list):
         raise VerificationError("Taskpack is invalid")
     matches = [item for item in payload["tasks"] if isinstance(item, dict) and item.get("id") == TASK_ID]
-    _require(len(matches) == 1, "Task001 is missing or duplicated")
+    _require(len(matches) == 1, "Task002 is missing or duplicated")
     return matches[0]
 
 
@@ -230,101 +233,74 @@ def validate_task_and_transition() -> Check:
         task.get("status") == "completed"
         and task.get("stage") == "STG.X2N.4"
         and task.get("phase") == PHASE
-        and task.get("acceptance_ids") == ["ACC.x2n.media.002", "ACC.x2n.media.004", "ACC.x2n.rel.004"]
-        and task.get("depends_on") == [
-            "TSK.x2n.skeleton.003",
-            "TSK.x2n.skeleton.004",
-            "TSK.x2n.adapters.010",
-        ],
-        "Task001 contract drifted",
+        and task.get("acceptance_ids") == ["ACC.x2n.ai.001", "ACC.x2n.ai.007"]
+        and task.get("depends_on") == ["TSK.x2n.multimodal.001"],
+        "Task002 contract drifted",
     )
-    task002_completed = state.get("tasks", {}).get(NEXT_TASK) == "pass"
-    if task002_completed:
-        _require(
-            state.get("stage") == "STG.X2N.4"
-            and state.get("last_completed_phase") == "PH.X2N.4.2"
-            and state.get("run_id") == "RUN-X2N-S04-M002"
-            and state.get("run_kind") == "single_dag_task_ci_synth_local_first_asr_private_gold_pending"
-            and state.get("tasks", {}).get(TASK_ID) == "pass"
-            and state.get("next_phase") == "PH.X2N.4.3"
-            and state.get("next_run") == "TSK.x2n.multimodal.003"
-            and state.get("next_phase_authorized") is True
-            and state.get("stage_gate") == "pass"
-            and state.get("current_stage_gate") == "not_run"
-            and state.get("stage_3_review_complete") is True
-            and state.get("stage_3_remote_upload_authorized") is False
-            and state.get("stage_4_authorized") is True
-            and state.get("public_release_authorized") is False
-            and state.get("remote_upload") == "not_required_for_local_stage_transition",
-            "Task001 historical boundary was not preserved after Task002 completion",
-        )
-        next_task = "TSK.x2n.multimodal.003"
-    else:
-        _require(
-            state.get("stage") == "STG.X2N.4"
-            and state.get("last_completed_phase") == PHASE
-            and state.get("run_id") == RUN_ID
-            and state.get("run_kind") == "single_dag_task_ci_synth_bounded_media_preprocessing"
-            and state.get("tasks", {}).get(TASK_ID) == "pass"
-            and state.get("next_phase") == "PH.X2N.4.2"
-            and state.get("next_run") == NEXT_TASK
-            and state.get("next_phase_authorized") is True
-            and state.get("stage_gate") == "pass"
-            and state.get("current_stage_gate") == "not_run"
-            and state.get("stage_3_review_complete") is True
-            and state.get("stage_3_remote_upload_authorized") is False
-            and state.get("stage_4_authorized") is True
-            and state.get("public_release_authorized") is False
-            and state.get("remote_upload") == "not_required_for_local_stage_transition",
-            "Task001 state transition is invalid",
-        )
-        next_task = NEXT_TASK
+    _require(
+        state.get("stage") == "STG.X2N.4"
+        and state.get("last_completed_phase") == PHASE
+        and state.get("run_id") == RUN_ID
+        and state.get("run_kind") == "single_dag_task_ci_synth_local_first_asr_private_gold_pending"
+        and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
+        and state.get("tasks", {}).get(TASK_ID) == "pass"
+        and state.get("next_phase") == "PH.X2N.4.3"
+        and state.get("next_run") == NEXT_TASK
+        and state.get("next_phase_authorized") is True
+        and state.get("stage_gate") == "pass"
+        and state.get("current_stage_gate") == "not_run"
+        and state.get("stage_3_review_complete") is True
+        and state.get("stage_3_remote_upload_authorized") is False
+        and state.get("stage_4_authorized") is True
+        and state.get("public_release_authorized") is False
+        and state.get("remote_upload") == "not_required_for_local_stage_transition",
+        "Task002 state transition is invalid",
+    )
     statuses = state.get("acceptance_status", {})
     _require(
-        statuses.get("ACC.x2n.media.002") == "pass_ci_synth_task001_lease_and_derivative_cleanup"
-        and statuses.get("ACC.x2n.media.004") == "pass_ci_synth_task001_bounded_ffmpeg_ffprobe"
-        and statuses.get("ACC.x2n.rel.004") == "pass_ci_synth_task001_media_capacity_contribution",
-        "Task001 acceptance state is invalid",
+        statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass"
+        and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task002_provenance_cache_budget_cloud_zero",
+        "Task002 acceptance state is invalid",
     )
     return Check(
         "taskpack_and_stage4_transition",
         "PASS",
-        {"completed_task": TASK_ID, "next_task": next_task, "stage_3_remote_upload": 0},
+        {"completed_task": TASK_ID, "next_task": NEXT_TASK, "private_gold_evaluation": "NOT_RUN"},
     )
 
 
 def validate_implementation_shape() -> Check:
-    source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/media_preprocessing.py").read_text(encoding="utf-8")
-    lease_source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/media_safety.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/asr.py").read_text(encoding="utf-8")
+    cli = (PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime_cli.py").read_text(encoding="utf-8")
     required = (
-        "class MediaProcessingPolicy",
-        "class SandboxedCommandRunner",
-        "class MediaToolchain",
-        "class MediaPreprocessor",
-        "def select_representative_timestamps",
-        "def deduplicate_frame_candidates",
-        "-max_alloc",
-        "start_new_session=True",
-        "subprocess.Popen",
+        "class AsrPolicy",
+        "class WhisperCppLocalProvider",
+        "class DisabledCloudAsrProvider",
+        "class AsrEvaluator",
+        "class AsrSession",
+        "def load_private_asr_gold_dataset",
+        "def character_error_rate",
+        "def word_error_rate",
+        "whisper-cli",
+        "max_cloud_cost_microunits: int = 0",
+        "__getstate__",
     )
-    _require(all(token in source for token in required), "Task001 bounded preprocessing implementation is incomplete")
-    _require("derived_media_workspace" in source and "_lease_derived_path" in lease_source, "Task001 cleanup integration is incomplete")
+    _require(all(token in source for token in required), "Task002 local-first ASR implementation is incomplete")
     _require(
         "raw_url" not in source
-        and "reserve_media_lease" not in source
-        and "finalize_media_lease" not in source
-        and "record_media_cleanup" not in source,
-        "Task001 persistence boundary drifted",
+        and "requests." not in source
+        and "httpx" not in source
+        and "sqlite3" not in source,
+        "Task002 ASR implementation crossed its no-network/no-persistence boundary",
+    )
+    _require(
+        'if args.action == "eval"' in cli and 'evaluation_actions.add_parser("asr")' in cli,
+        "Task002 equivalent x2n eval asr oracle is missing",
     )
     return Check(
-        "bounded_media_implementation",
+        "local_first_asr_provenance_cache_and_private_eval_shape",
         "PASS",
-        {
-            "max_duration_seconds": 7200,
-            "max_keyframes": 50,
-            "processor_persistence": 0,
-            "shell_invocations": 0,
-        },
+        {"cloud_upload_authorized": False, "durable_transcript_writes": 0, "shell_invocations": 0},
     )
 
 
@@ -337,41 +313,39 @@ def validate_facts_and_evidence() -> Check:
         evidence.get("task_id") == TASK_ID
         and evidence.get("phase") == PHASE
         and evidence.get("run_id") == RUN_ID
-        and evidence.get("status") == "PASS_CI_SYNTH_SCOPED"
+        and evidence.get("status") == "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
         and evidence.get("task_commit") == commit
         and evidence.get("source_receipt_sha256") == _source_receipt(commit),
-        "Task001 evidence receipt drifted",
+        "Task002 evidence receipt drifted",
     )
     execution = evidence.get("execution", {})
     _require(
         execution.get("platform_calls") == 0
         and execution.get("model_calls") == 0
-        and execution.get("notion_calls") == 0
+        and execution.get("cloud_uploads") == 0
+        and execution.get("private_gold_evaluation") == "NOT_RUN"
         and execution.get("real_account_execution") == "NOT_RUN",
-        "Task001 evidence overclaims external execution",
+        "Task002 evidence overclaims model or external execution",
     )
     _require(
-        project.get("status")
-        in {
-            "stage_4_task001_bounded_media_preprocessing_pass_ci_synth",
-            "stage_4_task002_local_first_asr_ci_synth_private_gold_pending",
-        }
+        project.get("status") == "stage_4_task002_local_first_asr_ci_synth_private_gold_pending"
         and project.get("canonical_store") == "active_local_sqlite_logical_truth",
         "project fact drifted",
     )
     decisions = architecture.get("decisions")
     _require(isinstance(decisions, list), "architecture decisions are invalid")
-    media = next((item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-008"), None)
+    asr = next((item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-013"), None)
     _require(
-        isinstance(media, dict)
-        and media.get("state") == "accepted_implementation"
-        and media.get("implementation_state") == "lease_scoped_bounded_ffmpeg_ffprobe_audio_keyframe_dedup_and_derivative_cleanup_ci_synth_pass",
-        "media architecture decision drifted",
+        isinstance(asr, dict)
+        and asr.get("state") == "accepted_implementation"
+        and asr.get("implementation_state")
+        == "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
+        "ASR architecture decision drifted",
     )
     return Check(
         "evidence_and_current_facts",
         "PASS",
-        {"platform_calls": 0, "source_receipt": "verified", "synthetic_unit_tests": 32},
+        {"cloud_uploads": 0, "private_gold": "NOT_RUN", "source_receipt": "verified"},
     )
 
 
@@ -387,7 +361,7 @@ def _run_acceptance() -> dict[str, Any]:
         timeout=240,
     )
     if result.returncode != 0:
-        raise VerificationError("Task001 acceptance runner failed")
+        raise VerificationError("Task002 acceptance runner failed")
     payloads: list[dict[str, Any]] = []
     for line in result.stdout.splitlines():
         try:
@@ -396,7 +370,7 @@ def _run_acceptance() -> dict[str, Any]:
             continue
         if isinstance(value, dict):
             payloads.append(value)
-    _require(payloads, "Task001 acceptance runner did not emit a receipt")
+    _require(payloads, "Task002 acceptance runner did not emit a receipt")
     return payloads[-1]
 
 
@@ -405,19 +379,24 @@ def validate_acceptance_execution() -> Check:
     _require(
         receipt.get("task_id") == TASK_ID
         and receipt.get("phase") == PHASE
-        and receipt.get("status") == "PASS_CI_SYNTH_SCOPED"
-        and receipt.get("metrics", {}).get("synthetic_unit_tests") >= 32
-        and receipt.get("metrics", {}).get("max_keyframes") == 50
-        and receipt.get("metrics", {}).get("max_media_duration_seconds") == 7200
-        and receipt.get("execution", {}).get("platform_calls") == 0,
-        "Task001 acceptance receipt is invalid",
+        and receipt.get("status") == "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
+        and receipt.get("metrics", {}).get("synthetic_unit_tests") >= 9
+        and receipt.get("metrics", {}).get("same_input_duplicate_provider_calls") == 0
+        and receipt.get("execution", {}).get("platform_calls") == 0
+        and receipt.get("execution", {}).get("cloud_uploads") == 0
+        and receipt.get("execution", {}).get("private_gold_evaluation") == "NOT_RUN",
+        "Task002 acceptance receipt is invalid",
     )
-    return Check("fresh_synthetic_acceptance", "PASS", {"platform_calls": 0, "synthetic_unit_tests": 32})
+    return Check(
+        "fresh_synthetic_acceptance",
+        "PASS",
+        {"cloud_uploads": 0, "private_gold": "NOT_RUN", "synthetic_unit_tests": receipt["metrics"]["synthetic_unit_tests"]},
+    )
 
 
 def validate_worktree() -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) not in {"", "main"}, "Task001 must remain in a non-main worktree")
+    _require(_git(["branch", "--show-current"]) not in {"", "main"}, "Task002 must remain in a non-main worktree")
     return Check("worktree_isolation", "PASS", {"main_mutated": False, "task_worktree": True})
 
 

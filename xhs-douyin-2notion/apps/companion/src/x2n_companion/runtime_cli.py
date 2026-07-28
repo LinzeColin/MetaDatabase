@@ -13,6 +13,7 @@ from typing import Any
 
 from x2n_contracts import ErrorCode
 
+from .asr import AsrEvaluator, load_private_asr_gold_dataset
 from .bilibili_selected import build_bilibili_canary_plan
 from .canonical_store import CanonicalStore
 from .douyin_adapter import build_douyin_canary_plan
@@ -49,6 +50,7 @@ BILIBILI_TASK_ID = "TSK.x2n.adapters.006"
 KUAISHOU_TASK_ID = "TSK.x2n.adapters.007"
 WEIBO_TASK_ID = "TSK.x2n.adapters.008"
 TAOBAO_TASK_ID = "TSK.x2n.adapters.009"
+ASR_TASK_ID = "TSK.x2n.multimodal.002"
 RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
@@ -124,6 +126,23 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "eval":
+        if args.eval_action != "asr":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown model evaluation action")
+        dataset = load_private_asr_gold_dataset(_paths(), args.dataset)
+        report = AsrEvaluator().evaluate(dataset.cases, private_gold=True)
+        return {
+            "acceptance_scope": "MULTIMODAL_002_ASR_PRIVATE_EVAL",
+            "action": "eval_asr",
+            "cloud_uploads": 0,
+            "dataset": dataset.safe_dict(),
+            "evaluation": report.safe_dict(),
+            "model_calls": 0,
+            "private_path_emitted": False,
+            "real_account_execution": "NOT_RUN",
+            "status": "PASS" if report.status == "pass" else "LOW_QUALITY",
+            "task_id": ASR_TASK_ID,
+        }
     if args.action == "reconcile":
         if args.reconcile_action != "owner-alpha-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown reconciliation action")
@@ -292,6 +311,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="x2n private Canonical Store operations")
     subparsers = parser.add_subparsers(dest="action", required=True)
     subparsers.add_parser("doctor")
+    evaluation = subparsers.add_parser("eval")
+    evaluation_actions = evaluation.add_subparsers(dest="eval_action", required=True)
+    asr = evaluation_actions.add_parser("asr")
+    asr.add_argument("--dataset", required=True)
     reconcile = subparsers.add_parser("reconcile")
     reconcile_actions = reconcile.add_subparsers(dest="reconcile_action", required=True)
     owner_alpha_plan = reconcile_actions.add_parser("owner-alpha-plan")
@@ -362,7 +385,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     task_id = (
-        MEDIA_TASK_ID
+        ASR_TASK_ID
+        if args.action == "eval"
+        else MEDIA_TASK_ID
         if args.action == "verify"
         else RECONCILIATION_TASK_ID
         if args.action == "reconcile"

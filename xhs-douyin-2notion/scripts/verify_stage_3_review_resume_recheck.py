@@ -252,6 +252,7 @@ def validate_taskpack_and_current_transition() -> Check:
     task010 = by_id.get("TSK.x2n.adapters.010", {})
     next_task = by_id.get("TSK.x2n.multimodal.001", {})
     following_task = by_id.get("TSK.x2n.multimodal.002", {})
+    task003 = by_id.get("TSK.x2n.multimodal.003", {})
     gates = {item.get("id"): item for item in taskpack.get("stage_gates", []) if isinstance(item, dict)}
     _require(
         task010.get("status") == "completed"
@@ -287,7 +288,7 @@ def validate_taskpack_and_current_transition() -> Check:
         )
         completed_task = "TSK.x2n.adapters.010"
         next_task_id = "TSK.x2n.multimodal.001"
-    else:
+    elif following_task.get("status") == "planned":
         _require(
             following_task.get("status") == "planned"
             and following_task.get("phase") == "PH.X2N.4.2"
@@ -314,6 +315,37 @@ def validate_taskpack_and_current_transition() -> Check:
         )
         completed_task = "TSK.x2n.multimodal.001"
         next_task_id = "TSK.x2n.multimodal.002"
+    else:
+        _require(
+            following_task.get("status") == "completed"
+            and following_task.get("phase") == "PH.X2N.4.2"
+            and "TSK.x2n.multimodal.001" in following_task.get("depends_on", [])
+            and task003.get("status") == "planned"
+            and task003.get("phase") == "PH.X2N.4.3"
+            and "TSK.x2n.multimodal.001" in task003.get("depends_on", []),
+            "Stage 4 Task003 contract drifted after completed local-first ASR Task002",
+        )
+        _require(
+            state.get("last_completed_phase") == "PH.X2N.4.2"
+            and state.get("review_id") == REVIEW_ID
+            and state.get("run_id") == "RUN-X2N-S04-M002"
+            and state.get("stage") == "STG.X2N.4"
+            and state.get("tasks", {}).get("TSK.x2n.adapters.010") == "pass"
+            and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
+            and state.get("tasks", {}).get("TSK.x2n.multimodal.002") == "pass"
+            and state.get("next_phase") == "PH.X2N.4.3"
+            and state.get("next_run") == "TSK.x2n.multimodal.003"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False
+            and state.get("stage_gate") == "pass"
+            and state.get("current_stage_gate") == "not_run",
+            "completed Task002 does not preserve the bounded G3 and Stage4 state transition",
+        )
+        completed_task = "TSK.x2n.multimodal.002"
+        next_task_id = "TSK.x2n.multimodal.003"
     _require(
         state.get("remote_upload") == "not_required_for_local_stage_transition"
         and state.get("current_stage_remote_upload") == "not_required_for_local_stage_transition",
@@ -367,8 +399,19 @@ def validate_docs_and_public_boundary() -> Check:
     _safe_payload({"controls": combined}, forbid_all_urls=False)
     prfaq_text = PRFAQ.read_text(encoding="utf-8")
     prd_text = PRD.read_text(encoding="utf-8")
-    task001_completed = _load_json(TASK_STATE).get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
-    if task001_completed:
+    current_tasks = _load_json(TASK_STATE).get("tasks", {})
+    task001_completed = current_tasks.get("TSK.x2n.multimodal.001") == "pass"
+    task002_completed = current_tasks.get("TSK.x2n.multimodal.002") == "pass"
+    if task002_completed:
+        _require(
+            "status: STAGE_4_TASK002_LOCAL_FIRST_ASR_CI_SYNTH_PRIVATE_GOLD_PENDING" in prfaq_text
+            and "implementation_authorized: stage_4_task_003_next_single_phase_run" in prfaq_text
+            and "status: STAGE_4_TASK002_LOCAL_FIRST_ASR_CI_SYNTH_PRIVATE_GOLD_PENDING" in prd_text
+            and "current_run_scope: stage_4_task002_complete_task003_next_private_gold_pending" in prd_text
+            and "implementation_authorized: stage_4_task_003_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD do not describe the completed local-first ASR Task002",
+        )
+    elif task001_completed:
         _require(
             "status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH" in prfaq_text
             and "implementation_authorized: stage_4_task_002_next_single_phase_run" in prfaq_text

@@ -42,7 +42,7 @@ v0.0.0.1 MVP deployed, running and online
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 独立 `G3=PASS_CI_SYNTH`；`TSK.x2n.multimodal.001 / PH.X2N.4.1` 已完成有界媒体预处理，下一单本地为 `TSK.x2n.multimodal.002 / PH.X2N.4.2`，上传/部署/发布仍禁止 |
+| Dev Taskpack | 独立 `G3=PASS_CI_SYNTH`；Task001 有界媒体和 `TSK.x2n.multimodal.002 / PH.X2N.4.2` 本地优先 ASR 合同已完成。私有 Gold Set 未运行，ASR 仍关闭；下一单本地为 `TSK.x2n.multimodal.003 / PH.X2N.4.3`，上传/部署/发布仍禁止 |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |

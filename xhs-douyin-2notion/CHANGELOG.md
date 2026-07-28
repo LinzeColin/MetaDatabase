@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 4 / Multimodal 002
+
+- 完成 `TSK.x2n.multimodal.002 / PH.X2N.4.2`：增加本地 `whisper.cpp` CLI Provider、短生命周期音频/转录、Provider/Model/Snapshot/Prompt/Input provenance、同版本缓存、chunk/provider-call/音频/超时预算、禁云路由与 `x2n eval asr --dataset` 私有聚合 Oracle。
+- 9 个专项合成测试覆盖无语音、JSON 损坏、超时、速率/预算、同输入缓存、新版本 Artifact、CER/WER、私有 Gold schema 与临时 FFmpeg 正规化；真实模型、云上传、Owner Gold、平台、账号与 Notion 调用均为 0/NOT_RUN。
+- `ACC.x2n.ai.001` 保持 `PENDING_PRIVATE_GOLD_ASR_DISABLED_CI_CONTRACT_PASS`，ASR Feature Flag 关闭；`ACC.x2n.ai.007` 仅取得 CI-synth provenance/cache/budget/cloud-zero 贡献。下一单仅为 `TSK.x2n.multimodal.003 / PH.X2N.4.3`。
+
 ## v0.0.0.1 — Stage 4 / Multimodal 001
 
 - 完成 `TSK.x2n.multimodal.001 / PH.X2N.4.1`：已有临时媒体 lease 内的 FFprobe、可选音频提取、代表帧采样、近重复过滤和派生文件清理均有硬上限；不新增持久化、平台、账号、Notion 或模型调用。

@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_4_TASK001_BOUNDED_MEDIA_PREPROCESSING_PASS_CI_SYNTH
+status: STAGE_4_TASK002_LOCAL_FIRST_ASR_CI_SYNTH_PRIVATE_GOLD_PENDING
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_4_task001_complete_task002_next
-implementation_authorized: stage_4_task_002_next_single_phase_run
+current_run_scope: stage_4_task002_complete_task003_next_private_gold_pending
+implementation_authorized: stage_4_task_003_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -32,7 +32,7 @@ owner: LinzeColin
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
 | 产品阶段 | Stage 4 Multimodal |
-| 开发状态 | 独立 G3 CI-synth 复验已通过；`TSK.x2n.multimodal.001 / PH.X2N.4.1` 已完成 lease-scoped 有界媒体预处理，下一单为 `TSK.x2n.multimodal.002 / PH.X2N.4.2`；Stage 3 上传、部署和发布仍未授权 |
+| 开发状态 | 独立 G3 CI-synth 复验、Task001 有界媒体和 `TSK.x2n.multimodal.002 / PH.X2N.4.2` 本地优先 ASR 合同均已完成；真实模型与私有 Gold Set 未运行，ASR 保持禁用，下一单为 `TSK.x2n.multimodal.003 / PH.X2N.4.3`；Stage 3 上传、部署和发布仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 
@@ -46,6 +46,11 @@ Stage 6 的真实账号激活或最终上线验收。
 不可序列化的短生命周期派生产物，退出处理上下文即清理；cleaner 可恢复进程中断遗留物。它以 64 MiB、
 120 分钟、50 帧、解码像素、CPU/file-size/open-file/wall-time 与 FFmpeg allocation 预算 Fail Closed，
 并不执行 ASR、OCR、视觉融合、分类、真实平台媒体或任何外部调用。
+
+`TSK.x2n.multimodal.002` 在该短生命周期音频之上增加本地 `whisper.cpp` CLI 适配、版本化
+Provider/Model/Snapshot/Prompt/Input provenance、会话缓存与预算、禁云路由及 `x2n eval asr --dataset`
+私有聚合 Oracle。它不下载模型、不读取或写入凭据、不持久化原始音频或转录文本；没有 Owner 私有 Gold
+Set 的真实评测时，ASR 质量状态为 `pending` 且 Feature Flag 必须保持关闭，不得宣称通过。
 
 ### 1.1 事实标记
 

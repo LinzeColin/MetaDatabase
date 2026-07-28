@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：独立 `STG.X2N.3.REVIEW.RESUME.RECHECK` 已签发 `G3=PASS_CI_SYNTH`，其后唯一允许的 `TSK.x2n.multimodal.001 / PH.X2N.4.1` 已完成。它把本机 FFmpeg/FFprobe、可选音频、代表帧、近重复过滤和派生文件清理限制在现有临时 lease 内；32 个合成测试及临时本机工具 smoke 通过，平台、账号、Notion、模型调用均为 0。下一单为 `TSK.x2n.multimodal.002 / PH.X2N.4.2`；Stage 3 上传、部署、发布和真实平台执行仍禁止。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本任务未使用 authenticated session，未来显式授权 Task 也只能经 `private_db_client.py` 使用现有 session，不能接触 Token 值或修改/删除/撤销/轮换认证。
+当前状态：独立 `STG.X2N.3.REVIEW.RESUME.RECHECK` 已签发 `G3=PASS_CI_SYNTH`，其后 Task001 有界媒体预处理和 `TSK.x2n.multimodal.002 / PH.X2N.4.2` 的本地优先 ASR 合同均已完成。ASR 提供 ephemeral `whisper.cpp` CLI 适配、Provenance、缓存、预算、禁云和私有聚合评测命令；真实模型与 Owner Gold Set 都未运行，因此 ASR Feature Flag 保持关闭。下一单为 `TSK.x2n.multimodal.003 / PH.X2N.4.3`；Stage 3 上传、部署、发布和真实平台执行仍禁止。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本任务未使用 authenticated session，未来显式授权 Task 也只能经 `private_db_client.py` 使用现有 session，不能接触 Token 值或修改/删除/撤销/轮换认证。
 
 发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
@@ -24,16 +24,19 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 4 / 当前有界媒体预处理
+## Stage 4 / Task001 有界媒体与 Task002 本地优先 ASR
 
 ```bash
 .venv/bin/python -B scripts/run_multimodal_001_acceptance.py
 .venv/bin/python -B scripts/verify_multimodal_001.py --verify-worktree --run-acceptance
+.venv/bin/python -B scripts/run_multimodal_002_acceptance.py
+.venv/bin/python -B scripts/verify_multimodal_002.py --verify-worktree --run-acceptance
 ```
 
 当前运行状态真源是 `machine/facts/task_state.json`；`machine/facts/stage_3_review_resume_state.json`
 与 `machine/facts/stage_3_review_resume_recheck_state.json` 仍分别是冻结 Resume/G3 历史事实。
-Task001 的公开证据在 `evidence/multimodal/TSK.x2n.multimodal.001.json`；它不是 ASR/OCR、分类、
+Task001 的公开证据在 `evidence/multimodal/TSK.x2n.multimodal.001.json`，Task002 的公开聚合证据在
+`evidence/models/TSK.x2n.multimodal.002.json`；二者都不是真实模型、私有 Gold Set、OCR、分类、
 真实媒体或任何外部平台能力的通过声明。下一单仍必须遵循 DAG，历史 G3 合同见
 `docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
 `docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。
