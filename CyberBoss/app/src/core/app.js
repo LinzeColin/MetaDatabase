@@ -264,19 +264,6 @@ class CyberbossApp {
           registrationMode: this.config.registrationMode || "invite",
           portalOrigin: this.config.portalOrigin || "",
         });
-        if (this.config.portalOrigin) {
-          this.setupPortal = new SetupPortal({
-            database: this.runtimeSpoolDatabase.database,
-            allowedOrigins: [this.config.portalOrigin],
-            userRepository: this.userAdmission.users,
-            handlers: buildPortalHandlers({
-              database: this.runtimeSpoolDatabase.database,
-              vault: this.userTurnRuntime.vault,
-              userRepository: this.userAdmission.users,
-              providerPolicies: this.userTurnRuntime.policies,
-            }),
-          });
-        }
         this.userCompanionTurn = new UserCompanionTurn({
           database: this.runtimeSpoolDatabase.database,
         });
@@ -294,6 +281,23 @@ class CyberbossApp {
             ? { requestTimeoutMs: this.config.userTurnTimeoutMs }
             : {}),
         });
+        // 必须排在 userTurnRuntime 之后：portal 的 handlers 要用它的 vault 和
+        // policies。之前放在前面，于是只要配了域名，构造就抛
+        // "Cannot read properties of null (reading 'vault')"——而没配域名的机器
+        // 永远走不到这一行，所以本机怎么跑都看不出问题。
+        if (this.config.portalOrigin) {
+          this.setupPortal = new SetupPortal({
+            database: this.runtimeSpoolDatabase.database,
+            allowedOrigins: [this.config.portalOrigin],
+            userRepository: this.userAdmission.users,
+            handlers: buildPortalHandlers({
+              database: this.runtimeSpoolDatabase.database,
+              vault: this.userTurnRuntime.vault,
+              userRepository: this.userAdmission.users,
+              providerPolicies: this.userTurnRuntime.policies,
+            }),
+          });
+        }
       }
       if (this.config.durableOutbox === true) {
         this.outboxWorker = new DurableOutboxWorker({

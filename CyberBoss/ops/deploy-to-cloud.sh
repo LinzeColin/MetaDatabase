@@ -28,6 +28,12 @@ SERVICE="cyberboss-cloud.service"
 DROPIN_DIR="/etc/systemd/system/$SERVICE.d"
 DROPIN="$DROPIN_DIR/99-cyberboss-live.conf"
 STATE_DIR="/var/lib/cyberboss"
+# 注册表校验要求这个值正好是某一个工作区的根目录。服务器上它被设成了**工作区
+# 基目录**（少一层），于是 assertAllowedRoot 拒绝，报 workspace_root_not_
+# allowlisted。注册表本身只允许一个别名 cyberboss，所以正确值是确定的。写在这
+# 里而不是手工改服务器：这一整轮的问题都是"服务器配置漂移、没有任何东西发现"，
+# 放进版本控制才不会再漂回去。
+WORKSPACE_ROOT="${CB_WORKSPACE_ROOT:-/srv/cyberboss-workspaces/cyberboss}"
 PORTAL_PORT="${CB_PORTAL_PORT:-8787}"
 NODE="$APP_ROOT/shared/toolchains/bin/node"
 
@@ -62,6 +68,7 @@ Environment=CB_RELEASE_ROOT=$APP_ROOT/releases/$sha
 Environment=CB_EXPECTED_RELEASE_ID=$sha
 Environment=CB_CHANNEL_ACTIVATION_MODE=required
 Environment=CYBERBOSS_STATE_DIR=$STATE_DIR
+Environment=CYBERBOSS_WORKSPACE_ROOT=$WORKSPACE_ROOT
 EOF
     sudo systemctl daemon-reload
   "
