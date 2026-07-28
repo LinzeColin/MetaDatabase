@@ -27,6 +27,7 @@ from x2n_contracts import Classification, TaxonomyCategory
 from x2n_contracts.models import ClassificationCandidate, DecisionMode, ReviewStatus
 
 from .canonical_store import CanonicalStore, WriteDisposition
+from .operations import OperationsService
 from .runtime import X2NRuntimeError
 from .taxonomy import TaxonomyRegistry, TaxonomySnapshot
 
@@ -179,6 +180,7 @@ class LocalWebUI:
 
     def __init__(self, store: CanonicalStore) -> None:
         self._store = store
+        self._operations = OperationsService(store)
         self._taxonomy = TaxonomyRegistry(store)
         self._csrf_token = secrets.token_urlsafe(32)
 
@@ -297,22 +299,7 @@ class LocalWebUI:
         }
 
     def diagnostics(self) -> dict[str, Any]:
-        snapshot = self._store.local_ui_snapshot()
-        recovery = self._store.recovery_plan().safe_dict()
-        return {
-            "canonical_counts": snapshot["counts"],
-            "data_lifecycle": {
-                "credential_values": 0,
-                "media_cdn_urls": 0,
-                "original_media_persisted": 0,
-                "private_paths_emitted": False,
-            },
-            "health": snapshot["health"],
-            "job_states": dict(sorted(Counter(item["state"] for item in snapshot["jobs"]).items())),
-            "outbox_states": dict(sorted(Counter(item["status"] for item in snapshot["outbox"]).items())),
-            "recovery": recovery,
-            "schema_version": LOCAL_UI_SCHEMA_VERSION,
-        }
+        return self._operations.diagnostic_bundle()
 
     def _category_from_payload(
         self,

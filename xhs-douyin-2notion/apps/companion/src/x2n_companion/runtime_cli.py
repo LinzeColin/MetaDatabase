@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import sqlite3
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -19,6 +17,7 @@ from .canonical_store import CanonicalStore
 from .douyin_adapter import build_douyin_canary_plan
 from .kuaishou_selected import build_kuaishou_canary_plan
 from .media_safety import scan_persisted_scopes
+from .operations import RECOVERY_CONFIRMATION, OperationsService, build_local_doctor_probe
 from .ocr_vision import (
     OcrEvaluator,
     VisionEvaluator,
@@ -29,13 +28,8 @@ from .profile_session import (
     PROFILE_LAUNCH_CONFIRMATION,
     DoctorProbe,
     ProfileLauncher,
-    SessionHealth,
     SessionHealthStore,
     build_doctor_report,
-    chrome_available,
-    ffmpeg_available,
-    native_host_registered,
-    safe_reference_configured,
 )
 from .relation_reconciliation import build_owner_mvp_80_manifest_plan
 from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
@@ -68,6 +62,7 @@ OCR_VISION_TASK_ID = "TSK.x2n.multimodal.003"
 CLASSIFICATION_TASK_ID = "TSK.x2n.multimodal.005"
 RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
 WEBUI_TASK_ID = "TSK.x2n.uxops.003"
+OPERATIONS_TASK_ID = "TSK.x2n.uxops.004"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -103,42 +98,7 @@ def _paths() -> RuntimePaths:
 
 
 def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
-    try:
-        database_health = CanonicalStore(paths).health()
-        database_state = "ok" if database_health.get("status") == "healthy" else "failed"
-    except sqlite3.OperationalError:
-        database_state = "busy"
-    except Exception:
-        database_state = "failed"
-
-    sessions_store = SessionHealthStore(paths)
-    try:
-        sessions = sessions_store.evaluate_all()
-    except X2NRuntimeError:
-        sessions = tuple(
-            SessionHealth(
-                platform,
-                "blocked",
-                "session_checkpoint_invalid",
-                ErrorCode.DATA_INTEGRITY_FAILED,
-                "inspect_diagnostics_and_keep_adapter_disabled",
-                False,
-            )
-            for platform in PROFILE_PLATFORMS
-        )
-    home_value = os.environ.get("HOME")
-    host_registered = bool(home_value and Path(home_value).is_absolute() and native_host_registered(Path(home_value)))
-    return DoctorProbe(
-        extension_reachable=host_registered,
-        native_host_registered=host_registered,
-        companion_reachable=True,
-        canonical_db_state=database_state,
-        ffmpeg_available=ffmpeg_available(),
-        provider_configured=safe_reference_configured(os.environ, "X2N_PROVIDER_SECRET_REF"),
-        notion_authorized=safe_reference_configured(os.environ, "X2N_NOTION_SECRET_REF"),
-        chrome_available=chrome_available(),
-        sessions=sessions,
-    )
+    return build_local_doctor_probe(paths)
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
@@ -217,6 +177,43 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "task_id": CLASSIFICATION_TASK_ID,
             }
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown model evaluation action")
+    if args.action == "operations":
+        service = OperationsService(_store(create=False))
+        if args.operations_action == "diagnostics":
+            diagnostics = service.diagnostic_bundle()
+            diagnostics.pop("task_id", None)
+            return _success(
+                "operations_diagnostics",
+                acceptance_scope="UXOPS_004_OPERATIONAL_DIAGNOSTICS",
+                task_id=OPERATIONS_TASK_ID,
+                **diagnostics,
+            )
+        if args.operations_action == "doctor":
+            return _success(
+                "operations_doctor",
+                acceptance_scope="UXOPS_004_OPERATIONAL_HEALTH",
+                task_id=OPERATIONS_TASK_ID,
+                doctor=service.doctor().safe_dict(),
+            )
+        if args.operations_action == "recovery-plan":
+            plan = service.recovery_plan()
+            plan.pop("task_id", None)
+            return _success(
+                "operations_recovery_plan",
+                acceptance_scope="UXOPS_004_OPERATIONAL_RECOVERY",
+                task_id=OPERATIONS_TASK_ID,
+                **plan,
+            )
+        if args.operations_action == "startup-recovery":
+            if args.confirm != RECOVERY_CONFIRMATION:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Operations recovery requires explicit confirmation")
+            return _success(
+                "operations_startup_recovery",
+                acceptance_scope="UXOPS_004_OPERATIONAL_RECOVERY",
+                task_id=OPERATIONS_TASK_ID,
+                **service.startup_recovery().safe_dict(),
+            )
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Operations action")
     if args.action == "webui":
         if args.webui_action != "serve":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Local WebUI action")
@@ -407,6 +404,13 @@ def build_parser() -> argparse.ArgumentParser:
     webui_actions = webui.add_subparsers(dest="webui_action", required=True)
     serve = webui_actions.add_parser("serve")
     serve.add_argument("--port", type=int, default=8765)
+    operations = subparsers.add_parser("operations")
+    operations_actions = operations.add_subparsers(dest="operations_action", required=True)
+    operations_actions.add_parser("diagnostics")
+    operations_actions.add_parser("doctor")
+    operations_actions.add_parser("recovery-plan")
+    startup_recovery = operations_actions.add_parser("startup-recovery")
+    startup_recovery.add_argument("--confirm", required=True)
     bilibili = subparsers.add_parser("bilibili")
     bilibili_actions = bilibili.add_subparsers(dest="bilibili_action", required=True)
     bilibili_canary_plan = bilibili_actions.add_parser("canary-plan")
@@ -483,6 +487,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.action == "verify"
         else RECONCILIATION_TASK_ID
         if args.action == "reconcile"
+        else OPERATIONS_TASK_ID
+        if args.action == "operations"
         else WEBUI_TASK_ID
         if args.action == "webui"
         else TAOBAO_TASK_ID

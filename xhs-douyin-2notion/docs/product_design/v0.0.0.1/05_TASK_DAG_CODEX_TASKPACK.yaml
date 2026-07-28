@@ -2228,7 +2228,7 @@ tasks:
   title: Implement observability, diagnostics and recovery runbooks
   stage: STG.X2N.5
   phase: PH.X2N.5.4
-  status: planned
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
