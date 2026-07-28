@@ -30,6 +30,10 @@ const ADMIN_PATHS = Object.freeze(["/admin", "/admin/"]);
 // 只输一个域名就该看到东西。之前根路径落到最后那个 404 分支，用户看到的是一行
 // {"ok":false,"code":"NOT_FOUND"}——服务其实好好的，却像是彻底坏了。
 const ROOT_PATHS = Object.freeze(["/", "/index.html"]);
+// R19 规定的 Owner 私有激活路由。和公开入口严格分开：公开入口给普通用户扫，
+// 这里给主人扫 iLink 授权码，两者不共用任何一个 URL。
+const OPS_WECHAT_PATHS = Object.freeze(["/ops/wechat", "/ops/wechat/"]);
+const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templates/ops-wechat.html");
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
 const MAX_REQUEST_BYTES = 64 * 1024;
@@ -106,6 +110,8 @@ class PortalHttpServer {
     adminInvite = null,
     adminOwnerClaim = null,
     adminOwnerBind = null,
+    ownerActivationStart = null,
+    ownerActivationPoll = null,
     firstRunProvider = () => false,
     logger = console,
   }) {
@@ -121,6 +127,8 @@ class PortalHttpServer {
     this.adminInvite = adminInvite;
     this.adminOwnerClaim = adminOwnerClaim;
     this.adminOwnerBind = adminOwnerBind;
+    this.ownerActivationStart = ownerActivationStart;
+    this.ownerActivationPoll = ownerActivationPoll;
     this.firstRunProvider = firstRunProvider;
     this.logger = logger;
     this.server = null;
@@ -257,6 +265,28 @@ class PortalHttpServer {
     this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
   }
 
+  async #handleOwnerActivation(request, response, name, url) {
+    if (!this.#adminAuthorized(request)) {
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return;
+    }
+    try {
+      if (name === "start" && request.method === "POST" && typeof this.ownerActivationStart === "function") {
+        this.#json(response, 200, await this.ownerActivationStart());
+        return;
+      }
+      if (name === "poll" && typeof this.ownerActivationPoll === "function") {
+        this.#json(response, 200, await this.ownerActivationPoll(url.searchParams.get("qrcode") || ""));
+        return;
+      }
+    } catch (error) {
+      this.logger.warn?.(`[cyberboss] ops/wechat ${name} 失败 code=${error?.code || "unknown"}`);
+      this.#json(response, 500, { ok: false, code: "OWNER_ACTIVATION_FAILED" });
+      return;
+    }
+    this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+  }
+
   // 后台页面本身不含任何数据，所以不要令牌也能拿到 HTML；数据接口才要。
   #handleAdminPage(response) {
     const nonce = newNonce();
@@ -275,6 +305,17 @@ class PortalHttpServer {
       response.writeHead(302, { ...SECURITY_HEADERS, Location: "/admin" });
       response.end();
       return null;
+    }
+    if (request.method === "GET" && OPS_WECHAT_PATHS.includes(pathname)) {
+      // 页面本身不含任何凭据，和后台页同样处理：HTML 免令牌，数据接口要令牌。
+      const nonce = newNonce();
+      const html = fs.readFileSync(OPS_WECHAT_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
+      response.end(html);
+      return null;
+    }
+    if (pathname.startsWith("/ops/api/wechat/")) {
+      return this.#handleOwnerActivation(request, response, pathname.slice("/ops/api/wechat/".length), url);
     }
     if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
       this.#handleAdminPage(response);

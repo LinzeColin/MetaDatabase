@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-__CSP_NONCE__'; style-src 'nonce-__CSP_NONCE__'; connect-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
+<title>CyberBoss 授权微信</title>
+<style nonce="__CSP_NONCE__">
+  :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--ok:#0b6b45;--bad:#a1211a;--card:#f7f8fa}
+  @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#f2f4f7;--muted:#c3c8d1;--line:#333842;--ok:#6ee7b7;--bad:#ff9b91;--card:#1c1f25}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+  main{max-width:560px;margin:0 auto;padding:28px 20px 64px}
+  h1{font-size:24px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 26px;font-size:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center}
+  #qr{width:260px;height:260px;margin:0 auto;display:block;background:#fff;border-radius:10px;padding:10px}
+  button{font:inherit;padding:14px 20px;border-radius:10px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);font-weight:600;cursor:pointer;min-height:48px;width:100%;max-width:300px}
+  .state{margin-top:16px;font-size:15px}
+  .state.ok{color:var(--ok);font-weight:600}
+  .state.bad{color:var(--bad)}
+  .hint{color:var(--muted);font-size:13px;margin-top:18px}
+  ol{text-align:left;color:var(--muted);font-size:14px;padding-left:20px;margin:16px 0 0}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>授权微信</h1>
+  <p class="sub">这一页只有你能用。用你要当机器人的那个微信扫下面的码。</p>
+
+  <div class="card">
+    <button id="start">生成二维码</button>
+    <img id="qr" alt="微信授权二维码" hidden>
+    <div class="state" id="state"></div>
+    <ol id="steps" hidden>
+      <li>打开微信，扫上面这个码</li>
+      <li>手机上点「确认」</li>
+      <li>这一页会自己变成「已授权」，不用刷新</li>
+    </ol>
+  </div>
+
+  <p class="hint">码大约两分钟过期，过期了再点一次「重新生成」就行。</p>
+</main>
+<script nonce="__CSP_NONCE__">
+"use strict";
+(function () {
+  // 令牌从地址栏的 # 后面取，取完立刻抹掉：片段不进请求行，代理和服务器的
+  // 访问日志都记不到它。
+  var TOKEN = new URLSearchParams(location.hash.replace(/^#/, "")).get("k") || "";
+  if (TOKEN) { history.replaceState(null, "", location.pathname); }
+  function authed() { return TOKEN ? { "x-admin-token": TOKEN } : {}; }
+
+  var startBtn = document.getElementById("start");
+  var qrImg = document.getElementById("qr");
+  var stateEl = document.getElementById("state");
+  var steps = document.getElementById("steps");
+  var timer = null;
+
+  function say(text, kind) {
+    stateEl.textContent = text;
+    stateEl.className = "state" + (kind ? " " + kind : "");
+  }
+
+  // 二维码由浏览器本地渲染成图片：内容是一段 URL，用 img 直接显示服务端给的
+  // 内容需要外部资源，CSP 不允许，所以走 data: URI 的 SVG。
+  function drawQr(content) {
+    // 服务端已经给出可直接显示的内容；若是 data: 或 http 图片则直接用，
+    // 否则退化为让用户复制链接。
+    if (/^data:image\//.test(content)) { qrImg.src = content; qrImg.hidden = false; return true; }
+    return false;
+  }
+
+  function poll(qrcode) {
+    fetch("/ops/api/wechat/poll?qrcode=" + encodeURIComponent(qrcode), { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) { say("出错了：" + (d.code || "未知"), "bad"); clearInterval(timer); return; }
+        if (d.state === "confirmed") {
+          clearInterval(timer);
+          qrImg.hidden = true;
+          steps.hidden = true;
+          startBtn.hidden = true;
+          say("✅ 已授权，机器人现在可以收发消息了", "ok");
+          return;
+        }
+        if (d.state === "scaned") { say("已扫码，请在手机上点确认……"); return; }
+        if (d.state === "expired") {
+          clearInterval(timer);
+          say("二维码过期了，请重新生成", "bad");
+          startBtn.hidden = false;
+          startBtn.textContent = "重新生成";
+          return;
+        }
+        say("等待扫码……");
+      })
+      .catch(function () { say("连不上服务，正在重试……"); });
+  }
+
+  startBtn.addEventListener("click", function () {
+    startBtn.disabled = true;
+    say("正在生成……");
+    fetch("/ops/api/wechat/start", { method: "POST", headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        startBtn.disabled = false;
+        if (!d.ok) {
+          say("生成失败：" + (d.code || "未知"), "bad");
+          return;
+        }
+        startBtn.hidden = true;
+        steps.hidden = false;
+        if (!drawQr(d.content)) {
+          say("拿到了二维码，但这一版还不能在网页上显示它。请把这段告诉开发者：" + String(d.content).slice(0, 40), "bad");
+          return;
+        }
+        say("等待扫码……");
+        if (timer) { clearInterval(timer); }
+        timer = setInterval(function () { poll(d.qrcode); }, 2500);
+        poll(d.qrcode);
+      })
+      .catch(function () {
+        startBtn.disabled = false;
+        say("连不上服务，请稍后再试", "bad");
+      });
+  });
+})();
+</script>
+</body>
+</html>

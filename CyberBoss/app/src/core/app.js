@@ -743,6 +743,8 @@ class CyberbossApp {
       adminInvite: () => this.issueDashboardInvite(),
       adminOwnerClaim: () => this.issueDashboardOwnerClaim(),
       adminOwnerBind: () => this.armDashboardOwnerBinding(),
+      ownerActivationStart: () => this.startOwnerActivation(),
+      ownerActivationPoll: (qrcode) => this.pollOwnerActivation(qrcode),
       // 还没有主人时，这套系统里不存在任何用户数据，后台也就没有什么可保护
       // 的；首次绑定因此不要令牌。绑上的那一刻起，后台恢复要令牌。
       firstRunProvider: () => this.userAdmission
@@ -860,6 +862,49 @@ class CyberbossApp {
       return Object.freeze({
         ok: false,
         code: normalizeErrorCode(error?.code) || "OWNER_CLAIM_FAILED",
+      });
+    }
+  }
+
+  // R19 规定的 Owner 激活：在受保护的 /ops/wechat 扫 iLink 授权二维码。
+  // 底下复用终端登录那套已验证的原语，登录逻辑一行没改。
+  async startOwnerActivation() {
+    const { startWebLogin } = require("../adapters/channel/weixin/login");
+    try {
+      const qr = await startWebLogin(this.config);
+      // qrcode_img_content 是一段要被编码成二维码的链接，不是图片。终端流程用
+      // qrcode-terminal 画它；网页这边在服务端渲染成 SVG 再转 data URI——CSP 只
+      // 允许 img-src 'self' data:，外部图床一律进不来。
+      const { renderQrSvg, svgDataUri } = require("../v8-prebuilt/public-entry/qr-svg");
+      this.noteForDashboard("生成了 Owner 激活二维码");
+      return Object.freeze({
+        ok: true,
+        qrcode: qr.qrcode,
+        content: svgDataUri(renderQrSvg(qr.content)),
+      });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "QR_FETCH_FAILED",
+      });
+    }
+  }
+
+  async pollOwnerActivation(qrcode) {
+    const { pollWebLogin } = require("../adapters/channel/weixin/login");
+    if (typeof qrcode !== "string" || !qrcode) {
+      return Object.freeze({ ok: false, code: "QRCODE_REQUIRED" });
+    }
+    try {
+      const result = await pollWebLogin(this.config, qrcode);
+      if (result.state === "confirmed") {
+        this.noteForDashboard("Owner 已完成微信授权");
+      }
+      return Object.freeze({ ok: true, ...result });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "POLL_FAILED",
       });
     }
   }

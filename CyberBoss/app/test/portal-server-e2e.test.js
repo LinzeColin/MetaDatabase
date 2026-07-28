@@ -311,3 +311,28 @@ test("只输域名（根路径）跳到后台，而不是回一行 NOT_FOUND", a
     assert.equal(response.headers.location, "/admin");
   }
 });
+
+test("R19 Owner 私有激活路由 /ops/wechat 存在，且数据接口要令牌", async (t) => {
+  // 主人要扫的那一页。之前它是 404——overlay 里有实现，但从没接进跑着的程序，
+  // 主人打开只会看到「找不到」。
+  const h = await harness(t);
+  const page = await raw(h.address.port, { requestPath: "/ops/wechat", headers: { host: HOSTNAME } });
+  assert.equal(page.status, 200, "激活页必须能打开");
+  assert.match(page.text, /授权微信/, "必须是中文的授权页");
+
+  // 页面免令牌（页面本身不含凭据），数据接口必须要令牌。
+  const start = await raw(h.address.port, {
+    method: "POST", requestPath: "/ops/api/wechat/start", headers: { host: HOSTNAME },
+  });
+  assert.equal(start.status, 401, "没有令牌不得触发真实的微信授权请求");
+});
+
+test("公开入口与 Owner 激活是两个不同的 URL", async (t) => {
+  // R19 明写这两个入口不得混淆：公开入口给普通用户扫，/ops/wechat 给主人扫。
+  const h = await harness(t);
+  const ops = await raw(h.address.port, { requestPath: "/ops/wechat", headers: { host: HOSTNAME } });
+  const setup = await raw(h.address.port, { requestPath: "/setup", headers: { host: HOSTNAME } });
+  assert.equal(ops.status, 200);
+  assert.equal(setup.status, 200);
+  assert.notEqual(ops.text, setup.text, "两个入口不得是同一个页面");
+});

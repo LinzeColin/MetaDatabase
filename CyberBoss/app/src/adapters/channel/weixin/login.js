@@ -159,4 +159,36 @@ async function runLoginFlow(config) {
   console.log(`baseUrl: ${account.baseUrl}`);
 }
 
-module.exports = { runLoginFlow };
+// R19 的 Owner 激活走网页（受保护的 /ops/wechat），不再要求主人开终端。
+// 这里只把已经验证过的原语暴露出去，登录逻辑本身一行没改——终端流程和网页
+// 流程共用同一套 fetchQrCode / pollQrStatus / saveWeixinAccount。
+async function startWebLogin(config) {
+  const qr = await fetchQrCode(config.weixinBaseUrl, config.weixinQrBotType);
+  return Object.freeze({
+    qrcode: qr.qrcode,
+    content: qr.qrcode_img_content,
+  });
+}
+
+// 返回 { state } 或在确认时 { state: "confirmed", accountId }。
+// 确认分支复用 saveWeixinAccount 与 cleanupStaleAccountsForUserId，落盘行为与
+// 终端登录完全一致。
+async function pollWebLogin(config, qrcode) {
+  const status = await pollQrStatus(config.weixinBaseUrl, qrcode);
+  if (status.status !== "confirmed") {
+    return Object.freeze({ state: status.status || "wait" });
+  }
+  if (!status.bot_token || !status.ilink_bot_id) {
+    throw new Error("Login succeeded but the response is missing the bot token or account ID.");
+  }
+  const account = saveWeixinAccount(config, status.ilink_bot_id, {
+    accountId: status.ilink_bot_id,
+    token: status.bot_token,
+    baseUrl: status.baseurl || config.weixinBaseUrl,
+    userId: status.ilink_user_id || "",
+  });
+  cleanupStaleAccountsForUserId(config, account);
+  return Object.freeze({ state: "confirmed", accountId: account.accountId });
+}
+
+module.exports = { runLoginFlow, startWebLogin, pollWebLogin };
