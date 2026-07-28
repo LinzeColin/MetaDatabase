@@ -50,7 +50,10 @@ function harness(t) {
     database: spool.database,
     identityKey: IDENTITY_KEY,
     ownerUserId: spool.ownerUserId,
-    ownerSenderIds: [],
+    // An explicit Owner sender, so ALICE and BOB stay ordinary users. With an
+    // empty list the first sender would claim the Owner role — which is the
+    // right behaviour for a real install and the wrong setup for this suite.
+    ownerSenderIds: ["owner-portal"],
     registrationMode: "invite",
     portalOrigin: ORIGIN,
   });

@@ -30,8 +30,46 @@ const {
 // An invite code is consumed by exact match, so a message that is one of the
 // frozen commands is never spent as a code by mistake.
 const SETUP_COMMAND = "设置";
-const RESERVED_INPUTS = Object.freeze([...Object.values(COMMANDS), SETUP_COMMAND]);
+// 主人专用的两个中文口令。普通用户说这两个词只会拿到帮助，不会拿到邀请码，
+// 也不会看到运行状况。
+const OWNER_COMMANDS = Object.freeze({
+  INVITE: ["邀请", "邀请码", "生成邀请码", "加个人"],
+  STATUS: ["状态", "运行状况", "还好吗"],
+});
+const HELP_COMMANDS = Object.freeze(["帮助", "help", "怎么用", "你能做什么"]);
+const RESERVED_INPUTS = Object.freeze([
+  ...Object.values(COMMANDS),
+  SETUP_COMMAND,
+  ...OWNER_COMMANDS.INVITE,
+  ...OWNER_COMMANDS.STATUS,
+  ...HELP_COMMANDS,
+]);
 const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
+
+const OWNER_HELP = [
+  "你是这里的主人。可以直接跟我说话，也可以用这些中文口令：",
+  "",
+  "  邀请  —— 生成一串邀请码，转发给朋友，他就能开通",
+  "  状态  —— 看看现在运行得怎么样",
+  "  帮助  —— 再看一次这条说明",
+].join("\n");
+
+const USER_HELP = [
+  "可以直接跟我说话。也可以用这些中文口令：",
+  "",
+  "  设置  —— 打开设置页面，填你自己的 AI 密钥",
+  "  帮助  —— 再看一次这条说明",
+  "  导出我的数据 / 删除我的数据  —— 你的数据你说了算",
+].join("\n");
+
+const INVITE_REPLY = (code) => [
+  "邀请码给你：",
+  "",
+  code,
+  "",
+  "把上面这一串转发给朋友，让他加我之后直接发过来就行。",
+  "这串码只能用一次，7 天内有效。",
+].join("\n");
 
 const SETUP_MESSAGES = Object.freeze({
   // The link carries the token in the URL fragment, so it never reaches a
@@ -150,10 +188,35 @@ class UserAdmissionService {
   }
 
   isOwnerSender(senderRef) {
-    // An empty owner list means this deployment has not named an Owner sender,
-    // so no inbound sender is ever treated as the Owner. Failing closed here is
-    // what keeps "unknown sender" from inheriting Owner capabilities.
     return this.ownerSenderIds.includes(normalizeText(senderRef));
+  }
+
+  // Nobody should have to look up their own WeChat id to install this. On a
+  // fresh install with no Owner named and no Owner principal bound yet, the
+  // first sender to say anything claims the Owner role — the person who just
+  // scanned the login QR code is the only one who can be first.
+  //
+  // The window closes the instant it is used: `bindOwnerChannel` writes the
+  // binding, `#ownerPrincipalBound` then sees it, and every later sender goes
+  // through invite and consent like anyone else. It never reopens, because the
+  // binding is durable and this checks the database rather than a flag.
+  #ownerClaimAvailable() {
+    if (this.ownerSenderIds.length > 0) {
+      return false;
+    }
+    return !this.#ownerPrincipalBound();
+  }
+
+  #ownerPrincipalBound() {
+    const row = this.users.database
+      .prepare(
+        `SELECT EXISTS(
+           SELECT 1 FROM user_channels
+           WHERE user_id=? AND revoked_at IS NULL
+         ) AS bound`,
+      )
+      .get(this.ownerUserId);
+    return Number(row.bound) === 1;
   }
 
   // The Owner's WeChat principal is bound to the server-derived Owner user id on
@@ -178,6 +241,38 @@ class UserAdmissionService {
       }),
       modelCalls: null,
     });
+  }
+
+  // The Owner's turn, with the two Owner-only Chinese words handled before the
+  // message ever reaches a runtime. Anything else is an ordinary Owner turn and
+  // continues down the pre-existing path untouched.
+  #ownerTurn({ botAccountRef, senderRef, text }) {
+    const admitted = this.#admitOwner({ botAccountRef, senderRef });
+    const trimmed = normalizeText(text);
+    if (OWNER_COMMANDS.INVITE.includes(trimmed)) {
+      return this.#issueInviteReply();
+    }
+    if (OWNER_COMMANDS.STATUS.includes(trimmed)) {
+      return Object.freeze({ route: "status", userContext: admitted.userContext, modelCalls: 0 });
+    }
+    if (HELP_COMMANDS.includes(trimmed)) {
+      return reply(ACTIONS.SHOW_HOME, { text: OWNER_HELP });
+    }
+    return admitted;
+  }
+
+  #issueInviteReply() {
+    if (!this.invites) {
+      return reply(ACTIONS.SHOW_HOME, {
+        text: "现在是开放模式，任何人加我之后直接说话就能用，不需要邀请码。",
+      });
+    }
+    try {
+      const invite = this.invites.issue({ maxUses: 1, ttlMs: 7 * 24 * 60 * 60 * 1000 });
+      return reply(ACTIONS.SHOW_HOME, { text: INVITE_REPLY(invite.code) });
+    } catch {
+      return reply(ACTIONS.SHOW_HOME, { text: "邀请码这会儿生成不出来，稍后再发一次「邀请」。" });
+    }
   }
 
   #inviteCandidate(text) {
@@ -237,7 +332,11 @@ class UserAdmissionService {
       throw new UserAdmissionError("PRINCIPAL_REQUIRED");
     }
     if (this.isOwnerSender(senderRef)) {
-      return this.#admitOwner({ botAccountRef, senderRef });
+      return this.#ownerTurn({ botAccountRef, senderRef, text });
+    }
+    if (this.#ownerClaimAvailable()) {
+      const claimed = this.#admitOwner({ botAccountRef, senderRef });
+      return Object.freeze({ ...claimed, ownerClaimed: true });
     }
 
     const existing = this.users.resolveByPrincipal({
@@ -247,6 +346,13 @@ class UserAdmissionService {
     });
     if (!existing) {
       return this.#admitUnregistered({ botAccountRef, senderRef, text });
+    }
+    // The stored role is the authority, not the configured sender list. Without
+    // this, an Owner who claimed the role on first contact would be resolved
+    // here as an ordinary user on every later message and routed to the BYOK
+    // provider path instead of their own runtime.
+    if (existing.role === "owner") {
+      return this.#ownerTurn({ botAccountRef, senderRef, text });
     }
     if (existing.status === "suspended") {
       return reply(ACTIONS.SUSPENDED);
@@ -277,8 +383,20 @@ class UserAdmissionService {
     if (!this.users.mayCallModel(userContext.userId)) {
       return reply(ACTIONS.SUSPENDED);
     }
-    if (normalizeText(text) === SETUP_COMMAND) {
+    const trimmed = normalizeText(text);
+    if (trimmed === SETUP_COMMAND) {
       return this.#issueSetupLink(userContext);
+    }
+    if (HELP_COMMANDS.includes(trimmed)) {
+      return reply(ACTIONS.SHOW_HOME, { text: USER_HELP });
+    }
+    // An ordinary user asking for an Owner word gets the ordinary help, never a
+    // hint that a privileged command exists.
+    if (
+      OWNER_COMMANDS.INVITE.includes(trimmed)
+      || OWNER_COMMANDS.STATUS.includes(trimmed)
+    ) {
+      return reply(ACTIONS.SHOW_HOME, { text: USER_HELP });
     }
     return Object.freeze({ route: "user", userContext, modelCalls: null });
   }
@@ -293,10 +411,14 @@ class UserAdmissionService {
 }
 
 module.exports = {
+  HELP_COMMANDS,
   INVITE_CANDIDATE,
+  OWNER_COMMANDS,
+  OWNER_HELP,
   RESERVED_INPUTS,
   SETUP_COMMAND,
   SETUP_MESSAGES,
+  USER_HELP,
   UserAdmissionError,
   UserAdmissionService,
   deriveSubKey,

@@ -53,6 +53,7 @@ const {
   normalizeCommandTokens,
   splitCommandLine,
 } = require("../adapters/runtime/shared/approval-command");
+const { updateEnvFile } = require("./bootstrap");
 const { UserAdmissionService } = require("./user-admission");
 const { UserTurnRuntime } = require("./user-turn-runtime");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
@@ -69,6 +70,40 @@ const BACKOFF_DELAY_MS = 30_000;
 const MAX_CONSECUTIVE_FAILURES = 3;
 const MAX_INBOUND_STICKER_IMAGE_BATCH = 10;
 const INBOUND_IMAGE_BATCH_IDLE_MS = 1_500;
+
+const OWNER_CLAIMED_NOTICE = [
+  "认出你了，你是这里的主人 ✓",
+  "",
+  "可以直接跟我说话。想让朋友也能用，发「邀请」就行。",
+  "随时可以发「帮助」看看还能做什么。",
+].join("\n");
+
+// Status 的业务线名字对普通人来说是黑话，这里给出人话版。
+const PLAIN_LINE_NAMES = Object.freeze({
+  wechat_channel: "微信通道",
+  user_registration_consent: "开通流程",
+  user_isolation: "用户隔离",
+  secure_setup_portal: "设置页面",
+  ai_provider_connection: "AI 连接",
+  four_source_import: "聊天记录导入",
+  profile_memory: "资料与记忆",
+  timeline_diary_reminder: "时间线与提醒",
+  canonical_sync: "数据归档",
+  r2_oci_objects: "云端存储",
+  backup_restore: "备份与恢复",
+  owner_codex_runtime: "主人的开发助手",
+  release_rollback: "发布与回滚",
+  model_usage_budget_circuit: "用量与限额",
+});
+
+const PLAIN_RESOURCE_REASONS = Object.freeze({
+  MIN_FREE_MEMORY: "内存不太够了",
+  MIN_FREE_DISK: "磁盘快满了",
+  MIN_FREE_INODES: "磁盘的文件数量到上限了",
+  MAX_QUEUE_DEPTH: "排队的活儿有点多",
+  MAX_LOAD_RATIO: "CPU 比较忙",
+  METRIC_MISSING: "有项指标没测到，为安全起见先不接新活",
+});
 
 function requireAbsoluteRuntimePath(value, label) {
   if (typeof value !== "string" || !path.isAbsolute(value)) {
@@ -801,9 +836,18 @@ class CyberbossApp {
       await this.sendAdmissionReply(normalized, decision.text);
       return null;
     }
+    if (decision.route === "status") {
+      await this.sendAdmissionReply(normalized, this.buildPlainLanguageStatus());
+      return null;
+    }
     if (decision.route === "user") {
       await this.runUserModelTurn(normalized, decision.userContext);
       return null;
+    }
+    if (decision.ownerClaimed) {
+      // 第一条消息就把主人认下来了，告诉他这件事已经发生，并给出下一步。
+      await this.sendAdmissionReply(normalized, OWNER_CLAIMED_NOTICE);
+      this.rememberOwnerSender(normalized.senderId);
     }
     return decision;
   }
@@ -857,6 +901,49 @@ class CyberbossApp {
       return;
     }
     await this.sendAdmissionReply(normalized, result.text);
+  }
+
+  // 主人发「状态」时看到的东西：不是 JSON，是人话。数字全部来自同一份实测
+  // 投影，没有另算一遍。
+  buildPlainLanguageStatus() {
+    const projection = this.projectOperationalStatus();
+    if (!projection?.status) {
+      return "现在读不到运行状况，稍后再发一次「状态」。";
+    }
+    const lines = projection.status.business_lines;
+    const healthy = lines.filter((line) => line.state === "healthy").length;
+    const pending = lines.filter((line) => line.state === "activation_pending");
+    const blocked = lines.filter((line) => line.state === "blocked" || line.state === "degraded");
+    const parts = [
+      blocked.length ? "有地方出问题了 ⚠" : "运行正常 ✓",
+      "",
+      `功能模块：${healthy} 项正常，共 ${lines.length} 项`,
+    ];
+    if (blocked.length) {
+      parts.push("", `需要处理：${blocked.map((line) => PLAIN_LINE_NAMES[line.business_line] || line.business_line).join("、")}`);
+    }
+    if (pending.length) {
+      parts.push("", `还没配好（不影响聊天）：${pending.map((line) => PLAIN_LINE_NAMES[line.business_line] || line.business_line).join("、")}`);
+    }
+    if (projection.resource_gate && projection.resource_gate.admits_new_work === false) {
+      parts.push("", `这台机器现在比较吃紧：${PLAIN_RESOURCE_REASONS[projection.resource_gate.reasonCode] || "资源不足"}`);
+    }
+    return parts.join("\n");
+  }
+
+  // 把认下来的主人写回 .env，这样重启之后不必再靠"第一条消息"来认。
+  rememberOwnerSender(senderId) {
+    const value = normalizeText(senderId);
+    if (!value || !this.config.stateDir) {
+      return;
+    }
+    try {
+      updateEnvFile(path.join(this.config.stateDir, ".env"), {
+        CB_OWNER_SENDER_IDS: value,
+      });
+    } catch {
+      // 写不进去也不影响本次运行：主人身份已经在数据库里绑好了。
+    }
   }
 
   async stopTypingForUser(normalized) {

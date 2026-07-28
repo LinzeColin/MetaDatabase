@@ -6,6 +6,8 @@ const dotenv = require("dotenv");
 const { readConfig } = require("./core/config");
 const { renderInstructionTemplate } = require("./core/instructions-template");
 const { CyberbossApp } = require("./core/app");
+const { bootstrapInstallation, defaultStateDir } = require("./core/bootstrap");
+const { looksConfigured, runSetupWizard } = require("./core/setup-wizard");
 const { runSystemCheckinPoller } = require("./app/system-checkin-poller");
 const { buildTerminalHelpText } = require("./core/command-registry");
 const { ensureStickerCatalogFilesSync } = require("./services/sticker-service");
@@ -97,11 +99,38 @@ async function main() {
   ensureRuntimeEnv();
   installRuntimeErrorHooks();
   const argv = process.argv.slice(2);
-  const requestedCommand = argv[0] || "help";
+  const requestedCommand = argv[0] || "";
+
   if (requestedCommand === "help" || requestedCommand === "--help" || requestedCommand === "-h") {
     console.log(buildTerminalHelpText());
     return;
   }
+
+  // 无参数运行：没装过就走向导，装过就直接启动。一个没用过命令行的人
+  // 只需要记住一个词 —— cyberboss。
+  if (!requestedCommand) {
+    const stateDir = defaultStateDir();
+    if (looksConfigured(stateDir)) {
+      console.log("检测到已经设置过，正在启动……（想重新设置请运行：cyberboss setup）\n");
+      await startConfiguredApp();
+      return;
+    }
+    await runSetupWizard({ stateDir, login: () => loginWithFreshConfig() });
+    return;
+  }
+
+  if (requestedCommand === "setup") {
+    await runSetupWizard({
+      stateDir: defaultStateDir(),
+      login: () => loginWithFreshConfig(),
+    });
+    return;
+  }
+
+  // 每条命令之前都先自动补齐环境，所以 doctor / login / start 不会再因为
+  // 缺密钥或缺配置文件而失败。
+  bootstrapInstallation({ stateDir: defaultStateDir() });
+  loadEnv();
   const config = readConfig();
   ensureBootstrapFiles(config);
   const command = config.mode || "help";
@@ -144,6 +173,23 @@ async function main() {
   }
 
   throw new Error(`Unknown command: ${command}`);
+}
+
+// 向导跑完之后配置才刚写下去，所以登录要用重新读取的配置，而不是进程启动
+// 时那份。
+async function loginWithFreshConfig() {
+  loadEnv();
+  const config = readConfig();
+  ensureBootstrapFiles(config);
+  await new CyberbossApp(config).login();
+}
+
+async function startConfiguredApp() {
+  bootstrapInstallation({ stateDir: defaultStateDir() });
+  loadEnv();
+  const config = readConfig();
+  ensureBootstrapFiles(config);
+  await new CyberbossApp(config).start();
 }
 
 module.exports = { main };

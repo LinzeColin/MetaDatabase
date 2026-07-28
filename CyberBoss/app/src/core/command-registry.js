@@ -263,33 +263,52 @@ function listCommandGroups() {
   }));
 }
 
+// 终端帮助的第一屏必须回答一个问题：我现在该敲什么？所以只用一条命令开头，
+// 其余的按"日常"和"排查"分开，进阶清单收到最后。
 function buildTerminalHelpText() {
   const lines = [
-    "Usage: cyberboss <command>",
     "",
-    "Current terminal commands:",
-    "  cyberboss start        start the WeChat bridge and runtime loop",
-    "  cyberboss login        start WeChat QR login",
-    "  cyberboss accounts     list locally saved accounts",
-    "  cyberboss doctor       print current config and thread state",
-    "  npm run shared:start   start the shared app-server and WeChat bridge",
-    "  npm run shared:open    attach to the shared thread currently bound in WeChat",
-    "  npm run shared:status  show shared bridge status",
+    "CyberBoss —— 你的微信 AI 助手",
+    "",
+    "第一次用，只要这一条：",
+    "",
+    "    cyberboss",
+    "",
+    "  它会自动把该建的都建好，然后带你扫码登录。",
+    "  装好之后再敲 cyberboss，就是直接启动。",
+    "",
+    "日常：",
+    "  cyberboss           启动（第一次运行会先走安装向导）",
+    "  cyberboss setup     重新走一遍安装向导",
+    "  cyberboss login     重新扫码登录微信",
+    "",
+    "排查问题：",
+    "  cyberboss doctor    看看现在的运行状况",
+    "  cyberboss accounts  列出本机登录过的微信号",
+    "",
+    "启动之后，剩下的事都在微信里做：",
+    "  给机器人发「帮助」——看看能做什么",
+    "  发「邀请」——拿一串邀请码转发给朋友（只有主人可以）",
+    "  发「状态」——看运行状况（只有主人可以）",
+    "  发「设置」——打开设置页面填自己的 AI 密钥",
+    "",
   ];
 
+  const advanced = [];
   for (const group of COMMAND_GROUPS) {
     const activeActions = group.actions.filter((action) => action.status === "active" && action.terminal.length);
     if (!activeActions.length) {
       continue;
     }
-    lines.push(`- ${group.label}`);
+    advanced.push(`- ${group.label}`);
     for (const action of activeActions) {
-      lines.push(`  ${formatTerminalExamples(action)}  ${action.summary}`);
+      advanced.push(`  ${formatTerminalExamples(action)}  ${action.summary}`);
     }
   }
-
-  lines.push("");
-  lines.push("Cyberboss capability operations are exposed to models as project tools, not terminal subcommands.");
+  if (advanced.length) {
+    lines.push("── 进阶（平时用不到）──", ...advanced, "");
+  }
+  lines.push("模型能用的能力以项目工具形式提供，不是终端子命令。");
   return lines.join("\n");
 }
 
