@@ -18,7 +18,7 @@ test("首屏提供密钥、邮箱密码及 Google/GitHub/Notion 三类非技术�
 });
 
 test("四平台导入均使用连接、选择、预览/确认和进度式新手路径", () => {
-  for (const phrase of ["微信读书同步", "完整核对全部数据", "下载已同步数据（JSON）", "Notion", "Obsidian", "GitHub", "Google Drive", "不知道怎么选？", "选择文件夹", "导入任务已建立"]) assert.ok(ui.includes(phrase), phrase);
+  for (const phrase of ["微信读书同步", "完整核对全部数据", "下载已同步数据（JSON）", "官方可导出正文", "书签只有官方计数", "Notion", "Obsidian", "GitHub", "Google Drive", "不知道怎么选？", "选择文件夹", "导入任务已建立"]) assert.ok(ui.includes(phrase), phrase);
   assert.ok(obsidian.includes("webkitRelativePath"));
   assert.ok(obsidian.includes("ZIP"));
   assert.ok(api.includes("/weread/export"));

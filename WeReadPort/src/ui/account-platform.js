@@ -215,7 +215,10 @@ function homeReadingProfile(dashboard, account, hasWeRead) {
   const categories = (dashboard.categoryDistribution || []).slice(0, 3);
   const recommendations = (dashboard.recommendations || []).slice(0, 3);
   const coverage = account?.weread?.summary?.coverage;
-  const coverageText = !hasWeRead ? "绑定微信读书后会显示官方数据核对结果。" : coverage ? (coverage.verified ? `已核对 ${coverage.accountedDocuments || 0} 条可导入内容；源端报告 ${coverage.sourceReportedNotes || 0} 条。` : `当前尚有 ${coverage.unresolvedDocuments || 0} 条待确认；可从“导入与连接”发起完整核对。`) : "尚未完成首次数据核对。";
+  const exportable = Number(coverage?.sourceReportedExportableDocuments ?? coverage?.sourceReportedNotes ?? 0);
+  const bookmarks = Number(coverage?.sourceReportedBookmarks || 0);
+  const bookmarkNote = bookmarks > 0 ? `另有 ${bookmarks} 条书签只有官方计数。` : "";
+  const coverageText = !hasWeRead ? "绑定微信读书后会显示官方数据核对结果。" : coverage ? (coverage.verified ? `已核对 ${coverage.accountedDocuments || 0} 条可导入正文；官方可导出正文 ${exportable} 条。${bookmarkNote}` : `当前尚有 ${coverage.unresolvedDocuments || 0} 条待确认；可从“导入与连接”发起完整核对。`) : "尚未完成首次数据核对。";
   return `<section class="home-profile-card" aria-labelledby="home-profile-title"><div class="section-title"><div><p class="eyebrow">阅读画像</p><h2 id="home-profile-title">你的阅读偏好，已经整合到首页</h2><p>${escapeHtml(coverageText)}</p></div><button class="button secondary" data-go-analytics type="button">查看完整画像</button></div><div class="home-profile-grid"><div><span>近 90 天活跃</span><strong>${escapeHtml(String(dashboard.summary?.activeDays90 ?? 0))} 天</strong></div><div><span>已汇总来源</span><strong>${escapeHtml(String(dashboard.summary?.sourceCount ?? 0))} 个</strong></div><div><span>估算字数</span><strong>${escapeHtml(numberFormat(dashboard.summary?.estimatedWords || 0))}</strong></div></div>${categories.length ? `<div class="profile-topics"><strong>高频主题</strong><div>${categories.map(item => `<span>${escapeHtml(item.label)} · ${escapeHtml(String(item.value))}</span>`).join("")}</div></div>` : ""}${recommendations.length ? `<div class="home-recommendations"><strong>潜在下一步</strong><div>${recommendations.map(item => `<article><div><small>${escapeHtml(sourceName(item.source))}</small><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div></div>` : ""}${hasWeRead ? `<div class="home-profile-actions"><button class="button ghost" data-download-weread type="button">下载微信读书数据（JSON）</button></div>` : ""}</section>`;
 }
 
@@ -252,10 +255,12 @@ function sourceCard(id, name, mark, connected, description, actionLabel) { retur
 function wereadDataControls(account) {
   const coverage = account?.weread?.summary?.coverage;
   const verified = Boolean(coverage?.verified);
-  const sourceNotes = Number(coverage?.sourceReportedNotes || 0);
+  const sourceExportable = Number(coverage?.sourceReportedExportableDocuments ?? coverage?.sourceReportedNotes ?? 0);
+  const sourceBookmarks = Number(coverage?.sourceReportedBookmarks || 0);
   const accounted = Number(coverage?.accountedDocuments || 0);
   const unresolved = Number(coverage?.unresolvedDocuments || 0);
-  const summary = !coverage ? "尚未完成首次完整核对；首次同步会读取当前可访问的书籍、划线和想法。" : verified ? `核对通过：源端报告 ${sourceNotes} 条，已确认 ${accounted} 条可导入内容。书签只有官方计数时不会被伪装成正文。` : `尚未完成完整确认：当前已核对 ${accounted} 条，仍有 ${unresolved} 条待确认。完整核对不会删除你现有笔记。`;
+  const bookmarkNote = sourceBookmarks > 0 ? `另有 ${sourceBookmarks} 条书签只有官方计数，不会被伪装成正文。` : "";
+  const summary = !coverage ? "尚未完成首次完整核对；首次同步会读取当前可访问的书籍、划线和想法。" : verified ? `核对通过：官方可导出正文 ${sourceExportable} 条，已确认 ${accounted} 条。${bookmarkNote}` : `尚未完成完整确认：当前已核对 ${accounted} 条，仍有 ${unresolved} 条待确认。完整核对不会删除你现有笔记。`;
   return `<section class="weread-data-controls"><div><p class="eyebrow">微信读书数据</p><h2>${verified ? "数据覆盖已核验" : "先核对，再判断是否完整"}</h2><p>${escapeHtml(summary)}</p></div><div class="button-row"><button id="weread-full-sync" class="button secondary" type="button">完整核对全部数据</button><button id="weread-download" class="button primary" type="button">下载已同步数据（JSON）</button></div></section>`;
 }
 
