@@ -15,7 +15,7 @@ const healthyEnv = {
   ASSETS: {
     fetch: async request => {
       const url = new URL(request.url);
-      if (url.pathname === "/site/home.html") {
+      if (url.pathname === "/site/home") {
         return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁｜个人阅读资产中心</title></html>", {
           status: 200,
           headers: { "Content-Type": "text/html; charset=utf-8" },
