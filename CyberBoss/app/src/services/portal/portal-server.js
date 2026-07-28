@@ -118,6 +118,10 @@ class PortalHttpServer {
     adminConversations = null,
     adminPersonaRead = null,
     adminPersonaWrite = null,
+    // 后台会话。给了这三个就支持"登录一次，之后免令牌"。
+    adminSessionIssue = null,
+    adminSessionVerify = null,
+    adminSessionRevoke = null,
     ownerActivationStart = null,
     ownerActivationPoll = null,
     firstRunProvider = () => false,
@@ -138,6 +142,9 @@ class PortalHttpServer {
     this.adminConversations = adminConversations;
     this.adminPersonaRead = adminPersonaRead;
     this.adminPersonaWrite = adminPersonaWrite;
+    this.adminSessionIssue = adminSessionIssue;
+    this.adminSessionVerify = adminSessionVerify;
+    this.adminSessionRevoke = adminSessionRevoke;
     this.ownerActivationStart = ownerActivationStart;
     this.ownerActivationPoll = ownerActivationPoll;
     this.firstRunProvider = firstRunProvider;
@@ -226,7 +233,28 @@ class PortalHttpServer {
     return a.length === b.length && crypto.timingSafeEqual(a, b);
   }
 
+  // 已经登录过的那台设备。
+  //
+  // 「我不可能每次都有 token」——所以令牌只用来换一次会话，之后靠 cookie。
+  // cookie 是 HttpOnly + Secure + SameSite=Strict，页面脚本读不到它，跨站也带
+  // 不出去。会话必须属于主人：普通用户在 /setup 拿到的会话用的是同一张
+  // web_sessions 表，如果这里不校验身份，一个普通用户的设置会话就能读到全部人
+  // 的聊天记录。这一条由 adminSessionVerify 在上层判定（它知道谁是主人）。
+  #sessionAuthorized(request) {
+    if (typeof this.adminSessionVerify !== "function") {
+      return false;
+    }
+    try {
+      return this.adminSessionVerify(String(request.headers.cookie || "")) === true;
+    } catch {
+      return false;
+    }
+  }
+
   #adminAuthorized(request) {
+    if (this.#sessionAuthorized(request)) {
+      return true;
+    }
     if (this.#firstRun()) {
       return true;
     }
@@ -281,6 +309,80 @@ class PortalHttpServer {
     this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
   }
 
+  // 登录：把一次性的东西换成一个长期的会话 cookie。
+  //
+  // 两种入场券，都只用一次：
+  //   · x-admin-token —— 服务器管理者手上的长期令牌（部署时生成）
+  //   · ticket        —— 微信里发「后台」拿到的一次性票，5 分钟有效
+  //
+  // 换完之后页面就只靠 cookie 了，令牌不再需要出现在任何地方。
+  async #handleAdminLogin(request, response) {
+    if (request.method !== "POST" || typeof this.adminSessionIssue !== "function") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    let ticket = "";
+    try {
+      const raw = await readBody(request);
+      if (raw.length) {
+        const parsed = JSON.parse(raw.toString("utf8"));
+        ticket = typeof parsed?.ticket === "string" ? parsed.ticket.slice(0, 128) : "";
+      }
+    } catch {
+      ticket = "";
+    }
+    const byToken = Boolean(this.adminToken) && this.#tokenMatches(request);
+    // 第三种：已经登录着，来续期。页面每次打开都会做一次，所以常用的那台设备
+    // 不会因为会话上限（24 小时）而掉线。
+    const renewFrom = !byToken && !ticket && this.#sessionAuthorized(request)
+      ? String(request.headers.cookie || "")
+      : "";
+    if (!byToken && !ticket && !renewFrom) {
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return;
+    }
+    let issued;
+    try {
+      issued = await this.adminSessionIssue({ ticket: byToken ? "" : ticket, renewFrom });
+    } catch (error) {
+      this.logger.warn?.(`[cyberboss] 后台登录失败 code=${error?.code || "unknown"}`);
+      this.#json(response, 401, { ok: false, code: "ADMIN_LOGIN_FAILED" });
+      return;
+    }
+    if (!issued || !issued.ok) {
+      this.#json(response, 401, { ok: false, code: issued?.code || "ADMIN_LOGIN_FAILED" });
+      return;
+    }
+    response.writeHead(200, {
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/json",
+      "Set-Cookie": issued.setCookie,
+    });
+    // csrf 回给页面用于后续写操作；会话令牌本身在 HttpOnly cookie 里，页面看不到。
+    response.end(JSON.stringify({ ok: true, csrf: issued.csrf, expiresAt: issued.expiresAt }));
+  }
+
+  async #handleAdminLogout(request, response) {
+    if (request.method !== "POST") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    let cleared = "";
+    try {
+      cleared = typeof this.adminSessionRevoke === "function"
+        ? await this.adminSessionRevoke(String(request.headers.cookie || ""))
+        : "";
+    } catch {
+      cleared = "";
+    }
+    const headers = { ...SECURITY_HEADERS, "Content-Type": "application/json" };
+    if (cleared) {
+      headers["Set-Cookie"] = cleared;
+    }
+    response.writeHead(200, headers);
+    response.end(JSON.stringify({ ok: true }));
+  }
+
   // 后台里真正碰用户数据的那几个接口。
   //
   // 和 #handleAdminApi 的区别只有一条，但那一条是全部：**不走首次运行免令牌**。
@@ -288,7 +390,8 @@ class PortalHttpServer {
   // 解密后的真实聊天，语气一栏改的是每个人都会收到的说话方式，这两件事在任何
   // 时候都必须先证明你是服务器的管理者。
   async #handleOwnerOnlyApi(request, response, name, url) {
-    if (!this.adminToken || !this.#tokenMatches(request)) {
+    // 会话或令牌，二者其一。**不接受**首次运行免令牌——那条规则只对概览成立。
+    if (!this.#sessionAuthorized(request) && !(this.adminToken && this.#tokenMatches(request))) {
       this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
       return;
     }
@@ -391,6 +494,12 @@ class PortalHttpServer {
     if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
       this.#handleAdminPage(response);
       return null;
+    }
+    if (pathname === "/admin/api/login") {
+      return this.#handleAdminLogin(request, response);
+    }
+    if (pathname === "/admin/api/logout") {
+      return this.#handleAdminLogout(request, response);
     }
     // 顺序要紧：这一条必须排在 /admin/api/ 的通用分支前面，否则对话和语气会掉
     // 进 #handleAdminApi，跟着继承首次运行免令牌那条规则。

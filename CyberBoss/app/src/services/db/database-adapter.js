@@ -59,6 +59,11 @@ const MIGRATIONS = Object.freeze([
     name: "010_owner_persona.sql",
     sourceCommit: "PANEL-2",
   }),
+  Object.freeze({
+    version: 9,
+    name: "011_admin_login_tickets.sql",
+    sourceCommit: "LOGIN-2",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";

@@ -279,13 +279,13 @@ function seedTurn(spool, { senderId, text, replyText, replyStatus = "confirmed" 
 }
 
 function feedApp(spool, config = {}) {
-  // 借用真实原型；config 是 knownOwnerSenders 会读的那两个字段。
-  return {
+  // 用真实原型做接收者：buildConversationFeed 会调 knownOwnerSenders 等方法，
+  // 手挑几个挂上去就会漏，漏了测的就不是生产实现而是一个残缺的拼装件。
+  return Object.assign(Object.create(CyberbossApp.prototype), {
     runtimeSpoolDatabase: spool,
     directReplyLog: [],
     config,
-    knownOwnerSenders: CyberbossApp.prototype.knownOwnerSenders,
-  };
+  });
 }
 
 const feedOf = (app, query) => CyberbossApp.prototype.buildConversationFeed.call(app, query || {});

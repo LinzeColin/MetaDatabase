@@ -204,14 +204,50 @@
     return n;
   }
 
-  // 管理员令牌从地址栏的 # 后面取，只留在内存里，然后立刻从地址栏抹掉：
-  // 片段不会出现在请求行里，服务器和中间代理的访问日志都记不到它。
-  var TOKEN = new URLSearchParams(location.hash.replace(/^#/, "")).get("k") || "";
-  if (TOKEN) { history.replaceState(null, "", location.pathname); }
+  // 进场券从地址栏的 # 后面取，取完立刻抹掉：片段不进请求行，服务器和中间
+  // 代理的访问日志都记不到它。
+  //
+  //   #k=…  管理员令牌（部署时生成的长期凭据）
+  //   #t=…  微信里发「后台」拿到的一次性票，5 分钟有效
+  //
+  // 两种都只用**一次**：马上换成 HttpOnly 的会话 cookie，然后从内存里丢掉。
+  // 之后直接打开 boss.linzezhang.com 就进得去——这就是"不可能每次都有 token"
+  // 的答案。会话到期了也不用找链接：在微信里说一声「后台」。
+  var HASH = new URLSearchParams(location.hash.replace(/^#/, ""));
+  var TOKEN = HASH.get("k") || "";
+  var TICKET = HASH.get("t") || "";
+  if (TOKEN || TICKET) { history.replaceState(null, "", location.pathname); }
+
   function authed(extra) {
     var h = extra || {};
+    // 令牌只在换会话那一次用；换完就不再往任何请求上挂。
     if (TOKEN) { h["x-admin-token"] = TOKEN; }
     return h;
+  }
+
+  // 换会话。带票用票，带令牌用令牌，两者都没有就拿现有 cookie 续期
+  // （常用的这台设备因此永远不会因为 24 小时上限而掉线）。
+  function login() {
+    return fetch("/admin/api/login", {
+      method: "POST",
+      headers: authed({ "Content-Type": "application/json" }),
+      credentials: "same-origin",
+      body: JSON.stringify(TICKET ? { ticket: TICKET } : {})
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        // 用过就作废，别再留在内存里。
+        TICKET = "";
+        if (data.ok) { TOKEN = ""; }
+        return data.ok === true;
+      })
+      .catch(function () { return false; });
+  }
+
+  // 401 的时候告诉人怎么办，而不是只说"没权限"。
+  function showLocked(where) {
+    var node = document.getElementById(where);
+    if (node) { node.textContent = "在微信里对机器人说一句「后台」，它会给你一条新链接。"; }
   }
 
   function human(seconds) {
@@ -288,10 +324,8 @@
       .then(render)
       .catch(function () {
         document.getElementById("dot").className = "dot bad";
-        set("headline", TOKEN ? "连不上服务" : "这个链接不完整");
-        set("subline", TOKEN
-          ? "它可能停了。过一会儿这一页会自己再试。"
-          : "请用完整的后台链接打开（末尾带 #k=…… 那一段）。");
+        set("headline", "还没登录，或者连不上");
+        set("subline", "在微信里对机器人说一句「后台」，它会给你一条新链接。");
       });
   }
 
@@ -352,7 +386,7 @@
       document.getElementById("talk-dot").className = "dot bad";
       set("talk-headline", "读不出来");
       set("talk-subline", data.code === "ADMIN_TOKEN_INVALID"
-        ? "这一栏要完整的后台链接（末尾带 #k=…… 那一段）。"
+        ? "登录过期了。在微信里对机器人说一句「后台」，它会给你一条新链接。"
         : "错误码：" + (data.code || "未知"));
       return;
     }
@@ -460,7 +494,7 @@
   function renderTone(data) {
     if (!data.ok) {
       document.getElementById("p-preview").textContent = data.code === "ADMIN_TOKEN_INVALID"
-        ? "这一栏要完整的后台链接（末尾带 #k=…… 那一段）。"
+        ? "登录过期了。在微信里对机器人说一句「后台」，它会给你一条新链接。"
         : "读不出来：" + (data.code || "未知");
       return;
     }
@@ -625,8 +659,12 @@
       });
   });
 
-  refresh();
-  setInterval(refresh, 10000);
+  // 先登录（换会话 / 续期），再读数据。登录失败也照常往下走——概览在首次运行
+  // 时本来就免令牌，能显示多少显示多少，然后由 401 的提示告诉人下一步做什么。
+  login().then(function () {
+    refresh();
+    setInterval(refresh, 10000);
+  });
 })();
 </script>
 </body>

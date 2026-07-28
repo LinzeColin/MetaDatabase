@@ -66,6 +66,12 @@ const {
   MAX_NOTE_CHARS,
   renderPersonaInstruction,
 } = require("../services/persona/persona-store");
+const {
+  MAX_TTL_MS: SESSION_MAX_TTL_MS,
+  SqliteSessionTokenService,
+  parseSessionCookie,
+} = require("../services/security/session-token-service");
+const { SqliteAdminLoginTickets } = require("../services/security/admin-login-ticket");
 const { SetupPortal } = require("../services/portal/setup-portal");
 const { buildPortalHandlers } = require("../services/portal/portal-handlers");
 const { PortalHttpServer } = require("../services/portal/portal-server");
@@ -105,6 +111,14 @@ const PLAIN_LINE_NAMES = Object.freeze({
   release_rollback: "发布与回滚",
   model_usage_budget_circuit: "用量与限额",
 });
+
+// 后台会话有效期，取 session 服务允许的上限（24 小时）。
+//
+// 这个上限是那个模块自己的安全属性，不为后台单独放宽——/setup 的用户会话用的
+// 是同一张表同一套代码。取而代之的是**续期**：页面每次打开都拿现有会话换一张
+// 新的（见 issueAdminSession 的 renew 分支），所以常用的那台设备永远不会掉线，
+// 而放着不用的会话 24 小时后自己失效。真掉了也只是在微信里发一句「后台」。
+const ADMIN_SESSION_TTL_MS = SESSION_MAX_TTL_MS;
 
 // 后台「对话」一栏用的人话标签。出站队列的状态码原样显示等于没显示。
 const OUTBOX_STATE_LABELS = Object.freeze({
@@ -818,6 +832,9 @@ class CyberbossApp {
       adminConversations: (query) => this.buildConversationFeed(query || {}),
       adminPersonaRead: () => this.readDashboardPersona(),
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
+      adminSessionIssue: (input) => this.issueAdminSession(input),
+      adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
+      adminSessionRevoke: (cookieHeader) => this.revokeAdminSession(cookieHeader),
       ownerActivationStart: () => this.startOwnerActivation(),
       ownerActivationPoll: (qrcode) => this.pollOwnerActivation(qrcode),
       // 还没有主人时，这套系统里不存在任何用户数据，后台也就没有什么可保护
@@ -903,6 +920,143 @@ class CyberbossApp {
     this.dashboardLog.push(`${new Date().toISOString().slice(5, 19).replace("T", " ")}  ${text}`);
     if (this.dashboardLog.length > 200) {
       this.dashboardLog = this.dashboardLog.slice(-200);
+    }
+  }
+
+  // ── 后台登录 ───────────────────────────────────────────────
+  //
+  // 「我不可能每次都有 token」。所以令牌只用来换一次会话，之后靠 cookie；
+  // cookie 掉了就在微信里发「后台」，机器人回一条一次性链接。长期令牌一次都
+  // 不需要经过聊天记录，主人也一次都不需要记住它。
+  //
+  // 会话复用 web_sessions（和 /setup 同一张表），但**必须**校验它属于主人：
+  // 普通用户在 /setup 拿到的也是这张表里的会话，不校验就等于把全部人的聊天
+  // 记录开放给任何一个普通用户。
+
+  // 下面三个不用 # 私有方法：本仓的测试大量借用 CyberbossApp.prototype 挂到
+  // 一个精简接收者上跑（借用私有方法会直接抛 "Receiver must be an instance"）。
+  // 那是这里唯一能"真的走生产实现"的测法，所以按约定保持可见，而不是靠语法
+  // 隔离——真正的边界在 portal-server 的鉴权上。
+  adminSessions() {
+    if (!this.runtimeSpoolDatabase) {
+      return null;
+    }
+    if (!this.adminSessionService) {
+      this.adminSessionService = new SqliteSessionTokenService({
+        database: this.runtimeSpoolDatabase.database,
+        // 后台会话按天算，不是按分钟算——它要撑到主人下一次想看的时候。
+        ttlMs: ADMIN_SESSION_TTL_MS,
+      });
+    }
+    return this.adminSessionService;
+  }
+
+  adminTickets() {
+    if (!this.runtimeSpoolDatabase) {
+      return null;
+    }
+    if (!this.adminTicketService) {
+      this.adminTicketService = new SqliteAdminLoginTickets({
+        database: this.runtimeSpoolDatabase.database,
+      });
+    }
+    return this.adminTicketService;
+  }
+
+  ownerUserId() {
+    return this.runtimeSpoolDatabase ? this.runtimeSpoolDatabase.ownerUserId : "";
+  }
+
+  issueAdminSession({ ticket = "", renewFrom = "" } = {}) {
+    const sessions = this.adminSessions();
+    if (!sessions) {
+      return Object.freeze({ ok: false, code: "SPOOL_DB_UNAVAILABLE" });
+    }
+    // 续期：已经是登录状态就换一张新的，旧的当场作废。页面每次打开都做一次，
+    // 于是常用的设备永远不掉线，而 24 小时的上限对没人用的会话仍然成立。
+    if (!ticket && renewFrom) {
+      const previous = parseSessionCookie(renewFrom);
+      if (previous) {
+        try {
+          sessions.revoke(previous);
+        } catch {
+          // 撤不掉旧的不影响发新的；旧的到点自己过期。
+        }
+      }
+    }
+    if (ticket) {
+      // 一次性票：换不出来就是换不出来，不给第二次机会，也不说是哪一种失败。
+      try {
+        this.adminTickets().consume(ticket);
+      } catch {
+        return Object.freeze({ ok: false, code: "ADMIN_LINK_INVALID" });
+      }
+    }
+    try {
+      const issued = sessions.issue({ userId: this.ownerUserId() });
+      this.noteForDashboard(ticket ? "用微信发来的链接登录了后台" : "登录了后台");
+      return Object.freeze({
+        ok: true,
+        csrf: issued.csrf,
+        expiresAt: issued.expiresAt,
+        setCookie: issued.cookie,
+      });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "ADMIN_SESSION_FAILED",
+      });
+    }
+  }
+
+  adminSessionValid(cookieHeader) {
+    const sessions = this.adminSessions();
+    if (!sessions) {
+      return false;
+    }
+    const token = parseSessionCookie(cookieHeader);
+    if (!token) {
+      return false;
+    }
+    try {
+      // requireCsrf:false —— 跨站写入由 SameSite=Strict 挡住，这里判的是"这个
+      // 会话是不是主人的"。这一条不能省：/setup 的普通用户会话在同一张表里。
+      const session = sessions.verify({ token, requireCsrf: false });
+      return Boolean(session) && session.userId === this.ownerUserId();
+    } catch {
+      return false;
+    }
+  }
+
+  revokeAdminSession(cookieHeader) {
+    const sessions = this.adminSessions();
+    const token = parseSessionCookie(cookieHeader);
+    if (sessions && token) {
+      try {
+        sessions.revoke(token);
+      } catch {
+        // 撤不掉也要把 cookie 清掉：留一个页面上看不见、服务端还认的会话更糟。
+      }
+    }
+    return sessions ? sessions.clearCookieHeader() : "";
+  }
+
+  // 微信里发「后台」走到这里。只有主人能拿到链接。
+  issueAdminLoginLink() {
+    const tickets = this.adminTickets();
+    const origin = this.config.portalOrigin || "";
+    if (!tickets || !origin) {
+      return "";
+    }
+    try {
+      const ticket = tickets.issue();
+      const minutes = Math.max(1, Math.round(ticket.ttlMs / 60_000));
+      // 票放在 # 后面：片段不进请求行，隧道和服务器的访问日志都记不到它。
+      return `${origin}/admin#t=${ticket.token}\n\n`
+        + `点开就进，${minutes} 分钟内有效，只能用一次。`
+        + `进去之后这台手机就记住了，以后直接打开 ${origin} 就行。`;
+    } catch {
+      return "";
     }
   }
 
@@ -1486,6 +1640,13 @@ class CyberbossApp {
       void this.sendAdmissionReply(normalized, this.buildPlainLanguageStatus());
       return true;
     }
+    if (decision.route === "admin_link") {
+      void this.sendAdmissionReply(
+        normalized,
+        this.issueAdminLoginLink() || "后台还没配好域名，暂时给不了链接。",
+      );
+      return true;
+    }
     if (decision.ownerClaimed) {
       this.rememberOwnerSender(normalized.senderId);
       this.noteForDashboard("有一个微信号绑成了主人");
@@ -1553,6 +1714,13 @@ class CyberbossApp {
     }
     if (decision.route === "status") {
       await this.sendAdmissionReply(normalized, this.buildPlainLanguageStatus());
+      return null;
+    }
+    if (decision.route === "admin_link") {
+      await this.sendAdmissionReply(
+        normalized,
+        this.issueAdminLoginLink() || "后台还没配好域名，暂时给不了链接。",
+      );
       return null;
     }
     if (decision.route === "user") {

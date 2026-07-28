@@ -39,6 +39,9 @@ const SETUP_COMMAND = "设置";
 const OWNER_COMMANDS = Object.freeze({
   INVITE: ["邀请", "邀请码", "生成邀请码", "加个人"],
   STATUS: ["状态", "运行状况", "还好吗"],
+  // 「我不可能每次都有 token」。主人手上永远有的东西是微信本身，所以后台入口
+  // 就在这里：说一声，拿一条一次性链接。长期令牌一次都不经过聊天记录。
+  ADMIN: ["后台", "面板", "网站", "控制台", "管理后台"],
 });
 const HELP_COMMANDS = Object.freeze(["帮助", "help", "怎么用", "你能做什么"]);
 // 主人认领码。存在 service_state 里：明文永不落库，只留 HMAC 摘要和过期时间。
@@ -53,6 +56,7 @@ const RESERVED_INPUTS = Object.freeze([
   SETUP_COMMAND,
   ...OWNER_COMMANDS.INVITE,
   ...OWNER_COMMANDS.STATUS,
+  ...OWNER_COMMANDS.ADMIN,
   ...HELP_COMMANDS,
 ]);
 const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
@@ -60,6 +64,7 @@ const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
 const OWNER_HELP = [
   "你是这里的主人。可以直接跟我说话，也可以用这些中文口令：",
   "",
+  "  后台  —— 给你一条打开后台的链接（一次性，5 分钟有效）",
   "  邀请  —— 生成一串邀请码，转发给朋友，他就能开通",
   "  状态  —— 看看现在运行得怎么样",
   "  帮助  —— 再看一次这条说明",
@@ -391,6 +396,11 @@ class UserAdmissionService {
     if (OWNER_COMMANDS.STATUS.includes(trimmed)) {
       return Object.freeze({ route: "status", userContext: admitted.userContext, modelCalls: 0 });
     }
+    if (OWNER_COMMANDS.ADMIN.includes(trimmed)) {
+      // 链接由 app 层生成——票据服务在那边。这里只负责把这一轮判成"当场答复"，
+      // 于是它一次模型调用都不花。
+      return Object.freeze({ route: "admin_link", userContext: admitted.userContext, modelCalls: 0 });
+    }
     if (HELP_COMMANDS.includes(trimmed)) {
       return reply(ACTIONS.SHOW_HOME, { text: OWNER_HELP });
     }
@@ -543,6 +553,7 @@ class UserAdmissionService {
     if (
       OWNER_COMMANDS.INVITE.includes(trimmed)
       || OWNER_COMMANDS.STATUS.includes(trimmed)
+      || OWNER_COMMANDS.ADMIN.includes(trimmed)
     ) {
       return reply(ACTIONS.SHOW_HOME, { text: USER_HELP });
     }
