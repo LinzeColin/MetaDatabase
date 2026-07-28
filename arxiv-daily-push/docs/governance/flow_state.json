@@ -1,0 +1,10 @@
+{
+  "schema": "linze.flow_state.v1",
+  "steps": {
+    "BL-ADP-DAILY.scan": {
+      "at": "2026-07-28T08:00:12.773424+08:00",
+      "note": "静默归零(绿着的 cron 背后什么都没产出):FAIL  SILENT ZERO: newest completed run 2026-07-27 (降级) ingested arXiv=0 -- ingest broken (P08-c",
+      "state": "blocked"
+    }
+  }
+}
