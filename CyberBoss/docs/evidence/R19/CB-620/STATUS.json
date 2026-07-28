@@ -51,8 +51,8 @@
   ],
   "supply_chain_guard": {
     "event": "AC-038 拦截 app/test/v8-prebuilt/status-portal.test.js 的 wechat_id 形状",
-    "actual_value": "wxid_private_user（占位词，用于证明状态页脱敏私有用户 id）",
-    "resolution": "按守卫自身机制声明为合成向量文件，并把 wxid_private_ 加入合成判定；守卫的两道关（须显式声明 + 值须通过合成判定）都保留",
+    "actual_value": "一个以 wx-id 前缀构成的占位词（用于证明状态页脱敏私有用户 id），此处刻意不复制其字面形状",
+    "resolution": "按守卫自身机制声明为合成向量文件，并把该占位前缀加入合成判定；守卫的两道关（须显式声明 + 值须通过合成判定）都保留",
     "guard_weakened": false
   },
   "rollback": {
