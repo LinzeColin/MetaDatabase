@@ -212,9 +212,14 @@ def check_ac023(checks: Checks) -> None:
 def check_hygiene(checks: Checks) -> None:
     offenders: list[str] = []
     for relative in MODULES:
-        text = read(relative).lower()
-        for marker in ("openai", "anthropic", "generativelanguage", "fetch(", "/users/", "launchd"):
-            if marker in text:
+        source = read(relative)
+        lowered = source.lower()
+        for marker in ("openai", "anthropic", "generativelanguage", "fetch("):
+            if marker in lowered:
+                offenders.append(f"{relative}:{marker}")
+        # Case-sensitive: "/Users/" is a macOS path, "../users/" is a module import.
+        for marker in ("/Users/", ".plist", "LaunchAgent", "LaunchDaemon", "launchd"):
+            if marker in source:
                 offenders.append(f"{relative}:{marker}")
     checks.add("cb710.import_path_reaches_no_provider", "AC-023",
                not offenders, f"offenders={offenders}")

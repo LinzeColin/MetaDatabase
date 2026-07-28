@@ -1,0 +1,73 @@
+{
+  "schema_version": "cyberboss.cb740.subject.v1",
+  "task_id": "CB-740",
+  "stage": "S7",
+  "phase": "P7.5",
+  "gate_id": "PG-7",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "4f273a85a7cc5d0d0e7e773e6dad6c20848fa662",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_730_closure_commit": "4f273a85a7cc5d0d0e7e773e6dad6c20848fa662",
+    "closure_commit_recorded_by": "CB-800"
+  },
+  "companion_scope": {
+    "wrapped_not_forked": true,
+    "entry_points_behind_scope_guard": true,
+    "cross_user_read": "empty",
+    "cross_user_delete": "no_effect",
+    "suspended_user": "refused_USER_NOT_ACTIVE",
+    "no_context": "refused_USER_CONTEXT_REQUIRED",
+    "forged_context": "refused_USER_CONTEXT_REQUIRED",
+    "owner_capability_in_surface": false,
+    "companion_capabilities": [
+      "timeline.read",
+      "diary.write",
+      "reminder.manage"
+    ]
+  },
+  "proactive_checkin": {
+    "module_imports": 0,
+    "model_calls_on_every_path": 0,
+    "template_source": "frozen_chinese_table",
+    "quiet_hours_wraparound": "handled",
+    "disabled_short_circuits_before_scheduling": true,
+    "disabled_user_messages_over_seven_days": 0,
+    "opted_in_user_receives_checkins": true,
+    "re_disabling_silences_again": true,
+    "decision_determinism": "identical_input_yields_identical_decision"
+  },
+  "cross_device_continuity": {
+    "same_principal_same_user": true,
+    "second_account_created": false,
+    "timeline_shared_across_clients": true
+  },
+  "defect_fixed_in_this_node": {
+    "issue": "diary and reminder entry ids were derived from a millisecond timestamp, so two entries written in the same millisecond collided on the primary key and the (user, category, fact_key, version) uniqueness constraint",
+    "detection": "an intermittent continuity-test failure",
+    "fix": "entry identity now carries a random component and no longer depends on clock resolution",
+    "verification": "a 25-entry burst of diary entries and a 25-entry burst of reminders both produce 25 distinct rows; 8 consecutive clean suite runs"
+  },
+  "tests": {
+    "cb740_suite_tests": 6,
+    "cb740_suite_failures": 0,
+    "cb740_repeat_clean_runs": "3/3",
+    "app_suite_tests": 374,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "background_model_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [],
+  "status": "passed"
+}

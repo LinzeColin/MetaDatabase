@@ -1,0 +1,52 @@
+{
+  "schema_version": "cyberboss.pg7.subject.v1",
+  "gate_id": "PG-7",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "depends_on": [
+    "CB-740",
+    "PG-6"
+  ],
+  "scope": "providers/import/profile/novice companion experience",
+  "exact_subject": {
+    "base_head": "4f273a85a7cc5d0d0e7e773e6dad6c20848fa662",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f"
+  },
+  "stage_7_tasks": {
+    "CB-700": "passed",
+    "CB-710": "passed",
+    "CB-720": "passed",
+    "CB-730": "passed",
+    "CB-740": "passed"
+  },
+  "tests": {
+    "four_provider_budget_circuit_suite": "PASS",
+    "four_source_parser_suite": "PASS",
+    "browser_and_companion_isolation": "PASS",
+    "dual_user_blind_set_rerun": "PASS",
+    "app_suite": "374/374 PASS"
+  },
+  "acceptance": {
+    "AC-028": "PASS",
+    "AC-031": "PASS",
+    "AC-043": "PASS"
+  },
+  "verdict": "CONDITIONAL_PASS",
+  "verdict_reason": "the provider, import, profile and companion stage is proved on the exact target subject; the outstanding activation_pending items are carried forward, so the gate is not sealed as an unconditional PASS",
+  "carried_activation_pending": [
+    "AC-039 real dual-user WeChat",
+    "real BYOK provider credentials (activated at CB-830)",
+    "frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)"
+  ],
+  "unconditional_pass_blocked_by": [
+    "AC-039 real dual-user WeChat",
+    "real BYOK provider credentials (activated at CB-830)",
+    "frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)"
+  ],
+  "new_acceptance_categories": false,
+  "runtime_mutation_in_gate": false,
+  "rollback": "disable affected adapters and retain the PG-6 release",
+  "next_node": "CB-800",
+  "control_plane_llm_calls": 0,
+  "real_time_waits": 0
+}

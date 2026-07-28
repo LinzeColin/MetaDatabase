@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-740",
+  "stage": "S7",
+  "phase": "P7.5",
+  "gate_id": "PG-7",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "4f273a85a7cc5d0d0e7e773e6dad6c20848fa662",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-800"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-031",
+    "AC-028",
+    "AC-043"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "wrap existing services with server-owned user scope",
+    "separate ordinary companion tools from Owner tools",
+    "validate quiet hours/disable and zero model calls"
+  ],
+  "rollback": [
+    "disable proactive check-in",
+    "rebuild user projections from canonical facts",
+    "retain existing Owner timeline",
+    "revert to base 4f273a85a7cc5d0d0e7e773e6dad6c20848fa662"
+  ]
+}

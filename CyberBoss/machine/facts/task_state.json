@@ -6,10 +6,10 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-730",
-    "gate_id": null,
-    "task_id": "CB-730",
-    "scope": "chinese_novice_onboarding_intent_map_and_one_time_setup_page",
+    "run_id": "PG-7",
+    "gate_id": "PG-7",
+    "task_id": "CB-740",
+    "scope": "user_scoped_companion_deterministic_checkin_and_stage_7_exit_gate",
     "status": "passed"
   },
   "prestage": [
@@ -27,7 +27,7 @@
     "PG-4": "passed",
     "PG-5": "passed",
     "PG-6": "conditional_pass",
-    "PG-7": "not_started",
+    "PG-7": "conditional_pass",
     "PG-8": "not_started"
   },
   "tasks": [
@@ -269,7 +269,7 @@
       "id": "CB-740",
       "stage": "S7",
       "phase": "P7.5",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-800",
@@ -636,6 +636,29 @@
     "cb_730_intent_resolution_model_calls": 0,
     "cb_730_frozen_browser_harness": "not_run_playwright_and_chromium_unavailable",
     "cb_730_browser_substitute": "live_chromium_measurement_recorded",
-    "cb_730_app_suite": "368_pass_0_fail"
+    "cb_730_app_suite": "368_pass_0_fail",
+    "cb_730_closure_commit": "4f273a85a7cc5d0d0e7e773e6dad6c20848fa662",
+    "cb_740_base_head": "4f273a85a7cc5d0d0e7e773e6dad6c20848fa662",
+    "cb_740_companion_capabilities": [
+      "timeline.read",
+      "diary.write",
+      "reminder.manage"
+    ],
+    "cb_740_disabled_user_proactive_messages_over_7_days": 0,
+    "cb_740_checkin_model_calls": 0,
+    "cb_740_entry_identity": "random_component_not_clock_dependent",
+    "cb_740_app_suite": "374_pass_0_fail",
+    "pg_7_executed": true,
+    "pg_7_verdict": "CONDITIONAL_PASS",
+    "pg_7_acceptance": {
+      "AC-028": "PASS",
+      "AC-031": "PASS",
+      "AC-043": "PASS"
+    },
+    "pg_7_carried_activation_pending": [
+      "AC-039 real dual-user WeChat",
+      "real BYOK provider credentials (activated at CB-830)",
+      "frozen taskpack browser harness (Playwright/Chromium absent on host)"
+    ]
   }
 }

@@ -1,0 +1,47 @@
+{
+  "schema_version": "cyberboss.cb740.acceptance.v1",
+  "task_id": "CB-740",
+  "stage": "S7",
+  "phase": "P7.5",
+  "gate_id": "PG-7",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "4f273a85a7cc5d0d0e7e773e6dad6c20848fa662",
+  "closure_commit_recorded_by": "CB-800",
+  "results": [
+    {
+      "acceptance_id": "AC-028",
+      "result": "PASS",
+      "check_count": 2,
+      "note": "The same WeChat principal resolves to one user from any client, both clients share one timeline, and no second account row or account system is created."
+    },
+    {
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "check_count": 18,
+      "note": "Timeline, diary and reminders are reached only through a server-owned scoped repository: another user's entries are invisible, a cross-user delete changes nothing, a suspended user loses the surface, and no context or a forged context is refused. The companion capability set contains no Owner capability."
+    },
+    {
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "check_count": 7,
+      "note": "The check-in module imports nothing at all and reports zero model calls on every path including the send path; wording comes from a frozen Chinese template table, quiet hours handle the midnight wrap-around, and a disabled user is refused before any scheduling arithmetic. Sweeping a full week hour by hour, a disabled user receives exactly zero proactive messages, an opted-in user does receive them, and turning it off again silences it."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb740.py",
+  "validator_status": "PASS",
+  "gate_verdict": "CONDITIONAL_PASS",
+  "check_count": 27,
+  "pass_count": 24,
+  "fail_count": 0,
+  "activation_pending_count": 3,
+  "node_test_total": 50,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [],
+  "status": "passed"
+}

@@ -24,11 +24,19 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P6.2 / CB-610`；`P6.3 / CB-620`；
   `P6.4 / CB-630`；`P6.5 / CB-640`；`PG-6`；
   `P7.1 / CB-700`；`P7.2 / CB-710`；
-  `P7.3 / CB-720`；`P7.4 / CB-730`
+  `P7.3 / CB-720`；`P7.4 / CB-730`；
+  `P7.5 / CB-740`；`PG-7`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
+- 最新 Run：`CB-740` / `PG-7`。Timeline、日记、提醒全部经服务端 user scope 包装
+  （不 fork 既有服务）：跨用户读为空、跨用户删除无效、暂停用户失去入口、无
+  context 或伪造 context 一律拒绝；主动关心模块零依赖，任何路径模型调用都是 `0`，
+  按小时扫一整周，关闭状态下主动消息数为 `0`。
+  **`PG-7` = `CONDITIONAL_PASS`**：`AC-028`/`AC-031`/`AC-043` 通过，但仍带着三项
+  `activation_pending`（真实双用户微信、真实 BYOK 凭据、冻结浏览器 harness），
+  未按无条件 PASS 折算。证据在 `docs/evidence/CB-740/` 与 `docs/evidence/PG-7/`。
 - 最新 Run：`CB-730` 已完成中文防呆入口与一次性设置页：自然中文意图靠冻结
   查表解析（模型调用 `0`），运维措辞一律不解析；页面在真实 Chromium 的
   375×812 与 1280×720 下实测：无横向溢出、可见控件全部 ≥44px、每屏一个主操作、
@@ -81,8 +89,8 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   或把 pending 写成 ready。最小 Access service-token scope 同样保留 pending，
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
-  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-730` 已通过；
-  `PG-6` 为 `CONDITIONAL_PASS`。
+  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）、`CB-700`–`CB-740`（Stage 7 全部 5 项）已通过；
+  `PG-6` 与 `PG-7` 均为 `CONDITIONAL_PASS`。
 
 - 尚未开始：Stage 6 余下节点、Stage 7、Stage 8 与 PG-6–PG-8 均为
   `not_started`，权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；

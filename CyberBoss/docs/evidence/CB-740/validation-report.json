@@ -1,0 +1,261 @@
+{
+  "schema_version": "cyberboss.cb740.validation.v1",
+  "task_id": "CB-740",
+  "gate_id": "PG-7",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-028",
+    "AC-031",
+    "AC-043"
+  ],
+  "check_count": 27,
+  "pass_count": 24,
+  "fail_count": 0,
+  "activation_pending_count": 3,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "gate_verdict": "CONDITIONAL_PASS",
+  "gate_verdict_reason": "the provider, import, profile and companion stage is proved on the exact target subject; the outstanding activation_pending items are carried forward, so the gate is not sealed as an unconditional PASS",
+  "carried_activation_pending": [
+    "AC-039 real dual-user WeChat",
+    "real BYOK provider credentials (activated at CB-830)",
+    "frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)"
+  ],
+  "repeat_runs": [
+    {
+      "suite": "test/cb740-companion-checkin.test.js",
+      "returncode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb740-companion-checkin.test.js",
+      "returncode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb740-companion-checkin.test.js",
+      "returncode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    }
+  ],
+  "gate_suites": [
+    {
+      "suite": "test/cb740-companion-checkin.test.js",
+      "returncode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb730-novice-experience.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb720-profile-analytics.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb710-import-safety.test.js",
+      "returncode": 0,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb700-provider-vault-budget-circuit.test.js",
+      "returncode": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb640-dual-user-blind-set.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 50,
+  "checks": [
+    {
+      "check": "ac031.every_entry_point_scoped",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "every companion entry point resolves through the scoped guard"
+    },
+    {
+      "check": "ac031.no_owner_capability_in_surface",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "no Owner capability appears in the companion surface"
+    },
+    {
+      "check": "ac031.capabilities_are_user_scoped",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "the companion capability set is explicit and user-scoped"
+    },
+    {
+      "check": "ac031.collision_free_entry_identity",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "entry identity does not depend on clock resolution"
+    },
+    {
+      "check": "ac031.delete_is_scoped",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "delete only matches rows the caller owns"
+    },
+    {
+      "check": "ac043.module_imports_nothing",
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "detail": "the check-in module imports nothing, so it cannot reach a model"
+    },
+    {
+      "check": "ac043.every_path_reports_zero",
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "detail": "every decision path reports modelCalls 0, including the send path"
+    },
+    {
+      "check": "ac043.templates_are_frozen",
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "detail": "wording comes from a frozen Chinese template table"
+    },
+    {
+      "check": "ac043.quiet_hours_wrap",
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "detail": "quiet hours handle the midnight wrap-around"
+    },
+    {
+      "check": "ac043.disabled_short_circuits",
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "detail": "a disabled user is refused before any scheduling arithmetic"
+    },
+    {
+      "check": "ac043.user_setting_is_the_source",
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "detail": "the proactive plan reads the user's own stored setting"
+    },
+    {
+      "check": "ac028.principal_resolves_one_user",
+      "acceptance_id": "AC-028",
+      "result": "PASS",
+      "detail": "the same WeChat principal resolves to one user from any client"
+    },
+    {
+      "check": "ac028.no_second_account_system",
+      "acceptance_id": "AC-028",
+      "result": "PASS",
+      "detail": "no second account system exists"
+    },
+    {
+      "check": "cb740.no_provider_or_mac_markers",
+      "acceptance_id": "AC-043",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb740.suite_is_deterministic",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "clean_runs=3/3 tests=6"
+    },
+    {
+      "check": "pg7.stage_7_nodes_accepted",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "accepted=['CB-700', 'CB-710', 'CB-720', 'CB-730', 'CB-740']"
+    },
+    {
+      "check": "pg7.stage_7_evidence_present",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "evidence=['CB-700', 'CB-710', 'CB-720', 'CB-730', 'CB-740']"
+    },
+    {
+      "check": "pg7.pg6_sealed_first",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "PG-6=conditional_pass"
+    },
+    {
+      "check": "pg7.carried_activation_pending",
+      "acceptance_id": "AC-031",
+      "result": "ACTIVATION_PENDING",
+      "detail": "AC-039 real dual-user WeChat"
+    },
+    {
+      "check": "pg7.carried_activation_pending",
+      "acceptance_id": "AC-031",
+      "result": "ACTIVATION_PENDING",
+      "detail": "real BYOK provider credentials (activated at CB-830)"
+    },
+    {
+      "check": "pg7.carried_activation_pending",
+      "acceptance_id": "AC-031",
+      "result": "ACTIVATION_PENDING",
+      "detail": "frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)"
+    },
+    {
+      "check": "pg7.suite.cb740-companion-checkin.test",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "tests=6 pass=6 fail=0"
+    },
+    {
+      "check": "pg7.suite.cb730-novice-experience.test",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "tests=7 pass=7 fail=0"
+    },
+    {
+      "check": "pg7.suite.cb720-profile-analytics.test",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "tests=7 pass=7 fail=0"
+    },
+    {
+      "check": "pg7.suite.cb710-import-safety.test",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "tests=11 pass=11 fail=0"
+    },
+    {
+      "check": "pg7.suite.cb700-provider-vault-budget-circuit.test",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "tests=10 pass=10 fail=0"
+    },
+    {
+      "check": "pg7.suite.cb640-dual-user-blind-set.test",
+      "acceptance_id": "AC-031",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/checkin/deterministic-checkin.js": "e2f9afe6acb328a4dcb6155d817919ea93327b57d51f97369f92384ee2fcafc3",
+    "app/src/services/companion/user-companion-service.js": "2b9cd7c67e4dc367f7f1ab8783c3e4dbcc50c7c0a6901d6055fd3996dacaa033"
+  }
+}

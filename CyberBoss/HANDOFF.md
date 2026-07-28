@@ -19,9 +19,9 @@
 
 ## Current state
 
-Latest accepted node: `P7.4 / CB-730` passed. Stage 6 is complete with exit gate
-`PG-6` sealed as CONDITIONAL PASS, and Stage 7 has `CB-700` through `CB-730`
-passed.
+Latest accepted node: `P7.5 / CB-740` passed and Stage 7 exit gate `PG-7` is
+sealed as CONDITIONAL PASS. Stage 6 is complete with `PG-6` also CONDITIONAL
+PASS. Stage 8 has not started.
 The per-node detail follows below; `machine/facts/task_state.json` remains the
 authoritative list.
 
@@ -225,8 +225,30 @@ which is installed on this host, so it is recorded as `not_run`. The live
 Chromium measurement stands in its place and is labelled as a substitute — it is
 never presented as the frozen harness result.
 
-The rest of Stage 7, Stage 8 and gates PG-7 and PG-8 are `not_started`; the
-authoritative list is `machine/facts/task_state.json`.
+`P7.5 / CB-740` passed on base `4f273a85a7cc5d0d0e7e773e6dad6c20848fa662` and
+Stage 7 exit gate `PG-7` sealed as **CONDITIONAL PASS**. Timeline, diary and
+reminders are wrapped with a server-owned user scope rather than forked: another
+user's entries are invisible, a cross-user delete changes nothing, a suspended
+user loses the surface, and both a missing and a forged context are refused. The
+companion capability set contains no Owner capability. The check-in module
+imports nothing at all and reports zero model calls on every path including the
+send path; wording comes from a frozen Chinese template table and quiet hours
+handle the midnight wrap-around. Sweeping a full week hour by hour, a disabled
+user receives exactly zero proactive messages, an opted-in user does receive
+them, and turning it off again silences it.
+
+This node fixed a collision defect: diary and reminder ids were derived from a
+millisecond timestamp, so two entries written in the same millisecond collided on
+the primary key and the uniqueness constraint. Entry identity now carries a
+random component; a 25-entry burst of each kind produces 25 distinct rows.
+
+`PG-7` is CONDITIONAL because three activation_pending items are carried
+forward: real dual-user WeChat (`AC-039`), real BYOK provider credentials, and
+the frozen Playwright browser harness. None is counted as PASS. The first two
+are activated at `CB-830`.
+
+Stage 8 and gate PG-8 are `not_started`; the authoritative list is
+`machine/facts/task_state.json`.
 
 Real WeChat channel credentials remain outside the authorised protected scope,
 so the channel stays `activation_pending`. Registration and consent are proved

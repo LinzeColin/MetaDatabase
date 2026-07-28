@@ -1,0 +1,41 @@
+{
+  "schema_version": "cyberboss.pg7.summary.v1",
+  "gate_id": "PG-7",
+  "verdict": "CONDITIONAL_PASS",
+  "stage": "S7 providers, import, profile and novice companion",
+  "nodes": [
+    "CB-700",
+    "CB-710",
+    "CB-720",
+    "CB-730",
+    "CB-740"
+  ],
+  "acceptance_pass": [
+    "AC-028",
+    "AC-031",
+    "AC-043"
+  ],
+  "acceptance_activation_pending": [],
+  "acceptance_fail": [],
+  "carried_activation_pending": [
+    "AC-039 real dual-user WeChat",
+    "real BYOK provider credentials (activated at CB-830)",
+    "frozen taskpack browser harness (Playwright/Chromium absent; measured in a real engine instead)"
+  ],
+  "unknown_or_not_run_counted_as_pass": false,
+  "defects_found_and_fixed_in_stage_7": [
+    "owner-bootstrap write lock caused a flaky concurrency failure (CB-700)",
+    "raw NUL separator bytes in three sources (CB-710)",
+    "profile decisions ordered by a millisecond timestamp could resurrect a rejected inference (CB-720)",
+    "the setup page created an inline style attribute at runtime (CB-730)",
+    "diary and reminder ids collided within one millisecond (CB-740)"
+  ],
+  "evidence": [
+    "docs/evidence/CB-700",
+    "docs/evidence/CB-710",
+    "docs/evidence/CB-720",
+    "docs/evidence/CB-730",
+    "docs/evidence/CB-740",
+    "docs/evidence/PG-7"
+  ]
+}
