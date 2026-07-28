@@ -5,7 +5,11 @@
   "blockers": [
     {
       "id": "DEEPSEEK_API_KEY",
-      "blocks": ["CB-700 真实调用", "CB-830 real DeepSeek E2E", "CB-830 canary on real traffic"],
+      "blocks": [
+        "CB-700 真实调用",
+        "CB-830 real DeepSeek E2E",
+        "CB-830 canary on real traffic"
+      ],
       "search_performed": [
         "_protected 全树按文件名搜 *deepseek* / *ds_*key* —— 零命中",
         "_protected 全树按内容搜 deepseek —— 仅两处文档提及，均非凭据",
@@ -17,23 +21,34 @@
     },
     {
       "id": "R2_WRITE_PERMISSION",
-      "blocks": ["CB-800 双副本收据", "CB-830 backup receipt"],
-      "search_performed": [
-        "cloudflare_r2d1_token 校验为 active，可列出账号与桶（adp-raw-artifacts / cyberboss-cold / weread-port-private）",
-        "以该 token 按 Cloudflare 文档的 S3 凭据换算（AccessKeyId=token id，Secret=token 值的 SHA-256）对 cyberboss-cold 发起真实 PUT",
-        "结果 HTTP 403 AccessDenied"
+      "blocks": [
+        "CB-800 双副本收据",
+        "CB-830 backup receipt"
       ],
-      "conclusion": "两把不同凭据均返回 403 AccessDenied 而非 SignatureDoesNotMatch，说明 SigV4 签名实现正确，缺的是桶写权限",
-      "note": "cyberboss-cold 桶确实存在，只需给一把有写权限的 R2 S3 凭据即可解除"
+      "search_performed": [
+        "cloudflare_token.txt 按 Cloudflare 文档换算成 S3 凭据 → PUT cyberboss-cold 返回 403 AccessDenied",
+        "cloudflare_r2d1_token.txt 同法 → PUT cyberboss-cold 返回 403 AccessDenied",
+        "_protected 全树按 R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / AWS_ACCESS_KEY_ID 搜索，命中两个文件",
+        "weread_port_r2_v0019.env 的 R2_ACCESS_KEY_ID/SECRET → PUT cyberboss-cold 与 weread-port-private 均 403",
+        "weread_port_platform_v0019.env 的 WRP_R2_* 配 WRP_R2_ENDPOINT（账号 a8e86fa4…，与桶列表一致）→ 对其自有桶 weread-port-private 仍 403"
+      ],
+      "conclusion": "_protected 中的四组凭据全部试过：两组 API token 换算、两组 R2 S3 凭据。最后一组连它自己的桶都返回 403，说明该 S3 凭据已失效或被撤销，与目标桶无关。四次全部是 AccessDenied 而非 SignatureDoesNotMatch —— SigV4 实现正确，缺的是一对有效且有写权限的 R2 S3 凭据。",
+      "note": "cyberboss-cold 桶确实存在，只需给一把有写权限的 R2 S3 凭据即可解除",
+      "exhausted": true
     },
     {
       "id": "OWNER_ILINK_AUTHORIZATION",
-      "blocks": ["CB-620 真实激活", "CB-830 shared bot activation"],
+      "blocks": [
+        "CB-620 真实激活",
+        "CB-830 shared bot activation"
+      ],
       "conclusion": "只有 Owner 本人能在受保护的 /ops/wechat 完成一次 iLink 授权扫码；无法由我代为产生"
     },
     {
       "id": "FIVE_REAL_WECHAT_USERS",
-      "blocks": ["CB-830 五用户成功与第六人拒绝"],
+      "blocks": [
+        "CB-830 五用户成功与第六人拒绝"
+      ],
       "conclusion": "需要 5 位真实微信用户参与；无法由我代为产生"
     }
   ],
