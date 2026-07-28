@@ -78,6 +78,14 @@ remote "
   sudo mkdir -p \"\$DEST\"
   sudo tar -xzf $APP_ROOT/staging/$SHA.tar.gz -C \"\$DEST\"
   sudo rm -f $APP_ROOT/staging/$SHA.tar.gz
+  # implementation-kit 是部署期产物，只在服务器上，不在仓库里。systemd 的
+  # ExecStart 指着它，所以必须从当前在跑的那个 release 原样带过来，否则新版本
+  # 一启动就找不到入口脚本。
+  LIVE=\$(readlink -f $APP_ROOT/current || true)
+  if [ ! -d \"\$DEST/implementation-kit\" ] && [ -n \"\$LIVE\" ] && [ -d \"\$LIVE/implementation-kit\" ]; then
+    sudo cp -a \"\$LIVE/implementation-kit\" \"\$DEST/implementation-kit\"
+  fi
+  sudo test -x \"\$DEST/implementation-kit/scripts/run-cyberboss.sh\" || { echo NO_ENTRYPOINT; exit 1; }
   sudo chown -R cyberboss:cyberboss \"\$DEST\"
   sudo -u cyberboss env HOME=/var/lib/cyberboss npm --prefix \"\$DEST/app\" install --omit=dev --silent
 " || die "安装失败。current 指针没有动过，线上还是老版本"
@@ -98,8 +106,8 @@ remote "
   sudo ln -sfn $APP_ROOT/releases/$SHA $APP_ROOT/current
   sudo sed -i \"s|^Environment=CB_RELEASE_ROOT=.*|Environment=CB_RELEASE_ROOT=$APP_ROOT/releases/$SHA|; s|^Environment=CB_EXPECTED_RELEASE_ID=.*|Environment=CB_EXPECTED_RELEASE_ID=$SHA|\" /etc/systemd/system/$SERVICE
   sudo systemctl daemon-reload
-  sudo systemctl restart $SERVICE
-"
+  sudo systemctl restart $SERVICE || true
+" || true
 sleep 5
 
 # 6. 真的起来了吗。没起来就自动回滚——不留一个"部署成功但服务是死的"状态。
