@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "taskpack": "CyberBoss_v0.0.0.8_SEALED_TASKPACK_FINAL_R19_SHARED_BOT_DEEPSEEK_V4_PRO_20260728",
+  "task_id": "CB-600",
+  "scope": "Current Truth、Fresh Builder 分类、版本锁与 add-only 兼容映射",
+  "acceptance": ["AC-001", "AC-002", "AC-038", "AC-056"],
+  "subject": {
+    "head": "b555aece63143dfb05171bd609cd9afc2542078a",
+    "tree": "4b42c17f5dbcc1fa3247f4c30451e66507327002",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "dirty_at_probe_time": false
+  },
+  "implementation": {
+    "probes_run_read_only": true,
+    "mutation_before_probe": false,
+    "current_truth_consensus": "consistent",
+    "current_truth_high_watermark": "CB-840",
+    "target_compatibility_status": "mapped",
+    "target_files_scanned": 4989,
+    "ambiguous_required_domains": 0,
+    "classification_artifact": "CyberBoss/docs/r19/ADAPTATION_PLAN.md"
+  },
+  "tests": [
+    { "script": "scripts/test_current_truth_probe.py", "exit_code": 0, "result": "3/3 PASS" },
+    { "script": "scripts/test_target_compatibility_probe.py", "exit_code": 0, "result": "1/1 PASS" },
+    { "script": "scripts/validate_package.py", "exit_code": 0, "result": "PASS 60/60", "next_state": "BUILD_LAST_MILE" },
+    { "script": "scripts/test_baseline_router.py", "exit_code": 0, "result": "PASS 2 scenarios" },
+    { "script": "scripts/test_apply_overlay.py", "exit_code": 0, "result": "PASS 3 scenarios" },
+    { "script": "scripts/fresh_builder_simulation.py", "exit_code": 0, "result": "PASS 10 checks" }
+  ],
+  "classification": {
+    "apply": ["public_scan_entry"],
+    "adapt": ["database_migration", "identity_isolation", "deepseek_runtime"],
+    "satisfied": ["historical_imports", "profile_companion", "data_backup_status_ops"],
+    "obsolete": [
+      "four_provider_byok_router_and_vault",
+      "per_user_model_quota",
+      "owner_claim_code_and_binding_window",
+      "setup_page_user_api_key_entry"
+    ],
+    "blocked": ["deepseek_api_key_absent", "r2_credentials_403", "shared_bot_ilink_authorization_not_run"]
+  },
+  "rollback": {
+    "procedure": "git revert 47ba233e (docs/r19 与探针 JSON) 与本条证据提交；不触及 machine/facts/task_state.json，因此无需恢复既有 R7 证据",
+    "pre_run_task_state_untouched": true,
+    "reason": "CB-600 只新增只读探针输出与分类文档，未修改任何既有 accepted evidence"
+  },
+  "claims_not_made": [
+    "deployment_verified",
+    "formal_product_acceptance",
+    "deepseek_runtime_live",
+    "shared_bot_public_scan_live"
+  ]
+}
