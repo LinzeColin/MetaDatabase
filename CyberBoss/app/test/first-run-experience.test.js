@@ -287,6 +287,9 @@ test("错误信息是中文，而且每条都给出下一步该做什么", () =>
     [Object.assign(new Error("RUNTIME_IDENTITY_KEY_UNAVAILABLE"), { code: "RUNTIME_IDENTITY_KEY_UNAVAILABLE" }), /密钥/],
     [Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }), /网络/],
     [new Error("CB_PORTAL_ORIGIN must be a bare https origin"), /https:\/\//],
+    // 这是没登录时真实抛出的那句话，原文还教用户敲 npm run login——对终端
+    // 用户是错的指令，所以必须被整条替换掉。
+    [new Error("No saved WeChat account was found. Run `npm run login` first."), /cyberboss login/],
   ];
   for (const [error, expectation] of cases) {
     const text = explainError(error);

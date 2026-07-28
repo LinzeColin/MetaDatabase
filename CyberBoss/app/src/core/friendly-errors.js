@@ -38,7 +38,9 @@ const KNOWN = Object.freeze([
     next: "把数据目录里 credentials 文件夹整个删掉再运行 cyberboss setup。注意：这会让已注册的用户需要重新开通",
   },
   {
-    match: /no account|ACCOUNT_NOT_FOUND|account_not_found|resolveAccount/i,
+    // 这条真实文案是 "No saved WeChat account was found. Run `npm run login`
+    // first." —— 里面的 npm 指令对终端用户是错的，所以整条替换掉。
+    match: /no saved wechat account|ACCOUNT_NOT_FOUND|account_not_found|resolveAccount|npm run login/i,
     title: "还没有登录微信",
     next: "运行一次：cyberboss login，然后用要当机器人的那个微信扫码",
   },
