@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-710",
+  "stage": "S7",
+  "phase": "P7.2",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "aeb20d12886b5580596a8aff936c59aa076338bc",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-720"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-018",
+    "AC-019",
+    "AC-020",
+    "AC-021",
+    "AC-022",
+    "AC-023"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "enforce ZIP and file policy before extraction",
+    "parse to canonical intermediate records",
+    "preview then commit idempotently per user"
+  ],
+  "rollback": [
+    "delete uncommitted staging objects",
+    "retain import ledger failure receipt",
+    "leave prior successful records untouched",
+    "revert to base aeb20d12886b5580596a8aff936c59aa076338bc"
+  ]
+}

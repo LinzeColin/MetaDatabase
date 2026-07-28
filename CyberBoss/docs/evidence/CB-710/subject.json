@@ -1,0 +1,151 @@
+{
+  "schema_version": "cyberboss.cb710.subject.v1",
+  "task_id": "CB-710",
+  "stage": "S7",
+  "phase": "P7.2",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "aeb20d12886b5580596a8aff936c59aa076338bc",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_700_closure_commit": "aeb20d12886b5580596a8aff936c59aa076338bc",
+    "closure_commit_recorded_by": "CB-720"
+  },
+  "upload_safety": {
+    "limits": {
+      "max_archive_bytes": 268435456,
+      "max_expanded_bytes": 1073741824,
+      "max_files": 5000,
+      "max_depth": 12,
+      "max_single_file_bytes": 134217728
+    },
+    "extension_allowlist": [
+      ".json",
+      ".html",
+      ".htm",
+      ".md",
+      ".txt",
+      ".csv"
+    ],
+    "decisions_made_before_inflation": true,
+    "inflation_bounded": true,
+    "refusals_verified": [
+      "ARCHIVE_PATH_FORBIDDEN (relative, absolute, mid-path and Windows-separator traversal)",
+      "ARCHIVE_FILE_TYPE_FORBIDDEN (shell script, executable, nested archive)",
+      "ARCHIVE_DEPTH_EXCEEDED",
+      "ARCHIVE_DUPLICATE_TARGET",
+      "ARCHIVE_TOO_MANY_FILES",
+      "ARCHIVE_TOO_LARGE",
+      "ARCHIVE_EXPANSION_LIMIT",
+      "ZIP_SYMLINK_FORBIDDEN",
+      "ZIP_ENCRYPTED_ENTRY",
+      "ZIP_METHOD_UNSUPPORTED",
+      "ZIP_RATIO_INVALID (both zero-compressed and 200:1 ratio)"
+    ],
+    "integrity_verified_after_inflation": [
+      "crc32",
+      "uncompressed_size"
+    ],
+    "archives_built_from_real_bytes": true
+  },
+  "parsers": {
+    "chatgpt": {
+      "acceptance": "AC-018",
+      "label": "stable",
+      "ordering": "create_time",
+      "hash": "stable_under_key_reordering"
+    },
+    "claude": {
+      "acceptance": "AC-019",
+      "label": "stable",
+      "content": "string_and_block_array_flattened"
+    },
+    "gemini": {
+      "acceptance": "AC-020",
+      "label": "beta_or_beta_low_confidence",
+      "html_active_content": "stripped"
+    },
+    "deepseek": {
+      "acceptance": "AC-021",
+      "label": "beta_or_beta_low_confidence",
+      "formats": [
+        "json",
+        "markdown",
+        "text"
+      ]
+    },
+    "beta_source_ever_labelled_stable": false,
+    "unknown_structure_claims_completeness": false
+  },
+  "recovery": {
+    "identity": "sha256(user_id, source, content_hash) with NUL-separated fields",
+    "repeat_upload": "resolves to the same import, duplicate=true, no second row",
+    "cross_user_same_file": "separate imports, no collision",
+    "checkpoint": "monotonic, a stale worker cannot rewind progress",
+    "resume": "restarts from the recorded checkpoint, completed imports report nothing left",
+    "corrupt_record": "quarantined with a code, valid records still import",
+    "quarantine_reason_contains_content": false,
+    "failed_import": "keeps a receipt and leaves prior successful imports untouched"
+  },
+  "frozen_attack_matrix": {
+    "source": "taskpack starter_kit/fixtures/import_attack_matrix.json",
+    "cases": {
+      "IMP-01": [
+        "reject_path_traversal",
+        "ARCHIVE_PATH_FORBIDDEN"
+      ],
+      "IMP-02": [
+        "reject_duplicate_target",
+        "ARCHIVE_DUPLICATE_TARGET"
+      ],
+      "IMP-03": [
+        "reject_expansion_ratio",
+        "ZIP_RATIO_INVALID"
+      ],
+      "IMP-04": [
+        "reject_depth",
+        "ARCHIVE_DEPTH_EXCEEDED"
+      ],
+      "IMP-05": [
+        "reject_active_content",
+        "ARCHIVE_FILE_TYPE_FORBIDDEN"
+      ],
+      "IMP-06": [
+        "same_import_identity_no_duplicate_facts",
+        "duplicate"
+      ],
+      "IMP-07": [
+        "quarantine_record_continue_valid_records",
+        "NO_PARSEABLE_MESSAGES"
+      ]
+    },
+    "all_replayed": true
+  },
+  "defect_fixed_in_this_node": {
+    "issue": "raw NUL separator bytes had been written into three JavaScript sources (import-ledger, credential-vault, user-identity)",
+    "impact": "runtime behaviour was correct but the sources contained unprintable control bytes",
+    "fix": "replaced with explicit \\u0000 escapes; identical runtime bytes, ASCII-clean source",
+    "guard": "validate_cb710.py now fails if any import module contains a raw control byte"
+  },
+  "tests": {
+    "cb710_suite_tests": 11,
+    "cb710_suite_failures": 0,
+    "app_suite_tests": 354,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "import_parser_model_calls": 0,
+    "macos_launchd_dependency": false,
+    "raw_chat_committed_to_repository": false
+  },
+  "activation_pending": [],
+  "status": "passed"
+}

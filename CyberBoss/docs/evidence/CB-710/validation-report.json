@@ -1,0 +1,307 @@
+{
+  "schema_version": "cyberboss.cb710.validation.v1",
+  "task_id": "CB-710",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-018",
+    "AC-019",
+    "AC-020",
+    "AC-021",
+    "AC-022",
+    "AC-023"
+  ],
+  "check_count": 38,
+  "pass_count": 38,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "frozen_attack_cases": {
+    "IMP-01": [
+      "reject_path_traversal",
+      "ARCHIVE_PATH_FORBIDDEN"
+    ],
+    "IMP-02": [
+      "reject_duplicate_target",
+      "ARCHIVE_DUPLICATE_TARGET"
+    ],
+    "IMP-03": [
+      "reject_expansion_ratio",
+      "ZIP_RATIO_INVALID"
+    ],
+    "IMP-04": [
+      "reject_depth",
+      "ARCHIVE_DEPTH_EXCEEDED"
+    ],
+    "IMP-05": [
+      "reject_active_content",
+      "ARCHIVE_FILE_TYPE_FORBIDDEN"
+    ],
+    "IMP-06": [
+      "same_import_identity_no_duplicate_facts",
+      "duplicate"
+    ],
+    "IMP-07": [
+      "quarantine_record_continue_valid_records",
+      "NO_PARSEABLE_MESSAGES"
+    ]
+  },
+  "node_suites": [
+    {
+      "suite": "test/cb710-import-safety.test.js",
+      "returncode": 0,
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb700-provider-vault-budget-circuit.test.js",
+      "returncode": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 21,
+  "checks": [
+    {
+      "check": "ac022.limits_match_frozen_contract",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "archive, expansion, file-count and depth limits match the frozen contract"
+    },
+    {
+      "check": "ac022.extension_allowlist_is_data_only",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "only data formats are allowed; executables, scripts and nested archives are not"
+    },
+    {
+      "check": "ac022.path_traversal_refused",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "traversal is refused after Windows separators are normalised"
+    },
+    {
+      "check": "ac022.duplicate_target_refused",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "two members normalising to one target are refused"
+    },
+    {
+      "check": "ac022.symlink_refused",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "a symlink member is refused"
+    },
+    {
+      "check": "ac022.encrypted_and_unknown_method_refused",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "encrypted and unsupported-method entries are refused"
+    },
+    {
+      "check": "ac022.zip_bomb_refused",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "an implausible compression ratio is refused"
+    },
+    {
+      "check": "ac022.decided_before_inflation",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "every decision is made from the central directory before inflating"
+    },
+    {
+      "check": "ac022.bounded_inflation",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "inflation is capped, so a lying header cannot exhaust memory"
+    },
+    {
+      "check": "ac022.integrity_verified",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "CRC and size are verified after inflation"
+    },
+    {
+      "check": "ac022.failed_object_cleanup_receipt",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "a failed import records a receipt instead of vanishing"
+    },
+    {
+      "check": "ac022.frozen_attack_matrix_replayed",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "replayed=['IMP-01', 'IMP-02', 'IMP-03', 'IMP-04', 'IMP-05', 'IMP-06', 'IMP-07'] of ['IMP-01', 'IMP-02', 'IMP-03', 'IMP-04', 'IMP-05', 'IMP-06', 'IMP-07']"
+    },
+    {
+      "check": "ac018.chatgpt_mapping_tree",
+      "acceptance_id": "AC-018",
+      "result": "PASS",
+      "detail": "ChatGPT parses the mapping tree"
+    },
+    {
+      "check": "ac018.chatgpt_stable_ordering",
+      "acceptance_id": "AC-018",
+      "result": "PASS",
+      "detail": "nodes are sorted by create_time, so ordering is stable"
+    },
+    {
+      "check": "ac018.chatgpt_stable_label",
+      "acceptance_id": "AC-018",
+      "result": "PASS",
+      "detail": "ChatGPT is labelled stable"
+    },
+    {
+      "check": "ac019.claude_chat_messages",
+      "acceptance_id": "AC-019",
+      "result": "PASS",
+      "detail": "Claude parses the conversations/chat_messages structure"
+    },
+    {
+      "check": "ac019.claude_block_content_flattened",
+      "acceptance_id": "AC-019",
+      "result": "PASS",
+      "detail": "block-array content flattens to text"
+    },
+    {
+      "check": "ac019.claude_stable_label",
+      "acceptance_id": "AC-019",
+      "result": "PASS",
+      "detail": "Claude is labelled stable"
+    },
+    {
+      "check": "ac018_019.hash_idempotency",
+      "acceptance_id": "AC-018",
+      "result": "PASS",
+      "detail": "the canonical hash is stable under key ordering"
+    },
+    {
+      "check": "ac020.beta_label",
+      "acceptance_id": "AC-020",
+      "result": "PASS",
+      "detail": "Gemini results are labelled beta or beta_low_confidence"
+    },
+    {
+      "check": "ac020.never_stable",
+      "acceptance_id": "AC-020",
+      "result": "PASS",
+      "detail": "Gemini never claims a stable label"
+    },
+    {
+      "check": "ac020.unknown_structure_low_confidence",
+      "acceptance_id": "AC-020",
+      "result": "PASS",
+      "detail": "Gemini drops to low confidence when it recognises no message list"
+    },
+    {
+      "check": "ac021.beta_label",
+      "acceptance_id": "AC-021",
+      "result": "PASS",
+      "detail": "DeepSeek results are labelled beta or beta_low_confidence"
+    },
+    {
+      "check": "ac021.never_stable",
+      "acceptance_id": "AC-021",
+      "result": "PASS",
+      "detail": "DeepSeek never claims a stable label"
+    },
+    {
+      "check": "ac021.unknown_structure_low_confidence",
+      "acceptance_id": "AC-021",
+      "result": "PASS",
+      "detail": "DeepSeek drops to low confidence when it recognises no message list"
+    },
+    {
+      "check": "ac020.gemini_strips_active_content",
+      "acceptance_id": "AC-020",
+      "result": "PASS",
+      "detail": "Gemini HTML import strips script and style content"
+    },
+    {
+      "check": "ac023.identity_from_user_source_hash",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "import identity is (user, source, content hash) with NUL-separated fields"
+    },
+    {
+      "check": "ac023.no_raw_control_bytes_in_source",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "separators are written as explicit escapes, not raw control bytes"
+    },
+    {
+      "check": "ac023.repeat_upload_is_duplicate",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "a repeat upload resolves to the same import atomically"
+    },
+    {
+      "check": "ac023.checkpoint_monotonic",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "a stale worker cannot rewind recorded progress"
+    },
+    {
+      "check": "ac023.resume_from_checkpoint",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "an interrupted import resumes from its checkpoint"
+    },
+    {
+      "check": "ac023.corrupt_record_quarantined",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "one unreadable record is quarantined while valid records import"
+    },
+    {
+      "check": "ac023.quarantine_reason_is_a_code",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "the quarantine reason is a code, never record content"
+    },
+    {
+      "check": "ac023.listing_hides_object_ref",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "the user-facing import listing carries no object reference"
+    },
+    {
+      "check": "cb710.import_path_reaches_no_provider",
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb710.no_raw_chat_fixture_in_repo",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "no real conversation export is committed to the repository"
+    },
+    {
+      "check": "cb710.suite.cb710-import-safety.test",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "tests=11 pass=11 fail=0"
+    },
+    {
+      "check": "cb710.suite.cb700-provider-vault-budget-circuit.test",
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "detail": "tests=10 pass=10 fail=0"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/imports/upload-policy.js": "552e1b6a62f4af4c8d7c540e773a990505c9e37b3cd1b65c8853f89e213f4df7",
+    "app/src/services/imports/safe-zip-reader.js": "6911bc793307be81aaac3e88f377ee6cdffa7fdd6eb2d405eccc105f0b16dcf9",
+    "app/src/services/imports/normalize.js": "b9929e65e6fa0a74f7a648b597cb4a501def11d68296dffbee07cb61cb471a28",
+    "app/src/services/imports/chatgpt.js": "ff7a923ecc0c58d9412ebf703d8315d1aea9fa117bf7e1e7e158b006978b4b39",
+    "app/src/services/imports/claude.js": "78968ab656375aecf6165be9b8e9701aaff021b928186804812c32b57a463f33",
+    "app/src/services/imports/gemini.js": "c0cc643d342f372c87d0f97616de5851d8db7d920c8830fb107a09cf7f9e9c73",
+    "app/src/services/imports/deepseek.js": "90a300529fbf80357288aa7491d957c1655075e22098cc5c2d91cb18cf469ebe",
+    "app/src/services/imports/router.js": "abff9c7d1184ddb5dbd91bd4ddd747cf2bb9df7a70e8e822ea94c6aae326aa99",
+    "app/src/services/imports/import-ledger.js": "42e49562511cc69d352e036ca07868a91e969b9ea013347e9fe5ca41b40aec41"
+  }
+}

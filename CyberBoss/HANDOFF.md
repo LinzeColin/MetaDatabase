@@ -146,6 +146,31 @@ provider activation stays `activation_pending`. Adapters are proved against
 frozen fake transports and no simulator result is presented as a live pass;
 activation happens at `CB-830`.
 
+`P7.2 / CB-710` passed on base `aeb20d12886b5580596a8aff936c59aa076338bc`. The
+ZIP reader decides everything from the central directory before inflating a
+byte, and inflation itself is capped. Path traversal in relative, absolute,
+mid-path and Windows-separator forms, symlink members, encrypted entries,
+unsupported methods, shell scripts, executables and nested archives, excessive
+depth, duplicate normalised targets, oversized archives and both zip-bomb shapes
+are all refused; CRC and uncompressed size are verified after inflation. The
+suite builds real ZIP bytes rather than mocking the reader, and replays all
+seven frozen import attack cases. ChatGPT and Claude parse as `stable` with an
+ordering-independent canonical hash; Gemini and DeepSeek are only ever `beta` or
+`beta_low_confidence`, drop to low confidence when they recognise no message
+list, and strip active content from HTML — an unknown structure never presents
+as complete. Import identity is (user, source, content hash), so a repeat upload
+resolves to the same import with no second row while the same file from another
+user stays separate; checkpoints are monotonic so a stale worker cannot rewind
+progress; an interrupted import resumes from its checkpoint; one unreadable
+record is quarantined with a code while valid records still import; and a failed
+import keeps its receipt without touching prior successes.
+
+This node also fixed a defect introduced earlier in Stage 6/7: raw NUL separator
+bytes had been written into three JavaScript sources. Runtime behaviour was
+already correct, but the sources carried unprintable control bytes; they are now
+explicit `\u0000` escapes and the CB-710 validator fails if any import module
+regains a raw control byte.
+
 The rest of Stage 7, Stage 8 and gates PG-7 and PG-8 are `not_started`; the
 authoritative list is `machine/facts/task_state.json`.
 

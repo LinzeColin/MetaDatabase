@@ -1,0 +1,62 @@
+{
+  "schema_version": "cyberboss.cb710.acceptance.v1",
+  "task_id": "CB-710",
+  "stage": "S7",
+  "phase": "P7.2",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "aeb20d12886b5580596a8aff936c59aa076338bc",
+  "closure_commit_recorded_by": "CB-720",
+  "results": [
+    {
+      "acceptance_id": "AC-018",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "ChatGPT conversations.json parses the mapping tree sorted by create_time, so the same export always yields the same order. The canonical hash is stable under key reordering and changes when content changes."
+    },
+    {
+      "acceptance_id": "AC-019",
+      "result": "PASS",
+      "check_count": 3,
+      "note": "Claude conversations/chat_messages parse with both string and block-array content flattened to text; an empty export is not an error and an unrecognised root is refused."
+    },
+    {
+      "acceptance_id": "AC-020",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "Gemini JSON is labelled beta and HTML is stripped of script and style content and labelled beta_low_confidence. A structure with no recognisable message list drops to low confidence rather than claiming beta, so an unknown structure never presents as complete."
+    },
+    {
+      "acceptance_id": "AC-021",
+      "result": "PASS",
+      "check_count": 3,
+      "note": "DeepSeek JSON is labelled beta while Markdown and plain text are preserved verbatim at beta_low_confidence. No DeepSeek or Gemini result is ever labelled stable."
+    },
+    {
+      "acceptance_id": "AC-022",
+      "result": "PASS",
+      "check_count": 14,
+      "note": "Every decision is made from the central directory before a byte is inflated, and inflation itself is capped. Path traversal in four forms, symlinks, encrypted entries, unsupported methods, active content by extension, excessive depth, duplicate normalised targets, oversized archives and both zip-bomb shapes are all refused, with CRC and size verified afterwards. The archives in the suite are real ZIP bytes, not mocks."
+    },
+    {
+      "acceptance_id": "AC-023",
+      "result": "PASS",
+      "check_count": 10,
+      "note": "Import identity is (user, source, content hash), so a repeat upload resolves to the same import with duplicate=true and no second row, while the same file from another user is a separate import. Checkpoints are monotonic so a stale worker cannot rewind progress, an interrupted import resumes from its checkpoint, one unreadable record is quarantined with a code while valid records still import, and a failed import keeps its receipt without touching prior successes."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb710.py",
+  "validator_status": "PASS",
+  "check_count": 38,
+  "pass_count": 38,
+  "fail_count": 0,
+  "node_test_total": 21,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [],
+  "status": "passed"
+}
