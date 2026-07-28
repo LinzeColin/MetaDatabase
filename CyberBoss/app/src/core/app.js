@@ -352,7 +352,8 @@ class CyberbossApp {
                   userId: normalized.senderId,
                   contextToken: normalized.contextToken,
                 },
-                text: `✅ Accepted\njob: ${accepted.jobId}`,
+                // 用户不需要看见 job 编号。收到就收到了，回执由真正的答复承担。
+                text: "收到，正在处理……",
               });
             }
           : null,
@@ -1058,6 +1059,39 @@ class CyberbossApp {
   // fully answered here (onboarding, consent, suspension, or an ordinary-user
   // model turn). Returns an owner-shaped decision when multi-user admission is
   // off, which is the pre-existing single-user behaviour.
+  // 同步准入，只回答一个问题：这一轮是不是主人的。
+  //
+  // 调度器要求 dispatchRuntime 返回真实的 threadId/turnId，所以非主人的分支
+  // 不能在这里中断——那条路要在建 job 之前就分流，是另一件事。这里先把主人
+  // 认得出来，因为在此之前主人连自己都绑不上。
+  admitDurableTurn(normalized) {
+    if (!this.userAdmission) {
+      return null;
+    }
+    let decision;
+    try {
+      decision = this.userAdmission.admit({
+        botAccountRef: normalized.accountId,
+        senderRef: normalized.senderId,
+        text: normalized.text,
+      });
+    } catch (error) {
+      console.warn(
+        `[cyberboss] admission refused code=${normalizeErrorCode(error?.code) || "admission_failed"}`,
+      );
+      return null;
+    }
+    if (decision.route !== "owner") {
+      return null;
+    }
+    if (decision.ownerClaimed) {
+      this.rememberOwnerSender(normalized.senderId);
+      this.noteForDashboard("有一个微信号绑成了主人");
+      void this.sendAdmissionReply(normalized, OWNER_CLAIMED_NOTICE);
+    }
+    return decision.userContext || null;
+  }
+
   async admitInboundMessage(normalized) {
     if (!this.userAdmission) {
       return Object.freeze({ route: "owner", userContext: null });
@@ -1341,10 +1375,19 @@ class CyberbossApp {
     if (!prepared) {
       throw new Error("DURABLE_RUNTIME_INPUT_REJECTED");
     }
+    // 真正的准入锚点。
+    //
+    // admitInboundMessage 一直挂在 handleIncomingMessage 上，而线上根本不走那条
+    // 路：消息是 durable inbox 收下、job scheduler 调度、最后到这里。于是主人
+    // 认领码和绑定窗口都从来没有被执行过，每一条消息——包括主人自己发的——都以
+    // 「这个操作只有管理员可以使用」结束。测试全绿，因为测试测的是那条没人走的路。
+    const admitted = typeof this.admitDurableTurn === "function"
+      ? this.admitDurableTurn(normalized)
+      : null;
     const run = await this.dispatchPreparedTurn({
       bindingKey,
       workspaceRoot: resolvedWorkspace.root,
-      prepared,
+      prepared: admitted ? { ...prepared, userContext: admitted } : prepared,
       returnRun: true,
       deliveryContext: {
         jobId: job.id,

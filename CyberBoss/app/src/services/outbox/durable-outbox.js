@@ -512,7 +512,7 @@ class DurableOutboxWorker {
     }
     const safeText =
       messageKind === "error"
-        ? "❌ Execution failed.\nAction: review the request and retry when ready."
+        ? "这条没能处理完，你可以再发一次。如果一直这样，在后台看看「最近发生了什么」。"
         : messageKind === "cancelled"
           ? "⏹️ Execution cancelled."
           : normalizeDurableText(text || "✅ Completed.");
