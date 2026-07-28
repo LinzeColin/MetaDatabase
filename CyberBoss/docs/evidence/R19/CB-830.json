@@ -1,34 +1,97 @@
 {
-  "schema_version": 1, "task_id": "CB-830",
+  "schema_version": 1,
+  "task_id": "CB-830",
   "scope": "干净安装、Owner 私有激活、共享入口五用户、DeepSeek E2E、Canary 与回滚",
-  "acceptance": ["AC-036","AC-039","AC-040","AC-050","AC-052","AC-055","AC-057"],
+  "acceptance": [
+    "AC-036",
+    "AC-039",
+    "AC-040",
+    "AC-050",
+    "AC-052",
+    "AC-055",
+    "AC-057"
+  ],
   "depends_on": "CB-820",
   "status": "PARTIAL_BLOCKED",
   "completed_with_real_production_evidence": {
     "clean_install_and_rollback_contract": "PASS",
     "sequence_executed_on_ovh_139_99_61_6": [
-      { "step": "部署前在跑", "release": "b555aece63143dfb05171bd609cd9afc2542078a" },
-      { "step": "部署新版本", "release": "371cd78dee191dea887b2182eeb6507e37526c8e", "service": "active", "tunnel": "active", "bridge": "bootstrap ok", "public_admin_http": 200 },
-      { "step": "原子回滚", "release": "b555aece63143dfb05171bd609cd9afc2542078a", "public_admin_http": 200, "note": "回滚由 EnvironmentFile 中的 CB_RELEASE_ROOT/CB_EXPECTED_RELEASE_ID 改写 + 重启完成，旧 release 目录未被修改" },
-      { "step": "再前滚同一版本", "release": "371cd78dee191dea887b2182eeb6507e37526c8e", "public_admin_http": 200 }
+      {
+        "step": "部署前在跑",
+        "release": "b555aece63143dfb05171bd609cd9afc2542078a"
+      },
+      {
+        "step": "部署新版本",
+        "release": "371cd78dee191dea887b2182eeb6507e37526c8e",
+        "service": "active",
+        "tunnel": "active",
+        "bridge": "bootstrap ok",
+        "public_admin_http": 200
+      },
+      {
+        "step": "原子回滚",
+        "release": "b555aece63143dfb05171bd609cd9afc2542078a",
+        "public_admin_http": 200,
+        "note": "回滚由 EnvironmentFile 中的 CB_RELEASE_ROOT/CB_EXPECTED_RELEASE_ID 改写 + 重启完成，旧 release 目录未被修改"
+      },
+      {
+        "step": "再前滚同一版本",
+        "release": "371cd78dee191dea887b2182eeb6507e37526c8e",
+        "public_admin_http": 200
+      }
     ],
     "verifiers": [
-      { "script": "scripts/verify_manifest.py", "status": "PASS" },
-      { "script": "scripts/verify_module_closure.py", "status": "PASS" },
-      { "script": "scripts/verify_user_copy.py", "status": "PASS", "checks": 4 },
-      { "script": "scripts/verify_final_seal.py", "status": "PASS", "checks": 11 }
+      {
+        "script": "scripts/verify_manifest.py",
+        "status": "PASS"
+      },
+      {
+        "script": "scripts/verify_module_closure.py",
+        "status": "PASS"
+      },
+      {
+        "script": "scripts/verify_user_copy.py",
+        "status": "PASS",
+        "checks": 4
+      },
+      {
+        "script": "scripts/verify_final_seal.py",
+        "status": "PASS",
+        "checks": 11
+      }
     ],
     "unit_tests": [
-      { "script": "test/v8-prebuilt/novice-operator.test.js", "result": "2/2 PASS" },
-      { "script": "test/v8-prebuilt/request-count-canary.test.js", "result": "2/2 PASS" },
-      { "script": "test/v8-prebuilt/operator-dispatcher.test.js", "result": "5/5 PASS" }
+      {
+        "script": "test/v8-prebuilt/novice-operator.test.js",
+        "result": "2/2 PASS"
+      },
+      {
+        "script": "test/v8-prebuilt/request-count-canary.test.js",
+        "result": "2/2 PASS"
+      },
+      {
+        "script": "test/v8-prebuilt/operator-dispatcher.test.js",
+        "result": "5/5 PASS"
+      }
     ]
   },
   "blocked_requires_external_input": [
-    { "item": "activate one shared Bot through Owner-only /ops/wechat route", "missing": "Owner 尚未对真实 iLink 完成一次授权扫码" },
-    { "item": "five real senders plus sixth-user denial", "missing": "需要 5 位真实微信用户参与；无法由我代为产生" },
-    { "item": "real DeepSeek V4 Pro high request with usage/budget/circuit receipt", "missing": "DEEPSEEK_API_KEY 未提供，一次真实调用都没有发生" },
-    { "item": "request-count canary on real traffic", "missing": "依赖上一条的真实请求样本" }
+    {
+      "item": "activate one shared Bot through Owner-only /ops/wechat route",
+      "missing": "Owner 尚未对真实 iLink 完成一次授权扫码"
+    },
+    {
+      "item": "five real senders plus sixth-user denial",
+      "missing": "需要 5 位真实微信用户参与；无法由我代为产生"
+    },
+    {
+      "item": "real DeepSeek V4 Pro high request with usage/budget/circuit receipt",
+      "missing": "DEEPSEEK_API_KEY 未提供，一次真实调用都没有发生"
+    },
+    {
+      "item": "request-count canary on real traffic",
+      "missing": "依赖上一条的真实请求样本"
+    }
   ],
   "claims_not_made": [
     "shared bot activated",
@@ -36,5 +99,12 @@
     "sixth user denied before provider dispatch in production",
     "live DeepSeek reply produced",
     "canary decided on real request counts"
-  ]
+  ],
+  "prerequisite_defect_fixed": {
+    "defect": "非主人轮次无法在建 job 之前分流，导致 AC-039 的「第六人在 DeepSeek 调用之前被拒绝」无处兑现",
+    "fix": "DurableInboxCoordinator 新增同步 admissionFilter 钩子；app.js 的 admissionHandledBeforeJob 只分流不需要模型的路由",
+    "tests": "inbound-user-admission-e2e.test.js 新增 2 条；全量 663/663",
+    "deployed": true,
+    "note": "这解除了 AC-039 的实现前提；真实的第六人拒绝仍需 5 位真实用户参与才能取证"
+  }
 }
