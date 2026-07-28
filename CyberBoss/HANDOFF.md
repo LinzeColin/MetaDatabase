@@ -56,9 +56,30 @@ runtime identity key, the bot account and the sender; a client-declared id is
 only ever compared, never trusted. App suite 306/306, project suite 72/72,
 release 2/2, ops 6/6 and `npm run check` all pass.
 
+`P6.3 / CB-620` passed on base `06f89968341e5f2bbc6a854f47e49f8bb69f1caa`.
+Registration is invite-only: an unknown sender reaches only the minimal pending
+state, an invalid invite code creates no user row at all, and 「同意并开始」 is
+the single activation call site. Every pre-active state declares zero model
+calls and the suite proves a pre-consent model call throws. Setup links are
+10-minute, single-use, stored only as SHA-256 and carried in the URL fragment,
+so the token never enters a request line, Referer or access log; repeat, expired
+and purpose-mismatched consumption are each refused with their own code. Web
+sessions use a Secure/HttpOnly/SameSite=Strict cookie with constant-time CSRF,
+and the portal fails closed on Host, exact HTTPS Origin, a frozen nine-action
+allowlist containing no Owner capability, and a 16 KiB body cap checked before
+parsing. The acting user always comes from the session row; a body that names a
+different user is refused rather than honoured. One WeChat command revokes every
+session and outstanding link. A returning WeChat principal resumes the same user
+with no second account system.
+
 The remaining Stage 6 nodes, all of Stage 7 and Stage 8, and gates PG-6 through
 PG-8 are `not_started`; the authoritative list is
 `machine/facts/task_state.json`.
+
+Real WeChat channel credentials remain outside the authorised protected scope,
+so the channel stays `activation_pending`. Registration and consent are proved
+against frozen fixture principals; the real two-sender WeChat proof is AC-039 at
+CB-830 and is not claimed early.
 
 CB-500 is bound to implementation commit
 `ddda629feb4455da5dba213a5d5f827001ce8c71` and tree

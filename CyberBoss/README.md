@@ -21,17 +21,20 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P3.5 / CB-340`；`PG-3`；`P4.1 / CB-400`；`P4.2 / CB-410`；`P4.3 / CB-420`；
   `P4.4 / CB-430`；`P4.5 / CB-440`；`PG-4`；`P5.1 / CB-500`；`P5.2 / CB-510`；
   `P5.3 / CB-520`；`P5.4 / CB-530`；`P5.5 / CB-540`；`PG-5`；`P6.1 / CB-600`；
-  `P6.2 / CB-610`
+  `P6.2 / CB-610`；`P6.3 / CB-620`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
-- 最新 Run：`CB-610` 已按目标现有迁移约定物化 `006_multiuser_foundation.sql`
-  （动态编号，非固定前缀），完成 Owner 回填与 `inbox_messages` / `jobs` /
-  `outbox_messages` 的 valid-user INSERT/UPDATE 触发器，并新增服务端派生身份、
-  用户仓与邀请码仓。App 套件 306/306、项目套件 72/72 通过。
-  证据在 `docs/evidence/CB-610/`；控制面/运维模型调用仍为 `0`。
-- 上一 Run：`CB-600` 已完成 exact Subject 绑定（HEAD
+- 最新 Run：`CB-620` 已完成邀请制注册、同意激活、10 分钟一次性设置链接与
+  Secure/HttpOnly/SameSite=Strict Web Session。激活前模型调用为 `0`；设置
+  token 只存 SHA-256 且走 URL fragment；门户按精确 HTTPS Origin、Host
+  allowlist、CSRF、9 条冻结 action allowlist 与 16 KiB body 上限 fail-closed。
+  证据在 `docs/evidence/CB-620/`；控制面/运维模型调用仍为 `0`。
+- 上一 Run：`CB-610` 已按目标现有迁移约定物化 `006_multiuser_foundation.sql`
+  （动态编号，非固定前缀），完成 Owner 回填与 valid-user 触发器，并新增服务端
+  派生身份、用户仓与邀请码仓。证据在 `docs/evidence/CB-610/`。
+- 更早 Run：`CB-600` 已完成 exact Subject 绑定（HEAD
   `bb716bd9cf2760aa9639ef85c626f0fd19c6ec94`、tree
   `a6426566cdba7dce4d1990eb888d308838b26ef1`、干净工作树）、只读 Current Truth
   对账（consensus=consistent）、v0.0.0.8 版本锁、单条 Owner Change Event，以及
@@ -42,7 +45,7 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   或把 pending 写成 ready。最小 Access service-token scope 同样保留 pending，
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
-  v0.0.0.8 追加的 `CB-600` 与 `CB-610` 已通过。
+  v0.0.0.8 追加的 `CB-600`、`CB-610` 与 `CB-620` 已通过。
 
 - 尚未开始：Stage 6 余下节点、Stage 7、Stage 8 与 PG-6–PG-8 均为
   `not_started`，权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；

@@ -1,0 +1,274 @@
+{
+  "schema_version": "cyberboss.cb620.validation.v1",
+  "task_id": "CB-620",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-004",
+    "AC-010",
+    "AC-011",
+    "AC-028",
+    "AC-041"
+  ],
+  "check_count": 38,
+  "pass_count": 38,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_suites": [
+    {
+      "suite": "test/cb620-registration-consent-portal.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb610-multiuser-foundation.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 18,
+  "checks": [
+    {
+      "check": "ac004.frozen_chinese_commands",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "「开始」 and 「同意并开始」 are the frozen entry commands"
+    },
+    {
+      "check": "ac004.start_only_creates_pending",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "start() reaches ensurePending; only consent() reaches activateConsent"
+    },
+    {
+      "check": "ac004.consent_is_the_only_activation",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "exactly one activation call site exists"
+    },
+    {
+      "check": "ac004.pre_active_model_calls_zero",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "states_declaring_zero=['unseen', 'pending_invite', 'pending_consent', 'suspended']"
+    },
+    {
+      "check": "ac004.reducer_has_no_imports",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "the onboarding reducer imports nothing, so it cannot reach a provider"
+    },
+    {
+      "check": "ac010.ttl_is_ten_minutes",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "the setup token TTL is 10 minutes and cannot be raised"
+    },
+    {
+      "check": "ac010.hash_storage_only",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "only the SHA-256 hash of the token is stored"
+    },
+    {
+      "check": "ac010.single_use_atomic",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "consumption is atomic and a second use is refused"
+    },
+    {
+      "check": "ac010.expiry_refused",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "an expired link is refused with its own code"
+    },
+    {
+      "check": "ac010.token_not_in_request_target",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "the token travels in the fragment, never the path or query"
+    },
+    {
+      "check": "ac010.https_origin_required",
+      "acceptance_id": "AC-010",
+      "result": "PASS",
+      "detail": "a non-HTTPS origin cannot produce a setup link"
+    },
+    {
+      "check": "ac011.cookie_httponly",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "session cookie sets HttpOnly"
+    },
+    {
+      "check": "ac011.cookie_secure",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "session cookie sets Secure"
+    },
+    {
+      "check": "ac011.cookie_samesite",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "session cookie sets SameSite=Strict"
+    },
+    {
+      "check": "ac011.exact_https_origin_allowlist",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "origins are compared by exact match against an HTTPS allowlist"
+    },
+    {
+      "check": "ac011.host_allowlist",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "the Host header must match the allowlist"
+    },
+    {
+      "check": "ac011.csrf_required",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "mutating portal requests require a matching CSRF token"
+    },
+    {
+      "check": "ac011.server_owned_session_user",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "the acting user comes from the session row; a body claim is refused"
+    },
+    {
+      "check": "ac011.frozen_action_allowlist",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "only frozen allowlisted actions reach a handler"
+    },
+    {
+      "check": "ac011.body_limit_16kib",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "the request body is capped at 16 KiB"
+    },
+    {
+      "check": "ac011.body_size_checked_before_parse",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "an oversized body is rejected before it is parsed"
+    },
+    {
+      "check": "ac011.global_revocation_from_wechat",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "one command revokes every session and outstanding setup link"
+    },
+    {
+      "check": "ac011.constant_time_csrf_compare",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "the CSRF comparison is constant time"
+    },
+    {
+      "check": "ac011.no_owner_capability_in_allowlist",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "no Owner-only capability is reachable from the portal allowlist"
+    },
+    {
+      "check": "ac028.principal_resolves_existing_user",
+      "acceptance_id": "AC-028",
+      "result": "PASS",
+      "detail": "a returning principal resumes its existing user rather than creating one"
+    },
+    {
+      "check": "ac028.no_second_account_system",
+      "acceptance_id": "AC-028",
+      "result": "PASS",
+      "detail": "no email or password account system exists"
+    },
+    {
+      "check": "ac028.identity_is_channel_principal_only",
+      "acceptance_id": "AC-028",
+      "result": "PASS",
+      "detail": "identity is the WeChat bot account plus sender, nothing else"
+    },
+    {
+      "check": "ac041.unknown_sender_pending_only",
+      "acceptance_id": "AC-041",
+      "result": "PASS",
+      "detail": "an unknown sender reaches only the minimal pending state"
+    },
+    {
+      "check": "ac041.invite_keyed_hash",
+      "acceptance_id": "AC-041",
+      "result": "PASS",
+      "detail": "invite codes are stored as an HMAC-SHA256 keyed hash"
+    },
+    {
+      "check": "ac041.invite_min_length_12",
+      "acceptance_id": "AC-041",
+      "result": "PASS",
+      "detail": "invite codes are at least 12 characters"
+    },
+    {
+      "check": "ac041.invite_bounded_uses",
+      "acceptance_id": "AC-041",
+      "result": "PASS",
+      "detail": "uses are bounded and enforced atomically"
+    },
+    {
+      "check": "ac041.invite_revocable",
+      "acceptance_id": "AC-041",
+      "result": "PASS",
+      "detail": "an invite can be revoked"
+    },
+    {
+      "check": "ac041.invite_consumed_before_user_created",
+      "acceptance_id": "AC-041",
+      "result": "PASS",
+      "detail": "an invalid code creates no user row"
+    },
+    {
+      "check": "ac041.suspended_and_pending_block_model",
+      "acceptance_id": "AC-041",
+      "result": "PASS",
+      "detail": "only an active user may reach a model"
+    },
+    {
+      "check": "cb620.no_mac_or_secret_markers",
+      "acceptance_id": "AC-011",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb620.no_model_dependency_in_auth_path",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "no authentication or onboarding module reaches a model provider"
+    },
+    {
+      "check": "cb620.suite.cb620-registration-consent-portal.test",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb620.suite.cb610-multiuser-foundation.test",
+      "acceptance_id": "AC-004",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/users/onboarding-state.js": "d8ec6425914218e21467b7eb5255668094cac7bcc5565b619f235b4ffd2c016b",
+    "app/src/services/users/registration-service.js": "2b2e65060f4d0c1203c1e3cd41bdb92ff7382274375dc01beecf163176149a08",
+    "app/src/services/users/invite-code-store.js": "26ca74ee3194e7a9512560aa9728a704f5bf66db4cfbce4fe3fa564f315a8a71",
+    "app/src/services/security/setup-token-service.js": "23871c9030820d696d21a8a4539a5422202785c872e1ce4f71a47d5334d17141",
+    "app/src/services/security/session-token-service.js": "87763a6db0b6510fdb0c8a97bae1ad28fd2b2f1d694c8d2afa3bc63ce2006d74",
+    "app/src/services/security/secure-setup-link.js": "f7535092162a12b4a5dd383fb359df6a56a68da6585d2ca94c151dd251d4d44b",
+    "app/src/services/portal/setup-portal.js": "8e06f8704c623afa16d8c9421426b4c6a348226a70e70a29068a479313ca07bf"
+  }
+}

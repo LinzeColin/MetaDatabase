@@ -6,10 +6,10 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "CB-610",
+    "run_id": "CB-620",
     "gate_id": null,
-    "task_id": "CB-610",
-    "scope": "sqlite_v8_additive_migration_owner_backfill_and_user_identity_stores",
+    "task_id": "CB-620",
+    "scope": "wechat_invite_registration_consent_one_time_setup_link_and_web_session",
     "status": "passed"
   },
   "prestage": [
@@ -227,7 +227,7 @@
       "id": "CB-620",
       "stage": "S6",
       "phase": "P6.3",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-630",
@@ -528,6 +528,17 @@
     "cb_610_owner_backfill": "verified_zero_unscoped_rows",
     "cb_610_valid_user_guards": "verified_insert_and_update_on_inbox_jobs_outbox",
     "cb_610_app_suite": "306_pass_0_fail",
-    "cb_610_project_suite": "72_pass_0_fail"
+    "cb_610_project_suite": "72_pass_0_fail",
+    "cb_610_closure_commit": "06f89968341e5f2bbc6a854f47e49f8bb69f1caa",
+    "cb_620_base_head": "06f89968341e5f2bbc6a854f47e49f8bb69f1caa",
+    "cb_620_registration_mode": "invite_only",
+    "cb_620_model_calls_before_active": 0,
+    "cb_620_setup_link_ttl_ms": 600000,
+    "cb_620_setup_link_single_use": "verified",
+    "cb_620_session_cookie": "secure_httponly_samesite_strict",
+    "cb_620_portal_action_allowlist": 9,
+    "cb_620_portal_max_body_bytes": 16384,
+    "cb_620_app_suite": "315_pass_0_fail",
+    "cb_620_wechat_channel_activation": "activation_pending_missing_real_wechat_credential"
   }
 }

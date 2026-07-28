@@ -1,0 +1,108 @@
+{
+  "schema_version": "cyberboss.cb620.subject.v1",
+  "task_id": "CB-620",
+  "stage": "S6",
+  "phase": "P6.3",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "06f89968341e5f2bbc6a854f47e49f8bb69f1caa",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_610_closure_commit": "06f89968341e5f2bbc6a854f47e49f8bb69f1caa",
+    "closure_commit_recorded_by": "CB-630"
+  },
+  "registration": {
+    "mode": "invite_only",
+    "start_command": "开始",
+    "consent_command": "同意并开始",
+    "start_creates_active_user": false,
+    "activation_call_sites": 1,
+    "model_calls_before_active": 0,
+    "invalid_invite_creates_user": false,
+    "policy_version": "privacy-v1",
+    "consent_event_recorded": true
+  },
+  "setup_link": {
+    "ttl_ms": 600000,
+    "ttl_raisable": false,
+    "single_use": true,
+    "storage": "sha256_hash_only",
+    "plaintext_persisted": false,
+    "token_location": "url_fragment",
+    "token_in_request_target": false,
+    "https_origin_required": true,
+    "expired_consumption": "refused_LINK_EXPIRED",
+    "repeat_consumption": "refused_LINK_INVALID",
+    "purpose_confusion": "refused_LINK_INVALID"
+  },
+  "web_session": {
+    "cookie_attributes": [
+      "HttpOnly",
+      "Secure",
+      "SameSite=Strict",
+      "Path=/"
+    ],
+    "storage": "sha256_hash_only",
+    "csrf_required_for_mutation": true,
+    "csrf_compare": "constant_time",
+    "origin_match": "exact_https_allowlist",
+    "host_allowlist": true,
+    "action_allowlist_frozen": true,
+    "action_allowlist_size": 9,
+    "owner_capability_in_allowlist": false,
+    "max_body_bytes": 16384,
+    "body_size_checked_before_parse": true,
+    "acting_user_source": "server_side_session_row",
+    "body_declared_user_id": "ignored_or_refused",
+    "wechat_global_revocation": true,
+    "default_ttl_ms": 1800000
+  },
+  "cross_device_continuity": {
+    "same_principal_resumes_same_user": true,
+    "second_user_row_created": false,
+    "second_account_system": false,
+    "email_or_password_login": false,
+    "different_bot_account_is_different_principal": true
+  },
+  "invite_and_suspension": {
+    "generated_by": "owner",
+    "storage": "hmac_sha256_keyed_hash",
+    "min_length": 12,
+    "bounded_uses": true,
+    "max_uses_cap": 20,
+    "expirable": true,
+    "revocable": true,
+    "consumed_before_user_creation": true,
+    "model_eligible_statuses": [
+      "active"
+    ],
+    "suspended_model_calls": 0,
+    "pending_model_calls": 0
+  },
+  "tests": {
+    "cb620_suite_tests": 9,
+    "cb620_suite_failures": 0,
+    "app_suite_tests": 315,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [
+    {
+      "item": "real_wechat_channel_credential",
+      "state": "activation_pending",
+      "effect": "registration and consent are proved against the frozen fixture principals; the real dual-user WeChat proof is AC-039 at CB-830"
+    }
+  ],
+  "status": "passed"
+}

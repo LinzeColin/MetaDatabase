@@ -1,0 +1,63 @@
+{
+  "schema_version": "cyberboss.cb620.acceptance.v1",
+  "task_id": "CB-620",
+  "stage": "S6",
+  "phase": "P6.3",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "06f89968341e5f2bbc6a854f47e49f8bb69f1caa",
+  "closure_commit_recorded_by": "CB-630",
+  "results": [
+    {
+      "acceptance_id": "AC-004",
+      "name": "自动注册与同意",
+      "result": "PASS",
+      "check_count": 8,
+      "note": "「开始」 only creates a pending row and 「同意并开始」 is the single activation call site; every pre-active state declares modelCalls 0 and the suite proves a pre-consent model call throws."
+    },
+    {
+      "acceptance_id": "AC-010",
+      "name": "一次性设置链接",
+      "result": "PASS",
+      "check_count": 6,
+      "note": "The setup token is 10 minutes (TTL not raisable), single-use under BEGIN IMMEDIATE, stored only as SHA-256, and travels in the URL fragment so it never enters a request line or log. Repeat, expired and purpose-mismatched consumption are all refused."
+    },
+    {
+      "acceptance_id": "AC-011",
+      "name": "Web Session 安全",
+      "result": "PASS",
+      "check_count": 14,
+      "note": "Secure/HttpOnly/SameSite=Strict cookie, exact HTTPS origin allowlist, Host allowlist, constant-time CSRF, frozen 9-action allowlist with no Owner capability, 16 KiB body cap checked before parsing, server-owned session user, and one-command global revocation."
+    },
+    {
+      "acceptance_id": "AC-028",
+      "name": "跨设备连续性",
+      "result": "PASS",
+      "check_count": 3,
+      "note": "A returning WeChat principal resumes the same user with no new row; there is no email/password or second account system, and the same sender on a different bot account is a different principal."
+    },
+    {
+      "acceptance_id": "AC-041",
+      "name": "邀请制与暂停",
+      "result": "PASS",
+      "check_count": 7,
+      "note": "Unknown senders reach only the minimal pending state. Invite codes are Owner-issued, HMAC-SHA256 keyed-hash stored, at least 12 characters, bounded and atomic in use, expirable and revocable; an invalid code creates no user. Only active users may reach a model, so pending and suspended users have 0."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb620.py",
+  "validator_status": "PASS",
+  "check_count": 38,
+  "pass_count": 38,
+  "fail_count": 0,
+  "node_test_total": 18,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [
+    "real_wechat_channel_credential"
+  ],
+  "status": "passed"
+}
