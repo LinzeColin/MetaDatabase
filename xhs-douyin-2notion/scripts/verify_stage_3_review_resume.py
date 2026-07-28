@@ -2,8 +2,9 @@
 """Fail-closed verifier for the frozen x2n Stage 3 Review Resume contract.
 
 The historical Resume contract remains independently verifiable after
-TSK.x2n.adapters.010 has executed. This verifier never evaluates G3 as pass
-and never authorizes upload, Stage 4, deployment, or real external execution.
+TSK.x2n.adapters.010 has executed. This verifier never decides current G3;
+when a separate recheck fact exists, it only confirms the fact's bounded local
+Stage 4 routing. It never authorizes upload, deployment, or real execution.
 """
 
 from __future__ import annotations
@@ -57,6 +58,9 @@ EXPECTED_BRANCH = "codex/xhs-douyin-2notion-v0001-s03-review-resume"
 NEXT_TASK = "TSK.x2n.adapters.010"
 TASK010_RUN_ID = "RUN-X2N-S03-A010"
 TASK010_RECHECK = "STG.X2N.3.REVIEW.RESUME.RECHECK"
+G3_RECHECK_RUN_ID = "RUN-X2N-S03-REVIEW-RESUME-RECHECK"
+G3_RECHECK_FACT = PROJECT_ROOT / "machine/facts/stage_3_review_resume_recheck_state.json"
+STAGE4_NEXT_TASK = "TSK.x2n.multimodal.001"
 EXPECTED_SCOPE_IDS = [
     "xiaohongshu_favorites",
     "xiaohongshu_likes",
@@ -976,7 +980,9 @@ def validate_release_and_data_contracts() -> Check:
             "focused_27_tests_phase0_1_phase0_5_fresh_fast_lane_exact_9_of_9_three_expected_private_"
             "optional_skips_platform_model_real_account_calls_0"
         )
-    elif task010_state == "pass":
+        stage_4_authorized = False
+        task_state_mode = "task010_planned"
+    elif task010_state == "pass" and state.get("stage_gate") == "review_pending":
         _require(
             state.get("last_completed_phase") == "PH.X2N.3.10"
             and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK_PENDING"
@@ -991,12 +997,46 @@ def validate_release_and_data_contracts() -> Check:
             "pass_task010_eight_scope_extension_native_adapter_ci_synth_typed_capability_snapshot_"
             "failed_run_explicit_fallback_restart_migration_platform_model_real_account_calls_0"
         )
+        stage_4_authorized = False
+        task_state_mode = "task010_pending_g3_recheck"
+    elif task010_state == "pass" and state.get("stage_gate") == "pass":
+        recheck = _load_json(G3_RECHECK_FACT)
+        _require(
+            recheck.get("review_id") == TASK010_RECHECK
+            and recheck.get("run_id") == G3_RECHECK_RUN_ID
+            and recheck.get("gate", {}).get("id") == "G3"
+            and recheck.get("gate", {}).get("status") == "PASS_CI_SYNTH"
+            and recheck.get("gate", {}).get("decision") == "PASS"
+            and recheck.get("authorization", {}).get("stage_3_remote_upload") is False
+            and recheck.get("authorization", {}).get("stage_4_local_task_start") is True
+            and recheck.get("next_task", {}).get("id") == STAGE4_NEXT_TASK,
+            "G3 recheck fact is not a bounded local Stage 4 authorization",
+        )
+        _require(
+            state.get("last_completed_phase") == TASK010_RECHECK
+            and state.get("review_id") == TASK010_RECHECK
+            and state.get("run_id") == G3_RECHECK_RUN_ID
+            and state.get("next_run") == STAGE4_NEXT_TASK
+            and state.get("next_phase") == "PH.X2N.4.1"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_4_authorized") is True
+            and state.get("remote_upload") == "not_required_for_local_stage_transition",
+            "G3 pass did not produce the exact bounded Stage 4 routing",
+        )
+        expected_local_ci = (
+            "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_"
+            "technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_"
+            "reconciliation_platform_model_real_account_calls_0"
+        )
+        stage_4_authorized = True
+        task_state_mode = "g3_pass_stage4_local_next"
     else:
         raise ResumeError("Task010 current state is neither planned nor pass")
     _require(
         state.get("stage_3_remote_upload_authorized") is False
-        and state.get("stage_4_authorized") is False,
-        "Task010 state prematurely authorized a later stage",
+        and state.get("stage_4_authorized") is stage_4_authorized,
+        "Task010 state escaped its permitted stage transition",
     )
     _require(
         state.get("shared_github_auth_boundary")
@@ -1022,7 +1062,7 @@ def validate_release_and_data_contracts() -> Check:
             and "implementation_authorized: stage_3_task_010_next_single_phase_run" in prd_text,
             "PRFAQ/PRD planned Task010 authorization drifted",
         )
-    else:
+    elif task_state_mode == "task010_pending_g3_recheck":
         _require(
             "status: STAGE_3_TASK010_CI_SYNTH_PASS_G3_REVIEW_PENDING" in prfaq_text
             and "decision: DIRECT_MVP_TASK010_ACCEPTED_G3_RECHECK_NEXT" in prfaq_text
@@ -1031,6 +1071,16 @@ def validate_release_and_data_contracts() -> Check:
             and "current_run_scope: stage_3_task010_ci_synth_accepted_g3_recheck_pending" in prd_text
             and "implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run" in prd_text,
             "PRFAQ/PRD completed Task010 state drifted",
+        )
+    else:
+        _require(
+            "status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED" in prfaq_text
+            and "decision: DIRECT_MVP_G3_RECHECK_PASS_STAGE4_LOCAL_NEXT" in prfaq_text
+            and "implementation_authorized: stage_4_task_001_next_single_phase_run" in prfaq_text
+            and "status: STAGE_3_G3_PASS_STAGE_4_LOCAL_NEXT_AUTHORIZED" in prd_text
+            and "current_run_scope: stage_3_g3_recheck_pass_stage_4_task001_next" in prd_text
+            and "implementation_authorized: stage_4_task_001_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD G3-pass local Stage4 authorization drifted",
         )
     stale_active_status = (
         "stage_0_governance_preparation_only",
@@ -1439,9 +1489,14 @@ def validate_worktree() -> Check:
     )
 
 
-def _artifact_digests() -> dict[str, str]:
+def _artifact_digests(*, commit: str | None = None) -> dict[str, str]:
+    if commit is None:
+        return {
+            path.relative_to(PROJECT_ROOT).as_posix(): _sha256(path)
+            for path in EVIDENCE_DIGEST_PATHS
+        }
     return {
-        path.relative_to(PROJECT_ROOT).as_posix(): _sha256(path)
+        path.relative_to(PROJECT_ROOT).as_posix(): _sha256_bytes(_blob_at(commit, path))
         for path in EVIDENCE_DIGEST_PATHS
     }
 
@@ -1476,6 +1531,10 @@ def _verification_payload(checks: list[Check]) -> dict[str, Any]:
 
 
 def _write_evidence(checks: list[Check]) -> None:
+    _require(
+        _load_json(TASK_STATE).get("tasks", {}).get(NEXT_TASK) == "planned",
+        "Resume evidence is immutable after Task010 begins",
+    )
     VERIFICATION_EVIDENCE.parent.mkdir(parents=True, exist_ok=True)
     VERIFICATION_EVIDENCE.write_text(
         json.dumps(_verification_payload(checks), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -1486,6 +1545,10 @@ def _write_evidence(checks: list[Check]) -> None:
 def validate_verification_evidence() -> Check:
     _require(VERIFICATION_EVIDENCE.is_file(), "Resume verification evidence missing")
     evidence = _load_json(VERIFICATION_EVIDENCE)
+    _require(
+        VERIFICATION_EVIDENCE.read_bytes() == _blob_at(TASK010_BASE_COMMIT, VERIFICATION_EVIDENCE),
+        "Resume verification evidence was rewritten",
+    )
     _require(
         evidence.get("schema_version") == "1.1"
         and evidence.get("review_id") == REVIEW_ID
@@ -1516,8 +1579,8 @@ def validate_verification_evidence() -> Check:
     generated_at = datetime.fromisoformat(evidence.get("generated_at", ""))
     _require(generated_at.tzinfo is not None, "verification timestamp must be timezone-aware")
     _require(
-        evidence.get("artifact_digests") == _artifact_digests(),
-        "verification source artifact digest set is stale or incomplete",
+        evidence.get("artifact_digests") == _artifact_digests(commit=TASK010_BASE_COMMIT),
+        "verification source artifact digest set is not pinned to the Resume final commit",
     )
     recorded_checks = evidence.get("checks", [])
     names = [item.get("name") for item in recorded_checks]
@@ -1533,14 +1596,11 @@ def validate_verification_evidence() -> Check:
         for item in recorded_checks
         if item.get("name") == "bounded_fast_software_lane"
     )
-    lane_input_count, lane_input_manifest_sha256 = _source_manifest(_lane_input_paths())
     _require(
-        DEFAULT_LANE_REPORT.is_file()
-        and lane_details.get("lane_report_sha256") == _sha256(DEFAULT_LANE_REPORT)
-        and lane_details.get("source_files") == lane_input_count
-        and lane_details.get("source_manifest_sha256") == lane_input_manifest_sha256
+        lane_details.get("blocking_executions") == 9
+        and lane_details.get("blocking_failures") == 0
         and lane_details.get("remote_github_actions") == "NOT_RUN_LOCAL_BASELINE",
-        "recorded software lane is stale or detached from the current Resume source manifest",
+        "pinned Resume software lane receipt drifted",
     )
     return Check(
         "verification_evidence",
@@ -1616,7 +1676,11 @@ def main() -> int:
         return 1
     print(
         json.dumps(
-            _verification_payload(checks),
+            {
+                "checks": [item.name for item in checks],
+                "review_id": REVIEW_ID,
+                "status": "PASS_HISTORICAL_RESUME_CONTRACT",
+            },
             ensure_ascii=False,
             sort_keys=True,
         )

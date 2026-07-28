@@ -25,6 +25,7 @@ TASK_ID = "TSK.x2n.adapters.010"
 RUN_ID = "RUN-X2N-S03-A010"
 PHASE = "PH.X2N.3.10"
 TASK_BASE_COMMIT = "2e7de513f4d5d829c78a4d015aa2297575522434"
+TASK010_FINAL_COMMIT = "c528ff14836f116f624fa8b1ea63472a7f4b678f"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 RESUME_FACT = PROJECT_ROOT / "machine/facts/stage_3_review_resume_state.json"
@@ -169,13 +170,28 @@ def _load_task() -> dict[str, Any]:
     return matches[0]
 
 
+def _blob_at(commit: str, path: Path) -> bytes:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    result = subprocess.run(
+        ["git", "show", f"{commit}:{relative}"],
+        cwd=REPOSITORY_ROOT,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise VerificationError("Task010 historical source blob is missing")
+    return result.stdout
+
+
 def _source_receipt() -> str:
     digest = hashlib.sha256()
     for path in INPUT_RECEIPT_PATHS:
         _require(path.is_file(), "Task010 input receipt file is missing")
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(_blob_at(TASK010_FINAL_COMMIT, path))
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -184,10 +200,7 @@ def _changed_paths() -> list[str]:
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
     candidates: set[str] = set()
     for arguments in (
-        ("diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..HEAD"),
-        ("diff", "--name-only", "-z", "HEAD"),
-        ("diff", "--cached", "--name-only", "-z", "HEAD"),
-        ("ls-files", "--others", "--exclude-standard", "-z"),
+        ("diff", "--name-only", "-z", f"{TASK_BASE_COMMIT}..{TASK010_FINAL_COMMIT}"),
     ):
         candidates.update(path for path in _git(arguments).split("\0") if path)
     return sorted(candidates)
@@ -206,7 +219,7 @@ def _safety_scan(paths: Iterable[Path]) -> None:
         flags=re.IGNORECASE,
     )
     for path in paths:
-        text = path.read_text(encoding="utf-8", errors="replace")
+        text = _blob_at(TASK010_FINAL_COMMIT, path).decode("utf-8", errors="replace")
         _require(not any(item in text for item in forbidden_literals), "Task010 public boundary violated")
         _require(private_path.search(text) is None, "Task010 local path entered public source")
         _require(cdn.search(text) is None, "Task010 media CDN URL entered public source")
@@ -236,9 +249,28 @@ def validate_task_state_and_historical_resume() -> Check:
     _require(task.get("phase") == PHASE and task.get("status") == "completed", "Task010 is not completed")
     _require(task.get("acceptance_ids") == ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"], "Task010 acceptance IDs drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Task010 current state is not pass")
-    _require(state.get("last_completed_phase") == PHASE and state.get("run_id") == RUN_ID, "Task010 current run identity drifted")
-    _require(state.get("stage_gate") == "review_pending", "Task010 must await an independent G3 review")
-    _require(state.get("stage_3_remote_upload_authorized") is False and state.get("stage_4_authorized") is False, "Task010 authorized a later stage")
+    if state.get("stage_gate") == "review_pending":
+        _require(
+            state.get("last_completed_phase") == PHASE
+            and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK_PENDING"
+            and state.get("run_id") == RUN_ID
+            and state.get("stage_4_authorized") is False,
+            "Task010 pending-review state drifted",
+        )
+        current_stage = "review_pending"
+    else:
+        _require(
+            state.get("last_completed_phase") == "STG.X2N.3.REVIEW.RESUME.RECHECK"
+            and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK"
+            and state.get("run_id") == "RUN-X2N-S03-REVIEW-RESUME-RECHECK"
+            and state.get("stage_gate") == "pass"
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("next_run") == "TSK.x2n.multimodal.001",
+            "Task010 downstream G3 recheck state drifted",
+        )
+        current_stage = "pass_after_independent_g3_recheck"
+    _require(state.get("stage_3_remote_upload_authorized") is False, "Task010 authorized a remote upload")
     historical_task = resume.get("next_task", {})
     _require(
         historical_task.get("id") == TASK_ID
@@ -250,7 +282,7 @@ def validate_task_state_and_historical_resume() -> Check:
     return Check(
         "task_state_and_historical_resume_boundary",
         "PASS",
-        {"current_task": "pass", "historical_resume_task": "PLANNED", "stage_gate": "review_pending"},
+        {"current_task": "pass", "historical_resume_task": "PLANNED", "stage_gate": current_stage},
     )
 
 
@@ -395,7 +427,7 @@ def validate_worktree() -> Check:
     _require(_git(["branch", "--show-current"]) not in {"", "main"}, "Task010 must run in a non-main worktree")
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
+            ["git", "merge-base", "--is-ancestor", TASK010_FINAL_COMMIT, "HEAD"],
             cwd=REPOSITORY_ROOT,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
@@ -426,6 +458,10 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 
 def write_evidence(checks: Sequence[Check]) -> None:
     _require(all(check.status == "PASS" for check in checks), "cannot write failed Task010 evidence")
+    _require(
+        _load_json(TASK_STATE).get("stage_gate") == "review_pending",
+        "Task010 final evidence is immutable after the independent G3 recheck",
+    )
     payload = {
         "acceptance_ids": ["ACC.x2n.batch.002", "ACC.x2n.ext.003", "ACC.x2n.batch.001"],
         "acceptance_input_sha256": _source_receipt(),
@@ -462,6 +498,7 @@ def write_evidence(checks: Sequence[Check]) -> None:
 def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
+    _require(EVIDENCE.read_bytes() == _blob_at(TASK010_FINAL_COMMIT, EVIDENCE), "Task010 evidence was rewritten")
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "Task010 evidence identity drifted")
     _require(evidence.get("acceptance_input_sha256") == _source_receipt(), "Task010 evidence receipt is stale")
     _require(

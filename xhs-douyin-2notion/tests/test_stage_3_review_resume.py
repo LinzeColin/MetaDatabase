@@ -28,6 +28,9 @@ class Stage3ReviewResumeTests(unittest.TestCase):
         )
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
+    def test_historical_resume_evidence_remains_pinned_after_g3_recheck(self) -> None:
+        self.assertEqual(VERIFY.validate_verification_evidence().status, "PASS")
+
     def test_false_g3_pass_or_authorization_is_rejected(self) -> None:
         fact = json.loads(VERIFY.RESUME_FACT.read_text(encoding="utf-8"))
         promoted = copy.deepcopy(fact)

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 G3 Independent Recheck
+
+- 独立复验签发 `G3=PASS_CI_SYNTH`：Task010 八 scope Extension→Native→Adapter、完整 capability snapshot/技术 veto、Task005 空响应不删除与 Extension 100 次 restart reconciliation 均重新运行；真实平台调用、自动 fallback、上传、部署和发布均为 0/NOT_RUN。
+- 新增可复跑 G3 Run Contract、事实/schema、三份脱敏证据、独立 acceptance runner/negative verifier；首次 Review、Resume contract 和 Task010 final evidence 都以固定摘要/提交验证，不改写历史。
+- 只授权下一单本地 `TSK.x2n.multimodal.001 / PH.X2N.4.1`。最终仍直接走正式 MVP deploy/run/online smoke，不引入 Alpha、Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 3 / Adapters 010
 
 - 完成 `TSK.x2n.adapters.010 / PH.X2N.3.10` 的公开 CI synthetic 验收：严格八 scope Extension→Native→Adapter dispatch、versioned typed capability result、SQLite v3 derived snapshot、失败 `run_record`/脱敏 `run_failure` 与显式 Owner current-page fallback。

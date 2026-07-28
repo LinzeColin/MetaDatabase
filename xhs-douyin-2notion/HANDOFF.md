@@ -17,9 +17,9 @@
 - Stage 3 九个历史 Adapter Task `PH.X2N.3.1–3.9 / TSK.x2n.adapters.001–009` 与首次 `STG.X2N.3.REVIEW` 已完成公开合成复核；六项 finding 关闭，九个 Task runner 均 `PASS_CI_SYNTH_SCOPED`。
 - `STG.X2N.3.REVIEW.RESUME` 的合同版本化事实保持冻结：合法能力终态固定为 `READY_FOR_MVP_ACTIVATION` / `DISABLED_EXTERNAL_GATE`；Stage 3 只贡献 `PASS_CI_SYNTH_CONTRIBUTION`，真实激活与完整 `ACC.x2n.rel.006` 属于 Stage 6。它不是当前 G3 结论，旧 Evidence 不改写。
 - `TSK.x2n.adapters.010 / PH.X2N.3.10` 已完成 CI synthetic 验收：8 scope Extension→Native→Adapter dispatch、`run_record.failed`＋脱敏 `run_failure`、由 `fallback_eligible` 派生的 `FALLBACK_AVAILABLE`、失败 `GET_JOB` 保留 `job_id` 与第二次 Owner 当前页动作的新 `request_id`＋`fallback_from_job_id` 均已验证。Pydantic/JSON Schema/generated TypeScript/Extension 与 versioned migration 同步；自动 fallback 和真实平台调用均为 0。
-- 脱敏验收证据为 `evidence/adapters/TSK.x2n.adapters.010.json`：`PASS_CI_SYNTH_SCOPED_REVIEW_PENDING`，47 个 Python tests、8 个 scope dispatch、平台调用 0；它不授权 G3、上传或后续 Stage。
+- 脱敏验收证据为 `evidence/adapters/TSK.x2n.adapters.010.json`：`PASS_CI_SYNTH_SCOPED_REVIEW_PENDING`，47 个 Python tests、8 个 scope dispatch、平台调用 0；它是固定 Task010 历史 receipt，不被后续 G3 状态回写。
 - Review 关闭：Owner removed 终态、XHS envelope、Douyin 50 次真实子进程 Kill、private batch comparison/增量候选、A005 fixed-commit pin、同一批 80 Adapter 输入的 Canonical→Artifact→Markdown→Notion Mock/Outbox 真正跨层幂等。80 Artifact/Markdown/Notion Mock 与 160 Receipt 第二轮重复为 0，持久层 finding 0。
-- 首次 Review 的五个 blocker 证据保持不可变；Resume 已关闭其中三个合同/归属 blocker，Task010 已在 CI synthetic 范围内闭合剩余两个实现 blocker。当前 `G3=REVIEW_PENDING`，须独立复验；8 个真实 Canary/private Manifest/平台授权仍 `NOT_RUN`，但归属 Stage 6。
+- 首次 Review 的五个 blocker 证据保持不可变；Resume 已关闭其中三个合同/归属 blocker，Task010 已在 CI synthetic 范围内闭合剩余两个实现 blocker。独立 `STG.X2N.3.REVIEW.RESUME.RECHECK` 已重新复跑六项 G3 条件并签发 `G3=PASS_CI_SYNTH`；8 个真实 Canary/private Manifest/平台授权仍 `NOT_RUN`，但归属 Stage 6。
 - Release：不设置预发布阶段、固定 30 日健康观察或 soak；`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动 `assurance.005`。该任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`；合法外部门可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；上线后监控只触发修复、降级或回滚，不形成等待门。
 - Data：`X2N_DATA_ROOT` 是下载/执行/活跃 SQLite working copy 的本机易失工作区；目标为整根排除 Time Machine，但当前仍是历史逐子目录状态，本 Resume 未执行系统修改，`uxops.005` 将在 Owner 明确授权后实施/复验。本地 backup 不能满足 durability；耐久资产只经 `KMOS/KMDatabase/machine/tools/private_db_client.py ingest|get|list|verify` 写入 `LinzeColin/Private-Database` 的 `Private-MetaDatabase` area，并以 manifest `domain=xhs-douyin-2notion` 归属，禁止 clone。客户端拒绝直接 `.sqlite/.db` 且单对象上限 95 MiB，因此一致性 SQLite 快照必须封装为非运行时归档、≤90 MiB 分片，凭精确 domain restore manifest 做 SHA-256 重组和 integrity 恢复；area-global verify 仅为无路径披露 advisory；验证前标记 `durability_pending`。
 - Private DB client audit：当前源码 SHA-256 `8a26302c…c9ffa`；manifest SHA 幂等和 `verify` 都是全 area、`verify` 缺对象仍可能 exit 0 且会触及其他 domain 路径、`get` 会落临时文件、认证继承 `gh api` 环境。Task005 必须 domain-bound envelope、精确 x2n domain 逐对象 get/hash/restore、其他 domain 缺失不阻断且零路径披露、临时清理、opaque name、禁止 put/delete；显式授权后可让现有 authenticated session 仅经客户端使用，Token value contact 与 auth mutation 必须为 0，执行前重验 digest。删除只作用 active SQLite/派生 Sink，单调 deletion epoch/tombstone 防历史恢复复活；durable hard erase 需独立 Owner Private-Database 治理。本 Resume 仅只读源码/`--help`；“没有 authenticated session 或数据写入”是过程声明，不是离线 verifier 的独立观测。
@@ -50,7 +50,7 @@
 - Skeleton005 最终全量回归：六平台 80×2 的 80 Markdown/80 Notion Mock Pages/160 Outbox+Receipt 通过；partial file、invalid Frontmatter、dead link、CDN finding、duplicate Page、hash-noop replay request 与真实 Notion call 均为 0；175 个根测试 PASS（3 skip）、76 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 76.93%，33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。
 - Stage 2 Review 最终回归：186 个根测试 PASS（3 个固定可选 skip）、76 个 Companion tests PASS；两份独立 full lane 各 24/24 Blocking Gate PASS，coverage 均 76.93%，33 个依赖漏洞 0，65-member source candidate SHA 一致；实际 Python 3.12.13 与全部工具链版本匹配政策。
 - 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
-- 首次 Stage 3 Review 当时的 Gate 为 `G3=BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`；九个历史 Task 与 Review 只证明 CI-SYNTH/Mock/Chaos 范围，A005 的 80 条 Owner 真实验收只完成非执行工具，Owner Profile/private Manifest/真实链路与正式 Release 均未运行。Resume 当时闭合三项合同/归属 blocker；Task010 后的当前 Gate 以本文件前述 `G3=REVIEW_PENDING` 为准。
+- 首次 Stage 3 Review 当时的 Gate 为 `G3=BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`；九个历史 Task 与 Review 只证明 CI-SYNTH/Mock/Chaos 范围，A005 的 80 条 Owner 真实验收只完成非执行工具，Owner Profile/private Manifest/真实链路与正式 Release 均未运行。Resume 当时闭合三项合同/归属 blocker；当前 G3 只以本文件开头的新独立 recheck fact 为准。
 - 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown/Notion Mock 仅 CI-SYNTH scoped pass。
 - 六平台真实执行：全部 `UNKNOWN_DISABLED`、`BLOCKED_AUTH` 或 `BLOCKED_BUDGET`；六平台均仅 `current_page=CI_SYNTH_ONLY`；各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
 
@@ -161,8 +161,8 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 下一独立 Run 只能执行 `STG.X2N.3.REVIEW.RESUME.RECHECK`，消费 Task010 Evidence 复验 G3；不得夹带其他 DAG Task、上传 Stage 3 或进入 Stage 4。
-2. 复验必须独立确认 8 scope strict Extension→Native→Adapter allowlist dispatch、durable failed/run_failure＋派生 fallback affordance、保留 job_id 的失败响应与第二次独立 Owner 当前页动作，以及 contract/generated types/migration 一致；自动 fallback、真实平台调用和 live-support 误报必须为 0。
-3. 只有 G3 真正 PASS 后才允许上传 Stage 3 并开始 Stage 4 的下一单任务；直接 MVP 部署/运行/online smoke 仍严格位于最终 Stage 6 任务内。
+1. 下一独立 Run 只能执行 `TSK.x2n.multimodal.001 / PH.X2N.4.1`；不得夹带其他 DAG Task、Stage 3 上传、部署或发布。
+2. 开始前重跑 `scripts/verify_stage_3_review_resume_recheck.py --verify-worktree --require-evidence`，确保 G3 facts、历史摘要、Task010 final receipt 与三份当前 evidence 一致。
+3. G3 PASS 仅允许本地开始 Stage 4；直接 MVP 部署/运行/online smoke 仍严格位于最终 Stage 6 `assurance.005` 任务内，无 Alpha/Beta、固定观察或 soak。
 4. Owner Profile、真实账号和 Canary 仍属于 Stage 6 的逐平台有界激活；私有 Manifest 永不进 Git，不可获得授权或证据时使用 `DISABLED_EXTERNAL_GATE`，不得阻塞其他已就绪能力。
 5. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Profile/Runtime/越界写入命中立即 Fail Closed。
