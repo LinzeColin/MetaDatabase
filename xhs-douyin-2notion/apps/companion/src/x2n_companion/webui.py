@@ -27,6 +27,7 @@ from x2n_contracts import Classification, TaxonomyCategory
 from x2n_contracts.models import ClassificationCandidate, DecisionMode, ReviewStatus
 
 from .canonical_store import CanonicalStore, WriteDisposition
+from .lifecycle import LifecycleService
 from .operations import OperationsService
 from .runtime import X2NRuntimeError
 from .taxonomy import TaxonomyRegistry, TaxonomySnapshot
@@ -180,6 +181,7 @@ class LocalWebUI:
 
     def __init__(self, store: CanonicalStore) -> None:
         self._store = store
+        self._lifecycle = LifecycleService(store)
         self._operations = OperationsService(store)
         self._taxonomy = TaxonomyRegistry(store)
         self._csrf_token = secrets.token_urlsafe(32)
@@ -300,6 +302,21 @@ class LocalWebUI:
 
     def diagnostics(self) -> dict[str, Any]:
         return self._operations.diagnostic_bundle()
+
+    def lifecycle(self) -> dict[str, Any]:
+        """Safe read-only lifecycle state; every mutation remains CLI-gated."""
+
+        return {
+            "controls": {
+                "delete": "CLI_EXPLICIT_CONFIRMATION_REQUIRED",
+                "private_export": "CLI_EXPLICIT_CONFIRMATION_REQUIRED",
+                "restore": "CLI_EXPLICIT_CONFIRMATION_REQUIRED",
+                "runtime_wipe": "CLI_TWO_STEP_EXPLICIT_CONFIRMATION_REQUIRED",
+                "time_machine": "CLI_OWNER_CONFIRMATION_REQUIRED",
+            },
+            "lifecycle": self._lifecycle.status(),
+            "task_id": "TSK.x2n.uxops.005",
+        }
 
     def _category_from_payload(
         self,
@@ -469,7 +486,7 @@ def _document(csrf_token: str) -> bytes:
     <nav aria-label=\"Local WebUI sections\">
       <a href=\"#dashboard\">概览</a><a href=\"#sources\">来源</a><a href=\"#taxonomy\">分类</a>
       <a href=\"#review\">复核</a><a href=\"#jobs\">任务</a><a href=\"#sinks\">Sinks</a>
-      <a href=\"#models\">模型</a><a href=\"#diagnostics\">诊断</a>
+      <a href=\"#models\">模型</a><a href=\"#lifecycle\">生命周期</a><a href=\"#diagnostics\">诊断</a>
     </nav>
     <main>
       <section id=\"dashboard\" aria-labelledby=\"dashboard-title\"><h2 id=\"dashboard-title\">概览</h2><div class=\"panel\"></div></section>
@@ -479,6 +496,7 @@ def _document(csrf_token: str) -> bytes:
       <section id=\"jobs\" aria-labelledby=\"jobs-title\"><h2 id=\"jobs-title\">任务与失败状态</h2><div class=\"panel\"></div></section>
       <section id=\"sinks\" aria-labelledby=\"sinks-title\"><h2 id=\"sinks-title\">Markdown / Notion</h2><div class=\"panel\"></div></section>
       <section id=\"models\" aria-labelledby=\"models-title\"><h2 id=\"models-title\">模型预算</h2><div class=\"panel\"></div></section>
+      <section id=\"lifecycle\" aria-labelledby=\"lifecycle-title\"><h2 id=\"lifecycle-title\">本地生命周期与恢复</h2><div class=\"panel\"></div></section>
       <section id=\"diagnostics\" aria-labelledby=\"diagnostics-title\"><h2 id=\"diagnostics-title\">脱敏诊断</h2><div class=\"panel\"></div></section>
     </main>
   </body>
@@ -541,6 +559,7 @@ function renderJson(section, value) {
 function renderSources(value) { renderJson(document.querySelector('#sources'), value); }
 function renderSinks(value) { renderJson(document.querySelector('#sinks'), value); }
 function renderModels(value) { renderJson(document.querySelector('#models'), value); }
+function renderLifecycle(value) { renderJson(document.querySelector('#lifecycle'), value); }
 
 function renderDashboard(value) { renderJson(document.querySelector('#dashboard'), value); }
 
@@ -620,12 +639,12 @@ function renderDiagnostics(value) {
 
 async function boot() {
   try {
-    const [dashboard, sources, taxonomy, review, jobs, sinks, models, diagnostics] = await Promise.all([
+    const [dashboard, sources, taxonomy, review, jobs, sinks, models, lifecycle, diagnostics] = await Promise.all([
       get('/api/v2/dashboard'), get('/api/v2/sources'), get('/api/v2/taxonomy'), get('/api/v2/review'),
-      get('/api/v2/jobs'), get('/api/v2/sinks'), get('/api/v2/models'), get('/api/v2/diagnostics'),
+      get('/api/v2/jobs'), get('/api/v2/sinks'), get('/api/v2/models'), get('/api/v2/lifecycle'), get('/api/v2/diagnostics'),
     ]);
     renderDashboard(dashboard); renderSources(sources); renderTaxonomy(taxonomy); renderReview(review, taxonomy);
-    renderJobs(jobs); renderSinks(sinks); renderModels(models); renderDiagnostics(diagnostics);
+    renderJobs(jobs); renderSinks(sinks); renderModels(models); renderLifecycle(lifecycle); renderDiagnostics(diagnostics);
     status.textContent = '本机 Local WebUI 已连接。';
   } catch (error) { status.textContent = error.message; status.className = 'error'; }
 }
@@ -732,6 +751,7 @@ class _LocalWebUIHandler(BaseHTTPRequestHandler):
                 "/api/v2/jobs": lambda: {"jobs": self._app._store.local_ui_snapshot()["jobs"]},
                 "/api/v2/sinks": self._app.sinks,
                 "/api/v2/models": self._app.models,
+                "/api/v2/lifecycle": self._app.lifecycle,
                 "/api/v2/diagnostics": self._app.diagnostics,
             }
             if path == "/api/v2/diagnostics/export":

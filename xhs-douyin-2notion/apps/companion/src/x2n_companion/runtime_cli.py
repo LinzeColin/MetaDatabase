@@ -16,6 +16,16 @@ from .bilibili_selected import build_bilibili_canary_plan
 from .canonical_store import CanonicalStore
 from .douyin_adapter import build_douyin_canary_plan
 from .kuaishou_selected import build_kuaishou_canary_plan
+from .lifecycle import (
+    LIFECYCLE_DELETE_CONFIRMATION,
+    PRIVATE_EXPORT_CONFIRMATION,
+    PRIVATE_RESTORE_CONFIRMATION,
+    RUNTIME_WIPE_CONFIRMATION,
+    RUNTIME_WIPE_REQUEST_CONFIRMATION,
+    TIME_MACHINE_CONFIRMATION,
+    DigestPinnedPrivateDbClient,
+    LifecycleService,
+)
 from .media_safety import scan_persisted_scopes
 from .operations import RECOVERY_CONFIRMATION, OperationsService, build_local_doctor_probe
 from .ocr_vision import (
@@ -63,6 +73,7 @@ CLASSIFICATION_TASK_ID = "TSK.x2n.multimodal.005"
 RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
 WEBUI_TASK_ID = "TSK.x2n.uxops.003"
 OPERATIONS_TASK_ID = "TSK.x2n.uxops.004"
+LIFECYCLE_TASK_ID = "TSK.x2n.uxops.005"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -214,6 +225,95 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 **service.startup_recovery().safe_dict(),
             )
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Operations action")
+    if args.action == "lifecycle":
+        service = LifecycleService(_store(create=False))
+        if args.lifecycle_action == "status":
+            return _success(
+                "lifecycle_status",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_STATUS",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.status(),
+            )
+        if args.lifecycle_action == "recovery-plan":
+            return _success(
+                "lifecycle_recovery_plan",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_RECOVERY",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.recovery_plan(),
+            )
+        if args.lifecycle_action == "delete-preview":
+            return _success(
+                "lifecycle_delete_preview",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_DELETE",
+                task_id=LIFECYCLE_TASK_ID,
+                preview=service.delete_preview(target_kind=args.target_kind, target_key_private=args.target_key),
+            )
+        if args.lifecycle_action == "delete":
+            return _success(
+                "lifecycle_delete",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_DELETE",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.confirm_delete(
+                    target_kind=args.target_kind,
+                    target_key_private=args.target_key,
+                    confirmation=args.confirm,
+                ),
+            )
+        if args.lifecycle_action == "runtime-wipe-request":
+            return _success(
+                "lifecycle_runtime_wipe_request",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_DELETE",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.request_runtime_wipe(confirmation=args.confirm),
+            )
+        if args.lifecycle_action == "runtime-wipe-apply":
+            return _success(
+                "lifecycle_runtime_wipe_apply",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_DELETE",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.apply_verified_runtime_wipe(confirmation=args.confirm),
+            )
+        if args.lifecycle_action == "export":
+            if args.confirm != PRIVATE_EXPORT_CONFIRMATION:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Private lifecycle export requires explicit confirmation")
+            return _success(
+                "lifecycle_export_verified",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_EXPORT",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.export_and_verify(DigestPinnedPrivateDbClient.from_environment()),
+            )
+        if args.lifecycle_action == "restore":
+            return _success(
+                "lifecycle_restore_verified",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_RESTORE",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.restore_latest(
+                    DigestPinnedPrivateDbClient.from_environment(),
+                    confirmation=args.confirm,
+                ),
+            )
+        if args.lifecycle_action == "cleanup-expired":
+            return _success(
+                "lifecycle_cleanup_expired_workspaces",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_RETENTION",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.cleanup_expired_workspaces(),
+            )
+        if args.lifecycle_action == "time-machine-plan":
+            return _success(
+                "lifecycle_time_machine_plan",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_BACKUP_EXCLUSION",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.time_machine_plan(),
+            )
+        if args.lifecycle_action == "time-machine-exclusion":
+            return _success(
+                "lifecycle_time_machine_exclusion",
+                acceptance_scope="UXOPS_005_DURABLE_LIFECYCLE_BACKUP_EXCLUSION",
+                task_id=LIFECYCLE_TASK_ID,
+                **service.apply_time_machine_exclusion(confirmation=args.confirm),
+            )
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Lifecycle action")
     if args.action == "webui":
         if args.webui_action != "serve":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Local WebUI action")
@@ -411,6 +511,29 @@ def build_parser() -> argparse.ArgumentParser:
     operations_actions.add_parser("recovery-plan")
     startup_recovery = operations_actions.add_parser("startup-recovery")
     startup_recovery.add_argument("--confirm", required=True)
+    lifecycle = subparsers.add_parser("lifecycle")
+    lifecycle_actions = lifecycle.add_subparsers(dest="lifecycle_action", required=True)
+    lifecycle_actions.add_parser("status")
+    lifecycle_actions.add_parser("recovery-plan")
+    delete_preview = lifecycle_actions.add_parser("delete-preview")
+    delete_preview.add_argument("--target-kind", required=True, choices=("content", "relation", "sink", "runtime"))
+    delete_preview.add_argument("--target-key", required=True)
+    delete = lifecycle_actions.add_parser("delete")
+    delete.add_argument("--target-kind", required=True, choices=("content", "relation", "sink"))
+    delete.add_argument("--target-key", required=True)
+    delete.add_argument("--confirm", required=True, help=f"Required literal: {LIFECYCLE_DELETE_CONFIRMATION}")
+    wipe_request = lifecycle_actions.add_parser("runtime-wipe-request")
+    wipe_request.add_argument("--confirm", required=True, help=f"Required literal: {RUNTIME_WIPE_REQUEST_CONFIRMATION}")
+    wipe_apply = lifecycle_actions.add_parser("runtime-wipe-apply")
+    wipe_apply.add_argument("--confirm", required=True, help=f"Required literal: {RUNTIME_WIPE_CONFIRMATION}")
+    lifecycle_export = lifecycle_actions.add_parser("export")
+    lifecycle_export.add_argument("--confirm", required=True, help=f"Required literal: {PRIVATE_EXPORT_CONFIRMATION}")
+    lifecycle_restore = lifecycle_actions.add_parser("restore")
+    lifecycle_restore.add_argument("--confirm", required=True, help=f"Required literal: {PRIVATE_RESTORE_CONFIRMATION}")
+    lifecycle_actions.add_parser("cleanup-expired")
+    lifecycle_actions.add_parser("time-machine-plan")
+    time_machine = lifecycle_actions.add_parser("time-machine-exclusion")
+    time_machine.add_argument("--confirm", required=True, help=f"Required literal: {TIME_MACHINE_CONFIRMATION}")
     bilibili = subparsers.add_parser("bilibili")
     bilibili_actions = bilibili.add_subparsers(dest="bilibili_action", required=True)
     bilibili_canary_plan = bilibili_actions.add_parser("canary-plan")
@@ -489,6 +612,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.action == "reconcile"
         else OPERATIONS_TASK_ID
         if args.action == "operations"
+        else LIFECYCLE_TASK_ID
+        if args.action == "lifecycle"
         else WEBUI_TASK_ID
         if args.action == "webui"
         else TAOBAO_TASK_ID

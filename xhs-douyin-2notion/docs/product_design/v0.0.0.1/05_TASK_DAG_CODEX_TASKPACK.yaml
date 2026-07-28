@@ -2282,7 +2282,7 @@ tasks:
   title: Implement durable Private-MetaDatabase lifecycle, export, retention, tombstone and governed deletion controls
   stage: STG.X2N.5
   phase: PH.X2N.5.5
-  status: planned
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: physical local deletion and whole-root Time Machine exclusion each require explicit Owner confirmation at runtime; development uses synthetic data

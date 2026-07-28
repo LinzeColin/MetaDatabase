@@ -542,11 +542,73 @@ TAXONOMY_REVISIONS_DOWN = (
 )
 
 
+LIFECYCLE_TOMBSTONES_UP = (
+    """
+    CREATE TABLE lifecycle_state (
+        state_id INTEGER PRIMARY KEY CHECK(state_id = 1),
+        deletion_epoch INTEGER NOT NULL CHECK(deletion_epoch >= 0),
+        durability_state TEXT NOT NULL CHECK(durability_state IN ('durability_pending','durability_verified')),
+        latest_manifest_sha256 TEXT
+            CHECK(latest_manifest_sha256 IS NULL OR (length(latest_manifest_sha256) = 64
+                AND latest_manifest_sha256 NOT GLOB '*[^0-9a-f]*')),
+        updated_at TEXT NOT NULL
+    ) STRICT
+    """,
+    """
+    INSERT INTO lifecycle_state(state_id, deletion_epoch, durability_state, latest_manifest_sha256, updated_at)
+    VALUES (1, 0, 'durability_pending', NULL, '1970-01-01T00:00:00Z')
+    """,
+    """
+    CREATE TABLE lifecycle_tombstone (
+        tombstone_id TEXT PRIMARY KEY,
+        target_kind TEXT NOT NULL CHECK(target_kind IN ('content','relation','sink','runtime')),
+        target_key_private TEXT NOT NULL,
+        target_key_sha256 TEXT NOT NULL
+            CHECK(length(target_key_sha256) = 64 AND target_key_sha256 NOT GLOB '*[^0-9a-f]*'),
+        deletion_epoch INTEGER NOT NULL CHECK(deletion_epoch >= 1),
+        payload_json TEXT NOT NULL,
+        payload_sha256 TEXT NOT NULL
+            CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL,
+        UNIQUE(target_kind, target_key_private),
+        UNIQUE(deletion_epoch)
+    ) STRICT
+    """,
+    "CREATE INDEX idx_lifecycle_tombstone_epoch ON lifecycle_tombstone(deletion_epoch)",
+    """
+    CREATE TRIGGER lifecycle_epoch_monotonic
+    BEFORE UPDATE OF deletion_epoch ON lifecycle_state
+    WHEN NEW.deletion_epoch < OLD.deletion_epoch
+    BEGIN SELECT RAISE(ABORT, 'X2N_DELETION_EPOCH_REGRESSION'); END
+    """,
+    """
+    CREATE TRIGGER lifecycle_tombstone_no_update
+    BEFORE UPDATE ON lifecycle_tombstone
+    BEGIN SELECT RAISE(ABORT, 'X2N_LIFECYCLE_TOMBSTONE_APPEND_ONLY'); END
+    """,
+    """
+    CREATE TRIGGER lifecycle_tombstone_no_delete
+    BEFORE DELETE ON lifecycle_tombstone
+    BEGIN SELECT RAISE(ABORT, 'X2N_LIFECYCLE_TOMBSTONE_APPEND_ONLY'); END
+    """,
+)
+
+LIFECYCLE_TOMBSTONES_DOWN = (
+    "DROP TRIGGER IF EXISTS lifecycle_tombstone_no_delete",
+    "DROP TRIGGER IF EXISTS lifecycle_tombstone_no_update",
+    "DROP TRIGGER IF EXISTS lifecycle_epoch_monotonic",
+    "DROP INDEX IF EXISTS idx_lifecycle_tombstone_epoch",
+    "DROP TABLE lifecycle_tombstone",
+    "DROP TABLE lifecycle_state",
+)
+
+
 MIGRATIONS = (
     Migration(1, "canonical_core", CORE_UP, CORE_DOWN),
     Migration(2, "reliability_outbox_and_leases", RELIABILITY_UP, RELIABILITY_DOWN),
     Migration(3, "capability_dispatch_and_failure_recovery", CAPABILITY_DISPATCH_UP, CAPABILITY_DISPATCH_DOWN),
     Migration(4, "owner_taxonomy_revisions", TAXONOMY_REVISIONS_UP, TAXONOMY_REVISIONS_DOWN),
+    Migration(5, "lifecycle_tombstones_and_durability", LIFECYCLE_TOMBSTONES_UP, LIFECYCLE_TOMBSTONES_DOWN),
 )
 LATEST_SCHEMA_VERSION = MIGRATIONS[-1].version
 MIGRATION_SET_SHA256 = hashlib.sha256(

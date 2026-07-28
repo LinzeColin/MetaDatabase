@@ -69,6 +69,7 @@ CURRENT_PAGE_RESUME_VERSION = "orchestrator-1.0.0"
 CURRENT_PAGE_PLACEHOLDER_PROCESSOR = "x2n-canonical-placeholder"
 CURRENT_PAGE_PLACEHOLDER_VERSION = "placeholder-1.0.0"
 SCOPE_SYNC_RUN_KIND = "native_scope_dispatch_v1"
+LIFECYCLE_TOMBSTONE_KINDS = frozenset({"content", "relation", "sink", "runtime"})
 
 
 class WriteDisposition(str, Enum):
@@ -94,6 +95,44 @@ class BackupReceipt:
             "schema_version": self.schema_version,
             "size_bytes": self.size_bytes,
             "table_counts": dict(sorted(self.table_counts.items())),
+        }
+
+
+@dataclass(frozen=True)
+class LifecycleState:
+    """Private lifecycle state whose safe form contains no target identifiers."""
+
+    deletion_epoch: int
+    durability_state: str
+    latest_manifest_sha256: str | None
+    updated_at: str
+
+    def safe_dict(self) -> dict[str, Any]:
+        return {
+            "deletion_epoch": self.deletion_epoch,
+            "durability_state": self.durability_state,
+            "latest_manifest_sha256": self.latest_manifest_sha256,
+            "updated_at": self.updated_at,
+        }
+
+
+@dataclass(frozen=True)
+class LifecycleTombstone:
+    """Append-only logical delete record; private target keys never leave Runtime."""
+
+    tombstone_id: str
+    target_kind: str
+    target_key_private: str = field(repr=False)
+    target_key_sha256: str
+    deletion_epoch: int
+    created_at: str
+
+    def safe_dict(self) -> dict[str, Any]:
+        return {
+            "deletion_epoch": self.deletion_epoch,
+            "target_key_sha256": self.target_key_sha256,
+            "target_kind": self.target_kind,
+            "tombstone_id": self.tombstone_id,
         }
 
 
@@ -307,6 +346,12 @@ def _validate_media_timestamp(value: str, *, label: str) -> str:
 
 def _validate_sha256(value: str, *, label: str) -> str:
     if SHA256.fullmatch(value) is None:
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid")
+    return value
+
+
+def _validate_lifecycle_target(value: str, *, label: str) -> str:
+    if not isinstance(value, str) or not value or len(value) > 512 or "\x00" in value or "\n" in value:
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid")
     return value
 
@@ -546,6 +591,14 @@ class CanonicalStore:
             "SELECT payload_sha256, record_version FROM content WHERE content_key = ?",
             (content.content_key,),
         ).fetchone()
+        tombstone = connection.execute(
+            "SELECT 1 FROM lifecycle_tombstone WHERE target_kind = 'content' AND target_key_private = ?",
+            (content.content_key,),
+        ).fetchone()
+        if tombstone is not None and content.status.value != "deleted_by_user":
+            # Only an explicit future Owner lifecycle workflow may undo a logical
+            # deletion. Ordinary Adapter observations must not resurrect content.
+            return WriteDisposition.UNCHANGED
         if existing is not None and str(existing["payload_sha256"]) == payload_sha:
             return WriteDisposition.UNCHANGED
         if existing is not None and content.record_version <= int(existing["record_version"]):
@@ -2797,6 +2850,10 @@ class CanonicalStore:
                     "schema_version",
                     "status",
                     "state",
+                    "deletion_epoch",
+                    "durability_state",
+                    "target_kind",
+                    "tombstone_id",
                 }
             ]
             if not safe_columns:
@@ -3142,7 +3199,7 @@ class CanonicalStore:
             try:
                 connection.execute("BEGIN")
                 content_row = connection.execute(
-                    "SELECT payload_json FROM content WHERE content_key = ?",
+                    "SELECT payload_json FROM content WHERE content_key = ? AND status <> 'deleted_by_user'",
                     (content_key,),
                 ).fetchone()
                 relation_rows = connection.execute(
@@ -3209,7 +3266,7 @@ class CanonicalStore:
             try:
                 connection.execute("BEGIN")
                 content_rows = connection.execute(
-                    "SELECT content_key, payload_json FROM content ORDER BY content_key"
+                    "SELECT content_key, payload_json FROM content WHERE status <> 'deleted_by_user' ORDER BY content_key"
                 ).fetchall()
                 relation_rows = connection.execute(
                     """
@@ -3289,6 +3346,288 @@ class CanonicalStore:
                 return self._logical_digest(connection)
             finally:
                 connection.close()
+
+    @staticmethod
+    def _lifecycle_state_from_row(row: sqlite3.Row) -> LifecycleState:
+        manifest = row["latest_manifest_sha256"]
+        if manifest is not None:
+            _validate_sha256(str(manifest), label="latest_manifest_sha256")
+        state = str(row["durability_state"])
+        if state not in {"durability_pending", "durability_verified"}:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle durability state is invalid")
+        epoch = int(row["deletion_epoch"])
+        if epoch < 0:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle deletion epoch is invalid")
+        return LifecycleState(
+            deletion_epoch=epoch,
+            durability_state=state,
+            latest_manifest_sha256=None if manifest is None else str(manifest),
+            updated_at=str(row["updated_at"]),
+        )
+
+    @staticmethod
+    def _lifecycle_tombstone_from_row(row: sqlite3.Row) -> LifecycleTombstone:
+        kind = str(row["target_kind"])
+        if kind not in LIFECYCLE_TOMBSTONE_KINDS:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle tombstone kind is invalid")
+        target = _validate_lifecycle_target(str(row["target_key_private"]), label="lifecycle_target")
+        target_hash = _validate_sha256(str(row["target_key_sha256"]), label="lifecycle_target_sha256")
+        if hashlib.sha256(target.encode("utf-8")).hexdigest() != target_hash:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle tombstone target hash is invalid")
+        return LifecycleTombstone(
+            tombstone_id=_validate_token(str(row["tombstone_id"]), label="tombstone_id"),
+            target_kind=kind,
+            target_key_private=target,
+            target_key_sha256=target_hash,
+            deletion_epoch=int(row["deletion_epoch"]),
+            created_at=str(row["created_at"]),
+        )
+
+    def lifecycle_state(self) -> LifecycleState:
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    "SELECT deletion_epoch, durability_state, latest_manifest_sha256, updated_at "
+                    "FROM lifecycle_state WHERE state_id = 1"
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle state is unavailable")
+        return self._lifecycle_state_from_row(row)
+
+    def lifecycle_tombstones(self) -> tuple[LifecycleTombstone, ...]:
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    """
+                    SELECT tombstone_id, target_kind, target_key_private, target_key_sha256, deletion_epoch, created_at
+                    FROM lifecycle_tombstone ORDER BY deletion_epoch
+                    """
+                ).fetchall()
+            finally:
+                connection.close()
+        return tuple(self._lifecycle_tombstone_from_row(row) for row in rows)
+
+    def lifecycle_delete_preview(self, *, target_kind: str, target_key_private: str) -> dict[str, str | int | bool]:
+        if target_kind not in LIFECYCLE_TOMBSTONE_KINDS:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle target kind is invalid")
+        target = _validate_lifecycle_target(target_key_private, label="lifecycle_target")
+        target_hash = hashlib.sha256(target.encode("utf-8")).hexdigest()
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                existing = connection.execute(
+                    "SELECT 1 FROM lifecycle_tombstone WHERE target_kind = ? AND target_key_private = ?",
+                    (target_kind, target),
+                ).fetchone()
+                content_rows = relation_rows = pending_outbox = 0
+                if target_kind == "content":
+                    content_rows = int(
+                        connection.execute("SELECT COUNT(*) FROM content WHERE content_key = ?", (target,)).fetchone()[0]
+                    )
+                    relation_rows = int(
+                        connection.execute("SELECT COUNT(*) FROM user_relation WHERE content_key = ?", (target,)).fetchone()[0]
+                    )
+                    pending_outbox = int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM outbox_event WHERE content_key = ? AND status IN ('pending','leased')",
+                            (target,),
+                        ).fetchone()[0]
+                    )
+                elif target_kind == "relation":
+                    relation_rows = int(
+                        connection.execute("SELECT COUNT(*) FROM user_relation WHERE relation_key = ?", (target,)).fetchone()[0]
+                    )
+                elif target_kind == "sink":
+                    pending_outbox = int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM outbox_event WHERE content_key = ? AND status IN ('pending','leased')",
+                            (target,),
+                        ).fetchone()[0]
+                    )
+                elif target != "active_runtime":
+                    raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle runtime target is invalid")
+            finally:
+                connection.close()
+        return {
+            "already_tombstoned": existing is not None,
+            "content_rows": content_rows,
+            "durable_hard_erase": "UNSUPPORTED_OWNER_PRIVATE_DB_GOVERNANCE_REQUIRED",
+            "pending_outbox": pending_outbox,
+            "relation_rows": relation_rows,
+            "target_key_sha256": target_hash,
+            "target_kind": target_kind,
+        }
+
+    @staticmethod
+    def _tombstone_content(connection: sqlite3.Connection, content_key: str, *, now: str) -> None:
+        row = connection.execute(
+            "SELECT payload_json, record_version, status FROM content WHERE content_key = ?", (content_key,)
+        ).fetchone()
+        if row is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle content target does not exist")
+        if str(row["status"]) == "deleted_by_user":
+            return
+        try:
+            current = CanonicalContent.model_validate_json(str(row["payload_json"]))
+            candidate_data = current.model_dump(mode="json", by_alias=True)
+            candidate_data["record_version"] = max(int(row["record_version"]), current.record_version) + 1
+            candidate_data["status"] = "deleted_by_user"
+            candidate = CanonicalContent.model_validate_json(
+                json.dumps(candidate_data, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            )
+        except (TypeError, ValueError):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle content payload is invalid") from None
+        payload_json, payload_sha = _payload(candidate)
+        connection.execute(
+            """
+            UPDATE content SET record_version = ?, status = 'deleted_by_user', payload_json = ?, payload_sha256 = ?,
+                updated_at = ? WHERE content_key = ?
+            """,
+            (candidate.record_version, payload_json, payload_sha, now, content_key),
+        )
+
+    @staticmethod
+    def _tombstone_relation(connection: sqlite3.Connection, relation_key: str, *, now: str) -> None:
+        row = connection.execute(
+            "SELECT payload_json, status, confirmed_by FROM user_relation WHERE relation_key = ?", (relation_key,)
+        ).fetchone()
+        if row is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle relation target does not exist")
+        if str(row["status"]) == "removed" and str(row["confirmed_by"]) == "owner":
+            return
+        try:
+            current = UserRelation.model_validate_json(str(row["payload_json"]))
+            candidate_data = current.model_dump(mode="json", by_alias=True)
+            candidate_data["status"] = "removed"
+            candidate_data["confirmed_by"] = "owner"
+            candidate = UserRelation.model_validate_json(
+                json.dumps(candidate_data, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            )
+        except (TypeError, ValueError):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle relation payload is invalid") from None
+        payload_json, payload_sha = _payload(candidate)
+        connection.execute(
+            """
+            UPDATE user_relation SET status = 'removed', confirmed_by = 'owner', payload_json = ?, payload_sha256 = ?,
+                updated_at = ? WHERE relation_key = ?
+            """,
+            (payload_json, payload_sha, now, relation_key),
+        )
+
+    @staticmethod
+    def _tombstone_sink(connection: sqlite3.Connection, content_key: str, *, now: str) -> None:
+        existing = connection.execute("SELECT 1 FROM content WHERE content_key = ?", (content_key,)).fetchone()
+        if existing is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle sink target does not exist")
+        connection.execute(
+            """
+            UPDATE outbox_event SET status = 'cancelled', lease_id = NULL, lease_owner = NULL,
+                lease_expires_at = NULL, updated_at = ?
+            WHERE content_key = ? AND status IN ('pending', 'leased')
+            """,
+            (now, content_key),
+        )
+
+    def record_owner_tombstone(self, *, target_kind: str, target_key_private: str, now: str | None = None) -> LifecycleTombstone:
+        if target_kind not in LIFECYCLE_TOMBSTONE_KINDS:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle target kind is invalid")
+        target = _validate_lifecycle_target(target_key_private, label="lifecycle_target")
+        created_at = now or _now()
+        target_hash = hashlib.sha256(target.encode("utf-8")).hexdigest()
+        with self._transaction() as connection:
+            existing = connection.execute(
+                """
+                SELECT tombstone_id, target_kind, target_key_private, target_key_sha256, deletion_epoch, created_at
+                FROM lifecycle_tombstone WHERE target_kind = ? AND target_key_private = ?
+                """,
+                (target_kind, target),
+            ).fetchone()
+            if existing is not None:
+                return self._lifecycle_tombstone_from_row(existing)
+            state_row = connection.execute(
+                "SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1"
+            ).fetchone()
+            if state_row is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Lifecycle state is unavailable")
+            next_epoch = int(state_row["deletion_epoch"]) + 1
+            if target_kind == "content":
+                self._tombstone_content(connection, target, now=created_at)
+            elif target_kind == "relation":
+                self._tombstone_relation(connection, target, now=created_at)
+            elif target_kind == "sink":
+                self._tombstone_sink(connection, target, now=created_at)
+            elif target != "active_runtime":
+                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Lifecycle runtime target is invalid")
+            payload = {
+                "deletion_epoch": next_epoch,
+                "schema_version": "1.0",
+                "target_key_sha256": target_hash,
+                "target_kind": target_kind,
+            }
+            rendered = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            tombstone_id = f"tombstone_{uuid.uuid4().hex}"
+            connection.execute(
+                """
+                INSERT INTO lifecycle_tombstone(
+                    tombstone_id, target_kind, target_key_private, target_key_sha256, deletion_epoch,
+                    payload_json, payload_sha256, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    tombstone_id,
+                    target_kind,
+                    target,
+                    target_hash,
+                    next_epoch,
+                    rendered,
+                    hashlib.sha256(rendered.encode("utf-8")).hexdigest(),
+                    created_at,
+                ),
+            )
+            connection.execute(
+                """
+                UPDATE lifecycle_state SET deletion_epoch = ?, durability_state = 'durability_pending',
+                    latest_manifest_sha256 = NULL, updated_at = ? WHERE state_id = 1
+                """,
+                (next_epoch, created_at),
+            )
+        return LifecycleTombstone(
+            tombstone_id=tombstone_id,
+            target_kind=target_kind,
+            target_key_private=target,
+            target_key_sha256=target_hash,
+            deletion_epoch=next_epoch,
+            created_at=created_at,
+        )
+
+    def mark_durability_pending(self, *, now: str | None = None) -> LifecycleState:
+        observed_at = now or _now()
+        with self._transaction() as connection:
+            connection.execute(
+                """
+                UPDATE lifecycle_state SET durability_state = 'durability_pending', latest_manifest_sha256 = NULL,
+                    updated_at = ? WHERE state_id = 1
+                """,
+                (observed_at,),
+            )
+        return self.lifecycle_state()
+
+    def mark_durability_verified(self, manifest_sha256: str, *, now: str | None = None) -> LifecycleState:
+        verified_at = now or _now()
+        _validate_sha256(manifest_sha256, label="lifecycle_manifest_sha256")
+        with self._transaction() as connection:
+            connection.execute(
+                """
+                UPDATE lifecycle_state SET durability_state = 'durability_verified', latest_manifest_sha256 = ?,
+                    updated_at = ? WHERE state_id = 1
+                """,
+                (manifest_sha256, verified_at),
+            )
+        return self.lifecycle_state()
 
     def _backup_paths(self, backup_id: str) -> tuple[Path, Path]:
         _validate_token(backup_id, label="backup_id")
@@ -3498,6 +3837,160 @@ class CanonicalStore:
             if self.logical_digest() != receipt.logical_sha256:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored Store logical digest changed")
             return receipt
+        finally:
+            if temporary.exists():
+                temporary.unlink()
+
+    @staticmethod
+    def _verify_tombstone_application(connection: sqlite3.Connection) -> None:
+        rows = connection.execute(
+            "SELECT target_kind, target_key_private FROM lifecycle_tombstone ORDER BY deletion_epoch"
+        ).fetchall()
+        for row in rows:
+            kind = str(row["target_kind"])
+            target = str(row["target_key_private"])
+            if kind == "content":
+                state = connection.execute("SELECT status FROM content WHERE content_key = ?", (target,)).fetchone()
+                if state is None or str(state["status"]) != "deleted_by_user":
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored content tombstone was not applied")
+            elif kind == "relation":
+                state = connection.execute(
+                    "SELECT status, confirmed_by FROM user_relation WHERE relation_key = ?", (target,)
+                ).fetchone()
+                if state is None or str(state["status"]) != "removed" or str(state["confirmed_by"]) != "owner":
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored relation tombstone was not applied")
+            elif kind == "sink":
+                pending = connection.execute(
+                    "SELECT 1 FROM outbox_event WHERE content_key = ? AND status IN ('pending', 'leased')", (target,)
+                ).fetchone()
+                if pending is not None:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored sink tombstone was not applied")
+            elif kind not in {"sink", "runtime"}:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored lifecycle tombstone is invalid")
+
+    def restore_archival_snapshot(
+        self,
+        snapshot_path: Path,
+        *,
+        expected_database_sha256: str,
+        expected_logical_sha256: str,
+        expected_schema_version: int,
+        expected_deletion_epoch: int,
+    ) -> BackupReceipt:
+        """Replace the active DB only with a verified, current-epoch archive snapshot.
+
+        The caller is responsible for making the archive path a private, temporary
+        file below `X2N_DATA_ROOT`; this method refuses arbitrary external paths.
+        """
+
+        _validate_sha256(expected_database_sha256, label="archive_database_sha256")
+        _validate_sha256(expected_logical_sha256, label="archive_logical_sha256")
+        if not isinstance(expected_schema_version, int) or expected_schema_version < 1:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Archive schema version is invalid")
+        if not isinstance(expected_deletion_epoch, int) or expected_deletion_epoch < 0:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Archive deletion epoch is invalid")
+        try:
+            source_path = snapshot_path.resolve(strict=True)
+            source_path.relative_to(self.paths.data_root)
+        except (OSError, ValueError):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Archive snapshot is outside Private Runtime") from None
+        if source_path.is_symlink() or not source_path.is_file():
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Archive snapshot is unsafe")
+        self.paths.ensure_private_file(source_path)
+        if _file_sha256(source_path) != expected_database_sha256:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive snapshot hash is invalid")
+
+        source_uri = f"file:{quote(str(source_path))}?mode=ro"
+        source = sqlite3.connect(source_uri, uri=True, isolation_level=None)
+        source.row_factory = sqlite3.Row
+        try:
+            self._configure(source, writable=False)
+            if self._integrity(source) != HEALTHY_CHECKS:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive snapshot integrity is invalid")
+            if current_version(source) != expected_schema_version:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive snapshot schema is invalid")
+            if self._logical_digest(source) != expected_logical_sha256:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive snapshot logical digest is invalid")
+            state_row = source.execute(
+                "SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1"
+            ).fetchone()
+            if state_row is None or int(state_row["deletion_epoch"]) != expected_deletion_epoch:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive deletion epoch is invalid")
+            self._verify_tombstone_application(source)
+            counts = self._table_counts(source)
+        finally:
+            source.close()
+
+        temporary = self.paths.canonical_directory / f".canonical.archival-restore-{uuid.uuid4().hex}.sqlite"
+        try:
+            with self._file_lock(exclusive=True):
+                if self.paths.database.exists():
+                    current = self._open(writable=False)
+                    try:
+                        state_row = current.execute(
+                            "SELECT deletion_epoch FROM lifecycle_state WHERE state_id = 1"
+                        ).fetchone()
+                        if state_row is None:
+                            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current lifecycle state is unavailable")
+                        if expected_deletion_epoch < int(state_row["deletion_epoch"]):
+                            raise X2NRuntimeError(
+                                ErrorCode.POLICY_BLOCKED,
+                                "Archive restore would regress the deletion epoch",
+                            )
+                    finally:
+                        current.close()
+                source = sqlite3.connect(source_uri, uri=True, isolation_level=None)
+                destination = sqlite3.connect(temporary, isolation_level=None)
+                try:
+                    source.backup(destination)
+                    destination.row_factory = sqlite3.Row
+                    if self._integrity(destination) != HEALTHY_CHECKS:
+                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive restore candidate is invalid")
+                    if current_version(destination) != expected_schema_version:
+                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive restore schema changed")
+                    if self._logical_digest(destination) != expected_logical_sha256:
+                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive restore logical digest changed")
+                    self._verify_tombstone_application(destination)
+                finally:
+                    destination.close()
+                    source.close()
+                temporary.chmod(0o600)
+                descriptor = os.open(temporary, os.O_RDONLY)
+                try:
+                    os.fsync(descriptor)
+                finally:
+                    os.close(descriptor)
+                if self.paths.database.exists():
+                    current = self._open(writable=True)
+                    try:
+                        current.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+                    finally:
+                        current.close()
+                for suffix in ("-wal", "-shm"):
+                    sidecar = Path(str(self.paths.database) + suffix)
+                    if sidecar.exists():
+                        sidecar.unlink()
+                os.replace(temporary, self.paths.database)
+                self.paths.database.chmod(0o600)
+                restored = self._open(writable=True)
+                try:
+                    if self._integrity(restored) != HEALTHY_CHECKS:
+                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive restored Store is invalid")
+                    if self._logical_digest(restored) != expected_logical_sha256:
+                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Archive restored Store changed")
+                    self._verify_tombstone_application(restored)
+                    restored.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+                finally:
+                    restored.close()
+                self._secure_sqlite_files()
+            return BackupReceipt(
+                backup_id=f"archive_{expected_database_sha256[:24]}",
+                database_sha256=expected_database_sha256,
+                logical_sha256=expected_logical_sha256,
+                schema_version=expected_schema_version,
+                size_bytes=source_path.stat().st_size,
+                table_counts=counts,
+            )
         finally:
             if temporary.exists():
                 temporary.unlink()

@@ -45,6 +45,7 @@ REQUIRED_DIRECTORIES = (
     "runtime/library/categories",
     "runtime/logs",
     "runtime/diagnostics",
+    "runtime/lifecycle",
     "runtime/backups",
     "runtime/models",
     "runtime/provider_cache",
