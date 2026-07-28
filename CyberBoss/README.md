@@ -45,6 +45,19 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   证据在 `docs/evidence/CB-840/` 与 `docs/evidence/PG-8/`；
   可追溯矩阵 `machine/facts/traceability_matrix.csv`，
   清单 `docs/evidence/CB-840/MANIFEST.sha256.json`。
+  **叠加层已接进主链路，还剩 4 项接线。** `machine/overlay_map.json` 的策略是
+  `additive_overlay_then_anchor_based_integration`——两半。前一半（叠加式模块 + 证明）
+  在 PG-8 已封；后一半（在锚点上真正接进运行中的程序）当时没做，这一点原样记在
+  `docs/evidence/PG-8/integration-gap.json`。现已完成：入站消息、普通用户模型通路、
+  Owner 能力边界、canonical 写入、设置页面与运维投影都接上了。以运维实际执行的入口
+  `bin/cyberboss.js` 做传递闭包实测：**36 个 v0.0.0.8 模块中 29 个进入 live require
+  图，此前是 0**；每条真实入站消息都会解析出 server-owned `UserContext`。仍未接线的
+  4 个是 `users/scoped-repository`、`analytics/activity-aggregator`、
+  `companion/user-companion-service`、`checkin/deterministic-checkin`；另有 3 个
+  （`backup/dual-copy-receipt`、`release/request-count-canary`、
+  `ops/operator-dispatcher`）仍是 `activation_pending`，原因与 PG-8 已记录的一致——
+  缺凭据或缺授权目标机。全部数字重新实测，账本在
+  `docs/evidence/PG-8/integration-closure.json`。
 - 上一 Run：`CB-830`。干净安装契约、请求数 Canary、回滚与 Owner 单命令生命周期。
   Canary 只看请求数不看时间：oracle 里没有任何计时调用，唯一一次取时间是决策做完之后
   盖收据；样本不够时给的是"还差几个请求"而不是"再等几分钟"，同一样本重算结果完全一致。

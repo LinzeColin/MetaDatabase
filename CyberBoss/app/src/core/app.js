@@ -57,6 +57,7 @@ const { UserAdmissionService } = require("./user-admission");
 const { UserTurnRuntime } = require("./user-turn-runtime");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
 const { SetupPortal } = require("../services/portal/setup-portal");
+const { buildPortalHandlers } = require("../services/portal/portal-handlers");
 const { runSystemCheckinPoller } = require("../app/system-checkin-poller");
 const { createProjectTooling } = require("../tools/create-project-tooling");
 const { WorkspaceRegistryError } = require("./workspace-registry");
@@ -227,6 +228,12 @@ class CyberbossApp {
             database: this.runtimeSpoolDatabase.database,
             allowedOrigins: [this.config.portalOrigin],
             userRepository: this.userAdmission.users,
+            handlers: buildPortalHandlers({
+              database: this.runtimeSpoolDatabase.database,
+              vault: this.userTurnRuntime.vault,
+              userRepository: this.userAdmission.users,
+              providerPolicies: this.userTurnRuntime.policies,
+            }),
           });
         }
         this.userTurnRuntime = new UserTurnRuntime({
@@ -383,6 +390,7 @@ class CyberbossApp {
       return projectLiveStatus({
         facts: this.collectStatusFacts(),
         restartHistory: this.runtimeRestartTimestamps || [],
+        ...this.collectModelUsageRows(),
       });
     } catch (error) {
       // A projection that cannot be built is reported as a projection failure,
@@ -391,6 +399,43 @@ class CyberbossApp {
         status: null,
         error_code: normalizeErrorCode(error?.code) || "status_projection_failed",
       });
+    }
+  }
+
+  // Usage and circuit rows for AC-048, aggregated by provider. The SQL sums
+  // across users so no per-user row ever leaves the database for Status.
+  collectModelUsageRows() {
+    if (!this.runtimeSpoolDatabase) {
+      return { usageRows: [], circuitRows: [] };
+    }
+    try {
+      return {
+        usageRows: this.runtimeSpoolDatabase.database
+          .prepare(
+            `SELECT provider_id AS providerId,
+                    SUM(reserved_tokens) AS reservedTokens,
+                    SUM(charged_tokens) AS chargedTokens
+             FROM model_token_usage_daily
+             GROUP BY provider_id`,
+          )
+          .all()
+          .map((row) => ({
+            providerId: row.providerId,
+            reservedTokens: Number(row.reservedTokens) || 0,
+            chargedTokens: Number(row.chargedTokens) || 0,
+          })),
+        circuitRows: this.runtimeSpoolDatabase.database
+          .prepare(
+            `SELECT provider_id AS providerId, state
+             FROM provider_circuits
+             WHERE scope='global'`,
+          )
+          .all()
+          .map((row) => ({ providerId: row.providerId, state: row.state })),
+      };
+    } catch {
+      // A counter that cannot be read is omitted, never guessed at.
+      return { usageRows: [], circuitRows: [] };
     }
   }
 

@@ -1,0 +1,90 @@
+{
+  "schema_version": "cyberboss.pg8.integration-closure.v1",
+  "closes": "docs/evidence/PG-8/integration-gap.json",
+  "recorded_at_commit": "473057aaf719505e1ab5ff57a18ef5ed9ad833ae",
+  "status": "partially_closed",
+  "summary": "The anchor half of machine/overlay_map.json's additive_overlay_then_anchor_based_integration has been performed for the live message path, the ordinary-user model path, the Owner capability boundary, the canonical write path, the setup portal and the operations projection. Seven of thirty-six modules remain outside the live require graph and are named individually below. Nothing here is claimed as done that was not measured.",
+  "measurement": {
+    "method": "transitive require-graph walk from bin/cyberboss.js, the entrypoint the operator runs, excluding test/ which is not an entrypoint",
+    "script": "recomputed at closure time; the walk resolves every relative require and follows it",
+    "before": {
+      "modules_reachable_from_the_entrypoint": 0,
+      "user_context_mentions_in_the_live_app": 0,
+      "admission_runs_on_a_real_inbound_message": false
+    },
+    "after": {
+      "modules_in_the_live_require_graph": 99,
+      "v8_modules_reachable_from_the_entrypoint": "29/36",
+      "user_context_mentions_in_src_core_app_js": 16,
+      "admission_runs_on_a_real_inbound_message": true
+    }
+  },
+  "what_is_now_live": {
+    "inbound_admission": "src/core/app.js#handleIncomingMessage resolves a server-owned UserContext from the bot account and sender before any command is parsed, any workspace is bound or any runtime is reached. An unknown sender gets the invite prompt; a pending sender gets consent; a suspended or deleting user is refused. Every pre-active reply costs zero model calls, and that count is asserted by driving a real message through the real method.",
+    "ordinary_user_model_path": "src/core/user-turn-runtime.js assembles the CB-700 stack — credential vault, budget guard, circuit breaker, provider router, controller, fair queue — and runs an ordinary user's turn through it. The Owner runtime adapters are never reached on this path.",
+    "owner_boundary": "dispatchPreparedTurn refuses a turn that reaches the Owner runtime without an Owner context, and tool-host.js consults the active runtime context when an MCP tool call carries none of its own. Both are refusals, not downgrades.",
+    "channel_allowlist": "with admission on, CYBERBOSS_ALLOWED_USER_IDS stops being a channel filter and becomes the Owner set. The 32 KiB input limit still applies to every sender.",
+    "setup_page": "「设置」 mints a single-use 15-minute token, puts it in the URL fragment so it never reaches a server or proxy access log, and the SetupPortal's nine frozen actions are bound to the real vault, profile store, exporter, deletion planner and import ledger.",
+    "canonical_write_path": "canonical-sync.js runs the envelope's own forbidden-field and secret-value scan before an event can be staged. It calls that scan rather than reimplementing the rule.",
+    "operations": "doctor prints the fourteen-line business matrix, the resource gate verdict measured from the host, the self-heal decision and the eleven zero-agent counters. A dependency that is genuinely unconfigured reports activation_pending with a reason code."
+  },
+  "still_not_reachable_from_the_entrypoint": [
+    {
+      "module": "users/scoped-repository",
+      "reason": "wiring not performed",
+      "note": "the user-scoped timeline, diary and reminder reads still run on the pre-existing single-user services. UserScopedRepository is proved at CB-630 but nothing on the live path constructs one yet."
+    },
+    {
+      "module": "analytics/activity-aggregator",
+      "reason": "wiring not performed",
+      "note": "no scheduled analytics pass exists on the live path."
+    },
+    {
+      "module": "companion/user-companion-service",
+      "reason": "wiring not performed",
+      "note": "the companion loop is not started; an ordinary user's turn is answered by the provider without it."
+    },
+    {
+      "module": "checkin/deterministic-checkin",
+      "reason": "wiring not performed",
+      "note": "the existing check-in poller is the Owner's; the per-user deterministic check-in is not scheduled."
+    },
+    {
+      "module": "backup/dual-copy-receipt",
+      "reason": "activation_pending",
+      "note": "needs a real Cloudflare R2 bucket credential and a real OCI pre-authenticated request. Already carried as activation_pending by PG-8; unchanged."
+    },
+    {
+      "module": "release/request-count-canary",
+      "reason": "activation_pending",
+      "note": "operates on the authorised target host during a release. Already carried as activation_pending by PG-8; unchanged."
+    },
+    {
+      "module": "ops/operator-dispatcher",
+      "reason": "activation_pending",
+      "note": "runs as uid 0 from /usr/local/sbin/cyberbossctl on the target host, deliberately not from the app process. Already carried as activation_pending by PG-8; unchanged."
+    }
+  ],
+  "accounting": {
+    "unreachable_because_wiring_is_outstanding": 4,
+    "unreachable_because_a_credential_or_the_target_host_is_absent": 3,
+    "note": "the three credential-blocked modules were already outstanding before this work and are not newly claimed. The four wiring items are the honest remainder of the anchor half."
+  },
+  "verification_performed": {
+    "app_suite": "497 pass / 0 fail (474 before the integration, 489 after the first anchor, 497 after the portal handlers)",
+    "npm_run_check": "PASS",
+    "new_suites": [
+      "test/inbound-user-admission-e2e.test.js — drives a simulated inbound WeChat message through CyberbossApp#handleIncomingMessage against a real SQLite runtime database and counts provider and Owner-runtime calls",
+      "test/portal-handlers-e2e.test.js — takes the single-use link, exchanges it for a session, saves a real key through the production SetupPortal, and asserts the same user's next turn reaches that provider"
+    ],
+    "live_boot": "a fresh state directory applies migrations 1-7, derives the Owner user id, and takes a stranger through invite -> consent -> scoped user with may(codex.turn) === false. doctor emits fourteen business lines and model_calls 0.",
+    "counts_are_measured_not_declared": "every count in this file was recomputed at closure time; none is restated from a summary."
+  },
+  "what_this_does_not_claim": {
+    "product_acceptance": "PG-8 remains CONDITIONAL_PASS. AC-035, AC-039, AC-040 and AC-050 are still outstanding for the same reason as before: the credentials and the authorised target host are not in scope here.",
+    "ac_039": "still no part of it is claimed. Two real WeChat senders have never registered against a real channel credential.",
+    "live_provider_activation": "no real BYOK provider key has been exercised against a real provider endpoint. The provider path is proved against a fake transport that records the origin and the authorization header.",
+    "target_environment": "no code in this Subject has run on the authorised OVH target."
+  },
+  "recorded_because": "the goal directive forbids 伪完成. The gap file said the overlay was built but not live; this file says exactly how much of it is live now, and names what still is not."
+}

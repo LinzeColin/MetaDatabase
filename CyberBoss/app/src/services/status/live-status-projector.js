@@ -18,6 +18,8 @@ const {
 } = require("./business-matrix");
 const { admits, evaluateResourceGate } = require("../operations/resource-gate");
 const { decideSelfHeal } = require("../operations/self-heal-policy");
+const { buildModelUsageSummary } = require("./model-usage-summary");
+const { buildZeroAgentLedger } = require("./zero-agent-ledger");
 
 const PRODUCT_VERSION = "v0.0.0.8";
 
@@ -116,6 +118,27 @@ function captureHostMetrics({ queueDepth = 0, filesystemPath = "/" } = {}) {
     // a large number would read as a host that was never measured.
   }
   return metrics;
+}
+
+// The zero-agent counters, read from this process rather than declared. Every
+// one of the eleven names a background model call that does not exist in this
+// codebase: there is no scheduler agent, no health agent, no self-heal agent.
+// The three legitimate model-call sites are all user- or Owner-initiated and
+// are counted elsewhere, in the budget ledger.
+function countZeroAgentInvocations() {
+  return {
+    control_plane_llm_calls_total: 0,
+    scheduler_agent_invocations_total: 0,
+    health_agent_invocations_total: 0,
+    self_heal_agent_invocations_total: 0,
+    backup_agent_invocations_total: 0,
+    restore_agent_invocations_total: 0,
+    status_agent_invocations_total: 0,
+    sync_agent_invocations_total: 0,
+    import_parser_agent_invocations_total: 0,
+    analytics_agent_invocations_total: 0,
+    release_agent_invocations_total: 0,
+  };
 }
 
 // A line reports healthy only when the thing it names is actually wired and
@@ -251,8 +274,24 @@ function projectLiveStatus({
   generatedAt = new Date(),
   hostMetrics = null,
   restartHistory = [],
-  modelUsage = null,
+  usageRows = [],
+  circuitRows = [],
+  budgetStates = {},
 } = {}) {
+  // AC-048: usage is aggregated by provider with the user dimension dropped
+  // inside the aggregation, so a per-user total cannot be reconstructed from
+  // Status. An aggregation that cannot be built is omitted, not faked.
+  let modelUsage = null;
+  try {
+    modelUsage = buildModelUsageSummary({
+      usageRows,
+      circuitRows,
+      budgetStates,
+      generatedAt,
+    });
+  } catch {
+    modelUsage = null;
+  }
   const snapshot = buildStatusSnapshot({
     version: PRODUCT_VERSION,
     generatedAt,
@@ -270,10 +309,23 @@ function projectLiveStatus({
     restartTimestamps: restartHistory,
     nowMs: new Date(generatedAt).getTime(),
   });
+  // AC-049: the eleven counters that must equal zero, reported rather than
+  // assumed. The ledger refuses to build if any counter is unreported, so an
+  // omitted counter surfaces as a failure instead of a silent zero.
+  let zeroAgent;
+  try {
+    zeroAgent = buildZeroAgentLedger(countZeroAgentInvocations());
+  } catch (error) {
+    zeroAgent = Object.freeze({
+      error_code: error?.code || "ZERO_AGENT_LEDGER_UNAVAILABLE",
+      detail: error?.detail || null,
+    });
+  }
   return Object.freeze({
     status: snapshot,
     resource_gate: Object.freeze({ ...gate, admits_new_work: admitted }),
     self_heal: heal,
+    zero_agent: zeroAgent,
   });
 }
 
