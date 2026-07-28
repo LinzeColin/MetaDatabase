@@ -101,6 +101,7 @@ class PortalHttpServer {
     adminToken = "",
     adminOverview = null,
     adminInvite = null,
+    adminOwnerClaim = null,
     logger = console,
   }) {
     if (!portal || typeof portal.handle !== "function") {
@@ -113,6 +114,7 @@ class PortalHttpServer {
     this.adminToken = typeof adminToken === "string" ? adminToken : "";
     this.adminOverview = adminOverview;
     this.adminInvite = adminInvite;
+    this.adminOwnerClaim = adminOwnerClaim;
     this.logger = logger;
     this.server = null;
   }
@@ -205,6 +207,14 @@ class PortalHttpServer {
       }
       if (name === "invite" && request.method === "POST" && typeof this.adminInvite === "function") {
         this.#json(response, 200, await this.adminInvite());
+        return;
+      }
+      if (
+        name === "owner-claim"
+        && request.method === "POST"
+        && typeof this.adminOwnerClaim === "function"
+      ) {
+        this.#json(response, 200, await this.adminOwnerClaim());
         return;
       }
     } catch (error) {

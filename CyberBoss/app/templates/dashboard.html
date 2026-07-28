@@ -52,6 +52,12 @@
     <div class="stat"><b id="s-uptime">–</b><span>已连续运行</span></div>
   </div>
 
+  <h2>把我的微信绑成主人</h2>
+  <p class="hint" style="margin:0 0 10px">机器人只听主人的。点一下拿到认领码，用你平时那个微信发给机器人，那个号就是主人了。只需要做一次。</p>
+  <button class="primary" id="mkowner">生成主人认领码</button>
+  <div class="code" id="ownercode" hidden></div>
+  <p class="hint" id="ownercode-hint" hidden>把上面这一串，用你自己的微信发给机器人。只能用一次，30 分钟内有效。</p>
+
   <h2>加人</h2>
   <button class="primary" id="mk">生成一个邀请码</button>
   <div class="code" id="code" hidden></div>
@@ -133,6 +139,29 @@
           : "请用完整的后台链接打开（末尾带 #k=…… 那一段）。");
       });
   }
+
+  function wireCodeButton(buttonId, boxId, hintId, url, busyLabel, againLabel) {
+    document.getElementById(buttonId).addEventListener("click", function () {
+      var button = this;
+      var original = button.textContent;
+      button.disabled = true; button.textContent = busyLabel;
+      fetch(url, { method: "POST", headers: authed(), credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          button.disabled = false; button.textContent = data.code ? againLabel : original;
+          var box = document.getElementById(boxId);
+          box.textContent = data.code || "（生成失败，稍后再试）";
+          box.hidden = false;
+          document.getElementById(hintId).hidden = !data.code;
+        })
+        .catch(function () {
+          button.disabled = false; button.textContent = original;
+        });
+    });
+  }
+
+  wireCodeButton("mkowner", "ownercode", "ownercode-hint", "/admin/api/owner-claim",
+    "正在生成……", "再生成一个");
 
   document.getElementById("mk").addEventListener("click", function () {
     var button = this;

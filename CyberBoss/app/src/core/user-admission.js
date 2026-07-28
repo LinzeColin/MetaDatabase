@@ -11,11 +11,15 @@
 // resolved. Nothing in a message body can name a user, widen a role or skip a
 // state — the text is only ever compared against the frozen Chinese commands.
 
-const { createHmac } = require("node:crypto");
+const { createHmac, timingSafeEqual } = require("node:crypto");
 
 const { buildSecureSetupLink } = require("../services/security/secure-setup-link");
 const { SqliteSetupTokenService } = require("../services/security/setup-token-service");
-const { SqliteInviteCodeStore } = require("../services/users/invite-code-store");
+const {
+  SqliteInviteCodeStore,
+  generateCode,
+  normalizeCode,
+} = require("../services/users/invite-code-store");
 const { ACTIONS, COMMANDS, MESSAGES } = require("../services/users/onboarding-state");
 const {
   DEFAULT_POLICY_VERSION,
@@ -37,6 +41,9 @@ const OWNER_COMMANDS = Object.freeze({
   STATUS: ["状态", "运行状况", "还好吗"],
 });
 const HELP_COMMANDS = Object.freeze(["帮助", "help", "怎么用", "你能做什么"]);
+// 主人认领码。存在 service_state 里：明文永不落库，只留 HMAC 摘要和过期时间。
+const OWNER_CLAIM_STATE_KEY = "owner_claim";
+const OWNER_CLAIM_TTL_MS = 30 * 60 * 1000;
 const RESERVED_INPUTS = Object.freeze([
   ...Object.values(COMMANDS),
   SETUP_COMMAND,
@@ -158,6 +165,9 @@ class UserAdmissionService {
     });
     this.portalOrigin = normalizeText(portalOrigin);
     this.setupTokens = new SqliteSetupTokenService({ database });
+    this.now = now;
+    // 和邀请码同样的做法：从 owner-only 的身份密钥派生，不新增任何密钥文件。
+    this.ownerClaimSecret = deriveSubKey(identityKey, "cyberboss-owner-claim-secret");
   }
 
   // CB-620 / AC-011 on the live path: 「设置」 mints a single-use, 15-minute
@@ -200,6 +210,77 @@ class UserAdmissionService {
   // binding, `#ownerPrincipalBound` then sees it, and every later sender goes
   // through invite and consent like anyone else. It never reopens, because the
   // binding is durable and this checks the database rather than a flag.
+  #hashOwnerClaim(code) {
+    return createHmac("sha256", this.ownerClaimSecret)
+      .update("cyberboss-owner-claim")
+      .update(normalizeCode(code))
+      .digest("hex");
+  }
+
+  // 后台生成的一次性认领码。授权来自后台令牌——那是只有服务器管理者才拿得到
+  // 的东西——所以这条路径不会把主人身份交给一个陌生人。
+  //
+  // 它补的是一个真实的死局：主人用自己的微信当了机器人号，那个号的 id 永远
+  // 不会作为"发件人"出现，于是主人永远绑不上；而 ownerSenderIds 一旦有值，
+  // 先到先得的认领窗口又是关着的。结果是谁都成不了主人，机器人对每个人都回
+  // 一句"这个操作只有管理员可以使用"。
+  issueOwnerClaim({ ttlMs = OWNER_CLAIM_TTL_MS } = {}) {
+    const code = generateCode();
+    const expiresAt = this.now().getTime() + ttlMs;
+    this.users.database
+      .prepare(
+        `INSERT INTO service_state (key, value_redacted_json, value_sha256, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET
+           value_redacted_json=excluded.value_redacted_json,
+           value_sha256=excluded.value_sha256,
+           updated_at=excluded.updated_at`,
+      )
+      .run(
+        OWNER_CLAIM_STATE_KEY,
+        JSON.stringify({ expires_at: expiresAt }),
+        this.#hashOwnerClaim(code),
+        this.now().toISOString(),
+      );
+    return Object.freeze({ code, expiresAt: new Date(expiresAt).toISOString() });
+  }
+
+  // 一次性：只要摘要对得上就删掉，不管过没过期。过期的码返回 false，但也不会
+  // 留在库里等人再试一次。
+  #redeemOwnerClaim(text) {
+    const candidate = normalizeCode(text);
+    if (candidate.length < 12) {
+      return false;
+    }
+    const row = this.users.database
+      .prepare("SELECT value_redacted_json, value_sha256 FROM service_state WHERE key=?")
+      .get(OWNER_CLAIM_STATE_KEY);
+    if (!row) {
+      return false;
+    }
+    let digest;
+    try {
+      digest = this.#hashOwnerClaim(candidate);
+    } catch {
+      return false;
+    }
+    const stored = Buffer.from(String(row.value_sha256 || ""), "utf8");
+    const actual = Buffer.from(digest, "utf8");
+    if (stored.length !== actual.length || !timingSafeEqual(stored, actual)) {
+      return false;
+    }
+    this.users.database
+      .prepare("DELETE FROM service_state WHERE key=?")
+      .run(OWNER_CLAIM_STATE_KEY);
+    let expiresAt = 0;
+    try {
+      expiresAt = Number(JSON.parse(row.value_redacted_json)?.expires_at) || 0;
+    } catch {
+      return false;
+    }
+    return expiresAt > this.now().getTime();
+  }
+
   #ownerClaimAvailable() {
     if (this.ownerSenderIds.length > 0) {
       return false;
@@ -334,6 +415,12 @@ class UserAdmissionService {
     if (this.isOwnerSender(senderRef)) {
       return this.#ownerTurn({ botAccountRef, senderRef, text });
     }
+    // 认领码要排在注册用户查表之前：主人换手机、换微信之后重新认领，走的也是
+    // 这条路，而那时候他在库里可能已经是一个普通用户了。
+    if (this.#redeemOwnerClaim(text)) {
+      const claimed = this.#admitOwner({ botAccountRef, senderRef });
+      return Object.freeze({ ...claimed, ownerClaimed: true });
+    }
     if (this.#ownerClaimAvailable()) {
       const claimed = this.#admitOwner({ botAccountRef, senderRef });
       return Object.freeze({ ...claimed, ownerClaimed: true });
@@ -412,6 +499,7 @@ class UserAdmissionService {
 
 module.exports = {
   HELP_COMMANDS,
+  OWNER_CLAIM_TTL_MS,
   INVITE_CANDIDATE,
   OWNER_COMMANDS,
   OWNER_HELP,

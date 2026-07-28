@@ -736,6 +736,7 @@ class CyberbossApp {
       adminToken: this.config.adminToken || "",
       adminOverview: () => this.buildDashboardOverview(),
       adminInvite: () => this.issueDashboardInvite(),
+      adminOwnerClaim: () => this.issueDashboardOwnerClaim(),
     });
     try {
       const address = await this.portalServer.start();
@@ -819,6 +820,28 @@ class CyberbossApp {
       return Object.freeze({ ok: true, code: invite.code });
     } catch (error) {
       return Object.freeze({ ok: false, code: normalizeErrorCode(error?.code) || "INVITE_FAILED" });
+    }
+  }
+
+  // 把「谁是主人」这件事和一个真实的微信号绑起来。
+  //
+  // 主人拿自己的微信当机器人号时，那个号的 id 永远不会作为发件人出现，所以他
+  // 没有任何办法把自己绑上去——机器人会对包括他本人在内的每个人回一句"这个
+  // 操作只有管理员可以使用"。后台令牌是服务器管理者才有的东西，用它换一个
+  // 一次性认领码，再从任意一个微信号把码发过来，就把那个号绑成主人。
+  issueDashboardOwnerClaim() {
+    if (!this.userAdmission) {
+      return Object.freeze({ ok: false, code: "ADMISSION_OFF" });
+    }
+    try {
+      const claim = this.userAdmission.issueOwnerClaim();
+      this.noteForDashboard("生成了一个主人认领码");
+      return Object.freeze({ ok: true, code: claim.code, expiresAt: claim.expiresAt });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "OWNER_CLAIM_FAILED",
+      });
     }
   }
 

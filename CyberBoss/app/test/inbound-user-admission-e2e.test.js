@@ -493,3 +493,105 @@ test("the Owner runtime refuses a turn that arrives without an Owner context", a
   assert.equal(refusals.length, 1);
   assert.match(refusals[0].text, /管理员/);
 });
+
+// ── 主人认领码 ───────────────────────────────────────────
+//
+// 这是一个真实事故：主人拿自己的微信当了机器人号，于是那个号的 id 永远不会
+// 作为「发件人」出现；而 ownerSenderIds 一旦有值，先到先得的认领窗口就关着。
+// 两件事叠起来，谁都成不了主人——机器人对包括主人本人在内的每个人都只回一句
+// 「这个操作只有管理员可以使用」，整个软件不可用。
+//
+// 后台令牌是只有服务器管理者才拿得到的东西，用它换一次性认领码，是唯一一条
+// 既能解开死局、又不会把主人身份交给陌生人的路。
+
+function admissionOnly(t, { ownerSenderIds = [] } = {}) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-claim-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(directory, "runtime.db"),
+    encryptionKey: ENCRYPTION_KEY,
+    identityKey: IDENTITY_KEY,
+  });
+  t.after(() => spool.close());
+  return new UserAdmissionService({
+    database: spool.database,
+    identityKey: IDENTITY_KEY,
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds,
+    registrationMode: "invite",
+  });
+}
+
+test("认领码把发码的那个微信号绑成主人", (t) => {
+  // ownerSenderIds 非空 = 认领窗口已关闭，正是线上那台机器的状态。
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+
+  const before = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" });
+  assert.equal(before.route, "reply", "没有码之前，陌生人只能拿到入门回复");
+
+  const claim = admission.issueOwnerClaim();
+  assert.match(claim.code, /^[A-Z0-9]{12,32}$/);
+
+  const claimed = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code });
+  assert.equal(claimed.route, "owner");
+  assert.equal(claimed.ownerClaimed, true);
+  assert.equal(claimed.userContext.role, "owner");
+
+  // 绑上之后，这个号说的每一句都是主人的话——靠的是库里的角色，不是发件人名单。
+  const later = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "帮我看看代码" });
+  assert.equal(later.route, "owner");
+});
+
+test("认领码只能用一次", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  const claim = admission.issueOwnerClaim();
+
+  assert.equal(admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code }).route, "owner");
+
+  // 同一串码再发一次——而且换一个人发——不能再绑出第二个主人。
+  const second = admission.admit({ botAccountRef: BOT, senderRef: BOB, text: claim.code });
+  assert.notEqual(second.route, "owner");
+});
+
+test("过期的认领码不认，而且当场作废", (t) => {
+  let clock = new Date("2026-07-28T00:00:00.000Z");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-claim-exp-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(directory, "runtime.db"),
+    encryptionKey: ENCRYPTION_KEY,
+    identityKey: IDENTITY_KEY,
+  });
+  t.after(() => spool.close());
+  const admission = new UserAdmissionService({
+    database: spool.database,
+    identityKey: IDENTITY_KEY,
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds: ["bot-self-id"],
+    registrationMode: "invite",
+    now: () => clock,
+  });
+
+  const claim = admission.issueOwnerClaim({ ttlMs: 60_000 });
+  clock = new Date(clock.getTime() + 120_000);
+
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code }).route,
+    "owner",
+  );
+  // 验过就删：过期的码不会留在库里等人慢慢试。
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code }).route,
+    "owner",
+  );
+});
+
+test("猜错的码不会绑成主人", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  admission.issueOwnerClaim();
+
+  for (const guess of ["ABCDEFGHJKLM", "000000000000", "帮助", ""]) {
+    const result = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: guess });
+    assert.notEqual(result.route, "owner", `"${guess}" 不该绑成主人`);
+  }
+});
