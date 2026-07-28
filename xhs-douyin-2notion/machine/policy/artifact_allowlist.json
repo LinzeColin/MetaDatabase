@@ -84,6 +84,8 @@
     "scripts/verify_stage_3_review.py",
     "scripts/run_assurance_003_acceptance.py",
     "scripts/verify_assurance_003.py",
+    "scripts/run_assurance_004_acceptance.py",
+    "scripts/verify_assurance_004.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

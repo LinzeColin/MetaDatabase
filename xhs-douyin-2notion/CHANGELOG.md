@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 6 / Assurance004
+
+- 完成 `TSK.x2n.assurance.004 / PH.X2N.6.4` 的隔离性能、压力、混沌与恢复 Campaign：100 次 Extension Worker restart、100 项 XHS/50 kill、媒体 lease cleanup、Notion Mock 429/529/outage/receipt reconcile、十阶段 recovery、六个核心破坏边界各 10 Seed、20/80/1k/10k Markdown rebuild 和 100 条 burst replay 全部通过。
+- Campaign 只使用临时 `MediaCrawler/xhs-douyin-2notion` 根和新建浏览器 Profile；公开回执不保存 trace、截图、临时数据库、绝对路径、Secret、Cookie、平台 CDN URL 或 Owner 内容。本机 benchmark 只验证相对增长和内存 guard，不声明通用耗时 SLA。
+- 仅授权最终单 Task `TSK.x2n.assurance.005 / PH.X2N.6.5`；没有 Alpha/Beta、固定观察或 soak。真实 Owner 激活、回滚、部署、运行和 online smoke 仍全部位于该 Task 内。
+
 ## v0.0.0.1 — Stage 6 / Assurance003
 
 - 完成 `TSK.x2n.assurance.003 / PH.X2N.6.3` 的安全、隐私、许可证与供应链 CI-synth gate：当前源码/fixture、SAST、SBOM 33 components、license unknown=0、匿名 OSV 33 dependencies、CSP、SSRF/media、active nomenclature 与两次确定性候选制品均通过。

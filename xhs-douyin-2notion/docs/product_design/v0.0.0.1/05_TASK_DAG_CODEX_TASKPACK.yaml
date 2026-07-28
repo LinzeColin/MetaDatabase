@@ -2542,7 +2542,7 @@ tasks:
   title: Run performance, stress, chaos and recovery campaigns
   stage: STG.X2N.6
   phase: PH.X2N.6.4
-  status: planned
+  status: complete_ci_synth_performance_chaos_recovery
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

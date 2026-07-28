@@ -41,7 +41,7 @@ timezone: Australia/Sydney
 | 多模态 | 标题/正文 + ASR + OCR + 关键帧视觉理解 + 融合摘要 + 自动分类 + 人工复核 |
 | 公共仓库边界 | 只提交代码、契约、合成 Fixture、脱敏证据；Cookie、Token、浏览器 Profile、私人内容和运行数据库禁止进入 Git |
 | 发布策略 | G0–G5＋前置任务/最终任务自有集合外 Acceptance → assurance.005 内完成 80 条 XHS/DY 基线＋每个额外启用能力独立 ≤20 条激活/安全/回滚/签字 → 部署运行/online smoke → G6 PASS；合法外部门可关闭结算、技术阻断不可结算；无预发布阶段、固定健康观察期或 soak |
-| 开发授权 | G3、G4 与 G5 均已独立签发 PASS_CI_SYNTH；Assurance001/002 分别完成软件与 feature-disabled 模型 gate。Assurance003 已完成当前源码/候选制品 private/CDN、SAST、SBOM/license、匿名 OSV、CSP、SSRF/media 与历史 credential/authenticated-remote 聚合扫描，均为零阻断。真实 transfer、Runtime、Notion、Owner Canary、账号与系统备份设置均未运行；ASR/OCR/Vision/分类私有 Gold 仍未运行，相关能力保持关闭或 suggestion-only，自动分类仍为 false。下一独立 Run 仅为 `TSK.x2n.assurance.004`；上传、真实账号、部署与发布仍未授权 |
+| 开发授权 | G3、G4 与 G5 均已独立签发 PASS_CI_SYNTH；Assurance001–003 分别完成软件、feature-disabled 模型、安全供应链 gate。Assurance004 已完成隔离 Extension/XHS/media/Notion/operations chaos、六个关键场景各 10 Seed、20/80/1k/10k rebuild 和 100 burst replay；loss/duplicate/unauthorized delete/persistence finding=0。真实 transfer、Runtime、Notion、Owner Canary、账号与系统备份设置均未运行；ASR/OCR/Vision/分类私有 Gold 仍未运行，相关能力保持关闭或 suggestion-only，自动分类仍为 false。下一独立 Run 仅为 `TSK.x2n.assurance.005`，其中才可在 Owner 输入齐备后部署和发布 |
 
 **Pursuing Goal**
 
@@ -417,7 +417,7 @@ Monthly Net Monetary Value
 
 ## 未授权
 
-- 上传、部署或发布；完成的 Assurance003 只授权下一单 `TSK.x2n.assurance.004`，不授权这些外部动作；
+- Assurance004 已完成，但上传、部署或发布仍只可作为最终 `TSK.x2n.assurance.005` 内的受控动作，不能由此前 CI-synth receipt 单独授权；
 - 真实账号运行或真实平台调用；
 - 向公共仓库提交私人数据；
 - VPS 数据平面；

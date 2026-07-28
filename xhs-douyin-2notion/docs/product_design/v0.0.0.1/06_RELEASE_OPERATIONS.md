@@ -25,11 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 独立 G3/G4/G5 CI-synth 复核已通过；G5 固定并重跑 Stage 5 Task001–005 的 Notion Mock/outbox reconciliation、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 和 Task005 history replay。Assurance001 已完成当前软件验收，Assurance002 已完成私有 Gold 不读取与 feature-disabled/suggestion-only 决策。Assurance003 已完成 current source/candidate artifact 的 private/CDN、SAST、SBOM/license、匿名 OSV、CSP、SSRF/media、release allowlist 与历史 credential/authenticated-remote 聚合检查，均为零阻断。真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/Fusion 关闭，Classification 仅 suggestion-only，`auto_classify=false`。下一单是 `TSK.x2n.assurance.004 / PH.X2N.6.4`。
+- 独立 G3/G4/G5 CI-synth 复核已通过；G5 固定并重跑 Stage 5 Task001–005 的 Notion Mock/outbox reconciliation、Markdown rebuild、loopback Local WebUI/Owner review、诊断/doctor/bounded recovery 和 Task005 history replay。Assurance001–003 已完成软件、feature-disabled 模型与安全供应链 gate。Assurance004 已完成 Extension 100 restart、XHS 100/50 kill、媒体 cleanup、Notion Mock、十阶段 recovery、六个关键场景各 10 Seed、20/80/1k/10k Markdown rebuild 和 100 burst replay；loss/duplicate/unauthorized delete/persistence finding 均为零。真实 Private-Database transfer、Runtime/Notion/Owner Canary、`tmutil` 与物理删除未运行；ASR/OCR/Vision/Fusion 关闭，Classification 仅 suggestion-only，`auto_classify=false`。下一单是 `TSK.x2n.assurance.005 / PH.X2N.6.5`，并且其 Owner input pack 是唯一新增外部执行前提。
 
 ### 当前未授权
 
-- 上传、部署或发布；Assurance003 PASS 只授权下一单 `TSK.x2n.assurance.004`；
+- 除最终 `TSK.x2n.assurance.005` 的受控 deploy/run/online smoke 外，上传、部署或发布仍未授权；Assurance004 PASS 只授权该最终单 Task，不单独构成上线声明；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；

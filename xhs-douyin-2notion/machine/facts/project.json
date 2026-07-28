@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.8",
+  "schema_version": "1.9",
   "project_id": "PRJ.X2N",
   "name": "xhs-douyin-2notion",
   "token": "x2n",
@@ -43,7 +43,7 @@
   ],
   "stage_4_current_task": "G4_pass_ci_synth_preserved_private_gold_disabled_stage_5_task004_operations_complete",
   "stage_5_current_task": "g5_pass_ci_synth_preserved_as_historical_predecessor",
-  "stage_6_current_task": "assurance003_ci_synth_security_privacy_supply_chain_pass_assurance004_next_real_runtime_not_run",
+  "stage_6_current_task": "assurance004_ci_synth_performance_chaos_recovery_pass_assurance005_next_owner_input_required",
   "media_preprocessing": "lease_scoped_ffmpeg_ffprobe_audio_keyframe_dedup_temporary_only",
   "asr": "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_not_run_feature_disabled",
   "ocr_vision": "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_not_run_feature_disabled",
@@ -56,5 +56,6 @@
   "data_lifecycle": "ci_synth_verified_private_metadatabase_archive_tombstone_ttl_tmutil_contract_real_runtime_not_run",
   "runtime_nomenclature": "v2_owner_mvp_plan",
   "security_assurance": "current_source_candidate_artifact_private_cdn_zero_history_credential_zero_sast_osv_sbom_license_csp_ssrf_media_pass",
-  "status": "stage_6_assurance003_ci_synth_security_privacy_supply_chain_pass_assurance004_next_real_runtime_not_run"
+  "performance_chaos_recovery_assurance": "isolated_extension_100_restart_xhs_100_50kill_media_cleanup_notion_mock_ten_stage_recovery_ten_seed_matrix_20_80_1000_10000_markdown_burst100_pass_real_mvp_not_run",
+  "status": "stage_6_assurance004_ci_synth_performance_chaos_recovery_pass_assurance005_next_owner_input_required"
 }

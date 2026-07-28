@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_6_ASSURANCE003_CI_SYNTH_SECURITY_PRIVACY_SUPPLY_CHAIN_PASS_ASSURANCE004_NEXT
+status: STAGE_6_ASSURANCE004_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_PASS_ASSURANCE005_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_6_assurance003_security_privacy_supply_chain_pass_assurance004_next_real_runtime_not_run
-implementation_authorized: stage_6_assurance004_only_single_dag_task
+current_run_scope: stage_6_assurance004_performance_chaos_recovery_pass_assurance005_next_owner_input_required
+implementation_authorized: stage_6_assurance005_only_single_dag_task
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -31,8 +31,8 @@ owner: LinzeColin
 | 运行数据 | Private；持久业务/运行数据进入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion` |
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
-| 产品阶段 | Stage 6 Assurance003 已通过 CI-synth，下一步为独立 `TSK.x2n.assurance.004 / PH.X2N.6.4` |
-| 开发状态 | 独立 G3、G4 与 G5 CI-synth 复核及 Assurance001/002 均已通过；Stage 4/5 receipt 均不可变。Assurance003 已复验当前源码与候选制品的 private/CDN、SAST、SBOM/license、匿名 OSV、CSP、SSRF/media 与历史 credential/authenticated-remote 聚合扫描，均为零阻断。真实 Private-Database transfer、`tmutil`、物理删除、Runtime/Notion/Owner Canary 均未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。Assurance003 不授权上传、部署或发布 |
+| 产品阶段 | Stage 6 Assurance004 已通过 CI-synth，下一步为独立 `TSK.x2n.assurance.005 / PH.X2N.6.5` |
+| 开发状态 | 独立 G3、G4 与 G5 CI-synth 复核及 Assurance001–004 均已通过；Stage 4/5 receipt 均不可变。Assurance004 已复验 Extension 100 restart、XHS 100/50 kill、媒体 cleanup、Notion Mock、十阶段 recovery、六个关键场景各 10 Seed、20/80/1k/10k rebuild 和 100 burst replay，loss/duplicate/unauthorized delete/persistence finding 均为零。真实 Private-Database transfer、`tmutil`、物理删除、Runtime/Notion/Owner Canary 均未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。仅 Assurance005 可在 Owner 输入齐备时执行部署或发布 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 

@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：独立 G3、G4 与 G5 均已签发 `PASS_CI_SYNTH`；Stage 5 五份固定 Task receipt 保持不可变。Assurance001 已完成当前软件 assurance；Assurance002 已复验模型 gate，私有 Gold 未读取，ASR/OCR/Vision/Fusion 关闭、Classification 仅 suggestion-only 且 `auto_classify=false`。Assurance003 已完成当前源码与确定性候选制品的 private/CDN、SAST、SBOM/license、匿名 OSV、CSP、SSRF/media、release allowlist 和历史 credential/authenticated-remote 聚合检查，均为零阻断。真实 Private-Database transfer、`tmutil`、物理删除、Runtime、Notion、Owner Canary、账号和平台调用仍为 0/NOT_RUN。下一独立 Run 只可执行 `TSK.x2n.assurance.004 / PH.X2N.6.4`；.003 不授权上传、部署、发布或真实平台执行，也没有预发布、固定观察或 soak 门禁。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本 Task 对共享认证材料保持零接触。
+当前状态：独立 G3、G4 与 G5 均已签发 `PASS_CI_SYNTH`；Stage 5 五份固定 Task receipt 保持不可变。Assurance001–003 分别完成软件、feature-disabled 模型、安全/供应链 gate；Assurance004 已完成隔离 Extension 100 restart、XHS 100/50 kill、媒体 cleanup、Notion Mock、十阶段 recovery、六个核心场景各 10 Seed、20/80/1k/10k Markdown rebuild 与 100 burst replay。loss、duplicate、unauthorized delete 和持久化 private/CDN finding 均为零；本机性能只报告相对测量，不构成统一 SLA。真实 Private-Database transfer、`tmutil`、物理删除、Runtime、Notion、Owner Canary、账号和平台调用仍为 0/NOT_RUN。下一独立 Run 只可执行 `TSK.x2n.assurance.005 / PH.X2N.6.5`；真实有界激活、部署、运行和 online smoke 均只在该 Task 内执行，且没有预发布、固定观察或 soak 门禁。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本 Task 对共享认证材料保持零接触。
 
 发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
@@ -53,8 +53,10 @@ Task001 的公开证据在 `evidence/multimodal/TSK.x2n.multimodal.001.json`，T
 `evidence/models/TSK.x2n.assurance.002.json`；其结论是 feature-disabled/suggestion-only，
 不是私有 Gold 或真实模型质量通过。Assurance003 的状态事实在
 `machine/facts/stage_6_assurance_003_state.json`，公开聚合证据在
-`evidence/security/TSK.x2n.assurance.003.json`；它只证明 CI-synth 安全/供应链门禁，下一独立 Run 为
-`TSK.x2n.assurance.004`。
+`evidence/security/TSK.x2n.assurance.003.json`；它只证明 CI-synth 安全/供应链门禁。Assurance004 的状态事实在
+`machine/facts/stage_6_assurance_004_state.json`，公开聚合证据在
+`evidence/chaos/TSK.x2n.assurance.004.json`；它证明隔离性能/混沌/恢复 Campaign，不是 MVP 部署。下一独立 Run 为
+`TSK.x2n.assurance.005`。
 
 ## Stage 3 / 首次 Review 历史判定
 
