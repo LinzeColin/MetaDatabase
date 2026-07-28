@@ -38,7 +38,9 @@ export class AccountApi {
   businessLines() { return this.request("/status/business-lines"); }
 
   async request(path, { method = "GET", body, headers = {}, allow401 = false } = {}) {
-    const init = { method, credentials: "include", headers: { Accept: "application/json", ...headers } };
+    // Bypass any response cached before the account API adopted no-store headers.
+    // Sync coverage must always be read from the current server state.
+    const init = { method, credentials: "include", cache: "no-store", headers: { Accept: "application/json", ...headers } };
     if (body !== undefined) { init.headers["Content-Type"] = "application/json"; init.body = JSON.stringify(body); }
     if (!["GET", "HEAD"].includes(method) && this.csrf) init.headers["X-CSRF-Token"] = this.csrf;
     const response = await fetch(`${this.base}${path}`, init);

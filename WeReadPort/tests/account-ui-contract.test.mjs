@@ -22,6 +22,10 @@ test("四平台导入均使用连接、选择、预览/确认和进度式新手�
   assert.ok(obsidian.includes("webkitRelativePath"));
   assert.ok(obsidian.includes("ZIP"));
   assert.ok(api.includes("/weread/export"));
+  assert.ok(api.includes('cache: "no-store"'));
+  assert.match(ui, /runWeReadSync\(content, \{ forceFull: true, preserveView: true \}\)/u);
+  assert.match(ui, /async function runWeReadSync\(content, \{ automatic = false, forceFull = false, preserveView = false \} = \{\}\)/u);
+  assert.match(ui, /if \(!preserveView\) state\.view = "notes";/u);
 });
 
 test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读书", () => {

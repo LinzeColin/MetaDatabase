@@ -245,7 +245,7 @@ function renderImportHub(main) {
     if (!connected.has(provider)) { await action(`正在前往 ${providerLabel(provider)} 官方授权读取…`, () => api.oauth(provider, "import")); return; }
     await openProviderPicker(content, provider);
   }));
-  content.querySelector("#weread-full-sync")?.addEventListener("click", () => runWeReadSync(content, { forceFull: true }));
+  content.querySelector("#weread-full-sync")?.addEventListener("click", () => runWeReadSync(content, { forceFull: true, preserveView: true }));
   content.querySelector("#weread-download")?.addEventListener("click", () => runSensitiveAction("weread-export"));
 }
 function sourceCard(id, name, mark, connected, description, actionLabel) { return `<article class="source-card"><div class="source-card-head"><span class="source-logo ${id}">${mark}</span><span class="connection-state ${connected ? "connected" : ""}">${connected ? "已连接" : "未连接"}</span></div><h2>${name}</h2><p>${description}</p><button class="button ${connected ? "secondary" : "primary"} full" data-source="${id}" type="button">${actionLabel}</button></article>`; }
@@ -297,7 +297,7 @@ async function syncWeReadAfterLogin(root, { force = false } = {}) {
   state.autoSyncAccountId = account.id;
   await runWeReadSync(root.querySelector("#account-content"), { automatic: true });
 }
-async function runWeReadSync(content, { automatic = false, forceFull = false } = {}) {
+async function runWeReadSync(content, { automatic = false, forceFull = false, preserveView = false } = {}) {
   if (state.wereadSyncing) { toast("微信读书正在同步，请稍候。", "info"); return undefined; }
   const complete = async () => {
     const result = await api.wereadSync(forceFull ? "full" : "auto");
@@ -313,7 +313,7 @@ async function runWeReadSync(content, { automatic = false, forceFull = false } =
     if (automatic) {
       if (["overview", "notes"].includes(state.view)) await renderCurrent(document);
     } else {
-      state.view = "notes";
+      if (!preserveView) state.view = "notes";
       await renderCurrent(document);
     }
     return result;
