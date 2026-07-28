@@ -1,0 +1,15 @@
+{
+  "schema_version": 1, "task_id": "CB-800",
+  "scope": "Private-Database、R2、OCI、导出、删除与恢复闭环",
+  "acceptance": ["AC-029","AC-030","AC-035"],
+  "depends_on": "CB-740", "status": "CLOSED_CODE_PATH_ONLY",
+  "tests": [
+    { "script": "test/v8-prebuilt/canonical-user-facts.test.js", "result": "2/2 PASS" },
+    { "script": "test/v8-prebuilt/backup-coordinator.test.js", "result": "2/2 PASS" },
+    { "script": "test/v8-prebuilt/user-data-lifecycle.test.js", "result": "3/3 PASS" },
+    { "script": "目标树全量", "result": "661/661 PASS" }
+  ],
+  "blocked": { "r2": "现有密钥对目标桶返回 403 AccessDenied（此前已验证 SigV4 签名本身正确，是权限问题而非实现问题）", "consequence": "双副本收据无法在真实端点上产生，不得声称备份闭环已验证" },
+  "rollback": { "procedure": "隔离环境中恢复上一份运行时快照 → 重指对象版本 → 已完成的 crypto-shred 永不回滚" },
+  "claims_not_made": ["dual-copy receipt produced against live R2 and OCI","restore verified from production snapshot"]
+}

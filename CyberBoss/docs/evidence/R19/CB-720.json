@@ -1,13 +1,36 @@
 {
-  "schema_version": 1, "task_id": "CB-720",
+  "schema_version": 1,
+  "task_id": "CB-720",
   "scope": "资料、画像、记忆、证据、用户决策与行为分析",
-  "acceptance": ["AC-024","AC-025","AC-026","AC-027"],
-  "depends_on": "CB-710", "status": "CLOSED",
-  "tests": [
-    { "script": "test/v8-prebuilt/profile-analytics-status.test.js", "result": "3/3 PASS", "note": "DAG 写作 profile-analytics.test.js，产物实际为 profile-analytics-status.test.js" },
-    { "script": "sensitive-attribute negative fixtures", "result": "已消费", "detail": "import_attack_matrix.json 由 profile-analytics-status.test.js 与 status-portal.test.js 读取，非仅存在" },
-    { "script": "目标树全量", "result": "656/656 PASS" }
+  "acceptance": [
+    "AC-024",
+    "AC-025",
+    "AC-026",
+    "AC-027"
   ],
-  "rollback": { "procedure": "关闭推断投影 → 只保留用户显式陈述的事实 → 从 canonical facts 重建投影" },
-  "claims_not_made": ["profiles built from real user history"]
+  "depends_on": "CB-710",
+  "status": "CLOSED",
+  "tests": [
+    {
+      "script": "test/v8-prebuilt/profile-analytics-status.test.js",
+      "result": "3/3 PASS",
+      "note": "DAG 写作 profile-analytics.test.js，产物实际为 profile-analytics-status.test.js"
+    },
+    {
+      "script": "sensitive-attribute negative fixtures",
+      "result": "已消费（更正后）",
+      "detail": "初次记录写成「已消费」是错的——当时的 grep 命中的是 \"sensitive\" 这个词而不是 fixture 名，三个矩阵当时其实都没有消费者。现由 test/v8-prebuilt/frozen-matrices.test.js 真正读取 import_attack_matrix.json 并逐条断言。",
+      "correction": "本条为事实更正，非事后追认"
+    },
+    {
+      "script": "目标树全量",
+      "result": "656/656 PASS"
+    }
+  ],
+  "rollback": {
+    "procedure": "关闭推断投影 → 只保留用户显式陈述的事实 → 从 canonical facts 重建投影"
+  },
+  "claims_not_made": [
+    "profiles built from real user history"
+  ]
 }
