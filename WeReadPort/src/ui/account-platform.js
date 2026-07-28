@@ -326,6 +326,15 @@ async function syncWeReadAfterLogin(root, { force = false } = {}) {
   state.autoSyncAccountId = account.id;
   await runWeReadSync(root.querySelector("#account-content"), { automatic: true });
 }
+async function refreshDerivedAccountState() {
+  // A source sync can affect account coverage, notes, official statistics,
+  // categories, recommendations and every chart. Refresh all of those
+  // snapshots together before the current view is rendered again.
+  const [profile, notes, analytics] = await Promise.all([api.profile(), api.notes(), api.analytics()]);
+  state.account = profile.account;
+  state.notes = notes?.notes || [];
+  state.dashboard = analytics?.dashboard || null;
+}
 async function runWeReadSync(content, { automatic = false, forceFull = false, preserveView = false } = {}) {
   if (state.wereadSyncing) { toast("微信读书正在同步，请稍候。", "info"); return undefined; }
   const complete = async () => {
@@ -337,14 +346,9 @@ async function runWeReadSync(content, { automatic = false, forceFull = false, pr
     const coverage = summary.coverage || result.coverage || {};
     const verification = coverage.verified ? "覆盖已核验" : coverage.unresolvedDocuments ? `仍有 ${coverage.unresolvedDocuments} 条待确认` : "覆盖待完整核对";
     toast(`同步完成：${scope}；${summary.updatedDocuments ?? summary.importedDocuments ?? 0} 条更新，${summary.unchangedDocuments || 0} 条已是最新；${verification}。`, result.failures?.length || !coverage.verified && summary.syncMode === "full" ? "warning" : "success");
-    const profile = await api.profile();
-    state.account = profile.account;
-    if (automatic) {
-      if (["overview", "notes"].includes(state.view)) await renderCurrent(document);
-    } else {
-      if (!preserveView) state.view = "notes";
-      await renderCurrent(document);
-    }
+    await refreshDerivedAccountState();
+    if (!automatic && !preserveView) state.view = "notes";
+    await renderCurrent(document);
     return result;
   };
   if (!automatic) return action("正在同步微信读书最新变化…", complete);
@@ -499,6 +503,8 @@ async function loadAnalytics(main) {
   if (!d) { content.innerHTML = emptyStateMarkup("暂时无法生成画像", "请稍后重试。", "返回首页", "overview"); return; }
   const officialOverall = d.officialReading?.statistics?.overall;
   const hasOfficialReading = Boolean(officialOverall && [officialOverall.totalReadingTimeSeconds, officialOverall.totalReadingDays, officialOverall.totalFinishedBooks].some(value => Number.isFinite(Number(value))));
+  const readingPeriods = d.officialReadingPeriods || { metric: null, items: [] };
+  const categoryData = d.readingCategoryDistribution?.items?.length ? d.readingCategoryDistribution : { source: "note-metadata", metric: "noteCount", items: d.categoryDistribution || [] };
   const metricMarkup = hasOfficialReading
     ? `${metric("累计阅读时长", formatReadingDuration(officialOverall.totalReadingTimeSeconds), "微信读书官方累计统计")}${metric("累计阅读天数", formatStat(officialOverall.totalReadingDays, " 天"), "微信读书官方累计统计")}${metric("读完书籍", formatStat(officialOverall.totalFinishedBooks, " 本"), "微信读书官方累计统计")}${metric("笔记", d.summary.noteCount, "账户内加密正文")}`
     : `${metric("笔记", d.summary.noteCount, "账户内加密正文")}${metric("来源", d.summary.sourceCount, "已汇总来源")}${metric("估算字数", numberFormat(d.summary.estimatedWords), "仅用于个人统计")}${metric("近 90 天笔记活动", d.summary.noteActivityDays90 ?? d.summary.activeDays90, "按笔记真实事件时间统计")}`;
@@ -506,14 +512,20 @@ async function loadAnalytics(main) {
     <section class="consent-banner ${d.consent?.behaviorAnalytics ? "enabled" : ""}"><div><strong>${d.consent?.behaviorAnalytics ? "行为分析已开启" : "行为分析默认关闭"}</strong><p>微信读书官方阅读统计不依赖此开关；它只控制本服务额外记录的非正文行为事件。关闭后这些额外事件会被删除。</p></div><button id="toggle-analytics" class="button ${d.consent?.behaviorAnalytics ? "ghost" : "primary"}" type="button">${d.consent?.behaviorAnalytics ? "关闭" : "开启"}</button></section>
     ${officialReadingPanel(d.officialReading)}
     <section class="metric-grid">${metricMarkup}</section>
-    <section class="analytics-grid"><article class="chart-card"><div class="section-title"><div><h2>12 周笔记趋势</h2><p>每周新增或更新的笔记数量</p></div></div>${barChart(d.weeklyTrend || [])}</article><article class="chart-card"><div class="section-title"><div><h2>来源分布</h2><p>你的笔记主要来自哪里</p></div></div>${distribution(d.sourceDistribution || [])}</article></section>
-    <section class="heatmap-card"><div class="section-title"><div><h2>近 90 天笔记活动</h2><p>按笔记真实事件时间汇总，不代表阅读时长或微信读书打开次数。</p></div><span class="heat-legend">少 <i></i><i></i><i></i><i></i> 多</span></div>${heatmap(d.noteActivityHeatmap || d.readingHeatmap || [])}</section>
+    <section class="analytics-grid"><article class="chart-card"><div class="section-title"><div><h2>微信读书官方阅读进展</h2><p>${escapeHtml(officialReadingPeriodDescription(readingPeriods))}</p></div></div>${officialReadingPeriodChart(readingPeriods)}</article><article class="chart-card"><div class="section-title"><div><h2>类别分布</h2><p>${escapeHtml(categoryDistributionDescription(categoryData))}</p></div></div>${distribution(categoryData.items || [], { valueLabel: item => categoryValueLabel(item, categoryData.metric) })}</article></section>
+    <section class="chart-card"><div class="section-title"><div><h2>12 周笔记趋势</h2><p>每周新增或更新的笔记数量；来源有真实笔记变化时会重新聚合。</p></div></div>${barChart(d.noteWeeklyTrend || d.weeklyTrend || [])}</section>
+    <section class="heatmap-card"><div class="section-title"><div><h2>近 90 天笔记活动</h2><p>按笔记真实事件时间汇总，不代表阅读时长或微信读书打开次数。${escapeHtml(noteActivityFreshnessNote(d.dataFreshness))}</p></div><span class="heat-legend">少 <i></i><i></i><i></i><i></i> 多</span></div>${heatmap(d.noteActivityHeatmap || d.readingHeatmap || [])}</section>
     <section class="recommend-card"><div class="section-title"><div><h2>潜在推荐</h2><p>每条都显示来源和理由；微信读书入口只使用官方实际返回的可验证直链。</p></div></div>${d.recommendations?.length ? `<div class="recommend-list">${d.recommendations.map(item => `<article><span>${escapeHtml(sourceName(item.source))}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有足够数据</strong><p>导入第一批笔记并开启推荐个性化后，这里会出现可解释建议。</p></div>`}</section>`;
   content.querySelector("#analytics-settings").addEventListener("click", () => { state.view = "account"; renderCurrent(document); });
   content.querySelector("#toggle-analytics").addEventListener("click", () => action("正在更新隐私选择…", async () => { const consent = state.account.consent || {}; await api.updateConsent({ behaviorAnalytics: !d.consent.behaviorAnalytics, recommendationPersonalization: consent.recommendationPersonalization || false }); const profile = await api.profile(); state.account = profile.account; await loadAnalytics(document.querySelector("#platform-main")); }));
 }
-function barChart(items) { const max = Math.max(1, ...items.map(item => Number(item.value || 0))); return `<div class="bar-chart" role="img" aria-label="最近十二周笔记趋势">${items.map(item => `<div><span style="height:${Math.max(4, Number(item.value || 0) / max * 100)}%" title="${item.week}：${item.value}"></span><small>${item.week.slice(5)}</small></div>`).join("")}</div>`; }
-function distribution(items) { const total = Math.max(1, items.reduce((sum, item) => sum + Number(item.value || 0), 0)); return `<div class="distribution-list">${items.slice(0, 8).map(item => `<div><span>${escapeHtml(sourceName(item.label))}</span><div><i style="width:${Number(item.value || 0) / total * 100}%"></i></div><strong>${item.value}</strong></div>`).join("") || `<p>暂无数据</p>`}</div>`; }
+function barChart(items, { ariaLabel = "最近十二周笔记趋势", label = item => item.week || item.label || "", valueLabel = item => item.value } = {}) { const max = Math.max(1, ...items.map(item => Number(item.value || 0))); return `<div class="bar-chart" role="img" aria-label="${escapeAttr(ariaLabel)}" style="grid-template-columns:repeat(${Math.max(1, items.length)},minmax(0,1fr))">${items.map(item => { const itemLabel = String(label(item)); const displayValue = valueLabel(item); const shortLabel = /^\d{4}-\d{2}-\d{2}$/u.test(itemLabel) ? itemLabel.slice(5) : itemLabel; return `<div><span style="height:${Math.max(4, Number(item.value || 0) / max * 100)}%" title="${escapeAttr(`${itemLabel}：${displayValue}`)}"></span><small>${escapeHtml(shortLabel)}</small></div>`; }).join("")}</div>`; }
+function distribution(items, { valueLabel = item => item.value } = {}) { const total = Math.max(1, items.reduce((sum, item) => sum + Number(item.value || 0), 0)); return `<div class="distribution-list">${items.slice(0, 8).map(item => `<div><span>${escapeHtml(item.label)}</span><div><i style="width:${Number(item.value || 0) / total * 100}%"></i></div><strong>${escapeHtml(String(valueLabel(item)))}</strong></div>`).join("") || `<p>暂无数据</p>`}</div>`; }
+function officialReadingPeriodChart(periods) { const items = periods?.items || []; if (!items.length) return `<div class="empty-inline"><strong>暂无官方周期统计</strong><p>下一次同步会重新请求微信读书的周、月、年与累计汇总。</p></div>`; return barChart(items, { ariaLabel: "微信读书官方阅读进展", label: item => item.label, valueLabel: item => categoryValueLabel(item, periods.metric) }); }
+function officialReadingPeriodDescription(periods) { return ({ totalReadingTimeSeconds: "本周、本月、本年与累计阅读时长；每次同步直接由微信读书官方统计刷新。", totalReadingDays: "本周、本月、本年与累计阅读天数；每次同步直接由微信读书官方统计刷新。", totalFinishedBooks: "本周、本月、本年与累计读完书籍数；每次同步直接由微信读书官方统计刷新。" })[periods?.metric] || "微信读书尚未返回可视化所需的官方周期统计。"; }
+function categoryDistributionDescription(data) { return data?.source === "weread-official-readdata-detail" ? `来自微信读书官方偏好类别，按${data.metric === "readingTimeSeconds" ? "阅读时长" : "阅读次数"}汇总。` : "按已同步笔记的类别汇总；每次来源变化后重新计算。"; }
+function categoryValueLabel(item, metric) { if (metric === "totalReadingTimeSeconds" || metric === "readingTimeSeconds") return formatReadingDuration(item.value); if (metric === "totalReadingDays") return formatStat(item.value, " 天"); if (metric === "totalFinishedBooks") return formatStat(item.value, " 本"); if (metric === "readingCount") return formatStat(item.value, " 次"); return numberFormat(item.value); }
+function noteActivityFreshnessNote(freshness) { const weread = freshness?.weread; if (!weread?.lastSyncedAt) return ""; const latest = weread.latestNoteEventAt ? `；最新笔记事件为 ${formatDate(weread.latestNoteEventAt)}` : "；当前没有可汇总的笔记事件"; return ` 本次来源同步于 ${formatDateTime(weread.lastSyncedAt)}，图表已重新聚合${latest}。`; }
 function heatmap(items) { return `<div class="heatmap" role="img" aria-label="近九十天笔记活动">${items.map(item => `<span class="level-${item.level}" title="${item.date}：${item.value}" aria-label="${item.date}，笔记活动 ${item.value}"></span>`).join("")}</div>`; }
 function officialReadingPanel(reading) {
   const overall = reading?.statistics?.overall;

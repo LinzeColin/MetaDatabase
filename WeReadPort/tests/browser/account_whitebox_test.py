@@ -71,7 +71,16 @@ DASHBOARD = {
         "preferredCategories": [{"label": "历史", "readingTimeSeconds": 36000, "readingCount": 8}, {"label": "科学", "readingTimeSeconds": 18000, "readingCount": 4}],
         "preferredHours": [{"hour": 21}, {"hour": 22}],
     },
-    "weeklyTrend": [{"week": f"2026-{i:02d}", "value": (i % 5) + 1} for i in range(1, 13)],
+    "officialReadingPeriods": {
+        "source": "weread-official-readdata-detail", "metric": "totalReadingTimeSeconds",
+        "items": [{"mode": "weekly", "label": "本周", "value": 3600}, {"mode": "monthly", "label": "本月", "value": 14400}, {"mode": "annually", "label": "本年", "value": 54000}, {"mode": "overall", "label": "累计", "value": 72000}],
+    },
+    "readingCategoryDistribution": {
+        "source": "weread-official-readdata-detail", "metric": "readingTimeSeconds",
+        "items": [{"label": "历史", "value": 36000}, {"label": "科学", "value": 18000}],
+    },
+    "categoryDistribution": [{"label": "管理", "value": 5}, {"label": "知识管理", "value": 2}],
+    "noteWeeklyTrend": [{"week": f"2026-{i:02d}", "value": (i % 5) + 1} for i in range(1, 13)],
     "sourceDistribution": [
         {"label": "weread", "value": 8}, {"label": "notion", "value": 5},
         {"label": "obsidian", "value": 3}, {"label": "github", "value": 2}, {"label": "google", "value": 1},
@@ -79,6 +88,7 @@ DASHBOARD = {
     "noteActivityHeatmap": [
         {"date": f"2026-07-{(i % 28) + 1:02d}", "value": i % 6, "level": min(4, i % 5)} for i in range(90)
     ],
+    "dataFreshness": {"analyticsRecomputedAt": 1785196800, "weread": {"lastSyncedAt": 1785196800, "officialReadingCollectedAt": 1785196800, "latestNoteEventAt": 1785110400, "noteActivitySource": "real-note-event-time"}},
     "recommendations": [
         {"source": "account-pattern", "title": "继续整理系统思维主题", "reason": "最近 30 天该主题笔记增长最快。"},
         {"id": "weread:fixture-book-123", "source": "weread-official", "title": "回顾高频划线章节", "reason": "该书划线密度较高且两周未回顾。", "deepLink": "https://weread.qq.com/web/reader/fixture-book-123"},
@@ -90,6 +100,10 @@ def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
     fixture = {"account": ACCOUNT, "notes": NOTES, "dashboard": DASHBOARD, "sessions": SESSIONS, "authenticated": authenticated, "serviceReady": service_ready}
     return f'''(() => {{
       const f = {json.dumps(fixture, ensure_ascii=False)};
+      f.account.weread = {{lastSyncAt:Math.floor(Date.now()/1000)}};
+      f.dashboard.dataFreshness.weread.lastSyncedAt = f.account.weread.lastSyncAt;
+      f.synces = 0;
+      f.downstreamReads = {{profile:0,notes:0,analytics:0}};
       window.__browserFixture = f;
       window.fetch = async (input, init={{}}) => {{
         const url = String(input);
@@ -97,9 +111,18 @@ def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
         const ok = value => new Response(JSON.stringify(value), {{status:200, headers:{{'content-type':'application/json'}}}});
         if (path === '/readyz') return f.serviceReady ? ok({{status:'READY', checks:{{accountPlatformService:{{status:'READY',detail:'账户服务可用'}}}}}}) : new Response(JSON.stringify({{status:'NOT_READY',checks:{{accountPlatformService:{{status:'BLOCKED',detail:'账户服务未完成部署身份与存储就绪检查'}}}}}}), {{status:503,headers:{{'content-type':'application/json'}}}});
         if (path.startsWith('/session')) return f.authenticated ? ok({{account:f.account, csrf:'csrf-browser-fixture'}}) : new Response(JSON.stringify({{error:{{code:'UNAUTHENTICATED',message:'请先登录'}}}}), {{status:401,headers:{{'content-type':'application/json'}}}});
-        if (path.startsWith('/notes?')) return ok({{notes:f.notes}});
-        if (path === '/analytics/dashboard') return ok({{dashboard:f.dashboard}});
-        if (path === '/profile') return ok({{account:f.account}});
+        if (path.startsWith('/notes?')) {{ if (f.synces) f.downstreamReads.notes += 1; return ok({{notes:f.notes}}); }}
+        if (path === '/analytics/dashboard') {{ if (f.synces) f.downstreamReads.analytics += 1; return ok({{dashboard:f.dashboard}}); }}
+        if (path === '/profile') {{ if (f.synces) f.downstreamReads.profile += 1; return ok({{account:f.account}}); }}
+        if (path === '/weread/sync') {{
+          f.synces += 1;
+          f.account.weread.lastSyncAt = Math.floor(Date.now()/1000);
+          f.dashboard.officialReading.statistics.overall.totalReadingTimeSeconds = 108000;
+          f.dashboard.officialReadingPeriods.items.find(item => item.mode === 'overall').value = 108000;
+          f.dashboard.dataFreshness.weread.lastSyncedAt = f.account.weread.lastSyncAt;
+          f.notes = [...f.notes, {{id:'note-sync-3',title:'同步后的真实笔记',source:'weread',category:'历史',updatedAt:1785283200000,version:1}}];
+          return ok({{summary:{{syncMode:'incremental',notebookBooks:1,skippedUnchangedBooks:0,updatedDocuments:1,unchangedDocuments:0,coverage:{{verified:true}}}},failures:[]}});
+        }}
         if (path === '/consent') return ok({{consent:f.account.consent}});
         if (path === '/account/sessions') return ok({{sessions:f.sessions}});
         if (path.startsWith('/status/business-lines')) return ok({{businessLines:[]}});
@@ -187,6 +210,9 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     page.get_by_role("button", name="阅读画像").click()
     page.get_by_role("heading", name="你的真实阅读数据、笔记活动与潜在下一步").wait_for()
     assert page.get_by_role("heading", name="微信读书真实阅读画像").is_visible()
+    assert page.get_by_role("heading", name="微信读书官方阅读进展").is_visible()
+    assert page.get_by_role("heading", name="类别分布").is_visible()
+    assert page.get_by_role("heading", name="来源分布").count() == 0
     assert page.get_by_text("累计阅读时长", exact=True).count() >= 1
     assert page.get_by_role("img", name="近九十天笔记活动").is_visible()
     assert page.get_by_role("heading", name="潜在推荐").is_visible()
@@ -195,6 +221,19 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     assert weread_link.is_visible()
     assert weread_link.get_attribute("href") == "https://weread.qq.com/web/reader/fixture-book-123"
     assert page.get_by_text("不会把笔记正文发送给模型", exact=False).is_visible()
+
+    page.get_by_role("button", name="首页").click()
+    page.get_by_role("heading", name="早上好，新手读者").wait_for()
+    page.get_by_role("button", name="立即同步").click()
+    page.wait_for_function("() => window.__browserFixture.synces === 1")
+    page.wait_for_function("() => { const r=window.__browserFixture.downstreamReads; return r.profile && r.notes && r.analytics; }")
+    downstream = page.evaluate("() => window.__browserFixture.downstreamReads")
+    assert downstream["profile"] >= 1 and downstream["notes"] >= 1 and downstream["analytics"] >= 1, downstream
+    page.get_by_role("heading", name="所有来源，统一保存在你的账户").wait_for()
+    assert page.get_by_text("同步后的真实笔记", exact=True).is_visible()
+    page.get_by_role("button", name="阅读画像").click()
+    page.get_by_role("heading", name="你的真实阅读数据、笔记活动与潜在下一步").wait_for()
+    assert page.get_by_text("30小时0分钟", exact=True).count() >= 1
 
     page.get_by_role("button", name="我的笔记").click()
     page.get_by_role("heading", name="所有来源，统一保存在你的账户").wait_for()

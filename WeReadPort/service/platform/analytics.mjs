@@ -9,7 +9,9 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
   const sources = countBy(notes, note => note.source || "unknown");
   const categories = countBy(notes, note => note.category || "未分类");
   const heatmap = buildNoteActivityHeatmap(notes, events, now);
-  const weeklyTrend = buildWeeklyTrend(notes, now);
+  const noteWeeklyTrend = buildWeeklyTrend(notes, now);
+  const officialReadingPeriods = buildOfficialReadingPeriods(officialReading);
+  const readingCategoryDistribution = buildReadingCategoryDistribution(officialReading);
   const words = notes.reduce((sum, note) => sum + Number(note.wordCount || 0), 0);
   const official = store.listRecommendations(accountId, 20);
   const local = buildLocalRecommendations(categories, notes);
@@ -27,18 +29,72 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
       activeDays90: heatmap.filter(day => day.value > 0).length,
       connectedSources: Object.entries(sources).filter(([, count]) => count > 0).map(([source]) => source),
     },
+    // Kept for existing API consumers. The account UI deliberately renders
+    // category distribution instead, so a source label is never mistaken for
+    // a reading preference.
     sourceDistribution: toSeries(sources),
     categoryDistribution: toSeries(categories).slice(0, 12),
+    readingCategoryDistribution,
     noteActivityHeatmap: heatmap,
     readingHeatmap: heatmap,
-    weeklyTrend,
+    // `weeklyTrend` is the legacy name for note events. It is not an official
+    // reading-time series and is labelled as a note trend in the UI.
+    noteWeeklyTrend,
+    weeklyTrend: noteWeeklyTrend,
+    officialReadingPeriods,
     officialReading,
+    dataFreshness: buildDataFreshness(wereadState, officialReading, notes, now),
     recommendations,
     privacy: {
       behaviorAnalyticsEnabled: Boolean(consent?.behaviorAnalytics),
       recommendationPersonalizationEnabled: Boolean(consent?.recommendationPersonalization),
       rawNoteTextUsedInBehaviorEvents: false,
       modelOrTokenDependency: 0,
+    },
+  };
+}
+
+function buildOfficialReadingPeriods(reading) {
+  const modes = [
+    ["weekly", "本周"],
+    ["monthly", "本月"],
+    ["annually", "本年"],
+    ["overall", "累计"],
+  ].map(([mode, label]) => ({ mode, label, ...(reading?.statistics?.[mode] || {}) }));
+  const metric = ["totalReadingTimeSeconds", "totalReadingDays", "totalFinishedBooks"]
+    .find(field => modes.some(item => safeMetric(item[field]) !== null));
+  if (!metric) return { source: "weread-official-readdata-detail", metric: null, items: [] };
+  return {
+    source: "weread-official-readdata-detail",
+    metric,
+    items: modes.map(item => ({ mode: item.mode, label: item.label, value: safeMetric(item[metric]) }))
+      .filter(item => item.value !== null),
+  };
+}
+
+function buildReadingCategoryDistribution(reading) {
+  const categories = Array.isArray(reading?.preferredCategories) ? reading.preferredCategories : [];
+  const metric = ["readingTimeSeconds", "readingCount"].find(field => categories.some(item => safeMetric(item?.[field]) !== null));
+  if (!metric) return null;
+  return {
+    source: "weread-official-readdata-detail",
+    metric,
+    items: categories.map(item => ({ label: safeLabel(item?.label, 120), value: safeMetric(item?.[metric]) }))
+      .filter(item => item.label && item.value !== null)
+      .sort((left, right) => right.value - left.value || left.label.localeCompare(right.label, "zh-CN"))
+      .slice(0, 12),
+  };
+}
+
+function buildDataFreshness(wereadState, officialReading, notes, now) {
+  const latestNoteEventAt = notes.reduce((latest, note) => Math.max(latest, noteEventAt(note)), 0);
+  return {
+    analyticsRecomputedAt: Math.floor(Number(now) / 1000),
+    weread: {
+      lastSyncedAt: safeMetric(wereadState?.lastSyncAt),
+      officialReadingCollectedAt: safeMetric(officialReading?.collectedAt),
+      latestNoteEventAt: latestNoteEventAt > 0 ? latestNoteEventAt : null,
+      noteActivitySource: "real-note-event-time",
     },
   };
 }

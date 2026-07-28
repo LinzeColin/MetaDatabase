@@ -25,7 +25,7 @@ test("四平台导入均使用连接、选择、预览/确认和进度式新手�
   assert.ok(api.includes('cache: "no-store"'));
   assert.match(ui, /runWeReadSync\(content, \{ forceFull: true, preserveView: true \}\)/u);
   assert.match(ui, /async function runWeReadSync\(content, \{ automatic = false, forceFull = false, preserveView = false \} = \{\}\)/u);
-  assert.match(ui, /if \(!preserveView\) state\.view = "notes";/u);
+  assert.match(ui, /if \(!automatic && !preserveView\) state\.view = "notes";/u);
 });
 
 test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读书", () => {
@@ -35,11 +35,15 @@ test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读�
   assert.ok(ui.includes("已登录，正在后台检查微信读书最新变化…"));
   assert.ok(api.includes("wereadSync(mode = \"auto\")"));
   assert.ok(ui.includes("真实事件时间"));
+  assert.match(ui, /async function refreshDerivedAccountState\(\)/u);
+  assert.match(ui, /Promise\.all\(\[api\.profile\(\), api\.notes\(\), api\.analytics\(\)\]\)/u);
+  assert.ok(ui.includes("await refreshDerivedAccountState()"));
 });
 
 test("画像、官方统计、笔记活动、推荐、跨设备和隐私控制都在账户 UI 中可见", () => {
-  for (const phrase of ["阅读偏好，已经整合到首页", "微信读书官方阅读统计", "官方阅读统计", "笔记活动", "潜在推荐", "在微信读书打开", "行为分析", "个性化推荐", "跨设备", "永久删除账户", "导出我的全部数据", "下载微信读书数据（JSON）"]) assert.ok(ui.includes(phrase), phrase);
+  for (const phrase of ["阅读偏好，已经整合到首页", "微信读书官方阅读统计", "官方阅读统计", "微信读书官方阅读进展", "类别分布", "本次来源同步于", "笔记活动", "潜在推荐", "在微信读书打开", "行为分析", "个性化推荐", "跨设备", "永久删除账户", "导出我的全部数据", "下载微信读书数据（JSON）"]) assert.ok(ui.includes(phrase), phrase);
   assert.equal(ui.includes("近 90 天阅读热度"), false, "笔记事件不得再被标为阅读热度");
+  assert.equal(ui.includes("<h2>来源分布</h2>"), false, "可视化应显示类别而非来源分布");
 });
 
 test("笔记页按真实字段实时筛选，并只对当前显示结果下载或交接 ChatGPT", () => {

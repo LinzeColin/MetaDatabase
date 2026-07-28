@@ -30,7 +30,7 @@ test("旧账户数据库启动时为笔记补齐事件时间列且不丢数据",
   assert.ok(store.db.prepare("PRAGMA table_info(notes)").all().some(column => column.name === "event_at"));
 });
 
-function gatewayMock(calls, { changedBook = () => "" } = {}) {
+function gatewayMock(calls, { changedBook = () => "", readingTime = () => 120 } = {}) {
   return async (_url, init) => {
     const body = JSON.parse(init.body);
     const api = body.api_name;
@@ -46,7 +46,10 @@ function gatewayMock(calls, { changedBook = () => "" } = {}) {
     else if (api === "/book/getprogress") payload = { errcode: 0, bookId: body.bookId, progress: 42 };
     else if (api === "/book/chapterinfo") payload = { errcode: 0, chapters: [{ chapterUid: 1, title: "第一章" }] };
     else if (api === "/book/bestbookmarks") payload = { errcode: 0, items: [] };
-    else if (api === "/readdata/detail") payload = { errcode: 0, mode: body.mode, readTime: 120 };
+    else if (api === "/readdata/detail") {
+      payload = { errcode: 0, mode: body.mode, readTime: readingTime(body.mode) };
+      if (body.mode === "overall") payload.preferCategory = [{ categoryTitle: "历史", readingTime: 7_200, readingCount: 4 }, { categoryTitle: "科学", readingTime: 3_600, readingCount: 2 }];
+    }
     else if (api === "/book/recommend") payload = body.maxIdx ? { errcode: 0, books: [] } : { errcode: 0, books: [{ bookId: "recommend-1", title: "推荐书", author: "推荐作者", searchIdx: 1, reason: "与你的阅读主题相关" }] };
     return new Response(JSON.stringify(payload), { status: 200, headers: { "Content-Type": "application/json" } });
   };
@@ -114,7 +117,19 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
   assert.equal(result.summary.officialReading.statistics.overall.totalReadingTimeSeconds, 120);
   assert.deepEqual(platform.service.publicAccount(user.account.id).weread.summary.coverage, result.summary.coverage);
   assert.equal(platform.service.listNotes(user.account.id, { limit: 100 }).length, 16);
-  assert.equal(platform.service.analytics(user.account.id).officialReading.statistics.overall.totalReadingTimeSeconds, 120, "官方阅读统计不应依赖行为分析同意");
+  const dashboard = platform.service.analytics(user.account.id);
+  assert.equal(dashboard.officialReading.statistics.overall.totalReadingTimeSeconds, 120, "官方阅读统计不应依赖行为分析同意");
+  assert.deepEqual(dashboard.officialReadingPeriods, {
+    source: "weread-official-readdata-detail",
+    metric: "totalReadingTimeSeconds",
+    items: ["weekly", "monthly", "annually", "overall"].map(mode => ({ mode, label: ({ weekly: "本周", monthly: "本月", annually: "本年", overall: "累计" })[mode], value: 120 })),
+  });
+  assert.deepEqual(dashboard.readingCategoryDistribution, {
+    source: "weread-official-readdata-detail",
+    metric: "readingTimeSeconds",
+    items: [{ label: "历史", value: 7_200 }, { label: "科学", value: 3_600 }],
+  });
+  assert.equal(dashboard.dataFreshness.weread.lastSyncedAt, platform.service.publicAccount(user.account.id).weread.lastSyncAt);
   platform.service.updateConsent(user.account.id, { behaviorAnalytics: false, recommendationPersonalization: true });
   assert.ok(platform.service.analytics(user.account.id).recommendations.some(item => item.source === "weread-official"));
 });
@@ -147,7 +162,8 @@ test("微信读书保留真实事件时间、按事件倒序且重复同步不�
 test("微信读书后续同步只读取来源明确变化的书籍，并保留每日完整核对回退", async t => {
   const calls = [];
   let changedBook = "";
-  const platform = testPlatform({ fetchImpl: gatewayMock(calls, { changedBook: () => changedBook }) });
+  let currentReadingTime = 120;
+  const platform = testPlatform({ fetchImpl: gatewayMock(calls, { changedBook: () => changedBook, readingTime: () => currentReadingTime }) });
   t.after(platform.close);
   const user = await platform.service.registerWeRead({ key: KEY, displayName: "增量同步用户" }, {}, { verify: false });
   const first = await platform.service.syncWeRead(user.account.id, { recommendationPages: 1 });
@@ -166,6 +182,9 @@ test("微信读书后续同步只读取来源明确变化的书籍，并保留�
   assert.equal(calls.filter(api => api === "/review/list/mine").length, 0);
   assert.equal(calls.filter(api => api === "/readdata/detail").length, 4, "增量同步也必须刷新官方阅读画像");
   for (const api of ["/_list", "/shelf/sync", "/user/notebooks"]) assert.ok(calls.includes(api), api);
+  currentReadingTime = 480;
+  const refreshedDashboard = platform.service.analytics(user.account.id);
+  assert.equal(refreshedDashboard.officialReading.statistics.overall.totalReadingTimeSeconds, 120, "读取前不应伪造尚未同步的官方变化");
 
   changedBook = "book-3";
   calls.length = 0;
@@ -175,6 +194,10 @@ test("微信读书后续同步只读取来源明确变化的书籍，并保留�
   assert.equal(third.summary.skippedUnchangedBooks, 7);
   assert.equal(calls.filter(api => api === "/book/bookmarklist").length, 1);
   assert.equal(calls.filter(api => api === "/review/list/mine").length, 1);
+  const downstream = platform.service.analytics(user.account.id);
+  assert.equal(downstream.officialReading.statistics.overall.totalReadingTimeSeconds, 480, "来源刷新后画像必须读取新官方统计");
+  assert.equal(downstream.officialReadingPeriods.items.find(item => item.mode === "overall").value, 480, "阅读进展图必须读取新官方统计");
+  assert.equal(downstream.readingCategoryDistribution.items[0].label, "历史", "类别分布必须读取官方类别汇总");
 });
 
 test("微信读书兼容包装字段、分页重叠并仅使用官方返回的真实详情链接", async () => {
