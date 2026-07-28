@@ -242,6 +242,17 @@ def validate_scope_and_boundary() -> Check:
     )
 
 
+def _stage4_review_completed(state: dict[str, Any]) -> bool:
+    return (
+        state.get("stage_4_review_complete") is True
+        and state.get("stage_4_review_id") == "STG.X2N.4.REVIEW"
+        and state.get("stage_4_gate_status") == "pass_ci_synth"
+        and state.get("stage_4_remote_upload_authorized") is False
+        and state.get("stage_5_authorized") is True
+        and state.get("public_release_authorized") is False
+    )
+
+
 def validate_task_state_and_historical_resume() -> Check:
     task = _load_task()
     state = _load_json(TASK_STATE)
@@ -251,7 +262,31 @@ def validate_task_state_and_historical_resume() -> Check:
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Task010 current state is not pass")
     task001_state = state.get("tasks", {}).get("TSK.x2n.multimodal.001")
     task005_state = state.get("tasks", {}).get("TSK.x2n.multimodal.005")
-    if task005_state == "pass":
+    if task005_state == "pass" and _stage4_review_completed(state):
+        _require(
+            state.get("stage") == "STG.X2N.5"
+            and state.get("last_completed_phase") == "STG.X2N.4.REVIEW"
+            and state.get("review_id") == "STG.X2N.4.REVIEW"
+            and state.get("run_id") == "RUN-X2N-S04-REVIEW"
+            and all(
+                state.get("tasks", {}).get(task_id) == "pass"
+                for task_id in (
+                    "TSK.x2n.multimodal.001",
+                    "TSK.x2n.multimodal.002",
+                    "TSK.x2n.multimodal.003",
+                    "TSK.x2n.multimodal.004",
+                    "TSK.x2n.multimodal.005",
+                )
+            )
+            and state.get("current_stage_gate") == "not_run"
+            and state.get("stage_gate") == "pass"
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("next_run") == "TSK.x2n.uxops.001"
+            and state.get("next_phase") == "PH.X2N.5.1",
+            "Task010 historical boundary was not preserved after G4 completion",
+        )
+        current_stage = "stage4_g4_pass_stage5_task001_next"
+    elif task005_state == "pass":
         _require(
             state.get("last_completed_phase") == "PH.X2N.4.5"
             and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK"

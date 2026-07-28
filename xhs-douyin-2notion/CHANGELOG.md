@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 4 / G4 Review
+
+- 独立复核 Stage 4 五个固定 Task receipt，并新增 G4 的 Run Contract、机器状态、schema、acceptance runner、fail-closed verifier 与脱敏证据入口。
+- 重新运行 ASR、OCR/Vision、Fusion、taxonomy 合成验收；prompt-injection suite 通过，AI 一级 taxonomy mutation 为 0，自动分类仍为 DISABLED_PENDING_PRIVATE_GOLD。
+- G4=PASS_CI_SYNTH 只授权下一单本地 TSK.x2n.uxops.001；Stage 4 上传、真实模型/私有 Gold、账号、平台、Notion、部署和发布未授权。无 Alpha/Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 4 / Multimodal 005
 
 - 完成 `TSK.x2n.multimodal.005 / PH.X2N.4.5` 的 CI-synth 范围：Owner-only 一级 taxonomy registry、稳定 ID、保留 `unclassified`、全局歧义拒绝、disable/merge、SQLite append-only revision 与物理删除阻断。

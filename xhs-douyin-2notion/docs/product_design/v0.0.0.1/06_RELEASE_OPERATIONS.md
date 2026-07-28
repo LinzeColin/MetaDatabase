@@ -25,11 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 独立 G3 CI-synth 复验已通过，下一单可本地执行 `TSK.x2n.multimodal.001 / PH.X2N.4.1`。
+- 独立 G3/G4 CI-synth 复核已通过，下一单可本地执行 `TSK.x2n.uxops.001 / PH.X2N.5.1`；ASR/OCR/Vision/分类私有 Gold 仍关闭或 suggestion-only。
 
 ### 当前未授权
 
-- 上传 Stage 3、部署或发布；当前 G3 PASS 只授权下一单本地 `PH.X2N.4.1`；
+- 上传 Stage 4、部署或发布；当前 G4 PASS 只授权下一单本地 `PH.X2N.5.1`；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；

@@ -42,7 +42,7 @@ v0.0.0.1 MVP deployed, running and online
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 独立 `G3=PASS_CI_SYNTH`；`TSK.x2n.multimodal.001–005` 已完成 CI-synth。Task005 固化 Owner taxonomy registry、append-only revision、受约束本地建议分类与 Owner review；私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类也保持关闭。下一独立 Run 为 `G4` 复核，上传/部署/发布仍禁止 |
+| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为本地 TSK.x2n.uxops.001；Stage 4 上传、部署/发布仍禁止 |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |

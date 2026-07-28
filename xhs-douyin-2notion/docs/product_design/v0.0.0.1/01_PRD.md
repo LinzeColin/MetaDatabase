@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING
+status: STAGE_4_G4_PASS_CI_SYNTH_PRIVATE_GOLD_DISABLED_STAGE_5_TASK001_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_4_task005_complete_g4_review_next_private_gold_pending
-implementation_authorized: stage_4_g4_review_next_single_phase_run
+current_run_scope: stage_4_g4_pass_stage_5_task001_next_private_gold_disabled
+implementation_authorized: stage_5_task_001_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -31,8 +31,8 @@ owner: LinzeColin
 | 运行数据 | Private；持久业务/运行数据进入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion` |
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
-| 产品阶段 | Stage 4 Multimodal |
-| 开发状态 | 独立 G3 CI-synth 复验和 `TSK.x2n.multimodal.001–005` 已完成；Task005 提供 Owner 一级 taxonomy registry、append-only revision、受约束本地建议分类与 Owner review。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。下一独立 Run 为 `G4` 复核；Stage 3 上传、部署和发布仍未授权 |
+| 产品阶段 | Stage 5 已授权，尚未执行 Task |
+| 开发状态 | 独立 G3 与 G4 CI-synth 复核均已通过；五个 Stage 4 Task receipt 不变。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。下一独立 Run 为本地 TSK.x2n.uxops.001；Stage 4 上传、部署和发布仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 

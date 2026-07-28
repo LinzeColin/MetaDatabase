@@ -1,8 +1,8 @@
 {
   "schema_version": "1.2",
-  "phase": "PH.X2N.4.5",
-  "status": "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending",
-  "review_id": "STG.X2N.3.REVIEW.RESUME",
+  "phase": "STG.X2N.4.REVIEW",
+  "status": "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next",
+  "review_id": "STG.X2N.4.REVIEW",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
@@ -25,5 +25,5 @@
   "implementation_started": true,
   "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-010_plus_TSK.x2n.multimodal.001-005_ci_synth_only",
   "real_account_execution": false,
-  "stage_gate": "g3_pass_stage4_complete_g4_review_pending"
+  "stage_gate": "g4_pass_ci_synth_stage5_authorized_private_gold_disabled"
 }

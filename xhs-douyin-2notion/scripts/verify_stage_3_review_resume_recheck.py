@@ -75,6 +75,7 @@ EXPECTED_FACT_CONDITIONS = {
     "failed_run_and_single_explicit_fallback": "PASS_CI_SYNTH_FAILED_RUN_SANITIZED_FAILURE_SECOND_OWNER_ACTION",
     "zero_automatic_fallbacks": "PASS_CI_SYNTH_AUTOMATIC_FALLBACKS_0",
 }
+G4_REVIEW_ID = "STG.X2N.4.REVIEW"
 SAFETY_PATHS = (
     RECHECK_SCHEMA,
     RECHECK_FACT,
@@ -177,6 +178,17 @@ def _safe_payload(payload: Any, *, forbid_all_urls: bool = True) -> None:
         flags=re.IGNORECASE,
     )
     _require(cdn.search(rendered) is None, "media CDN value entered recheck artifact")
+
+
+def _stage4_review_completed(state: dict[str, Any]) -> bool:
+    return (
+        state.get("stage_4_review_complete") is True
+        and state.get("stage_4_review_id") == G4_REVIEW_ID
+        and state.get("stage_4_gate_status") == "pass_ci_synth"
+        and state.get("stage_4_remote_upload_authorized") is False
+        and state.get("stage_5_authorized") is True
+        and state.get("public_release_authorized") is False
+    )
 
 
 def validate_fact_and_historical_receipts() -> Check:
@@ -318,7 +330,47 @@ def validate_taskpack_and_current_transition() -> Check:
         completed_task = "TSK.x2n.multimodal.001"
         next_task_id = "TSK.x2n.multimodal.002"
     else:
-        if task005.get("status") == "completed":
+        if task005.get("status") == "completed" and _stage4_review_completed(state):
+            _require(
+                following_task.get("status") == "completed"
+                and following_task.get("phase") == "PH.X2N.4.2"
+                and task003.get("status") == "completed"
+                and task003.get("phase") == "PH.X2N.4.3"
+                and task004.get("status") == "completed"
+                and task004.get("phase") == "PH.X2N.4.4"
+                and task005.get("phase") == "PH.X2N.4.5"
+                and task005.get("depends_on") == ["TSK.x2n.multimodal.004", "TSK.x2n.foundation.002"],
+                "completed Stage 4 Task contract drifted after G4",
+            )
+            _require(
+                state.get("last_completed_phase") == G4_REVIEW_ID
+                and state.get("review_id") == G4_REVIEW_ID
+                and state.get("run_id") == "RUN-X2N-S04-REVIEW"
+                and state.get("stage") == "STG.X2N.5"
+                and state.get("tasks", {}).get("TSK.x2n.adapters.010") == "pass"
+                and all(
+                    state.get("tasks", {}).get(task_id) == "pass"
+                    for task_id in (
+                        "TSK.x2n.multimodal.001",
+                        "TSK.x2n.multimodal.002",
+                        "TSK.x2n.multimodal.003",
+                        "TSK.x2n.multimodal.004",
+                        "TSK.x2n.multimodal.005",
+                    )
+                )
+                and state.get("next_phase") == "PH.X2N.5.1"
+                and state.get("next_run") == "TSK.x2n.uxops.001"
+                and state.get("next_phase_authorized") is True
+                and state.get("stage_3_review_complete") is True
+                and state.get("stage_3_remote_upload_authorized") is False
+                and state.get("stage_4_authorized") is True
+                and state.get("stage_gate") == "pass"
+                and state.get("current_stage_gate") == "not_run",
+                "G4 did not preserve the bounded G3 history and Stage 5 transition",
+            )
+            completed_task = "TSK.x2n.multimodal.005"
+            next_task_id = "TSK.x2n.uxops.001"
+        elif task005.get("status") == "completed":
             _require(
                 following_task.get("status") == "completed"
                 and following_task.get("phase") == "PH.X2N.4.2"
@@ -520,14 +572,30 @@ def validate_docs_and_public_boundary() -> Check:
     task004_completed = current_tasks.get("TSK.x2n.multimodal.004") == "pass"
     task005_completed = current_tasks.get("TSK.x2n.multimodal.005") == "pass"
     if task005_completed:
+        g4_completed = _stage4_review_completed(_load_json(TASK_STATE))
         _require(
             task004_completed
-            and "status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING" in prfaq_text
-            and "implementation_authorized: stage_4_g4_review_next_single_phase_run" in prfaq_text
-            and "status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING" in prd_text
-            and "current_run_scope: stage_4_task005_complete_g4_review_next_private_gold_pending" in prd_text
-            and "implementation_authorized: stage_4_g4_review_next_single_phase_run" in prd_text,
-            "PRFAQ/PRD do not describe the completed taxonomy Task005 and independent G4 review",
+            and (
+                (
+                    not g4_completed
+                    and "status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING"
+                    in prfaq_text
+                    and "implementation_authorized: stage_4_g4_review_next_single_phase_run" in prfaq_text
+                    and "status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING"
+                    in prd_text
+                    and "current_run_scope: stage_4_task005_complete_g4_review_next_private_gold_pending" in prd_text
+                    and "implementation_authorized: stage_4_g4_review_next_single_phase_run" in prd_text
+                )
+                or (
+                    g4_completed
+                    and "status: STAGE_4_G4_PASS_CI_SYNTH_PRIVATE_GOLD_DISABLED_STAGE_5_TASK001_NEXT" in prfaq_text
+                    and "implementation_authorized: stage_5_task_001_next_single_phase_run" in prfaq_text
+                    and "status: STAGE_4_G4_PASS_CI_SYNTH_PRIVATE_GOLD_DISABLED_STAGE_5_TASK001_NEXT" in prd_text
+                    and "current_run_scope: stage_4_g4_pass_stage_5_task001_next_private_gold_disabled" in prd_text
+                    and "implementation_authorized: stage_5_task_001_next_single_phase_run" in prd_text
+                )
+            ),
+            "PRFAQ/PRD do not describe the completed taxonomy Task005 and G4 state",
         )
     elif task004_completed:
         _require(

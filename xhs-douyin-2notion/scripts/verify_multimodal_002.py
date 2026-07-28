@@ -31,6 +31,7 @@ ARCHITECTURE = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
 RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_002.md"
 ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_multimodal_002_acceptance.py"
 EVIDENCE = PROJECT_ROOT / "evidence/models/TSK.x2n.multimodal.002.json"
+G4_REVIEW_ID = "STG.X2N.4.REVIEW"
 
 SOURCE_RECEIPT_PATHS = (
     PROJECT_ROOT / "apps/companion/src/x2n_companion/asr.py",
@@ -227,6 +228,17 @@ def _load_task() -> dict[str, Any]:
     return matches[0]
 
 
+def _stage4_review_completed(state: dict[str, Any]) -> bool:
+    return (
+        state.get("stage_4_review_complete") is True
+        and state.get("stage_4_review_id") == G4_REVIEW_ID
+        and state.get("stage_4_gate_status") == "pass_ci_synth"
+        and state.get("stage_4_remote_upload_authorized") is False
+        and state.get("stage_5_authorized") is True
+        and state.get("public_release_authorized") is False
+    )
+
+
 def validate_task_and_transition() -> Check:
     task = _load_task()
     state = _load_json(TASK_STATE)
@@ -242,28 +254,32 @@ def validate_task_and_transition() -> Check:
     task004_completed = state.get("tasks", {}).get("TSK.x2n.multimodal.004") == "pass"
     task005_completed = state.get("tasks", {}).get(TASK005) == "pass"
     if task005_completed:
+        g4_completed = _stage4_review_completed(state)
         _require(
-            task003_completed
-            and task004_completed
-            and state.get("stage") == "STG.X2N.4"
-            and state.get("last_completed_phase") == "PH.X2N.4.5"
-            and state.get("run_id") == "RUN-X2N-S04-M005"
-            and state.get("run_kind") == "single_dag_task_ci_synth_owner_taxonomy_classifier_private_gold_pending"
-            and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
-            and state.get("tasks", {}).get(TASK_ID) == "pass"
-            and state.get("next_phase") == "G4"
-            and state.get("next_run") == "G4"
-            and state.get("next_phase_authorized") is True
-            and state.get("stage_gate") == "review_pending"
-            and state.get("current_stage_gate") == "review_pending"
-            and state.get("stage_3_review_complete") is True
-            and state.get("stage_3_remote_upload_authorized") is False
-            and state.get("stage_4_authorized") is True
-            and state.get("public_release_authorized") is False
-            and state.get("remote_upload") == "not_required_for_local_stage_transition",
+            g4_completed
+            or (
+                task003_completed
+                and task004_completed
+                and state.get("stage") == "STG.X2N.4"
+                and state.get("last_completed_phase") == "PH.X2N.4.5"
+                and state.get("run_id") == "RUN-X2N-S04-M005"
+                and state.get("run_kind") == "single_dag_task_ci_synth_owner_taxonomy_classifier_private_gold_pending"
+                and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
+                and state.get("tasks", {}).get(TASK_ID) == "pass"
+                and state.get("next_phase") == "G4"
+                and state.get("next_run") == "G4"
+                and state.get("next_phase_authorized") is True
+                and state.get("stage_gate") == "review_pending"
+                and state.get("current_stage_gate") == "review_pending"
+                and state.get("stage_3_review_complete") is True
+                and state.get("stage_3_remote_upload_authorized") is False
+                and state.get("stage_4_authorized") is True
+                and state.get("public_release_authorized") is False
+                and state.get("remote_upload") == "not_required_for_local_stage_transition"
+            ),
             "Task002 historical boundary was not preserved after Task005 completion",
         )
-        next_task = "G4"
+        next_task = "TSK.x2n.uxops.001" if g4_completed else "G4"
     elif task004_completed:
         _require(
             task003_completed
@@ -432,6 +448,7 @@ def validate_facts_and_evidence() -> Check:
             "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending",
             "stage_4_task004_fusion_injection_ci_synth_model_not_run",
             "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending",
+            "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next",
         }
         and project.get("canonical_store") == "active_local_sqlite_logical_truth",
         "project fact drifted",

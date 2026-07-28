@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：独立 `STG.X2N.3.REVIEW.RESUME.RECHECK` 已签发 `G3=PASS_CI_SYNTH`；`TSK.x2n.multimodal.001–005 / PH.X2N.4.1–4.5` 均已完成 CI-synth 范围内的单任务验收。Task005 新增 Owner 一级分类 registry、稳定 ID、禁用/合并、append-only revision、不可变 taxonomy snapshot、受约束本地建议分类、显式 Owner 确认/纠正和私有 Gold 聚合评测 Oracle。没有 Owner taxonomy/private Gold 时，自动分类固定关闭，内容保持 Unclassified 或 suggestion-only；AI 无法创建或修改一级分类。下一独立 Run 只能是 `G4` 复核；Stage 3 上传、部署、发布和真实平台执行仍禁止。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本任务未使用 authenticated session，未来显式授权 Task 也只能经 `private_db_client.py` 使用现有 session，不能接触 Token 值或修改/删除/撤销/轮换认证。
+当前状态：独立 G3 与 G4 均已签发 PASS_CI_SYNTH；Stage 4 的五个 Task receipt 保持固定。Task005 的 Owner 一级 taxonomy、append-only revision、immutable snapshot、受约束本地 suggestion、Owner review 和 private Gold Oracle 均保持原边界。没有 Owner taxonomy/private Gold 时，自动分类固定关闭，内容保持 Unclassified 或 suggestion-only；AI 无法创建或修改一级分类。下一独立 Run 只能是本地 TSK.x2n.uxops.001；Stage 4 上传、部署、发布和真实平台执行仍禁止。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本任务未使用 authenticated session，未来显式授权 Task 也只能经 private_db_client.py 使用现有 session，不能接触 Token 值或修改/删除/撤销/轮换认证。
 
 发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
@@ -37,6 +37,8 @@
 .venv/bin/python -B scripts/verify_multimodal_004.py --verify-worktree --run-acceptance
 .venv/bin/python -B scripts/run_multimodal_005_acceptance.py
 .venv/bin/python -B scripts/verify_multimodal_005.py --verify-worktree --run-acceptance
+.venv/bin/python -B scripts/run_stage_4_review_acceptance.py
+.venv/bin/python -B scripts/verify_stage_4_review.py --verify-worktree --run-acceptance --require-evidence
 ```
 
 当前运行状态真源是 `machine/facts/task_state.json`；`machine/facts/stage_3_review_resume_state.json`
@@ -44,7 +46,7 @@
 Task001 的公开证据在 `evidence/multimodal/TSK.x2n.multimodal.001.json`，Task002–Task004 的公开聚合
 证据分别在 `evidence/models/TSK.x2n.multimodal.002.json`、
 `evidence/models/TSK.x2n.multimodal.003.json`、`evidence/models/TSK.x2n.multimodal.004.json` 和
-`evidence/models/TSK.x2n.multimodal.005.json`；它们都不是真实模型、私有 Gold Set、真实媒体或任何外部平台能力的通过声明。Task005 的自动分类仍为关闭的 suggestion-only，下一独立 Run 为 G4；历史 G3 合同见
+`evidence/models/TSK.x2n.multimodal.005.json`；它们都不是真实模型、私有 Gold Set、真实媒体或任何外部平台能力的通过声明。G4 的独立事实在 `machine/facts/stage_4_review_state.json`，公开证据在 `machine/evidence/stage_4/review/`。自动分类仍为关闭的 suggestion-only，下一独立 Run 是本地 `TSK.x2n.uxops.001`；历史 G3 合同见
 `docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
 `docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。
 

@@ -3,10 +3,10 @@ artifact: PRFAQ
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_4_TASK005_TAXONOMY_CLASSIFIER_CI_SYNTH_PRIVATE_GOLD_PENDING_G4_REVIEW_PENDING
+status: STAGE_4_G4_PASS_CI_SYNTH_PRIVATE_GOLD_DISABLED_STAGE_5_TASK001_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-decision: DIRECT_MVP_TASK005_ACCEPTED_G4_REVIEW_NEXT
-implementation_authorized: stage_4_g4_review_next_single_phase_run
+decision: DIRECT_MVP_G4_PASS_STAGE5_LOCAL_NEXT
+implementation_authorized: stage_5_task_001_next_single_phase_run
 owner: LinzeColin
 repository_target: LinzeColin/MetaDatabase
 skill_path: xhs-douyin-2notion/
@@ -41,7 +41,7 @@ timezone: Australia/Sydney
 | 多模态 | 标题/正文 + ASR + OCR + 关键帧视觉理解 + 融合摘要 + 自动分类 + 人工复核 |
 | 公共仓库边界 | 只提交代码、契约、合成 Fixture、脱敏证据；Cookie、Token、浏览器 Profile、私人内容和运行数据库禁止进入 Git |
 | 发布策略 | G0–G5＋前置任务/最终任务自有集合外 Acceptance → assurance.005 内完成 80 条 XHS/DY 基线＋每个额外启用能力独立 ≤20 条激活/安全/回滚/签字 → 部署运行/online smoke → G6 PASS；合法外部门可关闭结算、技术阻断不可结算；无预发布阶段、固定健康观察期或 soak |
-| 开发授权 | Stage 0–2 已合并；独立 G3、Task001–Task005 的 CI-synth 合同均已通过。ASR/OCR/Vision 私有 Gold Set 仍未运行且 Feature Flag 关闭；Task005 的 Owner taxonomy/private Gold 也未提供，因此自动分类保持关闭、只允许 Unclassified/suggestion-only。下一独立 Run 为 `G4` 复核；真实账号、Stage 3 上传、部署与发布仍未授权 |
+| 开发授权 | Stage 0–2 已合并；G3 与 G4 均已独立签发 PASS_CI_SYNTH。ASR/OCR/Vision/分类私有 Gold 未运行，相关能力保持关闭或 suggestion-only，自动分类仍为 false。下一独立 Run 仅为本地 TSK.x2n.uxops.001；Stage 4 上传、真实账号、部署与发布仍未授权 |
 
 **Pursuing Goal**
 

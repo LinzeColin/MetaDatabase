@@ -41,11 +41,11 @@
     "weibo",
     "taobao"
   ],
-  "stage_4_current_task": "TSK.x2n.multimodal.005_pass_ci_synth_owner_taxonomy_classifier_private_gold_pending_g4_review_next",
+  "stage_4_current_task": "G4_pass_ci_synth_private_gold_disabled_stage_5_task001_next",
   "media_preprocessing": "lease_scoped_ffmpeg_ffprobe_audio_keyframe_dedup_temporary_only",
   "asr": "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
   "ocr_vision": "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
   "fusion": "deterministic_local_extractive_ephemeral_artifacts_strict_grounded_parser_prompt_isolation_zero_side_effects_ci_synth_model_not_run",
   "taxonomy_classification": "owner_registry_append_only_revisions_constrained_deterministic_local_suggestion_only_review_private_gold_oracle_auto_classify_disabled_pending_private_gold",
-  "status": "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending"
+  "status": "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
 }
