@@ -1,0 +1,218 @@
+{
+  "schema_version": "cyberboss.cb600.validation.v1",
+  "task_id": "CB-600",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-001",
+    "AC-002",
+    "AC-038"
+  ],
+  "check_count": 32,
+  "pass_count": 32,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "checks": [
+    {
+      "check": "ac001.probe_read_only",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "probe_kind=read_only_current_truth"
+    },
+    {
+      "check": "ac001.consensus_consistent",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "consensus=consistent reason=accepted_high_watermark_agrees"
+    },
+    {
+      "check": "ac001.mutation_allowed",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "mutation_policy=allow_normal_execution"
+    },
+    {
+      "check": "ac001.four_source_reconciliation",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "claims={'machine_task_state': 'CB-540', 'readme': 'CB-540', 'handoff': 'CB-540'}"
+    },
+    {
+      "check": "ac001.probe_digest_reproducible",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "stored=89c86bc696254b51600f6c46d31402a3570828f9341e7ab3de5bb6e59f5e81be recomputed=89c86bc696254b51600f6c46d31402a3570828f9341e7ab3de5bb6e59f5e81be"
+    },
+    {
+      "check": "ac001.subject_head_bound",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "head=bb716bd9cf2760aa9639ef85c626f0fd19c6ec94 tree=a6426566cdba7dce4d1990eb888d308838b26ef1"
+    },
+    {
+      "check": "ac001.clean_base_worktree",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "dirty_paths=0"
+    },
+    {
+      "check": "ac001.closure_present.CB-540",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "CB-540=70086d4686975dd4dea39ef30ccefa1562f7302d"
+    },
+    {
+      "check": "ac001.closure_present.PG-5",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "PG-5=3ad274c82b41e93bf76dcebea68a6b68379657b1"
+    },
+    {
+      "check": "ac001.prior_evidence_preserved",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "stage0_5_evidence_dirs=30"
+    },
+    {
+      "check": "ac001.single_user_pass_not_inherited",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "stage 0-5 neither replayed nor inherited as multi-user PASS"
+    },
+    {
+      "check": "ac001.single_owner_change_event",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "v0.0.0.8_events=1"
+    },
+    {
+      "check": "ac001.owner_change_preserves_prior_identity",
+      "acceptance_id": "AC-001",
+      "result": "PASS",
+      "detail": "prior task_state hash and release identity retained in the event"
+    },
+    {
+      "check": "ac002.product_version",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "product=v0.0.0.8 taskpack=v0.0.0.8"
+    },
+    {
+      "check": "ac002.revision_and_zip_bound",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "revision=R7-FINAL"
+    },
+    {
+      "check": "ac002.agent_has_no_version_authority",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "agent_may_bump/prerelease/change_acceptance all false"
+    },
+    {
+      "check": "ac002.acceptance_set_frozen_50",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "acceptance=FROZEN count=50"
+    },
+    {
+      "check": "ac002.task_state_version_aligned",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "task_state taskpack=v0.0.0.8 product=v0.0.0.8"
+    },
+    {
+      "check": "ac002.subject_version_aligned",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "subject records no agent-side version or acceptance mutation"
+    },
+    {
+      "check": "ac038.subtree_license",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "subtree=AGPL-3.0-only root_override=False declared={'cyberboss': 'AGPL-3.0-only', 'timeline-for-agent': 'AGPL-3.0-only', 'whereabouts-mcp': 'AGPL-3.0-only'}"
+    },
+    {
+      "check": "ac038.license_file_present",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "CyberBoss/LICENSE and CyberBoss/app/LICENSE present"
+    },
+    {
+      "check": "ac038.corresponding_source_entry",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "LICENSE_COMPLIANCE.md, UPSTREAM_PROVENANCE.md and THIRD_PARTY_NOTICES.md present"
+    },
+    {
+      "check": "ac038.no_runtime_fetch",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "runtime fetch, automatic sync and periodic rebase all forbidden"
+    },
+    {
+      "check": "ac038.no_upstream_remote_or_submodule",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "no upstream remote, no submodule, no Git-URL dependency, no .gitmodules"
+    },
+    {
+      "check": "ac038.locked_source_shas_unchanged",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "three locked upstream SHAs unchanged by CB-600"
+    },
+    {
+      "check": "ac038.license_conflict_record_honest",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "whereabouts-mcp dual obligation preserved without claiming clarification"
+    },
+    {
+      "check": "scope.writes_inside_cyberboss_only",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "changed=12 outside_scope=[]"
+    },
+    {
+      "check": "scope.no_parallel_plane",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "no parallel runtime, database or task state"
+    },
+    {
+      "check": "scope.all_required_domains_mapped",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "domains=18 unresolved=[]"
+    },
+    {
+      "check": "scope.every_ambiguity_resolved",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "ambiguous=['profile_analytics'] resolved=['profile_analytics']"
+    },
+    {
+      "check": "scope.migration_prefix_dynamic",
+      "acceptance_id": "AC-002",
+      "result": "PASS",
+      "detail": "selected_prefix=6"
+    },
+    {
+      "check": "scope.no_mac_markers_in_evidence",
+      "acceptance_id": "AC-038",
+      "result": "PASS",
+      "detail": "leaks=[]"
+    }
+  ],
+  "evidence_sha256": {
+    "current-truth-probe.json": "8806caf8ac8dd2864f191e5a8f6650607963c13119bff98122a19eca0e0d8dbb",
+    "migration-dry-run.json": "987231275a828c9340c644c2a8eb0f4cf0ac3f9f48b1b239e60ad0b846263dc8",
+    "run-contract.json": "8f3da0529a61db66d106a308d4605b45cfcc6d9cf2abb41121f5f61e77079e1e",
+    "subject.json": "4d67cb972594cce3c9b5e4ab6a73a220d178b4c22aed0e2eb852b60494b39221",
+    "target-adaptation-plan.json": "b17fef1c3c64507ec4ccabf1f4b81a8978ec4dd6f2362e774974ced62fc37bd8",
+    "target-compatibility-probe.json": "58e8937dffd3dc47cb17a66b809dfefcdc52e213d9ec439c7c9b244650518155"
+  }
+}

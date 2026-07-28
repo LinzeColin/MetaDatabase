@@ -1,0 +1,464 @@
+{
+  "schema_version": 2,
+  "probe_kind": "read_only_current_truth",
+  "subject": {
+    "head": "bb716bd9cf2760aa9639ef85c626f0fd19c6ec94",
+    "tree": "a6426566cdba7dce4d1990eb888d308838b26ef1",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "dirty": false,
+    "dirty_paths": []
+  },
+  "project": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/"
+  },
+  "files": {
+    "CyberBoss/README.md": {
+      "path": "CyberBoss/README.md",
+      "exists": true,
+      "size": 20100,
+      "sha256": "5c9244fdd9523054808700152957582c3efc98e8b60c02c34879a310df293ed4"
+    },
+    "CyberBoss/HANDOFF.md": {
+      "path": "CyberBoss/HANDOFF.md",
+      "exists": true,
+      "size": 53379,
+      "sha256": "1bcf3d3048fa20e95005b24826631abebc65d2d9f360d370f7a548bb2cdfef3a"
+    },
+    "CyberBoss/AGENTS.md": {
+      "path": "CyberBoss/AGENTS.md",
+      "exists": true,
+      "size": 3542,
+      "sha256": "c1395141de169ec3f50fa85d58a37ce61f1d6fd3e8e17d5c1c51d1631cdd604a"
+    },
+    "CyberBoss/machine/facts/task_state.json": {
+      "path": "CyberBoss/machine/facts/task_state.json",
+      "exists": true,
+      "size": 10819,
+      "sha256": "511072bd975abb27cbdf5a726139ddabdab49db42f46c5601728315a46a85417"
+    },
+    "CyberBoss/machine/facts/owner_decisions.json": {
+      "path": "CyberBoss/machine/facts/owner_decisions.json",
+      "exists": true,
+      "size": 2502,
+      "sha256": "860bb4afb1a2912d87d41bceb2eadfdbe79ff4e78b5bc5334fddef2b656cf5ea"
+    },
+    "CyberBoss/docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml": {
+      "path": "CyberBoss/docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml",
+      "exists": true,
+      "size": 74841,
+      "sha256": "538f0cd9110bb4ee54184ba4d6e3941a120284e34f8f1c65c01bc5041b1be185"
+    }
+  },
+  "claims": {
+    "machine_task_state": {
+      "exists": true,
+      "parse_error": null,
+      "schema_version": 1,
+      "taskpack_version": "v0.0.0.7",
+      "updated_on": "2026-07-27",
+      "current_run": {
+        "run_id": "PG-5",
+        "gate_id": "PG-5",
+        "task_id": null,
+        "scope": "native_final_exit_gate_mvp_degraded_subject_seal_and_external_candidate",
+        "status": "passed"
+      },
+      "passed_task_ids": [
+        "CB-000",
+        "CB-010",
+        "CB-020",
+        "CB-030",
+        "CB-040",
+        "CB-100",
+        "CB-110",
+        "CB-120",
+        "CB-130",
+        "CB-140",
+        "CB-200",
+        "CB-210",
+        "CB-220",
+        "CB-230",
+        "CB-240",
+        "CB-300",
+        "CB-310",
+        "CB-320",
+        "CB-330",
+        "CB-340",
+        "CB-400",
+        "CB-410",
+        "CB-420",
+        "CB-430",
+        "CB-440",
+        "CB-500",
+        "CB-510",
+        "CB-520",
+        "CB-530",
+        "CB-540"
+      ],
+      "accepted_high_watermark": "CB-540",
+      "non_passed": {},
+      "pass_gates": {
+        "PG-0": "passed",
+        "PG-1": "passed",
+        "PG-2": "passed",
+        "PG-3": "passed",
+        "PG-4": "passed",
+        "PG-5": "passed"
+      }
+    },
+    "readme": {
+      "current_task_claim": "CB-530",
+      "passed_task_ids": [
+        "CB-000",
+        "CB-010",
+        "CB-020",
+        "CB-030",
+        "CB-040",
+        "CB-100",
+        "CB-110",
+        "CB-120",
+        "CB-130",
+        "CB-140",
+        "CB-200",
+        "CB-210",
+        "CB-220",
+        "CB-230",
+        "CB-240",
+        "CB-300",
+        "CB-310",
+        "CB-320",
+        "CB-330",
+        "CB-340",
+        "CB-400",
+        "CB-410",
+        "CB-420",
+        "CB-430",
+        "CB-440",
+        "CB-500",
+        "CB-510",
+        "CB-520",
+        "CB-530",
+        "CB-540"
+      ],
+      "not_started_task_ids": [
+        "CB-000",
+        "CB-530",
+        "CB-540"
+      ],
+      "accepted_high_watermark": "CB-540",
+      "versions_mentioned": [
+        "v0.0.0.4",
+        "v0.0.0.5"
+      ],
+      "commit_ids_mentioned": [
+        "25670bf32c6d27e3668fcf59bc9ab754035e161d"
+      ]
+    },
+    "handoff": {
+      "current_task_claim": null,
+      "passed_task_ids": [
+        "CB-320",
+        "CB-330",
+        "CB-340",
+        "CB-400",
+        "CB-410",
+        "CB-420",
+        "CB-430",
+        "CB-440",
+        "CB-500",
+        "CB-510",
+        "CB-520",
+        "CB-530",
+        "CB-540"
+      ],
+      "not_started_task_ids": [
+        "CB-530",
+        "CB-540"
+      ],
+      "accepted_high_watermark": "CB-540",
+      "versions_mentioned": [],
+      "commit_ids_mentioned": [
+        "02ac88119fc864c37b5346c2ad334e17c6bc7702",
+        "0a472d2846d6478e01f3d392624ab2c825ad7b40",
+        "22415bfe64ebd8ea8c09120af6b8cc501ca56da8",
+        "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+        "352ed7dfd9a77b93ae7667b7a208eae964625925",
+        "5e590295e804d2532351b3c4757019fa7df66e75",
+        "5f977da0ed8c449aeaec3ae769982f6beccfd35e",
+        "781a8e32d2c3248c4cc4aebfe164a033efd45949",
+        "82b47668c33cc403fee9194ad42b77e49c8b7da3",
+        "8793e186f4baa2767dc3da0378492ffa17984d4d",
+        "99ae8068eee9ae8b5bd78207386eb65067fe7c30",
+        "bb5a201a0aec38117a7e14f470662b6f45bd49c7",
+        "c93bf0154468b379e3bd12e124fd1d894569f802",
+        "ddda629feb4455da5dba213a5d5f827001ce8c71",
+        "ea1985fe90e1fdb8f31e893c2cece946455ba866",
+        "f7513a03e3760830fcd53dedda74fe2fbef45e2e",
+        "fcfac053cab6944b2fc13a62491cce8ddb93e649",
+        "fd49e3f6e12bcf71d6c8101e6476643f263a1c8d"
+      ]
+    }
+  },
+  "evidence": {
+    "task_ids": [
+      "CB-000",
+      "CB-010",
+      "CB-020",
+      "CB-030",
+      "CB-040",
+      "CB-100",
+      "CB-110",
+      "CB-120",
+      "CB-130",
+      "CB-140",
+      "CB-200",
+      "CB-210",
+      "CB-220",
+      "CB-230",
+      "CB-240",
+      "CB-300",
+      "CB-310",
+      "CB-320",
+      "CB-330",
+      "CB-340",
+      "CB-400",
+      "CB-410",
+      "CB-420",
+      "CB-430",
+      "CB-440",
+      "CB-500",
+      "CB-510",
+      "CB-520",
+      "CB-530",
+      "CB-540"
+    ],
+    "highest_task_with_evidence": "CB-540",
+    "paths": [
+      "CyberBoss/docs/evidence/CB-000",
+      "CyberBoss/docs/evidence/CB-010",
+      "CyberBoss/docs/evidence/CB-020",
+      "CyberBoss/docs/evidence/CB-030",
+      "CyberBoss/docs/evidence/CB-040",
+      "CyberBoss/docs/evidence/CB-100",
+      "CyberBoss/docs/evidence/CB-110",
+      "CyberBoss/docs/evidence/CB-120",
+      "CyberBoss/docs/evidence/CB-130",
+      "CyberBoss/docs/evidence/CB-140",
+      "CyberBoss/docs/evidence/CB-200",
+      "CyberBoss/docs/evidence/CB-210",
+      "CyberBoss/docs/evidence/CB-220",
+      "CyberBoss/docs/evidence/CB-230",
+      "CyberBoss/docs/evidence/CB-240",
+      "CyberBoss/docs/evidence/CB-300",
+      "CyberBoss/docs/evidence/CB-310",
+      "CyberBoss/docs/evidence/CB-320",
+      "CyberBoss/docs/evidence/CB-330",
+      "CyberBoss/docs/evidence/CB-340",
+      "CyberBoss/docs/evidence/CB-400",
+      "CyberBoss/docs/evidence/CB-410",
+      "CyberBoss/docs/evidence/CB-420",
+      "CyberBoss/docs/evidence/CB-430",
+      "CyberBoss/docs/evidence/CB-440",
+      "CyberBoss/docs/evidence/CB-500",
+      "CyberBoss/docs/evidence/CB-510",
+      "CyberBoss/docs/evidence/CB-520",
+      "CyberBoss/docs/evidence/CB-530",
+      "CyberBoss/docs/evidence/CB-540"
+    ]
+  },
+  "release": {
+    "artifact_count": 3,
+    "artifacts": [
+      {
+        "path": "CyberBoss/release/assemble-immutable-release.sh",
+        "type": "file",
+        "size": 1847,
+        "sha256": "6e2f0111c7e9e39600845b1880086d6a46f012f498fb80e4b0f23c175ad08a09"
+      },
+      {
+        "path": "CyberBoss/release/test/write-release-manifest.test.js",
+        "type": "file",
+        "size": 2529,
+        "sha256": "fa2eb200ae4a0ded29a08bfbcb98642e514c1f30e3600301c211f1966163bdd2"
+      },
+      {
+        "path": "CyberBoss/release/write-release-manifest.js",
+        "type": "file",
+        "size": 4653,
+        "sha256": "595cf7b8e828d8426d988b9a356472fd53de4447ea13b3443f7ee8bf3eb9614d"
+      }
+    ]
+  },
+  "recent_commits": [
+    {
+      "commit": "99138980ea9629c2954541c31b2fdcc2254c57c4",
+      "date": "2026-07-28T06:28:56+10:00",
+      "subject": "chore(cyberboss): integrate origin main before main push"
+    },
+    {
+      "commit": "3ad274c82b41e93bf76dcebea68a6b68379657b1",
+      "date": "2026-07-28T02:16:15+10:00",
+      "subject": "feat(cyberboss): close PG-5 final exit gate"
+    },
+    {
+      "commit": "70086d4686975dd4dea39ef30ccefa1562f7302d",
+      "date": "2026-07-28T02:11:25+10:00",
+      "subject": "feat(cyberboss): seal CB-540 mvp degraded decision"
+    },
+    {
+      "commit": "fd3cd1e19d70caa148c3785288aaabfb909fed85",
+      "date": "2026-07-28T01:55:02+10:00",
+      "subject": "fix(cyberboss): normalize loopback health response"
+    },
+    {
+      "commit": "bfec2e0253d4fdebe40482069a454ce9c3ad4616",
+      "date": "2026-07-28T01:50:15+10:00",
+      "subject": "fix(cyberboss): pin self-heal health override"
+    },
+    {
+      "commit": "adb01aebe37a5e2919f800b0745ed908304a35b1",
+      "date": "2026-07-28T01:32:03+10:00",
+      "subject": "fix(cyberboss): classify channel pending in self-heal"
+    },
+    {
+      "commit": "5e01bb9fc61fd932359e32667fc2cd5495aa724d",
+      "date": "2026-07-28T01:23:33+10:00",
+      "subject": "feat(cyberboss): close CB-530 backup handover"
+    },
+    {
+      "commit": "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+      "date": "2026-07-28T00:55:43+10:00",
+      "subject": "fix(cyberboss): bind systemd readiness to main process"
+    },
+    {
+      "commit": "c98a43b07d7435a57af990bf2131d503ff917b75",
+      "date": "2026-07-28T00:50:46+10:00",
+      "subject": "fix(cyberboss): satisfy CB-530 restore credential contract"
+    },
+    {
+      "commit": "5c626fae8f1a612f448a49576f95fa4068d5717e",
+      "date": "2026-07-28T00:45:49+10:00",
+      "subject": "fix(cyberboss): refresh R2 credentials before CB-530 restore"
+    },
+    {
+      "commit": "77aea54878408f6e7d7136e48b17aff1bf8049ee",
+      "date": "2026-07-28T00:40:39+10:00",
+      "subject": "feat(cyberboss): refresh CB-530 R2 backup credentials on Linux"
+    },
+    {
+      "commit": "005263b4b35e4539eb4ce6a43cb9da9dfea6e4b7",
+      "date": "2026-07-28T00:27:47+10:00",
+      "subject": "fix(cyberboss): make CB-530 release manifest deterministic"
+    },
+    {
+      "commit": "4769ccfc027ffa9467733acccdc4f91dde8813ee",
+      "date": "2026-07-28T00:01:22+10:00",
+      "subject": "fix(cyberboss): bind CB-530 runtime backup source"
+    },
+    {
+      "commit": "8835e17ab439585518389e969056eb0c6a99158f",
+      "date": "2026-07-27T23:51:26+10:00",
+      "subject": "fix(cyberboss): retain runner health contracts in releases"
+    },
+    {
+      "commit": "5e85e8c3473111fd7e495c4bd0d91231e36ffa4f",
+      "date": "2026-07-27T23:47:45+10:00",
+      "subject": "fix(cyberboss): assemble frozen runtime kit in release"
+    },
+    {
+      "commit": "4d2bf9c889e0ec81bd7cef36401cd0a98eb49be3",
+      "date": "2026-07-27T23:39:35+10:00",
+      "subject": "feat(cyberboss): add CB-530 cloud backup protocol"
+    },
+    {
+      "commit": "1e0ed85cb55b980b67a748b55968db8cac01eeec",
+      "date": "2026-07-27T23:19:37+10:00",
+      "subject": "feat(cyberboss): close CB-520 live canary"
+    },
+    {
+      "commit": "bb5a201a0aec38117a7e14f470662b6f45bd49c7",
+      "date": "2026-07-27T22:44:38+10:00",
+      "subject": "feat(cyberboss): add CB-520 bounded canary"
+    },
+    {
+      "commit": "2770380d3efa93b5632ef03581c0d76088b38cc2",
+      "date": "2026-07-27T22:35:19+10:00",
+      "subject": "feat(cyberboss): close CB-510 cloud activation"
+    },
+    {
+      "commit": "615b66e3d5fb2f28b7e78d2ee28d47dc53819314",
+      "date": "2026-07-27T21:06:36+10:00",
+      "subject": "govern(CyberBoss): 补治理事实档与业务流登记 —— 让活跃项目不再隐形 (#142)"
+    },
+    {
+      "commit": "82b47668c33cc403fee9194ad42b77e49c8b7da3",
+      "date": "2026-07-27T20:53:47+10:00",
+      "subject": "fix(cyberboss): notify after runtime readiness"
+    },
+    {
+      "commit": "3e0df002f8eca703c4dfec7c477cab93ddef5090",
+      "date": "2026-07-27T20:45:28+10:00",
+      "subject": "feat(cyberboss): synchronize systemd readiness"
+    },
+    {
+      "commit": "7103de141a3d7d4c7d70688913cc7b52dee6ce1f",
+      "date": "2026-07-27T20:31:13+10:00",
+      "subject": "feat(cyberboss): keep missing channel adapter pending"
+    },
+    {
+      "commit": "88c10a2e2e6e073ea83f069877da96d74bc8ca8b",
+      "date": "2026-07-27T20:15:19+10:00",
+      "subject": "feat(cyberboss): serve derived timeline at cloud entry"
+    },
+    {
+      "commit": "d965e207b150dc2f25760e8c4e7a31d72a8a57fe",
+      "date": "2026-07-27T20:08:01+10:00",
+      "subject": "feat(cyberboss): parameterize CB-510 status metadata"
+    },
+    {
+      "commit": "b219606f5f395624775ce761f2b2be6a55aab75e",
+      "date": "2026-07-27T19:40:17+10:00",
+      "subject": "docs(cyberboss): close CB-500 clean staging rehearsal"
+    },
+    {
+      "commit": "ddda629feb4455da5dba213a5d5f827001ce8c71",
+      "date": "2026-07-27T19:32:56+10:00",
+      "subject": "test(cyberboss): add CB-500 clean staging rehearsal"
+    },
+    {
+      "commit": "a5802bca6ac63c435121ab3bc970a6adededb7de",
+      "date": "2026-07-27T19:11:23+10:00",
+      "subject": "docs(cyberboss): close PG-4 safe release gate"
+    },
+    {
+      "commit": "d9960a4de965500802afb08758a43d7fb8d5032d",
+      "date": "2026-07-27T18:59:34+10:00",
+      "subject": "test(cyberboss): add PG-4 safe release gate"
+    },
+    {
+      "commit": "5ac84f31e6889dc416cad405011dda572a463d38",
+      "date": "2026-07-27T18:48:18+10:00",
+      "subject": "docs(cyberboss): close CB-440 immutable release contract"
+    }
+  ],
+  "runtime": {
+    "probed": false
+  },
+  "consensus": {
+    "status": "consistent",
+    "reason": "accepted_high_watermark_agrees",
+    "accepted_high_watermark_claims": {
+      "machine_task_state": "CB-540",
+      "readme": "CB-540",
+      "handoff": "CB-540"
+    },
+    "distinct_claims": [
+      "CB-540"
+    ],
+    "mutation_policy": "allow_normal_execution",
+    "next_action": "continue_frozen_task_dag"
+  },
+  "sensitive_values_emitted": false,
+  "probe_digest": "89c86bc696254b51600f6c46d31402a3570828f9341e7ab3de5bb6e59f5e81be"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "cyberboss.version_lock.v1",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "taskpack_revision": "R7-FINAL",
+  "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
+  "agent_may_bump": false,
+  "agent_may_create_prerelease": false,
+  "agent_may_change_acceptance": false,
+  "acceptance_set": "FROZEN",
+  "acceptance_item_count": 50,
+  "scope": "FROZEN",
+  "previous_product_version": "v0.0.0.5",
+  "previous_taskpack_version": "v0.0.0.7",
+  "previous_taskpacks": "SUPERSEDED_BY_OWNER_SCOPE_CHANGE",
+  "owner_approved": true,
+  "owner_approval_date": "2026-07-28",
+  "bound_by_task": "CB-600"
+}

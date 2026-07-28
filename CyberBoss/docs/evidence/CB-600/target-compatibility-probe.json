@@ -1,0 +1,316 @@
+{
+  "schema_version": 2,
+  "status": "review_required",
+  "read_only": true,
+  "mutation_performed": false,
+  "target_files_scanned": 171,
+  "target_tree_digest": "6adc0b56b31b2fcfd3bf57e2ef224384bc70eaeb749ef62039bb76e3788d2934",
+  "migration_inventory": {
+    "files": [
+      {
+        "path": "CyberBoss/app/migrations/001_runtime_spool.sql",
+        "sha256": "203acbd2b9c4f770cd6ce6a16bb77c7d0fdbc74b7d102e02f7a976e39cabd816"
+      },
+      {
+        "path": "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+        "sha256": "8b1fbdcf0f60628b850004411c626eb65131bba3179b1e5cfdecf936a4b77941"
+      },
+      {
+        "path": "CyberBoss/app/migrations/003_cb220_scheduler_control.sql",
+        "sha256": "eddf56679f0b1f9631368decce8bd061aa1aced3c2251ef10098241bb2f9a715"
+      },
+      {
+        "path": "CyberBoss/app/migrations/004_cb230_durable_outbox.sql",
+        "sha256": "7363da9ddca547a337a3bc21b4d0d41915398e4671571454685f84769873f9cc"
+      },
+      {
+        "path": "CyberBoss/app/migrations/005_cb240_canonical_sync.sql",
+        "sha256": "d88dbc0d9c6a2bb22db06053aaacbfb3b4f8164f13ed39a7aadd309f388864a5"
+      }
+    ],
+    "highest_numeric_prefix": 5,
+    "suggested_next_numeric_prefix": 6,
+    "blind_008_name_allowed": false
+  },
+  "ambiguous_required_domains": [
+    "profile_analytics"
+  ],
+  "next_action": "resolve_only_listed_ambiguities",
+  "full_report_sha256": "3bd56dfc3aa4fb99c18038aac3312ce460ecbf173e89676e73294d5608a04c18",
+  "compaction": "per-domain semantic_matches lists removed; only status, counts and candidates retained",
+  "domains": [
+    {
+      "domain": "database_migration",
+      "starter": "starter_kit/migrations/multiuser_foundation.sql.template",
+      "target_candidates": [
+        "app/migrations/<next>_multiuser_v8.sql"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/migrations"
+      ],
+      "candidate_count": 46,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "identity_registration",
+      "starter": "starter_kit/src/users",
+      "target_candidates": [
+        "app/src/services/users/",
+        "app/src/core/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/core"
+      ],
+      "candidate_count": 54,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "wechat_context",
+      "starter": "starter_kit/src/users/user-context.js",
+      "target_candidates": [
+        "app/src/adapters/channel/weixin/",
+        "app/src/core/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/adapters/channel/weixin",
+        "CyberBoss/app/src/core"
+      ],
+      "candidate_count": 17,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "job_scope",
+      "starter": "starter_kit/src/users/scoped-repository.js",
+      "target_candidates": [
+        "app/src/services/jobs/",
+        "app/src/services/inbox/",
+        "app/src/services/outbox/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/jobs",
+        "CyberBoss/app/src/services/inbox",
+        "CyberBoss/app/src/services/outbox"
+      ],
+      "candidate_count": 36,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "provider_runtime",
+      "starter": "starter_kit/src/providers",
+      "target_candidates": [
+        "app/src/adapters/runtime/",
+        "app/src/services/providers/",
+        "app/src/services/runtime/",
+        "app/src/services/db/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/adapters/runtime",
+        "CyberBoss/app/src/services/db"
+      ],
+      "candidate_count": 56,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "safe_import",
+      "starter": "starter_kit/src/imports",
+      "target_candidates": [
+        "app/src/services/imports/",
+        "app/src/services/channel-file-service.js"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/channel-file-service.js"
+      ],
+      "candidate_count": 125,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "profile_analytics",
+      "starter": "starter_kit/src/profile",
+      "target_candidates": [
+        "app/src/services/profile/",
+        "app/src/services/analytics/"
+      ],
+      "exact_match_paths": [],
+      "candidate_count": 44,
+      "status": "AMBIGUOUS_REQUIRES_THIN_ADAPTER_SELECTION",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "timeline_reminder_scope",
+      "starter": "starter_kit/src/companion",
+      "target_candidates": [
+        "app/src/services/timeline-service.js",
+        "app/src/services/diary-service.js",
+        "app/src/services/reminder-service.js"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/timeline-service.js",
+        "CyberBoss/app/src/services/diary-service.js",
+        "CyberBoss/app/src/services/reminder-service.js"
+      ],
+      "candidate_count": 46,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "setup_portal",
+      "starter": "starter_kit/src/portal",
+      "target_candidates": [
+        "app/src/services/portal/",
+        "app/src/core/",
+        "app/src/services/ops/",
+        "app/bin/",
+        "app/scripts/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/core",
+        "CyberBoss/app/bin",
+        "CyberBoss/app/scripts"
+      ],
+      "candidate_count": 44,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "status_snapshot",
+      "starter": "starter_kit/src/status",
+      "target_candidates": [
+        "app/src/services/status/",
+        "app/scripts/",
+        "app/src/services/runtime/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/status",
+        "CyberBoss/app/scripts"
+      ],
+      "candidate_count": 46,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "tests",
+      "starter": "starter_kit/test",
+      "target_candidates": [
+        "app/test/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/test"
+      ],
+      "candidate_count": 44,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "credential_key_hierarchy",
+      "starter": "starter_kit/src/security/credential-vault.js",
+      "target_candidates": [
+        "app/src/services/secrets/",
+        "app/src/services/db/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/db"
+      ],
+      "candidate_count": 27,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "canonical_user_facts",
+      "starter": "starter_kit/src/data/canonical-user-facts.js",
+      "target_candidates": [
+        "app/src/services/canonical/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/canonical"
+      ],
+      "candidate_count": 139,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "backup_recovery",
+      "starter": "starter_kit/src/backup",
+      "target_candidates": [
+        "app/src/services/backup/",
+        "app/scripts/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/backup",
+        "CyberBoss/app/scripts"
+      ],
+      "candidate_count": 31,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "resource_self_heal",
+      "starter": "starter_kit/src/operations",
+      "target_candidates": [
+        "app/src/services/operations/",
+        "app/src/services/status/",
+        "app/scripts/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/operations",
+        "CyberBoss/app/src/services/status",
+        "CyberBoss/app/scripts"
+      ],
+      "candidate_count": 66,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "release_canary",
+      "starter": "starter_kit/src/release",
+      "target_candidates": [
+        "app/src/services/release/",
+        "app/scripts/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/release",
+        "CyberBoss/app/scripts"
+      ],
+      "candidate_count": 51,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "user_data_lifecycle",
+      "starter": "starter_kit/src/privacy",
+      "target_candidates": [
+        "app/src/services/privacy/",
+        "app/src/services/canonical/",
+        "app/src/services/objects/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/src/services/canonical"
+      ],
+      "candidate_count": 125,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "operator_lifecycle",
+      "starter": "starter_kit/src/ops/operator-dispatcher.js",
+      "target_candidates": [
+        "app/src/services/ops/",
+        "app/bin/",
+        "app/scripts/",
+        "deploy/systemd/"
+      ],
+      "exact_match_paths": [
+        "CyberBoss/app/bin",
+        "CyberBoss/app/scripts"
+      ],
+      "candidate_count": 127,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    }
+  ]
+}

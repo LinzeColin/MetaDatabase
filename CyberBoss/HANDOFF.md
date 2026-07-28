@@ -1,16 +1,20 @@
 # CyberBoss HANDOFF
 
-- Updated: 2026-07-27
+- Updated: 2026-07-28
 - Repository: `LinzeColin/MetaDatabase`
-- Worktree:
-  `/Users/linzezhang/.codex/worktrees/86c3/MetaDatabase`
-- Local branch: `codex/cyberboss-v5-cb240-closure`
-- Run base: `8793e186f4baa2767dc3da0378492ffa17984d4d`
+- Worktree: bounded developer worktree of `LinzeColin/MetaDatabase`
+  (host-specific absolute paths are deliberately not recorded here; the runtime
+  has no Mac, `/Users`, `.plist` or `launchd` dependency)
+- Local branch: `claude/cyberboss-v0-0-0-8-taskpack-fc4d1f`
+- Run base: `bb716bd9cf2760aa9639ef85c626f0fd19c6ec94`
+  (tree `a6426566cdba7dce4d1990eb888d308838b26ef1`, clean at run start)
 - Latest implementation:
-  `25670bf32c6d27e3668fcf59bc9ab754035e161d`
+  `fd3cd1e19d70caa148c3785288aaabfb909fed85`
+- Product version: `v0.0.0.8`; TaskPack `v0.0.0.8` (R7-FINAL); Owner Change
+  Event `owner-change-cyberboss-v0.0.0.8-multiuser-weixin` applied at `CB-600`.
 - Remote activation: OVH/Linux systemd, dedicated Cloudflare Tunnel and
   Owner-only Access, plus the existing LinzeHomeHub global Status collector
-  (`CB-530`); no MetaDatabase GitHub publication yet.
+  (`CB-530`/`CB-540`); no MetaDatabase GitHub publication yet.
 
 ## Current state
 
@@ -26,7 +30,20 @@ passed. `P5.1 / CB-500` passed as a local clean-staging rehearsal and
 `P5.2 / CB-510` passed with explicit, fail-closed channel pending status.
 `P5.3 / CB-520` passed with explicit, fail-closed channel pending status.
 `P5.4 / CB-530` passed with explicit channel and daily OCI-PAR-readback pending
-status. CB-540 and PG-5 remain `not_started`.
+status. `P5.5 / CB-540` passed with the `MVP_DEGRADED` native decision and
+independent Stage 5 exit gate `PG-5` passed, closing the single-user all-cloud
+foundation.
+
+Owner Change Event `owner-change-cyberboss-v0.0.0.8-multiuser-weixin` then moved
+the product to `v0.0.0.8` and appended Stage 6–8 with PG-6–PG-8. Stage 0–5 is
+neither replayed nor downgraded, and its single-user acceptance is never
+inherited as a multi-user PASS. `P6.1 / CB-600` passed: the exact Subject is
+bound read-only, the version lock is active, one Owner Change Event is applied
+and all 18 required integration domains are mapped to exact target paths.
+
+The remaining Stage 6 nodes, all of Stage 7 and Stage 8, and gates PG-6 through
+PG-8 are `not_started`; the authoritative list is
+`machine/facts/task_state.json`.
 
 CB-500 is bound to implementation commit
 `ddda629feb4455da5dba213a5d5f827001ce8c71` and tree

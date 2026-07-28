@@ -1,0 +1,18 @@
+{
+  "read_only": true,
+  "status": "dry_run",
+  "worktree": "<exact_target_worktree>",
+  "migrations_dir": "CyberBoss/app/migrations",
+  "existing_files": [
+    "001_runtime_spool.sql",
+    "002_cb200_retention_and_transitions.sql",
+    "003_cb220_scheduler_control.sql",
+    "004_cb230_durable_outbox.sql",
+    "005_cb240_canonical_sync.sql"
+  ],
+  "highest_numeric_prefix": 5,
+  "selected_numeric_prefix": 6,
+  "selected_filename": "006_multiuser_foundation.sql",
+  "template_sha256": "49ab8cc87233de11f0bc9a21c15754b21509089a732f9139fb903e72470ea63e",
+  "target_path": "CyberBoss/app/migrations/006_multiuser_foundation.sql"
+}

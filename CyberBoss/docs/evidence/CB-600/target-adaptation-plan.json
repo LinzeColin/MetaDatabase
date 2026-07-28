@@ -1,0 +1,380 @@
+{
+  "schema_version": "cyberboss.cb600.target_adaptation_plan.v1",
+  "task_id": "CB-600",
+  "product_version": "v0.0.0.8",
+  "strategy": "additive_overlay_then_anchor_based_integration",
+  "forbidden_result": "blind_global_replacement",
+  "parallel_runtime_created": false,
+  "parallel_database_created": false,
+  "parallel_task_state_created": false,
+  "target_root": "CyberBoss/app",
+  "target_tree_digest": "6adc0b56b31b2fcfd3bf57e2ef224384bc70eaeb749ef62039bb76e3788d2934",
+  "target_files_scanned": 171,
+  "migration_numbering": {
+    "existing_highest_numeric_prefix": 5,
+    "selected_numeric_prefix": 6,
+    "selected_filename": "006_multiuser_foundation.sql",
+    "fixed_prefix_008_used": false,
+    "materializer": "scripts/materialize_migration.py",
+    "template_sha256": "49ab8cc87233de11f0bc9a21c15754b21509089a732f9139fb903e72470ea63e"
+  },
+  "ambiguity_resolution": [
+    {
+      "domain": "profile_analytics",
+      "probe_status": "AMBIGUOUS_REQUIRES_THIN_ADAPTER_SELECTION",
+      "probe_candidate_count": 44,
+      "cause": "neither app/src/services/profile/ nor app/src/services/analytics/ exists; the timeline/diary anchors match 44 unrelated files including READMEs, package manifests and canonical exporters",
+      "decision": "create two new additive modules app/src/services/profile/ and app/src/services/analytics/ that read exclusively from the existing canonical fact path (app/src/services/canonical/canonical-sync.js) and the existing app/src/services/timeline-service.js and app/src/services/diary-service.js; no timeline/diary/canonical module is forked, replaced or duplicated",
+      "integration_rule": "extend_existing_module_never_parallel_runtime",
+      "rejected_alternatives": [
+        "replace or fork app/src/services/timeline/canonical-timeline-projection.js",
+        "introduce a second projection runtime alongside canonical-sync",
+        "write profile inferences into README/docs matched only by anchor text"
+      ],
+      "authoritative_fact_source_unchanged": true
+    }
+  ],
+  "domains": [
+    {
+      "domain": "database_migration",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/migrations/006_multiuser_foundation.sql"
+      ],
+      "extends": [
+        "app/migrations/001_runtime_spool.sql",
+        "app/migrations/005_cb240_canonical_sync.sql",
+        "app/src/services/db/database-adapter.js"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/migrations"
+      ],
+      "probe_candidate_count": 46
+    },
+    {
+      "domain": "identity_registration",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/users/user-identity.js",
+        "app/src/services/users/user-repository.js",
+        "app/src/services/users/registration-service.js",
+        "app/src/services/users/invite-code-store.js",
+        "app/src/services/users/invite-service.js",
+        "app/src/services/users/onboarding-state.js"
+      ],
+      "extends": [
+        "app/src/core/config.js",
+        "app/src/core/app.js"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/core"
+      ],
+      "probe_candidate_count": 54
+    },
+    {
+      "domain": "wechat_context",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/users/user-context.js"
+      ],
+      "extends": [
+        "app/src/core/inbound-turn.js",
+        "app/src/adapters/channel/weixin/index.js",
+        "app/src/adapters/channel/weixin/context-token-store.js"
+      ],
+      "mode": "wrap_trusted_ingress",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/adapters/channel/weixin",
+        "CyberBoss/app/src/core"
+      ],
+      "probe_candidate_count": 17
+    },
+    {
+      "domain": "job_scope",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/users/scoped-repository.js",
+        "app/src/services/channel/reply-route-binding.js",
+        "app/src/services/runtime/fair-user-queue.js"
+      ],
+      "extends": [
+        "app/src/services/jobs/job-scheduler.js",
+        "app/src/services/inbox/durable-inbox.js",
+        "app/src/services/outbox/durable-outbox.js"
+      ],
+      "mode": "scope_existing_repositories",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/jobs",
+        "CyberBoss/app/src/services/inbox",
+        "CyberBoss/app/src/services/outbox"
+      ],
+      "probe_candidate_count": 36
+    },
+    {
+      "domain": "provider_runtime",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/providers/",
+        "app/src/services/runtime/"
+      ],
+      "extends": [
+        "app/src/services/db/database-adapter.js"
+      ],
+      "mode": "additive",
+      "note": "app/src/adapters/runtime/ stays Owner-only Codex/ClaudeCode; ordinary-user BYOK calls never enter it",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/adapters/runtime",
+        "CyberBoss/app/src/services/db"
+      ],
+      "probe_candidate_count": 56
+    },
+    {
+      "domain": "safe_import",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/imports/"
+      ],
+      "extends": [
+        "app/src/services/channel-file-service.js"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/channel-file-service.js"
+      ],
+      "probe_candidate_count": 125
+    },
+    {
+      "domain": "profile_analytics",
+      "probe_status": "AMBIGUOUS_REQUIRES_THIN_ADAPTER_SELECTION",
+      "target_paths": [
+        "app/src/services/profile/profile-projector.js",
+        "app/src/services/analytics/activity-aggregator.js"
+      ],
+      "extends": [
+        "app/src/services/canonical/canonical-sync.js",
+        "app/src/services/timeline-service.js",
+        "app/src/services/diary-service.js"
+      ],
+      "mode": "additive_read_only_projection",
+      "probe_exact_match_paths": [],
+      "probe_candidate_count": 44
+    },
+    {
+      "domain": "timeline_reminder_scope",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/companion/user-companion-service.js",
+        "app/src/services/checkin/deterministic-checkin.js"
+      ],
+      "extends": [
+        "app/src/services/timeline-service.js",
+        "app/src/services/diary-service.js",
+        "app/src/services/reminder-service.js",
+        "app/src/core/checkin-config-store.js"
+      ],
+      "mode": "wrap_with_server_owned_user_scope",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/timeline-service.js",
+        "CyberBoss/app/src/services/diary-service.js",
+        "CyberBoss/app/src/services/reminder-service.js"
+      ],
+      "probe_candidate_count": 46
+    },
+    {
+      "domain": "setup_portal",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/portal/setup-portal.js",
+        "app/src/services/security/"
+      ],
+      "extends": [
+        "app/src/core/app.js",
+        "app/scripts/cloud-supervisor.js"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/core",
+        "CyberBoss/app/bin",
+        "CyberBoss/app/scripts"
+      ],
+      "probe_candidate_count": 44
+    },
+    {
+      "domain": "status_snapshot",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/status/business-matrix.js",
+        "app/src/services/status/model-usage-summary.js",
+        "app/src/services/status/status-snapshot-writer.js"
+      ],
+      "extends": [
+        "app/src/services/status/canonical-status-export.js",
+        "app/scripts/canonical-status-export.js"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/status",
+        "CyberBoss/app/scripts"
+      ],
+      "probe_candidate_count": 46
+    },
+    {
+      "domain": "tests",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/test/"
+      ],
+      "extends": [
+        "app/test/"
+      ],
+      "mode": "additive_node_test",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/test"
+      ],
+      "probe_candidate_count": 44
+    },
+    {
+      "domain": "credential_key_hierarchy",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/secrets/credential-vault.js"
+      ],
+      "extends": [
+        "app/src/services/db/database-adapter.js"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/db"
+      ],
+      "probe_candidate_count": 27
+    },
+    {
+      "domain": "canonical_user_facts",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/canonical/canonical-user-facts.js",
+        "app/src/services/canonical/object-key.js"
+      ],
+      "extends": [
+        "app/src/services/canonical/canonical-sync.js"
+      ],
+      "mode": "additive_same_authority",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/canonical"
+      ],
+      "probe_candidate_count": 139
+    },
+    {
+      "domain": "backup_recovery",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/backup/backup-coordinator.js"
+      ],
+      "extends": [
+        "app/src/services/backup/canonical-backup-runtime.js",
+        "app/src/services/backup/cb530-cloud-backup.js",
+        "ops/systemd/cyberboss-backup.service"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/backup",
+        "CyberBoss/app/scripts"
+      ],
+      "probe_candidate_count": 31
+    },
+    {
+      "domain": "resource_self_heal",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/operations/resource-gate.js",
+        "app/src/services/operations/self-heal-policy.js"
+      ],
+      "extends": [
+        "app/src/services/operations/canonical-operations-policy.js",
+        "app/src/services/jobs/resource-readiness-gate.js",
+        "ops/systemd/cb540-selfheal-health.sh"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/operations",
+        "CyberBoss/app/src/services/status",
+        "CyberBoss/app/scripts"
+      ],
+      "probe_candidate_count": 66
+    },
+    {
+      "domain": "release_canary",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/release/request-count-canary.js"
+      ],
+      "extends": [
+        "app/src/services/release/canonical-immutable-release.js",
+        "app/src/services/release/canonical-dress-rehearsal.js",
+        "app/scripts/cb520-canary.js",
+        "release/assemble-immutable-release.sh"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/release",
+        "CyberBoss/app/scripts"
+      ],
+      "probe_candidate_count": 51
+    },
+    {
+      "domain": "user_data_lifecycle",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/src/services/privacy/user-data-lifecycle.js",
+        "app/src/services/privacy/deletion-plan.js"
+      ],
+      "extends": [
+        "app/src/services/canonical/canonical-sync.js",
+        "app/src/services/secrets/credential-vault.js"
+      ],
+      "mode": "additive",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/src/services/canonical"
+      ],
+      "probe_candidate_count": 125
+    },
+    {
+      "domain": "operator_lifecycle",
+      "probe_status": "EXACT_PATH_PRESENT",
+      "target_paths": [
+        "app/bin/cyberbossctl",
+        "app/config/operator-actions.json",
+        "app/src/services/ops/operator-dispatcher.js",
+        "app/src/services/ops/novice-presenter.js"
+      ],
+      "extends": [
+        "app/bin/cyberboss.js",
+        "ops/systemd/"
+      ],
+      "mode": "additive",
+      "note": "target uses ops/systemd/, not deploy/systemd/; the overlay map candidate deploy/systemd/ is mapped onto the exact target path ops/systemd/",
+      "probe_exact_match_paths": [
+        "CyberBoss/app/bin",
+        "CyberBoss/app/scripts"
+      ],
+      "probe_candidate_count": 127
+    }
+  ],
+  "path_corrections_vs_overlay_map": [
+    {
+      "overlay_map_candidate": "deploy/systemd/",
+      "exact_target_path": "ops/systemd/",
+      "reason": "exact target places systemd units under CyberBoss/ops/systemd/"
+    },
+    {
+      "overlay_map_candidate": "app/src/services/objects/",
+      "exact_target_path": "app/src/services/canonical/object-key.js",
+      "reason": "no separate objects module exists; object reference keys belong with the canonical fact path"
+    }
+  ],
+  "unresolved_ambiguities": [],
+  "mutation_allowed": true,
+  "mutation_basis": "current_truth_consensus=consistent; integration_base_selection_contract rule consistent_pg5_foundation"
+}

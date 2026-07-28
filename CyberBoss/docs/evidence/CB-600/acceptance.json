@@ -1,0 +1,67 @@
+{
+  "schema_version": "cyberboss.cb600.acceptance.v1",
+  "task_id": "CB-600",
+  "stage": "S6",
+  "phase": "P6.1",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_head": "bb716bd9cf2760aa9639ef85c626f0fd19c6ec94",
+  "exact_subject_tree": "a6426566cdba7dce4d1990eb888d308838b26ef1",
+  "results": [
+    {
+      "acceptance_id": "AC-001",
+      "name": "Current Truth 精确对账",
+      "result": "PASS",
+      "check_count": 13,
+      "oracle_evidence": [
+        "current-truth-probe.json (read-only, probe_digest reproducible)",
+        "current-truth-probe-after.json (consensus still consistent post-mutation)",
+        "subject.json",
+        "../../../machine/facts/owner_change_events.json"
+      ],
+      "note": "README, HANDOFF and machine task_state agree at one accepted high watermark; one exact Subject emitted; no state written before the probe."
+    },
+    {
+      "acceptance_id": "AC-002",
+      "name": "版本锁",
+      "result": "PASS",
+      "check_count": 11,
+      "oracle_evidence": [
+        "../../../machine/facts/version_lock.json",
+        "../../../machine/facts/task_state.json",
+        "target-adaptation-plan.json"
+      ],
+      "note": "Product and TaskPack pinned to v0.0.0.8; agent_may_bump/prerelease/change_acceptance all false; 50 frozen acceptance items unchanged; writes confined to CyberBoss/**."
+    },
+    {
+      "acceptance_id": "AC-038",
+      "name": "AGPL 与来源",
+      "result": "PASS",
+      "check_count": 8,
+      "oracle_evidence": [
+        "../../../machine/source-lock.json",
+        "../CB-000/LICENSE_COMPLIANCE.md",
+        "../../../UPSTREAM_PROVENANCE.md",
+        "../../../THIRD_PARTY_NOTICES.md"
+      ],
+      "note": "Three locked upstream SHAs unchanged; no remote, submodule, Git-URL dependency or runtime fetch; whereabouts-mcp dual GPL/AGPL obligation preserved without claiming upstream clarification."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb600.py",
+  "validator_status": "PASS",
+  "check_count": 32,
+  "pass_count": 32,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "complex_skill_reviews": 0,
+  "second_model_reviews": 0,
+  "subagent_reviews": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [],
+  "status": "passed"
+}

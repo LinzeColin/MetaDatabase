@@ -1,0 +1,58 @@
+{
+  "schema_version": "cyberboss.owner_change_events.v1",
+  "project": "CyberBoss",
+  "repository": "LinzeColin/MetaDatabase",
+  "subpath": "CyberBoss/",
+  "events": [
+    {
+      "event_id": "owner-change-cyberboss-v0.0.0.8-multiuser-weixin",
+      "state": "APPLIED_TO_EXACT_TARGET",
+      "approved_on": "2026-07-28",
+      "applied_by_task": "CB-600",
+      "product_version": "v0.0.0.8",
+      "taskpack_version": "v0.0.0.8",
+      "taskpack_revision": "R7-FINAL",
+      "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
+      "exact_subject": {
+        "head": "bb716bd9cf2760aa9639ef85c626f0fd19c6ec94",
+        "tree": "a6426566cdba7dce4d1990eb888d308838b26ef1",
+        "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+        "dirty": false,
+        "current_truth_probe_digest": "89c86bc696254b51600f6c46d31402a3570828f9341e7ab3de5bb6e59f5e81be"
+      },
+      "supersedes": [
+        "CyberBoss TaskPack v0.0.0.7 single-user contract",
+        "cloud-control-plus-Mac-executor architecture"
+      ],
+      "preserves": [
+        "CB-000 through PG-5 foundation and evidence confirmed present on the exact target subject",
+        "single OVH all-cloud topology",
+        "durable inbox/job/outbox/cursor and fixed source/license bundles",
+        "existing runtime, Timeline, diary, reminders and check-in mechanisms",
+        "one canonical task state and one runtime plane",
+        "prior release identity fd3cd1e19d70caa148c3785288aaabfb909fed85 and previous 25670bf32c6d27e3668fcf59bc9ab754035e161d",
+        "prior task_state.json sha256 511072bd975abb27cbdf5a726139ddabdab49db42f46c5601728315a46a85417"
+      ],
+      "changes": [
+        "single-user to invite-only multi-user without tenant or organization",
+        "WeChat sender identity and consent-bound user lifecycle",
+        "ordinary users use BYOK provider APIs; Owner alone retains Codex workspace",
+        "four import sources, evidence-based profile, deterministic analytics",
+        "novice mobile portal and aggregate status business matrix",
+        "model token budget, usage observability and deterministic circuit breakers"
+      ],
+      "forbidden": [
+        "new independent repository",
+        "parallel IR/FFA task graph",
+        "Mac connector, /Users path, plist or launchd",
+        "ordinary user Codex, shell, workspace or tool access",
+        "developer-created version number",
+        "replaying or downgrading accepted Stage 0-5 work"
+      ],
+      "superseded_scope_reason": "Owner replaced the v0.0.0.7 single-user cloud contract with an invite-only multi-user WeChat product scope; Stage 0-5 acceptance remains valid for its own single-user scope and is never inherited as a multi-user PASS.",
+      "single_user_pass_inherited_as_multi_user_pass": false,
+      "historical_evidence_deleted": false,
+      "stage_0_to_5_replayed": false
+    }
+  ]
+}

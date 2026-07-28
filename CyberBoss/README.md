@@ -1,14 +1,17 @@
 # CyberBoss
 
-CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子项目。
+CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动子项目：Owner 独占
+Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密钥（BYOK）使用
+相互隔离的个人服务。
 
 ## 当前状态
 
-- 生命周期：Stage 0–4 与独立退出门 PG-0–PG-4 已通过；Stage 5 的
-  P5.1 / CB-500 clean-staging dress rehearsal、P5.2 / CB-510 真实云激活、
-  P5.3 / CB-520 请求数 Canary/真实回滚及 P5.4 / CB-530 R2/OCI backup、
-  isolated restore 与运维交接均已完成。下一节点为 P5.5 / CB-540。
-- Owner 锁定的产品版本：`v0.0.0.5`；设计基线保持 `v0.0.0.4`，本 Run 未改变版本
+- 生命周期：Stage 0–5 与独立退出门 PG-0–PG-5 已通过（单用户全云底座）。
+  Owner Change Event `owner-change-cyberboss-v0.0.0.8-multiuser-weixin` 已把产品
+  推进到 `v0.0.0.8` 多用户范围，追加 Stage 6–8 与 PG-6–PG-8；Stage 0–5 不重做、
+  不降级，其单用户 PASS 也不被继承为多用户 PASS。
+- Owner 锁定的产品版本：`v0.0.0.8`；TaskPack 版本 `v0.0.0.8`（R7-FINAL）；
+  设计基线保持 `v0.0.0.4`。开发 Agent 无版本决定权，本 Run 未改变版本或验收集。
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
@@ -17,27 +20,31 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
   `P3.1 / CB-300`；`P3.2 / CB-310`；`P3.3 / CB-320`；`P3.4 / CB-330`；
   `P3.5 / CB-340`；`PG-3`；`P4.1 / CB-400`；`P4.2 / CB-410`；`P4.3 / CB-420`；
   `P4.4 / CB-430`；`P4.5 / CB-440`；`PG-4`；`P5.1 / CB-500`；`P5.2 / CB-510`；
-  `P5.3 / CB-520`；`P5.4 / CB-530`
-- 当前基线：不可变 release `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已在
+  `P5.3 / CB-520`；`P5.4 / CB-530`；`P5.5 / CB-540`；`PG-5`；`P6.1 / CB-600`
+- 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
-  immutable `previous` 已保留。产品版本仍为 `v0.0.0.5`，并保留既有
-  `current → previous → current` 回滚收据。
-- 最新 Run：`CB-530` 已完成真实在线 Runtime snapshot、R2 两对象 PUT/GET 哈希、
-  OCI 两对象 PUT receipt、R2 network-disabled isolated restore、日频 backup timer、
-  Status/Private-Database sync 与 Access continuity。证据在 `docs/evidence/CB-530/`；
-  控制面/运维模型调用仍为 `0`。
+  immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
+  并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
+- 最新 Run：`CB-600` 已完成 exact Subject 绑定（HEAD
+  `bb716bd9cf2760aa9639ef85c626f0fd19c6ec94`、tree
+  `a6426566cdba7dce4d1990eb888d308838b26ef1`、干净工作树）、只读 Current Truth
+  对账（consensus=consistent）、v0.0.0.8 版本锁、单条 Owner Change Event，以及
+  18 个必需域的目标兼容映射（唯一 ambiguous 域 `profile_analytics` 已解析）。
+  证据在 `docs/evidence/CB-600/`；控制面/运维模型调用仍为 `0`。
 - 真实 WeChat credential 不在已授权受保护范围内：channel/bridge 故意保持
   `pending_missing_real_wechat_credential` 和 `/readyz=503`，没有启动 simulator
   或把 pending 写成 ready。最小 Access service-token scope 同样保留 pending，
   不影响 Owner-only 登录或同机受保护 Status snapshot。
-- Stage 0–5 任务状态：`CB-000`–`CB-530` 已通过；`CB-540` 与 `PG-5` 为
-  `not_started`；`PG-0=passed` 至 `PG-4=passed`。下一原生节点只能是独立 Run 的
-  `CB-540`，并须先运行其自己的 TaskPack Router。
+- 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
+  v0.0.0.8 追加的 `CB-600` 已通过。
+
+- 尚未开始：Stage 6 余下节点、Stage 7、Stage 8 与 PG-6–PG-8 均为
+  `not_started`，权威清单见 [`machine/facts/task_state.json`](machine/facts/task_state.json)；
+  每个节点必须作为独立 Run 按冻结 DAG 依赖顺序执行。
 - R2 backup/readback 与 isolated restore 已 verified；OCI 日常 write-only PAR 的读回
-  保持 `activation_pending_write_only_par`，本次精确对象的临时 Owner readback 已 hash
-  match 后撤销。Analytics 与 tunnel 联动自愈留给 CB-540。`FORMAL_FINAL_ACCEPTANCE`
+  保持 `activation_pending_write_only_par`。`FORMAL_FINAL_ACCEPTANCE`
   仍为 `activation_pending`，不得因已验证子面提前封口。
-- GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
+- GitHub 发布：全部 TaskPack 与 PG-0–PG-8 完成前禁止 push/PR
 
 ## 唯一身份
 

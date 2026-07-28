@@ -1,0 +1,114 @@
+{
+  "schema_version": "cyberboss.cb600.subject.v1",
+  "task_id": "CB-600",
+  "stage": "S6",
+  "phase": "P6.1",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "taskpack_revision": "R7-FINAL",
+  "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
+  "taskpack_roadmap_sha256": "7da504fe0d41a6b7add467a2959a85c2030c569fb1b7922cbc7f0670899265c6",
+  "taskpack_pursuing_goal_sha256": "693355bf6bab8de5b9a42894a072d2d4ef8ac4811641deb76819019922de0513",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "head": "bb716bd9cf2760aa9639ef85c626f0fd19c6ec94",
+    "tree": "a6426566cdba7dce4d1990eb888d308838b26ef1",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "dirty": false,
+    "dirty_paths": []
+  },
+  "current_truth": {
+    "probe": "scripts/current_truth_probe.py",
+    "probe_digest": "89c86bc696254b51600f6c46d31402a3570828f9341e7ab3de5bb6e59f5e81be",
+    "read_only": true,
+    "consensus_status": "consistent",
+    "consensus_reason": "accepted_high_watermark_agrees",
+    "accepted_high_watermark_claims": {
+      "machine_task_state": "CB-540",
+      "readme": "CB-540",
+      "handoff": "CB-540"
+    },
+    "mutation_policy": "allow_normal_execution",
+    "integration_base_selection_rule": "consistent_pg5_foundation",
+    "split_brain": false
+  },
+  "pre_mutation_file_identity": {
+    "CyberBoss/README.md": "5c9244fdd9523054808700152957582c3efc98e8b60c02c34879a310df293ed4",
+    "CyberBoss/HANDOFF.md": "1bcf3d3048fa20e95005b24826631abebc65d2d9f360d370f7a548bb2cdfef3a",
+    "CyberBoss/AGENTS.md": "c1395141de169ec3f50fa85d58a37ce61f1d6fd3e8e17d5c1c51d1631cdd604a",
+    "CyberBoss/machine/facts/task_state.json": "511072bd975abb27cbdf5a726139ddabdab49db42f46c5601728315a46a85417",
+    "CyberBoss/machine/facts/owner_decisions.json": "860bb4afb1a2912d87d41bceb2eadfdbe79ff4e78b5bc5334fddef2b656cf5ea",
+    "CyberBoss/docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml": "538f0cd9110bb4ee54184ba4d6e3941a120284e34f8f1c65c01bc5041b1be185"
+  },
+  "preserved_foundation": {
+    "cb_540_closure_commit": "70086d4686975dd4dea39ef30ccefa1562f7302d",
+    "pg_5_closure_commit": "3ad274c82b41e93bf76dcebea68a6b68379657b1",
+    "prior_release_current": "fd3cd1e19d70caa148c3785288aaabfb909fed85",
+    "prior_release_previous": "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+    "prior_release_manifest_sha256": "4829f41e002e5c6fa242182d851317df376d6f407a8c593577612af738490ff7",
+    "evidence_directories_present": 30,
+    "evidence_highest_task": "CB-540",
+    "release_artifact_count": 3,
+    "stage_0_to_5_replayed": false,
+    "prior_evidence_deleted": false,
+    "single_user_pass_inherited_as_multi_user_pass": false
+  },
+  "owner_change_event": {
+    "event_id": "owner-change-cyberboss-v0.0.0.8-multiuser-weixin",
+    "record": "CyberBoss/machine/facts/owner_change_events.json",
+    "count_applied": 1,
+    "state": "APPLIED_TO_EXACT_TARGET"
+  },
+  "target_compatibility": {
+    "probe": "scripts/target_compatibility_probe.py",
+    "read_only": true,
+    "mutation_performed_by_probe": false,
+    "target_tree_digest": "6adc0b56b31b2fcfd3bf57e2ef224384bc70eaeb749ef62039bb76e3788d2934",
+    "target_files_scanned": 171,
+    "required_domains": 18,
+    "ambiguous_required_domains": [
+      "profile_analytics"
+    ],
+    "ambiguous_required_domains_resolved": [
+      "profile_analytics"
+    ],
+    "unresolved_ambiguities": 0,
+    "adaptation_plan": "CyberBoss/docs/evidence/CB-600/target-adaptation-plan.json"
+  },
+  "migration_numbering": {
+    "existing_highest_numeric_prefix": 5,
+    "selected_numeric_prefix": 6,
+    "selected_filename": "006_multiuser_foundation.sql",
+    "fixed_numeric_prefix_used": false,
+    "dry_run_only": true,
+    "migration_written": false
+  },
+  "agpl_and_provenance": {
+    "subtree_license": "AGPL-3.0-only",
+    "source_lock": "CyberBoss/machine/source-lock.json",
+    "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+    "whereabouts_mcp_conflict_record_preserved": true,
+    "upstream_clarification_claimed": false,
+    "runtime_source_fetch": false,
+    "upstream_remote_count": 0,
+    "submodule_count": 0,
+    "corresponding_source_entry": "CyberBoss/docs/evidence/CB-000/LICENSE_COMPLIANCE.md",
+    "locked_source_shas_unchanged": true
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "new_repository_created": false,
+    "parallel_runtime_created": false,
+    "parallel_task_state_created": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [],
+  "status": "passed"
+}
