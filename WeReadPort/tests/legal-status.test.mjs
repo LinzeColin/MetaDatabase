@@ -12,7 +12,7 @@ const healthyEnv = {
   ASSETS: {
     fetch: async request => {
       const url = new URL(request.url);
-      if (url.pathname === "/index.html") return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁</title></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+      if (url.pathname === "/site/index.html") return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁</title></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
       return new Response("未找到", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
     },
   },
@@ -60,6 +60,27 @@ test("公开页面无尾斜杠入口安全重定向到规范地址", async () =>
     const response = await handleRequest(new Request(`https://example.test/${route}`), healthyEnv);
     assert.equal(response.status, 308);
     assert.equal(response.headers.get("location"), `https://example.test/${route}/`);
+  }
+});
+
+test("公开静态入口由 Worker 映射到内部资产前缀并统一附加安全头", async () => {
+  const requested = [];
+  const env = {
+    ...healthyEnv,
+    ASSETS: {
+      fetch: async request => {
+        requested.push(new URL(request.url).pathname);
+        return new Response("<!doctype html><html lang=\"zh-CN\"></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+      },
+    },
+  };
+  for (const [path, expected] of [["/", "/site/index.html"], ["/privacy/", "/site/privacy/index.html"], ["/assets/app.js", "/site/assets/app.js"]]) {
+    const response = await handleRequest(new Request(`https://example.test${path}`), env);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-security-policy"), "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; connect-src 'self'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; media-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests");
+    assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(requested.at(-1), expected);
   }
 });
 

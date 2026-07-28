@@ -70,7 +70,7 @@ export async function handleRequest(request, env = {}) {
     if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
       return secure(new Response(request.method === "HEAD" ? null : "静态资源绑定不可用。", { status: 503 }));
     }
-    return secure(await env.ASSETS.fetch(request));
+    return secure(await env.ASSETS.fetch(staticAssetRequest(request, url)));
   } catch (error) {
     const safe = toSafeFailure(error);
     const status = error instanceof WeReadPortError && error.status ? error.status : 500;
@@ -201,7 +201,7 @@ async function inspectAssets(request, env) {
   if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
     return { ready: false, detail: "静态资源绑定不可用。" };
   }
-  const probeUrl = new URL("/index.html", request.url);
+  const probeUrl = new URL("/site/index.html", request.url);
   let response;
   try {
     response = await env.ASSETS.fetch(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }));
@@ -307,6 +307,21 @@ function runtimeLabel(mode) {
 function normalizePath(value) {
   if (value === "/") return value;
   return value.replace(/\/+$/u, "") || "/";
+}
+
+/** Keep public routes out of the direct static-asset namespace so Sites always
+ * reaches this Worker before a document is returned. */
+function staticAssetRequest(request, url) {
+  const target = new URL(url);
+  target.pathname = staticAssetPath(url.pathname);
+  return new Request(target.toString(), request);
+}
+
+function staticAssetPath(pathname) {
+  if (pathname === "/") return "/site/index.html";
+  if (["/privacy/", "/terms/", "/status/"].includes(pathname)) return `/site${pathname}index.html`;
+  if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return `/site${pathname}`;
+  return "/site/index.html";
 }
 
 /** @param {Request} request @param {Record<string,any>} env */
