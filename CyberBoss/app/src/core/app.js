@@ -737,6 +737,12 @@ class CyberbossApp {
       adminOverview: () => this.buildDashboardOverview(),
       adminInvite: () => this.issueDashboardInvite(),
       adminOwnerClaim: () => this.issueDashboardOwnerClaim(),
+      adminOwnerBind: () => this.armDashboardOwnerBinding(),
+      // 还没有主人时，这套系统里不存在任何用户数据，后台也就没有什么可保护
+      // 的；首次绑定因此不要令牌。绑上的那一刻起，后台恢复要令牌。
+      firstRunProvider: () => this.userAdmission
+        ? !this.userAdmission.ownerChannelBound()
+        : false,
     });
     try {
       const address = await this.portalServer.start();
@@ -786,10 +792,18 @@ class CyberbossApp {
         // 读不到就显示 0，不猜。
       }
     }
+    // 前端靠这一位决定还要不要显示「绑主人」那一整块。
+    let ownerBound = false;
+    try {
+      ownerBound = this.userAdmission ? this.userAdmission.ownerChannelBound() : false;
+    } catch {
+      // 读不出来就当没绑：多显示一个按钮，好过让人以为已经绑好了。
+    }
     return Object.freeze({
       lines,
       users,
       messagesToday,
+      ownerBound,
       uptimeSeconds: Math.floor(process.uptime()),
       log: this.recentLog(),
     });
@@ -841,6 +855,24 @@ class CyberbossApp {
       return Object.freeze({
         ok: false,
         code: normalizeErrorCode(error?.code) || "OWNER_CLAIM_FAILED",
+      });
+    }
+  }
+
+  // 开一扇 10 分钟的门：窗内第一个给机器人说话的人成为主人。比让人抄一串码
+  // 好用——主人什么都不用复制，说句话就行。
+  armDashboardOwnerBinding() {
+    if (!this.userAdmission) {
+      return Object.freeze({ ok: false, code: "ADMISSION_OFF" });
+    }
+    try {
+      const armed = this.userAdmission.armOwnerBinding();
+      this.noteForDashboard("打开了主人绑定窗口");
+      return Object.freeze({ ok: true, expiresAt: armed.expiresAt, minutes: Math.round(armed.ttlMs / 60000) });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "OWNER_BIND_FAILED",
       });
     }
   }

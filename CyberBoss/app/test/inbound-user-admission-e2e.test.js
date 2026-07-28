@@ -595,3 +595,62 @@ test("猜错的码不会绑成主人", (t) => {
     assert.notEqual(result.route, "owner", `"${guess}" 不该绑成主人`);
   }
 });
+
+test("开一扇门之后，第一个说话的人成为主人——不用抄任何码", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  assert.equal(admission.ownerChannelBound(), false);
+
+  // 没开门的时候，陌生人只拿到入门回复。
+  assert.equal(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" }).route,
+    "reply",
+  );
+
+  admission.armOwnerBinding();
+  const claimed = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" });
+  assert.equal(claimed.route, "owner");
+  assert.equal(claimed.ownerClaimed, true);
+  assert.equal(admission.ownerChannelBound(), true);
+
+  // 门是一次性的：绑完立刻关，第二个人不会也变成主人。
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: BOB, text: "你好" }).route,
+    "owner",
+  );
+});
+
+test("门会自己过期，过期后不再放行", (t) => {
+  let clock = new Date("2026-07-28T00:00:00.000Z");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-bind-exp-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(directory, "runtime.db"),
+    encryptionKey: ENCRYPTION_KEY,
+    identityKey: IDENTITY_KEY,
+  });
+  t.after(() => spool.close());
+  const admission = new UserAdmissionService({
+    database: spool.database,
+    identityKey: IDENTITY_KEY,
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds: ["bot-self-id"],
+    registrationMode: "invite",
+    now: () => clock,
+  });
+
+  admission.armOwnerBinding({ ttlMs: 60_000 });
+  clock = new Date(clock.getTime() + 120_000);
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" }).route,
+    "owner",
+  );
+});
+
+test("已经有主人时，门开不了", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  admission.armOwnerBinding();
+  admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" });
+  assert.equal(admission.ownerChannelBound(), true);
+
+  assert.throws(() => admission.armOwnerBinding(), /OWNER_ALREADY_BOUND/);
+});

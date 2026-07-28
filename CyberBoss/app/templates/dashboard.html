@@ -52,11 +52,17 @@
     <div class="stat"><b id="s-uptime">–</b><span>已连续运行</span></div>
   </div>
 
+  <section id="owner-section">
   <h2>把我的微信绑成主人</h2>
-  <p class="hint" style="margin:0 0 10px">机器人只听主人的。点一下拿到认领码，用你平时那个微信发给机器人，那个号就是主人了。只需要做一次。</p>
-  <button class="primary" id="mkowner">生成主人认领码</button>
+  <p class="hint" style="margin:0 0 10px">机器人只听主人的。点一下开门，然后<b>用你自己的微信随便对机器人说句话</b>，那个号就是主人了。不用复制任何东西，只需要做一次。</p>
+  <button class="primary" id="mkbind">开门，现在去微信说句话</button>
+  <p class="hint" id="bind-hint" hidden></p>
+  <p class="hint"><a href="#" id="showcode" style="color:inherit">用不了？改用认领码</a></p>
+  <button class="primary" id="mkowner" hidden>生成主人认领码</button>
   <div class="code" id="ownercode" hidden></div>
   <p class="hint" id="ownercode-hint" hidden>把上面这一串，用你自己的微信发给机器人。只能用一次，30 分钟内有效。</p>
+
+  </section>
 
   <h2>加人</h2>
   <button class="primary" id="mk">生成一个邀请码</button>
@@ -125,6 +131,12 @@
     });
 
     document.getElementById("log").textContent = (data.log || []).join("\n") || "还没有记录。";
+
+    // 绑过主人之后，这一整块就没用了，收起来免得占地方。
+    if (data.ownerBound) {
+      var owner = document.getElementById("owner-section");
+      if (owner) { owner.hidden = true; }
+    }
   }
 
   function refresh() {
@@ -162,6 +174,38 @@
 
   wireCodeButton("mkowner", "ownercode", "ownercode-hint", "/admin/api/owner-claim",
     "正在生成……", "再生成一个");
+
+  document.getElementById("showcode").addEventListener("click", function (event) {
+    event.preventDefault();
+    document.getElementById("mkowner").hidden = false;
+    this.parentNode.hidden = true;
+  });
+
+  document.getElementById("mkbind").addEventListener("click", function () {
+    var button = this;
+    button.disabled = true; button.textContent = "正在开门……";
+    fetch("/admin/api/owner-bind", { method: "POST", headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var hint = document.getElementById("bind-hint");
+        button.disabled = false;
+        if (data.ok) {
+          button.textContent = "门已经开了";
+          hint.textContent = "现在用你自己的微信，随便对机器人说一句话，"
+            + (data.minutes || 10) + " 分钟内有效。说完这一页会自己变。";
+        } else if (data.code === "OWNER_ALREADY_BOUND") {
+          button.textContent = "已经有主人了";
+          hint.textContent = "这台机器已经绑过主人，不需要再绑一次。";
+        } else {
+          button.textContent = "再试一次";
+          hint.textContent = "没能打开，请稍后再试。";
+        }
+        hint.hidden = false;
+      })
+      .catch(function () {
+        button.disabled = false; button.textContent = "再试一次";
+      });
+  });
 
   document.getElementById("mk").addEventListener("click", function () {
     var button = this;

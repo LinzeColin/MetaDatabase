@@ -44,6 +44,10 @@ const HELP_COMMANDS = Object.freeze(["帮助", "help", "怎么用", "你能做�
 // 主人认领码。存在 service_state 里：明文永不落库，只留 HMAC 摘要和过期时间。
 const OWNER_CLAIM_STATE_KEY = "owner_claim";
 const OWNER_CLAIM_TTL_MS = 30 * 60 * 1000;
+// 「开一扇门」：一段有限的时间窗，窗内第一个说话的人成为主人。比让人抄一串码
+// 好用，也比"永远开着的先到先得"安全——窗是主人自己开的，而且很快自己关上。
+const OWNER_BIND_WINDOW_KEY = "owner_bind_window";
+const OWNER_BIND_WINDOW_TTL_MS = 10 * 60 * 1000;
 const RESERVED_INPUTS = Object.freeze([
   ...Object.values(COMMANDS),
   SETUP_COMMAND,
@@ -281,6 +285,57 @@ class UserAdmissionService {
     return expiresAt > this.now().getTime();
   }
 
+  // 有没有任何微信号已经绑成主人。没有的话，这套系统里还不存在任何用户数据，
+  // 后台也就没有什么可保护的——首次绑定因此不需要令牌。
+  ownerChannelBound() {
+    return this.#ownerPrincipalBound();
+  }
+
+  armOwnerBinding({ ttlMs = OWNER_BIND_WINDOW_TTL_MS } = {}) {
+    if (this.#ownerPrincipalBound()) {
+      throw new UserAdmissionError("OWNER_ALREADY_BOUND");
+    }
+    const expiresAt = this.now().getTime() + ttlMs;
+    this.users.database
+      .prepare(
+        `INSERT INTO service_state (key, value_redacted_json, value_sha256, updated_at)
+         VALUES (?, ?, '', ?)
+         ON CONFLICT(key) DO UPDATE SET
+           value_redacted_json=excluded.value_redacted_json,
+           updated_at=excluded.updated_at`,
+      )
+      .run(OWNER_BIND_WINDOW_KEY, JSON.stringify({ expires_at: expiresAt }), this.now().toISOString());
+    return Object.freeze({ expiresAt: new Date(expiresAt).toISOString(), ttlMs });
+  }
+
+  // 窗开着、还没过期、而且确实还没有主人——三件事都成立才放行。用完即关。
+  #ownerBindingArmed() {
+    if (this.#ownerPrincipalBound()) {
+      return false;
+    }
+    const row = this.users.database
+      .prepare("SELECT value_redacted_json FROM service_state WHERE key=?")
+      .get(OWNER_BIND_WINDOW_KEY);
+    if (!row) {
+      return false;
+    }
+    let expiresAt = 0;
+    try {
+      expiresAt = Number(JSON.parse(row.value_redacted_json)?.expires_at) || 0;
+    } catch {
+      expiresAt = 0;
+    }
+    if (expiresAt <= this.now().getTime()) {
+      this.users.database.prepare("DELETE FROM service_state WHERE key=?").run(OWNER_BIND_WINDOW_KEY);
+      return false;
+    }
+    return true;
+  }
+
+  #closeOwnerBindingWindow() {
+    this.users.database.prepare("DELETE FROM service_state WHERE key=?").run(OWNER_BIND_WINDOW_KEY);
+  }
+
   #ownerClaimAvailable() {
     if (this.ownerSenderIds.length > 0) {
       return false;
@@ -421,6 +476,12 @@ class UserAdmissionService {
       const claimed = this.#admitOwner({ botAccountRef, senderRef });
       return Object.freeze({ ...claimed, ownerClaimed: true });
     }
+    // 主人在后台开了门：窗内第一句话，不管说的是什么，都把这个号绑成主人。
+    if (this.#ownerBindingArmed()) {
+      const claimed = this.#admitOwner({ botAccountRef, senderRef });
+      this.#closeOwnerBindingWindow();
+      return Object.freeze({ ...claimed, ownerClaimed: true });
+    }
     if (this.#ownerClaimAvailable()) {
       const claimed = this.#admitOwner({ botAccountRef, senderRef });
       return Object.freeze({ ...claimed, ownerClaimed: true });
@@ -499,6 +560,7 @@ class UserAdmissionService {
 
 module.exports = {
   HELP_COMMANDS,
+  OWNER_BIND_WINDOW_TTL_MS,
   OWNER_CLAIM_TTL_MS,
   INVITE_CANDIDATE,
   OWNER_COMMANDS,

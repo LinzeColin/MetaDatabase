@@ -105,6 +105,8 @@ class PortalHttpServer {
     adminOverview = null,
     adminInvite = null,
     adminOwnerClaim = null,
+    adminOwnerBind = null,
+    firstRunProvider = () => false,
     logger = console,
   }) {
     if (!portal || typeof portal.handle !== "function") {
@@ -118,6 +120,8 @@ class PortalHttpServer {
     this.adminOverview = adminOverview;
     this.adminInvite = adminInvite;
     this.adminOwnerClaim = adminOwnerClaim;
+    this.adminOwnerBind = adminOwnerBind;
+    this.firstRunProvider = firstRunProvider;
     this.logger = logger;
     this.server = null;
   }
@@ -182,7 +186,20 @@ class PortalHttpServer {
   }
 
   // 定长比较，避免用字符串比较的提前返回泄漏令牌前缀。
+  // 还没有主人时放行：那时库里没有任何用户、任何凭据、任何聊天记录，后台上
+  // 唯一能做的事就是把自己绑成主人。绑上之后这里立刻恢复要令牌。
+  #firstRun() {
+    try {
+      return this.firstRunProvider() === true;
+    } catch {
+      return false;
+    }
+  }
+
   #adminAuthorized(request) {
+    if (this.#firstRun()) {
+      return true;
+    }
     if (!this.adminToken) {
       return false;
     }
@@ -210,6 +227,18 @@ class PortalHttpServer {
       }
       if (name === "invite" && request.method === "POST" && typeof this.adminInvite === "function") {
         this.#json(response, 200, await this.adminInvite());
+        return;
+      }
+      if (
+        name === "owner-bind"
+        && request.method === "POST"
+        && typeof this.adminOwnerBind === "function"
+      ) {
+        this.#json(response, 200, await this.adminOwnerBind());
+        return;
+      }
+      if (name === "first-run") {
+        this.#json(response, 200, { ok: true, firstRun: this.#firstRun() });
         return;
       }
       if (
