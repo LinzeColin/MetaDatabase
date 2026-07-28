@@ -1,5 +1,6 @@
 export class AccountApi {
   constructor(base = "/api/platform/v1") { this.base = base; this.csrf = ""; }
+  readiness() { return fetch("/readyz", { credentials: "same-origin", headers: { Accept: "application/json" } }).then(async response => ({ ok: response.ok, status: response.status, payload: await response.json().catch(() => ({})) })); }
   async session() { const data = await this.request("/session", { allow401: true }); if (data?.csrf) this.csrf = data.csrf; return data; }
   async registerPassword(input) { return this.auth("/auth/register/password", input); }
   async loginPassword(input) { return this.auth("/auth/login/password", input); }

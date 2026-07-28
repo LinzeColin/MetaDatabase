@@ -29,6 +29,6 @@ const server = http.createServer(async (req, res) => {
 server.requestTimeout = 35_000;
 server.headersTimeout = 10_000;
 server.keepAliveTimeout = 5_000;
-server.listen(config.servicePort, config.serviceHost, () => console.log(JSON.stringify({ event: "service_started", host: config.serviceHost, port: config.servicePort, version: "v0.0.0.1.8" })));
+server.listen(config.servicePort, config.serviceHost, () => console.log(JSON.stringify({ event: "service_started", host: config.serviceHost, port: config.servicePort, version: "v0.0.0.1.9", releaseIdentity: config.releaseIdentity })));
 const shutdown = () => server.close(() => { store.close(); process.exit(0); });
 process.on("SIGTERM", shutdown); process.on("SIGINT", shutdown);

@@ -19,9 +19,15 @@ export function createPlatformApp({ service, config }) {
   return async function handle(request) {
     const url = new URL(request.url);
     try {
-      if (url.pathname === "/healthz") return json({ status: "ok", service: "weread-port-account", version: "v0.0.0.1.8" });
+      if (url.pathname === "/healthz") return json({ status: "ok", service: "weread-port-account", version: "v0.0.0.1.9", releaseIdentity: config.releaseIdentity });
+      if (url.pathname === "/version") return json({ service: "weread-port-account", version: "v0.0.0.1.9", releaseIdentity: config.releaseIdentity });
       if (url.pathname === "/readyz") {
         const readiness = await service.readiness();
+        return json(readiness, readiness.ready ? 200 : 503);
+      }
+      if (url.pathname === "/internal/readyz") {
+        requireInternal(request, config.internalProxySecret);
+        const readiness = await service.readiness({ force: true });
         return json(readiness, readiness.ready ? 200 : 503);
       }
       requireInternal(request, config.internalProxySecret);
@@ -97,7 +103,7 @@ export function createPlatformApp({ service, config }) {
       if (method === "GET" && path === "/analytics/dashboard") return json({ dashboard: service.analytics(session.accountId) });
       if (method === "GET" && path === "/account/export") { service.requireRecentAuth(session); return json(await service.exportAccount(session.accountId)); }
       if (method === "POST" && path === "/account/delete") { service.requireRecentAuth(session); const result = await service.deleteAccount(session.accountId); return json(result, 200, { "Set-Cookie": clearCookie(config) }); }
-      if (method === "GET" && path === "/status/business-lines") { const readiness = await service.readiness(); return json({ version: "v0.0.0.1.8", readiness, lines: businessLines(service.store.counts(), readiness) }); }
+      if (method === "GET" && path === "/status/business-lines") { const readiness = await service.readiness(); return json({ version: "v0.0.0.1.9", readiness, lines: businessLines(service.store.counts(), readiness) }); }
 
       throw new PlatformError("NOT_FOUND", "接口不存在。", 404);
     } catch (error) {
@@ -165,4 +171,4 @@ function businessLines(counts, readiness) {
     line("facts-backup", "结构化事实与异地冷备", "EXTERNAL", "Private-Database、R2 与 OCI 外部证据"),
   ];
 }
-function line(id, name, state, detail) { return { id, name, stage: "v0.0.0.1.8", state, detail }; }
+function line(id, name, state, detail) { return { id, name, stage: "v0.0.0.1.9", state, detail }; }

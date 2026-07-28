@@ -1,34 +1,26 @@
-name: 微信读书笔记迁移持续验证
-
-on:
+name: 阅迁账户平台持续验证
+"on":
   workflow_dispatch:
   pull_request:
-    paths:
-      - "WeReadPort/**"
-      - ".github/workflows/weread-port-*.yml"
+    paths: ["WeReadPort/**", ".github/workflows/weread-port-*.yml"]
   push:
     branches: [main]
-    paths:
-      - "WeReadPort/**"
-      - ".github/workflows/weread-port-*.yml"
-
+    paths: ["WeReadPort/**", ".github/workflows/weread-port-*.yml"]
 permissions:
   contents: read
-
 concurrency:
-  group: 微信读书笔记迁移-${{ github.ref }}
+  group: weread-port-v019-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   verify:
-    name: 核心、隐私、状态与构建验证
+    name: 身份、存储、导入、同步、画像、安全与构建
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: WeReadPort
     steps:
-      - name: 读取代码
+      - name: 读取冻结提交
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: 配置 Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -42,9 +34,7 @@ jobs:
           python-version: "3.13"
       - name: 安装精确依赖
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: 验证发布元数据和锁文件
-        run: npm run check:release
-      - name: 验证核心、全局中文、公开页面、安全和运维
+      - name: 验证冻结实现
         run: npm run verify:all
       - name: 构建 ChatGPT Sites 制品
         run: npm run build

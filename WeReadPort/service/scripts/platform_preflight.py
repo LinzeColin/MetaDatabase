@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""阅迁 v0.0.0.1.8 部署前确定性检查；绝不输出 Secret 值。"""
+"""阅迁 v0.0.0.1.9 部署前确定性检查；绝不输出 Secret 值。"""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
-VERSION = "v0.0.0.1.8"
+VERSION = "v0.0.0.1.9"
 EXPECTED_ORIGIN = "https://weread-port.linzezhang35.chatgpt.site"
 REQUIRED = (
     "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT",
@@ -22,6 +22,9 @@ REQUIRED = (
     "WRP_R2_ACCESS_KEY_ID", "WRP_R2_SECRET_ACCESS_KEY", "WRP_GOOGLE_CLIENT_ID",
     "WRP_GOOGLE_CLIENT_SECRET", "WRP_GITHUB_CLIENT_ID", "WRP_GITHUB_CLIENT_SECRET",
     "WRP_NOTION_CLIENT_ID", "WRP_NOTION_CLIENT_SECRET", "WRP_PRIVATE_DATABASE_WORKTREE",
+    "WRP_TASKPACK_VERSION", "WRP_RELEASE_COMMIT", "WRP_OVH_RELEASE_ID", "WRP_SITES_PROJECT_ID",
+    "WRP_PRIMARY_OBJECT_PREFIX", "WRP_PRIVATE_DATABASE_BACKUP_PREFIX",
+    "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "WRP_R2_RCLONE_SOURCE", "WRP_OCI_RCLONE_TARGET",
 )
 PLACEHOLDER = re.compile(r"(?:example\.invalid|replace|changeme|your[-_ ]|account_id|^secret$|base64-32|same-as)", re.I)
 
@@ -74,6 +77,22 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
         block("DATABASE_PATH", "WRP_DATABASE_PATH", "SQLite 路径必须是绝对路径。")
     if values.get("WRP_OBJECT_STORE_MODE") != "r2":
         block("OBJECT_MODE", "WRP_OBJECT_STORE_MODE", "生产用户正文必须使用 R2 加密对象平面。")
+    if values.get("WRP_TASKPACK_VERSION") != VERSION:
+        block("TASKPACK_VERSION", "WRP_TASKPACK_VERSION", f"必须精确等于 {VERSION}。")
+    if not re.fullmatch(r"[0-9a-f]{40}", values.get("WRP_RELEASE_COMMIT", "")):
+        block("RELEASE_COMMIT", "WRP_RELEASE_COMMIT", "必须是 40 位小写 Git SHA。")
+    for field in ("WRP_OVH_RELEASE_ID", "WRP_SITES_PROJECT_ID"):
+        if not re.fullmatch(r"[A-Za-z0-9._:-]{3,160}", values.get(field, "")):
+            block("RELEASE_ID", field, "部署身份格式无效。")
+    if values.get("WRP_PRIMARY_OBJECT_PREFIX") != "primary-objects":
+        block("R2_PRIMARY_NAMESPACE", "WRP_PRIMARY_OBJECT_PREFIX", "权威隐私对象必须写入 primary-objects。")
+    if values.get("WRP_PRIVATE_DATABASE_BACKUP_PREFIX") != "backups/private-database":
+        block("R2_BACKUP_NAMESPACE", "WRP_PRIVATE_DATABASE_BACKUP_PREFIX", "Private-Database 冷备必须写入 backups/private-database。")
+    backup_target = values.get("WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "")
+    if "backups/private-database" not in backup_target or not re.fullmatch(r"[^\s:]+:.+", backup_target):
+        block("PRIVATE_DATABASE_R2_TARGET", "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "必须是指向 backups/private-database 的 rclone 远端路径。")
+    if not values.get("WRP_R2_RCLONE_SOURCE") or not values.get("WRP_OCI_RCLONE_TARGET"):
+        block("OCI_BACKUP", "WRP_R2_RCLONE_SOURCE/WRP_OCI_RCLONE_TARGET", "R2 到 OCI 异地冷备必须配置。")
     _check_b64(values.get("WRP_SESSION_PEPPER", ""), "WRP_SESSION_PEPPER", block)
     _check_b64(values.get("WRP_CREDENTIAL_PEPPER", ""), "WRP_CREDENTIAL_PEPPER", block)
     try:
@@ -116,8 +135,6 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
         provider: f"{origin.rstrip('/')}/api/platform/v1/oauth/{provider}/callback"
         for provider in ("google", "github", "notion") if origin
     }
-    if not values.get("WRP_R2_RCLONE_SOURCE") or not values.get("WRP_OCI_RCLONE_TARGET"):
-        warn("OCI_BACKUP_DISABLED", "WRP_R2_RCLONE_SOURCE/WRP_OCI_RCLONE_TARGET", "异地冷备未配置；启用 OCI timer 前必须补齐。")
     return {
         "status": "PASS" if not blockers else "BLOCKED",
         "version": VERSION,

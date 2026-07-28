@@ -1,4 +1,4 @@
-# 阅迁账户服务 v0.0.0.1.8
+# 阅迁账户服务 v0.0.0.1.9
 
 该目录是 OVH 上的账户、加密笔记、同步、导入、画像和微信读书广范围同步服务。运行时只依赖 Node.js 22 的内置模块、Linux systemd、SQLite、R2 S3 API 和已配置的 OAuth Provider。
 

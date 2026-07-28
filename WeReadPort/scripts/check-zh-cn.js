@@ -28,7 +28,7 @@ const manifest = JSON.parse(await readFile(path.join(root, "public/manifest.webm
 if (manifest.lang !== "zh-CN") errors.push("manifest.webmanifest 的 lang 必须为 zh-CN。");
 if (!String(manifest.name ?? "").includes("阅读")) errors.push("manifest.webmanifest 必须使用中文阅读产品名。");
 const constants = await readFile(path.join(root, "src/core/constants.js"), "utf8");
-if (!constants.includes('APP_VERSION = "v0.0.0.1.8"')) errors.push("APP_VERSION 必须为 v0.0.0.1.8。");
+if (!constants.includes('APP_VERSION = "v0.0.0.1.9"')) errors.push("APP_VERSION 必须为 v0.0.0.1.9。");
 const accountUi = await readFile(path.join(root, "src/ui/account-platform.js"), "utf8");
 for (const required of ["创建账户", "邮箱密码登录", "用 Google 创建", "用 GitHub 创建", "用 Notion 创建", "导入与连接", "阅读画像", "账户与安全"]) {
   if (!accountUi.includes(required)) errors.push(`账户界面缺少中文主流程：${required}`);

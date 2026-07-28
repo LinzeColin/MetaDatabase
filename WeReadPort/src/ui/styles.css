@@ -398,7 +398,7 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
 
-/* v0.0.0.1.8：生产化公开页面、可辨识状态与集成整改。 */
+/* v0.0.0.1.9：生产化公开页面、可辨识状态与集成整改。 */
 .choice-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .upload-choice .file-drop { margin-top: 14px; }
 .start-upload { min-height: 92px; align-content: center; text-align: center; }
@@ -433,7 +433,7 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
   .chatgpt-actions { display: grid; grid-template-columns: 1fr; }
 }
 
-/* v0.0.0.1.8：生产运行状态、静态法律页与线上主路径。 */
+/* v0.0.0.1.9：生产运行状态、静态法律页与线上主路径。 */
 .runtime-banner {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -509,7 +509,7 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
 }
 
 
-/* v0.0.0.1.8：UI UX Pro Max / Webapp Testing 定点整改，不改变既有品牌与主流程。 */
+/* v0.0.0.1.9：UI UX Pro Max / Webapp Testing 定点整改，不改变既有品牌与主流程。 */
 @media (max-width: 768px) {
   .hero-actions { display: grid; grid-template-columns: 1fr; }
   .hero-actions .button { width: 100%; min-height: 48px; }
@@ -571,7 +571,7 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
   .button, .choice-card, .panel, .runtime-banner, .business-governance tbody tr { border: 1px solid CanvasText; }
 }
 
-/* v0.0.0.1.8 账户平台｜UI UX Pro Max：中文、小白优先、44px 触控、键盘与 320px */
+/* v0.0.0.1.9 账户平台｜UI UX Pro Max：中文、小白优先、44px 触控、键盘与 320px */
 :root{--account-ink:#18221d;--account-muted:#55635b;--account-green:#155c42;--account-green-dark:#0c452f;--account-mint:#e7f4ed;--account-warm:#f7f5ef;--account-line:#d9e1dc;--account-danger:#a12525;--account-shadow:0 18px 50px rgba(24,34,29,.10)}
 .account-topbar{min-height:72px;padding:12px clamp(16px,4vw,48px);display:flex;align-items:center;gap:24px;border-bottom:1px solid var(--account-line);background:#fff;position:sticky;top:0;z-index:30}.account-brand{display:flex;align-items:center;gap:10px;color:var(--account-ink);text-decoration:none;min-height:44px}.account-brand>span{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--account-green);color:#fff;font-weight:800;font-size:22px}.account-brand div{display:grid;line-height:1.1}.account-brand strong{font-size:18px}.account-brand small{margin-top:4px;color:var(--account-muted);font-size:12px}.account-topbar nav{margin-left:auto;display:flex;gap:6px;align-items:center}.account-topbar nav a,.sidebar-foot a,.sidebar-foot button{min-height:44px;padding:11px 12px;color:var(--account-muted);text-decoration:none;border-radius:10px;border:0;background:transparent;font:inherit;cursor:pointer}.account-topbar nav a:hover,.account-topbar nav a:focus-visible,.sidebar-foot a:hover,.sidebar-foot button:hover{background:var(--account-warm);color:var(--account-ink)}#account-header-actions{display:flex;align-items:center}.trust-pill{display:inline-flex;align-items:center;gap:7px;color:var(--account-green-dark);background:var(--account-mint);padding:9px 12px;border-radius:999px;font-size:13px;font-weight:700}.trust-pill span{font-size:10px}.account-menu-button{border:0;background:transparent;display:flex;align-items:center;gap:8px;min-height:44px;padding:5px 8px;border-radius:12px;color:var(--account-ink);cursor:pointer}.account-menu-button>span{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--account-mint);color:var(--account-green-dark);font-weight:800}.account-menu-button:hover,.account-menu-button:focus-visible{background:var(--account-warm)}
 .global-progress{position:fixed;top:82px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:10px;background:var(--account-ink);color:#fff;padding:12px 18px;border-radius:999px;box-shadow:var(--account-shadow);font-weight:700}.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-top-color:currentColor;border-radius:50%;display:inline-block;animation:account-spin .8s linear infinite}.content-loading .spinner{color:var(--account-green);border-color:rgba(21,92,66,.2);border-top-color:var(--account-green)}@keyframes account-spin{to{transform:rotate(360deg)}}
@@ -591,3 +591,11 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
 @media (forced-colors:active){.source-logo,.recommended-label,.trust-pill,.connection-state,.note-source{border:1px solid CanvasText}.button,.auth-card,.source-card,.settings-card{border:1px solid CanvasText}}
 
 .reauth-grid{display:grid;gap:16px;margin-top:18px}.reauth-option{padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--surface-subtle)}.reauth-option h3{margin:0 0 8px}.reauth-option p{margin:0 0 12px}
+
+/* v0.0.0.1.9 fail-closed account-service state */
+.trust-pill.danger{color:var(--danger,#a61b1b);border-color:color-mix(in srgb,var(--danger,#a61b1b) 35%,transparent);background:color-mix(in srgb,var(--danger,#a61b1b) 8%,white)}
+.service-blocker{max-width:760px;margin:clamp(48px,10vh,120px) auto;padding:clamp(24px,5vw,56px);border:1px solid var(--line,#d9dde6);border-radius:24px;background:var(--surface,#fff);box-shadow:0 20px 60px rgba(20,33,61,.08);text-align:left}
+.service-blocker-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:#fff1f1;color:#a61b1b;font-size:28px;font-weight:800;margin-bottom:20px}
+.service-blocker h1{max-width:18ch;font-size:clamp(30px,5vw,52px);line-height:1.08;margin:.3em 0}
+.service-blocker .button-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+@media(max-width:520px){.service-blocker{margin:24px 12px;padding:24px 18px;border-radius:18px}.service-blocker .button-row>*{width:100%}}

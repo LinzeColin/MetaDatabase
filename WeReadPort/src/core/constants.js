@@ -2,7 +2,7 @@
 export const APP_PRODUCT_ID = "WeRead Port"; // 兼容 v0.0.0.7 及更早导出包的不可变产品标识。
 export const APP_NAME = "微信读书笔记迁移";
 export const APP_SHORT_NAME = "笔记迁移";
-export const APP_VERSION = "v0.0.0.1.8";
+export const APP_VERSION = "v0.0.0.1.9";
 export const EXPORT_CONTRACT_VERSION = "1.0.0";
 export const CANONICAL_SCHEMA_VERSION = "1.0.0";
 export const SOURCE_SKILL_VERSION = "1.0.4";

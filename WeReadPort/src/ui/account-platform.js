@@ -2,16 +2,24 @@ import { AccountApi } from "./account-api.js";
 import { readObsidianSelection } from "./obsidian-import.js";
 
 const api = new AccountApi();
-const state = { account: null, view: "overview", busy: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null };
+const state = { account: null, view: "overview", busy: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null, serviceReady: null, serviceDetail: "" };
 
 export async function renderAccountPlatform(root) {
   root.innerHTML = shell();
   bindGlobal(root);
   setBusy(true, "正在安全检查登录状态…");
   try {
-    const session = await api.session();
-    state.account = session?.account || null;
-  } catch (error) { toast(error.message, "error"); }
+    const readiness = await api.readiness();
+    state.serviceReady = readiness.ok && readiness.payload?.status === "READY";
+    state.serviceDetail = state.serviceReady ? "账户服务可用" : (readiness.payload?.checks?.accountPlatformService?.detail || "账户服务尚未就绪");
+    if (state.serviceReady) {
+      const session = await api.session();
+      state.account = session?.account || null;
+    }
+  } catch (error) {
+    state.serviceReady = false;
+    state.serviceDetail = error?.message || "无法连接账户服务";
+  }
   setBusy(false);
   await renderCurrent(root);
 }
@@ -34,7 +42,12 @@ async function renderCurrent(root) {
   const main = root.querySelector("#platform-main");
   const actions = root.querySelector("#account-header-actions");
   if (!state.account) {
-    actions.innerHTML = `<span class="trust-pill"><span aria-hidden="true">●</span>账户数据加密存储</span>`;
+    actions.innerHTML = `<span class="trust-pill ${state.serviceReady === false ? "danger" : ""}"><span aria-hidden="true">●</span>${state.serviceReady === false ? "账户服务不可用" : "账户数据加密存储"}</span>`;
+    if (state.serviceReady === false) {
+      main.innerHTML = serviceUnavailableView();
+      main.querySelector("#retry-service")?.addEventListener("click", () => renderAccountPlatform(root));
+      return;
+    }
     main.innerHTML = authView();
     bindAuth(main);
     return;
@@ -47,6 +60,10 @@ async function renderCurrent(root) {
   if (state.view === "analytics") await loadAnalytics(main);
   if (state.view === "imports") renderImportHub(main);
   if (state.view === "account") await renderAccount(main);
+}
+
+function serviceUnavailableView() {
+  return `<section class="service-blocker" aria-labelledby="service-blocker-title"><div class="service-blocker-icon" aria-hidden="true">!</div><p class="eyebrow">登录暂时不可用</p><h1 id="service-blocker-title">账户服务尚未完成安全连接。</h1><p>${escapeHtml(state.serviceDetail || "系统没有通过登录、存储与部署身份就绪检查。")}</p><div class="button-row"><button class="button primary" id="retry-service" type="button">重新检查</button><a class="button secondary" href="/status/">查看系统状态</a><a class="button ghost" href="/migrate/">先用匿名迁移工具</a></div><p class="form-help">系统会在账户后端、加密存储和部署版本全部一致后自动开放注册登录，不会展示无法工作的假入口。</p></section>`;
 }
 
 function authView() {

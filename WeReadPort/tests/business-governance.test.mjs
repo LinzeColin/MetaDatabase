@@ -25,13 +25,26 @@ const healthyEnv = {
     },
   },
   WEREAD_ACCOUNT_SERVICE_URL: "https://account.example.test",
-  ACCOUNT_SERVICE_FETCH: async url => new Response(JSON.stringify({ status: "ready", url: String(url) }), {
+  WRP_INTERNAL_PROXY_SECRET: "test-internal-proxy-secret-not-for-production",
+  WRP_TASKPACK_VERSION: "v0.0.0.1.9",
+  WRP_RELEASE_COMMIT: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  WRP_OVH_RELEASE_ID: "ovh-release-test",
+  WRP_SITES_PROJECT_ID: "sites-project-test",
+  ACCOUNT_SERVICE_FETCH: async url => new Response(JSON.stringify({
+    status: "ready", ready: true, url: String(url),
+    releaseIdentity: {
+      taskpackVersion: "v0.0.0.1.9",
+      releaseCommit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      ovhReleaseId: "ovh-release-test",
+      sitesProjectId: "sites-project-test",
+    },
+  }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   }),
 };
 
-test("v1.8 业务线合同具有唯一标识、已登记依赖和无环 DAG", () => {
+test("v1.9 业务线合同具有唯一标识、已登记依赖和无环 DAG", () => {
   const lines = businessLineDefinitions();
   assert.equal(lines.length, 11);
   assert.deepEqual(validateBusinessLineGraph(lines), []);
@@ -76,7 +89,7 @@ test("无 JavaScript 状态页仍包含完整业务基线矩阵", () => {
   }
 });
 
-test("/readyz 与 /api/status 使用同一 v1.8 治理 schema 并保持脱敏", async () => {
+test("/readyz 与 /api/status 使用同一 v1.9 治理 schema 并保持脱敏", async () => {
   const ready = await handleRequest(new Request("https://example.test/readyz"), healthyEnv);
   assert.equal(ready.status, 200);
   const readyPayload = await ready.json();
@@ -100,9 +113,12 @@ test("/readyz 与 /api/status 使用同一 v1.8 治理 schema 并保持脱敏", 
   for (const forbidden of ["do-not-expose", "不应公开的笔记", "private-project-id", "USER_KEY", "USER_NOTE"]) assert.ok(!text.includes(forbidden));
 });
 
-test("版本接口公开治理 schema 但不公开运行内部标识", async () => {
+test("版本接口公开治理 schema 与非 Secret 发布身份", async () => {
   const response = await handleRequest(new Request("https://example.test/api/version"), healthyEnv);
   const payload = await response.json();
   assert.equal(payload.businessGovernanceSchemaVersion, BUSINESS_GOVERNANCE_SCHEMA_VERSION);
-  assert.deepEqual(Object.keys(payload).sort(), ["app", "appVersion", "businessGovernanceSchemaVersion", "sourceSkillVersion"].sort());
+  assert.deepEqual(Object.keys(payload).sort(), ["app", "appVersion", "businessGovernanceSchemaVersion", "sourceSkillVersion", "taskpackVersion", "releaseCommit", "ovhReleaseId", "sitesProjectId"].sort());
+  assert.equal(payload.releaseCommit, healthyEnv.WRP_RELEASE_COMMIT);
+  assert.equal(payload.ovhReleaseId, healthyEnv.WRP_OVH_RELEASE_ID);
+  assert.equal(payload.sitesProjectId, healthyEnv.WRP_SITES_PROJECT_ID);
 });

@@ -1,6 +1,6 @@
 # 阅迁｜微信读书与个人阅读资产账户平台
 
-阅迁 v0.0.0.1.8 将原来的匿名迁移工具升级为账户中心化、多租户的个人阅读资产平台。首页提供用户注册、邮箱密码登录、微信读书密钥建账/登录，以及 Google、GitHub、Notion 登录；旧匿名迁移能力保留在 `/migrate/`，但不再代表当前产品主合同。
+阅迁 v0.0.0.1.9 将原来的匿名迁移工具升级为账户中心化、多租户的个人阅读资产平台。首页提供用户注册、邮箱密码登录、微信读书密钥建账/登录，以及 Google、GitHub、Notion 登录；旧匿名迁移能力保留在 `/migrate/`，但不再代表当前产品主合同。
 
 ## 当前版本能力
 
@@ -70,3 +70,13 @@ sudo python3 service/install_platform.py --apply
 - 7×24 是架构、恢复、监控与运维目标，不是尚未发生的长期运行证明。
 - `/healthz` 只证明公开入口存活；`/readyz` 主动验证 SQLite、R2 写读删、worker 心跳、OAuth 配置和业务依赖图，失败返回 503；`/api/status` 只发布脱敏状态，不读取用户正文或凭据。
 - 生产 OAuth、R2、OVH、Private-Database、OCI 与 ChatGPT Sites 的真实可用性只能由目标环境证据裁决，不能由本地测试冒充。
+
+
+## 冻结浏览器验收依赖
+
+核心账户 UI 与生产账户链路不得跳过浏览器验收。执行环境安装：
+
+```bash
+python3 -m pip install --user -r requirements-production-e2e.txt
+# Chromium 必须位于 /usr/bin/chromium 或 PATH；也可设置 CHROMIUM_PATH。
+```

@@ -19,13 +19,13 @@
       }
     ],
     "component": {
-      "bom-ref": "weread-port@0.0.8",
+      "bom-ref": "weread-port@0.0.9",
       "type": "library",
       "name": "weread-port",
-      "version": "0.0.8",
+      "version": "0.0.9",
       "scope": "required",
       "description": "全局中文的微信读书与本地阅读笔记迁移工具：浏览器内上传、四类 Markdown/结构化导出、明确下载、安全跳转 ChatGPT，以及不接触用户内容的自运行运维平面。",
-      "purl": "pkg:npm/weread-port@0.0.8",
+      "purl": "pkg:npm/weread-port@0.0.9",
       "properties": [
         {
           "name": "cdx:npm:package:private",

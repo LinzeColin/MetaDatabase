@@ -6,8 +6,8 @@ import { APP_VERSION } from "../src/core/constants.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = await readJson("package.json");
-assert.equal(pkg.version, "0.0.8", "package.json 版本必须是 0.0.8");
-assert.equal(pkg.taskpackVersion, "v0.0.0.1.8");
+assert.equal(pkg.version, "0.0.9", "package.json 版本必须是 0.0.9");
+assert.equal(pkg.taskpackVersion, "v0.0.0.1.9");
 assert.equal(APP_VERSION, pkg.taskpackVersion, "任务包版本与运行时版本不一致");
 assert.equal(pkg.releaseStage, "stage2-formal-development-taskpack-delivery");
 for (const [name, expected] of Object.entries({
@@ -45,7 +45,7 @@ for (const required of [
   "src/ui/account-platform.js", "src/ui/account-api.js", "src/ui/obsidian-import.js",
 ]) assert.equal(await exists(required), true, `缺少当前版本必要文件：${required}`);
 
-console.log("发布元数据检查通过：v0.0.0.1.8、锁文件、SBOM、Sites/OVH 分层与账户平台制品一致。");
+console.log("发布元数据检查通过：v0.0.0.1.9、锁文件、SBOM、Sites/OVH 分层与账户平台制品一致。");
 
 async function readJson(relative) { return JSON.parse(await readFile(path.join(root, relative), "utf8")); }
 async function exists(relative) { try { await access(path.join(root, relative)); return true; } catch { return false; } }

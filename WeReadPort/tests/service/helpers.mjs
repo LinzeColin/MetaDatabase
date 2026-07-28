@@ -7,7 +7,7 @@ export function testConfig(overrides = {}) {
   const secret = Buffer.alloc(32, 19).toString("base64");
   const base = loadConfig({
     NODE_ENV: "test",
-    WRP_PUBLIC_BASE_URL: "https://weread-port.example.test",
+    WRP_PUBLIC_BASE_URL: "https://weread-port.linzezhang35.chatgpt.site",
     WRP_SESSION_PEPPER: secret,
     WRP_CREDENTIAL_PEPPER: Buffer.alloc(32, 23).toString("base64"),
     WRP_KEYRING_JSON: JSON.stringify({ test: Buffer.alloc(32, 29).toString("base64") }),

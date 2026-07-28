@@ -64,7 +64,7 @@ def readiness_payload(*, ready: bool = True):
     }
 
 
-def version_payload(*, app_version: str = "v0.0.0.1.8", source_version: str = "1.0.4", governance_version: str = "2.0.0"):
+def version_payload(*, app_version: str = "v0.0.0.1.9", source_version: str = "1.0.4", governance_version: str = "2.0.0"):
     return {
         "appVersion": app_version,
         "sourceSkillVersion": source_version,
@@ -85,7 +85,7 @@ def public_status_payload(*, operational: bool = True, omit_business_line: str |
         lines.append({
             "id": line_id,
             "name": line_id,
-            "phase": "Stage 2 / v1.8",
+            "phase": "Stage 2 / v1.9",
             "state": state if operational else "BLOCKED",
             "dependsOnAll": [],
             "dependsOnAny": [],
@@ -477,7 +477,7 @@ class OpsTests(unittest.TestCase):
         self.assertEqual(payload["status"], "prepared")
         current = fake_root / "opt/weread-port-ops/current"
         self.assertTrue(current.is_symlink())
-        self.assertTrue((fake_root / "opt/weread-port-ops/releases/0.0.0.1.8/bin/weread-port-ops").is_file())
+        self.assertTrue((fake_root / "opt/weread-port-ops/releases/0.0.0.1.9/bin/weread-port-ops").is_file())
         env = (fake_root / "etc/weread-port/ops.env").read_text(encoding="utf-8")
         self.assertIn("WEREAD_PORT_SITE_URL=https://status.linzezhang.com", env)
         adapter = fake_root / "srv/linze/apps/status/data/external-projects/weread-port.json"

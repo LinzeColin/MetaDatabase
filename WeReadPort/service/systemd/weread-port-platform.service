@@ -1,5 +1,5 @@
 [Unit]
-Description=阅迁账户、加密笔记与跨设备同步 API v0.0.0.1.8
+Description=阅迁账户、加密笔记与跨设备同步 API v0.0.0.1.9
 After=network-online.target
 Wants=network-online.target
 

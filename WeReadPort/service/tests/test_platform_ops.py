@@ -55,13 +55,14 @@ class PlatformOperationsTests(unittest.TestCase):
 
     def test_installer_prepares_versioned_release_without_generating_secrets(self):
         completed = subprocess.run(
-            [sys.executable, str(ROOT / "service/install_platform.py"), "--root", str(self.root / "install")],
+            [sys.executable, str(ROOT / "service/install_platform.py"), "--root", str(self.root / "install"),
+             "--release-commit", "a" * 40, "--ovh-release-id", "ovh-test-v019", "--sites-project-id", "sites-test-v019"],
             cwd=ROOT, text=True, capture_output=True, check=True,
         )
         result = json.loads(completed.stdout)
         self.assertEqual(result["status"], "PREPARED")
-        self.assertEqual(result["version"], "v0.0.0.1.8")
-        release = self.root / "install/opt/weread-port/releases/0.0.0.1.8"
+        self.assertEqual(result["version"], "v0.0.0.1.9")
+        release = self.root / "install/opt/weread-port/releases/0.0.0.1.9-aaaaaaaaaaaa-ovh-test-v019"
         current = self.root / "install/opt/weread-port/current"
         env_file = self.root / "install/etc/weread-port/platform.env"
         self.assertTrue((release / "service/server.mjs").is_file())
@@ -74,6 +75,7 @@ class PlatformOperationsTests(unittest.TestCase):
         self.assertNotIn("wrk-", text)
         self.assertIn("WRP_R2_SECRET_ACCESS_KEY", result["missingDeploymentInputs"])
         self.assertTrue((self.root / "install/etc/systemd/system/weread-port-platform.service").is_file())
+        self.assertTrue((self.root / "install/etc/systemd/system/weread-port-private-database-backup.timer").is_file())
 
     def test_preflight_is_secret_safe_and_closes_all_last_mile_inputs(self):
         private_db = self.root / "Private-Database"
@@ -102,6 +104,15 @@ class PlatformOperationsTests(unittest.TestCase):
             "WRP_NOTION_CLIENT_ID": "notion-client-id",
             "WRP_NOTION_CLIENT_SECRET": "n" * 32,
             "WRP_PRIVATE_DATABASE_WORKTREE": str(private_db),
+            "WRP_TASKPACK_VERSION": "v0.0.0.1.9",
+            "WRP_RELEASE_COMMIT": "a" * 40,
+            "WRP_OVH_RELEASE_ID": "ovh-test-v019",
+            "WRP_SITES_PROJECT_ID": "sites-test-v019",
+            "WRP_PRIMARY_OBJECT_PREFIX": "primary-objects",
+            "WRP_PRIVATE_DATABASE_BACKUP_PREFIX": "backups/private-database",
+            "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET": "r2:weread/backups/private-database",
+            "WRP_R2_RCLONE_SOURCE": "r2:weread",
+            "WRP_OCI_RCLONE_TARGET": "oci:weread",
             "WRP_UPSTREAM_TIMEOUT_MS": "15000",
             "WRP_UPSTREAM_RETRY_ATTEMPTS": "2",
             "WRP_AUTH_FAILURE_LIMIT": "8",
@@ -159,6 +170,33 @@ class PlatformOperationsTests(unittest.TestCase):
                 OPS.verify_snapshot(corrupt)
             self.assertEqual(OPS.sha256(self.database), before)
             self.assertEqual(OPS.integrity(self.database), "ok")
+
+    def test_private_database_bundle_targets_governed_r2_namespace(self):
+        worktree = self.root / "Private-Database-real"
+        worktree.mkdir()
+        subprocess.run(["git", "init", "-b", "main"], cwd=worktree, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=worktree, check=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=worktree, check=True)
+        (worktree / "facts.json").write_text("{}\n", encoding="utf-8")
+        subprocess.run(["git", "add", "facts.json"], cwd=worktree, check=True)
+        subprocess.run(["git", "commit", "-m", "fixture"], cwd=worktree, check=True, capture_output=True)
+        bin_dir = self.root / "bin"
+        bin_dir.mkdir()
+        rclone = bin_dir / "rclone"
+        rclone.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        rclone.chmod(0o755)
+        with environment({
+            "WRP_DATABASE_PATH": str(self.database),
+            "WRP_PRIVATE_DATABASE_WORKTREE": str(worktree),
+            "WRP_PRIVATE_DATABASE_BRANCH": "main",
+            "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET": "r2:weread/backups/private-database",
+            "PATH": str(bin_dir) + os.pathsep + os.environ.get("PATH", ""),
+        }):
+            result = OPS.private_database_backup()
+        self.assertEqual(result["status"], "COMPLETE")
+        self.assertEqual(result["remotePrefix"], "backups/private-database")
+        self.assertRegex(result["commit"], r"^[0-9a-f]{40}$")
+        self.assertEqual(len(result["sha256"]), 64)
 
     def test_runtime_contract_has_no_launchd_agent_or_model_dependency(self):
         executable_suffixes = {".js", ".mjs", ".py", ".service", ".timer"}

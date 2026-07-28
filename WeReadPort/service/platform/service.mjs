@@ -340,7 +340,7 @@ export class PlatformService {
   }
 
   async processNextImportJob(workerId = "import-worker") {
-    this.store.heartbeat(workerId, "import", "v0.0.0.1.8");
+    this.store.heartbeat(workerId, "import", "v0.0.0.1.9");
     const job = this.store.claimNextImportJob(workerId, this.config.importLeaseSeconds);
     if (!job) return null;
     try {
@@ -358,7 +358,7 @@ export class PlatformService {
       }
       const saved = [];
       for (const document of documents) {
-        this.store.heartbeat(workerId, "import", "v0.0.0.1.8");
+        this.store.heartbeat(workerId, "import", "v0.0.0.1.9");
         saved.push(await this.saveDocument(job.accountId, document));
       }
       this.store.updateImportJob(job.accountId, job.id, { state: "COMPLETE", progress: { total: documents.length, saved: saved.length }, clearSelection: true });
@@ -382,7 +382,7 @@ export class PlatformService {
     const current = this.store.findNote(accountId, source, externalId);
     const noteId = current?.id || id;
     const nextVersion = Number(current?.version || 0) + 1;
-    const objectKey = `accounts/${accountId}/notes/${noteId}/v${nextVersion}.enc`;
+    const objectKey = `${this.config.primaryObjectPrefix}/accounts/${accountId}/notes/${noteId}/v${nextVersion}.enc`;
     const envelope = encryptForAccount(accountKey, { content, title, source, externalId }, `note:${accountId}:${noteId}:v${nextVersion}`);
     await this.objectStore.put(objectKey, Buffer.from(envelope, "utf8"), { account: sha256(accountId).slice(0, 16), note: noteId, version: nextVersion });
     let result;
@@ -449,7 +449,20 @@ export class PlatformService {
     this.store.updateWereadState(accountId, { capabilities: dataset.capabilities, summary: { ...dataset.summary, importedDocuments: saved } });
     this.store.replaceRecommendations(accountId, recommendationRows(dataset));
     this.audit(accountId, "weread_sync_completed", { imported: saved, books: dataset.summary.detailedBooks, partial: dataset.partial });
-    return { summary: { ...dataset.summary, importedDocuments: saved }, capabilities: dataset.capabilities, failures: dataset.failures };
+    return {
+      summary: { ...dataset.summary, importedDocuments: saved },
+      capabilities: dataset.capabilities,
+      failures: dataset.failures,
+      coverage: {
+        scope: dataset.contract?.scope || "unknown",
+        gatewaySkillVersion: dataset.contract?.skillVersion || null,
+        capabilityCount: dataset.capabilities.length,
+        notebookBooks: dataset.summary.notebookBooks,
+        detailedBooks: dataset.summary.detailedBooks,
+        legacyTop5CeilingRemoved: this.config.maxWereadBooks > 5,
+        truncatedBySafetyLimit: Boolean(dataset.summary.truncatedBySafetyLimit),
+      },
+    };
   }
 
   listNotes(accountId, options = {}) { return this.store.listNotes(accountId, options).map(publicNote); }
@@ -527,8 +540,20 @@ export class PlatformService {
       dependencies.providers[provider] = { configured: Boolean(entry.clientId && entry.clientSecret) };
     }
     const providersReady = Object.values(dependencies.providers).every(item => item.configured);
-    const ready = Boolean(dependencies.database.ok && dependencies.objectStore.ok && dependencies.importWorker.ok && providersReady);
-    const value = { status: ready ? "ready" : "not_ready", ready, version: "v0.0.0.1.8", checkedAt: new Date(now * 1000).toISOString(), dependencies };
+    const releaseIdentityReady = Boolean(
+      this.config.releaseIdentity.taskpackVersion === "v0.0.0.1.9" &&
+      this.config.releaseIdentity.releaseCommit &&
+      this.config.releaseIdentity.ovhReleaseId &&
+      this.config.releaseIdentity.sitesProjectId
+    );
+    dependencies.releaseIdentity = { ok: releaseIdentityReady, ...this.config.releaseIdentity };
+    dependencies.objectNamespaces = {
+      ok: this.config.primaryObjectPrefix === "primary-objects" && this.config.privateDatabaseBackupPrefix === "backups/private-database",
+      primaryObjects: this.config.primaryObjectPrefix,
+      privateDatabaseBackups: this.config.privateDatabaseBackupPrefix,
+    };
+    const ready = Boolean(dependencies.database.ok && dependencies.objectStore.ok && dependencies.importWorker.ok && providersReady && dependencies.releaseIdentity.ok && dependencies.objectNamespaces.ok);
+    const value = { status: ready ? "ready" : "not_ready", ready, version: "v0.0.0.1.9", releaseIdentity: this.config.releaseIdentity, checkedAt: new Date(now * 1000).toISOString(), dependencies };
     this.readinessCache = { checkedAt: now, value };
     return value;
   }

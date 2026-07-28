@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 from .config import Settings
 from .sanitize import assert_public_safe, sanitize_public
 
-APP_VERSION = "v0.0.0.1.8"
+APP_VERSION = "v0.0.0.1.9"
 EXPECTED_SOURCE_SKILL_VERSION = "1.0.4"
 EXPECTED_BUSINESS_GOVERNANCE_SCHEMA_VERSION = "2.0.0"
 EXPECTED_BUSINESS_LINE_IDS = {

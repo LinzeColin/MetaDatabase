@@ -50,6 +50,10 @@ export async function handleRequest(request, env = {}) {
         appVersion: APP_VERSION,
         sourceSkillVersion: SOURCE_SKILL_VERSION,
         businessGovernanceSchemaVersion: BUSINESS_GOVERNANCE_SCHEMA_VERSION,
+        taskpackVersion: "v0.0.0.1.9",
+        releaseCommit: String(env.WRP_RELEASE_COMMIT || ""),
+        ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || ""),
+        sitesProjectId: String(env.WRP_SITES_PROJECT_ID || ""),
       }));
     }
     if (path.startsWith("/api/platform/")) {
@@ -216,18 +220,36 @@ async function inspectAssets(request, env) {
 
 async function inspectAccountService(request, env) {
   const raw = String(env.WEREAD_ACCOUNT_SERVICE_URL || "").trim();
-  if (!raw) return { ready: false, detail: "未配置账户平台服务地址。" };
+  const internalSecret = String(env.WRP_INTERNAL_PROXY_SECRET || "");
+  const expected = {
+    taskpackVersion: "v0.0.0.1.9",
+    releaseCommit: String(env.WRP_RELEASE_COMMIT || ""),
+    ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || ""),
+    sitesProjectId: String(env.WRP_SITES_PROJECT_ID || ""),
+  };
+  if (!raw || !internalSecret) return { ready: false, detail: "账户平台地址或内部代理密钥未配置。", releaseIdentity: expected };
+  if (!expected.releaseCommit || !expected.ovhReleaseId || !expected.sitesProjectId) return { ready: false, detail: "部署身份未绑定 commit、OVH release 或 Sites project。", releaseIdentity: expected };
   let base;
-  try { base = new URL(raw); } catch { return { ready: false, detail: "账户平台服务地址无效。" }; }
-  if (base.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(base.hostname)) return { ready: false, detail: "账户平台服务必须使用 HTTPS。" };
+  try { base = new URL(raw); } catch { return { ready: false, detail: "账户平台服务地址无效。", releaseIdentity: expected }; }
+  if (base.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(base.hostname)) return { ready: false, detail: "账户平台服务必须使用 HTTPS。", releaseIdentity: expected };
   try {
-    const probe = new URL("/readyz", base);
+    const probe = new URL("/internal/readyz", base);
     const fetchImpl = typeof env.ACCOUNT_SERVICE_FETCH === "function" ? env.ACCOUNT_SERVICE_FETCH : fetch;
-    const response = await fetchImpl(probe, { method: "GET", redirect: "manual", headers: { Accept: "application/json", "User-Agent": "WeReadPort-Readiness/0.0.0.1.8" } });
-    const ready = response.ok;
-    await response.body?.cancel().catch(() => {});
-    return { ready, detail: ready ? "账户平台服务通过即时就绪探测。" : `账户平台服务就绪探测失败（HTTP ${response.status}）。` };
-  } catch { return { ready: false, detail: "账户平台服务就绪探测发生异常。" }; }
+    const response = await fetchImpl(probe, {
+      method: "GET", redirect: "manual",
+      headers: { Accept: "application/json", "User-Agent": "WeReadPort-Readiness/0.0.0.1.9", "x-wrp-internal-secret": internalSecret },
+    });
+    const payload = await response.json().catch(() => ({}));
+    const actual = payload?.releaseIdentity || {};
+    const identityMatches = Object.entries(expected).every(([key, value]) => actual[key] === value);
+    const ready = response.ok && payload?.ready === true && identityMatches;
+    return {
+      ready,
+      detail: ready ? "账户平台通过内部密钥、依赖与部署身份探测。" : `账户平台就绪或部署身份不匹配（HTTP ${response.status}）。`,
+      releaseIdentity: actual,
+      expectedReleaseIdentity: expected,
+    };
+  } catch { return { ready: false, detail: "账户平台服务就绪探测发生异常。", releaseIdentity: expected }; }
 }
 
 async function proxyAccountPlatform(request, env) {

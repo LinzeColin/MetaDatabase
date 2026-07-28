@@ -17,7 +17,20 @@ const healthyEnv = {
     },
   },
   WEREAD_ACCOUNT_SERVICE_URL: "https://account.example.test",
-  ACCOUNT_SERVICE_FETCH: async () => new Response('{"status":"ready"}', { status: 200, headers: { "Content-Type": "application/json" } }),
+  WRP_INTERNAL_PROXY_SECRET: "test-internal-proxy-secret-not-for-production",
+  WRP_TASKPACK_VERSION: "v0.0.0.1.9",
+  WRP_RELEASE_COMMIT: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  WRP_OVH_RELEASE_ID: "ovh-release-test",
+  WRP_SITES_PROJECT_ID: "sites-project-test",
+  ACCOUNT_SERVICE_FETCH: async () => new Response(JSON.stringify({
+    status: "ready", ready: true,
+    releaseIdentity: {
+      taskpackVersion: "v0.0.0.1.9",
+      releaseCommit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      ovhReleaseId: "ovh-release-test",
+      sitesProjectId: "sites-project-test",
+    },
+  }), { status: 200, headers: { "Content-Type": "application/json" } }),
 };
 
 test("隐私政策覆盖账户、凭据、长期存储、隔离、第三方、权利和删除边界", () => {
@@ -118,7 +131,7 @@ test("隐私、条款和状态源文件是预渲染页面而非同一空壳", as
 
 test("包版本、应用版本和任务包版本保持一致映射", async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
-  assert.equal(packageJson.version, "0.0.8");
+  assert.equal(packageJson.version, "0.0.9");
   assert.equal(packageJson.taskpackVersion, APP_VERSION);
   assert.equal(packageJson.releaseStage, "stage2-formal-development-taskpack-delivery");
 });

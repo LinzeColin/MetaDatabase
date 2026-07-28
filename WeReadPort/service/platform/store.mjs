@@ -341,7 +341,7 @@ export class PlatformStore {
     return this.getImportJob(accountId, id);
   }
 
-  heartbeat(workerId, workerType = "import", version = "v0.0.0.1.8") {
+  heartbeat(workerId, workerType = "import", version = "v0.0.0.1.9") {
     const now = this.now();
     this.db.prepare(`INSERT INTO worker_heartbeats(worker_id,worker_type,version,heartbeat_at) VALUES(?,?,?,?)
       ON CONFLICT(worker_id) DO UPDATE SET worker_type=excluded.worker_type,version=excluded.version,heartbeat_at=excluded.heartbeat_at`)

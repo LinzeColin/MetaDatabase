@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Embedded browser acceptance for v0.0.0.1.8 account-first UI.
+"""Embedded browser acceptance for v0.0.0.1.9 account-first UI.
 
 This executes the real account UI source and real CSS with a deterministic API
 fixture. It never contacts OAuth providers, WeChat Reading, or production.
@@ -73,8 +73,8 @@ DASHBOARD = {
 }
 
 
-def fixture_script(authenticated: bool) -> str:
-    fixture = {"account": ACCOUNT, "notes": NOTES, "dashboard": DASHBOARD, "sessions": SESSIONS, "authenticated": authenticated}
+def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
+    fixture = {"account": ACCOUNT, "notes": NOTES, "dashboard": DASHBOARD, "sessions": SESSIONS, "authenticated": authenticated, "serviceReady": service_ready}
     return f'''(() => {{
       const f = {json.dumps(fixture, ensure_ascii=False)};
       window.__browserFixture = f;
@@ -82,6 +82,7 @@ def fixture_script(authenticated: bool) -> str:
         const url = String(input);
         const path = url.includes('/api/platform/v1') ? url.split('/api/platform/v1')[1] : url;
         const ok = value => new Response(JSON.stringify(value), {{status:200, headers:{{'content-type':'application/json'}}}});
+        if (path === '/readyz') return f.serviceReady ? ok({{status:'READY', checks:{{accountPlatformService:{{status:'READY',detail:'账户服务可用'}}}}}}) : new Response(JSON.stringify({{status:'NOT_READY',checks:{{accountPlatformService:{{status:'BLOCKED',detail:'账户服务未完成部署身份与存储就绪检查'}}}}}}), {{status:503,headers:{{'content-type':'application/json'}}}});
         if (path.startsWith('/session')) return f.authenticated ? ok({{account:f.account, csrf:'csrf-browser-fixture'}}) : new Response(JSON.stringify({{error:{{code:'UNAUTHENTICATED',message:'请先登录'}}}}), {{status:401,headers:{{'content-type':'application/json'}}}});
         if (path.startsWith('/notes?')) return ok({{notes:f.notes}});
         if (path === '/analytics/dashboard') return ok({{dashboard:f.dashboard}});
@@ -97,10 +98,10 @@ def fixture_script(authenticated: bool) -> str:
     }})();'''
 
 
-def load(page: Page, authenticated: bool) -> None:
+def load(page: Page, authenticated: bool, service_ready: bool = True) -> None:
     page.set_default_timeout(8000)
     page.set_content(HTML, wait_until="domcontentloaded")
-    page.evaluate(fixture_script(authenticated))
+    page.evaluate(fixture_script(authenticated, service_ready))
     page.add_script_tag(type="module", content=BUNDLE)
     page.wait_for_selector("#platform-main")
 
@@ -190,12 +191,31 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     return {"surface": "account", "width": width, "status": "PASS", "imports": "PASS", "analytics": "PASS", "security": "PASS"}
 
 
+
+def service_blocker_contract(browser: Browser) -> dict[str, Any]:
+    context = browser.new_context(viewport={"width": 390, "height": 900}, locale="zh-CN")
+    page = context.new_page(); page_errors: list[str] = []; console_errors: list[str] = []
+    page.on("pageerror", lambda exc: page_errors.append(str(exc)))
+    page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
+    load(page, False, service_ready=False)
+    page.get_by_role("heading", name="账户服务尚未完成安全连接。").wait_for()
+    assert page.get_by_role("link", name="先用匿名迁移工具").is_visible()
+    assert page.get_by_role("link", name="查看系统状态").is_visible()
+    assert page.get_by_role("button", name="验证密钥并创建账户").count() == 0
+    page.get_by_role("button", name="重新检查").click()
+    page.get_by_role("heading", name="账户服务尚未完成安全连接。").wait_for()
+    no_overflow(page, "service-blocker-390"); touch_targets(page, "service-blocker-390")
+    assert_clean(page_errors, console_errors, "service-blocker-390")
+    context.close()
+    return {"surface": "service-blocker", "width": 390, "status": "PASS", "falseLoginEntryPrevented": True}
+
 def main() -> int:
-    report: dict[str, Any] = {"suite": "v0.0.0.1.8-account-whitebox", "mode": "embedded-real-ui-source-deterministic-api-double", "status": "FAIL", "checks": []}
+    report: dict[str, Any] = {"suite": "v0.0.0.1.9-account-whitebox", "mode": "embedded-real-ui-source-deterministic-api-double", "status": "FAIL", "checks": []}
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, executable_path=CHROMIUM, args=["--no-sandbox", "--disable-dev-shm-usage"])
             try:
+                report["checks"].append(service_blocker_contract(browser))
                 for width in (320, 390, 1440):
                     report["checks"].append(auth_contract(browser, width))
                     report["checks"].append(account_contract(browser, width))

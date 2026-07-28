@@ -49,7 +49,7 @@ test("导入租约过期后可被另一 worker 安全回收，心跳按阈值变
   assert.equal(first.attempts, 1);
   assert.equal(platform.store.claimNextImportJob("worker-b", 5), null);
 
-  platform.store.heartbeat("worker-a", "import", "v0.0.0.1.8");
+  platform.store.heartbeat("worker-a", "import", "v0.0.0.1.9");
   assert.equal(platform.store.workerHealth("import", 30).ok, true);
   now += 6_000;
   const reclaimed = platform.store.claimNextImportJob("worker-b", 5);

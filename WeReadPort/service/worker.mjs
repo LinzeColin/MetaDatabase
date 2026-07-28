@@ -12,7 +12,7 @@ const workerId = `import-${hostname()}-${process.pid}-${randomUUID().slice(0, 8)
 let stopping = false;
 
 const heartbeat = () => {
-  try { store.heartbeat(workerId, "import", "v0.0.0.1.8"); }
+  try { store.heartbeat(workerId, "import", "v0.0.0.1.9"); }
   catch (error) { console.error(JSON.stringify({ event: "worker_heartbeat_failed", code: String(error?.code || "HEARTBEAT_FAILED") })); }
 };
 heartbeat();

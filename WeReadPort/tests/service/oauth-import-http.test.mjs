@@ -74,7 +74,7 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   assert.equal((await session.json()).account.email, "http@example.com");
   const notReady = await app(new Request(`${platform.config.baseUrl}/readyz`));
   assert.equal(notReady.status, 503);
-  platform.store.heartbeat("test-import-worker", "import", "v0.0.0.1.8");
+  platform.store.heartbeat("test-import-worker", "import", "v0.0.0.1.9");
   const ready = await app(new Request(`${platform.config.baseUrl}/readyz`));
   const readyPayload = await ready.json();
   assert.equal(ready.status, 200);
@@ -139,7 +139,7 @@ test("就绪探针以数据库、对象存储、工作进程和三平台配置�
   assert.equal(first.dependencies.database.ok, true);
   assert.equal(first.dependencies.objectStore.ok, true);
   assert.equal(first.dependencies.importWorker.ok, false);
-  platform.store.heartbeat("ready-worker", "import", "v0.0.0.1.8");
+  platform.store.heartbeat("ready-worker", "import", "v0.0.0.1.9");
   const ready = await platform.service.readiness({ force: true });
   assert.equal(ready.ready, true);
   assert.ok(Object.values(ready.dependencies.providers).every(item => item.configured));

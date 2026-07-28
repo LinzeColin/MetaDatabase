@@ -113,7 +113,7 @@ async function activeProbe(store, prefix) {
   const key = `${String(prefix || "_system/readiness").replace(/\/+$/, "")}/${randomUUID()}.probe`;
   const expected = Buffer.from(`weread-port-readiness:${randomUUID()}`, "utf8");
   try {
-    await store.put(key, expected, { purpose: "readiness", version: "v0.0.0.1.8" });
+    await store.put(key, expected, { purpose: "readiness", version: "v0.0.0.1.9" });
     const read = await store.get(key);
     const ok = Boolean(read && Buffer.compare(read.bytes, expected) === 0);
     return { ok, mode: store.constructor.name, writeReadDelete: ok };

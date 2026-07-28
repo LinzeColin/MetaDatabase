@@ -16,7 +16,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "v0.0.0.1.8"
+VERSION = "v0.0.0.1.9"
 BUSINESS_LINES = (
     "identity-access", "account-storage", "cross-device-sync", "provider-imports",
     "weread-wide-sync", "analytics-recommendations", "operations-recovery", "facts-backup",
@@ -185,6 +185,35 @@ def facts_sync() -> dict:
     return {"status": "PUSHED", "path": str(destination)}
 
 
+def private_database_backup() -> dict:
+    worktree_raw = os.environ.get("WRP_PRIVATE_DATABASE_WORKTREE", "").strip()
+    target_root = os.environ.get("WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "").strip().rstrip("/")
+    branch = os.environ.get("WRP_PRIVATE_DATABASE_BRANCH", "main").strip()
+    if not worktree_raw or not target_root or "backups/private-database" not in target_root:
+        raise RuntimeError("PRIVATE_DATABASE_BACKUP_NOT_CONFIGURED")
+    worktree = Path(worktree_raw).expanduser().resolve()
+    if not (worktree / ".git").exists(): raise RuntimeError("PRIVATE_DATABASE_WORKTREE_INVALID")
+    if subprocess.run(["git", "-C", str(worktree), "status", "--porcelain"], capture_output=True, text=True, timeout=30, check=True).stdout.strip():
+        raise RuntimeError("PRIVATE_DATABASE_WORKTREE_DIRTY")
+    commit = subprocess.check_output(["git", "-C", str(worktree), "rev-parse", "HEAD"], text=True, timeout=30).strip()
+    if not __import__("re").fullmatch(r"[0-9a-f]{40}", commit): raise RuntimeError("PRIVATE_DATABASE_HEAD_INVALID")
+    directory = state_root() / "private-database-backups"; directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    bundle = directory / f"private-database-{commit}.bundle"; meta = bundle.with_suffix(".json")
+    temp = bundle.with_suffix(".tmp"); temp.unlink(missing_ok=True)
+    completed = subprocess.run(["git", "-C", str(worktree), "bundle", "create", str(temp), branch], capture_output=True, text=True, timeout=300)
+    if completed.returncode != 0: raise RuntimeError("PRIVATE_DATABASE_BUNDLE_FAILED")
+    verify = subprocess.run(["git", "-C", str(worktree), "bundle", "verify", str(temp)], capture_output=True, text=True, timeout=60)
+    if verify.returncode != 0: temp.unlink(missing_ok=True); raise RuntimeError("PRIVATE_DATABASE_BUNDLE_VERIFY_FAILED")
+    os.replace(temp, bundle); bundle.chmod(0o600)
+    payload = {"schemaVersion":1,"system":"weread-port","createdAt":utc_now(),"commit":commit,"branch":branch,"bundle":bundle.name,"size":bundle.stat().st_size,"sha256":sha256(bundle),"containsUserContent":False,"authority":"Private-Database","coldBackup":"Cloudflare R2 backups/private-database"}
+    atomic_json(meta, payload)
+    for local, remote_name in ((bundle,bundle.name),(meta,meta.name)):
+        result=subprocess.run(["rclone","copyto",str(local),f"{target_root}/{remote_name}","--checksum","--immutable","--log-level","NOTICE"],capture_output=True,text=True,timeout=900)
+        if result.returncode != 0: raise RuntimeError("PRIVATE_DATABASE_R2_COPY_FAILED")
+    for old in sorted(directory.glob("private-database-*.*"), key=lambda x:x.stat().st_mtime, reverse=True)[28:]: old.unlink(missing_ok=True)
+    return {**payload,"status":"COMPLETE","remotePrefix":"backups/private-database"}
+
+
 def r2_to_oci() -> dict:
     source = os.environ.get("WRP_R2_RCLONE_SOURCE", "").strip()
     target = os.environ.get("WRP_OCI_RCLONE_TARGET", "").strip()
@@ -230,7 +259,7 @@ def run_git(worktree: Path, args: list[str]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("health", "backup", "restore-check", "restore", "facts-snapshot", "facts-sync", "r2-to-oci"))
+    parser.add_argument("command", choices=("health", "backup", "restore-check", "restore", "facts-snapshot", "facts-sync", "private-database-backup", "r2-to-oci"))
     parser.add_argument("snapshot", nargs="?", type=Path)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
@@ -244,6 +273,7 @@ def main() -> int:
         result = restore(args.snapshot, apply=args.apply)
     elif args.command == "facts-snapshot": result = fact_snapshot()
     elif args.command == "facts-sync": result = facts_sync()
+    elif args.command == "private-database-backup": result = private_database_backup()
     else: result = r2_to_oci()
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0

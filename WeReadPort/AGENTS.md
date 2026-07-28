@@ -1,4 +1,4 @@
-# WeRead Port v0.0.0.1.8：路径级开发规则
+# WeRead Port v0.0.0.1.9：路径级开发规则
 
 父级仓库规则继续有效；本文件以用户当前明确要求覆盖 v1.7 及更早“匿名 P0”合同。旧匿名合同标记为 SUPERSEDED，只保留 `/migrate` 兼容入口。
 
@@ -23,4 +23,4 @@
 - 任何曾在聊天、工单或日志出现的真实密钥视为泄露，不得进入代码、任务包、测试、日志、Sites 或部署配置；必须撤销并轮换后才可做 Owner E2E。
 - 生产运行使用 Linux systemd，不使用 macOS launchd，不依赖开发 Agent、后台会话或模型 Token。
 - 不得加入真实时间 Soak、等待 Gate、重复审批或无限重试。时间逻辑用 Fake Clock、Fixture、历史回放和故障注入即时验证。
-- Scope、Acceptance、测试集和版本 `v0.0.0.1.8` 已冻结；Codex 不得创建新版本、重新研究、重新调用 Verifier/Teleiosis/Persona/SubAgent，或更改产品合同。Codex只运行任务包、精确 commit/push、安装 OVH 单元、复用同一 Sites 项目部署并回传证据。
+- Scope、Acceptance、测试集和版本 `v0.0.0.1.9` 已冻结；Codex 不得创建新版本、重新研究、重新调用 Verifier/Teleiosis/Persona/SubAgent，或更改产品合同。Codex只运行任务包、精确 commit/push、安装 OVH 单元、复用同一 Sites 项目部署并回传证据。

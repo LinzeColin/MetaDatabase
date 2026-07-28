@@ -1,6 +1,7 @@
 import { parseKeyring } from "./crypto.mjs";
 
 const DEFAULT_BASE_URL = "https://weread-port.linzezhang35.chatgpt.site";
+const TASKPACK_VERSION = "v0.0.0.1.9";
 
 export function loadConfig(env = process.env, { test = false } = {}) {
   const production = String(env.NODE_ENV ?? "production") === "production" && !test;
@@ -13,6 +14,21 @@ export function loadConfig(env = process.env, { test = false } = {}) {
   if (production && baseUrl.protocol !== "https:") throw new Error("生产公开地址必须使用 HTTPS。");
   const internalProxySecret = String(env.WRP_INTERNAL_PROXY_SECRET || (test ? "test-internal-proxy-secret-not-for-production" : ""));
   if (!internalProxySecret) throw new Error("缺少 WRP_INTERNAL_PROXY_SECRET。");
+  const releaseIdentity = Object.freeze({
+    taskpackVersion: String(env.WRP_TASKPACK_VERSION || TASKPACK_VERSION),
+    releaseCommit: String(env.WRP_RELEASE_COMMIT || (test ? "test-release-commit" : "")),
+    ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || (test ? "test-ovh-release" : "")),
+    sitesProjectId: String(env.WRP_SITES_PROJECT_ID || (test ? "test-sites-project" : "")),
+  });
+  if (releaseIdentity.taskpackVersion !== TASKPACK_VERSION) throw new Error("WRP_TASKPACK_VERSION 与冻结版本不一致。");
+  if (production && (!/^[0-9a-f]{40}$/.test(releaseIdentity.releaseCommit) || !safeReleaseId(releaseIdentity.ovhReleaseId) || !safeReleaseId(releaseIdentity.sitesProjectId))) {
+    throw new Error("生产部署身份缺少或无效：release commit 必须为 40 位 SHA，OVH release ID 与 Sites project ID 必须为安全标识。");
+  }
+  const primaryObjectPrefix = safePrefix(env.WRP_PRIMARY_OBJECT_PREFIX || "primary-objects", "WRP_PRIMARY_OBJECT_PREFIX");
+  const privateDatabaseBackupPrefix = safePrefix(env.WRP_PRIVATE_DATABASE_BACKUP_PREFIX || "backups/private-database", "WRP_PRIVATE_DATABASE_BACKUP_PREFIX");
+  if (primaryObjectPrefix === privateDatabaseBackupPrefix || primaryObjectPrefix.startsWith(`${privateDatabaseBackupPrefix}/`) || privateDatabaseBackupPrefix.startsWith(`${primaryObjectPrefix}/`)) {
+    throw new Error("R2 权威对象与 Private-Database 冷备命名空间必须隔离。");
+  }
   return Object.freeze({
     production,
     baseUrl: baseUrl.origin,
@@ -21,6 +37,9 @@ export function loadConfig(env = process.env, { test = false } = {}) {
     databasePath: env.WRP_DATABASE_PATH || "/var/lib/weread-port/platform.sqlite3",
     objectStoreMode: env.WRP_OBJECT_STORE_MODE || (test ? "memory" : "r2"),
     fileObjectRoot: env.WRP_FILE_OBJECT_ROOT || "/var/lib/weread-port/objects",
+    primaryObjectPrefix,
+    privateDatabaseBackupPrefix,
+    releaseIdentity,
     r2: Object.freeze({
       endpoint: env.WRP_R2_ENDPOINT || "",
       bucket: env.WRP_R2_BUCKET || "",
@@ -44,7 +63,7 @@ export function loadConfig(env = process.env, { test = false } = {}) {
     maxJsonBytes: integer(env.WRP_MAX_JSON_BYTES, 2 * 1024 * 1024, 1024, 16 * 1024 * 1024),
     maxImportBytes: integer(env.WRP_MAX_IMPORT_BYTES, 50 * 1024 * 1024, 1024, 512 * 1024 * 1024),
     maxImportItems: integer(env.WRP_MAX_IMPORT_ITEMS, 500, 1, 5000),
-    maxWereadBooks: integer(env.WRP_MAX_WEREAD_BOOKS, 2000, 1, 10000),
+    maxWereadBooks: integer(env.WRP_MAX_WEREAD_BOOKS, 2000, 6, 10000),
     upstreamTimeoutMs: integer(env.WRP_UPSTREAM_TIMEOUT_MS, 15_000, 500, 120_000),
     upstreamRetryAttempts: integer(env.WRP_UPSTREAM_RETRY_ATTEMPTS, 2, 1, 3),
     readinessCacheSeconds: integer(env.WRP_READINESS_CACHE_SECONDS, 30, 1, 300),
@@ -53,7 +72,7 @@ export function loadConfig(env = process.env, { test = false } = {}) {
     authLockSeconds: integer(env.WRP_AUTH_LOCK_SECONDS, 15 * 60, 60, 24 * 3600),
     importLeaseSeconds: integer(env.WRP_IMPORT_LEASE_SECONDS, 5 * 60, 30, 3600),
     workerStaleSeconds: integer(env.WRP_WORKER_STALE_SECONDS, 30, 5, 300),
-    objectHealthProbePrefix: env.WRP_OBJECT_HEALTH_PROBE_PREFIX || "_system/readiness",
+    objectHealthProbePrefix: `${primaryObjectPrefix}/${safePrefix(env.WRP_OBJECT_HEALTH_PROBE_PREFIX || "_system/readiness", "WRP_OBJECT_HEALTH_PROBE_PREFIX")}`,
     providers: Object.freeze({
       google: provider(env, "GOOGLE"),
       github: provider(env, "GITHUB"),
@@ -81,3 +100,11 @@ function integer(value, fallback, min, max) {
   if (!Number.isInteger(number) || number < min || number > max) throw new Error(`数值配置超出范围：${value}`);
   return number;
 }
+
+function safePrefix(value, name) {
+  const text = String(value || "").replace(/^\/+|\/+$/g, "");
+  if (!text || text.split("/").some(part => !/^[A-Za-z0-9._-]+$/.test(part) || part === "..")) throw new Error(`${name} 无效。`);
+  return text;
+}
+
+function safeReleaseId(value) { return /^[A-Za-z0-9._:-]{3,160}$/.test(String(value || "")); }

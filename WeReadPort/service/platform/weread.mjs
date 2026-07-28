@@ -208,7 +208,7 @@ export async function gatewayCall(key, apiName, params = {}, { fetchImpl = fetch
       method: "POST",
       redirect: "manual",
       signal: controller.signal,
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", Accept: "application/json", "User-Agent": "WeReadPort/0.0.0.1.8" },
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", Accept: "application/json", "User-Agent": "WeReadPort/0.0.0.1.9" },
       body: JSON.stringify({ api_name: apiName, skill_version: SKILL_VERSION, ...params }),
     });
     if (response.status >= 300 && response.status < 400) throw Object.assign(new Error("微信读书接口返回了不安全重定向。"), { code: "UPSTREAM_REDIRECT" });

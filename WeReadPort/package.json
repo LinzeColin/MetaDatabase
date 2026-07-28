@@ -1,6 +1,6 @@
 {
   "name": "weread-port",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "private": true,
   "type": "module",
   "description": "全局中文的账户中心化个人阅读资产平台：多方式登录、微信读书与四平台导入、加密笔记、跨设备同步、画像与匿名迁移兼容。",
@@ -23,13 +23,17 @@
     "export": "node scripts/export-cli.js",
     "benchmark": "node scripts/benchmark.js",
     "test:ops": "python3 -m unittest discover -s ops/tests -p \"test_*.py\"",
-    "verify:integration": "npm run verify && npm run test:platform && npm run test:ops && npm run test:platform-ops",
+    "verify:integration": "npm run verify && npm run test:platform && npm run test:release-identity && npm run test:ops && npm run test:platform-ops",
     "verify:all": "npm run verify:integration && npm run benchmark && npm run benchmark:platform",
     "check:zh-cn": "node scripts/check-zh-cn.js",
     "check:release": "node scripts/check-release-metadata.js",
     "test:platform": "node --test tests/service/*.test.mjs tests/account-*.test.mjs",
     "benchmark:platform": "node scripts/benchmark-platform.mjs",
-    "test:platform-ops": "python3 -m unittest discover -s service/tests -p \"test_*.py\""
+    "test:platform-ops": "python3 -m unittest discover -s service/tests -p \"test_*.py\"",
+    "test:production-account": "python3 tests/browser/production_account_e2e.py",
+    "test:release-identity": "node --test tests/service/release-identity.test.mjs",
+    "smoke:production": "python3 scripts/smoke-site.py",
+    "accept:production-account": "python3 tests/browser/production_account_e2e.py"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.47.0",
@@ -37,6 +41,6 @@
     "vite": "8.1.5",
     "wrangler": "4.114.0"
   },
-  "taskpackVersion": "v0.0.0.1.8",
+  "taskpackVersion": "v0.0.0.1.9",
   "releaseStage": "stage2-formal-development-taskpack-delivery"
 }

@@ -1,5 +1,5 @@
 [Unit]
-Description=阅迁 Notion、Obsidian、GitHub、Google 导入工作器 v0.0.0.1.8
+Description=阅迁 Notion、Obsidian、GitHub、Google 导入工作器 v0.0.0.1.9
 After=network-online.target weread-port-platform.service
 Wants=network-online.target
 

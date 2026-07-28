@@ -12,7 +12,7 @@ import subprocess
 import sys
 from urllib.parse import urlparse
 
-VERSION = "0.0.0.1.8"
+VERSION = "0.0.0.1.9"
 UNITS = (
     "weread-port-ops-monitor.timer",
     "weread-port-ops-private-sync.timer",
