@@ -38,6 +38,7 @@ test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读�
   assert.match(ui, /async function refreshDerivedAccountState\(\)/u);
   assert.match(ui, /Promise\.all\(\[api\.profile\(\), api\.notes\(\), api\.analytics\(\)\]\)/u);
   assert.ok(ui.includes("await refreshDerivedAccountState()"));
+  assert.ok((ui.match(/await refreshDerivedAccountState\(\);/gu) || []).length >= 4, "微信读书、导入、手动保存和删除都必须刷新下游快照");
 });
 
 test("画像、官方统计、笔记活动、推荐、跨设备和隐私控制都在账户 UI 中可见", () => {
