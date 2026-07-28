@@ -261,6 +261,32 @@ else
   die "部署失败"
 fi
 
+# 7. 清掉旧版本。
+#
+# 这一步不是洁癖，是这台机器上真正让产品停摆的那件事：每次部署留一份 ~220M，
+# 攒到 47 份就是 9.6G，磁盘干到 91%，I/O 全在排队，负载冲到 11（2 核），
+# ResourceReadinessGate 判 load_pressure 直接 hold 住所有新任务——用户发消息
+# 石沉大海，而每一个组件的自检都是"正常"。
+#
+# 保留规则：当前这版、回滚要用的上一版、以及最近 KEEP 份。删的都是不可达的
+# 旧构建，每一份都能从对应的 git sha 重新构建出来。
+KEEP="${CB_KEEP_RELEASES:-5}"
+step "正在清理旧版本（保留最近 $KEEP 份 + 当前 + 回滚目标）……"
+PRUNED="$(remote "
+  cd $APP_ROOT/releases 2>/dev/null || exit 0
+  PROTECT=\$(printf '%s\n%s\n' '$SHA' '$OLD_SHA'; ls -1t . | head -$KEEP; \
+    grep -rhoE 'releases/[0-9a-f]{40}' /etc/systemd/system/$SERVICE.d/ /etc/cyberboss/ 2>/dev/null | sed 's#releases/##')
+  n=0
+  for d in \$(ls -1 . | grep -E '^[0-9a-f]{40}\$'); do
+    printf '%s\n' \"\$PROTECT\" | grep -qx \"\$d\" && continue
+    sudo rm -rf \"./\$d\" && n=\$((n+1))
+  done
+  printf '%s %s' \"\$n\" \"\$(df -h $APP_ROOT | awk 'NR==2{print \$5}')\"
+" 2>/dev/null || true)"
+if [ -n "$PRUNED" ]; then
+  ok "清掉 ${PRUNED% *} 个旧版本，磁盘现在用了 ${PRUNED#* }"
+fi
+
 printf '\n%s────────────────────────────────────%s\n' "$DIM" "$RESET"
 ok "部署完成：${SHA:0:12}"
 printf '\n  看日志：  ops/cloud-logs.sh\n'

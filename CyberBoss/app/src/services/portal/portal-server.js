@@ -294,8 +294,16 @@ class PortalHttpServer {
     }
     try {
       if (name === "conversations" && typeof this.adminConversations === "function") {
-        const limit = Number(url.searchParams.get("limit")) || 40;
-        this.#json(response, 200, await this.adminConversations(limit));
+        // 每个参数都在这里定长截断。它们最终会进 SQL 的绑定参数和内存比较，
+        // 不会被拼进语句，但一个没有上限的关键词照样能把一次查询拖垮。
+        const bounded = (key, max) => String(url.searchParams.get(key) || "").slice(0, max);
+        this.#json(response, 200, await this.adminConversations({
+          limit: Number(url.searchParams.get("limit")) || 40,
+          person: bounded("person", 200),
+          keyword: bounded("q", 120),
+          from: bounded("from", 32),
+          to: bounded("to", 32),
+        }));
         return;
       }
       if (name === "persona" && request.method === "GET" && typeof this.adminPersonaRead === "function") {

@@ -52,6 +52,17 @@
   .bubble.out{background:var(--mine);border-top-right-radius:3px;margin-top:8px}
   .bubble.empty{color:var(--muted);font-style:italic;background:none;border:1px dashed var(--line)}
   .reply-meta{color:var(--muted);font-size:12px;margin:4px 0 0 2px}
+  /* 按人分组 + 检索 */
+  .people{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
+  .person{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:8px 14px;font:inherit;font-size:14px;color:var(--fg);cursor:pointer;min-height:40px;white-space:nowrap}
+  .person[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
+  .person .n{opacity:.65;font-size:12px;margin-left:6px}
+  .finder{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .finder input[type=search]{font:inherit;width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+  .dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:13px}
+  .dates input[type=date]{font:inherit;font-size:14px;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+  .dates button{padding:8px 14px;min-height:38px;font-size:14px}
+  mark{background:var(--warn);color:var(--bg);border-radius:3px;padding:0 2px}
   /* 语气 */
   fieldset{border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;margin:0 0 16px;background:var(--card)}
   legend{font-size:14px;font-weight:600;padding:0 6px}
@@ -122,6 +133,19 @@
       <i class="dot ok" id="talk-dot"></i>
       <div><strong id="talk-headline">正在读取……</strong><span id="talk-subline">每个人发来的每一句，和它回的每一句</span></div>
     </div>
+
+    <div class="people" id="people"></div>
+
+    <div class="finder">
+      <input type="search" id="q" placeholder="搜正文（问的和答的都搜）" enterkeyhint="search">
+      <div class="dates">
+        <label>从 <input type="date" id="from"></label>
+        <label>到 <input type="date" id="to"></label>
+        <button type="button" id="clearq">清空</button>
+      </div>
+    </div>
+
+    <p class="hint" id="talk-count"></p>
     <div id="talk-list"></div>
     <p class="hint" id="talk-note"></p>
   </section>
@@ -272,6 +296,55 @@
   }
 
   // ── 对话 ─────────────────────────────────────────────────
+  //
+  // 当前的筛选条件。它是这一栏唯一的状态来源：人、关键词、起止日期。
+  var filter = { person: "", q: "", from: "", to: "" };
+
+  // 关键词命中处高亮。必须自己切片再 createTextNode——用 innerHTML 包 <mark>
+  // 就等于把别人发来的原文当 HTML 执行。
+  function withHighlight(text, needle) {
+    var box = document.createDocumentFragment();
+    if (!needle) { box.appendChild(document.createTextNode(text)); return box; }
+    var haystack = text.toLowerCase();
+    var seek = needle.toLowerCase();
+    var at = 0;
+    for (;;) {
+      var hit = haystack.indexOf(seek, at);
+      if (hit < 0) { box.appendChild(document.createTextNode(text.slice(at))); break; }
+      if (hit > at) { box.appendChild(document.createTextNode(text.slice(at, hit))); }
+      var mark = document.createElement("mark");
+      mark.textContent = text.slice(hit, hit + seek.length);
+      box.appendChild(mark);
+      at = hit + seek.length;
+    }
+    return box;
+  }
+
+  function renderPeople(people) {
+    var bar = document.getElementById("people");
+    bar.textContent = "";
+    var all = el("button", "person", "所有人");
+    all.type = "button";
+    all.setAttribute("aria-pressed", filter.person ? "false" : "true");
+    all.addEventListener("click", function () { filter.person = ""; loadTalk(); });
+    bar.appendChild(all);
+
+    (people || []).forEach(function (person) {
+      var button = el("button", "person");
+      button.type = "button";
+      button.appendChild(document.createTextNode(person.label));
+      button.appendChild(el("span", "n", person.count + " 条"));
+      button.title = person.id;
+      button.setAttribute("aria-pressed", filter.person === person.id ? "true" : "false");
+      button.addEventListener("click", function () {
+        // 再点一次同一个人＝取消筛选，回到所有人。
+        filter.person = filter.person === person.id ? "" : person.id;
+        loadTalk();
+      });
+      bar.appendChild(button);
+    });
+  }
+
   function renderTalk(data) {
     var list = document.getElementById("talk-list");
     list.textContent = "";
@@ -283,12 +356,25 @@
         : "错误码：" + (data.code || "未知"));
       return;
     }
+    renderPeople(data.people);
     var threads = data.threads || [];
     document.getElementById("talk-dot").className = "dot " + (data.unanswered ? "bad" : "ok");
     set("talk-headline", data.unanswered
       ? data.unanswered + " 条没答上"
-      : (threads.length ? "都答上了" : "还没有人说过话"));
-    set("talk-subline", "最近 " + threads.length + " 条来信，从新到旧");
+      : (threads.length ? "都答上了" : (filter.q || filter.person || filter.from || filter.to ? "没有符合条件的" : "还没有人说过话")));
+
+    var who = "";
+    (data.people || []).forEach(function (p) { if (p.id === filter.person) { who = p.label; } });
+    var bits = [];
+    if (who) { bits.push("只看" + who); }
+    if (filter.q) { bits.push("含「" + filter.q + "」"); }
+    if (filter.from || filter.to) { bits.push((filter.from || "最早") + " 到 " + (filter.to || "现在")); }
+    set("talk-subline", bits.length ? bits.join(" · ") : "每个人发来的每一句，和它回的每一句");
+
+    // 截断了就说清楚，不能让人以为"总共就这些"。
+    set("talk-count", data.truncated
+      ? "命中 " + data.matched + " 条，这里显示最近 " + data.shown + " 条（往前翻请缩小时间范围）"
+      : (data.matched ? "共 " + data.matched + " 条" : ""));
 
     threads.forEach(function (thread) {
       var box = el("div", "turn" + (thread.state && thread.state.stuck ? " stuck" : ""));
@@ -301,14 +387,18 @@
       box.appendChild(head);
 
       if (thread.available) {
-        box.appendChild(el("div", "bubble in", thread.text || "（空消息）"));
+        var asked = el("div", "bubble in");
+        asked.appendChild(withHighlight(thread.text || "（空消息）", filter.q));
+        box.appendChild(asked);
       } else {
         box.appendChild(el("div", "bubble in empty", "内容已按保留期清除"));
       }
 
       (thread.replies || []).forEach(function (reply) {
         if (reply.available && reply.text) {
-          box.appendChild(el("div", "bubble out", reply.text));
+          var said = el("div", "bubble out");
+          said.appendChild(withHighlight(reply.text, filter.q));
+          box.appendChild(said);
         } else {
           box.appendChild(el("div", "bubble out empty", "内容已按保留期清除"));
         }
@@ -331,7 +421,12 @@
 
   var talkTimer = null;
   function loadTalk() {
-    fetch("/admin/api/conversations?limit=40", { headers: authed(), credentials: "same-origin" })
+    var url = "/admin/api/conversations?limit=40"
+      + (filter.person ? "&person=" + encodeURIComponent(filter.person) : "")
+      + (filter.q ? "&q=" + encodeURIComponent(filter.q) : "")
+      + (filter.from ? "&from=" + encodeURIComponent(filter.from) : "")
+      + (filter.to ? "&to=" + encodeURIComponent(filter.to) : "");
+    fetch(url, { headers: authed(), credentials: "same-origin" })
       .then(function (r) { return r.json(); })
       .then(renderTalk)
       .catch(function () {
@@ -341,6 +436,24 @@
     if (talkTimer) { clearTimeout(talkTimer); }
     talkTimer = setTimeout(function () { if (current === "talk") { loadTalk(); } }, 8000);
   }
+
+  // 关键词边打边搜，但要等手停下来——每敲一个字就查一次，等于让服务器把整段
+  // 历史解密一遍。
+  var typing = null;
+  document.getElementById("q").addEventListener("input", function () {
+    var value = this.value;
+    if (typing) { clearTimeout(typing); }
+    typing = setTimeout(function () { filter.q = value.trim(); loadTalk(); }, 350);
+  });
+  document.getElementById("from").addEventListener("change", function () { filter.from = this.value; loadTalk(); });
+  document.getElementById("to").addEventListener("change", function () { filter.to = this.value; loadTalk(); });
+  document.getElementById("clearq").addEventListener("click", function () {
+    filter = { person: "", q: "", from: "", to: "" };
+    document.getElementById("q").value = "";
+    document.getElementById("from").value = "";
+    document.getElementById("to").value = "";
+    loadTalk();
+  });
 
   // ── 语气 ─────────────────────────────────────────────────
   var toneLoaded = false;

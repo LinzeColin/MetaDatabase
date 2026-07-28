@@ -115,6 +115,23 @@ const OUTBOX_STATE_LABELS = Object.freeze({
   failed_terminal: "发送失败，已放弃",
 });
 
+// 把后台传来的日期变成能和 received_at（ISO UTC）直接比大小的字符串。
+//
+// 主人在手机上只会填「2026-07-28」这种。光标补 T00:00:00Z 会漏掉当天的消息，
+// 所以结束边界补到当天最后一毫秒。填了完整 ISO 就原样用。填得不合法一律返回
+// 空串——宁可不筛，也不能悄悄筛成一个错误的范围让人以为"这段时间没说过话"。
+function isoBound(value, edge) {
+  const text = String(value || "").trim();
+  if (!text) {
+    return "";
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    return edge === "end" ? `${text}T23:59:59.999Z` : `${text}T00:00:00.000Z`;
+  }
+  const parsed = new Date(text);
+  return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : "";
+}
+
 // 一条来信最终怎么了。stuck 为 true 表示"人发了但没得到答复"——去掉自动回执
 // 之后，这是唯一能看出这件事的地方，所以它必须判得准，不能一律显示成功。
 function describeTurnState({ message, job, replies }) {
@@ -798,7 +815,7 @@ class CyberbossApp {
       adminOwnerClaim: () => this.issueDashboardOwnerClaim(),
       adminOwnerBind: () => this.armDashboardOwnerBinding(),
       // 下面两个读写真实聊天内容与语气设置，一律要真令牌，不走首次免令牌。
-      adminConversations: (limit) => this.buildConversationFeed({ limit }),
+      adminConversations: (query) => this.buildConversationFeed(query || {}),
       adminPersonaRead: () => this.readDashboardPersona(),
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
       ownerActivationStart: () => this.startOwnerActivation(),
@@ -947,24 +964,115 @@ class CyberbossApp {
     }
   }
 
-  buildConversationFeed({ limit = 40 } = {}) {
+  // 参数：
+  //   person   只看这一个发件人（微信 id）
+  //   keyword  正文关键词，来信和回复都匹配——搜"闹钟"时不该因为这个词只出现在
+  //            答复里就搜不到
+  //   from/to  时间范围，YYYY-MM-DD 或完整 ISO
+  //
+  // 时间在 SQL 里筛，关键词只能解密之后在内存里筛（正文是密文）。所以带筛选时
+  // 先取一个更大的窗口再过滤，窗口大小随 limit 放大但有硬上限——不能因为搜一个
+  // 常见词就把整库解一遍。
+  buildConversationFeed({ limit = 40, person = "", keyword = "", from = "", to = "" } = {}) {
     if (!this.runtimeSpoolDatabase) {
-      return Object.freeze({ ok: false, code: "SPOOL_DB_UNAVAILABLE", threads: [] });
+      return Object.freeze({ ok: false, code: "SPOOL_DB_UNAVAILABLE", threads: [], people: [] });
     }
+    const wanted = Math.max(1, Math.min(200, Number(limit) || 40));
+    const needle = String(keyword || "").trim().toLowerCase();
+    const onlyPerson = String(person || "").trim();
+    const filtering = Boolean(needle || onlyPerson);
+    // 人员清单要覆盖到所有人，不能只看当前这一屏，否则筛完之后侧边就只剩一个人。
+    const scanLimit = filtering ? Math.min(1200, Math.max(400, wanted * 10)) : Math.max(wanted, 120);
+
     let inbound = [];
-    let outbound = [];
-    let jobs = [];
     try {
-      inbound = this.runtimeSpoolDatabase.listRecentInboundForOwner({ limit });
-      outbound = this.runtimeSpoolDatabase.listRecentOutboundForOwner({ limit: limit * 4 });
-      jobs = this.runtimeSpoolDatabase.listRecentJobsForOwner({ limit: limit * 4 });
+      inbound = this.runtimeSpoolDatabase.listRecentInboundForOwner({
+        limit: scanLimit,
+        since: isoBound(from, "start"),
+        until: isoBound(to, "end"),
+      });
     } catch (error) {
       return Object.freeze({
         ok: false,
         code: normalizeErrorCode(error?.code) || "CONVERSATION_READ_FAILED",
         threads: [],
+        people: [],
       });
     }
+
+    // 人员清单在过滤之前算：主人要能看见"还有谁"，而不是只看见筛剩下的那个。
+    const peopleIndex = new Map();
+    for (const message of inbound) {
+      const sender = message.payload?.senderId || "";
+      if (!sender) {
+        continue;
+      }
+      const entry = peopleIndex.get(sender) || { id: sender, count: 0, lastAt: "", userId: message.userId };
+      entry.count += 1;
+      if (message.receivedAt > entry.lastAt) {
+        entry.lastAt = message.receivedAt;
+      }
+      peopleIndex.set(sender, entry);
+    }
+    // 「谁是主人」以 users 表的 role 为准——那是权威来源，不依赖环境变量。
+    let roles = new Map();
+    try {
+      roles = this.runtimeSpoolDatabase.listUserRolesForOwner();
+    } catch {
+      // 读不到就都不打标签，比打错标签好。
+    }
+    const envOwners = new Set(this.knownOwnerSenders());
+    const people = [...peopleIndex.values()]
+      .sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1))
+      .map((entry, index) => {
+        const isOwner = roles.get(entry.userId) === "owner" || envOwners.has(entry.id);
+        return Object.freeze({
+          id: entry.id,
+          // 微信只给不透明 id，没有昵称。给一个稳定的短标签，主人至少分得清是几个人。
+          label: isOwner ? "主人" : `用户 ${index + 1}`,
+          short: entry.id.slice(0, 8),
+          isOwner,
+          count: entry.count,
+          lastAt: entry.lastAt,
+        });
+      });
+
+    let selected = onlyPerson
+      ? inbound.filter((message) => (message.payload?.senderId || "") === onlyPerson)
+      : inbound;
+
+    // 关键词要连回复一起搜，所以先把这一批的回复取出来再筛。
+    let outbound = [];
+    let jobs = [];
+    try {
+      const correlationIds = selected.map((message) => message.correlationId);
+      outbound = this.runtimeSpoolDatabase.listRecentOutboundForOwner({ correlationIds });
+      jobs = this.runtimeSpoolDatabase.listRecentJobsForOwner({ correlationIds });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "CONVERSATION_READ_FAILED",
+        threads: [],
+        people,
+      });
+    }
+
+    if (needle) {
+      const replyTextByCorrelation = new Map();
+      for (const item of outbound) {
+        const previous = replyTextByCorrelation.get(item.correlationId) || "";
+        replyTextByCorrelation.set(item.correlationId, `${previous}\n${item.text || ""}`);
+      }
+      selected = selected.filter((message) => {
+        const asked = String(message.payload?.text || "").toLowerCase();
+        const answered = String(replyTextByCorrelation.get(message.correlationId) || "").toLowerCase();
+        return asked.includes(needle) || answered.includes(needle);
+      });
+    }
+
+    const matched = selected.length;
+    selected = selected.slice(0, wanted);
+    inbound = selected;
 
     const repliesByCorrelation = new Map();
     for (const item of outbound) {
@@ -1044,9 +1152,30 @@ class CyberbossApp {
     return Object.freeze({
       ok: true,
       threads,
+      people,
       // 数出来给主人一眼看的：这一屏里有几条根本没答上。
       unanswered: threads.filter((thread) => thread.state.stuck).length,
+      // 命中多少条、显示了多少条、扫了多深。截断了就要说，不能让人以为"就这些"。
+      matched,
+      shown: threads.length,
+      truncated: matched > threads.length,
+      scanned: scanLimit,
+      query: Object.freeze({ person: onlyPerson, keyword: String(keyword || "").trim(), from, to }),
     });
+  }
+
+  // 已知的主人发件号。只用来给对话栏打个「主人」标签，判权限不走这里。
+  knownOwnerSenders() {
+    const senders = new Set();
+    for (const id of this.config.ownerSenderIds || this.config.allowedUserIds || []) {
+      if (id) {
+        senders.add(String(id));
+      }
+    }
+    for (const id of this.rememberedOwnerSenders || []) {
+      senders.add(String(id));
+    }
+    return [...senders];
   }
 
   issueDashboardInvite() {

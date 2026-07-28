@@ -278,6 +278,18 @@ function seedTurn(spool, { senderId, text, replyText, replyStatus = "confirmed" 
   return { accepted, staged };
 }
 
+function feedApp(spool, config = {}) {
+  // 借用真实原型；config 是 knownOwnerSenders 会读的那两个字段。
+  return {
+    runtimeSpoolDatabase: spool,
+    directReplyLog: [],
+    config,
+    knownOwnerSenders: CyberbossApp.prototype.knownOwnerSenders,
+  };
+}
+
+const feedOf = (app, query) => CyberbossApp.prototype.buildConversationFeed.call(app, query || {});
+
 function panelSpool(t) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-feed-"));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
@@ -294,8 +306,7 @@ test("对话一栏把来信和它的回复按 correlation 配上对，内容是�
   const spool = panelSpool(t);
   seedTurn(spool, { senderId: "wx-a", text: "今天有点累", replyText: "那就早点睡。" });
 
-  const app = { runtimeSpoolDatabase: spool, directReplyLog: [] };
-  const feed = CyberbossApp.prototype.buildConversationFeed.call(app, {});
+  const feed = feedOf(feedApp(spool));
 
   assert.equal(feed.ok, true);
   assert.equal(feed.threads.length, 1);
@@ -320,8 +331,7 @@ test("发不出去的回复必须显示成没答上，不能显示成已回复",
     replyStatus: "failed_terminal",
   });
 
-  const app = { runtimeSpoolDatabase: spool, directReplyLog: [] };
-  const feed = CyberbossApp.prototype.buildConversationFeed.call(app, {});
+  const feed = feedOf(feedApp(spool));
   const thread = feed.threads[0];
 
   assert.equal(thread.replies[0].delivered, false);
@@ -334,8 +344,7 @@ test("完全没有回复的来信显示成还在处理，不会假装成功", (t
   const spool = panelSpool(t);
   seedTurn(spool, { senderId: "wx-c", text: "在吗" });
 
-  const app = { runtimeSpoolDatabase: spool, directReplyLog: [] };
-  const thread = CyberbossApp.prototype.buildConversationFeed.call(app, {}).threads[0];
+  const thread = feedOf(feedApp(spool)).threads[0];
 
   assert.equal(thread.replies.length, 0);
   assert.equal(thread.state.label, "正在处理");
@@ -345,11 +354,11 @@ test("走 admission 直接回掉的那些消息也进对话栏，并标明重启
   const spool = panelSpool(t);
   seedTurn(spool, { senderId: "wx-d", text: "开始" });
 
-  const app = { runtimeSpoolDatabase: spool, directReplyLog: [] };
+  const app = feedApp(spool);
   // 真实路径上这一句由 sendAdmissionReply 记下；这里直接调它记的那个方法。
   CyberbossApp.prototype.noteDirectReply.call(app, "wx-d", "把邀请码发给我就能开通。");
 
-  const thread = CyberbossApp.prototype.buildConversationFeed.call(app, {}).threads[0];
+  const thread = feedOf(app).threads[0];
   assert.equal(thread.replies.length, 1);
   assert.equal(thread.replies[0].text, "把邀请码发给我就能开通。");
   assert.match(thread.replies[0].source, /重启后不保留/, "内存里的东西必须说清楚是内存里的");
@@ -360,10 +369,10 @@ test("同一个人的多条来信不会把同一条直接回复重复挂上去",
   seedTurn(spool, { senderId: "wx-e", text: "第一句" });
   seedTurn(spool, { senderId: "wx-e", text: "第二句" });
 
-  const app = { runtimeSpoolDatabase: spool, directReplyLog: [] };
+  const app = feedApp(spool);
   CyberbossApp.prototype.noteDirectReply.call(app, "wx-e", "只回了一次");
 
-  const threads = CyberbossApp.prototype.buildConversationFeed.call(app, {}).threads;
+  const threads = feedOf(app).threads;
   const total = threads.reduce((sum, thread) => sum + thread.replies.length, 0);
   assert.equal(total, 1, "一条回复只能挂在一个地方，重复计数会让人以为它回了两次");
 });
@@ -410,7 +419,7 @@ async function panelServer(t, { firstRun }) {
     adminToken: "panel-token",
     firstRunProvider: () => firstRun,
     adminOverview: () => ({ ok: true, lines: [], users: 0, messagesToday: 0, log: [] }),
-    adminConversations: (limit) => ({ ok: true, threads: [], limit }),
+    adminConversations: (query) => ({ ok: true, threads: [], query }),
     adminPersonaRead: () => ({ ok: true, persona: defaultPersona(), tones: [], lengths: [] }),
     adminPersonaWrite: (input) => {
       written = input;
@@ -457,7 +466,7 @@ test("带对令牌就能读对话、读写语气", async (t) => {
   const talk = await raw(h.port, { requestPath: "/admin/api/conversations?limit=7", headers: authed });
   assert.equal(talk.status, 200);
   assert.equal(talk.json.ok, true);
-  assert.equal(talk.json.limit, 7, "limit 必须真的传下去");
+  assert.equal(talk.json.query.limit, 7, "limit 必须真的传下去");
 
   const read = await raw(h.port, { requestPath: "/admin/api/persona", headers: authed });
   assert.equal(read.status, 200);
@@ -502,4 +511,116 @@ test("语气 body 不是 JSON 时明确回错，而不是当成空设置存进�
   assert.equal(broken.status, 400);
   assert.equal(broken.json.code, "PERSONA_BODY_INVALID");
   assert.equal(h.read(), null, "解析失败不得落库——否则一次手滑就把语气清空了");
+});
+
+// ── 五、按人分组 + 关键词与时间检索 ──────────────────────
+
+
+test("对话栏按人分组：列出所有说过话的人，各带条数与最后时间", (t) => {
+  const spool = panelSpool(t);
+  seedTurn(spool, { senderId: "wx-a", text: "第一句", replyText: "好" });
+  seedTurn(spool, { senderId: "wx-a", text: "第二句", replyText: "嗯" });
+  seedTurn(spool, { senderId: "wx-b", text: "你好", replyText: "你好" });
+
+  const feed = feedOf(feedApp(spool));
+  assert.equal(feed.ok, true);
+  const byId = new Map(feed.people.map((p) => [p.id, p]));
+  assert.equal(feed.people.length, 2);
+  assert.equal(byId.get("wx-a").count, 2);
+  assert.equal(byId.get("wx-b").count, 1);
+  assert.ok(byId.get("wx-a").lastAt, "每个人都要有最后说话时间");
+});
+
+test("只看一个人时，别人的消息一条都不出现，但人员清单仍然是全的", (t) => {
+  const spool = panelSpool(t);
+  seedTurn(spool, { senderId: "wx-a", text: "我的事", replyText: "好" });
+  seedTurn(spool, { senderId: "wx-b", text: "他的事", replyText: "好" });
+
+  const feed = feedOf(feedApp(spool), { person: "wx-a" });
+  assert.equal(feed.threads.length, 1);
+  assert.equal(feed.threads[0].who, "wx-a");
+  assert.equal(feed.threads[0].text, "我的事");
+  // 清单不能跟着筛，否则筛完就切不回去了。
+  assert.equal(feed.people.length, 2, "筛人之后仍然要看得见还有谁");
+  assert.equal(feed.query.person, "wx-a");
+});
+
+test("关键词同时搜来信和回复——答复里出现的词也必须搜得到", (t) => {
+  const spool = panelSpool(t);
+  seedTurn(spool, { senderId: "wx-a", text: "明早叫我", replyText: "好，七点闹钟。" });
+  seedTurn(spool, { senderId: "wx-a", text: "帮我买菜", replyText: "买什么？" });
+
+  // 「闹钟」只出现在回复里。
+  const inReply = feedOf(feedApp(spool), { keyword: "闹钟" });
+  assert.equal(inReply.threads.length, 1);
+  assert.equal(inReply.threads[0].text, "明早叫我", "命中回复时要把整轮对话带出来");
+
+  // 「买菜」只出现在来信里。
+  const inAsk = feedOf(feedApp(spool), { keyword: "买菜" });
+  assert.equal(inAsk.threads.length, 1);
+  assert.equal(inAsk.threads[0].text, "帮我买菜");
+
+  // 谁都没说过的词。
+  assert.equal(feedOf(feedApp(spool), { keyword: "根本没说过" }).threads.length, 0);
+});
+
+test("关键词不分大小写，人和词可以叠着用", (t) => {
+  const spool = panelSpool(t);
+  seedTurn(spool, { senderId: "wx-a", text: "看看 Deadline", replyText: "周五" });
+  seedTurn(spool, { senderId: "wx-b", text: "也问 deadline", replyText: "周五" });
+
+  assert.equal(feedOf(feedApp(spool), { keyword: "DEADLINE" }).threads.length, 2);
+  const both = feedOf(feedApp(spool), { keyword: "deadline", person: "wx-b" });
+  assert.equal(both.threads.length, 1);
+  assert.equal(both.threads[0].who, "wx-b");
+});
+
+test("时间范围按天筛，结束那一天当天的消息必须包含在内", (t) => {
+  const spool = panelSpool(t);
+  const a = seedTurn(spool, { senderId: "wx-a", text: "今天的", replyText: "好" });
+  // 把其中一条改到一个明确的旧日期上，用来验证边界。
+  spool.database
+    .prepare("UPDATE inbox_messages SET received_at=? WHERE id=?")
+    .run("2026-01-15T13:45:00.000Z", a.accepted.inboxId);
+
+  const app = feedApp(spool);
+  // 只取那一天：如果结束边界补的是 T00:00:00Z，13:45 那条就会被漏掉。
+  const oneDay = feedOf(app, { from: "2026-01-15", to: "2026-01-15" });
+  assert.equal(oneDay.threads.length, 1, "当天 13:45 的消息必须落在「到 2026-01-15」之内");
+  assert.equal(oneDay.threads[0].text, "今天的");
+
+  // 范围之外一条都不该有。
+  assert.equal(feedOf(app, { from: "2026-01-16", to: "2026-01-17" }).threads.length, 0);
+  // 只给起点也要成立——开区间同样合法。
+  assert.equal(feedOf(app, { from: "2026-01-01" }).threads.length >= 1, true);
+});
+
+test("看不懂的日期就当没筛，不能悄悄筛成一个错误的范围", (t) => {
+  const spool = panelSpool(t);
+  seedTurn(spool, { senderId: "wx-a", text: "一条", replyText: "好" });
+
+  const bad = feedOf(feedApp(spool), { from: "上礼拜", to: "随便" });
+  assert.equal(bad.threads.length, 1, "解析不了的日期必须退化成不筛，而不是筛成空");
+});
+
+test("命中数超过一屏时如实说截断了", (t) => {
+  const spool = panelSpool(t);
+  for (let i = 0; i < 6; i += 1) {
+    seedTurn(spool, { senderId: "wx-a", text: `第${i}条`, replyText: "好" });
+  }
+  const feed = feedOf(feedApp(spool), { limit: 2 });
+  assert.equal(feed.shown, 2);
+  assert.equal(feed.matched, 6);
+  assert.equal(feed.truncated, true, "只显示了一部分就必须说出来");
+});
+
+test("主人那一行标成「主人」，靠 users 表的 role，不靠环境变量", (t) => {
+  const spool = panelSpool(t);
+  seedTurn(spool, { senderId: "wx-owner", text: "我是主人", replyText: "好" });
+  // acceptInbound 会把行落到 owner user 上（单人安装时 scope 就是 owner）。
+  const feed = feedOf(feedApp(spool));
+  const owner = feed.people.find((p) => p.id === "wx-owner");
+  assert.ok(owner);
+  assert.equal(owner.isOwner, true);
+  assert.equal(owner.label, "主人");
 });

@@ -4060,6 +4060,21 @@ class RuntimeSpoolDatabase {
     });
   }
 
+  // user_id -> role。对话栏用它给发件人打「主人」标签。判权限不走这里，
+  // 那条路在 UserAdmission；这里只是让主人在列表上分得清谁是谁。
+  listUserRolesForOwner() {
+    this.#assertOpen();
+    const roles = new Map();
+    try {
+      for (const row of this.database.prepare("SELECT user_id, role FROM users").all()) {
+        roles.set(row.user_id, row.role);
+      }
+    } catch {
+      // 单人安装可能还没有 users 表，那就没有标签，不是错误。
+    }
+    return roles;
+  }
+
   // ── 主人后台的「对话」一栏 ──────────────────────────────────
   //
   // 下面两个方法解密真实聊天内容，是这个类里权限最高的读。名字带 ForOwner 是为
@@ -4070,18 +4085,32 @@ class RuntimeSpoolDatabase {
   // 里返回 payloadAvailable=false 而不是抛错——"已经按保留期清掉了"本身就是要显
   // 示给主人看的状态。
 
-  listRecentInboundForOwner({ limit = 50 } = {}) {
+  // 时间范围在 SQL 里筛（received_at 上有序，走得动）；关键词只能在解密之后
+  // 在内存里筛——正文是密文，SQL 看不见它，这是加密存储必然的代价。
+  listRecentInboundForOwner({ limit = 50, since = "", until = "" } = {}) {
     this.#assertOpen();
-    const bounded = Math.max(1, Math.min(200, Number(limit) || 50));
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 50));
+    const clauses = [];
+    const params = [];
+    if (typeof since === "string" && since) {
+      clauses.push("received_at >= ?");
+      params.push(since);
+    }
+    if (typeof until === "string" && until) {
+      clauses.push("received_at <= ?");
+      params.push(until);
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
     const rows = this.database
       .prepare(
         `SELECT id, correlation_id, user_id, message_type, status,
                 reject_reason, received_at, payload_ciphertext
          FROM inbox_messages
+         ${where}
          ORDER BY received_at DESC, id DESC
          LIMIT ?`,
       )
-      .all(bounded);
+      .all(...params, bounded);
     return rows.map((row) => {
       let payload = null;
       let payloadAvailable = false;
@@ -4112,19 +4141,43 @@ class RuntimeSpoolDatabase {
     });
   }
 
-  listRecentOutboundForOwner({ limit = 80 } = {}) {
+  // 给了 correlationIds 就只取这些来信的回复——按人或按时间筛过之后，没必要
+  // 把整张出站表都解密一遍。
+  listRecentOutboundForOwner({ limit = 80, correlationIds = null } = {}) {
     this.#assertOpen();
-    const bounded = Math.max(1, Math.min(400, Number(limit) || 80));
-    const rows = this.database
-      .prepare(
-        `SELECT id, job_id, correlation_id, message_kind, chunk_index,
-                chunk_count, status, attempt_count, last_error_class,
-                created_at, confirmed_at, payload_ciphertext
-         FROM outbox_messages
-         ORDER BY created_at DESC, id DESC
-         LIMIT ?`,
-      )
-      .all(bounded);
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 80));
+    let rows;
+    if (Array.isArray(correlationIds)) {
+      if (!correlationIds.length) {
+        return [];
+      }
+      // SQLite 的变量上限是 999，分批取。
+      rows = [];
+      for (let offset = 0; offset < correlationIds.length; offset += 400) {
+        const slice = correlationIds.slice(offset, offset + 400);
+        rows.push(...this.database
+          .prepare(
+            `SELECT id, job_id, correlation_id, message_kind, chunk_index,
+                    chunk_count, status, attempt_count, last_error_class,
+                    created_at, confirmed_at, payload_ciphertext
+             FROM outbox_messages
+             WHERE correlation_id IN (${slice.map(() => "?").join(",")})
+             ORDER BY created_at DESC, id DESC`,
+          )
+          .all(...slice));
+      }
+    } else {
+      rows = this.database
+        .prepare(
+          `SELECT id, job_id, correlation_id, message_kind, chunk_index,
+                  chunk_count, status, attempt_count, last_error_class,
+                  created_at, confirmed_at, payload_ciphertext
+           FROM outbox_messages
+           ORDER BY created_at DESC, id DESC
+           LIMIT ?`,
+        )
+        .all(bounded);
+    }
     return rows.map((row) => {
       let text = "";
       let payloadAvailable = false;
@@ -4156,18 +4209,38 @@ class RuntimeSpoolDatabase {
     });
   }
 
-  listRecentJobsForOwner({ limit = 80 } = {}) {
+  listRecentJobsForOwner({ limit = 80, correlationIds = null } = {}) {
     this.#assertOpen();
-    const bounded = Math.max(1, Math.min(400, Number(limit) || 80));
-    return this.database
-      .prepare(
-        `SELECT id, correlation_id, status, error_class, attempt_count,
-                created_at, finished_at
-         FROM jobs
-         ORDER BY created_at DESC, id DESC
-         LIMIT ?`,
-      )
-      .all(bounded)
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 80));
+    let rows;
+    if (Array.isArray(correlationIds)) {
+      if (!correlationIds.length) {
+        return [];
+      }
+      rows = [];
+      for (let offset = 0; offset < correlationIds.length; offset += 400) {
+        const slice = correlationIds.slice(offset, offset + 400);
+        rows.push(...this.database
+          .prepare(
+            `SELECT id, correlation_id, status, error_class, attempt_count,
+                    created_at, finished_at
+             FROM jobs
+             WHERE correlation_id IN (${slice.map(() => "?").join(",")})`,
+          )
+          .all(...slice));
+      }
+    } else {
+      rows = this.database
+        .prepare(
+          `SELECT id, correlation_id, status, error_class, attempt_count,
+                  created_at, finished_at
+           FROM jobs
+           ORDER BY created_at DESC, id DESC
+           LIMIT ?`,
+        )
+        .all(bounded);
+    }
+    return rows
       .map((row) => Object.freeze({
         jobId: row.id,
         correlationId: row.correlation_id,
