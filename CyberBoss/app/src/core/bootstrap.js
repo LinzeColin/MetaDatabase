@@ -41,6 +41,25 @@ function defaultWorkspaceBase(stateDir) {
   return process.env.CYBERBOSS_WORKSPACE_BASE || path.join(stateDir, "workspaces");
 }
 
+// An installation that was provisioned by someone else — a server where root
+// wrote /etc/cyberboss/workspaces.json and the tree lives under /srv — already
+// has an answer for where workspaces go, and it is the only answer the registry
+// validator will accept. Guessing <stateDir>/workspaces there produces a base
+// that disagrees with the document, and the validator reports that as
+// `workspace_config_empty`: a message about the one thing that is not wrong.
+// So an existing registry wins over the default.
+function registryWorkspaceBase(configPath) {
+  try {
+    const document = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    const base = document?.workspace_base;
+    return typeof base === "string" && path.isAbsolute(base) ? base : null;
+  } catch {
+    // Unreadable or malformed is not this function's problem to report: the
+    // registry loader validates it properly and says exactly what is wrong.
+    return null;
+  }
+}
+
 function ensureDirectory(directory) {
   fs.mkdirSync(directory, { recursive: true, mode: DIR_MODE });
   try {
@@ -159,7 +178,10 @@ class BootstrapError extends Error {
 // The single call a first run makes. It provisions everything and reports what
 // it had to create, so the wizard can tell the user what just happened.
 function bootstrapInstallation({ stateDir = defaultStateDir() } = {}) {
-  const workspaceBase = defaultWorkspaceBase(stateDir);
+  const workspaceConfigPath = process.env.CYBERBOSS_WORKSPACE_CONFIG
+    || path.join(stateDir, "workspaces.json");
+  const workspaceBase = registryWorkspaceBase(workspaceConfigPath)
+    || defaultWorkspaceBase(stateDir);
   ensureDirectory(stateDir);
   const credentials = path.join(stateDir, "credentials");
   const encryptionKey = ensureKeyFile(
@@ -171,14 +193,15 @@ function bootstrapInstallation({ stateDir = defaultStateDir() } = {}) {
       || path.join(credentials, "runtime-identity.key"),
   );
   const workspace = ensureWorkspaceRegistry({
-    configPath: process.env.CYBERBOSS_WORKSPACE_CONFIG
-      || path.join(stateDir, "workspaces.json"),
+    configPath: workspaceConfigPath,
     workspaceBase,
   });
   const envFile = path.join(stateDir, ".env");
   const existing = readEnvFile(envFile);
-  // Written once so the workspace base survives a shell that never exported it.
-  if (!existing.has("CYBERBOSS_WORKSPACE_BASE")) {
+  // Written so the workspace base survives a shell that never exported it, and
+  // rewritten when it disagrees with the registry — a stale value here is the
+  // same failure as guessing one, and it outlives every restart until corrected.
+  if (existing.get("CYBERBOSS_WORKSPACE_BASE") !== workspaceBase) {
     updateEnvFile(envFile, { CYBERBOSS_WORKSPACE_BASE: workspaceBase });
   }
   // 后台页面的管理员令牌。生成一次就固定下来——每次重启都换一个的话，
@@ -187,7 +210,9 @@ function bootstrapInstallation({ stateDir = defaultStateDir() } = {}) {
     updateEnvFile(envFile, { CB_ADMIN_TOKEN: crypto.randomBytes(24).toString("base64url") });
   }
   // Applied to this process too, so the very first run works without a restart.
-  process.env.CYBERBOSS_WORKSPACE_BASE ||= workspaceBase;
+  // Assigned rather than defaulted: when a registry exists its base is the only
+  // value the validator accepts, so it has to overwrite whatever was exported.
+  process.env.CYBERBOSS_WORKSPACE_BASE = workspaceBase;
   process.env.CYBERBOSS_STATE_DIR ||= stateDir;
 
   return Object.freeze({

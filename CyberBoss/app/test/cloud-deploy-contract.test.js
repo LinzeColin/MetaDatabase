@@ -90,3 +90,23 @@ test("查日志必须带上独立的 journal namespace", () => {
   }
   assert.match(deployScript, /journalctl --namespace=cyberboss/);
 });
+
+test("绑定之前先确认目标 release 的契约是全的", () => {
+  // 一次真实的连锁事故：新版本验证失败 → 自动回滚 → 回滚目标缺
+  // release-manifest.json → 服务从"跑着旧版本"变成"彻底起不来"。
+  assert.match(
+    deployScript,
+    /sudo test -f \$APP_ROOT\/releases\/\$sha\/release-manifest\.json/,
+    "write_binding 必须先确认目标 release 有 manifest",
+  );
+});
+
+test("回滚目标取自绑定，不取自 current 指针", () => {
+  // 事故期间这两者可以差好几个版本：current 每次部署都动，绑定却没动。
+  // 照着 current 回滚，等于把服务推到一个从来没跑起来过的版本上。
+  assert.match(
+    deployScript,
+    /OLD_SHA="\$\(remote "sudo sed -n 's\|\^Environment=CB_EXPECTED_RELEASE_ID=\|\|p'/,
+    "OLD_SHA 必须从 drop-in 里的 CB_EXPECTED_RELEASE_ID 读出来",
+  );
+});

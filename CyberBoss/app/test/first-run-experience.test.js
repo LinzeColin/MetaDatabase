@@ -359,3 +359,96 @@ test("已经配了 Owner 时，登录信息不会把它顶掉", () => {
   assert.deepEqual(bound, ["configured-owner"]);
   assert.deepEqual(app.config.ownerSenderIds, ["configured-owner"]);
 });
+
+// ── 别人已经装好的机器 ───────────────────────────────────
+//
+// 云服务器上，root 早就把注册表写在 /etc/cyberboss/workspaces.json、把工作区
+// 开在 /srv 下面了。bootstrap 如果按"数据目录下面那个"去猜工作区根目录，猜出
+// 来的值和注册表里写的对不上，校验会判定注册表为空——而注册表恰恰是那份文件
+// 里唯一没有问题的东西。这一条曾经让云端的 bridge 每次启动都 exit 1。
+
+function provisionedRegistry(t, { workspaceBase }) {
+  const home = tempHome(t);
+  const configPath = path.join(home, "etc", "workspaces.json");
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.mkdirSync(path.join(workspaceBase, "cyberboss"), { recursive: true });
+  fs.writeFileSync(configPath, `${JSON.stringify({
+    schema_version: 1,
+    default_alias: "cyberboss",
+    workspace_base: workspaceBase,
+    workspaces: {
+      cyberboss: {
+        repo: "LinzeColin/MetaDatabase",
+        root: path.join(workspaceBase, "cyberboss"),
+        project_subpath: "CyberBoss",
+        read_only: false,
+        max_bytes: 4_294_967_296,
+        allowed_branches: ["main", "codex/cyberboss-*"],
+        sparse_paths: ["CyberBoss", ".github"],
+        root_integration_paths: [".github"],
+        root_integration_write: false,
+        write_globs: ["CyberBoss/**"],
+      },
+    },
+  }, null, 2)}\n`);
+  return { home, configPath };
+}
+
+test("已有注册表的机器：工作区根目录以注册表为准，不按数据目录猜", (t) => {
+  const workspaceBase = fs.mkdtempSync(path.join(os.tmpdir(), "cb-srv-"));
+  t.after(() => fs.rmSync(workspaceBase, { recursive: true, force: true }));
+  const { home, configPath } = provisionedRegistry(t, { workspaceBase });
+  const stateDir = path.join(home, "state");
+
+  const previousConfig = process.env.CYBERBOSS_WORKSPACE_CONFIG;
+  const previousBase = process.env.CYBERBOSS_WORKSPACE_BASE;
+  process.env.CYBERBOSS_WORKSPACE_CONFIG = configPath;
+  delete process.env.CYBERBOSS_WORKSPACE_BASE;
+  t.after(() => {
+    if (previousConfig === undefined) delete process.env.CYBERBOSS_WORKSPACE_CONFIG;
+    else process.env.CYBERBOSS_WORKSPACE_CONFIG = previousConfig;
+    if (previousBase === undefined) delete process.env.CYBERBOSS_WORKSPACE_BASE;
+    else process.env.CYBERBOSS_WORKSPACE_BASE = previousBase;
+  });
+
+  const result = bootstrapInstallation({ stateDir });
+
+  assert.equal(result.workspaceBase, workspaceBase);
+  assert.equal(result.workspace.created, false, "已有的注册表不能被覆盖");
+  assert.equal(process.env.CYBERBOSS_WORKSPACE_BASE, workspaceBase);
+
+  // 真正的判据：注册表能被加载器接受。上一版在这里抛 workspace_config_empty。
+  const registry = new WorkspaceRegistry({
+    configPath,
+    workspaceBase: process.env.CYBERBOSS_WORKSPACE_BASE,
+  });
+  assert.equal(registry.defaultAlias, "cyberboss");
+});
+
+test("已有注册表的机器：.env 里过期的工作区根目录会被改正", (t) => {
+  const workspaceBase = fs.mkdtempSync(path.join(os.tmpdir(), "cb-srv2-"));
+  t.after(() => fs.rmSync(workspaceBase, { recursive: true, force: true }));
+  const { home, configPath } = provisionedRegistry(t, { workspaceBase });
+  const stateDir = path.join(home, "state");
+  fs.mkdirSync(stateDir, { recursive: true });
+  // 上一版留下来的错值：不改正的话，它会活过每一次重启。
+  updateEnvFile(path.join(stateDir, ".env"), {
+    CYBERBOSS_WORKSPACE_BASE: path.join(stateDir, "workspaces"),
+  });
+
+  const previousConfig = process.env.CYBERBOSS_WORKSPACE_CONFIG;
+  process.env.CYBERBOSS_WORKSPACE_CONFIG = configPath;
+  delete process.env.CYBERBOSS_WORKSPACE_BASE;
+  t.after(() => {
+    if (previousConfig === undefined) delete process.env.CYBERBOSS_WORKSPACE_CONFIG;
+    else process.env.CYBERBOSS_WORKSPACE_CONFIG = previousConfig;
+    delete process.env.CYBERBOSS_WORKSPACE_BASE;
+  });
+
+  bootstrapInstallation({ stateDir });
+
+  assert.equal(
+    readEnvFile(path.join(stateDir, ".env")).get("CYBERBOSS_WORKSPACE_BASE"),
+    workspaceBase,
+  );
+});

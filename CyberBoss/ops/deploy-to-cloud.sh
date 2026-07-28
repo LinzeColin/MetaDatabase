@@ -47,6 +47,11 @@ remote() { "${SSH[@]}" "$@"; }
 # 微信账号、两把密钥和运行库都在那里，而 50- 那个 drop-in 把它改到了子目录。
 write_binding() {
   local sha="$1"
+  # 入口脚本会核对 release-manifest.json，没有这个文件的 release 一绑上去服务
+  # 就起不来。回滚时尤其要挡：上一次事故就是回滚指向了一个契约不全的 release，
+  # 结果"自动回滚"把服务从"跑着旧版本"变成了"彻底起不来"。
+  remote "sudo test -f $APP_ROOT/releases/$sha/release-manifest.json" \
+    || die "release $sha 缺 release-manifest.json，绑上去只会让服务起不来"
   remote "
     set -e
     sudo mkdir -p $DROPIN_DIR
@@ -106,7 +111,12 @@ TREE="$(git -C "$PROJECT" rev-parse 'HEAD^{tree}')"
 
 printf '\n部署 %s 到 %s\n\n' "${SHA:0:12}" "$HOST"
 
-OLD_SHA="$(remote "basename \$(readlink -f $APP_ROOT/current)" 2>/dev/null || true)"
+# 回滚要回到**真正在跑的**那个 release，也就是绑定里写的那个——不是 current
+# 指针指的那个。这两者在事故期间可以差好几个版本，照着 current 回滚等于把服务
+# 推到一个从来没跑起来过的版本上。
+OLD_SHA="$(remote "sudo sed -n 's|^Environment=CB_EXPECTED_RELEASE_ID=||p' $DROPIN 2>/dev/null | tail -1" 2>/dev/null || true)"
+[ -n "$OLD_SHA" ] || OLD_SHA="$(remote "basename \$(readlink -f $APP_ROOT/current)" 2>/dev/null || true)"
+[ -n "$OLD_SHA" ] && step "当前在跑：${OLD_SHA:0:12}"
 
 # 1. 打包：只带仓库里跟踪的文件，node_modules 在服务器上重装
 step "正在打包……"
