@@ -64,6 +64,7 @@ STAGE4_NEXT_TASK = "TSK.x2n.multimodal.001"
 G4_REVIEW_ID = "STG.X2N.4.REVIEW"
 G4_REVIEW_RUN_ID = "RUN-X2N-S04-REVIEW"
 STAGE5_NEXT_TASK = "TSK.x2n.uxops.001"
+STAGE5_TASK002 = "TSK.x2n.uxops.002"
 EXPECTED_SCOPE_IDS = [
     "xiaohongshu_favorites",
     "xiaohongshu_likes",
@@ -979,8 +980,23 @@ def validate_release_and_data_contracts() -> Check:
         and state.get("stage_4_remote_upload_authorized") is False
         and state.get("stage_5_authorized") is True
     )
+    stage5_task001_completed = (
+        g4_completed
+        and state.get("tasks", {}).get(STAGE5_NEXT_TASK) == "pass"
+        and state.get("last_completed_phase") == "PH.X2N.5.1"
+        and state.get("run_id") == "RUN-X2N-S05-U001"
+        and state.get("run_kind") == "single_dag_task_ci_synth_notion_projection_hardening"
+        and state.get("state") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and state.get("next_phase") == "PH.X2N.5.2"
+        and state.get("next_run") == STAGE5_TASK002
+        and state.get("current_stage_gate") == "review_pending"
+        and state.get("stage_5_task001_complete") is True
+        and state.get("stage_5_remote_upload_authorized") is False
+    )
     expected_project_status = (
-        "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
+        "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        if stage5_task001_completed
+        else "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
         if g4_completed
         else "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending"
         if task005_state == "pass"
@@ -1018,6 +1034,56 @@ def validate_release_and_data_contracts() -> Check:
         )
         stage_4_authorized = False
         task_state_mode = "task010_planned"
+    elif task010_state == "pass" and task005_state == "pass" and stage5_task001_completed:
+        recheck = _load_json(G3_RECHECK_FACT)
+        _require(
+            recheck.get("review_id") == TASK010_RECHECK
+            and recheck.get("run_id") == G3_RECHECK_RUN_ID
+            and recheck.get("gate", {}).get("id") == "G3"
+            and recheck.get("gate", {}).get("status") == "PASS_CI_SYNTH"
+            and recheck.get("gate", {}).get("decision") == "PASS"
+            and recheck.get("authorization", {}).get("stage_3_remote_upload") is False
+            and recheck.get("authorization", {}).get("stage_4_local_task_start") is True
+            and recheck.get("next_task", {}).get("id") == STAGE4_NEXT_TASK,
+            "Task001 successor requires the immutable bounded G3 recheck fact",
+        )
+        _require(
+            task001_state == "pass"
+            and task002_state == "pass"
+            and task003_state == "pass"
+            and task004_state == "pass"
+            and state.get("stage") == "STG.X2N.5"
+            and state.get("review_id") == G4_REVIEW_ID
+            and all(
+                state.get("tasks", {}).get(task_id) == "pass"
+                for task_id in (
+                    STAGE4_NEXT_TASK,
+                    "TSK.x2n.multimodal.002",
+                    "TSK.x2n.multimodal.003",
+                    "TSK.x2n.multimodal.004",
+                    "TSK.x2n.multimodal.005",
+                    STAGE5_NEXT_TASK,
+                )
+            )
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_4_authorized") is True
+            and state.get("stage_gate") == "pass"
+            and state.get("remote_upload") == "not_required_for_local_stage_transition",
+            "Stage5 Task001 did not preserve the bounded Stage3/G4 history",
+        )
+        expected_local_ci = (
+            "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_"
+            "technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_"
+            "reconciliation_task002_local_first_asr_cache_budget_cloud_zero_private_gold_pending_task003_local_first_"
+            "ocr_vision_cache_budget_cloud_zero_private_gold_pending_task004_deterministic_fusion_strict_parser_"
+            "injection_isolation_task005_owner_taxonomy_revision_constrained_classifier_review_private_gold_oracle_"
+            "g4_review_five_task_receipts_prompt_injection_owner_taxonomy_auto_classify_disabled_stage5_task001_"
+            "versioned_additive_notion_schema_long_text_batches_fourteen_views_outbox_reconcile_real_notion_zero_"
+            "platform_model_real_account_calls_0"
+        )
+        stage_4_authorized = True
+        task_state_mode = "stage5_task001_complete_task002_next"
     elif task010_state == "pass" and task005_state == "pass" and g4_completed:
         recheck = _load_json(G3_RECHECK_FACT)
         _require(
@@ -1313,6 +1379,16 @@ def validate_release_and_data_contracts() -> Check:
             and "current_run_scope: stage_3_task010_ci_synth_accepted_g3_recheck_pending" in prd_text
             and "implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run" in prd_text,
             "PRFAQ/PRD completed Task010 state drifted",
+        )
+    elif task_state_mode == "stage5_task001_complete_task002_next":
+        _require(
+            "status: STAGE_5_TASK001_NOTION_PROJECTION_CI_SYNTH_PASS_TASK002_NEXT" in prfaq_text
+            and "decision: DIRECT_MVP_TASK001_ACCEPTED_TASK002_NEXT" in prfaq_text
+            and "implementation_authorized: stage_5_task_002_next_single_phase_run" in prfaq_text
+            and "status: STAGE_5_TASK001_NOTION_PROJECTION_CI_SYNTH_PASS_TASK002_NEXT" in prd_text
+            and "current_run_scope: stage_5_task001_notion_projection_pass_task002_next_real_notion_not_run" in prd_text
+            and "implementation_authorized: stage_5_task_002_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD completed Stage5 Task001 state drifted",
         )
     elif task_state_mode == "stage4_g4_pass_stage5_task001_next":
         _require(

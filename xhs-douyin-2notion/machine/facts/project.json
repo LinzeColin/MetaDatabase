@@ -41,11 +41,12 @@
     "weibo",
     "taobao"
   ],
-  "stage_4_current_task": "G4_pass_ci_synth_private_gold_disabled_stage_5_task001_next",
+  "stage_4_current_task": "G4_pass_ci_synth_preserved_private_gold_disabled_stage_5_task001_notion_projection_complete",
   "media_preprocessing": "lease_scoped_ffmpeg_ffprobe_audio_keyframe_dedup_temporary_only",
   "asr": "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
   "ocr_vision": "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
   "fusion": "deterministic_local_extractive_ephemeral_artifacts_strict_grounded_parser_prompt_isolation_zero_side_effects_ci_synth_model_not_run",
   "taxonomy_classification": "owner_registry_append_only_revisions_constrained_deterministic_local_suggestion_only_review_private_gold_oracle_auto_classify_disabled_pending_private_gold",
-  "status": "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
+  "notion_projection": "versioned_additive_schema_long_text_bounded_batches_x2n_owned_views_conflict_fail_closed_fallback_documented_outbox_reconcile_ci_synth_real_notion_not_run",
+  "status": "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
 }

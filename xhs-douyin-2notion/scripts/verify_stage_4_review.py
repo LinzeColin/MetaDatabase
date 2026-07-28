@@ -216,7 +216,7 @@ def _taskpack() -> dict[str, Any]:
     return value
 
 
-def _stage4_review_transition(state: dict[str, Any]) -> bool:
+def _g4_to_stage5_task001_transition(state: dict[str, Any]) -> bool:
     return (
         state.get("stage") == "STG.X2N.5"
         and state.get("last_completed_phase") == REVIEW_ID
@@ -233,6 +233,34 @@ def _stage4_review_transition(state: dict[str, Any]) -> bool:
         and state.get("stage_4_gate_status") == "pass_ci_synth"
         and state.get("stage_4_remote_upload_authorized") is False
         and state.get("stage_5_authorized") is True
+        and state.get("remote_upload") == "not_required_for_local_stage_transition"
+        and state.get("current_stage_remote_upload") == "not_required_for_local_stage_transition"
+        and state.get("public_release_authorized") is False
+    )
+
+
+def _stage5_task001_to_task002_transition(state: dict[str, Any]) -> bool:
+    """Accept one explicitly-audited successor without mutating the G4 record."""
+
+    return (
+        state.get("stage") == "STG.X2N.5"
+        and state.get("last_completed_phase") == "PH.X2N.5.1"
+        and state.get("review_id") == REVIEW_ID
+        and state.get("run_id") == "RUN-X2N-S05-U001"
+        and state.get("run_kind") == "single_dag_task_ci_synth_notion_projection_hardening"
+        and state.get("state") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and state.get("next_phase") == "PH.X2N.5.2"
+        and state.get("next_run") == "TSK.x2n.uxops.002"
+        and state.get("next_phase_authorized") is True
+        and state.get("stage_gate") == "pass"
+        and state.get("current_stage_gate") == "review_pending"
+        and state.get("stage_4_review_complete") is True
+        and state.get("stage_4_gate_status") == "pass_ci_synth"
+        and state.get("stage_4_remote_upload_authorized") is False
+        and state.get("stage_5_authorized") is True
+        and state.get("stage_5_task001_complete") is True
+        and state.get("stage_5_remote_upload_authorized") is False
+        and state.get("tasks", {}).get("TSK.x2n.uxops.001") == "pass"
         and state.get("remote_upload") == "not_required_for_local_stage_transition"
         and state.get("current_stage_remote_upload") == "not_required_for_local_stage_transition"
         and state.get("public_release_authorized") is False
@@ -340,20 +368,21 @@ def validate_taskpack_and_current_transition() -> Check:
     )
     next_task = tasks.get("TSK.x2n.uxops.001", {})
     _require(
-        next_task.get("status") == "planned"
+        next_task.get("status") in {"planned", "completed"}
         and next_task.get("phase") == "PH.X2N.5.1"
         and "TSK.x2n.multimodal.005" in next_task.get("depends_on", []),
         "Stage 5 next task bypasses G4 taxonomy predecessor",
     )
     state = _load_json(TASK_STATE)
+    task001_successor = _stage5_task001_to_task002_transition(state)
     _require(
-        _stage4_review_transition(state)
+        (_g4_to_stage5_task001_transition(state) or task001_successor)
         and all(state.get("tasks", {}).get(task_id) == "pass" for task_id in EXPECTED_TASKS)
         and state.get("previous_stage_gate")
         == {"gate_id": "G3", "remote_upload": "not_uploaded", "stage": "STG.X2N.3", "status": "pass"}
         and state.get("completed_stage_gate")
         == {"gate_id": "G4", "remote_upload": "not_uploaded", "stage": "STG.X2N.4", "status": "pass"},
-        "current state is not the bounded G4-to-Stage5 transition",
+        "current state is not the bounded G4 transition or its audited Task001 successor",
     )
     statuses = state.get("acceptance_status", {})
     _require(
@@ -369,7 +398,11 @@ def validate_taskpack_and_current_transition() -> Check:
     return Check(
         "taskpack_and_stage4_transition",
         "PASS",
-        {"next_task": "TSK.x2n.uxops.001", "stage_4_remote_upload": 0, "stage_5_authorized": True},
+        {
+            "next_task": "TSK.x2n.uxops.002" if task001_successor else "TSK.x2n.uxops.001",
+            "stage_4_remote_upload": 0,
+            "stage_5_authorized": True,
+        },
     )
 
 
@@ -383,22 +416,39 @@ def validate_public_private_boundary() -> Check:
     _safe_payload({"controls": "\n".join(texts)})
     project = _load_json(PROJECT_FACT)
     architecture = _load_json(ARCHITECTURE)
-    _require(
+    g4_project_facts = (
         project.get("status") == "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
         and project.get("stage_4_current_task")
         == "G4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
+    )
+    task001_project_facts = (
+        project.get("status") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and project.get("stage_4_current_task")
+        == "G4_pass_ci_synth_preserved_private_gold_disabled_stage_5_task001_notion_projection_complete"
+        and project.get("notion_projection")
+        == "versioned_additive_schema_long_text_bounded_batches_x2n_owned_views_conflict_fail_closed_fallback_documented_outbox_reconcile_ci_synth_real_notion_not_run"
+    )
+    _require(
+        (g4_project_facts or task001_project_facts)
         and project.get("canonical_store") == "active_local_sqlite_logical_truth"
         and project.get("taxonomy_classification")
         == "owner_registry_append_only_revisions_constrained_deterministic_local_suggestion_only_review_private_gold_oracle_auto_classify_disabled_pending_private_gold",
         "project fact overclaims G4 capability",
     )
-    _require(
+    g4_architecture_facts = (
         architecture.get("phase") == REVIEW_ID
         and architecture.get("status") == "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next"
         and architecture.get("review_id") == REVIEW_ID
-        and architecture.get("stage_gate") == "g4_pass_ci_synth_stage5_authorized_private_gold_disabled",
-        "architecture fact overclaims G4 capability",
+        and architecture.get("stage_gate") == "g4_pass_ci_synth_stage5_authorized_private_gold_disabled"
     )
+    task001_architecture_facts = (
+        architecture.get("phase") == "PH.X2N.5.1"
+        and architecture.get("status") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and architecture.get("review_id") == REVIEW_ID
+        and architecture.get("stage_gate")
+        == "g4_pass_ci_synth_preserved_stage5_task001_pass_task002_authorized_private_gold_disabled"
+    )
+    _require(g4_architecture_facts or task001_architecture_facts, "architecture fact overclaims G4 capability")
     contract = RUN_CONTRACT.read_text(encoding="utf-8")
     report = REPORT.read_text(encoding="utf-8")
     for token in (
@@ -424,7 +474,7 @@ def validate_historical_task_and_g3_compatibility() -> Check:
         ("scripts/verify_multimodal_003.py", "--verify-worktree"),
         ("scripts/verify_multimodal_004.py", "--verify-worktree"),
         ("scripts/verify_multimodal_005.py", "--verify-worktree"),
-        ("scripts/verify_adapters_010.py", "--verify-worktree", "--require-evidence"),
+        ("scripts/verify_adapters_010.py", "--verify-worktree", "--skip-external", "--require-evidence"),
         ("scripts/verify_stage_3_review_resume_recheck.py", "--verify-worktree", "--skip-acceptance", "--require-evidence"),
         ("scripts/verify_stage_3_review_resume.py", "--require-evidence"),
     )

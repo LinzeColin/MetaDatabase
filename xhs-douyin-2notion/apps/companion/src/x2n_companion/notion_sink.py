@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 import re
@@ -20,9 +21,23 @@ from .sink_projection import SinkProjection, validate_persistable_text
 
 
 NOTION_API_VERSION = "2026-03-11"
-NOTION_SINK_SCHEMA_VERSION = "1.0.0"
+NOTION_SINK_SCHEMA_VERSION = "1.1.0"
 NOTION_DEFAULT_REQUESTS_PER_SECOND = 2
 NOTION_MAX_ATTEMPTS = 4
+NOTION_MAX_RICH_TEXT_CHARS = 2_000
+NOTION_MAX_CHILD_BLOCKS_PER_REQUEST = 100
+NOTION_MAX_TOTAL_CHILD_BLOCKS = 500
+NOTION_MAX_REQUEST_BYTES = 500_000
+NOTION_SYNC_STATUS_SYNCED = "synced"
+NOTION_SYNC_STATUS_FAILED = "failed"
+NOTION_PLATFORM_VIEW_VALUES = (
+    "xiaohongshu",
+    "douyin",
+    "bilibili",
+    "kuaishou",
+    "weibo",
+    "taobao",
+)
 TRANSITION_AFTER_NOTION_SUCCESS = "after_notion_success_before_local_receipt"
 _MOCK_NAMESPACE = uuid.UUID("73864ebf-09d3-4c36-8adc-e85c1b1863f2")
 _NOTION_ERROR_CODE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
@@ -41,6 +56,7 @@ class NotionProjection:
     desired_projection_hash: str
     properties: dict[str, Any] = field(repr=False)
     children: tuple[dict[str, Any], ...] = field(repr=False)
+    child_batches: tuple[tuple[dict[str, Any], ...], ...] = field(repr=False)
 
     def output_hash(self) -> str:
         return canonical_json_sha256({"children": list(self.children), "properties": self.properties})
@@ -53,7 +69,124 @@ class NotionPage:
     projection_hash: str
     output_hash: str
     properties: dict[str, Any] = field(repr=False)
+    managed_properties: dict[str, Any] = field(repr=False)
     children: tuple[dict[str, Any], ...] = field(repr=False)
+
+
+@dataclass(frozen=True)
+class NotionSchemaMigration:
+    """One additive-only Notion Data Source migration plan.
+
+    The plan deliberately contains no destructive action.  It is safe to apply
+    repeatedly, and its safe receipt only exposes counts and hashes rather than
+    Data Source identities.
+    """
+
+    schema_version: str
+    category_additions: dict[str, dict[str, Any]] = field(repr=False)
+    item_additions: dict[str, dict[str, Any]] = field(repr=False)
+
+    def safe_dict(self) -> dict[str, Any]:
+        payload = {
+            "category_additions": self.category_additions,
+            "item_additions": self.item_additions,
+            "schema_version": self.schema_version,
+        }
+        return {
+            "category_additions": len(self.category_additions),
+            "item_additions": len(self.item_additions),
+            "migration_sha256": canonical_json_sha256(payload),
+            "schema_version": self.schema_version,
+        }
+
+
+@dataclass(frozen=True)
+class NotionViewSpec:
+    """An x2n-owned view definition; existing owner views are never mutated."""
+
+    key: str
+    name: str
+    database_id: str = field(repr=False)
+    data_source_id: str = field(repr=False)
+    view_type: str
+    filter: dict[str, Any] | None = field(default=None, repr=False)
+    sorts: tuple[dict[str, Any], ...] = field(default=(), repr=False)
+    configuration: dict[str, Any] | None = field(default=None, repr=False)
+
+    def request(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "database_id": self.database_id,
+            "data_source_id": self.data_source_id,
+            "name": self.name,
+            "type": self.view_type,
+        }
+        if self.filter is not None:
+            payload["filter"] = self.filter
+        if self.sorts:
+            payload["sorts"] = list(self.sorts)
+        if self.configuration is not None:
+            payload["configuration"] = self.configuration
+        return payload
+
+    def output_hash(self) -> str:
+        return canonical_json_sha256(self.request())
+
+
+@dataclass(frozen=True)
+class NotionView:
+    view_ref: str = field(repr=False)
+    name: str
+    database_id: str = field(repr=False)
+    data_source_id: str = field(repr=False)
+    view_type: str
+    filter: dict[str, Any] | None = field(default=None, repr=False)
+    sorts: tuple[dict[str, Any], ...] = field(default=(), repr=False)
+    configuration: dict[str, Any] | None = field(default=None, repr=False)
+
+    def output_hash(self) -> str:
+        payload: dict[str, Any] = {
+            "database_id": self.database_id,
+            "data_source_id": self.data_source_id,
+            "name": self.name,
+            "type": self.view_type,
+        }
+        if self.filter is not None:
+            payload["filter"] = self.filter
+        if self.sorts:
+            payload["sorts"] = list(self.sorts)
+        if self.configuration is not None:
+            payload["configuration"] = self.configuration
+        return canonical_json_sha256(payload)
+
+
+@dataclass(frozen=True)
+class NotionViewDelivery:
+    key: str
+    state: str
+    output_hash: str
+    view_ref_hash: str
+
+    def safe_dict(self) -> dict[str, str]:
+        return {
+            "key": self.key,
+            "output_hash": self.output_hash,
+            "state": self.state,
+            "view_ref_hash": self.view_ref_hash,
+        }
+
+
+@dataclass(frozen=True)
+class NotionViewReconciliation:
+    capability: str
+    deliveries: tuple[NotionViewDelivery, ...]
+    fallback_reason: str | None = None
+
+    def safe_dict(self) -> dict[str, Any]:
+        return {
+            "capability": self.capability,
+            "deliveries": [item.safe_dict() for item in self.deliveries],
+            "fallback_reason": self.fallback_reason,
+        }
 
 
 @dataclass(frozen=True)
@@ -109,6 +242,8 @@ class NotionDuplicatePage(RuntimeError):
 class NotionTransport(Protocol):
     items_data_source_id: str
     categories_data_source_id: str
+    items_database_id: str
+    categories_database_id: str
 
     def retrieve_schema(self, data_source: str) -> Mapping[str, Mapping[str, Any]]: ...
 
@@ -118,9 +253,34 @@ class NotionTransport(Protocol):
 
     def retrieve_page(self, page_ref: str) -> NotionPage | None: ...
 
-    def create_page(self, projection: NotionProjection) -> NotionPage: ...
+    def create_page(
+        self,
+        projection: NotionProjection,
+        children: tuple[dict[str, Any], ...],
+    ) -> NotionPage: ...
 
-    def update_page(self, page_ref: str, projection: NotionProjection) -> NotionPage: ...
+    def update_page(
+        self,
+        page_ref: str,
+        projection: NotionProjection,
+        children: tuple[dict[str, Any], ...],
+    ) -> NotionPage: ...
+
+    def append_page_children(self, page_ref: str, children: tuple[dict[str, Any], ...]) -> NotionPage: ...
+
+    def list_views(self, data_source_id: str) -> tuple[NotionView, ...]: ...
+
+    def create_view(self, specification: NotionViewSpec) -> NotionView: ...
+
+
+def _canonical_notion_uuid(value: str, *, label: str) -> str:
+    try:
+        parsed = uuid.UUID(value)
+    except (ValueError, TypeError, AttributeError):
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"Notion {label} is invalid") from None
+    if str(parsed) != value.lower():
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"Notion {label} is invalid")
+    return str(parsed)
 
 
 def category_schema_specs() -> dict[str, NotionPropertySpec]:
@@ -128,14 +288,12 @@ def category_schema_specs() -> dict[str, NotionPropertySpec]:
         "Category ID": NotionPropertySpec("rich_text", {"rich_text": {}}),
         "Name": NotionPropertySpec("title", {"title": {}}),
         "Slug": NotionPropertySpec("rich_text", {"rich_text": {}}),
+        "X2N Schema Version": NotionPropertySpec("rich_text", {"rich_text": {}}),
     }
 
 
 def item_schema_specs(categories_data_source_id: str) -> dict[str, NotionPropertySpec]:
-    try:
-        category_id = str(uuid.UUID(categories_data_source_id))
-    except (ValueError, TypeError, AttributeError):
-        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Notion Categories Data Source identity is invalid") from None
+    category_id = _canonical_notion_uuid(categories_data_source_id, label="Categories Data Source identity")
     return {
         "Captured At": NotionPropertySpec("date", {"date": {}}),
         "Category": NotionPropertySpec(
@@ -149,6 +307,8 @@ def item_schema_specs(categories_data_source_id: str) -> dict[str, NotionPropert
         "Relations": NotionPropertySpec("multi_select", {"multi_select": {}}),
         "Review Status": NotionPropertySpec("select", {"select": {}}),
         "Source URL": NotionPropertySpec("url", {"url": {}}),
+        "Sync Status": NotionPropertySpec("select", {"select": {}}),
+        "X2N Schema Version": NotionPropertySpec("rich_text", {"rich_text": {}}),
     }
 
 
@@ -172,6 +332,21 @@ def plan_additive_schema(
     return additions
 
 
+def plan_schema_migration(
+    categories: Mapping[str, Mapping[str, Any]],
+    items: Mapping[str, Mapping[str, Any]],
+    *,
+    categories_data_source_id: str,
+) -> NotionSchemaMigration:
+    """Build a versioned, additive-only remote schema plan before any write."""
+
+    return NotionSchemaMigration(
+        schema_version=NOTION_SINK_SCHEMA_VERSION,
+        category_additions=plan_additive_schema(categories, category_schema_specs()),
+        item_additions=plan_additive_schema(items, item_schema_specs(categories_data_source_id)),
+    )
+
+
 def _rich_text(value: str) -> list[dict[str, Any]]:
     return [{"type": "text", "text": {"content": value}}]
 
@@ -180,15 +355,139 @@ def _paragraph_chunks(value: str) -> list[dict[str, Any]]:
     if not value:
         return []
     chunks: list[dict[str, Any]] = []
-    for offset in range(0, len(value), 2_000):
+    for fragment in _text_chunks(value):
         chunks.append(
             {
                 "object": "block",
-                "paragraph": {"rich_text": _rich_text(value[offset : offset + 2_000])},
+                "paragraph": {"rich_text": _rich_text(fragment)},
                 "type": "paragraph",
             }
         )
     return chunks
+
+
+def _text_chunks(value: str) -> tuple[str, ...]:
+    """Split exact text on a nearby safe boundary without dropping characters."""
+
+    if not isinstance(value, str):
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Notion text is invalid")
+    fragments: list[str] = []
+    offset = 0
+    while offset < len(value):
+        stop = min(offset + NOTION_MAX_RICH_TEXT_CHARS, len(value))
+        if stop < len(value):
+            boundaries = (
+                value.rfind("\n", offset, stop),
+                value.rfind(" ", offset, stop),
+                value.rfind("。", offset, stop),
+                value.rfind("，", offset, stop),
+                value.rfind(".", offset, stop),
+            )
+            candidate = max(boundaries)
+            if candidate >= offset + NOTION_MAX_RICH_TEXT_CHARS // 2:
+                stop = candidate + 1
+        fragments.append(value[offset:stop])
+        offset = stop
+    return tuple(fragments)
+
+
+def _child_batches(children: tuple[dict[str, Any], ...]) -> tuple[tuple[dict[str, Any], ...], ...]:
+    return tuple(
+        children[offset : offset + NOTION_MAX_CHILD_BLOCKS_PER_REQUEST]
+        for offset in range(0, len(children), NOTION_MAX_CHILD_BLOCKS_PER_REQUEST)
+    )
+
+
+def item_view_specs(*, database_id: str, data_source_id: str) -> tuple[NotionViewSpec, ...]:
+    """Return the strictly x2n-owned Items views for the current Notion API contract."""
+
+    database_id = _canonical_notion_uuid(database_id, label="Items Database identity")
+    data_source_id = _canonical_notion_uuid(data_source_id, label="Items Data Source identity")
+    table_configuration = {"type": "table", "wrap_cells": True}
+    gallery_configuration = {"type": "gallery"}
+    recent_first = ({"direction": "descending", "property": "Captured At"},)
+
+    def spec(
+        key: str,
+        name: str,
+        filter_value: dict[str, Any] | None,
+        *,
+        view_type: str = "table",
+        sorts: tuple[dict[str, Any], ...] = (),
+    ) -> NotionViewSpec:
+        return NotionViewSpec(
+            key=key,
+            name=name,
+            database_id=database_id,
+            data_source_id=data_source_id,
+            view_type=view_type,
+            filter=filter_value,
+            sorts=sorts,
+            configuration=gallery_configuration if view_type == "gallery" else table_configuration,
+        )
+
+    return (
+        spec("default_table", "X2N · Default Table", None, sorts=recent_first),
+        spec(
+            "category_gallery",
+            "X2N · Category Gallery",
+            {"property": "Category", "relation": {"is_not_empty": True}},
+            view_type="gallery",
+            sorts=recent_first,
+        ),
+        spec(
+            "likes_inbox",
+            "X2N · Likes Inbox",
+            {"property": "Relations", "multi_select": {"contains": "liked"}},
+            sorts=recent_first,
+        ),
+        spec(
+            "favorites",
+            "X2N · Favorites",
+            {"property": "Relations", "multi_select": {"contains": "favorited"}},
+            sorts=recent_first,
+        ),
+        spec(
+            "needs_review",
+            "X2N · Needs Review",
+            {"property": "Review Status", "select": {"equals": ["unclassified", "suggested"]}},
+            sorts=recent_first,
+        ),
+        spec(
+            "processing_failed",
+            "X2N · Processing Failed",
+            {"property": "Sync Status", "select": {"equals": NOTION_SYNC_STATUS_FAILED}},
+            sorts=recent_first,
+        ),
+        *tuple(
+            spec(
+                f"platform_{platform}",
+                f"X2N · Platform · {platform.title()}",
+                {"property": "Platform", "select": {"equals": platform}},
+                sorts=recent_first,
+            )
+            for platform in NOTION_PLATFORM_VIEW_VALUES
+        ),
+        spec("recent", "X2N · Recent", None, sorts=recent_first),
+    )
+
+
+def category_view_specs(*, database_id: str, data_source_id: str) -> tuple[NotionViewSpec, ...]:
+    """Return the x2n-owned Category directory view without creating categories."""
+
+    database_id = _canonical_notion_uuid(database_id, label="Categories Database identity")
+    data_source_id = _canonical_notion_uuid(data_source_id, label="Categories Data Source identity")
+    return (
+        NotionViewSpec(
+            key="category_directory",
+            name="X2N · Categories",
+            database_id=database_id,
+            data_source_id=data_source_id,
+            view_type="gallery",
+            sorts=({"direction": "ascending", "property": "Name"},),
+            configuration={"type": "gallery"},
+        ),
+    )
 
 
 def build_notion_projection(
@@ -225,6 +524,11 @@ def build_notion_projection(
         },
         "Review Status": {"select": {"name": projection.review_status}, "type": "select"},
         "Source URL": {"type": "url", "url": content.canonical_source_url},
+        "Sync Status": {"select": {"name": NOTION_SYNC_STATUS_SYNCED}, "type": "select"},
+        "X2N Schema Version": {
+            "rich_text": _rich_text(NOTION_SINK_SCHEMA_VERSION),
+            "type": "rich_text",
+        },
     }
     children: list[dict[str, Any]] = []
     for heading, value in (
@@ -266,15 +570,24 @@ def build_notion_projection(
         }
     )
     children.extend(_paragraph_chunks(provenance))
-    if len(children) > 100:
-        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Notion projection exceeds the request block limit")
+    if len(children) > NOTION_MAX_TOTAL_CHILD_BLOCKS:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Notion projection exceeds the bounded child block limit")
+    child_batches = _child_batches(tuple(children))
+    if any(
+        len(
+            json.dumps(list(batch), ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
+        )
+        > NOTION_MAX_REQUEST_BYTES
+        for batch in child_batches
+    ):
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Notion child batch exceeds the request size limit")
     rendered = json.dumps(
         {"children": children, "properties": properties},
         ensure_ascii=False,
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
-    if len(rendered) > 500_000:
+    if len(rendered) > NOTION_MAX_REQUEST_BYTES:
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Notion projection exceeds the request size limit")
     validate_persistable_text(rendered.decode("utf-8"))
     return NotionProjection(
@@ -282,6 +595,7 @@ def build_notion_projection(
         desired_projection_hash=projection.desired_projection_hash,
         properties=properties,
         children=tuple(children),
+        child_batches=child_batches,
     )
 
 
@@ -325,6 +639,8 @@ class RateLimitedNotionClient:
         self.gate = gate
         self.items_data_source_id = transport.items_data_source_id
         self.categories_data_source_id = transport.categories_data_source_id
+        self.items_database_id = transport.items_database_id
+        self.categories_database_id = transport.categories_database_id
 
     def _call(self, function: Callable[..., T], *args: Any) -> T:
         self.gate.acquire()
@@ -342,11 +658,25 @@ class RateLimitedNotionClient:
     def retrieve_page(self, page_ref: str) -> NotionPage | None:
         return self._call(self.transport.retrieve_page, page_ref)
 
-    def create_page(self, projection: NotionProjection) -> NotionPage:
-        return self._call(self.transport.create_page, projection)
+    def create_page(self, projection: NotionProjection, children: tuple[dict[str, Any], ...]) -> NotionPage:
+        return self._call(self.transport.create_page, projection, children)
 
-    def update_page(self, page_ref: str, projection: NotionProjection) -> NotionPage:
-        return self._call(self.transport.update_page, page_ref, projection)
+    def update_page(
+        self,
+        page_ref: str,
+        projection: NotionProjection,
+        children: tuple[dict[str, Any], ...],
+    ) -> NotionPage:
+        return self._call(self.transport.update_page, page_ref, projection, children)
+
+    def append_page_children(self, page_ref: str, children: tuple[dict[str, Any], ...]) -> NotionPage:
+        return self._call(self.transport.append_page_children, page_ref, children)
+
+    def list_views(self, data_source_id: str) -> tuple[NotionView, ...]:
+        return self._call(self.transport.list_views, data_source_id)
+
+    def create_view(self, specification: NotionViewSpec) -> NotionView:
+        return self._call(self.transport.create_view, specification)
 
 
 @dataclass(frozen=True)
@@ -362,6 +692,8 @@ class NotionMockServer:
         self.monotonic = monotonic
         self.items_data_source_id = str(uuid.uuid5(_MOCK_NAMESPACE, "items-data-source"))
         self.categories_data_source_id = str(uuid.uuid5(_MOCK_NAMESPACE, "categories-data-source"))
+        self.items_database_id = str(uuid.uuid5(_MOCK_NAMESPACE, "items-database"))
+        self.categories_database_id = str(uuid.uuid5(_MOCK_NAMESPACE, "categories-database"))
         self.schemas: dict[str, dict[str, dict[str, Any]]] = {
             "categories": {
                 "Owner Notes": {
@@ -381,11 +713,14 @@ class NotionMockServer:
             },
         }
         self.pages: dict[str, NotionPage] = {}
+        self.views: dict[str, NotionView] = {}
         self.timeline: list[dict[str, Any]] = []
         self.faults: list[MockFault] = []
         self.schema_write_count = 0
         self.page_create_count = 0
         self.page_update_count = 0
+        self.page_append_count = 0
+        self.view_create_count = 0
 
     def queue_fault(self, operation: str, error: BaseException) -> None:
         self.faults.append(MockFault(operation, error))
@@ -429,36 +764,123 @@ class NotionMockServer:
         return self.pages.get(page_ref)
 
     @staticmethod
-    def _page(projection: NotionProjection, page_ref: str, existing: NotionPage | None = None) -> NotionPage:
+    def _page(
+        projection: NotionProjection,
+        page_ref: str,
+        existing: NotionPage | None = None,
+        children: tuple[dict[str, Any], ...] | None = None,
+    ) -> NotionPage:
         properties = {} if existing is None else json.loads(json.dumps(existing.properties, sort_keys=True))
         properties.update(json.loads(json.dumps(projection.properties, sort_keys=True)))
+        managed_properties = json.loads(json.dumps(projection.properties, sort_keys=True))
+        page_children = projection.children if children is None else children
+        copied_children = tuple(json.loads(json.dumps(list(page_children), sort_keys=True)))
         return NotionPage(
             page_ref=page_ref,
             content_key=projection.content_key,
             projection_hash=projection.desired_projection_hash,
-            output_hash=projection.output_hash(),
+            output_hash=canonical_json_sha256(
+                {"children": list(copied_children), "properties": managed_properties}
+            ),
             properties=properties,
-            children=tuple(json.loads(json.dumps(list(projection.children), sort_keys=True))),
+            managed_properties=managed_properties,
+            children=copied_children,
         )
 
-    def create_page(self, projection: NotionProjection) -> NotionPage:
+    def create_page(
+        self,
+        projection: NotionProjection,
+        children: tuple[dict[str, Any], ...] | None = None,
+    ) -> NotionPage:
         self._request("create_page")
+        child_batch = projection.children if children is None else children
+        if len(child_batch) > NOTION_MAX_CHILD_BLOCKS_PER_REQUEST:
+            raise NotionSchemaConflict("Notion page creation exceeds the bounded request limit")
         suffix = sum(1 for page in self.pages.values() if page.content_key == projection.content_key)
         page_ref = str(uuid.uuid5(_MOCK_NAMESPACE, f"page:{projection.content_key}:{suffix}"))
-        page = self._page(projection, page_ref)
+        page = self._page(projection, page_ref, children=child_batch)
         self.pages[page_ref] = page
         self.page_create_count += 1
         return page
 
-    def update_page(self, page_ref: str, projection: NotionProjection) -> NotionPage:
+    def update_page(
+        self,
+        page_ref: str,
+        projection: NotionProjection,
+        children: tuple[dict[str, Any], ...] | None = None,
+    ) -> NotionPage:
         self._request("update_page")
         existing = self.pages.get(page_ref)
         if existing is None:
             raise NotionTransportError(status=404, code="object_not_found")
-        page = self._page(projection, page_ref, existing)
+        child_batch = projection.children if children is None else children
+        if len(child_batch) > NOTION_MAX_CHILD_BLOCKS_PER_REQUEST:
+            raise NotionSchemaConflict("Notion page update exceeds the bounded request limit")
+        page = self._page(projection, page_ref, existing, children=child_batch)
         self.pages[page_ref] = page
         self.page_update_count += 1
         return page
+
+    def append_page_children(self, page_ref: str, children: tuple[dict[str, Any], ...]) -> NotionPage:
+        self._request("append_page_children")
+        if len(children) > NOTION_MAX_CHILD_BLOCKS_PER_REQUEST:
+            raise NotionSchemaConflict("Notion child append exceeds the bounded request limit")
+        existing = self.pages.get(page_ref)
+        if existing is None:
+            raise NotionTransportError(status=404, code="object_not_found")
+        copied_children = tuple(json.loads(json.dumps(list(children), sort_keys=True)))
+        merged_children = (*existing.children, *copied_children)
+        page = dataclasses.replace(
+            existing,
+            output_hash=canonical_json_sha256(
+                {"children": list(merged_children), "properties": existing.managed_properties}
+            ),
+            children=merged_children,
+        )
+        self.pages[page_ref] = page
+        self.page_append_count += 1
+        return page
+
+    def list_views(self, data_source_id: str) -> tuple[NotionView, ...]:
+        self._request("list_views")
+        if data_source_id not in {self.items_data_source_id, self.categories_data_source_id}:
+            raise NotionTransportError(status=404, code="object_not_found")
+        return tuple(
+            sorted(
+                (item for item in self.views.values() if item.data_source_id == data_source_id),
+                key=lambda item: item.view_ref,
+            )
+        )
+
+    def create_view(self, specification: NotionViewSpec) -> NotionView:
+        self._request("create_view")
+        expected_database_id = {
+            self.items_data_source_id: self.items_database_id,
+            self.categories_data_source_id: self.categories_database_id,
+        }.get(specification.data_source_id)
+        if expected_database_id is None:
+            raise NotionTransportError(status=404, code="object_not_found")
+        if specification.database_id != expected_database_id:
+            raise NotionSchemaConflict("view database does not own the supplied data source")
+        duplicate = sum(
+            1
+            for item in self.views.values()
+            if item.data_source_id == specification.data_source_id and item.name == specification.name
+        )
+        view_ref = str(uuid.uuid5(_MOCK_NAMESPACE, f"view:{specification.data_source_id}:{specification.name}:{duplicate}"))
+        view = NotionView(
+            view_ref=view_ref,
+            name=specification.name,
+            database_id=specification.database_id,
+            data_source_id=specification.data_source_id,
+            view_type=specification.view_type,
+            filter=json.loads(json.dumps(specification.filter, sort_keys=True)),
+            sorts=tuple(json.loads(json.dumps(list(specification.sorts), sort_keys=True))),
+            configuration=json.loads(json.dumps(specification.configuration, sort_keys=True)),
+        )
+        self.views[view_ref] = view
+        self.view_create_count += 1
+        return view
 
 
 class NotionSinkWorker:
@@ -482,15 +904,81 @@ class NotionSinkWorker:
         self.category_page_refs = dict(category_page_refs or {})
         self.max_attempts = max_attempts
 
-    def _ensure_schema(self) -> None:
+    def _ensure_schema(self) -> NotionSchemaMigration:
         categories = self.client.retrieve_schema("categories")
         items = self.client.retrieve_schema("items")
-        category_additions = plan_additive_schema(categories, category_schema_specs())
-        item_additions = plan_additive_schema(items, item_schema_specs(self.client.categories_data_source_id))
-        if category_additions:
-            self.client.patch_schema("categories", category_additions)
-        if item_additions:
-            self.client.patch_schema("items", item_additions)
+        migration = plan_schema_migration(
+            categories,
+            items,
+            categories_data_source_id=self.client.categories_data_source_id,
+        )
+        if migration.category_additions:
+            self.client.patch_schema("categories", migration.category_additions)
+        if migration.item_additions:
+            self.client.patch_schema("items", migration.item_additions)
+        return migration
+
+    def reconcile_views(self) -> NotionViewReconciliation:
+        """Create only missing x2n-owned views; never overwrite an owner view.
+
+        View installation is intentionally outside page delivery and Outbox.  A
+        view is an optional navigation projection, so an unavailable view API
+        returns a precise fallback rather than claiming a view was created or
+        delaying Canonical/Markdown/Notion page reconciliation.
+        """
+
+        specifications = (
+            *item_view_specs(
+                database_id=self.client.items_database_id,
+                data_source_id=self.client.items_data_source_id,
+            ),
+            *category_view_specs(
+                database_id=self.client.categories_database_id,
+                data_source_id=self.client.categories_data_source_id,
+            ),
+        )
+        deliveries: list[NotionViewDelivery] = []
+        try:
+            self._ensure_schema()
+            existing_by_data_source = {
+                data_source_id: self.client.list_views(data_source_id)
+                for data_source_id in dict.fromkeys(specification.data_source_id for specification in specifications)
+            }
+            for specification in specifications:
+                existing = existing_by_data_source[specification.data_source_id]
+                matches = [item for item in existing if item.name == specification.name]
+                if len(matches) > 1:
+                    raise NotionSchemaConflict("multiple views share one x2n-managed name")
+                if not matches:
+                    view = self.client.create_view(specification)
+                    deliveries.append(
+                        NotionViewDelivery(
+                            key=specification.key,
+                            state="created",
+                            output_hash=view.output_hash(),
+                            view_ref_hash=hashlib.sha256(view.view_ref.encode("utf-8")).hexdigest(),
+                        )
+                    )
+                    existing_by_data_source[specification.data_source_id] = (*existing, view)
+                    continue
+                view = matches[0]
+                if view.output_hash() != specification.output_hash():
+                    raise NotionSchemaConflict("x2n-managed view differs from the declared safe definition")
+                deliveries.append(
+                    NotionViewDelivery(
+                        key=specification.key,
+                        state="unchanged",
+                        output_hash=view.output_hash(),
+                        view_ref_hash=hashlib.sha256(view.view_ref.encode("utf-8")).hexdigest(),
+                    )
+                )
+            return NotionViewReconciliation("SUPPORTED", tuple(deliveries))
+        except NotionTransportError as error:
+            return NotionViewReconciliation(
+                "FALLBACK_DOCUMENTED",
+                tuple(deliveries),
+                fallback_reason=self._error_code(error.code),
+            )
 
     @staticmethod
     def _receipt(projection: SinkProjection, page: NotionPage, delivered_at: str) -> SinkReceipt:
@@ -602,12 +1090,20 @@ class NotionSinkWorker:
                 if len(pages) > 1:
                     raise NotionDuplicatePage("multiple pages share one content_key")
                 page = pages[0] if pages else None
+            first_batch = notion_projection.child_batches[0] if notion_projection.child_batches else ()
             if page is None:
-                page = self.client.create_page(notion_projection)
+                page = self.client.create_page(notion_projection, first_batch)
                 remote_write = "create"
-            elif page.projection_hash != notion_projection.desired_projection_hash:
-                page = self.client.update_page(page.page_ref, notion_projection)
+            elif (
+                page.projection_hash != notion_projection.desired_projection_hash
+                or page.output_hash != notion_projection.output_hash()
+            ):
+                page = self.client.update_page(page.page_ref, notion_projection, first_batch)
                 remote_write = "update"
+            for child_batch in notion_projection.child_batches[1:]:
+                page = self.client.append_page_children(page.page_ref, child_batch)
+            if page.output_hash != notion_projection.output_hash():
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion page body did not reconcile")
             if transition_hook is not None:
                 transition_hook(TRANSITION_AFTER_NOTION_SUCCESS)
             self.store.record_notion_mapping(content_key=claim.content_key, page_ref=page.page_ref, now=now)

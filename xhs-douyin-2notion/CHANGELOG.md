@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 5 / UX-Ops 001
+
+- 完成 `TSK.x2n.uxops.001 / PH.X2N.5.1` 的 CI-synth Mock 范围：Items/Categories 版本化加法 schema、精确长文本分块与首批创建/后续 append 均最多 100 block/request、2 req/s 闸门、429/529 Retry-After、Dead Letter、Outbox outage/kill 后 reconcile。
+- 增加 14 个明确 x2n 自有 Items/Categories View 定义：Default Table、Category Gallery、Likes、Favorites、Review、Processing Failed、六个平台、Recent 与 Categories directory；同名但不同定义 Fail Closed，不覆盖 Owner View；View API 不可用时仅返回文档化 fallback，绝不伪称创建。真实 Notion、Owner Canary、网络、账号、平台调用均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.002`；G5、上传、部署、发布仍未授权。无 Alpha/Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 4 / G4 Review
 
 - 独立复核 Stage 4 五个固定 Task receipt，并新增 G4 的 Run Contract、机器状态、schema、acceptance runner、fail-closed verifier 与脱敏证据入口。

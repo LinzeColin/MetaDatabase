@@ -30,8 +30,15 @@ from x2n_companion.markdown_sink import (
 )
 from x2n_companion.media_safety import scan_persisted_scopes
 from x2n_companion.notion_sink import (
+    NOTION_MAX_CHILD_BLOCKS_PER_REQUEST,
+    NOTION_MAX_RICH_TEXT_CHARS,
+    NOTION_PLATFORM_VIEW_VALUES,
+    NOTION_SINK_SCHEMA_VERSION,
+    NOTION_SYNC_STATUS_FAILED,
+    NOTION_SYNC_STATUS_SYNCED,
     TRANSITION_AFTER_NOTION_SUCCESS,
     NotionMockServer,
+    NotionSchemaConflict,
     NotionSinkWorker,
     NotionTransportError,
     RateLimitedNotionClient,
@@ -417,6 +424,9 @@ class SinkTests(unittest.TestCase):
         self.assertEqual((server.page_create_count, len(server.pages)), (1, 1))
         self.assertIn("Owner Notes", server.schemas["items"])
         self.assertIn("Owner Notes", server.schemas["categories"])
+        self.assertIn("X2N Schema Version", server.schemas["items"])
+        self.assertIn("X2N Schema Version", server.schemas["categories"])
+        self.assertIn("Sync Status", server.schemas["items"])
         page_ref, page = next(iter(server.pages.items()))
         custom = dict(page.properties)
         custom["Owner Manual"] = {"rich_text": _rich_text_for_test("keep me"), "type": "rich_text"}
@@ -441,7 +451,136 @@ class SinkTests(unittest.TestCase):
         self.assertEqual((update.state, update.remote_write), ("delivered", "update"))
         self.assertEqual((server.page_create_count, server.page_update_count, len(server.pages)), (1, 1, 1))
         self.assertIn("Owner Manual", server.pages[page_ref].properties)
+        self.assertEqual(
+            server.pages[page_ref].properties["X2N Schema Version"]["rich_text"][0]["text"]["content"],
+            NOTION_SINK_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            server.pages[page_ref].properties["Sync Status"]["select"]["name"],
+            NOTION_SYNC_STATUS_SYNCED,
+        )
         self.assertEqual(self.store.counts()["notion_mapping"], 1)
+
+    def test_notion_long_text_is_exactly_chunked_into_bounded_child_batches(self) -> None:
+        long_summary = "synthetic paragraph " * 12_000
+        projection = self.projection(0, text=ProjectionText(summary=long_summary))
+        notion = build_notion_projection(projection)
+        self.assertGreater(len(notion.children), NOTION_MAX_CHILD_BLOCKS_PER_REQUEST)
+        self.assertEqual(len(notion.child_batches), 2)
+        self.assertTrue(
+            all(len(batch) <= NOTION_MAX_CHILD_BLOCKS_PER_REQUEST for batch in notion.child_batches)
+        )
+        summary_start = next(
+            index
+            for index, block in enumerate(notion.children)
+            if block.get("heading_2", {}).get("rich_text", [{}])[0].get("text", {}).get("content") == "Summary"
+        )
+        provenance_start = next(
+            index
+            for index, block in enumerate(notion.children)
+            if block.get("heading_2", {}).get("rich_text", [{}])[0].get("text", {}).get("content") == "Provenance"
+        )
+        fragments = [
+            str(block["paragraph"]["rich_text"][0]["text"]["content"])
+            for block in notion.children[summary_start + 1 : provenance_start]
+        ]
+        self.assertEqual("".join(fragments), long_summary)
+        self.assertTrue(all(len(fragment) <= NOTION_MAX_RICH_TEXT_CHARS for fragment in fragments))
+
+        server, worker = self.notion()
+        delivered = worker.process(projection, now=self.clock.iso())
+        self.assertEqual((delivered.state, delivered.remote_write), ("delivered", "create"))
+        self.assertEqual((server.page_create_count, server.page_append_count), (1, 1))
+        page = next(iter(server.pages.values()))
+        self.assertEqual(page.children, notion.children)
+        self.assertEqual(page.output_hash, notion.output_hash())
+
+        recovery_projection = self.projection(1, text=ProjectionText(summary=long_summary))
+        recovery_notion = build_notion_projection(recovery_projection)
+        recovery_server, recovery_worker = self.notion()
+        recovery_server.queue_fault(
+            "append_page_children",
+            NotionTransportError(status=529, code="service_overload", retry_after_seconds=1),
+        )
+        pending = recovery_worker.process(recovery_projection, now=self.clock.iso())
+        self.assertEqual(pending.state, "pending")
+        partial = next(iter(recovery_server.pages.values()))
+        self.assertEqual(len(partial.children), NOTION_MAX_CHILD_BLOCKS_PER_REQUEST)
+        self.assertIsNone(self.store.notion_mapping(recovery_projection.canonical.content.content_key))
+        retry_state = self.store.outbox_state(pending.event_id)
+        assert retry_state is not None
+        self.clock.set_iso(retry_state.not_before)
+        recovered = recovery_worker.process(recovery_projection, now=retry_state.not_before)
+        self.assertEqual((recovered.state, recovered.remote_write), ("delivered", "update"))
+        self.assertEqual((recovery_server.page_create_count, recovery_server.page_update_count), (1, 1))
+        self.assertEqual((len(recovery_server.pages), recovery_server.page_append_count), (1, 1))
+        recovered_page = next(iter(recovery_server.pages.values()))
+        self.assertEqual(recovered_page.children, recovery_notion.children)
+        self.assertEqual(recovered_page.output_hash, recovery_notion.output_hash())
+
+    def test_notion_views_are_idempotent_and_never_overwrite_a_conflict(self) -> None:
+        server, worker = self.notion()
+        first = worker.reconcile_views()
+        self.assertEqual(first.capability, "SUPPORTED")
+        self.assertEqual((server.view_create_count, len(server.views)), (14, 14))
+        self.assertEqual({item.state for item in first.deliveries}, {"created"})
+        names = {item.name for item in server.views.values()}
+        self.assertEqual(
+            names,
+            {
+                "X2N · Default Table",
+                "X2N · Category Gallery",
+                "X2N · Favorites",
+                "X2N · Likes Inbox",
+                "X2N · Needs Review",
+                "X2N · Processing Failed",
+                "X2N · Recent",
+                "X2N · Categories",
+                *(f"X2N · Platform · {platform.title()}" for platform in NOTION_PLATFORM_VIEW_VALUES),
+            },
+        )
+        favorites = next(item for item in server.views.values() if item.name == "X2N · Favorites")
+        self.assertEqual(favorites.filter, {"property": "Relations", "multi_select": {"contains": "favorited"}})
+        category_gallery = next(item for item in server.views.values() if item.name == "X2N · Category Gallery")
+        self.assertEqual(category_gallery.view_type, "gallery")
+        self.assertEqual(category_gallery.filter, {"property": "Category", "relation": {"is_not_empty": True}})
+        self.assertEqual(category_gallery.configuration, {"type": "gallery"})
+        needs_review = next(item for item in server.views.values() if item.name == "X2N · Needs Review")
+        self.assertEqual(
+            needs_review.filter,
+            {"property": "Review Status", "select": {"equals": ["unclassified", "suggested"]}},
+        )
+        processing_failed = next(item for item in server.views.values() if item.name == "X2N · Processing Failed")
+        self.assertEqual(
+            processing_failed.filter,
+            {"property": "Sync Status", "select": {"equals": NOTION_SYNC_STATUS_FAILED}},
+        )
+        categories = next(item for item in server.views.values() if item.name == "X2N · Categories")
+        self.assertEqual(categories.data_source_id, server.categories_data_source_id)
+        self.assertEqual(categories.view_type, "gallery")
+        for platform in NOTION_PLATFORM_VIEW_VALUES:
+            platform_view = next(
+                item for item in server.views.values() if item.name == f"X2N · Platform · {platform.title()}"
+            )
+            self.assertEqual(platform_view.filter, {"property": "Platform", "select": {"equals": platform}})
+        second = worker.reconcile_views()
+        self.assertEqual(second.capability, "SUPPORTED")
+        self.assertEqual((server.view_create_count, len(server.views)), (14, 14))
+        self.assertEqual({item.state for item in second.deliveries}, {"unchanged"})
+
+        server.views[favorites.view_ref] = dataclasses.replace(favorites, sorts=())
+        with self.assertRaises(NotionSchemaConflict):
+            worker.reconcile_views()
+        self.assertEqual((server.view_create_count, len(server.views)), (14, 14))
+
+    def test_notion_view_capability_unavailable_returns_documented_fallback(self) -> None:
+        server, worker = self.notion()
+        server.queue_fault("list_views", NotionTransportError(status=404, code="object_not_found"))
+        result = worker.reconcile_views()
+        self.assertEqual(result.capability, "FALLBACK_DOCUMENTED")
+        self.assertEqual(result.fallback_reason, "notion_object_not_found")
+        self.assertEqual(result.deliveries, ())
+        self.assertEqual((server.view_create_count, len(server.views)), (0, 0))
 
     def test_notion_request_timeline_is_serialized_at_two_per_second(self) -> None:
         projection = self.projection(5)

@@ -21,7 +21,7 @@
 - Review 关闭：Owner removed 终态、XHS envelope、Douyin 50 次真实子进程 Kill、private batch comparison/增量候选、A005 fixed-commit pin、同一批 80 Adapter 输入的 Canonical→Artifact→Markdown→Notion Mock/Outbox 真正跨层幂等。80 Artifact/Markdown/Notion Mock 与 160 Receipt 第二轮重复为 0，持久层 finding 0。
 - 首次 Review 的五个 blocker 证据保持不可变；Resume 已关闭其中三个合同/归属 blocker，Task010 已在 CI synthetic 范围内闭合剩余两个实现 blocker。独立 `STG.X2N.3.REVIEW.RESUME.RECHECK` 已重新复跑六项 G3 条件并签发 `G3=PASS_CI_SYNTH`；8 个真实 Canary/private Manifest/平台授权仍 `NOT_RUN`，但归属 Stage 6。
 - Stage 4 的 TSK.x2n.multimodal.001–005 已完成：有界媒体、local-first ASR、OCR/Vision、仅内存 Fusion/提示注入防护，以及 Owner 一级 taxonomy registry、append-only revision、immutable snapshot、受约束 suggestion、private Gold Oracle 和 Owner review correction 均有固定 receipt。Task005 的分类器没有 Store/registry mutation capability；未知、disabled 与跨内容 revision 都 Fail Closed。ASR/OCR/Vision/分类私有 Gold 仍 pending，自动分类固定关闭，只有 Unclassified/suggestion-only。
-- 独立 STG.X2N.4.REVIEW 已签发 G4=PASS_CI_SYNTH：五份 Task receipt、ASR/OCR/Vision/Fusion 报告、prompt-injection suite、Owner-only taxonomy 与 auto_classify disabled 均复验；真实模型、私有 Gold、平台、账号、Notion、上传、部署和发布均为 0/NOT_RUN。仅授权下一单本地 TSK.x2n.uxops.001 / PH.X2N.5.1。
+- 独立 STG.X2N.4.REVIEW 已签发 G4=PASS_CI_SYNTH：五份 Task receipt、ASR/OCR/Vision/Fusion 报告、prompt-injection suite、Owner-only taxonomy 与 auto_classify disabled 均复验；真实模型、私有 Gold、平台、账号、Notion、上传、部署和发布均为 0/NOT_RUN。其后 `TSK.x2n.uxops.001 / PH.X2N.5.1` 已完成 CI-synth Mock 的 versioned/additive Notion schema、受管视图、长文本有界 child batch 和 outbox/reconcile；真实 Notion/Owner Canary 仍为 0/NOT_RUN，下一单仅为 `TSK.x2n.uxops.002 / PH.X2N.5.2`。
 - Release：不设置预发布阶段、固定 30 日健康观察或 soak；`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动 `assurance.005`。该任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`；合法外部门可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；上线后监控只触发修复、降级或回滚，不形成等待门。
 - Data：`X2N_DATA_ROOT` 是下载/执行/活跃 SQLite working copy 的本机易失工作区；目标为整根排除 Time Machine，但当前仍是历史逐子目录状态，本 Resume 未执行系统修改，`uxops.005` 将在 Owner 明确授权后实施/复验。本地 backup 不能满足 durability；耐久资产只经 `KMOS/KMDatabase/machine/tools/private_db_client.py ingest|get|list|verify` 写入 `LinzeColin/Private-Database` 的 `Private-MetaDatabase` area，并以 manifest `domain=xhs-douyin-2notion` 归属，禁止 clone。客户端拒绝直接 `.sqlite/.db` 且单对象上限 95 MiB，因此一致性 SQLite 快照必须封装为非运行时归档、≤90 MiB 分片，凭精确 domain restore manifest 做 SHA-256 重组和 integrity 恢复；area-global verify 仅为无路径披露 advisory；验证前标记 `durability_pending`。
 - Private DB client audit：当前源码 SHA-256 `8a26302c…c9ffa`；manifest SHA 幂等和 `verify` 都是全 area、`verify` 缺对象仍可能 exit 0 且会触及其他 domain 路径、`get` 会落临时文件、认证继承 `gh api` 环境。这里的后续 “Task005” 专指 `TSK.x2n.uxops.005`，不是已完成的 `TSK.x2n.multimodal.005`：它必须 domain-bound envelope、精确 x2n domain 逐对象 get/hash/restore、其他 domain 缺失不阻断且零路径披露、临时清理、opaque name、禁止 put/delete；显式授权后可让现有 authenticated session 仅经客户端使用，Token value contact 与 auth mutation 必须为 0，执行前重验 digest。删除只作用 active SQLite/派生 Sink，单调 deletion epoch/tombstone 防历史恢复复活；durable hard erase 需独立 Owner Private-Database 治理。本 Resume 仅只读源码/`--help`；“没有 authenticated session 或数据写入”是过程声明，不是离线 verifier 的独立观测。
@@ -53,7 +53,7 @@
 - Stage 2 Review 最终回归：186 个根测试 PASS（3 个固定可选 skip）、76 个 Companion tests PASS；两份独立 full lane 各 24/24 Blocking Gate PASS，coverage 均 76.93%，33 个依赖漏洞 0，65-member source candidate SHA 一致；实际 Python 3.12.13 与全部工具链版本匹配政策。
 - 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
 - 首次 Stage 3 Review 当时的 Gate 为 `G3=BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`；九个历史 Task 与 Review 只证明 CI-SYNTH/Mock/Chaos 范围，A005 的 80 条 Owner 真实验收只完成非执行工具，Owner Profile/private Manifest/真实链路与正式 Release 均未运行。Resume 当时闭合三项合同/归属 blocker；当前 G3 只以本文件开头的新独立 recheck fact 为准。
-- 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown/Notion Mock 仅 CI-SYNTH scoped pass。
+- 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown 与 Task001 Notion Mock 仅 CI-SYNTH scoped pass。
 - 六平台真实执行：全部 `UNKNOWN_DISABLED`、`BLOCKED_AUTH` 或 `BLOCKED_BUDGET`；六平台均仅 `current_page=CI_SYNTH_ONLY`；各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
 
 ## Resume 关键决策
@@ -163,7 +163,7 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 下一独立 Run 只能执行本地 TSK.x2n.uxops.001；不得夹带后续 Stage 5 Task、Stage 4 上传、部署或发布。
-2. 开始前重跑 scripts/verify_stage_4_review.py、五份 multimodal verifier 与历史 G3/Task010 verifier；私有 Gold 仍只能保持 disabled/suggestion-only，不能伪造质量通过。
+1. 下一独立 Run 只能执行本地 TSK.x2n.uxops.002；不得夹带后续 Stage 5 Task、上传、部署或发布。
+2. 开始前重跑 scripts/verify_uxops_001.py、scripts/verify_stage_4_review.py、五份 multimodal verifier 与历史 G3/Task010 verifier；私有 Gold 仍只能保持 disabled/suggestion-only，不能伪造质量通过。
 3. 直接 MVP 部署、运行与 online smoke 仍严格位于最终 Stage 6 assurance.005 内；无 Alpha/Beta、固定观察或 soak。Owner Profile、真实账号和 Canary 仍属于该阶段的逐平台有界激活，私有 Manifest 永不进 Git。
 4. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Profile/Runtime/越界写入命中立即 Fail Closed。

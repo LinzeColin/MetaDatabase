@@ -265,6 +265,19 @@ def _stage4_review_completed(state: dict[str, Any]) -> bool:
     )
 
 
+def _stage5_task001_completed(state: dict[str, Any]) -> bool:
+    return (
+        _stage4_review_completed(state)
+        and state.get("tasks", {}).get("TSK.x2n.uxops.001") == "pass"
+        and state.get("last_completed_phase") == "PH.X2N.5.1"
+        and state.get("run_id") == "RUN-X2N-S05-U001"
+        and state.get("state") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and state.get("next_run") == "TSK.x2n.uxops.002"
+        and state.get("stage_5_task001_complete") is True
+        and state.get("stage_5_remote_upload_authorized") is False
+    )
+
+
 def validate_task_and_transition() -> Check:
     task = _load_task()
     state = _load_json(TASK_STATE)
@@ -323,7 +336,7 @@ def validate_task_and_transition() -> Check:
         "PASS",
         {
             "completed_task": TASK_ID,
-            "next_task": "TSK.x2n.uxops.001" if g4_completed else "G4",
+            "next_task": "TSK.x2n.uxops.002" if _stage5_task001_completed(state) else "TSK.x2n.uxops.001" if g4_completed else "G4",
             "automatic_classification": "DISABLED_PENDING_PRIVATE_GOLD",
         },
     )
@@ -415,6 +428,7 @@ def validate_facts_and_evidence() -> Check:
         in {
             "stage_4_task005_taxonomy_classifier_ci_synth_private_gold_pending_g4_review_pending",
             "stage_4_g4_pass_ci_synth_private_gold_disabled_stage_5_task001_next",
+            "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run",
         }
         and project.get("taxonomy_classification")
         == "owner_registry_append_only_revisions_constrained_deterministic_local_suggestion_only_review_private_gold_oracle_auto_classify_disabled_pending_private_gold"

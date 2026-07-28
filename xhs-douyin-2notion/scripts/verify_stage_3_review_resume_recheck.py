@@ -191,6 +191,22 @@ def _stage4_review_completed(state: dict[str, Any]) -> bool:
     )
 
 
+def _stage5_task001_completed(state: dict[str, Any]) -> bool:
+    return (
+        _stage4_review_completed(state)
+        and state.get("tasks", {}).get("TSK.x2n.uxops.001") == "pass"
+        and state.get("last_completed_phase") == "PH.X2N.5.1"
+        and state.get("run_id") == "RUN-X2N-S05-U001"
+        and state.get("run_kind") == "single_dag_task_ci_synth_notion_projection_hardening"
+        and state.get("state") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and state.get("next_phase") == "PH.X2N.5.2"
+        and state.get("next_run") == "TSK.x2n.uxops.002"
+        and state.get("current_stage_gate") == "review_pending"
+        and state.get("stage_5_task001_complete") is True
+        and state.get("stage_5_remote_upload_authorized") is False
+    )
+
+
 def validate_fact_and_historical_receipts() -> Check:
     schema = _load_json(RECHECK_SCHEMA)
     fact = _load_json(RECHECK_FACT)
@@ -267,6 +283,8 @@ def validate_taskpack_and_current_transition() -> Check:
     task003 = by_id.get("TSK.x2n.multimodal.003", {})
     task004 = by_id.get("TSK.x2n.multimodal.004", {})
     task005 = by_id.get("TSK.x2n.multimodal.005", {})
+    uxops001 = by_id.get("TSK.x2n.uxops.001", {})
+    uxops002 = by_id.get("TSK.x2n.uxops.002", {})
     gates = {item.get("id"): item for item in taskpack.get("stage_gates", []) if isinstance(item, dict)}
     _require(
         task010.get("status") == "completed"
@@ -282,7 +300,30 @@ def validate_taskpack_and_current_transition() -> Check:
     )
     _require(gates.get("G3", {}).get("pass_conditions") == EXPECTED_G3_CONDITIONS, "G3 taskpack conditions drifted")
     state = _load_json(TASK_STATE)
-    if next_task.get("status") == "planned":
+    if _stage5_task001_completed(state):
+        _require(
+            uxops001.get("status") == "completed"
+            and uxops001.get("phase") == "PH.X2N.5.1"
+            and uxops001.get("acceptance_ids")
+            == ["ACC.x2n.notion.001", "ACC.x2n.notion.002", "ACC.x2n.notion.003", "ACC.x2n.notion.004"]
+            and uxops002.get("status") == "planned"
+            and uxops002.get("phase") == "PH.X2N.5.2"
+            and uxops002.get("depends_on") == ["TSK.x2n.skeleton.005", "TSK.x2n.multimodal.005"],
+            "Stage5 Task001 completion does not preserve the Task002 contract",
+        )
+        _require(
+            state.get("stage") == "STG.X2N.5"
+            and state.get("review_id") == G4_REVIEW_ID
+            and state.get("stage_gate") == "pass"
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False,
+            "Stage5 Task001 did not preserve the bounded G3/G4 history",
+        )
+        completed_task = "TSK.x2n.uxops.001"
+        next_task_id = "TSK.x2n.uxops.002"
+    elif next_task.get("status") == "planned":
         _require(
             state.get("last_completed_phase") == REVIEW_ID
             and state.get("review_id") == REVIEW_ID
@@ -572,7 +613,9 @@ def validate_docs_and_public_boundary() -> Check:
     task004_completed = current_tasks.get("TSK.x2n.multimodal.004") == "pass"
     task005_completed = current_tasks.get("TSK.x2n.multimodal.005") == "pass"
     if task005_completed:
-        g4_completed = _stage4_review_completed(_load_json(TASK_STATE))
+        current_state = _load_json(TASK_STATE)
+        g4_completed = _stage4_review_completed(current_state)
+        stage5_task001_completed = _stage5_task001_completed(current_state)
         _require(
             task004_completed
             and (
@@ -587,7 +630,16 @@ def validate_docs_and_public_boundary() -> Check:
                     and "implementation_authorized: stage_4_g4_review_next_single_phase_run" in prd_text
                 )
                 or (
+                    stage5_task001_completed
+                    and "status: STAGE_5_TASK001_NOTION_PROJECTION_CI_SYNTH_PASS_TASK002_NEXT" in prfaq_text
+                    and "implementation_authorized: stage_5_task_002_next_single_phase_run" in prfaq_text
+                    and "status: STAGE_5_TASK001_NOTION_PROJECTION_CI_SYNTH_PASS_TASK002_NEXT" in prd_text
+                    and "current_run_scope: stage_5_task001_notion_projection_pass_task002_next_real_notion_not_run" in prd_text
+                    and "implementation_authorized: stage_5_task_002_next_single_phase_run" in prd_text
+                )
+                or (
                     g4_completed
+                    and not stage5_task001_completed
                     and "status: STAGE_4_G4_PASS_CI_SYNTH_PRIVATE_GOLD_DISABLED_STAGE_5_TASK001_NEXT" in prfaq_text
                     and "implementation_authorized: stage_5_task_001_next_single_phase_run" in prfaq_text
                     and "status: STAGE_4_G4_PASS_CI_SYNTH_PRIVATE_GOLD_DISABLED_STAGE_5_TASK001_NEXT" in prd_text

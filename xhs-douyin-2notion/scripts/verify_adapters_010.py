@@ -253,6 +253,22 @@ def _stage4_review_completed(state: dict[str, Any]) -> bool:
     )
 
 
+def _stage5_task001_completed(state: dict[str, Any]) -> bool:
+    return (
+        _stage4_review_completed(state)
+        and state.get("tasks", {}).get("TSK.x2n.uxops.001") == "pass"
+        and state.get("last_completed_phase") == "PH.X2N.5.1"
+        and state.get("run_id") == "RUN-X2N-S05-U001"
+        and state.get("run_kind") == "single_dag_task_ci_synth_notion_projection_hardening"
+        and state.get("state") == "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
+        and state.get("next_phase") == "PH.X2N.5.2"
+        and state.get("next_run") == "TSK.x2n.uxops.002"
+        and state.get("current_stage_gate") == "review_pending"
+        and state.get("stage_5_task001_complete") is True
+        and state.get("stage_5_remote_upload_authorized") is False
+    )
+
+
 def validate_task_state_and_historical_resume() -> Check:
     task = _load_task()
     state = _load_json(TASK_STATE)
@@ -262,7 +278,27 @@ def validate_task_state_and_historical_resume() -> Check:
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Task010 current state is not pass")
     task001_state = state.get("tasks", {}).get("TSK.x2n.multimodal.001")
     task005_state = state.get("tasks", {}).get("TSK.x2n.multimodal.005")
-    if task005_state == "pass" and _stage4_review_completed(state):
+    if task005_state == "pass" and _stage5_task001_completed(state):
+        _require(
+            state.get("stage") == "STG.X2N.5"
+            and state.get("review_id") == "STG.X2N.4.REVIEW"
+            and all(
+                state.get("tasks", {}).get(task_id) == "pass"
+                for task_id in (
+                    "TSK.x2n.multimodal.001",
+                    "TSK.x2n.multimodal.002",
+                    "TSK.x2n.multimodal.003",
+                    "TSK.x2n.multimodal.004",
+                    "TSK.x2n.multimodal.005",
+                    "TSK.x2n.uxops.001",
+                )
+            )
+            and state.get("stage_gate") == "pass"
+            and state.get("stage_3_remote_upload_authorized") is False,
+            "Task010 historical boundary was not preserved after Stage5 Task001 completion",
+        )
+        current_stage = "stage5_task001_complete_task002_next"
+    elif task005_state == "pass" and _stage4_review_completed(state):
         _require(
             state.get("stage") == "STG.X2N.5"
             and state.get("last_completed_phase") == "STG.X2N.4.REVIEW"
