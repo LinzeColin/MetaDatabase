@@ -114,8 +114,40 @@ protected scope. It is recorded as `activation_pending`, is never counted as
 PASS, and no simulator is presented as a real-channel proof. It is re-tested at
 `CB-830`.
 
-Stage 7, Stage 8 and gates PG-7 and PG-8 are `not_started`; the authoritative
-list is `machine/facts/task_state.json`.
+`P7.1 / CB-700` passed on base `a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0`. The
+BYOK vault wraps a random per-user DEK with the master KEK under AES-256-GCM and
+derives a provider sub-key per provider; user id, provider id and key version are
+bound into the AAD, so a ciphertext lifted into another scope is refused in
+constant time and a wrong master key fails authentication. Rotation preserves
+readability, crypto-shred makes one user's residual ciphertext unreadable while
+leaving other users intact, and no plaintext key reaches the database, Git, a log
+or Status. The four adapters use fixed official origins and server-owned model
+allowlists: a user cannot supply a base URL or a model, a rejected model never
+reaches the network, Gemini keeps its key in a header rather than the URL, and
+OpenAI opts out of provider-side retention. The controller orders cancel check,
+circuit, budget reservation, provider, settle — so a denied request calls the
+provider exactly zero times, which the suite counts directly. Limit check and
+reservation share one BEGIN IMMEDIATE transaction; missing usage, a crashed
+reservation and an uncertain transport all charge the full reservation, while a
+valid answer survives an accounting outage rather than forcing a paid retry.
+request_id idempotency is scoped per user. The breaker separates user-credential
+failures from provider outages, persists state in SQLite, grants exactly one
+half-open probe under a bounded lease, and releases any probe a downstream or
+cross-scope denial did not use. Aggregates carry no user dimension, prompt,
+response or secret, and no control-plane module can import a provider adapter.
+
+One flaky concurrency failure surfaced under full-suite load and was traced to
+the CB-610 Owner bootstrap taking a write lock on every database open. The
+bootstrap now skips the transaction entirely once the Owner row exists and no
+unscoped row remains; four consecutive full app-suite runs then passed 343/343.
+
+Real BYOK provider credentials are outside the authorised scope, so live
+provider activation stays `activation_pending`. Adapters are proved against
+frozen fake transports and no simulator result is presented as a live pass;
+activation happens at `CB-830`.
+
+The rest of Stage 7, Stage 8 and gates PG-7 and PG-8 are `not_started`; the
+authoritative list is `machine/facts/task_state.json`.
 
 Real WeChat channel credentials remain outside the authorised protected scope,
 so the channel stays `activation_pending`. Registration and consent are proved

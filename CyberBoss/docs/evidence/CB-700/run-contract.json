@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-700",
+  "stage": "S7",
+  "phase": "P7.1",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-710"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-012",
+    "AC-013",
+    "AC-014",
+    "AC-015",
+    "AC-016",
+    "AC-017",
+    "AC-045",
+    "AC-046",
+    "AC-047"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "adapt provider clients without accepting user base URLs/models",
+    "persist atomic budget reservation and circuit state",
+    "route all user model calls through controller"
+  ],
+  "rollback": [
+    "revoke provider routes",
+    "destroy affected user credential records",
+    "switch ordinary users to deterministic unavailable message",
+    "revert to base a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0"
+  ]
+}

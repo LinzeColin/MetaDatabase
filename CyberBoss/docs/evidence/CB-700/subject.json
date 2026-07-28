@@ -1,0 +1,172 @@
+{
+  "schema_version": "cyberboss.cb700.subject.v1",
+  "task_id": "CB-700",
+  "stage": "S7",
+  "phase": "P7.1",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_640_closure_commit": "a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0",
+    "closure_commit_recorded_by": "CB-710"
+  },
+  "credential_vault": {
+    "hierarchy": "master KEK -HKDF-> wrapping key -AES-256-GCM-> per-user DEK -HKDF-> provider sub-key -AES-256-GCM-> credential",
+    "dek_per_user": "random_32_bytes",
+    "scope_bound_into_aad": [
+      "user_id",
+      "provider_id",
+      "key_version"
+    ],
+    "cross_user_decrypt": "refused_USER_KEY_SCOPE_MISMATCH",
+    "cross_provider_decrypt": "refused_VAULT_SCOPE_MISMATCH",
+    "wrong_master_key": "refused_USER_KEY_AUTHENTICATION_FAILED",
+    "aad_compare": "constant_time",
+    "rotation": "verified_credentials_readable_under_new_version",
+    "crypto_shred": "verified_residual_ciphertext_unreadable",
+    "shred_scope": "single_user_only",
+    "plaintext_in_database": false,
+    "plaintext_in_git": false,
+    "plaintext_in_logs": false,
+    "plaintext_in_status": false,
+    "clear_fragment_stored": "last4_only",
+    "key_material_zeroed": true
+  },
+  "providers": {
+    "openai": {
+      "protocol": "responses",
+      "origin": "https://api.openai.com",
+      "retention_opt_out": true
+    },
+    "deepseek": {
+      "protocol": "openai_chat_completions_reused",
+      "origin": "https://api.deepseek.com"
+    },
+    "google": {
+      "protocol": "generate_content",
+      "origin": "https://generativelanguage.googleapis.com",
+      "auth": "x-goog-api-key header",
+      "key_in_url": false
+    },
+    "anthropic": {
+      "protocol": "messages",
+      "origin": "https://api.anthropic.com",
+      "version_header": "2023-06-01"
+    },
+    "user_supplied_base_url": false,
+    "user_supplied_model_id": false,
+    "model_allowlist": "server_owned_exact_membership",
+    "rejected_model_reaches_network": false,
+    "non_official_origin": "refused_PROVIDER_ORIGIN_NOT_OFFICIAL",
+    "usage_normalized_for_all_four": true
+  },
+  "fault_isolation": {
+    "codes": [
+      "CREDENTIAL_INVALID",
+      "RATE_LIMITED",
+      "NO_BALANCE",
+      "PROVIDER_UNAVAILABLE",
+      "PROVIDER_BAD_RESPONSE",
+      "TIMEOUT",
+      "NETWORK_ERROR"
+    ],
+    "messages_language": "zh-CN",
+    "secret_in_message": false,
+    "provider_body_in_diagnostic": false,
+    "default_timeout_ms": 60000,
+    "timeout_counts_as_provider_failure": true,
+    "external_cancel_counts_as_provider_failure": false
+  },
+  "token_budget": {
+    "input_estimate": "utf8_byte_upper_bound",
+    "reservation_before_provider_call": true,
+    "atomicity": "sqlite_begin_immediate_single_transaction",
+    "limits": [
+      "user_daily",
+      "user_monthly",
+      "global_daily",
+      "global_monthly",
+      "per_request"
+    ],
+    "provider_calls_when_over_budget": 0,
+    "denial_message_language": "zh-CN",
+    "denial_includes_repair_action": true,
+    "request_id_idempotency_scope": "per_user",
+    "cross_user_request_id_collision": false,
+    "missing_usage_charge": "full_reservation",
+    "crashed_reservation_charge": "full_reservation_on_ttl",
+    "uncertain_transport_charge": "full_reservation",
+    "success_survives_accounting_outage": true
+  },
+  "circuit_breaker": {
+    "scopes": [
+      "user_provider",
+      "global"
+    ],
+    "credential_failure_scope": "user_provider_only",
+    "outage_failure_scope": "global",
+    "state_storage": "sqlite_provider_circuits",
+    "half_open_probes_in_flight_max": 1,
+    "probe_lease": "bounded_recovers_lost_completion",
+    "downstream_denial_releases_unused_probe": true,
+    "cross_scope_probe_released": true,
+    "unclassified_failure_releases_all_probes": true,
+    "clock": "injectable_fake_clock",
+    "real_time_waits": 0
+  },
+  "observability": {
+    "provider_aggregate_fields": [
+      "providerId",
+      "calls",
+      "inputTokens",
+      "outputTokens",
+      "totalTokens",
+      "fallbackCharges"
+    ],
+    "user_dimension_in_aggregate": false,
+    "prompt_or_response_in_aggregate": false,
+    "secret_in_aggregate": false
+  },
+  "zero_agent": {
+    "control_plane_modules_importing_a_provider": 0,
+    "background_model_calls": 0,
+    "health_probe_model_calls": 0
+  },
+  "concurrency_fix": {
+    "issue": "the CB-610 Owner bootstrap took a BEGIN IMMEDIATE write lock on every database open, which under 32 concurrent workers plus parallel suites produced one flaky lock-contention failure",
+    "fix": "a read-only precheck skips the write transaction entirely once the Owner row exists and no unscoped row remains",
+    "verification": "4 consecutive full app-suite runs at 343/343 after the fix"
+  },
+  "tests": {
+    "cb700_suite_tests": 10,
+    "cb700_suite_failures": 0,
+    "app_suite_tests": 343,
+    "app_suite_failures": 0,
+    "app_suite_consecutive_clean_runs": 4,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "parallel_runtime_created": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [
+    {
+      "item": "real_byok_provider_credentials",
+      "state": "activation_pending",
+      "reason": "live OpenAI, Gemini, DeepSeek and Anthropic keys are outside the authorised scope",
+      "proved_against": "frozen fake transports",
+      "not_claimed_as": "live provider PASS",
+      "activate_at": "CB-830"
+    }
+  ],
+  "status": "passed"
+}

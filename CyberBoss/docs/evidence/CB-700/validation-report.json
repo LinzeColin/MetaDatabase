@@ -1,0 +1,438 @@
+{
+  "schema_version": "cyberboss.cb700.validation.v1",
+  "task_id": "CB-700",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-012",
+    "AC-013",
+    "AC-014",
+    "AC-015",
+    "AC-016",
+    "AC-017",
+    "AC-045",
+    "AC-046",
+    "AC-047"
+  ],
+  "check_count": 62,
+  "pass_count": 61,
+  "fail_count": 0,
+  "activation_pending_count": 1,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_suites": [
+    {
+      "suite": "test/cb700-provider-vault-budget-circuit.test.js",
+      "returncode": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb630-usercontext-guard-queue.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb610-multiuser-foundation.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 28,
+  "checks": [
+    {
+      "check": "ac012.random_per_user_dek",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "each user gets a random 32-byte DEK"
+    },
+    {
+      "check": "ac012.kek_wraps_with_aes_256_gcm",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "the DEK is wrapped by the master KEK under AES-256-GCM"
+    },
+    {
+      "check": "ac012.provider_subkey_derived",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "a per-provider sub-key is derived from the user DEK"
+    },
+    {
+      "check": "ac012.scope_binding_in_aad",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "user and provider scope are bound into the AAD"
+    },
+    {
+      "check": "ac012.scope_mismatch_refused",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "a ciphertext lifted into another scope is refused"
+    },
+    {
+      "check": "ac012.constant_time_aad_compare",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "the AAD comparison is constant time"
+    },
+    {
+      "check": "ac012.rotation_supported",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "keys can be rotated without losing stored credentials"
+    },
+    {
+      "check": "ac012.crypto_shred_supported",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "destroying the wrapped DEK crypto-shreds residual ciphertext"
+    },
+    {
+      "check": "ac012.keys_zeroed_after_use",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "derived key material is zeroed in finally blocks"
+    },
+    {
+      "check": "ac012.only_last4_in_clear",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "the only plaintext fragment stored is the last four characters"
+    },
+    {
+      "check": "ac012.listing_has_no_ciphertext",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "listCredentials returns no ciphertext"
+    },
+    {
+      "check": "ac013.openai_responses_endpoint",
+      "acceptance_id": "AC-013",
+      "result": "PASS",
+      "detail": "OpenAI uses the fixed official Responses endpoint"
+    },
+    {
+      "check": "ac013.openai_no_provider_retention",
+      "acceptance_id": "AC-013",
+      "result": "PASS",
+      "detail": "OpenAI requests opt out of provider-side retention"
+    },
+    {
+      "check": "ac014.deepseek_reuses_openai_protocol",
+      "acceptance_id": "AC-014",
+      "result": "PASS",
+      "detail": "DeepSeek reuses the OpenAI-compatible implementation with its own policy"
+    },
+    {
+      "check": "ac014.deepseek_origin_pinned",
+      "acceptance_id": "AC-014",
+      "result": "PASS",
+      "detail": "the DeepSeek origin is pinned"
+    },
+    {
+      "check": "ac015.gemini_header_auth",
+      "acceptance_id": "AC-015",
+      "result": "PASS",
+      "detail": "Gemini authenticates by header, never by query string"
+    },
+    {
+      "check": "ac015.gemini_origin_pinned",
+      "acceptance_id": "AC-015",
+      "result": "PASS",
+      "detail": "the Gemini origin is pinned"
+    },
+    {
+      "check": "ac016.anthropic_messages_api",
+      "acceptance_id": "AC-016",
+      "result": "PASS",
+      "detail": "Anthropic uses the Messages API with a pinned version header"
+    },
+    {
+      "check": "ac016.anthropic_origin_pinned",
+      "acceptance_id": "AC-016",
+      "result": "PASS",
+      "detail": "the Anthropic origin is pinned"
+    },
+    {
+      "check": "ac013.model_allowlist_enforced",
+      "acceptance_id": "AC-013",
+      "result": "PASS",
+      "detail": "the model must be in the server-owned allowlist"
+    },
+    {
+      "check": "ac014.model_allowlist_enforced",
+      "acceptance_id": "AC-014",
+      "result": "PASS",
+      "detail": "the model must be in the server-owned allowlist"
+    },
+    {
+      "check": "ac015.model_allowlist_enforced",
+      "acceptance_id": "AC-015",
+      "result": "PASS",
+      "detail": "the model must be in the server-owned allowlist"
+    },
+    {
+      "check": "ac016.model_allowlist_enforced",
+      "acceptance_id": "AC-016",
+      "result": "PASS",
+      "detail": "the model must be in the server-owned allowlist"
+    },
+    {
+      "check": "ac013.user_cannot_supply_base_url",
+      "acceptance_id": "AC-013",
+      "result": "PASS",
+      "detail": "a non-official or non-bare-HTTPS origin cannot be configured"
+    },
+    {
+      "check": "ac013.router_forwards_fixed_fields_only",
+      "acceptance_id": "AC-013",
+      "result": "PASS",
+      "detail": "only fixed fields cross into an adapter"
+    },
+    {
+      "check": "ac017.status_codes_normalized",
+      "acceptance_id": "AC-017",
+      "result": "PASS",
+      "detail": "401/403, 429, 402 and 5xx map to distinct codes"
+    },
+    {
+      "check": "ac017.messages_are_chinese",
+      "acceptance_id": "AC-017",
+      "result": "PASS",
+      "detail": "every provider error message is Chinese"
+    },
+    {
+      "check": "ac017.no_provider_body_in_diagnostic",
+      "acceptance_id": "AC-017",
+      "result": "PASS",
+      "detail": "the diagnostic hashes shape only, never provider content"
+    },
+    {
+      "check": "ac017.default_bounded_timeout",
+      "acceptance_id": "AC-017",
+      "result": "PASS",
+      "detail": "the controller always applies a bounded timeout"
+    },
+    {
+      "check": "ac017.external_cancel_does_not_poison_circuit",
+      "acceptance_id": "AC-017",
+      "result": "PASS",
+      "detail": "an external cancel takes the empty-failure branch, so no provider failure is recorded"
+    },
+    {
+      "check": "ac017.no_secret_in_error_path",
+      "acceptance_id": "AC-017",
+      "result": "PASS",
+      "detail": "the error module never sees a credential"
+    },
+    {
+      "check": "ac045.conservative_upper_bound",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "the input estimate is a UTF-8 byte upper bound"
+    },
+    {
+      "check": "ac045.reserve_before_provider_call",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "the reservation is taken before the provider is called"
+    },
+    {
+      "check": "ac045.circuit_before_budget",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "the circuit is consulted before a reservation is spent"
+    },
+    {
+      "check": "ac045.begin_immediate_atomic_reservation",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "the limit check and the reservation share one BEGIN IMMEDIATE transaction"
+    },
+    {
+      "check": "ac045.denial_reports_zero_model_calls",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "every budget denial reports modelCalls 0"
+    },
+    {
+      "check": "ac045.chinese_repair_action",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "an over-budget reply tells the user in Chinese what to do next"
+    },
+    {
+      "check": "ac045.hard_limits_present",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "user and global, daily and monthly hard limits all exist"
+    },
+    {
+      "check": "ac046.four_provider_usage_normalized",
+      "acceptance_id": "AC-046",
+      "result": "PASS",
+      "detail": "all four providers have usage field mappings"
+    },
+    {
+      "check": "ac046.missing_usage_charges_reservation",
+      "acceptance_id": "AC-046",
+      "result": "PASS",
+      "detail": "missing usage charges the full reservation, never zero"
+    },
+    {
+      "check": "ac046.expired_reservation_charged",
+      "acceptance_id": "AC-046",
+      "result": "PASS",
+      "detail": "a reservation orphaned by a crash is charged conservatively"
+    },
+    {
+      "check": "ac046.request_id_user_scoped",
+      "acceptance_id": "AC-046",
+      "result": "PASS",
+      "detail": "request_id idempotency is scoped to the user"
+    },
+    {
+      "check": "ac046.success_survives_accounting_outage",
+      "acceptance_id": "AC-046",
+      "result": "PASS",
+      "detail": "a valid provider answer is not lost to a bookkeeping outage"
+    },
+    {
+      "check": "ac046.transport_uncertainty_charged",
+      "acceptance_id": "AC-046",
+      "result": "PASS",
+      "detail": "an uncertain transport outcome charges rather than releases"
+    },
+    {
+      "check": "ac047.two_scopes",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "user_provider and global scopes are distinct"
+    },
+    {
+      "check": "ac047.credential_failure_is_user_scoped",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "a bad credential breaks only that user's connection"
+    },
+    {
+      "check": "ac047.outage_is_global_scoped",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "a provider outage breaks that provider for everyone"
+    },
+    {
+      "check": "ac047.state_persisted",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "circuit state is persisted in SQLite and survives a restart"
+    },
+    {
+      "check": "ac047.single_half_open_probe",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "at most one half-open probe is granted at a time"
+    },
+    {
+      "check": "ac047.probe_lease_bounded",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "a lost completion cannot wedge the circuit: the probe lease expires"
+    },
+    {
+      "check": "ac047.probe_released_on_downstream_denial",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "a user-scope denial releases the global probe it did not use"
+    },
+    {
+      "check": "ac047.cross_scope_probe_released",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "a failure in one scope releases the other scope's probe"
+    },
+    {
+      "check": "ac047.unclassified_failure_releases_all_probes",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "an unclassifiable failure releases every probe it held"
+    },
+    {
+      "check": "ac047.fake_clock_injectable",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "the cooldown uses an injectable clock, so no test waits on real time"
+    },
+    {
+      "check": "ac048.aggregate_has_no_user_dimension",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "the provider aggregate selects no user dimension"
+    },
+    {
+      "check": "ac048.circuit_aggregate_has_no_user",
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "detail": "the circuit aggregate exposes counts only"
+    },
+    {
+      "check": "cb700.no_mac_or_secret_markers",
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb700.no_background_model_call",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "control-plane modules importing a provider or calling sendText: []"
+    },
+    {
+      "check": "cb700.real_provider_activation",
+      "acceptance_id": "AC-013",
+      "result": "ACTIVATION_PENDING",
+      "detail": "live BYOK keys for OpenAI, Gemini, DeepSeek and Anthropic are outside the authorised scope, so real provider activation stays activation_pending. Adapters are proved against frozen fake transports; no simulator result is presented as a live provider pass. Real activation is performed at CB-830."
+    },
+    {
+      "check": "cb700.suite.cb700-provider-vault-budget-circuit.test",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "tests=10 pass=10 fail=0"
+    },
+    {
+      "check": "cb700.suite.cb630-usercontext-guard-queue.test",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb700.suite.cb610-multiuser-foundation.test",
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/secrets/credential-vault.js": "443f064900c578603d3bdccc99ed106f1e20b1d97ab42a7c9e0fbc6f5c08a3e4",
+    "app/src/services/providers/policy.js": "195687f458b992db2946584f604269b40990aa91f56a5755d017572192e0dee4",
+    "app/src/services/providers/errors.js": "62159b591924d86097e9e14f9e59361f5cba6f784c4351ab1bd2d16668cbac52",
+    "app/src/services/providers/openai-responses.js": "730edfb0a047bcac394a67757f0362d16ec1ff37caa6c1f1cf1c3fcb876d293c",
+    "app/src/services/providers/deepseek.js": "e69bcbb40a83797de212d16d51370877f3f28ae8edf2e254bc819590fc93558e",
+    "app/src/services/providers/openai-compatible.js": "3cf6309684734c09357d4d53e99852cf6df0866f4f7f7d8faf42d7d338ad309f",
+    "app/src/services/providers/gemini.js": "b2fa4de1313d76cbb8d0d91e0da919d35cf2ba8735f32df8d97472ccd45848c3",
+    "app/src/services/providers/anthropic.js": "8df717da46cc19f880eb443df47ba665e4cba9c5b37f16b631a009791040e7b3",
+    "app/src/services/providers/router.js": "79b7d2216d8f9774b475e893c29fab2e62d56e4bf4e5181cf9513f14fe41a10e",
+    "app/src/services/runtime/token-estimator.js": "a48a001034a55c9dba5df94a3fcab8992012f85511d3be0a8f230c3d93b5affb",
+    "app/src/services/runtime/usage-normalizer.js": "bf121ec287314e1263b3a01aef7170b55f7452cd1c5e4d6ab9abe5fd009dd32d",
+    "app/src/services/runtime/sqlite-model-budget-store.js": "080a13dd6b7077a9fed2e2203902700ae9bfd05903a0ff94e98258ad2764dff9",
+    "app/src/services/runtime/model-budget-guard.js": "892e54beaa71cdedc53cdc7c7a25bfaae57bc1aac67d766c0fc54d42eefb607b",
+    "app/src/services/runtime/provider-circuit-breaker.js": "e05c5d1396c5f1e2ccf43fee3048e73a31c8b5e386552d7bc6298b13768b9989",
+    "app/src/services/runtime/model-runtime-controller.js": "134d2feb26e146c731688cfd7ce77b189049963094b7b6f613eb74a81d02bc00"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "cyberboss.cb700.acceptance.v1",
+  "task_id": "CB-700",
+  "stage": "S7",
+  "phase": "P7.1",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0",
+  "closure_commit_recorded_by": "CB-710",
+  "results": [
+    {
+      "acceptance_id": "AC-012",
+      "result": "PASS",
+      "check_count": 12,
+      "note": "A random per-user DEK is wrapped by the master KEK under AES-256-GCM and a provider sub-key is derived per provider. User id, provider id and key version are bound into the AAD, so a ciphertext lifted into another user or provider scope is refused in constant time, and a wrong master key fails authentication. Rotation preserves readability, crypto-shred makes residual ciphertext unreadable for that user only, key material is zeroed after use, and the only plaintext fragment stored is the last four characters."
+    },
+    {
+      "acceptance_id": "AC-013",
+      "result": "PASS",
+      "check_count": 6,
+      "note": "OpenAI uses the fixed official Responses endpoint with store:false. The model must be in the server-owned allowlist; a rejected model never reaches the network, and a non-official or non-bare-HTTPS origin cannot be configured at all."
+    },
+    {
+      "acceptance_id": "AC-014",
+      "result": "PASS",
+      "check_count": 3,
+      "note": "DeepSeek reuses the OpenAI-compatible chat-completions implementation rather than forking it, with its own pinned origin and model policy."
+    },
+    {
+      "acceptance_id": "AC-015",
+      "result": "PASS",
+      "check_count": 3,
+      "note": "Gemini authenticates with the x-goog-api-key header; the key never appears in the URL, where it would land in access logs. Usage normalises from usageMetadata."
+    },
+    {
+      "acceptance_id": "AC-016",
+      "result": "PASS",
+      "check_count": 3,
+      "note": "Anthropic uses the Messages API with a pinned anthropic-version header and the server-owned model allowlist."
+    },
+    {
+      "acceptance_id": "AC-017",
+      "result": "PASS",
+      "check_count": 6,
+      "note": "401/403, 402, 429 and 5xx map to distinct codes with fixed Chinese messages. The diagnostic hashes provider, status and body length only — never body content. The controller applies a bounded default timeout; a timeout counts as provider evidence while an external cancel does not touch the circuit."
+    },
+    {
+      "acceptance_id": "AC-045",
+      "result": "PASS",
+      "check_count": 12,
+      "note": "The input estimate is a conservative UTF-8 byte upper bound. The circuit is consulted, then the limit check and reservation execute inside one BEGIN IMMEDIATE transaction, and only then is the provider called. Over-budget and oversized requests are denied with modelCalls 0 and a Chinese repair action; the suite counts zero provider calls on every denial."
+    },
+    {
+      "acceptance_id": "AC-046",
+      "result": "PASS",
+      "check_count": 6,
+      "note": "All four providers' usage fields normalise to one shape. Missing usage charges the full reservation, a reservation orphaned by a crash is charged in full once its TTL passes, and an uncertain transport outcome charges rather than releases. request_id idempotency is scoped to the user, so a replay is refused while the same id from another user is not a collision. A valid provider answer survives an accounting outage instead of forcing a paid retry."
+    },
+    {
+      "acceptance_id": "AC-047",
+      "result": "PASS",
+      "check_count": 11,
+      "note": "A credential failure opens only that user's circuit while another user keeps working; repeated outages open the provider globally. State is persisted in SQLite. After a fake-clock cooldown exactly one half-open probe is granted, a second is refused, a probe whose completion is lost recovers when its bounded lease expires, and a downstream or cross-scope denial releases the probe it did not use."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb700.py",
+  "validator_status": "PASS",
+  "check_count": 62,
+  "pass_count": 61,
+  "fail_count": 0,
+  "activation_pending_count": 1,
+  "node_test_total": 28,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [
+    "real BYOK provider credentials (activated at CB-830)"
+  ],
+  "status": "passed"
+}

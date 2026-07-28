@@ -702,7 +702,39 @@ class RuntimeSpoolDatabase {
   // CB-610: create the Owner row once, backfill every legacy runtime-spool row
   // to the Owner, then prove no unscoped row survives. The valid-user triggers
   // installed by migration 006 reject anything unscoped from here on.
+  // Read-only precheck: after the first bootstrap there is nothing to do, so a
+  // normal open must not take a write lock. Without this every process start —
+  // and every concurrent worker — would contend for the same IMMEDIATE
+  // transaction and could exhaust busy_timeout under load.
+  #ownerScopeSettled() {
+    const owner = this.database
+      .prepare("SELECT role, status FROM users WHERE user_id=?")
+      .get(this.ownerUserId);
+    if (!owner || owner.role !== OWNER_ROLE) {
+      return false;
+    }
+    for (const table of USER_SCOPED_LEGACY_TABLES) {
+      const unscoped = this.database
+        .prepare(
+          `SELECT EXISTS(
+             SELECT 1 FROM ${table}
+             WHERE user_id IS NULL
+                OR user_id=''
+                OR NOT EXISTS (SELECT 1 FROM users WHERE user_id=${table}.user_id)
+           ) AS present`,
+        )
+        .get();
+      if (Number(unscoped.present) !== 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   #bootstrapOwnerScope() {
+    if (this.#ownerScopeSettled()) {
+      return;
+    }
     const now = this.#timestamp();
     this.database.exec("BEGIN IMMEDIATE");
     try {

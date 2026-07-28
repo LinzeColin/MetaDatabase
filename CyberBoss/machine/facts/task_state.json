@@ -6,10 +6,10 @@
   "taskpack_zip_sha256": "6e7bb3c8c33f4d3a24f06dcb06aade9728a8ab13a4705402d70a30ecc014c5be",
   "updated_on": "2026-07-28",
   "current_run": {
-    "run_id": "PG-6",
-    "gate_id": "PG-6",
-    "task_id": "CB-640",
-    "scope": "dual_user_blind_set_cross_user_negative_matrix_and_stage_6_exit_gate",
+    "run_id": "CB-700",
+    "gate_id": null,
+    "task_id": "CB-700",
+    "scope": "byok_credential_vault_four_provider_router_token_budget_and_circuit_breaker",
     "status": "passed"
   },
   "prestage": [
@@ -245,7 +245,7 @@
       "id": "CB-700",
       "stage": "S7",
       "phase": "P7.1",
-      "status": "not_started"
+      "status": "passed"
     },
     {
       "id": "CB-710",
@@ -564,6 +564,26 @@
       "AC-039": "activation_pending"
     },
     "pg_6_blocked_by": "AC-039 real dual-user WeChat requires an authorised WeChat credential",
-    "cb_640_app_suite": "333_pass_0_fail"
+    "cb_640_app_suite": "333_pass_0_fail",
+    "cb_640_closure_commit": "a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0",
+    "cb_700_base_head": "a1391e19a4f5f8d83551ba2e9d9d1b34cb26d1c0",
+    "cb_700_vault_hierarchy": "master_kek_wraps_per_user_dek_then_provider_subkey",
+    "cb_700_plaintext_key_in_db": false,
+    "cb_700_providers": [
+      "openai",
+      "google",
+      "deepseek",
+      "anthropic"
+    ],
+    "cb_700_user_supplied_base_url": false,
+    "cb_700_provider_calls_when_over_budget": 0,
+    "cb_700_request_id_idempotency": "per_user_scope",
+    "cb_700_missing_usage_charge": "full_reservation",
+    "cb_700_half_open_probes_max": 1,
+    "cb_700_probe_lease": "bounded_recovers_lost_completion",
+    "cb_700_background_model_calls": 0,
+    "cb_700_app_suite": "343_pass_0_fail_four_consecutive_clean_runs",
+    "cb_700_provider_activation": "activation_pending_missing_real_byok_credentials",
+    "cb_700_concurrency_fix": "owner_bootstrap_now_skips_write_lock_when_already_settled"
   }
 }

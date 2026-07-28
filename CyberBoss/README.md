@@ -22,11 +22,19 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   `P4.4 / CB-430`；`P4.5 / CB-440`；`PG-4`；`P5.1 / CB-500`；`P5.2 / CB-510`；
   `P5.3 / CB-520`；`P5.4 / CB-530`；`P5.5 / CB-540`；`PG-5`；`P6.1 / CB-600`；
   `P6.2 / CB-610`；`P6.3 / CB-620`；
-  `P6.4 / CB-630`；`P6.5 / CB-640`
+  `P6.4 / CB-630`；`P6.5 / CB-640`；`PG-6`；
+  `P7.1 / CB-700`
 - 当前基线：不可变 release `fd3cd1e19d70caa148c3785288aaabfb909fed85` 已在
   Linux systemd、专用 Cloudflare Tunnel 与 Owner-only Access 后真实运行；已验证的
   immutable `previous` `25670bf32c6d27e3668fcf59bc9ab754035e161d` 已保留，
   并保留既有 `current → previous → current` 回滚收据。CB-600 未改变 release 指针。
+- 最新 Run：`CB-700` 已落地 BYOK 密钥保险箱（master KEK 包装每用户 DEK，再派生
+  Provider 子密钥；跨用户/跨 Provider 解密与错误 master key 均被拒；crypto-shred
+  只毁该用户）、四 Provider 固定官方 endpoint 与 allowlist、Token 预授权硬预算
+  （BEGIN IMMEDIATE 单事务；超预算时 Provider 调用数为 `0`）、用量归一与崩溃保守
+  记账、用户级/全局双作用域熔断与单个半开探针（有界 lease）。后台模型调用为 `0`。
+  真实 BYOK 凭据不在授权范围内，保持 `activation_pending`，留待 `CB-830` 真实激活。
+  证据在 `docs/evidence/CB-700/`。
 - 最新 Run：`CB-640` / `PG-6` 已按冻结 blind set 逐条重放双用户隔离：8/8
   用例通过，跨用户读/搜索/改/删、setup token 复用、Owner 能力越权、暂停用户
   模型调用、回复目标掉包全部被拒；证据内无任何个人数据。
@@ -54,7 +62,7 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
   或把 pending 写成 ready。最小 Access service-token scope 同样保留 pending，
   不影响 Owner-only 登录或同机受保护 Status snapshot。
 - 任务状态：`CB-000`–`CB-540` 与 `PG-0`–`PG-5` 已通过（单用户范围）；
-  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）已通过；
+  v0.0.0.8 追加的 `CB-600`–`CB-640`（Stage 6 全部 5 项）与 `CB-700` 已通过；
   `PG-6` 为 `CONDITIONAL_PASS`。
 
 - 尚未开始：Stage 6 余下节点、Stage 7、Stage 8 与 PG-6–PG-8 均为
