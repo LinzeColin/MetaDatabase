@@ -237,8 +237,10 @@ def main() -> int:
                 report["checks"].append({"id": "weread-key-login-wide-sync", "status": "PASS", "detailedBooks": int(coverage.get("detailedBooks") or 0), "capabilityCount": int(coverage.get("capabilityCount") or 0)})
 
                 dashboard = expect(api(page_a2, "/analytics/dashboard"), 200, "读取画像与行为可视化")["dashboard"]
-                if not dashboard.get("summary") or not isinstance(dashboard.get("readingHeatmap"), list) or not isinstance(dashboard.get("recommendations"), list):
-                    raise AssertionError("画像、阅读热度或潜在推荐结构缺失")
+                if not dashboard.get("summary") or not isinstance(dashboard.get("noteActivityHeatmap"), list) or not isinstance(dashboard.get("recommendations"), list):
+                    raise AssertionError("画像、笔记活动或潜在推荐结构缺失")
+                if not isinstance(dashboard.get("officialReading"), dict):
+                    raise AssertionError("微信读书官方阅读统计结构缺失")
                 report["checks"].append({"id": "profile-behavior-visualization", "status": "PASS", "recommendations": len(dashboard.get("recommendations", []))})
 
                 export = expect(api(page_a2, "/account/export"), 200, "导出账户")

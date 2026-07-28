@@ -4,7 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { normalizeWeReadDocuments, recommendationRows, syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
+import { normalizeOfficialReadingProfile, normalizeWeReadDocuments, recommendationRows, syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
 import { PlatformStore } from "../../service/platform/store.mjs";
 import { testPlatform } from "./helpers.mjs";
 
@@ -64,6 +64,29 @@ test("微信读书按能力发现读取超过 Top 5 的书架、全量笔记、�
   assert.ok(calls.filter(api => api === "/book/info").length > 5, "不得回退为 Top 5");
 });
 
+test("官方阅读统计仅保留可解释的汇总和偏好，不把笔记时间伪装成阅读记录", () => {
+  const profile = normalizeOfficialReadingProfile({
+    weekly: { totalReadTime: 900, readDays: 2 },
+    monthly: { totalReadTime: 7205, readDays: 9, readStat: [{ stat: "读完", counts: "3本" }] },
+    overall: {
+      totalReadTime: 36_000,
+      readDays: 45,
+      readStat: [{ stat: "读完", counts: "12本" }],
+      preferCategory: [
+        { categoryTitle: "历史", readingTime: 7_200, readingCount: 4 },
+        { categoryTitle: "历史", readingTime: 1, readingCount: 1 },
+        { categoryTitle: "科学", readingTime: 3_600, readingCount: 2 },
+      ],
+      preferTime: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 2],
+      preferBooks: [{ title: "不得持久化的原始书籍记录" }],
+    },
+  });
+  assert.deepEqual(profile.statistics.overall, { mode: "overall", totalReadingTimeSeconds: 36_000, totalReadingDays: 45, totalFinishedBooks: 12 });
+  assert.deepEqual(profile.preferredCategories.map(item => item.label), ["历史", "科学"]);
+  assert.deepEqual(profile.preferredHours.map(item => item.hour), [18, 19, 5]);
+  assert.equal(JSON.stringify(profile).includes("不得持久化的原始书籍记录"), false);
+});
+
 test("微信读书将书摘和想法显示为可区分的具体笔记标题", async () => {
   const dataset = await syncWeReadDataset(KEY, { fetchImpl: gatewayMock([]), maxBooks: 100, recommendationPages: 1 });
   const documents = normalizeWeReadDocuments(dataset);
@@ -87,8 +110,11 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
   assert.equal(result.summary.coverage.verified, true);
   assert.equal(result.summary.coverage.unresolvedDocuments, 0);
   assert.ok(result.summary.coverage.sourceEventRange.earliest <= result.summary.coverage.sourceEventRange.latest);
+  assert.equal(result.summary.officialReading.freshness, "CURRENT");
+  assert.equal(result.summary.officialReading.statistics.overall.totalReadingTimeSeconds, 120);
   assert.deepEqual(platform.service.publicAccount(user.account.id).weread.summary.coverage, result.summary.coverage);
   assert.equal(platform.service.listNotes(user.account.id, { limit: 100 }).length, 16);
+  assert.equal(platform.service.analytics(user.account.id).officialReading.statistics.overall.totalReadingTimeSeconds, 120, "官方阅读统计不应依赖行为分析同意");
   platform.service.updateConsent(user.account.id, { behaviorAnalytics: false, recommendationPersonalization: true });
   assert.ok(platform.service.analytics(user.account.id).recommendations.some(item => item.source === "weread-official"));
 });
@@ -138,6 +164,7 @@ test("微信读书后续同步只读取来源明确变化的书籍，并保留�
   assert.equal(platform.service.publicAccount(user.account.id).weread.summary.coverage.verified, true);
   assert.equal(calls.filter(api => api === "/book/bookmarklist").length, 0);
   assert.equal(calls.filter(api => api === "/review/list/mine").length, 0);
+  assert.equal(calls.filter(api => api === "/readdata/detail").length, 4, "增量同步也必须刷新官方阅读画像");
   for (const api of ["/_list", "/shelf/sync", "/user/notebooks"]) assert.ok(calls.includes(api), api);
 
   changedBook = "book-3";

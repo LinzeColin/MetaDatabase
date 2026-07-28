@@ -4,6 +4,7 @@ import {
   normalizeChapterInfo,
   normalizeNotebookPage,
   normalizeProgress,
+  normalizeReadingStatistics,
   normalizeReviewPage,
   unwrapGatewayData,
 } from "../../src/core/normalize.js";
@@ -114,11 +115,13 @@ export async function syncWeReadDataset(key, {
     bookState[candidate.bookId] = { fingerprint: candidate.fingerprint, documentCount: null };
   }
 
+  // These four summary calls are lightweight and authoritative for the actual
+  // reading profile. They must refresh on delta syncs too; waiting for the
+  // once-daily full note reconciliation made a freshly logged-in profile stale.
   const readingStats = {};
-  if (syncMode === "full") {
-    for (const statsMode of ["weekly", "monthly", "annually", "overall"]) {
-      readingStats[statsMode] = await call("/readdata/detail", { mode: statsMode, baseTime: 0 });
-    }
+  for (const statsMode of ["weekly", "monthly", "annually", "overall"]) {
+    const statistic = await call("/readdata/detail", { mode: statsMode, baseTime: 0 });
+    if (statistic !== null) readingStats[statsMode] = statistic;
   }
 
   const recommendations = [];
@@ -230,6 +233,70 @@ export function recommendationRows(dataset) {
       score: Number(book.newRating || 0) + Math.log10(Math.max(1, Number(book.readingCount || 1))),
     };
   });
+}
+
+/**
+ * Keep only reviewed, non-content fields from /readdata/detail. This snapshot
+ * is deliberately small: it makes the profile explainable without storing the
+ * upstream's raw book records or pretending that note timestamps are reading
+ * sessions.
+ *
+ * @param {Record<string,unknown>} readingStats
+ */
+export function normalizeOfficialReadingProfile(readingStats) {
+  const source = isPlainObject(readingStats) ? readingStats : {};
+  const statistics = {};
+  for (const mode of ["weekly", "monthly", "annually", "overall"]) {
+    const raw = source[mode];
+    if (!isPlainObject(raw)) continue;
+    const normalized = normalizeReadingStatistics(raw, { mode });
+    const value = {
+      mode,
+      totalReadingTimeSeconds: nonNegativeInteger(normalized.totalReadingTimeSeconds),
+      totalReadingDays: nonNegativeInteger(normalized.totalReadingDays),
+      totalFinishedBooks: nonNegativeInteger(normalized.totalFinishedBooks),
+    };
+    if (Object.values(value).some(item => item !== null && item !== mode)) statistics[mode] = value;
+  }
+  if (!Object.keys(statistics).length) return null;
+  const overall = isPlainObject(source.overall) ? source.overall : {};
+  return {
+    schemaVersion: 1,
+    source: "weread-official-readdata-detail",
+    statistics,
+    preferredCategories: normalizePreferredCategories(overall.preferCategory),
+    preferredHours: normalizePreferredHours(overall.preferTime),
+  };
+}
+
+function normalizePreferredCategories(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  const categories = [];
+  for (const item of value) {
+    if (!isPlainObject(item)) continue;
+    const label = safeProfileText(item.categoryTitle || item.parentCategoryTitle, 120);
+    if (!label || seen.has(label)) continue;
+    seen.add(label);
+    categories.push({
+      label,
+      readingTimeSeconds: nonNegativeInteger(item.readingTime),
+      readingCount: nonNegativeInteger(item.readingCount),
+    });
+  }
+  return categories.sort((left, right) => Number(right.readingTimeSeconds || 0) - Number(left.readingTimeSeconds || 0) || Number(right.readingCount || 0) - Number(left.readingCount || 0) || left.label.localeCompare(right.label, "zh-CN")).slice(0, 12);
+}
+
+function normalizePreferredHours(value) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 24).map((raw, hour) => ({ hour, score: nonNegativeInteger(raw) }))
+    .filter(item => item.score !== null && item.score > 0)
+    .sort((left, right) => right.score - left.score || left.hour - right.hour)
+    .slice(0, 4);
+}
+
+function safeProfileText(value, maxLength) {
+  return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength);
 }
 
 async function collectNotebooks(call, maxBooks) {

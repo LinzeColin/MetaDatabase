@@ -4,9 +4,11 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
   const notes = store.listNotes(accountId, { limit: 100000 });
   const consent = store.getConsent(accountId);
   const events = consent?.behaviorAnalytics ? store.listBehaviorEvents(accountId, Math.floor(now / 1000) - 366 * 24 * 3600, 100000) : [];
+  const wereadState = store.getWereadState(accountId);
+  const officialReading = publicOfficialReading(wereadState?.summary?.officialReading);
   const sources = countBy(notes, note => note.source || "unknown");
   const categories = countBy(notes, note => note.category || "未分类");
-  const heatmap = buildHeatmap(notes, events, now);
+  const heatmap = buildNoteActivityHeatmap(notes, events, now);
   const weeklyTrend = buildWeeklyTrend(notes, now);
   const words = notes.reduce((sum, note) => sum + Number(note.wordCount || 0), 0);
   const official = store.listRecommendations(accountId, 20);
@@ -19,13 +21,18 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
       noteCount: notes.length,
       sourceCount: Object.keys(sources).length,
       estimatedWords: words,
+      noteActivityDays90: heatmap.filter(day => day.value > 0).length,
+      // Retained for clients on the prior API shape. It is explicitly labelled
+      // as note activity in the current UI and is never presented as reading time.
       activeDays90: heatmap.filter(day => day.value > 0).length,
       connectedSources: Object.entries(sources).filter(([, count]) => count > 0).map(([source]) => source),
     },
     sourceDistribution: toSeries(sources),
     categoryDistribution: toSeries(categories).slice(0, 12),
+    noteActivityHeatmap: heatmap,
     readingHeatmap: heatmap,
     weeklyTrend,
+    officialReading,
     recommendations,
     privacy: {
       behaviorAnalyticsEnabled: Boolean(consent?.behaviorAnalytics),
@@ -36,7 +43,7 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
   };
 }
 
-function buildHeatmap(notes, events, now) {
+function buildNoteActivityHeatmap(notes, events, now) {
   const days = new Map();
   for (let index = 89; index >= 0; index -= 1) {
     const date = new Date(now - index * 86400000);
@@ -67,7 +74,7 @@ function buildWeeklyTrend(notes, now) {
 }
 
 function buildLocalRecommendations(categories, notes) {
-  const top = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const top = Object.entries(categories).filter(([category]) => !["微信读书", "未分类", "unknown"].includes(String(category).trim().toLowerCase())).sort((a, b) => b[1] - a[1]).slice(0, 3);
   return top.map(([category, count], index) => ({
     id: `local:${hash(`${category}:${count}`)}`,
     source: "account-pattern",
@@ -109,3 +116,38 @@ function safeOfficialWeReadLink(value) {
   } catch { return null; }
 }
 function noteEventAt(note) { return Number(note?.eventAt || note?.updatedAt || 0); }
+
+function publicOfficialReading(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const statistics = {};
+  for (const mode of ["weekly", "monthly", "annually", "overall"]) {
+    const raw = value.statistics?.[mode];
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+    const metric = {
+      mode,
+      totalReadingTimeSeconds: safeMetric(raw.totalReadingTimeSeconds),
+      totalReadingDays: safeMetric(raw.totalReadingDays),
+      totalFinishedBooks: safeMetric(raw.totalFinishedBooks),
+    };
+    if (Object.values(metric).some(item => item !== null && item !== mode)) statistics[mode] = metric;
+  }
+  if (!Object.keys(statistics).length) return null;
+  const categories = Array.isArray(value.preferredCategories) ? value.preferredCategories.map(item => ({
+    label: safeLabel(item?.label, 120),
+    readingTimeSeconds: safeMetric(item?.readingTimeSeconds),
+    readingCount: safeMetric(item?.readingCount),
+  })).filter(item => item.label).slice(0, 12) : [];
+  const hours = Array.isArray(value.preferredHours) ? value.preferredHours.map(item => ({ hour: Number(item?.hour) }))
+    .filter(item => Number.isInteger(item.hour) && item.hour >= 0 && item.hour < 24).slice(0, 4) : [];
+  return {
+    source: "weread-official-readdata-detail",
+    freshness: ["CURRENT", "PARTIAL", "STALE"].includes(value.freshness) ? value.freshness : "STALE",
+    collectedAt: safeMetric(value.collectedAt),
+    statistics,
+    preferredCategories: categories,
+    preferredHours: hours,
+  };
+}
+
+function safeMetric(value) { const number = Number(value); return Number.isFinite(number) && number >= 0 ? Math.floor(number) : null; }
+function safeLabel(value, maxLength) { return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength); }

@@ -30,6 +30,7 @@ import {
 import {
   syncWeReadDataset,
   normalizeWeReadDocuments,
+  normalizeOfficialReadingProfile,
   recommendationRows,
   validateWeReadKey,
   WEREAD_COLLECTION_FORMAT_VERSION,
@@ -494,6 +495,12 @@ export class PlatformService {
     const priorCoverageWasVerified = priorState?.summary?.coverage?.verified === true && Number(priorState.summary.coverage.unresolvedDocuments || 0) === 0;
     const currentSourceEventRange = eventRange(documents.map(document => document.eventAt));
     const currentNotebookRange = eventRange((dataset.notebooks?.books || []).map(book => book.sort));
+    const currentOfficialReading = normalizeOfficialReadingProfile(dataset.readingStats);
+    const priorOfficialReading = priorState?.summary?.officialReading && typeof priorState.summary.officialReading === "object" ? priorState.summary.officialReading : null;
+    const statisticsFailed = dataset.failures.some(failure => failure.api === "/readdata/detail");
+    const officialReading = currentOfficialReading
+      ? { ...currentOfficialReading, collectedAt: this.now(), freshness: statisticsFailed ? "PARTIAL" : "CURRENT" }
+      : priorOfficialReading ? { ...priorOfficialReading, freshness: "STALE" } : null;
     // An incremental pass deliberately skips unchanged books, so its timestamps
     // cannot honestly replace the last full source window.
     const sourceEventRange = syncMode === "full" ? currentSourceEventRange : priorState?.summary?.coverage?.sourceEventRange || currentSourceEventRange;
@@ -523,6 +530,7 @@ export class PlatformService {
       updatedDocuments,
       unchangedDocuments,
       coverage,
+      officialReading,
       lastFullSyncAt: syncMode === "full" ? this.now() : priorFullSyncAt,
     };
     this.store.updateWereadState(accountId, { capabilities: dataset.capabilities, summary, bookState: dataset.bookState });

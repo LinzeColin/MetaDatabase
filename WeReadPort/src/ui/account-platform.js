@@ -188,6 +188,11 @@ async function loadOverview(main) {
   state.notes = notes?.notes || []; state.dashboard = dashboard?.dashboard || null;
   const providers = new Set((state.account.connections || []).map(item => item.provider));
   const hasWeRead = (state.account.credentials || []).some(item => item.provider === "weread");
+  const officialOverall = state.dashboard?.officialReading?.statistics?.overall;
+  const hasOfficialReading = Boolean(officialOverall && [officialOverall.totalReadingTimeSeconds, officialOverall.totalReadingDays, officialOverall.totalFinishedBooks].some(value => Number.isFinite(Number(value))));
+  const overviewMetrics = hasOfficialReading
+    ? `${metric("累计阅读时长", formatReadingDuration(officialOverall.totalReadingTimeSeconds), "微信读书官方累计统计")}${metric("累计阅读天数", formatStat(officialOverall.totalReadingDays, " 天"), "微信读书官方累计统计")}${metric("读完书籍", formatStat(officialOverall.totalFinishedBooks, " 本"), "微信读书官方累计统计")}${metric("笔记总数", state.notes.length, "所有来源统一保存")}`
+    : `${metric("笔记总数", state.notes.length, "所有来源统一保存")}${metric("已连接来源", providers.size + (hasWeRead ? 1 : 0), "可随时新增或解绑")}${metric("近 90 天笔记活动", state.dashboard?.summary?.noteActivityDays90 ?? state.dashboard?.summary?.activeDays90 ?? 0, "按笔记真实事件时间统计")}${metric("潜在推荐", state.dashboard?.recommendations?.length ?? 0, "每条都有推荐理由")}`;
   const next = !hasWeRead ? "绑定微信读书" : providers.size < 1 ? "连接第一个云端来源" : state.notes.length === 0 ? "导入第一批笔记" : "查看阅读画像";
   content.innerHTML = `
     <header class="content-heading"><div><p class="eyebrow">账户首页</p><h1>早上好，${escapeHtml(state.account.displayName)}</h1><p>你的笔记、连接与画像已经绑定到同一账户，可在不同设备继续。</p></div><button class="button primary" id="primary-next" type="button">${next}</button></header>
@@ -197,7 +202,7 @@ async function loadOverview(main) {
       ${onboardingStep(3, state.notes.length > 0, "查看统一笔记和画像", state.notes.length ? `账户中已有 ${state.notes.length} 条笔记` : "导入后自动生成趋势与推荐")}
     </ol></section>
     <section class="metric-grid" aria-label="账户概览">
-      ${metric("笔记总数", state.notes.length, "所有来源统一保存")}${metric("已连接来源", providers.size + (hasWeRead ? 1 : 0), "可随时新增或解绑")}${metric("近 90 天活跃", state.dashboard?.summary?.activeDays90 ?? 0, "只在你同意后统计")}${metric("潜在推荐", state.dashboard?.recommendations?.length ?? 0, "每条都有推荐理由")}
+      ${overviewMetrics}
     </section>
     ${homeReadingProfile(state.dashboard, state.account, hasWeRead)}
     <section class="quick-grid"><article><div><span class="source-logo weread">微</span><div><h2>微信读书同步</h2><p>${hasWeRead ? "首次完整整理；之后只检查真实变化的书籍与笔记。" : "先绑定本人密钥；密钥不是账户主键，可安全轮换。"}</p></div></div><button id="quick-weread" class="button ${hasWeRead ? "secondary" : "primary"}" type="button">${hasWeRead ? "立即同步" : "绑定密钥"}</button></article>
@@ -216,7 +221,12 @@ function onboardingStep(number, done, title, detail) { return `<li class="${done
 function metric(label, value, detail) { return `<article class="metric-card"><p>${label}</p><strong>${escapeHtml(String(value))}</strong><small>${detail}</small></article>`; }
 function homeReadingProfile(dashboard, account, hasWeRead) {
   if (!dashboard) return "";
-  const categories = (dashboard.categoryDistribution || []).slice(0, 3);
+  const noteCategories = (dashboard.categoryDistribution || []).slice(0, 3);
+  const officialReading = dashboard.officialReading;
+  const officialOverall = officialReading?.statistics?.overall;
+  const hasOfficialReading = Boolean(officialOverall && [officialOverall.totalReadingTimeSeconds, officialOverall.totalReadingDays, officialOverall.totalFinishedBooks].some(value => Number.isFinite(Number(value))));
+  const officialCategories = (officialReading?.preferredCategories || []).slice(0, 3);
+  const categories = officialCategories.length ? officialCategories : noteCategories;
   const recommendations = (dashboard.recommendations || []).slice(0, 3);
   const coverage = account?.weread?.summary?.coverage;
   const exportable = Number(coverage?.sourceReportedExportableDocuments ?? coverage?.sourceReportedNotes ?? 0);
@@ -225,7 +235,13 @@ function homeReadingProfile(dashboard, account, hasWeRead) {
   const sourceRange = coverage?.sourceEventRange;
   const rangeText = sourceRange?.earliest && sourceRange?.latest ? `微信读书当前可导出的真实事件时间：${formatDate(sourceRange.earliest)} 至 ${formatDate(sourceRange.latest)}。` : "";
   const coverageText = !hasWeRead ? "绑定微信读书后会显示官方数据核对结果。" : coverage ? (coverage.verified ? `已核对 ${coverage.accountedDocuments || 0} 条可导入正文；官方可导出正文 ${exportable} 条。${rangeText}${bookmarkNote}` : `当前尚有 ${coverage.unresolvedDocuments || 0} 条待确认；可从“导入与连接”发起完整核对。${rangeText}`) : "尚未完成首次数据核对。";
-  return `<section class="home-profile-card" aria-labelledby="home-profile-title"><div class="section-title"><div><p class="eyebrow">阅读画像</p><h2 id="home-profile-title">你的阅读偏好，已经整合到首页</h2><p>${escapeHtml(coverageText)}</p></div><button class="button secondary" data-go-analytics type="button">查看完整画像</button></div><div class="home-profile-grid"><div><span>近 90 天活跃</span><strong>${escapeHtml(String(dashboard.summary?.activeDays90 ?? 0))} 天</strong></div><div><span>已汇总来源</span><strong>${escapeHtml(String(dashboard.summary?.sourceCount ?? 0))} 个</strong></div><div><span>估算字数</span><strong>${escapeHtml(numberFormat(dashboard.summary?.estimatedWords || 0))}</strong></div></div>${categories.length ? `<div class="profile-topics"><strong>高频主题</strong><div>${categories.map(item => `<span>${escapeHtml(item.label)} · ${escapeHtml(String(item.value))}</span>`).join("")}</div></div>` : ""}${recommendations.length ? `<div class="home-recommendations"><strong>潜在下一步</strong><div>${recommendations.map(item => `<article><div><small>${escapeHtml(sourceName(item.source))}</small><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div></div>` : ""}${hasWeRead ? `<div class="home-profile-actions"><button class="button ghost" data-download-weread type="button">下载微信读书数据（JSON）</button></div>` : ""}</section>`;
+  const officialNote = hasOfficialReading ? officialReadingSummary(officialReading) : "当前尚未取得微信读书官方阅读统计；下次同步会自动重试。";
+  const profileMetrics = hasOfficialReading
+    ? `<div><span>累计阅读时长</span><strong>${escapeHtml(formatReadingDuration(officialOverall.totalReadingTimeSeconds))}</strong></div><div><span>累计阅读天数</span><strong>${escapeHtml(formatStat(officialOverall.totalReadingDays, " 天"))}</strong></div><div><span>读完书籍</span><strong>${escapeHtml(formatStat(officialOverall.totalFinishedBooks, " 本"))}</strong></div>`
+    : `<div><span>近 90 天笔记活动</span><strong>${escapeHtml(formatStat(dashboard.summary?.noteActivityDays90 ?? dashboard.summary?.activeDays90, " 天"))}</strong></div><div><span>已汇总来源</span><strong>${escapeHtml(formatStat(dashboard.summary?.sourceCount, " 个"))}</strong></div><div><span>估算字数</span><strong>${escapeHtml(numberFormat(dashboard.summary?.estimatedWords || 0))}</strong></div>`;
+  const hours = (officialReading?.preferredHours || []).map(item => `${String(item.hour).padStart(2, "0")}:00`).join("、");
+  const categoryLabel = item => officialCategories.length ? `${item.label}${Number.isFinite(Number(item.readingTimeSeconds)) ? ` · ${formatReadingDuration(item.readingTimeSeconds)}` : ""}` : `${item.label} · ${item.value}`;
+  return `<section class="home-profile-card" aria-labelledby="home-profile-title"><div class="section-title"><div><p class="eyebrow">阅读画像</p><h2 id="home-profile-title">你的阅读偏好，已经整合到首页</h2><p>${escapeHtml(coverageText)}</p><p class="profile-data-note">${escapeHtml(officialNote)}</p></div><button class="button secondary" data-go-analytics type="button">查看完整画像</button></div><div class="home-profile-grid">${profileMetrics}</div>${categories.length ? `<div class="profile-topics"><strong>${officialCategories.length ? "微信读书官方偏好类别" : "笔记高频主题"}</strong><div>${categories.map(item => `<span>${escapeHtml(categoryLabel(item))}</span>`).join("")}</div></div>` : ""}${hours ? `<p class="profile-data-note">常见阅读时段：${escapeHtml(hours)}（来自微信读书官方汇总）</p>` : ""}${recommendations.length ? `<div class="home-recommendations"><strong>潜在下一步</strong><div>${recommendations.map(item => `<article><div><small>${escapeHtml(sourceName(item.source))}</small><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div></div>` : ""}${hasWeRead ? `<div class="home-profile-actions"><button class="button ghost" data-download-weread type="button">下载微信读书数据（JSON）</button></div>` : ""}</section>`;
 }
 
 function renderImportHub(main) {
@@ -481,18 +497,31 @@ async function askNotesInChatGPT(notes, scopeLabel, { withinAction = false } = {
 async function loadAnalytics(main) {
   const content = main.querySelector("#account-content"); let result; try { result = await api.analytics(); } catch (error) { toast(error.message, "error"); result = { dashboard: null }; } const d = result.dashboard; state.dashboard = d;
   if (!d) { content.innerHTML = emptyStateMarkup("暂时无法生成画像", "请稍后重试。", "返回首页", "overview"); return; }
-  content.innerHTML = `<header class="content-heading"><div><p class="eyebrow">阅读画像</p><h1>你的阅读热度、主题与潜在下一步</h1><p>所有统计都在你的账户范围内确定性计算；不会把笔记正文发送给模型。</p></div><button class="button secondary" id="analytics-settings" type="button">隐私设置</button></header>
-    <section class="consent-banner ${d.consent?.behaviorAnalytics ? "enabled" : ""}"><div><strong>${d.consent?.behaviorAnalytics ? "行为分析已开启" : "行为分析默认关闭"}</strong><p>${d.consent?.behaviorAnalytics ? "你可以随时关闭，关闭后非必要行为事件会被删除。" : "当前热度主要来自笔记更新时间；开启后可记录阅读时段等非正文事件。"}</p></div><button id="toggle-analytics" class="button ${d.consent?.behaviorAnalytics ? "ghost" : "primary"}" type="button">${d.consent?.behaviorAnalytics ? "关闭" : "开启"}</button></section>
-    <section class="metric-grid">${metric("笔记", d.summary.noteCount, "账户内加密正文")}${metric("来源", d.summary.sourceCount, "已汇总来源")}${metric("估算字数", numberFormat(d.summary.estimatedWords), "仅用于个人统计")}${metric("活跃天数", d.summary.activeDays90, "最近 90 天")}</section>
+  const officialOverall = d.officialReading?.statistics?.overall;
+  const hasOfficialReading = Boolean(officialOverall && [officialOverall.totalReadingTimeSeconds, officialOverall.totalReadingDays, officialOverall.totalFinishedBooks].some(value => Number.isFinite(Number(value))));
+  const metricMarkup = hasOfficialReading
+    ? `${metric("累计阅读时长", formatReadingDuration(officialOverall.totalReadingTimeSeconds), "微信读书官方累计统计")}${metric("累计阅读天数", formatStat(officialOverall.totalReadingDays, " 天"), "微信读书官方累计统计")}${metric("读完书籍", formatStat(officialOverall.totalFinishedBooks, " 本"), "微信读书官方累计统计")}${metric("笔记", d.summary.noteCount, "账户内加密正文")}`
+    : `${metric("笔记", d.summary.noteCount, "账户内加密正文")}${metric("来源", d.summary.sourceCount, "已汇总来源")}${metric("估算字数", numberFormat(d.summary.estimatedWords), "仅用于个人统计")}${metric("近 90 天笔记活动", d.summary.noteActivityDays90 ?? d.summary.activeDays90, "按笔记真实事件时间统计")}`;
+  content.innerHTML = `<header class="content-heading"><div><p class="eyebrow">阅读画像</p><h1>你的真实阅读数据、笔记活动与潜在下一步</h1><p>官方阅读统计、笔记活动与推荐分别标注来源；不会把笔记正文发送给模型。</p></div><button class="button secondary" id="analytics-settings" type="button">隐私设置</button></header>
+    <section class="consent-banner ${d.consent?.behaviorAnalytics ? "enabled" : ""}"><div><strong>${d.consent?.behaviorAnalytics ? "行为分析已开启" : "行为分析默认关闭"}</strong><p>微信读书官方阅读统计不依赖此开关；它只控制本服务额外记录的非正文行为事件。关闭后这些额外事件会被删除。</p></div><button id="toggle-analytics" class="button ${d.consent?.behaviorAnalytics ? "ghost" : "primary"}" type="button">${d.consent?.behaviorAnalytics ? "关闭" : "开启"}</button></section>
+    ${officialReadingPanel(d.officialReading)}
+    <section class="metric-grid">${metricMarkup}</section>
     <section class="analytics-grid"><article class="chart-card"><div class="section-title"><div><h2>12 周笔记趋势</h2><p>每周新增或更新的笔记数量</p></div></div>${barChart(d.weeklyTrend || [])}</article><article class="chart-card"><div class="section-title"><div><h2>来源分布</h2><p>你的笔记主要来自哪里</p></div></div>${distribution(d.sourceDistribution || [])}</article></section>
-    <section class="heatmap-card"><div class="section-title"><div><h2>近 90 天阅读热度</h2><p>颜色越深表示当天记录或阅读活动越多</p></div><span class="heat-legend">少 <i></i><i></i><i></i><i></i> 多</span></div>${heatmap(d.readingHeatmap || [])}</section>
+    <section class="heatmap-card"><div class="section-title"><div><h2>近 90 天笔记活动</h2><p>按笔记真实事件时间汇总，不代表阅读时长或微信读书打开次数。</p></div><span class="heat-legend">少 <i></i><i></i><i></i><i></i> 多</span></div>${heatmap(d.noteActivityHeatmap || d.readingHeatmap || [])}</section>
     <section class="recommend-card"><div class="section-title"><div><h2>潜在推荐</h2><p>每条都显示来源和理由；微信读书入口只使用官方实际返回的可验证直链。</p></div></div>${d.recommendations?.length ? `<div class="recommend-list">${d.recommendations.map(item => `<article><span>${escapeHtml(sourceName(item.source))}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有足够数据</strong><p>导入第一批笔记并开启推荐个性化后，这里会出现可解释建议。</p></div>`}</section>`;
   content.querySelector("#analytics-settings").addEventListener("click", () => { state.view = "account"; renderCurrent(document); });
   content.querySelector("#toggle-analytics").addEventListener("click", () => action("正在更新隐私选择…", async () => { const consent = state.account.consent || {}; await api.updateConsent({ behaviorAnalytics: !d.consent.behaviorAnalytics, recommendationPersonalization: consent.recommendationPersonalization || false }); const profile = await api.profile(); state.account = profile.account; await loadAnalytics(document.querySelector("#platform-main")); }));
 }
 function barChart(items) { const max = Math.max(1, ...items.map(item => Number(item.value || 0))); return `<div class="bar-chart" role="img" aria-label="最近十二周笔记趋势">${items.map(item => `<div><span style="height:${Math.max(4, Number(item.value || 0) / max * 100)}%" title="${item.week}：${item.value}"></span><small>${item.week.slice(5)}</small></div>`).join("")}</div>`; }
 function distribution(items) { const total = Math.max(1, items.reduce((sum, item) => sum + Number(item.value || 0), 0)); return `<div class="distribution-list">${items.slice(0, 8).map(item => `<div><span>${escapeHtml(sourceName(item.label))}</span><div><i style="width:${Number(item.value || 0) / total * 100}%"></i></div><strong>${item.value}</strong></div>`).join("") || `<p>暂无数据</p>`}</div>`; }
-function heatmap(items) { return `<div class="heatmap" role="img" aria-label="近九十天阅读热度">${items.map(item => `<span class="level-${item.level}" title="${item.date}：${item.value}" aria-label="${item.date}，热度 ${item.value}"></span>`).join("")}</div>`; }
+function heatmap(items) { return `<div class="heatmap" role="img" aria-label="近九十天笔记活动">${items.map(item => `<span class="level-${item.level}" title="${item.date}：${item.value}" aria-label="${item.date}，笔记活动 ${item.value}"></span>`).join("")}</div>`; }
+function officialReadingPanel(reading) {
+  const overall = reading?.statistics?.overall;
+  if (!overall || ![overall.totalReadingTimeSeconds, overall.totalReadingDays, overall.totalFinishedBooks].some(value => Number.isFinite(Number(value)))) return `<section class="home-profile-card"><div class="section-title"><div><p class="eyebrow">官方阅读统计</p><h2>尚未取得可验证的微信读书统计</h2><p>下一次同步会重新请求微信读书的周、月、年与累计汇总；笔记活动不会被当作阅读时长。</p></div></div></section>`;
+  const categories = (reading.preferredCategories || []).slice(0, 6);
+  const hours = (reading.preferredHours || []).map(item => `${String(item.hour).padStart(2, "0")}:00`).join("、");
+  return `<section class="home-profile-card"><div class="section-title"><div><p class="eyebrow">官方阅读统计</p><h2>微信读书真实阅读画像</h2><p>${escapeHtml(officialReadingSummary(reading))}</p></div></div><div class="home-profile-grid"><div><span>累计阅读时长</span><strong>${escapeHtml(formatReadingDuration(overall.totalReadingTimeSeconds))}</strong></div><div><span>累计阅读天数</span><strong>${escapeHtml(formatStat(overall.totalReadingDays, " 天"))}</strong></div><div><span>读完书籍</span><strong>${escapeHtml(formatStat(overall.totalFinishedBooks, " 本"))}</strong></div></div>${categories.length ? `<div class="profile-topics"><strong>官方偏好类别</strong><div>${categories.map(item => `<span>${escapeHtml(`${item.label}${Number.isFinite(Number(item.readingTimeSeconds)) ? ` · ${formatReadingDuration(item.readingTimeSeconds)}` : ""}`)}</span>`).join("")}</div></div>` : ""}${hours ? `<p class="profile-data-note">常见阅读时段：${escapeHtml(hours)}（仅显示官方汇总的偏好，不显示笔记正文）</p>` : ""}</section>`;
+}
 function recommendationLink(item) {
   const link = officialRecommendationLink(item);
   if (link) {
@@ -642,6 +671,13 @@ function sourceName(source) { return ({ weread: "微信读书", notion: "Notion"
 function initials(value) { return String(value || "阅").trim().slice(0, 2).toUpperCase(); }
 function formatDate(value) { const timestamp = Number(value || 0) < 1e12 ? Number(value || 0) * 1000 : Number(value || 0); if (!timestamp) return "未知时间"; return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric" }).format(timestamp); }
 function formatDateTime(value) { const timestamp = Number(value || 0) < 1e12 ? Number(value || 0) * 1000 : Number(value || 0); if (!timestamp) return "未知时间"; return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(timestamp); }
+function formatStat(value, suffix = "") { const number = Number(value); return Number.isFinite(number) && number >= 0 ? `${numberFormat(number)}${suffix}` : "未提供"; }
+function formatReadingDuration(value) { const seconds = Number(value); if (!Number.isFinite(seconds) || seconds < 0) return "未提供"; const minutes = Math.floor(seconds / 60); const hours = Math.floor(minutes / 60); return hours ? `${hours}小时${minutes % 60}分钟` : `${minutes}分钟`; }
+function officialReadingSummary(reading) {
+  const freshness = reading?.freshness === "CURRENT" ? "已刷新" : reading?.freshness === "PARTIAL" ? "部分刷新" : "上次成功统计";
+  const collected = reading?.collectedAt ? `，${formatDateTime(reading.collectedAt)}` : "";
+  return `数据来自微信读书官方阅读统计（周、月、年、累计），${freshness}${collected}；笔记事件不参与阅读时长计算。`;
+}
 function noteTimeLabel(note) { return note.eventAt ? `真实事件时间 ${formatDate(note.eventAt)}` : `更新时间 ${formatDate(note.updatedAt)}`; }
 function numberFormat(value) { return new Intl.NumberFormat("zh-CN", { notation: Number(value) > 9999 ? "compact" : "standard" }).format(Number(value || 0)); }
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]); }

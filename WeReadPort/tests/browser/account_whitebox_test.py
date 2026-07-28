@@ -60,13 +60,23 @@ NOTES = [
 ]
 DASHBOARD = {
     "consent": ACCOUNT["consent"],
-    "summary": {"noteCount": 2, "sourceCount": 4, "estimatedWords": 18340, "activeDays90": 17},
+    "summary": {"noteCount": 2, "sourceCount": 4, "estimatedWords": 18340, "noteActivityDays90": 17, "activeDays90": 17},
+    "officialReading": {
+        "freshness": "CURRENT", "collectedAt": 1785196800,
+        "statistics": {
+            "weekly": {"mode": "weekly", "totalReadingTimeSeconds": 3600, "totalReadingDays": 2, "totalFinishedBooks": None},
+            "monthly": {"mode": "monthly", "totalReadingTimeSeconds": 14400, "totalReadingDays": 9, "totalFinishedBooks": 2},
+            "overall": {"mode": "overall", "totalReadingTimeSeconds": 72000, "totalReadingDays": 42, "totalFinishedBooks": 12},
+        },
+        "preferredCategories": [{"label": "历史", "readingTimeSeconds": 36000, "readingCount": 8}, {"label": "科学", "readingTimeSeconds": 18000, "readingCount": 4}],
+        "preferredHours": [{"hour": 21}, {"hour": 22}],
+    },
     "weeklyTrend": [{"week": f"2026-{i:02d}", "value": (i % 5) + 1} for i in range(1, 13)],
     "sourceDistribution": [
         {"label": "weread", "value": 8}, {"label": "notion", "value": 5},
         {"label": "obsidian", "value": 3}, {"label": "github", "value": 2}, {"label": "google", "value": 1},
     ],
-    "readingHeatmap": [
+    "noteActivityHeatmap": [
         {"date": f"2026-07-{(i % 28) + 1:02d}", "value": i % 6, "level": min(4, i % 5)} for i in range(90)
     ],
     "recommendations": [
@@ -175,8 +185,10 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     assert page.get_by_role("button", name="我只有 ZIP 或 Markdown").is_visible()
 
     page.get_by_role("button", name="阅读画像").click()
-    page.get_by_role("heading", name="你的阅读热度、主题与潜在下一步").wait_for()
-    assert page.get_by_role("img", name="近九十天阅读热度").is_visible()
+    page.get_by_role("heading", name="你的真实阅读数据、笔记活动与潜在下一步").wait_for()
+    assert page.get_by_role("heading", name="微信读书真实阅读画像").is_visible()
+    assert page.get_by_text("累计阅读时长", exact=True).count() >= 1
+    assert page.get_by_role("img", name="近九十天笔记活动").is_visible()
     assert page.get_by_role("heading", name="潜在推荐").is_visible()
     assert page.get_by_text("继续整理系统思维主题").is_visible()
     weread_link = page.get_by_role("link", name="在微信读书打开")

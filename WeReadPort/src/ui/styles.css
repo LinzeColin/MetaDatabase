@@ -602,3 +602,4 @@ footer p { max-width: 660px; margin: 0; line-height: 1.55; }
 .service-blocker h1{max-width:18ch;font-size:clamp(30px,5vw,52px);line-height:1.08;margin:.3em 0}
 .service-blocker .button-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
 @media(max-width:520px){.service-blocker{margin:24px 12px;padding:24px 18px;border-radius:18px}.service-blocker .button-row>*{width:100%}}
+.profile-data-note{margin:14px 0 0;color:var(--account-muted);font-size:13px;line-height:1.55}
