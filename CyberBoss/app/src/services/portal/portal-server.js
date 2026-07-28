@@ -12,14 +12,21 @@
 // 重复实现，因为两份略有出入的实现就是漏洞的来源。
 
 const crypto = require("node:crypto");
+const fs = require("node:fs");
 const http = require("node:http");
 
 const { PortalError, renderSetupPage } = require("./setup-portal");
+
+const DASHBOARD_TEMPLATE = require("node:path").join(
+  __dirname,
+  "../../../templates/dashboard.html",
+);
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8787;
 const API_PREFIX = "/api/";
 const SETUP_PATHS = Object.freeze(["/setup", "/setup/"]);
+const ADMIN_PATHS = Object.freeze(["/admin", "/admin/"]);
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
 const MAX_REQUEST_BYTES = 64 * 1024;
@@ -90,6 +97,10 @@ class PortalHttpServer {
     host = DEFAULT_HOST,
     port = DEFAULT_PORT,
     usageProvider = () => 100,
+    // 后台数据由外面注入：这一层只管路由和鉴权，不知道业务是怎么算出来的。
+    adminToken = "",
+    adminOverview = null,
+    adminInvite = null,
     logger = console,
   }) {
     if (!portal || typeof portal.handle !== "function") {
@@ -99,6 +110,9 @@ class PortalHttpServer {
     this.host = host;
     this.port = port;
     this.usageProvider = usageProvider;
+    this.adminToken = typeof adminToken === "string" ? adminToken : "";
+    this.adminOverview = adminOverview;
+    this.adminInvite = adminInvite;
     this.logger = logger;
     this.server = null;
   }
@@ -162,10 +176,64 @@ class PortalHttpServer {
     response.end(JSON.stringify({ ok: true, ...safe }));
   }
 
+  // 定长比较，避免用字符串比较的提前返回泄漏令牌前缀。
+  #adminAuthorized(request) {
+    if (!this.adminToken) {
+      return false;
+    }
+    const supplied = String(request.headers["x-admin-token"] || "");
+    const a = Buffer.from(supplied);
+    const b = Buffer.from(this.adminToken);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  }
+
+  #json(response, status, payload) {
+    response.writeHead(status, { ...SECURITY_HEADERS, "Content-Type": "application/json" });
+    response.end(JSON.stringify(payload));
+  }
+
+  async #handleAdminApi(request, response, name) {
+    if (!this.#adminAuthorized(request)) {
+      // 不区分"令牌错"和"功能没开"，两者都只回一句拒绝。
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return;
+    }
+    try {
+      if (name === "overview" && typeof this.adminOverview === "function") {
+        this.#json(response, 200, await this.adminOverview());
+        return;
+      }
+      if (name === "invite" && request.method === "POST" && typeof this.adminInvite === "function") {
+        this.#json(response, 200, await this.adminInvite());
+        return;
+      }
+    } catch (error) {
+      this.logger.warn?.(`[cyberboss] 后台 ${name} 失败 code=${error?.code || "unknown"}`);
+      this.#json(response, 500, { ok: false, code: "ADMIN_ACTION_FAILED" });
+      return;
+    }
+    this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+  }
+
+  // 后台页面本身不含任何数据，所以不要令牌也能拿到 HTML；数据接口才要。
+  #handleAdminPage(response) {
+    const nonce = newNonce();
+    const html = fs.readFileSync(DASHBOARD_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+    response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
+    response.end(html);
+  }
+
   #route(request, response) {
     const url = new URL(request.url || "/", "http://placeholder.invalid");
     const pathname = url.pathname;
 
+    if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
+      this.#handleAdminPage(response);
+      return null;
+    }
+    if (pathname.startsWith("/admin/api/")) {
+      return this.#handleAdminApi(request, response, pathname.slice("/admin/api/".length));
+    }
     if (request.method === "GET" && SETUP_PATHS.includes(pathname)) {
       this.#handleSetupPage(response);
       return null;

@@ -729,6 +729,9 @@ class CyberbossApp {
       host: this.config.portalHost || "127.0.0.1",
       port: this.config.portalPort || 8787,
       usageProvider: () => this.remainingUsagePercent(),
+      adminToken: this.config.adminToken || "",
+      adminOverview: () => this.buildDashboardOverview(),
+      adminInvite: () => this.issueDashboardInvite(),
     });
     try {
       const address = await this.portalServer.start();
@@ -748,6 +751,70 @@ class CyberbossApp {
       );
       // 设置页面起不来不影响聊天，所以不中断启动——但状态里会如实显示。
       return null;
+    }
+  }
+
+  // 后台那一页要的全部数据。都是计数和状态，不含任何用户标识。
+  buildDashboardOverview() {
+    const projection = this.projectOperationalStatus();
+    const lines = (projection?.status?.business_lines || []).map((line) => ({
+      label: PLAIN_LINE_NAMES[line.business_line] || line.business_line,
+      state: line.state,
+    }));
+    let users = 0;
+    let messagesToday = 0;
+    if (this.runtimeSpoolDatabase) {
+      try {
+        users = Number(this.runtimeSpoolDatabase.database
+          .prepare("SELECT COUNT(*) AS c FROM users WHERE status='active' AND role='user'")
+          .get().c);
+        const today = new Date().toISOString().slice(0, 10);
+        for (const row of this.runtimeSpoolDatabase.database
+          .prepare("SELECT metrics_json FROM activity_daily WHERE day=?").all(today)) {
+          try {
+            messagesToday += Number(JSON.parse(row.metrics_json).messages) || 0;
+          } catch {
+            // 单行读坏不影响其它行的计数。
+          }
+        }
+      } catch {
+        // 读不到就显示 0，不猜。
+      }
+    }
+    return Object.freeze({
+      lines,
+      users,
+      messagesToday,
+      uptimeSeconds: Math.floor(process.uptime()),
+      log: this.recentLog(),
+    });
+  }
+
+  // 后台页面上那段"最近发生了什么"。只留人话，且不含任何消息内容。
+  recentLog() {
+    return (this.dashboardLog || []).slice(-40);
+  }
+
+  noteForDashboard(text) {
+    if (!this.dashboardLog) {
+      this.dashboardLog = [];
+    }
+    this.dashboardLog.push(`${new Date().toISOString().slice(5, 19).replace("T", " ")}  ${text}`);
+    if (this.dashboardLog.length > 200) {
+      this.dashboardLog = this.dashboardLog.slice(-200);
+    }
+  }
+
+  issueDashboardInvite() {
+    if (!this.userAdmission) {
+      return Object.freeze({ ok: false, code: "ADMISSION_OFF" });
+    }
+    try {
+      const invite = this.userAdmission.issueInvite({ maxUses: 1, ttlMs: 7 * 24 * 60 * 60 * 1000 });
+      this.noteForDashboard("生成了一个邀请码");
+      return Object.freeze({ ok: true, code: invite.code });
+    } catch (error) {
+      return Object.freeze({ ok: false, code: normalizeErrorCode(error?.code) || "INVITE_FAILED" });
     }
   }
 

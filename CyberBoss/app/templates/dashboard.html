@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-__CSP_NONCE__'; style-src 'nonce-__CSP_NONCE__'; connect-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
+<title>CyberBoss 后台</title>
+<style nonce="__CSP_NONCE__">
+  :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--ok:#0b6b45;--warn:#8a5a00;--bad:#a1211a;--card:#f7f8fa}
+  @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#f2f4f7;--muted:#c3c8d1;--line:#333842;--ok:#6ee7b7;--warn:#ffcf70;--bad:#ff9b91;--card:#1c1f25}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+  main{max-width:760px;margin:0 auto;padding:24px 20px 64px}
+  h1{font-size:24px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 24px;font-size:14px}
+  .big{display:flex;align-items:center;gap:12px;padding:20px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-bottom:20px}
+  .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
+  .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+  .big strong{font-size:19px;display:block}
+  .big span{color:var(--muted);font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .stat b{display:block;font-size:26px;line-height:1.2}
+  .stat span{color:var(--muted);font-size:13px}
+  h2{font-size:16px;margin:28px 0 10px}
+  ul{list-style:none;padding:0;margin:0}
+  li{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--card)}
+  li .name{flex:1}
+  li .tag{font-size:12px;color:var(--muted);white-space:nowrap}
+  button{font:inherit;padding:13px 18px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;min-height:46px}
+  button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
+  .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:19px;letter-spacing:.08em;padding:14px;background:var(--card);border:1px dashed var(--line);border-radius:10px;margin-top:10px;word-break:break-all;user-select:all}
+  .hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+  .log{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-all;color:var(--muted)}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>CyberBoss 后台</h1>
+  <p class="sub">这一页就是全部。不用开终端。</p>
+
+  <div class="big">
+    <i class="dot warn" id="dot"></i>
+    <div><strong id="headline">正在读取……</strong><span id="subline">稍等一下</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><b id="s-users">–</b><span>已开通的人</span></div>
+    <div class="stat"><b id="s-today">–</b><span>今天的消息</span></div>
+    <div class="stat"><b id="s-uptime">–</b><span>已连续运行</span></div>
+  </div>
+
+  <h2>加人</h2>
+  <button class="primary" id="mk">生成一个邀请码</button>
+  <div class="code" id="code" hidden></div>
+  <p class="hint" id="code-hint" hidden>把这一串发给朋友。他加了微信之后，直接把码发过来就能开通。只能用一次，7 天有效。</p>
+
+  <h2>各项功能</h2>
+  <ul id="lines"></ul>
+
+  <h2>最近发生了什么</h2>
+  <div class="log" id="log">正在读取……</div>
+</main>
+<script nonce="__CSP_NONCE__">
+"use strict";
+(function () {
+  var STATE = {
+    healthy: ["ok", "正常"],
+    degraded: ["warn", "不太对劲"],
+    blocked: ["bad", "出问题了"],
+    activation_pending: ["warn", "还没配"],
+    not_started: ["warn", "没开"]
+  };
+  function set(id, text) { var n = document.getElementById(id); if (n) { n.textContent = text; } }
+
+  // 管理员令牌从地址栏的 # 后面取，只留在内存里，然后立刻从地址栏抹掉：
+  // 片段不会出现在请求行里，服务器和中间代理的访问日志都记不到它。
+  var TOKEN = new URLSearchParams(location.hash.replace(/^#/, "")).get("k") || "";
+  if (TOKEN) { history.replaceState(null, "", location.pathname); }
+  function authed(extra) {
+    var h = extra || {};
+    if (TOKEN) { h["x-admin-token"] = TOKEN; }
+    return h;
+  }
+
+  function human(seconds) {
+    if (!seconds || seconds < 0) { return "–"; }
+    var d = Math.floor(seconds / 86400), h = Math.floor((seconds % 86400) / 3600), m = Math.floor((seconds % 3600) / 60);
+    if (d) { return d + " 天 " + h + " 小时"; }
+    if (h) { return h + " 小时 " + m + " 分"; }
+    return m + " 分钟";
+  }
+
+  function render(data) {
+    var bad = data.lines.filter(function (l) { return l.state === "blocked" || l.state === "degraded"; });
+    var dot = document.getElementById("dot");
+    dot.className = "dot " + (bad.length ? "bad" : "ok");
+    set("headline", bad.length ? "有地方出问题了" : "一切正常，正在待命");
+    set("subline", bad.length
+      ? bad.map(function (l) { return l.label; }).join("、") + " 需要处理"
+      : "微信来消息就会回。这一页每 10 秒自己刷新。");
+
+    set("s-users", data.users);
+    set("s-today", data.messagesToday);
+    set("s-uptime", human(data.uptimeSeconds));
+
+    var ul = document.getElementById("lines");
+    ul.textContent = "";
+    data.lines.forEach(function (line) {
+      var pair = STATE[line.state] || ["warn", line.state];
+      var li = document.createElement("li");
+      var i = document.createElement("i"); i.className = "dot " + pair[0];
+      var name = document.createElement("span"); name.className = "name"; name.textContent = line.label;
+      var tag = document.createElement("span"); tag.className = "tag"; tag.textContent = pair[1];
+      li.appendChild(i); li.appendChild(name); li.appendChild(tag);
+      ul.appendChild(li);
+    });
+
+    document.getElementById("log").textContent = (data.log || []).join("\n") || "还没有记录。";
+  }
+
+  function refresh() {
+    fetch("/admin/api/overview", { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) { throw new Error(String(r.status)); } return r.json(); })
+      .then(render)
+      .catch(function () {
+        document.getElementById("dot").className = "dot bad";
+        set("headline", TOKEN ? "连不上服务" : "这个链接不完整");
+        set("subline", TOKEN
+          ? "它可能停了。过一会儿这一页会自己再试。"
+          : "请用完整的后台链接打开（末尾带 #k=…… 那一段）。");
+      });
+  }
+
+  document.getElementById("mk").addEventListener("click", function () {
+    var button = this;
+    button.disabled = true; button.textContent = "正在生成……";
+    fetch("/admin/api/invite", { method: "POST", headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        button.disabled = false; button.textContent = "再生成一个";
+        var box = document.getElementById("code");
+        box.textContent = data.code || "（生成失败，稍后再试）";
+        box.hidden = false;
+        document.getElementById("code-hint").hidden = !data.code;
+      })
+      .catch(function () {
+        button.disabled = false; button.textContent = "生成一个邀请码";
+      });
+  });
+
+  refresh();
+  setInterval(refresh, 10000);
+})();
+</script>
+</body>
+</html>

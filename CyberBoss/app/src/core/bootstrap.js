@@ -181,6 +181,11 @@ function bootstrapInstallation({ stateDir = defaultStateDir() } = {}) {
   if (!existing.has("CYBERBOSS_WORKSPACE_BASE")) {
     updateEnvFile(envFile, { CYBERBOSS_WORKSPACE_BASE: workspaceBase });
   }
+  // 后台页面的管理员令牌。生成一次就固定下来——每次重启都换一个的话，
+  // 用户存的那个后台书签第二天就打不开了。
+  if (!existing.has("CB_ADMIN_TOKEN")) {
+    updateEnvFile(envFile, { CB_ADMIN_TOKEN: crypto.randomBytes(24).toString("base64url") });
+  }
   // Applied to this process too, so the very first run works without a restart.
   process.env.CYBERBOSS_WORKSPACE_BASE ||= workspaceBase;
   process.env.CYBERBOSS_STATE_DIR ||= stateDir;

@@ -132,6 +132,7 @@ function readConfig() {
     // 只监听回环地址。公网入口是 Cloudflare Tunnel，本机不开任何入站端口。
     portalHost: readTextEnv("CB_PORTAL_HOST") || "127.0.0.1",
     portalPort: readIntEnv("CB_PORTAL_PORT") || 8787,
+    adminToken: readTextEnv("CB_ADMIN_TOKEN"),
     dailyTokenBudget: readIntEnv("CB_DAILY_TOKEN_BUDGET") || 200_000,
     // 云备份的两个目标。缺任何一边，备份就如实报 activation_pending，而不是
     // 只写一份副本还发一张声称有两份的收据。
