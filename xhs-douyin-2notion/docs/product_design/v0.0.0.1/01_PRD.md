@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL
+status: STAGE_3_TASK010_CI_SYNTH_PASS_G3_REVIEW_PENDING
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_3_review_resume_contract_only
-implementation_authorized: stage_3_task_010_next_single_phase_run
+current_run_scope: stage_3_task010_ci_synth_accepted_g3_recheck_pending
+implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -32,14 +32,14 @@ owner: LinzeColin
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
 | 产品阶段 | Stage 3 Review Resume |
-| 开发状态 | 仅授权版本化 Resume 合同；G3 在 `TSK.x2n.adapters.010` 完成前保持 `BLOCKED_TECHNICAL` |
+| 开发状态 | `TSK.x2n.adapters.010` 已完成 CI synthetic 验收；G3 等待独立 Resume 复验，Stage 3 上传和 Stage 4 仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 
-Task010 不得沿用当前无法表达三个 `saved_current` selected-collection scope 的旧
-`START_SYNC` 形状，也不得让 Side Panel 猜测 `GET_CAPABILITIES`。下一单 Phase 必须一次性版本化
-严格八行 `scope_id` 矩阵、typed capability result、每 scope 唯一 SQLite derived outcome、失败
-provenance 与第二次 Owner fallback；技术阻断没有合法禁用终态，不能绕过 G3。
+Task010 已以版本化严格八行 `scope_id` 矩阵、typed capability result、每 scope 唯一 SQLite
+derived outcome、失败 provenance 与第二次 Owner fallback 替换无法表达 selected-collection scope 的旧
+`START_SYNC` 形状，并禁止 Side Panel 猜测 `GET_CAPABILITIES`。该 CI synthetic 验收不替代独立 G3
+复验；技术阻断没有合法禁用终态，不能绕过 G3。
 
 ### 1.1 事实标记
 

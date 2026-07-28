@@ -42,7 +42,7 @@ v0.0.0.1 MVP deployed, running and online
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 已执行至 Stage 3 Resume；`TSK.x2n.adapters.010 / PH.X2N.3.10` 已授权为下一单 Phase Run，当前 `G3=BLOCKED_TECHNICAL` |
+| Dev Taskpack | `TSK.x2n.adapters.010 / PH.X2N.3.10` 已完成 CI synthetic 验收；当前 `G3=REVIEW_PENDING`，下一单仅独立 Resume 复验，上传/Stage 4 仍禁止 |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |

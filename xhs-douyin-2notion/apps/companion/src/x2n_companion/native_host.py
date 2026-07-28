@@ -10,15 +10,19 @@ from pathlib import Path
 from typing import BinaryIO
 
 from x2n_contracts import (
+    CapabilityManifest,
     ContractViolation,
+    DuplicateDisposition,
     ErrorCode,
     NativeHostPolicy,
     NativeMessageResponse,
+    canonical_json_sha256,
     parse_native_message,
 )
 from x2n_contracts.errors import ERROR_SPECS
-from x2n_contracts.models import NativeAction
+from x2n_contracts.models import CapabilityFeatureFlag, CapabilityTerminal, NativeAction, SyncScopeId
 
+from .adapter_dispatch import AdapterDispatchFailure, AdapterDispatcher, CapabilityRegistry
 from .canonical_store import CURRENT_PAGE_RUN_KIND, CanonicalStore, SkeletonJob
 from .orchestrator import CurrentPageOrchestrator
 from .runtime import RuntimePaths, X2NRuntimeError
@@ -58,7 +62,23 @@ def _request_id(raw: bytes) -> str:
         return ZERO_REQUEST_ID
 
 
-def _error_response(code: ErrorCode, *, request_id: str, safe_message: str | None = None) -> NativeMessageResponse:
+def _legacy_empty_capabilities_request(raw: bytes) -> bool:
+    """Keep the pre-Task010 empty GET_CAPABILITIES vector read-compatible."""
+
+    try:
+        value = json.loads(raw.decode("utf-8"))
+        return isinstance(value, dict) and value.get("action") == "get_capabilities" and value.get("payload") == {}
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return False
+
+
+def _error_response(
+    code: ErrorCode,
+    *,
+    request_id: str,
+    safe_message: str | None = None,
+    job_id: str | None = None,
+) -> NativeMessageResponse:
     spec = ERROR_SPECS[code]
     error = {
         "schema_version": "1.0",
@@ -76,16 +96,23 @@ def _error_response(code: ErrorCode, *, request_id: str, safe_message: str | Non
             "schema_version": "1.0",
             "request_id": request_id,
             "accepted": False,
-            "job_id": None,
+            "job_id": job_id,
             "status": "rejected",
             "error": error,
+            "capabilities": None,
             },
             ensure_ascii=False,
         )
     )
 
 
-def _accepted(*, request_id: str, status: str, job_id: str | None = None) -> NativeMessageResponse:
+def _accepted(
+    *,
+    request_id: str,
+    status: str,
+    job_id: str | None = None,
+    capabilities: CapabilityManifest | None = None,
+) -> NativeMessageResponse:
     return NativeMessageResponse.model_validate_json(
         json.dumps(
             {
@@ -95,6 +122,7 @@ def _accepted(*, request_id: str, status: str, job_id: str | None = None) -> Nat
             "job_id": job_id,
             "status": status,
             "error": None,
+            "capabilities": capabilities.model_dump(mode="json") if capabilities is not None else None,
             },
             ensure_ascii=False,
         )
@@ -116,23 +144,69 @@ def _store() -> CanonicalStore:
     return CanonicalStore(paths)
 
 
-def dispatch_wire(raw: bytes, *, origin: str, store: CanonicalStore | None = None) -> NativeMessageResponse:
+def _capability_snapshot(store: CanonicalStore, registry: CapabilityRegistry) -> CapabilityManifest:
+    """Refresh the SQLite-only runtime authority or fail closed on any technical veto."""
+
+    technical_scopes = registry.technical_scope_ids()
+    if technical_scopes:
+        store.invalidate_capability_scopes(technical_scopes)
+        raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability technical veto is active")
+    try:
+        manifest = registry.evaluate()
+    except X2NRuntimeError as error:
+        if error.code is ErrorCode.CAPABILITY_TECHNICAL_BLOCKED:
+            # A corrupted/missing adapter binding means no previously ready row
+            # is safe to serve, even if its narrow source cannot be identified.
+            store.invalidate_capability_scopes(tuple(SyncScopeId))
+        raise
+    return store.persist_capability_snapshot(manifest)
+
+
+def _failed_job_response(*, request_id: str, job: SkeletonJob) -> NativeMessageResponse:
+    if (
+        job.failure_code is not ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE
+        or not job.fallback_eligible
+    ):
+        return _error_response(ErrorCode.DATA_INTEGRITY_FAILED, request_id=request_id, job_id=job.job_id)
+    return _error_response(
+        ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE,
+        request_id=request_id,
+        job_id=job.job_id,
+    )
+
+
+def dispatch_wire(
+    raw: bytes,
+    *,
+    origin: str,
+    store: CanonicalStore | None = None,
+    capability_registry: CapabilityRegistry | None = None,
+    adapter_dispatcher: AdapterDispatcher | None = None,
+) -> NativeMessageResponse:
     """Validate and dispatch one message without retaining caller payload."""
 
     request_id = _request_id(raw)
     try:
         request = parse_native_message(raw, origin=origin, policy=POLICY)
         request_id = str(request.request_id)
-        if request.action is NativeAction.GET_CAPABILITIES:
+        if request.action is NativeAction.GET_CAPABILITIES and _legacy_empty_capabilities_request(raw):
             return _accepted(request_id=request_id, status="completed")
-
         active_store = store or _store()
+        if request.action is NativeAction.GET_CAPABILITIES:
+            manifest = _capability_snapshot(active_store, capability_registry or CapabilityRegistry())
+            return _accepted(request_id=request_id, status="completed", capabilities=manifest)
+
         if request.action is NativeAction.HEALTH:
             health = active_store.health()
             if health.get("status") != "healthy":
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Canonical Store health check failed")
             return _accepted(request_id=request_id, status="completed")
         if request.action is NativeAction.CAPTURE_CURRENT:
+            if request.payload.fallback_from_job_id is not None:
+                active_store.verify_current_page_fallback(
+                    fallback_from_job_id=str(request.payload.fallback_from_job_id),
+                    current_request_id=request_id,
+                )
             receipt = CurrentPageOrchestrator(active_store).execute(
                 request.payload,
                 request_id=request_id,
@@ -146,11 +220,54 @@ def dispatch_wire(raw: bytes, *, origin: str, store: CanonicalStore | None = Non
             )
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         if request.action is NativeAction.START_SYNC:
-            job = active_store.submit_skeleton_job(
+            manifest = _capability_snapshot(active_store, capability_registry or CapabilityRegistry())
+            outcome = next(
+                (item for item in manifest.outcomes if item.scope_id is request.payload.scope_id),
+                None,
+            )
+            if (
+                outcome is None
+                or outcome.terminal is not CapabilityTerminal.READY_FOR_MVP_ACTIVATION
+                or outcome.feature_flag is not CapabilityFeatureFlag.CI_SYNTHETIC_ONLY
+            ):
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Requested scope is disabled by its external gate")
+            dispatcher = adapter_dispatcher or AdapterDispatcher()
+            binding = dispatcher.binding_for(
+                request.payload.scope_id,
+                platform=request.payload.platform,
+                relation=request.payload.relation,
+            )
+            expected_receipt_hash = dispatcher.expected_receipt_hash(binding, payload_hash=request.payload_hash)
+            job = active_store.submit_scope_dispatch_job(
                 request_id=request_id,
                 payload_hash=request.payload_hash,
-                run_kind="native_sync_skeleton",
+                binding=binding,
+                dispatch_receipt_hash=expected_receipt_hash,
             )
+            if job.disposition is DuplicateDisposition.NEW_REQUEST:
+                try:
+                    receipt = dispatcher.execute_synthetic(binding, payload_hash=request.payload_hash)
+                    if receipt.platform_calls != 0 or receipt.receipt_hash != expected_receipt_hash:
+                        raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Dispatch receipt is invalid")
+                    job = active_store.complete_scope_dispatch_job(
+                        job_id=job.job_id,
+                        dispatch_receipt_hash=receipt.receipt_hash,
+                    )
+                except AdapterDispatchFailure:
+                    provenance_hash = canonical_json_sha256(
+                        {
+                            "dispatch_receipt_hash": expected_receipt_hash,
+                            "job_id": job.job_id,
+                            "scope_id": binding.scope_id.value,
+                        }
+                    )
+                    job = active_store.fail_scope_dispatch_job(
+                        job_id=job.job_id,
+                        provenance_hash=provenance_hash,
+                        fallback_eligible=True,
+                    )
+            if job.state == "failed":
+                return _failed_job_response(request_id=request_id, job=job)
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         if request.action is NativeAction.GET_JOB:
             job = active_store.get_skeleton_job(str(request.payload.job_id))
@@ -162,6 +279,8 @@ def dispatch_wire(raw: bytes, *, origin: str, store: CanonicalStore | None = Non
                     disposition=receipt.disposition,
                     run_kind=CURRENT_PAGE_RUN_KIND,
                 )
+            if job.state == "failed":
+                return _failed_job_response(request_id=request_id, job=job)
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Job mutation is not enabled in this skeleton")
     except ContractViolation as error:

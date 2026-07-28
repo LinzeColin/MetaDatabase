@@ -45,6 +45,8 @@ class ErrorCode(str, Enum):
     STORAGE_FAILED = "X2N_STORAGE_FAILED"
     DATA_INTEGRITY_FAILED = "X2N_DATA_INTEGRITY_FAILED"
     POLICY_BLOCKED = "X2N_POLICY_BLOCKED"
+    CAPABILITY_TECHNICAL_BLOCKED = "X2N_CAPABILITY_TECHNICAL_BLOCKED"
+    ADAPTER_FAILED_FALLBACK_AVAILABLE = "X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE"
     UNKNOWN_FAILURE = "X2N_UNKNOWN_FAILURE"
 
 
@@ -69,6 +71,7 @@ class NextAction(str, Enum):
     INSPECT_PROVIDER = "inspect_provider"
     FREE_DISK_SPACE = "free_disk_space"
     INSPECT_DIAGNOSTICS = "inspect_diagnostics"
+    CAPTURE_CURRENT = "capture_current"
 
 
 @dataclass(frozen=True)
@@ -104,5 +107,7 @@ ERROR_SPECS: dict[ErrorCode, ErrorSpec] = {
     ErrorCode.STORAGE_FAILED: ErrorSpec(ErrorClass.STORAGE, True, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.FREE_DISK_SPACE, "本地存储操作失败"),
     ErrorCode.DATA_INTEGRITY_FAILED: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.RESTORE_BACKUP, "数据完整性检查失败"),
     ErrorCode.POLICY_BLOCKED: ErrorSpec(ErrorClass.POLICY, False, DataEffect.NONE, NextAction.REVIEW_POLICY, "当前策略禁止此操作"),
+    ErrorCode.CAPABILITY_TECHNICAL_BLOCKED: ErrorSpec(ErrorClass.DATA_INTEGRITY, False, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.INSPECT_DIAGNOSTICS, "能力门技术校验未通过，未执行任何操作"),
+    ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE: ErrorSpec(ErrorClass.PROVIDER, False, DataEffect.CANONICAL_UNCHANGED, NextAction.CAPTURE_CURRENT, "已停止此列表任务；可由您再次明确选择当前页保存"),
     ErrorCode.UNKNOWN_FAILURE: ErrorSpec(ErrorClass.UNKNOWN, False, DataEffect.UNKNOWN_FAIL_CLOSED, NextAction.INSPECT_DIAGNOSTICS, "发生未知错误，系统已停止副作用"),
 }

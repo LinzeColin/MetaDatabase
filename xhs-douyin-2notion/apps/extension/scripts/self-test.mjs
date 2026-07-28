@@ -97,6 +97,28 @@ if (!sources["sidepanel.html"].includes('id="tab-save"') || !sources["sidepanel.
 if (/<script(?![^>]+src=)/i.test(sources["sidepanel.html"])) failures.push("inline_script");
 if (!sources["src/service-worker.js"].includes("return true;")) failures.push("message_channel_compatibility");
 if (!sources["src/service-worker.js"].includes('sender.url === chrome.runtime.getURL("sidepanel.html")')) failures.push("sender_identity");
+for (const messageType of ["X2N_GET_CAPABILITIES", "X2N_START_SYNC"]) {
+  if (!sources["src/service-worker.js"].includes(messageType)) failures.push(`missing_message_${messageType}`);
+}
+for (const scopeId of [
+  "xiaohongshu_favorites",
+  "xiaohongshu_likes",
+  "douyin_favorites",
+  "douyin_likes",
+  "bilibili_selected_collection",
+  "kuaishou_selected_collection",
+  "weibo_selected_collection",
+  "taobao_selected_collection",
+]) {
+  if (!sources["src/service-worker.js"].includes(scopeId)) failures.push(`missing_scope_${scopeId}`);
+}
+if (!sources["src/service-worker.js"].includes("owner_selection_manifest_sha256")) failures.push("selected_manifest_binding");
+if (!sources["src/service-worker.js"].includes("fallbackAvailable")) failures.push("fallback_derivation");
+if (!sources["sidepanel.html"].includes('id="start-sync"') || !sources["sidepanel.html"].includes('id="capture-fallback"')) {
+  failures.push("task010_controls");
+}
+if (!sources["src/sidepanel.js"].includes("fallbackButton.addEventListener")) failures.push("fallback_second_action");
+if (sources["src/sidepanel.js"].includes("startSelectedSync().catch")) failures.push("automatic_sync_fallback");
 
 const e2eSource = await readFile(new URL("scripts/extension-e2e.mjs", root), "utf8");
 if (e2eSource.includes("...process.env")) failures.push("e2e_environment_inheritance");

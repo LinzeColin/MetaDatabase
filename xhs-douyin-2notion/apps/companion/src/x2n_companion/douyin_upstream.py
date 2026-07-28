@@ -127,12 +127,23 @@ def _file_sha256(path: Path) -> str:
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 _SYNTHETIC_FIXTURE_ROOT = _PROJECT_ROOT / "packages/test-fixtures/adapters/v1/douyin_upstream"
-SYNTHETIC_ATTESTATION_DIGESTS = {
-    "executable_sha256": _file_sha256(_PROJECT_ROOT / "scripts/douyin_sidecar_fixture_worker.py"),
-    "resolved_lock_sha256": _file_sha256(_SYNTHETIC_FIXTURE_ROOT / "resolved-lock.json"),
-    "sbom_sha256": _file_sha256(_SYNTHETIC_FIXTURE_ROOT / "sbom.cdx.json"),
-    "transitive_license_report_sha256": _file_sha256(_SYNTHETIC_FIXTURE_ROOT / "transitive-licenses.json"),
-}
+
+
+def _synthetic_attestation_digests() -> dict[str, str]:
+    """Read CI-only fixture evidence only when a synthetic sidecar is requested.
+
+    Importing the adapter is also needed by the private Native Host's typed
+    capability registry.  That registry must be able to verify the adapter
+    class without requiring a test-only fixture to be installed beside the
+    production runtime bundle.
+    """
+
+    return {
+        "executable_sha256": _file_sha256(_PROJECT_ROOT / "scripts/douyin_sidecar_fixture_worker.py"),
+        "resolved_lock_sha256": _file_sha256(_SYNTHETIC_FIXTURE_ROOT / "resolved-lock.json"),
+        "sbom_sha256": _file_sha256(_SYNTHETIC_FIXTURE_ROOT / "sbom.cdx.json"),
+        "transitive_license_report_sha256": _file_sha256(_SYNTHETIC_FIXTURE_ROOT / "transitive-licenses.json"),
+    }
 
 
 def _strict_object(value: Any, expected: set[str], label: str) -> Mapping[str, Any]:
@@ -249,7 +260,7 @@ class SidecarBuildAttestation:
 
 
 def synthetic_attestation() -> SidecarBuildAttestation:
-    return SidecarBuildAttestation(scope="ci_synthetic", **SYNTHETIC_ATTESTATION_DIGESTS)
+    return SidecarBuildAttestation(scope="ci_synthetic", **_synthetic_attestation_digests())
 
 
 @dataclass(frozen=True)

@@ -28,7 +28,66 @@ import { buildXhsCapturePayload, extractXhsCurrentPage, validateXhsPageFacts } f
 
 const NATIVE_HOST = "com.linzecolin.x2n";
 const CONTRACT_VERSION = "1.0";
-const MESSAGE_TYPES = Object.freeze(new Set(["X2N_CAPTURE_CURRENT", "X2N_GET_JOB", "X2N_HEALTH"]));
+const MESSAGE_TYPES = Object.freeze(new Set([
+  "X2N_CAPTURE_CURRENT",
+  "X2N_GET_CAPABILITIES",
+  "X2N_GET_JOB",
+  "X2N_HEALTH",
+  "X2N_START_SYNC",
+]));
+const SAFE_TOKEN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u;
+const SHA256 = /^[0-9a-f]{64}$/u;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+const SCOPE_MATRIX = Object.freeze({
+  bilibili_selected_collection: Object.freeze({
+    maxItems: 20,
+    platform: "bilibili",
+    relation: "saved_current",
+    selectedCollection: true,
+  }),
+  douyin_favorites: Object.freeze({
+    maxItems: 80,
+    platform: "douyin",
+    relation: "favorited",
+    selectedCollection: false,
+  }),
+  douyin_likes: Object.freeze({
+    maxItems: 80,
+    platform: "douyin",
+    relation: "liked",
+    selectedCollection: false,
+  }),
+  kuaishou_selected_collection: Object.freeze({
+    maxItems: 20,
+    platform: "kuaishou",
+    relation: "saved_current",
+    selectedCollection: true,
+  }),
+  taobao_selected_collection: Object.freeze({
+    maxItems: 20,
+    platform: "taobao",
+    relation: "saved_current",
+    selectedCollection: true,
+  }),
+  weibo_selected_collection: Object.freeze({
+    maxItems: 20,
+    platform: "weibo",
+    relation: "favorited",
+    selectedCollection: true,
+  }),
+  xiaohongshu_favorites: Object.freeze({
+    maxItems: 80,
+    platform: "xiaohongshu",
+    relation: "favorited",
+    selectedCollection: false,
+  }),
+  xiaohongshu_likes: Object.freeze({
+    maxItems: 80,
+    platform: "xiaohongshu",
+    relation: "liked",
+    selectedCollection: false,
+  }),
+});
 const CURRENT_PAGE_ADAPTERS = Object.freeze({
   bilibili: Object.freeze({
     buildPayload: buildBilibiliCapturePayload,
@@ -97,6 +156,54 @@ async function nativeRequest(action, payload) {
   return chrome.runtime.sendNativeMessage(NATIVE_HOST, request);
 }
 
+function validToken(value) {
+  return typeof value === "string" && SAFE_TOKEN.test(value);
+}
+
+function fallbackAvailable(response) {
+  return response?.accepted === false
+    && response?.error?.code === "X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE"
+    && response?.error?.next_action === "capture_current"
+    && typeof response?.job_id === "string"
+    && UUID.test(response.job_id);
+}
+
+function buildStartSyncPayload(message) {
+  const scope = typeof message.scopeId === "string" ? SCOPE_MATRIX[message.scopeId] : null;
+  if (!scope || !Number.isSafeInteger(message.maxItems) || message.maxItems < 1 || message.maxItems > scope.maxItems) {
+    return null;
+  }
+  const base = {
+    auto_scroll: false,
+    bounded_batch: true,
+    change_account_state: false,
+    dispatch_version: "1.0",
+    max_items: message.maxItems,
+    platform: scope.platform,
+    relation: scope.relation,
+    scope_id: message.scopeId,
+    user_gesture: true,
+  };
+  if (!scope.selectedCollection) {
+    if (message.sourceCollectionId !== null && message.sourceCollectionId !== undefined && !validToken(message.sourceCollectionId)) {
+      return null;
+    }
+    return { ...base, source_collection_id: message.sourceCollectionId ?? null };
+  }
+  if (
+    !validToken(message.ownerSelectionId)
+    || !validToken(message.sourceIdentity)
+    || typeof message.ownerSelectionManifestSha256 !== "string"
+    || !SHA256.test(message.ownerSelectionManifestSha256)
+  ) return null;
+  return {
+    ...base,
+    owner_selection_id: message.ownerSelectionId,
+    owner_selection_manifest_sha256: message.ownerSelectionManifestSha256,
+    source_identity: message.sourceIdentity,
+  };
+}
+
 function trustedSender(sender) {
   return sender.id === chrome.runtime.id
     && sender.url === chrome.runtime.getURL("sidepanel.html");
@@ -158,10 +265,18 @@ async function captureCurrent(message) {
   if (facts.status === "platform_changed") {
     return { ok: false, code: facts.code, reason: facts.reason, status: facts.status };
   }
-  const response = await nativeRequest("capture_current", adapter.buildPayload(facts));
+  const payload = adapter.buildPayload(facts);
+  if (message.fallbackFromJobId !== undefined) {
+    if (typeof message.fallbackFromJobId !== "string" || !UUID.test(message.fallbackFromJobId)) {
+      return { ok: false, code: "X2N_INVALID_INPUT", status: "rejected" };
+    }
+    payload.fallback_from_job_id = message.fallbackFromJobId;
+  }
+  const response = await nativeRequest("capture_current", payload);
   return {
     ok: response?.accepted === true,
     response,
+    fallbackAvailable: fallbackAvailable(response),
     status: response?.status ?? "rejected",
   };
 }
@@ -172,15 +287,30 @@ async function handleMessage(message, sender) {
   }
   try {
     if (message.type === "X2N_CAPTURE_CURRENT") return captureCurrent(message);
+    if (message.type === "X2N_GET_CAPABILITIES") {
+      const response = await nativeRequest("get_capabilities", { capability_contract_version: "1.0" });
+      return { ok: response?.accepted === true, response };
+    }
     if (message.type === "X2N_HEALTH") {
       const response = await nativeRequest("health", {});
       return { ok: response?.accepted === true, response };
+    }
+    if (message.type === "X2N_START_SYNC") {
+      const payload = buildStartSyncPayload(message);
+      if (!payload) return { ok: false, code: "X2N_INVALID_INPUT", status: "rejected" };
+      const response = await nativeRequest("start_sync", payload);
+      return {
+        ok: response?.accepted === true,
+        response,
+        fallbackAvailable: fallbackAvailable(response),
+        status: response?.status ?? "rejected",
+      };
     }
     if (typeof message.jobId !== "string" || !/^[0-9a-f-]{36}$/.test(message.jobId)) {
       return { ok: false, code: "X2N_INVALID_JOB_ID", status: "rejected" };
     }
     const response = await nativeRequest("get_job", { job_id: message.jobId });
-    return { ok: response?.accepted === true, response };
+    return { ok: response?.accepted === true, response, fallbackAvailable: fallbackAvailable(response) };
   } catch {
     return { ok: false, code: "X2N_NATIVE_HOST_UNAVAILABLE", status: "unavailable" };
   }

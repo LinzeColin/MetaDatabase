@@ -108,6 +108,44 @@ class NativeAction(str, Enum):
     HEALTH = "health"
 
 
+class SyncScopeId(str, Enum):
+    """The only list/relation routes that Native dispatch may address."""
+
+    XIAOHONGSHU_FAVORITES = "xiaohongshu_favorites"
+    XIAOHONGSHU_LIKES = "xiaohongshu_likes"
+    DOUYIN_FAVORITES = "douyin_favorites"
+    DOUYIN_LIKES = "douyin_likes"
+    BILIBILI_SELECTED_COLLECTION = "bilibili_selected_collection"
+    KUAISHOU_SELECTED_COLLECTION = "kuaishou_selected_collection"
+    WEIBO_SELECTED_COLLECTION = "weibo_selected_collection"
+    TAOBAO_SELECTED_COLLECTION = "taobao_selected_collection"
+
+
+class CapabilityTerminal(str, Enum):
+    READY_FOR_MVP_ACTIVATION = "READY_FOR_MVP_ACTIVATION"
+    DISABLED_EXTERNAL_GATE = "DISABLED_EXTERNAL_GATE"
+
+
+class CapabilityReasonCode(str, Enum):
+    """Reason codes are intentionally coarse and free of account/platform secrets."""
+
+    CI_SYNTH_READY = "CI_SYNTH_READY"
+    UNKNOWN_DISABLED = "UNKNOWN_DISABLED"
+    BLOCKED_POLICY = "BLOCKED_POLICY"
+    BLOCKED_AUTH = "BLOCKED_AUTH"
+    BLOCKED_BUDGET = "BLOCKED_BUDGET"
+    BLOCKED_CAPABILITY = "BLOCKED_CAPABILITY"
+    BLOCKED_TECHNICAL = "BLOCKED_TECHNICAL"
+
+
+class CapabilityFeatureFlag(str, Enum):
+    """The capability contract never claims that a live platform is enabled."""
+
+    CI_SYNTHETIC_ONLY = "ci_synthetic_only"
+    DISABLED = "disabled"
+    MVP_ACTIVATION_CANDIDATE = "mvp_activation_candidate"
+
+
 class DuplicateDisposition(str, Enum):
     NEW_REQUEST = "new_request"
     RETURN_EXISTING_JOB = "return_existing_job"
@@ -183,6 +221,7 @@ class CaptureCurrentPayload(StrictContract):
     page_context: PageContext
     relation: RelationType
     category_id: UUID | None = None
+    fallback_from_job_id: UUID | None = Field(default=None, exclude_if=lambda value: value is None)
     user_gesture: Literal[True]
     auto_scroll: Literal[False]
     change_account_state: Literal[False]
@@ -195,21 +234,98 @@ class CaptureCurrentPayload(StrictContract):
         return self
 
 
-class StartSyncPayload(StrictContract):
-    platform: Platform
-    relation: RelationType
-    source_collection_id: SafeToken | None = None
-    max_items: Annotated[int, Field(ge=1, le=80)]
+class StartSyncPayloadBase(StrictContract):
+    """Strict common envelope for a versioned, bounded list dispatch."""
+
+    dispatch_version: Literal["1.0"]
     user_gesture: Literal[True]
     bounded_batch: Literal[True]
     auto_scroll: Literal[False]
     change_account_state: Literal[False]
 
     @model_validator(mode="after")
-    def relation_is_list_relation(self) -> "StartSyncPayload":
-        if self.relation is RelationType.SAVED_CURRENT:
-            raise ValueError("start_sync cannot use saved_current relation")
+    def requires_explicit_non_mutating_gesture(self) -> "StartSyncPayloadBase":
         return self
+
+
+class _RelationListStartSyncPayload(StartSyncPayloadBase):
+    max_items: Annotated[int, Field(ge=1, le=80)]
+
+
+class XiaohongshuFavoritesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_FAVORITES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.FAVORITED]
+    source_collection_id: SafeToken | None = None
+
+
+class XiaohongshuLikesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_LIKES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.LIKED]
+    source_collection_id: SafeToken | None = None
+
+
+class DouyinFavoritesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.DOUYIN_FAVORITES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.FAVORITED]
+    source_collection_id: SafeToken | None = None
+
+
+class DouyinLikesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.DOUYIN_LIKES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.LIKED]
+    source_collection_id: SafeToken | None = None
+
+
+class _SelectedCollectionStartSyncPayload(StartSyncPayloadBase):
+    """A selected collection is never inferred from page state or a profile."""
+
+    max_items: Annotated[int, Field(ge=1, le=20)]
+    owner_selection_id: SafeToken
+    owner_selection_manifest_sha256: Sha256
+    source_identity: SafeToken
+
+
+class BilibiliSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.BILIBILI_SELECTED_COLLECTION]
+    platform: Literal[Platform.BILIBILI]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class KuaishouSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.KUAISHOU_SELECTED_COLLECTION]
+    platform: Literal[Platform.KUAISHOU]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class WeiboSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.WEIBO_SELECTED_COLLECTION]
+    platform: Literal[Platform.WEIBO]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class TaobaoSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.TAOBAO_SELECTED_COLLECTION]
+    platform: Literal[Platform.TAOBAO]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+StartSyncPayload = Annotated[
+    Union[
+        XiaohongshuFavoritesStartSyncPayload,
+        XiaohongshuLikesStartSyncPayload,
+        DouyinFavoritesStartSyncPayload,
+        DouyinLikesStartSyncPayload,
+        BilibiliSelectedCollectionStartSyncPayload,
+        KuaishouSelectedCollectionStartSyncPayload,
+        WeiboSelectedCollectionStartSyncPayload,
+        TaobaoSelectedCollectionStartSyncPayload,
+    ],
+    Field(discriminator="scope_id"),
+]
 
 
 class JobPayload(StrictContract):
@@ -218,6 +334,12 @@ class JobPayload(StrictContract):
 
 class EmptyPayload(StrictContract):
     pass
+
+
+class GetCapabilitiesPayload(StrictContract):
+    """Additive version marker; the legacy empty payload remains readable."""
+
+    capability_contract_version: Literal["1.0"] = "1.0"
 
 
 class NativeRequestBase(StrictContract):
@@ -268,7 +390,7 @@ class RetryJobRequest(NativeRequestBase):
 
 class GetCapabilitiesRequest(NativeRequestBase):
     action: Literal[NativeAction.GET_CAPABILITIES]
-    payload: EmptyPayload
+    payload: GetCapabilitiesPayload
 
 
 class HealthRequest(NativeRequestBase):
@@ -301,6 +423,111 @@ class NativeResponseStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class SourceRegistryDigests(StrictContract):
+    adapter_registry: Sha256
+    feature_registry: Sha256
+    policy_registry: Sha256
+    scope_registry: Sha256
+
+
+class CapabilityScopeOutcomeBase(StrictContract):
+    terminal: CapabilityTerminal
+    reason_code: CapabilityReasonCode
+    source_registry_digests: SourceRegistryDigests
+    feature_flag: CapabilityFeatureFlag
+    evidence_hash: Sha256
+    evaluated_at: RFC3339DateTime
+
+    @model_validator(mode="after")
+    def terminal_and_reason_are_fail_closed(self) -> "CapabilityScopeOutcomeBase":
+        if self.reason_code is CapabilityReasonCode.BLOCKED_TECHNICAL:
+            raise ValueError("technical capability veto cannot be serialized as an outcome")
+        if self.terminal is CapabilityTerminal.READY_FOR_MVP_ACTIVATION:
+            if self.reason_code is not CapabilityReasonCode.CI_SYNTH_READY:
+                raise ValueError("ready capability outcome requires CI_SYNTH_READY")
+            if self.feature_flag is CapabilityFeatureFlag.DISABLED:
+                raise ValueError("ready capability outcome cannot carry a disabled feature flag")
+        elif self.reason_code is CapabilityReasonCode.CI_SYNTH_READY:
+            raise ValueError("external disabled terminal cannot carry CI_SYNTH_READY")
+        return self
+
+
+class XiaohongshuFavoritesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_FAVORITES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class XiaohongshuLikesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_LIKES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.LIKED]
+
+
+class DouyinFavoritesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.DOUYIN_FAVORITES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class DouyinLikesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.DOUYIN_LIKES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.LIKED]
+
+
+class BilibiliSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.BILIBILI_SELECTED_COLLECTION]
+    platform: Literal[Platform.BILIBILI]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class KuaishouSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.KUAISHOU_SELECTED_COLLECTION]
+    platform: Literal[Platform.KUAISHOU]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class WeiboSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.WEIBO_SELECTED_COLLECTION]
+    platform: Literal[Platform.WEIBO]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class TaobaoSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.TAOBAO_SELECTED_COLLECTION]
+    platform: Literal[Platform.TAOBAO]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+CapabilityScopeOutcome = Annotated[
+    Union[
+        XiaohongshuFavoritesCapabilityOutcome,
+        XiaohongshuLikesCapabilityOutcome,
+        DouyinFavoritesCapabilityOutcome,
+        DouyinLikesCapabilityOutcome,
+        BilibiliSelectedCollectionCapabilityOutcome,
+        KuaishouSelectedCollectionCapabilityOutcome,
+        WeiboSelectedCollectionCapabilityOutcome,
+        TaobaoSelectedCollectionCapabilityOutcome,
+    ],
+    Field(discriminator="scope_id"),
+]
+
+
+class CapabilityManifest(StrictContract):
+    capability_contract_version: Literal["1.0"]
+    outcomes: tuple[CapabilityScopeOutcome, ...]
+
+    @model_validator(mode="after")
+    def has_one_authoritative_outcome_per_scope(self) -> "CapabilityManifest":
+        expected = tuple(SyncScopeId)
+        actual = tuple(outcome.scope_id for outcome in self.outcomes)
+        if actual != expected:
+            raise ValueError("capability outcomes must be the exact ordered eight-scope registry")
+        return self
+
+
 class NativeMessageResponse(StrictContract):
     schema_version: SchemaVersion
     request_id: UUID
@@ -308,6 +535,9 @@ class NativeMessageResponse(StrictContract):
     job_id: UUID | None = None
     status: NativeResponseStatus
     error: ErrorContract | None = None
+    # Omit the additive field for pre-Task010 response vectors.  Versioned
+    # callers receive it only when a typed capability manifest is present.
+    capabilities: CapabilityManifest | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def accepted_and_error_are_consistent(self) -> "NativeMessageResponse":
@@ -317,6 +547,16 @@ class NativeMessageResponse(StrictContract):
             raise ValueError("rejected response requires a stable error")
         if self.status in {NativeResponseStatus.QUEUED, NativeResponseStatus.RUNNING} and self.job_id is None:
             raise ValueError("job status requires job_id")
+        if self.capabilities is not None:
+            if not self.accepted or self.status is not NativeResponseStatus.COMPLETED or self.job_id is not None:
+                raise ValueError("capabilities require an accepted completed response without a job")
+        if (
+            not self.accepted
+            and self.error is not None
+            and self.error.code is ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE
+            and self.job_id is None
+        ):
+            raise ValueError("adapter fallback failure must preserve job_id")
         return self
 
 

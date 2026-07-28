@@ -1,5 +1,87 @@
 {
   "$defs": {
+    "BilibiliSelectedCollectionStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "owner_selection_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Owner Selection Id",
+          "type": "string"
+        },
+        "owner_selection_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Owner Selection Manifest Sha256",
+          "type": "string"
+        },
+        "platform": {
+          "const": "bilibili",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "saved_current",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "bilibili_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_identity": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Source Identity",
+          "type": "string"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "owner_selection_id",
+        "owner_selection_manifest_sha256",
+        "source_identity",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "BilibiliSelectedCollectionStartSyncPayload",
+      "type": "object"
+    },
     "CancelJobRequest": {
       "additionalProperties": false,
       "properties": {
@@ -68,6 +150,19 @@
           "const": false,
           "title": "Change Account State",
           "type": "boolean"
+        },
+        "fallback_from_job_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback From Job Id"
         },
         "page_context": {
           "$ref": "#/$defs/PageContext"
@@ -156,10 +251,178 @@
       "title": "ContentType",
       "type": "string"
     },
+    "DouyinFavoritesStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 80,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "platform": {
+          "const": "douyin",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "favorited",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "douyin_favorites",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_collection_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Collection Id"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "DouyinFavoritesStartSyncPayload",
+      "type": "object"
+    },
+    "DouyinLikesStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 80,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "platform": {
+          "const": "douyin",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "liked",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "douyin_likes",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_collection_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Collection Id"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "DouyinLikesStartSyncPayload",
+      "type": "object"
+    },
     "EmptyPayload": {
       "additionalProperties": false,
       "properties": {},
       "title": "EmptyPayload",
+      "type": "object"
+    },
+    "GetCapabilitiesPayload": {
+      "additionalProperties": false,
+      "description": "Additive version marker; the legacy empty payload remains readable.",
+      "properties": {
+        "capability_contract_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Capability Contract Version",
+          "type": "string"
+        }
+      },
+      "title": "GetCapabilitiesPayload",
       "type": "object"
     },
     "GetCapabilitiesRequest": {
@@ -171,7 +434,7 @@
           "type": "string"
         },
         "payload": {
-          "$ref": "#/$defs/EmptyPayload"
+          "$ref": "#/$defs/GetCapabilitiesPayload"
         },
         "payload_hash": {
           "pattern": "^[0-9a-f]{64}$",
@@ -306,6 +569,88 @@
       "title": "JobPayload",
       "type": "object"
     },
+    "KuaishouSelectedCollectionStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "owner_selection_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Owner Selection Id",
+          "type": "string"
+        },
+        "owner_selection_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Owner Selection Manifest Sha256",
+          "type": "string"
+        },
+        "platform": {
+          "const": "kuaishou",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "saved_current",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "kuaishou_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_identity": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Source Identity",
+          "type": "string"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "owner_selection_id",
+        "owner_selection_manifest_sha256",
+        "source_identity",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "KuaishouSelectedCollectionStartSyncPayload",
+      "type": "object"
+    },
     "PageContext": {
       "additionalProperties": false,
       "properties": {
@@ -402,67 +747,6 @@
       "title": "RetryJobRequest",
       "type": "object"
     },
-    "StartSyncPayload": {
-      "additionalProperties": false,
-      "properties": {
-        "auto_scroll": {
-          "const": false,
-          "title": "Auto Scroll",
-          "type": "boolean"
-        },
-        "bounded_batch": {
-          "const": true,
-          "title": "Bounded Batch",
-          "type": "boolean"
-        },
-        "change_account_state": {
-          "const": false,
-          "title": "Change Account State",
-          "type": "boolean"
-        },
-        "max_items": {
-          "maximum": 80,
-          "minimum": 1,
-          "title": "Max Items",
-          "type": "integer"
-        },
-        "platform": {
-          "$ref": "#/$defs/Platform"
-        },
-        "relation": {
-          "$ref": "#/$defs/RelationType"
-        },
-        "source_collection_id": {
-          "anyOf": [
-            {
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Source Collection Id"
-        },
-        "user_gesture": {
-          "const": true,
-          "title": "User Gesture",
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "platform",
-        "relation",
-        "max_items",
-        "user_gesture",
-        "bounded_batch",
-        "auto_scroll",
-        "change_account_state"
-      ],
-      "title": "StartSyncPayload",
-      "type": "object"
-    },
     "StartSyncRequest": {
       "additionalProperties": false,
       "properties": {
@@ -472,7 +756,46 @@
           "type": "string"
         },
         "payload": {
-          "$ref": "#/$defs/StartSyncPayload"
+          "discriminator": {
+            "mapping": {
+              "bilibili_selected_collection": "#/$defs/BilibiliSelectedCollectionStartSyncPayload",
+              "douyin_favorites": "#/$defs/DouyinFavoritesStartSyncPayload",
+              "douyin_likes": "#/$defs/DouyinLikesStartSyncPayload",
+              "kuaishou_selected_collection": "#/$defs/KuaishouSelectedCollectionStartSyncPayload",
+              "taobao_selected_collection": "#/$defs/TaobaoSelectedCollectionStartSyncPayload",
+              "weibo_selected_collection": "#/$defs/WeiboSelectedCollectionStartSyncPayload",
+              "xiaohongshu_favorites": "#/$defs/XiaohongshuFavoritesStartSyncPayload",
+              "xiaohongshu_likes": "#/$defs/XiaohongshuLikesStartSyncPayload"
+            },
+            "propertyName": "scope_id"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/XiaohongshuFavoritesStartSyncPayload"
+            },
+            {
+              "$ref": "#/$defs/XiaohongshuLikesStartSyncPayload"
+            },
+            {
+              "$ref": "#/$defs/DouyinFavoritesStartSyncPayload"
+            },
+            {
+              "$ref": "#/$defs/DouyinLikesStartSyncPayload"
+            },
+            {
+              "$ref": "#/$defs/BilibiliSelectedCollectionStartSyncPayload"
+            },
+            {
+              "$ref": "#/$defs/KuaishouSelectedCollectionStartSyncPayload"
+            },
+            {
+              "$ref": "#/$defs/WeiboSelectedCollectionStartSyncPayload"
+            },
+            {
+              "$ref": "#/$defs/TaobaoSelectedCollectionStartSyncPayload"
+            }
+          ],
+          "title": "Payload"
         },
         "payload_hash": {
           "pattern": "^[0-9a-f]{64}$",
@@ -504,6 +827,324 @@
         "payload"
       ],
       "title": "StartSyncRequest",
+      "type": "object"
+    },
+    "TaobaoSelectedCollectionStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "owner_selection_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Owner Selection Id",
+          "type": "string"
+        },
+        "owner_selection_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Owner Selection Manifest Sha256",
+          "type": "string"
+        },
+        "platform": {
+          "const": "taobao",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "saved_current",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "taobao_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_identity": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Source Identity",
+          "type": "string"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "owner_selection_id",
+        "owner_selection_manifest_sha256",
+        "source_identity",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "TaobaoSelectedCollectionStartSyncPayload",
+      "type": "object"
+    },
+    "WeiboSelectedCollectionStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "owner_selection_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Owner Selection Id",
+          "type": "string"
+        },
+        "owner_selection_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Owner Selection Manifest Sha256",
+          "type": "string"
+        },
+        "platform": {
+          "const": "weibo",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "favorited",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "weibo_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_identity": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Source Identity",
+          "type": "string"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "owner_selection_id",
+        "owner_selection_manifest_sha256",
+        "source_identity",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "WeiboSelectedCollectionStartSyncPayload",
+      "type": "object"
+    },
+    "XiaohongshuFavoritesStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 80,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "platform": {
+          "const": "xiaohongshu",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "favorited",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "xiaohongshu_favorites",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_collection_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Collection Id"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "XiaohongshuFavoritesStartSyncPayload",
+      "type": "object"
+    },
+    "XiaohongshuLikesStartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "dispatch_version": {
+          "const": "1.0",
+          "title": "Dispatch Version",
+          "type": "string"
+        },
+        "max_items": {
+          "maximum": 80,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "platform": {
+          "const": "xiaohongshu",
+          "title": "Platform",
+          "type": "string"
+        },
+        "relation": {
+          "const": "liked",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "xiaohongshu_likes",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_collection_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Collection Id"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dispatch_version",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state",
+        "max_items",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "XiaohongshuLikesStartSyncPayload",
       "type": "object"
     }
   },

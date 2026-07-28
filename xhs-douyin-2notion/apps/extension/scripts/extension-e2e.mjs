@@ -61,6 +61,40 @@ const EXPECTED_EXTENSION_ID = "chheapilbdfnpajmlkijppmblnlheeac";
 const NATIVE_HOST = "com.linzecolin.x2n";
 const INSTALL_CONFIRMATION = "INSTALL_X2N_NATIVE_HOST";
 const UNINSTALL_CONFIRMATION = "UNINSTALL_X2N_NATIVE_HOST";
+const SCOPE_DISPATCH_REQUESTS = Object.freeze([
+  Object.freeze({ maxItems: 20, scopeId: "xiaohongshu_favorites", sourceCollectionId: null }),
+  Object.freeze({ maxItems: 20, scopeId: "xiaohongshu_likes", sourceCollectionId: null }),
+  Object.freeze({ maxItems: 20, scopeId: "douyin_favorites", sourceCollectionId: null }),
+  Object.freeze({ maxItems: 20, scopeId: "douyin_likes", sourceCollectionId: null }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "a".repeat(64),
+    scopeId: "bilibili_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "b".repeat(64),
+    scopeId: "kuaishou_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "c".repeat(64),
+    scopeId: "weibo_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "d".repeat(64),
+    scopeId: "taobao_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+]);
 
 class E2EFailure extends Error {
   constructor(code) {
@@ -204,7 +238,7 @@ try {
 
   currentStep = "runtime_init";
   const initialized = runJson(uvPython("x2n_companion.runtime_cli", "init"), env, "runtime_init");
-  requireCondition(initialized.status === "PASS" && initialized.schema_version === 2, "runtime_init_status");
+  requireCondition(initialized.status === "PASS" && initialized.schema_version === 3, "runtime_init_status");
 
   currentStep = "native_host_install";
   const hostInstall = runJson(
@@ -299,6 +333,44 @@ try {
   );
   requireCondition(workerProbe.state === "resolved", `worker_message_${workerProbe.state}`);
   requireCondition(workerProbe.response?.ok === true, "worker_message_response");
+  currentStep = "capability_dispatch";
+  const capabilityProbe = await page.evaluate(() => chrome.runtime.sendMessage({ type: "X2N_GET_CAPABILITIES" }));
+  if (process.env.X2N_E2E_DEBUG === "1") {
+    process.stderr.write(`${JSON.stringify({
+      capability_probe_error_code: capabilityProbe?.response?.error?.code ?? null,
+      capability_probe_ok: capabilityProbe?.ok ?? null,
+      capability_probe_outcomes: capabilityProbe?.response?.capabilities?.outcomes?.length ?? null,
+      capability_probe_status: capabilityProbe?.response?.status ?? null,
+    })}\n`);
+  }
+  requireCondition(capabilityProbe?.ok === true, "capability_probe_response");
+  requireCondition(capabilityProbe.response?.capabilities?.outcomes?.length === 8, "capability_probe_eight_scopes");
+  const scopeDispatches = await page.evaluate(async (requests) => {
+    const results = [];
+    for (const request of requests) {
+      results.push(await chrome.runtime.sendMessage({ type: "X2N_START_SYNC", ...request }));
+    }
+    return results;
+  }, SCOPE_DISPATCH_REQUESTS);
+  requireCondition(scopeDispatches.length === 8, "scope_dispatch_count");
+  requireCondition(
+    scopeDispatches.every((result) => result?.ok === true && result.response?.status === "completed"),
+    "scope_dispatch_rejected",
+  );
+  const scopeJobIds = scopeDispatches.map((result) => result?.response?.job_id);
+  requireCondition(
+    scopeJobIds.every((jobId) => typeof jobId === "string" && /^[0-9a-f-]{36}$/.test(jobId))
+      && new Set(scopeJobIds).size === 8,
+    "scope_dispatch_job_identity",
+  );
+  const scopeJobStates = await page.evaluate(
+    (jobIds) => Promise.all(jobIds.map((jobId) => chrome.runtime.sendMessage({ jobId, type: "X2N_GET_JOB" }))),
+    scopeJobIds,
+  );
+  requireCondition(
+    scopeJobStates.every((result, index) => result?.ok === true && result.response?.job_id === scopeJobIds[index]),
+    "scope_dispatch_restart_safe_state",
+  );
   currentStep = "sidepanel_health";
   await page.locator("#tab-status").click();
   await page.locator("#refresh-status").waitFor({ state: "visible" });
@@ -312,7 +384,7 @@ try {
     );
   }
   currentStep = "sidepanel_ui";
-  requireCondition(await page.locator("#panel-save button").isDisabled(), "unsupported_save_executable");
+  requireCondition(await page.locator("#save-current").isDisabled(), "unsupported_save_executable");
 
   const sections = ["save", "sync", "review", "status", "settings"];
   for (const section of sections) {
@@ -548,8 +620,10 @@ try {
 
   currentStep = "database_reconciliation";
   const health = runJson(uvPython("x2n_companion.runtime_cli", "health"), env, "runtime_health");
-  requireCondition(health.table_counts?.request_ledger === 1, "request_ledger_count");
-  requireCondition(health.table_counts?.run_record === 1, "run_record_count");
+  requireCondition(health.table_counts?.request_ledger === 9, "request_ledger_count");
+  requireCondition(health.table_counts?.run_record === 9, "run_record_count");
+  requireCondition(health.table_counts?.native_dispatch_job === 8, "native_dispatch_job_count");
+  requireCondition(health.table_counts?.capability_gate_outcome === 8, "capability_gate_outcome_count");
   requireCondition(lostJobs === 0 && wrongStatuses === 0, "chaos_reconciliation");
 
   currentStep = "evidence_receipts";
@@ -562,7 +636,7 @@ try {
 
   const result = {
     console_uncaught_errors: consoleErrors.length,
-    duplicate_jobs: health.table_counts.run_record - 1,
+    duplicate_jobs: health.table_counts.run_record - 9,
     extension_id_match: true,
     fixture_cases: fixture.cases.length,
     fixture_recognition_passed: fixture.cases.length - fixtureFailures.length,
@@ -574,6 +648,8 @@ try {
     platform_requests_observed: platformRequestsObserved,
     real_accounts: 0,
     request_ledger_rows: health.table_counts.request_ledger,
+    scope_dispatches: scopeDispatches.length,
+    scope_dispatch_platform_calls: 0,
     screenshot,
     service_worker_restarts: restarts,
     status: "PASS",

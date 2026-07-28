@@ -28,6 +28,7 @@ from x2n_contracts import (
 )
 
 from x2n_companion.canonical_store import CanonicalStore, WriteDisposition
+from x2n_companion.migrations import LATEST_SCHEMA_VERSION
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
 
 
@@ -261,12 +262,25 @@ class CanonicalStoreTests(unittest.TestCase):
     def test_schema_wal_foreign_keys_and_integrity_are_enforced(self) -> None:
         health = self.store.health()
         self.assertEqual(health["status"], "healthy")
-        self.assertEqual(health["schema_version"], 2)
+        self.assertEqual(health["schema_version"], LATEST_SCHEMA_VERSION)
         self.assertEqual(health["foreign_key_check"], "ok")
         self.assertEqual(health["foreign_key_violations"], 0)
         snapshot = self.store.snapshot_schema()
         names = {item["name"] for item in snapshot["objects"]}
-        self.assertTrue({"content", "user_relation", "artifact", "outbox_event", "media_lease"} <= names)
+        self.assertTrue(
+            {
+                "capability_gate_outcome",
+                "content",
+                "current_page_fallback",
+                "native_dispatch_job",
+                "run_failure",
+                "user_relation",
+                "artifact",
+                "outbox_event",
+                "media_lease",
+            }
+            <= names
+        )
         connection = sqlite3.connect(self.paths.database)
         try:
             self.assertEqual(connection.execute("PRAGMA journal_mode").fetchone()[0].lower(), "wal")
@@ -480,7 +494,7 @@ class CanonicalStoreTests(unittest.TestCase):
         receipt = self.store.downgrade_with_backup(1)
         self.assertEqual(self.store.health()["schema_version"], 1)
         self.store.restore(receipt.backup_id, expected_sha256=receipt.database_sha256)
-        self.assertEqual(self.store.health()["schema_version"], 2)
+        self.assertEqual(self.store.health()["schema_version"], LATEST_SCHEMA_VERSION)
         self.assertEqual(self.store.counts(), before_counts)
         self.assertEqual(self.store.logical_digest(), before_digest)
 

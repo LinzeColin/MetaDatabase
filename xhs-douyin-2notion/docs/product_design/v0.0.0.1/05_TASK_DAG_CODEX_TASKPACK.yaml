@@ -1744,7 +1744,7 @@ tasks:
   title: Wire capability-scoped Native dispatch and explicit current-page fallback
   stage: STG.X2N.3
   phase: PH.X2N.3.10
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none; development uses synthetic fixtures and performs zero real platform calls

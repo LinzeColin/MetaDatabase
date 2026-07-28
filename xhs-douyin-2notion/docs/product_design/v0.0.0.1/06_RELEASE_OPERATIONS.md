@@ -25,12 +25,11 @@ vps_data_plane: prohibited
 
 - Product Design `v0.0.0.1` 定版；
 - Stage 0–2 已合并，Stage 3 九个 Adapter Task 与首次 Review 已完成；
-- 本 Resume 只版本化直接 MVP 发布、Stage 3 终态、数据路由和下一 Task。
+- `TSK.x2n.adapters.010` 已完成 CI synthetic 验收，下一单只能独立 Resume 复验 G3。
 
 ### 当前未授权
 
-- 本 Resume Run 内执行 `TSK.x2n.adapters.010`；该任务只允许在下一单 Phase Run 独立执行；
-- 上传 Stage 3 或进入 Stage 4；
+- 在独立 G3 Resume 复验签发 PASS 前上传 Stage 3、进入 Stage 4、部署或发布；
 - 使用真实六平台账号或发起平台请求；
 - 写入真实 Notion；
 - 调用付费模型；

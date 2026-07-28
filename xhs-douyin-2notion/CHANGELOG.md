@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 010
+
+- 完成 `TSK.x2n.adapters.010 / PH.X2N.3.10` 的公开 CI synthetic 验收：严格八 scope Extension→Native→Adapter dispatch、versioned typed capability result、SQLite v3 derived snapshot、失败 `run_record`/脱敏 `run_failure` 与显式 Owner current-page fallback。
+- 保持 legacy Native response compatibility，生成的 Pydantic/JSON Schema/TypeScript 与 Extension consumer 同步；8 个 scope dispatch、平台调用和自动 fallback 分别为 8、0、0。
+- Task010 仅贡献 CI synthetic 证据；当前 `G3=REVIEW_PENDING`，Stage 3 上传、Stage 4、部署和真实平台/账号调用仍未授权，下一单为独立 G3 Resume 复验。
+
 ## v0.0.0.1 — Stage 3 Review Resume / Direct MVP Contract
 
 - 版本化 `STG.X2N.3.REVIEW.RESUME`，不执行新 DAG Task；原 Stage 3 Review gate fact 与 final commit 字节一致。

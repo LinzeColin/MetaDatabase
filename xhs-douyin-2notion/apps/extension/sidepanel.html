@@ -28,11 +28,36 @@
         <p>Only the active Xiaohongshu detail page is read after your explicit action. No scrolling or account changes.</p>
         <button id="save-current" type="button" disabled>Save unavailable</button>
         <p id="capture-status" aria-live="polite"></p>
+        <button id="capture-fallback" type="button" hidden>Save this current page instead</button>
       </section>
       <section id="panel-sync" role="tabpanel" aria-labelledby="tab-sync" hidden>
         <h2>Sync selected list</h2>
-        <p>No automatic scrolling or account-state changes are implemented.</p>
-        <button type="button" disabled>Sync unavailable</button>
+        <p id="sync-policy" class="muted" aria-live="polite">Checking the local capability gate…</p>
+        <label for="sync-scope">Scope</label>
+        <select id="sync-scope">
+          <option value="xiaohongshu_favorites">Xiaohongshu favorites</option>
+          <option value="xiaohongshu_likes">Xiaohongshu likes</option>
+          <option value="douyin_favorites">Douyin favorites</option>
+          <option value="douyin_likes">Douyin likes</option>
+          <option value="bilibili_selected_collection">Bilibili owner-selected collection</option>
+          <option value="kuaishou_selected_collection">Kuaishou owner-selected collection</option>
+          <option value="weibo_selected_collection">Weibo owner-selected collection</option>
+          <option value="taobao_selected_collection">Taobao owner-selected collection</option>
+        </select>
+        <label for="sync-max-items">Maximum items</label>
+        <input id="sync-max-items" type="number" min="1" max="80" value="20" inputmode="numeric">
+        <label for="sync-source-collection">Collection identifier (optional for list scopes)</label>
+        <input id="sync-source-collection" type="text" maxlength="128" autocomplete="off">
+        <div id="selected-collection-fields" hidden>
+          <label for="owner-selection-id">Owner selection identifier</label>
+          <input id="owner-selection-id" type="text" maxlength="128" autocomplete="off">
+          <label for="owner-selection-manifest">Owner selection manifest SHA-256</label>
+          <input id="owner-selection-manifest" type="text" maxlength="64" autocomplete="off">
+          <label for="source-identity">Documented source identity</label>
+          <input id="source-identity" type="text" maxlength="128" autocomplete="off">
+        </div>
+        <button id="start-sync" type="button" disabled>Start selected synthetic dispatch</button>
+        <p id="sync-status" aria-live="polite"></p>
       </section>
       <section id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
         <h2>Review</h2>
@@ -53,7 +78,7 @@
       </section>
     </main>
 
-    <footer>Stage 2 · current page · fail closed</footer>
+    <footer>Stage 3 · capability-gated local dispatch · fail closed</footer>
     <script type="module" src="src/sidepanel.js"></script>
   </body>
 </html>

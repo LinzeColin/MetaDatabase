@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / STG.X2N.3.REVIEW.RESUME` 已完成合同版本化，未执行新 DAG Task。原五个 blocker 中，能力合法终态、Stage 3/6 Acceptance 归属和真实激活归属三个问题已闭合；`G3` 当前准确为 `BLOCKED_TECHNICAL`。唯一下一任务 `TSK.x2n.adapters.010` 将实现 8 scope 严格 Native dispatch；SQLite `run_record.failed`＋脱敏 `run_failure` 是耐久真相，Side Panel 只派生 `FALLBACK_AVAILABLE` affordance，失败 `GET_JOB` 保留 `job_id`，第二次 Owner 当前页动作以新 request 关联原失败 job。Stage 3 上传和 Stage 4 仍禁止；旧 Review/Task Evidence 不改写，其他长期开发零重叠。本 Resume 未使用 authenticated session；未来显式授权 Task 可仅经 `private_db_client.py` 使用现有 session，但不得接触 Token 值或修改/删除/撤销/轮换认证。
+当前状态：`TSK.x2n.adapters.010 / PH.X2N.3.10` 已完成 CI synthetic 验收：8 scope 严格 Native dispatch、SQLite `run_record.failed`＋脱敏 `run_failure`、Side Panel 派生 `FALLBACK_AVAILABLE`、失败 `GET_JOB` 保留 `job_id`，以及第二次 Owner 当前页动作的新 request 关联原失败 job 均已落地。当前 `G3=REVIEW_PENDING`，必须由独立 Resume 复验判定；Stage 3 上传和 Stage 4 仍禁止。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本任务未使用 authenticated session，未来显式授权 Task 也只能经 `private_db_client.py` 使用现有 session，不能接触 Token 值或修改/删除/撤销/轮换认证。
 
 发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
@@ -31,11 +31,12 @@ python3 -B scripts/verify_stage_3_review_resume.py --verify-worktree
 python3 -B -m unittest tests.test_stage_3_review_resume tests.test_stage_3_review
 ```
 
-当前机器真源是 `machine/facts/stage_3_review_resume_state.json`。G3 允许
-`READY_FOR_MVP_ACTIVATION` 与 `DISABLED_EXTERNAL_GATE` 两种技术终态；后者必须保持 Feature Flag
-关闭、平台调用 0、live support claim 0。真实账号激活和完整 `ACC.x2n.rel.006` 只在 Stage 6
-判定，不再冒充 Stage 3 证据。44-Task DAG 中新增的 `TSK.x2n.adapters.010` 仍为 `planned`，所以
-G3 不是 PASS。完整合同见 `docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
+当前运行状态真源是 `machine/facts/task_state.json`；`machine/facts/stage_3_review_resume_state.json`
+是冻结的 Resume 历史事实。G3 允许 `READY_FOR_MVP_ACTIVATION` 与 `DISABLED_EXTERNAL_GATE` 两种技术
+终态；后者必须保持 Feature Flag 关闭、平台调用 0、live support claim 0。真实账号激活和完整
+`ACC.x2n.rel.006` 只在 Stage 6 判定，不再冒充 Stage 3 证据。`TSK.x2n.adapters.010` 已完成，但
+G3 尚未由独立复验签发 PASS。完整历史合同见
+`docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
 `docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。
 
 ## Stage 3 / 首次 Review 历史判定
@@ -63,7 +64,8 @@ Runtime Data 0。软件验收通过不改变首次 Review 当时的 G3 blocked �
 首次 Review 的 `G3` 没有通过：技术上缺少批量 Native dispatch 和显式 fallback 状态机；当时
 8 个真实 Canary 未运行，能力合法终态与 Stage 3/6 Acceptance 归属也未版本化。历史完整结论见
 `docs/governance/STAGE_3_REVIEW.md`。这些历史事实保持不可变；当前合同/归属问题已由 Resume
-闭合，剩余两个技术 blocker 统一由下一单任务 `TSK.x2n.adapters.010` 闭合。
+闭合；`TSK.x2n.adapters.010` 已在 CI synthetic 范围内闭合剩余两个技术实现 blocker，当前等待独立
+G3 复验，不把 Task 级通过误写为 Gate 通过。
 
 ## Stage 3 / Adapters 005 验证
 

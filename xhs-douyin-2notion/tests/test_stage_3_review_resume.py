@@ -39,11 +39,12 @@ class Stage3ReviewResumeTests(unittest.TestCase):
         with self.assertRaises(VERIFY.ResumeError):
             VERIFY._validate_resume_fact(promoted)
 
-    def test_task010_is_required_and_cannot_be_marked_complete_by_contract(self) -> None:
+    def test_task010_remains_required_after_its_taskpack_status_is_completed(self) -> None:
         taskpack = VERIFY._load_yaml_unique(VERIFY.TASKPACK)
         changed = copy.deepcopy(taskpack)
         task = next(item for item in changed["tasks"] if item["id"] == VERIFY.NEXT_TASK)
         task["status"] = "completed"
+        VERIFY._validate_taskpack_payload(changed)
         changed["stage_gates"][3]["requires_tasks"].remove(VERIFY.NEXT_TASK)
         with self.assertRaises(VERIFY.ResumeError):
             VERIFY._validate_taskpack_payload(changed)

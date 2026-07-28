@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Fail-closed verifier for the x2n Stage 3 Review Resume contract.
+"""Fail-closed verifier for the frozen x2n Stage 3 Review Resume contract.
 
-This run versions contracts only. It must preserve the first Stage 3 Review,
-keep G3 blocked until TSK.x2n.adapters.010 executes, and must not authorize
-upload, Stage 4, deployment, or any real external execution.
+The historical Resume contract remains independently verifiable after
+TSK.x2n.adapters.010 has executed. This verifier never evaluates G3 as pass
+and never authorizes upload, Stage 4, deployment, or real external execution.
 """
 
 from __future__ import annotations
@@ -51,9 +51,12 @@ REVIEW_ID = "STG.X2N.3.REVIEW.RESUME"
 RUN_ID = "RUN-X2N-S03-REVIEW-RESUME-MVP"
 CHANGE_EVENT = "CE-X2N-20260728-S03-REVIEW-RESUME-MVP"
 BASE_COMMIT = "6b3f5464d1ed645d31c3650b9b51998c9e4fe1ab"
+TASK010_BASE_COMMIT = "2e7de513f4d5d829c78a4d015aa2297575522434"
 HISTORICAL_GATE_SHA256 = "0243a478273de9bda16803e7311ef56c7e461c2bc3b8c871c5d2c1c87cdd6772"
 EXPECTED_BRANCH = "codex/xhs-douyin-2notion-v0001-s03-review-resume"
 NEXT_TASK = "TSK.x2n.adapters.010"
+TASK010_RUN_ID = "RUN-X2N-S03-A010"
+TASK010_RECHECK = "STG.X2N.3.REVIEW.RESUME.RECHECK"
 EXPECTED_SCOPE_IDS = [
     "xiaohongshu_favorites",
     "xiaohongshu_likes",
@@ -663,7 +666,7 @@ def _validate_taskpack_payload(taskpack: dict[str, Any]) -> None:
     _require(
         task010.get("phase") == "PH.X2N.3.10"
         and task010.get("stage") == "STG.X2N.3"
-        and task010.get("status") == "planned",
+        and task010.get("status") in {"planned", "completed"},
         "task010 identity/status drifted",
     )
     _require(
@@ -958,15 +961,42 @@ def validate_release_and_data_contracts() -> Check:
         == "owner_authorized_existing_gh_session_client_only_no_token_value_or_auth_mutation",
         "project authenticated-session boundary drifted",
     )
+    task010_state = state.get("tasks", {}).get(NEXT_TASK)
+    if task010_state == "planned":
+        _require(
+            state.get("review_id") == REVIEW_ID
+            and state.get("next_run") == NEXT_TASK
+            and state.get("next_phase") == "PH.X2N.3.10"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_gate") == "blocked_technical",
+            "planned Task010 routing or gate drifted",
+        )
+        expected_local_ci = (
+            "pass_stage_3_review_resume_schema_history_taskpack_release_data_client_audit_isolation_"
+            "focused_27_tests_phase0_1_phase0_5_fresh_fast_lane_exact_9_of_9_three_expected_private_"
+            "optional_skips_platform_model_real_account_calls_0"
+        )
+    elif task010_state == "pass":
+        _require(
+            state.get("last_completed_phase") == "PH.X2N.3.10"
+            and state.get("review_id") == "STG.X2N.3.REVIEW.RESUME.RECHECK_PENDING"
+            and state.get("run_id") == TASK010_RUN_ID
+            and state.get("next_run") == TASK010_RECHECK
+            and state.get("next_phase") == TASK010_RECHECK
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_gate") == "review_pending",
+            "completed Task010 must await an independent G3 recheck",
+        )
+        expected_local_ci = (
+            "pass_task010_eight_scope_extension_native_adapter_ci_synth_typed_capability_snapshot_"
+            "failed_run_explicit_fallback_restart_migration_platform_model_real_account_calls_0"
+        )
+    else:
+        raise ResumeError("Task010 current state is neither planned nor pass")
     _require(
-        state.get("review_id") == REVIEW_ID
-        and state.get("next_run") == NEXT_TASK
-        and state.get("next_phase") == "PH.X2N.3.10"
-        and state.get("next_phase_authorized") is True
-        and state.get("stage_gate") == "blocked_technical"
-        and state.get("stage_3_remote_upload_authorized") is False
+        state.get("stage_3_remote_upload_authorized") is False
         and state.get("stage_4_authorized") is False,
-        "task state routing or gate drifted",
+        "Task010 state prematurely authorized a later stage",
     )
     _require(
         state.get("shared_github_auth_boundary")
@@ -974,24 +1004,34 @@ def validate_release_and_data_contracts() -> Check:
         "task-state shared authentication boundary drifted",
     )
     _require(
-        state.get("local_ci_execution")
-        == "pass_stage_3_review_resume_schema_history_taskpack_release_data_client_audit_isolation_focused_27_tests_phase0_1_phase0_5_fresh_fast_lane_exact_9_of_9_three_expected_private_optional_skips_platform_model_real_account_calls_0"
+        state.get("local_ci_execution") == expected_local_ci
         and state.get("release_policy")
         == "direct_v0_0_0_1_mvp_g0_g5_prior_tasks_and_acceptances_outside_exact_assurance005_owned_set_start_then_in_task_eighty_xhs_douyin_each_additional_enabled_max_twenty_security_must_pass_model_pass_or_disabled_suggestion_only_rollback_signoff_deploy_run_online_then_g6_pass_no_prerelease_no_fixed_wait_no_soak",
         "task-state verification or direct MVP security/model boundary drifted",
     )
     prfaq_text = PRFAQ.read_text(encoding="utf-8")
     prd_text = PRD.read_text(encoding="utf-8")
-    _require(
-        "status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL" in prfaq_text
-        and f"owner_change_event: {CHANGE_EVENT}" in prfaq_text
-        and "implementation_authorized: stage_3_task_010_next_single_phase_run" in prfaq_text
-        and "status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL" in prd_text
-        and f"owner_change_event: {CHANGE_EVENT}" in prd_text
-        and "current_run_scope: stage_3_review_resume_contract_only" in prd_text
-        and "implementation_authorized: stage_3_task_010_next_single_phase_run" in prd_text,
-        "PRFAQ/PRD current Stage 3 Resume authorization drifted",
-    )
+    if task010_state == "planned":
+        _require(
+            "status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL" in prfaq_text
+            and f"owner_change_event: {CHANGE_EVENT}" in prfaq_text
+            and "implementation_authorized: stage_3_task_010_next_single_phase_run" in prfaq_text
+            and "status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL" in prd_text
+            and f"owner_change_event: {CHANGE_EVENT}" in prd_text
+            and "current_run_scope: stage_3_review_resume_contract_only" in prd_text
+            and "implementation_authorized: stage_3_task_010_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD planned Task010 authorization drifted",
+        )
+    else:
+        _require(
+            "status: STAGE_3_TASK010_CI_SYNTH_PASS_G3_REVIEW_PENDING" in prfaq_text
+            and "decision: DIRECT_MVP_TASK010_ACCEPTED_G3_RECHECK_NEXT" in prfaq_text
+            and "implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run" in prfaq_text
+            and "status: STAGE_3_TASK010_CI_SYNTH_PASS_G3_REVIEW_PENDING" in prd_text
+            and "current_run_scope: stage_3_task010_ci_synth_accepted_g3_recheck_pending" in prd_text
+            and "implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run" in prd_text,
+            "PRFAQ/PRD completed Task010 state drifted",
+        )
     stale_active_status = (
         "stage_0_governance_preparation_only",
         "等待 Owner 启动 Codex Dev",
@@ -1033,7 +1073,7 @@ def _active_texts() -> Iterable[tuple[Path, str]]:
 
 def validate_documents_and_source_safety() -> Check:
     active_text = "\n".join(text for _, text in _active_texts())
-    changed_paths = _validate_changed_scope(_changed_paths_from_base())
+    changed_paths = _validate_changed_scope(_resume_contract_changed_paths())
     changed_parts: list[str] = []
     for relative in changed_paths:
         path = REPOSITORY_ROOT / relative
@@ -1089,7 +1129,7 @@ def validate_documents_and_source_safety() -> Check:
         "PASS",
         {
             "active_files": len(ACTIVE_CONTROL_FILES),
-            "changed_text_files_scanned": len(changed_paths),
+            "resume_changed_text_files_scanned": len(changed_paths),
             "prerelease_labels": 0,
             "absolute_user_paths": 0,
             "sensitive_value_hits": 0,
@@ -1317,14 +1357,25 @@ def validate_lane_report(path: Path) -> Check:
     )
 
 
-def _changed_paths_from_base() -> list[str]:
-    tracked = _git(
-        ["-c", "core.quotepath=false", "diff", "--name-only", "-z", BASE_COMMIT, "--"]
+def _resume_contract_changed_paths() -> list[str]:
+    """Inspect only the committed Resume contract, not its later DAG continuation."""
+
+    _require(
+        _git(["merge-base", "--is-ancestor", BASE_COMMIT, TASK010_BASE_COMMIT]) == "",
+        "Task010 base is not descended from the frozen Resume contract",
+    )
+    paths = _git(
+        [
+            "-c",
+            "core.quotepath=false",
+            "diff",
+            "--name-only",
+            "-z",
+            f"{BASE_COMMIT}..{TASK010_BASE_COMMIT}",
+            "--",
+        ]
     ).split("\0")
-    untracked = _git(
-        ["-c", "core.quotepath=false", "ls-files", "--others", "--exclude-standard", "-z"]
-    ).split("\0")
-    return sorted({path for path in (*tracked, *untracked) if path})
+    return sorted(path for path in paths if path)
 
 
 def _validate_changed_scope(changed: Iterable[str]) -> list[str]:
@@ -1365,7 +1416,11 @@ def validate_worktree() -> Check:
     x2n_branches = [item for item in branches if "xhs-douyin-2notion" in item]
     _require(x2n_branches == [EXPECTED_BRANCH], f"x2n local branch isolation drifted: {len(x2n_branches)}")
 
-    changed = _validate_changed_scope(_changed_paths_from_base())
+    _require(
+        _git(["merge-base", "--is-ancestor", TASK010_BASE_COMMIT, "HEAD"]) == "",
+        "current worktree predates the Task010 base",
+    )
+    changed = _validate_changed_scope(_resume_contract_changed_paths())
     _require(main_worktree is not None, "main worktree missing")
     main_status = _git(["status", "--porcelain=v1"], cwd=main_worktree)
     _require(not main_status, "main worktree is not clean")

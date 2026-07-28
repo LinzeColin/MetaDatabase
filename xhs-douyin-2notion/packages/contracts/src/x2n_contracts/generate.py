@@ -11,7 +11,15 @@ from typing import Any
 
 from .base import CONTRACT_VERSION
 from .errors import ERROR_SPECS, DataEffect, ErrorClass, ErrorCode, NextAction
-from .models import NativeAction, Platform, SCHEMA_MODELS
+from .models import (
+    CapabilityFeatureFlag,
+    CapabilityReasonCode,
+    CapabilityTerminal,
+    NativeAction,
+    Platform,
+    SCHEMA_MODELS,
+    SyncScopeId,
+)
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_ROOT = PACKAGE_ROOT / "schemas/v1"
@@ -74,6 +82,14 @@ export const PLATFORMS = @@PLATFORMS@@ as const;
 export type Platform = (typeof PLATFORMS)[number];
 export const NATIVE_ACTIONS = @@NATIVE_ACTIONS@@ as const;
 export type NativeAction = (typeof NATIVE_ACTIONS)[number];
+export const SYNC_SCOPE_IDS = @@SYNC_SCOPE_IDS@@ as const;
+export type SyncScopeId = (typeof SYNC_SCOPE_IDS)[number];
+export const CAPABILITY_TERMINALS = @@CAPABILITY_TERMINALS@@ as const;
+export type CapabilityTerminal = (typeof CAPABILITY_TERMINALS)[number];
+export const CAPABILITY_REASON_CODES = @@CAPABILITY_REASON_CODES@@ as const;
+export type CapabilityReasonCode = (typeof CAPABILITY_REASON_CODES)[number];
+export const CAPABILITY_FEATURE_FLAGS = @@CAPABILITY_FEATURE_FLAGS@@ as const;
+export type CapabilityFeatureFlag = (typeof CAPABILITY_FEATURE_FLAGS)[number];
 export const ERROR_CLASSES = @@ERROR_CLASSES@@ as const;
 export type ErrorClass = (typeof ERROR_CLASSES)[number];
 export const ERROR_CODES = @@ERROR_CODES@@ as const;
@@ -115,15 +131,17 @@ export interface CaptureCurrentPayload {
   readonly page_context: PageContext;
   readonly relation: "saved_current";
   readonly category_id?: UUID | null;
+  readonly fallback_from_job_id?: UUID | null;
   readonly user_gesture: true;
   readonly auto_scroll: false;
   readonly change_account_state: false;
 }
 
-export interface StartSyncPayload {
+export interface StartSyncBasePayload {
+  readonly dispatch_version: "1.0";
+  readonly scope_id: SyncScopeId;
   readonly platform: Platform;
-  readonly relation: "liked" | "favorited";
-  readonly source_collection_id?: string | null;
+  readonly relation: RelationType;
   readonly max_items: number;
   readonly user_gesture: true;
   readonly bounded_batch: true;
@@ -131,11 +149,29 @@ export interface StartSyncPayload {
   readonly change_account_state: false;
 }
 
+export interface RelationListStartSyncPayload extends StartSyncBasePayload {
+  readonly scope_id: "xiaohongshu_favorites" | "xiaohongshu_likes" | "douyin_favorites" | "douyin_likes";
+  readonly relation: "liked" | "favorited";
+  readonly source_collection_id?: string | null;
+}
+
+export interface SelectedCollectionStartSyncPayload extends StartSyncBasePayload {
+  readonly scope_id: "bilibili_selected_collection" | "kuaishou_selected_collection" | "weibo_selected_collection" | "taobao_selected_collection";
+  readonly owner_selection_id: string;
+  readonly owner_selection_manifest_sha256: Sha256;
+  readonly source_identity: string;
+}
+
+export type StartSyncPayload = RelationListStartSyncPayload | SelectedCollectionStartSyncPayload;
+
 export interface JobPayload {
   readonly job_id: UUID;
 }
 
 export type EmptyPayload = Record<string, never>;
+export interface GetCapabilitiesPayload {
+  readonly capability_contract_version?: "1.0";
+}
 
 export interface NativeRequestEnvelope<A extends NativeAction, P> {
   readonly schema_version: SchemaVersion;
@@ -152,10 +188,34 @@ export type NativeMessageRequest =
   | NativeRequestEnvelope<"get_job", JobPayload>
   | NativeRequestEnvelope<"cancel_job", JobPayload>
   | NativeRequestEnvelope<"retry_job", JobPayload>
-  | NativeRequestEnvelope<"get_capabilities", EmptyPayload>
+  | NativeRequestEnvelope<"get_capabilities", GetCapabilitiesPayload>
   | NativeRequestEnvelope<"health", EmptyPayload>;
 
 export type NativeResponseStatus = "queued" | "running" | "completed" | "rejected";
+
+export interface CapabilityScopeOutcome {
+  readonly scope_id: SyncScopeId;
+  readonly platform: Platform;
+  readonly relation: RelationType;
+  readonly terminal: CapabilityTerminal;
+  readonly reason_code: CapabilityReasonCode;
+  readonly source_registry_digests: SourceRegistryDigests;
+  readonly feature_flag: CapabilityFeatureFlag;
+  readonly evidence_hash: Sha256;
+  readonly evaluated_at: ISODateTime;
+}
+
+export interface SourceRegistryDigests {
+  readonly adapter_registry: Sha256;
+  readonly feature_registry: Sha256;
+  readonly policy_registry: Sha256;
+  readonly scope_registry: Sha256;
+}
+
+export interface CapabilityManifest {
+  readonly capability_contract_version: "1.0";
+  readonly outcomes: readonly CapabilityScopeOutcome[];
+}
 
 export interface NativeMessageResponse {
   readonly schema_version: SchemaVersion;
@@ -164,6 +224,7 @@ export interface NativeMessageResponse {
   readonly job_id?: UUID | null;
   readonly status: NativeResponseStatus;
   readonly error?: ErrorContract | null;
+  readonly capabilities?: CapabilityManifest | null;
 }
 
 export interface NativeHostPolicy {
@@ -386,6 +447,10 @@ export interface CompatibilityPolicy {
     replacements = {
         "@@PLATFORMS@@": _ts_array(_enum_values(Platform)),
         "@@NATIVE_ACTIONS@@": _ts_array(_enum_values(NativeAction)),
+        "@@SYNC_SCOPE_IDS@@": _ts_array(_enum_values(SyncScopeId)),
+        "@@CAPABILITY_TERMINALS@@": _ts_array(_enum_values(CapabilityTerminal)),
+        "@@CAPABILITY_REASON_CODES@@": _ts_array(_enum_values(CapabilityReasonCode)),
+        "@@CAPABILITY_FEATURE_FLAGS@@": _ts_array(_enum_values(CapabilityFeatureFlag)),
         "@@ERROR_CLASSES@@": _ts_array(_enum_values(ErrorClass)),
         "@@ERROR_CODES@@": _ts_array(_enum_values(ErrorCode)),
         "@@DATA_EFFECTS@@": _ts_array(_enum_values(DataEffect)),

@@ -20,6 +20,10 @@ nav button[aria-selected="true"] { border-bottom-color: #d86d3d; color: #173a33;
 button { border: 1px solid #173a33; border-radius: 8px; cursor: pointer; padding: 9px 12px; }
 button:focus-visible { outline: 3px solid #efb08e; outline-offset: 2px; }
 button:disabled { cursor: not-allowed; opacity: 0.55; }
+label { display: block; font-size: 12px; font-weight: 650; margin: 12px 0 5px; }
+input, select { border: 1px solid #9ca6a1; border-radius: 7px; font: inherit; max-width: 100%; padding: 8px; width: 100%; }
+input:disabled { background: #eef0ec; }
+#selected-collection-fields { border-left: 3px solid #d86d3d; margin-top: 12px; padding-left: 10px; }
 section { background: #fff; border: 1px solid #d7d9d3; border-radius: 12px; min-height: 180px; padding: 18px; }
 section[hidden] { display: none; }
 dl div { display: flex; justify-content: space-between; padding: 8px 0; }

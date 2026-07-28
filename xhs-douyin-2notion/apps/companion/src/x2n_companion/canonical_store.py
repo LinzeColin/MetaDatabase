@@ -20,6 +20,7 @@ from urllib.parse import quote
 
 from x2n_contracts import (
     Artifact,
+    CapabilityManifest,
     CanonicalContent,
     Classification,
     DuplicateDisposition,
@@ -30,7 +31,9 @@ from x2n_contracts import (
     UserRelation,
     build_artifact_key,
 )
+from x2n_contracts.models import SyncScopeId
 
+from .adapter_dispatch import SCOPE_BINDINGS, ScopeBinding
 from .migrations import (
     LATEST_SCHEMA_VERSION,
     current_version,
@@ -63,6 +66,7 @@ CURRENT_PAGE_CURSOR_COMPLETE = "artifact_placeholder_committed"
 CURRENT_PAGE_RESUME_VERSION = "orchestrator-1.0.0"
 CURRENT_PAGE_PLACEHOLDER_PROCESSOR = "x2n-canonical-placeholder"
 CURRENT_PAGE_PLACEHOLDER_VERSION = "placeholder-1.0.0"
+SCOPE_SYNC_RUN_KIND = "native_scope_dispatch_v1"
 
 
 class WriteDisposition(str, Enum):
@@ -170,6 +174,9 @@ class SkeletonJob:
     state: str
     disposition: DuplicateDisposition
     run_kind: str = "unknown"
+    scope_id: str | None = None
+    failure_code: ErrorCode | None = None
+    fallback_eligible: bool = False
 
 
 @dataclass(frozen=True)
@@ -1047,6 +1054,7 @@ class CanonicalStore:
         observation: SourceObservation,
         adapter_name: str,
         adapter_version: str,
+        fallback_from_job_id: str | None = None,
     ) -> CurrentPageReceipt:
         """Commit the replayable canonical phase in one SQLite transaction."""
 
@@ -1054,6 +1062,11 @@ class CanonicalStore:
         _validate_sha256(payload_hash, label="payload_hash")
         _validate_token(adapter_name, label="adapter_name")
         _validate_token(adapter_version, label="adapter_version")
+        fallback_job_id = (
+            str(_uuid(fallback_from_job_id, label="fallback_from_job_id"))
+            if fallback_from_job_id is not None
+            else None
+        )
         if (
             relation.content_key != content.content_key
             or observation.content_key != content.content_key
@@ -1104,6 +1117,14 @@ class CanonicalStore:
                 "INSERT INTO request_ledger(request_id, payload_hash, job_id, created_at) VALUES (?, ?, ?, ?)",
                 (str(_uuid(request_id, label="request_id")), payload_hash, identity.job_id, observed_at),
             )
+            if fallback_job_id is not None:
+                connection.execute(
+                    """
+                    INSERT INTO current_page_fallback(current_run_id, fallback_from_job_id, created_at)
+                    VALUES (?, ?, ?)
+                    """,
+                    (identity.run_id, fallback_job_id, observed_at),
+                )
 
             existing_content = connection.execute(
                 "SELECT first_observed_at, last_observed_at, record_version FROM content WHERE content_key = ?",
@@ -1350,6 +1371,368 @@ class CanonicalStore:
                 ErrorCode.NATIVE_DUPLICATE_REQUEST, "Request identity conflicts with the existing payload"
             )
 
+    @staticmethod
+    def _capability_manifest_from_rows(rows: Sequence[sqlite3.Row]) -> CapabilityManifest:
+        if len(rows) != len(SCOPE_BINDINGS):
+            raise X2NRuntimeError(
+                ErrorCode.CAPABILITY_TECHNICAL_BLOCKED,
+                "Capability runtime snapshot is incomplete",
+            )
+        by_scope = {str(row["scope_id"]): row for row in rows}
+        if len(by_scope) != len(SCOPE_BINDINGS):
+            raise X2NRuntimeError(
+                ErrorCode.CAPABILITY_TECHNICAL_BLOCKED,
+                "Capability runtime snapshot contains duplicate scopes",
+            )
+        outcomes: list[dict[str, Any]] = []
+        try:
+            for binding in SCOPE_BINDINGS:
+                row = by_scope[binding.scope_id.value]
+                digests = json.loads(str(row["source_registry_digests"]))
+                if not isinstance(digests, dict):
+                    raise ValueError("source digests must be an object")
+                outcomes.append(
+                    {
+                        "scope_id": binding.scope_id.value,
+                        "platform": binding.platform.value,
+                        "relation": binding.relation.value,
+                        "terminal": str(row["terminal"]),
+                        "reason_code": str(row["reason_code"]),
+                        "source_registry_digests": digests,
+                        "feature_flag": str(row["feature_flag"]),
+                        "evidence_hash": str(row["evidence_hash"]),
+                        "evaluated_at": str(row["evaluated_at"]),
+                    }
+                )
+            return CapabilityManifest.model_validate_json(
+                json.dumps(
+                    {"capability_contract_version": "1.0", "outcomes": outcomes},
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                )
+            )
+        except (KeyError, TypeError, ValueError) as error:
+            raise X2NRuntimeError(
+                ErrorCode.CAPABILITY_TECHNICAL_BLOCKED,
+                "Capability runtime snapshot is invalid",
+            ) from error
+
+    @staticmethod
+    def _capability_rows_match_manifest(rows: Sequence[sqlite3.Row], manifest: CapabilityManifest) -> bool:
+        if len(rows) != len(SCOPE_BINDINGS):
+            return False
+        expected = {outcome.scope_id.value: outcome.model_dump(mode="json") for outcome in manifest.outcomes}
+        for row in rows:
+            scope_id = str(row["scope_id"])
+            outcome = expected.get(scope_id)
+            if outcome is None:
+                return False
+            try:
+                stored_digests = json.loads(str(row["source_registry_digests"]))
+            except json.JSONDecodeError:
+                return False
+            if (
+                str(row["terminal"]) != outcome["terminal"]
+                or str(row["reason_code"]) != outcome["reason_code"]
+                or stored_digests != outcome["source_registry_digests"]
+                or str(row["feature_flag"]) != outcome["feature_flag"]
+                or str(row["evidence_hash"]) != outcome["evidence_hash"]
+            ):
+                return False
+        return True
+
+    def persist_capability_snapshot(self, manifest: CapabilityManifest) -> CapabilityManifest:
+        """Atomically persist the only runtime authority for all eight scope gates."""
+
+        if manifest.capability_contract_version != "1.0" or len(manifest.outcomes) != len(SCOPE_BINDINGS):
+            raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability manifest version is invalid")
+        with self._transaction() as connection:
+            rows = connection.execute(
+                "SELECT scope_id, terminal, reason_code, source_registry_digests, feature_flag, evidence_hash, evaluated_at "
+                "FROM capability_gate_outcome"
+            ).fetchall()
+            if self._capability_rows_match_manifest(rows, manifest):
+                return self._capability_manifest_from_rows(rows)
+            connection.execute("DELETE FROM capability_gate_outcome")
+            for outcome in manifest.outcomes:
+                rendered = outcome.model_dump(mode="json")
+                connection.execute(
+                    """
+                    INSERT INTO capability_gate_outcome(
+                        scope_id, terminal, reason_code, source_registry_digests, feature_flag, evidence_hash, evaluated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        rendered["scope_id"],
+                        rendered["terminal"],
+                        rendered["reason_code"],
+                        json.dumps(rendered["source_registry_digests"], ensure_ascii=False, separators=(",", ":"), sort_keys=True),
+                        rendered["feature_flag"],
+                        rendered["evidence_hash"],
+                        rendered["evaluated_at"],
+                    ),
+                )
+            persisted = connection.execute(
+                "SELECT scope_id, terminal, reason_code, source_registry_digests, feature_flag, evidence_hash, evaluated_at "
+                "FROM capability_gate_outcome"
+            ).fetchall()
+            return self._capability_manifest_from_rows(persisted)
+
+    def capability_snapshot(self) -> CapabilityManifest:
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    "SELECT scope_id, terminal, reason_code, source_registry_digests, feature_flag, evidence_hash, evaluated_at "
+                    "FROM capability_gate_outcome"
+                ).fetchall()
+                return self._capability_manifest_from_rows(rows)
+            finally:
+                connection.close()
+
+    def invalidate_capability_scopes(self, scope_ids: Sequence[SyncScopeId]) -> int:
+        """Remove stale rows for a technical veto; never serialize that veto as a terminal."""
+
+        normalized = tuple(scope_id.value if isinstance(scope_id, SyncScopeId) else str(scope_id) for scope_id in scope_ids)
+        allowed = {scope_id.value for scope_id in SyncScopeId}
+        if not normalized or any(scope_id not in allowed for scope_id in normalized):
+            raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Capability technical invalidation is invalid")
+        with self._transaction() as connection:
+            placeholders = ",".join("?" for _ in normalized)
+            cursor = connection.execute(
+                f"DELETE FROM capability_gate_outcome WHERE scope_id IN ({placeholders})",
+                normalized,
+            )
+            return int(cursor.rowcount)
+
+    @staticmethod
+    def _binding_is_exact(binding: ScopeBinding) -> bool:
+        return any(item == binding for item in SCOPE_BINDINGS)
+
+    @staticmethod
+    def _scope_job_from_row(row: sqlite3.Row, *, disposition: DuplicateDisposition) -> SkeletonJob:
+        failure_code = str(row["error_code"]) if row["error_code"] is not None else None
+        try:
+            parsed_failure = ErrorCode(failure_code) if failure_code is not None else None
+        except ValueError as error:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Run failure code is unknown") from error
+        return SkeletonJob(
+            job_id=str(row["job_id"]),
+            state=str(row["state"]),
+            disposition=disposition,
+            run_kind=str(row["run_kind"]),
+            scope_id=str(row["scope_id"]),
+            failure_code=parsed_failure,
+            fallback_eligible=bool(row["fallback_eligible"] or 0),
+        )
+
+    def submit_scope_dispatch_job(
+        self,
+        *,
+        request_id: str,
+        payload_hash: str,
+        binding: ScopeBinding,
+        dispatch_receipt_hash: str,
+    ) -> SkeletonJob:
+        """Create the Native job/map transaction before the synthetic adapter dispatch runs."""
+
+        if not self._binding_is_exact(binding):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Dispatch binding is not allowlisted")
+        request_id = str(_uuid(request_id, label="request_id"))
+        _validate_sha256(payload_hash, label="payload_hash")
+        _validate_sha256(dispatch_receipt_hash, label="dispatch_receipt_hash")
+        adapter_name, adapter_version, run_kind = binding.resolve_adapter()
+        job_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"x2n-native-request:{request_id}"))
+        observed_at = _now()
+        with self._transaction() as connection:
+            existing = connection.execute(
+                "SELECT payload_hash, job_id FROM request_ledger WHERE request_id = ?",
+                (request_id,),
+            ).fetchone()
+            if existing is not None:
+                if str(existing["payload_hash"]) != payload_hash:
+                    raise X2NRuntimeError(
+                        ErrorCode.NATIVE_DUPLICATE_REQUEST,
+                        "Request identity conflicts with the existing payload",
+                    )
+                row = connection.execute(
+                    """
+                    SELECT r.run_id AS job_id, r.state, r.run_kind, d.scope_id, f.error_code, f.fallback_eligible
+                    FROM run_record AS r
+                    INNER JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                    LEFT JOIN run_failure AS f ON f.run_id = r.run_id
+                    WHERE r.run_id = ?
+                    """,
+                    (str(existing["job_id"]),),
+                ).fetchone()
+                if row is None or str(row["scope_id"]) != binding.scope_id.value:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Dispatch request ledger mapping diverged")
+                return self._scope_job_from_row(row, disposition=DuplicateDisposition.RETURN_EXISTING_JOB)
+            connection.execute(
+                """
+                INSERT INTO run_record(
+                    run_id, run_kind, state, input_manifest_hash, started_at, finished_at, created_at
+                ) VALUES (?, ?, 'pending', ?, ?, NULL, ?)
+                """,
+                (job_id, SCOPE_SYNC_RUN_KIND, payload_hash, observed_at, observed_at),
+            )
+            connection.execute(
+                """
+                INSERT INTO native_dispatch_job(
+                    job_id, scope_id, platform, relation, adapter_name, adapter_version, dispatch_receipt_hash, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    job_id,
+                    binding.scope_id.value,
+                    binding.platform.value,
+                    binding.relation.value,
+                    adapter_name,
+                    adapter_version,
+                    dispatch_receipt_hash,
+                    observed_at,
+                ),
+            )
+            connection.execute(
+                "INSERT INTO request_ledger(request_id, payload_hash, job_id, created_at) VALUES (?, ?, ?, ?)",
+                (request_id, payload_hash, job_id, observed_at),
+            )
+            return SkeletonJob(
+                job_id=job_id,
+                state="pending",
+                disposition=DuplicateDisposition.NEW_REQUEST,
+                run_kind=SCOPE_SYNC_RUN_KIND,
+                scope_id=binding.scope_id.value,
+            )
+
+    def complete_scope_dispatch_job(self, *, job_id: str, dispatch_receipt_hash: str) -> SkeletonJob:
+        _uuid(job_id, label="job_id")
+        _validate_sha256(dispatch_receipt_hash, label="dispatch_receipt_hash")
+        with self._transaction() as connection:
+            row = connection.execute(
+                """
+                SELECT r.run_id AS job_id, r.state, r.run_kind, d.scope_id, d.dispatch_receipt_hash,
+                       f.error_code, f.fallback_eligible
+                FROM run_record AS r
+                INNER JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                LEFT JOIN run_failure AS f ON f.run_id = r.run_id
+                WHERE r.run_id = ?
+                """,
+                (job_id,),
+            ).fetchone()
+            if row is None or str(row["run_kind"]) != SCOPE_SYNC_RUN_KIND:
+                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Dispatch Job does not exist")
+            if str(row["dispatch_receipt_hash"]) != dispatch_receipt_hash:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Dispatch receipt provenance diverged")
+            if str(row["state"]) == "pending":
+                cursor = connection.execute(
+                    "UPDATE run_record SET state = 'succeeded', finished_at = ? WHERE run_id = ? AND state = 'pending'",
+                    (_now(), job_id),
+                )
+                if cursor.rowcount != 1:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Dispatch completion transition raced")
+                row = connection.execute(
+                    """
+                    SELECT r.run_id AS job_id, r.state, r.run_kind, d.scope_id, f.error_code, f.fallback_eligible
+                    FROM run_record AS r
+                    INNER JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                    LEFT JOIN run_failure AS f ON f.run_id = r.run_id
+                    WHERE r.run_id = ?
+                    """,
+                    (job_id,),
+                ).fetchone()
+            assert row is not None
+            return self._scope_job_from_row(row, disposition=DuplicateDisposition.RETURN_EXISTING_JOB)
+
+    def fail_scope_dispatch_job(
+        self,
+        *,
+        job_id: str,
+        provenance_hash: str,
+        fallback_eligible: bool,
+    ) -> SkeletonJob:
+        _uuid(job_id, label="job_id")
+        _validate_sha256(provenance_hash, label="provenance_hash")
+        if type(fallback_eligible) is not bool:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Fallback eligibility is invalid")
+        with self._transaction() as connection:
+            row = connection.execute(
+                """
+                SELECT r.run_id AS job_id, r.state, r.run_kind, d.scope_id, f.error_code, f.fallback_eligible
+                FROM run_record AS r
+                INNER JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                LEFT JOIN run_failure AS f ON f.run_id = r.run_id
+                WHERE r.run_id = ?
+                """,
+                (job_id,),
+            ).fetchone()
+            if row is None or str(row["run_kind"]) != SCOPE_SYNC_RUN_KIND:
+                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Dispatch Job does not exist")
+            if str(row["state"]) == "failed":
+                if row["error_code"] is None:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Failed dispatch lacks failure evidence")
+                return self._scope_job_from_row(row, disposition=DuplicateDisposition.RETURN_EXISTING_JOB)
+            if str(row["state"]) != "pending" or row["error_code"] is not None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Dispatch failure transition is invalid")
+            finished_at = _now()
+            cursor = connection.execute(
+                "UPDATE run_record SET state = 'failed', finished_at = ? WHERE run_id = ? AND state = 'pending'",
+                (finished_at, job_id),
+            )
+            if cursor.rowcount != 1:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Dispatch failure transition raced")
+            connection.execute(
+                """
+                INSERT INTO run_failure(run_id, error_code, fallback_eligible, provenance_hash, created_at)
+                VALUES (?, 'X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE', ?, ?, ?)
+                """,
+                (job_id, int(fallback_eligible), provenance_hash, finished_at),
+            )
+            failed = connection.execute(
+                """
+                SELECT r.run_id AS job_id, r.state, r.run_kind, d.scope_id, f.error_code, f.fallback_eligible
+                FROM run_record AS r
+                INNER JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                INNER JOIN run_failure AS f ON f.run_id = r.run_id
+                WHERE r.run_id = ?
+                """,
+                (job_id,),
+            ).fetchone()
+            if failed is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Dispatch failure evidence was not persisted")
+            return self._scope_job_from_row(failed, disposition=DuplicateDisposition.RETURN_EXISTING_JOB)
+
+    def verify_current_page_fallback(self, *, fallback_from_job_id: str, current_request_id: str) -> None:
+        fallback_from_job_id = str(_uuid(fallback_from_job_id, label="fallback_from_job_id"))
+        current_request_id = str(_uuid(current_request_id, label="request_id"))
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT l.request_id, r.state, f.error_code, f.fallback_eligible
+                    FROM request_ledger AS l
+                    INNER JOIN run_record AS r ON r.run_id = l.job_id
+                    INNER JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                    INNER JOIN run_failure AS f ON f.run_id = r.run_id
+                    WHERE l.job_id = ?
+                    """,
+                    (fallback_from_job_id,),
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Fallback source Job is not eligible")
+        if str(row["request_id"]) == current_request_id:
+            raise X2NRuntimeError(ErrorCode.NATIVE_DUPLICATE_REQUEST, "Fallback requires a new Owner request")
+        if (
+            str(row["state"]) != "failed"
+            or str(row["error_code"]) != ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE.value
+            or int(row["fallback_eligible"]) != 1
+        ):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Fallback source Job is not eligible")
+
     def submit_skeleton_job(self, *, request_id: str, payload_hash: str, run_kind: str) -> SkeletonJob:
         """Atomically create a durable, non-executing Native request Job.
 
@@ -1415,6 +1798,18 @@ class CanonicalStore:
         with self._file_lock(exclusive=False):
             connection = self._open(writable=False)
             try:
+                scope_row = connection.execute(
+                    """
+                    SELECT r.run_id AS job_id, r.state, r.run_kind, d.scope_id, f.error_code, f.fallback_eligible
+                    FROM run_record AS r
+                    INNER JOIN native_dispatch_job AS d ON d.job_id = r.run_id
+                    LEFT JOIN run_failure AS f ON f.run_id = r.run_id
+                    WHERE r.run_id = ? AND r.run_kind = ?
+                    """,
+                    (job_id, SCOPE_SYNC_RUN_KIND),
+                ).fetchone()
+                if scope_row is not None:
+                    return self._scope_job_from_row(scope_row, disposition=DuplicateDisposition.RETURN_EXISTING_JOB)
                 row = connection.execute(
                     """
                     SELECT r.state, r.run_kind

@@ -391,9 +391,120 @@ RELIABILITY_DOWN = (
 )
 
 
+CAPABILITY_DISPATCH_UP = (
+    """
+    CREATE TABLE capability_gate_outcome (
+        scope_id TEXT PRIMARY KEY CHECK(scope_id IN (
+            'xiaohongshu_favorites','xiaohongshu_likes','douyin_favorites','douyin_likes',
+            'bilibili_selected_collection','kuaishou_selected_collection',
+            'weibo_selected_collection','taobao_selected_collection'
+        )),
+        terminal TEXT NOT NULL CHECK(terminal IN ('READY_FOR_MVP_ACTIVATION','DISABLED_EXTERNAL_GATE')),
+        reason_code TEXT NOT NULL CHECK(reason_code IN (
+            'CI_SYNTH_READY','UNKNOWN_DISABLED','BLOCKED_POLICY','BLOCKED_AUTH',
+            'BLOCKED_BUDGET','BLOCKED_CAPABILITY'
+        )),
+        source_registry_digests TEXT NOT NULL CHECK(json_valid(source_registry_digests)),
+        feature_flag TEXT NOT NULL CHECK(feature_flag IN ('ci_synthetic_only','disabled','mvp_activation_candidate')),
+        evidence_hash TEXT NOT NULL
+            CHECK(length(evidence_hash) = 64 AND evidence_hash NOT GLOB '*[^0-9a-f]*'),
+        evaluated_at TEXT NOT NULL,
+        CHECK(
+            (terminal = 'READY_FOR_MVP_ACTIVATION' AND reason_code = 'CI_SYNTH_READY' AND feature_flag <> 'disabled')
+            OR
+            (terminal = 'DISABLED_EXTERNAL_GATE' AND reason_code <> 'CI_SYNTH_READY' AND feature_flag = 'disabled')
+        )
+    ) STRICT
+    """,
+    """
+    CREATE TABLE native_dispatch_job (
+        job_id TEXT PRIMARY KEY REFERENCES run_record(run_id),
+        scope_id TEXT NOT NULL CHECK(scope_id IN (
+            'xiaohongshu_favorites','xiaohongshu_likes','douyin_favorites','douyin_likes',
+            'bilibili_selected_collection','kuaishou_selected_collection',
+            'weibo_selected_collection','taobao_selected_collection'
+        )),
+        platform TEXT NOT NULL CHECK(platform IN ('xiaohongshu','douyin','bilibili','kuaishou','weibo','taobao')),
+        relation TEXT NOT NULL CHECK(relation IN ('liked','favorited','saved_current')),
+        adapter_name TEXT NOT NULL,
+        adapter_version TEXT NOT NULL,
+        dispatch_receipt_hash TEXT NOT NULL
+            CHECK(length(dispatch_receipt_hash) = 64 AND dispatch_receipt_hash NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL,
+        CHECK(
+            (scope_id = 'xiaohongshu_favorites' AND platform = 'xiaohongshu' AND relation = 'favorited') OR
+            (scope_id = 'xiaohongshu_likes' AND platform = 'xiaohongshu' AND relation = 'liked') OR
+            (scope_id = 'douyin_favorites' AND platform = 'douyin' AND relation = 'favorited') OR
+            (scope_id = 'douyin_likes' AND platform = 'douyin' AND relation = 'liked') OR
+            (scope_id = 'bilibili_selected_collection' AND platform = 'bilibili' AND relation = 'saved_current') OR
+            (scope_id = 'kuaishou_selected_collection' AND platform = 'kuaishou' AND relation = 'saved_current') OR
+            (scope_id = 'weibo_selected_collection' AND platform = 'weibo' AND relation = 'favorited') OR
+            (scope_id = 'taobao_selected_collection' AND platform = 'taobao' AND relation = 'saved_current')
+        )
+    ) STRICT
+    """,
+    """
+    CREATE TABLE run_failure (
+        run_id TEXT PRIMARY KEY REFERENCES run_record(run_id),
+        error_code TEXT NOT NULL CHECK(error_code = 'X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE'),
+        fallback_eligible INTEGER NOT NULL CHECK(fallback_eligible IN (0,1)),
+        provenance_hash TEXT NOT NULL
+            CHECK(length(provenance_hash) = 64 AND provenance_hash NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL
+    ) STRICT
+    """,
+    """
+    CREATE TABLE current_page_fallback (
+        current_run_id TEXT PRIMARY KEY REFERENCES run_record(run_id),
+        fallback_from_job_id TEXT NOT NULL REFERENCES native_dispatch_job(job_id),
+        created_at TEXT NOT NULL
+    ) STRICT
+    """,
+    "CREATE INDEX idx_native_dispatch_scope ON native_dispatch_job(scope_id, created_at)",
+    "CREATE INDEX idx_run_failure_eligible ON run_failure(fallback_eligible, created_at)",
+    """
+    CREATE TRIGGER run_failure_requires_failed_run
+    BEFORE INSERT ON run_failure
+    WHEN COALESCE((SELECT state FROM run_record WHERE run_id = NEW.run_id), '') <> 'failed'
+    BEGIN SELECT RAISE(ABORT, 'X2N_RUN_FAILURE_REQUIRES_FAILED_RUN'); END
+    """,
+    """
+    CREATE TRIGGER run_failure_no_update
+    BEFORE UPDATE ON run_failure
+    BEGIN SELECT RAISE(ABORT, 'X2N_RUN_FAILURE_APPEND_ONLY'); END
+    """,
+    """
+    CREATE TRIGGER run_failure_no_delete
+    BEFORE DELETE ON run_failure
+    BEGIN SELECT RAISE(ABORT, 'X2N_RUN_FAILURE_APPEND_ONLY'); END
+    """,
+    """
+    CREATE TRIGGER failed_run_with_failure_cannot_reopen
+    BEFORE UPDATE OF state ON run_record
+    WHEN OLD.state = 'failed' AND NEW.state <> 'failed'
+         AND EXISTS(SELECT 1 FROM run_failure WHERE run_id = OLD.run_id)
+    BEGIN SELECT RAISE(ABORT, 'X2N_FAILED_RUN_WITH_FAILURE_IS_TERMINAL'); END
+    """,
+)
+
+CAPABILITY_DISPATCH_DOWN = (
+    "DROP TRIGGER IF EXISTS failed_run_with_failure_cannot_reopen",
+    "DROP TRIGGER IF EXISTS run_failure_no_delete",
+    "DROP TRIGGER IF EXISTS run_failure_no_update",
+    "DROP TRIGGER IF EXISTS run_failure_requires_failed_run",
+    "DROP INDEX IF EXISTS idx_run_failure_eligible",
+    "DROP INDEX IF EXISTS idx_native_dispatch_scope",
+    "DROP TABLE current_page_fallback",
+    "DROP TABLE run_failure",
+    "DROP TABLE native_dispatch_job",
+    "DROP TABLE capability_gate_outcome",
+)
+
+
 MIGRATIONS = (
     Migration(1, "canonical_core", CORE_UP, CORE_DOWN),
     Migration(2, "reliability_outbox_and_leases", RELIABILITY_UP, RELIABILITY_DOWN),
+    Migration(3, "capability_dispatch_and_failure_recovery", CAPABILITY_DISPATCH_UP, CAPABILITY_DISPATCH_DOWN),
 )
 LATEST_SCHEMA_VERSION = MIGRATIONS[-1].version
 MIGRATION_SET_SHA256 = hashlib.sha256(

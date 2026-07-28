@@ -3,10 +3,10 @@ artifact: PRFAQ
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL
+status: STAGE_3_TASK010_CI_SYNTH_PASS_G3_REVIEW_PENDING
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-decision: DIRECT_MVP_TASKPACK_TASK010_NEXT
-implementation_authorized: stage_3_task_010_next_single_phase_run
+decision: DIRECT_MVP_TASK010_ACCEPTED_G3_RECHECK_NEXT
+implementation_authorized: stage_3_review_resume_recheck_next_single_phase_run
 owner: LinzeColin
 repository_target: LinzeColin/MetaDatabase
 skill_path: xhs-douyin-2notion/
@@ -41,7 +41,7 @@ timezone: Australia/Sydney
 | 多模态 | 标题/正文 + ASR + OCR + 关键帧视觉理解 + 融合摘要 + 自动分类 + 人工复核 |
 | 公共仓库边界 | 只提交代码、契约、合成 Fixture、脱敏证据；Cookie、Token、浏览器 Profile、私人内容和运行数据库禁止进入 Git |
 | 发布策略 | G0–G5＋前置任务/最终任务自有集合外 Acceptance → assurance.005 内完成 80 条 XHS/DY 基线＋每个额外启用能力独立 ≤20 条激活/安全/回滚/签字 → 部署运行/online smoke → G6 PASS；合法外部门可关闭结算、技术阻断不可结算；无预发布阶段、固定健康观察期或 soak |
-| 开发授权 | Stage 0–2 已合并；Stage 3 Resume 合同已版本化；下一单 Phase Run 只授权 `TSK.x2n.adapters.010 / PH.X2N.3.10`，真实账号、Stage 3 上传与 Stage 4 仍未授权 |
+| 开发授权 | Stage 0–2 已合并；`TSK.x2n.adapters.010 / PH.X2N.3.10` 已完成 CI synthetic 验收；下一单只可独立复验 G3，真实账号、Stage 3 上传与 Stage 4 仍未授权 |
 
 **Pursuing Goal**
 
@@ -417,7 +417,7 @@ Monthly Net Monetary Value
 
 ## 未授权
 
-- 本 Resume Run 内执行 task010 或其他新产品代码；task010 只能在下一单 Phase Run 独立执行；
+- 在独立 G3 Review Resume 复验签发 PASS 前上传 Stage 3、进入 Stage 4、部署或发布；
 - 真实账号运行或真实平台调用；
 - 向公共仓库提交私人数据；
 - VPS 数据平面；
