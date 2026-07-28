@@ -147,15 +147,20 @@ remote "
   sudo ln -sfn docs/product_design/v0.0.0.4/implementation-kit/config/cloud-process-health.json \"\$DEST/health-contract.json\"
   sudo ln -sfn docs/product_design/v0.0.0.4/implementation-kit/config/cloud-process-tree.txt \"\$DEST/process-tree.txt\"
 
-  CODEX_VERSION=\$($APP_ROOT/shared/toolchains/bin/codex --version 2>/dev/null | head -1 || echo unknown)
-  AUTH_PRESENT=false
-  sudo test -f $STATE_DIR/.codex/auth.json && AUTH_PRESENT=true
+  # 工具链目录只有 root 和 cyberboss 能进，部署账号 ubuntu 直接执行会 Permission
+  # denied，于是版本号取到空串，manifest 参数校验再报一个跟真实原因无关的错。
+  NODE_VERSION=\$(sudo $NODE -v 2>/dev/null | head -1)
+  CODEX_VERSION=\$(sudo $APP_ROOT/shared/toolchains/bin/codex --version 2>/dev/null | head -1)
+  [ -n \"\$NODE_VERSION\" ] || { echo NO_NODE_VERSION; exit 1; }
+  [ -n \"\$CODEX_VERSION\" ] || CODEX_VERSION=unknown
+  # if 而不是 a && b：后者在条件不成立时整条命令返回非零，会被 set -e 当成失败。
+  if sudo test -f $STATE_DIR/.codex/auth.json; then AUTH_PRESENT=true; else AUTH_PRESENT=false; fi
   sudo $NODE \"\$DEST/release/write-release-manifest.js\" \
     --release-root \"\$DEST\" \
     --release-commit $SHA \
     --source-tree $TREE \
     --source-archive-sha256 $ARCHIVE_SHA256 \
-    --node-version \"\$($NODE -v)\" \
+    --node-version \"\$NODE_VERSION\" \
     --codex-version \"\$CODEX_VERSION\" \
     --codex-auth-file-present \"\$AUTH_PRESENT\" >/dev/null
 
