@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "purpose": "把「阻塞」本身变成有证据的结论，而不是一句未经查证的断言",
+  "verified_on": "2026-07-28",
+  "blockers": [
+    {
+      "id": "DEEPSEEK_API_KEY",
+      "blocks": ["CB-700 真实调用", "CB-830 real DeepSeek E2E", "CB-830 canary on real traffic"],
+      "search_performed": [
+        "_protected 全树按文件名搜 *deepseek* / *ds_*key* —— 零命中",
+        "_protected 全树按内容搜 deepseek —— 仅两处文档提及，均非凭据",
+        "其中 status_taskpack CLOSEOUT.md 提到路径 /srv/linze/secrets/deepseek_api_key",
+        "登录 OVH 139.99.61.6 核查该路径 —— 目录存在但该文件不存在",
+        "服务器 /srv /etc /var/lib 深度 4 全盘 find *deepseek* —— 零命中"
+      ],
+      "conclusion": "该密钥在我可达的任何位置都不存在；文档里那条路径是计划值而非既存文件"
+    },
+    {
+      "id": "R2_WRITE_PERMISSION",
+      "blocks": ["CB-800 双副本收据", "CB-830 backup receipt"],
+      "search_performed": [
+        "cloudflare_r2d1_token 校验为 active，可列出账号与桶（adp-raw-artifacts / cyberboss-cold / weread-port-private）",
+        "以该 token 按 Cloudflare 文档的 S3 凭据换算（AccessKeyId=token id，Secret=token 值的 SHA-256）对 cyberboss-cold 发起真实 PUT",
+        "结果 HTTP 403 AccessDenied"
+      ],
+      "conclusion": "两把不同凭据均返回 403 AccessDenied 而非 SignatureDoesNotMatch，说明 SigV4 签名实现正确，缺的是桶写权限",
+      "note": "cyberboss-cold 桶确实存在，只需给一把有写权限的 R2 S3 凭据即可解除"
+    },
+    {
+      "id": "OWNER_ILINK_AUTHORIZATION",
+      "blocks": ["CB-620 真实激活", "CB-830 shared bot activation"],
+      "conclusion": "只有 Owner 本人能在受保护的 /ops/wechat 完成一次 iLink 授权扫码；无法由我代为产生"
+    },
+    {
+      "id": "FIVE_REAL_WECHAT_USERS",
+      "blocks": ["CB-830 五用户成功与第六人拒绝"],
+      "conclusion": "需要 5 位真实微信用户参与；无法由我代为产生"
+    }
+  ],
+  "not_blocked_and_completed": "CB-600..CB-820 全部闭环；CB-830 中不依赖外部输入的部分（干净安装、原子回滚、再前滚、四个校验器、三个单元测试）已在生产上真跑通过"
+}
