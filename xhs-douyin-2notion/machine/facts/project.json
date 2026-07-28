@@ -41,8 +41,9 @@
     "weibo",
     "taobao"
   ],
-  "stage_4_current_task": "TSK.x2n.multimodal.002_pass_ci_synth_private_gold_pending",
+  "stage_4_current_task": "TSK.x2n.multimodal.003_pass_ci_synth_private_gold_pending",
   "media_preprocessing": "lease_scoped_ffmpeg_ffprobe_audio_keyframe_dedup_temporary_only",
   "asr": "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
-  "status": "stage_4_task002_local_first_asr_ci_synth_private_gold_pending"
+  "ocr_vision": "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
+  "status": "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending"
 }

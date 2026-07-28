@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed verifier for local-first ASR (TSK.x2n.multimodal.002)."""
+"""Fail-closed verifier for local-first OCR/Vision (TSK.x2n.multimodal.003)."""
 
 from __future__ import annotations
 
@@ -18,29 +18,30 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
-TASK_ID = "TSK.x2n.multimodal.002"
-PHASE = "PH.X2N.4.2"
-RUN_ID = "RUN-X2N-S04-M002"
-TASK_BASE_COMMIT = "db902304ef4231fa78f1e84109938511cac9b046"
-NEXT_TASK = "TSK.x2n.multimodal.003"
+TASK_ID = "TSK.x2n.multimodal.003"
+PHASE = "PH.X2N.4.3"
+RUN_ID = "RUN-X2N-S04-M003"
+TASK_BASE_COMMIT = "60f03caa39cc2accc6e1304c743f041c84122b8c"
+NEXT_TASK = "TSK.x2n.multimodal.004"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 ARCHITECTURE = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
-RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_002.md"
-ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_multimodal_002_acceptance.py"
-EVIDENCE = PROJECT_ROOT / "evidence/models/TSK.x2n.multimodal.002.json"
+RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_003.md"
+ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_multimodal_003_acceptance.py"
+EVIDENCE = PROJECT_ROOT / "evidence/models/TSK.x2n.multimodal.003.json"
 
 SOURCE_RECEIPT_PATHS = (
-    PROJECT_ROOT / "apps/companion/src/x2n_companion/asr.py",
+    PROJECT_ROOT / "apps/companion/src/x2n_companion/ocr_vision.py",
     PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime_cli.py",
-    PROJECT_ROOT / "apps/companion/tests/test_asr.py",
+    PROJECT_ROOT / "apps/companion/tests/test_ocr_vision.py",
     ACCEPTANCE_RUNNER,
     PROJECT_ROOT / "scripts/verify_multimodal_001.py",
+    PROJECT_ROOT / "scripts/verify_multimodal_002.py",
+    PROJECT_ROOT / "scripts/verify_multimodal_003.py",
     PROJECT_ROOT / "scripts/verify_stage_3_review_resume.py",
     PROJECT_ROOT / "scripts/verify_stage_3_review_resume_recheck.py",
     PROJECT_ROOT / "scripts/verify_adapters_010.py",
-    PROJECT_ROOT / "scripts/verify_multimodal_002.py",
     RUN_CONTRACT,
     TASKPACK,
     TASK_STATE,
@@ -53,22 +54,23 @@ ALLOWED_CHANGED_EXACT = frozenset(
         "CHANGELOG.md",
         "HANDOFF.md",
         "README.md",
-        "apps/companion/src/x2n_companion/asr.py",
+        "apps/companion/src/x2n_companion/ocr_vision.py",
         "apps/companion/src/x2n_companion/runtime_cli.py",
-        "apps/companion/tests/test_asr.py",
-        "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_002.md",
+        "apps/companion/tests/test_ocr_vision.py",
+        "docs/governance/RUN_CONTRACT_S04_MULTIMODAL_003.md",
         "docs/product_design/v0.0.0.1/00_PRFAQ.md",
         "docs/product_design/v0.0.0.1/01_PRD.md",
         "docs/product_design/v0.0.0.1/02_ROADMAP.md",
         "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
-        "evidence/models/TSK.x2n.multimodal.002.json",
+        "evidence/models/TSK.x2n.multimodal.003.json",
         "machine/facts/architecture_decisions.json",
         "machine/facts/project.json",
         "machine/facts/task_state.json",
-        "scripts/run_multimodal_002_acceptance.py",
+        "scripts/run_multimodal_003_acceptance.py",
         "scripts/verify_adapters_010.py",
         "scripts/verify_multimodal_001.py",
         "scripts/verify_multimodal_002.py",
+        "scripts/verify_multimodal_003.py",
         "scripts/verify_stage_3_review_resume.py",
         "scripts/verify_stage_3_review_resume_recheck.py",
         "功能清单.md",
@@ -121,7 +123,7 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _task_commit() -> str:
     evidence = _load_json(EVIDENCE)
     commit = evidence.get("task_commit")
-    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task002 audit pin is missing")
+    _require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Task003 audit pin is missing")
     _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
         subprocess.run(
@@ -130,7 +132,7 @@ def _task_commit() -> str:
             check=False,
         ).returncode
         == 0,
-        "Task002 audit pin does not descend from Task001 evidence pin",
+        "Task003 audit pin does not descend from Task002 evidence pin",
     )
     _require(
         subprocess.run(
@@ -139,7 +141,7 @@ def _task_commit() -> str:
             check=False,
         ).returncode
         == 0,
-        "current worktree no longer contains the Task002 audit pin",
+        "current worktree no longer contains the Task003 audit pin",
     )
     return commit
 
@@ -155,7 +157,7 @@ def _blob_at(commit: str, path: Path) -> bytes:
         check=False,
     )
     if result.returncode != 0:
-        raise VerificationError("Task002 historical source blob is missing")
+        raise VerificationError("Task003 historical source blob is missing")
     return result.stdout
 
 
@@ -188,24 +190,24 @@ def _safety_scan(paths: Iterable[Path], *, commit: str) -> None:
     )
     for path in paths:
         text = _blob_at(commit, path).decode("utf-8", errors="replace")
-        _require(not any(item in text for item in forbidden_literals), "Task002 public boundary violated")
-        _require(private_path.search(text) is None, "Task002 local path entered public source")
-        _require(cdn.search(text) is None, "Task002 media CDN URL entered public source")
+        _require(not any(item in text for item in forbidden_literals), "Task003 public boundary violated")
+        _require(private_path.search(text) is None, "Task003 local path entered public source")
+        _require(cdn.search(text) is None, "Task003 media CDN URL entered public source")
 
 
 def validate_scope_and_boundary() -> Check:
     commit = _task_commit()
     changed = _changed_paths(commit)
     relative = [_task_relative(path) for path in changed]
-    _require(changed and all(path is not None for path in relative), "Task002 change escaped the child project")
+    _require(changed and all(path is not None for path in relative), "Task003 change escaped the child project")
     scoped = [path for path in relative if path is not None]
-    _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task002 contains an out-of-scope change")
+    _require(all(path in ALLOWED_CHANGED_EXACT for path in scoped), "Task003 contains an out-of-scope change")
     files = [PROJECT_ROOT / path for path in scoped if (PROJECT_ROOT / path).is_file()]
     _safety_scan(files, commit=commit)
     forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".m4a", ".mp3", ".wav", ".jpg", ".jpeg", ".png", ".webp"}
     _require(
         not any(Path(path).suffix.lower() in forbidden_suffixes for path in scoped),
-        "Task002 Runtime media or database entered public source",
+        "Task003 Runtime media or database entered public source",
     )
     return Check(
         "scope_and_public_private_boundary",
@@ -222,7 +224,7 @@ def _load_task() -> dict[str, Any]:
     if not isinstance(payload, dict) or not isinstance(payload.get("tasks"), list):
         raise VerificationError("Taskpack is invalid")
     matches = [item for item in payload["tasks"] if isinstance(item, dict) and item.get("id") == TASK_ID]
-    _require(len(matches) == 1, "Task002 is missing or duplicated")
+    _require(len(matches) == 1, "Task003 is missing or duplicated")
     return matches[0]
 
 
@@ -233,106 +235,79 @@ def validate_task_and_transition() -> Check:
         task.get("status") == "completed"
         and task.get("stage") == "STG.X2N.4"
         and task.get("phase") == PHASE
-        and task.get("acceptance_ids") == ["ACC.x2n.ai.001", "ACC.x2n.ai.007"]
+        and task.get("acceptance_ids") == ["ACC.x2n.ai.002", "ACC.x2n.ai.003", "ACC.x2n.ai.007"]
         and task.get("depends_on") == ["TSK.x2n.multimodal.001"],
-        "Task002 contract drifted",
+        "Task003 contract drifted",
     )
-    task003_completed = state.get("tasks", {}).get(NEXT_TASK) == "pass"
-    if task003_completed:
-        _require(
-            state.get("stage") == "STG.X2N.4"
-            and state.get("last_completed_phase") == "PH.X2N.4.3"
-            and state.get("run_id") == "RUN-X2N-S04-M003"
-            and state.get("run_kind") == "single_dag_task_ci_synth_local_first_ocr_vision_private_gold_pending"
-            and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
-            and state.get("tasks", {}).get(TASK_ID) == "pass"
-            and state.get("next_phase") == "PH.X2N.4.4"
-            and state.get("next_run") == "TSK.x2n.multimodal.004"
-            and state.get("next_phase_authorized") is True
-            and state.get("stage_gate") == "pass"
-            and state.get("current_stage_gate") == "not_run"
-            and state.get("stage_3_review_complete") is True
-            and state.get("stage_3_remote_upload_authorized") is False
-            and state.get("stage_4_authorized") is True
-            and state.get("public_release_authorized") is False
-            and state.get("remote_upload") == "not_required_for_local_stage_transition",
-            "Task002 historical boundary was not preserved after Task003 completion",
-        )
-        next_task = "TSK.x2n.multimodal.004"
-    else:
-        _require(
-            state.get("stage") == "STG.X2N.4"
-            and state.get("last_completed_phase") == PHASE
-            and state.get("run_id") == RUN_ID
-            and state.get("run_kind") == "single_dag_task_ci_synth_local_first_asr_private_gold_pending"
-            and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
-            and state.get("tasks", {}).get(TASK_ID) == "pass"
-            and state.get("next_phase") == "PH.X2N.4.3"
-            and state.get("next_run") == NEXT_TASK
-            and state.get("next_phase_authorized") is True
-            and state.get("stage_gate") == "pass"
-            and state.get("current_stage_gate") == "not_run"
-            and state.get("stage_3_review_complete") is True
-            and state.get("stage_3_remote_upload_authorized") is False
-            and state.get("stage_4_authorized") is True
-            and state.get("public_release_authorized") is False
-            and state.get("remote_upload") == "not_required_for_local_stage_transition",
-            "Task002 state transition is invalid",
-        )
-        next_task = NEXT_TASK
+    _require(
+        state.get("stage") == "STG.X2N.4"
+        and state.get("last_completed_phase") == PHASE
+        and state.get("run_id") == RUN_ID
+        and state.get("run_kind") == "single_dag_task_ci_synth_local_first_ocr_vision_private_gold_pending"
+        and state.get("tasks", {}).get("TSK.x2n.multimodal.001") == "pass"
+        and state.get("tasks", {}).get("TSK.x2n.multimodal.002") == "pass"
+        and state.get("tasks", {}).get(TASK_ID) == "pass"
+        and state.get("next_phase") == "PH.X2N.4.4"
+        and state.get("next_run") == NEXT_TASK
+        and state.get("next_phase_authorized") is True
+        and state.get("stage_gate") == "pass"
+        and state.get("current_stage_gate") == "not_run"
+        and state.get("stage_3_review_complete") is True
+        and state.get("stage_3_remote_upload_authorized") is False
+        and state.get("stage_4_authorized") is True
+        and state.get("public_release_authorized") is False
+        and state.get("remote_upload") == "not_required_for_local_stage_transition",
+        "Task003 state transition is invalid",
+    )
     statuses = state.get("acceptance_status", {})
-    _require(statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass", "Task002 ASR acceptance state is invalid")
-    if task003_completed:
-        _require(
-            statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
-            and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
-            and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task003_provenance_cache_budget_cloud_zero",
-            "Task002 historical acceptance boundary was not preserved after Task003 completion",
-        )
-    else:
-        _require(
-            statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task002_provenance_cache_budget_cloud_zero",
-            "Task002 acceptance state is invalid",
-        )
+    _require(
+        statuses.get("ACC.x2n.ai.001") == "pending_private_gold_asr_disabled_ci_synth_contract_pass"
+        and statuses.get("ACC.x2n.ai.002") == "pending_private_gold_ocr_disabled_ci_synth_contract_pass"
+        and statuses.get("ACC.x2n.ai.003") == "pending_private_gold_vision_disabled_ci_synth_contract_pass"
+        and statuses.get("ACC.x2n.ai.007") == "pass_ci_synth_task003_provenance_cache_budget_cloud_zero",
+        "Task003 acceptance state is invalid",
+    )
     return Check(
         "taskpack_and_stage4_transition",
         "PASS",
-        {"completed_task": TASK_ID, "next_task": next_task, "private_gold_evaluation": "NOT_RUN"},
+        {"completed_task": TASK_ID, "next_task": NEXT_TASK, "private_gold_evaluation": "NOT_RUN"},
     )
 
 
 def validate_implementation_shape() -> Check:
-    source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/asr.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/ocr_vision.py").read_text(encoding="utf-8")
     cli = (PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime_cli.py").read_text(encoding="utf-8")
     required = (
-        "class AsrPolicy",
-        "class WhisperCppLocalProvider",
-        "class DisabledCloudAsrProvider",
-        "class AsrEvaluator",
-        "class AsrSession",
-        "def load_private_asr_gold_dataset",
-        "def character_error_rate",
-        "def word_error_rate",
-        "whisper-cli",
+        "class OcrVisionPolicy",
+        "class LocalJsonOcrProvider",
+        "class LocalJsonVisionProvider",
+        "class DisabledCloudOcrProvider",
+        "class DisabledCloudVisionProvider",
+        "class OcrEvaluator",
+        "class VisionEvaluator",
+        "class OcrVisionSession",
+        "def load_private_ocr_gold_dataset",
+        "def load_private_vision_gold_dataset",
         "max_cloud_cost_microunits: int = 0",
+        "--offline",
         "__getstate__",
     )
-    _require(all(token in source for token in required), "Task002 local-first ASR implementation is incomplete")
+    _require(all(token in source for token in required), "Task003 local-first OCR/Vision implementation is incomplete")
     _require(
         "raw_url" not in source
         and "requests." not in source
         and "httpx" not in source
         and "sqlite3" not in source,
-        "Task002 ASR implementation crossed its no-network/no-persistence boundary",
+        "Task003 OCR/Vision implementation crossed its no-network/no-persistence boundary",
     )
     _require(
-        'if args.action == "eval"' in cli and 'evaluation_actions.add_parser("asr")' in cli,
-        "Task002 equivalent x2n eval asr oracle is missing",
+        'evaluation_actions.add_parser("ocr")' in cli and 'evaluation_actions.add_parser("vision")' in cli,
+        "Task003 equivalent x2n eval OCR/Vision oracles are missing",
     )
     return Check(
-        "local_first_asr_provenance_cache_and_private_eval_shape",
+        "local_first_ocr_vision_provenance_cache_and_private_eval_shape",
         "PASS",
-        {"cloud_upload_authorized": False, "durable_transcript_writes": 0, "shell_invocations": 0},
+        {"cloud_upload_authorized": False, "durable_text_writes": 0, "shell_invocations": 0},
     )
 
 
@@ -348,35 +323,32 @@ def validate_facts_and_evidence() -> Check:
         and evidence.get("status") == "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
         and evidence.get("task_commit") == commit
         and evidence.get("source_receipt_sha256") == _source_receipt(commit),
-        "Task002 evidence receipt drifted",
+        "Task003 evidence receipt drifted",
     )
     execution = evidence.get("execution", {})
     _require(
         execution.get("platform_calls") == 0
         and execution.get("model_calls") == 0
         and execution.get("cloud_uploads") == 0
-        and execution.get("private_gold_evaluation") == "NOT_RUN"
+        and execution.get("private_gold_ocr_evaluation") == "NOT_RUN"
+        and execution.get("private_gold_vision_evaluation") == "NOT_RUN"
         and execution.get("real_account_execution") == "NOT_RUN",
-        "Task002 evidence overclaims model or external execution",
+        "Task003 evidence overclaims model or external execution",
     )
     _require(
-        project.get("status")
-        in {
-            "stage_4_task002_local_first_asr_ci_synth_private_gold_pending",
-            "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending",
-        }
+        project.get("status") == "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending"
         and project.get("canonical_store") == "active_local_sqlite_logical_truth",
         "project fact drifted",
     )
     decisions = architecture.get("decisions")
     _require(isinstance(decisions, list), "architecture decisions are invalid")
-    asr = next((item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-013"), None)
+    ocr_vision = next((item for item in decisions if isinstance(item, dict) and item.get("id") == "ADR-014"), None)
     _require(
-        isinstance(asr, dict)
-        and asr.get("state") == "accepted_implementation"
-        and asr.get("implementation_state")
-        == "local_whispercpp_cli_ephemeral_transcript_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
-        "ASR architecture decision drifted",
+        isinstance(ocr_vision, dict)
+        and ocr_vision.get("state") == "accepted_implementation"
+        and ocr_vision.get("implementation_state")
+        == "local_json_ocr_vision_ephemeral_artifacts_provenance_cache_budget_disabled_cloud_ci_synth_private_gold_pending",
+        "OCR/Vision architecture decision drifted",
     )
     return Check(
         "evidence_and_current_facts",
@@ -397,7 +369,7 @@ def _run_acceptance() -> dict[str, Any]:
         timeout=240,
     )
     if result.returncode != 0:
-        raise VerificationError("Task002 acceptance runner failed")
+        raise VerificationError("Task003 acceptance runner failed")
     payloads: list[dict[str, Any]] = []
     for line in result.stdout.splitlines():
         try:
@@ -406,7 +378,7 @@ def _run_acceptance() -> dict[str, Any]:
             continue
         if isinstance(value, dict):
             payloads.append(value)
-    _require(payloads, "Task002 acceptance runner did not emit a receipt")
+    _require(payloads, "Task003 acceptance runner did not emit a receipt")
     return payloads[-1]
 
 
@@ -418,10 +390,12 @@ def validate_acceptance_execution() -> Check:
         and receipt.get("status") == "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
         and receipt.get("metrics", {}).get("synthetic_unit_tests") >= 9
         and receipt.get("metrics", {}).get("same_input_duplicate_provider_calls") == 0
+        and receipt.get("metrics", {}).get("url_uploads") == 0
         and receipt.get("execution", {}).get("platform_calls") == 0
         and receipt.get("execution", {}).get("cloud_uploads") == 0
-        and receipt.get("execution", {}).get("private_gold_evaluation") == "NOT_RUN",
-        "Task002 acceptance receipt is invalid",
+        and receipt.get("execution", {}).get("private_gold_ocr_evaluation") == "NOT_RUN"
+        and receipt.get("execution", {}).get("private_gold_vision_evaluation") == "NOT_RUN",
+        "Task003 acceptance receipt is invalid",
     )
     return Check(
         "fresh_synthetic_acceptance",
@@ -432,7 +406,7 @@ def validate_acceptance_execution() -> Check:
 
 def validate_worktree() -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) not in {"", "main"}, "Task002 must remain in a non-main worktree")
+    _require(_git(["branch", "--show-current"]) not in {"", "main"}, "Task003 must remain in a non-main worktree")
     return Check("worktree_isolation", "PASS", {"main_mutated": False, "task_worktree": True})
 
 

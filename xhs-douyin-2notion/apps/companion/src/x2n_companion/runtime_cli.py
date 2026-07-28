@@ -19,6 +19,12 @@ from .canonical_store import CanonicalStore
 from .douyin_adapter import build_douyin_canary_plan
 from .kuaishou_selected import build_kuaishou_canary_plan
 from .media_safety import scan_persisted_scopes
+from .ocr_vision import (
+    OcrEvaluator,
+    VisionEvaluator,
+    load_private_ocr_gold_dataset,
+    load_private_vision_gold_dataset,
+)
 from .profile_session import (
     PROFILE_LAUNCH_CONFIRMATION,
     DoctorProbe,
@@ -51,6 +57,7 @@ KUAISHOU_TASK_ID = "TSK.x2n.adapters.007"
 WEIBO_TASK_ID = "TSK.x2n.adapters.008"
 TAOBAO_TASK_ID = "TSK.x2n.adapters.009"
 ASR_TASK_ID = "TSK.x2n.multimodal.002"
+OCR_VISION_TASK_ID = "TSK.x2n.multimodal.003"
 RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
@@ -127,22 +134,52 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if args.action == "eval":
-        if args.eval_action != "asr":
-            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown model evaluation action")
-        dataset = load_private_asr_gold_dataset(_paths(), args.dataset)
-        report = AsrEvaluator().evaluate(dataset.cases, private_gold=True)
-        return {
-            "acceptance_scope": "MULTIMODAL_002_ASR_PRIVATE_EVAL",
-            "action": "eval_asr",
-            "cloud_uploads": 0,
-            "dataset": dataset.safe_dict(),
-            "evaluation": report.safe_dict(),
-            "model_calls": 0,
-            "private_path_emitted": False,
-            "real_account_execution": "NOT_RUN",
-            "status": "PASS" if report.status == "pass" else "LOW_QUALITY",
-            "task_id": ASR_TASK_ID,
-        }
+        if args.eval_action == "asr":
+            dataset = load_private_asr_gold_dataset(_paths(), args.dataset)
+            report = AsrEvaluator().evaluate(dataset.cases, private_gold=True)
+            return {
+                "acceptance_scope": "MULTIMODAL_002_ASR_PRIVATE_EVAL",
+                "action": "eval_asr",
+                "cloud_uploads": 0,
+                "dataset": dataset.safe_dict(),
+                "evaluation": report.safe_dict(),
+                "model_calls": 0,
+                "private_path_emitted": False,
+                "real_account_execution": "NOT_RUN",
+                "status": "PASS" if report.status == "pass" else "LOW_QUALITY",
+                "task_id": ASR_TASK_ID,
+            }
+        if args.eval_action == "ocr":
+            dataset = load_private_ocr_gold_dataset(_paths(), args.dataset)
+            report = OcrEvaluator().evaluate(dataset.cases, private_gold=True)
+            return {
+                "acceptance_scope": "MULTIMODAL_003_OCR_PRIVATE_EVAL",
+                "action": "eval_ocr",
+                "cloud_uploads": 0,
+                "dataset": dataset.safe_dict(),
+                "evaluation": report.safe_dict(),
+                "model_calls": 0,
+                "private_path_emitted": False,
+                "real_account_execution": "NOT_RUN",
+                "status": "PASS" if report.status == "pass" else "LOW_QUALITY",
+                "task_id": OCR_VISION_TASK_ID,
+            }
+        if args.eval_action == "vision":
+            dataset = load_private_vision_gold_dataset(_paths(), args.dataset)
+            report = VisionEvaluator().evaluate(dataset.cases, private_gold=True)
+            return {
+                "acceptance_scope": "MULTIMODAL_003_VISION_PRIVATE_EVAL",
+                "action": "eval_vision",
+                "cloud_uploads": 0,
+                "dataset": dataset.safe_dict(),
+                "evaluation": report.safe_dict(),
+                "model_calls": 0,
+                "private_path_emitted": False,
+                "real_account_execution": "NOT_RUN",
+                "status": "PASS" if report.status == "pass" else "LOW_QUALITY",
+                "task_id": OCR_VISION_TASK_ID,
+            }
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown model evaluation action")
     if args.action == "reconcile":
         if args.reconcile_action != "owner-alpha-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown reconciliation action")
@@ -315,6 +352,10 @@ def build_parser() -> argparse.ArgumentParser:
     evaluation_actions = evaluation.add_subparsers(dest="eval_action", required=True)
     asr = evaluation_actions.add_parser("asr")
     asr.add_argument("--dataset", required=True)
+    ocr = evaluation_actions.add_parser("ocr")
+    ocr.add_argument("--dataset", required=True)
+    vision = evaluation_actions.add_parser("vision")
+    vision.add_argument("--dataset", required=True)
     reconcile = subparsers.add_parser("reconcile")
     reconcile_actions = reconcile.add_subparsers(dest="reconcile_action", required=True)
     owner_alpha_plan = reconcile_actions.add_parser("owner-alpha-plan")
@@ -385,7 +426,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     task_id = (
-        ASR_TASK_ID
+        OCR_VISION_TASK_ID
+        if args.action == "eval" and args.eval_action in {"ocr", "vision"}
+        else ASR_TASK_ID
         if args.action == "eval"
         else MEDIA_TASK_ID
         if args.action == "verify"

@@ -239,7 +239,29 @@ def validate_task_and_transition() -> Check:
         "Task001 contract drifted",
     )
     task002_completed = state.get("tasks", {}).get(NEXT_TASK) == "pass"
-    if task002_completed:
+    task003_completed = state.get("tasks", {}).get("TSK.x2n.multimodal.003") == "pass"
+    if task003_completed:
+        _require(
+            task002_completed
+            and state.get("stage") == "STG.X2N.4"
+            and state.get("last_completed_phase") == "PH.X2N.4.3"
+            and state.get("run_id") == "RUN-X2N-S04-M003"
+            and state.get("run_kind") == "single_dag_task_ci_synth_local_first_ocr_vision_private_gold_pending"
+            and state.get("tasks", {}).get(TASK_ID) == "pass"
+            and state.get("next_phase") == "PH.X2N.4.4"
+            and state.get("next_run") == "TSK.x2n.multimodal.004"
+            and state.get("next_phase_authorized") is True
+            and state.get("stage_gate") == "pass"
+            and state.get("current_stage_gate") == "not_run"
+            and state.get("stage_3_review_complete") is True
+            and state.get("stage_3_remote_upload_authorized") is False
+            and state.get("stage_4_authorized") is True
+            and state.get("public_release_authorized") is False
+            and state.get("remote_upload") == "not_required_for_local_stage_transition",
+            "Task001 historical boundary was not preserved after Task003 completion",
+        )
+        next_task = "TSK.x2n.multimodal.004"
+    elif task002_completed:
         _require(
             state.get("stage") == "STG.X2N.4"
             and state.get("last_completed_phase") == "PH.X2N.4.2"
@@ -355,6 +377,7 @@ def validate_facts_and_evidence() -> Check:
         in {
             "stage_4_task001_bounded_media_preprocessing_pass_ci_synth",
             "stage_4_task002_local_first_asr_ci_synth_private_gold_pending",
+            "stage_4_task003_local_first_ocr_vision_ci_synth_private_gold_pending",
         }
         and project.get("canonical_store") == "active_local_sqlite_logical_truth",
         "project fact drifted",

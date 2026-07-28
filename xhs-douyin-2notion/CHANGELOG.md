@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 4 / Multimodal 003
+
+- 完成 `TSK.x2n.multimodal.003 / PH.X2N.4.3`：增加 owner-managed 本地 JSON OCR/Vision Provider、不可序列化 OCR 文本/视觉描述、Provider/Model/Snapshot/Prompt/Input provenance、同版本缓存、图片/provider-call/超时预算、禁云路由与 `x2n eval ocr|vision --dataset` 私有聚合 Oracle。
+- 9 个专项合成测试覆盖同输入缓存、版本化 Artifact、坏 JSON/超时清理、预算与云拒绝、OCR CER Gate、Vision rubric、敏感/不支持输入、私有 Gold schema 和零路径输出；真实模型、云上传、Owner Gold、平台、账号与 Notion 调用均为 0/NOT_RUN。
+- `ACC.x2n.ai.002` 与 `ACC.x2n.ai.003` 均保持私有 Gold pending 且对应 Feature Flag 关闭；`ACC.x2n.ai.007` 仅取得 Task003 CI-synth provenance/cache/budget/cloud-zero 贡献。下一单仅为 `TSK.x2n.multimodal.004 / PH.X2N.4.4`。
+
 ## v0.0.0.1 — Stage 4 / Multimodal 002
 
 - 完成 `TSK.x2n.multimodal.002 / PH.X2N.4.2`：增加本地 `whisper.cpp` CLI Provider、短生命周期音频/转录、Provider/Model/Snapshot/Prompt/Input provenance、同版本缓存、chunk/provider-call/音频/超时预算、禁云路由与 `x2n eval asr --dataset` 私有聚合 Oracle。

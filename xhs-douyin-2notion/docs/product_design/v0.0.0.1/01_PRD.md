@@ -3,12 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_4_TASK002_LOCAL_FIRST_ASR_CI_SYNTH_PRIVATE_GOLD_PENDING
+status: STAGE_4_TASK003_LOCAL_FIRST_OCR_VISION_CI_SYNTH_PRIVATE_GOLD_PENDING
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-current_run_scope: stage_4_task002_complete_task003_next_private_gold_pending
-implementation_authorized: stage_4_task_003_next_single_phase_run
+current_run_scope: stage_4_task003_complete_task004_next_private_gold_pending
+implementation_authorized: stage_4_task_004_next_single_phase_run
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -32,7 +32,7 @@ owner: LinzeColin
 | Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
 | 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
 | 产品阶段 | Stage 4 Multimodal |
-| 开发状态 | 独立 G3 CI-synth 复验、Task001 有界媒体和 `TSK.x2n.multimodal.002 / PH.X2N.4.2` 本地优先 ASR 合同均已完成；真实模型与私有 Gold Set 未运行，ASR 保持禁用，下一单为 `TSK.x2n.multimodal.003 / PH.X2N.4.3`；Stage 3 上传、部署和发布仍未授权 |
+| 开发状态 | 独立 G3 CI-synth 复验、Task001 有界媒体、Task002 本地优先 ASR 和 `TSK.x2n.multimodal.003 / PH.X2N.4.3` 本地优先 OCR/Vision 合同均已完成；真实模型与私有 Gold Set 未运行，ASR/OCR/Vision 保持禁用，下一单为 `TSK.x2n.multimodal.004 / PH.X2N.4.4`；Stage 3 上传、部署和发布仍未授权 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
 
@@ -51,6 +51,12 @@ Stage 6 的真实账号激活或最终上线验收。
 Provider/Model/Snapshot/Prompt/Input provenance、会话缓存与预算、禁云路由及 `x2n eval asr --dataset`
 私有聚合 Oracle。它不下载模型、不读取或写入凭据、不持久化原始音频或转录文本；没有 Owner 私有 Gold
 Set 的真实评测时，ASR 质量状态为 `pending` 且 Feature Flag 必须保持关闭，不得宣称通过。
+
+`TSK.x2n.multimodal.003` 在 Task001 的短生命周期 JPEG/关键帧之上增加 owner-managed 本地 JSON OCR/Vision
+适配、版本化 Provider/Model/Snapshot/Prompt/Input provenance、会话缓存与图片/provider-call/超时预算、禁云
+路由及 `x2n eval ocr|vision --dataset` 私有聚合 Oracle。它不下载模型、不读取或写入凭据、不持久化原始媒体、
+OCR 文本或视觉描述；没有 Owner 私有 Gold Set 的真实评测时，OCR/Vision 质量状态均为 `pending`，Feature Flag
+必须保持关闭，不得宣称通过。敏感或不支持视觉输入必须返回结构化拒绝。
 
 ### 1.1 事实标记
 

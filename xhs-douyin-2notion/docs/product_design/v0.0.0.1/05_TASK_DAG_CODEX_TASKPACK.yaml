@@ -1926,7 +1926,7 @@ tasks:
   title: Implement OCR and Vision provider abstractions
   stage: STG.X2N.4
   phase: PH.X2N.4.3
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: cloud providers opt-in only; local/skip defaults permit continuation
