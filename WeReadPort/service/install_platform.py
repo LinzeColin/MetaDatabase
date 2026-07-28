@@ -68,7 +68,10 @@ def copy_release(source_root: pathlib.Path, target: pathlib.Path) -> None:
  if temp.exists(): shutil.rmtree(temp)
  temp.mkdir(parents=True)
  try:
-  for name in ("service","package.json","AGENTS.md"):
+  # The account service reuses the reviewed WeRead normalizer from src/core.
+  # Ship that dependency with every immutable service release; copying service/
+  # alone would only fail after a real process restart.
+  for name in ("service","src/core","package.json","AGENTS.md"):
    src=source_root/name; dst=temp/name
    if src.is_dir(): shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__","*.pyc",".DS_Store"))
    else: shutil.copy2(src,dst)
@@ -113,6 +116,7 @@ def main()->int:
  copy_release(source_root,release); state.mkdir(parents=True,exist_ok=True,mode=0o700)
  updates={}
  if identity_supplied: updates={"WRP_TASKPACK_VERSION":TASKPACK_VERSION,"WRP_RELEASE_COMMIT":args.release_commit,"WRP_OVH_RELEASE_ID":args.ovh_release_id,"WRP_SITES_PROJECT_ID":args.sites_project_id}
+ previous_env_text=env_file.read_text(encoding="utf-8") if env_file.exists() else None
  values=update_env(env_file,source_root/"service/env/weread-port-platform.env.example",updates,generate_secrets=args.apply and root==pathlib.Path("/"))
  unit_dir.mkdir(parents=True,exist_ok=True)
  for unit in sorted((source_root/"service/systemd").iterdir()):
@@ -133,8 +137,15 @@ def main()->int:
   try:
    subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service"],check=True); wait_for_platform_ready(int(values.get("WRP_SERVICE_PORT","8788"))); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
   except Exception:
+   # The release identity lives in the environment file. Roll it back together
+   # with the symlink so /version can never advertise a release that failed.
+   if previous_env_text is None:
+    try: env_file.unlink()
+    except FileNotFoundError: pass
+   else: atomic_write(env_file,previous_env_text,0o600)
    if previous_target:
-    rollback=current.with_name(f".current-rollback-{os.getpid()}"); rollback.symlink_to(previous_target); os.replace(rollback,current); subprocess.run(["systemctl","daemon-reload"],check=False); subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service"],check=False)
+    rollback=current.with_name(f".current-rollback-{os.getpid()}"); rollback.symlink_to(previous_target); os.replace(rollback,current); subprocess.run(["systemctl","daemon-reload"],check=False)
+   subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service"],check=False)
    raise
  else:
   current.parent.mkdir(parents=True,exist_ok=True)

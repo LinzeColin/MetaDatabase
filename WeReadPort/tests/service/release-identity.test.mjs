@@ -1,7 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { access, mkdtemp, rm } from "node:fs/promises";
+import { execFile as execFileCallback } from "node:child_process";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 import { loadConfig } from "../../service/platform/config.mjs";
 import { testPlatform, testConfig } from "./helpers.mjs";
+
+const execFile = promisify(execFileCallback);
 
 function productionEnv(overrides = {}) {
   const secret = Buffer.alloc(32, 31).toString("base64");
@@ -60,4 +68,16 @@ test("账户正文对象只写入 primary-objects 并在 readiness 暴露精确 
   const readiness = await platform.service.readiness({ force: true });
   assert.equal(readiness.releaseIdentity.taskpackVersion, "v0.0.0.1.9");
   assert.equal(readiness.dependencies.objectNamespaces.ok, true);
+});
+
+test("不可变账户发布包携带服务依赖的共享微信读书规范化模块", async t => {
+  const root = await mkdtemp(path.join(tmpdir(), "weread-release-package-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const commit = "a".repeat(40);
+  const install = fileURLToPath(new URL("../../service/install_platform.py", import.meta.url));
+  await execFile("python3", [install, "--root", root, "--release-commit", commit, "--ovh-release-id", "test-release", "--sites-project-id", "test-sites"]);
+  const release = path.join(root, "opt", "weread-port", "releases", `0.0.0.1.9-${commit.slice(0, 12)}-test-release`);
+  const normalizer = path.join(release, "src", "core", "normalize.js");
+  await access(normalizer);
+  await execFile(process.execPath, ["--input-type=module", "--eval", `import(${JSON.stringify(pathToFileURL(path.join(release, "service", "platform", "weread.mjs")).href)})`]);
 });
