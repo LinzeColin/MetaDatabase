@@ -13,6 +13,8 @@
 
 const { createHmac } = require("node:crypto");
 
+const { buildSecureSetupLink } = require("../services/security/secure-setup-link");
+const { SqliteSetupTokenService } = require("../services/security/setup-token-service");
 const { SqliteInviteCodeStore } = require("../services/users/invite-code-store");
 const { ACTIONS, COMMANDS, MESSAGES } = require("../services/users/onboarding-state");
 const {
@@ -27,8 +29,19 @@ const {
 
 // An invite code is consumed by exact match, so a message that is one of the
 // frozen commands is never spent as a code by mistake.
-const RESERVED_INPUTS = Object.freeze(Object.values(COMMANDS));
+const SETUP_COMMAND = "设置";
+const RESERVED_INPUTS = Object.freeze([...Object.values(COMMANDS), SETUP_COMMAND]);
 const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
+
+const SETUP_MESSAGES = Object.freeze({
+  // The link carries the token in the URL fragment, so it never reaches a
+  // server log or a proxy access log. It is single-use and short-lived.
+  ISSUED: (link) =>
+    `这是你的设置页面链接，15 分钟内有效，只能打开一次：\n${link}`,
+  NOT_CONFIGURED:
+    "设置页面还没有对外地址，暂时打不开。请让管理员配置 CB_PORTAL_ORIGIN 之后再试。",
+  FAILED: "设置链接暂时生成不了，稍后再试一次。",
+});
 
 class UserAdmissionError extends Error {
   constructor(code) {
@@ -73,6 +86,7 @@ class UserAdmissionService {
     channel = "weixin",
     registrationMode = "invite",
     policyVersion = DEFAULT_POLICY_VERSION,
+    portalOrigin = "",
     now = () => new Date(),
   }) {
     if (!database || typeof database.prepare !== "function") {
@@ -104,6 +118,35 @@ class UserAdmissionService {
       registrationMode,
       policyVersion,
     });
+    this.portalOrigin = normalizeText(portalOrigin);
+    this.setupTokens = new SqliteSetupTokenService({ database });
+  }
+
+  // CB-620 / AC-011 on the live path: 「设置」 mints a single-use, 15-minute
+  // token and puts it in the URL fragment, so the token never reaches a server
+  // or proxy access log. With no portal origin configured the user is told
+  // plainly rather than handed a link that cannot work.
+  #issueSetupLink(userContext) {
+    if (!this.portalOrigin) {
+      return reply(ACTIONS.SHOW_HOME, { text: SETUP_MESSAGES.NOT_CONFIGURED });
+    }
+    try {
+      const issued = this.setupTokens.issue({
+        userId: userContext.userId,
+        purpose: "provider",
+      });
+      return reply(ACTIONS.SHOW_HOME, {
+        text: SETUP_MESSAGES.ISSUED(
+          buildSecureSetupLink({
+            origin: this.portalOrigin,
+            token: issued.token,
+            purpose: issued.purpose,
+          }),
+        ),
+      });
+    } catch {
+      return reply(ACTIONS.SHOW_HOME, { text: SETUP_MESSAGES.FAILED });
+    }
   }
 
   isOwnerSender(senderRef) {
@@ -234,6 +277,9 @@ class UserAdmissionService {
     if (!this.users.mayCallModel(userContext.userId)) {
       return reply(ACTIONS.SUSPENDED);
     }
+    if (normalizeText(text) === SETUP_COMMAND) {
+      return this.#issueSetupLink(userContext);
+    }
     return Object.freeze({ route: "user", userContext, modelCalls: null });
   }
 
@@ -249,6 +295,8 @@ class UserAdmissionService {
 module.exports = {
   INVITE_CANDIDATE,
   RESERVED_INPUTS,
+  SETUP_COMMAND,
+  SETUP_MESSAGES,
   UserAdmissionError,
   UserAdmissionService,
   deriveSubKey,

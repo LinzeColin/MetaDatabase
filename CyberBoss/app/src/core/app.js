@@ -55,6 +55,8 @@ const {
 } = require("../adapters/runtime/shared/approval-command");
 const { UserAdmissionService } = require("./user-admission");
 const { UserTurnRuntime } = require("./user-turn-runtime");
+const { projectLiveStatus } = require("../services/status/live-status-projector");
+const { SetupPortal } = require("../services/portal/setup-portal");
 const { runSystemCheckinPoller } = require("../app/system-checkin-poller");
 const { createProjectTooling } = require("../tools/create-project-tooling");
 const { WorkspaceRegistryError } = require("./workspace-registry");
@@ -161,6 +163,8 @@ class CyberbossApp {
     this.canonicalSyncCoordinator = null;
     this.userAdmission = null;
     this.userTurnRuntime = null;
+    this.setupPortal = null;
+    this.runtimeRestartTimestamps = [];
     this.runtimeAdapter.onEvent((event) => {
       this.threadStateStore.applyRuntimeEvent(event);
       this.runtimeEventChain = this.runtimeEventChain
@@ -216,7 +220,15 @@ class CyberbossApp {
           ownerUserId: this.runtimeSpoolDatabase.ownerUserId,
           ownerSenderIds: this.config.ownerSenderIds || this.config.allowedUserIds,
           registrationMode: this.config.registrationMode || "invite",
+          portalOrigin: this.config.portalOrigin || "",
         });
+        if (this.config.portalOrigin) {
+          this.setupPortal = new SetupPortal({
+            database: this.runtimeSpoolDatabase.database,
+            allowedOrigins: [this.config.portalOrigin],
+            userRepository: this.userAdmission.users,
+          });
+        }
         this.userTurnRuntime = new UserTurnRuntime({
           database: this.runtimeSpoolDatabase.database,
           userRepository: this.userAdmission.users,
@@ -345,6 +357,7 @@ class CyberbossApp {
     this.durableInboxCoordinator = null;
     this.userAdmission = null;
     this.userTurnRuntime = null;
+    this.setupPortal = null;
     if (this.runtimeSpoolDatabase) {
       this.runtimeSpoolDatabase.close();
       this.runtimeSpoolDatabase = null;
@@ -358,7 +371,67 @@ class CyberbossApp {
       runtime: this.runtimeAdapter.describe(),
       timeline: this.timelineIntegration.describe(),
       threads: this.threadStateStore.snapshot(),
+      operations: this.projectOperationalStatus(),
     }, null, 2));
+  }
+
+  // CB-810 on the live process: the frozen business matrix, resource gate and
+  // self-heal policy, fed by this process's own measurements. It carries counts
+  // and states only — no user identifier ever reaches Status.
+  projectOperationalStatus() {
+    try {
+      return projectLiveStatus({
+        facts: this.collectStatusFacts(),
+        restartHistory: this.runtimeRestartTimestamps || [],
+      });
+    } catch (error) {
+      // A projection that cannot be built is reported as a projection failure,
+      // never as a healthy matrix.
+      return Object.freeze({
+        status: null,
+        error_code: normalizeErrorCode(error?.code) || "status_projection_failed",
+      });
+    }
+  }
+
+  collectStatusFacts() {
+    const runtimeReadiness = typeof this.runtimeAdapter.getReadiness === "function"
+      ? this.runtimeAdapter.getReadiness()
+      : { ready: false };
+    let activeUsers = 0;
+    let providersConfigured = 0;
+    if (this.runtimeSpoolDatabase) {
+      try {
+        activeUsers = Number(this.runtimeSpoolDatabase.database
+          .prepare("SELECT COUNT(*) AS count FROM users WHERE status='active'")
+          .get().count);
+        providersConfigured = Number(this.runtimeSpoolDatabase.database
+          .prepare("SELECT COUNT(*) AS count FROM provider_credentials WHERE status='active'")
+          .get().count);
+      } catch {
+        // A counter that cannot be read stays zero; it is never guessed.
+      }
+    }
+    const canonicalStatus = this.canonicalSyncCoordinator
+      ? this.canonicalSyncCoordinator.status()
+      : null;
+    return {
+      channelReady: Boolean(this.activeAccountId),
+      admissionEnabled: Boolean(this.userAdmission),
+      activeUsers,
+      portalMounted: Boolean(this.setupPortal),
+      providersConfigured,
+      importsReady: Boolean(this.projectServices),
+      profileReady: Boolean(this.runtimeSpoolDatabase),
+      timelineReady: Boolean(this.timelineIntegration),
+      canonicalReady: Boolean(this.canonicalSyncCoordinator),
+      canonicalQueueDepth: Number(canonicalStatus?.pending || 0),
+      objectStoreConfigured: false,
+      backupConfigured: false,
+      ownerRuntimeReady: runtimeReadiness?.ready === true,
+      releaseConfigured: false,
+      budgetReady: Boolean(this.userTurnRuntime),
+    };
   }
 
   async login() {

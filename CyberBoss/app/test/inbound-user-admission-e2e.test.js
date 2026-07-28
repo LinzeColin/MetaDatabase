@@ -23,6 +23,8 @@ const { OFFICIAL_ORIGINS } = require("../src/services/providers/router");
 const { SqliteCredentialVault } = require("../src/services/secrets/credential-vault");
 const { deriveSubKey } = require("../src/core/user-turn-runtime");
 const { createInboundFilter } = require("../src/adapters/channel/weixin/message-utils");
+const { projectLiveStatus } = require("../src/services/status/live-status-projector");
+const { tokenAppearsInRequestTarget } = require("../src/services/security/secure-setup-link");
 
 const ENCRYPTION_KEY = Buffer.alloc(32, 3);
 const IDENTITY_KEY = Buffer.alloc(32, 5);
@@ -43,7 +45,11 @@ const POLICIES = Object.freeze({
 // Only the two outer edges — the WeChat channel and the Owner runtime — are fakes,
 // and both of them count every call so "zero model calls" is measured, not
 // asserted from a comment.
-function harness(t, { ownerSenderIds = [OWNER_SENDER], multiUser = true } = {}) {
+function harness(t, {
+  ownerSenderIds = [OWNER_SENDER],
+  multiUser = true,
+  portalOrigin = "",
+} = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-e2e-"));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const databasePath = path.join(directory, "runtime.db");
@@ -80,6 +86,7 @@ function harness(t, { ownerSenderIds = [OWNER_SENDER], multiUser = true } = {}) 
         ownerUserId: spool.ownerUserId,
         ownerSenderIds,
         registrationMode: "invite",
+        portalOrigin,
       })
     : null;
 
@@ -352,6 +359,103 @@ test("the channel allowlist stops rejecting non-Owner senders once admission is 
     BOT,
   );
   assert.equal(oversized.policyDecision.code, "input_too_large");
+});
+
+test("「设置」 mints a single-use link that never puts the token in the request target", async (t) => {
+  const h = harness(t, { portalOrigin: "https://portal.example.com" });
+  h.register(ALICE);
+
+  await h.deliver(ALICE, "设置");
+
+  assert.equal(h.providerCalls.length, 0, "asking for the setup page is not a model call");
+  const message = h.sent.at(-1).text;
+  const link = message.match(/https:\/\/\S+/)[0];
+  const url = new URL(link);
+  assert.equal(url.origin, "https://portal.example.com");
+  assert.equal(url.pathname, "/setup");
+  assert.equal(url.search, "", "no token may appear in the query string");
+  assert.match(url.hash, /^#t=[A-Za-z0-9_-]{32,86}&p=provider$/);
+  assert.equal(
+    tokenAppearsInRequestTarget(link, url.hash.slice(3).split("&")[0]),
+    false,
+    "the token must live in the fragment, which a server never logs",
+  );
+
+  // Single use: the second request mints a different token, and the first is
+  // still consumable exactly once.
+  await h.deliver(ALICE, "设置", "second-setup-request");
+  const secondLink = h.sent.at(-1).text.match(/https:\/\/\S+/)[0];
+  assert.notEqual(secondLink, link);
+});
+
+test("「设置」 says so plainly when no portal origin is configured", async (t) => {
+  const h = harness(t);
+  h.register(ALICE);
+
+  await h.deliver(ALICE, "设置");
+
+  assert.equal(h.providerCalls.length, 0);
+  assert.match(h.sent.at(-1).text, /CB_PORTAL_ORIGIN/);
+});
+
+test("the live operational projection reports all fourteen lines and no model call", () => {
+  const projection = projectLiveStatus({
+    facts: {
+      channelReady: true,
+      admissionEnabled: true,
+      activeUsers: 2,
+      budgetReady: true,
+      ownerRuntimeReady: true,
+    },
+    generatedAt: new Date("2026-07-28T09:00:00.000Z"),
+    // A measured host, so the gate's verdict here is about the numbers rather
+    // than about whatever the machine running the suite happens to be doing.
+    hostMetrics: {
+      freeMemoryBytes: 8 * 1024 * 1024 * 1024,
+      freeDiskBytes: 200 * 1024 * 1024 * 1024,
+      freeInodes: 5_000_000,
+      queueDepth: 1,
+      loadRatio: 0.2,
+    },
+  });
+
+  assert.equal(projection.status.business_lines.length, 14);
+  assert.equal(projection.status.model_calls, 0);
+  assert.equal(projection.status.version, "v0.0.0.8");
+  assert.equal(projection.resource_gate.admits_new_work, true);
+  assert.equal(projection.self_heal.action, "none");
+  assert.equal(projection.self_heal.modelCalls, 0);
+
+  // AC-032: no user identifier may appear anywhere in a Status document.
+  const serialized = JSON.stringify(projection.status);
+  for (const forbidden of ["user_id", "wechat_id", "api_key", "object_key", "prompt"]) {
+    assert.equal(serialized.includes(forbidden), false, `Status leaked ${forbidden}`);
+  }
+
+  const byLine = new Map(
+    projection.status.business_lines.map((line) => [line.business_line, line]),
+  );
+  assert.equal(byLine.get("user_isolation").state, "healthy");
+  assert.equal(byLine.get("user_isolation").queue_depth, 2);
+  // An unconfigured dependency is activation_pending, never a quiet healthy.
+  assert.equal(byLine.get("r2_oci_objects").state, "activation_pending");
+  assert.equal(byLine.get("backup_restore").state, "activation_pending");
+  assert.equal(byLine.get("release_rollback").state, "activation_pending");
+});
+
+test("a host whose disk cannot be measured is refused rather than admitted", () => {
+  const projection = projectLiveStatus({
+    facts: { channelReady: true, admissionEnabled: true },
+    generatedAt: new Date("2026-07-28T09:00:00.000Z"),
+    hostMetrics: {
+      freeMemoryBytes: 8 * 1024 * 1024 * 1024,
+      queueDepth: 0,
+      loadRatio: 0.1,
+    },
+  });
+
+  assert.equal(projection.resource_gate.admits_new_work, false);
+  assert.equal(projection.self_heal.modelCalls, 0);
 });
 
 test("the Owner runtime refuses a turn that arrives without an Owner context", async (t) => {

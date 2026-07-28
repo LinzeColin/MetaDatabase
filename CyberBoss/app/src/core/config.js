@@ -85,6 +85,13 @@ function readConfig() {
   const ownerSenderIds = readListEnv("CB_OWNER_SENDER_IDS").length
     ? readListEnv("CB_OWNER_SENDER_IDS")
     : allowedUserIds;
+  // The public https origin the setup page is served from. Absent on a host
+  // that has no public endpoint yet; 「设置」 then says so rather than handing
+  // out a link that cannot resolve.
+  const portalOrigin = readTextEnv("CB_PORTAL_ORIGIN");
+  if (portalOrigin && !/^https:\/\/[^/?#]+$/.test(portalOrigin)) {
+    throw new Error("CB_PORTAL_ORIGIN must be a bare https origin");
+  }
 
   const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
     || path.join(stateDir, "workspaces.json");
@@ -121,6 +128,7 @@ function readConfig() {
     multiUser,
     registrationMode,
     ownerSenderIds,
+    portalOrigin,
     userTurnTimeoutMs: readIntEnv("CB_USER_TURN_TIMEOUT_MS"),
     maxInputBytes: readIntEnv("CYBERBOSS_MAX_INPUT_BYTES")
       || readIntEnv("CB_MAX_INPUT_BYTES")

@@ -11,6 +11,7 @@ const {
   canonicalEventJson,
   stableJson,
 } = require("../db/database-adapter");
+const { assertPayloadSafe } = require("./user-fact-envelope");
 
 const DEFAULT_BATCH_MAX_RECORDS = 50;
 const DEFAULT_BATCH_MAX_BYTES = 262_144;
@@ -1211,6 +1212,11 @@ class CanonicalSpoolCoordinator {
       const event = mapJobEventToCanonical(candidate, {
         deployedCommit: this.deployedCommit,
       });
+      // CB-800 / AC-030 on the live write path: the frozen forbidden-field and
+      // secret-value scan runs before an event can be staged, so raw message
+      // text, a prompt, a response or a key cannot reach the canonical area
+      // even if some upstream producer starts emitting one.
+      assertPayloadSafe(event, `canonical_event:${event.event_id}`);
       this.database.enqueueSyncEvent({
         eventId: event.event_id,
         objectType: "job_event",

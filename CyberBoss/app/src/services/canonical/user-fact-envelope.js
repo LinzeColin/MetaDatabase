@@ -292,9 +292,18 @@ function assertCommitAllowed(plan) {
   return true;
 }
 
+// The same forbidden-field and secret-value scan the envelope applies, exposed
+// so the canonical spool write path can refuse an event before it is staged.
+// It is the identical code, not a second implementation of the same rule.
+function assertPayloadSafe(value, path = "payload") {
+  scanPayload(value, path, 0);
+  return value;
+}
+
 module.exports = {
   CanonicalEnvelopeError,
   FORBIDDEN_FIELDS,
+  assertPayloadSafe,
   FORBIDDEN_FIELD_ALIASES,
   IMMEDIATE_TYPES,
   MAX_PAYLOAD_DEPTH,
