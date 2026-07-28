@@ -19,6 +19,11 @@
 
 ## Current state
 
+Latest accepted node: `P7.2 / CB-710` passed. Stage 6 is complete with exit gate
+`PG-6` sealed as CONDITIONAL PASS, and Stage 7 has `CB-700` and `CB-710` passed.
+The per-node detail follows below; `machine/facts/task_state.json` remains the
+authoritative list.
+
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
 Stage 1 exit gate `PG-1`, `P2.1 / CB-200` through `P2.5 / CB-240`, independent

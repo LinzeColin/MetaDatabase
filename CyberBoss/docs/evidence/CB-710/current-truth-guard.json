@@ -1,0 +1,16 @@
+{
+  "schema_version": "cyberboss.current_truth_guard.v1",
+  "accepted_high_watermark_claims": {
+    "machine_task_state": "CB-710",
+    "readme": "CB-710",
+    "handoff": "CB-710"
+  },
+  "distinct_claims": [
+    "CB-710"
+  ],
+  "sources_without_a_claim": [],
+  "handoff_parsed_lines": 140,
+  "readme_parsed_lines": 140,
+  "status": "consistent",
+  "remedy": "lead the README status section and the HANDOFF Current state section with the latest accepted node so both stay inside the probe's parsed window"
+}

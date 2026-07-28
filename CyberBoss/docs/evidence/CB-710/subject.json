@@ -147,5 +147,11 @@
     "raw_chat_committed_to_repository": false
   },
   "activation_pending": [],
-  "status": "passed"
+  "status": "passed",
+  "current_truth_guard": {
+    "issue": "appending a node narrative below the frozen probe 140-line HANDOFF window silently dropped that file high watermark and produced one split_brain reading",
+    "fix": "the HANDOFF Current state section now leads with the latest accepted node",
+    "guard": "CyberBoss/scripts/validate_current_truth.py reproduces the probe consensus rule and is run at every node close",
+    "status_after_fix": "consistent"
+  }
 }
