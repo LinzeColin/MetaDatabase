@@ -84,6 +84,9 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   assert.equal(JSON.stringify(readyPayload).includes("accounts"), false);
   const lines = await app(new Request(`${platform.config.baseUrl}/v1/status/business-lines`, { headers: { ...baseHeaders, cookie: refreshedCookie } }));
   assert.equal((await lines.json()).lines.length, 11);
+  const wereadExport = await app(new Request(`${platform.config.baseUrl}/v1/weread/export`, { headers: { ...baseHeaders, cookie: refreshedCookie } }));
+  assert.equal(wereadExport.status, 200);
+  assert.equal((await wereadExport.json()).source, "WeChat Reading");
 });
 
 test("格式错误的微信读书密钥返回可恢复客户端错误", async t => {

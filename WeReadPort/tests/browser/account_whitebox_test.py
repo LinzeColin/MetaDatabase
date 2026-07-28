@@ -68,7 +68,7 @@ DASHBOARD = {
     ],
     "recommendations": [
         {"source": "account-pattern", "title": "继续整理系统思维主题", "reason": "最近 30 天该主题笔记增长最快。"},
-        {"source": "weread-official", "title": "回顾高频划线章节", "reason": "该书划线密度较高且两周未回顾。"},
+        {"id": "weread:fixture-book-123", "source": "weread-official", "title": "回顾高频划线章节", "reason": "该书划线密度较高且两周未回顾。"},
     ],
 }
 
@@ -158,6 +158,8 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     page.get_by_role("heading", name="早上好，新手读者").wait_for()
     assert page.get_by_text("不需要理解 API、仓库或 Vault。按顺序点按钮即可。").is_visible()
     assert page.get_by_text("你的笔记、连接与画像已经绑定到同一账户", exact=False).is_visible()
+    assert page.get_by_role("heading", name="你的阅读偏好，已经整合到首页").is_visible()
+    assert page.get_by_role("button", name="下载微信读书数据（JSON）").is_visible()
 
     page.get_by_role("button", name="导入与连接").click()
     page.get_by_role("heading", name="选择你现在使用的应用").wait_for()
@@ -174,6 +176,9 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     assert page.get_by_role("img", name="近九十天阅读热度").is_visible()
     assert page.get_by_role("heading", name="潜在推荐").is_visible()
     assert page.get_by_text("继续整理系统思维主题").is_visible()
+    weread_link = page.get_by_role("link", name="在微信读书打开")
+    assert weread_link.is_visible()
+    assert weread_link.get_attribute("href") == "https://weread.qq.com/web/bookDetail/fixture-book-123"
     assert page.get_by_text("不会把笔记正文发送给模型", exact=False).is_visible()
 
     page.get_by_role("button", name="账户与安全").click()

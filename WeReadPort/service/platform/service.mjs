@@ -32,6 +32,7 @@ import {
   normalizeWeReadDocuments,
   recommendationRows,
   validateWeReadKey,
+  WEREAD_COLLECTION_FORMAT_VERSION,
 } from "./weread.mjs";
 import { buildAnalyticsDashboard } from "./analytics.mjs";
 
@@ -461,7 +462,8 @@ export class PlatformService {
     const priorBookState = priorState?.bookState && typeof priorState.bookState === "object" ? priorState.bookState : {};
     const priorFullSyncAt = Number(priorState?.summary?.lastFullSyncAt || 0);
     const hasIncrementalBaseline = Number(priorState?.lastSyncAt || 0) > 0 && Object.keys(priorBookState).length > 0;
-    const fullReconcileDue = priorFullSyncAt <= 0 || this.now() - priorFullSyncAt >= WEREAD_FULL_RECONCILE_SECONDS;
+    const collectionRepairDue = String(priorState?.summary?.collectionFormatVersion || "") !== WEREAD_COLLECTION_FORMAT_VERSION;
+    const fullReconcileDue = priorFullSyncAt <= 0 || this.now() - priorFullSyncAt >= WEREAD_FULL_RECONCILE_SECONDS || collectionRepairDue;
     const syncMode = mode === "full" || !hasIncrementalBaseline || fullReconcileDue ? "full" : "incremental";
     const dataset = await syncWeReadDataset(key, {
       fetchImpl: this.fetchImpl,
@@ -479,11 +481,29 @@ export class PlatformService {
       if (outcome.unchanged) unchangedDocuments += 1;
       else updatedDocuments += 1;
     }
+    const sourceContentCount = Number(dataset.summary.sourceContentCount || 0);
+    const sourceReportedNotes = Number(dataset.summary.totalNoteCount || 0);
+    const accountedDocuments = documents.length + Number(dataset.summary.skippedUnchangedDocuments || 0);
+    const unresolvedDocuments = Math.max(0, sourceContentCount - accountedDocuments);
+    const sourceCountersAvailable = sourceContentCount > 0 || (sourceReportedNotes === 0 && accountedDocuments === 0);
+    const coverage = {
+      sourceReportedNotes,
+      sourceReportedHighlights: Number(dataset.summary.sourceHighlightCount || 0),
+      sourceReportedThoughts: Number(dataset.summary.sourceReviewCount || 0),
+      sourceReportedBookmarks: Number(dataset.summary.sourceBookmarkCount || 0),
+      sourceReportedExportableDocuments: sourceContentCount,
+      accountedDocuments,
+      unresolvedDocuments,
+      sourceCountersAvailable,
+      verified: syncMode === "full" && sourceCountersAvailable && !dataset.partial && !dataset.summary.truncatedBySafetyLimit && unresolvedDocuments === 0,
+      note: "书签只有官方计数时不会伪装成可下载正文；未确认的差额会明确保留。",
+    };
     const summary = {
       ...dataset.summary,
       importedDocuments: documents.length,
       updatedDocuments,
       unchangedDocuments,
+      coverage,
       lastFullSyncAt: syncMode === "full" ? this.now() : priorFullSyncAt,
     };
     this.store.updateWereadState(accountId, { capabilities: dataset.capabilities, summary, bookState: dataset.bookState });
@@ -512,6 +532,7 @@ export class PlatformService {
         skippedUnchangedBooks: dataset.summary.skippedUnchangedBooks,
         legacyTop5CeilingRemoved: this.config.maxWereadBooks > 5,
         truncatedBySafetyLimit: Boolean(dataset.summary.truncatedBySafetyLimit),
+        coverage,
       },
     };
   }
@@ -527,6 +548,21 @@ export class PlatformService {
     const notes = [];
     for (const row of this.store.listNotes(accountId, { includeDeleted: false, limit: 100000 })) notes.push(await this.readNote(accountId, row.id));
     return { exportedAt: new Date(this.clock()).toISOString(), schemaVersion: "1.0.0", ...metadata, notes };
+  }
+
+  async exportWeRead(accountId) {
+    const notes = [];
+    for (const row of this.store.listNotes(accountId, { includeDeleted: false, limit: 100000 })) {
+      if (row.source === "weread") notes.push(await this.readNote(accountId, row.id));
+    }
+    const state = this.store.getWereadState(accountId);
+    return {
+      exportedAt: new Date(this.clock()).toISOString(),
+      schemaVersion: "1.0.0",
+      source: "WeChat Reading",
+      coverage: state?.summary?.coverage || null,
+      notes,
+    };
   }
 
   async deleteAccount(accountId) {

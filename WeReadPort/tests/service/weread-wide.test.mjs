@@ -4,7 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { normalizeWeReadDocuments, syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
+import { normalizeWeReadDocuments, recommendationRows, syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
 import { PlatformStore } from "../../service/platform/store.mjs";
 import { testPlatform } from "./helpers.mjs";
 
@@ -140,4 +140,44 @@ test("微信读书后续同步只读取来源明确变化的书籍，并保留�
   assert.equal(third.summary.skippedUnchangedBooks, 7);
   assert.equal(calls.filter(api => api === "/book/bookmarklist").length, 1);
   assert.equal(calls.filter(api => api === "/review/list/mine").length, 1);
+});
+
+test("微信读书兼容包装字段、分页重叠并为官方推荐生成真实详情链接", async () => {
+  const calls = [];
+  const ids = ["alias-book-a", "alias-book-b", "alias-book-c"];
+  const fetchImpl = async (_url, init) => {
+    const body = JSON.parse(init.body);
+    calls.push(body.api_name);
+    let payload = { errcode: 0 };
+    if (body.api_name === "/_list") payload.apis = [...WIDE_SCOPE_APIS];
+    else if (body.api_name === "/shelf/sync") payload = { errcode: 0, data: { books: ids.map(bookId => ({ bookId })) } };
+    else if (body.api_name === "/user/notebooks") {
+      const pageIds = body.lastSort === undefined ? ids.slice(0, 2) : ids.slice(1);
+      payload = { errcode: 0, result: { booklist: pageIds.map((bookId, index) => ({ book: { bookId, title: `别名书 ${bookId}`, author: "作者", category: "研究" }, note_count: 1, review_count: 0, sort: 100 - index - (body.lastSort === undefined ? 0 : 1) })), totalNoteCount: 3, has_more: body.lastSort === undefined, last_sort: body.lastSort === undefined ? 99 : undefined } };
+    } else if (body.api_name === "/book/bookmarklist") payload = { errcode: 0, data: { bookmarkList: [{ id: `highlight-${body.bookId}`, text: `划线 ${body.bookId}`, createTime: EVENT_BASE + 9, updateTime: EVENT_BASE + 19 }], chapterList: [{ uid: 1, name: "第一章" }] } };
+    else if (body.api_name === "/review/list/mine") payload = { errcode: 0, result: { reviewList: [], totalCount: 0, has_more: false } };
+    else if (body.api_name === "/book/info") payload = { errcode: 0, data: { book: { bookId: body.bookId, title: `别名书 ${body.bookId}`, author: "作者", category: "研究" } } };
+    else if (body.api_name === "/book/getprogress") payload = { errcode: 0, data: { readingProgress: 30 } };
+    else if (body.api_name === "/book/chapterinfo") payload = { errcode: 0, result: { chapterList: [{ uid: 1, name: "第一章" }] } };
+    else if (body.api_name === "/book/recommend") payload = body.maxIdx ? { errcode: 0, data: { books: [] } } : { errcode: 0, data: { books: [{ bookInfo: { bookId: "abc123-official-book", title: "官方推荐", author: "推荐作者" }, searchIdx: 1, reason: "官方理由" }] } };
+    return new Response(JSON.stringify(payload), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  const dataset = await syncWeReadDataset(KEY, { fetchImpl, maxBooks: 100, recommendationPages: 2 });
+  const documents = normalizeWeReadDocuments(dataset);
+  assert.equal(dataset.summary.notebookBooks, 3);
+  assert.equal(documents.length, 3);
+  assert.equal(new Set(documents.map(item => item.externalId)).size, 3, "重叠分页不得重复导入");
+  assert.equal(calls.filter(api => api === "/user/notebooks").length, 2);
+  assert.equal(recommendationRows(dataset)[0].deepLink, "https://weread.qq.com/web/bookDetail/abc123-official-book");
+});
+
+test("微信读书分页游标异常时拒绝把不完整结果当成完整同步", async () => {
+  const fetchImpl = async (_url, init) => {
+    const body = JSON.parse(init.body);
+    const payload = body.api_name === "/_list" ? { errcode: 0, apis: [...WIDE_SCOPE_APIS] }
+      : body.api_name === "/shelf/sync" ? { errcode: 0, books: [] }
+        : { errcode: 0, books: [{ bookId: "cursor-book", noteCount: 1, sort: undefined, book: { bookId: "cursor-book", title: "游标书" } }], hasMore: true, totalNoteCount: 1 };
+    return new Response(JSON.stringify(payload), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  await assert.rejects(() => syncWeReadDataset(KEY, { fetchImpl, maxBooks: 100 }), error => error?.code === "PAGINATION");
 });

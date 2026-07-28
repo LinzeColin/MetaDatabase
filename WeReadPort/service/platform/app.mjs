@@ -100,6 +100,7 @@ export function createPlatformApp({ service, config }) {
       if (method === "GET" && jobMatch) { const job = service.getImportJob(session.accountId, jobMatch[1]); if (!job) throw new PlatformError("NOT_FOUND", "导入任务不存在。", 404); return json({ job }); }
 
       if (method === "POST" && path === "/weread/sync") return json(await service.syncWeRead(session.accountId, await body(request, config.maxJsonBytes)));
+      if (method === "GET" && path === "/weread/export") { service.requireRecentAuth(session); return json(await service.exportWeRead(session.accountId)); }
       if (method === "GET" && path === "/analytics/dashboard") return json({ dashboard: service.analytics(session.accountId) });
       if (method === "GET" && path === "/account/export") { service.requireRecentAuth(session); return json(await service.exportAccount(session.accountId)); }
       if (method === "POST" && path === "/account/delete") { service.requireRecentAuth(session); const result = await service.deleteAccount(session.accountId); return json(result, 200, { "Set-Cookie": clearCookie(config) }); }

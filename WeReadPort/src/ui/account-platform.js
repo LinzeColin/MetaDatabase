@@ -195,6 +195,7 @@ async function loadOverview(main) {
     <section class="metric-grid" aria-label="账户概览">
       ${metric("笔记总数", state.notes.length, "所有来源统一保存")}${metric("已连接来源", providers.size + (hasWeRead ? 1 : 0), "可随时新增或解绑")}${metric("近 90 天活跃", state.dashboard?.summary?.activeDays90 ?? 0, "只在你同意后统计")}${metric("潜在推荐", state.dashboard?.recommendations?.length ?? 0, "每条都有推荐理由")}
     </section>
+    ${homeReadingProfile(state.dashboard, state.account, hasWeRead)}
     <section class="quick-grid"><article><div><span class="source-logo weread">微</span><div><h2>微信读书同步</h2><p>${hasWeRead ? "首次完整整理；之后只检查真实变化的书籍与笔记。" : "先绑定本人密钥；密钥不是账户主键，可安全轮换。"}</p></div></div><button id="quick-weread" class="button ${hasWeRead ? "secondary" : "primary"}" type="button">${hasWeRead ? "立即同步" : "绑定密钥"}</button></article>
       <article><div><span class="source-logo cloud">云</span><div><h2>一键导入</h2><p>Notion、Obsidian、GitHub、Google Drive 都会用中文一步一步引导。</p></div></div><button id="quick-import" class="button secondary" type="button">选择来源</button></article>
       <article><div><span class="source-logo chart">析</span><div><h2>阅读画像</h2><p>热度、趋势、主题偏好和潜在推荐，不使用模型 Token。</p></div></div><button id="quick-analytics" class="button secondary" type="button">查看画像</button></article></section>
@@ -203,10 +204,20 @@ async function loadOverview(main) {
   content.querySelector("#quick-import").addEventListener("click", () => { state.view = "imports"; renderCurrent(document); });
   content.querySelector("#quick-analytics").addEventListener("click", () => { state.view = "analytics"; renderCurrent(document); });
   content.querySelector("#quick-weread").addEventListener("click", () => hasWeRead ? runWeReadSync(content) : openWeReadDialog(content));
+  content.querySelectorAll("[data-download-weread]").forEach(button => button.addEventListener("click", () => runSensitiveAction("weread-export")));
+  content.querySelectorAll("[data-go-analytics]").forEach(button => button.addEventListener("click", () => { state.view = "analytics"; renderCurrent(document); }));
   content.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => { state.view = button.dataset.go; renderCurrent(document); }));
 }
 function onboardingStep(number, done, title, detail) { return `<li class="${done ? "done" : ""}"><span>${done ? "✓" : number}</span><div><strong>${title}</strong><small>${detail}</small></div></li>`; }
 function metric(label, value, detail) { return `<article class="metric-card"><p>${label}</p><strong>${escapeHtml(String(value))}</strong><small>${detail}</small></article>`; }
+function homeReadingProfile(dashboard, account, hasWeRead) {
+  if (!dashboard) return "";
+  const categories = (dashboard.categoryDistribution || []).slice(0, 3);
+  const recommendations = (dashboard.recommendations || []).slice(0, 3);
+  const coverage = account?.weread?.summary?.coverage;
+  const coverageText = !hasWeRead ? "绑定微信读书后会显示官方数据核对结果。" : coverage ? (coverage.verified ? `已核对 ${coverage.accountedDocuments || 0} 条可导入内容；源端报告 ${coverage.sourceReportedNotes || 0} 条。` : `当前尚有 ${coverage.unresolvedDocuments || 0} 条待确认；可从“导入与连接”发起完整核对。`) : "尚未完成首次数据核对。";
+  return `<section class="home-profile-card" aria-labelledby="home-profile-title"><div class="section-title"><div><p class="eyebrow">阅读画像</p><h2 id="home-profile-title">你的阅读偏好，已经整合到首页</h2><p>${escapeHtml(coverageText)}</p></div><button class="button secondary" data-go-analytics type="button">查看完整画像</button></div><div class="home-profile-grid"><div><span>近 90 天活跃</span><strong>${escapeHtml(String(dashboard.summary?.activeDays90 ?? 0))} 天</strong></div><div><span>已汇总来源</span><strong>${escapeHtml(String(dashboard.summary?.sourceCount ?? 0))} 个</strong></div><div><span>估算字数</span><strong>${escapeHtml(numberFormat(dashboard.summary?.estimatedWords || 0))}</strong></div></div>${categories.length ? `<div class="profile-topics"><strong>高频主题</strong><div>${categories.map(item => `<span>${escapeHtml(item.label)} · ${escapeHtml(String(item.value))}</span>`).join("")}</div></div>` : ""}${recommendations.length ? `<div class="home-recommendations"><strong>潜在下一步</strong><div>${recommendations.map(item => `<article><div><small>${escapeHtml(sourceName(item.source))}</small><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div></div>` : ""}${hasWeRead ? `<div class="home-profile-actions"><button class="button ghost" data-download-weread type="button">下载微信读书数据（JSON）</button></div>` : ""}</section>`;
+}
 
 function renderImportHub(main) {
   const content = main.querySelector("#account-content");
@@ -223,6 +234,7 @@ function renderImportHub(main) {
       ${sourceCard("github", "GitHub", "GH", connected.has("github"), "先授权读取仓库，再勾选 Markdown、TXT 或 JSON；平台只执行读取", connected.has("github") ? "选择仓库" : "授权读取")}
       ${sourceCard("google", "Google Drive", "G", connected.has("google"), "Google 登录不自动读取网盘；点击后单独授权只读范围", connected.has("google") ? "选择文件" : "授权只读")}
     </section>
+    ${hasWeRead ? wereadDataControls(state.account) : ""}
     <section id="import-workspace" class="import-workspace hidden" aria-live="polite"></section>
     <input id="obsidian-folder" type="file" webkitdirectory directory multiple hidden>
     <input id="obsidian-files" type="file" accept=".zip,.md,.markdown,.txt" multiple hidden>`;
@@ -233,8 +245,19 @@ function renderImportHub(main) {
     if (!connected.has(provider)) { await action(`正在前往 ${providerLabel(provider)} 官方授权读取…`, () => api.oauth(provider, "import")); return; }
     await openProviderPicker(content, provider);
   }));
+  content.querySelector("#weread-full-sync")?.addEventListener("click", () => runWeReadSync(content, { forceFull: true }));
+  content.querySelector("#weread-download")?.addEventListener("click", () => runSensitiveAction("weread-export"));
 }
 function sourceCard(id, name, mark, connected, description, actionLabel) { return `<article class="source-card"><div class="source-card-head"><span class="source-logo ${id}">${mark}</span><span class="connection-state ${connected ? "connected" : ""}">${connected ? "已连接" : "未连接"}</span></div><h2>${name}</h2><p>${description}</p><button class="button ${connected ? "secondary" : "primary"} full" data-source="${id}" type="button">${actionLabel}</button></article>`; }
+function wereadDataControls(account) {
+  const coverage = account?.weread?.summary?.coverage;
+  const verified = Boolean(coverage?.verified);
+  const sourceNotes = Number(coverage?.sourceReportedNotes || 0);
+  const accounted = Number(coverage?.accountedDocuments || 0);
+  const unresolved = Number(coverage?.unresolvedDocuments || 0);
+  const summary = !coverage ? "尚未完成首次完整核对；首次同步会读取当前可访问的书籍、划线和想法。" : verified ? `核对通过：源端报告 ${sourceNotes} 条，已确认 ${accounted} 条可导入内容。书签只有官方计数时不会被伪装成正文。` : `尚未完成完整确认：当前已核对 ${accounted} 条，仍有 ${unresolved} 条待确认。完整核对不会删除你现有笔记。`;
+  return `<section class="weread-data-controls"><div><p class="eyebrow">微信读书数据</p><h2>${verified ? "数据覆盖已核验" : "先核对，再判断是否完整"}</h2><p>${escapeHtml(summary)}</p></div><div class="button-row"><button id="weread-full-sync" class="button secondary" type="button">完整核对全部数据</button><button id="weread-download" class="button primary" type="button">下载已同步数据（JSON）</button></div></section>`;
+}
 
 function openWeReadDialog(content) {
   const workspace = content.querySelector("#import-workspace") || content;
@@ -274,15 +297,17 @@ async function syncWeReadAfterLogin(root, { force = false } = {}) {
   state.autoSyncAccountId = account.id;
   await runWeReadSync(root.querySelector("#account-content"), { automatic: true });
 }
-async function runWeReadSync(content, { automatic = false } = {}) {
+async function runWeReadSync(content, { automatic = false, forceFull = false } = {}) {
   if (state.wereadSyncing) { toast("微信读书正在同步，请稍候。", "info"); return undefined; }
   const complete = async () => {
-    const result = await api.wereadSync("auto");
+    const result = await api.wereadSync(forceFull ? "full" : "auto");
     const summary = result.summary || {};
     const scope = summary.syncMode === "incremental"
       ? `快速核对 ${summary.notebookBooks || 0} 本书，跳过 ${summary.skippedUnchangedBooks || 0} 本无变化书籍`
       : `完整整理 ${summary.notebookBooks || 0} 本书`;
-    toast(`同步完成：${scope}；${summary.updatedDocuments ?? summary.importedDocuments ?? 0} 条更新，${summary.unchangedDocuments || 0} 条已是最新。`, result.failures?.length ? "warning" : "success");
+    const coverage = summary.coverage || result.coverage || {};
+    const verification = coverage.verified ? "覆盖已核验" : coverage.unresolvedDocuments ? `仍有 ${coverage.unresolvedDocuments} 条待确认` : "覆盖待完整核对";
+    toast(`同步完成：${scope}；${summary.updatedDocuments ?? summary.importedDocuments ?? 0} 条更新，${summary.unchangedDocuments || 0} 条已是最新；${verification}。`, result.failures?.length || !coverage.verified && summary.syncMode === "full" ? "warning" : "success");
     const profile = await api.profile();
     state.account = profile.account;
     if (automatic) {
@@ -295,7 +320,7 @@ async function runWeReadSync(content, { automatic = false } = {}) {
   };
   if (!automatic) return action("正在同步微信读书最新变化…", complete);
   state.wereadSyncing = true;
-  toast("已登录，正在后台检查微信读书最新变化…", "info");
+  toast(forceFull ? "正在后台完整核对微信读书数据…" : "已登录，正在后台检查微信读书最新变化…", "info");
   try { return await complete(); }
   catch (error) {
     toast(error?.message || "微信读书同步失败，请稍后重试。", "error");
@@ -359,13 +384,27 @@ async function loadAnalytics(main) {
     <section class="metric-grid">${metric("笔记", d.summary.noteCount, "账户内加密正文")}${metric("来源", d.summary.sourceCount, "已汇总来源")}${metric("估算字数", numberFormat(d.summary.estimatedWords), "仅用于个人统计")}${metric("活跃天数", d.summary.activeDays90, "最近 90 天")}</section>
     <section class="analytics-grid"><article class="chart-card"><div class="section-title"><div><h2>12 周笔记趋势</h2><p>每周新增或更新的笔记数量</p></div></div>${barChart(d.weeklyTrend || [])}</article><article class="chart-card"><div class="section-title"><div><h2>来源分布</h2><p>你的笔记主要来自哪里</p></div></div>${distribution(d.sourceDistribution || [])}</article></section>
     <section class="heatmap-card"><div class="section-title"><div><h2>近 90 天阅读热度</h2><p>颜色越深表示当天记录或阅读活动越多</p></div><span class="heat-legend">少 <i></i><i></i><i></i><i></i> 多</span></div>${heatmap(d.readingHeatmap || [])}</section>
-    <section class="recommend-card"><div class="section-title"><div><h2>潜在推荐</h2><p>每条都显示来源和理由，不会伪装成客观预测。</p></div></div>${d.recommendations?.length ? `<div class="recommend-list">${d.recommendations.map(item => `<article><span>${escapeHtml(sourceName(item.source))}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${item.deepLink ? `<a href="${escapeAttr(item.deepLink)}" rel="noopener noreferrer" target="_blank">查看</a>` : ""}</article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有足够数据</strong><p>导入第一批笔记并开启推荐个性化后，这里会出现可解释建议。</p></div>`}</section>`;
+    <section class="recommend-card"><div class="section-title"><div><h2>潜在推荐</h2><p>每条都显示来源和理由；微信读书官方推荐会直达真实书籍详情页。</p></div></div>${d.recommendations?.length ? `<div class="recommend-list">${d.recommendations.map(item => `<article><span>${escapeHtml(sourceName(item.source))}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationLink(item)}</article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有足够数据</strong><p>导入第一批笔记并开启推荐个性化后，这里会出现可解释建议。</p></div>`}</section>`;
   content.querySelector("#analytics-settings").addEventListener("click", () => { state.view = "account"; renderCurrent(document); });
   content.querySelector("#toggle-analytics").addEventListener("click", () => action("正在更新隐私选择…", async () => { const consent = state.account.consent || {}; await api.updateConsent({ behaviorAnalytics: !d.consent.behaviorAnalytics, recommendationPersonalization: consent.recommendationPersonalization || false }); const profile = await api.profile(); state.account = profile.account; await loadAnalytics(document.querySelector("#platform-main")); }));
 }
 function barChart(items) { const max = Math.max(1, ...items.map(item => Number(item.value || 0))); return `<div class="bar-chart" role="img" aria-label="最近十二周笔记趋势">${items.map(item => `<div><span style="height:${Math.max(4, Number(item.value || 0) / max * 100)}%" title="${item.week}：${item.value}"></span><small>${item.week.slice(5)}</small></div>`).join("")}</div>`; }
 function distribution(items) { const total = Math.max(1, items.reduce((sum, item) => sum + Number(item.value || 0), 0)); return `<div class="distribution-list">${items.slice(0, 8).map(item => `<div><span>${escapeHtml(sourceName(item.label))}</span><div><i style="width:${Number(item.value || 0) / total * 100}%"></i></div><strong>${item.value}</strong></div>`).join("") || `<p>暂无数据</p>`}</div>`; }
 function heatmap(items) { return `<div class="heatmap" role="img" aria-label="近九十天阅读热度">${items.map(item => `<span class="level-${item.level}" title="${item.date}：${item.value}" aria-label="${item.date}，热度 ${item.value}"></span>`).join("")}</div>`; }
+function recommendationLink(item) {
+  const link = officialRecommendationLink(item);
+  return link ? `<a href="${escapeAttr(link)}" rel="noopener noreferrer" target="_blank">${item.source === "weread-official" ? "在微信读书打开" : "查看"}</a>` : "";
+}
+function officialRecommendationLink(item) {
+  const raw = String(item?.deepLink || "");
+  try {
+    const url = new URL(raw);
+    if (url.protocol === "https:" && url.hostname === "weread.qq.com" && url.pathname.startsWith("/web/")) return url.toString();
+  } catch { /* 继续从官方推荐 ID 补全链接 */ }
+  if (item?.source !== "weread-official") return "";
+  const bookId = String(item?.id || "").replace(/^weread:/u, "").trim();
+  return /^[A-Za-z0-9_-]{6,256}$/.test(bookId) ? `https://weread.qq.com/web/bookDetail/${encodeURIComponent(bookId)}` : "";
+}
 
 async function renderAccount(main) {
   const content = main.querySelector("#account-content");
@@ -382,7 +421,7 @@ async function renderAccount(main) {
     <section class="settings-card"><div class="section-title"><div><h2>已登录设备</h2><p>查看当前与其他设备会话。撤销后对应设备必须重新登录。</p></div><button id="revoke-other-sessions" class="button ghost" type="button" ${sessions.length <= 1 ? "disabled" : ""}>退出其他设备</button></div><div class="credential-list session-list">${sessions.length ? sessions.map(item => `<article><span class="source-logo">${item.current ? "本" : "端"}</span><div><strong>${item.current ? "当前设备" : "已登录设备"}</strong><small>最近活动 ${formatDateTime(item.lastSeenAt)} · 到期 ${formatDateTime(item.expiresAt)}${item.ipHint ? ` · 网络 ${escapeHtml(item.ipHint)}` : ""}</small></div>${item.current ? `<span class="connection-state connected">当前</span>` : `<button class="button ghost revoke-session" data-session-id="${escapeAttr(item.id)}" type="button">退出</button>`}</article>`).join("") : `<div class="empty-inline"><strong>暂时无法读取设备列表</strong><p>刷新页面后重试；这不会影响当前登录。</p></div>`}</div></section>
     <section class="settings-card"><h2>云端连接</h2><p>连接令牌按账户密钥加密；导入只使用只读或最小必要权限。</p><div class="credential-list">${connections.length ? connections.map(item => `<article><span class="source-logo ${item.provider}">${providerMark(item.provider)}</span><div><strong>${providerLabel(item.provider)}</strong><small>${escapeHtml(item.metadata?.emailHint || item.metadata?.workspaceName || "已授权")}</small></div><span class="connection-state connected">已连接</span></article>`).join("") : `<div class="empty-inline"><strong>尚未连接云端来源</strong><p>到“导入与连接”选择常用应用。</p></div>`}</div></section>
     <section class="settings-card"><h2>画像与行为分析</h2><div class="toggle-row"><div><strong>行为分析</strong><p>只记录阅读时段等结构化事件，不记录笔记正文。</p></div><button id="behavior-toggle" class="switch ${consent.behaviorAnalytics ? "on" : ""}" type="button" role="switch" aria-checked="${Boolean(consent.behaviorAnalytics)}"><span></span></button></div><div class="toggle-row"><div><strong>个性化推荐</strong><p>使用账户内主题和官方推荐生成可解释建议，不调用模型。</p></div><button id="recommend-toggle" class="switch ${consent.recommendationPersonalization ? "on" : ""}" type="button" role="switch" aria-checked="${Boolean(consent.recommendationPersonalization)}"><span></span></button></div></section>
-    <section class="settings-card danger-zone"><h2>导出与删除</h2><p>敏感操作需要近期重新验证。导出会包含你的账户资料与解密后的笔记；永久删除会清除对象存储与账户索引。</p><div class="button-row"><button id="export-account" class="button secondary" type="button">导出我的全部数据</button><button id="delete-account" class="button danger" type="button">永久删除账户</button></div></section>`;
+    <section class="settings-card danger-zone"><h2>导出与删除</h2><p>敏感操作需要近期重新验证。可单独下载微信读书已同步笔记，也可导出完整账户资料；永久删除会清除对象存储与账户索引。</p><div class="button-row"><button id="export-weread" class="button primary" type="button">下载微信读书数据（JSON）</button><button id="export-account" class="button secondary" type="button">导出我的全部数据</button><button id="delete-account" class="button danger" type="button">永久删除账户</button></div></section>`;
   content.querySelector("#profile-form").addEventListener("submit", async event => { event.preventDefault(); await action("正在保存资料…", async () => { const result = await api.updateProfile(Object.fromEntries(new FormData(event.currentTarget))); state.account = result.account; toast("个人资料已保存。", "success"); await renderCurrent(document); }); });
   content.querySelector("#configure-password").addEventListener("click", () => passwordDialog(hasPassword));
   content.querySelector("#bind-weread-account").addEventListener("click", () => accountSecurityDialog(credentials.some(item => item.provider === "weread") ? "rotate" : "bind"));
@@ -391,6 +430,7 @@ async function renderAccount(main) {
   content.querySelector("#revoke-other-sessions").addEventListener("click", () => guardedSensitive("正在退出其他设备…", "session", async () => { if (!confirm("确定让其他所有设备退出登录吗？")) return; const result = await api.revokeOtherSessions(); toast(`已退出 ${result.revoked || 0} 个其他设备。`, "success"); await renderCurrent(document); }));
   content.querySelector("#behavior-toggle").addEventListener("click", () => updateConsents(!consent.behaviorAnalytics, consent.recommendationPersonalization));
   content.querySelector("#recommend-toggle").addEventListener("click", () => updateConsents(consent.behaviorAnalytics, !consent.recommendationPersonalization));
+  content.querySelector("#export-weread").addEventListener("click", () => runSensitiveAction("weread-export"));
   content.querySelector("#export-account").addEventListener("click", () => runSensitiveAction("export"));
   content.querySelector("#delete-account").addEventListener("click", () => runSensitiveAction("delete"));
 }
@@ -433,6 +473,12 @@ async function runSensitiveAction(actionName) {
   });
 }
 async function completeSensitiveAction(actionName) {
+  if (actionName === "weread-export") {
+    const data = await api.exportWeRead();
+    downloadJson(data, `weread-port-wechat-reading-${new Date().toISOString().slice(0, 10)}.json`);
+    toast("微信读书已同步数据已下载。", "success");
+    return;
+  }
   if (actionName === "export") {
     const data = await api.exportAccount();
     downloadJson(data, `weread-port-account-${new Date().toISOString().slice(0, 10)}.json`);
@@ -454,7 +500,7 @@ function openRecentAuthDialog(actionName, continuation = () => completeSensitive
     hasWeRead ? `<form class="reauth-option" data-method="weread"><h3>用微信读书密钥验证</h3><label for="reauth-weread">微信读书密钥</label><input id="reauth-weread" name="secret" type="password" autocomplete="off" required placeholder="wrk-…"><button class="button primary full" type="submit">验证并继续</button></form>` : "",
     oauthProviders.length ? `<div class="reauth-option"><h3>用已绑定平台验证</h3><p>跳转官方授权页确认身份后自动返回，不会按邮箱合并账户。</p><div class="button-row">${oauthProviders.map(provider => `<button class="button secondary oauth-reauth" data-provider="${provider}" type="button">用 ${providerLabel(provider)} 验证</button>`).join("")}</div></div>` : "",
   ].join("");
-  const title = ({ delete: "删除前再次确认身份", export: "导出前再次确认身份", password: "设置密码前再次确认身份", session: "管理设备前再次确认身份" })[actionName] || "再次确认身份";
+  const title = ({ delete: "删除前再次确认身份", export: "导出前再次确认身份", "weread-export": "下载微信读书数据前再次确认身份", password: "设置密码前再次确认身份", session: "管理设备前再次确认身份" })[actionName] || "再次确认身份";
   const host = modal(`<p class="eyebrow">账户安全</p><h2>${title}</h2><p>选择你已经绑定的任一登录方式。验证只更新当前会话，不会创建或合并账户。</p><div class="reauth-grid">${forms}</div>`);
   host.querySelectorAll("form[data-method]").forEach(form => form.addEventListener("submit", async event => {
     event.preventDefault();

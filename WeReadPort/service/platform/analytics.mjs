@@ -11,7 +11,7 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
   const words = notes.reduce((sum, note) => sum + Number(note.wordCount || 0), 0);
   const official = store.listRecommendations(accountId, 20);
   const local = buildLocalRecommendations(categories, notes);
-  const recommendations = consent?.recommendationPersonalization ? dedupeRecommendations([...official, ...local]).slice(0, 12) : [];
+  const recommendations = consent?.recommendationPersonalization ? dedupeRecommendations([...official, ...local]).slice(0, 12).map(withOfficialWeReadLink) : [];
   return {
     generatedAt: new Date(now).toISOString(),
     consent,
@@ -95,4 +95,17 @@ function countBy(items, keyFn) {
 function toSeries(record) { return Object.entries(record).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value })); }
 function hash(value) { return createHash("sha256").update(value).digest("hex").slice(0, 16); }
 function dedupeRecommendations(items) { const seen = new Set(); return items.filter(item => { const key = `${item.title}\u0000${item.author || ""}`.toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; }).sort((a, b) => Number(b.score || 0) - Number(a.score || 0)); }
+function withOfficialWeReadLink(item) {
+  if (item?.source !== "weread-official") return item;
+  const existing = safeOfficialWeReadLink(item.deepLink);
+  if (existing) return { ...item, deepLink: existing };
+  const bookId = String(item.id || "").replace(/^weread:/u, "").trim();
+  return /^[A-Za-z0-9_-]{6,256}$/.test(bookId) ? { ...item, deepLink: `https://weread.qq.com/web/bookDetail/${encodeURIComponent(bookId)}` } : item;
+}
+function safeOfficialWeReadLink(value) {
+  try {
+    const url = new URL(String(value));
+    return url.protocol === "https:" && url.hostname === "weread.qq.com" && url.pathname.startsWith("/web/") ? url.toString() : null;
+  } catch { return null; }
+}
 function noteEventAt(note) { return Number(note?.eventAt || note?.updatedAt || 0); }

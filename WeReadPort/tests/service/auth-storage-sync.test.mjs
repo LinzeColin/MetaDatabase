@@ -111,6 +111,9 @@ test("账户导出包含本人内容但不泄漏密码摘要、密钥、OAuth To
   await platform.service.saveDocument(user.account.id, {
     source: "manual", externalId: "export-note", title: "我的导出笔记", content: "这是账户持有者有权导出的正文。",
   });
+  await platform.service.saveDocument(user.account.id, {
+    source: "weread", externalId: "highlight:export-note", title: "微信读书导出笔记", content: "这是微信读书同步的正文。",
+  });
   const exported = await platform.service.exportAccount(user.account.id);
   const serialized = JSON.stringify(exported);
   assert.match(serialized, /账户持有者有权导出的正文/u);
@@ -119,6 +122,11 @@ test("账户导出包含本人内容但不泄漏密码摘要、密钥、OAuth To
     "secretHash", "secretEncrypted", "accessTokenEncrypted", "refreshTokenEncrypted", "objectKey", "wrappedDek",
   ]) assert.equal(serialized.includes(forbidden), false, `导出中不得出现：${forbidden}`);
   assert.ok(exported.credentials.every(item => !String(item.subject || "").includes("export@example.com")));
+  const wereadExport = await platform.service.exportWeRead(user.account.id);
+  assert.equal(wereadExport.source, "WeChat Reading");
+  assert.equal(wereadExport.notes.length, 1);
+  assert.equal(wereadExport.notes[0].source, "weread");
+  assert.equal(JSON.stringify(wereadExport).includes("ciphertext-access-token-do-not-export"), false);
 });
 
 test("密钥主体可一键补设邮箱密码，并可查看和撤销跨设备会话", async t => {

@@ -32,6 +32,7 @@ export class AccountApi {
   startImport(provider, selection) { return this.request(`/imports/${provider}/start`, { method: "POST", body: { selection }, headers: { "Idempotency-Key": crypto.randomUUID() } }); }
   importJob(id) { return this.request(`/imports/jobs/${encodeURIComponent(id)}`); }
   analytics() { return this.request("/analytics/dashboard"); }
+  exportWeRead() { return this.request("/weread/export"); }
   exportAccount() { return this.request("/account/export"); }
   deleteAccount() { return this.request("/account/delete", { method: "POST", body: {} }); }
   businessLines() { return this.request("/status/business-lines"); }

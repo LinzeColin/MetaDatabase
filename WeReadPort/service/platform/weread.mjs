@@ -1,5 +1,16 @@
+import {
+  normalizeBookInfo,
+  normalizeBookmarkList,
+  normalizeChapterInfo,
+  normalizeNotebookPage,
+  normalizeProgress,
+  normalizeReviewPage,
+  unwrapGatewayData,
+} from "../../src/core/normalize.js";
+
 const GATEWAY = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.4";
+export const WEREAD_COLLECTION_FORMAT_VERSION = "2";
 const MAX_RESPONSE_BYTES = 12 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 20_000;
 const MIN_TRUSTED_SOURCE_TIME = 946_684_800; // 2000-01-01 UTC
@@ -69,8 +80,8 @@ export async function syncWeReadDataset(key, {
   }).filter(item => item.bookId);
   const detailedCandidates = candidates.filter(item => !item.skip);
   const details = await mapLimit(detailedCandidates, syncMode === "incremental" ? 4 : 3, async ({ entry, index, bookId }) => {
-    const needMetadataFallback = !entry?.book?.title && !entry?.title;
-    const [bookmarks, reviews, info, progress, chapters, popular] = await Promise.all([
+    const needMetadataFallback = !entry?.title;
+    const [bookmarkPayload, reviews, infoPayload, progressPayload, chaptersPayload, popular] = await Promise.all([
       call("/book/bookmarklist", { bookId }),
       collectReviews(call, bookId),
       syncMode === "full" || needMetadataFallback ? call("/book/info", { bookId }) : null,
@@ -78,7 +89,11 @@ export async function syncWeReadDataset(key, {
       syncMode === "full" ? call("/book/chapterinfo", { bookId }) : null,
       syncMode === "full" && index < popularBookLimit ? call("/book/bestbookmarks", { bookId, chapterUid: 0, synckey: 0 }) : null,
     ]);
-    const coreComplete = (!supported("/book/bookmarklist") || bookmarks !== null)
+    const bookmarks = bookmarkPayload === null ? null : normalizeBookmarkPayload(bookmarkPayload, bookId);
+    const info = infoPayload === null ? null : normalizeBookInfo(infoPayload, entry);
+    const progress = progressPayload === null ? null : normalizeProgress(progressPayload, entry);
+    const chapters = chaptersPayload === null ? null : normalizeChapterInfo(chaptersPayload);
+    const coreComplete = (!supported("/book/bookmarklist") || bookmarkPayload !== null)
       && (!supported("/review/list/mine") || reviews?.complete === true);
     return { bookId, notebook: entry, bookmarks, reviews, info, progress, chapters, popularHighlights: popular, coreComplete };
   });
@@ -109,7 +124,8 @@ export async function syncWeReadDataset(key, {
     let maxIdx = 0;
     for (let page = 0; page < recommendationPages; page += 1) {
       const result = await call("/book/recommend", { count: 20, maxIdx });
-      const items = Array.isArray(result?.books) ? result.books : [];
+      const recommendationData = result ? unwrapGatewayData(result) : null;
+      const items = Array.isArray(recommendationData?.books) ? recommendationData.books : [];
       recommendations.push(...items);
       if (!items.length) break;
       const next = Number(items.at(-1)?.searchIdx ?? 0);
@@ -118,13 +134,17 @@ export async function syncWeReadDataset(key, {
     }
   }
 
-  const shelfBooks = Array.isArray(shelf?.books) ? shelf.books : [];
-  const shelfAlbums = Array.isArray(shelf?.albums) ? shelf.albums : [];
-  const shelfTotal = shelfBooks.length + shelfAlbums.length + (shelf?.mp ? 1 : 0);
+  const shelfData = unwrapGatewayData(shelf);
+  const shelfBooks = Array.isArray(shelfData?.books) ? shelfData.books : [];
+  const shelfAlbums = Array.isArray(shelfData?.albums) ? shelfData.albums : [];
+  const shelfTotal = shelfBooks.length + shelfAlbums.length + (shelfData?.mp ? 1 : 0);
+  const sourceHighlightCount = books.reduce((total, book) => total + Number(book.highlightCount || 0), 0);
+  const sourceReviewCount = books.reduce((total, book) => total + Number(book.reviewCount || 0), 0);
+  const sourceBookmarkCount = books.reduce((total, book) => total + Number(book.bookmarkCount || 0), 0);
   return {
     contract: { gateway: GATEWAY, skillVersion: SKILL_VERSION, scope: syncMode === "full" ? "full-supported-capability-discovery" : "incremental-notebook-delta", maxBooks },
     capabilities,
-    shelf: { ...shelf, computedTotal: shelfTotal },
+    shelf: { ...shelfData, computedTotal: shelfTotal },
     notebooks,
     books: details.filter(Boolean),
     bookState,
@@ -136,16 +156,21 @@ export async function syncWeReadDataset(key, {
     summary: {
       shelfElectronicBooks: shelfBooks.length,
       shelfAlbums: shelfAlbums.length,
-      shelfHasArticleCollection: Boolean(shelf?.mp),
+      shelfHasArticleCollection: Boolean(shelfData?.mp),
       shelfTotal,
       notebookBooks: books.length,
       totalNoteCount: Number(notebooks.totalNoteCount || 0),
+      sourceHighlightCount,
+      sourceReviewCount,
+      sourceBookmarkCount,
+      sourceContentCount: sourceHighlightCount + sourceReviewCount,
       detailedBooks: details.filter(Boolean).length,
       skippedUnchangedBooks: candidates.filter(item => item.skip).length,
       skippedUnchangedDocuments: candidates.filter(item => item.skip).reduce((total, item) => total + Number(item.previous?.documentCount || 0), 0),
       recommendationCount: recommendations.length,
       failedCalls: failures.length,
       truncatedBySafetyLimit: notebooks.truncated,
+      collectionFormatVersion: WEREAD_COLLECTION_FORMAT_VERSION,
       syncMode,
     },
   };
@@ -154,28 +179,27 @@ export async function syncWeReadDataset(key, {
 export function normalizeWeReadDocuments(dataset) {
   const documents = [];
   for (const item of dataset.books || []) {
-    const title = item.info?.title || item.notebook?.book?.title || `微信读书 ${item.bookId}`;
-    const author = item.info?.author || item.notebook?.book?.author || "";
-    const chapters = new Map((item.bookmarks?.chapters || item.chapters?.chapters || []).map(chapter => [String(chapter.chapterUid), chapter.title || `章节 ${chapter.chapterIdx || ""}`]));
-    for (const mark of item.bookmarks?.updated || []) {
+    const title = item.info?.title || item.notebook?.title || `微信读书 ${item.bookId}`;
+    const author = item.info?.author || item.notebook?.author || "";
+    const chapters = new Map(allChapters(item).map(chapter => [String(chapter.uid ?? chapter.chapterUid), chapter.title || `章节 ${chapter.chapterIdx || ""}`]));
+    for (const mark of detailHighlights(item)) {
       documents.push({
-        externalId: `highlight:${mark.bookmarkId || `${item.bookId}:${mark.range || mark.createTime}`}`,
+        externalId: `highlight:${mark.id || mark.bookmarkId || `${item.bookId}:${mark.range || mark.createdAt || mark.createTime}`}`,
         source: "weread",
-        title: wereadNoteTitle(title, mark.markText, "书摘"),
-        category: item.info?.category || item.notebook?.book?.category || "微信读书",
-        content: [`# ${title}`, author ? `作者：${author}` : "", chapters.get(String(mark.chapterUid)) ? `章节：${chapters.get(String(mark.chapterUid))}` : "", `> ${mark.markText || ""}`].filter(Boolean).join("\n\n"),
-        eventAt: sourceEventAt(mark.updateTime, mark.createTime),
+        title: wereadNoteTitle(title, mark.text || mark.markText, "书摘"),
+        category: item.info?.category || item.notebook?.category || "微信读书",
+        content: [`# ${title}`, author ? `作者：${author}` : "", mark.chapterTitle || chapters.get(String(mark.chapterUid)) ? `章节：${mark.chapterTitle || chapters.get(String(mark.chapterUid))}` : "", `> ${mark.text || mark.markText || ""}`].filter(Boolean).join("\n\n"),
+        eventAt: sourceEventAt(mark.sourceUpdatedAt, mark.createdAt, mark.updateTime, mark.createTime),
       });
     }
-    for (const wrapper of item.reviews?.reviews || []) {
-      const review = wrapper.review || wrapper;
+    for (const review of detailReviews(item)) {
       documents.push({
-        externalId: `review:${review.reviewId || `${item.bookId}:${review.createTime || documents.length}`}`,
+        externalId: `review:${review.id || review.reviewId || `${item.bookId}:${review.createdAt || review.createTime || documents.length}`}`,
         source: "weread",
         title: wereadNoteTitle(title, review.content || review.abstract, "想法"),
-        category: item.info?.category || item.notebook?.book?.category || "微信读书",
-        content: [`# ${title}`, author ? `作者：${author}` : "", review.chapterName ? `章节：${review.chapterName}` : "", review.abstract ? `> ${review.abstract}` : "", review.content || ""].filter(Boolean).join("\n\n"),
-        eventAt: sourceEventAt(review.updateTime, review.createTime),
+        category: item.info?.category || item.notebook?.category || "微信读书",
+        content: [`# ${title}`, author ? `作者：${author}` : "", review.chapterTitle || review.chapterName ? `章节：${review.chapterTitle || review.chapterName}` : "", review.abstract ? `> ${review.abstract}` : "", review.content || ""].filter(Boolean).join("\n\n"),
+        eventAt: sourceEventAt(review.sourceUpdatedAt, review.createdAt, review.updateTime, review.createTime),
       });
     }
   }
@@ -184,41 +208,49 @@ export function normalizeWeReadDocuments(dataset) {
 
 export function recommendationRows(dataset) {
   return (dataset.recommendations || []).map((book, index) => ({
-    id: `weread:${book.bookId || index}`,
+    id: `weread:${recommendationBookId(book) || index}`,
     source: "weread-official",
-    title: String(book.title || "未命名书籍").slice(0, 180),
-    author: book.author ? String(book.author).slice(0, 120) : null,
+    title: String(book.title || book.bookInfo?.title || "未命名书籍").slice(0, 180),
+    author: book.author || book.bookInfo?.author ? String(book.author || book.bookInfo?.author).slice(0, 120) : null,
     reason: String(book.reason || "根据你的微信读书阅读记录推荐").slice(0, 240),
-    deepLink: safeDeepLink(book.deepLink),
+    deepLink: officialRecommendationLink(book),
     score: Number(book.newRating || 0) + Math.log10(Math.max(1, Number(book.readingCount || 1))),
   }));
 }
 
 async function collectNotebooks(call, maxBooks) {
   const books = [];
+  const seenBooks = new Set();
+  const seenCursors = new Set();
   let lastSort;
   let totalNoteCount = 0;
+  let totalBookCount = 0;
   let page = 0;
   let truncated = false;
   while (page < 1000) {
     const params = { count: 100 };
     if (lastSort !== undefined) params.lastSort = lastSort;
     const result = await call("/user/notebooks", params, true);
-    const current = Array.isArray(result?.books) ? result.books : [];
-    books.push(...current);
-    totalNoteCount = Number(result?.totalNoteCount ?? totalNoteCount);
-    if (books.length >= maxBooks) { truncated = Boolean(result?.hasMore) || books.length > maxBooks; break; }
-    if (!result?.hasMore || !current.length) break;
-    const next = Number(current.at(-1)?.sort);
-    if (!Number.isFinite(next) || next === lastSort) break;
+    const normalized = normalizeNotebookPage(result);
+    for (const book of normalized.summaries) if (!seenBooks.has(book.bookId)) { seenBooks.add(book.bookId); books.push(book); }
+    totalNoteCount = Number(normalized.totalNoteCount ?? totalNoteCount);
+    totalBookCount = Number(normalized.totalBookCount ?? totalBookCount);
+    if (books.length >= maxBooks) { truncated = Boolean(normalized.hasMore) || books.length > maxBooks; break; }
+    if (!normalized.hasMore) break;
+    const next = Number(normalized.nextSort);
+    if (!Number.isFinite(next) || next === lastSort || seenCursors.has(next)) throw paginationError("微信读书笔记本分页游标未前进，已停止以避免遗漏或重复。");
+    seenCursors.add(next);
     lastSort = next;
     page += 1;
   }
-  return { books: books.slice(0, maxBooks), totalBookCount: books.length, totalNoteCount, truncated };
+  if (page >= 1000) throw paginationError("微信读书笔记本分页超过安全上限，未将不完整结果写入账户。");
+  return { books: books.slice(0, maxBooks), totalBookCount: totalBookCount || books.length, totalNoteCount, truncated };
 }
 
 async function collectReviews(call, bookId) {
   const reviews = [];
+  const seenReviews = new Set();
+  const seenCursors = new Set();
   let synckey = 0;
   let page = 0;
   let totalCount = 0;
@@ -226,15 +258,17 @@ async function collectReviews(call, bookId) {
   while (page < 1000) {
     const result = await call("/review/list/mine", { bookid: bookId, synckey, count: 100 });
     if (!result) { complete = false; break; }
-    const current = Array.isArray(result.reviews) ? result.reviews : [];
-    reviews.push(...current);
-    totalCount = Number(result.totalCount ?? totalCount);
-    if (!result.hasMore || !current.length) break;
-    const next = Number(result.synckey);
-    if (!Number.isFinite(next) || next === synckey) break;
+    const normalized = normalizeReviewPayload(result, bookId);
+    for (const review of normalized.reviews) if (!seenReviews.has(review.id)) { seenReviews.add(review.id); reviews.push(review); }
+    totalCount = Number(normalized.totalCount ?? totalCount);
+    if (!normalized.hasMore) break;
+    const next = Number(normalized.nextSyncKey);
+    if (!Number.isFinite(next) || next === synckey || seenCursors.has(next)) { complete = false; throw paginationError(`书籍 ${bookId} 的想法分页游标未前进，未将不完整数据视为完整。`); }
+    seenCursors.add(next);
     synckey = next;
     page += 1;
   }
+  if (page >= 1000) throw paginationError(`书籍 ${bookId} 的想法分页超过安全上限，未将不完整数据写入账户。`);
   return { reviews, totalCount, synckey, complete };
 }
 
@@ -298,11 +332,6 @@ async function mapLimit(items, limit, mapper) {
   return output;
 }
 
-function safeDeepLink(value) {
-  try { const url = new URL(String(value)); return ["https:", "weread:"].includes(url.protocol) ? url.toString() : null; }
-  catch { return null; }
-}
-
 function notebookBookId(entry) {
   return String(entry?.bookId || entry?.book?.bookId || "").trim();
 }
@@ -316,7 +345,7 @@ function notebookFingerprint(entry) {
   if (!sourceTime) return null;
   return JSON.stringify({
     sourceTime,
-    highlights: nonNegativeInteger(entry?.noteCount ?? entry?.note_count),
+    highlights: nonNegativeInteger(entry?.highlightCount ?? entry?.noteCount ?? entry?.note_count),
     reviews: nonNegativeInteger(entry?.reviewCount ?? entry?.review_count),
     bookmarks: nonNegativeInteger(entry?.bookmarkCount ?? entry?.bookmark_count),
     progress: normalizedProgress(entry?.readingProgress ?? entry?.progress),
@@ -330,9 +359,82 @@ function normalizeBookState(value) {
 }
 
 function documentCountForDetail(detail) {
-  return (Array.isArray(detail?.bookmarks?.updated) ? detail.bookmarks.updated.length : 0)
-    + (Array.isArray(detail?.reviews?.reviews) ? detail.reviews.reviews.length : 0);
+  return detailHighlights(detail).length + detailReviews(detail).length;
 }
+
+function allChapters(detail) {
+  const chapters = [detail?.bookmarks?.chapters, detail?.chapters?.chapters, detail?.chapters]
+    .filter(Array.isArray)
+    .flat();
+  const seen = new Set();
+  return chapters.filter(chapter => {
+    const id = String(chapter?.uid ?? chapter?.chapterUid ?? "");
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+function detailHighlights(detail) {
+  if (Array.isArray(detail?.bookmarks?.highlights)) return detail.bookmarks.highlights;
+  return Array.isArray(detail?.bookmarks?.updated) ? detail.bookmarks.updated : [];
+}
+
+function detailReviews(detail) {
+  if (Array.isArray(detail?.reviews?.reviews)) return detail.reviews.reviews;
+  return Array.isArray(detail?.reviews) ? detail.reviews : [];
+}
+
+function normalizeBookmarkPayload(payload, bookId) {
+  const normalized = normalizeBookmarkList(payload, bookId);
+  const data = unwrapGatewayData(payload);
+  const rawRows = [data?.updated, data?.bookmarks, data?.bookmarkList].find(Array.isArray) || [];
+  const byId = new Map(rawRows.map(row => [sourceItemId(row, "bookmarkId"), row]).filter(([id]) => id));
+  return {
+    ...normalized,
+    highlights: normalized.highlights.map(highlight => {
+      const raw = byId.get(String(highlight.id));
+      return { ...highlight, sourceUpdatedAt: sourceEventAt(raw?.updateTime, raw?.updatedAt, highlight.createdAt) };
+    }),
+  };
+}
+
+function normalizeReviewPayload(payload, bookId) {
+  const normalized = normalizeReviewPage(payload, bookId);
+  const data = unwrapGatewayData(payload);
+  const rawRows = [data?.reviews, data?.reviewList, data?.updated].find(Array.isArray) || [];
+  const byId = new Map(rawRows.map(row => [sourceItemId(row?.review || row, "reviewId"), row]).filter(([id]) => id));
+  return {
+    ...normalized,
+    reviews: normalized.reviews.map(review => {
+      const raw = byId.get(String(review.id));
+      const body = raw?.review || raw;
+      return { ...review, sourceUpdatedAt: sourceEventAt(body?.updateTime, body?.updatedAt, review.createdAt) };
+    }),
+  };
+}
+
+function sourceItemId(row, preferred) { return String(row?.[preferred] || row?.id || "").trim(); }
+
+function recommendationBookId(book) {
+  return String(book?.bookId || book?.bookInfo?.bookId || book?.id || "").trim();
+}
+
+function officialRecommendationLink(book) {
+  const supplied = safeOfficialWebLink(book?.deepLink || book?.deeplink || book?.url || book?.bookInfo?.deepLink);
+  if (supplied) return supplied;
+  const bookId = recommendationBookId(book);
+  return /^[A-Za-z0-9_-]{6,256}$/.test(bookId) ? `https://weread.qq.com/web/bookDetail/${encodeURIComponent(bookId)}` : null;
+}
+
+function safeOfficialWebLink(value) {
+  try {
+    const url = new URL(String(value));
+    return url.protocol === "https:" && url.hostname === "weread.qq.com" && url.pathname.startsWith("/web/") ? url.toString() : null;
+  } catch { return null; }
+}
+
+function paginationError(message) { return Object.assign(new Error(message), { code: "PAGINATION" }); }
 
 function wereadNoteTitle(bookTitle, detail, kind) {
   const book = compactText(bookTitle || "微信读书").slice(0, 48);
