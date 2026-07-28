@@ -1,0 +1,355 @@
+{
+  "schema_version": "cyberboss.cb630.validation.v1",
+  "task_id": "CB-630",
+  "product_version": "v0.0.0.8",
+  "acceptance_ids": [
+    "AC-006",
+    "AC-007",
+    "AC-008",
+    "AC-009",
+    "AC-042",
+    "AC-044"
+  ],
+  "check_count": 47,
+  "pass_count": 47,
+  "fail_count": 0,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "status": "PASS",
+  "node_suites": [
+    {
+      "suite": "test/cb630-usercontext-guard-queue.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb620-registration-consent-portal.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/cb610-multiuser-foundation.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/durable-inbox-crash-cut.test.js",
+      "returncode": 0,
+      "tests": 7,
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "suite": "test/durable-outbox-crash-cut.test.js",
+      "returncode": 0,
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    {
+      "suite": "test/tool-host.test.js",
+      "returncode": 0,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0
+    }
+  ],
+  "node_test_total": 51,
+  "checks": [
+    {
+      "check": "ac006.capability_sets_disjoint",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "owner_only=11 user=10 overlap=[]"
+    },
+    {
+      "check": "ac006.owner_only.codex_turn",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "codex.turn is Owner-only"
+    },
+    {
+      "check": "ac006.owner_only.shell_execute",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "shell.execute is Owner-only"
+    },
+    {
+      "check": "ac006.owner_only.workspace_write",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "workspace.write is Owner-only"
+    },
+    {
+      "check": "ac006.owner_only.project_tool",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "project.tool is Owner-only"
+    },
+    {
+      "check": "ac006.owner_only.mcp_invoke",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "mcp.invoke is Owner-only"
+    },
+    {
+      "check": "ac006.unknown_capability_fails_closed",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "an unrecognised capability is denied to everyone"
+    },
+    {
+      "check": "ac006.tool_host_guard_present",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "the project tool host enforces the Owner capability"
+    },
+    {
+      "check": "ac006.tool_guard_runs_before_lookup",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "the guard runs before a tool is located or executed"
+    },
+    {
+      "check": "ac006.forged_context_refused",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "an object that is not a real UserContext is refused"
+    },
+    {
+      "check": "ac006.context_is_frozen",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "a UserContext cannot be mutated after construction"
+    },
+    {
+      "check": "ac006.redacted_projection_has_no_identifier",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "redacted_keys=['channel', 'role', 'status']"
+    },
+    {
+      "check": "ac007.scoped.getById",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "getById carries the user scope in its SQL predicate"
+    },
+    {
+      "check": "ac007.scoped.list",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "list carries the user scope in its SQL predicate"
+    },
+    {
+      "check": "ac007.scoped.count",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "count carries the user scope in its SQL predicate"
+    },
+    {
+      "check": "ac007.scoped.search",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "search carries the user scope in its SQL predicate"
+    },
+    {
+      "check": "ac007.scoped.updateById",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "updateById carries the user scope in its SQL predicate"
+    },
+    {
+      "check": "ac007.scoped.deleteById",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "deleteById carries the user scope in its SQL predicate"
+    },
+    {
+      "check": "ac007.trusted_identifier_only",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "interpolated identifiers are validated; values stay bound parameters"
+    },
+    {
+      "check": "ac007.rehoming_refused",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "an update cannot move a record to another user"
+    },
+    {
+      "check": "ac007.cross_user_read_is_loud",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "a cross-user read is refused distinctly from a missing row"
+    },
+    {
+      "check": "ac007.like_wildcards_escaped",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "search input cannot inject LIKE wildcards"
+    },
+    {
+      "check": "ac007.requires_active_context",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "every repository call resolves through the active-context guard"
+    },
+    {
+      "check": "ac008.per_user_active_one",
+      "acceptance_id": "AC-008",
+      "result": "PASS",
+      "detail": "at most one active turn per user"
+    },
+    {
+      "check": "ac008.round_robin_rotation",
+      "acceptance_id": "AC-008",
+      "result": "PASS",
+      "detail": "the head user is rotated to the back on every claim attempt"
+    },
+    {
+      "check": "ac008.owner_lane_separate",
+      "acceptance_id": "AC-008",
+      "result": "PASS",
+      "detail": "the Owner's Codex lane is counted and limited separately"
+    },
+    {
+      "check": "ac008.queue_metrics_have_no_identifier",
+      "acceptance_id": "AC-008",
+      "result": "PASS",
+      "detail": "queue metrics expose counts only"
+    },
+    {
+      "check": "ac044.frozen_limits",
+      "acceptance_id": "AC-044",
+      "result": "PASS",
+      "detail": "limits match the frozen abuse/quota contract"
+    },
+    {
+      "check": "ac044.refusals_are_chinese_and_fixed",
+      "acceptance_id": "AC-044",
+      "result": "PASS",
+      "detail": "every refusal is a fixed Chinese string chosen by table lookup"
+    },
+    {
+      "check": "ac044.refusal_costs_no_model_call",
+      "acceptance_id": "AC-044",
+      "result": "PASS",
+      "detail": "the quota module has no dependency that could reach a model"
+    },
+    {
+      "check": "ac044.per_user_queue_cap_enforced",
+      "acceptance_id": "AC-044",
+      "result": "PASS",
+      "detail": "a user exceeding its queue depth is refused without affecting others"
+    },
+    {
+      "check": "ac009.inbox_conflict_do_nothing",
+      "acceptance_id": "AC-009",
+      "result": "PASS",
+      "detail": "a duplicate provider message cannot create a second inbox row"
+    },
+    {
+      "check": "ac009.outbox_dedupe_key_unique",
+      "acceptance_id": "AC-009",
+      "result": "PASS",
+      "detail": "a duplicate final reply cannot be enqueued twice"
+    },
+    {
+      "check": "ac009.queue_rejects_duplicate_job",
+      "acceptance_id": "AC-009",
+      "result": "PASS",
+      "detail": "the same job id is never admitted twice at the queue layer"
+    },
+    {
+      "check": "ac042.route_bound_by_hmac",
+      "acceptance_id": "AC-042",
+      "result": "PASS",
+      "detail": "the destination is an HMAC over user, bot account, sender and context"
+    },
+    {
+      "check": "ac042.route_fields_length_prefixed",
+      "acceptance_id": "AC-042",
+      "result": "PASS",
+      "detail": "field boundaries are unambiguous"
+    },
+    {
+      "check": "ac042.mismatch_is_constant_time",
+      "acceptance_id": "AC-042",
+      "result": "PASS",
+      "detail": "any disagreement fails closed in constant time"
+    },
+    {
+      "check": "ac042.outbound_returns_bound_destination",
+      "acceptance_id": "AC-042",
+      "result": "PASS",
+      "detail": "the outbound path reads the bound destination instead of choosing one"
+    },
+    {
+      "check": "ac042.outbox_scope_inherited_not_supplied",
+      "acceptance_id": "AC-042",
+      "result": "PASS",
+      "detail": "outbox rows inherit the job's user scope"
+    },
+    {
+      "check": "cb630.no_mac_or_secret_markers",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "offenders=[]"
+    },
+    {
+      "check": "cb630.no_model_dependency_in_guard_path",
+      "acceptance_id": "AC-006",
+      "result": "PASS",
+      "detail": "no isolation, queue or quota module can reach a model provider"
+    },
+    {
+      "check": "cb630.suite.cb630-usercontext-guard-queue.test",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb630.suite.cb620-registration-consent-portal.test",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb630.suite.cb610-multiuser-foundation.test",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb630.suite.durable-inbox-crash-cut.test",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "tests=7 pass=7 fail=0"
+    },
+    {
+      "check": "cb630.suite.durable-outbox-crash-cut.test",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "tests=9 pass=9 fail=0"
+    },
+    {
+      "check": "cb630.suite.tool-host.test",
+      "acceptance_id": "AC-007",
+      "result": "PASS",
+      "detail": "tests=8 pass=8 fail=0"
+    }
+  ],
+  "artifact_sha256": {
+    "app/src/services/users/user-context.js": "772b35568225a55df55c07f5acd3c68398d4da842a119d21b9149cd744f3990b",
+    "app/src/services/users/scoped-repository.js": "8a2f0b886df68e73f2c8da6bc4b988baa476d065080162ea44f93c79b14a68b9",
+    "app/src/services/runtime/fair-user-queue.js": "c7f948caff4a62594fc838627dbb253137cc5a6d87eca32a1da3cd329ee3dbf3",
+    "app/src/services/runtime/quota-policy.js": "db174a25d2f88ab83693c03ed7c99e89b7ab2941502747f265e98756ec91ab99",
+    "app/src/services/channel/reply-route-binding.js": "ef907d510e7a3528738bab3103511b25ebe70b27dc3e270a01cd5e02deeaad66"
+  }
+}

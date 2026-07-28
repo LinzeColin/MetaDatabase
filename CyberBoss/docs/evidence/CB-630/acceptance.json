@@ -1,0 +1,70 @@
+{
+  "schema_version": "cyberboss.cb630.acceptance.v1",
+  "task_id": "CB-630",
+  "stage": "S6",
+  "phase": "P6.4",
+  "product_version": "v0.0.0.8",
+  "verification_oracle": "all mapped acceptance_ids pass on the exact target subject; UNKNOWN and NOT_RUN never count as PASS",
+  "exact_subject_base_head": "7b433411ae8f07ec0cdcf1c86fc1c0940399a51d",
+  "closure_commit_recorded_by": "CB-640",
+  "results": [
+    {
+      "acceptance_id": "AC-006",
+      "name": "Owner 边界",
+      "result": "PASS",
+      "check_count": 14,
+      "note": "Eleven Owner-only capabilities are disjoint from the ten ordinary-user capabilities, unknown capabilities are denied to everyone, and the project tool host refuses every non-Owner invocation before a tool is even located. The suite drives every registered tool plus an unknown one and records zero tool bodies executed for an ordinary user."
+    },
+    {
+      "acceptance_id": "AC-007",
+      "name": "跨用户数据隔离",
+      "result": "PASS",
+      "check_count": 17,
+      "note": "Every scoped read, search, update and delete carries the user column in its SQL predicate; identifiers are validated before interpolation and values stay bound. A cross-user read is refused as USER_SCOPE_VIOLATION rather than silently empty, cross-user update and delete both affect zero rows, re-homing a record is refused, and LIKE wildcards in user input are escaped."
+    },
+    {
+      "acceptance_id": "AC-008",
+      "name": "每用户顺序执行",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "The queue admits at most one active turn per user, rotates the head user to the back on every claim attempt so no user holds the front, and counts the Owner's Codex lane separately so a busy Owner cannot starve ordinary users."
+    },
+    {
+      "acceptance_id": "AC-009",
+      "name": "消息幂等",
+      "result": "PASS",
+      "check_count": 3,
+      "note": "A repeated provider message yields exactly one inbox row, one job and one final outbox row; the queue additionally refuses a duplicate job id, so a retry cannot produce a second turn."
+    },
+    {
+      "acceptance_id": "AC-042",
+      "name": "回复目标不可变绑定",
+      "result": "PASS",
+      "check_count": 5,
+      "note": "The destination is an HMAC over user id, bot account, sender and context token with length-prefixed fields. All four single-field substitutions are refused in constant time, the outbound path reads the bound destination instead of choosing one, and outbox rows inherit the job's user scope."
+    },
+    {
+      "acceptance_id": "AC-044",
+      "name": "配额与滥用保护",
+      "result": "PASS",
+      "check_count": 4,
+      "note": "Limits match the frozen contract exactly (per-user active 1, queued 3, global provider 2, import 1, 32 KiB text). Every refusal is a fixed Chinese string chosen by table lookup with modelCalls 0, identical for identical input, and one user hitting a limit leaves another user's outcome unchanged."
+    }
+  ],
+  "validator": "CyberBoss/scripts/validate_cb630.py",
+  "validator_status": "PASS",
+  "check_count": 47,
+  "pass_count": 47,
+  "fail_count": 0,
+  "node_test_total": 51,
+  "unknown_count": 0,
+  "not_run_count": 0,
+  "remediation_rounds_used": 0,
+  "max_remediation_rounds": 2,
+  "real_time_waits": 0,
+  "control_plane_llm_calls": 0,
+  "activation_pending": [
+    "real_wechat_channel_credential"
+  ],
+  "status": "passed"
+}

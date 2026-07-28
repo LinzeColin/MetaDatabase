@@ -12,6 +12,24 @@ class ProjectToolHost {
     this.extraToolHosts = createExtraToolHosts(services);
   }
 
+  // CB-630 / AC-006: project tools are an Owner-only capability. When an
+  // inbound turn carries a UserContext, an ordinary user is refused here —
+  // before any tool is located, validated or executed — so the count of
+  // non-Owner tool invocations is structurally zero. A turn with no context at
+  // all is the Owner-only local/CLI path that predates multi-user admission.
+  #assertOwnerCapability(context) {
+    const userContext = context && context.userContext;
+    if (!userContext) {
+      return;
+    }
+    if (typeof userContext.requireCapability !== "function") {
+      const error = new Error("OWNER_ONLY_CAPABILITY");
+      error.code = "OWNER_ONLY_CAPABILITY";
+      throw error;
+    }
+    userContext.requireCapability("project.tool");
+  }
+
   listTools() {
     const builtIn = PROJECT_TOOLS.map((tool) => ({
       name: tool.name,
@@ -23,6 +41,7 @@ class ProjectToolHost {
   }
 
   async invokeTool(toolName, args = {}, context = {}) {
+    this.#assertOwnerCapability(context);
     const spec = PROJECT_TOOLS.find((candidate) => candidate.name === toolName);
     const normalizedArgs = args && typeof args === "object" ? args : {};
     if (spec) {

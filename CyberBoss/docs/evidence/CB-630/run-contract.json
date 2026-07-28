@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "product_version": "v0.0.0.8",
+  "task_id": "CB-630",
+  "stage": "S6",
+  "phase": "P6.4",
+  "exact_subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/",
+    "base_head": "7b433411ae8f07ec0cdcf1c86fc1c0940399a51d",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "closure_commit_recorded_by": "CB-640"
+  },
+  "scope": [
+    "CyberBoss/**"
+  ],
+  "allowed_root_files": [],
+  "acceptance_ids": [
+    "AC-006",
+    "AC-007",
+    "AC-008",
+    "AC-009",
+    "AC-042",
+    "AC-044"
+  ],
+  "real_time_wait": false,
+  "complex_skill_review": false,
+  "second_model_review": false,
+  "subagent_review": false,
+  "max_remediation_rounds": 2,
+  "remediation_rounds_used": 0,
+  "stop_condition": "仅核心正确性、安全、权限、数据完整性、资源、法律、成本或不可逆风险",
+  "steps": [
+    "inject context at trusted ingress",
+    "scope every repository and reply route",
+    "enforce queue limits and Owner/User separation"
+  ],
+  "rollback": [
+    "disable multi-user admission",
+    "drain new user jobs",
+    "return to Owner-only release",
+    "revert to base 7b433411ae8f07ec0cdcf1c86fc1c0940399a51d"
+  ]
+}

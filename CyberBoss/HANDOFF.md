@@ -72,7 +72,29 @@ different user is refused rather than honoured. One WeChat command revokes every
 session and outstanding link. A returning WeChat principal resumes the same user
 with no second account system.
 
-The remaining Stage 6 nodes, all of Stage 7 and Stage 8, and gates PG-6 through
+`P6.4 / CB-630` passed on base `7b433411ae8f07ec0cdcf1c86fc1c0940399a51d`. The
+server-owned UserContext is built only at a trusted ingress from a resolved user
+row, is frozen, and is the single capability authority: eleven Owner-only
+capabilities are disjoint from ten ordinary-user capabilities and an unknown
+capability is denied to everyone including the Owner. The project tool host
+refuses every non-Owner invocation before a tool is located, so the suite drives
+every registered tool plus an unknown one and records zero tool bodies executed
+for an ordinary user; a forged context object is refused too. Every scoped
+repository operation puts the user column in the SQL predicate, identifiers are
+validated before interpolation while values stay bound, a cross-user read is
+refused as USER_SCOPE_VIOLATION rather than silently empty, cross-user update and
+delete affect zero rows, re-homing a record is refused and LIKE wildcards in user
+input are escaped. The fair queue holds one active turn per user, rotates the
+head user on every claim attempt, and keeps the Owner Codex lane on its own
+limit so a busy Owner cannot starve ordinary users. A repeated provider message
+yields exactly one inbox row, one job and one final reply, and the queue refuses
+a duplicate job id. The reply destination is an HMAC over user id, bot account,
+sender and context token with length-prefixed fields; all four single-field
+substitutions are refused in constant time and the outbound path reads the bound
+destination instead of choosing one. Quota refusals are fixed Chinese strings
+with zero model calls. App suite 324/324 and `npm run check` pass.
+
+The remaining Stage 6 node, all of Stage 7 and Stage 8, and gates PG-6 through
 PG-8 are `not_started`; the authoritative list is
 `machine/facts/task_state.json`.
 

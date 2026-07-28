@@ -1,0 +1,111 @@
+{
+  "schema_version": "cyberboss.cb630.subject.v1",
+  "task_id": "CB-630",
+  "stage": "S6",
+  "phase": "P6.4",
+  "product_version": "v0.0.0.8",
+  "taskpack_version": "v0.0.0.8",
+  "exact_subject": {
+    "base_head": "7b433411ae8f07ec0cdcf1c86fc1c0940399a51d",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "cb_620_closure_commit": "7b433411ae8f07ec0cdcf1c86fc1c0940399a51d",
+    "closure_commit_recorded_by": "CB-640"
+  },
+  "owner_boundary": {
+    "owner_only_capability_count": 11,
+    "user_capability_count": 10,
+    "capability_sets_disjoint": true,
+    "unknown_capability": "denied_to_everyone",
+    "tool_host_guard": "enforced_before_tool_lookup",
+    "non_owner_tool_invocations_observed": 0,
+    "tool_bodies_executed_for_ordinary_user": 0,
+    "forged_context_object": "refused_OWNER_ONLY_CAPABILITY",
+    "context_frozen": true,
+    "redacted_projection_keys": [
+      "channel",
+      "role",
+      "status"
+    ]
+  },
+  "cross_user_isolation": {
+    "scoped_operations": [
+      "getById",
+      "requireById",
+      "list",
+      "count",
+      "search",
+      "updateById",
+      "deleteById",
+      "exportAll"
+    ],
+    "user_scope_in_sql_predicate": true,
+    "identifier_interpolation": "trusted_identifier_validated",
+    "values": "bound_parameters_only",
+    "cross_user_read": "refused_USER_SCOPE_VIOLATION",
+    "cross_user_update": 0,
+    "cross_user_delete": 0,
+    "record_rehoming": "refused_USER_SCOPE_VIOLATION",
+    "like_wildcard_injection": "escaped",
+    "suspended_context": "refused_USER_NOT_ACTIVE"
+  },
+  "sequencing_and_quota": {
+    "per_user_active": 1,
+    "per_user_queued": 3,
+    "global_provider_active": 2,
+    "global_import_active": 1,
+    "max_text_bytes": 32768,
+    "rotation": "round_robin_head_rotated_every_attempt",
+    "owner_lane": "counted_and_limited_separately",
+    "owner_cannot_starve_users": true,
+    "refusal_language": "zh-CN",
+    "refusal_model_calls": 0,
+    "refusal_determinism": "identical_input_yields_identical_wording",
+    "queue_metrics_contain_user_identifier": false
+  },
+  "idempotency": {
+    "duplicate_provider_message_inbox_rows": 1,
+    "duplicate_provider_message_jobs": 1,
+    "duplicate_final_reply_outbox_rows": 1,
+    "duplicate_job_admitted_to_queue": false
+  },
+  "reply_route_binding": {
+    "bound_fields": [
+      "user_id",
+      "bot_account_ref",
+      "sender_ref",
+      "context_token"
+    ],
+    "binding": "hmac_sha256_length_prefixed",
+    "single_field_substitutions_refused": 4,
+    "comparison": "constant_time",
+    "outbound_chooses_destination": false,
+    "outbox_scope": "inherited_from_job",
+    "cross_user_delivery_possible": false
+  },
+  "tests": {
+    "cb630_suite_tests": 9,
+    "cb630_suite_failures": 0,
+    "app_suite_tests": 324,
+    "app_suite_failures": 0,
+    "npm_run_check": "PASS"
+  },
+  "constraints": {
+    "product_version_changed_by_agent": false,
+    "acceptance_set_changed_by_agent": false,
+    "real_time_waits": 0,
+    "complex_skill_reviews": 0,
+    "second_model_reviews": 0,
+    "subagent_reviews": 0,
+    "control_plane_llm_calls": 0,
+    "operations_llm_calls": 0,
+    "macos_launchd_dependency": false
+  },
+  "activation_pending": [
+    {
+      "item": "real_wechat_channel_credential",
+      "state": "activation_pending",
+      "effect": "isolation is proved against frozen fixture principals; the real two-sender WeChat proof is AC-039 at CB-830"
+    }
+  ],
+  "status": "passed"
+}
