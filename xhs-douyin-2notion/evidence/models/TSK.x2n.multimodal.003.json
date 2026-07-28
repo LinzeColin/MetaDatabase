@@ -5,8 +5,8 @@
   "stage": "STG.X2N.4",
   "run_id": "RUN-X2N-S04-M003",
   "status": "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING",
-  "task_commit": "PENDING_AUDIT_PIN",
-  "source_receipt_sha256": "PENDING_AUDIT_PIN",
+  "task_commit": "1886bb525cfb7228b335f59f9e8ba772dc547d9a",
+  "source_receipt_sha256": "9d50895a8a5d18f2517ccefc138abc3d31d0c91bafceb8b91b31ae5350be6713",
   "acceptance_status": {
     "ACC.x2n.ai.002": "PENDING_PRIVATE_GOLD_OCR_DISABLED_CI_CONTRACT_PASS",
     "ACC.x2n.ai.003": "PENDING_PRIVATE_GOLD_VISION_DISABLED_CI_CONTRACT_PASS",
