@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.0.1 — Stage 5 / UX-Ops 005
+
+- 完成 `TSK.x2n.uxops.005 / PH.X2N.5.5` 的 CI-synth 数据生命周期控制：SQLite Canonical Store 的一致性归档经 domain-bound opaque envelope 分片、精确 manifest、逐对象 hash/reassembly/integrity 复原；其他 domain 的缺失或畸形记录既不阻断也不泄露。
+- 增加 Schema v5 lifecycle state、单调 deletion epoch、content/relation/sink tombstone、删除 preview/confirm、TTL cleanup、working-copy wipe gate 以及 whole-root Time Machine exclusion 的 Owner-confirmed 合同。保留 durable history 不得复活逻辑删除内容，且本项目不提供 durable hard erase。
+- 49 个 Task005 合成测试、固定 Task004 历史重放与 lint 通过；真实 Private-Database transfer、authenticated session、`tmutil`、物理删除、平台、账号、Notion、网络和运行时数据写入均为 0/NOT_RUN。下一独立 Run 为 G5 评审，不引入 Alpha/Beta、固定观察或 soak。
+
 ## v0.0.0.1 — Stage 5 / UX-Ops 004
 
 - 完成 `TSK.x2n.uxops.004 / PH.X2N.5.4` 的 CI-synth 可观测性与恢复范围：只允许固定 stage/component/error-code/opaque run ID 的脱敏诊断 journal，指标只从 SQLite Canonical Store 派生，不建立第二真相源。

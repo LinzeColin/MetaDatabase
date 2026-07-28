@@ -3,7 +3,7 @@ artifact: ROADMAP
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_TASK004_OPERATIONS_CI_SYNTH_PASS_TASK005_NEXT
+status: STAGE_5_TASK005_LIFECYCLE_CI_SYNTH_PASS_G5_REVIEW_NEXT
 owner_change_event: CE-X2N-20260719-S00-P01
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 planning_unit: stage-phase-task
@@ -42,7 +42,7 @@ v0.0.0.1 MVP deployed, running and online
 | 项目 | 状态 |
 |---|---|
 | Product Design | 已定版 |
-| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。Stage 5 Task001 Notion Mock、Task002 Markdown Library `1.1.0`/10k rebuild、Task003 loopback Local WebUI/Owner review/v2 nomenclature 与 Task004 allowlisted diagnostics/doctor/bounded recovery 验收已完成，真实 Runtime/Notion/Owner Canary 未运行。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为本地 TSK.x2n.uxops.005；上传、部署/发布仍禁止 |
+| Dev Taskpack | 独立 G3/G4 均为 PASS_CI_SYNTH；Stage 4 的五个 receipt 已固定。Stage 5 Task001–Task004 的 Notion Mock、Markdown Library/10k rebuild、loopback Local WebUI/Owner review/v2 nomenclature 与 diagnostics/doctor/bounded recovery 验收已完成；Task005 的 Private-MetaDatabase domain-bound archive/restore、tombstone epoch、TTL、preview/confirm 和 `tmutil` 合同亦已完成 CI-synth。真实 transfer/Runtime/Notion/Owner Canary 未运行。私有 Gold Set 未运行，ASR/OCR/Vision 仍关闭，自动分类保持关闭。下一独立 Run 为 G5 评审；上传、部署/发布仍禁止 |
 | 架构 | Chrome Side Panel + Native Messaging + Local Companion/WebUI |
 | 小红书 | Clean-room Adapter |
 | 抖音 | Wrapped `douyin-downloader` Adapter |
@@ -611,14 +611,9 @@ Stage 3 的测试样本全部为 `ENV-CI-SYNTH`；真实激活只属于 Stage 6 
 
 ## Phase 5.5 — Export / Delete / Retention
 
-- Canonical JSONL；
-- Markdown Export；
-- Data Deletion；
-- Relation Tombstone；
-- Backup；
-- Temp/Log TTL；
-- Runtime Wipe；
-- Notion Delete 的明确非默认行为。
+- 已完成 CI-synth：Canonical JSONL 与一致性 SQLite 非运行时 archive 以 domain-bound opaque chunks、精确 restore manifest、逐对象 get/hash/reassembly/integrity 恢复；缺失 x2n object Fail Closed，其他 domain 记录不泄露且不耦合 Gate。
+- 已完成 CI-synth：data/relation/sink tombstone、单调 deletion epoch、preview/confirm、TTL cleanup、runtime wipe gate 与 whole-root Time Machine exclusion 的 Owner-confirmed 合同；durable hard erase 仍为独立 Private-Database Owner governance。
+- 真实 Private-Database transfer、`tmutil`、物理删除和真实 Runtime 仍 `NOT_RUN`。
 
 ### Gate G5 — Operable Product
 

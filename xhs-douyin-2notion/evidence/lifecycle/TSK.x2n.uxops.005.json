@@ -1,0 +1,43 @@
+{
+  "acceptance_status": {
+    "ACC.x2n.data.004": "PASS_CI_SYNTH_DOMAIN_BOUND_ARCHIVE_RESTORE_INTEGRITY_DELETION_EPOCH",
+    "ACC.x2n.gov.002": "PASS_CI_SYNTH_PRIVATE_CLIENT_ALLOWLIST_DIGEST_PIN_AUTH_ZERO_CONTACT",
+    "ACC.x2n.media.002": "PASS_CI_SYNTH_LOCAL_RUNTIME_TEMPORARY_ARCHIVE_CLEANUP",
+    "ACC.x2n.ops.003": "PASS_CI_SYNTH_DELETE_PREVIEW_TOMBSTONE_TTL_TMUTIL_CONTRACT"
+  },
+  "execution": {
+    "authenticated_session_contact": 0,
+    "external_network_calls": 0,
+    "physical_delete_execution": "NOT_RUN",
+    "platform_calls": 0,
+    "private_database_client_calls": 0,
+    "real_account_execution": "NOT_RUN",
+    "real_notion_calls": 0,
+    "runtime_data_writes": 0,
+    "tmutil_calls": 0,
+    "token_value_contact": 0
+  },
+  "historical_replay": {
+    "current_task005_tree_evaluated": false,
+    "historical_commit": "798e2693a8255030c19f17572b55392c2d4f5f07",
+    "historical_task": "TSK.x2n.uxops.004",
+    "status": "PASS"
+  },
+  "metrics": {
+    "archive_chunk_max_bytes": 94371840,
+    "durable_hard_erase_claims": 0,
+    "foreign_domain_leaks": 0,
+    "missing_x2n_object_fail_closed": true,
+    "owner_confirmation_literals": 5,
+    "synthetic_unit_tests": 49,
+    "temporary_get_outputs_remaining": 0,
+    "tombstone_epoch_regressions_accepted": 0
+  },
+  "phase": "PH.X2N.5.5",
+  "run_id": "RUN-X2N-S05-U005",
+  "schema_version": "1.0",
+  "source_receipt_sha256": "ee219d96e8e28df3af119db63776733c74e38f72211804cae0ca0b880d166a75",
+  "status": "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN",
+  "task_commit": "83bd9b3cfd3a01747e2bd077823beeb4afdc7f48",
+  "task_id": "TSK.x2n.uxops.005"
+}

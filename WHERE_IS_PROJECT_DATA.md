@@ -10,6 +10,12 @@
 
 2026-07-19 核查：MetaDatabase 各项目**尚无独立的内容寻址数据层**（大目录多为 `node_modules`/工作区，属代码依赖，不属数据），故 `Private-MetaDatabase/` 当前为**占位区**，未实迁任何文件。
 
+## 项目路由
+
+| 项目 | 耐久路由 | 当前状态 |
+|---|---|---|
+| xhs-douyin-2notion | `Private-MetaDatabase` / `domain=xhs-douyin-2notion` / `private_db_client.py ingest|get|list|verify`；禁止 clone | Task005 仅完成 CI-synth 验证；未执行真实传输、认证会话、系统备份设置或物理删除 |
+
 ## 将来怎么用（免 clone）
 
 ```bash
