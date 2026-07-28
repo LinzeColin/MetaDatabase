@@ -487,6 +487,7 @@ export class PlatformService {
     const accountedDocuments = documents.length + Number(dataset.summary.skippedUnchangedDocuments || 0);
     const unresolvedDocuments = Math.max(0, sourceReportedExportableDocuments - accountedDocuments);
     const sourceCountersAvailable = sourceReportedExportableDocuments > 0 || (sourceReportedNotes === 0 && accountedDocuments === 0);
+    const priorCoverageWasVerified = priorState?.summary?.coverage?.verified === true && Number(priorState.summary.coverage.unresolvedDocuments || 0) === 0;
     const coverage = {
       sourceReportedNotes,
       sourceReportedHighlights: Number(dataset.summary.sourceHighlightCount || 0),
@@ -497,7 +498,11 @@ export class PlatformService {
       accountedDocuments,
       unresolvedDocuments,
       sourceCountersAvailable,
-      verified: syncMode === "full" && sourceCountersAvailable && !dataset.partial && !dataset.summary.truncatedBySafetyLimit && unresolvedDocuments === 0,
+      // A successful full reconciliation remains valid across a complete
+      // incremental pass. Only an incomplete/truncated pass or a new gap may
+      // downgrade it; otherwise the UI would falsely claim a clean account is
+      // unverified after every routine refresh.
+      verified: sourceCountersAvailable && !dataset.partial && !dataset.summary.truncatedBySafetyLimit && unresolvedDocuments === 0 && (syncMode === "full" || priorCoverageWasVerified),
       note: "书签只有官方计数时不会伪装成可下载正文；未确认的差额会明确保留。",
     };
     const summary = {

@@ -131,6 +131,8 @@ test("微信读书后续同步只读取来源明确变化的书籍，并保留�
   assert.equal(second.summary.detailedBooks, 0);
   assert.equal(second.summary.skippedUnchangedBooks, 8);
   assert.equal(second.summary.unchangedDocuments, 16);
+  assert.equal(second.summary.coverage.verified, true, "增量同步不得抹掉最近一次完整核对的通过状态");
+  assert.equal(platform.service.publicAccount(user.account.id).weread.summary.coverage.verified, true);
   assert.equal(calls.filter(api => api === "/book/bookmarklist").length, 0);
   assert.equal(calls.filter(api => api === "/review/list/mine").length, 0);
   for (const api of ["/_list", "/shelf/sync", "/user/notebooks"]) assert.ok(calls.includes(api), api);
