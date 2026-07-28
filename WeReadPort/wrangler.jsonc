@@ -4,6 +4,7 @@
   "main": "./worker/index.js",
   "compatibility_date": "2026-07-26",
   "assets": {
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "html_handling": "none"
   }
 }

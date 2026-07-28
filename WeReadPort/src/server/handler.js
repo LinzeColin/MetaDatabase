@@ -201,7 +201,7 @@ async function inspectAssets(request, env) {
   if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
     return { ready: false, detail: "静态资源绑定不可用。" };
   }
-  const probeUrl = new URL("/site/home", request.url);
+  const probeUrl = new URL("/site/home.html", request.url);
   let response;
   try {
     response = await env.ASSETS.fetch(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }));
@@ -318,10 +318,10 @@ function staticAssetRequest(request, url) {
 }
 
 function staticAssetPath(pathname) {
-  if (pathname === "/") return "/site/home";
-  if (["/privacy/", "/terms/", "/status/"].includes(pathname)) return `/site${pathname}page`;
+  if (pathname === "/") return "/site/home.html";
+  if (["/privacy/", "/terms/", "/status/"].includes(pathname)) return `/site${pathname}page.html`;
   if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return `/site${pathname}`;
-  return "/site/home";
+  return "/site/home.html";
 }
 
 /** @param {Request} request @param {Record<string,any>} env */
