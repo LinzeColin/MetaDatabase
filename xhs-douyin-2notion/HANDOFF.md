@@ -133,6 +133,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   items. There are 9 zero-network fixture cases; current focused source evidence is 104 Companion tests, 18 contract
   tests, extension self-test, Douyin visible-list fixtures, Douyin extension E2E (100 controlled worker restarts),
   both XHS fixtures, and a 662-file zero-finding privacy scan.
+- A third independent delegated Owner Chrome check repeated the same signed-in, no-scroll result: 收藏 and 喜欢 were
+  each the unique selected relation tab, while their active panels each had one placeholder descendant and zero
+  visible relation cards. This is now the active Goal's external-state block. No Owner input, tag, deployment, or
+  smoke action may be attempted until both actual Douyin panes expose their required 20 current visible items.
 
 ## Next work
 
