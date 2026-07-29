@@ -723,8 +723,16 @@ class MvpReleaseController:
             release_input=release_input,
         )
         marker = paths._validate_marker()
-        enabled_phase = state["phase"] in {"activation_armed", "pre_switch_ready", "active"}
-        if marker["product_execution_authorized"] is not enabled_phase:
+        expected_marker = {
+            "activation_armed": (True, "stage_6_mvp_activation_armed"),
+            "pre_switch_ready": (True, "stage_6_mvp_activation_armed"),
+            "active": (True, "stage_6_mvp_active"),
+            "rolled_back": (False, "stage_6_mvp_rollback_or_disabled"),
+        }[state["phase"]]
+        if (
+            marker["product_execution_authorized"] is not expected_marker[0]
+            or marker["real_data_state"] != expected_marker[1]
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP marker and release state diverged")
         return cls(paths=paths, release_input=release_input, state=state)
 

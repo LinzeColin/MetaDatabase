@@ -1009,11 +1009,39 @@ class MvpReleaseTests(unittest.TestCase):
         reloaded = MvpReleaseController.load(self.paths)
         assert reloaded is not None
         self.assertEqual(reloaded.verify_browser_handshake()["browser_sidepanel_handshake"], "PASS")
-        reloaded.state["deployment"]["online_smoke"] = True
-        reloaded.state["phase"] = "active"
-        reloaded._persist()
+        reloaded.mark_online_smoke()
+        self.assertEqual(self.paths._validate_marker()["real_data_state"], "stage_6_mvp_active")
         refreshed = dispatch_wire(_health_wire(), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
         self.assertTrue(refreshed.accepted)
+
+    def test_load_rejects_active_release_when_runtime_marker_update_fails(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        controller.state["baseline"] = {"baseline_hash": "b" * 64, "passed": True, "total_relations": 80}
+        controller.state["knowledge_assets"] = {
+            "markdown_content_count": 1,
+            "markdown_library_sha256": "d" * 64,
+            "markdown_renderer_version": "1.1.0",
+            "materialized": True,
+            "notion_mode": "DISABLED_OWNER_INPUT",
+            "notion_platform_calls": 0,
+            "private_durability_manifest_sha256": "e" * 64,
+        }
+        controller.state["rollback"]["rehearsed"] = True
+        controller.state["owner_signoff"] = True
+        controller.state["phase"] = "pre_switch_ready"
+        controller._persist()
+        controller.mark_deployed(artifact_sha256="c" * 64, browser="chrome")
+        self.assertTrue(dispatch_wire(_health_wire(), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store).accepted)
+
+        with mock.patch.object(RuntimePaths, "set_mvp_execution_authorized", side_effect=OSError("synthetic marker failure")):
+            with self.assertRaises(OSError):
+                controller.mark_online_smoke()
+
+        self.assertEqual(controller.state["phase"], "active")
+        self.assertEqual(self.paths._validate_marker()["real_data_state"], "stage_6_mvp_activation_armed")
+        with self.assertRaises(X2NRuntimeError) as blocked:
+            MvpReleaseController.load(self.paths)
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
 
     def test_materialize_knowledge_assets_rebuilds_markdown_idempotently_and_requires_durability(self) -> None:
         controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
