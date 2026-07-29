@@ -72,12 +72,14 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
-- Full Companion `unittest discover` passed: 322 tests. Focused A005 bundle/release/acceptance tests passed: 23
-  tests, covering exact scopes, hash-manifest mismatch before adapter initialization, Markdown idempotency, durable
-  archive proof, external gates, pointer rollback, staged Native Host binding, and stale Side Panel identity rejection.
+- Current Companion discovery contains 332 tests. A bounded current full rerun was stopped during the existing 10k
+  Markdown rebuild without a verdict, so it is not treated as a current full-suite pass. Focused A005
+  bundle/release/acceptance tests passed: 23 tests, covering exact scopes, hash-manifest mismatch before adapter
+  initialization, Markdown idempotency, durable archive proof, external gates, pointer rollback, staged Native Host
+  binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
   Ruff, schema parsing, source privacy scan, and a temporary candidate-artifact scan passed. All fixture platform
-  calls remain `0`; the candidate artifact has 91 members and 0 runtime-data files.
+  calls remain `0`; the current candidate artifact has 93 members and 0 runtime-data files.
 - The A005 verifier fails closed without a real immutable receipt, as expected. A broad historical root-suite run has
   18 failures that assert earlier Stage 0–5 states/files must still be the current state; they are outside A005 and
   must not be "fixed" by rewriting historical evidence. No A005-required suite failed.
@@ -90,8 +92,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
   contacts the client or any remote service.
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
-  both existing XHS fixture suites, extension self-test, focused A005 Companion tests (89), Contract tests (18), and
-  Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
+  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (90), Contract
+  tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
 
 ## Next work
 
