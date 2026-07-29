@@ -95,6 +95,17 @@ EOF
     sudo tee $DROPIN >/dev/null <<EOF
 [Service]
 EnvironmentFile=$LIVE_ENV
+# 主人那把 AI 密钥。前几个扫码进来的人共用它，用完席位的人才要自己填。
+#
+# 密钥一直在 /etc/cyberboss/credentials/deepseek-api-key 躺着，但 unit 里没有
+# 这一行，systemd 就不会把它交给进程——loadRuntimeTextSecret 读的是
+# \$CREDENTIALS_DIRECTORY，没有 LoadCredential 时那个变量根本不存在。
+# 于是"前 5 个人用我的额度"整条路是通的，却没有任何东西可取，每个访客都被
+# 推去自己填密钥。文件在 ≠ 进程读得到。
+#
+# 写在部署脚本里而不是手工改服务器：这一整轮的问题都是"服务器配置漂移、
+# 没有任何东西发现"，放进版本控制才不会再漂回去。
+LoadCredential=deepseek-api-key:/etc/cyberboss/credentials/deepseek-api-key
 EOF
     sudo systemctl daemon-reload
   "

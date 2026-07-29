@@ -395,7 +395,11 @@ class CyberbossApp {
           userRepository: this.userAdmission.users,
           encryptionKey,
           // 前 N 个开通的人用主人的额度；第 N+1 个开始必须自己填密钥。
-          ownerQuota: { resolve: (userId) => this.resolveOwnerQuotaFor(userId) },
+          ownerQuota: {
+            resolve: (userId) => this.resolveOwnerQuotaFor(userId),
+            // 席位还有没有。有的话，这个人不该被推去填密钥——那不是他的事。
+            seatAvailable: (userId) => this.ownerSeatAvailableFor(userId),
+          },
           ...(Number.isSafeInteger(this.config.userTurnTimeoutMs)
             ? { requestTimeoutMs: this.config.userTurnTimeoutMs }
             : {}),
@@ -2102,6 +2106,25 @@ class CyberbossApp {
   //
   // 任何一步不确定就返回 null＝不给——把主人的密钥错发给一个不该用的人，比让
   // 一个该用的人多填一次密钥严重得多。
+  // 这个人还占不占得到席位（不管主人那把密钥现在有没有）。
+  //
+  // 和 resolveOwnerQuotaFor 分开：那个要密钥真的拿得到才返回，而这里只回答
+  // 「按规矩他该不该用主人的额度」。密钥没接好时两者会不一致，而那种时候要说
+  // 的话是「这边还没弄好」，不是「你去填密钥」——后者是把一件他做不了也不该
+  // 做的事丢给他。
+  ownerSeatAvailableFor(userId) {
+    const limit = this.resolveSeatLimit();
+    if (!Number.isInteger(limit) || limit <= 0) {
+      return false;
+    }
+    try {
+      const rank = Number(this.userAdmission?.users?.ordinaryUserRank?.(userId) || 0);
+      return rank > 0 && rank <= limit;
+    } catch {
+      return false;
+    }
+  }
+
   resolveOwnerQuotaFor(userId) {
     const limit = this.resolveSeatLimit();
     if (!Number.isInteger(limit) || limit <= 0) {

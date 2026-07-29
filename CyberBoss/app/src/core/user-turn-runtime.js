@@ -58,6 +58,9 @@ const MAX_CLAIM_DRAIN = 32;
 const MESSAGES = Object.freeze({
   PROVIDER_NOT_CONFIGURED:
     "还没有连接 AI 服务。回复「设置」打开设置页面，填入你自己的 API Key 就能开始对话。",
+  // 席位还有的时候用这一句：他占的是主人的额度，填密钥不是他的事。
+  OWNER_QUOTA_UNAVAILABLE:
+    "这边的 AI 还没接好，不是你的问题。我已经记下了，稍等一下再跟我说话就行。",
   QUEUE_BUSY: "我这边同时处理的消息太多了，稍等一下再发一次。",
   EMPTY_INPUT: "我没有收到文字内容，请再发一次。",
   UNAVAILABLE: "AI 服务暂时不可用，稍后我再帮你试一次。",
@@ -199,10 +202,16 @@ class UserTurnRuntime {
       }
     }
     if (!selection || !apiKey) {
+      // 席位还有的时候，这个人**不该**被推去填密钥——他占的是主人的额度，
+      // 填密钥根本不是他的事。这时候是主人那边缺东西，就照实说是这边的问题，
+      // 别把一件他做不了也不该做的事丢给他。
+      const seatIsFree = this.ownerQuota
+        ? this.ownerQuota.seatAvailable?.(userContext.userId) === true
+        : false;
       return Object.freeze({
         ok: false,
         code: "PROVIDER_NOT_CONFIGURED",
-        text: MESSAGES.PROVIDER_NOT_CONFIGURED,
+        text: seatIsFree ? MESSAGES.OWNER_QUOTA_UNAVAILABLE : MESSAGES.PROVIDER_NOT_CONFIGURED,
         modelCalls: 0,
       });
     }
