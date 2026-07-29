@@ -83,11 +83,14 @@ A source tag is expected to remain `NOT_READY` until immediately before the late
 
 The Douyin bundle is a fixed Owner-only private layout under the Runtime root and contains the Sidecar executable,
 resolved lock, SBOM, and transitive-license report. `provision-douyin-visible-sidecar` is the only supported creator;
-its output is a non-secret attestation fragment for the private input. `preflight`, `arm`, and each Douyin action
-hash those four regular files, require an exact match with the Owner input attestation, and require the four hashes
-to equal the current clean-room template exactly. This local check never starts the Sidecar, reads Browser state,
-calls a platform, or prints its relative or absolute location, filenames, byte contents, or digests. A missing,
-symlinked, non-owner-only, oversized, raw-crawler, or mismatched artifact is `NOT_READY`/fail-closed.
+its output is a non-secret attestation fragment for the private input. `preflight` first checks those four regular
+files against the current clean-room template without requiring an Owner input. A matching clean-room bundle with an
+unavailable Owner input is reported only as `CONFIGURED_CLEAN_ROOM_UNATTESTED`; that is an aggregate local-artifact
+fact, not an input validation or an arm permission. Once the input is valid, `preflight`, `arm`, and each Douyin
+action require an exact match with its Owner attestation as well. This local check never starts the Sidecar, reads
+Browser state, calls a platform, or prints its relative or absolute location, filenames, byte contents, or digests.
+A missing, symlinked, non-owner-only, oversized, raw-crawler, or mismatched artifact is `MISSING_OR_INVALID` and
+fail-closed.
 
 `input-template` is intentionally **not** a valid release input: every Owner content-ID hash, Douyin Sidecar
 attestation digest, and loopback port is a literal replacement token. The clean-room provision command produces the

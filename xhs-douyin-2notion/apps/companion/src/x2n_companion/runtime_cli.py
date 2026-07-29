@@ -46,6 +46,7 @@ from .mvp_release import (
 )
 from .douyin_visible_sidecar import (
     PROVISION_CONFIRMATION,
+    clean_room_sidecar_build,
     provision_owner_private_visible_sidecar,
 )
 from .native_host_installer import fresh_install_readiness
@@ -145,6 +146,11 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
     else:
         release_state = "NOT_STARTED"
     try:
+        verify_owner_private_douyin_sidecar_bundle(paths, clean_room_sidecar_build())
+        douyin_sidecar_bundle = "CONFIGURED_CLEAN_ROOM_UNATTESTED"
+    except X2NRuntimeError:
+        douyin_sidecar_bundle = "MISSING_OR_INVALID"
+    try:
         release_input = load_owner_mvp_release_input(paths)
         owner_input = "VALID"
         try:
@@ -154,7 +160,6 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
             douyin_sidecar_bundle = "MISSING_OR_INVALID"
     except X2NRuntimeError:
         owner_input = "MISSING_OR_INVALID"
-        douyin_sidecar_bundle = "NOT_READY"
     try:
         MvpDeploymentManager.assert_release_source_tagged()
         source_release_tag = "READY"

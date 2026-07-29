@@ -50,6 +50,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   platform request. It cannot arm or mutate the release. `chrome_executable=AVAILABLE` does not inspect a Profile or
   claim a login. `native_host_fresh_install=READY_FOR_FRESH_INSTALL` means only that `uv`, source/runtime
   prerequisites, and the empty Host target were verified without a write; it is not an install or go-live claim.
+  It independently reports a correctly provisioned fixed Douyin bundle as
+  `CONFIGURED_CLEAN_ROOM_UNATTESTED` while Owner input is unavailable; that status cannot arm a release and becomes
+  `CONFIGURED_AND_MATCHED` only after the private input attestation also validates.
 - `x2n release input-template` contains literal, deliberately invalid replacement tokens for every Owner content hash,
   Douyin Sidecar digest, and Sidecar port. The provision command emits only the non-secret build-attestation fragment;
   it cannot fabricate the four real private 20-ID manifests, a loopback port, sign-off, or release receipt.
@@ -80,7 +83,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   must not be "fixed" by rewriting historical evidence. No A005-required suite failed.
 - The approved local Runtime layout was initialized and its empty Canonical SQLite store passed integrity checks;
   all required owner-only directories now validate. Current real `release preflight` is safe and reports
-  `chrome_executable=AVAILABLE`, `native_host_fresh_install=READY_FOR_FRESH_INSTALL`, `owner_input=MISSING_OR_INVALID`,
+  `chrome_executable=AVAILABLE`, `native_host_fresh_install=READY_FOR_FRESH_INSTALL`,
+  `douyin_sidecar_bundle=CONFIGURED_CLEAN_ROOM_UNATTESTED`, `owner_input=MISSING_OR_INVALID`,
   `release_state=NOT_STARTED`, and `source_release_tag=NOT_READY`. The normal shell has not persisted a client
   configuration; a one-shot, non-invoking preflight with the approved digest-pinned
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
