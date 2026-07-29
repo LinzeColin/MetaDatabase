@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const path = require("path");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
+const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { resolvePreferredSenderId } = require("../core/default-targets");
 const { TimelineScreenshotQueueStore } = require("../core/timeline-screenshot-queue-store");
 
@@ -177,18 +178,20 @@ class TimelineService {
     sidePadding = undefined,
     locale = "",
   } = {}, context = {}) {
-    const account = resolveSelectedAccount(this.config);
+    // 先认人再定位号：截图要发给谁决定了该用哪个号发。
+    const primary = resolveSelectedAccount(this.config);
     const senderId = normalizeText(userId)
       || normalizeText(context?.senderId)
       || resolvePreferredSenderId({
         config: this.config,
-        accountId: account.accountId,
+        accountId: primary.accountId,
         sessionStore: this.sessionStore,
       });
 
     if (!senderId) {
       throw new Error("Missing send target for timeline screenshot.");
     }
+    const account = resolveAccountForUser(this.config, senderId);
 
     const queued = this.screenshotQueue.enqueue({
       id: crypto.randomUUID(),

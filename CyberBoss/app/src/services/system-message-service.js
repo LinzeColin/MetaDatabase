@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
+const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { loadPersistedContextTokens } = require("../adapters/channel/weixin/context-token-store");
 const { resolvePreferredSenderId, resolvePreferredWorkspaceRoot } = require("../core/default-targets");
 const { SystemMessageQueueStore } = require("../core/system-message-queue-store");
@@ -18,14 +19,16 @@ class SystemMessageService {
       throw new Error("system send requires text");
     }
 
-    const account = resolveSelectedAccount(this.config);
+    // 先认人再定位号：这条系统消息发给谁决定了该用哪个号发。
+    const primary = resolveSelectedAccount(this.config);
     const senderId = normalizeText(userId)
       || normalizeText(context?.senderId)
       || resolvePreferredSenderId({
         config: this.config,
-        accountId: account.accountId,
+        accountId: primary.accountId,
         sessionStore: this.sessionStore,
       });
+    const account = senderId ? resolveAccountForUser(this.config, senderId) : primary;
     const resolvedWorkspaceRoot = normalizeText(workspaceRoot)
       || normalizeText(context?.workspaceRoot)
       || resolvePreferredWorkspaceRoot({

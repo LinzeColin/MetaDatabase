@@ -91,36 +91,74 @@ function listWeixinAccounts(config) {
     .sort((left, right) => String(right.savedAt || "").localeCompare(String(left.savedAt || "")));
 }
 
-function resolveSelectedAccount(config) {
-  if (config.accountId) {
-    const account = loadWeixinAccount(config, config.accountId);
+// 能真正收发的号：存过 token 的那些。
+//
+// CYBERBOSS_ACCOUNT_ID 还是钉死单个号——本机调试和「只想跑一个号」的装法靠它。
+// 没钉的时候返回全部：每个人扫码都会生成一个属于他自己的 bot 号，桥接循环要把
+// 它们全部轮询到，少轮一个就等于那个人发的话永远没人收。
+function listActiveAccounts(config) {
+  const pinned = String(config?.accountId || "").trim();
+  if (pinned) {
+    const account = loadWeixinAccount(config, pinned);
     if (!account) {
-      throw new Error(`WeChat account not found: ${config.accountId}`);
+      throw new Error(`WeChat account not found: ${pinned}`);
     }
     if (!account.token) {
       throw new Error(`WeChat account is missing a token: ${account.accountId}. Run login again.`);
     }
-    return account;
+    return [account];
   }
-  const accounts = listWeixinAccounts(config);
-  if (!accounts.length) {
-    throw new Error("No saved WeChat account was found. Run `npm run login` first.");
+  return listWeixinAccounts(config).filter((account) => account.token);
+}
+
+// 主人的号 = 账号自己的微信身份出现在 ownerSenderIds 里的那一个。
+//
+// 按身份认，不按时间认。主人重新扫一次码，他的 savedAt 就变成最新的，
+// 而 cleanupStaleAccountsForUserId 会把他的旧号删掉——这时候「最早保存的那个」
+// 指向的是某个陌生人，主人的提醒和主动消息会发到别人微信里。
+function pickPrimaryAccount(config, accounts) {
+  const ownerIds = new Set(
+    (Array.isArray(config?.ownerSenderIds) ? config.ownerSenderIds : [])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean),
+  );
+  const owned = accounts.find(
+    (account) => ownerIds.has(String(account.userId || "").trim()),
+  );
+  if (owned) {
+    return owned;
   }
-  if (accounts.length > 1) {
-    const accountIds = accounts.map((account) => account.accountId).join(", ");
-    throw new Error(`Multiple WeChat accounts were detected. Set CYBERBOSS_ACCOUNT_ID. Available values: ${accountIds}`);
+  // 还没认出主人的时候退回最早保存的那个：第一个扫码的人就是主人，
+  // 和「第一个发消息的人是主人」是同一条规则。
+  return accounts
+    .slice()
+    .sort((left, right) => (
+      String(left.savedAt || "").localeCompare(String(right.savedAt || ""))
+      || left.accountId.localeCompare(right.accountId)
+    ))[0];
+}
+
+function resolveSelectedAccount(config) {
+  const accounts = listActiveAccounts(config);
+  if (accounts.length) {
+    return pickPrimaryAccount(config, accounts);
   }
-  if (!accounts[0].token) {
-    throw new Error(`WeChat account is missing a token: ${accounts[0].accountId}. Run login again.`);
+  // 走到这里只有两种可能：一个号都没存，或者存了但都缺 token。
+  // 两句话不一样——一句是「去登录」，一句是「重新登录」。
+  const saved = listWeixinAccounts(config);
+  if (saved.length) {
+    throw new Error(`WeChat account is missing a token: ${saved[0].accountId}. Run login again.`);
   }
-  return accounts[0];
+  throw new Error("No saved WeChat account was found. Run `npm run login` first.");
 }
 
 module.exports = {
   deleteWeixinAccount,
+  listActiveAccounts,
   listWeixinAccounts,
   loadWeixinAccount,
   normalizeAccountId,
+  pickPrimaryAccount,
   resolveAccountPath,
   resolveSelectedAccount,
   saveWeixinAccount,

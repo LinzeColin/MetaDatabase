@@ -292,6 +292,11 @@ class CyberbossApp {
     this.runtimeEventChain = Promise.resolve();
     this.runtimeSpoolDatabase = null;
     this.durableInboxCoordinator = null;
+    // 一个号一个协调器。游标、context_token、bot token 全是按号分开的，
+    // 共用一个会让第二个号的消息被第一个号的游标当成"收过了"直接跳过。
+    this.durableInboxCoordinators = new Map();
+    this.accountPollsInFlight = new Map();
+    this.accountPollFailureCounts = new Map();
     this.jobScheduler = null;
     this.outboxWorker = null;
     this.canonicalSyncCoordinator = null;
@@ -442,40 +447,7 @@ class CyberbossApp {
           maxLagSeconds: this.config.canonicalMaxLagSeconds,
         });
       }
-      this.durableInboxCoordinator = new DurableInboxCoordinator({
-        channelAdapter: this.channelAdapter,
-        database: this.runtimeSpoolDatabase,
-        config: this.config,
-        // 在建 job 之前分流。非主人的三条路（入门回复、普通用户确定性口令、
-        // 席位已满的拒绝）到了调度阶段就没有出口了——JobScheduler 要求
-        // dispatchRuntime 返回真实的 threadId/turnId，等于强制走一次模型。
-        admissionFilter: (normalized) => this.admissionHandledBeforeJob(normalized),
-        // 收下消息**不回执**，但要记一件事：这个人的 context_token。
-        //
-        // 不回执的理由：人不会先说一句"收到，正在处理"再回答。真实的"我在听"
-        // 信号是微信自己的"对方正在输入"——dispatchPreparedTurn 里已经发了
-        // sendTyping。代价是答复失败就彻底安静，所以可见性移到了后台「对话」栏。
-        //
-        // 记 context_token 的理由（这是个真实故障，不是保险）：
-        // 主动打招呼、提醒到点、任何系统消息，都要靠 senderId 反查 context_token
-        // 才能发回微信，而它们查的是 channelAdapter 的那份缓存。往那份缓存里写的
-        // 只有 rememberBaselineStagingContextTokens，**而它只在非 durable 那条
-        // 分支上被调用**——线上跑的是 durable 这条，于是缓存永远是空的：
-        //   · cyberboss_reminder_create 一律抛 "Let this user talk to the bot
-        //     once first"，哪怕这个人刚说完话
-        //   · 主动打招呼能唤醒模型，但答复没有投递目标，发不出去
-        // 收下消息这一刻是唯一同时握着 senderId 和 context_token 的地方。
-        onAccepted: ({ normalized }) => {
-          try {
-            this.channelAdapter.rememberContextToken?.(
-              normalized.senderId,
-              normalized.contextToken,
-            );
-          } catch {
-            // 记不住不该让这条消息进不来；最坏结果是主动消息暂时发不出去。
-          }
-        },
-      });
+      this.durableInboxCoordinator = this.buildInboxCoordinator(this.channelAdapter);
       if (this.config.jobScheduler === true) {
         const gate = new ResourceReadinessGate({
           pollStaleMs: this.config.pollStaleMs,
@@ -520,6 +492,199 @@ class CyberbossApp {
     }
   }
 
+  // 一个号一个协调器，形状完全一样，只是钉死在不同的号上。
+  // channelAdapterView 要么是整个适配器（主号），要么是 forAccount(id) 的单号视图。
+  buildInboxCoordinator(channelAdapterView) {
+    return new DurableInboxCoordinator({
+      channelAdapter: channelAdapterView,
+      database: this.runtimeSpoolDatabase,
+      config: this.config,
+      // 在建 job 之前分流。非主人的三条路（入门回复、普通用户确定性口令、
+      // 席位已满的拒绝）到了调度阶段就没有出口了——JobScheduler 要求
+      // dispatchRuntime 返回真实的 threadId/turnId，等于强制走一次模型。
+      admissionFilter: (normalized) => this.admissionHandledBeforeJob(normalized),
+      // 收下消息**不回执**，但要记一件事：这个人的 context_token。
+      //
+      // 不回执的理由：人不会先说一句"收到，正在处理"再回答。真实的"我在听"
+      // 信号是微信自己的"对方正在输入"——dispatchPreparedTurn 里已经发了
+      // sendTyping。代价是答复失败就彻底安静，所以可见性移到了后台「对话」栏。
+      //
+      // 记 context_token 的理由（这是个真实故障，不是保险）：
+      // 主动打招呼、提醒到点、任何系统消息，都要靠 senderId 反查 context_token
+      // 才能发回微信，而它们查的是 channelAdapter 的那份缓存。往那份缓存里写的
+      // 只有 rememberBaselineStagingContextTokens，**而它只在非 durable 那条
+      // 分支上被调用**——线上跑的是 durable 这条，于是缓存永远是空的：
+      //   · cyberboss_reminder_create 一律抛 "Let this user talk to the bot
+      //     once first"，哪怕这个人刚说完话
+      //   · 主动打招呼能唤醒模型，但答复没有投递目标，发不出去
+      // 收下消息这一刻是唯一同时握着 senderId 和 context_token 的地方。
+      //
+      // normalized.accountId 是**这条消息从哪个号收到的**，必须一起传：
+      // 不传就会落到主号名下，之后给这个人回信会拿主号的 token 去发，必被拒。
+      onAccepted: ({ normalized }) => {
+        try {
+          this.channelAdapter.rememberContextToken?.(
+            normalized.senderId,
+            normalized.contextToken,
+            normalized.accountId,
+          );
+        } catch {
+          // 记不住不该让这条消息进不来；最坏结果是主动消息暂时发不出去。
+        }
+      },
+    });
+  }
+
+  // 盘上现在有哪些号，各自的协调器。每一轮桥接循环调一次：
+  // 有人刚扫完码，下一轮就被收进来，不用重启服务。
+  liveInboxCoordinators() {
+    if (!this.durableInboxCoordinator) {
+      return [];
+    }
+    const accounts = typeof this.channelAdapter.listAccounts === "function"
+      ? this.channelAdapter.listAccounts()
+      : [this.channelAdapter.resolveAccount()];
+    const live = [];
+    const seen = new Set();
+    for (const account of accounts) {
+      const accountId = String(account?.accountId || "").trim();
+      if (!accountId || seen.has(accountId)) {
+        continue;
+      }
+      seen.add(accountId);
+      let coordinator = this.durableInboxCoordinators.get(accountId);
+      if (!coordinator) {
+        coordinator = accountId === this.activeAccountId
+            || typeof this.channelAdapter.forAccount !== "function"
+          ? this.durableInboxCoordinator
+          : this.buildInboxCoordinator(this.channelAdapter.forAccount(accountId));
+        this.durableInboxCoordinators.set(accountId, coordinator);
+      }
+      live.push({ accountId, coordinator });
+    }
+    // 号被删掉之后它的协调器也该丢掉，否则会一直拿着一个作废的 token 去拉更新。
+    for (const accountId of Array.from(this.durableInboxCoordinators.keys())) {
+      if (!seen.has(accountId)) {
+        this.durableInboxCoordinators.delete(accountId);
+      }
+    }
+    return live;
+  }
+
+  // 每个号一条独立的长轮询，谁先回来就先处理谁。
+  //
+  // 不能等齐：一次长轮询要挂到 35 秒，等最慢的那个回来再跑调度，等于给每一条
+  // 回复凭空加最多 35 秒延迟——号越多越慢。
+  //
+  // 已经在飞的那条不重发：同一个号同时开两条 get_updates，两条会拿着同一个
+  // 起始游标各收一批，提交的时候互相覆盖，中间那批消息就永远丢了。
+  //
+  // 只有一个号的时候，这个函数的行为和以前那行 `await coordinator.pollOnce()`
+  // 完全一样：发一条、等它、收它。
+  async pollAccountsOnce({ timeoutMs } = {}) {
+    const live = this.liveInboxCoordinators();
+    const liveIds = new Set(live.map((entry) => entry.accountId));
+    for (const accountId of Array.from(this.accountPollsInFlight.keys())) {
+      if (!liveIds.has(accountId)) {
+        // 号被删了就别再等它那条了，否则循环会一直挂在一个不会有结果的请求上。
+        this.accountPollsInFlight.delete(accountId);
+      }
+    }
+    for (const { accountId, coordinator } of live) {
+      if (this.accountPollsInFlight.has(accountId)) {
+        continue;
+      }
+      const record = { accountId, settled: false, result: null };
+      record.promise = coordinator.pollOnce({ timeoutMs }).then(
+        (durable) => {
+          record.settled = true;
+          record.result = { accountId, durable };
+          return record;
+        },
+        (error) => {
+          record.settled = true;
+          record.result = { accountId, error };
+          return record;
+        },
+      );
+      this.accountPollsInFlight.set(accountId, record);
+    }
+    if (!this.accountPollsInFlight.size) {
+      return [];
+    }
+    await Promise.race(
+      Array.from(this.accountPollsInFlight.values(), (record) => record.promise),
+    );
+    const harvested = [];
+    for (const [accountId, record] of this.accountPollsInFlight) {
+      if (record.settled) {
+        harvested.push(record.result);
+        this.accountPollsInFlight.delete(accountId);
+      }
+    }
+    return harvested;
+  }
+
+  // 这一轮各个号的结果该怎么看。
+  //
+  // 最要紧的一条：**只有主人的号过期才是致命的**。主人的号断了，整个服务确实
+  // 没法工作，必须停下来让他重新扫码；但访客的号过期只影响那一个人，不能因为
+  // 某个陌生人的绑定失效就把所有人的机器人一起关掉——那正是「一个人挂了全体
+  // 陪葬」，多号最容易犯的错。
+  classifyPollResults(results) {
+    const failures = [];
+    const successes = [];
+    let ownerSessionExpired = false;
+    for (const result of Array.isArray(results) ? results : []) {
+      if (result?.error) {
+        failures.push(result);
+        if (
+          result.accountId === this.activeAccountId
+          && isSessionExpiredError(result.error)
+        ) {
+          ownerSessionExpired = true;
+        }
+        continue;
+      }
+      if (result?.durable) {
+        successes.push(result);
+      }
+    }
+    return Object.freeze({
+      successes,
+      failures,
+      anyOk: successes.length > 0,
+      ownerSessionExpired,
+      // 全挂了才往外抛：还有一个号活着就继续跑，不退避。
+      allFailedError: !successes.length && failures.length ? failures[0].error : null,
+    });
+  }
+
+  // 一个号一直拉不动的时候，日志不能每 35 秒刷一条——那会把 journal 撑爆，
+  // 也会把真正的问题埋掉。第一次必报，之后每 20 次报一次。
+  noteAccountPollFailure(accountId, error) {
+    const count = (this.accountPollFailureCounts.get(accountId) || 0) + 1;
+    this.accountPollFailureCounts.set(accountId, count);
+    if (count === 1 || count % 20 === 0) {
+      console.error(
+        `[cyberboss] poll failed account=${accountId} (第 ${count} 次) ${formatErrorMessage(error)}`,
+      );
+    }
+  }
+
+  // 现在归这个进程管的所有号。
+  liveAccountIds() {
+    try {
+      const accounts = typeof this.channelAdapter.listAccounts === "function"
+        ? this.channelAdapter.listAccounts()
+        : [this.channelAdapter.resolveAccount()];
+      const ids = accounts.map((account) => String(account?.accountId || "").trim()).filter(Boolean);
+      return ids.length ? ids : [this.activeAccountId].filter(Boolean);
+    } catch {
+      return [this.activeAccountId].filter(Boolean);
+    }
+  }
+
   closeDurableInbox() {
     if (this.jobScheduler) {
       this.jobScheduler.stop();
@@ -535,6 +700,7 @@ class CyberbossApp {
       this.canonicalSyncCoordinator = null;
     }
     this.durableInboxCoordinator = null;
+    this.durableInboxCoordinators.clear();
     this.userAdmission = null;
     this.userTurnRuntime = null;
     this.userCompanionTurn = null;
@@ -729,7 +895,9 @@ class CyberbossApp {
     console.log(`[cyberboss] channel=${this.channelAdapter.describe().id}`);
     console.log(`[cyberboss] runtime=${this.runtimeAdapter.describe().id}`);
     console.log(`[cyberboss] timeline=${this.timelineIntegration.describe().id}`);
-    console.log(`[cyberboss] account=${account.accountId}`);
+    const managedAccounts = this.liveAccountIds();
+    console.log(`[cyberboss] account=${account.accountId}（主号）`);
+    console.log(`[cyberboss] accounts=${managedAccounts.length} ${managedAccounts.join(",")}`);
     console.log(`[cyberboss] baseUrl=${account.baseUrl}`);
     console.log(`[cyberboss] workspaceRoot=${this.config.workspaceRoot}`);
     console.log(`[cyberboss] knownContextTokens=${knownContextTokens}`);
@@ -791,21 +959,36 @@ class CyberbossApp {
       while (!shutdown.stopped) {
         try {
           await Promise.all([
-            this.flushDueReminders(account),
+            this.flushDueReminders(),
             this.flushPendingInboundMessages(),
             this.flushPendingSystemMessages(),
-            this.flushPendingTimelineScreenshots(account),
+            this.flushPendingTimelineScreenshots(),
           ]);
           if (this.durableInboxCoordinator) {
-            const durable = await this.durableInboxCoordinator.pollOnce({
+            const results = await this.pollAccountsOnce({
               timeoutMs: this.resolveLongPollTimeoutMs(),
             });
-            this.jobScheduler?.notePollSuccess();
-            consecutiveFailures = 0;
-            if (durable.acceptedCount || durable.rejectedCount) {
-              console.log(
-                `[cyberboss] durable batch queued accepted=${durable.acceptedCount} rejected=${durable.rejectedCount}`,
-              );
+            const verdict = this.classifyPollResults(results);
+            for (const failure of verdict.failures) {
+              this.noteAccountPollFailure(failure.accountId, failure.error);
+            }
+            for (const ok of verdict.successes) {
+              this.accountPollFailureCounts.delete(ok.accountId);
+              if (ok.durable.acceptedCount || ok.durable.rejectedCount) {
+                console.log(
+                  `[cyberboss] durable batch queued account=${ok.accountId} accepted=${ok.durable.acceptedCount} rejected=${ok.durable.rejectedCount}`,
+                );
+              }
+            }
+            if (verdict.ownerSessionExpired) {
+              throw new Error("The WeChat session has expired. Run `npm run login` again.");
+            }
+            if (verdict.anyOk) {
+              this.jobScheduler?.notePollSuccess();
+              consecutiveFailures = 0;
+            } else if (verdict.allFailedError) {
+              // 这一轮落地的号全挂了，交给外层退避。
+              throw verdict.allFailedError;
             }
             await this.outboxWorker?.runCycle();
             await this.canonicalSyncCoordinator?.runCycle();
@@ -830,10 +1013,10 @@ class CyberbossApp {
             }
           }
           await Promise.all([
-            this.flushDueReminders(account),
+            this.flushDueReminders(),
             this.flushPendingInboundMessages(),
             this.flushPendingSystemMessages(),
-            this.flushPendingTimelineScreenshots(account),
+            this.flushPendingTimelineScreenshots(),
           ]);
         } catch (error) {
           if (shutdown.stopped) {
@@ -1606,7 +1789,10 @@ class CyberbossApp {
         } catch {
           token = "";
         }
-        if (token && this.channelAdapter.rememberContextToken(senderId, token)) {
+        // 载荷里带着这条消息**是从哪个号收到的**。必须一起传：不传就全落到
+        // 主号名下，重启之后给别的号下面的人回信会拿主号的 token 去发，必被拒。
+        const sourceAccountId = message.payload?.accountId || "";
+        if (token && this.channelAdapter.rememberContextToken(senderId, token, sourceAccountId)) {
           restored += 1;
         }
       }
@@ -3158,8 +3344,9 @@ const { loadRuntimeTextSecret } = require("../v8-prebuilt/security/runtime-text-
     }
   }
 
-  async flushPendingTimelineScreenshots(account) {
-    const pendingJobs = this.timelineScreenshotQueue.drainForAccount(account.accountId);
+  async flushPendingTimelineScreenshots() {
+    const pendingJobs = this.liveAccountIds()
+      .flatMap((accountId) => this.timelineScreenshotQueue.drainForAccount(accountId));
     for (const job of pendingJobs) {
       try {
         const captured = await this.projectServices.timeline.captureScreenshot({
@@ -3200,7 +3387,9 @@ const { loadRuntimeTextSecret } = require("../v8-prebuilt/security/runtime-text-
     if (this.systemMessageDispatcher?.hasPending()) {
       return MIN_LONG_POLL_TIMEOUT_MS;
     }
-    if (this.activeAccountId && this.timelineScreenshotQueue.hasPendingForAccount(this.activeAccountId)) {
+    if (this.liveAccountIds().some(
+      (accountId) => this.timelineScreenshotQueue.hasPendingForAccount(accountId),
+    )) {
       return MIN_LONG_POLL_TIMEOUT_MS;
     }
 
@@ -3216,10 +3405,13 @@ const { loadRuntimeTextSecret } = require("../v8-prebuilt/security/runtime-text-
     return Math.max(MIN_LONG_POLL_TIMEOUT_MS, Math.min(DEFAULT_LONG_POLL_TIMEOUT_MS, remainingMs));
   }
 
-  async flushDueReminders(account) {
+  // 所有归这个进程管的号一起刷。以前只刷主号那一个，第二个号下面的人
+  // 定的提醒会永远躺在队列里到不了点。
+  async flushDueReminders() {
+    const accountIds = new Set(this.liveAccountIds());
     const dueReminders = this.reminderQueue
       .listDue(Date.now())
-      .filter((reminder) => reminder.accountId === account.accountId);
+      .filter((reminder) => accountIds.has(reminder.accountId));
 
     for (const reminder of dueReminders) {
       try {

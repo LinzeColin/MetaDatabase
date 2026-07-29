@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
+const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { SessionStore } = require("../adapters/runtime/codex/session-store");
 const { CheckinConfigStore, resolveDefaultCheckinRange } = require("../core/checkin-config-store");
 const { resolvePreferredSenderId, resolvePreferredWorkspaceRoot } = require("../core/default-targets");
@@ -18,11 +19,11 @@ async function runSystemCheckinPoller(config, options = {}) {
     : () => Number(new Intl.DateTimeFormat("en-US", {
       timeZone: "Asia/Shanghai", hour: "2-digit", hour12: false,
     }).format(new Date()));
-  const account = resolveSelectedAccount(config);
+  const primaryAccount = resolveSelectedAccount(config);
   const queue = new SystemMessageQueueStore({ filePath: config.systemMessageQueueFile });
   const checkinConfigStore = new CheckinConfigStore({ filePath: config.checkinConfigFile });
   const sessionStore = new SessionStore({ filePath: config.sessionsFile });
-  const target = resolvePollerTarget({ config, account, sessionStore, options });
+  const target = resolvePollerTarget({ config, account: primaryAccount, sessionStore, options });
   const defaultRange = resolveDefaultCheckinRange();
   let currentRange = readProactive ? rangeFrom(readProactive()) : checkinConfigStore.getRange(defaultRange);
 
@@ -49,6 +50,10 @@ async function runSystemCheckinPoller(config, options = {}) {
       console.log("[cyberboss] checkin skipped: 静默时段");
       continue;
     }
+
+    // 每一轮现查一次主人挂在哪个号下面，而不是启动时定死：主人重新扫过码
+    // 之后账号会换，定死的那个会把主动消息投到一个已经作废的号上。
+    const account = resolveAccountForUser(config, target.senderId);
 
     if (queue.hasPendingForAccount(account.accountId)) {
       console.log("[cyberboss] checkin skipped: pending system message still in queue");
