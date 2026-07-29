@@ -138,6 +138,11 @@ class PortalHttpServer {
     adminSessionIssue = null,
     adminSessionVerify = null,
     adminSessionRevoke = null,
+    // 每个人自己那一页。漏在这里的后果是整条路默默变成 404——构造函数是**按名
+    // 字解构**的，注入方写了但这里没接，`this.personalSiteData` 就是 undefined，
+    // 而 #handleMeData 见到 undefined 会回 404。这个仓在同一件事上栽过八次了。
+    personalSiteLogin = null,
+    personalSiteData = null,
     ownerActivationStart = null,
     ownerActivationPoll = null,
     firstRunProvider = () => false,
@@ -160,6 +165,8 @@ class PortalHttpServer {
     this.adminOps = adminOps;
     this.adminPersonaRead = adminPersonaRead;
     this.adminPersonaWrite = adminPersonaWrite;
+    this.personalSiteLogin = personalSiteLogin;
+    this.personalSiteData = personalSiteData;
     this.adminInsights = adminInsights;
     this.publicEntry = publicEntry;
     this.publicEntryStatus = publicEntryStatus;
