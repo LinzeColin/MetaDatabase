@@ -7,14 +7,14 @@ TASKPACK_VERSION = f"v{VERSION}"
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
 SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{3,160}$")
 UNITS = (
-    "weread-port-platform.service", "weread-port-import-worker.service",
+    "weread-port-platform.service", "weread-port-import-worker.service", "weread-port-edge-bridge.service",
     "weread-port-platform-health.timer", "weread-port-platform-backup.timer",
     "weread-port-facts-sync.timer", "weread-port-private-database-backup.timer",
     "weread-port-r2-oci-backup.timer",
 )
 REQUIRED_DEPLOY_KEYS = (
     "WRP_TASKPACK_VERSION","WRP_RELEASE_COMMIT","WRP_OVH_RELEASE_ID","WRP_SITES_PROJECT_ID",
-    "WRP_ADMIN_BASE_URL","WRP_ADMIN_ACCOUNT_IDS",
+    "WRP_ADMIN_BASE_URL","WRP_ADMIN_ACCOUNT_IDS","WRP_EDGE_BRIDGE_HOST","WRP_EDGE_BRIDGE_PORT",
     "WRP_SESSION_PEPPER","WRP_CREDENTIAL_PEPPER","WRP_KEYRING_JSON","WRP_ACTIVE_KEY_ID","WRP_INTERNAL_PROXY_SECRET",
     "WRP_R2_ENDPOINT","WRP_R2_BUCKET","WRP_R2_ACCESS_KEY_ID","WRP_R2_SECRET_ACCESS_KEY",
     "WRP_PRIMARY_OBJECT_PREFIX","WRP_PRIVATE_DATABASE_BACKUP_PREFIX",
@@ -136,7 +136,7 @@ def main()->int:
   if tmp.exists() or tmp.is_symlink(): tmp.unlink()
   tmp.symlink_to(pathlib.Path("releases")/release.name); os.replace(tmp,current)
   try:
-   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service"],check=True); wait_for_platform_ready(int(values.get("WRP_SERVICE_PORT","8788"))); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
+   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service","weread-port-edge-bridge.service"],check=True); wait_for_platform_ready(int(values.get("WRP_SERVICE_PORT","8788"))); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
   except Exception:
    # The release identity lives in the environment file. Roll it back together
    # with the symlink so /version can never advertise a release that failed.
@@ -146,7 +146,7 @@ def main()->int:
    else: atomic_write(env_file,previous_env_text,0o600)
    if previous_target:
     rollback=current.with_name(f".current-rollback-{os.getpid()}"); rollback.symlink_to(previous_target); os.replace(rollback,current); subprocess.run(["systemctl","daemon-reload"],check=False)
-   subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service"],check=False)
+   subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service","weread-port-edge-bridge.service"],check=False)
    raise
  else:
   current.parent.mkdir(parents=True,exist_ok=True)

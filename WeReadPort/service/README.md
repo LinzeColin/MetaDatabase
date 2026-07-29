@@ -14,7 +14,7 @@ python3 service/scripts/platform_ops.py backup
 python3 service/scripts/platform_ops.py restore-check /var/lib/weread-port/snapshots/<snapshot>.sqlite3
 ```
 
-真实服务默认监听 `127.0.0.1:8788`。必须通过已有 HTTPS 反向代理或 Cloudflare Tunnel 暴露给 Cloudflare Worker；反向代理只允许 `/healthz`、`/readyz` 与 `/v1/*`，并保持请求体大小、超时和 `X-Forwarded-For` 边界。OVH 环境还必须将公开域固定为 `https://weread.linzezhang.com`、管理域固定为 `https://admin.weread.linzezhang.com`，并通过 `WRP_ADMIN_ACCOUNT_IDS` 配置至少一个不可变管理员账户 ID。
+真实服务默认监听 `127.0.0.1:8788`。在 Coolify/Traefik 现网，`weread-port-edge-bridge.service` 只绑定 `WRP_EDGE_BRIDGE_HOST` 指定的 Docker 私网网桥，将请求转发至回环账户服务；`service/reverse-proxy/traefik.weread-origin.reference.yml` 是唯一允许的源站路由参考。公开 `origin.weread.linzezhang.com` 只供 Worker 连接，所有业务路径仍需要 Worker 内部 Secret；不得将账户服务或桥接绑定到 `0.0.0.0`。OVH 环境还必须将公开域固定为 `https://weread.linzezhang.com`、管理域固定为 `https://admin.weread.linzezhang.com`，并通过 `WRP_ADMIN_ACCOUNT_IDS` 配置至少一个不可变管理员账户 ID。
 
 生产环境必须配置：
 

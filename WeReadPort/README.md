@@ -31,7 +31,7 @@
               └─ OCI：R2/D1 异地冷备
 ```
 
-Cloudflare Worker 绑定 `weread.linzezhang.com` 与 `admin.weread.linzezhang.com`；前者仅提供用户站点，后者仅映射管理静态页。Worker 必须配置 `WEREAD_ACCOUNT_SERVICE_URL`、`WRP_INTERNAL_PROXY_SECRET` 与 `WRP_ADMIN_HOST=admin.weread.linzezhang.com`。OVH 账户服务默认只监听 `127.0.0.1:8788`，必须由现有 HTTPS 反向代理或 Cloudflare Tunnel 暴露；不得直接开放明文 HTTP 端口。
+Cloudflare Worker 绑定 `weread.linzezhang.com` 与 `admin.weread.linzezhang.com`；前者仅提供用户站点，后者仅映射管理静态页。Worker 必须配置 `WEREAD_ACCOUNT_SERVICE_URL=https://origin.weread.linzezhang.com`、`WRP_INTERNAL_PROXY_SECRET` 与 `WRP_ADMIN_HOST=admin.weread.linzezhang.com`。OVH 账户服务始终只监听 `127.0.0.1:8788`；Coolify Traefik 只经 Docker 私网桥接到该端口，不能直接开放明文 HTTP 端口。
 
 ## 本地冻结验证
 

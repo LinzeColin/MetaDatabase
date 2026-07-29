@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import ipaddress
 import json
 import os
 import re
@@ -17,7 +18,7 @@ VERSION = "v0.0.0.1.9"
 EXPECTED_ORIGIN = "https://weread.linzezhang.com"
 EXPECTED_ADMIN_ORIGIN = "https://admin.weread.linzezhang.com"
 REQUIRED = (
-    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_ADMIN_BASE_URL", "WRP_ADMIN_ACCOUNT_IDS", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT",
+    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_ADMIN_BASE_URL", "WRP_ADMIN_ACCOUNT_IDS", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT", "WRP_EDGE_BRIDGE_HOST", "WRP_EDGE_BRIDGE_PORT",
     "WRP_DATABASE_PATH", "WRP_OBJECT_STORE_MODE", "WRP_SESSION_PEPPER",
     "WRP_CREDENTIAL_PEPPER", "WRP_KEYRING_JSON", "WRP_ACTIVE_KEY_ID",
     "WRP_INTERNAL_PROXY_SECRET", "WRP_R2_ENDPOINT", "WRP_R2_BUCKET",
@@ -85,6 +86,25 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
             raise ValueError
     except ValueError:
         block("PORT", "WRP_SERVICE_PORT", "必须是 1–65535 的整数。")
+    edge_host = values.get("WRP_EDGE_BRIDGE_HOST", "")
+    try:
+        edge_address = ipaddress.ip_address(edge_host)
+        edge_octets = str(edge_address).split(".")
+        rfc1918 = edge_address.version == 4 and (
+            edge_octets[0] == "10"
+            or (edge_octets[0] == "172" and 16 <= int(edge_octets[1]) <= 31)
+            or (edge_octets[0] == "192" and edge_octets[1] == "168")
+        )
+        if not rfc1918:
+            raise ValueError
+    except ValueError:
+        block("EDGE_BRIDGE_ADDRESS", "WRP_EDGE_BRIDGE_HOST", "必须是非回环 RFC1918 Docker 私网 IPv4 地址。")
+    try:
+        edge_port = int(values.get("WRP_EDGE_BRIDGE_PORT", ""))
+        if not 1 <= edge_port <= 65535:
+            raise ValueError
+    except ValueError:
+        block("EDGE_BRIDGE_PORT", "WRP_EDGE_BRIDGE_PORT", "必须是 1–65535 的整数。")
     db_path = Path(values.get("WRP_DATABASE_PATH", "") or ".")
     if not db_path.is_absolute():
         block("DATABASE_PATH", "WRP_DATABASE_PATH", "SQLite 路径必须是绝对路径。")
