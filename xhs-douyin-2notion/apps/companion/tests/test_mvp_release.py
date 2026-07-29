@@ -786,6 +786,73 @@ class MvpReleaseTests(unittest.TestCase):
         uninstall_native_host.assert_not_called()
         discard_staged.assert_called_once_with()
 
+    def test_cli_deploy_rolls_back_when_deployment_state_cannot_be_recorded(self) -> None:
+        controller = SimpleNamespace(
+            mark_deployed=mock.Mock(
+                side_effect=X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "synthetic deployment state failure")
+            )
+        )
+        manager = mock.Mock()
+        manager.deploy.return_value = {"artifact_sha256": "d" * 64}
+        args = runtime_cli.build_parser().parse_args(
+            ["release", "deploy", "--browser", "chrome", "--confirm", mvp_deployment.DEPLOY_CONFIRMATION]
+        )
+        with (
+            mock.patch.object(runtime_cli, "_paths", return_value=self.paths),
+            mock.patch.object(MvpReleaseController, "load", return_value=controller),
+            mock.patch.object(runtime_cli, "MvpDeploymentManager", return_value=manager),
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                runtime_cli.run(args)
+
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        manager.deploy.assert_called_once_with(confirmation=mvp_deployment.DEPLOY_CONFIRMATION, browser="chrome")
+        controller.mark_deployed.assert_called_once_with(artifact_sha256="d" * 64, browser="chrome")
+        manager.rollback_deployment.assert_called_once_with(browser="chrome")
+
+    def test_cli_deploy_normalizes_generic_state_persistence_failure_after_rollback(self) -> None:
+        controller = SimpleNamespace(mark_deployed=mock.Mock(side_effect=OSError("synthetic deployment state failure")))
+        manager = mock.Mock()
+        manager.deploy.return_value = {"artifact_sha256": "e" * 64}
+        args = runtime_cli.build_parser().parse_args(
+            ["release", "deploy", "--browser", "chrome", "--confirm", mvp_deployment.DEPLOY_CONFIRMATION]
+        )
+        with (
+            mock.patch.object(runtime_cli, "_paths", return_value=self.paths),
+            mock.patch.object(MvpReleaseController, "load", return_value=controller),
+            mock.patch.object(runtime_cli, "MvpDeploymentManager", return_value=manager),
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                runtime_cli.run(args)
+
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+        self.assertNotIn("synthetic deployment state failure", blocked.exception.safe_message)
+        manager.rollback_deployment.assert_called_once_with(browser="chrome")
+
+    def test_cli_deploy_normalizes_any_rollback_cleanup_failure(self) -> None:
+        controller = SimpleNamespace(
+            mark_deployed=mock.Mock(
+                side_effect=X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "synthetic deployment state failure")
+            )
+        )
+        manager = mock.Mock()
+        manager.deploy.return_value = {"artifact_sha256": "f" * 64}
+        manager.rollback_deployment.side_effect = OSError("synthetic private rollback I/O failure")
+        args = runtime_cli.build_parser().parse_args(
+            ["release", "deploy", "--browser", "chrome", "--confirm", mvp_deployment.DEPLOY_CONFIRMATION]
+        )
+        with (
+            mock.patch.object(runtime_cli, "_paths", return_value=self.paths),
+            mock.patch.object(MvpReleaseController, "load", return_value=controller),
+            mock.patch.object(runtime_cli, "MvpDeploymentManager", return_value=manager),
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                runtime_cli.run(args)
+
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+        self.assertNotIn("synthetic private rollback I/O failure", blocked.exception.safe_message)
+        manager.rollback_deployment.assert_called_once_with(browser="chrome")
+
     def test_rollback_deployment_disables_native_host_before_switching_the_pointer(self) -> None:
         manager = MvpDeploymentManager(self.paths)
         calls: list[str] = []

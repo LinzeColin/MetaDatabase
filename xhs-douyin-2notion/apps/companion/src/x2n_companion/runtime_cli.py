@@ -380,7 +380,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             except Exception as error:
                 try:
                     manager.rollback_deployment(browser=args.browser)
-                except X2NRuntimeError as cleanup_error:
+                except Exception as cleanup_error:
                     raise X2NRuntimeError(
                         ErrorCode.POLICY_BLOCKED,
                         "MVP deployment state failed and its rollback requires owner recovery",
