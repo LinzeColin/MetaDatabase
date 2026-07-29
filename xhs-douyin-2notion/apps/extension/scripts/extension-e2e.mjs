@@ -482,6 +482,10 @@ try {
     await page.locator("#workflow-title").textContent() === "哔哩哔哩还在准备中",
     "bilibili_unavailable_detail_title",
   );
+  requireCondition(
+    await page.locator("#workflow-copy").textContent().then((text) => text?.includes("无需换页面或找按钮")),
+    "bilibili_unavailable_detail_copy",
+  );
   requireCondition(await page.locator("#workflow-action").isHidden(), "bilibili_unavailable_detail_action_visible");
   requireCondition(await page.locator("#capture-fallback").isHidden(), "bilibili_unavailable_detail_fallback_visible");
   const unavailableVisibleActionCount = await page.locator("#panel-save button:visible").count();

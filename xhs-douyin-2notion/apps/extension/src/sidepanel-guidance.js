@@ -38,6 +38,6 @@ export function unavailableDetailGuidance(platform) {
     status: `${platformName}暂时还不能保存`,
     steps: Object.freeze({ first: "已经打开内容", second: "等待开放", third: "无需继续操作", active: 1 }),
     title: `${platformName}还在准备中`,
-    copy: "这不是你的操作有问题。当前版本还没有打开这个平台的保存功能，因此不用换页面或找按钮。",
+    copy: "这不是你的操作有问题。这个平台还在准备中，无需换页面或找按钮。",
   });
 }

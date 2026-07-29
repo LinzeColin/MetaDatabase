@@ -242,7 +242,7 @@ for (const platform of ["bilibili", "kuaishou", "taobao", "weibo"]) {
     guidance === null
     || guidance.status !== `${PLATFORM_NAMES[platform]}暂时还不能保存`
     || guidance.steps.active !== 1
-    || !guidance.copy.includes("不用换页面或找按钮")
+    || !guidance.copy.includes("无需换页面或找按钮")
   ) failures.push(`unavailable_detail_guidance_${platform}`);
 }
 if (unavailableDetailGuidance("xiaohongshu") !== null) failures.push("xhs_unavailable_detail_guidance_boundary");
