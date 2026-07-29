@@ -3169,6 +3169,9 @@ class CyberbossApp {
       if (this.handlePersonalSiteCommand(normalized, userId)) {
         return true;
       }
+      if (this.handleHealthCommand(normalized)) {
+        return true;
+      }
     }
     // 普通用户在这里就办完，**不进 job 队列**。
     //
@@ -3270,6 +3273,30 @@ class CyberbossApp {
       this.rememberOwnerSender(normalized.senderId);
     }
     return decision;
+  }
+
+  // 微信里发「体检」当场查一次。
+  //
+  // 告警那条消息里写着「回一句『体检』」——那句话必须兑现。写了做不到的提示，
+  // 比不写更糟：他照做之后发现没反应，下次连告警本身都不信了。
+  //
+  // 零模型调用：体检结果是拼出来的，不是想出来的。
+  handleHealthCommand(normalized) {
+    if (!HEALTH_KEYWORD.test(String(normalized.text || "").trim())) {
+      return false;
+    }
+    let report = this.lastHealthReport;
+    try {
+      report = evaluateHealth(this.gatherHealthFacts(), { now: Date.now() });
+      this.lastHealthReport = report;
+    } catch {
+      // 现查失败就用上一轮的结果，总比一句"查不了"强。
+    }
+    const text = report?.findings?.length
+      ? buildAlertMessage(report.findings)
+      : "都正常。回话、同步、备份、投递都是好的。";
+    void this.sendAdmissionReply(normalized, text);
+    return true;
   }
 
   // 模型调待办工具时，这一轮是谁。
@@ -5510,6 +5537,9 @@ const PERSONAL_SITE_KEYWORD = /^(我的)?(主页|首页|个人主页|个人网�
 
 // 体检多久跑一次。十分钟：够快到主人不会先于它发现问题，又不至于把日志刷满。
 const HEALTH_CHECK_INTERVAL_MS = 10 * 60_000;
+
+// 发这两个字当场查一次。告警消息里承诺过这一句，必须兑现。
+const HEALTH_KEYWORD = /^(体检|自检|你还好吗|系统状态|健康检查)[?？。！!]?$/;
 
 function formatOwnerLocalTime(value) {
   const date = value instanceof Date ? value : new Date(value);

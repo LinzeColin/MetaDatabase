@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-__CSP_NONCE__'; img-src 'self' data:; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
+<title>CyberBoss</title>
+<style nonce="__CSP_NONCE__">
+  /* 根路径以前是 302 跳到 /admin。陌生人打开这个域名，看到的是主人的后台登录页
+     ——对一个要卖出去的产品来说，那等于把大门开在员工通道上。
+     这一页只做一件事：把人送到 /join。 */
+  :root{--bg:#FFFBEB;--fg:#0F172A;--muted:#475569;--line:#F1E9D2;--card:#fff;--brand:#92400E}
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0F172A;--fg:#F8FAFC;--muted:#CBD5E1;--line:#334155;--card:#1E293B;--brand:#FCD34D}
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:max(24px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom));
+  }
+  main{max-width:440px;width:100%;text-align:center}
+  h1{font-size:32px;margin:0 0 10px;letter-spacing:.5px}
+  .sub{color:var(--muted);margin:0 0 34px;font-size:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px 24px}
+  /* 44px 起步：手指点得到。 */
+  .go{
+    display:block;width:100%;min-height:52px;line-height:52px;
+    background:var(--brand);color:var(--bg);text-decoration:none;
+    border-radius:12px;font-size:17px;font-weight:600;letter-spacing:.5px;
+  }
+  ul{list-style:none;margin:26px 0 0;padding:0;text-align:left;color:var(--muted);font-size:15px}
+  li{padding:7px 0 7px 22px;position:relative}
+  li::before{content:"·";position:absolute;left:6px;color:var(--brand);font-weight:700}
+  .admin{margin-top:30px;font-size:13px;color:var(--muted)}
+  .admin a{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>CyberBoss</h1>
+  <p class="sub">一个住在微信里的、会记得你的助手。</p>
+  <div class="card">
+    <a class="go" href="/join">扫码开始用</a>
+    <ul>
+      <li>说「1分钟后提醒我喝水」，它到点真的会叫你</li>
+      <li>说「记一下 买菜」，它替你记着</li>
+      <li>说「主页」，看你自己的那一页</li>
+    </ul>
+  </div>
+  <p class="admin"><a href="/admin">我是管理员</a></p>
+</main>
+</body>
+</html>

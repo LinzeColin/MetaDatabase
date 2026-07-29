@@ -307,14 +307,19 @@ test("健康检查活着，但不透露任何状态", async (t) => {
   assert.equal(response.text, "ok");
 });
 
-test("只输域名（根路径）跳到后台，而不是回一行 NOT_FOUND", async (t) => {
-  // 用户在浏览器里输域名，落到 "/"。之前这里走最后那个 404 分支，屏幕上只有
-  // {"ok":false,"code":"NOT_FOUND"}——服务好好的，看起来却像彻底坏了。
+test("只输域名（根路径）看到的是公开落地页，不是后台登录页", async (t) => {
+  // 一开始这里走最后那个 404 分支，屏幕上只有 {"ok":false,"code":"NOT_FOUND"}
+  // ——服务好好的，看起来却像彻底坏了。于是改成 302 跳 /admin。
+  //
+  // 但那一版对**陌生人**同样是死路：他打开这个域名，撞在主人的登录墙上，而
+  // 「怎么开始用」没有任何入口。要做市场化的产品，大门不能开在员工通道上。
+  // 现在给一页公开落地页：一个大按钮去 /join，底下一行小字给管理员。
   const h = await harness(t);
   for (const requestPath of ["/", "/index.html"]) {
     const response = await raw(h.address.port, { requestPath, headers: { host: HOSTNAME } });
-    assert.equal(response.status, 302, `${requestPath} 应当跳转`);
-    assert.equal(response.headers.location, "/admin");
+    assert.equal(response.status, 200, `${requestPath} 应当直接给页面`);
+    assert.match(response.text, /href="\/join"/, "落地页必须有去扫码页的入口");
+    assert.match(response.text, /href="\/admin"/, "管理员也要进得去");
   }
 });
 

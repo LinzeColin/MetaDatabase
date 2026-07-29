@@ -44,6 +44,8 @@ const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templ
 // 扫码用的。所以它上面一个字的运营信息都不能有：没有人数、没有用量、没有状态。
 const JOIN_PATHS = Object.freeze(["/join", "/join/"]);
 const JOIN_TEMPLATE = require("node:path").join(__dirname, "../../../templates/join.html");
+// 公开落地页。根路径以前直接跳后台，陌生人一进来就撞在登录墙上。
+const HOME_TEMPLATE = require("node:path").join(__dirname, "../../../templates/home.html");
 // 每个人自己那一页。HTML 免令牌（页面本身不含任何人的数据），数据接口要会话，
 // 而且**只回签发给那个会话的那一个人的东西**——鉴权在 personalSiteData 里按
 // 会话解出来的 user_id 做，路径上不带任何身份参数，想改都改不了别人的。
@@ -599,10 +601,16 @@ class PortalHttpServer {
     const pathname = url.pathname;
 
     if (request.method === "GET" && ROOT_PATHS.includes(pathname)) {
-      // 带上原来的 query 和后面的 fragment 由浏览器自己保留（fragment 根本不会
-      // 发到服务器），所以 /#k=…… 这种链接跳过去之后钥匙还在。
-      response.writeHead(302, { ...SECURITY_HEADERS, Location: "/admin" });
-      response.end();
+      // 以前这里是 302 跳 /admin。陌生人打开这个域名，看到的是主人的后台登录页
+      // ——对一个要卖出去的产品来说，那等于把大门开在员工通道上，而且他连
+      // 「怎么开始用」的入口都找不到。
+      //
+      // 现在给一页公开的落地页：一个大按钮去 /join，底下一行小字给管理员。
+      // 和 /join 一样免鉴权，因为它同样一个字的运营信息都没有。
+      const nonce = newNonce();
+      const html = fs.readFileSync(HOME_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
+      response.end(html);
       return null;
     }
     if (request.method === "GET" && OPS_WECHAT_PATHS.includes(pathname)) {

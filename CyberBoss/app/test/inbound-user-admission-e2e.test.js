@@ -688,6 +688,8 @@ test("不需要模型的轮次在建 job 之前就被分流掉", (t) => {
     handleItemCommand: CyberbossApp.prototype.handleItemCommand,
     runItemAction: CyberbossApp.prototype.runItemAction,
     handlePersonalSiteCommand: CyberbossApp.prototype.handlePersonalSiteCommand,
+    handleHealthCommand: CyberbossApp.prototype.handleHealthCommand,
+    gatherHealthFacts: () => ({}),
     issuePersonalSiteLink: () => "",
     runtimeSpoolDatabase: {
       createUserItem: (input) => ({ ...input, id: "item_test" }),

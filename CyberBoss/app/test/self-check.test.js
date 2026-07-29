@@ -206,3 +206,22 @@ test("两件以上就说清楚是几件", () => {
 test("没有新问题就不发消息", () => {
   assert.equal(buildAlertMessage([]), "");
 });
+
+// ── 承诺过的口令必须真的存在 ────────────────────────────────
+//
+// 告警里写着「回一句『体检』」。写了做不到的提示比不写更糟：他照做之后发现
+// 没反应，下次连告警本身都不信了。
+
+test("告警里承诺的那个口令，代码里真的认", () => {
+  const source = require("node:fs").readFileSync(
+    require("node:path").join(__dirname, "../src/core/app.js"), "utf8",
+  );
+  const alert = buildAlertMessage(
+    evaluateHealth(facts({ canonicalSyncedAt: "" }), { now: NOW }).findings,
+  );
+  const promised = alert.match(/回一句「(.+?)」/)?.[1];
+
+  assert.equal(promised, "体检");
+  assert.match(source, /HEALTH_KEYWORD\s*=\s*\/\^\(体检/);
+  assert.match(source, /handleHealthCommand\(normalized\)/);
+});
