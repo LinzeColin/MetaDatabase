@@ -201,7 +201,7 @@ class Stage3ReviewResumeTests(unittest.TestCase):
             "blocking_failures": 0,
             "flaky_blocking_tests": 0,
             "silent_blocking_skips": 0,
-            "explicit_nonblocking_skips": 3,
+            "explicit_nonblocking_skips": 0,
             "blocking_results": [
                 {
                     "gate": gate,

@@ -255,14 +255,26 @@ def _parse_health(value: Any, *, expected_build: SidecarBuildAttestation) -> Non
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin visible Sidecar build attestation mismatch")
 
 
-def _parse_envelope(value: Mapping[str, Any], *, request: VisibleBatchRequest, expected_build: SidecarBuildAttestation) -> DouyinBatch:
+def _parse_envelope(
+    value: Mapping[str, Any], *, request: VisibleBatchRequest, expected_build: SidecarBuildAttestation
+) -> DouyinBatch:
     envelope = _strict_object(value, {"batch", "health", "schema_version"}, label="envelope")
     if envelope["schema_version"] != ENVELOPE_SCHEMA:
         raise X2NRuntimeError(ErrorCode.INVALID_SCHEMA_VERSION, "Douyin visible Sidecar envelope mismatch")
     _parse_health(envelope["health"], expected_build=expected_build)
     batch = _strict_object(
         envelope["batch"],
-        {"automatic_pagination", "completion_signal", "errors", "items", "max_items", "mode", "schema_version", "sequence", "status"},
+        {
+            "automatic_pagination",
+            "completion_signal",
+            "errors",
+            "items",
+            "max_items",
+            "mode",
+            "schema_version",
+            "sequence",
+            "status",
+        },
         label="batch",
     )
     if (
@@ -280,11 +292,18 @@ def _parse_envelope(value: Mapping[str, Any], *, request: VisibleBatchRequest, e
         raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Douyin visible Sidecar batch is incomplete")
     source_items = _validate_visible_batch(request.visible_batch)
     expected_items = [
-        {"collection": None, "content_id": item["content_id"], "content_type": item["content_type"], "title": item["title"]}
+        {
+            "collection": None,
+            "content_id": item["content_id"],
+            "content_type": item["content_type"],
+            "title": item["title"],
+        }
         for item in source_items
     ]
     if batch["items"] != expected_items:
-        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin visible Sidecar batch is not bound to the visible input")
+        raise X2NRuntimeError(
+            ErrorCode.DATA_INTEGRITY_FAILED, "Douyin visible Sidecar batch is not bound to the visible input"
+        )
     items = tuple(
         DouyinItem(
             content_id=item["content_id"],
@@ -308,8 +327,9 @@ def _parse_envelope(value: Mapping[str, Any], *, request: VisibleBatchRequest, e
 def _sidecar_source() -> bytes:
     """Return the self-contained stdlib worker copied into the private bundle."""
 
-    return textwrap.dedent(
-        r'''#!/usr/bin/env python3
+    return (
+        textwrap.dedent(
+            r"""#!/usr/bin/env python3
 import argparse
 import json
 import re
@@ -464,8 +484,11 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-'''
-    ).lstrip().encode("utf-8")
+"""
+        )
+        .lstrip()
+        .encode("utf-8")
+    )
 
 
 def clean_room_sidecar_artifacts() -> dict[str, tuple[bytes, int]]:
@@ -473,38 +496,47 @@ def clean_room_sidecar_artifacts() -> dict[str, tuple[bytes, int]]:
 
     sidecar = _sidecar_source()
     executable_sha256 = _sha256_bytes(sidecar)
-    resolved_lock = _canonical_json(
-        {
-            "implementation": IMPLEMENTATION["kind"],
-            "runtime_dependencies": ["python-stdlib"],
-            "schema_version": "1.0",
-            "sidecar_sha256": executable_sha256,
-        }
-    ).encode("utf-8") + b"\n"
-    sbom = _canonical_json(
-        {
-            "bomFormat": "CycloneDX",
-            "components": [
-                {
-                    "hashes": [{"alg": "SHA-256", "content": executable_sha256}],
-                    "name": "x2n-douyin-visible-sidecar",
-                    "type": "application",
-                    "version": PROTOCOL_VERSION,
-                },
-                {"licenses": [{"license": {"id": "PSF-2.0"}}], "name": "python-stdlib", "type": "framework"},
-            ],
-            "specVersion": "1.5",
-        }
-    ).encode("utf-8") + b"\n"
-    licenses = _canonical_json(
-        {
-            "components": [
-                {"license": "Proprietary", "name": "x2n-douyin-visible-sidecar", "runtime_dependency": False},
-                {"license": "PSF-2.0", "name": "python-stdlib", "runtime_dependency": True},
-            ],
-            "schema_version": "1.0",
-        }
-    ).encode("utf-8") + b"\n"
+    resolved_lock = (
+        _canonical_json(
+            {
+                "implementation": IMPLEMENTATION["kind"],
+                "runtime_dependencies": ["python-stdlib"],
+                "schema_version": "1.0",
+                "sidecar_sha256": executable_sha256,
+            }
+        ).encode("utf-8")
+        + b"\n"
+    )
+    sbom = (
+        _canonical_json(
+            {
+                "bomFormat": "CycloneDX",
+                "components": [
+                    {
+                        "hashes": [{"alg": "SHA-256", "content": executable_sha256}],
+                        "name": "x2n-douyin-visible-sidecar",
+                        "type": "application",
+                        "version": PROTOCOL_VERSION,
+                    },
+                    {"licenses": [{"license": {"id": "PSF-2.0"}}], "name": "python-stdlib", "type": "framework"},
+                ],
+                "specVersion": "1.5",
+            }
+        ).encode("utf-8")
+        + b"\n"
+    )
+    licenses = (
+        _canonical_json(
+            {
+                "components": [
+                    {"license": "Proprietary", "name": "x2n-douyin-visible-sidecar", "runtime_dependency": False},
+                    {"license": "PSF-2.0", "name": "python-stdlib", "runtime_dependency": True},
+                ],
+                "schema_version": "1.0",
+            }
+        ).encode("utf-8")
+        + b"\n"
+    )
     return {
         "sidecar": (sidecar, 0o700),
         "resolved-lock.json": (resolved_lock, 0o600),
@@ -625,7 +657,9 @@ class OwnerPrivateVisibleSidecarClient:
         except OSError as error:
             os.close(read_fd)
             os.close(write_fd)
-            raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Douyin visible Sidecar process is unavailable") from error
+            raise X2NRuntimeError(
+                ErrorCode.DEPENDENCY_MISSING, "Douyin visible Sidecar process is unavailable"
+            ) from error
         os.close(write_fd)
         try:
             ready, _, _ = select.select([read_fd], [], [], MAX_STARTUP_SECONDS)
@@ -675,12 +709,18 @@ class OwnerPrivateVisibleSidecarClient:
             content_type = (response.getheader("Content-Type") or "").split(";", 1)[0].strip().lower()
             body = response.read(MAX_RESPONSE_BYTES + 1)
             if len(body) > MAX_RESPONSE_BYTES:
-                raise X2NRuntimeError(ErrorCode.SECURITY_INJECTION_BLOCKED, "Douyin visible Sidecar response is too large")
+                raise X2NRuntimeError(
+                    ErrorCode.SECURITY_INJECTION_BLOCKED, "Douyin visible Sidecar response is too large"
+                )
             if response.status != 200 or content_type != "application/json":
-                raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Douyin visible Sidecar rejected the visible batch")
+                raise X2NRuntimeError(
+                    ErrorCode.PROVENANCE_INCOMPLETE, "Douyin visible Sidecar rejected the visible batch"
+                )
             return _decode_json(body)
         except (TimeoutError, ConnectionError, OSError, http.client.HTTPException) as error:
-            raise X2NRuntimeError(ErrorCode.NETWORK_FAILED, "Douyin visible Sidecar loopback exchange failed") from error
+            raise X2NRuntimeError(
+                ErrorCode.NETWORK_FAILED, "Douyin visible Sidecar loopback exchange failed"
+            ) from error
         finally:
             connection.close()
 
@@ -693,7 +733,9 @@ class OwnerPrivateVisibleSidecarClient:
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
-            raise X2NRuntimeError(ErrorCode.NETWORK_FAILED, "Douyin visible Sidecar did not stop after one action") from None
+            raise X2NRuntimeError(
+                ErrorCode.NETWORK_FAILED, "Douyin visible Sidecar did not stop after one action"
+            ) from None
 
     def fetch_owner_batch(self, request: VisibleBatchRequest) -> tuple[dict[str, str], DouyinBatch]:
         process, nonce = self._start()

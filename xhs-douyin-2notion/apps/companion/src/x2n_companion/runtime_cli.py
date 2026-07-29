@@ -252,10 +252,14 @@ def _owner_mvp_input_template() -> dict[str, Any]:
             "port": "REPLACE_WITH_OWNER_LOOPBACK_PORT",
         },
         "enabled_scopes": [
-            {"max_items": 20, "scope_id": "xiaohongshu_favorites", "transport": "chrome_visible_dom"},
             {
                 "max_items": 20,
                 "scope_id": "xiaohongshu_current_content",
+                "transport": "chrome_current_page_explicit",
+            },
+            {
+                "max_items": 20,
+                "scope_id": "xiaohongshu_current_content_second_batch",
                 "transport": "chrome_current_page_explicit",
             },
             {
@@ -273,8 +277,8 @@ def _owner_mvp_input_template() -> dict[str, Any]:
                 "scope_id": scope,
             }
             for scope in (
-                "xiaohongshu_favorites",
                 "xiaohongshu_current_content",
+                "xiaohongshu_current_content_second_batch",
                 "douyin_favorites",
                 "douyin_likes",
             )

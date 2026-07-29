@@ -124,7 +124,9 @@ def _source_manifest() -> dict[str, Any]:
         if destination == "extension" and (
             (source / _EXTENSION_RELEASE_IDENTITY).exists() or (source / _EXTENSION_RELEASE_IDENTITY).is_symlink()
         ):
-            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP extension source contains a generated release identity")
+            raise X2NRuntimeError(
+                ErrorCode.POLICY_BLOCKED, "MVP extension source contains a generated release identity"
+            )
         rows.append({"destination": destination, "source_digest": _directory_digest(source)})
     artifact_basis = {
         "artifact_kind": "local_owner_mvp",
@@ -211,9 +213,7 @@ def _read_staged_manifest(target: Path) -> dict[str, Any]:
     ):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "MVP staged artifact manifest is invalid")
     basis = {
-        key: item
-        for key, item in value.items()
-        if key not in {"artifact_sha256", "extension_release_identity_sha256"}
+        key: item for key, item in value.items() if key not in {"artifact_sha256", "extension_release_identity_sha256"}
     }
     if canonical_json_sha256(basis) != value["artifact_sha256"]:
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "MVP staged artifact digest is invalid")
@@ -389,9 +389,10 @@ class MvpDeploymentManager:
 
     def discard_staged(self) -> None:
         _install, versions, current, previous = _release_layout(self.paths)
-        if _controlled_link(current, versions=versions) == RELEASE_VERSION or _controlled_link(
-            previous, versions=versions
-        ) == RELEASE_VERSION:
+        if (
+            _controlled_link(current, versions=versions) == RELEASE_VERSION
+            or _controlled_link(previous, versions=versions) == RELEASE_VERSION
+        ):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Active MVP staged artifact cannot be discarded")
         target = versions / RELEASE_VERSION
         if not target.exists() and not target.is_symlink():
@@ -467,7 +468,9 @@ class MvpDeploymentManager:
             release_source_root=target,
             release_artifact_sha256=staged.artifact_sha256,
         )
-        if any(path.exists() or path.is_symlink() for path in (plan.runtime_path, plan.launcher_path, plan.manifest_path)):
+        if any(
+            path.exists() or path.is_symlink() for path in (plan.runtime_path, plan.launcher_path, plan.manifest_path)
+        ):
             raise X2NRuntimeError(
                 ErrorCode.POLICY_BLOCKED,
                 "MVP deploy will not overwrite an existing Native Host; migrate it in a separate owner task",
@@ -499,7 +502,9 @@ class MvpDeploymentManager:
         if browser is None:
             return {"native_host_uninstalled": False, "paths_emitted": False, "rollback_target": "disabled"}
         plan = create_plan(action="uninstall", browser=browser, home=Path.home(), env={})
-        if not any(path.exists() or path.is_symlink() for path in (plan.runtime_path, plan.launcher_path, plan.manifest_path)):
+        if not any(
+            path.exists() or path.is_symlink() for path in (plan.runtime_path, plan.launcher_path, plan.manifest_path)
+        ):
             return {"native_host_uninstalled": False, "paths_emitted": False, "rollback_target": "disabled"}
         receipt = execute_plan(plan, confirmation=UNINSTALL_CONFIRMATION)
         if receipt.get("status") != "UNINSTALLED":
@@ -537,7 +542,9 @@ class MvpDeploymentManager:
                 except X2NRuntimeError:
                     cleanup_failed = True
             if cleanup_failed:
-                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP deployment rollback cleanup is incomplete") from error
+                raise X2NRuntimeError(
+                    ErrorCode.POLICY_BLOCKED, "MVP deployment rollback cleanup is incomplete"
+                ) from error
             if isinstance(error, X2NRuntimeError):
                 raise
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP deployment transaction failed") from error
@@ -607,7 +614,9 @@ class MvpDeploymentManager:
         try:
             response = json.loads(result.stdout[4:].decode("utf-8", errors="strict"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Native Host online smoke response is invalid") from error
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Native Host online smoke response is invalid"
+            ) from error
         if (
             not isinstance(response, Mapping)
             or response.get("accepted") is not True

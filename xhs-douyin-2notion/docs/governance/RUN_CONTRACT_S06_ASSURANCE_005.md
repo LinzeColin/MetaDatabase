@@ -6,7 +6,7 @@
 - Phase: `PH.X2N.6.5`
 - Release: `v0.0.0.1`
 - Delivery model: direct local Owner MVP; no Alpha, Beta, fixed observation period, or soak gate
-- Scope amendment: `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT`
+- Scope amendment: `CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES`
 
 ## Single-task outcome
 
@@ -14,8 +14,8 @@ This is the only Task that may make the bounded Owner MVP live. It may activate 
 
 | Scope | Bound | Execution surface |
 |---|---:|---|
-| Xiaohongshu favorites | 20 visible items | explicit Side Panel action; no automatic scroll |
 | Xiaohongshu current content (`xiaohongshu_current_content`) | 20 explicit detail pages | 20 separate Owner gestures; no auto-scroll, pagination, navigation, or retry |
+| Xiaohongshu current content batch 2 (`xiaohongshu_current_content_second_batch`) | 20 explicit detail pages | 20 separate Owner gestures, disjoint from batch 1; no auto-scroll, pagination, navigation, or retry |
 | Douyin favorites | 20 items | Owner-private loopback Sidecar with attestation |
 | Douyin likes | 20 items | Owner-private loopback Sidecar with attestation |
 
@@ -56,12 +56,19 @@ npm run test:douyin-visible-lists-fixtures --workspace @x2n/extension
 npm run test:douyin-extension --workspace @x2n/extension
 npm run test:xhs-favorites-fixtures --workspace @x2n/extension
 npm run test:xhs-likes-fixtures --workspace @x2n/extension
+.venv/bin/python -B scripts/ci/run_lane.py --lane fast --reports-dir build/a005-source-lane
+.venv/bin/python -B scripts/verify_assurance_005_source_lane.py \
+  --lane-report build/a005-source-lane/software-lane.json --write-evidence
+.venv/bin/python -B scripts/verify_assurance_005_source_lane.py --require-evidence
 ```
 
 The release source must be clean and carry the unique `v0.0.0.1` tag immediately before deployment. The release
 command verifies both facts locally; it neither reads nor changes any credential, remote, or shared GitHub Token.
 The source lane also verifies the Owner-input Markdown contract against the immutable digest packaged into the
 Companion, so the installed Native Host never depends on an unchecked repository path at runtime.
+The A005 source-lane record is a one-time, public-safe aggregate of those local checks. It is separate from the
+immutable Stage 3 Resume evidence and from the later go-live receipt; it proves neither an Owner Runtime, a
+platform action, nor deployment.
 
 ## Owner-operated direct MVP sequence
 
@@ -69,12 +76,12 @@ All private input files are owner-only local files. Their contents, local locati
 credentials, cookies, content, and platform CDN URLs must never enter public output or Git.
 
 Before any arm or Canonical write, use the Side Panel on the already selected visible surfaces: one hash-only
-20-item preparation action for Xiaohongshu favorites, Douyin favorites, and Douyin likes, then 20 separate explicit
-Xiaohongshu detail-page preparation actions. The preparation path never scrolls, paginates, navigates, retries,
+20-item preparation action for Douyin favorites and Douyin likes, then 20 separate explicit Xiaohongshu detail-page
+preparation actions for each of the two current-content batches. The preparation path never scrolls, paginates, navigates, retries,
 creates a Canonical row/job, or changes account state. It retains only SHA-256 stable content identifiers in the
 owner-only pre-arm state; it does not ask the Owner to copy IDs, compute hashes, edit JSON, or use a template.
 Exactly four unique 20-item sets atomically freeze the private release input. A repeated/changed list, duplicate
-current item, incomplete batch, invalid detail identity, existing input/state, or invalid private Sidecar stops with
+current item within or across batches, incomplete batch, invalid detail identity, existing input/state, or invalid private Sidecar stops with
 no Canonical write and no changed release input.
 
 The Side Panel uses a temporary, source-bound Native Host only as the pre-arm bridge. It is not a deployment or
@@ -120,14 +127,14 @@ workflow. The pre-arm finalizer creates the only valid input from the four prepa
 clean-room Sidecar attestation, and a private loopback port. The Companion validates that candidate before its atomic
 private write. The release input contains four ordered, hash-only 20-item manifests and never prints IDs or hashes.
 The Companion compares each post-arm list action's observed 20 IDs to its private set before any Canonical write.
-For Xiaohongshu current content, it compares the stable ID of every one of the 20 explicit detail-page captures
+For each Xiaohongshu current-content batch, it compares the stable ID of every one of the 20 explicit detail-page captures
 before that capture's first Canonical write, and persists only its SHA-256 plus opaque Native Job ID. A mismatch
 stops the affected action with zero write. A private enrollment/input/release-state/browser-handshake symlink,
 including a dangling one, is never treated as absent: it blocks the corresponding action before a backup, private
 state write, or platform action.
 
-After `arm`, the Owner performs one explicit bounded Side Panel action for each of the three list-backed scopes,
-then 20 separate explicit Xiaohongshu detail-page capture actions for the current-content scope. The UI must not
+After `arm`, the Owner performs one explicit bounded Side Panel action for each of the two list-backed scopes,
+then 20 separate explicit Xiaohongshu detail-page capture actions for each current-content scope. The UI must not
 scroll, alter platform account state, auto-navigate, retry, or run a background batch. Then complete the same
 release Task:
 

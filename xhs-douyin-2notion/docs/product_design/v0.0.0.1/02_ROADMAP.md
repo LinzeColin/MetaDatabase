@@ -3,10 +3,10 @@ artifact: ROADMAP
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_5_G5_CI_SYNTH_PASS_ASSURANCE001_NEXT
-owner_change_event: CE-X2N-20260719-S00-P01
+status: STAGE_6_ASSURANCE004_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_PASS_ASSURANCE005_NEXT
+owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT
+assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES
 planning_unit: stage-phase-task
 schedule_type: dependency-and-effort-range
 calendar_commitment: none
@@ -18,7 +18,7 @@ calendar_commitment: none
 >
 > Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：不设置预发布阶段、固定 30 日观察或 soak。`G0–G5`、前置任务与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动该 Task；任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署和在线 smoke 后签发 `G6 PASS`。合法外部门可关闭结算，技术阻断不可结算，安全未知或失败不能降级结算；任务内 Oracle 不反向成为启动条件；上线后监控不阻断后续开发。
 >
-> A005 scope amendment `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT`：直接 MVP 的 80 条具体范围为小红书收藏 20、小红书当前内容 20（`saved_current`，20 次逐条显式详情页捕获）、抖音收藏 20、抖音喜欢 20；它不改变长期的小红书点赞产品能力或 CI 合成验证。
+> A005 scope amendment `CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES`：直接 MVP 的 80 条具体范围为小红书当前内容批次 1 20、小红书当前内容批次 2 20（均为 `saved_current`、20 次逐条显式详情页捕获，批次间严格去重）、抖音收藏 20、抖音喜欢 20；它不改变长期小红书收藏/点赞能力或 CI 合成验证。
 
 ## 1. Roadmap 总览
 

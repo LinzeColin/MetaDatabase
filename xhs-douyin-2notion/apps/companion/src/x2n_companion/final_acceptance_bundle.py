@@ -325,9 +325,7 @@ def verify_final_acceptance_bundle(
             documents[name] = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as error:
             raise FinalAcceptanceBundleError("final acceptance bundle member is unreadable") from error
-    expected_lines = [
-        f"{_sha256_text(documents[name])}  {name}" for name in _CHECKSUMMED_FILENAMES
-    ]
+    expected_lines = [f"{_sha256_text(documents[name])}  {name}" for name in _CHECKSUMMED_FILENAMES]
     _require(
         documents["checksums.sha256"].splitlines() == expected_lines,
         "final acceptance bundle checksum manifest is invalid",
@@ -353,8 +351,7 @@ def verify_final_acceptance_bundle(
         "final acceptance release manifest drifted",
     )
     _require(
-        governance.get("external_gates") == receipt["external_gates"]
-        and governance.get("status") == receipt["status"],
+        governance.get("external_gates") == receipt["external_gates"] and governance.get("status") == receipt["status"],
         "final acceptance governance receipt drifted",
     )
     _require(

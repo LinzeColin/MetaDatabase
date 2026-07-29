@@ -225,14 +225,14 @@ def dispatch_wire(
                     raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP Side Panel handshake is not eligible")
             return _accepted(request_id=request_id, status="completed")
         if request.action is NativeAction.CAPTURE_CURRENT:
-            current_content_hash = None
+            current_content_capture = None
             if request.payload.owner_mvp_scope is not None:
                 if release_controller is None:
                     OwnerMvpManifestEnrollment.load_or_create(active_store.paths).record_current_content(
                         payload=request.payload
                     )
                     return _accepted(request_id=request_id, status="completed")
-                current_content_hash = release_controller.prepare_current_content_capture(
+                current_content_capture = release_controller.prepare_current_content_capture(
                     payload=request.payload,
                     request_id=request_id,
                 )
@@ -246,9 +246,11 @@ def dispatch_wire(
                 request_id=request_id,
                 payload_hash=request.payload_hash,
             )
-            if current_content_hash is not None:
+            if current_content_capture is not None:
                 assert release_controller is not None
+                current_scope_id, current_content_hash = current_content_capture
                 release_controller.record_current_content_capture(
+                    scope_id=current_scope_id,
                     content_id_hash=current_content_hash,
                     job_id=receipt.job_id,
                     state=receipt.state,

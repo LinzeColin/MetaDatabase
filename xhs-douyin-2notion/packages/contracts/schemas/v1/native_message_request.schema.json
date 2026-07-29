@@ -180,7 +180,10 @@
         "owner_mvp_scope": {
           "anyOf": [
             {
-              "const": "xiaohongshu_current_content",
+              "enum": [
+                "xiaohongshu_current_content",
+                "xiaohongshu_current_content_second_batch"
+              ],
               "type": "string"
             },
             {

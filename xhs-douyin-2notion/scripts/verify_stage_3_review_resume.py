@@ -124,7 +124,6 @@ EXPECTED_ASSURANCE_005_OWNED_ACCEPTANCES = [
     "ACC.x2n.capture.005",
     "ACC.x2n.capture.006",
     "ACC.x2n.xhs.001",
-    "ACC.x2n.xhs.002",
     "ACC.x2n.dy.001",
     "ACC.x2n.dy.002",
     "ACC.x2n.bili.001",
@@ -155,15 +154,32 @@ EXPECTED_G6_CONDITIONS = [
     "no prerelease phase, fixed observation period or soak gate is inserted",
     "G6 is evaluated only after assurance.005 finishes deployment and online smoke and is never a precondition to assurance.005",
 ]
+EXPECTED_STAGE6_ASSURANCE004_LOCAL_CI = (
+    "pass_independent_g3_recheck_task010_eight_scope_extension_native_adapter_typed_capability_snapshot_"
+    "technical_veto_failed_run_explicit_fallback_task005_no_empty_response_deletion_extension_100_restart_"
+    "reconciliation_task002_local_first_asr_cache_budget_cloud_zero_private_gold_pending_task003_local_first_"
+    "ocr_vision_cache_budget_cloud_zero_private_gold_pending_task004_deterministic_fusion_strict_parser_"
+    "injection_task005_owner_taxonomy_revision_constrained_classifier_review_private_gold_oracle_g4_review_"
+    "five_task_receipts_prompt_injection_owner_taxonomy_auto_classify_disabled_stage5_task001_versioned_"
+    "additive_notion_schema_long_text_batches_fourteen_views_outbox_reconcile_stage5_task002_ten_thousand_"
+    "sqlite_single_snapshot_markdown_rebuild_link_checker_zero_duplicate_copies_stage5_task003_loopback_webui_"
+    "csrf_origin_xss_review_redacted_diagnostics_historical_v1_replay_stage5_task004_allowlisted_diagnostic_"
+    "journal_opaque_run_id_ten_stage_recovery_doctor_degraded_matrix_markdown_rebuild_notion_mock_reconcile_"
+    "task005_historical_replay_g5_four_condition_review_real_calls_0_stage6_assurance001_full_current_pipeline_"
+    "80x2_100_concurrent_10k_migration_browser_e2e_two_mutants_fresh_copy_historical_g5_replay_real_calls_0_"
+    "stage6_assurance002_asr_ocr_vision_disabled_fusion_model_not_run_classification_suggestion_only_auto_classify_false_"
+    "private_gold_not_read_model_calls_0_stage6_assurance003_current_source_candidate_artifact_private_cdn_zero_history_"
+    "credential_zero_sast_osv_sbom_license_csp_ssrf_media_pass"
+)
 EXPECTED_FAST_LANE_GATES = [
     "format",
     "lint",
     "python_compile",
     "typescript_contract",
-    "root_unit",
+    "assurance_unit",
     "companion_unit_integration",
     "contract_unit",
-    "contract_acceptance",
+    "extension_self_test",
     "sbom_drift",
 ]
 ACTIVE_PRODUCT_DOCS = (
@@ -1003,8 +1019,62 @@ def validate_release_and_data_contracts() -> Check:
         and state.get("stage_5_task002_complete") is True
         and state.get("stage_5_remote_upload_authorized") is False
     )
+    stage5_completed = (
+        g4_completed
+        and all(
+            state.get("tasks", {}).get(task_id) == "pass"
+            for task_id in (
+                STAGE5_NEXT_TASK,
+                STAGE5_TASK002,
+                "TSK.x2n.uxops.003",
+                "TSK.x2n.uxops.004",
+                "TSK.x2n.uxops.005",
+            )
+        )
+        and state.get("stage_5_review_complete") is True
+        and state.get("stage_5_review_id") == "STG.X2N.5.REVIEW"
+        and state.get("stage_5_gate_status") == "pass_ci_synth"
+        and state.get("stage_5_remote_upload_authorized") is False
+    )
+    stage6_assurance004_completed = (
+        stage5_completed
+        and all(
+            state.get("tasks", {}).get(task_id) == "pass"
+            for task_id in (
+                "TSK.x2n.assurance.001",
+                "TSK.x2n.assurance.002",
+                "TSK.x2n.assurance.003",
+                "TSK.x2n.assurance.004",
+            )
+        )
+        and state.get("schema_version") == "1.45"
+        and state.get("stage") == "STG.X2N.6"
+        and state.get("phase") == "PH.X2N.6.4"
+        and state.get("last_completed_phase") == "PH.X2N.6.4"
+        and state.get("review_id") == "STG.X2N.5.REVIEW"
+        and state.get("run_id") == "RUN-X2N-S06-A004"
+        and state.get("run_kind") == "single_dag_task_ci_synth_performance_chaos_recovery_assurance"
+        and state.get("state")
+        == "stage_6_assurance004_ci_synth_performance_chaos_recovery_pass_assurance005_next_owner_input_required"
+        and state.get("next_phase") == "PH.X2N.6.5"
+        and state.get("next_run") == "TSK.x2n.assurance.005"
+        and state.get("next_task") == "TSK.x2n.assurance.005"
+        and state.get("next_phase_authorized") is True
+        and state.get("stage_6_task001_complete") is True
+        and state.get("stage_6_task002_complete") is True
+        and state.get("stage_6_task003_complete") is True
+        and state.get("stage_6_task004_complete") is True
+        and state.get("stage_6_task005_authorized") is True
+        and state.get("stage_6_remote_upload_authorized") is False
+        and state.get("public_release_authorized") is False
+        and state.get("stage_gate") == "pass"
+        and state.get("current_stage_gate") == "not_run"
+        and state.get("remote_upload") == "not_required_for_local_stage_transition"
+    )
     expected_project_status = (
-        "stage_5_task002_markdown_library_ci_synth_pass_task003_next_real_runtime_not_run"
+        "stage_6_assurance004_ci_synth_performance_chaos_recovery_pass_assurance005_next_owner_input_required"
+        if stage6_assurance004_completed
+        else "stage_5_task002_markdown_library_ci_synth_pass_task003_next_real_runtime_not_run"
         if stage5_task002_completed
         else "stage_5_task001_notion_projection_ci_synth_pass_task002_next_real_notion_not_run"
         if stage5_task001_completed
@@ -1046,6 +1116,42 @@ def validate_release_and_data_contracts() -> Check:
         )
         stage_4_authorized = False
         task_state_mode = "task010_planned"
+    elif task010_state == "pass" and task005_state == "pass" and stage6_assurance004_completed:
+        recheck = _load_json(G3_RECHECK_FACT)
+        _require(
+            recheck.get("review_id") == TASK010_RECHECK
+            and recheck.get("run_id") == G3_RECHECK_RUN_ID
+            and recheck.get("gate", {}).get("id") == "G3"
+            and recheck.get("gate", {}).get("status") == "PASS_CI_SYNTH"
+            and recheck.get("gate", {}).get("decision") == "PASS"
+            and recheck.get("authorization", {}).get("stage_3_remote_upload") is False
+            and recheck.get("authorization", {}).get("stage_4_local_task_start") is True
+            and recheck.get("next_task", {}).get("id") == STAGE4_NEXT_TASK,
+            "Assurance004 must preserve the immutable bounded G3 recheck fact",
+        )
+        for task_id, expected_status in (
+            ("TSK.x2n.assurance.001", "PASS_CI_SYNTH_CURRENT_SOFTWARE_ASSURANCE_REAL_MVP_NOT_RUN"),
+            ("TSK.x2n.assurance.002", "PASS_CI_SYNTH_MODEL_ASSURANCE_FEATURES_DISABLED_PRIVATE_GOLD_NOT_RUN"),
+            ("TSK.x2n.assurance.003", "PASS_CI_SYNTH_SECURITY_PRIVACY_SUPPLY_CHAIN_REAL_MVP_NOT_RUN"),
+            ("TSK.x2n.assurance.004", "PASS_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_REAL_MVP_NOT_RUN"),
+        ):
+            assurance = _load_json(
+                PROJECT_ROOT / f"machine/facts/stage_6_assurance_{task_id.rsplit('.', 1)[1]}_state.json"
+            )
+            _require(
+                assurance.get("task_id") == task_id
+                and assurance.get("status") == expected_status
+                and assurance.get("next_task", {}).get("id")
+                == (
+                    "TSK.x2n.assurance.005"
+                    if task_id == "TSK.x2n.assurance.004"
+                    else f"TSK.x2n.assurance.00{int(task_id.rsplit('.', 1)[1]) + 1}"
+                ),
+                f"{task_id} historical assurance state drifted",
+            )
+        expected_local_ci = EXPECTED_STAGE6_ASSURANCE004_LOCAL_CI
+        stage_4_authorized = True
+        task_state_mode = "stage6_assurance004_complete_assurance005_next"
     elif task010_state == "pass" and task005_state == "pass" and stage5_task002_completed:
         recheck = _load_json(G3_RECHECK_FACT)
         _require(
@@ -1428,7 +1534,18 @@ def validate_release_and_data_contracts() -> Check:
     )
     prfaq_text = PRFAQ.read_text(encoding="utf-8")
     prd_text = PRD.read_text(encoding="utf-8")
-    if task010_state == "planned":
+    if task_state_mode == "stage6_assurance004_complete_assurance005_next":
+        _require(
+            "status: STAGE_6_ASSURANCE004_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_PASS_ASSURANCE005_NEXT" in prfaq_text
+            and "decision: DIRECT_MVP_ASSURANCE004_PASS_ASSURANCE005_NEXT" in prfaq_text
+            and "implementation_authorized: stage_6_assurance005_only_single_dag_task" in prfaq_text
+            and "status: STAGE_6_ASSURANCE004_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_PASS_ASSURANCE005_NEXT" in prd_text
+            and "current_run_scope: stage_6_assurance004_performance_chaos_recovery_pass_assurance005_next_owner_input_required"
+            in prd_text
+            and "implementation_authorized: stage_6_assurance005_only_single_dag_task" in prd_text,
+            "PRFAQ/PRD Assurance004-to-A005 routing drifted",
+        )
+    elif task010_state == "planned":
         _require(
             "status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL" in prfaq_text
             and f"owner_change_event: {CHANGE_EVENT}" in prfaq_text
@@ -1795,7 +1912,7 @@ def _validate_lane_report_payload(report: dict[str, Any]) -> None:
         report.get("blocking_failures") == 0
         and report.get("flaky_blocking_tests") == 0
         and report.get("silent_blocking_skips") == 0
-        and report.get("explicit_nonblocking_skips") == 3,
+        and report.get("explicit_nonblocking_skips") == 0,
         "software lane failure/flaky/skip boundary drifted",
     )
     blocking_results = report.get("blocking_results")
@@ -1853,7 +1970,7 @@ def validate_lane_report(path: Path) -> Check:
             "blocking_executions": 9,
             "blocking_failures": 0,
             "repetitions": 1,
-            "explicit_nonblocking_skips": 3,
+            "explicit_nonblocking_skips": 0,
             "lane_reported_platform_calls": 0,
             "lane_reported_model_calls": 0,
             "lane_reported_real_accounts": 0,

@@ -10,17 +10,18 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 - Branch: `codex/xhs-douyin-2notion-v0001-s03-review-resume`
 - Stage 0–5 and Assurance001–004 are historical completed evidence; Assurance005 is the only active Task.
-- `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT` replaces only the live A005 XHS-likes batch with
-  `xiaohongshu_current_content`: 20 explicitly opened XHS detail pages with relation `saved_current`. The four exact
-  20-item scopes are now XHS favorites, XHS current content, Douyin favorites, and Douyin likes. The A005 source
-  implementation has three bounded list actions, 20 write-gated current-content actions, and a hash-only pre-arm
-  collector that builds/finalizes the four private manifests without asking the Owner to edit JSON. It has a Douyin
+- `CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES` replaces the remaining live A005 XHS favorites range with
+  `xiaohongshu_current_content_second_batch`: 20 explicitly opened XHS detail pages with relation `saved_current`,
+  strictly disjoint from the first 20-item `xiaohongshu_current_content` batch. The four exact 20-item scopes are
+  now two XHS current-content batches, Douyin favorites, and Douyin likes. The A005 source implementation has two
+  bounded Douyin list actions, 40 write-gated current-content actions, and a hash-only pre-arm collector that
+  builds/finalizes the four private manifests without asking the Owner to edit JSON. It has a Douyin
   private Sidecar boundary, aggregate-only 80-item verification, source-only staging, Native
   Host install/disable, and a Side Panel health handshake bound to the same staged artifact as the Host.
 - Before sign-off it now runs two deterministic Markdown rebuilds from the Canonical SQLite baseline, requires the
   second pass to make zero derived writes, and verifies the resulting archive through the approved
-  Private-MetaDatabase client. The private release-state schema is `1.2`; it persists only SHA-256 selected-content
-  identifiers and opaque Native Job IDs for the 20 current-content captures, plus aggregate release proof. Notion
+  Private-MetaDatabase client. The private release-state schema is `1.3`; it persists only SHA-256 selected-content
+  identifiers and opaque Native Job IDs for the two 20-item current-content batches, plus aggregate release proof. Notion
   remains explicitly disabled by the current Owner input, with zero Notion calls rather than a false write claim.
 - The staged extension receives one generated, hash-only `release_identity.json`; it is never present in public
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
@@ -69,8 +70,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   generic active class or an unrelated feed root remains rejected, and the exact-20 release gate remains mandatory.
 - The Side Panel exposes a distinct direct-MVP current-content control. A real canonical XHS detail page is eligible
   only for that control; the generic current-page path remains CI-synthetic. Before arm it emits a hash-only
-  enrollment with no Canonical Job/write; after all three visible list enrollments and 20 unique explicit details it
-  atomically freezes the private input. After arm the same control emits `X2N_CAPTURE_CURRENT_MVP`, cannot carry a
+  enrollment with no Canonical Job/write; after both visible Douyin-list enrollments and 40 unique explicit details
+  split across its two batch controls it atomically freezes the private input. After arm the same control emits
+  `X2N_CAPTURE_CURRENT_MVP`, cannot carry a
   fallback Job, and the Native Host checks the frozen Manifest before its first Canonical write. A duplicate,
   incomplete set, semantic mismatch, or multiple Canonical records for one opaque capture identity fails closed.
 - Pre-arm uses a temporary source-bound Native Host and unpacked Side Panel only to record the private hash-only
@@ -162,14 +164,14 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
 2. In the current delegated Owner run, install the temporary source-bound Native Host and load the matching unpacked
-   Side Panel, freshly observe XHS favorites and the two Douyin lists without scrolling, then use the Side Panel to
-   record the three exact visible 20-item pre-arm batches and 20 separate explicit XHS
-   detail-page current-content pre-arm captures. The Companion creates only private hashes and automatically freezes
+   Side Panel, freshly observe the two Douyin lists without scrolling, then use the Side Panel to record their two
+   exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
+   for each of the two disjoint batch controls. The Companion creates only private hashes and automatically freezes
    the input after all four ranges are exact; immediately uninstall the owned temporary Host so its fresh install slot
    is restored. Never substitute footer cards, invent hashes, or edit a template. A missing/ambiguous list or
    current-page identity is an explicit stop condition. Then configure the approved
    digest-pinned Private-MetaDatabase client, rerun `x2n release preflight` until it reports a valid input and no
-   existing release state, arm, perform the three actual list actions plus 20 actual current-content actions,
+   existing release state, arm, perform the two actual list actions plus 40 actual current-content actions,
    baseline verification, Markdown/durability materialization, rollback rehearsal, sign-off, exact tag, deploy,
    staged-extension reload, handshake, and immediate online smoke in the documented order.
 3. Only after that real sequence succeeds, run the read-only acceptance verifier and explicitly write the immutable

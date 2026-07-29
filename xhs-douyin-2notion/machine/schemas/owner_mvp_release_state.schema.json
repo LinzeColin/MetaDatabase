@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:x2n:owner-mvp-release-state:1.2",
+  "$id": "urn:x2n:owner-mvp-release-state:1.3",
   "title": "x2n private direct-MVP release state",
   "type": "object",
   "additionalProperties": false,
@@ -21,7 +21,7 @@
     "knowledge_assets"
   ],
   "properties": {
-    "schema_version": {"const": "1.2"},
+    "schema_version": {"const": "1.3"},
     "task_id": {"const": "TSK.x2n.assurance.005"},
     "project": {"const": "xhs-douyin-2notion"},
     "release_version": {"const": "v0.0.0.1"},

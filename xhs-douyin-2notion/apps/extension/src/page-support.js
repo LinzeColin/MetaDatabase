@@ -172,6 +172,10 @@ export function canCaptureXhsMvpCurrent(message, support) {
   return message !== null
     && typeof message === "object"
     && message.type === "X2N_CAPTURE_CURRENT_MVP"
+    && new Set([
+      "xiaohongshu_current_content",
+      "xiaohongshu_current_content_second_batch",
+    ]).has(message.ownerMvpScope)
     && message.fallbackFromJobId === undefined
     && support !== null
     && typeof support === "object"

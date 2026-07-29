@@ -122,13 +122,17 @@ if (!sources["src/service-worker.js"].includes("canCaptureXhsMvpCurrent(message,
 }
 if (
   !sources["sidepanel.html"].includes('id="save-current-mvp"')
+  || !sources["sidepanel.html"].includes('id="save-current-mvp-second"')
   || !sources["sidepanel.html"].includes('id="start-sync"')
   || !sources["sidepanel.html"].includes('id="capture-fallback"')
 ) {
   failures.push("task010_controls");
 }
 if (!sources["src/sidepanel.js"].includes("fallbackButton.addEventListener")) failures.push("fallback_second_action");
-if (!sources["src/sidepanel.js"].includes("saveMvpCurrentButton.addEventListener")) failures.push("mvp_current_action");
+if (
+  !sources["src/sidepanel.js"].includes("saveMvpCurrentButton.addEventListener")
+  || !sources["src/sidepanel.js"].includes("saveMvpCurrentSecondButton.addEventListener")
+) failures.push("mvp_current_action");
 if (sources["src/sidepanel.js"].includes("startSelectedSync().catch")) failures.push("automatic_sync_fallback");
 
 const e2eSource = await readFile(new URL("scripts/extension-e2e.mjs", root), "utf8");
@@ -155,9 +159,10 @@ if (!xhsMvpCurrent.mvpCurrentEligible || xhsMvpCurrent.executable) {
   failures.push("xhs_real_page_mvp_only_gate");
 }
 if (
-  !canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT_MVP" }, xhsMvpCurrent)
+  !canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT_MVP", ownerMvpScope: "xiaohongshu_current_content" }, xhsMvpCurrent)
   || canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT" }, xhsMvpCurrent)
-  || canCaptureXhsMvpCurrent({ fallbackFromJobId: "00000000-0000-4000-8000-000000000001", type: "X2N_CAPTURE_CURRENT_MVP" }, xhsMvpCurrent)
+  || canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT_MVP", ownerMvpScope: "unapproved_scope" }, xhsMvpCurrent)
+  || canCaptureXhsMvpCurrent({ fallbackFromJobId: "00000000-0000-4000-8000-000000000001", ownerMvpScope: "xiaohongshu_current_content", type: "X2N_CAPTURE_CURRENT_MVP" }, xhsMvpCurrent)
 ) {
   failures.push("xhs_real_page_mvp_current_capture_gate");
 }

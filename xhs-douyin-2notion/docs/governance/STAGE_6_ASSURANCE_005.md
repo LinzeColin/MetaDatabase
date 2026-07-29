@@ -1,14 +1,16 @@
 # Stage 6 Assurance005 — Direct MVP status
 
-`TSK.x2n.assurance.005 / PH.X2N.6.5` is active. `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT`
-replaces only the live A005 Xiaohongshu-likes batch with 20 explicit Xiaohongshu current-content captures. The
+`TSK.x2n.assurance.005 / PH.X2N.6.5` is active. `CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES`
+replaces the remaining live A005 Xiaohongshu favorites range with a second 20-item Xiaohongshu current-content
+batch, strictly disjoint from the first. The
 implementation now has a direct, bounded release path:
 
-- three fixed XHS/Douyin list actions plus 20 explicit XHS detail-page current-content actions, every scope exactly
-  20 items, aggregate-only 80-item verification, stable scope scan IDs, four Owner-private hash-only 20-item
-  manifests checked before every write, and no auto-scroll, retry, auto-navigation, or account mutation; before arm,
-  the Side Panel builds those manifests itself through a hash-only pre-arm collection (three exact visible lists plus
-  20 explicit XHS detail pages), creates no Canonical row/job, and atomically freezes the private release input only
+- two fixed Douyin list actions plus 40 explicit XHS detail-page current-content actions in two disjoint batches,
+  every scope exactly 20 items, aggregate-only 80-item verification, stable scope scan IDs, four Owner-private
+  hash-only 20-item manifests checked before every write, and no auto-scroll, retry, auto-navigation, or account
+  mutation; before arm, the Side Panel builds those manifests itself through a hash-only pre-arm collection (two
+  exact visible lists plus 40 explicit XHS detail pages), creates no Canonical row/job, and atomically freezes the
+  private release input only
   when all four sets are exact;
 - external Bilibili/Kuaishou/Weibo/Taobao scopes default to `DISABLED_EXTERNAL_GATE` with zero calls and no live
   support claim;

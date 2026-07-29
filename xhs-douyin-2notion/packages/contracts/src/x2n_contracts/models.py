@@ -222,7 +222,13 @@ class CaptureCurrentPayload(StrictContract):
     relation: RelationType
     category_id: UUID | None = None
     fallback_from_job_id: UUID | None = Field(default=None, exclude_if=lambda value: value is None)
-    owner_mvp_scope: Literal["xiaohongshu_current_content"] | None = Field(
+    owner_mvp_scope: (
+        Literal[
+            "xiaohongshu_current_content",
+            "xiaohongshu_current_content_second_batch",
+        ]
+        | None
+    ) = Field(
         default=None,
         exclude_if=lambda value: value is None,
     )

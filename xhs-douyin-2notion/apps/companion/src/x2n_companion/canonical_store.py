@@ -9,7 +9,7 @@ import os
 import re
 import sqlite3
 import uuid
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -2911,7 +2911,9 @@ class CanonicalStore:
                 for scope_id in SyncScopeId:
                     if scope_id not in OWNER_MVP_LIST_BASELINE_SCOPES:
                         continue
-                    platform, relation, receipt_prefix, run_prefix, checkpoint_prefix = OWNER_MVP_LIST_BASELINE_SCOPES[scope_id]
+                    platform, relation, receipt_prefix, run_prefix, checkpoint_prefix = OWNER_MVP_LIST_BASELINE_SCOPES[
+                        scope_id
+                    ]
                     scan_id = str(_uuid(scope_scan_ids[scope_id], label="owner_mvp_scan_id"))
                     suffix = UUID(scan_id).hex
                     run = connection.execute(
@@ -2982,11 +2984,7 @@ class CanonicalStore:
         )
         total_relations = sum(int(row["relation_count"]) for row in rows.values())
         digest_basis = {
-            scope_id: {
-                key: value
-                for key, value in row.items()
-                if key != "scan_ref_sha256"
-            }
+            scope_id: {key: value for key, value in row.items() if key != "scan_ref_sha256"}
             for scope_id, row in sorted(rows.items())
         }
         return {
@@ -3106,7 +3104,9 @@ class CanonicalStore:
             "relation_count": relation_count,
             "scan_complete": scan_complete,
             "scan_ref_sha256": hashlib.sha256(
-                json.dumps(sorted(identity.job_id for identity in identities.values()), separators=(",", ":")).encode("utf-8")
+                json.dumps(sorted(identity.job_id for identity in identities.values()), separators=(",", ":")).encode(
+                    "utf-8"
+                )
             ).hexdigest(),
         }
 
@@ -3982,7 +3982,9 @@ class CanonicalStore:
                 or source_counts != restored_counts
                 or source_digest != restored_digest
             ):
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Rollback rehearsal did not preserve the Canonical Store")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Rollback rehearsal did not preserve the Canonical Store"
+                )
             completed = True
             return {
                 "backup_sha256": expected_sha256,

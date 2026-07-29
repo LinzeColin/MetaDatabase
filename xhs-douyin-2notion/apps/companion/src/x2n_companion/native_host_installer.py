@@ -686,7 +686,9 @@ def verify_release_installation(plan: InstallPlan, *, release_artifact_sha256: s
         or not _owned_launcher(plan.launcher_path, receipt)
         or not _owned_manifest(plan.manifest_path, plan.launcher_path, receipt)
     ):
-        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Native Host is not bound to the staged release artifact")
+        raise X2NRuntimeError(
+            ErrorCode.DATA_INTEGRITY_FAILED, "Native Host is not bound to the staged release artifact"
+        )
     return {
         "native_host_release_bound": True,
         "paths_emitted": False,

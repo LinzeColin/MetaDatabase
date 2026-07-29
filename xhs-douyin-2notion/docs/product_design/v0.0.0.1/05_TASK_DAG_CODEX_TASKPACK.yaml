@@ -204,8 +204,8 @@ execution_policy:
   pre_release_phases: prohibited
   fixed_wait_or_soak_gate: prohibited
   post_go_live_monitoring: non_blocking
-  assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT
-  assurance_005_live_scope_contract: xiaohongshu_favorites_20_xiaohongshu_current_content_20_saved_current_explicit_details_douyin_favorites_20_douyin_likes_20
+  assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES
+  assurance_005_live_scope_contract: xiaohongshu_current_content_20_saved_current_explicit_details_xiaohongshu_current_content_second_batch_20_saved_current_explicit_details_disjoint_douyin_favorites_20_douyin_likes_20
   release_gate_order:
   - G0_TO_G5_PASS
   - ASSURANCE_001_TO_004_AND_UXOPS_005_COMPLETE
@@ -2596,8 +2596,8 @@ tasks:
   status: planned
   owner: codex
   authorization: owner_starts_codex_dev
-  human_input: owner authorization is recorded by CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT; runtime uses fresh private manifests, twenty explicitly opened XHS current-content details, and owner signoff; all other work uses synthetic data
-  objective: In one release task, complete the exact 80-item XHS/Douyin Owner MVP baseline (XHS favorites 20, XHS current content 20 as saved_current explicit details, Douyin favorites 20, Douyin likes 20) plus an independent no-more-than-20-item activation check for every additional enabled capability, prove rollback, deploy and run the unique v0.0.0.1 release, and verify that the MVP is online.
+  human_input: owner authorization is recorded by CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES; runtime uses fresh private manifests, forty explicitly opened XHS current-content details across two disjoint batches, and owner signoff; all other work uses synthetic data
+  objective: In one release task, complete the exact 80-item XHS/Douyin Owner MVP baseline (two disjoint XHS current-content batches of 20 as saved_current explicit details, Douyin favorites 20, Douyin likes 20) plus an independent no-more-than-20-item activation check for every additional enabled capability, prove rollback, deploy and run the unique v0.0.0.1 release, and verify that the MVP is online.
   inputs:
   - release-ready artifact
   - owner input pack
@@ -2606,7 +2606,7 @@ tasks:
   outputs:
   - signed/tagged v0.0.0.1 release
   - fresh-install transcript
-  - exact 80-item XHS/Douyin Owner MVP baseline acceptance with 20 explicit XHS current-content details
+  - exact 80-item XHS/Douyin Owner MVP baseline acceptance with two disjoint 20-item XHS current-content detail batches
   - one independent no-more-than-20-item activation receipt and private manifest for every additional enabled capability
   - a legal DISABLED_EXTERNAL_GATE settlement with flag off, zero call and zero live-support claim for every externally gated capability that is not enabled; BLOCKED_TECHNICAL cannot settle
   - rollback rehearsal
@@ -2655,7 +2655,7 @@ tasks:
   - ACC.x2n.rel.008
   tests:
   - x2n release verify
-  - owner exact 80-item XHS/Douyin MVP baseline with twenty explicit XHS current-content details
+  - owner exact 80-item XHS/Douyin MVP baseline with two disjoint twenty-item XHS current-content detail batches
   - per-additional-enabled-capability independent no-more-than-20-item activation manifest and coverage check
   - DISABLED_EXTERNAL_GATE settlement proves an external reason, flag off, zero platform call and zero live-support claim; BLOCKED_TECHNICAL fails closed
   - blue-green switch

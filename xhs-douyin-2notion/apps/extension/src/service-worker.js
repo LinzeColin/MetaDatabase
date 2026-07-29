@@ -42,6 +42,10 @@ const MESSAGE_TYPES = Object.freeze(new Set([
   "X2N_HEALTH",
   "X2N_START_SYNC",
 ]));
+const MVP_CURRENT_SCOPE_IDS = Object.freeze(new Set([
+  "xiaohongshu_current_content",
+  "xiaohongshu_current_content_second_batch",
+]));
 const SAFE_TOKEN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
@@ -389,10 +393,10 @@ async function captureCurrent(message) {
   }
   const payload = adapter.buildPayload(facts);
   if (message.type === "X2N_CAPTURE_CURRENT_MVP") {
-    if (!mvpCurrentEligible) {
+    if (!mvpCurrentEligible || !MVP_CURRENT_SCOPE_IDS.has(message.ownerMvpScope)) {
       return { ok: false, code: "X2N_POLICY_BLOCKED", status: "platform_disabled" };
     }
-    payload.owner_mvp_scope = "xiaohongshu_current_content";
+    payload.owner_mvp_scope = message.ownerMvpScope;
   }
   if (message.fallbackFromJobId !== undefined) {
     if (typeof message.fallbackFromJobId !== "string" || !UUID.test(message.fallbackFromJobId)) {

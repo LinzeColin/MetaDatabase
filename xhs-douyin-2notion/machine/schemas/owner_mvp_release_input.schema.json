@@ -33,7 +33,7 @@
         "required": ["scope_id", "content_id_sha256"],
         "properties": {
           "scope_id": {
-            "enum": ["xiaohongshu_favorites", "xiaohongshu_likes", "douyin_favorites", "douyin_likes"]
+            "enum": ["xiaohongshu_current_content", "xiaohongshu_current_content_second_batch", "douyin_favorites", "douyin_likes"]
           },
           "content_id_sha256": {
             "type": "array",
@@ -55,7 +55,7 @@
         "required": ["scope_id", "max_items", "transport"],
         "properties": {
           "scope_id": {
-            "enum": ["xiaohongshu_favorites", "xiaohongshu_likes", "douyin_favorites", "douyin_likes"]
+            "enum": ["xiaohongshu_current_content", "xiaohongshu_current_content_second_batch", "douyin_favorites", "douyin_likes"]
           },
           "max_items": {"const": 20},
           "transport": {"enum": ["chrome_visible_dom", "owner_private_loopback_sidecar"]}

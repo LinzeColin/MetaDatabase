@@ -151,6 +151,13 @@ class AdapterDispatchContractTests(unittest.TestCase):
         request = NativeMessageRequest.model_validate_json(json.dumps(_request("capture_current", owner_mvp))).root
         self.assertEqual(request.payload.owner_mvp_scope, "xiaohongshu_current_content")
 
+        owner_mvp_second = dict(legacy)
+        owner_mvp_second["owner_mvp_scope"] = "xiaohongshu_current_content_second_batch"
+        request = NativeMessageRequest.model_validate_json(
+            json.dumps(_request("capture_current", owner_mvp_second))
+        ).root
+        self.assertEqual(request.payload.owner_mvp_scope, "xiaohongshu_current_content_second_batch")
+
         owner_mvp_with_fallback = dict(owner_mvp)
         owner_mvp_with_fallback["fallback_from_job_id"] = "00000000-0000-4000-8000-000000000002"
         with self.assertRaises(ValidationError):

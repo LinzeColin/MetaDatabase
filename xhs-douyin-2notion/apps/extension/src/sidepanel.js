@@ -8,6 +8,7 @@ const hostStatus = document.querySelector("#host-status");
 const refreshButton = document.querySelector("#refresh-status");
 const saveButton = document.querySelector("#save-current");
 const saveMvpCurrentButton = document.querySelector("#save-current-mvp");
+const saveMvpCurrentSecondButton = document.querySelector("#save-current-mvp-second");
 const captureStatus = document.querySelector("#capture-status");
 const fallbackButton = document.querySelector("#capture-fallback");
 const syncPolicy = document.querySelector("#sync-policy");
@@ -33,9 +34,12 @@ const SYNC_SCOPE_RULES = Object.freeze({
   xiaohongshu_likes: Object.freeze({ maxItems: 80, selectedCollection: false }),
 });
 const OWNER_MVP_ENROLLMENT_SCOPE_IDS = Object.freeze(new Set([
-  "xiaohongshu_favorites",
   "douyin_favorites",
   "douyin_likes",
+]));
+const OWNER_MVP_CURRENT_SCOPE_IDS = Object.freeze(new Set([
+  "xiaohongshu_current_content",
+  "xiaohongshu_current_content_second_batch",
 ]));
 let activeTabId = null;
 let currentPageExecutable = false;
@@ -95,10 +99,14 @@ function renderPage(result) {
   mvpCurrentPageExecutable = xhsMvpCurrentExecutable;
   saveButton.disabled = !executablePlatform;
   saveMvpCurrentButton.disabled = !xhsMvpCurrentExecutable;
+  saveMvpCurrentSecondButton.disabled = !xhsMvpCurrentExecutable;
   saveButton.textContent = saveButton.disabled ? "Save unavailable" : "Save current page";
   saveMvpCurrentButton.textContent = saveMvpCurrentButton.disabled
-    ? "MVP current-content unavailable"
-    : "Record this page for direct MVP preparation or armed capture";
+    ? "MVP batch 1 unavailable"
+    : "Record this page for direct MVP batch 1";
+  saveMvpCurrentSecondButton.textContent = saveMvpCurrentSecondButton.disabled
+    ? "MVP batch 2 unavailable"
+    : "Record this page for direct MVP batch 2";
   fallbackButton.disabled = fallbackFromJobId === null || captureInFlight || !executablePlatform;
   if (!captureInFlight && fallbackFromJobId === null) {
     captureStatus.textContent = "";
@@ -173,7 +181,7 @@ function syncPayload() {
   if (!mvpActivation && !synthetic) return null;
   if (mvpActivation && (
     maxItems !== 20
-    || !new Set(["xiaohongshu_favorites", "xiaohongshu_likes", "douyin_favorites", "douyin_likes"]).has(syncScope.value)
+    || !new Set(["douyin_favorites", "douyin_likes"]).has(syncScope.value)
   )) return null;
   if (mvpEnrollment && (maxItems !== 20 || activeTabId === null)) return null;
   if (!rule.selectedCollection) {
@@ -268,12 +276,14 @@ async function refreshCapabilities() {
   }
 }
 
-async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpCurrent = false) {
+async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScope = null) {
+  const ownerMvpCurrent = OWNER_MVP_CURRENT_SCOPE_IDS.has(ownerMvpScope);
   if (
     activeTabId === null
     || captureInFlight
     || (!ownerMvpCurrent && saveButton.disabled)
-    || (ownerMvpCurrent && saveMvpCurrentButton.disabled)
+    || (ownerMvpScope === "xiaohongshu_current_content" && saveMvpCurrentButton.disabled)
+    || (ownerMvpScope === "xiaohongshu_current_content_second_batch" && saveMvpCurrentSecondButton.disabled)
   ) return;
   if (ownerMvpCurrent && explicitFallbackFromJobId !== null) return;
   const requestedTabId = activeTabId;
@@ -291,6 +301,7 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpCurr
       tabId: requestedTabId,
       type: ownerMvpCurrent ? "X2N_CAPTURE_CURRENT_MVP" : "X2N_CAPTURE_CURRENT",
     };
+    if (ownerMvpCurrent) message.ownerMvpScope = ownerMvpScope;
     if (explicitFallbackFromJobId !== null) message.fallbackFromJobId = explicitFallbackFromJobId;
     const result = await chrome.runtime.sendMessage(message);
     if (result?.ok && (result.response?.job_id || ownerMvpCurrent)) {
@@ -300,7 +311,7 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpCurr
         captureStatus.dataset.jobId = result.response.job_id;
         captureStatus.textContent = result.response.status === "completed"
           ? (ownerMvpCurrent
-            ? "Current content committed to the armed MVP scope"
+            ? `Current content committed to armed MVP ${ownerMvpScope === "xiaohongshu_current_content" ? "batch 1" : "batch 2"}`
             : "Current page committed to the canonical store")
           : "Current page queued in the local companion";
       } else {
@@ -322,6 +333,7 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpCurr
     captureInFlight = false;
     saveButton.disabled = !(currentPageExecutable && activeTabId === requestedTabId);
     saveMvpCurrentButton.disabled = !(mvpCurrentPageExecutable && activeTabId === requestedTabId);
+    saveMvpCurrentSecondButton.disabled = !(mvpCurrentPageExecutable && activeTabId === requestedTabId);
     fallbackButton.disabled = fallbackFromJobId === null || !(currentPageExecutable && activeTabId === requestedTabId);
   }
 }
@@ -379,7 +391,8 @@ async function refreshStatus() {
 
 refreshButton.addEventListener("click", refreshStatus);
 saveButton.addEventListener("click", () => captureCurrentPage());
-saveMvpCurrentButton.addEventListener("click", () => captureCurrentPage(null, true));
+saveMvpCurrentButton.addEventListener("click", () => captureCurrentPage(null, "xiaohongshu_current_content"));
+saveMvpCurrentSecondButton.addEventListener("click", () => captureCurrentPage(null, "xiaohongshu_current_content_second_batch"));
 fallbackButton.addEventListener("click", () => {
   if (fallbackFromJobId !== null) captureCurrentPage(fallbackFromJobId);
 });

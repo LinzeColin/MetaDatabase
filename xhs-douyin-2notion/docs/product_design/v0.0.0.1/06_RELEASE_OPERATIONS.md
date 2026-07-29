@@ -3,10 +3,10 @@ artifact: RELEASE_OPERATIONS
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_6_ASSURANCE003_CI_SYNTH_SECURITY_PRIVACY_SUPPLY_CHAIN_PASS_ASSURANCE004_NEXT
-owner_change_event: CE-X2N-20260719-S00-P01
+status: STAGE_6_ASSURANCE004_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_PASS_ASSURANCE005_NEXT
+owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT
+assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES
 release_target: owner-mvp
 distribution: local-developer-mode
 vps_data_plane: prohibited
@@ -18,8 +18,8 @@ vps_data_plane: prohibited
 >
 > Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：没有预发布阶段、固定 30 日观察或 soak。`G0–G5`、前置任务与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动该 Task；任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行与 online smoke 后签发 `G6 PASS`。合法外部门可关闭结算，技术阻断不可结算，安全未知或失败不能降级结算；任务内 Oracle 不是启动条件。
 >
-> A005 scope amendment `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT`：本次直接 MVP 的小红书点赞 20 条替换为小红书当前内容 20 条（`saved_current`，20 次逐条显式详情页捕获）。四范围仍精确 80 条；小红书点赞的长期能力和 CI 合成验证不因此删除。
-> A005 pre-arm implementation：Owner 不需要手工建立 Manifest。Side Panel 只可把三组可见列表和 20 个逐条
+> A005 scope amendment `CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES`：本次直接 MVP 的两组小红书关系范围替换为两组小红书当前内容各 20 条（均为 `saved_current`、20 次逐条显式详情页捕获，批次间严格去重）。四范围仍精确 80 条；小红书收藏/点赞的长期能力和 CI 合成验证不因此删除。
+> A005 pre-arm implementation：Owner 不需要手工建立 Manifest。Side Panel 只可把两组可见的抖音列表和 40 个逐条
 > 小红书详情页的稳定 ID 转换为 owner-only SHA-256 预备集合；四组均精确 20 条时才自动冻结私有 release input，
 > 预备阶段 Canonical/平台调用均为 0。
 
@@ -456,10 +456,10 @@ Synthetic
 
 ## 8.4 Owner MVP Manifest
 
-每个实际启用的平台/能力必须有独立私有 Manifest；以下是每能力上限 20 条的初始 Canary，不是用总数替代覆盖：
+每个实际启用的平台/能力必须有独立私有 Manifest；以下是每能力上限 20 条的初始有界 Owner MVP，不是用总数替代覆盖：
 
-- 小红书收藏 20；
-- 小红书当前内容 20（`saved_current`，20 次逐条显式详情页捕获）；
+- 小红书当前内容批次 1 20（`saved_current`，20 次逐条显式详情页捕获）；
+- 小红书当前内容批次 2 20（`saved_current`，20 次逐条显式详情页捕获，且与批次 1 严格去重）；
 - 抖音收藏 20；
 - 抖音点赞 20。
 - 哔哩哔哩所选列表 20（独立授权后）；

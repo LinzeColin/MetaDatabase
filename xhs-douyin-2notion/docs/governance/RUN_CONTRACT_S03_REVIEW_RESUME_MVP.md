@@ -82,8 +82,8 @@ G3 不再要求真实账号 Canary。`ACC.x2n.data.002` 在 Stage 3 只记
 不存在预发布阶段、固定 30 日健康观察或 soak gate。`G0–G5`、
 `assurance.001–004/uxops.005` 与 `assurance_005_owned_in_task_acceptance_ids` 精确集合之外的
 Blocking Acceptance 通过后，才启动 `TSK.x2n.assurance.005`。该集合固定包含
-`capture.001-.006`、`xhs.001/.002`、`dy.001/.002`、`bili/ks/wb/tb.001`、`data.002` 与
-`rel.006-.008`，它们不得反向成为启动前置。该任务内部依次完成 80 条 XHS/Douyin Owner MVP
+`capture.001-.006`、`xhs.001`、`dy.001/.002`、`bili/ks/wb/tb.001`、`data.002` 与
+`rel.006-.008`；`xhs.002` 保持 CI-synthetic Adapter Acceptance，且不构成本次 A005 直接 MVP 范围。它们不得反向成为启动前置。该任务内部依次完成 80 条 XHS/Douyin Owner MVP
 基线，并为每个额外实际启用的能力执行独立、不超过 20 条的激活 Manifest/检查；外部门未满足的
 Bilibili/Kuaishou/Weibo/Taobao 能力只能以合法 `PASS_DISABLED_EXTERNAL_GATE`（外部 reason、
 flag off、调用 0、live claim 0）结算，`BLOCKED_TECHNICAL` 不能结算。

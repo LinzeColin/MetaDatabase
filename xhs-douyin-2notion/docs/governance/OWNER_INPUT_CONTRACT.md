@@ -27,26 +27,28 @@ Owner 输入只保存于 `X2N_DATA_ROOT/runtime/owner_input_contract.local.json`
 
 缺失 Owner 值不会阻断合成开发，但对应 Feature 必须保持关闭并报告 `BLOCKED_USER_ACTION` 或 `UNKNOWN_DISABLED`，不得静默降级为授权。
 
-## A005 当前内容范围修订
+## A005 双当前内容范围修订
 
-`CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT` 仅对 `TSK.x2n.assurance.005` 的直接 Owner MVP 生效。
-对应 `owner_mvp_release_input` 必须将第二个有界范围写为
-`xiaohongshu_current_content`，transport 为 `chrome_current_page_explicit`，并提供 20 个唯一、
-仅 SHA-256 的稳定内容标识。每条捕获都必须是 Owner 已显式打开的小红书详情页，relation 为
-`saved_current`，不允许 category、fallback、自动滚动、自动翻页、自动导航或后台批处理。
+`CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES` 仅对 `TSK.x2n.assurance.005` 的直接 Owner MVP 生效。
+对应 `owner_mvp_release_input` 的前两个有界范围必须依次写为
+`xiaohongshu_current_content` 与 `xiaohongshu_current_content_second_batch`，transport 均为
+`chrome_current_page_explicit`，每个范围恰有 20 个唯一、仅 SHA-256 的稳定内容标识；两个范围之间也必须
+严格无交集。每条捕获都必须是 Owner 已显式打开的小红书详情页，relation 为 `saved_current`，不允许 category、
+fallback、自动滚动、自动翻页、自动导航或后台批处理。
 
 输入中不得放入原始内容 ID、页面 URL、CDN URL、媒体、账号、Cookie 或凭据。Companion 必须在
-每条当前内容的首次 Canonical 写入前匹配该私有 Manifest；任何缺项、重复或不匹配都以零写入
-Fail Closed。通用 `xiaohongshu_likes` 仍可用于 CI 合成验证，但不构成本次 A005 真实范围。
+每条当前内容的首次 Canonical 写入前匹配其私有 Manifest；任何缺项、跨批重复或不匹配都以零写入 Fail Closed。
+通用 `xiaohongshu_favorites` 与 `xiaohongshu_likes` 仍可用于 CI 合成验证，但不构成本次 A005 真实范围。
 
 ### A005 自动私有预备采集
 
 Owner 不需要手工复制内容 ID、计算 Hash 或编辑 `input-template`。在尚未 arm、且不存在 release input/state
-时，Side Panel 的三个“Prepare owner-selected 20-item MVP input”列表动作和小红书详情页专用按钮只允许
+时，Side Panel 的两个“Prepare owner-selected 20-item MVP input”列表动作和两个小红书详情页专用批次按钮只允许
 将已验证稳定内容标识的 SHA-256 写入 owner-only 的
-`runtime/release/owner_mvp_manifest_enrollment.local.json`。该预备状态固定为四个范围：小红书收藏、
-小红书当前内容、抖音收藏、抖音喜欢；列表必须一次精确 20 条，当前内容必须由 20 次独立详情页显式操作
-逐条加入。它不创建 Canonical Job/Content/Relation/Observation，不保存标题、页面 URL、DOM、媒体或账号状态。
+`runtime/release/owner_mvp_manifest_enrollment.local.json`。该预备状态固定为四个范围：小红书当前内容批次 1、
+小红书当前内容批次 2、抖音收藏、抖音喜欢；每个当前内容批次必须由 20 次独立详情页显式操作逐条加入，
+两个批次的 Hash 不可重叠；列表必须一次精确 20 条。它不创建 Canonical Job/Content/Relation/Observation，
+不保存标题、页面 URL、DOM、媒体或账号状态。
 
 四个范围均精确 20 个不同 Hash 后，Companion 才可复用或创建经核验的 clean-room Douyin Sidecar，并在私有
 Runtime 中原子冻结 `owner_mvp_release_input`。冻结后预备采集再也不能覆盖、追加或替换任何范围；后续 arm
