@@ -213,11 +213,12 @@ test("语气在真实链路上可达：app 自己就能渲染出当前语气块"
   assert.match(after, /话少、克制/, "改完之后，下一轮读到的必须是新语气");
   assert.match(after, /夜里说话轻一点/);
 
-  // buildRuntimeTurn 是真实链路上唯一的组装点，它必须真的把这段带上。
+  // buildRuntimeTurn 是真实链路上唯一的组装点，它必须真的把这段带上，
+  // 而且要按人读——每个人可以有自己的语气，没设过的沿用主人这一行。
   const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
   assert.match(
     source,
-    /personaInstruction:\s*this\.currentPersonaInstruction\(\)/,
+    /personaInstruction:\s*this\.currentPersonaInstruction\(\s*\n?\s*this\.resolveUserIdForPersona\(prepared\),?\s*\n?\s*\)/,
     "buildRuntimeTurn 必须把语气传进 assembleRuntimeTurnText，否则面板改了也没用",
   );
 });

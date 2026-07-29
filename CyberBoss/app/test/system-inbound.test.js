@@ -76,6 +76,10 @@ test("image attachments stay as inbound drafts before runtime turn assembly", as
       // 这里没有 personaStore，于是它返回空串——和「这台机器还没设过语气」
       // 的真实行为一致，而不是让调用悄悄消失。
       currentPersonaInstruction: CyberbossApp.prototype.currentPersonaInstruction,
+      // 语气按 user_id 读，所以接收者也得带上把 accountId+senderId 换成 user_id
+      // 的那一步。这里没有 userAdmission，于是它返回空串——和「这个人还没开通」
+      // 的真实行为一致。
+      resolveUserIdForPersona: CyberbossApp.prototype.resolveUserIdForPersona,
       config: {
         userName: "User",
       },
@@ -148,6 +152,10 @@ test("image prompt assembly is runtime-neutral for claudecode drafts", async () 
       // 这里没有 personaStore，于是它返回空串——和「这台机器还没设过语气」
       // 的真实行为一致，而不是让调用悄悄消失。
       currentPersonaInstruction: CyberbossApp.prototype.currentPersonaInstruction,
+      // 语气按 user_id 读，所以接收者也得带上把 accountId+senderId 换成 user_id
+      // 的那一步。这里没有 userAdmission，于是它返回空串——和「这个人还没开通」
+      // 的真实行为一致。
+      resolveUserIdForPersona: CyberbossApp.prototype.resolveUserIdForPersona,
       config: {
         userName: "User",
       },
@@ -204,6 +212,10 @@ test("text-only runtimes receive vision API captions as visual context", async (
       // 这里没有 personaStore，于是它返回空串——和「这台机器还没设过语气」
       // 的真实行为一致，而不是让调用悄悄消失。
       currentPersonaInstruction: CyberbossApp.prototype.currentPersonaInstruction,
+      // 语气按 user_id 读，所以接收者也得带上把 accountId+senderId 换成 user_id
+      // 的那一步。这里没有 userAdmission，于是它返回空串——和「这个人还没开通」
+      // 的真实行为一致。
+      resolveUserIdForPersona: CyberbossApp.prototype.resolveUserIdForPersona,
       config: {
         visionMode: "auto",
         visionProvider: "openai-compatible",
@@ -251,6 +263,10 @@ test("native image-capable runtimes receive attachments without caption fallback
   };
   const runtimeTurn = await CyberbossApp.prototype.buildRuntimeTurn.call({
     currentPersonaInstruction: CyberbossApp.prototype.currentPersonaInstruction,
+    // 语气按 user_id 读，所以接收者也得带上把 accountId+senderId 换成 user_id
+    // 的那一步。这里没有 userAdmission，于是它返回空串——和「这个人还没开通」
+    // 的真实行为一致。
+    resolveUserIdForPersona: CyberbossApp.prototype.resolveUserIdForPersona,
     config: {
       visionMode: "auto",
     },
@@ -289,6 +305,10 @@ test("tool image-capable runtimes keep local image paths without caption fallbac
       // 这里没有 personaStore，于是它返回空串——和「这台机器还没设过语气」
       // 的真实行为一致，而不是让调用悄悄消失。
       currentPersonaInstruction: CyberbossApp.prototype.currentPersonaInstruction,
+      // 语气按 user_id 读，所以接收者也得带上把 accountId+senderId 换成 user_id
+      // 的那一步。这里没有 userAdmission，于是它返回空串——和「这个人还没开通」
+      // 的真实行为一致。
+      resolveUserIdForPersona: CyberbossApp.prototype.resolveUserIdForPersona,
       config: {
         visionMode: "auto",
         visionProvider: "openai-compatible",

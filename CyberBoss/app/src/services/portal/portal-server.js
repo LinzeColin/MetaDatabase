@@ -457,7 +457,10 @@ class PortalHttpServer {
         return;
       }
       if (name === "persona" && request.method === "GET" && typeof this.adminPersonaRead === "function") {
-        this.#json(response, 200, await this.adminPersonaRead());
+        // person 给了就读那个人自己的语气，不给就是主人那一行（所有人的默认值）。
+        this.#json(response, 200, await this.adminPersonaRead({
+          person: String(url.searchParams.get("person") || "").slice(0, 200),
+        }));
         return;
       }
       if (name === "persona" && request.method === "POST" && typeof this.adminPersonaWrite === "function") {

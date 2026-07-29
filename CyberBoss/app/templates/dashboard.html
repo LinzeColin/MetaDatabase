@@ -228,6 +228,26 @@
         <ul class="tl" id="timeline"></ul>
       </div>
 
+      <!-- 只对这个人的语气。没单独设过就沿用「设置」那一页的默认值，
+           页面上要说清楚现在是哪一种，否则改了默认值会以为对每个人都生效。 -->
+      <div class="card">
+        <h2 style="margin-top:0">只对他的语气</h2>
+        <p class="hint" id="pp-state"></p>
+        <div id="pp-tones"></div>
+        <div id="pp-lengths" style="margin-top:10px"></div>
+        <label class="opt" style="margin-top:10px"><input type="checkbox" id="pp-emoji"><span class="lab">可以用 emoji</span></label>
+        <p class="hint" style="margin-top:10px">怎么称呼他</p>
+        <input type="text" id="pp-callme" maxlength="24" placeholder="不填就不特意称呼">
+        <p class="hint" style="margin-top:10px">还想让它对他注意什么</p>
+        <textarea id="pp-note" rows="3" placeholder="比如：他在减肥，别推荐吃的"></textarea>
+        <div style="margin-top:10px">
+          <button type="button" id="pp-save">只保存给他</button>
+          <span class="faint" id="pp-saved" hidden>存好了 ✓</span>
+        </div>
+        <p class="hint" style="margin-top:10px">它对他实际会照着说的那段话：</p>
+        <pre class="preview" id="pp-preview"></pre>
+      </div>
+
       <h2>聊天记录</h2>
       <!-- 聊得久了这一段会非常长，所以搜索、分类、日期都放在它上面。 -->
       <div class="finder">
@@ -505,7 +525,7 @@
     document.getElementById("people-view").hidden = true;
     document.getElementById("chat-view").hidden = false;
     set("chat-who", person.label + (person.isOwner ? "（你）" : ""));
-    loadChat(); loadInsights();
+    loadChat(); loadInsights(); loadPersonTone();
   }
   document.getElementById("back").addEventListener("click", function () {
     openPerson = "";
@@ -706,6 +726,83 @@
     filter = { q: "", from: "", to: "" };
     ["q", "from", "to"].forEach(function (id) { document.getElementById(id).value = ""; });
     loadFeed();
+  });
+
+  // ── 只对这个人的语气 ─────────────────────────────────
+  //
+  // 「设置」那一页改的是所有人的默认值；这一段改的只是打开的这个人。
+  // 服务端会告诉我们现在是"他自己设过"还是"在沿用默认值"（inherited），
+  // 这句话必须显示出来——不显示的话，主人改完默认值会以为对每个人都生效了。
+  function radios(box, items, name, current) {
+    box.textContent = "";
+    (items || []).forEach(function (item) {
+      var label = el("label", "opt");
+      var input = document.createElement("input");
+      input.type = "radio"; input.name = name; input.value = item.id;
+      input.checked = item.id === current;
+      var span = el("span", "lab", item.label);
+      if (item.hint) { span.appendChild(el("span", "exp", item.hint)); }
+      label.appendChild(input); label.appendChild(span); box.appendChild(label);
+    });
+  }
+  function renderPersonTone(data) {
+    if (!data.ok) {
+      set("pp-state", data.code === "PERSONA_USER_UNKNOWN"
+        ? "他还没跟它说过话，暂时不能单独设。"
+        : "读不出来：" + (data.code || "未知"));
+      return;
+    }
+    var persona = data.persona || {};
+    set("pp-state", data.inherited
+      ? "现在跟着「设置」里的默认值走。在这里改一下，就只对他生效。"
+      : "他有自己的一套，改「设置」里的默认值不会动到他。");
+    radios(document.getElementById("pp-tones"), data.tones, "pptone", persona.tone);
+    radios(document.getElementById("pp-lengths"), data.lengths, "pplen", persona.length);
+    document.getElementById("pp-emoji").checked = persona.emoji === true;
+    document.getElementById("pp-callme").value = persona.callMe || "";
+    document.getElementById("pp-note").value = persona.note || "";
+    document.getElementById("pp-note").setAttribute("maxlength", String(data.maxNoteChars || 500));
+    document.getElementById("pp-preview").textContent = data.preview || "（空）";
+  }
+  function loadPersonTone() {
+    if (!openPerson) { return; }
+    fetch("/admin/api/persona?person=" + encodeURIComponent(openPerson),
+      { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); }).then(renderPersonTone)
+      .catch(function () { renderPersonTone({ ok: false, code: "连不上服务" }); });
+  }
+  document.getElementById("pp-save").addEventListener("click", function () {
+    if (!openPerson) { return; }
+    var button = this, saved = document.getElementById("pp-saved");
+    button.disabled = true; button.textContent = "正在保存……"; saved.hidden = true;
+    fetch("/admin/api/persona", {
+      method: "POST", headers: authed({ "Content-Type": "application/json" }),
+      credentials: "same-origin",
+      body: JSON.stringify({
+        person: openPerson,
+        tone: checkedValue("pptone", "warm"),
+        length: checkedValue("pplen", "medium"),
+        emoji: document.getElementById("pp-emoji").checked,
+        callMe: document.getElementById("pp-callme").value,
+        note: document.getElementById("pp-note").value
+      })
+    }).then(function (r) { return r.json(); })
+      .then(function (data) {
+        button.disabled = false; button.textContent = "只保存给他";
+        if (data.ok) {
+          renderPersonTone(data);
+          saved.hidden = false;
+          setTimeout(function () { saved.hidden = true; }, 2500);
+        } else {
+          set("pp-state", data.code === "PERSONA_USER_UNKNOWN"
+            ? "他还没跟它说过话，暂时不能单独设。"
+            : "没存上：" + (data.code || "未知"));
+        }
+      })
+      .catch(function () {
+        button.disabled = false; button.textContent = "只保存给他";
+        set("pp-state", "没存上：连不上服务");
+      });
   });
 
   // ── 设置 ─────────────────────────────────────────────

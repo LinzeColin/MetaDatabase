@@ -217,6 +217,47 @@ function defaultPersona() {
   return normalizePersona({});
 }
 
+// 一个人自己那份只含「怎么说话」。
+//
+// proactive 和 access 不在里面，而且是**故意**不在：
+//   · proactive 的目标只能是主人（唤醒模型这条在 R19 里只对 owner 开放），
+//     给某个访客单独设一套主动打招呼等于绕开那条边界；
+//   · access 是整台机器的开门规则（名额、入口），不是某个人的属性。
+// 所以这两项永远只从主人那一行读，写的时候原样丢掉。
+const PERSON_FIELDS = Object.freeze(["tone", "length", "emoji", "callMe", "note"]);
+
+function normalizePersonPersona(raw) {
+  const full = normalizePersona(raw);
+  return Object.freeze({
+    tone: full.tone,
+    length: full.length,
+    emoji: full.emoji,
+    callMe: full.callMe,
+    note: full.note,
+    updatedAt: full.updatedAt,
+  });
+}
+
+// 主人那一行是默认值，某个人自己那一行覆盖它。
+// 覆盖是**整份**覆盖，不是逐字段：一个人设了语气就用他自己那套，不去猜哪一项
+// 算"没设过"——tone 的空值和 emoji 的 false 分不出"没设"和"设成了关"。
+function mergePersonaForPerson(ownerPersona, personPersona) {
+  const base = normalizePersona(ownerPersona);
+  if (!personPersona) {
+    return base;
+  }
+  const own = normalizePersonPersona(personPersona);
+  return Object.freeze({
+    ...base,
+    tone: own.tone,
+    length: own.length,
+    emoji: own.emoji,
+    callMe: own.callMe,
+    note: own.note,
+    updatedAt: own.updatedAt || base.updatedAt,
+  });
+}
+
 // 渲染成贴在每一轮最前面的那段文字。返回空串表示不贴（当前不会发生，基线永远在）。
 function renderPersonaInstruction(persona) {
   const settings = normalizePersona(persona);
@@ -290,11 +331,67 @@ class PersonaStore {
     });
     return this.read();
   }
+
+  // 这个人实际生效的语气：他自己设过就用他自己那套，没设过沿用主人那一行。
+  //
+  // 读不出来退回主人那一行、再退回默认值——语气读不出来不该让一条消息发不出去。
+  readFor(userId) {
+    const owner = this.read();
+    const id = String(userId || "").trim();
+    if (!id || !this.database || typeof this.database.readUserPersona !== "function") {
+      return owner;
+    }
+    try {
+      const row = this.database.readUserPersona(id);
+      return mergePersonaForPerson(owner, row ? { ...row.value, updatedAt: row.updatedAt } : null);
+    } catch {
+      return owner;
+    }
+  }
+
+  // 这个人有没有自己设过（而不是沿用主人那一行）。后台在人名旁边标它。
+  hasOwnPersona(userId) {
+    const id = String(userId || "").trim();
+    if (!id || !this.database || typeof this.database.readUserPersona !== "function") {
+      return false;
+    }
+    try {
+      return Boolean(this.database.readUserPersona(id));
+    } catch {
+      return false;
+    }
+  }
+
+  writeFor(userId, raw) {
+    const id = String(userId || "").trim();
+    if (!id) {
+      const error = new Error("PERSONA_USER_REQUIRED");
+      error.code = "PERSONA_USER_REQUIRED";
+      throw error;
+    }
+    if (!this.database || typeof this.database.writeUserPersona !== "function") {
+      const error = new Error("PERSONA_STORE_UNAVAILABLE");
+      error.code = "PERSONA_STORE_UNAVAILABLE";
+      throw error;
+    }
+    const next = normalizePersonPersona(raw);
+    this.database.writeUserPersona(id, {
+      tone: next.tone,
+      length: next.length,
+      emoji: next.emoji,
+      callMe: next.callMe,
+      note: next.note,
+    });
+    return this.readFor(id);
+  }
 }
 
 module.exports = {
   ACCESS_DEFAULTS,
   BASELINE,
+  PERSON_FIELDS,
+  mergePersonaForPerson,
+  normalizePersonPersona,
   MAX_ENTRY_URL_CHARS,
   MAX_SEATS,
   normalizeAccess,

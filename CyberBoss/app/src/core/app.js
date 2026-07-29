@@ -1070,7 +1070,7 @@ class CyberbossApp {
       // 下面两个读写真实聊天内容与语气设置，一律要真令牌，不走首次免令牌。
       adminConversations: (query) => this.buildConversationFeed(query || {}),
       adminInsights: (query) => this.buildPersonInsights(query || {}),
-      adminPersonaRead: () => this.readDashboardPersona(),
+      adminPersonaRead: (query) => this.readDashboardPersona(query),
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
       publicEntry: () => this.buildPublicEntry(),
       publicEntryStatus: (ticket) => this.pollPublicEntryQr(ticket),
@@ -1461,11 +1461,23 @@ class CyberbossApp {
 
   // ── 语气面板 ───────────────────────────────────────────────
 
-  readDashboardPersona() {
-    const persona = this.personaStore ? this.personaStore.read() : null;
+  // person 给了就读那个人自己的语气（没设过则显示主人那一行的值，并标出
+  // inherited=true）；不给就是主人那一行本身。
+  readDashboardPersona({ person = "" } = {}) {
+    const senderId = normalizeText(person);
+    const userId = senderId ? this.personaUserIdForSender(senderId) : "";
+    const own = Boolean(userId) && Boolean(this.personaStore?.hasOwnPersona?.(userId));
+    const persona = this.personaStore
+      ? (userId ? this.personaStore.readFor(userId) : this.personaStore.read())
+      : null;
     return Object.freeze({
       ok: true,
       persona: persona || {},
+      // 这一份是谁的。空串＝主人那一行（所有人的默认值）。
+      person: senderId,
+      // 这个人是自己设过，还是在沿用主人那一行。后台要说得清楚，
+      // 否则主人改完默认值会以为对每个人都生效了。
+      inherited: Boolean(senderId) && !own,
       tones: TONE_PRESETS.map(({ id, label, hint }) => ({ id, label, hint })),
       lengths: LENGTH_PRESETS.map(({ id, label }) => ({ id, label })),
       maxNoteChars: MAX_NOTE_CHARS,
@@ -1484,15 +1496,53 @@ class CyberbossApp {
       // 主动打招呼要发给谁。空串表示还认不出主人，那时轮询器什么都不会做。
       proactiveTarget: this.resolveOwnerSenderIdForCheckin(),
       // 让主人看到真正发给模型的那段字。语气这种东西不给看就只能靠猜。
-      preview: this.currentPersonaInstruction(),
+      preview: this.currentPersonaInstruction(userId),
     });
+  }
+
+  // 后台里人是按 senderId 认的（对话栏就是这么列的），语气按 user_id 存。
+  // 这里做一次换算：先从最近的来信里找这个人属于哪个号，再算 user_id。
+  personaUserIdForSender(senderId) {
+    const sender = normalizeText(senderId);
+    if (!sender || !this.runtimeSpoolDatabase) {
+      return "";
+    }
+    try {
+      for (const message of this.runtimeSpoolDatabase.listRecentInboundForOwner({ limit: 500 })) {
+        if (message.payload?.senderId !== sender) {
+          continue;
+        }
+        // 库里就存着这一行属于哪个 user_id，不用再推一遍。
+        if (message.userId) {
+          return message.userId;
+        }
+        return this.resolveUserIdForPersona({
+          accountId: message.payload?.accountId || "",
+          senderId: sender,
+        });
+      }
+    } catch {
+      // 查不到就当他还没说过话——那时候本来也没什么可设的。
+    }
+    return "";
   }
 
   writeDashboardPersona(input) {
     if (!this.personaStore) {
       return Object.freeze({ ok: false, code: "PERSONA_STORE_UNAVAILABLE" });
     }
+    const person = normalizeText(input?.person);
     try {
+      if (person) {
+        const userId = this.personaUserIdForSender(person);
+        if (!userId) {
+          // 没说过话的人没有 user_id，也就没有可写的那一行。
+          return Object.freeze({ ok: false, code: "PERSONA_USER_UNKNOWN" });
+        }
+        this.personaStore.writeFor(userId, input);
+        this.noteForDashboard("改了对某个人的说话语气");
+        return this.readDashboardPersona({ person });
+      }
       this.personaStore.write(input);
       this.noteForDashboard("改了说话的语气");
       return this.readDashboardPersona();
@@ -3071,8 +3121,11 @@ class CyberbossApp {
         prepared,
         config: this.config,
         visionContext,
-        // 每一轮现读一次，不缓存：主人在后台改完语气，下一句话就该变。
-        personaInstruction: this.currentPersonaInstruction(),
+        // 每一轮现读一次，不缓存：在后台改完语气，下一句话就该变。
+        // 按人读：每个人可以有自己的语气，没设过的沿用主人那一行。
+        personaInstruction: this.currentPersonaInstruction(
+          this.resolveUserIdForPersona(prepared),
+        ),
       }),
       attachments: Array.isArray(visionContext.runtimeAttachments) ? visionContext.runtimeAttachments : [],
       visionContext,
@@ -3080,12 +3133,38 @@ class CyberbossApp {
   }
 
   // 语气块。读不出来就返回空串——语气不是必需品，不能因为它发不出消息。
-  currentPersonaInstruction() {
+  //
+  // 给了 userId 就读那个人自己的（没设过则沿用主人那一行）。不给就是主人的
+  // 默认值——后台预览走这条。
+  currentPersonaInstruction(userId = "") {
     if (!this.personaStore) {
       return "";
     }
     try {
-      return renderPersonaInstruction(this.personaStore.read());
+      const persona = userId
+        ? this.personaStore.readFor(userId)
+        : this.personaStore.read();
+      return renderPersonaInstruction(persona);
+    } catch {
+      return "";
+    }
+  }
+
+  // prepared 里只有 accountId + senderId；语气按 user_id 存，和记忆同一个
+  // 隔离边界。这里把前者换算成后者，换不出来就返回空串，上层退回主人那一行。
+  resolveUserIdForPersona(prepared) {
+    const botAccountRef = normalizeText(prepared?.accountId);
+    const senderRef = normalizeText(prepared?.senderId);
+    if (!botAccountRef || !senderRef || !this.userAdmission?.users?.identify) {
+      return "";
+    }
+    try {
+      const identity = this.userAdmission.users.identify({
+        channel: "weixin",
+        botAccountRef,
+        senderRef,
+      });
+      return normalizeText(identity?.userId);
     } catch {
       return "";
     }

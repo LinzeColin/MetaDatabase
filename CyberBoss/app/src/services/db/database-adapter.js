@@ -74,6 +74,11 @@ const MIGRATIONS = Object.freeze([
     name: "013_turn_traces.sql",
     sourceCommit: "CONSOLE-1",
   }),
+  Object.freeze({
+    version: 12,
+    name: "014_user_persona.sql",
+    sourceCommit: "PERSONA-1",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
@@ -4073,6 +4078,79 @@ class RuntimeSpoolDatabase {
       value: JSON.parse(plain.toString("utf8")),
       updatedAt: row.updated_at,
     });
+  }
+
+  // 某个人自己的语气。没设过就返回 null——上层会退回主人那一行当默认值。
+  //
+  // 键是 user_id，和记忆、时间线同一个隔离边界。AAD 里带上 user_id：
+  // 拿别人的密文换到这一行上，解密会直接失败，而不是悄悄串了人。
+  writeUserPersona(userId, value) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      throw new RuntimeSpoolError("USER_ID_REQUIRED");
+    }
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      throw new RuntimeSpoolError("PERSONA_OBJECT_REQUIRED");
+    }
+    const plain = Buffer.from(stableJson(value), "utf8");
+    if (plain.length > 8 * 1024) {
+      throw new RuntimeSpoolError("PERSONA_TOO_LARGE");
+    }
+    const now = this.#timestamp();
+    this.database
+      .prepare(
+        `INSERT INTO user_persona(user_id, payload_ciphertext, payload_sha256, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(user_id) DO UPDATE SET
+           payload_ciphertext=excluded.payload_ciphertext,
+           payload_sha256=excluded.payload_sha256,
+           updated_at=excluded.updated_at`,
+      )
+      .run(
+        id,
+        this.cipher.encrypt(plain, `user_persona:${id}:payload`),
+        sha256(plain),
+        now,
+      );
+    return Object.freeze({ updatedAt: now });
+  }
+
+  readUserPersona(userId) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      return null;
+    }
+    const row = this.database
+      .prepare(
+        "SELECT payload_ciphertext, payload_sha256, updated_at FROM user_persona WHERE user_id=?",
+      )
+      .get(id);
+    if (!row) {
+      return null;
+    }
+    const plain = this.cipher.decrypt(
+      row.payload_ciphertext,
+      `user_persona:${id}:payload`,
+    );
+    if (sha256(plain) !== row.payload_sha256) {
+      throw new IntegrityConflictError();
+    }
+    return Object.freeze({
+      value: JSON.parse(plain.toString("utf8")),
+      updatedAt: row.updated_at,
+    });
+  }
+
+  // 谁给自己设过语气。后台那一栏用它在人名旁边标一下「自己设过」。
+  // 只返回 user_id，不解密任何载荷。
+  listUserPersonaIds() {
+    this.#assertOpen();
+    return this.database
+      .prepare("SELECT user_id FROM user_persona ORDER BY user_id")
+      .all()
+      .map((row) => row.user_id);
   }
 
   // user_id -> role。对话栏用它给发件人打「主人」标签。判权限不走这里，
