@@ -23,6 +23,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
   Companion, so the installed Native Host does not need a repository checkout to validate private release input.
+- The XHS profile fallback now treats a favorites/likes surface as selected only when the matching label belongs to
+  a semantic interactive control (selected button/link or selected role=tab). A cosmetic profile counter with an
+  `active` class is rejected before it can misclassify ordinary profile content as a relation list.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
@@ -67,6 +70,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   configuration; a one-shot, non-invoking preflight with the approved digest-pinned
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
   contacts the client or any remote service.
+- The A005 XHS surface-safety regression, both existing XHS fixture suites, extension self-test, focused A005
+  Companion tests (82), Contract tests (18), and current source privacy scan (0 findings) passed after the semantic
+  profile-surface guard was added. These remain synthetic/local checks; they do not prove an Owner baseline.
 
 ## Next work
 

@@ -130,9 +130,18 @@ export function extractXhsLikesVisibleBatch(input) {
 
     let root = globalThis.document.querySelector('[data-x2n-surface="xhs-likes"]');
     if (!root && /^\/user\/profile\/[A-Za-z0-9._-]+\/?$/u.test(locationUrl.pathname)) {
-      const selected = [...globalThis.document.querySelectorAll(
-        '[aria-selected="true"], [data-active="true"], [class~="active"]',
-      )].find((node) => normalizeText(node.textContent) === "赞过");
+      // A cosmetic "active" class on a profile counter is not evidence that the
+      // liked-items list is selected. Require a semantic interactive control so
+      // ordinary profile content can never be misclassified as likes.
+      const selected = [...globalThis.document.querySelectorAll([
+        'button[aria-selected="true"]',
+        'button[data-active="true"]',
+        'a[aria-selected="true"]',
+        'a[data-active="true"]',
+        '[role="tab"][aria-selected="true"]',
+        '[role="tab"][data-active="true"]',
+        '[role="tab"].active',
+      ].join(", "))].find((node) => normalizeText(node.textContent) === "赞过");
       if (selected) root = globalThis.document.querySelector("main, [role=\"main\"]");
     }
     if (!root) return surfaceFailure("platform_changed", "X2N_PLATFORM_CHANGED");
