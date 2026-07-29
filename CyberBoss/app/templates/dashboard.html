@@ -870,12 +870,17 @@
     top.appendChild(stat("v" + (data.schema || 0), "数据库版本"));
     top.appendChild(stat((data.usagePercent || 0) + "%", "额度还剩"));
 
+    // 「还没判过」和「判过了，结论是卡住」是两件事。混在一起会让人去查一个
+    // 根本不存在的故障——闸门只在队列里有活的时候才判。
     var gate = data.gate;
-    set("ops-gate", gate
-      ? (gate.state === "ready" || !gate.reason
-        ? "闸门：正常，消息进来就会处理。"
-        : "闸门：" + gate.state + "——" + gate.reason + "（现在会" + (gate.action || "等") + "）")
-      : "闸门：还没跑过一轮。");
+    set("ops-gate", !gate
+      ? "闸门：调度还没启动。"
+      : (!gate.evaluated
+        ? "闸门：一直没活干，还没需要判过。有消息进来就会判一次。"
+        : (gate.dispatchAllowed !== false && (gate.state === "ready" || gate.state === "healthy")
+          ? "闸门：正常，消息进来就会处理。"
+          : "闸门：" + gate.state + "——" + gate.reason
+            + "（现在会" + (gate.action || "等") + "）")));
 
     var accounts = document.getElementById("ops-accounts"); accounts.textContent = "";
     (data.accounts || []).forEach(function (id) {

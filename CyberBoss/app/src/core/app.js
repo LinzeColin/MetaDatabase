@@ -1196,15 +1196,24 @@ class CyberbossApp {
       // 调度闸门：卡住的时候这里说得出为什么（负载、磁盘、队列积压）。
       // 这一格是真出过事的——磁盘被我自己的部署撑满、负载上 11，闸门锁死，
       // 一条回复都出不去，而当时后台上什么都看不出来。
+      //
+      // evaluated=false 的意思是「队列一直是空的，还没需要判过」。这和
+      // 「判过了，结论是卡住」完全不是一回事：闸门只在队列里有活的时候才判
+      // （见 job-scheduler 的 #dispatchNextRuntime），空队列时 lastGate 一直是
+      // 构造时那个悲观初值。不分开的话，后台会指着一个根本不存在的故障。
       gate: (() => {
-        const gate = this.jobScheduler?.lastGate;
-        return gate
-          ? {
-            state: gate.state || "",
-            reason: gate.reason || "",
-            action: gate.action || "",
-          }
-          : null;
+        const scheduler = this.jobScheduler;
+        if (!scheduler) {
+          return null;
+        }
+        const gate = scheduler.lastGate;
+        return {
+          evaluated: Boolean(scheduler.lastGateAt),
+          at: scheduler.lastGateAt || "",
+          state: gate?.state || "",
+          reason: gate?.reason || "",
+          action: gate?.action || "",
+        };
       })(),
       queue: {
         jobs: counted(numbers("SELECT status AS k, COUNT(*) AS c FROM jobs GROUP BY status")),

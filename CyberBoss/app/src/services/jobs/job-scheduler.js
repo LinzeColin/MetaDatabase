@@ -192,6 +192,10 @@ class JobScheduler {
       dispatchAllowed: false,
       guardState: "protect",
     });
+    // 闸门只在**队列里有活**的时候才判（见 #dispatchNextRuntime）。队列是空的
+    // 时候上面那个悲观初值会一直留着，谁读它谁就会以为"卡住了"——而真相是
+    // 「还没需要判过」。这两件事必须分得开，否则后台会指着一个不存在的故障。
+    this.lastGateAt = null;
     this.lastSuccessfulTurnAt = null;
     this.runToJobId = new Map();
     this.jobIdToRun = new Map();
@@ -471,6 +475,7 @@ class JobScheduler {
       snapshot,
     });
     this.lastGate = gate;
+    this.lastGateAt = new Date().toISOString();
     this.database.setServiceState("scheduler_gate", {
       action_code: gate.action,
       dispatch_allowed: gate.dispatchAllowed,

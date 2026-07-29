@@ -108,21 +108,60 @@ test("闸门卡住的时候，后台说得出为什么——上次是靠 ssh 上
   app.channelAdapter = { listAccounts: () => [], resolveAccount: () => ({ accountId: "" }) };
   app.jobScheduler = {
     lastGate: { state: "blocked", reason: "load_pressure", action: "defer" },
+    lastGateAt: "2026-07-29T05:00:00.000Z",
   };
 
   const ops = app.buildOpsSnapshot();
 
+  assert.equal(ops.gate.evaluated, true);
   assert.equal(ops.gate.state, "blocked");
   assert.equal(ops.gate.reason, "load_pressure");
   assert.equal(ops.gate.action, "defer");
 });
 
-test("还没跑过一轮时闸门是 null，而不是编一个「正常」出来", (t) => {
+// 这一条是线上真栽过的：面板第一次跑起来就报「闸门 blocked，
+// measurement_unavailable」，而真相是队列一直是空的、闸门压根没判过。
+// 闸门只在队列里有活的时候才判（job-scheduler 的 #dispatchNextRuntime），
+// 空队列时 lastGate 一直停在构造时那个悲观初值上。
+test("从来没判过的闸门必须说「还没判过」，不能报成「卡住了」", (t) => {
+  const app = bootApp(t);
+  app.channelAdapter = { listAccounts: () => [], resolveAccount: () => ({ accountId: "" }) };
+  app.jobScheduler = {
+    // 这就是 JobScheduler 构造时那个初值，一字不改。
+    lastGate: {
+      state: "blocked",
+      reason: "measurement_unavailable",
+      action: "capture_live_resource_profile",
+      dispatchAllowed: false,
+    },
+    lastGateAt: null,
+  };
+
+  const ops = app.buildOpsSnapshot();
+
+  assert.equal(ops.gate.evaluated, false, "没判过却报成判过了，等于指着一个不存在的故障");
+  assert.equal(ops.gate.at, "");
+});
+
+test("调度器压根没起来时闸门是 null，而不是编一个「正常」出来", (t) => {
   const app = bootApp(t);
   app.channelAdapter = { listAccounts: () => [], resolveAccount: () => ({ accountId: "" }) };
   app.jobScheduler = null;
 
   assert.equal(app.buildOpsSnapshot().gate, null);
+});
+
+test("JobScheduler 真的会在判过之后记下时间——不然上面那条守卫是空的", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "../src/services/jobs/job-scheduler.js"), "utf8",
+  );
+  assert.match(source, /this\.lastGateAt = null;/);
+  assert.match(source, /this\.lastGate = gate;\s*\n\s*this\.lastGateAt = new Date\(\)\.toISOString\(\);/);
+});
+
+test("页面把「还没判过」和「判过了但卡住」分开说", () => {
+  assert.match(PAGE, /还没需要判过/);
+  assert.match(PAGE, /!gate\.evaluated/);
 });
 
 test("「机器」这一栏一个字的聊天正文都没有", (t) => {
