@@ -56,9 +56,13 @@ SESSIONS = [
     {"id": "sess-other", "current": False, "createdAt": 1785110400, "lastSeenAt": 1785110400, "expiresAt": 1787702400, "ipHint": "def67890"},
 ]
 NOTES = [
-    {"id": "note-1", "title": "系统思维摘录", "source": "weread", "category": "管理", "updatedAt": 1785196800000, "version": 3},
-    {"id": "note-2", "title": "第二大脑方法", "source": "notion", "category": "知识管理", "updatedAt": 1785110400000, "version": 1},
+    {"id": "note-1", "title": "系统思维摘录", "source": "weread", "bookTitle": "系统思维", "author": "彼得·圣吉", "chapterTitle": "第三章", "noteKind": "highlight", "category": "管理", "eventAt": 1785196800, "updatedAt": 1785196800000, "version": 3},
+    {"id": "note-2", "title": "第二大脑方法", "source": "notion", "bookTitle": "第二大脑", "author": "蒂亚戈·福特", "chapterTitle": "方法", "noteKind": "review", "category": "知识管理", "eventAt": 1785110400, "updatedAt": 1785110400000, "version": 1},
 ]
+NOTE_CONTENT = {
+    "note-1": "以反馈环路理解复杂系统，而不是只追逐短期结果。",
+    "note-2": "知识整理的关键，是减少未来寻找信息的摩擦。",
+}
 DASHBOARD = {
     "consent": ACCOUNT["consent"],
     "summary": {"noteCount": 2, "sourceCount": 4, "estimatedWords": 18340, "noteActivityDays90": 17, "activeDays90": 17},
@@ -122,6 +126,8 @@ def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
         if (path === '/readyz') return f.serviceReady ? ok({{status:'READY', checks:{{accountPlatformService:{{status:'READY',detail:'账户服务可用'}}}}}}) : new Response(JSON.stringify({{status:'NOT_READY',checks:{{accountPlatformService:{{status:'BLOCKED',detail:'账户服务未完成部署身份与存储就绪检查'}}}}}}), {{status:503,headers:{{'content-type':'application/json'}}}});
         if (path.startsWith('/session')) return f.authenticated ? ok({{account:f.account, csrf:'csrf-browser-fixture'}}) : new Response(JSON.stringify({{error:{{code:'UNAUTHENTICATED',message:'请先登录'}}}}), {{status:401,headers:{{'content-type':'application/json'}}}});
         if (path.startsWith('/notes?')) {{ if (f.synces) f.downstreamReads.notes += 1; return ok({{notes:f.notes}}); }}
+        if (path.startsWith('/notes/') && path !== '/notes/export') {{ const id=decodeURIComponent(path.split('/').pop()); const note=f.notes.find(item => item.id===id); return note ? ok({{note:{{...note,content:{json.dumps(NOTE_CONTENT, ensure_ascii=False)}[id]}}}}) : new Response(JSON.stringify({{error:{{code:'NOT_FOUND',message:'笔记不存在'}}}}),{{status:404,headers:{{'content-type':'application/json'}}}}); }}
+        if (path === '/notes/export') {{ return ok({{notes:f.notes.map(note => ({{...note,content:{json.dumps(NOTE_CONTENT, ensure_ascii=False)}[note.id]}}))}}); }}
         if (path === '/analytics/dashboard') {{ if (f.synces) f.downstreamReads.analytics += 1; return ok({{dashboard:f.dashboard}}); }}
         if (path === '/profile') {{ if (f.synces) f.downstreamReads.profile += 1; return ok({{account:f.account}}); }}
         if (path === '/weread/sync') {{
@@ -259,6 +265,25 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     page.get_by_role("heading", name="所有来源，统一保存在你的账户").wait_for()
     for name in ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "打包下载当前结果", "带当前结果问 ChatGPT"]:
         assert page.get_by_text(name, exact=True).is_visible(), name
+    assert page.get_by_text("点击笔记才会按需解密并显示完整正文。", exact=False).is_visible()
+    assert page.locator(".notes-workbench .note-row").count() == 3
+    page.locator("#note-search").fill("系统")
+    assert page.locator(".notes-workbench .note-row").count() == 1
+    page.locator("#note-book").fill("系统思维")
+    assert page.locator(".notes-workbench .note-row").count() == 1
+    page.get_by_role("button", name="查看正文").click()
+    page.get_by_role("heading", name="系统思维摘录").wait_for()
+    assert "以反馈环路理解复杂系统，而不是只追逐短期结果。" in page.locator(".note-detail-body p").inner_text()
+    assert page.get_by_role("button", name="编辑笔记").is_visible()
+    page.locator(".note-detail-modal .modal-close-action").click()
+    page.get_by_role("button", name="清除条件").click()
+    assert page.locator(".notes-workbench .note-row").count() == 3
+    page.get_by_role("button", name="问 ChatGPT").first.click()
+    page.get_by_text("已下载阅读资料；请打开 ChatGPT 后手动添加该文件。", exact=True).wait_for()
+    page.get_by_role("button", name="打包下载当前结果").click()
+    page.get_by_text("当前显示的笔记已打包下载。", exact=True).wait_for()
+    page.get_by_role("button", name="带当前结果问 ChatGPT").click()
+    page.get_by_text("已下载阅读资料；请打开 ChatGPT 后手动添加该文件。", exact=True).wait_for()
 
     page.get_by_role("button", name="账户与安全").click()
     page.get_by_role("heading", name="管理你的身份、设备、连接和数据选择").wait_for()

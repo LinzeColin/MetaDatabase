@@ -56,8 +56,10 @@ test("画像、官方统计、笔记活动、推荐、跨设备和隐私控制�
 });
 
 test("笔记页按真实字段实时筛选，并只对当前显示结果下载或交接 ChatGPT", () => {
-  for (const phrase of ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "实时筛选", "打包下载当前结果", "带当前结果问 ChatGPT", "带这条笔记问 ChatGPT", "官方当前返回的真实事件时间"]) assert.ok(ui.includes(phrase), phrase);
+  for (const phrase of ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "实时筛选", "打包下载当前结果", "带当前结果问 ChatGPT", "带这条笔记问 ChatGPT", "官方当前返回的真实事件时间", "点击笔记才会按需解密并显示完整正文", "查看正文", "当前视图操作", "缩小当前阅读档案"]) assert.ok(ui.includes(phrase), phrase);
   assert.ok(ui.includes("data-note-filter"));
+  assert.ok(ui.includes("notes-workbench"));
+  assert.ok(ui.includes("data-note-open"));
   assert.ok(ui.includes("renderAccountNotesChatGPTContext"));
   assert.ok(ui.includes("CHATGPT_HANDOFF_URL"));
   assert.ok(api.includes("/notes/export"));
