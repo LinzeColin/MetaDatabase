@@ -100,6 +100,22 @@ export function extractXhsLikesVisibleBatch(input) {
   const isHidden = (node) => node.hidden
     || node.getAttribute("aria-hidden") === "true"
     || node.closest("[hidden], [aria-hidden=\"true\"]") !== null;
+  const intersectsViewport = (node) => {
+    const rect = node.getBoundingClientRect?.();
+    const viewportWidth = globalThis.innerWidth;
+    const viewportHeight = globalThis.innerHeight;
+    return Boolean(
+      rect
+      && Number.isFinite(viewportWidth)
+      && Number.isFinite(viewportHeight)
+      && rect.width > 0
+      && rect.height > 0
+      && rect.right > 0
+      && rect.bottom > 0
+      && rect.left < viewportWidth
+      && rect.top < viewportHeight
+    );
+  };
   const observedProfileSurface = (labels) => {
     const expectedLabels = new Set(labels);
     const shells = [...globalThis.document.querySelectorAll("#userPageContainer.user-page")]
@@ -119,6 +135,37 @@ export function extractXhsLikesVisibleBatch(input) {
     // are not evidence of a selected likes list unless the semantic relation
     // is selected uniquely in exactly one direct tab list.
     if (matchingLists.length !== 1) return null;
+    const relationTabs = [...matchingLists[0].children].filter((node) => (
+      node.matches("div.reds-tab-item.sub-tab-list") && !isHidden(node)
+    ));
+    const activeTabs = relationTabs.filter((node) => (
+      node.classList.contains("active") && expectedLabels.has(normalizeText(node.textContent))
+    ));
+    if (activeTabs.length !== 1) return null;
+    const activeIndex = relationTabs.indexOf(activeTabs[0]);
+    const contentPanels = [...shells[0].querySelectorAll(".tab-content-item")]
+      .filter((node) => !isHidden(node));
+    if (contentPanels.length > 0) {
+      const panelGroups = [...shells[0].querySelectorAll(".feeds-tab-container > .transform-container")]
+        .filter((node) => !isHidden(node));
+      if (panelGroups.length !== 1) return null;
+      const panels = [...panelGroups[0].children].filter((node) => (
+        node.matches(".tab-content-item") && !isHidden(node)
+      ));
+      // Bind the selected relation tab to its same-index transform panel and
+      // require it to be the unique viewport panel before reading cards.
+      if (
+        panels.length !== relationTabs.length
+        || panels.length !== contentPanels.length
+        || panels.some((panel, index) => panel !== contentPanels[index])
+        || activeIndex < 0
+        || !panels[activeIndex]
+      ) return null;
+      const viewportPanels = panels.filter(intersectsViewport);
+      return viewportPanels.length === 1 && viewportPanels[0] === panels[activeIndex]
+        ? panels[activeIndex]
+        : null;
+    }
     const root = shells[0].querySelector("#userPostedFeeds");
     return root && !isHidden(root) ? root : null;
   };

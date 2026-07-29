@@ -44,6 +44,33 @@ function observedProfileHtml({ label, duplicateSelectedLabel = null }) {
   </body></html>`;
 }
 
+function observedProfileTabbedHtml({ label, visiblePanelIndexes }) {
+  const labels = ["笔记", "收藏", "点赞"];
+  const activeIndex = labels.indexOf(label);
+  if (activeIndex < 0) throw new Error("unsupported tabbed profile relation");
+  const cards = (count, prefix) => Array.from({ length: count }, (_, index) => (
+    `<article data-x2n-card data-x2n-note-type="video"><a href="/explore/${prefix}-${index + 1}">synthetic item</a></article>`
+  )).join("");
+  const visible = new Set(visiblePanelIndexes);
+  const panels = labels.map((relation, index) => {
+    const style = visible.has(index)
+      ? "position:relative;width:480px;min-height:300px"
+      : "position:absolute;left:-10000px;top:0;width:480px;min-height:1px";
+    const content = index === 0
+      ? `<div id="userPostedFeeds">${cards(1, "static-posts")}</div>`
+      : cards(index === activeIndex ? 25 : 0, `active-${index}`);
+    return `<div class="tab-content-item" style="${style}">${content}</div>`;
+  }).join("");
+  return `<!doctype html><html><body>
+    <div id="userPageContainer" class="user-page">
+      <div class="reds-tabs-list tertiary">
+        ${labels.map((relation) => `<div class="reds-tab-item sub-tab-list${relation === label ? " active" : ""}">${relation}</div>`).join("")}
+      </div>
+      <div class="feeds-tab-container"><div class="transform-container" style="position:relative;display:flex">${panels}</div></div>
+    </div>
+  </body></html>`;
+}
+
 const cases = [
   {
     id: "favorites_profile_counter_rejected",
@@ -116,6 +143,30 @@ const cases = [
     expectedStatus: "platform_changed",
     extract: extractXhsLikesVisibleBatch,
     validate: validateXhsLikesBatch,
+  },
+  {
+    id: "favorites_active_transform_panel_selected_over_static_posts",
+    html: observedProfileTabbedHtml({ label: "收藏", visiblePanelIndexes: [1] }),
+    expectedItems: 20,
+    expectedStatus: "ready",
+    extract: extractXhsFavoritesVisibleBatch,
+    validate: validateXhsFavoritesBatch,
+  },
+  {
+    id: "likes_active_transform_panel_selected_over_static_posts",
+    html: observedProfileTabbedHtml({ label: "点赞", visiblePanelIndexes: [2] }),
+    expectedItems: 20,
+    expectedStatus: "ready",
+    extract: extractXhsLikesVisibleBatch,
+    validate: validateXhsLikesBatch,
+  },
+  {
+    id: "favorites_ambiguous_transform_panels_rejected",
+    html: observedProfileTabbedHtml({ label: "收藏", visiblePanelIndexes: [1, 2] }),
+    expectedItems: 0,
+    expectedStatus: "platform_changed",
+    extract: extractXhsFavoritesVisibleBatch,
+    validate: validateXhsFavoritesBatch,
   },
 ];
 

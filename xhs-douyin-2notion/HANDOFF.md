@@ -53,10 +53,13 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `main` fallback, so an unrecognized profile layout fails closed instead of treating unrelated cards as a relation list.
 - The XHS profile fallback recognizes the observed rendered surface only when one visible
   `#userPageContainer.user-page` has exactly one direct active `.reds-tab-item.sub-tab-list` with the expected
-  relation in exactly one visible `.reds-tabs-list.tertiary`: 收藏 for favorites, or 赞过/点赞 for likes. Additional
-  tertiary controls remain allowed only when they do not create a second matching active relation; a generic active
-  class or an unrelated feed root remains rejected, and the owner-scoped `#userPostedFeeds` plus exact-20 release
-  gate remain mandatory.
+  relation in exactly one visible `.reds-tabs-list.tertiary`: 收藏 for favorites, or 赞过/点赞 for likes. On the
+  current transform layout it binds that relation's tab index to the same-index direct
+  `.feeds-tab-container > .transform-container > .tab-content-item` only when it is the unique panel intersecting
+  the viewport; it rejects a mismatch or ambiguity rather than accidentally reading the static `#userPostedFeeds`
+  posts panel. The legacy `#userPostedFeeds` fallback remains only for a profile without any tab-content panels.
+  Additional tertiary controls remain allowed only when they do not create a second matching active relation; a
+  generic active class or an unrelated feed root remains rejected, and the exact-20 release gate remains mandatory.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
@@ -110,6 +113,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
   both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (104), Contract
   tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
+- A read-only current-profile structural audit found that the active 收藏 relation is rendered in a same-index
+  transform panel while `#userPostedFeeds` remains a separate static posts panel. The XHS adapters now require the
+  unique in-viewport same-index panel and the surface-safety suite covers both favorites and likes plus an ambiguous
+  panel rejection; no browser content, IDs, URLs, or platform call entered the repository.
 
 ## Next work
 
