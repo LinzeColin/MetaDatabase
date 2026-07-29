@@ -194,9 +194,18 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
         home=Path.home(),
         env=os.environ,
     )
+    if native_host_fresh_install == "BLOCKED_EXISTING_TARGET":
+        try:
+            MvpDeploymentManager(paths).verify_prearm_native_host_bridge(browser="chrome", home=Path.home())
+            native_host_fresh_install = "PREARM_BRIDGE_INSTALLED"
+        except X2NRuntimeError:
+            pass
     chrome_executable = "AVAILABLE" if chrome_available() else "NOT_READY"
     ready_to_arm = (
-        owner_input == "VALID" and douyin_sidecar_bundle == "CONFIGURED_AND_MATCHED" and release_state == "NOT_STARTED"
+        owner_input == "VALID"
+        and douyin_sidecar_bundle == "CONFIGURED_AND_MATCHED"
+        and native_host_fresh_install == "READY_FOR_FRESH_INSTALL"
+        and release_state == "NOT_STARTED"
     )
     return {
         "chrome_executable": chrome_executable,

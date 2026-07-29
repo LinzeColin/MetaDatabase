@@ -121,6 +121,9 @@ that a known local Chrome executable is available; it does not inspect a Profile
 `native_host_fresh_install=READY_FOR_FRESH_INSTALL` proves only that the installer prerequisites are present and no
 Host target/residual blocks a first install; it is not an install or a go-live claim. It never creates the input, arms
 a scope, calls the client, or opens Chrome.
+`native_host_fresh_install=PREARM_BRIDGE_INSTALLED` instead proves only that exactly one existing, owner-private
+temporary Host is still bound to a verified digest-addressed pre-arm bundle. It is not a fresh slot, cannot make
+`ready_to_arm` true, and must still be removed after hash-only preparation before the staged deployment Host install.
 A source tag is expected to remain `NOT_READY` until immediately before the later `deploy` command.
 
 The Douyin bundle is a fixed Owner-only private layout under the Runtime root and contains the Sidecar executable,

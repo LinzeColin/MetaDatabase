@@ -359,6 +359,66 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
         arm.assert_not_called()
 
+    def test_release_preflight_distinguishes_a_verified_prearm_bridge_without_arming(self) -> None:
+        args = runtime_cli.build_parser().parse_args(["release", "preflight"])
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(MvpDeploymentManager, "assert_release_source_tagged"),
+            mock.patch(
+                "x2n_companion.runtime_cli.DigestPinnedPrivateDbClient.from_environment",
+                return_value=SimpleNamespace(),
+            ),
+            mock.patch(
+                "x2n_companion.runtime_cli.fresh_install_readiness",
+                return_value="BLOCKED_EXISTING_TARGET",
+            ),
+            mock.patch.object(
+                MvpDeploymentManager,
+                "verify_prearm_native_host_bridge",
+                return_value={"native_host_prearm_bound": True, "paths_emitted": False},
+            ) as bridge,
+            mock.patch("x2n_companion.runtime_cli.chrome_available", return_value=True),
+            mock.patch.object(MvpReleaseController, "arm") as arm,
+        ):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["preflight"]["native_host_fresh_install"], "PREARM_BRIDGE_INSTALLED")
+        self.assertFalse(payload["preflight"]["ready_to_arm"])
+        self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        bridge.assert_called_once()
+        arm.assert_not_called()
+
+    def test_release_preflight_retains_unknown_existing_host_as_blocked(self) -> None:
+        args = runtime_cli.build_parser().parse_args(["release", "preflight"])
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(MvpDeploymentManager, "assert_release_source_tagged"),
+            mock.patch(
+                "x2n_companion.runtime_cli.DigestPinnedPrivateDbClient.from_environment",
+                return_value=SimpleNamespace(),
+            ),
+            mock.patch(
+                "x2n_companion.runtime_cli.fresh_install_readiness",
+                return_value="BLOCKED_EXISTING_TARGET",
+            ),
+            mock.patch.object(
+                MvpDeploymentManager,
+                "verify_prearm_native_host_bridge",
+                side_effect=X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "bridge unavailable"),
+            ),
+            mock.patch("x2n_companion.runtime_cli.chrome_available", return_value=True),
+        ):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["preflight"]["native_host_fresh_install"], "BLOCKED_EXISTING_TARGET")
+        self.assertFalse(payload["preflight"]["ready_to_arm"])
+
     def test_release_preflight_recognizes_a_valid_input_without_disclosing_it(self) -> None:
         args = runtime_cli.build_parser().parse_args(["release", "preflight"])
         with (
@@ -1244,6 +1304,19 @@ class MvpReleaseTests(unittest.TestCase):
             )
         self.assertTrue(receipt["native_host_prearm_installed"])
         self.assertTrue(receipt["native_host_prearm_bound"])
+        bundles = self.paths.data_root / "runtime/prearm/bundles"
+        finder_metadata = bundles / ".DS_Store"
+        finder_metadata.write_bytes(b"Finder metadata is not a pre-arm bundle")
+        finder_metadata.chmod(0o600)
+        bridge = manager.verify_prearm_native_host_bridge(browser="chromium", home=home)
+        self.assertTrue(bridge["native_host_prearm_bound"])
+        self.assertFalse(bridge["paths_emitted"])
+        unexpected = bundles / "unexpected-member"
+        unexpected.write_text("not a bundle", encoding="utf-8")
+        unexpected.chmod(0o600)
+        with self.assertRaises(X2NRuntimeError):
+            manager.verify_prearm_native_host_bridge(browser="chromium", home=home)
+        unexpected.unlink()
         bundle = manager._prearm_target(staged)
         uninstall = create_plan(
             action="uninstall",

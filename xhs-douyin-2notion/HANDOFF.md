@@ -44,9 +44,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   Native Host. The existing Host remains bound to the earlier stable bundle; Chrome extension-manager actions remain
   manual, so a future visual reload must load the freshly staged bundle rather than any disposable `scratch` path.
 - The current Owner-private pre-arm Host was installed successfully from the stable bundle and verified bound to its
-  private digest. The next read-only preflight therefore correctly reports `BLOCKED_EXISTING_TARGET`; that is the
-  expected temporary-bridge state, not a deployment or an arm permission. The Host must be removed after hash-only
-  preparation and before the later fresh deployment install.
+  private digest. Read-only preflight now reports `PREARM_BRIDGE_INSTALLED` only after proving exactly one matching
+  digest-addressed private bundle. That is the expected temporary-bridge state, not a fresh slot, deployment, or arm
+  permission; it keeps `ready_to_arm=false`. The Host must be removed after hash-only preparation and before the later
+  fresh deployment install. A foreign, ambiguous, or malformed residual remains `BLOCKED_EXISTING_TARGET`.
 - A private Owner MVP input, release-state, or browser-handshake symlink, including a dangling one, is treated as
   unsafe rather than absent. `load`, `arm`, state persistence, and handshake recording reject it before any
   pre-switch backup, private state write, or platform action.
@@ -144,8 +145,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   calls; the current nine-gate source lane and its append-only source receipt passed too.
 - A real owner-private pre-arm Host install then passed with the current stable bundle: its response verified atomic
   installation and Host-to-bundle binding, changed no release pointer, emitted no path, and made zero platform or
-  account calls. The immediate read-only preflight reports the expected existing temporary Host while owner input,
-  enrollment, durable-client setup, source tag, release state, and arm readiness remain absent/not ready.
+  account calls. The immediate read-only preflight identifies that exact bridge as
+  `PREARM_BRIDGE_INSTALLED` while owner input, enrollment, durable-client setup, source tag, release state, and arm
+  readiness remain absent/not ready; a bridge never makes the release armable.
 - The current A005 scope-amendment source lane passed: 109 focused Companion/Native Host tests, 19 Contract tests,
   generated-contract verification, Ruff, JavaScript syntax checks, extension self-test, XHS current-page fixtures,
   XHS MVP surface-safety fixtures, Douyin visible-list fixtures, and the 100-restart Douyin extension E2E. This is
@@ -163,12 +165,13 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   must not be "fixed" by rewriting historical evidence. No A005-required suite failed.
 - The approved local Runtime layout was initialized and its empty Canonical SQLite store passed integrity checks;
   all required owner-only directories now validate. Current real `release preflight` is safe and reports
-  `chrome_executable=AVAILABLE`, `native_host_fresh_install=READY_FOR_FRESH_INSTALL`,
+  `chrome_executable=AVAILABLE`, `native_host_fresh_install=PREARM_BRIDGE_INSTALLED`,
   `douyin_sidecar_bundle=CONFIGURED_CLEAN_ROOM_UNATTESTED`, `owner_input=MISSING_OR_INVALID`,
-  `release_state=NOT_STARTED`, and `source_release_tag=NOT_READY`. The normal shell has not persisted a client
-  configuration; a one-shot, non-invoking preflight with the approved digest-pinned
-  `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
-  contacts the client or any remote service.
+  `release_state=NOT_STARTED`, `source_release_tag=NOT_READY`, and `ready_to_arm=false`; it made zero platform or
+  Notion calls and did not execute a real account. The normal shell has not persisted a client configuration; a
+  one-shot, non-invoking preflight with the approved digest-pinned `X2N_PRIVATE_DB_CLIENT` reports
+  `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor contacts the client or any remote
+  service.
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
   both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (104), Contract
   tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.

@@ -45,6 +45,8 @@ PREARM_HOST_CONFIRMATION = "INSTALL_X2N_PREARM_SIDEPANEL_HOST"
 _EXTENSION_RELEASE_IDENTITY = "release_identity.json"
 _PREARM_MANIFEST = "prearm_manifest.json"
 _PREARM_ARTIFACT_KIND = "owner_prearm_sidepanel"
+_PREARM_IGNORABLE_BUNDLE_CHILDREN = frozenset({".DS_Store"})
+_MAX_PREARM_BUNDLES = 32
 _SOURCE_TREES = (
     (PROJECT_ROOT / "apps/extension", "extension"),
     (PROJECT_ROOT / "apps/companion/src/x2n_companion", "companion/x2n_companion"),
@@ -173,6 +175,43 @@ def _prearm_source_manifest() -> dict[str, Any]:
 
 def _prearm_layout(paths: RuntimePaths) -> Path:
     return paths.ensure_private_directory("runtime/prearm/bundles")
+
+
+def _prearm_bundle_candidates_readonly(paths: RuntimePaths) -> tuple[Path, ...]:
+    """Return safe digest-addressed pre-arm bundles without creating Runtime state.
+
+    Finder may place a regular ``.DS_Store`` beside bundles. It is not an
+    addressable artifact and cannot bind a Host, so it is explicitly ignored.
+    Every other entry is required to be one private, digest-named directory.
+    """
+
+    bundles = paths.data_root / "runtime" / "prearm" / "bundles"
+    try:
+        if not bundles.exists():
+            raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Pre-arm Side Panel bundles are unavailable")
+        if bundles.is_symlink() or not bundles.is_dir() or stat.S_IMODE(bundles.stat().st_mode) != 0o700:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle layout is unsafe")
+        entries = tuple(sorted(bundles.iterdir(), key=lambda candidate: candidate.name))
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle layout is unsafe") from error
+
+    candidates: list[Path] = []
+    try:
+        for candidate in entries:
+            if candidate.name in _PREARM_IGNORABLE_BUNDLE_CHILDREN:
+                if candidate.is_symlink() or not candidate.is_file():
+                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle layout is unsafe")
+                continue
+            if re.fullmatch(r"[0-9a-f]{64}", candidate.name) is None:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle layout is unsafe")
+            if candidate.is_symlink() or not candidate.is_dir():
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle layout is unsafe")
+            candidates.append(candidate)
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle layout is unsafe") from error
+    if not candidates or len(candidates) > _MAX_PREARM_BUNDLES:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle layout is unsafe")
+    return tuple(candidates)
 
 
 def _copy_private_release_tree(source: Path, destination: Path) -> None:
@@ -526,6 +565,43 @@ class MvpDeploymentManager:
             release_source_root=target,
             release_artifact_sha256=staged.artifact_sha256,
         )
+
+    def verify_prearm_native_host_bridge(self, *, browser: str, home: Path) -> dict[str, Any]:
+        """Read-only proof that exactly one installed Host matches a private pre-arm bundle.
+
+        This never stages, installs, uninstalls, opens Chrome, or discloses a
+        path or artifact identity. A valid temporary bridge remains distinct
+        from a fresh deployment slot and cannot make a release arm-ready.
+        """
+
+        verified_bindings = 0
+        for bundle in _prearm_bundle_candidates_readonly(self.paths):
+            manifest = _read_prearm_manifest(bundle)
+            artifact_sha256 = manifest["artifact_sha256"]
+            if bundle.name != artifact_sha256:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel identity drifted")
+            plan = create_plan(
+                action="uninstall",
+                browser=browser,
+                home=home,
+                env={},
+                release_source_root=bundle,
+                release_artifact_sha256=artifact_sha256,
+            )
+            try:
+                binding = verify_release_installation(plan, release_artifact_sha256=artifact_sha256)
+            except X2NRuntimeError:
+                continue
+            if binding.get("native_host_release_bound") is not True:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Native Host binding is invalid")
+            verified_bindings += 1
+        if verified_bindings != 1:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Native Host binding is unavailable")
+        return {
+            "native_host_prearm_bound": True,
+            "paths_emitted": False,
+            "release_pointer_changed": False,
+        }
 
     def install_prearm_native_host(
         self,
