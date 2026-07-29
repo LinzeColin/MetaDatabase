@@ -1,0 +1,6 @@
+'use strict';
+class DurableReplyDispatcher{
+ constructor({outbox,decrypt,resolveAccount,clientFactory,maxAttempts=5,retryDelays=[1000,2000,4000,8000,16000]}){Object.assign(this,{outbox,decrypt,resolveAccount,clientFactory,maxAttempts,retryDelays});}
+ async runOnce(){const row=this.outbox.claim();if(!row)return{status:'idle'};const account=await this.resolveAccount(row.accountId);const body=this.decrypt({scope:`outbox:${row.accountId}:${row.idempotencyKey}`,record:row.bodyCiphertext});try{const result=await this.clientFactory(account).sendText({toUserId:body.toUserId,text:body.text,contextToken:body.contextToken,clientId:row.providerClientId});this.outbox.confirm(row.outboxId,JSON.stringify({ret:result?.ret??0}));return{status:'confirmed',outboxId:row.outboxId};}catch(e){const code=e?.code||'SEND_FAILED';if(e?.dispatched){this.outbox.unknown(row.outboxId,code);return{status:'delivery_unknown',outboxId:row.outboxId};}if(row.attemptCount<this.maxAttempts&&/^ILINK_(?:HTTP_5|TIMEOUT)/.test(code)){this.outbox.retry(row.outboxId,{code,delayMs:this.retryDelays[Math.min(row.attemptCount-1,this.retryDelays.length-1)]});return{status:'retry_scheduled'};}this.outbox.terminal(row.outboxId,code);return{status:'terminal_failed'};}}
+}
+module.exports={DurableReplyDispatcher};

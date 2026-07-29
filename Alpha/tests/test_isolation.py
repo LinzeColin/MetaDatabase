@@ -37,17 +37,27 @@ def test_frozen_start_capital_isolates_equity_from_owner_cash(tmp_path):
     o = build_overview(session_factory=None, heartbeats=None, kill_switch=ks,
                        runtime_dir=rt, reports_dir=tmp_path / "nore",
                        real_power_usd=9999.0, fx_aud_usd=0.65)
-    # 系统无成交:净值 = 冻结本金 1587.09(不是 9999+),现金 = 冻结本金
-    assert abs(o["hero"]["cash_usd"] - 1587.09) < 0.01
-    assert abs(o["hero"]["equity_usd"] - 1587.09) < 0.01 if "equity_usd" in o["hero"] else True
-    # 澳元净值 = 1587.09/0.65,绝不含 owner 的 9999
-    assert abs(o["hero"]["equity_aud"] - 1587.09 / 0.65) < 0.01
+    # 系统无成交 → 交易盈亏为 0 → 净值恰为期初本金 3000 澳元,绝不含 owner 的 9999
+    assert abs(o["hero"]["equity_aud"] - 3000.0) < 0.01
+    assert abs(o["hero"]["total_pnl_aud"]) < 0.01
+    assert abs(o["hero"]["cash_usd"] - 1587.09) < 0.01, "策略现金 = 冻结本金 + 自己的现金流"
 
 
-def test_unfrozen_tracks_live_funding(tmp_path):
-    """未冻结(尚未首笔成交)时跟随真实可用,反映入金进度。"""
+def test_never_counts_owner_money_as_strategy_return(tmp_path):
+    """2026-07-28 事故回归门:owner 自己动账户现金,绝不能变成策略的收益。
+
+    真实事故:owner 账户现金 1587→2744,页面据此报"累计盈亏 +947.89 澳元 / +31.6%",
+    而策略一次交易都没做过。策略净值必须只由策略自己的账算出。
+    """
     ks = KillSwitch(tmp_path / "KS2")
-    o = build_overview(session_factory=None, heartbeats=None, kill_switch=ks,
-                       runtime_dir=tmp_path / "empty", reports_dir=tmp_path / "nore",
-                       real_power_usd=1587.09, fx_aud_usd=0.65)
-    assert abs(o["hero"]["cash_usd"] - 1587.09) < 0.01
+    for account_cash in (1587.09, 2744.57, 9999.0):     # owner 反复动自己的钱
+        o = build_overview(session_factory=None, heartbeats=None, kill_switch=ks,
+                           runtime_dir=tmp_path / "empty", reports_dir=tmp_path / "nore",
+                           real_power_usd=account_cash, fx_aud_usd=0.65)
+        h = o["hero"]
+        # 策略没交易过 → 净值恰为期初本金 3000 澳元,盈亏 0
+        assert abs(h["equity_aud"] - 3000.0) < 0.01, f"账户现金 {account_cash} 污染了策略净值"
+        assert abs(h["total_pnl_aud"]) < 0.01, "策略没交易过却报出了盈亏"
+        assert h["traded_yet"] is False
+        # 你的账户余额仍可见,但只作"资金是否到位"提示
+        assert abs(h["account_cash_usd"] - account_cash) < 0.01

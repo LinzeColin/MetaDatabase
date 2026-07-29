@@ -1,0 +1,457 @@
+{
+  "schema_version": 2,
+  "probe_kind": "read_only_current_truth",
+  "subject": {
+    "head": "b555aece63143dfb05171bd609cd9afc2542078a",
+    "tree": "4b42c17f5dbcc1fa3247f4c30451e66507327002",
+    "branch": "claude/cyberboss-v0-0-0-8-taskpack-fc4d1f",
+    "dirty": false,
+    "dirty_paths": []
+  },
+  "project": {
+    "repository": "LinzeColin/MetaDatabase",
+    "path": "CyberBoss/"
+  },
+  "files": {
+    "CyberBoss/README.md": {
+      "path": "CyberBoss/README.md",
+      "exists": true,
+      "size": 34570,
+      "sha256": "62c49262fc73f0bb95ae6edb9926306959e1e883edd2ade855479227a592e87d"
+    },
+    "CyberBoss/HANDOFF.md": {
+      "path": "CyberBoss/HANDOFF.md",
+      "exists": true,
+      "size": 80405,
+      "sha256": "eb5c9acd57107ef351689f78e0adc50a9cc0b0af31d5fc94c18396c4755d545a"
+    },
+    "CyberBoss/AGENTS.md": {
+      "path": "CyberBoss/AGENTS.md",
+      "exists": true,
+      "size": 3542,
+      "sha256": "c1395141de169ec3f50fa85d58a37ce61f1d6fd3e8e17d5c1c51d1631cdd604a"
+    },
+    "CyberBoss/machine/facts/task_state.json": {
+      "path": "CyberBoss/machine/facts/task_state.json",
+      "exists": true,
+      "size": 27849,
+      "sha256": "3ea44d10f1f398b1c465c582f5daea2961d24f38e8f6a1318c82ec232033ba22"
+    },
+    "CyberBoss/machine/facts/owner_decisions.json": {
+      "path": "CyberBoss/machine/facts/owner_decisions.json",
+      "exists": true,
+      "size": 2502,
+      "sha256": "860bb4afb1a2912d87d41bceb2eadfdbe79ff4e78b5bc5334fddef2b656cf5ea"
+    },
+    "CyberBoss/docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml": {
+      "path": "CyberBoss/docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml",
+      "exists": true,
+      "size": 74841,
+      "sha256": "538f0cd9110bb4ee54184ba4d6e3941a120284e34f8f1c65c01bc5041b1be185"
+    }
+  },
+  "claims": {
+    "machine_task_state": {
+      "exists": true,
+      "parse_error": null,
+      "schema_version": 2,
+      "taskpack_version": "v0.0.0.8",
+      "updated_on": "2026-07-28",
+      "current_run": {
+        "run_id": "PG-8",
+        "gate_id": "PG-8",
+        "task_id": "CB-840",
+        "scope": "exact_subject_seal_final_handoff_and_stage_8_exit_gate",
+        "status": "conditional_pass"
+      },
+      "passed_task_ids": [
+        "CB-000",
+        "CB-010",
+        "CB-020",
+        "CB-030",
+        "CB-040",
+        "CB-100",
+        "CB-110",
+        "CB-120",
+        "CB-130",
+        "CB-140",
+        "CB-200",
+        "CB-210",
+        "CB-220",
+        "CB-230",
+        "CB-240",
+        "CB-300",
+        "CB-310",
+        "CB-320",
+        "CB-330",
+        "CB-340",
+        "CB-400",
+        "CB-410",
+        "CB-420",
+        "CB-430",
+        "CB-440",
+        "CB-500",
+        "CB-510",
+        "CB-520",
+        "CB-530",
+        "CB-540",
+        "CB-600",
+        "CB-610",
+        "CB-620",
+        "CB-630",
+        "CB-640",
+        "CB-700",
+        "CB-710",
+        "CB-720",
+        "CB-730",
+        "CB-740",
+        "CB-800",
+        "CB-810",
+        "CB-820",
+        "CB-830",
+        "CB-840"
+      ],
+      "accepted_high_watermark": "CB-840",
+      "non_passed": {},
+      "pass_gates": {
+        "PG-0": "passed",
+        "PG-1": "passed",
+        "PG-2": "passed",
+        "PG-3": "passed",
+        "PG-4": "passed",
+        "PG-5": "passed",
+        "PG-6": "conditional_pass",
+        "PG-7": "conditional_pass",
+        "PG-8": "conditional_pass"
+      }
+    },
+    "readme": {
+      "current_task_claim": "CB-840",
+      "passed_task_ids": [
+        "CB-800",
+        "CB-810",
+        "CB-820",
+        "CB-830",
+        "CB-840"
+      ],
+      "not_started_task_ids": [],
+      "accepted_high_watermark": "CB-840",
+      "versions_mentioned": [
+        "v0.0.0.4",
+        "v0.0.0.8"
+      ],
+      "commit_ids_mentioned": [
+        "25670bf32c6d27e3668fcf59bc9ab754035e161d",
+        "fd3cd1e19d70caa148c3785288aaabfb909fed85"
+      ]
+    },
+    "handoff": {
+      "current_task_claim": null,
+      "passed_task_ids": [
+        "CB-840"
+      ],
+      "not_started_task_ids": [],
+      "accepted_high_watermark": "CB-840",
+      "versions_mentioned": [
+        "v0.0.0.8"
+      ],
+      "commit_ids_mentioned": [
+        "a6426566cdba7dce4d1990eb888d308838b26ef1",
+        "bb716bd9cf2760aa9639ef85c626f0fd19c6ec94",
+        "eff35ba86790fd569711bb7ca1a8344e80aa06e6",
+        "fd3cd1e19d70caa148c3785288aaabfb909fed85"
+      ]
+    }
+  },
+  "evidence": {
+    "task_ids": [
+      "CB-000",
+      "CB-010",
+      "CB-020",
+      "CB-030",
+      "CB-040",
+      "CB-100",
+      "CB-110",
+      "CB-120",
+      "CB-130",
+      "CB-140",
+      "CB-200",
+      "CB-210",
+      "CB-220",
+      "CB-230",
+      "CB-240",
+      "CB-300",
+      "CB-310",
+      "CB-320",
+      "CB-330",
+      "CB-340",
+      "CB-400",
+      "CB-410",
+      "CB-420",
+      "CB-430",
+      "CB-440",
+      "CB-500",
+      "CB-510",
+      "CB-520",
+      "CB-530",
+      "CB-540",
+      "CB-600",
+      "CB-610",
+      "CB-620",
+      "CB-630",
+      "CB-640",
+      "CB-700",
+      "CB-710",
+      "CB-720",
+      "CB-730",
+      "CB-740",
+      "CB-800",
+      "CB-810",
+      "CB-820",
+      "CB-830",
+      "CB-840"
+    ],
+    "highest_task_with_evidence": "CB-840",
+    "paths": [
+      "CyberBoss/docs/evidence/CB-000",
+      "CyberBoss/docs/evidence/CB-010",
+      "CyberBoss/docs/evidence/CB-020",
+      "CyberBoss/docs/evidence/CB-030",
+      "CyberBoss/docs/evidence/CB-040",
+      "CyberBoss/docs/evidence/CB-100",
+      "CyberBoss/docs/evidence/CB-110",
+      "CyberBoss/docs/evidence/CB-120",
+      "CyberBoss/docs/evidence/CB-130",
+      "CyberBoss/docs/evidence/CB-140",
+      "CyberBoss/docs/evidence/CB-200",
+      "CyberBoss/docs/evidence/CB-210",
+      "CyberBoss/docs/evidence/CB-220",
+      "CyberBoss/docs/evidence/CB-230",
+      "CyberBoss/docs/evidence/CB-240",
+      "CyberBoss/docs/evidence/CB-300",
+      "CyberBoss/docs/evidence/CB-310",
+      "CyberBoss/docs/evidence/CB-320",
+      "CyberBoss/docs/evidence/CB-330",
+      "CyberBoss/docs/evidence/CB-340",
+      "CyberBoss/docs/evidence/CB-400",
+      "CyberBoss/docs/evidence/CB-410",
+      "CyberBoss/docs/evidence/CB-420",
+      "CyberBoss/docs/evidence/CB-430",
+      "CyberBoss/docs/evidence/CB-440",
+      "CyberBoss/docs/evidence/CB-500",
+      "CyberBoss/docs/evidence/CB-510",
+      "CyberBoss/docs/evidence/CB-520",
+      "CyberBoss/docs/evidence/CB-530",
+      "CyberBoss/docs/evidence/CB-540",
+      "CyberBoss/docs/evidence/CB-600",
+      "CyberBoss/docs/evidence/CB-610",
+      "CyberBoss/docs/evidence/CB-620",
+      "CyberBoss/docs/evidence/CB-630",
+      "CyberBoss/docs/evidence/CB-640",
+      "CyberBoss/docs/evidence/CB-700",
+      "CyberBoss/docs/evidence/CB-710",
+      "CyberBoss/docs/evidence/CB-720",
+      "CyberBoss/docs/evidence/CB-730",
+      "CyberBoss/docs/evidence/CB-740",
+      "CyberBoss/docs/evidence/CB-800",
+      "CyberBoss/docs/evidence/CB-810",
+      "CyberBoss/docs/evidence/CB-820",
+      "CyberBoss/docs/evidence/CB-830",
+      "CyberBoss/docs/evidence/CB-840"
+    ]
+  },
+  "release": {
+    "artifact_count": 3,
+    "artifacts": [
+      {
+        "path": "CyberBoss/release/assemble-immutable-release.sh",
+        "type": "file",
+        "size": 1847,
+        "sha256": "6e2f0111c7e9e39600845b1880086d6a46f012f498fb80e4b0f23c175ad08a09"
+      },
+      {
+        "path": "CyberBoss/release/test/write-release-manifest.test.js",
+        "type": "file",
+        "size": 2529,
+        "sha256": "fa2eb200ae4a0ded29a08bfbcb98642e514c1f30e3600301c211f1966163bdd2"
+      },
+      {
+        "path": "CyberBoss/release/write-release-manifest.js",
+        "type": "file",
+        "size": 4653,
+        "sha256": "595cf7b8e828d8426d988b9a356472fd53de4447ea13b3443f7ee8bf3eb9614d"
+      }
+    ]
+  },
+  "recent_commits": [
+    {
+      "commit": "b555aece63143dfb05171bd609cd9afc2542078a",
+      "date": "2026-07-28T21:41:43+10:00",
+      "subject": "fix(cyberboss): 准入挪到真正在跑的那条路上，主人才绑得上"
+    },
+    {
+      "commit": "5d3841ce6514c9afa9763ae41883541f08262a66",
+      "date": "2026-07-28T21:32:51+10:00",
+      "subject": "feat(cyberboss): 首次绑主人不再需要令牌，也不用抄码——开门，说句话就行"
+    },
+    {
+      "commit": "d8840d08c9544940df8e056a1d75bf7451e981a1",
+      "date": "2026-07-28T21:24:11+10:00",
+      "subject": "docs(cyberboss): CyberBoss / 知你 竞品分析与「主动陪伴」设计方向"
+    },
+    {
+      "commit": "d9ab38f18d3d963e07cdac33f11301f925858386",
+      "date": "2026-07-28T21:20:48+10:00",
+      "subject": "fix(cyberboss): 部署后重启隧道，否则每次上线都把公网入口关掉"
+    },
+    {
+      "commit": "b934d4cfeef4f4e1f8709ad53d6122e100a19399",
+      "date": "2026-07-28T21:15:58+10:00",
+      "subject": "fix(cyberboss): 只输域名也能进后台，不再回一行 NOT_FOUND"
+    },
+    {
+      "commit": "13efca45b9047593e3cfd5872abb8bebf25509d2",
+      "date": "2026-07-28T20:59:04+10:00",
+      "subject": "fix(cyberboss): 后台换到没有登录墙的域名，并把公网可达纳入部署验证"
+    },
+    {
+      "commit": "ba3292e4c0a8435325c82a5deec54c22be487214",
+      "date": "2026-07-28T20:51:45+10:00",
+      "subject": "fix(cyberboss): 主人认领码——否则谁都成不了主人，软件整体不可用"
+    },
+    {
+      "commit": "5f0f35b4f427fe176bc26af5226796ff362d77f0",
+      "date": "2026-07-28T20:39:41+10:00",
+      "subject": "fix(cyberboss): 发布绑定改用 EnvironmentFile，否则覆盖不掉旧值"
+    },
+    {
+      "commit": "afd688ca9187be13e9e400138d6d819c87544912",
+      "date": "2026-07-28T20:31:10+10:00",
+      "subject": "fix(cyberboss): supervisor 把子进程的输出转发到 journal，不再丢掉"
+    },
+    {
+      "commit": "e762f7f0513932bca019e8e27de0f44516f7e5cb",
+      "date": "2026-07-28T20:20:09+10:00",
+      "subject": "fix(cyberboss): 设置页面在 userTurnRuntime 之后构造，否则必抛空指针"
+    },
+    {
+      "commit": "938eb081827630a9fee4d5fd933bbe60ce9c0dc4",
+      "date": "2026-07-28T20:11:07+10:00",
+      "subject": "fix(cyberboss): 已装好的机器上，工作区根目录以注册表为准"
+    },
+    {
+      "commit": "9b26c009ef1e5f74561a96db7404b35185b94fe1",
+      "date": "2026-07-28T20:02:43+10:00",
+      "subject": "fix(cyberboss): 部署脚本用 sudo 取工具链版本号"
+    },
+    {
+      "commit": "a58734e353a13ef6683f060e8298b8ee9da9364a",
+      "date": "2026-07-28T20:01:41+10:00",
+      "subject": "fix(cyberboss): 部署真的绑定新版本，云端后台才起得来"
+    },
+    {
+      "commit": "c85bfb1e5487e89bdc4f74bf09c9a32f14d83480",
+      "date": "2026-07-28T19:39:35+10:00",
+      "subject": "feat(cyberboss): 网页版后台，不用开终端"
+    },
+    {
+      "commit": "951768671d6813b1ca1d39573ca5f22822dfb9b8",
+      "date": "2026-07-28T19:30:02+10:00",
+      "subject": "fix(cyberboss): 部署脚本两个真问题——入口脚本没带过来，回滚跑不到"
+    },
+    {
+      "commit": "2105270026581ed3d639e49e9ae8cd6f16882b3b",
+      "date": "2026-07-28T19:27:58+10:00",
+      "subject": "feat(cyberboss): 云端部署与日志脚本"
+    },
+    {
+      "commit": "8b49d507cf92fda2da328587f7e800799d6d6817",
+      "date": "2026-07-28T19:23:41+10:00",
+      "subject": "fix(cyberboss): 扫码登录的号本身就是主人——修掉\"第一个发消息的朋友会拿到 Owner\""
+    },
+    {
+      "commit": "a4f3bc80158007fe26a5e4c4975b8fd35a221bae",
+      "date": "2026-07-28T18:54:13+10:00",
+      "subject": "fix(cyberboss): .gitignore 吞掉了八个源文件——新克隆出来的仓库是坏的"
+    },
+    {
+      "commit": "4b4a4df43781beb4c24ee4d23736a87545da6fac",
+      "date": "2026-07-28T18:49:22+10:00",
+      "subject": "feat(cyberboss): 双击就能用"
+    },
+    {
+      "commit": "a173b97412d16e795b0b473a23ac97a4439e31a7",
+      "date": "2026-07-28T17:23:33+10:00",
+      "subject": "fix(cyberboss): 用真实凭据实测云备份——OCI 通了，R2 缺写权限，并修掉只有真跑才会暴露的 bug"
+    },
+    {
+      "commit": "bee8d2d2fc845d30a92a9e0b10e51982dbca4dbe",
+      "date": "2026-07-28T16:58:08+10:00",
+      "subject": "feat(cyberboss): 剩下的全部接线——陪伴、统计、主动问候、导入上传、云备份、canary"
+    },
+    {
+      "commit": "06f8b704cf4a0f67e242068c5a762000a5715c9e",
+      "date": "2026-07-28T16:35:53+10:00",
+      "subject": "feat(cyberboss): 设置页面真的跑起来了，并把 Cloudflare 隧道配置替用户写好"
+    },
+    {
+      "commit": "adea89d104ebc9654433512d6e107074c125e2a1",
+      "date": "2026-07-28T16:21:01+10:00",
+      "subject": "docs(cyberboss): 面向使用者的中文说明书，并修好登录错误的中文映射"
+    },
+    {
+      "commit": "6d2dc6162d615290d54cff2885fa24cd7db9284f",
+      "date": "2026-07-28T16:18:06+10:00",
+      "subject": "feat(cyberboss): 让不懂技术的人也能装上并用起来"
+    },
+    {
+      "commit": "fd2684693c327bc4ec20554d268fb7b2b3734586",
+      "date": "2026-07-28T16:04:32+10:00",
+      "subject": "feat(cyberboss): bind the portal actions and close the PG-8 integration gap"
+    },
+    {
+      "commit": "473057aaf719505e1ab5ff57a18ef5ed9ad833ae",
+      "date": "2026-07-28T15:55:04+10:00",
+      "subject": "feat(cyberboss): put CB-810 operations and the setup link on the live path"
+    },
+    {
+      "commit": "113bc0e2583a94b48a0abea3bf1393f95dbf255e",
+      "date": "2026-07-28T15:45:13+10:00",
+      "subject": "feat(cyberboss): wire the v0.0.0.8 overlay into the live inbound path"
+    },
+    {
+      "commit": "acde024c5c6be56a662388a325d37478895270be",
+      "date": "2026-07-28T15:29:31+10:00",
+      "subject": "fix(cyberboss): record the PG-8 integration gap — the overlay is built but not live"
+    },
+    {
+      "commit": "e314d08eff4caa3d5c01c18c0ce7c538c7c86ed9",
+      "date": "2026-07-28T15:21:31+10:00",
+      "subject": "chore(cyberboss): record the PG-8 seal confirmation and sealed Subject identity"
+    },
+    {
+      "commit": "ebc711c34e6af313d884874d89edc8e96d5b84f0",
+      "date": "2026-07-28T15:19:25+10:00",
+      "subject": "feat(cyberboss): seal CB-840 exact Subject and close PG-8 conditional pass"
+    }
+  ],
+  "runtime": {
+    "probed": false
+  },
+  "consensus": {
+    "status": "consistent",
+    "reason": "accepted_high_watermark_agrees",
+    "accepted_high_watermark_claims": {
+      "machine_task_state": "CB-840",
+      "readme": "CB-840",
+      "handoff": "CB-840"
+    },
+    "distinct_claims": [
+      "CB-840"
+    ],
+    "mutation_policy": "allow_normal_execution",
+    "next_action": "continue_frozen_task_dag"
+  },
+  "sensitive_values_emitted": false,
+  "probe_digest": "fac01a0590cad224de2d83ae46fc5d5ac1693330cdff42e9dc9685efd59a8e33"
+}

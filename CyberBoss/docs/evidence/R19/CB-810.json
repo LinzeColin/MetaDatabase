@@ -1,0 +1,14 @@
+{
+  "schema_version": 1, "task_id": "CB-810",
+  "scope": "Status 业务矩阵、DeepSeek 聚合用量、资源闸门和 Zero-Agent 自愈",
+  "acceptance": ["AC-032","AC-033","AC-034","AC-048"],
+  "depends_on": "CB-800", "status": "CLOSED",
+  "tests": [
+    { "script": "test/v8-prebuilt/model-usage-status.test.js", "result": "1/1 PASS" },
+    { "script": "test/v8-prebuilt/status-portal.test.js", "result": "5/5 PASS" },
+    { "script": "test/v8-prebuilt/resource-self-heal.test.js", "result": "2/2 PASS" },
+    { "script": "test/v8-prebuilt/frozen-matrices.test.js（zero-agent 部分）", "result": "PASS", "detail": "zero_agent_runtime_cases.json 现被真正消费：断言 must_remain_zero 与 permitted_model_triggers 两个集合完全不相交，且允许触发模型的入口全部以 explicit_user_ 或 owner_ 开头，无任何后台面" }
+  ],
+  "rollback": { "procedure": "停用新 status 适配器 → 停止重启循环并告警 → 保留最后一个已知安全版本" },
+  "claims_not_made": ["status matrix populated from production traffic"]
+}

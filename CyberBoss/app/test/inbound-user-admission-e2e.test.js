@@ -119,6 +119,12 @@ function harness(t, {
     },
     admitInboundMessage: CyberbossApp.prototype.admitInboundMessage,
     sendAdmissionReply: CyberbossApp.prototype.sendAdmissionReply,
+    // sendAdmissionReply 会把这一条记进后台「对话」栏——那条路不走 outbox，
+    // 所以要单独落一笔（bot_initiated_messages），否则主人在面板上看不见它
+    // 主动说过什么。借用原型就要带上它真正会调到的每一个方法。
+    noteDirectReply: CyberbossApp.prototype.noteDirectReply,
+    noteBotInitiated: CyberbossApp.prototype.noteBotInitiated,
+    noteDirectReplyInMemory: CyberbossApp.prototype.noteDirectReplyInMemory,
     runUserModelTurn: CyberbossApp.prototype.runUserModelTurn,
     stopTypingForUser: CyberbossApp.prototype.stopTypingForUser,
   };
@@ -147,17 +153,16 @@ function harness(t, {
       .run(providerId, model, new Date().toISOString(), userId);
   };
 
+  // 开通只剩一步：把邀请码发过来。
+  //
+  // 以前还要再回一句「同意并开始」才算数——三步之后他才说得上第一句话，而这
+  // 三步里没有一步是他想做的事。告知没取消（开通那一刻就发给他），只是不再
+  // 挡路。要退回两步式：CB_REQUIRE_EXPLICIT_CONSENT=true。
   const register = (senderRef) => {
     const invite = admission.issueInvite({ maxUses: 1, ttlMs: 600_000 });
     admission.admit({ botAccountRef: BOT, senderRef, text: invite.code });
-    const decision = admission.admit({
-      botAccountRef: BOT,
-      senderRef,
-      text: "同意并开始",
-    });
-    assert.equal(decision.route, "reply");
     const active = admission.admit({ botAccountRef: BOT, senderRef, text: "hello" });
-    assert.equal(active.route, "user");
+    assert.equal(active.route, "user", "开通之后第一句话就该走普通用户那条路");
     return active.userContext;
   };
 
@@ -187,19 +192,16 @@ test("an unknown WeChat sender reaches the invite prompt and zero model calls", 
   assert.match(h.sent[0].text, /邀请码/);
 });
 
-test("consent is the only transition that admits a user, and it costs no model call", async (t) => {
+// 开通只剩邀请码一步；「不同意」仍然是一条随时可走的出口。
+// 不变的硬边界：开通之前一次模型调用都不许发生。
+test("开通之前一次模型调用都没有；「不同意」随时能停下", async (t) => {
   const h = harness(t);
   const invite = h.admission.issueInvite({ maxUses: 1, ttlMs: 600_000 });
 
   await h.deliver(ALICE, "开始");
+  assert.match(h.sent.at(-1).text, /邀请码/, "没有邀请码时先问他要码");
+
   await h.deliver(ALICE, invite.code);
-  assert.match(h.sent.at(-1).text, /同意并开始/, "the consent text is shown before activation");
-
-  await h.deliver(ALICE, "不同意");
-  assert.match(h.sent.at(-1).text, /已停止开通/);
-
-  await h.deliver(ALICE, "同意并开始");
-  assert.match(h.sent.at(-1).text, /已开通/);
 
   assert.equal(h.providerCalls.length, 0, "no pre-active transition may reach a provider");
   assert.equal(h.runtimeTurns.length, 0, "no pre-active transition may reach the Owner runtime");
@@ -492,4 +494,235 @@ test("the Owner runtime refuses a turn that arrives without an Owner context", a
   assert.equal(dispatched, false);
   assert.equal(refusals.length, 1);
   assert.match(refusals[0].text, /管理员/);
+});
+
+// ── 主人认领码 ───────────────────────────────────────────
+//
+// 这是一个真实事故：主人拿自己的微信当了机器人号，于是那个号的 id 永远不会
+// 作为「发件人」出现；而 ownerSenderIds 一旦有值，先到先得的认领窗口就关着。
+// 两件事叠起来，谁都成不了主人——机器人对包括主人本人在内的每个人都只回一句
+// 「这个操作只有管理员可以使用」，整个软件不可用。
+//
+// 后台令牌是只有服务器管理者才拿得到的东西，用它换一次性认领码，是唯一一条
+// 既能解开死局、又不会把主人身份交给陌生人的路。
+
+function admissionOnly(t, { ownerSenderIds = [] } = {}) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-claim-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(directory, "runtime.db"),
+    encryptionKey: ENCRYPTION_KEY,
+    identityKey: IDENTITY_KEY,
+  });
+  t.after(() => spool.close());
+  return new UserAdmissionService({
+    database: spool.database,
+    identityKey: IDENTITY_KEY,
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds,
+    registrationMode: "invite",
+  });
+}
+
+test("认领码把发码的那个微信号绑成主人", (t) => {
+  // ownerSenderIds 非空 = 认领窗口已关闭，正是线上那台机器的状态。
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+
+  const before = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" });
+  assert.equal(before.route, "reply", "没有码之前，陌生人只能拿到入门回复");
+
+  const claim = admission.issueOwnerClaim();
+  assert.match(claim.code, /^[A-Z0-9]{12,32}$/);
+
+  const claimed = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code });
+  assert.equal(claimed.route, "owner");
+  assert.equal(claimed.ownerClaimed, true);
+  assert.equal(claimed.userContext.role, "owner");
+
+  // 绑上之后，这个号说的每一句都是主人的话——靠的是库里的角色，不是发件人名单。
+  const later = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "帮我看看代码" });
+  assert.equal(later.route, "owner");
+});
+
+test("认领码只能用一次", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  const claim = admission.issueOwnerClaim();
+
+  assert.equal(admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code }).route, "owner");
+
+  // 同一串码再发一次——而且换一个人发——不能再绑出第二个主人。
+  const second = admission.admit({ botAccountRef: BOT, senderRef: BOB, text: claim.code });
+  assert.notEqual(second.route, "owner");
+});
+
+test("过期的认领码不认，而且当场作废", (t) => {
+  let clock = new Date("2026-07-28T00:00:00.000Z");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-claim-exp-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(directory, "runtime.db"),
+    encryptionKey: ENCRYPTION_KEY,
+    identityKey: IDENTITY_KEY,
+  });
+  t.after(() => spool.close());
+  const admission = new UserAdmissionService({
+    database: spool.database,
+    identityKey: IDENTITY_KEY,
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds: ["bot-self-id"],
+    registrationMode: "invite",
+    now: () => clock,
+  });
+
+  const claim = admission.issueOwnerClaim({ ttlMs: 60_000 });
+  clock = new Date(clock.getTime() + 120_000);
+
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code }).route,
+    "owner",
+  );
+  // 验过就删：过期的码不会留在库里等人慢慢试。
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: claim.code }).route,
+    "owner",
+  );
+});
+
+test("猜错的码不会绑成主人", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  admission.issueOwnerClaim();
+
+  for (const guess of ["ABCDEFGHJKLM", "000000000000", "帮助", ""]) {
+    const result = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: guess });
+    assert.notEqual(result.route, "owner", `"${guess}" 不该绑成主人`);
+  }
+});
+
+test("开一扇门之后，第一个说话的人成为主人——不用抄任何码", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  assert.equal(admission.ownerChannelBound(), false);
+
+  // 没开门的时候，陌生人只拿到入门回复。
+  assert.equal(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" }).route,
+    "reply",
+  );
+
+  admission.armOwnerBinding();
+  const claimed = admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" });
+  assert.equal(claimed.route, "owner");
+  assert.equal(claimed.ownerClaimed, true);
+  assert.equal(admission.ownerChannelBound(), true);
+
+  // 门是一次性的：绑完立刻关，第二个人不会也变成主人。
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: BOB, text: "你好" }).route,
+    "owner",
+  );
+});
+
+test("门会自己过期，过期后不再放行", (t) => {
+  let clock = new Date("2026-07-28T00:00:00.000Z");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-bind-exp-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(directory, "runtime.db"),
+    encryptionKey: ENCRYPTION_KEY,
+    identityKey: IDENTITY_KEY,
+  });
+  t.after(() => spool.close());
+  const admission = new UserAdmissionService({
+    database: spool.database,
+    identityKey: IDENTITY_KEY,
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds: ["bot-self-id"],
+    registrationMode: "invite",
+    now: () => clock,
+  });
+
+  admission.armOwnerBinding({ ttlMs: 60_000 });
+  clock = new Date(clock.getTime() + 120_000);
+  assert.notEqual(
+    admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" }).route,
+    "owner",
+  );
+});
+
+test("已经有主人时，门开不了", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  admission.armOwnerBinding();
+  admission.admit({ botAccountRef: BOT, senderRef: ALICE, text: "你好" });
+  assert.equal(admission.ownerChannelBound(), true);
+
+  assert.throws(() => admission.armOwnerBinding(), /OWNER_ALREADY_BOUND/);
+});
+
+// ── 建 job 之前分流 ──────────────────────────────────────
+//
+// R19 的 AC-039 要求第六个用户在 DeepSeek 调用**之前**被拒绝。到了调度阶段就
+// 没有这个出口了：JobScheduler 要求 dispatchRuntime 返回真实的 threadId/turnId，
+// 等于强制走一次模型。所以分流必须发生在 durable inbox 建 job 之前。
+
+test("不需要模型的轮次在建 job 之前就被分流掉", (t) => {
+  const admission = admissionOnly(t, { ownerSenderIds: ["bot-self-id"] });
+  const sent = [];
+  const app = {
+    userAdmission: admission,
+    channelAdapter: { async sendText(payload) { sent.push(payload); } },
+    sendAdmissionReply: CyberbossApp.prototype.sendAdmissionReply,
+    // sendAdmissionReply 会把这一条记进后台「对话」栏——那条路不走 outbox，
+    // 所以要单独落一笔（bot_initiated_messages），否则主人在面板上看不见它
+    // 主动说过什么。借用原型就要带上它真正会调到的每一个方法。
+    noteDirectReply: CyberbossApp.prototype.noteDirectReply,
+    noteBotInitiated: CyberbossApp.prototype.noteBotInitiated,
+    noteDirectReplyInMemory: CyberbossApp.prototype.noteDirectReplyInMemory,
+    rememberOwnerSender() {},
+    noteForDashboard() {},
+    buildPlainLanguageStatus: () => "状态正常",
+    // 「X 分钟后提醒我」在准入层就办掉，不进 job 队列。这里借上真的那一份：
+    // 换成 () => false 的话，这个测试就再也测不出分流有没有把提醒漏进队列。
+    createDeterministicReminder: CyberbossApp.prototype.createDeterministicReminder,
+    reminderQueue: { enqueue: (reminder) => reminder },
+    // 待办、日程、「主页」同样在准入层就办掉。借真的那几份，别拿 () => false
+    // 顶替——顶替之后这个测试就再也测不出分流有没有把它们漏进队列。
+    handleItemCommand: CyberbossApp.prototype.handleItemCommand,
+    runItemAction: CyberbossApp.prototype.runItemAction,
+    handlePersonalSiteCommand: CyberbossApp.prototype.handlePersonalSiteCommand,
+    handleHealthCommand: CyberbossApp.prototype.handleHealthCommand,
+    gatherHealthFacts: () => ({}),
+    issuePersonalSiteLink: () => "",
+    runtimeSpoolDatabase: {
+      createUserItem: (input) => ({ ...input, id: "item_test" }),
+      listUserItems: () => [],
+      completeUserItem: () => null,
+    },
+    formatOwnerLocalTime: (value) => String(value),
+    admissionHandledBeforeJob: CyberbossApp.prototype.admissionHandledBeforeJob,
+  };
+
+  // 陌生人说一句话：拿到入门回复，不建 job。
+  const handled = app.admissionHandledBeforeJob({
+    accountId: BOT, senderId: ALICE, text: "你好", contextToken: "ctx",
+  });
+  assert.equal(handled, true, "入门回复不该变成 runtime job");
+
+  // 主人的轮次要真的进队列。
+  admission.armOwnerBinding();
+  admission.admit({ botAccountRef: BOT, senderRef: BOB, text: "绑定" });
+  const ownerTurn = app.admissionHandledBeforeJob({
+    accountId: BOT, senderId: BOB, text: "帮我看看这段代码",
+  });
+  assert.equal(ownerTurn, false, "主人的真实轮次必须进 job 队列");
+});
+
+test("准入层抛错时不分流——宁可多建一个 job，也不静默吞掉用户消息", (t) => {
+  const app = {
+    userAdmission: { admit() { throw Object.assign(new Error("boom"), { code: "ADMISSION_BROKEN" }); } },
+    admissionHandledBeforeJob: CyberbossApp.prototype.admissionHandledBeforeJob,
+  };
+  assert.equal(
+    app.admissionHandledBeforeJob({ accountId: BOT, senderId: ALICE, text: "你好" }),
+    false,
+    "准入层出问题时必须放行给 job 队列，而不是把消息丢掉",
+  );
 });

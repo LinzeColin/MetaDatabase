@@ -13,6 +13,35 @@ const { DatabaseSync } = require("node:sqlite");
 
 const { assertTransition } = require("../jobs/job-state-machine");
 
+// 队列排序：主人排在访客前面，同一档内仍然先到先得。
+//
+// 为什么需要：前 5 个人和主人共用同一个 Codex app-server，而调度器是串行的。
+// 纯 FIFO 的话，一个访客的长 turn 会把主人的消息堵在后面——主人的助理不会崩，
+// 但会变得不可用，而那正是「不能把我的 codex 搞崩溃」的实际含义。
+//
+// 用子查询而不是新加一列：jobs.user_id 和 users.role 都已经存在，加列要一次
+// 迁移，而迁移是这个仓风险最高的动作。user_id 为空的（系统消息、主动问候、
+// 到点提醒）排在最前，它们是主人自己那条线上的东西。
+// user_items 认哪几种 kind。写成常量而不是在建和读两处各写一遍数组：
+// 只在一处加上新的种类，另一处会静默返回空列表——存进去了却永远读不出来，
+// 而且不报错。
+//
+// media 是 2026-07-29 加的：微信收到的图片原本只落盘在 stateDir/inbox/<日期>/，
+// 不认人也不进库，于是既不进 GitHub 全量库也不进 Cloudflare 冷库（那两条同步的
+// 都是数据库）。复用这张表而不是新开一张，是为了避开一次迁移——迁移是这个仓
+// 风险最高的动作，而这里要的东西（按人、加密、跟着同步走）它已经全有了。
+//
+// 表里存的是元数据（文件名、路径、sha256、大小、类型），字节仍然在磁盘上。
+// 把图片本身塞进库会让 GitHub 全量同步变得不可用。
+const USER_ITEM_KINDS = Object.freeze(["todo", "event", "media"]);
+
+const OWNER_FIRST_ORDER = `
+  CASE
+    WHEN user_id IS NULL THEN 0
+    WHEN user_id IN (SELECT user_id FROM users WHERE role='owner') THEN 0
+    ELSE 1
+  END`;
+
 const MIGRATION_ROOT = path.resolve(__dirname, "../../../migrations");
 const MIGRATIONS = Object.freeze([
   Object.freeze({
@@ -49,6 +78,40 @@ const MIGRATIONS = Object.freeze([
     version: 7,
     name: "007_cb800_lifecycle_receipts.sql",
     sourceCommit: "CB-800",
+  }),
+  // 文件名是 010 而版本号是 8：008/009 两份 R19 迁移已经在 migrations/ 里，但
+  // 还没有登记进这张表，因此运行时并不会执行它们。版本号必须连续 1..N，所以
+  // 下一个真正会被执行的版本就是 8。等 008/009 登记进来时它们顺延即可——版本
+  // 到文件的映射由这张表决定，不由文件名决定。
+  Object.freeze({
+    version: 8,
+    name: "010_owner_persona.sql",
+    sourceCommit: "PANEL-2",
+  }),
+  Object.freeze({
+    version: 9,
+    name: "011_admin_login_tickets.sql",
+    sourceCommit: "LOGIN-2",
+  }),
+  Object.freeze({
+    version: 10,
+    name: "012_bot_initiated_messages.sql",
+    sourceCommit: "PANEL-6",
+  }),
+  Object.freeze({
+    version: 11,
+    name: "013_turn_traces.sql",
+    sourceCommit: "CONSOLE-1",
+  }),
+  Object.freeze({
+    version: 12,
+    name: "014_user_persona.sql",
+    sourceCommit: "PERSONA-1",
+  }),
+  Object.freeze({
+    version: 13,
+    name: "015_user_items.sql",
+    sourceCommit: "TODO-1",
   }),
 ]);
 const OWNER_ROLE = "owner";
@@ -468,6 +531,16 @@ function timestampFrom(value) {
     throw new RuntimeSpoolError("CLOCK_INVALID");
   }
   return date.toISOString();
+}
+
+// 待办可以没有截止时间，所以这里不能像 timestampFrom 那样把空值当成故障抛出来。
+// 给不出合法时刻就返回 null，让上层决定这算不算问题（日程算，待办不算）。
+function normalizeItemTimestamp(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
 function leaseExpiry(now, leaseMs) {
@@ -1433,7 +1506,7 @@ class RuntimeSpoolDatabase {
            AND operation_class <> 'command'
            AND (? IS NULL OR operation_class=?)
            AND attempt_count < max_attempts
-         ORDER BY created_at, id
+         ORDER BY ${OWNER_FIRST_ORDER}, created_at, id
          LIMIT 1`,
       )
       .get(operationClass, operationClass);
@@ -1645,12 +1718,15 @@ class RuntimeSpoolDatabase {
 
       const head = this.database
         .prepare(
+          // 排序必须和 peekNextRuntimeJob 一模一样：调度器先 peek 再带着
+          // expectedJobId 来 claim，两边选中不同的 job 就会一直 claim 不上。
+          // command 那一档是控制指令（停止/取消），保持纯先到先得。
           `SELECT id, correlation_id, state_version
            FROM jobs
            WHERE status='queued'
              AND operation_class ${queuedOperationPredicate}
              ${command ? "" : "AND attempt_count < max_attempts"}
-           ORDER BY created_at, id
+           ORDER BY ${command ? "" : `${OWNER_FIRST_ORDER},`} created_at, id
            LIMIT 1`,
         )
         .get();
@@ -3994,6 +4070,635 @@ class RuntimeSpoolDatabase {
       row.payload_ciphertext,
       `inbox:${inboxId}:payload`,
     );
+  }
+
+  // ── 主人设定的语气 ─────────────────────────────────────────
+  //
+  // 走和 inbox/outbox 载荷同一套信封（AES-256-GCM + AAD）。不用 service_state：
+  // 那张表是明文列，只收枚举和安全形状的短串，而这里有主人自己写的自由文本。
+
+  writeOwnerPersona(value) {
+    this.#assertOpen();
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      throw new RuntimeSpoolError("PERSONA_OBJECT_REQUIRED");
+    }
+    const plain = Buffer.from(stableJson(value), "utf8");
+    if (plain.length > 8 * 1024) {
+      throw new RuntimeSpoolError("PERSONA_TOO_LARGE");
+    }
+    const now = this.#timestamp();
+    this.database
+      .prepare(
+        `INSERT INTO owner_persona(id, payload_ciphertext, payload_sha256, updated_at)
+         VALUES (1, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           payload_ciphertext=excluded.payload_ciphertext,
+           payload_sha256=excluded.payload_sha256,
+           updated_at=excluded.updated_at`,
+      )
+      .run(
+        this.cipher.encrypt(plain, "owner_persona:1:payload"),
+        sha256(plain),
+        now,
+      );
+    return Object.freeze({ updatedAt: now });
+  }
+
+  readOwnerPersona() {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        "SELECT payload_ciphertext, payload_sha256, updated_at FROM owner_persona WHERE id=1",
+      )
+      .get();
+    if (!row) {
+      return null;
+    }
+    const plain = this.cipher.decrypt(
+      row.payload_ciphertext,
+      "owner_persona:1:payload",
+    );
+    if (sha256(plain) !== row.payload_sha256) {
+      throw new IntegrityConflictError();
+    }
+    return Object.freeze({
+      value: JSON.parse(plain.toString("utf8")),
+      updatedAt: row.updated_at,
+    });
+  }
+
+  // 某个人自己的语气。没设过就返回 null——上层会退回主人那一行当默认值。
+  //
+  // 键是 user_id，和记忆、时间线同一个隔离边界。AAD 里带上 user_id：
+  // 拿别人的密文换到这一行上，解密会直接失败，而不是悄悄串了人。
+  writeUserPersona(userId, value) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      throw new RuntimeSpoolError("USER_ID_REQUIRED");
+    }
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      throw new RuntimeSpoolError("PERSONA_OBJECT_REQUIRED");
+    }
+    const plain = Buffer.from(stableJson(value), "utf8");
+    if (plain.length > 8 * 1024) {
+      throw new RuntimeSpoolError("PERSONA_TOO_LARGE");
+    }
+    const now = this.#timestamp();
+    this.database
+      .prepare(
+        `INSERT INTO user_persona(user_id, payload_ciphertext, payload_sha256, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(user_id) DO UPDATE SET
+           payload_ciphertext=excluded.payload_ciphertext,
+           payload_sha256=excluded.payload_sha256,
+           updated_at=excluded.updated_at`,
+      )
+      .run(
+        id,
+        this.cipher.encrypt(plain, `user_persona:${id}:payload`),
+        sha256(plain),
+        now,
+      );
+    return Object.freeze({ updatedAt: now });
+  }
+
+  readUserPersona(userId) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      return null;
+    }
+    const row = this.database
+      .prepare(
+        "SELECT payload_ciphertext, payload_sha256, updated_at FROM user_persona WHERE user_id=?",
+      )
+      .get(id);
+    if (!row) {
+      return null;
+    }
+    const plain = this.cipher.decrypt(
+      row.payload_ciphertext,
+      `user_persona:${id}:payload`,
+    );
+    if (sha256(plain) !== row.payload_sha256) {
+      throw new IntegrityConflictError();
+    }
+    return Object.freeze({
+      value: JSON.parse(plain.toString("utf8")),
+      updatedAt: row.updated_at,
+    });
+  }
+
+  // ── 待办和日程 ──────────────────────────────────────────
+  //
+  // 标题和备注是人写的自由文本，一律进密文载荷。明文列只有时间戳和状态——
+  // 它们要用来排序和筛选，本身不含内容。
+
+  createUserItem({ userId, kind, title, note = "", dueAt = null }) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      throw new RuntimeSpoolError("USER_ID_REQUIRED");
+    }
+    if (!USER_ITEM_KINDS.includes(kind)) {
+      throw new RuntimeSpoolError("ITEM_KIND_INVALID");
+    }
+    const text = String(title || "").trim();
+    if (!text || text.length > 200) {
+      throw new RuntimeSpoolError("ITEM_TITLE_REQUIRED");
+    }
+    // 日程一定有开始时刻，否则它就只是个待办。
+    const due = normalizeItemTimestamp(dueAt);
+    if (kind === "event" && !due) {
+      throw new RuntimeSpoolError("ITEM_DUE_AT_REQUIRED");
+    }
+    const itemId = `item_${randomBytes(16).toString("hex")}`;
+    const plain = Buffer.from(
+      stableJson({ title: text, note: String(note || "").trim().slice(0, 1000) }),
+      "utf8",
+    );
+    const now = this.#timestamp();
+    this.database
+      .prepare(
+        `INSERT INTO user_items(
+           id, user_id, kind, payload_ciphertext, payload_sha256,
+           due_at, done_at, created_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+      )
+      .run(
+        itemId,
+        id,
+        kind,
+        this.cipher.encrypt(plain, `user_item:${itemId}:payload`),
+        sha256(plain),
+        due,
+        now,
+        now,
+      );
+    return Object.freeze({ id: itemId, kind, title: text, dueAt: due, createdAt: now });
+  }
+
+  // 一个人的待办/日程。open=true 只给没做完的。
+  //
+  // 排序：有截止时间的排前面按时间升序，没有的按创建时间。主人在微信里问
+  // 「我的待办」，最该先看到的是快到点的那几条。
+  listUserItems({ userId, kind = "todo", open = true, limit = 50 } = {}) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id) || !USER_ITEM_KINDS.includes(kind)) {
+      return [];
+    }
+    const bounded = Math.max(1, Math.min(200, Number(limit) || 50));
+    const rows = this.database
+      .prepare(
+        `SELECT id, kind, payload_ciphertext, payload_sha256, due_at, done_at, created_at
+           FROM user_items
+          WHERE user_id=? AND kind=?${open ? " AND done_at IS NULL" : ""}
+          ORDER BY due_at IS NULL, due_at, created_at
+          LIMIT ?`,
+      )
+      .all(id, kind, bounded);
+    return rows.map((row) => this.#decodeUserItem(row)).filter(Boolean);
+  }
+
+  // 划掉第 n 条（从 1 开始数，就是微信里列出来的那个序号）。
+  //
+  // 用序号而不是 id：主人在微信里看到的是「1. 买菜」，让他回「完成 1」是唯一
+  // 不用打一串十六进制的办法。序号从同一个 listUserItems 顺序里取，所以他看到
+  // 的第几条就是划掉的第几条。
+  completeUserItem({ userId, kind = "todo", ordinal }) {
+    this.#assertOpen();
+    const open = this.listUserItems({ userId, kind, open: true, limit: 200 });
+    const index = Number(ordinal);
+    if (!Number.isInteger(index) || index < 1 || index > open.length) {
+      return null;
+    }
+    const target = open[index - 1];
+    const now = this.#timestamp();
+    this.database
+      .prepare("UPDATE user_items SET done_at=?, updated_at=? WHERE id=? AND done_at IS NULL")
+      .run(now, now, target.id);
+    return Object.freeze({ ...target, doneAt: now });
+  }
+
+  // 后台那一栏：所有人的待办和日程。只有带真令牌的后台路由能走到这里。
+  listAllUserItemsForOwner({ limit = 200 } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(500, Number(limit) || 200));
+    return this.database
+      .prepare(
+        `SELECT id, user_id, kind, payload_ciphertext, payload_sha256,
+                due_at, done_at, created_at
+           FROM user_items
+          ORDER BY created_at DESC
+          LIMIT ?`,
+      )
+      .all(bounded)
+      .map((row) => {
+        const item = this.#decodeUserItem(row);
+        return item ? Object.freeze({ ...item, userId: row.user_id }) : null;
+      })
+      .filter(Boolean);
+  }
+
+  // 一条坏掉的记录不该把整栏打空。解不开就跳过，其余照常显示。
+  #decodeUserItem(row) {
+    try {
+      const plain = this.cipher.decrypt(
+        row.payload_ciphertext,
+        `user_item:${row.id}:payload`,
+      );
+      if (sha256(plain) !== row.payload_sha256) {
+        return null;
+      }
+      const payload = JSON.parse(plain.toString("utf8"));
+      return Object.freeze({
+        id: row.id,
+        kind: row.kind,
+        title: String(payload?.title || ""),
+        note: String(payload?.note || ""),
+        dueAt: row.due_at || null,
+        doneAt: row.done_at || null,
+        createdAt: row.created_at,
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  // 谁给自己设过语气。后台那一栏用它在人名旁边标一下「自己设过」。
+  // 只返回 user_id，不解密任何载荷。
+  listUserPersonaIds() {
+    this.#assertOpen();
+    return this.database
+      .prepare("SELECT user_id FROM user_persona ORDER BY user_id")
+      .all()
+      .map((row) => row.user_id);
+  }
+
+  // user_id -> role。对话栏用它给发件人打「主人」标签。判权限不走这里，
+  // 那条路在 UserAdmission；这里只是让主人在列表上分得清谁是谁。
+  listUserRolesForOwner() {
+    this.#assertOpen();
+    const roles = new Map();
+    try {
+      for (const row of this.database.prepare("SELECT user_id, role FROM users").all()) {
+        roles.set(row.user_id, row.role);
+      }
+    } catch {
+      // 单人安装可能还没有 users 表，那就没有标签，不是错误。
+    }
+    return roles;
+  }
+
+  // ── 每一轮的执行轨迹 ─────────────────────────────────────
+  //
+  // codex 只吐 turn started/completed/failed、reply delta/completed、token 计数、
+  // approval requested 这几种，**没有**单独的"推理内容"事件。所以这里存的是
+  // 执行轨迹（什么时候开始、每步隔多久、烧了多少 token、调没调工具、怎么失败的），
+  // 不是模型的内心独白——别把它当成后者。
+  //
+  // 写失败一律吞掉：记不下轨迹不该让一轮回复挂掉。
+
+  recordTurnTrace({ jobId = "", threadId = "", turnId = "", seq = 0, kind, payload = null }) {
+    this.#assertOpen();
+    const label = String(kind || "").slice(0, 64);
+    if (!label) {
+      throw new RuntimeSpoolError("TRACE_KIND_REQUIRED");
+    }
+    const now = this.#timestamp();
+    const id = this.#identity("trace", [turnId || threadId || jobId || "-", String(seq), label, now], "trace");
+    let ciphertext = null;
+    if (payload !== null && payload !== undefined) {
+      // reply delta 里就是用户看到的那些字，属于真实聊天内容，必须进信封。
+      const plain = Buffer.from(stableJson(payload), "utf8").subarray(0, 16 * 1024);
+      ciphertext = this.cipher.encrypt(plain, `trace:${id}:payload`);
+    }
+    this.database
+      .prepare(
+        `INSERT INTO turn_traces(id, job_id, thread_id, turn_id, seq, kind, payload_ciphertext, occurred_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO NOTHING`,
+      )
+      .run(id, jobId || null, threadId || null, turnId || null, Number(seq) || 0, label, ciphertext, now);
+    return id;
+  }
+
+  listTurnTracesForOwner({ turnId = "", jobId = "", limit = 200 } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(1000, Number(limit) || 200));
+    const clauses = [];
+    const params = [];
+    if (turnId) {
+      clauses.push("turn_id = ?");
+      params.push(turnId);
+    }
+    if (jobId) {
+      clauses.push("job_id = ?");
+      params.push(jobId);
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(" OR ")}` : "";
+    return this.database
+      .prepare(
+        `SELECT id, job_id, thread_id, turn_id, seq, kind, payload_ciphertext, occurred_at
+         FROM turn_traces ${where}
+         ORDER BY occurred_at DESC, seq DESC
+         LIMIT ?`,
+      )
+      .all(...params, bounded)
+      .map((row) => {
+        let payload = null;
+        if (row.payload_ciphertext !== null) {
+          try {
+            payload = JSON.parse(
+              this.cipher.decrypt(row.payload_ciphertext, `trace:${row.id}:payload`).toString("utf8"),
+            );
+          } catch {
+            payload = null;
+          }
+        }
+        return Object.freeze({
+          id: row.id,
+          jobId: row.job_id || "",
+          threadId: row.thread_id || "",
+          turnId: row.turn_id || "",
+          seq: Number(row.seq),
+          kind: row.kind,
+          payload,
+          at: row.occurred_at,
+        });
+      });
+  }
+
+  // ── 机器人自己先开口的那些消息 ───────────────────────────
+  //
+  // 主动打招呼、到点的提醒、入门引导都不经过 outbox（outbox 的每一行都要挂在
+  // 一个 job 上，而它们没有 job），发出去之后在库里一个字都不留。于是后台
+  // 「对话」栏看得见别人说的每一句、它答的每一句，唯独看不见它自己主动说的。
+  //
+  // 记录失败**绝不能**影响发送：宁可这条在面板上看不到，也不能因为记账出错就
+  // 让主人收不到提醒。
+
+  recordBotInitiatedMessage({ kind, senderId, text, delivered = false, errorClass = "" }) {
+    this.#assertOpen();
+    if (!["checkin", "reminder", "onboarding", "system"].includes(kind)) {
+      throw new RuntimeSpoolError("BOT_MESSAGE_KIND_INVALID");
+    }
+    const body = String(text || "");
+    if (!body.trim()) {
+      throw new RuntimeSpoolError("BOT_MESSAGE_EMPTY");
+    }
+    const now = this.#timestamp();
+    const id = this.#identity("botmsg", [kind, now, body.slice(0, 64)], "botmsg");
+    // 收件人是微信号，属于真实 PII，和正文一起进信封，不单独明文存一列。
+    const plain = Buffer.from(
+      stableJson({ senderId: String(senderId || ""), text: body }),
+      "utf8",
+    );
+    this.database
+      .prepare(
+        `INSERT INTO bot_initiated_messages(
+           id, kind, payload_ciphertext, payload_sha256, delivered, error_class, created_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO NOTHING`,
+      )
+      .run(
+        id,
+        kind,
+        this.cipher.encrypt(plain, `botmsg:${id}:payload`),
+        sha256(plain),
+        delivered ? 1 : 0,
+        errorClass ? String(errorClass).slice(0, 64) : null,
+        now,
+      );
+    return Object.freeze({ id, createdAt: now });
+  }
+
+  listBotInitiatedForOwner({ limit = 50, since = "", until = "" } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 50));
+    const clauses = [];
+    const params = [];
+    if (typeof since === "string" && since) {
+      clauses.push("created_at >= ?");
+      params.push(since);
+    }
+    if (typeof until === "string" && until) {
+      clauses.push("created_at <= ?");
+      params.push(until);
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+    return this.database
+      .prepare(
+        `SELECT id, kind, payload_ciphertext, delivered, error_class, created_at
+         FROM bot_initiated_messages
+         ${where}
+         ORDER BY created_at DESC, id DESC
+         LIMIT ?`,
+      )
+      .all(...params, bounded)
+      .map((row) => {
+        let payload = { senderId: "", text: "" };
+        let available = false;
+        try {
+          payload = JSON.parse(
+            this.cipher
+              .decrypt(row.payload_ciphertext, `botmsg:${row.id}:payload`)
+              .toString("utf8"),
+          );
+          available = true;
+        } catch {
+          // 单条读坏不该让整栏空白。
+        }
+        return Object.freeze({
+          id: row.id,
+          kind: row.kind,
+          senderId: payload.senderId || "",
+          text: payload.text || "",
+          available,
+          delivered: Number(row.delivered) === 1,
+          errorClass: row.error_class || "",
+          createdAt: row.created_at,
+        });
+      });
+  }
+
+  // ── 主人后台的「对话」一栏 ──────────────────────────────────
+  //
+  // 下面两个方法解密真实聊天内容，是这个类里权限最高的读。名字带 ForOwner 是为
+  // 了让调用点一眼看出这件事：它们只允许挂在带真令牌的后台路由上，不得进日志、
+  // 不得进证据文件、不得进 canonical 同步。
+  //
+  // 载荷过了保留期会被 redactExpiredPayloads 置空，那时 ciphertext 是 NULL；这
+  // 里返回 payloadAvailable=false 而不是抛错——"已经按保留期清掉了"本身就是要显
+  // 示给主人看的状态。
+
+  // 时间范围在 SQL 里筛（received_at 上有序，走得动）；关键词只能在解密之后
+  // 在内存里筛——正文是密文，SQL 看不见它，这是加密存储必然的代价。
+  listRecentInboundForOwner({ limit = 50, since = "", until = "" } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 50));
+    const clauses = [];
+    const params = [];
+    if (typeof since === "string" && since) {
+      clauses.push("received_at >= ?");
+      params.push(since);
+    }
+    if (typeof until === "string" && until) {
+      clauses.push("received_at <= ?");
+      params.push(until);
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+    const rows = this.database
+      .prepare(
+        `SELECT id, correlation_id, user_id, message_type, status,
+                reject_reason, received_at, payload_ciphertext
+         FROM inbox_messages
+         ${where}
+         ORDER BY received_at DESC, id DESC
+         LIMIT ?`,
+      )
+      .all(...params, bounded);
+    return rows.map((row) => {
+      let payload = null;
+      let payloadAvailable = false;
+      if (row.payload_ciphertext !== null) {
+        try {
+          payload = JSON.parse(
+            this.cipher
+              .decrypt(row.payload_ciphertext, `inbox:${row.id}:payload`)
+              .toString("utf8"),
+          );
+          payloadAvailable = true;
+        } catch {
+          // 单条读坏不该让整栏空白。
+          payload = null;
+        }
+      }
+      return Object.freeze({
+        inboxId: row.id,
+        correlationId: row.correlation_id,
+        userId: row.user_id || "",
+        messageType: row.message_type,
+        status: row.status,
+        rejectReason: row.reject_reason || "",
+        receivedAt: row.received_at,
+        payloadAvailable,
+        payload,
+      });
+    });
+  }
+
+  // 给了 correlationIds 就只取这些来信的回复——按人或按时间筛过之后，没必要
+  // 把整张出站表都解密一遍。
+  listRecentOutboundForOwner({ limit = 80, correlationIds = null } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 80));
+    let rows;
+    if (Array.isArray(correlationIds)) {
+      if (!correlationIds.length) {
+        return [];
+      }
+      // SQLite 的变量上限是 999，分批取。
+      rows = [];
+      for (let offset = 0; offset < correlationIds.length; offset += 400) {
+        const slice = correlationIds.slice(offset, offset + 400);
+        rows.push(...this.database
+          .prepare(
+            `SELECT id, job_id, correlation_id, message_kind, chunk_index,
+                    chunk_count, status, attempt_count, last_error_class,
+                    created_at, confirmed_at, payload_ciphertext
+             FROM outbox_messages
+             WHERE correlation_id IN (${slice.map(() => "?").join(",")})
+             ORDER BY created_at DESC, id DESC`,
+          )
+          .all(...slice));
+      }
+    } else {
+      rows = this.database
+        .prepare(
+          `SELECT id, job_id, correlation_id, message_kind, chunk_index,
+                  chunk_count, status, attempt_count, last_error_class,
+                  created_at, confirmed_at, payload_ciphertext
+           FROM outbox_messages
+           ORDER BY created_at DESC, id DESC
+           LIMIT ?`,
+        )
+        .all(bounded);
+    }
+    return rows.map((row) => {
+      let text = "";
+      let payloadAvailable = false;
+      if (row.payload_ciphertext !== null) {
+        try {
+          text = this.cipher
+            .decrypt(row.payload_ciphertext, `outbox:${row.id}:payload`)
+            .toString("utf8");
+          payloadAvailable = true;
+        } catch {
+          text = "";
+        }
+      }
+      return Object.freeze({
+        outboxId: row.id,
+        jobId: row.job_id,
+        correlationId: row.correlation_id,
+        messageKind: row.message_kind,
+        chunkIndex: Number(row.chunk_index),
+        chunkCount: Number(row.chunk_count),
+        status: row.status,
+        attemptCount: Number(row.attempt_count),
+        lastErrorClass: row.last_error_class || "",
+        createdAt: row.created_at,
+        confirmedAt: row.confirmed_at || "",
+        payloadAvailable,
+        text,
+      });
+    });
+  }
+
+  listRecentJobsForOwner({ limit = 80, correlationIds = null } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 80));
+    let rows;
+    if (Array.isArray(correlationIds)) {
+      if (!correlationIds.length) {
+        return [];
+      }
+      rows = [];
+      for (let offset = 0; offset < correlationIds.length; offset += 400) {
+        const slice = correlationIds.slice(offset, offset + 400);
+        rows.push(...this.database
+          .prepare(
+            `SELECT id, correlation_id, status, error_class, attempt_count,
+                    created_at, finished_at
+             FROM jobs
+             WHERE correlation_id IN (${slice.map(() => "?").join(",")})`,
+          )
+          .all(...slice));
+      }
+    } else {
+      rows = this.database
+        .prepare(
+          `SELECT id, correlation_id, status, error_class, attempt_count,
+                  created_at, finished_at
+           FROM jobs
+           ORDER BY created_at DESC, id DESC
+           LIMIT ?`,
+        )
+        .all(bounded);
+    }
+    return rows
+      .map((row) => Object.freeze({
+        jobId: row.id,
+        correlationId: row.correlation_id,
+        status: row.status,
+        errorClass: row.error_class || "",
+        attemptCount: Number(row.attempt_count),
+        createdAt: row.created_at,
+        finishedAt: row.finished_at || "",
+      }));
   }
 
   readInboundContextToken(inboxId) {

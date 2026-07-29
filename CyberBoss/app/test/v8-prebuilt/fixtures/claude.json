@@ -1,0 +1,18 @@
+[
+  {
+    "uuid": "conv-2",
+    "name": "Claude 测试",
+    "chat_messages": [
+      {
+        "uuid": "m1",
+        "sender": "human",
+        "text": "你好"
+      },
+      {
+        "uuid": "m2",
+        "sender": "assistant",
+        "text": "你好"
+      }
+    ]
+  }
+]

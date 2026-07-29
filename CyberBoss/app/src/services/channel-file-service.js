@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
+const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { loadPersistedContextTokens } = require("../adapters/channel/weixin/context-token-store");
 const { resolvePreferredSenderId } = require("../core/default-targets");
 
@@ -13,17 +14,19 @@ class ChannelFileService {
   }
 
   async sendToCurrentChat({ filePath = "", userId = "" } = {}, context = {}) {
-    const account = resolveSelectedAccount(this.config);
+    // 先认人再定位号：文件要发给谁决定了该用哪个号发。
+    const primary = resolveSelectedAccount(this.config);
     const targetUserId = normalizeText(userId)
       || normalizeText(context?.senderId)
       || resolvePreferredSenderId({
         config: this.config,
-        accountId: account.accountId,
+        accountId: primary.accountId,
         sessionStore: this.sessionStore,
       });
     if (!targetUserId) {
       throw new Error("Cannot determine which WeChat user should receive the file.");
     }
+    const account = resolveAccountForUser(this.config, targetUserId);
 
     const contextTokens = loadPersistedContextTokens(this.config, account.accountId);
     const contextToken = String(contextTokens[targetUserId] || "").trim();

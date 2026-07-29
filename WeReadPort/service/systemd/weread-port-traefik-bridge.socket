@@ -1,0 +1,11 @@
+[Unit]
+Description=阅迁 Coolify Traefik 私网桥接套接字 v0.0.0.1.9
+
+[Socket]
+ListenStream=10.0.1.1:8789
+Accept=no
+NoDelay=true
+Service=weread-port-traefik-bridge.service
+
+[Install]
+WantedBy=sockets.target

@@ -1,205 +1,34 @@
-import {
-  APP_NAME,
-  APP_VERSION,
-  CHATGPT_HANDOFF_URL,
-  OFFICIAL_WEREAD_SKILL_URL,
-  OPERATIONS_STATUS_URL,
-  SOURCE_REPOSITORY_URL,
-  SUPPORT_ISSUES_URL,
-} from "./constants.js";
-import { businessLineDefinitions, stateLabel } from "./business-governance.js";
-
-export const LEGAL_EFFECTIVE_DATE = "2026-07-27";
-
-const PRIVACY_SECTIONS = Object.freeze([
-  {
-    title: "适用范围与维护者",
-    body: [
-      `${APP_NAME}是一个公开、匿名使用的个人阅读笔记迁移工具，由 ${SOURCE_REPOSITORY_URL} 对应项目的维护者提供和维护。它不是腾讯、微信读书或 OpenAI 的官方产品，也不代表这些平台作出授权、背书或保证。`,
-      `本政策适用于本站的浏览器界面、ChatGPT Sites 同源薄代理、本地便携预览和项目自运行运维面。维护问题可通过项目公开问题入口提交；报告安全问题时不得在公开页面粘贴密钥、笔记或其他敏感内容。`,
-    ],
-  },
-  {
-    title: "我们处理哪些数据",
-    body: [
-      "使用演示数据时，不需要你的微信读书密钥或个人笔记。",
-      "使用本地上传时，你主动选择的 ZIP、JSON、Markdown 或 TXT 文件只在当前浏览器的隔离任务内读取、校验和整理。",
-      "连接微信读书时，浏览器会把你本人提供的微信读书密钥和经过白名单约束的请求，经本站同源薄代理转发到腾讯官方微信读书智能接口网关；上游响应会短暂经过托管运行时，再返回当前浏览器会话。",
-      "本站会处理完成导出所必需的书名、章节、个人划线、想法、点评、阅读进度和统计字段，但不把这些内容写入应用数据库、OVH 运行日志、Private-Database、R2、OCI 或分析事件。",
-    ],
-  },
-  {
-    title: "处理目的与处理位置",
-    body: [
-      "数据只用于预览可导出范围、生成中文 Markdown、Canonical JSON、离线搜索页、迁移 ZIP，以及生成一份由你主动上传到 ChatGPT 的阅读笔记文件。",
-      "本地文件解析、规范化、格式渲染、压缩和下载均在当前浏览器完成。连接微信读书时，密钥和上游响应会在浏览器、ChatGPT Sites 托管运行时与腾讯官方接口之间短暂传输；本站不承诺这些平台具有特定数据驻留地区。",
-    ],
-  },
-  {
-    title: "保存、清除与备份边界",
-    body: [
-      "本站不主动在服务器端持久化微信读书密钥、上传文件、原始接口响应、笔记正文、搜索词、ChatGPT 提问词或生成的 ZIP。",
-      "浏览器当前会话会在你点击“断开并清除当前会话”、关闭页面或连续 15 分钟无操作后清除隔离任务中的敏感状态；下载到你设备中的文件由你自行管理。",
-      "OVH、Private-Database、R2 和 OCI 只保存脱敏的发布、故障、恢复、备份对象引用、哈希和运行摘要，不保存用户笔记或密钥。",
-    ],
-  },
-  {
-    title: "访问统计、日志与第三方",
-    body: [
-      "ChatGPT Sites 可能提供站点级独立访客和页面浏览量统计。应用不会主动把密钥、书名、文件名、搜索词、笔记或下载内容发送给统计系统。",
-      "完成一次真实微信读书连接会涉及腾讯官方微信读书接口；托管和页面交付会涉及 ChatGPT Sites。点击“打开 ChatGPT”会前往固定官方入口，但本站不会把密钥、笔记或提问词附加到跳转网址。",
-      "站点不会加载第三方广告、外部字体、库存图片或跨站跟踪脚本。",
-    ],
-  },
-  {
-    title: "你的选择与责任",
-    body: [
-      "你可以只使用演示数据或本地文件而不连接微信读书；可以随时断开并清除当前会话；也可以不打开 ChatGPT。",
-      "请只处理自己有权访问的个人数据，并妥善保管密钥和下载文件。不要把真实密钥或敏感笔记提交到公开问题、聊天记录、截图或日志。",
-      `关于公开代码、隐私说明或删除边界的问题，可访问 ${SUPPORT_ISSUES_URL}。本工具没有账户数据库，因此不存在由本站维护的账户资料可供导出或删除。`,
-    ],
-  },
-  {
-    title: "安全、儿童与政策变更",
-    body: [
-      "系统使用同源请求、接口与参数白名单、请求和响应大小上限、有限重试、无缓存响应、安全响应头和敏感信息扫描来降低风险；任何系统仍可能存在未知缺陷。",
-      "本服务不以儿童为目标，也不要求提交身份证件、支付信息、健康信息或其他与阅读笔记迁移无关的敏感信息。",
-      `本政策生效日期为 ${LEGAL_EFFECTIVE_DATE}。重要变更会随代码版本和发布记录更新；本页不是对任何司法辖区合规认证的声明。`,
-    ],
-  },
+import { APP_NAME,APP_VERSION,OFFICIAL_WEREAD_SKILL_URL,OPERATIONS_STATUS_URL,SOURCE_REPOSITORY_URL,SUPPORT_ISSUES_URL } from "./constants.js";
+import { businessLineDefinitions,stateLabel } from "./business-governance.js";
+export const LEGAL_EFFECTIVE_DATE="2026-07-29";
+const PRIVACY_SECTIONS=Object.freeze([
+ {title:"适用范围与产品主体",body:[`${APP_NAME}是一个公开的个人阅读资产账户平台，由 ${SOURCE_REPOSITORY_URL} 对应项目维护者提供。它不是腾讯、微信读书、Notion、Obsidian、GitHub、Google 或 OpenAI 的官方产品，也不代表这些平台作出背书。`,`本政策覆盖账户注册、登录、云端同步、微信读书密钥绑定、个人笔记长期存储、四平台导入、画像与推荐、匿名迁移入口、状态页和运维恢复面。`]},
+ {title:"我们处理的数据",body:["账户数据包括不可变账户 ID、邮箱或第三方平台主体标识、显示昵称、登录凭据摘要、会话和安全事件。密码使用高成本单向派生，不保存明文。","微信读书密钥用于验证、登录或绑定；系统保存不可逆指纹用于查找账户，并使用账户级密钥加密保存可轮换凭据。密钥不会进入 URL、公开状态、日志、分析事件或导出清单。","个人笔记包括你主动创建或从微信读书、Notion、Obsidian、GitHub、Google Drive 导入的标题、正文、来源、分类、时间和版本。正文按账户密钥加密后进入对象存储。","AI 问询偏好仅在你主动保存时处理，包括所选平台、提问风格、个人补充信息和自定义提示词；这些内容使用账户级密钥加密。问询记录只保存账户 ID、单条笔记 ID、所选平台、风格和时间，不保存已复制的笔记正文、组合提示词或第三方回答。","连接数据包括 Google、GitHub、Notion 的授权令牌、最小必要权限、平台主体和工作区提示。授权令牌按账户密钥加密。","行为与画像数据只在你明确同意后处理；记录结构化事件、来源、时间和数量，不把笔记正文写入行为事件。关闭同意后删除非必要行为事件。"]},
+ {title:"用途与法律边界",body:["数据用于身份验证、账户安全、多用户隔离、云端同步、去重、冲突恢复、导入、阅读热度、主题偏好、可解释推荐、数据导出、删除和故障恢复。","当你点击“去 AI 问询”时，浏览器只为你选定的一条笔记生成固定风格的文本并先复制到本地剪贴板，再打开你选定的第三方平台；服务端不会代你把笔记或提示词上传给第三方，也不会自动提交表单。","系统不出售个人数据，不投放第三方广告，不使用跨站跟踪脚本，也不把笔记正文用于训练模型。当前画像和推荐采用确定性聚合，运行期模型 Token 依赖为零。","你必须只连接自己有权访问的账户、仓库、文件和微信读书数据；本服务不用于获取整本受版权保护内容或绕过平台权限。"]},
+ {title:"存储、位置与保留",body:["OVH SQLite 只承担实时会话、索引、队列、幂等、游标、Runtime Journal 与 Outbox；它不是长期权威事实库。","Cloudflare R2 保存加密用户正文和对象；Private-Database 保存脱敏结构化事实、对象引用、哈希、版本、发布和恢复信息；OCI 保存 R2/D1 的异地冷备。D1 仅在有查询价值时作为可重建冷索引。","会话到期或退出后清除；撤销行为分析同意时删除非必要行为事件；删除账户时删除账户索引、凭据、连接、笔记对象和同步事件。备份中的删除依照有界轮换与恢复流程传播。","基础设施供应商可能在不同地区处理数据；本页不承诺特定数据驻留司法辖区。公开市场上线前应由运营主体补充适用地区、联系地址和必要的法定处理依据。"]},
+ {title:"安全与多用户隔离",body:["每个账户使用不可变 account_id；所有数据库读写必须显式带 account_id。系统不会因为邮箱相同自动合并账户。新增平台身份只能在登录且近期重新验证后显式绑定。","密码使用 scrypt；会话使用 HttpOnly、SameSite Cookie、CSRF、同源检查、轮换和限流；账户数据使用 AES-256-GCM 信封加密；生产密钥通过环境 Secret 注入并支持版本轮换。","管理员资料仅在独立 admin.weread.linzezhang.com、有效管理员登录会话与服务端不可变账户白名单同时满足时直接展示；已登录的管理员无需再次输入密钥或填写查看用途。普通用户网页不展示管理员入口、数据或权限。管理员页面不显示密钥、令牌、会话 Cookie 或对象存储路径。","系统实施请求大小上限、平台权限最小化、OAuth state、PKCE（平台支持时）、安全响应头、重定向禁止、敏感信息扫描、故障注入和回滚。任何系统仍可能存在未知风险。"]},
+ {title:"第三方平台与一键导入",body:["Google、GitHub 和 Notion 授权通过各平台官方 OAuth/OIDC 端点进行；系统仅展示和读取你授权范围内的内容。Obsidian 通过你在本机主动选择的 Vault 文件夹、ZIP 或 Markdown/TXT 导入，不存在统一的 Obsidian 云端登录。","ChatGPT、Claude、DeepSeek、豆包和 Kimi 仅作为你主动选择后打开的外部问询入口。复制内容保留在你的本地剪贴板，直到你自行粘贴和发送；对应第三方会依其自身条款、隐私政策和账户设置处理后续内容。","取消某个平台连接会停止后续读取，但已经导入并由你保存在账户中的笔记仍属于你的账户，除非你删除相应笔记或账户。第三方平台也会按各自政策处理授权和访问日志。"]},
+ {title:"你的选择与权利",body:["你可以使用微信读书密钥、邮箱密码、Google、GitHub 或 Notion 创建和登录账户；可以绑定多个登录方式，但平台不会未经确认自动合并账户。","你可以查看和修改资料、更新或清空已保存的 AI 问询个人补充信息与自定义提示词、关闭行为分析和个性化推荐、导出全部账户数据、删除单条笔记、撤销平台连接或永久删除账户。高风险操作需要近期重新验证。","安全或隐私问题可通过项目问题入口提出，但不得公开粘贴密钥、令牌、Cookie、私人笔记或个人身份信息。"]},
+ {title:"儿童、事件与变更",body:["本服务不以儿童为目标，也不要求身份证件、支付信息、健康信息或与阅读资产无关的敏感信息。","发生可能影响用户数据的安全事件时，系统应保全脱敏证据、限制影响、轮换凭据、恢复服务并按适用法律和运营主体责任通知。","本政策随版本和发布记录更新；它不是任何司法辖区的合规认证。"]},
 ]);
-
-const TERMS_SECTIONS = Object.freeze([
-  {
-    title: "服务目的与适用范围",
-    body: [
-      `${APP_NAME}用于把使用者本人有权访问的微信读书个人笔记或本地阅读笔记，整理为可下载、可校验和可继续使用的文件。服务按现状提供，当前 P0 不提供账户、服务器端笔记库、个人定时同步、整书下载或模型推理。`,
-      "使用本站即表示你理解其非官方性质，并同意遵守微信读书、ChatGPT、GitHub 和所在地区适用的强制性规则。",
-    ],
-  },
-  {
-    title: "允许用途",
-    body: [
-      "迁移、备份、整理和检索你本人有权访问的阅读笔记；把由本站生成的文件主动添加到你自己的 ChatGPT 会话或项目；在自己控制的设备和知识工具中继续使用导出结果。",
-    ],
-  },
-  {
-    title: "禁止用途",
-    list: [
-      "收集、共享、猜测、买卖或滥用他人的微信读书密钥或账户访问权。",
-      "抓取、破解、导出或分发整本受版权保护的书籍、付费内容或你无权使用的资料。",
-      "上传恶意归档、路径穿越文件、超大压缩炸弹，或以自动化方式规避限流、干扰服务或上游平台。",
-      "把本站、OpenAI、腾讯或微信读书描述为已审核、保存、担保或认可你的笔记和导出内容。",
-      "绕过安全停止、升级提示、权限边界或数据完整性检查。",
-    ],
-  },
-  {
-    title: "密钥、文件与内容责任",
-    body: [
-      "微信读书密钥与使用者身份绑定，应由你本人从官方能力获得并只在当前会话使用。本站不提供共享密钥。",
-      "你应核对导出报告、文件清单、成功与失败数量和 SHA-256。标记为“部分结果”的文件不是完整备份；上传文件的合法性、准确性和保管责任由你承担。",
-    ],
-  },
-  {
-    title: "可用性、上游变化与安全停止",
-    body: [
-      `微信读书接口、ChatGPT Sites、网络和浏览器能力可能变化。收到官方升级指令、密钥失败、上游结构变化、文件完整性失败或不可逆冲突时，系统会停止受影响操作，而不是生成看似成功的空结果。官方能力说明以 ${OFFICIAL_WEREAD_SKILL_URL} 为准。`,
-      "7×24 是架构、监控、自愈、备份和恢复目标，不表示当前已经通过连续运行 N 小时证明生产级可用性。",
-    ],
-  },
-  {
-    title: "责任限制与变更",
-    body: [
-      "在适用法律允许的范围内，维护者不对上游中断、浏览器或网络故障、使用者误操作、未经核对的部分导出、第三方平台规则变化或使用者自行上传到其他服务后的处理结果作超出实际控制范围的保证。",
-      `服务可以为安全、平台规则、成本或维护需要调整或停止受影响能力。变更会通过版本、代码和发布记录体现。问题入口为 ${SUPPORT_ISSUES_URL}，运行概览见 ${OPERATIONS_STATUS_URL}。`,
-    ],
-  },
+const TERMS_SECTIONS=Object.freeze([
+ {title:"服务范围",body:[`${APP_NAME}提供账户注册、密码和多平台登录、微信读书密钥绑定、个人笔记长期存储、跨设备同步、Notion/Obsidian/GitHub/Google 导入、画像与可解释推荐、单条笔记的 AI 问询文本准备，以及 /migrate 匿名迁移入口。`,`AI 问询只会在你点击后复制文本并打开你选定的外部平台，不代表本站替你向该平台上传、提交或保证回答质量。`,`7×24 是架构、监控、自愈、备份和恢复目标，不代表已通过连续运行 N 小时证明无故障。`]},
+ {title:"账户与安全责任",body:["你应提供真实可联系的登录方式，妥善保管密码、微信读书密钥和第三方平台账户，并在怀疑泄露时立即轮换。禁止共享、买卖、猜测或滥用他人凭据。","同一邮箱可能对应多个不同的第三方平台身份；为防止账户接管，系统不会自动合并。账户绑定、解绑、导出和删除需遵循近期重新验证。"]},
+ {title:"允许用途",body:["保存、同步、整理、检索和分析你本人有权访问的个人阅读笔记；将个人知识资料从已授权平台导入；使用可解释画像改善自己的阅读工作流；为你本人选定的一条笔记生成问询文本并自行决定是否粘贴到第三方 AI 平台；通过匿名入口生成迁移文件。"]},
+ {title:"禁止用途",list:["访问、导入或传播你无权使用的账户、仓库、文件、书籍或个人数据。","抓取、破解、导出或分发整本受版权保护内容，或绕过微信读书和其他平台权限。","上传恶意归档、压缩炸弹、路径穿越文件、恶意脚本或以自动化方式规避限流。","尝试跨账户读取、修改、推断或关联他人数据，或利用相同邮箱诱导账户自动合并。","把本站或第三方平台描述为已经审核、保证、认可或承担你的内容和商业结果。"]},
+ {title:"导入、同步与数据责任",body:["一键导入会尽量自动分页、解析和去重，但第三方格式、权限和接口可能变化。系统发现升级要求、授权失效、结构不兼容或完整性风险时会停止受影响操作并明确报告。","跨设备同步使用版本和游标；发生并发冲突时不会静默覆盖。你应在删除、批量导入和迁移后核对结果，并保留必要的个人备份。"]},
+ {title:"上游、可用性与变更",body:[`微信读书接口能力以 ${OFFICIAL_WEREAD_SKILL_URL} 为参考；Google、GitHub、Notion、ChatGPT、Claude、DeepSeek、豆包、Kimi、Cloudflare、OVH、OCI 和网络服务可能调整规则、价格或可用性。`,`维护者可以为安全、法律、成本或上游变化暂停、降级或移除受影响能力，但不得把失败伪装为成功。运行概览见 ${OPERATIONS_STATUS_URL}。`]},
+ {title:"责任边界与终止",body:["在适用法律允许范围内，维护者不对第三方中断、用户误操作、未经核对的同步冲突、非法导入、设备或网络故障以及超出实际控制范围的间接损失作超出法定义务的保证。","你可以永久删除账户。严重滥用、安全攻击或违法使用可能导致访问被限制或账户终止，同时保留必要的脱敏安全证据。问题入口为项目公开问题，但安全问题不得附带真实 Secret。"]},
 ]);
-
-export function legalTitle(kind) {
-  return kind === "privacy" ? "隐私政策" : "使用条款";
-}
-
-export function legalKicker(kind) {
-  return kind === "privacy" ? "数据如何被处理" : "使用权利与责任";
-}
-
-export function legalSections(kind) {
-  return kind === "privacy" ? PRIVACY_SECTIONS : TERMS_SECTIONS;
-}
-
-export function legalContentHtml(kind) {
-  return legalSections(kind).map(section => {
-    const body = (section.body ?? []).map(paragraph => `<p>${linkify(paragraph)}</p>`).join("");
-    const list = section.list ? `<ul>${section.list.map(item => `<li>${linkify(item)}</li>`).join("")}</ul>` : "";
-    return `<section class="legal-section"><h2>${escapeHtml(section.title)}</h2>${body}${list}</section>`;
-  }).join("");
-}
-
-export function legalMainHtml(kind) {
-  return `<a class="skip-link" href="#legal-content">跳到正文</a>${siteHeaderHtml()}<main class="legal" id="legal-content"><p class="section-label">${legalKicker(kind)}</p><h1>${legalTitle(kind)}</h1><p class="legal-summary">请先阅读与自身使用方式相关的处理边界。核心原则是：不提供共享密钥、不主动持久化用户笔记、失败不伪装成功。</p>${legalContentHtml(kind)}<div class="legal-contact"><h2>联系与版本</h2><p>项目问题入口：<a href="${SUPPORT_ISSUES_URL}" rel="noreferrer">MetaDatabase 公开问题</a>。报告安全问题时请勿公开粘贴密钥或笔记。</p><p>版本 ${APP_VERSION} · 生效日期 ${LEGAL_EFFECTIVE_DATE}</p></div></main>${siteFooterHtml()}`;
-}
-
-export function statusMainHtml() {
-  return `<a class="skip-link" href="#status-content">跳到系统状态</a>${siteHeaderHtml()}<main class="status-page" id="status-content"><p class="section-label">公开运行状态</p><h1>系统状态</h1><p class="status-intro">本页区分页面存活、静态资源就绪、微信读书代理合同和外部运维概览，并用业务基线矩阵展示每条纵向链路的阶段、状态、依赖、证据与恢复动作。它不使用你的微信读书密钥进行探测，也不展示任何用户内容。</p><div id="status-overview" class="status-overview" aria-live="polite"><article class="status-hero neutral"><span class="status-large-dot" aria-hidden="true"></span><div><p class="outcome-label">正在读取</p><h2>正在获取当前运行状态</h2><p>如果 JavaScript 被禁用，仍可直接访问机器接口 <a href="/healthz">/healthz</a>、<a href="/readyz">/readyz</a> 和 <a href="/api/status">/api/status</a>。</p></div></article></div><div id="status-components" class="status-components"><article><h2>公开应用</h2><p>等待运行时检查。</p></article><article><h2>微信读书代理</h2><p>只检查代理合同是否可用，不使用任何用户密钥调用上游。</p></article><article><h2>数据处理边界</h2><p>用户密钥、笔记和下载文件不进入运维状态。</p></article></div>${businessGovernanceStaticHtml()}<section class="status-links"><h2>更多运行信息</h2><p><a href="${OPERATIONS_STATUS_URL}" rel="noreferrer">打开供应商与基础设施状态入口</a></p><p class="microcopy">外部状态入口与本产品状态页职责不同：前者展示供应商资源，本站页面展示当前应用可观察能力。业务矩阵中的“尚未实证”不等于故障，而是明确表示当前状态检查没有使用用户密钥或私有基础设施凭据。</p></section><noscript><p class="status-noscript">浏览器已禁用 JavaScript，因此无法自动刷新人类可读状态；下方静态业务矩阵仍可阅读，机器接口也可直接打开。</p></noscript></main>${siteFooterHtml()}`;
-}
-
-export function businessGovernanceStaticHtml() {
-  const rows = businessLineDefinitions().map(line => `<tr data-business-line="${escapeAttr(line.id)}"><th scope="row"><strong>${escapeHtml(line.name)}</strong><span>${escapeHtml(line.id)}</span></th><td>${escapeHtml(line.phase)}</td><td><span class="business-state not-verified">${stateLabel("NOT_VERIFIED")}</span></td><td>${escapeHtml(dependencyText(line))}</td><td>${escapeHtml(line.oracle)}</td><td>等待运行时证据；无需 JavaScript 也可核对业务边界。</td></tr>`).join("");
-  return `<section class="business-governance" aria-labelledby="business-governance-title"><div class="business-governance-heading"><div><p class="section-label">业务基线纵向切片</p><h2 id="business-governance-title">端到端白箱治理矩阵</h2></div><p id="business-governance-summary" class="microcopy">静态合同已加载；动态状态等待 /api/status。</p></div><div class="business-table-wrap"><table><thead><tr><th scope="col">业务线</th><th scope="col">阶段</th><th scope="col">状态</th><th scope="col">依赖与耦合</th><th scope="col">验收 Oracle</th><th scope="col">恢复或下一步</th></tr></thead><tbody id="business-governance-body">${rows}</tbody></table></div></section>`;
-}
-
-function dependencyText(line) {
-  const all = line.dependsOnAll.length ? `全部：${line.dependsOnAll.join("、")}` : "无强制前置";
-  const any = line.dependsOnAny.length ? `；任一：${line.dependsOnAny.join("、")}` : "";
-  return `${all}${any}`;
-}
-
-export function standaloneDocument({ title, description, body }) {
-  return `<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n<meta name="theme-color" content="#f7faf9" media="(prefers-color-scheme: light)" />\n<meta name="theme-color" content="#0d1411" media="(prefers-color-scheme: dark)" />\n<meta name="color-scheme" content="light dark" />\n<meta name="description" content="${escapeAttr(description)}" />\n<link rel="manifest" href="/manifest.webmanifest" />\n<link rel="stylesheet" href="/src/ui/styles.css" />\n<title>${escapeHtml(title)}</title>\n</head>\n<body>\n<div id="app">${body}</div>\n<script type="module" src="/src/ui/app.js"></script>\n</body>\n</html>\n`;
-}
-
-export function siteHeaderHtml() {
-  return `<header class="topbar"><a class="brand" href="/" aria-label="${APP_NAME}首页"><span class="brand-mark" aria-hidden="true">阅</span><span class="brand-copy"><strong>${APP_NAME}</strong><small>上传、整理、下载并继续询问</small></span></a><div class="header-trust" aria-label="隐私状态"><span class="status-dot" aria-hidden="true"></span>密钥、上传文件与笔记默认不落库</div><nav aria-label="站点导航"><a href="/">迁移工具</a><a href="/privacy/">隐私</a><a href="/terms/">条款</a><a href="/status/">系统状态</a></nav></header>`;
-}
-
-export function siteFooterHtml() {
-  return `<footer><div class="footer-brand"><strong>${APP_NAME}</strong><span>非微信读书或 OpenAI 官方产品</span></div><p>只处理使用者本人授权的数据；真实微信读书连接经同源薄代理短暂处理，应用不主动持久化密钥或笔记。</p><div class="footer-links"><a href="/privacy/">隐私政策</a><a href="/terms/">使用条款</a><a href="/status/">系统状态</a><a href="${SOURCE_REPOSITORY_URL}" rel="noreferrer">源代码</a></div></footer>`;
-}
-
-function linkify(value) {
-  const source = String(value ?? "");
-  const pattern = /https:\/\/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]+/gu;
-  let output = "";
-  let cursor = 0;
-  for (const match of source.matchAll(pattern)) {
-    const start = match.index ?? 0;
-    const raw = match[0];
-    const trailing = raw.match(/[.,;:!?]+$/u)?.[0] ?? "";
-    const url = trailing ? raw.slice(0, -trailing.length) : raw;
-    output += escapeHtml(source.slice(cursor, start));
-    output += `<a href="${escapeAttr(url)}" rel="noreferrer">${escapeHtml(shortLinkLabel(url))}</a>${escapeHtml(trailing)}`;
-    cursor = start + raw.length;
-  }
-  return output + escapeHtml(source.slice(cursor));
-}
-
-
-function shortLinkLabel(value) {
-  try {
-    const url = new URL(value);
-    if (url.hostname === "github.com") return "GitHub 项目入口";
-    if (url.hostname === "status.linzezhang.com") return "运行状态入口";
-    return url.hostname;
-  } catch {
-    return value;
-  }
-}
-
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/gu, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
-}
-
-function escapeAttr(value) {
-  return escapeHtml(value).replace(/`/gu, "&#96;");
-}
+export function legalTitle(kind){return kind==="privacy"?"隐私政策":"使用条款";}export function legalKicker(kind){return kind==="privacy"?"数据如何被处理":"使用权利与责任";}export function legalSections(kind){return kind==="privacy"?PRIVACY_SECTIONS:TERMS_SECTIONS;}
+export function legalContentHtml(kind){return legalSections(kind).map(section=>`<section class="legal-section"><h2>${escapeHtml(section.title)}</h2>${(section.body||[]).map(x=>`<p>${linkify(x)}</p>`).join("")}${section.list?`<ul>${section.list.map(x=>`<li>${linkify(x)}</li>`).join("")}</ul>`:""}</section>`).join("");}
+export function legalMainHtml(kind){return `<a class="skip-link" href="#legal-content">跳到正文</a>${siteHeaderHtml()}<main class="legal" id="legal-content"><p class="section-label">${legalKicker(kind)}</p><h1>${legalTitle(kind)}</h1><p class="legal-summary">核心原则：账户隔离、最小权限、加密存储、明确同意、可导出可删除、失败不伪装成功。</p>${legalContentHtml(kind)}<div class="legal-contact"><h2>联系与版本</h2><p>项目问题入口：<a href="${SUPPORT_ISSUES_URL}" rel="noreferrer">MetaDatabase 公开问题</a>。请勿公开粘贴密钥、令牌、Cookie 或私人笔记。</p><p>版本 ${APP_VERSION} · 生效日期 ${LEGAL_EFFECTIVE_DATE}</p></div></main>${siteFooterHtml()}`;}
+export function statusMainHtml(){return `<a class="skip-link" href="#status-content">跳到系统状态</a>${siteHeaderHtml()}<main class="status-page" id="status-content"><p class="section-label">公开运行状态</p><h1>系统状态</h1><p class="status-intro">本页分别展示公开应用、账户服务、身份、存储、同步、导入、微信读书、画像、发布和恢复业务线。状态只包含脱敏聚合，不使用任何用户密钥、笔记、账户标识或内部 Secret。</p><div id="status-overview" class="status-overview" aria-live="polite"><article class="status-hero neutral"><span class="status-large-dot" aria-hidden="true"></span><div><p class="outcome-label">正在读取</p><h2>正在获取当前运行状态</h2><p>禁用 JavaScript 时仍可直接访问 <a href="/healthz">/healthz</a>、<a href="/readyz">/readyz</a> 和 <a href="/api/status">/api/status</a>。</p></div></article></div><div id="status-components" class="status-components"><article><h2>公开应用</h2><p>等待静态资源探测。</p></article><article><h2>账户平台</h2><p>等待 OVH 服务就绪探测。</p></article><article><h2>数据边界</h2><p>公开状态不包含用户内容。</p></article></div>${businessGovernanceStaticHtml()}<section class="status-links"><h2>更多运行信息</h2><p><a href="${OPERATIONS_STATUS_URL}" rel="noreferrer">打开供应商与基础设施状态入口</a></p><p class="microcopy">“尚未实证”表示当前公开探测不能替代 Owner 真实凭据、CI 或私有基础设施证据，不等同于故障。</p></section><noscript><p class="status-noscript">浏览器已禁用 JavaScript；静态业务矩阵仍可阅读，机器接口也可直接打开。</p></noscript></main>${siteFooterHtml()}`;}
+export function businessGovernanceStaticHtml(){const rows=businessLineDefinitions().map(line=>`<tr data-business-line="${escapeAttr(line.id)}"><th scope="row"><strong>${escapeHtml(line.name)}</strong><span>${escapeHtml(line.id)}</span></th><td>${escapeHtml(line.phase)}</td><td><span class="business-state not-verified">${stateLabel("NOT_VERIFIED")}</span></td><td>${escapeHtml(dependencyText(line))}</td><td>${escapeHtml(line.oracle)}</td><td>等待运行时或外部证据；不把未知伪装为正常。</td></tr>`).join("");return `<section class="business-governance" aria-labelledby="business-governance-title"><div class="business-governance-heading"><div><p class="section-label">业务基线纵向切片</p><h2 id="business-governance-title">端到端白箱治理矩阵</h2></div><p id="business-governance-summary" class="microcopy">静态合同已加载；动态状态等待 /api/status。</p></div><div class="business-table-wrap"><table><thead><tr><th scope="col">业务线</th><th scope="col">阶段</th><th scope="col">状态</th><th scope="col">依赖与耦合</th><th scope="col">验收 Oracle</th><th scope="col">恢复或下一步</th></tr></thead><tbody id="business-governance-body">${rows}</tbody></table></div></section>`;}
+function dependencyText(line){return`${line.dependsOnAll.length?`全部：${line.dependsOnAll.join("、")}`:"无强制前置"}${line.dependsOnAny.length?`；任一：${line.dependsOnAny.join("、")}`:""}`;}
+export function standaloneDocument({title,description,body}){return`<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n<meta name="theme-color" content="#f7faf9" />\n<meta name="color-scheme" content="light" />\n<meta name="description" content="${escapeAttr(description)}" />\n<link rel="manifest" href="/manifest.webmanifest" />\n<link rel="stylesheet" href="/src/ui/styles.css" />\n<title>${escapeHtml(title)}</title>\n</head>\n<body>\n<div id="app">${body}</div>\n<script type="module" src="/src/ui/app.js"></script>\n</body>\n</html>\n`;}
+export function siteHeaderHtml(){return`<header class="topbar"><a class="brand" href="/" aria-label="阅迁首页"><span class="brand-mark" aria-hidden="true">阅</span><span class="brand-copy"><strong>阅迁</strong><small>个人阅读资产中心</small></span></a><div class="header-trust" aria-label="安全状态"><span class="status-dot" aria-hidden="true"></span>账户隔离 · 加密存储 · 可导出删除</div><nav aria-label="站点导航"><a href="/">账户平台</a><a href="/migrate/">匿名迁移</a><a href="/privacy/">隐私</a><a href="/terms/">条款</a><a href="/status/">系统状态</a></nav></header>`;}
+export function siteFooterHtml(){return`<footer><div class="footer-brand"><strong>阅迁</strong><span>非微信读书、OpenAI 或连接平台官方产品</span></div><p>只处理使用者本人授权的数据；账户数据隔离并加密存储，画像由用户明确控制。</p><div class="footer-links"><a href="/privacy/">隐私政策</a><a href="/terms/">使用条款</a><a href="/status/">系统状态</a><a href="${SOURCE_REPOSITORY_URL}" rel="noreferrer">源代码</a></div></footer>`;}
+function linkify(value){const source=String(value??"");const pattern=/https:\/\/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]+/gu;let out="",cursor=0;for(const match of source.matchAll(pattern)){const start=match.index??0,raw=match[0],trailing=raw.match(/[.,;:!?]+$/u)?.[0]??"",url=trailing?raw.slice(0,-trailing.length):raw;out+=escapeHtml(source.slice(cursor,start))+`<a href="${escapeAttr(url)}" rel="noreferrer">${escapeHtml(shortLinkLabel(url))}</a>${escapeHtml(trailing)}`;cursor=start+raw.length;}return out+escapeHtml(source.slice(cursor));}
+function shortLinkLabel(value){try{const url=new URL(value);if(url.hostname==="github.com")return"GitHub 项目入口";if(url.hostname==="status.linzezhang.com")return"运行状态入口";return url.hostname;}catch{return value;}}
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/gu,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);}function escapeAttr(value){return escapeHtml(value).replace(/`/gu,"&#96;");}

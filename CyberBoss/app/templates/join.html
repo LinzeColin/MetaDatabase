@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-__CSP_NONCE__'; style-src 'nonce-__CSP_NONCE__'; connect-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
+<title>加我聊天</title>
+<style nonce="__CSP_NONCE__">
+  :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--card:#f7f8fa;--ok:#128a4b}
+  @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#f2f4f7;--muted:#c3c8d1;--line:#333842;--card:#1c1f25;--ok:#3ddc84}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+  main{max-width:460px;margin:0 auto;padding:44px 22px 64px;text-align:center}
+  h1{font-size:26px;margin:0 0 8px}
+  .sub{color:var(--muted);margin:0 0 30px;font-size:15px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 22px}
+  #qr{width:250px;height:250px;margin:0 auto 4px;display:block;background:#fff;border-radius:12px;padding:12px}
+  .say{font-size:16px;margin:18px 0 0}
+  .say.good{color:var(--ok);font-weight:600}
+  ol{text-align:left;color:var(--muted);font-size:14px;padding-left:22px;margin:20px 0 0;line-height:1.9}
+  .note{color:var(--muted);font-size:13px;margin-top:26px}
+  .ttl{color:var(--muted);font-size:13px;margin:14px 0 0;min-height:1.2em}
+  button{margin-top:18px;font:inherit;font-size:15px;padding:10px 20px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>加我聊天</h1>
+  <p class="sub">用微信扫一下，就能开始说话。</p>
+
+  <div class="card">
+    <img id="qr" alt="加机器人的二维码" hidden>
+    <p class="say" id="say">正在给你拿一张码……</p>
+    <ol id="steps" hidden>
+      <li>打开微信，扫上面这个码</li>
+      <li>在微信里点一下确认</li>
+      <li>回到微信随便发一句话，它会回你</li>
+    </ol>
+    <p class="ttl" id="ttl"></p>
+    <!-- 这个按钮**永远显示**。以前它默认 hidden，只在网络出错时才露出来——
+         于是码静默失效的时候，页面上是一张看起来正常但已经死掉的图，
+         和一个访客找不到的按钮。要做市场化的产品，这里不能有"没有出路"的状态。 -->
+    <button id="again">换一张新码</button>
+  </div>
+
+  <p class="note">聊天内容会被保存下来，用来记住你说过什么。第一次说话时它会问你同不同意。</p>
+</main>
+<script nonce="__CSP_NONCE__">
+"use strict";
+(function () {
+  // 这一页是给陌生人看的，所以它只问两个接口，而那两个接口只回一张二维码、
+  // 一个进度词和一句中文。多少人在用、用了多少额度，这一页一个字都不该有。
+  //
+  // 码是**现要的**，一张只对一个人有效：iLink 的授权码本来就是一次性的，
+  // 一张静态码贴给所有人扫是不成立的。
+
+  var POLL_MS = 2000;
+  // 服务端那张票活 6 分钟。**不等它过期**：提前一分钟就自己换一张。
+  //
+  // 以前是等服务端回一句 expired 才换。问题在于票被服务端清掉之后，状态接口
+  // 未必还认得出它——那时候页面就卡在一张已经死掉的图上，轮询还在跑，访客
+  // 什么都不知道。要长期稳定，就不能把"还能不能用"托付给一个会消失的对象。
+  var AUTO_REFRESH_MS = 5 * 60 * 1000;
+  var timer = null;
+  var ttlTimer = null;
+  var autoTimer = null;
+  var ticket = "";
+  var expiresAtMs = 0;
+
+  function el(id) { return document.getElementById(id); }
+  function say(text, good) {
+    var node = el("say");
+    node.textContent = text;
+    node.className = good ? "say good" : "say";
+  }
+  function showSteps(on) { el("steps").hidden = !on; }
+  function showQr(dataUri) {
+    // 只接受 data: 开头的图片——服务端就是这么给的，别的一律不显示。
+    if (!/^data:image\//.test(String(dataUri || ""))) { return false; }
+    var qr = el("qr");
+    qr.src = dataUri;
+    qr.hidden = false;
+    return true;
+  }
+  function stop() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    if (ttlTimer) { clearInterval(ttlTimer); ttlTimer = null; }
+    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  }
+
+  // 这张码还能用多久。说出来，访客才知道现在是在等还是该换一张。
+  function startCountdown() {
+    expiresAtMs = Date.now() + AUTO_REFRESH_MS;
+    if (ttlTimer) { clearInterval(ttlTimer); }
+    var tick = function () {
+      var left = Math.max(0, Math.round((expiresAtMs - Date.now()) / 1000));
+      el("ttl").textContent = left
+        ? "这张码 " + Math.floor(left / 60) + " 分 " + (left % 60) + " 秒后自动换新"
+        : "正在换一张新码……";
+    };
+    tick();
+    ttlTimer = setInterval(tick, 1000);
+    if (autoTimer) { clearTimeout(autoTimer); }
+    autoTimer = setTimeout(mint, AUTO_REFRESH_MS);
+  }
+
+  function mint() {
+    stop();
+    // 按钮不再藏起来：任何时刻访客都要能自己换一张。
+    el("qr").hidden = true;
+    showSteps(false);
+    say("正在给你拿一张码……");
+    fetch("/api/join", { credentials: "omit" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.ready || !showQr(d.qrDataUri)) {
+          say((d && d.message) || "现在拿不到二维码。点下面的按钮再试一次。");
+          el("ttl").textContent = "";
+          return;
+        }
+        ticket = String(d.ticket || "");
+        say(d.message || "用微信扫这个码加它。");
+        showSteps(true);
+        startCountdown();
+        poll();
+      })
+      .catch(function () {
+        say("现在连不上。点下面的按钮再试一次。");
+        el("ttl").textContent = "";
+      });
+  }
+
+  function poll() {
+    if (!ticket) { return; }
+    fetch("/api/join/status?t=" + encodeURIComponent(ticket), { credentials: "omit" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var state = (d && d.state) || "wait";
+        if (state === "confirmed") {
+          stop();
+          el("qr").hidden = true;
+          showSteps(false);
+          el("ttl").textContent = "";
+          el("again").hidden = true;
+          say((d && d.message) || "好了。回到微信，跟它说句话就行。", true);
+          return;
+        }
+        // expired 之外，任何"这张票服务端已经不认了"的回答都当过期处理。
+        // 只认 expired 的话，票被清掉之后状态接口回一个别的词，页面就会永远
+        // 停在一张死图上——轮询还在跑，访客什么都不知道。
+        if (state === "expired" || state === "unknown" || d.ok === false) {
+          mint();
+          return;
+        }
+        if (state === "scaned" && d.message) { say(d.message); }
+        timer = setTimeout(poll, POLL_MS);
+      })
+      .catch(function () {
+        timer = setTimeout(poll, POLL_MS);
+      });
+  }
+
+  el("again").addEventListener("click", mint);
+  mint();
+})();
+</script>
+</body>
+</html>

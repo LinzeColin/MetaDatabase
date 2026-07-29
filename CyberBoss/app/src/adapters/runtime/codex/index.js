@@ -193,7 +193,11 @@ function createCodexRuntimeAdapter(config) {
     async sendTextTurn(args) {
       return this.sendTurn(args);
     },
-    async sendTurn({ bindingKey, workspaceRoot, text, attachments = [], metadata = {}, model = "" }) {
+    // accessMode 必须出现在这一行的解构里。这一层是**按名字解构**的：漏掉它，
+    // 上层传了也到不了 rpc-client，而且一声不响——访客会拿到主人那档执行权限，
+    // 测试却全绿。今天已经在门户、stream-delivery 和 provider router 上各栽过
+    // 一次，这是第四次。
+    async sendTurn({ bindingKey, workspaceRoot, text, attachments = [], metadata = {}, model = "", accessMode = "" }) {
       const runtimeClient = ensureClient();
       await this.initialize();
 
@@ -257,6 +261,7 @@ function createCodexRuntimeAdapter(config) {
         model: desiredModel,
         modelProvider: desiredModelProvider,
         workspaceRoot,
+        accessMode,
       });
       return {
         threadId,

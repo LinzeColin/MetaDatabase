@@ -1,0 +1,100 @@
+{
+  "schema_version": 2,
+  "subject": "CyberBoss v0.0.0.8 R19 shared public entry + private Owner activation",
+  "status": "PASS",
+  "check_count": 18,
+  "checks": [
+    {
+      "name": "public_shared_entry_copy",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "public_qr_visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "public_no_owner_authorization_copy",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "public_zero_terminal_jargon",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "desktop_no_overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "desktop_touch_targets",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "mobile_no_overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile_touch_targets",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "pending_no_false_qr",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "pending_repair_action",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "pending_not_false_success",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "owner_scan_feedback",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "owner_confirmed_feedback",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "owner_page_explicit_private",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "deepseek_fixed_runtime_copy",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no_api_key_form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no_provider_selection",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "console_errors_zero",
+      "pass": true,
+      "detail": "[]"
+    }
+  ],
+  "console_errors": [],
+  "production_claimed": false
+}

@@ -23,6 +23,7 @@ const { CyberbossApp } = require("../src/core/app");
 const { UserAdmissionService } = require("../src/core/user-admission");
 const { RuntimeSpoolDatabase } = require("../src/services/db/database-adapter");
 const { WorkspaceRegistry } = require("../src/core/workspace-registry");
+const { readConfig } = require("../src/core/config");
 
 function tempHome(t) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-firstrun-"));
@@ -225,13 +226,11 @@ test("主人发「邀请」直接拿到可转发的邀请码，普通用户拿�
   assert.match(invited.text, /转发给朋友/);
   assert.match(invited.text, /只能用一次/);
 
-  // 这串码真的能用：朋友发过来就进入同意环节。
+  // 这串码真的能用：朋友发过来就开通了，不用再回一句「同意并开始」。
   const friend = admission.admit({ botAccountRef: "bot", senderRef: "friend", text: code });
-  assert.equal(friend.route, "reply");
-  assert.match(friend.text, /同意并开始/);
+  assert.notEqual(friend.route, "owner", "朋友不该被当成主人");
 
   // 普通用户说「邀请」只会拿到普通帮助，不会拿到码，也不会知道有这个口令。
-  admission.admit({ botAccountRef: "bot", senderRef: "friend", text: "同意并开始" });
   const asUser = admission.admit({ botAccountRef: "bot", senderRef: "friend", text: "邀请" });
   assert.equal(asUser.route, "reply");
   assert.equal(/[A-Za-z0-9-]{8,}/.test(asUser.text.replace(/[^\x00-\x7f]/g, "")), false);
@@ -358,4 +357,162 @@ test("已经配了 Owner 时，登录信息不会把它顶掉", () => {
   const bound = CyberbossApp.prototype.bindOwnerFromAccount.call(app, { userId: "someone-else" });
   assert.deepEqual(bound, ["configured-owner"]);
   assert.deepEqual(app.config.ownerSenderIds, ["configured-owner"]);
+});
+
+// ── 别人已经装好的机器 ───────────────────────────────────
+//
+// 云服务器上，root 早就把注册表写在 /etc/cyberboss/workspaces.json、把工作区
+// 开在 /srv 下面了。bootstrap 如果按"数据目录下面那个"去猜工作区根目录，猜出
+// 来的值和注册表里写的对不上，校验会判定注册表为空——而注册表恰恰是那份文件
+// 里唯一没有问题的东西。这一条曾经让云端的 bridge 每次启动都 exit 1。
+
+function provisionedRegistry(t, { workspaceBase }) {
+  const home = tempHome(t);
+  const configPath = path.join(home, "etc", "workspaces.json");
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.mkdirSync(path.join(workspaceBase, "cyberboss"), { recursive: true });
+  fs.writeFileSync(configPath, `${JSON.stringify({
+    schema_version: 1,
+    default_alias: "cyberboss",
+    workspace_base: workspaceBase,
+    workspaces: {
+      cyberboss: {
+        repo: "LinzeColin/MetaDatabase",
+        root: path.join(workspaceBase, "cyberboss"),
+        project_subpath: "CyberBoss",
+        read_only: false,
+        max_bytes: 4_294_967_296,
+        allowed_branches: ["main", "codex/cyberboss-*"],
+        sparse_paths: ["CyberBoss", ".github"],
+        root_integration_paths: [".github"],
+        root_integration_write: false,
+        write_globs: ["CyberBoss/**"],
+      },
+    },
+  }, null, 2)}\n`);
+  return { home, configPath };
+}
+
+test("已有注册表的机器：工作区根目录以注册表为准，不按数据目录猜", (t) => {
+  const workspaceBase = fs.mkdtempSync(path.join(os.tmpdir(), "cb-srv-"));
+  t.after(() => fs.rmSync(workspaceBase, { recursive: true, force: true }));
+  const { home, configPath } = provisionedRegistry(t, { workspaceBase });
+  const stateDir = path.join(home, "state");
+
+  const previousConfig = process.env.CYBERBOSS_WORKSPACE_CONFIG;
+  const previousBase = process.env.CYBERBOSS_WORKSPACE_BASE;
+  process.env.CYBERBOSS_WORKSPACE_CONFIG = configPath;
+  delete process.env.CYBERBOSS_WORKSPACE_BASE;
+  t.after(() => {
+    if (previousConfig === undefined) delete process.env.CYBERBOSS_WORKSPACE_CONFIG;
+    else process.env.CYBERBOSS_WORKSPACE_CONFIG = previousConfig;
+    if (previousBase === undefined) delete process.env.CYBERBOSS_WORKSPACE_BASE;
+    else process.env.CYBERBOSS_WORKSPACE_BASE = previousBase;
+  });
+
+  const result = bootstrapInstallation({ stateDir });
+
+  assert.equal(result.workspaceBase, workspaceBase);
+  assert.equal(result.workspace.created, false, "已有的注册表不能被覆盖");
+  assert.equal(process.env.CYBERBOSS_WORKSPACE_BASE, workspaceBase);
+
+  // 真正的判据：注册表能被加载器接受。上一版在这里抛 workspace_config_empty。
+  const registry = new WorkspaceRegistry({
+    configPath,
+    workspaceBase: process.env.CYBERBOSS_WORKSPACE_BASE,
+  });
+  assert.equal(registry.defaultAlias, "cyberboss");
+});
+
+test("已有注册表的机器：.env 里过期的工作区根目录会被改正", (t) => {
+  const workspaceBase = fs.mkdtempSync(path.join(os.tmpdir(), "cb-srv2-"));
+  t.after(() => fs.rmSync(workspaceBase, { recursive: true, force: true }));
+  const { home, configPath } = provisionedRegistry(t, { workspaceBase });
+  const stateDir = path.join(home, "state");
+  fs.mkdirSync(stateDir, { recursive: true });
+  // 上一版留下来的错值：不改正的话，它会活过每一次重启。
+  updateEnvFile(path.join(stateDir, ".env"), {
+    CYBERBOSS_WORKSPACE_BASE: path.join(stateDir, "workspaces"),
+  });
+
+  const previousConfig = process.env.CYBERBOSS_WORKSPACE_CONFIG;
+  process.env.CYBERBOSS_WORKSPACE_CONFIG = configPath;
+  delete process.env.CYBERBOSS_WORKSPACE_BASE;
+  t.after(() => {
+    if (previousConfig === undefined) delete process.env.CYBERBOSS_WORKSPACE_CONFIG;
+    else process.env.CYBERBOSS_WORKSPACE_CONFIG = previousConfig;
+    delete process.env.CYBERBOSS_WORKSPACE_BASE;
+  });
+
+  bootstrapInstallation({ stateDir });
+
+  assert.equal(
+    readEnvFile(path.join(stateDir, ".env")).get("CYBERBOSS_WORKSPACE_BASE"),
+    workspaceBase,
+  );
+});
+
+// ── 配了域名的机器 ───────────────────────────────────────
+//
+// 只要 CB_PORTAL_ORIGIN 有值，initializeDurableInbox 就会去构造 setupPortal。
+// 之前这段代码排在 userTurnRuntime 之前，读 this.userTurnRuntime.vault 时它还是
+// null，构造直接抛错，bridge 起不来。没配域名的机器永远走不到那一行，所以本机
+// 怎么跑、模块测试怎么过，都看不出问题。
+//
+// 这两条走的是真正的入口路径：bootstrap → readConfig → new CyberbossApp，
+// 和 index.js 里 `cyberboss start` 做的事一模一样。
+
+function bootAppFromEnv(t, { portalOrigin }) {
+  const home = tempHome(t);
+  const stateDir = path.join(home, ".cyberboss");
+  const saved = new Map();
+  const set = (name, value) => {
+    if (!saved.has(name)) saved.set(name, process.env[name]);
+    if (value === null) delete process.env[name];
+    else process.env[name] = value;
+  };
+  t.after(() => {
+    for (const [name, value] of saved) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  });
+
+  set("CYBERBOSS_STATE_DIR", stateDir);
+  set("CYBERBOSS_WORKSPACE_CONFIG", path.join(stateDir, "workspaces.json"));
+  set("CYBERBOSS_WORKSPACE_BASE", null);
+  set("CYBERBOSS_WORKSPACE_ROOT", null);
+  set("CB_DURABLE_INBOX", "true");
+  set("CB_MULTI_USER", "true");
+  set("CB_REGISTRATION_MODE", "invite");
+  set("CB_PORTAL_ORIGIN", portalOrigin);
+  set("CB_RUNTIME_DB", path.join(stateDir, "runtime.db"));
+  // canonical 同步需要一整套云端才有的目录，和这条测试要证的事无关。关掉它要
+  // 走配置里那个明确的非生产开关，这本身也说明这条路径不会被误用到线上。
+  set("CB_ALLOW_BASELINE_STAGING", "true");
+  set("NODE_ENV", "test");
+  set("CB_PRIVATE_DB_CANONICAL_SYNC", "false");
+
+  const result = bootstrapInstallation({ stateDir });
+  set("CB_RUNTIME_ENCRYPTION_KEY_FILE", result.encryptionKey.path);
+  set("CB_RUNTIME_IDENTITY_KEY_FILE", result.identityKey.path);
+
+  const app = new CyberbossApp(readConfig());
+  app.initializeDurableInbox();
+  t.after(() => app.runtimeSpoolDatabase?.close?.());
+  return app;
+}
+
+test("配了域名时，设置页面能构造出来（而不是在 vault 上抛空指针）", (t) => {
+  const app = bootAppFromEnv(t, { portalOrigin: "https://boss.example.com" });
+
+  assert.ok(app.userTurnRuntime, "userTurnRuntime 必须先建好");
+  assert.ok(app.setupPortal, "配了域名就必须建出 setupPortal，否则后台页面永远起不来");
+});
+
+test("没配域名时不建设置页面，其余照常", (t) => {
+  const app = bootAppFromEnv(t, { portalOrigin: "" });
+
+  assert.equal(app.setupPortal, null);
+  assert.ok(app.userAdmission, "没有域名不影响开通流程");
 });

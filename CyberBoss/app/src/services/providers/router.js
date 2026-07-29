@@ -53,13 +53,17 @@ class ProviderRouter {
 
   // Only these five fields cross into an adapter; a caller cannot add a base
   // URL, a header or a retention flag.
-  sendText({ providerId, apiKey, model, messages, maxOutputTokens, signal }) {
+  // 这里是**按名字解构**的：漏一个名字，上层传了也到不了适配器，而且一声不响。
+  // 今天已经在门户和 stream-delivery 上各栽过一次，第三次不能再栽。
+  sendText({ providerId, apiKey, model, messages, maxOutputTokens, signal, reasoningEffort }) {
     return this.get(providerId).sendText({
       apiKey,
       model,
       messages,
       maxOutputTokens,
       signal,
+      // 只有 OpenAI 那个适配器会用它；别的适配器把它当多余参数忽略掉。
+      reasoningEffort,
     });
   }
 }

@@ -3,6 +3,8 @@ const { SessionStore } = require("../adapters/runtime/codex/session-store");
 const { createTimelineIntegration } = require("../integrations/timeline");
 const { ChannelFileService } = require("../services/channel-file-service");
 const { DiaryService } = require("../services/diary-service");
+const { ItemService } = require("../services/items/item-service");
+const { MemoryService } = require("../services/profile/memory-service");
 const { ReminderService } = require("../services/reminder-service");
 const { StickerService } = require("../services/sticker-service");
 const { SystemMessageService } = require("../services/system-message-service");
@@ -25,6 +27,16 @@ function createProjectTooling(config, options = {}) {
   const services = {
     diary: new DiaryService({ config }),
     reminder: new ReminderService({ config, sessionStore }),
+    // 库和认人都由上层注入：user_id 必须是服务器从发件人推出来的，
+    // 绝不能让模型在参数里指定——它想给谁记就给谁记的话，隔离就没了。
+    items: new ItemService({
+      database: options.itemDatabase || null,
+      resolveUserId: options.resolveItemUserId || null,
+    }),
+    memory: new MemoryService({
+      store: options.memoryStore || null,
+      resolveUserId: options.resolveItemUserId || null,
+    }),
     system: new SystemMessageService({ config, sessionStore }),
     channelFile,
     sticker: new StickerService({ config, channelAdapter, sessionStore, channelFileService: channelFile }),

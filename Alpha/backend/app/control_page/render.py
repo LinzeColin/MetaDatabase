@@ -524,14 +524,15 @@ def render_dashboard_html(d: dict) -> str:
   </div>
   {_chart_block(d['curve'], hero['baseline_aud'])}
   <div class=kpis>
-    <span>账户可用现金 <b>{hero['cash_usd']:,.2f} 美元</b></span>
-    <span>持仓市值 <b>{hero['invested_usd']:,.2f} 美元</b></span>
-    <span>授权上限 <b>{hero['authorized_usd']:,.2f} 美元</b></span>
+    <span title="策略自己的现金 = 期初本金 + 策略成交现金流(含手续费),与你账户余额无关">策略现金 <b>{hero['cash_usd']:,.2f} 美元</b></span>
+    <span>策略持仓 <b>{hero['invested_usd']:,.2f} 美元</b></span>
+    <span title="你账户里实际可动用的现金,只用于判断资金是否到位,不参与策略净值与盈亏">你账户可用 <b>{f"{hero['account_cash_usd']:,.2f} 美元" if hero.get('account_cash_usd') is not None else "读取中"}</b></span>
     <span>敞口占上限 <b>{hero['exposure_pct']}%</b></span>
   </div>
   <div class=fxline>💱 {_esc(d['meta']['note_fx'])}</div>
   {f'<div class=verdict>💰 资金未全额到位:授权上限 {hero["authorized_usd"]:,.2f} 美元,账户实际可动用 {hero["funded_usd"]:,.2f} 美元,缺口 {hero["funding_gap_usd"]:,.2f} 美元。系统按<b>实际到位资金</b>下单与计算盈亏,绝不按授权额度虚报。</div>' if hero.get('funded_known') and hero['funding_gap_usd'] > 0.01 else ''}
   {'' if hero.get('funded_known') else '<div class=verdict>⚠️ 暂时读不到券商真实购买力,以下金额按授权额度显示(如实标注,非账户实有)。</div>'}
+  {'' if hero.get('traded_yet') else '<div class=verdict>ℹ️ 策略<b>尚未进行任何交易</b>,因此净值恰为期初本金、盈亏为 0。你自己账户的买卖与出入金<b>不会</b>计入这里——两本账完全分开。</div>'}
   {_progress_bar(d['progress'])}
 </div>
 <div class=card>

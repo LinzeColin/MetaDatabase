@@ -408,15 +408,38 @@ function buildTurnStartParams({ threadId, input, model, modelProvider, effort, a
   return params;
 }
 
+// 访客档。名字单独取一个，是为了让「谁能拿到什么执行权限」在代码里看得见，而不
+// 是靠调用方记得别传错。
+const GUEST_ACCESS_MODE = "guest-chat";
+
 function normalizeAccessMode(value) {
   const normalized = normalizeNonEmptyString(value).toLowerCase();
   if (normalized === "default") {
     return "current";
   }
+  if (normalized === GUEST_ACCESS_MODE) {
+    return GUEST_ACCESS_MODE;
+  }
   return normalized === "full-access" ? normalized : "";
 }
 
 function buildExecutionPolicies(accessMode, workspaceRoot, extraWritableRoots = []) {
+  // 访客档要在 full-access 之前判，而且它不看 workspaceRoot——访客的会话不绑任何
+  // 可写目录。
+  //
+  // approvalPolicy 是 never 而不是 on-request：on-request 会把审批提示发给发起
+  // 那条线程的人，也就是访客自己。never 让 Codex 直接放弃这次执行，不问任何人。
+  //
+  // 2026-07-29 在生产机上实测过这个组合：bwrap 因为 AppArmor 的 userns 限制根本
+  // 起不来，于是带沙箱的命令一律 exitCode 1、0 字节——失败关闭，不会退回裸跑。
+  // 但那是环境巧合不是设计，所以这里仍然显式写死 readOnly：bwrap 坏着安全，哪天
+  // 装上 bubblewrap 修好了也安全。
+  if (accessMode === GUEST_ACCESS_MODE) {
+    return {
+      approvalPolicy: "never",
+      sandboxPolicy: { type: "readOnly", networkAccess: false },
+    };
+  }
   if (accessMode === "full-access") {
     return {
       approvalPolicy: "never",

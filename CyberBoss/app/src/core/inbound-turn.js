@@ -44,8 +44,19 @@ function buildMergedInboundPrepared({
   };
 }
 
-function assembleRuntimeTurnText({ prepared, config = {}, visionContext = {} }) {
+function assembleRuntimeTurnText({
+  prepared,
+  config = {},
+  visionContext = {},
+  personaInstruction = "",
+}) {
   const lines = [];
+  // 语气块贴在最前面，早于时间戳和用户原话。放在末尾会被长附件段落推远，模型
+  // 更容易忽略它；放最前面则每一轮都先读到"该怎么说话"。
+  const persona = normalizeText(personaInstruction);
+  if (persona) {
+    lines.push(persona);
+  }
   const localTime = formatWechatLocalTime(prepared?.receivedAt);
   const originalText = normalizeText(prepared?.originalText ?? prepared?.text);
   const attachments = Array.isArray(prepared?.attachments) ? prepared.attachments : [];
@@ -55,6 +66,9 @@ function assembleRuntimeTurnText({ prepared, config = {}, visionContext = {} }) 
   const visionErrors = Array.isArray(visionContext.errors) ? visionContext.errors : [];
 
   if (localTime) {
+    if (lines.length) {
+      lines.push("");
+    }
     lines.push(`[${localTime}]`);
   }
   if (originalText) {

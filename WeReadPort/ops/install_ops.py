@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""准备或激活“微信读书笔记迁移”的版本化 OVH 非用户数据运维平面。"""
+"""准备或激活“阅迁账户平台”的版本化 OVH 非用户数据运维平面。"""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,7 @@ import subprocess
 import sys
 from urllib.parse import urlparse
 
-VERSION = "0.0.0.1.7"
+VERSION = "0.0.0.1.9"
 UNITS = (
     "weread-port-ops-monitor.timer",
     "weread-port-ops-private-sync.timer",

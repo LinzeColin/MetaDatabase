@@ -1,0 +1,68 @@
+{
+  "schema_version": 2,
+  "taskpack": "CyberBoss_v0.0.0.8_SEALED_TASKPACK_FINAL_R19_SHARED_BOT_DEEPSEEK_V4_PRO_20260728",
+  "task_id": "CB-620",
+  "scope": "公开共享入口、Owner 私有 iLink 激活、用户一次性设置 Session",
+  "acceptance": ["AC-004","AC-010","AC-011","AC-028","AC-041","AC-051","AC-052","AC-053"],
+  "status": "CLOSED",
+  "implementation": {
+    "overlay_applied": true,
+    "overlay_strategy": "add_only_never_overwrite",
+    "overlay_files": 155,
+    "overlay_counts": { "apply": 155, "equivalent": 0, "conflict": 0 },
+    "existing_files_modified_by_overlay": 0,
+    "migration_materialized": "app/migrations/009_r19_public_scan_entry.sql",
+    "public_entry_modules": [
+      "src/v8-prebuilt/public-entry/public-entry-server.js",
+      "src/v8-prebuilt/public-entry/shared-entry-service.js",
+      "src/v8-prebuilt/public-entry/owner-wechat-activation-service.js",
+      "src/v8-prebuilt/public-entry/owner-activation-store.js",
+      "src/v8-prebuilt/public-entry/ilink-login-client.js",
+      "src/v8-prebuilt/public-entry/web-session-service.js",
+      "src/v8-prebuilt/public-entry/qr-svg.js",
+      "src/v8-prebuilt/public-entry/account-token-crypto.js"
+    ]
+  },
+  "namespace_adaptation": {
+    "defect": "apply_overlay.py 把文件装进 v8-prebuilt/ 命名子树，但不改写文件内部按 starter_kit 布局写死的相对路径",
+    "resolution": "只重写指向 overlay 之外的引用；overlay 内部的兄弟目录引用（../channel、../users 等）因整棵树被完整保留而本来就正确，一律未动",
+    "test_files_rewritten": 35,
+    "source_files_rewritten": 2,
+    "source_fixes": [
+      "src/v8-prebuilt/public-entry/qr-svg.js: ../../vendor/ -> ../../../vendor/v8/",
+      "scripts/v8-prebuilt/snapshot-crypto.js: ../src/security/ -> ../../src/v8-prebuilt/security/"
+    ],
+    "assets_supplied": [
+      "app/migrations/multiuser_foundation.sql.template",
+      "app/migrations/public_scan_entry.sql.template",
+      "app/test/v8-prebuilt/fixtures/ (10 个)"
+    ],
+    "no_assertion_or_test_deleted": true
+  },
+  "tests": [
+    { "script": "starter_kit/test/onboarding.test.js", "result": "1/1 PASS" },
+    { "script": "starter_kit/test/token-services.test.js", "result": "2/2 PASS", "note": "DAG 文档写作 setup-token-service.test.js，产物实际为 token-services.test.js" },
+    { "script": "starter_kit/test/status-portal.test.js", "result": "5/5 PASS" },
+    { "script": "starter_kit/test/public-entry.test.js", "result": "3/3 PASS" },
+    { "script": "starter_kit/test/public-entry-server.test.js", "result": "3/3 PASS" },
+    { "script": "tests/browser/test_public_scan_mvp.py", "result": "PASS 18 checks, 0 console errors", "evidence": "browser_public_scan_report.json", "host": "OVH Linux（密封测试硬编码 executable_path=/usr/bin/chromium，macOS 无法运行）" },
+    { "script": "目标树 app/test/v8-prebuilt/ 全部 34 个", "result": "34/34 PASS（命名空间适配后）" },
+    { "script": "目标树全量 CyberBoss/app `node --test`", "result": "647/647 PASS" }
+  ],
+  "supply_chain_guard": {
+    "event": "AC-038 拦截 app/test/v8-prebuilt/status-portal.test.js 的 wechat_id 形状",
+    "actual_value": "一个以 wx-id 前缀构成的占位词（用于证明状态页脱敏私有用户 id），此处刻意不复制其字面形状",
+    "resolution": "按守卫自身机制声明为合成向量文件，并把该占位前缀加入合成判定；守卫的两道关（须显式声明 + 值须通过合成判定）都保留",
+    "guard_weakened": false
+  },
+  "rollback": {
+    "procedure": "overlay 为纯 add-only：git clean -fdq 上述 overlay 路径 + 删除 009 迁移即可完全复原；008 迁移与 CB-600/CB-610 证据不受影响",
+    "verified_once": "本任务中曾实际执行过一次完整回退并确认目标树恢复 556/556 全绿",
+    "registration_flag_disable": "CB-620 回滚要求的 disable registration flag / revoke sessions 由 setup_tokens 与 web_sessions 表支撑，Owner 路径保持不变"
+  },
+  "claims_not_made": [
+    "shared bot public scan live in production",
+    "owner ilink authorization completed against real WeChat",
+    "production domain serving public entry"
+  ]
+}

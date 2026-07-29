@@ -1,5 +1,10 @@
 const crypto = require("crypto");
-const { listWeixinAccounts, resolveSelectedAccount } = require("./account-store");
+const {
+  listActiveAccounts,
+  listWeixinAccounts,
+  pickPrimaryAccount,
+  resolveSelectedAccount,
+} = require("./account-store");
 const { loadPersistedContextTokens, persistContextToken } = require("./context-token-store");
 const { runLoginFlow } = require("./login");
 const { getConfig, sendTyping } = require("./api");
@@ -19,53 +24,129 @@ const SEND_MESSAGE_CHUNK_INTERVAL_MS = 350;
 const WEIXIN_MAX_DELIVERY_MESSAGES = 10;
 
 function createWeixinChannelAdapter(config) {
-  let selectedAccount = null;
-  let contextTokenCache = null;
+  // 一个号一份状态。以前这里是两个闭包变量（selectedAccount / contextTokenCache），
+  // 于是整个进程只认一个微信号——第二个人扫码之后，resolveSelectedAccount 直接抛
+  // "Multiple WeChat accounts were detected"，服务连启动都启动不了。
+  const accountStates = new Map();
+  let primaryAccountId = "";
   const inboundFilter = createInboundFilter();
   let minWeixinChunk = loadWeixinConfig(config).minChunkChars;
 
+  function stateFor(account) {
+    const existing = accountStates.get(account.accountId);
+    if (existing) {
+      // 重新登录会换 token，用盘上最新的那份覆盖。
+      existing.account = account;
+      return existing;
+    }
+    const created = {
+      account,
+      contextTokenCache: loadPersistedContextTokens(config, account.accountId),
+    };
+    accountStates.set(account.accountId, created);
+    return created;
+  }
+
+  // 每次调用都重新读一次盘。有人刚扫完码，下一轮桥接循环就能轮询到他，
+  // 不需要重启服务；反过来，号被删掉之后它的状态也会被丢掉。
+  function refreshAccounts() {
+    const accounts = listActiveAccounts(config);
+    const live = new Set(accounts.map((account) => account.accountId));
+    for (const account of accounts) {
+      stateFor(account);
+    }
+    for (const accountId of Array.from(accountStates.keys())) {
+      if (!live.has(accountId)) {
+        accountStates.delete(accountId);
+      }
+    }
+    const primary = accounts.length ? pickPrimaryAccount(config, accounts) : null;
+    primaryAccountId = primary ? primary.accountId : "";
+    return accounts;
+  }
+
+  // 主号：主人自己那个。日志、账号绑定、找不到归属时的兜底都用它。
   function ensureAccount() {
-    if (!selectedAccount) {
-      selectedAccount = resolveSelectedAccount(config);
-      contextTokenCache = loadPersistedContextTokens(config, selectedAccount.accountId);
+    const known = primaryAccountId ? accountStates.get(primaryAccountId) : null;
+    if (known) {
+      return known.account;
     }
-    return selectedAccount;
+    const account = resolveSelectedAccount(config);
+    stateFor(account);
+    primaryAccountId = account.accountId;
+    return account;
   }
 
-  function ensureContextTokenCache() {
-    if (!contextTokenCache) {
-      const account = ensureAccount();
-      contextTokenCache = loadPersistedContextTokens(config, account.accountId);
+  function ensureAnyAccountsLoaded() {
+    if (!accountStates.size) {
+      refreshAccounts();
     }
-    return contextTokenCache;
+    return accountStates;
   }
 
-  function rememberContextToken(userId, contextToken) {
-    const account = ensureAccount();
+  // 这个人挂在哪个号下面。context_token 是「某个号 ↔ 某个人」之间的凭据，
+  // 拿错号发必然被拒，所以发信之前必须先定位。
+  function bindingFor(userId, accountIdHint = "") {
+    const normalizedUserId = typeof userId === "string" ? userId.trim() : "";
+    if (!normalizedUserId) {
+      return { account: ensureAccount(), token: "" };
+    }
+    ensureAnyAccountsLoaded();
+    // 调用方明说了从哪个号来，就用那个号——它比任何反查都准。
+    const hinted = String(accountIdHint || "").trim();
+    if (hinted) {
+      const state = accountStates.get(hinted) || (refreshAccounts(), accountStates.get(hinted));
+      if (state?.account?.token) {
+        return { account: state.account, token: state.contextTokenCache[normalizedUserId] || "" };
+      }
+    }
+    const search = () => {
+      const primary = primaryAccountId ? accountStates.get(primaryAccountId) : null;
+      if (primary?.contextTokenCache[normalizedUserId]) {
+        return { account: primary.account, token: primary.contextTokenCache[normalizedUserId] };
+      }
+      for (const state of accountStates.values()) {
+        const token = state.contextTokenCache[normalizedUserId];
+        if (token) {
+          return { account: state.account, token };
+        }
+      }
+      return null;
+    };
+    const found = search();
+    if (found) {
+      return found;
+    }
+    // 内存里没有就再读一次盘：刚扫码进来的人，他的 token 可能是这一轮才落的。
+    refreshAccounts();
+    return search() || { account: ensureAccount(), token: "" };
+  }
+
+  function rememberContextToken(userId, contextToken, accountId = "") {
     const normalizedUserId = typeof userId === "string" ? userId.trim() : "";
     const normalizedToken = typeof contextToken === "string" ? contextToken.trim() : "";
     if (!normalizedUserId || !normalizedToken) {
       return "";
     }
-    contextTokenCache = persistContextToken(config, account.accountId, normalizedUserId, normalizedToken);
+    // accountId 是这条消息**是从哪个号收到的**。这是唯一可靠的归属来源：
+    // 不传的时候只能落到主号上，那会把别人的 token 记到主人名下，之后回信必错。
+    ensureAnyAccountsLoaded();
+    const targetId = String(accountId || "").trim() || ensureAccount().accountId;
+    const tokens = persistContextToken(config, targetId, normalizedUserId, normalizedToken);
+    const state = accountStates.get(targetId);
+    if (state) {
+      state.contextTokenCache = tokens;
+    }
+    // 盘上没有这个号时**不建占位**。建了就等于往路由表里塞一个 token 为空的号，
+    // 之后给这个人发消息会带着空 Authorization 出去，微信直接拒——这比记不住
+    // 严重得多。token 已经落盘了，等那个号真出现时自然会被读进来。
     return normalizedToken;
   }
 
-  function resolveContextToken(userId, explicitToken = "") {
-    const normalizedExplicitToken = typeof explicitToken === "string" ? explicitToken.trim() : "";
-    if (normalizedExplicitToken) {
-      return normalizedExplicitToken;
-    }
-    const normalizedUserId = typeof userId === "string" ? userId.trim() : "";
-    if (!normalizedUserId) {
-      return "";
-    }
-    return ensureContextTokenCache()[normalizedUserId] || "";
-  }
-
-  function sendTextChunks({ userId, text, contextToken = "", preserveBlock = false }) {
-    const account = ensureAccount();
-    const resolvedToken = resolveContextToken(userId, contextToken);
+  function sendTextChunks({ userId, text, contextToken = "", preserveBlock = false, accountId = "" }) {
+    const binding = bindingFor(userId, accountId);
+    const account = binding.account;
+    const resolvedToken = String(contextToken || "").trim() || binding.token;
     if (!resolvedToken) {
       throw new Error(`Missing context_token. Cannot reply to user ${userId}.`);
     }
@@ -102,6 +183,92 @@ function createWeixinChannelAdapter(config) {
       }), Promise.resolve());
   }
 
+  async function fetchUpdatesFor(account, { syncBuffer = "", timeoutMs = LONG_POLL_TIMEOUT_MS } = {}) {
+    const response = await getUpdates({
+      baseUrl: account.baseUrl,
+      token: account.token,
+      getUpdatesBuf: syncBuffer,
+      timeoutMs,
+    });
+    const newBuf = typeof response?.get_updates_buf === "string" ? response.get_updates_buf.trim() : "";
+    const messages = Array.isArray(response?.msgs) ? response.msgs : [];
+    return Object.freeze({
+      response,
+      messages,
+      committedCursor: syncBuffer,
+      candidateCursor: newBuf || syncBuffer,
+      accountId: account.accountId,
+    });
+  }
+
+  // 单个号的视图。形状和整个适配器一样，但每个方法都钉死在这一个号上——
+  // 桥接循环给每个号建一个 DurableInboxCoordinator，各自用各自的游标、
+  // 各自的 context_token、各自的 token 拉更新。
+  //
+  // 游标必须分开：两个号的 get_updates_buf 是两条独立的序列，混用一条会让
+  // 其中一个号的消息被当成「已经收过了」直接跳过。
+  function accountView(accountId) {
+    const normalizedId = String(accountId || "").trim();
+    const resolve = () => {
+      const state = accountStates.get(normalizedId)
+        || (refreshAccounts(), accountStates.get(normalizedId));
+      if (!state) {
+        throw new Error(`WeChat account not found: ${normalizedId}`);
+      }
+      return state;
+    };
+    return {
+      accountId: normalizedId,
+      resolveAccount() {
+        return resolve().account;
+      },
+      getKnownContextTokens() {
+        return { ...resolve().contextTokenCache };
+      },
+      loadSyncBuffer() {
+        return loadSyncBuffer(config, normalizedId);
+      },
+      saveSyncBuffer(buffer) {
+        return saveSyncBuffer(config, normalizedId, buffer);
+      },
+      commitCandidateCursor({ expectedCursor = "", candidateCursor = "" } = {}) {
+        return commitSyncBuffer(config, normalizedId, {
+          expected: expectedCursor,
+          candidate: candidateCursor,
+        });
+      },
+      normalizeIncomingMessage(message, options = {}) {
+        return inboundFilter.normalize(message, config, normalizedId, options);
+      },
+      rememberContextToken(userId, contextToken) {
+        return rememberContextToken(userId, contextToken, normalizedId);
+      },
+      rememberBaselineStagingContextTokens(messages = []) {
+        rememberBaselineStagingContextTokens(messages, normalizedId);
+      },
+      async fetchUpdates(options = {}) {
+        return fetchUpdatesFor(resolve().account, options);
+      },
+      async getUpdates(options = {}) {
+        return fetchUpdatesFor(resolve().account, options);
+      },
+    };
+  }
+
+  function rememberBaselineStagingContextTokens(messages = [], accountId = "") {
+    for (const message of messages) {
+      const userId = typeof message?.from_user_id === "string"
+        ? message.from_user_id.trim()
+        : "";
+      const contextToken = typeof message?.context_token === "string"
+        ? message.context_token.trim()
+        : "";
+      if (userId && contextToken && isSenderAllowed(config, userId)) {
+        rememberContextToken(userId, contextToken, accountId);
+      }
+    }
+  }
+
   return {
     describe() {
       return {
@@ -133,8 +300,21 @@ function createWeixinChannelAdapter(config) {
     resolveAccount() {
       return ensureAccount();
     },
+    // 现在盘上所有能收发的号。每一轮桥接循环调一次，所以刚扫完码的人
+    // 下一轮就被轮询到了。
+    listAccounts() {
+      return refreshAccounts();
+    },
+    forAccount: accountView,
     getKnownContextTokens() {
-      return { ...ensureContextTokenCache() };
+      // 全部号合起来的一份。启动日志和「这个人能不能收到主动消息」都看它，
+      // 只报主号的数字会让第二个号下面的人看起来像不存在。
+      ensureAnyAccountsLoaded();
+      const merged = {};
+      for (const state of accountStates.values()) {
+        Object.assign(merged, state.contextTokenCache);
+      }
+      return merged;
     },
     loadSyncBuffer() {
       const account = ensureAccount();
@@ -145,38 +325,12 @@ function createWeixinChannelAdapter(config) {
       return saveSyncBuffer(config, account.accountId, buffer);
     },
     rememberContextToken,
-    rememberBaselineStagingContextTokens(messages = []) {
-      for (const message of messages) {
-        const userId = typeof message?.from_user_id === "string"
-          ? message.from_user_id.trim()
-          : "";
-        const contextToken = typeof message?.context_token === "string"
-          ? message.context_token.trim()
-          : "";
-        if (userId && contextToken && isSenderAllowed(config, userId)) {
-          rememberContextToken(userId, contextToken);
-        }
-      }
-    },
-    async fetchUpdates({ syncBuffer = "", timeoutMs = LONG_POLL_TIMEOUT_MS } = {}) {
-      const account = ensureAccount();
-      const response = await getUpdates({
-        baseUrl: account.baseUrl,
-        token: account.token,
-        getUpdatesBuf: syncBuffer,
-        timeoutMs,
-      });
-      const newBuf = typeof response?.get_updates_buf === "string" ? response.get_updates_buf.trim() : "";
-      const messages = Array.isArray(response?.msgs) ? response.msgs : [];
-      return Object.freeze({
-        response,
-        messages,
-        committedCursor: syncBuffer,
-        candidateCursor: newBuf || syncBuffer,
-      });
+    rememberBaselineStagingContextTokens,
+    async fetchUpdates(options = {}) {
+      return fetchUpdatesFor(ensureAccount(), options);
     },
     async getUpdates(options = {}) {
-      return this.fetchUpdates(options);
+      return fetchUpdatesFor(ensureAccount(), options);
     },
     commitCandidateCursor({
       expectedCursor = "",
@@ -192,17 +346,19 @@ function createWeixinChannelAdapter(config) {
       const account = ensureAccount();
       return inboundFilter.normalize(message, config, account.accountId, options);
     },
-    async sendText({ userId, text, contextToken = "", preserveBlock = false }) {
-      await sendTextChunks({ userId, text, contextToken, preserveBlock });
+    async sendText({ userId, text, contextToken = "", preserveBlock = false, accountId = "" }) {
+      await sendTextChunks({ userId, text, contextToken, preserveBlock, accountId });
     },
     async sendTextChunk({
       userId,
       text,
       contextToken = "",
       clientId = "",
+      accountId = "",
     }) {
-      const account = ensureAccount();
-      const resolvedToken = resolveContextToken(userId, contextToken);
+      const binding = bindingFor(userId, accountId);
+      const account = binding.account;
+      const resolvedToken = String(contextToken || "").trim() || binding.token;
       const stableClientId = String(clientId || "").trim();
       const outgoingText = String(text || "");
       if (!resolvedToken) {
@@ -235,9 +391,10 @@ function createWeixinChannelAdapter(config) {
         clientId: stableClientId,
       });
     },
-    async sendTyping({ userId, status = 1, contextToken = "" }) {
-      const account = ensureAccount();
-      const resolvedToken = resolveContextToken(userId, contextToken);
+    async sendTyping({ userId, status = 1, contextToken = "", accountId = "" }) {
+      const binding = bindingFor(userId, accountId);
+      const account = binding.account;
+      const resolvedToken = String(contextToken || "").trim() || binding.token;
       if (!resolvedToken) {
         return;
       }
@@ -263,9 +420,10 @@ function createWeixinChannelAdapter(config) {
         },
       });
     },
-    async sendFile({ userId, filePath, contextToken = "" }) {
-      const account = ensureAccount();
-      const resolvedToken = resolveContextToken(userId, contextToken);
+    async sendFile({ userId, filePath, contextToken = "", accountId = "" }) {
+      const binding = bindingFor(userId, accountId);
+      const account = binding.account;
+      const resolvedToken = String(contextToken || "").trim() || binding.token;
       if (!resolvedToken) {
         throw new Error(`Missing context_token. Cannot send a file to user ${userId}.`);
       }

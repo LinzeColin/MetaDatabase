@@ -17,7 +17,8 @@ const REASON_ACTION = Object.freeze({
   memory_pressure: "hold_new_runtime_jobs_and_free_memory",
   disk_pressure: "pause_mutations_and_cleanup_reconstructable_data",
   inode_pressure: "pause_mutations_and_cleanup_reconstructable_data",
-  load_pressure: "hold_new_runtime_jobs",
+  // 负载高只是慢，不是坏。串行跑（本来就是串行）比不回强。
+  load_pressure: "monitor_and_serialize",
   queue_pressure: "drain_existing_queue_and_protect_ingress",
   queue_stuck: "inspect_active_lease_and_runtime",
 });
@@ -222,11 +223,25 @@ class ResourceReadinessGate {
         thresholds,
       });
     }
+    // 负载高**不拦**回复。
+    //
+    // 这是「他没回话」和「过了五分钟才回」的真正原因。线上那条消息 07:11:11
+    // 入队，07:14:21 才被 claim——中间三分十秒，闸门一直在说 load_pressure。
+    // 这台机器只有 2 核，loadProtect = max(3.5, 2×1.5) = 3.5，而它常年挂着
+    // codex runtime、cloudflared 和另外几个服务，一分钟负载翻过 3.5 太容易了。
+    //
+    // 拦住它换来了什么？什么都没有。#dispatchNextRuntime 开头就是
+    // getActiveRuntimeJob()——**同一时刻本来就只可能有一个 runtime job 在跑**。
+    // 不派发并不会少跑一个任务，只会让主人等着的那一条唯一的回复迟到，而且他
+    // 在微信那头看不到任何解释，只会以为机器人坏了。
+    //
+    // 内存和磁盘不一样：那两样真的会把进程打死或者写坏数据，继续拦。负载只是
+    // 「现在有点慢」，慢着回也比不回强。
     if (protectReasons.includes("load")) {
       return decision({
-        state: "blocked",
+        state: "degraded",
         reason: "load_pressure",
-        dispatchAllowed: false,
+        dispatchAllowed: true,
         guardState: "protect",
         protectReasons,
         warnReasons,

@@ -154,6 +154,109 @@ const PROJECT_TOOLS = [
       };
     },
   },
+  // 待办和日程也要能由模型来记。
+  //
+  // 「记一下 买菜」那条确定性口令是**下限**，保证最普通的说法一定不落空；但真
+  // 秘书不该只认口令。「这周五之前把房租交了」「明天下午三点那个会你记一下」
+  // 这种话只有模型听得懂，它得有地方把听懂的东西放进去。
+  {
+    name: "cyberboss_todo_add",
+    description: "Remember a task for the current user in Cyberboss.",
+    shortHint: "Add a todo. Use dueAt only when the user gave a real time.",
+    topics: ["todo"],
+    inputSchema: {
+      type: "object",
+      required: ["title"],
+      properties: {
+        title: { type: "string", description: "Short task title in the user's own words." },
+        note: { type: "string", description: "Optional detail." },
+        // 没说时间就别编一个。编出来的截止时间会让他在莫名其妙的时刻被提醒。
+        dueAt: { type: "string", description: "Absolute time such as 2026-04-07T21:30+08:00. Omit when the user gave no time." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.items.add({ ...args, kind: "todo" }, context);
+      return { text: `Todo saved: ${result.title}`, data: result };
+    },
+  },
+  {
+    name: "cyberboss_event_add",
+    description: "Remember a scheduled event for the current user in Cyberboss.",
+    shortHint: "Add a calendar event. dueAt is required.",
+    topics: ["calendar"],
+    inputSchema: {
+      type: "object",
+      required: ["title", "dueAt"],
+      properties: {
+        title: { type: "string", description: "Short event title." },
+        note: { type: "string", description: "Optional detail." },
+        dueAt: { type: "string", description: "Absolute start time such as 2026-04-07T21:30+08:00." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.items.add({ ...args, kind: "event" }, context);
+      return { text: `Event saved: ${result.title}`, data: result };
+    },
+  },
+  {
+    name: "cyberboss_todo_list",
+    description: "Read the current user's open todos or events before answering about them.",
+    shortHint: "List open todos or events. Read before claiming what is on the list.",
+    topics: ["todo", "calendar"],
+    inputSchema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["todo", "event"], description: "Defaults to todo." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.items.list(args, context);
+      return { text: JSON.stringify(result), data: result };
+    },
+  },
+  // 长期记忆。
+  //
+  // 只记他自己说过的（explicit），不记猜的（inferred）。猜出来的东西会被当成
+  // 事实反复用在后面每一轮里——记错一件事，比不记这件事糟得多，主人会发现
+  // 它"记得的我"不是他。
+  {
+    name: "cyberboss_memory_remember",
+    description: "Remember a durable fact the user stated about themselves.",
+    shortHint: "Store a stable fact the user actually said. Never store a guess.",
+    topics: ["memory"],
+    inputSchema: {
+      type: "object",
+      required: ["category", "key", "value"],
+      properties: {
+        category: {
+          type: "string",
+          enum: ["basic", "preference", "routine", "goal", "relationship", "work", "interest", "communication_style"],
+        },
+        // 同一件事的名字要稳定：再说一次应该覆盖旧的，而不是并排堆两条。
+        key: { type: "string", description: "Stable snake_case name for this fact, e.g. sleep_habit, hometown." },
+        value: { type: "string", description: "The fact in one short sentence, in the user's own terms." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.memory.remember(args, context);
+      return { text: `Remembered: ${args.key}`, data: result };
+    },
+  },
+  {
+    name: "cyberboss_memory_recall",
+    description: "Read what is already remembered about the current user.",
+    shortHint: "Read stored facts before claiming what you remember.",
+    topics: ["memory"],
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    async handler({ services, args, context }) {
+      const result = await services.memory.recall(args, context);
+      return { text: JSON.stringify(result), data: result };
+    },
+  },
   {
     name: "cyberboss_system_send",
     description: "Queue an internal Cyberboss system trigger for the current bound workspace and chat.",

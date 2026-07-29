@@ -1,0 +1,14 @@
+'use strict';
+const crypto=require('node:crypto');
+function hmac(key,value){return crypto.createHmac('sha256',key).update(String(value)).digest('hex');}
+function timingEqualHex(a,b){try{const x=Buffer.from(a,'hex'),y=Buffer.from(b,'hex');return x.length===y.length&&crypto.timingSafeEqual(x,y);}catch{return false;}}
+class WebSessionService{
+  constructor({db,sessionKey,clock=()=>Date.now(),ttlMs=7*24*60*60*1000,cookieName='cb_session'}){if(!db?.prepare)throw new TypeError('db required');if(!Buffer.isBuffer(sessionKey)||sessionKey.length<32)throw new TypeError('sessionKey required');this.db=db;this.key=sessionKey;this.clock=clock;this.ttlMs=ttlMs;this.cookieName=cookieName;}
+  createRecord(userId){const token=crypto.randomBytes(32).toString('base64url');const csrf=crypto.createHmac('sha256',this.key).update(`csrf:${token}`).digest('base64url');const now=this.clock();return{token,csrf,tokenHash:hmac(this.key,token),csrfHash:hmac(this.key,csrf),expiresAt:now+this.ttlMs,cookie:`${this.cookieName}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${Math.floor(this.ttlMs/1000)}`};}
+  parseCookie(header=''){for(const part of String(header).split(';')){const [name,...rest]=part.trim().split('=');if(name===this.cookieName)return rest.join('=');}return'';}
+  verify({token,cookieHeader,csrf='',requireCsrf=false,touch=true}){const raw=token||this.parseCookie(cookieHeader);if(!raw)throw Object.assign(new Error('SESSION_REQUIRED'),{code:'SESSION_REQUIRED'});const hash=hmac(this.key,raw);const row=this.db.prepare(`SELECT token_hash AS tokenHash,csrf_hash AS csrfHash,user_id AS userId,expires_at AS expiresAt,revoked_at AS revokedAt FROM public_web_sessions WHERE token_hash=?`).get(hash);const now=this.clock();if(!row||row.revokedAt!==null||row.expiresAt<now)throw Object.assign(new Error('SESSION_INVALID'),{code:'SESSION_INVALID'});if(requireCsrf&&!timingEqualHex(row.csrfHash,hmac(this.key,csrf)))throw Object.assign(new Error('CSRF_INVALID'),{code:'CSRF_INVALID'});if(touch)this.db.prepare(`UPDATE public_web_sessions SET last_seen_at=? WHERE token_hash=?`).run(now,hash);return{userId:row.userId,tokenHash:hash,csrf:crypto.createHmac('sha256',this.key).update(`csrf:${raw}`).digest('base64url')};}
+  revoke({cookieHeader,token}){const raw=token||this.parseCookie(cookieHeader);if(!raw)return 0;return Number(this.db.prepare(`UPDATE public_web_sessions SET revoked_at=? WHERE token_hash=? AND revoked_at IS NULL`).run(this.clock(),hmac(this.key,raw)).changes);}
+  revokeUser(userId){return Number(this.db.prepare(`UPDATE public_web_sessions SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL`).run(this.clock(),userId).changes);}
+  clearCookie(){return `${this.cookieName}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;}
+}
+module.exports={WebSessionService,hmac};

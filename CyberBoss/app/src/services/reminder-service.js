@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
+const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { loadPersistedContextTokens } = require("../adapters/channel/weixin/context-token-store");
 const { ReminderQueueStore } = require("../adapters/channel/weixin/reminder-queue-store");
 const { resolvePreferredSenderId } = require("../core/default-targets");
@@ -40,10 +41,12 @@ class ReminderService {
       throw new Error("Missing a valid time. Use delayMinutes or dueAt like 2026-04-07T21:30+08:00.");
     }
 
-    const account = resolveSelectedAccount(this.config);
+    // 先认人，再按人定位号。反过来做（先挑号、再从号里挑默认收件人）在多号下
+    // 必然出错：从主号挑出来的默认收件人，可能根本不挂在主号下面。
+    const primary = resolveSelectedAccount(this.config);
     const senderId = resolveReminderSenderId({
       config: this.config,
-      accountId: account.accountId,
+      accountId: primary.accountId,
       explicitUser: userId,
       context,
       sessionStore: this.sessionStore,
@@ -51,6 +54,7 @@ class ReminderService {
     if (!senderId) {
       throw new Error("Cannot determine the WeChat user for this reminder.");
     }
+    const account = resolveAccountForUser(this.config, senderId);
 
     const contextTokens = loadPersistedContextTokens(this.config, account.accountId);
     const contextToken = String(contextTokens[senderId] || "").trim();

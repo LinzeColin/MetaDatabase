@@ -1,0 +1,14 @@
+{
+  "schema_version": 1, "task_id": "CB-740",
+  "scope": "User-scoped Timeline、日记、提醒、Check-in 与 PG-7",
+  "acceptance": ["AC-031","AC-028","AC-043"],
+  "depends_on": "CB-730", "status": "CLOSED",
+  "tests": [
+    { "script": "test/v8-prebuilt/user-companion-service.test.js", "result": "2/2 PASS" },
+    { "script": "目标树全量", "result": "656/656 PASS" }
+  ],
+  "doc_artifact_discrepancies": [{"listed_in_dag":"starter_kit/test/core.test.js","finding":"任务包内不存在该文件（第三次出现的同一悬空引用）","handling":"未以其它文件冒名顶替"}],
+  "rollback": { "procedure": "用服务器持有的 user scope 包住既有服务 → 普通用户陪伴工具与 Owner 工具分离 → 静默时段/关闭开关与零模型调用可校验" },
+  "pg7": { "status": "NOT_SEALED", "reason": "PG-7 需要真实用户与真实 DeepSeek 调用的证据，两者均为 blocked" },
+  "claims_not_made": ["PG-7 sealed", "reminders delivered to real users"]
+}

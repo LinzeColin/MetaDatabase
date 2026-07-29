@@ -528,13 +528,24 @@ function spawnManagedChild({
       resolveReady();
     }
   };
+  // 子进程说了什么，就转发到 journal。上一版这里把 stderr 读出来直接丢掉，于是
+  // bridge 每次崩溃在日志里都只剩一行 bridge_exit_before_ready——没有原因、没有
+  // 错误码，三个完全不同的故障看起来一模一样。子进程单独跑的时候这些行本来就是
+  // 打到 journal 的，被 supervisor 带起来不该反而更少。
+  const forward = (line) => {
+    const text = line.trim();
+    if (text) {
+      process.stdout.write(`[${role}] ${text.slice(0, 2_000)}\n`);
+    }
+  };
   const inspectLine = (line) => {
     if (!ready && readyPattern && readyPattern.test(line)) {
       markReady();
     }
+    forward(line);
   };
   watchLines(child.stdout, inspectLine);
-  watchLines(child.stderr, () => {});
+  watchLines(child.stderr, forward);
   child.once("error", (error) => {
     if (!ready) {
       rejectReady(new SupervisorViolation(`${role}_spawn_${error.code || "error"}`));

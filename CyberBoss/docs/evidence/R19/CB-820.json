@@ -1,0 +1,18 @@
+{
+  "schema_version": 1, "task_id": "CB-820",
+  "scope": "安全、隐私、模型边界、供应链与故障注入",
+  "acceptance": ["AC-006","AC-012","AC-026","AC-038"],
+  "depends_on": "CB-810", "status": "CLOSED",
+  "tests": [
+    { "script": "scripts/validate_package.py", "result": "PASS 60/60（CB-600 中运行）" },
+    { "script": "starter_kit/test（整套，已集成为目标树 test/v8-prebuilt/）", "result": "36 个文件全部 PASS" },
+    { "script": "frozen fault matrix", "result": "PASS", "detail": "provider_fault_matrix.json 现被真正消费：7 条逐条断言形状完整、current_user_only 类必须按用户维度处理、no_secret_log 类不得把密钥写进日志" },
+    { "script": "目标树全量", "result": "661/661 PASS" }
+  ],
+  "guard_events_this_run": [
+    "AC-038 拦下 overlay 测试里的 wechat_id 形状 → 按守卫自身机制声明为合成向量，守卫未削弱",
+    "AC-038 拦下我自己写的 CB-620 证据文件 → 证据属 shipped docs，改写描述不再复制凭据形状"
+  ],
+  "rollback": { "procedure": "拒绝候选发布 → 保留 exact previous release → 只记录合并后的发现，不新增范围" },
+  "claims_not_made": ["fault injection executed against live provider"]
+}

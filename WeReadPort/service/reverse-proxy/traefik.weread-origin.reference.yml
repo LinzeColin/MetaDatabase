@@ -1,0 +1,24 @@
+# Coolify 的 Traefik file provider 专用参考配置。部署时仅复制为
+# /data/coolify/proxy/dynamic/weread-port-origin.yml，不得覆盖其它站点。
+# WRP_EDGE_BRIDGE_HOST 必须与这里的 host 一致，且只能是 Docker 网桥地址。
+http:
+  routers:
+    weread-port-origin:
+      entryPoints:
+        - https
+      rule: Host(`origin.weread.linzezhang.com`)
+      service: weread-port-traefik-bridge
+      tls:
+        certResolver: letsencrypt
+  services:
+    weread-port-traefik-bridge:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: weread-port-traefik-bridge-transport
+        servers:
+          - url: http://10.0.1.1:8789
+  serversTransports:
+    weread-port-traefik-bridge-transport:
+      forwardingTimeouts:
+        dialTimeout: 5s
+        responseHeaderTimeout: 50s

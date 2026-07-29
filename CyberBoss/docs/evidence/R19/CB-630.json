@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "taskpack": "CyberBoss_v0.0.0.8_SEALED_TASKPACK_FINAL_R19_SHARED_BOT_DEEPSEEK_V4_PRO_20260728",
+  "task_id": "CB-630",
+  "scope": "单共享 Bot 多发送者 Durable 通道、UserContext、Owner Guard、公平队列与幂等",
+  "acceptance": ["AC-006","AC-007","AC-008","AC-009","AC-042","AC-044","AC-054"],
+  "depends_on": "CB-620",
+  "status": "CLOSED",
+  "implementation_modules_present": [
+    "src/v8-prebuilt/users/user-identity.js",
+    "src/v8-prebuilt/users/user-repository.js",
+    "src/v8-prebuilt/users/scoped-repository.js",
+    "src/v8-prebuilt/runtime/deepseek-user-id.js",
+    "src/v8-prebuilt/runtime/fair-user-queue.js",
+    "src/v8-prebuilt/runtime/create-mvp-components.js",
+    "src/v8-prebuilt/runtime/mvp-runtime.js",
+    "src/v8-prebuilt/public-entry/shared-entry-service.js"
+  ],
+  "tests": [
+    { "script": "test/v8-prebuilt/scoped-repository.test.js", "result": "1/1 PASS" },
+    { "script": "test/v8-prebuilt/weixin-durable-runtime.test.js", "result": "3/3 PASS" },
+    { "script": "test/v8-prebuilt/account-supervisor.test.js", "result": "4/4 PASS" },
+    { "script": "test/v8-prebuilt/mvp-runtime.test.js", "result": "1/1 PASS" },
+    { "script": "目标树全量 CyberBoss/app `node --test`", "result": "647/647 PASS" }
+  ],
+  "doc_artifact_discrepancies": [
+    {
+      "listed_in_dag": "starter_kit/test/core.test.js",
+      "finding": "任务包内不存在任何名为 core.test.js 的文件（已全包搜索）",
+      "handling": "记为 DAG 文档的悬空引用，未以其它文件冒名顶替"
+    },
+    {
+      "listed_in_dag": "starter_kit/fixtures/two-user-blind.json",
+      "finding": "实际文件名为 dual_user_blind_set.json，已随 overlay 落入 app/test/v8-prebuilt/fixtures/ 并纳入版本控制",
+      "handling": "该 fixture 目前在目标树中无任何消费者；它是 CB-640「双用户隔离 Blind Set」的输入，不计入 CB-630 的通过项，留待 CB-640 真实执行"
+    }
+  ],
+  "rollback": {
+    "procedure": "disable multi-user admission（CB_MULTI_USER=false）→ drain new user jobs → 回到 Owner-only release；overlay 本身为 add-only，git clean 即可整体复原",
+    "owner_path_unchanged": true
+  },
+  "claims_not_made": [
+    "shared bot poller running against real WeChat",
+    "blind set isolation proven",
+    "five seat admission enforced"
+  ]
+}

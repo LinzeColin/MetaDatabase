@@ -58,6 +58,9 @@ const MAX_CLAIM_DRAIN = 32;
 const MESSAGES = Object.freeze({
   PROVIDER_NOT_CONFIGURED:
     "还没有连接 AI 服务。回复「设置」打开设置页面，填入你自己的 API Key 就能开始对话。",
+  // 席位还有的时候用这一句：他占的是主人的额度，填密钥不是他的事。
+  OWNER_QUOTA_UNAVAILABLE:
+    "这边的 AI 还没接好，不是你的问题。我已经记下了，稍等一下再跟我说话就行。",
   QUEUE_BUSY: "我这边同时处理的消息太多了，稍等一下再发一次。",
   EMPTY_INPUT: "我没有收到文字内容，请再发一次。",
   UNAVAILABLE: "AI 服务暂时不可用，稍后我再帮你试一次。",
@@ -84,11 +87,15 @@ class UserTurnRuntime {
     fetchImpl = globalThis.fetch,
     requestTimeoutMs,
     queueLimits = {},
+    // 主人额度兜底：{ resolve(userId) -> {providerId, model, apiKey} | null }。
+    // 前几个人自己没配密钥时用主人的，之后的人必须自己填。判定在 app 层。
+    ownerQuota = null,
     clock = () => Date.now(),
   }) {
     if (!database || typeof database.prepare !== "function") {
       throw new UserTurnRuntimeError("DATABASE_REQUIRED");
     }
+    this.ownerQuota = ownerQuota;
     if (!userRepository) {
       throw new UserTurnRuntimeError("USER_REPOSITORY_REQUIRED");
     }
@@ -138,6 +145,24 @@ class UserTurnRuntime {
   // One ordinary-user turn. Every refusal is a frozen Chinese sentence and
   // costs zero model calls; only the controller may reach a provider, and only
   // after the budget and circuit guards have passed.
+  // 主人的额度兜底。ownerQuota 由 app 层注入，判定和取密钥都在那边——这里只
+  // 负责"自己没配就问一次"。任何一步出问题都返回 null，退回"请自己填密钥"，
+  // 绝不把主人的密钥交给一个不该用它的人。
+  #ownerQuotaFor(userId) {
+    if (!this.ownerQuota || typeof this.ownerQuota.resolve !== "function") {
+      return null;
+    }
+    try {
+      const resolved = this.ownerQuota.resolve(userId);
+      if (!resolved || !resolved.providerId || !resolved.model || !resolved.apiKey) {
+        return null;
+      }
+      return resolved;
+    } catch {
+      return null;
+    }
+  }
+
   async handleTurn({ userContext, text, requestId, signal = null }) {
     if (!userContext || typeof userContext.requireCapability !== "function") {
       throw new UserTurnRuntimeError("USER_CONTEXT_REQUIRED");
@@ -154,27 +179,44 @@ class UserTurnRuntime {
       });
     }
 
-    const selection = this.resolveSelection(userContext.userId);
-    if (!selection) {
-      return Object.freeze({
-        ok: false,
-        code: "PROVIDER_NOT_CONFIGURED",
-        text: MESSAGES.PROVIDER_NOT_CONFIGURED,
-        modelCalls: 0,
-      });
+    // 先看这个人自己配没配。配了就一律用他自己的——主人的额度只是兜底，
+    // 不该在人家已经掏了钱之后还去花主人的。
+    let selection = this.resolveSelection(userContext.userId);
+    let apiKey = null;
+    if (selection) {
+      try {
+        apiKey = this.vault.getCredential({
+          userId: userContext.userId,
+          providerId: selection.providerId,
+        });
+      } catch {
+        apiKey = null;
+      }
     }
-
-    let apiKey;
-    try {
-      apiKey = this.vault.getCredential({
-        userId: userContext.userId,
-        providerId: selection.providerId,
-      });
-    } catch {
+    // 没配的话：前几个人用主人的额度，之后的自己填密钥。
+    if (!apiKey) {
+      const fallback = this.#ownerQuotaFor(userContext.userId);
+      if (fallback) {
+        selection = {
+          providerId: fallback.providerId,
+          model: fallback.model,
+          // 推理档位跟着钥匙走。别的 provider 收到空串会忽略它。
+          reasoningEffort: fallback.reasoningEffort || "",
+        };
+        apiKey = fallback.apiKey;
+      }
+    }
+    if (!selection || !apiKey) {
+      // 席位还有的时候，这个人**不该**被推去填密钥——他占的是主人的额度，
+      // 填密钥根本不是他的事。这时候是主人那边缺东西，就照实说是这边的问题，
+      // 别把一件他做不了也不该做的事丢给他。
+      const seatIsFree = this.ownerQuota
+        ? this.ownerQuota.seatAvailable?.(userContext.userId) === true
+        : false;
       return Object.freeze({
         ok: false,
         code: "PROVIDER_NOT_CONFIGURED",
-        text: MESSAGES.PROVIDER_NOT_CONFIGURED,
+        text: seatIsFree ? MESSAGES.OWNER_QUOTA_UNAVAILABLE : MESSAGES.PROVIDER_NOT_CONFIGURED,
         modelCalls: 0,
       });
     }
@@ -219,6 +261,7 @@ class UserTurnRuntime {
         model: selection.model,
         apiKey,
         messages: [{ role: "user", content: prompt }],
+        reasoningEffort: selection.reasoningEffort || "",
         signal,
       });
       if (result.ok) {

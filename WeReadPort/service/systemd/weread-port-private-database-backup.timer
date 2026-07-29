@@ -1,0 +1,9 @@
+[Unit]
+Description=每日把 Private-Database 可恢复快照冷备到 R2
+[Timer]
+OnCalendar=*-*-* 04:01:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+Unit=weread-port-private-database-backup.service
+[Install]
+WantedBy=timers.target

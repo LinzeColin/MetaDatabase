@@ -1,0 +1,4 @@
+'use strict';
+const {normalizeConversation}=require('./normalize');
+function parseChatGPT(input){const rows=typeof input==='string'?JSON.parse(input):input;if(!Array.isArray(rows))throw new TypeError('ChatGPT export must be an array');return rows.map((conv,idx)=>{const mapping=conv.mapping||{};const nodes=Object.values(mapping).filter(n=>n&&n.message&&n.message.content);nodes.sort((a,b)=>(a.message.create_time||0)-(b.message.create_time||0));const messages=nodes.map((n,i)=>{const msg=n.message;const parts=msg.content?.parts||[];return{role:msg.author?.role==='assistant'?'assistant':msg.author?.role==='user'?'user':'system',text:parts.filter(x=>typeof x==='string').join('\n'),createdAt:msg.create_time?new Date(msg.create_time*1000).toISOString():null,sourceMessageId:msg.id||`${idx}:${i}`};});return normalizeConversation({source:'chatgpt',sourceConversationId:conv.id||`chatgpt:${idx}`,title:conv.title,messages});});}
+module.exports={parseChatGPT};

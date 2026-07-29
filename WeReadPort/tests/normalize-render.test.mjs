@@ -75,4 +75,10 @@ test("official reading-statistics fields normalize without alias guesswork", () 
     totalReadingDays: 9,
     totalFinishedBooks: 3,
   });
+  assert.deepEqual(normalizeReadingStatistics({ readTime: 120 }, { mode: "weekly" }), {
+    mode: "weekly",
+    totalReadingTimeSeconds: 120,
+    totalReadingDays: undefined,
+    totalFinishedBooks: undefined,
+  });
 });

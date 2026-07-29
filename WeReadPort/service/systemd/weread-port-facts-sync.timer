@@ -1,0 +1,12 @@
+[Unit]
+Description=每日及启动后同步阅迁脱敏完成态事实
+
+[Timer]
+OnBootSec=5m
+OnCalendar=*-*-* 03:47:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+Unit=weread-port-facts-sync.service
+
+[Install]
+WantedBy=timers.target

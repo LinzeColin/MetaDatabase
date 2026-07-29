@@ -72,6 +72,27 @@ class SqliteUserRepository {
     });
   }
 
+  // 这个人在普通用户里排第几（1 起）。按开通时间排——先来的先占主人的额度，
+  // 这是唯一一个不用解释就说得通的规则。不是普通用户（或不存在）返回 0。
+  ordinaryUserRank(userId) {
+    const rows = this.database
+      .prepare("SELECT user_id FROM users WHERE role='user' AND status='active' ORDER BY created_at, user_id")
+      .all();
+    const index = rows.findIndex((row) => row.user_id === userId);
+    return index < 0 ? 0 : index + 1;
+  }
+
+  // 还在用的普通用户有几个。主人不算——他不占席位。
+  //
+  // 开放模式下这是唯一挡住"任何扫到码的人都来烧主人额度"的数，所以它数的是
+  // active，不是全部：被暂停或已注销的人腾出来的位子应当能给新人用。
+  countActiveOrdinaryUsers() {
+    const row = this.database
+      .prepare("SELECT COUNT(*) AS c FROM users WHERE role='user' AND status='active'")
+      .get();
+    return Number(row?.c || 0);
+  }
+
   resolveByPrincipal({ channel = "weixin", botAccountRef, senderRef }) {
     const identity = this.identify({ channel, botAccountRef, senderRef });
     const row = this.database

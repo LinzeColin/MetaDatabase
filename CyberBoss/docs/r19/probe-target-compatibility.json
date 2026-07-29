@@ -1,0 +1,1349 @@
+{
+  "schema_version": 2,
+  "status": "mapped",
+  "read_only": true,
+  "mutation_performed": false,
+  "target_files_scanned": 4989,
+  "target_tree_digest": "570f956ffa2fefa62fe897b444b1b5091bef4d3edfb7b0e1fac1e4d539ced7d9",
+  "migration_inventory": {
+    "files": [
+      {
+        "path": "CyberBoss/app/migrations/001_runtime_spool.sql",
+        "sha256": "203acbd2b9c4f770cd6ce6a16bb77c7d0fdbc74b7d102e02f7a976e39cabd816"
+      },
+      {
+        "path": "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+        "sha256": "8b1fbdcf0f60628b850004411c626eb65131bba3179b1e5cfdecf936a4b77941"
+      },
+      {
+        "path": "CyberBoss/app/migrations/003_cb220_scheduler_control.sql",
+        "sha256": "eddf56679f0b1f9631368decce8bd061aa1aced3c2251ef10098241bb2f9a715"
+      },
+      {
+        "path": "CyberBoss/app/migrations/004_cb230_durable_outbox.sql",
+        "sha256": "7363da9ddca547a337a3bc21b4d0d41915398e4671571454685f84769873f9cc"
+      },
+      {
+        "path": "CyberBoss/app/migrations/005_cb240_canonical_sync.sql",
+        "sha256": "d88dbc0d9c6a2bb22db06053aaacbfb3b4f8164f13ed39a7aadd309f388864a5"
+      },
+      {
+        "path": "CyberBoss/app/migrations/006_multiuser_foundation.sql",
+        "sha256": "fc0f3d6e0754f3293efda4f707fd9cba80c9d343712ae30c3ea2eb91e3fa0ba5"
+      },
+      {
+        "path": "CyberBoss/app/migrations/007_cb800_lifecycle_receipts.sql",
+        "sha256": "54cf3e144b2c1104d75c65332040fe97ab348f6bde8251acd2608ab08390d95e"
+      }
+    ],
+    "highest_numeric_prefix": 7,
+    "suggested_next_numeric_prefix": 8,
+    "blind_008_name_allowed": false
+  },
+  "domains": [
+    {
+      "domain": "database_migration",
+      "starter": "starter_kit/migrations/multiuser_foundation.sql.template",
+      "target_candidates": [
+        "app/migrations/<next>_multiuser_v8.sql"
+      ],
+      "exact_matches": [
+        {
+          "path": "CyberBoss/app/migrations",
+          "type": "directory",
+          "sha256": null
+        }
+      ],
+      "semantic_matches": [
+        {
+          "path": "CyberBoss/app/migrations/001_runtime_spool.sql",
+          "anchors": [
+            "migrations",
+            "CREATE TABLE"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+          "anchors": [
+            "migrations",
+            "CREATE TABLE"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/003_cb220_scheduler_control.sql",
+          "anchors": [
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/004_cb230_durable_outbox.sql",
+          "anchors": [
+            "migrations",
+            "CREATE TABLE"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/005_cb240_canonical_sync.sql",
+          "anchors": [
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/006_multiuser_foundation.sql",
+          "anchors": [
+            "migrations",
+            "CREATE TABLE"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/007_cb800_lifecycle_receipts.sql",
+          "anchors": [
+            "migrations",
+            "CREATE TABLE"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/skills/evolve-and-diagnose-redux-apps/migrate-to-modern-redux/SKILL.md",
+          "anchors": [
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/canonical-sync-acceptance.js",
+          "anchors": [
+            "schema_version",
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/cb520-canary.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/cloud-supervisor.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/durable-inbox-acceptance.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/durable-outbox-acceptance.js",
+          "anchors": [
+            "schema_version",
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/job-scheduler-acceptance.js",
+          "anchors": [
+            "schema_version",
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/runtime-spool-acceptance.js",
+          "anchors": [
+            "schema_version",
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/scripts/software-correctness-suite.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/core/bootstrap.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/core/walking-skeleton-trace.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/core/workspace-registry.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/access/canonical-access-domain.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/assurance/canonical-fault-recovery-matrix.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/assurance/canonical-security-assurance.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/backup/backup-runner.js",
+          "anchors": [
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/backup/canonical-backup-runtime.js",
+          "anchors": [
+            "schema_version",
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/backup/cb530-cloud-backup.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/canonical/canonical-sync.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/canonical/user-fact-envelope.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/db/database-adapter.js",
+          "anchors": [
+            "schema_version",
+            "migrations"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/evaluation/canonical-model-safety-evaluation.js",
+          "anchors": [
+            "schema_version"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/src/services/operations/canonical-operations-policy.js",
+          "anchors": [
+            "schema_version"
+          ]
+        }
+      ],
+      "candidate_count": 64,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "public_scan_entry",
+      "starter": "starter_kit/src/public-entry + starter_kit/public",
+      "target_candidates": [
+        "app/src/services/public-entry/",
+        "app/public/"
+      ],
+      "exact_matches": [],
+      "semantic_matches": [],
+      "candidate_count": 0,
+      "status": "NEW_MODULE_REQUIRED",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "identity_isolation",
+      "starter": "starter_kit/src/users + starter_kit/src/channel + starter_kit/src/weixin",
+      "target_candidates": [
+        "app/src/adapters/channel/weixin/",
+        "app/src/services/users/",
+        "app/src/services/inbox/",
+        "app/src/services/outbox/"
+      ],
+      "exact_matches": [
+        {
+          "path": "CyberBoss/app/src/adapters/channel/weixin",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/app/src/services/users",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/app/src/services/inbox",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/app/src/services/outbox",
+          "type": "directory",
+          "sha256": null
+        }
+      ],
+      "semantic_matches": [
+        {
+          "path": "CyberBoss/app/migrations/001_runtime_spool.sql",
+          "anchors": [
+            "outbox",
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+          "anchors": [
+            "outbox"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/004_cb230_durable_outbox.sql",
+          "anchors": [
+            "outbox"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/006_multiuser_foundation.sql",
+          "anchors": [
+            "outbox"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-icons/dist/react-icons.cjs.development.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-icons/dist/react-icons.cjs.production.min.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-icons/dist/react-icons.esm.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-icons/manifest.json",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/skills/model-redux-state/design-state-ownership/SKILL.md",
+          "anchors": [
+            "userId"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/cssfilter/lib/default.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/es-toolkit/README.md",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/es-toolkit/dist/object/toCamelCaseKeys.js",
+          "anchors": [
+            "userId"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/es-toolkit/dist/object/toCamelCaseKeys.mjs",
+          "anchors": [
+            "userId"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/es-toolkit/dist/object/toSnakeCaseKeys.js",
+          "anchors": [
+            "userId"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/es-toolkit/dist/object/toSnakeCaseKeys.mjs",
+          "anchors": [
+            "userId"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/tools/cli-client/help.json",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/htmlReport/report.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/recorder/assets/codeMirrorModule-CwYYHbcZ.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/recorder/assets/index-DYjdXIbE.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/traceViewer/assets/codeMirrorModule-By56iMx7.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/traceViewer/assets/defaultSettingsView-B34OrIms.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/traceViewer/assets/xtermModule-COQkjINf.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/traceViewer/uiMode.D962mr9b.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/react-dom/cjs/react-dom-client.development.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/react-dom/cjs/react-dom-client.production.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/react-dom/cjs/react-dom-profiling.development.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/react-dom/cjs/react-dom-profiling.profiling.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js",
+          "anchors": [
+            "cursor"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/react-dom/cjs/react-dom-server.browser.development.js",
+          "anchors": [
+            "cursor"
+          ]
+        }
+      ],
+      "candidate_count": 215,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "deepseek_runtime",
+      "starter": "starter_kit/src/runtime/deepseek-* + shared-deepseek-* + five-seat-registry.js + global-daily-token-ledger.js",
+      "target_candidates": [
+        "app/src/services/runtime/",
+        "app/src/adapters/runtime/",
+        "app/src/services/db/"
+      ],
+      "exact_matches": [
+        {
+          "path": "CyberBoss/app/src/services/runtime",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/app/src/adapters/runtime",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/app/src/services/db",
+          "type": "directory",
+          "sha256": null
+        }
+      ],
+      "semantic_matches": [
+        {
+          "path": "CyberBoss/app/README.en.md",
+          "anchors": [
+            "runtime",
+            "usage",
+            "model"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.md",
+          "anchors": [
+            "runtime",
+            "usage",
+            "model"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.zh-CN.md",
+          "anchors": [
+            "runtime",
+            "model"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/architecture.md",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/commands.md",
+          "anchors": [
+            "runtime",
+            "model"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/termius-tmux-shared-terminal.zh-CN.md",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/001_runtime_spool.sql",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/003_cb220_scheduler_control.sql",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/006_multiuser_foundation.sql",
+          "anchors": [
+            "runtime",
+            "usage",
+            "circuit",
+            "reservation",
+            "model"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/number/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/primitive/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-arrow/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-arrow/dist/index.js",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-arrow/dist/index.mjs",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-collection/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-collection/dist/index.js",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-collection/dist/index.mjs",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-compose-refs/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-context/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-context/dist/index.js",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-context/dist/index.mjs",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-direction/dist/index.js",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-direction/dist/index.mjs",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-dismissable-layer/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-dismissable-layer/dist/index.js",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs",
+          "anchors": [
+            "runtime"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-focus-guards/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-focus-scope/README.md",
+          "anchors": [
+            "usage"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@radix-ui/react-focus-scope/dist/index.js",
+          "anchors": [
+            "runtime"
+          ]
+        }
+      ],
+      "candidate_count": 428,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "historical_imports",
+      "starter": "starter_kit/src/imports",
+      "target_candidates": [
+        "app/src/services/imports/"
+      ],
+      "exact_matches": [
+        {
+          "path": "CyberBoss/app/src/services/imports",
+          "type": "directory",
+          "sha256": null
+        }
+      ],
+      "semantic_matches": [
+        {
+          "path": "CyberBoss/app/README.en.md",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.md",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.zh-CN.md",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/commands.md",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/006_multiuser_foundation.sql",
+          "anchors": [
+            "import",
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/.package-lock.json",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/CONTRIBUTING.md",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/LICENSE.md",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/replace.config.js",
+          "anchors": [
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/rollup.config.js",
+          "anchors": [
+            "import",
+            "file"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/defaults.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/hammer.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/index.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/input/mouse.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/input/pointerevent.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/input/singletouch.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/input/touch.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/input/touchmouse.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/compute-delta-xy.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/compute-input-data.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/compute-interval-input-data.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/create-input-instance.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/get-angle.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/get-center.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/get-direction.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/get-distance.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/get-rotation.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/get-scale.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/input-constructor.js",
+          "anchors": [
+            "import"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/inputjs/input-consts.js",
+          "anchors": [
+            "import"
+          ]
+        }
+      ],
+      "candidate_count": 2127,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "profile_companion",
+      "starter": "starter_kit/src/profile + starter_kit/src/companion + starter_kit/src/analytics",
+      "target_candidates": [
+        "app/src/services/profile/",
+        "app/src/services/timeline-service.js",
+        "app/src/services/reminder-service.js"
+      ],
+      "exact_matches": [
+        {
+          "path": "CyberBoss/app/src/services/profile",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/app/src/services/timeline-service.js",
+          "type": "file",
+          "sha256": "6055e0629419936d3b62308b5d3be778b21401fc3ef7144831767ab91b9b8a2c"
+        },
+        {
+          "path": "CyberBoss/app/src/services/reminder-service.js",
+          "type": "file",
+          "sha256": "90736f0125e380e7e4263d873682a3a74009bfd6d3b3597862e7b16415d1a2cf"
+        }
+      ],
+      "semantic_matches": [
+        {
+          "path": "CyberBoss/app/README.en.md",
+          "anchors": [
+            "timeline",
+            "diary",
+            "reminder"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.md",
+          "anchors": [
+            "timeline",
+            "diary",
+            "reminder"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.zh-CN.md",
+          "anchors": [
+            "timeline",
+            "diary",
+            "reminder"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/architecture.md",
+          "anchors": [
+            "timeline",
+            "diary",
+            "reminder"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/commands.md",
+          "anchors": [
+            "timeline",
+            "diary",
+            "reminder"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/.package-lock.json",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/README.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/htmlReport/report.js",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/playwright-core/lib/vite/traceViewer/assets/defaultSettingsView-B34OrIms.js",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/.codex/skills/timeline-for-agent/SKILL.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/.codex/skills/timeline-for-agent/agents/openai.yaml",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/README.en.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/README.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/README.zh-CN.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/bin/timeline-for-agent.js",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/docs/agent-instructions.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/docs/mcp-tool-descriptions.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/docs/mobile-adaptation-blueprint.md",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/package.json",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/scripts/timeline-build.sh",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/scripts/timeline-categories.sh",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/scripts/timeline-proposals.sh",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/scripts/timeline-read.sh",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/scripts/timeline-screenshot.sh",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/scripts/timeline-write.sh",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/src/app/timeline-build-cli.js",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/src/app/timeline-categories-cli.js",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/src/app/timeline-dev-cli.js",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/src/app/timeline-proposals-cli.js",
+          "anchors": [
+            "timeline"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/timeline-for-agent/src/app/timeline-read-cli.js",
+          "anchors": [
+            "timeline"
+          ]
+        }
+      ],
+      "candidate_count": 168,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    },
+    {
+      "domain": "data_backup_status_ops",
+      "starter": "starter_kit/src/data + backup + privacy + status + operations + ops + release; starter_kit/deploy",
+      "target_candidates": [
+        "app/src/services/canonical/",
+        "app/src/services/status/",
+        "deploy/",
+        "scripts/"
+      ],
+      "exact_matches": [
+        {
+          "path": "CyberBoss/app/src/services/canonical",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/app/src/services/status",
+          "type": "directory",
+          "sha256": null
+        },
+        {
+          "path": "CyberBoss/scripts",
+          "type": "directory",
+          "sha256": null
+        }
+      ],
+      "semantic_matches": [
+        {
+          "path": "CyberBoss/app/README.en.md",
+          "anchors": [
+            "canonical",
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.md",
+          "anchors": [
+            "canonical",
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/README.zh-CN.md",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/commands.md",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/docs/termius-tmux-shared-terminal.zh-CN.md",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/001_runtime_spool.sql",
+          "anchors": [
+            "canonical",
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+          "anchors": [
+            "canonical",
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/003_cb220_scheduler_control.sql",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/004_cb230_durable_outbox.sql",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/005_cb240_canonical_sync.sql",
+          "anchors": [
+            "canonical",
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/006_multiuser_foundation.sql",
+          "anchors": [
+            "canonical",
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/migrations/007_cb800_lifecycle_receipts.sql",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/README.md",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/dist/hammer.esm.js",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/dist/hammer.js",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@egjs/hammerjs/src/input/pointerevent.js",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/README.md",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/cjs/redux-toolkit.development.cjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/cjs/redux-toolkit.production.min.cjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/cjs/rtk-query.development.cjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/cjs/rtk-query.production.min.cjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/react/cjs/rtk-query-react.development.cjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/react/cjs/rtk-query-react.production.min.cjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/react/rtk-query-react.browser.mjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/react/rtk-query-react.legacy-esm.js",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/react/rtk-query-react.modern.mjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/rtk-query.browser.mjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/rtk-query.legacy-esm.js",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/query/rtk-query.modern.mjs",
+          "anchors": [
+            "status"
+          ]
+        },
+        {
+          "path": "CyberBoss/app/node_modules/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs",
+          "anchors": [
+            "status"
+          ]
+        }
+      ],
+      "candidate_count": 348,
+      "status": "EXACT_PATH_PRESENT",
+      "integration_rule": "extend_existing_module_never_parallel_runtime"
+    }
+  ],
+  "ambiguous_required_domains": [],
+  "next_action": "generate_one_compact_adaptation_plan"
+}

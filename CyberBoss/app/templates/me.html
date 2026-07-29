@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的一页</title>
+<style nonce="__CSP_NONCE__">
+/* 字体全部走系统栈。CSP 是 default-src 'none'，外部字体一个都下不来，
+   写了也只是换来一次必然失败的请求和一次字体闪烁。 */
+:root{
+  --ink:#0F172A; --ink-soft:#475569; --ink-faint:#94A3B8;
+  --paper:#FFFBEB; --card:#FFFFFF; --line:#F1E9D2;
+  --brand:#92400E; --brand-2:#A16207; --accent:#6366F1;
+  --radius:18px; --gap:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ink:#F8FAFC; --ink-soft:#CBD5E1; --ink-faint:#64748B;
+    --paper:#0F172A; --card:#1E293B; --line:#334155;
+    --brand:#FCD34D; --brand-2:#FDE68A;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding:max(20px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px;margin:0 auto}
+header{margin:8px 4px 22px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:.4px}
+.sub{color:var(--ink-soft);font-size:14px;margin:0}
+/* Bento：手机一列，宽屏两列。卡片自己撑高，不设固定高度——内容多少不一样。 */
+.grid{display:grid;gap:var(--gap);grid-template-columns:1fr}
+@media (min-width:640px){.grid{grid-template-columns:1fr 1fr}}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 18px 16px; min-width:0;
+}
+.card h2{
+  font-size:13px;letter-spacing:1.2px;text-transform:none;color:var(--brand);
+  margin:0 0 12px;font-weight:600;display:flex;align-items:center;gap:8px;
+}
+.card h2 .n{
+  margin-left:auto;color:var(--ink-faint);font-weight:400;letter-spacing:0;font-size:12px;
+}
+ul{list-style:none;margin:0;padding:0}
+li{padding:9px 0;border-bottom:1px solid var(--line);font-size:15px;overflow-wrap:anywhere}
+li:last-child{border-bottom:0;padding-bottom:0}
+.when{display:block;color:var(--ink-faint);font-size:12.5px;margin-top:3px}
+.k{color:var(--ink-faint);font-size:12.5px;margin-right:6px}
+.empty{color:var(--ink-faint);font-size:14px;padding:6px 0 2px}
+.note{
+  margin:22px 4px 0;color:var(--ink-faint);font-size:12.5px;line-height:1.7;
+}
+.err{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;text-align:center;color:var(--ink-soft)
+}
+/* 首屏渐入。只有一次，很轻——这一页不是用来看动画的。 */
+.card{opacity:0;transform:translateY(6px);animation:rise .34s cubic-bezier(.25,.46,.45,.94) forwards}
+.card:nth-child(2){animation-delay:.04s}
+.card:nth-child(3){animation-delay:.08s}
+.card:nth-child(4){animation-delay:.12s}
+@keyframes rise{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .card{animation:none;opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>我的一页</h1>
+    <p class="sub" id="sub">正在打开……</p>
+  </header>
+  <div id="root"></div>
+  <p class="note" id="note"></p>
+</div>
+<script nonce="__CSP_NONCE__">
+(function () {
+  "use strict";
+  var root = document.getElementById("root");
+  var sub = document.getElementById("sub");
+  var note = document.getElementById("note");
+
+  // 一律 textContent，一个 innerHTML 都不用。这一页上的每个字都是人写的
+  // ——待办标题、日程名字、记着的事——把它们当 HTML 拼进去就是自找 XSS。
+  function el(tag, text, cls) {
+    var node = document.createElement(tag);
+    if (cls) { node.className = cls; }
+    if (text !== undefined && text !== null) { node.textContent = String(text); }
+    return node;
+  }
+
+  function card(title, rows, emptyText) {
+    var box = el("section", null, "card");
+    var head = el("h2", title);
+    head.appendChild(el("span", rows.length ? String(rows.length) : "", "n"));
+    box.appendChild(head);
+    if (!rows.length) {
+      box.appendChild(el("p", emptyText, "empty"));
+      return box;
+    }
+    var list = el("ul");
+    rows.forEach(function (row) {
+      var item = el("li");
+      if (row.k) { item.appendChild(el("span", row.k, "k")); }
+      item.appendChild(document.createTextNode(row.text));
+      if (row.when) { item.appendChild(el("span", row.when, "when")); }
+      list.appendChild(item);
+    });
+    box.appendChild(list);
+    return box;
+  }
+
+  function render(data) {
+    sub.textContent = "这些是你的东西。";
+    var grid = el("div", null, "grid");
+    grid.appendChild(card("待办", (data.todos || []).map(function (t) {
+      return { text: t.title, when: t.dueAt || "" };
+    }), "还没有待办。在微信里发「记一下 买菜」就能记。"));
+    grid.appendChild(card("日程", (data.events || []).map(function (e) {
+      return { text: e.title, when: e.dueAt || "" };
+    }), "还没有日程。发「记一下 明天下午3点开会」试试。"));
+    grid.appendChild(card("提醒", (data.reminders || []).map(function (r) {
+      return { text: r.text, when: r.dueAt || "" };
+    }), "没有还没到点的提醒。发「1分钟后提醒我喝水」试试。"));
+    grid.appendChild(card("记着的事", (data.memories || []).map(function (m) {
+      return { k: m.category || "", text: m.text };
+    }), "还没有记下什么。"));
+    root.replaceChildren(grid);
+    note.textContent = "聊天内容和这一页上的东西都保存在后台。";
+  }
+
+  function fail(message) {
+    sub.textContent = "";
+    var box = el("div", message, "err");
+    root.replaceChildren(box);
+  }
+
+  function load() {
+    fetch("/me/api/data", { credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data && data.ok) { render(data); return; }
+        fail("这个链接过期了。在微信里发「主页」再要一条新的。");
+      })
+      .catch(function () { fail("暂时打不开，稍后再试。"); });
+  }
+
+  // 票在 # 后面：片段不会发到服务器，隧道和访问日志都记不到它。
+  // 换成 cookie 之后立刻把它从地址栏抹掉，免得截图或者分享链接把票带出去。
+  var hash = String(location.hash || "");
+  var match = hash.match(/[#&]t=([A-Za-z0-9_-]{16,512})/);
+  if (match) {
+    history.replaceState(null, "", location.pathname);
+    fetch("/me/api/login", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: match[1] }),
+    }).then(load).catch(function () {
+      fail("这个链接过期了。在微信里发「主页」再要一条新的。");
+    });
+  } else {
+    load();
+  }
+})();
+</script>
+</body>
+</html>
