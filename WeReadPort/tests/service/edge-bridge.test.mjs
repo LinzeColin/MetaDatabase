@@ -1,8 +1,18 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import http from "node:http";
 import { once } from "node:events";
 import test from "node:test";
 import { createEdgeBridge, parseEdgeBridgeConfig } from "../../service/edge-bridge.mjs";
+
+test("edge bridge systemd unit keeps the Node 22 JIT compatibility exception narrow", () => {
+  const unit = fs.readFileSync(new URL("../../service/systemd/weread-port-edge-bridge.service", import.meta.url), "utf8");
+  assert.match(unit, /^MemoryDenyWriteExecute=false$/m);
+  assert.match(unit, /^NoNewPrivileges=true$/m);
+  assert.match(unit, /^ProtectSystem=strict$/m);
+  assert.match(unit, /^ProtectHome=true$/m);
+  assert.match(unit, /^RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX$/m);
+});
 
 test("edge bridge requires a private Docker host and loopback account service", () => {
   assert.throws(() => parseEdgeBridgeConfig({ WRP_EDGE_BRIDGE_HOST: "0.0.0.0" }), /Docker 私网/);
