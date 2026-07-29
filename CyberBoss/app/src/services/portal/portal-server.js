@@ -125,6 +125,7 @@ class PortalHttpServer {
     adminInsights = null,
     // 后台会话。给了这三个就支持"登录一次，之后免令牌"。
     publicEntry = null,
+    publicEntryStatus = null,
     adminSessionIssue = null,
     adminSessionVerify = null,
     adminSessionRevoke = null,
@@ -150,6 +151,7 @@ class PortalHttpServer {
     this.adminPersonaWrite = adminPersonaWrite;
     this.adminInsights = adminInsights;
     this.publicEntry = publicEntry;
+    this.publicEntryStatus = publicEntryStatus;
     this.adminSessionIssue = adminSessionIssue;
     this.adminSessionVerify = adminSessionVerify;
     this.adminSessionRevoke = adminSessionRevoke;
@@ -370,6 +372,36 @@ class PortalHttpServer {
     response.end(JSON.stringify({ ok: true, csrf: issued.csrf, expiresAt: issued.expiresAt }));
   }
 
+  // 公开入口。没有鉴权是刻意的：这一页就是给陌生人看的。
+  // 它只吐一张现要的二维码和一句中文；出错也只说"还没准备好"，不把内部错误码
+  // 吐到公开页上。
+  async #handlePublicEntry(response) {
+    let payload = {
+      ok: true, ready: false, status: "pending_activation",
+      message: "这个机器人还没准备好，请稍后再来。",
+    };
+    try {
+      payload = (typeof this.publicEntry === "function" ? await this.publicEntry() : null) || payload;
+    } catch {
+      // 保持默认那句。
+    }
+    this.#json(response, 200, payload);
+    return null;
+  }
+
+  async #handlePublicEntryStatus(response, ticket) {
+    let payload = { ok: true, state: "wait", message: "" };
+    try {
+      payload = (typeof this.publicEntryStatus === "function"
+        ? await this.publicEntryStatus(String(ticket || ""))
+        : null) || payload;
+    } catch {
+      // 同上：公开页只看得到状态词。
+    }
+    this.#json(response, 200, payload);
+    return null;
+  }
+
   async #handleAdminLogout(request, response) {
     if (request.method !== "POST") {
       this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
@@ -519,14 +551,12 @@ class PortalHttpServer {
       return null;
     }
     if (request.method === "GET" && pathname === "/api/join") {
-      let payload = { ok: true, ready: false, status: "pending_activation", message: "这个机器人还没准备好，请稍后再来。" };
-      try {
-        payload = (typeof this.publicEntry === "function" ? this.publicEntry() : null) || payload;
-      } catch {
-        // 出错也只回"还没准备好"，不把内部错误码吐给公开页。
-      }
-      this.#json(response, 200, payload);
-      return null;
+      return this.#handlePublicEntry(response);
+    }
+    // 扫码进度。只回 wait / scaned / confirmed / expired 四种状态和一句中文，
+    // 不回 accountId、不回 token、不回任何人的身份。
+    if (request.method === "GET" && pathname === "/api/join/status") {
+      return this.#handlePublicEntryStatus(response, url.searchParams.get("t") || "");
     }
     if (pathname === "/admin/api/login") {
       return this.#handleAdminLogin(request, response);

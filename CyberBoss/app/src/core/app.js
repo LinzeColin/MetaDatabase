@@ -91,6 +91,12 @@ const BACKOFF_DELAY_MS = 30_000;
 const MAX_CONSECUTIVE_FAILURES = 3;
 const MAX_INBOUND_STICKER_IMAGE_BATCH = 10;
 const INBOUND_IMAGE_BATCH_IDLE_MS = 1_500;
+// 公开入口的限流。/join 没有鉴权（刻意的），但每次出码都会真的打一次 iLink，
+// 所以对外调用的次数必须被我自己发出去的票数封死。
+const PUBLIC_QR_MIN_INTERVAL_MS = 1_500;
+const PUBLIC_QR_MAX_PENDING = 20;
+// iLink 的授权码本身大约 5 分钟过期，这里留一点余量再弃。
+const PUBLIC_QR_TICKET_TTL_MS = 6 * 60_000;
 
 const OWNER_CLAIMED_NOTICE = [
   "认出你了，你是这里的主人 ✓",
@@ -297,6 +303,8 @@ class CyberbossApp {
     this.durableInboxCoordinators = new Map();
     this.accountPollsInFlight = new Map();
     this.accountPollFailureCounts = new Map();
+    // 公开入口发出去的授权码票据：ticket -> 出票时刻。
+    this.publicEntryGate = { lastMintedAt: 0, tickets: new Map() };
     this.jobScheduler = null;
     this.outboxWorker = null;
     this.canonicalSyncCoordinator = null;
@@ -1065,6 +1073,7 @@ class CyberbossApp {
       adminPersonaRead: () => this.readDashboardPersona(),
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
       publicEntry: () => this.buildPublicEntry(),
+      publicEntryStatus: (ticket) => this.pollPublicEntryQr(ticket),
       adminSessionIssue: (input) => this.issueAdminSession(input),
       adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
       adminSessionRevoke: (cookieHeader) => this.revokeAdminSession(cookieHeader),
@@ -1318,16 +1327,13 @@ class CyberbossApp {
     }
   }
 
-  // 公开页要显示的东西。这一页**任何人都能打开**，所以它只含两样：一张由主人
-  // 配的入口地址渲染出来的二维码，和一句怎么用。不含任何用量、人数、状态——
-  // 那些都是运营信息，公开页上一个字都不该有。
-  buildPublicEntry() {
-    let access = null;
-    try {
-      access = this.personaStore ? this.personaStore.read().access : null;
-    } catch {
-      access = null;
-    }
+  // 公开页要显示的东西。这一页**任何人都能打开**，所以它只含两样：一张现要的
+  // 授权二维码，和一句怎么用。不含任何用量、人数、状态——那些都是运营信息，
+  // 公开页上一个字都不该有。
+  //
+  // 「现要」是关键：一张码只对一个人有效，扫完就作废。主人配一张静态码给所有人
+  // 扫是不行的——iLink 的授权码本来就是一次性的。
+  async buildPublicEntry() {
     const bound = (() => {
       try {
         return this.userAdmission ? this.userAdmission.ownerChannelBound() : false;
@@ -1336,49 +1342,121 @@ class CyberbossApp {
       }
     })();
     if (!bound) {
+      // 主人自己都还没绑上，这时候放人进来只会绑出一堆没人管的号。
       return Object.freeze({
         ok: true, ready: false, status: "pending_activation",
         message: "这个机器人还没准备好，请稍后再来。",
       });
     }
-    if (!access?.entryUrl) {
-      return Object.freeze({
-        ok: true, ready: false, status: "pending_entry_qr",
-        message: "入口二维码还没配好，请稍后再来。",
-      });
+    return this.mintPublicEntryQr();
+  }
+
+  // ── 公开入口：每个来的人现要一张自己的码 ────────────────────
+  //
+  // iLink 的授权码扫一次就生成一个**属于扫码那个人**的 bot 号
+  // （ilink_bot_id + bot_token + ilink_user_id）。所以「每人扫码绑自己微信」
+  // 不需要发明任何东西：让公开页现要一张授权码就是了。
+  //
+  // 这条路必须等多号轮询做完才能放出来（OPEN-2）。在那之前放码等于给人一个
+  // 「能把你绑进来、然后系统当你不存在」的入口——扫进来的号根本没人轮询。
+  //
+  // 这一页没有鉴权，是刻意的；但每一次请求都会真的打一次 iLink，所以下面两条
+  // 限流不是装饰：
+  //   一、两次出码之间至少隔 PUBLIC_QR_MIN_INTERVAL_MS，同时在手的码不超过
+  //       PUBLIC_QR_MAX_PENDING 张；
+  //   二、只认自己发出去的票，且过期即弃——这样对外的长轮询次数被自己发出去的
+  //       票数封死，别人没法拿一个编造的票号让我去打 iLink。
+  async mintPublicEntryQr({ now = Date.now() } = {}) {
+    const gate = this.publicEntryGate;
+    this.prunePublicEntryTickets(now);
+    if (now - gate.lastMintedAt < PUBLIC_QR_MIN_INTERVAL_MS) {
+      return Object.freeze({ ok: true, ready: false, status: "busy", message: "现在人有点多，几秒后再刷新一下。" });
     }
-    let qrDataUri = "";
+    if (gate.tickets.size >= PUBLIC_QR_MAX_PENDING) {
+      return Object.freeze({ ok: true, ready: false, status: "busy", message: "现在人有点多，过一会儿再来。" });
+    }
+    const { startWebLogin } = require("../adapters/channel/weixin/login");
     try {
-      qrDataUri = svgDataUri(renderQrSvg(access.entryUrl, { ariaLabel: "加机器人的二维码" }));
-    } catch {
-      return Object.freeze({
-        ok: true, ready: false, status: "pending_entry_qr",
-        message: "入口二维码还没配好，请稍后再来。",
-      });
-    }
-    const seatsLeft = (() => {
-      try {
-        const used = this.userAdmission?.users?.countActiveOrdinaryUsers?.();
-        const limit = this.resolveSeatLimit();
-        return Number.isFinite(used) && Number.isInteger(limit) ? Math.max(0, limit - used) : null;
-      } catch {
-        return null;
+      gate.lastMintedAt = now;
+      const qr = await startWebLogin(this.config);
+      const ticket = normalizeText(qr?.qrcode);
+      const content = normalizeText(qr?.content);
+      if (!ticket || !content) {
+        return Object.freeze({ ok: true, ready: false, status: "unavailable", message: "现在拿不到二维码，过一会儿再试。" });
       }
-    })();
-    return Object.freeze({
-      ok: true,
-      ready: true,
-      status: "ready",
-      qrDataUri,
-      open: access.mode === "open",
-      // 只说"满了没有"，不说还剩几个、更不说有多少人——公开页上人数是运营信息。
-      full: seatsLeft === 0,
-      message: seatsLeft === 0
-        ? "名额暂时满了。"
-        : (access.mode === "open"
-          ? "用微信扫这个码加它，然后随便说句话就能用。"
-          : "用微信扫这个码加它，再把主人给你的邀请码发过去。"),
-    });
+      gate.tickets.set(ticket, now);
+      return Object.freeze({
+        ok: true,
+        ready: true,
+        status: "ready",
+        ticket,
+        // 服务端渲染成 SVG 再转 data URI：CSP 只放行 img-src 'self' data:，
+        // 外部图床一律进不来。
+        qrDataUri: svgDataUri(renderQrSvg(content, { ariaLabel: "加机器人的二维码" })),
+        message: this.publicEntryQuotaNotice(),
+      });
+    } catch {
+      // 公开页不吐内部错误码。
+      return Object.freeze({ ok: true, ready: false, status: "unavailable", message: "现在拿不到二维码，过一会儿再试。" });
+    }
+  }
+
+  async pollPublicEntryQr(ticket, { now = Date.now() } = {}) {
+    const gate = this.publicEntryGate;
+    this.prunePublicEntryTickets(now);
+    const normalized = normalizeText(ticket);
+    // 只认自己发出去的票。少了这一条，任何人都能拿编造的票号驱使我去打 iLink。
+    if (!normalized || !gate.tickets.has(normalized)) {
+      return Object.freeze({ ok: true, state: "expired", message: "这张码过期了，正在给你换一张。" });
+    }
+    const { pollWebLogin } = require("../adapters/channel/weixin/login");
+    try {
+      const result = await pollWebLogin(this.config, normalized);
+      if (result.state === "confirmed") {
+        gate.tickets.delete(normalized);
+        this.noteForDashboard("有人扫码进来了");
+        // 回给公开页的东西里**没有** accountId、没有 token、没有任何人的身份。
+        return Object.freeze({
+          ok: true,
+          state: "confirmed",
+          message: "好了。回到微信，跟它说句话就行。",
+        });
+      }
+      if (result.state === "expired") {
+        gate.tickets.delete(normalized);
+        return Object.freeze({ ok: true, state: "expired", message: "这张码过期了，正在给你换一张。" });
+      }
+      return Object.freeze({
+        ok: true,
+        state: result.state === "scaned" ? "scaned" : "wait",
+        message: result.state === "scaned" ? "扫到了，在微信里点一下确认。" : "",
+      });
+    } catch {
+      return Object.freeze({ ok: true, state: "wait", message: "" });
+    }
+  }
+
+  prunePublicEntryTickets(now = Date.now()) {
+    for (const [ticket, mintedAt] of this.publicEntryGate.tickets) {
+      if (now - mintedAt > PUBLIC_QR_TICKET_TTL_MS) {
+        this.publicEntryGate.tickets.delete(ticket);
+      }
+    }
+  }
+
+  // 名额满了**不是拒绝**。前几个人用主人的额度，之后进来的人照样能用，只是
+  // 要自己填一个 AI 密钥。所以这里说的是"要自己填密钥"，不是"你不能进"。
+  publicEntryQuotaNotice() {
+    try {
+      const used = this.userAdmission?.users?.countActiveOrdinaryUsers?.();
+      const limit = this.resolveSeatLimit();
+      if (Number.isFinite(used) && Number.isInteger(limit) && used >= limit) {
+        return "扫码加它，然后随便说句话。前面的免费名额满了，加上之后它会告诉你怎么填自己的 AI 密钥。";
+      }
+    } catch {
+      // 读不出来就按"还有名额"说话：把能用的人挡在门外，比多说一句话糟糕得多。
+    }
+    return "用微信扫这个码加它，然后随便说句话就能用。";
   }
 
   // ── 语气面板 ───────────────────────────────────────────────
@@ -2162,7 +2240,6 @@ class CyberbossApp {
       // qrcode-terminal 画它；网页这边在服务端渲染成 SVG 再转 data URI——CSP 只
       // 允许 img-src 'self' data:，外部图床一律进不来。
       const { renderQrSvg, svgDataUri } = require("../v8-prebuilt/public-entry/qr-svg");
-const { loadRuntimeTextSecret } = require("../v8-prebuilt/security/runtime-text-secret");
       this.noteForDashboard("生成了 Owner 激活二维码");
       return Object.freeze({
         ok: true,
