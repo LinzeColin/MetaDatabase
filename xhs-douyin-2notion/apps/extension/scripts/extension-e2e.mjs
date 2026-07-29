@@ -449,6 +449,46 @@ try {
   await guidePage.close();
   await page.bringToFront();
 
+  currentStep = "bilibili_unavailable_detail_guide";
+  const unavailableUrl = "https://www.bilibili.com/video/BV1RealShape0";
+  const unavailablePage = await context.newPage();
+  await unavailablePage.route("**/*", (route) => route.fulfill({
+    body: "<!doctype html><title>x2n unavailable detail guide</title>",
+    contentType: "text/html; charset=utf-8",
+    status: 200,
+  }));
+  await unavailablePage.goto(unavailableUrl, { waitUntil: "domcontentloaded" });
+  await unavailablePage.bringToFront();
+  const unavailableCdp = await browser.newBrowserCDPSession();
+  const { targetInfos: unavailableTargets } = await unavailableCdp.send("Target.getTargets", {
+    filter: [{ exclude: false, type: "tab" }],
+  });
+  const unavailableTarget = unavailableTargets.find(
+    (target) => target.type === "tab" && target.url === unavailableUrl,
+  );
+  requireCondition(Boolean(unavailableTarget), "bilibili_unavailable_detail_target_missing");
+  await unavailableCdp.send("Extensions.triggerAction", {
+    id: extensionId,
+    targetId: unavailableTarget.targetId,
+  });
+  await unavailableCdp.detach();
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => document.querySelector("#page-status")?.textContent === "哔哩哔哩暂时还不能保存",
+    undefined,
+    { timeout: 10_000 },
+  );
+  requireCondition(
+    await page.locator("#workflow-title").textContent() === "哔哩哔哩还在准备中",
+    "bilibili_unavailable_detail_title",
+  );
+  requireCondition(await page.locator("#workflow-action").isHidden(), "bilibili_unavailable_detail_action_visible");
+  requireCondition(await page.locator("#capture-fallback").isHidden(), "bilibili_unavailable_detail_fallback_visible");
+  const unavailableVisibleActionCount = await page.locator("#panel-save button:visible").count();
+  requireCondition(unavailableVisibleActionCount === 0, "bilibili_unavailable_detail_button_visible");
+  await unavailablePage.close();
+  await page.bringToFront();
+
   currentStep = "page_recognition";
   const fixture = JSON.parse(await readFile(FIXTURE_PATH, "utf8"));
   const recognition = await page.evaluate(async (cases) => {
@@ -713,6 +753,8 @@ try {
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_before_grant_rejections`]: 2,
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_trigger`]: "PASS_CDP_DEFAULT_ACTION",
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_current_page_capture`]: "PASS_CI_SYNTH",
+    bilibili_unavailable_detail_guide: "PASS_CI_SYNTH",
+    bilibili_unavailable_detail_visible_actions: unavailableVisibleActionCount,
     xhs_favorites_first_use_guide: "PASS_CI_SYNTH",
     xhs_favorites_guide_visible_actions: guideVisibleActionCount,
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_owner_canary`]: "NOT_RUN",

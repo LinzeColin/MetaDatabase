@@ -1,4 +1,5 @@
 import { recognizePage } from "./page-support.js";
+import { PLATFORM_NAMES, unavailableDetailGuidance } from "./sidepanel-guidance.js";
 
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const panels = [...document.querySelectorAll('[role="tabpanel"]')];
@@ -62,17 +63,10 @@ let captureInFlight = false;
 let pageRefreshGeneration = 0;
 let capabilityOutcomes = null;
 let fallbackFromJobId = null;
+let fallbackTabId = null;
 let panelMotion = null;
 let lastPageResult = null;
 let activeMvpCurrentScope = "xiaohongshu_current_content";
-const EXECUTABLE_PLATFORM_NAMES = Object.freeze({
-  bilibili: "哔哩哔哩",
-  douyin: "抖音",
-  kuaishou: "快手",
-  taobao: "淘宝",
-  weibo: "微博",
-  xiaohongshu: "小红书",
-});
 
 function createPanelMotion() {
   if (typeof Element.prototype.animate !== "function" || typeof window.matchMedia !== "function") return null;
@@ -218,8 +212,13 @@ function showMvpCurrentAction() {
 function renderPage(result) {
   lastPageResult = result;
   activeTabId = Number.isSafeInteger(result.tabId) ? result.tabId : null;
+  if (fallbackTabId !== activeTabId || fallbackFromJobId === null) {
+    fallbackFromJobId = null;
+    fallbackTabId = null;
+    fallbackButton.hidden = true;
+  }
   const executablePlatform = result.executable
-    && Object.hasOwn(EXECUTABLE_PLATFORM_NAMES, result.platform)
+    && Object.hasOwn(PLATFORM_NAMES, result.platform)
     && activeTabId !== null;
   const xhsMvpCurrentExecutable = result.mvpCurrentEligible === true
     && result.platform === "xiaohongshu"
@@ -234,7 +233,7 @@ function renderPage(result) {
   }
   if (executablePlatform) {
     setPageContextState("ready");
-    const platformName = EXECUTABLE_PLATFORM_NAMES[result.platform];
+    const platformName = PLATFORM_NAMES[result.platform];
     pageKicker.textContent = "当前内容";
     pageStatus.textContent = `可以保存这篇${platformName}内容`;
     platformStatus.textContent = "只会处理你已经打开的这一篇";
@@ -279,6 +278,15 @@ function renderPage(result) {
       steps: { first: "已经打开笔记", second: "点击保存这条笔记", third: "打开下一篇继续保存", active: 1 },
     });
     showMvpCurrentAction();
+    return;
+  }
+  const unavailableGuidance = result.supported ? unavailableDetailGuidance(result.platform) : null;
+  if (unavailableGuidance !== null) {
+    setPageContextState("blocked");
+    pageKicker.textContent = unavailableGuidance.kicker;
+    pageStatus.textContent = unavailableGuidance.status;
+    platformStatus.textContent = unavailableGuidance.platformStatus;
+    setWorkflow({ state: "blocked", ...unavailableGuidance });
     return;
   }
   if (result.supported) {
@@ -335,8 +343,11 @@ function renderFallback(result) {
   const response = result?.response;
   const eligible = result?.fallbackAvailable === true
     && typeof response?.job_id === "string"
-    && /^[0-9a-f-]{36}$/u.test(response.job_id);
+    && /^[0-9a-f-]{36}$/u.test(response.job_id)
+    && activeTabId !== null
+    && currentPageExecutable;
   fallbackFromJobId = eligible ? response.job_id : null;
+  fallbackTabId = eligible ? activeTabId : null;
   fallbackButton.hidden = !eligible;
   fallbackButton.disabled = !eligible || captureInFlight || !currentPageExecutable;
   if (eligible) {
@@ -485,6 +496,7 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
     const result = await chrome.runtime.sendMessage(message);
     if (result?.ok && (result.response?.job_id || ownerMvpCurrent)) {
       fallbackFromJobId = null;
+      fallbackTabId = null;
       fallbackButton.hidden = true;
       if (result.response?.job_id) {
         captureStatus.dataset.jobId = result.response.job_id;

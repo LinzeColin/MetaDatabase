@@ -241,11 +241,12 @@ export function recognizePage(rawUrl) {
   }
 
   const executable = currentPageExecutable(match, url);
-  return Object.freeze({
+  const result = {
     executable,
-    mvpCurrentEligible: match.platform === "xiaohongshu" && !executable,
     platform: match.platform,
     reason: executable ? "current_page_ci_synth_enabled" : disabledReason(match, url),
     supported: true,
-  });
+  };
+  if (match.platform === "xiaohongshu") result.mvpCurrentEligible = !executable;
+  return Object.freeze(result);
 }

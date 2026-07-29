@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { canCaptureXhsMvpCurrent, recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { PLATFORM_NAMES, unavailableDetailGuidance } from "../src/sidepanel-guidance.js";
 import { buildBilibiliCapturePayload, validateBilibiliPageFacts } from "../src/bilibili-current-page.js";
 import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
 import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
@@ -58,6 +59,7 @@ const sourceFiles = [
   "src/kuaishou-current-page.js",
   "src/page-support.js",
   "src/service-worker.js",
+  "src/sidepanel-guidance.js",
   "src/sidepanel.js",
   "src/taobao-current-page.js",
   "src/weibo-current-page.js",
@@ -154,6 +156,10 @@ if (
   || !sources["src/sidepanel.js"].includes("guideSurface === \"xiaohongshu_favorites_list\"")
 ) failures.push("sidepanel_status_feedback");
 if (
+  !sources["src/sidepanel.js"].includes("unavailableDetailGuidance")
+  || !sources["src/sidepanel.js"].includes("fallbackTabId")
+) failures.push("sidepanel_unavailable_detail_guidance");
+if (
   !sources["src/sidepanel.js"].includes("target.animate")
   || !sources["src/sidepanel.js"].includes("window.matchMedia")
   || !sources["src/sidepanel.js"].includes("prefers-reduced-motion")
@@ -212,6 +218,9 @@ if (recognizePage("https://xiaohongshu.com/user/profile/x2n-owner?tab=fav&subTab
 if (recognizePage("https://www.douyin.com/video/7485211130848218428").mvpCurrentEligible) {
   failures.push("douyin_real_page_not_mvp_current_eligible");
 }
+if (Object.hasOwn(recognizePage("https://www.douyin.com/video/7485211130848218428"), "mvpCurrentEligible")) {
+  failures.push("douyin_mvp_current_field_boundary");
+}
 if (recognizePage("https://www.douyin.com/video/7485211130848218428").executable) {
   failures.push("douyin_real_page_gate");
 }
@@ -221,6 +230,22 @@ if (recognizePage("https://v.douyin.com/opaque-real-shaped/").supported) {
 if (recognizePage("https://www.douyin.com/note/7485211130848218428").supported) {
   failures.push("douyin_unknown_gallery_route_gate");
 }
+const douyinUnavailableGuidance = unavailableDetailGuidance("douyin");
+if (
+  douyinUnavailableGuidance?.status !== "请在收藏或喜欢清单中开始"
+  || douyinUnavailableGuidance.title !== "先打开“收藏”或“喜欢”"
+  || douyinUnavailableGuidance.steps.active !== 0
+) failures.push("douyin_unavailable_detail_guidance");
+for (const platform of ["bilibili", "kuaishou", "taobao", "weibo"]) {
+  const guidance = unavailableDetailGuidance(platform);
+  if (
+    guidance === null
+    || guidance.status !== `${PLATFORM_NAMES[platform]}暂时还不能保存`
+    || guidance.steps.active !== 1
+    || !guidance.copy.includes("不用换页面或找按钮")
+  ) failures.push(`unavailable_detail_guidance_${platform}`);
+}
+if (unavailableDetailGuidance("xiaohongshu") !== null) failures.push("xhs_unavailable_detail_guidance_boundary");
 for (const url of [
   "https://www.bilibili.com/video/BV1RealShape0",
   "https://www.bilibili.com/read/cv100000001",
