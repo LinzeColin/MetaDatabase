@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S06-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S06",
+  "review_id": "ABD-S06-WHOLE-STAGE-REVIEW",
+  "fixed_clock": "2026-07-29T00:00:00+10:00",
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_finding_ids": [
+    "F-S06-REVIEW-001", "F-S06-REVIEW-002", "F-S06-REVIEW-003",
+    "F-S06-REVIEW-004", "F-S06-REVIEW-005", "F-S06-REVIEW-006"
+  ],
+  "expected_phase_evidence_sha256": {
+    "P01": "3e9b69fa739d89297cc2951807d9122d4c475175a5a6bd95f9e2e22c3c7efd7e",
+    "P02": "c3b322f8e8ecc66cc8242d476e75d9f35e6ad6ef1c35be3e430e4617d559f71d",
+    "P03": "91120775c10fb67d734b3f6658cfebaf898fc6204c250fa7efe3fd06c005139f",
+    "P04": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "85e3f0dcf98cc10145dbf2bfb7c6d9bfc74cb56f2de7b1d324af17c28fd222de",
+    "P02": "7b0f3da60a2ecfe57bb5f581f664b65c9da9f6c3c55f55ab06ad696b06f317db",
+    "P03": "327773c7ad7bec01be6d937c912207acb41e48aac33b0e1424105662b4ab4c22",
+    "P04": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579"
+  },
+  "p04_fixture_path": "machine/tests/fixtures/S06_P04.json",
+  "replay_iterations": 100,
+  "adverse_perturbation_iterations": 10000,
+  "expected_oracle_check_minimum": 34,
+  "minimum_targeted_pytest_cases": 38,
+  "minimum_full_pytest_cases": 4810,
+  "minimum_signed_state_pytest_cases": 100,
+  "expected_rollback_artifact_count": 17,
+  "expected_release_status": "NOT_READY_S07_TO_S19_AND_GMAIL_RUNTIME_ACTIVATION_REQUIRED",
+  "expected_next": "S06/GITHUB_STAGE_UPLOAD_READY"
+}

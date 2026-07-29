@@ -1,0 +1,173 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S06",
+  "review_id": "ABD-S06-WHOLE-STAGE-REVIEW",
+  "fixed_at": "2026-07-29T00:00:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S06-P01", "REQ-S06-P02", "REQ-S06-P03", "REQ-S06-P04"],
+    "acceptance_contract_ids": ["AC-S06-P01", "AC-S06-P02", "AC-S06-P03", "AC-S06-P04"],
+    "task_ids": [
+      "T-S06-P01-01", "T-S06-P01-02", "T-S06-P01-03",
+      "T-S06-P02-01", "T-S06-P02-02", "T-S06-P02-03",
+      "T-S06-P03-01", "T-S06-P03-02", "T-S06-P03-03",
+      "T-S06-P04-01", "T-S06-P04-02", "T-S06-P04-03"
+    ]
+  },
+  "supplied_source_receipts": [
+    {
+      "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+      "repository_equivalent_required": true
+    },
+    {
+      "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "original_file_count": 53,
+      "repository_equivalent": null,
+      "repository_equivalent_required": false,
+      "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical repository files, not the absent ZIP"
+    }
+  ],
+  "baseline_critical_artifacts": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+    "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36"
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S06-P01",
+      "acceptance_contract_id": "AC-S06-P01",
+      "task_ids": ["T-S06-P01-01", "T-S06-P01-02", "T-S06-P01-03"],
+      "evidence_path": "machine/evidence/EVD-S06-P01.json",
+      "evidence_sha256": "3e9b69fa739d89297cc2951807d9122d4c475175a5a6bd95f9e2e22c3c7efd7e",
+      "rollback_path": "machine/evidence/EVD-S06-P01_rollback.json",
+      "rollback_sha256": "85e3f0dcf98cc10145dbf2bfb7c6d9bfc74cb56f2de7b1d324af17c28fd222de",
+      "implementation_commit": "741a4f4e7bf895a9bcfce4d1e508169119600042",
+      "implementation_code_sha256": "07e7bad19b61ee22c63dd0edf885baf66671ac5b2d3045c78cd5b1bf2faeb61c",
+      "expected_next": "S06/P02_READY_NOT_STARTED",
+      "required_outputs": ["gmail_oauth.py", "mail_query_rules.json", "token_storage.md"]
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S06-P02",
+      "acceptance_contract_id": "AC-S06-P02",
+      "task_ids": ["T-S06-P02-01", "T-S06-P02-02", "T-S06-P02-03"],
+      "evidence_path": "machine/evidence/EVD-S06-P02.json",
+      "evidence_sha256": "c3b322f8e8ecc66cc8242d476e75d9f35e6ad6ef1c35be3e430e4617d559f71d",
+      "rollback_path": "machine/evidence/EVD-S06-P02_rollback.json",
+      "rollback_sha256": "7b0f3da60a2ecfe57bb5f581f664b65c9da9f6c3c55f55ab06ad696b06f317db",
+      "implementation_commit": "1bf3a31a47f98d09c377b6e1b1581372ab339bc0",
+      "implementation_code_sha256": "b73d1a5b65e57cf691050dba22582e58c9b451173d19607cf343755ad4174d7b",
+      "expected_next": "S06/P03_READY_NOT_STARTED",
+      "required_outputs": ["mail_collector.py", "mail_manifest.schema.json", "archive_layout.md"]
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S06-P03",
+      "acceptance_contract_id": "AC-S06-P03",
+      "task_ids": ["T-S06-P03-01", "T-S06-P03-02", "T-S06-P03-03"],
+      "evidence_path": "machine/evidence/EVD-S06-P03.json",
+      "evidence_sha256": "91120775c10fb67d734b3f6658cfebaf898fc6204c250fa7efe3fd06c005139f",
+      "rollback_path": "machine/evidence/EVD-S06-P03_rollback.json",
+      "rollback_sha256": "327773c7ad7bec01be6d937c912207acb41e48aac33b0e1424105662b4ab4c22",
+      "implementation_commit": "70e72d49135aa580419d7cac4f2bca961dc0e3c9",
+      "implementation_code_sha256": "b8a014a0dc1e0e58e1bf6c1699e311809913f97aae37162cd6782f5b82e48d5c",
+      "expected_next": "S06/P04_READY_NOT_STARTED",
+      "required_outputs": ["attachment_sandbox.py", "parser_registry.json", "quarantine_rules.json"]
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S06-P04",
+      "acceptance_contract_id": "AC-S06-P04",
+      "task_ids": ["T-S06-P04-01", "T-S06-P04-02", "T-S06-P04-03"],
+      "evidence_path": "machine/evidence/EVD-S06-P04.json",
+      "evidence_sha256": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea",
+      "rollback_path": "machine/evidence/EVD-S06-P04_rollback.json",
+      "rollback_sha256": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579",
+      "implementation_commit": "c1a96f3f13363e15949ee074e58b00e9adfe1c97",
+      "implementation_code_sha256": "ffe121b5bb161e8ae606a0044167e69adf066bd3b4351d7b2618e053c993c25b",
+      "expected_next": "S06/STAGE_REVIEW_READY_NOT_STARTED",
+      "required_outputs": ["mail_trash_worker.py", "codex_daily_audit.md", "mail_restore_runbook.md"]
+    }
+  ],
+  "review_findings_path": "machine/evidence/S06/STAGE_REVIEW/findings.json",
+  "review_gates": [
+    "SUPPLIED_BASELINE_CRITICAL_HASHES_MATCH",
+    "S06_REQUIREMENT_ACCEPTANCE_TASK_TRACE_EXACT",
+    "S04_DELIVERY_AND_P01_TO_P04_SIGNED_RECEIPTS_AND_HISTORICAL_GIT_CHAIN_PASS",
+    "ALL_FOUR_CURRENT_PHASE_ORACLES_PASS",
+    "FROZEN_MESSAGE_CROSSES_P02_PRESERVATION_P03_PARSE_AND_P04_REQUEST_ONLY_GATE",
+    "UNKNOWN_AUTH_FAILURE_MALWARE_FAILURE_AND_ARCHIVE_TAMPER_KEEP_AND_NO_PERMANENT_DELETE",
+    "GMAIL_SCOPE_METHOD_AND_STATIC_NO_NETWORK_NO_SLEEP_BOUNDARIES_EXACT",
+    "P03_STATIC_INSPECTION_REMAINS_DISTINCT_FROM_LIVE_MALWARE_CLEARANCE",
+    "AUDIT_0600_IS_DATA_EVALUATION_NOT_A_RUNNING_SCHEDULER_OR_WAIT",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "A300_A0_NO_ORDER_NO_SECRET_NO_EXTERNAL_RUNTIME_NO_RETURN_CLAIM",
+    "FULL_STAGE_REGRESSION_TASKPACK_SIGNED_STATE_AND_ROLLBACK_PASS"
+  ],
+  "upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS",
+    "WHOLE_STAGE_REVIEW_PASS",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS",
+    "SIGNED_STATE_REGRESSION_PASS",
+    "PAID_DEPENDENCY_SCAN_PASS",
+    "CLEAN_WORKTREE_AFTER_COMMIT",
+    "NO_INCREMENTAL_CASH_COST"
+  ],
+  "stage_stop_conditions": [
+    "发现法律、监管或来源合同实质冲突且无安全默认",
+    "需要不可逆操作",
+    "新增现金支出将超过A$0",
+    "严重安全事故或证据完整性失败",
+    "阶段终止条件被触发"
+  ],
+  "external_effect_boundary": {
+    "github_upload_performed_by_local_review": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "external_network_accessed_for_product_runtime": false,
+    "gmail_account_or_api_accessed": false,
+    "gmail_mutation_performed": false,
+    "gmail_runtime_adapter_invoked": false,
+    "permanent_delete_capability": false,
+    "private_database_client_executed": false,
+    "private_database_or_raw_data_written": false,
+    "scheduler_daemon_started": false,
+    "real_time_soak_waited": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "model_or_strategy_executed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "secret_provisioned_or_read": false,
+    "production_deployed_or_activated": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "owner_final_order_only": true
+  },
+  "claim_boundary": {
+    "gmail_evidence_archival_verified": false,
+    "gmail_permission_or_runtime_access_verified": false,
+    "live_malware_clearance_verified": false,
+    "production_collection_enabled": false,
+    "runtime_freshness_verified": false,
+    "ovh_7x24_runtime_verified": false,
+    "cloudflare_global_chinese_access_verified": false,
+    "financial_target_verified_or_guaranteed": false
+  },
+  "release_status_on_pass": "NOT_READY_S07_TO_S19_AND_GMAIL_RUNTIME_ACTIVATION_REQUIRED",
+  "next_on_pass": "S06/GITHUB_STAGE_UPLOAD_READY"
+}

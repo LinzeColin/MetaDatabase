@@ -61,7 +61,7 @@ EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 CLOUDFLARED_UNIT_PATH = Path("infra/systemd/abd-cloudflared.service")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "ad6e5ebdb863427533625d3697061c230199d05aabd6623b0a3a2009150ab2de"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "a3c581a673c289ff0161e9616986dee93923931d9ef5d5d8d0c6497b76416102"
 STAGE_REVIEW_COMMIT = "258e335ed01a40e6b6ae197bbb8b92398c73b64b"
 PINNED_STAGE_REVIEW_CODE_HASH = "e9b16505eec08cdffc69f21eddc3a9c2c7b9cb262116b406019da32e9d8e6458"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -74,7 +74,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
-    "abd_acceptance/__main__.py": "c4d4fec8531253a73c27be25e250dfb38d7c7122227316dfe3c48f65fbfb2e52",
+    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {

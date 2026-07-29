@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S06-WHOLE-STAGE-REVIEW",
+  "stage_id": "S06",
+  "fixed_at": "2026-07-29T00:00:00+10:00",
+  "findings": [
+    {
+      "id": "F-S06-REVIEW-001",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "四个局部 phase 尚未独立证明同一封冻结邮件的跨门耦合",
+      "observation": "P01 至 P04 各自验证授权、保存、解析和垃圾箱请求门，但此前没有一个整阶段 oracle 以同一冻结邮件贯穿这些边界。",
+      "risk": "局部回执都通过时，保存、解析或请求输入仍可能在交接处错配。",
+      "remediation": "复审 oracle 直接执行 P02 保存、P03 静态解析、独立恶意软件证明输入与 P04 请求级门控；只接受无运行时 adapter 的请求结果。",
+      "verification_gate": "S06REVIEW-FROZEN-MESSAGE-CROSS-PHASE-COUPLING"
+    },
+    {
+      "id": "F-S06-REVIEW-002",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "静态附件检查可能被误读为真实恶意软件清除",
+      "observation": "P03 是无网络的冻结字节解析，P04 仍需要独立的恶意软件证明输入。",
+      "risk": "把解析结果升级为真实 AV、沙箱或生产安全结论会降低安全门并制造来源幻觉。",
+      "remediation": "复审明确 P03 为静态解析，要求独立的冻结证明；缺失、失败或错配证明一律 Keep。",
+      "verification_gate": "S06REVIEW-STATIC-PARSER-NOT-LIVE-MALWARE-CLEARANCE"
+    },
+    {
+      "id": "F-S06-REVIEW-003",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "跨流程负向门需要在同一输入链上复验",
+      "observation": "未知发件人、认证失败、恶意软件证明失败和归档篡改在单 phase 已有覆盖，但此前未在整阶段输入链上统一检查。",
+      "risk": "任一异常可能在后继阶段被误升级为 Trash，或永久删除能力被引入。",
+      "remediation": "复审构造四类负向输入，要求全部为 Keep，且静态扫描禁止永久删除 API 与能力。",
+      "verification_gate": "S06REVIEW-NEGATIVE-KEEP-AND-NO-PERMANENT-DELETE"
+    },
+    {
+      "id": "F-S06-REVIEW-004",
+      "severity": "MEDIUM",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "06:00 审计描述可能被误读为已启动的定时器",
+      "observation": "路线图要求每日 06:00 审计，但本阶段只验证审计数据合同，不启动 scheduler 或等待时间。",
+      "risk": "将固定输入的审计测试误报为 7×24 实际运行会违背证据边界。",
+      "remediation": "复审检查 06:00 仅作为数据参数，off-schedule 只升级，所有结果均无等待、无 scheduler、无 Gmail mutation。",
+      "verification_gate": "S06REVIEW-0600-DATA-ONLY-NO-SOAK"
+    },
+    {
+      "id": "F-S06-REVIEW-005",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "阶段交付需验证回执历史与当前基线共同完整",
+      "observation": "四个 phase 的证据和实现 commit 都需要与 S04 已交付前置、当前基线和完整任务图一同验证。",
+      "risk": "任意历史回执、实现 blob 或任务追踪漂移会使整阶段证据不可审计。",
+      "remediation": "复审固定每个 phase 的证据、回滚和历史代码树哈希，并复验 S04 交付回执与所有当前 phase verifier。",
+      "verification_gate": "S06REVIEW-HISTORICAL-RECEIPT-AND-GIT-CHAIN"
+    },
+    {
+      "id": "F-S06-REVIEW-006",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "整阶段通过不能被升级为 Gmail、OVH、Cloudflare 或收益上线声明",
+      "observation": "本轮没有访问账户、网络、真实邮件、私有库客户端、OVH、Cloudflare 或资金系统。",
+      "risk": "把离线代码和冻结证据误称为实际归档、持续运行、可下单或 30% 收益验证。",
+      "remediation": "复审证据显式固定无外部效应、A$0、未部署和未验证收益边界；GitHub 上传仍留给下一独立 run。",
+      "verification_gate": "S06REVIEW-NO-RUNTIME-NO-ORDER-NO-RETURN-CLAIM"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "resolved_in_review_candidate": 6,
+    "open": 0,
+    "github_upload_pending_is_not_an_open_code_finding": true
+  },
+  "scope_boundaries": {
+    "gmail_account_or_api_accessed": false,
+    "gmail_mutation_performed": false,
+    "private_database_client_executed": false,
+    "real_network_accessed": false,
+    "scheduler_daemon_started": false,
+    "real_time_soak_waited": false,
+    "ovh_cloudflare_runtime_accessed": false,
+    "model_or_strategy_executed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_or_retried": false,
+    "gate_relaxed": false,
+    "return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

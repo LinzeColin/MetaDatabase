@@ -83,19 +83,19 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S05/P04_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "abd_acceptance/advice_card.py": "02b0bf4912f22c8a45d717edd5f91b20933928df1930598f310426d5860df59d",
-    "abd_acceptance/__main__.py": "c4d4fec8531253a73c27be25e250dfb38d7c7122227316dfe3c48f65fbfb2e52",
+    "abd_acceptance/advice_card.py": "b080d000d0793e78aa271dbe067ad57677c53828013797bc96046fcab9ba2aa7",
+    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-    "abd_acceptance/market_ontology.py": "6ebdd37ea35cd413053eb78b4246828d1ab5e0edb3ff82db3a6f33f667363b42",
-    "abd_acceptance/reason_next_action.py": "f1b6b8ecdd9c9d3f562e8be6fc22a06b2d18af6354ce8d4fea73a7e80f7ef82b",
-    "abd_acceptance/source_capabilities.py": "662f30b78e63da0d81efa296b48ed4d4556c61acd03d804268c4f5dccc900b93",
-    "abd_acceptance/source_scheduler.py": "b29120a5a70a807f42788b3cb8fb930dcea05d381f6a845e5f013829b25f6c6c",
-    "abd_acceptance/stage3_review.py": "6752aaaa40711d4bbeec8dd9cf86e305b8a906a2e73ddafa6a02015ec8d453b4",
-    "abd_acceptance/stage4_review.py": "64ef343c9e92aa9ae21a85df187943d9fe621dfce2f28a433cfe6ec97d13593d",
-    "abd_acceptance/usability_accessibility.py": "78ad2584aa6d299591952cc3b8673dcd581ed629d3d336e0f92bdfb9069c63cf",
+    "abd_acceptance/market_ontology.py": "3612b37860f5a8892f05159c8d3b13d433d800a8778431d5b1ba1fa929bf0fac",
+    "abd_acceptance/reason_next_action.py": "b23df4d396671534b1db69e78495aa1f081b8049e623e4a2a6a5790e9bb38842",
+    "abd_acceptance/source_capabilities.py": "22ced8b7536058aa3c617b82e66101cb309ae62420e5d9ff73439b02cf49c4d6",
+    "abd_acceptance/source_scheduler.py": "94cb7e769bee7236e7558158deefd912c7abe802abcb4579c6184c7669a1c319",
+    "abd_acceptance/stage3_review.py": "84d55222300e5461293bffbba26e80772045ce8fa9881240fcb2ae73c81610c3",
+    "abd_acceptance/stage4_review.py": "973b81abc3f889e62c95e5bf9d192046ecf8e785ad57ff4a69504a952d92424c",
+    "abd_acceptance/usability_accessibility.py": "fbaa1aabec2774749e3120e1f6ca92ba20fe430c3b643e12f50e40faa23652e0",
     "tests/S05/P04_test.py": "7a867468ac99968c2bebd607e557b9c219a21d828fbb435e52879fff9ace9b68",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "2148f7a2d22c4420c74a27da14a926ac1e5a2e5e4846b8f4cb02abb46938e239"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "dc66581f022735caed14d4ff6038b639bf60266b86d1e7db04c4c98ad3a4b425"
 PINNED_PHASE_HASHES: Dict[str, str] = {
     DASHBOARD_PATH.as_posix(): "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744",
     ORACLE_PATH.as_posix(): "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d",
