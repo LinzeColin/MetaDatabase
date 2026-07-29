@@ -24,7 +24,9 @@ ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
 LockPersonality=true
-MemoryDenyWriteExecute=true
+# Node 22 requires executable JIT pages. The established account service uses
+# the same narrow exception through its production runtime compatibility unit.
+MemoryDenyWriteExecute=false
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 UMask=0077
 LimitNOFILE=4096
