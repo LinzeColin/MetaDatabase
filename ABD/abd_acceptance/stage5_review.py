@@ -63,7 +63,7 @@ RATE_BUDGET_PATH = Path("rate_budget.json")
 COVERAGE_DASHBOARD_PATH = Path("coverage_dashboard.json")
 SILENT_GAP_ORACLE_PATH = Path("silent_gap_oracle.py")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "101caa4ebc317f058ab80a297096555065b5b4c2e1d3e190708c5ec57e96529e"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "569a5cfdaf62f7094beb8f8322b1681cd7f02c2be33b9527aff40c04b5ddaeb4"
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     CONTRACT_PATH.as_posix(): "4181ce43657ad11152acb2a544a0e58dbe402530dee9cef063b3b76577ba9213",
     FINDINGS_PATH.as_posix(): "811314bfcf2f63d9d944b920500aab42454db78e462d6842982826c6c32f7914",
@@ -89,11 +89,11 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
-    "abd_acceptance/coverage_observability.py": "ae3e95b87601a37ed6aabdb8d61efaa9066df621d20c287ee5191f1b2f8c37a1",
-    "abd_acceptance/market_ontology.py": "3612b37860f5a8892f05159c8d3b13d433d800a8778431d5b1ba1fa929bf0fac",
-    "abd_acceptance/source_capabilities.py": "22ced8b7536058aa3c617b82e66101cb309ae62420e5d9ff73439b02cf49c4d6",
-    "abd_acceptance/source_scheduler.py": "94cb7e769bee7236e7558158deefd912c7abe802abcb4579c6184c7669a1c319",
+    "abd_acceptance/__main__.py": "0990c01c759fd7afea6a85c41fc7ce564cd09b1ea985903f41362313922ca8bc",
+    "abd_acceptance/coverage_observability.py": "c9a160b8b537041c2b081a1562ec610eb30461470bfd6227dcf7f9253d83e2be",
+    "abd_acceptance/market_ontology.py": "c1f660544f62975aeb992fecc61ca80075ed0b883c14a57abb9cb1ecd22491f1",
+    "abd_acceptance/source_capabilities.py": "4a0d94c94963ae6f6c6f45a70ff813604c817daff186647ca3ef62c884bb7fad",
+    "abd_acceptance/source_scheduler.py": "b74ef6c8d1396e7c2d1ca9b9408f578e832a147a38f8ec282d2bb3057e1e7753",
 }
 
 PHASE_EVALUATORS = {
