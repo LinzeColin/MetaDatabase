@@ -30,6 +30,7 @@ from .mvp_release import MvpReleaseController, RELEASE_VERSION, owner_input_cont
 from .native_host import DEVELOPMENT_EXTENSION_ORIGIN, HOST_NAME
 from .native_host_installer import (
     INSTALL_CONFIRMATION,
+    InstallPlan,
     UNINSTALL_CONFIRMATION,
     create_plan,
     execute_plan,
@@ -42,6 +43,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[4]
 DEPLOY_CONFIRMATION = "DEPLOY_X2N_OWNER_MVP_V0_0_0_1"
 ONLINE_SMOKE_CONFIRMATION = "ONLINE_SMOKE_X2N_OWNER_MVP_V0_0_0_1"
 PREARM_HOST_CONFIRMATION = "INSTALL_X2N_PREARM_SIDEPANEL_HOST"
+PREARM_HOST_UNINSTALL_CONFIRMATION = "UNINSTALL_X2N_PREARM_SIDEPANEL_HOST"
 _EXTENSION_RELEASE_IDENTITY = "release_identity.json"
 _PREARM_MANIFEST = "prearm_manifest.json"
 _PREARM_ARTIFACT_KIND = "owner_prearm_sidepanel"
@@ -643,15 +645,10 @@ class MvpDeploymentManager:
             release_artifact_sha256=staged.artifact_sha256,
         )
 
-    def verify_prearm_native_host_bridge(self, *, browser: str, home: Path) -> dict[str, Any]:
-        """Read-only proof that exactly one installed Host matches a private pre-arm bundle.
+    def _prearm_native_host_bindings(self, *, browser: str, home: Path) -> tuple[tuple[Path, str, InstallPlan], ...]:
+        """Return only owned Native Host plans bound to verified pre-arm bundles."""
 
-        This never stages, installs, uninstalls, opens Chrome, or discloses a
-        path or artifact identity. A valid temporary bridge remains distinct
-        from a fresh deployment slot and cannot make a release arm-ready.
-        """
-
-        verified_bindings = 0
+        verified_bindings: list[tuple[Path, str, InstallPlan]] = []
         for bundle in _prearm_bundle_candidates_readonly(self.paths):
             manifest = _read_prearm_manifest(bundle)
             artifact_sha256 = manifest["artifact_sha256"]
@@ -671,11 +668,40 @@ class MvpDeploymentManager:
                 continue
             if binding.get("native_host_release_bound") is not True:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Native Host binding is invalid")
-            verified_bindings += 1
-        if verified_bindings != 1:
+            verified_bindings.append((bundle, artifact_sha256, plan))
+        return tuple(verified_bindings)
+
+    def verify_prearm_native_host_bridge(self, *, browser: str, home: Path) -> dict[str, Any]:
+        """Read-only proof that exactly one installed Host matches a private pre-arm bundle.
+
+        This never stages, installs, uninstalls, opens Chrome, or discloses a
+        path or artifact identity. A valid temporary bridge remains distinct
+        from a fresh deployment slot and cannot make a release arm-ready.
+        """
+
+        if len(self._prearm_native_host_bindings(browser=browser, home=home)) != 1:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Native Host binding is unavailable")
         return {
             "native_host_prearm_bound": True,
+            "paths_emitted": False,
+            "release_pointer_changed": False,
+        }
+
+    def uninstall_prearm_native_host(self, *, confirmation: str, browser: str) -> dict[str, Any]:
+        """Remove one explicitly confirmed, verified temporary bridge without touching Owner input."""
+
+        if confirmation != PREARM_HOST_UNINSTALL_CONFIRMATION:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Native Host uninstall confirmation is missing")
+        bindings = self._prearm_native_host_bindings(browser=browser, home=Path.home())
+        if len(bindings) != 1:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Native Host binding is unavailable")
+        _bundle, _artifact_sha256, plan = bindings[0]
+        receipt = execute_plan(plan, confirmation=UNINSTALL_CONFIRMATION)
+        if receipt.get("status") != "UNINSTALLED":
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Native Host uninstall did not complete")
+        return {
+            "native_host_prearm_uninstalled": True,
+            "native_host_transaction": "owned_bridge_removed",
             "paths_emitted": False,
             "release_pointer_changed": False,
         }

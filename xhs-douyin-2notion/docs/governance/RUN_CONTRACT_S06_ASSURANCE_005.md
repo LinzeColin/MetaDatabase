@@ -107,6 +107,19 @@ It does not open Chrome, inspect a Profile, create a release pointer, or make a 
 existing Host rather than replacing it, emits no local path, and records only the private bundle digest in the owned
 Host receipt.
 
+If a prior verified pre-arm bridge must be refreshed before any hash-only preparation, use the paired owner-confirmed
+removal first, then install from the current stable bundle. It removes only the one Host proven bound to a verified
+private pre-arm bundle; an unowned, incomplete, or ambiguous Host remains untouched and blocks the update.
+
+```bash
+x2n release uninstall-prearm-sidepanel-host \
+  --browser chrome \
+  --confirm UNINSTALL_X2N_PREARM_SIDEPANEL_HOST
+```
+
+After any hash-only preparation has begun, the bridge is removed only for the later fresh deployment slot and is not
+reinstalled before that deployment.
+
 ```bash
 x2n release preflight
 x2n release validate-input

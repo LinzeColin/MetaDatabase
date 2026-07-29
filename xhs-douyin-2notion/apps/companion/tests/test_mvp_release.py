@@ -1456,6 +1456,69 @@ class MvpReleaseTests(unittest.TestCase):
         )
         self.assertEqual(execute_plan(uninstall, confirmation=UNINSTALL_CONFIRMATION)["status"], "UNINSTALLED")
 
+    def test_prearm_native_host_uninstall_requires_one_verified_owned_bridge(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage_prearm_sidepanel()
+        home = Path(self.temporary.name) / "prearm-uninstall-home"
+        environment = {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)}
+        with (
+            mock.patch.object(mvp_deployment.Path, "home", return_value=home),
+            mock.patch.dict(os.environ, environment),
+        ):
+            manager.install_prearm_native_host(
+                confirmation=mvp_deployment.PREARM_HOST_CONFIRMATION,
+                browser="chromium",
+                staged=staged,
+            )
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                manager.uninstall_prearm_native_host(confirmation="wrong", browser="chromium")
+            self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+            receipt = manager.uninstall_prearm_native_host(
+                confirmation=mvp_deployment.PREARM_HOST_UNINSTALL_CONFIRMATION,
+                browser="chromium",
+            )
+        self.assertTrue(receipt["native_host_prearm_uninstalled"])
+        self.assertFalse(receipt["release_pointer_changed"])
+        with self.assertRaises(X2NRuntimeError):
+            manager.verify_prearm_native_host_bridge(browser="chromium", home=home)
+
+    def test_release_prearm_host_uninstall_command_never_emits_private_path(self) -> None:
+        args = runtime_cli.build_parser().parse_args(
+            [
+                "release",
+                "uninstall-prearm-sidepanel-host",
+                "--browser",
+                "chromium",
+                "--confirm",
+                mvp_deployment.PREARM_HOST_UNINSTALL_CONFIRMATION,
+            ]
+        )
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(
+                MvpDeploymentManager,
+                "uninstall_prearm_native_host",
+                return_value={
+                    "native_host_prearm_uninstalled": True,
+                    "paths_emitted": False,
+                    "release_pointer_changed": False,
+                },
+            ) as uninstall,
+        ):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["action"], "release_uninstall_prearm_sidepanel_host")
+        self.assertTrue(payload["native_host_prearm_uninstalled"])
+        self.assertFalse(payload["paths_emitted"])
+        self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        uninstall.assert_called_once_with(
+            confirmation=mvp_deployment.PREARM_HOST_UNINSTALL_CONFIRMATION,
+            browser="chromium",
+        )
+
     def test_release_prearm_host_command_never_emits_private_path(self) -> None:
         args = runtime_cli.build_parser().parse_args(
             [

@@ -33,6 +33,7 @@ from .mvp_deployment import (
     DEPLOY_CONFIRMATION,
     ONLINE_SMOKE_CONFIRMATION,
     PREARM_HOST_CONFIRMATION,
+    PREARM_HOST_UNINSTALL_CONFIRMATION,
     MvpDeploymentManager,
 )
 from .mvp_release import (
@@ -355,6 +356,22 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 confirmation_required=PREARM_HOST_CONFIRMATION,
                 platform_calls=0,
                 prearm_sidepanel=staged.safe_dict(),
+                real_account_execution="NOT_RUN",
+                **receipt,
+            )
+        if args.release_action == "uninstall-prearm-sidepanel-host":
+            if args.confirm != PREARM_HOST_UNINSTALL_CONFIRMATION:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Native Host uninstall confirmation is missing")
+            receipt = MvpDeploymentManager(_paths()).uninstall_prearm_native_host(
+                confirmation=args.confirm,
+                browser=args.browser,
+            )
+            return _success(
+                "release_uninstall_prearm_sidepanel_host",
+                acceptance_scope="ASSURANCE_005_STABLE_PREARM_HOST",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=PREARM_HOST_UNINSTALL_CONFIRMATION,
+                platform_calls=0,
                 real_account_execution="NOT_RUN",
                 **receipt,
             )
@@ -914,6 +931,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--browser", choices=("chrome", "chrome-for-testing", "chromium"), default="chrome"
     )
     release_prearm_host.add_argument("--confirm", required=True, help=f"Required literal: {PREARM_HOST_CONFIRMATION}")
+    release_prearm_host_uninstall = release_actions.add_parser("uninstall-prearm-sidepanel-host")
+    release_prearm_host_uninstall.add_argument(
+        "--browser", choices=("chrome", "chrome-for-testing", "chromium"), default="chrome"
+    )
+    release_prearm_host_uninstall.add_argument(
+        "--confirm", required=True, help=f"Required literal: {PREARM_HOST_UNINSTALL_CONFIRMATION}"
+    )
     release_actions.add_parser("preflight")
     release_actions.add_parser("validate-input")
     release_arm = release_actions.add_parser("arm")
