@@ -124,44 +124,97 @@ test("邀请模式仍然要码——开放只是一个可以关掉的开关", (t
 
 // ── 席位闸门 ────────────────────────────────────────────────
 
-test("席位满了之后第 N+1 个人被拒，且一行用户都不建", (t) => {
+test("名额不是一道门：第 N+1 个人照样能进，只是要自己填密钥", (t) => {
+  // 之前我把它做成了"第六个人直接被拒"，那是错的。主人的原话是
+  // 「前面五个人都用我的额度，第六个人开始就需要用 ai 密钥」——名额限的是
+  // 谁花主人的钱，不是谁能不能用。
   const spool = openSpool(t);
   const service = admission(spool, { mode: "open", seats: 2 });
 
   activate(service, "user-1");
   activate(service, "user-2");
-  assert.equal(service.users.countActiveOrdinaryUsers(), 2);
+  const third = activate(service, "user-3");
 
-  const denied = service.admit({ botAccountRef: BOT, senderRef: "user-3", text: "你好" });
-  assert.match(denied.text, /名额.*满/, "要说人话，不能吐错误码");
-  assert.equal(denied.modelCalls, 0, "被拒的人不得花掉任何模型调用");
-  assert.equal(
-    service.users.countActiveOrdinaryUsers(),
-    2,
-    "被拒时连 pending 的用户行都不该建——建了等于既占位子又开通不了",
-  );
-
-  // 再说几句也还是进不来，不会因为反复尝试就漏进去。
-  for (const text of ["同意并开始", "你好", "在吗"]) {
-    const again = service.admit({ botAccountRef: BOT, senderRef: "user-3", text });
-    assert.notEqual(again.route, "user", `「${text}」不该让满员的门开一条缝`);
-  }
+  assert.equal(third.route, "user", "第三个人也要能开通，只是额度来源不同");
+  assert.equal(service.users.countActiveOrdinaryUsers(), 3);
 });
 
-test("主人不占席位", (t) => {
+test("排队按开通先后，先来的占主人的额度", (t) => {
+  const spool = openSpool(t);
+  const service = admission(spool, { mode: "open", seats: 2 });
+
+  const a = activate(service, "early-1").userContext.userId;
+  const b = activate(service, "early-2").userContext.userId;
+  const c = activate(service, "late-3").userContext.userId;
+
+  assert.equal(service.users.ordinaryUserRank(a), 1);
+  assert.equal(service.users.ordinaryUserRank(b), 2);
+  assert.equal(service.users.ordinaryUserRank(c), 3);
+  // 主人不在这个名单里。
+  assert.equal(service.users.ordinaryUserRank(spool.ownerUserId), 0);
+});
+
+test("前 N 个用主人的密钥，第 N+1 个开始拿不到", (t) => {
+  const spool = openSpool(t);
+  const service = admission(spool, { mode: "open", seats: 2 });
+  const ids = ["u1", "u2", "u3"].map((who) => activate(service, who).userContext.userId);
+
+  const app = Object.assign(Object.create(CyberbossApp.prototype), {
+    userAdmission: service,
+    personaStore: { read: () => ({ access: { seats: 2 } }) },
+    config: {},
+    // 假装主人配了一把密钥。真实实现从 systemd credential 读，这里只测分配规则。
+    ownerCredentialCache: Object.freeze({ providerId: "deepseek", model: "deepseek-chat", apiKey: "sk-owner" }),
+  });
+
+  assert.ok(app.resolveOwnerQuotaFor(ids[0]), "第 1 个应当能用主人的额度");
+  assert.ok(app.resolveOwnerQuotaFor(ids[1]), "第 2 个也能");
+  assert.equal(app.resolveOwnerQuotaFor(ids[2]), null, "第 3 个必须自己填密钥");
+  // 主人自己不走这条路。
+  assert.equal(app.resolveOwnerQuotaFor(spool.ownerUserId), null);
+});
+
+test("主人自己没配密钥时，谁都拿不到兜底", (t) => {
+  const spool = openSpool(t);
+  const service = admission(spool, { mode: "open", seats: 5 });
+  const id = activate(service, "u1").userContext.userId;
+
+  const app = Object.assign(Object.create(CyberbossApp.prototype), {
+    userAdmission: service,
+    personaStore: { read: () => ({ access: { seats: 5 } }) },
+    config: {},
+    ownerCredentialCache: null,
+  });
+  // 没有密钥就是没有。宁可让人自己填，也不能拿一个不存在的东西去调模型。
+  assert.equal(app.resolveOwnerQuotaFor(id), null);
+});
+
+test("名额设成 0 时谁都不用主人的额度", (t) => {
+  const spool = openSpool(t);
+  const service = admission(spool, { mode: "open", seats: 0 });
+  const id = activate(service, "u1").userContext.userId;
+
+  const app = Object.assign(Object.create(CyberbossApp.prototype), {
+    userAdmission: service,
+    personaStore: { read: () => ({ access: { seats: 0 } }) },
+    config: {},
+    ownerCredentialCache: Object.freeze({ providerId: "deepseek", model: "deepseek-chat", apiKey: "sk-owner" }),
+  });
+  assert.equal(app.resolveOwnerQuotaFor(id), null);
+});
+
+test("主人不占名额", (t) => {
   const spool = openSpool(t);
   const service = admission(spool, { mode: "open", seats: 1 });
 
-  // 主人先说话。
   const owner = service.admit({ botAccountRef: BOT, senderRef: "owner-sender", text: "在吗" });
   assert.equal(owner.route, "owner");
-  // 席位仍然是满的可用状态：主人不算在里面。
-  const guest = activate(service, "guest");
-  assert.equal(guest.route, "user", "唯一的那个席位应当留给普通用户");
+  // 唯一那个免费名额应当留给普通用户，主人不算在里面。
+  assert.equal(activate(service, "guest").route, "user");
   assert.equal(service.users.countActiveOrdinaryUsers(), 1);
 });
 
-test("已经开通的人不会被席位闸门挡住", (t) => {
+test("改小名额不影响已经开通的人能不能说话", (t) => {
   const spool = openSpool(t);
   let seats = 3;
   const service = new UserAdmissionService({
@@ -181,13 +234,11 @@ test("已经开通的人不会被席位闸门挡住", (t) => {
     "user",
     "改小名额不该把已经在用的人挡在外面",
   );
-  assert.notEqual(
-    service.admit({ botAccountRef: BOT, senderRef: "newcomer", text: "你好" }).route,
-    "user",
-  );
+  // 新人照样能开通——名额限的是花谁的钱，不是能不能用。
+  assert.equal(activate(service, "newcomer").route, "user");
 });
 
-test("席位读不出来时不设限，而不是把所有人挡住", (t) => {
+test("名额读不出来时照常放人进来", (t) => {
   const spool = openSpool(t);
   const service = new UserAdmissionService({
     database: spool.database,

@@ -76,6 +76,7 @@ const {
 } = require("../services/security/session-token-service");
 const { SqliteAdminLoginTickets } = require("../services/security/admin-login-ticket");
 const { renderQrSvg, svgDataUri } = require("../v8-prebuilt/public-entry/qr-svg");
+const { loadRuntimeTextSecret } = require("../v8-prebuilt/security/runtime-text-secret");
 const { SetupPortal } = require("../services/portal/setup-portal");
 const { buildPortalHandlers } = require("../services/portal/portal-handlers");
 const { PortalHttpServer } = require("../services/portal/portal-server");
@@ -375,6 +376,8 @@ class CyberbossApp {
           database: this.runtimeSpoolDatabase.database,
           userRepository: this.userAdmission.users,
           encryptionKey,
+          // 前 N 个开通的人用主人的额度；第 N+1 个开始必须自己填密钥。
+          ownerQuota: { resolve: (userId) => this.resolveOwnerQuotaFor(userId) },
           ...(Number.isSafeInteger(this.config.userTurnTimeoutMs)
             ? { requestTimeoutMs: this.config.userTurnTimeoutMs }
             : {}),
@@ -872,6 +875,7 @@ class CyberbossApp {
       adminOwnerBind: () => this.armDashboardOwnerBinding(),
       // 下面两个读写真实聊天内容与语气设置，一律要真令牌，不走首次免令牌。
       adminConversations: (query) => this.buildConversationFeed(query || {}),
+      adminInsights: (query) => this.buildPersonInsights(query || {}),
       adminPersonaRead: () => this.readDashboardPersona(),
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
       publicEntry: () => this.buildPublicEntry(),
@@ -1640,6 +1644,171 @@ class CyberbossApp {
     return "";
   }
 
+  // 这个人能不能用主人的额度。
+  //
+  // 规则：按开通先后，前 N 个（后台「最多让几个人用」那一格）用主人的密钥，
+  // 第 N+1 个开始自己填。先来先得是唯一一个不用解释就说得通的规则。
+  //
+  // 任何一步不确定就返回 null＝不给——把主人的密钥错发给一个不该用的人，比让
+  // 一个该用的人多填一次密钥严重得多。
+  resolveOwnerQuotaFor(userId) {
+    const limit = this.resolveSeatLimit();
+    if (!Number.isInteger(limit) || limit <= 0) {
+      return null;
+    }
+    let rank = 0;
+    try {
+      rank = Number(this.userAdmission?.users?.ordinaryUserRank?.(userId) || 0);
+    } catch {
+      return null;
+    }
+    if (rank <= 0 || rank > limit) {
+      return null;
+    }
+    return this.ownerProviderCredential();
+  }
+
+  // 主人自己那把 AI 密钥。只在内存里读一次就缓存，不落任何日志。
+  ownerProviderCredential() {
+    if (this.ownerCredentialCache !== undefined) {
+      return this.ownerCredentialCache;
+    }
+    let apiKey = "";
+    try {
+      // 环境变量优先，其次 systemd credential。密钥只在内存里，不落日志、
+      // 不落配置、不进任何一条聊天记录。
+      apiKey = loadRuntimeTextSecret({
+        envName: "DEEPSEEK_API_KEY",
+        credentialName: "deepseek-api-key",
+      });
+    } catch {
+      apiKey = "";
+    }
+    this.ownerCredentialCache = apiKey
+      ? Object.freeze({ providerId: "deepseek", model: "deepseek-chat", apiKey })
+      : null;
+    return this.ownerCredentialCache;
+  }
+
+  // ── 一个人的画像 ────────────────────────────────────────────
+  //
+  // 后台「对话」那一栏原来是一屏平铺的卡片，谁跟谁说的、什么时候说的全糊在一起。
+  // 主人真正想看的是"这个人跟它都聊了些什么"，所以这里按人算出一份画像：
+  // 每天几条（贡献图）、什么时段活跃（热力图）、第一次和最近一次、答上没答上。
+  //
+  // 全部是计数，不含任何正文——正文在对话流里，那一份已经要真令牌了。
+  buildPersonInsights({ person = "", days = 120 } = {}) {
+    if (!this.runtimeSpoolDatabase) {
+      return Object.freeze({ ok: false, code: "SPOOL_DB_UNAVAILABLE" });
+    }
+    const who = String(person || "").trim();
+    const span = Math.max(7, Math.min(400, Number(days) || 120));
+    // 从今天往前推 span 天。用 UTC 切天，和 received_at 的存储格式一致。
+    const since = new Date(Date.now() - (span - 1) * 86_400_000)
+      .toISOString().slice(0, 10);
+
+    let inbound = [];
+    let initiated = [];
+    let outbound = [];
+    let jobs = [];
+    try {
+      inbound = this.runtimeSpoolDatabase.listRecentInboundForOwner({
+        limit: 2000, since: `${since}T00:00:00.000Z`,
+      });
+      initiated = this.runtimeSpoolDatabase.listBotInitiatedForOwner({
+        limit: 2000, since: `${since}T00:00:00.000Z`,
+      });
+      const ids = inbound.map((m) => m.correlationId);
+      outbound = this.runtimeSpoolDatabase.listRecentOutboundForOwner({ correlationIds: ids });
+      jobs = this.runtimeSpoolDatabase.listRecentJobsForOwner({ correlationIds: ids });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "INSIGHTS_READ_FAILED",
+      });
+    }
+
+    const mine = who
+      ? inbound.filter((m) => (m.payload?.senderId || "") === who)
+      : inbound;
+    const myInitiated = who
+      ? initiated.filter((entry) => entry.senderId === who)
+      : initiated;
+
+    // 按天计数：贡献图那一格一天。
+    const byDay = new Map();
+    // 星期几 × 小时：热力图。用本地时区（Asia/Shanghai）切，"几点活跃"要按人
+    // 的作息看，不是按 UTC。
+    const heat = Array.from({ length: 7 }, () => new Array(24).fill(0));
+    const bump = (iso, weight) => {
+      const at = new Date(iso);
+      if (!Number.isFinite(at.getTime())) {
+        return;
+      }
+      const local = new Date(at.getTime() + 8 * 3_600_000);
+      const day = local.toISOString().slice(0, 10);
+      byDay.set(day, (byDay.get(day) || 0) + weight);
+      heat[local.getUTCDay()][local.getUTCHours()] += weight;
+    };
+    for (const message of mine) {
+      bump(message.receivedAt, 1);
+    }
+
+    const jobByCorrelation = new Map(jobs.map((job) => [job.correlationId, job]));
+    const repliedCorrelations = new Set(
+      outbound.filter((item) => item.status === "confirmed").map((item) => item.correlationId),
+    );
+    let answered = 0;
+    let stuck = 0;
+    for (const message of mine) {
+      if (repliedCorrelations.has(message.correlationId)) {
+        answered += 1;
+      } else if (jobByCorrelation.get(message.correlationId)?.status?.includes("fail")) {
+        stuck += 1;
+      }
+    }
+
+    const stamps = mine.map((m) => m.receivedAt).sort();
+    // 连续说话的天数：从最近一天往回数，断一天就停。
+    const dayKeys = [...byDay.keys()].sort().reverse();
+    let streak = 0;
+    if (dayKeys.length) {
+      const cursor = new Date(`${dayKeys[0]}T00:00:00.000Z`);
+      for (const key of dayKeys) {
+        if (key === cursor.toISOString().slice(0, 10)) {
+          streak += 1;
+          cursor.setUTCDate(cursor.getUTCDate() - 1);
+        } else {
+          break;
+        }
+      }
+    }
+
+    return Object.freeze({
+      ok: true,
+      person: who,
+      days: span,
+      since,
+      totals: Object.freeze({
+        messages: mine.length,
+        answered,
+        stuck,
+        botInitiated: myInitiated.length,
+        activeDays: byDay.size,
+        streak,
+      }),
+      firstAt: stamps[0] || "",
+      lastAt: stamps[stamps.length - 1] || "",
+      // 贡献图：连续 span 天，没说话的那天是 0，不跳过——跳过就看不出"断了几天"。
+      daily: Object.freeze(Array.from({ length: span }, (_, index) => {
+        const day = new Date(Date.now() - (span - 1 - index) * 86_400_000)
+          .toISOString().slice(0, 10);
+        return Object.freeze({ day, count: byDay.get(day) || 0 });
+      })),
+      heatmap: Object.freeze(heat.map((row) => Object.freeze([...row]))),
+    });
+  }
+
   // 已知的主人发件号。只用来给对话栏打个「主人」标签，判权限不走这里。
   knownOwnerSenders() {
     const senders = new Set();
@@ -1699,6 +1868,7 @@ class CyberbossApp {
       // qrcode-terminal 画它；网页这边在服务端渲染成 SVG 再转 data URI——CSP 只
       // 允许 img-src 'self' data:，外部图床一律进不来。
       const { renderQrSvg, svgDataUri } = require("../v8-prebuilt/public-entry/qr-svg");
+const { loadRuntimeTextSecret } = require("../v8-prebuilt/security/runtime-text-secret");
       this.noteForDashboard("生成了 Owner 激活二维码");
       return Object.freeze({
         ok: true,

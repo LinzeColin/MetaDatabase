@@ -61,12 +61,6 @@ const RESERVED_INPUTS = Object.freeze([
 ]);
 const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
 
-const SEATS_FULL_NOTICE = [
-  "抱歉，这里的名额已经满了，暂时开通不了新用户。",
-  "",
-  "如果你认识这台机器的主人，可以让他在后台把名额调大一点。",
-].join("\n");
-
 const OWNER_HELP = [
   "你是这里的主人。可以直接跟我说话，也可以用这些中文口令：",
   "",
@@ -467,13 +461,6 @@ class UserAdmissionService {
   }
 
   #admitUnregistered({ botAccountRef, senderRef, text }) {
-    // 席位闸门。必须在 registration.start 之前——建了行再拒，等于既占了位子
-    // 又让人以为没开通。R19 AC-039 要求第六个人在任何模型调用**之前**被拒；
-    // 这里连用户行都不会建。
-    const remaining = this.#seatsRemaining();
-    if (remaining !== null && remaining <= 0) {
-      return reply(ACTIONS.SHOW_HOME, { text: SEATS_FULL_NOTICE });
-    }
     const inviteCode = this.#inviteCandidate(text);
     let result;
     try {

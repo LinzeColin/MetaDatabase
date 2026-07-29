@@ -36,7 +36,7 @@ const OPS_WECHAT_PATHS = Object.freeze(["/ops/wechat", "/ops/wechat/"]);
 // 后台里碰真实用户数据的接口名单。它们和其它 /admin/api/ 走不同的鉴权：永远
 // 要令牌，没有首次运行免令牌这一说。名单写死在这里而不是靠前缀猜，是为了让
 // "又加了一个读聊天的接口却忘了改鉴权"变成改不动的事——不进名单就进不了这条路。
-const OWNER_ONLY_ADMIN_APIS = Object.freeze(["conversations", "persona"]);
+const OWNER_ONLY_ADMIN_APIS = Object.freeze(["conversations", "persona", "insights"]);
 const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templates/ops-wechat.html");
 // 公开入口。这一页任何人都能打开，也**必须**任何人都能打开——它就是给陌生人
 // 扫码用的。所以它上面一个字的运营信息都不能有：没有人数、没有用量、没有状态。
@@ -122,6 +122,7 @@ class PortalHttpServer {
     adminConversations = null,
     adminPersonaRead = null,
     adminPersonaWrite = null,
+    adminInsights = null,
     // 后台会话。给了这三个就支持"登录一次，之后免令牌"。
     publicEntry = null,
     adminSessionIssue = null,
@@ -147,6 +148,7 @@ class PortalHttpServer {
     this.adminConversations = adminConversations;
     this.adminPersonaRead = adminPersonaRead;
     this.adminPersonaWrite = adminPersonaWrite;
+    this.adminInsights = adminInsights;
     this.publicEntry = publicEntry;
     this.adminSessionIssue = adminSessionIssue;
     this.adminSessionVerify = adminSessionVerify;
@@ -412,6 +414,13 @@ class PortalHttpServer {
           keyword: bounded("q", 120),
           from: bounded("from", 32),
           to: bounded("to", 32),
+        }));
+        return;
+      }
+      if (name === "insights" && typeof this.adminInsights === "function") {
+        this.#json(response, 200, await this.adminInsights({
+          person: String(url.searchParams.get("person") || "").slice(0, 200),
+          days: Number(url.searchParams.get("days")) || 120,
         }));
         return;
       }
