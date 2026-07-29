@@ -51,8 +51,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   bundle. Its staging made zero platform calls, did not switch a release pointer, and did not alter the existing
   temporary Native Host. Chrome extension-manager actions remain manual, so any visual reload must use that stable
   private bundle rather than a disposable `scratch` path.
-- The later unavailable-detail guidance refinement has also been staged as the current owner-private pre-arm bundle
-  (`8476beefa88d580779093df5c81e2ad4e10936a664aa0755a7aae0934f30faf9`). That staging again made zero platform
+- The final narrow-panel unavailable-detail refinement has been staged as the current owner-private pre-arm bundle
+  (`66b3651b11ecd50f008abcc8d32e445f14855d96b814f9b91e23fd9ec80594d9`). That staging again made zero platform
   calls, changed no release pointer, emitted no private path, and left the existing temporary Native Host untouched.
 - The current Owner-private pre-arm Host was installed successfully from the stable bundle and verified bound to its
   private digest. Read-only preflight now reports `PREARM_BRIDGE_INSTALLED` only after proving exactly one matching
