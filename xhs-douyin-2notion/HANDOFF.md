@@ -145,8 +145,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The unavailable-detail refinement passed extension self-test; all XHS, Douyin, 哔哩哔哩, 快手, 微博, and 淘宝 fixture
   suites; and both isolated XHS and Douyin Extension E2Es. The latter exercised the XHS guide, the new real-shaped
   哔哩哔哩 unavailable-detail state with zero visible actions, synthetic capture, and 100 service-worker restarts with
-  zero platform calls or real accounts. The current nine-gate fast source lane passed with 668 public source files;
-  its append-only A005 source receipt is `4fe7d4abf0e813fd17152d6caf216e3b267dc1cc4648977ed9c6ce9046affebe`.
+  zero platform calls or real accounts. A separate 360 px visual check of that unavailable state had no horizontal
+  overflow and zero visible actions. The current nine-gate fast source lane passed with 668 public source files; its
+  append-only A005 source receipt is `41d6fdcecd8131a6359e4b352359db403176ea51944e42c423266c59a3292aa3`.
 - The first-use Side Panel source was rendered in isolated Chromium at 360 px in light and dark modes. The exact XHS
   收藏笔记 guide has no horizontal overflow and presents zero visible actions; an eligible XHS detail page has one
   full-width 保存这条笔记 action plus a collapsed optional second-group switch. Extension self-test, TypeScript
