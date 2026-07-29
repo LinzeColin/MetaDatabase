@@ -128,10 +128,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   selected 收藏 and 喜欢 successfully, but the corresponding active `user-favorite-tab` / `user-like-tab` panes each
   contained only one empty placeholder descendant and zero verifiable cards after bounded no-scroll stabilization.
   There was no visible loading or empty-state text to reinterpret. The current release therefore has no valid
-  four-scope exact-80 Owner input and remains undeployed. The strict tab-pane compatibility regression is covered by
-  8 zero-network fixture cases; current focused source evidence is 104 Companion tests, 18 contract tests, extension
-  self-test, Douyin visible-list fixtures, Douyin extension E2E (100 controlled worker restarts), both XHS fixtures,
-  and a 662-file zero-finding privacy scan.
+  four-scope exact-80 Owner input and remains undeployed. The strict tab-pane compatibility regression now covers an
+  empty active relation pane with 20 out-of-pane footer links: it must remain `empty_unverified` with zero captured
+  items. There are 9 zero-network fixture cases; current focused source evidence is 104 Companion tests, 18 contract
+  tests, extension self-test, Douyin visible-list fixtures, Douyin extension E2E (100 controlled worker restarts),
+  both XHS fixtures, and a 662-file zero-finding privacy scan.
 
 ## Next work
 

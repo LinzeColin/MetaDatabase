@@ -36,7 +36,10 @@ function documentFor(mode, options = {}) {
   const root = options.tabSurface
     ? `<section data-e2e="${surface}" role="${options.tabRole ?? "tabpanel"}" class="${options.tabClass ?? "semi-tabs-pane semi-tabs-pane-active"}">${cards(`fixture-${mode}`, options.count ?? 20)}</section>`
     : `<main data-e2e="${surface}">${cards(`fixture-${mode}`, options.count ?? 20)}</main>`;
-  return `<!doctype html><html><body>${selected}${root}</body></html>`;
+  const outsideRoutes = options.outsideRouteCount === undefined
+    ? ""
+    : `<footer>${cards("outside-relation-surface", options.outsideRouteCount)}</footer>`;
+  return `<!doctype html><html><body>${selected}${root}${outsideRoutes}</body></html>`;
 }
 
 let browser;
@@ -136,6 +139,23 @@ try {
   requireCondition(inactiveTabSurface.status === "platform_changed", "inactive_tab_surface_rejected");
   requireCondition(inactiveTabSurface.code === "X2N_PLATFORM_CHANGED", "inactive_tab_surface_code");
 
+  currentCase = "empty_active_tab_with_outside_routes";
+  currentDocument = documentFor("favorites", {
+    count: 0,
+    outsideRouteCount: 20,
+    tabSurface: true,
+  });
+  await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
+  const emptyActiveTab = validateDouyinVisibleBatch(await page.evaluate(extractDouyinVisibleBatch, {
+    maxItems: 20,
+    mode: "favorites",
+    ownerGesture: true,
+    scopeMode: "owner_mvp_20",
+  }));
+  requireCondition(emptyActiveTab.status === "empty_unverified", "empty_active_tab_not_promoted");
+  requireCondition(emptyActiveTab.batch.visible_card_count === 0, "outside_routes_not_counted");
+  requireCondition(emptyActiveTab.items.length === 0, "outside_routes_not_captured");
+
   currentCase = "duplicate_card";
   currentDocument = documentFor("likes").replace("fixture-likes-01", "fixture-likes-00");
   await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
@@ -149,14 +169,14 @@ try {
   requireCondition(duplicate.items.length < 20, "duplicate_no_silent_drop");
 
   requireCondition(blockedPlatformNetworkRequests === 0, "unexpected_platform_request");
-  requireCondition(fixtureDocumentsFulfilled === 8, "fixture_document_count");
+  requireCondition(fixtureDocumentsFulfilled === 9, "fixture_document_count");
   requireCondition(scrollCalls === 0, "automatic_scroll");
   process.stdout.write(`${JSON.stringify({
     automatic_scrolls: 0,
     fixture_documents_fulfilled: fixtureDocumentsFulfilled,
     owner_mvp: "NOT_RUN",
     platform_calls: 0,
-    semantic_surface_cases: 8,
+    semantic_surface_cases: 9,
     status: "PASS",
   })}\n`);
 } catch (error) {
