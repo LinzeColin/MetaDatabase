@@ -4806,6 +4806,25 @@ class CyberbossApp {
       case "yes":
       case "always":
       case "no":
+        // 批准一条待审批 = 批准在主人的机器上真的跑那条命令，而「always」还会把
+        // 它写进工作区永久白名单。所以这里的门槛是 shell.execute，不是「能不能
+        // 发消息」。
+        //
+        // activeUserContext 为 null 只在多用户准入整个关掉时发生（见
+        // admitInboundMessage 的 route:"owner" 分支），那种形态下全机就主人一个
+        // 人，不能因为没有 context 就把他自己的审批挡在外面。有 context 就必须
+        // 真的过闸门——那是唯一能出现访客的形态。
+        if (this.activeUserContext && !this.activeUserContext.may("shell.execute")) {
+          await this.channelAdapter.sendText({
+            userId: normalized.senderId,
+            text: "这条命令要在主人的机器上执行，只有主人能批准。",
+            contextToken: normalized.contextToken,
+          });
+          console.warn(
+            `[cyberboss] approval refused non_owner command=${command.name}`,
+          );
+          return;
+        }
         await this.handleApprovalCommand(normalized, command);
         return;
       case "model":
