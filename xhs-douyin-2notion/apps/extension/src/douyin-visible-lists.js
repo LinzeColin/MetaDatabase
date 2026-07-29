@@ -32,6 +32,15 @@ export function extractDouyinVisibleBatch(input) {
       : mode === "likes"
         ? "user-like-list"
         : null;
+    // The current desktop profile surface exposes an active tab panel instead
+    // of the older dedicated list node.  Keep both deliberately narrow
+    // contracts: accepting a generic page root would make footer/recommendation
+    // cards look like owner-selected collection content.
+    const expectedTabSurface = mode === "favorites"
+      ? "user-favorite-tab"
+      : mode === "likes"
+        ? "user-like-tab"
+        : null;
     const platform = "douyin";
     const schemaVersion = "1.0";
     const safeId = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u;
@@ -111,7 +120,7 @@ export function extractDouyinVisibleBatch(input) {
         || globalThis.document.querySelector('[data-x2n-state="verification_required"]')
       ) return failure("verification_required", "X2N_POLICY_BLOCKED");
 
-      const selected = [...globalThis.document.querySelectorAll([
+      const selectedControls = [...globalThis.document.querySelectorAll([
         'button[aria-selected="true"]',
         'button[data-active="true"]',
         'a[aria-selected="true"]',
@@ -119,11 +128,20 @@ export function extractDouyinVisibleBatch(input) {
         '[role="tab"][aria-selected="true"]',
         '[role="tab"][data-active="true"]',
         '[role="tab"].active',
-      ].join(", "))].find((node) => !isHidden(node) && normalizeText(node.textContent) === selectedLabel);
-      const root = selected && expectedListSurface
-        ? globalThis.document.querySelector(`[data-e2e="${expectedListSurface}"]`)
-        : null;
-      if (!root || isHidden(root)) return failure("platform_changed", "X2N_PLATFORM_CHANGED");
+      ].join(", "))].filter((node) => !isHidden(node) && normalizeText(node.textContent) === selectedLabel);
+      if (selectedControls.length !== 1 || !expectedListSurface || !expectedTabSurface) {
+        return failure("platform_changed", "X2N_PLATFORM_CHANGED");
+      }
+      const legacyRoots = [...globalThis.document.querySelectorAll(`[data-e2e="${expectedListSurface}"]`)]
+        .filter((node) => !isHidden(node));
+      const activeTabRoots = [...globalThis.document.querySelectorAll(
+        `[data-e2e="${expectedTabSurface}"][role="tabpanel"].semi-tabs-pane-active`,
+      )].filter((node) => !isHidden(node));
+      // The two forms must not coexist.  If they do, their relationship has
+      // changed and choosing either would be ungrounded.
+      const roots = [...legacyRoots, ...activeTabRoots];
+      if (roots.length !== 1) return failure("platform_changed", "X2N_PLATFORM_CHANGED");
+      const root = roots[0];
 
       const candidates = [];
       const seenCards = new Set();

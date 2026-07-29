@@ -48,9 +48,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `POLICY_BLOCKED` outcome after attempting the same-browser rollback.
   The release loader now verifies both authorization and the exact Runtime marker phase, so a failed active-marker
   write after online smoke is detected as integrity drift instead of silently resuming with an armed marker.
-- The Douyin list extractor accepts only the corresponding platform-owned `data-e2e` list surface
-  (`user-favorite-list` or `user-like-list`) after a selected 收藏/喜欢 control. It deliberately has no generic
-  `main` fallback, so an unrecognized profile layout fails closed instead of treating unrelated cards as a relation list.
+- The Douyin list extractor accepts only one corresponding platform-owned surface after exactly one selected
+  收藏/喜欢 control: the legacy `user-favorite-list` / `user-like-list`, or the observed active
+  `user-favorite-tab` / `user-like-tab` `role=tabpanel.semi-tabs-pane-active` form. It deliberately has no generic
+  `main` fallback, rejects coexistence/ambiguity, and therefore cannot treat footer or recommendation cards as a
+  relation list.
 - The XHS profile fallback recognizes the observed rendered surface only when one visible
   `#userPageContainer.user-page` has exactly one direct active `.reds-tab-item.sub-tab-list` with the expected
   relation in exactly one visible `.reds-tabs-list.tertiary`: 收藏 for favorites, or 赞过/点赞 for likes. On the
@@ -120,15 +122,27 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   complete same-index mapping plus a meaningful 16×16 target-panel viewport intersection, so an inactive panel's
   one-pixel transformed edge cannot block the active list; the surface-safety suite covers the positive and sliver
   rejection cases. No browser content, IDs, URLs, or platform call entered the repository.
+- In the latest delegated Owner Chrome pass, the real XHS 收藏 and 点赞 panes each exposed exactly 20 first visible,
+  unique items under that strict mapping without a scroll. Their IDs were hashed only in transient process memory,
+  never emitted or persisted; this is not an Owner-input or platform-action claim. The real logged-in Douyin profile
+  selected 收藏 and 喜欢 successfully, but the corresponding active `user-favorite-tab` / `user-like-tab` panes each
+  contained only one empty placeholder descendant and zero verifiable cards after bounded no-scroll stabilization.
+  There was no visible loading or empty-state text to reinterpret. The current release therefore has no valid
+  four-scope exact-80 Owner input and remains undeployed. The strict tab-pane compatibility regression is covered by
+  8 zero-network fixture cases; current focused source evidence is 104 Companion tests, 18 contract tests, extension
+  self-test, Douyin visible-list fixtures, Douyin extension E2E (100 controlled worker restarts), both XHS fixtures,
+  and a 662-file zero-finding privacy scan.
 
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. When the Owner is ready, first provision the clean-room private Douyin Sidecar, use its attestation fragment with
-   the deliberately invalid template, replace every remaining Owner token with four private 20-ID hash manifests and
-   the loopback port, configure the approved digest-pinned
-   Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and no existing
-   release state. Then perform the four explicit actions, baseline verification, Markdown/durability
+2. On a future delegated Owner run, re-observe all four scopes from their fresh visible panes without scrolling. Do
+   not create an Owner input unless each has exactly 20 actual unique items; the current empty Douyin panes are an
+   explicit stop condition, not a reason to substitute footer cards or invent hashes. Only then provision the
+   clean-room private Douyin Sidecar, use its attestation fragment with the deliberately invalid template, replace
+   every remaining Owner token with four private 20-ID hash manifests and the loopback port, configure the approved
+   digest-pinned Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and no
+   existing release state. Then perform the four explicit actions, baseline verification, Markdown/durability
    materialization, rollback rehearsal, sign-off, exact tag, deploy, staged-extension reload, handshake, and
    immediate online smoke in the documented order.
 3. Only after that real sequence succeeds, run the read-only acceptance verifier and explicitly write the immutable

@@ -28,10 +28,15 @@ function cards(prefix, count = 20) {
 function documentFor(mode, options = {}) {
   const label = mode === "favorites" ? "收藏" : "喜欢";
   const listSurface = mode === "favorites" ? "user-favorite-list" : "user-like-list";
+  const tabSurface = mode === "favorites" ? "user-favorite-tab" : "user-like-tab";
   const selected = options.cosmeticOnly
     ? `<span class="active">${label}</span>`
     : `<button role="tab" aria-selected="true">${label}</button>`;
-  return `<!doctype html><html><body>${selected}<main data-e2e="${options.listSurface ?? listSurface}">${cards(`fixture-${mode}`, options.count ?? 20)}</main></body></html>`;
+  const surface = options.listSurface ?? (options.tabSurface ? tabSurface : listSurface);
+  const root = options.tabSurface
+    ? `<section data-e2e="${surface}" role="${options.tabRole ?? "tabpanel"}" class="${options.tabClass ?? "semi-tabs-pane semi-tabs-pane-active"}">${cards(`fixture-${mode}`, options.count ?? 20)}</section>`
+    : `<main data-e2e="${surface}">${cards(`fixture-${mode}`, options.count ?? 20)}</main>`;
+  return `<!doctype html><html><body>${selected}${root}</body></html>`;
 }
 
 let browser;
@@ -78,6 +83,18 @@ try {
     requireCondition(new Set(facts.items.map((item) => item.content_id)).size === 20, `${mode}_unique`);
     requireCondition(!/\b(?:href|html|media|raw_dom|src)\b/iu.test(JSON.stringify(facts)), `${mode}_raw_surface`);
     scrollCalls += await page.evaluate(() => globalThis.__x2nScrollCalls);
+
+    currentCase = `${mode}_current_tab_surface`;
+    currentDocument = documentFor(mode, { tabSurface: true });
+    await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
+    const currentTabSurface = validateDouyinVisibleBatch(await page.evaluate(extractDouyinVisibleBatch, {
+      maxItems: 20,
+      mode,
+      ownerGesture: true,
+      scopeMode: "owner_mvp_20",
+    }));
+    requireCondition(currentTabSurface.status === "ready", `${mode}_current_tab_ready`);
+    requireCondition(currentTabSurface.items.length === 20, `${mode}_current_tab_count`);
   }
 
   currentCase = "cosmetic_selection";
@@ -104,6 +121,21 @@ try {
   requireCondition(wrongSurface.status === "platform_changed", "wrong_list_surface_rejected");
   requireCondition(wrongSurface.code === "X2N_PLATFORM_CHANGED", "wrong_list_surface_code");
 
+  currentCase = "inactive_tab_surface";
+  currentDocument = documentFor("favorites", {
+    tabSurface: true,
+    tabClass: "semi-tabs-pane semi-tabs-pane-inactive",
+  });
+  await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
+  const inactiveTabSurface = validateDouyinVisibleBatch(await page.evaluate(extractDouyinVisibleBatch, {
+    maxItems: 20,
+    mode: "favorites",
+    ownerGesture: true,
+    scopeMode: "owner_mvp_20",
+  }));
+  requireCondition(inactiveTabSurface.status === "platform_changed", "inactive_tab_surface_rejected");
+  requireCondition(inactiveTabSurface.code === "X2N_PLATFORM_CHANGED", "inactive_tab_surface_code");
+
   currentCase = "duplicate_card";
   currentDocument = documentFor("likes").replace("fixture-likes-01", "fixture-likes-00");
   await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
@@ -117,14 +149,14 @@ try {
   requireCondition(duplicate.items.length < 20, "duplicate_no_silent_drop");
 
   requireCondition(blockedPlatformNetworkRequests === 0, "unexpected_platform_request");
-  requireCondition(fixtureDocumentsFulfilled === 5, "fixture_document_count");
+  requireCondition(fixtureDocumentsFulfilled === 8, "fixture_document_count");
   requireCondition(scrollCalls === 0, "automatic_scroll");
   process.stdout.write(`${JSON.stringify({
     automatic_scrolls: 0,
     fixture_documents_fulfilled: fixtureDocumentsFulfilled,
     owner_mvp: "NOT_RUN",
     platform_calls: 0,
-    semantic_surface_cases: 5,
+    semantic_surface_cases: 8,
     status: "PASS",
   })}\n`);
 } catch (error) {
