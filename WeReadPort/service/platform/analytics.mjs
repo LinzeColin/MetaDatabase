@@ -4,7 +4,7 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
   const notes = store.listNotes(accountId, { limit: 100000 });
   const consent = store.getConsent(accountId);
   const events = consent?.behaviorAnalytics ? store.listBehaviorEvents(accountId, Math.floor(now / 1000) - 366 * 24 * 3600, 100000) : [];
-  const wereadState = store.getWereadState(accountId);
+  const wereadState = store.getWereadState(accountId, { includeBookState: true });
   const officialReading = publicOfficialReading(wereadState?.summary?.officialReading);
   const sources = countBy(notes, note => note.source || "unknown");
   const categories = countBy(notes, note => note.category || "未分类");
@@ -12,6 +12,7 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
   const noteWeeklyTrend = buildWeeklyTrend(notes, now);
   const officialReadingPeriods = buildOfficialReadingPeriods(officialReading);
   const readingCategoryDistribution = buildReadingCategoryDistribution(officialReading);
+  const readingProgress = buildReadingProgress(wereadState?.bookState);
   const words = notes.reduce((sum, note) => sum + Number(note.wordCount || 0), 0);
   const official = store.listRecommendations(accountId, 20);
   const local = buildLocalRecommendations(categories, notes);
@@ -43,6 +44,7 @@ export function buildAnalyticsDashboard(store, accountId, { now = Date.now() } =
     weeklyTrend: noteWeeklyTrend,
     officialReadingPeriods,
     officialReading,
+    readingProgress,
     dataFreshness: buildDataFreshness(wereadState, officialReading, notes, now),
     recommendations,
     privacy: {
@@ -86,6 +88,23 @@ function buildReadingCategoryDistribution(reading) {
   };
 }
 
+function buildReadingProgress(bookState) {
+  const rows = Object.values(bookState || {}).map((state, index) => {
+    if (!state || typeof state !== "object" || Array.isArray(state)) return null;
+    const fingerprint = progressFromFingerprint(state.fingerprint);
+    const progress = safeProgress(state.progress) ?? fingerprint.progress;
+    if (progress === null) return null;
+    return {
+      label: safeLabel(state.title, 120) || `已同步书籍 ${index + 1}`,
+      author: safeLabel(state.author, 120) || null,
+      progress,
+      readingTimeSeconds: safeMetric(state.readingTimeSeconds),
+      updatedAt: safeMetric(state.progressUpdatedAt) ?? fingerprint.sourceTime,
+    };
+  }).filter(Boolean).sort((left, right) => Number(right.updatedAt || 0) - Number(left.updatedAt || 0) || right.progress - left.progress || left.label.localeCompare(right.label, "zh-CN"));
+  return { source: "weread-official-book-progress", items: rows.slice(0, 12) };
+}
+
 function buildDataFreshness(wereadState, officialReading, notes, now) {
   const latestNoteEventAt = notes.reduce((latest, note) => Math.max(latest, noteEventAt(note)), 0);
   return {
@@ -119,9 +138,18 @@ function buildNoteActivityHeatmap(notes, events, now) {
 }
 
 function buildWeeklyTrend(notes, now) {
+  const noteTimes = notes.map(note => noteEventAt(note) * 1000).filter(value => Number.isFinite(value) && value > 0);
+  const current = Number(now);
+  const latest = noteTimes.length ? Math.max(...noteTimes) : 0;
+  const recentWindowStart = current - 84 * 86400000;
+  // If an account's genuine history is older than the current twelve-week
+  // window, anchor the chart on its last real event instead of rendering a
+  // misleading all-zero trend.
+  const hasRecentEvent = noteTimes.some(value => value >= recentWindowStart && value <= current);
+  const anchor = hasRecentEvent || !latest ? current : latest + 86400000;
   const weeks = [];
   for (let index = 11; index >= 0; index -= 1) {
-    const end = new Date(now - index * 7 * 86400000);
+    const end = new Date(anchor - index * 7 * 86400000);
     const start = new Date(end.getTime() - 7 * 86400000);
     const value = notes.filter(note => noteEventAt(note) * 1000 >= start.getTime() && noteEventAt(note) * 1000 < end.getTime()).length;
     weeks.push({ week: start.toISOString().slice(0, 10), value });
@@ -206,4 +234,15 @@ function publicOfficialReading(value) {
 }
 
 function safeMetric(value) { const number = Number(value); return Number.isFinite(number) && number >= 0 ? Math.floor(number) : null; }
+function safeProgress(value) { const number = Number(value); return Number.isFinite(number) && number >= 0 && number <= 100 ? Math.round(number * 10) / 10 : null; }
+function progressFromFingerprint(value) {
+  if (typeof value !== "string") return { progress: null, sourceTime: null };
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { progress: null, sourceTime: null };
+    return { progress: safeProgress(parsed.progress), sourceTime: safeMetric(parsed.sourceTime) };
+  } catch {
+    return { progress: null, sourceTime: null };
+  }
+}
 function safeLabel(value, maxLength) { return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength); }

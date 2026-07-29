@@ -129,9 +129,30 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
     metric: "readingTimeSeconds",
     items: [{ label: "历史", value: 7_200 }, { label: "科学", value: 3_600 }],
   });
+  assert.equal(dashboard.readingProgress.source, "weread-official-book-progress");
+  assert.equal(dashboard.readingProgress.items.length, 8);
+  assert.deepEqual(dashboard.readingProgress.items[0], {
+    label: "书籍 1", author: "作者", progress: 42, readingTimeSeconds: 0, updatedAt: EVENT_BASE + 1_000,
+  });
   assert.equal(dashboard.dataFreshness.weread.lastSyncedAt, platform.service.publicAccount(user.account.id).weread.lastSyncAt);
   platform.service.updateConsent(user.account.id, { behaviorAnalytics: false, recommendationPersonalization: true });
   assert.ok(platform.service.analytics(user.account.id).recommendations.some(item => item.source === "weread-official"));
+});
+
+test("旧版同步指纹中的真实书籍进度会直接补入画像，不等待重新导入", async t => {
+  const platform = testPlatform({ fetchImpl: gatewayMock([]) });
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY, displayName: "旧进度用户" }, {}, { verify: false });
+  platform.store.updateWereadState(user.account.id, {
+    capabilities: [], summary: {},
+    bookState: {
+      "legacy-book": { fingerprint: JSON.stringify({ sourceTime: EVENT_BASE + 777, progress: 33.5, highlights: 0, reviews: 0, bookmarks: 0 }), documentCount: 0 },
+    },
+  });
+  assert.deepEqual(platform.service.analytics(user.account.id).readingProgress, {
+    source: "weread-official-book-progress",
+    items: [{ label: "已同步书籍 1", author: null, progress: 33.5, readingTimeSeconds: null, updatedAt: EVENT_BASE + 777 }],
+  });
 });
 
 test("微信读书保留真实事件时间、按事件倒序且重复同步不重写历史", async t => {
@@ -197,6 +218,8 @@ test("微信读书后续同步只读取来源明确变化的书籍，并保留�
   const downstream = platform.service.analytics(user.account.id);
   assert.equal(downstream.officialReading.statistics.overall.totalReadingTimeSeconds, 480, "来源刷新后画像必须读取新官方统计");
   assert.equal(downstream.officialReadingPeriods.items.find(item => item.mode === "overall").value, 480, "阅读进展图必须读取新官方统计");
+  assert.equal(downstream.readingProgress.items.length, 8, "增量同步不得丢失已同步书籍的真实进度");
+  assert.ok(downstream.readingProgress.items.every(item => item.progress === 42));
   assert.equal(downstream.readingCategoryDistribution.items[0].label, "历史", "类别分布必须读取官方类别汇总");
 });
 

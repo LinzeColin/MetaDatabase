@@ -88,7 +88,9 @@ export async function syncWeReadDataset(key, {
       call("/book/bookmarklist", { bookId }),
       collectReviews(call, bookId),
       syncMode === "full" || needMetadataFallback ? call("/book/info", { bookId }) : null,
-      syncMode === "full" ? call("/book/getprogress", { bookId }) : null,
+      // Delta syncs only inspect changed books. Refresh their progress too so
+      // the dashboard does not wait for the once-daily full reconciliation.
+      call("/book/getprogress", { bookId }),
       syncMode === "full" ? call("/book/chapterinfo", { bookId }) : null,
       syncMode === "full" && index < popularBookLimit ? call("/book/bestbookmarks", { bookId, chapterUid: 0, synckey: 0 }) : null,
     ]);
@@ -104,15 +106,13 @@ export async function syncWeReadDataset(key, {
   const bookState = {};
   for (const candidate of candidates) {
     const detail = detailsByBookId.get(candidate.bookId);
-    if (candidate.skip && candidate.previous) {
-      bookState[candidate.bookId] = candidate.previous;
-      continue;
-    }
-    if (detail?.coreComplete && candidate.fingerprint) {
-      bookState[candidate.bookId] = { fingerprint: candidate.fingerprint, documentCount: documentCountForDetail(detail) };
-      continue;
-    }
-    bookState[candidate.bookId] = { fingerprint: candidate.fingerprint, documentCount: null };
+    const documentCount = candidate.skip && candidate.previous
+      ? candidate.previous.documentCount
+      : detail?.coreComplete && candidate.fingerprint ? documentCountForDetail(detail) : null;
+    // The source summary already includes a lightweight progress value. Keep a
+    // sanitized, account-scoped projection of it so a successful sync cannot
+    // silently discard the reading progress that the dashboard needs.
+    bookState[candidate.bookId] = buildBookState(candidate, detail, documentCount);
   }
 
   // These four summary calls are lightweight and authoritative for the actual
@@ -436,7 +436,62 @@ function notebookFingerprint(entry) {
 function normalizeBookState(value) {
   if (!isPlainObject(value) || typeof value.fingerprint !== "string") return null;
   const documentCount = Number(value.documentCount);
-  return { fingerprint: value.fingerprint, documentCount: Number.isInteger(documentCount) && documentCount >= 0 ? documentCount : null };
+  const fingerprint = progressFromFingerprint(value.fingerprint);
+  return {
+    fingerprint: value.fingerprint,
+    documentCount: Number.isInteger(documentCount) && documentCount >= 0 ? documentCount : null,
+    progress: normalizedProgress(value.progress) ?? fingerprint.progress,
+    readingTimeSeconds: nonNegativeInteger(value.readingTimeSeconds),
+    progressUpdatedAt: trustedSourceTime(value.progressUpdatedAt) ?? fingerprint.sourceTime,
+    title: compactStateText(value.title),
+    author: compactStateText(value.author),
+  };
+}
+
+function buildBookState(candidate, detail, documentCount) {
+  const previous = candidate.previous || {};
+  const fingerprint = progressFromFingerprint(candidate.fingerprint);
+  const progress = normalizedProgress(detail?.progress?.progress)
+    ?? notebookProgress(candidate.entry)
+    ?? previous.progress
+    ?? fingerprint.progress;
+  return {
+    fingerprint: candidate.fingerprint,
+    documentCount,
+    progress,
+    readingTimeSeconds: nonNegativeInteger(detail?.progress?.readingTimeSeconds) ?? previous.readingTimeSeconds ?? null,
+    progressUpdatedAt: trustedSourceTime(detail?.progress?.updateTime) ?? fingerprint.sourceTime ?? previous.progressUpdatedAt ?? null,
+    title: notebookTitle(candidate.entry) ?? compactStateText(detail?.info?.title) ?? previous.title ?? null,
+    author: notebookAuthor(candidate.entry) ?? compactStateText(detail?.info?.author) ?? previous.author ?? null,
+  };
+}
+
+function notebookProgress(entry) {
+  return normalizedProgress(entry?.readingProgress ?? entry?.progress ?? entry?.book?.readingProgress ?? entry?.book?.progress);
+}
+
+function notebookTitle(entry) {
+  return compactStateText(entry?.title ?? entry?.book?.title ?? entry?.bookInfo?.title);
+}
+
+function notebookAuthor(entry) {
+  return compactStateText(entry?.author ?? entry?.book?.author ?? entry?.bookInfo?.author);
+}
+
+function compactStateText(value) {
+  const text = compactText(value).slice(0, 180);
+  return text || null;
+}
+
+function progressFromFingerprint(value) {
+  if (typeof value !== "string") return { progress: null, sourceTime: null };
+  try {
+    const parsed = JSON.parse(value);
+    if (!isPlainObject(parsed)) return { progress: null, sourceTime: null };
+    return { progress: normalizedProgress(parsed.progress), sourceTime: trustedSourceTime(parsed.sourceTime) };
+  } catch {
+    return { progress: null, sourceTime: null };
+  }
 }
 
 function documentCountForDetail(detail) {

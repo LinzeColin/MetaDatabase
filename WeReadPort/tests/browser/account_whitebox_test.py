@@ -80,6 +80,13 @@ DASHBOARD = {
         "source": "weread-official-readdata-detail", "metric": "readingTimeSeconds",
         "items": [{"label": "历史", "value": 36000}, {"label": "科学", "value": 18000}],
     },
+    "readingProgress": {
+        "source": "weread-official-book-progress",
+        "items": [
+            {"label": "系统思维", "author": "彼得·圣吉", "progress": 41, "updatedAt": 1785196800},
+            {"label": "第二大脑", "author": "蒂亚戈·福特", "progress": 7, "updatedAt": 1785110400},
+        ],
+    },
     "categoryDistribution": [{"label": "管理", "value": 5}, {"label": "知识管理", "value": 2}],
     "noteWeeklyTrend": [{"week": f"2026-05-{i + 1:02d}", "value": value} for i, value in enumerate([0, 0, 4, 103, 0, 0, 0, 0, 0, 0, 0, 0])],
     "sourceDistribution": [
@@ -91,8 +98,8 @@ DASHBOARD = {
     ],
     "dataFreshness": {"analyticsRecomputedAt": 1785196800, "weread": {"lastSyncedAt": 1785196800, "officialReadingCollectedAt": 1785196800, "latestNoteEventAt": 1785110400, "noteActivitySource": "real-note-event-time"}},
     "recommendations": [
-        {"source": "account-pattern", "title": "继续整理系统思维主题", "reason": "最近 30 天该主题笔记增长最快。"},
-        {"id": "weread:fixture-book-123", "source": "weread-official", "title": "回顾高频划线章节", "reason": "该书划线密度较高且两周未回顾。", "deepLink": "https://weread.qq.com/web/reader/fixture-book-123"},
+        {"source": "account-pattern", "title": "继续整理系统思维主题", "author": "账户主题建议", "reason": "最近 30 天该主题笔记增长最快。"},
+        {"id": "weread:fixture-book-123", "source": "weread-official", "title": "回顾高频划线章节", "author": "微信读书官方", "reason": "该书划线密度较高且两周未回顾。", "deepLink": "https://weread.qq.com/web/reader/fixture-book-123"},
     ],
 }
 
@@ -105,6 +112,8 @@ def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
       f.dashboard.dataFreshness.weread.lastSyncedAt = f.account.weread.lastSyncAt;
       f.synces = 0;
       f.downstreamReads = {{profile:0,notes:0,analytics:0}};
+      f.copied = [];
+      Object.defineProperty(navigator, 'clipboard', {{configurable:true, value:{{writeText:async value => f.copied.push(String(value))}}}});
       window.__browserFixture = f;
       window.fetch = async (input, init={{}}) => {{
         const url = String(input);
@@ -218,12 +227,19 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     assert page.locator("[data-note-trend-fill]").count() == 2
     assert page.get_by_text("2 个活跃周", exact=True).is_visible()
     assert page.get_by_text("累计", exact=True).is_visible()
+    assert page.get_by_role("heading", name="阅读进展").is_visible()
+    assert page.locator("[data-reading-progress]").count() == 2
+    assert page.get_by_text("41%", exact=True).is_visible()
     assert page.get_by_role("img", name="近九十天笔记活动").is_visible()
     assert page.get_by_role("heading", name="潜在推荐").is_visible()
     assert page.get_by_text("继续整理系统思维主题").is_visible()
     weread_link = page.get_by_role("link", name="在微信读书打开")
     assert weread_link.is_visible()
     assert weread_link.get_attribute("href") == "https://weread.qq.com/web/reader/fixture-book-123"
+    assert page.get_by_role("button", name="复制书名").count() == 2
+    assert page.get_by_role("button", name="复制作者").count() == 2
+    page.get_by_role("button", name="复制书名").first.click()
+    page.wait_for_function("() => window.__browserFixture.copied.includes('继续整理系统思维主题')")
     assert page.get_by_text("不会把笔记正文发送给模型", exact=False).is_visible()
 
     page.get_by_role("button", name="首页").click()
