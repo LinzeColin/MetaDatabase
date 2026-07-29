@@ -21,6 +21,13 @@ This is the only Task that may make the bounded Owner MVP live. It may activate 
 The four scopes form one exact 80-relation baseline. Bilibili, Kuaishou, Weibo, and Taobao remain
 `DISABLED_EXTERNAL_GATE` unless a separate owner-authorized activation provides an independent manifest and at
 most 20 actual items. `BLOCKED_TECHNICAL` never settles as disabled.
+
+The only executable Douyin implementation in this Task is the x2n clean-room visible-DOM Sidecar. It consumes one
+sanitized, current-DOM batch from the explicit Side Panel gesture through a nonce-bound local loopback exchange and
+then exits. It has no platform network route, crawler/downloader dependency, Cookie/Profile input, auto-scroll,
+pagination, retry, raw-media, URL, or persistent Sidecar data surface. `jiji262/douyin-downloader` and
+`ShilongLee/Crawler` remain non-executable research references; they are not bundled, installed, launched, or
+accepted as a Sidecar artifact.
 For every disabled external scope, public-safe evidence records the permitted external reason, disabled flag, zero
 platform calls, and no live-support claim; a count-only assertion is not sufficient.
 
@@ -31,6 +38,7 @@ Before private Owner operations, run the bounded source checks:
 ```bash
 PYTHONPATH=apps/companion/src:packages/contracts/src \
   .venv/bin/python -B -m unittest \
+  apps.companion.tests.test_douyin_visible_sidecar \
   apps.companion.tests.test_mvp_release \
   apps.companion.tests.test_native_host \
   apps.companion.tests.test_adapter_dispatch \
@@ -39,6 +47,8 @@ PYTHONPATH=apps/companion/src:packages/contracts/src \
   apps.companion.tests.test_xiaohongshu_likes
 PYTHONPATH=packages/contracts/src .venv/bin/python -B -m unittest discover -s packages/contracts/tests -p 'test_*.py'
 npm run self-test --workspace @x2n/extension
+npm run test:douyin-visible-lists-fixtures --workspace @x2n/extension
+npm run test:douyin-extension --workspace @x2n/extension
 npm run test:xhs-favorites-fixtures --workspace @x2n/extension
 npm run test:xhs-likes-fixtures --workspace @x2n/extension
 ```
@@ -54,6 +64,7 @@ All private input files are owner-only local files. Their contents, local locati
 credentials, cookies, content, and platform CDN URLs must never enter public output or Git.
 
 ```bash
+x2n release provision-douyin-visible-sidecar --confirm PROVISION_X2N_DOUYIN_VISIBLE_SIDECAR
 x2n release preflight
 x2n release input-template
 x2n release validate-input
@@ -71,15 +82,18 @@ a scope, calls the client, or opens Chrome.
 A source tag is expected to remain `NOT_READY` until immediately before the later `deploy` command.
 
 The Douyin bundle is a fixed Owner-only private layout under the Runtime root and contains the Sidecar executable,
-resolved lock, SBOM, and transitive-license report. `preflight`, `arm`, and each Douyin action hash those four
-regular files and require an exact match with the Owner input attestation. This local check never starts the Sidecar,
-reads Browser state, calls a platform, or prints its relative or absolute location, filenames, byte contents, or
-digests. A missing, symlinked, non-owner-only, oversized, or mismatched artifact is `NOT_READY`/fail-closed.
+resolved lock, SBOM, and transitive-license report. `provision-douyin-visible-sidecar` is the only supported creator;
+its output is a non-secret attestation fragment for the private input. `preflight`, `arm`, and each Douyin action
+hash those four regular files, require an exact match with the Owner input attestation, and require the four hashes
+to equal the current clean-room template exactly. This local check never starts the Sidecar, reads Browser state,
+calls a platform, or prints its relative or absolute location, filenames, byte contents, or digests. A missing,
+symlinked, non-owner-only, oversized, raw-crawler, or mismatched artifact is `NOT_READY`/fail-closed.
 
 `input-template` is intentionally **not** a valid release input: every Owner content-ID hash, Douyin Sidecar
-attestation digest, and loopback port is a literal replacement token. The Owner must replace all of those values in a
-private owner-only file before `validate-input` can pass. The contract digest and fixed scope/boundary fields are
-source-bound and must not be changed.
+attestation digest, and loopback port is a literal replacement token. The clean-room provision command produces the
+four attestation digests, while the exact four 20-ID private manifests and loopback port remain Owner-private facts.
+The private owner-only input must be complete before `validate-input` can pass. The contract digest and fixed
+scope/boundary fields are source-bound and must not be changed.
 
 The private release input also contains four ordered, hash-only 20-item Owner manifests (one per enabled scope).
 The Owner replaces the template placeholders with SHA-256 values of the selected stable content IDs. The Companion

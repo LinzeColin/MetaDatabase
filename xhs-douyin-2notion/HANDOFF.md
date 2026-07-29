@@ -26,11 +26,14 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The XHS profile fallback now treats a favorites/likes surface as selected only when the matching label belongs to
   a semantic interactive control (selected button/link or selected role=tab). A cosmetic profile counter with an
   `active` class is rejected before it can misclassify ordinary profile content as a relation list.
-- The Douyin Owner-private Sidecar attestation now has a local, fixed-artifact anchor in addition to the strict
-  loopback health protocol: `preflight` reports only aggregate bundle readiness; `arm` refuses before backup/state
-  mutation unless the owner-only executable, resolved lock, SBOM, and transitive-license report match the four input
-  digests; each Douyin action repeats that check before any loopback connection. It never starts the Sidecar, reads
-  its artifact contents into output, opens a Browser Profile, or emits paths, filenames, or digests.
+- The Douyin A005 path is now an x2n clean-room, current-visible-DOM Sidecar rather than a wrapper around a downloader:
+  the Side Panel requires the matching semantic 收藏/喜欢 surface and forwards only one sanitized 20-item facts batch;
+  a nonce-bound Owner-private loopback process revalidates that batch and exits after one exchange. It has no platform
+  network, crawler/downloader runtime, Cookie/Profile input, automatic scroll/pagination/retry, raw media, URL, or
+  Sidecar persistence surface. `provision-douyin-visible-sidecar` is the only supported bundle creator. `preflight`,
+  `arm`, and each Douyin action require the owner-only executable, resolved lock, SBOM, and transitive-license report
+  both to match the private input and to byte-match the current approved clean-room template; raw crawler artifacts
+  therefore fail before any loopback connection or Canonical write.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
@@ -40,9 +43,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   platform request. It cannot arm or mutate the release. `chrome_executable=AVAILABLE` does not inspect a Profile or
   claim a login. `native_host_fresh_install=READY_FOR_FRESH_INSTALL` means only that `uv`, source/runtime
   prerequisites, and the empty Host target were verified without a write; it is not an install or go-live claim.
-- `x2n release input-template` now contains literal, deliberately invalid replacement tokens for every Owner content
-  hash, Douyin Sidecar digest, and Sidecar port. It cannot accidentally validate or arm until the Owner has supplied
-  the real private facts; the source-bound contract digest and fixed boundaries remain intact.
+- `x2n release input-template` contains literal, deliberately invalid replacement tokens for every Owner content hash,
+  Douyin Sidecar digest, and Sidecar port. The provision command emits only the non-secret build-attestation fragment;
+  it cannot fabricate the four real private 20-ID manifests, a loopback port, sign-off, or release receipt.
 - Real Owner Runtime, profiles, platform calls, Notion, models, media, private-database transfer, exact release tag,
   deploy, Side Panel handshake, and online smoke are `NOT_RUN`.
 
@@ -75,16 +78,16 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   configuration; a one-shot, non-invoking preflight with the approved digest-pinned
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
   contacts the client or any remote service.
-- The A005 XHS surface-safety and Owner-private Douyin Sidecar-artifact regressions, both existing XHS fixture
-  suites, extension self-test, focused A005 Companion tests (85), Contract tests (18), Ruff, and current source
-  privacy scan (0 findings across 654 files) passed. These remain synthetic/local checks; they do not prove an Owner
-  baseline.
+- The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
+  both existing XHS fixture suites, extension self-test, focused A005 Companion tests (89), Contract tests (18), and
+  Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
 
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. When the Owner is ready, use the deliberately invalid template only as a private shape, replace every Owner token
-   with four private 20-ID hash manifests and Sidecar facts, configure the approved digest-pinned
+2. When the Owner is ready, first provision the clean-room private Douyin Sidecar, use its attestation fragment with
+   the deliberately invalid template, replace every remaining Owner token with four private 20-ID hash manifests and
+   the loopback port, configure the approved digest-pinned
    Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and no existing
    release state. Then perform the four explicit actions, baseline verification, Markdown/durability
    materialization, rollback rehearsal, sign-off, exact tag, deploy, staged-extension reload, handshake, and

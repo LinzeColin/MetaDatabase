@@ -312,6 +312,17 @@
           "const": true,
           "title": "User Gesture",
           "type": "boolean"
+        },
+        "visible_batch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DouyinVisibleBatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -389,6 +400,17 @@
           "const": true,
           "title": "User Gesture",
           "type": "boolean"
+        },
+        "visible_batch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DouyinVisibleBatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -403,6 +425,179 @@
         "relation"
       ],
       "title": "DouyinLikesStartSyncPayload",
+      "type": "object"
+    },
+    "DouyinVisibleBatch": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "$ref": "#/$defs/DouyinVisibleBatchBoundary"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "errors": {
+          "items": {
+            "$ref": "#/$defs/DouyinVisibleBatchError"
+          },
+          "maxItems": 20,
+          "title": "Errors",
+          "type": "array"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/DouyinVisibleItem"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "platform": {
+          "const": "douyin",
+          "title": "Platform",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "auth_required",
+            "empty_unverified",
+            "partial",
+            "platform_changed",
+            "ready",
+            "verification_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "batch",
+        "code",
+        "errors",
+        "items",
+        "platform",
+        "schema_version",
+        "status"
+      ],
+      "title": "DouyinVisibleBatch",
+      "type": "object"
+    },
+    "DouyinVisibleBatchBoundary": {
+      "additionalProperties": false,
+      "description": "Facts-only current-DOM boundary for one Owner-selected Douyin action.\n\nThe Side Panel never forwards HTML, links, browser state, cookies, media\naddresses, or a platform cursor. The Owner-private loopback Sidecar\nperforms a second strict parse before it creates a sanitized adapter batch.",
+      "properties": {
+        "automatic_scroll": {
+          "const": false,
+          "title": "Automatic Scroll",
+          "type": "boolean"
+        },
+        "completion_signal": {
+          "enum": [
+            "bounded_limit_reached",
+            "more_available",
+            "unknown"
+          ],
+          "title": "Completion Signal",
+          "type": "string"
+        },
+        "explicit_owner_action": {
+          "const": true,
+          "title": "Explicit Owner Action",
+          "type": "boolean"
+        },
+        "visible_card_count": {
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Visible Card Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "automatic_scroll",
+        "completion_signal",
+        "explicit_owner_action",
+        "visible_card_count"
+      ],
+      "title": "DouyinVisibleBatchBoundary",
+      "type": "object"
+    },
+    "DouyinVisibleBatchError": {
+      "additionalProperties": false,
+      "properties": {
+        "card_index": {
+          "anyOf": [
+            {
+              "maximum": 19,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Card Index"
+        },
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        }
+      },
+      "required": [
+        "card_index",
+        "code"
+      ],
+      "title": "DouyinVisibleBatchError",
+      "type": "object"
+    },
+    "DouyinVisibleItem": {
+      "additionalProperties": false,
+      "description": "One non-media Douyin card fact extracted from the currently visible DOM.",
+      "properties": {
+        "content_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "title": "Content Id",
+          "type": "string"
+        },
+        "content_type": {
+          "enum": [
+            "image_gallery",
+            "unknown",
+            "video"
+          ],
+          "title": "Content Type",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Title"
+        }
+      },
+      "required": [
+        "content_id",
+        "content_type",
+        "title"
+      ],
+      "title": "DouyinVisibleItem",
       "type": "object"
     },
     "ErrorCode": {

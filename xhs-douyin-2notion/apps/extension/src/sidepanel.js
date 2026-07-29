@@ -155,7 +155,7 @@ function syncPayload() {
       maxItems,
       scopeId: syncScope.value,
       sourceCollectionId: sourceCollectionId || null,
-      tabId: mvpActivation && syncScope.value.startsWith("xiaohongshu_") ? activeTabId : undefined,
+      tabId: mvpActivation ? activeTabId : undefined,
     };
   }
   const selectionId = ownerSelectionId.value.trim();

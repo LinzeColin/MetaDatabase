@@ -364,6 +364,50 @@ class XhsLikesVisibleBatch(StrictContract):
     ]
 
 
+class DouyinVisibleBatchBoundary(StrictContract):
+    """Facts-only current-DOM boundary for one Owner-selected Douyin action.
+
+    The Side Panel never forwards HTML, links, browser state, cookies, media
+    addresses, or a platform cursor. The Owner-private loopback Sidecar
+    performs a second strict parse before it creates a sanitized adapter batch.
+    """
+
+    automatic_scroll: Literal[False]
+    completion_signal: Literal["bounded_limit_reached", "more_available", "unknown"]
+    explicit_owner_action: Literal[True]
+    visible_card_count: Annotated[int, Field(ge=0, le=20)]
+
+
+class DouyinVisibleBatchError(StrictContract):
+    card_index: Annotated[int, Field(ge=0, le=19)] | None
+    code: ErrorCode
+
+
+class DouyinVisibleItem(StrictContract):
+    """One non-media Douyin card fact extracted from the currently visible DOM."""
+
+    content_id: PlatformContentId
+    content_type: Literal["image_gallery", "unknown", "video"]
+    title: ShortText | None
+
+
+class DouyinVisibleBatch(StrictContract):
+    batch: DouyinVisibleBatchBoundary
+    code: ErrorCode | None
+    errors: Annotated[list[DouyinVisibleBatchError], Field(max_length=20)]
+    items: Annotated[list[DouyinVisibleItem], Field(max_length=20)]
+    platform: Literal[Platform.DOUYIN]
+    schema_version: SchemaVersion
+    status: Literal[
+        "auth_required",
+        "empty_unverified",
+        "partial",
+        "platform_changed",
+        "ready",
+        "verification_required",
+    ]
+
+
 class XiaohongshuFavoritesStartSyncPayload(_RelationListStartSyncPayload):
     scope_id: Literal[SyncScopeId.XIAOHONGSHU_FAVORITES]
     platform: Literal[Platform.XIAOHONGSHU]
@@ -385,6 +429,7 @@ class DouyinFavoritesStartSyncPayload(_RelationListStartSyncPayload):
     platform: Literal[Platform.DOUYIN]
     relation: Literal[RelationType.FAVORITED]
     source_collection_id: SafeToken | None = None
+    visible_batch: DouyinVisibleBatch | None = None
 
 
 class DouyinLikesStartSyncPayload(_RelationListStartSyncPayload):
@@ -392,6 +437,7 @@ class DouyinLikesStartSyncPayload(_RelationListStartSyncPayload):
     platform: Literal[Platform.DOUYIN]
     relation: Literal[RelationType.LIKED]
     source_collection_id: SafeToken | None = None
+    visible_batch: DouyinVisibleBatch | None = None
 
 
 class _SelectedCollectionStartSyncPayload(StartSyncPayloadBase):

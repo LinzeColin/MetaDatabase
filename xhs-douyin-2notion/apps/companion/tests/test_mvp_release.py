@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import socket
 import tempfile
 import unittest
 import uuid
@@ -28,6 +29,11 @@ from x2n_companion.mvp_release import (
     verify_owner_private_douyin_sidecar_bundle,
 )
 from x2n_companion.douyin_upstream import DouyinBatch, DouyinItem
+from x2n_companion.douyin_visible_sidecar import (
+    PROVISION_CONFIRMATION,
+    clean_room_sidecar_build,
+    provision_owner_private_visible_sidecar,
+)
 from x2n_companion.native_host import DEVELOPMENT_EXTENSION_ORIGIN, dispatch_wire
 from x2n_companion.native_host_installer import create_plan
 from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRuntimeError
@@ -35,14 +41,6 @@ from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRunti
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 OWNER_MVP_STATE_SCHEMA = PROJECT_ROOT / "machine/schemas/owner_mvp_release_state.schema.json"
-OWNER_SIDECAR_BUNDLE_FILES = {
-    "sidecar": (b"#!/bin/sh\nexit 0\n", 0o700),
-    "resolved-lock.json": (b'{"lock":"owner-test"}\n', 0o600),
-    "sbom.cdx.json": (b'{"bomFormat":"CycloneDX"}\n', 0o600),
-    "transitive-licenses.json": (b'{"licenses":["MIT"]}\n', 0o600),
-}
-
-
 def _write_private(path: Path, value: dict[str, object]) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
     path.chmod(0o600)
@@ -83,23 +81,12 @@ def _owner_input() -> dict[str, object]:
 
 
 def _owner_sidecar_digests() -> dict[str, str]:
-    return {
-        "executable_sha256": hashlib.sha256(OWNER_SIDECAR_BUNDLE_FILES["sidecar"][0]).hexdigest(),
-        "resolved_lock_sha256": hashlib.sha256(OWNER_SIDECAR_BUNDLE_FILES["resolved-lock.json"][0]).hexdigest(),
-        "sbom_sha256": hashlib.sha256(OWNER_SIDECAR_BUNDLE_FILES["sbom.cdx.json"][0]).hexdigest(),
-        "transitive_license_report_sha256": hashlib.sha256(
-            OWNER_SIDECAR_BUNDLE_FILES["transitive-licenses.json"][0]
-        ).hexdigest(),
-    }
+    return clean_room_sidecar_build().safe_dict()
 
 
 def _write_owner_sidecar_bundle(paths: RuntimePaths) -> Path:
-    bundle = paths.ensure_private_directory("runtime/sidecars/douyin/current")
-    for filename, (payload, mode) in OWNER_SIDECAR_BUNDLE_FILES.items():
-        target = bundle / filename
-        target.write_bytes(payload)
-        target.chmod(mode)
-    return bundle
+    provision_owner_private_visible_sidecar(paths, confirmation=PROVISION_CONFIRMATION)
+    return paths.douyin_sidecar_bundle_directory
 
 
 def _release_input() -> dict[str, object]:
@@ -224,6 +211,32 @@ def _favorite_batch() -> dict[str, object]:
         "schema_version": "1.0",
         "status": "ready",
     }
+
+
+def _douyin_visible_batch(prefix: str = "mvp-douyin-favorite") -> dict[str, object]:
+    return {
+        "batch": {
+            "automatic_scroll": False,
+            "completion_signal": "bounded_limit_reached",
+            "explicit_owner_action": True,
+            "visible_card_count": 20,
+        },
+        "code": None,
+        "errors": [],
+        "items": [
+            {"content_id": f"{prefix}-{index:02d}", "content_type": "video", "title": None}
+            for index in range(20)
+        ],
+        "platform": "douyin",
+        "schema_version": "1.0",
+        "status": "ready",
+    }
+
+
+def _available_loopback_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
 
 
 class MvpReleaseTests(unittest.TestCase):
@@ -424,7 +437,7 @@ class MvpReleaseTests(unittest.TestCase):
         sidecar.chmod(0o700)
         with self.assertRaises(X2NRuntimeError) as blocked:
             verify_owner_private_douyin_sidecar_bundle(self.paths, release_input.douyin_build)
-        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
         self.assertNotIn(str(self.paths.data_root), str(blocked.exception))
 
     def test_arm_requires_matched_owner_private_sidecar_before_backup(self) -> None:
@@ -434,7 +447,7 @@ class MvpReleaseTests(unittest.TestCase):
         with mock.patch.object(self.store, "backup") as backup:
             with self.assertRaises(X2NRuntimeError) as blocked:
                 MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
-        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
         backup.assert_not_called()
         self.assertFalse(self.paths.owner_mvp_release_state.exists())
         self.assertFalse(self.paths._validate_marker()["product_execution_authorized"])
@@ -449,15 +462,15 @@ class MvpReleaseTests(unittest.TestCase):
             platform=Platform.DOUYIN,
             relation=RelationType.FAVORITED,
         )
-        with mock.patch("x2n_companion.mvp_release.LoopbackRestDouyinTransport") as transport:
+        with mock.patch("x2n_companion.mvp_release.OwnerPrivateVisibleSidecarClient") as sidecar_client:
             with self.assertRaises(X2NRuntimeError) as blocked:
                 MvpActivationExecutor(controller, self.store)._execute_douyin(
                     binding=binding,
                     payload=SimpleNamespace(max_items=20),
                     scan_id=controller.scope_scan_id(SyncScopeId.DOUYIN_FAVORITES),
                 )
-        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
-        transport.assert_not_called()
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+        sidecar_client.assert_not_called()
         self.assertEqual(self.store.counts()["content"], 0)
         self.assertEqual(self.store.counts()["user_relation"], 0)
 
@@ -503,6 +516,35 @@ class MvpReleaseTests(unittest.TestCase):
             connection.close()
         assert checkpoint is not None
         self.assertEqual(json.loads(str(checkpoint["cursor_value_private"]))["scope_mode"], "owner_mvp_20")
+
+    def test_native_host_commits_one_clean_room_douyin_visible_sidecar_action(self) -> None:
+        release_input = _release_input()
+        sidecar = release_input["douyin_sidecar"]
+        assert isinstance(sidecar, dict)
+        sidecar["port"] = _available_loopback_port()
+        _write_private(self.paths.owner_mvp_release_input, release_input)
+        MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        payload: dict[str, object] = {
+            "auto_scroll": False,
+            "bounded_batch": True,
+            "change_account_state": False,
+            "dispatch_version": "1.0",
+            "max_items": 20,
+            "platform": "douyin",
+            "relation": "favorited",
+            "scope_id": "douyin_favorites",
+            "source_collection_id": None,
+            "user_gesture": True,
+            "visible_batch": _douyin_visible_batch(),
+        }
+        response = dispatch_wire(_wire(payload), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertTrue(response.accepted)
+        self.assertEqual(response.status.value, "completed")
+        self.assertEqual(self.store.counts()["content"], 20)
+        self.assertEqual(self.store.counts()["user_relation"], 20)
+        controller = MvpReleaseController.load(self.paths)
+        assert controller is not None
+        self.assertEqual(set(controller.state["scope_jobs"]), {"douyin_favorites"})
 
     def test_private_manifest_mismatch_blocks_before_any_canonical_write(self) -> None:
         MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
@@ -562,7 +604,12 @@ class MvpReleaseTests(unittest.TestCase):
                 with self.assertRaises(X2NRuntimeError):
                     MvpActivationExecutor(controller, self.store)._execute_douyin(
                         binding=binding,
-                        payload=SimpleNamespace(max_items=20),
+                        payload=SimpleNamespace(
+                            max_items=20,
+                            visible_batch=SimpleNamespace(
+                                model_dump=lambda **_kwargs: _douyin_visible_batch(),
+                            ),
+                        ),
                         scan_id=controller.scope_scan_id(SyncScopeId.DOUYIN_FAVORITES),
                     )
         begin_scan.assert_not_called()

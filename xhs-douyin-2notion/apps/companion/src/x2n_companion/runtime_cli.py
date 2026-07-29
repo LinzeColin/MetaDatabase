@@ -44,6 +44,10 @@ from .mvp_release import (
     owner_input_contract_sha256,
     verify_owner_private_douyin_sidecar_bundle,
 )
+from .douyin_visible_sidecar import (
+    PROVISION_CONFIRMATION,
+    provision_owner_private_visible_sidecar,
+)
 from .native_host_installer import fresh_install_readiness
 from .operations import RECOVERY_CONFIRMATION, OperationsService, build_local_doctor_probe
 from .ocr_vision import (
@@ -262,6 +266,22 @@ def _owner_mvp_input_template() -> dict[str, Any]:
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if args.action == "release":
+        if args.release_action == "provision-douyin-visible-sidecar":
+            build = provision_owner_private_visible_sidecar(_paths(), confirmation=args.confirm)
+            return _success(
+                "release_provision_douyin_visible_sidecar",
+                acceptance_scope="ASSURANCE_005_DOUYIN_CLEAN_ROOM_SIDECAR",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=PROVISION_CONFIRMATION,
+                douyin_sidecar={
+                    "artifact_count": 4,
+                    "attestation": build.safe_dict(),
+                    "paths_emitted": False,
+                    "platform_calls": 0,
+                    "runtime_kind": "x2n_clean_room_visible_dom",
+                    "upstream_executed": False,
+                },
+            )
         if args.release_action == "input-template":
             return _success(
                 "release_input_template",
@@ -816,6 +836,8 @@ def build_parser() -> argparse.ArgumentParser:
     owner_mvp_plan.add_argument("--items", type=int, default=80)
     release = subparsers.add_parser("release")
     release_actions = release.add_subparsers(dest="release_action", required=True)
+    release_sidecar = release_actions.add_parser("provision-douyin-visible-sidecar")
+    release_sidecar.add_argument("--confirm", required=True, help=f"Required literal: {PROVISION_CONFIRMATION}")
     release_actions.add_parser("input-template")
     release_actions.add_parser("preflight")
     release_actions.add_parser("validate-input")

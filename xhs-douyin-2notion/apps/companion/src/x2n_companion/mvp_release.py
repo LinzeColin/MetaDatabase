@@ -29,11 +29,13 @@ from .adapter_dispatch import CapabilityGateInputs, CapabilityRegistry, ScopeBin
 from .adapter_guard import AdapterExecutionGate
 from .canonical_store import CanonicalStore
 from .douyin_adapter import DouyinAdapter, DouyinBatchCoordinator
+from .douyin_visible_sidecar import (
+    OwnerPrivateVisibleSidecarClient,
+    VisibleBatchRequest,
+    clean_room_sidecar_build,
+)
 from .douyin_upstream import (
     DouyinBatch,
-    DouyinBatchRequest,
-    LoopbackRestDouyinTransport,
-    PinnedDouyinClient,
     SidecarBuildAttestation,
 )
 from .lifecycle import LifecycleService, PrivateDbTransport
@@ -233,6 +235,8 @@ def verify_owner_private_douyin_sidecar_bundle(
             label="Douyin Sidecar artifact",
         )
     actual = SidecarBuildAttestation(scope="owner_private_build", **observed)
+    if actual != clean_room_sidecar_build():
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin Sidecar bundle is not the approved clean-room build")
     if actual != expected_build:
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin Sidecar bundle attestation mismatch")
     return {"artifact_count": len(_SIDECAR_BUNDLE_FILES), "paths_emitted": False, "status": "VERIFIED"}
@@ -1256,15 +1260,25 @@ class MvpActivationExecutor:
     def _execute_douyin(self, *, binding: ScopeBinding, payload: Any, scan_id: str) -> dict[str, Any]:
         if payload.max_items != 20 or binding.adapter_mode not in {"favorites", "likes"}:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin MVP action exceeds the fixed boundary")
+        if getattr(payload, "source_collection_id", None) is not None:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin MVP action cannot infer a collection from page state")
         verify_owner_private_douyin_sidecar_bundle(self.controller.paths, self.controller.release_input.douyin_build)
+        if payload.visible_batch is None:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin MVP action requires one visible 20-item batch")
         observed_at, monotonic_time = self._clock()
-        client = PinnedDouyinClient(
-            LoopbackRestDouyinTransport(self.controller.release_input.douyin_port),
+        client = OwnerPrivateVisibleSidecarClient(
+            self.controller.paths,
             expected_build=self.controller.release_input.douyin_build,
-            allow_synthetic=False,
+            port=self.controller.release_input.douyin_port,
         )
         adapter = DouyinAdapter(self.store)
         coordinator = DouyinBatchCoordinator(adapter, client, AdapterExecutionGate(self.controller.paths))
+        request = VisibleBatchRequest(
+            mode=binding.adapter_mode,
+            sequence=0,
+            visible_batch=payload.visible_batch.model_dump(mode="json", by_alias=True),
+            max_items=20,
+        )
 
         def validate_batch(batch: DouyinBatch) -> None:
             self._require_exact_batch(batch)
@@ -1282,7 +1296,7 @@ class MvpActivationExecutor:
 
         receipt = coordinator.apply_owner_action(
             scan_id,
-            DouyinBatchRequest(mode=binding.adapter_mode, sequence=0, max_items=20),
+            request,
             observed_at=observed_at,
             monotonic_batch_time=monotonic_time,
             monotonic_observation_time=monotonic_time,

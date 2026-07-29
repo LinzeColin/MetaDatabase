@@ -10,6 +10,10 @@ import {
   validateDouyinPageFacts,
 } from "./douyin-current-page.js";
 import {
+  extractDouyinVisibleBatch,
+  validateDouyinVisibleBatch,
+} from "./douyin-visible-lists.js";
+import {
   buildKuaishouCapturePayload,
   extractKuaishouCurrentPage,
   validateKuaishouPageFacts,
@@ -122,7 +126,17 @@ const CURRENT_PAGE_ADAPTERS = Object.freeze({
     validate: validateXhsPageFacts,
   }),
 });
-const XHS_VISIBLE_BATCH_ADAPTERS = Object.freeze({
+const MVP_VISIBLE_BATCH_ADAPTERS = Object.freeze({
+  douyin_favorites: Object.freeze({
+    extract: extractDouyinVisibleBatch,
+    mode: "favorites",
+    validate: validateDouyinVisibleBatch,
+  }),
+  douyin_likes: Object.freeze({
+    extract: extractDouyinVisibleBatch,
+    mode: "likes",
+    validate: validateDouyinVisibleBatch,
+  }),
   xiaohongshu_favorites: Object.freeze({
     extract: extractXhsFavoritesVisibleBatch,
     validate: validateXhsFavoritesBatch,
@@ -248,8 +262,8 @@ async function activeOwnerTab(tabId) {
   return tab;
 }
 
-async function captureVisibleXhsBatch(message, payload) {
-  const adapter = XHS_VISIBLE_BATCH_ADAPTERS[payload.scope_id];
+async function captureVisibleMvpBatch(message, payload) {
+  const adapter = MVP_VISIBLE_BATCH_ADAPTERS[payload.scope_id];
   if (!adapter || payload.max_items !== 20) {
     return { ok: false, code: "X2N_POLICY_BLOCKED", status: "platform_disabled" };
   }
@@ -264,6 +278,7 @@ async function captureVisibleXhsBatch(message, payload) {
     injected = await chrome.scripting.executeScript({
       args: [{
         maxItems: 20,
+        mode: adapter.mode,
         ownerGesture: true,
         scopeMode: message.activationMode === "mvp_activation_candidate" ? "owner_mvp_20" : "canary_20",
       }],
@@ -396,8 +411,11 @@ async function handleMessage(message, sender) {
     if (message.type === "X2N_START_SYNC") {
       const payload = buildStartSyncPayload(message);
       if (!payload) return { ok: false, code: "X2N_INVALID_INPUT", status: "rejected" };
-      if (message.activationMode === "mvp_activation_candidate" && payload.platform === "xiaohongshu") {
-        return captureVisibleXhsBatch(message, payload);
+      if (
+        message.activationMode === "mvp_activation_candidate"
+        && new Set(["douyin", "xiaohongshu"]).has(payload.platform)
+      ) {
+        return captureVisibleMvpBatch(message, payload);
       }
       const response = await nativeRequest("start_sync", payload);
       return {
