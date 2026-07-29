@@ -480,7 +480,9 @@ def _audit_imports(
     errors: List[Dict[str, Any]] = []
     audited: List[str] = []
     allowed_third_party = set(import_mapping)
-    allowed_local = {"abd_acceptance", "machine"}
+    # ``mail_collector`` is the task-pack-mandated S06/P02 root-level module.
+    # It is local source, not an unclassified third-party distribution.
+    allowed_local = {"abd_acceptance", "machine", "mail_collector"}
     stdlib = set(sys.stdlib_module_names)
     for path in paths:
         relative = path.relative_to(root).as_posix()

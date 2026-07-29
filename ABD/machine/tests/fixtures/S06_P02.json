@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S06-P02",
+  "contract_id": "AC-S06-P02",
+  "requirement_id": "REQ-S06-P02",
+  "fixed_clock": "2026-07-29T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "archive_root_segments": [
+    "private",
+    "Private-MetaDatabase",
+    "ABD"
+  ],
+  "mail_record": {
+    "gmail_message_id": "MSG0001",
+    "source_history_id": "1000",
+    "received_at_utc": "2026-07-29T00:00:00Z",
+    "raw_eml_base64": "RnJvbTogcmVjb3Jkc0BldmlkZW5jZS50ZXN0LmludmFsaWQNClRvOiBvd25lckBhYmQudGVzdC5pbnZhbGlkDQpTdWJqZWN0OiBUQUIgc3RhdGVtZW50DQpNZXNzYWdlLUlEOiA8TVNHMDAwMUBldmlkZW5jZS50ZXN0LmludmFsaWQ+DQpEYXRlOiBUdWUsIDI5IEp1bCAyMDI2IDAwOjAwOjAwICswMDAwDQoNClN5bnRoZXRpYyBldmlkZW5jZSBvbmx5Lg0K",
+    "headers": {
+      "Authentication-Results": "mx.evidence.test.invalid; dkim=pass; spf=pass",
+      "Date": "Tue, 29 Jul 2026 00:00:00 +0000",
+      "From": "records@evidence.test.invalid",
+      "Message-ID": "<MSG0001@evidence.test.invalid>",
+      "Subject": "TAB statement",
+      "To": "owner@abd.test.invalid"
+    },
+    "attachments": [
+      {
+        "attachment_id": "ATT0001",
+        "filename": "tab-statement.csv",
+        "content_base64": "ZXZlbnRfaWQsYW1vdW50ClQtMDAxLDEwLjAwCg=="
+      },
+      {
+        "attachment_id": "ATT0002",
+        "filename": "tab-statement.pdf",
+        "content_base64": "JVBERi1zeW50aGV0aWMtdGFiLXN0YXRlbWVudAo="
+      }
+    ]
+  },
+  "cadence": {
+    "last_success_epoch": 1000,
+    "not_due_epoch": 1899,
+    "due_epoch": 1900,
+    "later_due_epoch": 1901
+  },
+  "numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "adverse_odds_tick_action": "NOT_APPLICABLE_NO_ODDS_OR_ORDER_ACTION_IN_S06_P02",
+  "expected_oracle_check_minimum": 31,
+  "minimum_targeted_pytest_cases": 45,
+  "minimum_full_pytest_cases": 4658,
+  "expected_next": "S06/P03_READY_NOT_STARTED",
+  "expected_release_status": "NOT_READY_S06_P03_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED"
+}
