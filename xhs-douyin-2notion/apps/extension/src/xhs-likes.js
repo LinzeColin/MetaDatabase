@@ -100,20 +100,25 @@ export function extractXhsLikesVisibleBatch(input) {
   const isHidden = (node) => node.hidden
     || node.getAttribute("aria-hidden") === "true"
     || node.closest("[hidden], [aria-hidden=\"true\"]") !== null;
-  const observedProfileSurface = (label) => {
+  const observedProfileSurface = (labels) => {
+    const expectedLabels = new Set(labels);
     const shells = [...globalThis.document.querySelectorAll("#userPageContainer.user-page")]
       .filter((node) => !isHidden(node));
     if (shells.length !== 1) return null;
     const tabLists = [...shells[0].querySelectorAll(".reds-tabs-list.tertiary")]
       .filter((node) => !isHidden(node));
-    if (tabLists.length !== 1) return null;
-    const selected = [...tabLists[0].children].filter((node) => (
-      node.matches("div.reds-tab-item.sub-tab-list")
-      && !isHidden(node)
-      && node.classList.contains("active")
-      && normalizeText(node.textContent) === label
+    const matchingLists = tabLists.filter((tabList) => (
+      [...tabList.children].filter((node) => (
+        node.matches("div.reds-tab-item.sub-tab-list")
+        && !isHidden(node)
+        && node.classList.contains("active")
+        && expectedLabels.has(normalizeText(node.textContent))
+      )).length === 1
     ));
-    if (selected.length !== 1) return null;
+    // Current profiles can contain additional visible tertiary controls.  They
+    // are not evidence of a selected likes list unless the semantic relation
+    // is selected uniquely in exactly one direct tab list.
+    if (matchingLists.length !== 1) return null;
     const root = shells[0].querySelector("#userPostedFeeds");
     return root && !isHidden(root) ? root : null;
   };
@@ -147,20 +152,23 @@ export function extractXhsLikesVisibleBatch(input) {
 
     let root = globalThis.document.querySelector('[data-x2n-surface="xhs-likes"]');
     if (!root && /^\/user\/profile\/[A-Za-z0-9._-]+\/?$/u.test(locationUrl.pathname)) {
-      // A cosmetic "active" class on a profile counter is not evidence that the
-      // liked-items list is selected. Require a semantic interactive control so
-      // ordinary profile content can never be misclassified as likes.
-      const selected = [...globalThis.document.querySelectorAll([
-        'button[aria-selected="true"]',
-        'button[data-active="true"]',
-        'a[aria-selected="true"]',
-        'a[data-active="true"]',
-        '[role="tab"][aria-selected="true"]',
-        '[role="tab"][data-active="true"]',
-        '[role="tab"].active',
-      ].join(", "))].find((node) => normalizeText(node.textContent) === "赞过");
-      if (selected) root = globalThis.document.querySelector("main, [role=\"main\"]");
-      if (!root) root = observedProfileSurface("赞过");
+      const likeLabels = ["赞过", "点赞"];
+      root = observedProfileSurface(likeLabels);
+      if (!root) {
+        // "赞过" and the currently observed "点赞" are the two explicit
+        // relation labels accepted here.  A cosmetic active counter remains
+        // insufficient, and no generic profile feed is ever selected.
+        const selected = [...globalThis.document.querySelectorAll([
+          'button[aria-selected="true"]',
+          'button[data-active="true"]',
+          'a[aria-selected="true"]',
+          'a[data-active="true"]',
+          '[role="tab"][aria-selected="true"]',
+          '[role="tab"][data-active="true"]',
+          '[role="tab"].active',
+        ].join(", "))].find((node) => !isHidden(node) && likeLabels.includes(normalizeText(node.textContent)));
+        if (selected) root = globalThis.document.querySelector("main, [role=\"main\"]");
+      }
     }
     if (!root) return surfaceFailure("platform_changed", "X2N_PLATFORM_CHANGED");
 

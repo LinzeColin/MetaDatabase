@@ -96,20 +96,25 @@ export function extractXhsFavoritesVisibleBatch(input) {
   const isHidden = (node) => node.hidden
     || node.getAttribute("aria-hidden") === "true"
     || node.closest("[hidden], [aria-hidden=\"true\"]") !== null;
-  const observedProfileSurface = (label) => {
+  const observedProfileSurface = (labels) => {
+    const expectedLabels = new Set(labels);
     const shells = [...globalThis.document.querySelectorAll("#userPageContainer.user-page")]
       .filter((node) => !isHidden(node));
     if (shells.length !== 1) return null;
     const tabLists = [...shells[0].querySelectorAll(".reds-tabs-list.tertiary")]
       .filter((node) => !isHidden(node));
-    if (tabLists.length !== 1) return null;
-    const selected = [...tabLists[0].children].filter((node) => (
-      node.matches("div.reds-tab-item.sub-tab-list")
-      && !isHidden(node)
-      && node.classList.contains("active")
-      && normalizeText(node.textContent) === label
+    const matchingLists = tabLists.filter((tabList) => (
+      [...tabList.children].filter((node) => (
+        node.matches("div.reds-tab-item.sub-tab-list")
+        && !isHidden(node)
+        && node.classList.contains("active")
+        && expectedLabels.has(normalizeText(node.textContent))
+      )).length === 1
     ));
-    if (selected.length !== 1) return null;
+    // Current profiles can contain additional visible tertiary controls.  They
+    // are not evidence of a selected collection unless exactly one direct tab
+    // in exactly one list matches the expected relation label.
+    if (matchingLists.length !== 1) return null;
     const root = shells[0].querySelector("#userPostedFeeds");
     return root && !isHidden(root) ? root : null;
   };
@@ -143,20 +148,22 @@ export function extractXhsFavoritesVisibleBatch(input) {
 
     let root = globalThis.document.querySelector('[data-x2n-surface="xhs-favorites"]');
     if (!root && /^\/user\/profile\/[A-Za-z0-9._-]+\/?$/u.test(locationUrl.pathname)) {
-      // A cosmetic "active" class on a profile counter is not evidence that the
-      // collection list is selected. Require a semantic interactive control so
-      // ordinary profile content can never be misclassified as favorites.
-      const selected = [...globalThis.document.querySelectorAll([
-        'button[aria-selected="true"]',
-        'button[data-active="true"]',
-        'a[aria-selected="true"]',
-        'a[data-active="true"]',
-        '[role="tab"][aria-selected="true"]',
-        '[role="tab"][data-active="true"]',
-        '[role="tab"].active',
-      ].join(", "))].find((node) => normalizeText(node.textContent) === "收藏");
-      if (selected) root = globalThis.document.querySelector("main, [role=\"main\"]");
-      if (!root) root = observedProfileSurface("收藏");
+      root = observedProfileSurface(["收藏"]);
+      if (!root) {
+        // A cosmetic "active" class on a profile counter is not evidence that
+        // the collection list is selected.  Keep the older semantic-control
+        // fallback for layouts without the owner-scoped profile surface.
+        const selected = [...globalThis.document.querySelectorAll([
+          'button[aria-selected="true"]',
+          'button[data-active="true"]',
+          'a[aria-selected="true"]',
+          'a[data-active="true"]',
+          '[role="tab"][aria-selected="true"]',
+          '[role="tab"][data-active="true"]',
+          '[role="tab"].active',
+        ].join(", "))].find((node) => !isHidden(node) && normalizeText(node.textContent) === "收藏");
+        if (selected) root = globalThis.document.querySelector("main, [role=\"main\"]");
+      }
     }
     if (!root) return surfaceFailure("platform_changed", "X2N_PLATFORM_CHANGED");
 

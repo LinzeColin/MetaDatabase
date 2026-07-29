@@ -26,6 +26,24 @@ function profileHtml({ label, semantic }) {
   </body></html>`;
 }
 
+function observedProfileHtml({ label, duplicateSelectedLabel = null }) {
+  const duplicateList = duplicateSelectedLabel === null
+    ? '<div class="reds-tabs-list tertiary"><div class="unrelated-control">other</div></div>'
+    : `<div class="reds-tabs-list tertiary"><div class="reds-tab-item sub-tab-list active">${duplicateSelectedLabel}</div></div>`;
+  return `<!doctype html><html><body>
+    <div id="userPageContainer" class="user-page">
+      <div class="reds-tabs-list tertiary">
+        <div class="reds-tab-item sub-tab-list">笔记</div>
+        <div class="reds-tab-item sub-tab-list active">${label}</div>
+      </div>
+      ${duplicateList}
+      <div id="userPostedFeeds"><article data-x2n-card data-x2n-note-type="video">
+        <a href="/explore/synth-observed-profile-item">synthetic item</a>
+      </article></div>
+    </div>
+  </body></html>`;
+}
+
 const cases = [
   {
     id: "favorites_profile_counter_rejected",
@@ -59,6 +77,46 @@ const cases = [
     extract: extractXhsLikesVisibleBatch,
     validate: validateXhsLikesBatch,
   },
+  {
+    id: "favorites_multiple_tertiary_lists_unique_selected_relation_accepted",
+    html: observedProfileHtml({ label: "收藏" }),
+    expectedItems: 1,
+    expectedStatus: "ready",
+    extract: extractXhsFavoritesVisibleBatch,
+    validate: validateXhsFavoritesBatch,
+  },
+  {
+    id: "likes_current_label_alias_multiple_tertiary_lists_accepted",
+    html: observedProfileHtml({ label: "点赞" }),
+    expectedItems: 1,
+    expectedStatus: "ready",
+    extract: extractXhsLikesVisibleBatch,
+    validate: validateXhsLikesBatch,
+  },
+  {
+    id: "favorites_ambiguous_multiple_selected_relations_rejected",
+    html: observedProfileHtml({ label: "收藏", duplicateSelectedLabel: "收藏" }),
+    expectedItems: 0,
+    expectedStatus: "platform_changed",
+    extract: extractXhsFavoritesVisibleBatch,
+    validate: validateXhsFavoritesBatch,
+  },
+  {
+    id: "likes_nonmatching_secondary_relation_ignored",
+    html: observedProfileHtml({ label: "点赞", duplicateSelectedLabel: "收藏" }),
+    expectedItems: 1,
+    expectedStatus: "ready",
+    extract: extractXhsLikesVisibleBatch,
+    validate: validateXhsLikesBatch,
+  },
+  {
+    id: "likes_ambiguous_multiple_selected_relations_rejected",
+    html: observedProfileHtml({ label: "点赞", duplicateSelectedLabel: "点赞" }),
+    expectedItems: 0,
+    expectedStatus: "platform_changed",
+    extract: extractXhsLikesVisibleBatch,
+    validate: validateXhsLikesBatch,
+  },
 ];
 
 let browser;
@@ -78,7 +136,7 @@ try {
 
   for (const testCase of cases) {
     currentCase = testCase.id;
-    currentHtml = profileHtml(testCase);
+    currentHtml = testCase.html ?? profileHtml(testCase);
     await page.goto(`https://www.xiaohongshu.com/user/profile/${testCase.id}`, { waitUntil: "domcontentloaded" });
     const result = testCase.validate(await page.evaluate(
       testCase.extract,
@@ -87,10 +145,8 @@ try {
     requireCondition(result.status === testCase.expectedStatus, "profile_surface_status");
     requireCondition(result.batch.automatic_scroll === false, "automatic_scroll");
     requireCondition(result.batch.explicit_owner_action === true, "owner_action");
-    requireCondition(
-      (testCase.semantic && result.items.length === 1) || (!testCase.semantic && result.items.length === 0),
-      "profile_surface_item_count",
-    );
+    const expectedItems = testCase.expectedItems ?? (testCase.semantic ? 1 : 0);
+    requireCondition(result.items.length === expectedItems, "profile_surface_item_count");
   }
   requireCondition(unexpectedRequests.length === 0, "unexpected_network_requests");
   process.stdout.write(`${JSON.stringify({
