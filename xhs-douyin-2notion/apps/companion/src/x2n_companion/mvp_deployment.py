@@ -41,6 +41,7 @@ from .runtime import RuntimePaths, X2NRuntimeError, _atomic_private_json
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 DEPLOY_CONFIRMATION = "DEPLOY_X2N_OWNER_MVP_V0_0_0_1"
 ONLINE_SMOKE_CONFIRMATION = "ONLINE_SMOKE_X2N_OWNER_MVP_V0_0_0_1"
+PREARM_HOST_CONFIRMATION = "INSTALL_X2N_PREARM_SIDEPANEL_HOST"
 _EXTENSION_RELEASE_IDENTITY = "release_identity.json"
 _PREARM_MANIFEST = "prearm_manifest.json"
 _PREARM_ARTIFACT_KIND = "owner_prearm_sidepanel"
@@ -525,6 +526,37 @@ class MvpDeploymentManager:
             release_source_root=target,
             release_artifact_sha256=staged.artifact_sha256,
         )
+
+    def install_prearm_native_host(
+        self,
+        *,
+        confirmation: str,
+        browser: str,
+        staged: PrearmSidePanel,
+    ) -> dict[str, Any]:
+        """Install one owner-confirmed pre-arm Host without creating a release."""
+
+        if confirmation != PREARM_HOST_CONFIRMATION:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Native Host install confirmation is missing")
+        plan = self.prearm_native_host_plan(browser=browser, home=Path.home(), env=os.environ, staged=staged)
+        if any(
+            path.exists() or path.is_symlink() for path in (plan.runtime_path, plan.launcher_path, plan.manifest_path)
+        ):
+            raise X2NRuntimeError(
+                ErrorCode.POLICY_BLOCKED,
+                "Pre-arm Native Host will not overwrite an existing Host; uninstall the owned bridge first",
+            )
+        receipt = execute_plan(plan, confirmation=INSTALL_CONFIRMATION)
+        if receipt.get("status") != "INSTALLED":
+            raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Pre-arm Native Host installation did not complete")
+        binding = verify_release_installation(plan, release_artifact_sha256=staged.artifact_sha256)
+        return {
+            "native_host_prearm_bound": binding["native_host_release_bound"],
+            "native_host_prearm_installed": True,
+            "native_host_transaction": "atomic_or_rolled_back",
+            "paths_emitted": False,
+            "release_pointer_changed": False,
+        }
 
     def switch(self, staged: StagedRelease) -> BlueGreenReceipt:
         _install, versions, current, previous = _release_layout(self.paths)

@@ -38,7 +38,7 @@ from x2n_companion.douyin_visible_sidecar import (
     provision_owner_private_visible_sidecar,
 )
 from x2n_companion.native_host import DEVELOPMENT_EXTENSION_ORIGIN, dispatch_wire
-from x2n_companion.native_host_installer import create_plan
+from x2n_companion.native_host_installer import UNINSTALL_CONFIRMATION, create_plan, execute_plan
 from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRuntimeError
 
 
@@ -1175,6 +1175,134 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertFalse(payload["prearm_sidepanel"]["paths_emitted"])
         self.assertFalse(payload["prearm_sidepanel"]["release_pointer_changed"])
         self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
+
+    def test_prearm_native_host_install_is_confirmation_bound_and_source_bound(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage_prearm_sidepanel()
+        with self.assertRaises(X2NRuntimeError):
+            manager.install_prearm_native_host(confirmation="wrong", browser="chromium", staged=staged)
+
+        plan = manager.prearm_native_host_plan(
+            browser="chromium",
+            home=Path.home(),
+            env={ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+            staged=staged,
+        )
+        with (
+            mock.patch.object(manager, "prearm_native_host_plan", return_value=plan),
+            mock.patch("x2n_companion.mvp_deployment.execute_plan", return_value={"status": "INSTALLED"}) as execute,
+            mock.patch(
+                "x2n_companion.mvp_deployment.verify_release_installation",
+                return_value={"native_host_release_bound": True},
+            ) as verify,
+        ):
+            receipt = manager.install_prearm_native_host(
+                confirmation=mvp_deployment.PREARM_HOST_CONFIRMATION,
+                browser="chromium",
+                staged=staged,
+            )
+        self.assertTrue(receipt["native_host_prearm_installed"])
+        self.assertTrue(receipt["native_host_prearm_bound"])
+        self.assertFalse(receipt["release_pointer_changed"])
+        execute.assert_called_once_with(plan, confirmation=mvp_deployment.INSTALL_CONFIRMATION)
+        verify.assert_called_once_with(plan, release_artifact_sha256=staged.artifact_sha256)
+
+    def test_prearm_native_host_install_refuses_existing_target(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage_prearm_sidepanel()
+        plan = manager.prearm_native_host_plan(
+            browser="chromium",
+            home=Path(self.temporary.name) / "prearm-host-home",
+            env={ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+            staged=staged,
+        )
+        plan.runtime_path.parent.mkdir(parents=True)
+        plan.runtime_path.mkdir()
+        with (
+            mock.patch.object(manager, "prearm_native_host_plan", return_value=plan),
+            self.assertRaises(X2NRuntimeError),
+        ):
+            manager.install_prearm_native_host(
+                confirmation=mvp_deployment.PREARM_HOST_CONFIRMATION,
+                browser="chromium",
+                staged=staged,
+            )
+
+    def test_prearm_native_host_install_executes_from_the_stable_bundle(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage_prearm_sidepanel()
+        home = Path(self.temporary.name) / "prearm-real-host-home"
+        environment = {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)}
+        with (
+            mock.patch.object(mvp_deployment.Path, "home", return_value=home),
+            mock.patch.dict(os.environ, environment),
+        ):
+            receipt = manager.install_prearm_native_host(
+                confirmation=mvp_deployment.PREARM_HOST_CONFIRMATION,
+                browser="chromium",
+                staged=staged,
+            )
+        self.assertTrue(receipt["native_host_prearm_installed"])
+        self.assertTrue(receipt["native_host_prearm_bound"])
+        bundle = manager._prearm_target(staged)
+        uninstall = create_plan(
+            action="uninstall",
+            browser="chromium",
+            home=home,
+            env={},
+            release_source_root=bundle,
+            release_artifact_sha256=staged.artifact_sha256,
+        )
+        self.assertEqual(execute_plan(uninstall, confirmation=UNINSTALL_CONFIRMATION)["status"], "UNINSTALLED")
+
+    def test_release_prearm_host_command_never_emits_private_path(self) -> None:
+        args = runtime_cli.build_parser().parse_args(
+            [
+                "release",
+                "install-prearm-sidepanel-host",
+                "--browser",
+                "chromium",
+                "--confirm",
+                mvp_deployment.PREARM_HOST_CONFIRMATION,
+            ]
+        )
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(
+                MvpDeploymentManager,
+                "install_prearm_native_host",
+                return_value={
+                    "native_host_prearm_bound": True,
+                    "native_host_prearm_installed": True,
+                    "native_host_transaction": "atomic_or_rolled_back",
+                    "paths_emitted": False,
+                    "release_pointer_changed": False,
+                },
+            ),
+        ):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["action"], "release_install_prearm_sidepanel_host")
+        self.assertTrue(payload["native_host_prearm_installed"])
+        self.assertFalse(payload["prearm_sidepanel"]["paths_emitted"])
+        self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
+
+    def test_release_prearm_host_command_rejects_bad_confirmation_before_staging(self) -> None:
+        args = runtime_cli.build_parser().parse_args(["release", "install-prearm-sidepanel-host", "--confirm", "wrong"])
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(MvpDeploymentManager, "stage_prearm_sidepanel") as stage_prearm,
+            self.assertRaises(X2NRuntimeError),
+        ):
+            runtime_cli.run(args)
+        stage_prearm.assert_not_called()
 
     def test_staged_native_host_plan_binds_private_artifact_sources(self) -> None:
         manager = MvpDeploymentManager(self.paths)

@@ -32,6 +32,7 @@ from .media_safety import scan_persisted_scopes
 from .mvp_deployment import (
     DEPLOY_CONFIRMATION,
     ONLINE_SMOKE_CONFIRMATION,
+    PREARM_HOST_CONFIRMATION,
     MvpDeploymentManager,
 )
 from .mvp_release import (
@@ -327,6 +328,26 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 prearm_sidepanel=staged.safe_dict(),
                 platform_calls=0,
                 real_account_execution="NOT_RUN",
+            )
+        if args.release_action == "install-prearm-sidepanel-host":
+            if args.confirm != PREARM_HOST_CONFIRMATION:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Native Host install confirmation is missing")
+            manager = MvpDeploymentManager(_paths())
+            staged = manager.stage_prearm_sidepanel()
+            receipt = manager.install_prearm_native_host(
+                confirmation=args.confirm,
+                browser=args.browser,
+                staged=staged,
+            )
+            return _success(
+                "release_install_prearm_sidepanel_host",
+                acceptance_scope="ASSURANCE_005_STABLE_PREARM_HOST",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=PREARM_HOST_CONFIRMATION,
+                platform_calls=0,
+                prearm_sidepanel=staged.safe_dict(),
+                real_account_execution="NOT_RUN",
+                **receipt,
             )
         paths = _paths()
         if args.release_action == "preflight":
@@ -879,6 +900,11 @@ def build_parser() -> argparse.ArgumentParser:
     release_sidecar.add_argument("--confirm", required=True, help=f"Required literal: {PROVISION_CONFIRMATION}")
     release_actions.add_parser("input-template")
     release_actions.add_parser("stage-prearm-sidepanel")
+    release_prearm_host = release_actions.add_parser("install-prearm-sidepanel-host")
+    release_prearm_host.add_argument(
+        "--browser", choices=("chrome", "chrome-for-testing", "chromium"), default="chrome"
+    )
+    release_prearm_host.add_argument("--confirm", required=True, help=f"Required literal: {PREARM_HOST_CONFIRMATION}")
     release_actions.add_parser("preflight")
     release_actions.add_parser("validate-input")
     release_arm = release_actions.add_parser("arm")

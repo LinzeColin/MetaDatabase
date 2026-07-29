@@ -95,6 +95,18 @@ must preserve the private enrollment/input files while removing its Host runtime
 `preflight` report a fresh Native Host slot for the staged tagged deployment. An unowned, incomplete, or residual
 Host blocks rather than being replaced.
 
+The only pre-arm Host installer is explicit and only accepts the current stable pre-arm bundle:
+
+```bash
+x2n release install-prearm-sidepanel-host \
+  --browser chrome \
+  --confirm INSTALL_X2N_PREARM_SIDEPANEL_HOST
+```
+
+It does not open Chrome, inspect a Profile, create a release pointer, or make a platform call. It refuses any
+existing Host rather than replacing it, emits no local path, and records only the private bundle digest in the owned
+Host receipt.
+
 ```bash
 x2n release preflight
 x2n release validate-input

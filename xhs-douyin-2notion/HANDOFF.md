@@ -34,6 +34,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   approved Runtime root. Its unpacked Side Panel, Companion, and Contract sources are verified together; it has no
   `release_identity.json`, never moves a release pointer, and lets the temporary Host plan bind to the same bundle
   instead of this disposable worktree.
+- `x2n release install-prearm-sidepanel-host --confirm INSTALL_X2N_PREARM_SIDEPANEL_HOST` is the only controlled
+  installer for that bridge. It stages/uses the current digest-addressed pre-arm bundle, refuses every existing Host
+  rather than replacing it, installs atomically only after the explicit confirmation, verifies the Host-to-bundle
+  binding, changes no release pointer, and emits no local path. It never opens Chrome or calls a platform.
 - A private Owner MVP input, release-state, or browser-handshake symlink, including a dangling one, is treated as
   unsafe rather than absent. `load`, `arm`, state persistence, and handshake recording reject it before any
   pre-switch backup, private state write, or platform action.
@@ -122,6 +126,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   check, focused 41-test pre-arm/release suite, and Ruff all passed. A real `stage-prearm-sidepanel` invocation
   produced a reusable private digest bundle with an extension manifest and no release identity or pointer change;
   no platform call or real-account execution occurred.
+- The stable pre-arm Host installer has 46 focused release tests, including real temporary-Home installation from the
+  private pre-arm bundle and a verified uninstall. It rejects a bad confirmation before staging, refuses an existing
+  Host target, and keeps the response aggregate-only. The declared 115 focused A005 tests, 19 Contract tests,
+  Side Panel self-test, three fixture suites, and 100-restart Douyin Extension E2E all passed with zero platform
+  calls; the current nine-gate source lane and its append-only source receipt passed too.
 - The current A005 scope-amendment source lane passed: 109 focused Companion/Native Host tests, 19 Contract tests,
   generated-contract verification, Ruff, JavaScript syntax checks, extension self-test, XHS current-page fixtures,
   XHS MVP surface-safety fixtures, Douyin visible-list fixtures, and the 100-restart Douyin extension E2E. This is
@@ -175,8 +184,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. In the current delegated Owner run, first run `x2n release stage-prearm-sidepanel`, load the matching stable
-   unpacked Side Panel bundle, and install the temporary Host plan bound to that same digest. Freshly observe the two
+2. In the current delegated Owner run, first run `x2n release stage-prearm-sidepanel`, then
+   `x2n release install-prearm-sidepanel-host --browser chrome --confirm INSTALL_X2N_PREARM_SIDEPANEL_HOST`, and
+   load the matching stable unpacked Side Panel bundle. The temporary Host is bound to that same digest. Freshly observe the two
    Douyin lists without scrolling, then use the Side Panel to record their two
    exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
    for each of the two disjoint batch controls. The Companion creates only private hashes and automatically freezes
