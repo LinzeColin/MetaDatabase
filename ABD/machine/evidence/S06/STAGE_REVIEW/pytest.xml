@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="40" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S06.stage_review_test" name="test_candidate_preflight_passes_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_whole_stage_review_passes_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_review_identity_scope_and_terminal_state_are_exact" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_review_artifact_hash_matches_pin[machine/evidence/S06/STAGE_REVIEW/findings.json]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_review_artifact_hash_matches_pin[machine/facts/stage6_review_contract.json]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_review_artifact_hash_matches_pin[machine/tests/fixtures/S06_STAGE_REVIEW.json]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_review_artifact_hash_matches_pin[tests/S06/stage_review_test.py]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_phase_records_bind_exact_evidence_rollback_outputs_and_next_state" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P01]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P02]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P03]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P04]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_s04_delivery_receipt_remains_a_valid_s06_prerequisite" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_historical_implementation_code_digest_is_exact[P01]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_historical_implementation_code_digest_is_exact[P02]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_historical_implementation_code_digest_is_exact[P03]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_historical_implementation_code_digest_is_exact[P04]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_positive_flow_preserves_parses_and_only_prepares_a_request" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_cross_phase_negative_input_always_keeps[unknown_sender]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_cross_phase_negative_input_always_keeps[failed_authentication]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_cross_phase_negative_input_always_keeps[failed_malware_attestation]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_cross_phase_negative_input_always_keeps[tampered_archive]" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_stage_review_replays_without_real_time_wait" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_no_permanent_delete_and_scope_method_boundary_are_enforced" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_findings_are_all_resolved_without_a_runtime_claim" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_review_artifacts_do_not_contain_secret_or_local_path_material" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_rollback_drill_is_read_only_and_covers_the_declared_artifacts" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_build_evidence_is_deterministic_before_external_report_binding" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_existing_evidence_is_absent_before_write_or_valid_after_write" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_junit_helpers_reject_missing_reports_before_they_are_generated" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_cli_writer_is_registered" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_contract_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_findings_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_baseline_hash_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_phase_evidence_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_p04_fixture_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_oracle_source_mutation_fails_structural_integrity_in_a_clone" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_review_test_mutation_fails_pin_in_a_clone" time="0.000" />
+    <testcase classname="tests.S06.stage_review_test" name="test_evidence_paths_are_reserved_for_stage_review_only" time="0.000" />
+  </testsuite>
+</testsuites>

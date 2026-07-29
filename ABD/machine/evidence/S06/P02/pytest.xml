@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="45" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S06.P02_test" name="test_candidate_preflight_passes_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_contract_passes_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_taskpack_identity_scope_and_gate_are_exact" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_phase_artifact_hash_matches_pin[archive_layout.md]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_phase_artifact_hash_matches_pin[machine/tests/fixtures/S06_P02.json]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_phase_artifact_hash_matches_pin[mail_collector.py]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_phase_artifact_hash_matches_pin[mail_manifest.schema.json]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_phase_artifact_hash_matches_pin[tests/S06/P02_test.py]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_schema_is_exact_and_archive_layout_contract_is_machine_readable" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_no_real_time_soak_and_cadence_are_data_only" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_cadence_boundaries_are_deterministic_without_wait[1899-NOT_DUE]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_cadence_boundaries_are_deterministic_without_wait[1900-DUE]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_cadence_boundaries_are_deterministic_without_wait[1901-DUE]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_successful_preservation_restores_exact_raw_headers_and_attachments" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_same_input_one_hundred_times_creates_only_one_bundle" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_malformed_mail_inputs_fail_before_final_bundle[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_malformed_mail_inputs_fail_before_final_bundle[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_malformed_mail_inputs_fail_before_final_bundle[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_malformed_mail_inputs_fail_before_final_bundle[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_malformed_mail_inputs_fail_before_final_bundle[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_malformed_mail_inputs_fail_before_final_bundle[&lt;lambda&gt;5]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_fault_injection_never_creates_final_bundle_or_trash_action[BEFORE_MANIFEST]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_fault_injection_never_creates_final_bundle_or_trash_action[AFTER_MANIFEST_BEFORE_COMMIT]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_missing_or_tampered_artifact_never_becomes_trash_eligible[raw.eml]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_missing_or_tampered_artifact_never_becomes_trash_eligible[headers.json]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_missing_or_tampered_artifact_never_becomes_trash_eligible[attachments/ATT0001.bin]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_missing_or_tampered_artifact_never_becomes_trash_eligible[manifest.json]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_readback_refuses_tampered_bundle_before_returning_any_bytes" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_changed_content_for_existing_message_is_integrity_conflict_keep" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_archive_root_inside_repository_is_rejected" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_private_database_plan_is_plan_only_and_contains_no_network_effect" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_p01_signed_evidence_is_the_only_phase_prerequisite" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_json_artifact_mutations_fail_closed[mail_manifest.schema.json-mutation0-S06P02-MANIFEST-SCHEMA-EXACT]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_json_artifact_mutations_fail_closed[machine/tests/fixtures/S06_P02.json-mutation1-S06P02-FIXTURE-SHAPE]" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_layout_contract_mutation_fails_closed" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_sensitive_or_machine_specific_content_fails_closed" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_evidence_build_is_deterministic_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_rollback_drill_preserves_phase_artifacts_without_external_state" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_external_report_mode_fails_closed_when_reports_are_absent" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_junit_normalization_accepts_only_fixed_metadata" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_oracle_cli_is_wired_to_exact_contract" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_existing_receipt_is_fail_closed_when_absent_or_verifiable" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_external_effect_boundary_is_exact_and_never_claims_runtime" time="0.000" />
+    <testcase classname="tests.S06.P02_test" name="test_canonical_financial_and_order_boundaries_are_unchanged" time="0.000" />
+  </testsuite>
+</testsuites>

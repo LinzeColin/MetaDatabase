@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S06-P04",
+  "contract_id": "AC-S06-P04",
+  "requirement_id": "REQ-S06-P04",
+  "fixed_clock": "2026-07-29T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "p02_fixture_path": "machine/tests/fixtures/S06_P02.json",
+  "p03_fixture_path": "machine/tests/fixtures/S06_P03.json",
+  "attachment_case_ids": [
+    "SAFE_CSV",
+    "SAFE_PDF"
+  ],
+  "sender_state": "KNOWN_ALLOWLISTED",
+  "authentication_state": "PASS",
+  "malware_attestation_mode": "FROZEN_SYNTHETIC_ATTESTATION_NOT_A_LIVE_AV_CLEARANCE",
+  "scheduled_audit_local_time": "06:00",
+  "replay_iterations": 100,
+  "adverse_perturbation_iterations": 10000,
+  "numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "adverse_odds_tick_action": "NOT_APPLICABLE_NO_ODDS_OR_ORDER_ACTION_IN_S06_P04",
+  "expected_oracle_check_minimum": 30,
+  "minimum_targeted_pytest_cases": 44,
+  "minimum_full_pytest_cases": 4758,
+  "expected_next": "S06/STAGE_REVIEW_READY_NOT_STARTED",
+  "expected_release_status": "NOT_READY_S06_STAGE_REVIEW_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED"
+}

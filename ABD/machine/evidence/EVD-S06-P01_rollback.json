@@ -1,0 +1,45 @@
+{
+  "artifacts": {
+    "abd_acceptance/gmail_oauth_core.py": {
+      "after": "5b1aab411b66e039cc36f380ea77e6e023d7bd9dbdd8c54b9d63d15d228c3a45",
+      "before": "5b1aab411b66e039cc36f380ea77e6e023d7bd9dbdd8c54b9d63d15d228c3a45",
+      "status": "PASS"
+    },
+    "gmail_oauth.py": {
+      "after": "bad4bf44ed1b8e57ac01f7ed0ea82e6c941a06151a476d8c191db087cf6341ff",
+      "before": "bad4bf44ed1b8e57ac01f7ed0ea82e6c941a06151a476d8c191db087cf6341ff",
+      "status": "PASS"
+    },
+    "mail_query_rules.json": {
+      "after": "fa3592ab8231e2c2313fa6e2c631676163ba6f22f0852eb99ccd4e14224c44e9",
+      "before": "fa3592ab8231e2c2313fa6e2c631676163ba6f22f0852eb99ccd4e14224c44e9",
+      "status": "PASS"
+    },
+    "token_storage.md": {
+      "after": "4a7a86035e30bd27072b89ce49b746f5f3de218101b55d7ef9443aee72c07fa0",
+      "before": "4a7a86035e30bd27072b89ce49b746f5f3de218101b55d7ef9443aee72c07fa0",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S06-P01",
+  "evidence_id": "EVD-S06-P01-ROLLBACK",
+  "external_state_changed": false,
+  "gmail_account_or_api_accessed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DETERMINISTIC_FEATURE_DISABLE_NO_EXTERNAL_EFFECT",
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "schema_version": "1.0.0",
+  "state_after": {
+    "gmail_module_state": "DISABLED",
+    "gmail_mutation_performed": false,
+    "queued_archive_keys": 0
+  },
+  "state_before": {
+    "gmail_module_state": "DISABLED",
+    "gmail_mutation_performed": false,
+    "queued_archive_keys": 0
+  },
+  "status": "PASS",
+  "token_path_accessed": false
+}

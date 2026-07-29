@@ -65,7 +65,7 @@ EXPECTED_ARTIFACTS = {
 }
 EXPECTED_NUMERIC_DELTAS = ["-0.0001", "0", "0.0001"]
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "1c05d651033ae67ee440463ead917674b80a08c97db69352dda3d22f25dfc1a0"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "d1573ddec47405db5eca56c053f16506107c99575c11ebf27eded876cfe62f93"
 PHASE_COMMIT = "3adc22b9e8bbe0b4df4def6a45caa4ebdd5df89a"
 PINNED_PHASE_CODE_HASH = "0ee10fd13b29f901f4ba9e2cd64291aeef7ecdb0b8ec659bcfeb66fc3ddbcdac"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -86,15 +86,15 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
-    "abd_acceptance/__init__.py": "b211116e0eca203b261c8ea73afb905c0bdc028c15693172f6dd7ff53cbc99fb",
-    "abd_acceptance/__main__.py": "f1203c182f2da4121d809b613b0b5ade3143c63654d096de6502c05ebf6fe02c",
-    "abd_acceptance/advice_card.py": "e97ff5ae3d4b748bd13a99fc846cc5e4be4cc68f7c04d975daf99e7131ccbffd",
-    "abd_acceptance/market_ontology.py": "c0048d0dbf8720d9dff19d2da71d2a9338ef7db64557f0a6222d5466986eba96",
-    "abd_acceptance/reason_next_action.py": "eaf72f13b895c590283230ca4e029385be68593262aa2571932135dc61004176",
-    "abd_acceptance/source_capabilities.py": "dc6b4559bb99ba208f2dfdd3cebb3471e7330bb54159196ee9a7bb4bec14e9a2",
-    "abd_acceptance/stage3_review.py": "48b98ecd0f7d424ed06c46917608467f7022706ee3f3cec65688aeaa4deee96f",
-    "abd_acceptance/stage4_review.py": "6df3066a68ef40ea2f014edee454f17fb0d07b0a3b7b850c32cee6ac0007b592",
-    "abd_acceptance/usability_accessibility.py": "e80420ca90a2d1cb9278f728dedc77cd00524597d262a47495acb7946225b829",
+    "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
+    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
+    "abd_acceptance/advice_card.py": "b080d000d0793e78aa271dbe067ad57677c53828013797bc96046fcab9ba2aa7",
+    "abd_acceptance/market_ontology.py": "3612b37860f5a8892f05159c8d3b13d433d800a8778431d5b1ba1fa929bf0fac",
+    "abd_acceptance/reason_next_action.py": "b23df4d396671534b1db69e78495aa1f081b8049e623e4a2a6a5790e9bb38842",
+    "abd_acceptance/source_capabilities.py": "22ced8b7536058aa3c617b82e66101cb309ae62420e5d9ff73439b02cf49c4d6",
+    "abd_acceptance/stage3_review.py": "84d55222300e5461293bffbba26e80772045ce8fa9881240fcb2ae73c81610c3",
+    "abd_acceptance/stage4_review.py": "973b81abc3f889e62c95e5bf9d192046ecf8e785ad57ff4a69504a952d92424c",
+    "abd_acceptance/usability_accessibility.py": "fbaa1aabec2774749e3120e1f6ca92ba20fe430c3b643e12f50e40faa23652e0",
     "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
     "tests/S05/P02_test.py": "da9cacf2f864cb60bf0866c072da34685c4d57ff2180acced4b79f1567819cd2",
     "tests/S05/P03_test.py": "082b057150b1d4325d3528b100b27f9b4537a3daafcaa6547138be60e2f0ded4",

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S06-P03",
+  "requirement_id": "REQ-S06-P03",
+  "runtime": {
+    "mode": "NO_EXECUTION_PURE_BYTES_INSPECTION",
+    "external_network_access": false,
+    "attachment_max_bytes": 50000000,
+    "cpu_budget_seconds": 60,
+    "memory_budget_mb": 256,
+    "max_zip_members": 128,
+    "max_zip_uncompressed_bytes": 5000000,
+    "max_zip_ratio": 100,
+    "max_csv_rows": 10000,
+    "max_csv_cells": 100000
+  },
+  "parsers": [
+    {
+      "id": "csv-static-v1",
+      "media_type": "text/csv",
+      "extensions": [
+        "csv"
+      ],
+      "signature": "UTF8_CSV",
+      "active_content": "DENY"
+    },
+    {
+      "id": "pdf-static-v1",
+      "media_type": "application/pdf",
+      "extensions": [
+        "pdf"
+      ],
+      "signature": "PDF_HEADER_AND_EOF",
+      "active_content": "DENY"
+    },
+    {
+      "id": "ooxml-static-v1",
+      "media_type": "application/vnd.openxmlformats-officedocument",
+      "extensions": [
+        "xlsx",
+        "docx",
+        "pptx"
+      ],
+      "signature": "OOXML_ZIP",
+      "active_content": "DENY"
+    }
+  ]
+}

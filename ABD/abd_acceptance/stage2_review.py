@@ -69,11 +69,11 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
     "README.md": "75f94aedfbd9d04db4e5b69536e765791e521750a6a52cf32f639c1657d9998d",
-    "abd_acceptance/__init__.py": "ff867ad84ac593548e7b2e00f4b53ac49dc8f6de22ad7aa08c788c755d836597",
-    "abd_acceptance/__main__.py": "ee2fae7089314bb135dbe13779d0f8b4f0c899a6ddab6c38510f1ce3e571f638",
+    "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
+    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
     "tests/S02/stage_review_test.py": "40431438418cb4212c00c3e241b980b4188cd017af2722ffb267670a8aa0f124",
 }
-SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "b3aec624ae7113196e98d3b1b956581a5d5defc28dd82b1e9da2b133c46edbb4"
+SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "e5c420abf0ca6300ed8892a71b45eea2a137e74d952653e94719abc138f28212"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}

@@ -54,7 +54,7 @@ CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 FAILURE_GUIDANCE_ORDER = ["failure_status", "failure_reason", "next_action", "safety"]
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "de1f5ca9a92922152e9cecd2669cda24153ed89949f1af1e5eea2e50015d0bf6"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "5f5b3c4f96ac4eaca99ed50ceb120d5a95a35e6aa4f1ae3b84101428687a59bc"
 
 PHASE_COMMIT = "ef74f1f49994b4249844485bf3e61eb8c65a06b2"
 PINNED_PHASE_CODE_HASH = "dc0228b02944f70eec4d565467a7e1788558c5ef061190106815fd28245b87db"
@@ -78,12 +78,12 @@ SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "accessibility_report.json": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
     "machine/tests/fixtures/S03_P04.json": "3bd64eb92ff0bb1a2474ff53971af35455d0bdce63d76bfd8c800e7fe18de9ca",
     "tests/S03/P04_test.py": "72450f1c64a321cb036343668454d8abf40f89cf5c194836ddbfea40daa14377",
-    "abd_acceptance/reason_next_action.py": "eaf72f13b895c590283230ca4e029385be68593262aa2571932135dc61004176",
-    "abd_acceptance/advice_card.py": "e97ff5ae3d4b748bd13a99fc846cc5e4be4cc68f7c04d975daf99e7131ccbffd",
+    "abd_acceptance/reason_next_action.py": "b23df4d396671534b1db69e78495aa1f081b8049e623e4a2a6a5790e9bb38842",
+    "abd_acceptance/advice_card.py": "b080d000d0793e78aa271dbe067ad57677c53828013797bc96046fcab9ba2aa7",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
-    "abd_acceptance/stage2_review.py": "6f3647013cd3a401dd09e3e0d40d1309d63ab33fd487fed9cf450d903a185d8a",
-    "abd_acceptance/__main__.py": "f1203c182f2da4121d809b613b0b5ade3143c63654d096de6502c05ebf6fe02c",
-    "abd_acceptance/__init__.py": "b211116e0eca203b261c8ea73afb905c0bdc028c15693172f6dd7ff53cbc99fb",
+    "abd_acceptance/stage2_review.py": "3f8f67b06fa95fa333693c594adfdfae8dbaf663fc9b144057f023d98ebbacee",
+    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
+    "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
 }
 
 PINNED_PHASE_HASHES = {

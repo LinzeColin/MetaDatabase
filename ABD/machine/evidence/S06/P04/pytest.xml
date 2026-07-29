@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="52" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S06.P04_test" name="test_candidate_preflight_and_contract_pass_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_taskpack_identity_scope_gate_and_trace_are_exact" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_phase_artifact_hash_matches_pin[codex_daily_audit.md]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_phase_artifact_hash_matches_pin[machine/tests/fixtures/S06_P04.json]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_phase_artifact_hash_matches_pin[mail_restore_runbook.md]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_phase_artifact_hash_matches_pin[mail_trash_worker.py]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_phase_artifact_hash_matches_pin[tests/S06/P04_test.py]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_machine_facts_and_document_contracts_are_bound_to_the_worker" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_all_required_gates_make_only_a_non_mutating_trash_request" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_unknown_or_unverified_sender_never_becomes_trash_eligible[UNKNOWN]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_unknown_or_unverified_sender_never_becomes_trash_eligible[KNOWN_UNVERIFIED]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_unknown_or_unverified_sender_never_becomes_trash_eligible[INVALID]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_failed_or_unknown_authentication_never_becomes_trash_eligible[FAIL]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_failed_or_unknown_authentication_never_becomes_trash_eligible[UNKNOWN]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_failed_or_unknown_authentication_never_becomes_trash_eligible[INVALID]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_failed_or_mismatched_malware_attestation_keeps[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_failed_or_mismatched_malware_attestation_keeps[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_failed_or_mismatched_malware_attestation_keeps[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_failed_or_mismatched_malware_attestation_keeps[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_failed_or_mismatched_malware_attestation_keeps[&lt;lambda&gt;4]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_parser_quarantine_or_incomplete_results_keep[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_parser_quarantine_or_incomplete_results_keep[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_parser_quarantine_or_incomplete_results_keep[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_parser_quarantine_or_incomplete_results_keep[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_or_tampered_archive_never_becomes_trash_eligible[raw.eml]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_or_tampered_archive_never_becomes_trash_eligible[manifest.json]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_missing_or_tampered_archive_never_becomes_trash_eligible[attachments/ATTCSVSAFE.bin]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_dispatch_is_idempotent_and_never_invokes_an_unconfigured_adapter" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_daily_audit_is_data_only_and_escalates_gaps[pass]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_daily_audit_is_data_only_and_escalates_gaps[keep]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_daily_audit_is_data_only_and_escalates_gaps[duplicate]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_daily_audit_is_data_only_and_escalates_gaps[invalid]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_daily_audit_is_data_only_and_escalates_gaps[off_schedule]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_restore_requires_matching_receipt_and_archive_readback[matching]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_restore_requires_matching_receipt_and_archive_readback[missing]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_restore_requires_matching_receipt_and_archive_readback[mismatched]" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_same_safe_input_one_hundred_times_has_same_request_without_wait" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_one_in_ten_thousand_unknown_sender_perturbations_stay_keep_without_soak" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_no_network_scheduler_or_permanent_delete_is_present_in_worker_source" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_p03_signed_evidence_is_the_only_phase_prerequisite" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_fixture_mutation_fails_closed" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_document_contract_mutation_fails_closed" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_sensitive_or_machine_specific_content_fails_closed" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_evidence_build_is_deterministic_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_rollback_drill_preserves_phase_artifacts_without_external_state" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_external_report_mode_fails_closed_when_reports_are_absent" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_junit_normalization_accepts_only_fixed_metadata" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_oracle_cli_is_wired_to_exact_contract" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_existing_receipt_is_fail_closed_when_absent_or_verifiable" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_external_effect_boundary_is_exact_and_never_claims_runtime" time="0.000" />
+    <testcase classname="tests.S06.P04_test" name="test_canonical_financial_and_order_boundaries_are_unchanged" time="0.000" />
+  </testsuite>
+</testsuites>

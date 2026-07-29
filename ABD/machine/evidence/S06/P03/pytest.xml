@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="55" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S06.P03_test" name="test_candidate_preflight_and_contract_pass_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_taskpack_identity_scope_gate_and_trace_are_exact" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_phase_artifact_hash_matches_pin[attachment_sandbox.py]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_phase_artifact_hash_matches_pin[machine/tests/fixtures/S06_P03.json]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_phase_artifact_hash_matches_pin[parser_registry.json]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_phase_artifact_hash_matches_pin[quarantine_rules.json]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_phase_artifact_hash_matches_pin[tests/S06/P03_test.py]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_policy_is_bound_to_machine_facts_and_no_execution_mode" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[SAFE_CSV]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[SAFE_PDF]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[SAFE_XLSX]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[MALWARE_MARKER]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[MACRO_OFFICE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[SCRIPT_PDF]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[FORMULA_CSV]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[PROMPT_INJECTION]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[UNKNOWN_TYPE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[TYPE_MISMATCH]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[PATH_TRAVERSAL]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[DANGEROUS_EXTENSION]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_frozen_case_actions_are_exact_and_fail_closed[MALFORMED_OFFICE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[MALWARE_MARKER-MALWARE_MARKER_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[MACRO_OFFICE-MACRO_OR_ACTIVE_OFFICE_ENTRY_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[SCRIPT_PDF-PDF_ACTIVE_CONTENT_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[FORMULA_CSV-FORMULA_INJECTION_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[PROMPT_INJECTION-PROMPT_INJECTION_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[UNKNOWN_TYPE-UNKNOWN_TYPE_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[TYPE_MISMATCH-TYPE_SIGNATURE_MISMATCH_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[PATH_TRAVERSAL-PATH_TRAVERSAL_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[DANGEROUS_EXTENSION-DANGEROUS_EXTENSION_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_each_required_threat_has_its_required_isolation_reason[MALFORMED_OFFICE-OFFICE_PARSE_FAILURE_QUARANTINE]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_batch_order_and_one_hundred_replay_are_deterministic_without_wait" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_one_in_ten_thousand_adverse_perturbations_stay_quarantined_without_soak" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_malformed_inputs_are_converted_to_keep_quarantine[None]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_malformed_inputs_are_converted_to_keep_quarantine[value1]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_malformed_inputs_are_converted_to_keep_quarantine[value2]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_malformed_inputs_are_converted_to_keep_quarantine[value3]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_malformed_inputs_are_converted_to_keep_quarantine[value4]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_malformed_inputs_are_converted_to_keep_quarantine[value5]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_scaled_attachment_size_boundary_is_exact_and_overflow_is_isolated" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_policy_and_fixture_mutations_fail_closed[parser_registry.json-&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_policy_and_fixture_mutations_fail_closed[parser_registry.json-&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_policy_and_fixture_mutations_fail_closed[quarantine_rules.json-&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_policy_and_fixture_mutations_fail_closed[quarantine_rules.json-&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_policy_and_fixture_mutations_fail_closed[machine/tests/fixtures/S06_P03.json-&lt;lambda&gt;]" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_missing_policy_is_quarantined_not_treated_as_a_pass" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_p02_signed_evidence_is_the_only_phase_prerequisite" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_evidence_build_is_deterministic_without_external_reports" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_rollback_drill_preserves_phase_artifacts_without_external_state" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_external_report_mode_fails_closed_when_reports_are_absent" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_junit_normalization_accepts_only_fixed_metadata" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_oracle_cli_is_wired_to_exact_contract" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_existing_receipt_is_fail_closed_when_absent_or_verifiable" time="0.000" />
+    <testcase classname="tests.S06.P03_test" name="test_external_effect_and_canonical_financial_boundaries_are_unchanged" time="0.000" />
+  </testsuite>
+</testsuites>
