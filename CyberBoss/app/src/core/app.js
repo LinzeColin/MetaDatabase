@@ -3388,6 +3388,15 @@ class CyberbossApp {
     // durable，所以它一次都没被执行过。代码在不等于功能在，这个仓第七次栽在
     // 同一件事上。
     if (decision.route === "user" && decision.userContext) {
+      // 席位内的前 N 个人改走 job 队列，也就是主人那条 Codex（gpt-5.6-terra）。
+      // 那条路的出口 dispatchPreparedTurn 现在认席位内访客，并且强制访客档：
+      // 只读沙箱、不给网络、审批 never，工具仍然被 tool-host 的 project.tool
+      // 挡在外面。
+      //
+      // 席位外的人照旧走 runUserModelTurn（provider router + 预算 + 熔断）。
+      if (hasOwnerSeat(this, decision.userContext.userId)) {
+        return false;
+      }
       void this.runUserModelTurn(normalized, decision.userContext)
         .catch((error) => {
           console.error(
@@ -3468,8 +3477,13 @@ class CyberbossApp {
       return null;
     }
     if (decision.route === "user") {
-      await this.runUserModelTurn(normalized, decision.userContext);
-      return null;
+      // 和 admissionHandledBeforeJob 里同一条规矩：席位内的人走主人的 Codex，
+      // 所以这一轮不在这里办完，往下交给正常的 turn 流程。两处必须一致，否则
+      // 同一个人在 durable 和非 durable 两条分支上会拿到不同的模型。
+      if (!hasOwnerSeat(this, decision.userContext?.userId)) {
+        await this.runUserModelTurn(normalized, decision.userContext);
+        return null;
+      }
     }
     if (decision.ownerClaimed) {
       // 第一条消息就把主人认下来了，告诉他这件事已经发生，并给出下一步。
@@ -4037,11 +4051,17 @@ class CyberbossApp {
     // without an Owner context is refused here rather than downgraded, so the
     // count of non-Owner runtime dispatches is structurally zero.
     const turnContext = prepared?.userContext || this.activeUserContext || null;
+    // 「让前 5 个人也走我的 Codex」。席位内的访客放行，但**只放行到访客档**：
+    // 只读沙箱、不给网络、审批策略 never。工具那道闸门不在这里，在 tool-host
+    // 的 project.tool——访客的 UserContext 过不了它，所以他碰不到主人的日记、
+    // 时间线、文件。这里放开的只是「能不能用这个模型说话」。
+    const seatedGuest = Boolean(turnContext && !turnContext.isOwner)
+      && hasOwnerSeat(this, turnContext.userId);
     if (this.userAdmission && prepared?.provider !== "system") {
       const capability = this.runtimeAdapter.describe().id === "claudecode"
         ? "claudecode.turn"
         : "codex.turn";
-      if (!turnContext || !turnContext.may(capability)) {
+      if (!turnContext || (!turnContext.may(capability) && !seatedGuest)) {
         console.warn("[cyberboss] runtime dispatch refused code=owner_only_capability");
         await this.channelAdapter.sendText({
           userId: prepared.senderId,
@@ -4071,6 +4091,9 @@ class CyberbossApp {
         text: runtimeTurn.text,
         attachments: runtimeTurn.attachments,
         model,
+        // 席位内访客走访客档；主人和系统消息保持原样（空串＝原来的默认）。
+        // 这个值必须真的传下去：适配器和 rpc-client 两层都是按名字解构的。
+        accessMode: seatedGuest ? "guest-chat" : "",
         metadata: {
           workspaceId: prepared.workspaceId,
           accountId: prepared.accountId,
@@ -5861,6 +5884,29 @@ function formatErrorMessage(error) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// 「这个人占不占得到前 N 个席位」的唯一入口。
+//
+// 收成一个函数而不是三处各写一遍 typeof 判断：这个答案决定要不要把主人的
+// Codex 交给对方，三处里漏掉一处的后果不对称——多挡一个人只是他少用一次，
+// 多放一个人是把主人的模型给了不该给的人。
+//
+// 判不出来一律当「没席位」。测试里的桩对象常常没有这个方法，而那种时候正确的
+// 答案是不放行，不是崩掉、也不是默认放行。
+function hasOwnerSeat(app, userId) {
+  if (!app || typeof app.ownerSeatAvailableFor !== "function") {
+    return false;
+  }
+  const normalized = String(userId || "").trim();
+  if (!normalized) {
+    return false;
+  }
+  try {
+    return Boolean(app.ownerSeatAvailableFor(normalized));
+  } catch {
+    return false;
+  }
 }
 
 module.exports = { CyberbossApp };
