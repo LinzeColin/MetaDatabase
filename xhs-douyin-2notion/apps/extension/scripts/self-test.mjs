@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { canCaptureXhsMvpCurrent, recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
 import { buildBilibiliCapturePayload, validateBilibiliPageFacts } from "../src/bilibili-current-page.js";
 import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
 import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
@@ -97,7 +97,7 @@ if (!sources["sidepanel.html"].includes('id="tab-save"') || !sources["sidepanel.
 if (/<script(?![^>]+src=)/i.test(sources["sidepanel.html"])) failures.push("inline_script");
 if (!sources["src/service-worker.js"].includes("return true;")) failures.push("message_channel_compatibility");
 if (!sources["src/service-worker.js"].includes('sender.url === chrome.runtime.getURL("sidepanel.html")')) failures.push("sender_identity");
-for (const messageType of ["X2N_GET_CAPABILITIES", "X2N_START_SYNC"]) {
+for (const messageType of ["X2N_CAPTURE_CURRENT_MVP", "X2N_GET_CAPABILITIES", "X2N_START_SYNC"]) {
   if (!sources["src/service-worker.js"].includes(messageType)) failures.push(`missing_message_${messageType}`);
 }
 for (const scopeId of [
@@ -114,10 +114,21 @@ for (const scopeId of [
 }
 if (!sources["src/service-worker.js"].includes("owner_selection_manifest_sha256")) failures.push("selected_manifest_binding");
 if (!sources["src/service-worker.js"].includes("fallbackAvailable")) failures.push("fallback_derivation");
-if (!sources["sidepanel.html"].includes('id="start-sync"') || !sources["sidepanel.html"].includes('id="capture-fallback"')) {
+if (!sources["src/service-worker.js"].includes("owner_mvp_manifest_enrollment")) {
+  failures.push("mvp_manifest_enrollment_binding");
+}
+if (!sources["src/service-worker.js"].includes("canCaptureXhsMvpCurrent(message, support)")) {
+  failures.push("xhs_mvp_current_real_page_execution_gate");
+}
+if (
+  !sources["sidepanel.html"].includes('id="save-current-mvp"')
+  || !sources["sidepanel.html"].includes('id="start-sync"')
+  || !sources["sidepanel.html"].includes('id="capture-fallback"')
+) {
   failures.push("task010_controls");
 }
 if (!sources["src/sidepanel.js"].includes("fallbackButton.addEventListener")) failures.push("fallback_second_action");
+if (!sources["src/sidepanel.js"].includes("saveMvpCurrentButton.addEventListener")) failures.push("mvp_current_action");
 if (sources["src/sidepanel.js"].includes("startSelectedSync().catch")) failures.push("automatic_sync_fallback");
 
 const e2eSource = await readFile(new URL("scripts/extension-e2e.mjs", root), "utf8");
@@ -138,6 +149,23 @@ if (new Set(fixture.cases.filter((item) => item.supported).map((item) => item.pl
 if (SUPPORTED_PLATFORMS.length !== 6) failures.push("platform_registry");
 if (recognizePage("https://www.xiaohongshu.com/explore/64f000000000000000000001").executable) {
   failures.push("xhs_real_page_gate");
+}
+const xhsMvpCurrent = recognizePage("https://www.xiaohongshu.com/explore/64f000000000000000000001");
+if (!xhsMvpCurrent.mvpCurrentEligible || xhsMvpCurrent.executable) {
+  failures.push("xhs_real_page_mvp_only_gate");
+}
+if (
+  !canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT_MVP" }, xhsMvpCurrent)
+  || canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT" }, xhsMvpCurrent)
+  || canCaptureXhsMvpCurrent({ fallbackFromJobId: "00000000-0000-4000-8000-000000000001", type: "X2N_CAPTURE_CURRENT_MVP" }, xhsMvpCurrent)
+) {
+  failures.push("xhs_real_page_mvp_current_capture_gate");
+}
+if (recognizePage("https://www.xiaohongshu.com/explore/synthetic-xhs-self-test").mvpCurrentEligible) {
+  failures.push("xhs_synthetic_page_not_mvp_current_eligible");
+}
+if (recognizePage("https://www.douyin.com/video/7485211130848218428").mvpCurrentEligible) {
+  failures.push("douyin_real_page_not_mvp_current_eligible");
 }
 if (recognizePage("https://www.douyin.com/video/7485211130848218428").executable) {
   failures.push("douyin_real_page_gate");

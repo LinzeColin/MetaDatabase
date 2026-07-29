@@ -251,6 +251,12 @@ class RuntimePaths:
         return self.release_directory / "owner_mvp_release_input.local.json"
 
     @property
+    def owner_mvp_manifest_enrollment(self) -> Path:
+        """Return the fixed hash-only pre-arm MVP selection state path."""
+
+        return self.release_directory / "owner_mvp_manifest_enrollment.local.json"
+
+    @property
     def owner_mvp_release_state(self) -> Path:
         return self.release_directory / "owner_mvp_release_state.local.json"
 
@@ -327,10 +333,7 @@ class RuntimePaths:
             or Path(str(value.get("resolved_root", ""))).resolve(strict=False) != self.data_root
             or value.get("legacy_import") is not False
             or type(authorized) is not bool
-            or (
-                authorized is True
-                and real_data_state not in {"stage_6_mvp_activation_armed", "stage_6_mvp_active"}
-            )
+            or (authorized is True and real_data_state not in {"stage_6_mvp_activation_armed", "stage_6_mvp_active"})
         ):
             _fail(ErrorCode.POLICY_BLOCKED, "Private Runtime marker does not match this project")
         return value

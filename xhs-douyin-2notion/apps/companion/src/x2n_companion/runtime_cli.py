@@ -40,6 +40,7 @@ from .mvp_release import (
     ROLLBACK_CONFIRMATION,
     SIGNOFF_CONFIRMATION,
     MvpReleaseController,
+    OwnerMvpManifestEnrollment,
     load_owner_mvp_release_input,
     owner_input_contract_sha256,
     verify_owner_private_douyin_sidecar_bundle,
@@ -145,6 +146,23 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
         release_state = "EXISTING"
     else:
         release_state = "NOT_STARTED"
+    if (
+        paths.owner_mvp_release_input.exists()
+        or paths.owner_mvp_release_input.is_symlink()
+        or release_state == "EXISTING"
+    ):
+        owner_mvp_manifest_enrollment = "FROZEN_OR_ARMED"
+    else:
+        try:
+            enrollment = OwnerMvpManifestEnrollment.load(paths, require_state=False)
+            if enrollment is None:
+                owner_mvp_manifest_enrollment = "NOT_STARTED"
+            elif enrollment.safe_summary()["complete_scope_count"] == 4:
+                owner_mvp_manifest_enrollment = "READY_TO_FREEZE"
+            else:
+                owner_mvp_manifest_enrollment = "COLLECTING"
+        except X2NRuntimeError:
+            owner_mvp_manifest_enrollment = "MISSING_OR_INVALID"
     try:
         verify_owner_private_douyin_sidecar_bundle(paths, clean_room_sidecar_build())
         douyin_sidecar_bundle = "CONFIGURED_CLEAN_ROOM_UNATTESTED"
@@ -177,15 +195,14 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
     )
     chrome_executable = "AVAILABLE" if chrome_available() else "NOT_READY"
     ready_to_arm = (
-        owner_input == "VALID"
-        and douyin_sidecar_bundle == "CONFIGURED_AND_MATCHED"
-        and release_state == "NOT_STARTED"
+        owner_input == "VALID" and douyin_sidecar_bundle == "CONFIGURED_AND_MATCHED" and release_state == "NOT_STARTED"
     )
     return {
         "chrome_executable": chrome_executable,
         "douyin_sidecar_bundle": douyin_sidecar_bundle,
         "native_host_fresh_install": native_host_fresh_install,
         "notion_calls": 0,
+        "owner_mvp_manifest_enrollment": owner_mvp_manifest_enrollment,
         "owner_input": owner_input,
         "platform_calls": 0,
         "private_durability_client": private_durability_client,
@@ -236,7 +253,11 @@ def _owner_mvp_input_template() -> dict[str, Any]:
         },
         "enabled_scopes": [
             {"max_items": 20, "scope_id": "xiaohongshu_favorites", "transport": "chrome_visible_dom"},
-            {"max_items": 20, "scope_id": "xiaohongshu_likes", "transport": "chrome_visible_dom"},
+            {
+                "max_items": 20,
+                "scope_id": "xiaohongshu_current_content",
+                "transport": "chrome_current_page_explicit",
+            },
             {
                 "max_items": 20,
                 "scope_id": "douyin_favorites",
@@ -247,14 +268,13 @@ def _owner_mvp_input_template() -> dict[str, Any]:
         "owner_private_manifests": [
             {
                 "content_id_sha256": [
-                    f"REPLACE_WITH_OWNER_CONTENT_ID_SHA256_{scope.upper()}_{index + 1:02d}"
-                    for index in range(20)
+                    f"REPLACE_WITH_OWNER_CONTENT_ID_SHA256_{scope.upper()}_{index + 1:02d}" for index in range(20)
                 ],
                 "scope_id": scope,
             }
             for scope in (
                 "xiaohongshu_favorites",
-                "xiaohongshu_likes",
+                "xiaohongshu_current_content",
                 "douyin_favorites",
                 "douyin_likes",
             )

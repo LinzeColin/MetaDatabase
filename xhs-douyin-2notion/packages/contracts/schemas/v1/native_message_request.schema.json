@@ -29,6 +29,19 @@
           "title": "Max Items",
           "type": "integer"
         },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
+        },
         "owner_selection_id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
           "title": "Owner Selection Id",
@@ -164,6 +177,19 @@
           "default": null,
           "title": "Fallback From Job Id"
         },
+        "owner_mvp_scope": {
+          "anyOf": [
+            {
+              "const": "xiaohongshu_current_content",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Scope"
+        },
         "page_context": {
           "$ref": "#/$defs/PageContext"
         },
@@ -280,6 +306,19 @@
           "title": "Max Items",
           "type": "integer"
         },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
+        },
         "platform": {
           "const": "douyin",
           "title": "Platform",
@@ -367,6 +406,19 @@
           "minimum": 1,
           "title": "Max Items",
           "type": "integer"
+        },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
         },
         "platform": {
           "const": "douyin",
@@ -853,6 +905,19 @@
           "title": "Max Items",
           "type": "integer"
         },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
+        },
         "owner_selection_id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
           "title": "Owner Selection Id",
@@ -1113,6 +1178,19 @@
           "title": "Max Items",
           "type": "integer"
         },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
+        },
         "owner_selection_id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
           "title": "Owner Selection Id",
@@ -1194,6 +1272,19 @@
           "minimum": 1,
           "title": "Max Items",
           "type": "integer"
+        },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
         },
         "owner_selection_id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
@@ -1683,6 +1774,19 @@
           "title": "Max Items",
           "type": "integer"
         },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
+        },
         "platform": {
           "const": "xiaohongshu",
           "title": "Platform",
@@ -1770,6 +1874,19 @@
           "minimum": 1,
           "title": "Max Items",
           "type": "integer"
+        },
+        "owner_mvp_manifest_enrollment": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Mvp Manifest Enrollment"
         },
         "platform": {
           "const": "xiaohongshu",

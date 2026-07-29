@@ -10,15 +10,18 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 - Branch: `codex/xhs-douyin-2notion-v0001-s03-review-resume`
 - Stage 0–5 and Assurance001–004 are historical completed evidence; Assurance005 is the only active Task.
-- The A005 source implementation adds private owner input/state contracts, four exact 20-item scopes with hash-only
-  Owner manifests, XHS visible-batch handoff, Douyin private Sidecar boundary, aggregate-only 80-item verification,
-  source-only staging, Native Host install/disable, and a Side Panel health handshake bound to the same staged
-  artifact as the Host.
+- `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT` replaces only the live A005 XHS-likes batch with
+  `xiaohongshu_current_content`: 20 explicitly opened XHS detail pages with relation `saved_current`. The four exact
+  20-item scopes are now XHS favorites, XHS current content, Douyin favorites, and Douyin likes. The A005 source
+  implementation has three bounded list actions, 20 write-gated current-content actions, and a hash-only pre-arm
+  collector that builds/finalizes the four private manifests without asking the Owner to edit JSON. It has a Douyin
+  private Sidecar boundary, aggregate-only 80-item verification, source-only staging, Native
+  Host install/disable, and a Side Panel health handshake bound to the same staged artifact as the Host.
 - Before sign-off it now runs two deterministic Markdown rebuilds from the Canonical SQLite baseline, requires the
   second pass to make zero derived writes, and verifies the resulting archive through the approved
-  Private-MetaDatabase client. The private release-state schema is `1.1` and persists only aggregate hashes/counts.
-  Notion remains explicitly disabled by the current Owner input, with zero Notion calls rather than a false write
-  claim.
+  Private-MetaDatabase client. The private release-state schema is `1.2`; it persists only SHA-256 selected-content
+  identifiers and opaque Native Job IDs for the 20 current-content captures, plus aggregate release proof. Notion
+  remains explicitly disabled by the current Owner input, with zero Notion calls rather than a false write claim.
 - The staged extension receives one generated, hash-only `release_identity.json`; it is never present in public
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
@@ -64,6 +67,16 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   remains only for a profile without any tab-content panels.
   Additional tertiary controls remain allowed only when they do not create a second matching active relation; a
   generic active class or an unrelated feed root remains rejected, and the exact-20 release gate remains mandatory.
+- The Side Panel exposes a distinct direct-MVP current-content control. A real canonical XHS detail page is eligible
+  only for that control; the generic current-page path remains CI-synthetic. Before arm it emits a hash-only
+  enrollment with no Canonical Job/write; after all three visible list enrollments and 20 unique explicit details it
+  atomically freezes the private input. After arm the same control emits `X2N_CAPTURE_CURRENT_MVP`, cannot carry a
+  fallback Job, and the Native Host checks the frozen Manifest before its first Canonical write. A duplicate,
+  incomplete set, semantic mismatch, or multiple Canonical records for one opaque capture identity fails closed.
+- Pre-arm uses a temporary source-bound Native Host and unpacked Side Panel only to record the private hash-only
+  manifests. Once the input freezes, uninstall that owned bridge; its uninstall preserves the private enrollment/input
+  while restoring the fresh Host slot that the staged tagged deployment requires. Any unowned/residual Host remains a
+  hard stop rather than an overwrite.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
@@ -76,9 +89,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   It independently reports a correctly provisioned fixed Douyin bundle as
   `CONFIGURED_CLEAN_ROOM_UNATTESTED` while Owner input is unavailable; that status cannot arm a release and becomes
   `CONFIGURED_AND_MATCHED` only after the private input attestation also validates.
-- `x2n release input-template` contains literal, deliberately invalid replacement tokens for every Owner content hash,
-  Douyin Sidecar digest, and Sidecar port. The provision command emits only the non-secret build-attestation fragment;
-  it cannot fabricate the four real private 20-ID manifests, a loopback port, sign-off, or release receipt.
+- `x2n release input-template` remains diagnostic-only and deliberately invalid. The hash-only pre-arm collector,
+  not manual replacement, creates the four real private 20-ID manifests, reuses/provisions the clean-room Sidecar,
+  and selects its private loopback port; it still cannot arm, sign off, or mint a release receipt.
 - Real Owner Runtime, profiles, platform calls, Notion, models, media, private-database transfer, exact release tag,
   deploy, Side Panel handshake, and online smoke are `NOT_RUN`.
 
@@ -95,6 +108,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
+- The current A005 scope-amendment source lane passed: 109 focused Companion/Native Host tests, 19 Contract tests,
+  generated-contract verification, Ruff, JavaScript syntax checks, extension self-test, XHS current-page fixtures,
+  XHS MVP surface-safety fixtures, Douyin visible-list fixtures, and the 100-restart Douyin extension E2E. This is
+  local/synthetic evidence only; it proves neither a live Owner input nor a platform capture.
 - Current Companion discovery contains 332 tests. A bounded current full rerun was stopped during the existing 10k
   Markdown rebuild without a verdict, so it is not treated as a current full-suite pass. Focused A005
   bundle/release/acceptance tests passed: 36 tests, covering exact scopes, hash-manifest mismatch before adapter
@@ -122,9 +139,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   complete same-index mapping plus a meaningful 16×16 target-panel viewport intersection, so an inactive panel's
   one-pixel transformed edge cannot block the active list; the surface-safety suite covers the positive and sliver
   rejection cases. No browser content, IDs, URLs, or platform call entered the repository.
-- Historical delegated Owner Chrome observations of the real XHS 收藏/点赞 panes are not reusable release evidence.
-  Every direct release must freshly observe each selected scope, require exactly 20 first-visible unique items without
-  scrolling, and keep any IDs only as transient hashes that are neither emitted nor persisted until all four scopes
+- Historical delegated Owner Chrome observations of the real XHS 收藏/点赞 panes are not reusable release evidence;
+  the old XHS-likes observation is outside the amended A005 live scope. Every direct release must freshly observe
+  XHS favorites and each explicitly opened XHS current detail, require exactly 20 unique items per scope without
+  scrolling, and keep IDs only as transient hashes that are neither emitted nor persisted until all four scopes
   satisfy the current Owner-input gate. The real logged-in Douyin profile
   selected 收藏 and 喜欢 successfully, but the corresponding active `user-favorite-tab` / `user-like-tab` panes each
   contained only one empty placeholder descendant and zero verifiable cards after bounded no-scroll stabilization.
@@ -143,15 +161,17 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. In the current delegated Owner run, re-observe all four scopes from their fresh visible panes without scrolling.
-   Do not create an Owner input unless each has exactly 20 actual unique items; a missing/ambiguous dedicated list is
-   an explicit stop condition, not a reason to substitute footer cards or invent hashes. Only then provision the
-   clean-room private Douyin Sidecar, use its attestation fragment with the deliberately invalid template, replace
-   every remaining Owner token with four private 20-ID hash manifests and the loopback port, configure the approved
-   digest-pinned Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and no
-   existing release state. Then perform the four explicit actions, baseline verification, Markdown/durability
-   materialization, rollback rehearsal, sign-off, exact tag, deploy, staged-extension reload, handshake, and
-   immediate online smoke in the documented order.
+2. In the current delegated Owner run, install the temporary source-bound Native Host and load the matching unpacked
+   Side Panel, freshly observe XHS favorites and the two Douyin lists without scrolling, then use the Side Panel to
+   record the three exact visible 20-item pre-arm batches and 20 separate explicit XHS
+   detail-page current-content pre-arm captures. The Companion creates only private hashes and automatically freezes
+   the input after all four ranges are exact; immediately uninstall the owned temporary Host so its fresh install slot
+   is restored. Never substitute footer cards, invent hashes, or edit a template. A missing/ambiguous list or
+   current-page identity is an explicit stop condition. Then configure the approved
+   digest-pinned Private-MetaDatabase client, rerun `x2n release preflight` until it reports a valid input and no
+   existing release state, arm, perform the three actual list actions plus 20 actual current-content actions,
+   baseline verification, Markdown/durability materialization, rollback rehearsal, sign-off, exact tag, deploy,
+   staged-extension reload, handshake, and immediate online smoke in the documented order.
 3. Only after that real sequence succeeds, run the read-only acceptance verifier and explicitly write the immutable
    receipt and `FINAL_ACCEPTANCE_BUNDLE`. Do not claim G6 from this direct-core receipt.
 4. A real Notion write needs a separately authorized Owner Integration and Parent configuration; until then A005's

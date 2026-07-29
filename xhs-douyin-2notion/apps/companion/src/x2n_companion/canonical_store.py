@@ -70,7 +70,7 @@ CURRENT_PAGE_PLACEHOLDER_PROCESSOR = "x2n-canonical-placeholder"
 CURRENT_PAGE_PLACEHOLDER_VERSION = "placeholder-1.0.0"
 SCOPE_SYNC_RUN_KIND = "native_scope_dispatch_v1"
 LIFECYCLE_TOMBSTONE_KINDS = frozenset({"content", "relation", "sink", "runtime"})
-OWNER_MVP_BASELINE_SCOPES: dict[SyncScopeId, tuple[str, str, str, str, str]] = {
+OWNER_MVP_LIST_BASELINE_SCOPES: dict[SyncScopeId, tuple[str, str, str, str, str]] = {
     SyncScopeId.XIAOHONGSHU_FAVORITES: (
         "xiaohongshu",
         "favorited",
@@ -78,7 +78,6 @@ OWNER_MVP_BASELINE_SCOPES: dict[SyncScopeId, tuple[str, str, str, str, str]] = {
         "run_xhsfav_",
         "checkpoint_xhsfav_",
     ),
-    SyncScopeId.XIAOHONGSHU_LIKES: ("xiaohongshu", "liked", "receipt_xhslike_", "run_xhslike_", "checkpoint_xhslike_"),
     SyncScopeId.DOUYIN_FAVORITES: ("douyin", "favorited", "receipt_dy_", "run_dy_", "checkpoint_dy_"),
     SyncScopeId.DOUYIN_LIKES: ("douyin", "liked", "receipt_dy_", "run_dy_", "checkpoint_dy_"),
 }
@@ -2895,7 +2894,7 @@ class CanonicalStore:
                 connection.close()
 
     def owner_mvp_baseline_snapshot(self, *, scope_scan_ids: dict[SyncScopeId, str]) -> dict[str, Any]:
-        """Return an aggregate-only proof for the fixed four-scope MVP baseline.
+        """Return the list-backed segment of the aggregate-only Owner MVP baseline.
 
         The release controller owns the private scan identifiers.  This Store
         method intentionally returns only counts and opaque hashes, so neither
@@ -2903,16 +2902,16 @@ class CanonicalStore:
         become public release evidence.
         """
 
-        if set(scope_scan_ids) != set(OWNER_MVP_BASELINE_SCOPES):
+        if set(scope_scan_ids) != set(OWNER_MVP_LIST_BASELINE_SCOPES):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Owner MVP baseline scope set is incomplete")
         rows: dict[str, dict[str, Any]] = {}
         with self._file_lock(exclusive=False):
             connection = self._open(writable=False)
             try:
                 for scope_id in SyncScopeId:
-                    if scope_id not in OWNER_MVP_BASELINE_SCOPES:
+                    if scope_id not in OWNER_MVP_LIST_BASELINE_SCOPES:
                         continue
-                    platform, relation, receipt_prefix, run_prefix, checkpoint_prefix = OWNER_MVP_BASELINE_SCOPES[scope_id]
+                    platform, relation, receipt_prefix, run_prefix, checkpoint_prefix = OWNER_MVP_LIST_BASELINE_SCOPES[scope_id]
                     scan_id = str(_uuid(scope_scan_ids[scope_id], label="owner_mvp_scan_id"))
                     suffix = UUID(scan_id).hex
                     run = connection.execute(
@@ -2994,9 +2993,121 @@ class CanonicalStore:
             "baseline_hash": hashlib.sha256(
                 json.dumps(digest_basis, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
             ).hexdigest(),
-            "exact_four_scope_baseline": exact,
+            "exact_list_scope_baseline": exact,
             "scopes": rows,
             "total_relations": total_relations,
+        }
+
+    def owner_mvp_current_content_snapshot(
+        self,
+        *,
+        capture_job_ids: Mapping[str, str],
+        expected_content_id_hashes: frozenset[str],
+    ) -> dict[str, Any]:
+        """Verify the fourth MVP scope from exactly 20 explicit current-page captures.
+
+        The release state stores only a content-ID hash to Native Job mapping.
+        This method reads the corresponding Canonical records under a shared
+        lock and returns aggregates plus opaque references only; raw IDs and
+        current-page URLs never leave the private data plane.
+        """
+
+        if (
+            len(capture_job_ids) != 20
+            or set(capture_job_ids) != set(expected_content_id_hashes)
+            or len(expected_content_id_hashes) != 20
+        ):
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Owner MVP current-content scope is incomplete")
+        identities: dict[str, CurrentPageIdentity] = {}
+        for content_id_hash, job_id in capture_job_ids.items():
+            _validate_sha256(content_id_hash, label="owner_mvp_current_content_hash")
+            identities[content_id_hash] = current_page_identity_from_job(job_id)
+
+        active_count = content_count = observation_count = relation_count = 0
+        scan_complete = True
+        observed_content_hashes: set[str] = set()
+        observed_content_keys: set[str] = set()
+        observed_relation_keys: set[str] = set()
+        observed_observation_ids: set[str] = set()
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                for expected_hash, identity in identities.items():
+                    matched_rows = connection.execute(
+                        """
+                        SELECT
+                            c.content_key,
+                            c.platform,
+                            c.platform_content_id,
+                            o.observation_id,
+                            r.relation_key,
+                            r.relation_type,
+                            r.scan_receipt_id,
+                            r.status AS relation_status,
+                            run.state AS run_state,
+                            checkpoint.cursor_kind,
+                            checkpoint.state AS checkpoint_state
+                        FROM source_observation AS o
+                        INNER JOIN content AS c ON c.content_key = o.content_key
+                        INNER JOIN run_record AS run ON run.run_id = o.run_id
+                        INNER JOIN checkpoint AS checkpoint ON checkpoint.checkpoint_id = ?
+                        INNER JOIN user_relation AS r
+                          ON r.content_key = c.content_key AND r.scan_receipt_id = ?
+                        WHERE o.run_id = ? AND o.observation_id = ?
+                        """,
+                        (
+                            identity.checkpoint_id,
+                            identity.scan_receipt_id,
+                            identity.run_id,
+                            identity.observation_id,
+                        ),
+                    ).fetchall()
+                    if len(matched_rows) != 1:
+                        scan_complete = False
+                        continue
+                    row = matched_rows[0]
+                    observed_hash = hashlib.sha256(str(row["platform_content_id"]).encode("utf-8")).hexdigest()
+                    valid = (
+                        observed_hash == expected_hash
+                        and str(row["platform"]) == "xiaohongshu"
+                        and str(row["relation_type"]) == "saved_current"
+                        and str(row["relation_status"]) == "active"
+                        and str(row["run_state"]) == "succeeded"
+                        and str(row["checkpoint_state"]) == "complete"
+                        and str(row["cursor_kind"]) == CURRENT_PAGE_CURSOR_COMPLETE
+                    )
+                    if not valid:
+                        scan_complete = False
+                        continue
+                    observed_content_hashes.add(observed_hash)
+                    observed_content_keys.add(str(row["content_key"]))
+                    observed_relation_keys.add(str(row["relation_key"]))
+                    observed_observation_ids.add(str(row["observation_id"]))
+            finally:
+                connection.close()
+        if len(observed_content_hashes) == 20:
+            content_count = 20
+        if len(observed_relation_keys) == 20:
+            relation_count = 20
+            active_count = 20
+        if len(observed_observation_ids) == 20:
+            observation_count = 20
+        scan_complete = (
+            scan_complete
+            and observed_content_hashes == set(expected_content_id_hashes)
+            and len(observed_content_keys) == 20
+            and relation_count == 20
+            and observation_count == 20
+        )
+        return {
+            "active_count": active_count,
+            "content_count": content_count,
+            "observation_count": observation_count,
+            "relation_count": relation_count,
+            "scan_complete": scan_complete,
+            "scan_ref_sha256": hashlib.sha256(
+                json.dumps(sorted(identity.job_id for identity in identities.values()), separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
         }
 
     @staticmethod

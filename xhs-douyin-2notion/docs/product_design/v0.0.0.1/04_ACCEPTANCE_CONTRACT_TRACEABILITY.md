@@ -6,6 +6,7 @@ version: v0.0.0.1
 status: FINAL_PRODUCT_DESIGN_BASELINE
 owner_change_event: CE-X2N-20260719-S00-P01
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
+assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT
 contract_mutability: owner-approved-versioned-change-only
 ---
 
@@ -14,12 +15,14 @@ contract_mutability: owner-approved-versioned-change-only
 > Scope amendment `CE-X2N-20260719-S00-P05`：产品名保持不变，Acceptance 已扩展到小红书、抖音、哔哩哔哩、快手、微博、淘宝；每个平台独立 Policy/Auth/Technical Gate，未运行或未知不得宣称支持。
 >
 > Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：Stage 3 只验可执行编排、恢复与合法禁用终态；真实平台激活和完整 Owner/Sink 验收属于 Stage 6。`G0–G5`、前置 Stage6 Tasks 与下列最终任务自有集合之外的 Blocking Acceptance 通过后启动 `assurance.005`；任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署与在线 smoke 后签发 `G6 PASS`。安全未知或失败不能降级结算；任务内 Oracle 不是启动条件；没有预发布阶段、固定观察期或 soak Gate。
+>
+> A005 scope amendment `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT`：本次真实 80 条基线为小红书收藏 20、小红书当前内容 20（`xiaohongshu_current_content`、`saved_current`、20 次逐条详情页显式捕获）、抖音收藏 20、抖音喜欢 20。它只替换 A005 的真实小红书点赞范围；通用 `xhs.002` 继续是 CI 合成 Adapter Acceptance，不能被用来声称本次真实点赞批次已执行。
 
 `assurance_005_owned_in_task_acceptance_ids` 精确为：
 
 ```text
 capture.001-.006
-xhs.001, xhs.002, dy.001, dy.002
+xhs.001, dy.001, dy.002
 bili.001, ks.001, wb.001, tb.001
 data.002
 rel.006, rel.007, rel.008
@@ -929,7 +932,7 @@ Stage 归属：Stage 3 只需以同一批合成 Adapter 输入证明 Canonical�
 - **环境**：ENV-OWNER-MVP
 - **输入**：
   - XHS 收藏 20；
-  - XHS 点赞 20；
+  - XHS 当前内容 20（`saved_current`，20 次逐条显式详情页捕获）；
   - Douyin 收藏 20；
   - Douyin 点赞 20。
 - **Oracle**：人工 Manifest、Canonical、Artifacts、Markdown、Notion、扫描。

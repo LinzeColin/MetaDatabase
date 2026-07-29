@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:x2n:owner-mvp-release-state:1.1",
+  "$id": "urn:x2n:owner-mvp-release-state:1.2",
   "title": "x2n private direct-MVP release state",
   "type": "object",
   "additionalProperties": false,
@@ -13,6 +13,7 @@
     "phase",
     "scope_jobs",
     "scope_receipts",
+    "current_content_captures",
     "baseline",
     "rollback",
     "owner_signoff",
@@ -20,7 +21,7 @@
     "knowledge_assets"
   ],
   "properties": {
-    "schema_version": {"const": "1.1"},
+    "schema_version": {"const": "1.2"},
     "task_id": {"const": "TSK.x2n.assurance.005"},
     "project": {"const": "xhs-douyin-2notion"},
     "release_version": {"const": "v0.0.0.1"},
@@ -28,6 +29,7 @@
     "phase": {"enum": ["activation_armed", "pre_switch_ready", "active", "rolled_back"]},
     "scope_jobs": {"type": "object"},
     "scope_receipts": {"type": "object"},
+    "current_content_captures": {"type": "object"},
     "baseline": {"type": "object"},
     "rollback": {"type": "object"},
     "owner_signoff": {"type": "boolean"},

@@ -1,4 +1,4 @@
-import { recognizePage } from "./page-support.js";
+import { canCaptureXhsMvpCurrent, recognizePage } from "./page-support.js";
 import {
   buildBilibiliCapturePayload,
   extractBilibiliCurrentPage,
@@ -36,6 +36,7 @@ const NATIVE_HOST = "com.linzecolin.x2n";
 const CONTRACT_VERSION = "1.0";
 const MESSAGE_TYPES = Object.freeze(new Set([
   "X2N_CAPTURE_CURRENT",
+  "X2N_CAPTURE_CURRENT_MVP",
   "X2N_GET_CAPABILITIES",
   "X2N_GET_JOB",
   "X2N_HEALTH",
@@ -44,6 +45,11 @@ const MESSAGE_TYPES = Object.freeze(new Set([
 const SAFE_TOKEN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u;
 const SHA256 = /^[0-9a-f]{64}$/u;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+const OWNER_MVP_ENROLLMENT_SCOPE_IDS = Object.freeze(new Set([
+  "xiaohongshu_favorites",
+  "douyin_favorites",
+  "douyin_likes",
+]));
 const SCOPE_MATRIX = Object.freeze({
   bilibili_selected_collection: Object.freeze({
     maxItems: 20,
@@ -220,7 +226,12 @@ function buildStartSyncPayload(message) {
     return null;
   }
   const mvpActivation = message.activationMode === "mvp_activation_candidate";
+  const mvpEnrollment = message.activationMode === "mvp_manifest_enrollment";
   if (mvpActivation && message.maxItems !== 20) return null;
+  if (
+    mvpEnrollment
+    && (message.maxItems !== 20 || !OWNER_MVP_ENROLLMENT_SCOPE_IDS.has(message.scopeId))
+  ) return null;
   const base = {
     auto_scroll: false,
     bounded_batch: true,
@@ -232,6 +243,7 @@ function buildStartSyncPayload(message) {
     scope_id: message.scopeId,
     user_gesture: true,
   };
+  if (mvpEnrollment) base.owner_mvp_manifest_enrollment = true;
   if (!scope.selectedCollection) {
     if (message.sourceCollectionId !== null && message.sourceCollectionId !== undefined && !validToken(message.sourceCollectionId)) {
       return null;
@@ -264,7 +276,9 @@ async function activeOwnerTab(tabId) {
 
 async function captureVisibleMvpBatch(message, payload) {
   const adapter = MVP_VISIBLE_BATCH_ADAPTERS[payload.scope_id];
-  if (!adapter || payload.max_items !== 20) {
+  const mvpActivation = message.activationMode === "mvp_activation_candidate";
+  const mvpEnrollment = message.activationMode === "mvp_manifest_enrollment";
+  if (!adapter || payload.max_items !== 20 || (!mvpActivation && !mvpEnrollment)) {
     return { ok: false, code: "X2N_POLICY_BLOCKED", status: "platform_disabled" };
   }
   let tab;
@@ -280,7 +294,7 @@ async function captureVisibleMvpBatch(message, payload) {
         maxItems: 20,
         mode: adapter.mode,
         ownerGesture: true,
-        scopeMode: message.activationMode === "mvp_activation_candidate" ? "owner_mvp_20" : "canary_20",
+        scopeMode: "owner_mvp_20",
       }],
       func: adapter.extract,
       target: { tabId: tab.id },
@@ -332,7 +346,8 @@ async function captureCurrent(message) {
   }
   const support = recognizePage(tab.url ?? "");
   const adapter = CURRENT_PAGE_ADAPTERS[support.platform];
-  if (!support.executable || !adapter) {
+  const mvpCurrentEligible = canCaptureXhsMvpCurrent(message, support);
+  if ((!support.executable && !mvpCurrentEligible) || !adapter) {
     return { ok: false, code: "X2N_POLICY_BLOCKED", status: "platform_disabled" };
   }
 
@@ -373,6 +388,12 @@ async function captureCurrent(message) {
     return { ok: false, code: facts.code, reason: facts.reason, status: facts.status };
   }
   const payload = adapter.buildPayload(facts);
+  if (message.type === "X2N_CAPTURE_CURRENT_MVP") {
+    if (!mvpCurrentEligible) {
+      return { ok: false, code: "X2N_POLICY_BLOCKED", status: "platform_disabled" };
+    }
+    payload.owner_mvp_scope = "xiaohongshu_current_content";
+  }
   if (message.fallbackFromJobId !== undefined) {
     if (typeof message.fallbackFromJobId !== "string" || !UUID.test(message.fallbackFromJobId)) {
       return { ok: false, code: "X2N_INVALID_INPUT", status: "rejected" };
@@ -393,7 +414,9 @@ async function handleMessage(message, sender) {
     return { ok: false, code: "X2N_EXTENSION_MESSAGE_REJECTED", status: "rejected" };
   }
   try {
-    if (message.type === "X2N_CAPTURE_CURRENT") return captureCurrent(message);
+    if (message.type === "X2N_CAPTURE_CURRENT" || message.type === "X2N_CAPTURE_CURRENT_MVP") {
+      return captureCurrent(message);
+    }
     if (message.type === "X2N_GET_CAPABILITIES") {
       const response = await nativeRequest("get_capabilities", { capability_contract_version: "1.0" });
       return { ok: response?.accepted === true, response };
@@ -412,7 +435,7 @@ async function handleMessage(message, sender) {
       const payload = buildStartSyncPayload(message);
       if (!payload) return { ok: false, code: "X2N_INVALID_INPUT", status: "rejected" };
       if (
-        message.activationMode === "mvp_activation_candidate"
+        new Set(["mvp_activation_candidate", "mvp_manifest_enrollment"]).has(message.activationMode)
         && new Set(["douyin", "xiaohongshu"]).has(payload.platform)
       ) {
         return captureVisibleMvpBatch(message, payload);

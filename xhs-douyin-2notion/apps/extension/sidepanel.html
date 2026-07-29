@@ -27,6 +27,7 @@
         <h2>Save current content</h2>
         <p>Only the active Xiaohongshu detail page is read after your explicit action. No scrolling or account changes.</p>
         <button id="save-current" type="button" disabled>Save unavailable</button>
+        <button id="save-current-mvp" type="button" disabled>Record this page for direct MVP preparation or armed capture</button>
         <p id="capture-status" aria-live="polite"></p>
         <button id="capture-fallback" type="button" hidden>Save this current page instead</button>
       </section>
@@ -36,7 +37,7 @@
         <label for="sync-scope">Scope</label>
         <select id="sync-scope">
           <option value="xiaohongshu_favorites">Xiaohongshu favorites</option>
-          <option value="xiaohongshu_likes">Xiaohongshu likes</option>
+          <option value="xiaohongshu_likes">Xiaohongshu likes (synthetic only)</option>
           <option value="douyin_favorites">Douyin favorites</option>
           <option value="douyin_likes">Douyin likes</option>
           <option value="bilibili_selected_collection">Bilibili owner-selected collection</option>

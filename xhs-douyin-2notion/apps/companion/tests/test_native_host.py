@@ -299,6 +299,30 @@ class NativeHostTests(unittest.TestCase):
         self.assertFalse(uninstall.manifest_path.exists())
         self.assertFalse(uninstall.launcher_path.exists())
 
+    def test_temporary_prearm_host_uninstall_preserves_owner_private_runtime(self) -> None:
+        """The enrollment bridge is reversible without deleting private MVP state."""
+
+        self.paths.ensure_private_directory("runtime/release")
+        enrollment = self.paths.owner_mvp_manifest_enrollment
+        enrollment.write_text('{"private_hash_only":true}\n', encoding="utf-8")
+        enrollment.chmod(0o600)
+        uv_path = Path(shutil.which("uv") or "")
+        install = create_plan(
+            action="install",
+            browser="chromium",
+            home=self.home,
+            env=self.env,
+            uv_path=uv_path,
+        )
+        self.assertEqual(execute_plan(install, confirmation=INSTALL_CONFIRMATION)["status"], "INSTALLED")
+        uninstall = create_plan(action="uninstall", browser="chromium", home=self.home, env={})
+        self.assertEqual(execute_plan(uninstall, confirmation=UNINSTALL_CONFIRMATION)["status"], "UNINSTALLED")
+        self.assertEqual(enrollment.read_text(encoding="utf-8"), '{"private_hash_only":true}\n')
+        self.assertEqual(
+            fresh_install_readiness(browser="chromium", home=self.home, env=self.env, uv_path=uv_path),
+            "READY_FOR_FRESH_INSTALL",
+        )
+
     def test_fresh_install_readiness_is_read_only_and_fails_closed(self) -> None:
         uv_path = Path(shutil.which("uv") or "")
         self.assertTrue(uv_path.is_absolute())

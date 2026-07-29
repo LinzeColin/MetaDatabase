@@ -7,6 +7,7 @@ const platformStatus = document.querySelector("#platform-status");
 const hostStatus = document.querySelector("#host-status");
 const refreshButton = document.querySelector("#refresh-status");
 const saveButton = document.querySelector("#save-current");
+const saveMvpCurrentButton = document.querySelector("#save-current-mvp");
 const captureStatus = document.querySelector("#capture-status");
 const fallbackButton = document.querySelector("#capture-fallback");
 const syncPolicy = document.querySelector("#sync-policy");
@@ -31,8 +32,14 @@ const SYNC_SCOPE_RULES = Object.freeze({
   xiaohongshu_favorites: Object.freeze({ maxItems: 80, selectedCollection: false }),
   xiaohongshu_likes: Object.freeze({ maxItems: 80, selectedCollection: false }),
 });
+const OWNER_MVP_ENROLLMENT_SCOPE_IDS = Object.freeze(new Set([
+  "xiaohongshu_favorites",
+  "douyin_favorites",
+  "douyin_likes",
+]));
 let activeTabId = null;
 let currentPageExecutable = false;
+let mvpCurrentPageExecutable = false;
 let captureInFlight = false;
 let pageRefreshGeneration = 0;
 let capabilityOutcomes = null;
@@ -81,9 +88,17 @@ function renderPage(result) {
   const executablePlatform = result.executable
     && Object.hasOwn(EXECUTABLE_PLATFORM_NAMES, result.platform)
     && activeTabId !== null;
+  const xhsMvpCurrentExecutable = result.mvpCurrentEligible === true
+    && result.platform === "xiaohongshu"
+    && activeTabId !== null;
   currentPageExecutable = executablePlatform;
+  mvpCurrentPageExecutable = xhsMvpCurrentExecutable;
   saveButton.disabled = !executablePlatform;
+  saveMvpCurrentButton.disabled = !xhsMvpCurrentExecutable;
   saveButton.textContent = saveButton.disabled ? "Save unavailable" : "Save current page";
+  saveMvpCurrentButton.textContent = saveMvpCurrentButton.disabled
+    ? "MVP current-content unavailable"
+    : "Record this page for direct MVP preparation or armed capture";
   fallbackButton.disabled = fallbackFromJobId === null || captureInFlight || !executablePlatform;
   if (!captureInFlight && fallbackFromJobId === null) {
     captureStatus.textContent = "";
@@ -93,6 +108,11 @@ function renderPage(result) {
     const platformName = EXECUTABLE_PLATFORM_NAMES[result.platform];
     pageStatus.textContent = `${platformName} detail page recognized`;
     platformStatus.textContent = "Only this explicitly selected current page will be read";
+    return;
+  }
+  if (xhsMvpCurrentExecutable) {
+    pageStatus.textContent = "Xiaohongshu detail page ready for direct MVP";
+    platformStatus.textContent = "One explicit action records only a private content fingerprint before arming";
     return;
   }
   if (result.supported) {
@@ -118,6 +138,13 @@ function selectedOutcome() {
   return capabilityOutcomes?.get(syncScope.value) ?? null;
 }
 
+function isMvpEnrollmentScope(scopeId, outcome) {
+  return outcome?.terminal === "READY_FOR_MVP_ACTIVATION"
+    && outcome?.reason_code === "CI_SYNTH_READY"
+    && outcome?.feature_flag === "ci_synthetic_only"
+    && OWNER_MVP_ENROLLMENT_SCOPE_IDS.has(scopeId);
+}
+
 function renderFallback(result) {
   const response = result?.response;
   const eligible = result?.fallbackAvailable === true
@@ -141,21 +168,27 @@ function syncPayload() {
     || outcome?.reason_code !== "CI_SYNTH_READY"
   ) return null;
   const mvpActivation = outcome.feature_flag === "mvp_activation_candidate";
+  const mvpEnrollment = isMvpEnrollmentScope(syncScope.value, outcome);
   const synthetic = outcome.feature_flag === "ci_synthetic_only";
   if (!mvpActivation && !synthetic) return null;
   if (mvpActivation && (
     maxItems !== 20
     || !new Set(["xiaohongshu_favorites", "xiaohongshu_likes", "douyin_favorites", "douyin_likes"]).has(syncScope.value)
   )) return null;
+  if (mvpEnrollment && (maxItems !== 20 || activeTabId === null)) return null;
   if (!rule.selectedCollection) {
     const sourceCollectionId = syncSourceCollection.value.trim();
     if (sourceCollectionId && !SAFE_TOKEN.test(sourceCollectionId)) return null;
     return {
-      activationMode: mvpActivation ? "mvp_activation_candidate" : "ci_synthetic_only",
+      activationMode: mvpActivation
+        ? "mvp_activation_candidate"
+        : mvpEnrollment
+          ? "mvp_manifest_enrollment"
+          : "ci_synthetic_only",
       maxItems,
       scopeId: syncScope.value,
       sourceCollectionId: sourceCollectionId || null,
-      tabId: mvpActivation ? activeTabId : undefined,
+      tabId: mvpActivation || mvpEnrollment ? activeTabId : undefined,
     };
   }
   const selectionId = ownerSelectionId.value.trim();
@@ -180,21 +213,26 @@ function renderSyncScope() {
   if (selectedCollection) syncSourceCollection.value = "";
   const outcome = selectedOutcome();
   const mvpActivation = outcome?.feature_flag === "mvp_activation_candidate";
+  const mvpEnrollment = isMvpEnrollmentScope(syncScope.value, outcome);
   startSyncButton.textContent = mvpActivation
     ? "Run owner-selected 20-item MVP action"
+    : mvpEnrollment
+      ? "Prepare owner-selected 20-item MVP input"
     : "Start selected synthetic dispatch";
-  const maximum = String(mvpActivation ? 20 : (rule?.maxItems ?? 1));
+  const maximum = String(mvpActivation || mvpEnrollment ? 20 : (rule?.maxItems ?? 1));
   syncMaxItems.max = maximum;
   if (
     !Number.isSafeInteger(Number(syncMaxItems.value))
     || Number(syncMaxItems.value) > Number(maximum)
-    || (mvpActivation && Number(syncMaxItems.value) !== 20)
+    || ((mvpActivation || mvpEnrollment) && Number(syncMaxItems.value) !== 20)
   ) {
     syncMaxItems.value = maximum;
   }
   if (outcome) {
     syncPolicy.textContent = outcome.feature_flag === "mvp_activation_candidate"
       ? "Owner-authorized MVP action: exactly 20 items, one explicit gesture, no automatic scroll."
+      : mvpEnrollment
+        ? "Private MVP preparation: exactly 20 visible items, hashes only, no Canonical write or automatic scroll."
       : outcome.terminal === "READY_FOR_MVP_ACTIVATION"
       ? "CI-synthetic dispatch only. This does not enable any live platform request."
       : `Scope disabled by local external gate: ${outcome.reason_code}`;
@@ -230,26 +268,45 @@ async function refreshCapabilities() {
   }
 }
 
-async function captureCurrentPage(explicitFallbackFromJobId = null) {
-  if (activeTabId === null || saveButton.disabled || captureInFlight) return;
+async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpCurrent = false) {
+  if (
+    activeTabId === null
+    || captureInFlight
+    || (!ownerMvpCurrent && saveButton.disabled)
+    || (ownerMvpCurrent && saveMvpCurrentButton.disabled)
+  ) return;
+  if (ownerMvpCurrent && explicitFallbackFromJobId !== null) return;
   const requestedTabId = activeTabId;
   captureInFlight = true;
   saveButton.disabled = true;
-  captureStatus.textContent = "Reading sanitized current-page facts…";
+  saveMvpCurrentButton.disabled = true;
+  captureStatus.textContent = ownerMvpCurrent
+    ? "Reading one explicitly selected MVP current-content page…"
+    : "Reading sanitized current-page facts…";
   const pendingNotice = setTimeout(() => {
     captureStatus.textContent = "Still waiting for local confirmation — do not retry";
   }, 15_000);
   try {
-    const message = { tabId: requestedTabId, type: "X2N_CAPTURE_CURRENT" };
+    const message = {
+      tabId: requestedTabId,
+      type: ownerMvpCurrent ? "X2N_CAPTURE_CURRENT_MVP" : "X2N_CAPTURE_CURRENT",
+    };
     if (explicitFallbackFromJobId !== null) message.fallbackFromJobId = explicitFallbackFromJobId;
     const result = await chrome.runtime.sendMessage(message);
-    if (result?.ok && result.response?.job_id) {
+    if (result?.ok && (result.response?.job_id || ownerMvpCurrent)) {
       fallbackFromJobId = null;
       fallbackButton.hidden = true;
-      captureStatus.dataset.jobId = result.response.job_id;
-      captureStatus.textContent = result.response.status === "completed"
-        ? "Current page committed to the canonical store"
-        : "Current page queued in the local companion";
+      if (result.response?.job_id) {
+        captureStatus.dataset.jobId = result.response.job_id;
+        captureStatus.textContent = result.response.status === "completed"
+          ? (ownerMvpCurrent
+            ? "Current content committed to the armed MVP scope"
+            : "Current page committed to the canonical store")
+          : "Current page queued in the local companion";
+      } else {
+        delete captureStatus.dataset.jobId;
+        captureStatus.textContent = "Current page fingerprint recorded privately; no Canonical content was written.";
+      }
     } else if (result?.code === "X2N_PLATFORM_CHANGED") {
       captureStatus.textContent = "Page structure changed — capture stopped without saving";
     } else if (result?.status === "active_tab_permission_required") {
@@ -264,6 +321,7 @@ async function captureCurrentPage(explicitFallbackFromJobId = null) {
     clearTimeout(pendingNotice);
     captureInFlight = false;
     saveButton.disabled = !(currentPageExecutable && activeTabId === requestedTabId);
+    saveMvpCurrentButton.disabled = !(mvpCurrentPageExecutable && activeTabId === requestedTabId);
     fallbackButton.disabled = fallbackFromJobId === null || !(currentPageExecutable && activeTabId === requestedTabId);
   }
 }
@@ -278,12 +336,16 @@ async function startSelectedSync() {
   startSyncButton.disabled = true;
   syncStatus.textContent = payload.activationMode === "mvp_activation_candidate"
     ? "Reading one owner-selected, sanitized 20-item batch…"
+    : payload.activationMode === "mvp_manifest_enrollment"
+      ? "Reading one owner-selected, hash-only 20-item MVP preparation batch…"
     : "Requesting local synthetic dispatch…";
   try {
     const result = await chrome.runtime.sendMessage({ type: "X2N_START_SYNC", ...payload });
-    if (result?.ok && result.response?.job_id) {
+    if (result?.ok && (result.response?.job_id || payload.activationMode === "mvp_manifest_enrollment")) {
       syncStatus.textContent = payload.activationMode === "mvp_activation_candidate"
         ? "Bounded owner action committed to the local canonical store."
+        : payload.activationMode === "mvp_manifest_enrollment"
+          ? "Private MVP selection recorded with hashes only; no Canonical content was written."
         : "Local synthetic adapter dispatch completed with zero platform calls.";
     } else if (result?.fallbackAvailable) {
       syncStatus.textContent = "List dispatch stopped; a separate current-page fallback is available.";
@@ -317,6 +379,7 @@ async function refreshStatus() {
 
 refreshButton.addEventListener("click", refreshStatus);
 saveButton.addEventListener("click", () => captureCurrentPage());
+saveMvpCurrentButton.addEventListener("click", () => captureCurrentPage(null, true));
 fallbackButton.addEventListener("click", () => {
   if (fallbackFromJobId !== null) captureCurrentPage(fallbackFromJobId);
 });

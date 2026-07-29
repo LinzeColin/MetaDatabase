@@ -108,6 +108,23 @@ class AdapterDispatchContractTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             NativeMessageRequest.model_validate_json(json.dumps(_request("start_sync", too_many_selected)))
 
+    def test_hash_only_owner_mvp_manifest_enrollment_is_limited_to_the_live_three_list_scopes(self) -> None:
+        enrolled = dict(SCOPE_PAYLOADS[0])
+        enrolled["owner_mvp_manifest_enrollment"] = True
+        request = NativeMessageRequest.model_validate_json(json.dumps(_request("start_sync", enrolled))).root
+        self.assertIs(request.payload.owner_mvp_manifest_enrollment, True)
+
+        likes = dict(SCOPE_PAYLOADS[1])
+        likes["owner_mvp_manifest_enrollment"] = True
+        with self.assertRaises(ValidationError):
+            NativeMessageRequest.model_validate_json(json.dumps(_request("start_sync", likes)))
+
+        wrong_size = dict(SCOPE_PAYLOADS[2])
+        wrong_size["max_items"] = 19
+        wrong_size["owner_mvp_manifest_enrollment"] = True
+        with self.assertRaises(ValidationError):
+            NativeMessageRequest.model_validate_json(json.dumps(_request("start_sync", wrong_size)))
+
     def test_capture_current_legacy_hash_stays_compatible_and_optional_fallback_is_typed(self) -> None:
         legacy = {
             "auto_scroll": False,
@@ -128,6 +145,22 @@ class AdapterDispatchContractTests(unittest.TestCase):
         fallback["fallback_from_job_id"] = "00000000-0000-4000-8000-000000000002"
         request = NativeMessageRequest.model_validate_json(json.dumps(_request("capture_current", fallback))).root
         self.assertEqual(str(request.payload.fallback_from_job_id), fallback["fallback_from_job_id"])
+
+        owner_mvp = dict(legacy)
+        owner_mvp["owner_mvp_scope"] = "xiaohongshu_current_content"
+        request = NativeMessageRequest.model_validate_json(json.dumps(_request("capture_current", owner_mvp))).root
+        self.assertEqual(request.payload.owner_mvp_scope, "xiaohongshu_current_content")
+
+        owner_mvp_with_fallback = dict(owner_mvp)
+        owner_mvp_with_fallback["fallback_from_job_id"] = "00000000-0000-4000-8000-000000000002"
+        with self.assertRaises(ValidationError):
+            NativeMessageRequest.model_validate_json(json.dumps(_request("capture_current", owner_mvp_with_fallback)))
+
+        owner_mvp_wrong_platform = dict(owner_mvp)
+        owner_mvp_wrong_platform["platform"] = "douyin"
+        owner_mvp_wrong_platform["page_url"] = "https://www.douyin.com/video/synthetic-001"
+        with self.assertRaises(ValidationError):
+            NativeMessageRequest.model_validate_json(json.dumps(_request("capture_current", owner_mvp_wrong_platform)))
 
     def test_get_capabilities_is_additive_and_failed_job_error_must_preserve_job_id(self) -> None:
         legacy = NativeMessageRequest.model_validate_json(json.dumps(_request("get_capabilities", {}))).root

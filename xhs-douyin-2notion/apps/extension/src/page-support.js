@@ -168,6 +168,18 @@ function disabledReason(match, url) {
   return "platform_gate_disabled";
 }
 
+export function canCaptureXhsMvpCurrent(message, support) {
+  return message !== null
+    && typeof message === "object"
+    && message.type === "X2N_CAPTURE_CURRENT_MVP"
+    && message.fallbackFromJobId === undefined
+    && support !== null
+    && typeof support === "object"
+    && support.platform === "xiaohongshu"
+    && support.executable === false
+    && support.mvpCurrentEligible === true;
+}
+
 export function recognizePage(rawUrl) {
   if (typeof rawUrl !== "string" || rawUrl.length === 0) {
     return Object.freeze({
@@ -203,6 +215,7 @@ export function recognizePage(rawUrl) {
   const executable = currentPageExecutable(match, url);
   return Object.freeze({
     executable,
+    mvpCurrentEligible: match.platform === "xiaohongshu" && !executable,
     platform: match.platform,
     reason: executable ? "current_page_ci_synth_enabled" : disabledReason(match, url),
     supported: true,

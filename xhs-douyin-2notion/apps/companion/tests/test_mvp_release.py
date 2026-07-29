@@ -22,9 +22,11 @@ from x2n_companion.mvp_deployment import MvpDeploymentManager
 from x2n_companion.mvp_release import (
     ARM_CONFIRMATION,
     MATERIALIZE_CONFIRMATION,
-    MVP_SCOPE_IDS,
+    MVP_CURRENT_SCOPE_ID,
+    MVP_LIST_SCOPE_IDS,
     MvpActivationExecutor,
     MvpReleaseController,
+    OwnerMvpManifestEnrollment,
     OwnerMvpReleaseInput,
     verify_owner_private_douyin_sidecar_bundle,
 )
@@ -41,6 +43,9 @@ from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRunti
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 OWNER_MVP_STATE_SCHEMA = PROJECT_ROOT / "machine/schemas/owner_mvp_release_state.schema.json"
+A005_SCOPE_CHANGE_EVENT = "CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT"
+
+
 def _write_private(path: Path, value: dict[str, object]) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
     path.chmod(0o600)
@@ -91,9 +96,7 @@ def _write_owner_sidecar_bundle(paths: RuntimePaths) -> Path:
 
 def _release_input() -> dict[str, object]:
     sidecar_digests = _owner_sidecar_digests()
-    owner_contract = hashlib.sha256(
-        (PROJECT_ROOT / "docs/governance/OWNER_INPUT_CONTRACT.md").read_bytes()
-    ).hexdigest()
+    owner_contract = hashlib.sha256((PROJECT_ROOT / "docs/governance/OWNER_INPUT_CONTRACT.md").read_bytes()).hexdigest()
     return {
         "schema_version": "1.0",
         "project": "xhs-douyin-2notion",
@@ -102,7 +105,7 @@ def _release_input() -> dict[str, object]:
         "owner_input_contract_sha256": owner_contract,
         "enabled_scopes": [
             {"scope_id": "xiaohongshu_favorites", "max_items": 20, "transport": "chrome_visible_dom"},
-            {"scope_id": "xiaohongshu_likes", "max_items": 20, "transport": "chrome_visible_dom"},
+            {"scope_id": MVP_CURRENT_SCOPE_ID, "max_items": 20, "transport": "chrome_current_page_explicit"},
             {
                 "scope_id": "douyin_favorites",
                 "max_items": 20,
@@ -119,7 +122,7 @@ def _release_input() -> dict[str, object]:
             }
             for scope, prefix in (
                 ("xiaohongshu_favorites", "mvp-favorite"),
-                ("xiaohongshu_likes", "mvp-like"),
+                (MVP_CURRENT_SCOPE_ID, "mvp-current"),
                 ("douyin_favorites", "mvp-douyin-favorite"),
                 ("douyin_likes", "mvp-douyin-like"),
             )
@@ -165,6 +168,37 @@ def _wire(payload: dict[str, object], *, request_id: str | None = None) -> bytes
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
+
+
+def _capture_wire(payload: dict[str, object], *, request_id: str | None = None) -> bytes:
+    return json.dumps(
+        {
+            "action": "capture_current",
+            "payload": payload,
+            "payload_hash": canonical_json_sha256(payload),
+            "request_id": request_id or str(uuid.uuid4()),
+            "schema_version": "1.0",
+            "sent_at": "2026-07-29T00:00:00Z",
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _current_content_payload(index: int, *, content_id: str | None = None) -> dict[str, object]:
+    resolved_id = content_id or f"mvp-current-{index:02d}"
+    return {
+        "auto_scroll": False,
+        "category_id": None,
+        "change_account_state": False,
+        "owner_mvp_scope": MVP_CURRENT_SCOPE_ID,
+        "page_context": {"content_id": resolved_id, "content_type": "video", "title": f"Current {index}"},
+        "page_url": f"https://www.xiaohongshu.com/explore/{resolved_id}",
+        "platform": "xiaohongshu",
+        "relation": "saved_current",
+        "user_gesture": True,
+    }
 
 
 def _health_wire(artifact_sha256: str = "c" * 64) -> bytes:
@@ -224,12 +258,39 @@ def _douyin_visible_batch(prefix: str = "mvp-douyin-favorite") -> dict[str, obje
         "code": None,
         "errors": [],
         "items": [
-            {"content_id": f"{prefix}-{index:02d}", "content_type": "video", "title": None}
-            for index in range(20)
+            {"content_id": f"{prefix}-{index:02d}", "content_type": "video", "title": None} for index in range(20)
         ],
         "platform": "douyin",
         "schema_version": "1.0",
         "status": "ready",
+    }
+
+
+def _manifest_enrollment_payload(scope_id: str) -> dict[str, object]:
+    platform = "xiaohongshu" if scope_id == "xiaohongshu_favorites" else "douyin"
+    relation = "favorited" if scope_id != "douyin_likes" else "liked"
+    visible_batch: dict[str, object]
+    if scope_id == "xiaohongshu_favorites":
+        visible_batch = _favorite_batch()
+    elif scope_id == "douyin_favorites":
+        visible_batch = _douyin_visible_batch("mvp-douyin-favorite")
+    elif scope_id == "douyin_likes":
+        visible_batch = _douyin_visible_batch("mvp-douyin-like")
+    else:
+        raise AssertionError("unsupported manifest enrollment scope")
+    return {
+        "auto_scroll": False,
+        "bounded_batch": True,
+        "change_account_state": False,
+        "dispatch_version": "1.0",
+        "max_items": 20,
+        "owner_mvp_manifest_enrollment": True,
+        "platform": platform,
+        "relation": relation,
+        "scope_id": scope_id,
+        "source_collection_id": None,
+        "user_gesture": True,
+        "visible_batch": visible_batch,
     }
 
 
@@ -240,19 +301,36 @@ def _available_loopback_port() -> int:
 
 
 class MvpReleaseTests(unittest.TestCase):
+    def test_a005_scope_amendment_is_bound_to_the_current_content_contract(self) -> None:
+        change_event = (PROJECT_ROOT / "docs/governance/CHANGE_EVENT_S06_A005_XHS_CURRENT_CONTENT.md").read_text(
+            encoding="utf-8"
+        )
+        run_contract = (PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S06_ASSURANCE_005.md").read_text(encoding="utf-8")
+        taskpack = (PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml").read_text(
+            encoding="utf-8"
+        )
+        task = taskpack.split("- id: TSK.x2n.assurance.005", maxsplit=1)[1].split("stage_gates:", maxsplit=1)[0]
+        for rendered in (change_event, run_contract):
+            self.assertIn(A005_SCOPE_CHANGE_EVENT, rendered)
+            self.assertIn("xiaohongshu_current_content", rendered)
+            self.assertIn("saved_current", rendered)
+        self.assertIn(A005_SCOPE_CHANGE_EVENT, task)
+        self.assertIn("xiaohongshu_current_content", taskpack)
+        self.assertIn("saved_current", task)
+        self.assertNotIn("ACC.x2n.xhs.002", task)
+
     def test_owner_mvp_state_schema_tracks_runtime_knowledge_asset_gate(self) -> None:
         schema = json.loads(OWNER_MVP_STATE_SCHEMA.read_text(encoding="utf-8"))
         rendered = json.dumps(schema, ensure_ascii=False, sort_keys=True)
-        self.assertEqual(schema["$id"], "urn:x2n:owner-mvp-release-state:1.1")
-        self.assertEqual(schema["properties"]["schema_version"], {"const": "1.1"})
+        self.assertEqual(schema["$id"], "urn:x2n:owner-mvp-release-state:1.2")
+        self.assertEqual(schema["properties"]["schema_version"], {"const": "1.2"})
         self.assertIn("knowledge_assets", schema["required"])
+        self.assertIn("current_content_captures", schema["required"])
         self.assertEqual(
             schema["properties"]["knowledge_assets"]["properties"]["notion_mode"],
             {"const": "DISABLED_OWNER_INPUT"},
         )
-        self.assertEqual(
-            schema["properties"]["knowledge_assets"]["properties"]["notion_platform_calls"], {"const": 0}
-        )
+        self.assertEqual(schema["properties"]["knowledge_assets"]["properties"]["notion_platform_calls"], {"const": 0})
         self.assertNotIn("/" + "Users/", rendered)
 
     def test_release_preflight_is_aggregate_only_and_never_arms(self) -> None:
@@ -287,6 +365,7 @@ class MvpReleaseTests(unittest.TestCase):
                 "douyin_sidecar_bundle": "CONFIGURED_CLEAN_ROOM_UNATTESTED",
                 "native_host_fresh_install": "READY_FOR_FRESH_INSTALL",
                 "notion_calls": 0,
+                "owner_mvp_manifest_enrollment": "NOT_STARTED",
                 "owner_input": "MISSING_OR_INVALID",
                 "platform_calls": 0,
                 "private_durability_client": "NOT_READY",
@@ -394,7 +473,9 @@ class MvpReleaseTests(unittest.TestCase):
         for manifest in template["owner_private_manifests"]:
             self.assertEqual(len(manifest["content_id_sha256"]), 20)
             self.assertTrue(
-                all(value.startswith("REPLACE_WITH_OWNER_CONTENT_ID_SHA256_") for value in manifest["content_id_sha256"])
+                all(
+                    value.startswith("REPLACE_WITH_OWNER_CONTENT_ID_SHA256_") for value in manifest["content_id_sha256"]
+                )
             )
         with self.assertRaises(X2NRuntimeError):
             OwnerMvpReleaseInput.from_mapping(template)
@@ -426,12 +507,18 @@ class MvpReleaseTests(unittest.TestCase):
     def test_arm_exposes_exact_four_candidate_scopes_and_external_gates(self) -> None:
         controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
         outcomes = controller.capability_registry().evaluate(evaluated_at="2026-07-29T00:00:00Z").outcomes
-        enabled = [item for item in outcomes if item.scope_id in set(SyncScopeId) and item.scope_id.value.startswith(("xiaohongshu", "douyin"))]
-        self.assertEqual(len(enabled), 4)
+        enabled = [item for item in outcomes if item.feature_flag is CapabilityFeatureFlag.MVP_ACTIVATION_CANDIDATE]
+        self.assertEqual(len(enabled), 3)
         self.assertTrue(all(item.feature_flag is CapabilityFeatureFlag.MVP_ACTIVATION_CANDIDATE for item in enabled))
         self.assertTrue(all(item.terminal is CapabilityTerminal.READY_FOR_MVP_ACTIVATION for item in enabled))
+        deferred_likes = next(item for item in outcomes if item.scope_id is SyncScopeId.XIAOHONGSHU_LIKES)
+        self.assertIs(deferred_likes.feature_flag, CapabilityFeatureFlag.CI_SYNTHETIC_ONLY)
         self.assertTrue(
-            all(item.feature_flag is CapabilityFeatureFlag.DISABLED for item in outcomes if item not in enabled)
+            all(
+                item.feature_flag is CapabilityFeatureFlag.DISABLED
+                for item in outcomes
+                if item not in enabled and item is not deferred_likes
+            )
         )
         external_gates = controller.external_gate_settlements()
         self.assertEqual(
@@ -556,13 +643,14 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(response.status.value, "completed")
         self.assertEqual(self.store.counts()["content"], 20)
         self.assertEqual(self.store.counts()["user_relation"], 20)
+
         controller = MvpReleaseController.load(self.paths)
         assert controller is not None
         self.assertEqual(set(controller.state["scope_jobs"]), {"xiaohongshu_favorites"})
         snapshot = self.store.owner_mvp_baseline_snapshot(
-            scope_scan_ids={scope: controller.scope_scan_id(scope) for scope in MVP_SCOPE_IDS}
+            scope_scan_ids={scope: controller.scope_scan_id(scope) for scope in MVP_LIST_SCOPE_IDS}
         )
-        self.assertFalse(snapshot["exact_four_scope_baseline"])
+        self.assertFalse(snapshot["exact_list_scope_baseline"])
         self.assertTrue(snapshot["scopes"]["xiaohongshu_favorites"]["scan_complete"])
         second_action = dispatch_wire(_wire(payload), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
         self.assertFalse(second_action.accepted)
@@ -578,6 +666,133 @@ class MvpReleaseTests(unittest.TestCase):
             connection.close()
         assert checkpoint is not None
         self.assertEqual(json.loads(str(checkpoint["cursor_value_private"]))["scope_mode"], "owner_mvp_20")
+
+    def test_current_content_scope_records_twenty_explicit_detail_captures(self) -> None:
+        MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        for index in range(20):
+            response = dispatch_wire(
+                _capture_wire(_current_content_payload(index)),
+                origin=DEVELOPMENT_EXTENSION_ORIGIN,
+                store=self.store,
+            )
+            self.assertTrue(response.accepted)
+            self.assertEqual(response.status.value, "completed")
+        controller = MvpReleaseController.load(self.paths)
+        assert controller is not None
+        self.assertEqual(len(controller.state["current_content_captures"]), 20)
+        self.assertIn(MVP_CURRENT_SCOPE_ID, controller.state["scope_jobs"])
+        snapshot = self.store.owner_mvp_current_content_snapshot(
+            capture_job_ids=controller.state["current_content_captures"],
+            expected_content_id_hashes=controller.release_input.scope_manifest_hashes[MVP_CURRENT_SCOPE_ID],
+        )
+        self.assertEqual(snapshot["active_count"], 20)
+        self.assertEqual(snapshot["content_count"], 20)
+        self.assertEqual(snapshot["observation_count"], 20)
+        self.assertEqual(snapshot["relation_count"], 20)
+        self.assertTrue(snapshot["scan_complete"])
+
+        duplicate = dispatch_wire(
+            _capture_wire(_current_content_payload(0)),
+            origin=DEVELOPMENT_EXTENSION_ORIGIN,
+            store=self.store,
+        )
+        self.assertFalse(duplicate.accepted)
+        self.assertEqual(self.store.counts()["content"], 20)
+        self.assertEqual(self.store.counts()["user_relation"], 20)
+
+        controller.state["current_content_captures"].pop(next(iter(controller.state["current_content_captures"])))
+        with self.assertRaises(X2NRuntimeError):
+            controller._persist()
+
+    def test_hash_only_prearm_enrollment_freezes_exact_four_manifests_without_canonical_writes(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        for scope_id in ("xiaohongshu_favorites", "douyin_favorites", "douyin_likes"):
+            response = dispatch_wire(
+                _wire(_manifest_enrollment_payload(scope_id)),
+                origin=DEVELOPMENT_EXTENSION_ORIGIN,
+                store=self.store,
+            )
+            self.assertTrue(response.accepted)
+            self.assertEqual(response.status.value, "completed")
+            self.assertIsNone(response.job_id)
+        for index in range(19):
+            response = dispatch_wire(
+                _capture_wire(_current_content_payload(index)),
+                origin=DEVELOPMENT_EXTENSION_ORIGIN,
+                store=self.store,
+            )
+            self.assertTrue(response.accepted)
+            self.assertEqual(response.status.value, "completed")
+            self.assertIsNone(response.job_id)
+
+        enrollment = OwnerMvpManifestEnrollment.load_or_create(self.paths)
+        self.assertEqual(
+            enrollment.safe_summary(),
+            {
+                "canonical_writes": 0,
+                "complete_scope_count": 3,
+                "manifest_item_count": 79,
+                "manifest_scope_count": 4,
+                "notion_calls": 0,
+                "platform_calls": 0,
+                "private_hashes_only": True,
+                "release_input_created": False,
+            },
+        )
+        final_response = dispatch_wire(
+            _capture_wire(_current_content_payload(19)),
+            origin=DEVELOPMENT_EXTENSION_ORIGIN,
+            store=self.store,
+        )
+        self.assertTrue(final_response.accepted)
+        self.assertEqual(final_response.status.value, "completed")
+        self.assertIsNone(final_response.job_id)
+
+        counts = self.store.counts()
+        for table in (
+            "artifact",
+            "checkpoint",
+            "content",
+            "request_ledger",
+            "run_record",
+            "source_observation",
+            "user_relation",
+        ):
+            self.assertEqual(counts[table], 0)
+        self.assertTrue(self.paths.owner_mvp_release_input.exists())
+        release_input = OwnerMvpReleaseInput.from_mapping(
+            json.loads(self.paths.owner_mvp_release_input.read_text(encoding="utf-8"))
+        )
+        self.assertEqual(
+            set(release_input.scope_manifest_hashes),
+            {"xiaohongshu_favorites", MVP_CURRENT_SCOPE_ID, "douyin_favorites", "douyin_likes"},
+        )
+        rendered_private = self.paths.owner_mvp_manifest_enrollment.read_text(
+            encoding="utf-8"
+        ) + self.paths.owner_mvp_release_input.read_text(encoding="utf-8")
+        self.assertNotIn("mvp-current-00", rendered_private)
+        self.assertNotIn("mvp-favorite-00", rendered_private)
+        self.assertNotIn("mvp-douyin-like-00", rendered_private)
+        self.assertNotIn("https://", rendered_private)
+
+        after_frozen = dispatch_wire(
+            _wire(_manifest_enrollment_payload("xiaohongshu_favorites")),
+            origin=DEVELOPMENT_EXTENSION_ORIGIN,
+            store=self.store,
+        )
+        self.assertFalse(after_frozen.accepted)
+        self.assertEqual(self.store.counts()["content"], 0)
+
+    def test_current_content_manifest_mismatch_blocks_before_a_canonical_write(self) -> None:
+        MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        response = dispatch_wire(
+            _capture_wire(_current_content_payload(0, content_id="not-owner-selected")),
+            origin=DEVELOPMENT_EXTENSION_ORIGIN,
+            store=self.store,
+        )
+        self.assertFalse(response.accepted)
+        self.assertEqual(self.store.counts()["content"], 0)
+        self.assertEqual(self.store.counts()["user_relation"], 0)
 
     def test_native_host_commits_one_clean_room_douyin_visible_sidecar_action(self) -> None:
         release_input = _release_input()
@@ -646,7 +861,9 @@ class MvpReleaseTests(unittest.TestCase):
             status="ready",
             completion_signal="bounded_limit_reached",
             items=tuple(
-                DouyinItem(content_id=f"unselected-douyin-{index:02d}", content_type="video", title=None, collection=None)
+                DouyinItem(
+                    content_id=f"unselected-douyin-{index:02d}", content_type="video", title=None, collection=None
+                )
                 for index in range(20)
             ),
             error_codes=(),
@@ -1033,7 +1250,9 @@ class MvpReleaseTests(unittest.TestCase):
         controller.mark_deployed(artifact_sha256="c" * 64, browser="chrome")
         self.assertTrue(dispatch_wire(_health_wire(), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store).accepted)
 
-        with mock.patch.object(RuntimePaths, "set_mvp_execution_authorized", side_effect=OSError("synthetic marker failure")):
+        with mock.patch.object(
+            RuntimePaths, "set_mvp_execution_authorized", side_effect=OSError("synthetic marker failure")
+        ):
             with self.assertRaises(OSError):
                 controller.mark_online_smoke()
 

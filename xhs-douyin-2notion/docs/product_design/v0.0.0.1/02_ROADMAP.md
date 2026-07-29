@@ -6,6 +6,7 @@ version: v0.0.0.1
 status: STAGE_5_G5_CI_SYNTH_PASS_ASSURANCE001_NEXT
 owner_change_event: CE-X2N-20260719-S00-P01
 release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
+assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT
 planning_unit: stage-phase-task
 schedule_type: dependency-and-effort-range
 calendar_commitment: none
@@ -16,6 +17,8 @@ calendar_commitment: none
 > Scope amendment `CE-X2N-20260719-S00-P05`：稳定项目名不限制平台范围；Stage 2–3 已扩为六平台，所有新增平台逐一通过 Policy/Auth/Technical/Canary Gate。执行粒度已由 `CE-X2N-20260720-S00-REVIEW` 收紧为每普通 Run 一个 DAG Task。
 >
 > Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：不设置预发布阶段、固定 30 日观察或 soak。`G0–G5`、前置任务与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动该 Task；任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署和在线 smoke 后签发 `G6 PASS`。合法外部门可关闭结算，技术阻断不可结算，安全未知或失败不能降级结算；任务内 Oracle 不反向成为启动条件；上线后监控不阻断后续开发。
+>
+> A005 scope amendment `CE-X2N-20260729-S06-A005-XHS-CURRENT-CONTENT`：直接 MVP 的 80 条具体范围为小红书收藏 20、小红书当前内容 20（`saved_current`，20 次逐条显式详情页捕获）、抖音收藏 20、抖音喜欢 20；它不改变长期的小红书点赞产品能力或 CI 合成验证。
 
 ## 1. Roadmap 总览
 
@@ -700,7 +703,7 @@ Stage 3 的测试样本全部为 `ENV-CI-SYNTH`；真实激活只属于 Stage 6 
 
 1. 固定 `v0.0.0.1` Release Candidate 与 Backup；
 2. 干净环境 Fresh Install、Schema Migration Dry-run 和版本兼容检查；
-3. 完成 XHS 收藏/点赞、Douyin 收藏/点赞各 20 条的 80 条 Owner MVP 基线；
+3. 完成 XHS 收藏 20、XHS 当前内容 20（逐条显式详情页）、Douyin 收藏 20、Douyin 喜欢 20 的精确 80 条 Owner MVP 基线；
 4. Bilibili/Kuaishou/Weibo/Taobao 每个额外实际启用能力分别使用独立 Owner Manifest 做不超过
    20 条的激活检查；合法外部门能力以 flag off/0 call/0 live claim 结算，技术阻断不得结算；
 5. 完成 Markdown/Notion 对账和 Private-MetaDatabase 持久化 Receipt；

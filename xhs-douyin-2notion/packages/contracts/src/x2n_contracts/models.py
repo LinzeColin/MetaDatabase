@@ -222,6 +222,10 @@ class CaptureCurrentPayload(StrictContract):
     relation: RelationType
     category_id: UUID | None = None
     fallback_from_job_id: UUID | None = Field(default=None, exclude_if=lambda value: value is None)
+    owner_mvp_scope: Literal["xiaohongshu_current_content"] | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
     user_gesture: Literal[True]
     auto_scroll: Literal[False]
     change_account_state: Literal[False]
@@ -231,6 +235,12 @@ class CaptureCurrentPayload(StrictContract):
         validate_canonical_page_url(self.page_url, self.platform)
         if self.relation is not RelationType.SAVED_CURRENT:
             raise ValueError("capture_current must use saved_current relation")
+        if self.owner_mvp_scope is not None and (
+            self.platform is not Platform.XIAOHONGSHU
+            or self.category_id is not None
+            or self.fallback_from_job_id is not None
+        ):
+            raise ValueError("owner MVP current content must be a direct Xiaohongshu current-page capture")
         return self
 
 
@@ -242,9 +252,25 @@ class StartSyncPayloadBase(StrictContract):
     bounded_batch: Literal[True]
     auto_scroll: Literal[False]
     change_account_state: Literal[False]
+    owner_mvp_manifest_enrollment: Literal[True] | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
 
     @model_validator(mode="after")
     def requires_explicit_non_mutating_gesture(self) -> "StartSyncPayloadBase":
+        if self.owner_mvp_manifest_enrollment is True:
+            scope_id = getattr(self, "scope_id", None)
+            if (
+                scope_id
+                not in {
+                    SyncScopeId.XIAOHONGSHU_FAVORITES,
+                    SyncScopeId.DOUYIN_FAVORITES,
+                    SyncScopeId.DOUYIN_LIKES,
+                }
+                or getattr(self, "max_items", None) != 20
+            ):
+                raise ValueError("owner MVP manifest enrollment must use a fixed live MVP list scope")
         return self
 
 

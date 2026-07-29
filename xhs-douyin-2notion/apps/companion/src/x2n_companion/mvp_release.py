@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import socket
 import stat
 import time
 import uuid
@@ -27,12 +28,14 @@ from x2n_contracts.models import CapabilityFeatureFlag, CapabilityReasonCode, Ca
 
 from .adapter_dispatch import CapabilityGateInputs, CapabilityRegistry, ScopeBinding
 from .adapter_guard import AdapterExecutionGate
-from .canonical_store import CanonicalStore
+from .canonical_store import CanonicalStore, current_page_identity_from_request
 from .douyin_adapter import DouyinAdapter, DouyinBatchCoordinator
 from .douyin_visible_sidecar import (
     OwnerPrivateVisibleSidecarClient,
+    PROVISION_CONFIRMATION,
     VisibleBatchRequest,
     clean_room_sidecar_build,
+    provision_owner_private_visible_sidecar,
 )
 from .douyin_upstream import (
     DouyinBatch,
@@ -49,7 +52,8 @@ from .xiaohongshu_likes import XhsLikesAdapter, XhsLikesBatch, XhsLikesBatchCoor
 TASK_ID = "TSK.x2n.assurance.005"
 RELEASE_VERSION = "v0.0.0.1"
 INPUT_SCHEMA_VERSION = "1.0"
-STATE_SCHEMA_VERSION = "1.1"
+STATE_SCHEMA_VERSION = "1.2"
+MANIFEST_ENROLLMENT_SCHEMA_VERSION = "1.0"
 ARM_CONFIRMATION = "ARM_X2N_OWNER_MVP_ACTIVATION"
 MATERIALIZE_CONFIRMATION = "MATERIALIZE_X2N_OWNER_MVP_KNOWLEDGE_ASSETS"
 SIGNOFF_CONFIRMATION = "SIGN_OFF_X2N_OWNER_MVP"
@@ -59,12 +63,18 @@ OWNER_INPUT_CONTRACT = Path(__file__).resolve().parents[4] / "docs/governance/OW
 # repository.  It therefore cannot safely read the public Markdown contract at
 # runtime.  The source lane verifies this literal against that Markdown before
 # arming/tagging; the installed Host verifies only the non-secret stable digest.
-OWNER_INPUT_CONTRACT_SHA256 = "b585b32349af9bf9b719fcd2e9302beb50f0bac289c1ed738772945e25b4e222"
+OWNER_INPUT_CONTRACT_SHA256 = "74f10f5d66fdcbb22ae581483aa2b86279fc695ad4b87721fb42fb6c035db818"
 SUPPORTED_BROWSERS = frozenset({"chrome", "chrome-for-testing", "chromium"})
 
-MVP_SCOPE_IDS = (
+MVP_CURRENT_SCOPE_ID = "xiaohongshu_current_content"
+MVP_LIST_SCOPE_IDS = (
     SyncScopeId.XIAOHONGSHU_FAVORITES,
-    SyncScopeId.XIAOHONGSHU_LIKES,
+    SyncScopeId.DOUYIN_FAVORITES,
+    SyncScopeId.DOUYIN_LIKES,
+)
+MVP_SCOPE_IDS: tuple[SyncScopeId | str, ...] = (
+    SyncScopeId.XIAOHONGSHU_FAVORITES,
+    MVP_CURRENT_SCOPE_ID,
     SyncScopeId.DOUYIN_FAVORITES,
     SyncScopeId.DOUYIN_LIKES,
 )
@@ -86,6 +96,10 @@ _SIDECAR_BUNDLE_FILES = (
     ("sbom_sha256", "sbom.cdx.json", 0o600, 64 * 1024 * 1024),
     ("transitive_license_report_sha256", "transitive-licenses.json", 0o600, 64 * 1024 * 1024),
 )
+
+
+def _scope_value(scope_id: SyncScopeId | str) -> str:
+    return scope_id.value if isinstance(scope_id, SyncScopeId) else scope_id
 
 
 def _now() -> str:
@@ -269,7 +283,9 @@ def _reject_private_leak_surface(value: Any) -> None:
     if isinstance(value, Mapping):
         for key, item in value.items():
             if not isinstance(key, str) or any(part in key.lower() for part in _FORBIDDEN_KEY_PARTS):
-                raise X2NRuntimeError(ErrorCode.SECURITY_INJECTION_BLOCKED, "Owner release input contains a forbidden field")
+                raise X2NRuntimeError(
+                    ErrorCode.SECURITY_INJECTION_BLOCKED, "Owner release input contains a forbidden field"
+                )
             _reject_private_leak_surface(item)
     elif isinstance(value, list):
         for item in value:
@@ -287,7 +303,7 @@ class OwnerMvpReleaseInput:
     douyin_build: SidecarBuildAttestation
     external_reasons: Mapping[SyncScopeId, CapabilityReasonCode]
     model_mode: Literal["disabled", "suggestion_only"]
-    scope_manifest_hashes: Mapping[SyncScopeId, frozenset[str]]
+    scope_manifest_hashes: Mapping[str, frozenset[str]]
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "OwnerMvpReleaseInput":
@@ -317,7 +333,10 @@ class OwnerMvpReleaseInput:
             or root["rollback_target"] != "previous_stable_or_disable"
         ):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP release input identity is invalid")
-        if _require_sha256(root["owner_input_contract_sha256"], label="Owner input contract") != owner_input_contract_sha256():
+        if (
+            _require_sha256(root["owner_input_contract_sha256"], label="Owner input contract")
+            != owner_input_contract_sha256()
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner input contract binding drifted")
         if root["model_mode"] not in {"disabled", "suggestion_only"}:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Model capability must stay disabled or suggestion-only")
@@ -325,21 +344,19 @@ class OwnerMvpReleaseInput:
         enabled = root["enabled_scopes"]
         if not isinstance(enabled, list) or len(enabled) != len(MVP_SCOPE_IDS):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Owner MVP enabled scope set is invalid")
-        enabled_by_scope: dict[SyncScopeId, Mapping[str, Any]] = {}
+        enabled_by_scope: dict[str, Mapping[str, Any]] = {}
         expected_transports = {
-            SyncScopeId.XIAOHONGSHU_FAVORITES: "chrome_visible_dom",
-            SyncScopeId.XIAOHONGSHU_LIKES: "chrome_visible_dom",
-            SyncScopeId.DOUYIN_FAVORITES: "owner_private_loopback_sidecar",
-            SyncScopeId.DOUYIN_LIKES: "owner_private_loopback_sidecar",
+            SyncScopeId.XIAOHONGSHU_FAVORITES.value: "chrome_visible_dom",
+            MVP_CURRENT_SCOPE_ID: "chrome_current_page_explicit",
+            SyncScopeId.DOUYIN_FAVORITES.value: "owner_private_loopback_sidecar",
+            SyncScopeId.DOUYIN_LIKES.value: "owner_private_loopback_sidecar",
         }
         for row in enabled:
             item = _require_exact_mapping(row, {"max_items", "scope_id", "transport"}, label="enabled MVP scope")
-            try:
-                scope_id = SyncScopeId(item["scope_id"])
-            except (TypeError, ValueError) as error:
-                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Enabled MVP scope is unknown") from error
+            scope_id = item["scope_id"]
             if (
-                scope_id not in expected_transports
+                not isinstance(scope_id, str)
+                or scope_id not in expected_transports
                 or type(item["max_items"]) is not int
                 or item["max_items"] != 20
                 or item["transport"] != expected_transports[scope_id]
@@ -347,36 +364,38 @@ class OwnerMvpReleaseInput:
             ):
                 raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Enabled MVP scope exceeds the fixed bounded contract")
             enabled_by_scope[scope_id] = item
-        if tuple(enabled_by_scope) != MVP_SCOPE_IDS:
+        if tuple(enabled_by_scope) != tuple(_scope_value(scope_id) for scope_id in MVP_SCOPE_IDS):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Enabled MVP scopes must be the fixed ordered baseline")
 
         private_manifests = root["owner_private_manifests"]
         if not isinstance(private_manifests, list) or len(private_manifests) != len(MVP_SCOPE_IDS):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Owner MVP private manifest set is invalid")
-        scope_manifest_hashes: dict[SyncScopeId, frozenset[str]] = {}
+        scope_manifest_hashes: dict[str, frozenset[str]] = {}
         for row in private_manifests:
             item = _require_exact_mapping(
                 row,
                 {"content_id_sha256", "scope_id"},
                 label="Owner MVP private manifest",
             )
-            try:
-                scope_id = SyncScopeId(item["scope_id"])
-            except (TypeError, ValueError) as error:
-                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Owner MVP private manifest scope is unknown") from error
+            scope_id = item["scope_id"]
             item_hashes = item["content_id_sha256"]
             if (
-                scope_id not in MVP_SCOPE_IDS
+                not isinstance(scope_id, str)
+                or scope_id not in {_scope_value(value) for value in MVP_SCOPE_IDS}
                 or scope_id in scope_manifest_hashes
                 or not isinstance(item_hashes, list)
                 or len(item_hashes) != 20
             ):
                 raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP private manifest exceeds its fixed boundary")
-            normalized = frozenset(_require_sha256(value, label="Owner MVP manifest content ID") for value in item_hashes)
+            normalized = frozenset(
+                _require_sha256(value, label="Owner MVP manifest content ID") for value in item_hashes
+            )
             if len(normalized) != 20:
-                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP private manifest contains duplicate content IDs")
+                raise X2NRuntimeError(
+                    ErrorCode.POLICY_BLOCKED, "Owner MVP private manifest contains duplicate content IDs"
+                )
             scope_manifest_hashes[scope_id] = normalized
-        if tuple(scope_manifest_hashes) != MVP_SCOPE_IDS:
+        if tuple(scope_manifest_hashes) != tuple(_scope_value(scope_id) for scope_id in MVP_SCOPE_IDS):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP private manifests must match the fixed baseline")
 
         disabled = root["disabled_external_scopes"]
@@ -501,11 +520,15 @@ def _validate_owner_input_contract(paths: RuntimePaths) -> None:
         label="Owner platform input",
     )
     for platform in ("xiaohongshu", "douyin"):
-        value = _require_exact_mapping(platforms[platform], {"login_state", "real_execution_authorized"}, label="Owner platform")
+        value = _require_exact_mapping(
+            platforms[platform], {"login_state", "real_execution_authorized"}, label="Owner platform"
+        )
         if value["login_state"] != "owner_managed_profile" or value["real_execution_authorized"] is not True:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner platform execution authorization is missing")
     for platform in ("bilibili", "kuaishou", "weibo", "taobao"):
-        value = _require_exact_mapping(platforms[platform], {"login_state", "real_execution_authorized"}, label="Owner platform")
+        value = _require_exact_mapping(
+            platforms[platform], {"login_state", "real_execution_authorized"}, label="Owner platform"
+        )
         if value["real_execution_authorized"] is not False:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "External-gate platform cannot be concurrently enabled")
     media = _require_exact_mapping(
@@ -521,11 +544,17 @@ def _validate_owner_input_contract(paths: RuntimePaths) -> None:
         or not 0 <= media["failure_max_hours"] <= 24
     ):
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner media-retention boundary is invalid")
-    taxonomy = _require_exact_mapping(root["taxonomy"], {"ai_may_create_top_level", "top_level_categories"}, label="Owner taxonomy")
+    taxonomy = _require_exact_mapping(
+        root["taxonomy"], {"ai_may_create_top_level", "top_level_categories"}, label="Owner taxonomy"
+    )
     if taxonomy["ai_may_create_top_level"] is not False or not isinstance(taxonomy["top_level_categories"], list):
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner taxonomy boundary is invalid")
-    notion = _require_exact_mapping(root["notion"], {"credential_reference", "enabled", "parent_reference"}, label="Owner Notion")
-    models = _require_exact_mapping(root["models"], {"cloud_enabled", "currency", "monthly_budget"}, label="Owner models")
+    notion = _require_exact_mapping(
+        root["notion"], {"credential_reference", "enabled", "parent_reference"}, label="Owner Notion"
+    )
+    models = _require_exact_mapping(
+        root["models"], {"cloud_enabled", "currency", "monthly_budget"}, label="Owner models"
+    )
     if (
         notion["enabled"] is not False
         or notion["credential_reference"] != "unset"
@@ -597,6 +626,7 @@ def _validate_knowledge_assets(value: Any) -> dict[str, Any]:
 def _initial_state(*, release_input: OwnerMvpReleaseInput, backup: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "baseline": {"baseline_hash": None, "passed": False, "total_relations": 0},
+        "current_content_captures": {},
         "deployment": {"artifact_sha256": None, "browser": None, "online_smoke": False, "state": "not_deployed"},
         "input_sha256": release_input.input_sha256,
         "knowledge_assets": _initial_knowledge_assets(),
@@ -621,6 +651,7 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
         value,
         {
             "baseline",
+            "current_content_captures",
             "deployment",
             "input_sha256",
             "knowledge_assets",
@@ -646,13 +677,19 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
         or type(state["owner_signoff"]) is not bool
     ):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP release state identity is invalid")
-    baseline = _require_exact_mapping(state["baseline"], {"baseline_hash", "passed", "total_relations"}, label="baseline")
+    baseline = _require_exact_mapping(
+        state["baseline"], {"baseline_hash", "passed", "total_relations"}, label="baseline"
+    )
     if (
-        baseline["baseline_hash"] is not None and _SHA256.fullmatch(str(baseline["baseline_hash"])) is None
-    ) or type(baseline["passed"]) is not bool or type(baseline["total_relations"]) is not int:
+        (baseline["baseline_hash"] is not None and _SHA256.fullmatch(str(baseline["baseline_hash"])) is None)
+        or type(baseline["passed"]) is not bool
+        or type(baseline["total_relations"]) is not int
+    ):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP baseline state is invalid")
     if baseline["passed"] is True and (baseline["baseline_hash"] is None or baseline["total_relations"] != 80):
-        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP baseline is not the exact 80-item release gate")
+        raise X2NRuntimeError(
+            ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP baseline is not the exact 80-item release gate"
+        )
     knowledge_assets = _validate_knowledge_assets(state["knowledge_assets"])
     deployment = _require_exact_mapping(
         state["deployment"],
@@ -664,7 +701,10 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
         or type(deployment["online_smoke"]) is not bool
         or (deployment["artifact_sha256"] is not None and _SHA256.fullmatch(str(deployment["artifact_sha256"])) is None)
         or (deployment["browser"] is not None and deployment["browser"] not in SUPPORTED_BROWSERS)
-        or (deployment["state"] == "deployed" and (deployment["browser"] is None or deployment["artifact_sha256"] is None))
+        or (
+            deployment["state"] == "deployed"
+            and (deployment["browser"] is None or deployment["artifact_sha256"] is None)
+        )
     ):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP deployment state is invalid")
     rollback = _require_exact_mapping(state["rollback"], {"backup_id", "backup_sha256", "rehearsed"}, label="rollback")
@@ -675,9 +715,22 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
         or type(rollback["rehearsed"]) is not bool
     ):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP rollback state is invalid")
+    current_captures = state["current_content_captures"]
+    if (
+        not isinstance(current_captures, Mapping)
+        or len(current_captures) > 20
+        or any(_SHA256.fullmatch(str(content_id_hash)) is None for content_id_hash in current_captures)
+    ):
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP current-content capture state is invalid")
+    for content_id_hash, job_id in current_captures.items():
+        _require_uuid(job_id, label=f"Owner MVP current-content capture {content_id_hash}")
+    if set(current_captures) - set(release_input.scope_manifest_hashes[MVP_CURRENT_SCOPE_ID]):
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP current-content capture drifted")
     for key in ("scope_jobs", "scope_receipts"):
         rows = state[key]
-        if not isinstance(rows, Mapping) or any(scope not in {item.value for item in MVP_SCOPE_IDS} for scope in rows):
+        if not isinstance(rows, Mapping) or any(
+            scope not in {_scope_value(item) for item in MVP_SCOPE_IDS} for scope in rows
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP scope state is invalid")
     for scope, job_id in state["scope_jobs"].items():
         _require_uuid(job_id, label=f"Owner MVP scope job {scope}")
@@ -685,6 +738,12 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
         _require_sha256(digest, label=f"Owner MVP scope receipt {scope}")
     if set(state["scope_jobs"]) != set(state["scope_receipts"]):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP scope receipt mapping diverged")
+    current_scope_recorded = MVP_CURRENT_SCOPE_ID in state["scope_jobs"]
+    if current_scope_recorded != (len(current_captures) == 20):
+        raise X2NRuntimeError(
+            ErrorCode.DATA_INTEGRITY_FAILED,
+            "Owner MVP current-content scope receipt and captures diverged",
+        )
     if state["phase"] in {"pre_switch_ready", "active"} and (
         baseline["passed"] is not True
         or knowledge_assets["materialized"] is not True
@@ -695,6 +754,320 @@ def _validate_state(value: Mapping[str, Any], *, release_input: OwnerMvpReleaseI
     if state["phase"] == "active" and (deployment["state"] != "deployed" or deployment["online_smoke"] is not True):
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "MVP active state lacks deployment proof")
     return dict(state)
+
+
+def _release_slot_is_available_for_enrollment(paths: RuntimePaths) -> None:
+    """Prevent pre-arm collection from changing an already frozen release."""
+
+    if (
+        paths.owner_mvp_release_input.exists()
+        or paths.owner_mvp_release_input.is_symlink()
+        or paths.owner_mvp_release_state.exists()
+        or paths.owner_mvp_release_state.is_symlink()
+    ):
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP release input is already frozen or armed")
+
+
+def _initial_manifest_enrollment_state() -> dict[str, Any]:
+    return {
+        "project": "xhs-douyin-2notion",
+        "release_version": RELEASE_VERSION,
+        "schema_version": MANIFEST_ENROLLMENT_SCHEMA_VERSION,
+        "scope_manifests": {_scope_value(scope_id): [] for scope_id in MVP_SCOPE_IDS},
+        "task_id": TASK_ID,
+    }
+
+
+def _validate_manifest_enrollment_state(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate the private pre-arm state, which may contain hashes only."""
+
+    root = _require_exact_mapping(
+        value,
+        {"project", "release_version", "schema_version", "scope_manifests", "task_id"},
+        label="Owner MVP manifest enrollment",
+    )
+    if (
+        root["project"] != "xhs-douyin-2notion"
+        or root["release_version"] != RELEASE_VERSION
+        or root["schema_version"] != MANIFEST_ENROLLMENT_SCHEMA_VERSION
+        or root["task_id"] != TASK_ID
+    ):
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP manifest enrollment identity is invalid")
+    manifests = _require_exact_mapping(
+        root["scope_manifests"],
+        {_scope_value(scope_id) for scope_id in MVP_SCOPE_IDS},
+        label="Owner MVP manifest enrollment scopes",
+    )
+    normalized: dict[str, list[str]] = {}
+    for scope_id in MVP_SCOPE_IDS:
+        scope = _scope_value(scope_id)
+        values = manifests[scope]
+        if not isinstance(values, list) or len(values) > 20:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP manifest enrollment size is invalid")
+        hashes = [_require_sha256(item, label="Owner MVP manifest enrollment ID") for item in values]
+        if hashes != sorted(hashes) or len(set(hashes)) != len(hashes):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP manifest enrollment is not canonical")
+        if scope != MVP_CURRENT_SCOPE_ID and len(hashes) not in {0, 20}:
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED,
+                "Owner MVP list enrollment must be empty or exactly twenty items",
+            )
+        normalized[scope] = hashes
+    return {
+        "project": root["project"],
+        "release_version": root["release_version"],
+        "schema_version": root["schema_version"],
+        "scope_manifests": normalized,
+        "task_id": root["task_id"],
+    }
+
+
+def _owner_mvp_release_input_from_manifests(
+    *,
+    scope_manifests: Mapping[str, Sequence[str]],
+    douyin_build: SidecarBuildAttestation,
+    douyin_port: int,
+) -> dict[str, Any]:
+    """Build the only valid private release-input shape from hash-only facts."""
+
+    if type(douyin_port) is not int or not 1 <= douyin_port <= 65_535:
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Douyin loopback port is invalid")
+    manifests: list[dict[str, Any]] = []
+    for scope_id in MVP_SCOPE_IDS:
+        scope = _scope_value(scope_id)
+        values = scope_manifests.get(scope)
+        if not isinstance(values, Sequence) or isinstance(values, (str, bytes)) or len(values) != 20:
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP manifest enrollment is incomplete")
+        hashes = [_require_sha256(item, label="Owner MVP manifest enrollment ID") for item in values]
+        if hashes != sorted(hashes) or len(set(hashes)) != 20:
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP manifest enrollment is invalid")
+        manifests.append({"content_id_sha256": hashes, "scope_id": scope})
+    return {
+        "disabled_external_scopes": [
+            {
+                "flag_off": True,
+                "live_support_claim": False,
+                "platform_calls": 0,
+                "reason_code": CapabilityReasonCode.BLOCKED_AUTH.value,
+                "scope_id": scope_id.value,
+            }
+            for scope_id in EXTERNAL_SCOPE_IDS
+        ],
+        "douyin_sidecar": {"attestation": douyin_build.safe_dict(), "port": douyin_port},
+        "enabled_scopes": [
+            {
+                "max_items": 20,
+                "scope_id": SyncScopeId.XIAOHONGSHU_FAVORITES.value,
+                "transport": "chrome_visible_dom",
+            },
+            {
+                "max_items": 20,
+                "scope_id": MVP_CURRENT_SCOPE_ID,
+                "transport": "chrome_current_page_explicit",
+            },
+            {
+                "max_items": 20,
+                "scope_id": SyncScopeId.DOUYIN_FAVORITES.value,
+                "transport": "owner_private_loopback_sidecar",
+            },
+            {
+                "max_items": 20,
+                "scope_id": SyncScopeId.DOUYIN_LIKES.value,
+                "transport": "owner_private_loopback_sidecar",
+            },
+        ],
+        "model_mode": "disabled",
+        "owner_authorization": "owner_authorized_direct_mvp",
+        "owner_input_contract_sha256": owner_input_contract_sha256(),
+        "owner_private_manifests": manifests,
+        "project": "xhs-douyin-2notion",
+        "release_version": RELEASE_VERSION,
+        "rollback_target": "previous_stable_or_disable",
+        "schema_version": INPUT_SCHEMA_VERSION,
+    }
+
+
+def _available_loopback_port() -> int:
+    """Select one currently free numeric loopback port without emitting it."""
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+@dataclass
+class OwnerMvpManifestEnrollment:
+    """Hash-only pre-arm selection for the fixed direct-MVP four-scope set.
+
+    It never creates a Canonical row, job, platform request, profile snapshot,
+    DOM archive, URL archive, title archive, or media object. The one-way
+    release input is created only after all four sets are exactly twenty unique
+    identifiers and the clean-room Sidecar is locally attested.
+    """
+
+    paths: RuntimePaths
+    state: dict[str, Any]
+
+    @classmethod
+    def load(
+        cls,
+        paths: RuntimePaths,
+        *,
+        require_state: bool = True,
+    ) -> "OwnerMvpManifestEnrollment | None":
+        """Read pre-arm hashes only, without creating a directory or release input."""
+
+        destination = paths.owner_mvp_manifest_enrollment
+        if not destination.exists() and not destination.is_symlink():
+            if require_state:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP manifest enrollment is unavailable")
+            return None
+        state = _validate_manifest_enrollment_state(
+            _read_owner_private_json(destination, label="Owner MVP manifest enrollment")
+        )
+        return cls(paths=paths, state=state)
+
+    @classmethod
+    def load_or_create(cls, paths: RuntimePaths) -> "OwnerMvpManifestEnrollment":
+        _release_slot_is_available_for_enrollment(paths)
+        paths.ensure_private_directory("runtime/release")
+        existing = cls.load(paths, require_state=False)
+        return existing if existing is not None else cls(paths=paths, state=_initial_manifest_enrollment_state())
+
+    def _persist(self) -> None:
+        _release_slot_is_available_for_enrollment(self.paths)
+        self.state = _validate_manifest_enrollment_state(self.state)
+        destination = self.paths.owner_mvp_manifest_enrollment
+        if destination.exists() or destination.is_symlink():
+            _read_owner_private_json(destination, label="Owner MVP manifest enrollment")
+        _atomic_private_json(destination, self.state)
+
+    def safe_summary(self, *, release_input_created: bool = False) -> dict[str, Any]:
+        manifests = self.state["scope_manifests"]
+        complete_scopes = sum(len(manifests[_scope_value(scope_id)]) == 20 for scope_id in MVP_SCOPE_IDS)
+        return {
+            "canonical_writes": 0,
+            "complete_scope_count": complete_scopes,
+            "manifest_item_count": sum(len(manifests[_scope_value(scope_id)]) for scope_id in MVP_SCOPE_IDS),
+            "manifest_scope_count": len(MVP_SCOPE_IDS),
+            "notion_calls": 0,
+            "platform_calls": 0,
+            "private_hashes_only": True,
+            "release_input_created": release_input_created,
+        }
+
+    @staticmethod
+    def _hash_identifiers(content_ids: Sequence[str]) -> list[str]:
+        if not isinstance(content_ids, Sequence) or isinstance(content_ids, (str, bytes)):
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Owner MVP manifest identifiers are invalid")
+        hashes: list[str] = []
+        for content_id in content_ids:
+            if not isinstance(content_id, str) or _SAFE_TOKEN.fullmatch(content_id) is None:
+                raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP manifest identity is invalid")
+            hashes.append(hashlib.sha256(content_id.encode("utf-8")).hexdigest())
+        if len(hashes) != len(set(hashes)):
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP manifest contains duplicate content")
+        return sorted(hashes)
+
+    def _record_hashes(self, *, scope_id: SyncScopeId | str, content_ids: Sequence[str]) -> dict[str, Any]:
+        scope = _scope_value(scope_id)
+        if scope not in {_scope_value(item) for item in MVP_SCOPE_IDS}:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP manifest scope is disabled")
+        hashes = self._hash_identifiers(content_ids)
+        existing = list(self.state["scope_manifests"][scope])
+        if scope == MVP_CURRENT_SCOPE_ID:
+            if len(hashes) != 1:
+                raise X2NRuntimeError(
+                    ErrorCode.POLICY_BLOCKED, "Owner MVP current-content enrollment requires one page"
+                )
+            if hashes[0] not in existing:
+                if len(existing) >= 20:
+                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP current-content enrollment is complete")
+                existing.append(hashes[0])
+                self.state["scope_manifests"][scope] = sorted(existing)
+                self._persist()
+        else:
+            if len(hashes) != 20:
+                raise X2NRuntimeError(
+                    ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP list enrollment requires twenty items"
+                )
+            if existing and existing != hashes:
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP list enrollment is already frozen")
+            if not existing:
+                self.state["scope_manifests"][scope] = hashes
+                self._persist()
+        return self._finalize_if_complete()
+
+    def record_current_content(self, *, payload: Any) -> dict[str, Any]:
+        if (
+            getattr(payload, "owner_mvp_scope", None) != MVP_CURRENT_SCOPE_ID
+            or getattr(getattr(payload, "platform", None), "value", None) != "xiaohongshu"
+            or getattr(getattr(payload, "relation", None), "value", None) != "saved_current"
+            or getattr(payload, "category_id", None) is not None
+            or getattr(payload, "fallback_from_job_id", None) is not None
+        ):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP current-content enrollment is invalid")
+        content_id = getattr(getattr(payload, "page_context", None), "content_id", None)
+        page_url = getattr(payload, "page_url", None)
+        if not isinstance(content_id, str) or page_url != f"https://www.xiaohongshu.com/explore/{content_id}":
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP current-content identity is invalid")
+        _validate_owner_input_contract(self.paths)
+        return self._record_hashes(scope_id=MVP_CURRENT_SCOPE_ID, content_ids=[content_id])
+
+    def record_list_batch(self, *, payload: Any) -> dict[str, Any]:
+        if getattr(payload, "owner_mvp_manifest_enrollment", None) is not True:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP manifest enrollment marker is missing")
+        scope = getattr(payload, "scope_id", None)
+        scope_value = _scope_value(scope) if isinstance(scope, (SyncScopeId, str)) else ""
+        if scope_value not in {_scope_value(item) for item in MVP_LIST_SCOPE_IDS}:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP list enrollment scope is disabled")
+        if (
+            getattr(payload, "max_items", None) != 20
+            or getattr(payload, "source_collection_id", None) is not None
+            or getattr(payload, "visible_batch", None) is None
+        ):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP list enrollment boundary is invalid")
+        raw_batch = payload.visible_batch.model_dump(mode="json", by_alias=True)
+        if scope_value == SyncScopeId.XIAOHONGSHU_FAVORITES.value:
+            batch = XhsFavoritesBatch.from_extension_result(
+                raw_batch, sequence=0, observed_at=datetime.now(timezone.utc)
+            )
+            if batch.status != "ready" or batch.completion_signal != "bounded_limit_reached" or len(batch.items) != 20:
+                raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP XHS list enrollment is incomplete")
+            content_ids = [item.content_id for item in batch.items]
+        elif scope_value in {SyncScopeId.DOUYIN_FAVORITES.value, SyncScopeId.DOUYIN_LIKES.value}:
+            mode: Literal["favorites", "likes"] = (
+                "favorites" if scope_value == SyncScopeId.DOUYIN_FAVORITES.value else "likes"
+            )
+            batch = VisibleBatchRequest(mode=mode, sequence=0, visible_batch=raw_batch, max_items=20)
+            content_ids = [item["content_id"] for item in batch.visible_batch["items"]]
+        else:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP list enrollment binding is invalid")
+        _validate_owner_input_contract(self.paths)
+        return self._record_hashes(scope_id=scope_value, content_ids=content_ids)
+
+    def _finalize_if_complete(self) -> dict[str, Any]:
+        manifests = self.state["scope_manifests"]
+        if any(len(manifests[_scope_value(scope_id)]) != 20 for scope_id in MVP_SCOPE_IDS):
+            return self.safe_summary()
+        _release_slot_is_available_for_enrollment(self.paths)
+        expected_build = clean_room_sidecar_build()
+        try:
+            verify_owner_private_douyin_sidecar_bundle(self.paths, expected_build)
+            build = expected_build
+        except X2NRuntimeError:
+            bundle_directory = self.paths.douyin_sidecar_bundle_directory
+            if bundle_directory.exists() or bundle_directory.is_symlink():
+                raise
+            build = provision_owner_private_visible_sidecar(self.paths, confirmation=PROVISION_CONFIRMATION)
+        release_input = _owner_mvp_release_input_from_manifests(
+            scope_manifests=manifests,
+            douyin_build=build,
+            douyin_port=_available_loopback_port(),
+        )
+        OwnerMvpReleaseInput.from_mapping(release_input)
+        _atomic_private_json(self.paths.owner_mvp_release_input, release_input)
+        return self.safe_summary(release_input_created=True)
 
 
 @dataclass
@@ -761,8 +1134,8 @@ class MvpReleaseController:
     def capability_registry(self) -> CapabilityRegistry:
         if self.state["phase"] not in {"activation_armed", "pre_switch_ready", "active"}:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP release is not active")
-        inputs: dict[SyncScopeId, CapabilityGateInputs] = {}
-        for scope_id in MVP_SCOPE_IDS:
+        inputs: dict[SyncScopeId, CapabilityGateInputs] = {scope_id: CapabilityGateInputs() for scope_id in SyncScopeId}
+        for scope_id in MVP_LIST_SCOPE_IDS:
             inputs[scope_id] = CapabilityGateInputs(feature_flag=CapabilityFeatureFlag.MVP_ACTIVATION_CANDIDATE)
         reason_to_kwargs = {
             CapabilityReasonCode.UNKNOWN_DISABLED: {"unknown_disabled": True},
@@ -792,7 +1165,9 @@ class MvpReleaseController:
         if store is not None:
             persisted = {outcome.scope_id: outcome for outcome in store.capability_snapshot().outcomes}
             if set(persisted) != set(SyncScopeId):
-                raise X2NRuntimeError(ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Persisted capability snapshot is incomplete")
+                raise X2NRuntimeError(
+                    ErrorCode.CAPABILITY_TECHNICAL_BLOCKED, "Persisted capability snapshot is incomplete"
+                )
         settlements: list[dict[str, Any]] = []
         for scope_id in EXTERNAL_SCOPE_IDS:
             outcome = outcomes[scope_id]
@@ -827,11 +1202,13 @@ class MvpReleaseController:
             )
         return settlements
 
-    def require_scope(self, scope_id: SyncScopeId) -> None:
-        if self.state["phase"] not in {"activation_armed", "pre_switch_ready", "active"} or scope_id not in MVP_SCOPE_IDS:
+    def require_scope(self, scope_id: SyncScopeId | str) -> None:
+        if self.state["phase"] not in {"activation_armed", "pre_switch_ready", "active"} or _scope_value(
+            scope_id
+        ) not in {_scope_value(value) for value in MVP_SCOPE_IDS}:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP scope is not enabled")
 
-    def scope_scan_id(self, scope_id: SyncScopeId) -> str:
+    def scope_scan_id(self, scope_id: SyncScopeId | str) -> str:
         """Return the release-scoped scan identity used for idempotent writes.
 
         It is derived solely from the private release-input digest and fixed
@@ -844,7 +1221,7 @@ class MvpReleaseController:
         return str(
             uuid.uuid5(
                 uuid.NAMESPACE_URL,
-                f"x2n-owner-mvp-scan:{self.release_input.input_sha256}:{scope_id.value}",
+                f"x2n-owner-mvp-scan:{self.release_input.input_sha256}:{_scope_value(scope_id)}",
             )
         )
 
@@ -859,45 +1236,147 @@ class MvpReleaseController:
             }
         )
 
-    def ensure_scope_job(self, *, scope_id: SyncScopeId, job_id: str) -> None:
+    def ensure_scope_job(self, *, scope_id: SyncScopeId | str, job_id: str) -> None:
         """Reject a second logical action before it reaches an adapter."""
 
         self.require_scope(scope_id)
         job_id = _require_uuid(job_id, label="Owner MVP job")
-        existing_job = self.state["scope_jobs"].get(scope_id.value)
+        existing_job = self.state["scope_jobs"].get(_scope_value(scope_id))
         if existing_job is not None and existing_job != job_id:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP scope already completed its bounded action")
 
-    def require_manifest_match(self, *, scope_id: SyncScopeId, content_ids: Sequence[str]) -> None:
+    def require_manifest_match(self, *, scope_id: SyncScopeId | str, content_ids: Sequence[str]) -> None:
         """Block writes unless the Owner-private 20-item manifest matches exactly."""
 
         self.require_scope(scope_id)
-        if len(content_ids) != 20 or any(not isinstance(content_id, str) or not content_id for content_id in content_ids):
+        if len(content_ids) != 20 or any(
+            not isinstance(content_id, str) or not content_id for content_id in content_ids
+        ):
             raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP manifest item set is incomplete")
         observed = frozenset(hashlib.sha256(content_id.encode("utf-8")).hexdigest() for content_id in content_ids)
-        if len(observed) != 20 or observed != self.release_input.scope_manifest_hashes[scope_id]:
-            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP action does not match its private manifest")
+        if len(observed) != 20 or observed != self.release_input.scope_manifest_hashes[_scope_value(scope_id)]:
+            raise X2NRuntimeError(
+                ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP action does not match its private manifest"
+            )
 
-    def record_scope_receipt(self, *, scope_id: SyncScopeId, job_id: str, receipt_hash: str) -> None:
+    def record_scope_receipt(self, *, scope_id: SyncScopeId | str, job_id: str, receipt_hash: str) -> None:
         self.require_scope(scope_id)
         job_id = _require_uuid(job_id, label="Owner MVP job")
         receipt_hash = _require_sha256(receipt_hash, label="Owner MVP receipt")
-        scope = scope_id.value
+        scope = _scope_value(scope_id)
         existing_job = self.state["scope_jobs"].get(scope)
         existing_receipt = self.state["scope_receipts"].get(scope)
         if (existing_job, existing_receipt) not in {(None, None), (job_id, receipt_hash)}:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP scope receipt conflicts with its first action")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP scope receipt conflicts with its first action"
+            )
         self.state["scope_jobs"][scope] = job_id
         self.state["scope_receipts"][scope] = receipt_hash
         self._persist()
 
+    def prepare_current_content_capture(self, *, payload: Any, request_id: str) -> str:
+        """Validate one explicit XHS detail page before its first Canonical write."""
+
+        self.require_scope(MVP_CURRENT_SCOPE_ID)
+        if (
+            getattr(payload, "owner_mvp_scope", None) != MVP_CURRENT_SCOPE_ID
+            or getattr(getattr(payload, "platform", None), "value", None) != "xiaohongshu"
+            or getattr(getattr(payload, "relation", None), "value", None) != "saved_current"
+            or getattr(payload, "category_id", None) is not None
+            or getattr(payload, "fallback_from_job_id", None) is not None
+        ):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP current-content capture is invalid")
+        content_id = getattr(getattr(payload, "page_context", None), "content_id", None)
+        if not isinstance(content_id, str) or not content_id:
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP current-content identity is unavailable")
+        content_id_hash = hashlib.sha256(content_id.encode("utf-8")).hexdigest()
+        if content_id_hash not in self.release_input.scope_manifest_hashes[MVP_CURRENT_SCOPE_ID]:
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP current-content item is not selected")
+        expected_job_id = current_page_identity_from_request(request_id).job_id
+        existing_job_id = self.state["current_content_captures"].get(content_id_hash)
+        if existing_job_id is not None and existing_job_id != expected_job_id:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP current-content item was already captured")
+        if existing_job_id is None and (
+            len(self.state["current_content_captures"]) >= 20 or MVP_CURRENT_SCOPE_ID in self.state["scope_jobs"]
+        ):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP current-content scope is already complete")
+        return content_id_hash
+
+    def record_current_content_capture(self, *, content_id_hash: str, job_id: str, state: str) -> None:
+        """Persist only a matched hash and opaque Native Job after a completed capture."""
+
+        self.require_scope(MVP_CURRENT_SCOPE_ID)
+        _require_sha256(content_id_hash, label="Owner MVP current-content ID")
+        job_id = _require_uuid(job_id, label="Owner MVP current-content job")
+        if state != "succeeded":
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP current-content capture did not complete")
+        existing_job_id = self.state["current_content_captures"].get(content_id_hash)
+        if existing_job_id is not None and existing_job_id != job_id:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP current-content Job identity drifted")
+        self.state["current_content_captures"][content_id_hash] = job_id
+        expected_hashes = self.release_input.scope_manifest_hashes[MVP_CURRENT_SCOPE_ID]
+        if not set(self.state["current_content_captures"]) <= set(expected_hashes):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Owner MVP current-content capture is unselected")
+        if len(self.state["current_content_captures"]) < 20:
+            self._persist()
+            return
+        if set(self.state["current_content_captures"]) != set(expected_hashes):
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP current-content manifest is incomplete")
+        batch_job_id = str(
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                f"x2n-owner-mvp-current-content:{self.release_input.input_sha256}",
+            )
+        )
+        batch_receipt_hash = canonical_json_sha256(
+            {
+                "capture_jobs": dict(sorted(self.state["current_content_captures"].items())),
+                "input_sha256": self.release_input.input_sha256,
+                "scope_id": MVP_CURRENT_SCOPE_ID,
+                "task_id": TASK_ID,
+            }
+        )
+        self.record_scope_receipt(
+            scope_id=MVP_CURRENT_SCOPE_ID,
+            job_id=batch_job_id,
+            receipt_hash=batch_receipt_hash,
+        )
+
+    def _combined_baseline_snapshot(self, store: CanonicalStore) -> dict[str, Any]:
+        list_snapshot = store.owner_mvp_baseline_snapshot(
+            scope_scan_ids={scope: self.scope_scan_id(scope) for scope in MVP_LIST_SCOPE_IDS}
+        )
+        current_snapshot = store.owner_mvp_current_content_snapshot(
+            capture_job_ids=self.state["current_content_captures"],
+            expected_content_id_hashes=self.release_input.scope_manifest_hashes[MVP_CURRENT_SCOPE_ID],
+        )
+        rows = dict(list_snapshot["scopes"])
+        rows[MVP_CURRENT_SCOPE_ID] = current_snapshot
+        exact = (
+            list_snapshot["exact_list_scope_baseline"] is True
+            and all(
+                current_snapshot[key] == 20
+                for key in ("active_count", "content_count", "observation_count", "relation_count")
+            )
+            and current_snapshot["scan_complete"] is True
+        )
+        digest_basis = {
+            scope_id: {key: value for key, value in row.items() if key != "scan_ref_sha256"}
+            for scope_id, row in sorted(rows.items())
+        }
+        return {
+            "baseline_hash": canonical_json_sha256(digest_basis),
+            "exact_four_scope_baseline": exact,
+            "scopes": rows,
+            "total_relations": sum(int(row["relation_count"]) for row in rows.values()),
+        }
+
     def verify_baseline(self, store: CanonicalStore) -> dict[str, Any]:
         if self.state["phase"] != "activation_armed":
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP baseline is not in its activation window")
-        if set(self.state["scope_jobs"]) != {scope.value for scope in MVP_SCOPE_IDS}:
+        if set(self.state["scope_jobs"]) != {_scope_value(scope) for scope in MVP_SCOPE_IDS}:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP baseline requires all four bounded scope actions")
-        scans = {scope: self.scope_scan_id(scope) for scope in MVP_SCOPE_IDS}
-        snapshot = store.owner_mvp_baseline_snapshot(scope_scan_ids=scans)
+        snapshot = self._combined_baseline_snapshot(store)
         self.state["baseline"] = {
             "baseline_hash": snapshot["baseline_hash"],
             "passed": snapshot["exact_four_scope_baseline"],
@@ -1059,7 +1538,9 @@ class MvpReleaseController:
         expected_artifact_sha256 = _require_sha256(deployment["artifact_sha256"], label="release artifact")
         observed_artifact_sha256 = _require_sha256(artifact_sha256, label="Side Panel release artifact")
         if observed_artifact_sha256 != expected_artifact_sha256:
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Side Panel release artifact does not match deployment")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Side Panel release artifact does not match deployment"
+            )
         handshake = self.paths.owner_mvp_browser_handshake
         if handshake.exists() or handshake.is_symlink():
             self.verify_browser_handshake()
@@ -1103,8 +1584,7 @@ class MvpReleaseController:
     def verify_baseline_snapshot(self, store: CanonicalStore) -> dict[str, Any]:
         """Re-read the aggregate-only 80-item proof without reopening activation."""
 
-        scans = {scope: self.scope_scan_id(scope) for scope in MVP_SCOPE_IDS}
-        snapshot = store.owner_mvp_baseline_snapshot(scope_scan_ids=scans)
+        snapshot = self._combined_baseline_snapshot(store)
         baseline = self.state["baseline"]
         if (
             snapshot["exact_four_scope_baseline"] is not True
@@ -1126,8 +1606,8 @@ class MvpReleaseController:
             or deployment["online_smoke"] is not True
             or self.state["owner_signoff"] is not True
             or self.state["rollback"]["rehearsed"] is not True
-            or set(self.state["scope_jobs"]) != {scope.value for scope in MVP_SCOPE_IDS}
-            or set(self.state["scope_receipts"]) != {scope.value for scope in MVP_SCOPE_IDS}
+            or set(self.state["scope_jobs"]) != {_scope_value(scope) for scope in MVP_SCOPE_IDS}
+            or set(self.state["scope_receipts"]) != {_scope_value(scope) for scope in MVP_SCOPE_IDS}
         ):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP go-live verification is incomplete")
         baseline = self.verify_baseline_snapshot(store)
@@ -1141,7 +1621,9 @@ class MvpReleaseController:
             "model_mode": self.release_input.model_mode,
             "owner_mvp_baseline_relations": baseline["total_relations"],
             "paths_emitted": False,
-            "private_manifest_item_count": sum(len(items) for items in self.release_input.scope_manifest_hashes.values()),
+            "private_manifest_item_count": sum(
+                len(items) for items in self.release_input.scope_manifest_hashes.values()
+            ),
             "private_manifest_scope_count": len(self.release_input.scope_manifest_hashes),
             "rollback_rehearsed": True,
             "sidepanel": self.verify_browser_handshake(),
@@ -1188,10 +1670,13 @@ class MvpReleaseController:
             "model_mode": self.release_input.model_mode,
             "owner_signoff": self.state["owner_signoff"],
             "phase": self.state["phase"],
-            "private_manifest_item_count": sum(len(items) for items in self.release_input.scope_manifest_hashes.values()),
+            "private_manifest_item_count": sum(
+                len(items) for items in self.release_input.scope_manifest_hashes.values()
+            ),
             "private_manifest_scope_count": len(self.release_input.scope_manifest_hashes),
             "release_version": RELEASE_VERSION,
             "rollback_rehearsed": self.state["rollback"]["rehearsed"],
+            "current_content_capture_count": len(self.state["current_content_captures"]),
             "scope_action_count": len(self.state["scope_jobs"]),
         }
 
@@ -1209,12 +1694,10 @@ class MvpActivationExecutor:
 
     @staticmethod
     def _require_exact_batch(batch: XhsFavoritesBatch | XhsLikesBatch | DouyinBatch) -> None:
-        if (
-            batch.status != "ready"
-            or len(batch.items) != 20
-            or batch.completion_signal != "bounded_limit_reached"
-        ):
-            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP action did not produce exactly 20 verified items")
+        if batch.status != "ready" or len(batch.items) != 20 or batch.completion_signal != "bounded_limit_reached":
+            raise X2NRuntimeError(
+                ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP action did not produce exactly 20 verified items"
+            )
 
     def _execute_xhs(self, *, binding: ScopeBinding, payload: Any, scan_id: str) -> dict[str, Any]:
         if payload.max_items != 20 or payload.visible_batch is None:
@@ -1274,7 +1757,9 @@ class MvpActivationExecutor:
         if payload.max_items != 20 or binding.adapter_mode not in {"favorites", "likes"}:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin MVP action exceeds the fixed boundary")
         if getattr(payload, "source_collection_id", None) is not None:
-            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin MVP action cannot infer a collection from page state")
+            raise X2NRuntimeError(
+                ErrorCode.POLICY_BLOCKED, "Douyin MVP action cannot infer a collection from page state"
+            )
         verify_owner_private_douyin_sidecar_bundle(self.controller.paths, self.controller.release_input.douyin_build)
         if payload.visible_batch is None:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin MVP action requires one visible 20-item batch")

@@ -24,7 +24,12 @@ from x2n_contracts.models import CapabilityFeatureFlag, CapabilityTerminal, Nati
 
 from .adapter_dispatch import AdapterDispatcher, CapabilityRegistry
 from .canonical_store import CURRENT_PAGE_RUN_KIND, CanonicalStore, SkeletonJob
-from .mvp_release import MvpActivationExecutor, MvpReleaseController, expected_mvp_receipt_hash
+from .mvp_release import (
+    MvpActivationExecutor,
+    MvpReleaseController,
+    OwnerMvpManifestEnrollment,
+    expected_mvp_receipt_hash,
+)
 from .orchestrator import CurrentPageOrchestrator
 from .runtime import RuntimePaths, X2NRuntimeError
 
@@ -202,9 +207,8 @@ def dispatch_wire(
             return _accepted(request_id=request_id, status="completed")
         active_store = store or _store()
         release_controller = None if capability_registry is not None else _runtime_release_controller(active_store)
-        active_registry = (
-            capability_registry
-            or (release_controller.capability_registry() if release_controller is not None else CapabilityRegistry())
+        active_registry = capability_registry or (
+            release_controller.capability_registry() if release_controller is not None else CapabilityRegistry()
         )
         if request.action is NativeAction.GET_CAPABILITIES:
             manifest = _capability_snapshot(active_store, active_registry)
@@ -221,6 +225,17 @@ def dispatch_wire(
                     raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP Side Panel handshake is not eligible")
             return _accepted(request_id=request_id, status="completed")
         if request.action is NativeAction.CAPTURE_CURRENT:
+            current_content_hash = None
+            if request.payload.owner_mvp_scope is not None:
+                if release_controller is None:
+                    OwnerMvpManifestEnrollment.load_or_create(active_store.paths).record_current_content(
+                        payload=request.payload
+                    )
+                    return _accepted(request_id=request_id, status="completed")
+                current_content_hash = release_controller.prepare_current_content_capture(
+                    payload=request.payload,
+                    request_id=request_id,
+                )
             if request.payload.fallback_from_job_id is not None:
                 active_store.verify_current_page_fallback(
                     fallback_from_job_id=str(request.payload.fallback_from_job_id),
@@ -231,6 +246,13 @@ def dispatch_wire(
                 request_id=request_id,
                 payload_hash=request.payload_hash,
             )
+            if current_content_hash is not None:
+                assert release_controller is not None
+                release_controller.record_current_content_capture(
+                    content_id_hash=current_content_hash,
+                    job_id=receipt.job_id,
+                    state=receipt.state,
+                )
             job = SkeletonJob(
                 job_id=receipt.job_id,
                 state=receipt.state,
@@ -239,15 +261,15 @@ def dispatch_wire(
             )
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         if request.action is NativeAction.START_SYNC:
+            if request.payload.owner_mvp_manifest_enrollment is True:
+                OwnerMvpManifestEnrollment.load_or_create(active_store.paths).record_list_batch(payload=request.payload)
+                return _accepted(request_id=request_id, status="completed")
             manifest = _capability_snapshot(active_store, active_registry)
             outcome = next(
                 (item for item in manifest.outcomes if item.scope_id is request.payload.scope_id),
                 None,
             )
-            if (
-                outcome is None
-                or outcome.terminal is not CapabilityTerminal.READY_FOR_MVP_ACTIVATION
-            ):
+            if outcome is None or outcome.terminal is not CapabilityTerminal.READY_FOR_MVP_ACTIVATION:
                 raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Requested scope is disabled by its external gate")
             dispatcher = adapter_dispatcher or AdapterDispatcher()
             binding = dispatcher.binding_for(
@@ -258,7 +280,10 @@ def dispatch_wire(
             if outcome.feature_flag is CapabilityFeatureFlag.CI_SYNTHETIC_ONLY:
                 expected_receipt_hash = dispatcher.expected_receipt_hash(binding, payload_hash=request.payload_hash)
                 execution = "ci_synthetic"
-            elif outcome.feature_flag is CapabilityFeatureFlag.MVP_ACTIVATION_CANDIDATE and release_controller is not None:
+            elif (
+                outcome.feature_flag is CapabilityFeatureFlag.MVP_ACTIVATION_CANDIDATE
+                and release_controller is not None
+            ):
                 expected_receipt_hash = expected_mvp_receipt_hash(
                     binding=binding,
                     payload_hash=request.payload_hash,
