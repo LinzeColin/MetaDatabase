@@ -36,6 +36,9 @@
     "smoke:production": "python3 scripts/smoke-site.py",
     "accept:production-account": "python3 tests/browser/production_account_e2e.py"
   },
+  "dependencies": {
+    "gsap": "3.15.0"
+  },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.47.0",
     "@openai/sites-vite-plugin": "0.1.0",

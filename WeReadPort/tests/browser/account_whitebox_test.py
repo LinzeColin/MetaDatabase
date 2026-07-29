@@ -25,12 +25,13 @@ def bundle() -> str:
     api = re.sub(r"\bexport\s+", "", api)
     platform = (APP / "src/ui/account-platform.js").read_text(encoding="utf-8")
     platform = re.sub(r'^import\s+\{\s*AccountApi\s*\}\s+from\s+"\./account-api\.js";\s*', "", platform, count=1, flags=re.M)
+    platform = re.sub(r'^import\s+\{\s*gsap\s*\}\s+from\s+"gsap";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r'^import\s+\{\s*readObsidianSelection\s*\}\s+from\s+"\./obsidian-import\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r'^import\s+\{\s*CHATGPT_HANDOFF_URL\s*\}\s+from\s+"\.\./core/constants\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r'^import\s+\{\s*buildAccountNotesArchive,\s*renderAccountNotesChatGPTContext\s*\}\s+from\s+"\.\./core/account-note-handoff\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r"\bexport\s+", "", platform)
     obsidian_double = "async function readObsidianSelection(){ return {items:[],sourceLabel:'浏览器夹具',totalFiles:0,totalBytes:0}; }"
-    handoff_double = "const CHATGPT_HANDOFF_URL='https://chatgpt.com/'; function renderAccountNotesChatGPTContext(notes){ return '# 浏览器夹具笔记\\n'; } function buildAccountNotesArchive(notes){ return {bytes:new Uint8Array([1]),filename:'fixture.zip'}; }"
+    handoff_double = "const gsap={matchMedia(){return{add(_conditions,callback){return callback({conditions:{reduceMotion:true}});},revert(){}}},set(){},to(){},fromTo(){},killTweensOf(){}}; const CHATGPT_HANDOFF_URL='https://chatgpt.com/'; function renderAccountNotesChatGPTContext(notes){ return '# 浏览器夹具笔记\\n'; } function buildAccountNotesArchive(notes){ return {bytes:new Uint8Array([1]),filename:'fixture.zip'}; }"
     return api + "\n" + obsidian_double + "\n" + handoff_double + "\n" + platform + "\nvoid renderAccountPlatform(document.querySelector('#app'));"
 
 
@@ -80,7 +81,7 @@ DASHBOARD = {
         "items": [{"label": "历史", "value": 36000}, {"label": "科学", "value": 18000}],
     },
     "categoryDistribution": [{"label": "管理", "value": 5}, {"label": "知识管理", "value": 2}],
-    "noteWeeklyTrend": [{"week": f"2026-{i:02d}", "value": (i % 5) + 1} for i in range(1, 13)],
+    "noteWeeklyTrend": [{"week": f"2026-05-{i + 1:02d}", "value": value} for i, value in enumerate([0, 0, 4, 103, 0, 0, 0, 0, 0, 0, 0, 0])],
     "sourceDistribution": [
         {"label": "weread", "value": 8}, {"label": "notion", "value": 5},
         {"label": "obsidian", "value": 3}, {"label": "github", "value": 2}, {"label": "google", "value": 1},
@@ -209,11 +210,14 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
 
     page.get_by_role("button", name="阅读画像").click()
     page.get_by_role("heading", name="你的真实阅读数据、笔记活动与潜在下一步").wait_for()
-    assert page.get_by_role("heading", name="微信读书真实阅读画像").is_visible()
-    assert page.get_by_role("heading", name="微信读书官方阅读进展").is_visible()
+    assert page.get_by_role("heading", name="微信读书官方阅读快照").is_visible()
+    assert page.locator(".reading-snapshot-item").count() == 4
     assert page.get_by_role("heading", name="类别分布").is_visible()
     assert page.get_by_role("heading", name="来源分布").count() == 0
-    assert page.get_by_text("累计阅读时长", exact=True).count() >= 1
+    assert page.locator("[data-category-row]").count() == 2
+    assert page.locator("[data-note-trend-fill]").count() == 2
+    assert page.get_by_text("2 个活跃周", exact=True).is_visible()
+    assert page.get_by_text("累计", exact=True).is_visible()
     assert page.get_by_role("img", name="近九十天笔记活动").is_visible()
     assert page.get_by_role("heading", name="潜在推荐").is_visible()
     assert page.get_by_text("继续整理系统思维主题").is_visible()
