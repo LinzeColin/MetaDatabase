@@ -29,6 +29,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - `x2n release preflight` is a read-only aggregate A005 gate. It can prove Owner-input/state, source-tag, and
   configured-and-pinned Private-MetaDatabase-client readiness without emitting a path, content ID, credential value,
   or platform request. It cannot arm or mutate the release.
+- `x2n release input-template` now contains literal, deliberately invalid replacement tokens for every Owner content
+  hash, Douyin Sidecar digest, and Sidecar port. It cannot accidentally validate or arm until the Owner has supplied
+  the real private facts; the source-bound contract digest and fixed boundaries remain intact.
 - Real Owner Runtime, profiles, platform calls, Notion, models, media, private-database transfer, exact release tag,
   deploy, Side Panel handshake, and online smoke are `NOT_RUN`.
 
@@ -45,7 +48,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
-- Full Companion `unittest discover` passed: 321 tests. Focused A005 bundle/release/acceptance tests passed: 22
+- Full Companion `unittest discover` passed: 322 tests. Focused A005 bundle/release/acceptance tests passed: 23
   tests, covering exact scopes, hash-manifest mismatch before adapter initialization, Markdown idempotency, durable
   archive proof, external gates, pointer rollback, staged Native Host binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
@@ -62,9 +65,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. When the Owner is ready, create the private input and four private 20-ID hash manifests, configure the approved
-   digest-pinned Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and
-   no existing release state. Then perform the four explicit actions, baseline verification, Markdown/durability
+2. When the Owner is ready, use the deliberately invalid template only as a private shape, replace every Owner token
+   with four private 20-ID hash manifests and Sidecar facts, configure the approved digest-pinned
+   Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and no existing
+   release state. Then perform the four explicit actions, baseline verification, Markdown/durability
    materialization, rollback rehearsal, sign-off, exact tag, deploy, staged-extension reload, handshake, and
    immediate online smoke in the documented order.
 3. Only after that real sequence succeeds, run the read-only acceptance verifier and explicitly write the immutable

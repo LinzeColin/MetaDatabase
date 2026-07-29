@@ -274,6 +274,25 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(preflight["private_durability_client"], "CONFIGURED_AND_PINNED")
         self.assertNotIn("input_sha256", json.dumps(payload, ensure_ascii=False, sort_keys=True))
 
+    def test_input_template_requires_real_owner_facts_before_validation(self) -> None:
+        args = runtime_cli.build_parser().parse_args(["release", "input-template"])
+        payload = runtime_cli.run(args)
+        template = payload["template"]
+        self.assertEqual(payload["task_id"], "TSK.x2n.assurance.005")
+        self.assertEqual(payload["real_account_execution"], "NOT_RUN")
+        self.assertEqual(len(template["owner_private_manifests"]), 4)
+        self.assertEqual(template["douyin_sidecar"]["port"], "REPLACE_WITH_OWNER_LOOPBACK_PORT")
+        for manifest in template["owner_private_manifests"]:
+            self.assertEqual(len(manifest["content_id_sha256"]), 20)
+            self.assertTrue(
+                all(value.startswith("REPLACE_WITH_OWNER_CONTENT_ID_SHA256_") for value in manifest["content_id_sha256"])
+            )
+        with self.assertRaises(X2NRuntimeError):
+            OwnerMvpReleaseInput.from_mapping(template)
+        rendered = json.dumps(template, ensure_ascii=False, sort_keys=True)
+        self.assertNotIn("https://", rendered)
+        self.assertNotIn("/" + "Users/", rendered)
+
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="x2n-mvp-release-")
         destination = Path(self.temporary.name) / "MediaCrawler"

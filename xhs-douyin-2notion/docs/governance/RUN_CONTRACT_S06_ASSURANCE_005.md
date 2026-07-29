@@ -65,6 +65,11 @@ and approved Private-MetaDatabase client are configured and digest-pinned, while
 values, content IDs, or platform calls. It never creates the input, arms a scope, calls the client, or opens Chrome.
 A source tag is expected to remain `NOT_READY` until immediately before the later `deploy` command.
 
+`input-template` is intentionally **not** a valid release input: every Owner content-ID hash, Douyin Sidecar
+attestation digest, and loopback port is a literal replacement token. The Owner must replace all of those values in a
+private owner-only file before `validate-input` can pass. The contract digest and fixed scope/boundary fields are
+source-bound and must not be changed.
+
 The private release input also contains four ordered, hash-only 20-item Owner manifests (one per enabled scope).
 The Owner replaces the template placeholders with SHA-256 values of the selected stable content IDs. The Companion
 compares the observed 20 IDs to that private set before any Canonical write; it never prints either the IDs or the

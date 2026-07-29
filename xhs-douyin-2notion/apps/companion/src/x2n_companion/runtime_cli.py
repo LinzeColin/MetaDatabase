@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from collections.abc import Sequence
@@ -169,10 +168,14 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def _owner_mvp_input_template() -> dict[str, Any]:
-    """Return a public, non-secret shape; this command never writes Runtime input."""
+    """Return a deliberately invalid public shape; this command never writes Runtime input.
+
+    Owner-provided IDs and Sidecar facts must replace the literal placeholders
+    before validation can pass. Valid-looking synthetic hashes would create an
+    unsafe copy/paste path where an unprepared release input appears authorized.
+    """
 
     owner_contract_sha256 = owner_input_contract_sha256(verify_source=True)
-    digest = "0" * 64
     return {
         "disabled_external_scopes": [
             {
@@ -191,13 +194,13 @@ def _owner_mvp_input_template() -> dict[str, Any]:
         ],
         "douyin_sidecar": {
             "attestation": {
-                "executable_sha256": digest,
-                "resolved_lock_sha256": digest,
-                "sbom_sha256": digest,
+                "executable_sha256": "REPLACE_WITH_OWNER_SIDECAR_EXECUTABLE_SHA256",
+                "resolved_lock_sha256": "REPLACE_WITH_OWNER_SIDECAR_LOCK_SHA256",
+                "sbom_sha256": "REPLACE_WITH_OWNER_SIDECAR_SBOM_SHA256",
                 "scope": "owner_private_build",
-                "transitive_license_report_sha256": digest,
+                "transitive_license_report_sha256": "REPLACE_WITH_OWNER_SIDECAR_LICENSE_SHA256",
             },
-            "port": 1,
+            "port": "REPLACE_WITH_OWNER_LOOPBACK_PORT",
         },
         "enabled_scopes": [
             {"max_items": 20, "scope_id": "xiaohongshu_favorites", "transport": "chrome_visible_dom"},
@@ -212,7 +215,7 @@ def _owner_mvp_input_template() -> dict[str, Any]:
         "owner_private_manifests": [
             {
                 "content_id_sha256": [
-                    hashlib.sha256(f"replace-with-owner-private-content-id:{scope}:{index}".encode("utf-8")).hexdigest()
+                    f"REPLACE_WITH_OWNER_CONTENT_ID_SHA256_{scope.upper()}_{index + 1:02d}"
                     for index in range(20)
                 ],
                 "scope_id": scope,
