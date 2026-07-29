@@ -1,0 +1,18 @@
+[Unit]
+Description=即时检查阅迁账户平台并执行有界自愈
+After=weread-port-platform.service
+
+[Service]
+Type=oneshot
+User=weread-port
+Group=weread-port
+EnvironmentFile=/etc/weread-port/platform.env
+WorkingDirectory=/opt/weread-port/current
+ExecStart=/usr/bin/python3 service/scripts/platform_ops.py health
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/weread-port
+UMask=0077
+TimeoutStartSec=30

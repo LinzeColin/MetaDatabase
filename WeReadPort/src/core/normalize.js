@@ -176,15 +176,15 @@ export function normalizeProgress(response, overview) {
   };
 }
 
-/** @param {unknown} response */
-export function normalizeReadingStatistics(response) {
+/** @param {unknown} response @param {{mode?:string}} [options] */
+export function normalizeReadingStatistics(response, options = {}) {
   const data = unwrapGatewayData(response);
   // The official Skill currently documents totalReadTime/readDays/readStat. Keep
   // reviewed aliases for backward-compatible responses, but never infer missing data.
-  const totalReadingTimeSeconds = nonNegativeOptional(data.totalReadTime ?? data.totalReadingTime ?? data.readingTime ?? data.readingTimeSeconds);
+  const totalReadingTimeSeconds = nonNegativeOptional(data.totalReadTime ?? data.totalReadingTime ?? data.readingTime ?? data.readingTimeSeconds ?? data.readTime);
   const totalReadingDays = nonNegativeOptional(data.readDays ?? data.totalReadingDays ?? data.readingDays);
   const totalFinishedBooks = nonNegativeOptional(data.totalFinishedBooks ?? data.finishedBookCount ?? data.finishedBooks) ?? finishedBooksFromReadStat(data.readStat);
-  return { mode: firstString(data.mode) || "overall", totalReadingTimeSeconds, totalReadingDays, totalFinishedBooks };
+  return { mode: firstString(options.mode, data.mode) || "overall", totalReadingTimeSeconds, totalReadingDays, totalFinishedBooks };
 }
 
 /** @param {{overview:import('./model.js').NotebookSummary,info?:ReturnType<typeof normalizeBookInfo>,progress?:ReturnType<typeof normalizeProgress>,bookmarks:ReturnType<typeof normalizeBookmarkList>,reviews:ReturnType<typeof normalizeReviewPage>["reviews"],extraChapters?:ReturnType<typeof normalizeChapterInfo>,warnings?:string[]}} input */

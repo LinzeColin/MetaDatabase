@@ -1,3 +1,4 @@
+import { renderAccountPlatform } from "./account-platform.js";
 import {
   APP_NAME,
   APP_VERSION,
@@ -19,7 +20,8 @@ const path = location.pathname.replace(/\/+$/, "") || "/";
 if (path === "/privacy") renderLegal("privacy");
 else if (path === "/terms") renderLegal("terms");
 else if (path === "/status") renderStatus();
-else renderProduct();
+else if (path === "/migrate") renderProduct();
+else renderAccountPlatform(app);
 
 function renderProduct() {
   app.innerHTML = `

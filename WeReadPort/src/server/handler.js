@@ -50,7 +50,15 @@ export async function handleRequest(request, env = {}) {
         appVersion: APP_VERSION,
         sourceSkillVersion: SOURCE_SKILL_VERSION,
         businessGovernanceSchemaVersion: BUSINESS_GOVERNANCE_SCHEMA_VERSION,
+        taskpackVersion: "v0.0.0.1.9",
+        releaseCommit: String(env.WRP_RELEASE_COMMIT || ""),
+        ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || ""),
+        sitesProjectId: String(env.WRP_SITES_PROJECT_ID || ""),
       }));
+    }
+    if (path.startsWith("/api/platform/")) {
+      if (request.method === "OPTIONS") return secure(new Response(null, { status: 204, headers: { Allow: "GET, POST, PUT, PATCH, DELETE, OPTIONS" } }));
+      return secure(await proxyAccountPlatform(request, env));
     }
     if (path === "/api/weread/gateway") {
       if (request.method === "OPTIONS") return secure(new Response(null, { status: 204, headers: { Allow: "POST, OPTIONS" } }));
@@ -62,7 +70,7 @@ export async function handleRequest(request, env = {}) {
     if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
       return secure(new Response(request.method === "HEAD" ? null : "静态资源绑定不可用。", { status: 503 }));
     }
-    return secure(await env.ASSETS.fetch(request));
+    return secure(await fetchAssetWithCanonicalRedirect(staticAssetRequest(request, url), env));
   } catch (error) {
     const safe = toSafeFailure(error);
     const status = error instanceof WeReadPortError && error.status ? error.status : 500;
@@ -85,8 +93,9 @@ function machineHealth(request, url, env) {
 async function machineReadiness(request, url, env) {
   assertMachineMethod(request);
   const assets = await inspectAssets(request, env);
+  const accountService = await inspectAccountService(request, env);
   const governanceReady = BUSINESS_GRAPH_ERRORS.length === 0;
-  const ready = assets.ready && governanceReady;
+  const ready = assets.ready && accountService.ready && governanceReady;
   return jsonForRequest(request, {
     ok: ready,
     status: ready ? "READY" : "NOT_READY",
@@ -96,6 +105,7 @@ async function machineReadiness(request, url, env) {
     checkedAt: new Date().toISOString(),
     checks: {
       staticAssets: assets,
+      accountPlatformService: accountService,
       gatewayProxyContract: { ready: true, detail: "代理地址、接口白名单、参数白名单和上游技能版本已加载；未使用用户密钥探测上游。" },
       businessGovernanceContract: {
         ready: governanceReady,
@@ -110,11 +120,12 @@ async function machineReadiness(request, url, env) {
 async function publicStatusResponse(request, url, env) {
   assertMachineMethod(request);
   const assets = await inspectAssets(request, env);
+  const accountService = await inspectAccountService(request, env);
   const mode = runtimeMode(url, env);
   const checkedAt = new Date().toISOString();
-  const businessLines = buildBusinessLineStatus({ assetsReady: assets.ready, checkedAt });
+  const businessLines = buildBusinessLineStatus({ assetsReady: assets.ready, accountServiceReady: accountService.ready, checkedAt });
   const governanceReady = BUSINESS_GRAPH_ERRORS.length === 0;
-  const operational = assets.ready && governanceReady;
+  const operational = assets.ready && accountService.ready && governanceReady;
   return jsonForRequest(request, {
     ok: operational,
     status: operational ? "OPERATIONAL" : "DEGRADED",
@@ -130,6 +141,11 @@ async function publicStatusResponse(request, url, env) {
         status: assets.ready ? "AVAILABLE" : "UNAVAILABLE",
         label: assets.ready ? "公开应用可用" : "静态资源不可用",
         detail: assets.detail,
+      },
+      accountPlatform: {
+        status: accountService.ready ? "AVAILABLE" : "UNAVAILABLE",
+        label: accountService.ready ? "账户、同步与云端存储服务可用" : "账户平台服务不可用",
+        detail: accountService.detail,
       },
       localImportAndExport: {
         status: assets.ready ? "AVAILABLE" : "UNAVAILABLE",
@@ -156,8 +172,10 @@ async function publicStatusResponse(request, url, env) {
       lines: businessLines,
     },
     dataBoundary: {
-      serverSideUserNotePersistence: false,
-      serverSideUserKeyPersistence: false,
+      serverSideUserNotePersistence: true,
+      serverSideUserKeyPersistence: "账户级加密凭据；不明文存储",
+      accountScopedEncryption: true,
+      multiTenantIsolation: true,
       statusContainsUserContent: false,
       businessGovernanceContainsUserContent: false,
     },
@@ -183,10 +201,10 @@ async function inspectAssets(request, env) {
   if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
     return { ready: false, detail: "静态资源绑定不可用。" };
   }
-  const probeUrl = new URL("/index.html", request.url);
+  const probeUrl = new URL("/site/home.html", request.url);
   let response;
   try {
-    response = await env.ASSETS.fetch(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }));
+    response = await fetchAssetWithCanonicalRedirect(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }), env);
     const contentType = response.headers.get("content-type") ?? "";
     const ready = response.ok && contentType.toLowerCase().includes("text/html");
     await response.body?.cancel().catch(() => {});
@@ -197,6 +215,81 @@ async function inspectAssets(request, env) {
   } catch {
     return { ready: false, detail: "主页静态资源探测发生异常。" };
   }
+}
+
+
+async function inspectAccountService(request, env) {
+  const raw = String(env.WEREAD_ACCOUNT_SERVICE_URL || "").trim();
+  const internalSecret = String(env.WRP_INTERNAL_PROXY_SECRET || "");
+  const expected = {
+    taskpackVersion: "v0.0.0.1.9",
+    releaseCommit: String(env.WRP_RELEASE_COMMIT || ""),
+    ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || ""),
+    sitesProjectId: String(env.WRP_SITES_PROJECT_ID || ""),
+  };
+  if (!raw || !internalSecret) return { ready: false, detail: "账户平台地址或内部代理密钥未配置。", releaseIdentity: expected };
+  if (!expected.releaseCommit || !expected.ovhReleaseId || !expected.sitesProjectId) return { ready: false, detail: "部署身份未绑定 commit、OVH release 或 Sites project。", releaseIdentity: expected };
+  let base;
+  try { base = new URL(raw); } catch { return { ready: false, detail: "账户平台服务地址无效。", releaseIdentity: expected }; }
+  if (base.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(base.hostname)) return { ready: false, detail: "账户平台服务必须使用 HTTPS。", releaseIdentity: expected };
+  try {
+    const probe = new URL("/internal/readyz", base);
+    const fetchImpl = typeof env.ACCOUNT_SERVICE_FETCH === "function" ? env.ACCOUNT_SERVICE_FETCH : fetch;
+    const response = await fetchImpl(probe, {
+      method: "GET", redirect: "manual",
+      headers: { Accept: "application/json", "User-Agent": "WeReadPort-Readiness/0.0.0.1.9", "x-wrp-internal-secret": internalSecret },
+    });
+    const payload = await response.json().catch(() => ({}));
+    const actual = payload?.releaseIdentity || {};
+    const identityMatches = Object.entries(expected).every(([key, value]) => actual[key] === value);
+    const ready = response.ok && payload?.ready === true && identityMatches;
+    return {
+      ready,
+      detail: ready ? "账户平台通过内部密钥、依赖与部署身份探测。" : `账户平台就绪或部署身份不匹配（HTTP ${response.status}）。`,
+      releaseIdentity: actual,
+      expectedReleaseIdentity: expected,
+    };
+  } catch { return { ready: false, detail: "账户平台服务就绪探测发生异常。", releaseIdentity: expected }; }
+}
+
+async function proxyAccountPlatform(request, env) {
+  assertSameOrigin(request, { allowOAuthCallbackNavigation: true });
+  enforceRateLimit(request);
+  const rawBase = String(env.WEREAD_ACCOUNT_SERVICE_URL || "").trim();
+  const internalSecret = String(env.WRP_INTERNAL_PROXY_SECRET || "");
+  if (!rawBase || !internalSecret) throw new WeReadPortError("NOT_READY", "账户平台服务尚未配置。", { status: 503 });
+  let base;
+  try { base = new URL(rawBase); } catch { throw new WeReadPortError("NOT_READY", "账户平台服务配置无效。", { status: 503 }); }
+  if (base.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(base.hostname)) throw new WeReadPortError("NOT_READY", "账户平台服务必须使用 HTTPS。", { status: 503 });
+  const incoming = new URL(request.url);
+  const target = new URL(incoming.pathname.replace(/^\/api\/platform/, "") || "/", base);
+  target.search = incoming.search;
+  const headers = new Headers();
+  for (const name of ["accept", "content-type", "cookie", "idempotency-key", "origin", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "user-agent", "x-csrf-token"]) {
+    const value = request.headers.get(name); if (value) headers.set(name, value);
+  }
+  headers.set("x-wrp-internal-secret", internalSecret);
+  const ip = request.headers.get("cf-connecting-ip"); if (ip) headers.set("x-forwarded-for", ip);
+  const fetchImpl = typeof env.ACCOUNT_SERVICE_FETCH === "function" ? env.ACCOUNT_SERVICE_FETCH : fetch;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 35_000);
+  try {
+    const response = await fetchImpl(target, { method: request.method, headers, body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body, redirect: "manual", signal: combineSignals(request.signal, controller.signal) });
+    const outputHeaders = new Headers();
+    for (const name of ["content-type", "cache-control", "set-cookie", "location", "retry-after"]) {
+      const value = response.headers.get(name); if (value) outputHeaders.set(name, value);
+    }
+    if (outputHeaders.has("location")) {
+      const location = new URL(outputHeaders.get("location"), incoming.origin);
+      if (location.origin !== incoming.origin) throw new WeReadPortError("UPSTREAM_REDIRECT", "账户服务返回了非同源重定向。", { status: 502 });
+      outputHeaders.set("location", location.toString());
+    }
+    return new Response(response.body, { status: response.status, headers: outputHeaders });
+  } catch (error) {
+    if (controller.signal.aborted) throw new WeReadPortError("TIMEOUT", "账户平台服务响应超时。", { status: 504, retryable: true });
+    if (error instanceof WeReadPortError) throw error;
+    throw new WeReadPortError("NETWORK", "无法连接账户平台服务。", { status: 502, retryable: true });
+  } finally { clearTimeout(timer); }
 }
 
 function runtimeMode(url, env) {
@@ -214,6 +307,33 @@ function runtimeLabel(mode) {
 function normalizePath(value) {
   if (value === "/") return value;
   return value.replace(/\/+$/u, "") || "/";
+}
+
+/** Keep public routes out of the direct static-asset namespace so Sites always
+ * reaches this Worker before a document is returned. */
+function staticAssetRequest(request, url) {
+  const target = new URL(url);
+  target.pathname = staticAssetPath(url.pathname);
+  return new Request(target.toString(), request);
+}
+
+async function fetchAssetWithCanonicalRedirect(request, env) {
+  let response = await env.ASSETS.fetch(request);
+  const location = response.headers.get("location");
+  if (response.status < 300 || response.status >= 400 || !location) return response;
+  let canonical;
+  try { canonical = new URL(location, request.url); } catch { return response; }
+  const source = new URL(request.url);
+  if (canonical.origin !== source.origin || !canonical.pathname.startsWith("/site/")) return response;
+  response = await env.ASSETS.fetch(new Request(canonical.toString(), request));
+  return response;
+}
+
+function staticAssetPath(pathname) {
+  if (pathname === "/") return "/site/home.html";
+  if (["/privacy/", "/terms/", "/status/"].includes(pathname)) return `/site${pathname}page.html`;
+  if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return `/site${pathname}`;
+  return "/site/home.html";
 }
 
 /** @param {Request} request @param {Record<string,any>} env */
@@ -284,17 +404,28 @@ async function proxyGateway(request, env) {
   });
 }
 
-/** @param {Request} request */
-function assertSameOrigin(request) {
+/** @param {Request} request @param {{allowOAuthCallbackNavigation?: boolean}} [options] */
+function assertSameOrigin(request, { allowOAuthCallbackNavigation = false } = {}) {
   const url = new URL(request.url);
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
   if (origin && origin !== url.origin) {
     throw new WeReadPortError("FORBIDDEN", "拒绝跨站请求。", { status: 403 });
   }
-  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite)) {
+  const oauthCallbackNavigation = allowOAuthCallbackNavigation && isOAuthCallbackNavigation(request, url, origin, fetchSite);
+  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite) && !oauthCallbackNavigation) {
     throw new WeReadPortError("FORBIDDEN", "拒绝跨站请求。", { status: 403 });
   }
+}
+
+/** OAuth 提供方只能经跨站顶层导航回调；状态码与 PKCE 仍由账户服务验证。 */
+function isOAuthCallbackNavigation(request, url, origin, fetchSite) {
+  return request.method === "GET"
+    && origin === null
+    && fetchSite === "cross-site"
+    && request.headers.get("sec-fetch-mode") === "navigate"
+    && request.headers.get("sec-fetch-dest") === "document"
+    && /^\/api\/platform\/v1\/oauth\/(google|github|notion)\/callback$/.test(url.pathname);
 }
 
 /** Best-effort per-isolate abuse control; upstream/user-key limits remain authoritative. @param {Request} request */
