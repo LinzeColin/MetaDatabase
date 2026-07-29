@@ -22,9 +22,12 @@ test("四平台导入均使用连接、选择、预览/确认和进度式新手�
   assert.ok(obsidian.includes("webkitRelativePath"));
   assert.ok(obsidian.includes("ZIP"));
   assert.ok(api.includes("/weread/export"));
+  assert.ok(api.includes("/weread/sync/jobs/"));
   assert.ok(api.includes('cache: "no-store"'));
   assert.match(ui, /runWeReadSync\(content, \{ forceFull: true, preserveView: true \}\)/u);
   assert.match(ui, /async function runWeReadSync\(content, \{ automatic = false, forceFull = false, preserveView = false \} = \{\}\)/u);
+  assert.match(ui, /async function waitForWeReadSync\(jobId\)/u);
+  assert.ok(ui.includes("已建立后台微信读书同步任务"));
   assert.match(ui, /if \(!automatic && !preserveView\) state\.view = "notes";/u);
 });
 
@@ -32,7 +35,7 @@ test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读�
   assert.match(ui, /function syncWeReadAfterLogin\(root, \{ force = false \} = \{\}\)/u);
   assert.equal((ui.match(/if \(result\) void syncWeReadAfterLogin\(document, \{ force: true \}\);/gu) || []).length, 2);
   assert.match(ui, /void syncWeReadAfterLogin\(root, \{ force: oauthReturned \}\)/u);
-  assert.ok(ui.includes("已登录，正在后台检查微信读书最新变化…"));
+  assert.ok(ui.includes("已建立后台微信读书同步任务；可继续浏览，完成后会自动刷新数据。"));
   assert.ok(api.includes("wereadSync(mode = \"auto\")"));
   assert.ok(ui.includes("真实事件时间"));
   assert.match(ui, /async function refreshDerivedAccountState\(\)/u);

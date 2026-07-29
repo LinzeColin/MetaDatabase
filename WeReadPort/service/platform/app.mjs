@@ -100,7 +100,17 @@ export function createPlatformApp({ service, config }) {
       const jobMatch = path.match(/^\/imports\/jobs\/([A-Za-z0-9_-]+)$/);
       if (method === "GET" && jobMatch) { const job = service.getImportJob(session.accountId, jobMatch[1]); if (!job) throw new PlatformError("NOT_FOUND", "导入任务不存在。", 404); return json({ job }); }
 
-      if (method === "POST" && path === "/weread/sync") return json(await service.syncWeRead(session.accountId, await body(request, config.maxJsonBytes)));
+      if (method === "POST" && path === "/weread/sync") {
+        const input = await body(request, config.maxJsonBytes);
+        const job = service.createWeReadSyncJob(session.accountId, input, request.headers.get("idempotency-key") || input.idempotencyKey);
+        return json({ job }, 202);
+      }
+      const wereadSyncJob = path.match(/^\/weread\/sync\/jobs\/([A-Za-z0-9_-]+)$/);
+      if (method === "GET" && wereadSyncJob) {
+        const job = service.getWeReadSyncJob(session.accountId, wereadSyncJob[1]);
+        if (!job) throw new PlatformError("NOT_FOUND", "微信读书同步任务不存在。", 404);
+        return json({ job });
+      }
       if (method === "GET" && path === "/weread/export") { service.requireRecentAuth(session); return json(await service.exportWeRead(session.accountId)); }
       if (method === "GET" && path === "/analytics/dashboard") return json({ dashboard: service.analytics(session.accountId) });
       if (method === "GET" && path === "/account/export") { service.requireRecentAuth(session); return json(await service.exportAccount(session.accountId)); }

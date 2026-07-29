@@ -139,6 +139,26 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
   assert.ok(platform.service.analytics(user.account.id).recommendations.some(item => item.source === "weread-official"));
 });
 
+test("微信读书同步通过后台任务完成，并公开无正文的可轮询结果", async t => {
+  const platform = testPlatform({ fetchImpl: gatewayMock([]) });
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY, displayName: "任务队列用户" }, {}, { verify: false });
+  const first = platform.service.createWeReadSyncJob(user.account.id, { mode: "full", recommendationPages: 1 }, "weread-sync-1");
+  const duplicate = platform.service.createWeReadSyncJob(user.account.id, { mode: "full", recommendationPages: 1 }, "weread-sync-2");
+  assert.equal(first.state, "PENDING");
+  assert.equal(duplicate.id, first.id, "在途同步必须复用同一任务，避免重复占用上游与代理窗口");
+
+  const complete = await platform.service.processNextImportJob();
+  assert.equal(complete.provider, "weread");
+  assert.equal(complete.state, "COMPLETE");
+  assert.equal(complete.progress.syncMode, "full");
+  assert.equal(complete.progress.updatedDocuments, 16);
+  assert.equal(complete.progress.coverage.coverage.verified, true);
+  assert.ok(complete.progress.capabilities.includes("/user/notebooks"));
+  assert.equal(JSON.stringify(complete.progress).includes(KEY), false, "任务状态不得泄漏微信读书密钥");
+  assert.equal(platform.service.getWeReadSyncJob(user.account.id, first.id).state, "COMPLETE");
+});
+
 test("旧版同步指纹中的真实书籍进度会直接补入画像，不等待重新导入", async t => {
   const platform = testPlatform({ fetchImpl: gatewayMock([]) });
   t.after(platform.close);
