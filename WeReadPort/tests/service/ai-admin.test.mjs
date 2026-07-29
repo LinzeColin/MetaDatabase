@@ -77,8 +77,9 @@ test("管理员专用域直接展示数据，仍受不可变账户白名单和�
   assert.equal(prompts.find(item => item.accountId === user.account.id).preferences.customPrompt, "测试自定义提示词");
   const body = await platform.service.adminReadNote(adminSession, { noteId: note.id });
   assert.equal(body.note.content, "正文只能在明确用途后读取。");
-  assert.ok(platform.service.adminAuditLog(adminSession).events.some(item => item.action === "admin_note_body_viewed"));
-  assert.equal(platform.service.adminAuditLog(adminSession).events[0].reason, "管理员直接查看");
+  const auditEvents = platform.service.adminAuditLog(adminSession).events;
+  assert.ok(auditEvents.some(item => item.action === "admin_note_body_viewed"));
+  assert.ok(auditEvents.some(item => item.action === "admin_note_body_viewed" && item.reason === "管理员直接查看"));
 
   platform.store.db.prepare("UPDATE sessions SET recent_auth_at=? WHERE token_hash=?")
     .run(platform.service.now() - 3_600, platform.service.sessionHash(admin.session.token));
