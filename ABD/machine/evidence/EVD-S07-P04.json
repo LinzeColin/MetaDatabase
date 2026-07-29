@@ -1,0 +1,835 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S07/P04/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S07/P04_test.py --junitxml=machine/evidence/S07/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S07/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S07/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S07/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S07-P04 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "continuity_summary": {
+    "case_reason_codes": {
+      "BOUNDARY_COVERAGE_EXACT": [],
+      "BOUNDARY_COVERAGE_MINUS_0001": [
+        "LINK_COVERAGE_BELOW_ONE"
+      ],
+      "BOUNDARY_COVERAGE_PLUS_0001": [
+        "LINK_COVERAGE_ABOVE_ONE"
+      ],
+      "FAULT_ORPHAN_EVIDENCE_INDEX": [
+        "ORPHAN_EVIDENCE"
+      ],
+      "NEGATIVE_ORPHAN_TASK": [
+        "ORPHAN_TASKS"
+      ],
+      "POSITIVE_EXACT_CHAIN": []
+    },
+    "order_submission_enabled": false,
+    "orphan_counts": {
+      "artifacts": 0,
+      "contracts": 0,
+      "evidence": 0,
+      "release": 0,
+      "requirements": 0,
+      "tasks": 0,
+      "traceability": 0
+    },
+    "positive_output_sha256": "48ba72cd94f32a6b1998d31e076fdeac910187cb549e7bba05afc66d9f342dff",
+    "positive_status": "CONTINUITY_VERIFIED_NO_ACTION",
+    "real_time_soak_waited": false,
+    "recommendation_generated": false
+  },
+  "contract_id": "AC-S07-P04",
+  "decision": "CONTINUOUS_EVIDENCE_CHAIN_VERIFIED_NO_ACTION",
+  "decision_sha256": "3eaacd17e5813fc3ab3f34549f80dd1eea7550b84cbb5db733b66c2881f265c5",
+  "deterministic_replay": {
+    "adverse_replay_count": 10000,
+    "real_time_wait_performed": false,
+    "replay_count": 100
+  },
+  "evidence_id": "EVD-S07-P04",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hashes": {
+    "code": "e0ac5670305a7a08f4a74bd3ad6089627990388d20c6c526a6823b959a3f5559",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
+      "abd_acceptance/evidence_continuity.py": "db35fc9ffd281f310490a74abd4704b24c8f047bbc9686b15c6aff581629b781",
+      "machine/evidence/EVD-S07-P03.json": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+      "machine/evidence/EVD-S07-P03_rollback.json": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
+      "machine/evidence/final_acceptance.json": "2e1b0125b764849fc075bc66c82fd992626444e35c61acf9f0e7ffa362027376",
+      "machine/evidence/release_manifest.json": "42a1bda4cc7eb39b0d906d3f3aa5c58fd0c217384508e2602af746008f2be090",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S07_P04.json": "1867c3a9e8ea40b6322c3647f0405d415a4e79fe5f5ec4479299146d140be5a7",
+      "tests/S07/P04_test.py": "3e658a3d13641f478c750603f12cf69e3db66240ddeb2f9445245e3bf8114fca"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S07/P04 validates offline evidence continuity only.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "f404475fd62eff033a3ad9165cf1b45bf58114b66ed119ae85c73da7124178b7"
+  },
+  "next": "S07/STAGE_REVIEW_READY_NOT_STARTED",
+  "phase_id": "P04",
+  "phase_status": "S07_P04_PASS",
+  "predecessor_evidence": {
+    "p03_evidence": "machine/evidence/EVD-S07-P03.json",
+    "p03_evidence_sha256": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+    "p03_rollback_sha256": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf"
+  },
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S07_STAGE_REVIEW_REQUIRED_BEFORE_ANY_UPLOAD_OR_DEPLOYMENT",
+  "requirement_id": "REQ-S07-P04",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S07-P04_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S07",
+  "status": "PASS",
+  "structured_failure_log": {
+    "case_reason_codes": {
+      "BOUNDARY_COVERAGE_EXACT": [],
+      "BOUNDARY_COVERAGE_MINUS_0001": [
+        "LINK_COVERAGE_BELOW_ONE"
+      ],
+      "BOUNDARY_COVERAGE_PLUS_0001": [
+        "LINK_COVERAGE_ABOVE_ONE"
+      ],
+      "FAULT_ORPHAN_EVIDENCE_INDEX": [
+        "ORPHAN_EVIDENCE"
+      ],
+      "NEGATIVE_ORPHAN_TASK": [
+        "ORPHAN_TASKS"
+      ],
+      "POSITIVE_EXACT_CHAIN": []
+    },
+    "failed_check_ids": []
+  },
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "1867c3a9e8ea40b6322c3647f0405d415a4e79fe5f5ec4479299146d140be5a7",
+          "expected": "1867c3a9e8ea40b6322c3647f0405d415a4e79fe5f5ec4479299146d140be5a7"
+        },
+        "id": "S07P04-PIN-S07_P04-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "3e658a3d13641f478c750603f12cf69e3db66240ddeb2f9445245e3bf8114fca",
+          "expected": "3e658a3d13641f478c750603f12cf69e3db66240ddeb2f9445245e3bf8114fca"
+        },
+        "id": "S07P04-PIN-P04_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "5cba3c3584293de8024636574e672dd4dcda534c90013712053b38413ed69e1c",
+          "expected": "5cba3c3584293de8024636574e672dd4dcda534c90013712053b38413ed69e1c"
+        },
+        "id": "S07P04-ORACLE-STRUCTURAL-SELF-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S07P04-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S07P04-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S07P04-BASELINE-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S07P04-BASELINE-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S07P04-BASELINE-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S07P04-BASELINE-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S07P04-BASELINE-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S07P04-BASELINE-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S07P04-BASELINE-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S07P04-BASELINE-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S07P04-BASELINE-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "42a1bda4cc7eb39b0d906d3f3aa5c58fd0c217384508e2602af746008f2be090",
+          "expected": "42a1bda4cc7eb39b0d906d3f3aa5c58fd0c217384508e2602af746008f2be090"
+        },
+        "id": "S07P04-BASELINE-RELEASE_MANIFEST-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2e1b0125b764849fc075bc66c82fd992626444e35c61acf9f0e7ffa362027376",
+          "expected": "2e1b0125b764849fc075bc66c82fd992626444e35c61acf9f0e7ffa362027376"
+        },
+        "id": "S07P04-BASELINE-FINAL_ACCEPTANCE-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+          "expected": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+        },
+        "id": "S07P04-BASELINE-ROADMAP_STAGE_PHASE-MD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+          "expected": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9"
+        },
+        "id": "S07P04-BASELINE-EVD-S07-P03-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
+          "expected": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf"
+        },
+        "id": "S07P04-BASELINE-EVD-S07-P03_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/tests/fixtures/S07_P04.json",
+        "id": "S07P04-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "case_ids": [
+            "POSITIVE_EXACT_CHAIN",
+            "BOUNDARY_COVERAGE_MINUS_0001",
+            "BOUNDARY_COVERAGE_EXACT",
+            "BOUNDARY_COVERAGE_PLUS_0001",
+            "NEGATIVE_ORPHAN_TASK",
+            "FAULT_ORPHAN_EVIDENCE_INDEX"
+          ]
+        },
+        "id": "S07P04-PRODUCTION-EQUIVALENT-FIXTURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+          "p03": {
+            "checks": 7,
+            "failed": 0,
+            "failed_check_ids": []
+          }
+        },
+        "id": "S07P04-P03-PREDECESSOR-PASS",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/requirements.json",
+        "id": "S07P04-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/acceptance_contracts.json",
+        "id": "S07P04-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/task_graph.json",
+        "id": "S07P04-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/traceability_matrix.json",
+        "id": "S07P04-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/evidence_index.jsonl",
+        "id": "S07P04-EVIDENCE-INDEX-STRICT-JSONL",
+        "passed": true
+      },
+      {
+        "detail": "all collections are available",
+        "id": "S07P04-TASKPACK-LISTS-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "counts": {
+            "contracts": 80,
+            "index": 91,
+            "requirements": 80,
+            "tasks": 240,
+            "traceability": 80
+          },
+          "orphans": {
+            "artifacts": [],
+            "contracts": [],
+            "evidence": [],
+            "release": [],
+            "requirements": [],
+            "tasks": [],
+            "traceability": []
+          }
+        },
+        "id": "S07P04-ALL-LINK-COLLECTIONS-COVERED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index_status": "PLANNED",
+          "tasks": [
+            "T-S07-P04-01",
+            "T-S07-P04-02",
+            "T-S07-P04-03"
+          ],
+          "trace": {
+            "acceptance_criteria_id": "AC-S07-P04",
+            "artifact_ids": [
+              "ART-S07-P04-01",
+              "ART-S07-P04-02",
+              "ART-S07-P04-03"
+            ],
+            "evidence_id": "EVD-S07-P04",
+            "phase_id": "P04",
+            "requirement_id": "REQ-S07-P04",
+            "stage_id": "S07",
+            "task_ids": [
+              "T-S07-P04-01",
+              "T-S07-P04-02",
+              "T-S07-P04-03"
+            ],
+            "test_ids": [
+              "TEST-S07-P04",
+              "TEST-S07-P04-BOUNDARY",
+              "TEST-S07-P04-REPLAY"
+            ]
+          }
+        },
+        "id": "S07P04-TASKPACK-SCOPE-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/artifact_manifest.json",
+        "id": "S07P04-ARTIFACT-MANIFEST-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/SHA256SUMS",
+        "id": "S07P04-SHA256SUMS-STRICT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": [],
+          "expected_files": 461,
+          "manifest_files": 461,
+          "missing_required": []
+        },
+        "id": "S07P04-ARTIFACT-MANIFEST-COVERAGE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ART-S07-P04-01": {
+            "checksum_protected": true,
+            "manifested": true,
+            "path": "machine/evidence/evidence_index.jsonl"
+          },
+          "ART-S07-P04-02": {
+            "checksum_protected": true,
+            "manifested": true,
+            "path": "machine/facts/traceability_matrix.json"
+          },
+          "ART-S07-P04-03": {
+            "checksum_protected": true,
+            "manifested": true,
+            "path": "machine/evidence/artifact_manifest.json"
+          }
+        },
+        "id": "S07P04-PHASE-ARTIFACT-LINKS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "all PASS evidence artifacts resolve",
+        "id": "S07P04-PASS-EVIDENCE-ARTIFACTS-RESOLVABLE",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/release_manifest.json",
+        "id": "S07P04-RELEASE-MANIFEST-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/final_acceptance.json",
+        "id": "S07P04-FINAL-ACCEPTANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "final_decision": "READY_FOR_FINAL_DEVELOPMENT_TASKPACK_HANDOFF",
+          "key_artifacts": [
+            "machine/facts/canonical_facts.json",
+            "machine/facts/parameters.json",
+            "machine/facts/requirements.json",
+            "machine/facts/acceptance_contracts.json",
+            "machine/facts/task_graph.json",
+            "machine/facts/traceability_matrix.json",
+            "machine/evidence/validation_report.json",
+            "PURSUE_GOAL_PROMPT.txt"
+          ],
+          "release_status": "FINAL_ACCEPTANCE_DELIVERY"
+        },
+        "id": "S07P04-RELEASE-LINK-HONEST-AND-MANIFESTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "coverage": "1.0000",
+          "external_network_used": false,
+          "odds_treatment": "NOT_APPLICABLE_CONTINUITY_ONLY",
+          "order_submission_enabled": false,
+          "orphans": {
+            "artifacts": [],
+            "contracts": [],
+            "evidence": [],
+            "release": [],
+            "requirements": [],
+            "tasks": [],
+            "traceability": []
+          },
+          "output_sha256": "48ba72cd94f32a6b1998d31e076fdeac910187cb549e7bba05afc66d9f342dff",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "required_coverage": "1.0000",
+          "status": "CONTINUITY_VERIFIED_NO_ACTION"
+        },
+        "id": "S07P04-CASE-POSITIVE_EXACT_CHAIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "coverage": "0.9999",
+          "external_network_used": false,
+          "odds_treatment": "NOT_APPLICABLE_CONTINUITY_ONLY",
+          "order_submission_enabled": false,
+          "orphans": {
+            "artifacts": [],
+            "contracts": [],
+            "evidence": [],
+            "release": [],
+            "requirements": [],
+            "tasks": [],
+            "traceability": []
+          },
+          "output_sha256": "01de8703ddd00672d40f29f67fae83b2539ad657aacb5e81355ab57e675a947c",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "LINK_COVERAGE_BELOW_ONE"
+          ],
+          "recommendation_generated": false,
+          "required_coverage": "1.0000",
+          "status": "CONTINUITY_REJECTED_NO_ACTION"
+        },
+        "id": "S07P04-CASE-BOUNDARY_COVERAGE_MINUS_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "coverage": "1.0000",
+          "external_network_used": false,
+          "odds_treatment": "NOT_APPLICABLE_CONTINUITY_ONLY",
+          "order_submission_enabled": false,
+          "orphans": {
+            "artifacts": [],
+            "contracts": [],
+            "evidence": [],
+            "release": [],
+            "requirements": [],
+            "tasks": [],
+            "traceability": []
+          },
+          "output_sha256": "48ba72cd94f32a6b1998d31e076fdeac910187cb549e7bba05afc66d9f342dff",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "required_coverage": "1.0000",
+          "status": "CONTINUITY_VERIFIED_NO_ACTION"
+        },
+        "id": "S07P04-CASE-BOUNDARY_COVERAGE_EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "coverage": "1.0001",
+          "external_network_used": false,
+          "odds_treatment": "NOT_APPLICABLE_CONTINUITY_ONLY",
+          "order_submission_enabled": false,
+          "orphans": {
+            "artifacts": [],
+            "contracts": [],
+            "evidence": [],
+            "release": [],
+            "requirements": [],
+            "tasks": [],
+            "traceability": []
+          },
+          "output_sha256": "7831986b4f65cff60d6998c86a74b15e9d6758326fe07a3e34e12d57e6f2a2be",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "LINK_COVERAGE_ABOVE_ONE"
+          ],
+          "recommendation_generated": false,
+          "required_coverage": "1.0000",
+          "status": "CONTINUITY_REJECTED_NO_ACTION"
+        },
+        "id": "S07P04-CASE-BOUNDARY_COVERAGE_PLUS_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "coverage": "1.0000",
+          "external_network_used": false,
+          "odds_treatment": "NOT_APPLICABLE_CONTINUITY_ONLY",
+          "order_submission_enabled": false,
+          "orphans": {
+            "artifacts": [],
+            "contracts": [],
+            "evidence": [],
+            "release": [],
+            "requirements": [],
+            "tasks": [
+              "T-S07-P04-02"
+            ],
+            "traceability": []
+          },
+          "output_sha256": "630c024ca1c746aa7e9645c82784fa271826a438990df4d589cc0ecd581372a4",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "ORPHAN_TASKS"
+          ],
+          "recommendation_generated": false,
+          "required_coverage": "1.0000",
+          "status": "CONTINUITY_REJECTED_NO_ACTION"
+        },
+        "id": "S07P04-CASE-NEGATIVE_ORPHAN_TASK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "coverage": "1.0000",
+          "external_network_used": false,
+          "odds_treatment": "NOT_APPLICABLE_CONTINUITY_ONLY",
+          "order_submission_enabled": false,
+          "orphans": {
+            "artifacts": [],
+            "contracts": [],
+            "evidence": [
+              "INDEX-AC-S07-P04"
+            ],
+            "release": [],
+            "requirements": [],
+            "tasks": [],
+            "traceability": []
+          },
+          "output_sha256": "b350333df6b993ff48e50dd81245d207bcb3a1277546f5e68c17a64f92e31391",
+          "real_time_soak_waited": false,
+          "reason_codes": [
+            "ORPHAN_EVIDENCE"
+          ],
+          "recommendation_generated": false,
+          "required_coverage": "1.0000",
+          "status": "CONTINUITY_REJECTED_NO_ACTION"
+        },
+        "id": "S07P04-CASE-FAULT_ORPHAN_EVIDENCE_INDEX",
+        "passed": true
+      },
+      {
+        "detail": "48ba72cd94f32a6b1998d31e076fdeac910187cb549e7bba05afc66d9f342dff",
+        "id": "S07P04-POSITIVE-OUTPUT-HASH-PIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "count": 100,
+          "hashes": [
+            "48ba72cd94f32a6b1998d31e076fdeac910187cb549e7bba05afc66d9f342dff"
+          ]
+        },
+        "id": "S07P04-100-REPLAY-DETERMINISTIC-NO-WAIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "count": 10000,
+          "failures": []
+        },
+        "id": "S07P04-ONE-IN-TEN-THOUSAND-ADVERSE-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "denied": [],
+          "imports": [
+            "__future__",
+            "ast",
+            "budget",
+            "canonical_facts",
+            "copy",
+            "decimal",
+            "hashlib",
+            "json",
+            "ledger_trace",
+            "pathlib",
+            "re",
+            "typing",
+            "xml"
+          ],
+          "tokens": []
+        },
+        "id": "S07P04-NO-NETWORK-PROCESS-OR-SLEEP-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 50,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 50
+          }
+        },
+        "id": "S07P04-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 5028,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 5078
+          }
+        },
+        "id": "S07P04-FULL-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/validation_report.json",
+        "id": "S07P04-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S07P04-TASKPACK-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "exact_match": true,
+          "path": "machine/evidence/S07/P04/paid_dependency_scan.txt"
+        },
+        "id": "S07P04-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "continuity_summary": {
+      "case_reason_codes": {
+        "BOUNDARY_COVERAGE_EXACT": [],
+        "BOUNDARY_COVERAGE_MINUS_0001": [
+          "LINK_COVERAGE_BELOW_ONE"
+        ],
+        "BOUNDARY_COVERAGE_PLUS_0001": [
+          "LINK_COVERAGE_ABOVE_ONE"
+        ],
+        "FAULT_ORPHAN_EVIDENCE_INDEX": [
+          "ORPHAN_EVIDENCE"
+        ],
+        "NEGATIVE_ORPHAN_TASK": [
+          "ORPHAN_TASKS"
+        ],
+        "POSITIVE_EXACT_CHAIN": []
+      },
+      "order_submission_enabled": false,
+      "orphan_counts": {
+        "artifacts": 0,
+        "contracts": 0,
+        "evidence": 0,
+        "release": 0,
+        "requirements": 0,
+        "tasks": 0,
+        "traceability": 0
+      },
+      "positive_output_sha256": "48ba72cd94f32a6b1998d31e076fdeac910187cb549e7bba05afc66d9f342dff",
+      "positive_status": "CONTINUITY_VERIFIED_NO_ACTION",
+      "real_time_soak_waited": false,
+      "recommendation_generated": false
+    },
+    "contract_id": "AC-S07-P04",
+    "decision": "CONTINUOUS_EVIDENCE_CHAIN_VERIFIED_NO_ACTION",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "external_network_used_by_verifier": false,
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-30T00:00:00+10:00",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/evidence_continuity.py": "db35fc9ffd281f310490a74abd4704b24c8f047bbc9686b15c6aff581629b781",
+      "machine/evidence/EVD-S07-P03.json": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+      "machine/evidence/EVD-S07-P03_rollback.json": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
+      "machine/evidence/final_acceptance.json": "2e1b0125b764849fc075bc66c82fd992626444e35c61acf9f0e7ffa362027376",
+      "machine/evidence/release_manifest.json": "42a1bda4cc7eb39b0d906d3f3aa5c58fd0c217384508e2602af746008f2be090",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S07_P04.json": "1867c3a9e8ea40b6322c3647f0405d415a4e79fe5f5ec4479299146d140be5a7",
+      "tests/S07/P04_test.py": "3e658a3d13641f478c750603f12cf69e3db66240ddeb2f9445245e3bf8114fca"
+    },
+    "next": "S07/STAGE_REVIEW_READY_NOT_STARTED",
+    "phase_id": "P04",
+    "phase_status": "S07_P04_PASS",
+    "requirement_id": "REQ-S07-P04",
+    "stage_id": "S07",
+    "status": "PASS",
+    "summary": {
+      "checks": 53,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 53
+    }
+  }
+}

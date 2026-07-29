@@ -44,7 +44,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S05-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "011e02b63953ff9b23ae9381ed1cdd4901409f2285ebbbc2b99456cb748de001"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "93e9d98e373f33d0bb73158f8cf1763201ba134463dfe537885cc33c7a64e6db"
 PHASE_COMMIT = "6ddbf8a36b4b089ab0511bd26f7d0c0fa2662bcc"
 PINNED_PHASE_CODE_HASH = "e5ebba41d7a5943b5302cf0d5813a165aae77cb99fc84d8de72c5f358cf9bc1e"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -59,8 +59,8 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-    "abd_acceptance/__main__.py": "93c0ece40a5472415501b22743bc3da1fbeadadf3844973dd5c2424cba58e958",
-    "abd_acceptance/stage4_review.py": "37ea7dbebbf5ae0ec30682064b9ca57021175de2b666416314abc401a519fa09",
+    "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
+    "abd_acceptance/stage4_review.py": "2d338489adfa785be7483c3da4ae16150b78f93c7dc9372718fc7073a766862f",
     "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
     "tests/S05/P01_test.py": "44f2132acd1a9f04ef1b3297300f22e2cbcb86e0db10ec8cf5ca90fa48cab8f7",
 }
