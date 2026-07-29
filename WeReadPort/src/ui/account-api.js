@@ -13,6 +13,10 @@ export class AccountApi {
   updateProfile(input) { return this.request("/profile", { method: "PATCH", body: input }); }
   consent() { return this.request("/consent"); }
   updateConsent(input) { return this.request("/consent", { method: "PATCH", body: input }); }
+  aiPreferences() { return this.request("/ai/preferences"); }
+  updateAiPreferences(input) { return this.request("/ai/preferences", { method: "PATCH", body: input }); }
+  aiInquiries(limit = 100) { return this.request(`/ai/inquiries?limit=${encodeURIComponent(Math.min(Math.max(Number(limit) || 100, 1), 500))}`); }
+  recordAiInquiry(input) { return this.request("/ai/inquiries", { method: "POST", body: input }); }
   bindWeRead(key) { return this.request("/auth/link/weread", { method: "POST", body: { key } }); }
   rotateWeRead(key) { return this.request("/auth/rotate/weread", { method: "POST", body: { key } }); }
   reauthPassword(password) { return this.request("/auth/reauth/password", { method: "POST", body: { password } }); }
@@ -28,7 +32,8 @@ export class AccountApi {
   deleteNote(id, expectedVersion) { return this.request(`/notes/${encodeURIComponent(id)}?expectedVersion=${encodeURIComponent(expectedVersion)}`, { method: "DELETE", body: {} }); }
   syncPull(cursor = 0) { return this.request("/sync/pull", { method: "POST", body: { cursor, limit: 500 } }); }
   syncPush(operations) { return this.request("/sync/push", { method: "POST", body: { operations } }); }
-  wereadSync(mode = "auto") { return this.request("/weread/sync", { method: "POST", body: { mode, recommendationPages: 3 } }); }
+  wereadSync(mode = "auto") { return this.request("/weread/sync", { method: "POST", body: { mode, recommendationPages: 3 }, headers: { "Idempotency-Key": crypto.randomUUID() } }); }
+  wereadSyncJob(id) { return this.request(`/weread/sync/${encodeURIComponent(id)}`); }
   providerItems(provider, params = {}) { const query = new URLSearchParams(params); return this.request(`/imports/${provider}/items?${query}`); }
   startImport(provider, selection) { return this.request(`/imports/${provider}/start`, { method: "POST", body: { selection }, headers: { "Idempotency-Key": crypto.randomUUID() } }); }
   importJob(id) { return this.request(`/imports/jobs/${encodeURIComponent(id)}`); }
@@ -37,6 +42,12 @@ export class AccountApi {
   exportAccount() { return this.request("/account/export"); }
   deleteAccount() { return this.request("/account/delete", { method: "POST", body: {} }); }
   businessLines() { return this.request("/status/business-lines"); }
+  adminOverview() { return this.request("/admin/overview", { method: "POST", body: {} }); }
+  adminAccounts({ reason, query = "", limit = 100 }) { return this.request("/admin/accounts", { method: "POST", body: { reason, query, limit } }); }
+  adminNotes({ reason, accountId = "", limit = 100 }) { return this.request("/admin/notes", { method: "POST", body: { reason, accountId, limit } }); }
+  adminNote(id, reason) { return this.request(`/admin/notes/${encodeURIComponent(id)}`, { method: "POST", body: { reason } }); }
+  adminPrompts({ reason, limit = 100 }) { return this.request("/admin/prompts", { method: "POST", body: { reason, limit } }); }
+  adminAudit({ reason, limit = 100 }) { return this.request("/admin/audit", { method: "POST", body: { reason, limit } }); }
 
   async request(path, { method = "GET", body, headers = {}, allow401 = false } = {}) {
     // Bypass any response cached before the account API adopted no-store headers.

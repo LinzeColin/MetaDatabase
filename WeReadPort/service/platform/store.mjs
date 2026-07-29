@@ -41,6 +41,8 @@ export class PlatformStore {
     this.db.exec("UPDATE notes SET event_at=created_at WHERE event_at IS NULL OR event_at=0");
     this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS sessions_public_id_idx ON sessions(id) WHERE id IS NOT NULL");
     this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_queue_idx ON import_jobs(state, lease_until, created_at)");
+    this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_account_provider_active_idx ON import_jobs(account_id, provider, state, created_at)");
+    this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS import_jobs_one_active_weread_idx ON import_jobs(account_id) WHERE provider='weread' AND state IN ('PENDING','RUNNING')");
     this.db.exec("CREATE INDEX IF NOT EXISTS notes_account_event_idx ON notes(account_id, event_at DESC, id DESC)");
     this.db.exec("CREATE INDEX IF NOT EXISTS notes_account_book_author_idx ON notes(account_id, book_title, author, event_at DESC, id DESC)");
   }
@@ -310,6 +312,79 @@ export class PlatformStore {
       .all(accountId, since, limit).map(row => ({ ...row, value: parseJson(row.valueJson) }));
   }
 
+  getAiPreferences(accountId) {
+    return this.db.prepare("SELECT account_id AS accountId,preferences_encrypted AS preferencesEncrypted,updated_at AS updatedAt FROM account_ai_preferences WHERE account_id=?").get(accountId) ?? null;
+  }
+
+  upsertAiPreferences({ accountId, preferencesEncrypted }) {
+    const now = this.now();
+    this.db.prepare(`INSERT INTO account_ai_preferences(account_id,preferences_encrypted,updated_at) VALUES(?,?,?)
+      ON CONFLICT(account_id) DO UPDATE SET preferences_encrypted=excluded.preferences_encrypted,updated_at=excluded.updated_at`)
+      .run(accountId, preferencesEncrypted, now);
+    return this.getAiPreferences(accountId);
+  }
+
+  createAiInquiryEvent({ id, accountId, noteId, providerId, styleId }) {
+    const now = this.now();
+    this.db.prepare("INSERT INTO ai_inquiry_events(id,account_id,note_id,provider_id,style_id,created_at) VALUES(?,?,?,?,?,?)")
+      .run(id, accountId, noteId, providerId, styleId, now);
+    return { id, accountId, noteId, providerId, styleId, createdAt: now };
+  }
+
+  listAiInquiryEvents(accountId, limit = 100) {
+    return this.db.prepare("SELECT id,note_id AS noteId,provider_id AS providerId,style_id AS styleId,created_at AS createdAt FROM ai_inquiry_events WHERE account_id=? ORDER BY created_at DESC,id DESC LIMIT ?")
+      .all(accountId, Math.min(Math.max(Number(limit) || 100, 1), 500));
+  }
+
+  listAdminAccounts({ query = "", limit = 100 } = {}) {
+    const pattern = `%${String(query || "").trim().toLocaleLowerCase("zh-CN")}%`;
+    return this.db.prepare(`SELECT a.id,a.email,a.display_name AS displayName,a.status,a.created_at AS createdAt,a.updated_at AS updatedAt,
+      COALESCE(n.noteCount,0) AS noteCount,COALESCE(p.hasPreferences,0) AS hasAiPreferences
+      FROM accounts a
+      LEFT JOIN (SELECT account_id,COUNT(*) AS noteCount FROM notes WHERE deleted_at IS NULL GROUP BY account_id) n ON n.account_id=a.id
+      LEFT JOIN (SELECT account_id,1 AS hasPreferences FROM account_ai_preferences) p ON p.account_id=a.id
+      WHERE a.deleted_at IS NULL AND (?='%%' OR lower(a.id) LIKE ? OR lower(COALESCE(a.email,'')) LIKE ? OR lower(a.display_name) LIKE ?)
+      ORDER BY a.updated_at DESC,a.id DESC LIMIT ?`)
+      .all(pattern, pattern, pattern, pattern, Math.min(Math.max(Number(limit) || 100, 1), 500));
+  }
+
+  listAdminNotes({ accountId = "", limit = 100 } = {}) {
+    const scopedAccountId = String(accountId || "").trim();
+    return this.db.prepare(`SELECT n.id,n.account_id AS accountId,n.source,n.title,n.category,n.book_title AS bookTitle,n.author,n.chapter_title AS chapterTitle,n.note_kind AS noteKind,n.word_count AS wordCount,n.event_at AS eventAt,n.created_at AS createdAt,n.updated_at AS updatedAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM notes n JOIN accounts a ON a.id=n.account_id
+      WHERE n.deleted_at IS NULL AND (?='' OR n.account_id=?)
+      ORDER BY CASE WHEN n.event_at>0 THEN n.event_at ELSE n.updated_at END DESC,n.id DESC LIMIT ?`)
+      .all(scopedAccountId, scopedAccountId, Math.min(Math.max(Number(limit) || 100, 1), 500));
+  }
+
+  getAdminNoteMetadata(noteId) {
+    return this.db.prepare(`SELECT n.id,n.account_id AS accountId,n.title,n.deleted_at AS deletedAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM notes n JOIN accounts a ON a.id=n.account_id WHERE n.id=? LIMIT 1`)
+      .get(noteId) ?? null;
+  }
+
+  listAdminAiPreferences(limit = 100) {
+    return this.db.prepare(`SELECT p.account_id AS accountId,p.preferences_encrypted AS preferencesEncrypted,p.updated_at AS updatedAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM account_ai_preferences p JOIN accounts a ON a.id=p.account_id
+      WHERE a.deleted_at IS NULL ORDER BY p.updated_at DESC,p.account_id DESC LIMIT ?`)
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 500));
+  }
+
+  addAdminAuditEvent({ id, actorAccountId, action, targetAccountId = null, targetNoteId = null, reason }) {
+    const createdAt = this.now();
+    this.db.prepare("INSERT INTO admin_audit_events(id,actor_account_id,action,target_account_id,target_note_id,reason,created_at) VALUES(?,?,?,?,?,?,?)")
+      .run(id, actorAccountId, action, targetAccountId, targetNoteId, reason, createdAt);
+    return { id, actorAccountId, action, targetAccountId, targetNoteId, reason, createdAt };
+  }
+
+  listAdminAuditEvents(limit = 100) {
+    return this.db.prepare("SELECT id,actor_account_id AS actorAccountId,action,target_account_id AS targetAccountId,target_note_id AS targetNoteId,reason,created_at AS createdAt FROM admin_audit_events ORDER BY created_at DESC,id DESC LIMIT ?")
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 500));
+  }
+
   createImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey }) {
     const now = this.now();
     try {
@@ -317,14 +392,24 @@ export class PlatformStore {
         .run(id, accountId, provider, "PENDING", "{}", selectionEncrypted, "{}", idempotencyKey, 0, now, now);
     } catch (error) {
       const existing = this.db.prepare("SELECT id FROM import_jobs WHERE account_id=? AND idempotency_key=?").get(accountId, idempotencyKey);
-      if (!existing) throw error;
-      return this.getImportJob(accountId, existing.id);
+      if (existing) return this.getImportJob(accountId, existing.id);
+      if (provider === "weread") {
+        const active = this.findActiveImportJob(accountId, provider);
+        if (active) return active;
+      }
+      throw error;
     }
     return this.getImportJob(accountId, id);
   }
 
   getImportJob(accountId, id) {
     const row = this.db.prepare("SELECT id,account_id AS accountId,provider,state,selection_encrypted AS selectionEncrypted,progress_json AS progressJson,idempotency_key AS idempotencyKey,error_code AS errorCode,attempts,worker_id AS workerId,lease_until AS leaseUntil,created_at AS createdAt,updated_at AS updatedAt FROM import_jobs WHERE account_id=? AND id=?").get(accountId, id);
+    return row ? { ...row, progress: parseJson(row.progressJson) } : null;
+  }
+
+  findActiveImportJob(accountId, provider) {
+    const row = this.db.prepare("SELECT id,account_id AS accountId,provider,state,selection_encrypted AS selectionEncrypted,progress_json AS progressJson,idempotency_key AS idempotencyKey,error_code AS errorCode,attempts,worker_id AS workerId,lease_until AS leaseUntil,created_at AS createdAt,updated_at AS updatedAt FROM import_jobs WHERE account_id=? AND provider=? AND state IN ('PENDING','RUNNING') ORDER BY created_at ASC,id ASC LIMIT 1")
+      .get(accountId, provider);
     return row ? { ...row, progress: parseJson(row.progressJson) } : null;
   }
 
@@ -347,6 +432,13 @@ export class PlatformStore {
         .run(workerId, now + leaseSeconds, now, row.id);
       return Number(changed.changes) === 1 ? this.getImportJob(row.accountId, row.id) : null;
     });
+  }
+
+  renewImportJobLease(accountId, id, workerId, leaseSeconds = 300) {
+    const now = this.now();
+    const changed = this.db.prepare("UPDATE import_jobs SET lease_until=?,updated_at=? WHERE account_id=? AND id=? AND state='RUNNING' AND worker_id=?")
+      .run(now + Math.max(1, Number(leaseSeconds) || 300), now, accountId, id, workerId);
+    return Number(changed.changes) === 1;
   }
 
   updateImportJob(accountId, id, { state, progress, errorCode = null, clearSelection = false }) {
@@ -418,6 +510,7 @@ export class PlatformStore {
       consent: this.getConsent(accountId),
       weread: this.getWereadState(accountId),
       behavior: this.listBehaviorEvents(accountId, 0, 100000),
+      aiInquiryHistory: this.listAiInquiryEvents(accountId, 500),
       recommendations: this.listRecommendations(accountId, 100),
     };
   }
@@ -436,6 +529,9 @@ export class PlatformStore {
       accounts: count("accounts"),
       sessions: count("sessions"),
       notes: count("notes"),
+      aiPreferences: count("account_ai_preferences"),
+      aiInquiryEvents: count("ai_inquiry_events"),
+      adminAuditEvents: count("admin_audit_events"),
       pendingImports: Number(this.db.prepare("SELECT COUNT(*) AS count FROM import_jobs WHERE state IN ('PENDING','RUNNING')").get().count),
       stalledImports: Number(this.db.prepare("SELECT COUNT(*) AS count FROM import_jobs WHERE state='RUNNING' AND lease_until IS NOT NULL AND lease_until<=?").get(this.now()).count),
       pendingOutbox: Number(this.db.prepare("SELECT COUNT(*) AS count FROM outbox WHERE state='PENDING'").get().count),

@@ -103,7 +103,9 @@ class PlatformOperationsTests(unittest.TestCase):
         secret = base64.b64encode(b"x" * 32).decode("ascii")
         values = {
             "NODE_ENV": "production",
-            "WRP_PUBLIC_BASE_URL": "https://weread-port.linzezhang35.chatgpt.site",
+            "WRP_PUBLIC_BASE_URL": "https://weread.linzezhang.com",
+            "WRP_ADMIN_BASE_URL": "https://admin.weread.linzezhang.com",
+            "WRP_ADMIN_ACCOUNT_IDS": "acct_admin00000001",
             "WRP_SERVICE_HOST": "127.0.0.1",
             "WRP_SERVICE_PORT": "8788",
             "WRP_DATABASE_PATH": str(self.root / "state/platform.sqlite3"),
@@ -147,7 +149,7 @@ class PlatformOperationsTests(unittest.TestCase):
         result = PREFLIGHT.check_environment(values, require_paths=True)
         self.assertEqual(result["status"], "PASS")
         self.assertFalse(result["secretValuesPrinted"])
-        self.assertEqual(result["oauthCallbackUrls"]["github"], "https://weread-port.linzezhang35.chatgpt.site/api/platform/v1/oauth/github/callback")
+        self.assertEqual(result["oauthCallbackUrls"]["github"], "https://weread.linzezhang.com/api/platform/v1/oauth/github/callback")
         encoded = json.dumps(result, ensure_ascii=False)
         self.assertNotIn(secret, encoded)
         self.assertNotIn("r" * 40, encoded)

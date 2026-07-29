@@ -141,7 +141,7 @@ def oauth_contract(page: Page) -> list[dict[str, Any]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url", default=os.environ.get("WEREAD_PORT_SITE_URL", "https://weread-port.linzezhang35.chatgpt.site"))
+    parser.add_argument("--url", default=os.environ.get("WEREAD_PORT_SITE_URL", "https://weread.linzezhang.com"))
     parser.add_argument("--output", type=Path)
     parser.add_argument("--chromium", default=os.environ.get("CHROMIUM_PATH", ""))
     args = parser.parse_args()

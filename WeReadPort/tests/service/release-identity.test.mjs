@@ -15,7 +15,7 @@ function productionEnv(overrides = {}) {
   const secret = Buffer.alloc(32, 31).toString("base64");
   return {
     NODE_ENV: "production",
-    WRP_PUBLIC_BASE_URL: "https://weread-port.linzezhang35.chatgpt.site",
+    WRP_PUBLIC_BASE_URL: "https://weread.linzezhang.com",
     WRP_SESSION_PEPPER: secret,
     WRP_CREDENTIAL_PEPPER: Buffer.alloc(32, 29).toString("base64"),
     WRP_KEYRING_JSON: JSON.stringify({ k1: Buffer.alloc(32, 27).toString("base64") }),
