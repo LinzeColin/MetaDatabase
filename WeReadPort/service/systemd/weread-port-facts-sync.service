@@ -1,0 +1,19 @@
+[Unit]
+Description=把阅迁脱敏完成态事实幂等同步到 Private-Database
+After=network-online.target weread-port-platform.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=weread-port
+Group=weread-port
+EnvironmentFile=/etc/weread-port/platform.env
+WorkingDirectory=/opt/weread-port/current
+ExecStart=/usr/bin/python3 service/scripts/platform_ops.py facts-sync
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/weread-port /srv/private-database
+UMask=0077
+TimeoutStartSec=180

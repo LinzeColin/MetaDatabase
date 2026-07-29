@@ -1,0 +1,11 @@
+[Unit]
+Description=每日创建阅迁账户平台一致性快照
+
+[Timer]
+OnCalendar=*-*-* 03:31:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+Unit=weread-port-platform-backup.service
+
+[Install]
+WantedBy=timers.target

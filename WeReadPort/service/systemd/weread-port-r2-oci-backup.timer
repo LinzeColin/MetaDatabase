@@ -1,0 +1,11 @@
+[Unit]
+Description=每日镜像阅迁 R2 到 OCI
+
+[Timer]
+OnCalendar=*-*-* 04:23:00 UTC
+RandomizedDelaySec=900
+Persistent=true
+Unit=weread-port-r2-oci-backup.service
+
+[Install]
+WantedBy=timers.target

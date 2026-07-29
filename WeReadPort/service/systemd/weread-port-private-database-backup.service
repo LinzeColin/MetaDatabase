@@ -1,0 +1,18 @@
+[Unit]
+Description=把 Private-Database 可恢复 Git bundle 冷备到 R2 backups/private-database
+After=network-online.target weread-port-facts-sync.service
+Wants=network-online.target
+[Service]
+Type=oneshot
+User=weread-port
+Group=weread-port
+EnvironmentFile=/etc/weread-port/platform.env
+WorkingDirectory=/opt/weread-port/current
+ExecStart=/usr/bin/python3 service/scripts/platform_ops.py private-database-backup
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/weread-port /srv/private-database
+UMask=0077
+TimeoutStartSec=900
