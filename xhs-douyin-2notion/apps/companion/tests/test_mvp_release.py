@@ -25,6 +25,7 @@ from x2n_companion.mvp_release import (
     MvpActivationExecutor,
     MvpReleaseController,
     OwnerMvpReleaseInput,
+    verify_owner_private_douyin_sidecar_bundle,
 )
 from x2n_companion.douyin_upstream import DouyinBatch, DouyinItem
 from x2n_companion.native_host import DEVELOPMENT_EXTENSION_ORIGIN, dispatch_wire
@@ -34,6 +35,12 @@ from x2n_companion.runtime import DOWNLOAD_ENV, ROOT_ENV, RuntimePaths, X2NRunti
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 OWNER_MVP_STATE_SCHEMA = PROJECT_ROOT / "machine/schemas/owner_mvp_release_state.schema.json"
+OWNER_SIDECAR_BUNDLE_FILES = {
+    "sidecar": (b"#!/bin/sh\nexit 0\n", 0o700),
+    "resolved-lock.json": (b'{"lock":"owner-test"}\n', 0o600),
+    "sbom.cdx.json": (b'{"bomFormat":"CycloneDX"}\n', 0o600),
+    "transitive-licenses.json": (b'{"licenses":["MIT"]}\n', 0o600),
+}
 
 
 def _write_private(path: Path, value: dict[str, object]) -> None:
@@ -75,8 +82,28 @@ def _owner_input() -> dict[str, object]:
     }
 
 
+def _owner_sidecar_digests() -> dict[str, str]:
+    return {
+        "executable_sha256": hashlib.sha256(OWNER_SIDECAR_BUNDLE_FILES["sidecar"][0]).hexdigest(),
+        "resolved_lock_sha256": hashlib.sha256(OWNER_SIDECAR_BUNDLE_FILES["resolved-lock.json"][0]).hexdigest(),
+        "sbom_sha256": hashlib.sha256(OWNER_SIDECAR_BUNDLE_FILES["sbom.cdx.json"][0]).hexdigest(),
+        "transitive_license_report_sha256": hashlib.sha256(
+            OWNER_SIDECAR_BUNDLE_FILES["transitive-licenses.json"][0]
+        ).hexdigest(),
+    }
+
+
+def _write_owner_sidecar_bundle(paths: RuntimePaths) -> Path:
+    bundle = paths.ensure_private_directory("runtime/sidecars/douyin/current")
+    for filename, (payload, mode) in OWNER_SIDECAR_BUNDLE_FILES.items():
+        target = bundle / filename
+        target.write_bytes(payload)
+        target.chmod(mode)
+    return bundle
+
+
 def _release_input() -> dict[str, object]:
-    digest = "a" * 64
+    sidecar_digests = _owner_sidecar_digests()
     owner_contract = hashlib.sha256(
         (PROJECT_ROOT / "docs/governance/OWNER_INPUT_CONTRACT.md").read_bytes()
     ).hexdigest()
@@ -129,10 +156,7 @@ def _release_input() -> dict[str, object]:
             "port": 1,
             "attestation": {
                 "scope": "owner_private_build",
-                "executable_sha256": digest,
-                "resolved_lock_sha256": digest,
-                "transitive_license_report_sha256": digest,
-                "sbom_sha256": digest,
+                **sidecar_digests,
             },
         },
         "model_mode": "disabled",
@@ -247,6 +271,7 @@ class MvpReleaseTests(unittest.TestCase):
             payload["preflight"],
             {
                 "chrome_executable": "AVAILABLE",
+                "douyin_sidecar_bundle": "NOT_READY",
                 "native_host_fresh_install": "READY_FOR_FRESH_INSTALL",
                 "notion_calls": 0,
                 "owner_input": "MISSING_OR_INVALID",
@@ -282,6 +307,7 @@ class MvpReleaseTests(unittest.TestCase):
             payload = runtime_cli.run(args)
         preflight = payload["preflight"]
         self.assertEqual(preflight["owner_input"], "VALID")
+        self.assertEqual(preflight["douyin_sidecar_bundle"], "CONFIGURED_AND_MATCHED")
         self.assertTrue(preflight["ready_to_arm"])
         self.assertEqual(preflight["private_durability_client"], "CONFIGURED_AND_PINNED")
         self.assertEqual(preflight["native_host_fresh_install"], "READY_FOR_FRESH_INSTALL")
@@ -348,6 +374,7 @@ class MvpReleaseTests(unittest.TestCase):
         self.store.initialize()
         _write_private(self.paths.data_root / "runtime/owner_input_contract.local.json", _owner_input())
         self.paths.ensure_private_directory("runtime/release")
+        self.sidecar_bundle = _write_owner_sidecar_bundle(self.paths)
         _write_private(self.paths.owner_mvp_release_input, _release_input())
 
     def tearDown(self) -> None:
@@ -385,6 +412,54 @@ class MvpReleaseTests(unittest.TestCase):
         self.store.persist_capability_snapshot(controller.capability_registry().evaluate())
         self.assertEqual(controller.external_gate_settlements(store=self.store), external_gates)
         self.assertTrue(self.paths._validate_marker()["product_execution_authorized"])
+
+    def test_owner_private_sidecar_bundle_is_aggregate_only_and_digest_bound(self) -> None:
+        release_input = OwnerMvpReleaseInput.from_mapping(_release_input())
+        self.assertEqual(
+            verify_owner_private_douyin_sidecar_bundle(self.paths, release_input.douyin_build),
+            {"artifact_count": 4, "paths_emitted": False, "status": "VERIFIED"},
+        )
+        sidecar = self.sidecar_bundle / "sidecar"
+        sidecar.write_bytes(b"drifted-owner-sidecar\n")
+        sidecar.chmod(0o700)
+        with self.assertRaises(X2NRuntimeError) as blocked:
+            verify_owner_private_douyin_sidecar_bundle(self.paths, release_input.douyin_build)
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        self.assertNotIn(str(self.paths.data_root), str(blocked.exception))
+
+    def test_arm_requires_matched_owner_private_sidecar_before_backup(self) -> None:
+        sidecar = self.sidecar_bundle / "sidecar"
+        sidecar.write_bytes(b"drifted-owner-sidecar\n")
+        sidecar.chmod(0o700)
+        with mock.patch.object(self.store, "backup") as backup:
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        backup.assert_not_called()
+        self.assertFalse(self.paths.owner_mvp_release_state.exists())
+        self.assertFalse(self.paths._validate_marker()["product_execution_authorized"])
+
+    def test_douyin_execution_rechecks_sidecar_bundle_before_any_loopback_call(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        sidecar = self.sidecar_bundle / "sidecar"
+        sidecar.write_bytes(b"drifted-owner-sidecar\n")
+        sidecar.chmod(0o700)
+        binding = AdapterDispatcher.binding_for(
+            SyncScopeId.DOUYIN_FAVORITES,
+            platform=Platform.DOUYIN,
+            relation=RelationType.FAVORITED,
+        )
+        with mock.patch("x2n_companion.mvp_release.LoopbackRestDouyinTransport") as transport:
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                MvpActivationExecutor(controller, self.store)._execute_douyin(
+                    binding=binding,
+                    payload=SimpleNamespace(max_items=20),
+                    scan_id=controller.scope_scan_id(SyncScopeId.DOUYIN_FAVORITES),
+                )
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        transport.assert_not_called()
+        self.assertEqual(self.store.counts()["content"], 0)
+        self.assertEqual(self.store.counts()["user_relation"], 0)
 
     def test_native_host_commits_only_one_sanitized_twenty_item_xhs_action(self) -> None:
         MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)

@@ -236,6 +236,17 @@ class RuntimePaths:
         return self.data_root / "runtime/release"
 
     @property
+    def douyin_sidecar_bundle_directory(self) -> Path:
+        """Return the fixed Owner-private Douyin Sidecar bundle location.
+
+        The directory is optional until the Owner has built the private
+        Sidecar. Callers must validate it before use; resolving this path
+        neither creates it nor exposes it in public output.
+        """
+
+        return self._safe_child("runtime/sidecars/douyin/current")
+
+    @property
     def owner_mvp_release_input(self) -> Path:
         return self.release_directory / "owner_mvp_release_input.local.json"
 

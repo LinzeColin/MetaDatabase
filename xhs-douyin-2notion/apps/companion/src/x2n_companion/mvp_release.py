@@ -77,6 +77,13 @@ _SAFE_TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$")
 _UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 _FORBIDDEN_KEY_PARTS = ("credential", "cookie", "header", "password", "secret", "token", "url", "path")
 _FORBIDDEN_VALUE = re.compile(r"(?:https?://|file://|(?:^|[\s\"'])/(?:Users|home|private|var|tmp)/)", re.IGNORECASE)
+_SIDECAR_BUNDLE_DIRECTORY_PARTS = ("runtime", "sidecars", "douyin", "current")
+_SIDECAR_BUNDLE_FILES = (
+    ("executable_sha256", "sidecar", 0o700, 512 * 1024 * 1024),
+    ("resolved_lock_sha256", "resolved-lock.json", 0o600, 16 * 1024 * 1024),
+    ("sbom_sha256", "sbom.cdx.json", 0o600, 64 * 1024 * 1024),
+    ("transitive_license_report_sha256", "transitive-licenses.json", 0o600, 64 * 1024 * 1024),
+)
 
 
 def _now() -> str:
@@ -151,6 +158,84 @@ def _read_owner_private_json(path: Path, *, label: str) -> dict[str, Any]:
     finally:
         if descriptor >= 0:
             os.close(descriptor)
+
+
+def _owner_private_file_sha256(path: Path, *, expected_mode: int, maximum_bytes: int, label: str) -> str:
+    """Hash one fixed Owner-private artifact without returning its bytes or path."""
+
+    if not path.exists() or path.is_symlink() or not path.is_file():
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"{label} is unavailable")
+    flags = os.O_RDONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = -1
+    try:
+        descriptor = os.open(path, flags)
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or stat.S_IMODE(metadata.st_mode) != expected_mode
+            or metadata.st_uid != os.getuid()
+            or metadata.st_size < 1
+            or metadata.st_size > maximum_bytes
+        ):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"{label} must be an owner-only regular file")
+        digest = hashlib.sha256()
+        while True:
+            chunk = os.read(descriptor, 65_536)
+            if not chunk:
+                break
+            digest.update(chunk)
+        return digest.hexdigest()
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"{label} cannot be read") from error
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
+def _require_owner_private_directory(path: Path, *, label: str) -> None:
+    if not path.exists() or path.is_symlink() or not path.is_dir():
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"{label} is unavailable")
+    try:
+        metadata = path.stat()
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"{label} cannot be read") from error
+    if metadata.st_uid != os.getuid() or stat.S_IMODE(metadata.st_mode) != 0o700:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"{label} must be owner-only")
+
+
+def verify_owner_private_douyin_sidecar_bundle(
+    paths: RuntimePaths,
+    expected_build: SidecarBuildAttestation,
+) -> dict[str, Any]:
+    """Prove fixed Owner-private artifacts still match the input attestation.
+
+    This verifies only local metadata and byte digests. It does not start a
+    process, inspect a Browser Profile, contact a platform, or emit artifact
+    names, paths, contents, or digests.
+    """
+
+    if expected_build.scope != "owner_private_build":
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin Sidecar bundle is not Owner-private")
+    current = paths.data_root
+    for part in _SIDECAR_BUNDLE_DIRECTORY_PARTS:
+        current = current / part
+        _require_owner_private_directory(current, label="Douyin Sidecar bundle directory")
+    if current != paths.douyin_sidecar_bundle_directory:
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin Sidecar bundle location drifted")
+    observed: dict[str, str] = {}
+    for digest_field, filename, expected_mode, maximum_bytes in _SIDECAR_BUNDLE_FILES:
+        observed[digest_field] = _owner_private_file_sha256(
+            current / filename,
+            expected_mode=expected_mode,
+            maximum_bytes=maximum_bytes,
+            label="Douyin Sidecar artifact",
+        )
+    actual = SidecarBuildAttestation(scope="owner_private_build", **observed)
+    if actual != expected_build:
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin Sidecar bundle attestation mismatch")
+    return {"artifact_count": len(_SIDECAR_BUNDLE_FILES), "paths_emitted": False, "status": "VERIFIED"}
 
 
 def _require_exact_mapping(value: Any, expected: set[str], *, label: str) -> Mapping[str, Any]:
@@ -649,6 +734,7 @@ class MvpReleaseController:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP activation is already armed")
         _validate_owner_input_contract(paths)
         release_input = load_owner_mvp_release_input(paths)
+        verify_owner_private_douyin_sidecar_bundle(paths, release_input.douyin_build)
         backup = store.backup(label="mvp_pre_switch").safe_dict()
         state = _initial_state(release_input=release_input, backup=backup)
         _atomic_private_json(paths.owner_mvp_release_state, state)
@@ -1170,6 +1256,7 @@ class MvpActivationExecutor:
     def _execute_douyin(self, *, binding: ScopeBinding, payload: Any, scan_id: str) -> dict[str, Any]:
         if payload.max_items != 20 or binding.adapter_mode not in {"favorites", "likes"}:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Douyin MVP action exceeds the fixed boundary")
+        verify_owner_private_douyin_sidecar_bundle(self.controller.paths, self.controller.release_input.douyin_build)
         observed_at, monotonic_time = self._clock()
         client = PinnedDouyinClient(
             LoopbackRestDouyinTransport(self.controller.release_input.douyin_port),

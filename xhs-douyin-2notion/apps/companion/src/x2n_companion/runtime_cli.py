@@ -42,6 +42,7 @@ from .mvp_release import (
     MvpReleaseController,
     load_owner_mvp_release_input,
     owner_input_contract_sha256,
+    verify_owner_private_douyin_sidecar_bundle,
 )
 from .native_host_installer import fresh_install_readiness
 from .operations import RECOVERY_CONFIRMATION, OperationsService, build_local_doctor_probe
@@ -140,10 +141,16 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
     else:
         release_state = "NOT_STARTED"
     try:
-        load_owner_mvp_release_input(paths)
+        release_input = load_owner_mvp_release_input(paths)
         owner_input = "VALID"
+        try:
+            verify_owner_private_douyin_sidecar_bundle(paths, release_input.douyin_build)
+            douyin_sidecar_bundle = "CONFIGURED_AND_MATCHED"
+        except X2NRuntimeError:
+            douyin_sidecar_bundle = "MISSING_OR_INVALID"
     except X2NRuntimeError:
         owner_input = "MISSING_OR_INVALID"
+        douyin_sidecar_bundle = "NOT_READY"
     try:
         MvpDeploymentManager.assert_release_source_tagged()
         source_release_tag = "READY"
@@ -160,9 +167,14 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
         env=os.environ,
     )
     chrome_executable = "AVAILABLE" if chrome_available() else "NOT_READY"
-    ready_to_arm = owner_input == "VALID" and release_state == "NOT_STARTED"
+    ready_to_arm = (
+        owner_input == "VALID"
+        and douyin_sidecar_bundle == "CONFIGURED_AND_MATCHED"
+        and release_state == "NOT_STARTED"
+    )
     return {
         "chrome_executable": chrome_executable,
+        "douyin_sidecar_bundle": douyin_sidecar_bundle,
         "native_host_fresh_install": native_host_fresh_install,
         "notion_calls": 0,
         "owner_input": owner_input,
