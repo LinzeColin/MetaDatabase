@@ -62,7 +62,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The approved local Runtime layout was initialized and its empty Canonical SQLite store passed integrity checks;
   all required owner-only directories now validate. Current real `release preflight` is safe and reports
   `native_host_fresh_install=READY_FOR_FRESH_INSTALL`, `owner_input=MISSING_OR_INVALID`,
-  `release_state=NOT_STARTED`, `private_durability_client=NOT_READY`, and `source_release_tag=NOT_READY`.
+  `release_state=NOT_STARTED`, and `source_release_tag=NOT_READY`. The normal shell has not persisted a client
+  configuration; a one-shot, non-invoking preflight with the approved digest-pinned
+  `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
+  contacts the client or any remote service.
 
 ## Next work
 
