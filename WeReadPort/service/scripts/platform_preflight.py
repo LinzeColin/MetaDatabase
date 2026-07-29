@@ -99,12 +99,17 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
             raise ValueError
     except ValueError:
         block("EDGE_BRIDGE_ADDRESS", "WRP_EDGE_BRIDGE_HOST", "必须是非回环 RFC1918 Docker 私网 IPv4 地址。")
+    if edge_host != "10.0.1.1":
+        block("EDGE_BRIDGE_TARGET", "WRP_EDGE_BRIDGE_HOST", "当前 socket 桥接固定监听 Coolify 网桥网关 10.0.1.1。")
     try:
         edge_port = int(values.get("WRP_EDGE_BRIDGE_PORT", ""))
         if not 1 <= edge_port <= 65535:
             raise ValueError
     except ValueError:
         block("EDGE_BRIDGE_PORT", "WRP_EDGE_BRIDGE_PORT", "必须是 1–65535 的整数。")
+    else:
+        if edge_port != 8789:
+            block("EDGE_BRIDGE_TARGET", "WRP_EDGE_BRIDGE_PORT", "当前 socket 桥接固定监听 8789 端口。")
     db_path = Path(values.get("WRP_DATABASE_PATH", "") or ".")
     if not db_path.is_absolute():
         block("DATABASE_PATH", "WRP_DATABASE_PATH", "SQLite 路径必须是绝对路径。")
