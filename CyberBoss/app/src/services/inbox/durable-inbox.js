@@ -222,6 +222,7 @@ class DurableInboxCoordinator {
     faultInjector = () => {},
     onAccepted = null,
     admissionFilter = null,
+    resolveUserId = null,
   }) {
     if (!channelAdapter || typeof channelAdapter.fetchUpdates !== "function") {
       throw new DurableInboxError("CHANNEL_FETCH_API_REQUIRED");
@@ -251,6 +252,34 @@ class DurableInboxCoordinator {
     // 一个 await 会让「已收下但游标未提交」的窗口无限拉长。
     this.admissionFilter =
       typeof admissionFilter === "function" ? admissionFilter : null;
+    // 这条消息该记在**谁**名下。
+    //
+    // 不给这个钩子的话，数据库那边 #resolveScopeUserId(null) 一律返回主人的
+    // user_id——于是所有人发来的每一条消息都被记在主人名下。只有一个人在用的
+    // 时候看不出来；第二个人一进来，后台里他显示成"主人"，而他的话也确实被
+    // 归到了主人的隔离域里。这是隔离破了，不是显示错了。
+    this.resolveUserId =
+      typeof resolveUserId === "function" ? resolveUserId : null;
+  }
+
+  // 返回 null 表示认不出来——那时退回主人名下（老行为），而不是抛错。
+  // 抛错会让整批消息卡在游标之前反复重投，比记错域还糟。
+  #userIdFor(normalized) {
+    if (!this.resolveUserId) {
+      return null;
+    }
+    try {
+      const resolved = this.resolveUserId(Object.freeze({ ...normalized }));
+      if (resolved && typeof resolved.then === "function") {
+        throw new DurableInboxError("RESOLVE_USER_ID_MUST_BE_SYNCHRONOUS");
+      }
+      return normalizedText(resolved) || null;
+    } catch (error) {
+      if (error instanceof DurableInboxError) {
+        throw error;
+      }
+      return null;
+    }
   }
 
   #fault(point) {
@@ -349,6 +378,22 @@ class DurableInboxCoordinator {
       if (!senderId) {
         throw new DurableInboxError("SOURCE_SENDER_REQUIRED");
       }
+      // 每个进程只打一次，而且**只打字段名，一个字的内容都不打**。
+      //
+      // 为的是回答一个具体问题：微信到底给不给我们发件人的昵称。现在后台里
+      // 每个人只能显示成「用户 1」「用户 2」，因为我们手上只有一串不透明 id；
+      // getconfig 只回 ret 和 typing_ticket。要么这里有，要么就是真没有——
+      // 这件事必须靠抓，不能靠猜。
+      if (!DurableInboxCoordinator.loggedInboundShape) {
+        DurableInboxCoordinator.loggedInboundShape = true;
+        try {
+          console.log(
+            `[cyberboss] 微信来信带的字段：${JSON.stringify(Object.keys(rawMessage))}`,
+          );
+        } catch {
+          // 打不出来就算了，这只是一次性的取样。
+        }
+      }
       const normalized = this.channelAdapter.normalizeIncomingMessage(
         rawMessage,
         { durable: true },
@@ -382,6 +427,13 @@ class DurableInboxCoordinator {
         throw new DurableInboxError("SOURCE_ACCOUNT_REQUIRED");
       }
       const contextToken = normalizedText(normalized.contextToken) || null;
+      // 这一句必须排在 #refusedByAdmission **之后**：准入层就是注册这个人的
+      // 地方，在它跑之前 users 表里还没有他。
+      let scopeUserId = null;
+      const refusedByAdmission = normalized.policyDecision?.accepted === false
+        ? false
+        : this.#refusedByAdmission(normalized);
+      scopeUserId = this.#userIdFor(normalized);
       if (normalized.policyDecision?.accepted === false) {
         const reason = normalizedText(normalized.policyDecision.code)
           || "policy_rejected";
@@ -395,9 +447,10 @@ class DurableInboxCoordinator {
           contextToken,
           rejectReason: reason,
           cursorBatchId,
+          userId: scopeUserId,
         });
         rejections.push(rejected);
-      } else if (this.#refusedByAdmission(normalized)) {
+      } else if (refusedByAdmission) {
         // 这一轮在准入层就办完了：入门回复、普通用户的确定性口令、席位已满的
         // 拒绝——都不该变成一个 runtime job。
         //
@@ -415,6 +468,7 @@ class DurableInboxCoordinator {
           contextToken,
           rejectReason: "handled_by_admission",
           cursorBatchId,
+          userId: scopeUserId,
         });
         rejections.push(rejected);
       } else {
@@ -431,6 +485,7 @@ class DurableInboxCoordinator {
           operationClass: operationClass(normalized),
           maxAttempts: 1,
           cursorBatchId,
+          userId: scopeUserId,
         });
         if (this.onAccepted) {
           const callbackResult = this.onAccepted({

@@ -511,6 +511,9 @@ class CyberbossApp {
       // 席位已满的拒绝）到了调度阶段就没有出口了——JobScheduler 要求
       // dispatchRuntime 返回真实的 threadId/turnId，等于强制走一次模型。
       admissionFilter: (normalized) => this.admissionHandledBeforeJob(normalized),
+      // 这条消息记在谁名下。不给的话数据库一律记到主人名下——所有人的每一条
+      // 消息都会落进主人的隔离域。只有一个人在用的时候看不出来。
+      resolveUserId: (normalized) => this.scopeUserIdForInbound(normalized),
       // 收下消息**不回执**，但要记一件事：这个人的 context_token。
       //
       // 不回执的理由：人不会先说一句"收到，正在处理"再回答。真实的"我在听"
@@ -1688,9 +1691,9 @@ class CyberbossApp {
 
   // 走 admission 直接回掉的那些（入门引导、状态、口令）也不经过 outbox。
   // 落库一份给「对话」栏；内存那份保留，作为数据库不可用时的降级显示。
-  noteDirectReply(userId, text) {
+  noteDirectReply(userId, text, { delivered = true, errorClass = "" } = {}) {
     const persisted = this.noteBotInitiated({
-      kind: "onboarding", senderId: userId, text, delivered: true,
+      kind: "onboarding", senderId: userId, text, delivered, errorClass,
     });
     // 只有落库失败时才退回内存那一份。两份都留会让同一句话在面板上出现两次——
     // 一次挂在来信下面，一次作为独立卡片。
@@ -2749,13 +2752,52 @@ class CyberbossApp {
     if (!text) {
       return;
     }
-    // 这条不走 outbox，数据库里查不到，所以在这里留一份给后台「对话」栏。
-    this.noteDirectReply(normalized.senderId, text);
-    await this.channelAdapter.sendText({
-      userId: normalized.senderId,
-      text,
-      contextToken: normalized.contextToken,
-    }).catch(() => {});
+    // 先把这个人的 context_token 记下来。
+    //
+    // onAccepted 只对**收下**的消息触发，而走到这里的消息是被准入层直接办掉的
+    // （handled_by_admission），它一次都不会触发。新人的第一句话正好走这条：
+    // 于是他的 context_token 从来没被记过，之后任何一次主动消息、提醒、甚至
+    // 这一条入门回复的重试，都找不到投递目标。
+    try {
+      this.channelAdapter.rememberContextToken?.(
+        normalized.senderId,
+        normalized.contextToken,
+        normalized.accountId,
+      );
+    } catch {
+      // 记不住不该挡下这条回复。
+    }
+    let delivered = true;
+    let errorClass = "";
+    try {
+      await this.channelAdapter.sendText({
+        userId: normalized.senderId,
+        text,
+        // 这条消息**是从哪个号收到的**，就用那个号回。
+        //
+        // 不传的话，适配器只能按 senderId 反查归属；而新人这一刻在任何一个号
+        // 下面都还没有 context_token，反查必然落空，于是退回主号——拿主人的
+        // bot token 去回一个挂在别人号下的人，微信必拒。
+        // 这就是「新人加了但是没有回话」：码扫进来了，第一句话石沉大海。
+        accountId: normalized.accountId,
+        contextToken: normalized.contextToken,
+      });
+    } catch (error) {
+      delivered = false;
+      // normalizeErrorCode 是给数字 ret/errcode 用的，喂字符串会变成 null。
+      // 这里要的正是字符串错误码（WEIXIN_CONTEXT_REQUIRED 之类），它是主人
+      // 唯一能看懂"为什么没发出去"的线索。
+      const code = String(error?.code || "");
+      errorClass = /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(code) ? code : "send_failed";
+      // 以前这里是 .catch(() => {})，发失败一声不吭，面板上还记成"已发出"。
+      // 一条没送到的入门回复 = 这个人以为机器人是坏的。必须看得见。
+      console.error(
+        `[cyberboss] 入门回复没发出去 account=${normalized.accountId} 原因=${errorClass}`,
+      );
+    }
+    // 这条不走 outbox，数据库里查不到，所以在这里留一份给后台「对话」栏——
+    // 而且要照实记成功还是失败。
+    this.noteDirectReply(normalized.senderId, text, { delivered, errorClass });
   }
 
   // The ordinary-user lane. It never touches the Owner runtime adapter, the
@@ -3244,6 +3286,28 @@ class CyberbossApp {
       return renderPersonaInstruction(persona);
     } catch {
       return "";
+    }
+  }
+
+  // 这条来信该记在谁名下。
+  //
+  // 返回 null 表示认不出来——那时退回主人名下（老行为）。**只返回 users 表里
+  // 真的存在的那一个**：数据库对不认识的 user_id 会抛 USER_NOT_FOUND，那会让
+  // 整批消息卡在游标之前反复重投，比记错域还糟。
+  //
+  // 调用点排在准入层之后，所以新人这时候已经被注册进 users 表了。
+  scopeUserIdForInbound(normalized) {
+    const userId = this.resolveUserIdForPersona(normalized);
+    if (!userId || !this.runtimeSpoolDatabase) {
+      return null;
+    }
+    try {
+      const known = this.runtimeSpoolDatabase.database
+        .prepare("SELECT 1 FROM users WHERE user_id=?")
+        .get(userId);
+      return known ? userId : null;
+    } catch {
+      return null;
     }
   }
 
