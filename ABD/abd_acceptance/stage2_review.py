@@ -69,8 +69,8 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
     "README.md": "75f94aedfbd9d04db4e5b69536e765791e521750a6a52cf32f639c1657d9998d",
-    "abd_acceptance/__init__.py": "ff867ad84ac593548e7b2e00f4b53ac49dc8f6de22ad7aa08c788c755d836597",
-    "abd_acceptance/__main__.py": "ee2fae7089314bb135dbe13779d0f8b4f0c899a6ddab6c38510f1ce3e571f638",
+    "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
+    "abd_acceptance/__main__.py": "9e6a7fed6a3bb5a3ce1a961cf118b2e7896529600a1cbad9cb5399f551ec3f55",
     "tests/S02/stage_review_test.py": "40431438418cb4212c00c3e241b980b4188cd017af2722ffb267670a8aa0f124",
 }
 SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "b3aec624ae7113196e98d3b1b956581a5d5defc28dd82b1e9da2b133c46edbb4"

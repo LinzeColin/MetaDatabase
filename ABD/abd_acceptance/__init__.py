@@ -181,6 +181,7 @@ from .stage3_review import (
 )
 from .stage3_delivery import verify_stage3_delivery
 from .stage4_delivery import verify_stage4_delivery
+from .stage5_delivery import verify_stage5_delivery
 from .infrastructure_iac import (
     InfrastructureContractError,
     activation_gate,
@@ -257,6 +258,14 @@ from .stage5_review import (
     validate_signed_receipt_preflight as validate_stage5_review_signed_receipt,
     verify_existing_stage_review_evidence as verify_stage5_review_evidence,
     write_stage5_review_evidence,
+)
+from .gmail_authorization import (
+    build_evidence as build_gmail_authorization_evidence,
+    evaluate_contract as evaluate_gmail_authorization_contract,
+    perform_rollback_drill as perform_gmail_authorization_rollback_drill,
+    validate_candidate_preflight as validate_gmail_authorization_candidate,
+    verify_existing_phase_evidence as verify_gmail_authorization_evidence,
+    write_phase_evidence as write_gmail_authorization_phase_evidence,
 )
 
 __all__ = [
@@ -398,6 +407,7 @@ __all__ = [
     "write_stage3_review_evidence",
     "verify_stage3_delivery",
     "verify_stage4_delivery",
+    "verify_stage5_delivery",
     "InfrastructureContractError",
     "activation_gate",
     "build_infrastructure_iac_evidence",
@@ -461,4 +471,10 @@ __all__ = [
     "validate_stage5_review_signed_receipt",
     "verify_stage5_review_evidence",
     "write_stage5_review_evidence",
+    "build_gmail_authorization_evidence",
+    "evaluate_gmail_authorization_contract",
+    "perform_gmail_authorization_rollback_drill",
+    "validate_gmail_authorization_candidate",
+    "verify_gmail_authorization_evidence",
+    "write_gmail_authorization_phase_evidence",
 ]

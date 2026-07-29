@@ -1,0 +1,462 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S06/P01_test.py --junitxml=machine/evidence/S06/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S06/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S06/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S06/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S06-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S06-P01",
+  "decision": "GMAIL_AUTHORIZATION_QUERY_AND_CURSOR_FROZEN",
+  "decision_sha256": "dcc78159d5412d3bea337c0a7b8ff3978f87772b24b1c1468cca719572045bdb",
+  "evidence_id": "EVD-S06-P01",
+  "external_effect_boundary": {
+    "core_deployment_waits_for_real_time_soak": false,
+    "financial_return_verified_or_guaranteed": false,
+    "github_predecessor_delivery_receipt_read": true,
+    "gmail_account_or_api_accessed": false,
+    "gmail_mutation_performed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_query_enabled": false,
+    "real_order_submitted_or_retried": false,
+    "token_or_client_secret_stored": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-29T00:00:00+10:00",
+  "hashes": {
+    "code": "99c681abbfbf99c49b735fb15effcafbda426155084d738e209a02bf17af601d",
+    "inputs": {
+      "abd_acceptance/gmail_authorization.py": "606cf08e0ce92ed144af94d31c41a02ef7c3f81c6a35b726f605ea44d75da1e3",
+      "abd_acceptance/gmail_oauth_core.py": "5b1aab411b66e039cc36f380ea77e6e023d7bd9dbdd8c54b9d63d15d228c3a45",
+      "abd_acceptance/stage5_delivery.py": "72d864961227d6cf2a11596587e5ffe6b0e8d73f1e0c46c69a1a7a75a437cf94",
+      "gmail_oauth.py": "bad4bf44ed1b8e57ac01f7ed0ea82e6c941a06151a476d8c191db087cf6341ff",
+      "machine/evidence/S05/STAGE_REVIEW/github_delivery_receipt.json": "5926e2e8ef70c141b9453dbced4851f02499fda817d99a4922cfe3272f75ace2",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S06_P01.json": "aa3dcb7d5d5fd678b217fb786e64cf206e2438646fd08c9b796910aaf74097fb",
+      "mail_query_rules.json": "fa3592ab8231e2c2313fa6e2c631676163ba6f22f0852eb99ccd4e14224c44e9",
+      "tests/S06/P01_test.py": "a33b87fdbbbb9b8d62e92d1fa7a3d87605b7d40b6ea181b5cee30533a699fa4d",
+      "token_storage.md": "4a7a86035e30bd27072b89ce49b746f5f3de218101b55d7ef9443aee72c07fa0"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S06/P01 only validates offline OAuth/query/cursor/token-storage contracts with synthetic inputs.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "85e3f0dcf98cc10145dbf2bfb7c6d9bfc74cb56f2de7b1d324af17c28fd222de"
+  },
+  "next": "S06/P02_READY_NOT_STARTED",
+  "no_real_time_soak": {
+    "core_deployment_behavior_when_gmail_unconfigured": "CONTINUE_WITH_GMAIL_DISABLED",
+    "immediate_gates": [
+      "EXACT_SCOPE",
+      "PKCE_AND_STATE",
+      "OUTSIDE_REPOSITORY_ENCRYPTION",
+      "QUERY_ALLOWLIST",
+      "CURSOR_INTEGRITY"
+    ],
+    "real_time_soak_required": false
+  },
+  "oauth_and_query_boundary": {
+    "gmail_mutation_performed": false,
+    "idempotency": {
+      "cursor_equal_after_repeat": true,
+      "first_scan_queued_count": 3,
+      "gmail_mutation_performed": false,
+      "repeat_scan_duplicate_count": 3,
+      "repeat_scan_queued_count": 0
+    },
+    "production_rules_enabled": false,
+    "real_oauth_exchange_performed": false,
+    "scope_exact": "https://www.googleapis.com/auth/gmail.modify"
+  },
+  "phase_id": "P01",
+  "phase_status": "S06_P01_PASS",
+  "predecessor_delivery": {
+    "s04_status": "PASS",
+    "s05_receipt": "machine/evidence/S05/STAGE_REVIEW/github_delivery_receipt.json",
+    "s05_receipt_sha256": "5926e2e8ef70c141b9453dbced4851f02499fda817d99a4922cfe3272f75ace2",
+    "s05_status": "PASS"
+  },
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S06_P02_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED",
+  "requirement_id": "REQ-S06-P01",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S06-P01_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S06",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "S06_P01.json",
+        "id": "S06P01-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "mail_query_rules.json",
+        "id": "S06P01-QUERY-RULES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "token_storage.md",
+        "id": "S06P01-TOKEN-STORAGE-UTF8",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bad4bf44ed1b8e57ac01f7ed0ea82e6c941a06151a476d8c191db087cf6341ff",
+          "expected": [
+            "bad4bf44ed1b8e57ac01f7ed0ea82e6c941a06151a476d8c191db087cf6341ff"
+          ]
+        },
+        "id": "S06P01-PIN-GMAIL_OAUTH-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "5b1aab411b66e039cc36f380ea77e6e023d7bd9dbdd8c54b9d63d15d228c3a45",
+          "expected": [
+            "5b1aab411b66e039cc36f380ea77e6e023d7bd9dbdd8c54b9d63d15d228c3a45"
+          ]
+        },
+        "id": "S06P01-PIN-GMAIL_OAUTH_CORE-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "fa3592ab8231e2c2313fa6e2c631676163ba6f22f0852eb99ccd4e14224c44e9",
+          "expected": [
+            "fa3592ab8231e2c2313fa6e2c631676163ba6f22f0852eb99ccd4e14224c44e9"
+          ]
+        },
+        "id": "S06P01-PIN-MAIL_QUERY_RULES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4a7a86035e30bd27072b89ce49b746f5f3de218101b55d7ef9443aee72c07fa0",
+          "expected": [
+            "4a7a86035e30bd27072b89ce49b746f5f3de218101b55d7ef9443aee72c07fa0"
+          ]
+        },
+        "id": "S06P01-PIN-TOKEN_STORAGE-MD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "aa3dcb7d5d5fd678b217fb786e64cf206e2438646fd08c9b796910aaf74097fb",
+          "expected": [
+            "aa3dcb7d5d5fd678b217fb786e64cf206e2438646fd08c9b796910aaf74097fb"
+          ]
+        },
+        "id": "S06P01-PIN-S06_P01-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a33b87fdbbbb9b8d62e92d1fa7a3d87605b7d40b6ea181b5cee30533a699fa4d",
+          "expected": [
+            "a33b87fdbbbb9b8d62e92d1fa7a3d87605b7d40b6ea181b5cee30533a699fa4d"
+          ]
+        },
+        "id": "S06P01-PIN-P01_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b2b98e4151a453d4b7fc2c9af848713185a8922a77aef0f32cd58eb390f30511",
+          "expected": "b2b98e4151a453d4b7fc2c9af848713185a8922a77aef0f32cd58eb390f30511"
+        },
+        "id": "S06P01-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S06P01-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S06P01-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S06P01-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S06P01-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S06P01-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "phase": "P01",
+          "tasks": [
+            "T-S06-P01-01",
+            "T-S06-P01-02",
+            "T-S06-P01-03"
+          ]
+        },
+        "id": "S06P01-TASKPACK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "next": "S00/STAGE_REVIEW_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S06P01-S00P04-CONSENT-DEGRADATION-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "next": "S05/P01_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S06P01-S04-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "next": "S06/P01_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "S06P01-S05-CONTINUITY-DELIVERY-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": "FIX-S06-P01",
+        "id": "S06P01-FIXTURE-SHAPE",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S06P01-QUERY-RULES-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "age_binary": "ABSOLUTE_TRUSTED_HOST_PATH_OUTSIDE_REPOSITORY",
+          "backend": "AGE_CLI",
+          "ciphertext_format": "age-encryption.org/v1",
+          "contract_id": "ABD-GMAIL-TOKEN-STORAGE-S06-P01",
+          "core_deployment_wait_behavior": "NONE_GMAIL_REMAINS_DISABLED_UNTIL_IMMEDIATE_GATES_PASS",
+          "encryption_failure_action": "DISABLE_GMAIL_CONTINUE_CORE",
+          "ephemeral_state_and_pkce": "SERVER_SIDE_SINGLE_USE_MEMORY_ONLY",
+          "identity": "HOST_SECRET_OUTSIDE_REPOSITORY",
+          "private_database_raw_token_write": "PROHIBITED",
+          "real_time_soak_required": false,
+          "recipient": "RUNTIME_PUBLIC_RECIPIENT_OUTSIDE_REPOSITORY",
+          "repository_token_write": "PROHIBITED",
+          "required_file_mode": "0600",
+          "runtime_claim": "IMPLEMENTED_INTERFACE_NOT_RUNTIME_TOKEN_PROOF",
+          "schema_version": "1.0.0",
+          "token_path": "OUTSIDE_REPOSITORY_RUNTIME_SECRET_PATH_WITH_AGE_SUFFIX"
+        },
+        "id": "S06P01-TOKEN-STORAGE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "no sleep/network client/shell; deterministic interfaces only",
+        "id": "S06P01-NO-REALTIME-SOAK-OR-NETWORK-CLIENT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "client_id",
+          "redirect_uri",
+          "response_type",
+          "scope",
+          "access_type",
+          "include_granted_scopes",
+          "prompt",
+          "code_challenge",
+          "code_challenge_method",
+          "state"
+        ],
+        "id": "S06P01-OAUTH-REQUEST-EXACT-PKCE-NO-NETWORK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "authorization_code_accepted": true,
+          "authorization_code_exposed": false,
+          "reason_code": "EXTERNAL_TOKEN_EXCHANGE_REQUIRES_SEPARATE_RUNTIME_GATE",
+          "returned_scope_exact": true,
+          "status": "CALLBACK_VALIDATED_NOT_EXCHANGED"
+        },
+        "id": "S06P01-OAUTH-CALLBACK-EXACT-SCOPE-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "{from:records@evidence.test.invalid from:statements@evidence.test.invalid} {subject:\"TAB statement\" subject:\"TAB transaction confirmation\"} has:attachment {filename:csv filename:pdf} newer_than:30d -in:trash",
+        "id": "S06P01-QUERY-COMPILATION-EXACT-ALLOWLIST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "first_new": 3,
+          "second_new": 0
+        },
+        "id": "S06P01-IDEMPOTENT-CURSOR-REPLAY-NO-GMAIL-MUTATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ciphertext_header": "age-encryption.org/v1"
+        },
+        "id": "S06P01-AGE-TOKEN-ENCRYPTION-INTERFACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allow": true,
+          "deny": true
+        },
+        "id": "S06P01-GMAIL-METHOD-ALLOWLIST-AND-DENYLIST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "core_deployment_behavior_when_gmail_unconfigured": "CONTINUE_WITH_GMAIL_DISABLED",
+          "immediate_gates": [
+            "EXACT_SCOPE",
+            "PKCE_AND_STATE",
+            "OUTSIDE_REPOSITORY_ENCRYPTION",
+            "QUERY_ALLOWLIST",
+            "CURSOR_INTEGRITY"
+          ],
+          "real_time_soak_required": false
+        },
+        "id": "S06P01-NO-SOAK-CORE-CONTINUES-WHEN-GMAIL-DISABLED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scope": {
+            "authorization_code_accepted": false,
+            "reason_code": "SCOPE_NOT_EXACT",
+            "status": "DISABLED"
+          },
+          "state": {
+            "authorization_code_accepted": false,
+            "reason_code": "STATE_MISMATCH",
+            "status": "DISABLED"
+          }
+        },
+        "id": "S06P01-CALLBACK-NEGATIVE-SCOPE-AND-STATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "duplicate": true,
+          "injection": true
+        },
+        "id": "S06P01-QUERY-DUPLICATE-AND-INJECTION-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "changed_hash": true,
+          "rewind": true
+        },
+        "id": "S06P01-CURSOR-CONFLICT-AND-REWIND-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "age_failure": true,
+          "repo_path": true
+        },
+        "id": "S06P01-TOKEN-STORAGE-REPO-PATH-AND-FAILURE-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "-0.0001",
+          "0",
+          "0.0001"
+        ],
+        "id": "S06P01-NUMERIC-BOUNDARY-DECLARED-NOT-APPLICABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 55,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 73
+          }
+        },
+        "id": "S06P01-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 55,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 4658
+          }
+        },
+        "id": "S06P01-FULL-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "no raw token, client secret, private key, or local path",
+        "id": "S06P01-NO-SENSITIVE-OR-LOCAL-DATA",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S06-P01",
+    "decision": "GMAIL_AUTHORIZATION_QUERY_AND_CURSOR_FROZEN",
+    "external_network_used_by_verifier": false,
+    "hashes": {
+      "abd_acceptance/gmail_oauth_core.py": "5b1aab411b66e039cc36f380ea77e6e023d7bd9dbdd8c54b9d63d15d228c3a45",
+      "gmail_oauth.py": "bad4bf44ed1b8e57ac01f7ed0ea82e6c941a06151a476d8c191db087cf6341ff",
+      "machine/evidence/S06/P01/full_regression.xml": "dabccf8d330c5f06872a9c91d02a5e7e7a94da0409eed09b1093bad714ee49a9",
+      "machine/evidence/S06/P01/pytest.xml": "6f59cdbbd59c17feccbd1c1bd23b827e0a6a142c5dc4855a8b65b25829ac1da1",
+      "machine/tests/fixtures/S06_P01.json": "aa3dcb7d5d5fd678b217fb786e64cf206e2438646fd08c9b796910aaf74097fb",
+      "mail_query_rules.json": "fa3592ab8231e2c2313fa6e2c631676163ba6f22f0852eb99ccd4e14224c44e9",
+      "tests/S06/P01_test.py": "a33b87fdbbbb9b8d62e92d1fa7a3d87605b7d40b6ea181b5cee30533a699fa4d",
+      "token_storage.md": "4a7a86035e30bd27072b89ce49b746f5f3de218101b55d7ef9443aee72c07fa0"
+    },
+    "next": "S06/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "phase_status": "S06_P01_PASS",
+    "product_version": "0.0.0.1",
+    "query": "{from:records@evidence.test.invalid from:statements@evidence.test.invalid} {subject:\"TAB statement\" subject:\"TAB transaction confirmation\"} has:attachment {filename:csv filename:pdf} newer_than:30d -in:trash",
+    "requirement_id": "REQ-S06-P01",
+    "schema_version": "1.0.0",
+    "stage_id": "S06",
+    "status": "PASS",
+    "summary": {
+      "checks": 38,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 38
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S06-P01",
+  "contract_id": "AC-S06-P01",
+  "requirement_id": "REQ-S06-P01",
+  "fixed_clock": "2026-07-29T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "oauth_client": {
+    "client_id": "123456789012-s06p01synthetic.apps.googleusercontent.com",
+    "redirect_uri": "https://abd-owner.invalid/oauth/gmail/callback"
+  },
+  "state": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "code_verifier": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+  "authorization_code": "synthetic-code-not-a-real-credential",
+  "query_rule": {
+    "id": "FIX-S06-P01-TAB-EVIDENCE",
+    "sender_addresses": [
+      "records@evidence.test.invalid",
+      "statements@evidence.test.invalid"
+    ],
+    "subject_phrases": [
+      "TAB statement",
+      "TAB transaction confirmation"
+    ],
+    "attachment_extensions": [
+      "csv",
+      "pdf"
+    ],
+    "bootstrap_days": 30,
+    "source_contract_id": "FIX-S06-P01-SYNTHETIC",
+    "test_only": true
+  },
+  "expected_query": "{from:records@evidence.test.invalid from:statements@evidence.test.invalid} {subject:\"TAB statement\" subject:\"TAB transaction confirmation\"} has:attachment {filename:csv filename:pdf} newer_than:30d -in:trash",
+  "first_history_id": "1000",
+  "second_history_id": "1000",
+  "attachment_records": [
+    {
+      "gmail_message_id": "MSG0001",
+      "attachment_id": "ATT0001",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "gmail_message_id": "MSG0001",
+      "attachment_id": "ATT0002",
+      "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "gmail_message_id": "MSG0002",
+      "attachment_id": "ATT0001",
+      "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "token_storage": {
+    "age_binary": "/usr/local/bin/age",
+    "recipient": "age1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+    "token_path": "/var/lib/abd/secrets/gmail-refresh-token.age",
+    "repository_root": "/workspace/MetaDatabase/ABD"
+  },
+  "numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "adverse_odds_tick_action": "NOT_APPLICABLE_NO_ODDS_OR_ORDER_ACTION_IN_S06_P01",
+  "expected_oracle_check_minimum": 34,
+  "minimum_targeted_pytest_cases": 55,
+  "expected_next": "S06/P02_READY_NOT_STARTED",
+  "expected_release_status": "NOT_READY_S06_P02_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED"
+}

@@ -83,19 +83,19 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S05/P04_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "abd_acceptance/advice_card.py": "e97ff5ae3d4b748bd13a99fc846cc5e4be4cc68f7c04d975daf99e7131ccbffd",
-    "abd_acceptance/__main__.py": "f1203c182f2da4121d809b613b0b5ade3143c63654d096de6502c05ebf6fe02c",
-    "abd_acceptance/__init__.py": "b211116e0eca203b261c8ea73afb905c0bdc028c15693172f6dd7ff53cbc99fb",
-    "abd_acceptance/market_ontology.py": "c0048d0dbf8720d9dff19d2da71d2a9338ef7db64557f0a6222d5466986eba96",
-    "abd_acceptance/reason_next_action.py": "eaf72f13b895c590283230ca4e029385be68593262aa2571932135dc61004176",
-    "abd_acceptance/source_capabilities.py": "dc6b4559bb99ba208f2dfdd3cebb3471e7330bb54159196ee9a7bb4bec14e9a2",
-    "abd_acceptance/source_scheduler.py": "1a301c29d3c9ef0a7db1a703bd5592c8dc307814c90fdef83614140c6ae3b410",
-    "abd_acceptance/stage3_review.py": "48b98ecd0f7d424ed06c46917608467f7022706ee3f3cec65688aeaa4deee96f",
-    "abd_acceptance/stage4_review.py": "6df3066a68ef40ea2f014edee454f17fb0d07b0a3b7b850c32cee6ac0007b592",
-    "abd_acceptance/usability_accessibility.py": "e80420ca90a2d1cb9278f728dedc77cd00524597d262a47495acb7946225b829",
+    "abd_acceptance/advice_card.py": "a27a4416d5fd3a035f762f0e1cbdd61defa8785085fe58192226973980db9c3a",
+    "abd_acceptance/__main__.py": "9e6a7fed6a3bb5a3ce1a961cf118b2e7896529600a1cbad9cb5399f551ec3f55",
+    "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
+    "abd_acceptance/market_ontology.py": "2734e7e8810d994d8b694bf58b1d8089207d6211db4b7f907c82ef1c0a2b1a62",
+    "abd_acceptance/reason_next_action.py": "d275e887740a80c3b3f92bdf4fb7e34ee5497e1a9583e8d301ddeaf53ca2d25f",
+    "abd_acceptance/source_capabilities.py": "4029dd251804565e1c2bcde3caf00a50b3177b7e7159035c8ce9fd3af231106a",
+    "abd_acceptance/source_scheduler.py": "58be6adb01bd040d793b60c0e4f71b9ea407b516ce5244799d166997bb9a7c84",
+    "abd_acceptance/stage3_review.py": "470497dd39cded010918101c4cce31a0ae8acd51e19c6f55ab00bf717b52bc50",
+    "abd_acceptance/stage4_review.py": "1feecb52184a0f3010ff2311a85321877db25df6ba4a3f557a37820aece4b6c8",
+    "abd_acceptance/usability_accessibility.py": "c37606b05db1876197f85114a82ef13c3db8dc96e74f2898df28e24c8ff886d1",
     "tests/S05/P04_test.py": "7a867468ac99968c2bebd607e557b9c219a21d828fbb435e52879fff9ace9b68",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "e650d150d1dd006d8eacb111cfe1c5ebe606cde64e61e960d174d376979f14f2"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "758f20a8e561c21b4dcb653e317fa345d5668beae88a2ba4ffc81f690b7892df"
 PINNED_PHASE_HASHES: Dict[str, str] = {
     DASHBOARD_PATH.as_posix(): "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744",
     ORACLE_PATH.as_posix(): "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d",
@@ -511,7 +511,12 @@ def _check_boundaries(fixture: Mapping[str, Any], checks: List[Dict[str, Any]]) 
         _add(checks, "S05P04-BOUNDARY-INVALID-%02d-%s" % (index, type(invalid).__name__.upper()), result.get("status") == "FAIL", result)
 
 
-def _check_stage_review_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
+def _check_stage_review_progression(
+    root: Path,
+    checks: List[Dict[str, Any]],
+    *,
+    verify_git_history: bool = True,
+) -> None:
     candidate_paths = [
         Path("machine/facts/stage5_review_contract.json"),
         Path("machine/evidence/S05/STAGE_REVIEW/findings.json"),
@@ -566,7 +571,10 @@ def _check_stage_review_progression(root: Path, checks: List[Dict[str, Any]]) ->
         try:
             from .stage5_review import validate_signed_receipt_preflight
 
-            successor = validate_signed_receipt_preflight(root)
+            successor = validate_signed_receipt_preflight(
+                root,
+                verify_git_history=verify_git_history,
+            )
             ok = successor.get("status") == "PASS"
             mode = (
                 "VERIFIED_S05_STAGE_REVIEW_SIGNED"
@@ -608,7 +616,11 @@ def _check_safety(root: Path, dashboard: Mapping[str, Any], fixture: Mapping[str
         _add(checks, "S05P04-NO-LOCAL-PATH-%s" % relative.as_posix().replace("/", "-"), not any(fragment in text for fragment in LOCAL_PATH_FRAGMENTS), relative.as_posix())
 
 
-def validate_candidate_preflight(root: Path) -> Dict[str, Any]:
+def validate_candidate_preflight(
+    root: Path,
+    *,
+    verify_git_history: bool = True,
+) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
     hashes: Dict[str, str] = {}
@@ -625,7 +637,11 @@ def validate_candidate_preflight(root: Path) -> Dict[str, Any]:
         _add(checks, "S05P04-DETERMINISTIC-REPLAY", first == second and sha256_json(first) == sha256_json(second), {"first": sha256_json(first), "second": sha256_json(second)})
         _add(checks, "S05P04-FAILURE-LOG-COMPLETE", len(failures) == len(fixture.get("negative_dashboard_mutations", [])) and all(row.get("matched") is True for row in failures), failures)
         _check_safety(root, dashboard, fixture, checks)
-    _check_stage_review_progression(root, checks)
+    _check_stage_review_progression(
+        root,
+        checks,
+        verify_git_history=verify_git_history,
+    )
     rows = [row for row in _load_index(root) if row.get("id") == "INDEX-AC-S05-P04"]
     planned_or_signed = len(rows) == 1 and (rows[0].get("status") == "PLANNED" or (rows[0].get("status") == "PASS" and rows[0].get("actual_artifact") == EVIDENCE_PATH.as_posix()))
     _add(checks, "S05P04-INDEX-STATE", planned_or_signed, rows)
@@ -687,7 +703,10 @@ def _check_external_reports(root: Path, fixture: Mapping[str, Any], checks: List
 
 def evaluate_contract(root: Path, require_external_reports: bool = False, *, _verify_git_history: bool = True) -> Dict[str, Any]:
     root = root.resolve()
-    preflight = validate_candidate_preflight(root)
+    preflight = validate_candidate_preflight(
+        root,
+        verify_git_history=_verify_git_history,
+    )
     checks = list(preflight.get("checks", []))
     hashes = dict(preflight.get("hashes", {}))
     try:
@@ -928,7 +947,10 @@ def validate_signed_receipt_preflight(
 ) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
-    candidate = validate_candidate_preflight(root)
+    candidate = validate_candidate_preflight(
+        root,
+        verify_git_history=verify_git_history,
+    )
     _add(checks, "S05P04-SIGNED-CANDIDATE", candidate.get("status") == "PASS", candidate.get("summary"))
     evidence = _safe_load(root / EVIDENCE_PATH, checks, "S05P04-SIGNED-EVIDENCE-STRICT-JSON")
     rollback = _safe_load(root / ROLLBACK_EVIDENCE_PATH, checks, "S05P04-SIGNED-ROLLBACK-STRICT-JSON")

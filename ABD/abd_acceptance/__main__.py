@@ -19,6 +19,7 @@ from .stage1_delivery import cli_verify_stage1_delivery
 from .stage2_delivery import cli_verify_stage2_delivery
 from .stage3_delivery import cli_verify_stage3_delivery
 from .stage4_delivery import cli_verify_stage4_delivery
+from .stage5_delivery import cli_verify_stage5_delivery
 from .official_platform_research import write_phase_evidence as write_official_platform_research_phase_evidence
 from .model_risk_research import write_phase_evidence as write_model_risk_research_phase_evidence
 from .open_source_reuse import write_phase_evidence as write_open_source_reuse_phase_evidence
@@ -39,6 +40,7 @@ from .source_capabilities import write_phase_evidence as write_source_capability
 from .source_scheduler import write_phase_evidence as write_source_scheduler_phase_evidence
 from .coverage_observability import write_phase_evidence as write_coverage_observability_phase_evidence
 from .stage5_review import write_stage5_review_evidence
+from .gmail_authorization import write_phase_evidence as write_gmail_authorization_phase_evidence
 
 
 def main() -> int:
@@ -66,6 +68,7 @@ def main() -> int:
             "STAGE-REVIEW-S02": cli_verify_stage2_delivery,
             "STAGE-REVIEW-S03": cli_verify_stage3_delivery,
             "STAGE-REVIEW-S04": cli_verify_stage4_delivery,
+            "STAGE-REVIEW-S05": cli_verify_stage5_delivery,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -116,6 +119,7 @@ def main() -> int:
         "AC-S05-P03": write_source_scheduler_phase_evidence,
         "AC-S05-P04": write_coverage_observability_phase_evidence,
         "STAGE-REVIEW-S05": write_stage5_review_evidence,
+        "AC-S06-P01": write_gmail_authorization_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

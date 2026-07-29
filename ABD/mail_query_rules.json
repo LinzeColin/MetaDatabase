@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S06-P01-02",
+  "requirement_id": "REQ-S06-P01",
+  "acceptance_contract_id": "AC-S06-P01",
+  "product_version": "0.0.0.1",
+  "status": "FROZEN_NO_PRODUCTION_SENDER_RULES",
+  "authorization_contract": {
+    "scope_uri": "https://www.googleapis.com/auth/gmail.modify",
+    "scope_short_name": "gmail.modify",
+    "one_time_human_consent_required": true,
+    "missing_consent_action": "DISABLE_GMAIL_CONTINUE_CORE",
+    "authorization_endpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+    "response_type": "code",
+    "access_type": "offline",
+    "include_granted_scopes": false,
+    "pkce_method": "S256",
+    "state_storage": "SERVER_SIDE_SINGLE_USE_EPHEMERAL"
+  },
+  "query_contract": {
+    "gmail_method": "users.messages.list",
+    "bootstrap_lookback_days": 30,
+    "production_rules": [],
+    "production_enablement": "DISABLED_UNTIL_VERIFIED_SENDER_SUBJECT_ATTACHMENT_CONTRACT",
+    "required_rule_fields": [
+      "id",
+      "sender_addresses",
+      "subject_phrases",
+      "attachment_extensions",
+      "bootstrap_days",
+      "source_contract_id",
+      "test_only"
+    ],
+    "attachment_type_enforcement_stage": "S06_P03_AFTER_FETCH",
+    "cursor_type": "GMAIL_HISTORY_ID_AND_ARCHIVE_KEY_SET",
+    "idempotency_material": "gmail_message_id + attachment_id + sha256",
+    "same_attachment_identity_changed_hash_action": "QUARANTINE_AND_DO_NOT_TRASH",
+    "unknown_sender_action": "QUARANTINE_AND_DO_NOT_TRASH",
+    "gmail_mutation_in_p01": "PROHIBITED_QUEUE_DECISION_ONLY",
+    "real_time_soak_gate": "NONE"
+  },
+  "method_policy": {
+    "allowed_methods": [
+      "users.getProfile",
+      "users.history.list",
+      "users.messages.list",
+      "users.messages.get",
+      "users.messages.attachments.get",
+      "users.messages.trash",
+      "users.messages.untrash"
+    ],
+    "denied_methods": [
+      "users.drafts.create",
+      "users.drafts.send",
+      "users.messages.batchDelete",
+      "users.messages.delete",
+      "users.messages.import",
+      "users.messages.insert",
+      "users.messages.send",
+      "users.settings.*",
+      "users.threads.delete"
+    ]
+  },
+  "claim_boundary": {
+    "gmail_account_or_api_accessed": false,
+    "token_or_client_secret_stored_in_repository": false,
+    "gmail_mutation_performed": false,
+    "production_query_enabled": false,
+    "core_deployment_waits_for_real_time_soak": false,
+    "real_order_submitted_or_retried": false,
+    "financial_return_verified_or_guaranteed": false
+  }
+}
