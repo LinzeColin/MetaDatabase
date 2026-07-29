@@ -13,6 +13,22 @@ const { DatabaseSync } = require("node:sqlite");
 
 const { assertTransition } = require("../jobs/job-state-machine");
 
+// 队列排序：主人排在访客前面，同一档内仍然先到先得。
+//
+// 为什么需要：前 5 个人和主人共用同一个 Codex app-server，而调度器是串行的。
+// 纯 FIFO 的话，一个访客的长 turn 会把主人的消息堵在后面——主人的助理不会崩，
+// 但会变得不可用，而那正是「不能把我的 codex 搞崩溃」的实际含义。
+//
+// 用子查询而不是新加一列：jobs.user_id 和 users.role 都已经存在，加列要一次
+// 迁移，而迁移是这个仓风险最高的动作。user_id 为空的（系统消息、主动问候、
+// 到点提醒）排在最前，它们是主人自己那条线上的东西。
+const OWNER_FIRST_ORDER = `
+  CASE
+    WHEN user_id IS NULL THEN 0
+    WHEN user_id IN (SELECT user_id FROM users WHERE role='owner') THEN 0
+    ELSE 1
+  END`;
+
 const MIGRATION_ROOT = path.resolve(__dirname, "../../../migrations");
 const MIGRATIONS = Object.freeze([
   Object.freeze({
@@ -1477,7 +1493,7 @@ class RuntimeSpoolDatabase {
            AND operation_class <> 'command'
            AND (? IS NULL OR operation_class=?)
            AND attempt_count < max_attempts
-         ORDER BY created_at, id
+         ORDER BY ${OWNER_FIRST_ORDER}, created_at, id
          LIMIT 1`,
       )
       .get(operationClass, operationClass);
@@ -1689,12 +1705,15 @@ class RuntimeSpoolDatabase {
 
       const head = this.database
         .prepare(
+          // 排序必须和 peekNextRuntimeJob 一模一样：调度器先 peek 再带着
+          // expectedJobId 来 claim，两边选中不同的 job 就会一直 claim 不上。
+          // command 那一档是控制指令（停止/取消），保持纯先到先得。
           `SELECT id, correlation_id, state_version
            FROM jobs
            WHERE status='queued'
              AND operation_class ${queuedOperationPredicate}
              ${command ? "" : "AND attempt_count < max_attempts"}
-           ORDER BY created_at, id
+           ORDER BY ${command ? "" : `${OWNER_FIRST_ORDER},`} created_at, id
            LIMIT 1`,
         )
         .get();
