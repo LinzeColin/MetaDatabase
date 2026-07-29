@@ -64,6 +64,11 @@ const MIGRATIONS = Object.freeze([
     name: "011_admin_login_tickets.sql",
     sourceCommit: "LOGIN-2",
   }),
+  Object.freeze({
+    version: 10,
+    name: "012_bot_initiated_messages.sql",
+    sourceCommit: "PANEL-6",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
@@ -4078,6 +4083,99 @@ class RuntimeSpoolDatabase {
       // 单人安装可能还没有 users 表，那就没有标签，不是错误。
     }
     return roles;
+  }
+
+  // ── 机器人自己先开口的那些消息 ───────────────────────────
+  //
+  // 主动打招呼、到点的提醒、入门引导都不经过 outbox（outbox 的每一行都要挂在
+  // 一个 job 上，而它们没有 job），发出去之后在库里一个字都不留。于是后台
+  // 「对话」栏看得见别人说的每一句、它答的每一句，唯独看不见它自己主动说的。
+  //
+  // 记录失败**绝不能**影响发送：宁可这条在面板上看不到，也不能因为记账出错就
+  // 让主人收不到提醒。
+
+  recordBotInitiatedMessage({ kind, senderId, text, delivered = false, errorClass = "" }) {
+    this.#assertOpen();
+    if (!["checkin", "reminder", "onboarding", "system"].includes(kind)) {
+      throw new RuntimeSpoolError("BOT_MESSAGE_KIND_INVALID");
+    }
+    const body = String(text || "");
+    if (!body.trim()) {
+      throw new RuntimeSpoolError("BOT_MESSAGE_EMPTY");
+    }
+    const now = this.#timestamp();
+    const id = this.#identity("botmsg", [kind, now, body.slice(0, 64)], "botmsg");
+    // 收件人是微信号，属于真实 PII，和正文一起进信封，不单独明文存一列。
+    const plain = Buffer.from(
+      stableJson({ senderId: String(senderId || ""), text: body }),
+      "utf8",
+    );
+    this.database
+      .prepare(
+        `INSERT INTO bot_initiated_messages(
+           id, kind, payload_ciphertext, payload_sha256, delivered, error_class, created_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO NOTHING`,
+      )
+      .run(
+        id,
+        kind,
+        this.cipher.encrypt(plain, `botmsg:${id}:payload`),
+        sha256(plain),
+        delivered ? 1 : 0,
+        errorClass ? String(errorClass).slice(0, 64) : null,
+        now,
+      );
+    return Object.freeze({ id, createdAt: now });
+  }
+
+  listBotInitiatedForOwner({ limit = 50, since = "", until = "" } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(2000, Number(limit) || 50));
+    const clauses = [];
+    const params = [];
+    if (typeof since === "string" && since) {
+      clauses.push("created_at >= ?");
+      params.push(since);
+    }
+    if (typeof until === "string" && until) {
+      clauses.push("created_at <= ?");
+      params.push(until);
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+    return this.database
+      .prepare(
+        `SELECT id, kind, payload_ciphertext, delivered, error_class, created_at
+         FROM bot_initiated_messages
+         ${where}
+         ORDER BY created_at DESC, id DESC
+         LIMIT ?`,
+      )
+      .all(...params, bounded)
+      .map((row) => {
+        let payload = { senderId: "", text: "" };
+        let available = false;
+        try {
+          payload = JSON.parse(
+            this.cipher
+              .decrypt(row.payload_ciphertext, `botmsg:${row.id}:payload`)
+              .toString("utf8"),
+          );
+          available = true;
+        } catch {
+          // 单条读坏不该让整栏空白。
+        }
+        return Object.freeze({
+          id: row.id,
+          kind: row.kind,
+          senderId: payload.senderId || "",
+          text: payload.text || "",
+          available,
+          delivered: Number(row.delivered) === 1,
+          errorClass: row.error_class || "",
+          createdAt: row.created_at,
+        });
+      });
   }
 
   // ── 主人后台的「对话」一栏 ──────────────────────────────────

@@ -12,6 +12,7 @@ class StreamDelivery {
     systemReplyRetryScheduleMs,
     sameTokenRetryDelayMs,
     outboxWorker = null,
+    onDirectDelivery = null,
   }) {
     this.channelAdapter = channelAdapter;
     this.sessionStore = sessionStore;
@@ -19,6 +20,10 @@ class StreamDelivery {
     this.systemReplyPolicy = createSystemReplyPolicy(this.runtimeId);
     this.onDeferredSystemReply = typeof onDeferredSystemReply === "function" ? onDeferredSystemReply : null;
     this.onTraceEvent = typeof onTraceEvent === "function" ? onTraceEvent : null;
+    // 不经过 outbox 那一条路的记账钩子。主动打招呼、到点提醒、入门引导都走那里，
+    // 它们没有 job，也就没有 outbox 行——不记的话，后台「对话」栏永远看不见
+    // 机器人自己主动说过什么。
+    this.onDirectDelivery = typeof onDirectDelivery === "function" ? onDirectDelivery : null;
     this.systemReplyRetryScheduleMs = Array.isArray(systemReplyRetryScheduleMs) && systemReplyRetryScheduleMs.length
       ? systemReplyRetryScheduleMs.map((value) => Number(value)).filter((value) => Number.isFinite(value) && value >= 0)
       : [1_500, 2_500, 4_000, 6_000];
@@ -478,10 +483,30 @@ class StreamDelivery {
     });
   }
 
+  // 记一笔"它主动说了这句"。记账失败绝不能影响发送——宁可面板上少一条，
+  // 也不能因为记账出错让主人收不到提醒。
+  #noteDirect(payload, kind, delivered, errorClass) {
+    if (!this.onDirectDelivery) {
+      return;
+    }
+    try {
+      this.onDirectDelivery({
+        kind,
+        senderId: payload?.userId || "",
+        text: payload?.text || "",
+        delivered,
+        errorClass: errorClass || "",
+      });
+    } catch {
+      // 见上。
+    }
+  }
+
   async sendTextWithRetry(state, payload, { kind }) {
     const initialTarget = state.replyTarget;
     try {
       await this.channelAdapter.sendText(payload);
+      this.#noteDirect(payload, kind, true, "");
       return { delivered: true, deferred: false };
     } catch (error) {
       const retryTarget = this.resolveRetriableReplyTarget(initialTarget, error);
@@ -490,6 +515,8 @@ class StreamDelivery {
         if (deferred) {
           return { delivered: false, deferred: true };
         }
+        // 发不出去也要记：面板上看得见"它想说但没说成"，比彻底安静好。
+        this.#noteDirect(payload, kind, false, error?.code || "send_failed");
         throw error;
       }
       console.warn(
@@ -505,6 +532,7 @@ class StreamDelivery {
           retryPayload.preserveBlock = true;
         }
         await this.channelAdapter.sendText(retryPayload);
+        this.#noteDirect(retryPayload, kind, true, "");
         state.replyTarget = retryTarget;
         if (state.bindingKey) {
           this.replyTargetByBindingKey.set(state.bindingKey, {

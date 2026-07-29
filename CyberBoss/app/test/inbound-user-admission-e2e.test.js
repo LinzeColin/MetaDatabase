@@ -120,8 +120,11 @@ function harness(t, {
     admitInboundMessage: CyberbossApp.prototype.admitInboundMessage,
     sendAdmissionReply: CyberbossApp.prototype.sendAdmissionReply,
     // sendAdmissionReply 会把这一条记进后台「对话」栏——那条路不走 outbox，
-    // 数据库里查不到，只有这份内存记录。借用原型就要带上它真正会调的方法。
+    // 所以要单独落一笔（bot_initiated_messages），否则主人在面板上看不见它
+    // 主动说过什么。借用原型就要带上它真正会调到的每一个方法。
     noteDirectReply: CyberbossApp.prototype.noteDirectReply,
+    noteBotInitiated: CyberbossApp.prototype.noteBotInitiated,
+    noteDirectReplyInMemory: CyberbossApp.prototype.noteDirectReplyInMemory,
     runUserModelTurn: CyberbossApp.prototype.runUserModelTurn,
     stopTypingForUser: CyberbossApp.prototype.stopTypingForUser,
   };
@@ -672,8 +675,11 @@ test("不需要模型的轮次在建 job 之前就被分流掉", (t) => {
     channelAdapter: { async sendText(payload) { sent.push(payload); } },
     sendAdmissionReply: CyberbossApp.prototype.sendAdmissionReply,
     // sendAdmissionReply 会把这一条记进后台「对话」栏——那条路不走 outbox，
-    // 数据库里查不到，只有这份内存记录。借用原型就要带上它真正会调的方法。
+    // 所以要单独落一笔（bot_initiated_messages），否则主人在面板上看不见它
+    // 主动说过什么。借用原型就要带上它真正会调到的每一个方法。
     noteDirectReply: CyberbossApp.prototype.noteDirectReply,
+    noteBotInitiated: CyberbossApp.prototype.noteBotInitiated,
+    noteDirectReplyInMemory: CyberbossApp.prototype.noteDirectReplyInMemory,
     rememberOwnerSender() {},
     noteForDashboard() {},
     buildPlainLanguageStatus: () => "状态正常",

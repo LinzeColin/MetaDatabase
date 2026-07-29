@@ -281,6 +281,9 @@ class CyberbossApp {
       runtimeId: this.runtimeAdapter.describe().id,
       onDeferredSystemReply: (payload) => this.deferSystemReply(payload),
       onTraceEvent: (event) => this.walkingSkeletonTrace.record(event),
+      // 不经过 outbox 的那条路（主动打招呼、到点提醒、入门引导）在这里记账，
+      // 否则后台「对话」栏永远看不见机器人自己主动说过什么。
+      onDirectDelivery: (entry) => this.noteBotInitiated(entry),
     });
     this.pendingOperationByRunKey = new Map();
     this.runtimeEventChain = Promise.resolve();
@@ -1137,10 +1140,49 @@ class CyberbossApp {
   // canonical。去掉「收到，正在处理」之后，"我发的到底进去没有"这个问题就只
   // 能在这里回答，所以它必须把失败也照实显示出来，不能只显示成功的。
 
-  // 走 admission 直接回掉的那些消息（入门引导、状态、口令）不经过 outbox，
-  // 因此数据库里没有它们的回复。这里在内存里留一份，重启即丢——把真实聊天内容
-  // 写进 service_state 那种未加密的列换取"重启还在"，不值得。
+  // 机器人自己先开口的那些消息：主动打招呼、到点提醒、入门引导。
+  //
+  // 它们都不经过 outbox（outbox 的每一行都要挂在一个 job 上，而它们没有 job），
+  // 发出去之后在库里一个字都不留。落进 bot_initiated_messages，后台「对话」栏
+  // 才看得见它自己主动说过什么。
+  //
+  // 记账失败一律吞掉：宁可面板上少一条，也不能因为记账出错让主人收不到提醒。
+  noteBotInitiated({ kind = "system", senderId = "", text = "", delivered = false, errorClass = "" } = {}) {
+    if (!text || !this.runtimeSpoolDatabase) {
+      return false;
+    }
+    const known = ["checkin", "reminder", "onboarding", "system"];
+    // streamDelivery 传上来的是"这是一条系统回复"，分不出是哪一类；
+    // dispatchSystemMessage 刚记下的那一位才知道。
+    const resolved = known.includes(kind)
+      ? kind
+      : (this.activeSystemMessageKind || "system");
+    try {
+      this.runtimeSpoolDatabase.recordBotInitiatedMessage({
+        kind: known.includes(resolved) ? resolved : "system",
+        senderId,
+        text,
+        delivered,
+        errorClass,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // 走 admission 直接回掉的那些（入门引导、状态、口令）也不经过 outbox。
+  // 落库一份给「对话」栏；内存那份保留，作为数据库不可用时的降级显示。
   noteDirectReply(userId, text) {
+    const persisted = this.noteBotInitiated({
+      kind: "onboarding", senderId: userId, text, delivered: true,
+    });
+    // 只有落库失败时才退回内存那一份。两份都留会让同一句话在面板上出现两次——
+    // 一次挂在来信下面，一次作为独立卡片。
+    return persisted ? true : this.noteDirectReplyInMemory(userId, text);
+  }
+
+  noteDirectReplyInMemory(userId, text) {
     if (!text) {
       return;
     }
@@ -1193,6 +1235,24 @@ class CyberbossApp {
       });
     }
 
+    // 机器人自己先开口的那些（主动打招呼、到点提醒、入门引导）没有对应的来信，
+    // 挂不到任何一条 thread 上，所以它们作为独立卡片并进同一条时间线。
+    let initiated = [];
+    try {
+      initiated = this.runtimeSpoolDatabase.listBotInitiatedForOwner({
+        limit: scanLimit,
+        since: isoBound(from, "start"),
+        until: isoBound(to, "end"),
+      });
+    } catch {
+      // 读不到就只显示往来对话，不是致命的。
+    }
+    if (onlyPerson) {
+      initiated = initiated.filter((entry) => entry.senderId === onlyPerson);
+    }
+    if (needle) {
+      initiated = initiated.filter((entry) => String(entry.text || "").toLowerCase().includes(needle));
+    }
     // 人员清单在过滤之前算：主人要能看见"还有谁"，而不是只看见筛剩下的那个。
     const peopleIndex = new Map();
     for (const message of inbound) {
@@ -1206,6 +1266,14 @@ class CyberbossApp {
         entry.lastAt = message.receivedAt;
       }
       peopleIndex.set(sender, entry);
+    }
+    // 只被主动找过、自己一句话都没说过的人，也要出现在清单里。
+    for (const entry of initiated) {
+      if (entry.senderId && !peopleIndex.has(entry.senderId)) {
+        peopleIndex.set(entry.senderId, {
+          id: entry.senderId, count: 0, lastAt: entry.createdAt, userId: "",
+        });
+      }
     }
     // 「谁是主人」以 users 表的 role 为准——那是权威来源，不依赖环境变量。
     let roles = new Map();
@@ -1263,7 +1331,7 @@ class CyberbossApp {
       });
     }
 
-    const matched = selected.length;
+    const matched = selected.length + initiated.length;
     selected = selected.slice(0, wanted);
     inbound = selected;
 
@@ -1342,16 +1410,57 @@ class CyberbossApp {
       };
     });
 
+    // 并进同一条时间线，从新到旧。主动那几条没有来信，只有它说的那一句。
+    const BOT_KIND_LABELS = {
+      checkin: "它主动想起你",
+      reminder: "到点提醒",
+      onboarding: "入门引导",
+      system: "系统消息",
+    };
+    const initiatedCards = initiated.map((entry) => Object.freeze({
+      at: entry.createdAt,
+      who: entry.senderId,
+      initiatedByBot: true,
+      kindLabel: BOT_KIND_LABELS[entry.kind] || entry.kind,
+      text: "",
+      available: true,
+      state: entry.delivered
+        ? Object.freeze({ label: "它主动说的", tone: "ok", stuck: false })
+        : Object.freeze({
+          label: entry.errorClass ? `没发出去：${entry.errorClass}` : "没发出去",
+          tone: "bad",
+          stuck: true,
+        }),
+      jobStatus: "",
+      jobError: "",
+      rejectReason: "",
+      replies: [Object.freeze({
+        at: entry.createdAt,
+        kind: entry.kind,
+        text: entry.available ? entry.text : "",
+        available: entry.available,
+        state: entry.delivered ? "已发出" : "没发出去",
+        rawStatus: entry.delivered ? "confirmed" : "failed_terminal",
+        delivered: entry.delivered,
+        error: entry.errorClass,
+        attempts: 1,
+        source: BOT_KIND_LABELS[entry.kind] || entry.kind,
+      })],
+    }));
+    const merged = [...threads, ...initiatedCards]
+      .sort((a, b) => (a.at < b.at ? 1 : -1))
+      .slice(0, wanted);
+
     return Object.freeze({
       ok: true,
-      threads,
+      threads: merged,
       people,
       // 数出来给主人一眼看的：这一屏里有几条根本没答上。
-      unanswered: threads.filter((thread) => thread.state.stuck).length,
+      unanswered: merged.filter((thread) => thread.state.stuck).length,
       // 命中多少条、显示了多少条、扫了多深。截断了就要说，不能让人以为"就这些"。
       matched,
-      shown: threads.length,
-      truncated: matched > threads.length,
+      shown: merged.length,
+      truncated: matched > merged.length,
       scanned: scanLimit,
       query: Object.freeze({ person: onlyPerson, keyword: String(keyword || "").trim(), from, to }),
     });
@@ -2760,6 +2869,12 @@ class CyberbossApp {
   }
 
   async dispatchSystemMessage(message) {
+    // 记一下这一轮是哪一类。streamDelivery 那一层只知道"这是一条系统回复"，
+    // 分不出主动打招呼和到点提醒——而面板上这两件事对主人的意义完全不同。
+    // flushDueReminders 排队时用的 id 前缀就是唯一的线索。
+    this.activeSystemMessageKind = String(message?.id || "").startsWith("reminder:")
+      ? "reminder"
+      : "checkin";
     const prepared = this.systemMessageDispatcher?.buildPreparedMessage(message, this.channelAdapter.getKnownContextTokens()[message.senderId] || "");
     if (!prepared) {
       throw new Error("system message could not be prepared");

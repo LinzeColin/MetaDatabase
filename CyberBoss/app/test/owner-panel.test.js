@@ -355,7 +355,7 @@ test("完全没有回复的来信显示成还在处理，不会假装成功", (t
   assert.equal(thread.state.label, "正在处理");
 });
 
-test("走 admission 直接回掉的那些消息也进对话栏，并标明重启后不保留", (t) => {
+test("走 admission 直接回掉的那些消息落库，并在对话栏里作为独立一条显示", (t) => {
   const spool = panelSpool(t);
   seedTurn(spool, { senderId: "wx-d", text: "开始" });
 
@@ -363,13 +363,15 @@ test("走 admission 直接回掉的那些消息也进对话栏，并标明重启
   // 真实路径上这一句由 sendAdmissionReply 记下；这里直接调它记的那个方法。
   CyberbossApp.prototype.noteDirectReply.call(app, "wx-d", "把邀请码发给我就能开通。");
 
-  const thread = feedOf(app).threads[0];
-  assert.equal(thread.replies.length, 1);
-  assert.equal(thread.replies[0].text, "把邀请码发给我就能开通。");
-  assert.match(thread.replies[0].source, /重启后不保留/, "内存里的东西必须说清楚是内存里的");
+  const feed = feedOf(app);
+  const card = feed.threads.find((thread) => thread.initiatedByBot);
+  assert.ok(card, "它主动说的那一句必须出现在对话栏里");
+  assert.equal(card.replies[0].text, "把邀请码发给我就能开通。");
+  assert.equal(card.kindLabel, "入门引导");
+  assert.equal(card.replies[0].delivered, true);
 });
 
-test("同一个人的多条来信不会把同一条直接回复重复挂上去", (t) => {
+test("同一句主动消息只出现一次——落库之后不再留内存那一份", (t) => {
   const spool = panelSpool(t);
   seedTurn(spool, { senderId: "wx-e", text: "第一句" });
   seedTurn(spool, { senderId: "wx-e", text: "第二句" });
@@ -377,9 +379,59 @@ test("同一个人的多条来信不会把同一条直接回复重复挂上去",
   const app = feedApp(spool);
   CyberbossApp.prototype.noteDirectReply.call(app, "wx-e", "只回了一次");
 
-  const threads = feedOf(app).threads;
-  const total = threads.reduce((sum, thread) => sum + thread.replies.length, 0);
-  assert.equal(total, 1, "一条回复只能挂在一个地方，重复计数会让人以为它回了两次");
+  const total = feedOf(app).threads
+    .reduce((sum, thread) => sum + thread.replies.length, 0);
+  assert.equal(total, 1, "两份都留会让同一句话在面板上出现两次");
+  assert.equal(app.directReplyLog.length, 0, "落库成功就不该再往内存里塞");
+});
+
+test("主动打招呼和到点提醒都进对话栏，且分得清是哪一类", (t) => {
+  const spool = panelSpool(t);
+  const app = feedApp(spool);
+
+  CyberbossApp.prototype.noteBotInitiated.call(app, {
+    kind: "checkin", senderId: "wx-f", text: "在忙吗？", delivered: true,
+  });
+  CyberbossApp.prototype.noteBotInitiated.call(app, {
+    kind: "reminder", senderId: "wx-f", text: "到点啦：交房租", delivered: true,
+  });
+
+  const cards = feedOf(app).threads.filter((thread) => thread.initiatedByBot);
+  assert.equal(cards.length, 2);
+  const labels = cards.map((card) => card.kindLabel).sort();
+  assert.deepEqual(labels, ["到点提醒", "它主动想起你"]);
+  // 只被主动找过、自己一句话都没说过的人，也要出现在人员清单里。
+  assert.ok(feedOf(app).people.some((person) => person.id === "wx-f"));
+});
+
+test("主动消息没发出去时如实显示，并计入「没答上」", (t) => {
+  const spool = panelSpool(t);
+  const app = feedApp(spool);
+  CyberbossApp.prototype.noteBotInitiated.call(app, {
+    kind: "reminder", senderId: "wx-g", text: "这条没发出去", delivered: false, errorClass: "send_failed",
+  });
+
+  const feed = feedOf(app);
+  const card = feed.threads.find((thread) => thread.initiatedByBot);
+  assert.equal(card.state.stuck, true);
+  assert.match(card.state.label, /没发出去/);
+  assert.equal(feed.unanswered, 1, "发不出去的主动消息也要算进「没答上」");
+});
+
+test("按人筛和关键词筛对主动消息一样生效", (t) => {
+  const spool = panelSpool(t);
+  const app = feedApp(spool);
+  CyberbossApp.prototype.noteBotInitiated.call(app, {
+    kind: "checkin", senderId: "wx-h", text: "只找了 H", delivered: true,
+  });
+  CyberbossApp.prototype.noteBotInitiated.call(app, {
+    kind: "checkin", senderId: "wx-i", text: "只找了 I", delivered: true,
+  });
+
+  assert.equal(feedOf(app, { person: "wx-h" }).threads.length, 1);
+  assert.equal(feedOf(app, { person: "wx-h" }).threads[0].replies[0].text, "只找了 H");
+  assert.equal(feedOf(app, { keyword: "只找了 I" }).threads.length, 1);
+  assert.equal(feedOf(app, { keyword: "谁都没说过" }).threads.length, 0);
 });
 
 // ── 四、鉴权：这两条路永远要令牌 ─────────────────────────

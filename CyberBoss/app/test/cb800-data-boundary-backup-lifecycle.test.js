@@ -100,7 +100,7 @@ test("AC-030 migration 7 is additive and the ledger records every version", (t) 
     .all();
   assert.deepEqual(
     versions.map((row) => row.version),
-    [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
   );
   // 按版本号取，不用 .at(-1)：这条要钉住的是"第 7 版归 CB-800"，再加一版迁移
   // 时不该跟着漂到新的那一版上去。
@@ -108,6 +108,7 @@ test("AC-030 migration 7 is additive and the ledger records every version", (t) 
   assert.equal(byVersion.get(7), "CB-800");
   assert.equal(byVersion.get(8), "PANEL-2");
   assert.equal(byVersion.get(9), "LOGIN-2");
+  assert.equal(byVersion.get(10), "PANEL-6");
   for (const table of ["inbox_messages", "jobs", "outbox_messages", "sync_spool", "users"]) {
     assert.ok(
       database

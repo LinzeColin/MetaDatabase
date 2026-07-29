@@ -52,6 +52,8 @@
   .bubble.out{background:var(--mine);border-top-right-radius:3px;margin-top:8px}
   .bubble.empty{color:var(--muted);font-style:italic;background:none;border:1px dashed var(--line)}
   .reply-meta{color:var(--muted);font-size:12px;margin:4px 0 0 2px}
+  .turn.bot{border-style:dashed}
+  .kindtag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:1px 8px}
   /* 按人分组 + 检索 */
   .people{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
   .person{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:8px 14px;font:inherit;font-size:14px;color:var(--fg);cursor:pointer;min-height:40px;white-space:nowrap}
@@ -424,16 +426,24 @@
       : (data.matched ? "共 " + data.matched + " 条" : ""));
 
     threads.forEach(function (thread) {
-      var box = el("div", "turn" + (thread.state && thread.state.stuck ? " stuck" : ""));
+      var box = el("div", "turn"
+        + (thread.state && thread.state.stuck ? " stuck" : "")
+        + (thread.initiatedByBot ? " bot" : ""));
       var head = el("div", "turn-head");
       head.appendChild(el("span", "who", thread.who || "（不知道是谁）"));
       head.appendChild(el("span", "when", clock(thread.at)));
+      // 它自己先开口的那些，标出来是哪一类：主动想起你 / 到点提醒 / 入门引导。
+      if (thread.initiatedByBot) {
+        head.appendChild(el("span", "kindtag", thread.kindLabel || "它主动说的"));
+      }
       if (thread.state) {
         head.appendChild(el("span", "badge " + (thread.state.tone || ""), thread.state.label));
       }
       box.appendChild(head);
 
-      if (thread.available) {
+      if (thread.initiatedByBot) {
+        // 没有来信，只有它说的那一句——不要占一个空的"对方"气泡。
+      } else if (thread.available) {
         var asked = el("div", "bubble in");
         asked.appendChild(withHighlight(thread.text || "（空消息）", filter.q));
         box.appendChild(asked);
@@ -456,7 +466,7 @@
         box.appendChild(el("div", "reply-meta", bits.filter(Boolean).join(" · ")));
       });
 
-      if (!(thread.replies || []).length) {
+      if (!thread.initiatedByBot && !(thread.replies || []).length) {
         var why = thread.jobError || thread.rejectReason;
         box.appendChild(el("div", "reply-meta", why ? "还没有回复 · " + why : "还没有回复"));
       }
