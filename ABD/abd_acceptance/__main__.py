@@ -43,6 +43,7 @@ from .stage5_review import write_stage5_review_evidence
 from .gmail_authorization import write_phase_evidence as write_gmail_authorization_phase_evidence
 from .mail_preservation import write_phase_evidence as write_mail_preservation_phase_evidence
 from .attachment_security import write_phase_evidence as write_attachment_security_phase_evidence
+from .mail_deletion_audit import write_phase_evidence as write_mail_deletion_audit_phase_evidence
 
 
 def main() -> int:
@@ -124,6 +125,7 @@ def main() -> int:
         "AC-S06-P01": write_gmail_authorization_phase_evidence,
         "AC-S06-P02": write_mail_preservation_phase_evidence,
         "AC-S06-P03": write_attachment_security_phase_evidence,
+        "AC-S06-P04": write_mail_deletion_audit_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

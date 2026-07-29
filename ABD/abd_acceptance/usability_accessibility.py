@@ -54,7 +54,7 @@ CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 FAILURE_GUIDANCE_ORDER = ["failure_status", "failure_reason", "next_action", "safety"]
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "df6954c1e54af0c77a138102bebb4adf80afbd98125179ca5afb01fad7c9f8d7"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "74653abd25301e20d6ae4399d9756658bfb692f0f914d45c2707d57fbc8c09b2"
 
 PHASE_COMMIT = "ef74f1f49994b4249844485bf3e61eb8c65a06b2"
 PINNED_PHASE_CODE_HASH = "dc0228b02944f70eec4d565467a7e1788558c5ef061190106815fd28245b87db"
@@ -78,11 +78,11 @@ SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "accessibility_report.json": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
     "machine/tests/fixtures/S03_P04.json": "3bd64eb92ff0bb1a2474ff53971af35455d0bdce63d76bfd8c800e7fe18de9ca",
     "tests/S03/P04_test.py": "72450f1c64a321cb036343668454d8abf40f89cf5c194836ddbfea40daa14377",
-    "abd_acceptance/reason_next_action.py": "ee26b88da5f7ccd71260a512eb89fba97fecc6b869fd32b5f7152612493f3551",
-    "abd_acceptance/advice_card.py": "17e7e6685c8d4ef0b7428b778a330173a0ffa2b1c3166c4667cd2cf91a78f579",
+    "abd_acceptance/reason_next_action.py": "f1b6b8ecdd9c9d3f562e8be6fc22a06b2d18af6354ce8d4fea73a7e80f7ef82b",
+    "abd_acceptance/advice_card.py": "02b0bf4912f22c8a45d717edd5f91b20933928df1930598f310426d5860df59d",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
-    "abd_acceptance/stage2_review.py": "6a2292228e476c89edb9daeea0e25402166f42a23fa12400d1799566e4f84737",
-    "abd_acceptance/__main__.py": "5af6bb8b71559fa5189d65062378fda2bdef545d10d55fb042d54aaf568b1da5",
+    "abd_acceptance/stage2_review.py": "a152ade2de0a39728b535f105f34f8bfaf4525017846c23656d706ff8c3c4761",
+    "abd_acceptance/__main__.py": "c4d4fec8531253a73c27be25e250dfb38d7c7122227316dfe3c48f65fbfb2e52",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
 }
 
