@@ -786,6 +786,67 @@ class MvpReleaseTests(unittest.TestCase):
         uninstall_native_host.assert_not_called()
         discard_staged.assert_called_once_with()
 
+    def test_rollback_deployment_disables_native_host_before_switching_the_pointer(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        calls: list[str] = []
+
+        def uninstall_native_host(*, browser: str | None) -> dict[str, object]:
+            calls.append("uninstall_native_host")
+            self.assertEqual(browser, "chrome")
+            return {"native_host_uninstalled": True, "paths_emitted": False, "rollback_target": "disabled"}
+
+        def rollback_pointer() -> dict[str, object]:
+            calls.append("rollback_pointer")
+            return {
+                "current_version": "disabled",
+                "paths_emitted": False,
+                "release_version": "v0.0.0.1",
+                "rollback_pointer_switched": False,
+            }
+
+        with (
+            mock.patch.object(manager, "uninstall_native_host", side_effect=uninstall_native_host),
+            mock.patch.object(manager, "rollback_pointer", side_effect=rollback_pointer),
+        ):
+            receipt = manager.rollback_deployment(browser="chrome")
+
+        self.assertEqual(calls, ["uninstall_native_host", "rollback_pointer"])
+        self.assertEqual(receipt["native_host"]["rollback_target"], "disabled")
+        self.assertEqual(receipt["pointer"]["current_version"], "disabled")
+        self.assertFalse(receipt["paths_emitted"])
+
+    def test_rollback_deployment_does_not_switch_pointer_when_native_host_disable_fails(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        disable_error = X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "synthetic Native Host disable failure")
+        with (
+            mock.patch.object(manager, "uninstall_native_host", side_effect=disable_error) as uninstall_native_host,
+            mock.patch.object(manager, "rollback_pointer") as rollback_pointer,
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                manager.rollback_deployment(browser="chrome")
+
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        uninstall_native_host.assert_called_once_with(browser="chrome")
+        rollback_pointer.assert_not_called()
+
+    def test_rollback_deployment_preserves_pointer_failure_after_native_host_is_disabled(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        pointer_error = X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "synthetic pointer rollback failure")
+        with (
+            mock.patch.object(
+                manager,
+                "uninstall_native_host",
+                return_value={"native_host_uninstalled": True, "paths_emitted": False, "rollback_target": "disabled"},
+            ) as uninstall_native_host,
+            mock.patch.object(manager, "rollback_pointer", side_effect=pointer_error) as rollback_pointer,
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                manager.rollback_deployment(browser="chrome")
+
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        uninstall_native_host.assert_called_once_with(browser="chrome")
+        rollback_pointer.assert_called_once_with()
+
     def test_blue_green_switch_restores_both_pointers_after_a_partial_failure(self) -> None:
         manager = MvpDeploymentManager(self.paths)
         staged = manager.stage()

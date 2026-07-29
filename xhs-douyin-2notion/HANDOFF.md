@@ -42,7 +42,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The direct deployment transaction now has isolated regressions for each failure boundary: an initial Native Host
   install failure discards the staged release without switching; a pointer-switch failure disables the just-installed
   Host and discards staging; and any failed cleanup escalates to `POLICY_BLOCKED` rather than leaving an ambiguous
-  release state.
+  release state. The public rollback entry is separately tested to disable the Native Host before moving a pointer,
+  to leave the pointer unchanged if disabling fails, and to preserve a post-disable pointer failure for recovery.
 - The Douyin list extractor accepts only the corresponding platform-owned `data-e2e` list surface
   (`user-favorite-list` or `user-like-list`) after a selected 收藏/喜欢 control. It deliberately has no generic
   `main` fallback, so an unrecognized profile layout fails closed instead of treating unrelated cards as a relation list.
@@ -83,7 +84,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 - Current Companion discovery contains 332 tests. A bounded current full rerun was stopped during the existing 10k
   Markdown rebuild without a verdict, so it is not treated as a current full-suite pass. Focused A005
-  bundle/release/acceptance tests passed: 29 tests, covering exact scopes, hash-manifest mismatch before adapter
+  bundle/release/acceptance tests passed: 32 tests, covering exact scopes, hash-manifest mismatch before adapter
   initialization, Markdown idempotency, durable archive proof, external gates, deployment-failure cleanup, pointer
   rollback, staged Native Host binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
@@ -101,7 +102,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
   contacts the client or any remote service.
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
-  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (97), Contract
+  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (100), Contract
   tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
 
 ## Next work
