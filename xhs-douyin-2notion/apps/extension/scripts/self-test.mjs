@@ -76,7 +76,7 @@ if (JSON.stringify(manifest.permissions) !== JSON.stringify(expectedPermissions)
 if (Object.hasOwn(manifest, "host_permissions")) failures.push("host_permissions");
 if (manifest.background?.service_worker !== "src/service-worker.js" || manifest.background?.type !== "module") failures.push("background");
 if (manifest.side_panel?.default_path !== "sidepanel.html") failures.push("side_panel");
-if (manifest.action?.default_title !== "Open x2n Side Panel") failures.push("action");
+if (manifest.name !== "x2n 内容库" || manifest.action?.default_title !== "打开 x2n 内容库") failures.push("action");
 if (manifest.content_security_policy?.extension_pages !== "script-src 'self'; object-src 'none';") failures.push("csp");
 const publicKey = Buffer.from(manifest.key ?? "", "base64");
 const digest = createHash("sha256").update(publicKey).digest().subarray(0, 16).toString("hex");
@@ -91,7 +91,11 @@ for (const [path, source] of Object.entries(sources)) {
   if (/https?:\/\//i.test(source)) failures.push(`remote_source_${path}`);
   if (/\beval\s*\(|new Function\s*\(/.test(source)) failures.push(`dynamic_code_${path}`);
 }
-if (!sources["sidepanel.html"].includes('id="tab-save"') || !sources["sidepanel.html"].includes('id="tab-settings"')) failures.push("navigation");
+if (
+  !sources["sidepanel.html"].includes('id="tab-save"')
+  || !sources["sidepanel.html"].includes('id="tab-sync"')
+  || !sources["sidepanel.html"].includes('id="tab-status"')
+) failures.push("navigation");
 if (/<script(?![^>]+src=)/i.test(sources["sidepanel.html"])) failures.push("inline_script");
 if (!sources["src/service-worker.js"].includes("return true;")) failures.push("message_channel_compatibility");
 if (!sources["src/service-worker.js"].includes('sender.url === chrome.runtime.getURL("sidepanel.html")')) failures.push("sender_identity");
@@ -129,7 +133,8 @@ if (
 if (
   !sources["sidepanel.html"].includes('id="page-context"')
   || !sources["sidepanel.html"].includes('id="host-health"')
-  || !sources["sidepanel.html"].includes('class="boundary-strip"')
+  || !sources["sidepanel.html"].includes('id="workflow-card"')
+  || !sources["sidepanel.html"].includes('id="batch-switcher"')
 ) failures.push("sidepanel_state_hierarchy");
 if (!/\[hidden\]\s*\{[^}]*display:\s*none\s*!important/s.test(sources["styles/sidepanel.css"])) {
   failures.push("hidden_controls_visible");
@@ -146,6 +151,7 @@ if (
 if (
   !sources["src/sidepanel.js"].includes("setPageContextState")
   || !sources["src/sidepanel.js"].includes("setHostHealthState")
+  || !sources["src/sidepanel.js"].includes("guideSurface === \"xiaohongshu_favorites_list\"")
 ) failures.push("sidepanel_status_feedback");
 if (
   !sources["src/sidepanel.js"].includes("target.animate")
@@ -187,6 +193,21 @@ if (
 }
 if (recognizePage("https://www.xiaohongshu.com/explore/synthetic-xhs-self-test").mvpCurrentEligible) {
   failures.push("xhs_synthetic_page_not_mvp_current_eligible");
+}
+const xhsFavoritesGuide = recognizePage(
+  "https://xiaohongshu.com/user/profile/x2n-owner?tab=fav&subTab=note",
+);
+if (
+  xhsFavoritesGuide.guideSurface !== "xiaohongshu_favorites_list"
+  || xhsFavoritesGuide.platform !== "xiaohongshu"
+  || xhsFavoritesGuide.executable
+  || xhsFavoritesGuide.mvpCurrentEligible
+  || !xhsFavoritesGuide.supported
+) {
+  failures.push("xhs_favorites_first_use_guide");
+}
+if (recognizePage("https://xiaohongshu.com/user/profile/x2n-owner?tab=fav&subTab=note&unsafe=1").supported) {
+  failures.push("xhs_favorites_guide_query_boundary");
 }
 if (recognizePage("https://www.douyin.com/video/7485211130848218428").mvpCurrentEligible) {
   failures.push("douyin_real_page_not_mvp_current_eligible");

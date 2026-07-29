@@ -3,6 +3,7 @@ import { recognizePage } from "./page-support.js";
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const panels = [...document.querySelectorAll('[role="tabpanel"]')];
 const pageContext = document.querySelector("#page-context");
+const pageKicker = document.querySelector("#page-kicker");
 const pageStatus = document.querySelector("#page-status");
 const platformStatus = document.querySelector("#platform-status");
 const hostHealth = document.querySelector("#host-health");
@@ -13,6 +14,17 @@ const saveMvpCurrentButton = document.querySelector("#save-current-mvp");
 const saveMvpCurrentSecondButton = document.querySelector("#save-current-mvp-second");
 const captureStatus = document.querySelector("#capture-status");
 const fallbackButton = document.querySelector("#capture-fallback");
+const workflowCard = document.querySelector("#workflow-card");
+const workflowEyebrow = document.querySelector("#workflow-eyebrow");
+const workflowTitle = document.querySelector("#workflow-title");
+const workflowCopy = document.querySelector("#workflow-copy");
+const workflowAction = document.querySelector("#workflow-action");
+const workflowNote = document.querySelector("#workflow-note");
+const workflowStepOne = document.querySelector("#workflow-step-one");
+const workflowStepTwo = document.querySelector("#workflow-step-two");
+const workflowStepThree = document.querySelector("#workflow-step-three");
+const batchSwitcher = document.querySelector("#batch-switcher");
+const batchSwitcherSummary = document.querySelector("#batch-switcher-summary");
 const syncPolicy = document.querySelector("#sync-policy");
 const syncScope = document.querySelector("#sync-scope");
 const syncMaxItems = document.querySelector("#sync-max-items");
@@ -51,6 +63,8 @@ let pageRefreshGeneration = 0;
 let capabilityOutcomes = null;
 let fallbackFromJobId = null;
 let panelMotion = null;
+let lastPageResult = null;
+let activeMvpCurrentScope = "xiaohongshu_current_content";
 const EXECUTABLE_PLATFORM_NAMES = Object.freeze({
   bilibili: "哔哩哔哩",
   douyin: "抖音",
@@ -147,7 +161,62 @@ async function activePage() {
   }
 }
 
+function setWorkflowSteps({ first, second, third, active }) {
+  const steps = [
+    [workflowStepOne, first],
+    [workflowStepTwo, second],
+    [workflowStepThree, third],
+  ];
+  for (const [step, label] of steps) {
+    if (!step) continue;
+    step.textContent = label;
+    step.dataset.state = "pending";
+  }
+  const activeIndex = Math.max(0, Math.min(2, active));
+  for (let index = 0; index < activeIndex; index += 1) steps[index][0].dataset.state = "done";
+  steps[activeIndex][0].dataset.state = "active";
+}
+
+function setWorkflow({ state, eyebrow, title, copy, note, steps }) {
+  workflowCard.dataset.state = state;
+  workflowEyebrow.textContent = eyebrow;
+  workflowTitle.textContent = title;
+  workflowCopy.textContent = copy;
+  workflowNote.textContent = note;
+  setWorkflowSteps(steps);
+}
+
+function resetWorkflowActions() {
+  workflowAction.hidden = true;
+  saveButton.hidden = true;
+  saveButton.disabled = true;
+  saveMvpCurrentButton.hidden = true;
+  saveMvpCurrentButton.disabled = true;
+  batchSwitcher.hidden = true;
+  saveMvpCurrentSecondButton.disabled = true;
+}
+
+function showGenericCurrentAction() {
+  workflowAction.hidden = false;
+  saveButton.hidden = false;
+  saveButton.disabled = false;
+  saveButton.textContent = "保存这个页面";
+}
+
+function showMvpCurrentAction() {
+  const recordingSecondBatch = activeMvpCurrentScope === "xiaohongshu_current_content_second_batch";
+  workflowAction.hidden = false;
+  saveMvpCurrentButton.hidden = false;
+  saveMvpCurrentButton.disabled = false;
+  saveMvpCurrentButton.textContent = "保存这条笔记";
+  batchSwitcher.hidden = false;
+  batchSwitcherSummary.textContent = recordingSecondBatch ? "正在记录第二组" : "第一组已经完成？";
+  saveMvpCurrentSecondButton.disabled = false;
+  saveMvpCurrentSecondButton.textContent = recordingSecondBatch ? "回到第一组" : "改为记录第二组";
+}
+
 function renderPage(result) {
+  lastPageResult = result;
   activeTabId = Number.isSafeInteger(result.tabId) ? result.tabId : null;
   const executablePlatform = result.executable
     && Object.hasOwn(EXECUTABLE_PLATFORM_NAMES, result.platform)
@@ -157,16 +226,7 @@ function renderPage(result) {
     && activeTabId !== null;
   currentPageExecutable = executablePlatform;
   mvpCurrentPageExecutable = xhsMvpCurrentExecutable;
-  saveButton.disabled = !executablePlatform;
-  saveMvpCurrentButton.disabled = !xhsMvpCurrentExecutable;
-  saveMvpCurrentSecondButton.disabled = !xhsMvpCurrentExecutable;
-  saveButton.textContent = saveButton.disabled ? "当前页面暂不可保存" : "保存当前页面";
-  saveMvpCurrentButton.textContent = saveMvpCurrentButton.disabled
-    ? "批次 1 暂不可用"
-    : "记录到 MVP 批次 1";
-  saveMvpCurrentSecondButton.textContent = saveMvpCurrentSecondButton.disabled
-    ? "批次 2 暂不可用"
-    : "记录到 MVP 批次 2";
+  resetWorkflowActions();
   fallbackButton.disabled = fallbackFromJobId === null || captureInFlight || !executablePlatform;
   if (!captureInFlight && fallbackFromJobId === null) {
     captureStatus.textContent = "";
@@ -175,25 +235,79 @@ function renderPage(result) {
   if (executablePlatform) {
     setPageContextState("ready");
     const platformName = EXECUTABLE_PLATFORM_NAMES[result.platform];
-    pageStatus.textContent = `已识别 ${platformName} 详情页`;
-    platformStatus.textContent = "只会读取你明确选择的这一页";
+    pageKicker.textContent = "当前内容";
+    pageStatus.textContent = `可以保存这篇${platformName}内容`;
+    platformStatus.textContent = "只会处理你已经打开的这一篇";
+    setWorkflow({
+      state: "ready",
+      eyebrow: "现在可以保存",
+      title: "保存这个页面",
+      copy: "点击一次即可。本页不会自动翻页，也不会改变你的账号状态。",
+      note: "保存后可以继续浏览；x2n 不会替你执行下一步。",
+      steps: { first: "已经打开内容", second: "点击保存", third: "继续浏览", active: 1 },
+    });
+    showGenericCurrentAction();
+    return;
+  }
+  if (result.guideSurface === "xiaohongshu_favorites_list") {
+    setPageContextState("guide");
+    pageKicker.textContent = "小红书收藏";
+    pageStatus.textContent = "你正在查看收藏清单";
+    platformStatus.textContent = "请打开一篇笔记后继续";
+    setWorkflow({
+      state: "guide",
+      eyebrow: "第一步",
+      title: "打开一篇想保存的笔记",
+      copy: "现在不用点任何灰色按钮。请在左侧点开任意一篇收藏笔记；打开后，这里会自动出现“保存这条笔记”。",
+      note: "x2n 不会替你翻页、点开笔记或改变账号状态。",
+      steps: { first: "点开一篇收藏笔记", second: "点击保存这条笔记", third: "打开下一篇继续保存", active: 0 },
+    });
     return;
   }
   if (xhsMvpCurrentExecutable) {
-    setPageContextState("mvp");
-    pageStatus.textContent = "小红书详情页可用于 MVP 预备";
-    platformStatus.textContent = "一次明确操作只记录私有内容指纹，不写入正式内容";
+    const recordingSecondBatch = activeMvpCurrentScope === "xiaohongshu_current_content_second_batch";
+    setPageContextState("ready");
+    pageKicker.textContent = "小红书笔记";
+    pageStatus.textContent = recordingSecondBatch ? "可以保存到第二组" : "可以保存这条笔记";
+    platformStatus.textContent = "点击后只记录这篇内容；不会自动处理其他笔记";
+    setWorkflow({
+      state: "ready",
+      eyebrow: recordingSecondBatch ? "第二组" : "第一组",
+      title: "保存这条笔记",
+      copy: "点击一次即可记录这篇笔记。然后打开下一篇，重复同样的操作。",
+      note: "x2n 只记录你亲自打开的内容，不会自动翻页或改变账号状态。",
+      steps: { first: "已经打开笔记", second: "点击保存这条笔记", third: "打开下一篇继续保存", active: 1 },
+    });
+    showMvpCurrentAction();
     return;
   }
   if (result.supported) {
     setPageContextState("blocked");
-    pageStatus.textContent = "已识别支持的页面";
-    platformStatus.textContent = `${result.platform}：当前页面门禁仍关闭`;
+    pageKicker.textContent = "当前网站";
+    pageStatus.textContent = "请先打开一篇内容";
+    platformStatus.textContent = "列表和搜索页不会被自动保存";
+    setWorkflow({
+      state: "blocked",
+      eyebrow: "下一步",
+      title: "打开一篇内容后再保存",
+      copy: "x2n 只在你已经打开的单条内容页工作。打开内容后，保存按钮会自动出现。",
+      note: "页面不符合条件时，x2n 不会猜测或执行任何操作。",
+      steps: { first: "打开一篇内容", second: "点击保存", third: "继续浏览", active: 0 },
+    });
     return;
   }
   setPageContextState("blocked");
-  pageStatus.textContent = "当前页面暂不可执行保存";
-  platformStatus.textContent = `已安全停止：${result.reason}`;
+  pageKicker.textContent = "当前页面";
+  pageStatus.textContent = "这里暂时不能保存";
+  platformStatus.textContent = "请打开一篇支持的网站内容后再试";
+  setWorkflow({
+    state: "blocked",
+    eyebrow: "下一步",
+    title: "打开一篇内容后再保存",
+    copy: "x2n 不会从列表、搜索结果或不明确的页面猜测要保存什么。",
+    note: "打开内容后，本页会自动更新，不需要重启扩展。",
+    steps: { first: "打开一篇内容", second: "点击保存", third: "继续浏览", active: 0 },
+  });
 }
 
 async function refreshPage() {
@@ -346,23 +460,18 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
     activeTabId === null
     || captureInFlight
     || (!ownerMvpCurrent && saveButton.disabled)
-    || (ownerMvpScope === "xiaohongshu_current_content" && saveMvpCurrentButton.disabled)
-    || (ownerMvpScope === "xiaohongshu_current_content_second_batch" && saveMvpCurrentSecondButton.disabled)
+    || (ownerMvpCurrent && saveMvpCurrentButton.disabled)
   ) return;
   if (ownerMvpCurrent && explicitFallbackFromJobId !== null) return;
   const requestedTabId = activeTabId;
   captureInFlight = true;
-  setBusy(ownerMvpScope === "xiaohongshu_current_content"
-    ? saveMvpCurrentButton
-    : ownerMvpScope === "xiaohongshu_current_content_second_batch"
-      ? saveMvpCurrentSecondButton
-      : saveButton, true);
+  setBusy(ownerMvpCurrent ? saveMvpCurrentButton : saveButton, true);
   saveButton.disabled = true;
   saveMvpCurrentButton.disabled = true;
   saveMvpCurrentSecondButton.disabled = true;
   captureStatus.textContent = ownerMvpCurrent
-    ? "正在读取这一页明确选择的 MVP 当前内容…"
-    : "正在读取已净化的当前页面事实…";
+    ? "正在保存这条笔记，请不要重复点击。"
+    : "正在保存这个页面，请不要重复点击。";
   const pendingNotice = setTimeout(() => {
     captureStatus.textContent = "仍在等待本地确认，请不要重复点击";
   }, 15_000);
@@ -381,12 +490,14 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
         captureStatus.dataset.jobId = result.response.job_id;
         captureStatus.textContent = result.response.status === "completed"
           ? (ownerMvpCurrent
-            ? `当前内容已写入已启动的 MVP ${ownerMvpScope === "xiaohongshu_current_content" ? "批次 1" : "批次 2"}`
+            ? "已保存这条笔记。打开下一篇后继续保存。"
             : "当前页面已写入本地知识库")
           : "当前页面已在本地助手中排队";
       } else {
         delete captureStatus.dataset.jobId;
-        captureStatus.textContent = "当前页面指纹已私有记录；未写入 SQLite 正式内容。";
+        captureStatus.textContent = ownerMvpCurrent
+          ? "已记录这条笔记。打开下一篇后，继续点击“保存这条笔记”。"
+          : "当前页面已在本机记录。";
       }
     } else if (result?.code === "X2N_PLATFORM_CHANGED") {
       captureStatus.textContent = "页面结构已变化，已停止且未保存。";
@@ -409,6 +520,17 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
     saveMvpCurrentSecondButton.disabled = !(mvpCurrentPageExecutable && activeTabId === requestedTabId);
     fallbackButton.disabled = fallbackFromJobId === null || !(currentPageExecutable && activeTabId === requestedTabId);
   }
+}
+
+function toggleMvpCurrentBatch() {
+  if (!mvpCurrentPageExecutable || captureInFlight) return;
+  activeMvpCurrentScope = activeMvpCurrentScope === "xiaohongshu_current_content"
+    ? "xiaohongshu_current_content_second_batch"
+    : "xiaohongshu_current_content";
+  renderPage(lastPageResult);
+  captureStatus.textContent = activeMvpCurrentScope === "xiaohongshu_current_content_second_batch"
+    ? "现在记录第二组。点击“保存这条笔记”继续。"
+    : "现在记录第一组。点击“保存这条笔记”继续。";
 }
 
 async function startSelectedSync() {
@@ -472,8 +594,8 @@ async function refreshStatus() {
 
 refreshButton.addEventListener("click", refreshStatus);
 saveButton.addEventListener("click", () => captureCurrentPage());
-saveMvpCurrentButton.addEventListener("click", () => captureCurrentPage(null, "xiaohongshu_current_content"));
-saveMvpCurrentSecondButton.addEventListener("click", () => captureCurrentPage(null, "xiaohongshu_current_content_second_batch"));
+saveMvpCurrentButton.addEventListener("click", () => captureCurrentPage(null, activeMvpCurrentScope));
+saveMvpCurrentSecondButton.addEventListener("click", toggleMvpCurrentBatch);
 fallbackButton.addEventListener("click", () => {
   if (fallbackFromJobId !== null) captureCurrentPage(fallbackFromJobId);
 });

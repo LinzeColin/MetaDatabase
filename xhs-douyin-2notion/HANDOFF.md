@@ -27,10 +27,13 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
   Companion, so the installed Native Host does not need a repository checkout to validate private release input.
-- The Side Panel is now a Chinese, responsive local workbench that leads with current-page state, then one primary
-  current-page action and the two visually distinct bounded-MVP batches. Its compact tab rail, visible local boundary
-  strip, keyboard navigation, state feedback, and motion-reduction support replace the earlier nested-card layout;
-  the public source candidate carries no remote asset or third-party motion bundle.
+- The Side Panel is now a Chinese, responsive first-use guide rather than a technical workbench. It begins with one
+  clear next step, has only 保存 / 清单 / 帮助 as top-level tabs, and keeps list controls behind 高级选项. The exact
+  canonical XHS 收藏笔记 profile surface is a non-capturing guide: it says to manually open one visible note and shows
+  no disabled or actionable save control. It never reads the list, opens a note, or scrolls. Once an explicitly opened
+  XHS detail page is eligible, it shows one primary 保存这条笔记 action; the second bounded group remains a progressive
+  disclosure rather than a default card. Keyboard navigation, state feedback, reduced-motion support, and the public
+  source's no-remote-asset/no-third-party-motion boundary remain intact.
 - `x2n release stage-prearm-sidepanel` now creates an idempotent, digest-addressed owner-private bundle under the
   approved Runtime root. Its unpacked Side Panel, Companion, and Contract sources are verified together; it has no
   `release_identity.json`, never moves a release pointer, and lets the temporary Host plan bind to the same bundle
@@ -39,10 +42,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   installer for that bridge. It stages/uses the current digest-addressed pre-arm bundle, refuses every existing Host
   rather than replacing it, installs atomically only after the explicit confirmation, verifies the Host-to-bundle
   binding, changes no release pointer, and emits no local path. It never opens Chrome or calls a platform.
-- The latest committed Side Panel polish has been staged as a fresh owner-private digest-addressed pre-arm bundle.
-  That staging made zero platform calls, did not switch a release pointer, and did not alter the existing temporary
-  Native Host. The existing Host remains bound to the earlier stable bundle; Chrome extension-manager actions remain
-  manual, so a future visual reload must load the freshly staged bundle rather than any disposable `scratch` path.
+- The prior Side Panel polish was staged as an owner-private digest-addressed pre-arm bundle. The current first-use
+  source candidate must be freshly staged after its source commit before any Chrome reload; doing so makes zero
+  platform calls, does not switch a release pointer, and must not alter the existing temporary Native Host. Chrome
+  extension-manager actions remain manual, so any visual reload must use that stable private bundle rather than a
+  disposable `scratch` path.
 - The current Owner-private pre-arm Host was installed successfully from the stable bundle and verified bound to its
   private digest. Read-only preflight now reports `PREARM_BRIDGE_INSTALLED` only after proving exactly one matching
   digest-addressed private bundle. That is the expected temporary-bridge state, not a fresh slot, deployment, or arm
@@ -131,13 +135,15 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
-- The responsive Side Panel was re-rendered in isolated Chromium at 480 px and 360 px widths and visually inspected:
-  the 360 px view has no horizontal overflow and correctly hides the unavailable fallback action. Its self-test,
-  controlled zero-network XHS and Douyin Extension E2E (each including 100 service-worker restarts), relevant
-  XHS/Douyin fixture suites, 115 focused Companion tests, 19 Contract tests, and the nine-gate fast source lane all
-  passed; the visual detector reported zero findings. A fresh real `stage-prearm-sidepanel` invocation
-  produced a reusable private digest bundle with an extension manifest and no release identity or pointer change;
-  no platform call or real-account execution occurred.
+- The first-use Side Panel source was rendered in isolated Chromium at 360 px in light and dark modes. The exact XHS
+  收藏笔记 guide has no horizontal overflow and presents zero visible actions; an eligible XHS detail page has one
+  full-width 保存这条笔记 action plus a collapsed optional second-group switch. Extension self-test, TypeScript
+  contract checking, syntax checks, diff checks, and the controlled zero-network XHS Extension E2E passed. That E2E
+  opens the exact guide route through the action-granted tab, asserts the human guide text and zero visible actions,
+  then completes the existing synthetic current-page capture and 100 service-worker restarts with zero platform calls
+  and zero real accounts. The visual detector reported zero findings. The source candidate still needs its fresh
+  owner-private staging after commit; no platform call, real-account execution, pointer switch, or Native Host change
+  has occurred during this UX remediation.
 - The stable pre-arm Host installer has 46 focused release tests, including real temporary-Home installation from the
   private pre-arm bundle and a verified uninstall. It rejects a bad confirmation before staging, refuses an existing
   Host target, and keeps the response aggregate-only. The declared 115 focused A005 tests, 19 Contract tests,
@@ -202,8 +208,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. In the current delegated Owner run, the stable pre-arm Host is already installed. Load the freshly staged stable
-   unpacked Side Panel bundle rather than any `scratch` source directory, then freshly observe the two
+2. In the current delegated Owner run, the stable pre-arm Host is already installed. After the freshly committed
+   first-use Side Panel source has been staged to a stable unpacked private bundle, load that bundle rather than any
+   `scratch` source directory. On the exact 小红书收藏笔记 list, the intended first screen is the guide with no save
+   button: manually open one visible note, then use the single 保存这条笔记 button on its detail page. Then freshly observe the two
    Douyin lists without scrolling, then use the Side Panel to record their two
    exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
    for each of the two disjoint batch controls. The Companion creates only private hashes and automatically freezes

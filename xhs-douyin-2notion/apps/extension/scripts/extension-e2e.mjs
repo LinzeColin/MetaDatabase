@@ -395,12 +395,59 @@ try {
   currentStep = "sidepanel_ui";
   requireCondition(await page.locator("#save-current").isDisabled(), "unsupported_save_executable");
 
-  const sections = ["save", "sync", "review", "status", "settings"];
+  const sections = ["save", "sync", "status"];
   for (const section of sections) {
     await page.locator(`#tab-${section}`).click();
     await page.locator(`#panel-${section}`).waitFor({ state: "visible", timeout: 2_000 });
     requireCondition(await page.locator(`#panel-${section}`).isVisible(), `navigation_${section}`);
   }
+
+  currentStep = "xhs_favorites_guide";
+  const browser = context.browser();
+  requireCondition(Boolean(browser), "browser_cdp_unavailable");
+  const guideUrl = "https://xiaohongshu.com/user/profile/x2n-owner?tab=fav&subTab=note";
+  const guidePage = await context.newPage();
+  await guidePage.route("**/*", (route) => route.fulfill({
+    body: "<!doctype html><title>x2n synthetic favorites guide</title>",
+    contentType: "text/html; charset=utf-8",
+    status: 200,
+  }));
+  await guidePage.goto(guideUrl, { waitUntil: "domcontentloaded" });
+  await guidePage.bringToFront();
+  const guideCdp = await browser.newBrowserCDPSession();
+  const { targetInfos: guideTargets } = await guideCdp.send("Target.getTargets", {
+    filter: [{ exclude: false, type: "tab" }],
+  });
+  const guideTarget = guideTargets.find((target) => target.type === "tab" && target.url === guideUrl);
+  requireCondition(Boolean(guideTarget), "xhs_favorites_guide_target_missing");
+  await guideCdp.send("Extensions.triggerAction", {
+    id: extensionId,
+    targetId: guideTarget.targetId,
+  });
+  await guideCdp.detach();
+  // Headless Chromium does not expose the opened side panel as a Playwright
+  // Page target. Reload the test-owned side panel so it observes the same
+  // action-granted active tab that a docked side panel sees in Chrome.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => document.querySelector("#page-status")?.textContent === "你正在查看收藏清单",
+    undefined,
+    { timeout: 10_000 },
+  );
+  requireCondition(
+    await page.locator("#workflow-title").textContent() === "打开一篇想保存的笔记",
+    "xhs_favorites_guide_title",
+  );
+  requireCondition(
+    await page.locator("#workflow-copy").textContent().then((text) => text?.includes("不用点任何灰色按钮")),
+    "xhs_favorites_guide_copy",
+  );
+  requireCondition(await page.locator("#workflow-action").isHidden(), "xhs_favorites_guide_action_visible");
+  requireCondition(await page.locator("#batch-switcher").isHidden(), "xhs_favorites_guide_batch_visible");
+  const guideVisibleActionCount = await page.locator("#panel-save button:visible").count();
+  requireCondition(guideVisibleActionCount === 0, "xhs_favorites_guide_button_visible");
+  await guidePage.close();
+  await page.bringToFront();
 
   currentStep = "page_recognition";
   const fixture = JSON.parse(await readFile(FIXTURE_PATH, "utf8"));
@@ -485,8 +532,6 @@ try {
     beforeAction.capture?.ok === false && beforeAction.capture?.code === "X2N_POLICY_BLOCKED",
     `${CURRENT_PAGE_CONFIG.metricPrefix}_pre_action_capture_allowed`,
   );
-  const browser = context.browser();
-  requireCondition(Boolean(browser), "browser_cdp_unavailable");
   try {
     const actionCdp = await browser.newBrowserCDPSession();
     const { targetInfos } = await actionCdp.send("Target.getTargets", {
@@ -668,6 +713,8 @@ try {
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_before_grant_rejections`]: 2,
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_trigger`]: "PASS_CDP_DEFAULT_ACTION",
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_current_page_capture`]: "PASS_CI_SYNTH",
+    xhs_favorites_first_use_guide: "PASS_CI_SYNTH",
+    xhs_favorites_guide_visible_actions: guideVisibleActionCount,
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_owner_canary`]: "NOT_RUN",
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_query_fragment_persisted`]: 0,
   };
