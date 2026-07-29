@@ -217,14 +217,20 @@ function defaultPersona() {
   return normalizePersona({});
 }
 
-// 一个人自己那份只含「怎么说话」。
+// 一个人自己那份：怎么说话，加上「要不要主动找我」。
 //
-// proactive 和 access 不在里面，而且是**故意**不在：
-//   · proactive 的目标只能是主人（唤醒模型这条在 R19 里只对 owner 开放），
-//     给某个访客单独设一套主动打招呼等于绕开那条边界；
-//   · access 是整台机器的开门规则（名额、入口），不是某个人的属性。
-// 所以这两项永远只从主人那一行读，写的时候原样丢掉。
-const PERSON_FIELDS = Object.freeze(["tone", "length", "emoji", "callMe", "note"]);
+// proactive 原来**故意**不在这里，理由是「唤醒模型这条只对 owner 开放」。那条
+// 边界在当时是对的：那时候访客的消息根本走不到模型。但后来普通用户已经有了
+// 自己的一条模型路径（runUserModelTurn：预算、熔断、provider router），前 N 个
+// 人还共用主人那把钥匙——「访客不能引发模型调用」这个前提早就不成立了。
+//
+// 主人的原话：「每个用户的设置应该都是个人的，比如主动找我这个权限⋯应该是在
+// 用户下每个人都能单独保存」。所以 proactive 进来。
+//
+// access 仍然不在：它是整台机器的开门规则（名额、入口），不是某个人的属性。
+const PERSON_FIELDS = Object.freeze([
+  "tone", "length", "emoji", "callMe", "note", "proactive",
+]);
 
 function normalizePersonPersona(raw) {
   const full = normalizePersona(raw);
@@ -234,6 +240,7 @@ function normalizePersonPersona(raw) {
     emoji: full.emoji,
     callMe: full.callMe,
     note: full.note,
+    proactive: full.proactive,
     updatedAt: full.updatedAt,
   });
 }
@@ -254,6 +261,7 @@ function mergePersonaForPerson(ownerPersona, personPersona) {
     emoji: own.emoji,
     callMe: own.callMe,
     note: own.note,
+    proactive: own.proactive,
     updatedAt: own.updatedAt || base.updatedAt,
   });
 }
@@ -375,12 +383,16 @@ class PersonaStore {
       throw error;
     }
     const next = normalizePersonPersona(raw);
+    // 逐字段列出来，不 spread：这样多出来的 access 之类的东西进不来。
+    // 代价是加字段时**必须记得改这里**——proactive 就在这里被默默丢过一次，
+    // 上面 PERSON_FIELDS 加了它，写的时候还是没带上，结果是"设了没保存"。
     this.database.writeUserPersona(id, {
       tone: next.tone,
       length: next.length,
       emoji: next.emoji,
       callMe: next.callMe,
       note: next.note,
+      proactive: next.proactive,
     });
     return this.readFor(id);
   }

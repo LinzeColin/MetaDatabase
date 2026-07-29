@@ -4,6 +4,7 @@ const { createTimelineIntegration } = require("../integrations/timeline");
 const { ChannelFileService } = require("../services/channel-file-service");
 const { DiaryService } = require("../services/diary-service");
 const { ItemService } = require("../services/items/item-service");
+const { MemoryService } = require("../services/profile/memory-service");
 const { ReminderService } = require("../services/reminder-service");
 const { StickerService } = require("../services/sticker-service");
 const { SystemMessageService } = require("../services/system-message-service");
@@ -30,6 +31,10 @@ function createProjectTooling(config, options = {}) {
     // 绝不能让模型在参数里指定——它想给谁记就给谁记的话，隔离就没了。
     items: new ItemService({
       database: options.itemDatabase || null,
+      resolveUserId: options.resolveItemUserId || null,
+    }),
+    memory: new MemoryService({
+      store: options.memoryStore || null,
       resolveUserId: options.resolveItemUserId || null,
     }),
     system: new SystemMessageService({ config, sessionStore }),

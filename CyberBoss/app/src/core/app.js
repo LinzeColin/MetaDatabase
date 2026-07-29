@@ -298,6 +298,10 @@ class CyberbossApp {
       get: () => this.runtimeSpoolDatabase,
       configurable: true,
     });
+    Object.defineProperty(projectTooling.services.memory, "store", {
+      get: () => this.profileStoreOrNull(),
+      configurable: true,
+    });
     this.projectServices = projectTooling.services;
     this.projectToolHost = projectTooling.toolHost;
     this.runtimeContextStore = projectTooling.runtimeContextStore;
@@ -998,6 +1002,8 @@ class CyberbossApp {
           : { enabled: this.config.startWithCheckin === true, minMinutes: 45, maxMinutes: 240, quietStart: 23, quietEnd: 8 }),
         // 主人是谁以 users 表的 role 为准。发错人就是一次非主人的模型调用。
         resolveOwnerSenderId: () => this.resolveOwnerSenderIdForCheckin(),
+        // 所有开了「主动找我」的人，每人一份自己的间隔和静默时段。
+        listTargets: () => this.listCheckinTargets(),
       }).catch((error) => {
         console.error(`[cyberboss] checkin poller stopped: ${error.message}`);
       });
@@ -1486,6 +1492,23 @@ class CyberbossApp {
       [new Date(Date.now() - 24 * 3_600_000).toISOString()],
     );
     snapshot.last24h = counted(recent);
+    // 日记。这一栏挂在 ops 上，而 ops 在 OWNER_ONLY_ADMIN_APIS 名单里——永远
+    // 要令牌，不走首次运行免令牌。日记是真实内容，和对话栏一个级别。
+    snapshot.diary = this.listDiaryEntries();
+    // 体检的最近一次结论。后台上要看得见「现在到底行不行」，而不是只有
+    // 出问题时那条微信。
+    snapshot.health = this.lastHealthReport
+      ? Object.freeze({
+        at: this.lastHealthReport.at,
+        healthy: this.lastHealthReport.healthy,
+        findings: this.lastHealthReport.findings.map((finding) => Object.freeze({
+          title: finding.title,
+          detail: finding.detail,
+        })),
+      })
+      // 还没体检过和体检过没问题，是两件事。分不开的话，刚启动那几分钟会
+      // 显示成"一切正常"，而那时候什么都还没测过。
+      : Object.freeze({ at: "", healthy: null, findings: [] });
     return Object.freeze(snapshot);
   }
 
@@ -1711,22 +1734,119 @@ class CyberbossApp {
     });
   }
 
+  // 日记。后台那一栏读的就是这些文件。
+  //
+  // 日记现在是**整机一份**（DiaryService 按日期写到 diaryDir），不按人分——
+  // 写它的是主人那条 Codex 路径上的工具。所以它只出现在后台，不出现在别人的
+  // 个人主页上：把主人的日记显示到访客那一页是串数据。
+  //
+  // 时间线目录现在是空的：timeline-service 在，但线上还没有任何一轮往里写过。
+  // 所以后台不给它开一栏——开了就是一个永远为空的格子，看起来像坏了。
+  listDiaryEntries({ limit = 14 } = {}) {
+    const root = this.config.diaryDir;
+    if (!root) {
+      return [];
+    }
+    try {
+      return fs.readdirSync(root)
+        .filter((name) => /^\d{4}-\d{2}-\d{2}\.md$/.test(name))
+        .sort()
+        .reverse()
+        .slice(0, Math.max(1, Math.min(60, Number(limit) || 14)))
+        .map((name) => {
+          const text = fs.readFileSync(path.join(root, name), "utf8");
+          return Object.freeze({
+            day: name.replace(/\.md$/, ""),
+            // 后台那一栏只放摘要，点开才看全文——一屏塞不下一整天。
+            text: text.length > 4000 ? `${text.slice(0, 4000)}\n……` : text,
+          });
+        });
+    } catch {
+      return [];
+    }
+  }
+
+  // 谁要被主动找，每人一份自己的设置。
+  //
+  // 「每个用户的设置应该都是个人的，比如主动找我这个权限⋯应该是在用户下每个人
+  // 都能单独保存。」没给自己设过的人沿用主人那一份当默认（和语气同一个规则）。
+  //
+  // 目标是 senderId（投递地址），设置按 user_id 存（隔离边界）。两者之间的换算
+  // 走和别处同一条认人路径，不自己猜——猜错过一次，主动消息发给了刚扫码进来的
+  // 陌生人，而主人一条都收不到。
+  listCheckinTargets() {
+    const targets = [];
+    const seen = new Set();
+    const add = (senderId, settings) => {
+      const id = String(senderId || "").trim();
+      if (!id || seen.has(id)) {
+        return;
+      }
+      seen.add(id);
+      targets.push({ senderId: id, settings });
+    };
+
+    // 主人。他那一份就是所有人的默认值。
+    let ownerSettings = null;
+    try {
+      ownerSettings = this.personaStore?.read().proactive || null;
+    } catch {
+      ownerSettings = null;
+    }
+    add(this.resolveOwnerSenderIdForCheckin(), ownerSettings);
+
+    // 其余每个说过话的人。
+    if (!this.runtimeSpoolDatabase || !this.personaStore) {
+      return targets;
+    }
+    try {
+      for (const entry of this.runtimeSpoolDatabase.listRecentInboundForOwner({ limit: 500 })) {
+        const senderId = String(entry?.payload?.senderId || "").trim();
+        if (!senderId || seen.has(senderId)) {
+          continue;
+        }
+        const userId = this.userAdmission?.users?.identify({
+          channel: "weixin",
+          botAccountRef: entry?.payload?.accountId || "",
+          senderRef: senderId,
+        })?.userId;
+        if (!userId) {
+          continue;
+        }
+        // readFor 没设过就回主人那一份，正是我们要的默认行为。
+        add(senderId, this.personaStore.readFor(userId).proactive);
+      }
+    } catch {
+      // 列不出来就只发主人的。宁可少发，也不能发错人。
+    }
+    return targets;
+  }
+
   // 记着的关于这个人的事。
   //
   // profile_facts 那张表和 SqliteProfileStore 一直都在，但**从来没接进过 app**
   // ——存在的是一个谁都没调用过的模块。这里把读那一侧接上；写那一侧还没有，
   // 所以现在多数人这一栏是空的，那是真的空，不是坏了。
-  listMemoriesFor(userId) {
+  // 库开了才有。构造那一刻还是 null，所以工具那边只能拿 getter 取。
+  profileStoreOrNull() {
     if (!this.runtimeSpoolDatabase) {
-      return [];
+      return null;
     }
     if (!this.profileStore) {
       this.profileStore = new SqliteProfileStore({
         database: this.runtimeSpoolDatabase.database,
       });
     }
+    return this.profileStore;
+  }
+
+  listMemoriesFor(userId) {
+    const store = this.profileStoreOrNull();
+    if (!store) {
+      return [];
+    }
     try {
-      const projection = this.profileStore.projection(userId);
+      const projection = store.projection(userId);
       return Object.entries(projection?.facts || {})
         .flatMap(([category, entries]) => Object.entries(entries || {})
           .map(([key, value]) => Object.freeze({
@@ -4341,6 +4461,14 @@ class CyberbossApp {
     const pendingMessages = this.systemMessageDispatcher?.drainPending() || [];
     for (const message of pendingMessages) {
       try {
+        // 不是主人的主动消息，走**普通用户那条模型路径**。
+        //
+        // dispatchSystemMessage 出口是主人的 Codex，开头有一道 owner-only 闸门。
+        // 访客的主动消息走进去必然被挡回来——那样「每个人自己的主动找我」就是
+        // 一个存了、显示了、但永远不会发生的设置。这是这个仓最熟悉的那种坏。
+        if (await this.dispatchGuestCheckin(message)) {
+          continue;
+        }
         const dispatched = await this.dispatchSystemMessage(message);
         if (!dispatched) {
           this.systemMessageDispatcher.requeue(message);
@@ -4349,6 +4477,51 @@ class CyberbossApp {
         this.systemMessageDispatcher?.requeue(message);
       }
     }
+  }
+
+  // 访客的主动消息。返回 true 表示这条已经办掉了。
+  //
+  // 主人走 Codex（有工具、有工作区）；访客走 runUserModelTurn（预算、熔断、
+  // provider router，前 N 个人共用主人那把钥匙）。两条路本来就分开，主动消息
+  // 也必须按同一条线分，否则访客那一半永远发不出去。
+  async dispatchGuestCheckin(message) {
+    const senderId = String(message?.senderId || "").trim();
+    if (!senderId || !this.userAdmission) {
+      return false;
+    }
+    let decision;
+    try {
+      decision = this.userAdmission.admit({
+        botAccountRef: message.accountId,
+        senderRef: senderId,
+        text: String(message.text || ""),
+      });
+    } catch {
+      return false;
+    }
+    // 主人的照旧走 Codex。
+    if (decision?.route !== "user" || !decision.userContext) {
+      return false;
+    }
+    const normalized = {
+      senderId,
+      accountId: message.accountId,
+      contextToken: this.channelAdapter.getKnownContextTokens()[senderId] || "",
+      text: String(message.text || ""),
+      provider: "system",
+    };
+    if (!normalized.contextToken) {
+      // 投不出去就别唤醒模型：花了额度，消息还是发不到他手上。
+      return true;
+    }
+    try {
+      await this.runUserModelTurn(normalized, decision.userContext);
+    } catch (error) {
+      console.error(
+        `[cyberboss] 访客的主动消息失败 code=${normalizeErrorCode(error?.code) || "guest_checkin_failed"}`,
+      );
+    }
+    return true;
   }
 
   async flushPendingTimelineScreenshots() {

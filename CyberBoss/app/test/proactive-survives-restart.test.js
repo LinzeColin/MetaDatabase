@@ -36,27 +36,65 @@ function storeIn(t) {
   };
 }
 
-// ── 倒计时要活过重启 ────────────────────────────────────────
+// ── 倒计时要活过重启，而且每人一份 ────────────────────────
+//
+// 一开始这里只有一个数字：主人那一个倒计时。现在是一张时刻表——「每个用户的
+// 设置应该都是个人的」，五个人五个不同的间隔，用一个数字排不出来。
 
-test("下一次什么时候写到盘上，重启之后读回来还是同一个时刻", (t) => {
+const OWNER_SENDER = "wx-owner";
+const GUEST_SENDER = "wx-guest";
+
+test("每个人的下一次分开存，重启之后读回来还是各自那个时刻", (t) => {
   const { store } = storeIn(t);
-  const at = Date.parse("2026-07-29T10:00:00.000Z");
+  const ownerAt = Date.parse("2026-07-29T10:00:00.000Z");
+  const guestAt = Date.parse("2026-07-29T14:30:00.000Z");
 
-  store.write(at);
+  store.write(OWNER_SENDER, ownerAt);
+  store.write(GUEST_SENDER, guestAt);
 
-  assert.equal(store.read(), at, "重启之后读不回来，倒计时就等于每次重来");
+  assert.equal(store.read(OWNER_SENDER), ownerAt, "重启之后读不回来，倒计时就等于每次重来");
+  assert.equal(store.read(GUEST_SENDER), guestAt);
+});
+
+test("给一个人重排，不动别人的", (t) => {
+  const { store } = storeIn(t);
+  store.write(OWNER_SENDER, 1_000_000);
+  store.write(GUEST_SENDER, 2_000_000);
+
+  store.write(OWNER_SENDER, 3_000_000);
+
+  assert.equal(store.read(GUEST_SENDER), 2_000_000, "改一个人的间隔把别人的也重掷了");
+});
+
+test("升级不清零：老格式（只有主人那一个数字）还读得出来", (t) => {
+  const { directory, store } = storeIn(t);
+  const file = path.join(directory, "sub", "next-checkin.json");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  // 这是升级前盘上真实的样子。
+  fs.writeFileSync(file, JSON.stringify({ nextAtMs: 1_234_567 }), "utf8");
+
+  assert.equal(
+    store.readAll().__owner__,
+    1_234_567,
+    "升级那一刻所有人的倒计时被清零，等于又按了一次重置",
+  );
 });
 
 test("没存过就返回 0——上层据此掷一次新的", (t) => {
   const { store } = storeIn(t);
-  assert.equal(store.read(), 0);
+  assert.equal(store.read(OWNER_SENDER), 0);
+  assert.deepEqual(store.readAll(), {});
 });
 
-test("用掉之后清掉，不会卡在同一个时刻上反复触发", (t) => {
+test("忘掉一个人不影响其他人", (t) => {
   const { store } = storeIn(t);
-  store.write(Date.now() + 60_000);
-  store.clear();
-  assert.equal(store.read(), 0);
+  store.write(OWNER_SENDER, 1_000_000);
+  store.write(GUEST_SENDER, 2_000_000);
+
+  store.forget(GUEST_SENDER);
+
+  assert.equal(store.read(GUEST_SENDER), 0);
+  assert.equal(store.read(OWNER_SENDER), 1_000_000);
 });
 
 test("文件坏了当没存过，不抛错——一个坏文件不该把轮询器搞崩", (t) => {
@@ -65,47 +103,55 @@ test("文件坏了当没存过，不抛错——一个坏文件不该把轮询�
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, "这不是 JSON", "utf8");
 
-  assert.equal(store.read(), 0);
+  assert.deepEqual(store.readAll(), {});
 });
 
 test("负数和非数字一律当没存过", (t) => {
   const { directory, store } = storeIn(t);
   const file = path.join(directory, "sub", "next-checkin.json");
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  for (const bad of ['{"nextAtMs":-1}', '{"nextAtMs":"明天"}', "{}"]) {
+  for (const bad of ['{"targets":{"wx-owner":-1}}', '{"targets":{"wx-owner":"明天"}}', "{}"]) {
     fs.writeFileSync(file, bad, "utf8");
-    assert.equal(store.read(), 0, `${bad} 应该当成没存过`);
+    assert.equal(store.read(OWNER_SENDER), 0, `${bad} 应该当成没存过`);
   }
 });
 
 test("目录不存在也能写进去", (t) => {
   const { store } = storeIn(t);
   const at = Date.now() + 3_600_000;
-  store.write(at);
-  assert.equal(store.read(), at);
+  store.write(OWNER_SENDER, at);
+  assert.equal(store.read(OWNER_SENDER), at);
 });
 
-test("轮询器真的用了这个存储，而不是每轮现掷", () => {
+test("轮询器真的用了这张时刻表，而不是每轮现掷", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "../src/app/system-checkin-poller.js"), "utf8",
   );
-  assert.match(source, /nextCheckinStore\.read\(\)/);
-  assert.match(source, /nextCheckinStore\.write\(nextAtMs\)/);
-  assert.match(source, /nextCheckinStore\.clear\(\)/);
-  // 存的时刻比现在设置的最大间隔还远，说明主人把间隔调短了，要重掷。
-  assert.match(source, /nextAtMs > Date\.now\(\) \+ currentRange\.maxIntervalMs/);
+  assert.match(source, /nextCheckinStore\.readAll\(\)/);
+  assert.match(source, /nextCheckinStore\.write\(target\.senderId/);
+  // 存的时刻比现在设置的最大间隔还远，说明间隔被调短了，要重掷。
+  assert.match(source, /dueAt > now \+ range\.maxIntervalMs/);
 });
 
-test("到点时机器是关着的，开机后补发而不是跳过", () => {
+test("到点了先把下一次排上，再决定这一次发不发", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "../src/app/system-checkin-poller.js"), "utf8",
   );
-  // 关键是这条分支存在：waitMs <= 0 时不 continue，而是缓一下继续往下走。
-  assert.match(source, /停机期间到点了/);
+  // 顺序反了的话，静默时段那条 continue 会让它卡在同一个时刻上反复触发。
+  const body = source.slice(source.indexOf("if (dueAt > now)"));
   assert.ok(
-    !/waitMs <= 0[\s\S]{0,200}continue;/.test(source),
-    "过期就 continue 等于永远补不上",
+    body.indexOf("nextCheckinStore.write(") < body.indexOf("enabled !== true"),
+    "排下一次排在了判断之后",
   );
+});
+
+test("每人一份设置：谁开着就发谁的，不看别人", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "../src/app/system-checkin-poller.js"), "utf8",
+  );
+  assert.match(source, /const targets = listTargets\(\)/);
+  assert.match(source, /rangeFrom\(target\.settings\)/);
+  assert.match(source, /isQuietNow\(target\.settings/);
 });
 
 // ── 目标必须是主人 ──────────────────────────────────────────
@@ -160,13 +206,12 @@ test("库读不出来时返回空串，不抛错", () => {
 
 // ── 中途改设置要当场算数 ────────────────────────────────────
 
-test("睡觉是分段睡的，中途改设置能被看见", () => {
+test("三十秒扫一遍，中途改设置能被看见", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "../src/app/system-checkin-poller.js"), "utf8",
   );
-  // 一觉睡到点的话，主人把 4 小时改成 5 分钟，轮询器还躺在两小时后的闹钟上，
+  // 一觉睡到点的话，把间隔从 4 小时改成 5 分钟，轮询器还躺在两小时后的闹钟上，
   // 他等 5 分钟什么都等不到，只能以为又坏了。
-  assert.match(source, /SLICE_MS/);
-  assert.match(source, /while \(Date\.now\(\) < nextAtMs\)/);
-  assert.match(source, /间隔改短了/);
+  assert.match(source, /SLICE_MS = 30_000/);
+  assert.match(source, /const targets = listTargets\(\)/);
 });

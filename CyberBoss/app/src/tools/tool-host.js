@@ -217,6 +217,46 @@ const PROJECT_TOOLS = [
       return { text: JSON.stringify(result), data: result };
     },
   },
+  // 长期记忆。
+  //
+  // 只记他自己说过的（explicit），不记猜的（inferred）。猜出来的东西会被当成
+  // 事实反复用在后面每一轮里——记错一件事，比不记这件事糟得多，主人会发现
+  // 它"记得的我"不是他。
+  {
+    name: "cyberboss_memory_remember",
+    description: "Remember a durable fact the user stated about themselves.",
+    shortHint: "Store a stable fact the user actually said. Never store a guess.",
+    topics: ["memory"],
+    inputSchema: {
+      type: "object",
+      required: ["category", "key", "value"],
+      properties: {
+        category: {
+          type: "string",
+          enum: ["basic", "preference", "routine", "goal", "relationship", "work", "interest", "communication_style"],
+        },
+        // 同一件事的名字要稳定：再说一次应该覆盖旧的，而不是并排堆两条。
+        key: { type: "string", description: "Stable snake_case name for this fact, e.g. sleep_habit, hometown." },
+        value: { type: "string", description: "The fact in one short sentence, in the user's own terms." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.memory.remember(args, context);
+      return { text: `Remembered: ${args.key}`, data: result };
+    },
+  },
+  {
+    name: "cyberboss_memory_recall",
+    description: "Read what is already remembered about the current user.",
+    shortHint: "Read stored facts before claiming what you remember.",
+    topics: ["memory"],
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    async handler({ services, args, context }) {
+      const result = await services.memory.recall(args, context);
+      return { text: JSON.stringify(result), data: result };
+    },
+  },
   {
     name: "cyberboss_system_send",
     description: "Queue an internal Cyberboss system trigger for the current bound workspace and chat.",

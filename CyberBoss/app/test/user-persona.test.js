@@ -126,27 +126,54 @@ test("换到别人的行上解不开——AAD 里带着 user_id，不是靠上�
 
 // ── 主动打招呼和名额永远只属于主人 ──────────────────────────
 
-test("主动打招呼和名额不是某个人的属性，写进个人那一行也不生效", (t) => {
+// 「每个用户的设置应该都是个人的，比如主动找我这个权限⋯应该是在用户下每个人
+//   都能单独保存。」
+//
+// 这一条原来是反过来断言的：proactive 写进个人那一行也不生效，理由是「唤醒模型
+// 只对 owner 开放」。那条边界在当时成立——那时候访客的消息根本走不到模型。但
+// 后来普通用户有了自己的模型路径（runUserModelTurn），前 N 个人还共用主人那把
+// 钥匙，那个前提早就没了。所以断言跟着改。
+//
+// access 没跟着改：它是整台机器的开门规则，不是某个人的属性。一个访客能把自己
+// 那一行的 seats 改成 999 的话，名额就不是名额了。
+
+test("每个人的「主动找我」是他自己的，谁也不影响谁", (t) => {
   const { store } = openStore(t);
   store.write({
     proactive: { enabled: true, minMinutes: 60, maxMinutes: 90, quietStart: 1, quietEnd: 6 },
-    access: { mode: "open", seats: 3 },
   });
   store.writeFor(ALICE, {
     tone: "quiet",
-    // 这个人想给自己开主动打招呼、想改名额——两样都不该落到他那一行上。
-    proactive: { enabled: true, minMinutes: 1, maxMinutes: 2, quietStart: 0, quietEnd: 0 },
-    access: { mode: "open", seats: 999 },
+    proactive: { enabled: false, minMinutes: 120, maxMinutes: 240, quietStart: 0, quietEnd: 8 },
   });
 
   const alice = store.readFor(ALICE);
-  // 读到的是主人那一份，不是他自己写的。
-  assert.equal(alice.proactive.minMinutes, 60);
-  assert.equal(alice.access.seats, 3);
-  // 个人那一份的形状里根本没有这两项。
+  assert.equal(alice.proactive.enabled, false, "他关掉了，就该是关的");
+  assert.equal(alice.proactive.minMinutes, 120);
+  // 主人那一行没被动过。
+  assert.equal(store.read().proactive.enabled, true);
+  assert.equal(store.read().proactive.minMinutes, 60);
+});
+
+test("没给自己设过的人，沿用主人那一份当默认", (t) => {
+  const { store } = openStore(t);
+  store.write({
+    proactive: { enabled: true, minMinutes: 45, maxMinutes: 240, quietStart: 23, quietEnd: 8 },
+  });
+  store.writeFor(ALICE, { tone: "quiet" });
+
+  assert.equal(store.readFor(ALICE).proactive.minMinutes, 45);
+});
+
+test("名额仍然不是个人属性——访客改不动整台机器的开门规则", (t) => {
+  const { store } = openStore(t);
+  store.write({ access: { mode: "open", seats: 3 } });
+  store.writeFor(ALICE, { tone: "quiet", access: { mode: "open", seats: 999 } });
+
+  assert.equal(store.readFor(ALICE).access.seats, 3);
   assert.deepEqual(
     Object.keys(normalizePersonPersona({ tone: "quiet", proactive: {}, access: {} })).sort(),
-    ["callMe", "emoji", "length", "note", "tone", "updatedAt"],
+    ["callMe", "emoji", "length", "note", "proactive", "tone", "updatedAt"],
   );
 });
 

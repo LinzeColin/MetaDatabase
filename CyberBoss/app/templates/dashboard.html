@@ -367,6 +367,16 @@
       <h2 style="margin-top:0">人</h2>
       <ul id="ops-users"></ul>
     </div>
+    <!-- 体检结论。「还没测过」和「测过了没问题」必须分开显示——分不开的话，
+         刚启动那几分钟会显示成"一切正常"，而那时候什么都还没测。 -->
+    <div class="card">
+      <h2 style="margin-top:0">体检</h2>
+      <div id="ops-health"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">日记</h2>
+      <div class="log" id="ops-diary"></div>
+    </div>
     <div class="card">
       <h2 style="margin-top:0">最近做过什么</h2>
       <div class="log" id="ops-log"></div>
@@ -966,6 +976,31 @@
     });
 
     document.getElementById("ops-log").textContent = (data.log || []).join("\n") || "还没有记录。";
+
+    // 体检。textContent，不拼 HTML。
+    var health = document.getElementById("ops-health");
+    health.textContent = "";
+    var h = data.health || {};
+    if (h.healthy === null || h.healthy === undefined) {
+      health.appendChild(el("p", "hint", "还没体检过。启动两分钟后跑第一次。"));
+    } else if (h.healthy) {
+      health.appendChild(el("p", "", "都正常。"));
+      health.appendChild(el("p", "hint", h.at ? "最后一次：" + new Date(h.at).toLocaleString("zh-CN") : ""));
+    } else {
+      (h.findings || []).forEach(function (f) {
+        var box = el("p", "");
+        box.appendChild(el("b", "", f.title + " "));
+        box.appendChild(document.createTextNode(f.detail));
+        health.appendChild(box);
+      });
+    }
+
+    // 日记。整机一份，不按人分——写它的是主人那条路径上的工具。
+    var diary = document.getElementById("ops-diary");
+    var entries = data.diary || [];
+    diary.textContent = entries.length
+      ? entries.map(function (d) { return "── " + d.day + " ──\n" + d.text; }).join("\n\n")
+      : "还没有日记。";
   }
   var opsTimer = null;
   function loadOps() {

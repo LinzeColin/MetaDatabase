@@ -11,9 +11,15 @@ const { SystemMessageQueueStore } = require("../core/system-message-queue-store"
 
 const INTERNAL_CHECKIN_TRIGGER_TEMPLATE = "%USER% comes to mind again.";
 
-// options.readProactive 每一轮现读一次主人的设置（开关、频率、静默时段）。
-// 现读而不是启动时读一次：主人在后台把它关掉，下一轮就该停，不用重启。
-// 没给这个回调时退回原来的文件配置，本地跑 `cyberboss start --checkin` 的行为不变。
+// options.listTargets 每一轮现读一次**所有人**的设置。
+//
+// 「每个用户的设置应该都是个人的，比如主动找我这个权限⋯应该是在用户下每个人
+// 都能单独保存。」所以这里不再只有主人一个目标：谁开了、多久一次、几点到几点
+// 不打扰，都是他自己那一份。
+//
+// 现读而不是启动时读一次：在后台把它关掉，下一轮就该停，不用重启。
+// 没给这个回调时退回「只有主人一个目标」，本地跑 `cyberboss start --checkin`
+// 的行为不变。
 async function runSystemCheckinPoller(config, options = {}) {
   const readProactive = typeof options.readProactive === "function" ? options.readProactive : null;
   const nowHour = typeof options.nowHour === "function"
@@ -25,103 +31,94 @@ async function runSystemCheckinPoller(config, options = {}) {
   const queue = new SystemMessageQueueStore({ filePath: config.systemMessageQueueFile });
   const checkinConfigStore = new CheckinConfigStore({ filePath: config.checkinConfigFile });
   const sessionStore = new SessionStore({ filePath: config.sessionsFile });
-  const target = resolvePollerTarget({ config, account: primaryAccount, sessionStore, options });
+  const ownerTarget = resolvePollerTarget({ config, account: primaryAccount, sessionStore, options });
+  const defaultWorkspaceRoot = ownerTarget.workspaceRoot;
   const defaultRange = resolveDefaultCheckinRange();
   const nextCheckinStore = options.nextCheckinStore
     || createNextCheckinStore(path.join(path.dirname(config.checkinConfigFile), "next-checkin.json"));
-  let currentRange = readProactive ? rangeFrom(readProactive()) : checkinConfigStore.getRange(defaultRange);
 
-  console.log(`[cyberboss] checkin poller ready user=${target.senderId} workspace=${target.workspaceRoot}`);
-  console.log(`[cyberboss] checkin interval range ${formatRangeMinutes(currentRange)}`);
+  // 没注入 listTargets 就退回单目标（主人），行为和以前一样。
+  const listTargets = typeof options.listTargets === "function"
+    ? () => {
+      const raw = options.listTargets();
+      return (Array.isArray(raw) ? raw : [])
+        .map((entry) => ({
+          senderId: normalizeText(entry?.senderId),
+          settings: entry?.settings || null,
+          workspaceRoot: normalizeText(entry?.workspaceRoot) || defaultWorkspaceRoot,
+        }))
+        .filter((entry) => entry.senderId);
+    }
+    : () => [{
+      senderId: ownerTarget.senderId,
+      settings: readProactive ? readProactive() : checkinConfigStore.getRange(defaultRange),
+      workspaceRoot: ownerTarget.workspaceRoot,
+    }];
 
+  console.log(`[cyberboss] checkin poller ready workspace=${defaultWorkspaceRoot}`);
+
+  // 每 30 秒扫一遍所有人，谁到点了就给谁排一条。
+  //
+  // 原来是「一个目标 + 一觉睡到点」。改成扫描式，是因为要支持每人一份设置：
+  // 五个人五个不同的间隔，用一个 sleep 排不出来，而每人一个定时器又会在进程
+  // 重启后全部丢失。扫描 + 盘上的时刻表，重启之后接着等就行。
+  //
+  // 三十秒的代价是每分钟两次空转的比较，换来的是「主人在后台把间隔从四小时
+  // 改成十分钟」当场就算数。
+  const SLICE_MS = 30_000;
   while (true) {
-    const settings = readProactive ? readProactive() : null;
-    currentRange = settings ? rangeFrom(settings) : checkinConfigStore.getRange(defaultRange);
+    const targets = listTargets();
+    const schedule = nextCheckinStore.readAll();
+    const now = Date.now();
 
-    // 下一次什么时候，**存到盘上**。
-    //
-    // 这是「设了 1-4 小时，过了 4 小时它还没来」的真正原因：以前这个时刻只活在
-    // 内存里，进程一重启就重新掷一次骰子。今天部署了七八次，等于把倒计时按了
-    // 七八次重置——它一次都轮不到。这和部署频率无关：崩一次、重启一次、升级
-    // 一次，都会把它清零。
-    //
-    // 存下来之后，重启就是接着等；关机期间早就该到点的，开机稍等一下就补发。
-    let nextAtMs = nextCheckinStore.read();
-    if (!nextAtMs || nextAtMs > Date.now() + currentRange.maxIntervalMs) {
-      // 没存过，或者存的时刻比现在设置的最大间隔还远（主人把间隔调短了），
-      // 重新掷一次。
-      nextAtMs = Date.now() + pickRandomDelayMs(currentRange.minIntervalMs, currentRange.maxIntervalMs);
-      nextCheckinStore.write(nextAtMs);
-    }
-    const waitMs = nextAtMs - Date.now();
-    if (waitMs > 0) {
-      console.log(
-        `[cyberboss] 下一次主动打招呼：${formatLocalTime(nextAtMs)}`
-        + `（还有 ${Math.round(waitMs / 60000)} 分钟）`,
-      );
-      // 分段睡，每段之间回头看一眼设置。
-      //
-      // 一觉睡到点的话，中途改设置是不生效的：主人把间隔从 4 小时改成 5 分钟，
-      // 而轮询器还躺在两小时后的那个闹钟上——他等了 5 分钟什么都没等到，只能
-      // 以为又坏了。改设置必须当场算数，这是「设了就该生效」最起码的意思。
-      const SLICE_MS = 30_000;
-      while (Date.now() < nextAtMs) {
-        await sleep(Math.min(SLICE_MS, nextAtMs - Date.now()));
-        const now = readProactive ? readProactive() : null;
-        if (!now) {
-          continue;
-        }
-        const range = rangeFrom(now);
-        // 间隔被调短了，原来那个时刻已经超出新的最大间隔——立刻往前挪。
-        if (nextAtMs > Date.now() + range.maxIntervalMs) {
-          nextAtMs = Date.now() + pickRandomDelayMs(range.minIntervalMs, range.maxIntervalMs);
-          nextCheckinStore.write(nextAtMs);
-          console.log(
-            `[cyberboss] 间隔改短了，下一次提前到 ${formatLocalTime(nextAtMs)}`,
-          );
-        }
+    for (const target of targets) {
+      const range = rangeFrom(target.settings);
+      let dueAt = Number(schedule[target.senderId]) || 0;
+
+      // 没排过，或者排的时刻比现在的最大间隔还远（他把间隔调短了），重掷。
+      if (!dueAt || dueAt > now + range.maxIntervalMs) {
+        dueAt = now + pickRandomDelayMs(range.minIntervalMs, range.maxIntervalMs);
+        nextCheckinStore.write(target.senderId, dueAt);
+        continue;
       }
-    } else {
-      // 到点的时候机器是关着的。缓一分钟再发，别在开机那一秒就戳人。
-      console.log(
-        `[cyberboss] 主动打招呼在停机期间到点了（${formatLocalTime(nextAtMs)}），一分钟后补上`,
+      if (dueAt > now) {
+        continue;
+      }
+
+      // 到点了。先把下一次排上，再决定这一次要不要真的发——这样中间任何一条
+      // 分支 continue 掉，都不会让它卡在同一个时刻上反复触发。
+      nextCheckinStore.write(
+        target.senderId,
+        now + pickRandomDelayMs(range.minIntervalMs, range.maxIntervalMs),
       );
-      await sleep(60_000);
-    }
-    // 这一轮用掉了，先清掉，免得下面任何一个 continue 让它卡在同一个时刻上。
-    nextCheckinStore.clear();
 
-    // 关掉了就什么都不做，但循环留着——主人再打开时不需要重启服务。
-    const current = readProactive ? readProactive() : null;
-    if (current && current.enabled !== true) {
-      console.log("[cyberboss] checkin skipped: 主人把主动打招呼关掉了");
-      continue;
-    }
-    // 静默时段。半夜戳人一下不叫陪伴，而且这一条必须在排队之前判——排进去了
-    // 就一定会发出去。
-    if (current && isQuietNow(current, nowHour())) {
-      console.log("[cyberboss] checkin skipped: 静默时段");
-      continue;
+      if (target.settings?.enabled !== true) {
+        continue;
+      }
+      // 静默时段。半夜戳人一下不叫陪伴，而且这一条必须在排队之前判——排进去了
+      // 就一定会发出去。
+      if (isQuietNow(target.settings, nowHour())) {
+        continue;
+      }
+
+      // 每一轮现查一次这个人挂在哪个号下面，而不是启动时定死：他重新扫过码
+      // 之后账号会换，定死的那个会把主动消息投到一个已经作废的号上。
+      const account = resolveAccountForUser(config, target.senderId);
+      if (queue.hasPendingForAccount(account.accountId)) {
+        continue;
+      }
+      const queued = queue.enqueue({
+        id: crypto.randomUUID(),
+        accountId: account.accountId,
+        senderId: target.senderId,
+        workspaceRoot: target.workspaceRoot || defaultWorkspaceRoot,
+        text: buildCheckinTrigger(config),
+        createdAt: new Date().toISOString(),
+      });
+      console.log(`[cyberboss] checkin queued id=${queued.id}`);
     }
 
-    // 每一轮现查一次主人挂在哪个号下面，而不是启动时定死：主人重新扫过码
-    // 之后账号会换，定死的那个会把主动消息投到一个已经作废的号上。
-    const account = resolveAccountForUser(config, target.senderId);
-
-    if (queue.hasPendingForAccount(account.accountId)) {
-      console.log("[cyberboss] checkin skipped: pending system message still in queue");
-      continue;
-    }
-
-    const queued = queue.enqueue({
-      id: crypto.randomUUID(),
-      accountId: account.accountId,
-      senderId: target.senderId,
-      workspaceRoot: target.workspaceRoot,
-      text: buildCheckinTrigger(config),
-      createdAt: new Date().toISOString(),
-    });
-    console.log(`[cyberboss] checkin queued id=${queued.id}`);
+    await sleep(SLICE_MS);
   }
 }
 
@@ -161,22 +158,43 @@ function resolvePollerTarget({ config, account, sessionStore, options = {} }) {
 // 「下一次什么时候」就存这一个数字。不进数据库：它不是任何人的数据，只是一个
 // 时刻；进程崩了、机器重启了，它得还在。
 function createNextCheckinStore(filePath) {
+  const readAll = () => {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      // 老格式是 { nextAtMs }，只有主人一个人。升级之后照样读得出来，
+      // 挂到 __owner__ 名下——不然升级那一刻所有人的倒计时会一起清零。
+      if (parsed && typeof parsed.nextAtMs === "number") {
+        return { __owner__: parsed.nextAtMs };
+      }
+      const targets = parsed?.targets;
+      return targets && typeof targets === "object" ? targets : {};
+    } catch {
+      return {};
+    }
+  };
+  const writeAll = (targets) => {
+    try {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, JSON.stringify({ targets }), "utf8");
+    } catch {
+      // 写不进去就退回老行为（每次重新掷）。不该因为这个把轮询器搞崩。
+    }
+  };
   return {
-    read() {
-      try {
-        const value = Number(JSON.parse(fs.readFileSync(filePath, "utf8")).nextAtMs);
-        return Number.isFinite(value) && value > 0 ? value : 0;
-      } catch {
-        return 0;
-      }
+    readAll,
+    read(senderId) {
+      const value = Number(readAll()[senderId]);
+      return Number.isFinite(value) && value > 0 ? value : 0;
     },
-    write(nextAtMs) {
-      try {
-        fs.mkdirSync(path.dirname(filePath), { recursive: true });
-        fs.writeFileSync(filePath, JSON.stringify({ nextAtMs }), "utf8");
-      } catch {
-        // 写不进去就退回老行为（每次重新掷）。不该因为这个把轮询器搞崩。
-      }
+    write(senderId, nextAtMs) {
+      const targets = readAll();
+      targets[senderId] = nextAtMs;
+      writeAll(targets);
+    },
+    forget(senderId) {
+      const targets = readAll();
+      delete targets[senderId];
+      writeAll(targets);
     },
     clear() {
       try {
