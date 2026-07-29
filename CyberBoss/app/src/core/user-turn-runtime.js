@@ -197,7 +197,12 @@ class UserTurnRuntime {
     if (!apiKey) {
       const fallback = this.#ownerQuotaFor(userContext.userId);
       if (fallback) {
-        selection = { providerId: fallback.providerId, model: fallback.model };
+        selection = {
+          providerId: fallback.providerId,
+          model: fallback.model,
+          // 推理档位跟着钥匙走。别的 provider 收到空串会忽略它。
+          reasoningEffort: fallback.reasoningEffort || "",
+        };
         apiKey = fallback.apiKey;
       }
     }
@@ -256,6 +261,7 @@ class UserTurnRuntime {
         model: selection.model,
         apiKey,
         messages: [{ role: "user", content: prompt }],
+        reasoningEffort: selection.reasoningEffort || "",
         signal,
       });
       if (result.ok) {

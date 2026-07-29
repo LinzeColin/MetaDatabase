@@ -219,6 +219,17 @@ function readConfig() {
     checkinConfigFile: path.join(stateDir, "checkin-config.json"),
     timelineScreenshotQueueFile: path.join(stateDir, "timeline-screenshot-queue.json"),
     projectToolContextFile: path.join(stateDir, "project-tool-runtime-context.json"),
+    // 前 N 个人共用主人这把钥匙时，用哪个模型。
+    //
+    // 这三样必须能填，不能写死在代码里：它们是外部服务认的**确切字符串**，
+    // 猜错一个字母，每一轮都会失败——而且换模型不该需要改代码重新部署。
+    // 以前 deepseek 是写死的，「有人反应说是 deepseek」就是这么来的。
+    ownerModelOpenAI: String(process.env.CB_OWNER_MODEL_OPENAI || "gpt-5").trim(),
+    ownerModelDeepSeek: String(process.env.CB_OWNER_MODEL_DEEPSEEK || "deepseek-chat").trim(),
+    // OpenAI 推理档位：low / medium / high。别的 provider 忽略。
+    ownerReasoningEffort: ["low", "medium", "high"].includes(
+      String(process.env.CB_OWNER_REASONING_EFFORT || "").trim(),
+    ) ? String(process.env.CB_OWNER_REASONING_EFFORT).trim() : "",
     weixinInstructionsFile: path.join(stateDir, "weixin-instructions.md"),
     weixinOperationsFile: path.resolve(__dirname, "..", "..", "templates", "weixin-operations.md"),
     stickersDir: path.join(stateDir, "stickers"),

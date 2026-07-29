@@ -109,6 +109,9 @@ EnvironmentFile=$LIVE_ENV
 # 注意：这一整块在 remote "..." 这个双引号字符串里面，注释里**不能出现半角
 # 双引号**——它会把外层字符串提前闭合，整个脚本从那里开始语法就错了。
 LoadCredential=deepseek-api-key:/etc/cyberboss/credentials/deepseek-api-key
+# OpenAI 那把。文件不存在时 LoadCredential 会让服务起不来，所以前面加减号
+# 表示可选——没配就安静跳过，配了就自动生效。
+LoadCredential=-openai-api-key:/etc/cyberboss/credentials/openai-api-key
 EOF
     sudo systemctl daemon-reload
   "

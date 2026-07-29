@@ -16,7 +16,7 @@ class OpenAIResponsesAdapter {
     this.fetch = fetchImpl;
   }
 
-  async sendText({ apiKey, model, messages, maxOutputTokens = 800, signal }) {
+  async sendText({ apiKey, model, messages, maxOutputTokens = 800, signal, reasoningEffort = "" }) {
     assertModel(this.policy, model);
     const input = messages
       .filter((message) => ROLES.includes(message.role))
@@ -29,7 +29,15 @@ class OpenAIResponsesAdapter {
         authorization: `Bearer ${apiKey}`,
       },
       // store:false keeps the user's prompt out of provider-side retention.
-      body: JSON.stringify({ model, input, max_output_tokens: maxOutputTokens, store: false }),
+      body: JSON.stringify({
+        model,
+        input,
+        max_output_tokens: maxOutputTokens,
+        store: false,
+        // 推理档位。只有给了才带上——不认这个参数的模型收到它会直接报错，
+        // 而那会让「换了个模型」变成「所有人都收不到回复」。
+        ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
+      }),
     });
     const body = await response.text();
     if (!response.ok) {

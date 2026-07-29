@@ -75,7 +75,7 @@ const {
 } = require("../adapters/runtime/shared/approval-command");
 const { updateEnvFile } = require("./bootstrap");
 const { UserAdmissionService } = require("./user-admission");
-const { UserTurnRuntime } = require("./user-turn-runtime");
+const { DEFAULT_PROVIDER_POLICIES, UserTurnRuntime } = require("./user-turn-runtime");
 const { UserCompanionTurn } = require("./user-companion-turn");
 const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
@@ -265,6 +265,33 @@ function resolveActivePayloadTtlMs(hours) {
   return hours * 60 * 60 * 1000;
 }
 
+// 把配置里指定的模型并进服务端白名单。
+//
+// 白名单的意义是「用户不能自己指定 model 和 origin」——那条边界照旧。这里加的
+// 是**运营者**在部署时配的那一个，等价于改一次常量，只是不用重新发版。
+//
+// 不这么做的话，CB_OWNER_MODEL_OPENAI 填了一个新模型，assertModel 会以
+// MODEL_NOT_ALLOWED 把每一轮都挡掉，而面板上只会显示"AI 服务暂时不可用"。
+function buildProviderPolicies(config) {
+  const merged = {};
+  for (const [providerId, policy] of Object.entries(DEFAULT_PROVIDER_POLICIES)) {
+    const extra = providerId === "openai"
+      ? String(config?.ownerModelOpenAI || "").trim()
+      : providerId === "deepseek"
+        ? String(config?.ownerModelDeepSeek || "").trim()
+        : "";
+    merged[providerId] = Object.freeze({
+      ...policy,
+      models: Object.freeze(
+        extra && !policy.models.includes(extra)
+          ? [...policy.models, extra]
+          : [...policy.models],
+      ),
+    });
+  }
+  return Object.freeze(merged);
+}
+
 function createRuntimeAdapter(config) {
   if (config.runtime === "claudecode") {
     return createClaudeCodeRuntimeAdapter(config);
@@ -439,6 +466,10 @@ class CyberbossApp {
           database: this.runtimeSpoolDatabase.database,
           userRepository: this.userAdmission.users,
           encryptionKey,
+          // 配置里指定的模型必须进白名单，否则 assertModel 会把它挡掉——
+          // 「配了新模型，结果每个人都收不到回复」。白名单本身仍然是服务端
+          // 拥有的：用户永远不能自己指定 model 或 origin，只能在这份里挑。
+          providerPolicies: buildProviderPolicies(this.config),
           // 前 N 个开通的人用主人的额度；第 N+1 个开始必须自己填密钥。
           ownerQuota: {
             resolve: (userId) => this.resolveOwnerQuotaFor(userId),
@@ -2632,25 +2663,78 @@ class CyberbossApp {
   }
 
   // 主人自己那把 AI 密钥。只在内存里读一次就缓存，不落任何日志。
+  //
+  // 「有人反应说是 deepseek，这是不允许的，前面 5 个人都需要是 gpt 模型。」
+  //
+  // 以前这里把 deepseek 写死了：密钥名、providerId、model 三样全是常量。所以
+  // 换模型必须改代码、重新部署——一个要卖出去的产品不该这样。
+  //
+  // 现在按**优先级找第一把能用的钥匙**：OpenAI 在前，DeepSeek 在后。配了
+  // OpenAI 就走 OpenAI，前 N 个人自动跟着换，不用改一行代码。
+  //
+  // model 和 reasoning 也从配置来。这两样是外部服务认的**确切字符串**，
+  // 猜错一个字母，每一轮都会失败——所以它们必须能填，不能由我编。
   ownerProviderCredential() {
     if (this.ownerCredentialCache !== undefined) {
       return this.ownerCredentialCache;
     }
-    let apiKey = "";
-    try {
-      // 环境变量优先，其次 systemd credential。密钥只在内存里，不落日志、
-      // 不落配置、不进任何一条聊天记录。
-      apiKey = loadRuntimeTextSecret({
+    const candidates = [
+      {
+        providerId: "openai",
+        envName: "OPENAI_API_KEY",
+        credentialName: "openai-api-key",
+        model: this.config.ownerModelOpenAI,
+      },
+      {
+        providerId: "deepseek",
         envName: "DEEPSEEK_API_KEY",
         credentialName: "deepseek-api-key",
+        model: this.config.ownerModelDeepSeek,
+      },
+    ];
+    this.ownerCredentialCache = null;
+    for (const candidate of candidates) {
+      let apiKey = "";
+      try {
+        // 环境变量优先，其次 systemd credential。密钥只在内存里，不落日志、
+        // 不落配置、不进任何一条聊天记录。
+        apiKey = loadRuntimeTextSecret({
+          envName: candidate.envName,
+          credentialName: candidate.credentialName,
+        });
+      } catch {
+        apiKey = "";
+      }
+      if (!apiKey) {
+        continue;
+      }
+      this.ownerCredentialCache = Object.freeze({
+        providerId: candidate.providerId,
+        model: candidate.model,
+        apiKey,
+        // OpenAI 的推理档位（low / medium / high）。别的 provider 忽略它。
+        reasoningEffort: candidate.providerId === "openai"
+          ? this.config.ownerReasoningEffort
+          : "",
       });
-    } catch {
-      apiKey = "";
+      console.log(
+        `[cyberboss] 前 ${this.resolveOwnerSeatLimit()} 个人用主人这把钥匙：`
+        + `${candidate.providerId} / ${candidate.model}`
+        + (this.ownerCredentialCache.reasoningEffort
+          ? ` / reasoning=${this.ownerCredentialCache.reasoningEffort}`
+          : ""),
+      );
+      break;
     }
-    this.ownerCredentialCache = apiKey
-      ? Object.freeze({ providerId: "deepseek", model: "deepseek-chat", apiKey })
-      : null;
     return this.ownerCredentialCache;
+  }
+
+  resolveOwnerSeatLimit() {
+    try {
+      return Number(this.personaStore?.read().access.seats) || 5;
+    } catch {
+      return 5;
+    }
   }
 
   // 记一步执行轨迹。
