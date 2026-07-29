@@ -23,15 +23,18 @@ async function bootstrap() {
 }
 
 function handoffOrLogin() {
-  const current = new URL(window.location.href);
-  if (current.searchParams.get("handoff") === "1") return renderLogin();
-  if (!current.hostname.toLowerCase().startsWith("admin.")) return renderLogin();
-  const publicHandoff = new URL(current.href);
-  publicHandoff.hostname = current.hostname.slice("admin.".length);
-  publicHandoff.pathname = "/api/platform/v1/session/handoff";
-  publicHandoff.search = "";
-  publicHandoff.hash = "";
-  window.location.replace(publicHandoff.toString());
+  // A successful main-site login already sets the session cookie for
+  // `.weread.linzezhang.com`, so bootstrap() above loads an existing admin
+  // session without another credential prompt.  Do not navigate an
+  // unauthenticated visitor to the server-side `/session/handoff` endpoint:
+  // that endpoint correctly returns 401 without a session, but a top-level
+  // redirect would leave the dedicated Admin shell blank instead of offering
+  // its explicit, allowlisted login screen.
+  //
+  // The server-side `/api/platform/v1/session/handoff` route remains available
+  // for a verified main-site session and still enforces the immutable admin
+  // account allowlist before it can issue a cross-subdomain handoff.
+  return renderLogin();
 }
 
 async function loadOverview() {

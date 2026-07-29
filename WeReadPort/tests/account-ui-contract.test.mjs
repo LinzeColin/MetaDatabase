@@ -89,9 +89,11 @@ test("UI UX Pro Max 关键可访问性合同：44px 触控、焦点、减弱动�
   assert.ok(ui.includes('role="switch"'));
 });
 
-test("管理员界面独立构建，普通用户页面不含管理导航或管理数据展示", () => {
+test("管理员界面独立构建、共享会话直接加载且无会话不出现空白页，普通用户页面不含管理导航或管理数据展示", () => {
   assert.ok(adminHtml.includes("阅迁 Admin"));
   for (const phrase of ["不可变账户白名单", "登录后直接查看管理数据", "Promise.allSettled", "session/handoff", "管理员控制台", "adminPrompts", "adminNote", "adminBookSkills", "adminSecurity", "Book-to-Skill", "登录与安全", "DIRECT_LIST_LIMIT"]) assert.ok(adminUi.includes(phrase), phrase);
+  assert.match(adminUi, /function handoffOrLogin\(\) \{[\s\S]*return renderLogin\(\);/u, "无有效会话时必须显示管理员登录界面，不能留下空白页");
+  assert.equal(adminUi.includes("window.location.replace"), false, "管理员入口不得把无会话访客重定向到 JSON 交接接口");
   assert.equal(adminUi.includes("读取并审计"), false);
   assert.equal(adminUi.includes("查看用途"), false);
   assert.equal(adminUi.includes("近期身份验证"), false);
