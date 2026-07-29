@@ -16,8 +16,21 @@ from typing import Any
 from playwright.sync_api import Browser, Page, sync_playwright
 
 APP = Path(__file__).resolve().parents[2]
-CHROMIUM = os.environ.get("CHROMIUM_PATH", "/usr/bin/chromium")
 CSS = (APP / "src/ui/styles.css").read_text(encoding="utf-8")
+
+
+def chromium_path() -> str:
+    """Use an explicit override first, then known Linux and macOS locations."""
+    candidates = [
+        os.environ.get("CHROMIUM_PATH", ""),
+        "/usr/bin/chromium",
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    ]
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    raise RuntimeError("未找到可执行 Chromium；可通过 CHROMIUM_PATH 指定浏览器。")
 
 
 def bundle() -> str:
@@ -29,9 +42,10 @@ def bundle() -> str:
     platform = re.sub(r'^import\s+\{\s*readObsidianSelection\s*\}\s+from\s+"\./obsidian-import\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r'^import\s+\{\s*CHATGPT_HANDOFF_URL\s*\}\s+from\s+"\.\./core/constants\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r'^import\s+\{\s*buildAccountNotesArchive,\s*renderAccountNotesChatGPTContext\s*\}\s+from\s+"\.\./core/account-note-handoff\.js";\s*', "", platform, count=1, flags=re.M)
+    platform = re.sub(r'^import\s+\{[\s\S]*?\}\s+from\s+"\.\./core/account-note-handoff\.js";\s*', "", platform, count=1, flags=re.M)
     platform = re.sub(r"\bexport\s+", "", platform)
     obsidian_double = "async function readObsidianSelection(){ return {items:[],sourceLabel:'浏览器夹具',totalFiles:0,totalBytes:0}; }"
-    handoff_double = "const gsap={matchMedia(){return{add(_conditions,callback){return callback({conditions:{reduceMotion:true}});},revert(){}}},set(){},to(){},fromTo(){},killTweensOf(){}}; const CHATGPT_HANDOFF_URL='https://chatgpt.com/'; function renderAccountNotesChatGPTContext(notes){ return '# 浏览器夹具笔记\\n'; } function buildAccountNotesArchive(notes){ return {bytes:new Uint8Array([1]),filename:'fixture.zip'}; }"
+    handoff_double = "const gsap={matchMedia(){return{add(_conditions,callback){return callback({conditions:{reduceMotion:true}});},revert(){}}},set(){},to(){},fromTo(){},killTweensOf(){}}; const CHATGPT_HANDOFF_URL='https://chatgpt.com/'; const AI_INQUIRY_PROVIDERS=Object.freeze([{id:'chatgpt',label:'ChatGPT',url:'https://chatgpt.com/'},{id:'claude',label:'Claude',url:'https://claude.ai/'},{id:'deepseek',label:'DeepSeek',url:'https://chat.deepseek.com/'},{id:'doubao',label:'豆包',url:'https://www.doubao.com/chat/'},{id:'kimi',label:'Kimi',url:'https://www.kimi.com/'}]); const AI_INQUIRY_STYLES=Object.freeze([{id:'blindspot',label:'盲点反思',instruction:'先找出盲点。'},{id:'socratic',label:'苏格拉底式',instruction:'通过追问帮助思考。'},{id:'argument',label:'论证检查',instruction:'检查论证。'},{id:'experiment',label:'行动实验',instruction:'设计实验。'}]); const DEFAULT_AI_INQUIRY_PROVIDER_ID='chatgpt'; const DEFAULT_AI_INQUIRY_STYLE_ID='blindspot'; function renderSingleNoteAiInquiry(note,options={}){const provider=AI_INQUIRY_PROVIDERS.find(item=>item.id===options.providerId)||AI_INQUIRY_PROVIDERS[0];const style=AI_INQUIRY_STYLES.find(item=>item.id===options.styleId)||AI_INQUIRY_STYLES[0];return {provider,style,text:'请按“'+style.label+'”的方式协助我思考。\\n\\n只讨论这一条笔记：\\n'+note.title+'\\n\\n笔记正文：\\n'+note.content};} function renderAccountNotesChatGPTContext(notes){ return '# 浏览器夹具笔记\\n'; } function buildAccountNotesArchive(notes){ return {bytes:new Uint8Array([1]),filename:'fixture.zip'}; }"
     return api + "\n" + obsidian_double + "\n" + handoff_double + "\n" + platform + "\nvoid renderAccountPlatform(document.querySelector('#app'));"
 
 
@@ -117,17 +131,30 @@ def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
       f.synces = 0;
       f.downstreamReads = {{profile:0,notes:0,analytics:0}};
       f.copied = [];
+      f.opened = [];
+      f.bookSkills = [];
+      f.aiPreferences = {{providerId:'chatgpt',styleId:'blindspot',personalContext:'',customPrompt:''}};
+      f.aiInquiryEvents = [];
       Object.defineProperty(navigator, 'clipboard', {{configurable:true, value:{{writeText:async value => f.copied.push(String(value))}}}});
       window.__browserFixture = f;
       window.fetch = async (input, init={{}}) => {{
         const url = String(input);
         const path = url.includes('/api/platform/v1') ? url.split('/api/platform/v1')[1] : url;
+        const method = String(init.method || 'GET').toUpperCase();
+        const requestBody = () => {{ try {{ return JSON.parse(String(init.body || '{{}}')); }} catch {{ return {{}}; }} }};
         const ok = value => new Response(JSON.stringify(value), {{status:200, headers:{{'content-type':'application/json'}}}});
         if (path === '/readyz') return f.serviceReady ? ok({{status:'READY', checks:{{accountPlatformService:{{status:'READY',detail:'账户服务可用'}}}}}}) : new Response(JSON.stringify({{status:'NOT_READY',checks:{{accountPlatformService:{{status:'BLOCKED',detail:'账户服务未完成部署身份与存储就绪检查'}}}}}}), {{status:503,headers:{{'content-type':'application/json'}}}});
         if (path.startsWith('/session')) return f.authenticated ? ok({{account:f.account, csrf:'csrf-browser-fixture'}}) : new Response(JSON.stringify({{error:{{code:'UNAUTHENTICATED',message:'请先登录'}}}}), {{status:401,headers:{{'content-type':'application/json'}}}});
         if (path.startsWith('/notes?')) {{ if (f.synces) f.downstreamReads.notes += 1; return ok({{notes:f.notes}}); }}
         if (path.startsWith('/notes/') && path !== '/notes/export') {{ const id=decodeURIComponent(path.split('/').pop()); const note=f.notes.find(item => item.id===id); return note ? ok({{note:{{...note,content:{json.dumps(NOTE_CONTENT, ensure_ascii=False)}[id]}}}}) : new Response(JSON.stringify({{error:{{code:'NOT_FOUND',message:'笔记不存在'}}}}),{{status:404,headers:{{'content-type':'application/json'}}}}); }}
         if (path === '/notes/export') {{ return ok({{notes:f.notes.map(note => ({{...note,content:{json.dumps(NOTE_CONTENT, ensure_ascii=False)}[note.id]}}))}}); }}
+        if (path.startsWith('/book-skills?') && method === 'GET') return ok({{bookSkills:f.bookSkills}});
+        if (path === '/book-skills/preview' && method === 'POST') {{ const input=requestBody(); const title=String(input.bookTitle || ''); const author=String(input.author || ''); const related=f.notes.filter(note => note.bookTitle === title && (!author || note.author === author)); return ok({{preview:{{book:{{title,author}},source:{{noteCount:related.length}},artifact:{{filename:'fixture-book-skill.md',markdown:'# 《'+title+'》 阅读 Skill\\n\\n- 仅基于这一本文字已保存的笔记。'}}}}}}); }}
+        if (path === '/book-skills' && method === 'POST') {{ const input=requestBody(); const skill={{id:'skill-fixture-'+(f.bookSkills.length+1),bookTitle:String(input.bookTitle || ''),author:String(input.author || ''),noteCount:f.notes.filter(note => note.bookTitle === input.bookTitle && (!input.author || note.author === input.author)).length,version:1}}; f.bookSkills=[skill,...f.bookSkills]; return ok({{bookSkill:skill}}); }}
+        if (path === '/ai/preferences' && method === 'GET') return ok({{preferences:f.aiPreferences}});
+        if (path === '/ai/preferences' && method === 'PATCH') {{ f.aiPreferences={{...f.aiPreferences,...requestBody()}}; return ok({{preferences:f.aiPreferences}}); }}
+        if (path.startsWith('/ai/inquiries?') && method === 'GET') return ok({{events:f.aiInquiryEvents}});
+        if (path === '/ai/inquiries' && method === 'POST') {{ const input=requestBody(); const note=f.notes.find(item => item.id === input.noteId); const event={{id:'aiq-fixture-'+(f.aiInquiryEvents.length+1),providerLabel:input.providerId === 'claude' ? 'Claude' : 'ChatGPT',styleLabel:input.styleId === 'socratic' ? '苏格拉底式' : '盲点反思',createdAt:1785196800,note:note ? {{id:note.id,title:note.title,bookTitle:note.bookTitle,author:note.author}} : null}}; f.aiInquiryEvents=[event,...f.aiInquiryEvents]; return ok({{event}}); }}
         if (path === '/analytics/dashboard') {{ if (f.synces) f.downstreamReads.analytics += 1; return ok({{dashboard:f.dashboard}}); }}
         if (path === '/profile') {{ if (f.synces) f.downstreamReads.profile += 1; return ok({{account:f.account}}); }}
         if (path === '/weread/sync') {{
@@ -152,7 +179,7 @@ def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
         return ok({{}});
       }};
       window.confirm = () => false;
-      window.open = () => null;
+      window.open = value => {{ f.opened.push(String(value)); return null; }};
     }})();'''
 
 
@@ -253,6 +280,12 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     page.get_by_role("button", name="复制书名").first.click()
     page.wait_for_function("() => window.__browserFixture.copied.includes('继续整理系统思维主题')")
     assert page.get_by_text("不会把笔记正文发送给模型", exact=False).is_visible()
+    assert page.get_by_role("button", name="Book-to-Skill").count() == 2
+    page.get_by_role("button", name="Book-to-Skill").first.click()
+    page.get_by_role("heading", name="《系统思维》").wait_for()
+    assert page.get_by_role("button", name="保存到我的 Skills").is_visible()
+    page.keyboard.press("Escape")
+    page.wait_for_function("() => document.querySelectorAll('[role=dialog]').length === 0")
 
     page.get_by_role("button", name="首页").click()
     page.get_by_role("heading", name="早上好，新手读者").wait_for()
@@ -269,10 +302,18 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
 
     page.get_by_role("button", name="我的笔记").click()
     page.get_by_role("heading", name="所有来源，统一保存在你的账户").wait_for()
-    for name in ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "打包下载当前结果", "带当前结果问 ChatGPT"]:
+    for name in ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "打包下载当前结果", "选择一本书生成 Book-to-Skill", "选择一条笔记去 AI 问询"]:
         assert page.get_by_text(name, exact=True).is_visible(), name
     assert page.get_by_text("点击笔记才会按需解密并显示完整正文。", exact=False).is_visible()
     assert page.locator(".notes-workbench .note-row").count() == 3
+    system_archive = page.get_by_role("button", name="《系统思维》")
+    system_archive_panel = system_archive.get_attribute("aria-controls")
+    assert system_archive.get_attribute("aria-expanded") == "true"
+    system_archive.click()
+    assert system_archive.get_attribute("aria-expanded") == "false"
+    assert page.locator(f"[id='{system_archive_panel}']").is_hidden()
+    system_archive.click()
+    assert system_archive.get_attribute("aria-expanded") == "true"
     page.locator("#note-search").fill("系统")
     assert page.locator(".notes-workbench .note-row").count() == 1
     page.locator("#note-book").fill("系统思维")
@@ -285,12 +326,42 @@ def account_contract(browser: Browser, width: int) -> dict[str, Any]:
     page.locator(".note-detail-modal .modal-close-action").click()
     page.get_by_role("button", name="清除条件").click()
     assert page.locator(".notes-workbench .note-row").count() == 3
-    page.get_by_role("button", name="问 ChatGPT").first.click()
-    page.get_by_text("已下载阅读资料；请打开 ChatGPT 后手动添加该文件。", exact=True).wait_for()
     page.get_by_role("button", name="打包下载当前结果").click()
     page.get_by_text("当前显示的笔记已打包下载。", exact=True).wait_for()
-    page.get_by_role("button", name="带当前结果问 ChatGPT").click()
-    page.get_by_text("已下载阅读资料；请打开 ChatGPT 后手动添加该文件。", exact=True).wait_for()
+    page.get_by_role("button", name="选择一本书生成 Book-to-Skill").click()
+    page.get_by_role("heading", name="选择一本书").wait_for()
+    page.get_by_role("radio", name=re.compile("系统思维")).check()
+    page.get_by_role("button", name="生成预览").click()
+    page.get_by_role("heading", name="《系统思维》").wait_for()
+    assert page.get_by_text("仅在账户服务内生成", exact=False).is_visible()
+    page.get_by_role("button", name="保存到我的 Skills").click()
+    page.get_by_text("Book-to-Skill 已加密保存到你的账户。", exact=True).wait_for()
+    assert page.get_by_text("1 个已保存 Skill", exact=True).is_visible()
+
+    page.locator("[data-note-ai]").first.click()
+    page.get_by_role("heading", name="把一条笔记带去继续思考").wait_for()
+    assert "ChatGPT" in page.locator("#ai-provider-toggle").inner_text()
+    assert "盲点反思" in page.locator("#ai-style-toggle").inner_text()
+    assert page.get_by_role("tab", name="我的风格").is_visible()
+    assert page.get_by_role("tab", name="问询记录").is_visible()
+    assert page.locator("#ai-launch").is_visible()
+    page.locator("#ai-provider-toggle").click()
+    page.locator("#ai-provider-menu").get_by_role("button", name="Claude", exact=True).click()
+    page.wait_for_function("() => document.querySelector('#ai-provider-toggle')?.innerText.includes('Claude')")
+    page.locator("#ai-style-toggle").click()
+    page.locator("#ai-style-menu").get_by_role("button", name="苏格拉底式", exact=False).click()
+    page.wait_for_function("() => document.querySelector('#ai-style-toggle')?.innerText.includes('苏格拉底式')")
+    page.locator("#ai-note-select").select_option("note-1")
+    page.locator("#ai-launch").click()
+    page.wait_for_function("() => window.__browserFixture.copied.some(value => value.includes('苏格拉底式') && value.includes('系统思维摘录'))")
+    page.wait_for_function("() => window.__browserFixture.opened.includes('https://claude.ai/')")
+    assert page.get_by_text("已复制“苏格拉底式”提示词和这一条笔记", exact=False).is_visible()
+    page.get_by_role("tab", name="我的风格").click()
+    page.locator("#ai-personal-context").fill("我需要先看见反例和失败条件。")
+    page.locator("#ai-custom-prompt").fill("请把事实、推测与待验证内容分开。")
+    page.get_by_role("button", name="保存我的风格").click()
+    page.get_by_text("你的 AI 问询偏好已加密保存。", exact=True).wait_for()
+    assert page.locator("#ai-personal-context").input_value() == "我需要先看见反例和失败条件。"
 
     page.get_by_role("button", name="账户与安全").click()
     page.get_by_role("heading", name="管理你的身份、设备、连接和数据选择").wait_for()
@@ -329,7 +400,7 @@ def main() -> int:
     report: dict[str, Any] = {"suite": "v0.0.0.1.9-account-whitebox", "mode": "embedded-real-ui-source-deterministic-api-double", "status": "FAIL", "checks": []}
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, executable_path=CHROMIUM, args=["--no-sandbox", "--disable-dev-shm-usage"])
+            browser = p.chromium.launch(headless=True, executable_path=chromium_path(), args=["--no-sandbox", "--disable-dev-shm-usage"])
             try:
                 report["checks"].append(service_blocker_contract(browser))
                 for width in (320, 390, 1440):

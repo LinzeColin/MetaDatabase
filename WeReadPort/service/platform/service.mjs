@@ -36,6 +36,7 @@ import {
   WEREAD_COLLECTION_FORMAT_VERSION,
 } from "./weread.mjs";
 import { buildAnalyticsDashboard } from "./analytics.mjs";
+import { BookToSkillError, buildBookSkill } from "../../src/core/book-to-skill.js";
 import {
   AI_INQUIRY_PROVIDERS,
   AI_INQUIRY_STYLES,
@@ -44,6 +45,8 @@ import {
 } from "../../src/core/account-note-handoff.js";
 
 const WEREAD_FULL_RECONCILE_SECONDS = 24 * 60 * 60;
+const BOOK_SKILL_MAX_NOTES = 5_000;
+const BOOK_SKILL_MAX_BYTES = 20 * 1024 * 1024;
 const SECRET_LIKE_WEREAD_KEY = /\bwrk-[A-Za-z0-9._-]{8,}\b/u;
 const ADMIN_DIRECT_VIEW_REASON = "管理员直接查看";
 
@@ -77,7 +80,7 @@ export class PlatformService {
     try {
       this.store.addCredential({ id: randomId("cred_"), accountId: account.id, kind: "password", provider: "email", subject: normalized, secretHash: await hashPassword(password) });
       this.audit(account.id, "account_registered", { method: "password" });
-      return { account: this.publicAccount(account.id), session: this.issueSession(account.id, context) };
+      return { account: this.publicAccount(account.id), session: this.issueSession(account.id, context, { eventType: "registration", method: "password" }) };
     } catch (error) {
       this.store.deleteAccount(account.id);
       throw error;
@@ -93,7 +96,7 @@ export class PlatformService {
     if (!credential || !valid) this.failAuthentication(bucketKey, "邮箱或密码不正确。");
     this.store.clearAuthFailures(bucketKey);
     this.audit(credential.accountId, "login_completed", { method: "password" });
-    return { account: this.publicAccount(credential.accountId), session: this.issueSession(credential.accountId, context) };
+    return { account: this.publicAccount(credential.accountId), session: this.issueSession(credential.accountId, context, { eventType: "login", method: "password" }) };
   }
 
   async registerWeRead({ key, displayName = "微信读书用户" }, context = {}, { verify = true } = {}) {
@@ -110,7 +113,7 @@ export class PlatformService {
         metadata: { lastFour: cleanKey.slice(-4), verifiedAt: this.now() },
       });
       this.audit(account.id, "account_registered", { method: "weread_key" });
-      return { account: this.publicAccount(account.id), session: this.issueSession(account.id, context) };
+      return { account: this.publicAccount(account.id), session: this.issueSession(account.id, context, { eventType: "registration", method: "weread_key" }) };
     } catch (error) {
       this.store.deleteAccount(account.id);
       throw error;
@@ -126,7 +129,7 @@ export class PlatformService {
     if (!credential) this.failAuthentication(bucketKey, "微信读书密钥未绑定账户。");
     this.store.clearAuthFailures(bucketKey);
     this.audit(credential.accountId, "login_completed", { method: "weread_key" });
-    return { account: this.publicAccount(credential.accountId), session: this.issueSession(credential.accountId, context) };
+    return { account: this.publicAccount(credential.accountId), session: this.issueSession(credential.accountId, context, { eventType: "login", method: "weread_key" }) };
   }
 
   async bindWeRead(accountId, key, { verify = true } = {}) {
@@ -145,6 +148,7 @@ export class PlatformService {
     if (current) this.store.updateCredentialSecret(current.id, data);
     else this.store.addCredential({ id: randomId("cred_"), accountId, kind: "key", provider: "weread", ...data });
     this.outbox(accountId, "CREDENTIAL_CHANGED", { provider: "weread", operation: current ? "ROTATED" : "BOUND" });
+    this.securityEvent({ accountId, eventType: current ? "credential_rotated" : "credential_bound", method: "weread_key" });
     return this.publicAccount(accountId);
   }
 
@@ -169,16 +173,19 @@ export class PlatformService {
     return true;
   }
 
-  issueSession(accountId, context = {}) {
+  issueSession(accountId, context = {}, { eventType = "session_issued", method = "unknown" } = {}) {
     const token = randomToken(32);
     const csrf = randomToken(24);
     const now = this.now();
+    const id = randomId("sess_");
+    const userAgentHash = context.userAgent ? sha256(context.userAgent).slice(0, 32) : null;
+    const ipPrefixHash = context.ipPrefix ? sha256(context.ipPrefix).slice(0, 32) : null;
     this.store.createSession({
-      id: randomId("sess_"), tokenHash: this.sessionHash(token), accountId, csrfHash: this.csrfHash(csrf),
+      id, tokenHash: this.sessionHash(token), accountId, csrfHash: this.csrfHash(csrf),
       expiresAt: now + this.config.sessionTtlSeconds, recentAuthAt: now,
-      userAgentHash: context.userAgent ? sha256(context.userAgent).slice(0, 32) : null,
-      ipPrefixHash: context.ipPrefix ? sha256(context.ipPrefix).slice(0, 32) : null,
+      userAgentHash, ipPrefixHash,
     });
+    this.securityEvent({ accountId, eventType, method, outcome: "SUCCESS", sessionId: id, userAgentHash, ipPrefixHash });
     return { token, csrf, expiresAt: now + this.config.sessionTtlSeconds };
   }
 
@@ -210,7 +217,13 @@ export class PlatformService {
     if (!session || this.now() - Number(session.recentAuthAt || 0) > this.config.recentAuthSeconds) throw new PlatformError("RECENT_AUTH_REQUIRED", "该操作需要重新验证身份。", 403);
   }
 
-  logout(token) { if (token) this.store.deleteSession(this.sessionHash(token)); }
+  logout(token) {
+    if (!token) return false;
+    const session = this.store.getSession(this.sessionHash(token));
+    const deleted = this.store.deleteSession(this.sessionHash(token));
+    if (deleted && session) this.securityEvent({ accountId: session.accountId, eventType: "logout", method: "session", outcome: "SUCCESS", sessionId: session.id, userAgentHash: session.userAgentHash, ipPrefixHash: session.ipPrefixHash });
+    return deleted;
+  }
 
   listSessions(accountId, currentToken) {
     const currentHash = this.sessionHash(currentToken);
@@ -235,7 +248,9 @@ export class PlatformService {
 
   revokeOtherSessions(accountId, currentToken) {
     const currentHash = this.sessionHash(currentToken);
-    return { revoked: this.store.deleteOtherSessions(accountId, currentHash) };
+    const revoked = this.store.deleteOtherSessions(accountId, currentHash);
+    if (revoked) this.securityEvent({ accountId, eventType: "sessions_revoked", method: "session", outcome: "SUCCESS" });
+    return { revoked };
   }
 
   async configurePassword(accountId, { email, currentPassword = "", newPassword }, sessionToken) {
@@ -251,6 +266,7 @@ export class PlatformService {
     this.store.updateRecentAuth(this.sessionHash(sessionToken));
     const revoked = this.store.deleteOtherSessions(accountId, this.sessionHash(sessionToken));
     this.outbox(accountId, "CREDENTIAL_CHANGED", { provider: "email", operation: existing ? "PASSWORD_CHANGED" : "PASSWORD_ADDED", revokedSessions: revoked });
+    this.securityEvent({ accountId, eventType: existing ? "credential_rotated" : "credential_bound", method: "password", outcome: "SUCCESS" });
     return { account: this.publicAccount(accountId), revokedSessions: revoked };
   }
 
@@ -321,7 +337,7 @@ export class PlatformService {
         if (!sessionToken) throw new PlatformError("AUTH_REQUIRED", "请重新登录。", 401);
         this.store.updateRecentAuth(this.sessionHash(sessionToken));
       }
-      const session = transaction.intent === "login" ? this.issueSession(accountId, context) : null;
+      const session = transaction.intent === "login" ? this.issueSession(accountId, context, { eventType: createdAccountId ? "registration" : "login", method: `oauth:${provider}` }) : null;
       return { account: this.publicAccount(accountId), session, provider, intent: transaction.intent };
     } catch (error) {
       if (createdAccountId) this.store.deleteAccount(createdAccountId);
@@ -610,6 +626,100 @@ export class PlatformService {
   }
 
   listNotes(accountId, options = {}) { return this.store.listNotes(accountId, options).map(publicNote); }
+
+  listBookSkills(accountId, limit = 100) {
+    return { bookSkills: this.store.listBookSkills(accountId, limit).map(publicBookSkill) };
+  }
+
+  async previewBookSkill(accountId, input = {}) {
+    const artifact = await this.buildBookSkillArtifact(accountId, input);
+    return { preview: publicBookSkillPreview(artifact) };
+  }
+
+  async buildBookSkillArtifact(accountId, input = {}) {
+    const bookTitle = requireBookTitle(input.bookTitle);
+    const author = sanitizeText(input.author || "", 120);
+    const bookKey = normalizedBookKey(bookTitle);
+    const authorKey = normalizedBookKey(author);
+    const candidateRows = this.store.listNotes(accountId, { includeDeleted: false, limit: BOOK_SKILL_MAX_NOTES + 1 })
+      .filter(note => normalizedBookKey(note.bookTitle) === bookKey && (!authorKey || normalizedBookKey(note.author) === authorKey));
+    if (!candidateRows.length) throw new PlatformError("BOOK_SKILL_NOTES_EMPTY", "这本书还没有可用于生成 Skill 的笔记。", 404);
+    if (candidateRows.length > BOOK_SKILL_MAX_NOTES) throw new PlatformError("BOOK_SKILL_NOTE_LIMIT", "这本书的笔记数量超过当前安全上限，请先缩小来源或分批整理。", 413);
+    const notes = [];
+    let bytes = 0;
+    for (const row of candidateRows) {
+      const note = await this.readNote(accountId, row.id);
+      if (!note) continue;
+      bytes += Buffer.byteLength(String(note.content || ""), "utf8");
+      if (bytes > BOOK_SKILL_MAX_BYTES) throw new PlatformError("BOOK_SKILL_TOO_LARGE", "这本书的笔记正文超过当前安全上限，请先分批整理。", 413);
+      notes.push(note);
+    }
+    try {
+      return buildBookSkill({ bookTitle, author, notes, generatedAt: new Date(this.clock()).toISOString() });
+    } catch (error) {
+      if (error instanceof BookToSkillError) throw new PlatformError(error.code, error.message, 400);
+      throw error;
+    }
+  }
+
+  async saveBookSkill(accountId, input = {}) {
+    const artifact = await this.buildBookSkillArtifact(accountId, input);
+    const current = this.store.findBookSkill(accountId, artifact.book.title, artifact.book.author || "");
+    const id = current?.id || randomId("skill_");
+    const nextVersion = Number(current?.version || 0) + 1;
+    const objectKey = `${this.config.primaryObjectPrefix}/accounts/${accountId}/book-skills/${id}/v${nextVersion}.enc`;
+    const payload = JSON.stringify(artifact);
+    const envelope = encryptForAccount(this.accountKey(accountId), payload, `book-skill:${accountId}:${id}:v${nextVersion}`);
+    await this.objectStore.put(objectKey, Buffer.from(envelope, "utf8"), { account: sha256(accountId).slice(0, 16), bookSkill: id, version: nextVersion });
+    let saved;
+    try {
+      saved = this.store.upsertBookSkill({
+        id, accountId, bookTitle: artifact.book.title, author: artifact.book.author || "", noteCount: artifact.source.noteCount,
+        objectKey, contentHash: sha256(payload),
+      });
+    } catch (error) {
+      await this.objectStore.delete(objectKey).catch(() => undefined);
+      throw error;
+    }
+    if (saved.current?.objectKey && saved.current.objectKey !== objectKey) {
+      try {
+        await this.objectStore.delete(saved.current.objectKey);
+        this.store.deleteBookSkillObject(saved.current.objectKey);
+      } catch { /* Preserve the object mapping for account deletion or a later recovery pass. */ }
+    }
+    this.outbox(accountId, "BOOK_SKILL_UPSERTED", { bookSkillId: saved.bookSkill.id, noteCount: saved.bookSkill.noteCount, version: saved.bookSkill.version });
+    this.audit(accountId, "book_skill_saved", { bookSkillId: saved.bookSkill.id, noteCount: saved.bookSkill.noteCount, version: saved.bookSkill.version });
+    return { bookSkill: publicBookSkill(saved.bookSkill) };
+  }
+
+  async readBookSkill(accountId, id) {
+    const skillId = safeBookSkillId(id);
+    const bookSkill = this.store.getBookSkill(accountId, skillId);
+    if (!bookSkill) return null;
+    const stored = await this.objectStore.get(bookSkill.objectKey);
+    if (!stored) throw new PlatformError("OBJECT_MISSING", "Book-to-Skill 正文暂时不可用。", 503);
+    let artifact;
+    try {
+      artifact = JSON.parse(decryptForAccount(this.accountKey(accountId), stored.bytes.toString("utf8"), `book-skill:${accountId}:${skillId}:v${bookSkill.version}`).toString("utf8"));
+    } catch {
+      throw new PlatformError("BOOK_SKILL_UNAVAILABLE", "Book-to-Skill 暂时无法读取，请稍后重试。", 503);
+    }
+    return { bookSkill: publicBookSkill(bookSkill), artifact: publicBookSkillArtifact(artifact) };
+  }
+
+  async deleteBookSkill(accountId, id) {
+    const skillId = safeBookSkillId(id);
+    const bookSkill = this.store.getBookSkill(accountId, skillId);
+    if (!bookSkill) return { deleted: false, missing: true };
+    for (const objectKey of this.store.listBookSkillObjectKeys(accountId, skillId)) await this.objectStore.delete(objectKey);
+    const deleted = this.store.deleteBookSkill(accountId, skillId);
+    if (deleted) {
+      this.outbox(accountId, "BOOK_SKILL_DELETED", { bookSkillId: skillId });
+      this.audit(accountId, "book_skill_deleted", { bookSkillId: skillId });
+    }
+    return { deleted };
+  }
+
   async exportNotes(accountId, noteIds) {
     if (!Array.isArray(noteIds) || noteIds.length === 0) throw new PlatformError("NOTES_EXPORT_EMPTY", "请先保留至少一条笔记再导出。", 400);
     if (noteIds.length > 5_000) throw new PlatformError("NOTES_EXPORT_LIMIT", "一次最多导出 5,000 条笔记，请缩小筛选范围。", 413);
@@ -676,9 +786,14 @@ export class PlatformService {
     const metadata = this.store.accountExport(accountId);
     const notes = [];
     for (const row of this.store.listNotes(accountId, { includeDeleted: false, limit: 100000 })) notes.push(await this.readNote(accountId, row.id));
+    const bookSkills = [];
+    for (const row of this.store.listBookSkills(accountId, 5_000)) {
+      const skill = await this.readBookSkill(accountId, row.id);
+      if (skill) bookSkills.push(skill);
+    }
     return {
       exportedAt: new Date(this.clock()).toISOString(), schemaVersion: "1.0.0", ...metadata, notes,
-      aiPreferences: this.getAiPreferences(accountId),
+      aiPreferences: this.getAiPreferences(accountId), bookSkills,
     };
   }
 
@@ -761,6 +876,34 @@ export class PlatformService {
     const actorAccountId = this.requireAdmin(session);
     this.adminAudit({ actorAccountId, action: "admin_audit_viewed", reason: ADMIN_DIRECT_VIEW_REASON });
     return { events: this.store.listAdminAuditEvents(input.limit) };
+  }
+
+  adminBookSkills(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    this.adminAudit({ actorAccountId, action: "admin_book_skills_viewed", reason: ADMIN_DIRECT_VIEW_REASON });
+    return { bookSkills: this.store.listAdminBookSkills(input.limit) };
+  }
+
+  async adminReadBookSkill(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    const skillId = safeBookSkillId(input.bookSkillId);
+    const metadata = this.store.getAdminBookSkillMetadata(skillId);
+    if (!metadata) throw new PlatformError("NOT_FOUND", "Book-to-Skill 不存在。", 404);
+    this.adminAudit({ actorAccountId, action: "admin_book_skill_body_viewed", targetAccountId: metadata.accountId, reason: ADMIN_DIRECT_VIEW_REASON });
+    const skill = await this.readBookSkill(metadata.accountId, skillId);
+    if (!skill) throw new PlatformError("NOT_FOUND", "Book-to-Skill 不存在。", 404);
+    return { bookSkill: { ...skill.bookSkill, accountId: metadata.accountId, accountDisplayName: metadata.accountDisplayName, accountEmail: metadata.accountEmail }, artifact: skill.artifact };
+  }
+
+  adminSecurity(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    this.adminAudit({ actorAccountId, action: "admin_security_metadata_viewed", reason: ADMIN_DIRECT_VIEW_REASON });
+    return {
+      credentials: this.store.listAdminCredentialMetadata(input.limit).map(publicAdminCredential),
+      sessions: this.store.listAdminSessions(input.limit).map(publicAdminSession),
+      securityEvents: this.store.listAdminSecurityEvents(input.limit).map(publicAdminSecurityEvent),
+      behaviorEvents: this.store.listAdminBehaviorEvents(input.limit).map(publicAdminBehaviorEvent),
+    };
   }
 
   publicAccount(accountId) {
@@ -891,6 +1034,13 @@ export class PlatformService {
       reason: normalizeAdminReason(reason),
     });
   }
+  securityEvent({ accountId = null, eventType, method = "unknown", outcome = "SUCCESS", sessionId = null, userAgentHash = null, ipPrefixHash = null }) {
+    return this.store.addSecurityEvent({
+      id: randomId("security_"), accountId, eventType: safeSecurityEventType(eventType), method: safeSecurityMethod(method),
+      outcome: String(outcome || "UNKNOWN").toUpperCase().slice(0, 24), sessionId: safeSessionId(sessionId),
+      userAgentHash: safeFingerprint(userAgentHash), ipPrefixHash: safeFingerprint(ipPrefixHash),
+    });
+  }
   sessionHash(token) { return hmacHex(this.config.sessionPepper, `session:${token}`); }
   csrfHash(token) { return hmacHex(this.config.sessionPepper, `csrf:${token}`); }
   oauthStateHash(state) { return hmacHex(this.config.sessionPepper, `oauth-state:${state}`); }
@@ -947,6 +1097,22 @@ function safeNoteId(value) {
   return noteId;
 }
 
+function safeBookSkillId(value) {
+  const id = String(value || "").trim();
+  if (!/^skill_[A-Za-z0-9_-]{8,200}$/.test(id)) throw new PlatformError("INVALID_BOOK_SKILL", "Book-to-Skill 标识无效。", 400);
+  return id;
+}
+
+function requireBookTitle(value) {
+  const title = sanitizeText(value, 180);
+  if (!title) throw new PlatformError("BOOK_SKILL_BOOK_REQUIRED", "请选择一本有书名的笔记。", 400);
+  return title;
+}
+
+function normalizedBookKey(value) {
+  return sanitizeText(value || "", 180).replace(/\s+/gu, " ").trim().toLocaleLowerCase("zh-CN");
+}
+
 function normalizeAdminReason(value) {
   const reason = sanitizeText(value, 200);
   if (reason.length < 4) throw new PlatformError("ADMIN_REASON_REQUIRED", "请填写至少 4 个字的查看用途。", 400);
@@ -957,6 +1123,26 @@ function normalizeAdminReason(value) {
 function safeAdminAction(value) {
   const action = String(value || "").replace(/[^a-z0-9_]/gi, "_").slice(0, 80);
   return action || "admin_access";
+}
+
+function safeSecurityEventType(value) {
+  const type = String(value || "").replace(/[^a-z0-9_]/gi, "_").slice(0, 80);
+  return type || "security_event";
+}
+
+function safeSecurityMethod(value) {
+  const method = String(value || "").replace(/[^a-z0-9:_-]/gi, "_").slice(0, 80);
+  return method || "unknown";
+}
+
+function safeSessionId(value) {
+  const id = String(value || "").trim();
+  return /^sess_[A-Za-z0-9_-]{8,200}$/.test(id) ? id : null;
+}
+
+function safeFingerprint(value) {
+  const fingerprint = String(value || "").trim();
+  return /^[a-f0-9]{8,64}$/i.test(fingerprint) ? fingerprint.slice(0, 64) : null;
 }
 
 function publicImportJob(job) {
@@ -986,6 +1172,63 @@ function publicWeReadSyncProgress(result) {
 }
 
 function publicNote(note) { const { objectKey, ...publicRow } = note; return publicRow; }
+function publicBookSkill(bookSkill) {
+  const { objectKey, contentHash, accountId, ...safe } = bookSkill || {};
+  return { ...safe, author: safe.author || null };
+}
+function publicBookSkillPreview(artifact) {
+  return {
+    generatedAt: String(artifact?.generatedAt || ""),
+    book: { title: String(artifact?.book?.title || ""), author: artifact?.book?.author || null },
+    source: { noteCount: Number(artifact?.source?.noteCount || 0), transmission: "account-local" },
+    skill: {
+      name: String(artifact?.skill?.name || ""), description: String(artifact?.skill?.description || ""),
+      frameworks: safeSkillItems(artifact?.skill?.frameworks), principles: safeSkillItems(artifact?.skill?.principles),
+      techniques: safeSkillItems(artifact?.skill?.techniques), antiPatterns: safeSkillItems(artifact?.skill?.antiPatterns),
+    },
+    artifact: publicBookSkillArtifact(artifact),
+  };
+}
+function publicBookSkillArtifact(artifact) {
+  return {
+    schemaVersion: String(artifact?.schemaVersion || "1.0.0"), kind: "reading-book-skill",
+    filename: sanitizeText(artifact?.filename || "reading-book-skill.md", 180) || "reading-book-skill.md",
+    markdown: String(artifact?.markdown || ""),
+  };
+}
+function safeSkillItems(values) { return Array.isArray(values) ? values.map(value => sanitizeText(value, 240)).filter(Boolean).slice(0, 12) : []; }
+function publicAdminCredential(row) {
+  return {
+    id: row.id, accountId: row.accountId, accountDisplayName: row.accountDisplayName || "已删除账户", accountEmail: row.accountEmail || null,
+    kind: row.kind, provider: row.provider, label: adminCredentialLabel(row), createdAt: row.createdAt, updatedAt: row.updatedAt,
+  };
+}
+function publicAdminSession(row) {
+  return {
+    id: row.id, accountId: row.accountId, accountDisplayName: row.accountDisplayName || "已删除账户", accountEmail: row.accountEmail || null,
+    createdAt: row.createdAt, lastSeenAt: row.lastSeenAt, expiresAt: row.expiresAt,
+    userAgentFingerprint: fingerprintHint(row.userAgentHash), ipFingerprint: fingerprintHint(row.ipPrefixHash),
+  };
+}
+function publicAdminSecurityEvent(row) {
+  return {
+    id: row.id, accountId: row.accountId || null, accountDisplayName: row.accountDisplayName || "已删除账户", accountEmail: row.accountEmail || null,
+    eventType: row.eventType, method: row.method, outcome: row.outcome, sessionId: row.sessionId || null,
+    userAgentFingerprint: fingerprintHint(row.userAgentHash), ipFingerprint: fingerprintHint(row.ipPrefixHash), createdAt: row.createdAt,
+  };
+}
+function publicAdminBehaviorEvent(row) {
+  return {
+    id: row.id, accountId: row.accountId, accountDisplayName: row.accountDisplayName || "已删除账户", accountEmail: row.accountEmail || null,
+    eventType: row.eventType, value: stripSensitive(row.value), occurredAt: row.occurredAt,
+  };
+}
+function adminCredentialLabel(row) {
+  if (row.provider === "email") return row.accountEmail ? row.accountEmail.replace(/^(.).+(@.+)$/, "$1***$2") : "邮箱密码已配置";
+  if (row.provider === "weread") return `微信读书密钥 ····${sanitizeText(row.metadata?.lastFour || "已绑定", 4)}`;
+  return `${sanitizeText(row.provider, 40) || "第三方"} 已绑定`;
+}
+function fingerprintHint(value) { return safeFingerprint(value)?.slice(0, 8) || null; }
 function eventRange(values) {
   const times = values.map(value => normalizeSourceEventAt(value)).filter(value => value !== null).sort((a, b) => a - b);
   return times.length ? { earliest: times[0], latest: times.at(-1) } : null;

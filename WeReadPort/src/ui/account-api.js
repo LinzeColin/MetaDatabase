@@ -38,6 +38,11 @@ export class AccountApi {
   exportNotes(ids) { return this.request("/notes/export", { method: "POST", body: { ids } }); }
   saveNote(note) { return this.request("/notes", { method: "POST", body: note }); }
   deleteNote(id, expectedVersion) { return this.request(`/notes/${encodeURIComponent(id)}?expectedVersion=${encodeURIComponent(expectedVersion)}`, { method: "DELETE", body: {} }); }
+  bookSkills(limit = 100) { return this.request(`/book-skills?limit=${encodeURIComponent(Math.min(Math.max(Number(limit) || 100, 1), 5_000))}`); }
+  previewBookSkill(input) { return this.request("/book-skills/preview", { method: "POST", body: input }); }
+  saveBookSkill(input) { return this.request("/book-skills", { method: "POST", body: input }); }
+  bookSkill(id) { return this.request(`/book-skills/${encodeURIComponent(id)}`); }
+  deleteBookSkill(id) { return this.request(`/book-skills/${encodeURIComponent(id)}`, { method: "DELETE", body: {} }); }
   syncPull(cursor = 0) { return this.request("/sync/pull", { method: "POST", body: { cursor, limit: 500 } }); }
   syncPush(operations) { return this.request("/sync/push", { method: "POST", body: { operations } }); }
   wereadSync(mode = "auto") { return this.request("/weread/sync", { method: "POST", body: { mode, recommendationPages: 3 }, headers: { "Idempotency-Key": newIdempotencyKey() } }); }
@@ -56,6 +61,9 @@ export class AccountApi {
   adminNote(id) { return this.request(`/admin/notes/${encodeURIComponent(id)}`, { method: "POST", body: {} }); }
   adminPrompts({ limit = 5_000 } = {}) { return this.request("/admin/prompts", { method: "POST", body: { limit } }); }
   adminAudit({ limit = 5_000 } = {}) { return this.request("/admin/audit", { method: "POST", body: { limit } }); }
+  adminBookSkills({ limit = 5_000 } = {}) { return this.request("/admin/book-skills", { method: "POST", body: { limit } }); }
+  adminBookSkill(id) { return this.request(`/admin/book-skills/${encodeURIComponent(id)}`, { method: "POST", body: {} }); }
+  adminSecurity({ limit = 5_000 } = {}) { return this.request("/admin/security", { method: "POST", body: { limit } }); }
 
   async request(path, { method = "GET", body, headers = {}, allow401 = false } = {}) {
     // Bypass any response cached before the account API adopted no-store headers.

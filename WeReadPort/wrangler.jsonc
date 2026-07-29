@@ -3,8 +3,21 @@
   "name": "weread-port",
   "main": "./worker/index.js",
   "compatibility_date": "2026-07-26",
+  "workers_dev": false,
   "assets": {
     "binding": "ASSETS",
     "html_handling": "none"
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1
+    }
   }
 }
