@@ -40,7 +40,7 @@ test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读�
   assert.ok(ui.includes("已建立后台微信读书同步任务；可继续浏览，完成后会自动刷新数据。"));
   assert.ok(api.includes("wereadSync(mode = \"auto\")"));
   assert.ok(api.includes("wereadSyncJob(id)"));
-  assert.match(ui, /void observeWeReadSyncJob\(job\.id, \{ automatic, preserveView \}\);/u);
+  assert.match(ui, /void observeWeReadSync\(job\.id, \{ automatic, preserveView \}\);/u);
   assert.ok(ui.includes("真实事件时间"));
   assert.match(ui, /async function refreshDerivedAccountState\(\)/u);
   assert.match(ui, /Promise\.all\(\[api\.profile\(\), api\.notes\(\), api\.analytics\(\)\]\)/u);

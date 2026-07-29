@@ -390,7 +390,7 @@ async function observeWeReadSync(jobId, { automatic, preserveView }) {
     const scope = progress.syncMode === "incremental"
       ? `快速核对 ${progress.notebookBooks || 0} 本书，跳过 ${progress.skippedUnchangedBooks || 0} 本无变化书籍`
       : `完整整理 ${progress.notebookBooks || 0} 本书`;
-    const coverage = progress.coverage?.coverage || {};
+    const coverage = progress.coverage?.coverage || progress.coverage || {};
     const verification = coverage.verified ? "覆盖已核验" : coverage.unresolvedDocuments ? `仍有 ${coverage.unresolvedDocuments} 条待确认` : "覆盖待完整核对";
     toast(`同步完成：${scope}；${progress.updatedDocuments ?? progress.importedDocuments ?? 0} 条更新，${progress.unchangedDocuments || 0} 条已是最新；${verification}。`, Number(progress.failureCount || 0) || !coverage.verified && progress.syncMode === "full" ? "warning" : "success");
     await refreshDerivedAccountState();

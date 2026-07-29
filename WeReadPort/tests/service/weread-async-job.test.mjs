@@ -49,7 +49,7 @@ test("微信读书同步快速入队、密钥不进入任务记录，并由工�
   assert.deepEqual(captured, { accountId: user.account.id, input: { mode: "full", recommendationPages: 2 } });
   assert.deepEqual(complete.progress.coverage, { verified: true, unresolvedDocuments: 0 });
 
-  const status = await app(new Request(`${platform.config.baseUrl}/v1/weread/sync/${job.id}`, { headers: { ...headers, "x-csrf-token": undefined } }));
+  const status = await app(new Request(`${platform.config.baseUrl}/v1/weread/sync/jobs/${job.id}`, { headers: { ...headers, "x-csrf-token": undefined } }));
   assert.equal(status.status, 200);
   assert.equal((await status.json()).job.state, "COMPLETE");
 });

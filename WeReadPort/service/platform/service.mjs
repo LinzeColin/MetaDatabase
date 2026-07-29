@@ -967,7 +967,10 @@ function publicImportJob(job) {
 
 function publicWeReadSyncProgress(result) {
   const summary = result?.summary || {};
-  const coverage = result?.coverage || {};
+  // Gateway responses carry rich coverage at the result level.  Keep the
+  // summary-level form as a compatible fallback for queued-job adapters and
+  // deterministic recovery runs that only materialize the summary.
+  const coverage = result?.coverage || summary.coverage || {};
   return {
     syncMode: String(summary.syncMode || coverage.mode || "unknown"),
     notebookBooks: Number(summary.notebookBooks || 0),
