@@ -32,6 +32,11 @@ const { SystemMessageDispatcher } = require("./system-message-dispatcher");
 const { TimelineScreenshotQueueStore } = require("./timeline-screenshot-queue-store");
 const { TurnGateStore } = require("./turn-gate-store");
 const { ReminderQueueStore } = require("../adapters/channel/weixin/reminder-queue-store");
+const {
+  buildConfirmation,
+  buildDueMessage,
+  parseReminderIntent,
+} = require("../services/reminder/reminder-intent");
 const { RuntimeSpoolDatabase } = require("../services/db/database-adapter");
 const {
   CanonicalSpoolCoordinator,
@@ -2739,6 +2744,19 @@ class CyberbossApp {
       this.noteForDashboard("有一个微信号绑成了主人");
       void this.sendAdmissionReply(normalized, OWNER_CLAIMED_NOTICE);
     }
+    // 「X 分钟后提醒我 ⋯」在这里就办完。
+    //
+    // 主人说「我跟他说 1 分钟后提醒我，他没有回话，1 分钟后也没有提醒我」。
+    // 查下来 reminder-queue.json 是空的：说明书里写着要主动建提醒、工具也挂着，
+    // 但**模型没调就是没建**。这种话不能再交给模型的心情。
+    //
+    // 摆在准入之后：新人得先被认下来，不然一个陌生人第一句话就能往队列里塞东西。
+    // 只对已经确立的人（主人和普通用户）生效，且这一轮不再唤醒模型。
+    if (["owner", "user"].includes(decision.route) && !decision.ownerClaimed) {
+      if (this.createDeterministicReminder(normalized)) {
+        return true;
+      }
+    }
     // 普通用户在这里就办完，**不进 job 队列**。
     //
     // 这是「问它个问题，它回一句『这个操作只有管理员可以使用』」的原因。
@@ -2839,6 +2857,46 @@ class CyberbossApp {
       this.rememberOwnerSender(normalized.senderId);
     }
     return decision;
+  }
+
+  // 「10 分钟后提醒我喝水」→ 建提醒 + 当场回一句确认。零模型、零 token。
+  //
+  // 返回 true 表示这一轮已经办完了，不用再往下走。认不出来就返回 false，一切
+  // 照旧交给模型——宁可漏判，也不能把「我三点才下班」听成一个闹钟。
+  createDeterministicReminder(normalized) {
+    const intent = parseReminderIntent(normalized.text, {
+      now: Date.now(),
+      timeZone: OWNER_TIMEZONE,
+    });
+    if (!intent) {
+      return false;
+    }
+    // 没有 context_token 就投不出去，这时候别答应。让模型接着聊，至少他知道
+    // 有人在听——比"好，14:30 提醒你"然后什么都没发生强。
+    const contextToken = String(normalized.contextToken || "").trim();
+    if (!contextToken) {
+      return false;
+    }
+    try {
+      this.reminderQueue.enqueue({
+        id: crypto.randomUUID(),
+        accountId: normalized.accountId,
+        senderId: normalized.senderId,
+        contextToken,
+        text: buildDueMessage(intent),
+        dueAtMs: intent.dueAtMs,
+        createdAt: new Date().toISOString(),
+        direct: true,
+      });
+    } catch (error) {
+      console.error(
+        `[cyberboss] 提醒没建成 code=${normalizeErrorCode(error?.code) || "reminder_enqueue_failed"}`,
+      );
+      return false;
+    }
+    void this.sendAdmissionReply(normalized, buildConfirmation(intent));
+    this.noteForDashboard("定了一个提醒");
+    return true;
   }
 
   async sendAdmissionReply(normalized, text) {
@@ -3824,6 +3882,15 @@ class CyberbossApp {
       .filter((reminder) => accountIds.has(reminder.accountId));
 
     for (const reminder of dueReminders) {
+      // 「X 分钟后提醒我」定下来的那种，到点直接发，不唤醒模型。
+      //
+      // 走模型有两个问题：一是它可能又决定"这次不说"（主动打招呼那条路每五分钟
+      // 就这么静默一次），二是普通用户根本进不去主人的 Codex。而提醒是主人明确
+      // 要求过的事，**没有任何重新判断的余地**——到点就得响。
+      if (reminder.direct) {
+        await this.deliverDirectReminder(reminder);
+        continue;
+      }
       try {
         this.systemMessageQueue.enqueue({
           id: `reminder:${reminder.id}`,
@@ -3839,6 +3906,41 @@ class CyberbossApp {
           dueAtMs: Date.now() + 5_000,
         });
       }
+    }
+  }
+
+  // 到点了，把当初那句话发回去。零模型、零 token。
+  //
+  // 发失败要重排，别默默丢掉：主人定了提醒又没等到，比一开始就说"我做不到"
+  // 伤得多。重排三次还不行就放弃，并且在后台那一栏留一条看得见的记录。
+  async deliverDirectReminder(reminder) {
+    try {
+      await this.channelAdapter.sendText({
+        userId: reminder.senderId,
+        text: reminder.text,
+        accountId: reminder.accountId,
+        contextToken: reminder.contextToken,
+      });
+      this.noteDirectReply(reminder.senderId, reminder.text, { delivered: true });
+      this.noteForDashboard("一条提醒到点发出去了");
+    } catch (error) {
+      const attempts = Number(reminder.attempts) || 0;
+      const code = String(error?.code || "");
+      const errorClass = /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(code) ? code : "send_failed";
+      if (attempts < 3) {
+        this.reminderQueue.enqueue({
+          ...reminder,
+          dueAtMs: Date.now() + 30_000,
+          attempts: attempts + 1,
+        });
+        return;
+      }
+      console.error(`[cyberboss] 提醒发不出去，放弃 原因=${errorClass}`);
+      this.noteDirectReply(reminder.senderId, reminder.text, {
+        delivered: false,
+        errorClass,
+      });
+      this.noteForDashboard("有一条提醒到点了但没发出去");
     }
   }
 

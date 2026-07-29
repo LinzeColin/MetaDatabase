@@ -679,6 +679,10 @@ test("不需要模型的轮次在建 job 之前就被分流掉", (t) => {
     rememberOwnerSender() {},
     noteForDashboard() {},
     buildPlainLanguageStatus: () => "状态正常",
+    // 「X 分钟后提醒我」在准入层就办掉，不进 job 队列。这里借上真的那一份：
+    // 换成 () => false 的话，这个测试就再也测不出分流有没有把提醒漏进队列。
+    createDeterministicReminder: CyberbossApp.prototype.createDeterministicReminder,
+    reminderQueue: { enqueue: (reminder) => reminder },
     admissionHandledBeforeJob: CyberbossApp.prototype.admissionHandledBeforeJob,
   };
 
