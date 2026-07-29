@@ -224,6 +224,42 @@ def create_plan(
     )
 
 
+def fresh_install_readiness(
+    *,
+    browser: str,
+    home: Path,
+    env: Mapping[str, str],
+    uv_path: Path | None = None,
+) -> str:
+    """Classify whether a first Native Host install can start without writing.
+
+    This is intentionally narrower than an install: it validates the same
+    source/runtime/``uv`` prerequisites and refuses any existing target,
+    interrupted transaction, or unsafe destination parent.  It never creates
+    a directory, provisions a runtime, or emits a local path.
+    """
+
+    try:
+        plan = create_plan(
+            action="install",
+            browser=browser,
+            home=home,
+            env=env,
+            uv_path=uv_path,
+        )
+    except X2NRuntimeError:
+        return "NOT_READY"
+    destinations = (plan.runtime_path, plan.launcher_path, plan.manifest_path, plan.bundle_marker_path)
+    if any(path.exists() or path.is_symlink() for path in destinations):
+        return "BLOCKED_EXISTING_TARGET"
+    if _transaction_residuals(plan):
+        return "BLOCKED_TRANSACTION_RESIDUAL"
+    parents = (plan.launcher_path.parent, plan.manifest_path.parent)
+    if any(parent.exists() and (parent.is_symlink() or not parent.is_dir()) for parent in parents):
+        return "BLOCKED_DESTINATION_PARENT"
+    return "READY_FOR_FRESH_INSTALL"
+
+
 def _ensure_directory(path: Path, *, private: bool) -> None:
     if path.exists():
         if path.is_symlink() or not path.is_dir():

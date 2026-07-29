@@ -28,6 +28,7 @@ from x2n_companion.native_host_installer import (
     UNINSTALL_CONFIRMATION,
     create_plan,
     execute_plan,
+    fresh_install_readiness,
 )
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
 
@@ -297,6 +298,50 @@ class NativeHostTests(unittest.TestCase):
         self.assertEqual(removed["status"], "UNINSTALLED")
         self.assertFalse(uninstall.manifest_path.exists())
         self.assertFalse(uninstall.launcher_path.exists())
+
+    def test_fresh_install_readiness_is_read_only_and_fails_closed(self) -> None:
+        uv_path = Path(shutil.which("uv") or "")
+        self.assertTrue(uv_path.is_absolute())
+        ready = fresh_install_readiness(
+            browser="chromium",
+            home=self.home,
+            env=self.env,
+            uv_path=uv_path,
+        )
+        self.assertEqual(ready, "READY_FOR_FRESH_INSTALL")
+        plan = create_plan(
+            action="install",
+            browser="chromium",
+            home=self.home,
+            env=self.env,
+            uv_path=uv_path,
+        )
+        self.assertFalse(plan.runtime_path.exists())
+        self.assertFalse(plan.launcher_path.exists())
+        self.assertFalse(plan.manifest_path.exists())
+
+        plan.runtime_path.parent.mkdir(parents=True)
+        plan.runtime_path.mkdir()
+        self.assertEqual(
+            fresh_install_readiness(
+                browser="chromium",
+                home=self.home,
+                env=self.env,
+                uv_path=uv_path,
+            ),
+            "BLOCKED_EXISTING_TARGET",
+        )
+
+        unavailable_uv = self.home / "missing-uv"
+        self.assertEqual(
+            fresh_install_readiness(
+                browser="chromium",
+                home=Path(self.temporary.name) / "other-home",
+                env=self.env,
+                uv_path=unavailable_uv,
+            ),
+            "NOT_READY",
+        )
 
     def test_installer_cleans_partial_staging_and_preserves_previous_runtime(self) -> None:
         uv_path = Path(shutil.which("uv") or "")

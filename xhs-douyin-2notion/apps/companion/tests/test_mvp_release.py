@@ -232,6 +232,10 @@ class MvpReleaseTests(unittest.TestCase):
                 "x2n_companion.runtime_cli.DigestPinnedPrivateDbClient.from_environment",
                 side_effect=X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "private client unavailable"),
             ),
+            mock.patch(
+                "x2n_companion.runtime_cli.fresh_install_readiness",
+                return_value="READY_FOR_FRESH_INSTALL",
+            ),
             mock.patch.object(MvpReleaseController, "arm") as arm,
         ):
             payload = runtime_cli.run(args)
@@ -241,6 +245,7 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(
             payload["preflight"],
             {
+                "native_host_fresh_install": "READY_FOR_FRESH_INSTALL",
                 "notion_calls": 0,
                 "owner_input": "MISSING_OR_INVALID",
                 "platform_calls": 0,
@@ -266,12 +271,17 @@ class MvpReleaseTests(unittest.TestCase):
                 "x2n_companion.runtime_cli.DigestPinnedPrivateDbClient.from_environment",
                 return_value=SimpleNamespace(),
             ),
+            mock.patch(
+                "x2n_companion.runtime_cli.fresh_install_readiness",
+                return_value="READY_FOR_FRESH_INSTALL",
+            ),
         ):
             payload = runtime_cli.run(args)
         preflight = payload["preflight"]
         self.assertEqual(preflight["owner_input"], "VALID")
         self.assertTrue(preflight["ready_to_arm"])
         self.assertEqual(preflight["private_durability_client"], "CONFIGURED_AND_PINNED")
+        self.assertEqual(preflight["native_host_fresh_install"], "READY_FOR_FRESH_INSTALL")
         self.assertNotIn("input_sha256", json.dumps(payload, ensure_ascii=False, sort_keys=True))
 
     def test_input_template_requires_real_owner_facts_before_validation(self) -> None:

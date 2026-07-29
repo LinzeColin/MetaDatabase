@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -42,6 +43,7 @@ from .mvp_release import (
     load_owner_mvp_release_input,
     owner_input_contract_sha256,
 )
+from .native_host_installer import fresh_install_readiness
 from .operations import RECOVERY_CONFIRMATION, OperationsService, build_local_doctor_probe
 from .ocr_vision import (
     OcrEvaluator,
@@ -151,8 +153,14 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
         private_durability_client = "CONFIGURED_AND_PINNED"
     except X2NRuntimeError:
         private_durability_client = "NOT_READY"
+    native_host_fresh_install = fresh_install_readiness(
+        browser="chrome",
+        home=Path.home(),
+        env=os.environ,
+    )
     ready_to_arm = owner_input == "VALID" and release_state == "NOT_STARTED"
     return {
+        "native_host_fresh_install": native_host_fresh_install,
         "notion_calls": 0,
         "owner_input": owner_input,
         "platform_calls": 0,
