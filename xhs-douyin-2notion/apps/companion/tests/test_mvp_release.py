@@ -1137,6 +1137,45 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(mvp_deployment._controlled_link(current, versions=versions), "v0.0.0.1")
         self.assertEqual(mvp_deployment._controlled_link(previous, versions=versions), previous_version)
 
+    def test_prearm_sidepanel_is_private_digest_addressed_and_not_a_release(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage_prearm_sidepanel()
+        repeated = manager.stage_prearm_sidepanel()
+        self.assertEqual(repeated, staged)
+        bundle = manager._prearm_target(staged)
+        extension = manager.prearm_extension_directory(staged)
+        manifest = json.loads((bundle / "prearm_manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["artifact_kind"], "owner_prearm_sidepanel")
+        self.assertEqual(manifest["artifact_sha256"], staged.artifact_sha256)
+        self.assertEqual(extension, bundle / "extension")
+        self.assertTrue((extension / "sidepanel.html").is_file())
+        self.assertFalse((extension / "release_identity.json").exists())
+        install = self.paths.ensure_private_directory("runtime/install")
+        self.assertFalse((install / "current").exists() or (install / "current").is_symlink())
+        plan = manager.prearm_native_host_plan(
+            browser="chromium",
+            home=Path(self.temporary.name) / "prearm-home",
+            env={ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+            staged=staged,
+        )
+        self.assertEqual(plan.release_artifact_sha256, staged.artifact_sha256)
+        self.assertEqual(plan.companion_source, bundle / "companion/x2n_companion")
+        self.assertEqual(plan.contracts_source, bundle / "contracts/x2n_contracts")
+
+    def test_release_prearm_sidepanel_command_emits_no_private_path(self) -> None:
+        args = runtime_cli.build_parser().parse_args(["release", "stage-prearm-sidepanel"])
+        with mock.patch.dict(
+            os.environ,
+            {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+            clear=True,
+        ):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["action"], "release_stage_prearm_sidepanel")
+        self.assertEqual(payload["prearm_sidepanel"]["artifact_kind"], "owner_prearm_sidepanel")
+        self.assertFalse(payload["prearm_sidepanel"]["paths_emitted"])
+        self.assertFalse(payload["prearm_sidepanel"]["release_pointer_changed"])
+        self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
+
     def test_staged_native_host_plan_binds_private_artifact_sources(self) -> None:
         manager = MvpDeploymentManager(self.paths)
         staged = manager.stage()

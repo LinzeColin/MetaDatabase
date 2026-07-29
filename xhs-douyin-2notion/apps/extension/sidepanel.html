@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,80 +7,149 @@
     <link rel="stylesheet" href="styles/sidepanel.css">
   </head>
   <body>
-    <header>
-      <p class="eyebrow">Personal knowledge governance</p>
-      <h1>x2n</h1>
-      <p id="page-status" aria-live="polite">Checking current page…</p>
-      <p id="platform-status" class="muted" aria-live="polite"></p>
-    </header>
-
-    <nav role="tablist" aria-label="x2n sections">
-      <button id="tab-save" role="tab" aria-controls="panel-save" aria-selected="true">Save</button>
-      <button id="tab-sync" role="tab" aria-controls="panel-sync" aria-selected="false" tabindex="-1">Sync</button>
-      <button id="tab-review" role="tab" aria-controls="panel-review" aria-selected="false" tabindex="-1">Review</button>
-      <button id="tab-status" role="tab" aria-controls="panel-status" aria-selected="false" tabindex="-1">Status</button>
-      <button id="tab-settings" role="tab" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
-    </nav>
-
-    <main>
-      <section id="panel-save" role="tabpanel" aria-labelledby="tab-save">
-        <h2>Save current content</h2>
-        <p>Only the active Xiaohongshu detail page is read after your explicit action. No scrolling or account changes.</p>
-        <button id="save-current" type="button" disabled>Save unavailable</button>
-        <button id="save-current-mvp" type="button" disabled>Record this page for direct MVP batch 1</button>
-        <button id="save-current-mvp-second" type="button" disabled>Record this page for direct MVP batch 2</button>
-        <p id="capture-status" aria-live="polite"></p>
-        <button id="capture-fallback" type="button" hidden>Save this current page instead</button>
-      </section>
-      <section id="panel-sync" role="tabpanel" aria-labelledby="tab-sync" hidden>
-        <h2>Sync selected list</h2>
-        <p id="sync-policy" class="muted" aria-live="polite">Checking the local capability gate…</p>
-        <label for="sync-scope">Scope</label>
-        <select id="sync-scope">
-          <option value="xiaohongshu_favorites">Xiaohongshu favorites</option>
-          <option value="xiaohongshu_likes">Xiaohongshu likes (synthetic only)</option>
-          <option value="douyin_favorites">Douyin favorites</option>
-          <option value="douyin_likes">Douyin likes</option>
-          <option value="bilibili_selected_collection">Bilibili owner-selected collection</option>
-          <option value="kuaishou_selected_collection">Kuaishou owner-selected collection</option>
-          <option value="weibo_selected_collection">Weibo owner-selected collection</option>
-          <option value="taobao_selected_collection">Taobao owner-selected collection</option>
-        </select>
-        <label for="sync-max-items">Maximum items</label>
-        <input id="sync-max-items" type="number" min="1" max="80" value="20" inputmode="numeric">
-        <label for="sync-source-collection">Collection identifier (optional for list scopes)</label>
-        <input id="sync-source-collection" type="text" maxlength="128" autocomplete="off">
-        <div id="selected-collection-fields" hidden>
-          <label for="owner-selection-id">Owner selection identifier</label>
-          <input id="owner-selection-id" type="text" maxlength="128" autocomplete="off">
-          <label for="owner-selection-manifest">Owner selection manifest SHA-256</label>
-          <input id="owner-selection-manifest" type="text" maxlength="64" autocomplete="off">
-          <label for="source-identity">Documented source identity</label>
-          <input id="source-identity" type="text" maxlength="128" autocomplete="off">
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand-row">
+          <div class="brand-lockup">
+            <span class="brand-mark" aria-hidden="true">x2n</span>
+            <p class="eyebrow">个人内容知识治理</p>
+          </div>
+          <span class="local-chip"><span class="chip-dot" aria-hidden="true"></span>本地优先</span>
         </div>
-        <button id="start-sync" type="button" disabled>Start selected action</button>
-        <p id="sync-status" aria-live="polite"></p>
-      </section>
-      <section id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
-        <h2>Review</h2>
-        <p>No classification suggestion exists in this skeleton.</p>
-      </section>
-      <section id="panel-status" role="tabpanel" aria-labelledby="tab-status" hidden>
-        <h2>Status</h2>
-        <p id="host-status" aria-live="polite">Checking local companion…</p>
-        <button id="refresh-status" type="button">Reconnect</button>
-      </section>
-      <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
-        <h2>Settings</h2>
-        <dl>
-          <div><dt>Runtime truth</dt><dd>Local SQLite only</dd></div>
-          <div><dt>Extension storage</dt><dd>Not used</dd></div>
-          <div><dt>Platform gates</dt><dd>Only owner-authorized bounded scopes may run</dd></div>
-        </dl>
-      </section>
-    </main>
+        <h1>保存内容，也保留证据。</h1>
+        <div class="page-state" aria-label="当前页面状态">
+          <p id="page-status" aria-live="polite">正在检查当前页面…</p>
+          <p id="platform-status" class="muted" aria-live="polite"></p>
+        </div>
+      </header>
 
-    <footer>Capability-gated local dispatch · fail closed</footer>
+      <nav class="top-tabs" role="tablist" aria-label="x2n 功能区">
+        <button id="tab-save" role="tab" aria-controls="panel-save" aria-selected="true"><span>保存</span></button>
+        <button id="tab-sync" role="tab" aria-controls="panel-sync" aria-selected="false" tabindex="-1"><span>清单</span></button>
+        <button id="tab-review" role="tab" aria-controls="panel-review" aria-selected="false" tabindex="-1"><span>审阅</span></button>
+        <button id="tab-status" role="tab" aria-controls="panel-status" aria-selected="false" tabindex="-1"><span>状态</span></button>
+        <button id="tab-settings" role="tab" aria-controls="panel-settings" aria-selected="false" tabindex="-1"><span>设置</span></button>
+      </nav>
+
+      <main class="panel-main">
+        <section id="panel-save" class="panel-card panel-save" role="tabpanel" aria-labelledby="tab-save">
+          <div class="section-heading">
+            <p class="section-kicker">当前页面</p>
+            <h2>保存到本地知识库</h2>
+            <p>只在你明确点击后读取当前内容页。不自动滚动，不改变账号状态。</p>
+          </div>
+          <aside class="guardrail" aria-label="采集保护规则">
+            <strong>保护规则</strong>
+            <span>只保留必要事实；媒体地址、凭据和原始媒体均不会写入。</span>
+          </aside>
+          <div class="save-actions" aria-label="保存操作">
+            <article class="action-card action-card-primary">
+              <div>
+                <p class="action-kicker">单页保存</p>
+                <h3>保存当前内容</h3>
+                <p>仅处理此刻已打开的可用详情页。</p>
+              </div>
+              <button id="save-current" class="button button-primary" type="button" disabled>当前页面暂不可保存</button>
+            </article>
+            <article class="action-card">
+              <div>
+                <p class="action-kicker">MVP 预备</p>
+                <h3>小红书当前内容 · 批次 1</h3>
+                <p>仅记录私有内容指纹，不写入正式内容。</p>
+              </div>
+              <button id="save-current-mvp" class="button button-secondary" type="button" disabled>批次 1 暂不可用</button>
+            </article>
+            <article class="action-card">
+              <div>
+                <p class="action-kicker">MVP 预备</p>
+                <h3>小红书当前内容 · 批次 2</h3>
+                <p>与批次 1 自动保持互不重复。</p>
+              </div>
+              <button id="save-current-mvp-second" class="button button-secondary" type="button" disabled>批次 2 暂不可用</button>
+            </article>
+          </div>
+          <p id="capture-status" class="status-message" aria-live="polite"></p>
+          <button id="capture-fallback" class="button button-quiet" type="button" hidden>改为保存当前页面</button>
+        </section>
+
+        <section id="panel-sync" class="panel-card" role="tabpanel" aria-labelledby="tab-sync" hidden>
+          <div class="section-heading">
+            <p class="section-kicker">明确选择</p>
+            <h2>处理已选清单</h2>
+            <p>每次只执行一个已授权范围。未满足本地门禁时，按钮会保持关闭。</p>
+          </div>
+          <p id="sync-policy" class="callout" aria-live="polite">正在检查本地能力门禁…</p>
+          <div class="form-stack">
+            <label for="sync-scope">范围</label>
+            <select id="sync-scope">
+              <option value="xiaohongshu_favorites">小红书收藏</option>
+              <option value="xiaohongshu_likes">小红书赞过（仅合成测试）</option>
+              <option value="douyin_favorites">抖音收藏</option>
+              <option value="douyin_likes">抖音喜欢</option>
+              <option value="bilibili_selected_collection">哔哩哔哩：用户选定清单</option>
+              <option value="kuaishou_selected_collection">快手：用户选定清单</option>
+              <option value="weibo_selected_collection">微博：用户选定清单</option>
+              <option value="taobao_selected_collection">淘宝：用户选定清单</option>
+            </select>
+            <label for="sync-max-items">最多项目数</label>
+            <input id="sync-max-items" type="number" min="1" max="80" value="20" inputmode="numeric">
+            <label for="sync-source-collection">清单标识（列表范围可留空）</label>
+            <input id="sync-source-collection" type="text" maxlength="128" autocomplete="off">
+          </div>
+          <div id="selected-collection-fields" class="selected-fields" hidden>
+            <label for="owner-selection-id">你的选择标识</label>
+            <input id="owner-selection-id" type="text" maxlength="128" autocomplete="off">
+            <label for="owner-selection-manifest">选择清单 SHA-256</label>
+            <input id="owner-selection-manifest" type="text" maxlength="64" autocomplete="off">
+            <label for="source-identity">已记录的来源标识</label>
+            <input id="source-identity" type="text" maxlength="128" autocomplete="off">
+          </div>
+          <div class="panel-action-row">
+            <button id="start-sync" class="button button-primary" type="button" disabled>开始已选操作</button>
+            <p id="sync-status" class="status-message" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <section id="panel-review" class="panel-card" role="tabpanel" aria-labelledby="tab-review" hidden>
+          <div class="section-heading">
+            <p class="section-kicker">人工确认</p>
+            <h2>审阅分类建议</h2>
+            <p>本轮不会自动创建一级分类。没有你的选择时，内容只会保留为未分类。</p>
+          </div>
+          <div class="empty-state">
+            <strong>尚无待审阅建议</strong>
+            <span>完成一次已授权的本地处理后，这里才会显示可确认的信息。</span>
+          </div>
+        </section>
+
+        <section id="panel-status" class="panel-card" role="tabpanel" aria-labelledby="tab-status" hidden>
+          <div class="section-heading">
+            <p class="section-kicker">本地连接</p>
+            <h2>运行状态</h2>
+            <p>检查 Side Panel 与本地助手是否可以安全通信。</p>
+          </div>
+          <div class="health-card">
+            <span class="health-indicator" aria-hidden="true"></span>
+            <p id="host-status" aria-live="polite">正在检查本地助手…</p>
+          </div>
+          <button id="refresh-status" class="button button-primary" type="button">重新检查</button>
+        </section>
+
+        <section id="panel-settings" class="panel-card" role="tabpanel" aria-labelledby="tab-settings" hidden>
+          <div class="section-heading">
+            <p class="section-kicker">运行边界</p>
+            <h2>本地设置</h2>
+          </div>
+          <dl class="settings-list">
+            <div><dt>事实来源</dt><dd>本地 SQLite</dd></div>
+            <div><dt>扩展存储</dt><dd>不使用</dd></div>
+            <div><dt>平台范围</dt><dd>仅限明确授权</dd></div>
+          </dl>
+        </section>
+      </main>
+
+      <footer>本地能力门禁 · 不确定时停止</footer>
+    </div>
     <script type="module" src="src/sidepanel.js"></script>
   </body>
 </html>

@@ -48,14 +48,45 @@ let captureInFlight = false;
 let pageRefreshGeneration = 0;
 let capabilityOutcomes = null;
 let fallbackFromJobId = null;
+let panelMotion = null;
 const EXECUTABLE_PLATFORM_NAMES = Object.freeze({
-  bilibili: "Bilibili",
-  douyin: "Douyin",
-  kuaishou: "Kuaishou",
-  taobao: "Taobao",
-  weibo: "Weibo",
-  xiaohongshu: "Xiaohongshu",
+  bilibili: "哔哩哔哩",
+  douyin: "抖音",
+  kuaishou: "快手",
+  taobao: "淘宝",
+  weibo: "微博",
+  xiaohongshu: "小红书",
 });
+
+function createPanelMotion() {
+  if (typeof Element.prototype.animate !== "function" || typeof window.matchMedia !== "function") return null;
+  const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let reducedMotion = preference.matches;
+  const updatePreference = (event) => {
+    reducedMotion = event.matches;
+  };
+  preference.addEventListener("change", updatePreference);
+  const animate = (target, y, duration, delay = 0) => {
+    if (reducedMotion || !target) return;
+    for (const animation of target.getAnimations()) animation.cancel();
+    target.animate(
+      [
+        { opacity: 0, transform: `translateY(${y}px)` },
+        { opacity: 1, transform: "translateY(0)" },
+      ],
+      { delay, duration, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+    );
+  };
+  animate(document.querySelector(".app-header"), -12, 420);
+  animate(document.querySelector(".top-tabs"), -6, 300, 110);
+  animate(document.querySelector("#panel-save"), 10, 340, 180);
+  window.addEventListener("pagehide", () => preference.removeEventListener("change", updatePreference), { once: true });
+  return {
+    enterPanel(panel) {
+      if (!panel.hidden) animate(panel, 8, 260);
+    },
+  };
+}
 
 function selectTab(selected) {
   for (const tab of tabs) {
@@ -63,7 +94,10 @@ function selectTab(selected) {
     tab.setAttribute("aria-selected", String(active));
     tab.tabIndex = active ? 0 : -1;
   }
-  for (const panel of panels) panel.hidden = panel.id !== selected.getAttribute("aria-controls");
+  const selectedPanelId = selected.getAttribute("aria-controls");
+  for (const panel of panels) panel.hidden = panel.id !== selectedPanelId;
+  const selectedPanel = panels.find((panel) => panel.id === selectedPanelId);
+  if (selectedPanel) panelMotion?.enterPanel(selectedPanel);
 }
 
 for (const tab of tabs) {
@@ -100,13 +134,13 @@ function renderPage(result) {
   saveButton.disabled = !executablePlatform;
   saveMvpCurrentButton.disabled = !xhsMvpCurrentExecutable;
   saveMvpCurrentSecondButton.disabled = !xhsMvpCurrentExecutable;
-  saveButton.textContent = saveButton.disabled ? "Save unavailable" : "Save current page";
+  saveButton.textContent = saveButton.disabled ? "当前页面暂不可保存" : "保存当前页面";
   saveMvpCurrentButton.textContent = saveMvpCurrentButton.disabled
-    ? "MVP batch 1 unavailable"
-    : "Record this page for direct MVP batch 1";
+    ? "批次 1 暂不可用"
+    : "记录到 MVP 批次 1";
   saveMvpCurrentSecondButton.textContent = saveMvpCurrentSecondButton.disabled
-    ? "MVP batch 2 unavailable"
-    : "Record this page for direct MVP batch 2";
+    ? "批次 2 暂不可用"
+    : "记录到 MVP 批次 2";
   fallbackButton.disabled = fallbackFromJobId === null || captureInFlight || !executablePlatform;
   if (!captureInFlight && fallbackFromJobId === null) {
     captureStatus.textContent = "";
@@ -114,22 +148,22 @@ function renderPage(result) {
   }
   if (executablePlatform) {
     const platformName = EXECUTABLE_PLATFORM_NAMES[result.platform];
-    pageStatus.textContent = `${platformName} detail page recognized`;
-    platformStatus.textContent = "Only this explicitly selected current page will be read";
+    pageStatus.textContent = `已识别 ${platformName} 详情页`;
+    platformStatus.textContent = "只会读取你明确选择的这一页";
     return;
   }
   if (xhsMvpCurrentExecutable) {
-    pageStatus.textContent = "Xiaohongshu detail page ready for direct MVP";
-    platformStatus.textContent = "One explicit action records only a private content fingerprint before arming";
+    pageStatus.textContent = "小红书详情页可用于 MVP 预备";
+    platformStatus.textContent = "一次明确操作只记录私有内容指纹，不写入正式内容";
     return;
   }
   if (result.supported) {
-    pageStatus.textContent = "Supported page recognized";
-    platformStatus.textContent = `${result.platform}: current-page gate remains disabled`;
+    pageStatus.textContent = "已识别支持的页面";
+    platformStatus.textContent = `${result.platform}：当前页面门禁仍关闭`;
     return;
   }
-  pageStatus.textContent = "No executable save for this page";
-  platformStatus.textContent = result.reason;
+  pageStatus.textContent = "当前页面暂不可执行保存";
+  platformStatus.textContent = `已安全停止：${result.reason}`;
 }
 
 async function refreshPage() {
@@ -162,7 +196,7 @@ function renderFallback(result) {
   fallbackButton.hidden = !eligible;
   fallbackButton.disabled = !eligible || captureInFlight || !currentPageExecutable;
   if (eligible) {
-    captureStatus.textContent = "List dispatch stopped. You can explicitly save the currently open page instead.";
+    captureStatus.textContent = "清单处理已停止。你可以改为明确保存当前已打开的页面。";
   }
 }
 
@@ -223,10 +257,10 @@ function renderSyncScope() {
   const mvpActivation = outcome?.feature_flag === "mvp_activation_candidate";
   const mvpEnrollment = isMvpEnrollmentScope(syncScope.value, outcome);
   startSyncButton.textContent = mvpActivation
-    ? "Run owner-selected 20-item MVP action"
+    ? "执行已选的 20 项 MVP 操作"
     : mvpEnrollment
-      ? "Prepare owner-selected 20-item MVP input"
-    : "Start selected synthetic dispatch";
+      ? "准备已选的 20 项 MVP 输入"
+      : "开始已选的合成测试操作";
   const maximum = String(mvpActivation || mvpEnrollment ? 20 : (rule?.maxItems ?? 1));
   syncMaxItems.max = maximum;
   if (
@@ -238,12 +272,12 @@ function renderSyncScope() {
   }
   if (outcome) {
     syncPolicy.textContent = outcome.feature_flag === "mvp_activation_candidate"
-      ? "Owner-authorized MVP action: exactly 20 items, one explicit gesture, no automatic scroll."
+      ? "已授权 MVP：必须恰好 20 项、一次明确操作，不自动滚动。"
       : mvpEnrollment
-        ? "Private MVP preparation: exactly 20 visible items, hashes only, no Canonical write or automatic scroll."
+        ? "私有 MVP 预备：恰好 20 项可见内容，只记录哈希，不写入 SQLite，不自动滚动。"
       : outcome.terminal === "READY_FOR_MVP_ACTIVATION"
-      ? "CI-synthetic dispatch only. This does not enable any live platform request."
-      : `Scope disabled by local external gate: ${outcome.reason_code}`;
+      ? "仅限 CI 合成测试，不会启用真实平台请求。"
+      : `本地外部门禁已关闭此范围：${outcome.reason_code}`;
   }
   startSyncButton.disabled = syncPayload() === null;
 }
@@ -252,14 +286,14 @@ function renderCapabilities(result) {
   const outcomes = result?.response?.capabilities?.outcomes;
   if (!Array.isArray(outcomes) || outcomes.length !== 8) {
     capabilityOutcomes = null;
-    syncPolicy.textContent = "Capability snapshot unavailable — dispatch remains stopped.";
+    syncPolicy.textContent = "能力快照不可用，操作保持停止。";
     startSyncButton.disabled = true;
     return;
   }
   const mapped = new Map(outcomes.map((outcome) => [outcome?.scope_id, outcome]));
   if (mapped.size !== 8 || Object.keys(SYNC_SCOPE_RULES).some((scopeId) => !mapped.has(scopeId))) {
     capabilityOutcomes = null;
-    syncPolicy.textContent = "Capability snapshot is incomplete — dispatch remains stopped.";
+    syncPolicy.textContent = "能力快照不完整，操作保持停止。";
     startSyncButton.disabled = true;
     return;
   }
@@ -291,10 +325,10 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
   saveButton.disabled = true;
   saveMvpCurrentButton.disabled = true;
   captureStatus.textContent = ownerMvpCurrent
-    ? "Reading one explicitly selected MVP current-content page…"
-    : "Reading sanitized current-page facts…";
+    ? "正在读取这一页明确选择的 MVP 当前内容…"
+    : "正在读取已净化的当前页面事实…";
   const pendingNotice = setTimeout(() => {
-    captureStatus.textContent = "Still waiting for local confirmation — do not retry";
+    captureStatus.textContent = "仍在等待本地确认，请不要重复点击";
   }, 15_000);
   try {
     const message = {
@@ -311,23 +345,23 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
         captureStatus.dataset.jobId = result.response.job_id;
         captureStatus.textContent = result.response.status === "completed"
           ? (ownerMvpCurrent
-            ? `Current content committed to armed MVP ${ownerMvpScope === "xiaohongshu_current_content" ? "batch 1" : "batch 2"}`
-            : "Current page committed to the canonical store")
-          : "Current page queued in the local companion";
+            ? `当前内容已写入已启动的 MVP ${ownerMvpScope === "xiaohongshu_current_content" ? "批次 1" : "批次 2"}`
+            : "当前页面已写入本地知识库")
+          : "当前页面已在本地助手中排队";
       } else {
         delete captureStatus.dataset.jobId;
-        captureStatus.textContent = "Current page fingerprint recorded privately; no Canonical content was written.";
+        captureStatus.textContent = "当前页面指纹已私有记录；未写入 SQLite 正式内容。";
       }
     } else if (result?.code === "X2N_PLATFORM_CHANGED") {
-      captureStatus.textContent = "Page structure changed — capture stopped without saving";
+      captureStatus.textContent = "页面结构已变化，已停止且未保存。";
     } else if (result?.status === "active_tab_permission_required") {
-      captureStatus.textContent = "Reopen x2n from the toolbar on this page, then try again";
+      captureStatus.textContent = "请在这个页面点击工具栏中的 x2n 后再试。";
     } else {
-      captureStatus.textContent = "Capture unavailable — no action executed";
+      captureStatus.textContent = "当前无法保存，未执行任何操作。";
       renderFallback(result);
     }
   } catch {
-    captureStatus.textContent = "Capture unavailable — no action executed";
+    captureStatus.textContent = "当前无法保存，未执行任何操作。";
   } finally {
     clearTimeout(pendingNotice);
     captureInFlight = false;
@@ -341,32 +375,32 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
 async function startSelectedSync() {
   const payload = syncPayload();
   if (!payload) {
-    syncStatus.textContent = "Selected scope is not ready — no action executed.";
+    syncStatus.textContent = "所选范围尚未就绪，未执行任何操作。";
     renderSyncScope();
     return;
   }
   startSyncButton.disabled = true;
   syncStatus.textContent = payload.activationMode === "mvp_activation_candidate"
-    ? "Reading one owner-selected, sanitized 20-item batch…"
+    ? "正在读取一组由你选择的、已净化的 20 项内容…"
     : payload.activationMode === "mvp_manifest_enrollment"
-      ? "Reading one owner-selected, hash-only 20-item MVP preparation batch…"
-    : "Requesting local synthetic dispatch…";
+      ? "正在读取一组由你选择的、仅保留哈希的 20 项 MVP 预备内容…"
+    : "正在请求本地合成测试操作…";
   try {
     const result = await chrome.runtime.sendMessage({ type: "X2N_START_SYNC", ...payload });
     if (result?.ok && (result.response?.job_id || payload.activationMode === "mvp_manifest_enrollment")) {
       syncStatus.textContent = payload.activationMode === "mvp_activation_candidate"
-        ? "Bounded owner action committed to the local canonical store."
+        ? "已完成限定的用户操作并写入本地知识库。"
         : payload.activationMode === "mvp_manifest_enrollment"
-          ? "Private MVP selection recorded with hashes only; no Canonical content was written."
-        : "Local synthetic adapter dispatch completed with zero platform calls.";
+          ? "私有 MVP 选择已仅以哈希记录；未写入 SQLite 正式内容。"
+        : "本地合成适配操作已完成，平台调用数为 0。";
     } else if (result?.fallbackAvailable) {
-      syncStatus.textContent = "List dispatch stopped; a separate current-page fallback is available.";
+      syncStatus.textContent = "清单处理已停止；可以改为单独保存当前页面。";
       renderFallback(result);
     } else {
-      syncStatus.textContent = "Sync unavailable — no action executed.";
+      syncStatus.textContent = "当前无法处理清单，未执行任何操作。";
     }
   } catch {
-    syncStatus.textContent = "Sync unavailable — no action executed.";
+    syncStatus.textContent = "当前无法处理清单，未执行任何操作。";
   } finally {
     renderSyncScope();
   }
@@ -374,15 +408,15 @@ async function startSelectedSync() {
 
 async function refreshStatus() {
   refreshButton.disabled = true;
-  hostStatus.textContent = "Checking local companion…";
+  hostStatus.textContent = "正在检查本地助手…";
   try {
     const result = await Promise.race([
       chrome.runtime.sendMessage({ type: "X2N_HEALTH" }),
       new Promise((resolve) => setTimeout(() => resolve({ ok: false }), 4_000)),
     ]);
-    hostStatus.textContent = result?.ok ? "Local companion connected" : "Local companion unavailable — no action executed";
+    hostStatus.textContent = result?.ok ? "本地助手已连接" : "本地助手不可用，未执行任何操作。";
   } catch {
-    hostStatus.textContent = "Local companion unavailable — no action executed";
+    hostStatus.textContent = "本地助手不可用，未执行任何操作。";
   } finally {
     refreshButton.disabled = false;
   }
@@ -417,6 +451,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 selectTab(tabs[0]);
+panelMotion = createPanelMotion();
 renderSyncScope();
 refreshPage().catch(() => undefined);
 refreshStatus().catch(() => undefined);

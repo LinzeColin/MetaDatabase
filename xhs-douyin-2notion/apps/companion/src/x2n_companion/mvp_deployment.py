@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -41,6 +42,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[4]
 DEPLOY_CONFIRMATION = "DEPLOY_X2N_OWNER_MVP_V0_0_0_1"
 ONLINE_SMOKE_CONFIRMATION = "ONLINE_SMOKE_X2N_OWNER_MVP_V0_0_0_1"
 _EXTENSION_RELEASE_IDENTITY = "release_identity.json"
+_PREARM_MANIFEST = "prearm_manifest.json"
+_PREARM_ARTIFACT_KIND = "owner_prearm_sidepanel"
 _SOURCE_TREES = (
     (PROJECT_ROOT / "apps/extension", "extension"),
     (PROJECT_ROOT / "apps/companion/src/x2n_companion", "companion/x2n_companion"),
@@ -142,6 +145,33 @@ def _source_manifest() -> dict[str, Any]:
         "artifact_sha256": artifact_sha256,
         "extension_release_identity_sha256": canonical_json_sha256(extension_identity),
     }
+
+
+def _prearm_source_manifest() -> dict[str, Any]:
+    """Build a non-release source identity for the stable pre-arm Side Panel."""
+
+    rows = []
+    for source, destination in _SOURCE_TREES:
+        if not source.is_dir() or source.is_symlink():
+            raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Pre-arm Side Panel source tree is unavailable")
+        if destination == "extension" and (
+            (source / _EXTENSION_RELEASE_IDENTITY).exists() or (source / _EXTENSION_RELEASE_IDENTITY).is_symlink()
+        ):
+            raise X2NRuntimeError(
+                ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel source contains a generated release identity"
+            )
+        rows.append({"destination": destination, "source_digest": _directory_digest(source)})
+    artifact_basis = {
+        "artifact_kind": _PREARM_ARTIFACT_KIND,
+        "contract_version": "1.0",
+        "native_host": HOST_NAME,
+        "source_trees": rows,
+    }
+    return {**artifact_basis, "artifact_sha256": canonical_json_sha256(artifact_basis)}
+
+
+def _prearm_layout(paths: RuntimePaths) -> Path:
+    return paths.ensure_private_directory("runtime/prearm/bundles")
 
 
 def _copy_private_release_tree(source: Path, destination: Path) -> None:
@@ -257,6 +287,61 @@ def _read_staged_manifest(target: Path) -> dict[str, Any]:
     return value
 
 
+def _read_prearm_manifest(target: Path) -> dict[str, Any]:
+    manifest = target / _PREARM_MANIFEST
+    if (
+        target.is_symlink()
+        or not target.is_dir()
+        or stat.S_IMODE(target.stat().st_mode) != 0o700
+        or manifest.is_symlink()
+        or not manifest.is_file()
+        or stat.S_IMODE(manifest.stat().st_mode) != 0o600
+    ):
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle is unsafe")
+    try:
+        value = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel manifest is invalid") from error
+    expected = {"artifact_kind", "artifact_sha256", "contract_version", "native_host", "source_trees"}
+    if (
+        not isinstance(value, dict)
+        or set(value) != expected
+        or value.get("artifact_kind") != _PREARM_ARTIFACT_KIND
+        or value.get("contract_version") != "1.0"
+        or value.get("native_host") != HOST_NAME
+        or not isinstance(value.get("artifact_sha256"), str)
+        or re.fullmatch(r"[0-9a-f]{64}", value["artifact_sha256"]) is None
+        or not isinstance(value.get("source_trees"), list)
+    ):
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel manifest is invalid")
+    basis = {key: item for key, item in value.items() if key != "artifact_sha256"}
+    if canonical_json_sha256(basis) != value["artifact_sha256"]:
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel digest is invalid")
+    expected_destinations = {destination for _source, destination in _SOURCE_TREES}
+    rows = value["source_trees"]
+    if (
+        len(rows) != len(expected_destinations)
+        or any(
+            not isinstance(row, Mapping)
+            or set(row) != {"destination", "source_digest"}
+            or row["destination"] not in expected_destinations
+            or not isinstance(row["source_digest"], str)
+            or re.fullmatch(r"[0-9a-f]{64}", row["source_digest"]) is None
+            for row in rows
+        )
+        or {row["destination"] for row in rows} != expected_destinations
+        or {entry.name for entry in target.iterdir()}
+        != {Path(destination).parts[0] for destination in expected_destinations} | {_PREARM_MANIFEST}
+        or (target / "extension" / _EXTENSION_RELEASE_IDENTITY).exists()
+        or (target / "extension" / _EXTENSION_RELEASE_IDENTITY).is_symlink()
+    ):
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel members are invalid")
+    for row in rows:
+        if _directory_digest(target / row["destination"]) != row["source_digest"]:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel content drifted")
+    return value
+
+
 @dataclass(frozen=True)
 class BlueGreenReceipt:
     artifact_sha256: str
@@ -283,6 +368,22 @@ class StagedRelease:
             "paths_emitted": False,
             "release_version": RELEASE_VERSION,
             "staged": True,
+        }
+
+
+@dataclass(frozen=True)
+class PrearmSidePanel:
+    """Digest-addressed private bundle for the temporary, non-release bridge."""
+
+    artifact_sha256: str
+
+    def safe_dict(self) -> dict[str, Any]:
+        return {
+            "artifact_kind": _PREARM_ARTIFACT_KIND,
+            "artifact_sha256": self.artifact_sha256,
+            "paths_emitted": False,
+            "prearm": True,
+            "release_pointer_changed": False,
         }
 
 
@@ -355,6 +456,75 @@ class MvpDeploymentManager:
             if not completed and target_created and (target.exists() or target.is_symlink()):
                 _read_staged_manifest(target)
                 shutil.rmtree(target)
+
+    def stage_prearm_sidepanel(self) -> PrearmSidePanel:
+        """Create an idempotent owner-private pre-arm bundle without staging a release."""
+
+        manifest = _prearm_source_manifest()
+        bundles = _prearm_layout(self.paths)
+        target = bundles / manifest["artifact_sha256"]
+        if target.exists() or target.is_symlink():
+            existing = _read_prearm_manifest(target)
+            if existing["artifact_sha256"] != manifest["artifact_sha256"]:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel identity drifted")
+            return PrearmSidePanel(artifact_sha256=manifest["artifact_sha256"])
+        staging = bundles / f".{manifest['artifact_sha256']}.x2n-staging-{uuid.uuid4().hex}"
+        completed = False
+        target_created = False
+        try:
+            staging.mkdir(mode=0o700)
+            staging.chmod(0o700)
+            for source, destination in _SOURCE_TREES:
+                _copy_private_release_tree(source, staging / destination)
+            for row in manifest["source_trees"]:
+                if _directory_digest(staging / row["destination"]) != row["source_digest"]:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel staging digest drifted")
+            _atomic_private_json(staging / _PREARM_MANIFEST, manifest)
+            _read_prearm_manifest(staging)
+            if _prearm_source_manifest()["artifact_sha256"] != manifest["artifact_sha256"]:
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel source changed during staging"
+                )
+            os.replace(staging, target)
+            target_created = True
+            target.chmod(0o700)
+            completed = True
+            return PrearmSidePanel(artifact_sha256=manifest["artifact_sha256"])
+        finally:
+            if not completed and (staging.exists() or staging.is_symlink()):
+                if staging.is_symlink() or not staging.is_dir():
+                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel staging became unsafe")
+                shutil.rmtree(staging)
+            if not completed and target_created and (target.exists() or target.is_symlink()):
+                _read_prearm_manifest(target)
+                shutil.rmtree(target)
+
+    def _prearm_target(self, staged: PrearmSidePanel) -> Path:
+        if re.fullmatch(r"[0-9a-f]{64}", staged.artifact_sha256) is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Pre-arm Side Panel identity is invalid")
+        target = _prearm_layout(self.paths) / staged.artifact_sha256
+        manifest = _read_prearm_manifest(target)
+        if manifest["artifact_sha256"] != staged.artifact_sha256:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel identity drifted")
+        return target
+
+    def prearm_extension_directory(self, staged: PrearmSidePanel) -> Path:
+        """Return the verified private extension directory without emitting it publicly."""
+
+        return self._prearm_target(staged) / "extension"
+
+    def prearm_native_host_plan(self, *, browser: str, home: Path, env: Mapping[str, str], staged: PrearmSidePanel):
+        """Build the matching temporary Host plan from the same private bundle."""
+
+        target = self._prearm_target(staged)
+        return create_plan(
+            action="install",
+            browser=browser,
+            home=home,
+            env=env,
+            release_source_root=target,
+            release_artifact_sha256=staged.artifact_sha256,
+        )
 
     def switch(self, staged: StagedRelease) -> BlueGreenReceipt:
         _install, versions, current, previous = _release_layout(self.paths)

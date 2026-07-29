@@ -67,7 +67,6 @@ const sourceFiles = [
 const sources = Object.fromEntries(
   await Promise.all(sourceFiles.map(async (path) => [path, await readFile(new URL(path, root), "utf8")])),
 );
-
 const failures = [];
 const expectedPermissions = ["activeTab", "nativeMessaging", "scripting", "sidePanel"];
 if (manifest.manifest_version !== 3) failures.push("manifest_version");
@@ -79,7 +78,6 @@ if (manifest.background?.service_worker !== "src/service-worker.js" || manifest.
 if (manifest.side_panel?.default_path !== "sidepanel.html") failures.push("side_panel");
 if (manifest.action?.default_title !== "Open x2n Side Panel") failures.push("action");
 if (manifest.content_security_policy?.extension_pages !== "script-src 'self'; object-src 'none';") failures.push("csp");
-
 const publicKey = Buffer.from(manifest.key ?? "", "base64");
 const digest = createHash("sha256").update(publicKey).digest().subarray(0, 16).toString("hex");
 const extensionId = [...digest].map((nibble) => String.fromCharCode("a".charCodeAt(0) + Number.parseInt(nibble, 16))).join("");
@@ -133,6 +131,11 @@ if (
   !sources["src/sidepanel.js"].includes("saveMvpCurrentButton.addEventListener")
   || !sources["src/sidepanel.js"].includes("saveMvpCurrentSecondButton.addEventListener")
 ) failures.push("mvp_current_action");
+if (
+  !sources["src/sidepanel.js"].includes("target.animate")
+  || !sources["src/sidepanel.js"].includes("window.matchMedia")
+  || !sources["src/sidepanel.js"].includes("prefers-reduced-motion")
+) failures.push("motion_reduced_motion");
 if (sources["src/sidepanel.js"].includes("startSelectedSync().catch")) failures.push("automatic_sync_fallback");
 
 const e2eSource = await readFile(new URL("scripts/extension-e2e.mjs", root), "utf8");

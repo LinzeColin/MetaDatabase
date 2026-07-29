@@ -308,6 +308,10 @@ try {
     if (message.type() === "error") consoleErrors.push("console_error");
   });
   await page.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+  requireCondition(
+    await page.evaluate(() => typeof Element.prototype.animate === "function"),
+    "local_motion_unavailable",
+  );
   currentStep = "direct_native_probe";
   const directProbe = await page.evaluate(async (host) => {
     const request = {
@@ -381,11 +385,11 @@ try {
   await page.locator("#refresh-status").waitFor({ state: "visible" });
   await page.locator("#refresh-status").click({ timeout: 10_000 });
   try {
-    await page.locator("#host-status").filter({ hasText: "Local companion connected" }).waitFor({ timeout: 15_000 });
+    await page.locator("#host-status").filter({ hasText: "本地助手已连接" }).waitFor({ timeout: 15_000 });
   } catch {
     const healthText = await page.locator("#host-status").textContent().catch(() => "");
     throw new E2EFailure(
-      healthText?.includes("unavailable") ? "native_host_unavailable" : "sidepanel_health_timeout",
+      healthText?.includes("不可用") ? "native_host_unavailable" : "sidepanel_health_timeout",
     );
   }
   currentStep = "sidepanel_ui";
@@ -394,6 +398,7 @@ try {
   const sections = ["save", "sync", "review", "status", "settings"];
   for (const section of sections) {
     await page.locator(`#tab-${section}`).click();
+    await page.locator(`#panel-${section}`).waitFor({ state: "visible", timeout: 2_000 });
     requireCondition(await page.locator(`#panel-${section}`).isVisible(), `navigation_${section}`);
   }
 
@@ -588,7 +593,7 @@ try {
     status: element.textContent,
   }));
   requireCondition(
-    submission.status === "Current page committed to the canonical store",
+    submission.status === "当前页面已写入本地知识库",
     `${CURRENT_PAGE_CONFIG.metricPrefix}_capture_rejected`,
   );
   const jobId = submission.jobId;

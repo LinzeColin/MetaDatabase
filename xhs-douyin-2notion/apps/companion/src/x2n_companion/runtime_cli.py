@@ -318,6 +318,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 task_id=MVP_RELEASE_TASK_ID,
                 template=_owner_mvp_input_template(),
             )
+        if args.release_action == "stage-prearm-sidepanel":
+            staged = MvpDeploymentManager(_paths()).stage_prearm_sidepanel()
+            return _success(
+                "release_stage_prearm_sidepanel",
+                acceptance_scope="ASSURANCE_005_STABLE_PREARM_SIDEPANEL",
+                task_id=MVP_RELEASE_TASK_ID,
+                prearm_sidepanel=staged.safe_dict(),
+                platform_calls=0,
+                real_account_execution="NOT_RUN",
+            )
         paths = _paths()
         if args.release_action == "preflight":
             return _success(
@@ -868,6 +878,7 @@ def build_parser() -> argparse.ArgumentParser:
     release_sidecar = release_actions.add_parser("provision-douyin-visible-sidecar")
     release_sidecar.add_argument("--confirm", required=True, help=f"Required literal: {PROVISION_CONFIRMATION}")
     release_actions.add_parser("input-template")
+    release_actions.add_parser("stage-prearm-sidepanel")
     release_actions.add_parser("preflight")
     release_actions.add_parser("validate-input")
     release_arm = release_actions.add_parser("arm")

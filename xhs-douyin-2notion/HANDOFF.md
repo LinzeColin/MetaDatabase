@@ -27,6 +27,13 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
   Companion, so the installed Native Host does not need a repository checkout to validate private release input.
+- The Side Panel is now a Chinese, responsive local workbench with a compact utility header, task-oriented tab rail,
+  a primary current-page action, and visually distinct bounded-MVP actions. It uses local browser-native motion with
+  reduced-motion support, so the public source candidate carries no remote asset or third-party motion bundle.
+- `x2n release stage-prearm-sidepanel` now creates an idempotent, digest-addressed owner-private bundle under the
+  approved Runtime root. Its unpacked Side Panel, Companion, and Contract sources are verified together; it has no
+  `release_identity.json`, never moves a release pointer, and lets the temporary Host plan bind to the same bundle
+  instead of this disposable worktree.
 - A private Owner MVP input, release-state, or browser-handshake symlink, including a dangling one, is treated as
   unsafe rather than absent. `load`, `arm`, state persistence, and handshake recording reject it before any
   pre-switch backup, private state write, or platform action.
@@ -110,6 +117,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
+- The responsive Side Panel was rendered in isolated Chromium at 480 px and 360 px widths and visually inspected.
+  Its self-test, controlled zero-network Extension E2E (including 100 service-worker restarts), JavaScript syntax
+  check, focused 41-test pre-arm/release suite, and Ruff all passed. A real `stage-prearm-sidepanel` invocation
+  produced a reusable private digest bundle with an extension manifest and no release identity or pointer change;
+  no platform call or real-account execution occurred.
 - The current A005 scope-amendment source lane passed: 109 focused Companion/Native Host tests, 19 Contract tests,
   generated-contract verification, Ruff, JavaScript syntax checks, extension self-test, XHS current-page fixtures,
   XHS MVP surface-safety fixtures, Douyin visible-list fixtures, and the 100-restart Douyin extension E2E. This is
@@ -163,8 +175,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. In the current delegated Owner run, install the temporary source-bound Native Host and load the matching unpacked
-   Side Panel, freshly observe the two Douyin lists without scrolling, then use the Side Panel to record their two
+2. In the current delegated Owner run, first run `x2n release stage-prearm-sidepanel`, load the matching stable
+   unpacked Side Panel bundle, and install the temporary Host plan bound to that same digest. Freshly observe the two
+   Douyin lists without scrolling, then use the Side Panel to record their two
    exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
    for each of the two disjoint batch controls. The Companion creates only private hashes and automatically freezes
    the input after all four ranges are exact; immediately uninstall the owned temporary Host so its fresh install slot

@@ -24,7 +24,8 @@ from typing import Any, Sequence
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TASK_ID = "TSK.x2n.assurance.005"
 CHANGE_EVENT = "CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES"
-EVIDENCE = PROJECT_ROOT / "machine/evidence/stage_6/assurance_005/source_lane.json"
+LEGACY_EVIDENCE = PROJECT_ROOT / "machine/evidence/stage_6/assurance_005/source_lane.json"
+EVIDENCE_DIRECTORY = PROJECT_ROOT / "machine/evidence/stage_6/assurance_005/source_lanes"
 EXPECTED_GATES = [
     "format",
     "lint",
@@ -112,10 +113,15 @@ def _safe_payload(payload: Any) -> None:
 
 
 def _source_paths() -> tuple[Path, ...]:
-    evidence_relative = EVIDENCE.relative_to(PROJECT_ROOT).as_posix()
+    legacy_evidence_relative = LEGACY_EVIDENCE.relative_to(PROJECT_ROOT).as_posix()
+    evidence_directory_relative = EVIDENCE_DIRECTORY.relative_to(PROJECT_ROOT).as_posix()
     tracked = _git(("ls-files", "-z", "--cached", "--others", "--exclude-standard")).split("\0")
     paths: list[Path] = []
-    for relative in sorted(item for item in tracked if item and item != evidence_relative):
+    for relative in sorted(
+        item
+        for item in tracked
+        if item and item != legacy_evidence_relative and not item.startswith(f"{evidence_directory_relative}/")
+    ):
         path = PROJECT_ROOT / relative
         _require(path.is_file() and not path.is_symlink(), "source manifest contains an unsafe path")
         _require(path.resolve().is_relative_to(PROJECT_ROOT.resolve()), "source manifest escaped the x2n project")
@@ -207,12 +213,25 @@ def _build_evidence(lane: dict[str, Any]) -> dict[str, Any]:
     return evidence
 
 
-def _write_evidence(evidence: dict[str, Any]) -> None:
-    _require(not EVIDENCE.exists() and not EVIDENCE.is_symlink(), "A005 source-lane evidence already exists")
-    parent = EVIDENCE.parent
+def _evidence_path(source_manifest: dict[str, Any]) -> Path:
+    digest = source_manifest.get("sha256")
+    _require(_SHA256.fullmatch(str(digest)) is not None, "A005 source manifest digest is invalid")
+    return EVIDENCE_DIRECTORY / f"{digest}.json"
+
+
+def _write_evidence(evidence: dict[str, Any]) -> Path:
+    source_manifest = evidence.get("source_manifest")
+    _require(isinstance(source_manifest, dict), "A005 source manifest is invalid")
+    _require(source_manifest == _source_manifest(), "A005 source changed before evidence write")
+    evidence_path = _evidence_path(source_manifest)
+    if evidence_path.exists() or evidence_path.is_symlink():
+        _require(evidence_path.is_file() and not evidence_path.is_symlink(), "A005 source-lane evidence is unsafe")
+        _validate_evidence(_load_json(evidence_path), source_manifest=source_manifest, path=evidence_path)
+        return evidence_path
+    parent = evidence_path.parent
     parent.mkdir(parents=True, exist_ok=True)
     _require(parent.is_dir() and not parent.is_symlink(), "A005 evidence directory is unsafe")
-    descriptor = os.open(EVIDENCE, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+    descriptor = os.open(evidence_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
             json.dump(evidence, handle, ensure_ascii=False, indent=2, sort_keys=True)
@@ -220,13 +239,12 @@ def _write_evidence(evidence: dict[str, Any]) -> None:
             handle.flush()
             os.fsync(handle.fileno())
     except BaseException:
-        EVIDENCE.unlink(missing_ok=True)
+        evidence_path.unlink(missing_ok=True)
         raise
+    return evidence_path
 
 
-def validate_evidence() -> dict[str, Any]:
-    _require(EVIDENCE.is_file() and not EVIDENCE.is_symlink(), "A005 source-lane evidence is unavailable")
-    evidence = _load_json(EVIDENCE)
+def _validate_evidence(evidence: dict[str, Any], *, source_manifest: dict[str, Any], path: Path) -> dict[str, Any]:
     _require(
         set(evidence)
         == {
@@ -268,14 +286,21 @@ def validate_evidence() -> dict[str, Any]:
         and _SHA256.fullmatch(str(lane.get("report_sha256"))) is not None,
         "A005 source-lane software receipt is invalid",
     )
-    _require(evidence.get("source_manifest") == _source_manifest(), "A005 source changed after source-lane evidence")
+    _require(evidence.get("source_manifest") == source_manifest, "A005 source changed after source-lane evidence")
     _safe_payload(evidence)
     return {
-        "evidence_sha256": _sha256(EVIDENCE),
+        "evidence_sha256": _sha256(path),
         "source_files": evidence["source_manifest"]["file_count"],
         "status": "PASS_SOURCE_LANE_ONLY",
         "task_id": TASK_ID,
     }
+
+
+def validate_evidence() -> dict[str, Any]:
+    source_manifest = _source_manifest()
+    evidence_path = _evidence_path(source_manifest)
+    _require(evidence_path.is_file() and not evidence_path.is_symlink(), "A005 source-lane evidence is unavailable")
+    return _validate_evidence(_load_json(evidence_path), source_manifest=source_manifest, path=evidence_path)
 
 
 def _parse_args() -> argparse.Namespace:

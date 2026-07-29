@@ -78,6 +78,14 @@ class Assurance005SourceLaneTests(unittest.TestCase):
         self.assertEqual(evidence["execution"]["platform_calls"], 0)
         self.assertNotIn("/" + "Users/", json.dumps(evidence, ensure_ascii=False, sort_keys=True))
 
+    def test_source_lane_records_are_digest_addressed(self) -> None:
+        manifest = {"file_count": 1, "sha256": "b" * 64}
+        record = VERIFY._evidence_path(manifest)
+        self.assertEqual(record.parent, VERIFY.EVIDENCE_DIRECTORY)
+        self.assertEqual(record.name, f"{'b' * 64}.json")
+        with self.assertRaises(VERIFY.SourceLaneError):
+            VERIFY._evidence_path({"file_count": 1, "sha256": "not-a-digest"})
+
 
 if __name__ == "__main__":
     unittest.main()

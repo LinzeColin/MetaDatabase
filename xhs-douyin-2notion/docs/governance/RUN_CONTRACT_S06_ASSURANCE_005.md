@@ -66,9 +66,10 @@ The release source must be clean and carry the unique `v0.0.0.1` tag immediately
 command verifies both facts locally; it neither reads nor changes any credential, remote, or shared GitHub Token.
 The source lane also verifies the Owner-input Markdown contract against the immutable digest packaged into the
 Companion, so the installed Native Host never depends on an unchecked repository path at runtime.
-The A005 source-lane record is a one-time, public-safe aggregate of those local checks. It is separate from the
-immutable Stage 3 Resume evidence and from the later go-live receipt; it proves neither an Owner Runtime, a
-platform action, nor deployment.
+The A005 source-lane record is an append-only, public-safe aggregate of those local checks. Each source-manifest
+snapshot has a separate digest-addressed record; a later source refinement writes a new record and cannot overwrite
+the historical one. It is separate from the immutable Stage 3 Resume evidence and from the later go-live receipt;
+it proves neither an Owner Runtime, a platform action, nor deployment.
 
 ## Owner-operated direct MVP sequence
 
@@ -85,8 +86,11 @@ current item within or across batches, incomplete batch, invalid detail identity
 no Canonical write and no changed release input.
 
 The Side Panel uses a temporary, source-bound Native Host only as the pre-arm bridge. It is not a deployment or
-release artifact: install it from the same clean source that provides the unpacked pre-arm Side Panel, complete the
-hash-only preparation, then uninstall that owned temporary Host before `preflight`. Uninstalling the owned bridge
+release artifact: before loading it in Chrome, `x2n release stage-prearm-sidepanel` creates a digest-addressed,
+owner-private pre-arm bundle under the Runtime root. Its unpacked Side Panel, Companion and Contract sources have
+one verified manifest and contain no release identity or release pointer. The temporary Host plan must consume that
+same bundle, never the disposable worktree path. Complete the hash-only preparation, then uninstall that owned
+temporary Host before `preflight`. Uninstalling the owned bridge
 must preserve the private enrollment/input files while removing its Host runtime and manifest; only then may
 `preflight` report a fresh Native Host slot for the staged tagged deployment. An unowned, incomplete, or residual
 Host blocks rather than being replaced.
