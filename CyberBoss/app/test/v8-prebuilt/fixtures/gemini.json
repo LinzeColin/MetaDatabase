@@ -1,0 +1,16 @@
+[
+  {
+    "id": "g1",
+    "title": "Gemini 测试",
+    "messages": [
+      {
+        "role": "user",
+        "text": "你好"
+      },
+      {
+        "role": "model",
+        "text": "你好"
+      }
+    ]
+  }
+]

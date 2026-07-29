@@ -7,6 +7,7 @@ const { execFile } = require("child_process");
 const { promisify } = require("util");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
+const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { loadPersistedContextTokens } = require("../adapters/channel/weixin/context-token-store");
 const { resolvePreferredSenderId } = require("../core/default-targets");
 
@@ -212,7 +213,16 @@ class StickerService {
     }
     let account = null;
     try {
-      account = resolveSelectedAccount(this.config);
+      // 先认人再定位号。
+      const primary = resolveSelectedAccount(this.config);
+      const preferred = normalizeText(userId)
+        || normalizeText(context?.senderId)
+        || resolvePreferredSenderId({
+          config: this.config,
+          accountId: primary.accountId,
+          sessionStore: this.sessionStore,
+        });
+      account = preferred ? resolveAccountForUser(this.config, preferred) : primary;
     } catch {
       return false;
     }
@@ -235,6 +245,7 @@ class StickerService {
       userId: targetUserId,
       text: normalizedText,
       contextToken,
+      accountId: account.accountId,
       preserveBlock: true,
     }).catch(() => {});
     return true;

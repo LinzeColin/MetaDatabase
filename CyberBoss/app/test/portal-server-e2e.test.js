@@ -75,7 +75,7 @@ const POLICIES = Object.freeze({
   anthropic: { providerId: "anthropic", origin: OFFICIAL_ORIGINS.anthropic, models: ["claude-sonnet-5"] },
 });
 
-async function harness(t) {
+async function harness(t, { firstRun = false } = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cb-httpd-"));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const spool = new RuntimeSpoolDatabase({
@@ -128,6 +128,12 @@ async function harness(t) {
     // 端口 0：让内核挑一个空闲端口，测试之间不会互相抢。
     port: 0,
     usageProvider: () => 73,
+    // 首次运行（还没有主人绑定）时后台数据接口免令牌；但 Owner 激活路由必须
+    // 始终要令牌，这个测试就是来钉住这条区别的。
+    firstRunProvider: () => firstRun,
+    adminToken: "test-admin-token",
+    ownerActivationStart: async () => ({ ok: true, qrcode: "x", content: "data:image/svg+xml;base64,AA==" }),
+    ownerActivationPoll: async () => ({ ok: true, state: "wait" }),
     logger: { warn() {} },
   });
   const address = await server.start();
@@ -299,4 +305,55 @@ test("健康检查活着，但不透露任何状态", async (t) => {
   const response = await raw(h.address.port, { requestPath: "/healthz", headers: { host: HOSTNAME } });
   assert.equal(response.status, 200);
   assert.equal(response.text, "ok");
+});
+
+test("只输域名（根路径）看到的是公开落地页，不是后台登录页", async (t) => {
+  // 一开始这里走最后那个 404 分支，屏幕上只有 {"ok":false,"code":"NOT_FOUND"}
+  // ——服务好好的，看起来却像彻底坏了。于是改成 302 跳 /admin。
+  //
+  // 但那一版对**陌生人**同样是死路：他打开这个域名，撞在主人的登录墙上，而
+  // 「怎么开始用」没有任何入口。要做市场化的产品，大门不能开在员工通道上。
+  // 现在给一页公开落地页：一个大按钮去 /join，底下一行小字给管理员。
+  const h = await harness(t);
+  for (const requestPath of ["/", "/index.html"]) {
+    const response = await raw(h.address.port, { requestPath, headers: { host: HOSTNAME } });
+    assert.equal(response.status, 200, `${requestPath} 应当直接给页面`);
+    assert.match(response.text, /href="\/join"/, "落地页必须有去扫码页的入口");
+    assert.match(response.text, /href="\/admin"/, "管理员也要进得去");
+  }
+});
+
+test("R19 Owner 私有激活路由 /ops/wechat 存在，且数据接口要令牌", async (t) => {
+  // 主人要扫的那一页。之前它是 404——overlay 里有实现，但从没接进跑着的程序，
+  // 主人打开只会看到「找不到」。
+  const h = await harness(t);
+  const page = await raw(h.address.port, { requestPath: "/ops/wechat", headers: { host: HOSTNAME } });
+  assert.equal(page.status, 200, "激活页必须能打开");
+  assert.match(page.text, /授权微信/, "必须是中文的授权页");
+
+  // 页面免令牌（页面本身不含凭据），数据接口必须要令牌。
+  const start = await raw(h.address.port, {
+    method: "POST", requestPath: "/ops/api/wechat/start", headers: { host: HOSTNAME },
+  });
+  assert.equal(start.status, 401, "没有令牌不得触发真实的微信授权请求");
+});
+
+test("Owner 激活路由不套用「首次运行免令牌」——那会让先到的人授权自己的微信", async (t) => {
+  // 后台首次免令牌是安全的：那时库里没有任何数据。但这个路由能发起一次真实的
+  // 微信授权，谁先扫谁的号就成了机器人。所以无论首次与否都必须要令牌。
+  const h = await harness(t, { firstRun: true });
+  for (const p of ["/ops/api/wechat/start", "/ops/api/wechat/poll?qrcode=x"]) {
+    const res = await raw(h.address.port, { requestPath: p, headers: { host: HOSTNAME } });
+    assert.equal(res.status, 401, `${p} 在首次运行时也必须要令牌`);
+  }
+});
+
+test("公开入口与 Owner 激活是两个不同的 URL", async (t) => {
+  // R19 明写这两个入口不得混淆：公开入口给普通用户扫，/ops/wechat 给主人扫。
+  const h = await harness(t);
+  const ops = await raw(h.address.port, { requestPath: "/ops/wechat", headers: { host: HOSTNAME } });
+  const setup = await raw(h.address.port, { requestPath: "/setup", headers: { host: HOSTNAME } });
+  assert.equal(ops.status, 200);
+  assert.equal(setup.status, 200);
+  assert.notEqual(ops.text, setup.text, "两个入口不得是同一个页面");
 });

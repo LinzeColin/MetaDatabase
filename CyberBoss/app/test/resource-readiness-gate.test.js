@@ -129,6 +129,61 @@ test("disk and inode protect block mutation but permit a read-only drain", () =>
   }
 });
 
+// ── 负载不能拦回复 ──────────────────────────────────────────
+//
+// 主人说「他没回话」「过了五分钟才回」。线上那条消息 07:11:11.492 入队，
+// 07:14:21.985 才被 claim——中间三分十秒闸门一直在说 load_pressure。
+// 这台机器 2 核，loadProtect = max(3.5, 2×1.5) = 3.5，而它常年挂着 codex
+// runtime、cloudflared 和另外几个服务，一分钟负载翻过 3.5 是常态。
+
+test("负载高只让它慢，不让它闭嘴", () => {
+  // 线上那台机器的真实数字：2 核，一分钟负载 4.2（阈值 3.5）。
+  const result = gate().evaluate({
+    operationClass: "bounded_mutation",
+    snapshot: snapshot({ load: { oneMinute: 4.2, cpuCount: 2 } }),
+  });
+
+  assert.equal(
+    result.dispatchAllowed,
+    true,
+    "负载高就不派发＝主人在微信那头等着的唯一一条回复被无限期推迟，而他什么解释都看不到",
+  );
+  assert.equal(result.state, "degraded");
+  assert.equal(result.reason, "load_pressure");
+  // 仍然记成 protect：面板上要看得出「现在很吃力」，只是不拿它当拒绝的理由。
+  assert.equal(result.guardState, "protect");
+  assert.ok(result.protectReasons.includes("load"));
+});
+
+test("内存和磁盘照样拦——那两样是真会把进程打死、把数据写坏", () => {
+  for (const [name, fixture] of [
+    ["内存", snapshot({ memory: { availableMb: 400 } })],
+    ["磁盘", snapshot({ storage: { usedPercent: 92 } })],
+  ]) {
+    assert.equal(
+      gate().evaluate({
+        operationClass: "bounded_mutation",
+        snapshot: fixture,
+      }).dispatchAllowed,
+      false,
+      `${name}压到红线还继续派发，就不是慢的问题了`,
+    );
+  }
+});
+
+test("负载和内存一起红的时候，按内存拦——先保命", () => {
+  const result = gate().evaluate({
+    operationClass: "bounded_mutation",
+    snapshot: snapshot({
+      load: { oneMinute: 9, cpuCount: 2 },
+      memory: { availableMb: 400 },
+    }),
+  });
+
+  assert.equal(result.dispatchAllowed, false);
+  assert.equal(result.reason, "memory_pressure");
+});
+
 test("missing, malformed or future measurements fail closed", () => {
   for (const fixture of [
     null,

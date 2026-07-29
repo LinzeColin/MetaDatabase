@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "taskpack": "CyberBoss_v0.0.0.8_SEALED_TASKPACK_FINAL_R19_SHARED_BOT_DEEPSEEK_V4_PRO_20260728",
+  "task_id": "CB-640",
+  "scope": "共享 Bot 双用户隔离 Blind Set、五席位准入与 PG-6",
+  "acceptance": ["AC-003","AC-007","AC-015","AC-039","AC-051","AC-052","AC-053","AC-054"],
+  "depends_on": "CB-630",
+  "status": "CLOSED",
+  "implementation": {
+    "frozen_target_dual_user_suite": "app/test/v8-prebuilt/dual-user-blind-set.test.js",
+    "fixture_consumed": "app/test/v8-prebuilt/fixtures/dual_user_blind_set.json",
+    "note": "该 fixture 在 CB-630 时已入库但无消费者，当时明确不计入通过项；本节点写出真正消费它的套件",
+    "anti_selective_execution_guard": "套件断言 fixture 声明的用例集合与已实现集合完全相等，任何一条未覆盖即失败，不允许静默跳过"
+  },
+  "blind_set_results": [
+    { "id": "DU-01", "oracle": "different user_id, session and reply route", "result": "PASS", "asserted": "同一共享 Bot 下两个发送者派生出不同 user_id；同一发送者稳定复现；换 Bot 账号亦为不同身份" },
+    { "id": "DU-02", "oracle": "USER_SCOPE_VIOLATION before data return", "result": "PASS", "asserted": "跨用户读返回 null、跨用户删除影响 0 行、被害者数据完好" },
+    { "id": "DU-03", "oracle": "LINK_INVALID", "result": "PASS", "asserted": "一次性设置令牌被本人消费后，再次消费必被拒" },
+    { "id": "DU-04", "oracle": "one inbox, one job, one final reply", "result": "PASS", "asserted": "同一 source_message_id 投递三次只落一条 inbox" },
+    { "id": "DU-05", "oracle": "OWNER_ONLY_CAPABILITY and runtime calls=0", "result": "PASS", "asserted": "普通用户 requireOwner 抛 OWNER_ONLY，计数器证明运行时调用为 0；Owner 本人仍通过" },
+    { "id": "DU-06", "oracle": "model calls=0 and Chinese status", "result": "PASS", "asserted": "暂停用户 requireActive 抛 USER_NOT_ACTIVE，模型调用计数为 0；面向用户的口令为中文" },
+    { "id": "DU-07", "oracle": "REPLY_ROUTE_MISMATCH", "result": "PASS", "asserted": "原路投递通过；换 user_id 被拒；掉包发送者与上下文亦被拒" },
+    { "id": "DU-08", "oracle": "other user still receives fair slot", "result": "PASS", "asserted": "A 塞 5 条后 B 仍拿到槽位，两个槽位分属两个用户" }
+  ],
+  "tests": [
+    { "script": "test/v8-prebuilt/dual-user-blind-set.test.js", "result": "9/9 PASS（8 条用例 + 1 条完备性守卫）" },
+    { "script": "test/v8-prebuilt/scoped-repository.test.js", "result": "1/1 PASS" },
+    { "script": "tests/browser/test_public_scan_mvp.py", "result": "PASS 18 checks（CB-620 中在 OVH Linux 上真实运行，证据见 CB-620/browser_public_scan_report.json）" },
+    { "script": "目标树全量 CyberBoss/app `node --test`", "result": "656/656 PASS" }
+  ],
+  "doc_artifact_discrepancies": [
+    { "listed_in_dag": "starter_kit/test/core.test.js", "finding": "任务包内不存在该文件（与 CB-630 相同的悬空引用）", "handling": "未以其它文件冒名顶替" }
+  ],
+  "supply_chain_guard_event": {
+    "event": "AC-038 拦截 docs/evidence/R19/CB-620/STATUS.json 中的 wechat_id 形状",
+    "cause": "我在证据文件里复制了占位符的字面形状；证据属于 shipped docs，守卫拒绝是正确的",
+    "resolution": "改写证据描述，不再复制该字面形状；守卫未被削弱"
+  },
+  "rollback": {
+    "procedure": "no runtime mutation in gate；本节点只新增一个测试文件与证据，删除即复原",
+    "reopen_policy": "只重开失败的 acceptance ID"
+  },
+  "claims_not_made": [
+    "PG-6 gate sealed",
+    "five seat admission proven against real users",
+    "blind replay executed against production WeChat"
+  ]
+}

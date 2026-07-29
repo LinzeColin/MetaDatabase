@@ -132,7 +132,18 @@ test("accepted and terminal job replies are wired through durable outbox", () =>
 
   const app = source("app/src/core/app.js");
   assert.match(app, /new DurableOutboxWorker/);
-  assert.match(app, /messageKind: "accepted"/);
+  // 原来这里要求 app.js 里存在 messageKind: "accepted"。PANEL-1 按主人的要求把
+  // 「收到，正在处理……」那条自动回执整个删了，于是这条断言开始要求一个**被
+  // 故意移除的功能**必须还在。契约变了，证据就得跟着变，否则它会一直对正确的
+  // 代码亮红灯。
+  //
+  // 现在钉的是删掉之后仍然必须成立的那件事：终态回复照走 durable outbox，
+  // 不因为没有了回执就变成直接发。
+  assert.doesNotMatch(
+    app,
+    /messageKind: "accepted"/,
+    "自动回执是 PANEL-1 故意删掉的，不能悄悄回来",
+  );
   assert.match(app, /handleDurableJobTerminal/);
   assert.match(app, /resolveDurableReplyTargetForJob/);
   const stream = source("app/src/core/stream-delivery.js");

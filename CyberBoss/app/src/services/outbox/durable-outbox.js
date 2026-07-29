@@ -55,6 +55,27 @@ function normalizedText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+// provider 的 message_id 可能是字符串，也可能是数字——iLink 给的就是数字
+// （生产实测 7488003379736578000）。normalizedText 只收字符串，于是真实回执
+// 一律被当成"没有回执"。这里单开一个函数而不是放宽 normalizedText：后者用在
+// 用户可见文本上，那里把数字悄悄转成字符串会盖住真正的问题。
+//
+// 已知取舍：这个数超过 Number.MAX_SAFE_INTEGER，JSON.parse 时精度已经丢了。
+// 它只用来算本地回执哈希（审计与幂等标记），不回传给渠道，所以可以接受；
+// 但不能拿它当"provider 侧的唯一消息号"来用。
+function providerMessageIdText(value) {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  if (typeof value === "bigint") {
+    return String(value);
+  }
+  return "";
+}
+
 function normalizeDurableText(value) {
   const text = String(value ?? "").replace(/\r\n?/g, "\n").trim();
   if (!text) {
@@ -263,16 +284,37 @@ function classifyProviderError(error) {
   });
 }
 
+// 把渠道的响应翻译成"发出去了"或"不知道发没发出去"。
+//
+// iLink 的 sendmessage 成功时返回的是 `{"message_id": 7488003379736578000}`
+// ——**没有 ret，也没有 errcode**（2026-07-29 在生产上真发一条测出来的）。
+// 这里原先只认 `ret===0`，于是每一条真的送达的消息都被判成 ambiguous，
+// 第一次尝试就 failed_terminal。结果是：消息全都送到了用户微信，而系统把
+// 它们全记成永久失败——用户收得到，账本却全错，后台还显示"没答上"。
+//
+// 判据改成跟着渠道自己的契约走，而不是跟着一个想当然的形状：
+//   · ret/errcode 出现且非 0  → api.sendText 已经先抛错了，走不到这里
+//   · ret/errcode 出现且为 0  → 明确确认
+//   · 两者都不出现，但有 message_id → **message_id 就是回执**，确认
+//   · 两者都不出现，也没有 message_id → 真的不知道，保持 ambiguous
+//
+// 最后那一条必须留着：ambiguous 不重试是为了不重复发同一句话，那个判断本身
+// 是对的，错的只是把"成功"也归进了 ambiguous。
 function normalizeProviderConfirmation(response, clientId) {
   if (!response || typeof response !== "object" || Array.isArray(response)) {
     throw new DurableOutboxError("OUTBOX_CONFIRMATION_REQUIRED");
   }
   const ret = numericCode(response.ret);
   const errcode = numericCode(response.errcode);
+  const providerMessageId = providerMessageIdText(
+    response.message_id ?? response.messageId,
+  );
   const acknowledged =
     ret === 0
     || errcode === 0
-    || response.confirmed === true;
+    || response.confirmed === true
+    // 渠道没给状态码，但给了消息号：那就是它的回执。
+    || (ret === null && errcode === null && providerMessageId !== "");
   if (
     !acknowledged
     || (ret !== null && ret !== 0)
@@ -280,9 +322,6 @@ function normalizeProviderConfirmation(response, clientId) {
   ) {
     throw new DurableOutboxError("OUTBOX_CONFIRMATION_REQUIRED");
   }
-  const providerMessageId = normalizedText(
-    response.message_id ?? response.messageId,
-  );
   const receipt = {
     client_id_sha256: sha256(Buffer.from(clientId, "utf8")),
     errcode,
@@ -512,7 +551,7 @@ class DurableOutboxWorker {
     }
     const safeText =
       messageKind === "error"
-        ? "❌ Execution failed.\nAction: review the request and retry when ready."
+        ? "这条没能处理完，你可以再发一次。如果一直这样，在后台看看「最近发生了什么」。"
         : messageKind === "cancelled"
           ? "⏹️ Execution cancelled."
           : normalizeDurableText(text || "✅ Completed.");

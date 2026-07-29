@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "taskpack": "CyberBoss_v0.0.0.8_SEALED_TASKPACK_FINAL_R19_SHARED_BOT_DEEPSEEK_V4_PRO_20260728",
+  "task_id": "CB-700",
+  "scope": "Owner 共享 DeepSeek V4 Pro、五席位、全局 UTC 日 10 亿 Token 与持久熔断",
+  "acceptance": ["AC-012","AC-013","AC-014","AC-015","AC-016","AC-017","AC-045","AC-046","AC-047","AC-055"],
+  "depends_on": "CB-640",
+  "status": "CLOSED_CODE_PATH_ONLY",
+  "verified_constants": {
+    "model": "deepseek-v4-pro（写死在 deepseek-v4-pro-runtime.js）",
+    "thinking": "{ type: 'enabled' }",
+    "reasoning_effort": "high",
+    "endpoint": "https://api.deepseek.com/chat/completions",
+    "seat_limit": 5,
+    "global_daily_token_cap": 1000000000,
+    "api_key_source": "loadRuntimeTextSecret({ envName: 'DEEPSEEK_API_KEY', credentialName: 'deepseek-api-key' }) —— systemd credential 优先"
+  },
+  "obsolete_paths_absent": {
+    "byok_or_provider_selection_in_runtime": "grep 未发现 provider_id / selectModel / chooseProvider 任何残留",
+    "note": "R19 判定四 Provider BYOK 路由与模型选择为 obsolete；overlay 的 runtime 目录不含这些路径"
+  },
+  "tests": [
+    { "script": "test/v8-prebuilt/deepseek-shared-runtime.test.js", "result": "9/9 PASS" },
+    { "script": "test/v8-prebuilt/deepseek-user-message-runtime.test.js", "result": "4/4 PASS" },
+    { "script": "test/v8-prebuilt/five-seat-registration.test.js", "result": "2/2 PASS" },
+    { "script": "test/v8-prebuilt/runtime-text-secret.test.js", "result": "1/1 PASS" },
+    { "script": "目标树全量 CyberBoss/app `node --test`", "result": "656/656 PASS" }
+  ],
+  "blocked": {
+    "reason": "DEEPSEEK_API_KEY 未提供",
+    "consequence": "无法对真实 DeepSeek 端点发出任何一次调用，因此不得声称席位准入、token 预留结算、熔断在真实额度下已验证",
+    "taskpack_rule": "00_READ_FIRST 明确：真实 DeepSeek Key 仍为 NOT_RUN，不得由任务包自述提升为 PASS"
+  },
+  "rollback": {
+    "procedure": "revoke provider routes → 销毁受影响的用户凭据记录 → 普通用户切到确定性的不可用中文提示；overlay 为 add-only，git clean 可整体复原"
+  },
+  "claims_not_made": [
+    "live DeepSeek dispatch executed",
+    "five seat admission enforced against real users",
+    "global daily token ledger settled against official usage",
+    "circuit breaker tripped under real rate limit"
+  ]
+}

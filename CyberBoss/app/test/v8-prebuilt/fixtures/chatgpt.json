@@ -1,0 +1,36 @@
+[
+  {
+    "id": "conv-1",
+    "title": "测试对话",
+    "mapping": {
+      "a": {
+        "message": {
+          "id": "m1",
+          "create_time": 1,
+          "author": {
+            "role": "user"
+          },
+          "content": {
+            "parts": [
+              "你好"
+            ]
+          }
+        }
+      },
+      "b": {
+        "message": {
+          "id": "m2",
+          "create_time": 2,
+          "author": {
+            "role": "assistant"
+          },
+          "content": {
+            "parts": [
+              "你好，有什么可以帮你？"
+            ]
+          }
+        }
+      }
+    }
+  }
+]

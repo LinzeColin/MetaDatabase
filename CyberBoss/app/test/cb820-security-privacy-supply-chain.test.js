@@ -654,13 +654,14 @@ test("AC-038 no secret or personal identifier is committed in the project tree",
     "app/test/cb800-data-boundary-backup-lifecycle.test.js",
     "app/test/cb810-status-resource-selfheal.test.js",
     "app/test/cb820-security-privacy-supply-chain.test.js",
+    "app/test/v8-prebuilt/status-portal.test.js",
     "app/src/services/canonical/user-fact-envelope.js",
     "app/src/services/status/business-matrix.js",
   ]);
   // A synthetic vector is an alphabet run, a repeated character, or an
   // obviously placeholder word. A real credential looks like none of these.
   const SYNTHETIC =
-    /abcdefghij|0123456789|(.)\1{6,}|sk-test-|sk-bob-|thisexact|secretvalue|someone|wxid_abcd|BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----(?:"|`|'|,|\s*$)/;
+    /abcdefghij|0123456789|(.)\1{6,}|sk-test-|sk-bob-|wxid_private_|thisexact|secretvalue|someone|wxid_abcd|BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----(?:"|`|'|,|\s*$)/;
 
   const shippingOffenders = [];
   const undeclaredVectors = [];

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "must_remain_zero": [
+    "registration",
+    "consent",
+    "invite_validation",
+    "queue",
+    "scheduler",
+    "health",
+    "self_heal",
+    "backup",
+    "restore",
+    "status",
+    "canonical_sync",
+    "import_parse",
+    "analytics",
+    "checkin",
+    "release",
+    "rollback"
+  ],
+  "permitted_model_triggers": [
+    "explicit_user_ai_turn",
+    "explicit_user_profile_suggestion",
+    "owner_codex_turn"
+  ]
+}

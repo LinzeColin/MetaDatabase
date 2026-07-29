@@ -1,0 +1,12 @@
+[Unit]
+Description=CyberBoss health snapshot timer
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+AccuracySec=5s
+Persistent=true
+Unit=cyberboss-health.service
+
+[Install]
+WantedBy=timers.target

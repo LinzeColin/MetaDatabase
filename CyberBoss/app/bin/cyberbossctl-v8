@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+'use strict';
+const { loadActionConfig, runOperatorAction, ALLOWED_ACTIONS } = require('../src/ops/operator-dispatcher');
+
+function main(argv) {
+  const action = argv[2];
+  if (!ALLOWED_ACTIONS.includes(action)) {
+    process.stderr.write(`用法：cyberbossctl ${ALLOWED_ACTIONS.join('|')}\n`);
+    return 2;
+  }
+  try {
+    const result = runOperatorAction({ action, config: loadActionConfig() });
+    process.stdout.write(`${result.title}\n${result.next}\n`);
+    return result.ok ? 0 : result.code || 1;
+  } catch (error) {
+    process.stderr.write(`操作没有完成：${error.code || 'OPERATOR_CONFIG_INVALID'}\n请运行 cyberbossctl doctor，或联系管理员。\n`);
+    return 1;
+  }
+}
+
+if (require.main === module) process.exitCode = main(process.argv);
+module.exports = { main };

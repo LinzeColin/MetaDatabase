@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-840",
+  "scope": "交接、exact Subject 密封与 PG-8",
+  "depends_on": "CB-830",
+  "status": "BLOCKED_BY_CB830",
+  "reason": "CB-840 是 exact Subject 密封与 PG-8 出口闸门；其前置 CB-830 有四项依赖外部输入的验收未完成，按 DAG 规则不得跳步密封",
+  "what_is_ready": "本轮 CB-600..CB-820 的全部证据文件、661/661 通过的目标树套件、生产上验证过的部署与回滚链路",
+  "what_is_missing": [
+    "DEEPSEEK_API_KEY",
+    "Owner 对真实 iLink 的一次授权",
+    "5 位真实微信用户",
+    "R2 对目标桶的写权限"
+  ],
+  "claims_not_made": [
+    "PG-8 sealed",
+    "final handoff signed"
+  ],
+  "handoff_half": {
+    "status": "DELIVERED",
+    "artifact": "CyberBoss/docs/evidence/R19/HANDOFF.md",
+    "note": "CB-840 由「交接」与「exact Subject 密封 + PG-8」两半组成；交接可独立完成并已交付，密封依赖 CB-830 的四项外部输入，未做"
+  },
+  "seal_half": {
+    "status": "NOT_DONE",
+    "reason": "前置 CB-830 未闭环，按 DAG 规则不跳步密封"
+  }
+}

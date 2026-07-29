@@ -27,6 +27,30 @@ const DEFAULT_PORT = 8787;
 const API_PREFIX = "/api/";
 const SETUP_PATHS = Object.freeze(["/setup", "/setup/"]);
 const ADMIN_PATHS = Object.freeze(["/admin", "/admin/"]);
+// 只输一个域名就该看到东西。之前根路径落到最后那个 404 分支，用户看到的是一行
+// {"ok":false,"code":"NOT_FOUND"}——服务其实好好的，却像是彻底坏了。
+const ROOT_PATHS = Object.freeze(["/", "/index.html"]);
+// R19 规定的 Owner 私有激活路由。和公开入口严格分开：公开入口给普通用户扫，
+// 这里给主人扫 iLink 授权码，两者不共用任何一个 URL。
+const OPS_WECHAT_PATHS = Object.freeze(["/ops/wechat", "/ops/wechat/"]);
+// 后台里碰真实用户数据的接口名单。它们和其它 /admin/api/ 走不同的鉴权：永远
+// 要令牌，没有首次运行免令牌这一说。名单写死在这里而不是靠前缀猜，是为了让
+// "又加了一个读聊天的接口却忘了改鉴权"变成改不动的事——不进名单就进不了这条路。
+// trace 里有模型吐的字（reply delta 就是用户看到的那些话），ops 里有队列和
+// 用量——两样都是运营数据，和对话栏一个级别，永远要令牌，不走首次免令牌。
+const OWNER_ONLY_ADMIN_APIS = Object.freeze(["conversations", "persona", "insights", "trace", "ops"]);
+const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templates/ops-wechat.html");
+// 公开入口。这一页任何人都能打开，也**必须**任何人都能打开——它就是给陌生人
+// 扫码用的。所以它上面一个字的运营信息都不能有：没有人数、没有用量、没有状态。
+const JOIN_PATHS = Object.freeze(["/join", "/join/"]);
+const JOIN_TEMPLATE = require("node:path").join(__dirname, "../../../templates/join.html");
+// 公开落地页。根路径以前直接跳后台，陌生人一进来就撞在登录墙上。
+const HOME_TEMPLATE = require("node:path").join(__dirname, "../../../templates/home.html");
+// 每个人自己那一页。HTML 免令牌（页面本身不含任何人的数据），数据接口要会话，
+// 而且**只回签发给那个会话的那一个人的东西**——鉴权在 personalSiteData 里按
+// 会话解出来的 user_id 做，路径上不带任何身份参数，想改都改不了别人的。
+const ME_PATHS = Object.freeze(["/me", "/me/"]);
+const ME_TEMPLATE = require("node:path").join(__dirname, "../../../templates/me.html");
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
 const MAX_REQUEST_BYTES = 64 * 1024;
@@ -101,6 +125,29 @@ class PortalHttpServer {
     adminToken = "",
     adminOverview = null,
     adminInvite = null,
+    adminOwnerClaim = null,
+    adminOwnerBind = null,
+    // 这三个读写真实聊天内容与语气设置。它们走 #handleOwnerOnlyApi，永远要令牌。
+    adminConversations = null,
+    adminTrace = null,
+    adminOps = null,
+    adminPersonaRead = null,
+    adminPersonaWrite = null,
+    adminInsights = null,
+    // 后台会话。给了这三个就支持"登录一次，之后免令牌"。
+    publicEntry = null,
+    publicEntryStatus = null,
+    adminSessionIssue = null,
+    adminSessionVerify = null,
+    adminSessionRevoke = null,
+    // 每个人自己那一页。漏在这里的后果是整条路默默变成 404——构造函数是**按名
+    // 字解构**的，注入方写了但这里没接，`this.personalSiteData` 就是 undefined，
+    // 而 #handleMeData 见到 undefined 会回 404。这个仓在同一件事上栽过八次了。
+    personalSiteLogin = null,
+    personalSiteData = null,
+    ownerActivationStart = null,
+    ownerActivationPoll = null,
+    firstRunProvider = () => false,
     logger = console,
   }) {
     if (!portal || typeof portal.handle !== "function") {
@@ -113,6 +160,24 @@ class PortalHttpServer {
     this.adminToken = typeof adminToken === "string" ? adminToken : "";
     this.adminOverview = adminOverview;
     this.adminInvite = adminInvite;
+    this.adminOwnerClaim = adminOwnerClaim;
+    this.adminOwnerBind = adminOwnerBind;
+    this.adminConversations = adminConversations;
+    this.adminTrace = adminTrace;
+    this.adminOps = adminOps;
+    this.adminPersonaRead = adminPersonaRead;
+    this.adminPersonaWrite = adminPersonaWrite;
+    this.personalSiteLogin = personalSiteLogin;
+    this.personalSiteData = personalSiteData;
+    this.adminInsights = adminInsights;
+    this.publicEntry = publicEntry;
+    this.publicEntryStatus = publicEntryStatus;
+    this.adminSessionIssue = adminSessionIssue;
+    this.adminSessionVerify = adminSessionVerify;
+    this.adminSessionRevoke = adminSessionRevoke;
+    this.ownerActivationStart = ownerActivationStart;
+    this.ownerActivationPoll = ownerActivationPoll;
+    this.firstRunProvider = firstRunProvider;
     this.logger = logger;
     this.server = null;
   }
@@ -177,7 +242,18 @@ class PortalHttpServer {
   }
 
   // 定长比较，避免用字符串比较的提前返回泄漏令牌前缀。
-  #adminAuthorized(request) {
+  // 还没有主人时放行：那时库里没有任何用户、任何凭据、任何聊天记录，后台上
+  // 唯一能做的事就是把自己绑成主人。绑上之后这里立刻恢复要令牌。
+  #firstRun() {
+    try {
+      return this.firstRunProvider() === true;
+    } catch {
+      return false;
+    }
+  }
+
+  // 定长比较，避免字符串比较的提前返回泄漏令牌前缀。
+  #tokenMatches(request) {
     if (!this.adminToken) {
       return false;
     }
@@ -187,9 +263,82 @@ class PortalHttpServer {
     return a.length === b.length && crypto.timingSafeEqual(a, b);
   }
 
+  // 已经登录过的那台设备。
+  //
+  // 「我不可能每次都有 token」——所以令牌只用来换一次会话，之后靠 cookie。
+  // cookie 是 HttpOnly + Secure + SameSite=Strict，页面脚本读不到它，跨站也带
+  // 不出去。会话必须属于主人：普通用户在 /setup 拿到的会话用的是同一张
+  // web_sessions 表，如果这里不校验身份，一个普通用户的设置会话就能读到全部人
+  // 的聊天记录。这一条由 adminSessionVerify 在上层判定（它知道谁是主人）。
+  #sessionAuthorized(request) {
+    if (typeof this.adminSessionVerify !== "function") {
+      return false;
+    }
+    try {
+      return this.adminSessionVerify(String(request.headers.cookie || "")) === true;
+    } catch {
+      return false;
+    }
+  }
+
+  #adminAuthorized(request) {
+    if (this.#sessionAuthorized(request)) {
+      return true;
+    }
+    if (this.#firstRun()) {
+      return true;
+    }
+    return this.#tokenMatches(request);
+  }
+
   #json(response, status, payload) {
     response.writeHead(status, { ...SECURITY_HEADERS, "Content-Type": "application/json" });
     response.end(JSON.stringify(payload));
+  }
+
+  // 「主页」那条链接里的票**就是会话本身**（web_sessions 本来就按 user_id 存）。
+  // 这里只做一件事：把它从 URL 片段里换成一个 cookie，之后这台手机直接打开就行。
+  async #handleMeLogin(request, response) {
+    if (request.method !== "POST" || typeof this.personalSiteLogin !== "function") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    let token = "";
+    try {
+      const raw = await readBody(request);
+      if (raw.length) {
+        token = String(JSON.parse(raw.toString("utf8"))?.token || "");
+      }
+    } catch {
+      token = "";
+    }
+    const result = this.personalSiteLogin(token);
+    if (!result?.ok) {
+      // 不区分"票过期"和"票是编的"，两者都只回一句拒绝。
+      this.#json(response, 401, { ok: false, code: "LINK_INVALID" });
+      return;
+    }
+    response.writeHead(200, {
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/json",
+      "Set-Cookie": result.cookie,
+    });
+    response.end(JSON.stringify({ ok: true }));
+  }
+
+  // 这一页的数据。**身份只从 cookie 里的会话解**，路径和 query 里没有任何
+  // 用户参数——这样"看到别人的"不是一个需要防住的攻击，而是一件写不出来的事。
+  #handleMeData(request, response) {
+    if (typeof this.personalSiteData !== "function") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    const data = this.personalSiteData(String(request.headers.cookie || ""));
+    if (!data?.ok) {
+      this.#json(response, 401, { ok: false, code: "SESSION_REQUIRED" });
+      return;
+    }
+    this.#json(response, 200, data);
   }
 
   async #handleAdminApi(request, response, name) {
@@ -207,9 +356,233 @@ class PortalHttpServer {
         this.#json(response, 200, await this.adminInvite());
         return;
       }
+      if (
+        name === "owner-bind"
+        && request.method === "POST"
+        && typeof this.adminOwnerBind === "function"
+      ) {
+        this.#json(response, 200, await this.adminOwnerBind());
+        return;
+      }
+      if (name === "first-run") {
+        this.#json(response, 200, { ok: true, firstRun: this.#firstRun() });
+        return;
+      }
+      if (
+        name === "owner-claim"
+        && request.method === "POST"
+        && typeof this.adminOwnerClaim === "function"
+      ) {
+        this.#json(response, 200, await this.adminOwnerClaim());
+        return;
+      }
     } catch (error) {
       this.logger.warn?.(`[cyberboss] 后台 ${name} 失败 code=${error?.code || "unknown"}`);
       this.#json(response, 500, { ok: false, code: "ADMIN_ACTION_FAILED" });
+      return;
+    }
+    this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+  }
+
+  // 登录：把一次性的东西换成一个长期的会话 cookie。
+  //
+  // 两种入场券，都只用一次：
+  //   · x-admin-token —— 服务器管理者手上的长期令牌（部署时生成）
+  //   · ticket        —— 微信里发「后台」拿到的一次性票，5 分钟有效
+  //
+  // 换完之后页面就只靠 cookie 了，令牌不再需要出现在任何地方。
+  async #handleAdminLogin(request, response) {
+    if (request.method !== "POST" || typeof this.adminSessionIssue !== "function") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    let ticket = "";
+    try {
+      const raw = await readBody(request);
+      if (raw.length) {
+        const parsed = JSON.parse(raw.toString("utf8"));
+        ticket = typeof parsed?.ticket === "string" ? parsed.ticket.slice(0, 128) : "";
+      }
+    } catch {
+      ticket = "";
+    }
+    const byToken = Boolean(this.adminToken) && this.#tokenMatches(request);
+    // 第三种：已经登录着，来续期。页面每次打开都会做一次，所以常用的那台设备
+    // 不会因为会话上限（24 小时）而掉线。
+    const renewFrom = !byToken && !ticket && this.#sessionAuthorized(request)
+      ? String(request.headers.cookie || "")
+      : "";
+    if (!byToken && !ticket && !renewFrom) {
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return;
+    }
+    let issued;
+    try {
+      issued = await this.adminSessionIssue({ ticket: byToken ? "" : ticket, renewFrom });
+    } catch (error) {
+      this.logger.warn?.(`[cyberboss] 后台登录失败 code=${error?.code || "unknown"}`);
+      this.#json(response, 401, { ok: false, code: "ADMIN_LOGIN_FAILED" });
+      return;
+    }
+    if (!issued || !issued.ok) {
+      this.#json(response, 401, { ok: false, code: issued?.code || "ADMIN_LOGIN_FAILED" });
+      return;
+    }
+    response.writeHead(200, {
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/json",
+      "Set-Cookie": issued.setCookie,
+    });
+    // csrf 回给页面用于后续写操作；会话令牌本身在 HttpOnly cookie 里，页面看不到。
+    response.end(JSON.stringify({ ok: true, csrf: issued.csrf, expiresAt: issued.expiresAt }));
+  }
+
+  // 公开入口。没有鉴权是刻意的：这一页就是给陌生人看的。
+  // 它只吐一张现要的二维码和一句中文；出错也只说"还没准备好"，不把内部错误码
+  // 吐到公开页上。
+  async #handlePublicEntry(response) {
+    let payload = {
+      ok: true, ready: false, status: "pending_activation",
+      message: "这个机器人还没准备好，请稍后再来。",
+    };
+    try {
+      payload = (typeof this.publicEntry === "function" ? await this.publicEntry() : null) || payload;
+    } catch {
+      // 保持默认那句。
+    }
+    this.#json(response, 200, payload);
+    return null;
+  }
+
+  async #handlePublicEntryStatus(response, ticket) {
+    let payload = { ok: true, state: "wait", message: "" };
+    try {
+      payload = (typeof this.publicEntryStatus === "function"
+        ? await this.publicEntryStatus(String(ticket || ""))
+        : null) || payload;
+    } catch {
+      // 同上：公开页只看得到状态词。
+    }
+    this.#json(response, 200, payload);
+    return null;
+  }
+
+  async #handleAdminLogout(request, response) {
+    if (request.method !== "POST") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    let cleared = "";
+    try {
+      cleared = typeof this.adminSessionRevoke === "function"
+        ? await this.adminSessionRevoke(String(request.headers.cookie || ""))
+        : "";
+    } catch {
+      cleared = "";
+    }
+    const headers = { ...SECURITY_HEADERS, "Content-Type": "application/json" };
+    if (cleared) {
+      headers["Set-Cookie"] = cleared;
+    }
+    response.writeHead(200, headers);
+    response.end(JSON.stringify({ ok: true }));
+  }
+
+  // 后台里真正碰用户数据的那几个接口。
+  //
+  // 和 #handleAdminApi 的区别只有一条，但那一条是全部：**不走首次运行免令牌**。
+  // 概览页免令牌是安全的——还没有主人时库里没有任何用户数据。但对话一栏读的是
+  // 解密后的真实聊天，语气一栏改的是每个人都会收到的说话方式，这两件事在任何
+  // 时候都必须先证明你是服务器的管理者。
+  async #handleOwnerOnlyApi(request, response, name, url) {
+    // 会话或令牌，二者其一。**不接受**首次运行免令牌——那条规则只对概览成立。
+    if (!this.#sessionAuthorized(request) && !(this.adminToken && this.#tokenMatches(request))) {
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return;
+    }
+    try {
+      if (name === "conversations" && typeof this.adminConversations === "function") {
+        // 每个参数都在这里定长截断。它们最终会进 SQL 的绑定参数和内存比较，
+        // 不会被拼进语句，但一个没有上限的关键词照样能把一次查询拖垮。
+        const bounded = (key, max) => String(url.searchParams.get(key) || "").slice(0, max);
+        this.#json(response, 200, await this.adminConversations({
+          limit: Number(url.searchParams.get("limit")) || 40,
+          person: bounded("person", 200),
+          keyword: bounded("q", 120),
+          from: bounded("from", 32),
+          to: bounded("to", 32),
+        }));
+        return;
+      }
+      // 这一轮它当时一步步在干什么。给 job 或 turn 其中之一。
+      if (name === "trace" && typeof this.adminTrace === "function") {
+        this.#json(response, 200, await this.adminTrace({
+          jobId: String(url.searchParams.get("job") || "").slice(0, 120),
+          turnId: String(url.searchParams.get("turn") || "").slice(0, 120),
+        }));
+        return;
+      }
+      if (name === "ops" && typeof this.adminOps === "function") {
+        this.#json(response, 200, await this.adminOps());
+        return;
+      }
+      if (name === "insights" && typeof this.adminInsights === "function") {
+        this.#json(response, 200, await this.adminInsights({
+          person: String(url.searchParams.get("person") || "").slice(0, 200),
+          days: Number(url.searchParams.get("days")) || 120,
+        }));
+        return;
+      }
+      if (name === "persona" && request.method === "GET" && typeof this.adminPersonaRead === "function") {
+        // person 给了就读那个人自己的语气，不给就是主人那一行（所有人的默认值）。
+        this.#json(response, 200, await this.adminPersonaRead({
+          person: String(url.searchParams.get("person") || "").slice(0, 200),
+        }));
+        return;
+      }
+      if (name === "persona" && request.method === "POST" && typeof this.adminPersonaWrite === "function") {
+        const raw = await readBody(request);
+        let input = {};
+        try {
+          input = raw.length ? JSON.parse(raw.toString("utf8")) : {};
+        } catch {
+          this.#json(response, 400, { ok: false, code: "PERSONA_BODY_INVALID" });
+          return;
+        }
+        this.#json(response, 200, await this.adminPersonaWrite(input));
+        return;
+      }
+    } catch (error) {
+      // 只记码。这条路上的 body 是真实聊天内容和主人写的语气，一个字都不进日志。
+      this.logger.warn?.(`[cyberboss] 后台 ${name} 失败 code=${error?.code || "unknown"}`);
+      this.#json(response, 500, { ok: false, code: "ADMIN_ACTION_FAILED" });
+      return;
+    }
+    this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+  }
+
+  async #handleOwnerActivation(request, response, name, url) {
+    // 这里**不走**首次运行免令牌那条规则。
+    //
+    // 后台首次免令牌是安全的：那时库里没有用户、没有凭据、没有聊天记录，页面上
+    // 唯一能做的事就是把自己绑成主人。但这个路由不一样——它能发起一次真实的微信
+    // 授权，谁先扫谁的微信就成了机器人号。所以无论首次与否，一律要令牌。
+    if (!this.adminToken || !this.#tokenMatches(request)) {
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return;
+    }
+    try {
+      if (name === "start" && request.method === "POST" && typeof this.ownerActivationStart === "function") {
+        this.#json(response, 200, await this.ownerActivationStart());
+        return;
+      }
+      if (name === "poll" && typeof this.ownerActivationPoll === "function") {
+        this.#json(response, 200, await this.ownerActivationPoll(url.searchParams.get("qrcode") || ""));
+        return;
+      }
+    } catch (error) {
+      this.logger.warn?.(`[cyberboss] ops/wechat ${name} 失败 code=${error?.code || "unknown"}`);
+      this.#json(response, 500, { ok: false, code: "OWNER_ACTIVATION_FAILED" });
       return;
     }
     this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
@@ -227,9 +600,83 @@ class PortalHttpServer {
     const url = new URL(request.url || "/", "http://placeholder.invalid");
     const pathname = url.pathname;
 
+    if (request.method === "GET" && ROOT_PATHS.includes(pathname)) {
+      // 以前这里是 302 跳 /admin。陌生人打开这个域名，看到的是主人的后台登录页
+      // ——对一个要卖出去的产品来说，那等于把大门开在员工通道上，而且他连
+      // 「怎么开始用」的入口都找不到。
+      //
+      // 现在给一页公开的落地页：一个大按钮去 /join，底下一行小字给管理员。
+      // 和 /join 一样免鉴权，因为它同样一个字的运营信息都没有。
+      const nonce = newNonce();
+      const html = fs.readFileSync(HOME_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
+      response.end(html);
+      return null;
+    }
+    if (request.method === "GET" && OPS_WECHAT_PATHS.includes(pathname)) {
+      // 页面本身不含任何凭据，和后台页同样处理：HTML 免令牌，数据接口要令牌。
+      const nonce = newNonce();
+      const html = fs.readFileSync(OPS_WECHAT_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
+      response.end(html);
+      return null;
+    }
+    if (pathname.startsWith("/ops/api/wechat/")) {
+      return this.#handleOwnerActivation(request, response, pathname.slice("/ops/api/wechat/".length), url);
+    }
     if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
       this.#handleAdminPage(response);
       return null;
+    }
+    // 公开入口：无鉴权，这是刻意的。它只吐一张二维码和一句说明。
+    if (request.method === "GET" && JOIN_PATHS.includes(pathname)) {
+      const nonce = newNonce();
+      const html = fs.readFileSync(JOIN_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
+      response.end(html);
+      return null;
+    }
+    if (request.method === "GET" && pathname === "/api/join") {
+      return this.#handlePublicEntry(response);
+    }
+    // 每个人自己那一页。页面免令牌（它本身不含任何人的数据），数据要会话。
+    if (request.method === "GET" && ME_PATHS.includes(pathname)) {
+      const nonce = newNonce();
+      const html = fs.readFileSync(ME_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, {
+        ...SECURITY_HEADERS,
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Security-Policy": `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
+      });
+      response.end(html);
+      return null;
+    }
+    if (pathname === "/me/api/login") {
+      return this.#handleMeLogin(request, response);
+    }
+    if (request.method === "GET" && pathname === "/me/api/data") {
+      return this.#handleMeData(request, response);
+    }
+    // 扫码进度。只回 wait / scaned / confirmed / expired 四种状态和一句中文，
+    // 不回 accountId、不回 token、不回任何人的身份。
+    if (request.method === "GET" && pathname === "/api/join/status") {
+      return this.#handlePublicEntryStatus(response, url.searchParams.get("t") || "");
+    }
+    if (pathname === "/admin/api/login") {
+      return this.#handleAdminLogin(request, response);
+    }
+    if (pathname === "/admin/api/logout") {
+      return this.#handleAdminLogout(request, response);
+    }
+    // 顺序要紧：这一条必须排在 /admin/api/ 的通用分支前面，否则对话和语气会掉
+    // 进 #handleAdminApi，跟着继承首次运行免令牌那条规则。
+    if (OWNER_ONLY_ADMIN_APIS.some((name) => pathname === `/admin/api/${name}`)) {
+      return this.#handleOwnerOnlyApi(
+        request,
+        response,
+        pathname.slice("/admin/api/".length),
+        url,
+      );
     }
     if (pathname.startsWith("/admin/api/")) {
       return this.#handleAdminApi(request, response, pathname.slice("/admin/api/".length));

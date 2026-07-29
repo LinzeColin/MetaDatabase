@@ -260,6 +260,17 @@ function resolveAttachmentPayload(itemType, item) {
   if (itemType === MESSAGE_ITEM_VIDEO && item?.video_item && typeof item.video_item === "object") {
     return { kind: "video", body: item.video_item, media: item.video_item.media };
   }
+  // 语音也要留原件。
+  //
+  // 以前这里没有语音：bodyFromItemList 会把 voice_item.text（微信自己转的文字）
+  // 当成这一轮的输入，所以"听得懂"一直是通的——但那段音频从来没有落过盘。
+  // 主人要的是「全量保存」，转出来的文字不等于他说的那段话。
+  //
+  // 下载失败不会伤到现在能用的部分：有转写文字的时候 normalized.text 非空，
+  // 上层那条"附件全失败就整条丢掉"的分支不会触发，最多是这一条没存下音频。
+  if (itemType === MESSAGE_ITEM_VOICE && item?.voice_item && typeof item.voice_item === "object") {
+    return { kind: "voice", body: item.voice_item, media: item.voice_item.media };
+  }
   return null;
 }
 

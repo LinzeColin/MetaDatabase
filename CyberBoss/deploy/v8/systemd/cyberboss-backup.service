@@ -1,0 +1,16 @@
+[Unit]
+Description=CyberBoss deterministic backup
+After=cyberboss.service
+
+[Service]
+Type=oneshot
+User=cyberboss
+Group=cyberboss
+EnvironmentFile=/etc/cyberboss/runtime.env
+LoadCredential=backup-key:/etc/cyberboss/credentials/backup-key
+ExecStart=/opt/cyberboss-cloud/current/scripts/backup.sh
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/cyberboss /var/log/cyberboss

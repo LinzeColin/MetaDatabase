@@ -7,32 +7,156 @@
 <meta name="referrer" content="no-referrer">
 <title>CyberBoss 后台</title>
 <style nonce="__CSP_NONCE__">
-  :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--ok:#0b6b45;--warn:#8a5a00;--bad:#a1211a;--card:#f7f8fa}
-  @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#f2f4f7;--muted:#c3c8d1;--line:#333842;--ok:#6ee7b7;--warn:#ffcf70;--bad:#ff9b91;--card:#1c1f25}}
+  :root{
+    --bg:#fbfbfc;--fg:#15171c;--muted:#61666f;--faint:#8b919b;
+    --line:#e4e6eb;--card:#fff;--sunk:#f1f2f5;
+    --ok:#0b6b45;--warn:#8a5a00;--bad:#b3261e;
+    --them:#fff;--me:#95ec69;--me-fg:#14261a;
+    --h0:#eef0f3;--h1:#c9e7d3;--h2:#8fd3ab;--h3:#4fb37e;--h4:#1f7a4d;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0f1115;--fg:#eef1f5;--muted:#a8aeb8;--faint:#767c86;
+    --line:#262a31;--card:#161920;--sunk:#1c1f26;
+    --ok:#6ee7b7;--warn:#ffcf70;--bad:#ff9b91;
+    --them:#22262d;--me:#3f7043;--me-fg:#eaffe6;
+    --h0:#1f232a;--h1:#1e4a34;--h2:#2a7a52;--h3:#3fa46c;--h4:#5fd394;
+  }}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
-  main{max-width:760px;margin:0 auto;padding:24px 20px 64px}
-  h1{font-size:24px;margin:0 0 4px}
-  .sub{color:var(--muted);margin:0 0 24px;font-size:14px}
-  .big{display:flex;align-items:center;gap:12px;padding:20px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-bottom:20px}
-  .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
-  .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
-  .big strong{font-size:19px;display:block}
-  .big span{color:var(--muted);font-size:14px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-  .stat b{display:block;font-size:26px;line-height:1.2}
-  .stat span{color:var(--muted);font-size:13px}
-  h2{font-size:16px;margin:28px 0 10px}
-  ul{list-style:none;padding:0;margin:0}
-  li{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--card)}
-  li .name{flex:1}
-  li .tag{font-size:12px;color:var(--muted);white-space:nowrap}
-  button{font:inherit;padding:13px 18px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;min-height:46px}
-  button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
-  .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:19px;letter-spacing:.08em;padding:14px;background:var(--card);border:1px dashed var(--line);border-radius:10px;margin-top:10px;word-break:break-all;user-select:all}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  main{max-width:880px;margin:0 auto;padding:20px 16px 80px}
+  h1{font-size:21px;margin:0 0 2px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 16px;font-size:13px}
+  h2{font-size:13px;margin:22px 0 9px;color:var(--muted);font-weight:600}
+  h2:first-child{margin-top:0}
   .hint{color:var(--muted);font-size:13px;margin:8px 0 0}
-  .log{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-all;color:var(--muted)}
+  .faint{color:var(--faint)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card+.card{margin-top:12px}
+
+  .tabs{display:flex;gap:2px;background:var(--sunk);border-radius:11px;padding:3px;margin:0 0 20px}
+  .tabs button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;
+    font-weight:600;padding:9px 4px;min-height:40px;cursor:pointer;border-radius:9px}
+  .tabs button[aria-selected="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  button{font:inherit;padding:11px 16px;border-radius:10px;border:1px solid var(--line);
+    background:var(--card);color:var(--fg);cursor:pointer;min-height:44px}
+  button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
+  input[type=text],input[type=search],input[type=number],input[type=date],textarea{
+    font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg);color:var(--fg);width:100%}
+  textarea{min-height:88px;resize:vertical}
+
+  .hero{display:flex;align-items:center;gap:12px;padding:18px;border-radius:14px;
+    background:var(--card);border:1px solid var(--line);margin-bottom:14px}
+  .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+  .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+  .hero strong{font-size:17px;display:block}
+  .hero span{color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}
+  .stat b{display:block;font-size:23px;line-height:1.15;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat span{color:var(--muted);font-size:12px}
+  ul{list-style:none;padding:0;margin:0}
+  li.line{display:flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid var(--line);
+    border-radius:10px;margin-bottom:7px;background:var(--card);font-size:14px}
+  li.line .name{flex:1}
+  li.line .tag{font-size:12px;color:var(--muted);white-space:nowrap}
+  .code{font-family:ui-monospace,Menlo,monospace;font-size:17px;letter-spacing:.06em;padding:13px;
+    background:var(--sunk);border:1px dashed var(--line);border-radius:10px;margin-top:9px;
+    word-break:break-all;user-select:all}
+  .log{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:11px;
+    font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.75;max-height:240px;
+    overflow:auto;white-space:pre-wrap;word-break:break-all;color:var(--muted)}
+
+  /* 人 */
+  .people{display:flex;flex-direction:column;gap:8px}
+  .person{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);
+    border-radius:12px;background:var(--card);cursor:pointer;text-align:left;width:100%;min-height:64px}
+  .avatar{width:40px;height:40px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    font-weight:700;font-size:15px;color:#fff}
+  .pmeta{flex:1;min-width:0}
+  .pname{font-weight:600;font-size:15px;display:flex;align-items:center;gap:6px}
+  .pname .own,.pname .free{font-size:11px;font-weight:600;border-radius:20px;padding:0 6px;line-height:16px}
+  .pname .own{color:var(--ok);border:1px solid var(--ok)}
+  .pname .free{color:var(--muted);border:1px solid var(--line)}
+  .plast{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pright{text-align:right;flex:0 0 auto;color:var(--faint);font-size:12px;font-variant-numeric:tabular-nums}
+  .pright b{display:block;color:var(--fg);font-size:15px}
+
+  /* 聊天 */
+  .chathead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .back{padding:7px 12px;min-height:38px;font-size:14px}
+  .chathead .who{font-weight:600;font-size:16px;flex:1;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .chat{background:var(--sunk);border:1px solid var(--line);border-radius:14px;
+    padding:14px 12px;display:flex;flex-direction:column;gap:3px}
+  .daysep{align-self:center;font-size:11.5px;color:var(--faint);background:var(--card);
+    border-radius:20px;padding:2px 12px;margin:12px 0 8px}
+  .row{display:flex;gap:8px;max-width:88%}
+  .row.them{align-self:flex-start}
+  .row.me{align-self:flex-end;flex-direction:row-reverse}
+  .msg{padding:9px 12px;border-radius:16px;white-space:pre-wrap;word-break:break-word;
+    font-size:15px;line-height:1.55}
+  .row.them .msg{background:var(--them);border-bottom-left-radius:5px;border:1px solid var(--line)}
+  .row.me .msg{background:var(--me);color:var(--me-fg);border-bottom-right-radius:5px}
+  .stamp{align-self:flex-end;font-size:11px;color:var(--faint);flex:0 0 auto;padding-bottom:3px;
+    font-variant-numeric:tabular-nums}
+  .msg.ghost{background:none;border:1px dashed var(--line);color:var(--faint);font-style:italic}
+  .badge{align-self:center;font-size:11.5px;padding:1px 9px;border-radius:20px;
+    border:1px solid var(--line);color:var(--muted);margin:2px 0 8px}
+  .badge.bad{color:var(--bad);border-color:var(--bad)}
+  .kindtag{font-size:11px;color:var(--faint);align-self:flex-end;margin:0 4px 6px}
+  .tracewrap{align-self:center;width:100%;margin:2px 0 10px}
+  .tracewrap>.chip{display:block;margin:0 auto}
+  .tracebody{margin-top:8px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:10px}
+  .tracebody li.line{margin-bottom:5px;padding:7px 11px;font-size:13px;background:var(--sunk)}
+  .tracebody .empty{color:var(--muted);font-size:13px;text-align:center;padding:6px}
+  mark{background:var(--warn);color:#fff;border-radius:3px;padding:0 2px}
+
+  .finder{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:6px 13px;
+    font:inherit;font-size:13px;color:var(--muted);cursor:pointer;min-height:34px}
+  .chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
+  .dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:13px}
+  .dates input[type=date],.dates input[type=number]{width:auto;font-size:13.5px;padding:7px 9px}
+  .dates button{padding:7px 13px;min-height:36px;font-size:13.5px}
+
+  /* 画像 */
+  .contrib{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);gap:3px;
+    overflow-x:auto;padding:2px 0 6px}
+  .cell{width:11px;height:11px;border-radius:2.5px;background:var(--h0)}
+  .cell.l1{background:var(--h1)} .cell.l2{background:var(--h2)}
+  .cell.l3{background:var(--h3)} .cell.l4{background:var(--h4)}
+  .heat{display:grid;grid-template-columns:30px repeat(24,1fr);gap:2px;font-size:10px;color:var(--faint)}
+  .heat .hh{align-self:center}
+  .heat .hc{aspect-ratio:1;border-radius:2px;background:var(--h0);min-height:9px}
+  .heat .hc.l1{background:var(--h1)} .heat .hc.l2{background:var(--h2)}
+  .heat .hc.l3{background:var(--h3)} .heat .hc.l4{background:var(--h4)}
+  .legend{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--faint);margin-top:8px}
+  .legend .cell{width:10px;height:10px}
+  .tl{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+  .tl li{position:relative;padding:0 0 12px;font-size:13.5px}
+  .tl li::before{content:"";position:absolute;left:-21px;top:6px;width:8px;height:8px;
+    border-radius:50%;background:var(--faint);border:2px solid var(--bg)}
+  .tl b{display:block;font-size:12px;color:var(--muted)}
+
+  fieldset{border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;margin:0 0 12px;background:var(--card)}
+  legend{font-size:13px;font-weight:600;padding:0 6px;color:var(--muted)}
+  .opt{display:flex;align-items:flex-start;gap:10px;padding:8px 2px;cursor:pointer}
+  .opt input{margin-top:4px;flex:0 0 auto;width:18px;height:18px}
+  .opt .lab{font-weight:600;font-size:14px}
+  .opt .exp{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+  .row2{display:flex;gap:10px;flex-wrap:wrap}
+  .saverow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}
+  .saved{color:var(--ok);font-size:14px;font-weight:600}
+  pre.preview{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:12px;
+    font-size:11.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--muted);
+    margin:8px 0 0;max-height:240px;overflow:auto}
+  .empty{text-align:center;color:var(--faint);padding:36px 16px;font-size:14px}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -41,118 +165,1152 @@
   <h1>CyberBoss 后台</h1>
   <p class="sub">这一页就是全部。不用开终端。</p>
 
-  <div class="big">
-    <i class="dot warn" id="dot"></i>
-    <div><strong id="headline">正在读取……</strong><span id="subline">稍等一下</span></div>
-  </div>
+  <nav class="tabs" id="tabs">
+    <button type="button" data-tab="overview" aria-selected="true">概览</button>
+    <button type="button" data-tab="people" aria-selected="false">人</button>
+    <button type="button" data-tab="tone" aria-selected="false">设置</button>
+    <button type="button" data-tab="ops" aria-selected="false">机器</button>
+  </nav>
 
-  <div class="grid">
-    <div class="stat"><b id="s-users">–</b><span>已开通的人</span></div>
-    <div class="stat"><b id="s-today">–</b><span>今天的消息</span></div>
-    <div class="stat"><b id="s-uptime">–</b><span>已连续运行</span></div>
-  </div>
+  <section id="tab-overview">
+    <div class="hero">
+      <i class="dot warn" id="dot"></i>
+      <div><strong id="headline">正在读取……</strong><span id="subline">稍等一下</span></div>
+    </div>
+    <div class="grid">
+      <div class="stat"><b id="s-users">–</b><span>已开通的人</span></div>
+      <div class="stat"><b id="s-today">–</b><span>今天的消息</span></div>
+      <div class="stat"><b id="s-uptime">–</b><span>已连续运行</span></div>
+    </div>
+    <section id="owner-section">
+      <h2>把我的微信绑成主人</h2>
+      <p class="hint" style="margin:0 0 10px">点一下开门，然后<b>用你自己的微信随便对它说句话</b>。只需要做一次。</p>
+      <button class="primary" id="mkbind">开门，现在去微信说句话</button>
+      <p class="hint" id="bind-hint" hidden></p>
+      <p class="hint"><a href="#" id="showcode" style="color:inherit">用不了？改用认领码</a></p>
+      <button class="primary" id="mkowner" hidden>生成主人认领码</button>
+      <div class="code" id="ownercode" hidden></div>
+      <p class="hint" id="ownercode-hint" hidden>把上面这一串用你自己的微信发给它。只能用一次，30 分钟内有效。</p>
+    </section>
+    <h2>各项功能</h2>
+    <ul id="lines"></ul>
+    <h2>最近发生了什么</h2>
+    <div class="log" id="log">正在读取……</div>
+  </section>
 
-  <h2>加人</h2>
-  <button class="primary" id="mk">生成一个邀请码</button>
-  <div class="code" id="code" hidden></div>
-  <p class="hint" id="code-hint" hidden>把这一串发给朋友。他加了微信之后，直接把码发过来就能开通。只能用一次，7 天有效。</p>
+  <section id="tab-people" hidden>
+    <div id="people-view">
+      <div class="finder">
+        <input type="search" id="q" placeholder="搜聊天内容（问的和答的都搜）" enterkeyhint="search">
+        <div class="dates">
+          <label>从 <input type="date" id="from"></label>
+          <label>到 <input type="date" id="to"></label>
+          <button type="button" id="clearq">清空</button>
+        </div>
+      </div>
+      <p class="hint" id="people-note" style="margin:0 0 12px"></p>
+      <div class="people" id="people"></div>
+    </div>
 
-  <h2>各项功能</h2>
-  <ul id="lines"></ul>
+    <div id="chat-view" hidden>
+      <div class="chathead">
+        <button type="button" class="back" id="back">← 返回</button>
+        <span class="who" id="chat-who"></span>
+      </div>
+      <div class="grid" id="ins-stats"></div>
+      <div class="card">
+        <h2 style="margin-top:0">每天说了多少</h2>
+        <div class="contrib" id="contrib"></div>
+        <div class="legend"><span>少</span>
+          <i class="cell"></i><i class="cell l1"></i><i class="cell l2"></i><i class="cell l3"></i><i class="cell l4"></i>
+          <span>多</span><span id="contrib-note" style="margin-left:auto"></span></div>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">什么时候爱说话</h2>
+        <div class="heat" id="heat"></div>
+        <p class="hint">横着是 0 点到 23 点，竖着是周一到周日，按你这边的时间算。</p>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">时间轴</h2>
+        <ul class="tl" id="timeline"></ul>
+      </div>
 
-  <h2>最近发生了什么</h2>
-  <div class="log" id="log">正在读取……</div>
+      <!-- 「我需要能在 boss 页面看到全量信息数据记忆等」。
+           点开一个人就该在一屏里看完他的全部，不是点四次。 -->
+      <div class="card">
+        <h2 style="margin-top:0">记着他什么</h2>
+        <ul class="tl" id="ins-memories"></ul>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">他的待办</h2>
+        <ul class="tl" id="ins-todos"></ul>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">他的日程</h2>
+        <ul class="tl" id="ins-events"></ul>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">他发来的图片和文件</h2>
+        <ul class="tl" id="ins-media"></ul>
+      </div>
+
+      <!-- 只对这个人的语气。没单独设过就沿用「设置」那一页的默认值，
+           页面上要说清楚现在是哪一种，否则改了默认值会以为对每个人都生效。 -->
+      <div class="card">
+        <h2 style="margin-top:0">只对他的语气</h2>
+        <p class="hint" id="pp-state"></p>
+        <div id="pp-tones"></div>
+        <div id="pp-lengths" style="margin-top:10px"></div>
+        <label class="opt" style="margin-top:10px"><input type="checkbox" id="pp-emoji"><span class="lab">可以用 emoji</span></label>
+        <p class="hint" style="margin-top:10px">怎么称呼他</p>
+        <input type="text" id="pp-callme" maxlength="24" placeholder="不填就不特意称呼">
+        <p class="hint" style="margin-top:10px">还想让它对他注意什么</p>
+        <textarea id="pp-note" rows="3" placeholder="比如：他在减肥，别推荐吃的"></textarea>
+        <div style="margin-top:10px">
+          <button type="button" id="pp-save">只保存给他</button>
+          <span class="faint" id="pp-saved" hidden>存好了 ✓</span>
+        </div>
+        <p class="hint" style="margin-top:10px">它对他实际会照着说的那段话：</p>
+        <pre class="preview" id="pp-preview"></pre>
+      </div>
+
+      <h2>聊天记录</h2>
+      <!-- 聊得久了这一段会非常长，所以搜索、分类、日期都放在它上面。 -->
+      <div class="finder">
+        <input type="search" id="cq" placeholder="在这个人的记录里搜" enterkeyhint="search">
+        <div class="dates">
+          <label>从 <input type="date" id="cfrom"></label>
+          <label>到 <input type="date" id="cto"></label>
+          <button type="button" id="cclear">清空</button>
+        </div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button type="button" id="more" hidden>看更早的</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-tone" hidden>
+    <fieldset>
+      <legend>谁能用</legend>
+      <p class="hint" style="margin:0 0 8px">公开页：<b id="a-joinurl"></b></p>
+      <label class="opt"><input type="checkbox" id="a-open"><span class="lab">扫码就能用，不要邀请码<span class="exp">不勾的话，新人还要你给一串邀请码</span></span></label>
+      <div class="dates" style="margin-top:10px">
+        <label>前 <input type="number" id="a-seats" min="0" max="50" step="1" style="width:68px"> 个人用你的额度</label>
+        <span id="a-used" class="faint"></span>
+      </div>
+      <p class="hint">排在后面的人照样能用，只是要自己填 AI 密钥（它会告诉他们怎么填）。</p>
+      <p class="hint" style="margin-top:12px">加它的二维码地址（https:// 或 weixin:// 开头）</p>
+      <input type="text" id="a-entry" placeholder="https://…">
+    </fieldset>
+
+    <fieldset><legend>说话的调子</legend><div id="tone-list"></div></fieldset>
+    <fieldset><legend>一次说多长</legend><div class="row2" id="length-list"></div></fieldset>
+
+    <fieldset>
+      <legend>细节</legend>
+      <label class="opt"><input type="checkbox" id="p-emoji"><span class="lab">可以用 emoji<span class="exp">不勾的话一个都不用</span></span></label>
+      <p class="hint" style="margin-top:10px">怎么称呼你（留空就不特别称呼）</p>
+      <input type="text" id="p-callme" maxlength="24" placeholder="比如：老板、林哥">
+      <p class="hint" style="margin-top:12px">还想让它注意什么（自己写，一行一条）</p>
+      <textarea id="p-note" placeholder="比如：晚上十点之后说话轻一点"></textarea>
+      <p class="hint" id="note-count"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>主动找我</legend>
+      <p class="hint" style="margin:0 0 8px">它会在随机的时刻自己想起你 —— 也可能什么都不说。<b>只会找你一个人。</b></p>
+      <label class="opt"><input type="checkbox" id="p-active"><span class="lab">让它主动找我<span class="exp" id="p-target"></span></span></label>
+      <div class="dates" style="margin-top:10px">
+        <label>每隔 <input type="number" id="p-min" min="5" max="1440" step="5" style="width:68px"> ~
+          <input type="number" id="p-max" min="5" max="1440" step="5" style="width:68px"> 分钟</label>
+      </div>
+      <div class="dates" style="margin-top:8px">
+        <label>这段时间别打扰 <input type="number" id="p-qs" min="0" max="23" style="width:56px"> 点 ~
+          <input type="number" id="p-qe" min="0" max="23" style="width:56px"> 点</label>
+      </div>
+      <p class="hint">两个时间填成一样＝全天都可以找我。</p>
+    </fieldset>
+
+    <div class="saverow">
+      <button class="primary" id="p-save">保存</button>
+      <span class="saved" id="p-saved" hidden>已保存</span>
+    </div>
+
+    <h2>它实际收到的原话</h2>
+    <pre class="preview" id="p-preview">正在读取……</pre>
+
+    <h2>加人</h2>
+    <button class="primary" id="mk">生成一个邀请码</button>
+    <div class="code" id="code" hidden></div>
+    <p class="hint" id="code-hint" hidden>把这一串发给朋友。只能用一次，7 天有效。</p>
+  </section>
+
+  <!-- 机器：这台机器现在到底是什么状态。全是计数和状态词，没有任何聊天正文。 -->
+  <section id="tab-ops" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">现在</h2>
+      <div class="grid" id="ops-top"></div>
+      <p class="hint" id="ops-gate"></p>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">在管的微信号</h2>
+      <ul id="ops-accounts"></ul>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">各条线</h2>
+      <ul id="ops-lines"></ul>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">队列</h2>
+      <div id="ops-queues"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">人</h2>
+      <ul id="ops-users"></ul>
+    </div>
+    <!-- 体检结论。「还没测过」和「测过了没问题」必须分开显示——分不开的话，
+         刚启动那几分钟会显示成"一切正常"，而那时候什么都还没测。 -->
+    <div class="card">
+      <h2 style="margin-top:0">体检</h2>
+      <div id="ops-health"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">日记</h2>
+      <div class="log" id="ops-diary"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">最近做过什么</h2>
+      <div class="log" id="ops-log"></div>
+    </div>
+  </section>
 </main>
 <script nonce="__CSP_NONCE__">
 "use strict";
 (function () {
   var STATE = {
-    healthy: ["ok", "正常"],
-    degraded: ["warn", "不太对劲"],
-    blocked: ["bad", "出问题了"],
-    activation_pending: ["warn", "还没配"],
-    not_started: ["warn", "没开"]
+    healthy: ["ok", "正常"], degraded: ["warn", "不太对劲"], blocked: ["bad", "出问题了"],
+    activation_pending: ["warn", "还没配"], not_started: ["warn", "没开"]
   };
   function set(id, text) { var n = document.getElementById(id); if (n) { n.textContent = text; } }
-
-  // 管理员令牌从地址栏的 # 后面取，只留在内存里，然后立刻从地址栏抹掉：
-  // 片段不会出现在请求行里，服务器和中间代理的访问日志都记不到它。
-  var TOKEN = new URLSearchParams(location.hash.replace(/^#/, "")).get("k") || "";
-  if (TOKEN) { history.replaceState(null, "", location.pathname); }
-  function authed(extra) {
-    var h = extra || {};
-    if (TOKEN) { h["x-admin-token"] = TOKEN; }
-    return h;
+  // 一律 textContent。这一页上全是别人发来的原文，任何一处 innerHTML 都等于
+  // 把注入的口子开在主人自己的后台上。
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) { n.className = cls; }
+    if (text !== undefined) { n.textContent = text; }
+    return n;
   }
 
-  function human(seconds) {
-    if (!seconds || seconds < 0) { return "–"; }
-    var d = Math.floor(seconds / 86400), h = Math.floor((seconds % 86400) / 3600), m = Math.floor((seconds % 3600) / 60);
+  var HASH = new URLSearchParams(location.hash.replace(/^#/, ""));
+  var TOKEN = HASH.get("k") || "";
+  var TICKET = HASH.get("t") || "";
+  if (TOKEN || TICKET) { history.replaceState(null, "", location.pathname); }
+  function authed(extra) { var h = extra || {}; if (TOKEN) { h["x-admin-token"] = TOKEN; } return h; }
+  function login() {
+    return fetch("/admin/api/login", {
+      method: "POST", headers: authed({ "Content-Type": "application/json" }),
+      credentials: "same-origin", body: JSON.stringify(TICKET ? { ticket: TICKET } : {})
+    }).then(function (r) { return r.json(); })
+      .then(function (d) { TICKET = ""; if (d.ok) { TOKEN = ""; } return d.ok === true; })
+      .catch(function () { return false; });
+  }
+
+  function human(s) {
+    if (!s || s < 0) { return "–"; }
+    var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
     if (d) { return d + " 天 " + h + " 小时"; }
     if (h) { return h + " 小时 " + m + " 分"; }
     return m + " 分钟";
   }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function hhmm(iso) { var d = new Date(iso); return isNaN(d.getTime()) ? "" : pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function dayOf(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) { return ""; }
+    var t = new Date(), y = new Date(t.getTime() - 86400000);
+    var same = function (a, b) { return a.toDateString() === b.toDateString(); };
+    if (same(d, t)) { return "今天"; }
+    if (same(d, y)) { return "昨天"; }
+    return (d.getMonth() + 1) + " 月 " + d.getDate() + " 日";
+  }
+  // 同一个人永远同一个颜色，扫一眼就分得清是谁。
+  function hue(seed) {
+    var h = 0, s = String(seed);
+    for (var i = 0; i < s.length; i += 1) { h = (h * 31 + s.charCodeAt(i)) % 360; }
+    return h;
+  }
 
+  var current = "overview";
+  document.getElementById("tabs").addEventListener("click", function (event) {
+    var name = event.target && event.target.getAttribute("data-tab");
+    if (!name) { return; }
+    current = name;
+    var bs = this.querySelectorAll("button");
+    for (var i = 0; i < bs.length; i += 1) {
+      bs[i].setAttribute("aria-selected", bs[i].getAttribute("data-tab") === name ? "true" : "false");
+    }
+    ["overview", "people", "tone", "ops"].forEach(function (k) {
+      document.getElementById("tab-" + k).hidden = k !== name;
+    });
+    if (name === "people") { loadFeed(); }
+    if (name === "tone") { loadTone(); }
+    if (name === "ops") { loadOps(); }
+  });
+
+  // ── 概览 ─────────────────────────────────────────────
   function render(data) {
-    var bad = data.lines.filter(function (l) { return l.state === "blocked" || l.state === "degraded"; });
-    var dot = document.getElementById("dot");
-    dot.className = "dot " + (bad.length ? "bad" : "ok");
+    var bad = (data.lines || []).filter(function (l) { return l.state === "blocked" || l.state === "degraded"; });
+    document.getElementById("dot").className = "dot " + (bad.length ? "bad" : "ok");
     set("headline", bad.length ? "有地方出问题了" : "一切正常，正在待命");
     set("subline", bad.length
       ? bad.map(function (l) { return l.label; }).join("、") + " 需要处理"
       : "微信来消息就会回。这一页每 10 秒自己刷新。");
-
-    set("s-users", data.users);
-    set("s-today", data.messagesToday);
-    set("s-uptime", human(data.uptimeSeconds));
-
-    var ul = document.getElementById("lines");
-    ul.textContent = "";
-    data.lines.forEach(function (line) {
+    set("s-users", data.users); set("s-today", data.messagesToday); set("s-uptime", human(data.uptimeSeconds));
+    var ul = document.getElementById("lines"); ul.textContent = "";
+    (data.lines || []).forEach(function (line) {
       var pair = STATE[line.state] || ["warn", line.state];
-      var li = document.createElement("li");
-      var i = document.createElement("i"); i.className = "dot " + pair[0];
-      var name = document.createElement("span"); name.className = "name"; name.textContent = line.label;
-      var tag = document.createElement("span"); tag.className = "tag"; tag.textContent = pair[1];
-      li.appendChild(i); li.appendChild(name); li.appendChild(tag);
+      var li = el("li", "line");
+      li.appendChild(el("i", "dot " + pair[0]));
+      li.appendChild(el("span", "name", line.label));
+      li.appendChild(el("span", "tag", pair[1]));
       ul.appendChild(li);
     });
-
     document.getElementById("log").textContent = (data.log || []).join("\n") || "还没有记录。";
+    if (data.ownerBound) {
+      var owner = document.getElementById("owner-section");
+      if (owner) { owner.hidden = true; }
+    }
   }
-
   function refresh() {
     fetch("/admin/api/overview", { headers: authed(), credentials: "same-origin" })
       .then(function (r) { if (!r.ok) { throw new Error(String(r.status)); } return r.json(); })
       .then(render)
       .catch(function () {
         document.getElementById("dot").className = "dot bad";
-        set("headline", TOKEN ? "连不上服务" : "这个链接不完整");
-        set("subline", TOKEN
-          ? "它可能停了。过一会儿这一页会自己再试。"
-          : "请用完整的后台链接打开（末尾带 #k=…… 那一段）。");
+        set("headline", "还没登录，或者连不上");
+        set("subline", "在微信里对它说一句「后台」，它会给你一条新链接。");
       });
   }
 
-  document.getElementById("mk").addEventListener("click", function () {
-    var button = this;
-    button.disabled = true; button.textContent = "正在生成……";
-    fetch("/admin/api/invite", { method: "POST", headers: authed(), credentials: "same-origin" })
+  // ── 人 / 聊天 ────────────────────────────────────────
+  var filter = { q: "", from: "", to: "" };
+  // 聊天视图有自己的一套筛选。聊得久了那一段会非常长，所以它需要独立的
+  // 搜索、分类和日期——在某个人里搜，不该把外面的名单也筛掉。
+  var chat = { q: "", from: "", to: "", kind: "all", limit: 80 };
+  var openPerson = "";
+
+  var CHIPS = [
+    ["all", "全部"],
+    ["stuck", "没答上"],
+    ["bot", "它主动说的"],
+    ["asked", "我问它答"]
+  ];
+  function renderChips() {
+    var box = document.getElementById("chips");
+    box.textContent = "";
+    CHIPS.forEach(function (pair) {
+      var b = el("button", "chip", pair[1]);
+      b.type = "button";
+      b.setAttribute("aria-pressed", chat.kind === pair[0] ? "true" : "false");
+      b.addEventListener("click", function () {
+        chat.kind = pair[0];
+        renderChips();
+        loadChat();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function withHighlight(text, needle) {
+    var box = document.createDocumentFragment();
+    if (!needle) { box.appendChild(document.createTextNode(text)); return box; }
+    var hay = text.toLowerCase(), seek = needle.toLowerCase(), at = 0;
+    for (;;) {
+      var hit = hay.indexOf(seek, at);
+      if (hit < 0) { box.appendChild(document.createTextNode(text.slice(at))); break; }
+      if (hit > at) { box.appendChild(document.createTextNode(text.slice(at, hit))); }
+      var mk = document.createElement("mark");
+      mk.textContent = text.slice(hit, hit + seek.length);
+      box.appendChild(mk); at = hit + seek.length;
+    }
+    return box;
+  }
+
+  function renderPeople(data) {
+    var box = document.getElementById("people"); box.textContent = "";
+    var people = data.people || [];
+    if (!people.length) {
+      box.appendChild(el("div", "empty", (filter.q || filter.from || filter.to)
+        ? "没有符合条件的。" : "还没有人说过话。"));
+      set("people-note", ""); return;
+    }
+    var lastOf = {};
+    (data.threads || []).forEach(function (t) {
+      if (!lastOf[t.who]) {
+        lastOf[t.who] = t.initiatedByBot
+          ? "［它主动说的］" + ((t.replies[0] || {}).text || "")
+          : (t.text || "");
+      }
+    });
+    people.forEach(function (p, index) {
+      var b = el("button", "person"); b.type = "button";
+      var a = el("i", "avatar", (p.label || "?").slice(-1));
+      a.style.background = "hsl(" + hue(p.id) + " 60% 45%)";
+      b.appendChild(a);
+      var meta = el("div", "pmeta");
+      var name = el("div", "pname");
+      name.appendChild(document.createTextNode(p.label));
+      if (p.isOwner) { name.appendChild(el("span", "own", "你")); }
+      else if (data.freeSeats !== undefined && index <= data.freeSeats) {
+        // 名单里主人排在前面，所以这里用序号粗略标一下谁在免费名额内。
+        name.appendChild(el("span", "free", "用你的额度"));
+      }
+      meta.appendChild(name);
+      meta.appendChild(el("div", "plast", lastOf[p.id] || "（这段时间没说话）"));
+      b.appendChild(meta);
+      var right = el("div", "pright");
+      right.appendChild(el("b", "", String(p.count)));
+      right.appendChild(document.createTextNode("条"));
+      b.appendChild(right);
+      b.addEventListener("click", function () { openChat(p); });
+      box.appendChild(b);
+    });
+    set("people-note", data.truncated
+      ? "命中 " + data.matched + " 条，只算了最近 " + data.shown + " 条"
+      : (data.matched ? "最近 " + data.matched + " 条消息" : ""));
+  }
+
+  function openChat(person) {
+    openPerson = person.id;
+    chat = { q: "", from: "", to: "", kind: "all", limit: 80 };
+    ["cq", "cfrom", "cto"].forEach(function (id) { document.getElementById(id).value = ""; });
+    renderChips();
+    document.getElementById("people-view").hidden = true;
+    document.getElementById("chat-view").hidden = false;
+    set("chat-who", person.label + (person.isOwner ? "（你）" : ""));
+    chatSignature = "";
+    loadChat(); loadInsights(); loadPersonTone();
+  }
+  document.getElementById("back").addEventListener("click", function () {
+    openPerson = "";
+    chatSignature = "";
+    document.getElementById("chat-view").hidden = true;
+    document.getElementById("people-view").hidden = false;
+    // 回到名单就立刻刷一次，不用等下一个 10 秒。
+    loadFeed();
+  });
+
+  function bubble(side, text, stamp, ghost) {
+    var row = el("div", "row " + side);
+    var msg = el("div", "msg" + (ghost ? " ghost" : ""));
+    if (ghost) { msg.textContent = text; } else { msg.appendChild(withHighlight(text, chat.q || filter.q)); }
+    row.appendChild(msg);
+    row.appendChild(el("span", "stamp", stamp));
+    return row;
+  }
+
+  function renderChat(threads) {
+    var box = document.getElementById("chat"); box.textContent = "";
+    if (!threads.length) { box.appendChild(el("div", "empty", "这段时间没有聊天。")); return; }
+    // 从旧到新，和真正的聊天窗口一样。
+    var ordered = threads.slice().sort(function (a, b) { return a.at < b.at ? -1 : 1; });
+    var lastDay = "";
+    ordered.forEach(function (t) {
+      var day = dayOf(t.at);
+      if (day !== lastDay) { box.appendChild(el("div", "daysep", day)); lastDay = day; }
+      if (t.initiatedByBot) {
+        box.appendChild(el("div", "kindtag", t.kindLabel || "它主动说的"));
+      } else if (t.available) {
+        box.appendChild(bubble("them", t.text || "（空消息）", hhmm(t.at), false));
+      } else {
+        box.appendChild(bubble("them", "内容已按保留期清除", hhmm(t.at), true));
+      }
+      (t.replies || []).forEach(function (r) {
+        box.appendChild(bubble("me", (r.available && r.text) ? r.text : "内容已按保留期清除",
+          hhmm(r.at), !(r.available && r.text)));
+      });
+      if (t.state && t.state.stuck) { box.appendChild(el("div", "badge bad", t.state.label)); }
+      if (t.jobId) { box.appendChild(traceToggle(t.jobId)); }
+    });
+  }
+
+  // 每一轮下面挂一个「它当时在干什么」。默认收着——展开才去查，
+  // 不然滚一屏就是几十次解密。
+  function traceToggle(jobId) {
+    var wrap = el("div", "tracewrap");
+    var button = el("button", "chip", "它当时在干什么");
+    var body = el("div", "tracebody");
+    body.hidden = true;
+    var loaded = false;
+    button.addEventListener("click", function () {
+      body.hidden = !body.hidden;
+      button.setAttribute("aria-pressed", body.hidden ? "false" : "true");
+      if (body.hidden || loaded) { return; }
+      loaded = true;
+      body.textContent = "";
+      body.appendChild(el("div", "empty", "正在读取……"));
+      fetch("/admin/api/trace?job=" + encodeURIComponent(jobId),
+        { headers: authed(), credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { renderTrace(body, d); })
+        .catch(function () { renderTrace(body, { ok: false, code: "连不上服务" }); });
+    });
+    wrap.appendChild(button);
+    wrap.appendChild(body);
+    return wrap;
+  }
+
+  function feedUrl(person) {
+    return "/admin/api/conversations?limit=" + (person ? 200 : 60)
+      + (person ? "&person=" + encodeURIComponent(person) : "")
+      + (filter.q ? "&q=" + encodeURIComponent(filter.q) : "")
+      + (filter.from ? "&from=" + encodeURIComponent(filter.from) : "")
+      + (filter.to ? "&to=" + encodeURIComponent(filter.to) : "");
+  }
+
+  var feedTimer = null;
+  function loadFeed() {
+    fetch(feedUrl(""), { headers: authed(), credentials: "same-origin" })
       .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) {
+          var box = document.getElementById("people"); box.textContent = "";
+          box.appendChild(el("div", "empty", d.code === "ADMIN_TOKEN_INVALID"
+            ? "登录过期了。在微信里对它说一句「后台」，它会给你一条新链接。"
+            : "读不出来：" + (d.code || "未知")));
+          return;
+        }
+        renderPeople(d);
+      })
+      .catch(function () {});
+    if (feedTimer) { clearTimeout(feedTimer); }
+    feedTimer = setTimeout(function () {
+      if (current === "people" && !openPerson) { loadFeed(); }
+    }, 10000);
+  }
+
+  function chatUrl() {
+    return "/admin/api/conversations?limit=" + chat.limit
+      + "&person=" + encodeURIComponent(openPerson)
+      + (chat.q ? "&q=" + encodeURIComponent(chat.q) : "")
+      + (chat.from ? "&from=" + encodeURIComponent(chat.from) : "")
+      + (chat.to ? "&to=" + encodeURIComponent(chat.to) : "");
+  }
+  function matchesKind(t) {
+    if (chat.kind === "stuck") { return !!(t.state && t.state.stuck); }
+    if (chat.kind === "bot") { return t.initiatedByBot === true; }
+    if (chat.kind === "asked") { return !t.initiatedByBot; }
+    return true;
+  }
+  // 聊天记录每 10 秒自己刷一次，但**内容没变就不重画**。
+  //
+  // 无脑重画的代价是真的：展开的「它当时在干什么」会被收回去、看到一半的位置
+  // 会跳回顶上。所以先算一个便宜的签名（每条的时间 + 回复状态），一样就什么都
+  // 不做——这样"实时"不会变成"用不了"。
+  var chatSignature = "";
+  var chatTimer = null;
+  function signatureOf(threads) {
+    return threads.map(function (t) {
+      return t.at + "|" + ((t.state && t.state.label) || "") + "|"
+        + (t.replies || []).map(function (r) { return r.at + r.rawStatus; }).join(",");
+    }).join(";");
+  }
+  function loadChat(options) {
+    var force = !options || options.force !== false;
+    fetch(chatUrl(), { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) { return; }
+        var all = (d.threads || []).filter(matchesKind);
+        var signature = signatureOf(all);
+        if (force || signature !== chatSignature) {
+          chatSignature = signature;
+          renderChat(all);
+        }
+        // 还有更早的就给一个按钮，而不是一次性把几千条全铺出来。
+        document.getElementById("more").hidden = !d.truncated;
+      })
+      .catch(function () {})
+      .then(function () {
+        if (chatTimer) { clearTimeout(chatTimer); }
+        chatTimer = setTimeout(function () {
+          if (openPerson) { loadChat({ force: false }); }
+        }, 10000);
+      });
+  }
+  document.getElementById("more").addEventListener("click", function () {
+    chat.limit = Math.min(2000, chat.limit + 200);
+    this.textContent = "正在读取……";
+    var self = this;
+    setTimeout(function () { self.textContent = "看更早的"; }, 600);
+    loadChat();
+  });
+  // 聊天里的搜索：同样等手停下来。
+  var chatTyping = null;
+  document.getElementById("cq").addEventListener("input", function () {
+    var v = this.value;
+    if (chatTyping) { clearTimeout(chatTyping); }
+    chatTyping = setTimeout(function () { chat.q = v.trim(); loadChat(); }, 350);
+  });
+  ["cfrom", "cto"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () {
+      chat[id === "cfrom" ? "from" : "to"] = this.value;
+      loadChat();
+    });
+  });
+  document.getElementById("cclear").addEventListener("click", function () {
+    chat.q = ""; chat.from = ""; chat.to = ""; chat.kind = "all"; chat.limit = 80;
+    ["cq", "cfrom", "cto"].forEach(function (id) { document.getElementById(id).value = ""; });
+    renderChips();
+    loadChat();
+  });
+
+  // ── 画像 ─────────────────────────────────────────────
+  function level(count, max) {
+    if (!count) { return ""; }
+    var r = count / (max || 1);
+    return r > 0.75 ? " l4" : r > 0.5 ? " l3" : r > 0.25 ? " l2" : " l1";
+  }
+  function renderInsights(d) {
+    var stats = document.getElementById("ins-stats"); stats.textContent = "";
+    [[d.totals.messages, "说过的话"], [d.totals.answered, "答上了"], [d.totals.stuck, "没答上"],
+     [d.totals.activeDays, "有来往的天数"], [d.totals.streak, "连续天数"],
+     [d.totals.botInitiated, "它主动找的"]].forEach(function (pair) {
+      var s = el("div", "stat");
+      s.appendChild(el("b", "", String(pair[0])));
+      s.appendChild(el("span", "", pair[1]));
+      stats.appendChild(s);
+    });
+
+    var maxDay = 0;
+    (d.daily || []).forEach(function (x) { if (x.count > maxDay) { maxDay = x.count; } });
+    var grid = document.getElementById("contrib"); grid.textContent = "";
+    (d.daily || []).forEach(function (x) {
+      var c = el("i", "cell" + level(x.count, maxDay));
+      c.title = x.day + "：" + x.count + " 条";
+      grid.appendChild(c);
+    });
+    set("contrib-note", "最近 " + d.days + " 天");
+
+    var maxHeat = 0;
+    (d.heatmap || []).forEach(function (row) { row.forEach(function (v) { if (v > maxHeat) { maxHeat = v; } }); });
+    var heat = document.getElementById("heat"); heat.textContent = "";
+    var names = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+    [1, 2, 3, 4, 5, 6, 0].forEach(function (dow) {
+      heat.appendChild(el("span", "hh", names[dow]));
+      for (var h = 0; h < 24; h += 1) {
+        var v = ((d.heatmap || [])[dow] || [])[h] || 0;
+        var c = el("i", "hc" + level(v, maxHeat));
+        c.title = names[dow] + " " + pad(h) + " 点：" + v + " 条";
+        heat.appendChild(c);
+      }
+    });
+
+    var tl = document.getElementById("timeline"); tl.textContent = "";
+    [["第一次说话", d.firstAt], ["最近一次", d.lastAt]].forEach(function (pair) {
+      if (!pair[1]) { return; }
+      var li = document.createElement("li");
+      li.appendChild(el("b", "", pair[0]));
+      li.appendChild(document.createTextNode(new Date(pair[1]).toLocaleString("zh-CN")));
+      tl.appendChild(li);
+    });
+    if (!tl.children.length) { tl.appendChild(el("li", "", "还没有记录。")); }
+
+    // 记忆、待办、日程。全部 textContent——这三样都是人写的字。
+    fillRows("ins-memories", (d.memories || []).map(function (m) {
+      return { head: m.category || "", body: m.text, tail: "" };
+    }), openPerson ? "还没记下什么。" : "先在左边点一个人。");
+    fillRows("ins-todos", (d.todos || []).map(function (t) {
+      return { head: t.doneAt ? "✓" : "○", body: t.title, tail: t.dueAt || "" };
+    }), openPerson ? "他还没有待办。" : "先在左边点一个人。");
+    fillRows("ins-events", (d.events || []).map(function (e) {
+      return { head: "", body: e.title, tail: e.dueAt || "" };
+    }), openPerson ? "他还没有日程。" : "先在左边点一个人。");
+    // 元数据在库里，字节在磁盘上。这里显示的是主人认得出的那个名字（微信那边
+    // 原本的文件名），不是落盘时去重改过的名字。
+    fillRows("ins-media", (d.media || []).map(function (m) {
+      var meta = {};
+      try { meta = JSON.parse(m.note || "{}"); } catch (err) { meta = {}; }
+      var size = meta.sizeBytes ? Math.round(meta.sizeBytes / 1024) + " KB" : "";
+      return {
+        head: meta.isImage ? "🖼" : "📎",
+        body: meta.sourceFileName || m.title,
+        tail: [size, m.createdAt || ""].filter(Boolean).join("  "),
+      };
+    }), openPerson ? "他还没发过图片或文件。" : "先在左边点一个人。");
+  }
+
+  function fillRows(id, rows, emptyText) {
+    var box = document.getElementById(id);
+    if (!box) { return; }
+    box.textContent = "";
+    if (!rows.length) { box.appendChild(el("li", "", emptyText)); return; }
+    rows.slice(0, 60).forEach(function (row) {
+      var li = document.createElement("li");
+      if (row.head) { li.appendChild(el("b", "", row.head)); }
+      li.appendChild(document.createTextNode(row.body));
+      if (row.tail) { li.appendChild(el("span", "hint", " " + row.tail)); }
+      box.appendChild(li);
+    });
+  }
+  // 画像跟着聊天一起刷。它只有计数和格子，重画没有副作用。
+  var insightsTimer = null;
+  function loadInsights() {
+    fetch("/admin/api/insights?person=" + encodeURIComponent(openPerson) + "&days=120",
+      { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d.ok) { renderInsights(d); } })
+      .catch(function () {})
+      .then(function () {
+        if (insightsTimer) { clearTimeout(insightsTimer); }
+        insightsTimer = setTimeout(function () {
+          if (openPerson) { loadInsights(); }
+        }, 30000);
+      });
+  }
+
+  // 搜索等手停下来再查：每敲一个字就查一次，等于让服务器把整段历史解密一遍。
+  var typing = null;
+  document.getElementById("q").addEventListener("input", function () {
+    var v = this.value;
+    if (typing) { clearTimeout(typing); }
+    typing = setTimeout(function () {
+      filter.q = v.trim();
+      if (openPerson) { loadChat(); } else { loadFeed(); }
+    }, 350);
+  });
+  ["from", "to"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () {
+      filter[id] = this.value;
+      if (openPerson) { loadChat(); } else { loadFeed(); }
+    });
+  });
+  document.getElementById("clearq").addEventListener("click", function () {
+    filter = { q: "", from: "", to: "" };
+    ["q", "from", "to"].forEach(function (id) { document.getElementById(id).value = ""; });
+    loadFeed();
+  });
+
+  // ── 机器 ─────────────────────────────────────────────
+  //
+  // 全是计数、状态词和时间，没有任何聊天正文——正文在「人」那一栏，那是另
+  // 一条路。这一栏和对话栏一样要令牌。
+  function stat(value, label) {
+    var box = el("div", "stat");
+    box.appendChild(el("b", "", String(value)));
+    box.appendChild(el("span", "", label));
+    return box;
+  }
+  function countRow(title, items) {
+    var wrap = el("div", "", "");
+    wrap.appendChild(el("h2", "", title));
+    var ul = el("ul");
+    if (!items || !items.length) {
+      ul.appendChild(el("li", "line", "（空）"));
+    } else {
+      items.forEach(function (item) {
+        var li = el("li", "line");
+        li.appendChild(el("span", "name", item.label));
+        li.appendChild(el("span", "tag", String(item.count)));
+        ul.appendChild(li);
+      });
+    }
+    wrap.appendChild(ul);
+    return wrap;
+  }
+  function renderOps(data) {
+    if (!data.ok) {
+      set("ops-gate", data.code === "ADMIN_TOKEN_INVALID"
+        ? "登录过期了。在微信里对它说一句「后台」，它会给你一条新链接。"
+        : "读不出来：" + (data.code || "未知"));
+      return;
+    }
+    var top = document.getElementById("ops-top"); top.textContent = "";
+    var rel = data.release || {};
+    top.appendChild(stat(human(rel.uptimeSeconds || 0), "跑了多久"));
+    top.appendChild(stat(rel.commit || "?", "版本"));
+    top.appendChild(stat((data.accounts || []).length, "在管的微信号"));
+    top.appendChild(stat("v" + (data.schema || 0), "数据库版本"));
+    top.appendChild(stat((data.usagePercent || 0) + "%", "额度还剩"));
+
+    // 「还没判过」和「判过了，结论是卡住」是两件事。混在一起会让人去查一个
+    // 根本不存在的故障——闸门只在队列里有活的时候才判。
+    // 别人能不能聊起来。这一句要顶在最前面：没有 key 的时候，所有访客不管说
+    // 什么都只会收到一句「去填密钥」，而这是唯一说得清楚的地方。
+    var ai = data.guestAi || {};
+    var aiLine = el("p", "hint", (ai.ready ? "别人的 AI：好了 ✓ " : "别人的 AI：还没填 ⚠ ") + (ai.note || ""));
+    if (!ai.ready) { aiLine.style.color = "var(--bad)"; }
+    top.appendChild(aiLine);
+    aiLine.style.gridColumn = "1 / -1";
+
+    var gate = data.gate;
+    set("ops-gate", !gate
+      ? "闸门：调度还没启动。"
+      : (!gate.evaluated
+        ? "闸门：一直没活干，还没需要判过。有消息进来就会判一次。"
+        : (gate.dispatchAllowed !== false && (gate.state === "ready" || gate.state === "healthy")
+          ? "闸门：正常，消息进来就会处理。"
+          : "闸门：" + gate.state + "——" + gate.reason
+            + "（现在会" + (gate.action || "等") + "）")));
+
+    var accounts = document.getElementById("ops-accounts"); accounts.textContent = "";
+    (data.accounts || []).forEach(function (id) {
+      var li = el("li", "line");
+      li.appendChild(el("span", "name", id));
+      accounts.appendChild(li);
+    });
+    if (!(data.accounts || []).length) {
+      accounts.appendChild(el("li", "line", "一个都没有——还没扫码登录。"));
+    }
+
+    var lines = document.getElementById("ops-lines"); lines.textContent = "";
+    (data.lines || []).forEach(function (line) {
+      var pair = STATE[line.state] || ["warn", line.state];
+      var li = el("li", "line");
+      li.appendChild(el("i", "dot " + pair[0]));
+      li.appendChild(el("span", "name", line.label));
+      li.appendChild(el("span", "tag", pair[1] + (line.reason ? "・" + line.reason : "")));
+      lines.appendChild(li);
+    });
+
+    var queues = document.getElementById("ops-queues"); queues.textContent = "";
+    var q = data.queue || {};
+    queues.appendChild(countRow("待办（jobs）", q.jobs));
+    queues.appendChild(countRow("收到的消息", q.inbox));
+    queues.appendChild(countRow("要发出去的", q.outbox));
+    queues.appendChild(countRow("最近 24 小时", data.last24h));
+
+    var users = document.getElementById("ops-users"); users.textContent = "";
+    (data.users || []).forEach(function (item) {
+      var li = el("li", "line");
+      li.appendChild(el("span", "name", item.label));
+      li.appendChild(el("span", "tag", String(item.count)));
+      users.appendChild(li);
+    });
+
+    document.getElementById("ops-log").textContent = (data.log || []).join("\n") || "还没有记录。";
+
+    // 体检。textContent，不拼 HTML。
+    var health = document.getElementById("ops-health");
+    health.textContent = "";
+    var h = data.health || {};
+    if (h.healthy === null || h.healthy === undefined) {
+      health.appendChild(el("p", "hint", "还没体检过。启动两分钟后跑第一次。"));
+    } else if (h.healthy) {
+      health.appendChild(el("p", "", "都正常。"));
+      health.appendChild(el("p", "hint", h.at ? "最后一次：" + new Date(h.at).toLocaleString("zh-CN") : ""));
+    } else {
+      (h.findings || []).forEach(function (f) {
+        var box = el("p", "");
+        box.appendChild(el("b", "", f.title + " "));
+        box.appendChild(document.createTextNode(f.detail));
+        health.appendChild(box);
+      });
+    }
+
+    // 日记。整机一份，不按人分——写它的是主人那条路径上的工具。
+    var diary = document.getElementById("ops-diary");
+    var entries = data.diary || [];
+    diary.textContent = entries.length
+      ? entries.map(function (d) { return "── " + d.day + " ──\n" + d.text; }).join("\n\n")
+      : "还没有日记。";
+  }
+  var opsTimer = null;
+  function loadOps() {
+    fetch("/admin/api/ops", { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); }).then(renderOps)
+      .catch(function () { renderOps({ ok: false, code: "连不上服务" }); })
+      .then(function () {
+        if (opsTimer) { clearTimeout(opsTimer); }
+        opsTimer = setTimeout(function () { if (current === "ops") { loadOps(); } }, 10000);
+      });
+  }
+
+  // ── 它当时在干什么 ───────────────────────────────────
+  //
+  // 一句实话：模型**不吐"推理内容"**。codex 只吐 turn 开始/结束/失败、
+  // reply delta（吐了几个字）、context updated（token 计数）、需要审批。
+  // 所以这里能给的是"这一轮它一步步干了什么、慢在哪一步"，不是它的内心独白。
+  // 别把它当成后者，也别在页面上暗示它是后者。
+  var TRACE_LABELS = {
+    "runtime.turn.started": "开始想",
+    "runtime.reply.delta": "在往外吐字",
+    "runtime.turn.completed": "想完了",
+    "runtime.turn.failed": "这一轮失败了",
+    "runtime.context.updated": "算了一次 token",
+    "runtime.approval.requested": "要人批准才能继续"
+  };
+  function renderTrace(box, data) {
+    box.textContent = "";
+    if (!data.ok) {
+      box.appendChild(el("div", "empty", "看不到：" + (data.code || "未知")));
+      return;
+    }
+    if (!data.steps.length) {
+      box.appendChild(el("div", "empty", "这一轮没有留下轨迹（可能是重启前的，或者压根没走模型）。"));
+      return;
+    }
+    var ul = el("ul");
+    data.steps.forEach(function (step) {
+      var li = el("li", "line");
+      li.appendChild(el("span", "name", TRACE_LABELS[step.kind] || step.kind));
+      var detail = [];
+      if (step.gapMs) { detail.push("+" + Math.round(step.gapMs / 100) / 10 + "秒"); }
+      if (step.chars) { detail.push(step.chars + " 个字"); }
+      if (step.payload && step.payload.tokens) { detail.push(step.payload.tokens + " token"); }
+      if (step.payload && step.payload.errorClass) { detail.push(step.payload.errorClass); }
+      li.appendChild(el("span", "tag", detail.join("・")));
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    box.appendChild(el("p", "hint", "一共 " + Math.round((data.totalMs || 0) / 100) / 10 + " 秒。"
+      + "这里是它这一轮做了什么，不是它心里想什么——模型不吐后者。"));
+  }
+
+  // ── 只对这个人的语气 ─────────────────────────────────
+  //
+  // 「设置」那一页改的是所有人的默认值；这一段改的只是打开的这个人。
+  // 服务端会告诉我们现在是"他自己设过"还是"在沿用默认值"（inherited），
+  // 这句话必须显示出来——不显示的话，主人改完默认值会以为对每个人都生效了。
+  function radios(box, items, name, current) {
+    box.textContent = "";
+    (items || []).forEach(function (item) {
+      var label = el("label", "opt");
+      var input = document.createElement("input");
+      input.type = "radio"; input.name = name; input.value = item.id;
+      input.checked = item.id === current;
+      var span = el("span", "lab", item.label);
+      if (item.hint) { span.appendChild(el("span", "exp", item.hint)); }
+      label.appendChild(input); label.appendChild(span); box.appendChild(label);
+    });
+  }
+  function renderPersonTone(data) {
+    if (!data.ok) {
+      set("pp-state", data.code === "PERSONA_USER_UNKNOWN"
+        ? "他还没跟它说过话，暂时不能单独设。"
+        : "读不出来：" + (data.code || "未知"));
+      return;
+    }
+    var persona = data.persona || {};
+    set("pp-state", data.inherited
+      ? "现在跟着「设置」里的默认值走。在这里改一下，就只对他生效。"
+      : "他有自己的一套，改「设置」里的默认值不会动到他。");
+    radios(document.getElementById("pp-tones"), data.tones, "pptone", persona.tone);
+    radios(document.getElementById("pp-lengths"), data.lengths, "pplen", persona.length);
+    document.getElementById("pp-emoji").checked = persona.emoji === true;
+    document.getElementById("pp-callme").value = persona.callMe || "";
+    document.getElementById("pp-note").value = persona.note || "";
+    document.getElementById("pp-note").setAttribute("maxlength", String(data.maxNoteChars || 500));
+    document.getElementById("pp-preview").textContent = data.preview || "（空）";
+  }
+  function loadPersonTone() {
+    if (!openPerson) { return; }
+    fetch("/admin/api/persona?person=" + encodeURIComponent(openPerson),
+      { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); }).then(renderPersonTone)
+      .catch(function () { renderPersonTone({ ok: false, code: "连不上服务" }); });
+  }
+  document.getElementById("pp-save").addEventListener("click", function () {
+    if (!openPerson) { return; }
+    var button = this, saved = document.getElementById("pp-saved");
+    button.disabled = true; button.textContent = "正在保存……"; saved.hidden = true;
+    fetch("/admin/api/persona", {
+      method: "POST", headers: authed({ "Content-Type": "application/json" }),
+      credentials: "same-origin",
+      body: JSON.stringify({
+        person: openPerson,
+        tone: checkedValue("pptone", "warm"),
+        length: checkedValue("pplen", "medium"),
+        emoji: document.getElementById("pp-emoji").checked,
+        callMe: document.getElementById("pp-callme").value,
+        note: document.getElementById("pp-note").value
+      })
+    }).then(function (r) { return r.json(); })
       .then(function (data) {
-        button.disabled = false; button.textContent = "再生成一个";
-        var box = document.getElementById("code");
-        box.textContent = data.code || "（生成失败，稍后再试）";
-        box.hidden = false;
-        document.getElementById("code-hint").hidden = !data.code;
+        button.disabled = false; button.textContent = "只保存给他";
+        if (data.ok) {
+          renderPersonTone(data);
+          saved.hidden = false;
+          setTimeout(function () { saved.hidden = true; }, 2500);
+        } else {
+          set("pp-state", data.code === "PERSONA_USER_UNKNOWN"
+            ? "他还没跟它说过话，暂时不能单独设。"
+            : "没存上：" + (data.code || "未知"));
+        }
       })
       .catch(function () {
-        button.disabled = false; button.textContent = "生成一个邀请码";
+        button.disabled = false; button.textContent = "只保存给他";
+        set("pp-state", "没存上：连不上服务");
       });
   });
 
-  refresh();
-  setInterval(refresh, 10000);
+  // ── 设置 ─────────────────────────────────────────────
+  var toneLoaded = false;
+  function renderTone(data) {
+    if (!data.ok) {
+      document.getElementById("p-preview").textContent = data.code === "ADMIN_TOKEN_INVALID"
+        ? "登录过期了。在微信里对它说一句「后台」，它会给你一条新链接。"
+        : "读不出来：" + (data.code || "未知");
+      return;
+    }
+    var persona = data.persona || {};
+    if (!toneLoaded) {
+      var tl = document.getElementById("tone-list"); tl.textContent = "";
+      (data.tones || []).forEach(function (tone) {
+        var label = el("label", "opt");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "tone"; input.value = tone.id;
+        input.checked = tone.id === persona.tone;
+        var span = el("span", "lab", tone.label);
+        span.appendChild(el("span", "exp", tone.hint || ""));
+        label.appendChild(input); label.appendChild(span); tl.appendChild(label);
+      });
+      var ll = document.getElementById("length-list"); ll.textContent = "";
+      (data.lengths || []).forEach(function (item) {
+        var label = el("label", "opt");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "length"; input.value = item.id;
+        input.checked = item.id === persona.length;
+        label.appendChild(input); label.appendChild(el("span", "lab", item.label));
+        ll.appendChild(label);
+      });
+      document.getElementById("p-emoji").checked = persona.emoji === true;
+      document.getElementById("p-callme").value = persona.callMe || "";
+      var acc = persona.access || {};
+      document.getElementById("a-open").checked = acc.mode === "open";
+      document.getElementById("a-seats").value = acc.seats;
+      document.getElementById("a-entry").value = acc.entryUrl || "";
+      var pro = persona.proactive || {};
+      document.getElementById("p-active").checked = pro.enabled === true;
+      document.getElementById("p-min").value = pro.minMinutes;
+      document.getElementById("p-max").value = pro.maxMinutes;
+      document.getElementById("p-qs").value = pro.quietStart;
+      document.getElementById("p-qe").value = pro.quietEnd;
+      var note = document.getElementById("p-note");
+      note.value = persona.note || "";
+      note.setAttribute("maxlength", String(data.maxNoteChars || 500));
+      countNote(data.maxNoteChars || 500);
+      note.addEventListener("input", function () { countNote(data.maxNoteChars || 500); });
+      toneLoaded = true;
+    }
+    set("a-used", "已经有 " + (data.seatsUsed || 0) + " 个人");
+    set("a-joinurl", data.joinUrl || "");
+    set("p-target", data.proactiveTarget
+      ? "会发到 " + String(data.proactiveTarget).slice(0, 10) + "…"
+      : "还认不出主人是哪个微信号——先给它发一句话");
+    document.getElementById("p-preview").textContent = data.preview || "（空）";
+  }
+  function countNote(max) {
+    set("note-count", document.getElementById("p-note").value.length + " / " + max + " 字");
+  }
+  function loadTone() {
+    fetch("/admin/api/persona", { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); }).then(renderTone)
+      .catch(function () { renderTone({ ok: false, code: "连不上服务" }); });
+  }
+  function checkedValue(name, fallback) {
+    var node = document.querySelector('input[name="' + name + '"]:checked');
+    return node ? node.value : fallback;
+  }
+  document.getElementById("p-save").addEventListener("click", function () {
+    var button = this, saved = document.getElementById("p-saved");
+    button.disabled = true; button.textContent = "正在保存……"; saved.hidden = true;
+    fetch("/admin/api/persona", {
+      method: "POST", headers: authed({ "Content-Type": "application/json" }),
+      credentials: "same-origin",
+      body: JSON.stringify({
+        tone: checkedValue("tone", "warm"),
+        length: checkedValue("length", "medium"),
+        emoji: document.getElementById("p-emoji").checked,
+        callMe: document.getElementById("p-callme").value,
+        note: document.getElementById("p-note").value,
+        access: {
+          mode: document.getElementById("a-open").checked ? "open" : "invite",
+          seats: Number(document.getElementById("a-seats").value),
+          entryUrl: document.getElementById("a-entry").value
+        },
+        proactive: {
+          enabled: document.getElementById("p-active").checked,
+          minMinutes: Number(document.getElementById("p-min").value),
+          maxMinutes: Number(document.getElementById("p-max").value),
+          quietStart: Number(document.getElementById("p-qs").value),
+          quietEnd: Number(document.getElementById("p-qe").value)
+        }
+      })
+    }).then(function (r) { return r.json(); })
+      .then(function (data) {
+        button.disabled = false; button.textContent = "保存";
+        if (data.ok) {
+          document.getElementById("p-preview").textContent = data.preview || "（空）";
+          // 服务端会把不合法的值改掉——照实写回去，别让人以为存进去的是他填的那个。
+          var a = (data.persona || {}).access || {}, p = (data.persona || {}).proactive || {};
+          document.getElementById("a-entry").value = a.entryUrl || "";
+          document.getElementById("a-seats").value = a.seats;
+          document.getElementById("p-min").value = p.minMinutes;
+          document.getElementById("p-max").value = p.maxMinutes;
+          document.getElementById("p-qs").value = p.quietStart;
+          document.getElementById("p-qe").value = p.quietEnd;
+          saved.hidden = false;
+          setTimeout(function () { saved.hidden = true; }, 2500);
+        } else {
+          saved.hidden = false; saved.textContent = "没保存成功：" + (data.code || "未知");
+        }
+      })
+      .catch(function () { button.disabled = false; button.textContent = "再试一次"; });
+  });
+
+  function wireCodeButton(buttonId, boxId, hintId, url, busy, again) {
+    document.getElementById(buttonId).addEventListener("click", function () {
+      var button = this, original = button.textContent;
+      button.disabled = true; button.textContent = busy;
+      fetch(url, { method: "POST", headers: authed(), credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          button.disabled = false; button.textContent = data.code ? again : original;
+          var box = document.getElementById(boxId);
+          box.textContent = data.code || "（生成失败，稍后再试）";
+          box.hidden = false;
+          document.getElementById(hintId).hidden = !data.code;
+        })
+        .catch(function () { button.disabled = false; button.textContent = original; });
+    });
+  }
+  wireCodeButton("mkowner", "ownercode", "ownercode-hint", "/admin/api/owner-claim", "正在生成……", "再生成一个");
+  wireCodeButton("mk", "code", "code-hint", "/admin/api/invite", "正在生成……", "再生成一个");
+
+  document.getElementById("showcode").addEventListener("click", function (event) {
+    event.preventDefault();
+    document.getElementById("mkowner").hidden = false;
+    this.parentNode.hidden = true;
+  });
+
+  document.getElementById("mkbind").addEventListener("click", function () {
+    var button = this;
+    button.disabled = true; button.textContent = "正在开门……";
+    fetch("/admin/api/owner-bind", { method: "POST", headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var hint = document.getElementById("bind-hint");
+        button.disabled = false;
+        if (data.ok) {
+          button.textContent = "门已经开了";
+          hint.textContent = "现在用你自己的微信，随便对它说一句话，"
+            + (data.minutes || 10) + " 分钟内有效。说完这一页会自己变。";
+        } else if (data.code === "OWNER_ALREADY_BOUND") {
+          button.textContent = "已经有主人了";
+          hint.textContent = "这台机器已经绑过主人，不需要再绑一次。";
+        } else {
+          button.textContent = "再试一次"; hint.textContent = "没能打开，请稍后再试。";
+        }
+        hint.hidden = false;
+      })
+      .catch(function () { button.disabled = false; button.textContent = "再试一次"; });
+  });
+
+  login().then(function () { refresh(); setInterval(refresh, 10000); });
 })();
 </script>
 </body>

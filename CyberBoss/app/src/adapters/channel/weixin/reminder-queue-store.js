@@ -95,6 +95,14 @@ function normalizeReminder(reminder) {
     text,
     dueAtMs,
     createdAt: createdAt || new Date().toISOString(),
+    // direct=true 的是「X 分钟后提醒我」当场解析出来的那种：到点原样发出去，
+    // **不唤醒模型**。模型那条路（cyberboss_reminder_create）留给需要它临场
+    // 判断该说什么的场景，两者到期后走的出口不一样。
+    direct: reminder.direct === true,
+    // 投递失败重排了几次。丢了这个字段，重排就会变成无限重试。
+    attempts: Number.isSafeInteger(reminder.attempts) && reminder.attempts >= 0
+      ? reminder.attempts
+      : 0,
   };
 }
 

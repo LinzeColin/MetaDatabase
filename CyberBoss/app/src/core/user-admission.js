@@ -11,11 +11,15 @@
 // resolved. Nothing in a message body can name a user, widen a role or skip a
 // state — the text is only ever compared against the frozen Chinese commands.
 
-const { createHmac } = require("node:crypto");
+const { createHmac, timingSafeEqual } = require("node:crypto");
 
 const { buildSecureSetupLink } = require("../services/security/secure-setup-link");
 const { SqliteSetupTokenService } = require("../services/security/setup-token-service");
-const { SqliteInviteCodeStore } = require("../services/users/invite-code-store");
+const {
+  SqliteInviteCodeStore,
+  generateCode,
+  normalizeCode,
+} = require("../services/users/invite-code-store");
 const { ACTIONS, COMMANDS, MESSAGES } = require("../services/users/onboarding-state");
 const {
   DEFAULT_POLICY_VERSION,
@@ -35,13 +39,24 @@ const SETUP_COMMAND = "设置";
 const OWNER_COMMANDS = Object.freeze({
   INVITE: ["邀请", "邀请码", "生成邀请码", "加个人"],
   STATUS: ["状态", "运行状况", "还好吗"],
+  // 「我不可能每次都有 token」。主人手上永远有的东西是微信本身，所以后台入口
+  // 就在这里：说一声，拿一条一次性链接。长期令牌一次都不经过聊天记录。
+  ADMIN: ["后台", "面板", "网站", "控制台", "管理后台"],
 });
 const HELP_COMMANDS = Object.freeze(["帮助", "help", "怎么用", "你能做什么"]);
+// 主人认领码。存在 service_state 里：明文永不落库，只留 HMAC 摘要和过期时间。
+const OWNER_CLAIM_STATE_KEY = "owner_claim";
+const OWNER_CLAIM_TTL_MS = 30 * 60 * 1000;
+// 「开一扇门」：一段有限的时间窗，窗内第一个说话的人成为主人。比让人抄一串码
+// 好用，也比"永远开着的先到先得"安全——窗是主人自己开的，而且很快自己关上。
+const OWNER_BIND_WINDOW_KEY = "owner_bind_window";
+const OWNER_BIND_WINDOW_TTL_MS = 10 * 60 * 1000;
 const RESERVED_INPUTS = Object.freeze([
   ...Object.values(COMMANDS),
   SETUP_COMMAND,
   ...OWNER_COMMANDS.INVITE,
   ...OWNER_COMMANDS.STATUS,
+  ...OWNER_COMMANDS.ADMIN,
   ...HELP_COMMANDS,
 ]);
 const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
@@ -49,6 +64,7 @@ const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
 const OWNER_HELP = [
   "你是这里的主人。可以直接跟我说话，也可以用这些中文口令：",
   "",
+  "  后台  —— 给你一条打开后台的链接（一次性，5 分钟有效）",
   "  邀请  —— 生成一串邀请码，转发给朋友，他就能开通",
   "  状态  —— 看看现在运行得怎么样",
   "  帮助  —— 再看一次这条说明",
@@ -125,6 +141,12 @@ class UserAdmissionService {
     registrationMode = "invite",
     policyVersion = DEFAULT_POLICY_VERSION,
     portalOrigin = "",
+    // 普通用户席位上限。开放模式下这是唯一挡住"任何扫到码的人都来烧主人额度"
+    // 的东西，所以它必须在**建用户之前**判，而不是等 turn 走到模型那一步。
+    // 回调而不是定值：主人在后台改完，下一条消息就生效，不用重启。
+    seatLimitProvider = null,
+    // 默认关：扫码进来的人第一句话就能用，不必先回一句「同意并开始」。
+    requireExplicitConsent = false,
     now = () => new Date(),
   }) {
     if (!database || typeof database.prepare !== "function") {
@@ -157,7 +179,12 @@ class UserAdmissionService {
       policyVersion,
     });
     this.portalOrigin = normalizeText(portalOrigin);
+    this.seatLimitProvider = typeof seatLimitProvider === "function" ? seatLimitProvider : null;
+    this.requireExplicitConsent = requireExplicitConsent === true;
     this.setupTokens = new SqliteSetupTokenService({ database });
+    this.now = now;
+    // 和邀请码同样的做法：从 owner-only 的身份密钥派生，不新增任何密钥文件。
+    this.ownerClaimSecret = deriveSubKey(identityKey, "cyberboss-owner-claim-secret");
   }
 
   // CB-620 / AC-011 on the live path: 「设置」 mints a single-use, 15-minute
@@ -200,6 +227,128 @@ class UserAdmissionService {
   // binding, `#ownerPrincipalBound` then sees it, and every later sender goes
   // through invite and consent like anyone else. It never reopens, because the
   // binding is durable and this checks the database rather than a flag.
+  #hashOwnerClaim(code) {
+    return createHmac("sha256", this.ownerClaimSecret)
+      .update("cyberboss-owner-claim")
+      .update(normalizeCode(code))
+      .digest("hex");
+  }
+
+  // 后台生成的一次性认领码。授权来自后台令牌——那是只有服务器管理者才拿得到
+  // 的东西——所以这条路径不会把主人身份交给一个陌生人。
+  //
+  // 它补的是一个真实的死局：主人用自己的微信当了机器人号，那个号的 id 永远
+  // 不会作为"发件人"出现，于是主人永远绑不上；而 ownerSenderIds 一旦有值，
+  // 先到先得的认领窗口又是关着的。结果是谁都成不了主人，机器人对每个人都回
+  // 一句"这个操作只有管理员可以使用"。
+  issueOwnerClaim({ ttlMs = OWNER_CLAIM_TTL_MS } = {}) {
+    const code = generateCode();
+    const expiresAt = this.now().getTime() + ttlMs;
+    this.users.database
+      .prepare(
+        `INSERT INTO service_state (key, value_redacted_json, value_sha256, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET
+           value_redacted_json=excluded.value_redacted_json,
+           value_sha256=excluded.value_sha256,
+           updated_at=excluded.updated_at`,
+      )
+      .run(
+        OWNER_CLAIM_STATE_KEY,
+        JSON.stringify({ expires_at: expiresAt }),
+        this.#hashOwnerClaim(code),
+        this.now().toISOString(),
+      );
+    return Object.freeze({ code, expiresAt: new Date(expiresAt).toISOString() });
+  }
+
+  // 一次性：只要摘要对得上就删掉，不管过没过期。过期的码返回 false，但也不会
+  // 留在库里等人再试一次。
+  #redeemOwnerClaim(text) {
+    const candidate = normalizeCode(text);
+    if (candidate.length < 12) {
+      return false;
+    }
+    const row = this.users.database
+      .prepare("SELECT value_redacted_json, value_sha256 FROM service_state WHERE key=?")
+      .get(OWNER_CLAIM_STATE_KEY);
+    if (!row) {
+      return false;
+    }
+    let digest;
+    try {
+      digest = this.#hashOwnerClaim(candidate);
+    } catch {
+      return false;
+    }
+    const stored = Buffer.from(String(row.value_sha256 || ""), "utf8");
+    const actual = Buffer.from(digest, "utf8");
+    if (stored.length !== actual.length || !timingSafeEqual(stored, actual)) {
+      return false;
+    }
+    this.users.database
+      .prepare("DELETE FROM service_state WHERE key=?")
+      .run(OWNER_CLAIM_STATE_KEY);
+    let expiresAt = 0;
+    try {
+      expiresAt = Number(JSON.parse(row.value_redacted_json)?.expires_at) || 0;
+    } catch {
+      return false;
+    }
+    return expiresAt > this.now().getTime();
+  }
+
+  // 有没有任何微信号已经绑成主人。没有的话，这套系统里还不存在任何用户数据，
+  // 后台也就没有什么可保护的——首次绑定因此不需要令牌。
+  ownerChannelBound() {
+    return this.#ownerPrincipalBound();
+  }
+
+  armOwnerBinding({ ttlMs = OWNER_BIND_WINDOW_TTL_MS } = {}) {
+    if (this.#ownerPrincipalBound()) {
+      throw new UserAdmissionError("OWNER_ALREADY_BOUND");
+    }
+    const expiresAt = this.now().getTime() + ttlMs;
+    this.users.database
+      .prepare(
+        `INSERT INTO service_state (key, value_redacted_json, value_sha256, updated_at)
+         VALUES (?, ?, '', ?)
+         ON CONFLICT(key) DO UPDATE SET
+           value_redacted_json=excluded.value_redacted_json,
+           updated_at=excluded.updated_at`,
+      )
+      .run(OWNER_BIND_WINDOW_KEY, JSON.stringify({ expires_at: expiresAt }), this.now().toISOString());
+    return Object.freeze({ expiresAt: new Date(expiresAt).toISOString(), ttlMs });
+  }
+
+  // 窗开着、还没过期、而且确实还没有主人——三件事都成立才放行。用完即关。
+  #ownerBindingArmed() {
+    if (this.#ownerPrincipalBound()) {
+      return false;
+    }
+    const row = this.users.database
+      .prepare("SELECT value_redacted_json FROM service_state WHERE key=?")
+      .get(OWNER_BIND_WINDOW_KEY);
+    if (!row) {
+      return false;
+    }
+    let expiresAt = 0;
+    try {
+      expiresAt = Number(JSON.parse(row.value_redacted_json)?.expires_at) || 0;
+    } catch {
+      expiresAt = 0;
+    }
+    if (expiresAt <= this.now().getTime()) {
+      this.users.database.prepare("DELETE FROM service_state WHERE key=?").run(OWNER_BIND_WINDOW_KEY);
+      return false;
+    }
+    return true;
+  }
+
+  #closeOwnerBindingWindow() {
+    this.users.database.prepare("DELETE FROM service_state WHERE key=?").run(OWNER_BIND_WINDOW_KEY);
+  }
+
   #ownerClaimAvailable() {
     if (this.ownerSenderIds.length > 0) {
       return false;
@@ -255,6 +404,11 @@ class UserAdmissionService {
     if (OWNER_COMMANDS.STATUS.includes(trimmed)) {
       return Object.freeze({ route: "status", userContext: admitted.userContext, modelCalls: 0 });
     }
+    if (OWNER_COMMANDS.ADMIN.includes(trimmed)) {
+      // 链接由 app 层生成——票据服务在那边。这里只负责把这一轮判成"当场答复"，
+      // 于是它一次模型调用都不花。
+      return Object.freeze({ route: "admin_link", userContext: admitted.userContext, modelCalls: 0 });
+    }
     if (HELP_COMMANDS.includes(trimmed)) {
       return reply(ACTIONS.SHOW_HOME, { text: OWNER_HELP });
     }
@@ -283,6 +437,32 @@ class UserAdmissionService {
     return INVITE_CANDIDATE.test(trimmed) ? trimmed : null;
   }
 
+  // 现在还剩几个席位。读不出来时返回 null＝不设限——席位判定坏掉不该把所有
+  // 新用户都挡在门外，那会让"开放模式"变成"谁都进不来"。
+  #seatsRemaining() {
+    if (!this.seatLimitProvider) {
+      return null;
+    }
+    let limit;
+    try {
+      limit = Number(this.seatLimitProvider());
+    } catch {
+      return null;
+    }
+    if (!Number.isInteger(limit) || limit < 0) {
+      return null;
+    }
+    try {
+      // 只数普通用户；主人不占席位。
+      const active = this.users.countActiveOrdinaryUsers
+        ? Number(this.users.countActiveOrdinaryUsers())
+        : null;
+      return Number.isFinite(active) ? Math.max(0, limit - active) : null;
+    } catch {
+      return null;
+    }
+  }
+
   #admitUnregistered({ botAccountRef, senderRef, text }) {
     const inviteCode = this.#inviteCandidate(text);
     let result;
@@ -298,11 +478,41 @@ class UserAdmissionService {
       // tokens; the sender is simply asked for a valid code again.
       return reply(ACTIONS.REQUEST_INVITE);
     }
+    // 建完人就直接往下走，用他刚说的那句话继续。
+    //
+    // 以前到这里就 return 一句「回复同意并开始」，于是他要说三句话才轮到他真正
+    // 想问的那句：说句话 → 同意 → 再问一次。这三步里没有一步是他想做的事。
+    // 现在只在 CB_REQUIRE_EXPLICIT_CONSENT=true 时才停在这里。
+    if (!this.requireExplicitConsent && result.action === ACTIONS.SHOW_CONSENT) {
+      return this.admit({ botAccountRef, senderRef, text });
+    }
     return reply(result.action);
   }
 
+  // 扫码进来的人，第一句话就能用。
+  //
+  // 以前是：先弹一段告知、要他回一句「同意并开始」、才算开通。三步之后他才
+  // 说得上第一句话，而这三步里没有一步是他想做的事——他只是想问个问题。
+  //
+  // 告知没有取消，只是不再挡路：注册的那一刻就把那句话发给他（见
+  // ACTIONS.CONSENT_ACCEPTED 那条回复），他知道内容会被保存，也随时能发
+  // 「退出」停用并删掉。要退回旧的两步式，把 CB_REQUIRE_EXPLICIT_CONSENT
+  // 设成 true。
   #admitPendingConsent({ botAccountRef, senderRef, text }) {
     const trimmed = normalizeText(text);
+    if (!this.requireExplicitConsent && trimmed !== COMMANDS.DECLINE && trimmed !== COMMANDS.CANCEL) {
+      // 直接开通，然后**用他刚说的那句话继续往下走**——不是回一句「已开通」
+      // 就把他的问题丢掉。他问的那句必须被回答。
+      try {
+        this.registration.consent({
+          botAccountRef, senderRef, channel: this.channel, accepted: true,
+        });
+      } catch {
+        // 开通失败就退回旧的两步式，别把人卡死在门口。
+        return reply(ACTIONS.SHOW_CONSENT);
+      }
+      return this.admit({ botAccountRef, senderRef, text });
+    }
     if (trimmed === COMMANDS.CONSENT) {
       const result = this.registration.consent({
         botAccountRef,
@@ -333,6 +543,18 @@ class UserAdmissionService {
     }
     if (this.isOwnerSender(senderRef)) {
       return this.#ownerTurn({ botAccountRef, senderRef, text });
+    }
+    // 认领码要排在注册用户查表之前：主人换手机、换微信之后重新认领，走的也是
+    // 这条路，而那时候他在库里可能已经是一个普通用户了。
+    if (this.#redeemOwnerClaim(text)) {
+      const claimed = this.#admitOwner({ botAccountRef, senderRef });
+      return Object.freeze({ ...claimed, ownerClaimed: true });
+    }
+    // 主人在后台开了门：窗内第一句话，不管说的是什么，都把这个号绑成主人。
+    if (this.#ownerBindingArmed()) {
+      const claimed = this.#admitOwner({ botAccountRef, senderRef });
+      this.#closeOwnerBindingWindow();
+      return Object.freeze({ ...claimed, ownerClaimed: true });
     }
     if (this.#ownerClaimAvailable()) {
       const claimed = this.#admitOwner({ botAccountRef, senderRef });
@@ -395,6 +617,7 @@ class UserAdmissionService {
     if (
       OWNER_COMMANDS.INVITE.includes(trimmed)
       || OWNER_COMMANDS.STATUS.includes(trimmed)
+      || OWNER_COMMANDS.ADMIN.includes(trimmed)
     ) {
       return reply(ACTIONS.SHOW_HOME, { text: USER_HELP });
     }
@@ -412,6 +635,8 @@ class UserAdmissionService {
 
 module.exports = {
   HELP_COMMANDS,
+  OWNER_BIND_WINDOW_TTL_MS,
+  OWNER_CLAIM_TTL_MS,
   INVITE_CANDIDATE,
   OWNER_COMMANDS,
   OWNER_HELP,

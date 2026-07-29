@@ -40,8 +40,26 @@ test("WeChat fetch cannot commit cursor or plaintext context state", () => {
   const fetchEnd = adapter.indexOf("async getUpdates(", fetchStart);
   assert.ok(fetchStart >= 0 && fetchEnd > fetchStart);
   const fetchBody = adapter.slice(fetchStart, fetchEnd);
+  // 这一条才是真正的安全属性：拉取本身绝不能提交游标或落明文上下文。
   assert.doesNotMatch(fetchBody, /saveSyncBuffer|commitSyncBuffer|rememberContextToken/);
-  assert.match(fetchBody, /candidateCursor/);
+
+  // fetchUpdates 后来被重构成委托给 fetchUpdatesFor（多账号），candidateCursor
+  // 跟着搬了进去。原来这里按函数名偏移量切一段源码再找字符串，于是一次**正确**
+  // 的重构把它弄红了——测试对着正确的改动亮红灯，比没有测试更糟。
+  //
+  // 所以跟着委托链走：真正要证明的是"拉取产出的是候选游标，提交是另一步"，
+  // 而不是"这个字符串出现在这个函数的字节区间里"。
+  const delegateStart = adapter.indexOf("function fetchUpdatesFor(");
+  assert.ok(delegateStart >= 0, "fetchUpdates 的委托目标不见了，这条契约要重新看");
+  const delegateEnd = adapter.indexOf("function accountView(", delegateStart);
+  assert.ok(delegateEnd > delegateStart, "切不出 fetchUpdatesFor 的函数体");
+  const delegateBody = adapter.slice(delegateStart, delegateEnd);
+  assert.match(delegateBody, /candidateCursor/);
+  assert.doesNotMatch(
+    delegateBody,
+    /commitSyncBuffer/,
+    "委托进去之后也不能顺手把游标提交了",
+  );
   assert.match(adapter, /commitCandidateCursor/);
 
   const cursor = source("app/src/adapters/channel/weixin/sync-buffer-store.js");

@@ -1,0 +1,4 @@
+'use strict';
+function utcDay(ts){return new Date(ts).toISOString().slice(0,10);}
+function aggregateDaily(events){const map=new Map();for(const e of events){if(!e.userId||!e.occurredAt)throw new TypeError('userId and occurredAt required');const key=`${e.userId}:${utcDay(e.occurredAt)}`;const row=map.get(key)||{userId:e.userId,day:utcDay(e.occurredAt),messages:0,aiTurns:0,imports:0,remindersCompleted:0,profileChanges:0};if(e.type==='message')row.messages++;if(e.type==='ai_turn')row.aiTurns++;if(e.type==='import_completed')row.imports++;if(e.type==='reminder_completed')row.remindersCompleted++;if(e.type==='profile_changed')row.profileChanges++;map.set(key,row);}return[...map.values()].sort((a,b)=>a.userId.localeCompare(b.userId)||a.day.localeCompare(b.day));}
+module.exports={aggregateDaily};
