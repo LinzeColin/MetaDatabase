@@ -122,9 +122,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   complete same-index mapping plus a meaningful 16×16 target-panel viewport intersection, so an inactive panel's
   one-pixel transformed edge cannot block the active list; the surface-safety suite covers the positive and sliver
   rejection cases. No browser content, IDs, URLs, or platform call entered the repository.
-- In the latest delegated Owner Chrome pass, the real XHS 收藏 and 点赞 panes each exposed exactly 20 first visible,
-  unique items under that strict mapping without a scroll. Their IDs were hashed only in transient process memory,
-  never emitted or persisted; this is not an Owner-input or platform-action claim. The real logged-in Douyin profile
+- Historical delegated Owner Chrome observations of the real XHS 收藏/点赞 panes are not reusable release evidence.
+  Every direct release must freshly observe each selected scope, require exactly 20 first-visible unique items without
+  scrolling, and keep any IDs only as transient hashes that are neither emitted nor persisted until all four scopes
+  satisfy the current Owner-input gate. The real logged-in Douyin profile
   selected 收藏 and 喜欢 successfully, but the corresponding active `user-favorite-tab` / `user-like-tab` panes each
   contained only one empty placeholder descendant and zero verifiable cards after bounded no-scroll stabilization.
   There was no visible loading or empty-state text to reinterpret. The current release therefore has no valid
