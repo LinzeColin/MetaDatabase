@@ -71,13 +71,6 @@ CURRENT_PAGE_PLACEHOLDER_VERSION = "placeholder-1.0.0"
 SCOPE_SYNC_RUN_KIND = "native_scope_dispatch_v1"
 LIFECYCLE_TOMBSTONE_KINDS = frozenset({"content", "relation", "sink", "runtime"})
 OWNER_MVP_LIST_BASELINE_SCOPES: dict[SyncScopeId, tuple[str, str, str, str, str]] = {
-    SyncScopeId.XIAOHONGSHU_FAVORITES: (
-        "xiaohongshu",
-        "favorited",
-        "receipt_xhsfav_",
-        "run_xhsfav_",
-        "checkpoint_xhsfav_",
-    ),
     SyncScopeId.DOUYIN_FAVORITES: ("douyin", "favorited", "receipt_dy_", "run_dy_", "checkpoint_dy_"),
     SyncScopeId.DOUYIN_LIKES: ("douyin", "liked", "receipt_dy_", "run_dy_", "checkpoint_dy_"),
 }

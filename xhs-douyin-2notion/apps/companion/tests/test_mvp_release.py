@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -608,6 +609,24 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(controller.external_gate_settlements(store=self.store), external_gates)
         self.assertTrue(self.paths._validate_marker()["product_execution_authorized"])
 
+    def test_owner_mvp_backup_rehearsal_is_disposable_and_preserves_the_live_store(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        rollback = controller.state["rollback"]
+        before_digest = self.store.logical_digest()
+
+        rehearsal = self.store.rehearse_backup_restore(
+            backup_id=rollback["backup_id"],
+            expected_sha256=rollback["backup_sha256"],
+        )
+
+        self.assertEqual(rehearsal["backup_sha256"], rollback["backup_sha256"])
+        self.assertTrue(rehearsal["logical_digest_match"])
+        self.assertTrue(rehearsal["table_counts_match"])
+        self.assertTrue(rehearsal["restored_to_disposable_private_copy"])
+        self.assertTrue(rehearsal["temporary_copy_removed"])
+        self.assertEqual(self.store.logical_digest(), before_digest)
+        self.assertFalse(any(self.paths.backups_directory.glob("*.rehearsal-*")))
+
     def test_owner_private_sidecar_bundle_is_aggregate_only_and_digest_bound(self) -> None:
         release_input = OwnerMvpReleaseInput.from_mapping(_release_input())
         self.assertEqual(
@@ -858,6 +877,102 @@ class MvpReleaseTests(unittest.TestCase):
         controller = MvpReleaseController.load(self.paths)
         assert controller is not None
         self.assertEqual(set(controller.state["scope_jobs"]), {"douyin_favorites"})
+
+    def test_owner_mvp_list_snapshot_requires_and_reports_two_exact_visible_batches(self) -> None:
+        release_input = _release_input()
+        sidecar = release_input["douyin_sidecar"]
+        assert isinstance(sidecar, dict)
+        sidecar["port"] = _available_loopback_port()
+        _write_private(self.paths.owner_mvp_release_input, release_input)
+        MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+
+        def deliver_visible_batch(_client: object, request: object) -> tuple[dict[str, str], DouyinBatch]:
+            visible_batch = getattr(request, "visible_batch")
+            items = tuple(
+                DouyinItem(
+                    content_id=item["content_id"],
+                    content_type=item["content_type"],
+                    title=item["title"],
+                    collection=None,
+                )
+                for item in visible_batch["items"]
+            )
+            return (
+                {"implementation": "x2n_clean_room_visible_dom"},
+                DouyinBatch(
+                    mode=getattr(request, "mode"),
+                    sequence=getattr(request, "sequence"),
+                    status="ready",
+                    completion_signal="bounded_limit_reached",
+                    items=items,
+                    error_codes=(),
+                    upstream_error_count=0,
+                ),
+            )
+
+        with (
+            mock.patch.object(
+                MvpActivationExecutor,
+                "_clock",
+                side_effect=(
+                    (datetime(2026, 7, 29, tzinfo=timezone.utc), 100.0),
+                    (datetime(2026, 7, 29, tzinfo=timezone.utc), 131.0),
+                ),
+            ),
+            mock.patch(
+                "x2n_companion.mvp_release.OwnerPrivateVisibleSidecarClient.fetch_owner_batch",
+                new=deliver_visible_batch,
+            ),
+        ):
+            for scope_id, relation, prefix in (
+                ("douyin_favorites", "favorited", "mvp-douyin-favorite"),
+                ("douyin_likes", "liked", "mvp-douyin-like"),
+            ):
+                response = dispatch_wire(
+                    _wire(
+                        {
+                            "auto_scroll": False,
+                            "bounded_batch": True,
+                            "change_account_state": False,
+                            "dispatch_version": "1.0",
+                            "max_items": 20,
+                            "platform": "douyin",
+                            "relation": relation,
+                            "scope_id": scope_id,
+                            "source_collection_id": None,
+                            "user_gesture": True,
+                            "visible_batch": _douyin_visible_batch(prefix),
+                        }
+                    ),
+                    origin=DEVELOPMENT_EXTENSION_ORIGIN,
+                    store=self.store,
+                )
+                self.assertTrue(response.accepted, f"{scope_id}: {response.model_dump(mode='json')}")
+                self.assertEqual(response.status.value, "completed")
+
+        controller = MvpReleaseController.load(self.paths)
+        assert controller is not None
+        scan_ids = {
+            scope_id: controller.scope_scan_id(scope_id)
+            for scope_id in (SyncScopeId.DOUYIN_FAVORITES, SyncScopeId.DOUYIN_LIKES)
+        }
+        snapshot = self.store.owner_mvp_baseline_snapshot(scope_scan_ids=scan_ids)
+        self.assertTrue(snapshot["exact_list_scope_baseline"])
+        self.assertEqual(snapshot["total_relations"], 40)
+        self.assertEqual(set(snapshot["scopes"]), {"douyin_favorites", "douyin_likes"})
+        for row in snapshot["scopes"].values():
+            self.assertEqual(
+                {key: row[key] for key in ("active_count", "content_count", "observation_count", "relation_count")},
+                {"active_count": 20, "content_count": 20, "observation_count": 20, "relation_count": 20},
+            )
+            self.assertTrue(row["scan_complete"])
+            self.assertEqual(len(row["scan_ref_sha256"]), 64)
+
+        with self.assertRaises(X2NRuntimeError) as incomplete:
+            self.store.owner_mvp_baseline_snapshot(
+                scope_scan_ids={SyncScopeId.DOUYIN_FAVORITES: controller.scope_scan_id(SyncScopeId.DOUYIN_FAVORITES)}
+            )
+        self.assertEqual(incomplete.exception.code, ErrorCode.INVALID_INPUT)
 
     def test_private_manifest_mismatch_blocks_before_any_canonical_write(self) -> None:
         MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
