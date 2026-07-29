@@ -235,6 +235,21 @@
         <ul class="tl" id="timeline"></ul>
       </div>
 
+      <!-- 「我需要能在 boss 页面看到全量信息数据记忆等」。
+           点开一个人就该在一屏里看完他的全部，不是点四次。 -->
+      <div class="card">
+        <h2 style="margin-top:0">记着他什么</h2>
+        <ul class="tl" id="ins-memories"></ul>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">他的待办</h2>
+        <ul class="tl" id="ins-todos"></ul>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">他的日程</h2>
+        <ul class="tl" id="ins-events"></ul>
+      </div>
+
       <!-- 只对这个人的语气。没单独设过就沿用「设置」那一页的默认值，
            页面上要说清楚现在是哪一种，否则改了默认值会以为对每个人都生效。 -->
       <div class="card">
@@ -789,6 +804,31 @@
       tl.appendChild(li);
     });
     if (!tl.children.length) { tl.appendChild(el("li", "", "还没有记录。")); }
+
+    // 记忆、待办、日程。全部 textContent——这三样都是人写的字。
+    fillRows("ins-memories", (d.memories || []).map(function (m) {
+      return { head: m.category || "", body: m.text, tail: "" };
+    }), openPerson ? "还没记下什么。" : "先在左边点一个人。");
+    fillRows("ins-todos", (d.todos || []).map(function (t) {
+      return { head: t.doneAt ? "✓" : "○", body: t.title, tail: t.dueAt || "" };
+    }), openPerson ? "他还没有待办。" : "先在左边点一个人。");
+    fillRows("ins-events", (d.events || []).map(function (e) {
+      return { head: "", body: e.title, tail: e.dueAt || "" };
+    }), openPerson ? "他还没有日程。" : "先在左边点一个人。");
+  }
+
+  function fillRows(id, rows, emptyText) {
+    var box = document.getElementById(id);
+    if (!box) { return; }
+    box.textContent = "";
+    if (!rows.length) { box.appendChild(el("li", "", emptyText)); return; }
+    rows.slice(0, 60).forEach(function (row) {
+      var li = document.createElement("li");
+      if (row.head) { li.appendChild(el("b", "", row.head)); }
+      li.appendChild(document.createTextNode(row.body));
+      if (row.tail) { li.appendChild(el("span", "hint", " " + row.tail)); }
+      box.appendChild(li);
+    });
   }
   // 画像跟着聊天一起刷。它只有计数和格子，重画没有副作用。
   var insightsTimer = null;

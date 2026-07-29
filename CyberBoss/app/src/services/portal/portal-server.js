@@ -44,6 +44,11 @@ const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templ
 // 扫码用的。所以它上面一个字的运营信息都不能有：没有人数、没有用量、没有状态。
 const JOIN_PATHS = Object.freeze(["/join", "/join/"]);
 const JOIN_TEMPLATE = require("node:path").join(__dirname, "../../../templates/join.html");
+// 每个人自己那一页。HTML 免令牌（页面本身不含任何人的数据），数据接口要会话，
+// 而且**只回签发给那个会话的那一个人的东西**——鉴权在 personalSiteData 里按
+// 会话解出来的 user_id 做，路径上不带任何身份参数，想改都改不了别人的。
+const ME_PATHS = Object.freeze(["/me", "/me/"]);
+const ME_TEMPLATE = require("node:path").join(__dirname, "../../../templates/me.html");
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
 const MAX_REQUEST_BYTES = 64 * 1024;
@@ -280,6 +285,51 @@ class PortalHttpServer {
   #json(response, status, payload) {
     response.writeHead(status, { ...SECURITY_HEADERS, "Content-Type": "application/json" });
     response.end(JSON.stringify(payload));
+  }
+
+  // 「主页」那条链接里的票**就是会话本身**（web_sessions 本来就按 user_id 存）。
+  // 这里只做一件事：把它从 URL 片段里换成一个 cookie，之后这台手机直接打开就行。
+  async #handleMeLogin(request, response) {
+    if (request.method !== "POST" || typeof this.personalSiteLogin !== "function") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    let token = "";
+    try {
+      const raw = await readBody(request);
+      if (raw.length) {
+        token = String(JSON.parse(raw.toString("utf8"))?.token || "");
+      }
+    } catch {
+      token = "";
+    }
+    const result = this.personalSiteLogin(token);
+    if (!result?.ok) {
+      // 不区分"票过期"和"票是编的"，两者都只回一句拒绝。
+      this.#json(response, 401, { ok: false, code: "LINK_INVALID" });
+      return;
+    }
+    response.writeHead(200, {
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/json",
+      "Set-Cookie": result.cookie,
+    });
+    response.end(JSON.stringify({ ok: true }));
+  }
+
+  // 这一页的数据。**身份只从 cookie 里的会话解**，路径和 query 里没有任何
+  // 用户参数——这样"看到别人的"不是一个需要防住的攻击，而是一件写不出来的事。
+  #handleMeData(request, response) {
+    if (typeof this.personalSiteData !== "function") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    const data = this.personalSiteData(String(request.headers.cookie || ""));
+    if (!data?.ok) {
+      this.#json(response, 401, { ok: false, code: "SESSION_REQUIRED" });
+      return;
+    }
+    this.#json(response, 200, data);
   }
 
   async #handleAdminApi(request, response, name) {
@@ -573,6 +623,24 @@ class PortalHttpServer {
     }
     if (request.method === "GET" && pathname === "/api/join") {
       return this.#handlePublicEntry(response);
+    }
+    // 每个人自己那一页。页面免令牌（它本身不含任何人的数据），数据要会话。
+    if (request.method === "GET" && ME_PATHS.includes(pathname)) {
+      const nonce = newNonce();
+      const html = fs.readFileSync(ME_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, {
+        ...SECURITY_HEADERS,
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Security-Policy": `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
+      });
+      response.end(html);
+      return null;
+    }
+    if (pathname === "/me/api/login") {
+      return this.#handleMeLogin(request, response);
+    }
+    if (request.method === "GET" && pathname === "/me/api/data") {
+      return this.#handleMeData(request, response);
     }
     // 扫码进度。只回 wait / scaned / confirmed / expired 四种状态和一句中文，
     // 不回 accountId、不回 token、不回任何人的身份。

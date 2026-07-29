@@ -683,6 +683,18 @@ test("不需要模型的轮次在建 job 之前就被分流掉", (t) => {
     // 换成 () => false 的话，这个测试就再也测不出分流有没有把提醒漏进队列。
     createDeterministicReminder: CyberbossApp.prototype.createDeterministicReminder,
     reminderQueue: { enqueue: (reminder) => reminder },
+    // 待办、日程、「主页」同样在准入层就办掉。借真的那几份，别拿 () => false
+    // 顶替——顶替之后这个测试就再也测不出分流有没有把它们漏进队列。
+    handleItemCommand: CyberbossApp.prototype.handleItemCommand,
+    runItemAction: CyberbossApp.prototype.runItemAction,
+    handlePersonalSiteCommand: CyberbossApp.prototype.handlePersonalSiteCommand,
+    issuePersonalSiteLink: () => "",
+    runtimeSpoolDatabase: {
+      createUserItem: (input) => ({ ...input, id: "item_test" }),
+      listUserItems: () => [],
+      completeUserItem: () => null,
+    },
+    formatOwnerLocalTime: (value) => String(value),
     admissionHandledBeforeJob: CyberbossApp.prototype.admissionHandledBeforeJob,
   };
 

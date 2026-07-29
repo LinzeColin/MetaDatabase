@@ -79,6 +79,11 @@ const MIGRATIONS = Object.freeze([
     name: "014_user_persona.sql",
     sourceCommit: "PERSONA-1",
   }),
+  Object.freeze({
+    version: 13,
+    name: "015_user_items.sql",
+    sourceCommit: "TODO-1",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
@@ -497,6 +502,16 @@ function timestampFrom(value) {
     throw new RuntimeSpoolError("CLOCK_INVALID");
   }
   return date.toISOString();
+}
+
+// 待办可以没有截止时间，所以这里不能像 timestampFrom 那样把空值当成故障抛出来。
+// 给不出合法时刻就返回 null，让上层决定这算不算问题（日程算，待办不算）。
+function normalizeItemTimestamp(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
 function leaseExpiry(now, leaseMs) {
@@ -4141,6 +4156,143 @@ class RuntimeSpoolDatabase {
       value: JSON.parse(plain.toString("utf8")),
       updatedAt: row.updated_at,
     });
+  }
+
+  // ── 待办和日程 ──────────────────────────────────────────
+  //
+  // 标题和备注是人写的自由文本，一律进密文载荷。明文列只有时间戳和状态——
+  // 它们要用来排序和筛选，本身不含内容。
+
+  createUserItem({ userId, kind, title, note = "", dueAt = null }) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      throw new RuntimeSpoolError("USER_ID_REQUIRED");
+    }
+    if (!["todo", "event"].includes(kind)) {
+      throw new RuntimeSpoolError("ITEM_KIND_INVALID");
+    }
+    const text = String(title || "").trim();
+    if (!text || text.length > 200) {
+      throw new RuntimeSpoolError("ITEM_TITLE_REQUIRED");
+    }
+    // 日程一定有开始时刻，否则它就只是个待办。
+    const due = normalizeItemTimestamp(dueAt);
+    if (kind === "event" && !due) {
+      throw new RuntimeSpoolError("ITEM_DUE_AT_REQUIRED");
+    }
+    const itemId = `item_${randomBytes(16).toString("hex")}`;
+    const plain = Buffer.from(
+      stableJson({ title: text, note: String(note || "").trim().slice(0, 1000) }),
+      "utf8",
+    );
+    const now = this.#timestamp();
+    this.database
+      .prepare(
+        `INSERT INTO user_items(
+           id, user_id, kind, payload_ciphertext, payload_sha256,
+           due_at, done_at, created_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+      )
+      .run(
+        itemId,
+        id,
+        kind,
+        this.cipher.encrypt(plain, `user_item:${itemId}:payload`),
+        sha256(plain),
+        due,
+        now,
+        now,
+      );
+    return Object.freeze({ id: itemId, kind, title: text, dueAt: due, createdAt: now });
+  }
+
+  // 一个人的待办/日程。open=true 只给没做完的。
+  //
+  // 排序：有截止时间的排前面按时间升序，没有的按创建时间。主人在微信里问
+  // 「我的待办」，最该先看到的是快到点的那几条。
+  listUserItems({ userId, kind = "todo", open = true, limit = 50 } = {}) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id) || !["todo", "event"].includes(kind)) {
+      return [];
+    }
+    const bounded = Math.max(1, Math.min(200, Number(limit) || 50));
+    const rows = this.database
+      .prepare(
+        `SELECT id, kind, payload_ciphertext, payload_sha256, due_at, done_at, created_at
+           FROM user_items
+          WHERE user_id=? AND kind=?${open ? " AND done_at IS NULL" : ""}
+          ORDER BY due_at IS NULL, due_at, created_at
+          LIMIT ?`,
+      )
+      .all(id, kind, bounded);
+    return rows.map((row) => this.#decodeUserItem(row)).filter(Boolean);
+  }
+
+  // 划掉第 n 条（从 1 开始数，就是微信里列出来的那个序号）。
+  //
+  // 用序号而不是 id：主人在微信里看到的是「1. 买菜」，让他回「完成 1」是唯一
+  // 不用打一串十六进制的办法。序号从同一个 listUserItems 顺序里取，所以他看到
+  // 的第几条就是划掉的第几条。
+  completeUserItem({ userId, kind = "todo", ordinal }) {
+    this.#assertOpen();
+    const open = this.listUserItems({ userId, kind, open: true, limit: 200 });
+    const index = Number(ordinal);
+    if (!Number.isInteger(index) || index < 1 || index > open.length) {
+      return null;
+    }
+    const target = open[index - 1];
+    const now = this.#timestamp();
+    this.database
+      .prepare("UPDATE user_items SET done_at=?, updated_at=? WHERE id=? AND done_at IS NULL")
+      .run(now, now, target.id);
+    return Object.freeze({ ...target, doneAt: now });
+  }
+
+  // 后台那一栏：所有人的待办和日程。只有带真令牌的后台路由能走到这里。
+  listAllUserItemsForOwner({ limit = 200 } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(500, Number(limit) || 200));
+    return this.database
+      .prepare(
+        `SELECT id, user_id, kind, payload_ciphertext, payload_sha256,
+                due_at, done_at, created_at
+           FROM user_items
+          ORDER BY created_at DESC
+          LIMIT ?`,
+      )
+      .all(bounded)
+      .map((row) => {
+        const item = this.#decodeUserItem(row);
+        return item ? Object.freeze({ ...item, userId: row.user_id }) : null;
+      })
+      .filter(Boolean);
+  }
+
+  // 一条坏掉的记录不该把整栏打空。解不开就跳过，其余照常显示。
+  #decodeUserItem(row) {
+    try {
+      const plain = this.cipher.decrypt(
+        row.payload_ciphertext,
+        `user_item:${row.id}:payload`,
+      );
+      if (sha256(plain) !== row.payload_sha256) {
+        return null;
+      }
+      const payload = JSON.parse(plain.toString("utf8"));
+      return Object.freeze({
+        id: row.id,
+        kind: row.kind,
+        title: String(payload?.title || ""),
+        note: String(payload?.note || ""),
+        dueAt: row.due_at || null,
+        doneAt: row.done_at || null,
+        createdAt: row.created_at,
+      });
+    } catch {
+      return null;
+    }
   }
 
   // 谁给自己设过语气。后台那一栏用它在人名旁边标一下「自己设过」。

@@ -37,6 +37,14 @@ const {
   buildDueMessage,
   parseReminderIntent,
 } = require("../services/reminder/reminder-intent");
+const {
+  buildAddedMessage,
+  buildDoneFailedMessage,
+  buildDoneMessage,
+  buildListMessage,
+  parseItemIntent,
+} = require("../services/items/item-intent");
+const { SqliteProfileStore } = require("../services/profile/profile-store");
 const { RuntimeSpoolDatabase } = require("../services/db/database-adapter");
 const {
   CanonicalSpoolCoordinator,
@@ -1092,6 +1100,8 @@ class CyberbossApp {
       publicEntryStatus: (ticket) => this.pollPublicEntryQr(ticket),
       adminSessionIssue: (input) => this.issueAdminSession(input),
       adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
+      personalSiteLogin: (token) => this.personalSiteLogin(token),
+      personalSiteData: (cookieHeader) => this.personalSiteData(cookieHeader),
       adminSessionRevoke: (cookieHeader) => this.revokeAdminSession(cookieHeader),
       ownerActivationStart: () => this.startOwnerActivation(),
       ownerActivationPoll: (qrcode) => this.pollOwnerActivation(qrcode),
@@ -1429,6 +1439,159 @@ class CyberbossApp {
       }
     }
     return sessions ? sessions.clearCookieHeader() : "";
+  }
+
+  // 微信里发「主页」走到这里。每个人拿到的是**自己那一页**。
+  //
+  // 票就是会话本身：web_sessions 那张表本来就是按 user_id 存的，签发给谁就只
+  // 认到谁。不需要再造一套一次性票——而且这条路必须走 user_id，不能走 senderId：
+  // 同一个人换个号 senderId 就变了，他的东西不该跟着丢。
+  //
+  // 安全边界靠 adminSessionValid 那一句 session.userId === ownerUserId()：普通
+  // 人的会话和主人的会话在同一张表里，但后台那条路会把非主人的会话直接判假。
+  issuePersonalSiteLink(userId) {
+    const sessions = this.adminSessions();
+    const origin = this.config.portalOrigin || "";
+    const id = String(userId || "").trim();
+    if (!sessions || !origin || !id) {
+      return "";
+    }
+    try {
+      const issued = sessions.issue({ userId: id });
+      // 票放在 # 后面：片段不进请求行，隧道和服务器的访问日志都记不到它。
+      return `${origin}/me#t=${issued.token}\n\n`
+        + "点开就是你自己那一页，以后直接打开就行。";
+    } catch {
+      return "";
+    }
+  }
+
+  // 把链接片段里的票换成 cookie。票本身就是会话，所以这里只验它是不是真的。
+  personalSiteLogin(token) {
+    const sessions = this.adminSessions();
+    const value = String(token || "").trim();
+    if (!sessions || !value) {
+      return Object.freeze({ ok: false });
+    }
+    try {
+      const session = sessions.verify({ token: value, requireCsrf: false });
+      if (!session?.userId) {
+        return Object.freeze({ ok: false });
+      }
+      return Object.freeze({ ok: true, cookie: sessions.cookieHeader(value) });
+    } catch {
+      return Object.freeze({ ok: false });
+    }
+  }
+
+  // 身份只从 cookie 解。**没有任何入参能指定看谁的**——这样越权不是一个要防的
+  // 攻击，而是一件写不出来的事。
+  personalSiteData(cookieHeader) {
+    const sessions = this.adminSessions();
+    const token = parseSessionCookie(cookieHeader);
+    if (!sessions || !token) {
+      return Object.freeze({ ok: false });
+    }
+    try {
+      const session = sessions.verify({ token, requireCsrf: false });
+      if (!session?.userId) {
+        return Object.freeze({ ok: false });
+      }
+      return this.buildPersonalSite(session.userId);
+    } catch {
+      return Object.freeze({ ok: false });
+    }
+  }
+
+  // 「主页」这一页要的数据。**只给这一个人自己的东西**，一个字节别人的都不带。
+  buildPersonalSite(userId) {
+    const database = this.runtimeSpoolDatabase;
+    const id = String(userId || "").trim();
+    if (!database || !id) {
+      return Object.freeze({ ok: false, code: "NOT_READY" });
+    }
+    const local = (value) => (value ? this.formatOwnerLocalTime(value) : "");
+    const items = (kind) => database
+      .listUserItems({ userId: id, kind, open: true, limit: 50 })
+      .map((item) => Object.freeze({
+        title: item.title,
+        dueAt: local(item.dueAt),
+        createdAt: local(item.createdAt),
+      }));
+    return Object.freeze({
+      ok: true,
+      todos: Object.freeze(items("todo")),
+      events: Object.freeze(items("event")),
+      memories: Object.freeze(this.listMemoriesFor(id)),
+      reminders: Object.freeze(this.listOwnReminders(id)),
+    });
+  }
+
+  // 记着的关于这个人的事。
+  //
+  // profile_facts 那张表和 SqliteProfileStore 一直都在，但**从来没接进过 app**
+  // ——存在的是一个谁都没调用过的模块。这里把读那一侧接上；写那一侧还没有，
+  // 所以现在多数人这一栏是空的，那是真的空，不是坏了。
+  listMemoriesFor(userId) {
+    if (!this.runtimeSpoolDatabase) {
+      return [];
+    }
+    if (!this.profileStore) {
+      this.profileStore = new SqliteProfileStore({
+        database: this.runtimeSpoolDatabase.database,
+      });
+    }
+    try {
+      const projection = this.profileStore.projection(userId);
+      return Object.entries(projection?.facts || {})
+        .flatMap(([category, entries]) => Object.entries(entries || {})
+          .map(([key, value]) => Object.freeze({
+            category,
+            key,
+            text: typeof value === "string" ? value : JSON.stringify(value),
+          })))
+        .filter((fact) => fact.text && fact.text !== "null")
+        .slice(0, 100);
+    } catch {
+      // 记忆读不出来不该让整页打不开。
+      return [];
+    }
+  }
+
+  // 这个人自己定的、还没到点的提醒。
+  //
+  // 提醒存在队列文件里而不是库里（它是一次性的），所以只能按发件人反推。用的是
+  // 和主动打招呼同一条认人路径（userAdmission.users.identify），不是自己再猜一套
+  // ——那条路已经因为猜错把别人的消息记到主人名下过一次。
+  listOwnReminders(userId) {
+    const identify = this.userAdmission?.users?.identify;
+    if (typeof identify !== "function") {
+      return [];
+    }
+    const reminders = [];
+    for (const reminder of this.reminderQueue?.state?.reminders || []) {
+      if (reminders.length >= 20) {
+        break;
+      }
+      try {
+        const identity = this.userAdmission.users.identify({
+          channel: "weixin",
+          botAccountRef: reminder.accountId,
+          senderRef: reminder.senderId,
+        });
+        // 认不出来就跳过。宁可少显示，也不能把别人的提醒显示到他这一页上。
+        if (identity?.userId !== userId) {
+          continue;
+        }
+      } catch {
+        continue;
+      }
+      reminders.push(Object.freeze({
+        text: reminder.text,
+        dueAt: this.formatOwnerLocalTime(new Date(reminder.dueAtMs).toISOString()),
+      }));
+    }
+    return reminders;
   }
 
   // 微信里发「后台」走到这里。只有主人能拿到链接。
@@ -2407,7 +2570,64 @@ class CyberbossApp {
         return Object.freeze({ day, count: byDay.get(day) || 0 });
       })),
       heatmap: Object.freeze(heat.map((row) => Object.freeze([...row]))),
+      // 「我需要能在 boss 页面看到全量信息数据记忆等」。
+      //
+      // 挂在这一栏而不是单开一个接口：主人在后台点开某个人，看到的应该是**这个
+      // 人的全部**——说了多少话、什么时候活跃、记着他什么、他有哪些待办和日程，
+      // 一屏之内。分成四个接口只会让"看一个人"变成点四次。
+      ...this.buildPersonDetail(who),
     });
+  }
+
+  // 后台里点开一个人时，除了聊天统计还要看到的东西：记忆、待办、日程。
+  //
+  // 只在选了具体某个人时才查——「全部人」那个视图上列所有人的待办没有意义，
+  // 而且会把一屏撑爆。
+  buildPersonDetail(senderId) {
+    const empty = { memories: [], todos: [], events: [] };
+    const who = String(senderId || "").trim();
+    if (!who || !this.runtimeSpoolDatabase) {
+      return empty;
+    }
+    let userId = "";
+    try {
+      // 后台列表是按 senderId 列的，而待办和记忆都按 user_id 存。这一步换算不能
+      // 自己猜，走和别处同一条认人路径。
+      userId = String(
+        this.userAdmission?.users?.identify({
+          channel: "weixin",
+          botAccountRef: this.channelAdapter?.resolveAccount?.(who)?.accountId
+            || this.activeAccountId
+            || "",
+          senderRef: who,
+        })?.userId || "",
+      );
+    } catch {
+      return empty;
+    }
+    if (!userId) {
+      return empty;
+    }
+    const local = (value) => (value ? this.formatOwnerLocalTime(value) : "");
+    const items = (kind) => {
+      try {
+        return this.runtimeSpoolDatabase
+          .listUserItems({ userId, kind, open: false, limit: 100 })
+          .map((item) => Object.freeze({
+            title: item.title,
+            dueAt: local(item.dueAt),
+            doneAt: local(item.doneAt),
+            createdAt: local(item.createdAt),
+          }));
+      } catch {
+        return [];
+      }
+    };
+    return {
+      memories: Object.freeze(this.listMemoriesFor(userId)),
+      todos: Object.freeze(items("todo")),
+      events: Object.freeze(items("event")),
+    };
   }
 
   // 已知的主人发件号。只用来给对话栏打个「主人」标签，判权限不走这里。
@@ -2756,6 +2976,15 @@ class CyberbossApp {
       if (this.createDeterministicReminder(normalized)) {
         return true;
       }
+      // 待办和日程同理。这里要 user_id：待办是**留着的东西**，必须按人隔离，
+      // 不像提醒那样发完就没了。认不出这个人就不办，交回模型。
+      const userId = String(decision.userContext?.userId || "").trim();
+      if (userId && this.handleItemCommand(normalized, userId)) {
+        return true;
+      }
+      if (this.handlePersonalSiteCommand(normalized, userId)) {
+        return true;
+      }
     }
     // 普通用户在这里就办完，**不进 job 队列**。
     //
@@ -2857,6 +3086,84 @@ class CyberbossApp {
       this.rememberOwnerSender(normalized.senderId);
     }
     return decision;
+  }
+
+  // 「记一下 买菜」「待办」「完成 1」→ 直接办，当场回。零模型、零 token。
+  //
+  // 返回 true 表示这一轮办完了。认不出来返回 false，照旧交给模型——它在聊天里
+  // 顺手帮忙记东西那条路一直在，两者不冲突。
+  handleItemCommand(normalized, userId) {
+    const intent = parseItemIntent(normalized.text, {
+      now: Date.now(),
+      timeZone: OWNER_TIMEZONE,
+    });
+    if (!intent || !this.runtimeSpoolDatabase) {
+      return false;
+    }
+    try {
+      const reply = this.runItemAction(intent, userId);
+      if (!reply) {
+        return false;
+      }
+      void this.sendAdmissionReply(normalized, reply);
+      return true;
+    } catch (error) {
+      console.error(
+        `[cyberboss] 待办没办成 code=${normalizeErrorCode(error?.code) || "item_command_failed"}`,
+      );
+      return false;
+    }
+  }
+
+  runItemAction(intent, userId) {
+    const database = this.runtimeSpoolDatabase;
+    if (intent.action === "add") {
+      const item = database.createUserItem({
+        userId,
+        kind: intent.kind,
+        title: intent.title,
+        dueAt: intent.dueAtMs ? new Date(intent.dueAtMs).toISOString() : null,
+      });
+      this.noteForDashboard(intent.kind === "event" ? "记了一条日程" : "记了一条待办");
+      return buildAddedMessage({ ...item, dueAtLabel: intent.dueAtLabel });
+    }
+    if (intent.action === "list") {
+      return buildListMessage(
+        intent.kind,
+        database.listUserItems({ userId, kind: intent.kind, open: true }),
+        { formatTime: (value) => this.formatOwnerLocalTime(value) },
+      );
+    }
+    if (intent.action === "done") {
+      const open = database.listUserItems({ userId, kind: "todo", open: true });
+      // 只有一条的时候不用报序号——「完成」就是划掉那一条。
+      const ordinal = intent.ordinal ?? (open.length === 1 ? 1 : null);
+      if (!ordinal) {
+        return buildDoneFailedMessage(open.length);
+      }
+      const done = database.completeUserItem({ userId, kind: "todo", ordinal });
+      if (!done) {
+        return buildDoneFailedMessage(open.length);
+      }
+      this.noteForDashboard("划掉了一条待办");
+      return buildDoneMessage(done);
+    }
+    return "";
+  }
+
+  // 微信里发「主页」拿自己那一页的链接。
+  //
+  // 口令只留两个字，主人的原话是「减少关键词输入」。和「后台」同一层处理：
+  // 一次性票，点开就进，之后这台手机记住。
+  handlePersonalSiteCommand(normalized, userId) {
+    if (!PERSONAL_SITE_KEYWORD.test(String(normalized.text || "").trim())) {
+      return false;
+    }
+    void this.sendAdmissionReply(
+      normalized,
+      this.issuePersonalSiteLink(userId) || "主页还没配好域名，暂时给不了链接。",
+    );
+    return true;
   }
 
   // 「10 分钟后提醒我喝水」→ 建提醒 + 当场回一句确认。零模型、零 token。
@@ -4991,6 +5298,10 @@ function assertWeixinUpdateResponse(response) {
 // 时区可以用 CB_OWNER_TIMEZONE 改；默认 Asia/Shanghai，和主动打招呼的静默时段
 // 用的是同一个时区，两边必须一致，否则「23 点静默」会在两个不同的时刻生效。
 const OWNER_TIMEZONE = process.env.CB_OWNER_TIMEZONE || "Asia/Shanghai";
+
+// 发这两个字就给自己那一页的链接。主人的原话：「减少关键词输入」。
+// 「我的主页」「首页」「我的网站」也认——同一件事不该因为多打两个字就失灵。
+const PERSONAL_SITE_KEYWORD = /^(我的)?(主页|首页|个人主页|个人网站|我的网站)[?？。！!]?$/;
 
 function formatOwnerLocalTime(value) {
   const date = value instanceof Date ? value : new Date(value);
