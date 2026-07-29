@@ -584,7 +584,11 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     start_capital_usd = _read_start_capital(Path(runtime_dir)) or capital_usd
     cash_usd = start_capital_usd + cash_flow_usd          # 策略自己的现金,不是你的现金
     equity_usd = cash_usd + mark_value_usd
-    equity_aud = equity_usd / fx_display
+    # 记账币种:策略本金以**澳元**记账(期初 3000),只有"交易产生的盈亏"才过实时汇率。
+    # 否则本金先用契约汇率 0.65 折成美元、再用实时汇率折回澳元,会凭空造出几百澳元的假盈亏
+    # (2026-07-28 实测 -194.65)。交易盈亏 = 策略现金流 + 持仓市值(未交易时恒为 0)。
+    trading_pnl_usd = cash_flow_usd + mark_value_usd
+    equity_aud = capital_aud + trading_pnl_usd / fx_display
     # 券商实际可动用资金只用于"资金是否到位"提示,绝不参与净值与盈亏计算
     account_cash_usd = float(real_power_usd) if funded_known else None
     funded_usd = (min(authorized_usd, account_cash_usd + mark_value_usd)

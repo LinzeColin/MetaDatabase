@@ -37,11 +37,10 @@ def test_frozen_start_capital_isolates_equity_from_owner_cash(tmp_path):
     o = build_overview(session_factory=None, heartbeats=None, kill_switch=ks,
                        runtime_dir=rt, reports_dir=tmp_path / "nore",
                        real_power_usd=9999.0, fx_aud_usd=0.65)
-    # 系统无成交:净值 = 冻结本金 1587.09(不是 9999+),现金 = 冻结本金
-    assert abs(o["hero"]["cash_usd"] - 1587.09) < 0.01
-    assert abs(o["hero"]["equity_usd"] - 1587.09) < 0.01 if "equity_usd" in o["hero"] else True
-    # 澳元净值 = 1587.09/0.65,绝不含 owner 的 9999
-    assert abs(o["hero"]["equity_aud"] - 1587.09 / 0.65) < 0.01
+    # 系统无成交 → 交易盈亏为 0 → 净值恰为期初本金 3000 澳元,绝不含 owner 的 9999
+    assert abs(o["hero"]["equity_aud"] - 3000.0) < 0.01
+    assert abs(o["hero"]["total_pnl_aud"]) < 0.01
+    assert abs(o["hero"]["cash_usd"] - 1587.09) < 0.01, "策略现金 = 冻结本金 + 自己的现金流"
 
 
 def test_never_counts_owner_money_as_strategy_return(tmp_path):
