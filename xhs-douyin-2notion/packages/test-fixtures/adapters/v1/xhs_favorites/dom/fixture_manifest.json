@@ -10,6 +10,20 @@
   "contains_private_content": false,
   "cases": [
     {
+      "id": "observed_profile_surface",
+      "file": "observed-profile-surface.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "ready", "completion_signal": "unknown", "items": 3, "errors": 0}
+    },
+    {
+      "id": "cosmetic_profile_surface_rejected",
+      "file": "cosmetic-profile-surface.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "platform_changed", "completion_signal": "unknown", "items": 0, "errors": 1}
+    },
+    {
       "id": "collection_alpha_mixed",
       "file": "collection-alpha.html",
       "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",

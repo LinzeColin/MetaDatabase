@@ -100,6 +100,23 @@ export function extractXhsLikesVisibleBatch(input) {
   const isHidden = (node) => node.hidden
     || node.getAttribute("aria-hidden") === "true"
     || node.closest("[hidden], [aria-hidden=\"true\"]") !== null;
+  const observedProfileSurface = (label) => {
+    const shells = [...globalThis.document.querySelectorAll("#userPageContainer.user-page")]
+      .filter((node) => !isHidden(node));
+    if (shells.length !== 1) return null;
+    const tabLists = [...shells[0].querySelectorAll(".reds-tabs-list.tertiary")]
+      .filter((node) => !isHidden(node));
+    if (tabLists.length !== 1) return null;
+    const selected = [...tabLists[0].children].filter((node) => (
+      node.matches("div.reds-tab-item.sub-tab-list")
+      && !isHidden(node)
+      && node.classList.contains("active")
+      && normalizeText(node.textContent) === label
+    ));
+    if (selected.length !== 1) return null;
+    const root = shells[0].querySelector("#userPostedFeeds");
+    return root && !isHidden(root) ? root : null;
+  };
 
   try {
     if (
@@ -143,6 +160,7 @@ export function extractXhsLikesVisibleBatch(input) {
         '[role="tab"].active',
       ].join(", "))].find((node) => normalizeText(node.textContent) === "赞过");
       if (selected) root = globalThis.document.querySelector("main, [role=\"main\"]");
+      if (!root) root = observedProfileSurface("赞过");
     }
     if (!root) return surfaceFailure("platform_changed", "X2N_PLATFORM_CHANGED");
 

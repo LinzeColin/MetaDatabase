@@ -37,6 +37,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The Douyin list extractor accepts only the corresponding platform-owned `data-e2e` list surface
   (`user-favorite-list` or `user-like-list`) after a selected 收藏/喜欢 control. It deliberately has no generic
   `main` fallback, so an unrecognized profile layout fails closed instead of treating unrelated cards as a relation list.
+- The XHS profile fallback recognizes the observed rendered surface only when one visible
+  `#userPageContainer.user-page` contains one visible `.reds-tabs-list.tertiary`, exactly one direct active
+  `.reds-tab-item.sub-tab-list` matching 收藏/赞过, and its owner-scoped `#userPostedFeeds` root. A generic active
+  class or an unrelated feed root remains rejected; the exact-20 release gate is unchanged.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
