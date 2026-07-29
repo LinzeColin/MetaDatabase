@@ -32,12 +32,14 @@ const SECURITY_HEADERS = Object.freeze({
   "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
 });
 
-/** ChatGPT Sites / Cloudflare Worker 请求入口。@param {Request} request @param {Record<string,any>} env */
+/** Cloudflare Worker 请求入口。@param {Request} request @param {Record<string,any>} env */
 export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
   const rawPath = url.pathname;
   const path = normalizePath(rawPath);
+  const adminHost = isAdminHost(url, env);
   try {
+    if (!adminHost && isAdminOnlyPath(path)) return secure(jsonForRequest(request, { error: { code: "NOT_FOUND", message: "页面不存在。" } }, 404));
     if (["/privacy", "/terms", "/status"].includes(rawPath)) {
       return secure(redirectForRequest(request, `${rawPath}/`));
     }
@@ -70,7 +72,7 @@ export async function handleRequest(request, env = {}) {
     if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
       return secure(new Response(request.method === "HEAD" ? null : "静态资源绑定不可用。", { status: 503 }));
     }
-    return secure(await fetchAssetWithCanonicalRedirect(staticAssetRequest(request, url), env));
+    return secure(await fetchAssetWithCanonicalRedirect(staticAssetRequest(request, url, { adminHost }), env));
   } catch (error) {
     const safe = toSafeFailure(error);
     const status = error instanceof WeReadPortError && error.status ? error.status : 500;
@@ -201,7 +203,7 @@ async function inspectAssets(request, env) {
   if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
     return { ready: false, detail: "静态资源绑定不可用。" };
   }
-  const probeUrl = new URL("/site/home.html", request.url);
+  const probeUrl = new URL(isAdminHost(new URL(request.url), env) ? "/site/admin.html" : "/site/home.html", request.url);
   let response;
   try {
     response = await fetchAssetWithCanonicalRedirect(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }), env);
@@ -269,10 +271,13 @@ async function proxyAccountPlatform(request, env) {
     const value = request.headers.get(name); if (value) headers.set(name, value);
   }
   headers.set("x-wrp-internal-secret", internalSecret);
+  headers.set("x-wrp-public-origin", incoming.origin);
   const ip = request.headers.get("cf-connecting-ip"); if (ip) headers.set("x-forwarded-for", ip);
   const fetchImpl = typeof env.ACCOUNT_SERVICE_FETCH === "function" ? env.ACCOUNT_SERVICE_FETCH : fetch;
+  const configuredTimeout = Number(env.WRP_ACCOUNT_PROXY_TIMEOUT_MS);
+  const timeoutMs = Number.isFinite(configuredTimeout) ? Math.max(10_000, Math.min(90_000, Math.floor(configuredTimeout))) : 45_000;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 35_000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetchImpl(target, { method: request.method, headers, body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body, redirect: "manual", signal: combineSignals(request.signal, controller.signal) });
     const outputHeaders = new Headers();
@@ -296,7 +301,7 @@ function runtimeMode(url, env) {
   const configured = String(env.DEPLOYMENT_ENV ?? "").trim().toLowerCase();
   if (["production", "preview", "local"].includes(configured)) return configured;
   if (["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)) return "local";
-  if (url.hostname.endsWith(".chatgpt.site")) return "production";
+  if (["weread.linzezhang.com", "admin.weread.linzezhang.com", "status.linzezhang.com"].includes(url.hostname)) return "production";
   return "preview";
 }
 
@@ -311,9 +316,9 @@ function normalizePath(value) {
 
 /** Keep public routes out of the direct static-asset namespace so Sites always
  * reaches this Worker before a document is returned. */
-function staticAssetRequest(request, url) {
+function staticAssetRequest(request, url, { adminHost = false } = {}) {
   const target = new URL(url);
-  target.pathname = staticAssetPath(url.pathname);
+  target.pathname = staticAssetPath(url.pathname, { adminHost });
   return new Request(target.toString(), request);
 }
 
@@ -329,11 +334,24 @@ async function fetchAssetWithCanonicalRedirect(request, env) {
   return response;
 }
 
-function staticAssetPath(pathname) {
+function staticAssetPath(pathname, { adminHost = false } = {}) {
+  if (adminHost) {
+    if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return `/site${pathname}`;
+    return "/site/admin.html";
+  }
   if (pathname === "/") return "/site/home.html";
   if (["/privacy/", "/terms/", "/status/"].includes(pathname)) return `/site${pathname}page.html`;
   if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return `/site${pathname}`;
   return "/site/home.html";
+}
+
+function isAdminHost(url, env) {
+  const configured = String(env.WRP_ADMIN_HOST || "").trim().toLocaleLowerCase("en-US");
+  return Boolean(configured) && url.hostname.toLocaleLowerCase("en-US") === configured;
+}
+
+function isAdminOnlyPath(pathname) {
+  return pathname === "/admin" || pathname === "/admin.html" || pathname.startsWith("/admin/");
 }
 
 /** @param {Request} request @param {Record<string,any>} env */

@@ -75,7 +75,7 @@ def project_descriptor(site_url: str) -> dict[str, Any]:
         "name": "阅迁｜个人阅读资产中心",
         "url": site_url,
         "parts": ["账户前台", "OVH 账户服务", "运维与恢复"],
-        "host": "ChatGPT Sites + OVH Node.js/systemd",
+        "host": "Cloudflare Worker + OVH Node.js/systemd",
         "db": "OVH SQLite 实时事务索引 + R2 加密用户对象",
         "store": "Private-Database 结构化事实 + R2 用户对象 + OCI 冷备",
         "deploy": "Sites Version + systemd timers",

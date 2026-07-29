@@ -36,8 +36,15 @@ import {
   WEREAD_COLLECTION_FORMAT_VERSION,
 } from "./weread.mjs";
 import { buildAnalyticsDashboard } from "./analytics.mjs";
+import {
+  AI_INQUIRY_PROVIDERS,
+  AI_INQUIRY_STYLES,
+  DEFAULT_AI_INQUIRY_PROVIDER_ID,
+  DEFAULT_AI_INQUIRY_STYLE_ID,
+} from "../../src/core/account-note-handoff.js";
 
 const WEREAD_FULL_RECONCILE_SECONDS = 24 * 60 * 60;
+const SECRET_LIKE_WEREAD_KEY = /\bwrk-[A-Za-z0-9._-]{8,}\b/u;
 
 export class PlatformError extends Error {
   constructor(code, message, status = 400, details = undefined) {
@@ -627,11 +634,51 @@ export class PlatformService {
   updateConsent(accountId, input) { return this.store.updateConsent(accountId, input); }
   updateProfile(accountId, input) { return this.store.updateAccount(accountId, { displayName: sanitizeText(input.displayName, 80), locale: "zh-CN" }); }
 
+  getAiPreferences(accountId) {
+    const row = this.store.getAiPreferences(accountId);
+    if (!row) return { ...defaultAiPreferences(), updatedAt: null };
+    return { ...this.decodeAiPreferences(accountId, row.preferencesEncrypted), updatedAt: row.updatedAt };
+  }
+
+  updateAiPreferences(accountId, input = {}) {
+    const preferences = normalizeAiPreferences(input);
+    const encrypted = encryptForAccount(this.accountKey(accountId), preferences, `ai-preferences:${accountId}:v1`);
+    const saved = this.store.upsertAiPreferences({ accountId, preferencesEncrypted: encrypted });
+    return { ...preferences, updatedAt: saved.updatedAt };
+  }
+
+  recordAiInquiry(accountId, input = {}) {
+    const noteId = safeNoteId(input.noteId);
+    const note = this.store.getNote(accountId, noteId);
+    if (!note || note.deletedAt) throw new PlatformError("NOT_FOUND", "笔记不存在。", 404);
+    const provider = aiInquiryProvider(input.providerId);
+    const style = aiInquiryStyle(input.styleId);
+    const event = this.store.createAiInquiryEvent({ id: randomId("aiq_"), accountId, noteId, providerId: provider.id, styleId: style.id });
+    return { ...event, providerLabel: provider.label, styleLabel: style.label };
+  }
+
+  listAiInquiryEvents(accountId, limit = 100) {
+    return this.store.listAiInquiryEvents(accountId, limit).map(event => {
+      const note = this.store.getNote(accountId, event.noteId);
+      const provider = AI_INQUIRY_PROVIDERS.find(item => item.id === event.providerId);
+      const style = AI_INQUIRY_STYLES.find(item => item.id === event.styleId);
+      return {
+        ...event,
+        providerLabel: provider?.label || event.providerId,
+        styleLabel: style?.label || event.styleId,
+        note: note && !note.deletedAt ? { id: note.id, title: note.title, bookTitle: note.bookTitle, author: note.author } : null,
+      };
+    });
+  }
+
   async exportAccount(accountId) {
     const metadata = this.store.accountExport(accountId);
     const notes = [];
     for (const row of this.store.listNotes(accountId, { includeDeleted: false, limit: 100000 })) notes.push(await this.readNote(accountId, row.id));
-    return { exportedAt: new Date(this.clock()).toISOString(), schemaVersion: "1.0.0", ...metadata, notes };
+    return {
+      exportedAt: new Date(this.clock()).toISOString(), schemaVersion: "1.0.0", ...metadata, notes,
+      aiPreferences: this.getAiPreferences(accountId),
+    };
   }
 
   async exportWeRead(accountId) {
@@ -653,6 +700,67 @@ export class PlatformService {
     for (const objectKey of this.store.listAccountObjectKeys(accountId)) await this.objectStore.delete(objectKey);
     const deleted = this.store.deleteAccount(accountId);
     return { deleted };
+  }
+
+  requireAdmin(session) {
+    if (!this.config.adminBaseUrl || !this.config.adminAccountIds?.length) throw new PlatformError("ADMIN_NOT_CONFIGURED", "管理员入口尚未完成安全配置。", 503);
+    if (!session || !this.config.adminAccountIds.includes(session.accountId)) throw new PlatformError("ADMIN_FORBIDDEN", "当前账户没有管理员权限。", 403);
+    this.requireRecentAuth(session);
+    return session.accountId;
+  }
+
+  adminOverview(session) {
+    const actorAccountId = this.requireAdmin(session);
+    this.adminAudit({ actorAccountId, action: "admin_overview_viewed", reason: "查看管理员概览" });
+    const counts = this.store.counts();
+    return {
+      adminAccountId: actorAccountId,
+      counts,
+      configured: true,
+      dataBoundary: "账户资料、笔记正文和提示词只在经过授权、近期验证与审计的专用操作中读取。",
+    };
+  }
+
+  adminAccounts(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    this.adminAudit({ actorAccountId, action: "admin_accounts_viewed", reason: input.reason });
+    return { accounts: this.store.listAdminAccounts({ query: input.query, limit: input.limit }) };
+  }
+
+  adminNotes(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    this.adminAudit({ actorAccountId, action: "admin_notes_index_viewed", targetAccountId: String(input.accountId || "").trim() || null, reason: input.reason });
+    return { notes: this.store.listAdminNotes({ accountId: input.accountId, limit: input.limit }) };
+  }
+
+  async adminReadNote(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    const noteId = safeNoteId(input.noteId);
+    const metadata = this.store.getAdminNoteMetadata(noteId);
+    if (!metadata || metadata.deletedAt) throw new PlatformError("NOT_FOUND", "笔记不存在。", 404);
+    this.adminAudit({ actorAccountId, action: "admin_note_body_viewed", targetAccountId: metadata.accountId, targetNoteId: noteId, reason: input.reason });
+    const note = await this.readNote(metadata.accountId, noteId);
+    if (!note) throw new PlatformError("NOT_FOUND", "笔记不存在。", 404);
+    return { note: { ...note, accountId: metadata.accountId, accountDisplayName: metadata.accountDisplayName, accountEmail: metadata.accountEmail } };
+  }
+
+  adminPrompts(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    this.adminAudit({ actorAccountId, action: "admin_ai_preferences_viewed", reason: input.reason });
+    const preferences = this.store.listAdminAiPreferences(input.limit).map(row => ({
+      accountId: row.accountId,
+      accountDisplayName: row.accountDisplayName,
+      accountEmail: row.accountEmail,
+      updatedAt: row.updatedAt,
+      preferences: this.decodeAiPreferences(row.accountId, row.preferencesEncrypted),
+    }));
+    return { preferences };
+  }
+
+  adminAuditLog(session, input = {}) {
+    const actorAccountId = this.requireAdmin(session);
+    this.adminAudit({ actorAccountId, action: "admin_audit_viewed", reason: input.reason });
+    return { events: this.store.listAdminAuditEvents(input.limit) };
   }
 
   publicAccount(accountId) {
@@ -702,6 +810,7 @@ export class PlatformService {
       objectStore: { ok: false, mode: this.config.objectStoreMode },
       importWorker: this.store.workerHealth("import", this.config.workerStaleSeconds),
       providers: {},
+      adminPlane: { configured: Boolean(this.config.adminBaseUrl && this.config.adminAccountIds?.length) },
     };
     try { dependencies.database = this.store.healthCheck(); } catch { dependencies.database = { ok: false, code: "DATABASE_UNAVAILABLE" }; }
     try { dependencies.objectStore = { ...(await this.objectStore.healthCheck(this.config.objectHealthProbePrefix)), mode: this.config.objectStoreMode }; }
@@ -767,12 +876,87 @@ export class PlatformService {
     return this.store.createAccount({ id: accountId, email, displayName, wrappedDek: wrapAccountKey(this.config.keyring, accountKey, accountId), keyId: this.config.keyring.activeKeyId });
   }
   accountKey(accountId) { const row = this.store.getAccountKey(accountId); if (!row) throw new PlatformError("ACCOUNT_KEY_MISSING", "账户密钥不可用。", 503); return unwrapAccountKey(this.config.keyring, row.wrappedDek, accountId); }
+  decodeAiPreferences(accountId, preferencesEncrypted) {
+    try {
+      const raw = decryptForAccount(this.accountKey(accountId), preferencesEncrypted, `ai-preferences:${accountId}:v1`).toString("utf8");
+      return normalizeAiPreferences(JSON.parse(raw));
+    } catch (error) {
+      if (error instanceof PlatformError) throw error;
+      throw new PlatformError("AI_PREFERENCES_UNAVAILABLE", "AI 问询偏好暂时无法读取，请稍后重试。", 503);
+    }
+  }
+  adminAudit({ actorAccountId, action, targetAccountId = null, targetNoteId = null, reason }) {
+    return this.store.addAdminAuditEvent({
+      id: randomId("admin_audit_"), actorAccountId, action: safeAdminAction(action), targetAccountId, targetNoteId,
+      reason: normalizeAdminReason(reason),
+    });
+  }
   sessionHash(token) { return hmacHex(this.config.sessionPepper, `session:${token}`); }
   csrfHash(token) { return hmacHex(this.config.sessionPepper, `csrf:${token}`); }
   oauthStateHash(state) { return hmacHex(this.config.sessionPepper, `oauth-state:${state}`); }
   wereadSubject(key) { return hmacHex(this.config.credentialPepper, `weread:${key}`); }
   audit(accountId, eventType, value) { this.store.addBehaviorEvent({ id: randomId("evt_"), accountId, eventType, value: stripSensitive(value) }); }
   outbox(accountId, eventType, payload) { this.store.enqueueOutbox({ id: randomId("out_"), eventType, aggregateId: sha256(accountId), payload: stripSensitive(payload) }); }
+}
+
+function defaultAiPreferences() {
+  return {
+    providerId: DEFAULT_AI_INQUIRY_PROVIDER_ID,
+    styleId: DEFAULT_AI_INQUIRY_STYLE_ID,
+    personalContext: "",
+    customPrompt: "",
+  };
+}
+
+function normalizeAiPreferences(input = {}) {
+  const source = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+  const provider = aiInquiryProvider(source.providerId || DEFAULT_AI_INQUIRY_PROVIDER_ID);
+  const style = aiInquiryStyle(source.styleId || DEFAULT_AI_INQUIRY_STYLE_ID);
+  return {
+    providerId: provider.id,
+    styleId: style.id,
+    personalContext: cleanAiPreferenceText(source.personalContext, 1_200, "个人补充信息"),
+    customPrompt: cleanAiPreferenceText(source.customPrompt, 1_600, "自定义提示词"),
+  };
+}
+
+function aiInquiryProvider(value) {
+  const id = String(value || "").trim();
+  const provider = AI_INQUIRY_PROVIDERS.find(item => item.id === id);
+  if (!provider) throw new PlatformError("AI_INQUIRY_PROVIDER", "未支持的 AI 平台。", 400);
+  return provider;
+}
+
+function aiInquiryStyle(value) {
+  const id = String(value || "").trim();
+  const style = AI_INQUIRY_STYLES.find(item => item.id === id);
+  if (!style) throw new PlatformError("AI_INQUIRY_STYLE", "未支持的提问风格。", 400);
+  return style;
+}
+
+function cleanAiPreferenceText(value, maxLength, label) {
+  const text = String(value ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/gu, "").replace(/\r\n?/gu, "\n").trim();
+  if (text.length > maxLength) throw new PlatformError("AI_PREFERENCES_TOO_LONG", `${label}超过安全上限，请缩短后重试。`, 413);
+  if (SECRET_LIKE_WEREAD_KEY.test(text)) throw new PlatformError("AI_PREFERENCES_SECRET", `${label}不能保存微信读书密钥。`, 400);
+  return text;
+}
+
+function safeNoteId(value) {
+  const noteId = String(value || "").trim();
+  if (!/^note_[A-Za-z0-9_-]{8,200}$/.test(noteId)) throw new PlatformError("INVALID_NOTE", "笔记标识无效。", 400);
+  return noteId;
+}
+
+function normalizeAdminReason(value) {
+  const reason = sanitizeText(value, 200);
+  if (reason.length < 4) throw new PlatformError("ADMIN_REASON_REQUIRED", "请填写至少 4 个字的查看用途。", 400);
+  if (SECRET_LIKE_WEREAD_KEY.test(reason)) throw new PlatformError("ADMIN_REASON_INVALID", "查看用途不能包含密钥。", 400);
+  return reason;
+}
+
+function safeAdminAction(value) {
+  const action = String(value || "").replace(/[^a-z0-9_]/gi, "_").slice(0, 80);
+  return action || "admin_access";
 }
 
 function publicImportJob(job) {

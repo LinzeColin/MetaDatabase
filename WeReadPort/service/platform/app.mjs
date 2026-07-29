@@ -31,7 +31,7 @@ export function createPlatformApp({ service, config }) {
         return json(readiness, readiness.ready ? 200 : 503);
       }
       requireInternal(request, config.internalProxySecret);
-      enforceOrigin(request, config.baseUrl);
+      enforceOrigin(request, config.allowedOrigins || [config.baseUrl]);
       rateLimit(request, buckets);
       const sessionToken = cookieValue(request.headers.get("cookie"), COOKIE_NAME);
       const session = service.authenticate(sessionToken);
@@ -82,6 +82,11 @@ export function createPlatformApp({ service, config }) {
       if (method === "GET" && path === "/consent") return json({ consent: service.store.getConsent(session.accountId) });
       if (method === "PATCH" && path === "/consent") return json({ consent: service.updateConsent(session.accountId, await body(request, config.maxJsonBytes)) });
 
+      if (method === "GET" && path === "/ai/preferences") return json({ preferences: service.getAiPreferences(session.accountId) });
+      if (method === "PATCH" && path === "/ai/preferences") return json({ preferences: service.updateAiPreferences(session.accountId, await body(request, config.maxJsonBytes)) });
+      if (method === "GET" && path === "/ai/inquiries") return json({ events: service.listAiInquiryEvents(session.accountId, boundedInt(url.searchParams.get("limit"), 100, 1, 500)) });
+      if (method === "POST" && path === "/ai/inquiries") { service.requireRecentAuth(session); return json({ event: service.recordAiInquiry(session.accountId, await body(request, config.maxJsonBytes)) }, 201); }
+
       if (method === "GET" && path === "/notes") return json({ notes: service.listNotes(session.accountId, { limit: boundedInt(url.searchParams.get("limit"), 200, 1, 5_000) }) });
       if (method === "POST" && path === "/notes") { const input = await body(request, config.maxJsonBytes); return json({ note: await service.saveDocument(session.accountId, input, { expectedVersion: input.expectedVersion ?? null }) }, 201); }
       if (method === "POST" && path === "/notes/export") { service.requireRecentAuth(session); const input = await body(request, config.maxJsonBytes); return json(await service.exportNotes(session.accountId, input.ids)); }
@@ -117,6 +122,17 @@ export function createPlatformApp({ service, config }) {
       if (method === "POST" && path === "/account/delete") { service.requireRecentAuth(session); const result = await service.deleteAccount(session.accountId); return json(result, 200, { "Set-Cookie": clearCookie(config) }); }
       if (method === "GET" && path === "/status/business-lines") { const readiness = await service.readiness(); return json({ version: "v0.0.0.1.9", readiness, lines: businessLines(service.store.counts(), readiness) }); }
 
+      if (path.startsWith("/admin/")) {
+        requireAdminPublicOrigin(request, config);
+        if (method === "POST" && path === "/admin/overview") return json(service.adminOverview(session));
+        if (method === "POST" && path === "/admin/accounts") { const input = await body(request, config.maxJsonBytes); return json(service.adminAccounts(session, { reason: input.reason, query: input.query, limit: boundedInt(input.limit, 100, 1, 500) })); }
+        if (method === "POST" && path === "/admin/notes") { const input = await body(request, config.maxJsonBytes); return json(service.adminNotes(session, { reason: input.reason, accountId: input.accountId, limit: boundedInt(input.limit, 100, 1, 500) })); }
+        const adminNote = path.match(/^\/admin\/notes\/([A-Za-z0-9_-]+)$/);
+        if (method === "POST" && adminNote) { const input = await body(request, config.maxJsonBytes); return json(await service.adminReadNote(session, { reason: input.reason, noteId: adminNote[1] })); }
+        if (method === "POST" && path === "/admin/prompts") { const input = await body(request, config.maxJsonBytes); return json(service.adminPrompts(session, { reason: input.reason, limit: boundedInt(input.limit, 100, 1, 500) })); }
+        if (method === "POST" && path === "/admin/audit") { const input = await body(request, config.maxJsonBytes); return json(service.adminAuditLog(session, { reason: input.reason, limit: boundedInt(input.limit, 100, 1, 500) })); }
+      }
+
       throw new PlatformError("NOT_FOUND", "接口不存在。", 404);
     } catch (error) {
       return errorResponse(error);
@@ -129,11 +145,17 @@ function authResponse(result, config) {
 }
 function requireInternal(request, expected) { const actual = request.headers.get("x-wrp-internal-secret") || ""; if (!secureEqual(actual, expected)) throw new PlatformError("INTERNAL_AUTH", "服务身份验证失败。", 401); }
 function requireSession(session) { if (!session) throw new PlatformError("AUTH_REQUIRED", "请先登录。", 401); }
-function enforceOrigin(request, baseUrl) {
+function enforceOrigin(request, allowedOrigins) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(baseUrl).origin) throw new PlatformError("ORIGIN", "拒绝跨站请求。", 403);
+  const allowed = new Set((Array.isArray(allowedOrigins) ? allowedOrigins : [allowedOrigins]).filter(Boolean));
+  if (origin && !allowed.has(origin)) throw new PlatformError("ORIGIN", "拒绝跨站请求。", 403);
   const site = request.headers.get("sec-fetch-site");
   if (site && !["same-origin", "same-site", "none"].includes(site) && !isOAuthCallbackNavigation(request, origin, site)) throw new PlatformError("ORIGIN", "拒绝跨站请求。", 403);
+}
+function requireAdminPublicOrigin(request, config) {
+  const expected = String(config.adminBaseUrl || "");
+  const actual = String(request.headers.get("x-wrp-public-origin") || "");
+  if (!expected || actual !== expected) throw new PlatformError("ADMIN_ORIGIN", "管理员接口只能从专用管理域访问。", 403);
 }
 function isOAuthCallbackNavigation(request, origin, site) {
   return request.method.toUpperCase() === "GET"

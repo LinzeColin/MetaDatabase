@@ -1,6 +1,6 @@
 import { parseKeyring } from "./crypto.mjs";
 
-const DEFAULT_BASE_URL = "https://weread-port.linzezhang35.chatgpt.site";
+const DEFAULT_BASE_URL = "https://weread.linzezhang.com";
 const TASKPACK_VERSION = "v0.0.0.1.9";
 
 export function loadConfig(env = process.env, { test = false } = {}) {
@@ -10,8 +10,10 @@ export function loadConfig(env = process.env, { test = false } = {}) {
   const keyringRaw = env.WRP_KEYRING_JSON || (test ? JSON.stringify({ test: Buffer.alloc(32, 7).toString("base64") }) : "");
   const activeKeyId = env.WRP_ACTIVE_KEY_ID || (test ? "test" : "");
   const keyring = parseKeyring(keyringRaw, activeKeyId);
-  const baseUrl = new URL(env.WRP_PUBLIC_BASE_URL || DEFAULT_BASE_URL);
-  if (production && baseUrl.protocol !== "https:") throw new Error("生产公开地址必须使用 HTTPS。");
+  const baseUrl = optionalOrigin(env.WRP_PUBLIC_BASE_URL || DEFAULT_BASE_URL, "WRP_PUBLIC_BASE_URL", production);
+  const adminBaseUrl = optionalOrigin(env.WRP_ADMIN_BASE_URL, "WRP_ADMIN_BASE_URL", production);
+  const adminAccountIds = parseAdminAccountIds(env.WRP_ADMIN_ACCOUNT_IDS || "");
+  if (adminAccountIds.length && !adminBaseUrl) throw new Error("配置管理员账户时必须同时设置 WRP_ADMIN_BASE_URL。");
   const internalProxySecret = String(env.WRP_INTERNAL_PROXY_SECRET || (test ? "test-internal-proxy-secret-not-for-production" : ""));
   if (!internalProxySecret) throw new Error("缺少 WRP_INTERNAL_PROXY_SECRET。");
   const releaseIdentity = Object.freeze({
@@ -32,6 +34,9 @@ export function loadConfig(env = process.env, { test = false } = {}) {
   return Object.freeze({
     production,
     baseUrl: baseUrl.origin,
+    adminBaseUrl: adminBaseUrl?.origin || "",
+    allowedOrigins: Object.freeze([...new Set([baseUrl.origin, adminBaseUrl?.origin].filter(Boolean))]),
+    adminAccountIds: Object.freeze(adminAccountIds),
     serviceHost: env.WRP_SERVICE_HOST || "127.0.0.1",
     servicePort: integer(env.WRP_SERVICE_PORT, 8788, 1, 65535),
     databasePath: env.WRP_DATABASE_PATH || "/var/lib/weread-port/platform.sqlite3",
@@ -108,3 +113,18 @@ function safePrefix(value, name) {
 }
 
 function safeReleaseId(value) { return /^[A-Za-z0-9._:-]{3,160}$/.test(String(value || "")); }
+
+function optionalOrigin(raw, name, production) {
+  const value = String(raw || "").trim();
+  if (!value) return null;
+  let parsed;
+  try { parsed = new URL(value); } catch { throw new Error(`${name} 必须是 HTTPS origin。`); }
+  if (parsed.username || parsed.password || parsed.pathname !== "/" || parsed.search || parsed.hash || (production && parsed.protocol !== "https:")) throw new Error(`${name} 必须是无凭证、无路径、无查询参数的 HTTPS origin。`);
+  return parsed;
+}
+
+function parseAdminAccountIds(raw) {
+  const ids = [...new Set(String(raw || "").split(",").map(value => value.trim()).filter(Boolean))];
+  if (ids.some(id => !/^acct_[A-Za-z0-9_-]{8,200}$/.test(id))) throw new Error("WRP_ADMIN_ACCOUNT_IDS 包含无效账户 ID。");
+  return ids;
+}

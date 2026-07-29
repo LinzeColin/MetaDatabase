@@ -14,9 +14,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 VERSION = "v0.0.0.1.9"
-EXPECTED_ORIGIN = "https://weread-port.linzezhang35.chatgpt.site"
+EXPECTED_ORIGIN = "https://weread.linzezhang.com"
+EXPECTED_ADMIN_ORIGIN = "https://admin.weread.linzezhang.com"
 REQUIRED = (
-    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT",
+    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_ADMIN_BASE_URL", "WRP_ADMIN_ACCOUNT_IDS", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT",
     "WRP_DATABASE_PATH", "WRP_OBJECT_STORE_MODE", "WRP_SESSION_PEPPER",
     "WRP_CREDENTIAL_PEPPER", "WRP_KEYRING_JSON", "WRP_ACTIVE_KEY_ID",
     "WRP_INTERNAL_PROXY_SECRET", "WRP_R2_ENDPOINT", "WRP_R2_BUCKET",
@@ -67,6 +68,15 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
         block("PUBLIC_URL", "WRP_PUBLIC_BASE_URL", "必须是无路径、无查询参数的 HTTPS origin。")
     elif origin.rstrip("/") != EXPECTED_ORIGIN:
         block("TARGET_DOMAIN", "WRP_PUBLIC_BASE_URL", f"当前版本冻结域名必须为 {EXPECTED_ORIGIN}。")
+    admin_origin = values.get("WRP_ADMIN_BASE_URL", "")
+    admin_parsed = urlparse(admin_origin)
+    if admin_parsed.scheme != "https" or not admin_parsed.netloc or admin_parsed.path not in ("", "/") or admin_parsed.query or admin_parsed.fragment:
+        block("ADMIN_URL", "WRP_ADMIN_BASE_URL", "必须是无路径、无查询参数的 HTTPS origin。")
+    elif admin_origin.rstrip("/") != EXPECTED_ADMIN_ORIGIN:
+        block("ADMIN_DOMAIN", "WRP_ADMIN_BASE_URL", f"当前版本管理域必须为 {EXPECTED_ADMIN_ORIGIN}。")
+    admin_ids = [item.strip() for item in values.get("WRP_ADMIN_ACCOUNT_IDS", "").split(",") if item.strip()]
+    if not admin_ids or any(not re.fullmatch(r"acct_[A-Za-z0-9_-]{8,200}", item) for item in admin_ids):
+        block("ADMIN_ACCOUNTS", "WRP_ADMIN_ACCOUNT_IDS", "必须配置至少一个有效的不可变管理员账户 ID。")
     if values.get("WRP_SERVICE_HOST") not in {"127.0.0.1", "::1"}:
         block("BIND_ADDRESS", "WRP_SERVICE_HOST", "账户服务必须只监听回环地址。")
     try:

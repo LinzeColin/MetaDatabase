@@ -7,8 +7,10 @@ const files = await Promise.all([
   readFile(new URL("../src/ui/account-api.js", import.meta.url), "utf8"),
   readFile(new URL("../src/ui/obsidian-import.js", import.meta.url), "utf8"),
   readFile(new URL("../src/ui/styles.css", import.meta.url), "utf8"),
+  readFile(new URL("../src/ui/admin-app.js", import.meta.url), "utf8"),
+  readFile(new URL("../admin.html", import.meta.url), "utf8"),
 ]);
-const [ui, api, obsidian, css] = files;
+const [ui, api, obsidian, css, adminUi, adminHtml] = files;
 
 test("首屏提供密钥、邮箱密码及 Google/GitHub/Notion 三类非技术登录入口", () => {
   for (const phrase of ["微信读书密钥", "邮箱和密码", "Google", "GitHub", "Notion", "创建账户", "登录"]) assert.ok(ui.includes(phrase), phrase);
@@ -37,6 +39,8 @@ test("任意成功登录、OAuth 回跳或首次恢复会自动同步微信读�
   assert.match(ui, /void syncWeReadAfterLogin\(root, \{ force: oauthReturned \}\)/u);
   assert.ok(ui.includes("已建立后台微信读书同步任务；可继续浏览，完成后会自动刷新数据。"));
   assert.ok(api.includes("wereadSync(mode = \"auto\")"));
+  assert.ok(api.includes("wereadSyncJob(id)"));
+  assert.match(ui, /void observeWeReadSyncJob\(job\.id, \{ automatic, preserveView \}\);/u);
   assert.ok(ui.includes("真实事件时间"));
   assert.match(ui, /async function refreshDerivedAccountState\(\)/u);
   assert.match(ui, /Promise\.all\(\[api\.profile\(\), api\.notes\(\), api\.analytics\(\)\]\)/u);
@@ -58,14 +62,20 @@ test("画像、官方统计、笔记活动、推荐、跨设备和隐私控制�
   assert.match(ui, /copyRecommendationValue/u);
 });
 
-test("笔记页按真实字段实时筛选，并只对当前显示结果下载或交接 ChatGPT", () => {
-  for (const phrase of ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "实时筛选", "打包下载当前结果", "带当前结果问 ChatGPT", "带这条笔记问 ChatGPT", "官方当前返回的真实事件时间", "点击笔记才会按需解密并显示完整正文", "查看正文", "当前视图操作", "缩小当前阅读档案"]) assert.ok(ui.includes(phrase), phrase);
+test("笔记页按真实字段筛选，并按书籍、作者或时间归档后只携带单条笔记问 AI", () => {
+  for (const phrase of ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "实时筛选", "打包下载当前结果", "书籍分类", "作者分类", "时间分类", "note-archive-heading", "去 AI 问询", "选择一条笔记去 AI 问询", "官方当前返回的真实事件时间", "点击笔记才会按需解密并显示完整正文", "查看正文", "当前视图操作", "缩小当前阅读档案"]) assert.ok(ui.includes(phrase), phrase);
   assert.ok(ui.includes("data-note-filter"));
   assert.ok(ui.includes("notes-workbench"));
   assert.ok(ui.includes("data-note-open"));
-  assert.ok(ui.includes("renderAccountNotesChatGPTContext"));
-  assert.ok(ui.includes("CHATGPT_HANDOFF_URL"));
+  assert.ok(ui.includes("renderSingleNoteAiInquiry"));
+  assert.ok(ui.includes("copyTextToClipboard"));
+  assert.ok(ui.includes("AI 问询"));
+  for (const phrase of ["发起问询", "我的风格", "问询记录", "AI_INQUIRY_PROVIDERS", "AI_INQUIRY_STYLES", "DEFAULT_AI_INQUIRY_PROVIDER_ID", "DEFAULT_AI_INQUIRY_STYLE_ID"]) assert.ok(ui.includes(phrase), phrase);
   assert.ok(api.includes("/notes/export"));
+  assert.ok(api.includes("/ai/preferences"));
+  assert.ok(api.includes("/ai/inquiries"));
+  assert.equal(ui.includes("admin.weread.linzezhang.com"), false, "普通用户页面不得展示管理域");
+  assert.equal(ui.includes("管理员控制台"), false, "普通用户页面不得展示管理员功能");
   assert.equal(ui.includes("web/bookDetail"), false, "不得用书籍 ID 伪造微信读书详情地址");
 });
 
@@ -76,4 +86,12 @@ test("UI UX Pro Max 关键可访问性合同：44px 触控、焦点、减弱动�
   assert.match(css, /max-width:\s*380px/u);
   assert.ok(ui.includes('aria-live="polite"'));
   assert.ok(ui.includes('role="switch"'));
+});
+
+test("管理员界面独立构建，普通用户页面不含管理导航或管理数据展示", () => {
+  assert.ok(adminHtml.includes("阅迁 Admin"));
+  for (const phrase of ["服务端账户白名单", "用途说明", "审计日志", "管理员控制台", "adminPrompts", "adminNote"]) assert.ok(adminUi.includes(phrase), phrase);
+  assert.equal(ui.includes("admin-app.js"), false);
+  assert.equal(ui.includes("用户资料"), false);
+  assert.equal(ui.includes("审计日志"), false);
 });

@@ -36,7 +36,7 @@ const healthyEnv = {
 test("隐私政策覆盖账户、凭据、长期存储、隔离、第三方、权利和删除边界", () => {
   const html = legalContentHtml("privacy");
   for (const phrase of ["适用范围与产品主体", "我们处理的数据", "用途与法律边界", "存储、位置与保留", "安全与多用户隔离", "第三方平台与一键导入", "你的选择与权利", "儿童、事件与变更"]) assert.ok(html.includes(phrase), phrase);
-  for (const phrase of ["不可变 account_id", "不会因为邮箱相同自动合并账户", "永久删除账户", "运行期模型 Token 依赖为零"]) assert.ok(html.includes(phrase), phrase);
+  for (const phrase of ["不可变 account_id", "不会因为邮箱相同自动合并账户", "AI 问询偏好", "本地剪贴板", "admin.weread.linzezhang.com", "永久删除账户", "运行期模型 Token 依赖为零"]) assert.ok(html.includes(phrase), phrase);
   assert.ok(!/wrk-[A-Za-z0-9_-]{8,}/u.test(html));
   const page = legalMainHtml("privacy");
   assert.ok(page.includes("请勿公开粘贴密钥"));
@@ -48,6 +48,7 @@ test("使用条款覆盖账户、允许、禁止、导入同步、可用性和�
   for (const phrase of ["服务范围", "账户与安全责任", "允许用途", "禁止用途", "导入、同步与数据责任", "上游、可用性与变更", "责任边界与终止"]) assert.ok(html.includes(phrase), phrase);
   assert.ok(html.includes("7×24 是架构、监控、自愈、备份和恢复目标"));
   assert.ok(html.includes("不会自动合并"));
+  assert.ok(html.includes("单条笔记的 AI 问询文本准备"));
 });
 
 test("系统状态静态正文在 JavaScript 不可用时仍可阅读且不使用用户凭据探测", () => {
@@ -82,6 +83,26 @@ test("公开静态入口由 Worker 映射到内部资产前缀并统一附加安
     assert.equal(response.headers.get("x-content-type-options"), "nosniff");
     assert.equal(requested.at(-1), expected);
   }
+});
+
+test("管理员静态入口只在专用 host 映射，普通用户 host 不会展示管理页面", async () => {
+  const requested = [];
+  const env = {
+    ...healthyEnv,
+    WRP_ADMIN_HOST: "admin.weread.linzezhang.com",
+    ASSETS: {
+      fetch: async request => {
+        requested.push(new URL(request.url).pathname);
+        return new Response("<!doctype html><html lang=\"zh-CN\"></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+      },
+    },
+  };
+  const admin = await handleRequest(new Request("https://admin.weread.linzezhang.com/"), env);
+  assert.equal(admin.status, 200);
+  assert.equal(requested.at(-1), "/site/admin.html");
+  const normal = await handleRequest(new Request("https://weread.linzezhang.com/admin"), env);
+  assert.equal(normal.status, 404);
+  assert.equal(requested.at(-1), "/site/admin.html", "普通 host 的管理路径不得读取 admin 静态资源");
 });
 
 test("静态资产规范化跳转只在 Worker 内部跟随，不暴露内部路径", async () => {
@@ -124,13 +145,13 @@ test("存活与就绪采用不同 Oracle，缺少绑定时不伪装就绪", asyn
 });
 
 test("静态资源和账户服务同时可用时才报告生产就绪", async () => {
-  const ready = await handleRequest(new Request("https://weread-port.linzezhang35.chatgpt.site/readyz"), healthyEnv);
+  const ready = await handleRequest(new Request("https://weread.linzezhang.com/readyz"), healthyEnv);
   assert.equal(ready.status, 200);
   const readyPayload = await ready.json();
   assert.equal(readyPayload.status, "READY");
   assert.equal(readyPayload.runtimeMode, "production");
 
-  const status = await handleRequest(new Request("https://weread-port.linzezhang35.chatgpt.site/api/status"), healthyEnv);
+  const status = await handleRequest(new Request("https://weread.linzezhang.com/api/status"), healthyEnv);
   assert.equal(status.status, 200);
   const payload = await status.json();
   assert.equal(payload.status, "OPERATIONAL");
