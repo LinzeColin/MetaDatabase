@@ -26,6 +26,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
+- `x2n release preflight` is a read-only aggregate A005 gate. It can prove Owner-input/state, source-tag, and
+  configured-and-pinned Private-MetaDatabase-client readiness without emitting a path, content ID, credential value,
+  or platform request. It cannot arm or mutate the release.
 - Real Owner Runtime, profiles, platform calls, Notion, models, media, private-database transfer, exact release tag,
   deploy, Side Panel handshake, and online smoke are `NOT_RUN`.
 
@@ -42,7 +45,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
-- Full Companion `unittest discover` passed: 319 tests. Focused A005 bundle/release/acceptance tests passed: 20
+- Full Companion `unittest discover` passed: 321 tests. Focused A005 bundle/release/acceptance tests passed: 22
   tests, covering exact scopes, hash-manifest mismatch before adapter initialization, Markdown idempotency, durable
   archive proof, external gates, pointer rollback, staged Native Host binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
@@ -51,13 +54,19 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The A005 verifier fails closed without a real immutable receipt, as expected. A broad historical root-suite run has
   18 failures that assert earlier Stage 0–5 states/files must still be the current state; they are outside A005 and
   must not be "fixed" by rewriting historical evidence. No A005-required suite failed.
+- The approved local Runtime layout was initialized and its empty Canonical SQLite store passed integrity checks;
+  all required owner-only directories now validate. Current real `release preflight` is safe and reports
+  `owner_input=MISSING_OR_INVALID`, `release_state=NOT_STARTED`,
+  `private_durability_client=NOT_READY`, and `source_release_tag=NOT_READY`.
 
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. When the Owner is ready, create the private input and four private 20-ID hash manifests, then perform the four
-   explicit actions, baseline verification, Markdown/durability materialization, rollback rehearsal, sign-off, exact
-   tag, deploy, staged-extension reload, handshake, and immediate online smoke in the documented order.
+2. When the Owner is ready, create the private input and four private 20-ID hash manifests, configure the approved
+   digest-pinned Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and
+   no existing release state. Then perform the four explicit actions, baseline verification, Markdown/durability
+   materialization, rollback rehearsal, sign-off, exact tag, deploy, staged-extension reload, handshake, and
+   immediate online smoke in the documented order.
 3. Only after that real sequence succeeds, run the read-only acceptance verifier and explicitly write the immutable
    receipt and `FINAL_ACCEPTANCE_BUNDLE`. Do not claim G6 from this direct-core receipt.
 4. A real Notion write needs a separately authorized Owner Integration and Parent configuration; until then A005's

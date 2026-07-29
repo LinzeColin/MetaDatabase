@@ -54,10 +54,16 @@ All private input files are owner-only local files. Their contents, local locati
 credentials, cookies, content, and platform CDN URLs must never enter public output or Git.
 
 ```bash
+x2n release preflight
 x2n release input-template
 x2n release validate-input
 x2n release arm --confirm ARM_X2N_OWNER_MVP_ACTIVATION
 ```
+
+`preflight` is aggregate-only and read-only: it reports whether the Owner input, pre-arm state, local source tag,
+and approved Private-MetaDatabase client are configured and digest-pinned, while emitting no local paths, private
+values, content IDs, or platform calls. It never creates the input, arms a scope, calls the client, or opens Chrome.
+A source tag is expected to remain `NOT_READY` until immediately before the later `deploy` command.
 
 The private release input also contains four ordered, hash-only 20-item Owner manifests (one per enabled scope).
 The Owner replaces the template placeholders with SHA-256 values of the selected stable content IDs. The Companion

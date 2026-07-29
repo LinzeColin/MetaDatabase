@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import tempfile
 import unittest
 import uuid
@@ -9,9 +10,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from x2n_contracts import canonical_json_sha256
+from x2n_contracts import ErrorCode, canonical_json_sha256
 from x2n_contracts.models import CapabilityFeatureFlag, CapabilityTerminal, Platform, RelationType, SyncScopeId
 
+from x2n_companion import runtime_cli
 from x2n_companion.adapter_dispatch import AdapterDispatcher
 from x2n_companion.canonical_store import CanonicalStore
 from x2n_companion import mvp_deployment
@@ -215,6 +217,62 @@ class MvpReleaseTests(unittest.TestCase):
             schema["properties"]["knowledge_assets"]["properties"]["notion_platform_calls"], {"const": 0}
         )
         self.assertNotIn("/" + "Users/", rendered)
+
+    def test_release_preflight_is_aggregate_only_and_never_arms(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        args = runtime_cli.build_parser().parse_args(["release", "preflight"])
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(MvpDeploymentManager, "assert_release_source_tagged"),
+            mock.patch(
+                "x2n_companion.runtime_cli.DigestPinnedPrivateDbClient.from_environment",
+                side_effect=X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "private client unavailable"),
+            ),
+            mock.patch.object(MvpReleaseController, "arm") as arm,
+        ):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["action"], "release_preflight")
+        self.assertEqual(payload["acceptance_scope"], "ASSURANCE_005_DIRECT_MVP_PREFLIGHT")
+        self.assertEqual(payload["task_id"], "TSK.x2n.assurance.005")
+        self.assertEqual(
+            payload["preflight"],
+            {
+                "notion_calls": 0,
+                "owner_input": "MISSING_OR_INVALID",
+                "platform_calls": 0,
+                "private_durability_client": "NOT_READY",
+                "ready_to_arm": False,
+                "release_state": "NOT_STARTED",
+                "source_release_tag": "READY",
+            },
+        )
+        self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        arm.assert_not_called()
+
+    def test_release_preflight_recognizes_a_valid_input_without_disclosing_it(self) -> None:
+        args = runtime_cli.build_parser().parse_args(["release", "preflight"])
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(MvpDeploymentManager, "assert_release_source_tagged"),
+            mock.patch(
+                "x2n_companion.runtime_cli.DigestPinnedPrivateDbClient.from_environment",
+                return_value=SimpleNamespace(),
+            ),
+        ):
+            payload = runtime_cli.run(args)
+        preflight = payload["preflight"]
+        self.assertEqual(preflight["owner_input"], "VALID")
+        self.assertTrue(preflight["ready_to_arm"])
+        self.assertEqual(preflight["private_durability_client"], "CONFIGURED_AND_PINNED")
+        self.assertNotIn("input_sha256", json.dumps(payload, ensure_ascii=False, sort_keys=True))
 
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="x2n-mvp-release-")

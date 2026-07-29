@@ -125,6 +125,45 @@ def _paths() -> RuntimePaths:
     return RuntimePaths.from_environment(repository_root=PROJECT_ROOT, create=False)
 
 
+def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
+    """Return aggregate-only direct-MVP readiness without changing runtime state.
+
+    This intentionally does not create an Owner input, arm a scope, invoke a
+    platform, or contact the Private-MetaDatabase client. It only verifies the
+    local prerequisites that can be proven without rendering private values.
+    """
+
+    if paths.owner_mvp_release_state.exists() or paths.owner_mvp_release_state.is_symlink():
+        release_state = "EXISTING"
+    else:
+        release_state = "NOT_STARTED"
+    try:
+        load_owner_mvp_release_input(paths)
+        owner_input = "VALID"
+    except X2NRuntimeError:
+        owner_input = "MISSING_OR_INVALID"
+    try:
+        MvpDeploymentManager.assert_release_source_tagged()
+        source_release_tag = "READY"
+    except X2NRuntimeError:
+        source_release_tag = "NOT_READY"
+    try:
+        DigestPinnedPrivateDbClient.from_environment()
+        private_durability_client = "CONFIGURED_AND_PINNED"
+    except X2NRuntimeError:
+        private_durability_client = "NOT_READY"
+    ready_to_arm = owner_input == "VALID" and release_state == "NOT_STARTED"
+    return {
+        "notion_calls": 0,
+        "owner_input": owner_input,
+        "platform_calls": 0,
+        "private_durability_client": private_durability_client,
+        "ready_to_arm": ready_to_arm,
+        "release_state": release_state,
+        "source_release_tag": source_release_tag,
+    }
+
+
 def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
     return build_local_doctor_probe(paths)
 
@@ -205,6 +244,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 template=_owner_mvp_input_template(),
             )
         paths = _paths()
+        if args.release_action == "preflight":
+            return _success(
+                "release_preflight",
+                acceptance_scope="ASSURANCE_005_DIRECT_MVP_PREFLIGHT",
+                task_id=MVP_RELEASE_TASK_ID,
+                preflight=_owner_mvp_preflight(paths),
+            )
         if args.release_action == "validate-input":
             release_input = load_owner_mvp_release_input(paths)
             return _success(
@@ -745,6 +791,7 @@ def build_parser() -> argparse.ArgumentParser:
     release = subparsers.add_parser("release")
     release_actions = release.add_subparsers(dest="release_action", required=True)
     release_actions.add_parser("input-template")
+    release_actions.add_parser("preflight")
     release_actions.add_parser("validate-input")
     release_arm = release_actions.add_parser("arm")
     release_arm.add_argument("--confirm", required=True, help=f"Required literal: {ARM_CONFIRMATION}")
