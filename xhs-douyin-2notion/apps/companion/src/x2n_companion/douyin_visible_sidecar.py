@@ -632,7 +632,15 @@ class OwnerPrivateVisibleSidecarClient:
             if not ready or os.read(read_fd, 1) != b"1":
                 raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Douyin visible Sidecar did not become ready")
         except OSError as error:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
             raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "Douyin visible Sidecar readiness failed") from error
+        except BaseException:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+            raise
         finally:
             os.close(read_fd)
         return process, nonce

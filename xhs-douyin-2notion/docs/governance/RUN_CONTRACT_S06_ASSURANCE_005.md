@@ -92,6 +92,9 @@ Browser state, calls a platform, or prints its relative or absolute location, fi
 A missing, symlinked, non-owner-only, oversized, raw-crawler, or mismatched artifact is `MISSING_OR_INVALID` and
 fail-closed.
 
+If the clean-room Sidecar process fails before its one-use ready signal, the Companion terminates and reaps that
+child before returning its fail-closed error. It never retries, reuses a process, or leaves a background listener.
+
 `input-template` is intentionally **not** a valid release input: every Owner content-ID hash, Douyin Sidecar
 attestation digest, and loopback port is a literal replacement token. The clean-room provision command produces the
 four attestation digests, while the exact four 20-ID private manifests and loopback port remain Owner-private facts.
@@ -101,8 +104,9 @@ scope/boundary fields are source-bound and must not be changed.
 The private release input also contains four ordered, hash-only 20-item Owner manifests (one per enabled scope).
 The Owner replaces the template placeholders with SHA-256 values of the selected stable content IDs. The Companion
 compares the observed 20 IDs to that private set before any Canonical write; it never prints either the IDs or the
-manifest. A mismatch stops the scope with zero write. A private input or release-state symlink, including a dangling
-one, is never treated as absent: it blocks load/arm before a backup, state write, or platform action.
+manifest. A mismatch stops the scope with zero write. A private input, release-state, or browser-handshake symlink,
+including a dangling one, is never treated as absent: it blocks the corresponding load/arm/state-persist/handshake
+action before a backup, private state write, or platform action.
 
 After `arm`, the Owner performs one explicit bounded Side Panel action for each four fixed scopes. The UI must not
 scroll, alter platform account state, or run a background batch. Then complete the same release Task:

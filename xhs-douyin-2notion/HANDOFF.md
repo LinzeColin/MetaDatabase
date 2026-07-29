@@ -23,8 +23,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
   Companion, so the installed Native Host does not need a repository checkout to validate private release input.
-- A private Owner MVP input or release-state symlink, including a dangling one, is treated as unsafe rather than
-  absent. `load` and `arm` reject it before any pre-switch backup, private state write, or platform action.
+- A private Owner MVP input, release-state, or browser-handshake symlink, including a dangling one, is treated as
+  unsafe rather than absent. `load`, `arm`, state persistence, and handshake recording reject it before any
+  pre-switch backup, private state write, or platform action.
 - The XHS profile fallback now treats a favorites/likes surface as selected only when the matching label belongs to
   a semantic interactive control (selected button/link or selected role=tab). A cosmetic profile counter with an
   `active` class is rejected before it can misclassify ordinary profile content as a relation list.
@@ -36,6 +37,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `arm`, and each Douyin action require the owner-only executable, resolved lock, SBOM, and transitive-license report
   both to match the private input and to byte-match the current approved clean-room template; raw crawler artifacts
   therefore fail before any loopback connection or Canonical write.
+- If the clean-room Douyin Sidecar fails before its ready signal, the Companion terminates and reaps the child before
+  returning a fail-closed error. It does not retry, reuse the process, or leave a background loopback listener.
 - The Douyin list extractor accepts only the corresponding platform-owned `data-e2e` list surface
   (`user-favorite-list` or `user-like-list`) after a selected 收藏/喜欢 control. It deliberately has no generic
   `main` fallback, so an unrecognized profile layout fails closed instead of treating unrelated cards as a relation list.
@@ -76,7 +79,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 - Current Companion discovery contains 332 tests. A bounded current full rerun was stopped during the existing 10k
   Markdown rebuild without a verdict, so it is not treated as a current full-suite pass. Focused A005
-  bundle/release/acceptance tests passed: 25 tests, covering exact scopes, hash-manifest mismatch before adapter
+  bundle/release/acceptance tests passed: 26 tests, covering exact scopes, hash-manifest mismatch before adapter
   initialization, Markdown idempotency, durable archive proof, external gates, pointer rollback, staged Native Host
   binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
@@ -94,7 +97,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
   contacts the client or any remote service.
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
-  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (92), Contract
+  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (94), Contract
   tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
 
 ## Next work

@@ -4,6 +4,7 @@ import socket
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from x2n_contracts import ErrorCode
 
@@ -93,3 +94,18 @@ class DouyinVisibleSidecarTests(unittest.TestCase):
             provision_owner_private_visible_sidecar(self.paths, confirmation="wrong")
         self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
         self.assertFalse(self.paths.douyin_sidecar_bundle_directory.exists())
+
+    def test_startup_failure_terminates_the_spawned_sidecar(self) -> None:
+        build = provision_owner_private_visible_sidecar(self.paths, confirmation=PROVISION_CONFIRMATION)
+        client = OwnerPrivateVisibleSidecarClient(self.paths, expected_build=build, port=_available_loopback_port())
+        process = mock.Mock()
+        process.poll.return_value = None
+        with (
+            mock.patch("x2n_companion.douyin_visible_sidecar.subprocess.Popen", return_value=process),
+            mock.patch("x2n_companion.douyin_visible_sidecar.select.select", return_value=([], [], [])),
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                client._start()
+        self.assertEqual(blocked.exception.code, ErrorCode.DEPENDENCY_MISSING)
+        process.kill.assert_called_once_with()
+        process.wait.assert_called_once_with()

@@ -747,6 +747,7 @@ class MvpReleaseController:
 
     def _persist(self) -> None:
         _validate_state(self.state, release_input=self.release_input)
+        _read_owner_private_json(self.paths.owner_mvp_release_state, label="Owner MVP release state")
         _atomic_private_json(self.paths.owner_mvp_release_state, self.state)
 
     def capability_registry(self) -> CapabilityRegistry:
@@ -1051,8 +1052,12 @@ class MvpReleaseController:
         observed_artifact_sha256 = _require_sha256(artifact_sha256, label="Side Panel release artifact")
         if observed_artifact_sha256 != expected_artifact_sha256:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Side Panel release artifact does not match deployment")
+        handshake = self.paths.owner_mvp_browser_handshake
+        if handshake.exists() or handshake.is_symlink():
+            self.verify_browser_handshake()
+            return True
         _atomic_private_json(
-            self.paths.owner_mvp_browser_handshake,
+            handshake,
             {
                 "artifact_sha256": expected_artifact_sha256,
                 "handshake_kind": "sidepanel_native_health",

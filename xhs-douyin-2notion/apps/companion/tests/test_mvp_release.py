@@ -505,6 +505,15 @@ class MvpReleaseTests(unittest.TestCase):
             MvpReleaseController.load(self.paths, require_state=False)
         self.assertEqual(blocked_state.exception.code, ErrorCode.POLICY_BLOCKED)
 
+    def test_persist_rejects_a_dangling_release_state_link(self) -> None:
+        controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        self.paths.owner_mvp_release_state.unlink()
+        self.paths.owner_mvp_release_state.symlink_to("missing-owner-mvp-release-state")
+        with self.assertRaises(X2NRuntimeError) as blocked:
+            controller._persist()
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+        self.assertTrue(self.paths.owner_mvp_release_state.is_symlink())
+
     def test_douyin_execution_rechecks_sidecar_bundle_before_any_loopback_call(self) -> None:
         controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
         sidecar = self.sidecar_bundle / "sidecar"
@@ -779,6 +788,11 @@ class MvpReleaseTests(unittest.TestCase):
         mismatched = dispatch_wire(_health_wire("d" * 64), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
         self.assertFalse(mismatched.accepted)
         self.assertFalse(self.paths.owner_mvp_browser_handshake.exists())
+        self.paths.owner_mvp_browser_handshake.symlink_to("missing-owner-mvp-browser-handshake")
+        with self.assertRaises(X2NRuntimeError):
+            controller.record_browser_handshake(artifact_sha256="c" * 64)
+        self.assertTrue(self.paths.owner_mvp_browser_handshake.is_symlink())
+        self.paths.owner_mvp_browser_handshake.unlink()
         response = dispatch_wire(_health_wire(), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
         self.assertTrue(response.accepted)
         reloaded = MvpReleaseController.load(self.paths)
