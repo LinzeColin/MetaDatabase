@@ -96,20 +96,27 @@ export function extractXhsFavoritesVisibleBatch(input) {
   const isHidden = (node) => node.hidden
     || node.getAttribute("aria-hidden") === "true"
     || node.closest("[hidden], [aria-hidden=\"true\"]") !== null;
+  const minimumViewportOverlap = 16;
   const intersectsViewport = (node) => {
     const rect = node.getBoundingClientRect?.();
     const viewportWidth = globalThis.innerWidth;
     const viewportHeight = globalThis.innerHeight;
+    const overlapWidth = rect
+      ? Math.max(0, Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0))
+      : 0;
+    const overlapHeight = rect
+      ? Math.max(0, Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0))
+      : 0;
     return Boolean(
       rect
       && Number.isFinite(viewportWidth)
       && Number.isFinite(viewportHeight)
       && rect.width > 0
       && rect.height > 0
-      && rect.right > 0
-      && rect.bottom > 0
-      && rect.left < viewportWidth
-      && rect.top < viewportHeight
+      // A transformed inactive panel can leave a one-pixel edge in the
+      // viewport.  Treat only a meaningful visible area as the active pane.
+      && overlapWidth >= minimumViewportOverlap
+      && overlapHeight >= minimumViewportOverlap
     );
   };
   const observedProfileSurface = (labels) => {
@@ -149,8 +156,9 @@ export function extractXhsFavoritesVisibleBatch(input) {
         node.matches(".tab-content-item") && !isHidden(node)
       ));
       // The observed profile keeps the relation tabs and transform panels in
-      // the same order.  Require both that mapping and one in-viewport panel;
-      // do not fall back to the static posts root when either proof diverges.
+      // the same order.  Require that mapping and meaningful visibility of
+      // the matching panel; an inactive panel's one-pixel transform edge is
+      // not an ambiguity and must not select the static posts root.
       if (
         panels.length !== relationTabs.length
         || panels.length !== contentPanels.length
@@ -158,10 +166,7 @@ export function extractXhsFavoritesVisibleBatch(input) {
         || activeIndex < 0
         || !panels[activeIndex]
       ) return null;
-      const viewportPanels = panels.filter(intersectsViewport);
-      return viewportPanels.length === 1 && viewportPanels[0] === panels[activeIndex]
-        ? panels[activeIndex]
-        : null;
+      return intersectsViewport(panels[activeIndex]) ? panels[activeIndex] : null;
     }
     const root = shells[0].querySelector("#userPostedFeeds");
     return root && !isHidden(root) ? root : null;

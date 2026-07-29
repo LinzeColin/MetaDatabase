@@ -44,7 +44,7 @@ function observedProfileHtml({ label, duplicateSelectedLabel = null }) {
   </body></html>`;
 }
 
-function observedProfileTabbedHtml({ label, visiblePanelIndexes }) {
+function observedProfileTabbedHtml({ label, visiblePanelIndexes, sliverPanelIndexes = [] }) {
   const labels = ["笔记", "收藏", "点赞"];
   const activeIndex = labels.indexOf(label);
   if (activeIndex < 0) throw new Error("unsupported tabbed profile relation");
@@ -52,10 +52,13 @@ function observedProfileTabbedHtml({ label, visiblePanelIndexes }) {
     `<article data-x2n-card data-x2n-note-type="video"><a href="/explore/${prefix}-${index + 1}">synthetic item</a></article>`
   )).join("");
   const visible = new Set(visiblePanelIndexes);
+  const slivers = new Set(sliverPanelIndexes);
   const panels = labels.map((relation, index) => {
     const style = visible.has(index)
       ? "position:relative;width:480px;min-height:300px"
-      : "position:absolute;left:-10000px;top:0;width:480px;min-height:1px";
+      : slivers.has(index)
+        ? "position:relative;width:480px;height:1px;min-height:1px;overflow:hidden"
+        : "position:absolute;left:-10000px;top:0;width:480px;min-height:1px";
     const content = index === 0
       ? `<div id="userPostedFeeds">${cards(1, "static-posts")}</div>`
       : cards(index === activeIndex ? 25 : 0, `active-${index}`);
@@ -161,8 +164,16 @@ const cases = [
     validate: validateXhsLikesBatch,
   },
   {
-    id: "favorites_ambiguous_transform_panels_rejected",
-    html: observedProfileTabbedHtml({ label: "收藏", visiblePanelIndexes: [1, 2] }),
+    id: "likes_inactive_transform_sliver_ignored",
+    html: observedProfileTabbedHtml({ label: "点赞", visiblePanelIndexes: [2], sliverPanelIndexes: [1] }),
+    expectedItems: 20,
+    expectedStatus: "ready",
+    extract: extractXhsLikesVisibleBatch,
+    validate: validateXhsLikesBatch,
+  },
+  {
+    id: "favorites_active_transform_sliver_rejected",
+    html: observedProfileTabbedHtml({ label: "收藏", visiblePanelIndexes: [], sliverPanelIndexes: [1] }),
     expectedItems: 0,
     expectedStatus: "platform_changed",
     extract: extractXhsFavoritesVisibleBatch,

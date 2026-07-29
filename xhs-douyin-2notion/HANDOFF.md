@@ -55,9 +55,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `#userPageContainer.user-page` has exactly one direct active `.reds-tab-item.sub-tab-list` with the expected
   relation in exactly one visible `.reds-tabs-list.tertiary`: 收藏 for favorites, or 赞过/点赞 for likes. On the
   current transform layout it binds that relation's tab index to the same-index direct
-  `.feeds-tab-container > .transform-container > .tab-content-item` only when it is the unique panel intersecting
-  the viewport; it rejects a mismatch or ambiguity rather than accidentally reading the static `#userPostedFeeds`
-  posts panel. The legacy `#userPostedFeeds` fallback remains only for a profile without any tab-content panels.
+  `.feeds-tab-container > .transform-container > .tab-content-item` only when the target panel has at least a
+  meaningful 16×16 viewport intersection; an inactive transformed panel's one-pixel edge is ignored rather than
+  falsely creating ambiguity. It still rejects a mapping mismatch or a target panel that is only a sliver, rather
+  than accidentally reading the static `#userPostedFeeds` posts panel. The legacy `#userPostedFeeds` fallback
+  remains only for a profile without any tab-content panels.
   Additional tertiary controls remain allowed only when they do not create a second matching active relation; a
   generic active class or an unrelated feed root remains rejected, and the exact-20 release gate remains mandatory.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
@@ -113,10 +115,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
   both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (104), Contract
   tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
-- A read-only current-profile structural audit found that the active 收藏 relation is rendered in a same-index
-  transform panel while `#userPostedFeeds` remains a separate static posts panel. The XHS adapters now require the
-  unique in-viewport same-index panel and the surface-safety suite covers both favorites and likes plus an ambiguous
-  panel rejection; no browser content, IDs, URLs, or platform call entered the repository.
+- A read-only current-profile structural audit found that the active 收藏/点赞 relations are rendered in same-index
+  transform panels while `#userPostedFeeds` remains a separate static posts panel. The XHS adapters now require a
+  complete same-index mapping plus a meaningful 16×16 target-panel viewport intersection, so an inactive panel's
+  one-pixel transformed edge cannot block the active list; the surface-safety suite covers the positive and sliver
+  rejection cases. No browser content, IDs, URLs, or platform call entered the repository.
 
 ## Next work
 

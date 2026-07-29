@@ -100,20 +100,27 @@ export function extractXhsLikesVisibleBatch(input) {
   const isHidden = (node) => node.hidden
     || node.getAttribute("aria-hidden") === "true"
     || node.closest("[hidden], [aria-hidden=\"true\"]") !== null;
+  const minimumViewportOverlap = 16;
   const intersectsViewport = (node) => {
     const rect = node.getBoundingClientRect?.();
     const viewportWidth = globalThis.innerWidth;
     const viewportHeight = globalThis.innerHeight;
+    const overlapWidth = rect
+      ? Math.max(0, Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0))
+      : 0;
+    const overlapHeight = rect
+      ? Math.max(0, Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0))
+      : 0;
     return Boolean(
       rect
       && Number.isFinite(viewportWidth)
       && Number.isFinite(viewportHeight)
       && rect.width > 0
       && rect.height > 0
-      && rect.right > 0
-      && rect.bottom > 0
-      && rect.left < viewportWidth
-      && rect.top < viewportHeight
+      // Ignore an inactive transform panel's one-pixel viewport edge; only
+      // the selected relation's meaningfully visible pane may supply cards.
+      && overlapWidth >= minimumViewportOverlap
+      && overlapHeight >= minimumViewportOverlap
     );
   };
   const observedProfileSurface = (labels) => {
@@ -153,7 +160,7 @@ export function extractXhsLikesVisibleBatch(input) {
         node.matches(".tab-content-item") && !isHidden(node)
       ));
       // Bind the selected relation tab to its same-index transform panel and
-      // require it to be the unique viewport panel before reading cards.
+      // require that target pane to be meaningfully visible before reading.
       if (
         panels.length !== relationTabs.length
         || panels.length !== contentPanels.length
@@ -161,10 +168,7 @@ export function extractXhsLikesVisibleBatch(input) {
         || activeIndex < 0
         || !panels[activeIndex]
       ) return null;
-      const viewportPanels = panels.filter(intersectsViewport);
-      return viewportPanels.length === 1 && viewportPanels[0] === panels[activeIndex]
-        ? panels[activeIndex]
-        : null;
+      return intersectsViewport(panels[activeIndex]) ? panels[activeIndex] : null;
     }
     const root = shells[0].querySelector("#userPostedFeeds");
     return root && !isHidden(root) ? root : null;
