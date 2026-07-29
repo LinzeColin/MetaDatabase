@@ -27,9 +27,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
   Companion, so the installed Native Host does not need a repository checkout to validate private release input.
-- The Side Panel is now a Chinese, responsive local workbench with a compact utility header, task-oriented tab rail,
-  a primary current-page action, and visually distinct bounded-MVP actions. It uses local browser-native motion with
-  reduced-motion support, so the public source candidate carries no remote asset or third-party motion bundle.
+- The Side Panel is now a Chinese, responsive local workbench that leads with current-page state, then one primary
+  current-page action and the two visually distinct bounded-MVP batches. Its compact tab rail, visible local boundary
+  strip, keyboard navigation, state feedback, and motion-reduction support replace the earlier nested-card layout;
+  the public source candidate carries no remote asset or third-party motion bundle.
 - `x2n release stage-prearm-sidepanel` now creates an idempotent, digest-addressed owner-private bundle under the
   approved Runtime root. Its unpacked Side Panel, Companion, and Contract sources are verified together; it has no
   `release_identity.json`, never moves a release pointer, and lets the temporary Host plan bind to the same bundle
@@ -38,6 +39,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   installer for that bridge. It stages/uses the current digest-addressed pre-arm bundle, refuses every existing Host
   rather than replacing it, installs atomically only after the explicit confirmation, verifies the Host-to-bundle
   binding, changes no release pointer, and emits no local path. It never opens Chrome or calls a platform.
+- The latest committed Side Panel polish has been staged as a fresh owner-private digest-addressed pre-arm bundle.
+  That staging made zero platform calls, did not switch a release pointer, and did not alter the existing temporary
+  Native Host. The existing Host remains bound to the earlier stable bundle; Chrome extension-manager actions remain
+  manual, so a future visual reload must load the freshly staged bundle rather than any disposable `scratch` path.
 - The current Owner-private pre-arm Host was installed successfully from the stable bundle and verified bound to its
   private digest. The next read-only preflight therefore correctly reports `BLOCKED_EXISTING_TARGET`; that is the
   expected temporary-bridge state, not a deployment or an arm permission. The Host must be removed after hash-only
@@ -125,9 +130,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
-- The responsive Side Panel was rendered in isolated Chromium at 480 px and 360 px widths and visually inspected.
-  Its self-test, controlled zero-network Extension E2E (including 100 service-worker restarts), JavaScript syntax
-  check, focused 41-test pre-arm/release suite, and Ruff all passed. A real `stage-prearm-sidepanel` invocation
+- The responsive Side Panel was re-rendered in isolated Chromium at 480 px and 360 px widths and visually inspected:
+  the 360 px view has no horizontal overflow and correctly hides the unavailable fallback action. Its self-test,
+  controlled zero-network XHS and Douyin Extension E2E (each including 100 service-worker restarts), relevant
+  XHS/Douyin fixture suites, 115 focused Companion tests, 19 Contract tests, and the nine-gate fast source lane all
+  passed; the visual detector reported zero findings. A fresh real `stage-prearm-sidepanel` invocation
   produced a reusable private digest bundle with an extension manifest and no release identity or pointer change;
   no platform call or real-account execution occurred.
 - The stable pre-arm Host installer has 46 focused release tests, including real temporary-Home installation from the
@@ -192,8 +199,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. In the current delegated Owner run, the stable pre-arm Host is already installed. Load the matching stable
-   unpacked Side Panel bundle, then freshly observe the two
+2. In the current delegated Owner run, the stable pre-arm Host is already installed. Load the freshly staged stable
+   unpacked Side Panel bundle rather than any `scratch` source directory, then freshly observe the two
    Douyin lists without scrolling, then use the Side Panel to record their two
    exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
    for each of the two disjoint batch controls. The Companion creates only private hashes and automatically freezes
