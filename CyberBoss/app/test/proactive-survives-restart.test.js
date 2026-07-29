@@ -157,3 +157,16 @@ test("库读不出来时返回空串，不抛错", () => {
   app.runtimeSpoolDatabase = null;
   assert.equal(app.resolveOwnerSenderIdForCheckin(), "");
 });
+
+// ── 中途改设置要当场算数 ────────────────────────────────────
+
+test("睡觉是分段睡的，中途改设置能被看见", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "../src/app/system-checkin-poller.js"), "utf8",
+  );
+  // 一觉睡到点的话，主人把 4 小时改成 5 分钟，轮询器还躺在两小时后的闹钟上，
+  // 他等 5 分钟什么都等不到，只能以为又坏了。
+  assert.match(source, /SLICE_MS/);
+  assert.match(source, /while \(Date\.now\(\) < nextAtMs\)/);
+  assert.match(source, /间隔改短了/);
+});

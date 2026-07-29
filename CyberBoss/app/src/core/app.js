@@ -1245,20 +1245,37 @@ class CyberbossApp {
       // 主人走的是 Codex，不用这张表；**别人走 provider router，必须有 key**。
       // 一把都没有的时候，每个访客不管说什么都只会拿到一句「去填密钥」，而后台
       // 上唯一的线索是「AI 连接 activation_pending」——没人看得懂那是什么意思。
+      //
+      // 两个来源，缺一不可地都要看：
+      //   · 主人那把（systemd credential）——前 N 个人共用它，他们不用做任何事
+      //   · 每个人自己填的（provider_credentials）——用完席位的人才要
+      // 只数后者的话，主人那把明明接好了，面板还会报「一把都没有」。
       guestAi: (() => {
+        let ownKeys = 0;
         try {
-          const count = Number(this.runtimeSpoolDatabase.database
+          ownKeys = Number(this.runtimeSpoolDatabase.database
             .prepare("SELECT COUNT(*) AS c FROM provider_credentials").get().c);
-          return {
-            keys: count,
-            ready: count > 0,
-            note: count > 0
-              ? "别人可以正常聊天。"
-              : "一把 AI 密钥都没填，所以除你之外的人不管说什么，都只会收到一句「去填密钥」。你自己不受影响（你走的是另一条）。",
-          };
         } catch {
-          return { keys: 0, ready: false, note: "读不出来。" };
+          ownKeys = 0;
         }
+        const ownerKey = Boolean(this.ownerProviderCredential());
+        const seats = this.resolveSeatLimit();
+        if (ownerKey) {
+          return {
+            keys: ownKeys,
+            ownerQuota: true,
+            ready: true,
+            note: `你的额度接好了。前 ${Number.isInteger(seats) ? seats : "几"} 个人直接用，什么都不用填；再往后的人要自己填一把。`,
+          };
+        }
+        return {
+          keys: ownKeys,
+          ownerQuota: false,
+          ready: ownKeys > 0,
+          note: ownKeys > 0
+            ? "你自己那把还没接上，所以只有自己填过密钥的人能聊。"
+            : "你那把 AI 密钥服务还读不到，所以别人不管说什么都聊不起来。你自己不受影响（你走的是另一条）。",
+        };
       })(),
       // 最近做过什么。和概览那一段同一份。
       log: this.recentLog(),

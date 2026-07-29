@@ -59,7 +59,28 @@ async function runSystemCheckinPoller(config, options = {}) {
         `[cyberboss] 下一次主动打招呼：${formatLocalTime(nextAtMs)}`
         + `（还有 ${Math.round(waitMs / 60000)} 分钟）`,
       );
-      await sleep(waitMs);
+      // 分段睡，每段之间回头看一眼设置。
+      //
+      // 一觉睡到点的话，中途改设置是不生效的：主人把间隔从 4 小时改成 5 分钟，
+      // 而轮询器还躺在两小时后的那个闹钟上——他等了 5 分钟什么都没等到，只能
+      // 以为又坏了。改设置必须当场算数，这是「设了就该生效」最起码的意思。
+      const SLICE_MS = 30_000;
+      while (Date.now() < nextAtMs) {
+        await sleep(Math.min(SLICE_MS, nextAtMs - Date.now()));
+        const now = readProactive ? readProactive() : null;
+        if (!now) {
+          continue;
+        }
+        const range = rangeFrom(now);
+        // 间隔被调短了，原来那个时刻已经超出新的最大间隔——立刻往前挪。
+        if (nextAtMs > Date.now() + range.maxIntervalMs) {
+          nextAtMs = Date.now() + pickRandomDelayMs(range.minIntervalMs, range.maxIntervalMs);
+          nextCheckinStore.write(nextAtMs);
+          console.log(
+            `[cyberboss] 间隔改短了，下一次提前到 ${formatLocalTime(nextAtMs)}`,
+          );
+        }
+      }
     } else {
       // 到点的时候机器是关着的。缓一分钟再发，别在开机那一秒就戳人。
       console.log(
