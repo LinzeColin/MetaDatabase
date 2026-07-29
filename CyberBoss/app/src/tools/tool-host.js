@@ -154,6 +154,69 @@ const PROJECT_TOOLS = [
       };
     },
   },
+  // 待办和日程也要能由模型来记。
+  //
+  // 「记一下 买菜」那条确定性口令是**下限**，保证最普通的说法一定不落空；但真
+  // 秘书不该只认口令。「这周五之前把房租交了」「明天下午三点那个会你记一下」
+  // 这种话只有模型听得懂，它得有地方把听懂的东西放进去。
+  {
+    name: "cyberboss_todo_add",
+    description: "Remember a task for the current user in Cyberboss.",
+    shortHint: "Add a todo. Use dueAt only when the user gave a real time.",
+    topics: ["todo"],
+    inputSchema: {
+      type: "object",
+      required: ["title"],
+      properties: {
+        title: { type: "string", description: "Short task title in the user's own words." },
+        note: { type: "string", description: "Optional detail." },
+        // 没说时间就别编一个。编出来的截止时间会让他在莫名其妙的时刻被提醒。
+        dueAt: { type: "string", description: "Absolute time such as 2026-04-07T21:30+08:00. Omit when the user gave no time." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.items.add({ ...args, kind: "todo" }, context);
+      return { text: `Todo saved: ${result.title}`, data: result };
+    },
+  },
+  {
+    name: "cyberboss_event_add",
+    description: "Remember a scheduled event for the current user in Cyberboss.",
+    shortHint: "Add a calendar event. dueAt is required.",
+    topics: ["calendar"],
+    inputSchema: {
+      type: "object",
+      required: ["title", "dueAt"],
+      properties: {
+        title: { type: "string", description: "Short event title." },
+        note: { type: "string", description: "Optional detail." },
+        dueAt: { type: "string", description: "Absolute start time such as 2026-04-07T21:30+08:00." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.items.add({ ...args, kind: "event" }, context);
+      return { text: `Event saved: ${result.title}`, data: result };
+    },
+  },
+  {
+    name: "cyberboss_todo_list",
+    description: "Read the current user's open todos or events before answering about them.",
+    shortHint: "List open todos or events. Read before claiming what is on the list.",
+    topics: ["todo", "calendar"],
+    inputSchema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["todo", "event"], description: "Defaults to todo." },
+      },
+      additionalProperties: false,
+    },
+    async handler({ services, args, context }) {
+      const result = await services.items.list(args, context);
+      return { text: JSON.stringify(result), data: result };
+    },
+  },
   {
     name: "cyberboss_system_send",
     description: "Queue an internal Cyberboss system trigger for the current bound workspace and chat.",

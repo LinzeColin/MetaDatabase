@@ -13,6 +13,11 @@ class StreamDelivery {
     sameTokenRetryDelayMs,
     outboxWorker = null,
     onDirectDelivery = null,
+    // 主动打招呼这一轮说没说话。漏在这里的后果和门户那次一模一样：注入方写了、
+    // 这里没接，钩子就是 undefined，而 `?.()` 会安静地什么都不做——空转永远
+    // 数不出来，体检也就永远发现不了。
+    onSystemReplySilent = null,
+    onSystemReplySent = null,
   }) {
     this.channelAdapter = channelAdapter;
     this.sessionStore = sessionStore;
@@ -24,6 +29,8 @@ class StreamDelivery {
     // 它们没有 job，也就没有 outbox 行——不记的话，后台「对话」栏永远看不见
     // 机器人自己主动说过什么。
     this.onDirectDelivery = typeof onDirectDelivery === "function" ? onDirectDelivery : null;
+    this.onSystemReplySilent = typeof onSystemReplySilent === "function" ? onSystemReplySilent : null;
+    this.onSystemReplySent = typeof onSystemReplySent === "function" ? onSystemReplySent : null;
     this.systemReplyRetryScheduleMs = Array.isArray(systemReplyRetryScheduleMs) && systemReplyRetryScheduleMs.length
       ? systemReplyRetryScheduleMs.map((value) => Number(value)).filter((value) => Number.isFinite(value) && value >= 0)
       : [1_500, 2_500, 4_000, 6_000];
@@ -358,11 +365,18 @@ class StreamDelivery {
     const resolved = resolveSystemReplyDelivery(replyText, this.systemReplyPolicy);
     if (resolved.kind === "silent") {
       this.markAllItemsSent(state);
+      // 数一下连着多少次决定不说话。
+      //
+      // 唤醒模型 → 模型说"这次不说" → 什么都没发生，但额度花了。五分钟一轮的
+      // 时候这是一天 288 次，而主人那边一条消息都收不到——他只会觉得"主动打招呼
+      // 坏了"，看不出是在空转。体检那一层拿这个数来告诉他。
+      this.onSystemReplySilent?.();
       console.log(
         `[cyberboss] suppressed system reply thread=${state.threadId} action=silent preview=${JSON.stringify(replyText.slice(0, 120))}`
       );
       return;
     }
+    this.onSystemReplySent?.();
 
     if (resolved.kind !== "send_message") {
       console.error(

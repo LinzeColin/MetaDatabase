@@ -45,7 +45,14 @@ const {
   parseItemIntent,
 } = require("../services/items/item-intent");
 const { SqliteProfileStore } = require("../services/profile/profile-store");
-const { RuntimeSpoolDatabase } = require("../services/db/database-adapter");
+const {
+  buildAlertMessage,
+  buildRecoveryMessage,
+  diffFindings,
+  evaluateHealth,
+} = require("../services/health/self-check");
+const { MIGRATIONS, RuntimeSpoolDatabase } = require("../services/db/database-adapter");
+const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const {
   CanonicalSpoolCoordinator,
 } = require("../services/canonical/canonical-sync");
@@ -277,6 +284,19 @@ class CyberbossApp {
     const projectTooling = createProjectTooling(config, {
       channelAdapter: this.channelAdapter,
       timelineIntegration: this.timelineIntegration,
+      // 待办和日程的库，以及"这一轮是谁"。
+      //
+      // 用 getter 而不是直接传值：库是 start() 之后才打开的，构造这一刻还是 null。
+      // 传死的话工具永远拿到 null，又是一个"代码在但功能不在"。
+      get itemDatabase() {
+        return null;
+      },
+      resolveItemUserId: (context) => this.resolveUserIdForToolCall(context),
+    });
+    // 库要等 start() 打开之后才有，这里补上引用。
+    Object.defineProperty(projectTooling.services.items, "database", {
+      get: () => this.runtimeSpoolDatabase,
+      configurable: true,
     });
     this.projectServices = projectTooling.services;
     this.projectToolHost = projectTooling.toolHost;
@@ -306,7 +326,15 @@ class CyberbossApp {
       // 不经过 outbox 的那条路（主动打招呼、到点提醒、入门引导）在这里记账，
       // 否则后台「对话」栏永远看不见机器人自己主动说过什么。
       onDirectDelivery: (entry) => this.noteBotInitiated(entry),
+      // 主动打招呼连着几次决定不说话。体检那一层用它认出"在空转烧额度"。
+      onSystemReplySilent: () => { this.checkinSilentStreak += 1; },
+      onSystemReplySent: () => { this.checkinSilentStreak = 0; },
     });
+    // 空转计数。只活在内存里是对的：重启之后从头数，不会拿着上一个进程的
+    // 旧账去打扰主人。
+    this.checkinSilentStreak = 0;
+    this.lastHealthReport = null;
+    this.lastHealthCheckAt = 0;
     this.pendingOperationByRunKey = new Map();
     this.runtimeEventChain = Promise.resolve();
     this.runtimeSpoolDatabase = null;
@@ -993,6 +1021,7 @@ class CyberbossApp {
             this.flushPendingInboundMessages(),
             this.flushPendingSystemMessages(),
             this.flushPendingTimelineScreenshots(),
+            this.maybeRunHealthCheck(),
           ]);
           if (this.durableInboxCoordinator) {
             const results = await this.pollAccountsOnce({
@@ -1129,6 +1158,161 @@ class CyberbossApp {
       );
       // 设置页面起不来不影响聊天，所以不中断启动——但状态里会如实显示。
       return null;
+    }
+  }
+
+  // ── 体检 ──────────────────────────────────────────────────
+  //
+  // 「不依赖开发agent去运维」。今天那三个故障主人一个都发现不了：闸门卡住、
+  // 同步 EACCES、接口 404——三个都不是资源问题，主机上那个自愈引擎查的是磁盘
+  // 内存负载，对它们一无所知。这一层查的是结果：该发的发出去了吗、该同步的
+  // 同步了吗、回话有多快、主动消息是不是在空转。
+
+  // 十分钟一次。挂在主循环上而不是另开一个定时器：这样它和收发消息共用同一个
+  // 进程状态，进程活着体检就活着，进程死了主人本来就会发现"它不回话了"。
+  //
+  // 启动后先等两分钟。刚起来的那一刻队列还没热，很多数字是假的低。
+  async maybeRunHealthCheck() {
+    const now = Date.now();
+    if (!this.lastHealthCheckAt) {
+      this.lastHealthCheckAt = now - HEALTH_CHECK_INTERVAL_MS + 120_000;
+      return;
+    }
+    if (now - this.lastHealthCheckAt < HEALTH_CHECK_INTERVAL_MS) {
+      return;
+    }
+    this.lastHealthCheckAt = now;
+    await this.runHealthCheck().catch(() => {});
+  }
+
+  gatherHealthFacts() {
+    const one = (sql, params = []) => {
+      try {
+        return this.runtimeSpoolDatabase.database.prepare(sql).all(...params);
+      } catch {
+        return [];
+      }
+    };
+    const since = new Date(Date.now() - 86_400_000).toISOString();
+    const outbox = one(
+      "SELECT status AS k, COUNT(*) AS c FROM outbox_messages WHERE created_at>=? GROUP BY status",
+      [since],
+    );
+    const bucket = (name) => Number(outbox.find((row) => row.k === name)?.c || 0);
+    return {
+      canonicalSyncedAt: one(
+        "SELECT MAX(synced_at) AS v FROM sync_spool WHERE synced_at IS NOT NULL",
+      )[0]?.v || "",
+      backupAt: this.readLatestBackupAt(),
+      // 入队到开始处理。今天那次是 190 秒，而正常是零点几秒。
+      recentJobs: one(
+        "SELECT queued_at AS queuedAt, started_at AS startedAt FROM jobs"
+        + " WHERE started_at IS NOT NULL ORDER BY queued_at DESC LIMIT 20",
+      ),
+      runningJobs: one(
+        "SELECT started_at AS startedAt FROM jobs WHERE status='running'",
+      ),
+      outbox: {
+        confirmed: bucket("confirmed"),
+        failed: bucket("failed") + bucket("dead"),
+      },
+      checkinSilentStreak: Number(this.checkinSilentStreak) || 0,
+      schema: Number(one("SELECT MAX(version) AS v FROM schema_migrations")[0]?.v || 0),
+      // 代码里注册了到第几版，库里就该是第几版。对不上＝迁移没跑上去，
+      // 而那种坏是「页面打得开、聊天也通，只有新功能永远是空的」。
+      schemaExpected: MIGRATIONS.length
+        ? Math.max(...MIGRATIONS.map((migration) => migration.version))
+        : 0,
+    };
+  }
+
+  // 冷备是另一个服务写的，本进程读不到它的日志；快照目录的最新一个就是证据。
+  readLatestBackupAt() {
+    try {
+      const root = this.config.backupLocalDir
+        || path.join(this.config.stateDir || "", "snapshots");
+      let newest = 0;
+      for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+        if (!entry.isDirectory() || !entry.name.startsWith("backup_")) {
+          continue;
+        }
+        const at = fs.statSync(path.join(root, entry.name)).mtimeMs;
+        newest = Math.max(newest, at);
+      }
+      return newest ? new Date(newest).toISOString() : "";
+    } catch {
+      return "";
+    }
+  }
+
+  // 每一轮体检。发现新问题就用微信告诉主人；好了也说一句。
+  //
+  // 零模型调用：这几句话是拼出来的，不是想出来的。体检本身不该花额度——否则
+  // 「额度用完了」这个故障会导致「你收不到额度用完的通知」。
+  async runHealthCheck() {
+    if (!this.runtimeSpoolDatabase) {
+      return null;
+    }
+    let report;
+    try {
+      report = evaluateHealth(this.gatherHealthFacts(), { now: Date.now() });
+    } catch (error) {
+      console.error(
+        `[cyberboss] 体检本身出错了 code=${normalizeErrorCode(error?.code) || "health_check_failed"}`,
+      );
+      return null;
+    }
+    this.lastHealthReport = report;
+
+    let previous = [];
+    try {
+      const stored = this.runtimeSpoolDatabase.getServiceState?.("health_reported");
+      previous = Array.isArray(stored?.value?.ids) ? stored.value.ids : [];
+    } catch {
+      previous = [];
+    }
+    const diff = diffFindings(previous, report.findings);
+    if (!diff.appeared.length && !diff.recovered.length) {
+      return report;
+    }
+    try {
+      // 只存固定的英文码。service_state 那一列是明文，人写的字一个都不能进。
+      this.runtimeSpoolDatabase.setServiceState("health_reported", { ids: diff.active });
+    } catch {
+      // 存不下就退回"每轮都报"，吵，但不会漏。
+    }
+
+    for (const text of [buildAlertMessage(diff.appeared), buildRecoveryMessage(diff.recovered)]) {
+      if (text) {
+        await this.tellOwner(text);
+      }
+    }
+    return report;
+  }
+
+  // 给主人发一条纯文本，不经过模型。
+  //
+  // 体检、告警这类话必须走这条路：它们要在**模型不可用的时候**也能送到，
+  // 而那正是最需要通知他的时刻。
+  async tellOwner(text) {
+    const senderId = this.resolveOwnerSenderIdForCheckin();
+    if (!senderId || !text) {
+      return false;
+    }
+    try {
+      const account = resolveAccountForUser(this.config, senderId);
+      await this.channelAdapter.sendText({
+        userId: senderId,
+        text,
+        accountId: account.accountId,
+      });
+      this.noteDirectReply(senderId, text, { delivered: true });
+      return true;
+    } catch (error) {
+      console.error(
+        `[cyberboss] 体检结果没发出去 code=${normalizeErrorCode(error?.code) || "tell_owner_failed"}`,
+      );
+      return false;
     }
   }
 
@@ -3086,6 +3270,27 @@ class CyberbossApp {
       this.rememberOwnerSender(normalized.senderId);
     }
     return decision;
+  }
+
+  // 模型调待办工具时，这一轮是谁。
+  //
+  // **只从发件人推**，不看模型传了什么。工具的 inputSchema 里根本没有 userId
+  // 这个字段，就是为了让"给别人记一条"变成一件写不出来的事。
+  resolveUserIdForToolCall(context) {
+    const senderId = String(context?.senderId || "").trim();
+    if (!senderId || !this.userAdmission?.users?.identify) {
+      return "";
+    }
+    try {
+      return String(this.userAdmission.users.identify({
+        channel: "weixin",
+        botAccountRef: String(context?.accountId || "").trim()
+          || resolveAccountForUser(this.config, senderId).accountId,
+        senderRef: senderId,
+      })?.userId || "");
+    } catch {
+      return "";
+    }
   }
 
   // 「记一下 买菜」「待办」「完成 1」→ 直接办，当场回。零模型、零 token。
@@ -5302,6 +5507,9 @@ const OWNER_TIMEZONE = process.env.CB_OWNER_TIMEZONE || "Asia/Shanghai";
 // 发这两个字就给自己那一页的链接。主人的原话：「减少关键词输入」。
 // 「我的主页」「首页」「我的网站」也认——同一件事不该因为多打两个字就失灵。
 const PERSONAL_SITE_KEYWORD = /^(我的)?(主页|首页|个人主页|个人网站|我的网站)[?？。！!]?$/;
+
+// 体检多久跑一次。十分钟：够快到主人不会先于它发现问题，又不至于把日志刷满。
+const HEALTH_CHECK_INTERVAL_MS = 10 * 60_000;
 
 function formatOwnerLocalTime(value) {
   const date = value instanceof Date ? value : new Date(value);
