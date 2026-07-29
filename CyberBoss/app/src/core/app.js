@@ -1234,6 +1234,26 @@ class CyberbossApp {
           return 0;
         }
       })(),
+      // 别人能不能真的聊起来。
+      //
+      // 主人走的是 Codex，不用这张表；**别人走 provider router，必须有 key**。
+      // 一把都没有的时候，每个访客不管说什么都只会拿到一句「去填密钥」，而后台
+      // 上唯一的线索是「AI 连接 activation_pending」——没人看得懂那是什么意思。
+      guestAi: (() => {
+        try {
+          const count = Number(this.runtimeSpoolDatabase.database
+            .prepare("SELECT COUNT(*) AS c FROM provider_credentials").get().c);
+          return {
+            keys: count,
+            ready: count > 0,
+            note: count > 0
+              ? "别人可以正常聊天。"
+              : "一把 AI 密钥都没填，所以除你之外的人不管说什么，都只会收到一句「去填密钥」。你自己不受影响（你走的是另一条）。",
+          };
+        } catch {
+          return { keys: 0, ready: false, note: "读不出来。" };
+        }
+      })(),
       // 最近做过什么。和概览那一段同一份。
       log: this.recentLog(),
     };
@@ -1256,7 +1276,10 @@ class CyberbossApp {
     if (!this.dashboardLog) {
       this.dashboardLog = [];
     }
-    this.dashboardLog.push(`${new Date().toISOString().slice(5, 19).replace("T", " ")}  ${text}`);
+    // 主人的当地时间，不是 UTC。服务器跑在 UTC 上，直接 toISOString 会让面板上
+    // 每一行都差八小时——主人看到「06:26」而他手机上是 14:26，两边对不上，
+    // 于是这一栏的每一条都变得没法用来核对。
+    this.dashboardLog.push(`${formatOwnerLocalTime(new Date())}  ${text}`);
     if (this.dashboardLog.length > 200) {
       this.dashboardLog = this.dashboardLog.slice(-200);
     }
@@ -4798,6 +4821,28 @@ function assertWeixinUpdateResponse(response) {
     error.ret = ret;
     error.errcode = errcode;
     throw error;
+  }
+}
+
+// 主人的当地时间。服务器在 UTC 上跑，但面板是给人看的，人看的是自己表上的时间。
+// 时区可以用 CB_OWNER_TIMEZONE 改；默认 Asia/Shanghai，和主动打招呼的静默时段
+// 用的是同一个时区，两边必须一致，否则「23 点静默」会在两个不同的时刻生效。
+const OWNER_TIMEZONE = process.env.CB_OWNER_TIMEZONE || "Asia/Shanghai";
+
+function formatOwnerLocalTime(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  try {
+    return new Intl.DateTimeFormat("zh-CN", {
+      timeZone: OWNER_TIMEZONE,
+      month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+      hour12: false,
+    }).format(date).replace(/\//g, "-");
+  } catch {
+    return date.toISOString().slice(5, 19).replace("T", " ");
   }
 }
 

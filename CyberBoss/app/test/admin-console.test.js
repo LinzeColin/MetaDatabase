@@ -286,3 +286,39 @@ test("「机器」和画像也会自己刷新", () => {
 test("整页仍然一个 innerHTML 赋值都没有", () => {
   assert.ok(!/\.innerHTML\s*=/.test(PAGE));
 });
+
+// ── 主人的当地时间，不是服务器的 UTC ────────────────────────
+
+test("面板上的时间是主人当地时间——服务器在 UTC 上跑，直接用会差八小时", (t) => {
+  const app = bootApp(t);
+  app.dashboardLog = [];
+  app.noteForDashboard("测试一下");
+
+  const line = app.recentLog()[0];
+  // 北京时间的小时数，和 UTC 差 8。取当前时刻两边各算一次来比。
+  const utcHour = new Date().getUTCHours();
+  const localHour = Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Shanghai", hour: "2-digit", hour12: false,
+  }).format(new Date()));
+  const shown = Number(line.slice(6, 8));
+  assert.equal(shown, localHour, `面板显示 ${shown} 点，主人表上是 ${localHour} 点（UTC 是 ${utcHour} 点）`);
+});
+
+// ── 没有 AI 密钥的时候，后台必须说人话 ──────────────────────
+
+test("一把 AI 密钥都没有时，后台明说别人聊不起来——而不是只留一个 activation_pending", (t) => {
+  const app = bootApp(t);
+  app.channelAdapter = { listAccounts: () => [], resolveAccount: () => ({ accountId: "" }) };
+
+  const ops = app.buildOpsSnapshot();
+
+  assert.equal(ops.guestAi.keys, 0);
+  assert.equal(ops.guestAi.ready, false);
+  assert.match(ops.guestAi.note, /密钥/);
+  assert.match(ops.guestAi.note, /你自己不受影响/, "要说清主人自己走的是另一条路");
+});
+
+test("这一句在页面上顶在最前面，而且没 key 时是红的", () => {
+  assert.match(PAGE, /data\.guestAi/);
+  assert.match(PAGE, /别人的 AI/);
+});

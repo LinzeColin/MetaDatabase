@@ -872,6 +872,14 @@
 
     // 「还没判过」和「判过了，结论是卡住」是两件事。混在一起会让人去查一个
     // 根本不存在的故障——闸门只在队列里有活的时候才判。
+    // 别人能不能聊起来。这一句要顶在最前面：没有 key 的时候，所有访客不管说
+    // 什么都只会收到一句「去填密钥」，而这是唯一说得清楚的地方。
+    var ai = data.guestAi || {};
+    var aiLine = el("p", "hint", (ai.ready ? "别人的 AI：好了 ✓ " : "别人的 AI：还没填 ⚠ ") + (ai.note || ""));
+    if (!ai.ready) { aiLine.style.color = "var(--bad)"; }
+    top.appendChild(aiLine);
+    aiLine.style.gridColumn = "1 / -1";
+
     var gate = data.gate;
     set("ops-gate", !gate
       ? "闸门：调度还没启动。"
