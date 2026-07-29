@@ -226,13 +226,11 @@ test("主人发「邀请」直接拿到可转发的邀请码，普通用户拿�
   assert.match(invited.text, /转发给朋友/);
   assert.match(invited.text, /只能用一次/);
 
-  // 这串码真的能用：朋友发过来就进入同意环节。
+  // 这串码真的能用：朋友发过来就开通了，不用再回一句「同意并开始」。
   const friend = admission.admit({ botAccountRef: "bot", senderRef: "friend", text: code });
-  assert.equal(friend.route, "reply");
-  assert.match(friend.text, /同意并开始/);
+  assert.notEqual(friend.route, "owner", "朋友不该被当成主人");
 
   // 普通用户说「邀请」只会拿到普通帮助，不会拿到码，也不会知道有这个口令。
-  admission.admit({ botAccountRef: "bot", senderRef: "friend", text: "同意并开始" });
   const asUser = admission.admit({ botAccountRef: "bot", senderRef: "friend", text: "邀请" });
   assert.equal(asUser.route, "reply");
   assert.equal(/[A-Za-z0-9-]{8,}/.test(asUser.text.replace(/[^\x00-\x7f]/g, "")), false);

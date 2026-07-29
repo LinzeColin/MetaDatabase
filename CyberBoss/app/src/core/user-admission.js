@@ -145,6 +145,8 @@ class UserAdmissionService {
     // 的东西，所以它必须在**建用户之前**判，而不是等 turn 走到模型那一步。
     // 回调而不是定值：主人在后台改完，下一条消息就生效，不用重启。
     seatLimitProvider = null,
+    // 默认关：扫码进来的人第一句话就能用，不必先回一句「同意并开始」。
+    requireExplicitConsent = false,
     now = () => new Date(),
   }) {
     if (!database || typeof database.prepare !== "function") {
@@ -178,6 +180,7 @@ class UserAdmissionService {
     });
     this.portalOrigin = normalizeText(portalOrigin);
     this.seatLimitProvider = typeof seatLimitProvider === "function" ? seatLimitProvider : null;
+    this.requireExplicitConsent = requireExplicitConsent === true;
     this.setupTokens = new SqliteSetupTokenService({ database });
     this.now = now;
     // 和邀请码同样的做法：从 owner-only 的身份密钥派生，不新增任何密钥文件。
@@ -475,11 +478,41 @@ class UserAdmissionService {
       // tokens; the sender is simply asked for a valid code again.
       return reply(ACTIONS.REQUEST_INVITE);
     }
+    // 建完人就直接往下走，用他刚说的那句话继续。
+    //
+    // 以前到这里就 return 一句「回复同意并开始」，于是他要说三句话才轮到他真正
+    // 想问的那句：说句话 → 同意 → 再问一次。这三步里没有一步是他想做的事。
+    // 现在只在 CB_REQUIRE_EXPLICIT_CONSENT=true 时才停在这里。
+    if (!this.requireExplicitConsent && result.action === ACTIONS.SHOW_CONSENT) {
+      return this.admit({ botAccountRef, senderRef, text });
+    }
     return reply(result.action);
   }
 
+  // 扫码进来的人，第一句话就能用。
+  //
+  // 以前是：先弹一段告知、要他回一句「同意并开始」、才算开通。三步之后他才
+  // 说得上第一句话，而这三步里没有一步是他想做的事——他只是想问个问题。
+  //
+  // 告知没有取消，只是不再挡路：注册的那一刻就把那句话发给他（见
+  // ACTIONS.CONSENT_ACCEPTED 那条回复），他知道内容会被保存，也随时能发
+  // 「退出」停用并删掉。要退回旧的两步式，把 CB_REQUIRE_EXPLICIT_CONSENT
+  // 设成 true。
   #admitPendingConsent({ botAccountRef, senderRef, text }) {
     const trimmed = normalizeText(text);
+    if (!this.requireExplicitConsent && trimmed !== COMMANDS.DECLINE && trimmed !== COMMANDS.CANCEL) {
+      // 直接开通，然后**用他刚说的那句话继续往下走**——不是回一句「已开通」
+      // 就把他的问题丢掉。他问的那句必须被回答。
+      try {
+        this.registration.consent({
+          botAccountRef, senderRef, channel: this.channel, accepted: true,
+        });
+      } catch {
+        // 开通失败就退回旧的两步式，别把人卡死在门口。
+        return reply(ACTIONS.SHOW_CONSENT);
+      }
+      return this.admit({ botAccountRef, senderRef, text });
+    }
     if (trimmed === COMMANDS.CONSENT) {
       const result = this.registration.consent({
         botAccountRef,

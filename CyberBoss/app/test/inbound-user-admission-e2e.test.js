@@ -153,17 +153,16 @@ function harness(t, {
       .run(providerId, model, new Date().toISOString(), userId);
   };
 
+  // 开通只剩一步：把邀请码发过来。
+  //
+  // 以前还要再回一句「同意并开始」才算数——三步之后他才说得上第一句话，而这
+  // 三步里没有一步是他想做的事。告知没取消（开通那一刻就发给他），只是不再
+  // 挡路。要退回两步式：CB_REQUIRE_EXPLICIT_CONSENT=true。
   const register = (senderRef) => {
     const invite = admission.issueInvite({ maxUses: 1, ttlMs: 600_000 });
     admission.admit({ botAccountRef: BOT, senderRef, text: invite.code });
-    const decision = admission.admit({
-      botAccountRef: BOT,
-      senderRef,
-      text: "同意并开始",
-    });
-    assert.equal(decision.route, "reply");
     const active = admission.admit({ botAccountRef: BOT, senderRef, text: "hello" });
-    assert.equal(active.route, "user");
+    assert.equal(active.route, "user", "开通之后第一句话就该走普通用户那条路");
     return active.userContext;
   };
 
@@ -193,19 +192,16 @@ test("an unknown WeChat sender reaches the invite prompt and zero model calls", 
   assert.match(h.sent[0].text, /邀请码/);
 });
 
-test("consent is the only transition that admits a user, and it costs no model call", async (t) => {
+// 开通只剩邀请码一步；「不同意」仍然是一条随时可走的出口。
+// 不变的硬边界：开通之前一次模型调用都不许发生。
+test("开通之前一次模型调用都没有；「不同意」随时能停下", async (t) => {
   const h = harness(t);
   const invite = h.admission.issueInvite({ maxUses: 1, ttlMs: 600_000 });
 
   await h.deliver(ALICE, "开始");
+  assert.match(h.sent.at(-1).text, /邀请码/, "没有邀请码时先问他要码");
+
   await h.deliver(ALICE, invite.code);
-  assert.match(h.sent.at(-1).text, /同意并开始/, "the consent text is shown before activation");
-
-  await h.deliver(ALICE, "不同意");
-  assert.match(h.sent.at(-1).text, /已停止开通/);
-
-  await h.deliver(ALICE, "同意并开始");
-  assert.match(h.sent.at(-1).text, /已开通/);
 
   assert.equal(h.providerCalls.length, 0, "no pre-active transition may reach a provider");
   assert.equal(h.runtimeTurns.length, 0, "no pre-active transition may reach the Owner runtime");

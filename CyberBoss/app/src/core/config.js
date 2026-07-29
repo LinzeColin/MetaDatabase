@@ -127,6 +127,9 @@ function readConfig() {
     allowedUserIds,
     multiUser,
     registrationMode,
+    // 默认 false：扫码进来的人第一句话就能用。告知照发，但不挡路。
+    // 要退回「必须先回一句同意并开始」那种两步式，设 CB_REQUIRE_EXPLICIT_CONSENT=true。
+    requireExplicitConsent: readTextEnv("CB_REQUIRE_EXPLICIT_CONSENT") === "true",
     ownerSenderIds,
     portalOrigin,
     // 只监听回环地址。公网入口是 Cloudflare Tunnel，本机不开任何入站端口。

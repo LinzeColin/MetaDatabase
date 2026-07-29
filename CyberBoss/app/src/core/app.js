@@ -378,6 +378,8 @@ class CyberbossApp {
           registrationMode: this.resolveRegistrationMode(),
           portalOrigin: this.config.portalOrigin || "",
           seatLimitProvider: () => this.resolveSeatLimit(),
+          // 「初始不需要任何设置，不需要回复同意并开始」。告知照发，但不挡路。
+          requireExplicitConsent: this.config.requireExplicitConsent === true,
         });
         this.userCompanionTurn = new UserCompanionTurn({
           database: this.runtimeSpoolDatabase.database,
@@ -2697,7 +2699,26 @@ class CyberbossApp {
       this.noteForDashboard("有一个微信号绑成了主人");
       void this.sendAdmissionReply(normalized, OWNER_CLAIMED_NOTICE);
     }
-    // owner 与 user 两条路都要真正的 turn，交给 job 队列。
+    // 普通用户在这里就办完，**不进 job 队列**。
+    //
+    // 这是「问它个问题，它回一句『这个操作只有管理员可以使用』」的原因。
+    // job 队列的出口只有一个：dispatchPreparedTurn，而那条路是主人的 Codex，
+    // 开头就有一道 owner-only 闸门。普通用户走到那里必然被这句话挡回来。
+    //
+    // 他们该走的是另一条（runUserModelTurn：预算、熔断、provider router）。
+    // 那条路一直存在，但**只在非 durable 那条分支上被调用**——线上跑的是
+    // durable，所以它一次都没被执行过。代码在不等于功能在，这个仓第七次栽在
+    // 同一件事上。
+    if (decision.route === "user" && decision.userContext) {
+      void this.runUserModelTurn(normalized, decision.userContext)
+        .catch((error) => {
+          console.error(
+            `[cyberboss] 普通用户这一轮失败 code=${normalizeErrorCode(error?.code) || "user_turn_failed"}`,
+          );
+        });
+      return true;
+    }
+    // 只剩主人这一条要真正的 turn，交给 job 队列。
     return false;
   }
 

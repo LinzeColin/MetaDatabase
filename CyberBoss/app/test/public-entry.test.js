@@ -57,13 +57,10 @@ function admission(spool, { mode = "open", seats = 5 } = {}) {
   });
 }
 
-// 走完整的开通流程：说句话 -> 同意 -> 再说一句。开放模式下不需要邀请码。
-// 第三步是必要的：同意那一轮回的是「已开通」这条 reply，真正以普通用户身份
-// 被路由要等下一句话。
+// 开放模式下，说一句话就开通了——不需要邀请码，也不需要再回一句「同意并开始」。
+// 告知照发，但不挡路（CB_REQUIRE_EXPLICIT_CONSENT=true 可退回两步式）。
 function activate(service, senderRef) {
-  service.admit({ botAccountRef: BOT, senderRef, text: "你好" });
-  service.admit({ botAccountRef: BOT, senderRef, text: "同意并开始" });
-  return service.admit({ botAccountRef: BOT, senderRef, text: "在吗" });
+  return service.admit({ botAccountRef: BOT, senderRef, text: "你好" });
 }
 
 // ── 入口地址校验 ────────────────────────────────────────────
@@ -98,21 +95,20 @@ test("席位数被夹在 0 和上限之间，乱填退回默认", () => {
 
 // ── 开放模式 ────────────────────────────────────────────────
 
-test("开放模式下不需要邀请码，说句话再同意就能用", (t) => {
+test("开放模式下扫码就能用：第一句话就是正式对话，不用先回「同意并开始」", (t) => {
   const service = admission(openSpool(t), { mode: "open" });
 
+  // 第一句话就被当成正式对话。以前这里要三步（说句话 -> 同意 -> 再说一句），
+  // 而那三步里没有一步是他想做的事——他只是想问个问题。
   const first = service.admit({ botAccountRef: BOT, senderRef: "stranger", text: "你好" });
-  assert.notEqual(first.route, "user", "还没同意就不算开通");
-  assert.equal(first.modelCalls, 0, "开通流程一次模型调用都不能花");
-  assert.match(first.text, /同意并开始/, "第一句话就要告诉他下一步怎么做");
-  assert.equal(/邀请码/.test(first.text), false, "开放模式下不该再提邀请码");
+  assert.equal(first.route, "user", "开放模式下第一句话就该走普通用户那条路");
+  assert.equal(/邀请码/.test(first.text || ""), false, "开放模式下不该再提邀请码");
+  assert.equal(/同意并开始/.test(first.text || ""), false, "不该再要他回一句同意");
 
-  const active = service.admit({ botAccountRef: BOT, senderRef: "stranger", text: "同意并开始" });
-  assert.match(active.text, /已开通/);
-  assert.equal(
-    service.admit({ botAccountRef: BOT, senderRef: "stranger", text: "在吗" }).route,
-    "user",
-  );
+  // 「不同意」仍然是一条随时可走的出口。
+  const declined = service.admit({ botAccountRef: BOT, senderRef: "other", text: "不同意" });
+  assert.equal(declined.route, "reply");
+  assert.match(declined.text, /已停止开通/);
 });
 
 test("邀请模式仍然要码——开放只是一个可以关掉的开关", (t) => {
