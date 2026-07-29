@@ -125,7 +125,7 @@ function renderProduct() {
               </article>
             </div>
 
-            <details class="privacy-disclosure"><summary>连接、上传与 ChatGPT 跳转的真实边界</summary><div class="privacy-boundary"><div><strong>会短暂处理</strong><p>本地上传文件只在当前浏览器隔离任务中解析；连接微信读书时，密钥和响应会短暂经过 ChatGPT Sites 同源薄代理与腾讯官方接口网关。</p></div><div><strong>不会自动传输</strong><p>本站不会把笔记放进 ChatGPT 跳转网址，也不会代替用户自动添加附件。结果页只提供安全文件下载、中文提问词和官方 ChatGPT 入口。</p></div></div></details>
+            <details class="privacy-disclosure"><summary>连接、上传与 AI 跳转的真实边界</summary><div class="privacy-boundary"><div><strong>会短暂处理</strong><p>本地上传文件只在当前浏览器隔离任务中解析；连接微信读书时，密钥和响应会短暂经过 Cloudflare Worker 同源薄代理与腾讯官方接口网关。</p></div><div><strong>不会自动传输</strong><p>本站不会把笔记放进 AI 平台跳转网址，也不会代替用户自动添加附件。结果页只提供安全文件下载、中文提问词和已选择平台的官方入口。</p></div></div></details>
             <div class="panel-actions"><button id="disconnect-button" class="button ghost hidden" type="button">断开并清除当前会话</button></div>
           </section>
 
@@ -713,7 +713,7 @@ async function hydrateRuntimeBanner() {
     banner.querySelector("p").textContent = "演示与本地上传可直接使用；真实微信读书连接需要部署后的同源代理。";
     for (const button of connectButtons) button.disabled = true;
     const note = $("connect-capability-note");
-    if (note) note.textContent = "本地静态预览不转发微信读书密钥；部署到 ChatGPT Sites 后才启用真实连接。";
+    if (note) note.textContent = "本地静态预览不转发微信读书密钥；部署到 Cloudflare Worker 后才启用真实连接。";
   }
 }
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import ipaddress
 import json
 import os
 import re
@@ -14,9 +15,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 VERSION = "v0.0.0.1.9"
-EXPECTED_ORIGIN = "https://weread-port.linzezhang35.chatgpt.site"
+EXPECTED_ORIGIN = "https://weread.linzezhang.com"
+EXPECTED_ADMIN_ORIGIN = "https://admin.weread.linzezhang.com"
 REQUIRED = (
-    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT",
+    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_ADMIN_BASE_URL", "WRP_ADMIN_ACCOUNT_IDS", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT", "WRP_EDGE_BRIDGE_HOST", "WRP_EDGE_BRIDGE_PORT",
     "WRP_DATABASE_PATH", "WRP_OBJECT_STORE_MODE", "WRP_SESSION_PEPPER",
     "WRP_CREDENTIAL_PEPPER", "WRP_KEYRING_JSON", "WRP_ACTIVE_KEY_ID",
     "WRP_INTERNAL_PROXY_SECRET", "WRP_R2_ENDPOINT", "WRP_R2_BUCKET",
@@ -67,6 +69,15 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
         block("PUBLIC_URL", "WRP_PUBLIC_BASE_URL", "必须是无路径、无查询参数的 HTTPS origin。")
     elif origin.rstrip("/") != EXPECTED_ORIGIN:
         block("TARGET_DOMAIN", "WRP_PUBLIC_BASE_URL", f"当前版本冻结域名必须为 {EXPECTED_ORIGIN}。")
+    admin_origin = values.get("WRP_ADMIN_BASE_URL", "")
+    admin_parsed = urlparse(admin_origin)
+    if admin_parsed.scheme != "https" or not admin_parsed.netloc or admin_parsed.path not in ("", "/") or admin_parsed.query or admin_parsed.fragment:
+        block("ADMIN_URL", "WRP_ADMIN_BASE_URL", "必须是无路径、无查询参数的 HTTPS origin。")
+    elif admin_origin.rstrip("/") != EXPECTED_ADMIN_ORIGIN:
+        block("ADMIN_DOMAIN", "WRP_ADMIN_BASE_URL", f"当前版本管理域必须为 {EXPECTED_ADMIN_ORIGIN}。")
+    admin_ids = [item.strip() for item in values.get("WRP_ADMIN_ACCOUNT_IDS", "").split(",") if item.strip()]
+    if not admin_ids or any(not re.fullmatch(r"acct_[A-Za-z0-9_-]{8,200}", item) for item in admin_ids):
+        block("ADMIN_ACCOUNTS", "WRP_ADMIN_ACCOUNT_IDS", "必须配置至少一个有效的不可变管理员账户 ID。")
     if values.get("WRP_SERVICE_HOST") not in {"127.0.0.1", "::1"}:
         block("BIND_ADDRESS", "WRP_SERVICE_HOST", "账户服务必须只监听回环地址。")
     try:
@@ -75,6 +86,25 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
             raise ValueError
     except ValueError:
         block("PORT", "WRP_SERVICE_PORT", "必须是 1–65535 的整数。")
+    edge_host = values.get("WRP_EDGE_BRIDGE_HOST", "")
+    try:
+        edge_address = ipaddress.ip_address(edge_host)
+        edge_octets = str(edge_address).split(".")
+        rfc1918 = edge_address.version == 4 and (
+            edge_octets[0] == "10"
+            or (edge_octets[0] == "172" and 16 <= int(edge_octets[1]) <= 31)
+            or (edge_octets[0] == "192" and edge_octets[1] == "168")
+        )
+        if not rfc1918:
+            raise ValueError
+    except ValueError:
+        block("EDGE_BRIDGE_ADDRESS", "WRP_EDGE_BRIDGE_HOST", "必须是非回环 RFC1918 Docker 私网 IPv4 地址。")
+    try:
+        edge_port = int(values.get("WRP_EDGE_BRIDGE_PORT", ""))
+        if not 1 <= edge_port <= 65535:
+            raise ValueError
+    except ValueError:
+        block("EDGE_BRIDGE_PORT", "WRP_EDGE_BRIDGE_PORT", "必须是 1–65535 的整数。")
     db_path = Path(values.get("WRP_DATABASE_PATH", "") or ".")
     if not db_path.is_absolute():
         block("DATABASE_PATH", "WRP_DATABASE_PATH", "SQLite 路径必须是绝对路径。")

@@ -12,14 +12,16 @@
 - **小白流程**：首页直接展示三种登录路径；登录后提供三步向导和中文解释，不要求用户理解仓库、Vault、OAuth、JSON 或 API。移动端、320px、键盘、减少动态和高对比模式均有冻结检查。
 - **跨设备同步**：服务端提供账户级增量游标、幂等键、乐观版本冲突和删除事件；并发修改不会静默覆盖。
 - **画像与可视化**：在明确同意后，以确定性聚合生成阅读热度、来源分布、主题偏好、活跃趋势和可解释推荐；关闭同意后删除非必要行为事件；运行期不调用模型，Agent 与 Token 依赖均为零。
-- **更广微信读书读取**：通过冻结的官方 gateway/Skill 合同先做能力发现，再有界分页读取书架、笔记本、划线、想法、个人书评、书籍信息、进度、章节、阅读统计、热门划线和推荐；不再限制 Top 5。
+- **AI 问询**：搜索结果默认按书籍归档并可折叠；支持作者和时间归档。对选中的单条笔记，可选择 ChatGPT、Claude、DeepSeek、豆包或 Kimi，以及盲点反思等提问风格；浏览器先复制文本，再打开你选定的平台，不把笔记正文代为上传。个人补充信息与自定义提示词按账户加密保存。
+- **专用管理面**：`admin.weread.linzezhang.com` 仅在服务端不可变账户白名单、近期身份验证、明确用途和审计同时成立时读取受限资料；普通用户站点不展示管理入口或权限。
+- **更广微信读书读取**：通过冻结的官方 gateway/Skill 合同先做能力发现，再有界分页读取书架、笔记本、划线、想法、个人书评、书籍信息、进度、章节、阅读统计、热门划线和推荐；不再限制 Top 5。全量同步先返回已入队任务，再由 OVH 工作器续租执行和前端轮询，避免把长任务卡在账户 HTTP 超时内。
 - **账户权利**：支持查看和修改资料、导出账户数据、撤销平台连接、删除笔记与永久删除账户。高风险操作要求近期重新验证。
 - **生产运行**：OVH Linux systemd 运行账户 API、导入工作器、健康、自愈、备份、事实同步和 R2→OCI 冷备；不使用 macOS launchd，不依赖开发 Agent 会话或后台模型。
 
 ## 运行平面
 
 ```text
-浏览器 / ChatGPT Sites
+浏览器 / Cloudflare Worker
   ├─ 静态中文账户 UI、隐私、条款、状态和匿名兼容入口
   └─ 同源 Worker 薄代理（不持久化用户数据）
         └─ HTTPS → OVH 账户服务（Node.js 22 + systemd）
@@ -29,7 +31,7 @@
               └─ OCI：R2/D1 异地冷备
 ```
 
-ChatGPT Sites 必须配置 `WEREAD_ACCOUNT_SERVICE_URL` 与 `WRP_INTERNAL_PROXY_SECRET`。OVH 账户服务默认只监听 `127.0.0.1:8788`，必须由现有 HTTPS 反向代理或 Cloudflare Tunnel 暴露；不得直接开放明文 HTTP 端口。
+Cloudflare Worker 绑定 `weread.linzezhang.com` 与 `admin.weread.linzezhang.com`；前者仅提供用户站点，后者仅映射管理静态页。Worker 必须配置 `WEREAD_ACCOUNT_SERVICE_URL=https://origin.weread.linzezhang.com`、`WRP_INTERNAL_PROXY_SECRET` 与 `WRP_ADMIN_HOST=admin.weread.linzezhang.com`。OVH 账户服务始终只监听 `127.0.0.1:8788`；Coolify Traefik 只经 Docker 私网桥接到该端口，不能直接开放明文 HTTP 端口。
 
 ## 本地冻结验证
 
@@ -55,7 +57,7 @@ npm run verify:integration
 python3 service/install_platform.py --root /tmp/weread-port-install-check
 ```
 
-真实环境由 Owner 填写 `/etc/weread-port/platform.env` 中的 R2、OAuth、Private-Database 工作树和可选 OCI 输入；Codex先运行不会回显 Secret 的确定性预检，再执行安装：
+真实环境由 Owner 填写 `/etc/weread-port/platform.env` 中的 R2、OAuth、Private-Database 工作树、OCI 输入、`WRP_PUBLIC_BASE_URL=https://weread.linzezhang.com`、`WRP_ADMIN_BASE_URL=https://admin.weread.linzezhang.com` 和至少一个不可变 `WRP_ADMIN_ACCOUNT_IDS`；预检不会回显 Secret，再执行安装：
 
 ```bash
 sudo python3 service/scripts/platform_preflight.py --env-file /etc/weread-port/platform.env --require-paths --strict
@@ -69,7 +71,7 @@ sudo python3 service/install_platform.py --apply
 - 任何曾在聊天、工单或日志出现的真实密钥一律视为泄露，不能进入代码、任务包、测试或部署配置，必须撤销并轮换后才能执行真实 E2E。
 - 7×24 是架构、恢复、监控与运维目标，不是尚未发生的长期运行证明。
 - `/healthz` 只证明公开入口存活；`/readyz` 主动验证 SQLite、R2 写读删、worker 心跳、OAuth 配置和业务依赖图，失败返回 503；`/api/status` 只发布脱敏状态，不读取用户正文或凭据。
-- 生产 OAuth、R2、OVH、Private-Database、OCI 与 ChatGPT Sites 的真实可用性只能由目标环境证据裁决，不能由本地测试冒充。
+- 生产 OAuth、R2、OVH、Private-Database、OCI 与 Cloudflare Worker 的真实可用性只能由目标环境证据裁决，不能由本地测试冒充。
 
 
 ## 冻结浏览器验收依赖

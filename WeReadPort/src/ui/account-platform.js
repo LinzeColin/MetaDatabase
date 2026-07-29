@@ -1,14 +1,24 @@
 import { AccountApi } from "./account-api.js";
 import { gsap } from "gsap";
 import { readObsidianSelection } from "./obsidian-import.js";
-import { CHATGPT_HANDOFF_URL } from "../core/constants.js";
-import { buildAccountNotesArchive, renderAccountNotesChatGPTContext } from "../core/account-note-handoff.js";
+import {
+  AI_INQUIRY_PROVIDERS,
+  AI_INQUIRY_STYLES,
+  DEFAULT_AI_INQUIRY_PROVIDER_ID,
+  DEFAULT_AI_INQUIRY_STYLE_ID,
+  buildAccountNotesArchive,
+  renderSingleNoteAiInquiry,
+} from "../core/account-note-handoff.js";
 
 const api = new AccountApi();
 // Login-triggered refreshes are intentionally quick. The server still decides
 // whether the source needs a cheap delta pass or a full reconciliation.
 const AUTO_SYNC_STALE_SECONDS = 15;
-const state = { account: null, view: "overview", busy: false, wereadSyncing: false, notes: [], dashboard: null, providerItems: {}, toastTimer: null, serviceReady: null, serviceDetail: "", autoSyncAccountId: "" };
+const state = {
+  account: null, view: "overview", busy: false, wereadSyncing: false, wereadSyncJobId: "", notes: [], dashboard: null, providerItems: {}, toastTimer: null,
+  serviceReady: null, serviceDetail: "", autoSyncAccountId: "", aiPreferences: null, aiInquiryEvents: [], aiSubview: "ask", aiSelectedNoteId: "",
+  noteArchiveMode: "book", collapsedNoteArchives: new Set(),
+};
 let analyticsMotion = null;
 
 export async function renderAccountPlatform(root) {
@@ -69,6 +79,7 @@ async function renderCurrent(root) {
   if (state.view === "notes") await loadNotes(main);
   if (state.view === "analytics") await loadAnalytics(main);
   if (state.view === "imports") renderImportHub(main);
+  if (state.view === "ai") await loadAi(main);
   if (state.view === "account") await renderAccount(main);
 }
 
@@ -134,7 +145,7 @@ function appView() {
       <aside class="account-sidebar" aria-label="账户功能">
         <div class="sidebar-account"><span>${escapeHtml(initials(state.account.displayName))}</span><div><strong>${escapeHtml(state.account.displayName)}</strong><small>阅读资产账户</small></div></div>
         <nav>
-          ${navButton("overview", "首页", "⌂")}${navButton("imports", "导入与连接", "↗")}${navButton("notes", "我的笔记", "▤")}${navButton("analytics", "阅读画像", "◫")}${navButton("account", "账户与安全", "⚙")}
+          ${navButton("overview", "首页", "⌂")}${navButton("imports", "导入与连接", "↗")}${navButton("notes", "我的笔记", "▤")}${navButton("ai", "AI 问询", "✦")}${navButton("analytics", "阅读画像", "◫")}${navButton("account", "账户与安全", "⚙")}
         </nav>
         <div class="sidebar-foot"><a href="/status/">系统状态</a><a href="/migrate/">匿名迁移工具</a><button id="logout-button" type="button">退出登录</button></div>
       </aside>
@@ -163,7 +174,7 @@ function bindAuth(main) {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
     const result = await action(mode === "register" ? "正在验证密钥并创建账户…" : "正在安全登录…", async () => {
       const result = mode === "register" ? await api.registerWeRead(data) : await api.loginWeRead(data);
-      state.account = result.account; state.view = "overview"; state.notes = []; state.dashboard = null; await renderCurrent(document);
+      state.account = result.account; state.view = "overview"; state.notes = []; state.dashboard = null; resetAiState(); await renderCurrent(document);
       return result;
     });
     if (result) void syncWeReadAfterLogin(document, { force: true });
@@ -172,7 +183,7 @@ function bindAuth(main) {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
     const result = await action(mode === "register" ? "正在创建加密账户…" : "正在安全登录…", async () => {
       const result = mode === "register" ? await api.registerPassword(data) : await api.loginPassword(data);
-      state.account = result.account; state.view = "overview"; await renderCurrent(document);
+      state.account = result.account; state.view = "overview"; state.notes = []; state.dashboard = null; resetAiState(); await renderCurrent(document);
       return result;
     });
     if (result) void syncWeReadAfterLogin(document, { force: true });
@@ -181,8 +192,9 @@ function bindAuth(main) {
 }
 function bindApp(main) {
   main.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", async () => { state.view = button.dataset.view; await renderCurrent(document); }));
-  main.querySelector("#logout-button").addEventListener("click", () => action("正在安全退出…", async () => { await api.logout(); state.account = null; state.view = "overview"; state.notes = []; state.dashboard = null; state.autoSyncAccountId = ""; await renderCurrent(document); }));
+  main.querySelector("#logout-button").addEventListener("click", () => action("正在安全退出…", async () => { await api.logout(); state.account = null; state.view = "overview"; state.notes = []; state.dashboard = null; state.autoSyncAccountId = ""; resetAiState(); await renderCurrent(document); }));
 }
+function resetAiState() { state.aiPreferences = null; state.aiInquiryEvents = []; state.aiSubview = "ask"; state.aiSelectedNoteId = ""; state.noteArchiveMode = "book"; state.collapsedNoteArchives.clear(); }
 
 async function loadOverview(main) {
   const content = main.querySelector("#account-content");
@@ -378,7 +390,7 @@ async function observeWeReadSync(jobId, { automatic, preserveView }) {
     const scope = progress.syncMode === "incremental"
       ? `快速核对 ${progress.notebookBooks || 0} 本书，跳过 ${progress.skippedUnchangedBooks || 0} 本无变化书籍`
       : `完整整理 ${progress.notebookBooks || 0} 本书`;
-    const coverage = progress.coverage?.coverage || {};
+    const coverage = progress.coverage?.coverage || progress.coverage || {};
     const verification = coverage.verified ? "覆盖已核验" : coverage.unresolvedDocuments ? `仍有 ${coverage.unresolvedDocuments} 条待确认` : "覆盖待完整核对";
     toast(`同步完成：${scope}；${progress.updatedDocuments ?? progress.importedDocuments ?? 0} 条更新，${progress.unchangedDocuments || 0} 条已是最新；${verification}。`, Number(progress.failureCount || 0) || !coverage.verified && progress.syncMode === "full" ? "warning" : "success");
     await refreshDerivedAccountState();
@@ -448,7 +460,7 @@ async function loadNotes(main) {
   const timeRange = eventRange ? `${formatDate(eventRange.earliest)} 至 ${formatDate(eventRange.latest)}` : "等待来源提供真实事件时间";
   content.innerHTML = `<section class="notes-workbench" aria-labelledby="notes-page-title">
     <header class="notes-hero">
-      <div class="notes-hero-copy"><p class="eyebrow">我的笔记 · ${numberFormat(state.notes.length)} 条</p><h1 id="notes-page-title">所有来源，统一保存在你的账户</h1><p>把每一次划线、想法和书评变成可检索的阅读轨迹。按书籍、作者、真实事件时间与来源实时筛选；下载和 ChatGPT 交接只处理当前显示结果。</p></div>
+      <div class="notes-hero-copy"><p class="eyebrow">我的笔记 · ${numberFormat(state.notes.length)} 条</p><h1 id="notes-page-title">所有来源，统一保存在你的账户</h1><p>把每一次划线、想法和书评变成可检索的阅读轨迹。按书籍、作者、真实事件时间与来源实时筛选；下载只处理当前显示结果，AI 问询始终只携带你选中的一条笔记。</p></div>
       <section class="notes-sync-card" aria-label="微信读书同步状态"><span class="notes-sync-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M19 7.5A7.5 7.5 0 0 0 5.4 6M5 3.5v3h3M5 16.5A7.5 7.5 0 0 0 18.6 18M19 20.5v-3h-3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><div><strong>${hasWeRead ? "自动同步已启用" : "等待绑定微信读书"}</strong><p>${escapeHtml(syncDetail)}</p></div>${hasWeRead ? `<button class="button secondary" id="notes-sync" type="button">立即同步微信读书</button>` : `<button class="button secondary" id="notes-sync" type="button" disabled>未绑定微信读书</button>`}</section>
     </header>
     <section class="notes-summary-grid" aria-label="笔记概览">
@@ -461,12 +473,13 @@ async function loadNotes(main) {
       <section class="notes-results-panel" aria-labelledby="notes-results-heading">
         <div class="notes-results-header"><div><p class="eyebrow">当前视图</p><h2 id="notes-results-heading">所有笔记 <span data-notes-result-count>${numberFormat(state.notes.length)} 条</span></h2><p>默认按真实事件时间排序；点击笔记才会按需解密并显示完整正文。</p></div><button class="button primary" id="add-note" type="button">新建笔记</button></div>
         <label class="notes-query-field" for="note-search"><span>模糊搜索</span><span class="notes-query-control"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="10.7" cy="10.7" r="5.7"></circle><path d="m15 15 4 4"></path></svg><input id="note-search" data-note-filter="query" type="search" autocomplete="off" placeholder="标题、书籍、作者、章节、分类或来源"></span></label>
+        <div class="notes-archive-controls" aria-label="归档方式"><span>归档方式</span><div role="tablist" aria-label="笔记归档分类">${noteArchiveModeButton("book", "书籍分类")}${noteArchiveModeButton("author", "作者分类")}${noteArchiveModeButton("time", "时间分类")}</div></div>
         <div class="notes-list-summary"><p id="notes-result-summary" aria-live="polite"></p><span>实时筛选</span></div>
         <div id="notes-list"></div>
       </section>
       <aside class="notes-control-rail" aria-label="笔记筛选与当前视图操作">
         <section class="note-filter-panel" aria-label="笔记实时筛选"><div class="notes-card-heading"><div><p class="eyebrow">条件检索</p><h2>缩小当前阅读档案</h2></div><button class="notes-reset-button" id="notes-reset" type="button">清除条件</button></div><div class="note-filter-grid"><label for="note-book">书籍<input id="note-book" data-note-filter="book" list="note-books" autocomplete="off" placeholder="输入书名的一部分"></label><datalist id="note-books">${books.map(value => `<option value="${escapeAttr(value)}"></option>`).join("")}</datalist><label for="note-author">作者<input id="note-author" data-note-filter="author" list="note-authors" autocomplete="off" placeholder="输入作者的一部分"></label><datalist id="note-authors">${authors.map(value => `<option value="${escapeAttr(value)}"></option>`).join("")}</datalist><label for="note-source-filter">来源<select id="note-source-filter" data-note-filter="source"><option value="">全部来源</option>${sources.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(sourceName(value))}</option>`).join("")}</select></label><label for="note-kind-filter">笔记类型<select id="note-kind-filter" data-note-filter="kind"><option value="">全部类型</option>${kinds.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(noteKindLabel(value))}</option>`).join("")}</select></label><label for="note-from">开始时间<input id="note-from" data-note-filter="from" type="date"></label><label for="note-to">结束时间<input id="note-to" data-note-filter="to" type="date"></label></div></section>
-        <section class="notes-batch-panel"><div><p class="eyebrow">当前视图操作</p><h2>只处理正在显示的结果</h2><p>导出包和 ChatGPT 阅读资料都会保留书籍、作者、出处与真实事件时间；不会把内容放进跳转链接。</p></div><div class="notes-batch-actions"><button class="button secondary" id="notes-download" type="button">打包下载当前结果</button><button class="button primary" id="notes-chatgpt" type="button">带当前结果问 ChatGPT</button></div></section>
+        <section class="notes-batch-panel"><div><p class="eyebrow">当前视图操作</p><h2>下载与 AI 问询各自独立</h2><p>下载会打包当前显示结果；AI 问询只会复制一条你明确选择的笔记到剪贴板，绝不把笔记内容放进跳转链接。</p></div><div class="notes-batch-actions"><button class="button secondary" id="notes-download" type="button">打包下载当前结果</button><button class="button primary" id="notes-ai" type="button">选择一条笔记去 AI 问询</button></div></section>
         <section class="notes-source-panel"><div class="notes-card-heading"><div><p class="eyebrow">已汇总来源</p><h2>${numberFormat(sources.length)} 个来源可筛选</h2></div></div><div class="notes-source-chips">${sources.length ? sources.map(source => `<span>${escapeHtml(sourceName(source))}</span>`).join("") : "<span>暂无来源</span>"}</div><p>笔记正文保持账户级加密；列表仅显示必要索引，打开单条后才读取正文。</p></section>
       </aside>
     </div>
@@ -475,40 +488,95 @@ async function loadNotes(main) {
     const visible = filterNotes(state.notes, filters);
     content.querySelector("#notes-result-summary").textContent = filtersActive(filters) ? `已实时筛选：显示 ${visible.length} / ${state.notes.length} 条笔记` : `当前显示全部 ${visible.length} 条笔记`;
     content.querySelector("[data-notes-result-count]").textContent = `${numberFormat(visible.length)} 条`;
-    content.querySelector("#notes-list").innerHTML = visible.length ? noteList(visible, true) : state.notes.length ? `<div class="empty-inline"><strong>没有匹配笔记</strong><p>条件已实时应用；可以删除关键词或放宽时间范围。</p></div>` : emptyStateMarkup("还没有笔记", "从微信读书、Notion、Obsidian、GitHub 或 Google Drive 导入，或手动新建。", "去导入", "imports");
+    content.querySelector("#notes-list").innerHTML = visible.length ? renderNoteArchives(visible) : state.notes.length ? `<div class="empty-inline"><strong>没有匹配笔记</strong><p>条件已实时应用；可以删除关键词或放宽时间范围。</p></div>` : emptyStateMarkup("还没有笔记", "从微信读书、Notion、Obsidian、GitHub 或 Google Drive 导入，或手动新建。", "去导入", "imports");
     bindNoteRows(content);
+    bindNoteArchives(content, renderFiltered);
     content.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => { state.view = button.dataset.go; renderCurrent(document); }));
     return visible;
   };
   content.querySelector("#add-note").addEventListener("click", () => noteEditor(content));
   content.querySelector("#notes-sync").addEventListener("click", () => runWeReadSync(content, { preserveView: true }));
   content.querySelectorAll("[data-note-filter]").forEach(input => input.addEventListener(input.tagName === "SELECT" ? "change" : "input", event => { filters[event.currentTarget.dataset.noteFilter] = event.currentTarget.value; renderFiltered(); }));
+  content.querySelectorAll("[data-note-archive-mode]").forEach(button => button.addEventListener("click", () => { state.noteArchiveMode = button.dataset.noteArchiveMode; state.collapsedNoteArchives.clear(); renderCurrent(document); }));
   content.querySelector("#notes-reset").addEventListener("click", () => { for (const key of Object.keys(filters)) filters[key] = ""; content.querySelectorAll("[data-note-filter]").forEach(input => { input.value = ""; }); renderFiltered(); content.querySelector("#note-search").focus(); });
-  content.querySelector("#notes-download").addEventListener("click", () => exportVisibleNotes(renderFiltered(), notesScopeLabel(filters), { chatgpt: false }));
-  content.querySelector("#notes-chatgpt").addEventListener("click", () => exportVisibleNotes(renderFiltered(), notesScopeLabel(filters), { chatgpt: true }));
+  content.querySelector("#notes-download").addEventListener("click", () => exportVisibleNotes(renderFiltered(), notesScopeLabel(filters)));
+  content.querySelector("#notes-ai").addEventListener("click", () => { const visible = renderFiltered(); if (!visible.length) { toast("当前没有可选择的笔记。", "warning"); return; } state.aiSelectedNoteId = visible[0].id; state.aiSubview = "ask"; state.view = "ai"; renderCurrent(document); });
   renderFiltered();
 }
-function noteList(notes, interactive) { return `<div class="note-list notes-workbench-list">${notes.map(note => { const detail = [note.bookTitle ? `《${note.bookTitle}》` : "", note.author ? `作者 ${note.author}` : "", note.chapterTitle ? `章节 ${note.chapterTitle}` : "", note.category || "未分类"].filter(Boolean).join(" · "); const time = noteTimeLabel(note); const kind = noteKindLabel(note.noteKind) || "笔记"; return `<article class="note-row"><div class="note-date-badge" aria-label="${escapeAttr(time)}"><strong>${escapeHtml(noteDay(note))}</strong><small>${escapeHtml(noteMonth(note))}</small></div><div class="note-row-copy"><div class="note-row-kicker"><span class="note-source">${escapeHtml(sourceName(note.source))}</span><span>${escapeHtml(kind)}</span></div><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(detail || "笔记正文已加密保存，点击查看完整内容。")}</p><div class="note-row-meta"><span>${escapeHtml(time)}</span><span>版本 ${escapeHtml(String(note.version || 1))}</span></div></div>${interactive ? `<div class="note-row-actions"><button class="button ghost note-open-button" data-note-open="${escapeAttr(note.id)}" type="button">查看正文</button><button class="button ghost note-chatgpt-button" data-note-chatgpt="${escapeAttr(note.id)}" type="button">问 ChatGPT</button></div>` : ""}</article>`; }).join("")}</div>`; }
+function noteList(notes, interactive) { return `<div class="note-list notes-workbench-list">${notes.map(note => { const detail = [note.bookTitle ? `《${note.bookTitle}》` : "", note.author ? `作者 ${note.author}` : "", note.chapterTitle ? `章节 ${note.chapterTitle}` : "", note.category || "未分类"].filter(Boolean).join(" · "); const time = noteTimeLabel(note); const kind = noteKindLabel(note.noteKind) || "笔记"; return `<article class="note-row"><div class="note-date-badge" aria-label="${escapeAttr(time)}"><strong>${escapeHtml(noteDay(note))}</strong><small>${escapeHtml(noteMonth(note))}</small></div><div class="note-row-copy"><div class="note-row-kicker"><span class="note-source">${escapeHtml(sourceName(note.source))}</span><span>${escapeHtml(kind)}</span></div><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(detail || "笔记正文已加密保存，点击查看完整内容。")}</p><div class="note-row-meta"><span>${escapeHtml(time)}</span><span>版本 ${escapeHtml(String(note.version || 1))}</span></div></div>${interactive ? `<div class="note-row-actions"><button class="button ghost note-open-button" data-note-open="${escapeAttr(note.id)}" type="button">查看正文</button><button class="button ghost note-ai-button" data-note-ai="${escapeAttr(note.id)}" type="button">去 AI 问询</button></div>` : ""}</article>`; }).join("")}</div>`; }
+function noteArchiveModeButton(mode, label) { const active = state.noteArchiveMode === mode; return `<button class="note-archive-mode ${active ? "active" : ""}" data-note-archive-mode="${mode}" type="button" role="tab" aria-selected="${active}">${label}</button>`; }
+function renderNoteArchives(notes) {
+  if (state.noteArchiveMode === "author") return renderAuthorArchives(notes);
+  if (state.noteArchiveMode === "time") return renderTimeArchives(notes);
+  return renderBookArchives(notes);
+}
+function renderBookArchives(notes) {
+  return renderArchiveGroups(groupNotes(notes, note => note.bookTitle || "未标注书籍"), "book", label => `《${label}》`);
+}
+function renderAuthorArchives(notes) {
+  return groupNotes(notes, note => note.author || "未标注作者").map(([author, authorNotes]) => {
+    const authorKey = `author:${author}`;
+    const nested = renderArchiveGroups(groupNotes(authorNotes, note => note.bookTitle || "未标注书籍"), `author-book:${author}`, label => `《${label}》`, true);
+    return renderArchiveSection({ key: authorKey, label: author, count: authorNotes.length, content: `<div class="note-archive-subgroups">${nested}</div>`, kind: "author" });
+  }).join("");
+}
+function renderTimeArchives(notes) {
+  return groupNotes(notes, note => noteYearLabel(note)).map(([year, yearNotes]) => {
+    const yearKey = `time-year:${year}`;
+    const nested = renderArchiveGroups(groupNotes(yearNotes, note => noteMonthArchiveLabel(note)), `time-month:${year}`, label => label, true);
+    return renderArchiveSection({ key: yearKey, label: year, count: yearNotes.length, content: `<div class="note-archive-subgroups">${nested}</div>`, kind: "time" });
+  }).join("");
+}
+function renderArchiveGroups(groups, prefix, labelFormatter = value => value, nested = false) {
+  return groups.map(([label, values]) => renderArchiveSection({ key: `${prefix}:${label}`, label: labelFormatter(label), count: values.length, content: noteList(values, true), kind: nested ? "nested" : "book" })).join("");
+}
+function renderArchiveSection({ key, label, count, content, kind }) {
+  const collapsed = state.collapsedNoteArchives.has(key);
+  const panelId = archivePanelId(key);
+  return `<section class="note-archive-group ${kind} ${collapsed ? "is-collapsed" : ""}"><button class="note-archive-heading" data-note-archive-toggle="${escapeAttr(key)}" type="button" aria-expanded="${!collapsed}" aria-controls="${panelId}"><span class="note-archive-heading-copy"><small>${kind === "author" ? "作者归档" : kind === "time" ? "时间归档" : "书籍归档"}</small><strong>${escapeHtml(label)}</strong></span><span class="note-archive-heading-meta"><b>${numberFormat(count)} 条</b><i aria-hidden="true">⌄</i></span></button><div id="${panelId}" class="note-archive-content" ${collapsed ? "hidden" : ""}>${content}</div></section>`;
+}
+function bindNoteArchives(content, rerender) {
+  content.querySelectorAll("[data-note-archive-toggle]").forEach(button => button.addEventListener("click", () => {
+    const key = button.dataset.noteArchiveToggle;
+    if (state.collapsedNoteArchives.has(key)) state.collapsedNoteArchives.delete(key);
+    else state.collapsedNoteArchives.add(key);
+    rerender();
+  }));
+}
+function groupNotes(notes, keyFor) {
+  const groups = new Map();
+  for (const note of notes) {
+    const key = String(keyFor(note) || "未分类").trim() || "未分类";
+    const values = groups.get(key) || [];
+    values.push(note);
+    groups.set(key, values);
+  }
+  return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "zh-CN", { numeric: true }));
+}
+function archivePanelId(key) { return `note-archive-${encodeURIComponent(key).replace(/[^A-Za-z0-9_-]/gu, "").slice(0, 180)}`; }
+function noteYearLabel(note) { const timestamp = noteTimestamp(note); return timestamp ? `${new Date(timestamp).getFullYear()} 年` : "未标注时间"; }
+function noteMonthArchiveLabel(note) { const timestamp = noteTimestamp(note); return timestamp ? `${new Date(timestamp).getFullYear()} 年 ${String(new Date(timestamp).getMonth() + 1).padStart(2, "0")} 月` : "未标注时间"; }
 function bindNoteRows(content) {
   content.querySelectorAll("[data-note-open]").forEach(button => button.addEventListener("click", () => openNote(content, button.dataset.noteOpen)));
-  content.querySelectorAll("[data-note-chatgpt]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); askSingleNoteInChatGPT(button.dataset.noteChatgpt); }));
+  content.querySelectorAll("[data-note-ai]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); selectNoteForAi(button.dataset.noteAi); }));
 }
+function selectNoteForAi(id) { state.aiSelectedNoteId = String(id || ""); state.aiSubview = "ask"; state.view = "ai"; renderCurrent(document); }
 async function openNote(content, id) { await action("正在解密笔记…", async () => { const result = await api.note(id); if (!result?.note) throw new Error("笔记已不存在，请刷新后重试。"); noteDetail(content, result.note); }); }
 function noteDetail(content, note) {
   const host = document.createElement("div"); host.className = "modal-backdrop";
   const metadata = [["来源", sourceName(note.source)], ["书籍", note.bookTitle], ["作者", note.author], ["章节", note.chapterTitle], ["类型", noteKindLabel(note.noteKind)], ["分类", note.category], ["真实事件时间", noteTimeLabel(note)]].filter(([, value]) => String(value || "").trim());
   const body = escapeHtml(String(note.content || "")).replace(/\n/gu, "<br>");
-  host.innerHTML = `<section class="modal note-detail-modal" role="dialog" aria-modal="true" aria-labelledby="note-detail-title"><div class="modal-head"><div><p class="eyebrow">笔记详情</p><h2 id="note-detail-title">${escapeHtml(note.title)}</h2></div><button class="modal-close" type="button" aria-label="关闭">×</button></div><dl class="note-detail-meta">${metadata.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(String(value))}</dd></div>`).join("")}</dl><article class="note-detail-body"><h3>正文</h3><p>${body || "此笔记没有可显示的正文。"}</p></article><div class="modal-actions"><button class="button ghost" id="ask-detail-chatgpt" type="button">带这条笔记问 ChatGPT</button><button class="button secondary" id="edit-detail-note" type="button">编辑笔记</button><button class="button primary modal-close-action" type="button">关闭</button></div></section>`;
+  host.innerHTML = `<section class="modal note-detail-modal" role="dialog" aria-modal="true" aria-labelledby="note-detail-title"><div class="modal-head"><div><p class="eyebrow">笔记详情</p><h2 id="note-detail-title">${escapeHtml(note.title)}</h2></div><button class="modal-close" type="button" aria-label="关闭">×</button></div><dl class="note-detail-meta">${metadata.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(String(value))}</dd></div>`).join("")}</dl><article class="note-detail-body"><h3>正文</h3><p>${body || "此笔记没有可显示的正文。"}</p></article><div class="modal-actions"><button class="button ghost" id="ask-detail-ai" type="button">去 AI 问询</button><button class="button secondary" id="edit-detail-note" type="button">编辑笔记</button><button class="button primary modal-close-action" type="button">关闭</button></div></section>`;
   document.body.append(host);
   const close = () => host.remove();
   host.querySelectorAll(".modal-close,.modal-close-action").forEach(button => button.addEventListener("click", close));
   host.addEventListener("click", event => { if (event.target === host) close(); });
-  host.querySelector("#ask-detail-chatgpt").addEventListener("click", () => askNotesInChatGPT([note], "单条笔记"));
+  host.querySelector("#ask-detail-ai").addEventListener("click", () => { close(); selectNoteForAi(note.id); });
   host.querySelector("#edit-detail-note").addEventListener("click", () => { close(); noteEditor(content, note); });
   host.querySelector(".modal-close")?.focus();
 }
 function noteEditor(content, note = null) {
-  const host = document.createElement("div"); host.className = "modal-backdrop"; host.innerHTML = `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="note-editor-title"><div class="modal-head"><div><p class="eyebrow">${note ? "编辑笔记" : "新建笔记"}</p><h2 id="note-editor-title">${note ? escapeHtml(note.title) : "记录新的阅读想法"}</h2></div><button class="modal-close" type="button" aria-label="关闭">×</button></div><form id="note-editor"><label for="note-title">标题</label><input id="note-title" name="title" required maxlength="180" value="${escapeAttr(note?.title || "")}"><label for="note-category">分类</label><input id="note-category" name="category" maxlength="80" value="${escapeAttr(note?.category || "手动笔记")}"><label for="note-content">正文</label><textarea id="note-content" name="content" required rows="14">${escapeHtml(note?.content || "")}</textarea><div class="modal-actions">${note ? `<button class="button ghost" id="ask-note-chatgpt" type="button">带这条笔记问 ChatGPT</button><button class="button danger" id="delete-note" type="button">删除</button>` : ""}<button class="button secondary modal-close-action" type="button">取消</button><button class="button primary" type="submit">加密保存</button></div></form></section>`; document.body.append(host); const close = () => host.remove(); host.querySelectorAll(".modal-close,.modal-close-action").forEach(button => button.addEventListener("click", close)); host.addEventListener("click", event => { if (event.target === host) close(); }); host.querySelector("#note-editor").addEventListener("submit", async event => { event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget)); await action("正在加密保存…", async () => { await api.saveNote({ ...data, source: note?.source || "manual", externalId: note?.externalId || crypto.randomUUID(), expectedVersion: note?.version ?? null }); close(); toast("笔记已保存并加入跨设备同步。", "success"); await refreshDerivedAccountState(); await renderCurrent(document); }); }); const ask = host.querySelector("#ask-note-chatgpt"); if (ask) ask.addEventListener("click", () => askNotesInChatGPT([note], "单条笔记")); const del = host.querySelector("#delete-note"); if (del) del.addEventListener("click", () => action("正在删除…", async () => { await api.deleteNote(note.id, note.version); close(); toast("笔记已删除。", "success"); await refreshDerivedAccountState(); await renderCurrent(document); })); host.querySelector("input")?.focus();
+  const host = document.createElement("div"); host.className = "modal-backdrop"; host.innerHTML = `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="note-editor-title"><div class="modal-head"><div><p class="eyebrow">${note ? "编辑笔记" : "新建笔记"}</p><h2 id="note-editor-title">${note ? escapeHtml(note.title) : "记录新的阅读想法"}</h2></div><button class="modal-close" type="button" aria-label="关闭">×</button></div><form id="note-editor"><label for="note-title">标题</label><input id="note-title" name="title" required maxlength="180" value="${escapeAttr(note?.title || "")}"><label for="note-category">分类</label><input id="note-category" name="category" maxlength="80" value="${escapeAttr(note?.category || "手动笔记")}"><label for="note-content">正文</label><textarea id="note-content" name="content" required rows="14">${escapeHtml(note?.content || "")}</textarea><div class="modal-actions">${note ? `<button class="button ghost" id="ask-note-ai" type="button">去 AI 问询</button><button class="button danger" id="delete-note" type="button">删除</button>` : ""}<button class="button secondary modal-close-action" type="button">取消</button><button class="button primary" type="submit">加密保存</button></div></form></section>`; document.body.append(host); const close = () => host.remove(); host.querySelectorAll(".modal-close,.modal-close-action").forEach(button => button.addEventListener("click", close)); host.addEventListener("click", event => { if (event.target === host) close(); }); host.querySelector("#note-editor").addEventListener("submit", async event => { event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget)); await action("正在加密保存…", async () => { await api.saveNote({ ...data, source: note?.source || "manual", externalId: note?.externalId || crypto.randomUUID(), expectedVersion: note?.version ?? null }); close(); toast("笔记已保存并加入跨设备同步。", "success"); await refreshDerivedAccountState(); await renderCurrent(document); }); }); const ask = host.querySelector("#ask-note-ai"); if (ask) ask.addEventListener("click", () => { close(); selectNoteForAi(note.id); }); const del = host.querySelector("#delete-note"); if (del) del.addEventListener("click", () => action("正在删除…", async () => { await api.deleteNote(note.id, note.version); close(); toast("笔记已删除。", "success"); await refreshDerivedAccountState(); await renderCurrent(document); })); host.querySelector("input")?.focus();
 }
 
 function noteFieldValues(notes, field) { return [...new Set(notes.map(note => String(note?.[field] || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN")); }
@@ -554,34 +622,97 @@ function notesScopeLabel(filters) {
   ].filter(Boolean);
   return labels.length ? `实时筛选：${labels.join("；")}` : "当前显示的全部笔记";
 }
-async function askSingleNoteInChatGPT(id) {
-  await action("正在准备这条笔记的 ChatGPT 文件…", async () => {
-    const result = await api.note(id);
-    await askNotesInChatGPT([result.note], "单条笔记", { withinAction: true });
-  });
-}
-async function exportVisibleNotes(visible, scopeLabel, { chatgpt }) {
+async function exportVisibleNotes(visible, scopeLabel) {
   if (!visible.length) { toast("当前没有可处理的笔记，请先调整筛选条件。", "warning"); return; }
-  await guardedSensitive(chatgpt ? "正在准备 ChatGPT 阅读资料…" : "正在打包当前显示的笔记…", "notes-export", async () => {
+  await guardedSensitive("正在打包当前显示的笔记…", "notes-export", async () => {
     const payload = await api.exportNotes(visible.map(note => note.id));
-    if (chatgpt) return askNotesInChatGPT(payload.notes, scopeLabel, { withinAction: true });
     const archive = buildAccountNotesArchive(payload.notes, { scopeLabel });
     downloadBytes(archive.bytes, archive.filename, "application/zip");
-    toast(archive.chatgptIssue ? "笔记下载包已生成；其中一条内容触发了 ChatGPT 安全保护。" : "当前显示的笔记已打包下载。", archive.chatgptIssue ? "warning" : "success");
+    toast("当前显示的笔记已打包下载。", "success");
     return archive;
   });
 }
-async function askNotesInChatGPT(notes, scopeLabel, { withinAction = false } = {}) {
-  const perform = () => {
-    const text = renderAccountNotesChatGPTContext(notes, { scopeLabel });
-    const filename = `阅迁-${new Date().toISOString().slice(0, 10)}-${notes.length}条笔记-ChatGPT阅读资料.md`;
-    downloadText(text, filename);
-    const target = window.open(CHATGPT_HANDOFF_URL, "_blank", "noopener,noreferrer");
-    toast(target ? "已下载阅读资料，并打开 ChatGPT；请手动添加该文件后提问。" : "已下载阅读资料；请打开 ChatGPT 后手动添加该文件。", "success");
-    return { filename, text };
-  };
-  return withinAction ? perform() : action("正在准备 ChatGPT 阅读资料…", perform);
+
+async function loadAi(main) {
+  const content = main.querySelector("#account-content");
+  let preferencesResult; let eventsResult; let notesResult;
+  try {
+    [preferencesResult, eventsResult, notesResult] = await Promise.all([api.aiPreferences(), api.aiInquiries(), api.notes(5_000)]);
+  } catch (error) {
+    toast(error.message, "error");
+    preferencesResult = { preferences: state.aiPreferences || defaultAiPreferences() };
+    eventsResult = { events: state.aiInquiryEvents || [] };
+    notesResult = { notes: state.notes || [] };
+  }
+  state.aiPreferences = preferencesResult.preferences || defaultAiPreferences();
+  state.aiInquiryEvents = eventsResult.events || [];
+  state.notes = notesResult.notes || state.notes;
+  if (!state.aiSelectedNoteId || !state.notes.some(note => note.id === state.aiSelectedNoteId)) state.aiSelectedNoteId = state.notes[0]?.id || "";
+  const preferences = currentAiPreferences();
+  const selected = state.notes.find(note => note.id === state.aiSelectedNoteId) || null;
+  content.innerHTML = `<section class="ai-workbench" aria-labelledby="ai-page-title"><header class="content-heading"><div><p class="eyebrow">AI 问询</p><h1 id="ai-page-title">把一条笔记带去继续思考</h1><p>先在本页选择平台、提问风格和一条笔记。点击后会先复制固定风格的提示词与这一条笔记，再打开对应平台；本站不会上传笔记，也不会生成下载包。</p></div></header><nav class="ai-subnav" aria-label="AI 问询二级菜单" role="tablist">${aiSubviewButton("ask", "发起问询")}${aiSubviewButton("styles", "我的风格")}${aiSubviewButton("history", "问询记录")}</nav>${state.aiSubview === "styles" ? renderAiStyles(preferences) : state.aiSubview === "history" ? renderAiHistory(state.aiInquiryEvents) : renderAiAsk(preferences, selected, state.notes)}</section>`;
+  bindAiWorkbench(content, preferences);
 }
+
+function aiSubviewButton(view, label) { const active = state.aiSubview === view; return `<button class="ai-subnav-button ${active ? "active" : ""}" data-ai-subview="${view}" type="button" role="tab" aria-selected="${active}">${label}</button>`; }
+function renderAiAsk(preferences, selected, notes) {
+  const provider = aiProvider(preferences.providerId);
+  const style = aiStyle(preferences.styleId);
+  if (!notes.length) return `<section class="empty-state"><div aria-hidden="true">✦</div><h2>先选择一条笔记</h2><p>AI 问询只允许携带一条已保存笔记。先导入或新建笔记，再回到这里继续。</p><button class="button primary" data-go="notes" type="button">去我的笔记</button></section>`;
+  return `<section class="ai-launch-card" aria-label="发起 AI 问询"><div class="ai-launch-head"><div><p class="eyebrow">单条笔记模式</p><h2>先确定思考方式，再发起问询</h2><p>平台和风格是独立选择；每次问询只读取下面这一个已选择的笔记。</p></div><span class="ai-privacy-chip">不上传 · 不拼接全部结果</span></div><div class="ai-control-grid"><div class="ai-menu-control"><button class="ai-choice-button" id="ai-provider-toggle" type="button" aria-expanded="false" aria-controls="ai-provider-menu"><span>平台</span><strong>${escapeHtml(provider.label)}</strong><i aria-hidden="true">⌄</i></button><div class="ai-choice-menu" id="ai-provider-menu" hidden>${AI_INQUIRY_PROVIDERS.map(item => `<button data-ai-provider="${item.id}" type="button" aria-current="${item.id === provider.id ? "true" : "false"}">${escapeHtml(item.label)}</button>`).join("")}</div></div><div class="ai-menu-control"><button class="ai-choice-button" id="ai-style-toggle" type="button" aria-expanded="false" aria-controls="ai-style-menu"><span>提问风格</span><strong>${escapeHtml(style.label)}</strong><i aria-hidden="true">⌄</i></button><div class="ai-choice-menu" id="ai-style-menu" hidden>${AI_INQUIRY_STYLES.map(item => `<button data-ai-style="${item.id}" type="button" aria-current="${item.id === style.id ? "true" : "false"}"><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.instruction)}</small></button>`).join("")}</div></div><button class="button primary ai-launch-button" id="ai-launch" type="button">去 AI 问询 <span aria-hidden="true">↗</span></button></div><label class="ai-note-select" for="ai-note-select"><span>本次仅携带这一条笔记</span><select id="ai-note-select">${notes.map(note => `<option value="${escapeAttr(note.id)}" ${note.id === selected?.id ? "selected" : ""}>${escapeHtml(aiNoteOptionLabel(note))}</option>`).join("")}</select></label><section class="ai-preview-card"><div><p class="eyebrow">固定风格预览</p><h3>${escapeHtml(style.label)}</h3><p>${escapeHtml(style.instruction)}</p></div><div><strong>${selected ? escapeHtml(aiNoteOptionLabel(selected)) : "尚未选择笔记"}</strong><small>只会在点击“去 AI 问询”时按需解密并复制正文。</small></div></section><p class="ai-helper">想保存你的背景或自定义提问要求？到“我的风格”填写；它会加密保存到你的账户，下次登录仍可使用。</p></section>`;
+}
+function renderAiStyles(preferences) {
+  const style = aiStyle(preferences.styleId);
+  return `<section class="ai-style-card"><div class="section-title"><div><p class="eyebrow">长期保存到你的账户</p><h2>我的提问风格与背景</h2><p>这些内容会与平台和风格选择一起加密保存。它们只会在你点击发起问询时复制到剪贴板，不会发送到本站以外的任何服务。</p></div></div><form id="ai-preferences-form"><label for="ai-preferences-provider">默认平台<select id="ai-preferences-provider" name="providerId">${AI_INQUIRY_PROVIDERS.map(item => `<option value="${item.id}" ${item.id === preferences.providerId ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}</select></label><label for="ai-preferences-style">默认提问风格<select id="ai-preferences-style" name="styleId">${AI_INQUIRY_STYLES.map(item => `<option value="${item.id}" ${item.id === preferences.styleId ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}</select></label><p class="ai-style-explainer" id="ai-style-explainer">${escapeHtml(style.instruction)}</p><label for="ai-personal-context">个人补充信息<textarea id="ai-personal-context" name="personalContext" rows="5" maxlength="1200" placeholder="例如：我的当前目标、已知限制、希望对方采用的视角。">${escapeHtml(preferences.personalContext)}</textarea><small>最多 1,200 个字符。</small></label><label for="ai-custom-prompt">自定义提示词<textarea id="ai-custom-prompt" name="customPrompt" rows="7" maxlength="1600" placeholder="例如：请优先指出我忽略的反例，并把结论分成已知、推测和待验证。">${escapeHtml(preferences.customPrompt)}</textarea><small>最多 1,600 个字符；不能保存访问密钥。</small></label><div class="button-row"><button class="button primary" type="submit">保存我的风格</button><button class="button ghost" data-ai-subview="ask" type="button">返回发起问询</button></div></form></section>`;
+}
+function renderAiHistory(events) {
+  return `<section class="ai-history-card"><div class="section-title"><div><p class="eyebrow">只保存最小必要记录</p><h2>问询记录</h2><p>记录平台、风格、时间和笔记索引，不保存复制给外部 AI 的笔记正文或提示词内容。</p></div></div>${events.length ? `<div class="ai-history-list">${events.map(event => `<article><div><strong>${escapeHtml(event.note?.title || "笔记已删除")}</strong><p>${escapeHtml([event.note?.bookTitle ? `《${event.note.bookTitle}》` : "", event.providerLabel, event.styleLabel].filter(Boolean).join(" · "))}</p></div><time>${escapeHtml(formatDateTime(event.createdAt))}</time></article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有问询记录</strong><p>选择一条笔记并成功复制后，这里会显示最小化的操作记录。</p></div>`}</section>`;
+}
+function bindAiWorkbench(content, preferences) {
+  content.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => { state.view = button.dataset.go; renderCurrent(document); }));
+  content.querySelectorAll("[data-ai-subview]").forEach(button => button.addEventListener("click", () => { state.aiSubview = button.dataset.aiSubview; renderCurrent(document); }));
+  const providerToggle = content.querySelector("#ai-provider-toggle");
+  const styleToggle = content.querySelector("#ai-style-toggle");
+  const toggleMenu = (button, menu) => { if (!button || !menu) return; const open = menu.hidden; content.querySelectorAll(".ai-choice-menu").forEach(candidate => { candidate.hidden = true; }); content.querySelectorAll(".ai-choice-button").forEach(candidate => candidate.setAttribute("aria-expanded", "false")); menu.hidden = !open; button.setAttribute("aria-expanded", String(open)); };
+  providerToggle?.addEventListener("click", () => toggleMenu(providerToggle, content.querySelector("#ai-provider-menu")));
+  styleToggle?.addEventListener("click", () => toggleMenu(styleToggle, content.querySelector("#ai-style-menu")));
+  content.querySelectorAll("[data-ai-provider]").forEach(button => button.addEventListener("click", () => saveAiPreferences({ ...preferences, providerId: button.dataset.aiProvider }, "已保存默认 AI 平台。")));
+  content.querySelectorAll("[data-ai-style]").forEach(button => button.addEventListener("click", () => saveAiPreferences({ ...preferences, styleId: button.dataset.aiStyle }, "已保存默认提问风格。")));
+  content.querySelector("#ai-note-select")?.addEventListener("change", event => { state.aiSelectedNoteId = event.currentTarget.value; const note = state.notes.find(item => item.id === state.aiSelectedNoteId); const label = content.querySelector(".ai-preview-card div:last-child strong"); if (label && note) label.textContent = aiNoteOptionLabel(note); });
+  content.querySelector("#ai-launch")?.addEventListener("click", () => launchAiInquiry());
+  content.querySelector("#ai-preferences-form")?.addEventListener("submit", event => { event.preventDefault(); saveAiPreferences(Object.fromEntries(new FormData(event.currentTarget)), "你的 AI 问询偏好已加密保存。", { preserveSubview: "styles" }); });
+  content.querySelector("#ai-preferences-style")?.addEventListener("change", event => { const item = aiStyle(event.currentTarget.value); const explainer = content.querySelector("#ai-style-explainer"); if (explainer) explainer.textContent = item.instruction; });
+}
+async function saveAiPreferences(input, message, { preserveSubview = "ask" } = {}) {
+  await action("正在加密保存 AI 问询偏好…", async () => {
+    const result = await api.updateAiPreferences(input);
+    state.aiPreferences = result.preferences;
+    state.aiSubview = preserveSubview;
+    toast(message, "success");
+    await renderCurrent(document);
+  });
+}
+async function launchAiInquiry() {
+  const noteId = state.aiSelectedNoteId;
+  if (!noteId) { toast("请先选择一条笔记。", "warning"); return; }
+  const preferences = currentAiPreferences();
+  await guardedSensitive("正在准备单条 AI 问询…", "ai-inquiry", async () => {
+    const result = await api.note(noteId);
+    if (!result?.note) throw new Error("笔记已不存在，请刷新后重试。");
+    const prepared = renderSingleNoteAiInquiry(result.note, preferences);
+    const copied = await copyTextToClipboard(prepared.text);
+    if (!copied) throw new Error("浏览器未允许自动复制，未打开 AI 平台。请检查剪贴板权限后重试。");
+    const recorded = await api.recordAiInquiry({ noteId, providerId: prepared.provider.id, styleId: prepared.style.id });
+    state.aiInquiryEvents = [{ ...recorded.event, note: { id: result.note.id, title: result.note.title, bookTitle: result.note.bookTitle, author: result.note.author } }, ...state.aiInquiryEvents.filter(item => item.id !== recorded.event.id)];
+    window.open(prepared.provider.url, "_blank", "noopener,noreferrer");
+    toast(`已复制“${prepared.style.label}”提示词和这一条笔记；已请求打开 ${prepared.provider.label}。若浏览器拦截新窗口，请手动打开后直接粘贴。`, "success");
+  });
+}
+function defaultAiPreferences() { return { providerId: DEFAULT_AI_INQUIRY_PROVIDER_ID, styleId: DEFAULT_AI_INQUIRY_STYLE_ID, personalContext: "", customPrompt: "" }; }
+function currentAiPreferences() { return { ...defaultAiPreferences(), ...(state.aiPreferences || {}) }; }
+function aiProvider(id) { return AI_INQUIRY_PROVIDERS.find(item => item.id === id) || AI_INQUIRY_PROVIDERS[0]; }
+function aiStyle(id) { return AI_INQUIRY_STYLES.find(item => item.id === id) || AI_INQUIRY_STYLES[0]; }
+function aiNoteOptionLabel(note) { return [note.bookTitle ? `《${note.bookTitle}》` : "", note.title || "未命名笔记", note.author ? `— ${note.author}` : ""].filter(Boolean).join(" "); }
 
 async function loadAnalytics(main) {
   analyticsMotion?.revert(); analyticsMotion = null;
@@ -642,7 +773,25 @@ function recommendationLink(item) {
 }
 function recommendationActions(item, index) { return `<div class="recommendation-actions">${recommendationCopyButton("title", "复制书名", item.title, index)}${recommendationCopyButton("author", "复制作者", item.author, index)}${recommendationLink(item)}</div>`; }
 function recommendationCopyButton(field, label, value, index) { const enabled = Boolean(String(value || "").trim()); return `<button class="button ghost recommendation-copy" data-recommendation-copy="${field}" data-recommendation-index="${index}" type="button" ${enabled ? "" : "disabled"}>${label}</button>`; }
-async function copyRecommendationValue(value, button, label) { const text = String(value || "").trim(); if (!text) { toast(`该推荐没有可复制的${label}。`, "warning"); return; } let copied = false; try { if (!navigator.clipboard?.writeText) throw new Error("clipboard unavailable"); await navigator.clipboard.writeText(text); copied = true; } catch { const area = document.createElement("textarea"); area.value = text; area.setAttribute("readonly", ""); area.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0"; document.body.append(area); area.select(); try { copied = typeof document.execCommand === "function" && document.execCommand("copy"); } finally { area.remove(); } } if (!copied) { toast("浏览器未允许自动复制，请手动选择文本复制。", "warning"); return; } const previous = button.textContent; button.textContent = "已复制"; window.setTimeout(() => { if (button.isConnected) button.textContent = previous; }, 1800); toast(`${label}已复制到剪贴板。`, "success"); }
+async function copyRecommendationValue(value, button, label) { const text = String(value || "").trim(); if (!text) { toast(`该推荐没有可复制的${label}。`, "warning"); return; } const copied = await copyTextToClipboard(text); if (!copied) { toast("浏览器未允许自动复制，请手动选择文本复制。", "warning"); return; } const previous = button.textContent; button.textContent = "已复制"; window.setTimeout(() => { if (button.isConnected) button.textContent = previous; }, 1800); toast(`${label}已复制到剪贴板。`, "success"); }
+async function copyTextToClipboard(value) {
+  const text = String(value || "");
+  if (!text) return false;
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("clipboard unavailable");
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
+    document.body.append(area);
+    area.select();
+    try { return typeof document.execCommand === "function" && document.execCommand("copy"); }
+    finally { area.remove(); }
+  }
+}
 function officialRecommendationLink(item) {
   const raw = String(item?.deepLink || "");
   try {
@@ -735,6 +884,7 @@ async function completeSensitiveAction(actionName) {
   if (!confirm("此操作不可撤销。确定永久删除账户及所有笔记吗？")) return;
   await api.deleteAccount();
   state.account = null;
+  resetAiState();
   await renderCurrent(document);
 }
 function openRecentAuthDialog(actionName, continuation = () => completeSensitiveAction(actionName)) {
@@ -747,7 +897,7 @@ function openRecentAuthDialog(actionName, continuation = () => completeSensitive
     hasWeRead ? `<form class="reauth-option" data-method="weread"><h3>用微信读书密钥验证</h3><label for="reauth-weread">微信读书密钥</label><input id="reauth-weread" name="secret" type="password" autocomplete="off" required placeholder="wrk-…"><button class="button primary full" type="submit">验证并继续</button></form>` : "",
     oauthProviders.length ? `<div class="reauth-option"><h3>用已绑定平台验证</h3><p>跳转官方授权页确认身份后自动返回，不会按邮箱合并账户。</p><div class="button-row">${oauthProviders.map(provider => `<button class="button secondary oauth-reauth" data-provider="${provider}" type="button">用 ${providerLabel(provider)} 验证</button>`).join("")}</div></div>` : "",
   ].join("");
-  const title = ({ delete: "删除前再次确认身份", export: "导出前再次确认身份", "weread-export": "下载微信读书数据前再次确认身份", "notes-export": "导出笔记前再次确认身份", password: "设置密码前再次确认身份", session: "管理设备前再次确认身份" })[actionName] || "再次确认身份";
+  const title = ({ delete: "删除前再次确认身份", export: "导出前再次确认身份", "weread-export": "下载微信读书数据前再次确认身份", "notes-export": "导出笔记前再次确认身份", "ai-inquiry": "向外部 AI 复制笔记前再次确认身份", password: "设置密码前再次确认身份", session: "管理设备前再次确认身份" })[actionName] || "再次确认身份";
   const host = modal(`<p class="eyebrow">账户安全</p><h2>${title}</h2><p>选择你已经绑定的任一登录方式。验证只更新当前会话，不会创建或合并账户。</p><div class="reauth-grid">${forms}</div>`);
   host.querySelectorAll("form[data-method]").forEach(form => form.addEventListener("submit", async event => {
     event.preventDefault();

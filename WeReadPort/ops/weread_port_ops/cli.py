@@ -244,7 +244,7 @@ def rollback_plan(db: RuntimeDB) -> dict[str, Any]:
         "previousCommit": release.get("previous_commit"),
         "previousSavedVersion": release.get("previous_saved_version"),
         "previousProductionVersion": release.get("previous_production_version"),
-        "instruction": "部署已记录的上一版 ChatGPT Sites 生产版本，然后立即运行有界生产冒烟检查。",
+        "instruction": "部署已记录的上一版 Cloudflare Worker 生产版本，然后立即运行有界生产冒烟检查。",
     }
 
 

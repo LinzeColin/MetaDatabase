@@ -23,6 +23,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(root, "index.html"),
+        admin: path.resolve(root, "admin.html"),
         privacy: path.resolve(root, "privacy/index.html"),
         terms: path.resolve(root, "terms/index.html"),
         status: path.resolve(root, "status/index.html"),

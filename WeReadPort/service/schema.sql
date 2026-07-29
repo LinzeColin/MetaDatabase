@@ -147,6 +147,36 @@ CREATE TABLE IF NOT EXISTS behavior_events (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS behavior_account_time_idx ON behavior_events(account_id, occurred_at);
 
+CREATE TABLE IF NOT EXISTS account_ai_preferences (
+  account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+  preferences_encrypted TEXT NOT NULL,
+  updated_at INTEGER NOT NULL
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS ai_inquiry_events (
+  id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  note_id TEXT NOT NULL,
+  provider_id TEXT NOT NULL,
+  style_id TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS ai_inquiry_events_account_time_idx ON ai_inquiry_events(account_id, created_at DESC);
+
+-- Admin audits intentionally retain opaque account and note IDs after a user
+-- deletion. They contain no credential, token or note body and must not block
+-- a user's right to delete their account data.
+CREATE TABLE IF NOT EXISTS admin_audit_events (
+  id TEXT PRIMARY KEY,
+  actor_account_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  target_account_id TEXT,
+  target_note_id TEXT,
+  reason TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS admin_audit_events_time_idx ON admin_audit_events(created_at DESC);
+
 CREATE TABLE IF NOT EXISTS import_jobs (
   id TEXT PRIMARY KEY,
   account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -165,6 +195,8 @@ CREATE TABLE IF NOT EXISTS import_jobs (
   UNIQUE(account_id, idempotency_key)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS import_jobs_queue_idx ON import_jobs(state, lease_until, created_at);
+CREATE INDEX IF NOT EXISTS import_jobs_account_provider_active_idx ON import_jobs(account_id, provider, state, created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS import_jobs_one_active_weread_idx ON import_jobs(account_id) WHERE provider='weread' AND state IN ('PENDING','RUNNING');
 
 CREATE TABLE IF NOT EXISTS worker_heartbeats (
   worker_id TEXT PRIMARY KEY,
@@ -209,4 +241,4 @@ CREATE TABLE IF NOT EXISTS outbox (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS outbox_state_idx ON outbox(state, available_at);
 
-PRAGMA user_version = 20;
+PRAGMA user_version = 22;

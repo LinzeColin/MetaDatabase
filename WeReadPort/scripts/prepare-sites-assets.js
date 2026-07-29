@@ -20,7 +20,7 @@ for (const [from, to] of [["index.html", "home.html"], ["privacy/index.html", "p
   await rename(path.join(site, from), path.join(site, to));
 }
 
-for (const required of ["home.html", "assets", "privacy/page.html", "terms/page.html", "status/page.html"]) {
+for (const required of ["home.html", "admin.html", "assets", "privacy/page.html", "terms/page.html", "status/page.html"]) {
   try { await access(path.join(site, required)); }
   catch { throw new Error(`Sites 静态前缀构建缺少：${required}`); }
 }

@@ -67,6 +67,7 @@ class PlatformOperationsTests(unittest.TestCase):
         current = self.root / "install/opt/weread-port/current"
         env_file = self.root / "install/etc/weread-port/platform.env"
         self.assertTrue((release / "service/server.mjs").is_file())
+        self.assertTrue((release / "service/edge-bridge.mjs").is_file())
         self.assertTrue(current.is_symlink())
         self.assertEqual(current.resolve(), release.resolve())
         self.assertEqual(env_file.stat().st_mode & 0o777, 0o600)
@@ -76,6 +77,7 @@ class PlatformOperationsTests(unittest.TestCase):
         self.assertNotIn("wrk-", text)
         self.assertIn("WRP_R2_SECRET_ACCESS_KEY", result["missingDeploymentInputs"])
         self.assertTrue((self.root / "install/etc/systemd/system/weread-port-platform.service").is_file())
+        self.assertTrue((self.root / "install/etc/systemd/system/weread-port-edge-bridge.service").is_file())
         self.assertTrue((self.root / "install/etc/systemd/system/weread-port-private-database-backup.timer").is_file())
 
     def test_active_installer_restarts_platform_and_import_worker_after_switching_release(self):
@@ -95,7 +97,7 @@ class PlatformOperationsTests(unittest.TestCase):
             self.assertEqual(INSTALLER.main(), 0)
 
         wait_ready.assert_called_once_with(8788)
-        self.assertIn(["systemctl", "restart", "weread-port-platform.service", "weread-port-import-worker.service"], calls)
+        self.assertIn(["systemctl", "restart", "weread-port-platform.service", "weread-port-import-worker.service", "weread-port-edge-bridge.service"], calls)
 
     def test_preflight_is_secret_safe_and_closes_all_last_mile_inputs(self):
         private_db_client = self.root / "private_db_client.py"
@@ -103,9 +105,13 @@ class PlatformOperationsTests(unittest.TestCase):
         secret = base64.b64encode(b"x" * 32).decode("ascii")
         values = {
             "NODE_ENV": "production",
-            "WRP_PUBLIC_BASE_URL": "https://weread-port.linzezhang35.chatgpt.site",
+            "WRP_PUBLIC_BASE_URL": "https://weread.linzezhang.com",
+            "WRP_ADMIN_BASE_URL": "https://admin.weread.linzezhang.com",
+            "WRP_ADMIN_ACCOUNT_IDS": "acct_admin00000001",
             "WRP_SERVICE_HOST": "127.0.0.1",
             "WRP_SERVICE_PORT": "8788",
+            "WRP_EDGE_BRIDGE_HOST": "10.0.1.1",
+            "WRP_EDGE_BRIDGE_PORT": "8789",
             "WRP_DATABASE_PATH": str(self.root / "state/platform.sqlite3"),
             "WRP_OBJECT_STORE_MODE": "r2",
             "WRP_SESSION_PEPPER": secret,
@@ -147,7 +153,7 @@ class PlatformOperationsTests(unittest.TestCase):
         result = PREFLIGHT.check_environment(values, require_paths=True)
         self.assertEqual(result["status"], "PASS")
         self.assertFalse(result["secretValuesPrinted"])
-        self.assertEqual(result["oauthCallbackUrls"]["github"], "https://weread-port.linzezhang35.chatgpt.site/api/platform/v1/oauth/github/callback")
+        self.assertEqual(result["oauthCallbackUrls"]["github"], "https://weread.linzezhang.com/api/platform/v1/oauth/github/callback")
         encoded = json.dumps(result, ensure_ascii=False)
         self.assertNotIn(secret, encoded)
         self.assertNotIn("r" * 40, encoded)
@@ -158,12 +164,14 @@ class PlatformOperationsTests(unittest.TestCase):
             "WRP_PUBLIC_BASE_URL": "http://example.invalid/path",
             "WRP_SERVICE_HOST": "0.0.0.0",
             "WRP_SERVICE_PORT": "8788",
+            "WRP_EDGE_BRIDGE_HOST": "0.0.0.0",
+            "WRP_EDGE_BRIDGE_PORT": "8789",
             "WRP_DATABASE_PATH": "relative.sqlite3",
             "WRP_OBJECT_STORE_MODE": "file",
         }, require_paths=True)
         self.assertEqual(result["status"], "BLOCKED")
         codes = {item["code"] for item in result["blockers"]}
-        self.assertTrue({"MISSING", "NODE_ENV", "PUBLIC_URL", "BIND_ADDRESS", "DATABASE_PATH", "OBJECT_MODE"}.issubset(codes))
+        self.assertTrue({"MISSING", "NODE_ENV", "PUBLIC_URL", "BIND_ADDRESS", "EDGE_BRIDGE_ADDRESS", "DATABASE_PATH", "OBJECT_MODE"}.issubset(codes))
         self.assertTrue(any(item["field"] == "WRP_PRIVATE_DATABASE_CLIENT_PATH" for item in result["blockers"]))
 
     def test_backup_restore_check_and_fact_snapshot_are_deterministic_and_private(self):
@@ -261,6 +269,12 @@ class PlatformOperationsTests(unittest.TestCase):
         self.assertIn("reverse_proxy 127.0.0.1:8788", config)
         self.assertNotIn("http://", config)
         self.assertIn("max_size 50MB", config)
+
+    def test_traefik_reference_targets_only_the_private_edge_bridge(self):
+        config = (ROOT / "service/reverse-proxy/traefik.weread-origin.reference.yml").read_text(encoding="utf-8")
+        self.assertIn("Host(`origin.weread.linzezhang.com`)", config)
+        self.assertIn("http://10.0.1.1:8789", config)
+        self.assertIn("responseHeaderTimeout: 50s", config)
 
 
 if __name__ == "__main__":

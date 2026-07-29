@@ -1,5 +1,5 @@
 [Unit]
-Description=阅迁 微信读书与多平台导入工作器 v0.0.0.1.9
+Description=阅迁 Coolify 私网边界桥接 v0.0.0.1.9
 After=network-online.target weread-port-platform.service
 Wants=network-online.target
 
@@ -9,9 +9,10 @@ User=weread-port
 Group=weread-port
 EnvironmentFile=/etc/weread-port/platform.env
 WorkingDirectory=/opt/weread-port/current
-ExecStart=/usr/bin/node service/worker.mjs
+ExecStart=/usr/bin/node service/edge-bridge.mjs
 Restart=on-failure
-RestartSec=5s
+RestartSec=3s
+TimeoutStartSec=30
 TimeoutStopSec=30
 KillSignal=SIGTERM
 NoNewPrivileges=true
@@ -25,12 +26,10 @@ RestrictSUIDSGID=true
 LockPersonality=true
 MemoryDenyWriteExecute=true
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-StateDirectory=weread-port
-ReadWritePaths=/var/lib/weread-port
 UMask=0077
 LimitNOFILE=4096
-MemoryMax=768M
-CPUQuota=200%
+MemoryMax=256M
+CPUQuota=50%
 
 [Install]
 WantedBy=multi-user.target

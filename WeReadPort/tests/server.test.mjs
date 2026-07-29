@@ -19,7 +19,7 @@ function gatewayRequest(body, headers = {}) {
 }
 
 function oauthCallbackRequest(headers = {}) {
-  return new Request("https://weread-port.linzezhang35.chatgpt.site/api/platform/v1/oauth/google/callback?state=test-state&code=test-code", {
+  return new Request("https://weread.linzezhang.com/api/platform/v1/oauth/google/callback?state=test-state&code=test-code", {
     headers,
   });
 }
@@ -77,11 +77,26 @@ test("账户 OAuth 回调只允许无 Origin 的跨站顶层导航", async () =>
   assert.equal(allowed.status, 400, "有效回调导航必须到达账户服务，由 state/PKCE 决定成败");
   assert.equal(forwarded.get("sec-fetch-mode"), "navigate");
   assert.equal(forwarded.get("sec-fetch-dest"), "document");
+  assert.equal(forwarded.get("x-wrp-public-origin"), "https://weread.linzezhang.com");
 
   const crossSiteFetch = await handleRequest(oauthCallbackRequest({ "Sec-Fetch-Site": "cross-site", "Sec-Fetch-Mode": "cors", "Sec-Fetch-Dest": "empty" }), env);
   assert.equal(crossSiteFetch.status, 403);
   const forgedOrigin = await handleRequest(oauthCallbackRequest({ Origin: "https://attacker.invalid", "Sec-Fetch-Site": "cross-site", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "document" }), env);
   assert.equal(forgedOrigin.status, 403);
+});
+
+test("账户代理向 OVH 传入 Worker 派生的公开 origin，而非客户端可伪造值", async () => {
+  let forwarded;
+  const response = await handleRequest(new Request("https://admin.weread.linzezhang.com/api/platform/v1/session", {
+    headers: { Origin: "https://admin.weread.linzezhang.com", "Sec-Fetch-Site": "same-origin", "x-wrp-public-origin": "https://attacker.invalid" },
+  }), {
+    WRP_ADMIN_HOST: "admin.weread.linzezhang.com",
+    WEREAD_ACCOUNT_SERVICE_URL: "https://account.example.test",
+    WRP_INTERNAL_PROXY_SECRET: "test-internal-proxy-secret-not-for-production",
+    ACCOUNT_SERVICE_FETCH: async (_url, init) => { forwarded = init.headers; return Response.json({ error: { code: "AUTH_REQUIRED" } }, { status: 401 }); },
+  });
+  assert.equal(response.status, 401);
+  assert.equal(forwarded.get("x-wrp-public-origin"), "https://admin.weread.linzezhang.com");
 });
 
 test("proxy applies a bounded per-isolate rate limit", async () => {
