@@ -49,10 +49,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   The release loader now verifies both authorization and the exact Runtime marker phase, so a failed active-marker
   write after online smoke is detected as integrity drift instead of silently resuming with an armed marker.
 - The Douyin list extractor accepts only one corresponding platform-owned surface after exactly one selected
-  收藏/喜欢 control: the legacy `user-favorite-list` / `user-like-list`, or the observed active
-  `user-favorite-tab` / `user-like-tab` `role=tabpanel.semi-tabs-pane-active` form. It deliberately has no generic
-  `main` fallback, rejects coexistence/ambiguity, and therefore cannot treat footer or recommendation cards as a
-  relation list.
+  收藏/喜欢 control. When the unique dedicated `user-favorite-list` / `user-like-list` coexists with an empty active
+  `user-favorite-tab` / `user-like-tab` shell, it deliberately prefers the narrower dedicated list; the active tab
+  is a fallback only when that list is absent. It has no generic `main` fallback and therefore cannot treat footer
+  or recommendation cards as a relation list.
 - The XHS profile fallback recognizes the observed rendered surface only when one visible
   `#userPageContainer.user-page` has exactly one direct active `.reds-tab-item.sub-tab-list` with the expected
   relation in exactly one visible `.reds-tabs-list.tertiary`: 收藏 for favorites, or 赞过/点赞 for likes. On the
@@ -133,17 +133,18 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   items. There are 9 zero-network fixture cases; current focused source evidence is 104 Companion tests, 18 contract
   tests, extension self-test, Douyin visible-list fixtures, Douyin extension E2E (100 controlled worker restarts),
   both XHS fixtures, and a 662-file zero-finding privacy scan.
-- A third independent delegated Owner Chrome check repeated the same signed-in, no-scroll result: 收藏 and 喜欢 were
-  each the unique selected relation tab, while their active panels each had one placeholder descendant and zero
-  visible relation cards. This is now the active Goal's external-state block. No Owner input, tag, deployment, or
-  smoke action may be attempted until both actual Douyin panes expose their required 20 current visible items.
+- A subsequent delegated Owner Chrome topology audit resolved the apparent empty-panel block: the active panels are
+  tab shells, while a unique visible sibling `user-favorite-list` exposes 30 legal unique relation IDs and a unique
+  visible sibling `user-like-list` exposes 40, both without scrolling. The extractor's dedicated-list preference is
+  covered by 11 zero-network fixture cases and the current full A005 source lane passed. Fresh private manifest
+  capture may now proceed, but no Owner input, tag, deployment, or smoke claim has yet been made.
 
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. On a future delegated Owner run, re-observe all four scopes from their fresh visible panes without scrolling. Do
-   not create an Owner input unless each has exactly 20 actual unique items; the current empty Douyin panes are an
-   explicit stop condition, not a reason to substitute footer cards or invent hashes. Only then provision the
+2. In the current delegated Owner run, re-observe all four scopes from their fresh visible panes without scrolling.
+   Do not create an Owner input unless each has exactly 20 actual unique items; a missing/ambiguous dedicated list is
+   an explicit stop condition, not a reason to substitute footer cards or invent hashes. Only then provision the
    clean-room private Douyin Sidecar, use its attestation fragment with the deliberately invalid template, replace
    every remaining Owner token with four private 20-ID hash manifests and the loopback port, configure the approved
    digest-pinned Private-MetaDatabase client, and rerun `x2n release preflight` until it reports a valid input and no

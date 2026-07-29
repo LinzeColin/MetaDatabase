@@ -39,7 +39,10 @@ function documentFor(mode, options = {}) {
   const outsideRoutes = options.outsideRouteCount === undefined
     ? ""
     : `<footer>${cards("outside-relation-surface", options.outsideRouteCount)}</footer>`;
-  return `<!doctype html><html><body>${selected}${root}${outsideRoutes}</body></html>`;
+  const portalList = options.portalListCount === undefined
+    ? ""
+    : `<main data-e2e="${listSurface}">${cards(`portal-${mode}`, options.portalListCount)}</main>`;
+  return `<!doctype html><html><body>${selected}${root}${portalList}${outsideRoutes}</body></html>`;
 }
 
 let browser;
@@ -98,6 +101,19 @@ try {
     }));
     requireCondition(currentTabSurface.status === "ready", `${mode}_current_tab_ready`);
     requireCondition(currentTabSurface.items.length === 20, `${mode}_current_tab_count`);
+
+    currentCase = `${mode}_portal_legacy_list`;
+    currentDocument = documentFor(mode, { count: 0, portalListCount: 20, tabSurface: true });
+    await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
+    const portalLegacyList = validateDouyinVisibleBatch(await page.evaluate(extractDouyinVisibleBatch, {
+      maxItems: 20,
+      mode,
+      ownerGesture: true,
+      scopeMode: "owner_mvp_20",
+    }));
+    requireCondition(portalLegacyList.status === "ready", `${mode}_portal_legacy_ready`);
+    requireCondition(portalLegacyList.items.length === 20, `${mode}_portal_legacy_count`);
+    requireCondition(new Set(portalLegacyList.items.map((item) => item.content_id)).size === 20, `${mode}_portal_legacy_unique`);
   }
 
   currentCase = "cosmetic_selection";
@@ -169,14 +185,14 @@ try {
   requireCondition(duplicate.items.length < 20, "duplicate_no_silent_drop");
 
   requireCondition(blockedPlatformNetworkRequests === 0, "unexpected_platform_request");
-  requireCondition(fixtureDocumentsFulfilled === 9, "fixture_document_count");
+  requireCondition(fixtureDocumentsFulfilled === 11, "fixture_document_count");
   requireCondition(scrollCalls === 0, "automatic_scroll");
   process.stdout.write(`${JSON.stringify({
     automatic_scrolls: 0,
     fixture_documents_fulfilled: fixtureDocumentsFulfilled,
     owner_mvp: "NOT_RUN",
     platform_calls: 0,
-    semantic_surface_cases: 9,
+    semantic_surface_cases: 11,
     status: "PASS",
   })}\n`);
 } catch (error) {

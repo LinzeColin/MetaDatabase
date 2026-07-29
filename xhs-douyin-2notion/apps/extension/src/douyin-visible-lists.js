@@ -137,11 +137,18 @@ export function extractDouyinVisibleBatch(input) {
       const activeTabRoots = [...globalThis.document.querySelectorAll(
         `[data-e2e="${expectedTabSurface}"][role="tabpanel"].semi-tabs-pane-active`,
       )].filter((node) => !isHidden(node));
-      // The two forms must not coexist.  If they do, their relationship has
-      // changed and choosing either would be ungrounded.
-      const roots = [...legacyRoots, ...activeTabRoots];
-      if (roots.length !== 1) return failure("platform_changed", "X2N_PLATFORM_CHANGED");
-      const root = roots[0];
+      // Current desktop profiles can render an empty active tab shell and the
+      // same relation's real, platform-named list in a sibling portal.  The
+      // dedicated list remains the narrower evidence, so prefer it when it is
+      // unique; use the active panel only when that dedicated list is absent.
+      // Never broaden this to a generic page or scroll root.
+      if (activeTabRoots.length > 1) return failure("platform_changed", "X2N_PLATFORM_CHANGED");
+      const root = legacyRoots.length === 1
+        ? legacyRoots[0]
+        : legacyRoots.length === 0 && activeTabRoots.length === 1
+          ? activeTabRoots[0]
+          : null;
+      if (root === null) return failure("platform_changed", "X2N_PLATFORM_CHANGED");
 
       const candidates = [];
       const seenCards = new Set();
