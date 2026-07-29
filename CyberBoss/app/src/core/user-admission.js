@@ -61,6 +61,12 @@ const RESERVED_INPUTS = Object.freeze([
 ]);
 const INVITE_CANDIDATE = /^[A-Za-z0-9-]{8,64}$/;
 
+const SEATS_FULL_NOTICE = [
+  "抱歉，这里的名额已经满了，暂时开通不了新用户。",
+  "",
+  "如果你认识这台机器的主人，可以让他在后台把名额调大一点。",
+].join("\n");
+
 const OWNER_HELP = [
   "你是这里的主人。可以直接跟我说话，也可以用这些中文口令：",
   "",
@@ -141,6 +147,10 @@ class UserAdmissionService {
     registrationMode = "invite",
     policyVersion = DEFAULT_POLICY_VERSION,
     portalOrigin = "",
+    // 普通用户席位上限。开放模式下这是唯一挡住"任何扫到码的人都来烧主人额度"
+    // 的东西，所以它必须在**建用户之前**判，而不是等 turn 走到模型那一步。
+    // 回调而不是定值：主人在后台改完，下一条消息就生效，不用重启。
+    seatLimitProvider = null,
     now = () => new Date(),
   }) {
     if (!database || typeof database.prepare !== "function") {
@@ -173,6 +183,7 @@ class UserAdmissionService {
       policyVersion,
     });
     this.portalOrigin = normalizeText(portalOrigin);
+    this.seatLimitProvider = typeof seatLimitProvider === "function" ? seatLimitProvider : null;
     this.setupTokens = new SqliteSetupTokenService({ database });
     this.now = now;
     // 和邀请码同样的做法：从 owner-only 的身份密钥派生，不新增任何密钥文件。
@@ -429,7 +440,40 @@ class UserAdmissionService {
     return INVITE_CANDIDATE.test(trimmed) ? trimmed : null;
   }
 
+  // 现在还剩几个席位。读不出来时返回 null＝不设限——席位判定坏掉不该把所有
+  // 新用户都挡在门外，那会让"开放模式"变成"谁都进不来"。
+  #seatsRemaining() {
+    if (!this.seatLimitProvider) {
+      return null;
+    }
+    let limit;
+    try {
+      limit = Number(this.seatLimitProvider());
+    } catch {
+      return null;
+    }
+    if (!Number.isInteger(limit) || limit < 0) {
+      return null;
+    }
+    try {
+      // 只数普通用户；主人不占席位。
+      const active = this.users.countActiveOrdinaryUsers
+        ? Number(this.users.countActiveOrdinaryUsers())
+        : null;
+      return Number.isFinite(active) ? Math.max(0, limit - active) : null;
+    } catch {
+      return null;
+    }
+  }
+
   #admitUnregistered({ botAccountRef, senderRef, text }) {
+    // 席位闸门。必须在 registration.start 之前——建了行再拒，等于既占了位子
+    // 又让人以为没开通。R19 AC-039 要求第六个人在任何模型调用**之前**被拒；
+    // 这里连用户行都不会建。
+    const remaining = this.#seatsRemaining();
+    if (remaining !== null && remaining <= 0) {
+      return reply(ACTIONS.SHOW_HOME, { text: SEATS_FULL_NOTICE });
+    }
     const inviteCode = this.#inviteCandidate(text);
     let result;
     try {

@@ -177,6 +177,19 @@
     </fieldset>
 
     <fieldset>
+      <legend>谁能用</legend>
+      <p class="hint" style="margin:0 0 8px">把公开页转给别人，他扫码就能加上。<b id="a-joinurl"></b></p>
+      <label class="opt"><input type="checkbox" id="a-open"><span class="lab">扫码就能用，不要邀请码<span class="exp">不勾的话，新人还要你给一串邀请码</span></span></label>
+      <div class="dates" style="margin-top:10px">
+        <label>最多让 <input type="number" id="a-seats" min="0" max="50" step="1"> 个人用（不含你自己）</label>
+        <span id="a-used"></span>
+      </div>
+      <p class="hint" style="margin-top:14px">加我的二维码地址（从微信里复制过来，https:// 或 weixin:// 开头）</p>
+      <input type="text" id="a-entry" placeholder="https://…">
+      <p class="hint">没填的话公开页只会说「还没准备好」，不会露出任何东西。</p>
+    </fieldset>
+
+    <fieldset>
       <legend>主动找我</legend>
       <p class="hint" style="margin:0 0 8px">打开之后，它会在随机的时刻自己想起你，看看要不要说点什么 —— 也可能什么都不说。<b>只会找你一个人</b>，不会去打扰别人。</p>
       <label class="opt"><input type="checkbox" id="p-active"><span class="lab">让它主动找我<span class="exp" id="p-target"></span></span></label>
@@ -547,6 +560,12 @@
       });
       document.getElementById("p-emoji").checked = persona.emoji === true;
       document.getElementById("p-callme").value = persona.callMe || "";
+      var acc = persona.access || {};
+      document.getElementById("a-open").checked = acc.mode === "open";
+      document.getElementById("a-seats").value = acc.seats;
+      document.getElementById("a-entry").value = acc.entryUrl || "";
+      set("a-used", "已经用了 " + (data.seatsUsed || 0) + " 个");
+      set("a-joinurl", data.joinUrl || "");
       var pro = persona.proactive || {};
       document.getElementById("p-active").checked = pro.enabled === true;
       document.getElementById("p-min").value = pro.minMinutes;
@@ -599,6 +618,11 @@
         emoji: document.getElementById("p-emoji").checked,
         callMe: document.getElementById("p-callme").value,
         note: document.getElementById("p-note").value,
+        access: {
+          mode: document.getElementById("a-open").checked ? "open" : "invite",
+          seats: Number(document.getElementById("a-seats").value),
+          entryUrl: document.getElementById("a-entry").value
+        },
         proactive: {
           enabled: document.getElementById("p-active").checked,
           minMinutes: Number(document.getElementById("p-min").value),
@@ -614,6 +638,10 @@
         if (data.ok) {
           // 只刷预览和主动那几格，不重建整个表单——重建会把光标和刚打的字弄没。
           document.getElementById("p-preview").textContent = data.preview || "（空）";
+          var savedAccess = (data.persona || {}).access || {};
+          // 服务端会把不合法的入口地址清空——照实写回去，别让人以为存进去了。
+          document.getElementById("a-entry").value = savedAccess.entryUrl || "";
+          document.getElementById("a-seats").value = savedAccess.seats;
           var saved2 = (data.persona || {}).proactive || {};
           document.getElementById("p-min").value = saved2.minMinutes;
           document.getElementById("p-max").value = saved2.maxMinutes;

@@ -72,6 +72,17 @@ class SqliteUserRepository {
     });
   }
 
+  // 还在用的普通用户有几个。主人不算——他不占席位。
+  //
+  // 开放模式下这是唯一挡住"任何扫到码的人都来烧主人额度"的数，所以它数的是
+  // active，不是全部：被暂停或已注销的人腾出来的位子应当能给新人用。
+  countActiveOrdinaryUsers() {
+    const row = this.database
+      .prepare("SELECT COUNT(*) AS c FROM users WHERE role='user' AND status='active'")
+      .get();
+    return Number(row?.c || 0);
+  }
+
   resolveByPrincipal({ channel = "weixin", botAccountRef, senderRef }) {
     const identity = this.identify({ channel, botAccountRef, senderRef });
     const row = this.database

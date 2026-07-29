@@ -131,6 +131,51 @@ function inQuietHours(proactive, hour) {
     : hour >= quietStart || hour < quietEnd;
 }
 
+// 「谁能用」。开放模式下扫码即用，不需要邀请码——但那样一来，挡住陌生人
+// 消耗主人额度的就只剩席位上限这一个东西了，所以两者必须一起给。
+//
+// entryUrl 是主人从微信那里拿到的"加我"链接：CyberBoss 造不出这个地址，
+// 只能把它渲染成二维码挂在公开页上。协议只收 https: 和 weixin:。
+const ACCESS_DEFAULTS = Object.freeze({
+  mode: "invite",
+  seats: 5,
+  entryUrl: "",
+});
+const MAX_SEATS = 50;
+const MAX_ENTRY_URL_CHARS = 2048;
+
+function normalizeEntryUrl(value) {
+  const text = String(value || "").trim();
+  if (!text || text.length > MAX_ENTRY_URL_CHARS || /[\r\n\u0000]/.test(text)) {
+    return "";
+  }
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    return "";
+  }
+  // 只认这两种协议：其它的（javascript:、data:）挂到公开页的二维码上就是
+  // 把攻击面直接发给别人扫。
+  if (!["https:", "weixin:"].includes(url.protocol)) {
+    return "";
+  }
+  if (url.username || url.password) {
+    return "";
+  }
+  return text;
+}
+
+function normalizeAccess(raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const seats = Math.round(Number(source.seats));
+  return Object.freeze({
+    mode: source.mode === "open" ? "open" : "invite",
+    seats: Number.isFinite(seats) ? Math.min(MAX_SEATS, Math.max(0, seats)) : ACCESS_DEFAULTS.seats,
+    entryUrl: normalizeEntryUrl(source.entryUrl),
+  });
+}
+
 function toneById(id) {
   return TONE_PRESETS.find((entry) => entry.id === id) || null;
 }
@@ -163,6 +208,7 @@ function normalizePersona(raw) {
     callMe: boundedText(source.callMe, MAX_CALL_ME_CHARS),
     note: boundedText(source.note, MAX_NOTE_CHARS),
     proactive: normalizeProactive(source.proactive),
+    access: normalizeAccess(source.access),
     updatedAt: typeof source.updatedAt === "string" ? source.updatedAt : "",
   });
 }
@@ -240,13 +286,19 @@ class PersonaStore {
       callMe: next.callMe,
       note: next.note,
       proactive: next.proactive,
+      access: next.access,
     });
     return this.read();
   }
 }
 
 module.exports = {
+  ACCESS_DEFAULTS,
   BASELINE,
+  MAX_ENTRY_URL_CHARS,
+  MAX_SEATS,
+  normalizeAccess,
+  normalizeEntryUrl,
   MAX_ALLOWED_MINUTES,
   MIN_ALLOWED_MINUTES,
   PROACTIVE_DEFAULTS,

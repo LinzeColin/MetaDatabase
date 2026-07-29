@@ -64,6 +64,7 @@ const {
   TONE_PRESETS,
   LENGTH_PRESETS,
   MAX_ALLOWED_MINUTES,
+  MAX_SEATS,
   MIN_ALLOWED_MINUTES,
   MAX_NOTE_CHARS,
   renderPersonaInstruction,
@@ -74,6 +75,7 @@ const {
   parseSessionCookie,
 } = require("../services/security/session-token-service");
 const { SqliteAdminLoginTickets } = require("../services/security/admin-login-ticket");
+const { renderQrSvg, svgDataUri } = require("../v8-prebuilt/public-entry/qr-svg");
 const { SetupPortal } = require("../services/portal/setup-portal");
 const { buildPortalHandlers } = require("../services/portal/portal-handlers");
 const { PortalHttpServer } = require("../services/portal/portal-server");
@@ -356,8 +358,9 @@ class CyberbossApp {
           identityKey,
           ownerUserId: this.runtimeSpoolDatabase.ownerUserId,
           ownerSenderIds: this.config.ownerSenderIds || this.config.allowedUserIds,
-          registrationMode: this.config.registrationMode || "invite",
+          registrationMode: this.resolveRegistrationMode(),
           portalOrigin: this.config.portalOrigin || "",
+          seatLimitProvider: () => this.resolveSeatLimit(),
         });
         this.userCompanionTurn = new UserCompanionTurn({
           database: this.runtimeSpoolDatabase.database,
@@ -871,6 +874,7 @@ class CyberbossApp {
       adminConversations: (query) => this.buildConversationFeed(query || {}),
       adminPersonaRead: () => this.readDashboardPersona(),
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
+      publicEntry: () => this.buildPublicEntry(),
       adminSessionIssue: (input) => this.issueAdminSession(input),
       adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
       adminSessionRevoke: (cookieHeader) => this.revokeAdminSession(cookieHeader),
@@ -1099,6 +1103,94 @@ class CyberbossApp {
     }
   }
 
+  // ── 谁能用：开放模式、席位、公开入口 ──────────────────────
+
+  // 注册模式。面板上的设置优先于环境变量——主人改完不用重启，也不用碰服务器。
+  resolveRegistrationMode() {
+    try {
+      const mode = this.personaStore?.read().access.mode;
+      if (mode === "open" || mode === "invite") {
+        return mode;
+      }
+    } catch {
+      // 读不出来就退回配置里的那个。
+    }
+    return this.config.registrationMode || "invite";
+  }
+
+  resolveSeatLimit() {
+    try {
+      return this.personaStore.read().access.seats;
+    } catch {
+      // 读不出来返回 null＝不设限。席位判定坏掉不该把所有新用户挡在门外，
+      // 那会让"开放模式"变成"谁都进不来"。
+      return null;
+    }
+  }
+
+  // 公开页要显示的东西。这一页**任何人都能打开**，所以它只含两样：一张由主人
+  // 配的入口地址渲染出来的二维码，和一句怎么用。不含任何用量、人数、状态——
+  // 那些都是运营信息，公开页上一个字都不该有。
+  buildPublicEntry() {
+    let access = null;
+    try {
+      access = this.personaStore ? this.personaStore.read().access : null;
+    } catch {
+      access = null;
+    }
+    const bound = (() => {
+      try {
+        return this.userAdmission ? this.userAdmission.ownerChannelBound() : false;
+      } catch {
+        return false;
+      }
+    })();
+    if (!bound) {
+      return Object.freeze({
+        ok: true, ready: false, status: "pending_activation",
+        message: "这个机器人还没准备好，请稍后再来。",
+      });
+    }
+    if (!access?.entryUrl) {
+      return Object.freeze({
+        ok: true, ready: false, status: "pending_entry_qr",
+        message: "入口二维码还没配好，请稍后再来。",
+      });
+    }
+    let qrDataUri = "";
+    try {
+      qrDataUri = svgDataUri(renderQrSvg(access.entryUrl, { ariaLabel: "加机器人的二维码" }));
+    } catch {
+      return Object.freeze({
+        ok: true, ready: false, status: "pending_entry_qr",
+        message: "入口二维码还没配好，请稍后再来。",
+      });
+    }
+    const seatsLeft = (() => {
+      try {
+        const used = this.userAdmission?.users?.countActiveOrdinaryUsers?.();
+        const limit = this.resolveSeatLimit();
+        return Number.isFinite(used) && Number.isInteger(limit) ? Math.max(0, limit - used) : null;
+      } catch {
+        return null;
+      }
+    })();
+    return Object.freeze({
+      ok: true,
+      ready: true,
+      status: "ready",
+      qrDataUri,
+      open: access.mode === "open",
+      // 只说"满了没有"，不说还剩几个、更不说有多少人——公开页上人数是运营信息。
+      full: seatsLeft === 0,
+      message: seatsLeft === 0
+        ? "名额暂时满了。"
+        : (access.mode === "open"
+          ? "用微信扫这个码加它，然后随便说句话就能用。"
+          : "用微信扫这个码加它，再把主人给你的邀请码发过去。"),
+    });
+  }
+
   // ── 语气面板 ───────────────────────────────────────────────
 
   readDashboardPersona() {
@@ -1110,6 +1202,17 @@ class CyberbossApp {
       lengths: LENGTH_PRESETS.map(({ id, label }) => ({ id, label })),
       maxNoteChars: MAX_NOTE_CHARS,
       proactiveLimits: { minMinutes: MIN_ALLOWED_MINUTES, maxMinutes: MAX_ALLOWED_MINUTES },
+      maxSeats: MAX_SEATS,
+      // 公开页地址，方便主人直接复制转发。
+      joinUrl: this.config.portalOrigin ? `${this.config.portalOrigin}/join` : "",
+      // 现在占了几个席位（后台里可以看，公开页上不给）。
+      seatsUsed: (() => {
+        try {
+          return Number(this.userAdmission?.users?.countActiveOrdinaryUsers?.() || 0);
+        } catch {
+          return 0;
+        }
+      })(),
       // 主动打招呼要发给谁。空串表示还认不出主人，那时轮询器什么都不会做。
       proactiveTarget: this.resolveOwnerSenderIdForCheckin(),
       // 让主人看到真正发给模型的那段字。语气这种东西不给看就只能靠猜。

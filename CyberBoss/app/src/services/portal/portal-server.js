@@ -38,6 +38,10 @@ const OPS_WECHAT_PATHS = Object.freeze(["/ops/wechat", "/ops/wechat/"]);
 // "又加了一个读聊天的接口却忘了改鉴权"变成改不动的事——不进名单就进不了这条路。
 const OWNER_ONLY_ADMIN_APIS = Object.freeze(["conversations", "persona"]);
 const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templates/ops-wechat.html");
+// 公开入口。这一页任何人都能打开，也**必须**任何人都能打开——它就是给陌生人
+// 扫码用的。所以它上面一个字的运营信息都不能有：没有人数、没有用量、没有状态。
+const JOIN_PATHS = Object.freeze(["/join", "/join/"]);
+const JOIN_TEMPLATE = require("node:path").join(__dirname, "../../../templates/join.html");
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
 const MAX_REQUEST_BYTES = 64 * 1024;
@@ -119,6 +123,7 @@ class PortalHttpServer {
     adminPersonaRead = null,
     adminPersonaWrite = null,
     // 后台会话。给了这三个就支持"登录一次，之后免令牌"。
+    publicEntry = null,
     adminSessionIssue = null,
     adminSessionVerify = null,
     adminSessionRevoke = null,
@@ -142,6 +147,7 @@ class PortalHttpServer {
     this.adminConversations = adminConversations;
     this.adminPersonaRead = adminPersonaRead;
     this.adminPersonaWrite = adminPersonaWrite;
+    this.publicEntry = publicEntry;
     this.adminSessionIssue = adminSessionIssue;
     this.adminSessionVerify = adminSessionVerify;
     this.adminSessionRevoke = adminSessionRevoke;
@@ -493,6 +499,24 @@ class PortalHttpServer {
     }
     if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
       this.#handleAdminPage(response);
+      return null;
+    }
+    // 公开入口：无鉴权，这是刻意的。它只吐一张二维码和一句说明。
+    if (request.method === "GET" && JOIN_PATHS.includes(pathname)) {
+      const nonce = newNonce();
+      const html = fs.readFileSync(JOIN_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
+      response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
+      response.end(html);
+      return null;
+    }
+    if (request.method === "GET" && pathname === "/api/join") {
+      let payload = { ok: true, ready: false, status: "pending_activation", message: "这个机器人还没准备好，请稍后再来。" };
+      try {
+        payload = (typeof this.publicEntry === "function" ? this.publicEntry() : null) || payload;
+      } catch {
+        // 出错也只回"还没准备好"，不把内部错误码吐给公开页。
+      }
+      this.#json(response, 200, payload);
       return null;
     }
     if (pathname === "/admin/api/login") {
