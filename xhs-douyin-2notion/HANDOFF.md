@@ -42,11 +42,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   installer for that bridge. It stages/uses the current digest-addressed pre-arm bundle, refuses every existing Host
   rather than replacing it, installs atomically only after the explicit confirmation, verifies the Host-to-bundle
   binding, changes no release pointer, and emits no local path. It never opens Chrome or calls a platform.
-- The prior Side Panel polish was staged as an owner-private digest-addressed pre-arm bundle. The current first-use
-  source candidate must be freshly staged after its source commit before any Chrome reload; doing so makes zero
-  platform calls, does not switch a release pointer, and must not alter the existing temporary Native Host. Chrome
-  extension-manager actions remain manual, so any visual reload must use that stable private bundle rather than a
-  disposable `scratch` path.
+- The freshly committed first-use Side Panel source has been staged as a new owner-private digest-addressed pre-arm
+  bundle. Its staging made zero platform calls, did not switch a release pointer, and did not alter the existing
+  temporary Native Host. Chrome extension-manager actions remain manual, so any visual reload must use that stable
+  private bundle rather than a disposable `scratch` path.
 - The current Owner-private pre-arm Host was installed successfully from the stable bundle and verified bound to its
   private digest. Read-only preflight now reports `PREARM_BRIDGE_INSTALLED` only after proving exactly one matching
   digest-addressed private bundle. That is the expected temporary-bridge state, not a fresh slot, deployment, or arm
@@ -141,9 +140,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   contract checking, syntax checks, diff checks, and the controlled zero-network XHS Extension E2E passed. That E2E
   opens the exact guide route through the action-granted tab, asserts the human guide text and zero visible actions,
   then completes the existing synthetic current-page capture and 100 service-worker restarts with zero platform calls
-  and zero real accounts. The visual detector reported zero findings. The source candidate still needs its fresh
-  owner-private staging after commit; no platform call, real-account execution, pointer switch, or Native Host change
-  has occurred during this UX remediation.
+  and zero real accounts. The visual detector reported zero findings. A fresh owner-private stable pre-arm bundle was
+  created from this committed UX source; it made zero platform calls, did not switch a pointer, and made no Native Host
+  change.
 - The stable pre-arm Host installer has 46 focused release tests, including real temporary-Home installation from the
   private pre-arm bundle and a verified uninstall. It rejects a bad confirmation before staging, refuses an existing
   Host target, and keeps the response aggregate-only. The declared 115 focused A005 tests, 19 Contract tests,
@@ -208,9 +207,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. In the current delegated Owner run, the stable pre-arm Host is already installed. After the freshly committed
-   first-use Side Panel source has been staged to a stable unpacked private bundle, load that bundle rather than any
-   `scratch` source directory. On the exact 小红书收藏笔记 list, the intended first screen is the guide with no save
+2. In the current delegated Owner run, the stable pre-arm Host is already installed. Load the freshly staged stable
+   first-use Side Panel bundle rather than any `scratch` source directory. On the exact 小红书收藏笔记 list, the intended first screen is the guide with no save
    button: manually open one visible note, then use the single 保存这条笔记 button on its detail page. Then freshly observe the two
    Douyin lists without scrolling, then use the Side Panel to record their two
    exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
