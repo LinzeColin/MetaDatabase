@@ -249,6 +249,10 @@
         <h2 style="margin-top:0">他的日程</h2>
         <ul class="tl" id="ins-events"></ul>
       </div>
+      <div class="card">
+        <h2 style="margin-top:0">他发来的图片和文件</h2>
+        <ul class="tl" id="ins-media"></ul>
+      </div>
 
       <!-- 只对这个人的语气。没单独设过就沿用「设置」那一页的默认值，
            页面上要说清楚现在是哪一种，否则改了默认值会以为对每个人都生效。 -->
@@ -825,6 +829,18 @@
     fillRows("ins-events", (d.events || []).map(function (e) {
       return { head: "", body: e.title, tail: e.dueAt || "" };
     }), openPerson ? "他还没有日程。" : "先在左边点一个人。");
+    // 元数据在库里，字节在磁盘上。这里显示的是主人认得出的那个名字（微信那边
+    // 原本的文件名），不是落盘时去重改过的名字。
+    fillRows("ins-media", (d.media || []).map(function (m) {
+      var meta = {};
+      try { meta = JSON.parse(m.note || "{}"); } catch (err) { meta = {}; }
+      var size = meta.sizeBytes ? Math.round(meta.sizeBytes / 1024) + " KB" : "";
+      return {
+        head: meta.isImage ? "🖼" : "📎",
+        body: meta.sourceFileName || m.title,
+        tail: [size, m.createdAt || ""].filter(Boolean).join("  "),
+      };
+    }), openPerson ? "他还没发过图片或文件。" : "先在左边点一个人。");
   }
 
   function fillRows(id, rows, emptyText) {

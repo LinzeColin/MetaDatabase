@@ -1755,11 +1755,17 @@ class CyberbossApp {
         title: item.title,
         dueAt: local(item.dueAt),
         createdAt: local(item.createdAt),
+        // media 的文件名、大小、是不是图片全在 note 里。漏掉它的话后台那一栏
+        // 能显示出来，但每一条都缺元数据——看起来在工作，其实是空的。
+        ...(kind === "media" ? { note: item.note } : {}),
       }));
     return Object.freeze({
       ok: true,
       todos: Object.freeze(items("todo")),
       events: Object.freeze(items("event")),
+      // 他发过来的图片和文件。open:true 对 media 没有意义（媒体永远没有
+      // done_at），所以它会全部列出来，这正是想要的。
+      media: Object.freeze(items("media")),
       memories: Object.freeze(this.listMemoriesFor(id)),
       reminders: Object.freeze(this.listOwnReminders(id)),
     });
@@ -2729,6 +2735,51 @@ class CyberbossApp {
     return this.ownerCredentialCache;
   }
 
+  // 把刚落盘的附件记进库，按人。
+  //
+  // 认不出这个人就整批不记：把照片记到错的人名下，比不记严重得多——那是隔离
+  // 被破坏，而且从库里看不出来。
+  //
+  // 整个方法吞掉所有异常：收图这件事已经成功了（文件在磁盘上），记账失败不该
+  // 让主人收到一条"图片接收失败"。
+  recordIncomingMedia(saved, normalized) {
+    if (!Array.isArray(saved) || !saved.length || !this.runtimeSpoolDatabase) {
+      return 0;
+    }
+    const userId = String(this.activeUserContext?.userId || "").trim();
+    if (!userId) {
+      console.warn("[cyberboss] 附件没记进库：这一轮认不出是谁 count=" + saved.length);
+      return 0;
+    }
+    let recorded = 0;
+    for (const item of saved) {
+      const title = String(item?.fileName || item?.name || "").trim();
+      if (!title) {
+        continue;
+      }
+      try {
+        this.runtimeSpoolDatabase.createUserItem({
+          userId,
+          kind: "media",
+          title: title.slice(0, 200),
+          note: buildMediaNote(item),
+          dueAt: null,
+        });
+        recorded += 1;
+      } catch (error) {
+        console.warn(
+          `[cyberboss] 附件记账失败 code=${normalizeErrorCode(error?.code) || "media_record_failed"}`,
+        );
+      }
+    }
+    if (recorded) {
+      console.log(
+        `[cyberboss] 附件已记进库 count=${recorded} message=${String(normalized?.messageId || "").slice(0, 24)}`,
+      );
+    }
+    return recorded;
+  }
+
   resolveOwnerSeatLimit() {
     try {
       return Number(this.personaStore?.read().access.seats) || 5;
@@ -2972,7 +3023,7 @@ class CyberbossApp {
   // 只在选了具体某个人时才查——「全部人」那个视图上列所有人的待办没有意义，
   // 而且会把一屏撑爆。
   buildPersonDetail(senderId) {
-    const empty = { memories: [], todos: [], events: [] };
+    const empty = { memories: [], todos: [], events: [], media: [] };
     const who = String(senderId || "").trim();
     if (!who || !this.runtimeSpoolDatabase) {
       return empty;
@@ -3006,6 +3057,9 @@ class CyberbossApp {
             dueAt: local(item.dueAt),
             doneAt: local(item.doneAt),
             createdAt: local(item.createdAt),
+            // 后台「他发来的图片和文件」那一栏读的就是这个。漏掉它的话那一栏
+            // 会显示出来，但每条都缺大小和图标——看起来在工作，其实是空的。
+            ...(kind === "media" ? { note: item.note } : {}),
           }));
       } catch {
         return [];
@@ -3015,6 +3069,7 @@ class CyberbossApp {
       memories: Object.freeze(this.listMemoriesFor(userId)),
       todos: Object.freeze(items("todo")),
       events: Object.freeze(items("event")),
+      media: Object.freeze(items("media")),
     };
   }
 
@@ -4547,6 +4602,11 @@ class CyberbossApp {
       return null;
     }
 
+    // 记账失败绝不能影响收图这件事本身——文件已经在磁盘上了。
+    if (typeof this.recordIncomingMedia === "function") {
+      this.recordIncomingMedia(persisted.saved, normalized);
+    }
+
     const prepared = buildInboundDraft(normalized, {
       attachments: persisted.saved,
       attachmentFailures: persisted.failed,
@@ -5884,6 +5944,29 @@ function formatErrorMessage(error) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// 一条收到的附件在库里长什么样。
+//
+// 只存元数据，字节留在磁盘：把图片本身塞进库会让 GitHub 全量同步变得不可用。
+// 但元数据进了库就意味着它跟着那两条同步走——主人要的「全部都保存」在这里才
+// 真正成立，落盘而不进库的话，换台机器恢复出来只有一堆无主的文件。
+// 字段名照 persistSingleAttachment 真正返回的那些写，不是照想当然的那些。
+// 第一版我写了 path / sha256 / bytes 三个——一个都不存在（真名是 relativePath /
+// absolutePath / sizeBytes，而 sha256 压根没有）。猜错的后果不是报错，是每条都
+// 存成空值，然后没人发现。
+function buildMediaNote(item) {
+  return JSON.stringify({
+    // 存相对路径：绝对路径换台机器恢复出来就是错的，而这张表是要跟着
+    // GitHub 全量库和 Cloudflare 冷库走的。
+    relativePath: String(item?.relativePath || ""),
+    contentType: String(item?.contentType || ""),
+    kind: String(item?.kind || ""),
+    isImage: Boolean(item?.isImage),
+    sizeBytes: Number(item?.sizeBytes || 0) || 0,
+    // 微信那边原本的文件名。落盘时会被改名去重，主人找东西时认得的是这个。
+    sourceFileName: String(item?.sourceFileName || ""),
+  });
 }
 
 // 「这个人占不占得到前 N 个席位」的唯一入口。

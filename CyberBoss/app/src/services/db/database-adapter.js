@@ -22,6 +22,19 @@ const { assertTransition } = require("../jobs/job-state-machine");
 // 用子查询而不是新加一列：jobs.user_id 和 users.role 都已经存在，加列要一次
 // 迁移，而迁移是这个仓风险最高的动作。user_id 为空的（系统消息、主动问候、
 // 到点提醒）排在最前，它们是主人自己那条线上的东西。
+// user_items 认哪几种 kind。写成常量而不是在建和读两处各写一遍数组：
+// 只在一处加上新的种类，另一处会静默返回空列表——存进去了却永远读不出来，
+// 而且不报错。
+//
+// media 是 2026-07-29 加的：微信收到的图片原本只落盘在 stateDir/inbox/<日期>/，
+// 不认人也不进库，于是既不进 GitHub 全量库也不进 Cloudflare 冷库（那两条同步的
+// 都是数据库）。复用这张表而不是新开一张，是为了避开一次迁移——迁移是这个仓
+// 风险最高的动作，而这里要的东西（按人、加密、跟着同步走）它已经全有了。
+//
+// 表里存的是元数据（文件名、路径、sha256、大小、类型），字节仍然在磁盘上。
+// 把图片本身塞进库会让 GitHub 全量同步变得不可用。
+const USER_ITEM_KINDS = Object.freeze(["todo", "event", "media"]);
+
 const OWNER_FIRST_ORDER = `
   CASE
     WHEN user_id IS NULL THEN 0
@@ -4188,7 +4201,7 @@ class RuntimeSpoolDatabase {
     if (!USER_ID_PATTERN.test(id)) {
       throw new RuntimeSpoolError("USER_ID_REQUIRED");
     }
-    if (!["todo", "event"].includes(kind)) {
+    if (!USER_ITEM_KINDS.includes(kind)) {
       throw new RuntimeSpoolError("ITEM_KIND_INVALID");
     }
     const text = String(title || "").trim();
@@ -4233,7 +4246,7 @@ class RuntimeSpoolDatabase {
   listUserItems({ userId, kind = "todo", open = true, limit = 50 } = {}) {
     this.#assertOpen();
     const id = String(userId || "").trim();
-    if (!USER_ID_PATTERN.test(id) || !["todo", "event"].includes(kind)) {
+    if (!USER_ID_PATTERN.test(id) || !USER_ITEM_KINDS.includes(kind)) {
       return [];
     }
     const bounded = Math.max(1, Math.min(200, Number(limit) || 50));

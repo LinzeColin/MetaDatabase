@@ -143,7 +143,7 @@ test("编的票换不到 cookie", () => {
 
 // ── 五、这一页装什么 ────────────────────────────────────────
 
-test("只装这个人自己的四样：待办、日程、提醒、记着的事", () => {
+test("只装这个人自己的五样：待办、日程、媒体、提醒、记着的事", () => {
   const app = bootApp({ sessions: sessionsFor(new Map()) });
   const asked = [];
   app.runtimeSpoolDatabase = {
@@ -163,10 +163,11 @@ test("只装这个人自己的四样：待办、日程、提醒、记着的事",
   assert.equal(page.ok, true);
   assert.deepEqual(
     asked.map((entry) => entry.userId),
-    [GUEST, GUEST],
+    [GUEST, GUEST, GUEST],
     "查的必须是这个人，不是主人也不是全部",
   );
-  assert.deepEqual(asked.map((entry) => entry.kind), ["todo", "event"]);
+  // media 是 2026-07-29 加的：他发过来的图片被后台存着，那他本人更该看得见。
+  assert.deepEqual(asked.map((entry) => entry.kind), ["todo", "event", "media"]);
   assert.equal(page.todos[0].title, "买菜");
   assert.equal(page.memories[0].text, "经常熬夜");
 });
