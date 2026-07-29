@@ -99,6 +99,32 @@ test("账户代理向 OVH 传入 Worker 派生的公开 origin，而非客户端
   assert.equal(forwarded.get("x-wrp-public-origin"), "https://admin.weread.linzezhang.com");
 });
 
+test("主站会话接力只允许跳转到受控管理员子域", async () => {
+  const env = {
+    WRP_ADMIN_HOST: "admin.weread.linzezhang.com",
+    WEREAD_ACCOUNT_SERVICE_URL: "https://account.example.test",
+    WRP_INTERNAL_PROXY_SECRET: "test-internal-proxy-secret-not-for-production",
+    ACCOUNT_SERVICE_FETCH: async () => new Response(null, {
+      status: 303,
+      headers: {
+        Location: "https://admin.weread.linzezhang.com/?handoff=1",
+        "Set-Cookie": "wrp_session=test; Domain=weread.linzezhang.com; Path=/; HttpOnly",
+      },
+    }),
+  };
+  const allowed = await handleRequest(new Request("https://weread.linzezhang.com/api/platform/v1/session/handoff"), env);
+  assert.equal(allowed.status, 303);
+  assert.equal(allowed.headers.get("location"), "https://admin.weread.linzezhang.com/?handoff=1");
+  assert.match(allowed.headers.get("set-cookie") || "", /Domain=weread\.linzezhang\.com/u);
+
+  const blocked = await handleRequest(new Request("https://weread.linzezhang.com/api/platform/v1/session/handoff"), {
+    ...env,
+    ACCOUNT_SERVICE_FETCH: async () => new Response(null, { status: 303, headers: { Location: "https://attacker.invalid/" } }),
+  });
+  assert.equal(blocked.status, 502);
+  assert.equal((await blocked.json()).error.code, "UPSTREAM_REDIRECT");
+});
+
 test("proxy applies a bounded per-isolate rate limit", async () => {
   const env = { UPSTREAM_FETCH: async () => Response.json({ errcode: 0 }) };
   for (let index = 0; index < 240; index += 1) {

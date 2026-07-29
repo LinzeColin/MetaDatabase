@@ -14,6 +14,7 @@ export function loadConfig(env = process.env, { test = false } = {}) {
   const adminBaseUrl = optionalOrigin(env.WRP_ADMIN_BASE_URL, "WRP_ADMIN_BASE_URL", production);
   const adminAccountIds = parseAdminAccountIds(env.WRP_ADMIN_ACCOUNT_IDS || "");
   if (adminAccountIds.length && !adminBaseUrl) throw new Error("配置管理员账户时必须同时设置 WRP_ADMIN_BASE_URL。");
+  const sessionCookieDomain = sharedSessionCookieDomain(baseUrl, adminBaseUrl);
   const internalProxySecret = String(env.WRP_INTERNAL_PROXY_SECRET || (test ? "test-internal-proxy-secret-not-for-production" : ""));
   if (!internalProxySecret) throw new Error("缺少 WRP_INTERNAL_PROXY_SECRET。");
   const releaseIdentity = Object.freeze({
@@ -35,6 +36,7 @@ export function loadConfig(env = process.env, { test = false } = {}) {
     production,
     baseUrl: baseUrl.origin,
     adminBaseUrl: adminBaseUrl?.origin || "",
+    sessionCookieDomain,
     allowedOrigins: Object.freeze([...new Set([baseUrl.origin, adminBaseUrl?.origin].filter(Boolean))]),
     adminAccountIds: Object.freeze(adminAccountIds),
     serviceHost: env.WRP_SERVICE_HOST || "127.0.0.1",
@@ -121,6 +123,14 @@ function optionalOrigin(raw, name, production) {
   try { parsed = new URL(value); } catch { throw new Error(`${name} 必须是 HTTPS origin。`); }
   if (parsed.username || parsed.password || parsed.pathname !== "/" || parsed.search || parsed.hash || (production && parsed.protocol !== "https:")) throw new Error(`${name} 必须是无凭证、无路径、无查询参数的 HTTPS origin。`);
   return parsed;
+}
+
+function sharedSessionCookieDomain(baseUrl, adminBaseUrl) {
+  if (!adminBaseUrl) return "";
+  const publicHost = String(baseUrl.hostname || "").toLowerCase();
+  const adminHost = String(adminBaseUrl.hostname || "").toLowerCase();
+  if (!publicHost || publicHost === "localhost" || /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(publicHost)) return "";
+  return adminHost.endsWith(`.${publicHost}`) ? publicHost : "";
 }
 
 function parseAdminAccountIds(raw) {

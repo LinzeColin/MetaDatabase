@@ -345,7 +345,7 @@ export class PlatformStore {
       LEFT JOIN (SELECT account_id,1 AS hasPreferences FROM account_ai_preferences) p ON p.account_id=a.id
       WHERE a.deleted_at IS NULL AND (?='%%' OR lower(a.id) LIKE ? OR lower(COALESCE(a.email,'')) LIKE ? OR lower(a.display_name) LIKE ?)
       ORDER BY a.updated_at DESC,a.id DESC LIMIT ?`)
-      .all(pattern, pattern, pattern, pattern, Math.min(Math.max(Number(limit) || 100, 1), 500));
+      .all(pattern, pattern, pattern, pattern, Math.min(Math.max(Number(limit) || 100, 1), 5_000));
   }
 
   listAdminNotes({ accountId = "", limit = 100 } = {}) {
@@ -355,7 +355,7 @@ export class PlatformStore {
       FROM notes n JOIN accounts a ON a.id=n.account_id
       WHERE n.deleted_at IS NULL AND (?='' OR n.account_id=?)
       ORDER BY CASE WHEN n.event_at>0 THEN n.event_at ELSE n.updated_at END DESC,n.id DESC LIMIT ?`)
-      .all(scopedAccountId, scopedAccountId, Math.min(Math.max(Number(limit) || 100, 1), 500));
+      .all(scopedAccountId, scopedAccountId, Math.min(Math.max(Number(limit) || 100, 1), 5_000));
   }
 
   getAdminNoteMetadata(noteId) {
@@ -370,7 +370,7 @@ export class PlatformStore {
       a.display_name AS accountDisplayName,a.email AS accountEmail
       FROM account_ai_preferences p JOIN accounts a ON a.id=p.account_id
       WHERE a.deleted_at IS NULL ORDER BY p.updated_at DESC,p.account_id DESC LIMIT ?`)
-      .all(Math.min(Math.max(Number(limit) || 100, 1), 500));
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000));
   }
 
   addAdminAuditEvent({ id, actorAccountId, action, targetAccountId = null, targetNoteId = null, reason }) {
@@ -382,7 +382,7 @@ export class PlatformStore {
 
   listAdminAuditEvents(limit = 100) {
     return this.db.prepare("SELECT id,actor_account_id AS actorAccountId,action,target_account_id AS targetAccountId,target_note_id AS targetNoteId,reason,created_at AS createdAt FROM admin_audit_events ORDER BY created_at DESC,id DESC LIMIT ?")
-      .all(Math.min(Math.max(Number(limit) || 100, 1), 500));
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000));
   }
 
   createImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey }) {

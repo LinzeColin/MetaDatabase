@@ -10,6 +10,7 @@ function configureAdmin(platform, accountId) {
   const config = Object.freeze({
     ...platform.config,
     adminBaseUrl: ADMIN_ORIGIN,
+    sessionCookieDomain: "weread.linzezhang.com",
     allowedOrigins: Object.freeze([platform.config.baseUrl, ADMIN_ORIGIN]),
     adminAccountIds: Object.freeze([accountId]),
   });
@@ -57,7 +58,7 @@ test("AI 偏好按账户密钥加密保存，单条问询记录不保存笔记�
   assert.equal(storedEvent.noteId, note.id);
 });
 
-test("管理员数据读取要求专用管理域、不可变账户白名单、近期验证和用途审计", async t => {
+test("管理员专用域直接展示数据，仍受不可变账户白名单和服务端记录约束", async t => {
   const platform = testPlatform();
   t.after(platform.close);
   const admin = await platform.service.registerPassword({ email: "admin-http@example.com", password: PASSWORD, displayName: "管理员" });
@@ -68,27 +69,58 @@ test("管理员数据读取要求专用管理域、不可变账户白名单、�
 
   const adminSession = platform.service.authenticate(admin.session.token);
   const userSession = platform.service.authenticate(user.session.token);
-  assert.throws(() => platform.service.adminAccounts(userSession, { reason: "处理测试用户请求" }), error => error?.code === "ADMIN_FORBIDDEN");
+  assert.throws(() => platform.service.adminAccounts(userSession), error => error?.code === "ADMIN_FORBIDDEN");
   assert.equal(platform.service.adminOverview(adminSession).counts.accounts, 2);
-  const accounts = platform.service.adminAccounts(adminSession, { reason: "处理测试用户请求" }).accounts;
+  const accounts = platform.service.adminAccounts(adminSession).accounts;
   assert.ok(accounts.some(item => item.id === user.account.id));
-  const prompts = platform.service.adminPrompts(adminSession, { reason: "核验用户保存的问询偏好" }).preferences;
+  const prompts = platform.service.adminPrompts(adminSession).preferences;
   assert.equal(prompts.find(item => item.accountId === user.account.id).preferences.customPrompt, "测试自定义提示词");
-  const body = await platform.service.adminReadNote(adminSession, { noteId: note.id, reason: "响应用户笔记恢复工单" });
+  const body = await platform.service.adminReadNote(adminSession, { noteId: note.id });
   assert.equal(body.note.content, "正文只能在明确用途后读取。");
-  assert.ok(platform.service.adminAuditLog(adminSession, { reason: "复核近期管理操作" }).events.some(item => item.action === "admin_note_body_viewed"));
+  const auditEvents = platform.service.adminAuditLog(adminSession).events;
+  assert.ok(auditEvents.some(item => item.action === "admin_note_body_viewed"));
+  assert.ok(auditEvents.some(item => item.action === "admin_note_body_viewed" && item.reason === "管理员直接查看"));
+
+  platform.store.db.prepare("UPDATE sessions SET recent_auth_at=? WHERE token_hash=?")
+    .run(platform.service.now() - 3_600, platform.service.sessionHash(admin.session.token));
+  assert.doesNotThrow(() => platform.service.adminAccounts(platform.service.authenticate(admin.session.token)));
 
   const app = createPlatformApp({ service: platform.service, config });
   const accepted = await app(new Request(`${ADMIN_ORIGIN}/v1/admin/accounts`, {
     method: "POST",
     headers: { ...requestHeaders(platform, admin.session.token, admin.session.csrf, ADMIN_ORIGIN, ADMIN_ORIGIN), "content-type": "application/json" },
-    body: JSON.stringify({ reason: "处理测试用户请求" }),
+    body: JSON.stringify({}),
   }));
   assert.equal(accepted.status, 200);
   const rejected = await app(new Request(`${platform.config.baseUrl}/v1/admin/accounts`, {
     method: "POST",
     headers: { ...requestHeaders(platform, admin.session.token, admin.session.csrf, platform.config.baseUrl, platform.config.baseUrl), "content-type": "application/json" },
-    body: JSON.stringify({ reason: "处理测试用户请求" }),
+    body: JSON.stringify({}),
   }));
   assert.equal(rejected.status, 403);
+
+  const handoff = await app(new Request(new URL("/v1/session/handoff", platform.config.baseUrl), {
+    headers: requestHeaders(platform, admin.session.token, "", platform.config.baseUrl, platform.config.baseUrl),
+  }));
+  assert.equal(handoff.status, 303);
+  assert.equal(handoff.headers.get("location"), ADMIN_ORIGIN + "/?handoff=1");
+  assert.match(handoff.headers.get("set-cookie") || "", /Domain=weread\.linzezhang\.com/u);
+
+  const sharedToken = /wrp_session=([^;]+)/u.exec(handoff.headers.get("set-cookie") || "")?.[1];
+  assert.ok(sharedToken);
+  const sharedSession = await app(new Request(new URL("/v1/session", ADMIN_ORIGIN), {
+    headers: requestHeaders(platform, sharedToken, "", ADMIN_ORIGIN, ADMIN_ORIGIN),
+  }));
+  assert.equal(sharedSession.status, 200);
+  assert.match(sharedSession.headers.get("set-cookie") || "", /Domain=weread\.linzezhang\.com/u);
+
+  const renewedToken = /wrp_session=([^;]+)/u.exec(sharedSession.headers.get("set-cookie") || "")?.[1];
+  assert.ok(renewedToken);
+  const duplicateCookieSession = await app(new Request(new URL("/v1/session", ADMIN_ORIGIN), {
+    headers: {
+      ...requestHeaders(platform, renewedToken, "", ADMIN_ORIGIN, ADMIN_ORIGIN),
+      cookie: "wrp_session=expired-host-only-cookie; wrp_session=" + renewedToken,
+    },
+  }));
+  assert.equal(duplicateCookieSession.status, 200);
 });

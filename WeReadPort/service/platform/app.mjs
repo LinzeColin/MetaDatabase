@@ -33,8 +33,10 @@ export function createPlatformApp({ service, config }) {
       requireInternal(request, config.internalProxySecret);
       enforceOrigin(request, config.allowedOrigins || [config.baseUrl]);
       rateLimit(request, buckets);
-      const sessionToken = cookieValue(request.headers.get("cookie"), COOKIE_NAME);
-      const session = service.authenticate(sessionToken);
+      const sessionTokens = cookieValues(request.headers.get("cookie"), COOKIE_NAME);
+      const authenticated = authenticateSession(service, sessionTokens);
+      const sessionToken = authenticated.token;
+      const session = authenticated.session;
       const method = request.method.toUpperCase();
       const path = url.pathname.replace(/^\/v1/, "") || "/";
 
@@ -59,6 +61,8 @@ export function createPlatformApp({ service, config }) {
         return secure(new Response(null, { status: 303, headers }));
       }
 
+      if (method === "GET" && path === "/session/handoff") return sessionHandoffResponse(service, sessionToken, config);
+
       requireSession(session);
       if (isMutation(method)) {
         service.verifyCsrf(session, request.headers.get("x-csrf-token"));
@@ -66,7 +70,7 @@ export function createPlatformApp({ service, config }) {
       }
 
       if (method === "GET" && path === "/session") { const refreshed = service.refreshSession(sessionToken); if (!refreshed) throw new PlatformError("AUTH_REQUIRED", "请重新登录。", 401); return json({ account: refreshed.account, csrf: refreshed.csrf, expiresAt: refreshed.expiresAt }, 200, { "Set-Cookie": sessionCookie(refreshed.token, refreshed.expiresAt, config) }); }
-      if (method === "POST" && path === "/auth/logout") { service.logout(sessionToken); return json({ loggedOut: true }, 200, { "Set-Cookie": clearCookie(config) }); }
+      if (method === "POST" && path === "/auth/logout") { for (const token of sessionTokens) service.logout(token); return json({ loggedOut: true }, 200, { "Set-Cookie": clearCookie(config) }); }
       if (method === "POST" && path === "/auth/reauth/password") { const input = await body(request, config.maxJsonBytes); await service.reauthenticatePassword(session.accountId, input.password, sessionToken); return json({ reauthenticated: true }); }
       if (method === "POST" && path === "/auth/reauth/weread") { const input = await body(request, config.maxJsonBytes); await service.reauthenticateWeRead(session.accountId, input.key, sessionToken); return json({ reauthenticated: true }); }
       if (method === "POST" && path === "/auth/link/weread") { service.requireRecentAuth(session); return json({ account: await service.bindWeRead(session.accountId, (await body(request, config.maxJsonBytes)).key) }); }
@@ -125,12 +129,12 @@ export function createPlatformApp({ service, config }) {
       if (path.startsWith("/admin/")) {
         requireAdminPublicOrigin(request, config);
         if (method === "POST" && path === "/admin/overview") return json(service.adminOverview(session));
-        if (method === "POST" && path === "/admin/accounts") { const input = await body(request, config.maxJsonBytes); return json(service.adminAccounts(session, { reason: input.reason, query: input.query, limit: boundedInt(input.limit, 100, 1, 500) })); }
-        if (method === "POST" && path === "/admin/notes") { const input = await body(request, config.maxJsonBytes); return json(service.adminNotes(session, { reason: input.reason, accountId: input.accountId, limit: boundedInt(input.limit, 100, 1, 500) })); }
+        if (method === "POST" && path === "/admin/accounts") { const input = await body(request, config.maxJsonBytes); return json(service.adminAccounts(session, { query: input.query, limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
+        if (method === "POST" && path === "/admin/notes") { const input = await body(request, config.maxJsonBytes); return json(service.adminNotes(session, { accountId: input.accountId, limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
         const adminNote = path.match(/^\/admin\/notes\/([A-Za-z0-9_-]+)$/);
-        if (method === "POST" && adminNote) { const input = await body(request, config.maxJsonBytes); return json(await service.adminReadNote(session, { reason: input.reason, noteId: adminNote[1] })); }
-        if (method === "POST" && path === "/admin/prompts") { const input = await body(request, config.maxJsonBytes); return json(service.adminPrompts(session, { reason: input.reason, limit: boundedInt(input.limit, 100, 1, 500) })); }
-        if (method === "POST" && path === "/admin/audit") { const input = await body(request, config.maxJsonBytes); return json(service.adminAuditLog(session, { reason: input.reason, limit: boundedInt(input.limit, 100, 1, 500) })); }
+        if (method === "POST" && adminNote) { await body(request, config.maxJsonBytes); return json(await service.adminReadNote(session, { noteId: adminNote[1] })); }
+        if (method === "POST" && path === "/admin/prompts") { const input = await body(request, config.maxJsonBytes); return json(service.adminPrompts(session, { limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
+        if (method === "POST" && path === "/admin/audit") { const input = await body(request, config.maxJsonBytes); return json(service.adminAuditLog(session, { limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
       }
 
       throw new PlatformError("NOT_FOUND", "接口不存在。", 404);
@@ -142,6 +146,15 @@ export function createPlatformApp({ service, config }) {
 
 function authResponse(result, config) {
   return json({ account: result.account, csrf: result.session.csrf, expiresAt: result.session.expiresAt }, 200, { "Set-Cookie": sessionCookie(result.session.token, result.session.expiresAt, config) });
+}
+function sessionHandoffResponse(service, sessionToken, config) {
+  if (!config.adminBaseUrl) throw new PlatformError("ADMIN_NOT_CONFIGURED", "管理员入口尚未完成安全配置。", 503);
+  const location = new URL(config.adminBaseUrl);
+  location.searchParams.set("handoff", "1");
+  const headers = new Headers({ Location: location.toString() });
+  const current = service.authenticate(sessionToken);
+  if (current) headers.append("Set-Cookie", sessionCookie(sessionToken, current.expiresAt, config));
+  return secure(new Response(null, { status: 303, headers }));
 }
 function requireInternal(request, expected) { const actual = request.headers.get("x-wrp-internal-secret") || ""; if (!secureEqual(actual, expected)) throw new PlatformError("INTERNAL_AUTH", "服务身份验证失败。", 401); }
 function requireSession(session) { if (!session) throw new PlatformError("AUTH_REQUIRED", "请先登录。", 401); }
@@ -180,9 +193,22 @@ async function body(request, maxBytes) {
 function json(payload, status = 200, extraHeaders = {}) { return secure(new Response(JSON.stringify(payload), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extraHeaders } })); }
 function secure(response) { const headers = new Headers(response.headers); for (const [key, value] of Object.entries(SECURITY_HEADERS)) if (!headers.has(key)) headers.set(key, value); return new Response(response.body, { status: response.status, statusText: response.statusText, headers }); }
 function errorResponse(error) { const known = error instanceof PlatformError; const status = known ? error.status : 500; const payload = { error: { code: known ? error.code : "INTERNAL", message: known ? error.message : "服务暂时不可用，请稍后重试。" } }; return json(payload, status); }
-function cookieValue(header, name) { for (const item of String(header || "").split(";")) { const [key, ...rest] = item.trim().split("="); if (key === name) return rest.join("="); } return ""; }
-function sessionCookie(token, expiresAt, config) { const secureFlag = config.production ? "; Secure" : ""; return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax${secureFlag}; Expires=${new Date(expiresAt * 1000).toUTCString()}`; }
-function clearCookie(config) { const secureFlag = config.production ? "; Secure" : ""; return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax${secureFlag}; Max-Age=0`; }
+function cookieValues(header, name) {
+  return String(header || "").split(";").map(item => {
+    const [key, ...rest] = item.trim().split("=");
+    return key === name ? rest.join("=") : "";
+  }).filter(Boolean);
+}
+function authenticateSession(service, tokens) {
+  for (const token of tokens) {
+    const session = service.authenticate(token);
+    if (session) return { token, session };
+  }
+  return { token: tokens[0] || "", session: null };
+}
+function sessionCookie(token, expiresAt, config) { const secureFlag = config.production ? "; Secure" : ""; return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax${cookieDomainFlag(config)}${secureFlag}; Expires=${new Date(expiresAt * 1000).toUTCString()}`; }
+function clearCookie(config) { const secureFlag = config.production ? "; Secure" : ""; return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax${cookieDomainFlag(config)}${secureFlag}; Max-Age=0`; }
+function cookieDomainFlag(config) { const domain = String(config.sessionCookieDomain || "").trim(); return domain ? `; Domain=${domain}` : ""; }
 function boundedInt(value, fallback, min, max) { const parsed = Number(value ?? fallback); return Number.isInteger(parsed) ? Math.min(Math.max(parsed, min), max) : fallback; }
 function rateLimit(request, buckets) { boundedRateLimit(request, buckets, "global", "", 300, 60_000); }
 function authRateLimit(request, buckets, scope, subject, limit) { boundedRateLimit(request, buckets, scope, subject, limit, 15 * 60_000); }

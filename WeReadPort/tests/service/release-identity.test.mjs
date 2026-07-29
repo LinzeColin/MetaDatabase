@@ -52,6 +52,20 @@ test("R2 主对象与 Private-Database 冷备使用隔离命名空间", () => {
   assert.throws(() => loadConfig(productionEnv({ WRP_PRIVATE_DATABASE_BACKUP_PREFIX: "primary-objects" })), /命名空间必须隔离/);
 });
 
+test("受控管理员子域与主站复用最小 Cookie 域", () => {
+  const config = loadConfig(productionEnv({
+    WRP_ADMIN_BASE_URL: "https://admin.weread.linzezhang.com",
+    WRP_ADMIN_ACCOUNT_IDS: "acct_admin0001",
+  }));
+  assert.equal(config.sessionCookieDomain, "weread.linzezhang.com");
+
+  const unrelated = loadConfig(productionEnv({
+    WRP_ADMIN_BASE_URL: "https://admin.other.example",
+    WRP_ADMIN_ACCOUNT_IDS: "acct_admin0001",
+  }));
+  assert.equal(unrelated.sessionCookieDomain, "");
+});
+
 test("账户正文对象只写入 primary-objects 并在 readiness 暴露精确 release identity", async t => {
   const config = testConfig({
     primaryObjectPrefix: "primary-objects",

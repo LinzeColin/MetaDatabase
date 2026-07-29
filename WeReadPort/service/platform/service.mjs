@@ -45,6 +45,7 @@ import {
 
 const WEREAD_FULL_RECONCILE_SECONDS = 24 * 60 * 60;
 const SECRET_LIKE_WEREAD_KEY = /\bwrk-[A-Za-z0-9._-]{8,}\b/u;
+const ADMIN_DIRECT_VIEW_REASON = "管理员直接查看";
 
 export class PlatformError extends Error {
   constructor(code, message, status = 400, details = undefined) {
@@ -705,7 +706,6 @@ export class PlatformService {
   requireAdmin(session) {
     if (!this.config.adminBaseUrl || !this.config.adminAccountIds?.length) throw new PlatformError("ADMIN_NOT_CONFIGURED", "管理员入口尚未完成安全配置。", 503);
     if (!session || !this.config.adminAccountIds.includes(session.accountId)) throw new PlatformError("ADMIN_FORBIDDEN", "当前账户没有管理员权限。", 403);
-    this.requireRecentAuth(session);
     return session.accountId;
   }
 
@@ -717,19 +717,19 @@ export class PlatformService {
       adminAccountId: actorAccountId,
       counts,
       configured: true,
-      dataBoundary: "账户资料、笔记正文和提示词只在经过授权、近期验证与审计的专用操作中读取。",
+      dataBoundary: "账户资料、笔记正文和提示词仅向专用管理域内的服务端白名单账户直接展示。",
     };
   }
 
   adminAccounts(session, input = {}) {
     const actorAccountId = this.requireAdmin(session);
-    this.adminAudit({ actorAccountId, action: "admin_accounts_viewed", reason: input.reason });
+    this.adminAudit({ actorAccountId, action: "admin_accounts_viewed", reason: ADMIN_DIRECT_VIEW_REASON });
     return { accounts: this.store.listAdminAccounts({ query: input.query, limit: input.limit }) };
   }
 
   adminNotes(session, input = {}) {
     const actorAccountId = this.requireAdmin(session);
-    this.adminAudit({ actorAccountId, action: "admin_notes_index_viewed", targetAccountId: String(input.accountId || "").trim() || null, reason: input.reason });
+    this.adminAudit({ actorAccountId, action: "admin_notes_index_viewed", targetAccountId: String(input.accountId || "").trim() || null, reason: ADMIN_DIRECT_VIEW_REASON });
     return { notes: this.store.listAdminNotes({ accountId: input.accountId, limit: input.limit }) };
   }
 
@@ -738,7 +738,7 @@ export class PlatformService {
     const noteId = safeNoteId(input.noteId);
     const metadata = this.store.getAdminNoteMetadata(noteId);
     if (!metadata || metadata.deletedAt) throw new PlatformError("NOT_FOUND", "笔记不存在。", 404);
-    this.adminAudit({ actorAccountId, action: "admin_note_body_viewed", targetAccountId: metadata.accountId, targetNoteId: noteId, reason: input.reason });
+    this.adminAudit({ actorAccountId, action: "admin_note_body_viewed", targetAccountId: metadata.accountId, targetNoteId: noteId, reason: ADMIN_DIRECT_VIEW_REASON });
     const note = await this.readNote(metadata.accountId, noteId);
     if (!note) throw new PlatformError("NOT_FOUND", "笔记不存在。", 404);
     return { note: { ...note, accountId: metadata.accountId, accountDisplayName: metadata.accountDisplayName, accountEmail: metadata.accountEmail } };
@@ -746,7 +746,7 @@ export class PlatformService {
 
   adminPrompts(session, input = {}) {
     const actorAccountId = this.requireAdmin(session);
-    this.adminAudit({ actorAccountId, action: "admin_ai_preferences_viewed", reason: input.reason });
+    this.adminAudit({ actorAccountId, action: "admin_ai_preferences_viewed", reason: ADMIN_DIRECT_VIEW_REASON });
     const preferences = this.store.listAdminAiPreferences(input.limit).map(row => ({
       accountId: row.accountId,
       accountDisplayName: row.accountDisplayName,
@@ -759,7 +759,7 @@ export class PlatformService {
 
   adminAuditLog(session, input = {}) {
     const actorAccountId = this.requireAdmin(session);
-    this.adminAudit({ actorAccountId, action: "admin_audit_viewed", reason: input.reason });
+    this.adminAudit({ actorAccountId, action: "admin_audit_viewed", reason: ADMIN_DIRECT_VIEW_REASON });
     return { events: this.store.listAdminAuditEvents(input.limit) };
   }
 
