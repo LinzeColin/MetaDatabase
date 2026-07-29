@@ -131,13 +131,19 @@ def fixture_script(authenticated: bool, service_ready: bool = True) -> str:
         if (path === '/analytics/dashboard') {{ if (f.synces) f.downstreamReads.analytics += 1; return ok({{dashboard:f.dashboard}}); }}
         if (path === '/profile') {{ if (f.synces) f.downstreamReads.profile += 1; return ok({{account:f.account}}); }}
         if (path === '/weread/sync') {{
-          f.synces += 1;
-          f.account.weread.lastSyncAt = Math.floor(Date.now()/1000);
-          f.dashboard.officialReading.statistics.overall.totalReadingTimeSeconds = 108000;
-          f.dashboard.officialReadingPeriods.items.find(item => item.mode === 'overall').value = 108000;
-          f.dashboard.dataFreshness.weread.lastSyncedAt = f.account.weread.lastSyncAt;
-          f.notes = [...f.notes, {{id:'note-sync-3',title:'同步后的真实笔记',source:'weread',category:'历史',updatedAt:1785283200000,version:1}}];
-          return ok({{summary:{{syncMode:'incremental',notebookBooks:1,skippedUnchangedBooks:0,updatedDocuments:1,unchangedDocuments:0,coverage:{{verified:true}}}},failures:[]}});
+          return new Response(JSON.stringify({{job:{{id:'weread-sync-job-1',provider:'weread',state:'PENDING'}}}}), {{status:202,headers:{{'content-type':'application/json'}}}});
+        }}
+        if (path === '/weread/sync/jobs/weread-sync-job-1') {{
+          if (!f.wereadJobComplete) {{
+            f.wereadJobComplete = true;
+            f.synces += 1;
+            f.account.weread.lastSyncAt = Math.floor(Date.now()/1000);
+            f.dashboard.officialReading.statistics.overall.totalReadingTimeSeconds = 108000;
+            f.dashboard.officialReadingPeriods.items.find(item => item.mode === 'overall').value = 108000;
+            f.dashboard.dataFreshness.weread.lastSyncedAt = f.account.weread.lastSyncAt;
+            f.notes = [...f.notes, {{id:'note-sync-3',title:'同步后的真实笔记',source:'weread',category:'历史',updatedAt:1785283200000,version:1}}];
+          }}
+          return ok({{job:{{id:'weread-sync-job-1',provider:'weread',state:'COMPLETE',progress:{{syncMode:'incremental',notebookBooks:1,skippedUnchangedBooks:0,updatedDocuments:1,unchangedDocuments:0,failureCount:0,coverage:{{coverage:{{verified:true}}}}}}}}}});
         }}
         if (path === '/consent') return ok({{consent:f.account.consent}});
         if (path === '/account/sessions') return ok({{sessions:f.sessions}});

@@ -5,6 +5,7 @@ import { PlatformService } from "../../service/platform/service.mjs";
 import { testPlatform, requestContext } from "./helpers.mjs";
 
 const PASSWORD = "Correct-Horse-2026";
+const WEREAD_KEY = `wrk-${"W".repeat(32)}`;
 
 function oauthFetch(url, init = {}) {
   const target = String(url);
@@ -48,6 +49,35 @@ test("Obsidian 新手导入任务幂等、可恢复并保存到账户", async t 
   assert.equal(complete.state, "COMPLETE");
   assert.equal(complete.progress.saved, 2);
   assert.equal(platform.service.listNotes(user.account.id).length, 2);
+});
+
+test("微信读书同步先建立可轮询后台任务，不占用账户平台代理响应窗口", async t => {
+  const platform = testPlatform({ fetchImpl: async () => new Promise(() => {}) });
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: WEREAD_KEY, displayName: "后台同步用户" }, {}, { verify: false });
+  const app = createPlatformApp({ service: platform.service, config: platform.config });
+  const headers = {
+    "content-type": "application/json",
+    origin: platform.config.baseUrl,
+    "sec-fetch-site": "same-origin",
+    "x-wrp-internal-secret": platform.config.internalProxySecret,
+    cookie: `wrp_session=${user.session.token}`,
+    "x-csrf-token": user.session.csrf,
+    "idempotency-key": "weread-sync-start-1",
+  };
+  const started = await app(new Request(`${platform.config.baseUrl}/v1/weread/sync`, { method: "POST", headers, body: JSON.stringify({ mode: "full", recommendationPages: 3 }) }));
+  assert.equal(started.status, 202);
+  const first = (await started.json()).job;
+  assert.equal(first.provider, "weread");
+  assert.equal(first.state, "PENDING");
+
+  const repeated = await app(new Request(`${platform.config.baseUrl}/v1/weread/sync`, { method: "POST", headers: { ...headers, "idempotency-key": "weread-sync-start-2" }, body: JSON.stringify({ mode: "full", recommendationPages: 3 }) }));
+  assert.equal(repeated.status, 202);
+  assert.equal((await repeated.json()).job.id, first.id, "同一账户的在途同步不得重复排队");
+
+  const status = await app(new Request(`${platform.config.baseUrl}/v1/weread/sync/jobs/${first.id}`, { headers }));
+  assert.equal(status.status, 200);
+  assert.equal((await status.json()).job.id, first.id);
 });
 
 test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会话", async t => {

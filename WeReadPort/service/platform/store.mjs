@@ -323,6 +323,27 @@ export class PlatformStore {
     return this.getImportJob(accountId, id);
   }
 
+  createOrGetActiveImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey }) {
+    return this.transaction(() => {
+      const now = this.now();
+      this.db.prepare("UPDATE import_jobs SET state='PENDING',worker_id=NULL,lease_until=NULL,updated_at=? WHERE account_id=? AND provider=? AND state='RUNNING' AND lease_until IS NOT NULL AND lease_until<=?")
+        .run(now, accountId, provider, now);
+      const active = this.db.prepare("SELECT id FROM import_jobs WHERE account_id=? AND provider=? AND state IN ('PENDING','RUNNING') ORDER BY created_at LIMIT 1")
+        .get(accountId, provider);
+      if (active) return this.getImportJob(accountId, active.id);
+      try {
+        this.db.prepare("INSERT INTO import_jobs(id,account_id,provider,state,selection_json,selection_encrypted,progress_json,idempotency_key,attempts,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+          .run(id, accountId, provider, "PENDING", "{}", selectionEncrypted, "{}", idempotencyKey, 0, now, now);
+      } catch (error) {
+        const existing = this.db.prepare("SELECT id,provider FROM import_jobs WHERE account_id=? AND idempotency_key=?").get(accountId, idempotencyKey);
+        if (!existing) throw error;
+        if (existing.provider !== provider) throw Object.assign(new Error("幂等键已用于其他任务。"), { code: "IDEMPOTENCY_CONFLICT" });
+        return this.getImportJob(accountId, existing.id);
+      }
+      return this.getImportJob(accountId, id);
+    });
+  }
+
   getImportJob(accountId, id) {
     const row = this.db.prepare("SELECT id,account_id AS accountId,provider,state,selection_encrypted AS selectionEncrypted,progress_json AS progressJson,idempotency_key AS idempotencyKey,error_code AS errorCode,attempts,worker_id AS workerId,lease_until AS leaseUntil,created_at AS createdAt,updated_at AS updatedAt FROM import_jobs WHERE account_id=? AND id=?").get(accountId, id);
     return row ? { ...row, progress: parseJson(row.progressJson) } : null;
@@ -347,6 +368,13 @@ export class PlatformStore {
         .run(workerId, now + leaseSeconds, now, row.id);
       return Number(changed.changes) === 1 ? this.getImportJob(row.accountId, row.id) : null;
     });
+  }
+
+  renewImportJobLease(accountId, id, workerId, leaseSeconds = 300) {
+    const now = this.now();
+    const changed = this.db.prepare("UPDATE import_jobs SET lease_until=?,updated_at=? WHERE account_id=? AND id=? AND state='RUNNING' AND worker_id=?")
+      .run(now + leaseSeconds, now, accountId, id, workerId);
+    return Number(changed.changes) === 1;
   }
 
   updateImportJob(accountId, id, { state, progress, errorCode = null, clearSelection = false }) {

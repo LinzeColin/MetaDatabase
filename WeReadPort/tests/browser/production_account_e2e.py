@@ -122,6 +122,20 @@ def wait_import(page: Page, job_id: str, *, timeout_seconds: int = 90) -> dict[s
     raise AssertionError(f"Obsidian 导入超时，最后状态={last.get('state') if last else 'UNKNOWN'}")
 
 
+def wait_weread_sync(page: Page, job_id: str, *, timeout_seconds: int = 600) -> dict[str, Any]:
+    deadline = time.monotonic() + timeout_seconds
+    last = None
+    while time.monotonic() < deadline:
+        payload = expect(api(page, f"/weread/sync/jobs/{job_id}"), 200, "读取微信读书同步任务")
+        last = payload.get("job") or {}
+        if last.get("state") == "COMPLETE":
+            return last
+        if last.get("state") == "FAILED":
+            raise AssertionError(f"微信读书同步失败：{last.get('errorCode', 'UNKNOWN')}")
+        time.sleep(1.0)
+    raise AssertionError(f"微信读书同步超时，最后状态={last.get('state') if last else 'UNKNOWN'}")
+
+
 def oauth_contract(page: Page) -> list[dict[str, Any]]:
     checks = []
     for provider, host in OAUTH_HOSTS.items():
@@ -227,11 +241,13 @@ def main() -> int:
                 if key_login.get("account", {}).get("id") != account_a["id"]:
                     raise AssertionError("密钥登录未返回绑定账户")
                 csrf_key = key_login["csrf"]
-                wide = expect(api(page_a2, "/weread/sync", method="POST", csrf=csrf_key, body={"recommendationPages": 3}), 200, "微信读书广范围同步")
-                caps = set(wide.get("capabilities") or [])
+                wide_start = expect(api(page_a2, "/weread/sync", method="POST", csrf=csrf_key, idempotency=f"weread-{run_id}", body={"recommendationPages": 3}), 202, "微信读书广范围同步任务启动")
+                wide = wait_weread_sync(page_a2, wide_start["job"]["id"])
+                progress = wide.get("progress") or {}
+                caps = set(progress.get("capabilities") or [])
                 if caps and not REQUIRED_WEREAD_CAPABILITIES.issubset(caps):
                     raise AssertionError("真实微信读书能力范围缺失关键接口")
-                coverage = wide.get("coverage") or {}
+                coverage = progress.get("coverage") or {}
                 if coverage.get("legacyTop5CeilingRemoved") is not True or int(coverage.get("detailedBooks") or 0) <= 5:
                     raise AssertionError("真实微信读书读取仍未证明突破 Top 5")
                 report["checks"].append({"id": "weread-key-login-wide-sync", "status": "PASS", "detailedBooks": int(coverage.get("detailedBooks") or 0), "capabilityCount": int(coverage.get("capabilityCount") or 0)})

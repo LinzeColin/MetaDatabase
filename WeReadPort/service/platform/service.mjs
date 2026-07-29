@@ -343,13 +343,48 @@ export class PlatformService {
     return publicImportJob(job);
   }
 
+  createWeReadSyncJob(accountId, input = {}, idempotencyKey) {
+    const id = randomId("job_");
+    const selection = {
+      mode: input?.mode === "full" ? "full" : "auto",
+      recommendationPages: Math.min(Math.max(Number(input?.recommendationPages || 3), 1), 10),
+    };
+    const selectionEncrypted = encryptForAccount(this.accountKey(accountId), selection, `import-selection:${accountId}:${id}:v1`);
+    try {
+      const job = this.store.createOrGetActiveImportJob({
+        id,
+        accountId,
+        provider: "weread",
+        selectionEncrypted,
+        idempotencyKey: sanitizeText(idempotencyKey || randomToken(12), 128),
+      });
+      return publicImportJob(job);
+    } catch (error) {
+      if (error?.code === "IDEMPOTENCY_CONFLICT") throw new PlatformError("IDEMPOTENCY_CONFLICT", "该请求标识已用于其他任务。", 409);
+      throw error;
+    }
+  }
+
   async processNextImportJob(workerId = "import-worker") {
     this.store.heartbeat(workerId, "import", "v0.0.0.1.9");
     const job = this.store.claimNextImportJob(workerId, this.config.importLeaseSeconds);
     if (!job) return null;
+    const refreshLease = () => {
+      try {
+        this.store.renewImportJobLease(job.accountId, job.id, workerId, this.config.importLeaseSeconds);
+        this.store.heartbeat(workerId, "import", "v0.0.0.1.9");
+      } catch { /* a failed lease refresh is surfaced by the running operation or readiness probe */ }
+    };
+    const leaseTimer = setInterval(refreshLease, Math.max(1_000, Math.floor(this.config.importLeaseSeconds * 1000 / 3)));
+    leaseTimer.unref?.();
     try {
       if (!job.selectionEncrypted) throw new PlatformError("IMPORT_SELECTION_MISSING", "导入内容已失效，请重新选择。", 409);
       const selection = JSON.parse(decryptForAccount(this.accountKey(job.accountId), job.selectionEncrypted, `import-selection:${job.accountId}:${job.id}:v1`).toString("utf8"));
+      if (job.provider === "weread") {
+        const result = await this.syncWeRead(job.accountId, selection);
+        this.store.updateImportJob(job.accountId, job.id, { state: "COMPLETE", progress: publicWeReadSyncProgress(result), clearSelection: true });
+        return publicImportJob(this.store.getImportJob(job.accountId, job.id));
+      }
       let documents;
       if (job.provider === "obsidian") documents = normalizeObsidianDocuments(selection);
       else {
@@ -371,6 +406,8 @@ export class PlatformService {
     } catch (error) {
       this.store.updateImportJob(job.accountId, job.id, { state: "FAILED", progress: {}, errorCode: safeErrorCode(error), clearSelection: true });
       throw error;
+    } finally {
+      clearInterval(leaseTimer);
     }
   }
 
@@ -582,6 +619,10 @@ export class PlatformService {
     return { exportedAt: new Date(this.clock()).toISOString(), schemaVersion: "1.0.0", scope: "filtered-notes", notes };
   }
   getImportJob(accountId, id) { return publicImportJob(this.store.getImportJob(accountId, id)); }
+  getWeReadSyncJob(accountId, id) {
+    const job = this.store.getImportJob(accountId, id);
+    return job?.provider === "weread" ? publicImportJob(job) : null;
+  }
   analytics(accountId) { return buildAnalyticsDashboard(this.store, accountId, { now: this.clock() }); }
   updateConsent(accountId, input) { return this.store.updateConsent(accountId, input); }
   updateProfile(accountId, input) { return this.store.updateAccount(accountId, { displayName: sanitizeText(input.displayName, 80), locale: "zh-CN" }); }
@@ -738,6 +779,23 @@ function publicImportJob(job) {
   if (!job) return null;
   const { selectionEncrypted, idempotencyKey, workerId, ...safe } = job;
   return safe;
+}
+
+function publicWeReadSyncProgress(result) {
+  const summary = result?.summary || {};
+  const coverage = result?.coverage || {};
+  return {
+    syncMode: String(summary.syncMode || coverage.mode || "unknown"),
+    notebookBooks: Number(summary.notebookBooks || 0),
+    detailedBooks: Number(summary.detailedBooks || 0),
+    skippedUnchangedBooks: Number(summary.skippedUnchangedBooks || 0),
+    importedDocuments: Number(summary.importedDocuments || 0),
+    updatedDocuments: Number(summary.updatedDocuments || 0),
+    unchangedDocuments: Number(summary.unchangedDocuments || 0),
+    coverage,
+    capabilities: Array.isArray(result?.capabilities) ? result.capabilities.filter(value => typeof value === "string").slice(0, 100) : [],
+    failureCount: Array.isArray(result?.failures) ? result.failures.length : 0,
+  };
 }
 
 function publicNote(note) { const { objectKey, ...publicRow } = note; return publicRow; }

@@ -340,29 +340,64 @@ async function refreshDerivedAccountState() {
 }
 async function runWeReadSync(content, { automatic = false, forceFull = false, preserveView = false } = {}) {
   if (state.wereadSyncing) { toast("微信读书正在同步，请稍候。", "info"); return undefined; }
-  const complete = async () => {
-    const result = await api.wereadSync(forceFull ? "full" : "auto");
-    const summary = result.summary || {};
-    const scope = summary.syncMode === "incremental"
-      ? `快速核对 ${summary.notebookBooks || 0} 本书，跳过 ${summary.skippedUnchangedBooks || 0} 本无变化书籍`
-      : `完整整理 ${summary.notebookBooks || 0} 本书`;
-    const coverage = summary.coverage || result.coverage || {};
-    const verification = coverage.verified ? "覆盖已核验" : coverage.unresolvedDocuments ? `仍有 ${coverage.unresolvedDocuments} 条待确认` : "覆盖待完整核对";
-    toast(`同步完成：${scope}；${summary.updatedDocuments ?? summary.importedDocuments ?? 0} 条更新，${summary.unchangedDocuments || 0} 条已是最新；${verification}。`, result.failures?.length || !coverage.verified && summary.syncMode === "full" ? "warning" : "success");
-    await refreshDerivedAccountState();
-    if (!automatic && !preserveView) state.view = "notes";
-    await renderCurrent(document);
-    return result;
+  const start = async () => {
+    state.wereadSyncing = true;
+    try {
+      const result = await api.wereadSync(forceFull ? "full" : "auto");
+      const job = result?.job;
+      if (!job?.id) throw new Error("微信读书同步任务未建立。");
+      toast(forceFull ? "已建立后台完整核对任务；可继续浏览，完成后会自动刷新数据。" : "已建立后台微信读书同步任务；可继续浏览，完成后会自动刷新数据。", "info");
+      void observeWeReadSync(job.id, { automatic, preserveView });
+      return job;
+    } catch (error) {
+      state.wereadSyncing = false;
+      throw error;
+    }
   };
-  if (!automatic) return action("正在同步微信读书最新变化…", complete);
-  state.wereadSyncing = true;
-  toast(forceFull ? "正在后台完整核对微信读书数据…" : "已登录，正在后台检查微信读书最新变化…", "info");
-  try { return await complete(); }
+  if (!automatic) return action(forceFull ? "正在建立微信读书完整核对任务…" : "正在建立微信读书同步任务…", start);
+  try { return await start(); }
   catch (error) {
     toast(error?.message || "微信读书同步失败，请稍后重试。", "error");
     console.error(JSON.stringify({ event: "weread_background_sync_failed", code: String(error?.code || "REQUEST_FAILED") }));
     return undefined;
+  }
+}
+async function observeWeReadSync(jobId, { automatic, preserveView }) {
+  try {
+    const job = await waitForWeReadSync(jobId);
+    if (!job) {
+      toast("微信读书仍在后台同步；稍后刷新即可查看结果。", "info");
+      return;
+    }
+    if (job.state === "FAILED") {
+      toast("微信读书同步未完成，请稍后重试。", "error");
+      console.error(JSON.stringify({ event: "weread_background_sync_failed", code: String(job.errorCode || "SYNC_FAILED") }));
+      return;
+    }
+    const progress = job.progress || {};
+    const scope = progress.syncMode === "incremental"
+      ? `快速核对 ${progress.notebookBooks || 0} 本书，跳过 ${progress.skippedUnchangedBooks || 0} 本无变化书籍`
+      : `完整整理 ${progress.notebookBooks || 0} 本书`;
+    const coverage = progress.coverage?.coverage || {};
+    const verification = coverage.verified ? "覆盖已核验" : coverage.unresolvedDocuments ? `仍有 ${coverage.unresolvedDocuments} 条待确认` : "覆盖待完整核对";
+    toast(`同步完成：${scope}；${progress.updatedDocuments ?? progress.importedDocuments ?? 0} 条更新，${progress.unchangedDocuments || 0} 条已是最新；${verification}。`, Number(progress.failureCount || 0) || !coverage.verified && progress.syncMode === "full" ? "warning" : "success");
+    await refreshDerivedAccountState();
+    if (!automatic && !preserveView) state.view = "notes";
+    await renderCurrent(document);
+  } catch (error) {
+    toast(error?.message || "微信读书同步状态暂时无法读取，请稍后刷新。", "error");
+    console.error(JSON.stringify({ event: "weread_background_sync_status_failed", code: String(error?.code || "REQUEST_FAILED") }));
   } finally { state.wereadSyncing = false; }
+}
+async function waitForWeReadSync(jobId) {
+  for (let attempt = 0; attempt < 600; attempt += 1) {
+    const result = await api.wereadSyncJob(jobId);
+    const job = result?.job;
+    if (!job?.id) throw new Error("微信读书同步任务状态不可用。");
+    if (["COMPLETE", "FAILED"].includes(job.state)) return job;
+    await delay(500);
+  }
+  return null;
 }
 function openObsidianChooser(content) {
   const workspace = content.querySelector("#import-workspace");

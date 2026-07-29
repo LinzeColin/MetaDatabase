@@ -1,3 +1,11 @@
+function newIdempotencyKey() {
+  // `randomUUID` is available on the HTTPS production surface. Keep a
+  // collision-resistant-enough fallback for embedded and test contexts where
+  // the Web Crypto secure-context gate is unavailable; this is a request
+  // de-duplication token, never an authentication or encryption secret.
+  return globalThis.crypto?.randomUUID?.() || `client_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+}
+
 export class AccountApi {
   constructor(base = "/api/platform/v1") { this.base = base; this.csrf = ""; }
   readiness() { return fetch("/readyz", { credentials: "same-origin", headers: { Accept: "application/json" } }).then(async response => ({ ok: response.ok, status: response.status, payload: await response.json().catch(() => ({})) })); }
@@ -28,9 +36,10 @@ export class AccountApi {
   deleteNote(id, expectedVersion) { return this.request(`/notes/${encodeURIComponent(id)}?expectedVersion=${encodeURIComponent(expectedVersion)}`, { method: "DELETE", body: {} }); }
   syncPull(cursor = 0) { return this.request("/sync/pull", { method: "POST", body: { cursor, limit: 500 } }); }
   syncPush(operations) { return this.request("/sync/push", { method: "POST", body: { operations } }); }
-  wereadSync(mode = "auto") { return this.request("/weread/sync", { method: "POST", body: { mode, recommendationPages: 3 } }); }
+  wereadSync(mode = "auto") { return this.request("/weread/sync", { method: "POST", body: { mode, recommendationPages: 3 }, headers: { "Idempotency-Key": newIdempotencyKey() } }); }
+  wereadSyncJob(id) { return this.request(`/weread/sync/jobs/${encodeURIComponent(id)}`); }
   providerItems(provider, params = {}) { const query = new URLSearchParams(params); return this.request(`/imports/${provider}/items?${query}`); }
-  startImport(provider, selection) { return this.request(`/imports/${provider}/start`, { method: "POST", body: { selection }, headers: { "Idempotency-Key": crypto.randomUUID() } }); }
+  startImport(provider, selection) { return this.request(`/imports/${provider}/start`, { method: "POST", body: { selection }, headers: { "Idempotency-Key": newIdempotencyKey() } }); }
   importJob(id) { return this.request(`/imports/jobs/${encodeURIComponent(id)}`); }
   analytics() { return this.request("/analytics/dashboard"); }
   exportWeRead() { return this.request("/weread/export"); }
