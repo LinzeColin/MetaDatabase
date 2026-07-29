@@ -59,6 +59,22 @@ class Stage3ReviewResumeRecheckTests(unittest.TestCase):
         self.assertFalse(state["stage_3_remote_upload_authorized"])
         self.assertFalse(state["public_release_authorized"])
 
+    def test_stage6_assurance004_completion_requires_assurance005_next(self) -> None:
+        check = VERIFY.validate_taskpack_and_current_transition()
+        self.assertEqual(check.details["completed_task"], "TSK.x2n.assurance.004")
+        self.assertEqual(check.details["next_task"], "TSK.x2n.assurance.005")
+
+        state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
+        changed = copy.deepcopy(state)
+        changed["next_task"] = "TSK.x2n.assurance.004"
+        original = VERIFY._load_json
+        try:
+            VERIFY._load_json = lambda path: changed if path == VERIFY.TASK_STATE else original(path)
+            with self.assertRaises(VERIFY.RecheckError):
+                VERIFY.validate_taskpack_and_current_transition()
+        finally:
+            VERIFY._load_json = original
+
     def test_public_boundary_rejects_credentials_paths_cdn_and_urls_in_evidence(self) -> None:
         for unsafe in (
             {"path": "/" + "Users" + "/private"},

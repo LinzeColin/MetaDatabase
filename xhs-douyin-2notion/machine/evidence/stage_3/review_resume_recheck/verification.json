@@ -19,8 +19,8 @@
     },
     {
       "details": {
-        "completed_task": "TSK.x2n.adapters.010",
-        "next_task": "TSK.x2n.multimodal.001",
+        "completed_task": "TSK.x2n.assurance.004",
+        "next_task": "TSK.x2n.assurance.005",
         "remote_upload": 0
       },
       "name": "taskpack_and_current_stage_transition",
@@ -60,7 +60,7 @@
     "stage_3_remote_upload": "NOT_RUN",
     "stage_4_executed": false
   },
-  "generated_at": "2026-07-28T07:44:33Z",
+  "generated_at": "2026-07-29T07:27:04Z",
   "review_id": "STG.X2N.3.REVIEW.RESUME.RECHECK",
   "run_id": "RUN-X2N-S03-REVIEW-RESUME-RECHECK",
   "schema_version": "1.0",

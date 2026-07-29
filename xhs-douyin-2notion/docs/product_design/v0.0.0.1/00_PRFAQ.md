@@ -3,10 +3,11 @@ artifact: PRFAQ
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: STAGE_6_ASSURANCE003_CI_SYNTH_SECURITY_PRIVACY_SUPPLY_CHAIN_PASS_ASSURANCE004_NEXT
+status: STAGE_6_ASSURANCE004_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_PASS_ASSURANCE005_NEXT
 owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
-decision: DIRECT_MVP_ASSURANCE003_PASS_ASSURANCE004_NEXT
-implementation_authorized: stage_6_assurance004_only_single_dag_task
+decision: DIRECT_MVP_ASSURANCE004_PASS_ASSURANCE005_NEXT
+current_run_scope: stage_6_assurance004_performance_chaos_recovery_pass_assurance005_next_owner_input_required
+implementation_authorized: stage_6_assurance005_only_single_dag_task
 owner: LinzeColin
 repository_target: LinzeColin/MetaDatabase
 skill_path: xhs-douyin-2notion/

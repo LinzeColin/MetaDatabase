@@ -342,6 +342,14 @@ def validate_taskpack_and_current_transition() -> Check:
     state = _load_json(TASK_STATE)
     if _stage6_started(state):
         completed_assurance003 = state.get("tasks", {}).get("TSK.x2n.assurance.003") == "pass"
+        completed_assurance004 = state.get("tasks", {}).get("TSK.x2n.assurance.004") == "pass"
+        expected_stage6_next_task = (
+            "TSK.x2n.assurance.005"
+            if completed_assurance004
+            else "TSK.x2n.assurance.004"
+            if completed_assurance003
+            else "TSK.x2n.assurance.003"
+        )
         _require(
             all(
                 state.get("tasks", {}).get(task_id) == "pass"
@@ -359,9 +367,10 @@ def validate_taskpack_and_current_transition() -> Check:
             and assurance003.get("status")
             == ("complete_ci_synth_security_privacy_supply_chain" if completed_assurance003 else "planned")
             and assurance004.get("phase") == "PH.X2N.6.4"
+            and assurance004.get("status")
+            == ("complete_ci_synth_performance_chaos_recovery" if completed_assurance004 else "planned")
             and assurance005.get("phase") == "PH.X2N.6.5"
-            and state.get("next_task")
-            == ("TSK.x2n.assurance.004" if completed_assurance003 else "TSK.x2n.assurance.003")
+            and state.get("next_task") == expected_stage6_next_task
             and state.get("stage_3_review_complete") is True
             and state.get("stage_3_remote_upload_authorized") is False
             and state.get("stage_5_remote_upload_authorized") is False
@@ -371,6 +380,7 @@ def validate_taskpack_and_current_transition() -> Check:
         completed_task = next(
             task_id
             for task_id in (
+                "TSK.x2n.assurance.004",
                 "TSK.x2n.assurance.003",
                 "TSK.x2n.assurance.002",
                 "TSK.x2n.assurance.001",
