@@ -286,7 +286,7 @@ async function proxyAccountPlatform(request, env) {
     }
     if (outputHeaders.has("location")) {
       const location = new URL(outputHeaders.get("location"), incoming.origin);
-      if (location.origin !== incoming.origin) throw new WeReadPortError("UPSTREAM_REDIRECT", "账户服务返回了非同源重定向。", { status: 502 });
+      if (location.origin !== incoming.origin && !isTrustedAdminSessionHandoff(incoming, location, env)) throw new WeReadPortError("UPSTREAM_REDIRECT", "账户服务返回了非同源重定向。", { status: 502 });
       outputHeaders.set("location", location.toString());
     }
     return new Response(response.body, { status: response.status, headers: outputHeaders });
@@ -295,6 +295,21 @@ async function proxyAccountPlatform(request, env) {
     if (error instanceof WeReadPortError) throw error;
     throw new WeReadPortError("NETWORK", "无法连接账户平台服务。", { status: 502, retryable: true });
   } finally { clearTimeout(timer); }
+}
+
+function isTrustedAdminSessionHandoff(incoming, location, env) {
+  const adminHost = String(env.WRP_ADMIN_HOST || "").trim().toLowerCase();
+  const publicHost = adminHost.startsWith("admin.") ? adminHost.slice("admin.".length) : "";
+  return incoming.protocol === "https:"
+    && incoming.hostname.toLowerCase() === publicHost
+    && incoming.pathname === "/api/platform/v1/session/handoff"
+    && location.protocol === "https:"
+    && location.hostname.toLowerCase() === adminHost
+    && location.pathname === "/"
+    && location.search === "?handoff=1"
+    && !location.username
+    && !location.password
+    && !location.hash;
 }
 
 function runtimeMode(url, env) {

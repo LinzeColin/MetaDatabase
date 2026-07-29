@@ -90,7 +90,10 @@ test("UI UX Pro Max 关键可访问性合同：44px 触控、焦点、减弱动�
 
 test("管理员界面独立构建，普通用户页面不含管理导航或管理数据展示", () => {
   assert.ok(adminHtml.includes("阅迁 Admin"));
-  for (const phrase of ["服务端账户白名单", "用途说明", "审计日志", "管理员控制台", "adminPrompts", "adminNote"]) assert.ok(adminUi.includes(phrase), phrase);
+  for (const phrase of ["不可变账户白名单", "登录后直接查看管理数据", "Promise.allSettled", "session/handoff", "管理员控制台", "adminPrompts", "adminNote", "DIRECT_LIST_LIMIT"]) assert.ok(adminUi.includes(phrase), phrase);
+  assert.equal(adminUi.includes("读取并审计"), false);
+  assert.equal(adminUi.includes("查看用途"), false);
+  assert.equal(adminUi.includes("近期身份验证"), false);
   assert.equal(ui.includes("admin-app.js"), false);
   assert.equal(ui.includes("用户资料"), false);
   assert.equal(ui.includes("审计日志"), false);

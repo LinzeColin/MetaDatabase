@@ -51,11 +51,11 @@ export class AccountApi {
   deleteAccount() { return this.request("/account/delete", { method: "POST", body: {} }); }
   businessLines() { return this.request("/status/business-lines"); }
   adminOverview() { return this.request("/admin/overview", { method: "POST", body: {} }); }
-  adminAccounts({ reason, query = "", limit = 100 }) { return this.request("/admin/accounts", { method: "POST", body: { reason, query, limit } }); }
-  adminNotes({ reason, accountId = "", limit = 100 }) { return this.request("/admin/notes", { method: "POST", body: { reason, accountId, limit } }); }
-  adminNote(id, reason) { return this.request(`/admin/notes/${encodeURIComponent(id)}`, { method: "POST", body: { reason } }); }
-  adminPrompts({ reason, limit = 100 }) { return this.request("/admin/prompts", { method: "POST", body: { reason, limit } }); }
-  adminAudit({ reason, limit = 100 }) { return this.request("/admin/audit", { method: "POST", body: { reason, limit } }); }
+  adminAccounts({ query = "", limit = 5_000 } = {}) { return this.request("/admin/accounts", { method: "POST", body: { query, limit } }); }
+  adminNotes({ accountId = "", limit = 5_000 } = {}) { return this.request("/admin/notes", { method: "POST", body: { accountId, limit } }); }
+  adminNote(id) { return this.request(`/admin/notes/${encodeURIComponent(id)}`, { method: "POST", body: {} }); }
+  adminPrompts({ limit = 5_000 } = {}) { return this.request("/admin/prompts", { method: "POST", body: { limit } }); }
+  adminAudit({ limit = 5_000 } = {}) { return this.request("/admin/audit", { method: "POST", body: { limit } }); }
 
   async request(path, { method = "GET", body, headers = {}, allow401 = false } = {}) {
     // Bypass any response cached before the account API adopted no-store headers.
