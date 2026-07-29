@@ -109,10 +109,19 @@ EnvironmentFile=$LIVE_ENV
 # 注意：这一整块在 remote "..." 这个双引号字符串里面，注释里**不能出现半角
 # 双引号**——它会把外层字符串提前闭合，整个脚本从那里开始语法就错了。
 LoadCredential=deepseek-api-key:/etc/cyberboss/credentials/deepseek-api-key
-# OpenAI 那把。文件不存在时 LoadCredential 会让服务起不来，所以前面加减号
-# 表示可选——没配就安静跳过，配了就自动生效。
-LoadCredential=-openai-api-key:/etc/cyberboss/credentials/openai-api-key
 EOF
+    # OpenAI 那把，**只在文件真的存在时**才写这一行。
+    #
+    # LoadCredential 没有可选语法。我先写成 LoadCredential=-openai-api-key，
+    # 以为减号和 EnvironmentFile=- 一样表示可选——不是。systemd 把整个
+    # 减号开头的串当成凭据名，源文件不存在就 243/CREDENTIALS，服务起不来。
+    # 上线之后服务 failed、公网 530，自动回滚也救不回来：回滚会用同一个脚本
+    # 再写一遍同样这行坏配置。
+    #
+    # 所以改成先探一下。没配 OpenAI 的机器上这一行根本不会出现。
+    if sudo test -s /etc/cyberboss/credentials/openai-api-key; then
+      echo 'LoadCredential=openai-api-key:/etc/cyberboss/credentials/openai-api-key' | sudo tee -a $DROPIN >/dev/null
+    fi
     sudo systemctl daemon-reload
   "
 }
