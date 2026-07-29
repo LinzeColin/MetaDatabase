@@ -707,8 +707,8 @@ class MvpReleaseController:
 
     @classmethod
     def load(cls, paths: RuntimePaths, *, require_state: bool = True) -> "MvpReleaseController | None":
-        input_exists = paths.owner_mvp_release_input.exists()
-        state_exists = paths.owner_mvp_release_state.exists()
+        input_exists = paths.owner_mvp_release_input.exists() or paths.owner_mvp_release_input.is_symlink()
+        state_exists = paths.owner_mvp_release_state.exists() or paths.owner_mvp_release_state.is_symlink()
         if not input_exists and not state_exists and not require_state:
             return None
         if not input_exists:
@@ -734,7 +734,7 @@ class MvpReleaseController:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP activation confirmation is missing")
         owner_input_contract_sha256(verify_source=True)
         paths.ensure_private_directory("runtime/release")
-        if paths.owner_mvp_release_state.exists():
+        if paths.owner_mvp_release_state.exists() or paths.owner_mvp_release_state.is_symlink():
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP activation is already armed")
         _validate_owner_input_contract(paths)
         release_input = load_owner_mvp_release_input(paths)

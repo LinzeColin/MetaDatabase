@@ -101,7 +101,8 @@ scope/boundary fields are source-bound and must not be changed.
 The private release input also contains four ordered, hash-only 20-item Owner manifests (one per enabled scope).
 The Owner replaces the template placeholders with SHA-256 values of the selected stable content IDs. The Companion
 compares the observed 20 IDs to that private set before any Canonical write; it never prints either the IDs or the
-manifest. A mismatch stops the scope with zero write.
+manifest. A mismatch stops the scope with zero write. A private input or release-state symlink, including a dangling
+one, is never treated as absent: it blocks load/arm before a backup, state write, or platform action.
 
 After `arm`, the Owner performs one explicit bounded Side Panel action for each four fixed scopes. The UI must not
 scroll, alter platform account state, or run a background batch. Then complete the same release Task:

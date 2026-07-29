@@ -23,6 +23,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   source. A stale or mismatched Side Panel cannot mint the deployment handshake.
 - The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
   Companion, so the installed Native Host does not need a repository checkout to validate private release input.
+- A private Owner MVP input or release-state symlink, including a dangling one, is treated as unsafe rather than
+  absent. `load` and `arm` reject it before any pre-switch backup, private state write, or platform action.
 - The XHS profile fallback now treats a favorites/likes surface as selected only when the matching label belongs to
   a semantic interactive control (selected button/link or selected role=tab). A cosmetic profile counter with an
   `active` class is rejected before it can misclassify ordinary profile content as a relation list.
@@ -74,7 +76,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 - Current Companion discovery contains 332 tests. A bounded current full rerun was stopped during the existing 10k
   Markdown rebuild without a verdict, so it is not treated as a current full-suite pass. Focused A005
-  bundle/release/acceptance tests passed: 23 tests, covering exact scopes, hash-manifest mismatch before adapter
+  bundle/release/acceptance tests passed: 25 tests, covering exact scopes, hash-manifest mismatch before adapter
   initialization, Markdown idempotency, durable archive proof, external gates, pointer rollback, staged Native Host
   binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
@@ -92,7 +94,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
   contacts the client or any remote service.
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
-  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (90), Contract
+  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (92), Contract
   tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
 
 ## Next work

@@ -482,6 +482,29 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertFalse(self.paths.owner_mvp_release_state.exists())
         self.assertFalse(self.paths._validate_marker()["product_execution_authorized"])
 
+    def test_arm_rejects_a_dangling_release_state_link_before_backup(self) -> None:
+        self.paths.owner_mvp_release_state.symlink_to("missing-owner-mvp-release-state")
+        with mock.patch.object(self.store, "backup") as backup:
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+        backup.assert_not_called()
+        self.assertTrue(self.paths.owner_mvp_release_state.is_symlink())
+
+    def test_load_rejects_dangling_owner_private_release_links(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        self.paths.owner_mvp_release_input.symlink_to("missing-owner-mvp-release-input")
+        with self.assertRaises(X2NRuntimeError) as blocked_input:
+            MvpReleaseController.load(self.paths, require_state=False)
+        self.assertEqual(blocked_input.exception.code, ErrorCode.POLICY_BLOCKED)
+
+        self.paths.owner_mvp_release_input.unlink()
+        _write_private(self.paths.owner_mvp_release_input, _release_input())
+        self.paths.owner_mvp_release_state.symlink_to("missing-owner-mvp-release-state")
+        with self.assertRaises(X2NRuntimeError) as blocked_state:
+            MvpReleaseController.load(self.paths, require_state=False)
+        self.assertEqual(blocked_state.exception.code, ErrorCode.POLICY_BLOCKED)
+
     def test_douyin_execution_rechecks_sidecar_bundle_before_any_loopback_call(self) -> None:
         controller = MvpReleaseController.arm(self.paths, self.store, confirmation=ARM_CONFIRMATION)
         sidecar = self.sidecar_bundle / "sidecar"
