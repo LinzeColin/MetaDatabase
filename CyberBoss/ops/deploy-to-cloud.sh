@@ -252,6 +252,19 @@ remote "sudo -u cyberboss env HOME=$STATE_DIR npm --prefix $APP_ROOT/releases/$S
 ok "自检通过"
 
 # 5. 切换：改 current 指针（给人看）+ 改绑定（给 systemd 看），然后重启
+# 让 canonical sync 那个身份能穿过状态目录。
+#
+# 「github 指定的 private repo 是全量数据库」——这条一直没成立：全量同步每天
+# 03:20 跑一次，每次都是 CANONICAL_DATA_SYNC=FAIL code=EACCES。
+#
+# 原因不在同步本身，在路上。同步是 cyberboss-data 这个身份在跑，它已经在
+# cyberboss 组里，canonical-spool/ 也已经是 drwxr-x--- 组可读——但
+# /var/lib/cyberboss 本身是 0700，组连**穿过去**都不行，第一跳就被拒。
+#
+# 0710 只给组 x（穿过），不给 r（列目录）。runtime.db 是 0600，仍然读不到；
+# canonical-spool/ 是显式组可读的，正是要给它的那一份。
+remote "sudo chmod 0710 $STATE_DIR" || true
+
 step "正在切换到新版本……"
 [ -n "$OLD_SHA" ] && remote "sudo ln -sfn $APP_ROOT/releases/$OLD_SHA $APP_ROOT/previous" || true
 remote "sudo ln -sfn $APP_ROOT/releases/$SHA $APP_ROOT/current"

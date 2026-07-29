@@ -394,6 +394,30 @@ class DurableInboxCoordinator {
           // 打不出来就算了，这只是一次性的取样。
         }
       }
+      // 图片和语音的字段名同样要抓，不能猜。
+      //
+      // message-utils 里那段取附件的代码，每个属性都试六七个备选名
+      // （url / download_url / cdn_url / aes_key / aeskey / aes_key_hex ⋯），
+      // 这本身就说明它当初是猜出来的。猜错的代价这个仓已经付过：编出来的外部
+      // 响应形状让整套测试全绿，而生产 100% 失效。
+      //
+      // 每种类型只打一次，而且**只打字段名和类型，一个字节的内容都不打**——
+      // 图里有什么、语音说了什么，一律不进日志。
+      const mediaTypes = new Set([2, 3, 4, 5]);
+      for (const item of Array.isArray(rawMessage?.item_list) ? rawMessage.item_list : []) {
+        const itemType = Number(item?.type);
+        if (!mediaTypes.has(itemType) || DurableInboxCoordinator.loggedMediaShapes.has(itemType)) {
+          continue;
+        }
+        DurableInboxCoordinator.loggedMediaShapes.add(itemType);
+        try {
+          console.log(
+            `[cyberboss] 微信附件形状 type=${itemType} ${JSON.stringify(describeShape(item))}`,
+          );
+        } catch {
+          // 同上，取样失败不该影响这条消息本身。
+        }
+      }
       const normalized = this.channelAdapter.normalizeIncomingMessage(
         rawMessage,
         { durable: true },
@@ -529,9 +553,44 @@ class DurableInboxCoordinator {
   }
 }
 
+// 每种附件类型只取一次样，重启后重新取。
+DurableInboxCoordinator.loggedMediaShapes = new Set();
+
+// 只留结构，不留内容。
+//
+// 字符串一律换成 `string(长度)`，数字保留（它们是长度、时长、类型这类元数据），
+// 嵌套对象递归下去。这样既能看清 iLink 到底把下载地址叫什么名字，又保证图里
+// 有什么、语音说了什么一个字都不会落进日志。
+function describeShape(value, depth = 0) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (Array.isArray(value)) {
+    return depth >= 4 ? "array" : value.slice(0, 2).map((entry) => describeShape(entry, depth + 1));
+  }
+  if (typeof value === "object") {
+    if (depth >= 4) {
+      return "object";
+    }
+    const shape = {};
+    for (const [key, entry] of Object.entries(value)) {
+      shape[key] = describeShape(entry, depth + 1);
+    }
+    return shape;
+  }
+  if (typeof value === "string") {
+    return `string(${value.length})`;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return value;
+  }
+  return typeof value;
+}
+
 module.exports = {
   DurableInboxCoordinator,
   DurableInboxError,
+  describeShape,
   assertHighestContinuousBatch,
   buildBatchId,
   compareRawMessages,
