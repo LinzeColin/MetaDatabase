@@ -69,6 +69,11 @@ const MIGRATIONS = Object.freeze([
     name: "012_bot_initiated_messages.sql",
     sourceCommit: "PANEL-6",
   }),
+  Object.freeze({
+    version: 11,
+    name: "013_turn_traces.sql",
+    sourceCommit: "CONSOLE-1",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
@@ -4083,6 +4088,85 @@ class RuntimeSpoolDatabase {
       // 单人安装可能还没有 users 表，那就没有标签，不是错误。
     }
     return roles;
+  }
+
+  // ── 每一轮的执行轨迹 ─────────────────────────────────────
+  //
+  // codex 只吐 turn started/completed/failed、reply delta/completed、token 计数、
+  // approval requested 这几种，**没有**单独的"推理内容"事件。所以这里存的是
+  // 执行轨迹（什么时候开始、每步隔多久、烧了多少 token、调没调工具、怎么失败的），
+  // 不是模型的内心独白——别把它当成后者。
+  //
+  // 写失败一律吞掉：记不下轨迹不该让一轮回复挂掉。
+
+  recordTurnTrace({ jobId = "", threadId = "", turnId = "", seq = 0, kind, payload = null }) {
+    this.#assertOpen();
+    const label = String(kind || "").slice(0, 64);
+    if (!label) {
+      throw new RuntimeSpoolError("TRACE_KIND_REQUIRED");
+    }
+    const now = this.#timestamp();
+    const id = this.#identity("trace", [turnId || threadId || jobId || "-", String(seq), label, now], "trace");
+    let ciphertext = null;
+    if (payload !== null && payload !== undefined) {
+      // reply delta 里就是用户看到的那些字，属于真实聊天内容，必须进信封。
+      const plain = Buffer.from(stableJson(payload), "utf8").subarray(0, 16 * 1024);
+      ciphertext = this.cipher.encrypt(plain, `trace:${id}:payload`);
+    }
+    this.database
+      .prepare(
+        `INSERT INTO turn_traces(id, job_id, thread_id, turn_id, seq, kind, payload_ciphertext, occurred_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO NOTHING`,
+      )
+      .run(id, jobId || null, threadId || null, turnId || null, Number(seq) || 0, label, ciphertext, now);
+    return id;
+  }
+
+  listTurnTracesForOwner({ turnId = "", jobId = "", limit = 200 } = {}) {
+    this.#assertOpen();
+    const bounded = Math.max(1, Math.min(1000, Number(limit) || 200));
+    const clauses = [];
+    const params = [];
+    if (turnId) {
+      clauses.push("turn_id = ?");
+      params.push(turnId);
+    }
+    if (jobId) {
+      clauses.push("job_id = ?");
+      params.push(jobId);
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(" OR ")}` : "";
+    return this.database
+      .prepare(
+        `SELECT id, job_id, thread_id, turn_id, seq, kind, payload_ciphertext, occurred_at
+         FROM turn_traces ${where}
+         ORDER BY occurred_at DESC, seq DESC
+         LIMIT ?`,
+      )
+      .all(...params, bounded)
+      .map((row) => {
+        let payload = null;
+        if (row.payload_ciphertext !== null) {
+          try {
+            payload = JSON.parse(
+              this.cipher.decrypt(row.payload_ciphertext, `trace:${row.id}:payload`).toString("utf8"),
+            );
+          } catch {
+            payload = null;
+          }
+        }
+        return Object.freeze({
+          id: row.id,
+          jobId: row.job_id || "",
+          threadId: row.thread_id || "",
+          turnId: row.turn_id || "",
+          seq: Number(row.seq),
+          kind: row.kind,
+          payload,
+          at: row.occurred_at,
+        });
+      });
   }
 
   // ── 机器人自己先开口的那些消息 ───────────────────────────

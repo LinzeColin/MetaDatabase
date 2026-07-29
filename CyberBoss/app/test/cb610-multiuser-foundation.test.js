@@ -68,7 +68,7 @@ test("migration 006 is additive, dynamically numbered and registered", (t) => {
   t.after(() => spool.close());
 
   const versions = spool.migrationRecords().map((row) => Number(row.version));
-  assert.deepEqual(versions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  assert.deepEqual(versions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
   // Addressed by version rather than by position: CB-800 appends migration 7,
   // and this node's claim is that 006 is registered, not that it stays last.
   const migration006 = MIGRATIONS.find((migration) => migration.version === 6);
@@ -206,7 +206,7 @@ test("legacy rows are backfilled to Owner and no unscoped row survives", (t) => 
   const ownerUserId = upgraded.ownerUserId;
   assert.deepEqual(
     upgraded.migrationRecords().map((row) => Number(row.version)),
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   );
 
   const reader = new DatabaseSync(databasePath, { readOnly: true });

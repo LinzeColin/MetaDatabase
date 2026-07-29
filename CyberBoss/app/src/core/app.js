@@ -304,6 +304,9 @@ class CyberbossApp {
     this.portalServer = null;
     this.runtimeRestartTimestamps = [];
     this.runtimeAdapter.onEvent((event) => {
+      // 每一轮的执行轨迹。在这之前这些事件只在内存里流过去就没了，主人在后台
+      // 看不到"它当时到底在干什么"——一轮慢了、失败了，唯一的线索是一个错误码。
+      this.noteTurnTrace(event);
       this.threadStateStore.applyRuntimeEvent(event);
       this.runtimeEventChain = this.runtimeEventChain
         .catch(() => {})
@@ -1688,6 +1691,111 @@ class CyberbossApp {
       ? Object.freeze({ providerId: "deepseek", model: "deepseek-chat", apiKey })
       : null;
     return this.ownerCredentialCache;
+  }
+
+  // 记一步执行轨迹。
+  //
+  // 写失败一律吞掉：记不下轨迹绝不能让一轮回复挂掉。reply.delta 会非常密集
+  // （模型每吐几个字就来一条），所以只记它的字数而不是逐条正文——正文在
+  // reply.completed 那一条里已经有了，逐条存等于把同一段话存几十遍。
+  noteTurnTrace(event) {
+    if (!this.runtimeSpoolDatabase || !event || typeof event.type !== "string") {
+      return;
+    }
+    const payload = event.payload || {};
+    const turnId = String(payload.turnId || "");
+    const threadId = String(payload.threadId || "");
+    if (!turnId && !threadId) {
+      return;
+    }
+    this.traceSeqByTurn = this.traceSeqByTurn || new Map();
+    const key = turnId || threadId;
+    const seq = (this.traceSeqByTurn.get(key) || 0) + 1;
+    this.traceSeqByTurn.set(key, seq);
+    if (this.traceSeqByTurn.size > 200) {
+      // 只保最近的一批计数器，别让它无限长。
+      this.traceSeqByTurn = new Map([...this.traceSeqByTurn].slice(-100));
+    }
+
+    let slim = null;
+    if (event.type === "runtime.reply.delta") {
+      slim = { chars: String(payload.text || "").length };
+    } else if (event.type === "runtime.reply.completed") {
+      slim = { text: String(payload.text || "").slice(0, 4000) };
+    } else if (event.type === "runtime.context.updated") {
+      slim = {
+        inputTokens: payload.inputTokens ?? payload.input_tokens ?? null,
+        outputTokens: payload.outputTokens ?? payload.output_tokens ?? null,
+        totalTokens: payload.totalTokens ?? payload.total_tokens ?? null,
+      };
+    } else if (event.type === "runtime.turn.failed") {
+      slim = { errorClass: String(payload.errorClass || ""), retryable: payload.retryable === true };
+    } else if (event.type === "runtime.approval.requested") {
+      slim = { command: String(payload.commandPreview || payload.command || "").slice(0, 400) };
+    } else if (event.type === "runtime.turn.completed") {
+      slim = { status: String(payload.status || ""), cancelled: payload.cancelled === true };
+    }
+
+    try {
+      this.runtimeSpoolDatabase.recordTurnTrace({
+        threadId, turnId, seq, kind: event.type, payload: slim,
+      });
+    } catch {
+      // 见上。
+    }
+  }
+
+  // 一轮回复的执行轨迹，给后台看。把 delta 折叠成一行"吐了 N 个字"，
+  // 否则一屏全是几十条只差几个字的记录，反而看不出它干了什么。
+  buildTurnTrace({ turnId = "", jobId = "", limit = 300 } = {}) {
+    if (!this.runtimeSpoolDatabase) {
+      return Object.freeze({ ok: false, code: "SPOOL_DB_UNAVAILABLE", steps: [] });
+    }
+    let rows = [];
+    try {
+      rows = this.runtimeSpoolDatabase.listTurnTracesForOwner({ turnId, jobId, limit });
+    } catch (error) {
+      return Object.freeze({
+        ok: false,
+        code: normalizeErrorCode(error?.code) || "TRACE_READ_FAILED",
+        steps: [],
+      });
+    }
+    const ordered = rows.slice().sort((a, b) => (a.at === b.at ? a.seq - b.seq : (a.at < b.at ? -1 : 1)));
+    const steps = [];
+    for (const row of ordered) {
+      if (row.kind === "runtime.reply.delta") {
+        const previous = steps[steps.length - 1];
+        if (previous && previous.kind === "runtime.reply.delta") {
+          previous.chars += Number(row.payload?.chars || 0);
+          previous.count += 1;
+          previous.endedAt = row.at;
+          continue;
+        }
+        steps.push({
+          kind: row.kind, at: row.at, endedAt: row.at,
+          chars: Number(row.payload?.chars || 0), count: 1, payload: null,
+        });
+        continue;
+      }
+      steps.push({ kind: row.kind, at: row.at, endedAt: row.at, payload: row.payload });
+    }
+    // 每一步离上一步多久——"慢在哪一步"是主人真正想知道的。
+    let previousAt = steps.length ? steps[0].at : "";
+    for (const step of steps) {
+      const gap = new Date(step.at) - new Date(previousAt);
+      step.gapMs = Number.isFinite(gap) && gap >= 0 ? gap : 0;
+      previousAt = step.endedAt || step.at;
+    }
+    return Object.freeze({
+      ok: true,
+      turnId,
+      jobId,
+      steps: Object.freeze(steps.map((step) => Object.freeze(step))),
+      totalMs: steps.length
+        ? Math.max(0, new Date(steps[steps.length - 1].endedAt) - new Date(steps[0].at))
+        : 0,
+    });
   }
 
   // ── 一个人的画像 ────────────────────────────────────────────

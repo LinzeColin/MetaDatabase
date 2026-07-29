@@ -106,7 +106,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const clean = openSpool(cleanPath);
     assert.deepEqual(
       clean.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     );
     assert.deepEqual(clean.pragmaStatus(), {
       journalMode: "wal",
@@ -176,7 +176,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const upgraded = openSpool(v1Path);
     assert.deepEqual(
       upgraded.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     );
     const legacyOutbox = upgraded.getOutbox("legacy-outbox");
     assert.equal(
