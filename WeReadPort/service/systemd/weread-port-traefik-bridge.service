@@ -1,0 +1,19 @@
+[Unit]
+Description=阅迁 Coolify Traefik 到回环账户服务的私网转发 v0.0.0.1.9
+After=network-online.target weread-port-platform.service
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/lib/systemd/systemd-socket-proxyd 127.0.0.1:8788
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+

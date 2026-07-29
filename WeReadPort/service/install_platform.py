@@ -7,11 +7,12 @@ TASKPACK_VERSION = f"v{VERSION}"
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
 SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{3,160}$")
 UNITS = (
-    "weread-port-platform.service", "weread-port-import-worker.service", "weread-port-edge-bridge.service",
+    "weread-port-platform.service", "weread-port-import-worker.service", "weread-port-traefik-bridge.socket",
     "weread-port-platform-health.timer", "weread-port-platform-backup.timer",
     "weread-port-facts-sync.timer", "weread-port-private-database-backup.timer",
     "weread-port-r2-oci-backup.timer",
 )
+LEGACY_UNITS = ("weread-port-edge-bridge.service",)
 REQUIRED_DEPLOY_KEYS = (
     "WRP_TASKPACK_VERSION","WRP_RELEASE_COMMIT","WRP_OVH_RELEASE_ID","WRP_SITES_PROJECT_ID",
     "WRP_ADMIN_BASE_URL","WRP_ADMIN_ACCOUNT_IDS","WRP_EDGE_BRIDGE_HOST","WRP_EDGE_BRIDGE_PORT",
@@ -122,6 +123,10 @@ def main()->int:
  unit_dir.mkdir(parents=True,exist_ok=True)
  for unit in sorted((source_root/"service/systemd").iterdir()):
   if unit.is_file(): shutil.copy2(unit,unit_dir/unit.name); (unit_dir/unit.name).chmod(0o644)
+ for legacy_unit in LEGACY_UNITS:
+  legacy_path=unit_dir/legacy_unit
+  if legacy_path.is_dir(): raise RuntimeError("LEGACY_UNIT_PATH_DIRECTORY")
+  if legacy_path.exists() or legacy_path.is_symlink(): legacy_path.unlink()
  missing=[key for key in REQUIRED_DEPLOY_KEYS if not values.get(key)]
  preflight=run_preflight(source_root,env_file,strict=args.apply and root==pathlib.Path("/"),require_paths=args.apply and root==pathlib.Path("/"))
  activated=False; previous_target=os.readlink(current) if current.is_symlink() else None
@@ -136,7 +141,7 @@ def main()->int:
   if tmp.exists() or tmp.is_symlink(): tmp.unlink()
   tmp.symlink_to(pathlib.Path("releases")/release.name); os.replace(tmp,current)
   try:
-   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service","weread-port-edge-bridge.service"],check=True); wait_for_platform_ready(int(values.get("WRP_SERVICE_PORT","8788"))); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
+   subprocess.run(["systemctl","daemon-reload"],check=True); subprocess.run(["systemctl","disable","--now",*LEGACY_UNITS],check=False); subprocess.run(["systemctl","enable","--now",*UNITS],check=True); subprocess.run(["systemctl","restart","weread-port-platform.service","weread-port-import-worker.service"],check=True); wait_for_platform_ready(int(values.get("WRP_SERVICE_PORT","8788"))); subprocess.run(["systemctl","start","weread-port-platform-health.service","weread-port-private-database-backup.service"],check=True); activated=True
   except Exception:
    # The release identity lives in the environment file. Roll it back together
    # with the symlink so /version can never advertise a release that failed.
@@ -146,7 +151,7 @@ def main()->int:
    else: atomic_write(env_file,previous_env_text,0o600)
    if previous_target:
     rollback=current.with_name(f".current-rollback-{os.getpid()}"); rollback.symlink_to(previous_target); os.replace(rollback,current); subprocess.run(["systemctl","daemon-reload"],check=False)
-   subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service","weread-port-edge-bridge.service"],check=False)
+   subprocess.run(["systemctl","try-restart","weread-port-platform.service","weread-port-import-worker.service"],check=False)
    raise
  else:
   current.parent.mkdir(parents=True,exist_ok=True)

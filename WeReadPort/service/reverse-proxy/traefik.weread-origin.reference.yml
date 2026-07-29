@@ -7,18 +7,18 @@ http:
       entryPoints:
         - https
       rule: Host(`origin.weread.linzezhang.com`)
-      service: weread-port-edge-bridge
+      service: weread-port-traefik-bridge
       tls:
         certResolver: letsencrypt
   services:
-    weread-port-edge-bridge:
+    weread-port-traefik-bridge:
       loadBalancer:
         passHostHeader: true
-        serversTransport: weread-port-edge-transport
+        serversTransport: weread-port-traefik-bridge-transport
         servers:
           - url: http://10.0.1.1:8789
   serversTransports:
-    weread-port-edge-transport:
+    weread-port-traefik-bridge-transport:
       forwardingTimeouts:
         dialTimeout: 5s
         responseHeaderTimeout: 50s

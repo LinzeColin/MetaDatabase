@@ -55,6 +55,9 @@ class PlatformOperationsTests(unittest.TestCase):
         self.temp.cleanup()
 
     def test_installer_prepares_versioned_release_without_generating_secrets(self):
+        legacy_unit = self.root / "install/etc/systemd/system/weread-port-edge-bridge.service"
+        legacy_unit.parent.mkdir(parents=True)
+        legacy_unit.write_text("[Service]\nExecStart=/bin/false\n", encoding="utf-8")
         completed = subprocess.run(
             [sys.executable, str(ROOT / "service/install_platform.py"), "--root", str(self.root / "install"),
              "--release-commit", "a" * 40, "--ovh-release-id", "ovh-test-v019", "--sites-project-id", "sites-test-v019"],
@@ -67,7 +70,6 @@ class PlatformOperationsTests(unittest.TestCase):
         current = self.root / "install/opt/weread-port/current"
         env_file = self.root / "install/etc/weread-port/platform.env"
         self.assertTrue((release / "service/server.mjs").is_file())
-        self.assertTrue((release / "service/edge-bridge.mjs").is_file())
         self.assertTrue(current.is_symlink())
         self.assertEqual(current.resolve(), release.resolve())
         self.assertEqual(env_file.stat().st_mode & 0o777, 0o600)
@@ -77,7 +79,9 @@ class PlatformOperationsTests(unittest.TestCase):
         self.assertNotIn("wrk-", text)
         self.assertIn("WRP_R2_SECRET_ACCESS_KEY", result["missingDeploymentInputs"])
         self.assertTrue((self.root / "install/etc/systemd/system/weread-port-platform.service").is_file())
-        self.assertTrue((self.root / "install/etc/systemd/system/weread-port-edge-bridge.service").is_file())
+        self.assertTrue((self.root / "install/etc/systemd/system/weread-port-traefik-bridge.socket").is_file())
+        self.assertTrue((self.root / "install/etc/systemd/system/weread-port-traefik-bridge.service").is_file())
+        self.assertFalse(legacy_unit.exists())
         self.assertTrue((self.root / "install/etc/systemd/system/weread-port-private-database-backup.timer").is_file())
 
     def test_active_installer_restarts_platform_and_import_worker_after_switching_release(self):
@@ -97,7 +101,9 @@ class PlatformOperationsTests(unittest.TestCase):
             self.assertEqual(INSTALLER.main(), 0)
 
         wait_ready.assert_called_once_with(8788)
-        self.assertIn(["systemctl", "restart", "weread-port-platform.service", "weread-port-import-worker.service", "weread-port-edge-bridge.service"], calls)
+        self.assertIn(["systemctl", "disable", "--now", "weread-port-edge-bridge.service"], calls)
+        self.assertIn(["systemctl", "enable", "--now", *INSTALLER.UNITS], calls)
+        self.assertIn(["systemctl", "restart", "weread-port-platform.service", "weread-port-import-worker.service"], calls)
 
     def test_preflight_is_secret_safe_and_closes_all_last_mile_inputs(self):
         private_db_client = self.root / "private_db_client.py"
@@ -157,6 +163,10 @@ class PlatformOperationsTests(unittest.TestCase):
         encoded = json.dumps(result, ensure_ascii=False)
         self.assertNotIn(secret, encoded)
         self.assertNotIn("r" * 40, encoded)
+        wrong_bridge = {**values, "WRP_EDGE_BRIDGE_HOST": "10.0.2.1", "WRP_EDGE_BRIDGE_PORT": "8790"}
+        wrong_result = PREFLIGHT.check_environment(wrong_bridge, require_paths=True)
+        wrong_targets = {(item["code"], item["field"]) for item in wrong_result["blockers"]}
+        self.assertTrue({("EDGE_BRIDGE_TARGET", "WRP_EDGE_BRIDGE_HOST"), ("EDGE_BRIDGE_TARGET", "WRP_EDGE_BRIDGE_PORT")}.issubset(wrong_targets))
 
     def test_preflight_rejects_placeholders_public_bind_and_missing_clone_free_private_database(self):
         result = PREFLIGHT.check_environment({
