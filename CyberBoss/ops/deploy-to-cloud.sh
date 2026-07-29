@@ -100,11 +100,14 @@ EnvironmentFile=$LIVE_ENV
 # 密钥一直在 /etc/cyberboss/credentials/deepseek-api-key 躺着，但 unit 里没有
 # 这一行，systemd 就不会把它交给进程——loadRuntimeTextSecret 读的是
 # \$CREDENTIALS_DIRECTORY，没有 LoadCredential 时那个变量根本不存在。
-# 于是"前 5 个人用我的额度"整条路是通的，却没有任何东西可取，每个访客都被
+# 于是「前 5 个人用我的额度」整条路是通的，却没有任何东西可取，每个访客都被
 # 推去自己填密钥。文件在 ≠ 进程读得到。
 #
-# 写在部署脚本里而不是手工改服务器：这一整轮的问题都是"服务器配置漂移、
-# 没有任何东西发现"，放进版本控制才不会再漂回去。
+# 写在部署脚本里而不是手工改服务器：这一整轮的问题都是配置漂移、没有任何
+# 东西发现，放进版本控制才不会再漂回去。
+#
+# 注意：这一整块在 remote "..." 这个双引号字符串里面，注释里**不能出现半角
+# 双引号**——它会把外层字符串提前闭合，整个脚本从那里开始语法就错了。
 LoadCredential=deepseek-api-key:/etc/cyberboss/credentials/deepseek-api-key
 EOF
     sudo systemctl daemon-reload
