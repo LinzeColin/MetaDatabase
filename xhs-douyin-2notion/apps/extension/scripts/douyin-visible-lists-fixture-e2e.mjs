@@ -27,10 +27,11 @@ function cards(prefix, count = 20) {
 
 function documentFor(mode, options = {}) {
   const label = mode === "favorites" ? "收藏" : "喜欢";
+  const listSurface = mode === "favorites" ? "user-favorite-list" : "user-like-list";
   const selected = options.cosmeticOnly
     ? `<span class="active">${label}</span>`
     : `<button role="tab" aria-selected="true">${label}</button>`;
-  return `<!doctype html><html><body>${selected}<main>${cards(`fixture-${mode}`, options.count ?? 20)}</main></body></html>`;
+  return `<!doctype html><html><body>${selected}<main data-e2e="${options.listSurface ?? listSurface}">${cards(`fixture-${mode}`, options.count ?? 20)}</main></body></html>`;
 }
 
 let browser;
@@ -91,6 +92,18 @@ try {
   requireCondition(cosmetic.status === "platform_changed", "cosmetic_selection_rejected");
   requireCondition(cosmetic.code === "X2N_PLATFORM_CHANGED", "cosmetic_selection_code");
 
+  currentCase = "wrong_list_surface";
+  currentDocument = documentFor("favorites", { listSurface: "user-post-list" });
+  await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
+  const wrongSurface = validateDouyinVisibleBatch(await page.evaluate(extractDouyinVisibleBatch, {
+    maxItems: 20,
+    mode: "favorites",
+    ownerGesture: true,
+    scopeMode: "owner_mvp_20",
+  }));
+  requireCondition(wrongSurface.status === "platform_changed", "wrong_list_surface_rejected");
+  requireCondition(wrongSurface.code === "X2N_PLATFORM_CHANGED", "wrong_list_surface_code");
+
   currentCase = "duplicate_card";
   currentDocument = documentFor("likes").replace("fixture-likes-01", "fixture-likes-00");
   await page.goto("https://www.douyin.com/user/self", { waitUntil: "domcontentloaded" });
@@ -104,14 +117,14 @@ try {
   requireCondition(duplicate.items.length < 20, "duplicate_no_silent_drop");
 
   requireCondition(blockedPlatformNetworkRequests === 0, "unexpected_platform_request");
-  requireCondition(fixtureDocumentsFulfilled === 4, "fixture_document_count");
+  requireCondition(fixtureDocumentsFulfilled === 5, "fixture_document_count");
   requireCondition(scrollCalls === 0, "automatic_scroll");
   process.stdout.write(`${JSON.stringify({
     automatic_scrolls: 0,
     fixture_documents_fulfilled: fixtureDocumentsFulfilled,
     owner_mvp: "NOT_RUN",
     platform_calls: 0,
-    semantic_surface_cases: 4,
+    semantic_surface_cases: 5,
     status: "PASS",
   })}\n`);
 } catch (error) {

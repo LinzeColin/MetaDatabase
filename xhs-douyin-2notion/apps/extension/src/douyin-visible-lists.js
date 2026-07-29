@@ -27,6 +27,11 @@ function exactKeys(value, expected) {
 export function extractDouyinVisibleBatch(input) {
     const mode = input?.mode;
     const selectedLabel = mode === "favorites" ? "收藏" : mode === "likes" ? "喜欢" : null;
+    const expectedListSurface = mode === "favorites"
+      ? "user-favorite-list"
+      : mode === "likes"
+        ? "user-like-list"
+        : null;
     const platform = "douyin";
     const schemaVersion = "1.0";
     const safeId = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u;
@@ -115,8 +120,9 @@ export function extractDouyinVisibleBatch(input) {
         '[role="tab"][data-active="true"]',
         '[role="tab"].active',
       ].join(", "))].find((node) => !isHidden(node) && normalizeText(node.textContent) === selectedLabel);
-      let root = globalThis.document.querySelector(`[data-x2n-surface="douyin-${mode}"]`);
-      if (!root && selected) root = globalThis.document.querySelector("main, [role=\"main\"]");
+      const root = selected && expectedListSurface
+        ? globalThis.document.querySelector(`[data-e2e="${expectedListSurface}"]`)
+        : null;
       if (!root || isHidden(root)) return failure("platform_changed", "X2N_PLATFORM_CHANGED");
 
       const candidates = [];

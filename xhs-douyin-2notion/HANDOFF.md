@@ -34,6 +34,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `arm`, and each Douyin action require the owner-only executable, resolved lock, SBOM, and transitive-license report
   both to match the private input and to byte-match the current approved clean-room template; raw crawler artifacts
   therefore fail before any loopback connection or Canonical write.
+- The Douyin list extractor accepts only the corresponding platform-owned `data-e2e` list surface
+  (`user-favorite-list` or `user-like-list`) after a selected 收藏/喜欢 control. It deliberately has no generic
+  `main` fallback, so an unrecognized profile layout fails closed instead of treating unrelated cards as a relation list.
 - The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
