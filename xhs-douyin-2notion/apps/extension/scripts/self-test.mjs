@@ -126,11 +126,27 @@ if (
 ) {
   failures.push("task010_controls");
 }
+if (
+  !sources["sidepanel.html"].includes('id="page-context"')
+  || !sources["sidepanel.html"].includes('id="host-health"')
+  || !sources["sidepanel.html"].includes('class="boundary-strip"')
+) failures.push("sidepanel_state_hierarchy");
+if (!/\[hidden\]\s*\{[^}]*display:\s*none\s*!important/s.test(sources["styles/sidepanel.css"])) {
+  failures.push("hidden_controls_visible");
+}
+if (
+  /border-inline-start\s*:/u.test(sources["styles/sidepanel.css"])
+  || /repeating-linear-gradient\s*\(/u.test(sources["styles/sidepanel.css"])
+) failures.push("sidepanel_visual_regression");
 if (!sources["src/sidepanel.js"].includes("fallbackButton.addEventListener")) failures.push("fallback_second_action");
 if (
   !sources["src/sidepanel.js"].includes("saveMvpCurrentButton.addEventListener")
   || !sources["src/sidepanel.js"].includes("saveMvpCurrentSecondButton.addEventListener")
 ) failures.push("mvp_current_action");
+if (
+  !sources["src/sidepanel.js"].includes("setPageContextState")
+  || !sources["src/sidepanel.js"].includes("setHostHealthState")
+) failures.push("sidepanel_status_feedback");
 if (
   !sources["src/sidepanel.js"].includes("target.animate")
   || !sources["src/sidepanel.js"].includes("window.matchMedia")

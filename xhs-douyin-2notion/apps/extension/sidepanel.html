@@ -8,77 +8,92 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="app-header">
+      <header class="app-header" aria-label="x2n 运行概况">
         <div class="brand-row">
           <div class="brand-lockup">
-            <span class="brand-mark" aria-hidden="true">x2n</span>
-            <p class="eyebrow">个人内容知识治理</p>
+            <span class="brand-mark" aria-hidden="true">X2N</span>
+            <div class="brand-copy">
+              <p class="product-name">个人内容知识库</p>
+              <p class="product-caption">明确操作 · 本地优先</p>
+            </div>
           </div>
-          <span class="local-chip"><span class="chip-dot" aria-hidden="true"></span>本地优先</span>
+          <span class="local-chip"><span class="chip-dot" aria-hidden="true"></span>本地</span>
         </div>
-        <h1>保存内容，也保留证据。</h1>
-        <div class="page-state" aria-label="当前页面状态">
-          <p id="page-status" aria-live="polite">正在检查当前页面…</p>
-          <p id="platform-status" class="muted" aria-live="polite"></p>
+        <div id="page-context" class="page-context" data-state="checking" aria-label="当前页面状态">
+          <p class="context-label">当前页面</p>
+          <div class="context-copy">
+            <p id="page-status" aria-live="polite">正在检查当前页面…</p>
+            <p id="platform-status" class="muted" aria-live="polite"></p>
+          </div>
         </div>
       </header>
 
       <nav class="top-tabs" role="tablist" aria-label="x2n 功能区">
-        <button id="tab-save" role="tab" aria-controls="panel-save" aria-selected="true"><span>保存</span></button>
-        <button id="tab-sync" role="tab" aria-controls="panel-sync" aria-selected="false" tabindex="-1"><span>清单</span></button>
-        <button id="tab-review" role="tab" aria-controls="panel-review" aria-selected="false" tabindex="-1"><span>审阅</span></button>
-        <button id="tab-status" role="tab" aria-controls="panel-status" aria-selected="false" tabindex="-1"><span>状态</span></button>
-        <button id="tab-settings" role="tab" aria-controls="panel-settings" aria-selected="false" tabindex="-1"><span>设置</span></button>
+        <button id="tab-save" role="tab" aria-controls="panel-save" aria-selected="true">保存</button>
+        <button id="tab-sync" role="tab" aria-controls="panel-sync" aria-selected="false" tabindex="-1">清单</button>
+        <button id="tab-review" role="tab" aria-controls="panel-review" aria-selected="false" tabindex="-1">审阅</button>
+        <button id="tab-status" role="tab" aria-controls="panel-status" aria-selected="false" tabindex="-1">连接</button>
+        <button id="tab-settings" role="tab" aria-controls="panel-settings" aria-selected="false" tabindex="-1">边界</button>
       </nav>
 
       <main class="panel-main">
         <section id="panel-save" class="panel-card panel-save" role="tabpanel" aria-labelledby="tab-save">
           <div class="section-heading">
-            <p class="section-kicker">当前页面</p>
-            <h2>保存到本地知识库</h2>
-            <p>只在你明确点击后读取当前内容页。不自动滚动，不改变账号状态。</p>
+            <p class="section-label">下一步</p>
+            <h1>保存当前内容</h1>
+            <p>只在你明确点击后读取已打开的内容页；不会替你翻页、滚动或改变账号状态。</p>
           </div>
-          <aside class="guardrail" aria-label="采集保护规则">
-            <strong>保护规则</strong>
-            <span>只保留必要事实；媒体地址、凭据和原始媒体均不会写入。</span>
-          </aside>
-          <div class="save-actions" aria-label="保存操作">
-            <article class="action-card action-card-primary">
-              <div>
-                <p class="action-kicker">单页保存</p>
-                <h3>保存当前内容</h3>
-                <p>仅处理此刻已打开的可用详情页。</p>
+          <div class="boundary-strip" aria-label="保存边界">
+            <span>不自动滚动</span>
+            <span>不改账号状态</span>
+            <span>不保留媒体地址</span>
+          </div>
+          <div class="capture-stack" aria-label="保存操作">
+            <article class="capture-action capture-action-primary">
+              <div class="action-copy">
+                <p class="action-meta">当前页面</p>
+                <h2>保存这个页面</h2>
+                <p>仅处理此刻已打开、且通过本地门禁的详情页。</p>
               </div>
               <button id="save-current" class="button button-primary" type="button" disabled>当前页面暂不可保存</button>
             </article>
-            <article class="action-card">
-              <div>
-                <p class="action-kicker">MVP 预备</p>
-                <h3>小红书当前内容 · 批次 1</h3>
-                <p>仅记录私有内容指纹，不写入正式内容。</p>
+            <section class="mvp-block" aria-labelledby="mvp-heading">
+              <div class="mvp-block-heading">
+                <div>
+                  <p class="action-meta">MVP 预备</p>
+                  <h2 id="mvp-heading">小红书当前内容</h2>
+                </div>
+                <p>每次只记录私有内容指纹；两批自动保持互不重复。</p>
               </div>
-              <button id="save-current-mvp" class="button button-secondary" type="button" disabled>批次 1 暂不可用</button>
-            </article>
-            <article class="action-card">
-              <div>
-                <p class="action-kicker">MVP 预备</p>
-                <h3>小红书当前内容 · 批次 2</h3>
-                <p>与批次 1 自动保持互不重复。</p>
+              <div class="mvp-actions">
+                <article class="capture-action">
+                  <div class="action-copy">
+                    <h3>批次 1</h3>
+                    <p>记录第一个明确选择的 20 条范围。</p>
+                  </div>
+                  <button id="save-current-mvp" class="button button-secondary" type="button" disabled>批次 1 暂不可用</button>
+                </article>
+                <article class="capture-action">
+                  <div class="action-copy">
+                    <h3>批次 2</h3>
+                    <p>记录第二个、与批次 1 不重复的范围。</p>
+                  </div>
+                  <button id="save-current-mvp-second" class="button button-secondary" type="button" disabled>批次 2 暂不可用</button>
+                </article>
               </div>
-              <button id="save-current-mvp-second" class="button button-secondary" type="button" disabled>批次 2 暂不可用</button>
-            </article>
+            </section>
           </div>
-          <p id="capture-status" class="status-message" aria-live="polite"></p>
+          <p id="capture-status" class="status-message" role="status" aria-live="polite"></p>
           <button id="capture-fallback" class="button button-quiet" type="button" hidden>改为保存当前页面</button>
         </section>
 
         <section id="panel-sync" class="panel-card" role="tabpanel" aria-labelledby="tab-sync" hidden>
           <div class="section-heading">
-            <p class="section-kicker">明确选择</p>
+            <p class="section-label">明确选择</p>
             <h2>处理已选清单</h2>
-            <p>每次只执行一个已授权范围。未满足本地门禁时，按钮会保持关闭。</p>
+            <p>每次只执行一个已授权范围。未满足本地门禁时，操作会保持关闭。</p>
           </div>
-          <p id="sync-policy" class="callout" aria-live="polite">正在检查本地能力门禁…</p>
+          <p id="sync-policy" class="callout" role="status" aria-live="polite">正在检查本地能力门禁…</p>
           <div class="form-stack">
             <label for="sync-scope">范围</label>
             <select id="sync-scope">
@@ -106,15 +121,15 @@
           </div>
           <div class="panel-action-row">
             <button id="start-sync" class="button button-primary" type="button" disabled>开始已选操作</button>
-            <p id="sync-status" class="status-message" aria-live="polite"></p>
+            <p id="sync-status" class="status-message" role="status" aria-live="polite"></p>
           </div>
         </section>
 
         <section id="panel-review" class="panel-card" role="tabpanel" aria-labelledby="tab-review" hidden>
           <div class="section-heading">
-            <p class="section-kicker">人工确认</p>
+            <p class="section-label">人工确认</p>
             <h2>审阅分类建议</h2>
-            <p>本轮不会自动创建一级分类。没有你的选择时，内容只会保留为未分类。</p>
+            <p>本轮不会自动创建一级分类。没有你的选择时，内容会保留为未分类。</p>
           </div>
           <div class="empty-state">
             <strong>尚无待审阅建议</strong>
@@ -124,11 +139,11 @@
 
         <section id="panel-status" class="panel-card" role="tabpanel" aria-labelledby="tab-status" hidden>
           <div class="section-heading">
-            <p class="section-kicker">本地连接</p>
+            <p class="section-label">本地连接</p>
             <h2>运行状态</h2>
             <p>检查 Side Panel 与本地助手是否可以安全通信。</p>
           </div>
-          <div class="health-card">
+          <div id="host-health" class="health-card" data-state="checking">
             <span class="health-indicator" aria-hidden="true"></span>
             <p id="host-status" aria-live="polite">正在检查本地助手…</p>
           </div>
@@ -137,8 +152,9 @@
 
         <section id="panel-settings" class="panel-card" role="tabpanel" aria-labelledby="tab-settings" hidden>
           <div class="section-heading">
-            <p class="section-kicker">运行边界</p>
+            <p class="section-label">运行边界</p>
             <h2>本地设置</h2>
+            <p>这些边界由本地门禁强制执行，不由页面操作绕过。</p>
           </div>
           <dl class="settings-list">
             <div><dt>事实来源</dt><dd>本地 SQLite</dd></div>
@@ -148,7 +164,7 @@
         </section>
       </main>
 
-      <footer>本地能力门禁 · 不确定时停止</footer>
+      <footer><span>本地能力门禁</span><span aria-hidden="true"> · </span><span>不确定时停止</span></footer>
     </div>
     <script type="module" src="src/sidepanel.js"></script>
   </body>

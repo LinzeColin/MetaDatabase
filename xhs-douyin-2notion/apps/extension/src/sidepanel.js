@@ -2,8 +2,10 @@ import { recognizePage } from "./page-support.js";
 
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const panels = [...document.querySelectorAll('[role="tabpanel"]')];
+const pageContext = document.querySelector("#page-context");
 const pageStatus = document.querySelector("#page-status");
 const platformStatus = document.querySelector("#platform-status");
+const hostHealth = document.querySelector("#host-health");
 const hostStatus = document.querySelector("#host-status");
 const refreshButton = document.querySelector("#refresh-status");
 const saveButton = document.querySelector("#save-current");
@@ -85,7 +87,28 @@ function createPanelMotion() {
     enterPanel(panel) {
       if (!panel.hidden) animate(panel, 8, 260);
     },
+    updateStatus(target) {
+      animate(target, 4, 180);
+    },
   };
+}
+
+function setPageContextState(state) {
+  if (!pageContext || pageContext.dataset.state === state) return;
+  pageContext.dataset.state = state;
+  panelMotion?.updateStatus(pageContext);
+}
+
+function setHostHealthState(state) {
+  if (!hostHealth || hostHealth.dataset.state === state) return;
+  hostHealth.dataset.state = state;
+  panelMotion?.updateStatus(hostHealth);
+}
+
+function setBusy(control, busy) {
+  if (!control) return;
+  if (busy) control.setAttribute("aria-busy", "true");
+  else control.removeAttribute("aria-busy");
 }
 
 function selectTab(selected) {
@@ -103,10 +126,13 @@ function selectTab(selected) {
 for (const tab of tabs) {
   tab.addEventListener("click", () => selectTab(tab));
   tab.addEventListener("keydown", (event) => {
-    if (!new Set(["ArrowLeft", "ArrowRight"]).has(event.key)) return;
+    if (!new Set(["ArrowLeft", "ArrowRight", "Home", "End"]).has(event.key)) return;
     event.preventDefault();
-    const offset = event.key === "ArrowRight" ? 1 : -1;
-    const next = tabs[(tabs.indexOf(tab) + offset + tabs.length) % tabs.length];
+    const next = event.key === "Home"
+      ? tabs[0]
+      : event.key === "End"
+        ? tabs.at(-1)
+        : tabs[(tabs.indexOf(tab) + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
     selectTab(next);
     next.focus();
   });
@@ -147,21 +173,25 @@ function renderPage(result) {
     delete captureStatus.dataset.jobId;
   }
   if (executablePlatform) {
+    setPageContextState("ready");
     const platformName = EXECUTABLE_PLATFORM_NAMES[result.platform];
     pageStatus.textContent = `已识别 ${platformName} 详情页`;
     platformStatus.textContent = "只会读取你明确选择的这一页";
     return;
   }
   if (xhsMvpCurrentExecutable) {
+    setPageContextState("mvp");
     pageStatus.textContent = "小红书详情页可用于 MVP 预备";
     platformStatus.textContent = "一次明确操作只记录私有内容指纹，不写入正式内容";
     return;
   }
   if (result.supported) {
+    setPageContextState("blocked");
     pageStatus.textContent = "已识别支持的页面";
     platformStatus.textContent = `${result.platform}：当前页面门禁仍关闭`;
     return;
   }
+  setPageContextState("blocked");
   pageStatus.textContent = "当前页面暂不可执行保存";
   platformStatus.textContent = `已安全停止：${result.reason}`;
 }
@@ -322,8 +352,14 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
   if (ownerMvpCurrent && explicitFallbackFromJobId !== null) return;
   const requestedTabId = activeTabId;
   captureInFlight = true;
+  setBusy(ownerMvpScope === "xiaohongshu_current_content"
+    ? saveMvpCurrentButton
+    : ownerMvpScope === "xiaohongshu_current_content_second_batch"
+      ? saveMvpCurrentSecondButton
+      : saveButton, true);
   saveButton.disabled = true;
   saveMvpCurrentButton.disabled = true;
+  saveMvpCurrentSecondButton.disabled = true;
   captureStatus.textContent = ownerMvpCurrent
     ? "正在读取这一页明确选择的 MVP 当前内容…"
     : "正在读取已净化的当前页面事实…";
@@ -365,6 +401,9 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
   } finally {
     clearTimeout(pendingNotice);
     captureInFlight = false;
+    setBusy(saveButton, false);
+    setBusy(saveMvpCurrentButton, false);
+    setBusy(saveMvpCurrentSecondButton, false);
     saveButton.disabled = !(currentPageExecutable && activeTabId === requestedTabId);
     saveMvpCurrentButton.disabled = !(mvpCurrentPageExecutable && activeTabId === requestedTabId);
     saveMvpCurrentSecondButton.disabled = !(mvpCurrentPageExecutable && activeTabId === requestedTabId);
@@ -380,6 +419,7 @@ async function startSelectedSync() {
     return;
   }
   startSyncButton.disabled = true;
+  setBusy(startSyncButton, true);
   syncStatus.textContent = payload.activationMode === "mvp_activation_candidate"
     ? "正在读取一组由你选择的、已净化的 20 项内容…"
     : payload.activationMode === "mvp_manifest_enrollment"
@@ -402,23 +442,30 @@ async function startSelectedSync() {
   } catch {
     syncStatus.textContent = "当前无法处理清单，未执行任何操作。";
   } finally {
+    setBusy(startSyncButton, false);
     renderSyncScope();
   }
 }
 
 async function refreshStatus() {
   refreshButton.disabled = true;
+  setBusy(refreshButton, true);
+  setHostHealthState("checking");
   hostStatus.textContent = "正在检查本地助手…";
   try {
     const result = await Promise.race([
       chrome.runtime.sendMessage({ type: "X2N_HEALTH" }),
       new Promise((resolve) => setTimeout(() => resolve({ ok: false }), 4_000)),
     ]);
-    hostStatus.textContent = result?.ok ? "本地助手已连接" : "本地助手不可用，未执行任何操作。";
+    const connected = result?.ok === true;
+    setHostHealthState(connected ? "ready" : "blocked");
+    hostStatus.textContent = connected ? "本地助手已连接" : "本地助手不可用，未执行任何操作。";
   } catch {
+    setHostHealthState("blocked");
     hostStatus.textContent = "本地助手不可用，未执行任何操作。";
   } finally {
     refreshButton.disabled = false;
+    setBusy(refreshButton, false);
   }
   await refreshCapabilities();
 }
