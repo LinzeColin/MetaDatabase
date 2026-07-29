@@ -111,6 +111,10 @@
   mark{background:var(--warn);color:#fff;border-radius:3px;padding:0 2px}
 
   .finder{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:6px 13px;
+    font:inherit;font-size:13px;color:var(--muted);cursor:pointer;min-height:34px}
+  .chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
   .dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:13px}
   .dates input[type=date],.dates input[type=number]{width:auto;font-size:13.5px;padding:7px 9px}
   .dates button{padding:7px 13px;min-height:36px;font-size:13.5px}
@@ -206,9 +210,6 @@
         <button type="button" class="back" id="back">← 返回</button>
         <span class="who" id="chat-who"></span>
       </div>
-      <div class="chat" id="chat"></div>
-
-      <h2>这个人的画像</h2>
       <div class="grid" id="ins-stats"></div>
       <div class="card">
         <h2 style="margin-top:0">每天说了多少</h2>
@@ -225,6 +226,22 @@
       <div class="card">
         <h2 style="margin-top:0">时间轴</h2>
         <ul class="tl" id="timeline"></ul>
+      </div>
+
+      <h2>聊天记录</h2>
+      <!-- 聊得久了这一段会非常长，所以搜索、分类、日期都放在它上面。 -->
+      <div class="finder">
+        <input type="search" id="cq" placeholder="在这个人的记录里搜" enterkeyhint="search">
+        <div class="dates">
+          <label>从 <input type="date" id="cfrom"></label>
+          <label>到 <input type="date" id="cto"></label>
+          <button type="button" id="cclear">清空</button>
+        </div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button type="button" id="more" hidden>看更早的</button>
       </div>
     </div>
   </section>
@@ -394,7 +411,32 @@
 
   // ── 人 / 聊天 ────────────────────────────────────────
   var filter = { q: "", from: "", to: "" };
+  // 聊天视图有自己的一套筛选。聊得久了那一段会非常长，所以它需要独立的
+  // 搜索、分类和日期——在某个人里搜，不该把外面的名单也筛掉。
+  var chat = { q: "", from: "", to: "", kind: "all", limit: 80 };
   var openPerson = "";
+
+  var CHIPS = [
+    ["all", "全部"],
+    ["stuck", "没答上"],
+    ["bot", "它主动说的"],
+    ["asked", "我问它答"]
+  ];
+  function renderChips() {
+    var box = document.getElementById("chips");
+    box.textContent = "";
+    CHIPS.forEach(function (pair) {
+      var b = el("button", "chip", pair[1]);
+      b.type = "button";
+      b.setAttribute("aria-pressed", chat.kind === pair[0] ? "true" : "false");
+      b.addEventListener("click", function () {
+        chat.kind = pair[0];
+        renderChips();
+        loadChat();
+      });
+      box.appendChild(b);
+    });
+  }
 
   function withHighlight(text, needle) {
     var box = document.createDocumentFragment();
@@ -457,6 +499,9 @@
 
   function openChat(person) {
     openPerson = person.id;
+    chat = { q: "", from: "", to: "", kind: "all", limit: 80 };
+    ["cq", "cfrom", "cto"].forEach(function (id) { document.getElementById(id).value = ""; });
+    renderChips();
     document.getElementById("people-view").hidden = true;
     document.getElementById("chat-view").hidden = false;
     set("chat-who", person.label + (person.isOwner ? "（你）" : ""));
@@ -471,7 +516,7 @@
   function bubble(side, text, stamp, ghost) {
     var row = el("div", "row " + side);
     var msg = el("div", "msg" + (ghost ? " ghost" : ""));
-    if (ghost) { msg.textContent = text; } else { msg.appendChild(withHighlight(text, filter.q)); }
+    if (ghost) { msg.textContent = text; } else { msg.appendChild(withHighlight(text, chat.q || filter.q)); }
     row.appendChild(msg);
     row.appendChild(el("span", "stamp", stamp));
     return row;
@@ -530,12 +575,57 @@
     }, 10000);
   }
 
+  function chatUrl() {
+    return "/admin/api/conversations?limit=" + chat.limit
+      + "&person=" + encodeURIComponent(openPerson)
+      + (chat.q ? "&q=" + encodeURIComponent(chat.q) : "")
+      + (chat.from ? "&from=" + encodeURIComponent(chat.from) : "")
+      + (chat.to ? "&to=" + encodeURIComponent(chat.to) : "");
+  }
+  function matchesKind(t) {
+    if (chat.kind === "stuck") { return !!(t.state && t.state.stuck); }
+    if (chat.kind === "bot") { return t.initiatedByBot === true; }
+    if (chat.kind === "asked") { return !t.initiatedByBot; }
+    return true;
+  }
   function loadChat() {
-    fetch(feedUrl(openPerson), { headers: authed(), credentials: "same-origin" })
+    fetch(chatUrl(), { headers: authed(), credentials: "same-origin" })
       .then(function (r) { return r.json(); })
-      .then(function (d) { if (d.ok) { renderChat(d.threads || []); } })
+      .then(function (d) {
+        if (!d.ok) { return; }
+        var all = (d.threads || []).filter(matchesKind);
+        renderChat(all);
+        // 还有更早的就给一个按钮，而不是一次性把几千条全铺出来。
+        document.getElementById("more").hidden = !d.truncated;
+      })
       .catch(function () {});
   }
+  document.getElementById("more").addEventListener("click", function () {
+    chat.limit = Math.min(2000, chat.limit + 200);
+    this.textContent = "正在读取……";
+    var self = this;
+    setTimeout(function () { self.textContent = "看更早的"; }, 600);
+    loadChat();
+  });
+  // 聊天里的搜索：同样等手停下来。
+  var chatTyping = null;
+  document.getElementById("cq").addEventListener("input", function () {
+    var v = this.value;
+    if (chatTyping) { clearTimeout(chatTyping); }
+    chatTyping = setTimeout(function () { chat.q = v.trim(); loadChat(); }, 350);
+  });
+  ["cfrom", "cto"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () {
+      chat[id === "cfrom" ? "from" : "to"] = this.value;
+      loadChat();
+    });
+  });
+  document.getElementById("cclear").addEventListener("click", function () {
+    chat.q = ""; chat.from = ""; chat.to = ""; chat.kind = "all"; chat.limit = 80;
+    ["cq", "cfrom", "cto"].forEach(function (id) { document.getElementById(id).value = ""; });
+    renderChips();
+    loadChat();
+  });
 
   // ── 画像 ─────────────────────────────────────────────
   function level(count, max) {
