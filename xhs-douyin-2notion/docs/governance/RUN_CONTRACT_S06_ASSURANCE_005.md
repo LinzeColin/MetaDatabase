@@ -61,10 +61,12 @@ x2n release arm --confirm ARM_X2N_OWNER_MVP_ACTIVATION
 ```
 
 `preflight` is aggregate-only and read-only: it reports whether the Owner input, pre-arm state, local source tag,
-approved Private-MetaDatabase client, and a fresh Chrome Native Host slot are ready, while emitting no local paths,
-private values, content IDs, or platform calls. `native_host_fresh_install=READY_FOR_FRESH_INSTALL` proves only that
-the installer prerequisites are present and no Host target/residual blocks a first install; it is not an install or a
-go-live claim. It never creates the input, arms a scope, calls the client, or opens Chrome.
+approved Private-MetaDatabase client, local Chrome executable, and a fresh Chrome Native Host slot are ready, while
+emitting no local paths, private values, content IDs, or platform calls. `chrome_executable=AVAILABLE` proves only
+that a known local Chrome executable is available; it does not inspect a Profile, load an extension, or claim a login.
+`native_host_fresh_install=READY_FOR_FRESH_INSTALL` proves only that the installer prerequisites are present and no
+Host target/residual blocks a first install; it is not an install or a go-live claim. It never creates the input, arms
+a scope, calls the client, or opens Chrome.
 A source tag is expected to remain `NOT_READY` until immediately before the later `deploy` command.
 
 `input-template` is intentionally **not** a valid release input: every Owner content-ID hash, Douyin Sidecar

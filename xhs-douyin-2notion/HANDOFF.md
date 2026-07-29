@@ -27,10 +27,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
   only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
 - `x2n release preflight` is a read-only aggregate A005 gate. It can prove Owner-input/state, source-tag, and
-  configured-and-pinned Private-MetaDatabase-client readiness, plus whether Chrome has a fresh Native Host install
-  slot, without emitting a path, content ID, credential value, or platform request. It cannot arm or mutate the
-  release. `native_host_fresh_install=READY_FOR_FRESH_INSTALL` means only that `uv`, source/runtime prerequisites,
-  and the empty Host target were verified without a write; it is not an install or go-live claim.
+  configured-and-pinned Private-MetaDatabase-client readiness, plus known-local Chrome executable availability and
+  whether Chrome has a fresh Native Host install slot, without emitting a path, content ID, credential value, or
+  platform request. It cannot arm or mutate the release. `chrome_executable=AVAILABLE` does not inspect a Profile or
+  claim a login. `native_host_fresh_install=READY_FOR_FRESH_INSTALL` means only that `uv`, source/runtime
+  prerequisites, and the empty Host target were verified without a write; it is not an install or go-live claim.
 - `x2n release input-template` now contains literal, deliberately invalid replacement tokens for every Owner content
   hash, Douyin Sidecar digest, and Sidecar port. It cannot accidentally validate or arm until the Owner has supplied
   the real private facts; the source-bound contract digest and fixed boundaries remain intact.
@@ -61,7 +62,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   must not be "fixed" by rewriting historical evidence. No A005-required suite failed.
 - The approved local Runtime layout was initialized and its empty Canonical SQLite store passed integrity checks;
   all required owner-only directories now validate. Current real `release preflight` is safe and reports
-  `native_host_fresh_install=READY_FOR_FRESH_INSTALL`, `owner_input=MISSING_OR_INVALID`,
+  `chrome_executable=AVAILABLE`, `native_host_fresh_install=READY_FOR_FRESH_INSTALL`, `owner_input=MISSING_OR_INVALID`,
   `release_state=NOT_STARTED`, and `source_release_tag=NOT_READY`. The normal shell has not persisted a client
   configuration; a one-shot, non-invoking preflight with the approved digest-pinned
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor

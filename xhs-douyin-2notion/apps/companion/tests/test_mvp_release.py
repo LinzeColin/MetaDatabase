@@ -236,6 +236,7 @@ class MvpReleaseTests(unittest.TestCase):
                 "x2n_companion.runtime_cli.fresh_install_readiness",
                 return_value="READY_FOR_FRESH_INSTALL",
             ),
+            mock.patch("x2n_companion.runtime_cli.chrome_available", return_value=True),
             mock.patch.object(MvpReleaseController, "arm") as arm,
         ):
             payload = runtime_cli.run(args)
@@ -245,6 +246,7 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(
             payload["preflight"],
             {
+                "chrome_executable": "AVAILABLE",
                 "native_host_fresh_install": "READY_FOR_FRESH_INSTALL",
                 "notion_calls": 0,
                 "owner_input": "MISSING_OR_INVALID",
@@ -275,6 +277,7 @@ class MvpReleaseTests(unittest.TestCase):
                 "x2n_companion.runtime_cli.fresh_install_readiness",
                 return_value="READY_FOR_FRESH_INSTALL",
             ),
+            mock.patch("x2n_companion.runtime_cli.chrome_available", return_value=True),
         ):
             payload = runtime_cli.run(args)
         preflight = payload["preflight"]
@@ -282,7 +285,34 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertTrue(preflight["ready_to_arm"])
         self.assertEqual(preflight["private_durability_client"], "CONFIGURED_AND_PINNED")
         self.assertEqual(preflight["native_host_fresh_install"], "READY_FOR_FRESH_INSTALL")
+        self.assertEqual(preflight["chrome_executable"], "AVAILABLE")
         self.assertNotIn("input_sha256", json.dumps(payload, ensure_ascii=False, sort_keys=True))
+
+    def test_release_preflight_reports_missing_chrome_without_opening_it(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        args = runtime_cli.build_parser().parse_args(["release", "preflight"])
+        with (
+            mock.patch.dict(
+                os.environ,
+                {ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
+                clear=True,
+            ),
+            mock.patch.object(MvpDeploymentManager, "assert_release_source_tagged"),
+            mock.patch(
+                "x2n_companion.runtime_cli.DigestPinnedPrivateDbClient.from_environment",
+                side_effect=X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "private client unavailable"),
+            ),
+            mock.patch(
+                "x2n_companion.runtime_cli.fresh_install_readiness",
+                return_value="READY_FOR_FRESH_INSTALL",
+            ),
+            mock.patch("x2n_companion.runtime_cli.chrome_available", return_value=False),
+            mock.patch.object(MvpReleaseController, "arm") as arm,
+        ):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["preflight"]["chrome_executable"], "NOT_READY")
+        self.assertFalse(payload["preflight"]["ready_to_arm"])
+        arm.assert_not_called()
 
     def test_input_template_requires_real_owner_facts_before_validation(self) -> None:
         args = runtime_cli.build_parser().parse_args(["release", "input-template"])

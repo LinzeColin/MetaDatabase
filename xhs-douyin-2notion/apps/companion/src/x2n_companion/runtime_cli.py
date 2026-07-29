@@ -57,6 +57,7 @@ from .profile_session import (
     ProfileLauncher,
     SessionHealthStore,
     build_doctor_report,
+    chrome_available,
 )
 from .relation_reconciliation import build_owner_mvp_80_manifest_plan
 from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
@@ -158,8 +159,10 @@ def _owner_mvp_preflight(paths: RuntimePaths) -> dict[str, Any]:
         home=Path.home(),
         env=os.environ,
     )
+    chrome_executable = "AVAILABLE" if chrome_available() else "NOT_READY"
     ready_to_arm = owner_input == "VALID" and release_state == "NOT_STARTED"
     return {
+        "chrome_executable": chrome_executable,
         "native_host_fresh_install": native_host_fresh_install,
         "notion_calls": 0,
         "owner_input": owner_input,
