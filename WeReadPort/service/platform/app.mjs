@@ -99,6 +99,13 @@ export function createPlatformApp({ service, config }) {
       if (method === "PUT" && noteMatch) { const input = await body(request, config.maxJsonBytes); return json({ note: await service.saveDocument(session.accountId, { ...input, externalId: input.externalId || noteMatch[1] }, { expectedVersion: input.expectedVersion ?? null }) }); }
       if (method === "DELETE" && noteMatch) return json(await service.deleteNote(session.accountId, noteMatch[1], url.searchParams.get("expectedVersion")));
 
+      if (method === "GET" && path === "/book-skills") return json(service.listBookSkills(session.accountId, boundedInt(url.searchParams.get("limit"), 100, 1, 5_000)));
+      if (method === "POST" && path === "/book-skills/preview") return json(await service.previewBookSkill(session.accountId, await body(request, config.maxJsonBytes)));
+      if (method === "POST" && path === "/book-skills") return json(await service.saveBookSkill(session.accountId, await body(request, config.maxJsonBytes)), 201);
+      const bookSkillMatch = path.match(/^\/book-skills\/([A-Za-z0-9_-]+)$/);
+      if (method === "GET" && bookSkillMatch) { const skill = await service.readBookSkill(session.accountId, bookSkillMatch[1]); if (!skill) throw new PlatformError("NOT_FOUND", "Book-to-Skill 不存在。", 404); return json(skill); }
+      if (method === "DELETE" && bookSkillMatch) return json(await service.deleteBookSkill(session.accountId, bookSkillMatch[1]));
+
       if (method === "POST" && path === "/sync/pull") { const input = await body(request, config.maxJsonBytes); return json(await service.syncPull(session.accountId, input.cursor, input.limit)); }
       if (method === "POST" && path === "/sync/push") { const input = await body(request, config.maxJsonBytes); return json(await service.syncPush(session.accountId, input.operations)); }
 
@@ -135,6 +142,10 @@ export function createPlatformApp({ service, config }) {
         if (method === "POST" && adminNote) { await body(request, config.maxJsonBytes); return json(await service.adminReadNote(session, { noteId: adminNote[1] })); }
         if (method === "POST" && path === "/admin/prompts") { const input = await body(request, config.maxJsonBytes); return json(service.adminPrompts(session, { limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
         if (method === "POST" && path === "/admin/audit") { const input = await body(request, config.maxJsonBytes); return json(service.adminAuditLog(session, { limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
+        if (method === "POST" && path === "/admin/book-skills") { const input = await body(request, config.maxJsonBytes); return json(service.adminBookSkills(session, { limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
+        const adminBookSkill = path.match(/^\/admin\/book-skills\/([A-Za-z0-9_-]+)$/);
+        if (method === "POST" && adminBookSkill) { await body(request, config.maxJsonBytes); return json(await service.adminReadBookSkill(session, { bookSkillId: adminBookSkill[1] })); }
+        if (method === "POST" && path === "/admin/security") { const input = await body(request, config.maxJsonBytes); return json(service.adminSecurity(session, { limit: boundedInt(input.limit, 5_000, 1, 5_000) })); }
       }
 
       throw new PlatformError("NOT_FOUND", "接口不存在。", 404);
@@ -149,11 +160,12 @@ function authResponse(result, config) {
 }
 function sessionHandoffResponse(service, sessionToken, config) {
   if (!config.adminBaseUrl) throw new PlatformError("ADMIN_NOT_CONFIGURED", "管理员入口尚未完成安全配置。", 503);
+  const current = service.authenticate(sessionToken);
+  service.requireAdmin(current);
   const location = new URL(config.adminBaseUrl);
   location.searchParams.set("handoff", "1");
   const headers = new Headers({ Location: location.toString() });
-  const current = service.authenticate(sessionToken);
-  if (current) headers.append("Set-Cookie", sessionCookie(sessionToken, current.expiresAt, config));
+  headers.append("Set-Cookie", sessionCookie(sessionToken, current.expiresAt, config));
   return secure(new Response(null, { status: 303, headers }));
 }
 function requireInternal(request, expected) { const actual = request.headers.get("x-wrp-internal-secret") || ""; if (!secureEqual(actual, expected)) throw new PlatformError("INTERNAL_AUTH", "服务身份验证失败。", 401); }

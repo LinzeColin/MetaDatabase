@@ -1,4 +1,4 @@
-import { access, mkdir, readdir, rename, rm } from "node:fs/promises";
+import { access, mkdir, readdir, rename, rm, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +8,7 @@ const client = path.join(dist, "client");
 const site = path.join(client, "site");
 const worker = path.join(dist, "weread_port");
 const server = path.join(dist, "server");
+const wranglerDeployConfig = path.join(root, ".wrangler", "deploy", "config.json");
 
 await rm(site, { recursive: true, force: true });
 await mkdir(site, { recursive: true });
@@ -28,4 +29,13 @@ for (const required of ["home.html", "admin.html", "assets", "privacy/page.html"
 await rm(server, { recursive: true, force: true });
 await rename(worker, server);
 await access(path.join(server, "index.js"));
-console.log("Sites 静态资源已移动到内部 /site 前缀，Worker 输出已归一到 dist/server。");
+
+// The Cloudflare Vite plugin writes this pointer before the artifact is moved.
+// Keep the local Wrangler hand-off valid so a normal `wrangler deploy` cannot
+// silently resolve a vanished dist/weread_port directory.
+const deploy = JSON.parse(await readFile(wranglerDeployConfig, "utf8"));
+if (!deploy || typeof deploy.configPath !== "string") throw new Error("Sites 构建缺少有效的 Wrangler 部署指针。");
+deploy.configPath = path.relative(path.dirname(wranglerDeployConfig), path.join(server, "wrangler.json"));
+await writeFile(wranglerDeployConfig, JSON.stringify(deploy));
+await access(path.resolve(path.dirname(wranglerDeployConfig), deploy.configPath));
+console.log("Sites 静态资源已移动到内部 /site 前缀，Worker 输出与 Wrangler 部署指针已归一到 dist/server。");

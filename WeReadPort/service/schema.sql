@@ -119,6 +119,29 @@ CREATE TABLE IF NOT EXISTS note_objects (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS note_objects_account_idx ON note_objects(account_id);
 
+CREATE TABLE IF NOT EXISTS book_skills (
+  id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  book_title TEXT NOT NULL,
+  author TEXT NOT NULL DEFAULT '',
+  note_count INTEGER NOT NULL,
+  object_key TEXT NOT NULL UNIQUE,
+  content_hash TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  UNIQUE(account_id, book_title, author)
+) STRICT;
+CREATE INDEX IF NOT EXISTS book_skills_account_updated_idx ON book_skills(account_id, updated_at DESC, id DESC);
+
+CREATE TABLE IF NOT EXISTS book_skill_objects (
+  object_key TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  book_skill_id TEXT NOT NULL REFERENCES book_skills(id) ON DELETE CASCADE,
+  created_at INTEGER NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS book_skill_objects_account_idx ON book_skill_objects(account_id);
+
 CREATE TABLE IF NOT EXISTS sync_events (
   seq INTEGER PRIMARY KEY AUTOINCREMENT,
   account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -176,6 +199,22 @@ CREATE TABLE IF NOT EXISTS admin_audit_events (
   created_at INTEGER NOT NULL
 ) STRICT;
 CREATE INDEX IF NOT EXISTS admin_audit_events_time_idx ON admin_audit_events(created_at DESC);
+
+-- Security events keep only pseudonymous authentication metadata. They never
+-- include a credential, session cookie, full IP, user agent or note content.
+CREATE TABLE IF NOT EXISTS security_events (
+  id TEXT PRIMARY KEY,
+  account_id TEXT,
+  event_type TEXT NOT NULL,
+  method TEXT NOT NULL,
+  outcome TEXT NOT NULL,
+  session_id TEXT,
+  user_agent_hash TEXT,
+  ip_prefix_hash TEXT,
+  created_at INTEGER NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS security_events_time_idx ON security_events(created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS security_events_account_time_idx ON security_events(account_id, created_at DESC, id DESC);
 
 CREATE TABLE IF NOT EXISTS import_jobs (
   id TEXT PRIMARY KEY,
@@ -241,4 +280,4 @@ CREATE TABLE IF NOT EXISTS outbox (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS outbox_state_idx ON outbox(state, available_at);
 
-PRAGMA user_version = 22;
+PRAGMA user_version = 23;

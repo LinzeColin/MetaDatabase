@@ -15,7 +15,7 @@ const api = new AccountApi();
 // whether the source needs a cheap delta pass or a full reconciliation.
 const AUTO_SYNC_STALE_SECONDS = 15;
 const state = {
-  account: null, view: "overview", busy: false, wereadSyncing: false, wereadSyncJobId: "", notes: [], dashboard: null, providerItems: {}, toastTimer: null,
+  account: null, view: "overview", busy: false, wereadSyncing: false, wereadSyncJobId: "", notes: [], bookSkills: [], dashboard: null, providerItems: {}, toastTimer: null,
   serviceReady: null, serviceDetail: "", autoSyncAccountId: "", aiPreferences: null, aiInquiryEvents: [], aiSubview: "ask", aiSelectedNoteId: "",
   noteArchiveMode: "book", collapsedNoteArchives: new Set(),
 };
@@ -194,7 +194,7 @@ function bindApp(main) {
   main.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", async () => { state.view = button.dataset.view; await renderCurrent(document); }));
   main.querySelector("#logout-button").addEventListener("click", () => action("正在安全退出…", async () => { await api.logout(); state.account = null; state.view = "overview"; state.notes = []; state.dashboard = null; state.autoSyncAccountId = ""; resetAiState(); await renderCurrent(document); }));
 }
-function resetAiState() { state.aiPreferences = null; state.aiInquiryEvents = []; state.aiSubview = "ask"; state.aiSelectedNoteId = ""; state.noteArchiveMode = "book"; state.collapsedNoteArchives.clear(); }
+function resetAiState() { state.aiPreferences = null; state.aiInquiryEvents = []; state.aiSubview = "ask"; state.aiSelectedNoteId = ""; state.bookSkills = []; state.noteArchiveMode = "book"; state.collapsedNoteArchives.clear(); }
 
 async function loadOverview(main) {
   const content = main.querySelector("#account-content");
@@ -444,8 +444,11 @@ async function waitForJob(id) { for (let attempt = 0; attempt < 40; attempt += 1
 
 async function loadNotes(main) {
   const content = main.querySelector("#account-content");
-  let result; try { result = await api.notes(5_000); } catch (error) { toast(error.message, "error"); result = { notes: [] }; }
+  let result; let skillsResult;
+  try { [result, skillsResult] = await Promise.all([api.notes(5_000), api.bookSkills(5_000)]); }
+  catch (error) { toast(error.message, "error"); result = { notes: [] }; skillsResult = { bookSkills: [] }; }
   state.notes = result.notes || [];
+  state.bookSkills = skillsResult.bookSkills || [];
   const filters = { query: "", book: "", author: "", source: "", kind: "", from: "", to: "" };
   const books = noteFieldValues(state.notes, "bookTitle");
   const authors = noteFieldValues(state.notes, "author");
@@ -479,8 +482,9 @@ async function loadNotes(main) {
       </section>
       <aside class="notes-control-rail" aria-label="笔记筛选与当前视图操作">
         <section class="note-filter-panel" aria-label="笔记实时筛选"><div class="notes-card-heading"><div><p class="eyebrow">条件检索</p><h2>缩小当前阅读档案</h2></div><button class="notes-reset-button" id="notes-reset" type="button">清除条件</button></div><div class="note-filter-grid"><label for="note-book">书籍<input id="note-book" data-note-filter="book" list="note-books" autocomplete="off" placeholder="输入书名的一部分"></label><datalist id="note-books">${books.map(value => `<option value="${escapeAttr(value)}"></option>`).join("")}</datalist><label for="note-author">作者<input id="note-author" data-note-filter="author" list="note-authors" autocomplete="off" placeholder="输入作者的一部分"></label><datalist id="note-authors">${authors.map(value => `<option value="${escapeAttr(value)}"></option>`).join("")}</datalist><label for="note-source-filter">来源<select id="note-source-filter" data-note-filter="source"><option value="">全部来源</option>${sources.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(sourceName(value))}</option>`).join("")}</select></label><label for="note-kind-filter">笔记类型<select id="note-kind-filter" data-note-filter="kind"><option value="">全部类型</option>${kinds.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(noteKindLabel(value))}</option>`).join("")}</select></label><label for="note-from">开始时间<input id="note-from" data-note-filter="from" type="date"></label><label for="note-to">结束时间<input id="note-to" data-note-filter="to" type="date"></label></div></section>
-        <section class="notes-batch-panel"><div><p class="eyebrow">当前视图操作</p><h2>下载与 AI 问询各自独立</h2><p>下载会打包当前显示结果；AI 问询只会复制一条你明确选择的笔记到剪贴板，绝不把笔记内容放进跳转链接。</p></div><div class="notes-batch-actions"><button class="button secondary" id="notes-download" type="button">打包下载当前结果</button><button class="button primary" id="notes-ai" type="button">选择一条笔记去 AI 问询</button></div></section>
+        <section class="notes-batch-panel"><div><p class="eyebrow">当前视图操作</p><h2>下载、Book-to-Skill 与 AI 问询各自独立</h2><p>下载会打包当前显示结果；Book-to-Skill 只从你选择的一本书生成可预览的本地 Skill；AI 问询只会复制一条你明确选择的笔记到剪贴板。</p></div><div class="notes-batch-actions"><button class="button secondary" id="notes-download" type="button">打包下载当前结果</button><button class="button secondary" id="notes-book-skill" type="button">选择一本书生成 Book-to-Skill</button><button class="button primary" id="notes-ai" type="button">选择一条笔记去 AI 问询</button></div></section>
         <section class="notes-source-panel"><div class="notes-card-heading"><div><p class="eyebrow">已汇总来源</p><h2>${numberFormat(sources.length)} 个来源可筛选</h2></div></div><div class="notes-source-chips">${sources.length ? sources.map(source => `<span>${escapeHtml(sourceName(source))}</span>`).join("") : "<span>暂无来源</span>"}</div><p>笔记正文保持账户级加密；列表仅显示必要索引，打开单条后才读取正文。</p></section>
+        <section class="notes-source-panel book-skill-panel"><div class="notes-card-heading"><div><p class="eyebrow">我的 Book-to-Skill</p><h2>${numberFormat(state.bookSkills.length)} 个已保存 Skill</h2></div></div>${renderBookSkillShelf(state.bookSkills)}</section>
       </aside>
     </div>
   </section>`;
@@ -500,7 +504,10 @@ async function loadNotes(main) {
   content.querySelectorAll("[data-note-archive-mode]").forEach(button => button.addEventListener("click", () => { state.noteArchiveMode = button.dataset.noteArchiveMode; state.collapsedNoteArchives.clear(); renderCurrent(document); }));
   content.querySelector("#notes-reset").addEventListener("click", () => { for (const key of Object.keys(filters)) filters[key] = ""; content.querySelectorAll("[data-note-filter]").forEach(input => { input.value = ""; }); renderFiltered(); content.querySelector("#note-search").focus(); });
   content.querySelector("#notes-download").addEventListener("click", () => exportVisibleNotes(renderFiltered(), notesScopeLabel(filters)));
+  content.querySelector("#notes-book-skill").addEventListener("click", () => openBookSkillPicker(renderFiltered()));
   content.querySelector("#notes-ai").addEventListener("click", () => { const visible = renderFiltered(); if (!visible.length) { toast("当前没有可选择的笔记。", "warning"); return; } state.aiSelectedNoteId = visible[0].id; state.aiSubview = "ask"; state.view = "ai"; renderCurrent(document); });
+  content.querySelectorAll("[data-book-skill-download]").forEach(button => button.addEventListener("click", () => downloadBookSkill(button.dataset.bookSkillDownload)));
+  content.querySelectorAll("[data-book-skill-delete]").forEach(button => button.addEventListener("click", () => deleteBookSkill(button.dataset.bookSkillDelete)));
   renderFiltered();
 }
 function noteList(notes, interactive) { return `<div class="note-list notes-workbench-list">${notes.map(note => { const detail = [note.bookTitle ? `《${note.bookTitle}》` : "", note.author ? `作者 ${note.author}` : "", note.chapterTitle ? `章节 ${note.chapterTitle}` : "", note.category || "未分类"].filter(Boolean).join(" · "); const time = noteTimeLabel(note); const kind = noteKindLabel(note.noteKind) || "笔记"; return `<article class="note-row"><div class="note-date-badge" aria-label="${escapeAttr(time)}"><strong>${escapeHtml(noteDay(note))}</strong><small>${escapeHtml(noteMonth(note))}</small></div><div class="note-row-copy"><div class="note-row-kicker"><span class="note-source">${escapeHtml(sourceName(note.source))}</span><span>${escapeHtml(kind)}</span></div><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(detail || "笔记正文已加密保存，点击查看完整内容。")}</p><div class="note-row-meta"><span>${escapeHtml(time)}</span><span>版本 ${escapeHtml(String(note.version || 1))}</span></div></div>${interactive ? `<div class="note-row-actions"><button class="button ghost note-open-button" data-note-open="${escapeAttr(note.id)}" type="button">查看正文</button><button class="button ghost note-ai-button" data-note-ai="${escapeAttr(note.id)}" type="button">去 AI 问询</button></div>` : ""}</article>`; }).join("")}</div>`; }
@@ -559,6 +566,76 @@ function noteMonthArchiveLabel(note) { const timestamp = noteTimestamp(note); re
 function bindNoteRows(content) {
   content.querySelectorAll("[data-note-open]").forEach(button => button.addEventListener("click", () => openNote(content, button.dataset.noteOpen)));
   content.querySelectorAll("[data-note-ai]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); selectNoteForAi(button.dataset.noteAi); }));
+}
+function renderBookSkillShelf(skills) {
+  if (!skills.length) return "<p>从任意一本有笔记的书开始生成。生成过程只在账户服务内读取该书笔记，不会发送给外部 AI。</p>";
+  return `<div class="book-skill-shelf">${skills.slice(0, 8).map(skill => `<article><div><strong>${escapeHtml(`《${skill.bookTitle}》`)}</strong><small>${escapeHtml([skill.author, `${numberFormat(skill.noteCount)} 条笔记`, `v${skill.version}`].filter(Boolean).join(" · "))}</small></div><div class="book-skill-shelf-actions"><button class="button ghost" data-book-skill-download="${escapeAttr(skill.id)}" type="button">下载</button><button class="button ghost" data-book-skill-delete="${escapeAttr(skill.id)}" type="button">删除</button></div></article>`).join("")}</div>`;
+}
+function bookSkillCandidates(notes) {
+  const groups = new Map();
+  for (const note of notes) {
+    const bookTitle = String(note.bookTitle || "").trim();
+    if (!bookTitle) continue;
+    const author = String(note.author || "").trim();
+    const key = `${bookTitle}\u0000${author}`;
+    const group = groups.get(key) || { bookTitle, author, noteCount: 0 };
+    group.noteCount += 1;
+    groups.set(key, group);
+  }
+  return [...groups.values()].sort((left, right) => left.bookTitle.localeCompare(right.bookTitle, "zh-CN", { numeric: true }) || left.author.localeCompare(right.author, "zh-CN", { numeric: true }));
+}
+function openBookSkillPicker(notes) {
+  const candidates = bookSkillCandidates(notes);
+  if (!candidates.length) { toast("当前筛选中没有标注书名的笔记，暂时无法生成 Book-to-Skill。", "warning"); return; }
+  const host = modal(`<p class="eyebrow">Book-to-Skill</p><h2>选择一本书</h2><p>系统只读取这一本文字已保存的笔记，先生成预览；不会上传至外部 AI，也不会自动下载。</p><form id="book-skill-picker"><div class="book-skill-choice-list">${candidates.map((item, index) => `<label><input type="radio" name="book-skill-choice" value="${index}" ${index === 0 ? "checked" : ""}><span><strong>${escapeHtml(`《${item.bookTitle}》`)}</strong><small>${escapeHtml([item.author || "作者未标注", `${numberFormat(item.noteCount)} 条笔记`].join(" · "))}</small></span></label>`).join("")}</div><div class="modal-actions"><button class="button primary" type="submit">生成预览</button></div></form>`);
+  host.querySelector("#book-skill-picker").addEventListener("submit", event => {
+    event.preventDefault();
+    const selected = Number(new FormData(event.currentTarget).get("book-skill-choice"));
+    const choice = candidates[selected];
+    if (!choice) return;
+    host.remove();
+    void openBookSkillPreview(choice);
+  });
+}
+async function openBookSkillPreview({ bookTitle, author = "" }) {
+  await action("正在生成单本 Book-to-Skill 预览…", async () => {
+    const result = await api.previewBookSkill({ bookTitle, author });
+    showBookSkillPreview(result.preview);
+  });
+}
+function showBookSkillPreview(preview) {
+  const artifact = preview?.artifact || {};
+  const host = modal(`<p class="eyebrow">Book-to-Skill 预览</p><h2>${escapeHtml(`《${preview?.book?.title || "未命名书籍"}》`)}</h2><p>${escapeHtml([preview?.book?.author, `${numberFormat(preview?.source?.noteCount || 0)} 条笔记`, "仅在账户服务内生成"].filter(Boolean).join(" · "))}</p><pre class="book-skill-preview">${escapeHtml(artifact.markdown || "")}</pre><div class="modal-actions"><button class="button ghost" id="book-skill-preview-download" type="button">下载 Markdown</button><button class="button primary" id="book-skill-save" type="button">保存到我的 Skills</button></div>`);
+  host.querySelector("#book-skill-preview-download").addEventListener("click", () => {
+    downloadText(artifact.markdown || "", artifact.filename || "reading-book-skill.md");
+    toast("Book-to-Skill Markdown 已下载。", "success");
+  });
+  host.querySelector("#book-skill-save").addEventListener("click", () => {
+    void action("正在加密保存 Book-to-Skill…", async () => {
+      await api.saveBookSkill({ bookTitle: preview?.book?.title || "", author: preview?.book?.author || "" });
+      const saved = await api.bookSkills(5_000);
+      state.bookSkills = saved.bookSkills || [];
+      host.remove();
+      toast("Book-to-Skill 已加密保存到你的账户。", "success");
+      if (state.view === "notes") await renderCurrent(document);
+    });
+  });
+}
+async function downloadBookSkill(id) {
+  await action("正在读取已保存的 Book-to-Skill…", async () => {
+    const result = await api.bookSkill(id);
+    downloadText(result.artifact?.markdown || "", result.artifact?.filename || "reading-book-skill.md");
+    toast("Book-to-Skill Markdown 已下载。", "success");
+  });
+}
+async function deleteBookSkill(id) {
+  if (!window.confirm("删除后将移除该 Book-to-Skill 的加密正文。是否继续？")) return;
+  await action("正在删除 Book-to-Skill…", async () => {
+    await api.deleteBookSkill(id);
+    state.bookSkills = (await api.bookSkills(5_000)).bookSkills || [];
+    toast("Book-to-Skill 已删除。", "success");
+    if (state.view === "notes") await renderCurrent(document);
+  });
 }
 function selectNoteForAi(id) { state.aiSelectedNoteId = String(id || ""); state.aiSubview = "ask"; state.view = "ai"; renderCurrent(document); }
 async function openNote(content, id) { await action("正在解密笔记…", async () => { const result = await api.note(id); if (!result?.note) throw new Error("笔记已不存在，请刷新后重试。"); noteDetail(content, result.note); }); }
@@ -728,7 +805,7 @@ async function loadAnalytics(main) {
     <section class="consent-banner ${d.consent?.behaviorAnalytics ? "enabled" : ""}"><div><strong>${d.consent?.behaviorAnalytics ? "行为分析已开启" : "行为分析默认关闭"}</strong><p>微信读书官方阅读统计不依赖此开关；它只控制本服务额外记录的非正文行为事件。关闭后这些额外事件会被删除。</p></div><button id="toggle-analytics" class="button ${d.consent?.behaviorAnalytics ? "ghost" : "primary"}" type="button">${d.consent?.behaviorAnalytics ? "关闭" : "开启"}</button></section>
     <section class="analytics-overview-grid"><article class="chart-card reading-snapshot-card"><div class="section-title"><div><h2>微信读书官方阅读快照</h2><p>${escapeHtml(officialReadingPeriodDescription(readingPeriods))}</p></div></div>${officialReadingSnapshot(readingPeriods, d.dataFreshness)}</article><aside class="category-compact-card" aria-labelledby="category-distribution-title"><div class="section-title"><div><h2 id="category-distribution-title">类别分布</h2><p>${escapeHtml(categoryDistributionDescription(categoryData))}</p></div></div>${compactCategoryDistribution(categoryData)}</aside></section>
     <section class="metric-grid analytics-metric-grid">${metricMarkup}</section>
-    <section class="chart-card reading-progress-card"><div class="section-title"><div><h2>阅读进展</h2><p>来自微信读书每本已同步书籍的真实当前进度；笔记活动不会被替代为阅读进展。</p></div></div>${readingProgressChart(readingProgress, d.dataFreshness)}</section>
+    <section class="chart-card reading-progress-card"><div class="section-title"><div><h2>阅读进展</h2><p>来自微信读书每本已同步书籍的真实当前进度；笔记活动不会被替代为阅读进展。可从每本已有笔记的书生成 Book-to-Skill。</p></div></div>${readingProgressChart(readingProgress, d.dataFreshness)}</section>
     <section class="chart-card note-trend-card"><div class="section-title"><div><h2>12 周笔记趋势</h2><p>只显示真实笔记事件；零值周保持中性，不再伪装成有活动的柱子。</p></div></div>${noteTrendChart(noteTrend)}</section>
     <section class="heatmap-card"><div class="section-title"><div><h2>近 90 天笔记活动</h2><p>按笔记真实事件时间汇总，不代表阅读时长或微信读书打开次数。${escapeHtml(noteActivityFreshnessNote(d.dataFreshness))}</p></div><span class="heat-legend">少 <i></i><i></i><i></i><i></i> 多</span></div>${heatmap(d.noteActivityHeatmap || d.readingHeatmap || [])}</section>
     <section class="recommend-card"><div class="section-title"><div><h2>潜在推荐</h2><p>每条都显示来源和理由；微信读书入口只使用官方实际返回的可验证直链。</p></div></div>${d.recommendations?.length ? `<div class="recommend-list">${d.recommendations.map((item, index) => `<article><span>${escapeHtml(sourceName(item.source))}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.reason)}</p></div>${recommendationActions(item, index)}</article>`).join("")}</div>` : `<div class="empty-inline"><strong>还没有足够数据</strong><p>导入第一批笔记并开启推荐个性化后，这里会出现可解释建议。</p></div>`}</section>`;
@@ -740,9 +817,12 @@ async function loadAnalytics(main) {
     const field = button.dataset.recommendationCopy;
     copyRecommendationValue(item[field], button, field === "author" ? "作者" : "书名");
   }));
+  content.querySelectorAll("[data-book-skill-progress]").forEach(button => button.addEventListener("click", () => {
+    void openBookSkillPreview({ bookTitle: button.dataset.bookSkillProgress, author: button.dataset.bookSkillAuthor || "" });
+  }));
 }
 function officialReadingSnapshot(periods, freshness) { const items = periods?.items || []; if (!items.length) return `<div class="empty-inline"><strong>暂无官方周期统计</strong><p>下次同步会重新请求微信读书的周、月、年与累计汇总。</p></div>`; return `<div class="reading-snapshot" role="list" aria-label="微信读书官方阅读快照">${items.map(item => `<div class="reading-snapshot-item" data-reading-snapshot role="listitem"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(categoryValueLabel(item, periods.metric))}</strong><small>${escapeHtml(readingMetricLabel(periods.metric))}</small></div>`).join("")}</div><p class="analytics-source-note">${escapeHtml(analyticsSyncLabel(freshness))} 取得；各时间尺度独立呈现，不再被累计值压扁。</p>`; }
-function readingProgressChart(data, freshness) { const items = Array.isArray(data?.items) ? data.items.filter(item => Number.isFinite(Number(item?.progress))) : []; if (!items.length) return `<div class="empty-inline"><strong>暂无可验证的书籍进度</strong><p>系统会保留微信读书已返回的当前进度；下一次同步也会补齐旧版状态。</p></div>`; return `<div class="reading-progress-list" role="list" aria-label="微信读书当前阅读进展">${items.map(item => { const progress = Math.max(0, Math.min(100, Number(item.progress))); const label = String(item.label || "已同步书籍"); const author = String(item.author || "微信读书官方当前进度"); return `<article data-reading-progress role="listitem"><div><strong>${escapeHtml(label)}</strong><small>${escapeHtml(author)}</small></div><div class="reading-progress-meter" role="progressbar" aria-label="${escapeAttr(`${label} 阅读进度 ${formatProgressPercent(progress)}`)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><i data-reading-progress-fill style="width:${progress}%"></i></div><b>${escapeHtml(formatProgressPercent(progress))}</b></article>`; }).join("")}</div><p class="analytics-source-note">${escapeHtml(analyticsSyncLabel(freshness))} 取得；只展示来源实际返回的当前进度，不虚构过去的阅读轨迹。</p>`; }
+function readingProgressChart(data, freshness) { const items = Array.isArray(data?.items) ? data.items.filter(item => Number.isFinite(Number(item?.progress))) : []; if (!items.length) return `<div class="empty-inline"><strong>暂无可验证的书籍进度</strong><p>系统会保留微信读书已返回的当前进度；下一次同步也会补齐旧版状态。</p></div>`; return `<div class="reading-progress-list" role="list" aria-label="微信读书当前阅读进展">${items.map(item => { const progress = Math.max(0, Math.min(100, Number(item.progress))); const label = String(item.label || "已同步书籍"); const author = String(item.author || ""); const authorLabel = author || "微信读书官方当前进度"; return `<article data-reading-progress role="listitem"><div><strong>${escapeHtml(label)}</strong><small>${escapeHtml(authorLabel)}</small></div><div class="reading-progress-meter" role="progressbar" aria-label="${escapeAttr(`${label} 阅读进度 ${formatProgressPercent(progress)}`)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><i data-reading-progress-fill style="width:${progress}%"></i></div><b>${escapeHtml(formatProgressPercent(progress))}</b><button class="button ghost book-skill-progress-button" data-book-skill-progress="${escapeAttr(label)}" data-book-skill-author="${escapeAttr(author)}" type="button">Book-to-Skill</button></article>`; }).join("")}</div><p class="analytics-source-note">${escapeHtml(analyticsSyncLabel(freshness))} 取得；只展示来源实际返回的当前进度，不虚构过去的阅读轨迹。</p>`; }
 function officialReadingPeriodDescription(periods) { return ({ totalReadingTimeSeconds: "本周、本月、本年与累计阅读时长的当前官方快照。", totalReadingDays: "本周、本月、本年与累计阅读天数的当前官方快照。", totalFinishedBooks: "本周、本月、本年与累计读完书籍数的当前官方快照。" })[periods?.metric] || "微信读书尚未返回可视化所需的官方周期统计。"; }
 function readingMetricLabel(metric) { return ({ totalReadingTimeSeconds: "阅读时长", totalReadingDays: "阅读天数", totalFinishedBooks: "读完书籍" })[metric] || "官方统计"; }
 function categoryDistributionDescription(data) { return data?.source === "weread-official-readdata-detail" ? `默认显示前 4 类，按${data.metric === "readingTimeSeconds" ? "阅读时长" : "阅读次数"}汇总。` : "默认显示前 4 类，按已同步笔记的类别汇总。"; }
@@ -914,7 +994,27 @@ function openRecentAuthDialog(actionName, continuation = () => completeSensitive
 
 function emptyState(title, detail, actionLabel, view) { return `<section class="empty-state"><div aria-hidden="true">□</div><h2>${title}</h2><p>${detail}</p><button class="button primary" data-go="${view}" type="button">${actionLabel}</button></section>`; }
 function emptyStateMarkup(title, detail, actionLabel, view) { return `<section class="empty-state"><div aria-hidden="true">□</div><h2>${title}</h2><p>${detail}</p><button class="button primary" data-go="${view}" type="button">${actionLabel}</button></section>`; }
-function modal(inner) { const host = document.createElement("div"); host.className = "modal-backdrop"; host.innerHTML = `<section class="modal compact" role="dialog" aria-modal="true"><button class="modal-close" type="button" aria-label="关闭">×</button>${inner}</section>`; document.body.append(host); host.querySelector(".modal-close").addEventListener("click", () => host.remove()); host.addEventListener("click", event => { if (event.target === host) host.remove(); }); host.querySelector("input")?.focus(); return host; }
+function modal(inner) {
+  const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const host = document.createElement("div");
+  host.className = "modal-backdrop";
+  host.innerHTML = `<section class="modal compact" role="dialog" aria-modal="true"><button class="modal-close" type="button" aria-label="关闭">×</button>${inner}</section>`;
+  const close = () => { host.remove(); previousFocus?.focus?.(); };
+  document.body.append(host);
+  host.querySelector(".modal-close").addEventListener("click", close);
+  host.addEventListener("click", event => { if (event.target === host) close(); });
+  host.addEventListener("keydown", event => {
+    if (event.key === "Escape") { event.preventDefault(); close(); return; }
+    if (event.key !== "Tab") return;
+    const controls = [...host.querySelectorAll("button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href]")];
+    if (!controls.length) return;
+    const first = controls[0]; const last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+  (host.querySelector("input") || host.querySelector("button"))?.focus();
+  return host;
+}
 
 async function action(label, callback) {
   if (state.busy) return undefined;

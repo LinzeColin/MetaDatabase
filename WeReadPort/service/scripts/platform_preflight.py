@@ -55,6 +55,9 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
     def warn(code: str, field: str, message: str) -> None:
         warnings.append({"code": code, "field": field, "message": message})
 
+    if sys.version_info < (3, 11):
+        block("PYTHON_RUNTIME", "python", "生产运维脚本必须使用 Python 3.11 或更高版本。")
+
     for key in REQUIRED:
         if not values.get(key, "").strip():
             block("MISSING", key, "必填部署输入缺失。")

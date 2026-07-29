@@ -37,11 +37,13 @@ function handoffOrLogin() {
 async function loadOverview() {
   try {
     state.overview = await api.adminOverview();
-    const names = ["users", "notes", "prompts", "audit", "operations"];
+    const names = ["users", "notes", "prompts", "skills", "security", "audit", "operations"];
     const settled = await Promise.allSettled([
       api.adminAccounts({ limit: DIRECT_LIST_LIMIT }),
       api.adminNotes({ limit: DIRECT_LIST_LIMIT }),
       api.adminPrompts({ limit: DIRECT_LIST_LIMIT }),
+      api.adminBookSkills({ limit: DIRECT_LIST_LIMIT }),
+      api.adminSecurity({ limit: DIRECT_LIST_LIMIT }),
       api.adminAudit({ limit: DIRECT_LIST_LIMIT }),
       api.readiness(),
     ]);
@@ -120,6 +122,8 @@ function renderAdmin() {
     adminNav("users", "用户资料"),
     adminNav("notes", "笔记"),
     adminNav("prompts", "提示词与背景"),
+    adminNav("skills", "Book-to-Skill"),
+    adminNav("security", "登录与安全"),
     adminNav("audit", "平台操作记录"),
     adminNav("operations", "开发与运维"),
     '</nav></aside><section class="admin-panel" id="admin-content">' + renderAdminView(counts) + '</section></main></div>',
@@ -147,6 +151,8 @@ function renderAdminView(counts) {
   if (state.view === "users") return directView("用户资料", "账户资料已在登录后自动加载，无需填写用途或再次验证。", renderUsers(state.results.users), state.failures.users);
   if (state.view === "notes") return directView("笔记", "笔记索引已自动加载；点击任意一条即可展开正文，无需再次登录。", renderNotes(state.results.notes), state.failures.notes);
   if (state.view === "prompts") return directView("提示词与背景", "用户保存的 AI 平台、提问风格、个人补充信息和自定义提示词已直接展示。", renderPrompts(state.results.prompts), state.failures.prompts);
+  if (state.view === "skills") return directView("Book-to-Skill", "已保存的单书 Skill 索引已自动加载；点击后可直接查看其 Markdown 正文。", renderBookSkills(state.results.skills), state.failures.skills);
+  if (state.view === "security") return directView("登录与安全", "展示必要的登录、会话、凭据生命周期与已同意行为元数据；不会显示密钥、令牌、Cookie、完整 IP 或完整 User-Agent。", renderSecurity(state.results.security), state.failures.security);
   if (state.view === "audit") return directView("平台操作记录", "系统自动保留管理操作记录；展示不再要求填写用途。", renderAudit(state.results.audit), state.failures.audit);
   if (state.view === "operations") return directView("开发与运维", "运行状态已自动加载，不显示环境变量、密钥、令牌、IP 或对象存储路径。", renderOperations(), state.failures.operations);
   return [
@@ -156,6 +162,7 @@ function renderAdminView(counts) {
     '<section class="admin-metric-grid">',
     '<article><span>账户</span><strong>' + formatCount(counts.accounts) + '</strong></article>',
     '<article><span>笔记索引</span><strong>' + formatCount(counts.notes) + '</strong></article>',
+    '<article><span>Book-to-Skill</span><strong>' + formatCount(counts.bookSkills) + '</strong></article>',
     '<article><span>AI 偏好</span><strong>' + formatCount(counts.aiPreferences) + '</strong></article>',
     '<article><span>待处理导入</span><strong>' + formatCount(counts.pendingImports) + '</strong></article>',
     '</section>',
@@ -176,6 +183,12 @@ function bindAdminView(content) {
     void runBusy(async () => {
       const result = await api.adminNote(button.dataset.adminNote);
       showNoteModal(result.note);
+    });
+  }));
+  content.querySelectorAll("[data-admin-book-skill]").forEach(button => button.addEventListener("click", () => {
+    void runBusy(async () => {
+      const result = await api.adminBookSkill(button.dataset.adminBookSkill);
+      showBookSkillModal(result);
     });
   }));
 }
@@ -204,6 +217,33 @@ function renderPrompts(result) {
     + '</tbody></table></div>';
 }
 
+function renderBookSkills(result) {
+  const rows = result?.bookSkills || [];
+  if (!rows.length) return "";
+  return '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>账户</th><th>书籍 / 作者</th><th>来源笔记</th><th>版本</th><th>更新时间</th><th>正文</th></tr></thead><tbody>'
+    + rows.map(item => '<tr><td><strong>' + escapeHtml(item.accountDisplayName) + '</strong><br><code>' + escapeHtml(item.accountId) + '</code></td><td>' + escapeHtml([item.bookTitle ? "《" + item.bookTitle + "》" : "", item.author || ""].filter(Boolean).join(" · ") || "—") + '</td><td>' + formatCount(item.noteCount) + '</td><td>v' + escapeHtml(String(item.version || 1)) + '</td><td>' + escapeHtml(formatDateTime(item.updatedAt)) + '</td><td><button class="button ghost" data-admin-book-skill="' + escapeAttr(item.id) + '" type="button">查看 Markdown</button></td></tr>').join("")
+    + '</tbody></table></div>';
+}
+
+function renderSecurity(result) {
+  const securityEvents = result?.securityEvents || [];
+  const sessions = result?.sessions || [];
+  const credentials = result?.credentials || [];
+  const behaviorEvents = result?.behaviorEvents || [];
+  if (!securityEvents.length && !sessions.length && !credentials.length && !behaviorEvents.length) return "";
+  return '<div class="admin-security-groups">'
+    + securityTable("登录与安全事件", ["时间", "账户", "事件", "方式", "结果", "会话", "设备指纹", "网络指纹"], securityEvents.map(item => ['<td>' + escapeHtml(formatDateTime(item.createdAt)) + '</td>', '<td><strong>' + escapeHtml(item.accountDisplayName || "—") + '</strong><br><code>' + escapeHtml(item.accountId || "—") + '</code></td>', '<td>' + escapeHtml(item.eventType) + '</td>', '<td>' + escapeHtml(item.method) + '</td>', '<td>' + escapeHtml(item.outcome) + '</td>', '<td><code>' + escapeHtml(item.sessionId || "—") + '</code></td>', '<td><code>' + escapeHtml(item.userAgentFingerprint || "—") + '</code></td>', '<td><code>' + escapeHtml(item.ipFingerprint || "—") + '</code></td>']))
+    + securityTable("当前会话元数据", ["账户", "创建", "最近活动", "到期", "设备指纹", "网络指纹"], sessions.map(item => ['<td><strong>' + escapeHtml(item.accountDisplayName || "—") + '</strong><br><code>' + escapeHtml(item.accountId || "—") + '</code></td>', '<td>' + escapeHtml(formatDateTime(item.createdAt)) + '</td>', '<td>' + escapeHtml(formatDateTime(item.lastSeenAt)) + '</td>', '<td>' + escapeHtml(formatDateTime(item.expiresAt)) + '</td>', '<td><code>' + escapeHtml(item.userAgentFingerprint || "—") + '</code></td>', '<td><code>' + escapeHtml(item.ipFingerprint || "—") + '</code></td>']))
+    + securityTable("凭据生命周期", ["账户", "类型", "平台", "安全标签", "创建", "更新"], credentials.map(item => ['<td><strong>' + escapeHtml(item.accountDisplayName || "—") + '</strong><br><code>' + escapeHtml(item.accountId || "—") + '</code></td>', '<td>' + escapeHtml(item.kind) + '</td>', '<td>' + escapeHtml(item.provider) + '</td>', '<td>' + escapeHtml(item.label) + '</td>', '<td>' + escapeHtml(formatDateTime(item.createdAt)) + '</td>', '<td>' + escapeHtml(formatDateTime(item.updatedAt)) + '</td>']))
+    + securityTable("已同意行为事件", ["时间", "账户", "事件", "脱敏元数据"], behaviorEvents.map(item => ['<td>' + escapeHtml(formatDateTime(item.occurredAt)) + '</td>', '<td><strong>' + escapeHtml(item.accountDisplayName || "—") + '</strong><br><code>' + escapeHtml(item.accountId || "—") + '</code></td>', '<td>' + escapeHtml(item.eventType) + '</td>', '<td><code>' + escapeHtml(JSON.stringify(item.value || {})) + '</code></td>']))
+    + '</div>';
+}
+
+function securityTable(title, headings, rows) {
+  if (!rows.length) return '<section class="admin-security-group"><h2>' + escapeHtml(title) + '</h2><div class="admin-empty">当前没有可展示的数据。</div></section>';
+  return '<section class="admin-security-group"><h2>' + escapeHtml(title) + '</h2><div class="admin-table-wrap"><table class="admin-table"><thead><tr>' + headings.map(label => '<th>' + escapeHtml(label) + '</th>').join("") + '</tr></thead><tbody>' + rows.map(cells => '<tr>' + cells.join("") + '</tr>').join("") + '</tbody></table></div></section>';
+}
+
 function renderAudit(result) {
   const rows = result?.events || [];
   if (!rows.length) return "";
@@ -227,6 +267,24 @@ function showNoteModal(note) {
     + escapeHtml([note.accountDisplayName, note.accountEmail, note.bookTitle ? "《" + note.bookTitle + "》" : "", note.author].filter(Boolean).join(" · "))
     + '</p><pre>'
     + escapeHtml(note.content || "")
+    + '</pre><div class="modal-actions"><button class="button primary" type="button">关闭</button></div></section>';
+  document.body.append(host);
+  host.querySelector("button").addEventListener("click", () => host.remove());
+  host.addEventListener("click", event => {
+    if (event.target === host) host.remove();
+  });
+}
+
+function showBookSkillModal(result) {
+  const skill = result?.bookSkill || {};
+  const host = document.createElement("div");
+  host.className = "admin-modal-backdrop";
+  host.innerHTML = '<section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-book-skill-title"><p class="eyebrow">Book-to-Skill Markdown</p><h2 id="admin-book-skill-title">'
+    + escapeHtml(skill.bookTitle ? "《" + skill.bookTitle + "》" : "Book-to-Skill")
+    + '</h2><p>'
+    + escapeHtml([skill.accountDisplayName, skill.accountEmail, skill.author, skill.noteCount ? skill.noteCount + " 条笔记" : ""].filter(Boolean).join(" · "))
+    + '</p><pre>'
+    + escapeHtml(result?.artifact?.markdown || "")
     + '</pre><div class="modal-actions"><button class="button primary" type="button">关闭</button></div></section>';
   document.body.append(host);
   host.querySelector("button").addEventListener("click", () => host.remove());

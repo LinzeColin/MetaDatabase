@@ -63,7 +63,7 @@ test("画像、官方统计、笔记活动、推荐、跨设备和隐私控制�
 });
 
 test("笔记页按真实字段筛选，并按书籍、作者或时间归档后只携带单条笔记问 AI", () => {
-  for (const phrase of ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "实时筛选", "打包下载当前结果", "书籍分类", "作者分类", "时间分类", "note-archive-heading", "去 AI 问询", "选择一条笔记去 AI 问询", "官方当前返回的真实事件时间", "点击笔记才会按需解密并显示完整正文", "查看正文", "当前视图操作", "缩小当前阅读档案"]) assert.ok(ui.includes(phrase), phrase);
+  for (const phrase of ["模糊搜索", "书籍", "作者", "开始时间", "结束时间", "实时筛选", "打包下载当前结果", "书籍分类", "作者分类", "时间分类", "note-archive-heading", "去 AI 问询", "选择一条笔记去 AI 问询", "官方当前返回的真实事件时间", "点击笔记才会按需解密并显示完整正文", "查看正文", "当前视图操作", "缩小当前阅读档案", "选择一本书生成 Book-to-Skill", "我的 Book-to-Skill", "Book-to-Skill 预览"]) assert.ok(ui.includes(phrase), phrase);
   assert.ok(ui.includes("data-note-filter"));
   assert.ok(ui.includes("notes-workbench"));
   assert.ok(ui.includes("data-note-open"));
@@ -72,6 +72,7 @@ test("笔记页按真实字段筛选，并按书籍、作者或时间归档后�
   assert.ok(ui.includes("AI 问询"));
   for (const phrase of ["发起问询", "我的风格", "问询记录", "AI_INQUIRY_PROVIDERS", "AI_INQUIRY_STYLES", "DEFAULT_AI_INQUIRY_PROVIDER_ID", "DEFAULT_AI_INQUIRY_STYLE_ID"]) assert.ok(ui.includes(phrase), phrase);
   assert.ok(api.includes("/notes/export"));
+  assert.ok(api.includes("/book-skills"));
   assert.ok(api.includes("/ai/preferences"));
   assert.ok(api.includes("/ai/inquiries"));
   assert.equal(ui.includes("admin.weread.linzezhang.com"), false, "普通用户页面不得展示管理域");
@@ -90,7 +91,7 @@ test("UI UX Pro Max 关键可访问性合同：44px 触控、焦点、减弱动�
 
 test("管理员界面独立构建，普通用户页面不含管理导航或管理数据展示", () => {
   assert.ok(adminHtml.includes("阅迁 Admin"));
-  for (const phrase of ["不可变账户白名单", "登录后直接查看管理数据", "Promise.allSettled", "session/handoff", "管理员控制台", "adminPrompts", "adminNote", "DIRECT_LIST_LIMIT"]) assert.ok(adminUi.includes(phrase), phrase);
+  for (const phrase of ["不可变账户白名单", "登录后直接查看管理数据", "Promise.allSettled", "session/handoff", "管理员控制台", "adminPrompts", "adminNote", "adminBookSkills", "adminSecurity", "Book-to-Skill", "登录与安全", "DIRECT_LIST_LIMIT"]) assert.ok(adminUi.includes(phrase), phrase);
   assert.equal(adminUi.includes("读取并审计"), false);
   assert.equal(adminUi.includes("查看用途"), false);
   assert.equal(adminUi.includes("近期身份验证"), false);

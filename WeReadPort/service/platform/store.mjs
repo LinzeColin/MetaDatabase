@@ -264,6 +264,51 @@ export class PlatformStore {
       .all(accountId, limit);
   }
 
+  findBookSkill(accountId, bookTitle, author = "") {
+    return this.db.prepare("SELECT id,account_id AS accountId,book_title AS bookTitle,author,note_count AS noteCount,object_key AS objectKey,content_hash AS contentHash,version,created_at AS createdAt,updated_at AS updatedAt FROM book_skills WHERE account_id=? AND book_title=? AND author=?")
+      .get(accountId, bookTitle, author) ?? null;
+  }
+
+  getBookSkill(accountId, id) {
+    return this.db.prepare("SELECT id,account_id AS accountId,book_title AS bookTitle,author,note_count AS noteCount,object_key AS objectKey,content_hash AS contentHash,version,created_at AS createdAt,updated_at AS updatedAt FROM book_skills WHERE account_id=? AND id=?")
+      .get(accountId, id) ?? null;
+  }
+
+  listBookSkills(accountId, limit = 100) {
+    return this.db.prepare("SELECT id,account_id AS accountId,book_title AS bookTitle,author,note_count AS noteCount,object_key AS objectKey,content_hash AS contentHash,version,created_at AS createdAt,updated_at AS updatedAt FROM book_skills WHERE account_id=? ORDER BY updated_at DESC,id DESC LIMIT ?")
+      .all(accountId, Math.min(Math.max(Number(limit) || 100, 1), 5_000));
+  }
+
+  upsertBookSkill({ id, accountId, bookTitle, author = "", noteCount, objectKey, contentHash }) {
+    const now = this.now();
+    return this.transaction(() => {
+      const current = this.findBookSkill(accountId, bookTitle, author);
+      const skillId = current?.id || id;
+      const version = Number(current?.version || 0) + 1;
+      const createdAt = current?.createdAt || now;
+      this.db.prepare(`INSERT INTO book_skills(id,account_id,book_title,author,note_count,object_key,content_hash,version,created_at,updated_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT(account_id,book_title,author) DO UPDATE SET note_count=excluded.note_count,object_key=excluded.object_key,content_hash=excluded.content_hash,version=excluded.version,updated_at=excluded.updated_at`)
+        .run(skillId, accountId, bookTitle, author, noteCount, objectKey, contentHash, version, createdAt, now);
+      this.db.prepare("INSERT OR IGNORE INTO book_skill_objects(object_key,account_id,book_skill_id,created_at) VALUES(?,?,?,?)")
+        .run(objectKey, accountId, skillId, now);
+      return { current, bookSkill: this.getBookSkill(accountId, skillId) };
+    });
+  }
+
+  listBookSkillObjectKeys(accountId, id) {
+    return this.db.prepare("SELECT object_key AS objectKey FROM book_skill_objects WHERE account_id=? AND book_skill_id=? ORDER BY created_at")
+      .all(accountId, id).map(row => row.objectKey);
+  }
+
+  deleteBookSkillObject(objectKey) {
+    return Number(this.db.prepare("DELETE FROM book_skill_objects WHERE object_key=?").run(objectKey).changes) === 1;
+  }
+
+  deleteBookSkill(accountId, id) {
+    return Number(this.db.prepare("DELETE FROM book_skills WHERE account_id=? AND id=?").run(accountId, id).changes) === 1;
+  }
+
   deleteNote(accountId, id, expectedVersion = null) {
     const now = this.now();
     return this.transaction(() => {
@@ -371,6 +416,60 @@ export class PlatformStore {
       FROM account_ai_preferences p JOIN accounts a ON a.id=p.account_id
       WHERE a.deleted_at IS NULL ORDER BY p.updated_at DESC,p.account_id DESC LIMIT ?`)
       .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000));
+  }
+
+  listAdminBookSkills(limit = 100) {
+    return this.db.prepare(`SELECT b.id,b.account_id AS accountId,b.book_title AS bookTitle,b.author,b.note_count AS noteCount,b.version,b.created_at AS createdAt,b.updated_at AS updatedAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM book_skills b JOIN accounts a ON a.id=b.account_id
+      WHERE a.deleted_at IS NULL ORDER BY b.updated_at DESC,b.id DESC LIMIT ?`)
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000));
+  }
+
+  getAdminBookSkillMetadata(id) {
+    return this.db.prepare(`SELECT b.id,b.account_id AS accountId,b.book_title AS bookTitle,b.author,b.note_count AS noteCount,b.object_key AS objectKey,b.content_hash AS contentHash,b.version,b.created_at AS createdAt,b.updated_at AS updatedAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM book_skills b JOIN accounts a ON a.id=b.account_id WHERE b.id=? LIMIT 1`)
+      .get(id) ?? null;
+  }
+
+  addSecurityEvent({ id, accountId = null, eventType, method, outcome, sessionId = null, userAgentHash = null, ipPrefixHash = null }) {
+    const createdAt = this.now();
+    this.db.prepare("INSERT INTO security_events(id,account_id,event_type,method,outcome,session_id,user_agent_hash,ip_prefix_hash,created_at) VALUES(?,?,?,?,?,?,?,?,?)")
+      .run(id, accountId, eventType, method, outcome, sessionId, userAgentHash, ipPrefixHash, createdAt);
+    return { id, accountId, eventType, method, outcome, sessionId, userAgentHash, ipPrefixHash, createdAt };
+  }
+
+  listAdminSecurityEvents(limit = 100) {
+    return this.db.prepare(`SELECT e.id,e.account_id AS accountId,e.event_type AS eventType,e.method,e.outcome,e.session_id AS sessionId,e.user_agent_hash AS userAgentHash,e.ip_prefix_hash AS ipPrefixHash,e.created_at AS createdAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM security_events e LEFT JOIN accounts a ON a.id=e.account_id
+      ORDER BY e.created_at DESC,e.id DESC LIMIT ?`)
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000));
+  }
+
+  listAdminSessions(limit = 100) {
+    return this.db.prepare(`SELECT s.id,s.account_id AS accountId,s.created_at AS createdAt,s.last_seen_at AS lastSeenAt,s.expires_at AS expiresAt,s.user_agent_hash AS userAgentHash,s.ip_prefix_hash AS ipPrefixHash,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM sessions s JOIN accounts a ON a.id=s.account_id
+      WHERE a.deleted_at IS NULL ORDER BY s.last_seen_at DESC,s.created_at DESC LIMIT ?`)
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000));
+  }
+
+  listAdminCredentialMetadata(limit = 100) {
+    return this.db.prepare(`SELECT c.id,c.account_id AS accountId,c.kind,c.provider,c.provider_subject AS subject,c.metadata_json AS metadataJson,c.created_at AS createdAt,c.updated_at AS updatedAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM credentials c JOIN accounts a ON a.id=c.account_id
+      WHERE a.deleted_at IS NULL ORDER BY c.updated_at DESC,c.id DESC LIMIT ?`)
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000)).map(row => ({ ...row, metadata: parseJson(row.metadataJson) }));
+  }
+
+  listAdminBehaviorEvents(limit = 100) {
+    return this.db.prepare(`SELECT b.id,b.account_id AS accountId,b.event_type AS eventType,b.value_json AS valueJson,b.occurred_at AS occurredAt,
+      a.display_name AS accountDisplayName,a.email AS accountEmail
+      FROM behavior_events b JOIN accounts a ON a.id=b.account_id
+      WHERE a.deleted_at IS NULL ORDER BY b.occurred_at DESC,b.id DESC LIMIT ?`)
+      .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000)).map(row => ({ ...row, value: parseJson(row.valueJson) }));
   }
 
   addAdminAuditEvent({ id, actorAccountId, action, targetAccountId = null, targetNoteId = null, reason }) {
@@ -533,11 +632,13 @@ export class PlatformStore {
       behavior: this.listBehaviorEvents(accountId, 0, 100000),
       aiInquiryHistory: this.listAiInquiryEvents(accountId, 500),
       recommendations: this.listRecommendations(accountId, 100),
+      bookSkills: this.listBookSkills(accountId, 5_000),
     };
   }
 
   listAccountObjectKeys(accountId) {
-    return this.db.prepare("SELECT object_key AS objectKey FROM note_objects WHERE account_id=?").all(accountId).map(row => row.objectKey);
+    return this.db.prepare(`SELECT object_key AS objectKey FROM note_objects WHERE account_id=?
+      UNION ALL SELECT object_key AS objectKey FROM book_skill_objects WHERE account_id=?`).all(accountId, accountId).map(row => row.objectKey);
   }
 
   deleteAccount(accountId) {
@@ -550,9 +651,11 @@ export class PlatformStore {
       accounts: count("accounts"),
       sessions: count("sessions"),
       notes: count("notes"),
+      bookSkills: count("book_skills"),
       aiPreferences: count("account_ai_preferences"),
       aiInquiryEvents: count("ai_inquiry_events"),
       adminAuditEvents: count("admin_audit_events"),
+      securityEvents: count("security_events"),
       pendingImports: Number(this.db.prepare("SELECT COUNT(*) AS count FROM import_jobs WHERE state IN ('PENDING','RUNNING')").get().count),
       stalledImports: Number(this.db.prepare("SELECT COUNT(*) AS count FROM import_jobs WHERE state='RUNNING' AND lease_until IS NOT NULL AND lease_until<=?").get(this.now()).count),
       pendingOutbox: Number(this.db.prepare("SELECT COUNT(*) AS count FROM outbox WHERE state='PENDING'").get().count),

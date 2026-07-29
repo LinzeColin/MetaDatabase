@@ -65,7 +65,9 @@ test("管理员专用域直接展示数据，仍受不可变账户白名单和�
   const user = await platform.service.registerPassword({ email: "reader-http@example.com", password: PASSWORD, displayName: "阅读者" });
   const config = configureAdmin(platform, admin.account.id);
   const note = await platform.service.saveDocument(user.account.id, { source: "manual", externalId: "admin-note", title: "管理员可审计读取", content: "正文只能在明确用途后读取。" });
+  await platform.service.saveDocument(user.account.id, { source: "manual", externalId: "admin-skill-note", title: "系统框架", content: "用反馈回路框架检查长期后果。", bookTitle: "系统思维", author: "作者甲" });
   platform.service.updateAiPreferences(user.account.id, { providerId: "chatgpt", styleId: "blindspot", personalContext: "测试背景", customPrompt: "测试自定义提示词" });
+  const savedSkill = await platform.service.saveBookSkill(user.account.id, { bookTitle: "系统思维", author: "作者甲" });
 
   const adminSession = platform.service.authenticate(admin.session.token);
   const userSession = platform.service.authenticate(user.session.token);
@@ -80,6 +82,14 @@ test("管理员专用域直接展示数据，仍受不可变账户白名单和�
   const auditEvents = platform.service.adminAuditLog(adminSession).events;
   assert.ok(auditEvents.some(item => item.action === "admin_note_body_viewed"));
   assert.ok(auditEvents.some(item => item.action === "admin_note_body_viewed" && item.reason === "管理员直接查看"));
+  const skills = platform.service.adminBookSkills(adminSession).bookSkills;
+  assert.ok(skills.some(item => item.id === savedSkill.bookSkill.id));
+  const skillBody = await platform.service.adminReadBookSkill(adminSession, { bookSkillId: savedSkill.bookSkill.id });
+  assert.match(skillBody.artifact.markdown, /系统思维/u);
+  const security = platform.service.adminSecurity(adminSession);
+  assert.ok(security.securityEvents.some(item => item.accountId === user.account.id && item.eventType === "registration"));
+  assert.ok(security.credentials.every(item => !Object.hasOwn(item, "subject")));
+  assert.ok(security.sessions.every(item => !Object.hasOwn(item, "tokenHash")));
 
   platform.store.db.prepare("UPDATE sessions SET recent_auth_at=? WHERE token_hash=?")
     .run(platform.service.now() - 3_600, platform.service.sessionHash(admin.session.token));
@@ -105,6 +115,11 @@ test("管理员专用域直接展示数据，仍受不可变账户白名单和�
   assert.equal(handoff.status, 303);
   assert.equal(handoff.headers.get("location"), ADMIN_ORIGIN + "/?handoff=1");
   assert.match(handoff.headers.get("set-cookie") || "", /Domain=weread\.linzezhang\.com/u);
+
+  const nonAdminHandoff = await app(new Request(new URL("/v1/session/handoff", platform.config.baseUrl), {
+    headers: requestHeaders(platform, user.session.token, "", platform.config.baseUrl, platform.config.baseUrl),
+  }));
+  assert.equal(nonAdminHandoff.status, 403);
 
   const sharedToken = /wrp_session=([^;]+)/u.exec(handoff.headers.get("set-cookie") || "")?.[1];
   assert.ok(sharedToken);
