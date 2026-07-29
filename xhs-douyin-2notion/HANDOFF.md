@@ -34,6 +34,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   XHS detail page is eligible, it shows one primary 保存这条笔记 action; the second bounded group remains a progressive
   disclosure rather than a default card. Keyboard navigation, state feedback, reduced-motion support, and the public
   source's no-remote-asset/no-third-party-motion boundary remain intact.
+- An already-open but not-yet-enabled detail page is now explained in plain language instead of being told to open
+  another item: Douyin directs the Owner to 收藏 or 喜欢, while 哔哩哔哩、快手、微博、淘宝 say that the content was
+  recognized but cannot yet be saved and expose no action. A fallback derived for one tab is cleared on tab change,
+  so it cannot leave a stale disabled action on another platform. The XHS-only current-content eligibility field is
+  no longer emitted for unrelated platforms.
 - `x2n release stage-prearm-sidepanel` now creates an idempotent, digest-addressed owner-private bundle under the
   approved Runtime root. Its unpacked Side Panel, Companion, and Contract sources are verified together; it has no
   `release_identity.json`, never moves a release pointer, and lets the temporary Host plan bind to the same bundle
@@ -134,6 +139,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
+- The unavailable-detail refinement passed extension self-test; all XHS, Douyin, 哔哩哔哩, 快手, 微博, and 淘宝 fixture
+  suites; and both isolated XHS and Douyin Extension E2Es. The latter exercised the XHS guide, the new real-shaped
+  哔哩哔哩 unavailable-detail state with zero visible actions, synthetic capture, and 100 service-worker restarts with
+  zero platform calls or real accounts. The current nine-gate fast source lane passed with 668 public source files;
+  its append-only A005 source receipt is `4fe7d4abf0e813fd17152d6caf216e3b267dc1cc4648977ed9c6ce9046affebe`.
 - The first-use Side Panel source was rendered in isolated Chromium at 360 px in light and dark modes. The exact XHS
   收藏笔记 guide has no horizontal overflow and presents zero visible actions; an eligible XHS detail page has one
   full-width 保存这条笔记 action plus a collapsed optional second-group switch. Extension self-test, TypeScript
