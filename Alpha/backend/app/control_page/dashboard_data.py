@@ -541,7 +541,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         sign = 1 if i.side == "BUY" else -1
         net[i.symbol] = net.get(i.symbol, 0) + sign * e.quantity
         cost[i.symbol] = cost.get(i.symbol, 0.0) + sign * e.quantity * float(e.price)
-        cash_flow_usd += (-sign) * e.quantity * float(e.price)
+        # 策略自己的现金流:买入为负、卖出为正,并扣掉真实手续费(费用是策略的成本)
+        cash_flow_usd += (-sign) * e.quantity * float(e.price) - float(getattr(e, "fees", 0) or 0)
 
     held = sorted(sym for sym, q in net.items() if q != 0)
     quote_map = quotes.snapshots(held) if (quotes and held) else {}
@@ -570,25 +571,24 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     # 授权额度 = 契约上限 3000 澳元(≈1950 美元),那是"最多能用多少",不是账户里真有多少。
     # 真实购买力从券商只读查得;二者取小才是系统真正能动的钱。取不到则 fail-soft 退回授权额度
     # 并如实标注 funded_known=False,绝不假装知道。
+    # ---------- 策略自有账(隔离铁律) ----------
+    # owner 2026-07-28:"你把我的收益和你的混为一谈了"。事故:owner 自己动了账户现金
+    # (1587→2744),页面据此报"累计盈亏 +947.89 澳元 / +31.6%",可策略一次都没交易过。
+    #
+    # 铁律:**策略净值只由策略自己的账算出,永不读券商余额**——
+    #     策略净值 = 期初本金(授权 3000 澳元) + 策略自己的现金流(含手续费) + 策略自己持仓市值
+    # 首笔成交前:现金流=0、持仓=0 → 净值恰为期初本金,盈亏 0.00(它确实还没赚也没亏)。
+    # owner 的买卖/出入金/自有持仓涨跌,永远不进这条线。
     authorized_usd = capital_usd
     funded_known = real_power_usd is not None
-    # 隔离铁律(owner 2026-07-24:"不要把我的交易和你的策略搞混,不要把我的收益当成你的收益"):
-    # 一旦系统首笔成交,策略初始本金被冻结落盘;此后净值 = 冻结本金 + 系统自己的现金流 + 系统
-    # 自己持仓市值,**完全不看券商实时购买力**——owner 在同一账户里的买卖/出入金永不进策略净值。
-    start_capital_usd = _read_start_capital(Path(runtime_dir))
-    if start_capital_usd is not None:                     # 已冻结(系统已开始交易)
-        cash_usd = start_capital_usd + cash_flow_usd
-        equity_usd = start_capital_usd + cash_flow_usd + mark_value_usd
-        funded_usd = min(authorized_usd, start_capital_usd)
-    elif funded_known:                                    # 未交易:跟随真实可用(反映入金进度)
-        cash_usd = float(real_power_usd)
-        equity_usd = float(real_power_usd) + mark_value_usd
-        funded_usd = min(authorized_usd, equity_usd)
-    else:                                                 # 读不到券商:退回授权额度
-        cash_usd = capital_usd + cash_flow_usd
-        equity_usd = cash_usd + mark_value_usd
-        funded_usd = authorized_usd
+    start_capital_usd = _read_start_capital(Path(runtime_dir)) or capital_usd
+    cash_usd = start_capital_usd + cash_flow_usd          # 策略自己的现金,不是你的现金
+    equity_usd = cash_usd + mark_value_usd
     equity_aud = equity_usd / fx_display
+    # 券商实际可动用资金只用于"资金是否到位"提示,绝不参与净值与盈亏计算
+    account_cash_usd = float(real_power_usd) if funded_known else None
+    funded_usd = (min(authorized_usd, account_cash_usd + mark_value_usd)
+                  if funded_known else authorized_usd)
     # 期初本金(本金基准)= 固定 3000 澳元,只作图上那条基准虚线,永不随可用资金浮动。
     baseline_aud = capital_aud
 
@@ -801,11 +801,13 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             "total_pnl_pct": round(100.0 * total_pnl_aud / month_target_aud, 2) if month_target_aud else 0.0,
             "month_target_aud": round(month_target_aud, 2),
             "today_pnl_aud": round(today_pnl_aud, 2),
-            "cash_usd": round(cash_usd, 2),
+            "cash_usd": round(cash_usd, 2),            # 策略自己的现金(非你的账户现金)
             "invested_usd": round(invested_usd, 2),
             "exposure_pct": exposure_pct,
-            # 资金真相三件套:授权上限 / 真实到位 / 缺口(未知则如实标 funded_known=False)
+            "traded_yet": bool(execs),                 # 策略是否已经交易过
+            # 资金真相:授权上限 / 你账户实际可用(只作到位提示,不进净值) / 缺口
             "authorized_usd": round(authorized_usd, 2),
+            "account_cash_usd": (round(account_cash_usd, 2) if funded_known else None),
             "funded_usd": round(funded_usd, 2),
             "funded_known": funded_known,
             "funding_gap_usd": round(max(0.0, authorized_usd - funded_usd), 2),
