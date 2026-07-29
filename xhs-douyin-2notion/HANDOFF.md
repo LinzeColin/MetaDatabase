@@ -39,6 +39,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   therefore fail before any loopback connection or Canonical write.
 - If the clean-room Douyin Sidecar fails before its ready signal, the Companion terminates and reaps the child before
   returning a fail-closed error. It does not retry, reuse the process, or leave a background loopback listener.
+- The direct deployment transaction now has isolated regressions for each failure boundary: an initial Native Host
+  install failure discards the staged release without switching; a pointer-switch failure disables the just-installed
+  Host and discards staging; and any failed cleanup escalates to `POLICY_BLOCKED` rather than leaving an ambiguous
+  release state.
 - The Douyin list extractor accepts only the corresponding platform-owned `data-e2e` list surface
   (`user-favorite-list` or `user-like-list`) after a selected 收藏/喜欢 control. It deliberately has no generic
   `main` fallback, so an unrecognized profile layout fails closed instead of treating unrelated cards as a relation list.
@@ -79,9 +83,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 - Current Companion discovery contains 332 tests. A bounded current full rerun was stopped during the existing 10k
   Markdown rebuild without a verdict, so it is not treated as a current full-suite pass. Focused A005
-  bundle/release/acceptance tests passed: 26 tests, covering exact scopes, hash-manifest mismatch before adapter
-  initialization, Markdown idempotency, durable archive proof, external gates, pointer rollback, staged Native Host
-  binding, and stale Side Panel identity rejection.
+  bundle/release/acceptance tests passed: 29 tests, covering exact scopes, hash-manifest mismatch before adapter
+  initialization, Markdown idempotency, durable archive proof, external gates, deployment-failure cleanup, pointer
+  rollback, staged Native Host binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
   Ruff, schema parsing, source privacy scan, and a temporary candidate-artifact scan passed. All fixture platform
   calls remain `0`; the current candidate artifact has 93 members and 0 runtime-data files.
@@ -97,7 +101,7 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   `X2N_PRIVATE_DB_CLIENT` reports `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor
   contacts the client or any remote service.
 - The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
-  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (94), Contract
+  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (97), Contract
   tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
 
 ## Next work

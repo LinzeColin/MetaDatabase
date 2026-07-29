@@ -703,6 +703,89 @@ class MvpReleaseTests(unittest.TestCase):
         rollback = manager.rollback_pointer()
         self.assertEqual(rollback["current_version"], "disabled")
 
+    def test_deploy_discards_staged_release_when_native_host_install_fails(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = mvp_deployment.StagedRelease(artifact_sha256="a" * 64)
+        install_error = X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "synthetic Native Host install failure")
+        with (
+            mock.patch.object(manager, "assert_release_source_tagged") as source_tagged,
+            mock.patch.object(manager, "stage", return_value=staged) as stage,
+            mock.patch.object(manager, "install_native_host", side_effect=install_error) as install_native_host,
+            mock.patch.object(manager, "switch") as switch,
+            mock.patch.object(manager, "uninstall_native_host") as uninstall_native_host,
+            mock.patch.object(manager, "discard_staged") as discard_staged,
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                manager.deploy(confirmation=mvp_deployment.DEPLOY_CONFIRMATION, browser="chrome")
+
+        self.assertEqual(blocked.exception.code, ErrorCode.DEPENDENCY_MISSING)
+        source_tagged.assert_called_once_with()
+        stage.assert_called_once_with()
+        install_native_host.assert_called_once_with(
+            confirmation=mvp_deployment.DEPLOY_CONFIRMATION,
+            browser="chrome",
+            staged=staged,
+        )
+        switch.assert_not_called()
+        uninstall_native_host.assert_not_called()
+        discard_staged.assert_called_once_with()
+
+    def test_deploy_uninstalls_native_host_and_discards_stage_when_switch_fails(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = mvp_deployment.StagedRelease(artifact_sha256="b" * 64)
+        switch_error = X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "synthetic pointer switch failure")
+        with (
+            mock.patch.object(manager, "assert_release_source_tagged"),
+            mock.patch.object(manager, "stage", return_value=staged),
+            mock.patch.object(
+                manager,
+                "install_native_host",
+                return_value={"native_host_installed": True, "paths_emitted": False},
+            ) as install_native_host,
+            mock.patch.object(manager, "switch", side_effect=switch_error) as switch,
+            mock.patch.object(
+                manager,
+                "uninstall_native_host",
+                return_value={"native_host_uninstalled": True, "paths_emitted": False},
+            ) as uninstall_native_host,
+            mock.patch.object(manager, "rollback_pointer") as rollback_pointer,
+            mock.patch.object(manager, "discard_staged") as discard_staged,
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                manager.deploy(confirmation=mvp_deployment.DEPLOY_CONFIRMATION, browser="chrome")
+
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        install_native_host.assert_called_once_with(
+            confirmation=mvp_deployment.DEPLOY_CONFIRMATION,
+            browser="chrome",
+            staged=staged,
+        )
+        switch.assert_called_once_with(staged)
+        uninstall_native_host.assert_called_once_with(browser="chrome")
+        rollback_pointer.assert_not_called()
+        discard_staged.assert_called_once_with()
+
+    def test_deploy_fails_closed_when_staged_release_cleanup_fails(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = mvp_deployment.StagedRelease(artifact_sha256="c" * 64)
+        install_error = X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, "synthetic Native Host install failure")
+        cleanup_error = X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "synthetic staged cleanup failure")
+        with (
+            mock.patch.object(manager, "assert_release_source_tagged"),
+            mock.patch.object(manager, "stage", return_value=staged),
+            mock.patch.object(manager, "install_native_host", side_effect=install_error),
+            mock.patch.object(manager, "switch") as switch,
+            mock.patch.object(manager, "uninstall_native_host") as uninstall_native_host,
+            mock.patch.object(manager, "discard_staged", side_effect=cleanup_error) as discard_staged,
+        ):
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                manager.deploy(confirmation=mvp_deployment.DEPLOY_CONFIRMATION, browser="chrome")
+
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+        switch.assert_not_called()
+        uninstall_native_host.assert_not_called()
+        discard_staged.assert_called_once_with()
+
     def test_blue_green_switch_restores_both_pointers_after_a_partial_failure(self) -> None:
         manager = MvpDeploymentManager(self.paths)
         staged = manager.stage()
