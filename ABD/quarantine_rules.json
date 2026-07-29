@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S06-P03",
+  "requirement_id": "REQ-S06-P03",
+  "quarantine_status": "QUARANTINED_KEEP",
+  "safe_status": "PARSED_SAFE",
+  "permanent_delete": false,
+  "mail_content_instruction_trust": "NONE",
+  "dangerous_extensions": [
+    "bat",
+    "cmd",
+    "com",
+    "exe",
+    "jar",
+    "js",
+    "msi",
+    "ps1",
+    "py",
+    "scr",
+    "sh",
+    "vbe",
+    "vbs",
+    "xlsm"
+  ],
+  "malware_markers": [
+    "EICAR-STANDARD-ANTIVIRUS-TEST-FILE",
+    "MALWARE_TEST_SIGNATURE"
+  ],
+  "script_markers": [
+    "#!/",
+    "<script",
+    "cmd.exe",
+    "javascript:",
+    "powershell",
+    "wscript"
+  ],
+  "prompt_injection_markers": [
+    "developer message",
+    "ignore all previous",
+    "ignore previous instructions",
+    "system message",
+    "you are chatgpt"
+  ],
+  "pdf_active_markers": [
+    "/aa",
+    "/embeddedfile",
+    "/javascript",
+    "/js",
+    "/launch",
+    "/openaction",
+    "/richmedia"
+  ],
+  "office_deny_name_fragments": [
+    "activex",
+    "externalLinks",
+    "vbaProject",
+    "webextensions"
+  ],
+  "office_deny_content_markers": [
+    "externalLink",
+    "macroEnabled",
+    "oleObject",
+    "TargetMode=\"External\"",
+    "vbaProject"
+  ],
+  "formula_prefixes": [
+    "=",
+    "+",
+    "-",
+    "@"
+  ]
+}

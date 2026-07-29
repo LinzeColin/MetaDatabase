@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S06-P03",
+  "contract_id": "AC-S06-P03",
+  "requirement_id": "REQ-S06-P03",
+  "fixed_clock": "2026-07-29T00:00:00+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_oracle_check_minimum": 30,
+  "minimum_targeted_pytest_cases": 42,
+  "minimum_full_pytest_cases": 4703,
+  "replay_iterations": 100,
+  "adverse_perturbation_iterations": 10000,
+  "scaled_attachment_boundary_bytes": 4,
+  "expected_next": "S06/P04_READY_NOT_STARTED",
+  "expected_release_status": "NOT_READY_S06_P04_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED",
+  "cases": [
+    {
+      "id": "SAFE_CSV",
+      "attachment_id": "ATTCSVSAFE",
+      "filename": "tab-statement.csv",
+      "content_base64": "ZXZlbnRfaWQsYW1vdW50ClQtMDAxLDEwLjAwCg==",
+      "expected_status": "PARSED_SAFE",
+      "expected_reason": null
+    },
+    {
+      "id": "SAFE_PDF",
+      "attachment_id": "ATTPDFSAFE",
+      "filename": "tab-statement.pdf",
+      "content_base64": "JVBERi0xLjQKMSAwIG9iago8PD4+CmVuZG9iagolJUVPRgo=",
+      "expected_status": "PARSED_SAFE",
+      "expected_reason": null
+    },
+    {
+      "id": "SAFE_XLSX",
+      "attachment_id": "ATTXLSXSAFE",
+      "filename": "tab-statement.xlsx",
+      "content_base64": "UEsDBBQAAAAIAAAAIQC8/hnLDAAAAA8AAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLMJqSxILbaz0YfQAFBLAwQUAAAACAAAACEA4mTmXA8AAAAVAAAADwAAAHhsL3dvcmtib29rLnhtbLMpzy/KTsrPz7az0YczAVBLAwQUAAAACAAAACEAfT4AGCYAAAAxAAAAGAAAAHhsL3dvcmtzaGVldHMvc2hlZXQxLnhtbLMpzy/KLs5ITS2xsynKL7ezSbazKbMztNEvs7PRB7L1wYL6CFUAUEsBAhQDFAAAAAgAAAAhALz+GcsMAAAADwAAABMAAAAAAAAAAAAAAIABAAAAAFtDb250ZW50X1R5cGVzXS54bWxQSwECFAMUAAAACAAAACEA4mTmXA8AAAAVAAAADwAAAAAAAAAAAAAAgAE9AAAAeGwvd29ya2Jvb2sueG1sUEsBAhQDFAAAAAgAAAAhAH0+ABgmAAAAMQAAABgAAAAAAAAAAAAAAIABeQAAAHhsL3dvcmtzaGVldHMvc2hlZXQxLnhtbFBLBQYAAAAAAwADAMQAAADVAAAAAAA=",
+      "expected_status": "PARSED_SAFE",
+      "expected_reason": null
+    },
+    {
+      "id": "MALWARE_MARKER",
+      "attachment_id": "ATTMALWARE",
+      "filename": "invoice.csv",
+      "content_base64": "bm90ZQpNQUxXQVJFX1RFU1RfU0lHTkFUVVJFCg==",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "MALWARE_MARKER_QUARANTINE"
+    },
+    {
+      "id": "MACRO_OFFICE",
+      "attachment_id": "ATTMACRO",
+      "filename": "invoice.xlsx",
+      "content_base64": "UEsDBBQAAAAIAAAAIQC8/hnLDAAAAA8AAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLMJqSxILbaz0YfQAFBLAwQUAAAACAAAACEA4mTmXA8AAAAVAAAADwAAAHhsL3dvcmtib29rLnhtbLMpzy/KTsrPz7az0YczAVBLAwQUAAAACAAAACEAMXw1FRgAAAAWAAAAEQAAAHhsL3ZiYVByb2plY3QuYmlu83X0CXcMco0PcQ0OiQ/2dPdzDAkNcgUAUEsBAhQDFAAAAAgAAAAhALz+GcsMAAAADwAAABMAAAAAAAAAAAAAAIABAAAAAFtDb250ZW50X1R5cGVzXS54bWxQSwECFAMUAAAACAAAACEA4mTmXA8AAAAVAAAADwAAAAAAAAAAAAAAgAE9AAAAeGwvd29ya2Jvb2sueG1sUEsBAhQDFAAAAAgAAAAhADF8NRUYAAAAFgAAABEAAAAAAAAAAAAAAIABeQAAAHhsL3ZiYVByb2plY3QuYmluUEsFBgAAAAADAAMAvQAAAMAAAAAAAA==",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "MACRO_OR_ACTIVE_OFFICE_ENTRY_QUARANTINE"
+    },
+    {
+      "id": "SCRIPT_PDF",
+      "attachment_id": "ATTSCRIPT",
+      "filename": "invoice.pdf",
+      "content_base64": "JVBERi0xLjQKL0phdmFTY3JpcHQKJSVFT0YK",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "PDF_ACTIVE_CONTENT_QUARANTINE"
+    },
+    {
+      "id": "FORMULA_CSV",
+      "attachment_id": "ATTFORMULA",
+      "filename": "invoice.csv",
+      "content_base64": "ZXZlbnRfaWQsYW1vdW50Cj0xKzEsMTAK",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "FORMULA_INJECTION_QUARANTINE"
+    },
+    {
+      "id": "PROMPT_INJECTION",
+      "attachment_id": "ATTPROMPT",
+      "filename": "note.csv",
+      "content_base64": "bm90ZQppZ25vcmUgcHJldmlvdXMgaW5zdHJ1Y3Rpb25zCg==",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "PROMPT_INJECTION_QUARANTINE"
+    },
+    {
+      "id": "UNKNOWN_TYPE",
+      "attachment_id": "ATTUNKNOWN",
+      "filename": "invoice.bin",
+      "content_base64": "AAFub3QtYS1rbm93bi1mb3JtYXQ=",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "UNKNOWN_TYPE_QUARANTINE"
+    },
+    {
+      "id": "TYPE_MISMATCH",
+      "attachment_id": "ATTMISMATCH",
+      "filename": "invoice.pdf",
+      "content_base64": "ZXZlbnRfaWQsYW1vdW50ClQtMDAxLDEwLjAwCg==",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "TYPE_SIGNATURE_MISMATCH_QUARANTINE"
+    },
+    {
+      "id": "PATH_TRAVERSAL",
+      "attachment_id": "ATTPATH",
+      "filename": "invoice.xlsx",
+      "content_base64": "UEsDBBQAAAAIAAAAIQC8/hnLDAAAAA8AAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLMJqSxILbaz0YfQAFBLAwQUAAAACAAAACEA4mTmXA8AAAAVAAAADwAAAHhsL3dvcmtib29rLnhtbLMpzy/KTsrPz7az0YczAVBLAwQUAAAACAAAACEAYjFt/g8AAAANAAAADQAAAC4uL2VzY2FwZS50eHTLy1dIrSgpSkwuyczPAwBQSwECFAMUAAAACAAAACEAvP4ZywwAAAAPAAAAEwAAAAAAAAAAAAAAgAEAAAAAW0NvbnRlbnRfVHlwZXNdLnhtbFBLAQIUAxQAAAAIAAAAIQDiZOZcDwAAABUAAAAPAAAAAAAAAAAAAACAAT0AAAB4bC93b3JrYm9vay54bWxQSwECFAMUAAAACAAAACEAYjFt/g8AAAANAAAADQAAAAAAAAAAAAAAgAF5AAAALi4vZXNjYXBlLnR4dFBLBQYAAAAAAwADALkAAACzAAAAAAA=",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "PATH_TRAVERSAL_QUARANTINE"
+    },
+    {
+      "id": "DANGEROUS_EXTENSION",
+      "attachment_id": "ATTJS",
+      "filename": "invoice.js",
+      "content_base64": "Y29uc29sZS5sb2coIm5vdCBydW4iKQo=",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "DANGEROUS_EXTENSION_QUARANTINE"
+    },
+    {
+      "id": "MALFORMED_OFFICE",
+      "attachment_id": "ATTZIPBAD",
+      "filename": "invoice.xlsx",
+      "content_base64": "UEsDBG5vdC1hLXppcA==",
+      "expected_status": "QUARANTINED_KEEP",
+      "expected_reason": "OFFICE_PARSE_FAILURE_QUARANTINE"
+    }
+  ]
+}

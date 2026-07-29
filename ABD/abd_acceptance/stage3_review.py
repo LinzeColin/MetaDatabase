@@ -63,7 +63,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "169c654c9bfc9697d62e5914130abc6152011596e5c127047def3887c841a620"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "5312a8ad80a9351e3da1728a1d401220a2ff8dde564d695919bfc576294c08ba"
 STAGE_REVIEW_COMMIT = "4168321dee17540bdba5763271694f78b33e3c42"
 PINNED_STAGE_REVIEW_CODE_HASH = "18431889da80b66a6f6c35375859793bee2d811ce14228cec80f69f880902b93"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -79,10 +79,10 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "tests/S03/stage_review_test.py": "4a140a8848b2990873c1e568588336d05d24311ce966ed3ed627ac9d7c3e4b5d",
-    "abd_acceptance/usability_accessibility.py": "5afdeef9622a0e53fa2beeae8b707893e148162f40ba2715ff0167874359e556",
-    "abd_acceptance/reason_next_action.py": "d8b309b34a7467c5951a7985ddf093c5a1d4f8bd7c70054326ee5fe95a7d398d",
-    "abd_acceptance/advice_card.py": "f6cd7f8f1145057dd5ad95f4c051e837e85fbb8040393b03b2c3881e81264244",
-    "abd_acceptance/__main__.py": "46641261e5d380535787ab9077b917873ad78cea1b497d53c8eb1124f2be8258",
+    "abd_acceptance/usability_accessibility.py": "fae39e628e94690f83b8fb8de8d75c6e7fe238cd98a58be36a12ffd48b292a84",
+    "abd_acceptance/reason_next_action.py": "ee26b88da5f7ccd71260a512eb89fba97fecc6b869fd32b5f7152612493f3551",
+    "abd_acceptance/advice_card.py": "17e7e6685c8d4ef0b7428b778a330173a0ffa2b1c3166c4667cd2cf91a78f579",
+    "abd_acceptance/__main__.py": "5af6bb8b71559fa5189d65062378fda2bdef545d10d55fb042d54aaf568b1da5",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
