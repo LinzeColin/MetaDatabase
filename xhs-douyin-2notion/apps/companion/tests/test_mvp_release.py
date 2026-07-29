@@ -1324,6 +1324,9 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(manifest["artifact_sha256"], staged.artifact_sha256)
         self.assertEqual(extension, bundle / "extension")
         self.assertTrue((extension / "sidepanel.html").is_file())
+        install_entry = self.paths.data_root / mvp_deployment._PREARM_INSTALL_ENTRY
+        self.assertTrue(install_entry.is_symlink())
+        self.assertEqual(install_entry.resolve(strict=True), extension)
         self.assertFalse((extension / "release_identity.json").exists())
         install = self.paths.ensure_private_directory("runtime/install")
         self.assertFalse((install / "current").exists() or (install / "current").is_symlink())
@@ -1336,6 +1339,16 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(plan.release_artifact_sha256, staged.artifact_sha256)
         self.assertEqual(plan.companion_source, bundle / "companion/x2n_companion")
         self.assertEqual(plan.contracts_source, bundle / "contracts/x2n_contracts")
+
+    def test_prearm_install_entry_refuses_to_replace_a_regular_file(self) -> None:
+        entry = self.paths.data_root / mvp_deployment._PREARM_INSTALL_ENTRY
+        entry.write_text("owner file", encoding="utf-8")
+        entry.chmod(0o600)
+        with self.assertRaises(X2NRuntimeError) as blocked:
+            MvpDeploymentManager(self.paths).stage_prearm_sidepanel()
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
+        self.assertTrue(entry.is_file())
+        self.assertEqual(entry.read_text(encoding="utf-8"), "owner file")
 
     def test_release_prearm_sidepanel_command_emits_no_private_path(self) -> None:
         args = runtime_cli.build_parser().parse_args(["release", "stage-prearm-sidepanel"])
@@ -1359,7 +1372,7 @@ class MvpReleaseTests(unittest.TestCase):
 
         plan = manager.prearm_native_host_plan(
             browser="chromium",
-            home=Path.home(),
+            home=Path(self.temporary.name) / "prearm-host-source-bound-home",
             env={ROOT_ENV: str(self.paths.data_root), DOWNLOAD_ENV: str(self.paths.download_destination)},
             staged=staged,
         )

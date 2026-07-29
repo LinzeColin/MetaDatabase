@@ -47,6 +47,7 @@ _PREARM_MANIFEST = "prearm_manifest.json"
 _PREARM_ARTIFACT_KIND = "owner_prearm_sidepanel"
 _PREARM_IGNORABLE_BUNDLE_CHILDREN = frozenset({".DS_Store"})
 _MAX_PREARM_BUNDLES = 32
+_PREARM_INSTALL_ENTRY = "x2n-点这里安装最新版"
 _SOURCE_TREES = (
     (PROJECT_ROOT / "apps/extension", "extension"),
     (PROJECT_ROOT / "apps/companion/src/x2n_companion", "companion/x2n_companion"),
@@ -175,6 +176,78 @@ def _prearm_source_manifest() -> dict[str, Any]:
 
 def _prearm_layout(paths: RuntimePaths) -> Path:
     return paths.ensure_private_directory("runtime/prearm/bundles")
+
+
+def _prearm_install_entry(paths: RuntimePaths) -> Path:
+    """Return the single owner-visible shortcut to the verified pre-arm extension."""
+
+    return paths.data_root / _PREARM_INSTALL_ENTRY
+
+
+def _validate_prearm_install_entry(*, entry: Path, bundles: Path) -> None:
+    """Reject anything except a shortcut to one verified immutable pre-arm bundle."""
+
+    if not entry.is_symlink():
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm install entry is unsafe")
+    try:
+        target = entry.resolve(strict=True)
+        bundles_root = bundles.resolve(strict=True)
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm install entry is unsafe") from error
+    bundle = target.parent
+    if (
+        target.is_symlink()
+        or not target.is_dir()
+        or target.name != "extension"
+        or bundle.parent != bundles_root
+        or bundle.is_symlink()
+    ):
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm install entry is unsafe")
+    manifest = _read_prearm_manifest(bundle)
+    if bundle.name != manifest["artifact_sha256"]:
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm install entry identity drifted")
+
+
+def _refresh_prearm_install_entry(*, paths: RuntimePaths, staged: "PrearmSidePanel") -> None:
+    """Atomically point the simple Finder entry at one verified private pre-arm bundle.
+
+    The entry is deliberately outside the immutable digest-addressed bundle layout.
+    It is only an owner-local loading convenience: it neither creates nor updates
+    a deployable release pointer, identity, or Native Host.
+    """
+
+    bundles = _prearm_layout(paths)
+    target = bundles / staged.artifact_sha256 / "extension"
+    manifest = _read_prearm_manifest(target.parent)
+    if (
+        target.is_symlink()
+        or not target.is_dir()
+        or manifest["artifact_sha256"] != staged.artifact_sha256
+        or target.parent.name != staged.artifact_sha256
+    ):
+        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm install entry target is invalid")
+
+    entry = _prearm_install_entry(paths)
+    if entry.exists() or entry.is_symlink():
+        _validate_prearm_install_entry(entry=entry, bundles=bundles)
+
+    temporary = entry.with_name(f".{entry.name}.x2n-staging-{uuid.uuid4().hex}")
+    if temporary.exists() or temporary.is_symlink():
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm install entry staging is unsafe")
+    try:
+        os.symlink(target, temporary)
+        if not temporary.is_symlink() or temporary.resolve(strict=True) != target:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm install entry staging drifted")
+        os.replace(temporary, entry)
+        if not entry.is_symlink() or entry.resolve(strict=True) != target:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm install entry drifted")
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm install entry update failed") from error
+    finally:
+        if temporary.exists() or temporary.is_symlink():
+            if not temporary.is_symlink():
+                raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm install entry staging is unsafe")
+            temporary.unlink()
 
 
 def _prearm_bundle_candidates_readonly(paths: RuntimePaths) -> tuple[Path, ...]:
@@ -507,7 +580,9 @@ class MvpDeploymentManager:
             existing = _read_prearm_manifest(target)
             if existing["artifact_sha256"] != manifest["artifact_sha256"]:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel identity drifted")
-            return PrearmSidePanel(artifact_sha256=manifest["artifact_sha256"])
+            staged = PrearmSidePanel(artifact_sha256=manifest["artifact_sha256"])
+            _refresh_prearm_install_entry(paths=self.paths, staged=staged)
+            return staged
         staging = bundles / f".{manifest['artifact_sha256']}.x2n-staging-{uuid.uuid4().hex}"
         completed = False
         target_created = False
@@ -529,7 +604,9 @@ class MvpDeploymentManager:
             target_created = True
             target.chmod(0o700)
             completed = True
-            return PrearmSidePanel(artifact_sha256=manifest["artifact_sha256"])
+            staged = PrearmSidePanel(artifact_sha256=manifest["artifact_sha256"])
+            _refresh_prearm_install_entry(paths=self.paths, staged=staged)
+            return staged
         finally:
             if not completed and (staging.exists() or staging.is_symlink()):
                 if staging.is_symlink() or not staging.is_dir():
