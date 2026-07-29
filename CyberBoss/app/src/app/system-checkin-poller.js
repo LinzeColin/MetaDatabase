@@ -1,4 +1,6 @@
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
 const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
@@ -25,6 +27,8 @@ async function runSystemCheckinPoller(config, options = {}) {
   const sessionStore = new SessionStore({ filePath: config.sessionsFile });
   const target = resolvePollerTarget({ config, account: primaryAccount, sessionStore, options });
   const defaultRange = resolveDefaultCheckinRange();
+  const nextCheckinStore = options.nextCheckinStore
+    || createNextCheckinStore(path.join(path.dirname(config.checkinConfigFile), "next-checkin.json"));
   let currentRange = readProactive ? rangeFrom(readProactive()) : checkinConfigStore.getRange(defaultRange);
 
   console.log(`[cyberboss] checkin poller ready user=${target.senderId} workspace=${target.workspaceRoot}`);
@@ -33,10 +37,38 @@ async function runSystemCheckinPoller(config, options = {}) {
   while (true) {
     const settings = readProactive ? readProactive() : null;
     currentRange = settings ? rangeFrom(settings) : checkinConfigStore.getRange(defaultRange);
-    const delayMs = pickRandomDelayMs(currentRange.minIntervalMs, currentRange.maxIntervalMs);
-    const wakeAt = formatLocalTime(Date.now() + delayMs);
-    console.log(`[cyberboss] next checkin in ${Math.round(delayMs / 60000)}m at ${wakeAt}`);
-    await sleep(delayMs);
+
+    // 下一次什么时候，**存到盘上**。
+    //
+    // 这是「设了 1-4 小时，过了 4 小时它还没来」的真正原因：以前这个时刻只活在
+    // 内存里，进程一重启就重新掷一次骰子。今天部署了七八次，等于把倒计时按了
+    // 七八次重置——它一次都轮不到。这和部署频率无关：崩一次、重启一次、升级
+    // 一次，都会把它清零。
+    //
+    // 存下来之后，重启就是接着等；关机期间早就该到点的，开机稍等一下就补发。
+    let nextAtMs = nextCheckinStore.read();
+    if (!nextAtMs || nextAtMs > Date.now() + currentRange.maxIntervalMs) {
+      // 没存过，或者存的时刻比现在设置的最大间隔还远（主人把间隔调短了），
+      // 重新掷一次。
+      nextAtMs = Date.now() + pickRandomDelayMs(currentRange.minIntervalMs, currentRange.maxIntervalMs);
+      nextCheckinStore.write(nextAtMs);
+    }
+    const waitMs = nextAtMs - Date.now();
+    if (waitMs > 0) {
+      console.log(
+        `[cyberboss] 下一次主动打招呼：${formatLocalTime(nextAtMs)}`
+        + `（还有 ${Math.round(waitMs / 60000)} 分钟）`,
+      );
+      await sleep(waitMs);
+    } else {
+      // 到点的时候机器是关着的。缓一分钟再发，别在开机那一秒就戳人。
+      console.log(
+        `[cyberboss] 主动打招呼在停机期间到点了（${formatLocalTime(nextAtMs)}），一分钟后补上`,
+      );
+      await sleep(60_000);
+    }
+    // 这一轮用掉了，先清掉，免得下面任何一个 continue 让它卡在同一个时刻上。
+    nextCheckinStore.clear();
 
     // 关掉了就什么都不做，但循环留着——主人再打开时不需要重启服务。
     const current = readProactive ? readProactive() : null;
@@ -105,6 +137,36 @@ function resolvePollerTarget({ config, account, sessionStore, options = {} }) {
   return { senderId, workspaceRoot };
 }
 
+// 「下一次什么时候」就存这一个数字。不进数据库：它不是任何人的数据，只是一个
+// 时刻；进程崩了、机器重启了，它得还在。
+function createNextCheckinStore(filePath) {
+  return {
+    read() {
+      try {
+        const value = Number(JSON.parse(fs.readFileSync(filePath, "utf8")).nextAtMs);
+        return Number.isFinite(value) && value > 0 ? value : 0;
+      } catch {
+        return 0;
+      }
+    },
+    write(nextAtMs) {
+      try {
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        fs.writeFileSync(filePath, JSON.stringify({ nextAtMs }), "utf8");
+      } catch {
+        // 写不进去就退回老行为（每次重新掷）。不该因为这个把轮询器搞崩。
+      }
+    },
+    clear() {
+      try {
+        fs.rmSync(filePath, { force: true });
+      } catch {
+        // 同上。
+      }
+    },
+  };
+}
+
 function rangeFrom(settings) {
   const minIntervalMs = Math.max(60_000, Math.round(Number(settings?.minMinutes) || 45) * 60_000);
   return {
@@ -165,4 +227,4 @@ function buildCheckinTrigger(config) {
   return INTERNAL_CHECKIN_TRIGGER_TEMPLATE.replace("%USER%", userName);
 }
 
-module.exports = { isQuietNow, rangeFrom, runSystemCheckinPoller };
+module.exports = { createNextCheckinStore, isQuietNow, rangeFrom, runSystemCheckinPoller };

@@ -2045,13 +2045,22 @@ class CyberbossApp {
     }
     try {
       const ownerUserId = this.runtimeSpoolDatabase.ownerUserId;
-      const roles = this.runtimeSpoolDatabase.listUserRolesForOwner();
       for (const message of this.runtimeSpoolDatabase.listRecentInboundForOwner({ limit: 200 })) {
         const sender = message.payload?.senderId || "";
         if (!sender) {
           continue;
         }
-        if (message.userId === ownerUserId || roles.get(message.userId) === "owner") {
+        // 从**发件人本身**推出他是谁，不看那一行存着的 user_id。
+        //
+        // 存着的那个曾经是错的：收信层一直没传 user_id，数据库默认记成主人，
+        // 于是访客的消息也带着主人的 user_id。这个函数信了它，结果主动打招呼
+        // 的目标变成了那位访客——朋友刚扫码进来，机器人就要开始主动找他，而
+        // 主人自己一条都收不到。存的列会错，发件人推出来的不会。
+        const derived = this.resolveUserIdForPersona({
+          accountId: message.payload?.accountId || "",
+          senderId: sender,
+        });
+        if (derived && derived === ownerUserId) {
           return sender;
         }
       }
