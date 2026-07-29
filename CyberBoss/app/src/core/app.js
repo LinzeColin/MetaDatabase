@@ -1070,6 +1070,8 @@ class CyberbossApp {
       // 下面两个读写真实聊天内容与语气设置，一律要真令牌，不走首次免令牌。
       adminConversations: (query) => this.buildConversationFeed(query || {}),
       adminInsights: (query) => this.buildPersonInsights(query || {}),
+      adminTrace: (query) => this.buildTurnTrace(query || {}),
+      adminOps: () => this.buildOpsSnapshot(),
       adminPersonaRead: (query) => this.readDashboardPersona(query),
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
       publicEntry: () => this.buildPublicEntry(),
@@ -1148,6 +1150,89 @@ class CyberbossApp {
       uptimeSeconds: Math.floor(process.uptime()),
       log: this.recentLog(),
     });
+  }
+
+  // ── 运维一栏：这台机器现在到底是什么状态 ────────────────────
+  //
+  // 「全量的后台，能看到所有管理数据」。概览那一格只有四个数字，看不出机器
+  // 在不在干活、卡在哪、还有多少额度。这里把它们一次给全。
+  //
+  // 只出计数、状态词和时间，**不含任何消息正文**——正文在对话栏，那一栏是
+  // 另一条路。这一栏和对话栏一样挂在要令牌的路由上（OWNER_ONLY_ADMIN_APIS）。
+  buildOpsSnapshot() {
+    const numbers = (sql, params = []) => {
+      try {
+        return this.runtimeSpoolDatabase.database.prepare(sql).all(...params);
+      } catch {
+        return [];
+      }
+    };
+    const counted = (rows) => rows.map((row) => ({
+      label: String(row.k ?? ""),
+      count: Number(row.c ?? 0),
+    }));
+
+    const projection = this.projectOperationalStatus();
+    const snapshot = {
+      ok: true,
+      at: new Date().toISOString(),
+      // 版本和跑了多久。部署完想确认"跑的是不是新的"，看这一格。
+      release: {
+        commit: normalizeText(this.config.canonicalDeployedCommit).slice(0, 12),
+        uptimeSeconds: Math.floor(process.uptime()),
+        node: process.version,
+        runtime: this.runtimeAdapter?.describe?.().id || "",
+        channel: this.channelAdapter?.describe?.().id || "",
+      },
+      // 现在管着几个微信号。多号之后这一格才有意义。
+      accounts: this.liveAccountIds(),
+      // 业务线状态（和概览同一份投影，这里给全，不只给名字）。
+      lines: (projection?.status?.business_lines || []).map((line) => ({
+        id: line.business_line,
+        label: PLAIN_LINE_NAMES[line.business_line] || line.business_line,
+        state: line.state,
+        reason: line.reason || "",
+      })),
+      // 调度闸门：卡住的时候这里说得出为什么（负载、磁盘、队列积压）。
+      // 这一格是真出过事的——磁盘被我自己的部署撑满、负载上 11，闸门锁死，
+      // 一条回复都出不去，而当时后台上什么都看不出来。
+      gate: (() => {
+        const gate = this.jobScheduler?.lastGate;
+        return gate
+          ? {
+            state: gate.state || "",
+            reason: gate.reason || "",
+            action: gate.action || "",
+          }
+          : null;
+      })(),
+      queue: {
+        jobs: counted(numbers("SELECT status AS k, COUNT(*) AS c FROM jobs GROUP BY status")),
+        inbox: counted(numbers("SELECT status AS k, COUNT(*) AS c FROM inbox_messages GROUP BY status")),
+        outbox: counted(numbers("SELECT status AS k, COUNT(*) AS c FROM outbox_messages GROUP BY status")),
+      },
+      users: counted(numbers("SELECT role || '/' || status AS k, COUNT(*) AS c FROM users GROUP BY role, status")),
+      // 库的版本。想知道迁移有没有真的跑上去，看这一格。
+      schema: Number(numbers("SELECT MAX(version) AS v FROM schema_migrations")[0]?.v || 0),
+      // 还剩多少额度（百分比）。
+      usagePercent: (() => {
+        try {
+          return Number(this.remainingUsagePercent()) || 0;
+        } catch {
+          return 0;
+        }
+      })(),
+      // 最近做过什么。和概览那一段同一份。
+      log: this.recentLog(),
+    };
+    // 最近这些轮里，多少条压根没答上。这是"它有没有在好好工作"最直接的数。
+    const recent = numbers(
+      `SELECT status AS k, COUNT(*) AS c FROM jobs
+       WHERE created_at >= ? GROUP BY status`,
+      [new Date(Date.now() - 24 * 3_600_000).toISOString()],
+    );
+    snapshot.last24h = counted(recent);
+    return Object.freeze(snapshot);
   }
 
   // 后台页面上那段"最近发生了什么"。只留人话，且不含任何消息内容。
@@ -1826,6 +1911,9 @@ class CyberbossApp {
         state: describeTurnState({ message, job, replies }),
         jobStatus: job ? job.status : "",
         jobError: job ? job.errorClass : "",
+        // 拿这个去问 /admin/api/trace，就能看到这一轮它当时一步步在干什么。
+        // 没有 job 的那些（被准入层直接回掉的）本来就没有执行轨迹。
+        jobId: job ? job.jobId : "",
         rejectReason: message.rejectReason,
         replies,
       };

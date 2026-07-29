@@ -36,7 +36,9 @@ const OPS_WECHAT_PATHS = Object.freeze(["/ops/wechat", "/ops/wechat/"]);
 // 后台里碰真实用户数据的接口名单。它们和其它 /admin/api/ 走不同的鉴权：永远
 // 要令牌，没有首次运行免令牌这一说。名单写死在这里而不是靠前缀猜，是为了让
 // "又加了一个读聊天的接口却忘了改鉴权"变成改不动的事——不进名单就进不了这条路。
-const OWNER_ONLY_ADMIN_APIS = Object.freeze(["conversations", "persona", "insights"]);
+// trace 里有模型吐的字（reply delta 就是用户看到的那些话），ops 里有队列和
+// 用量——两样都是运营数据，和对话栏一个级别，永远要令牌，不走首次免令牌。
+const OWNER_ONLY_ADMIN_APIS = Object.freeze(["conversations", "persona", "insights", "trace", "ops"]);
 const OPS_WECHAT_TEMPLATE = require("node:path").join(__dirname, "../../../templates/ops-wechat.html");
 // 公开入口。这一页任何人都能打开，也**必须**任何人都能打开——它就是给陌生人
 // 扫码用的。所以它上面一个字的运营信息都不能有：没有人数、没有用量、没有状态。
@@ -120,6 +122,8 @@ class PortalHttpServer {
     adminOwnerBind = null,
     // 这三个读写真实聊天内容与语气设置。它们走 #handleOwnerOnlyApi，永远要令牌。
     adminConversations = null,
+    adminTrace = null,
+    adminOps = null,
     adminPersonaRead = null,
     adminPersonaWrite = null,
     adminInsights = null,
@@ -147,6 +151,8 @@ class PortalHttpServer {
     this.adminOwnerClaim = adminOwnerClaim;
     this.adminOwnerBind = adminOwnerBind;
     this.adminConversations = adminConversations;
+    this.adminTrace = adminTrace;
+    this.adminOps = adminOps;
     this.adminPersonaRead = adminPersonaRead;
     this.adminPersonaWrite = adminPersonaWrite;
     this.adminInsights = adminInsights;
@@ -447,6 +453,18 @@ class PortalHttpServer {
           from: bounded("from", 32),
           to: bounded("to", 32),
         }));
+        return;
+      }
+      // 这一轮它当时一步步在干什么。给 job 或 turn 其中之一。
+      if (name === "trace" && typeof this.adminTrace === "function") {
+        this.#json(response, 200, await this.adminTrace({
+          jobId: String(url.searchParams.get("job") || "").slice(0, 120),
+          turnId: String(url.searchParams.get("turn") || "").slice(0, 120),
+        }));
+        return;
+      }
+      if (name === "ops" && typeof this.adminOps === "function") {
+        this.#json(response, 200, await this.adminOps());
         return;
       }
       if (name === "insights" && typeof this.adminInsights === "function") {

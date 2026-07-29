@@ -108,6 +108,12 @@
     border:1px solid var(--line);color:var(--muted);margin:2px 0 8px}
   .badge.bad{color:var(--bad);border-color:var(--bad)}
   .kindtag{font-size:11px;color:var(--faint);align-self:flex-end;margin:0 4px 6px}
+  .tracewrap{align-self:center;width:100%;margin:2px 0 10px}
+  .tracewrap>.chip{display:block;margin:0 auto}
+  .tracebody{margin-top:8px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:10px}
+  .tracebody li.line{margin-bottom:5px;padding:7px 11px;font-size:13px;background:var(--sunk)}
+  .tracebody .empty{color:var(--muted);font-size:13px;text-align:center;padding:6px}
   mark{background:var(--warn);color:#fff;border-radius:3px;padding:0 2px}
 
   .finder{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
@@ -163,6 +169,7 @@
     <button type="button" data-tab="overview" aria-selected="true">概览</button>
     <button type="button" data-tab="people" aria-selected="false">人</button>
     <button type="button" data-tab="tone" aria-selected="false">设置</button>
+    <button type="button" data-tab="ops" aria-selected="false">机器</button>
   </nav>
 
   <section id="tab-overview">
@@ -321,6 +328,35 @@
     <div class="code" id="code" hidden></div>
     <p class="hint" id="code-hint" hidden>把这一串发给朋友。只能用一次，7 天有效。</p>
   </section>
+
+  <!-- 机器：这台机器现在到底是什么状态。全是计数和状态词，没有任何聊天正文。 -->
+  <section id="tab-ops" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">现在</h2>
+      <div class="grid" id="ops-top"></div>
+      <p class="hint" id="ops-gate"></p>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">在管的微信号</h2>
+      <ul id="ops-accounts"></ul>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">各条线</h2>
+      <ul id="ops-lines"></ul>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">队列</h2>
+      <div id="ops-queues"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">人</h2>
+      <ul id="ops-users"></ul>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0">最近做过什么</h2>
+      <div class="log" id="ops-log"></div>
+    </div>
+  </section>
 </main>
 <script nonce="__CSP_NONCE__">
 "use strict";
@@ -387,11 +423,12 @@
     for (var i = 0; i < bs.length; i += 1) {
       bs[i].setAttribute("aria-selected", bs[i].getAttribute("data-tab") === name ? "true" : "false");
     }
-    ["overview", "people", "tone"].forEach(function (k) {
+    ["overview", "people", "tone", "ops"].forEach(function (k) {
       document.getElementById("tab-" + k).hidden = k !== name;
     });
     if (name === "people") { loadFeed(); }
     if (name === "tone") { loadTone(); }
+    if (name === "ops") { loadOps(); }
   });
 
   // ── 概览 ─────────────────────────────────────────────
@@ -525,12 +562,16 @@
     document.getElementById("people-view").hidden = true;
     document.getElementById("chat-view").hidden = false;
     set("chat-who", person.label + (person.isOwner ? "（你）" : ""));
+    chatSignature = "";
     loadChat(); loadInsights(); loadPersonTone();
   }
   document.getElementById("back").addEventListener("click", function () {
     openPerson = "";
+    chatSignature = "";
     document.getElementById("chat-view").hidden = true;
     document.getElementById("people-view").hidden = false;
+    // 回到名单就立刻刷一次，不用等下一个 10 秒。
+    loadFeed();
   });
 
   function bubble(side, text, stamp, ghost) {
@@ -563,7 +604,34 @@
           hhmm(r.at), !(r.available && r.text)));
       });
       if (t.state && t.state.stuck) { box.appendChild(el("div", "badge bad", t.state.label)); }
+      if (t.jobId) { box.appendChild(traceToggle(t.jobId)); }
     });
+  }
+
+  // 每一轮下面挂一个「它当时在干什么」。默认收着——展开才去查，
+  // 不然滚一屏就是几十次解密。
+  function traceToggle(jobId) {
+    var wrap = el("div", "tracewrap");
+    var button = el("button", "chip", "它当时在干什么");
+    var body = el("div", "tracebody");
+    body.hidden = true;
+    var loaded = false;
+    button.addEventListener("click", function () {
+      body.hidden = !body.hidden;
+      button.setAttribute("aria-pressed", body.hidden ? "false" : "true");
+      if (body.hidden || loaded) { return; }
+      loaded = true;
+      body.textContent = "";
+      body.appendChild(el("div", "empty", "正在读取……"));
+      fetch("/admin/api/trace?job=" + encodeURIComponent(jobId),
+        { headers: authed(), credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { renderTrace(body, d); })
+        .catch(function () { renderTrace(body, { ok: false, code: "连不上服务" }); });
+    });
+    wrap.appendChild(button);
+    wrap.appendChild(body);
+    return wrap;
   }
 
   function feedUrl(person) {
@@ -608,17 +676,41 @@
     if (chat.kind === "asked") { return !t.initiatedByBot; }
     return true;
   }
-  function loadChat() {
+  // 聊天记录每 10 秒自己刷一次，但**内容没变就不重画**。
+  //
+  // 无脑重画的代价是真的：展开的「它当时在干什么」会被收回去、看到一半的位置
+  // 会跳回顶上。所以先算一个便宜的签名（每条的时间 + 回复状态），一样就什么都
+  // 不做——这样"实时"不会变成"用不了"。
+  var chatSignature = "";
+  var chatTimer = null;
+  function signatureOf(threads) {
+    return threads.map(function (t) {
+      return t.at + "|" + ((t.state && t.state.label) || "") + "|"
+        + (t.replies || []).map(function (r) { return r.at + r.rawStatus; }).join(",");
+    }).join(";");
+  }
+  function loadChat(options) {
+    var force = !options || options.force !== false;
     fetch(chatUrl(), { headers: authed(), credentials: "same-origin" })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (!d.ok) { return; }
         var all = (d.threads || []).filter(matchesKind);
-        renderChat(all);
+        var signature = signatureOf(all);
+        if (force || signature !== chatSignature) {
+          chatSignature = signature;
+          renderChat(all);
+        }
         // 还有更早的就给一个按钮，而不是一次性把几千条全铺出来。
         document.getElementById("more").hidden = !d.truncated;
       })
-      .catch(function () {});
+      .catch(function () {})
+      .then(function () {
+        if (chatTimer) { clearTimeout(chatTimer); }
+        chatTimer = setTimeout(function () {
+          if (openPerson) { loadChat({ force: false }); }
+        }, 10000);
+      });
   }
   document.getElementById("more").addEventListener("click", function () {
     chat.limit = Math.min(2000, chat.limit + 200);
@@ -698,12 +790,20 @@
     });
     if (!tl.children.length) { tl.appendChild(el("li", "", "还没有记录。")); }
   }
+  // 画像跟着聊天一起刷。它只有计数和格子，重画没有副作用。
+  var insightsTimer = null;
   function loadInsights() {
     fetch("/admin/api/insights?person=" + encodeURIComponent(openPerson) + "&days=120",
       { headers: authed(), credentials: "same-origin" })
       .then(function (r) { return r.json(); })
       .then(function (d) { if (d.ok) { renderInsights(d); } })
-      .catch(function () {});
+      .catch(function () {})
+      .then(function () {
+        if (insightsTimer) { clearTimeout(insightsTimer); }
+        insightsTimer = setTimeout(function () {
+          if (openPerson) { loadInsights(); }
+        }, 30000);
+      });
   }
 
   // 搜索等手停下来再查：每敲一个字就查一次，等于让服务器把整段历史解密一遍。
@@ -727,6 +827,144 @@
     ["q", "from", "to"].forEach(function (id) { document.getElementById(id).value = ""; });
     loadFeed();
   });
+
+  // ── 机器 ─────────────────────────────────────────────
+  //
+  // 全是计数、状态词和时间，没有任何聊天正文——正文在「人」那一栏，那是另
+  // 一条路。这一栏和对话栏一样要令牌。
+  function stat(value, label) {
+    var box = el("div", "stat");
+    box.appendChild(el("b", "", String(value)));
+    box.appendChild(el("span", "", label));
+    return box;
+  }
+  function countRow(title, items) {
+    var wrap = el("div", "", "");
+    wrap.appendChild(el("h2", "", title));
+    var ul = el("ul");
+    if (!items || !items.length) {
+      ul.appendChild(el("li", "line", "（空）"));
+    } else {
+      items.forEach(function (item) {
+        var li = el("li", "line");
+        li.appendChild(el("span", "name", item.label));
+        li.appendChild(el("span", "tag", String(item.count)));
+        ul.appendChild(li);
+      });
+    }
+    wrap.appendChild(ul);
+    return wrap;
+  }
+  function renderOps(data) {
+    if (!data.ok) {
+      set("ops-gate", data.code === "ADMIN_TOKEN_INVALID"
+        ? "登录过期了。在微信里对它说一句「后台」，它会给你一条新链接。"
+        : "读不出来：" + (data.code || "未知"));
+      return;
+    }
+    var top = document.getElementById("ops-top"); top.textContent = "";
+    var rel = data.release || {};
+    top.appendChild(stat(human(rel.uptimeSeconds || 0), "跑了多久"));
+    top.appendChild(stat(rel.commit || "?", "版本"));
+    top.appendChild(stat((data.accounts || []).length, "在管的微信号"));
+    top.appendChild(stat("v" + (data.schema || 0), "数据库版本"));
+    top.appendChild(stat((data.usagePercent || 0) + "%", "额度还剩"));
+
+    var gate = data.gate;
+    set("ops-gate", gate
+      ? (gate.state === "ready" || !gate.reason
+        ? "闸门：正常，消息进来就会处理。"
+        : "闸门：" + gate.state + "——" + gate.reason + "（现在会" + (gate.action || "等") + "）")
+      : "闸门：还没跑过一轮。");
+
+    var accounts = document.getElementById("ops-accounts"); accounts.textContent = "";
+    (data.accounts || []).forEach(function (id) {
+      var li = el("li", "line");
+      li.appendChild(el("span", "name", id));
+      accounts.appendChild(li);
+    });
+    if (!(data.accounts || []).length) {
+      accounts.appendChild(el("li", "line", "一个都没有——还没扫码登录。"));
+    }
+
+    var lines = document.getElementById("ops-lines"); lines.textContent = "";
+    (data.lines || []).forEach(function (line) {
+      var pair = STATE[line.state] || ["warn", line.state];
+      var li = el("li", "line");
+      li.appendChild(el("i", "dot " + pair[0]));
+      li.appendChild(el("span", "name", line.label));
+      li.appendChild(el("span", "tag", pair[1] + (line.reason ? "・" + line.reason : "")));
+      lines.appendChild(li);
+    });
+
+    var queues = document.getElementById("ops-queues"); queues.textContent = "";
+    var q = data.queue || {};
+    queues.appendChild(countRow("待办（jobs）", q.jobs));
+    queues.appendChild(countRow("收到的消息", q.inbox));
+    queues.appendChild(countRow("要发出去的", q.outbox));
+    queues.appendChild(countRow("最近 24 小时", data.last24h));
+
+    var users = document.getElementById("ops-users"); users.textContent = "";
+    (data.users || []).forEach(function (item) {
+      var li = el("li", "line");
+      li.appendChild(el("span", "name", item.label));
+      li.appendChild(el("span", "tag", String(item.count)));
+      users.appendChild(li);
+    });
+
+    document.getElementById("ops-log").textContent = (data.log || []).join("\n") || "还没有记录。";
+  }
+  var opsTimer = null;
+  function loadOps() {
+    fetch("/admin/api/ops", { headers: authed(), credentials: "same-origin" })
+      .then(function (r) { return r.json(); }).then(renderOps)
+      .catch(function () { renderOps({ ok: false, code: "连不上服务" }); })
+      .then(function () {
+        if (opsTimer) { clearTimeout(opsTimer); }
+        opsTimer = setTimeout(function () { if (current === "ops") { loadOps(); } }, 10000);
+      });
+  }
+
+  // ── 它当时在干什么 ───────────────────────────────────
+  //
+  // 一句实话：模型**不吐"推理内容"**。codex 只吐 turn 开始/结束/失败、
+  // reply delta（吐了几个字）、context updated（token 计数）、需要审批。
+  // 所以这里能给的是"这一轮它一步步干了什么、慢在哪一步"，不是它的内心独白。
+  // 别把它当成后者，也别在页面上暗示它是后者。
+  var TRACE_LABELS = {
+    "runtime.turn.started": "开始想",
+    "runtime.reply.delta": "在往外吐字",
+    "runtime.turn.completed": "想完了",
+    "runtime.turn.failed": "这一轮失败了",
+    "runtime.context.updated": "算了一次 token",
+    "runtime.approval.requested": "要人批准才能继续"
+  };
+  function renderTrace(box, data) {
+    box.textContent = "";
+    if (!data.ok) {
+      box.appendChild(el("div", "empty", "看不到：" + (data.code || "未知")));
+      return;
+    }
+    if (!data.steps.length) {
+      box.appendChild(el("div", "empty", "这一轮没有留下轨迹（可能是重启前的，或者压根没走模型）。"));
+      return;
+    }
+    var ul = el("ul");
+    data.steps.forEach(function (step) {
+      var li = el("li", "line");
+      li.appendChild(el("span", "name", TRACE_LABELS[step.kind] || step.kind));
+      var detail = [];
+      if (step.gapMs) { detail.push("+" + Math.round(step.gapMs / 100) / 10 + "秒"); }
+      if (step.chars) { detail.push(step.chars + " 个字"); }
+      if (step.payload && step.payload.tokens) { detail.push(step.payload.tokens + " token"); }
+      if (step.payload && step.payload.errorClass) { detail.push(step.payload.errorClass); }
+      li.appendChild(el("span", "tag", detail.join("・")));
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    box.appendChild(el("p", "hint", "一共 " + Math.round((data.totalMs || 0) / 100) / 10 + " 秒。"
+      + "这里是它这一轮做了什么，不是它心里想什么——模型不吐后者。"));
+  }
 
   // ── 只对这个人的语气 ─────────────────────────────────
   //
