@@ -490,6 +490,8 @@ def _audit_imports(
         "mail_trash_worker",
         "identity_resolver",
         "leakage_oracle",
+        "ledger",
+        "reconciliation_oracle",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

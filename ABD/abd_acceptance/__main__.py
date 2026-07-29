@@ -47,6 +47,7 @@ from .mail_deletion_audit import write_phase_evidence as write_mail_deletion_aud
 from .stage6_review import write_stage6_review_evidence
 from .identity_resolution import write_phase_evidence as write_identity_resolution_phase_evidence
 from .temporal_lineage import write_phase_evidence as write_temporal_lineage_phase_evidence
+from .ledger_trace import write_phase_evidence as write_ledger_trace_phase_evidence
 
 
 def main() -> int:
@@ -132,6 +133,7 @@ def main() -> int:
         "STAGE-REVIEW-S06": write_stage6_review_evidence,
         "AC-S07-P01": write_identity_resolution_phase_evidence,
         "AC-S07-P02": write_temporal_lineage_phase_evidence,
+        "AC-S07-P03": write_ledger_trace_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

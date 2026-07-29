@@ -1,0 +1,399 @@
+{
+  "adverse_replay_count": 10000,
+  "cases": [
+    {
+      "actual_funds_events": [],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0001",
+            "adverse_probability_delta": "0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "NO_EXECUTION_EVIDENCE",
+      "expected": {
+        "actual_funds_balance_cents": 30000,
+        "actual_funds_unchanged_without_execution_evidence": true,
+        "execution_evidence_count": 0,
+        "ledger_status": "LEDGER_VALID_NO_ADVICE",
+        "reconciliation_status": "RECONCILED"
+      }
+    },
+    {
+      "actual_funds_events": [
+        {
+          "event_id": "LED-ACTUAL-0001",
+          "event_sha256": "676cb4650ad37ba4cf30f9869765f67098278da0d840edd7bd4995599fa5f734",
+          "event_type": "EXECUTION_EVIDENCE_RECONCILED",
+          "idempotency_key": "IDEMP-ACTUAL-S07P03-001",
+          "ledger_kind": "ACTUAL_FUNDS",
+          "payload": {
+            "actual_cash_delta_cents": 150,
+            "advice_event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "execution_evidence_id": "EXEC-FIXTURE-0001",
+            "execution_evidence_kind": "FROZEN_TEST_FIXTURE",
+            "execution_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "execution_evidence_verified": true,
+            "fixture_only": true,
+            "settlement_status": "SETTLED"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:01+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0001",
+            "adverse_probability_delta": "0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "VERIFIED_FROZEN_EXECUTION_EVIDENCE",
+      "expected": {
+        "actual_funds_balance_cents": 30150,
+        "actual_funds_unchanged_without_execution_evidence": false,
+        "execution_evidence_count": 1,
+        "ledger_status": "LEDGER_VALID_NO_ADVICE",
+        "reconciliation_status": "RECONCILED"
+      }
+    },
+    {
+      "actual_funds_events": [],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0001",
+            "adverse_probability_delta": "0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "BOUNDARY_ADVERSE_EXACT_0001",
+      "expected": {
+        "actual_funds_balance_cents": 30000,
+        "actual_funds_unchanged_without_execution_evidence": true,
+        "execution_evidence_count": 0,
+        "ledger_status": "LEDGER_VALID_NO_ADVICE",
+        "reconciliation_status": "RECONCILED"
+      }
+    },
+    {
+      "actual_funds_events": [
+        {
+          "event_id": "LED-ACTUAL-0001",
+          "event_sha256": "70c9f0c174d761e5d46d47d7e6ccbd12eac164cbbd02c32cad21078a887b15ca",
+          "event_type": "EXECUTION_EVIDENCE_RECONCILED",
+          "idempotency_key": "IDEMP-ACTUAL-S07P03-001",
+          "ledger_kind": "ACTUAL_FUNDS",
+          "payload": {
+            "actual_cash_delta_cents": 150,
+            "advice_event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "execution_evidence_id": "EXEC-FIXTURE-0001",
+            "execution_evidence_kind": "FROZEN_TEST_FIXTURE",
+            "execution_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "execution_evidence_verified": false,
+            "fixture_only": true,
+            "settlement_status": "SETTLED"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:01+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0001",
+            "adverse_probability_delta": "0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "NEGATIVE_EXECUTION_EVIDENCE_UNVERIFIED",
+      "expected": {
+        "ledger_reason_code": "EXECUTION_EVIDENCE_REQUIRED",
+        "ledger_status": "NO_ADVICE",
+        "reconciliation_reason_code": "EXECUTION_EVIDENCE_REQUIRED",
+        "reconciliation_status": "RECONCILIATION_REJECTED"
+      }
+    },
+    {
+      "actual_funds_events": [
+        {
+          "event_id": "LED-ACTUAL-0001",
+          "event_sha256": "21b1065dc9d6eb915c0318f0a51aebb5ab1f7df91af2a37e86c1fb576cf34c7f",
+          "event_type": "EXECUTION_EVIDENCE_RECONCILED",
+          "idempotency_key": "IDEMP-ACTUAL-S07P03-001",
+          "ledger_kind": "ACTUAL_FUNDS",
+          "payload": {
+            "actual_cash_delta_cents": 150,
+            "advice_event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "execution_evidence_id": "EXEC-FIXTURE-0001",
+            "execution_evidence_kind": "FROZEN_TEST_FIXTURE",
+            "execution_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "execution_evidence_verified": true,
+            "fixture_only": true,
+            "settlement_status": "SETTLED"
+          },
+          "previous_event_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "recorded_at": "2026-07-30T00:00:01+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0001",
+            "adverse_probability_delta": "0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "NEGATIVE_HASH_CHAIN_TAMPER",
+      "expected": {
+        "ledger_reason_code": "HASH_CHAIN_BROKEN",
+        "ledger_status": "NO_ADVICE",
+        "reconciliation_reason_code": "HASH_CHAIN_BROKEN",
+        "reconciliation_status": "RECONCILIATION_REJECTED"
+      }
+    },
+    {
+      "actual_funds_events": [
+        {
+          "event_id": "LED-ACTUAL-0001",
+          "event_sha256": "491f7b1f832af7ea6a4928fedd1b2e8af5b0fbbed5790ccf48003695ed4ef9b7",
+          "event_type": "EXECUTION_EVIDENCE_RECONCILED",
+          "idempotency_key": "IDEMP-ACTUAL-S07P03-001",
+          "ledger_kind": "ACTUAL_FUNDS",
+          "payload": {
+            "actual_cash_delta_cents": 150,
+            "advice_event_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "execution_evidence_id": "EXEC-FIXTURE-0001",
+            "execution_evidence_kind": "FROZEN_TEST_FIXTURE",
+            "execution_evidence_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "execution_evidence_verified": true,
+            "fixture_only": true,
+            "settlement_status": "SETTLED"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:01+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0001",
+            "adverse_probability_delta": "0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "NEGATIVE_ORPHAN_ACTUAL_PROVENANCE",
+      "expected": {
+        "ledger_reason_code": "ACTUAL_EVENT_WITHOUT_ADVICE_PROVENANCE",
+        "ledger_status": "NO_ADVICE",
+        "reconciliation_reason_code": "ACTUAL_EVENT_WITHOUT_ADVICE_PROVENANCE",
+        "reconciliation_status": "RECONCILIATION_REJECTED"
+      }
+    },
+    {
+      "actual_funds_events": [],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "6a238ecce267151860c1f0ae076dd0d2b89ea3ba7c0e96b8800d19ff807b2876",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0001",
+            "adverse_probability_delta": "-0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "NEGATIVE_ADVERSE_PROBABILITY_MINUS_0001",
+      "expected": {
+        "ledger_reason_code": "ADVERSE_PROBABILITY_BOUNDARY_INVALID",
+        "ledger_status": "NO_ADVICE",
+        "reconciliation_reason_code": "ADVERSE_PERTURBATION_BOUNDARY_INVALID",
+        "reconciliation_status": "RECONCILIATION_REJECTED"
+      }
+    },
+    {
+      "actual_funds_events": [],
+      "advice_events": [
+        {
+          "event_id": "LED-ADVICE-0001",
+          "event_sha256": "311c16814ac705a6496ea01fcf95f25897863681ac6341aa4df9583eccc3082f",
+          "event_type": "ADVICE_RECORDED",
+          "idempotency_key": "IDEMP-ADVICE-S07P03-001",
+          "ledger_kind": "ADVICE",
+          "payload": {
+            "adverse_odds_tick": "0.0002",
+            "adverse_probability_delta": "0.0001",
+            "advice_action": "NO_ADVICE",
+            "advice_id": "ADV-S07P03-001",
+            "identity_key": "IDK-S07P01-PRIMARY001",
+            "policy_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "recommended_stake_cents": 0,
+            "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+          },
+          "previous_event_sha256": "GENESIS",
+          "recorded_at": "2026-07-30T00:00:00+10:00",
+          "schema_version": "1.0.0",
+          "sequence": 1
+        }
+      ],
+      "case_id": "NEGATIVE_ADVERSE_ODDS_PLUS_0001",
+      "expected": {
+        "ledger_reason_code": "ADVERSE_ODDS_BOUNDARY_INVALID",
+        "ledger_status": "NO_ADVICE",
+        "reconciliation_reason_code": "ADVERSE_PERTURBATION_BOUNDARY_INVALID",
+        "reconciliation_status": "RECONCILIATION_REJECTED"
+      }
+    }
+  ],
+  "contract_id": "AC-S07-P03",
+  "expected_next": "S07/P04_READY_NOT_STARTED",
+  "expected_no_execution_output_sha256": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+  "expected_oracle_check_minimum": 26,
+  "expected_verified_execution_output_sha256": "11d956140141de9bbfcbacd3612526c88ce5ac0b5cfb4cc6a5211a2bf8ee8120",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "phase_id": "P03",
+  "policy": {
+    "currency": "AUD",
+    "maximum_abs_cash_delta_cents": 30000,
+    "opening_balance_cents": 30000,
+    "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "schema_content_sha256": "c30d03c7052c80fb017a2dd858063d940be38d3c5d61a51d2c6f473ec1d80627",
+    "temporal_lineage_evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+  },
+  "predecessor": {
+    "contract_id": "AC-S07-P02",
+    "evidence_path": "machine/evidence/EVD-S07-P02.json",
+    "evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602",
+    "next": "S07/P03_READY_NOT_STARTED",
+    "rollback_path": "machine/evidence/EVD-S07-P02_rollback.json",
+    "rollback_sha256": "89f7a7ec50228ac49494d52c28c2f468e962414478ff86c64a420fbbdafb68d9"
+  },
+  "replay_count": 100,
+  "schema_version": "1.0.0",
+  "stage_id": "S07",
+  "target_test_minimum": 50
+}
