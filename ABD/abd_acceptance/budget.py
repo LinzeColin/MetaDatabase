@@ -495,6 +495,7 @@ def _audit_imports(
         "devig",
         "source_independence",
         "market_consensus",
+        "generic_residual",
         "outlier_detector",
         "line_movement",
     }

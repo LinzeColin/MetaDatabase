@@ -267,6 +267,15 @@ from .gmail_authorization import (
     verify_existing_phase_evidence as verify_gmail_authorization_evidence,
     write_phase_evidence as write_gmail_authorization_phase_evidence,
 )
+from .generic_residual import (
+    GenericResidualAcceptanceError,
+    build_evidence as build_generic_residual_evidence,
+    evaluate_contract as evaluate_generic_residual_contract,
+    perform_rollback_drill as perform_generic_residual_rollback_drill,
+    validate_candidate_preflight as validate_generic_residual_candidate,
+    verify_existing_phase_evidence as verify_generic_residual_evidence,
+    write_phase_evidence as write_generic_residual_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -477,4 +486,11 @@ __all__ = [
     "validate_gmail_authorization_candidate",
     "verify_gmail_authorization_evidence",
     "write_gmail_authorization_phase_evidence",
+    "GenericResidualAcceptanceError",
+    "build_generic_residual_evidence",
+    "evaluate_generic_residual_contract",
+    "perform_generic_residual_rollback_drill",
+    "validate_generic_residual_candidate",
+    "verify_generic_residual_evidence",
+    "write_generic_residual_phase_evidence",
 ]

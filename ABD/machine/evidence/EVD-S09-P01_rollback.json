@@ -1,0 +1,44 @@
+{
+  "artifacts": {
+    "abd_acceptance/__init__.py": {
+      "sha256": "a4cf74175db69b8df4bf6d3e711cf06af34d8e01d88efa5f9a19108c75ff58b3",
+      "status": "PASS"
+    },
+    "abd_acceptance/__main__.py": {
+      "sha256": "451348648d4ee93ebbc14e7301a8a6f105498fc91ab73379324fc8512aca4af3",
+      "status": "PASS"
+    },
+    "abd_acceptance/generic_residual.py": {
+      "sha256": "925dfa4288d222179b3150cb834aebc54a9a9c367950ed8be4ac47f429eea968",
+      "status": "PASS"
+    },
+    "generic_residual.py": {
+      "sha256": "f21e553c673df881f88e6454ff4e5c7cacc2b79c3d8a1a8f034fa3f247426a06",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S09_P01.json": {
+      "sha256": "bc7d7bde116a7a3ab6307d928726b3a3c766a7130ab620b04fe79ae71b83e2f3",
+      "status": "PASS"
+    },
+    "market_family_registry.json": {
+      "sha256": "b61486138f221ec8ef54f30359867cc9f84049df33cf21548f5988519cd58930",
+      "status": "PASS"
+    },
+    "tests/S09/P01_test.py": {
+      "sha256": "6b6bc6de2305ff999df1fabe8e0224bae80972e19174a97b418c9cf8feefe27c",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S09-P01",
+  "evidence_id": "EVD-S09-P01-ROLLBACK",
+  "external_state_changed": false,
+  "feature_flag_id": "model:generic_residual",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_MODEL_GENERIC_RESIDUAL_SCOPED_FLAG_RESTORE_PREDECESSOR_RECEIPTS_KEEP_ALL_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "policy": "MARKET_IS_STRONG_PRIOR_REPRODUCIBLE_RESIDUAL_ONLY_NO_ORDER",
+  "family_ids": [
+    "binary",
+    "multinomial",
+    "spread",
+    "total",
+    "futures"
+  ],
+  "families": [
+    {
+      "id": "binary",
+      "display_name_zh": "二元市场",
+      "distribution": "BERNOULLI",
+      "outcome_count": {
+        "exact": 2
+      },
+      "settlement_line_required": false,
+      "residual_weight_cap_parameter": "residual_weight_alpha_beta_max",
+      "fallback": "MARKET_ONLY_OR_NO_ADVICE"
+    },
+    {
+      "id": "multinomial",
+      "display_name_zh": "多项市场",
+      "distribution": "CATEGORICAL",
+      "outcome_count": {
+        "minimum": 3
+      },
+      "settlement_line_required": false,
+      "residual_weight_cap_parameter": "residual_weight_alpha_beta_max",
+      "fallback": "MARKET_ONLY_OR_NO_ADVICE"
+    },
+    {
+      "id": "spread",
+      "display_name_zh": "让分市场",
+      "distribution": "BERNOULLI_SPREAD",
+      "outcome_count": {
+        "exact": 2
+      },
+      "settlement_line_required": true,
+      "residual_weight_cap_parameter": "residual_weight_alpha_beta_max",
+      "fallback": "MARKET_ONLY_OR_NO_ADVICE"
+    },
+    {
+      "id": "total",
+      "display_name_zh": "大小市场",
+      "distribution": "BERNOULLI_TOTAL",
+      "outcome_count": {
+        "exact": 2
+      },
+      "settlement_line_required": true,
+      "residual_weight_cap_parameter": "residual_weight_alpha_beta_max",
+      "fallback": "MARKET_ONLY_OR_NO_ADVICE"
+    },
+    {
+      "id": "futures",
+      "display_name_zh": "期货市场",
+      "distribution": "CATEGORICAL_FUTURES",
+      "outcome_count": {
+        "minimum": 2
+      },
+      "settlement_line_required": false,
+      "residual_weight_cap_parameter": "residual_weight_alpha_beta_max",
+      "fallback": "MARKET_ONLY_OR_NO_ADVICE"
+    }
+  ]
+}
