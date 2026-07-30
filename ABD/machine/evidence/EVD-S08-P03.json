@@ -1,0 +1,764 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S08/P03/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S08/P03_test.py --junitxml=machine/evidence/S08/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S08/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S08-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S08-P03",
+  "decision": "MARKET_CONSENSUS_READY_OUTLIER_GATE_REQUIRED",
+  "decision_sha256": "dbfa3e1d4a6c9e917f76fa47ca172011939e2605779cb0ab3599ec8f76966e2b",
+  "deterministic_replay": {
+    "adverse_perturbation_iterations": 10000,
+    "real_time_wait_performed": false,
+    "replay_iterations": 100
+  },
+  "evidence_id": "EVD-S08-P03",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hashes": {
+    "code": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+    "inputs": {
+      "abd_acceptance/__main__.py": "eb324b42a733867568c7dc219c1228d84edae4f00e3550fc8d5179cabe2d220d",
+      "abd_acceptance/budget.py": "793a8b4b9eee3bf5937d5ff7120321bfd4eed2f9c69daec419f0a5d83629233d",
+      "abd_acceptance/market_consensus.py": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+      "abd_acceptance/source_independence.py": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+      "consensus_vectors.json": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
+      "machine/evidence/EVD-S08-P02.json": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+      "machine/evidence/S08/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S08/P03/pytest.xml": "1ff4ae822d4def422c93e1e50d22bc9de0c90c2d172ee4fafca6524f5e540494",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S08_P03.json": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+      "market_consensus.py": "7cabd4d261a329412e3c91b72f6626739cd55b6607b8a54f19512f3164039483",
+      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "source_independence.py": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
+      "tests/S08/P03_test.py": "671438a16f7456a52fdaf785251c717a3772888d6fd1235edeac208574c9482a"
+    },
+    "rollback_evidence": "35061e25117f6514b24f739ba3d873fae57e37f01fedf26689407eb76ee4d20b"
+  },
+  "next": "S08/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S08_P03_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD",
+  "requirement_id": "REQ-S08-P03",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/__main__.py": {
+        "sha256": "eb324b42a733867568c7dc219c1228d84edae4f00e3550fc8d5179cabe2d220d",
+        "status": "PASS"
+      },
+      "abd_acceptance/budget.py": {
+        "sha256": "793a8b4b9eee3bf5937d5ff7120321bfd4eed2f9c69daec419f0a5d83629233d",
+        "status": "PASS"
+      },
+      "abd_acceptance/market_consensus.py": {
+        "sha256": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+        "status": "PASS"
+      },
+      "consensus_vectors.json": {
+        "sha256": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S08_P03.json": {
+        "sha256": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+        "status": "PASS"
+      },
+      "market_consensus.py": {
+        "sha256": "7cabd4d261a329412e3c91b72f6626739cd55b6607b8a54f19512f3164039483",
+        "status": "PASS"
+      },
+      "tests/S08/P03_test.py": {
+        "sha256": "671438a16f7456a52fdaf785251c717a3772888d6fd1235edeac208574c9482a",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S08-P03",
+    "evidence_id": "EVD-S08-P03-ROLLBACK",
+    "external_state_changed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_S08_P03_CONSENSUS_DERIVATION_KEEP_P02_SOURCE_INDEPENDENCE_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S08",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S08P03-BASELINE-PURSUE_GOAL_PROMPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S08P03-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S08P03-BASELINE-CANONICAL_FACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S08P03-BASELINE-PARAMETERS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S08P03-BASELINE-COSTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S08P03-BASELINE-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S08P03-BASELINE-REQUIREMENTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S08P03-BASELINE-ACCEPTANCE_CONTRACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S08P03-BASELINE-TASK_GRAPH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S08P03-BASELINE-TRACEABILITY_MATRIX",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/requirements.json",
+        "id": "S08P03-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/acceptance_contracts.json",
+        "id": "S08P03-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/task_graph.json",
+        "id": "S08P03-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "outputs": [
+            "consensus_vectors.json",
+            "machine/evidence/EVD-S08-P03.json",
+            "machine/evidence/EVD-S08-P03_rollback.json",
+            "machine/tests/fixtures/S08_P03.json",
+            "market_consensus.py",
+            "tests/S08/P03_test.py"
+          ],
+          "tasks": [
+            "T-S08-P03-01",
+            "T-S08-P03-02",
+            "T-S08-P03-03"
+          ]
+        },
+        "id": "S08P03-TASKPACK-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/EVD-S08-P02.json",
+        "id": "S08P03-P02-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/source_clusters.json",
+        "id": "S08P03-P02-CLUSTERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+          "expected": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d"
+        },
+        "id": "S08P03-P02-RECEIPT-IMMUTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+          "expected": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9"
+        },
+        "id": "S08P03-P02-CLUSTERS-IMMUTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_artifact": "machine/evidence/EVD-S08-P02.json",
+          "artifact_sha256": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+          "contract_id": "AC-S08-P02",
+          "id": "INDEX-AC-S08-P02",
+          "kind": "PHASE_EVIDENCE",
+          "next": "S08/P03_READY_NOT_STARTED",
+          "requirement_id": "REQ-S08-P02",
+          "stage_id": "S08",
+          "status": "PASS",
+          "verified_at": "2026-07-30T00:00:00+10:00"
+        },
+        "id": "S08P03-P02-EVIDENCE-INDEX",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/parameters.json",
+        "id": "S08P03-PARAMETERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "market_model": {
+            "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+            "consensus_space": "LOGIT",
+            "conservative_probability_percentile": 10,
+            "de_vig_methods": [
+              "MULTIPLICATIVE",
+              "POWER",
+              "SHIN",
+              "ODDS_RATIO"
+            ],
+            "edge_haircut_fraction": "0.25",
+            "evaluation_block_bootstrap_iterations": 2000,
+            "future_leakage_tolerance": 0,
+            "market_prior_weight_min": "0.50",
+            "remove_top_profit_fraction_for_robustness": "0.01",
+            "residual_weight_alpha_beta_max": "0.35",
+            "residual_weight_ga_max": "0.50",
+            "residual_weight_when_no_increment": "0.00",
+            "runtime_block_bootstrap_iterations": 1000,
+            "temporal_folds_min": 8
+          },
+          "numeric_determinism": {
+            "action_must_match_across_implementations": true,
+            "authoritative_decimal_precision_digits": 50,
+            "binary_float_for_authoritative_decision": false,
+            "boundary_perturbation_absolute_probability": "0.0001",
+            "boundary_perturbation_absolute_threshold": "0.0001",
+            "boundary_perturbation_friction_up": "0.0001",
+            "boundary_perturbation_time_adverse_seconds": 2,
+            "friction_rounding": "UP",
+            "independent_implementation_absolute_tolerance": "1e-12",
+            "money_storage": "INTEGER_CENTS",
+            "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+            "odds_rounding": "DOWN",
+            "odds_storage_scale": "1e-6",
+            "probability_rounding": "DOWN",
+            "probability_storage_scale": "1e-9",
+            "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+            "unstable_action": "NO_RECOMMENDATION"
+          }
+        },
+        "id": "S08P03-PARAMETER-ALIGNMENT",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/tests/fixtures/S08_P03.json",
+        "id": "S08P03-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/consensus_vectors.json",
+        "id": "S08P03-VECTORS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "recomputed from frozen consensus fixture",
+        "id": "S08P03-VECTORS-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "adverse_replay_count",
+          "boundary_perturbation_probability",
+          "contract_id",
+          "expected_next",
+          "expected_oracle_check_minimum",
+          "fixed_clock",
+          "fixed_seed",
+          "fixture_id",
+          "input_mode",
+          "phase_id",
+          "predecessor_evidence_sha256",
+          "predecessor_source_clusters_sha256",
+          "probability_tolerance",
+          "replay_count",
+          "required_consensus_estimator",
+          "required_consensus_space",
+          "requirement_id",
+          "schema_version",
+          "stage_id"
+        ],
+        "id": "S08P03-FIXTURE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_market_or_odds_observed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "network_accessed": false,
+          "order_submission_enabled": false,
+          "real_time_soak_required": false,
+          "recommendation_generated": false
+        },
+        "id": "S08P03-FIXTURE-NO-EXTERNAL-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "order_submission_enabled": false,
+          "real_market_or_odds_observed": false,
+          "real_time_soak_waited": false,
+          "recommendation_generated_or_enabled": false
+        },
+        "id": "S08P03-REPORT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "clusters": [
+              {
+                "cluster_id": "CLUSTER_01",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "-0.40546510810816438197801311546434913657199042346249",
+                "probability": "0.4"
+              },
+              {
+                "cluster_id": "CLUSTER_02",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "0.20067069546215116127145310412007789052672573829192",
+                "probability": "0.55"
+              },
+              {
+                "cluster_id": "CLUSTER_03",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "0.84729786038720361371010750652065402498959417175909",
+                "probability": "0.7"
+              }
+            ],
+            "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+            "consensus_probability": "0.55",
+            "consensus_probability_from_logit": "0.55000000000000000000000000000000000000000000000001",
+            "consensus_space": "LOGIT",
+            "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3,
+            "id": "BASELINE_THREE_INDEPENDENT",
+            "source_cluster_count": 3,
+            "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+            "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+          },
+          "expected": {
+            "consensus_probability": "0.55",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3
+          }
+        },
+        "id": "S08P03-CASE-BASELINE_THREE_INDEPENDENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "consensus_probability": "0.55",
+          "effective_independent_weight": "3",
+          "eligible_independent_cluster_count": 3,
+          "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+        },
+        "id": "S08P03-CROSS-IMPLEMENTATION-BASELINE_THREE_INDEPENDENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "clusters": [
+              {
+                "cluster_id": "CLUSTER_01",
+                "eligible_member_count": 2,
+                "independent_weight": "1",
+                "logit": "-0.40546510810816438197801311546434913657199042346249",
+                "probability": "0.4"
+              },
+              {
+                "cluster_id": "CLUSTER_02",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "0.20067069546215116127145310412007789052672573829192",
+                "probability": "0.55"
+              },
+              {
+                "cluster_id": "CLUSTER_03",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "0.84729786038720361371010750652065402498959417175909",
+                "probability": "0.7"
+              }
+            ],
+            "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+            "consensus_probability": "0.55",
+            "consensus_probability_from_logit": "0.55000000000000000000000000000000000000000000000001",
+            "consensus_space": "LOGIT",
+            "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3,
+            "id": "COPIED_SOURCE_INVARIANCE",
+            "source_cluster_count": 3,
+            "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+            "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+          },
+          "expected": {
+            "consensus_probability": "0.55",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3
+          }
+        },
+        "id": "S08P03-CASE-COPIED_SOURCE_INVARIANCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "consensus_probability": "0.55",
+          "effective_independent_weight": "3.0",
+          "eligible_independent_cluster_count": 3,
+          "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+        },
+        "id": "S08P03-CROSS-IMPLEMENTATION-COPIED_SOURCE_INVARIANCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "clusters": [
+              {
+                "cluster_id": "CLUSTER_01",
+                "eligible_member_count": 2,
+                "independent_weight": "1",
+                "logit": "-0.40546510810816438197801311546434913657199042346249",
+                "probability": "0.4"
+              },
+              {
+                "cluster_id": "CLUSTER_02",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "0.20067069546215116127145310412007789052672573829192",
+                "probability": "0.55"
+              },
+              {
+                "cluster_id": "CLUSTER_03",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "0.84729786038720361371010750652065402498959417175909",
+                "probability": "0.7"
+              }
+            ],
+            "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+            "consensus_probability": "0.55",
+            "consensus_probability_from_logit": "0.55000000000000000000000000000000000000000000000001",
+            "consensus_space": "LOGIT",
+            "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3,
+            "id": "SHARED_SUPPLY_CHAIN_INVARIANCE",
+            "source_cluster_count": 3,
+            "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+            "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+          },
+          "expected": {
+            "consensus_probability": "0.55",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3
+          }
+        },
+        "id": "S08P03-CASE-SHARED_SUPPLY_CHAIN_INVARIANCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "consensus_probability": "0.55",
+          "effective_independent_weight": "3.0",
+          "eligible_independent_cluster_count": 3,
+          "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+        },
+        "id": "S08P03-CROSS-IMPLEMENTATION-SHARED_SUPPLY_CHAIN_INVARIANCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "clusters": [
+              {
+                "cluster_id": "CLUSTER_01",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "0.40546510810816438197801311546434913657199042346249",
+                "probability": "0.6"
+              },
+              {
+                "cluster_id": "CLUSTER_02",
+                "eligible_member_count": 2,
+                "independent_weight": "1",
+                "logit": "-0.20067069546215116127145310412007789052672573829192",
+                "probability": "0.45"
+              },
+              {
+                "cluster_id": "CLUSTER_03",
+                "eligible_member_count": 1,
+                "independent_weight": "1",
+                "logit": "1.3862943611198906188344642429163531361510002687205",
+                "probability": "0.8"
+              }
+            ],
+            "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+            "consensus_probability": "0.6",
+            "consensus_probability_from_logit": "0.59999999999999999999999999999999999999999999999999",
+            "consensus_space": "LOGIT",
+            "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3,
+            "id": "FRESHNESS_BOUNDARY_COPY",
+            "source_cluster_count": 3,
+            "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+            "weighted_median_logit": "0.40546510810816438197801311546434913657199042346249"
+          },
+          "expected": {
+            "consensus_probability": "0.6",
+            "effective_independent_weight": "3",
+            "eligible_independent_cluster_count": 3
+          }
+        },
+        "id": "S08P03-CASE-FRESHNESS_BOUNDARY_COPY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "consensus_probability": "0.60",
+          "effective_independent_weight": "3.0",
+          "eligible_independent_cluster_count": 3,
+          "weighted_median_logit": "0.40546510810816438197801311546434913657199042346249"
+        },
+        "id": "S08P03-CROSS-IMPLEMENTATION-FRESHNESS_BOUNDARY_COPY",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "baseline_id": "BASELINE_THREE_INDEPENDENT",
+            "copy_variant_id": "COPIED_SOURCE_INVARIANCE"
+          },
+          {
+            "baseline_id": "BASELINE_THREE_INDEPENDENT",
+            "copy_variant_id": "SHARED_SUPPLY_CHAIN_INVARIANCE"
+          }
+        ],
+        "id": "S08P03-COPIES-DO-NOT-CHANGE-CONSENSUS",
+        "passed": true
+      },
+      {
+        "detail": "probability bounds, divergent cluster values and unavailable clusters",
+        "id": "S08P03-INVALID-CONSENSUS-INPUT-FAILS-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "calls": [],
+          "imports": [
+            "__future__",
+            "decimal",
+            "hashlib",
+            "json",
+            "re",
+            "source_independence",
+            "typing"
+          ]
+        },
+        "id": "S08P03-CORE-NO-NETWORK-PROCESS-OR-SOAK",
+        "passed": true
+      },
+      {
+        "detail": "authoritative consensus is Decimal-only",
+        "id": "S08P03-CORE-DECIMAL-ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 10,
+          "dependency_manifests": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "locked_registry_packages": 12,
+          "paid_or_unknown_dependencies": 0,
+          "passed": 10,
+          "providers": 5,
+          "runtime_direct_dependencies": 0
+        },
+        "id": "S08P03-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 26
+        },
+        "id": "S08P03-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S08/P03/paid_dependency_scan.txt",
+        "id": "S08P03-SCAN-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/validation_report.json",
+        "id": "S08P03-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S08P03-PACK-REPORT-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S08-P03",
+    "decision": "MARKET_CONSENSUS_READY_OUTLIER_GATE_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-30T00:00:00+10:00",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/market_consensus.py": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+      "consensus_vectors.json": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
+      "machine/evidence/EVD-S08-P02.json": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S08_P03.json": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+      "market_consensus.py": "7cabd4d261a329412e3c91b72f6626739cd55b6607b8a54f19512f3164039483",
+      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "tests/S08/P03_test.py": "671438a16f7456a52fdaf785251c717a3772888d6fd1235edeac208574c9482a"
+    },
+    "next": "S08/P04_READY_NOT_STARTED",
+    "phase_id": "P03",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S08-P03",
+    "schema_version": "1.0.0",
+    "stage_id": "S08",
+    "status": "PASS",
+    "summary": {
+      "checks": 44,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 44
+    }
+  }
+}

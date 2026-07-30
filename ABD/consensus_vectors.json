@@ -1,0 +1,172 @@
+{
+  "cases": [
+    {
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "-0.40546510810816438197801311546434913657199042346249",
+          "probability": "0.4"
+        },
+        {
+          "cluster_id": "CLUSTER_02",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "0.20067069546215116127145310412007789052672573829192",
+          "probability": "0.55"
+        },
+        {
+          "cluster_id": "CLUSTER_03",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "0.84729786038720361371010750652065402498959417175909",
+          "probability": "0.7"
+        }
+      ],
+      "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+      "consensus_probability": "0.55",
+      "consensus_probability_from_logit": "0.55000000000000000000000000000000000000000000000001",
+      "consensus_space": "LOGIT",
+      "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "3",
+      "eligible_independent_cluster_count": 3,
+      "id": "BASELINE_THREE_INDEPENDENT",
+      "source_cluster_count": 3,
+      "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+      "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+    },
+    {
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 2,
+          "independent_weight": "1",
+          "logit": "-0.40546510810816438197801311546434913657199042346249",
+          "probability": "0.4"
+        },
+        {
+          "cluster_id": "CLUSTER_02",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "0.20067069546215116127145310412007789052672573829192",
+          "probability": "0.55"
+        },
+        {
+          "cluster_id": "CLUSTER_03",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "0.84729786038720361371010750652065402498959417175909",
+          "probability": "0.7"
+        }
+      ],
+      "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+      "consensus_probability": "0.55",
+      "consensus_probability_from_logit": "0.55000000000000000000000000000000000000000000000001",
+      "consensus_space": "LOGIT",
+      "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "3",
+      "eligible_independent_cluster_count": 3,
+      "id": "COPIED_SOURCE_INVARIANCE",
+      "source_cluster_count": 3,
+      "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+      "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+    },
+    {
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "0.40546510810816438197801311546434913657199042346249",
+          "probability": "0.6"
+        },
+        {
+          "cluster_id": "CLUSTER_02",
+          "eligible_member_count": 2,
+          "independent_weight": "1",
+          "logit": "-0.20067069546215116127145310412007789052672573829192",
+          "probability": "0.45"
+        },
+        {
+          "cluster_id": "CLUSTER_03",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "1.3862943611198906188344642429163531361510002687205",
+          "probability": "0.8"
+        }
+      ],
+      "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+      "consensus_probability": "0.6",
+      "consensus_probability_from_logit": "0.59999999999999999999999999999999999999999999999999",
+      "consensus_space": "LOGIT",
+      "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "3",
+      "eligible_independent_cluster_count": 3,
+      "id": "FRESHNESS_BOUNDARY_COPY",
+      "source_cluster_count": 3,
+      "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+      "weighted_median_logit": "0.40546510810816438197801311546434913657199042346249"
+    },
+    {
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 2,
+          "independent_weight": "1",
+          "logit": "-0.40546510810816438197801311546434913657199042346249",
+          "probability": "0.4"
+        },
+        {
+          "cluster_id": "CLUSTER_02",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "0.20067069546215116127145310412007789052672573829192",
+          "probability": "0.55"
+        },
+        {
+          "cluster_id": "CLUSTER_03",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "logit": "0.84729786038720361371010750652065402498959417175909",
+          "probability": "0.7"
+        }
+      ],
+      "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+      "consensus_probability": "0.55",
+      "consensus_probability_from_logit": "0.55000000000000000000000000000000000000000000000001",
+      "consensus_space": "LOGIT",
+      "decision_boundary": "CONSENSUS_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "3",
+      "eligible_independent_cluster_count": 3,
+      "id": "SHARED_SUPPLY_CHAIN_INVARIANCE",
+      "source_cluster_count": 3,
+      "tie_policy": "LOWER_LOGIT_AT_EXACT_HALF_CUMULATIVE_WEIGHT",
+      "weighted_median_logit": "0.20067069546215116127145310412007789052672573829192"
+    }
+  ],
+  "contract_id": "AC-S08-P03",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "fixture_sha256": "1b22d8aa9eaa643c4c22492e03b3f433943baea65f15ee3d1726c88413b802f8",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P03",
+  "product_version": "0.0.0.1",
+  "schema_version": "1.0.0",
+  "source_independence_contract_id": "AC-S08-P02",
+  "stage_id": "S08",
+  "summary": {
+    "case_count": 4,
+    "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+    "consensus_space": "LOGIT",
+    "maximum_consensus_probability": "0.6",
+    "minimum_consensus_probability": "0.55"
+  }
+}

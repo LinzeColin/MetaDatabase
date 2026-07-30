@@ -1,0 +1,43 @@
+{
+  "artifacts": {
+    "abd_acceptance/__main__.py": {
+      "sha256": "eb324b42a733867568c7dc219c1228d84edae4f00e3550fc8d5179cabe2d220d",
+      "status": "PASS"
+    },
+    "abd_acceptance/budget.py": {
+      "sha256": "793a8b4b9eee3bf5937d5ff7120321bfd4eed2f9c69daec419f0a5d83629233d",
+      "status": "PASS"
+    },
+    "abd_acceptance/market_consensus.py": {
+      "sha256": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+      "status": "PASS"
+    },
+    "consensus_vectors.json": {
+      "sha256": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S08_P03.json": {
+      "sha256": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+      "status": "PASS"
+    },
+    "market_consensus.py": {
+      "sha256": "7cabd4d261a329412e3c91b72f6626739cd55b6607b8a54f19512f3164039483",
+      "status": "PASS"
+    },
+    "tests/S08/P03_test.py": {
+      "sha256": "671438a16f7456a52fdaf785251c717a3772888d6fd1235edeac208574c9482a",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S08-P03",
+  "evidence_id": "EVD-S08-P03-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S08_P03_CONSENSUS_DERIVATION_KEEP_P02_SOURCE_INDEPENDENCE_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

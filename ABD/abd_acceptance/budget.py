@@ -494,6 +494,7 @@ def _audit_imports(
         "reconciliation_oracle",
         "devig",
         "source_independence",
+        "market_consensus",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:
