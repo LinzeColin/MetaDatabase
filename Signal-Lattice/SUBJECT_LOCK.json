@@ -1,0 +1,3660 @@
+{
+  "bindings": {
+    "acceptance": "facffd31fa83f2188d83ac4ca0bb3a9323a0568b1f74fb45b96a8e8200a8ba6d",
+    "canonical_state_prepared": "a5c80f9a07b6908b23cde769403aac66877a4d5fcb54496b7c95b588ea1d62ac",
+    "definition_of_done": "cbf8e495151f5c301e108166bc6ffc74129a0a2c18fc5cc8abf8533a0b7142ea",
+    "quant": "10972cd20552d85d05bf762fa21f8cc39685a1b48d45c3afc642077cd2a2b529",
+    "release_boundary": "65d73a8797988d36ba9f1a95edf7721969824f5b71544c98317057fab9734f03",
+    "requirements": "0e93284d88d152639da65fb701ad4e90d4de09562f49f43f15c6c6e595281ca6",
+    "task_dag": "70ae2a8c370ebe09bd63321644f7255dcaa072418227de12fae920fa140bb3b2",
+    "traceability": "5f6c33c4177cc8f78c07062eb4f17dbe81ef66fd2c22c1219c5494044c1b0e16",
+    "upstream": "120a29ea1a05dc809b3c16a01099cd307b063fdb8760557c5dc31f3c78336062"
+  },
+  "files": [
+    {
+      "path": "00_READ_FIRST.md",
+      "sha256": "2825a9a05e91f185961026be5bda60046e6cef150ffcbc4b0966425533ac7efb",
+      "size": 2312
+    },
+    {
+      "path": "CODEX_LAST_MILE_PROMPT.txt",
+      "sha256": "107c774de69b44fb6623440e92caa932420cae9541663d6bbbea9a44627c7d33",
+      "size": 1254
+    },
+    {
+      "path": "MEMORY_RECONCILIATION.md",
+      "sha256": "784547b807e10697cbdbf1c1f6b373a39b5bad0e71446afa1fdfd40d7ad0ab0b",
+      "size": 1456
+    },
+    {
+      "path": "PURSUING_GOAL.txt",
+      "sha256": "9013346fe85b24c3279609888067a5ec5de17aebf5d1056b400b8a2035efe28b",
+      "size": 292
+    },
+    {
+      "path": "README.md",
+      "sha256": "23028bf7f84461ad3ad5e3a6aa41c2b35047ac0592e9e655953f4ce17379b410",
+      "size": 1550
+    },
+    {
+      "path": "ROADMAP.md",
+      "sha256": "9bd349907ba9455eadad764ed8d206fa20abb1501923cb8280bf284aba3dc484",
+      "size": 1960
+    },
+    {
+      "path": "Stock_Skill/AGENTS.md",
+      "sha256": "fd0235b6992b6b0685e23f1d652a5c3879f19d98de7c490a871aa06a8c34c55b",
+      "size": 3261
+    },
+    {
+      "path": "Stock_Skill/PATH_MIGRATION.md",
+      "sha256": "dd41ab9e88127022e93033b04133fc189057dc20e9dc157dc4b751630c1c972e",
+      "size": 652
+    },
+    {
+      "path": "Stock_Skill/README.md",
+      "sha256": "ce3622ef812df9ce72ec9c4fcbdc99772209b75a3d54ee44c0c04b8b39ca3863",
+      "size": 4652
+    },
+    {
+      "path": "Stock_Skill/REGISTRY.json",
+      "sha256": "320c49d29a55278450445f42354ccaa6a51476d64d9fa0d20613f052f4c86123",
+      "size": 7800
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/AGENTS.md",
+      "sha256": "6f7b8b395fa47350501a1662e5cca364c864b2191462f119ee786a3b4b4e72d2",
+      "size": 4367
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/BACKUP_MANIFEST.sha256",
+      "sha256": "ba60f30f240e31a79c72ffb34d1f361db96dccaac656c377d14c41e9b3baca96",
+      "size": 48306
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/CHANGELOG.md",
+      "sha256": "eb37e41fb33f042e44eee575b2a112dd9aa6503f1ecfb973272a28d7ee5038d0",
+      "size": 38619
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/COMPLETION_AUDIT.json",
+      "sha256": "189cc9739f9d2eee4a76dab7b545e2369516d5c664e0c3e686a8ac0ce242c0cf",
+      "size": 72549
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/LICENSE_AND_ATTRIBUTION.md",
+      "sha256": "3018da372f74789e82fe7e13d1769e71215dd4dbba973b881f6959c4ca5a9f42",
+      "size": 11731
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/LICENSE_SIMILARITY_AUDIT.json",
+      "sha256": "fc79b5e6823f1197a0814a37471c7c8062e03b1281c9f6e66db99637b7422e18",
+      "size": 64952
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/README.md",
+      "sha256": "306ab6589a2b9eacd65d1dc72aeb00a6bb46ccfb1335b89ba3d50a1672056992",
+      "size": 18182
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/RESTORE_AND_VERIFY.md",
+      "sha256": "18befe669a0f2dd3edf7d54fc052dab3e954a7d8173567c36afc2de184d346e5",
+      "size": 14345
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/SOURCE_INVENTORY.md",
+      "sha256": "8181a414316f0a73df1021b1487afec1f0e81ee7976a4c75cc7084488dbb8f61",
+      "size": 29427
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/releases/SHA256SUMS",
+      "sha256": "f911b1bc396b56e718d6d558b9a52349cbcd6053095a6331f8a5a2dc40e35703",
+      "size": 127
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/scripts/audit_license_similarity.py",
+      "sha256": "41fc9f8e60cd798a666ef506ee20c714c5ac31a0c01ca43d4e0cadc496c4af2b",
+      "size": 31273
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/scripts/build_release.py",
+      "sha256": "80fc798fe52369aa95865420cfd5ada313708de1bc0a5889fe5fda738dac7039",
+      "size": 22560
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/scripts/refresh_task_manifest.py",
+      "sha256": "7a45f6296c8d555b959d1563928bde8a6f8a558f92f8454198b7932106690d96",
+      "size": 3437
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/scripts/validate_completion_audit.py",
+      "sha256": "38dfd0e00e2371be3d6426c2f1e85381e06ef042fd6afd7bde89d4758ea072ca",
+      "size": 50024
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/00_RUN_CONTRACT.md",
+      "sha256": "a43f3084a70eb4b777aff7490b008a1519f34707bf4300b7fbe198e9d257576a",
+      "size": 191830
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/01_REQUIREMENTS_AND_SCOPE.md",
+      "sha256": "340cb1a3dd9ec90aa164417e7c52574a23f41925496dd312bb1d74edc5501710",
+      "size": 8460
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/02_ARCHITECTURE_DATA_API.md",
+      "sha256": "54a62a417278f5719c4e2cf25765f8a58aa8880a8736a5bd7b25cafa44a8cb79",
+      "size": 23021
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/03_STAGE_PHASE_TASKS.md",
+      "sha256": "25a427dcdf0d8e111ab50b858e5c1a1ba3bc828ad1763641570b96afc20984ae",
+      "size": 19622
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/04_ACCEPTANCE_VALIDATION_STOP.md",
+      "sha256": "d7e4a0061821cdef6823e375759bd603fcad291792a20aac50f77df04a68d174",
+      "size": 44817
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/CHANGELOG.md",
+      "sha256": "d6b626730caf26015dce93f36ba73cfb1cfd8e9667d89416193f2c50af86cb38",
+      "size": 121108
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/MANIFEST.sha256",
+      "sha256": "30b36c34c3aa9e0d583abf15035aee5a54d1b316603635c9513fffe96cb7f9ed",
+      "size": 43899
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/SKILL.md",
+      "sha256": "d86a7452d92bf123b0d3bce3f6b6d18da2299e30df0617ec47e17d93a432e0e0",
+      "size": 18163
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/agents/openai.yaml",
+      "sha256": "e90b9449d3cb2df99ad5f67eeb4097de2d0171a2dce5853f880e9603bdb7dc27",
+      "size": 267
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/capability_oracles.csv",
+      "sha256": "7fa040cb8647cc44d964c48593f80304a9f6f2e609b064390d7d26493496aa1e",
+      "size": 2818
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/judge.schema.json",
+      "sha256": "3ec76187503936d298213757dab893fa99311c583142adcc88f1d48efa76f45d",
+      "size": 5108
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/judge_a.json",
+      "sha256": "98d724abfad9fd08151e7beee877885eb257350b1a54bebe35eb0ef0c43340e6",
+      "size": 18751
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/judge_a_task.txt",
+      "sha256": "20bbfd805749a9003cbf2b94be5fe21028174bdcfa322821b687540a4a5ee1a5",
+      "size": 1212
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/judge_b.json",
+      "sha256": "39bb3d35fae3af404c55366efd2c396bf20d521f53417ba6d6a89ffd0dacf998",
+      "size": 20276
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/judge_b_task.txt",
+      "sha256": "aeb3cbe5a8587b29464619c78a5949c5e4ac248cc3490dcacd6096fcb3b9dc4d",
+      "size": 1212
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_executor.schema.json",
+      "sha256": "33a9e8ff355174d29de341b1ec164b011e8f6416b49953a2af30f0e5719089d7",
+      "size": 812
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_executor_a.json",
+      "sha256": "85a3c68796feb9dddc4c3197ea48299d010574c688aafbf5190cb7443fad2f5e",
+      "size": 1547
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_executor_a_task.txt",
+      "sha256": "8d4b6bb5f7924914200cdc61bc8d6bf81903c17c6f1b1b24cd70a236270e6341",
+      "size": 699
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_executor_b.json",
+      "sha256": "575dc7450aca5218f94c8cac68334f1befaf21bad8fb69a0178ffdd3f95985e9",
+      "size": 2138
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_executor_b_task.txt",
+      "sha256": "07e5073e6511444b3a3c1d08277382b95ae3a0275fff1845d01f316eb0f7f48e",
+      "size": 699
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_executor_c.json",
+      "sha256": "e1edbd2e5fef01e5148184f3f3040c1564a75bdc5f975635515f8aafcf96ac8e",
+      "size": 2396
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_executor_c_task.txt",
+      "sha256": "b2fa93810ff2e52a0a44c86a934e98b921f0bc17430980c32415d38e0d870deb",
+      "size": 699
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_prompts_a.txt",
+      "sha256": "8e6dd99bf8b2dc8c51a6a0ed99af9d228c9fcbef091c4df156b1fecff84c49b6",
+      "size": 533
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_prompts_b.txt",
+      "sha256": "e8a2321888e600f97bc2675d58c098975d7584a51bb9e30660819453687ab505",
+      "size": 641
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/security_prompts_c.txt",
+      "sha256": "3d5790d4285470111e8335dbec09fb4b14a414213627ab586a7533653f7474b7",
+      "size": 572
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/trigger_executor.json",
+      "sha256": "6943d6bb8567a64bbd83ca3b4652408f11fc629eed5811649e49fa211fc32dc7",
+      "size": 14436
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/trigger_executor.schema.json",
+      "sha256": "df50a36c065db10da2daa769f2700be21915b0b99db319e752dadbc737f9b73e",
+      "size": 1331
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/trigger_executor_task.txt",
+      "sha256": "790c0da25b061042bb992497701f9ac5dea327fea1af9a3943001687ca0ce86b",
+      "size": 980
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_binding/trigger_prompts_blind.txt",
+      "sha256": "31409cef1d5835dcf43b8815f83220fddae0d97e4f2fc690c694e3266322e8b1",
+      "size": 1172
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/current_eval_binding.json",
+      "sha256": "8d9758f47c1ed591c2e265bdc1f8f9a326b528b1a926f15115d560a76eef199c",
+      "size": 11258
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/baseline_context_manifest.json",
+      "sha256": "93e61b117daeabe03f432757a49cc168ff1d2ee9193fb863b93f77308fef2f71",
+      "size": 5449
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/baseline_judge_a.json",
+      "sha256": "178dbb5cca7c374edcef059060b66104d0e3b00d0a7f670bc7e867a96ec83915",
+      "size": 6151
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/baseline_judge_b.json",
+      "sha256": "f693022055b321fe7060b59edd7c2d7c6e5a0efbefef16a21694dc05335f1797",
+      "size": 6202
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/baseline_preregistration.json",
+      "sha256": "bc91084f21a96ca5b5636b4feb0ae89a57aea13d0ce6f498e151222255a9365c",
+      "size": 3276
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/baseline_raw_output.md",
+      "sha256": "f08fdc5ff654156ea5daf689ad562bfd8acb78ca397886813197a2bc33a83d81",
+      "size": 25775
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/baseline_result.json",
+      "sha256": "6ac26c25aa077bd3136407d846600dca8237fb17ccd42d9a900f32208f3c5942",
+      "size": 3778
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/baseline_trace.json",
+      "sha256": "6362cf4531b7bdd390e0d02fd623b863fe5df0a571cd4a8a6123e8c86bfc5968",
+      "size": 12040
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/context_manifest.json",
+      "sha256": "cc8d4c7582c58364e72466157af8a951a21ca7b20dc47d5e2f7c3a9a69c3933f",
+      "size": 5444
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/control_packet_v19.json",
+      "sha256": "22d11a541e52672e607d678f623d36330a64d47e92287998e74933b394303614",
+      "size": 2100
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/executor_output.schema.json",
+      "sha256": "e40939a9047489625e7d2e42b0fd37af91acc09a6c0bee3cb4244d0ad727e7ad",
+      "size": 925
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/executor_output_v14.schema.json",
+      "sha256": "ec3e5e587fcfaa10bcf07106b69d83211e7a6cfefdaee9a418129f7929b8be83",
+      "size": 2495
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/executor_output_v15.schema.json",
+      "sha256": "8f959f568007417d47b79e44b6476e2b597ad2ac497abc8288cc50f182c78d0b",
+      "size": 3675
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/executor_output_v16.schema.json",
+      "sha256": "947dee84bd379e26d810e0b6a202c23247ea05910469e83e6e8cced7d3b2c3b6",
+      "size": 3711
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/executor_output_v17.schema.json",
+      "sha256": "cfccdea3385d690ea26c3b0b52cd86d6bf63213bb211f67ef4caec3225fe442f",
+      "size": 3739
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/executor_output_v18.schema.json",
+      "sha256": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+      "size": 3627
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/executor_output_v19.schema.json",
+      "sha256": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+      "size": 3627
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/historical_post_remediation_revalidation.json",
+      "sha256": "0e85955a8c117cca4864449c2dabb698a54b24cc346ac70787dabff93cf6901c",
+      "size": 14184
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/judge.schema.json",
+      "sha256": "5505401c848c089558112d2559fc2ce202ea83dab10f3023e4706a08163475ef",
+      "size": 4521
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/judge_a.json",
+      "sha256": "b779d0378243287ff3ac6f8147879f6bfe1369b1af5b2a541f269c37c567d9f7",
+      "size": 6625
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/judge_b.json",
+      "sha256": "0a5b700dbc8285b6fffd2e3887208b370cf097dab0f7bb15320758f0ccba44ce",
+      "size": 6972
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal.json",
+      "sha256": "45207b598e22e0674dcdf9b1e2d91c61a83fd5a0f37a010d185691295507a12a",
+      "size": 1241
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v10.json",
+      "sha256": "c85ff7104bf62592fa75887dfbbbbf46e9c57c77f4362e75b4f93c9bb7533cbc",
+      "size": 1326
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v11.json",
+      "sha256": "4363b0c62929c513084e009891465c9dd55f97873c0d2bbf9a1c704feea568ca",
+      "size": 1368
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v12.json",
+      "sha256": "5b20933ab6bca1ea37bc7ddad868f506e64fc8b6ded9decc3db9fb7440840d58",
+      "size": 1368
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v13.json",
+      "sha256": "a37c524b3cf932392c74b08f7ac379129f60e1ad0189a0af47979fbd3916ec03",
+      "size": 1413
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v14.json",
+      "sha256": "6f5a4246d17134d401c0842cbca99775d91fc1c35f077f22cd84ee98b0f94460",
+      "size": 2099
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v15.json",
+      "sha256": "3c2369c275461b7a6d416e2fbdb034aee2332da7851ae923720822c95c52a805",
+      "size": 2099
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v16.json",
+      "sha256": "dff1689719b0982be89ea57530d60c460e5931ff9631a594f8c0bef5c22d04e8",
+      "size": 2099
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v17.json",
+      "sha256": "8ca631d96ec390590795507c669f9fa12e15e94058d0d31553285a495b8cab72",
+      "size": 2099
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v18.json",
+      "sha256": "40c4f41c690de145c4ba35687a07748ae22c0498065b2c31f13f267fd4cede7f",
+      "size": 2099
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v19.json",
+      "sha256": "e500537c09c9415e1a10dd5e4646d06646f6fb4f9d2686a87258517281facd8f",
+      "size": 2604
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v5.json",
+      "sha256": "1934bd08ad9e3ac0cf32f6e85289a884fac19aa99184b38dd3065a1b052c99de",
+      "size": 1256
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v6.json",
+      "sha256": "b7e3a6ffd31f2959f7d385f311121655805177aa584ea46e784c5b584f5d2f67",
+      "size": 1321
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v7.json",
+      "sha256": "8d55ac2dbc526e45309fc8ec8b47ee804027f10cb9d98e842627c55906840a4c",
+      "size": 1321
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v8.json",
+      "sha256": "2c89d2a688d1e6569aaf9c0dbd9db707b36eb8507dd763afaafece44829f955d",
+      "size": 1321
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_seal_v9.json",
+      "sha256": "d05e7afb08fc42cad0be24eaee5714293888b5bb1c9a7b4ae5ec20a53edd570c",
+      "size": 1321
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preexecution_timestamp_v19.json",
+      "sha256": "4a587ed19881181ae541d6cfb54ae0f16b2e7f8fbc30b3d4946103d1befa45c8",
+      "size": 11538
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/preregistration.json",
+      "sha256": "a355b77a164129d243399a1ff3d03fe5516c96e379e509ad46db4c6eda8bd744",
+      "size": 3547
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v20.schema.json",
+      "sha256": "3fc1c1cd3d538ec2f1dd3193916fe9a932d0671fd8c5cc52c861df70c26a2422",
+      "size": 2525
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v20_failure.json",
+      "sha256": "0b47eb461459a431c03f30b8423ec892b9cb0215f4e73255e30cb6a427a51bda",
+      "size": 1056
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v20_pre_packet.json",
+      "sha256": "a6542393ce8cb62b5029df972c5578d7e587c972be23a02629e223907baf37e2",
+      "size": 2147
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v20_pre_timestamp.json",
+      "sha256": "93b1ae1440400e547c3ad1890463fa6acc48c57ae166f2a36381b6cb3a880fef",
+      "size": 9821
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v20_task.template.txt",
+      "sha256": "e329857a6913405f41fee7aca0dc020f66f98b9fa0959c2ce81ab85e8ef078b5",
+      "size": 1314
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v20_task.txt",
+      "sha256": "5efd44cb357a40b325bfbe6247ab4816623f9b2e3bcd058c073c453b2545f0f4",
+      "size": 1354
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v21.schema.json",
+      "sha256": "620b2ff979cebb83dfdf496dafed80828f682c879ce48bb04f50a11389894113",
+      "size": 2924
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v21_failure.json",
+      "sha256": "3569bff9d8ab1b0d45ede6a8372906ad23bfda4226d8521369b4a8185a705b7f",
+      "size": 1219
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v21_pre_packet.json",
+      "sha256": "4773626d74ba211019c84c3abdd32bfd33e657e61fffa89fae86c34ec2fa622c",
+      "size": 2454
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v21_pre_timestamp.json",
+      "sha256": "5d0c20c14b6bb53467aa930853caf25505d5bdb516dc3004f661433d90b11eec",
+      "size": 9821
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v21_return.json",
+      "sha256": "34151b379e97cf72b3fead7b1de93c155188cdb06808152a287762cb85e32f93",
+      "size": 959
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v21_task.template.txt",
+      "sha256": "042aace0a99c52ac2d58228cde739c46bc761af56a86676406888cae1898c41d",
+      "size": 1269
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v21_task.txt",
+      "sha256": "329bc04e7422ada9a9ef21f6191214fd81f866232df2bb1d4f6962fd5926f534",
+      "size": 1309
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22.schema.json",
+      "sha256": "c50d1dba7bb23a2c2d9556899bbac7e426302ce7f3ecd5b0fee210c4c1679a74",
+      "size": 3020
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_execution_validator.py",
+      "sha256": "8ff98210f00764ef7d2ca3b976878c8a1b4a1c0b5c2bc5ff38fb2cf86e8587bd",
+      "size": 189121
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_host_receipt.json",
+      "sha256": "d98076b5e127de03abb222e4d9462e814349bdb0c54ee3617e901e89455fb503",
+      "size": 2908
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_post_packet.json",
+      "sha256": "5af57b16c3ee73c4a949af0d636fcc8056185e4019b2ba57bd6524638d650700",
+      "size": 2184
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_post_timestamp.json",
+      "sha256": "3cad5039f26990dc422235f1bc7424b52488e62853040b88e9cc930ed0cd3d06",
+      "size": 9819
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_pre_packet.json",
+      "sha256": "e3ef66820827724bc9a284b7d4cfa2939510a12f261012fe3ad5475b1d98425e",
+      "size": 2671
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_pre_timestamp.json",
+      "sha256": "a6ac5d0ffb7a591e64b8b82218f4e86e7f7fdaa06c928d1f4f5fcc448493b776",
+      "size": 9825
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_result.json",
+      "sha256": "442113ade2f03bce13abce9ae7de4d639a4774b719e45e5d3de3901c94004dbb",
+      "size": 4815
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_return.json",
+      "sha256": "d644fef7b9424e98ff6c363442d63dc6db49bf7478a58fa5ddb5be693f142e66",
+      "size": 959
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_review_disposition.json",
+      "sha256": "0377c1257a26aa394d45fefa19c59a37b70f815abbe8eafe721ada70a1211159",
+      "size": 840
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_task.template.txt",
+      "sha256": "934d6ed93dc20b9f9cda564da15b7e96a041bf4cdcc5ae480615d7b54969a6ac",
+      "size": 1198
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_attestation_v22_task.txt",
+      "sha256": "fc73666b233465157e855fd9c4b3667a8ddad4ad9ad20b4e6ab73f715e5586b9",
+      "size": 1238
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_generation_v23.schema.json",
+      "sha256": "e3b1edf32a88568c2cbffe8f714c1972a28f6ca718f2ff76fa32211724f6cf7f",
+      "size": 2005
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_generation_v23_protocol.json",
+      "sha256": "4774a96eecc4d119544a9f31974e03a1291e52e741682bf0df8d2305e38762f0",
+      "size": 2333
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_generation_v23_task.txt",
+      "sha256": "6687840119bab245ff29fccb8e4c9c970070aa8243c99163a3828df00ce92bc7",
+      "size": 2635
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/provider_generation_witness_v23.py",
+      "sha256": "826b08080c4bdbb7b825b95d5d48465ee2a2ae484488e67a1a56aad0cac322fa",
+      "size": 18212
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/raw_output.md",
+      "sha256": "4899225a303201bf7148fdde480a6f4a0a50fbb38a1120e31387f1689d49ccdc",
+      "size": 27461
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation.json",
+      "sha256": "4fae0e78a37c350f082f853ec039e9da398e6ede563a45f218ba956a2cdc8525",
+      "size": 3223
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_01.json",
+      "sha256": "1ff4c3983e116195d6b4980ef61dcb08a1d3652cb9200a480fd2fd765db8d208",
+      "size": 3968
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_context_manifest.json",
+      "sha256": "146c5f981b72adc51ff0e7d9af918a5b67c0e7bfb003a034c8e36e6e3a6b882f",
+      "size": 5476
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_preregistration.json",
+      "sha256": "726f0e39bdcbcddebc01c29e7ddc92e872943adc408245cc29b830b6414bdde4",
+      "size": 4467
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_task_message.txt",
+      "sha256": "06ebd0c99836c5239ce5cfd8a49775c82d10a2e09af9e99ff095b74a192e0fde",
+      "size": 1645
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_context_manifest.json",
+      "sha256": "f5eef76fea5dca04445b5516413db69f46ac34bec22d41419e4737a7edbd3566",
+      "size": 5481
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_execution.json",
+      "sha256": "00cd791b797dfc922f8780eb0bff4d9302a0e350707957a1e4462737c7389242",
+      "size": 4814
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_judge_a.json",
+      "sha256": "703fc5bacbcdb01376b302206bb5ef588b6df11af421cc61e121bf66c6f1bace",
+      "size": 5029
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_judge_b.json",
+      "sha256": "1884087b34252bd830ea88412f43edd66ea4df935749d88ddee95445f6da879e",
+      "size": 4860
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_judge_context_manifest.json",
+      "sha256": "d76a838678913eafe05ba08c8336f0c55ef70d89f71b0a83540241b4b54401b9",
+      "size": 7516
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_judge_task.txt",
+      "sha256": "bf2b99df8872ac96d02ad6c0fa7dd5208efd3eb83846f81819928503f385d8cc",
+      "size": 2274
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_preregistration.json",
+      "sha256": "d8ab34ce55ce7ffbbb0a0b339cf6193b972adced022f252acb6389d776cb1e99",
+      "size": 5928
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_raw.json",
+      "sha256": "2a9d0a1cf7da610d932dcea2ceb040c39955ac12d1b34bccec0355464c2188a1",
+      "size": 20386
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_result.json",
+      "sha256": "ed32bc15829983ea76314bf216a5a4d4547800c8e971eceeca0fc8ae56b29434",
+      "size": 2793
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v10_task_message.txt",
+      "sha256": "cfead597ad513543f5e52298095e3e64979f8c7a3e6d68f46ad78bf47350df35",
+      "size": 2306
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v11_context_manifest.json",
+      "sha256": "8a94a36d290d5f920d599fade49e575cc00e7a561fd993951a4f22ce6596dd31",
+      "size": 5481
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v11_execution.json",
+      "sha256": "ce86a699edb2030f9d50c7eef850b06574800f1b8ce592534a2e3195d54e1844",
+      "size": 1199
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v11_preregistration.json",
+      "sha256": "c5fe580d90a6a7ee7fc751301b1d51232f637c66cf8e8f896f54d0d250a7a50a",
+      "size": 6527
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v11_raw.json",
+      "sha256": "ecf924841b076e6b50160c82f172ff23e30442c6dbb51f234337a028865c4ba4",
+      "size": 5841
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v11_task_message.txt",
+      "sha256": "9083444b1d529daab090e9629da0eeab55cdabe994d4a84c97bc3246c0c59a2d",
+      "size": 2899
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v12_context_manifest.json",
+      "sha256": "6a2793935d9f1b20055c029f3b2e4e9deae8ec5f8478aee46fb1d35c2052ae4e",
+      "size": 5481
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v12_execution.json",
+      "sha256": "f601125d2bf057d94ccf1510bca64fb0ddad88e2813c2fc8fbd3a28d408faff9",
+      "size": 1277
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v12_preregistration.json",
+      "sha256": "102fb9405b99f974f3a7252c8f4f54206e6feb21cb14941f257b4983b1e3e670",
+      "size": 6505
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v12_task_message.txt",
+      "sha256": "9083444b1d529daab090e9629da0eeab55cdabe994d4a84c97bc3246c0c59a2d",
+      "size": 2899
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_context_manifest.json",
+      "sha256": "5a10c07a679670132ca7320166cac762bfb693d57d778b4a16fa2340a81b024d",
+      "size": 5481
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_execution.json",
+      "sha256": "8eda86663ac4f851aa26235678f137d902fb3b0dcce77b77c15cb137abcba053",
+      "size": 4258
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_judge_a.json",
+      "sha256": "92970480d839c87a5cbd5b9b7d85fe4a999a0a28cc585150e3dee582392a8b13",
+      "size": 5505
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_judge_b.json",
+      "sha256": "1eadfd33ab83f70cef245733964dd0736c3ae7597b8842ee3a6d34b72d6e5e7b",
+      "size": 5932
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_judge_context_manifest.json",
+      "sha256": "d870334cdbe3cb50cd4a10e5c7db0fb2dda802ed9aacd9d9541e3e65645db99b",
+      "size": 7516
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_preregistration.json",
+      "sha256": "a4b302b94df12fd32c9a0fe65c0fbf73c62de3920a209e9a3333b9c393d473bd",
+      "size": 6649
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_raw.json",
+      "sha256": "04ecf9d4909c06512903e6dc215d969d74ec30a410314a8956b5b9db0589ceaa",
+      "size": 27535
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_result.json",
+      "sha256": "6a34cf87c4c6ba2337cbbd42587b4581f840a7841fbfe41369df865e4666c357",
+      "size": 5774
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v13_task_message.txt",
+      "sha256": "a8a844364c2589e0825ae1e8a735ca54cf9e590e941ed668b39199bd53f9593c",
+      "size": 3287
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_context_manifest.json",
+      "sha256": "9113a3828bd80c1b587c78a341e775c384efa88756a93834624400215335e0cc",
+      "size": 5874
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_execution.json",
+      "sha256": "f1ef53cc3fb1907d0850449c842d2c5063119badd5af56ece57df7f516d03de4",
+      "size": 1953
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_judge_a.json",
+      "sha256": "ef1de0f77195490c5ed0f505dc1b3a063359bc3f5987ddb36eb56643bb3597a9",
+      "size": 6864
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_judge_b.json",
+      "sha256": "12b0762e33af18f7ec0aea7305c15dff04287c099d992c910f9ae91de9eb5c84",
+      "size": 7034
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_judge_context_manifest.json",
+      "sha256": "be0520745c0c45602b9fba2cdec37ca095b54f5d8e4a6fe22c1dcf8ceccb7d75",
+      "size": 1901
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_judge_task.txt",
+      "sha256": "2831e9df6351c581ff6f4ff793cd5fa02e895b2284f81a744166738d9ddc2e9d",
+      "size": 1380
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_preregistration.json",
+      "sha256": "5fedab5fc7ea4990660954b47ac1b1e807283c164a52c19b6db1d2c7a6a0f80a",
+      "size": 5132
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_raw.json",
+      "sha256": "7702e33ddb497583ba9d66e98b0d7e62fe98974427e1c3bca03fe79c0ffab079",
+      "size": 89020
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_result.json",
+      "sha256": "df7560bd8262d202005b241944681e29e79da97a622ca29a946eb5f01cb3b799",
+      "size": 3489
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v14_task_message.txt",
+      "sha256": "88ce912271bc91bff12823074f398f2525e7f516e0fdb917d9228cc0d5fd6763",
+      "size": 2352
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v15_context_manifest.json",
+      "sha256": "d459cbd1b412ae2a0f08e8dfdab476b0b7611a9c5a51d03c7b2ba5da12c74511",
+      "size": 5874
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v15_execution.json",
+      "sha256": "0af53b616029ec9d08bcfd44581661c9e5a4ac94395f798e1bc34d850701481b",
+      "size": 2014
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v15_judge_task.txt",
+      "sha256": "f65b84c026fb0971ba77c070f6a83326ea864ac15021248ed428c4e06a20d463",
+      "size": 1380
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v15_preregistration.json",
+      "sha256": "b3023f81e527e6101aef90e334b76782e10705fdcdf9d77812ad32596beb6f6a",
+      "size": 5162
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v15_result.json",
+      "sha256": "8e38c4d079a14d03637f41eca01c48a4a5875c9615ece805c03cac3b864d30fb",
+      "size": 2968
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v15_task_message.txt",
+      "sha256": "0679a65d62400df362e018226aa1b52f562c206260c827f455b9495ef56bedb0",
+      "size": 2431
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v16_context_manifest.json",
+      "sha256": "138f5ccd37d9d652e6a8697e787f308d30ca2a3f0566a49c61301036d5f478d7",
+      "size": 5874
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v16_execution.json",
+      "sha256": "278bf79da2660d02148297e2bcd9e0f4c9dbab03ee52d2d213bd21209fb42f2e",
+      "size": 1990
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v16_judge_task.txt",
+      "sha256": "50994e06ee9127a8d6143f30b315b36f8cb1a88cd5bb67cd4195adcd67ca4063",
+      "size": 1380
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v16_preregistration.json",
+      "sha256": "beb69a5006699e127f456e1a87fd720abd78810950884a10f3ef7f363fe7aea9",
+      "size": 5174
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v16_result.json",
+      "sha256": "8a320c67e4aad8ca3527b00385d57b7dfe338293d4d245c76e3bedd337374f36",
+      "size": 3053
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v16_task_message.txt",
+      "sha256": "c5c9ba6716a5614ad50378ffa9f956ba9749ed0b7a6d3ced1e6163a7e89b83d0",
+      "size": 2431
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v17_context_manifest.json",
+      "sha256": "2ec6e14e752fb658a7d094d45c95068a91d879897deefc809a7579a7db43c1c3",
+      "size": 5874
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v17_execution.json",
+      "sha256": "9da4d6f2f0e575b10798a1b961cde08ac9d1b20739ab41c17a001dac9b56115c",
+      "size": 2291
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v17_judge_task.txt",
+      "sha256": "a77358a2a493738f6dd161e87754a1f7e419bdd0a6888bf593c4c97cc1601a10",
+      "size": 1380
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v17_preregistration.json",
+      "sha256": "051f3ad82aa165b87e76a3fb4db4ae634899645b14f662759f9b631ae6ea5836",
+      "size": 5166
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v17_raw.json",
+      "sha256": "0da2e9d25aa1cb4afc348f8bf282872706226b8a2221d72d749a8281755d9c32",
+      "size": 33981
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v17_result.json",
+      "sha256": "faf496b344d4c2d4edf9d33c438479588c0ca2685196b471275ecb60b6cc3116",
+      "size": 3294
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v17_task_message.txt",
+      "sha256": "c2bf967ecae7f1fea4cd67aa4da3f060f4fba1e6aa82096d0233d88540a04f46",
+      "size": 2431
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_context_manifest.json",
+      "sha256": "07182b91d2de375d73485a2ab99d7a2ff027db5d4416f149116fe1a6fabdc1aa",
+      "size": 5874
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_execution.json",
+      "sha256": "f6693f1a13a014e10664024d5cd72a673c0254538d8bc7b96ddcd08567ea23d6",
+      "size": 2211
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_judge_a.json",
+      "sha256": "1eac704a6298bdc4f9e8c9e683ca88b572dbdaca0ec19bec2aa26db24fe575b8",
+      "size": 6612
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_judge_b.json",
+      "sha256": "9969ce9ab785afb0aaf5514d6d1cb2cedc60f4265e9c7cab26da3edad79585bd",
+      "size": 6396
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_judge_context_manifest.json",
+      "sha256": "64dff2643cbdb6b1c3085761ea65994829dfb05f45797664026809aca434a906",
+      "size": 1896
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_judge_task.txt",
+      "sha256": "ca4c6247e418404a27f680f80b41847ed1539c5599b020dc5a676cdda02848c3",
+      "size": 1380
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation.json",
+      "sha256": "b315cc1ac8fa819f23c7d1472c73de85c1b423db67cf9d5f4993798c9f371fe2",
+      "size": 933
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t008.json",
+      "sha256": "badc419bdf841771787d47c4eb44456c2c143b4a74a40c7fbc53fde7bdf23bcf",
+      "size": 1106
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t010.json",
+      "sha256": "acc605455013b7e90b8a1cd64da22979437a6a6a61c73448c1894c32983c0f06",
+      "size": 1144
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t012.json",
+      "sha256": "e5fdf281c1d6f5d77d9b23cb0f00ac34f20628967be2996bb0f349ccc250ad71",
+      "size": 1108
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t014.json",
+      "sha256": "0318d9c9ce5c53e78317f02428eeae8e00ab289e2e56eedd9690b3695cbb4e2e",
+      "size": 1216
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t016.json",
+      "sha256": "7f12e752811b49eba58385a91bc7ef61e1b9106c6a3a47c70256a9f561036040",
+      "size": 1190
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t018.json",
+      "sha256": "4954f41c15a2c1b6bef45f00d854e761e925f93612193f7aed6cc0f983e1b758",
+      "size": 1161
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t020.json",
+      "sha256": "54b75d167af584081a135ca1c689dc3c5752d5244f50c8a3f5bcf6d8a0d9d678",
+      "size": 1226
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t022.json",
+      "sha256": "3eeca2614b2146f7c3d419c8cdc359359562ed668ffad26e9293f603e626879e",
+      "size": 1246
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_post_execution_remediation_t024.json",
+      "sha256": "6923b7e39c3bfe619b07805bdc10e68f55faf986c7906b520aa1eaca7afdba65",
+      "size": 1450
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_preregistration.json",
+      "sha256": "29c14ebab98ce9eecdcdfb5f30d43a75064e74470d1797ae0fdf9e6dcae7d778",
+      "size": 5204
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_raw.json",
+      "sha256": "ac5a64570138ba077af59d51f9e1604d1cf0c0214156487d46f9852f7aa9d134",
+      "size": 33402
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_result.json",
+      "sha256": "546074e184e690f2b152222e2f3dc616f5c8860d3e71a878a04409937c989a06",
+      "size": 3842
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v18_task_message.txt",
+      "sha256": "5837a4b37fa30dc67f6f32dd35da2dee11e4c5dddbcc1075a9ca7c3d3a53feb9",
+      "size": 2431
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_context_manifest.json",
+      "sha256": "c2d9886914654d32e3a83abc19ab830cd55e72875e6407ee0dd18d21b1f028a5",
+      "size": 6082
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_execution.json",
+      "sha256": "8312ed7f37f911824846e10e4d3394e7386452560f6e4f28976b1a5a1c55c766",
+      "size": 2412
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_judge_a.json",
+      "sha256": "b3a0c65294d5c7e0e43fcb58c65c3ea592e78731238bba2d14185aa43bb2d879",
+      "size": 7733
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_judge_b.json",
+      "sha256": "1ec4bc0076d4323b59771ef533d5f869ce7c85d3adf25c4abf84692deab46c84",
+      "size": 7525
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_judge_context_manifest.json",
+      "sha256": "ae37c87fddb4a1c3b73f707268220c30c11306d3e5e84e710d9b56701c8e93d7",
+      "size": 2499
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_judge_task.txt",
+      "sha256": "26e8e89fe91b10a3b2041356c14517a37463e6f861ae1d2123a3ff4f49538a33",
+      "size": 1412
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_preregistration.json",
+      "sha256": "9ab9dcbbae29000ab2f7b11f32a7a4dc1f04f9abd059574333e1d5014d4a7a59",
+      "size": 5346
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_raw.json",
+      "sha256": "f6694a5142c20f9ddc1f3a2a9a8ec0702dd454773c1b68152c9539af7a39d6ad",
+      "size": 30264
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_result.json",
+      "sha256": "81bf9815e21ca291702bfb1bb85f68854ff66efa1f5d2a988157838a92fe92d1",
+      "size": 4377
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v19_task_message.txt",
+      "sha256": "c134f75ce8341ea724c4ee5f4ae7e58baf58e057c8e2ad13085383211afc6d65",
+      "size": 2431
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v4_execution.json",
+      "sha256": "527c71172976c8480c3b9c9d58c15fb599f3cef1abbdf8471277b9816b40306e",
+      "size": 3273
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v4_raw_output.json",
+      "sha256": "4a9610798e154bccca5e100bcd648ffdfb0b1ebbcd921d58b4993ceba57c9567",
+      "size": 41830
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_context_manifest.json",
+      "sha256": "55b666dae74ef5e7653861407acfad45c1f7c4c3460b6eec0ccd1a61c3d3e9dd",
+      "size": 5479
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_execution.json",
+      "sha256": "d879a5cc5669bc5acbdacd10bdc0e45dc21ee83f10f5cc3a4ad2c53c4680847e",
+      "size": 3111
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_judge_a.json",
+      "sha256": "cd1d5b9305d419787696a6c5f880ff591be68da633deac4f48be0af9710fd35c",
+      "size": 5834
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_judge_b.json",
+      "sha256": "d2989393553c5840035a402ea507d501f271d8f4289bccf22708f4fe272e9bc3",
+      "size": 5110
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_preregistration.json",
+      "sha256": "6950e90e0ca89074a014800a2a405bda9c35f14c978c690cd407cf321cf07be6",
+      "size": 5160
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_raw_output.json",
+      "sha256": "beb213fc506f9879483ce027c4f0d14946e615522e9ab3850a56a546fcd18afb",
+      "size": 32671
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_result.json",
+      "sha256": "279c2ddbc90ebc5396da82b6c08aeb00dc88c6a19bca93337012c387d423985f",
+      "size": 6485
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v5_task_message.txt",
+      "sha256": "d6ec5b575f0e2ab73ba1f22c938b0bd5b36a8c3e9ee2d4285ade25c94f58c9c1",
+      "size": 1888
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v6_context_manifest.json",
+      "sha256": "e4973a33bf85522cd8d842cc51ca8910c3754fa3ed17318585171ae409fd428e",
+      "size": 5479
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v6_execution.json",
+      "sha256": "1d8c6dcf70a5a0f21938741a0d568a26438ada091fc97d28c063643a1632da93",
+      "size": 709
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v6_preregistration.json",
+      "sha256": "65dd56d1fe16053bac23d50f971c5fbb43f9112877efc6181e9f8199ef71619a",
+      "size": 5205
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v6_raw_output.json",
+      "sha256": "c3d340ff59fa0b6e14ed662cf968fa57526fdfc5f671328d5871958efc01844d",
+      "size": 5295
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v6_task_message.txt",
+      "sha256": "bf46c184599383cb2738e7939f561ecd4c8941c35841a942d6eeb75915b5a692",
+      "size": 1939
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v7_context_manifest.json",
+      "sha256": "3bde9a9b795a295b3a04a348ca75470ad541e42d2ea2a7a9f3ff6859ebaf57a3",
+      "size": 5479
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v7_execution.json",
+      "sha256": "2ea6da1df6c28c44b97a08ab1f389d676b9d869dddd8a8551dd5ac331525438e",
+      "size": 614
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v7_preregistration.json",
+      "sha256": "573142ac3d1f9ad8419c6cf3325d1d117484dfd2abf5268e8a521fcdf50fd94f",
+      "size": 5448
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v7_task_message.txt",
+      "sha256": "bf46c184599383cb2738e7939f561ecd4c8941c35841a942d6eeb75915b5a692",
+      "size": 1939
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v8_context_manifest.json",
+      "sha256": "197752995a13b18a318ab63002d765bc43a76bfb3863ef5f0d04598ab5079b31",
+      "size": 5479
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v8_execution.json",
+      "sha256": "55e1b1cac717bcd57fdb1257104e0a0d8c05c08fd4baaae61b5e13454fb2414f",
+      "size": 624
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v8_preregistration.json",
+      "sha256": "00de5a42bed4d0886366974fcd6aae35f04b14bd2ed542557508c0b299f62213",
+      "size": 5538
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v8_task_message.txt",
+      "sha256": "8cb577c79163ba8879faadcdbe602a9c78dd8a49f430ba413f4c49b4eee53ad7",
+      "size": 2271
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v9_context_manifest.json",
+      "sha256": "ae65d60300cf237aabff9d2ee939c76df9c958bcefc12c38500a39098037f9c8",
+      "size": 5479
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v9_execution.json",
+      "sha256": "a6a5ff27e91c6a26ada067876053df9f1856a48b825667132a45e533bfcb7758",
+      "size": 3452
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v9_preregistration.json",
+      "sha256": "18c4bfbcff304b5fd72af2d90b537d1f58ffefe2454b69f96bdc1d0229ebe4d1",
+      "size": 5787
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v9_raw_output.json",
+      "sha256": "191738d308c3eb231fea2287a5c6c743f43e814f431ea871c5f13cc4b9646bb2",
+      "size": 24329
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/remediation_v9_task_message.txt",
+      "sha256": "8cb577c79163ba8879faadcdbe602a9c78dd8a49f430ba413f4c49b4eee53ad7",
+      "size": 2271
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/result.json",
+      "sha256": "1f7d755baf7da64b2c9d326ec74b0624a5136829bc55f7ba400d4008d928be77",
+      "size": 4925
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trace.json",
+      "sha256": "62649cd856bc11441f9d47b583a109f8557f1a2066d79366bcee31f2bf900497",
+      "size": 8734
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trial_02_context_manifest.json",
+      "sha256": "157f906b51faf48c13d89caa15999acd7299712e2ed88965dcde7c5f0d5dd362",
+      "size": 5449
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trial_02_judge_a.json",
+      "sha256": "61c2636cd7cfdccc3c85bceddb9a7fad70f2c5b637cd8b4f3dd263b522eefe6f",
+      "size": 6150
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trial_02_judge_b.json",
+      "sha256": "c8a87b680ea3953904c0c5e0ca77a300149ed73bbdbff95eab3ea9e17ad637f9",
+      "size": 7075
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trial_02_preregistration.json",
+      "sha256": "fce868e65264be429adeb30a2bb8dde06761f4992cd81a03a44b7d1e9593bfe9",
+      "size": 3508
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trial_02_raw_output.md",
+      "sha256": "ca5f4c3c8b2b2a83705be27ebd7c6f045c14e7e370fe41019f934d0312181904",
+      "size": 27281
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trial_02_result.json",
+      "sha256": "29feea35e49bc5a69fc0181cb3e6353b6f6ff249c94de9c4d603e7f000d63773",
+      "size": 3704
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/forward_test/trial_02_trace.json",
+      "sha256": "73e5b67461c268ddba4ae3b350ac43fd3808cd9de2beb52e67949c6b2140794f",
+      "size": 11227
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/golden_cases.json",
+      "sha256": "7de22b669a29cd3a2d2ed74334a95fcef2afcac950e8a4868a0e8670076f84a3",
+      "size": 1053
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/historical_e2e/decision.json",
+      "sha256": "0b07b67ee1e818a1dfdd1d18cc2d3676d7ccc85668c8a7ed6e2e570da7b95e29",
+      "size": 14798
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/historical_e2e/evidence.json",
+      "sha256": "e7570a08809690b476282e554fb3b508fc12e2b6e319aba70b00b26b2b456967",
+      "size": 17172
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/historical_e2e/frozen_input.json",
+      "sha256": "56b980b2c8a24bf9f47238d515af73b68b34160d87c8c444b1a645074339a12f",
+      "size": 2014
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/historical_e2e/memo.md",
+      "sha256": "d3dc6721f9224b9cb948bc40b149cee28448a722233a8f0f4331e288676bb015",
+      "size": 11171
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/historical_e2e/opportunity.json",
+      "sha256": "c47186b0fe518c4511a425d08d48c7f8271679be8ccc4184f51e037f1669f041",
+      "size": 5231
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/historical_e2e/portfolio.json",
+      "sha256": "5a9b24ac69873e6186c6adfa6338b171c1ee0620fcd7f2616861d228573d4810",
+      "size": 2047
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/historical_e2e/rubric.json",
+      "sha256": "6119ed2bf566891faed20de9e5bf6eb29e4a5fe6f02ef7c5d7cb675cb08b14fb",
+      "size": 3423
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/presentation_oracles.json",
+      "sha256": "b8cd7e3d82518c17f3b1d6811217898e74d8f1a5f3884234a3ac1a74b59bfa29",
+      "size": 59897
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/prompts.csv",
+      "sha256": "44eafefa5ce4d2f3ef56c596e094d294952ccd12bccc4d7ba52795d34e0d841a",
+      "size": 2302
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/rubric.md",
+      "sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04",
+      "size": 1594
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/rubric_v2.md",
+      "sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154",
+      "size": 1926
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/security_eval_results.json",
+      "sha256": "91c1879d667e179778d209c2fb0c81d96970ce125c88a365f70cdbe56e34c74d",
+      "size": 32551
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/security_oracles.csv",
+      "sha256": "c30634b92538bd0e59323d59200d71899dd57abe9a69cef9b35617dc36a8fc5c",
+      "size": 2601
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/security_prompts.csv",
+      "sha256": "826283297ff5356aa7b6dd2fa396079801102abb60950ffe8ffc603f3ce30806",
+      "size": 1973
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/evals/trigger_eval_results.json",
+      "sha256": "abdd5890cea13ba9ee7086c4eb5cff8de64d5d24dd5bdfe9f5db7075a6b78fd3",
+      "size": 93746
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/examples/illustrative_portfolio.json",
+      "sha256": "f5f8e506a19640a687366bf1f8be664fd452b4e6703b1db44124f96e69a03cb2",
+      "size": 1799
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/examples/illustrative_portfolio_analysis.json",
+      "sha256": "50521f85b2b3d7d6f3c74b7044d4cfd4730ed20fffe38f3e0c80e3dc2979722d",
+      "size": 2074
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/examples/illustrative_transformer_equipment.json",
+      "sha256": "26274420e642603596158cbd36b7e39c76bf4850e7353b585580aaadc58ab17d",
+      "size": 3550
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/examples/illustrative_transformer_equipment_score.md",
+      "sha256": "55f378f103a05746a3b02de65febff48d3d8ac7f68c7f94c90cd74373cf07e26",
+      "size": 926
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/backtest_and_evals.md",
+      "sha256": "8f090737636a2272386ab44aacc49e1380b2c8f1ae9599a85e7ac82465fe126b",
+      "size": 4176
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/failure_modes.md",
+      "sha256": "faefd4b704d56fe9b0a46925490368e5466a395b77c0ad706c68467523562dd3",
+      "size": 3319
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/integration_contract.md",
+      "sha256": "d5e32fd14f955ba15615375cc4ed48aa5b0077602ceed031d7df91e357b1ccf9",
+      "size": 4023
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/methodology.md",
+      "sha256": "603bd9db6cabffbdeacbcf58490ec0fc8d2fefb323f720f952cc78723516b2a7",
+      "size": 11692
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/output_contract.md",
+      "sha256": "13847066d39ce0163f1263e43539ceeb4cac885c11ad865eea1fbba6aefcdca4",
+      "size": 5739
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/portfolio_risk.md",
+      "sha256": "e06fe9293f557470a7e394850404583e2809ddf1cc31809dd301b053e37b3c21",
+      "size": 3943
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/research_workflow.md",
+      "sha256": "06a2adbb9f49a27a46e89b36da2e5db1b052fad44f44cc60cf6400e700b736c3",
+      "size": 7452
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/scoring_model.md",
+      "sha256": "2cd87d5e9e779a0b593a486a77d2cc7ba1aec576bbf1d613589524820066e572",
+      "size": 5662
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/serenity_audit.md",
+      "sha256": "4335c3fda13ca569581e294d66d24beba0a7313ca50784b118bebb6d6b8b6729",
+      "size": 9452
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/source_catalog.md",
+      "sha256": "eb853d306d70455c1dd496b445ff9f0033ff347d661700e0dae563efea2fee7e",
+      "size": 2866
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/source_policy.md",
+      "sha256": "03b296596a3821cedd3ca98d8950a8585c651d572d0806c0c7d8c8198bb17c47",
+      "size": 4905
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/schemas/evidence.schema.json",
+      "sha256": "1815e20b3698b4f7842ddc2fe292a2aec497a283270970b8e4fd193c43c0e2eb",
+      "size": 2254
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/schemas/opportunity.schema.json",
+      "sha256": "17b92617742fc905c546f77cb9c791588ee97613459ce881c95b7b7ca06c419a",
+      "size": 5785
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/schemas/portfolio.schema.json",
+      "sha256": "3b746457ea50bb3f7ea6fc46081378d87c1c689cc472df37d1a622cfea74f4b5",
+      "size": 2092
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/analyze_portfolio_clusters.py",
+      "sha256": "7feb2a42a9e0c1ea44cdf25e59feb33705c4d01f16842adb1d8b4cd39328b6c7",
+      "size": 9126
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/new_research_case.py",
+      "sha256": "93e965c2cd028c7a5f72605a7510870f0423ef3d242525a8a323a89a47ad059a",
+      "size": 5298
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/prepare_forward_output_v14.py",
+      "sha256": "56e085f5df63185d19583d39bde6a4e2456fb1e37547e95a9fa3050590e118cd",
+      "size": 6824
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/prepare_forward_output_v16.py",
+      "sha256": "b241e8839b603eb27844cb76b839978049aa5f45a023f20a75e1e9ecc161cc1b",
+      "size": 7070
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/prepare_forward_output_v18.py",
+      "sha256": "17cb810a7526053a1183892d99cd97fc91e1b2a9b68eb43541b70674fdc2a238",
+      "size": 7009
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/prepare_forward_output_v19.py",
+      "sha256": "e88e37920a87eb2e63e055b49119e71e6e3c08e6399957898049d822845511b9",
+      "size": 1006
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/presentation_contract.py",
+      "sha256": "0ddae026b0512073c34ad48d017a744ab8d5a6d4cf1f64eaca13c5f00c98ccf4",
+      "size": 57763
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/score_opportunity.py",
+      "sha256": "3d900bc0f97379d65617859487b2e2594adacd36eaf38b7016ea35c1716e74d5",
+      "size": 25247
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/validate_current_eval_binding.py",
+      "sha256": "95c1bf50ee06c575a0975ff27b3c7f90b51664fc6a2f3623c22539d2a42dc61f",
+      "size": 19174
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/validate_evidence.py",
+      "sha256": "5a7b9193a331f93b77710d9b6413c2be11daa9cff663143c57e3cf87804f28fa",
+      "size": 8693
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/validate_forward_test.py",
+      "sha256": "fb6341b2d966bc26e5d43443545a40de64963c79d5f47cc910f1647141664f9f",
+      "size": 243502
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/validate_historical_e2e.py",
+      "sha256": "6c63d59cfd67eac304905e907580e1b0869c806fef3a9bffa2b0f3d814088c0e",
+      "size": 32652
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/validate_security_evals.py",
+      "sha256": "05aee925388ea1edbd705457696a7fd2166ebae1e7c615339e1aa2054edfcf92",
+      "size": 46748
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/validate_skill.py",
+      "sha256": "b4927709aa267e3080b0cb475f1d0a15f6980a095812091335f19d4ae8625c8e",
+      "size": 3483
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/scripts/validate_trigger_evals.py",
+      "sha256": "d02325fa23f88cd34d563737898d05e8bdab64e59828aa175515e7c5aa496c5f",
+      "size": 31753
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/templates/candidate_card.md",
+      "sha256": "3c255931bea5311d28e0a540a8e03a5097dad0ca84c115c4682a91fa37e0dca4",
+      "size": 1208
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/templates/evidence_ledger.csv",
+      "sha256": "3760dc5841f2fb237c2d3694e73bf54b96f36b92754929474ad6161877d640ae",
+      "size": 236
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/templates/investment_memo.md",
+      "sha256": "f2231593334abf2bd090766b70364e5ea16da5a5137ee084822ba6aa1cfb5d69",
+      "size": 954
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/templates/monitor_plan.csv",
+      "sha256": "148895d0a04556ef9bf9b2a211eb0cc251ae6c7a16f46fe9a79dc0e59dbd8b5e",
+      "size": 761
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/templates/research_config.json",
+      "sha256": "fe9017bb6b5f69277f6b3cdd4ad2fd98bf48dfec8dee1db53a44acb51822717b",
+      "size": 600
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/templates/theme_map.md",
+      "sha256": "f7e2f08d64a33e9982985d4908eac8d9c376c6f1e40d6f889671013d4c56197c",
+      "size": 1104
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/templates/thesis_ledger.csv",
+      "sha256": "2061ea0e872658f10837ecd879602b05b0fbb8c804bee9f3070a544cf04ef949",
+      "size": 307
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_forward_test.py",
+      "sha256": "31a0597134320bc355e39d895b6de069755ce127b93776a74a890241b3a8c8b7",
+      "size": 41503
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_historical_e2e.py",
+      "sha256": "9f3d73def19f6bcfa400f78de454be2632fa845d2b1f269a9e06d09accd67597",
+      "size": 20305
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_portfolio_clusters.py",
+      "sha256": "997797e3fd6f2a6dff2e46e4155d5780b6d689a341e624726305510d960e4d3a",
+      "size": 3350
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_schema_contracts.py",
+      "sha256": "b0c84ddce2088b87f32af0cb4033f21f33b8ec5dbcbb871459b0557451d4b600",
+      "size": 25810
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_score_opportunity.py",
+      "sha256": "91a1bc56eb1be868fe2337d95ff8308787518f16b5f4d5806358a9eca7092462",
+      "size": 7044
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_security_evals.py",
+      "sha256": "6ae8937646fe6e78d6472e2b18a520276dae9f23b3d8263eaf5b8bb552bc3b3e",
+      "size": 8266
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_trigger_evals.py",
+      "sha256": "349f739aa9f9093758ba6ddfc3afc642e62e73f05f736f2357f75dd01d21d37b",
+      "size": 5189
+    },
+    {
+      "path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/tests/test_validate_evidence.py",
+      "sha256": "30e084be1e939723904feb4fd5100a72d5733169b26f52cf9c9f6c1348f970a8",
+      "size": 3787
+    },
+    {
+      "path": "Stock_Skill/docs/governance/flow.yaml",
+      "sha256": "240b6e5c3ee0904fecf36bfca510833620695fcf6286ce02645d8cf9526c4760",
+      "size": 1663
+    },
+    {
+      "path": "Stock_Skill/docs/governance/project.yaml",
+      "sha256": "09ca76f3e1c59134148d5fb19fe3520e3bd3de148ff1a4ed1d9c67d0d413bdc3",
+      "size": 1695
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/AGENTS.md",
+      "sha256": "d5bb7bce9e3f3b70a9ab9b39e234a94fd1ad04adc70a9871b0a6e34575963bc4",
+      "size": 450
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/BACKUP_MANIFEST.sha256",
+      "sha256": "c55f27857f898f97874f0812394fa6e3437575e7745a6cc5259570f0a63c1f9f",
+      "size": 6310
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/README.md",
+      "sha256": "a1db039dc02dcffef7178f9368b9464a8c6c7933e65604ed7893de05bfe5930b",
+      "size": 465
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/releases/SHA256SUMS",
+      "sha256": "1d8b9af3232514a9544d2f4f56fb7733da46ebb23ce1ee826d6d130a8b5c9bdc",
+      "size": 104
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/MANIFEST.sha256",
+      "sha256": "09b0ebdda07de6fa1834dcda3bc4985245c7163bc5e0d7850541c8adcdca080f",
+      "size": 5371
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/MANIFEST.json",
+      "sha256": "ac8e4a62f450902718e1c6aaa4dd3d7d9411af7a7f5de45ebd642bf458585dfb",
+      "size": 6403
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/NOTICE.md",
+      "sha256": "164dec135929437359d5b2b1f45e2f5eece14b140d408315a28c5937d5c4de82",
+      "size": 598
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/SHA256SUMS.txt",
+      "sha256": "1ed9ce5e544239d57fece3f9f78a6b7396c012ffe8cf03ab69fd830f81403916",
+      "size": 3809
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/SKILL.md",
+      "sha256": "d75b8fc060c34bacf4447660347b9cc21e0da917064ace7a29236b5f1a5ab0fe",
+      "size": 10369
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/agents/openai.yaml",
+      "sha256": "d53da1e00d7b5e3d12834ea8f0f94f689bdac42fbcb9e8b01f6c090ae7b3022d",
+      "size": 276
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/REPORT.md",
+      "sha256": "e1a61e964d176d8120738a44043d918e80adea554f183ade2457a9103307d2b8",
+      "size": 2989
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/STATUS_FRAGMENT.json",
+      "sha256": "bf8635971e1bf3c1cdc077e89d9a368e68525bfe8f1ab2c8f1c96b6c43badc19",
+      "size": 886
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/event_graph.mmd",
+      "sha256": "2a669a511ccdd5837dbbafc2b92273b96946d150d83fef192cd034207981025f",
+      "size": 187
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/event_timeline.mmd",
+      "sha256": "c1126619fdc34d5633e56d20892588e61f0f7d805d7fc8dc430ba5501557f29a",
+      "size": 180
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/input_bundle.json",
+      "sha256": "a334bb1f260573d15bbd16812a8ea7b075982d86c30d473c41799e42013cc1db",
+      "size": 7262
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/render_manifest.json",
+      "sha256": "407a446b8997b251125d74a90b8a4c55fb765d751bdd80f7f932b9004019176a",
+      "size": 978
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/scenario_fan.svg",
+      "sha256": "4bdc85ec1f75e75a2e39e1c929e078b5536168785a42647987b9df70ebfc1e5b",
+      "size": 5209
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/supply_waterfall.svg",
+      "sha256": "13e40a85769bc9f506dbcc9c2545c54dd31eea2eafdee11163cd89a3b65fd327",
+      "size": 2425
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/examples/synthetic_demo/synthetic_evidence.txt",
+      "sha256": "033f668c1f72156fae5600c6b0001b8342a43d2f38df6137336e593e2d640258",
+      "size": 344
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/invalid/action_without_context.json",
+      "sha256": "6b17428c42e50f405f97fa2bd4d3f58f06f52ab025288b721d1bc6106cc48e4c",
+      "size": 7114
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/invalid/event_reference.json",
+      "sha256": "29f2494f7fd99d31d2bfc8911accee22bf500d9d1646d8d2014c7cd5f28dd28b",
+      "size": 7262
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/invalid/fact_without_evidence.json",
+      "sha256": "f233a03488e81361b7b499edd68c15430ad8f0f1af53a3db95a2edccd21f179d",
+      "size": 7238
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/invalid/market_gate.json",
+      "sha256": "35a374e0fb0d10fc2e952b0c20623c8845e17fcba8b7610b2caaf51460f5a0a8",
+      "size": 7263
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/invalid/point_in_time_leak.json",
+      "sha256": "9542a9f1b22cea7865787d68aed1258845a447e2806a9baeee69d6707fb5097e",
+      "size": 7262
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/invalid/probability_sum.json",
+      "sha256": "b9d87f33f4297bd7471cf4fcb72e3aabccc80e75bfdf57d71c938551d0dc1460",
+      "size": 7261
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/invalid/synthetic_evidence.txt",
+      "sha256": "033f668c1f72156fae5600c6b0001b8342a43d2f38df6137336e593e2d640258",
+      "size": 344
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/synthetic_evidence.txt",
+      "sha256": "033f668c1f72156fae5600c6b0001b8342a43d2f38df6137336e593e2d640258",
+      "size": 344
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/valid_bundle_synthetic.json",
+      "sha256": "a334bb1f260573d15bbd16812a8ea7b075982d86c30d473c41799e42013cc1db",
+      "size": 7262
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/valid_request_asx.json",
+      "sha256": "92016ce5f69bb7d7f89bccebf06d2059f9bd12e2d2444e3f16c78865d11cabed",
+      "size": 361
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/valid_request_global.json",
+      "sha256": "f2717566acdfe0d98a68d5ddd1bc052c3c10c44b69e7b844dbbbcbac32b6e5ca",
+      "size": 361
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/fixtures/valid_request_us.json",
+      "sha256": "5f70b6b134df23f7f7a9c7aff9ad9aec4f1288ac67abba0b16928b5d3eb5269c",
+      "size": 515
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/contract.md",
+      "sha256": "69fbf3824bea44d34ba510810409daf9e017ae3b51c9cc49157e4af87d224c84",
+      "size": 2238
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/event_ontology.md",
+      "sha256": "02612c691717cf60af1c557f8379a9937b2b9e6b60dac31e36e78ce875b40676",
+      "size": 2708
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/evidence_time_policy.md",
+      "sha256": "ecd22ede4118ff451ac58c30a10feea3d25be04304d2ebee0fd35b56576fc4d4",
+      "size": 1982
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/forecast_action_policy.md",
+      "sha256": "1fc8539b700489fcd7a29a4d025aceba09f481581dfffb32cb37886977e21b9b",
+      "size": 2223
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/host_integration.md",
+      "sha256": "88f2f669a88a0a82801b8c432d86608d390e57fc210c983bb808324351a052e1",
+      "size": 2268
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/market_capability_registry.md",
+      "sha256": "857e23cad38f545f145f4633928e10a2418de74e41340d0ed0cccac03983b630",
+      "size": 2958
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/safety_limits.md",
+      "sha256": "ae0774e5a17218e235b60bd4fb366e6b87de116e0c08ef5e9995c270c994c124",
+      "size": 2003
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/references/visualization_integration.md",
+      "sha256": "bbd3a628b2102808e946cedc9af05e3e010b29cfada529895a958101ecb53f7f",
+      "size": 1743
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/schemas/analysis_bundle.schema.json",
+      "sha256": "fc4df93a93d645e8d3aadd1e449a201599267b0aa206f477e819e39712d505f6",
+      "size": 1510
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/schemas/market_capabilities.schema.json",
+      "sha256": "d2afdb5ad629b33f9d1ba4643b3a908f3acacbcad1f55baae8d25765f6fe07e1",
+      "size": 855
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/schemas/request.schema.json",
+      "sha256": "3e4eead3accbe6c3ae192fc4d7e45a4fb61e1a86deb1d8e4b3b8ddb61756d78b",
+      "size": 1675
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/scripts/equity_event_atlas.py",
+      "sha256": "476d9cbd25f10c2bf880712daee11e811852ec2fde9464919053b22240a5c8b6",
+      "size": 51253
+    },
+    {
+      "path": "Stock_Skill/equity-event-atlas/task-pack/skill_draft/equity-event-atlas/tests/test_equity_event_atlas.py",
+      "sha256": "42f171846449c17991b3e0cdc76567a183cb628df769e1d9ae00dc630484b166",
+      "size": 4501
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/AGENTS.md",
+      "sha256": "2e09a7e95b381dbbf21159c326d05925d359a919a37553200443f4829ffa1dcb",
+      "size": 1552
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/BACKUP_MANIFEST.sha256",
+      "sha256": "d7c5607a23f4d52c86cb4d1091461fd7fffa5a63bbe0b5f247fffd62ab8bfe1e",
+      "size": 11521
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/CHANGELOG.md",
+      "sha256": "33b83a1921a3133f455472c0d029aaa62e3400abd0e17419058e04d15dfd4e36",
+      "size": 2451
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/FUTURE_ROADMAP.md",
+      "sha256": "6e2753bb6d7ede6906a0086d8893d1febb9443a137da4d580b7aa2aacb92c62c",
+      "size": 737
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/LICENSE_AND_ATTRIBUTION.md",
+      "sha256": "b7451a56767f30c9c7631ba490363777d5ae6a74b634ba4896268fe2b7e179ac",
+      "size": 1499
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/OPERATOR_GUIDE.md",
+      "sha256": "93c93ceb680e64cbcd6e177df67422fa73dc184acd47c56749f2c44fd58bc661",
+      "size": 2359
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/README.md",
+      "sha256": "6a90f3adab283fb41686ee3aafb16ca6fa8ea1fe268e318ffc25cffbf86bf0ab",
+      "size": 2444
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/ROADMAP.md",
+      "sha256": "766c5c05f8cf1cc107cb258b00b458b8fa67f394172f3f14893bf7bb8d045461",
+      "size": 2388
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/SOURCE_INVENTORY.md",
+      "sha256": "0a1e72758000adeeac66d76246613087a97fc911617e8290ede9c7f159d75d26",
+      "size": 3089
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/SYSTEM_CARD.md",
+      "sha256": "be510a04993cafe167e06ba07e8ce0af81ae05b8ab2f0b54f774f9a5454feb03",
+      "size": 3273
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/THIRD_PARTY_DECISIONS.md",
+      "sha256": "a4e32ae7002074afdda0930ca3e154dd94017144f08688fd870dc9287a958cec",
+      "size": 7313
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/releases/SHA256SUMS",
+      "sha256": "f18e7fa879509fa3c6ac8c1fea56aecda2a359d1221fbf6e9118aa8320156d34",
+      "size": 125
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/MANIFEST.sha256",
+      "sha256": "2da77d45d2996d757736f3b1272fba6b450af472c0f264be12786538f6b5d4ac",
+      "size": 9530
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/governance/00_CANONICAL_FACTS.md",
+      "sha256": "7f55efcba71841d8e3aeab5271421796f455a9eb3b2c5d4e66239320336ad5cd",
+      "size": 2091
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/governance/01_WORKING_BACKWARDS_PRFAQ.md",
+      "sha256": "b11d0360416446f781f72e330e6479dbeec55982288a858fad7215d4df25adad",
+      "size": 1330
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/governance/02_PRODUCT_REQUIREMENTS.md",
+      "sha256": "5ab9fbe68f9535b36509a084455c7c601d7a670ecfbbe66dde804a538ad05a56",
+      "size": 2186
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/governance/03_TECHNICAL_DESIGN.md",
+      "sha256": "71ec7568363ebaa5fac044a42e122ea5f81c7d72fbeb8b2e69486b2575ddac95",
+      "size": 2007
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/governance/04_ACCEPTANCE_CONTRACT.md",
+      "sha256": "3ce8e2720e715a29c0cff414e4c93574e86b81084703cdc633f1f1af5686e8ad",
+      "size": 2423
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/governance/05_TASK_DAG.md",
+      "sha256": "68292615a194c3a4fd21800bcb67437d2da11442eb82fcbec21af4b672b8e1a9",
+      "size": 1246
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/governance/06_RELEASE_OPERATIONS.md",
+      "sha256": "9f785e1e4f7c413c767c255597143fb073fa1bc74964d206c4149d1cfd5a20f0",
+      "size": 1675
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/machine/acceptance_contract.json",
+      "sha256": "b13f9dda90ce2d6cd84aae361bb93c99b487d5ae2bafe9ef3a9a22e8279bc308",
+      "size": 4804
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/machine/canonical_facts.json",
+      "sha256": "e4aa0bae3ac3adc0014b6cecd357c116df842a32b16d0636408923ffb14acbac",
+      "size": 4218
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/machine/skill_applicability.json",
+      "sha256": "ae6c2f033403afd75cd9ce924a09ea0fc1add3cbe1d28cf5b6cfd4b9a7a13fdf",
+      "size": 14656
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/machine/task_dag.json",
+      "sha256": "fbb8ebdc3b5a380609815f2fe0064e60735c8be09745d414aabd70cf5ebe4122",
+      "size": 7400
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/machine/traceability.json",
+      "sha256": "cdd0b46f873fa458642eb74d97e7c959ffa132c676e1c6831264798fca61b1de",
+      "size": 11512
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/CHANGELOG.md",
+      "sha256": "33b83a1921a3133f455472c0d029aaa62e3400abd0e17419058e04d15dfd4e36",
+      "size": 2451
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/FUTURE_ROADMAP.md",
+      "sha256": "6e2753bb6d7ede6906a0086d8893d1febb9443a137da4d580b7aa2aacb92c62c",
+      "size": 737
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/LICENSE_AND_ATTRIBUTION.md",
+      "sha256": "b7451a56767f30c9c7631ba490363777d5ae6a74b634ba4896268fe2b7e179ac",
+      "size": 1499
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/README.md",
+      "sha256": "6a90f3adab283fb41686ee3aafb16ca6fa8ea1fe268e318ffc25cffbf86bf0ab",
+      "size": 2444
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/SKILL.md",
+      "sha256": "9c01313d96d6b4b46728cf09c997454ecc116978e7bcc58b6c5ac2d0e883dc89",
+      "size": 7481
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/SOURCE_INVENTORY.md",
+      "sha256": "0a1e72758000adeeac66d76246613087a97fc911617e8290ede9c7f159d75d26",
+      "size": 3089
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/agents/openai.yaml",
+      "sha256": "b9108151c1fc60be848db54e4a060e9873e3d33f2a0c22aa43dfd4702f905d5d",
+      "size": 316
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/build_fixtures.py",
+      "sha256": "65769cf60d8cdd999c6ae759bed3e57594e8b973c99a59bce8470213787c46aa",
+      "size": 18020
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/docs/HOST_INTEGRATION.md",
+      "sha256": "11d0a21308b3bc60c26520fbbfde0ed25f99a9d6ba55283ee149b1b92e852505",
+      "size": 5112
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/docs/SYSTEM_CARD.md",
+      "sha256": "be510a04993cafe167e06ba07e8ce0af81ae05b8ab2f0b54f774f9a5454feb03",
+      "size": 3273
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/docs/THIRD_PARTY_P80.md",
+      "sha256": "1e9eb82cfe082068a42f4356ffdd8148704297f889affbd2e613a6cc68e85463",
+      "size": 1797
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/__init__.py",
+      "sha256": "f44673cda0df301bc9f027ca83c998a699a41a8c0db995c4544383e7f0fb9d4a",
+      "size": 4084
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "size": 48
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/canonical.py",
+      "sha256": "eb0afd78425dd7d18c1bff27c2c26c6d864e6617a583250caef8bda21dce57e9",
+      "size": 7606
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/capacity.py",
+      "sha256": "4868717983f266802006bbe4295953712a9e09409df17d2cbee8aa69b2915f09",
+      "size": 5785
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/cli.py",
+      "sha256": "0706b3bd6f6c611ddbb325af4142e9b3f28d0ef5aec0e6fea97b72734adfb886",
+      "size": 7966
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/dataset.py",
+      "sha256": "cc4e16ba0e27769010b2dc3bcfa4ac343eacf68dbdc6a619a084aa33be7c3f12",
+      "size": 12687
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/engine.py",
+      "sha256": "ed2668d6989e37810c1df963506dcc23e85f4076eece9b5a44d813f7cf2f6e6c",
+      "size": 71325
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/errors.py",
+      "sha256": "e6055acf852a802dc8ad7af530d37a740007d96c34346c33da1336536868ecee",
+      "size": 231
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/evidence.py",
+      "sha256": "992c862ac6501fb2291cf4148a15ec4d556b0bf57fa86a77dcd9b87f2ac9f6a2",
+      "size": 18765
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/host.py",
+      "sha256": "455e8f49916dd4e5bbf1f023a2500663dc9d9460f8f7608c33cbcdc652f34681",
+      "size": 3412
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/legacy_evidence.py",
+      "sha256": "af851348dc1c94947b92f0fb331dfb07041e307f0a55dbbb8421c4eab2bfedeb",
+      "size": 8545
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/lifecycle.py",
+      "sha256": "7e01d7f42270eb02242579f67d4682b53e7c2737abcf8fdb405d9e33ff285797",
+      "size": 33115
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/portability.py",
+      "sha256": "79dd3da7859992aa456709f4f2f51140bcb4f1fa393426f1b9f48ab75c973126",
+      "size": 7410
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/research.py",
+      "sha256": "51eaf191da3b477625d2a6a6b46a4f35396e202630155c64d182986c4ee9ae84",
+      "size": 10711
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/runtime_audit.py",
+      "sha256": "9478bb74959e5893ff4d97ead56954c2dc5562595a660434c11676725d86dbfc",
+      "size": 11212
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/status_adapter.py",
+      "sha256": "a81154440fc9e79a3906a7ac6ad9c2715bc59d9798b0ff0f501235601e389839",
+      "size": 30643
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/suite.py",
+      "sha256": "4c24b2380a0f8f63e61ec7f4a476764c2192677e9220b202ba82bb5afca1cb58",
+      "size": 9870
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/equity_foresight_signal/training.py",
+      "sha256": "988ffbdb2f8f92f7bfeb911b910c6b65ce875e8e831e13aed6d925556961cb30",
+      "size": 17787
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/evidence/legacy_spy_baseline_receipt.json",
+      "sha256": "6fdb2ef59dfa11a365f1dce67a7ae95f98f300f8117609d2f0a21b005b717942",
+      "size": 2807
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/fixtures/bundle.json",
+      "sha256": "6fc8ec4b704c88e8aafb1b1fed64c8dd974cf88b00dcae64a015c365c317245b",
+      "size": 12823
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/fixtures/golden_vector.json",
+      "sha256": "afce4b60b3a31749060c537728de0b8715604e86f0d4ff10f617e2902d8dd011",
+      "size": 1279
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/fixtures/pit_dataset.json",
+      "sha256": "c3a44d14d660f6fd4a7542a51f038c6b20ca39d2cf005f836ac6735aa3a54da4",
+      "size": 8183
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/fixtures/request.json",
+      "sha256": "c8b06e3fe19881d5dc8883d7a13cd4e4d13dea542d5712d4dfdbe45a5d186714",
+      "size": 2939
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/fixtures/training_config.json",
+      "sha256": "8244760718fb39817a7b6c5681a0e7f6cd73665e6d1a68c1fc70bb29aec919bf",
+      "size": 457
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/fixtures/trust_context_shadow.json",
+      "sha256": "7ab8d42c8081703022efa2f2e857d5c41ce841d47f7f8aafbcb036ab9933bf40",
+      "size": 633
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_capacity.py",
+      "sha256": "82e899c94fc564cbc94ade578df81452b1f74a3dfb6e3c3ce774ad0d0ce59963",
+      "size": 3858
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_cli_operations.py",
+      "sha256": "9c3559fdfadc6077031e325b2bf391a3df892d1ef30a1419dfeda66c1528e319",
+      "size": 2615
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_dataset.py",
+      "sha256": "740f85ebd6f49a56a3b4953487cfd1332167adaf74f205454783020caab67047",
+      "size": 6056
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_engine.py",
+      "sha256": "92ba7694bf0a6b6045f6d5f826142a8e7145af7ba5440949d568ad549ab9219a",
+      "size": 92561
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_formal_runtime_verifier.py",
+      "sha256": "57bac0f8315d7b9878e0fa8a8fe1774d740e6a459b4fb230a09697362b8898cc",
+      "size": 14036
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_host.py",
+      "sha256": "8db562bfbb96b4c20e26005faf719019c96d5c0291e8cb2b411bd3b05447a1dc",
+      "size": 10259
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_kernel_isolation.py",
+      "sha256": "a6cb3f4a914a214d8e8daac4fab829b8825bf2fdbc7f53087306dad77e1484fe",
+      "size": 1599
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_legacy_evidence.py",
+      "sha256": "7cf5848c3932d8e98b2b6baac7d2cda9a900c8c82f6547b834c4a62014982872",
+      "size": 4129
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_macos_zero_footprint.py",
+      "sha256": "1ebdd0addff3261f3fd5bb5770478dd9ab837f8e33063696a2a0bf1c1d7acff7",
+      "size": 2486
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_network_namespace_isolation.py",
+      "sha256": "ef284263cf2f344471d182c27e3c3e1c63eddf005ab243877bc6920a75813e5d",
+      "size": 1041
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_portability.py",
+      "sha256": "71c6acc17466ed766fe01ed9426305bba25b634ca29e9469d4915a8b7301d801",
+      "size": 3678
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_runtime_operations.py",
+      "sha256": "ec7df9abe8a890ab5f650eb9b84ea3e6d8e5fac64ed45347241f3d3f9b7285e5",
+      "size": 11638
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tests/test_training.py",
+      "sha256": "1014b5849167051b38826dfe6b14010aec2b05f644fd469174c19549e4e9fec4",
+      "size": 7933
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/benchmark_capacity.py",
+      "sha256": "de0d8023d3eeb2824876f7dbfd67d8efe671851072bae07aaaf1bce175ad6676",
+      "size": 2431
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/context_capture.py",
+      "sha256": "c22f06711c9d04bd30419d4cbfb7b66dec62ef098566d0c92645efb2d46193d1",
+      "size": 2921
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/formal_subject.py",
+      "sha256": "037f05e0c3c1a6b6e9d7e76c6deaf9e42fccaacec1ca56ba7dde6c3c9ceb2254",
+      "size": 5857
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/import_legacy_backtest.py",
+      "sha256": "395153bc78e1c93594d059b9da93e27b0e9e86a1dd76c644a6d91e0290de6ccd",
+      "size": 1815
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/run_kernel_isolation.py",
+      "sha256": "ecadda20400e8cd3a624d953cda1377bbcbd80cccc979cb72e80c0087782f9c1",
+      "size": 9074
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/run_network_namespace_isolation.py",
+      "sha256": "c27547f9fdc19d9e4b52ebf85f75763619c6e889639d57067cd591ec0bf3a1a2",
+      "size": 6189
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/run_portability_matrix.py",
+      "sha256": "ed54aea15905db352dc6d7c2febd64443fb2afb02115f53558be6ffc61800649",
+      "size": 2865
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/run_release_oracles.py",
+      "sha256": "c9cbaffa125d346b5a7bc435bdfc7a5eb854fc54d8eb54d546412f05069a0dd9",
+      "size": 24951
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/seal_snapshot.py",
+      "sha256": "ea3f9c633699194b11cc530074255612922a3be3f890dd00151f90089d661661",
+      "size": 11831
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/verify_formal_runtime.py",
+      "sha256": "6a0891da69db498249bb5b9dc9bc5e9070371a5742a6229c55ccdf600b7bd855",
+      "size": 25856
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/verify_macos_zero_footprint.py",
+      "sha256": "4141d9890b742c3795dbd5f2b1a78315c8b44d609f804d9c6bfcedc20461b635",
+      "size": 12907
+    },
+    {
+      "path": "Stock_Skill/equity-foresight-signal-skill/task-pack/skill_draft/equity-foresight-signal/tools/verify_target_entry.py",
+      "sha256": "edf39d46a52321ce99374224bf1e7204cbacc90d0b1c6c4c2c5c8237bbce0463",
+      "size": 6415
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/AGENTS.md",
+      "sha256": "8e044ec752b300a041ca0941f661cb3786683ce457b96dd07de5777e9fedab17",
+      "size": 506
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/BACKUP_MANIFEST.sha256",
+      "sha256": "9af2e07251a7421ac3d09f40d11d5fe0d581f40e25e6342d733965b4de926e16",
+      "size": 5158
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/README.md",
+      "sha256": "9b76169bea201c894d321cd2c84a15d97c9f167bfec779ae99be2efdf9604d5d",
+      "size": 487
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/releases/SHA256SUMS",
+      "sha256": "7a74e56efdca0a6774eca351293e979cfa876e80912665854df437ab0a7155c3",
+      "size": 114
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/MANIFEST.sha256",
+      "sha256": "875f2331f70f1729d4555132bd976c28077705b85fd4746b870be55658b5c5ae",
+      "size": 4289
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/VERSION",
+      "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "size": 8
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/.gitignore",
+      "sha256": "08447dfad450b67abe2bf53bb806d229b9bc0ebedf21ea2458c9a0474ff228f4",
+      "size": 103
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/LICENSE",
+      "sha256": "a7a246cfa5c769723831ec5327d14128f2a674d4a8c1c213bfab4d2f04915e3d",
+      "size": 1067
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/README.md",
+      "sha256": "72ecd1643d6367609cf956a7d71db8241bd1e2616278d43554d312b92f3970bb",
+      "size": 2270
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/SKILL.md",
+      "sha256": "844c5cbf62a1205b0c0c14fcf45bc5a43d8058cf3c2e8d48ec6867cd81f873f1",
+      "size": 5888
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/agents/openai.yaml",
+      "sha256": "ab384a166261bb1a973d0f9417ff1185ff5d4757abb52d0a584986b309f409dc",
+      "size": 274
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/examples/config.selftest.json",
+      "sha256": "4c3adc36bbd44df86d9af9ecb65845d78a4ce515b579dc698e3bfea4c4381c4e",
+      "size": 674
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/examples/config.synthetic.json",
+      "sha256": "26ded753354bcea8bb233ce506e4d237edfeaec8ad8b42886c973a76ece49d73",
+      "size": 730
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/examples/input.synthetic.csv",
+      "sha256": "9baa0f2d1787bfb019aded82ff29a914baf59d021a7ebc5a58a40ce83ce17b0d",
+      "size": 255726
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/pyproject.toml",
+      "sha256": "4e02c0266d9f2dc4f9c0e47a22023407af536173d4a390dafb6e925e88a7fff8",
+      "size": 512
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/references/integration-contract.md",
+      "sha256": "55e9ad74204d043874f304f5ae901d59608cc7e6ac26c87c27b5bd7dfc4a17c5",
+      "size": 2636
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/references/interpretation-guardrails.md",
+      "sha256": "43aa5cf9b5c061d4bb44da3bb8ad98a85f03c1001bb38eaf6ac78861b5585224",
+      "size": 928
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/references/methodology.md",
+      "sha256": "8cdd9519bd9002711ab333802f9d701433abe6d5412557efa285a052c7bf50f8",
+      "size": 3424
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/references/provider-policy.md",
+      "sha256": "b4c59864b81f4695162dac5b9cc0b6458267961370c90a46e9988748670c7731",
+      "size": 923
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/references/source-lock.json",
+      "sha256": "1817dd9c7385ef73f203fa9af1d4258acdffcf0ccbd153ccf979e6f67380c992",
+      "size": 3124
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/references/visualization-contract.md",
+      "sha256": "6b29d715e0867083efb55b720236002875c13b264cc4abaec526732e9019484a",
+      "size": 836
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/schemas/config.schema.json",
+      "sha256": "29bf1dd93c24251a73668dba7e70164d2aa022d9c82def962ddfbb188556ac40",
+      "size": 2540
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/schemas/dataset.schema.json",
+      "sha256": "b9ef11e66e669e5d1c0bc301b6781f354200afad6f8991c6e96f7dda17ce645e",
+      "size": 1929
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/schemas/output.schema.json",
+      "sha256": "01e766f605f35fadce5c40c5d0df21652fae7bc1eea44175bc9ef8f1ba6cb797",
+      "size": 950
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/scripts/check_syntax.py",
+      "sha256": "8deafdf5f7b03f19d06e52cc200352a19c293ffaa9346edcb17f69f881b75bc7",
+      "size": 2197
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/scripts/selftest.py",
+      "sha256": "d376ad56af02dfa4faf4e8b7ad19fb49879ce163eeb54184b4eae84eee011313",
+      "size": 242
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/__init__.py",
+      "sha256": "1d7a4944c3008e2958332566ade3eca67a0c93d9f93143262507614a018b92dd",
+      "size": 76
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/__main__.py",
+      "sha256": "307299fda7b77d22c64cb51430ec75e5f59d78e9c948786afb3b2544fe45e4b7",
+      "size": 79
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/analysis.py",
+      "sha256": "ffb9b696eb20b73304bdc985a28fc8acbf23fd2b9a7448c074eeebd57495ea9e",
+      "size": 16903
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/cli.py",
+      "sha256": "66a0d66e74ad94b6d3da12ba401ba152312147cb4c09c5eccb4ce1eb9d0e2937",
+      "size": 6613
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/io.py",
+      "sha256": "ef320a25f121d2233de0a6124f7df69ef866da3a88d864787aac4ffa5cdf413f",
+      "size": 15994
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/models.py",
+      "sha256": "8155a784c8254a91c5a80a8ba03f268ed456c279e2e5be8ad2650d5a841c4c22",
+      "size": 2566
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/render.py",
+      "sha256": "1c170c6eceaa1e9a36851f3fd102434ca6d04886be463ef88d5c2abe89b98631",
+      "size": 18950
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/stats.py",
+      "sha256": "6ff201970686bd2f9e3c4dd0077b9609d466b2089471e2057b2c312be1118d97",
+      "size": 5343
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/src/gela/validation.py",
+      "sha256": "0a0bddb2813acc634a4ad21637ff2525401df52fedf345e9a1adbeb41ff633f5",
+      "size": 15344
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/tests/test_pipeline.py",
+      "sha256": "096ca1fa9413a1a4dbc6b54e8df6f8ffd0733a25a1b0cd5786e507ea38282f95",
+      "size": 7710
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/tests/test_stats.py",
+      "sha256": "8469f73c939a862399662ac6631111443433988014a1abe8618b376862c74a43",
+      "size": 840
+    },
+    {
+      "path": "Stock_Skill/global-equity-lead-lag-atlas/task-pack/skill_draft/global-equity-lead-lag-atlas/tests/test_validation.py",
+      "sha256": "483c383e5eda9d75ea1ce783f66a4bf3e9ee3900be136c700425a36dd242cded",
+      "size": 5112
+    },
+    {
+      "path": "Stock_Skill/scripts/digest_stage_source.py",
+      "sha256": "9033e496202fa87237facd431269e47418853e5fe46f28e619a395dfd21f8517",
+      "size": 7380
+    },
+    {
+      "path": "Stock_Skill/scripts/run_unittests.py",
+      "sha256": "53a13d6f00d456aa0995742ca00c745c6376417da795060dc9e7bf2254966d05",
+      "size": 4287
+    },
+    {
+      "path": "Stock_Skill/scripts/validate_public_safety.py",
+      "sha256": "c1178a656d67cf48c26cef4f03e35af6aae86bc0e8ecaeb3dac0b87662b9d357",
+      "size": 41602
+    },
+    {
+      "path": "Stock_Skill/scripts/validate_registry.py",
+      "sha256": "c6f415562ad59389a67105c92e12737d710817653323f411fe83140a2a5a5116",
+      "size": 17694
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/AGENTS.md",
+      "sha256": "23820679239dfebd205cf872eadd185a304c3f52916eca259ac12ec5166abc36",
+      "size": 2413
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/BACKUP_MANIFEST.sha256",
+      "sha256": "b8f43bb187f01d5a02a42801bac92d4323d71fbd252eb2ad1906a3aa8e9168ee",
+      "size": 6705
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/CHANGELOG.md",
+      "sha256": "30e28c3e0333d64921765e21efd2b6a104bbc6fde02a9ea75656484d50d4154a",
+      "size": 1328
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/README.md",
+      "sha256": "1636c2a46fc4f24145a82721e8e22ca6d223d7dcf1c5c013b05cf37e81a0701e",
+      "size": 2276
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/RESTORE_AND_VERIFY.md",
+      "sha256": "91a3bc934952f65ff7e6e978cbd748f8eb4a4c1cb1cbf5b31a3887eb702e37bb",
+      "size": 1447
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/SOURCE_INVENTORY.md",
+      "sha256": "da8de19d27c90b5c102dcb55449c25e14ccdbb3bf4f56f2bc0d0edb625b3737e",
+      "size": 1688
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/VERSION",
+      "sha256": "2985be8b28d3ade858e8d8fb4bc22f565b1bf6020dff982dce141f7721b9999c",
+      "size": 6
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/archives/commercial-opportunity-decomposition_v2_research-summary.zh-CN.md",
+      "sha256": "56c0e836962acb36a554e299a7eeff4183e9cc077a921974fba205c97c1bbe37",
+      "size": 3911
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/releases/SHA256SUMS",
+      "sha256": "d84daa8c1ae0682bee470edf356ce219a2c9a8c913df1bf9dd651ce997bec400",
+      "size": 130
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/ACCEPTANCE_CHECKLIST.md",
+      "sha256": "7e899270dd7155ef1ff3aa9a2d9c327bbfaff3755b2a889ffbb70d5b29735b60",
+      "size": 4332
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/AGENTS.md",
+      "sha256": "81487ec888829a212073ad8f73dab2f6e8de6551d89ea6aad880b2ac377e528b",
+      "size": 2609
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/BLIND_SPOTS_AND_SURPRISES.md",
+      "sha256": "f43b0c227d8b90ac372b0d8b38db9fb493cfa1f9ed3e45c7475498a31a72f100",
+      "size": 4912
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/CHANGELOG.md",
+      "sha256": "50c8c9b2dce7d9b6f6c4b87641fef9526b373037772bf350ab478c97d23fb46c",
+      "size": 1492
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/CODEX_MASTER_TASK.md",
+      "sha256": "f4396bb622acbec143a2c1a3f37c9b1a12dfd56ccf3764e11cbf3baec338601e",
+      "size": 2784
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/CODEX_START_PROMPT.txt",
+      "sha256": "feef3158183b648293211fcf16299e5ea662c22846b255709eac4b0a42b94214",
+      "size": 1041
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/DECISIONS_AND_DEFAULTS.md",
+      "sha256": "d61efb0329e3c106ffb5884f65a6980517c25232101eb25cb5103b31ce297dd6",
+      "size": 2592
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/IMPLEMENTATION_PLAN.md",
+      "sha256": "c7789452d87b999390332f23767503eb0eb02d7535e30bba58e21385954a7470",
+      "size": 4269
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/LICENSE_AND_ATTRIBUTION.md",
+      "sha256": "664b790baccbc9bd23a0bd7171ed77fd02e982562e71a0c424f567eec558b43c",
+      "size": 2394
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/MANIFEST.sha256",
+      "sha256": "cb6b04006c4feb24b52515d16da212b5bded7e25ca0cfd2dc017e01315a98d29",
+      "size": 5045
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/PACKAGE_CONTENTS.md",
+      "sha256": "69edc243d17579194c63a6fff802da8a3686103895be6f30b7a605faf9d4d786",
+      "size": 2424
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/REFERENCE_PROJECT_MATRIX.md",
+      "sha256": "7f3dbd1704eec867c0a749bee2fe5c6ff852e40a60acaa35f0c99fe19541298e",
+      "size": 5476
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/RESEARCH_REPORT.md",
+      "sha256": "3de503621efc77d1e679d841a15918a8ba7f3f77ab3438fd9bbf2e576d5963ba",
+      "size": 10887
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/START_HERE_FOR_CODEX.md",
+      "sha256": "c633d98de90aaae78a03e24f1268fc7c46ad823a2a46bc4e829e2f0b35653592",
+      "size": 1594
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/TARGET_ARCHITECTURE.md",
+      "sha256": "d2a26aa92765abb1b6345ef9ed6cf11341b29aa8dda4245543321554cead7632",
+      "size": 5034
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/USER_REQUIREMENTS.md",
+      "sha256": "bddf1ab4d0673ec665910d101e449f3fa59d9c6d3234764beac30d4a48940d93",
+      "size": 3745
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/VALIDATION_REPORT.md",
+      "sha256": "d6225443738803ffefb0d12cbfb81cd0e9e39617d2054b6b2713dbdfd339193e",
+      "size": 5248
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/VERSION",
+      "sha256": "2985be8b28d3ade858e8d8fb4bc22f565b1bf6020dff982dce141f7721b9999c",
+      "size": 6
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/SKILL.md",
+      "sha256": "ef7096d15d46c823fda01b1a795e55fcabc4b10253b3d3de7179dc945d7abdfd",
+      "size": 7647
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/agents/openai.yaml",
+      "sha256": "667c9b4d8292b057024081d89b9aeef34d39d68479b3f650bfad6eccb0e1c8ae",
+      "size": 417
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/assets/deliverable.example.json",
+      "sha256": "a6d63d7760ecddf18d20a810e31f2528833eb79aa648e1656d5be172e7e5a8a6",
+      "size": 8611
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/assets/diligence-card-template.md",
+      "sha256": "7444a2b23fe7b552c9d45e7996fcf9eb05220bc2ef2d89dcd29432a883218b9b",
+      "size": 806
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/assets/evidence-ledger.csv",
+      "sha256": "1b1b5263eeb49df92ed095ff388c9c42ffb0a469895eabef46eb072e4b5e5631",
+      "size": 227
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/assets/intake-template.md",
+      "sha256": "68fe8d949314f651bb2e8427de9ef61265de604b9ac597cc7bf44dcf7aba5758",
+      "size": 1844
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/assets/research-note-template.md",
+      "sha256": "e9c25920312e0d8e4760f5fc3cc82b7fb78fe9a8d25044061d6d5302f5ce2d09",
+      "size": 1495
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/assets/stock-opportunity-card-template.md",
+      "sha256": "b9b6ea7520c1c6c218040eab023e75106c7029c51fbeacb35b89ed0ad62177dc",
+      "size": 1719
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/assets/stock-opportunity-score-input.example.json",
+      "sha256": "8f306c29e346228b123b58aafd640b2a72a3de9a95f204a726f842a1f5b34b75",
+      "size": 6136
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/evals/benchmark-template.csv",
+      "sha256": "6a75cbcb0eb610bf0b8f8890d74f5599e6a41f6d083b74c71ca317a24d11f4a5",
+      "size": 851
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/evals/quality_cases.jsonl",
+      "sha256": "a7b69449484fd1f6018aeda65bafaba6577bcd1779e30fda047c5d020cb74061",
+      "size": 3239
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/evals/trigger_cases.jsonl",
+      "sha256": "fdd30392befeb3bd441ca57fa184d4699edb352494cb805a6ee7e4898511fba4",
+      "size": 4293
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/commercial-mechanism.md",
+      "sha256": "d448af135d5f7f9356980db746f82adf4c53e796e20a4465f866db68e8c2ecee",
+      "size": 3546
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/diligence-gates.md",
+      "sha256": "57db85737911b5a9740172e730c46a5921152f1a8bcaa2987b0a0c71d294e02f",
+      "size": 2586
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/evaluation.md",
+      "sha256": "f261a038deff63393ae69d7b6085c9ceca889af407013d5ade57aa6005618a97",
+      "size": 5441
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/evidence-protocol.md",
+      "sha256": "29dfa3da6b3c601d83d4e8813622a0e05f1481f05296afcfc2ea1f20f714a3b1",
+      "size": 4524
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/output-contracts.md",
+      "sha256": "e1dc414cd92b0e89a4445deab55b0e1655633918d67112636fb1c190b72cb8c9",
+      "size": 2712
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/safety-and-boundaries.md",
+      "sha256": "ef832130cc859c11cb81870df946200a72a1f1ec463cd38fd52d5930621b0b16",
+      "size": 5588
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/scoring-and-maturity.md",
+      "sha256": "e3628cadab527013600e215b3aa31009e348c415333631218aa77b950d282426",
+      "size": 4602
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/stock-research-routing.md",
+      "sha256": "496b4b8d921a2ed518fc08705aad8cbe150254c5db27c30d5306c285afc3b7d3",
+      "size": 3566
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/references/workflow.md",
+      "sha256": "f095bd0c04970e1546eca847cf1769258c91437936dab7e063ac9466b2501e77",
+      "size": 4392
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/scripts/score_stock_opportunities.py",
+      "sha256": "25bed7886d957fce84b6e2675084a1545ad96c963e721e381b4ddebedf0e85cc",
+      "size": 14330
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/scripts/validate_deliverable.py",
+      "sha256": "171492939eb6df8f43a9c134c0ca2e86c6fc30f8044cf7442621925692155e63",
+      "size": 25293
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/scripts/validate_skill.py",
+      "sha256": "cae2b46e6cf07735b99b1deb9f64e373f14f80ae31f519e102f37422790d984a",
+      "size": 9641
+    },
+    {
+      "path": "Stock_Skill/stock-commercial-opportunities-skill/task-pack/skill_draft/stock-commercial-opportunities/tests/test_scripts.py",
+      "sha256": "3a8408fdc2d1f4aabad2bf20c6a0defd41a46d0664ee098bba4b4bc0c312aa17",
+      "size": 11225
+    },
+    {
+      "path": "Stock_Skill/tests/test_bottleneck_serenity_release.py",
+      "sha256": "bb4bb90be7c7b97efda7f08f0c5071a59b20524e44cd8145d47f9fb8bba03c0c",
+      "size": 20369
+    },
+    {
+      "path": "Stock_Skill/tests/test_completion_audit.py",
+      "sha256": "64a9092986100a0639d39c5618d8e5ed8abce901a39957f1acf6d08f48335092",
+      "size": 6895
+    },
+    {
+      "path": "Stock_Skill/tests/test_license_similarity_audit.py",
+      "sha256": "d29be44fab9d0fc8e952626b3e1d825cc36c4c005f6e7d8d37b7ff4c30ff4811",
+      "size": 12528
+    },
+    {
+      "path": "Stock_Skill/tests/test_stage_source_digest.py",
+      "sha256": "28cf35e9a70591d2c9888c3e671305f7f3e47270d87d8b826f8cbfa9de2fadda",
+      "size": 5412
+    },
+    {
+      "path": "Stock_Skill/tests/test_stock_skill_ci.py",
+      "sha256": "62ecbddeb8cb206d4f50639d76de457f0979333835266d6b82631534ce72871e",
+      "size": 83741
+    },
+    {
+      "path": "Stock_Skill/tests/test_validate_registry.py",
+      "sha256": "11c08e9043546b30b2b99f6958845d6f9d258e254cce3200cff6058e446e89f7",
+      "size": 19398
+    },
+    {
+      "path": "config/business_lines.json",
+      "sha256": "0865362667f55c04258c069f3466348670f018938e5e49a00d5e05e0ce86f0e8",
+      "size": 4773
+    },
+    {
+      "path": "config/default.json",
+      "sha256": "db3f9ffc9d245c04290f0fb9e91feb6c03e655cad9c8a83de5fd39a66f50c401",
+      "size": 548
+    },
+    {
+      "path": "config/runtime.env.example",
+      "sha256": "50b52e80fe6a821f08a9130585dc40d0c337aac8182be5c491c53704c6a5ba30",
+      "size": 442
+    },
+    {
+      "path": "db/schema.sql",
+      "sha256": "7f9c65edfcd1fd597e6972d7208e1f2efe41ffbb4dfa6ff6b80441c176a2c4e1",
+      "size": 2715
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-api.service",
+      "sha256": "95564298a2ac9130a553892351589a451aa261bcc5e69bf99c756e95b7cd6630",
+      "size": 831
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-backup.service",
+      "sha256": "9d52d918e16edbd55a06fc1239186f324fbda5840a74f1692894d24fad33a005",
+      "size": 478
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-backup.timer",
+      "sha256": "9f19ff3ba28e8faf66de04ed064ee29221926fafed0e48bb54f47bfd6847f392",
+      "size": 163
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-evolution.service",
+      "sha256": "9f4825d6892f68c0702175d6977af7e416dc055595f1d266c14b130e94a24442",
+      "size": 528
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-evolution.timer",
+      "sha256": "4da620b4864a71599ae2d8741c16844bead16bcb6cd0b1a85c99234fd4a6cab5",
+      "size": 166
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-outbox-sync.service",
+      "sha256": "6820ea5e5424eee61cc9ff0c31fe9b2030cf4eaf2ce73af323619cea7a8169b3",
+      "size": 478
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-outbox-sync.timer",
+      "sha256": "c454d3313a811d3d6f9afc4c518a5ef9fffc92115282b2d3121a3ac9a5ad4a90",
+      "size": 168
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-source-sync.service",
+      "sha256": "d3ef64bcf19f9f7f207455623d146230247366ec09b91647b972b8b5234dd0c4",
+      "size": 516
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-source-sync.timer",
+      "sha256": "3d939be39bba947e587a62edba31fefd8b86fe0fe6fd76244083dd6812dc4bfa",
+      "size": 167
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-status.service",
+      "sha256": "7aaafa29a077a03d164f7bcccb3662962808e3749da379b383d5c72dfe3e3902",
+      "size": 483
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-status.timer",
+      "sha256": "9abe6fd2f6644b4f5c87907719090386b5ed0aca16f53ccf4bfa0ca12f6aa612",
+      "size": 162
+    },
+    {
+      "path": "deploy/systemd/signal-lattice-worker.service",
+      "sha256": "21bd5f6d8e58b6464ba646c0ed1068b919667bea4ee4b344d8f5e2851e30bcda",
+      "size": 702
+    },
+    {
+      "path": "events.yaml",
+      "sha256": "d7c2dafcdfbfbeb3e16f71c8a6ba7fa56f7420bdd778d00b11bffb260efa9122",
+      "size": 847
+    },
+    {
+      "path": "machine/facts/acceptance_contract.json",
+      "sha256": "facffd31fa83f2188d83ac4ca0bb3a9323a0568b1f74fb45b96a8e8200a8ba6d",
+      "size": 1015
+    },
+    {
+      "path": "machine/facts/blockers.json",
+      "sha256": "18f4342bd0766b70f9e61cdb3076ddb3309b8b05fd9ebfa0bf220cdb107e9ae6",
+      "size": 384
+    },
+    {
+      "path": "machine/facts/build_agent_cost_estimate.json",
+      "sha256": "f6365827004d34f985b78441774f6c13ef328673ef1423b16bab7d5e6b9e88c4",
+      "size": 3227
+    },
+    {
+      "path": "machine/facts/build_agent_skill_allowlist.json",
+      "sha256": "aaafeb74ea0ff02c2fad06cf5fae4ea8ca9b9a7e2a3eda0f8b1f1875069331f2",
+      "size": 950
+    },
+    {
+      "path": "machine/facts/definition_of_done.json",
+      "sha256": "cbf8e495151f5c301e108166bc6ffc74129a0a2c18fc5cc8abf8533a0b7142ea",
+      "size": 1155
+    },
+    {
+      "path": "machine/facts/final_scope_summary.json",
+      "sha256": "59242c2eef108c75bf0da4889c798816731525cd0c28398604be154c2faa6a71",
+      "size": 1506
+    },
+    {
+      "path": "machine/facts/human_documents.json",
+      "sha256": "b43232779f8e53d167d9402fe7fea305c42b65f97db2bfb8837741a0fcfcc91c",
+      "size": 7101
+    },
+    {
+      "path": "machine/facts/project.json",
+      "sha256": "83505ef8d5bb24135817784dad498b86a135e3c8da75365b52b05faa908de9d7",
+      "size": 1252
+    },
+    {
+      "path": "machine/facts/release_boundary.json",
+      "sha256": "65d73a8797988d36ba9f1a95edf7721969824f5b71544c98317057fab9734f03",
+      "size": 628
+    },
+    {
+      "path": "machine/facts/requirements.json",
+      "sha256": "0e93284d88d152639da65fb701ad4e90d4de09562f49f43f15c6c6e595281ca6",
+      "size": 7404
+    },
+    {
+      "path": "machine/facts/residual_environment_tasks.json",
+      "sha256": "af27c81d3fff6902bf1bd451440c0ba06ef0351d9ca8d1c6eacdbf994edb0a1b",
+      "size": 19862
+    },
+    {
+      "path": "machine/facts/skill_route_summary.json",
+      "sha256": "162697023eda33f874a640dd8c0eeb5581a618e986f6de1c805499ca7f58c5c5",
+      "size": 1760
+    },
+    {
+      "path": "machine/facts/task_dag.json",
+      "sha256": "70ae2a8c370ebe09bd63321644f7255dcaa072418227de12fae920fa140bb3b2",
+      "size": 41724
+    },
+    {
+      "path": "machine/facts/task_execution_contract.json",
+      "sha256": "d1d58f604cf9839ea867a63a5402779e678091b8e42849d902420754c76380cc",
+      "size": 34568
+    },
+    {
+      "path": "machine/facts/traceability.json",
+      "sha256": "5f6c33c4177cc8f78c07062eb4f17dbe81ef66fd2c22c1219c5494044c1b0e16",
+      "size": 17431
+    },
+    {
+      "path": "machine/facts/upstream_baseline.json",
+      "sha256": "968ec61040676847253e11f752d11939b8908f872541a01f0de24799726aff89",
+      "size": 812
+    },
+    {
+      "path": "machine/tools/check_blocker_stop.py",
+      "sha256": "a3040db801eefa249990cdf29b825b7aa6c5b4b7e5fe9da7f57bfc5f1fee303d",
+      "size": 1314
+    },
+    {
+      "path": "machine/tools/check_doc_budget.py",
+      "sha256": "0bad32179486f18ee9fc5b6427a1fd8122246b0f503312b667ac34be33c235e8",
+      "size": 1125
+    },
+    {
+      "path": "machine/tools/check_dual_plane_ci.py",
+      "sha256": "522b54068b140570c77f49235ef59b1ba3bfc3035d09f0e96f8910d8f6b6eb8e",
+      "size": 2116
+    },
+    {
+      "path": "machine/tools/render_human.py",
+      "sha256": "b8999a7149aab254f9c051ae95f85bfd3530d5c53eb9a4642b1b9a090e825be8",
+      "size": 1017
+    },
+    {
+      "path": "openapi.yaml",
+      "sha256": "18ca6ec724e20a7a178223de0c07e44aa50a6bae3712cfa7be768f94bdafef64",
+      "size": 2544
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "d80b36f1cc5e564a17bfda0466ad1545b4b64702ed6008451e98e61be6ab322f",
+      "size": 499
+    },
+    {
+      "path": "schemas/action_packet.schema.json",
+      "sha256": "09acda2dfd6a51f8fcf0bff3df5112c9897985ab4e22f9ad3bf38c9ca1e7718a",
+      "size": 1108
+    },
+    {
+      "path": "schemas/business_line_matrix.schema.json",
+      "sha256": "029b041cfd86b93c6211a8ac3b6d8bd6228e1d0ca84151cee35983c9f377c3a8",
+      "size": 751
+    },
+    {
+      "path": "schemas/candidate_freeze.schema.json",
+      "sha256": "c877ea2b590d8e76a2306b38b96401162312e824d0a738b66035ad20c9c70807",
+      "size": 1679
+    },
+    {
+      "path": "schemas/canonical_state.schema.json",
+      "sha256": "c132091ba0658dcc2c75e3220e740c1d760b5b1ac3e8a928e2e91c79b4a3c667",
+      "size": 2712
+    },
+    {
+      "path": "schemas/cloudevent.schema.json",
+      "sha256": "7546054393a65463fc704fb92309386e50e7919aed19c2845f38ebed34ac661a",
+      "size": 401
+    },
+    {
+      "path": "schemas/formal_review_receipt.schema.json",
+      "sha256": "3f1f0aaac660129466721d14fe77a9c027354b06aa22eabfe2dac400c7dbbefb",
+      "size": 1785
+    },
+    {
+      "path": "schemas/frozen_replay.schema.json",
+      "sha256": "f4d59e9dc2bbd3e06c2e08eb1051d526cc70e2bdc2759e1dcd4b7f11f159893a",
+      "size": 712
+    },
+    {
+      "path": "schemas/iteration_receipt.schema.json",
+      "sha256": "0675bcb462d1cbd44a2e356d81535ead8f810e07974f3916b73a0d5a999a18a0",
+      "size": 1200
+    },
+    {
+      "path": "schemas/owner_approval.schema.json",
+      "sha256": "b160e07ab5aa4dfb98f89510ad7705c628a59825012e8a5b519009aabbbdcdb9",
+      "size": 750
+    },
+    {
+      "path": "schemas/research_request.schema.json",
+      "sha256": "b56e0196495ab273348ff88922f04a2eb18fa7aa719d112a1372dffdbd6346c9",
+      "size": 404
+    },
+    {
+      "path": "schemas/review_chain.schema.json",
+      "sha256": "7681d555816416e34224096db81b84f85eb054da40ae19ba1a582392e526a17a",
+      "size": 961
+    },
+    {
+      "path": "schemas/skill_pass_c.schema.json",
+      "sha256": "a74e2257c7db4d1c51bd42df67dacacff38c2aec840a7099ec6c1b8b19bbf642",
+      "size": 802
+    },
+    {
+      "path": "schemas/skill_snapshot.schema.json",
+      "sha256": "d8ae0cf98841f0c7b2412754961ed143b61ef73610a4b349cb7065c614c50344",
+      "size": 763
+    },
+    {
+      "path": "schemas/state_transition.schema.json",
+      "sha256": "0ee0d15466abce4a915115c9bab6a95275ea073c79310121507cfaee55e4dbcb",
+      "size": 941
+    },
+    {
+      "path": "schemas/status_snapshot.schema.json",
+      "sha256": "b4a681ac62b019931d4356d3f5191ce7c69522d759c14bfab41724eafc89edad",
+      "size": 646
+    },
+    {
+      "path": "schemas/stop_and_freeze.schema.json",
+      "sha256": "b9ff1b589dcf1d653f872e48ade71f5a4d494b4c67f06e1455efe00bbad34604",
+      "size": 971
+    },
+    {
+      "path": "schemas/task_execution_contract.schema.json",
+      "sha256": "04ced4b9c67e690487ce7a6913fb5f0a53a995757285a07829c6c69a9d198f58",
+      "size": 2217
+    },
+    {
+      "path": "schemas/taskpack_owner_approval.schema.json",
+      "sha256": "1a9eb05ff66509567bd58a8703d9c15abcafa447e5649d8618e84de32d768232",
+      "size": 1386
+    },
+    {
+      "path": "schemas/taskpack_seal.schema.json",
+      "sha256": "11c9a94645fa25cf6c0f8582dfcb3a051b5bb65d1b59443497d3f8deff233cc7",
+      "size": 1652
+    },
+    {
+      "path": "schemas/upstream_precheck.schema.json",
+      "sha256": "ccc77c8697da7bedbad742b95fda68d4b075fc997b08db2f5588595173c17b1f",
+      "size": 2462
+    },
+    {
+      "path": "scripts/apply_meta_dual_plane.py",
+      "sha256": "8c346cb2d664acbc743f1effaf2480d2ccd458b441f09befbbbe592519b0fd0b",
+      "size": 6795
+    },
+    {
+      "path": "scripts/bind_runtime_env.py",
+      "sha256": "9577cc4948080c2566430d2648efbfa049c2900909b00fcb3e2874fb96684eb4",
+      "size": 1377
+    },
+    {
+      "path": "scripts/browser_smoke.py",
+      "sha256": "e53df7f3468eb987a73b380efa4b1fd8bdbac73ab6f139aaca12c3d030bac02e",
+      "size": 9662
+    },
+    {
+      "path": "scripts/build_business_line_evidence.py",
+      "sha256": "e0d01337bc60da8c417d798763ae71060f28a37f124569b30e4cf7595d69e59d",
+      "size": 1354
+    },
+    {
+      "path": "scripts/build_closure_bundle.py",
+      "sha256": "2ae4b8231ed19bb3acada52987dc7e9057b7b535f3090ce4a6077be0e8e929f3",
+      "size": 891
+    },
+    {
+      "path": "scripts/build_external_context.py",
+      "sha256": "dc0814ee040166cef2788711a71e188d422de330f7fb659739b5d20825b422a6",
+      "size": 2557
+    },
+    {
+      "path": "scripts/build_final_zip.py",
+      "sha256": "995002fde74cd0e9d23de4dec7d56ef61cc7553c4c2daa395768fdf05332f8b2",
+      "size": 6587
+    },
+    {
+      "path": "scripts/build_iteration_receipt.py",
+      "sha256": "5d64bea4d6a1cda9ebd1f4e9f71862804f139d8edef1ad68a916d752068ef3c0",
+      "size": 2583
+    },
+    {
+      "path": "scripts/build_manifest.py",
+      "sha256": "fe6e93f2e2e0feff21ae1b05cf0a5dc3a8ed5338aa28a6d775f0b84c26fded54",
+      "size": 2001
+    },
+    {
+      "path": "scripts/build_quant_seal.py",
+      "sha256": "f024de8ce3c7c2df1619a6a38d7e214a497dd80867931681af4e4796b780533f",
+      "size": 2137
+    },
+    {
+      "path": "scripts/build_review_chain.py",
+      "sha256": "2686d87ef0e6df0e40d267f0c36bcffdbcfe0beb3919b6905bba2dc6eb54a6fc",
+      "size": 5275
+    },
+    {
+      "path": "scripts/build_review_input.py",
+      "sha256": "71f920ba605e0dd2a39b19210a2b8f2a7cbd0476c748bbd5cc4d651acc5985a4",
+      "size": 3174
+    },
+    {
+      "path": "scripts/build_skill_pass_c.py",
+      "sha256": "050ff3d5200a7a6b235b681191bc980e19a2fc87ef08fccb0b54ced3e3068a64",
+      "size": 4256
+    },
+    {
+      "path": "scripts/build_stop_and_freeze.py",
+      "sha256": "a09e3bbb24525d12bd6bed53b11b2860f64712ba110ee538013044fc68e39e73",
+      "size": 3243
+    },
+    {
+      "path": "scripts/build_subject_lock.py",
+      "sha256": "66177a89be84da58e5d1edd905315db1681aa033e95c85735620d44d3566297d",
+      "size": 4087
+    },
+    {
+      "path": "scripts/build_taskpack_owner_approval.py",
+      "sha256": "06c96199215142214aebad399976682cc43f7b5b591f92e5bf3f0012c9d8a42b",
+      "size": 2448
+    },
+    {
+      "path": "scripts/build_taskpack_seal.py",
+      "sha256": "fe6e7c07ee3692f78151b30c58fa885daae6823e2083287ef73c49a6ccc6dd41",
+      "size": 6475
+    },
+    {
+      "path": "scripts/build_taskpack_zip.py",
+      "sha256": "4bed1c421366e8030cdc2e9cd6c9c66204f6ad02522f8585b7209a5e2364b5e9",
+      "size": 8731
+    },
+    {
+      "path": "scripts/build_upstream_precheck.py",
+      "sha256": "df950d7f0ff309d64e869e9b10fe01794495bb5375d27822022a57b852d9b834",
+      "size": 6100
+    },
+    {
+      "path": "scripts/build_upstream_seal.py",
+      "sha256": "9a009c5db02d7f1726625f65fe07301415c7b1c06a77f138c51de5496df90fa0",
+      "size": 17387
+    },
+    {
+      "path": "scripts/build_wheel.py",
+      "sha256": "7560ac2711d25ea807f5cd2a9dde5aa933a5567751fbd7b513bfa185234abecf",
+      "size": 4327
+    },
+    {
+      "path": "scripts/builder_readiness_static.py",
+      "sha256": "53533873bf3b9904b42e270fdc9e6b499207c7cb83b2aee7c2452b132da64ea4",
+      "size": 5355
+    },
+    {
+      "path": "scripts/clean_transients.py",
+      "sha256": "7c758b4f619eb4446fb0de23e16ada9600cff08c825c4f85876a64aea4564c7f",
+      "size": 917
+    },
+    {
+      "path": "scripts/close_formal_candidate.sh",
+      "sha256": "af2a47c6283ebb2535dda206f57cce6f78922e8dee667857ebf87c0f7257cca6",
+      "size": 2920
+    },
+    {
+      "path": "scripts/codex_last_mile.sh",
+      "sha256": "1c861d04b013cb7a93c5c2bbb297b2916cba84504290dc615b39a95b4207922e",
+      "size": 1586
+    },
+    {
+      "path": "scripts/commit_if_changed.sh",
+      "sha256": "296361049f4bf1b14ab735581f1015af5b2985185c9221bc22b22a064e3f79d0",
+      "size": 489
+    },
+    {
+      "path": "scripts/context_capture.py",
+      "sha256": "5e3b09378267ee6fd54377fd9f91fe36033ead4cce96cef6e2cfde4822376cd9",
+      "size": 6212
+    },
+    {
+      "path": "scripts/context_capture.sh",
+      "sha256": "5deb88599f89e52fb346bd733b87d431e07f7be9c46c67f42435454598b40525",
+      "size": 198
+    },
+    {
+      "path": "scripts/diagnostics.sh",
+      "sha256": "8ddf5a90c1b6275caa81aec75b3e50ebbcab7f6af2e62b609440b220c32060f5",
+      "size": 653
+    },
+    {
+      "path": "scripts/evolution_once.py",
+      "sha256": "a08f6acc6e37a49b7db801cd1df084af3c944fe2b1212d7a6ed3d6c97c199ff7",
+      "size": 668
+    },
+    {
+      "path": "scripts/export_fixed_upstream_bundles.py",
+      "sha256": "dbd04ee6db39efdea4d461bbf9831c16958675c5cafeb9e9564c2199730d9593",
+      "size": 1829
+    },
+    {
+      "path": "scripts/freeze_candidate_contracts.py",
+      "sha256": "7dff7deffec7a819843b36d9d0f17bec9e8961c2c3f72cac1b2fcf3fcebe1207",
+      "size": 5549
+    },
+    {
+      "path": "scripts/frozen_replay.py",
+      "sha256": "6058183ac3eeb47be13d7fe74f32ed0b35bb6f084f7d1381345f2dc350f3c166",
+      "size": 3942
+    },
+    {
+      "path": "scripts/install_release.sh",
+      "sha256": "7ea5e814e2bbfe0a472bdc04949419d6ac6a0aea0509e4fd0a48bfecc1bd70cd",
+      "size": 3331
+    },
+    {
+      "path": "scripts/install_systemd.sh",
+      "sha256": "f80d0be3291d3efa576989b99bb4e224dc7f9aba0657cf90aaa5d65564e6e714",
+      "size": 716
+    },
+    {
+      "path": "scripts/land_project.py",
+      "sha256": "ca55f96282f735de5c7c76a6c3b7e024a45c6fe246ea5ecfb17980c80d1e2258",
+      "size": 5255
+    },
+    {
+      "path": "scripts/materialize_upstream_inputs.py",
+      "sha256": "67a35ea542d07a1265cbf8b82501f380877bcebceb18d7e7c7535093901d5325",
+      "size": 2411
+    },
+    {
+      "path": "scripts/outbox_sync_once.py",
+      "sha256": "4a47f5ab5a968161316a183606815225be9d7f57c13959d71a9684b3c04654bb",
+      "size": 896
+    },
+    {
+      "path": "scripts/prebuild.py",
+      "sha256": "e8108141aaaaa9d5425a83868485c6b034a63be942ed9140f4e9b43662e9c845",
+      "size": 9112
+    },
+    {
+      "path": "scripts/prepare_formal_candidate.sh",
+      "sha256": "9a93ba88d1387d4b4f6c64ac822f51567a7cc9059c4682c8747b42e84012ec13",
+      "size": 3529
+    },
+    {
+      "path": "scripts/provision_runtime.sh",
+      "sha256": "79191e40cbf00de13d68e998909f9fdd9e789cfba0a500f9ba5d0900b925f203",
+      "size": 771
+    },
+    {
+      "path": "scripts/register_status.py",
+      "sha256": "ac5adc3f69910d8fe2ef0af9d2c4e43f6dcbd25ff38dffe048d08a05687cd4fe",
+      "size": 9508
+    },
+    {
+      "path": "scripts/rollback.sh",
+      "sha256": "9e9d8ab255a45f68ae13fc4ce6fff48932c66720d0e5dc07ecd7448bdb694442",
+      "size": 1641
+    },
+    {
+      "path": "scripts/run_task.py",
+      "sha256": "27405b85bda3334346b3ab4b1d141a139adcca5efd7463c0cc768fa36f0479a4",
+      "size": 13903
+    },
+    {
+      "path": "scripts/run_tests.sh",
+      "sha256": "1d5165b1996c423eef477e8684a1fcef566b861836e66029e23570c7a1f8713a",
+      "size": 713
+    },
+    {
+      "path": "scripts/source_sync_once.py",
+      "sha256": "c3c87a9e7bee499f107fae9cdbb8c66d15cd5f3ec034f9a873472af07204ccbb",
+      "size": 640
+    },
+    {
+      "path": "scripts/status_closure.sh",
+      "sha256": "06bb171fe69c107a407636f1f8bae0c543d83bc1b8b22fc57ca268d81e5e5dc8",
+      "size": 706
+    },
+    {
+      "path": "scripts/status_preflight.sh",
+      "sha256": "a59fe652aec4b12860c787a774baf3c567391edf2db11e83ce475d05a3ddad2b",
+      "size": 1062
+    },
+    {
+      "path": "scripts/status_publish_once.py",
+      "sha256": "7f14abb58c0a73027912ff57c0b655f2ec7fa9744f11a7371df5068fae1093ee",
+      "size": 931
+    },
+    {
+      "path": "scripts/transition_canonical_state.py",
+      "sha256": "23b09bc06110b6ce191859c8f67fb83ca412a691a3e119f5b666e84dba8f550e",
+      "size": 5993
+    },
+    {
+      "path": "scripts/verify_canonical_state.py",
+      "sha256": "d7a952ca6c17d2b459a993b3e99eef83f85608dbd8afee207194a7365f80a797",
+      "size": 971
+    },
+    {
+      "path": "scripts/verify_formal_gate.py",
+      "sha256": "8fbdee158c662b2beacfe081b02ce33a2b887753f8748a9849ab7bbfb74045f2",
+      "size": 6246
+    },
+    {
+      "path": "scripts/verify_frozen_replays.py",
+      "sha256": "f03020e68f94f072a13754dd6acab8680fcf61b4b3af9a42a27ba6dc2555058f",
+      "size": 1566
+    },
+    {
+      "path": "scripts/verify_ingress.py",
+      "sha256": "ae8a46a1648699414ba1e7f04b89753b7740cb7c789f17bedc5b631e44eb3437",
+      "size": 768
+    },
+    {
+      "path": "scripts/verify_integrations.py",
+      "sha256": "aa5b8d359ceda46d1dd1dc8c9fb3b5b1ae14294833140836ef574412384dd410",
+      "size": 929
+    },
+    {
+      "path": "scripts/verify_package.py",
+      "sha256": "fab7ab64240dfd6e9da67893e62a756adc26be105b9ba75d6e893d732b853e32",
+      "size": 20705
+    },
+    {
+      "path": "scripts/verify_recovery.py",
+      "sha256": "bf43ad405f934f3cc7289a9572e107424ba020b56866f428865a1800824ca26f",
+      "size": 1829
+    },
+    {
+      "path": "scripts/verify_skill_pass_c.py",
+      "sha256": "dd96634153305590ff4d3932cebfb24da665f91742765915cf319157a5b909e4",
+      "size": 1492
+    },
+    {
+      "path": "scripts/verify_systemd.py",
+      "sha256": "2867c9dad9d28c869d91b3e9b9a73d36b5b7ee08adbc88590722c0969d43d7c8",
+      "size": 5493
+    },
+    {
+      "path": "scripts/verify_taskpack_seal.py",
+      "sha256": "3da4fd4998b0c4333aeec099c9856637d8f839f5e5d0d7af156b8d9ed7b15967",
+      "size": 6286
+    },
+    {
+      "path": "scripts/verify_version_lock.py",
+      "sha256": "a4db7d6705ef03facd82980acb8aaa035d7d83c059eaaa474724b7d2d7c9b337",
+      "size": 1818
+    },
+    {
+      "path": "scripts/verify_zero_runtime.py",
+      "sha256": "8f734b05b079e0911be49956b53a66db215a9c1600a2304e6619faa46ad016bd",
+      "size": 2086
+    },
+    {
+      "path": "scripts/walking_skeleton.py",
+      "sha256": "8f544f3c3f46e501686606d7fa3845f68a267e0bc20103e5e4bec35d7ee69d56",
+      "size": 1573
+    },
+    {
+      "path": "scripts/worker_loop.py",
+      "sha256": "ffce4b93446d45ce9c547ee5900cd086d19d04b1727f5fbbfd8aaff5125a9de9",
+      "size": 541
+    },
+    {
+      "path": "src/signal_lattice/__init__.py",
+      "sha256": "63ddcb806305693647d8635bd8f371551c6fd04922113b35aab661837acc5e81",
+      "size": 71
+    },
+    {
+      "path": "src/signal_lattice/action.py",
+      "sha256": "979047171eba9fb87ca5d6c647122d98464f57afb3e1f910c21cb3755adf79cf",
+      "size": 1631
+    },
+    {
+      "path": "src/signal_lattice/api.py",
+      "sha256": "80590d99db219c373ca46c4fb427268ca431dff06ead47516c987db2af4d2a6c",
+      "size": 3590
+    },
+    {
+      "path": "src/signal_lattice/backup.py",
+      "sha256": "a684fca6ed12553a35f19a1e8a063e1ecb859eba886e9d934a1607cb831230c8",
+      "size": 1700
+    },
+    {
+      "path": "src/signal_lattice/cli.py",
+      "sha256": "cf73746baf531bb33c94d85fdd7573aab9547ccd4f676ec32c1973e1238dbac5",
+      "size": 1967
+    },
+    {
+      "path": "src/signal_lattice/clock.py",
+      "sha256": "26d397feec339fe01c693b4f44beea65cfc6aff6199584c8b060443a65a7ff9a",
+      "size": 530
+    },
+    {
+      "path": "src/signal_lattice/config.py",
+      "sha256": "5da03808ee6ce45a2cdd0f17297d0e2a5b79bec053d55122ec5e0b102956ffe4",
+      "size": 2381
+    },
+    {
+      "path": "src/signal_lattice/consensus.py",
+      "sha256": "d1083a2365e10411a6e9723362cdf6a69d6165c2772e7ce7afb0d27fafbb4a0b",
+      "size": 795
+    },
+    {
+      "path": "src/signal_lattice/constants.py",
+      "sha256": "ef18825746e3928e7990ea35bf2bdda6b60d254cd5e0649c32d8ae8afcfb9ffd",
+      "size": 1010
+    },
+    {
+      "path": "src/signal_lattice/db.py",
+      "sha256": "d95200f8520caabce6846fd0b277b79d3b7a6f898f8412d1cef0c49b2d6fd4b4",
+      "size": 8769
+    },
+    {
+      "path": "src/signal_lattice/formal_identity.py",
+      "sha256": "2823daaf0ec05882481f40cae3446472c92a864e0fc2dbc439f9b0d7b986ee61",
+      "size": 4244
+    },
+    {
+      "path": "src/signal_lattice/quant.py",
+      "sha256": "316b8ea79e5776e83c3da39de4afbf7ed58a6c63df1d562669f45a188dab1fc2",
+      "size": 2159
+    },
+    {
+      "path": "src/signal_lattice/receipts.py",
+      "sha256": "e59fc102beab40ae1a162a944d6879b1c13ef4e33a7400d336758bc8ace79545",
+      "size": 2142
+    },
+    {
+      "path": "src/signal_lattice/schema.sql",
+      "sha256": "7f9c65edfcd1fd597e6972d7208e1f2efe41ffbb4dfa6ff6b80441c176a2c4e1",
+      "size": 2715
+    },
+    {
+      "path": "src/signal_lattice/source_sync.py",
+      "sha256": "a7bde0f8e164dd54d223880f0574d8e2f0a4284f45c97b035a9e32e4a25f0d61",
+      "size": 3423
+    },
+    {
+      "path": "src/signal_lattice/state_machine.py",
+      "sha256": "4e1fe46295d43356435b6faec10c9a401368381c65ee6e567996aa22f067cca2",
+      "size": 3028
+    },
+    {
+      "path": "src/signal_lattice/status.py",
+      "sha256": "d64195a5c3a72acad3da854f3ecebd99d5c3e39e6cedb3377c8fbd52df8c4c93",
+      "size": 1885
+    },
+    {
+      "path": "src/signal_lattice/teleiosis.py",
+      "sha256": "b84d6b699603ba88be4b32f392d0f7426058077b6475fcdcf87e2cb14b6cf290",
+      "size": 864
+    },
+    {
+      "path": "src/signal_lattice/upstream_inputs.py",
+      "sha256": "30c5784d3ce95fc34b9ee4e88e4ddab898d967ff8a7a54729c03a7eeecd696fd",
+      "size": 9992
+    },
+    {
+      "path": "src/signal_lattice/util.py",
+      "sha256": "acf879ac706368803692e5820563d7d2c35b6c60469620431041ce8cfc7efa43",
+      "size": 1080
+    },
+    {
+      "path": "src/signal_lattice/worker.py",
+      "sha256": "3372af8873a4c5cb2001b11a46213e1ac8e265bce206db055a779dbeed753250",
+      "size": 618
+    },
+    {
+      "path": "tests/test_action.py",
+      "sha256": "adc2fff7fcf6be81595e07f2e3979a3189d3a1894fcb4f6bdac9daf7bd830eb5",
+      "size": 943
+    },
+    {
+      "path": "tests/test_api.py",
+      "sha256": "6a0545ead3eab76e239d3b71d15748ebf02223c0100bf8f16a562452988018dd",
+      "size": 1561
+    },
+    {
+      "path": "tests/test_backup.py",
+      "sha256": "e83963b253dbdf82b09c749ff1f1b12bd05e62742d596e4773a7f34af43683fa",
+      "size": 537
+    },
+    {
+      "path": "tests/test_consensus.py",
+      "sha256": "55c4f6f55fc35399e7d2a23fba07cb5063d73a93c039aa88cf0fc7aa09f971f8",
+      "size": 975
+    },
+    {
+      "path": "tests/test_constants.py",
+      "sha256": "4c2a369b1903f8a0e1d618dac07063d1cc1fd6bb95d0fe4a6e581123088034e2",
+      "size": 495
+    },
+    {
+      "path": "tests/test_db.py",
+      "sha256": "737fe3a24818340972a645acd0e7a81122ae90ca3bd456ae91fffbd5f8cb0a3f",
+      "size": 4637
+    },
+    {
+      "path": "tests/test_formal_lifecycle.py",
+      "sha256": "c0e3693409a7cc4e43c90f131df702737ff0a3761aac59dd9df57d518b8b538e",
+      "size": 16430
+    },
+    {
+      "path": "tests/test_last_mile_tools.py",
+      "sha256": "d8eb63b348e62a58be768530c6b1ab863350204d7500557b8b6c1f7bc3592428",
+      "size": 6808
+    },
+    {
+      "path": "tests/test_preparation_tools.py",
+      "sha256": "9b4f598f9b2a9a4b5b50d3732ee1ba390c5d129cf71471b5ec8e8a71e9c8c36a",
+      "size": 6613
+    },
+    {
+      "path": "tests/test_project_files.py",
+      "sha256": "1f80136b449afbc1c6f038dde2514714dfaf610b0aa9b347e22d04a1b740b783",
+      "size": 1584
+    },
+    {
+      "path": "tests/test_quant.py",
+      "sha256": "1b4b445169c7686ad03609b2bb65305ffeb2e2c0c76a7ef949bd86c9e48c47cf",
+      "size": 1023
+    },
+    {
+      "path": "tests/test_source_sync.py",
+      "sha256": "0dc4e40d08a315fd3481bd03f4469f185977496ed0c622472cdd5237a8eb8d85",
+      "size": 1665
+    },
+    {
+      "path": "tests/test_state_machine.py",
+      "sha256": "6865d11974aeb3ea16e0706594c605362f39b78585f69f1ee46bef8ab8ffa1fb",
+      "size": 1388
+    },
+    {
+      "path": "tests/test_status.py",
+      "sha256": "abb4b56856b5500fba5c6370b83797dc72a25284a78e82502b1fca52d2a153ca",
+      "size": 643
+    },
+    {
+      "path": "tests/test_task_execution.py",
+      "sha256": "fc11f0dc12393055be2c0d2f0e66a178c7eb092e43577cd0acd9ff10f46b74c2",
+      "size": 4312
+    },
+    {
+      "path": "tests/test_taskpack_seal.py",
+      "sha256": "d00391ce02aa218a7b0b74399d658eec4b93d007fc377896b164f26694a99dc1",
+      "size": 2748
+    },
+    {
+      "path": "tests/test_teleiosis.py",
+      "sha256": "b6191ebe2673c1d7fd6d3df2a8bc055d44068faac5e44bbec72298bad901ed92",
+      "size": 559
+    },
+    {
+      "path": "tests/test_upstream_evidence.py",
+      "sha256": "5c105703fc03db6e79985cce6214ab3a50979ef04331886deed886afc0f908bc",
+      "size": 3145
+    },
+    {
+      "path": "web/app.js",
+      "sha256": "6eedf28a811a128d8977f22908948cb363b35ce603f0eab683874d61cacd0866",
+      "size": 1721
+    },
+    {
+      "path": "web/index.html",
+      "sha256": "c5985e32ff50283d1469c4e999f6c323a210749a59ca1366d2d675e7b0708fde",
+      "size": 6559
+    },
+    {
+      "path": "web/styles.css",
+      "sha256": "fa1fba235e83aa162617f7cbd8b428f5840d91e12fd81643fd74a94ca6807b1e",
+      "size": 6490
+    },
+    {
+      "path": "文档/00_我在哪.md",
+      "sha256": "040af6bfcd531b3f5cde2a35585c66482fdd1f63e057d04f681c5e3af506fe60",
+      "size": 1073
+    },
+    {
+      "path": "文档/01_产品需求.md",
+      "sha256": "31081b7e15328b737a25fc01ecaae3ecedc16b590d5b60f76a564a8980da01e0",
+      "size": 901
+    },
+    {
+      "path": "文档/02_系统架构.md",
+      "sha256": "ef18551b66272a9ad05a806eaa2197f66d3828a1bb2a3e379ab8c3411d5656d5",
+      "size": 832
+    },
+    {
+      "path": "文档/03_口径字典.md",
+      "sha256": "eba1676f4193700eca5aea7d6b7938269fa896e10cc0d77fa3f1fe7f76d49432",
+      "size": 1000
+    },
+    {
+      "path": "文档/04_操作流程.md",
+      "sha256": "525bb5619f7501e36fee9c0476435ce3af8cfb699c5bdb869ca3527041dc12c1",
+      "size": 981
+    },
+    {
+      "path": "文档/05_执行与验收.md",
+      "sha256": "78b0c8fa0729db8eeaccc311a0d958a781a612da69c10574e66088944734e6e0",
+      "size": 880
+    },
+    {
+      "path": "文档/06_运维手册.md",
+      "sha256": "4eeef39baa68a1b63767abda8614d5f846448f95e438fdaa453a4bc463369245",
+      "size": 1003
+    }
+  ],
+  "schema_version": "1.1.0",
+  "state": "PREPARED",
+  "subject_sha256": "8ce66f2d2b44cadcec6efeae528390c8fb884686c036a940c862bb665360f988",
+  "upstream_binding_kind": "blocked_precheck",
+  "version": "0.0.0.1.39"
+}

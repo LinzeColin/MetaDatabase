@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "project_id": "signal-lattice",
+  "version": "0.0.0.1.39",
+  "domain": "signal-lattice.linzezhang.com",
+  "status_url": "https://status.linzezhang.com",
+  "runtime_mode": "DETERMINISTIC_ONLY",
+  "model_mode": "DISABLED",
+  "runtime_token_budget": 0,
+  "automatic_trading": false,
+  "upstream_writeback": false,
+  "live_action_enabled": false,
+  "default_degraded_mode": "RESEARCH_AND_NO_ACTION",
+  "worker_concurrency": 1,
+  "memory_limit_mb": 1024,
+  "request_timeout_seconds": 120,
+  "disk_soft_limit_mb": 2048
+}

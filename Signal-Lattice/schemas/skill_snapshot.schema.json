@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "type":"object",
+  "required":["skill_id","source_repository","source_commit","content_sha256","lifecycle_state","compatibility_state","runtime_agent_allowed","runtime_llm_allowed"],
+  "properties":{
+    "skill_id":{"type":"string"},"source_repository":{"type":"string"},"source_commit":{"pattern":"^[0-9a-f]{40}$"},"content_sha256":{"pattern":"^[0-9a-f]{64}$"},
+    "lifecycle_state":{"enum":["DISCOVERED","FETCHED","VALIDATED","ACTIVE","QUARANTINED","REFERENCE_ONLY","RETIRED"]},
+    "compatibility_state":{"enum":["EXACT_COMPATIBLE","BACKWARD_COMPATIBLE","ADAPTER_REQUIRED","REFERENCE_ONLY","QUARANTINED"]},
+    "runtime_agent_allowed":{"const":false},"runtime_llm_allowed":{"const":false}
+  }
+}

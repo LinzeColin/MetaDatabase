@@ -1,0 +1,145 @@
+{
+  "context_calibration": {
+    "facts": [
+      {
+        "fact": "Signal Lattice 保持运行期零 Agent、零模型 Token、禁止自动交易。",
+        "id": "CTX-001",
+        "state": "ACTIVE"
+      },
+      {
+        "fact": "Status 是运行状态只读投影与首尾控制入口，不是第二业务事实源。",
+        "id": "CTX-002",
+        "state": "ACTIVE"
+      },
+      {
+        "fact": "外部 Skill 以固定 Git commit 和完整树封存；当前正式 Seal 尚未形成。",
+        "id": "CTX-003",
+        "state": "ACTIVE"
+      },
+      {
+        "fact": "历史中未绑定当前制品的测试数量、Manifest 与 PASS 声明不得作为当前验收证据。",
+        "id": "CTX-004",
+        "state": "SUPERSEDED"
+      },
+      {
+        "fact": "正式独立 Reviewer 收据与目标环境绑定尚未产生。",
+        "id": "CTX-005",
+        "minimum_validation": "冻结 Subject 后执行正式 Review Chain 与目标环境 Context Capture。",
+        "state": "UNVERIFIED"
+      }
+    ],
+    "windows_days": [
+      3,
+      7,
+      15,
+      30
+    ]
+  },
+  "cost_ceiling": {
+    "new_paid_services_default": "PROHIBITED",
+    "runtime_model_token_budget": 0
+  },
+  "current_phase": "SEALED_TASKPACK",
+  "forbidden_dependencies": [
+    "runtime_agent",
+    "runtime_llm",
+    "automatic_trading",
+    "upstream_skill_writeback",
+    "macos_launchd",
+    "user_machine_runtime"
+  ],
+  "latest_iteration": {
+    "closed_findings": [],
+    "developer_burden_delta": [
+      "Final taskpack sealed; Build Agent receives only environment-bound work."
+    ],
+    "formal_release_pass_claimed": false,
+    "id": "FINAL-TASKPACK-SEAL-039",
+    "live_action_enabled": false,
+    "new_mechanisms": [],
+    "open_p0": 0,
+    "open_p1": 0,
+    "owner_override_used": true,
+    "qualifying_round": false,
+    "state": "OWNER_APPROVED_TASKPACK_SEAL_PENDING_RECEIPT"
+  },
+  "owner_approved_scope": true,
+  "owner_gate": {
+    "eligible": true,
+    "owner_approval_receipt": "evidence/owner_gate/taskpack_owner_approval.json",
+    "owner_override_authorized": true,
+    "owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
+    "qualifying_no_change_rounds": 0,
+    "required_rounds": 2
+  },
+  "product_version": "0.0.0.1.39",
+  "production_side_effect_authorization": false,
+  "project_id": "signal-lattice",
+  "project_name": "Signal Lattice",
+  "required_integrations": [
+    "status.linzezhang.com",
+    "OVH",
+    "Private-Database",
+    "Cloudflare R2",
+    "OCI",
+    "PFI",
+    "EEI",
+    "QBE",
+    "QBVS",
+    "QVE",
+    "Serenity",
+    "Alpha"
+  ],
+  "resource_ceiling": {
+    "default_profile": "single_worker_low_resource",
+    "state": "AUTO_CAPTURE_REQUIRED"
+  },
+  "root_blockers": [
+    {
+      "blocks_live_action": true,
+      "blocks_taskpack_seal": false,
+      "environment_bound": true,
+      "id": "B-UPSTREAM-SEAL",
+      "reason": "需要精确只读 Git checkout、worktree 或 bundle。",
+      "state": "DEFERRED_ENVIRONMENT_BOUND"
+    },
+    {
+      "blocks_live_action": true,
+      "blocks_taskpack_seal": false,
+      "environment_bound": true,
+      "id": "B-FORMAL-REVIEW",
+      "reason": "需要真实隔离 Reviewer 与第二模型收据。",
+      "state": "DEFERRED_ENVIRONMENT_BOUND"
+    }
+  ],
+  "runtime_contract": {
+    "agent_dependency": 0,
+    "automatic_trading": false,
+    "macos_runtime": false,
+    "model_mode": "DISABLED",
+    "token_budget": 0,
+    "trip_on_any_model_attempt": true,
+    "upstream_writeback": false
+  },
+  "runtime_node": "OVH Linux",
+  "schema_version": "1.0.0",
+  "scope_state": "OWNER_APPROVED_SEALED_TASKPACK",
+  "state_machine": [
+    "CONTEXT_CAPTURE",
+    "RESEARCH_AND_REUSE",
+    "PREBUILD",
+    "TEN_LENS_REVIEW",
+    "REMEDIATION",
+    "BUILDER_READINESS",
+    "OWNER_GATE",
+    "SEALED_TASKPACK",
+    "BUILD_LAST_MILE",
+    "FROZEN_CANDIDATE",
+    "VERIFY_AND_RELEASE",
+    "POST_DEPLOY_OBSERVATION"
+  ],
+  "target_area": "Signal-Lattice/",
+  "target_domain": "signal-lattice.linzezhang.com",
+  "target_repository": "LinzeColin/MetaDatabase",
+  "taskpack_version": "0.0.0.1.39"
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal-lattice.local/schemas/review_chain.schema.json",
+  "title": "Signal Lattice 正式复审责任链",
+  "type": "object",
+  "required": [
+    "schema_version", "state", "subject_sha256", "input_sha256", "counts",
+    "receipt_count", "open_p0", "open_p1", "receipts", "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "state": {"enum": ["PASS", "BLOCKED", "FAIL"]},
+    "subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "counts": {"type": "object"},
+    "receipt_count": {"type": "integer", "minimum": 0},
+    "open_p0": {"type": "integer", "minimum": 0},
+    "open_p1": {"type": "integer", "minimum": 0},
+    "receipts": {"type": "array"},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

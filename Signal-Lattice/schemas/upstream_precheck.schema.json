@@ -1,0 +1,60 @@
+{
+  "$id": "https://signal-lattice.local/schemas/upstream_precheck.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "state": {"enum": ["BLOCKED", "PASS"]},
+    "reason_code": {"minLength": 1, "type": "string"},
+    "baseline_sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "required_sources": {
+      "minItems": 2,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "name": {"minLength": 1, "type": "string"},
+          "repository": {"pattern": "^https://github\\.com/", "type": "string"},
+          "commit": {"pattern": "^[0-9a-f]{40}$", "type": "string"}
+        },
+        "required": ["name", "repository", "commit"]
+      }
+    },
+    "accepted_inputs": {"minItems": 1, "type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "repositories": {
+      "minItems": 2,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "state": {"enum": ["BLOCKED", "PASS"]},
+          "reason": {},
+          "detail": {"type": "string"},
+          "path": {"type": "string"},
+          "expected_commit": {"pattern": "^[0-9a-f]{40}$", "type": "string"},
+          "actual_commit": {"pattern": "^[0-9a-f]{40}$", "type": "string"},
+          "root_tree": {"pattern": "^[0-9a-f]{40}$", "type": "string"},
+          "clean": {"type": "boolean"},
+          "shallow": {"type": "boolean"}
+        },
+        "required": ["name", "state", "reason", "expected_commit"]
+      }
+    },
+    "network_fetch_allowed_in_current_runtime": {"type": "boolean"},
+    "network_fetch_attempted": {"const": false},
+    "upstream_write_allowed": {"const": false},
+    "developer_research_required": {"const": false},
+    "resolution_command": {"minLength": 1, "type": "string"},
+    "formal_seal_present": {"type": "boolean"},
+    "receipt_sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"}
+  },
+  "required": [
+    "schema_version", "state", "reason_code", "baseline_sha256", "required_sources",
+    "accepted_inputs", "repositories", "network_fetch_allowed_in_current_runtime",
+    "network_fetch_attempted", "upstream_write_allowed", "developer_research_required",
+    "resolution_command", "formal_seal_present", "receipt_sha256"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "commit": null,
+  "files": [],
+  "minimum_capture_required": [
+    "AGENTS.md",
+    "README",
+    "target fact paths",
+    "sync contract",
+    "no-empty-commit rule"
+  ],
+  "reason": "RuntimeError:READ_ONLY_CONTEXT_CAPTURE_REQUIRED",
+  "repository": "LinzeColin/Private-Database",
+  "schema_version": "1.0.0",
+  "secret_collected": false,
+  "state": "INACCESSIBLE",
+  "write_attempted": false
+}

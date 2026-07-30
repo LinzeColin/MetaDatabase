@@ -1,0 +1,470 @@
+{
+  "developer_research_required": false,
+  "formal_release_pass_claimed": false,
+  "live_action_enabled": false,
+  "non_environment_unknown_count": 0,
+  "schema_version": "1.0.0",
+  "source": "machine/facts/task_execution_contract.json",
+  "state": "FROZEN_FOR_BUILD_LAST_MILE",
+  "task_count": 17,
+  "tasks": [
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "bash",
+          "scripts/context_capture.sh",
+          "{ARTIFACT_DIR}/context_capture.json"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-003.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-003",
+      "timeout_seconds": 120,
+      "title": "采集目标仓规则、CI 与 OVH 只读上下文"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "python3",
+          "scripts/land_project.py",
+          "--source",
+          "{ROOT}",
+          "--target-repo",
+          "${SIGNAL_LATTICE_TARGET_REPO}",
+          "--target-area",
+          "Signal-Lattice",
+          "--apply"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-005.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_TARGET_REPO"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-005",
+      "timeout_seconds": 300,
+      "title": "将 Signal-Lattice 原样落入目标仓"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "python3",
+          "scripts/apply_meta_dual_plane.py",
+          "--repo",
+          "${SIGNAL_LATTICE_TARGET_REPO}",
+          "--apply"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-006.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_TARGET_REPO"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-006",
+      "timeout_seconds": 300,
+      "title": "应用双平面七文件与 CI 精确 Patch"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "python3",
+          "scripts/register_status.py",
+          "--status-root",
+          "${SIGNAL_LATTICE_STATUS_ROOT}",
+          "--apply"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-007.json",
+      "expected": "Signal Lattice 以完整 PROJECTS 条目登记，systemd 所有权和九切片守卫通过。",
+      "failure_branch": "登记所有权、字段完整性或 Status 测试冲突立即停止并恢复备份。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_STATUS_ROOT"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-007",
+      "timeout_seconds": 300,
+      "title": "幂等登记 Status 项目与业务线"
+    },
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "python3",
+          "scripts/build_upstream_seal.py",
+          "--root",
+          "{ROOT}",
+          "--agent",
+          "${SIGNAL_LATTICE_AGENT_DATABASE_CHECKOUT}",
+          "--meta",
+          "${SIGNAL_LATTICE_META_DATABASE_CHECKOUT}",
+          "--output",
+          "{ROOT}/evidence/upstream"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-008.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [
+        "SIGNAL_LATTICE_AGENT_DATABASE_CHECKOUT",
+        "SIGNAL_LATTICE_META_DATABASE_CHECKOUT"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-008",
+      "timeout_seconds": 900,
+      "title": "验证固定上游 Seal 与 Stock Skill Registry"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "bash",
+          "scripts/provision_runtime.sh"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-010.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_APPLY"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-010",
+      "timeout_seconds": 180,
+      "title": "创建 OVH 用户、目录、权限和资源预算"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "python3",
+          "scripts/bind_runtime_env.py",
+          "--source",
+          "${SIGNAL_LATTICE_RUNTIME_ENV_FILE}",
+          "--dest",
+          "/etc/signal-lattice/runtime.env",
+          "--apply"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-011.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_RUNTIME_ENV_FILE"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-011",
+      "timeout_seconds": 60,
+      "title": "绑定 runtime.env 且拒绝模型密钥"
+    },
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "python3",
+          "scripts/verify_integrations.py",
+          "private-database"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-012.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [
+        "SIGNAL_LATTICE_PRIVATE_DB_CLIENT"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-012",
+      "timeout_seconds": 120,
+      "title": "绑定 Private-Database 结构化事实同步"
+    },
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "python3",
+          "scripts/verify_integrations.py",
+          "object-storage"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-013.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [
+        "SIGNAL_LATTICE_R2_PRIMARY_NAMESPACE",
+        "SIGNAL_LATTICE_R2_BACKUP_NAMESPACE",
+        "SIGNAL_LATTICE_OCI_BACKUP_TARGET"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-013",
+      "timeout_seconds": 60,
+      "title": "绑定 R2、D1 可选索引与 OCI 冷备"
+    },
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "python3",
+          "scripts/verify_integrations.py",
+          "status"
+        ],
+        [
+          "bash",
+          "scripts/status_preflight.sh",
+          "deployment",
+          "{ARTIFACT_DIR}/status_deployment_preflight.json"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-014.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [
+        "SIGNAL_LATTICE_STATUS_SNAPSHOT"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-014",
+      "timeout_seconds": 180,
+      "title": "绑定 Status 快照、Collector 和权限"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "bash",
+          "scripts/install_release.sh",
+          "${SIGNAL_LATTICE_WHEEL}"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-016.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_WHEEL"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-016",
+      "timeout_seconds": 300,
+      "title": "执行 Hermetic Release 安装与原子 current 切换"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "bash",
+          "scripts/install_systemd.sh"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-017.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_APPLY"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-017",
+      "timeout_seconds": 180,
+      "title": "安装并启用 systemd 服务和 Timer"
+    },
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "python3",
+          "scripts/verify_ingress.py",
+          "--config",
+          "${SIGNAL_LATTICE_INGRESS_CONFIG}"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-018.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [
+        "SIGNAL_LATTICE_INGRESS_CONFIG"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-018",
+      "timeout_seconds": 60,
+      "title": "配置 Cloudflare 入口只转发 Loopback API"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "python3",
+          "scripts/outbox_sync_once.py"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-024.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_STATE_DIR",
+        "SIGNAL_LATTICE_PRIVATE_DB_CLIENT"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-024",
+      "timeout_seconds": 180,
+      "title": "验证 Outbox 幂等同步和无空提交"
+    },
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "python3",
+          "scripts/build_business_line_evidence.py",
+          "--output",
+          "{ARTIFACT_DIR}/business_line_evidence.json",
+          "--evidence-root",
+          "${SIGNAL_LATTICE_TARGET_EVIDENCE_DIR}",
+          "--target"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-025.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [
+        "SIGNAL_LATTICE_TARGET_EVIDENCE_DIR"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-025",
+      "timeout_seconds": 180,
+      "title": "自动生成 13×9 业务线目标证据"
+    },
+    {
+      "authorization_env": null,
+      "authorization_required": false,
+      "commands": [
+        [
+          "bash",
+          "scripts/status_closure.sh",
+          "{ARTIFACT_DIR}/business_line_evidence.json",
+          "{ARTIFACT_DIR}/status_closure.json"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-026.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "ENVIRONMENT_BOUND",
+      "required_env": [],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-026",
+      "timeout_seconds": 180,
+      "title": "执行 Status Closure 并保留降级事实"
+    },
+    {
+      "authorization_env": "SIGNAL_LATTICE_APPLY",
+      "authorization_required": true,
+      "commands": [
+        [
+          "bash",
+          "scripts/commit_if_changed.sh",
+          "${SIGNAL_LATTICE_TARGET_REPO}",
+          "${SIGNAL_LATTICE_COMMIT_MESSAGE}"
+        ]
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence_path": "{ARTIFACT_DIR}/tasks/T-029.json",
+      "expected": "全部命令退出码为 0，并写入 state=PASS 的自 Hash 任务收据。",
+      "failure_branch": "退出码 2 或缺少环境输入时写入 BLOCKED 收据并停止当前任务；不得猜测或降级为 PASS。",
+      "mode": "AUTHORIZED_SIDE_EFFECT",
+      "required_env": [
+        "SIGNAL_LATTICE_TARGET_REPO",
+        "SIGNAL_LATTICE_COMMIT_MESSAGE"
+      ],
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "task_id": "T-029",
+      "timeout_seconds": 180,
+      "title": "有真实变更时 commit、push、merge 和备份"
+    }
+  ],
+  "version": "0.0.0.1.39"
+}

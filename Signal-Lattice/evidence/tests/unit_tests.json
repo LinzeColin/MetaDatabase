@@ -1,0 +1,17 @@
+{
+  "candidate_version": "0.0.0.1.39",
+  "command": [
+    "bash",
+    "scripts/run_tests.sh"
+  ],
+  "failed": 0,
+  "passed": 82,
+  "receipt_sha256": "2b098cbec4468c1b8473217ddbad23bc305b1a1313563ec61ff34537ff487bba",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "1.0.0",
+  "skipped": 1,
+  "state": "PASS",
+  "test_count": 83,
+  "warnings_as_errors": true
+}

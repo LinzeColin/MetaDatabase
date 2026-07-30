@@ -1,0 +1,74 @@
+{
+  "$id": "https://signal-lattice.local/schemas/candidate_freeze.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "after_sha256": {
+      "minProperties": 6,
+      "type": "object"
+    },
+    "before_sha256": {
+      "minProperties": 6,
+      "type": "object"
+    },
+    "canonical_state_sha256_at_freeze": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "contract_count": {
+      "const": 7
+    },
+    "dynamic_acceptance_expansion_allowed": {
+      "const": false
+    },
+    "dynamic_scope_expansion_allowed": {
+      "const": false
+    },
+    "quant_seal_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "runtime_agent_dependency": {
+      "const": 0
+    },
+    "runtime_llm_token_budget": {
+      "const": 0
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "state": {
+      "const": "PASS"
+    },
+    "upstream_seal_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "version": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "state",
+    "version",
+    "upstream_seal_sha256",
+    "quant_seal_sha256",
+    "before_sha256",
+    "after_sha256",
+    "contract_count",
+    "dynamic_scope_expansion_allowed",
+    "dynamic_acceptance_expansion_allowed",
+    "runtime_agent_dependency",
+    "runtime_llm_token_budget",
+    "receipt_sha256",
+    "canonical_state_sha256_at_freeze"
+  ],
+  "title": "Signal Lattice Candidate Freeze Receipt",
+  "type": "object"
+}
