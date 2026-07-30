@@ -45,37 +45,13 @@ jobs:
       - name: Validate registry and registered artifacts
         run: python3 -B Signal-Lattice/Stock_Skill/scripts/validate_registry.py
 
-      # ★ 每个技能包的根目录都要能被 import,否则套件里**在进程内**直接
-      #   `import <包名>` 的测试必然炸:
-      #     ERROR: test_capacity   ModuleNotFoundError: No module named 'equity_foresight_signal'
-      #     ERROR: test_dataset    同上
-      #   原因:unittest.discover 只把 start_dir(即 tests/)放进 sys.path,
-      #   而被测包在**父目录**。同目录别的测试之所以没事,是因为它们走
-      #   subprocess(cwd=父目录)起 `python -m <包名>`,从不在进程内导入 ——
-      #   两种写法混在一个目录里,这个坑才藏了这么久。
-      #
-      # ★★ 更要紧的后果:run_unittests.py 里 `if result.returncode != 0: return`,
-      #   **第一个套件失败就整体返回**。equity-foresight-signal 排第三,
-      #   于是它后面的 global-equity-lead-lag / stock-commercial-opportunities /
-      #   Stock_Skill/tests 这三个套件**从来没有在 CI 里被执行过**。
-      #   实测:修好之后 338 → 640 条,多出来的 302 条不是新写的,是一直没跑的。
-      #
-      # ★ 为什么把修改点放在这里、而不是改 run_unittests.py:
-      #   bottleneck-serenity-skill 的完成度审计 validate_changed_path_scope()
-      #   有一份改动路径允许清单,`Stock_Skill/scripts/run_unittests.py` 不在里面
-      #   (而同目录的 validate_registry.py / validate_public_safety.py 都在),
-      #   动它会被判 `changed paths escape Stock Skill allowlist`。
-      #   把自己的文件加进那份允许清单来让自己变绿 —— 不做。
-      #   本文件 `.github/workflows/stock-skill-validation.yml` **本来就在允许清单里**,
-      #   且不在任何 SHA256SUMS / BACKUP_MANIFEST 里,改它不碰任何受保护面。
+      # 每个 suite 由 run_unittests.py 注入其自身的项目根目录及可选 src/。
+      # 这样 EFS 的进程内 import 与 GELA 的 src 布局都在 suite 间隔离，避免
+      # 全局 PYTHONPATH 把一个 Skill 的模块泄漏给另一个 Skill。
       - name: Run every Stock Skill unittest suite
         run: |
           set -euo pipefail
-          # 每个含 tests/ 的技能包根目录都加进 PYTHONPATH;子进程继承,套件间互不影响
-          PYTHONPATH="$(python3 -c "import os,pathlib;print(os.pathsep.join(sorted({str(p.parent.resolve()) for p in pathlib.Path('Signal-Lattice/Stock_Skill').rglob('tests') if p.is_dir()})))")"
-          export PYTHONPATH
-          echo "PYTHONPATH 覆盖 $(printf '%s' "$PYTHONPATH" | tr ':' '\n' | grep -c .) 个技能包根目录"
-          python3 -B Signal-Lattice/Stock_Skill/scripts/run_unittests.py
+          python3 -B Signal-Lattice/Stock_Skill/scripts/run_unittests.py --repo-root .
 
       - name: Verify every Stock Skill manifest and SHA256SUMS
         run: |
