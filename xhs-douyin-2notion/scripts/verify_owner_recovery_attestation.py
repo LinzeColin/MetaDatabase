@@ -62,7 +62,10 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 
 def _parse_utc(value: str) -> datetime:
-    _require(re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value) is not None, "attested_at must be second-precision UTC")
+    _require(
+        re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value) is not None,
+        "attested_at must be second-precision UTC",
+    )
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     _require(parsed.tzinfo is not None, "attested_at timezone missing")
     return parsed.astimezone(timezone.utc)
@@ -79,7 +82,10 @@ def _assert_no_secret_shapes(rendered: str) -> None:
         r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
         re.escape("/" + "Users/"),
     )
-    _require(not any(re.search(pattern, rendered) for pattern in patterns), "credential, authenticated URL, key material or local path found in recovery receipt")
+    _require(
+        not any(re.search(pattern, rendered) for pattern in patterns),
+        "credential, authenticated URL, key material or local path found in recovery receipt",
+    )
 
 
 def validate_receipt_payload(
@@ -92,13 +98,20 @@ def validate_receipt_payload(
     required = set(schema.get("required", []))
     allowed = set(schema.get("properties", {}))
     _require(set(payload) == required == allowed, "recovery receipt fields differ from the closed schema")
-    _require(payload.get("schema_version") == "1.0" and payload.get("project") == "x2n", "recovery receipt identity mismatch")
+    _require(
+        payload.get("schema_version") == "1.0" and payload.get("project") == "x2n", "recovery receipt identity mismatch"
+    )
     _require(payload.get("incident_id") == INCIDENT_ID, "recovery receipt incident mismatch")
     _require(payload.get("subject") == "github_authentication_material", "recovery receipt subject mismatch")
-    _require(payload.get("attestation_source") == "direct_owner_statement" and payload.get("owner_attested") is True, "direct Owner attestation missing")
+    _require(
+        payload.get("attestation_source") == "direct_owner_statement" and payload.get("owner_attested") is True,
+        "direct Owner attestation missing",
+    )
     action = payload.get("recovery_action")
     _require(action in ACTION_STATES, "unsupported recovery action")
-    _require(payload.get("old_material_state") == ACTION_STATES[action], "recovery action and old-material state disagree")
+    _require(
+        payload.get("old_material_state") == ACTION_STATES[action], "recovery action and old-material state disagree"
+    )
 
     attested_at = _parse_utc(str(payload.get("attested_at", "")))
     incident_time = incident_at
@@ -114,7 +127,10 @@ def validate_receipt_payload(
     _require(payload.get("remote_url_included") is False, "remote URL inclusion must be false")
     _require(payload.get("account_identifier_included") is False, "account identifier inclusion must be false")
     _require(payload.get("free_text_included") is False, "free text inclusion must be false")
-    _require(payload.get("resume_authorization") == "stage_0_review_resume_only", "receipt grants an invalid authorization scope")
+    _require(
+        payload.get("resume_authorization") == "stage_0_review_resume_only",
+        "receipt grants an invalid authorization scope",
+    )
     _require(payload.get("g0_pass_granted") is False, "receipt attempted to grant G0")
     _require(payload.get("stage_1_authorized") is False, "receipt attempted to authorize Stage 1")
     _require(payload.get("remote_upload_authorized") is False, "receipt attempted to authorize upload")
@@ -151,7 +167,10 @@ def resolve_private_root(value: Optional[str] = None) -> Path:
     _require(marker_path.is_file() and not marker_path.is_symlink(), "private root marker missing or symlinked")
     _require(stat.S_IMODE(marker_path.stat().st_mode) == 0o600, "private root marker must be 0600")
     marker = _load_json(marker_path)
-    _require(marker.get("project") == "xhs-douyin-2notion" and marker.get("root_ref") == "X2N_DATA_ROOT", "private root marker identity mismatch")
+    _require(
+        marker.get("project") == "xhs-douyin-2notion" and marker.get("root_ref") == "X2N_DATA_ROOT",
+        "private root marker identity mismatch",
+    )
     _require(Path(str(marker.get("resolved_root", ""))).resolve() == root, "private root marker resolution mismatch")
     return root
 
@@ -173,32 +192,52 @@ def main() -> int:
     try:
         root = resolve_private_root()
         check = validate_recovery_receipt(root)
-        print(json.dumps({
-            "status": "PASS",
-            "check": check.__dict__,
-            "next_run": "STG.X2N.0.REVIEW.RESUME",
-            "g0_status": "BLOCKED_PENDING_REVIEW_RESUME",
-            "stage_1_authorized": False,
-            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
-        }, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": "PASS",
+                    "check": check.__dict__,
+                    "next_run": "STG.X2N.0.REVIEW.RESUME",
+                    "g0_status": "BLOCKED_PENDING_REVIEW_RESUME",
+                    "stage_1_authorized": False,
+                    "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 0
     except OwnerActionPending as exc:
-        print(json.dumps({
-            "status": "BLOCKED_OWNER_ACTION",
-            "reason": str(exc),
-            "g0_status": "BLOCKED_OWNER_ACTION",
-            "stage_1_authorized": False,
-            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
-        }, ensure_ascii=False, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps(
+                {
+                    "status": "BLOCKED_OWNER_ACTION",
+                    "reason": str(exc),
+                    "g0_status": "BLOCKED_OWNER_ACTION",
+                    "stage_1_authorized": False,
+                    "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            ),
+            file=sys.stderr,
+        )
         return 2
     except (OSError, ValueError, json.JSONDecodeError, VerificationError) as exc:
-        print(json.dumps({
-            "status": "FAIL_CLOSED",
-            "error": _safe_error(exc),
-            "g0_status": "BLOCKED_OWNER_ACTION",
-            "stage_1_authorized": False,
-            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
-        }, ensure_ascii=False, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps(
+                {
+                    "status": "FAIL_CLOSED",
+                    "error": _safe_error(exc),
+                    "g0_status": "BLOCKED_OWNER_ACTION",
+                    "stage_1_authorized": False,
+                    "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            ),
+            file=sys.stderr,
+        )
         return 1
 
 

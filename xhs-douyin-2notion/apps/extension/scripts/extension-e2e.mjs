@@ -61,6 +61,40 @@ const EXPECTED_EXTENSION_ID = "chheapilbdfnpajmlkijppmblnlheeac";
 const NATIVE_HOST = "com.linzecolin.x2n";
 const INSTALL_CONFIRMATION = "INSTALL_X2N_NATIVE_HOST";
 const UNINSTALL_CONFIRMATION = "UNINSTALL_X2N_NATIVE_HOST";
+const SCOPE_DISPATCH_REQUESTS = Object.freeze([
+  Object.freeze({ maxItems: 20, scopeId: "xiaohongshu_favorites", sourceCollectionId: null }),
+  Object.freeze({ maxItems: 20, scopeId: "xiaohongshu_likes", sourceCollectionId: null }),
+  Object.freeze({ maxItems: 20, scopeId: "douyin_favorites", sourceCollectionId: null }),
+  Object.freeze({ maxItems: 20, scopeId: "douyin_likes", sourceCollectionId: null }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "a".repeat(64),
+    scopeId: "bilibili_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "b".repeat(64),
+    scopeId: "kuaishou_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "c".repeat(64),
+    scopeId: "weibo_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+  Object.freeze({
+    maxItems: 20,
+    ownerSelectionId: "x2nsel_0123456789abcdef0123456789abcdef",
+    ownerSelectionManifestSha256: "d".repeat(64),
+    scopeId: "taobao_selected_collection",
+    sourceIdentity: "synthetic_owner_selected_source",
+  }),
+]);
 
 class E2EFailure extends Error {
   constructor(code) {
@@ -204,7 +238,12 @@ try {
 
   currentStep = "runtime_init";
   const initialized = runJson(uvPython("x2n_companion.runtime_cli", "init"), env, "runtime_init");
-  requireCondition(initialized.status === "PASS" && initialized.schema_version === 2, "runtime_init_status");
+  requireCondition(
+    initialized.status === "PASS"
+      && Number.isInteger(initialized.schema_version)
+      && initialized.schema_version === initialized.latest_schema_version,
+    "runtime_init_status",
+  );
 
   currentStep = "native_host_install";
   const hostInstall = runJson(
@@ -269,6 +308,10 @@ try {
     if (message.type() === "error") consoleErrors.push("console_error");
   });
   await page.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+  requireCondition(
+    await page.evaluate(() => typeof Element.prototype.animate === "function"),
+    "local_motion_unavailable",
+  );
   currentStep = "direct_native_probe";
   const directProbe = await page.evaluate(async (host) => {
     const request = {
@@ -299,26 +342,156 @@ try {
   );
   requireCondition(workerProbe.state === "resolved", `worker_message_${workerProbe.state}`);
   requireCondition(workerProbe.response?.ok === true, "worker_message_response");
+  currentStep = "capability_dispatch";
+  const capabilityProbe = await page.evaluate(() => chrome.runtime.sendMessage({ type: "X2N_GET_CAPABILITIES" }));
+  if (process.env.X2N_E2E_DEBUG === "1") {
+    process.stderr.write(`${JSON.stringify({
+      capability_probe_error_code: capabilityProbe?.response?.error?.code ?? null,
+      capability_probe_ok: capabilityProbe?.ok ?? null,
+      capability_probe_outcomes: capabilityProbe?.response?.capabilities?.outcomes?.length ?? null,
+      capability_probe_status: capabilityProbe?.response?.status ?? null,
+    })}\n`);
+  }
+  requireCondition(capabilityProbe?.ok === true, "capability_probe_response");
+  requireCondition(capabilityProbe.response?.capabilities?.outcomes?.length === 8, "capability_probe_eight_scopes");
+  const scopeDispatches = await page.evaluate(async (requests) => {
+    const results = [];
+    for (const request of requests) {
+      results.push(await chrome.runtime.sendMessage({ type: "X2N_START_SYNC", ...request }));
+    }
+    return results;
+  }, SCOPE_DISPATCH_REQUESTS);
+  requireCondition(scopeDispatches.length === 8, "scope_dispatch_count");
+  requireCondition(
+    scopeDispatches.every((result) => result?.ok === true && result.response?.status === "completed"),
+    "scope_dispatch_rejected",
+  );
+  const scopeJobIds = scopeDispatches.map((result) => result?.response?.job_id);
+  requireCondition(
+    scopeJobIds.every((jobId) => typeof jobId === "string" && /^[0-9a-f-]{36}$/.test(jobId))
+      && new Set(scopeJobIds).size === 8,
+    "scope_dispatch_job_identity",
+  );
+  const scopeJobStates = await page.evaluate(
+    (jobIds) => Promise.all(jobIds.map((jobId) => chrome.runtime.sendMessage({ jobId, type: "X2N_GET_JOB" }))),
+    scopeJobIds,
+  );
+  requireCondition(
+    scopeJobStates.every((result, index) => result?.ok === true && result.response?.job_id === scopeJobIds[index]),
+    "scope_dispatch_restart_safe_state",
+  );
   currentStep = "sidepanel_health";
   await page.locator("#tab-status").click();
   await page.locator("#refresh-status").waitFor({ state: "visible" });
   await page.locator("#refresh-status").click({ timeout: 10_000 });
   try {
-    await page.locator("#host-status").filter({ hasText: "Local companion connected" }).waitFor({ timeout: 15_000 });
+    await page.locator("#host-status").filter({ hasText: "本地助手已连接" }).waitFor({ timeout: 15_000 });
   } catch {
     const healthText = await page.locator("#host-status").textContent().catch(() => "");
     throw new E2EFailure(
-      healthText?.includes("unavailable") ? "native_host_unavailable" : "sidepanel_health_timeout",
+      healthText?.includes("不可用") ? "native_host_unavailable" : "sidepanel_health_timeout",
     );
   }
   currentStep = "sidepanel_ui";
-  requireCondition(await page.locator("#panel-save button").isDisabled(), "unsupported_save_executable");
+  requireCondition(await page.locator("#save-current").isDisabled(), "unsupported_save_executable");
 
-  const sections = ["save", "sync", "review", "status", "settings"];
+  const sections = ["save", "sync", "status"];
   for (const section of sections) {
     await page.locator(`#tab-${section}`).click();
+    await page.locator(`#panel-${section}`).waitFor({ state: "visible", timeout: 2_000 });
     requireCondition(await page.locator(`#panel-${section}`).isVisible(), `navigation_${section}`);
   }
+
+  currentStep = "xhs_favorites_guide";
+  const browser = context.browser();
+  requireCondition(Boolean(browser), "browser_cdp_unavailable");
+  const guideUrl = "https://xiaohongshu.com/user/profile/x2n-owner?tab=fav&subTab=note";
+  const guidePage = await context.newPage();
+  await guidePage.route("**/*", (route) => route.fulfill({
+    body: "<!doctype html><title>x2n synthetic favorites guide</title>",
+    contentType: "text/html; charset=utf-8",
+    status: 200,
+  }));
+  await guidePage.goto(guideUrl, { waitUntil: "domcontentloaded" });
+  await guidePage.bringToFront();
+  const guideCdp = await browser.newBrowserCDPSession();
+  const { targetInfos: guideTargets } = await guideCdp.send("Target.getTargets", {
+    filter: [{ exclude: false, type: "tab" }],
+  });
+  const guideTarget = guideTargets.find((target) => target.type === "tab" && target.url === guideUrl);
+  requireCondition(Boolean(guideTarget), "xhs_favorites_guide_target_missing");
+  await guideCdp.send("Extensions.triggerAction", {
+    id: extensionId,
+    targetId: guideTarget.targetId,
+  });
+  await guideCdp.detach();
+  // Headless Chromium does not expose the opened side panel as a Playwright
+  // Page target. Reload the test-owned side panel so it observes the same
+  // action-granted active tab that a docked side panel sees in Chrome.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => document.querySelector("#page-status")?.textContent?.includes("第一组"),
+    undefined,
+    { timeout: 10_000 },
+  );
+  requireCondition(
+    await page.locator("#workflow-title").textContent() === "打开一篇想保存的笔记",
+    "xhs_favorites_guide_title",
+  );
+  requireCondition(
+    await page.locator("#workflow-copy").textContent().then((text) => text?.includes("点开一篇不同的收藏笔记")),
+    "xhs_favorites_guide_copy",
+  );
+  requireCondition(await page.locator("#workflow-action").isHidden(), "xhs_favorites_guide_action_visible");
+  requireCondition(await page.locator("#batch-switcher").isHidden(), "xhs_favorites_guide_batch_visible");
+  const guideVisibleActionCount = await page.locator("#panel-save button:visible").count();
+  requireCondition(guideVisibleActionCount === 0, "xhs_favorites_guide_button_visible");
+  await guidePage.close();
+  await page.bringToFront();
+
+  currentStep = "bilibili_unavailable_detail_guide";
+  const unavailableUrl = "https://www.bilibili.com/video/BV1RealShape0";
+  const unavailablePage = await context.newPage();
+  await unavailablePage.route("**/*", (route) => route.fulfill({
+    body: "<!doctype html><title>x2n unavailable detail guide</title>",
+    contentType: "text/html; charset=utf-8",
+    status: 200,
+  }));
+  await unavailablePage.goto(unavailableUrl, { waitUntil: "domcontentloaded" });
+  await unavailablePage.bringToFront();
+  const unavailableCdp = await browser.newBrowserCDPSession();
+  const { targetInfos: unavailableTargets } = await unavailableCdp.send("Target.getTargets", {
+    filter: [{ exclude: false, type: "tab" }],
+  });
+  const unavailableTarget = unavailableTargets.find(
+    (target) => target.type === "tab" && target.url === unavailableUrl,
+  );
+  requireCondition(Boolean(unavailableTarget), "bilibili_unavailable_detail_target_missing");
+  await unavailableCdp.send("Extensions.triggerAction", {
+    id: extensionId,
+    targetId: unavailableTarget.targetId,
+  });
+  await unavailableCdp.detach();
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => document.querySelector("#page-status")?.textContent === "哔哩哔哩暂时还不能保存",
+    undefined,
+    { timeout: 10_000 },
+  );
+  requireCondition(
+    await page.locator("#workflow-title").textContent() === "哔哩哔哩还在准备中",
+    "bilibili_unavailable_detail_title",
+  );
+  requireCondition(
+    await page.locator("#workflow-copy").textContent().then((text) => text?.includes("无需换页面或找按钮")),
+    "bilibili_unavailable_detail_copy",
+  );
+  requireCondition(await page.locator("#workflow-action").isHidden(), "bilibili_unavailable_detail_action_visible");
+  requireCondition(await page.locator("#capture-fallback").isHidden(), "bilibili_unavailable_detail_fallback_visible");
+  const unavailableVisibleActionCount = await page.locator("#panel-save button:visible").count();
+  requireCondition(unavailableVisibleActionCount === 0, "bilibili_unavailable_detail_button_visible");
+  await unavailablePage.close();
+  await page.bringToFront();
 
   currentStep = "page_recognition";
   const fixture = JSON.parse(await readFile(FIXTURE_PATH, "utf8"));
@@ -403,8 +576,6 @@ try {
     beforeAction.capture?.ok === false && beforeAction.capture?.code === "X2N_POLICY_BLOCKED",
     `${CURRENT_PAGE_CONFIG.metricPrefix}_pre_action_capture_allowed`,
   );
-  const browser = context.browser();
-  requireCondition(Boolean(browser), "browser_cdp_unavailable");
   try {
     const actionCdp = await browser.newBrowserCDPSession();
     const { targetInfos } = await actionCdp.send("Target.getTargets", {
@@ -511,7 +682,7 @@ try {
     status: element.textContent,
   }));
   requireCondition(
-    submission.status === "Current page committed to the canonical store",
+    submission.status === "当前页面已写入本地知识库",
     `${CURRENT_PAGE_CONFIG.metricPrefix}_capture_rejected`,
   );
   const jobId = submission.jobId;
@@ -548,8 +719,10 @@ try {
 
   currentStep = "database_reconciliation";
   const health = runJson(uvPython("x2n_companion.runtime_cli", "health"), env, "runtime_health");
-  requireCondition(health.table_counts?.request_ledger === 1, "request_ledger_count");
-  requireCondition(health.table_counts?.run_record === 1, "run_record_count");
+  requireCondition(health.table_counts?.request_ledger === 9, "request_ledger_count");
+  requireCondition(health.table_counts?.run_record === 9, "run_record_count");
+  requireCondition(health.table_counts?.native_dispatch_job === 8, "native_dispatch_job_count");
+  requireCondition(health.table_counts?.capability_gate_outcome === 8, "capability_gate_outcome_count");
   requireCondition(lostJobs === 0 && wrongStatuses === 0, "chaos_reconciliation");
 
   currentStep = "evidence_receipts";
@@ -562,7 +735,7 @@ try {
 
   const result = {
     console_uncaught_errors: consoleErrors.length,
-    duplicate_jobs: health.table_counts.run_record - 1,
+    duplicate_jobs: health.table_counts.run_record - 9,
     extension_id_match: true,
     fixture_cases: fixture.cases.length,
     fixture_recognition_passed: fixture.cases.length - fixtureFailures.length,
@@ -574,6 +747,8 @@ try {
     platform_requests_observed: platformRequestsObserved,
     real_accounts: 0,
     request_ledger_rows: health.table_counts.request_ledger,
+    scope_dispatches: scopeDispatches.length,
+    scope_dispatch_platform_calls: 0,
     screenshot,
     service_worker_restarts: restarts,
     status: "PASS",
@@ -582,6 +757,10 @@ try {
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_before_grant_rejections`]: 2,
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_trigger`]: "PASS_CDP_DEFAULT_ACTION",
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_current_page_capture`]: "PASS_CI_SYNTH",
+    bilibili_unavailable_detail_guide: "PASS_CI_SYNTH",
+    bilibili_unavailable_detail_visible_actions: unavailableVisibleActionCount,
+    xhs_favorites_first_use_guide: "PASS_CI_SYNTH",
+    xhs_favorites_guide_visible_actions: guideVisibleActionCount,
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_owner_canary`]: "NOT_RUN",
     [`${CURRENT_PAGE_CONFIG.metricPrefix}_query_fragment_persisted`]: 0,
   };

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { canCaptureXhsMvpCurrent, recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { PLATFORM_NAMES, unavailableDetailGuidance } from "../src/sidepanel-guidance.js";
 import { buildBilibiliCapturePayload, validateBilibiliPageFacts } from "../src/bilibili-current-page.js";
 import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
 import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
@@ -58,6 +59,7 @@ const sourceFiles = [
   "src/kuaishou-current-page.js",
   "src/page-support.js",
   "src/service-worker.js",
+  "src/sidepanel-guidance.js",
   "src/sidepanel.js",
   "src/taobao-current-page.js",
   "src/weibo-current-page.js",
@@ -67,7 +69,6 @@ const sourceFiles = [
 const sources = Object.fromEntries(
   await Promise.all(sourceFiles.map(async (path) => [path, await readFile(new URL(path, root), "utf8")])),
 );
-
 const failures = [];
 const expectedPermissions = ["activeTab", "nativeMessaging", "scripting", "sidePanel"];
 if (manifest.manifest_version !== 3) failures.push("manifest_version");
@@ -77,9 +78,8 @@ if (JSON.stringify(manifest.permissions) !== JSON.stringify(expectedPermissions)
 if (Object.hasOwn(manifest, "host_permissions")) failures.push("host_permissions");
 if (manifest.background?.service_worker !== "src/service-worker.js" || manifest.background?.type !== "module") failures.push("background");
 if (manifest.side_panel?.default_path !== "sidepanel.html") failures.push("side_panel");
-if (manifest.action?.default_title !== "Open x2n Side Panel") failures.push("action");
+if (manifest.name !== "x2n 内容库" || manifest.action?.default_title !== "打开 x2n 内容库") failures.push("action");
 if (manifest.content_security_policy?.extension_pages !== "script-src 'self'; object-src 'none';") failures.push("csp");
-
 const publicKey = Buffer.from(manifest.key ?? "", "base64");
 const digest = createHash("sha256").update(publicKey).digest().subarray(0, 16).toString("hex");
 const extensionId = [...digest].map((nibble) => String.fromCharCode("a".charCodeAt(0) + Number.parseInt(nibble, 16))).join("");
@@ -93,10 +93,86 @@ for (const [path, source] of Object.entries(sources)) {
   if (/https?:\/\//i.test(source)) failures.push(`remote_source_${path}`);
   if (/\beval\s*\(|new Function\s*\(/.test(source)) failures.push(`dynamic_code_${path}`);
 }
-if (!sources["sidepanel.html"].includes('id="tab-save"') || !sources["sidepanel.html"].includes('id="tab-settings"')) failures.push("navigation");
+if (
+  !sources["sidepanel.html"].includes('id="tab-save"')
+  || !sources["sidepanel.html"].includes('id="tab-sync"')
+  || !sources["sidepanel.html"].includes('id="tab-status"')
+) failures.push("navigation");
 if (/<script(?![^>]+src=)/i.test(sources["sidepanel.html"])) failures.push("inline_script");
 if (!sources["src/service-worker.js"].includes("return true;")) failures.push("message_channel_compatibility");
 if (!sources["src/service-worker.js"].includes('sender.url === chrome.runtime.getURL("sidepanel.html")')) failures.push("sender_identity");
+for (const messageType of ["X2N_CAPTURE_CURRENT_MVP", "X2N_GET_CAPABILITIES", "X2N_START_SYNC"]) {
+  if (!sources["src/service-worker.js"].includes(messageType)) failures.push(`missing_message_${messageType}`);
+}
+for (const scopeId of [
+  "xiaohongshu_favorites",
+  "xiaohongshu_likes",
+  "douyin_favorites",
+  "douyin_likes",
+  "bilibili_selected_collection",
+  "kuaishou_selected_collection",
+  "weibo_selected_collection",
+  "taobao_selected_collection",
+]) {
+  if (!sources["src/service-worker.js"].includes(scopeId)) failures.push(`missing_scope_${scopeId}`);
+}
+if (!sources["src/service-worker.js"].includes("owner_selection_manifest_sha256")) failures.push("selected_manifest_binding");
+if (!sources["src/service-worker.js"].includes("fallbackAvailable")) failures.push("fallback_derivation");
+if (!sources["src/service-worker.js"].includes("owner_mvp_manifest_enrollment")) {
+  failures.push("mvp_manifest_enrollment_binding");
+}
+if (!sources["src/service-worker.js"].includes("canCaptureXhsMvpCurrent(message, support)")) {
+  failures.push("xhs_mvp_current_real_page_execution_gate");
+}
+if (
+  !sources["sidepanel.html"].includes('id="save-current-mvp"')
+  || !sources["sidepanel.html"].includes('id="save-current-mvp-second"')
+  || !sources["sidepanel.html"].includes('id="start-sync"')
+  || !sources["sidepanel.html"].includes('id="capture-fallback"')
+) {
+  failures.push("task010_controls");
+}
+if (
+  !sources["sidepanel.html"].includes('id="page-context"')
+  || !sources["sidepanel.html"].includes('id="host-health"')
+  || !sources["sidepanel.html"].includes('id="workflow-card"')
+  || !sources["sidepanel.html"].includes('id="batch-switcher"')
+) failures.push("sidepanel_state_hierarchy");
+if (!/\[hidden\]\s*\{[^}]*display:\s*none\s*!important/s.test(sources["styles/sidepanel.css"])) {
+  failures.push("hidden_controls_visible");
+}
+if (
+  /border-inline-start\s*:/u.test(sources["styles/sidepanel.css"])
+  || /repeating-linear-gradient\s*\(/u.test(sources["styles/sidepanel.css"])
+) failures.push("sidepanel_visual_regression");
+if (!sources["src/sidepanel.js"].includes("fallbackButton.addEventListener")) failures.push("fallback_second_action");
+if (
+  !sources["src/sidepanel.js"].includes("saveMvpCurrentButton.addEventListener")
+  || !sources["src/sidepanel.js"].includes("saveMvpCurrentSecondButton.addEventListener")
+) failures.push("mvp_current_action");
+if (
+  !sources["src/sidepanel.js"].includes("setPageContextState")
+  || !sources["src/sidepanel.js"].includes("setHostHealthState")
+  || !sources["src/sidepanel.js"].includes("guideSurface === \"xiaohongshu_favorites_list\"")
+) failures.push("sidepanel_status_feedback");
+if (
+  !sources["src/sidepanel.js"].includes("unavailableDetailGuidance")
+  || !sources["src/sidepanel.js"].includes("fallbackTabId")
+) failures.push("sidepanel_unavailable_detail_guidance");
+if (
+  !sources["src/sidepanel.js"].includes("captureFailureMessage")
+  || !sources["src/sidepanel.js"].includes("本机正在完成第一次准备")
+) failures.push("sidepanel_plain_language_capture_failure");
+if (
+  !sources["styles/sidepanel.css"].includes("--color-primary: var(--raw-blue-700)")
+  || !sources["styles/sidepanel.css"].includes("--color-primary-hover: var(--raw-blue-600)")
+) failures.push("sidepanel_blue_primary_action");
+if (
+  !sources["src/sidepanel.js"].includes("target.animate")
+  || !sources["src/sidepanel.js"].includes("window.matchMedia")
+  || !sources["src/sidepanel.js"].includes("prefers-reduced-motion")
+) failures.push("motion_reduced_motion");
+if (sources["src/sidepanel.js"].includes("startSelectedSync().catch")) failures.push("automatic_sync_fallback");
 
 const e2eSource = await readFile(new URL("scripts/extension-e2e.mjs", root), "utf8");
 if (e2eSource.includes("...process.env")) failures.push("e2e_environment_inheritance");
@@ -117,6 +193,42 @@ if (SUPPORTED_PLATFORMS.length !== 6) failures.push("platform_registry");
 if (recognizePage("https://www.xiaohongshu.com/explore/64f000000000000000000001").executable) {
   failures.push("xhs_real_page_gate");
 }
+const xhsMvpCurrent = recognizePage("https://www.xiaohongshu.com/explore/64f000000000000000000001");
+if (!xhsMvpCurrent.mvpCurrentEligible || xhsMvpCurrent.executable) {
+  failures.push("xhs_real_page_mvp_only_gate");
+}
+if (
+  !canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT_MVP", ownerMvpScope: "xiaohongshu_current_content" }, xhsMvpCurrent)
+  || canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT" }, xhsMvpCurrent)
+  || canCaptureXhsMvpCurrent({ type: "X2N_CAPTURE_CURRENT_MVP", ownerMvpScope: "unapproved_scope" }, xhsMvpCurrent)
+  || canCaptureXhsMvpCurrent({ fallbackFromJobId: "00000000-0000-4000-8000-000000000001", ownerMvpScope: "xiaohongshu_current_content", type: "X2N_CAPTURE_CURRENT_MVP" }, xhsMvpCurrent)
+) {
+  failures.push("xhs_real_page_mvp_current_capture_gate");
+}
+if (recognizePage("https://www.xiaohongshu.com/explore/synthetic-xhs-self-test").mvpCurrentEligible) {
+  failures.push("xhs_synthetic_page_not_mvp_current_eligible");
+}
+const xhsFavoritesGuide = recognizePage(
+  "https://xiaohongshu.com/user/profile/x2n-owner?tab=fav&subTab=note",
+);
+if (
+  xhsFavoritesGuide.guideSurface !== "xiaohongshu_favorites_list"
+  || xhsFavoritesGuide.platform !== "xiaohongshu"
+  || xhsFavoritesGuide.executable
+  || xhsFavoritesGuide.mvpCurrentEligible
+  || !xhsFavoritesGuide.supported
+) {
+  failures.push("xhs_favorites_first_use_guide");
+}
+if (recognizePage("https://xiaohongshu.com/user/profile/x2n-owner?tab=fav&subTab=note&unsafe=1").supported) {
+  failures.push("xhs_favorites_guide_query_boundary");
+}
+if (recognizePage("https://www.douyin.com/video/7485211130848218428").mvpCurrentEligible) {
+  failures.push("douyin_real_page_not_mvp_current_eligible");
+}
+if (Object.hasOwn(recognizePage("https://www.douyin.com/video/7485211130848218428"), "mvpCurrentEligible")) {
+  failures.push("douyin_mvp_current_field_boundary");
+}
 if (recognizePage("https://www.douyin.com/video/7485211130848218428").executable) {
   failures.push("douyin_real_page_gate");
 }
@@ -126,6 +238,22 @@ if (recognizePage("https://v.douyin.com/opaque-real-shaped/").supported) {
 if (recognizePage("https://www.douyin.com/note/7485211130848218428").supported) {
   failures.push("douyin_unknown_gallery_route_gate");
 }
+const douyinUnavailableGuidance = unavailableDetailGuidance("douyin");
+if (
+  douyinUnavailableGuidance?.status !== "请在收藏或喜欢清单中开始"
+  || douyinUnavailableGuidance.title !== "先打开“收藏”或“喜欢”"
+  || douyinUnavailableGuidance.steps.active !== 0
+) failures.push("douyin_unavailable_detail_guidance");
+for (const platform of ["bilibili", "kuaishou", "taobao", "weibo"]) {
+  const guidance = unavailableDetailGuidance(platform);
+  if (
+    guidance === null
+    || guidance.status !== `${PLATFORM_NAMES[platform]}暂时还不能保存`
+    || guidance.steps.active !== 1
+    || !guidance.copy.includes("无需换页面或找按钮")
+  ) failures.push(`unavailable_detail_guidance_${platform}`);
+}
+if (unavailableDetailGuidance("xiaohongshu") !== null) failures.push("xhs_unavailable_detail_guidance_boundary");
 for (const url of [
   "https://www.bilibili.com/video/BV1RealShape0",
   "https://www.bilibili.com/read/cv100000001",

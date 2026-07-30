@@ -162,6 +162,43 @@ def _iter_project_files(root: Path = PROJECT_ROOT) -> Iterable[Path]:
         yield path
 
 
+def _iter_source_candidate_files(root: Path = PROJECT_ROOT) -> Iterable[Path]:
+    """Yield only files that can enter the public source candidate.
+
+    The project-root scan deliberately follows Git's candidate rules so local
+    Finder metadata and other ignored runtime debris cannot turn a clean
+    source candidate into a false privacy failure. Custom roots retain the
+    recursive behavior used by isolated tests.
+    """
+
+    if root != PROJECT_ROOT:
+        yield from _iter_project_files(root)
+        return
+    git = shutil.which("git")
+    _require(git is not None, "git unavailable")
+    result = subprocess.run(
+        [git, "-c", "core.quotePath=false", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+        cwd=root,
+        env={
+            "GIT_CONFIG_GLOBAL": "/dev/null",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_TERMINAL_PROMPT": "0",
+            "LANG": "C.UTF-8",
+            "LC_ALL": "C.UTF-8",
+            "PATH": "/usr/bin:/bin",
+        },
+        check=False,
+        capture_output=True,
+    )
+    _require(result.returncode == 0, "source candidate enumeration failed")
+    for raw in sorted(item.decode("utf-8") for item in result.stdout.split(b"\0") if item):
+        relative = Path(raw)
+        _require(not relative.is_absolute() and ".." not in relative.parts, "unsafe source candidate path")
+        path = root / relative
+        _require(path.is_file() and not path.is_symlink(), "source candidate contains an unsafe path")
+        yield path
+
+
 def _line_number(text: str, start: int) -> int:
     return text.count("\n", 0, start) + 1
 
@@ -210,7 +247,7 @@ def scan_source(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     scanned = 0
     binary_files = 0
     denied_suffixes = set(_load_json(ARTIFACT_POLICY)["denied_suffixes"])
-    for path in _iter_project_files(root):
+    for path in _iter_source_candidate_files(root):
         relative = path.relative_to(root).as_posix()
         scanned += 1
         if path.suffix.lower() in denied_suffixes:
@@ -243,7 +280,10 @@ def validate_unittest_skips(output: str) -> dict[str, Any]:
     summary = re.search(r"OK \(skipped=(\d+)\)", output)
     expected_count = int(policy["per_repetition"])
     _require(observed == expected, "unit test skip reason/count drifted")
-    _require(summary is not None and int(summary.group(1)) == expected_count, "unit test skip summary drifted")
+    if expected_count == 0:
+        _require(summary is None, "unit test unexpectedly reported skipped cases")
+    else:
+        _require(summary is not None and int(summary.group(1)) == expected_count, "unit test skip summary drifted")
     _require(sum(observed.values()) == expected_count, "optional skip policy count drifted")
     return {
         "explicit_nonblocking_skips": expected_count,

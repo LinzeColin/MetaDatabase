@@ -240,14 +240,37 @@ def validate_scope() -> Check:
     for path in _iter_files():
         scanned += 1
         text = path.read_text(encoding="utf-8", errors="replace")
-        _require(not any(token in text for token in forbidden_tokens), "forbidden repository, path, or credential token entered x2n")
+        _require(
+            not any(token in text for token in forbidden_tokens),
+            "forbidden repository, path, or credential token entered x2n",
+        )
         _require(cdn_pattern.search(text) is None, "platform media CDN URL entered x2n")
     forbidden_suffixes = {
-        ".sqlite", ".sqlite3", ".db", ".mp4", ".mov", ".m4a", ".mp3", ".wav",
-        ".webm", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".pem", ".p12", ".pfx",
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".mov",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".webm",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".heic",
+        ".pem",
+        ".p12",
+        ".pfx",
     }
-    _require(not any(path.suffix.lower() in forbidden_suffixes for path in _iter_files()), "Runtime/private file entered x2n")
-    _require(not (PROJECT_ROOT / "runtime").exists() and not (PROJECT_ROOT / "downloads").exists(), "Private Runtime directory entered x2n")
+    _require(
+        not any(path.suffix.lower() in forbidden_suffixes for path in _iter_files()), "Runtime/private file entered x2n"
+    )
+    _require(
+        not (PROJECT_ROOT / "runtime").exists() and not (PROJECT_ROOT / "downloads").exists(),
+        "Private Runtime directory entered x2n",
+    )
     return Check(
         "scope_and_privacy",
         "PASS",
@@ -266,22 +289,33 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Stage 1 worktree branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
-        re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote) is not None,
+        re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
+        is not None,
         "wrong or authenticated persisted origin",
     )
     for commit in (TASK_BASE_COMMIT, ORIGIN_CUTOFF):
         _git(["cat-file", "-e", f"{commit}^{{commit}}"])
     _require(
-        subprocess.run(["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"], cwd=REPOSITORY_ROOT, check=False).returncode == 0,
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"], cwd=REPOSITORY_ROOT, check=False
+        ).returncode
+        == 0,
         "foundation.003 branch no longer descends from its Task base",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
-        subprocess.run(["git", "merge-base", "--is-ancestor", ORIGIN_CUTOFF, live_origin], cwd=REPOSITORY_ROOT, check=False).returncode == 0,
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ORIGIN_CUTOFF, live_origin], cwd=REPOSITORY_ROOT, check=False
+        ).returncode
+        == 0,
         "origin/main no longer descends from the Run cutoff",
     )
-    origin_paths = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{ORIGIN_CUTOFF}..{live_origin}"]).splitlines()
-    origin_overlap = sum(path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in origin_paths)
+    origin_paths = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{ORIGIN_CUTOFF}..{live_origin}"]
+    ).splitlines()
+    origin_overlap = sum(
+        path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in origin_paths
+    )
     _require(origin_overlap == 0, "origin/main changed x2n after the Run cutoff")
 
     main_path: Optional[Path] = None
@@ -292,7 +326,10 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         if worktree and branch == "branch refs/heads/main":
             main_path = Path(worktree)
             break
-    _require(main_path is not None and _git(["branch", "--show-current"], main_path) == "main", "MetaDatabase main worktree is unavailable or off main")
+    _require(
+        main_path is not None and _git(["branch", "--show-current"], main_path) == "main",
+        "MetaDatabase main worktree is unavailable or off main",
+    )
     main_paths = _porcelain_paths(
         _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"], main_path)
     )
@@ -317,27 +354,66 @@ def validate_task_and_state() -> Check:
     task = _task_block(taskpack, TASK_ID)
     taskpack_relative = TASKPACK.relative_to(REPOSITORY_ROOT).as_posix()
     review_taskpack = _git(["show", f"{STAGE_1_REVIEW_COMMIT}:{taskpack_relative}"])
-    _require(task == _task_block(review_taskpack, TASK_ID), "foundation.003 Task block drifted after its completed Review")
+    _require(
+        task == _task_block(review_taskpack, TASK_ID), "foundation.003 Task block drifted after its completed Review"
+    )
     _require(_field(task, "status") == "completed", "foundation.003 Task is not completed")
-    _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.3", "foundation.003 routing drifted")
+    _require(
+        _field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.3", "foundation.003 routing drifted"
+    )
     _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.002"], "foundation.003 dependency drifted")
-    _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.data.001", "ACC.x2n.data.002", "ACC.x2n.data.004"], "foundation.003 Acceptance drifted")
-    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack, "historical Stage 1 Review Taskpack status drifted")
+    _require(
+        _list_field(task, "acceptance_ids") == ["ACC.x2n.data.001", "ACC.x2n.data.002", "ACC.x2n.data.004"],
+        "foundation.003 Acceptance drifted",
+    )
+    _require(
+        "  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack,
+        "historical Stage 1 Review Taskpack status drifted",
+    )
 
     state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing drifted")
-    _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
+    _require(
+        state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4",
+        "current Stage routing drifted",
+    )
+    _require(
+        state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task",
+        "current Run identity drifted",
+    )
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation.003 Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005", "next Task routing drifted")
-    _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+    _require(
+        state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005",
+        "next Task routing drifted",
+    )
+    _require(
+        state.get("current_stage_gate") == "not_run"
+        and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass",
+        "G1/upload overstated",
+    )
     acceptance = state.get("acceptance_status", {})
-    _require(acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity", "data.001 Store scope drifted")
-    _require(acceptance.get("ACC.x2n.data.002") == "pass_synthetic_store_scope_markdown_notion_owner_alpha_downstream_not_run", "data.002 scope overstated")
-    _require(acceptance.get("ACC.x2n.data.004") == "pass_synthetic_local_recovery_scope_release_disaster_recovery_downstream_not_run", "data.004 scope overstated")
-    _require(state.get("sqlite_store") == "pass_schema_v2_owner_empty_runtime_initialized", "SQLite Store state drifted")
-    _require(state.get("real_account_execution") == "not_run" and state.get("real_sink_execution") == "not_run", "downstream execution overstated")
+    _require(
+        acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity",
+        "data.001 Store scope drifted",
+    )
+    _require(
+        acceptance.get("ACC.x2n.data.002")
+        == "pass_synthetic_store_scope_markdown_notion_owner_alpha_downstream_not_run",
+        "data.002 scope overstated",
+    )
+    _require(
+        acceptance.get("ACC.x2n.data.004")
+        == "pass_synthetic_local_recovery_scope_release_disaster_recovery_downstream_not_run",
+        "data.004 scope overstated",
+    )
+    _require(
+        state.get("sqlite_store") == "pass_schema_v2_owner_empty_runtime_initialized", "SQLite Store state drifted"
+    )
+    _require(
+        state.get("real_account_execution") == "not_run" and state.get("real_sink_execution") == "not_run",
+        "downstream execution overstated",
+    )
     project = _load_baseline_json(PROJECT_FACT)
     _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
     return Check(
@@ -354,15 +430,33 @@ def validate_task_and_state() -> Check:
 
 def validate_runtime_contract() -> Check:
     contract = _load_json(PATH_CONTRACT)
-    _require(contract.get("root_ref") == "X2N_DATA_ROOT" and contract.get("owner_download_destination_ref") == "X2N_DOWNLOAD_DESTINATION", "Runtime logical roots drifted")
-    _require(contract.get("required_basename") == "xhs-douyin-2notion" and contract.get("owner_download_destination_required_basename") == "MediaCrawler", "Runtime namespace drifted")
-    _require(contract.get("must_be_outside_git") is True and contract.get("runtime_and_downloads_share_root") is True, "Runtime separation weakened")
+    _require(
+        contract.get("root_ref") == "X2N_DATA_ROOT"
+        and contract.get("owner_download_destination_ref") == "X2N_DOWNLOAD_DESTINATION",
+        "Runtime logical roots drifted",
+    )
+    _require(
+        contract.get("required_basename") == "xhs-douyin-2notion"
+        and contract.get("owner_download_destination_required_basename") == "MediaCrawler",
+        "Runtime namespace drifted",
+    )
+    _require(
+        contract.get("must_be_outside_git") is True and contract.get("runtime_and_downloads_share_root") is True,
+        "Runtime separation weakened",
+    )
     runtime_source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime.py").read_text(encoding="utf-8")
     cli_source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime_cli.py").read_text(encoding="utf-8")
-    _require("platformdirs" not in runtime_source and "expanduser" not in runtime_source, "Runtime acquired a fallback path")
+    _require(
+        "platformdirs" not in runtime_source and "expanduser" not in runtime_source, "Runtime acquired a fallback path"
+    )
     _require("--path" not in cli_source and "--root" not in cli_source, "CLI acquired an arbitrary path input")
-    _require("X2N_DATA_ROOT" in runtime_source and "X2N_DOWNLOAD_DESTINATION" in runtime_source, "Runtime environment contract is incomplete")
-    _require("private_path_emitted" in cli_source and "FAIL_CLOSED" in cli_source, "CLI safe-output contract is incomplete")
+    _require(
+        "X2N_DATA_ROOT" in runtime_source and "X2N_DOWNLOAD_DESTINATION" in runtime_source,
+        "Runtime environment contract is incomplete",
+    )
+    _require(
+        "private_path_emitted" in cli_source and "FAIL_CLOSED" in cli_source, "CLI safe-output contract is incomplete"
+    )
     return Check(
         "private_runtime_contract",
         "PASS",
@@ -377,30 +471,45 @@ def validate_runtime_contract() -> Check:
 
 def validate_schema() -> Check:
     snapshot = _load_json(SCHEMA_SNAPSHOT)
-    _require(snapshot.get("database_schema_version") == 2 and snapshot.get("contract_version") == "1.0", "Store schema version drifted")
+    _require(
+        snapshot.get("database_schema_version") == 2 and snapshot.get("contract_version") == "1.0",
+        "Store schema version drifted",
+    )
     _require(snapshot.get("object_counts") == {"index": 9, "table": 17, "trigger": 15}, "Store object count drifted")
     objects = snapshot.get("objects", [])
     tables = {item.get("name") for item in objects if item.get("type") == "table"}
     _require(tables == EXPECTED_TABLES, "Store table set drifted")
     triggers = {item.get("name") for item in objects if item.get("type") == "trigger"}
     required_triggers = {
-        "artifact_no_delete", "artifact_no_update", "classification_no_delete",
-        "classification_no_update", "content_no_delete", "observation_no_delete",
-        "observation_no_update", "receipt_no_delete", "receipt_no_update",
-        "relation_no_delete", "request_ledger_no_delete", "request_ledger_no_update",
+        "artifact_no_delete",
+        "artifact_no_update",
+        "classification_no_delete",
+        "classification_no_update",
+        "content_no_delete",
+        "observation_no_delete",
+        "observation_no_update",
+        "receipt_no_delete",
+        "receipt_no_update",
+        "relation_no_delete",
+        "request_ledger_no_delete",
+        "request_ledger_no_update",
     }
     _require(required_triggers <= triggers, "append-only/deletion trigger set is incomplete")
     rendered = json.dumps(snapshot, ensure_ascii=False, sort_keys=True)
     for forbidden in ("media_cdn_url TEXT", "cookie TEXT", "token TEXT", "/" + "Users/"):
         _require(forbidden not in rendered, "forbidden persistent field entered Store schema")
     sqlite_mode = snapshot.get("sqlite_mode", {})
-    _require(sqlite_mode == {
-        "busy_timeout_required": True,
-        "foreign_keys": True,
-        "integrity_check": "required",
-        "journal_mode": "wal",
-        "synchronous": "full",
-    }, "SQLite safety mode drifted")
+    _require(
+        sqlite_mode
+        == {
+            "busy_timeout_required": True,
+            "foreign_keys": True,
+            "integrity_check": "required",
+            "journal_mode": "wal",
+            "synchronous": "full",
+        },
+        "SQLite safety mode drifted",
+    )
     return Check(
         "canonical_schema",
         "PASS",
@@ -418,22 +527,39 @@ def validate_fixture_and_dependencies() -> Check:
     fixture = _load_json(FIXTURE)
     _require(fixture.get("fixture_id") == "FIXTURE.X2N.S01.F003.001", "Store fixture identity drifted")
     _require(fixture.get("case_count") == 10_182, "Store fixture case count drifted")
-    _require(fixture.get("idempotency_items") == 80 and fixture.get("idempotency_runs") == 2, "idempotency fixture threshold drifted")
-    _require(fixture.get("concurrent_duplicate_messages") == 100 and fixture.get("scale_records") == 10_000, "concurrency/scale threshold drifted")
-    for field in ("real_accounts", "contains_credentials", "contains_private_content", "contains_media_urls", "contains_local_absolute_paths"):
+    _require(
+        fixture.get("idempotency_items") == 80 and fixture.get("idempotency_runs") == 2,
+        "idempotency fixture threshold drifted",
+    )
+    _require(
+        fixture.get("concurrent_duplicate_messages") == 100 and fixture.get("scale_records") == 10_000,
+        "concurrency/scale threshold drifted",
+    )
+    for field in (
+        "real_accounts",
+        "contains_credentials",
+        "contains_private_content",
+        "contains_media_urls",
+        "contains_local_absolute_paths",
+    ):
         _require(fixture.get(field) is False, f"Store fixture public boundary weakened: {field}")
     manifest = _load_json(FIXTURE_MANIFEST)
     rows = manifest.get("fixtures", [])
-    _require(len(rows) >= 5 and rows[3] == {
-        "id": "FIXTURE.X2N.S01.F003.001",
-        "path": "packages/test-fixtures/store/v1/seed_manifest.json",
-        "case_count": 10_182,
-        "purpose": "SQLite schema, idempotency, concurrency, migration and local recovery",
-    }, "Store fixture registration drifted")
+    _require(
+        len(rows) >= 5
+        and rows[3]
+        == {
+            "id": "FIXTURE.X2N.S01.F003.001",
+            "path": "packages/test-fixtures/store/v1/seed_manifest.json",
+            "case_count": 10_182,
+            "purpose": "SQLite schema, idempotency, concurrency, migration and local recovery",
+        },
+        "Store fixture registration drifted",
+    )
 
     app_pyproject = (PROJECT_ROOT / "apps/companion/pyproject.toml").read_text(encoding="utf-8")
     _require('dependencies = ["x2n-contracts"]' in app_pyproject, "Companion workspace dependency drifted")
-    _require('x2n-contracts = { workspace = true }' in app_pyproject, "Companion dependency is not workspace-local")
+    _require("x2n-contracts = { workspace = true }" in app_pyproject, "Companion dependency is not workspace-local")
     registry: dict[str, str] = {}
     for block in (PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8").split("[[package]]")[1:]:
         name = re.search(r'(?m)^name = "([^"]+)"$', block)
@@ -488,7 +614,10 @@ def _run_external(
     result = subprocess.run(command, cwd=PROJECT_ROOT, env=env, check=False, capture_output=True, text=True)
     _require(result.returncode == expected_returncode, f"external Store verification failed: {label}")
     combined = result.stdout + result.stderr
-    _require("/" + "Users/" not in combined and "github" + "_pat_" not in combined, f"external verification exposed private data: {label}")
+    _require(
+        "/" + "Users/" not in combined and "github" + "_pat_" not in combined,
+        f"external verification exposed private data: {label}",
+    )
     return combined
 
 
@@ -512,7 +641,10 @@ def validate_store_execution() -> Check:
         historical_count = len(re.findall(r"(?m)^    def test_", historical_source))
         current_count = len(re.findall(r"(?m)^    def test_", test_path.read_text(encoding="utf-8")))
         _require(historical_count == 13, "historical Companion Store test count drifted")
-        _require(match is not None and int(match.group(1)) == current_count and current_count >= historical_count, "current Companion Store tests were skipped or removed")
+        _require(
+            match is not None and int(match.group(1)) == current_count and current_count >= historical_count,
+            "current Companion Store tests were skipped or removed",
+        )
         acceptance_raw = _run_external(
             "store_acceptance",
             (*prefix, "scripts/run_foundation_003_acceptance.py"),
@@ -555,7 +687,10 @@ def validate_store_execution() -> Check:
             expected_returncode=2,
         )
         failure_lines = [line for line in missing_env.splitlines() if line.startswith("{")]
-        _require(len(failure_lines) == 1 and json.loads(failure_lines[0]).get("status") == "FAIL_CLOSED", "missing Runtime environment did not fail closed")
+        _require(
+            len(failure_lines) == 1 and json.loads(failure_lines[0]).get("status") == "FAIL_CLOSED",
+            "missing Runtime environment did not fail closed",
+        )
     return Check(
         "store_execution",
         "PASS",
@@ -582,18 +717,42 @@ def validate_owner_runtime() -> Check:
         home.mkdir(mode=0o700)
         env = _isolated_env(home, owner_runtime=True)
         command = (
-            "uv", "run", "--quiet", "--isolated", "--frozen", "--package", "x2n-companion",
-            "python", "-B", "-m", "x2n_companion.runtime_cli", "health",
+            "uv",
+            "run",
+            "--quiet",
+            "--isolated",
+            "--frozen",
+            "--package",
+            "x2n-companion",
+            "python",
+            "-B",
+            "-m",
+            "x2n_companion.runtime_cli",
+            "health",
         )
         output = _run_external("owner_runtime_health", command, env=env)
         lines = [line for line in output.splitlines() if line.startswith("{")]
         _require(len(lines) == 1, "Owner Runtime health output is ambiguous")
         payload = json.loads(lines[0])
-        _require(payload.get("status") == "PASS" and payload.get("health_state") == "healthy" and payload.get("schema_version") == 2, "Owner Runtime Store is not healthy")
-        _require(payload.get("foreign_key_check") == "ok" and payload.get("foreign_key_violations") == 0, "Owner Runtime Store has orphan foreign keys")
+        _require(
+            payload.get("status") == "PASS"
+            and payload.get("health_state") == "healthy"
+            and payload.get("schema_version") == 2,
+            "Owner Runtime Store is not healthy",
+        )
+        _require(
+            payload.get("foreign_key_check") == "ok" and payload.get("foreign_key_violations") == 0,
+            "Owner Runtime Store has orphan foreign keys",
+        )
         counts = payload.get("table_counts", {})
-        _require(counts.get("content") == 0 and counts.get("schema_migration") == 2, "Owner Runtime is not the expected initialized empty Store")
-        _require(payload.get("private_path_emitted") is False and payload.get("real_account_execution") == "NOT_RUN", "Owner Runtime health output overstated execution")
+        _require(
+            counts.get("content") == 0 and counts.get("schema_migration") == 2,
+            "Owner Runtime is not the expected initialized empty Store",
+        )
+        _require(
+            payload.get("private_path_emitted") is False and payload.get("real_account_execution") == "NOT_RUN",
+            "Owner Runtime health output overstated execution",
+        )
     return Check(
         "owner_runtime",
         "PASS",
@@ -642,7 +801,10 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 
 def write_evidence(checks: list[Check]) -> None:
     names = {check.name for check in checks}
-    _require({"store_execution", "owner_runtime", "worktree_isolation"} <= names, "evidence requires full Store, Owner Runtime, and worktree validation")
+    _require(
+        {"store_execution", "owner_runtime", "worktree_isolation"} <= names,
+        "evidence requires full Store, Owner Runtime, and worktree validation",
+    )
     payload = {
         "acceptance_ids": ["ACC.x2n.data.001", "ACC.x2n.data.002", "ACC.x2n.data.004"],
         "acceptance_status": {
@@ -675,11 +837,20 @@ def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
-    _require(evidence.get("status") == "PASS" and evidence.get("stage_gate") == "G1_NOT_RUN", "evidence status overstated")
+    _require(
+        evidence.get("status") == "PASS" and evidence.get("stage_gate") == "G1_NOT_RUN", "evidence status overstated"
+    )
     _require(evidence.get("owner_runtime") == "EMPTY_INITIALIZED_NO_CONTENT", "Owner Runtime evidence drifted")
-    _require(evidence.get("product_lifecycle") == "CANONICAL_STORE_ONLY_DOWNSTREAM_PRODUCTS_NOT_RUN", "evidence overstated product lifecycle")
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
-    return Check("evidence", "PASS", {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID})
+    _require(
+        evidence.get("product_lifecycle") == "CANONICAL_STORE_ONLY_DOWNSTREAM_PRODUCTS_NOT_RUN",
+        "evidence overstated product lifecycle",
+    )
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
+    )
+    return Check(
+        "evidence", "PASS", {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID}
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -719,7 +890,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
         return 0
     except VerificationError as error:
-        print(json.dumps({"reason": str(error), "status": "FAIL_CLOSED", "task": TASK_ID}, ensure_ascii=False, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps(
+                {"reason": str(error), "status": "FAIL_CLOSED", "task": TASK_ID}, ensure_ascii=False, sort_keys=True
+            ),
+            file=sys.stderr,
+        )
         return 1
 
 

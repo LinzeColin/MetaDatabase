@@ -1,0 +1,158 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.batch.001",
+    "ACC.x2n.data.002",
+    "ACC.x2n.rel.006"
+  ],
+  "acceptance_input_sha256": "870a29b730b0ba21937912f362c773d4bb3a466e5bda0e00f70078a75e4abb04",
+  "acceptance_status": {
+    "ACC.x2n.batch.001": "PASS_CI_SYNTH_TWO_DISTINCT_FULL_SCANS_CANDIDATE_TEN_REMOVED_ZERO_FIVE_NON_AUTHORITATIVE_NO_WRITE_FIFTY_KILLS",
+    "ACC.x2n.data.002": "PASS_CI_SYNTH_RECONCILIATION_80X2_100_CONCURRENT_DUPLICATE_ENTITIES_ZERO_REAL_NOTION_NOT_RUN",
+    "ACC.x2n.rel.006": "TOOLING_READY_OWNER_ALPHA_NOT_RUN_OWNER_ALPHA_PRIVATE_MANIFEST_NOT_CREATED"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 24,
+        "local_path_findings": 0,
+        "out_of_scope_writes": 0,
+        "runtime_artifacts": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 485
+      },
+      "name": "scope_and_public_private_boundary",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s03-adapters005",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 23,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "evidence_mutations": 0,
+        "historical_checks": 6,
+        "predecessor_commit": "8c6442a251f73e645e292a4e77dd03448d153b64"
+      },
+      "name": "adapters_009_fixed_predecessor",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_ids": 3,
+        "next_run": "STG.X2N.3.REVIEW",
+        "owner_alpha": "NOT_RUN",
+        "phase": "PH.X2N.3.9",
+        "single_task": true,
+        "stage_gate": "G3_NOT_RUN"
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "authoritative_sources": 2,
+        "automatic_pagination": 0,
+        "automatic_scroll": 0,
+        "bounded_sources_blocked_from_full_scan": 5,
+        "owner_alpha": "NOT_RUN",
+        "physical_delete_paths": 0,
+        "platform_calls": 0,
+        "production_enabled": false,
+        "removed_write_paths": 0
+      },
+      "name": "authoritative_scan_policy_and_reconciliation_containment",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "concurrent_duplicates": 100,
+        "contract_cases": 40,
+        "input_items": 80,
+        "kill_runs": 50,
+        "non_authoritative_cases": 5,
+        "owner_alpha": "NOT_RUN",
+        "platform_calls": 0,
+        "synthetic_only": true
+      },
+      "name": "synthetic_reconciliation_state_idempotency_and_chaos_fixtures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "automatic_pagination": 0,
+        "automatic_scroll": 0,
+        "candidate_relations": 10,
+        "concurrent_duplicates": 100,
+        "duplicate_entities": 0,
+        "input_items": 80,
+        "kill_runs": 50,
+        "non_authoritative_cases": 5,
+        "owner_alpha": "NOT_RUN",
+        "physical_deletes": 0,
+        "platform_calls": 0,
+        "relabelled_source_scan_blocks": 1,
+        "removed_relations": 0,
+        "synthetic_chaos_manifest_residuals": 0,
+        "unit_tests": 15
+      },
+      "name": "relation_reconciliation_state_idempotency_checkpoint_and_kill_acceptance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 78,
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "coverage_percent": 79.61,
+        "dependencies_queried": 33,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "runtime_data_files": 0,
+        "silent_blocking_skips": 0,
+        "vulnerabilities_reported": 0
+      },
+      "name": "full_lane_replay",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-22T22:55:55Z",
+  "owner_alpha": "NOT_RUN",
+  "owner_alpha_private_manifest_created": false,
+  "owner_profile_login": "NOT_RUN",
+  "phase": "PH.X2N.3.9",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "profile_path_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G3_PASS",
+  "run_id": "RUN-X2N-S03-A005",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.3",
+  "stage_gate": "G3_NOT_RUN",
+  "status": "PASS_CI_SYNTH_SCOPED",
+  "task_id": "TSK.x2n.adapters.005",
+  "task_metrics": {
+    "automatic_pagination": 0,
+    "automatic_scroll": 0,
+    "blocking_executions": 24,
+    "candidate_relations": 10,
+    "concurrent_duplicates": 100,
+    "coverage_percent": 79.61,
+    "duplicate_entities": 0,
+    "input_items": 80,
+    "kill_runs": 50,
+    "non_authoritative_cases": 5,
+    "physical_deletes": 0,
+    "relabelled_source_scan_blocks": 1,
+    "removed_relations": 0,
+    "synthetic_chaos_manifest_residuals": 0,
+    "unit_tests": 15
+  }
+}

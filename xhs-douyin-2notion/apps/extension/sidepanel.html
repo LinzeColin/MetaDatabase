@@ -1,59 +1,139 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>x2n</title>
+    <title>x2n 内容库</title>
     <link rel="stylesheet" href="styles/sidepanel.css">
   </head>
   <body>
-    <header>
-      <p class="eyebrow">Personal knowledge governance</p>
-      <h1>x2n</h1>
-      <p id="page-status" aria-live="polite">Checking current page…</p>
-      <p id="platform-status" class="muted" aria-live="polite"></p>
-    </header>
+    <div class="app-shell">
+      <header class="app-header" aria-label="x2n 当前页面">
+        <div class="brand-row">
+          <div class="brand-lockup">
+            <span class="brand-mark" aria-hidden="true">x2n</span>
+            <div class="brand-copy">
+              <p class="product-name">个人内容库</p>
+              <p class="product-caption">只保存你亲自选择的内容</p>
+            </div>
+          </div>
+          <span class="local-chip"><span class="chip-dot" aria-hidden="true"></span>本机处理</span>
+        </div>
+        <div id="page-context" class="page-context" data-state="checking" aria-label="当前页面状态">
+          <p id="page-kicker" class="context-label">正在查看</p>
+          <div class="context-copy">
+            <p id="page-status" aria-live="polite">正在检查当前页面</p>
+            <p id="platform-status" class="muted" aria-live="polite"></p>
+          </div>
+        </div>
+      </header>
 
-    <nav role="tablist" aria-label="x2n sections">
-      <button id="tab-save" role="tab" aria-controls="panel-save" aria-selected="true">Save</button>
-      <button id="tab-sync" role="tab" aria-controls="panel-sync" aria-selected="false" tabindex="-1">Sync</button>
-      <button id="tab-review" role="tab" aria-controls="panel-review" aria-selected="false" tabindex="-1">Review</button>
-      <button id="tab-status" role="tab" aria-controls="panel-status" aria-selected="false" tabindex="-1">Status</button>
-      <button id="tab-settings" role="tab" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
-    </nav>
+      <nav class="top-tabs" role="tablist" aria-label="x2n 功能区">
+        <button id="tab-save" role="tab" aria-controls="panel-save" aria-selected="true">保存</button>
+        <button id="tab-sync" role="tab" aria-controls="panel-sync" aria-selected="false" tabindex="-1">清单</button>
+        <button id="tab-status" role="tab" aria-controls="panel-status" aria-selected="false" tabindex="-1">帮助</button>
+      </nav>
 
-    <main>
-      <section id="panel-save" role="tabpanel" aria-labelledby="tab-save">
-        <h2>Save current content</h2>
-        <p>Only the active Xiaohongshu detail page is read after your explicit action. No scrolling or account changes.</p>
-        <button id="save-current" type="button" disabled>Save unavailable</button>
-        <p id="capture-status" aria-live="polite"></p>
-      </section>
-      <section id="panel-sync" role="tabpanel" aria-labelledby="tab-sync" hidden>
-        <h2>Sync selected list</h2>
-        <p>No automatic scrolling or account-state changes are implemented.</p>
-        <button type="button" disabled>Sync unavailable</button>
-      </section>
-      <section id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
-        <h2>Review</h2>
-        <p>No classification suggestion exists in this skeleton.</p>
-      </section>
-      <section id="panel-status" role="tabpanel" aria-labelledby="tab-status" hidden>
-        <h2>Status</h2>
-        <p id="host-status" aria-live="polite">Checking local companion…</p>
-        <button id="refresh-status" type="button">Reconnect</button>
-      </section>
-      <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
-        <h2>Settings</h2>
-        <dl>
-          <div><dt>Runtime truth</dt><dd>Local SQLite only</dd></div>
-          <div><dt>Extension storage</dt><dd>Not used</dd></div>
-          <div><dt>Platform gates</dt><dd>XHS current page only</dd></div>
-        </dl>
-      </section>
-    </main>
+      <main class="panel-main">
+        <section id="panel-save" class="panel-card panel-save" role="tabpanel" aria-labelledby="tab-save">
+          <div id="workflow-card" class="workflow-card" data-state="checking">
+            <p id="workflow-eyebrow" class="section-label">下一步</p>
+            <h1 id="workflow-title">正在检查当前页面</h1>
+            <p id="workflow-copy" class="workflow-copy">请稍候，x2n 正在确认这个页面能否安全保存。</p>
+            <ol class="workflow-steps" aria-label="保存步骤">
+              <li id="workflow-step-one" data-state="active">打开一篇内容</li>
+              <li id="workflow-step-two">点击保存</li>
+              <li id="workflow-step-three">继续下一篇</li>
+            </ol>
+            <div id="workflow-action" class="workflow-action" hidden>
+              <button id="save-current" class="button button-primary" type="button" disabled hidden>保存这个页面</button>
+              <button id="save-current-mvp" class="button button-primary" type="button" disabled hidden>保存这条笔记</button>
+            </div>
+            <details id="batch-switcher" class="compact-disclosure" hidden>
+              <summary id="batch-switcher-summary">第一组已经完成？</summary>
+              <p>确认后，之后保存的笔记会进入第二组；不会影响账号或自动翻页。</p>
+              <button id="save-current-mvp-second" class="button button-secondary" type="button" disabled>改为记录第二组</button>
+            </details>
+            <p id="workflow-note" class="workflow-note" aria-live="polite">不会自动翻页，也不会改变账号状态。</p>
+          </div>
 
-    <footer>Stage 2 · current page · fail closed</footer>
+          <p id="capture-status" class="status-message" role="status" aria-live="polite"></p>
+          <button id="capture-fallback" class="button button-quiet" type="button" hidden>改为保存这篇内容</button>
+
+          <details class="boundary-details">
+            <summary>这次保存会做什么？</summary>
+            <p>只读取你已经打开的一篇内容。本地不会保留媒体地址、账号登录信息或原始媒体。</p>
+          </details>
+        </section>
+
+        <section id="panel-sync" class="panel-card" role="tabpanel" aria-labelledby="tab-sync" hidden>
+          <div class="section-heading">
+            <h2>清单操作</h2>
+            <p>当某个清单可以安全处理时，这里会显示下一步。现在不需要填写任何技术信息。</p>
+          </div>
+          <p id="sync-policy" class="callout" role="status" aria-live="polite">正在检查可用清单。</p>
+          <details class="advanced-details">
+            <summary>高级选项</summary>
+            <p>仅在明确知道要处理哪个范围时使用；填写不完整不会执行任何操作。</p>
+            <div class="form-stack">
+              <label for="sync-scope">要处理的清单</label>
+              <select id="sync-scope">
+                <option value="xiaohongshu_favorites">小红书收藏</option>
+                <option value="xiaohongshu_likes">小红书赞过</option>
+                <option value="douyin_favorites">抖音收藏</option>
+                <option value="douyin_likes">抖音喜欢</option>
+                <option value="bilibili_selected_collection">哔哩哔哩：已选清单</option>
+                <option value="kuaishou_selected_collection">快手：已选清单</option>
+                <option value="weibo_selected_collection">微博：已选清单</option>
+                <option value="taobao_selected_collection">淘宝：已选清单</option>
+              </select>
+              <label for="sync-max-items">最多处理多少条</label>
+              <input id="sync-max-items" type="number" min="1" max="80" value="20" inputmode="numeric">
+              <label for="sync-source-collection">清单标识（列表范围可不填）</label>
+              <input id="sync-source-collection" type="text" maxlength="128" autocomplete="off">
+            </div>
+            <div id="selected-collection-fields" class="selected-fields" hidden>
+              <label for="owner-selection-id">你的选择标识</label>
+              <input id="owner-selection-id" type="text" maxlength="128" autocomplete="off">
+              <label for="owner-selection-manifest">选择清单 SHA-256</label>
+              <input id="owner-selection-manifest" type="text" maxlength="64" autocomplete="off">
+              <label for="source-identity">已记录的来源标识</label>
+              <input id="source-identity" type="text" maxlength="128" autocomplete="off">
+            </div>
+            <div class="panel-action-row">
+              <button id="start-sync" class="button button-primary" type="button" disabled>开始处理</button>
+              <p id="sync-status" class="status-message" role="status" aria-live="polite"></p>
+            </div>
+          </details>
+        </section>
+
+        <section id="panel-status" class="panel-card" role="tabpanel" aria-labelledby="tab-status" hidden>
+          <div class="section-heading">
+            <h2>帮助与本地状态</h2>
+            <p>如果按钮没有出现，先看当前页面的提示；x2n 不会在不确定时自行保存。</p>
+          </div>
+          <div id="host-health" class="health-card" data-state="checking">
+            <span class="health-indicator" aria-hidden="true"></span>
+            <p id="host-status" aria-live="polite">正在检查本地助手</p>
+          </div>
+          <button id="refresh-status" class="button button-secondary" type="button">重新检查本地助手</button>
+          <details class="advanced-details">
+            <summary>为什么有些页面不能保存？</summary>
+            <p>只支持你已经打开的单条内容页。列表、搜索页或页面结构变化时，x2n 会停在原地，不会猜测内容。</p>
+          </details>
+          <details class="advanced-details">
+            <summary>本地边界</summary>
+            <dl class="settings-list">
+              <div><dt>内容事实</dt><dd>本地 SQLite</dd></div>
+              <div><dt>媒体地址</dt><dd>不保留</dd></div>
+              <div><dt>账号状态</dt><dd>不改变</dd></div>
+            </dl>
+          </details>
+        </section>
+      </main>
+
+      <footer>本机处理，不确定时不保存</footer>
+    </div>
     <script type="module" src="src/sidepanel.js"></script>
   </body>
 </html>

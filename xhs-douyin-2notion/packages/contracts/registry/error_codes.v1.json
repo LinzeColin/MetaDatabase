@@ -200,6 +200,22 @@
       "retryable": false
     },
     {
+      "class": "data_integrity",
+      "code": "X2N_CAPABILITY_TECHNICAL_BLOCKED",
+      "data_effect": "unknown_fail_closed",
+      "default_safe_message": "能力门技术校验未通过，未执行任何操作",
+      "next_action": "inspect_diagnostics",
+      "retryable": false
+    },
+    {
+      "class": "provider",
+      "code": "X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "已停止此列表任务；可由您再次明确选择当前页保存",
+      "next_action": "capture_current",
+      "retryable": false
+    },
+    {
       "class": "unknown",
       "code": "X2N_UNKNOWN_FAILURE",
       "data_effect": "unknown_fail_closed",

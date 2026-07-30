@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S03.A002.DOM.001",
+  "synthetic": true,
+  "contains_accounts": false,
+  "contains_cookies": false,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "cases": [
+    {
+      "id": "observed_profile_surface",
+      "file": "observed-profile-surface.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "ready", "completion_signal": "unknown", "items": 3, "errors": 0}
+    },
+    {
+      "id": "cosmetic_profile_surface_rejected",
+      "file": "cosmetic-profile-surface.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "platform_changed", "completion_signal": "unknown", "items": 0, "errors": 1}
+    },
+    {
+      "id": "collection_alpha_mixed",
+      "file": "collection-alpha.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "ready", "completion_signal": "more_available", "items": 4, "errors": 0}
+    },
+    {
+      "id": "collection_beta_end",
+      "file": "collection-beta.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "ready", "completion_signal": "authoritative_end", "items": 3, "errors": 0}
+    },
+    {
+      "id": "partial_bad_identity",
+      "file": "partial.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "partial", "completion_signal": "unknown", "items": 1, "errors": 1}
+    },
+    {
+      "id": "auth_required",
+      "file": "auth.html",
+      "page_url": "https://www.xiaohongshu.com/login",
+      "scope_mode": "full_scan",
+      "expected": {"status": "auth_required", "completion_signal": "unknown", "items": 0, "errors": 1}
+    },
+    {
+      "id": "verification_required",
+      "file": "verification.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "verification_required", "completion_signal": "unknown", "items": 0, "errors": 1}
+    },
+    {
+      "id": "empty_unverified",
+      "file": "empty.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "empty_unverified", "completion_signal": "unknown", "items": 0, "errors": 1}
+    },
+    {
+      "id": "platform_changed",
+      "file": "changed.html",
+      "page_url": "https://www.xiaohongshu.com/user/profile/synthetic-owner",
+      "scope_mode": "full_scan",
+      "expected": {"status": "platform_changed", "completion_signal": "unknown", "items": 0, "errors": 1}
+    }
+  ]
+}

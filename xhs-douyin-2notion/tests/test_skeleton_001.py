@@ -91,7 +91,9 @@ class Skeleton001Tests(unittest.TestCase):
             self.skipTest("Task evidence is written only after full E2E")
         evidence = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
         self.assertEqual(VERIFY.EVIDENCE.read_bytes(), VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE))
-        self.assertEqual(evidence["acceptance_input_sha256"], "4b922a8e80fe6359071b694ef540818bcff91c8927b16b8e6722e6530a320b92")
+        self.assertEqual(
+            evidence["acceptance_input_sha256"], "4b922a8e80fe6359071b694ef540818bcff91c8927b16b8e6722e6530a320b92"
+        )
         self.assertEqual(evidence["owner_canary"], "NOT_RUN")
         self.assertEqual(evidence["real_account_execution"], "NOT_RUN")
         self.assertEqual(evidence["feature_flag"], "CI_SYNTH_ONLY_REAL_PAGE_DISABLED")

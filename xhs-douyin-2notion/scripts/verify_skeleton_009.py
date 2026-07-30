@@ -182,7 +182,9 @@ def validate_scope() -> Check:
         ".p12",
         ".pfx",
     }
-    _require(not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n")
+    _require(
+        not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n"
+    )
     return Check(
         "scope_and_privacy",
         "PASS",
@@ -287,7 +289,10 @@ def validate_task_and_state() -> Check:
         _list_field(task, "acceptance_ids") == ["ACC.x2n.capture.006", "ACC.x2n.ext.001"],
         "Skeleton009 Acceptance drifted",
     )
-    _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Skeleton009 Task changed beyond status")
+    _require(
+        task == base_task.replace("  status: planned\n", "  status: completed\n", 1),
+        "Skeleton009 Task changed beyond status",
+    )
     _require("  status: STAGE_2_SKELETON_009_PASS_G2_NOT_RUN\n" in taskpack, "Task Pack status drifted")
     next_task = _task_block(taskpack, "TSK.x2n.skeleton.003")
     _require(next_task == _task_block(base_taskpack, "TSK.x2n.skeleton.003"), "Skeleton003 was entered by this Run")
@@ -376,13 +381,24 @@ def validate_extension_surface() -> Check:
         "uv lock changed",
     )
     permission = _load_json_at(FINAL_COMMIT, PERMISSION_POLICY)
-    _require([item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS, "permission policy drifted")
+    _require(
+        [item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS,
+        "permission policy drifted",
+    )
     _require(permission.get("host_permissions") == [] and permission.get("content_scripts") == [], "policy widened")
     native = _load_json_at(FINAL_COMMIT, NATIVE_POLICY)
     _require(native == _load_json_at(TASK_BASE_COMMIT, NATIVE_POLICY), "Native policy changed in Skeleton009")
-    _require(native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened")
+    _require(
+        native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened"
+    )
 
-    source_paths = sorted((PROJECT_ROOT / "apps/extension/src").glob("*.js"))
+    source_prefix = (PROJECT_ROOT / "apps/extension/src").relative_to(REPOSITORY_ROOT).as_posix()
+    source_paths = [
+        REPOSITORY_ROOT / row
+        for row in _git(["ls-tree", "-r", "--name-only", FINAL_COMMIT, "--", source_prefix]).splitlines()
+        if row.endswith(".js")
+    ]
+    _require(source_paths, "historical Extension source manifest is empty")
     sources = {path.name: _read_blob_at(FINAL_COMMIT, path).decode("utf-8") for path in source_paths}
     rendered = "\n".join(sources.values())
     for pattern in (
@@ -402,7 +418,9 @@ def validate_extension_surface() -> Check:
     panel = sources["sidepanel.js"]
     taobao = sources["taobao-current-page.js"]
     _require('taobao: "ci_synth_only"' in page_support, "Taobao feature gate drifted")
-    _require("isSyntheticTaobaoItem" in page_support and "9900000000000" in page_support, "Taobao synthetic gate missing")
+    _require(
+        "isSyntheticTaobaoItem" in page_support and "9900000000000" in page_support, "Taobao synthetic gate missing"
+    )
     for value in (
         "taobao_undocumented_signature_input_rejected",
         "taobao_scope_retention_unknown_disabled",
@@ -423,7 +441,9 @@ def validate_extension_surface() -> Check:
         "Taobao exact-host/query-free canonical gate missing",
     )
     _require('.getAttribute("src")' not in taobao and ".src" not in taobao, "media source read entered extractor")
-    _require("hydration" not in taobao.lower() and "innerhtml" not in taobao.lower(), "raw page state read entered extractor")
+    _require(
+        "hydration" not in taobao.lower() and "innerhtml" not in taobao.lower(), "raw page state read entered extractor"
+    )
     _require("document.cookie" not in taobao and "fetch(" not in taobao, "Cookie or network surface entered extractor")
     package = _load_json_at(FINAL_COMMIT, PROJECT_ROOT / "apps/extension/package.json")
     scripts = package.get("scripts", {})
@@ -465,7 +485,9 @@ def validate_fixtures_and_policy() -> Check:
         "platform-changed threshold drifted",
     )
     _require(
-        sum(item.get("expected", {}).get("reason") == "taobao_scope_retention_unknown_disabled" for item in policy_cases)
+        sum(
+            item.get("expected", {}).get("reason") == "taobao_scope_retention_unknown_disabled" for item in policy_cases
+        )
         == 2,
         "scope/retention-disabled threshold drifted",
     )
@@ -592,8 +614,7 @@ def validate_fixtures_and_policy() -> Check:
         "Taobao feature flag drifted",
     )
     _require(
-        policy.get("platform_policy_state")
-        == "unknown_disabled_application_scope_retention_and_dom_fallback",
+        policy.get("platform_policy_state") == "unknown_disabled_application_scope_retention_and_dom_fallback",
         "Taobao policy state drifted",
     )
     application = policy.get("application_gate", {})
@@ -646,7 +667,9 @@ def validate_fixtures_and_policy() -> Check:
         "Taobao platform fact drifted",
     )
     registry = _load_json_at(FINAL_COMMIT, PLATFORM_POLICY)
-    _require(registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted")
+    _require(
+        registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted"
+    )
     official_sources = registry.get("official_sources", {}).get("taobao", [])
     _require(isinstance(official_sources, list) and len(official_sources) >= 8, "official Taobao evidence incomplete")
     _require(
@@ -795,9 +818,7 @@ def validate_full_lane_report(path: Path) -> Check:
     ]
     _require(report.get("blocking_results") == expected_results, "full lane execution identity or result drifted")
     _require(
-        report.get("platform_calls") == 0
-        and report.get("model_calls") == 0
-        and report.get("real_accounts") == 0,
+        report.get("platform_calls") == 0 and report.get("model_calls") == 0 and report.get("real_accounts") == 0,
         "full lane executed a forbidden external surface",
     )
     coverage = report.get("coverage", {})
@@ -943,7 +964,9 @@ def verify_evidence() -> Check:
         "platform execution overstated",
     )
     _require(evidence.get("acceptance_input_sha256") == _acceptance_input_receipt(), "evidence input receipt is stale")
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
+    )
     return Check(
         "evidence",
         "PASS",

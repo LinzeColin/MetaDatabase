@@ -70,9 +70,7 @@ def _validate_scaffold() -> dict[str, Any]:
         "The foundation extension must remain permission-free.",
         "是否恢复无权限 manifest 并把浏览器能力留给后续 Task？",
     )
-    fixture = json.loads(
-        (PROJECT_ROOT / "packages/test-fixtures/scaffold_case.json").read_text(encoding="utf-8")
-    )
+    fixture = json.loads((PROJECT_ROOT / "packages/test-fixtures/scaffold_case.json").read_text(encoding="utf-8"))
     _require(
         fixture.get("synthetic_only") is True
         and fixture.get("real_account") is False

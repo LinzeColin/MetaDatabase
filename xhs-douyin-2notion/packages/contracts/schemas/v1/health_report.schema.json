@@ -53,6 +53,8 @@
         "X2N_STORAGE_FAILED",
         "X2N_DATA_INTEGRITY_FAILED",
         "X2N_POLICY_BLOCKED",
+        "X2N_CAPABILITY_TECHNICAL_BLOCKED",
+        "X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE",
         "X2N_UNKNOWN_FAILURE"
       ],
       "title": "ErrorCode",
@@ -179,7 +181,8 @@
         "install_dependency",
         "inspect_provider",
         "free_disk_space",
-        "inspect_diagnostics"
+        "inspect_diagnostics",
+        "capture_current"
       ],
       "title": "NextAction",
       "type": "string"

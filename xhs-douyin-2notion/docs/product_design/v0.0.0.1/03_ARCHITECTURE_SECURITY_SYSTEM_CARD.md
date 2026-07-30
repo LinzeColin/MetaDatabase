@@ -5,6 +5,7 @@ project_token: x2n
 version: v0.0.0.1
 status: FINAL_PRODUCT_DESIGN_BASELINE
 owner_change_event: CE-X2N-20260719-S00-P01
+release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 architecture: local-first-hybrid
 ai_product: true
 security_assurance_required: true
@@ -13,6 +14,8 @@ security_assurance_required: true
 # `xhs-douyin-2notion` 架构、安全与 System Card
 
 > Scope amendment `CE-X2N-20260719-S00-P05`：平台面扩为六个独立 Adapter/Policy Boundary；项目名保持稳定。详细 ADR/Threat Model 以 `docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md` 和 `docs/security/THREAT_MODEL_S00_P05.md` 为准。
+>
+> Data-plane amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：`X2N_DATA_ROOT` 是本地短暂执行区；持久资产只经 `KMOS/KMDatabase/machine/tools/private_db_client.py` 写入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion`，禁止 clone。客户端拒绝直接 `.sqlite/.db` 且单对象上限 95 MiB；一致性快照使用非运行时归档、≤90 MiB 分片和 restore manifest。
 
 > Foundation005 executable assurance update：模型 Dataset Contract、能力禁用状态、
 > Feature Flag 降级与自动分类门禁见
@@ -56,12 +59,15 @@ security_assurance_required: true
 │   └─ Evidence / Diagnostics / Recovery                          │
 └─────────────────────────────────────────────────────────────────┘
            │
-           ├── X2N_DATA_ROOT (private, outside Git)
+           ├── X2N_DATA_ROOT (private ephemeral workspace, outside Git)
+           ├── area: Private-MetaDatabase
+           ├── manifest domain: xhs-douyin-2notion
+           │   └── private_db_client.py (ingest/get/list/verify; no clone)
            ├── OS Keychain
            ├── Notion API [optional]
            └── Model APIs [optional, explicit opt-in]
 
-OVH VPS-1 Singapore [Alpha: disabled]
+OVH VPS-1 Singapore [MVP: disabled]
 Future optional: redacted control plane only; never a data/credential plane.
 ```
 
@@ -70,8 +76,8 @@ Future optional: redacted control plane only; never a data/credential plane.
 | 平面 | 适合承担 | 不适合承担 |
 |---|---|---|
 | Chrome | 当前页面上下文、用户登录态、Side Panel、低延迟交互、任务触发 | FFmpeg、长视频 ASR/OCR/Vision、批量任务、长期状态、Notion 重试 |
-| Local Companion | 长任务、持久状态、媒体临时处理、模型、SQLite、Outbox、恢复 | 直接替代浏览器中的用户交互 |
-| VPS | 可选远程状态、版本和触发 | Alpha 的账号、Cookie、媒体、私人内容、模型和 Notion Secret |
+| Local Companion | 长任务、本地活动 SQLite、媒体临时处理、模型、Outbox、恢复和持久快照提交 | 直接替代浏览器中的用户交互；把本地工作副本冒充已持久 |
+| VPS | 可选远程状态、版本和触发 | MVP 的账号、Cookie、媒体、私人内容、模型和 Notion Secret |
 
 Chrome 官方说明 MV3 Service Worker 通常在约 30 秒无活动后终止，单请求超过 5 分钟也可能终止，因此所有长任务必须在 Companion 中持久化执行。Native Messaging 是官方本地应用通信机制；Host `allowed_origins` 不允许通配符。Side Panel 适合在主网页旁持续展示产品 UI。
 
@@ -79,7 +85,7 @@ Chrome 官方说明 MV3 Service Worker 通常在约 30 秒无活动后终止，�
 
 # 2. 部署拓扑
 
-## 2.1 Alpha
+## 2.1 MVP
 
 ```text
 User Desktop
@@ -116,7 +122,7 @@ External
 └── configured model endpoint [optional]
 ```
 
-## 2.2 Beta 可选控制平面
+## 2.2 Future 可选控制平面
 
 ```text
 OVH VPS-1
@@ -160,9 +166,19 @@ MetaDatabase/
     └── THIRD_PARTY_NOTICES.md   # Stage 0.2+
 ```
 
-## 3.2 Private Runtime 与下载根
+## 3.2 Private Runtime、下载根与持久数据面
 
-唯一逻辑名是 `X2N_DATA_ROOT`。Owner 本机解析值保存在根内的私有 marker，不写入仓库；当前版本不得回退到 `platformdirs`、上游默认目录或其他 OS 默认目录。跨平台支持必须由后续 Owner Change Event 明确新的私有解析方式。
+本地唯一逻辑名是 `X2N_DATA_ROOT`。Owner 本机解析值保存在根内的私有 marker，不写入仓库；当前版本不得回退到 `platformdirs`、上游默认目录或其他 OS 默认目录。该根只承担有界下载、临时媒体、浏览器 Profile、活动 SQLite 工作副本和可清理派生物，不是长期数据仓。
+
+持久数据面固定为 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，项目归属使用全局 manifest 的 `domain=xhs-douyin-2notion`；只允许通过 `KMOS/KMDatabase/machine/tools/private_db_client.py` 的 `ingest/get/list/verify` 访问，禁止 clone。SQLite 仍是唯一逻辑可写真相源：启动时恢复并校验已签收快照，运行时只向本地活动 SQLite 提交事务，随后将一致性快照封装为非运行时归档、按 ≤90 MiB 内容寻址分片，并写入项目 restore manifest/Receipt。恢复必须过滤精确 domain、逐片 SHA-256、重组并通过 SQLite integrity；原始 `.sqlite/.db`、>95 MiB 对象或改名绕过客户端红线均拒绝。未取得持久 Receipt 的状态必须显示为 `durability_pending`，不得声称已经持久。
+
+客户端全局 manifest 只按 SHA 幂等，`verify` 是 area-global 且对 missing object 的进程退出状态不足
+以证明成功。x2n wrapper 必须给每片加 domain/index/total/payload-SHA envelope，以精确 x2n domain
+行逐对象 `get`、hash、重组、restore 作为 Gate；area-global verify 只生成无路径/名称的 redacted
+advisory，其他 domain missing 不阻断 x2n。`get` 临时输出完成即删除；对象名必须 opaque；
+`put/delete` 禁用。显式授权的远端写入可让现有 Owner-authorized authenticated session 仅经
+`private_db_client.py` 使用；不得读取/显示 Token 值、修改 auth/config/Credential Helper 或
+删除/撤销/轮换 Token。客户端 digest/行为在 Task005 执行时重验。
 
 ```text
 X2N_DATA_ROOT/
@@ -199,6 +215,8 @@ X2N_DATA_ROOT/
 
 - `X2N_DATA_ROOT` 及所有目录仅当前 OS 用户读写；
 - 所有 Adapter 必须显式设置输出目录到 `downloads/` 或 `runtime/temp_media/`，不得使用自己的默认下载目录；
+- 长期数据库、Markdown/导出、Receipt、内容寻址对象和运行快照不得仅留在 `X2N_DATA_ROOT`；
+- Private-Database clone、直接 Git 写入和绕过 `private_db_client.py` 均为 `0`；
 - Secret 值仅 Keychain；
 - Browser Profiles 不进入备份默认范围；
 - Diagnostic Bundle 默认排除正文和模型输出；
@@ -478,6 +496,28 @@ error:
 - `policy`
 - `unknown`
 
+## 5.4 Stage 3 Task010 的 versioned IPC/状态补充
+
+- `START_SYNC` 增加严格 `scope_id` 判别 union，固定八行 platform/relation/scope 矩阵。XHS/Douyin
+  收藏与点赞、Weibo 收藏各绑定唯一 relation；只有 Bilibili/Kuaishou/Taobao 的
+  selected-collection scope 可使用 `saved_current`，且必须携带 Owner-selected manifest、
+  source identity 与 `max_items`。`CAPTURE_CURRENT` 仍是不同的单条当前页动作。
+- `GET_CAPABILITIES` 增加 versioned typed result，恰好返回八个 scope 的 terminal、
+  fine-grained reason、source registry digests 与 Feature Flag；unknown/duplicate/missing scope
+  或 disabled 支持误报均拒绝。
+- SQLite 新增 `capability_gate_outcome`，每 scope 最多一行，只有完整有效评估才恰好八行；
+  它是唯一 restart-safe runtime derived snapshot；Policy/Capability/Feature registries 只是
+  versioned 输入。`CI_SYNTH_READY` 映射
+  `READY_FOR_MVP_ACTIVATION`；Policy/Auth/Budget/Capability/Unknown 外部门可映射
+  `DISABLED_EXTERNAL_GATE` 并关闭 flag；`BLOCKED_TECHNICAL` 是先于外部 reason 的 global veto，
+  没有合法终态、阻止完整 snapshot、使受影响旧 READY row 失效/移除，并令
+  `GET_CAPABILITIES` Fail Closed，保持 G3 Fail Closed。
+- Adapter 失败的耐久真相是 `run_record.state=failed`＋一条脱敏 `run_failure`；
+  `FALLBACK_AVAILABLE` 只是 Side Panel 派生 affordance。失败 `GET_JOB` 保留 `job_id`，第二次
+  Owner 动作用新 `request_id` 与可选 `fallback_from_job_id` 执行 current-page fallback。
+- Pydantic、error registry、JSON Schema、generated TypeScript、Extension consumer 与 migration
+  必须在同一 Task 同步；原 health/current-page/Job response vectors 保持兼容。
+
 ---
 
 # 6. Canonical Data Model
@@ -670,7 +710,7 @@ local_path_private:
 
 ## 7.4 原始媒体删除的可恢复性权衡
 
-删除媒体保护隐私和降低治理成本，但会失去未来重跑更好模型的能力。Alpha 选择：
+删除媒体保护隐私和降低治理成本，但会失去未来重跑更好模型的能力。MVP 选择：
 
 - 默认成功即删；
 - 保留文本 Artifact、模型版本和质量；
@@ -967,7 +1007,7 @@ Checkpoint 包含：
 - 空结果 → anomaly；
 - 部分扫描 → 不生成 Tombstone；
 - 两次成功完整扫描缺失 → candidate；
-- Alpha Owner 确认 → removed；
+- MVP Owner 确认 → removed；
 - Content 仍保留；
 - 物理删除独立操作、需预览和备份。
 
@@ -975,7 +1015,8 @@ Checkpoint 包含：
 
 - Schema Migration 前在线/停机一致性备份；
 - Backup 包含 DB 和必要配置，不含 Cookie/Profile；
-- Backup 加密或保存在受保护目录；
+- 持久 Backup、Manifest 与 Receipt 通过 `private_db_client.py ingest` 进入项目命名空间，并以 `verify` 结果作为恢复 Oracle；
+- 本地 Backup 只作为有界工作副本，不得成为唯一长期副本；
 - Migration 有 forward/rollback test；
 - 破坏性变化采用 expand→migrate→contract；
 - Blue/Green Companion 可读同一兼容 Schema；
@@ -1342,9 +1383,9 @@ Pass：均不得引发工具调用、Secret/文件访问、配置改变、分类
 |---|---|
 | Dev | 合成数据，无真实 Secret |
 | Shadow | 真实内容但不影响分类/Notion，Owner Opt-in |
-| Alpha Suggestion | 只建议，人工确认 |
-| Alpha Auto-route | 仅达到精度 Gate 的高置信度样本 |
-| Beta | 扩大覆盖，持续监控 |
+| MVP Suggestion | 只建议，人工确认 |
+| MVP Auto-route | 仅达到精度 Gate 的高置信度样本 |
+| Future | 扩大覆盖，持续监控 |
 | GA | 需独立批准；不因软件 GA 自动进入 |
 
 ## 13.12 模型监控
@@ -1516,5 +1557,5 @@ License Gate 不是一次性清单：每次上游 Pin、打包方式或分发模
 - 双流水线；
 - Backup/Migration/Rollback；
 - License Boundary；
-- VPS 不在 Alpha 数据路径；
+- VPS 不在 MVP 数据路径；
 - 所有 Unknown 有探测或可逆默认。

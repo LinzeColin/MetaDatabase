@@ -49,7 +49,9 @@ class Skeleton007Tests(unittest.TestCase):
         self.assertFalse(policy["feature_flag"]["real_page_execution"])
         self.assertFalse(policy["production_api_transport"])
         self.assertEqual(policy["platform_policy_state"], "blocked_auth_real_page_unknown_disabled_dom_fallback")
-        self.assertEqual(policy["route_evidence"]["public_short_video_route"], "unverified_route_assumption_ci_fixture_only")
+        self.assertEqual(
+            policy["route_evidence"]["public_short_video_route"], "unverified_route_assumption_ci_fixture_only"
+        )
         self.assertEqual(policy["official_first_gate"]["arbitrary_public_current_page_read_capability"], "not_found")
         self.assertEqual(policy["official_first_gate"]["likes_or_favorites_read_capability"], "not_found")
         self.assertEqual(policy["auth_gate"]["missing_or_withdrawn_scope_state"], "BLOCKED_AUTH")

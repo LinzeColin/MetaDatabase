@@ -1,0 +1,157 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.dy.001",
+    "ACC.x2n.dy.002",
+    "ACC.x2n.dy.003",
+    "ACC.x2n.batch.001"
+  ],
+  "acceptance_input_sha256": "e279d1f5498195c64949682a3685fb0d06e1b8b6270af26c0e2d233d3247d52f",
+  "acceptance_status": {
+    "ACC.x2n.batch.001": "PASS_CI_SYNTH_NON_AUTHORITATIVE_REMOVED_0_SECOND_COMPLETE_CANDIDATE_ONLY_RECONCILIATION_DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.dy.001": "PASS_CI_SYNTH_20_FAVORITES_TWO_COLLECTIONS_OWNER_ALPHA_NOT_RUN",
+    "ACC.x2n.dy.002": "PASS_CI_SYNTH_20_LIKES_OWNER_ALPHA_NOT_RUN",
+    "ACC.x2n.dy.003": "PASS_CI_SYNTH_EXACT_PIN_BUILD_SCHEMA_ERROR_TIMEOUT_AND_SHADOW_CONTRACT"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 30,
+        "local_path_findings": 0,
+        "out_of_scope_writes": 0,
+        "runtime_artifacts": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 435
+      },
+      "name": "scope_and_public_private_boundary",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s03-adapters004",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 11,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "evidence_mutations": 0,
+        "historical_checks": 6,
+        "predecessor_commit": "0939d78303f5e96ddedf9c8ef8a01a8dce03574a"
+      },
+      "name": "adapters_003_fixed_predecessor",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_ids": 4,
+        "next_task": "TSK.x2n.adapters.006",
+        "owner_canary": "NOT_RUN",
+        "phase": "PH.X2N.3.4",
+        "single_task": true,
+        "stage_gate": "G3_NOT_RUN"
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "actual_upstream_runtime_dependencies": 0,
+        "automatic_pagination": 0,
+        "build_attestation_digests": 4,
+        "integration_contract_sha256": "aee925e0064b02492580e7c2c3ab68f6f30f5d8b4e283c63f681d5764149a606",
+        "owner_private_build": "NOT_RUN",
+        "pin_commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+        "pin_tree": "ff7774b618f269fcdc750e17dc63612f159b6b46",
+        "production_enabled": false,
+        "raw_upstream_cli_rest_allowed": false,
+        "transports": 2,
+        "upstream_executions": 0
+      },
+      "name": "pin_policy_license_build_and_transport_containment",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "contract_cases": 38,
+        "favorite_collections": 2,
+        "favorites_items": 20,
+        "likes_items": 20,
+        "owner_canary": "NOT_RUN",
+        "platform_calls": 0,
+        "synthetic_only": true
+      },
+      "name": "synthetic_upstream_contract_mapping_and_deletion_fixtures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "automatic_pagination": 0,
+        "blocking_negative_contract_cases": 18,
+        "content_count": 40,
+        "favorite_collections": 2,
+        "favorited_relations": 20,
+        "liked_relations": 20,
+        "owner_canary": "NOT_RUN",
+        "platform_calls": 0,
+        "removed_relations": 0,
+        "shadow_promotions": 0,
+        "unit_tests": 17,
+        "upstream_executions": 0,
+        "upstream_paths_or_database_primary_keys": 0
+      },
+      "name": "douyin_pinned_sidecar_acceptance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 73,
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "coverage_percent": 78.36,
+        "dependencies_queried": 33,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "runtime_data_files": 0,
+        "silent_blocking_skips": 0,
+        "vulnerabilities_reported": 0
+      },
+      "name": "full_lane_replay",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-22T17:16:23Z",
+  "owner_canary": "NOT_RUN",
+  "owner_private_sidecar": "NOT_INSTALLED",
+  "owner_profile_login": "NOT_RUN",
+  "phase": "PH.X2N.3.4",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "profile_path_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G3_PASS",
+  "run_id": "RUN-X2N-S03-A004",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.3",
+  "stage_gate": "G3_NOT_RUN",
+  "status": "PASS_CI_SYNTH_SCOPED",
+  "task_id": "TSK.x2n.adapters.004",
+  "task_metrics": {
+    "automatic_pagination": 0,
+    "blocking_executions": 24,
+    "blocking_negative_contract_cases": 18,
+    "content_count": 40,
+    "coverage_percent": 78.36,
+    "favorite_collections": 2,
+    "favorited_relations": 20,
+    "liked_relations": 20,
+    "removed_relations": 0,
+    "shadow_promotions": 0,
+    "unit_tests": 17,
+    "upstream_executions": 0,
+    "upstream_paths_or_database_primary_keys": 0
+  }
+}

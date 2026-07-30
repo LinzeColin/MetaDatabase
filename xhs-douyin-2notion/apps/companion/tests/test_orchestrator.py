@@ -129,7 +129,15 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual({receipt.state for receipt in receipts}, {"succeeded"})
         self.assertEqual({receipt.disposition.value for receipt in receipts}, {"new_request"})
         counts = self.store.counts()
-        for table in ("artifact", "checkpoint", "content", "request_ledger", "run_record", "source_observation", "user_relation"):
+        for table in (
+            "artifact",
+            "checkpoint",
+            "content",
+            "request_ledger",
+            "run_record",
+            "source_observation",
+            "user_relation",
+        ):
             self.assertEqual(counts[table], 6, table)
         for index, receipt in enumerate(receipts):
             safe = receipt.safe_dict()
@@ -148,7 +156,15 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(sum(item.disposition.value == "return_existing_job" for item in second), 80)
         self.assertEqual([item.job_id for item in first], [item.job_id for item in second])
         counts = self.store.counts()
-        for table in ("artifact", "checkpoint", "content", "request_ledger", "run_record", "source_observation", "user_relation"):
+        for table in (
+            "artifact",
+            "checkpoint",
+            "content",
+            "request_ledger",
+            "run_record",
+            "source_observation",
+            "user_relation",
+        ):
             self.assertEqual(counts[table], 80, table)
         self.assertEqual(self.store.health()["status"], "healthy")
 
@@ -163,7 +179,15 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(sum(item.disposition.value == "return_existing_job" for item in receipts), 99)
         self.assertEqual({item.state for item in receipts}, {"succeeded"})
         counts = self.store.counts()
-        for table in ("artifact", "checkpoint", "content", "request_ledger", "run_record", "source_observation", "user_relation"):
+        for table in (
+            "artifact",
+            "checkpoint",
+            "content",
+            "request_ledger",
+            "run_record",
+            "source_observation",
+            "user_relation",
+        ):
             self.assertEqual(counts[table], 1, table)
 
     def test_kill_before_canonical_commit_leaves_no_partial_graph(self) -> None:
@@ -174,7 +198,15 @@ class OrchestratorTests(unittest.TestCase):
         with self.assertRaises(InjectedKill):
             self._execute(1, transition_hook=kill)
         counts = self.store.counts()
-        for table in ("artifact", "checkpoint", "content", "request_ledger", "run_record", "source_observation", "user_relation"):
+        for table in (
+            "artifact",
+            "checkpoint",
+            "content",
+            "request_ledger",
+            "run_record",
+            "source_observation",
+            "user_relation",
+        ):
             self.assertEqual(counts[table], 0, table)
         self.assertEqual(self._execute(1).state, "succeeded")
 
@@ -185,7 +217,15 @@ class OrchestratorTests(unittest.TestCase):
         ):
             self._execute(2)
         counts = self.store.counts()
-        for table in ("artifact", "checkpoint", "content", "request_ledger", "run_record", "source_observation", "user_relation"):
+        for table in (
+            "artifact",
+            "checkpoint",
+            "content",
+            "request_ledger",
+            "run_record",
+            "source_observation",
+            "user_relation",
+        ):
             self.assertEqual(counts[table], 0, table)
         self.assertEqual(self._execute(2).state, "succeeded")
 
@@ -242,7 +282,9 @@ class OrchestratorTests(unittest.TestCase):
                 "SELECT observation_id, content_key, adapter_name, adapter_version, run_id FROM source_observation"
             ).fetchone()
             relation = connection.execute("SELECT relation_key, content_key FROM user_relation").fetchone()
-            artifact = connection.execute("SELECT artifact_id, content_key, private_payload_present FROM artifact").fetchone()
+            artifact = connection.execute(
+                "SELECT artifact_id, content_key, private_payload_present FROM artifact"
+            ).fetchone()
             run = connection.execute("SELECT run_id, state FROM run_record").fetchone()
             classification_count = int(connection.execute("SELECT COUNT(*) FROM classification").fetchone()[0])
             outbox_count = int(connection.execute("SELECT COUNT(*) FROM outbox_event").fetchone()[0])
@@ -285,9 +327,12 @@ class OrchestratorTests(unittest.TestCase):
         connection = sqlite3.connect(self.paths.database)
         try:
             version = int(connection.execute("SELECT record_version FROM content").fetchone()[0])
-            artifact_sequences = [row[0] for row in connection.execute(
-                "SELECT artifact_sequence FROM artifact ORDER BY artifact_sequence"
-            ).fetchall()]
+            artifact_sequences = [
+                row[0]
+                for row in connection.execute(
+                    "SELECT artifact_sequence FROM artifact ORDER BY artifact_sequence"
+                ).fetchall()
+            ]
         finally:
             connection.close()
         self.assertEqual(version, 2)

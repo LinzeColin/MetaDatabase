@@ -1,128 +1,280 @@
-# HANDOFF
+# xhs-douyin-2notion handoff
 
-## 当前目标
+## Current objective
 
-按 v0.0.0.1 Task DAG Stage 0–6 构建 `LinzeColin/MetaDatabase` 下唯一子项目 `xhs-douyin-2notion/`。终态覆盖小红书、抖音、哔哩哔哩、快手、微博和淘宝，但始终是 Owner 明确选择内容的个人知识治理，不是通用爬虫。
+Complete only `TSK.x2n.assurance.005 / PH.X2N.6.5`: direct bounded Owner MVP deployment, running, online smoke,
+and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The implementation now uses
+`owner_authorized_direct_mvp`; legacy Canary tooling is not a release prerequisite.
 
-## 当前状态
+## Current source state
 
-- `TSK.x2n.discovery.001–005` 与 Stage 0 Phase 0.1/0.2/0.5：完成。
-- 首次 `STG.X2N.0.REVIEW`：历史结论 `BLOCKED_OWNER_ACTION`，原报告与 3 份机器证据保持不变。
-- `STG.X2N.0.REVIEW.RESUME`：完整复验通过；当前 `G0=PASS`。
-- Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
-- Stage 1：`TSK.x2n.foundation.001–005` 与独立 `STG.X2N.1.REVIEW` 已完成；8 个 finding 全部关闭，当前 `G1=PASS`，Stage 1 整体上传与 Stage 2 下一 Task 已授权。
-- Stage 1 已通过 PR #73 合并到 `main`，远端 PR 与合并后 x2n CI 均通过；历史 G1 Evidence 不改写。
-- Stage 2 九个独立单 Task `TSK.x2n.skeleton.001–009`（Phase 2.1–2.9）与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；8 个 finding 全部关闭。当前 Review 分支为 `codex/xhs-douyin-2notion-v0001-s02-review`，Review base 为 `c133e1d4…`、origin cutoff 为 `6777c8fc…`。
-- 小红书当前页代码、5 个 DOM Fixture、Action/临时 `activeTab`、Native Host/SQLite 闭环与 100 次 Worker restart 已通过；能力位仍为 `ci_synth_only`，真实页面禁用。
-- 抖音当前页代码、8 个 DOM Fixture 与 16 个合成短链 redirect 用例通过；短链核心无生产 transport，Extension/Companion 不联网解析，真实页面、真实短链和 Owner Canary 均禁用。
-- 哔哩哔哩当前页代码、10 个 DOM、8 个 Policy 与 5 个 schema-drift rejection 通过；文章公开路由未由当前 Open Platform 文档证明，`?p=` 分 P Fail Closed，真实页面/API 与 Owner Canary 均禁用。
-- 快手当前页代码、8 个 DOM、10 个 Policy、2 个 `BLOCKED_AUTH` 与 5 个 schema-drift rejection 通过；官方只证明 `user_video_info` 下授权用户已发布作品和 `photoId`，公开路由仍为未验证合成假设，真实页/API transport/DOM fallback 与 Owner Canary 均关闭。
-- 微博当前页代码、8 个 DOM、12 个 Policy、2 个 `BLOCKED_BUDGET`、16 个任意 URL/Redirect-SSRF rejection 与 7 个 schema-drift rejection 通过；官方 `statuses/show` 只证明 OAuth 授权用户本人发布内容读取，本应用预算为 0，价格、Scope 与配额未获批准，公开路由仍为未验证合成假设，真实页/API/CLI transport、OAuth 输入、DOM fallback 与 Owner Canary 均关闭。
-- 淘宝当前页代码、8 个 DOM、14 个 Policy、2 个 Scope/Retention 未知拒绝、16 个未文档化 Cookie/MTop 签名输入拒绝与 7 个 schema-drift rejection 通过；官方只证明需授权的增值 `taobao.item.get`、OAuth/TOP 协议及删除义务，本应用无 App/OAuth/API/付费/字段范围/保留期/删除回执审批，真实页/TOP API/DOM fallback 与 Owner Canary 均关闭。
-- Media Safety 已实现不可序列化 URL 引用、六平台精确 suffix＋HTTPS/443＋DNS 全地址＋逐 redirect 防火墙、绑定已校验 IP 的 transport 合同、流式 byte/deadline/MIME/Inspector 限制、下载前 URL-free cleanup reservation＋校验后 metadata finalize 的 SQLite lease、共享/独占 lifecycle lock、24h cleaner 与五个固定 sink scanner；生产 transport、真实媒体、FFmpeg/ASR/OCR/关键帧仍关闭或未运行。
-- Canonical orchestration 保持 Schema v2 不变，以两个 SQLite 事务把六平台净化当前页落为 Request Ledger、Run、Content、Owner-confirmed `saved_current` Relation、SourceObservation、Checkpoint 与 URL-free/private-payload-free placeholder Artifact；canonical commit 后可由重复请求、`GET_JOB` 或 bounded resume 只凭 SQLite 恢复。
-- Markdown Sink 使用固定 `platform/content_id` 路径、JSON-compatible YAML Frontmatter、同目录 `0600` atomic replace 与 Unclassified 派生 Index；Notion Sink 仅实现 `2026-03-11` 语义合同和进程内 Mock，以加法式 Schema、Owner category 显式映射、2 req/s、Outbox/Retry/Dead Letter/Mapping/Receipt 支持 kill-reconcile，真实 transport/凭据/Workspace/Page 为 0。
-- Skeleton001 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；105 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，54-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton002 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；112 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，56-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton006 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；122 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，57-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton007 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；131 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，58-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton008 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；140 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，59-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton009 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；149 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，60-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton003 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；158 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 73.67%，33 个依赖 OSV 漏洞 0，61-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton004 最终全量回归：80 个六平台输入两轮、100 个并发重复与 4 个 kill point 通过；duplicate entity、stuck Run、non-replayable state、broken provenance trace、private placeholder payload 均为 0；166 个根测试 PASS（3 skip）、59 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 74.61%，33 个依赖 OSV 漏洞 0，62-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton005 最终全量回归：六平台 80×2 的 80 Markdown/80 Notion Mock Pages/160 Outbox+Receipt 通过；partial file、invalid Frontmatter、dead link、CDN finding、duplicate Page、hash-noop replay request 与真实 Notion call 均为 0；175 个根测试 PASS（3 skip）、76 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 76.93%，33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。
-- Stage 2 Review 最终回归：186 个根测试 PASS（3 个固定可选 skip）、76 个 Companion tests PASS；两份独立 full lane 各 24/24 Blocking Gate PASS，coverage 均 76.93%，33 个依赖漏洞 0，65-member source candidate SHA 一致；实际 Python 3.12.13 与全部工具链版本匹配政策。
-- 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
-- 当前项目原生本地 `G2=PASS`，Stage 2 整体上传已授权；远端 CI/merge 为 `PENDING_POST_G2_UPLOAD`，下一动作只能是 `STG.X2N.2.REMOTE_UPLOAD`，此前 `stage_3_task_start=false`。正式 Verifier release-candidate 因缺少 canonical `MANIFEST` role 保持 `BLOCKED_REQUIREMENT_GAP`。
-- 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown/Notion Mock 仅 CI-SYNTH scoped pass。
-- 六平台真实执行：全部 `UNKNOWN_DISABLED`、`BLOCKED_AUTH` 或 `BLOCKED_BUDGET`；六平台均仅 `current_page=CI_SYNTH_ONLY`；各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
+- Branch: `codex/xhs-douyin-2notion-v0001-s03-review-resume`
+- Stage 0–5 and Assurance001–004 are historical completed evidence; Assurance005 is the only active Task.
+- `CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES` replaces the remaining live A005 XHS favorites range with
+  `xiaohongshu_current_content_second_batch`: 20 explicitly opened XHS detail pages with relation `saved_current`,
+  strictly disjoint from the first 20-item `xiaohongshu_current_content` batch. The four exact 20-item scopes are
+  now two XHS current-content batches, Douyin favorites, and Douyin likes. The A005 source implementation has two
+  bounded Douyin list actions, 40 write-gated current-content actions, and a hash-only pre-arm collector that
+  builds/finalizes the four private manifests without asking the Owner to edit JSON. It has a Douyin
+  private Sidecar boundary, aggregate-only 80-item verification, source-only staging, Native
+  Host install/disable, and a Side Panel health handshake bound to the same staged artifact as the Host.
+- Before sign-off it now runs two deterministic Markdown rebuilds from the Canonical SQLite baseline, requires the
+  second pass to make zero derived writes, and verifies the resulting archive through the approved
+  Private-MetaDatabase client. The private release-state schema is `1.3`; it persists only SHA-256 selected-content
+  identifiers and opaque Native Job IDs for the two 20-item current-content batches, plus aggregate release proof. Notion
+  remains explicitly disabled by the current Owner input, with zero Notion calls rather than a false write claim.
+- The staged extension receives one generated, hash-only `release_identity.json`; it is never present in public
+  source. A stale or mismatched Side Panel cannot mint the deployment handshake.
+- The source lane verifies the Owner-input Markdown contract against the immutable digest packaged with the
+  Companion, so the installed Native Host does not need a repository checkout to validate private release input.
+- The Side Panel is now a Chinese, responsive first-use guide rather than a technical workbench. It begins with one
+  clear next step, has only 保存 / 清单 / 帮助 as top-level tabs, and keeps list controls behind 高级选项. The exact
+  canonical XHS 收藏笔记 profile surface is a non-capturing guide: it says to manually open one visible note and shows
+  no disabled or actionable save control. It never reads the list, opens a note, or scrolls. Once an explicitly opened
+  XHS detail page is eligible, it shows one primary 保存这条笔记 action; the second bounded group remains a progressive
+  disclosure rather than a default card. Keyboard navigation, state feedback, reduced-motion support, and the public
+  source's no-remote-asset/no-third-party-motion boundary remain intact.
+- An already-open but not-yet-enabled detail page is now explained in plain language instead of being told to open
+  another item: Douyin directs the Owner to 收藏 or 喜欢, while 哔哩哔哩、快手、微博、淘宝 say that the content was
+  recognized but cannot yet be saved and expose no action. A fallback derived for one tab is cleared on tab change,
+  so it cannot leave a stale disabled action on another platform. The XHS-only current-content eligibility field is
+  no longer emitted for unrelated platforms.
+- `x2n release stage-prearm-sidepanel` now creates an idempotent, digest-addressed owner-private bundle under the
+  approved Runtime root. Its unpacked Side Panel, Companion, and Contract sources are verified together; it has no
+  `release_identity.json`, never moves a release pointer, and lets the temporary Host plan bind to the same bundle
+  instead of this disposable worktree.
+- `x2n release install-prearm-sidepanel-host --confirm INSTALL_X2N_PREARM_SIDEPANEL_HOST` is the only controlled
+  installer for that bridge. It stages/uses the current digest-addressed pre-arm bundle, refuses every existing Host
+  rather than replacing it, installs atomically only after the explicit confirmation, verifies the Host-to-bundle
+  binding, changes no release pointer, and emits no local path. It never opens Chrome or calls a platform.
+- The freshly committed first-use Side Panel source has been staged as a new owner-private digest-addressed pre-arm
+  bundle. Its staging made zero platform calls, did not switch a release pointer, and did not alter the existing
+  temporary Native Host. Chrome extension-manager actions remain manual, so any visual reload must use that stable
+  private bundle rather than a disposable `scratch` path.
+- The final narrow-panel unavailable-detail refinement has been staged as the current owner-private pre-arm bundle
+  (`66b3651b11ecd50f008abcc8d32e445f14855d96b814f9b91e23fd9ec80594d9`). That staging again made zero platform
+  calls, changed no release pointer, emitted no private path, and left the existing temporary Native Host untouched.
+- The current Owner-private pre-arm Host was installed successfully from the stable bundle and verified bound to its
+  private digest. Read-only preflight now reports `PREARM_BRIDGE_INSTALLED` only after proving exactly one matching
+  digest-addressed private bundle. That is the expected temporary-bridge state, not a fresh slot, deployment, or arm
+  permission; it keeps `ready_to_arm=false`. The Host must be removed after hash-only preparation and before the later
+  fresh deployment install. A foreign, ambiguous, or malformed residual remains `BLOCKED_EXISTING_TARGET`.
+- The owner-visible local entry named `x2n-点这里安装最新版` is now refreshed atomically to the verified current
+  pre-arm Side Panel bundle. It refuses to overwrite a regular file, broken link, foreign target, or malformed bundle;
+  it is a local loading convenience, never a release pointer or identity. The temporary Host now also has a paired,
+  confirmation-bound `uninstall-prearm-sidepanel-host` route: it removes only the one Bridge proved bound to a verified
+  pre-arm bundle, then the current Host installer can bind the refreshed package. This update has been executed once
+  against the real Owner-private runtime with zero platform/account calls and no release-pointer change.
+- A private Owner MVP input, release-state, or browser-handshake symlink, including a dangling one, is treated as
+  unsafe rather than absent. `load`, `arm`, state persistence, and handshake recording reject it before any
+  pre-switch backup, private state write, or platform action.
+- The XHS profile fallback now treats a favorites/likes surface as selected only when the matching label belongs to
+  a semantic interactive control (selected button/link or selected role=tab). A cosmetic profile counter with an
+  `active` class is rejected before it can misclassify ordinary profile content as a relation list.
+- The Douyin A005 path is now an x2n clean-room, current-visible-DOM Sidecar rather than a wrapper around a downloader:
+  the Side Panel requires the matching semantic 收藏/喜欢 surface and forwards only one sanitized 20-item facts batch;
+  a nonce-bound Owner-private loopback process revalidates that batch and exits after one exchange. It has no platform
+  network, crawler/downloader runtime, Cookie/Profile input, automatic scroll/pagination/retry, raw media, URL, or
+  Sidecar persistence surface. `provision-douyin-visible-sidecar` is the only supported bundle creator. `preflight`,
+  `arm`, and each Douyin action require the owner-only executable, resolved lock, SBOM, and transitive-license report
+  both to match the private input and to byte-match the current approved clean-room template; raw crawler artifacts
+  therefore fail before any loopback connection or Canonical write.
+- If the clean-room Douyin Sidecar fails before its ready signal, the Companion terminates and reaps the child before
+  returning a fail-closed error. It does not retry, reuse the process, or leave a background loopback listener.
+- The direct deployment transaction now has isolated regressions for each failure boundary: an initial Native Host
+  install failure discards the staged release without switching; a pointer-switch failure disables the just-installed
+  Host and discards staging; and any failed cleanup escalates to `POLICY_BLOCKED` rather than leaving an ambiguous
+  release state. The public rollback entry is separately tested to disable the Native Host before moving a pointer,
+  to leave the pointer unchanged if disabling fails, and to preserve a post-disable pointer failure for recovery.
+  The CLI also normalizes every post-switch state-recording or rollback-cleanup failure to a safe
+  `POLICY_BLOCKED` outcome after attempting the same-browser rollback.
+  The release loader now verifies both authorization and the exact Runtime marker phase, so a failed active-marker
+  write after online smoke is detected as integrity drift instead of silently resuming with an armed marker.
+- The Douyin list extractor accepts only one corresponding platform-owned surface after exactly one selected
+  收藏/喜欢 control. When the unique dedicated `user-favorite-list` / `user-like-list` coexists with an empty active
+  `user-favorite-tab` / `user-like-tab` shell, it deliberately prefers the narrower dedicated list; the active tab
+  is a fallback only when that list is absent. It has no generic `main` fallback and therefore cannot treat footer
+  or recommendation cards as a relation list.
+- The XHS profile fallback recognizes the observed rendered surface only when one visible
+  `#userPageContainer.user-page` has exactly one direct active `.reds-tab-item.sub-tab-list` with the expected
+  relation in exactly one visible `.reds-tabs-list.tertiary`: 收藏 for favorites, or 赞过/点赞 for likes. On the
+  current transform layout it binds that relation's tab index to the same-index direct
+  `.feeds-tab-container > .transform-container > .tab-content-item` only when the target panel has at least a
+  meaningful 16×16 viewport intersection; an inactive transformed panel's one-pixel edge is ignored rather than
+  falsely creating ambiguity. It still rejects a mapping mismatch or a target panel that is only a sliver, rather
+  than accidentally reading the static `#userPostedFeeds` posts panel. The legacy `#userPostedFeeds` fallback
+  remains only for a profile without any tab-content panels.
+  Additional tertiary controls remain allowed only when they do not create a second matching active relation; a
+  generic active class or an unrelated feed root remains rejected, and the exact-20 release gate remains mandatory.
+- The Side Panel exposes a distinct direct-MVP current-content control. A real canonical XHS detail page is eligible
+  only for that control; the generic current-page path remains CI-synthetic. Before arm it emits a hash-only
+  enrollment with no Canonical Job/write; after both visible Douyin-list enrollments and 40 unique explicit details
+  split across its two batch controls it atomically freezes the private input. After arm the same control emits
+  `X2N_CAPTURE_CURRENT_MVP`, cannot carry a
+  fallback Job, and the Native Host checks the frozen Manifest before its first Canonical write. A duplicate,
+  incomplete set, semantic mismatch, or multiple Canonical records for one opaque capture identity fails closed.
+- Pre-arm uses a temporary source-bound Native Host and unpacked Side Panel only to record the private hash-only
+  manifests. Once the input freezes, uninstall that owned bridge; its uninstall preserves the private enrollment/input
+  while restoring the fresh Host slot that the staged tagged deployment requires. Any unowned/residual Host remains a
+  hard stop rather than an overwrite.
+- The final acceptance runner is read-only and only emits `PASS_OWNER_MVP_DIRECT_RELEASE_CORE` after real Owner
+  runtime proof. It emits the immutable, aggregate-only `FINAL_ACCEPTANCE_BUNDLE` with a receipt-bound checksum root
+  only after explicit confirmation; it cannot mint G6 or a release receipt from fixtures.
+- `x2n release preflight` is a read-only aggregate A005 gate. It can prove Owner-input/state, source-tag, and
+  configured-and-pinned Private-MetaDatabase-client readiness, plus known-local Chrome executable availability and
+  whether Chrome has a fresh Native Host install slot, without emitting a path, content ID, credential value, or
+  platform request. It cannot arm or mutate the release. `chrome_executable=AVAILABLE` does not inspect a Profile or
+  claim a login. `native_host_fresh_install=READY_FOR_FRESH_INSTALL` means only that `uv`, source/runtime
+  prerequisites, and the empty Host target were verified without a write; it is not an install or go-live claim.
+  It independently reports a correctly provisioned fixed Douyin bundle as
+  `CONFIGURED_CLEAN_ROOM_UNATTESTED` while Owner input is unavailable; that status cannot arm a release and becomes
+  `CONFIGURED_AND_MATCHED` only after the private input attestation also validates.
+- `x2n release input-template` remains diagnostic-only and deliberately invalid. The hash-only pre-arm collector,
+  not manual replacement, creates the four real private 20-ID manifests, reuses/provisions the clean-room Sidecar,
+  and selects its private loopback port; it still cannot arm, sign off, or mint a release receipt.
+- Real Owner Runtime, profiles, platform calls, Notion, models, media, private-database transfer, exact release tag,
+  deploy, Side Panel handshake, and online smoke are `NOT_RUN`.
 
-## Resume 关键决策
+## Key boundaries
 
-1. Owner 要求保留供其他并行工作使用的外部共享 GitHub 认证材料，并接受其外部残余风险。
-2. x2n 对该材料零读取、零请求、零显示、零持久化、零使用、零修改、零删除/轮换/撤销，也不修改全局 Git 配置或 Credential Helper。
-3. 这不是 Secret Presence Waiver；认证材料、Cookie、认证 Remote 或平台媒体 CDN 值一旦进入 x2n Repo、History、Runtime、Evidence 或 Artifact，仍立即 Fail Closed。
-4. 未来公开源码研究只允许 `scripts/public_source_snapshot.py`：匿名 HTTPS、隔离 HOME、最小环境、禁用 global/system Git config 与 Credential Helper，审计后删除。
-5. 与其他长期开发线继续使用独立 worktree 和 Review cutoff；cutoff 后只检查 x2n overlap，不吸收无关提交。
+- Parent repository is `MetaDatabase`; this child is only `xhs-douyin-2notion`.
+- Do not read, show, modify, rotate, revoke, or use the shared GitHub Token.
+- Runtime data remains private; never persist platform media CDN addresses, raw media, credentials, or browser state
+  in public source/evidence.
+- Exactly four MVP scopes are permitted at 20 items each. Other four platforms stay external-gated until a future
+  explicit authorization; no call or live-support claim is allowed for them in this Task.
+- Deployment refuses a dirty/untagged source tree and an existing Native Host. The direct first-release rollback is
+  disable plus the already rehearsed private SQLite backup.
 
-## 证据与验证结果
+## Latest verification
 
-- Owner 回执：私有 `0600` 闭合回执通过；公开证据不含 ID、时间、哈希、账号、URL、本机路径或材料值。
-- G0 Resume 签发时的树、历史、私有根、x2n Local Remote 与产品/Runtime 引用快照：全部 0 命中；该历史证据未被 Stage 1 重写。
-- 历史 Phase receipt：20 份，未重写；原 Review receipt：3 份，仍记录首次 Blocked 事实。
-- 原始 roadmap/ZIP：固定 SHA-256 匹配；ZIP CRC/7 成员保持通过。
-- cutoff 后 `origin/main` 漂移只做聚合复验；x2n overlap 0，不吸收外部提交。
-- Resume 证据：`machine/evidence/stage_0/review_resume/{verification,G0,owner_decision}.json`。
-- 人类报告：`docs/governance/STAGE_0_REVIEW_RESUME.md`。
-- Foundation 001 证据：`evidence/foundation/TSK.x2n.foundation.001.json`；只证明当前 scaffold 范围。
-- Foundation 002 证据：`evidence/contracts/TSK.x2n.foundation.002.json`；只证明当前 Contract/合成范围，真实 Host/SQLite/Sink 为下游未运行。
-- Contract：14 类生成 JSON Schema、同源 Pydantic/TypeScript types、24 个稳定错误码；16 valid + 22 invalid + 106 fuzz，共 144 个合成用例。
-- npm/uv locks：5 个 Python Runtime registry packages、21 个 TypeScript build-only registry packages；26-component SBOM，npm install script 为 0。
-- Foundation 002 verifier：含 12 个 Pydantic Contract tests、TypeScript strict compile、Python↔TypeScript payload-hash vector、生成物/SBOM 漂移与 worktree 隔离，全部 PASS。
-- Foundation 003：SQLite Schema v2 含 17 tables、9 indexes、15 triggers；WAL/FK/FULL synchronous/busy timeout、DB 层 Unique/append-only/delete protection、Request Ledger、Outbox/Receipt、Lease、Migration 与本地 Backup/Restore 已实现。
-- Foundation 003 合成验收：固定提交历史为 13 Store tests；当前为 14（新增 transient SQLite sidecar 竞态回归）；80 条连续两次、100 个并发重复、10k DB、Hash mismatch、2→1→Restore 2 全部通过；重复副作用、数据丢失、不可读记录、orphan FK 均为 0，`integrity_check=ok`。
-- Owner Private Runtime：Schema v2 空库已初始化；Content/账号/下载/媒体/Sink 记录为 0；DB/marker 权限 Owner-only，解析路径未进入 Repo/Evidence。
-- Foundation 004：固定开发 Extension ID，权限只含 `activeTab`/`nativeMessaging`/`sidePanel`，Host Permission 为 0；五区 Side Panel 与 20/20 六平台合成 URL 识别通过，所有平台动作保持禁用。
-- Native Host：精确单 Origin、短进程 stdio、1 MiB 上限、严格 Contract；固定 Foundation004 历史为 24 个 Companion tests，当前 25 个覆盖 Origin/Schema/Action/Size/Injection、100 个并发重复、transient SQLite sidecar 竞态、payload-free SQLite Job、unowned 文件拒绝与 installer 首次/升级失败回滚。
-- 隔离 Chromium E2E：临时 HOME/Profile/Runtime/Host 注册；100 次真实 Service Worker 终止/重启，任务丢失/重复/错状态和 uncaught console error 均为 0；Owner Chrome/Profile/Canary 未运行。
-- Foundation 004 供应链：当前 SBOM 30 components；Playwright `1.61.1` 精确锁定；可选 `fsevents` install script 由 `.npmrc` 和验收命令禁用，执行数 0。历史 Foundation002 SBOM 保持 26-component 原事实。
-- Foundation 005：changed-scope/full-release candidate CI 已建立；Actions 全 SHA pin、最小权限且 checkout 不持久化凭据。full lane 本地两次重放，format/lint/type/unit/contract/migration/integration/E2E、风险覆盖率和 seeded-failure 均通过；silent Blocking skip/failure/flaky 为 0，3 个公开 CI 无私有输入的显式非阻断 skip 每轮按固定 reason/count allowlist 验证（full 共 6）；远端 Actions 未运行。
-- Foundation 005 Assurance：当前 33-component SBOM、Unknown License 0、匿名 OSV vulnerability 0、SAST Critical/High 0、Secret/Private/CDN/Fixture/Artifact Runtime Data 0；确定性 source candidate 只在 ignored build/临时目录生成并扫描。
-- Stage 1 Review：关闭 8 个 finding；DAG/Task State/G1 Fact 一致，Task Pack 只允许精确 Review 状态差分，PR 合成 merge 只选择唯一继承 Foundation005 的父提交，duplicate JSON key 被拒绝，full lane 记录精确 24 项 gate/repetition/status，Runtime CLI 不再硬编码动态 Gate。
-- G1 独立复验：全新 frozen npm/uv 环境与隔离 Chromium；12 门禁×2 共 24/24 PASS，blocking failure/flaky/silent skip 均 0；overall combined coverage 70.88%，7 个关键模块过阈值；OSV 查询 33 个依赖、漏洞 0。
-- Review 证据：5 份 Foundation 历史 receipt 与固定提交逐字节一致；Stage 1 提交消息、逐提交变更 blob、当前 Source 与根 workflow 的 Secret/Private/CDN 扫描 0 命中；53-member candidate 无 Runtime Data 且两次 Hash 一致。
-- Review 机器证据：`machine/evidence/stage_1/review/{findings,verification,G1}.json`；人类报告：`docs/governance/STAGE_1_REVIEW.md`。本地 `G1=PASS`，远端 x2n CI 尚待上传后运行。
-- Model baseline：`x2n-synthetic-model-contract-v1@1.0.0` Dataset Contract PASS；ASR/OCR/Fusion/Classify 为禁用且 NOT_RUN，Red Team 只过合同，自动分类等待 `ACC.x2n.ai.006`，模型调用 0。
-- Skeleton001：5/5 公共合成 DOM 通过；3 个 ready 的稳定 ID/Host/Path/标题/null/类型完全匹配，2 个改版或 feed-card Fixture 返回 `platform_changed`；Query/Fragment、媒体/raw DOM 持久化为 0。
-- Skeleton002：8/8 公共合成 DOM 通过；4 个 ready、4 个 `platform_changed`；16 个短链 redirect 用例中 3 个 canonical resolved、13 个 fail-closed。短链、Query/Fragment、媒体/raw DOM 持久化为 0，生产网络 transport 与平台调用为 0。
-- Skeleton006：10/10 公共合成 DOM、8/8 Policy 与 5/5 schema-drift rejection 通过；5 个 ready、5 个 `platform_changed`；稳定 ID/Canonical Host/Path 100%，Query/Fragment、媒体/raw DOM 与平台调用为 0。
-- Skeleton007：8/8 公共合成 DOM、10/10 Policy、2/2 `BLOCKED_AUTH` 与 5/5 schema-drift rejection 通过；4 个 ready、4 个 `platform_changed`；稳定 `photoId`/Canonical Host/Path 100%，Query/Fragment、Cookie、媒体/raw DOM 与平台调用为 0。
-- Skeleton008：8/8 公共合成 DOM、12/12 Policy、2/2 `BLOCKED_BUDGET`、16/16 任意 URL/Redirect-SSRF 与 7/7 schema-drift rejection 通过；4 个 ready、4 个 `platform_changed`；稳定 `mid`/Canonical Host/Path 100%，Query/Fragment、Cookie、OAuth 材料、媒体/raw DOM、任意 URL transport 与平台调用为 0。
-- Skeleton009：8/8 公共合成 DOM、14/14 Policy、2/2 Scope/Retention 未知拒绝、16/16 未文档化 Cookie/MTop 签名输入拒绝与 7/7 schema-drift rejection 通过；4 个 ready、4 个 `platform_changed`；稳定 `num_iid`/Canonical Host/Path 100%，Query/Fragment、Cookie/签名材料、媒体/raw DOM 与平台调用为 0。
-- Skeleton003：512 个 URL fuzz（64 allowlisted、448 forbidden）、32 个 SSRF、8 个 cleanup chaos、8 个 acquisition resource block 与 23 个媒体安全单测通过；forbidden target/local read/成功残留/过期残留/active misdelete/scanner finding/Companion crash 均为 0，删除失败稳定高优先级回执率 100%。
-- Skeleton004：六平台 80×2 与 100 concurrent duplicate 通过；Request/Run/Content/Relation/Observation/Checkpoint/placeholder Artifact cardinality 精确，4 个 kill point 可重放，完整 scoped provenance broken trace 为 0；Classification/Renderer/Markdown/Notion/媒体处理 `DOWNSTREAM_NOT_RUN`。
-- Skeleton005：六平台 80×2 固定路径 Markdown 与进程内 Notion Mock 通过；Schema v2 不迁移，Unclassified 不建 taxonomy row，Owner category Relation 只接受显式 mapping；7 类 retry/outage/kill/schema fault 最终 Receipt 或 bounded Dead Letter，真实 Notion/Owner Canary `NOT_RUN`。
-- 当前 Extension 权限为 `activeTab`/`nativeMessaging`/`scripting`/`sidePanel`；历史 Foundation004 的 3 权限事实保持在固定提交与 Evidence 中。当前无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码。
-- Chromium E2E 在默认 Action 前验证注入与采集 2/2 拒绝；用官方 CDP Action 驱动后才取得临时 `activeTab`，并通过真实 Side Panel 按钮把 XHS/Douyin/Bilibili/Kuaishou/Weibo/Taobao 合成当前页分别送入 Native Host/SQLite；每平台 100 次 Worker 重启仍 0 丢单/重单/错状态。平台形态网络请求由 catch-all route 拦截，实测平台调用 0；Owner Canary 与真实页面均 `NOT_RUN/DISABLED`。
-- 当前根回归：186 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；76 个 Companion tests PASS；Foundation001–005、Skeleton001–009 与 Stage 2 Review 的当前/固定历史 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
-- Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
+- Current handoff checkpoint: source commit `3865edf7` is pushed to the branch and the worktree/remote heads match.
+  It adds an aggregate-only progress response to the temporary Native Host and makes the Side Panel show exactly
+  `已记录 N/20 条` plus the next action. The response contains only four bounded counters: no content identity,
+  title, URL, account data, private path, or hash is emitted. The actual Owner-private enrollment currently has
+  小红书第一组 `2/20`, with the other three scopes at `0/20` (total `2/80`); no Canonical write, Notion call,
+  or platform call occurred. Native Host focused tests, the 59-case release suite, Contract validation/generation,
+  Ruff, TypeScript, extension self-test, isolated extension E2E, and the Stage 3 resume recheck all passed. The
+  stable pre-arm bundle and its owned temporary Host were refreshed from that committed source with no release-pointer
+  change. Chrome Extension Manager reload remains the one owner-visible action needed to load that refreshed bundle.
+  The subsequent current fast lane passed all 9 blocking gates with zero platform, real-account, or model calls;
+  the Stage 3 verifier also passed with the lane report and historical evidence required. Its attempted public
+  evidence rewrite correctly refused with `Resume evidence is immutable after Task010 begins`; do not bypass that
+  historical-evidence guard or replace it with a fabricated refresh.
+  The A005 full software lane passed all 22 blocking executions across two repetitions, including the native Extension
+  E2E and historical Stage 5 review. The candidate artifact is deterministic (94 members, zero runtime-data files and
+  zero allowlist findings); branch coverage is 77.78%; OSV reported zero vulnerabilities across 33 dependencies;
+  platform, real-account, and model calls are all zero. The current Owner-private stable entry and temporary Host were
+  then refreshed and re-verified by aggregate-only preflight as `PREARM_BRIDGE_INSTALLED`; no Owner input, Canonical
+  write, deployment, or smoke has occurred.
+- The unavailable-detail refinement passed extension self-test; all XHS, Douyin, 哔哩哔哩, 快手, 微博, and 淘宝 fixture
+  suites; and both isolated XHS and Douyin Extension E2Es. The latter exercised the XHS guide, the new real-shaped
+  哔哩哔哩 unavailable-detail state with zero visible actions, synthetic capture, and 100 service-worker restarts with
+  zero platform calls or real accounts. A separate 360 px visual check of that unavailable state had no horizontal
+  overflow and zero visible actions. The current nine-gate fast source lane passed with 668 public source files; its
+  append-only A005 source receipt is `41d6fdcecd8131a6359e4b352359db403176ea51944e42c423266c59a3292aa3`.
+- The first-use Side Panel source was rendered in isolated Chromium at 360 px in light and dark modes. The exact XHS
+  收藏笔记 guide has no horizontal overflow and presents zero visible actions; an eligible XHS detail page has one
+  full-width 保存这条笔记 action plus a collapsed optional second-group switch. Extension self-test, TypeScript
+  contract checking, syntax checks, diff checks, and the controlled zero-network XHS Extension E2E passed. That E2E
+  opens the exact guide route through the action-granted tab, asserts the human guide text and zero visible actions,
+  then completes the existing synthetic current-page capture and 100 service-worker restarts with zero platform calls
+  and zero real accounts. The visual detector reported zero findings. A fresh owner-private stable pre-arm bundle was
+  created from this committed UX source; it made zero platform calls, did not switch a pointer, and made no Native Host
+  change.
+- The stable pre-arm Host installer has 46 focused release tests, including real temporary-Home installation from the
+  private pre-arm bundle and a verified uninstall. It rejects a bad confirmation before staging, refuses an existing
+  Host target, and keeps the response aggregate-only. The declared 115 focused A005 tests, 19 Contract tests,
+  Side Panel self-test, three fixture suites, and 100-restart Douyin Extension E2E all passed with zero platform
+  calls; the current nine-gate source lane and its append-only source receipt passed too.
+- A real owner-private pre-arm Host install then passed with the current stable bundle: its response verified atomic
+  installation and Host-to-bundle binding, changed no release pointer, emitted no path, and made zero platform or
+  account calls. The immediate read-only preflight identifies that exact bridge as
+  `PREARM_BRIDGE_INSTALLED` while owner input, enrollment, durable-client setup, source tag, release state, and arm
+  readiness remain absent/not ready; a bridge never makes the release armable.
+- The current A005 scope-amendment source lane passed: 109 focused Companion/Native Host tests, 19 Contract tests,
+  generated-contract verification, Ruff, JavaScript syntax checks, extension self-test, XHS current-page fixtures,
+  XHS MVP surface-safety fixtures, Douyin visible-list fixtures, and the 100-restart Douyin extension E2E. This is
+  local/synthetic evidence only; it proves neither a live Owner input nor a platform capture.
+- An earlier broad Companion discovery run stopped during an existing 10k Markdown rebuild and remains non-evidence.
+  It has been superseded only for the declared A005 software-lane surface by the current full 22-execution pass above;
+  focused A005 bundle/release/acceptance coverage continues to prove exact scopes, pre-write hash-manifest mismatch,
+  Markdown idempotency, durable archive proof, external gates, deployment cleanup, pointer rollback, staged Host
+  binding, and stale Side Panel identity rejection.
+- Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
+  Ruff, schema parsing, source privacy scan, and a temporary candidate-artifact scan passed. All fixture platform
+  calls remain `0`; the current candidate artifact has 93 members and 0 runtime-data files.
+- The A005 verifier fails closed without a real immutable receipt, as expected. A broad historical root-suite run has
+  18 failures that assert earlier Stage 0–5 states/files must still be the current state; they are outside A005 and
+  must not be "fixed" by rewriting historical evidence. No A005-required suite failed.
+- The approved local Runtime layout was initialized and its empty Canonical SQLite store passed integrity checks;
+  all required owner-only directories now validate. Current real `release preflight` is safe and reports
+  `chrome_executable=AVAILABLE`, `native_host_fresh_install=PREARM_BRIDGE_INSTALLED`,
+  `douyin_sidecar_bundle=CONFIGURED_CLEAN_ROOM_UNATTESTED`, `owner_input=MISSING_OR_INVALID`,
+  `release_state=NOT_STARTED`, `source_release_tag=NOT_READY`, and `ready_to_arm=false`; it made zero platform or
+  Notion calls and did not execute a real account. The normal shell has not persisted a client configuration; a
+  one-shot, non-invoking preflight with the approved digest-pinned `X2N_PRIVATE_DB_CLIENT` reports
+  `private_durability_client=CONFIGURED_AND_PINNED`. It neither reads a Token nor contacts the client or any remote
+  service.
+- The A005 XHS surface-safety, clean-room Douyin Sidecar artifact/process, and Douyin semantic visible-list regressions,
+  both existing XHS fixture suites, extension self-test, focused A005 Companion source-lane bundle (104), Contract
+  tests (18), and Ruff passed. These remain synthetic/local checks; they do not prove an Owner baseline.
+- A read-only current-profile structural audit found that the active 收藏/点赞 relations are rendered in same-index
+  transform panels while `#userPostedFeeds` remains a separate static posts panel. The XHS adapters now require a
+  complete same-index mapping plus a meaningful 16×16 target-panel viewport intersection, so an inactive panel's
+  one-pixel transformed edge cannot block the active list; the surface-safety suite covers the positive and sliver
+  rejection cases. No browser content, IDs, URLs, or platform call entered the repository.
+- Historical delegated Owner Chrome observations of the real XHS 收藏/点赞 panes are not reusable release evidence;
+  the old XHS-likes observation is outside the amended A005 live scope. Every direct release must freshly observe
+  XHS favorites and each explicitly opened XHS current detail, require exactly 20 unique items per scope without
+  scrolling, and keep IDs only as transient hashes that are neither emitted nor persisted until all four scopes
+  satisfy the current Owner-input gate. The real logged-in Douyin profile
+  selected 收藏 and 喜欢 successfully, but the corresponding active `user-favorite-tab` / `user-like-tab` panes each
+  contained only one empty placeholder descendant and zero verifiable cards after bounded no-scroll stabilization.
+  There was no visible loading or empty-state text to reinterpret. The current release therefore has no valid
+  four-scope exact-80 Owner input and remains undeployed. The strict tab-pane compatibility regression now covers an
+  empty active relation pane with 20 out-of-pane footer links: it must remain `empty_unverified` with zero captured
+  items. There are 9 zero-network fixture cases; current focused source evidence is 104 Companion tests, 18 contract
+  tests, extension self-test, Douyin visible-list fixtures, Douyin extension E2E (100 controlled worker restarts),
+  both XHS fixtures, and a 662-file zero-finding privacy scan.
+- A subsequent delegated Owner Chrome topology audit resolved the apparent empty-panel block: the active panels are
+  tab shells, while a unique visible sibling `user-favorite-list` exposes 30 legal unique relation IDs and a unique
+  visible sibling `user-like-list` exposes 40, both without scrolling. The extractor's dedicated-list preference is
+  covered by 11 zero-network fixture cases and the current full A005 source lane passed. Fresh private manifest
+  capture may now proceed, but no Owner input, tag, deployment, or smoke claim has yet been made.
+- 2026-07-30 first-use repair: the real private Owner contract was a closed legacy default, not an account or page
+  failure. The Companion now creates the fixed direct-MVP contract only after a validated explicit Side Panel
+  gesture, or upgrades only that exact closed default after the confirmation-bound local repair command; it never
+  overwrites a custom, malformed, or symbolic-link record. The actual Owner runtime was upgraded with zero platform
+  and Notion calls. `release preflight` still truthfully reports `owner_input=MISSING_OR_INVALID` until the four
+  hash-only manifests freeze a `owner_mvp_release_input`; that field is not a report of the now-valid first-use
+  contract.
+- The current stable pre-arm Side Panel and Native Host were refreshed after the repair and an actual Native Messaging
+  health frame passed. macOS Finder's regular `.DS_Store` metadata is now ignored only for package identity/digest
+  checks; a directory, symlink, or any other unexpected package member remains fail-closed. The Side Panel source
+  now uses a blue primary action, keeps green exclusively for safe-state feedback, and explains first-use/host
+  failures in plain Chinese. Chrome's Extension Manager reload remains the one manual step needed to show those
+  visual changes in an already-loaded unpacked extension.
 
-```bash
-python3.12 -B scripts/verify_foundation_001.py --verify-worktree --allow-external-main-dirty --require-evidence
-python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-external-main-dirty --require-evidence
-python3.12 -B scripts/verify_foundation_003.py --verify-worktree --allow-external-main-dirty --validate-owner-runtime --require-evidence
-python3 -B scripts/verify_foundation_004.py --verify-worktree --allow-external-main-dirty --require-evidence
-python3.12 -B scripts/verify_foundation_005.py --verify-worktree --allow-external-main-dirty --require-evidence
-python3 -B scripts/verify_skeleton_002.py --verify-worktree --allow-external-main-dirty --require-evidence
-python3 -B scripts/verify_skeleton_006.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s02-skeleton006-final3/software-lane.json --require-evidence
-python3 -B scripts/verify_skeleton_007.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s02-skeleton007-final/software-lane.json --require-evidence
-python3 -B scripts/verify_skeleton_008.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s02-skeleton008-final3/software-lane.json --require-evidence
-python3 -B scripts/verify_skeleton_009.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s02-skeleton009-final3/software-lane.json --require-evidence
-.venv/bin/python -B scripts/verify_skeleton_003.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s02-skeleton003-final/software-lane.json --require-evidence
-.venv/bin/python -B scripts/run_skeleton_004_acceptance.py
-.venv/bin/python -B scripts/verify_skeleton_004.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s02-skeleton004-final/software-lane.json --require-evidence
-.venv/bin/python -B scripts/ci/run_lane.py --lane full --repetitions 2 --reports-dir build/s02-skeleton004-final
-python3 -B -m unittest discover -s tests -p 'test_*.py'
-```
+## Next work
 
-历史 Stage 0 的完整 `--verify-worktree` 命令严格绑定原 Phase/Review branch 与 cutoff，
-不应从当前 Stage 1 worktree 运行或为求绿色而放宽。当前 Run 通过根回归复核其核心规则，
-并保留原始 Phase/G0 机器证据；需要重放历史完整命令时应在对应归档 worktree 按原
-Run Contract 执行。
-
-## 不变边界
-
-- 母仓库/子项目：`LinzeColin/MetaDatabase` / `xhs-douyin-2notion/`。
-- `X2N_DATA_ROOT=${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`；Runtime 与全部下载共用该隔离根；真实解析路径不进 Git。
-- 下载父目录名只代表存储位置，不授权 MediaCrawler 安装、运行、接入或输出导入。
-- Public Code / Private Runtime；专有许可；SQLite Canonical Store 是唯一真相源；Markdown/Notion 为可重建 Sink。
-- 当前 Owner Store 只含 Schema/Migration ledger 空库；同盘 Backup 只证明本地恢复能力，不是异地灾备。
-- 不持久化平台媒体 CDN URL、凭据、Cookie、浏览器状态或原始媒体；AI 不创建一级分类；不自动滚动、不改变账号状态、不绕过平台控制。
-- `ShilongLee/Crawler` 与 MediaCrawler 仅固定 Commit 的不可执行研究证据：不复制、不 Vendor、不安装、不运行、不接收输出、不作 Runtime Dependency。
-
-## 下一步
-
-1. 将 Skeleton001–009 与唯一 Review commit 作为 Stage 2 整体上传，运行远端 x2n CI 并完成 merge；不得使用或改变共享认证材料。
-2. 远端 CI/merge 前不得执行 Stage 3；完成后另开单 Task Run，重新核验并授权 `TSK.x2n.adapters.001`。
-3. 六平台真实页面、API/CLI/TOP 与抖音生产短链解析继续关闭，直到当时的一手政策证据、Owner 明确授权、对应 Canary、隐私披露与网络安全门禁独立通过。
-4. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。
+1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
+2. In the current delegated Owner run, the stable pre-arm Host and the owner-visible stable entry are already refreshed.
+   The Chrome Extension Manager action remains manual: load/reload the stable entry rather than any `scratch` source
+   directory. On the exact 小红书收藏笔记 list, the intended first screen is the guide with no save
+   button and a visible `第一组：已记录 N/20 条` count: manually open one visible note, then use the single
+   blue 保存第 N 条笔记 button on its detail page. Then freshly observe the two
+   Douyin lists without scrolling, then use the Side Panel to record their two
+   exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
+   for each of the two disjoint batch controls. The Companion creates only private hashes and automatically freezes
+   the input after all four ranges are exact; immediately uninstall the owned temporary Host so its fresh install slot
+   is restored. Never substitute footer cards, invent hashes, or edit a template. A missing/ambiguous list or
+   current-page identity is an explicit stop condition. Then configure the approved
+   digest-pinned Private-MetaDatabase client, rerun `x2n release preflight` until it reports a valid input and no
+   existing release state, arm, perform the two actual list actions plus 40 actual current-content actions,
+   baseline verification, Markdown/durability materialization, rollback rehearsal, sign-off, exact tag, deploy,
+   staged-extension reload, handshake, and immediate online smoke in the documented order.
+3. Only after that real sequence succeeds, run the read-only acceptance verifier and explicitly write the immutable
+   receipt and `FINAL_ACCEPTANCE_BUNDLE`. Do not claim G6 from this direct-core receipt.
+4. A real Notion write needs a separately authorized Owner Integration and Parent configuration; until then A005's
+   explicit zero-call Notion-disabled outcome is the only truthful release state.

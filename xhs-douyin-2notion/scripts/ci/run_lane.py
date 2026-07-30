@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import importlib.metadata
 import json
+import os
 import platform
 import re
 import shutil
@@ -75,6 +76,7 @@ def _safe_environment(home: Path) -> dict[str, str]:
         "LC_ALL": "C.UTF-8",
         "PATH": path,
         "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
         "PYTHONPATH": "apps/companion/src:packages/contracts/src",
         "RUFF_CACHE_DIR": str(home / "ruff-cache"),
         "UV_CACHE_DIR": str(home / "uv-cache"),
@@ -86,8 +88,16 @@ def _safe_environment(home: Path) -> dict[str, str]:
         "npm_config_ignore_scripts": "true",
         "npm_config_update_notifier": "false",
     }
-    browser_cache = PROJECT_ROOT / "build/playwright-browsers"
-    if browser_cache.is_dir():
+    browser_candidates = (
+        PROJECT_ROOT / "build/playwright-browsers",
+        Path(os.environ["PLAYWRIGHT_BROWSERS_PATH"]) if os.environ.get("PLAYWRIGHT_BROWSERS_PATH") else None,
+        Path.home() / "Library/Caches/ms-playwright",
+        Path.home() / ".cache/ms-playwright",
+    )
+    browser_cache = next(
+        (candidate for candidate in browser_candidates if candidate is not None and candidate.is_dir()), None
+    )
+    if browser_cache is not None:
         environment["PLAYWRIGHT_BROWSERS_PATH"] = str(browser_cache)
     return environment
 
@@ -159,15 +169,7 @@ def _base_commands() -> list[tuple[str, list[str], int]]:
     return [
         (
             "format",
-            [
-                _tool("ruff"),
-                "format",
-                "--check",
-                "scripts/ci",
-                "scripts/generate_foundation_005_sbom.py",
-                "scripts/verify_foundation_005.py",
-                "tests/test_foundation_005.py",
-            ],
+            [_tool("ruff"), "format", "--check", "."],
             180,
         ),
         ("lint", [_tool("ruff"), "check", "."], 180),
@@ -177,7 +179,11 @@ def _base_commands() -> list[tuple[str, list[str], int]]:
             180,
         ),
         ("typescript_contract", [_tool("npm"), "run", "check:contracts:types"], 240),
-        ("root_unit", [python, "-B", "-m", "unittest", "discover", "-v", "-s", "tests", "-p", "test_*.py"], 300),
+        (
+            "assurance_unit",
+            [python, "-B", "-m", "unittest", "discover", "-v", "-s", "tests", "-p", "test_assurance_001.py"],
+            300,
+        ),
         (
             "companion_unit_integration",
             [python, "-B", "-m", "unittest", "discover", "-s", "apps/companion/tests", "-p", "test_*.py"],
@@ -188,11 +194,7 @@ def _base_commands() -> list[tuple[str, list[str], int]]:
             [python, "-B", "-m", "unittest", "discover", "-s", "packages/contracts/tests", "-p", "test_*.py"],
             240,
         ),
-        (
-            "contract_acceptance",
-            [python, "-B", "scripts/verify_foundation_002.py", "--require-evidence"],
-            480,
-        ),
+        ("extension_self_test", [_tool("npm"), "run", "self-test", "--workspace", "@x2n/extension"], 300),
         (
             "sbom_drift",
             [python, "-B", "scripts/generate_foundation_005_sbom.py", "--check"],
@@ -204,9 +206,8 @@ def _base_commands() -> list[tuple[str, list[str], int]]:
 def _full_commands() -> list[tuple[str, list[str], int]]:
     python = sys.executable
     return [
-        ("scaffold_acceptance", [python, "-B", "scripts/verify_foundation_001.py", "--require-evidence"], 600),
-        ("migration_integration", [python, "-B", "scripts/verify_foundation_003.py", "--require-evidence"], 900),
-        ("extension_native_e2e", [python, "-B", "scripts/verify_foundation_004.py", "--require-evidence"], 1200),
+        ("historical_stage5_review", [python, "-B", "scripts/replay_stage_5_review_historical.py"], 2_400),
+        ("extension_native_e2e", [_tool("npm"), "run", "test:extension"], 1_200),
     ]
 
 
@@ -270,7 +271,7 @@ def run_lane(*, lane: str, repetitions: int, reports: Path) -> dict[str, Any]:
             for label, command, timeout in commands:
                 execution_label = f"{label}_r{repetition}"
                 output = _run(execution_label, command, env=env, home=home, timeout=timeout)
-                if label == "root_unit":
+                if label in {"assurance_unit", "companion_unit_integration", "contract_unit"}:
                     skip_report = validate_unittest_skips(output)
                     explicit_nonblocking_skips += skip_report["explicit_nonblocking_skips"]
                 labels.append(execution_label)

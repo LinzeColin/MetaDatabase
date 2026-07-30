@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "review_id": "STG.X2N.4.REVIEW",
+  "run_id": "RUN-X2N-S04-REVIEW",
+  "status": "NO_OPEN_G4_STAGE_TRANSITION_BLOCKERS",
+  "remaining_non_blocking_disabled_capabilities": [
+    "asr_private_gold",
+    "ocr_private_gold",
+    "vision_private_gold",
+    "classification_private_gold"
+  ],
+  "out_of_scope": {
+    "stage_4_remote_upload": "NOT_RUN",
+    "stage_5_execution": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "real_platform_calls": 0
+  }
+}

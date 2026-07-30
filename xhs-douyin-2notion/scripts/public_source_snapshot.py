@@ -32,10 +32,16 @@ def _require(condition: bool, message: str) -> None:
 
 def validate_public_url(value: str) -> str:
     parsed = urlsplit(value)
-    _require(parsed.scheme == "https" and parsed.hostname == "github.com" and parsed.port is None, "only public GitHub HTTPS URLs are allowed")
+    _require(
+        parsed.scheme == "https" and parsed.hostname == "github.com" and parsed.port is None,
+        "only public GitHub HTTPS URLs are allowed",
+    )
     _require(parsed.username is None and parsed.password is None, "URL userinfo is forbidden")
     _require(not parsed.query and not parsed.fragment, "URL query and fragment are forbidden")
-    _require(re.fullmatch(r"/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git", parsed.path) is not None, "repository URL path is invalid")
+    _require(
+        re.fullmatch(r"/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git", parsed.path) is not None,
+        "repository URL path is invalid",
+    )
     return value
 
 
@@ -81,7 +87,10 @@ def resolve_private_root(value: Optional[str] = None) -> Path:
     raw_root = Path(str(raw_value)).expanduser()
     _require(raw_root.is_dir() and not raw_root.is_symlink(), "private root is missing, invalid or symlinked")
     root = raw_root.resolve()
-    _require(root.name == "xhs-douyin-2notion" and stat.S_IMODE(root.stat().st_mode) == 0o700, "private root identity or mode mismatch")
+    _require(
+        root.name == "xhs-douyin-2notion" and stat.S_IMODE(root.stat().st_mode) == 0o700,
+        "private root identity or mode mismatch",
+    )
     return root
 
 
@@ -98,7 +107,9 @@ def snapshot(url: str, commit: str, run_id: str, destination_name: str, root: Pa
     environment = build_isolated_environment(isolation_home)
     try:
         for command in build_git_commands(url, commit, destination):
-            result = subprocess.run(command, env=environment, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            result = subprocess.run(
+                command, env=environment, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
             _require(result.returncode == 0, "anonymous public snapshot command failed")
         result = subprocess.run(
             ["git", "-c", "credential.helper=", "-C", str(destination), "rev-parse", "HEAD"],
@@ -126,14 +137,19 @@ def main() -> int:
     args = parse_args()
     try:
         destination = snapshot(args.url, args.commit, args.run_id, args.destination_name, resolve_private_root())
-        print(json.dumps({
-            "status": "PASS",
-            "snapshot_ref": destination.name,
-            "anonymous": True,
-            "shared_auth_accessed": False,
-            "credential_helpers_enabled": False,
-            "cleanup_required_after_audit": True,
-        }, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": "PASS",
+                    "snapshot_ref": destination.name,
+                    "anonymous": True,
+                    "shared_auth_accessed": False,
+                    "credential_helpers_enabled": False,
+                    "cleanup_required_after_audit": True,
+                },
+                sort_keys=True,
+            )
+        )
         return 0
     except (OSError, SnapshotError) as exc:
         message = "private filesystem or Git operation failed" if isinstance(exc, OSError) else str(exc)

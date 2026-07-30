@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.1",
+  "review_id": "STG.X2N.3.REVIEW.RESUME",
+  "run_id": "RUN-X2N-S03-REVIEW-RESUME-MVP",
+  "owner_change_event": "CE-X2N-20260728-S03-REVIEW-RESUME-MVP",
+  "status": "CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL",
+  "stage_3_remote_upload_authorized": false,
+  "stage_4_authorized": false,
+  "next_task": "TSK.x2n.adapters.010",
+  "verification_scope": {
+    "repository_contract_state": "MACHINE_VERIFIED_OFFLINE",
+    "external_execution": "PROCESS_ATTESTATION_NOT_INDEPENDENTLY_OBSERVED",
+    "remote_pull_request_state": "PRIOR_READ_ONLY_CHECK_NOT_REVERIFIED_OFFLINE"
+  },
+  "process_attestation": {
+    "deployment_executed": false,
+    "new_dag_task_executed": false,
+    "real_platform_calls": 0,
+    "shared_github_token_value_contact": "ZERO",
+    "shared_github_auth_mutation": "ZERO",
+    "authenticated_session_use": "NOT_USED"
+  }
+}

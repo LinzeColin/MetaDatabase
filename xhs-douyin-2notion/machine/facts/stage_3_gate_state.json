@@ -1,0 +1,146 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.3",
+  "review_id": "STG.X2N.3.REVIEW",
+  "run_id": "RUN-X2N-S03-REVIEW",
+  "stage_base_commit": "ee5d251ca30eab226c4df75c53965f312c2d9b05",
+  "review_base_commit": "a67ba091239297b5c9c38a349e0a839680d1c411",
+  "review_sync_target": "a67ba091239297b5c9c38a349e0a839680d1c411",
+  "review_status": "complete",
+  "automated_reacceptance": "pass",
+  "gate_id": "G3",
+  "gate_status": "blocked_technical_and_owner_clarification",
+  "gate_decision": "resume_review",
+  "required_task_receipts": [
+    {
+      "task_id": "TSK.x2n.adapters.001",
+      "final_commit": "ea44053528a6cdec342fff946a35a525e8daf385",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.001.json",
+      "evidence_sha256": "54c5f40351f3c3a4310e3ab1ae484146398b4a51b8ef3d9dadeaa7bbc6e19f2a",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.002",
+      "final_commit": "050ec0c93ff4b1d6020a5c8e12f79320fc401f53",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.002.json",
+      "evidence_sha256": "ff0e7ba1f3502041ab214eded5b4aee25d375ec6987cecddac7d7b74945ccaf1",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.003",
+      "final_commit": "0939d78303f5e96ddedf9c8ef8a01a8dce03574a",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.003.json",
+      "evidence_sha256": "e82de21e106843309c4fa86575a25ed304e9fa6e23aa745197ed7ee97efd2aa1",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.004",
+      "final_commit": "37ec58cb51d5720bdbe16a67a6e4ea82107c3eb0",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.004.json",
+      "evidence_sha256": "add4d60f9726f400d933fe8eed43027e9efb19f53d8e4fae8f09b26a506b0fe6",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.006",
+      "final_commit": "5b6564d289ab3d188015265faf55cceb13fd577a",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.006.json",
+      "evidence_sha256": "c28d47428b6a8b19ed67f18e28d7e5575cb6cf67b6aef0f306e660ba0d95e96c",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.007",
+      "final_commit": "a088ea8787acf5b4b2f358317135b089054f1160",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.007.json",
+      "evidence_sha256": "c185c13d15f9814f6187d5dd9a1211d11179d4f13ba2245bb9ea1453b5d7461c",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.008",
+      "final_commit": "a0f4a34675d4b2b8b02c9195976a787d2fbf9c59",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.008.json",
+      "evidence_sha256": "0957b91087b9adcdb52beae1286bf4822cea9ba29b365b6bdd59ad4e3bc76143",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.009",
+      "final_commit": "8c6442a251f73e645e292a4e77dd03448d153b64",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.009.json",
+      "evidence_sha256": "7e7149a525888fbcb55a28c0786836fec355bb938a1514d92c3b6917ca34b1cf",
+      "status": "pass_ci_synth_scoped"
+    },
+    {
+      "task_id": "TSK.x2n.adapters.005",
+      "final_commit": "a67ba091239297b5c9c38a349e0a839680d1c411",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.005.json",
+      "evidence_sha256": "141c38a1d501b15fe5cb26ef1b5cec8429603f77009d36059a7ac9810b423c40",
+      "status": "pass_ci_synth_scoped"
+    }
+  ],
+  "acceptance_union": [
+    {"id": "ACC.x2n.gov.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.001.json"]},
+    {"id": "ACC.x2n.ops.004", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.001.json"]},
+    {"id": "ACC.x2n.batch.001", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.001.json", "evidence/adapters/TSK.x2n.adapters.005.json"]},
+    {"id": "ACC.x2n.xhs.001", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.002.json"]},
+    {"id": "ACC.x2n.xhs.003", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.002.json", "evidence/adapters/TSK.x2n.adapters.003.json"]},
+    {"id": "ACC.x2n.xhs.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.003.json"]},
+    {"id": "ACC.x2n.dy.001", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.004.json"]},
+    {"id": "ACC.x2n.dy.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.004.json"]},
+    {"id": "ACC.x2n.dy.003", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.004.json"]},
+    {"id": "ACC.x2n.bili.001", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.006.json"]},
+    {"id": "ACC.x2n.bili.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.006.json"]},
+    {"id": "ACC.x2n.ks.001", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.007.json"]},
+    {"id": "ACC.x2n.ks.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.007.json"]},
+    {"id": "ACC.x2n.wb.001", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.008.json"]},
+    {"id": "ACC.x2n.wb.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.008.json"]},
+    {"id": "ACC.x2n.tb.001", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.009.json"]},
+    {"id": "ACC.x2n.tb.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "PASS", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.009.json"]},
+    {"id": "ACC.x2n.data.002", "stage_3_scope_status": "pass_ci_synth_contribution", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.005.json"]},
+    {"id": "ACC.x2n.rel.006", "stage_3_scope_status": "tooling_ready_owner_execution_not_run", "full_contract_status": "BLOCKED_EVIDENCE", "evidence_refs": ["evidence/adapters/TSK.x2n.adapters.005.json"]}
+  ],
+  "pass_conditions": {
+    "eight_scoped_relation_list_canaries": "blocked_owner_and_contract_ambiguity",
+    "checkpoint_resume": "pass_ci_synth",
+    "no_empty_response_deletion": "pass_ci_synth",
+    "batch_failure_current_page_fallback": "blocked_technical"
+  },
+  "canaries": [
+    {"scope_id": "xiaohongshu_favorites", "platform": "xiaohongshu", "relation_semantics": "favorited", "max_items": 20, "policy_path": "machine/policy/xhs_favorites_policy.json", "policy_sha256": "1a2b30cf5724155c6480f9dea603e3aebf17c0af6140256743ec592686a0a239", "feature_enabled": false, "preconditions_status": "BLOCKED_USER_ACTION", "execution_status": "NOT_RUN", "terminal_reason": "owner_profile_private_gold_and_explicit_canary_authorization_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}},
+    {"scope_id": "xiaohongshu_likes", "platform": "xiaohongshu", "relation_semantics": "liked", "max_items": 20, "policy_path": "machine/policy/xhs_likes_policy.json", "policy_sha256": "b954fb0f25487cfc8bd5a2b221f9832ffa855e920d5ba1a73425dce665aea41d", "feature_enabled": false, "preconditions_status": "BLOCKED_USER_ACTION", "execution_status": "NOT_RUN", "terminal_reason": "owner_profile_private_gold_and_explicit_canary_authorization_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}},
+    {"scope_id": "douyin_favorites", "platform": "douyin", "relation_semantics": "favorited", "max_items": 20, "policy_path": "machine/policy/douyin_upstream_policy.json", "policy_sha256": "4128f7b1ef32edba37e653583db3c0235f2e17a84e727f8ad77bb13a3c1832e1", "feature_enabled": false, "preconditions_status": "BLOCKED_EVIDENCE", "execution_status": "NOT_RUN", "terminal_reason": "owner_private_sidecar_build_attestation_and_canary_manifest_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}},
+    {"scope_id": "douyin_likes", "platform": "douyin", "relation_semantics": "liked", "max_items": 20, "policy_path": "machine/policy/douyin_upstream_policy.json", "policy_sha256": "4128f7b1ef32edba37e653583db3c0235f2e17a84e727f8ad77bb13a3c1832e1", "feature_enabled": false, "preconditions_status": "BLOCKED_EVIDENCE", "execution_status": "NOT_RUN", "terminal_reason": "owner_private_sidecar_build_attestation_and_canary_manifest_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}},
+    {"scope_id": "bilibili_selected_collection", "platform": "bilibili", "relation_semantics": "saved_current", "max_items": 20, "policy_path": "machine/policy/bilibili_selected_collection_policy.json", "policy_sha256": "34fa51c607c9c7885f6fd6c7ebd16ef8b51ab5ec28441bac387055c3ae4e1ed1", "feature_enabled": false, "preconditions_status": "UNKNOWN_DISABLED", "execution_status": "NOT_RUN", "terminal_reason": "app_approval_uploader_authorization_and_written_automation_permission_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}},
+    {"scope_id": "kuaishou_selected_collection", "platform": "kuaishou", "relation_semantics": "saved_current", "max_items": 20, "policy_path": "machine/policy/kuaishou_selected_collection_policy.json", "policy_sha256": "49495c3a427103bcf2d6b7bd06ac2ebdd251a4e28822cccd59e7ad7de5437ea9", "feature_enabled": false, "preconditions_status": "UNKNOWN_DISABLED", "execution_status": "NOT_RUN", "terminal_reason": "app_oauth_dynamic_consent_and_retention_contract_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}},
+    {"scope_id": "weibo_selected_collection", "platform": "weibo", "relation_semantics": "favorited", "max_items": 20, "policy_path": "machine/policy/weibo_selected_collection_policy.json", "policy_sha256": "f4bb7430a5f2ff20bee6d24595f1dc55f14939ae0afde0d442d13dff46227f55", "feature_enabled": false, "preconditions_status": "UNKNOWN_DISABLED", "execution_status": "NOT_RUN", "terminal_reason": "app_scope_quota_price_and_nonzero_budget_approval_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}},
+    {"scope_id": "taobao_selected_collection", "platform": "taobao", "relation_semantics": "saved_current", "max_items": 20, "policy_path": "machine/policy/taobao_selected_collection_policy.json", "policy_sha256": "d43cbb51a4ba75b463b915cc89ffbc1692db124fd83dc58d1dc1580171d6fa6d", "feature_enabled": false, "preconditions_status": "UNKNOWN_DISABLED", "execution_status": "NOT_RUN", "terminal_reason": "app_oauth_scope_budget_retention_and_supported_personal_list_capability_missing", "private_manifest_ref_only": true, "metrics_public": {"identified_percent": null, "silent_loss": null, "duplicates": null}}
+  ],
+  "privacy_scans": {
+    "secret": 0,
+    "credential": 0,
+    "cdn_url": 0,
+    "profile_path": 0,
+    "raw_media": 0
+  },
+  "blockers": [
+    {"id": "BLK-X2N-S03-NATIVE-DISPATCH", "kind": "technical", "requirement_refs": ["G3:eight_independently_scoped_relation_list_canaries", "DEC-X2N-001", "DEC-X2N-002"], "unblocks_by": "owner_authorizes_a_versioned_relation_list_orchestration_task_with_strict_native_dispatch"},
+    {"id": "BLK-X2N-S03-EXPLICIT-FALLBACK", "kind": "technical", "requirement_refs": ["G3:batch_failure_pivots_to_current_page_fallback"], "unblocks_by": "implement_and_test_failure_to_fallback_available_then_second_explicit_owner_current_page_action"},
+    {"id": "BLK-X2N-S03-CANARY-TERMINALS", "kind": "contract_ambiguity", "requirement_refs": ["G3:eight_independently_scoped_relation_list_canaries", "Roadmap:Gate_G3"], "unblocks_by": "owner_versions_the_legal_terminal_state_for_each_disabled_or_conditionally_authorized_canary"},
+    {"id": "BLK-X2N-S03-ACCEPTANCE-SCOPE", "kind": "contract_ambiguity", "requirement_refs": ["ACC.x2n.data.002", "ACC.x2n.rel.006", "TSK.x2n.assurance.005"], "unblocks_by": "owner_versions_stage_3_ci_synth_contribution_separately_from_stage_6_full_owner_alpha"},
+    {"id": "BLK-X2N-S03-OWNER-CANARIES", "kind": "owner_action", "requirement_refs": ["ACC.x2n.xhs.001", "ACC.x2n.xhs.002", "ACC.x2n.dy.001", "ACC.x2n.dy.002", "ACC.x2n.bili.001", "ACC.x2n.ks.001", "ACC.x2n.wb.001", "ACC.x2n.tb.001"], "unblocks_by": "owner_independently_authorizes_each_eligible_real_account_canary_and_keeps_private_manifests_outside_git"}
+  ],
+  "upload": {
+    "stage_3_remote_upload_authorized": false,
+    "remote_upload": "forbidden_until_g3_pass",
+    "stage_4_authorized": false,
+    "public_release_authorized": false
+  },
+  "next_action": "STG.X2N.3.REVIEW.RESUME",
+  "external_execution": {
+    "owner_profile_login": "not_run",
+    "real_account_execution": "not_run",
+    "platform_calls": 0,
+    "notion_real_calls": 0,
+    "model_calls": 0,
+    "media_processing": "not_run"
+  }
+}

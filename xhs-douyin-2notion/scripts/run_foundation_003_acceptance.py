@@ -151,12 +151,17 @@ def run_acceptance() -> dict[str, Any]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     if argv:
-        print(json.dumps({"reason": "arguments_not_supported", "status": "FAIL_CLOSED"}, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps({"reason": "arguments_not_supported", "status": "FAIL_CLOSED"}, sort_keys=True), file=sys.stderr
+        )
         return 2
     try:
         payload = run_acceptance()
     except Exception:
-        print(json.dumps({"reason": "foundation_003_acceptance_failed", "status": "FAIL_CLOSED"}, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps({"reason": "foundation_003_acceptance_failed", "status": "FAIL_CLOSED"}, sort_keys=True),
+            file=sys.stderr,
+        )
         return 1
     print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
     return 0

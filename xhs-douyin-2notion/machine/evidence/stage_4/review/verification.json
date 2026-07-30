@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "review_id": "STG.X2N.4.REVIEW",
+  "run_id": "RUN-X2N-S04-REVIEW",
+  "generated_at": "2026-07-28T11:48:03Z",
+  "status": "PASS_CI_SYNTH_G4_REVIEW",
+  "checks": [
+    {
+      "name": "review_fact_and_immutable_task_receipts",
+      "status": "PASS",
+      "details": {
+        "gate": "G4",
+        "task_receipts": 5,
+        "private_gold": "NOT_RUN"
+      }
+    },
+    {
+      "name": "worktree_isolation",
+      "status": "PASS",
+      "details": {
+        "main_mutated": false,
+        "task_worktree": true
+      }
+    },
+    {
+      "name": "taskpack_and_stage4_transition",
+      "status": "PASS",
+      "details": {
+        "next_task": "TSK.x2n.uxops.001",
+        "stage_4_remote_upload": 0,
+        "stage_5_authorized": true
+      }
+    },
+    {
+      "name": "documents_and_public_private_boundary",
+      "status": "PASS",
+      "details": {
+        "controls_scanned": 8,
+        "absolute_user_paths": 0,
+        "sensitive_value_hits": 0
+      }
+    },
+    {
+      "name": "historical_task_and_g3_compatibility",
+      "status": "PASS",
+      "details": {
+        "historical_verifiers": 8,
+        "stage_3_remote_upload": 0,
+        "platform_calls": 0
+      }
+    },
+    {
+      "name": "fresh_ci_synth_g4_acceptance",
+      "status": "PASS",
+      "details": {
+        "prompt_injection_tests": 12,
+        "synthetic_unit_tests": 84,
+        "platform_calls": 0
+      }
+    }
+  ],
+  "execution": {
+    "automatic_classification_writes": 0,
+    "model_calls": 0,
+    "platform_calls": 0,
+    "private_gold_evaluation": "NOT_RUN",
+    "real_account_execution": "NOT_RUN",
+    "stage_4_remote_upload": "NOT_RUN",
+    "stage_5_executed": false
+  }
+}

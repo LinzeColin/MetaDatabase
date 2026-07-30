@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "fact_id": "FACT.X2N.STAGE2.REMOTE-MERGE.001",
+  "generated_at": "2026-07-22T13:45:25Z",
+  "source": "public_github_pr_and_actions_metadata",
+  "repository": "LinzeColin/MetaDatabase",
+  "pull_request": {
+    "number": 78,
+    "state": "merged",
+    "closed_at": "2026-07-22T13:16:51Z",
+    "merge_commit": "ee5d251ca30eab226c4df75c53965f312c2d9b05",
+    "review_final_commit": "bfea9f8d4fc0f6d691544c28a641624ed37122fa"
+  },
+  "remote_checks": [
+    {
+      "workflow": "x2n-ci",
+      "run_id": 29922576589,
+      "run_number": 9,
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Dual-Plane Governance",
+      "run_id": 29922576674,
+      "run_number": 137,
+      "conclusion": "success"
+    }
+  ],
+  "historical_stage_2_gate_evidence_mutated": false,
+  "external_auth_material_contact": false,
+  "stage_3_task_start_authorized": true
+}
