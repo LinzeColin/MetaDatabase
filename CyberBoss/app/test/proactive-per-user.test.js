@@ -409,6 +409,39 @@ test("不是真正的一轮对话的那些路由，仍然不给 UserContext", ()
   }
 });
 
+// ── 十、主动消息不能替人开新户口 ─────────────────────────────
+
+test("这个号下面不认识这个人时，主动消息直接跳过，不调 admit", async () => {
+  // admit() 认不出来的人会当新人**注册**。而主动消息这条路上的 accountId 可能
+  // 是错的——那个人的号消失时 resolveAccountForUser 会退回主号。于是
+  // 「给他发个问候」变成「以主号的名义给他开一个新户口」：2026-07-30 06:26:18
+  // 就这么把同一个人劈成了三个 user_id。
+  let admitCalled = false;
+  const app = Object.create(CyberbossApp.prototype);
+  app.userAdmission = {
+    users: { resolveByPrincipal: () => null },
+    admit: () => { admitCalled = true; return { route: "user", userContext: {} }; },
+  };
+
+  const handled = await app.dispatchGuestCheckin({
+    accountId: "wrong-fallback-bot", senderId: "wx-someone", text: "x",
+  });
+
+  assert.equal(admitCalled, false, "查不到就不该调 admit——admit 会注册新用户");
+  assert.equal(handled, true, "要当作已处理丢掉，不能再往下走去注册");
+});
+
+test("认识的人照旧走原来的路", async () => {
+  let admitCalled = false;
+  const app = Object.create(CyberbossApp.prototype);
+  app.userAdmission = {
+    users: { resolveByPrincipal: () => ({ userId: GUEST }) },
+    admit: () => { admitCalled = true; return { route: "owner" }; },
+  };
+  await app.dispatchGuestCheckin({ accountId: "his-bot", senderId: "wx-1", text: "x" });
+  assert.equal(admitCalled, true, "认识的人不能被这道闸门误伤");
+});
+
 test("轮询器排队的日志带上是给谁排的", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "..", "src", "app", "system-checkin-poller.js"),

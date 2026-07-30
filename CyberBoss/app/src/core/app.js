@@ -4804,6 +4804,28 @@ class CyberbossApp {
     if (!senderId || !this.userAdmission) {
       return false;
     }
+    // 先做一次**只读**的身份查询，查不到就不往下走。
+    //
+    // admit() 不是只读的：认不出来的人它会当新人**注册**。而主动消息这条路上，
+    // message.accountId 有可能是错的——resolveAccountForUser 在那个人的号已经
+    // 消失时会退回主号。于是「给他发个问候」变成了「以主号的名义给他开一个新
+    // 户口」：2026-07-30 06:26:18 那一次就这么造出了 usr_w6cEq-n6，把同一个人
+    // 劈成了三个 user_id（原号一个、主号一个、新号一个），记忆和待办各留一份。
+    //
+    // 主动消息只该找**已经认识的人**。不认识就跳过，注册是入站那条路的事——
+    // 那里的 accountId 来自消息本身，是可信的。
+    const known = this.userAdmission.users?.resolveByPrincipal?.({
+      channel: "weixin",
+      botAccountRef: message.accountId,
+      senderRef: senderId,
+    });
+    if (!known) {
+      console.warn(
+        `[cyberboss] checkin skipped unknown_principal account=${message.accountId}`
+        + ` to=${senderId.slice(0, 10)}…（这个号下面没有这个人，不替他注册）`,
+      );
+      return true;
+    }
     let decision;
     try {
       decision = this.userAdmission.admit({
