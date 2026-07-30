@@ -139,7 +139,22 @@ EOF
 # 后台端口真的在应答。少一件都不叫部署成功。
 verify_live() {
   local sha="$1" short="${1:0:12}" attempt
-  remote "systemctl is-active $SERVICE" >/dev/null 2>&1 || return 1
+  # 这里也要等。Type=exec 之后 `systemctl restart` 一执行完 ExecStart 就返回，
+  # 此刻 unit 往往还是 activating，而 `systemctl is-active` 对 activating 返回
+  # 非零——查一次就判死，等于每次都失败。
+  #
+  # 「restart 返回时服务已经就绪」这个假设在这个函数里藏了三处（is-active、
+  # 日志里的 release=、healthz）。healthz 本来就在轮询，另外两处不是；只修一处
+  # 就会被下一处挡住，我已经在这上面来回了两轮。
+  local up=1
+  for attempt in $(seq 1 40); do
+    if remote "systemctl is-active $SERVICE" >/dev/null 2>&1; then
+      up=0
+      break
+    fi
+    sleep 3
+  done
+  [ "$up" -eq 0 ] || return 1
   # 日志在独立 namespace 里（LogNamespace=cyberboss），不带 --namespace 查不到。
   #
   # **要等**，不能查一次就判死。
