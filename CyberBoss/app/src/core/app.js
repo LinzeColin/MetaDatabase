@@ -4760,7 +4760,19 @@ class CyberbossApp {
       senderId,
       accountId: message.accountId,
       contextToken: this.channelAdapter.getKnownContextTokens()[senderId] || "",
-      text: String(message.text || ""),
+      // 给模型的是**带指令的**那一段，不是那句光秃秃的内部触发语。
+      //
+      // 原来这里直接把 "Linz comes to mind again." 丢给模型：一句没头没尾的英文，
+      // 而且 %USER% 填的是**主人**的名字（buildCheckinTrigger 读的是 config 里
+      // 主人那一份），访客那边看到的是一个跟他无关的人名。模型于是写出一篇
+      // 527 字的长文——主人自己那条路的回复只有 13~31 字，因为它带着
+      // 「one short natural WeChat message」这句指令。
+      //
+      // 长文的代价不是啰嗦，是**发不出去**：长文会被切成多片，而微信的
+      // context_token 只允许有限次回复，片数一超就整条失败（
+      // WEIXIN_PROVIDER_ERROR）。2026-07-30 06:36 那条就是这么挂的，同一个人
+      // 同一个号，400 字那条发得出去，527 字这条发不出去。
+      text: buildGuestCheckinPrompt(),
       provider: "system",
     };
     if (!normalized.contextToken) {
@@ -6072,6 +6084,21 @@ function buildMediaNote(item) {
 //
 // 判不出来一律当「没席位」。测试里的桩对象常常没有这个方法，而那种时候正确的
 // 答案是不放行，不是崩掉、也不是默认放行。
+// 访客的主动问候，给模型的那段指令。
+//
+// 必须短。这不是风格偏好：微信的 context_token 只允许有限次回复，长文被切成
+// 多片之后片数一超，整条就发不出去（WEIXIN_PROVIDER_ERROR）。主人那条路一直
+// 是短的，因为 buildSystemInboundText 里写着 one short natural WeChat message；
+// 访客这条路以前什么都没写，模型就按聊天正常发挥，写出 500 多字。
+function buildGuestCheckinPrompt() {
+  return [
+    "（系统内部触发，不是对方发来的消息。）",
+    "现在主动找他说一句话，就像想起他随口问一句。",
+    "只说一句，最多 30 字。不要开场白，不要解释你在做什么，不要提到「系统」或「触发」。",
+    "如果实在没什么可说的，就回一个字：略",
+  ].join("\n");
+}
+
 function hasOwnerSeat(app, userId) {
   if (!app || typeof app.ownerSeatAvailableFor !== "function") {
     return false;

@@ -318,6 +318,34 @@ test("投不出去的消息重排有上限，不能把一个号堵死", () => {
   assert.equal(requeued.length, 0, "到上限必须丢掉，丢一条打招呼远好过让一个号哑掉");
 });
 
+// ── 七、访客的主动问候必须短 ─────────────────────────────────
+
+test("访客的主动问候带指令，而且要求很短", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  const start = source.indexOf("function buildGuestCheckinPrompt()");
+  assert.notEqual(start, -1, "访客那条路又变回直接把内部触发语丢给模型了");
+  const body = source.slice(start, source.indexOf("\n}", start));
+
+  // 长度限制是硬要求，不是文风：微信 context_token 只允许有限次回复，长文被
+  // 切成多片之后整条发不出去。2026-07-30 06:36 那条 527 字的就是这么挂的。
+  assert.match(body, /最多\s*\d+\s*字/, "没有字数上限，模型就会写长文，长文发不出去");
+
+  // 而且这段指令必须真的被用上——写了函数但没接进去，是这个仓的惯犯。
+  const call = source.indexOf("text: buildGuestCheckinPrompt()");
+  assert.notEqual(call, -1, "写了指令却没传给模型，等于没写");
+});
+
+test("内部触发语不会原样进到给模型的文本里", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  const start = source.indexOf("async dispatchGuestCheckin(");
+  const body = source.slice(start, source.indexOf("\n  }", start));
+  // message.text 是 "%USER% comes to mind again."，而 %USER% 填的是**主人**的
+  // 名字——访客看到的会是一个跟他无关的人名。admit() 那一处用原文是对的
+  // （它要拿原文认口令），但给模型的那一处不能用。
+  const modelText = body.slice(body.indexOf("const normalized = {"));
+  assert.doesNotMatch(modelText, /text: String\(message\.text/);
+});
+
 test("轮询器排队的日志带上是给谁排的", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "..", "src", "app", "system-checkin-poller.js"),
