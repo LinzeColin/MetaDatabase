@@ -72,6 +72,27 @@ class SystemMessageQueueStore {
     const normalizedAccountId = normalizeText(accountId);
     return this.state.messages.some((message) => message.accountId === normalizedAccountId);
   }
+
+  // 所有号的，一次全取走。
+  //
+  // 只按主号排空是「boss 只主动找我」的真正原因：轮询器按**每个人自己的号**排队，
+  // 而取的那一侧钉死了主号。于是别的号下面的人，消息进了队就再也没人取；更糟的是
+  // hasPendingForAccount 从此对那个号永远为真，轮询器每一轮都跳过他——一条卡住
+  // 之后那个号就彻底哑了。线上卡了两条，一条从 2026-07-29 10:40 起躺了一整天。
+  drainAll() {
+    this.load();
+    const drained = this.state.messages.slice();
+    if (drained.length) {
+      this.state.messages = [];
+      this.save();
+    }
+    return drained;
+  }
+
+  hasPending() {
+    this.load();
+    return this.state.messages.length > 0;
+  }
 }
 
 function normalizeSystemMessage(message) {
@@ -97,6 +118,11 @@ function normalizeSystemMessage(message) {
     workspaceRoot,
     text,
     createdAt: createdAt || new Date().toISOString(),
+    // 投递失败重排的次数。没有上限的话，一条永远投不出去的消息会把它那个号
+    // 永远堵住（hasPendingForAccount 一直为真 → 轮询器每一轮都跳过那个号下面
+    // 的人），整个号从此静默，而且没有任何东西会报错。这正是这次「boss 只找
+    // 主人」的形状，只是原因换了一个。
+    attempts: Number.isInteger(message.attempts) && message.attempts > 0 ? message.attempts : 0,
   };
 }
 

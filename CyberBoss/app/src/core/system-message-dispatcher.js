@@ -5,12 +5,21 @@ class SystemMessageDispatcher {
     this.accountId = accountId;
   }
 
+  // 所有号的，不只是主号。this.accountId 只在消息自己没带号时兜底。
+  //
+  // 这个 dispatcher 是按**一个**号构造的（start() 里传的是 resolveAccount() 的主
+  // 号），但机器上有三个号，轮询器按每个人自己的号排队。按主号取的话，另外两个号
+  // 的消息进队就再也出不来，而且 hasPendingForAccount 会让轮询器从此跳过那个号。
   hasPending() {
-    return this.queueStore.hasPendingForAccount(this.accountId);
+    return typeof this.queueStore.hasPending === "function"
+      ? this.queueStore.hasPending()
+      : this.queueStore.hasPendingForAccount(this.accountId);
   }
 
   drainPending() {
-    return this.queueStore.drainForAccount(this.accountId);
+    return typeof this.queueStore.drainAll === "function"
+      ? this.queueStore.drainAll()
+      : this.queueStore.drainForAccount(this.accountId);
   }
 
   requeue(message) {
@@ -25,7 +34,9 @@ class SystemMessageDispatcher {
     return {
       provider: "system",
       workspaceId: this.config.workspaceId,
-      accountId: this.accountId,
+      // 这条消息自己是哪个号的就用哪个号。写死 this.accountId 的话，取出来也会
+      // 投到主号上——那个人根本不在主号下面，消息发不到他手上。
+      accountId: normalizeText(message?.accountId) || this.accountId,
       chatId: message.senderId,
       threadKey: `system:${message.senderId}`,
       senderId: message.senderId,

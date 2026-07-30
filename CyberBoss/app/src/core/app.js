@@ -109,6 +109,8 @@ const SESSION_EXPIRED_ERRCODE = -14;
 const RETRY_DELAY_MS = 2_000;
 const BACKOFF_DELAY_MS = 30_000;
 const MAX_CONSECUTIVE_FAILURES = 3;
+// 一条主动消息最多重排几次。见 requeueSystemMessage：无限重排会让一个号哑掉。
+const SYSTEM_MESSAGE_MAX_ATTEMPTS = 5;
 const MAX_INBOUND_STICKER_IMAGE_BATCH = 10;
 const INBOUND_IMAGE_BATCH_IDLE_MS = 1_500;
 // 公开入口的限流。/join 没有鉴权（刻意的），但每次出码都会真的打一次 iLink，
@@ -4700,11 +4702,33 @@ class CyberbossApp {
         }
         const dispatched = await this.dispatchSystemMessage(message);
         if (!dispatched) {
-          this.systemMessageDispatcher.requeue(message);
+          this.requeueSystemMessage(message);
         }
       } catch {
-        this.systemMessageDispatcher?.requeue(message);
+        this.requeueSystemMessage(message);
       }
+    }
+  }
+
+  // 重排一条投不出去的系统消息，但**有上限**。
+  //
+  // 无限重排看起来最安全，实际最危险：一条永远投不出去的消息会让
+  // hasPendingForAccount 对它那个号永远为真，轮询器于是每一轮都跳过那个号下面
+  // 的所有人。那个号从此彻底静默，而且没有任何东西会报错——你只会发现"它只找
+  // 我一个人"，然后查一整天。丢掉一条主动打招呼的代价，远小于让一个号哑掉。
+  requeueSystemMessage(message) {
+    const attempts = Number(message?.attempts || 0) + 1;
+    if (attempts >= SYSTEM_MESSAGE_MAX_ATTEMPTS) {
+      console.warn(
+        `[cyberboss] system message dropped after ${attempts} attempts`
+        + ` account=${message?.accountId} to=${String(message?.senderId || "").slice(0, 10)}…`,
+      );
+      return;
+    }
+    try {
+      this.systemMessageDispatcher?.requeue({ ...message, attempts });
+    } catch {
+      // 重排都失败就让它掉地上，不能反过来把这一轮也搞挂。
     }
   }
 

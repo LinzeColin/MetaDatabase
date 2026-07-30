@@ -238,6 +238,86 @@ test("后台按人看不到的那一半：认不出这个人时给的空壳字�
   );
 });
 
+// ── 六、多个微信号：主动消息不能只排空主号 ───────────────────
+
+const os = require("node:os");
+const { SystemMessageQueueStore } = require("../src/core/system-message-queue-store");
+const { SystemMessageDispatcher } = require("../src/core/system-message-dispatcher");
+
+function queueStore(t) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cb-sysq-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  return new SystemMessageQueueStore({ filePath: path.join(dir, "q.json") });
+}
+
+function msg(accountId, senderId) {
+  return {
+    id: `id-${accountId}-${senderId}`,
+    accountId,
+    senderId,
+    workspaceRoot: "/srv/ws",
+    text: "comes to mind again.",
+    createdAt: "2026-07-29T10:40:27.926Z",
+  };
+}
+
+test("非主号的主动消息也要被取走，不能永远躺在队列里", (t) => {
+  // 线上就是这样哑掉的：轮询器按每个人自己的号排队，取的那一侧钉死了主号。
+  // 另外两个号各卡了一条，最早那条躺了一整天，而且因为 hasPendingForAccount
+  // 永远为真，那两个号下面的人从此每一轮都被跳过。
+  const store = queueStore(t);
+  store.enqueue(msg("main-bot", "wx-owner"));
+  store.enqueue(msg("second-bot", "wx-guest-1"));
+  store.enqueue(msg("third-bot", "wx-guest-2"));
+
+  const dispatcher = new SystemMessageDispatcher({
+    queueStore: store,
+    config: { workspaceId: "ws", workspaceRoot: "/srv/ws" },
+    accountId: "main-bot",
+  });
+
+  const drained = dispatcher.drainPending();
+
+  assert.equal(drained.length, 3, "只取主号那一条就是「boss 只主动找我」的成因");
+  assert.deepEqual(
+    drained.map((m) => m.accountId).sort(),
+    ["main-bot", "second-bot", "third-bot"],
+  );
+  assert.equal(store.hasPending(), false, "取完队列要空，否则那个号会被一直跳过");
+});
+
+test("取出来之后，投递用的是这条消息自己的号", (t) => {
+  const store = queueStore(t);
+  const dispatcher = new SystemMessageDispatcher({
+    queueStore: store,
+    config: { workspaceId: "ws", workspaceRoot: "/srv/ws" },
+    accountId: "main-bot",
+  });
+
+  const prepared = dispatcher.buildPreparedMessage(msg("second-bot", "wx-guest-1"));
+
+  // 写成 this.accountId 的话，取出来也会投到主号上——那个人不在主号下面。
+  assert.equal(prepared.accountId, "second-bot");
+  assert.equal(prepared.senderId, "wx-guest-1");
+});
+
+test("投不出去的消息重排有上限，不能把一个号堵死", () => {
+  const requeued = [];
+  const app = Object.create(CyberbossApp.prototype);
+  app.systemMessageDispatcher = { requeue: (m) => requeued.push(m) };
+
+  // 前几次照常重排。
+  app.requeueSystemMessage(msg("second-bot", "wx-guest-1"));
+  assert.equal(requeued.length, 1);
+  assert.equal(requeued[0].attempts, 1);
+
+  // 到上限就丢掉，而不是永远重排——永远重排会让 hasPendingForAccount 对那个号
+  // 永远为真，整个号从此静默且没有任何报错。
+  requeued.length = 0;
+  app.requeueSystemMessage({ ...msg("second-bot", "wx-guest-1"), attempts: 99 });
+  assert.equal(requeued.length, 0, "到上限必须丢掉，丢一条打招呼远好过让一个号哑掉");
+});
+
 test("轮询器排队的日志带上是给谁排的", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "..", "src", "app", "system-checkin-poller.js"),
