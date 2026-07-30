@@ -1,0 +1,1070 @@
+{
+  "contract_id": "AC-S07-P03",
+  "decision": "IMMUTABLE_ADVICE_AND_DUAL_LEDGER_GATE_PASSED_NO_ADVICE",
+  "decision_sha256": "a2b551c08dd67c910c976d204c4a8fc408d68cf634251b8d86c470781ea96f90",
+  "deterministic_replay": {
+    "adverse_replay_count": 10000,
+    "real_time_wait_performed": false,
+    "replay_count": 100
+  },
+  "evidence_id": "EVD-S07-P03",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hashes": {
+    "code": "d8ed10b464331c51e47401df7e99cf2449bb48c77583f8c7b979bd738b518eff",
+    "inputs": {
+      "abd_acceptance/ledger_trace.py": "12c8bb3a0e560d654c72f92407e5ec5cc84045375811351d87710133278167ce",
+      "ledger.py": "3a316ea7c6ec347dc6bfa165037d11e0a022d1ca5185fae791bede9f62823cfd",
+      "ledger.schema.json": "781df3d1e19b1571037ba440daf05fc85fda1cae7d6af528b1f046bfd03ef5ae",
+      "machine/evidence/EVD-S07-P02.json": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602",
+      "machine/evidence/EVD-S07-P02_rollback.json": "89f7a7ec50228ac49494d52c28c2f468e962414478ff86c64a420fbbdafb68d9",
+      "machine/evidence/S07/P03/full_regression.xml": "423734437c8d487308715dd509157de3c1699cd25339d95e5aa4d68dfc7576bf",
+      "machine/evidence/S07/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S07/P03/pytest.xml": "c92880586d67bc8425f405c45d0eec62ca2fba442f15e365180d313e39a45f8e",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S07_P03.json": "063a080e95c5d8583510cabaaa9a2fcfd77c46a4cf4d95c9415858073091eb8e",
+      "reconciliation_oracle.py": "aac95af984a4999aab2b8b3a3cbdbeb158e2766d9d1d66a33aec7249de004e8b",
+      "tests/S07/P03_test.py": "e7120bf943f20c042291df957ee114bc13b52da1434cf8301d5f34a8c96e5090"
+    },
+    "model_versions": {},
+    "no_execution_output": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+    "reconciliation_output": "fd9b801881880488d860e436bcfeb931b6d0ff1ff808ce71ba66d65d98f0fca0",
+    "rollback_evidence": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
+    "verified_fixture_output": "11d956140141de9bbfcbacd3612526c88ce5ac0b5cfb4cc6a5211a2bf8ee8120"
+  },
+  "ledger_summary": {
+    "currency": "AUD",
+    "no_execution_balance_cents": 30000,
+    "no_execution_unchanged": true,
+    "opening_balance_cents": 30000,
+    "order_submission_enabled": false,
+    "recommendation_generated": false,
+    "verified_fixture_balance_cents": 30150,
+    "verified_fixture_only": true
+  },
+  "next": "S07/P04_READY_NOT_STARTED",
+  "phase_id": "P03",
+  "phase_status": "S07_P03_PASS",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "reconciliation_summary": {
+    "no_execution_difference_cents": 0,
+    "no_execution_status": "RECONCILED",
+    "no_execution_unchanged": true
+  },
+  "requirement_id": "REQ-S07-P03",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S07-P03_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S07",
+  "status": "PASS",
+  "structured_failure_log": {
+    "case_reason_codes": {
+      "NEGATIVE_ADVERSE_ODDS_PLUS_0001": {
+        "ledger_reason_codes": [
+          "ADVERSE_ODDS_BOUNDARY_INVALID"
+        ],
+        "reconciliation_reason_codes": [
+          "ADVERSE_PERTURBATION_BOUNDARY_INVALID"
+        ]
+      },
+      "NEGATIVE_ADVERSE_PROBABILITY_MINUS_0001": {
+        "ledger_reason_codes": [
+          "ADVERSE_PROBABILITY_BOUNDARY_INVALID"
+        ],
+        "reconciliation_reason_codes": [
+          "ADVERSE_PERTURBATION_BOUNDARY_INVALID"
+        ]
+      },
+      "NEGATIVE_EXECUTION_EVIDENCE_UNVERIFIED": {
+        "ledger_reason_codes": [
+          "EXECUTION_EVIDENCE_REQUIRED"
+        ],
+        "reconciliation_reason_codes": [
+          "EXECUTION_EVIDENCE_REQUIRED"
+        ]
+      },
+      "NEGATIVE_HASH_CHAIN_TAMPER": {
+        "ledger_reason_codes": [
+          "HASH_CHAIN_BROKEN"
+        ],
+        "reconciliation_reason_codes": [
+          "HASH_CHAIN_BROKEN"
+        ]
+      },
+      "NEGATIVE_ORPHAN_ACTUAL_PROVENANCE": {
+        "ledger_reason_codes": [
+          "ACTUAL_EVENT_WITHOUT_ADVICE_PROVENANCE"
+        ],
+        "reconciliation_reason_codes": [
+          "ACTUAL_EVENT_WITHOUT_ADVICE_PROVENANCE"
+        ]
+      }
+    },
+    "path": "machine/tests/fixtures/S07_P03.json",
+    "sha256": "a7e14087214b89409a220827eec201a686b0ad292594eb2efe552aa603aaada1"
+  },
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "781df3d1e19b1571037ba440daf05fc85fda1cae7d6af528b1f046bfd03ef5ae",
+          "expected": "781df3d1e19b1571037ba440daf05fc85fda1cae7d6af528b1f046bfd03ef5ae"
+        },
+        "id": "S07P03-PIN-LEDGER-SCHEMA-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "3a316ea7c6ec347dc6bfa165037d11e0a022d1ca5185fae791bede9f62823cfd",
+          "expected": "3a316ea7c6ec347dc6bfa165037d11e0a022d1ca5185fae791bede9f62823cfd"
+        },
+        "id": "S07P03-PIN-LEDGER-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "aac95af984a4999aab2b8b3a3cbdbeb158e2766d9d1d66a33aec7249de004e8b",
+          "expected": "aac95af984a4999aab2b8b3a3cbdbeb158e2766d9d1d66a33aec7249de004e8b"
+        },
+        "id": "S07P03-PIN-RECONCILIATION_ORACLE-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "063a080e95c5d8583510cabaaa9a2fcfd77c46a4cf4d95c9415858073091eb8e",
+          "expected": "063a080e95c5d8583510cabaaa9a2fcfd77c46a4cf4d95c9415858073091eb8e"
+        },
+        "id": "S07P03-PIN-S07_P03-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7120bf943f20c042291df957ee114bc13b52da1434cf8301d5f34a8c96e5090",
+          "expected": "e7120bf943f20c042291df957ee114bc13b52da1434cf8301d5f34a8c96e5090"
+        },
+        "id": "S07P03-PIN-P03_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e4de999d04322f269e254fd3dc0f6ef9641f26af3d95e0d27999d1096eabb211",
+          "expected": "e4de999d04322f269e254fd3dc0f6ef9641f26af3d95e0d27999d1096eabb211"
+        },
+        "id": "S07P03-ORACLE-STRUCTURAL-SELF-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S07P03-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S07P03-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S07P03-BASELINE-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S07P03-BASELINE-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S07P03-BASELINE-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S07P03-BASELINE-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S07P03-BASELINE-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S07P03-BASELINE-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S07P03-BASELINE-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S07P03-BASELINE-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S07P03-BASELINE-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+          "expected": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+        },
+        "id": "S07P03-BASELINE-ROADMAP_STAGE_PHASE-MD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602",
+          "expected": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602"
+        },
+        "id": "S07P03-BASELINE-EVD-S07-P02-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "89f7a7ec50228ac49494d52c28c2f468e962414478ff86c64a420fbbdafb68d9",
+          "expected": "89f7a7ec50228ac49494d52c28c2f468e962414478ff86c64a420fbbdafb68d9"
+        },
+        "id": "S07P03-BASELINE-EVD-S07-P02_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scope": [
+            "ledger.py",
+            "ledger.schema.json",
+            "reconciliation_oracle.py"
+          ],
+          "target": "无成交证据时真实资金账本不变化。"
+        },
+        "id": "S07P03-TASKPACK-SCOPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "tasks": [
+            "T-S07-P03-01",
+            "T-S07-P03-02",
+            "T-S07-P03-03"
+          ],
+          "trace": {
+            "acceptance_criteria_id": "AC-S07-P03",
+            "artifact_ids": [
+              "ART-S07-P03-01",
+              "ART-S07-P03-02",
+              "ART-S07-P03-03"
+            ],
+            "evidence_id": "EVD-S07-P03",
+            "phase_id": "P03",
+            "requirement_id": "REQ-S07-P03",
+            "stage_id": "S07",
+            "task_ids": [
+              "T-S07-P03-01",
+              "T-S07-P03-02",
+              "T-S07-P03-03"
+            ],
+            "test_ids": [
+              "TEST-S07-P03",
+              "TEST-S07-P03-BOUNDARY",
+              "TEST-S07-P03-REPLAY"
+            ]
+          }
+        },
+        "id": "S07P03-TASKPACK-TRACE",
+        "passed": true
+      },
+      {
+        "detail": "ledger.schema.json",
+        "id": "S07P03-SCHEMA-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S07_P03.json",
+        "id": "S07P03-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602",
+          "p02": {
+            "checks": 7,
+            "failed": 0,
+            "failed_check_ids": []
+          }
+        },
+        "id": "S07P03-P02-PREDECESSOR-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S07-P03",
+          "fixture_fields": [
+            "adverse_replay_count",
+            "cases",
+            "contract_id",
+            "expected_next",
+            "expected_no_execution_output_sha256",
+            "expected_oracle_check_minimum",
+            "expected_verified_execution_output_sha256",
+            "external_effect_boundary",
+            "fixed_clock",
+            "phase_id",
+            "policy",
+            "predecessor",
+            "replay_count",
+            "schema_version",
+            "stage_id",
+            "target_test_minimum"
+          ]
+        },
+        "id": "S07P03-PRODUCTION-EQUIVALENT-SCHEMA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "policy": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S07P03-PARAMETER-VERSION-PINNED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": 30000,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": true,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "LEDGER_VALID_NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": 30000,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": true,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "fd9b801881880488d860e436bcfeb931b6d0ff1ff808ce71ba66d65d98f0fca0",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "reconciliation_difference_cents": 0,
+            "schema_version": "1.0.0",
+            "status": "RECONCILED"
+          }
+        },
+        "id": "S07P03-CASE-NO_EXECUTION_EVIDENCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": 30150,
+            "actual_funds_cash_delta_cents": 150,
+            "actual_funds_chain_head_sha256": "676cb4650ad37ba4cf30f9869765f67098278da0d840edd7bd4995599fa5f734",
+            "actual_funds_changed": true,
+            "actual_funds_event_count": 1,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 1,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "11d956140141de9bbfcbacd3612526c88ce5ac0b5cfb4cc6a5211a2bf8ee8120",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "LEDGER_VALID_NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": 30150,
+            "actual_funds_cash_delta_cents": 150,
+            "actual_funds_chain_head_sha256": "676cb4650ad37ba4cf30f9869765f67098278da0d840edd7bd4995599fa5f734",
+            "actual_funds_event_count": 1,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 1,
+            "external_network_used": false,
+            "output_sha256": "1ee8e6e7945ffc07af80aa476ce6a76199792e815758f488649c6614ce64c28b",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "reconciliation_difference_cents": 0,
+            "schema_version": "1.0.0",
+            "status": "RECONCILED"
+          }
+        },
+        "id": "S07P03-CASE-VERIFIED_FROZEN_EXECUTION_EVIDENCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": 30000,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": true,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "LEDGER_VALID_NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": 30000,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": true,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "fd9b801881880488d860e436bcfeb931b6d0ff1ff808ce71ba66d65d98f0fca0",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "reconciliation_difference_cents": 0,
+            "schema_version": "1.0.0",
+            "status": "RECONCILED"
+          }
+        },
+        "id": "S07P03-CASE-BOUNDARY_ADVERSE_EXACT_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "afd1ec51d3ad34f53ec7a4a200bacfb9549f8a99dd55456b3e1cbb76537d2e74",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "EXECUTION_EVIDENCE_REQUIRED"
+            ],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "22b6f097fc33d8e6c4490a5bb7ffe11440704a3b191e15ced48fcbb3f12d4606",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "EXECUTION_EVIDENCE_REQUIRED"
+            ],
+            "reconciliation_difference_cents": null,
+            "schema_version": "1.0.0",
+            "status": "RECONCILIATION_REJECTED"
+          }
+        },
+        "id": "S07P03-CASE-NEGATIVE_EXECUTION_EVIDENCE_UNVERIFIED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "231f87a35a05a9d17cb51947b9d6d70938b6ddd86acad71c5982060f33b1d8f9",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "HASH_CHAIN_BROKEN"
+            ],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "f943efae8a81782e73f7845d4ea67ff9596c6c1dc4b686606bf8cabccd113c4b",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "HASH_CHAIN_BROKEN"
+            ],
+            "reconciliation_difference_cents": null,
+            "schema_version": "1.0.0",
+            "status": "RECONCILIATION_REJECTED"
+          }
+        },
+        "id": "S07P03-CASE-NEGATIVE_HASH_CHAIN_TAMPER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "3d07720c653986474d57ea6e2940afdf27a6a6f81a3381e74d6fbcef307d7235",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "ACTUAL_EVENT_WITHOUT_ADVICE_PROVENANCE"
+            ],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "ffa6e2d9934690fec8207f7898f8b0fb982b11da51c76ec0501f4fa54101bae3",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "ACTUAL_EVENT_WITHOUT_ADVICE_PROVENANCE"
+            ],
+            "reconciliation_difference_cents": null,
+            "schema_version": "1.0.0",
+            "status": "RECONCILIATION_REJECTED"
+          }
+        },
+        "id": "S07P03-CASE-NEGATIVE_ORPHAN_ACTUAL_PROVENANCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "d8cbb2622caba3c51d536d64bc496ac987563b548e6b22cc0b4bf81d0788ffb5",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "ADVERSE_PROBABILITY_BOUNDARY_INVALID"
+            ],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "5b886f116158febe59df5a95855e4d472ab9876fe0fe87faef2e2b0eec2a92ec",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "ADVERSE_PERTURBATION_BOUNDARY_INVALID"
+            ],
+            "reconciliation_difference_cents": null,
+            "schema_version": "1.0.0",
+            "status": "RECONCILIATION_REJECTED"
+          }
+        },
+        "id": "S07P03-CASE-NEGATIVE_ADVERSE_PROBABILITY_MINUS_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "be60f9e37dc9008e6cae7319ddae75846ff7a687f4e2474693eb13e63652e7d0",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "ADVERSE_ODDS_BOUNDARY_INVALID"
+            ],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": null,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "GENESIS",
+            "advice_event_count": 0,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "5b886f116158febe59df5a95855e4d472ab9876fe0fe87faef2e2b0eec2a92ec",
+            "real_time_soak_waited": false,
+            "reason_codes": [
+              "ADVERSE_PERTURBATION_BOUNDARY_INVALID"
+            ],
+            "reconciliation_difference_cents": null,
+            "schema_version": "1.0.0",
+            "status": "RECONCILIATION_REJECTED"
+          }
+        },
+        "id": "S07P03-CASE-NEGATIVE_ADVERSE_ODDS_PLUS_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_funds_balance_cents": 30000,
+          "actual_funds_cash_delta_cents": 0,
+          "actual_funds_chain_head_sha256": "GENESIS",
+          "actual_funds_changed": false,
+          "actual_funds_event_count": 0,
+          "actual_funds_unchanged_without_execution_evidence": true,
+          "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+          "advice_event_count": 1,
+          "execution_evidence_count": 0,
+          "external_network_used": false,
+          "order_submission_enabled": false,
+          "output_sha256": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+          "real_time_soak_waited": false,
+          "reason_codes": [],
+          "recommendation_generated": false,
+          "schema_version": "1.0.0",
+          "status": "LEDGER_VALID_NO_ADVICE"
+        },
+        "id": "S07P03-NO-EXECUTION-OUTPUT-HASH-PIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": 30150,
+            "actual_funds_cash_delta_cents": 150,
+            "actual_funds_chain_head_sha256": "676cb4650ad37ba4cf30f9869765f67098278da0d840edd7bd4995599fa5f734",
+            "actual_funds_changed": true,
+            "actual_funds_event_count": 1,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 1,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "11d956140141de9bbfcbacd3612526c88ce5ac0b5cfb4cc6a5211a2bf8ee8120",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "LEDGER_VALID_NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": 30150,
+            "actual_funds_cash_delta_cents": 150,
+            "actual_funds_chain_head_sha256": "676cb4650ad37ba4cf30f9869765f67098278da0d840edd7bd4995599fa5f734",
+            "actual_funds_event_count": 1,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 1,
+            "external_network_used": false,
+            "output_sha256": "1ee8e6e7945ffc07af80aa476ce6a76199792e815758f488649c6614ce64c28b",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "reconciliation_difference_cents": 0,
+            "schema_version": "1.0.0",
+            "status": "RECONCILED"
+          }
+        },
+        "id": "S07P03-VERIFIED-FIXTURE-OUTPUT-HASH-PIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ledger": {
+            "actual_funds_balance_cents": 30000,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": true,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "LEDGER_VALID_NO_ADVICE"
+          },
+          "reconciliation": {
+            "actual_funds_balance_cents": 30000,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": true,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "output_sha256": "fd9b801881880488d860e436bcfeb931b6d0ff1ff808ce71ba66d65d98f0fca0",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "reconciliation_difference_cents": 0,
+            "schema_version": "1.0.0",
+            "status": "RECONCILED"
+          }
+        },
+        "id": "S07P03-NO-EXECUTION-REAL-FUNDS-UNCHANGED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "boundary": {
+            "actual_funds_balance_cents": 30000,
+            "actual_funds_cash_delta_cents": 0,
+            "actual_funds_chain_head_sha256": "GENESIS",
+            "actual_funds_changed": false,
+            "actual_funds_event_count": 0,
+            "actual_funds_unchanged_without_execution_evidence": true,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 0,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "LEDGER_VALID_NO_ADVICE"
+          },
+          "verified": {
+            "actual_funds_balance_cents": 30150,
+            "actual_funds_cash_delta_cents": 150,
+            "actual_funds_chain_head_sha256": "676cb4650ad37ba4cf30f9869765f67098278da0d840edd7bd4995599fa5f734",
+            "actual_funds_changed": true,
+            "actual_funds_event_count": 1,
+            "actual_funds_unchanged_without_execution_evidence": false,
+            "advice_chain_head_sha256": "ecfded19c0d9f38d8fd7c6647ddb6efcf8df454c069c9abeaea250761f6d7815",
+            "advice_event_count": 1,
+            "execution_evidence_count": 1,
+            "external_network_used": false,
+            "order_submission_enabled": false,
+            "output_sha256": "11d956140141de9bbfcbacd3612526c88ce5ac0b5cfb4cc6a5211a2bf8ee8120",
+            "real_time_soak_waited": false,
+            "reason_codes": [],
+            "recommendation_generated": false,
+            "schema_version": "1.0.0",
+            "status": "LEDGER_VALID_NO_ADVICE"
+          }
+        },
+        "id": "S07P03-BOUNDARY-PLUS-MINUS-0001-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "count": 100,
+          "ledger_hash": "048c1b9611ea28bbe2f5fa26763ca56ce98a11c484012a0e87860cecbf39f5d1",
+          "reconciliation_hash": "fd9b801881880488d860e436bcfeb931b6d0ff1ff808ce71ba66d65d98f0fca0"
+        },
+        "id": "S07P03-100-REPLAY-DETERMINISTIC-NO-WAIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "count": 10000,
+          "failures": []
+        },
+        "id": "S07P03-ONE-IN-TEN-THOUSAND-ADVERSE-NO-FUNDS-MUTATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "denied": [],
+          "imports": [
+            "__future__",
+            "dataclasses",
+            "datetime",
+            "hashlib",
+            "json",
+            "pathlib",
+            "re",
+            "typing"
+          ],
+          "tokens": []
+        },
+        "id": "S07P03-LEDGER-NO-NETWORK-PROCESS-OR-SLEEP-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "denied": [],
+          "imports": [
+            "__future__",
+            "datetime",
+            "hashlib",
+            "json",
+            "re",
+            "typing"
+          ],
+          "tokens": []
+        },
+        "id": "S07P03-RECONCILIATION-NO-NETWORK-PROCESS-OR-SLEEP-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 50,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 60
+          }
+        },
+        "id": "S07P03-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 4968,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 5028
+          }
+        },
+        "id": "S07P03-FULL-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S07P03-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S07P03-TASKPACK-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "exact_match": true,
+          "path": "machine/evidence/S07/P03/paid_dependency_scan.txt"
+        },
+        "id": "S07P03-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S07-P03",
+    "decision": "IMMUTABLE_ADVICE_AND_DUAL_LEDGER_GATE_PASSED_NO_ADVICE",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "external_network_used_by_verifier": false,
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/ledger_trace.py": "12c8bb3a0e560d654c72f92407e5ec5cc84045375811351d87710133278167ce",
+      "ledger.py": "3a316ea7c6ec347dc6bfa165037d11e0a022d1ca5185fae791bede9f62823cfd",
+      "ledger.schema.json": "781df3d1e19b1571037ba440daf05fc85fda1cae7d6af528b1f046bfd03ef5ae",
+      "machine/evidence/EVD-S07-P02.json": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602",
+      "machine/evidence/EVD-S07-P02_rollback.json": "89f7a7ec50228ac49494d52c28c2f468e962414478ff86c64a420fbbdafb68d9",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S07_P03.json": "063a080e95c5d8583510cabaaa9a2fcfd77c46a4cf4d95c9415858073091eb8e",
+      "reconciliation_oracle.py": "aac95af984a4999aab2b8b3a3cbdbeb158e2766d9d1d66a33aec7249de004e8b",
+      "tests/S07/P03_test.py": "e7120bf943f20c042291df957ee114bc13b52da1434cf8301d5f34a8c96e5090"
+    },
+    "next": "S07/P04_READY_NOT_STARTED",
+    "no_real_time_soak": {
+      "deterministic_adverse_replay_count": 10000,
+      "deterministic_replay_count": 100,
+      "required": false,
+      "wait_performed": false
+    },
+    "phase_id": "P03",
+    "phase_status": "S07_P03_PASS",
+    "requirement_id": "REQ-S07-P03",
+    "stage_id": "S07",
+    "status": "PASS",
+    "summary": {
+      "checks": 48,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 48
+    }
+  }
+}

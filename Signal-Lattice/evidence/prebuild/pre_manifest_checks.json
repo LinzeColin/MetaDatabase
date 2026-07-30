@@ -8,12 +8,12 @@
         "bash",
         "scripts/run_tests.sh"
       ],
-      "duration_seconds": 8.024,
+      "duration_seconds": 8.132,
       "name": "unit_tests",
       "returncode": 0,
       "state": "PASS",
-      "stderr_sha256": "054dc14ba35fb05f78ce4cec32fb47ae504d8363698829e3ff1bd98c72781483",
-      "stderr_tail": "_seal_are_self_hashed (test_taskpack_seal.TaskpackSealTests.test_owner_receipt_and_taskpack_seal_are_self_hashed) ... ok\ntest_residual_tasks_are_environment_bound_only (test_taskpack_seal.TaskpackSealTests.test_residual_tasks_are_environment_bound_only) ... ok\ntest_self_hash_helper (test_taskpack_seal.TaskpackSealTests.test_self_hash_helper) ... ok\ntest_subject_identity_excludes_mutable_evidence (test_taskpack_seal.TaskpackSealTests.test_subject_identity_excludes_mutable_evidence) ... ok\ntest_keep_base (test_teleiosis.T.test_keep_base) ... ok\ntest_keep_better (test_teleiosis.T.test_keep_better) ... ok\ntest_revert_unsafe (test_teleiosis.T.test_revert_unsafe) ... ok\ntest_baseline_is_current_and_fail_closed (test_upstream_evidence.T.test_baseline_is_current_and_fail_closed) ... ok\ntest_formal_seal_if_present (test_upstream_evidence.T.test_formal_seal_if_present) ... skipped 'Formal upstream seal requires exact fixed checkouts or bundles'\ntest_missing_checkouts_create_hashed_blocked_receipt (test_upstream_evidence.T.test_missing_checkouts_create_hashed_blocked_receipt) ... ok\n\n----------------------------------------------------------------------\nRan 83 tests in 7.821s\n\nOK (skipped=1)\n",
+      "stderr_sha256": "f347bc01fc51827e1457eca28f225e8011c282323ab9350b6f96d8f0a5141a75",
+      "stderr_tail": "erride_is_valid_only_when_explicitly_bound) ... ok\ntest_owner_receipt_and_taskpack_seal_are_self_hashed (test_taskpack_seal.TaskpackSealTests.test_owner_receipt_and_taskpack_seal_are_self_hashed) ... ok\ntest_residual_tasks_are_environment_bound_only (test_taskpack_seal.TaskpackSealTests.test_residual_tasks_are_environment_bound_only) ... ok\ntest_self_hash_helper (test_taskpack_seal.TaskpackSealTests.test_self_hash_helper) ... ok\ntest_subject_identity_excludes_mutable_evidence (test_taskpack_seal.TaskpackSealTests.test_subject_identity_excludes_mutable_evidence) ... ok\ntest_keep_base (test_teleiosis.T.test_keep_base) ... ok\ntest_keep_better (test_teleiosis.T.test_keep_better) ... ok\ntest_revert_unsafe (test_teleiosis.T.test_revert_unsafe) ... ok\ntest_baseline_is_current_and_fail_closed (test_upstream_evidence.T.test_baseline_is_current_and_fail_closed) ... ok\ntest_formal_seal_if_present (test_upstream_evidence.T.test_formal_seal_if_present) ... ok\ntest_missing_checkouts_create_hashed_blocked_receipt (test_upstream_evidence.T.test_missing_checkouts_create_hashed_blocked_receipt) ... ok\n\n----------------------------------------------------------------------\nRan 83 tests in 7.925s\n\nOK\n",
       "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stdout_tail": ""
     },
@@ -27,7 +27,7 @@
         "--state",
         "{ROOT}/CANONICAL_STATE.json"
       ],
-      "duration_seconds": 0.048,
+      "duration_seconds": 0.044,
       "name": "canonical_state",
       "returncode": 0,
       "state": "PASS",
@@ -46,7 +46,7 @@
         "--root",
         "{ROOT}"
       ],
-      "duration_seconds": 0.041,
+      "duration_seconds": 0.04,
       "name": "version_lock",
       "returncode": 0,
       "state": "PASS",
@@ -67,7 +67,7 @@
         "--projects",
         "."
       ],
-      "duration_seconds": 0.142,
+      "duration_seconds": 0.132,
       "name": "dual_plane",
       "returncode": 0,
       "state": "PASS",
@@ -89,7 +89,7 @@
         "--output",
         "{ROOT}/evidence/upstream/upstream_precheck.json"
       ],
-      "duration_seconds": 0.042,
+      "duration_seconds": 0.04,
       "name": "upstream_precheck",
       "returncode": 2,
       "state": "PASS",
@@ -107,7 +107,7 @@
         "scripts/build_quant_seal.py",
         "{ROOT}/evidence/quant/quant_seal.json"
       ],
-      "duration_seconds": 0.05,
+      "duration_seconds": 0.047,
       "name": "quant_seal",
       "returncode": 0,
       "state": "PASS",
@@ -125,7 +125,7 @@
         "scripts/run_task.py",
         "--validate-all"
       ],
-      "duration_seconds": 0.046,
+      "duration_seconds": 0.043,
       "name": "task_contract",
       "returncode": 0,
       "state": "PASS",
@@ -146,7 +146,7 @@
         "--output",
         "{ROOT}/evidence/builder_readiness/static_readiness.json"
       ],
-      "duration_seconds": 0.045,
+      "duration_seconds": 0.04,
       "name": "builder_readiness_static",
       "returncode": 0,
       "state": "PASS",
@@ -167,7 +167,7 @@
         "--output",
         "{ROOT}/evidence/browser/browser_smoke.json"
       ],
-      "duration_seconds": 3.291,
+      "duration_seconds": 3.36,
       "name": "browser",
       "returncode": 0,
       "state": "PASS",
@@ -188,7 +188,7 @@
         "--output",
         "{ROOT}/evidence/systemd/systemd_verify.json"
       ],
-      "duration_seconds": 0.052,
+      "duration_seconds": 0.047,
       "name": "systemd",
       "returncode": 0,
       "state": "PASS",
@@ -207,7 +207,7 @@
         "--root",
         "{ROOT}"
       ],
-      "duration_seconds": 0.062,
+      "duration_seconds": 0.061,
       "name": "zero_runtime",
       "returncode": 0,
       "state": "PASS",
@@ -226,7 +226,7 @@
         "--receipt",
         "{ROOT}/evidence/walking_skeleton.json"
       ],
-      "duration_seconds": 0.061,
+      "duration_seconds": 0.057,
       "name": "walking_skeleton",
       "returncode": 0,
       "state": "PASS",
@@ -245,7 +245,7 @@
         "--output",
         "{ROOT}/evidence/recovery/recovery.json"
       ],
-      "duration_seconds": 0.053,
+      "duration_seconds": 0.048,
       "name": "recovery",
       "returncode": 0,
       "state": "PASS",
@@ -268,7 +268,7 @@
         "--receipt",
         "{ROOT}/evidence/release/wheel_receipt.json"
       ],
-      "duration_seconds": 0.061,
+      "duration_seconds": 0.057,
       "name": "wheel",
       "returncode": 0,
       "state": "PASS",
@@ -286,17 +286,17 @@
         "scripts/install_release.sh",
         "{TEMP}/wheel/signal_lattice-0.0.0.1.39-py3-none-any.whl"
       ],
-      "duration_seconds": 2.958,
+      "duration_seconds": 2.714,
       "name": "hermetic_install",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "5a0cbf28511a91b9c0a76b08cd95fa81933e1f0c2d2464b37ee291fe02a12383",
+      "stdout_sha256": "b32607203c793a9fea62aac93fefdfd93d403e4a033649e8bf62e1aea269ea88",
       "stdout_tail": "Processing {TEMP}/wheel/signal_lattice-0.0.0.1.39-py3-none-any.whl\nInstalling collected packages: signal-lattice\nSuccessfully installed signal-lattice-0.0.0.1.39\n{\"state\": \"PASS\", \"agent_dependency\": 0, \"model_mode\": \"DISABLED\", \"token_budget\": 0, \"forbidden_env\": []}\nINSTALLED\n"
     }
   ],
-  "receipt_sha256": "d7fef7ea6df1ed360634e2f88e215a0c157106f5aeaca922bf1b846a342d7a95",
+  "receipt_sha256": "9b0c01b47acc2aebf5dbfc820a869d6fea79bde296d81fef4dadc3ac41727af6",
   "runtime_agent_dependency": 0,
   "runtime_llm_tokens": 0,
   "schema_version": "1.0.0",

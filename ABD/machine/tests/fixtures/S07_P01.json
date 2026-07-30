@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S07-P01",
+  "contract_id": "AC-S07-P01",
+  "requirement_id": "REQ-S07-P01",
+  "stage_id": "S07",
+  "phase_id": "P01",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S07/P02_READY_NOT_STARTED",
+  "identity_confidence_threshold": "0.9950",
+  "boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "fixed_seed": 7001,
+  "expected_oracle_check_minimum": 38,
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false
+  }
+}

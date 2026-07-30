@@ -1,0 +1,95 @@
+{
+  "$id": "https://abd.local/schemas/temporal_lineage/1.0.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "available_time": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?[+-]\\d{2}:\\d{2}$",
+      "type": "string"
+    },
+    "decision_time": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?[+-]\\d{2}:\\d{2}$",
+      "type": "string"
+    },
+    "feature_cutoff_time": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?[+-]\\d{2}:\\d{2}$",
+      "type": "string"
+    },
+    "feature_manifest_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "identity_key": {
+      "pattern": "^IDK-S07P01-[A-Z0-9_-]{8,64}$",
+      "type": "string"
+    },
+    "model_id": {
+      "pattern": "^MODEL-[A-Z0-9_-]{3,64}$",
+      "type": "string"
+    },
+    "model_version_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "observed_time": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?[+-]\\d{2}:\\d{2}$",
+      "type": "string"
+    },
+    "parameter_version_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "record_id": {
+      "pattern": "^TLR-[A-Z0-9][A-Z0-9_-]{2,63}$",
+      "type": "string"
+    },
+    "reference_odds_decimal": {
+      "pattern": "^[1-9][0-9]*(?:\\.[0-9]+)?$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^SRC-[A-Z0-9_-]{3,64}$",
+      "type": "string"
+    },
+    "source_payload_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "source_time": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?[+-]\\d{2}:\\d{2}$",
+      "type": "string"
+    },
+    "source_version_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "record_id",
+    "source_id",
+    "source_version_sha256",
+    "source_payload_sha256",
+    "source_time",
+    "observed_time",
+    "available_time",
+    "feature_cutoff_time",
+    "decision_time",
+    "identity_key",
+    "parameter_version_sha256",
+    "model_id",
+    "model_version_sha256",
+    "feature_manifest_sha256",
+    "reference_odds_decimal"
+  ],
+  "title": "ABD S07/P02 Temporal Lineage Record",
+  "type": "object",
+  "x_abd_artifact_id": "ART-S07-P02-01",
+  "x_abd_contract_id": "AC-S07-P02",
+  "x_abd_future_information_tolerance": 0,
+  "x_abd_production_equivalent": true
+}

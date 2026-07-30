@@ -1,0 +1,304 @@
+{
+  "adverse_replay_count": 10000,
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT",
+      "expected": {
+        "lineage_eligible": true,
+        "reason_codes": [],
+        "status": "LINEAGE_APPROVED_NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-POSITIVE-001",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "BOUNDARY_ALL_TIMES_EQUAL",
+      "expected": {
+        "lineage_eligible": true,
+        "reason_codes": [],
+        "status": "LINEAGE_APPROVED_NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:04+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:04+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:04+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-BOUNDARY-EQUAL",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:04+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "BOUNDARY_ODDS_MINUS_0001",
+      "expected": {
+        "lineage_eligible": true,
+        "reason_codes": [],
+        "status": "LINEAGE_APPROVED_NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-ODDS-MINUS-0001",
+        "reference_odds_decimal": "1.9999",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "BOUNDARY_ODDS_PLUS_0001",
+      "expected": {
+        "lineage_eligible": true,
+        "reason_codes": [],
+        "status": "LINEAGE_APPROVED_NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-ODDS-PLUS-0001",
+        "reference_odds_decimal": "2.0001",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_FEATURE_CUTOFF_PLUS_0001",
+      "expected": {
+        "lineage_eligible": false,
+        "reason_code": "FUTURE_INFORMATION_TOLERANCE_EXCEEDED",
+        "status": "NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:04.0001+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-FUTURE-CUTOFF",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_AVAILABLE_AFTER_CUTOFF",
+      "expected": {
+        "lineage_eligible": false,
+        "reason_code": "AVAILABLE_TIME_AFTER_FEATURE_CUTOFF",
+        "status": "NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:03.0001+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-AVAILABLE-LATE",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_SOURCE_VERSION",
+      "expected": {
+        "lineage_eligible": false,
+        "reason_code": "SOURCE_VERSION_MISMATCH",
+        "status": "NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-SOURCE-VERSION",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_MODEL_VERSION",
+      "expected": {
+        "lineage_eligible": false,
+        "reason_code": "MODEL_VERSION_MISMATCH",
+        "status": "NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-MODEL-VERSION",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_PARAMETER_VERSION",
+      "expected": {
+        "lineage_eligible": false,
+        "reason_code": "PARAMETER_VERSION_MISMATCH",
+        "status": "NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "record_id": "TLR-PARAMETER-VERSION",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00+10:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_TIMEZONE_REQUIRED",
+      "expected": {
+        "lineage_eligible": false,
+        "reason_code": "TIMEZONE_REQUIRED",
+        "status": "NO_ADVICE"
+      },
+      "record": {
+        "available_time": "2026-08-15T18:00:02+10:00",
+        "decision_time": "2026-08-15T18:00:04+10:00",
+        "feature_cutoff_time": "2026-08-15T18:00:03+10:00",
+        "feature_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "identity_key": "IDK-S07P01-PRIMARY001",
+        "model_id": "MODEL-TEMPORAL-001",
+        "model_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_time": "2026-08-15T18:00:01+10:00",
+        "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+        "record_id": "TLR-TIMEZONE-REQUIRED",
+        "reference_odds_decimal": "2.0000",
+        "schema_version": "1.0.0",
+        "source_id": "SRC-FROZEN_PRIMARY",
+        "source_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_time": "2026-08-15T18:00:00",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  ],
+  "contract_id": "AC-S07-P02",
+  "expected_next": "S07/P03_READY_NOT_STARTED",
+  "expected_oracle_check_minimum": 26,
+  "expected_positive_output_sha256": "ace6833bc7d8897f98a5b00b0801abd1d681001ebb419eeae83beac8d8a3e489",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "future_information_tolerance": 0,
+  "phase_id": "P02",
+  "policy": {
+    "future_information_tolerance": 0,
+    "model_versions": {
+      "MODEL-TEMPORAL-001": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "schema_content_sha256": "ac01c8686977913bc7e9f11f763ce325581cdd5cadedad590bbc54c8d2572910",
+    "source_versions": {
+      "SRC-FROZEN_PRIMARY": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  "predecessor": {
+    "contract_id": "AC-S07-P01",
+    "evidence_path": "machine/evidence/EVD-S07-P01.json",
+    "evidence_sha256": "2e3f7ceb3e93807fbb14c224282ab3d062d6197c5a139a771e24d30f5316aa99",
+    "next": "S07/P02_READY_NOT_STARTED"
+  },
+  "replay_count": 100,
+  "schema_version": "1.0.0",
+  "stage_id": "S07",
+  "target_test_minimum": 61
+}

@@ -1,0 +1,565 @@
+{
+  "cases": [
+    {
+      "block_reasons": [],
+      "decision_boundary": "OUTLIER_AND_LINE_GATE_ONLY_NO_ADVICE_OR_ORDER",
+      "downstream_market_prior_allowed": true,
+      "gate": "ALLOW_DOWNSTREAM_MARKET_PRIOR",
+      "id": "CONFIRMED_LINE_MOVEMENT_FRESH",
+      "line_movement": {
+        "confirmed_direction": "UP",
+        "decision_boundary": "LINE_MOVEMENT_GATE_ONLY_NO_ADVICE_OR_ORDER",
+        "events": [
+          {
+            "age_seconds": "2",
+            "current_odds": "2.1",
+            "delta_odds": "0.1",
+            "direction": "UP",
+            "previous_odds": "2",
+            "source_id": "SRC_ALPHA",
+            "stale": false
+          },
+          {
+            "age_seconds": "1",
+            "current_odds": "2.15",
+            "delta_odds": "0.1",
+            "direction": "UP",
+            "previous_odds": "2.05",
+            "source_id": "SRC_BETA",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.2",
+            "delta_odds": "0.1",
+            "direction": "UP",
+            "previous_odds": "2.1",
+            "source_id": "SRC_GAMMA",
+            "stale": false
+          }
+        ],
+        "max_time_skew_seconds": 2,
+        "minimum_confirming_sources": 2,
+        "movement_confirmed": true,
+        "observed_time_skew_seconds": "2",
+        "quote_usable_seconds": 90,
+        "source_count": 3,
+        "stale_source_ids": [],
+        "status": "CONFIRMED_UP",
+        "time_desynchronized": false
+      },
+      "outlier_detection": {
+        "long_outlier_source_ids": [],
+        "mad_multiplier": "3.5",
+        "median_absolute_deviation": "0.05",
+        "median_odds": "2.15",
+        "outlier_source_ids": [],
+        "outlier_threshold": "0.175",
+        "quotes": [
+          {
+            "absolute_deviation": "0.05",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_ALPHA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.15",
+            "outlier": false,
+            "source_id": "SRC_BETA"
+          },
+          {
+            "absolute_deviation": "0.05",
+            "long_odds_outlier": false,
+            "odds": "2.2",
+            "outlier": false,
+            "source_id": "SRC_GAMMA"
+          }
+        ]
+      },
+      "recommendation_generated": false,
+      "recommendation_permitted": false
+    },
+    {
+      "block_reasons": [],
+      "decision_boundary": "OUTLIER_AND_LINE_GATE_ONLY_NO_ADVICE_OR_ORDER",
+      "downstream_market_prior_allowed": true,
+      "gate": "ALLOW_DOWNSTREAM_MARKET_PRIOR",
+      "id": "MAD_BOUNDARY_NOT_OUTLIER",
+      "line_movement": {
+        "confirmed_direction": null,
+        "decision_boundary": "LINE_MOVEMENT_GATE_ONLY_NO_ADVICE_OR_ORDER",
+        "events": [
+          {
+            "age_seconds": "2",
+            "current_odds": "2",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2",
+            "source_id": "SRC_ALPHA",
+            "stale": false
+          },
+          {
+            "age_seconds": "1",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_BETA",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.45",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.45",
+            "source_id": "SRC_BOUNDARY",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.2",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.2",
+            "source_id": "SRC_GAMMA",
+            "stale": false
+          }
+        ],
+        "max_time_skew_seconds": 2,
+        "minimum_confirming_sources": 2,
+        "movement_confirmed": false,
+        "observed_time_skew_seconds": "2",
+        "quote_usable_seconds": 90,
+        "source_count": 4,
+        "stale_source_ids": [],
+        "status": "NO_LINE_MOVEMENT",
+        "time_desynchronized": false
+      },
+      "outlier_detection": {
+        "long_outlier_source_ids": [],
+        "mad_multiplier": "3.5",
+        "median_absolute_deviation": "0.1",
+        "median_odds": "2.1",
+        "outlier_source_ids": [],
+        "outlier_threshold": "0.35",
+        "quotes": [
+          {
+            "absolute_deviation": "0.1",
+            "long_odds_outlier": false,
+            "odds": "2",
+            "outlier": false,
+            "source_id": "SRC_ALPHA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_BETA"
+          },
+          {
+            "absolute_deviation": "0.35",
+            "long_odds_outlier": false,
+            "odds": "2.45",
+            "outlier": false,
+            "source_id": "SRC_BOUNDARY"
+          },
+          {
+            "absolute_deviation": "0.1",
+            "long_odds_outlier": false,
+            "odds": "2.2",
+            "outlier": false,
+            "source_id": "SRC_GAMMA"
+          }
+        ]
+      },
+      "recommendation_generated": false,
+      "recommendation_permitted": false
+    },
+    {
+      "block_reasons": [
+        "LONG_ODDS_OUTLIER"
+      ],
+      "decision_boundary": "OUTLIER_AND_LINE_GATE_ONLY_NO_ADVICE_OR_ORDER",
+      "downstream_market_prior_allowed": false,
+      "gate": "BLOCK_NO_RECOMMENDATION",
+      "id": "SINGLE_LONG_ODDS_OUTLIER",
+      "line_movement": {
+        "confirmed_direction": null,
+        "decision_boundary": "LINE_MOVEMENT_GATE_ONLY_NO_ADVICE_OR_ORDER",
+        "events": [
+          {
+            "age_seconds": "2",
+            "current_odds": "2",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2",
+            "source_id": "SRC_ALPHA",
+            "stale": false
+          },
+          {
+            "age_seconds": "1",
+            "current_odds": "2.05",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.05",
+            "source_id": "SRC_BETA",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_GAMMA",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "12",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "12",
+            "source_id": "SRC_LONG",
+            "stale": false
+          }
+        ],
+        "max_time_skew_seconds": 2,
+        "minimum_confirming_sources": 2,
+        "movement_confirmed": false,
+        "observed_time_skew_seconds": "2",
+        "quote_usable_seconds": 90,
+        "source_count": 4,
+        "stale_source_ids": [],
+        "status": "NO_LINE_MOVEMENT",
+        "time_desynchronized": false
+      },
+      "outlier_detection": {
+        "long_outlier_source_ids": [
+          "SRC_LONG"
+        ],
+        "mad_multiplier": "3.5",
+        "median_absolute_deviation": "0.05",
+        "median_odds": "2.05",
+        "outlier_source_ids": [
+          "SRC_LONG"
+        ],
+        "outlier_threshold": "0.175",
+        "quotes": [
+          {
+            "absolute_deviation": "0.05",
+            "long_odds_outlier": false,
+            "odds": "2",
+            "outlier": false,
+            "source_id": "SRC_ALPHA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.05",
+            "outlier": false,
+            "source_id": "SRC_BETA"
+          },
+          {
+            "absolute_deviation": "0.05",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_GAMMA"
+          },
+          {
+            "absolute_deviation": "9.95",
+            "long_odds_outlier": true,
+            "odds": "12",
+            "outlier": true,
+            "source_id": "SRC_LONG"
+          }
+        ]
+      },
+      "recommendation_generated": false,
+      "recommendation_permitted": false
+    },
+    {
+      "block_reasons": [
+        "STALE_QUOTE"
+      ],
+      "decision_boundary": "OUTLIER_AND_LINE_GATE_ONLY_NO_ADVICE_OR_ORDER",
+      "downstream_market_prior_allowed": false,
+      "gate": "BLOCK_NO_RECOMMENDATION",
+      "id": "STALE_QUOTE",
+      "line_movement": {
+        "confirmed_direction": null,
+        "decision_boundary": "LINE_MOVEMENT_GATE_ONLY_NO_ADVICE_OR_ORDER",
+        "events": [
+          {
+            "age_seconds": "1",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_ALPHA",
+            "stale": false
+          },
+          {
+            "age_seconds": "91",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_BETA",
+            "stale": true
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_GAMMA",
+            "stale": false
+          }
+        ],
+        "max_time_skew_seconds": 2,
+        "minimum_confirming_sources": 2,
+        "movement_confirmed": false,
+        "observed_time_skew_seconds": "91",
+        "quote_usable_seconds": 90,
+        "source_count": 3,
+        "stale_source_ids": [
+          "SRC_BETA"
+        ],
+        "status": "BLOCK_STALE_QUOTES",
+        "time_desynchronized": true
+      },
+      "outlier_detection": {
+        "long_outlier_source_ids": [],
+        "mad_multiplier": "3.5",
+        "median_absolute_deviation": "0",
+        "median_odds": "2.1",
+        "outlier_source_ids": [],
+        "outlier_threshold": "0",
+        "quotes": [
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_ALPHA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_BETA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_GAMMA"
+          }
+        ]
+      },
+      "recommendation_generated": false,
+      "recommendation_permitted": false
+    },
+    {
+      "block_reasons": [
+        "TIME_DESYNCHRONIZED"
+      ],
+      "decision_boundary": "OUTLIER_AND_LINE_GATE_ONLY_NO_ADVICE_OR_ORDER",
+      "downstream_market_prior_allowed": false,
+      "gate": "BLOCK_NO_RECOMMENDATION",
+      "id": "TIME_DESYNCHRONIZED_QUOTES",
+      "line_movement": {
+        "confirmed_direction": null,
+        "decision_boundary": "LINE_MOVEMENT_GATE_ONLY_NO_ADVICE_OR_ORDER",
+        "events": [
+          {
+            "age_seconds": "3",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_ALPHA",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_BETA",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_GAMMA",
+            "stale": false
+          }
+        ],
+        "max_time_skew_seconds": 2,
+        "minimum_confirming_sources": 2,
+        "movement_confirmed": false,
+        "observed_time_skew_seconds": "3",
+        "quote_usable_seconds": 90,
+        "source_count": 3,
+        "stale_source_ids": [],
+        "status": "BLOCK_TIME_DESYNCHRONIZED",
+        "time_desynchronized": true
+      },
+      "outlier_detection": {
+        "long_outlier_source_ids": [],
+        "mad_multiplier": "3.5",
+        "median_absolute_deviation": "0",
+        "median_odds": "2.1",
+        "outlier_source_ids": [],
+        "outlier_threshold": "0",
+        "quotes": [
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_ALPHA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_BETA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_GAMMA"
+          }
+        ]
+      },
+      "recommendation_generated": false,
+      "recommendation_permitted": false
+    },
+    {
+      "block_reasons": [
+        "UNCONFIRMED_LINE_MOVEMENT"
+      ],
+      "decision_boundary": "OUTLIER_AND_LINE_GATE_ONLY_NO_ADVICE_OR_ORDER",
+      "downstream_market_prior_allowed": false,
+      "gate": "BLOCK_NO_RECOMMENDATION",
+      "id": "UNCONFIRMED_LINE_MOVEMENT",
+      "line_movement": {
+        "confirmed_direction": null,
+        "decision_boundary": "LINE_MOVEMENT_GATE_ONLY_NO_ADVICE_OR_ORDER",
+        "events": [
+          {
+            "age_seconds": "2",
+            "current_odds": "2.1",
+            "delta_odds": "0.1",
+            "direction": "UP",
+            "previous_odds": "2",
+            "source_id": "SRC_ALPHA",
+            "stale": false
+          },
+          {
+            "age_seconds": "1",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_BETA",
+            "stale": false
+          },
+          {
+            "age_seconds": "0",
+            "current_odds": "2.1",
+            "delta_odds": "0",
+            "direction": "FLAT",
+            "previous_odds": "2.1",
+            "source_id": "SRC_GAMMA",
+            "stale": false
+          }
+        ],
+        "max_time_skew_seconds": 2,
+        "minimum_confirming_sources": 2,
+        "movement_confirmed": false,
+        "observed_time_skew_seconds": "2",
+        "quote_usable_seconds": 90,
+        "source_count": 3,
+        "stale_source_ids": [],
+        "status": "BLOCK_UNCONFIRMED_LINE_MOVEMENT",
+        "time_desynchronized": false
+      },
+      "outlier_detection": {
+        "long_outlier_source_ids": [],
+        "mad_multiplier": "3.5",
+        "median_absolute_deviation": "0",
+        "median_odds": "2.1",
+        "outlier_source_ids": [],
+        "outlier_threshold": "0",
+        "quotes": [
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_ALPHA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_BETA"
+          },
+          {
+            "absolute_deviation": "0",
+            "long_odds_outlier": false,
+            "odds": "2.1",
+            "outlier": false,
+            "source_id": "SRC_GAMMA"
+          }
+        ]
+      },
+      "recommendation_generated": false,
+      "recommendation_permitted": false
+    }
+  ],
+  "contract_id": "AC-S08-P04",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "fixture_sha256": "95b5f23b6d177d6a5afb2d024a6190a1e828a78d21ac4509f67f70149041911d",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P04",
+  "predecessor_contract_id": "AC-S08-P03",
+  "product_version": "0.0.0.1",
+  "schema_version": "1.0.0",
+  "stage_id": "S08",
+  "summary": {
+    "allowed_case_count": 2,
+    "blocked_case_count": 4,
+    "case_count": 6,
+    "mad_multiplier": "3.5"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "agent_commit": "7628709b3e293dddc1100b00780d0ca521c0f6b9",
+  "agent_root_tree": "7ba072368099fdfe6bf575f4ebaeb9fc4231f46c",
+  "artifact_sha256": {
+    "agent_skill_matrix.json": "09797d59cf80be1e69e63f89693d4d9245376d362f401cf4cbdd11c97d4f0fe2",
+    "repo_receipts.json": "54a812fa53d6f867da3465f7dfa119af2854da95051665a73ece5d874e141f06",
+    "stock_skill_matrix.json": "4614fb0e2fb3477eb7785c2cf695934856a98759f786c5485fb07883cdb3ba03",
+    "validator_receipts.json": "eb26dd1f836bc72717a720b7b091fb47ad46e7a86123304c0b06c74c3599225b"
+  },
+  "limitations": [
+    "validator state NOT_PRESENT is explicit and is not converted to PASS"
+  ],
+  "meta_commit": "82365b31a6171a4f09ee998c4777cd4e87cf0f70",
+  "meta_root_tree": "ddd1406b97de1a9d93c82d34e2b8400796ecb127",
+  "receipt_sha256": "246bc841574f701b0f00591efea89e18d5f5d689a6d625095902295f25793274",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_token_budget": 0,
+  "schema_version": "1.0.0",
+  "skill_instance_count": 100,
+  "state": "PASS",
+  "stock_skill_count": 5,
+  "unique_slug_count": 84,
+  "upstream_write_allowed": false,
+  "validator_states": {
+    "persona_distiller_selfcheck": "PASS",
+    "persona_group_registry": "PASS",
+    "stock_registry": "PASS",
+    "teleiosis_strict": "PASS",
+    "verifier_selftest": "PASS"
+  }
+}

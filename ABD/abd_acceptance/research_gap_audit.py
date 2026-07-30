@@ -39,6 +39,7 @@ PHASE_COMMIT = "d8577c4fabdfe646dd5293a3f6e0f09afa2b1843"
 PINNED_PHASE_CODE_HASH = "e79af4ae9b7c97c77c79b1b97c8427c3b7ef4124763fc60132b3b84840e96834"
 
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "counterevidence.json",
     "review_schedule.json",
     "machine/tests/fixtures/S02_P04.json",
@@ -54,6 +55,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S02/P03_test.py",
 }
 SUCCESSOR_EVOLVED_SIGNED_INPUT_HASHES: Dict[str, str] = {
+    ".github/workflows/abd-stage0-validation.yml": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
     "counterevidence.json": "2cbc2eb289d3278bc106778e4e11e755f8cb1681a0c3e74d619317023d63cae8",
     "review_schedule.json": "6987822fa590d31dc10d0f92f787e94098b82fa9a3a40ed328c840aa45f552ea",
     "machine/tests/fixtures/S02_P04.json": "d4404ae17bfeece51574367ce16ac6f8dfe8bf349615dc6bed8fff86af253923",
@@ -104,7 +106,7 @@ PINNED_BASELINE_HASHES = {
 }
 
 PINNED_REPO_HASHES = {
-    CONTINUOUS_WORKFLOW_PATH.as_posix(): "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+    CONTINUOUS_WORKFLOW_PATH.as_posix(): "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
 }
 
 ALLOWED_GAP_STATES = {"OPEN_EXPLICIT", "RESOLVED_VERIFIED"}
@@ -1254,11 +1256,12 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str, ve
         if relative == "abd_acceptance/research_gap_audit.py":
             return True
         evolved = SUCCESSOR_EVOLVED_SIGNED_INPUT_HASHES.get(relative)
-        return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+        candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+        return evolved is not None and candidate.is_file() and sha256_file(candidate) == evolved
     if not _phase_commit_is_ancestor(root):
         return False
     result = subprocess.run(
-        ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+        ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
         check=False,
         capture_output=True,
     )

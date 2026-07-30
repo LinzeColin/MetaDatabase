@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S08-P03-WEIGHTED-MEDIAN-CONSENSUS",
+  "contract_id": "AC-S08-P03",
+  "requirement_id": "REQ-S08-P03",
+  "stage_id": "S08",
+  "phase_id": "P03",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S08/P04_READY_NOT_STARTED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "fixed_seed": 8003,
+  "expected_oracle_check_minimum": 30,
+  "expected_task_ids": ["T-S08-P03-01", "T-S08-P03-02", "T-S08-P03-03"],
+  "predecessor_evidence_sha256": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c",
+  "predecessor_source_clusters_sha256": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b",
+  "probability_tolerance": "0.000000000001",
+  "boundary_perturbation_probability": "0.0001",
+  "required_consensus_space": "LOGIT",
+  "required_consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "cases": [
+    {
+      "id": "BASELINE_THREE_INDEPENDENT",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_ALPHA_DIRECT", "operator_id": "OPERATOR_ALPHA", "supply_chain_id": "CHAIN_ALPHA", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "source_version_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.40"},
+        {"source_id": "SRC_BETA_DIRECT", "operator_id": "OPERATOR_BETA", "supply_chain_id": "CHAIN_BETA", "observed_at": "2026-07-29T23:59:35+10:00", "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "source_version_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.55"},
+        {"source_id": "SRC_GAMMA_DIRECT", "operator_id": "OPERATOR_GAMMA", "supply_chain_id": "CHAIN_GAMMA", "observed_at": "2026-07-29T23:59:40+10:00", "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "source_version_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.70"}
+      ],
+      "expected": {"consensus_probability": "0.55", "eligible_independent_cluster_count": 3, "effective_independent_weight": "3"}
+    },
+    {
+      "id": "COPIED_SOURCE_INVARIANCE",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_ALPHA_DIRECT", "operator_id": "OPERATOR_ALPHA", "supply_chain_id": "CHAIN_ALPHA", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "source_version_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.40"},
+        {"source_id": "SRC_ALPHA_COPY", "operator_id": "OPERATOR_ALPHA_MIRROR", "supply_chain_id": "CHAIN_ALPHA_MIRROR", "observed_at": "2026-07-29T23:59:50+10:00", "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "source_version_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "copy_of": "SRC_ALPHA_DIRECT", "source_contract_status": "VERIFIED", "probability": "0.40"},
+        {"source_id": "SRC_BETA_DIRECT", "operator_id": "OPERATOR_BETA", "supply_chain_id": "CHAIN_BETA", "observed_at": "2026-07-29T23:59:35+10:00", "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "source_version_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.55"},
+        {"source_id": "SRC_GAMMA_DIRECT", "operator_id": "OPERATOR_GAMMA", "supply_chain_id": "CHAIN_GAMMA", "observed_at": "2026-07-29T23:59:40+10:00", "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "source_version_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.70"}
+      ],
+      "expected": {"consensus_probability": "0.55", "eligible_independent_cluster_count": 3, "effective_independent_weight": "3"}
+    },
+    {
+      "id": "SHARED_SUPPLY_CHAIN_INVARIANCE",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_ALPHA_DIRECT", "operator_id": "OPERATOR_ALPHA", "supply_chain_id": "CHAIN_ALPHA", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "source_version_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.40"},
+        {"source_id": "SRC_ALPHA_PARTNER", "operator_id": "OPERATOR_ALPHA_PARTNER", "supply_chain_id": "CHAIN_ALPHA", "observed_at": "2026-07-29T23:59:45+10:00", "content_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "source_version_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.40"},
+        {"source_id": "SRC_BETA_DIRECT", "operator_id": "OPERATOR_BETA", "supply_chain_id": "CHAIN_BETA", "observed_at": "2026-07-29T23:59:35+10:00", "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "source_version_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.55"},
+        {"source_id": "SRC_GAMMA_DIRECT", "operator_id": "OPERATOR_GAMMA", "supply_chain_id": "CHAIN_GAMMA", "observed_at": "2026-07-29T23:59:40+10:00", "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "source_version_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.70"}
+      ],
+      "expected": {"consensus_probability": "0.55", "eligible_independent_cluster_count": 3, "effective_independent_weight": "3"}
+    },
+    {
+      "id": "FRESHNESS_BOUNDARY_COPY",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_BOUNDARY_DIRECT", "operator_id": "OPERATOR_BOUNDARY", "supply_chain_id": "CHAIN_BOUNDARY", "observed_at": "2026-07-29T23:58:30+10:00", "content_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "source_version_sha256": "6666666666666666666666666666666666666666666666666666666666666666", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.45"},
+        {"source_id": "SRC_BOUNDARY_COPY", "operator_id": "OPERATOR_BOUNDARY_MIRROR", "supply_chain_id": "CHAIN_BOUNDARY_MIRROR", "observed_at": "2026-07-29T23:59:55+10:00", "content_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "source_version_sha256": "7777777777777777777777777777777777777777777777777777777777777777", "copy_of": "SRC_BOUNDARY_DIRECT", "source_contract_status": "VERIFIED", "probability": "0.45"},
+        {"source_id": "SRC_BETA_DIRECT", "operator_id": "OPERATOR_BETA", "supply_chain_id": "CHAIN_BETA", "observed_at": "2026-07-29T23:59:35+10:00", "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "source_version_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.60"},
+        {"source_id": "SRC_GAMMA_DIRECT", "operator_id": "OPERATOR_GAMMA", "supply_chain_id": "CHAIN_GAMMA", "observed_at": "2026-07-29T23:59:40+10:00", "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "source_version_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.80"}
+      ],
+      "expected": {"consensus_probability": "0.6", "eligible_independent_cluster_count": 3, "effective_independent_weight": "3"}
+    }
+  ],
+  "equivalence_pairs": [
+    {"baseline_id": "BASELINE_THREE_INDEPENDENT", "copy_variant_id": "COPIED_SOURCE_INVARIANCE"},
+    {"baseline_id": "BASELINE_THREE_INDEPENDENT", "copy_variant_id": "SHARED_SUPPLY_CHAIN_INVARIANCE"}
+  ],
+  "invalid_cases": [
+    {
+      "id": "PROBABILITY_ZERO",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_ZERO", "operator_id": "OPERATOR_ZERO", "supply_chain_id": "CHAIN_ZERO", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "source_version_sha256": "8888888888888888888888888888888888888888888888888888888888888888", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0"}
+      ]
+    },
+    {
+      "id": "DIVERGENT_COPY_PROBABILITY",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_PARENT", "operator_id": "OPERATOR_PARENT", "supply_chain_id": "CHAIN_PARENT", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "source_version_sha256": "9999999999999999999999999999999999999999999999999999999999999999", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.40"},
+        {"source_id": "SRC_COPY", "operator_id": "OPERATOR_COPY", "supply_chain_id": "CHAIN_COPY", "observed_at": "2026-07-29T23:59:35+10:00", "content_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1", "copy_of": "SRC_PARENT", "source_contract_status": "VERIFIED", "probability": "0.41"}
+      ]
+    },
+    {
+      "id": "NO_ELIGIBLE_SOURCE",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_STALE", "operator_id": "OPERATOR_STALE", "supply_chain_id": "CHAIN_STALE", "observed_at": "2026-07-29T23:58:29+10:00", "content_sha256": "abababababababababababababababababababababababababababababababab", "source_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "0.50"}
+      ]
+    },
+    {
+      "id": "NON_DECIMAL_PROBABILITY",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_TEXT", "operator_id": "OPERATOR_TEXT", "supply_chain_id": "CHAIN_TEXT", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd", "source_version_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "copy_of": null, "source_contract_status": "VERIFIED", "probability": "not-a-probability"}
+      ]
+    }
+  ]
+}

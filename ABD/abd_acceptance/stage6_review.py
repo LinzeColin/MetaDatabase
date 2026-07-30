@@ -19,6 +19,7 @@ import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 from copy import deepcopy
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, MutableMapping, Sequence, Tuple
 
@@ -50,6 +51,7 @@ REVIEW_ID = "ABD-S06-WHOLE-STAGE-REVIEW"
 STAGE_ID = "S06"
 VERSION = "0.0.0.1"
 FIXED_CLOCK = "2026-07-29T00:00:00+10:00"
+STAGE_REVIEW_COMMIT = "313c71f46ad66f81e1ff15295c3ad688ecb8473c"
 
 CONTRACT_PATH = Path("machine/facts/stage6_review_contract.json")
 FINDINGS_PATH = Path("machine/evidence/S06/STAGE_REVIEW/findings.json")
@@ -73,7 +75,7 @@ PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     FIXTURE_PATH.as_posix(): "6962b50badba2c241be6c70aeb2ce76c3ed90bf4aea88e7783a665327776fb03",
     TEST_PATH.as_posix(): "2bf736caedda9990e3344d7552849ad52d0ac8e75a1ad42a783426e0e9a23275",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "254606786f947fbaf6203b138a1d0a42c4ffeb69f8f805a0fa16be3dab7ba269"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "cb2d83555feab21b55d97b1d5e043d6a143a798bb9dc8039d23666188cf92c28"
 
 PHASE_VERIFIERS = {
     "P01": verify_p01,
@@ -213,6 +215,7 @@ def _current_code_hash(root: Path) -> str:
     return digest.hexdigest()
 
 
+@lru_cache(maxsize=None)
 def _historical_code_hash(root: Path, commit: str, *, verify_git_history: bool) -> str:
     if not verify_git_history:
         return "UNVERIFIED_UNIT_TEST_HISTORY"
@@ -243,6 +246,34 @@ def _historical_code_hash(root: Path, commit: str, *, verify_git_history: bool) 
         digest.update(blob.stdout)
         digest.update(b"\0")
     return digest.hexdigest()
+
+
+@lru_cache(maxsize=None)
+def _receipt_commit_is_ancestor(root: Path, *, verify_git_history: bool) -> bool:
+    if not verify_git_history:
+        return False
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", STAGE_REVIEW_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+@lru_cache(maxsize=None)
+def _historical_receipt_input_hash(root: Path, relative: str, *, verify_git_history: bool) -> str:
+    if not verify_git_history or not _receipt_commit_is_ancestor(root, verify_git_history=verify_git_history):
+        return "UNVERIFIED_RECEIPT_HISTORY"
+    candidate = Path(relative)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        return "UNSAFE_RECEIPT_INPUT"
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (STAGE_REVIEW_COMMIT, candidate.as_posix())],
+        check=False,
+        capture_output=True,
+    )
+    return _sha256_bytes(result.stdout) if result.returncode == 0 else "MISSING_RECEIPT_INPUT"
 
 
 def _review_pin_checks(root: Path, checks: List[Dict[str, Any]], hashes: MutableMapping[str, str]) -> None:
@@ -1129,9 +1160,22 @@ def verify_existing_stage_review_evidence(root: Path, *, verify_git_history: boo
                 continue
             actual = sha256_file(root / candidate) if (root / candidate).is_file() else "MISSING"
             if actual != expected:
-                mismatches.append({"path": relative, "expected": str(expected), "actual": actual})
+                historical = _historical_receipt_input_hash(root, relative, verify_git_history=verify_git_history)
+                if historical != expected:
+                    mismatches.append({"path": relative, "expected": str(expected), "actual": actual, "historical": historical})
         _add(checks, "S06REVIEW-EXISTING-INPUT-HASHES", not mismatches, mismatches or "all inputs match")
-        _add(checks, "S06REVIEW-EXISTING-CODE-HASH", evidence.get("hashes", {}).get("code") == _current_code_hash(root), "current code hash")
+        expected_code_hash = evidence.get("hashes", {}).get("code")
+        current_code_hash = _current_code_hash(root)
+        historical_code_hash = _historical_code_hash(root, STAGE_REVIEW_COMMIT, verify_git_history=verify_git_history)
+        code_hash_ok = current_code_hash == expected_code_hash or (
+            _receipt_commit_is_ancestor(root, verify_git_history=verify_git_history) and historical_code_hash == expected_code_hash
+        )
+        _add(
+            checks,
+            "S06REVIEW-EXISTING-CODE-HASH",
+            code_hash_ok,
+            {"expected": expected_code_hash, "current": current_code_hash, "historical": historical_code_hash},
+        )
     else:
         _add(checks, "S06REVIEW-EXISTING-EVIDENCE-INTEGRITY", False, "evidence unavailable")
     if isinstance(rollback, Mapping):

@@ -1,0 +1,43 @@
+{
+  "artifacts": {
+    "abd_acceptance/evidence_continuity.py": {
+      "sha256": "f700bc596af337582bad06c4fc1636be1c0cefefa0e1a6c190cd591f72763249",
+      "status": "PASS"
+    },
+    "machine/evidence/SHA256SUMS": {
+      "sha256": "f4ce431f186dd3c7ff49f2955e3af4954f77df1f1898fa725cd3ae1237bbb98b",
+      "status": "PASS"
+    },
+    "machine/evidence/artifact_manifest.json": {
+      "sha256": "f130a2ad361645a75482461653920cf3820c2165b72b38532e72a7abf3065060",
+      "status": "PASS"
+    },
+    "machine/evidence/evidence_index.jsonl": {
+      "sha256": "e119d179b563b1282d7e683635248be0d44d837bc8e701dc492e3e49dde985d0",
+      "status": "PASS"
+    },
+    "machine/facts/traceability_matrix.json": {
+      "sha256": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S07_P04.json": {
+      "sha256": "1867c3a9e8ea40b6322c3647f0405d415a4e79fe5f5ec4479299146d140be5a7",
+      "status": "PASS"
+    },
+    "tests/S07/P04_test.py": {
+      "sha256": "3e658a3d13641f478c750603f12cf69e3db66240ddeb2f9445245e3bf8114fca",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S07-P04",
+  "evidence_id": "EVD-S07-P04-ROLLBACK",
+  "external_state_changed": false,
+  "mode": "RESTORE_PRIOR_SIGNED_ARTIFACTS_REPLAY_CONTINUITY_NO_EXTERNAL_MUTATION",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

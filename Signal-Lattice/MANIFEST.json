@@ -128,8 +128,8 @@
     },
     {
       "path": "evidence/prebuild/pre_manifest_checks.json",
-      "sha256": "47b244de2cfe216dd06271a6d565cf38a6d8329114364f2036d3d5c0e47a704b",
-      "size": 12089
+      "sha256": "499f5a500cf2e92050db555f6cd4ff89b0d792ffa60d40f18232f2f0210da11c",
+      "size": 12087
     },
     {
       "path": "evidence/private_database_context.json",
@@ -162,9 +162,34 @@
       "size": 392
     },
     {
+      "path": "evidence/upstream/agent_skill_matrix.json",
+      "sha256": "09797d59cf80be1e69e63f89693d4d9245376d362f401cf4cbdd11c97d4f0fe2",
+      "size": 1803323
+    },
+    {
+      "path": "evidence/upstream/repo_receipts.json",
+      "sha256": "54a812fa53d6f867da3465f7dfa119af2854da95051665a73ece5d874e141f06",
+      "size": 881
+    },
+    {
+      "path": "evidence/upstream/stock_skill_matrix.json",
+      "sha256": "4614fb0e2fb3477eb7785c2cf695934856a98759f786c5485fb07883cdb3ba03",
+      "size": 243567
+    },
+    {
       "path": "evidence/upstream/upstream_precheck.json",
       "sha256": "120a29ea1a05dc809b3c16a01099cd307b063fdb8760557c5dc31f3c78336062",
       "size": 1612
+    },
+    {
+      "path": "evidence/upstream/upstream_seal.json",
+      "sha256": "1879f702c4940db1b87ef0b754c9424505f45cd7bd8a1e7591f70f7be2fdd872",
+      "size": 1296
+    },
+    {
+      "path": "evidence/upstream/validator_receipts.json",
+      "sha256": "eb26dd1f836bc72717a720b7b091fb47ad46e7a86123304c0b06c74c3599225b",
+      "size": 6013
     },
     {
       "path": "evidence/walking_skeleton.json",
@@ -473,13 +498,13 @@
     },
     {
       "path": "scripts/build_upstream_precheck.py",
-      "sha256": "df950d7f0ff309d64e869e9b10fe01794495bb5375d27822022a57b852d9b834",
-      "size": 6100
+      "sha256": "90165de3ca7755653fde358ca45e5d86b479a258a9a77e7f99a44288dae1cb29",
+      "size": 6445
     },
     {
       "path": "scripts/build_upstream_seal.py",
-      "sha256": "9a009c5db02d7f1726625f65fe07301415c7b1c06a77f138c51de5496df90fa0",
-      "size": 17387
+      "sha256": "4f5f9582e217a17d4e4adb7375bde8438405f94e454c33df6735f167c6f384ec",
+      "size": 18081
     },
     {
       "path": "scripts/build_wheel.py",
@@ -947,8 +972,8 @@
       "size": 1003
     }
   ],
-  "manifest_payload_bytes": 594458,
-  "manifest_payload_file_count": 189,
-  "payload_sha256": "bc8cd154ffc4b3f0d6961c303d465367e9298dbc96c61239895a40cccd8f50f6",
+  "manifest_payload_bytes": 2650575,
+  "manifest_payload_file_count": 194,
+  "payload_sha256": "9fecaea96d0cdeadef4a42051e24b8da68908e70c85d6ead70dd7ea90f6decb2",
   "schema_version": "1.0.0"
 }

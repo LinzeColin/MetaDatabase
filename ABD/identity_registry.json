@@ -1,0 +1,154 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "ABD-IDENTITY-REGISTRY",
+  "registry_version": "0.0.0.1-S07P01",
+  "status": "FROZEN_SYNTHETIC_FAIL_CLOSED",
+  "confidence_contract": {
+    "threshold": "0.9950",
+    "below_threshold_action": "NO_ADVICE",
+    "at_or_above_threshold_action": "IDENTITY_ELIGIBLE_DOWNSTREAM_GATES_REQUIRED",
+    "fuzzy_matching_allowed": false,
+    "binary_float_allowed": false
+  },
+  "claim_boundary": {
+    "frozen_synthetic_registry_only": true,
+    "network_or_provider_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "cross_source_identity_runtime_verified": false,
+    "recommendation_enabled": false,
+    "order_submission_enabled": false,
+    "financial_return_verified_or_guaranteed": false
+  },
+  "sources": [
+    {
+      "source_id": "SYNTHETIC-TAB",
+      "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+      "source_reference_binding_required": true
+    },
+    {
+      "source_id": "SYNTHETIC-ALT",
+      "source_version_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+      "source_reference_binding_required": false
+    }
+  ],
+  "events": [
+    {
+      "event_id": "EVENT:football.fixture-cup.aurora-city-v-borealis-united.2026-08-15t093000z",
+      "sport_id": "SPORT:football",
+      "competition_id": "COMPETITION:football.fixture-cup",
+      "scheduled_start_local": "2026-08-15T19:30:00+10:00",
+      "scheduled_start_timezone": "Australia/Sydney",
+      "scheduled_start_utc": "2026-08-15T09:30:00Z",
+      "source_references": [
+        {
+          "source_id": "SYNTHETIC-TAB",
+          "source_event_ref": "SYN-EVT-0001"
+        }
+      ],
+      "participants": {
+        "HOME": {
+          "participant_id": "PARTICIPANT:football.aurora-city",
+          "aliases": {
+            "SYNTHETIC-TAB": [
+              "Aurora City"
+            ],
+            "SYNTHETIC-ALT": [
+              "Aurora C"
+            ]
+          }
+        },
+        "AWAY": {
+          "participant_id": "PARTICIPANT:football.borealis-united",
+          "aliases": {
+            "SYNTHETIC-TAB": [
+              "Borealis United"
+            ],
+            "SYNTHETIC-ALT": [
+              "Borealis U"
+            ]
+          }
+        }
+      },
+      "markets": [
+        {
+          "market_id": "MARKET:football.fixture-cup.aurora-city-v-borealis-united.full.head-to-head",
+          "market_code": "HEAD_TO_HEAD",
+          "period_id": "FULL_EVENT",
+          "line": {
+            "representation": "NO_LINE_APPLICABLE"
+          },
+          "selections": [
+            {
+              "selection_id": "HOME",
+              "aliases": {
+                "SYNTHETIC-TAB": [
+                  "Aurora City"
+                ],
+                "SYNTHETIC-ALT": [
+                  "Aurora C"
+                ]
+              }
+            },
+            {
+              "selection_id": "DRAW",
+              "aliases": {
+                "SYNTHETIC-TAB": [
+                  "Draw"
+                ],
+                "SYNTHETIC-ALT": [
+                  "Tie"
+                ]
+              }
+            },
+            {
+              "selection_id": "AWAY",
+              "aliases": {
+                "SYNTHETIC-TAB": [
+                  "Borealis United"
+                ],
+                "SYNTHETIC-ALT": [
+                  "Borealis U"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "market_id": "MARKET:football.fixture-cup.aurora-city-v-borealis-united.full.total-goals-2.5",
+          "market_code": "TOTAL_GOALS",
+          "period_id": "FULL_EVENT",
+          "line": {
+            "representation": "SCALAR_DECIMAL",
+            "value": "2.5"
+          },
+          "selections": [
+            {
+              "selection_id": "OVER",
+              "aliases": {
+                "SYNTHETIC-TAB": [
+                  "Over 2.5"
+                ],
+                "SYNTHETIC-ALT": [
+                  "Over"
+                ]
+              }
+            },
+            {
+              "selection_id": "UNDER",
+              "aliases": {
+                "SYNTHETIC-TAB": [
+                  "Under 2.5"
+                ],
+                "SYNTHETIC-ALT": [
+                  "Under"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

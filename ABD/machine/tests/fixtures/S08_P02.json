@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S08-P02-SOURCE-INDEPENDENCE",
+  "contract_id": "AC-S08-P02",
+  "requirement_id": "REQ-S08-P02",
+  "stage_id": "S08",
+  "phase_id": "P02",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S08/P03_READY_NOT_STARTED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "fixed_seed": 8002,
+  "expected_oracle_check_minimum": 30,
+  "expected_task_ids": ["T-S08-P02-01", "T-S08-P02-02", "T-S08-P02-03"],
+  "predecessor_evidence_sha256": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "cases": [
+    {
+      "id": "DIRECT_AND_COPIED_SOURCES",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_A_DIRECT", "operator_id": "OPERATOR_A", "supply_chain_id": "CHAIN_A", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "source_version_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "copy_of": null, "source_contract_status": "VERIFIED"},
+        {"source_id": "SRC_A_REPUBLISH", "operator_id": "OPERATOR_A_MIRROR", "supply_chain_id": "CHAIN_A_MIRROR", "observed_at": "2026-07-29T23:59:40+10:00", "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "source_version_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "copy_of": "SRC_A_DIRECT", "source_contract_status": "VERIFIED"},
+        {"source_id": "SRC_B_DIRECT", "operator_id": "OPERATOR_B", "supply_chain_id": "CHAIN_B", "observed_at": "2026-07-29T23:59:20+10:00", "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "source_version_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "copy_of": null, "source_contract_status": "VERIFIED"},
+        {"source_id": "SRC_B_PARTNER", "operator_id": "OPERATOR_B_PARTNER", "supply_chain_id": "CHAIN_B", "observed_at": "2026-07-29T23:59:50+10:00", "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "source_version_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "copy_of": null, "source_contract_status": "VERIFIED"},
+        {"source_id": "SRC_C_DIRECT", "operator_id": "OPERATOR_C", "supply_chain_id": "CHAIN_C", "observed_at": "2026-07-29T23:58:30+10:00", "content_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "source_version_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "copy_of": null, "source_contract_status": "VERIFIED"}
+      ],
+      "expected": {"cluster_count": 3, "eligible_independent_source_count": 3, "effective_independent_weight": "3", "cluster_member_counts": [2, 2, 1]}
+    },
+    {
+      "id": "MATCHING_CONTENT_UNDECLARED_COPY",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_F_FIRST", "operator_id": "OPERATOR_F", "supply_chain_id": "CHAIN_F", "observed_at": "2026-07-29T23:59:30+10:00", "content_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "source_version_sha256": "6666666666666666666666666666666666666666666666666666666666666666", "copy_of": null, "source_contract_status": "VERIFIED"},
+        {"source_id": "SRC_G_MIRROR", "operator_id": "OPERATOR_G", "supply_chain_id": "CHAIN_G", "observed_at": "2026-07-29T23:59:45+10:00", "content_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "source_version_sha256": "7777777777777777777777777777777777777777777777777777777777777777", "copy_of": null, "source_contract_status": "VERIFIED"}
+      ],
+      "expected": {"cluster_count": 1, "eligible_independent_source_count": 1, "effective_independent_weight": "1", "cluster_member_counts": [2]}
+    },
+    {
+      "id": "STALE_AND_UNVERIFIED_SOURCES",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_STALE", "operator_id": "OPERATOR_STALE", "supply_chain_id": "CHAIN_STALE", "observed_at": "2026-07-29T23:58:29+10:00", "content_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "source_version_sha256": "8888888888888888888888888888888888888888888888888888888888888888", "copy_of": null, "source_contract_status": "VERIFIED"},
+        {"source_id": "SRC_UNVERIFIED", "operator_id": "OPERATOR_UNVERIFIED", "supply_chain_id": "CHAIN_UNVERIFIED", "observed_at": "2026-07-29T23:59:50+10:00", "content_sha256": "9999999999999999999999999999999999999999999999999999999999999999", "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1", "copy_of": null, "source_contract_status": "UNVERIFIED"}
+      ],
+      "expected": {"cluster_count": 2, "eligible_independent_source_count": 0, "effective_independent_weight": "0", "cluster_member_counts": [1, 1]}
+    },
+    {
+      "id": "FRESHNESS_BOUNDARY_COPY",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "max_age_seconds": 90,
+      "sources": [
+        {"source_id": "SRC_BOUNDARY_DIRECT", "operator_id": "OPERATOR_BOUNDARY", "supply_chain_id": "CHAIN_BOUNDARY", "observed_at": "2026-07-29T23:58:30+10:00", "content_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "source_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "copy_of": null, "source_contract_status": "VERIFIED"},
+        {"source_id": "SRC_BOUNDARY_COPY", "operator_id": "OPERATOR_BOUNDARY_COPY", "supply_chain_id": "CHAIN_BOUNDARY_COPY", "observed_at": "2026-07-29T23:59:55+10:00", "content_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "source_version_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "copy_of": "SRC_BOUNDARY_DIRECT", "source_contract_status": "VERIFIED"}
+      ],
+      "expected": {"cluster_count": 1, "eligible_independent_source_count": 1, "effective_independent_weight": "1", "cluster_member_counts": [2]}
+    }
+  ],
+  "invalid_cases": [
+    {"id": "UNKNOWN_COPY_PARENT", "as_of": "2026-07-30T00:00:00+10:00", "max_age_seconds": 90, "sources": [{"source_id": "SRC_UNKNOWN_PARENT", "operator_id": "OPERATOR_X", "supply_chain_id": "CHAIN_X", "observed_at": "2026-07-29T23:59:50+10:00", "content_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "source_version_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "copy_of": "SRC_NOT_PRESENT", "source_contract_status": "VERIFIED"}]},
+    {"id": "COPY_CONTENT_CONFLICT", "as_of": "2026-07-30T00:00:00+10:00", "max_age_seconds": 90, "sources": [{"source_id": "SRC_PARENT", "operator_id": "OPERATOR_PARENT", "supply_chain_id": "CHAIN_PARENT", "observed_at": "2026-07-29T23:59:50+10:00", "content_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "source_version_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "copy_of": null, "source_contract_status": "VERIFIED"}, {"source_id": "SRC_BAD_COPY", "operator_id": "OPERATOR_COPY", "supply_chain_id": "CHAIN_COPY", "observed_at": "2026-07-29T23:59:51+10:00", "content_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "source_version_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "copy_of": "SRC_PARENT", "source_contract_status": "VERIFIED"}]},
+    {"id": "FUTURE_SOURCE_TIMESTAMP", "as_of": "2026-07-30T00:00:00+10:00", "max_age_seconds": 90, "sources": [{"source_id": "SRC_FUTURE", "operator_id": "OPERATOR_FUTURE", "supply_chain_id": "CHAIN_FUTURE", "observed_at": "2026-07-30T00:00:01+10:00", "content_sha256": "abababababababababababababababababababababababababababababababab", "source_version_sha256": "abababababababababababababababababababababababababababababababab", "copy_of": null, "source_contract_status": "VERIFIED"}]},
+    {"id": "UNKNOWN_CONTRACT_STATUS", "as_of": "2026-07-30T00:00:00+10:00", "max_age_seconds": 90, "sources": [{"source_id": "SRC_BAD_STATUS", "operator_id": "OPERATOR_BAD", "supply_chain_id": "CHAIN_BAD", "observed_at": "2026-07-29T23:59:59+10:00", "content_sha256": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd", "source_version_sha256": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd", "copy_of": null, "source_contract_status": "UNKNOWN"}]}
+  ]
+}
