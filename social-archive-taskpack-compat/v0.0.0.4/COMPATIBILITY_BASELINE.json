@@ -1,0 +1,36 @@
+{
+  "compatibility_id": "social-archive-v0.0.0.4-compat.1",
+  "base_taskpack": {
+    "filename": "Social_Archive_v0.0.0.4_FINAL_TASKPACK_20260730.zip",
+    "sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+    "root": "Social_Archive_v0.0.0.4_FINAL_TASKPACK_20260730"
+  },
+  "invariants": [
+    "Task Pack version, 32 task IDs, S0-S5 stage gates, frozen acceptance contract, product scope and free-only policy remain v0.0.0.4.",
+    "The supplied ZIP remains immutable and is verified before any override is applied.",
+    "The overlay may repair only migration safety and compatibility defects; it may not create a new product requirement or turn NOT_RUN external proof into PASS.",
+    "The overlay is a local execution control, not a fourth Owner delivery artifact and not a GitHub release."
+  ],
+  "override_targets": [
+    {
+      "path": "07_IMPLEMENTATION/apply/semantic_classify.py",
+      "sha256": "899045531fbda46eacf37e8b505d2ce9bc641c82e4e64a152ec558a1d72bf7fa"
+    },
+    {
+      "path": "07_IMPLEMENTATION/apply/verify_preconditions.py",
+      "sha256": "8d24a823f21955d6901dbbd53c0edfdb3999b68ff8fd31f8671d9280cd22da17"
+    },
+    {
+      "path": "07_IMPLEMENTATION/apply/apply_taskpack.py",
+      "sha256": "625f3b7950eb98776b87371292e18383f89279cb5182e96892a040ec69bc192f"
+    },
+    {
+      "path": "07_IMPLEMENTATION/apply/rollback_taskpack.py",
+      "sha256": "8143995e38191fdd97408efd459f5d478ea5356c4f9581bb8c7349671af964ac"
+    },
+    {
+      "path": "07_IMPLEMENTATION/apply/migrate_legacy_sqlite.py",
+      "sha256": "8389bf65c1de581f4dd7b8e291b95aaed2a457c71f701f11dc0db0cf83dda134"
+    }
+  ]
+}
