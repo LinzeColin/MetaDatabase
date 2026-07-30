@@ -6,10 +6,12 @@ on:
     paths:
       - "ABD/**"
       - ".github/workflows/abd-stage0-validation.yml"
+      - ".github/workflows/dual-plane.yml"
   pull_request:
     paths:
       - "ABD/**"
       - ".github/workflows/abd-stage0-validation.yml"
+      - ".github/workflows/dual-plane.yml"
   workflow_dispatch:
 
 permissions:
@@ -48,7 +50,32 @@ jobs:
           uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
           uv run --frozen --python 3.12 python machine/tools/validate_pack.py
       - name: 运行 ABD 全回归
-        run: uv run --frozen --python 3.12 python -m pytest -q
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            uv run --frozen --python 3.12 python -m pytest -q
+            exit 0
+          fi
+          base_sha="$PUSH_BEFORE_SHA"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            base_sha="$PR_BASE_SHA"
+          fi
+          if [ -z "$base_sha" ] || [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
+            base_sha="$(git rev-parse HEAD^)"
+          fi
+          changed_files="$(git diff --name-only "$base_sha"...HEAD)"
+          printf '%s\n' "$changed_files"
+          if printf '%s\n' "$changed_files" | grep -q '^ABD/'; then
+            uv run --frozen --python 3.12 python -m pytest -q
+          else
+            echo "No ABD source change: run the failure-closed workflow regression; Dual-Plane Governance validates project classification."
+            uv run --frozen --python 3.12 python -m pytest -q \
+              tests/S00/stage_review_test.py::test_abd_ci_workflow_mutations_fail_closed
+          fi
       - name: 验证已交付 Stage 0 的不可变收据
         run: >-
           uv run --frozen --python 3.12 python -m abd_acceptance
