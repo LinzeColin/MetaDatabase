@@ -2294,9 +2294,9 @@ class CyberbossApp {
 
   // 走 admission 直接回掉的那些（入门引导、状态、口令）也不经过 outbox。
   // 落库一份给「对话」栏；内存那份保留，作为数据库不可用时的降级显示。
-  noteDirectReply(userId, text, { delivered = true, errorClass = "" } = {}) {
+  noteDirectReply(userId, text, { delivered = true, errorClass = "", kind = "onboarding" } = {}) {
     const persisted = this.noteBotInitiated({
-      kind: "onboarding", senderId: userId, text, delivered, errorClass,
+      kind, senderId: userId, text, delivered, errorClass,
     });
     // 只有落库失败时才退回内存那一份。两份都留会让同一句话在面板上出现两次——
     // 一次挂在来信下面，一次作为独立卡片。
@@ -3824,7 +3824,17 @@ class CyberbossApp {
     }
     // 这条不走 outbox，数据库里查不到，所以在这里留一份给后台「对话」栏——
     // 而且要照实记成功还是失败。
-    this.noteDirectReply(normalized.senderId, text, { delivered, errorClass });
+    // 主动问候要记成 checkin，不能跟入门引导混在一起。
+    //
+    // noteDirectReply 一直把 kind 写死成 "onboarding"（它原本只服务入门/口令的
+    // 直回）。访客的主动问候也走这里，于是后台看到的是「入门引导 +1」，而
+    // 「它主动找的」那一栏永远是 0——排查「他到底收到没有」时，这一列是唯一的
+    // 依据，它指错了地方就等于没有依据。
+    this.noteDirectReply(normalized.senderId, text, {
+      delivered,
+      errorClass,
+      kind: normalized.provider === "system" ? "checkin" : "onboarding",
+    });
   }
 
   // The ordinary-user lane. It never touches the Owner runtime adapter, the
