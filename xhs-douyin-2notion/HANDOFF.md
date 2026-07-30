@@ -157,6 +157,10 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   Ruff, TypeScript, extension self-test, isolated extension E2E, and the Stage 3 resume recheck all passed. The
   stable pre-arm bundle and its owned temporary Host were refreshed from that committed source with no release-pointer
   change. Chrome Extension Manager reload remains the one owner-visible action needed to load that refreshed bundle.
+  The subsequent current fast lane passed all 9 blocking gates with zero platform, real-account, or model calls;
+  the Stage 3 verifier also passed with the lane report and historical evidence required. Its attempted public
+  evidence rewrite correctly refused with `Resume evidence is immutable after Task010 begins`; do not bypass that
+  historical-evidence guard or replace it with a fabricated refresh.
   The A005 full software lane passed all 22 blocking executions across two repetitions, including the native Extension
   E2E and historical Stage 5 review. The candidate artifact is deterministic (94 members, zero runtime-data files and
   zero allowlist findings); branch coverage is 77.78%; OSV reported zero vulnerabilities across 33 dependencies;
