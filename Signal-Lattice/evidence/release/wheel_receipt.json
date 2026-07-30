@@ -1,10 +1,11 @@
 {
+  "build_backend": "STDLIB_PEP427",
   "build_count": 2,
   "byte_identical": true,
   "network_required": false,
   "schema_version": "1.0.0",
-  "sha256": "e403c13e2a5c91255d81d44ebc5ec62ef96f7cc8782eacf8d74a71f1f1570386",
-  "size": 25090,
+  "sha256": "ca816f875138652bb592cab1fff9ba85faa3a3104c20e6be37e5c5a401701868",
+  "size": 24830,
   "state": "PASS",
-  "wheel": "signal_lattice-0.0.0.1.38-py3-none-any.whl"
+  "wheel": "signal_lattice-0.0.0.1.39-py3-none-any.whl"
 }

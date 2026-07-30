@@ -4,7 +4,7 @@ Signal Lattice 是确定性、零 Agent、零模型 Token 的股票研究与决�
 
 当前交付物是 `SEALED_TASKPACK`：可交给 Build Agent 完成目标仓、真实凭证、OVH 和供应商环境的最后一公里。它不声称真实市场优势或正式生产发布已经 PASS。
 
-股票 Skill 的唯一 Git 真源是仓库根相对路径 `Signal-Lattice/Stock_Skill/`；根目录 `Stock_Skill/` 不得重建。应用任务包与该可恢复源码树使用独立完整性合同：最终应用 ZIP 不重复打包历史 Skill ZIP，但在 Git 源码仓中必须验证其 registry 与公开安全扫描。
+股票 Skill 的唯一 Git 真源是仓库根相对路径 `Signal-Lattice/Stock_Skill/`；根目录 `Stock_Skill/` 不得重建。最终开发任务包会携带该可恢复源码树，并用独立的嵌入式源码哈希绑定；正式应用 ZIP 仍不重复打包历史 Skill ZIP。两种交付均要求在 Git 源码仓验证 registry 与公开安全扫描。
 
 ## 快速入口
 

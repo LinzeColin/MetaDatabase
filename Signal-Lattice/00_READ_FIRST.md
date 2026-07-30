@@ -19,7 +19,7 @@
 
 ## 强制边界
 
-- 不得修改版本号、Scope、Acceptance、Oracle、Test Catalog 或发布边界；应用 ZIP 不得复制打包 `Stock_Skill/` 历史 release/archives，Git 源码仓仍必须保留并验证唯一真源；
+- 不得修改版本号、Scope、Acceptance、Oracle、Test Catalog 或发布边界；`Signal-Lattice/Stock_Skill/` 是唯一 Git 真源。v0.0.0.1.39 的最终任务包会携带该源码树并由外层清单及封存收据绑定；正式应用 ZIP 仍不得复制其历史 release/archives；
 - 不得重新进行市场研究、产品定义、架构设计或独立复审；
 - 不得启用运行期 Agent、LLM、模型 API、自动交易、上游 Skill 写回、macOS launchd 或用户本机常驻；
 - 缺少环境输入时写入 `BLOCKED_ENVIRONMENT` 收据并停止对应任务；不得猜测、跳过或转成 PASS；

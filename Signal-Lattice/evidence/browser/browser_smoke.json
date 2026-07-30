@@ -1,7 +1,8 @@
 {
   "browser": "chromium",
+  "chromium_executable": "/Users/linzezhang/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
   "findings": [],
-  "receipt_sha256": "064ed3a09c5f02099a72589694a98ebf3571041d9d5bc55450b4a22911713cae",
+  "receipt_sha256": "15997a91a6161c8b7b4b1763d2b2689470fdd33c37f971a4e2606fbf4a3e231f",
   "results": [
     {
       "business_line_count": 13,
@@ -10,7 +11,7 @@
       "nav_count": 9,
       "no_action_visible": true,
       "page_overflow": false,
-      "transport_mode": "SET_CONTENT_FALLBACK_ENV_POLICY",
+      "transport_mode": "HTTP_LOOPBACK",
       "viewport": {
         "height": 1000,
         "name": "desktop",
@@ -24,7 +25,7 @@
       "nav_count": 9,
       "no_action_visible": true,
       "page_overflow": false,
-      "transport_mode": "SET_CONTENT_FALLBACK_ENV_POLICY",
+      "transport_mode": "HTTP_LOOPBACK",
       "viewport": {
         "height": 844,
         "name": "mobile",

@@ -15,6 +15,30 @@ from signal_lattice.formal_identity import verify_subject_against_root
 from signal_lattice.receipts import atomic_json, canonical_json_bytes, load_self_hashed, sha256_file
 
 
+TRANSIENT_PARTS = {".git", ".pytest_cache", "__pycache__", "build", "dist", ".venv", "venv", "node_modules", ".mypy_cache", ".ruff_cache"}
+
+
+def embedded_stock_skill_payload_sha256(root: Path) -> str:
+    """Bind every stock-skill source byte without folding it into the app manifest."""
+    stock_root = root / "Stock_Skill"
+    if not stock_root.is_dir() or stock_root.is_symlink():
+        raise SystemExit("EMBEDDED_STOCK_SKILL_SOURCE_REQUIRED")
+    rows = []
+    for path in sorted(stock_root.rglob("*")):
+        if path.is_symlink():
+            raise SystemExit("EMBEDDED_STOCK_SKILL_SYMLINK_FORBIDDEN:" + path.relative_to(root).as_posix())
+        if not path.is_file() or any(part in TRANSIENT_PARTS for part in path.relative_to(stock_root).parts):
+            continue
+        rows.append({
+            "path": path.relative_to(root).as_posix(),
+            "size": path.stat().st_size,
+            "sha256": sha256_file(path),
+        })
+    if not rows:
+        raise SystemExit("EMBEDDED_STOCK_SKILL_SOURCE_EMPTY")
+    return hashlib.sha256(canonical_json_bytes(rows)).hexdigest()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path("."))
@@ -62,10 +86,12 @@ def main() -> int:
     if not tasks or any(row.get("environment_bound") is not True for row in tasks):
         raise SystemExit("RESIDUAL_ENVIRONMENT_TASKS_INVALID")
     rows = json.loads(manifest.read_text(encoding="utf-8"))["files"]
+    stock_payload_sha256 = embedded_stock_skill_payload_sha256(root)
     taskpack_sha = hashlib.sha256(canonical_json_bytes({
         "version": VERSION,
         "prepared_subject_sha256": subject["subject_sha256"],
         "manifest_rows": rows,
+        "embedded_stock_skill_payload_sha256": stock_payload_sha256,
         "owner_approval_sha256": sha256_file(args.owner_approval),
         "residual_environment_tasks_sha256": sha256_file(root / "machine/facts/residual_environment_tasks.json"),
     })).hexdigest()
@@ -75,6 +101,7 @@ def main() -> int:
         "scope": "SEALED_DEVELOPMENT_TASKPACK_ONLY",
         "version": VERSION,
         "taskpack_sha256": taskpack_sha,
+        "embedded_stock_skill_payload_sha256": stock_payload_sha256,
         "prepared_subject_sha256": subject["subject_sha256"],
         "owner_approval_sha256": sha256_file(args.owner_approval),
         "manifest_sha256": sha256_file(manifest),

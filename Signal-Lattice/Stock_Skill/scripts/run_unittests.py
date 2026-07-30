@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import stat
 import subprocess
@@ -61,9 +62,20 @@ def run_all(repo_root: Path) -> int:
     script = Path(__file__).resolve()
     for test_dir in test_dirs:
         print(f"RUN: unittest discovery in {test_dir}", flush=True)
+        suite_root = test_dir.parent
+        import_roots = [suite_root]
+        if (suite_root / "src").is_dir():
+            import_roots.insert(0, suite_root / "src")
+        environment = dict(os.environ)
+        inherited_path = environment.get("PYTHONPATH")
+        import_paths = [path.as_posix() for path in import_roots]
+        if inherited_path:
+            import_paths.append(inherited_path)
+        environment["PYTHONPATH"] = os.pathsep.join(import_paths)
         result = subprocess.run(
             [sys.executable, "-B", str(script), "--suite-dir", str(test_dir)],
             cwd=repo_root,
+            env=environment,
             text=True,
             capture_output=True,
             check=False,

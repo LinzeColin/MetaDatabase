@@ -382,7 +382,7 @@ def main() -> int:
         "scripts/transition_canonical_state.py", "scripts/build_skill_pass_c.py",
         "scripts/verify_skill_pass_c.py", "schemas/state_transition.schema.json", "schemas/skill_pass_c.schema.json",
         "schemas/taskpack_owner_approval.schema.json", "schemas/taskpack_seal.schema.json",
-        "scripts/build_taskpack_owner_approval.py", "scripts/build_taskpack_seal.py",
+        "scripts/build_taskpack_owner_approval.py", "scripts/build_taskpack_seal.py", "scripts/build_taskpack_zip.py",
         "scripts/verify_taskpack_seal.py", "machine/facts/final_scope_summary.json",
         "machine/facts/residual_environment_tasks.json", "machine/facts/skill_route_summary.json"
     )

@@ -79,7 +79,13 @@ def main() -> int:
             from playwright.sync_api import sync_playwright
 
             with sync_playwright() as playwright:
-                browser = playwright.chromium.launch(headless=True, executable_path="/usr/bin/chromium", args=["--no-sandbox"])
+                configured_executable = os.environ.get("SIGNAL_LATTICE_CHROMIUM_EXECUTABLE")
+                candidates = [Path(configured_executable)] if configured_executable else []
+                candidates.extend([Path(playwright.chromium.executable_path), Path("/usr/bin/chromium")])
+                chromium_executable = next((candidate for candidate in candidates if candidate.is_file() and os.access(candidate, os.X_OK)), None)
+                if chromium_executable is None:
+                    raise RuntimeError("CHROMIUM_EXECUTABLE_NOT_FOUND")
+                browser = playwright.chromium.launch(headless=True, executable_path=str(chromium_executable), args=["--no-sandbox"])
                 html_source = (root / "web/index.html").read_text()
                 html_fallback = re.sub(r'<link[^>]+href="/styles\.css"[^>]*>', '', html_source)
                 html_fallback = re.sub(r'<script[^>]+src="/app\.js"[^>]*></script>', '', html_fallback)
@@ -166,6 +172,7 @@ def main() -> int:
         "schema_version": "1.0.0",
         "state": "PASS" if not findings else "FAIL",
         "browser": "chromium",
+        "chromium_executable": chromium_executable.as_posix() if "chromium_executable" in locals() else None,
         "runtime_agent_dependency": 0,
         "runtime_llm_tokens": 0,
         "results": results,

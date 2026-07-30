@@ -8,9 +8,9 @@
   },
   "floating_main_allowed_for_formal_seal": false,
   "meta_database": {
-    "commit": "4e5381d35be8697d3cf27fe666308dbe3b01c91b",
+    "commit": "82365b31a6171a4f09ee998c4777cd4e87cf0f70",
     "repository": "https://github.com/LinzeColin/MetaDatabase",
-    "stock_registry_path": "Stock_Skill/REGISTRY.json",
+    "stock_registry_path": "Signal-Lattice/Stock_Skill/REGISTRY.json",
     "stock_skill_count": 5
   },
   "resolution_policy": [

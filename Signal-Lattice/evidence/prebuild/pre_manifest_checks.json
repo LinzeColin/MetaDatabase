@@ -1,104 +1,304 @@
 {
-  "artifact_sha256": {
-    "evidence/browser/browser_smoke.json": "d3748ad41be145acd89a24fb38f495b86d8583c117b95a4c897ac28283560b0d",
-    "evidence/builder_readiness/static_readiness.json": "f414f6fb14a127d2e03b45abad25947eb61c0a11d74b447835e26a75fe9920b0",
-    "evidence/quant/quant_seal.json": "10972cd20552d85d05bf762fa21f8cc39685a1b48d45c3afc642077cd2a2b529",
-    "evidence/recovery/recovery.json": "eb662dfc05f361ab8c6b122470be2e9667b523b7e6fff9ca696561f6800bce5d",
-    "evidence/release/wheel_receipt.json": "1c2b840e180669a87c29e7ca5398c8c45c1f72d00083704bcec7c0c1e3305801",
-    "evidence/systemd/systemd_verify.json": "8e2e643aa7a187c1928d5012267e3e57da83f050aca2967cf1de94a85726472f",
-    "evidence/tests/unit_tests.json": "5965caa4a53e90f9962b0bfecf3547867563031986a7a58266a30317e9d90533",
-    "evidence/upstream/upstream_precheck.json": "f5b18535d7fdfd43594a14468baf9eb15d93c23a3df3e844081afb1a02d28ca8",
-    "evidence/walking_skeleton.json": "7863807e945781be28f1e8511177dd4ef85768290ab636272d844722144ee912"
-  },
-  "automatic_trading": false,
-  "candidate_version": "0.0.0.1.38",
-  "check_count": 15,
   "checks": [
     {
-      "evidence": "evidence/tests/unit_tests.json",
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "bash",
+        "scripts/run_tests.sh"
+      ],
+      "duration_seconds": 8.024,
       "name": "unit_tests",
-      "state": "PASS"
-    },
-    {
-      "name": "canonical_state",
-      "state": "PASS"
-    },
-    {
-      "name": "version_lock",
-      "state": "PASS"
-    },
-    {
-      "name": "dual_plane",
-      "state": "PASS"
-    },
-    {
-      "accepted_for_taskpack_seal": true,
-      "name": "upstream_precheck",
-      "reason": "FIXED_UPSTREAM_INPUT_UNAVAILABLE",
-      "state": "EXPECTED_BLOCKED"
-    },
-    {
-      "evidence": "evidence/quant/quant_seal.json",
-      "name": "quant_seal",
-      "state": "PASS"
-    },
-    {
-      "name": "task_contract",
+      "returncode": 0,
       "state": "PASS",
-      "task_count": 30
+      "stderr_sha256": "054dc14ba35fb05f78ce4cec32fb47ae504d8363698829e3ff1bd98c72781483",
+      "stderr_tail": "_seal_are_self_hashed (test_taskpack_seal.TaskpackSealTests.test_owner_receipt_and_taskpack_seal_are_self_hashed) ... ok\ntest_residual_tasks_are_environment_bound_only (test_taskpack_seal.TaskpackSealTests.test_residual_tasks_are_environment_bound_only) ... ok\ntest_self_hash_helper (test_taskpack_seal.TaskpackSealTests.test_self_hash_helper) ... ok\ntest_subject_identity_excludes_mutable_evidence (test_taskpack_seal.TaskpackSealTests.test_subject_identity_excludes_mutable_evidence) ... ok\ntest_keep_base (test_teleiosis.T.test_keep_base) ... ok\ntest_keep_better (test_teleiosis.T.test_keep_better) ... ok\ntest_revert_unsafe (test_teleiosis.T.test_revert_unsafe) ... ok\ntest_baseline_is_current_and_fail_closed (test_upstream_evidence.T.test_baseline_is_current_and_fail_closed) ... ok\ntest_formal_seal_if_present (test_upstream_evidence.T.test_formal_seal_if_present) ... skipped 'Formal upstream seal requires exact fixed checkouts or bundles'\ntest_missing_checkouts_create_hashed_blocked_receipt (test_upstream_evidence.T.test_missing_checkouts_create_hashed_blocked_receipt) ... ok\n\n----------------------------------------------------------------------\nRan 83 tests in 7.821s\n\nOK (skipped=1)\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_tail": ""
     },
     {
-      "evidence": "evidence/builder_readiness/static_readiness.json",
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/verify_canonical_state.py",
+        "--state",
+        "{ROOT}/CANONICAL_STATE.json"
+      ],
+      "duration_seconds": 0.048,
+      "name": "canonical_state",
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "aa4ea164f4dce9ba44219b7f06391f186997a85dd0af0d0d6a946d1223f290a2",
+      "stdout_tail": "{\"current_phase\": \"SEALED_TASKPACK\", \"findings\": [], \"state\": \"PASS\"}\n"
+    },
+    {
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/verify_version_lock.py",
+        "--root",
+        "{ROOT}"
+      ],
+      "duration_seconds": 0.041,
+      "name": "version_lock",
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "2272a11654ce65127ed690a3c09ef3e549a85bb9cd01be5117db04f677f2f373",
+      "stdout_tail": "{\"findings\": [], \"state\": \"PASS\", \"version\": \"0.0.0.1.39\"}\n"
+    },
+    {
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "machine/tools/check_dual_plane_ci.py",
+        "--root",
+        "{ROOT}",
+        "--projects",
+        "."
+      ],
+      "duration_seconds": 0.142,
+      "name": "dual_plane",
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "dc3b39f3457c65852c043bc154c2b456af72c3b5d884cc1888e2f77b9bc4423d",
+      "stdout_tail": "PASS —— 全部项目双平面合规\n"
+    },
+    {
+      "accepted_returncodes": [
+        0,
+        2
+      ],
+      "command": [
+        "python3",
+        "scripts/build_upstream_precheck.py",
+        "--root",
+        "{ROOT}",
+        "--output",
+        "{ROOT}/evidence/upstream/upstream_precheck.json"
+      ],
+      "duration_seconds": 0.042,
+      "name": "upstream_precheck",
+      "returncode": 2,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "3adf28bdd0592b9569ff66d5b9d30ae5fa1086a937a0b24418eac328eb8a56eb",
+      "stdout_tail": "{\"state\": \"BLOCKED\", \"reason_code\": \"FIXED_UPSTREAM_INPUT_UNAVAILABLE\", \"receipt_sha256\": \"dee55ba3548eef1f545064e5b9f34cc844a6100b7813f836d4c1806db42390ee\"}\n"
+    },
+    {
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/build_quant_seal.py",
+        "{ROOT}/evidence/quant/quant_seal.json"
+      ],
+      "duration_seconds": 0.05,
+      "name": "quant_seal",
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_tail": ""
+    },
+    {
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/run_task.py",
+        "--validate-all"
+      ],
+      "duration_seconds": 0.046,
+      "name": "task_contract",
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "eb984e803580f6c0c942929d1e4c47a2ab459b9e385c97bdf81430af7df5870b",
+      "stdout_tail": "{\"candidate_version\": \"0.0.0.1.39\", \"developer_research_required\": false, \"findings\": {}, \"schema_version\": \"1.0.0\", \"state\": \"PASS\", \"task_count\": 30}\n"
+    },
+    {
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/builder_readiness_static.py",
+        "--root",
+        "{ROOT}",
+        "--output",
+        "{ROOT}/evidence/builder_readiness/static_readiness.json"
+      ],
+      "duration_seconds": 0.045,
       "name": "builder_readiness_static",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "003e21fc7d765e3750de9c5a22ad4b0cf64c080a67505e78dfda8353c77d8288",
+      "stdout_tail": "{\"state\": \"PASS\", \"receipt_sha256\": \"b6a1f86a479ac0d96e9dc3df3e2d9bd7d8439e300c18a40e2e52b0ba2e8cf118\"}\n"
     },
     {
-      "evidence": "evidence/browser/browser_smoke.json",
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/browser_smoke.py",
+        "--root",
+        "{ROOT}",
+        "--output",
+        "{ROOT}/evidence/browser/browser_smoke.json"
+      ],
+      "duration_seconds": 3.291,
       "name": "browser",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "7e4d81f9a085aeace5374cbcedbd9e3b8cb831c95b07b01fc7f2e7f15504202b",
+      "stdout_tail": "{\"state\": \"PASS\", \"receipt_sha256\": \"15997a91a6161c8b7b4b1763d2b2689470fdd33c37f971a4e2606fbf4a3e231f\"}\n"
     },
     {
-      "evidence": "evidence/systemd/systemd_verify.json",
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/verify_systemd.py",
+        "--root",
+        "{ROOT}",
+        "--output",
+        "{ROOT}/evidence/systemd/systemd_verify.json"
+      ],
+      "duration_seconds": 0.052,
       "name": "systemd",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "cadc0f7814513fd0a319f8d5881b2240c5d00a19598fcc8d00536d3cef40f794",
+      "stdout_tail": "{\"state\": \"PASS\", \"unit_count\": 12, \"receipt_sha256\": \"2ed0d158429c7fa6ec6b9ea069729d77fa74d0fee4d34ce2d9bb5a759d210502\"}\n"
     },
     {
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/verify_zero_runtime.py",
+        "--root",
+        "{ROOT}"
+      ],
+      "duration_seconds": 0.062,
       "name": "zero_runtime",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "589d91869726301ae792a38f56c08a3007393d15c470f124566fcfe38f218e0c",
+      "stdout_tail": "{\"agent_dependency\": 0, \"findings\": [], \"model_mode\": \"DISABLED\", \"state\": \"PASS\", \"token_budget\": 0}\n"
     },
     {
-      "evidence": "evidence/walking_skeleton.json",
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/walking_skeleton.py",
+        "--receipt",
+        "{ROOT}/evidence/walking_skeleton.json"
+      ],
+      "duration_seconds": 0.061,
       "name": "walking_skeleton",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "c66f524b1222865f3112c5aa7b979fcf20563a1b6d202f2a0caa21be500be660",
+      "stdout_tail": "{\"checks\": {\"atomic_counts\": true, \"job_completed\": true, \"job_created\": true, \"no_action\": true, \"worker_ran\": true}, \"counts\": {\"actions\": 1, \"attempts\": 1, \"outbox\": 1, \"runtime_journal\": 1}, \"schema_version\": \"1.0.0\", \"state\": \"PASS\"}\n"
     },
     {
-      "evidence": "evidence/recovery/recovery.json",
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/verify_recovery.py",
+        "--output",
+        "{ROOT}/evidence/recovery/recovery.json"
+      ],
+      "duration_seconds": 0.053,
       "name": "recovery",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "17c3f89e33905f3d344c213ee732f06cf249bfc69e292053b9ddaae888820b0f",
+      "stdout_tail": "{\"backup_sha256\": \"fc50699a1cc8c602a5a880fbbd73ca039f58ac50a5d5a2ab0ccd9fbaeca81e7c\", \"problems\": [], \"receipt_sha256\": \"a3ddb3550d966dc379e74ad3bd673ff6912e950aa8fe36d09fc6e11044b2eb75\", \"rollback_supported\": true, \"schema_version\": \"1.0.0\", \"state\": \"PASS\", \"wal_cleaned\": true}\n"
     },
     {
-      "evidence": "evidence/release/wheel_receipt.json",
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "python3",
+        "scripts/build_wheel.py",
+        "--root",
+        "{ROOT}",
+        "--output-dir",
+        "{TEMP}/wheel",
+        "--receipt",
+        "{ROOT}/evidence/release/wheel_receipt.json"
+      ],
+      "duration_seconds": 0.061,
       "name": "wheel",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "b791b4c5ad2e603847059224e5c4c5497451ead44577541f800ad1218315ba9d",
+      "stdout_tail": "{\"build_backend\": \"STDLIB_PEP427\", \"build_count\": 2, \"byte_identical\": true, \"network_required\": false, \"schema_version\": \"1.0.0\", \"sha256\": \"ca816f875138652bb592cab1fff9ba85faa3a3104c20e6be37e5c5a401701868\", \"size\": 24830, \"state\": \"PASS\", \"wheel\": \"signal_lattice-0.0.0.1.39-py3-none-any.whl\"}\n"
     },
     {
+      "accepted_returncodes": [
+        0
+      ],
+      "command": [
+        "bash",
+        "scripts/install_release.sh",
+        "{TEMP}/wheel/signal_lattice-0.0.0.1.39-py3-none-any.whl"
+      ],
+      "duration_seconds": 2.958,
       "name": "hermetic_install",
-      "state": "PASS"
+      "returncode": 0,
+      "state": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "5a0cbf28511a91b9c0a76b08cd95fa81933e1f0c2d2464b37ee291fe02a12383",
+      "stdout_tail": "Processing {TEMP}/wheel/signal_lattice-0.0.0.1.39-py3-none-any.whl\nInstalling collected packages: signal-lattice\nSuccessfully installed signal-lattice-0.0.0.1.39\n{\"state\": \"PASS\", \"agent_dependency\": 0, \"model_mode\": \"DISABLED\", \"token_budget\": 0, \"forbidden_env\": []}\nINSTALLED\n"
     }
   ],
-  "deferred_environment_bound_gates": [
-    "UPSTREAM_FORMAL_SEAL",
-    "FORMAL_INDEPENDENT_REVIEW",
-    "FROZEN_CANDIDATE",
-    "VERIFY_AND_RELEASE"
-  ],
-  "failure_count": 0,
-  "formal_release_pass_claimed": false,
-  "live_action_enabled": false,
-  "receipt_sha256": "de9b9ba1f1bc22823566d2cdf2a9559e8fab3f3490c54da7c8b1fce752597cd7",
+  "receipt_sha256": "d7fef7ea6df1ed360634e2f88e215a0c157106f5aeaca922bf1b846a342d7a95",
   "runtime_agent_dependency": 0,
   "runtime_llm_tokens": 0,
   "schema_version": "1.0.0",
-  "scope": "SEALED_DEVELOPMENT_TASKPACK_PREBUILD",
   "state": "PASS"
 }
