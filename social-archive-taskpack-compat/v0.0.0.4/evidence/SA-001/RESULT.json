@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-001",
+  "acceptance_id": "AC-SA-001",
+  "taskpack_version": "v0.0.0.4",
+  "status": "PASS",
+  "executed_at_utc": "2026-07-30T09:50:24Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "execution_head": "b37452094921999cce5fa5273de6eaada25e5d14",
+    "origin_main": "e3a57048f0a71724a281349b02a1fa2466a553ba"
+  },
+  "preconditions": {
+    "status": "READY",
+    "head_includes_origin_main": true,
+    "legacy_tracked_file_count": 686,
+    "target_tracked_file_count": 0,
+    "target_tree_exists": false,
+    "findings": []
+  },
+  "semantic_reconcile": {
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "decision_rule": "Preserve the single focused-proven transaction/recovery core; rebuild product identity, E2N shell, connectors, destination authorization/receipts, aggregation UI and operations.",
+    "legacy_focused_proven_core_layouts": [
+      "x2n_companion"
+    ],
+    "legacy_reusable_core_layouts": [
+      "x2n_companion"
+    ],
+    "file_classification_counts": {
+      "adapt": 5,
+      "apply": 180,
+      "conflict": 0,
+      "blocked": 0
+    },
+    "task_classification_counts": {
+      "apply": 31,
+      "equivalent": 1
+    },
+    "task_classifications": {
+      "SA-000": "apply",
+      "SA-001": "apply",
+      "SA-002": "apply",
+      "SA-003": "equivalent",
+      "SA-004": "apply",
+      "SA-005": "apply",
+      "SA-101": "apply",
+      "SA-102": "apply",
+      "SA-103": "apply",
+      "SA-104": "apply",
+      "SA-105": "apply",
+      "SA-201": "apply",
+      "SA-202": "apply",
+      "SA-203": "apply",
+      "SA-204": "apply",
+      "SA-205": "apply",
+      "SA-301": "apply",
+      "SA-302": "apply",
+      "SA-303": "apply",
+      "SA-304": "apply",
+      "SA-305": "apply",
+      "SA-401": "apply",
+      "SA-402": "apply",
+      "SA-403": "apply",
+      "SA-404": "apply",
+      "SA-501": "apply",
+      "SA-502": "apply",
+      "SA-503": "apply",
+      "SA-504": "apply",
+      "SA-505": "apply",
+      "SA-506": "apply",
+      "SA-507": "apply"
+    },
+    "classification_interpretation": "These classifications compare latest main with frozen capabilities and do not supersede a task's separately recorded execution status. SA-003 being equivalent means the candidate core capability exists; its required focused proof remains mandatory."
+  },
+  "integrity": {
+    "all_32_task_ids_unique": true,
+    "semantic_report_sha256": "6b405856f2f9688f1e2704bcd64375e87d7dbcb1999d4d1ce8664897d48d53c1",
+    "precondition_report_sha256": "bf5289d3070b7eb5abc7f8f5ebc8b86278d99895e16d3a636a4a483ebdb6ccd7",
+    "tracked_product_diff": "NONE"
+  },
+  "scope_exclusions": [
+    "No merge, reset, migration, product-tree write, runtime access, account access, private-data access, platform request, model request, GitHub push, or new git worktree occurred.",
+    "The two generated Stage 0 source reports were deleted after their public-safe conclusions and hashes were recorded; they are reproducible from the logged frozen commands."
+  ],
+  "evidence_location_reason": "The Social Archive target tree is intentionally absent before SA-002, and the sealed package manifest is immutable; this public-safe receipt is stored in the compatibility control plane."
+}

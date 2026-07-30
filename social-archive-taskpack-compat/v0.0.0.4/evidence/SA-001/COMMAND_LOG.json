@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-001",
+  "executed_at_utc": "2026-07-30T09:50:24Z",
+  "commands": [
+    {
+      "id": "verify_preconditions_fetch",
+      "command": "python3 07_IMPLEMENTATION/apply/verify_preconditions.py --repo <current-worktree> --fetch",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "READY; origin/main=e3a57048f0a71724a281349b02a1fa2466a553ba; current HEAD contains origin/main; findings=[]"
+    },
+    {
+      "id": "semantic_classify",
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "decision=PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS; total summary: apply=211, adapt=5, equivalent=1, conflict=0, blocked=0"
+    },
+    {
+      "id": "semantic_report_consistency",
+      "command": "read generated reports and assert READY, 32 unique task IDs, one focused-proven core, expected architecture decision, no conflict/blocked, and absent target tree",
+      "exit_code": 0,
+      "outcome": "PASS"
+    },
+    {
+      "id": "tracked_tree_check",
+      "command": "git diff --quiet HEAD --",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "No tracked product diff"
+    },
+    {
+      "id": "temporary_report_hygiene",
+      "command": "git check-ignore generated Stage 0 reports",
+      "exit_code": 1,
+      "outcome": "REMEDIATED",
+      "result": "The reports were unignored temporary files; both were extracted into this public-safe receipt, then removed without touching tracked files."
+    }
+  ],
+  "non_actions": [
+    "No git merge, reset, product migration, full application test, runtime action, account action, platform request, model request, GitHub push, or new git worktree."
+  ]
+}
