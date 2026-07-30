@@ -93,17 +93,33 @@ def build_sbom() -> dict[str, Any]:
     _require(len(typescript_names) == 21, "TypeScript dependency set drifted")
     _require(set(npm) == typescript_names | set(PLAYWRIGHT_EXPECTED), "unexpected npm dependency entered Foundation004")
     for name in typescript_names:
-        _require(npm[name].get("version") == "7.0.2" and npm[name].get("license") == "Apache-2.0", "TypeScript package metadata drifted")
+        _require(
+            npm[name].get("version") == "7.0.2" and npm[name].get("license") == "Apache-2.0",
+            "TypeScript package metadata drifted",
+        )
     for name, (version, license_id, _) in PLAYWRIGHT_EXPECTED.items():
-        _require(npm[name].get("version") == version and npm[name].get("license") == license_id, f"dependency metadata drifted: {name}")
+        _require(
+            npm[name].get("version") == version and npm[name].get("license") == license_id,
+            f"dependency metadata drifted: {name}",
+        )
     scripted = {name for name, item in npm.items() if item.get("hasInstallScript") is True}
     _require(scripted == {"fsevents"}, "install-script dependency set drifted")
-    _require(npm["fsevents"].get("optional") is True and npm["fsevents"].get("os") == ["darwin"], "fsevents is not optional macOS-only")
+    _require(
+        npm["fsevents"].get("optional") is True and npm["fsevents"].get("os") == ["darwin"],
+        "fsevents is not optional macOS-only",
+    )
     npmrc = (PROJECT_ROOT / ".npmrc").read_text(encoding="utf-8").splitlines()
     _require("ignore-scripts=true" in npmrc, "npm install scripts are not disabled")
 
     components = [
-        _component(name=name, version=version, license_id=license_id, purl=_pypi_ref(name, version), role=role, scope="required")
+        _component(
+            name=name,
+            version=version,
+            license_id=license_id,
+            purl=_pypi_ref(name, version),
+            role=role,
+            scope="required",
+        )
         for name, (version, license_id, role) in PYTHON_EXPECTED.items()
     ]
     for name in sorted(npm):
@@ -162,9 +178,7 @@ def build_sbom() -> dict[str, Any]:
     ]
     referenced = {row["ref"] for row in dependencies}
     dependencies.extend(
-        {"ref": item["bom-ref"], "dependsOn": []}
-        for item in components
-        if item["bom-ref"] not in referenced
+        {"ref": item["bom-ref"], "dependsOn": []} for item in components if item["bom-ref"] not in referenced
     )
     dependencies.sort(key=lambda item: item["ref"])
     return {
@@ -212,7 +226,12 @@ def main(argv: list[str] | None = None) -> int:
         else:
             _require(OUTPUT.is_file() and OUTPUT.read_text(encoding="utf-8") == rendered, "Foundation004 SBOM drifted")
             status = "PASS"
-        print(json.dumps({"components": len(payload["components"]), "install_scripts_executed": 0, "status": status}, sort_keys=True))
+        print(
+            json.dumps(
+                {"components": len(payload["components"]), "install_scripts_executed": 0, "status": status},
+                sort_keys=True,
+            )
+        )
         return 0
     except (OSError, json.JSONDecodeError, SbomError) as error:
         print(json.dumps({"reason": str(error), "status": "FAIL_CLOSED"}, sort_keys=True), file=sys.stderr)

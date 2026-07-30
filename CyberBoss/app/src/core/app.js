@@ -3078,19 +3078,22 @@ class CyberbossApp {
     if (!who || !this.runtimeSpoolDatabase) {
       return empty;
     }
+    // 认人只走一条路：这条来信自己记着的 user_id。
+    //
+    // 原来这里是 identify({botAccountRef: resolveAccount(who)?.accountId ...})，
+    // 而 **resolveAccount() 根本不收参数**——那个 who 被忽略，返回的永远是主号。
+    // 于是不在主号下面的人全被按主号去认，认出来的是另一个 user_id（或者没有）。
+    // 注释还写着"走和别处同一条认人路径"，其实不是：语气面板走的是
+    // personaUserIdForSender（读来信上记着的 user_id）。
+    //
+    // 后果是同一个人在后台同一屏上出现两套设置：可编辑那块显示 120~360（他真的
+    // 那一份），只读这块显示 45~240（认错身份之后的默认值）。记忆、待办、日程
+    // 也一样按错的身份查——看起来是空的或者是别人的。
+    //
+    // 现在两块都用 personaUserIdForSender，同一个人只会有一个答案。
     let userId = "";
     try {
-      // 后台列表是按 senderId 列的，而待办和记忆都按 user_id 存。这一步换算不能
-      // 自己猜，走和别处同一条认人路径。
-      userId = String(
-        this.userAdmission?.users?.identify({
-          channel: "weixin",
-          botAccountRef: this.channelAdapter?.resolveAccount?.(who)?.accountId
-            || this.activeAccountId
-            || "",
-          senderRef: who,
-        })?.userId || "",
-      );
+      userId = String(this.personaUserIdForSender(who) || "");
     } catch {
       return empty;
     }
@@ -4803,6 +4806,28 @@ class CyberbossApp {
     const senderId = String(message?.senderId || "").trim();
     if (!senderId || !this.userAdmission) {
       return false;
+    }
+    // 先做一次**只读**的身份查询，查不到就不往下走。
+    //
+    // admit() 不是只读的：认不出来的人它会当新人**注册**。而主动消息这条路上，
+    // message.accountId 有可能是错的——resolveAccountForUser 在那个人的号已经
+    // 消失时会退回主号。于是「给他发个问候」变成了「以主号的名义给他开一个新
+    // 户口」：2026-07-30 06:26:18 那一次就这么造出了 usr_w6cEq-n6，把同一个人
+    // 劈成了三个 user_id（原号一个、主号一个、新号一个），记忆和待办各留一份。
+    //
+    // 主动消息只该找**已经认识的人**。不认识就跳过，注册是入站那条路的事——
+    // 那里的 accountId 来自消息本身，是可信的。
+    const known = this.userAdmission.users?.resolveByPrincipal?.({
+      channel: "weixin",
+      botAccountRef: message.accountId,
+      senderRef: senderId,
+    });
+    if (!known) {
+      console.warn(
+        `[cyberboss] checkin skipped unknown_principal account=${message.accountId}`
+        + ` to=${senderId.slice(0, 10)}…（这个号下面没有这个人，不替他注册）`,
+      );
+      return true;
     }
     let decision;
     try {

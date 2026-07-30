@@ -28,6 +28,7 @@ from x2n_companion.native_host_installer import (
     UNINSTALL_CONFIRMATION,
     create_plan,
     execute_plan,
+    fresh_install_readiness,
 )
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
 
@@ -99,6 +100,45 @@ class NativeHostTests(unittest.TestCase):
             self.assertTrue(response.accepted)
             self.assertEqual(response.status.value, "completed")
             self.assertIsNone(response.job_id)
+        self.assertEqual(self.store.counts()["request_ledger"], 0)
+
+    def test_prearm_progress_is_aggregate_only_and_survives_a_health_check(self) -> None:
+        content_id = "owner-private-progress-001"
+        payload = _capture_payload(content_id)
+        payload["owner_mvp_scope"] = "xiaohongshu_current_content"
+        recorded = dispatch_wire(
+            _request("capture_current", payload),
+            origin=DEVELOPMENT_EXTENSION_ORIGIN,
+            store=self.store,
+        )
+        self.assertTrue(recorded.accepted)
+        self.assertEqual(recorded.status.value, "completed")
+        self.assertIsNone(recorded.job_id)
+        assert recorded.mvp_enrollment_progress is not None
+        self.assertEqual(recorded.mvp_enrollment_progress.total_recorded_count, 1)
+        self.assertEqual(recorded.mvp_enrollment_progress.total_required_count, 80)
+        self.assertEqual(
+            [
+                (item.scope_id, item.recorded_count, item.required_count)
+                for item in recorded.mvp_enrollment_progress.scope_progress
+            ],
+            [
+                ("xiaohongshu_current_content", 1, 20),
+                ("xiaohongshu_current_content_second_batch", 0, 20),
+                ("douyin_favorites", 0, 20),
+                ("douyin_likes", 0, 20),
+            ],
+        )
+
+        health = dispatch_wire(_request("health", {}), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertTrue(health.accepted)
+        self.assertEqual(health.mvp_enrollment_progress, recorded.mvp_enrollment_progress)
+
+        rendered = recorded.model_dump_json()
+        self.assertNotIn(content_id, rendered)
+        self.assertNotIn(f"https://www.xiaohongshu.com/explore/{content_id}", rendered)
+        self.assertNotIn(str(self.paths.data_root), rendered)
+        self.assertEqual(self.store.counts()["content"], 0)
         self.assertEqual(self.store.counts()["request_ledger"], 0)
 
     def test_capture_walk_is_atomic_idempotent_and_canonical_only(self) -> None:
@@ -174,12 +214,32 @@ class NativeHostTests(unittest.TestCase):
         cases = [
             (baseline, "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/", ErrorCode.NATIVE_ORIGIN_REJECTED),
             (_request("unknown", {}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.NATIVE_ACTION_UNKNOWN),
-            (_request("health", {}, schema_version="2.0"), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.INVALID_SCHEMA_VERSION),
+            (
+                _request("health", {}, schema_version="2.0"),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.INVALID_SCHEMA_VERSION,
+            ),
             (_request("health", {}, extra={"undeclared": True}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.UNKNOWN_FIELD),
-            (_request("capture_current", {**_capture_payload(), "shell": "synthetic"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.SECURITY_INJECTION_BLOCKED),
-            (_request("capture_current", {**_capture_payload(), "local_path": "synthetic"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.SECURITY_INJECTION_BLOCKED),
-            (_request("capture_current", {**_capture_payload(), "download_url": "synthetic"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.SECURITY_INJECTION_BLOCKED),
-            (_request("capture_current", {**_capture_payload(), "page_url": "https://example.invalid/content"}), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.URL_REJECTED),
+            (
+                _request("capture_current", {**_capture_payload(), "shell": "synthetic"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.SECURITY_INJECTION_BLOCKED,
+            ),
+            (
+                _request("capture_current", {**_capture_payload(), "local_path": "synthetic"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.SECURITY_INJECTION_BLOCKED,
+            ),
+            (
+                _request("capture_current", {**_capture_payload(), "download_url": "synthetic"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.SECURITY_INJECTION_BLOCKED,
+            ),
+            (
+                _request("capture_current", {**_capture_payload(), "page_url": "https://example.invalid/content"}),
+                DEVELOPMENT_EXTENSION_ORIGIN,
+                ErrorCode.URL_REJECTED,
+            ),
             (b"x" * (MAX_MESSAGE_BYTES + 1), DEVELOPMENT_EXTENSION_ORIGIN, ErrorCode.NATIVE_MESSAGE_TOO_LARGE),
         ]
         for raw, origin, code in cases:
@@ -278,6 +338,74 @@ class NativeHostTests(unittest.TestCase):
         self.assertFalse(uninstall.manifest_path.exists())
         self.assertFalse(uninstall.launcher_path.exists())
 
+    def test_temporary_prearm_host_uninstall_preserves_owner_private_runtime(self) -> None:
+        """The enrollment bridge is reversible without deleting private MVP state."""
+
+        self.paths.ensure_private_directory("runtime/release")
+        enrollment = self.paths.owner_mvp_manifest_enrollment
+        enrollment.write_text('{"private_hash_only":true}\n', encoding="utf-8")
+        enrollment.chmod(0o600)
+        uv_path = Path(shutil.which("uv") or "")
+        install = create_plan(
+            action="install",
+            browser="chromium",
+            home=self.home,
+            env=self.env,
+            uv_path=uv_path,
+        )
+        self.assertEqual(execute_plan(install, confirmation=INSTALL_CONFIRMATION)["status"], "INSTALLED")
+        uninstall = create_plan(action="uninstall", browser="chromium", home=self.home, env={})
+        self.assertEqual(execute_plan(uninstall, confirmation=UNINSTALL_CONFIRMATION)["status"], "UNINSTALLED")
+        self.assertEqual(enrollment.read_text(encoding="utf-8"), '{"private_hash_only":true}\n')
+        self.assertEqual(
+            fresh_install_readiness(browser="chromium", home=self.home, env=self.env, uv_path=uv_path),
+            "READY_FOR_FRESH_INSTALL",
+        )
+
+    def test_fresh_install_readiness_is_read_only_and_fails_closed(self) -> None:
+        uv_path = Path(shutil.which("uv") or "")
+        self.assertTrue(uv_path.is_absolute())
+        ready = fresh_install_readiness(
+            browser="chromium",
+            home=self.home,
+            env=self.env,
+            uv_path=uv_path,
+        )
+        self.assertEqual(ready, "READY_FOR_FRESH_INSTALL")
+        plan = create_plan(
+            action="install",
+            browser="chromium",
+            home=self.home,
+            env=self.env,
+            uv_path=uv_path,
+        )
+        self.assertFalse(plan.runtime_path.exists())
+        self.assertFalse(plan.launcher_path.exists())
+        self.assertFalse(plan.manifest_path.exists())
+
+        plan.runtime_path.parent.mkdir(parents=True)
+        plan.runtime_path.mkdir()
+        self.assertEqual(
+            fresh_install_readiness(
+                browser="chromium",
+                home=self.home,
+                env=self.env,
+                uv_path=uv_path,
+            ),
+            "BLOCKED_EXISTING_TARGET",
+        )
+
+        unavailable_uv = self.home / "missing-uv"
+        self.assertEqual(
+            fresh_install_readiness(
+                browser="chromium",
+                home=Path(self.temporary.name) / "other-home",
+                env=self.env,
+                uv_path=unavailable_uv,
+            ),
+            "NOT_READY",
+        )
+
     def test_installer_cleans_partial_staging_and_preserves_previous_runtime(self) -> None:
         uv_path = Path(shutil.which("uv") or "")
         install = create_plan(
@@ -308,9 +436,7 @@ class NativeHostTests(unittest.TestCase):
 
         execute_plan(install, confirmation=INSTALL_CONFIRMATION)
         runtime_python = install.runtime_path / "bin/python"
-        previous_runtime_hash = canonical_json_sha256(
-            {"python": runtime_python.read_bytes().hex()}
-        )
+        previous_runtime_hash = canonical_json_sha256({"python": runtime_python.read_bytes().hex()})
         with mock.patch(
             "x2n_companion.native_host_installer._run_provision",
             side_effect=fail_after_partial_venv,

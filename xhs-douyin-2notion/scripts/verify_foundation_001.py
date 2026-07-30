@@ -188,14 +188,18 @@ def _list_field(block: str, name: str) -> list[str]:
 def validate_governance() -> Check:
     _require((REPOSITORY_ROOT / "AGENTS.md").is_file(), "repository AGENTS missing")
     _require((PROJECT_ROOT / "AGENTS.md").is_file(), "project AGENTS missing")
-    for relative in ("功能清单.md", "开发记录.md", "模型参数文件.md", "machine/facts/project.json", "machine/facts/task_state.json"):
+    for relative in (
+        "功能清单.md",
+        "开发记录.md",
+        "模型参数文件.md",
+        "machine/facts/project.json",
+        "machine/facts/task_state.json",
+    ):
         _require((PROJECT_ROOT / relative).is_file(), "governance registration file missing")
 
     # Scope is historical: later DAG Tasks must not be attributed to
     # foundation.001 merely because this verifier is run from the live tree.
-    changed = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{BASE_COMMIT}..{FINAL_COMMIT}"]
-    ).splitlines()
+    changed = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{BASE_COMMIT}..{FINAL_COMMIT}"]).splitlines()
     relative_changes: list[str] = []
     for path in changed:
         relative = _project_relative(path)
@@ -213,9 +217,9 @@ def validate_governance() -> Check:
         flags=re.MULTILINE,
     )
     _require(stage_ids == [f"STG.X2N.{index}" for index in range(7)], "Stage registry drifted")
-    _require(len(task_ids) == 43, "Task registry count drifted")
+    _require(len(task_ids) == 44, "Task registry count drifted")
     _require(requirement_ids == [f"REQ.X2N.{index:03d}" for index in range(1, 33)], "Requirement registry drifted")
-    _require(len(acceptance_ids) == 61, "Acceptance registry count drifted")
+    _require(len(acceptance_ids) == 62, "Acceptance registry count drifted")
     _require(len(task_ids) == len(set(task_ids)), "duplicate Task IDs")
     _require(len(acceptance_ids) == len(set(acceptance_ids)), "duplicate Acceptance IDs")
     _require("  name: xhs-douyin-2notion\n" in taskpack_text, "project identity drifted")
@@ -223,9 +227,15 @@ def validate_governance() -> Check:
     project = _load_json(PROJECT_FACT)
     _require(project.get("parent_repository") == "LinzeColin/MetaDatabase", "parent repository drifted")
     _require(project.get("project_path") == "xhs-douyin-2notion/", "project path drifted")
-    _require(project.get("runtime_root_ref") == project.get("downloads_root_ref") == "X2N_DATA_ROOT", "Runtime/download root drifted")
+    _require(
+        project.get("runtime_root_ref") == project.get("downloads_root_ref") == "X2N_DATA_ROOT",
+        "Runtime/download root drifted",
+    )
     root_readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
-    _require(sum(line.startswith("| xhs-douyin-2notion |") for line in root_readme.splitlines()) == 1, "parent project registration drifted")
+    _require(
+        sum(line.startswith("| xhs-douyin-2notion |") for line in root_readme.splitlines()) == 1,
+        "parent project registration drifted",
+    )
 
     forbidden_tokens = (
         "Agent" + "Database",
@@ -241,10 +251,37 @@ def validate_governance() -> Check:
             continue
         scanned += 1
         text = path.read_text(encoding="utf-8", errors="replace")
-        _require(not any(token in text for token in forbidden_tokens), "forbidden repository or local-path token entered the project")
-        _require(re.search(r"https?://[^\s'\"]*(?:xhscdn|douyinvod|byteimg|pstatp)", text, flags=re.IGNORECASE) is None, "platform media CDN URL entered the project")
-    forbidden_suffixes = {".sqlite", ".sqlite3", ".db", ".mp4", ".mov", ".m4a", ".mp3", ".wav", ".webm", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".pem", ".p12", ".pfx"}
-    _require(not any(path.suffix.lower() in forbidden_suffixes for path in _iter_files()), "private/runtime file type entered the project")
+        _require(
+            not any(token in text for token in forbidden_tokens),
+            "forbidden repository or local-path token entered the project",
+        )
+        _require(
+            re.search(r"https?://[^\s'\"]*(?:xhscdn|douyinvod|byteimg|pstatp)", text, flags=re.IGNORECASE) is None,
+            "platform media CDN URL entered the project",
+        )
+    forbidden_suffixes = {
+        ".sqlite",
+        ".sqlite3",
+        ".db",
+        ".mp4",
+        ".mov",
+        ".m4a",
+        ".mp3",
+        ".wav",
+        ".webm",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".heic",
+        ".pem",
+        ".p12",
+        ".pfx",
+    }
+    _require(
+        not any(path.suffix.lower() in forbidden_suffixes for path in _iter_files()),
+        "private/runtime file type entered the project",
+    )
 
     return Check(
         "governance",
@@ -261,10 +298,7 @@ def validate_governance() -> Check:
 
 
 def _evaluate_main_isolation(changed_paths: list[str], allow_external_main_dirty: bool) -> dict[str, Any]:
-    overlap = sum(
-        path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/")
-        for path in changed_paths
-    )
+    overlap = sum(path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in changed_paths)
     _require(overlap == 0, "MetaDatabase main worktree overlaps x2n")
     _require(allow_external_main_dirty or not changed_paths, "MetaDatabase main worktree is dirty")
     return {
@@ -320,8 +354,7 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         ["-c", "core.quotePath=false", "diff", "--name-only", f"{BASE_COMMIT}..{live_origin}"]
     ).splitlines()
     origin_project_overlap = sum(
-        path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/")
-        for path in origin_drift_paths
+        path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in origin_drift_paths
     )
     _require(origin_project_overlap == 0, "origin/main changed x2n after the foundation cutoff")
     origin_drift_commits = int(_git(["rev-list", "--count", f"{BASE_COMMIT}..{live_origin}"]))
@@ -366,19 +399,35 @@ def validate_task_and_state() -> Check:
         "Task dependency drifted",
     )
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.gov.001", "ACC.x2n.rel.008"], "Task Acceptance drifted")
-    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack, "historical Stage 1 Review Taskpack status drifted")
+    _require(
+        "  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack,
+        "historical Stage 1 Review Taskpack status drifted",
+    )
 
     state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage state drifted")
-    _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
+    _require(
+        state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4",
+        "current Stage state drifted",
+    )
+    _require(
+        state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task",
+        "current Run identity drifted",
+    )
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005", "next Task routing drifted")
+    _require(
+        state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005",
+        "next Task routing drifted",
+    )
     _require(state.get("next_phase_authorized") is True, "next Task authorization missing")
-    _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+    _require(
+        state.get("current_stage_gate") == "not_run"
+        and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass",
+        "G1/upload overstated",
+    )
     acceptances = state.get("acceptance_status", {})
     _require(acceptances.get("ACC.x2n.gov.001") == "pass_current_scaffold_scope", "governance Acceptance missing")
     _require(
@@ -438,7 +487,9 @@ def validate_scaffold_tree() -> Check:
         "packages/contracts/README.md",
         "packages/test-fixtures/scaffold_case.json",
     )
-    _require(all((PROJECT_ROOT / relative).is_file() for relative in required_files), "minimal source tree is incomplete")
+    _require(
+        all((PROJECT_ROOT / relative).is_file() for relative in required_files), "minimal source tree is incomplete"
+    )
 
     runtime_directories = [
         path
@@ -455,7 +506,9 @@ def validate_scaffold_tree() -> Check:
     _require(not (PROJECT_ROOT / ".x2n-root.json").exists(), "private Runtime marker entered Git")
 
     manifest_path = PROJECT_ROOT / "apps/extension/manifest.json"
-    historical_manifest = json.loads(_git(["show", f"{STATE_BASELINE_COMMIT}:{manifest_path.relative_to(REPOSITORY_ROOT).as_posix()}"]))
+    historical_manifest = json.loads(
+        _git(["show", f"{STATE_BASELINE_COMMIT}:{manifest_path.relative_to(REPOSITORY_ROOT).as_posix()}"])
+    )
     _require(
         historical_manifest.get("permissions") == ["activeTab", "nativeMessaging", "sidePanel"]
         and "host_permissions" not in historical_manifest,
@@ -463,8 +516,14 @@ def validate_scaffold_tree() -> Check:
     )
     manifest = _load_json(manifest_path)
     _require(manifest.get("manifest_version") == 3, "extension no longer uses MV3")
-    _require(manifest.get("permissions") == ["activeTab", "nativeMessaging", "scripting", "sidePanel"], "current extension permission allowlist drifted")
-    _require("host_permissions" not in manifest and manifest.get("side_panel") == {"default_path": "sidepanel.html"}, "current extension boundary drifted")
+    _require(
+        manifest.get("permissions") == ["activeTab", "nativeMessaging", "scripting", "sidePanel"],
+        "current extension permission allowlist drifted",
+    )
+    _require(
+        "host_permissions" not in manifest and manifest.get("side_panel") == {"default_path": "sidepanel.html"},
+        "current extension boundary drifted",
+    )
 
     fixture = _load_json(PROJECT_ROOT / "packages/test-fixtures/scaffold_case.json")
     _require(
@@ -517,7 +576,10 @@ def validate_locks() -> Check:
     package = _load_json(PROJECT_ROOT / "package.json")
     lock = _load_json(PROJECT_ROOT / "package-lock.json")
     _require(lock.get("lockfileVersion") == 3 and lock.get("requires") is True, "npm lock format drifted")
-    _require(lock.get("name") == package.get("name") and lock.get("version") == package.get("version"), "npm lock root drifted")
+    _require(
+        lock.get("name") == package.get("name") and lock.get("version") == package.get("version"),
+        "npm lock root drifted",
+    )
     locked_packages = lock.get("packages", {})
     expected_workspace_paths = {"", "apps/extension", "packages/contracts", "packages/test-fixtures"}
     _require(expected_workspace_paths.issubset(locked_packages), "npm workspace lock is incomplete")
@@ -532,12 +594,25 @@ def validate_locks() -> Check:
         if key.startswith("node_modules/") and metadata.get("link") is True
     ]
     registry_names = {path.removeprefix("node_modules/") for path in registry_packages}
-    typescript_names = {name for name in registry_names if name == "typescript" or name.startswith("@typescript/typescript-")}
-    _require(len(typescript_names) == 21 and registry_names == typescript_names | {"@playwright/test", "playwright", "playwright-core", "fsevents"}, "registered npm dependency set drifted")
+    typescript_names = {
+        name for name in registry_names if name == "typescript" or name.startswith("@typescript/typescript-")
+    }
+    _require(
+        len(typescript_names) == 21
+        and registry_names == typescript_names | {"@playwright/test", "playwright", "playwright-core", "fsevents"},
+        "registered npm dependency set drifted",
+    )
     _require(len(workspace_links) == 3, "npm workspace links are incomplete")
-    scripted = {path.removeprefix("node_modules/") for path, metadata in locked_packages.items() if metadata.get("hasInstallScript") is True}
+    scripted = {
+        path.removeprefix("node_modules/")
+        for path, metadata in locked_packages.items()
+        if metadata.get("hasInstallScript") is True
+    }
     _require(scripted == {"fsevents"}, "install-script dependency set drifted")
-    _require("ignore-scripts=true" in (PROJECT_ROOT / ".npmrc").read_text(encoding="utf-8").splitlines(), "npm install scripts are not disabled")
+    _require(
+        "ignore-scripts=true" in (PROJECT_ROOT / ".npmrc").read_text(encoding="utf-8").splitlines(),
+        "npm install scripts are not disabled",
+    )
 
     uv_text = (PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8")
     uv_packages = _packages_from_uv_lock(uv_text)
@@ -559,7 +634,15 @@ def validate_locks() -> Check:
         },
         "uv runtime or later CI package set drifted",
     )
-    _require(all("virtual" in item.get("source", "") or "editable" in item.get("source", "") or "registry" in item.get("source", "") for item in uv_packages), "uv lock source is unsupported")
+    _require(
+        all(
+            "virtual" in item.get("source", "")
+            or "editable" in item.get("source", "")
+            or "registry" in item.get("source", "")
+            for item in uv_packages
+        ),
+        "uv lock source is unsupported",
+    )
     return Check(
         "package_locks",
         "PASS",
@@ -632,7 +715,10 @@ def validate_fresh_scaffold() -> Check:
         env = _isolated_env(home)
 
         steps: list[tuple[str, Sequence[str]]] = [
-            ("npm_frozen_install", ("npm", "ci", "--omit=dev", "--ignore-scripts", "--audit=false", "--fund=false", "--offline")),
+            (
+                "npm_frozen_install",
+                ("npm", "ci", "--omit=dev", "--ignore-scripts", "--audit=false", "--fund=false", "--offline"),
+            ),
             ("uv_lock_check", ("uv", "lock", "--check", "--offline")),
             ("extension_self_test", ("npm", "run", "test:scaffold")),
         ]
@@ -718,10 +804,7 @@ def write_evidence(checks: list[Check]) -> None:
             "ACC.x2n.gov.001": "PASS_CURRENT_SCAFFOLD_SCOPE",
             "ACC.x2n.rel.008": "PASS_CURRENT_SCAFFOLD_SCOPE_PRODUCT_LIFECYCLE_DOWNSTREAM_NOT_RUN",
         },
-        "checks": [
-            {"details": check.details, "name": check.name, "status": check.status}
-            for check in checks
-        ],
+        "checks": [{"details": check.details, "name": check.name, "status": check.status} for check in checks],
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "phase": "PH.X2N.1.1",
         "private_content_included": False,
@@ -744,9 +827,13 @@ def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
-    _require(evidence.get("status") == "PASS" and evidence.get("stage_gate") == "G1_NOT_RUN", "evidence status overstated")
+    _require(
+        evidence.get("status") == "PASS" and evidence.get("stage_gate") == "G1_NOT_RUN", "evidence status overstated"
+    )
     _require(evidence.get("product_lifecycle") == "DOWNSTREAM_NOT_RUN", "evidence overstated product lifecycle")
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
+    )
     digest = hashlib.sha256(EVIDENCE.read_bytes()).hexdigest()
     return Check("evidence", "PASS", {"receipt_sha256": digest, "task": TASK_ID})
 
@@ -772,7 +859,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.require_evidence:
             checks.append(verify_evidence())
     except (OSError, ValueError, VerificationError) as exc:
-        print(json.dumps({"code": "X2N_FOUNDATION_001_FAILED", "status": "FAIL_CLOSED", "reason": str(exc)}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {"code": "X2N_FOUNDATION_001_FAILED", "status": "FAIL_CLOSED", "reason": str(exc)}, ensure_ascii=False
+            )
+        )
         return 2
     print(
         json.dumps(

@@ -6,6 +6,7 @@ import sqlite3
 import stat
 import tempfile
 import unittest
+from uuid import UUID
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -27,7 +28,16 @@ from x2n_contracts import (
     build_sink_key,
 )
 
-from x2n_companion.canonical_store import CanonicalStore, WriteDisposition
+from x2n_companion.canonical_store import (
+    CanonicalStore,
+    WriteDisposition,
+    _uuid,
+    _validate_lifecycle_target,
+    _validate_media_timestamp,
+    _validate_sha256,
+    _validate_token,
+)
+from x2n_companion.migrations import LATEST_SCHEMA_VERSION, migrate_backward
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
 
 
@@ -258,15 +268,66 @@ class CanonicalStoreTests(unittest.TestCase):
             )
         self.assertEqual(unauthorized.exception.code, ErrorCode.POLICY_BLOCKED)
 
+    def test_low_level_validation_and_storage_faults_fail_closed(self) -> None:
+        invalid_inputs = (
+            lambda: _validate_token("not a token", label="token"),
+            lambda: _validate_media_timestamp("not-a-timestamp", label="timestamp"),
+            lambda: _validate_media_timestamp("2026-99-99T00:00:00Z", label="timestamp"),
+            lambda: _validate_sha256("a" * 63, label="digest"),
+            lambda: _validate_lifecycle_target("line\nbreak", label="target"),
+            lambda: _uuid("not-a-uuid", label="identifier"),
+            lambda: _uuid("{aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa}", label="identifier"),
+        )
+        for operation in invalid_inputs:
+            with self.subTest(operation=operation):
+                with self.assertRaises(X2NRuntimeError) as error:
+                    operation()
+                self.assertEqual(error.exception.code, ErrorCode.INVALID_INPUT)
+
+        with self.assertRaises(X2NRuntimeError) as busy_timeout:
+            CanonicalStore(self.paths, busy_timeout_ms=0)
+        self.assertEqual(busy_timeout.exception.code, ErrorCode.INVALID_INPUT)
+
+        uninitialized_destination = self.destination.parent / "uninitialized" / "MediaCrawler"
+        uninitialized_destination.mkdir(parents=True, mode=0o700)
+        uninitialized_root = uninitialized_destination / "xhs-douyin-2notion"
+        uninitialized_paths = RuntimePaths.from_values(
+            str(uninitialized_root),
+            str(uninitialized_destination),
+            repository_root=PROJECT_ROOT,
+            create=True,
+        )
+        with self.assertRaises(X2NRuntimeError) as unopened:
+            CanonicalStore(uninitialized_paths)._open(writable=False)
+        self.assertEqual(unopened.exception.code, ErrorCode.STORAGE_FAILED)
+
+        with self.assertRaises(X2NRuntimeError) as transaction:
+            with self.store._transaction() as connection:
+                connection.execute("INVALID SQL")
+        self.assertEqual(transaction.exception.code, ErrorCode.STORAGE_FAILED)
+
     def test_schema_wal_foreign_keys_and_integrity_are_enforced(self) -> None:
         health = self.store.health()
         self.assertEqual(health["status"], "healthy")
-        self.assertEqual(health["schema_version"], 2)
+        self.assertEqual(health["schema_version"], LATEST_SCHEMA_VERSION)
         self.assertEqual(health["foreign_key_check"], "ok")
         self.assertEqual(health["foreign_key_violations"], 0)
         snapshot = self.store.snapshot_schema()
         names = {item["name"] for item in snapshot["objects"]}
-        self.assertTrue({"content", "user_relation", "artifact", "outbox_event", "media_lease"} <= names)
+        self.assertTrue(
+            {
+                "capability_gate_outcome",
+                "content",
+                "current_page_fallback",
+                "native_dispatch_job",
+                "run_failure",
+                "user_relation",
+                "artifact",
+                "outbox_event",
+                "media_lease",
+            }
+            <= names
+        )
         connection = sqlite3.connect(self.paths.database)
         try:
             self.assertEqual(connection.execute("PRAGMA journal_mode").fetchone()[0].lower(), "wal")
@@ -301,6 +362,23 @@ class CanonicalStoreTests(unittest.TestCase):
         self.assertEqual(counts["user_relation"], 1)
         self.assertEqual(counts["source_observation"], 1)
         self.assertEqual(counts["artifact"], 1)
+
+    def test_request_ledger_replay_is_stable(self) -> None:
+        payload_hash = _sha("assurance001-request-replay")
+        first_disposition, first_job = self.store.record_request(
+            "request-a001-replay",
+            payload_hash,
+            "job-a001-replay",
+        )
+        replay_disposition, replay_job = self.store.record_request(
+            "request-a001-replay",
+            payload_hash,
+            "job-a001-replay",
+        )
+        self.assertEqual(first_disposition, DuplicateDisposition.NEW_REQUEST)
+        self.assertEqual(replay_disposition, DuplicateDisposition.RETURN_EXISTING_JOB)
+        self.assertEqual((first_job, replay_job), ("job-a001-replay", "job-a001-replay"))
+        self.assertEqual(self.store.counts()["request_ledger"], 1)
 
     def test_conflicting_content_and_artifact_versions_fail_closed(self) -> None:
         self._ingest(1)
@@ -378,6 +456,43 @@ class CanonicalStoreTests(unittest.TestCase):
                 connection.execute("DELETE FROM classification")
         finally:
             connection.close()
+
+    def test_taxonomy_owner_and_merge_preconditions_fail_closed(self) -> None:
+        source = _model(
+            TaxonomyCategory,
+            {
+                "schema_version": "1.0",
+                "category_id": "22222222-2222-4222-8222-222222222222",
+                "name": "Synthetic merge source",
+                "slug": "synthetic-merge-source",
+                "description": "Synthetic Owner category for merge preconditions.",
+                "aliases": [],
+                "positive_examples": [],
+                "negative_examples": [],
+                "priority": 1,
+                "enabled": True,
+                "version": 1,
+                "level": 1,
+                "created_by": "owner",
+            },
+        )
+        with self.assertRaises(X2NRuntimeError) as non_owner:
+            self.store.put_taxonomy_category(source.model_copy(update={"created_by": "ai"}))
+        self.assertEqual(non_owner.exception.code, ErrorCode.POLICY_BLOCKED)
+
+        target = UUID("33333333-3333-4333-8333-333333333333")
+        with self.assertRaises(X2NRuntimeError) as enabled_source:
+            self.store.merge_taxonomy_category(source, target)
+        self.assertEqual(enabled_source.exception.code, ErrorCode.POLICY_BLOCKED)
+
+        disabled_source = source.model_copy(update={"enabled": False, "version": 2})
+        with self.assertRaises(X2NRuntimeError) as self_target:
+            self.store.merge_taxonomy_category(disabled_source, source.category_id)
+        self.assertEqual(self_target.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+
+        with self.assertRaises(X2NRuntimeError) as unknown_target:
+            self.store.merge_taxonomy_category(disabled_source, target)
+        self.assertEqual(unknown_target.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
 
     def test_request_ledger_returns_existing_job_and_rejects_conflict(self) -> None:
         payload_hash = _sha("request-payload")
@@ -480,9 +595,18 @@ class CanonicalStoreTests(unittest.TestCase):
         receipt = self.store.downgrade_with_backup(1)
         self.assertEqual(self.store.health()["schema_version"], 1)
         self.store.restore(receipt.backup_id, expected_sha256=receipt.database_sha256)
-        self.assertEqual(self.store.health()["schema_version"], 2)
+        self.assertEqual(self.store.health()["schema_version"], LATEST_SCHEMA_VERSION)
         self.assertEqual(self.store.counts(), before_counts)
         self.assertEqual(self.store.logical_digest(), before_digest)
+
+    def test_migration_without_verified_backup_is_blocked(self) -> None:
+        connection = self.store._open(writable=True)
+        try:
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                migrate_backward(connection, LATEST_SCHEMA_VERSION - 1, verified_backup=False)
+        finally:
+            connection.close()
+        self.assertEqual(blocked.exception.code, ErrorCode.POLICY_BLOCKED)
 
     def test_backup_hash_fault_is_rejected_without_mutating_live_store(self) -> None:
         self._ingest(6)

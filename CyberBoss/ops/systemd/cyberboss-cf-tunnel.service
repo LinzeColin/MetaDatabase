@@ -1,0 +1,36 @@
+[Unit]
+Description=CyberBoss dedicated Cloudflare Tunnel
+# 公网唯一入口。这个 unit 以前只存在于服务器上，仓库里没有——配置漂了没人发现。
+#
+# ── 为什么这里**没有** Requires=cyberboss-cloud.service ──────────
+# 原来写着 Requires=。它造成两件事，2026-07-30 一天之内把公网弄断了三次：
+#   一、应用每次重启（部署、自愈），systemd 会把隧道一起停掉；
+#   二、应用一旦 Failed（那天是 start-limit-hit），隧道跟着 Dependency failed，
+#       而且**应用自己恢复之后隧道不会跟着回来**——Restart=on-failure 不适用，
+#       因为它是被依赖拖停的，不算 failure。
+# 于是公网永久 530，直到有人从自己电脑上手工 systemctl start。那就是"本机依赖"。
+#
+# 隧道压根不需要应用活着才能跑：应用没起来时它回 502，应用起来了立刻就通。
+# 硬依赖换来的不是正确性，是一个必须有人守着的单点。
+# After= 保留：只表达启动顺序，不表达"你死我也死"。
+After=network-online.target cyberboss-cloud.service
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudflared --no-autoupdate --config /etc/cyberboss/cyberboss-cb510.yml tunnel run
+# always 而不是 on-failure：不管它是怎么退出的（被拖停、被 kill、自己退），
+# 都要自己爬回来。公网入口没有"这次不算"的情形。
+Restart=always
+RestartSec=5s
+# StartLimitIntervalSec=0 关掉重启次数上限——上限的意义是"别把机器拖垮"，
+# 但对唯一的公网入口来说，放弃重启比反复重启糟糕得多。
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run
+
+[Install]
+WantedBy=multi-user.target

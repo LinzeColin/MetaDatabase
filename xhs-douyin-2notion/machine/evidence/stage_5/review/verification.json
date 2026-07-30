@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "review_id": "STG.X2N.5.REVIEW",
+  "run_id": "RUN-X2N-S05-REVIEW",
+  "status": "PASS_CI_SYNTH_G5_REVIEW",
+  "metrics": {
+    "g4_synthetic_unit_tests": 84,
+    "stage_5_synthetic_unit_tests": 159,
+    "task_reports": 5
+  },
+  "execution": {
+    "external_network_calls": 0,
+    "platform_calls": 0,
+    "real_account_execution": "NOT_RUN",
+    "notion_real_calls": 0,
+    "private_database_client_calls": 0,
+    "tmutil_calls": 0,
+    "physical_delete_execution": "NOT_RUN",
+    "stage_5_remote_upload": "NOT_RUN",
+    "stage_6_executed": false
+  },
+  "checks": [
+    {"name": "source_scope_precommit", "status": "PASS"},
+    {"name": "review_fact_and_immutable_task_receipts", "status": "PASS"},
+    {"name": "taskpack_and_g5_transition", "status": "PASS"},
+    {"name": "immutable_g4_predecessor", "status": "PASS"},
+    {"name": "fresh_ci_synth_g5_acceptance", "status": "PASS"}
+  ]
+}

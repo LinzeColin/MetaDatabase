@@ -1,0 +1,11 @@
+{
+  "decision": "PASS",
+  "gate_id": "G3",
+  "next_task": "TSK.x2n.multimodal.001",
+  "review_id": "STG.X2N.3.REVIEW.RESUME.RECHECK",
+  "run_id": "RUN-X2N-S03-REVIEW-RESUME-RECHECK",
+  "schema_version": "1.0",
+  "stage_3_remote_upload_authorized": false,
+  "stage_4_local_task_start_authorized": true,
+  "status": "PASS_CI_SYNTH"
+}

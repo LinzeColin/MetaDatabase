@@ -37,16 +37,23 @@ class OwnerRecoveryAttestationTests(unittest.TestCase):
         root.chmod(0o700)
         runtime.chmod(0o700)
         marker = root / ".x2n-root.json"
-        marker.write_text(json.dumps({
-            "project": "xhs-douyin-2notion",
-            "root_ref": "X2N_DATA_ROOT",
-            "resolved_root": str(root.resolve()),
-        }), encoding="utf-8")
+        marker.write_text(
+            json.dumps(
+                {
+                    "project": "xhs-douyin-2notion",
+                    "root_ref": "X2N_DATA_ROOT",
+                    "resolved_root": str(root.resolve()),
+                }
+            ),
+            encoding="utf-8",
+        )
         marker.chmod(0o600)
         return root
 
     def test_synthetic_fixture_passes_closed_contract(self) -> None:
-        fixture = json.loads((PROJECT_ROOT / "machine/fixtures/owner_recovery_attestation.example.json").read_text(encoding="utf-8"))
+        fixture = json.loads(
+            (PROJECT_ROOT / "machine/fixtures/owner_recovery_attestation.example.json").read_text(encoding="utf-8")
+        )
         check = VERIFY.validate_receipt_payload(fixture, now=FIXED_NOW, incident_at=INCIDENT_AT)
         self.assertEqual(check.status, "PASS")
         self.assertEqual(check.details["authorization_scope"], "STAGE_0_REVIEW_RESUME_ONLY")

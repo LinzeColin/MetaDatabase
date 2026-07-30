@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0",
+  "lock_id": "LOCK.X2N.DOUYIN-DOWNLOADER.001",
+  "task_id": "TSK.x2n.adapters.004",
+  "integration_contract": {
+    "protocol_version": "1.0.0",
+    "health_schema": "x2n-douyin-sidecar-health-1.0",
+    "request_schema": "x2n-douyin-sidecar-request-1.0",
+    "batch_schema": "x2n-douyin-sidecar-batch-1.0",
+    "envelope_schema": "x2n-douyin-sidecar-envelope-1.0",
+    "sha256": "aee925e0064b02492580e7c2c3ab68f6f30f5d8b4e283c63f681d5764149a606",
+    "unknown_fields": "reject",
+    "missing_fields": "reject",
+    "max_items_per_owner_action": 20,
+    "max_response_bytes": 262144,
+    "automatic_pagination": false,
+    "automatic_retry": false
+  },
+  "upstream": {
+    "repository": "jiji262/douyin-downloader",
+    "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+    "tree": "ff7774b618f269fcdc750e17dc63612f159b6b46",
+    "declared_version": "2.0.0",
+    "entrypoint": "douyin-dl=cli.main:main",
+    "license": "MIT",
+    "license_sha256": "d4c3afe9b57fa1854827210b501890d45018b90cfe6780cb843f1ea5de41ae41",
+    "manifest_sha256": "4446ac9c958bbf85f31575da2f390d8cf2f7c67bae86ab201554b410a595c483",
+    "requirements_sha256": "396c09aabccaee4080581f5008086fcb653e98eead7e2e955ca1735bdb0ff853",
+    "notice_path": "THIRD_PARTY_NOTICES.md"
+  },
+  "runtime_integration": {
+    "enabled": false,
+    "bundled": false,
+    "source_copied": false,
+    "runtime_dependency": false,
+    "raw_cli_allowed": false,
+    "raw_rest_allowed": false,
+    "owner_private_sidecar_installed": false,
+    "production_status": "blocked_pending_owner_private_build_attestation",
+    "truth_source": "local_sqlite_canonical_store_only"
+  },
+  "owner_private_build_gate": {
+    "required_scope": "owner_private_build",
+    "required_digests": [
+      "executable_sha256",
+      "resolved_lock_sha256",
+      "transitive_license_report_sha256",
+      "sbom_sha256"
+    ],
+    "resolved_lock": "NOT_RUN_NO_OWNER_PRIVATE_BUILD",
+    "transitive_license_scan": "NOT_RUN_NO_OWNER_PRIVATE_BUILD",
+    "sbom": "NOT_RUN_NO_OWNER_PRIVATE_BUILD",
+    "real_execution": "NOT_RUN",
+    "missing_or_mismatch_action": "BLOCK"
+  },
+  "ci_synthetic_attestation": {
+    "scope": "ci_synthetic",
+    "executable_sha256": "01cb130abf37c86549462130cddaa701ae46802d8ef4b8eed57a338ad6230a63",
+    "resolved_lock_sha256": "e7880c594815b3d9448dfdadfc3769408756677de5b0ccf0ccb88159f0e70dc9",
+    "transitive_license_report_sha256": "1019cc80e03c5f0a42ca7b1070eb26874aabd863943410ad6fa8728fb07d4e34",
+    "sbom_sha256": "997179ffb7ccf8e400d51e1868b7a18a2285b869d1bbe9f2eb2e480a1a9a157f",
+    "production_accepted": false
+  },
+  "transports": {
+    "subprocess": {
+      "shell": false,
+      "environment": "fixed_allowlist",
+      "bounded_stdout": true,
+      "bounded_stderr": true,
+      "timeout": true
+    },
+    "rest": {
+      "host": "numeric_loopback_only",
+      "methods": ["POST"],
+      "paths": ["/x2n/v1/health", "/x2n/v1/batch"],
+      "redirects": false,
+      "bounded_body": true,
+      "timeout": true
+    }
+  },
+  "forbidden_output": [
+    "platform_media_url",
+    "credential_or_cookie",
+    "raw_metadata_or_media",
+    "upstream_database_primary_key",
+    "upstream_file_path",
+    "upstream_cursor"
+  ],
+  "rollback": "disable_douyin_likes_and_douyin_favorites_restore_this_pin"
+}

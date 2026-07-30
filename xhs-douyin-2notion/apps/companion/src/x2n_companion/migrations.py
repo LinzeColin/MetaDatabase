@@ -391,14 +391,227 @@ RELIABILITY_DOWN = (
 )
 
 
+CAPABILITY_DISPATCH_UP = (
+    """
+    CREATE TABLE capability_gate_outcome (
+        scope_id TEXT PRIMARY KEY CHECK(scope_id IN (
+            'xiaohongshu_favorites','xiaohongshu_likes','douyin_favorites','douyin_likes',
+            'bilibili_selected_collection','kuaishou_selected_collection',
+            'weibo_selected_collection','taobao_selected_collection'
+        )),
+        terminal TEXT NOT NULL CHECK(terminal IN ('READY_FOR_MVP_ACTIVATION','DISABLED_EXTERNAL_GATE')),
+        reason_code TEXT NOT NULL CHECK(reason_code IN (
+            'CI_SYNTH_READY','UNKNOWN_DISABLED','BLOCKED_POLICY','BLOCKED_AUTH',
+            'BLOCKED_BUDGET','BLOCKED_CAPABILITY'
+        )),
+        source_registry_digests TEXT NOT NULL CHECK(json_valid(source_registry_digests)),
+        feature_flag TEXT NOT NULL CHECK(feature_flag IN ('ci_synthetic_only','disabled','mvp_activation_candidate')),
+        evidence_hash TEXT NOT NULL
+            CHECK(length(evidence_hash) = 64 AND evidence_hash NOT GLOB '*[^0-9a-f]*'),
+        evaluated_at TEXT NOT NULL,
+        CHECK(
+            (terminal = 'READY_FOR_MVP_ACTIVATION' AND reason_code = 'CI_SYNTH_READY' AND feature_flag <> 'disabled')
+            OR
+            (terminal = 'DISABLED_EXTERNAL_GATE' AND reason_code <> 'CI_SYNTH_READY' AND feature_flag = 'disabled')
+        )
+    ) STRICT
+    """,
+    """
+    CREATE TABLE native_dispatch_job (
+        job_id TEXT PRIMARY KEY REFERENCES run_record(run_id),
+        scope_id TEXT NOT NULL CHECK(scope_id IN (
+            'xiaohongshu_favorites','xiaohongshu_likes','douyin_favorites','douyin_likes',
+            'bilibili_selected_collection','kuaishou_selected_collection',
+            'weibo_selected_collection','taobao_selected_collection'
+        )),
+        platform TEXT NOT NULL CHECK(platform IN ('xiaohongshu','douyin','bilibili','kuaishou','weibo','taobao')),
+        relation TEXT NOT NULL CHECK(relation IN ('liked','favorited','saved_current')),
+        adapter_name TEXT NOT NULL,
+        adapter_version TEXT NOT NULL,
+        dispatch_receipt_hash TEXT NOT NULL
+            CHECK(length(dispatch_receipt_hash) = 64 AND dispatch_receipt_hash NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL,
+        CHECK(
+            (scope_id = 'xiaohongshu_favorites' AND platform = 'xiaohongshu' AND relation = 'favorited') OR
+            (scope_id = 'xiaohongshu_likes' AND platform = 'xiaohongshu' AND relation = 'liked') OR
+            (scope_id = 'douyin_favorites' AND platform = 'douyin' AND relation = 'favorited') OR
+            (scope_id = 'douyin_likes' AND platform = 'douyin' AND relation = 'liked') OR
+            (scope_id = 'bilibili_selected_collection' AND platform = 'bilibili' AND relation = 'saved_current') OR
+            (scope_id = 'kuaishou_selected_collection' AND platform = 'kuaishou' AND relation = 'saved_current') OR
+            (scope_id = 'weibo_selected_collection' AND platform = 'weibo' AND relation = 'favorited') OR
+            (scope_id = 'taobao_selected_collection' AND platform = 'taobao' AND relation = 'saved_current')
+        )
+    ) STRICT
+    """,
+    """
+    CREATE TABLE run_failure (
+        run_id TEXT PRIMARY KEY REFERENCES run_record(run_id),
+        error_code TEXT NOT NULL CHECK(error_code = 'X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE'),
+        fallback_eligible INTEGER NOT NULL CHECK(fallback_eligible IN (0,1)),
+        provenance_hash TEXT NOT NULL
+            CHECK(length(provenance_hash) = 64 AND provenance_hash NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL
+    ) STRICT
+    """,
+    """
+    CREATE TABLE current_page_fallback (
+        current_run_id TEXT PRIMARY KEY REFERENCES run_record(run_id),
+        fallback_from_job_id TEXT NOT NULL REFERENCES native_dispatch_job(job_id),
+        created_at TEXT NOT NULL
+    ) STRICT
+    """,
+    "CREATE INDEX idx_native_dispatch_scope ON native_dispatch_job(scope_id, created_at)",
+    "CREATE INDEX idx_run_failure_eligible ON run_failure(fallback_eligible, created_at)",
+    """
+    CREATE TRIGGER run_failure_requires_failed_run
+    BEFORE INSERT ON run_failure
+    WHEN COALESCE((SELECT state FROM run_record WHERE run_id = NEW.run_id), '') <> 'failed'
+    BEGIN SELECT RAISE(ABORT, 'X2N_RUN_FAILURE_REQUIRES_FAILED_RUN'); END
+    """,
+    """
+    CREATE TRIGGER run_failure_no_update
+    BEFORE UPDATE ON run_failure
+    BEGIN SELECT RAISE(ABORT, 'X2N_RUN_FAILURE_APPEND_ONLY'); END
+    """,
+    """
+    CREATE TRIGGER run_failure_no_delete
+    BEFORE DELETE ON run_failure
+    BEGIN SELECT RAISE(ABORT, 'X2N_RUN_FAILURE_APPEND_ONLY'); END
+    """,
+    """
+    CREATE TRIGGER failed_run_with_failure_cannot_reopen
+    BEFORE UPDATE OF state ON run_record
+    WHEN OLD.state = 'failed' AND NEW.state <> 'failed'
+         AND EXISTS(SELECT 1 FROM run_failure WHERE run_id = OLD.run_id)
+    BEGIN SELECT RAISE(ABORT, 'X2N_FAILED_RUN_WITH_FAILURE_IS_TERMINAL'); END
+    """,
+)
+
+CAPABILITY_DISPATCH_DOWN = (
+    "DROP TRIGGER IF EXISTS failed_run_with_failure_cannot_reopen",
+    "DROP TRIGGER IF EXISTS run_failure_no_delete",
+    "DROP TRIGGER IF EXISTS run_failure_no_update",
+    "DROP TRIGGER IF EXISTS run_failure_requires_failed_run",
+    "DROP INDEX IF EXISTS idx_run_failure_eligible",
+    "DROP INDEX IF EXISTS idx_native_dispatch_scope",
+    "DROP TABLE current_page_fallback",
+    "DROP TABLE run_failure",
+    "DROP TABLE native_dispatch_job",
+    "DROP TABLE capability_gate_outcome",
+)
+
+
+TAXONOMY_REVISIONS_UP = (
+    """
+    CREATE TABLE taxonomy_revision (
+        revision_id TEXT PRIMARY KEY,
+        category_id TEXT NOT NULL REFERENCES taxonomy_category(category_id),
+        operation TEXT NOT NULL CHECK(operation IN ('create','update','disable','merge')),
+        actor TEXT NOT NULL CHECK(actor = 'owner'),
+        category_version INTEGER NOT NULL CHECK(category_version >= 1),
+        previous_version INTEGER CHECK(previous_version IS NULL OR previous_version >= 1),
+        merge_target_category_id TEXT REFERENCES taxonomy_category(category_id),
+        payload_json TEXT NOT NULL,
+        payload_sha256 TEXT NOT NULL
+            CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL,
+        UNIQUE(category_id, category_version),
+        CHECK(
+            (operation = 'create' AND previous_version IS NULL AND merge_target_category_id IS NULL)
+            OR
+            (operation IN ('update','disable') AND previous_version IS NOT NULL AND merge_target_category_id IS NULL)
+            OR
+            (operation = 'merge' AND previous_version IS NOT NULL AND merge_target_category_id IS NOT NULL
+                AND merge_target_category_id <> category_id)
+        ),
+        CHECK(previous_version IS NULL OR previous_version < category_version)
+    ) STRICT
+    """,
+    "CREATE INDEX idx_taxonomy_revision_category ON taxonomy_revision(category_id, category_version)",
+    "CREATE TRIGGER taxonomy_category_no_delete BEFORE DELETE ON taxonomy_category BEGIN SELECT RAISE(ABORT, 'X2N_TAXONOMY_CATEGORY_DELETE_BLOCKED'); END",
+    "CREATE TRIGGER taxonomy_revision_no_update BEFORE UPDATE ON taxonomy_revision BEGIN SELECT RAISE(ABORT, 'X2N_TAXONOMY_REVISION_APPEND_ONLY'); END",
+    "CREATE TRIGGER taxonomy_revision_no_delete BEFORE DELETE ON taxonomy_revision BEGIN SELECT RAISE(ABORT, 'X2N_TAXONOMY_REVISION_APPEND_ONLY'); END",
+)
+
+TAXONOMY_REVISIONS_DOWN = (
+    "DROP TRIGGER IF EXISTS taxonomy_revision_no_delete",
+    "DROP TRIGGER IF EXISTS taxonomy_revision_no_update",
+    "DROP TRIGGER IF EXISTS taxonomy_category_no_delete",
+    "DROP INDEX IF EXISTS idx_taxonomy_revision_category",
+    "DROP TABLE taxonomy_revision",
+)
+
+
+LIFECYCLE_TOMBSTONES_UP = (
+    """
+    CREATE TABLE lifecycle_state (
+        state_id INTEGER PRIMARY KEY CHECK(state_id = 1),
+        deletion_epoch INTEGER NOT NULL CHECK(deletion_epoch >= 0),
+        durability_state TEXT NOT NULL CHECK(durability_state IN ('durability_pending','durability_verified')),
+        latest_manifest_sha256 TEXT
+            CHECK(latest_manifest_sha256 IS NULL OR (length(latest_manifest_sha256) = 64
+                AND latest_manifest_sha256 NOT GLOB '*[^0-9a-f]*')),
+        updated_at TEXT NOT NULL
+    ) STRICT
+    """,
+    """
+    INSERT INTO lifecycle_state(state_id, deletion_epoch, durability_state, latest_manifest_sha256, updated_at)
+    VALUES (1, 0, 'durability_pending', NULL, '1970-01-01T00:00:00Z')
+    """,
+    """
+    CREATE TABLE lifecycle_tombstone (
+        tombstone_id TEXT PRIMARY KEY,
+        target_kind TEXT NOT NULL CHECK(target_kind IN ('content','relation','sink','runtime')),
+        target_key_private TEXT NOT NULL,
+        target_key_sha256 TEXT NOT NULL
+            CHECK(length(target_key_sha256) = 64 AND target_key_sha256 NOT GLOB '*[^0-9a-f]*'),
+        deletion_epoch INTEGER NOT NULL CHECK(deletion_epoch >= 1),
+        payload_json TEXT NOT NULL,
+        payload_sha256 TEXT NOT NULL
+            CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'),
+        created_at TEXT NOT NULL,
+        UNIQUE(target_kind, target_key_private),
+        UNIQUE(deletion_epoch)
+    ) STRICT
+    """,
+    "CREATE INDEX idx_lifecycle_tombstone_epoch ON lifecycle_tombstone(deletion_epoch)",
+    """
+    CREATE TRIGGER lifecycle_epoch_monotonic
+    BEFORE UPDATE OF deletion_epoch ON lifecycle_state
+    WHEN NEW.deletion_epoch < OLD.deletion_epoch
+    BEGIN SELECT RAISE(ABORT, 'X2N_DELETION_EPOCH_REGRESSION'); END
+    """,
+    """
+    CREATE TRIGGER lifecycle_tombstone_no_update
+    BEFORE UPDATE ON lifecycle_tombstone
+    BEGIN SELECT RAISE(ABORT, 'X2N_LIFECYCLE_TOMBSTONE_APPEND_ONLY'); END
+    """,
+    """
+    CREATE TRIGGER lifecycle_tombstone_no_delete
+    BEFORE DELETE ON lifecycle_tombstone
+    BEGIN SELECT RAISE(ABORT, 'X2N_LIFECYCLE_TOMBSTONE_APPEND_ONLY'); END
+    """,
+)
+
+LIFECYCLE_TOMBSTONES_DOWN = (
+    "DROP TRIGGER IF EXISTS lifecycle_tombstone_no_delete",
+    "DROP TRIGGER IF EXISTS lifecycle_tombstone_no_update",
+    "DROP TRIGGER IF EXISTS lifecycle_epoch_monotonic",
+    "DROP INDEX IF EXISTS idx_lifecycle_tombstone_epoch",
+    "DROP TABLE lifecycle_tombstone",
+    "DROP TABLE lifecycle_state",
+)
+
+
 MIGRATIONS = (
     Migration(1, "canonical_core", CORE_UP, CORE_DOWN),
     Migration(2, "reliability_outbox_and_leases", RELIABILITY_UP, RELIABILITY_DOWN),
+    Migration(3, "capability_dispatch_and_failure_recovery", CAPABILITY_DISPATCH_UP, CAPABILITY_DISPATCH_DOWN),
+    Migration(4, "owner_taxonomy_revisions", TAXONOMY_REVISIONS_UP, TAXONOMY_REVISIONS_DOWN),
+    Migration(5, "lifecycle_tombstones_and_durability", LIFECYCLE_TOMBSTONES_UP, LIFECYCLE_TOMBSTONES_DOWN),
 )
 LATEST_SCHEMA_VERSION = MIGRATIONS[-1].version
-MIGRATION_SET_SHA256 = hashlib.sha256(
-    "\n".join(item.checksum for item in MIGRATIONS).encode("ascii")
-).hexdigest()
+MIGRATION_SET_SHA256 = hashlib.sha256("\n".join(item.checksum for item in MIGRATIONS).encode("ascii")).hexdigest()
 
 
 def ensure_migration_table(connection: sqlite3.Connection) -> None:
@@ -422,9 +635,7 @@ def ensure_migration_table(connection: sqlite3.Connection) -> None:
 def current_version(connection: sqlite3.Connection) -> int:
     ensure_migration_table(connection)
     pragma = int(connection.execute("PRAGMA user_version").fetchone()[0])
-    rows = connection.execute(
-        "SELECT version, name, checksum FROM schema_migration ORDER BY version"
-    ).fetchall()
+    rows = connection.execute("SELECT version, name, checksum FROM schema_migration ORDER BY version").fetchall()
     expected = [(item.version, item.name, item.checksum) for item in MIGRATIONS if item.version <= pragma]
     actual = [(int(row[0]), str(row[1]), str(row[2])) for row in rows]
     if actual != expected:

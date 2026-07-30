@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.3",
+  "review_id": "STG.X2N.3.REVIEW.RESUME.RECHECK",
+  "run_id": "RUN-X2N-S03-REVIEW-RESUME-RECHECK",
+  "recheck_base_commit": "c528ff14836f116f624fa8b1ea63472a7f4b678f",
+  "gate": {
+    "id": "G3",
+    "status": "PASS_CI_SYNTH",
+    "decision": "PASS",
+    "pass_conditions": {
+      "eight_scope_extension_native_adapter_dispatch": "PASS_CI_SYNTH_EIGHT_SCOPES_PLATFORM_CALLS_0",
+      "complete_capability_snapshot_and_technical_veto": "PASS_CI_SYNTH_EIGHT_ROWS_TECHNICAL_VETO_NO_LEGAL_TERMINAL",
+      "checkpoint_resume_and_restart_reconciliation": "PASS_CI_SYNTH_COMPANION_AND_EXTENSION_RECONCILED",
+      "no_empty_response_deletion": "PASS_CI_SYNTH_EMPTY_NONAUTHORITATIVE_CONTENT_AUTO_DELETE_0",
+      "failed_run_and_single_explicit_fallback": "PASS_CI_SYNTH_FAILED_RUN_SANITIZED_FAILURE_SECOND_OWNER_ACTION",
+      "zero_automatic_fallbacks": "PASS_CI_SYNTH_AUTOMATIC_FALLBACKS_0"
+    }
+  },
+  "historical_contracts": {
+    "first_stage_3_review": {
+      "path": "machine/facts/stage_3_gate_state.json",
+      "sha256": "0243a478273de9bda16803e7311ef56c7e461c2bc3b8c871c5d2c1c87cdd6772",
+      "immutable": true
+    },
+    "resume_contract": {
+      "path": "machine/facts/stage_3_review_resume_state.json",
+      "sha256": "d9ba689978bb03525676484252e8453f75a589f7f3e97a0e6a18232de4d1d8f1",
+      "immutable": true
+    }
+  },
+  "task_receipts": {
+    "task010": {
+      "task_id": "TSK.x2n.adapters.010",
+      "final_commit": "c528ff14836f116f624fa8b1ea63472a7f4b678f",
+      "evidence_path": "evidence/adapters/TSK.x2n.adapters.010.json",
+      "evidence_sha256": "285095437aad1a6e0c8589a2e3f65da1d611733d2010abd62f3a2693a6a5cee3",
+      "status": "PASS_CI_SYNTH_SCOPED_REVIEW_PENDING"
+    },
+    "task005": {
+      "task_id": "TSK.x2n.adapters.005",
+      "acceptance_scope": "ADAPTERS_005_RELATION_RECONCILIATION_CI_SYNTH",
+      "status": "PASS_CI_SYNTH_SCOPED"
+    }
+  },
+  "execution": {
+    "evidence_class": "INDEPENDENT_LOCAL_CI_SYNTH_REPLAY",
+    "platform_calls": 0,
+    "real_account_execution": "NOT_RUN",
+    "owner_profile_login": "NOT_RUN",
+    "notion_real_calls": 0,
+    "model_calls": 0,
+    "media_processing": "NOT_RUN",
+    "stage_3_remote_upload": "NOT_RUN"
+  },
+  "authorization": {
+    "new_dag_task_executed": false,
+    "stage_3_remote_upload": false,
+    "stage_4_local_task_start": true,
+    "public_release": false,
+    "deployment": false
+  },
+  "next_task": {
+    "id": "TSK.x2n.multimodal.001",
+    "phase": "PH.X2N.4.1",
+    "status": "PLANNED",
+    "real_platform_calls": 0
+  },
+  "release_policy": {
+    "alpha_beta": "PROHIBITED",
+    "fixed_health_observation": "PROHIBITED",
+    "fixed_soak": "PROHIBITED",
+    "post_go_live_monitoring": "NON_BLOCKING_FIX_DEGRADE_OR_ROLLBACK_TRIGGER"
+  }
+}

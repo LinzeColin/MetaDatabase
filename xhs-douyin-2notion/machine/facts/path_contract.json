@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "contract_id": "PATH.X2N.001",
   "root_ref": "X2N_DATA_ROOT",
   "required_basename": "xhs-douyin-2notion",
@@ -7,6 +7,50 @@
   "owner_download_destination_ref": "X2N_DOWNLOAD_DESTINATION",
   "owner_download_destination_required_basename": "MediaCrawler",
   "owner_namespace": "xhs-douyin-2notion",
+  "local_root_role": "ephemeral_execution_download_and_active_sqlite_working_copy",
+  "canonical_truth_semantics": "active_sqlite_is_logical_truth_private_metadatabase_verified_snapshot_is_durable_recovery_copy",
+  "durable_data_repository": "LinzeColin/Private-Database",
+  "durable_data_area": "Private-MetaDatabase",
+  "durable_data_domain": "xhs-douyin-2notion",
+  "durable_data_client": "KMOS/KMDatabase/machine/tools/private_db_client.py",
+  "durable_client_operations": [
+    "ingest",
+    "get",
+    "list",
+    "verify"
+  ],
+  "durable_object_model": "content_addressed_objects_with_global_manifest_domain_field",
+  "raw_sqlite_db_upload": "forbidden_by_client",
+  "sqlite_snapshot_packaging": "consistent_snapshot_in_non_running_archive_with_restore_manifest_and_sha256_chunks",
+  "archival_chunk_max_bytes": 94371840,
+  "client_object_hard_limit_bytes": 99614720,
+  "project_verification": "exact_domain_rows_then_get_hash_reassemble_and_sqlite_integrity",
+  "client_verify_exit_semantics": "area_global_verify_redacted_advisory_not_x2n_gate",
+  "other_domain_isolation": "other_domain_missing_nonblocking_zero_path_disclosure",
+  "global_manifest_sha_idempotency_mitigation": "domain_bound_chunk_envelope",
+  "durable_object_name_policy": "opaque_no_title_content_id_account_identity_or_source_url",
+  "temporary_get_output_policy": "mode_0600_delete_after_hash_reassembly_or_restore",
+  "private_db_auth": "owner_authorized_existing_gh_session_client_only_no_token_value_or_auth_mutation",
+  "client_commands_allowed": [
+    "ingest",
+    "get",
+    "list",
+    "verify"
+  ],
+  "client_commands_forbidden": [
+    "put",
+    "delete"
+  ],
+  "private_database_clone": "forbidden",
+  "durable_asset_classes": [
+    "sqlite_snapshot",
+    "canonical_jsonl_export",
+    "markdown_export",
+    "notion_export_receipt",
+    "runtime_snapshot",
+    "evidence_receipt"
+  ],
+  "durability_before_verified_receipt": "durability_pending",
   "source_taskpack_absolute_path_status": "unspecified_owner_resolved",
   "existing_destination_entries_policy": "preserve_metadata_only_audit_no_content_read_no_import_no_link_no_write_no_delete",
   "existing_destination_metadata_audit": "aggregate_count_and_fingerprint_no_names_in_evidence",
@@ -53,18 +97,11 @@
     "runtime/provider_cache"
   ],
   "time_machine_excluded": [
-    "downloads",
-    "runtime/temp_media",
-    "runtime/browser_profiles",
-    "runtime/provider_cache",
-    "runtime/logs",
-    "runtime/diagnostics"
+    "."
   ],
-  "time_machine_included": [
-    "runtime/canonical",
-    "runtime/library",
-    "runtime/backups"
-  ],
+  "time_machine_included": [],
+  "time_machine_semantics": "entire_x2n_data_root_excluded_only_private_metadatabase_verified_receipt_is_durable",
+  "time_machine_implementation_state": "planned_task_uxops_005_not_claimed_current",
   "legacy_import": "forbidden_without_separate_run_contract",
   "repo_absolute_path_policy": "forbidden"
 }

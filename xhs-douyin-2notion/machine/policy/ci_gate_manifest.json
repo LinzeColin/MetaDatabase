@@ -7,17 +7,8 @@
   "credentials_required": false,
   "blocking_checks_may_skip": false,
   "nonblocking_optional_skips": {
-    "per_repetition": 3,
-    "reasons": [
-      {
-        "count_per_repetition": 2,
-        "reason": "owner-private root is intentionally absent in public CI"
-      },
-      {
-        "count_per_repetition": 1,
-        "reason": "private source snapshots are intentionally absent in public CI"
-      }
-    ]
+    "per_repetition": 0,
+    "reasons": []
   },
   "toolchain": {
     "python": "3.12",
@@ -87,6 +78,7 @@
     "fusion": false,
     "classification": false,
     "automatic_classification": false,
+    "vision": false,
     "automatic_classification_gate": "ACC.x2n.ai.006"
   },
   "release": {

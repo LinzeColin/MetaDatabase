@@ -43,9 +43,13 @@ class Foundation001Tests(unittest.TestCase):
             if key.startswith("node_modules/") and metadata.get("link") is not True
         ]
         registry_names = {key.removeprefix("node_modules/") for key in registry_packages}
-        typescript_names = {name for name in registry_names if name == "typescript" or name.startswith("@typescript/typescript-")}
+        typescript_names = {
+            name for name in registry_names if name == "typescript" or name.startswith("@typescript/typescript-")
+        }
         self.assertEqual(len(typescript_names), 21)
-        self.assertEqual(registry_names, typescript_names | {"@playwright/test", "playwright", "playwright-core", "fsevents"})
+        self.assertEqual(
+            registry_names, typescript_names | {"@playwright/test", "playwright", "playwright-core", "fsevents"}
+        )
         scripted = {
             key.removeprefix("node_modules/")
             for key in registry_packages

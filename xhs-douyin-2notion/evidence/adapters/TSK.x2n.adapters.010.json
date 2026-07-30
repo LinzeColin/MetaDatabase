@@ -1,0 +1,83 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.batch.002",
+    "ACC.x2n.ext.003",
+    "ACC.x2n.batch.001"
+  ],
+  "acceptance_input_sha256": "02bc30cd4804dbfcf070ce67d25fc5ae657592d584e0bdbe563aa2fca369f999",
+  "automatic_fallbacks": 0,
+  "checks": [
+    {
+      "details": {
+        "changed_files": 43,
+        "platform_cdn_urls": 0,
+        "runtime_data_files": 0
+      },
+      "name": "scope_and_public_private_boundary",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "main_x2n_dirty_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "current_task": "pass",
+        "historical_resume_task": "PLANNED",
+        "stage_gate": "review_pending"
+      },
+      "name": "task_state_and_historical_resume_boundary",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "capability_outcomes": 8,
+        "migration_version": 3,
+        "technical_terminal_outcomes": 0
+      },
+      "name": "eight_scope_contract_capability_authority_and_migration",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "drift_files": 0
+      },
+      "name": "generated_schema_and_typescript_contracts",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "platform_calls": 0,
+        "python_tests": 47,
+        "scope_dispatches": 8
+      },
+      "name": "extension_native_adapter_failure_fallback_and_restart_acceptance",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-28T07:23:14Z",
+  "owner_alpha": "NOT_RUN",
+  "owner_beta": "NOT_RUN",
+  "owner_profile_login": "NOT_RUN",
+  "phase": "PH.X2N.3.10",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "real_account_execution": "NOT_RUN",
+  "run_id": "RUN-X2N-S03-A010",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.3",
+  "stage_3_upload": "FORBIDDEN_PENDING_INDEPENDENT_G3_REVIEW",
+  "stage_4": "UNAUTHORIZED_PENDING_INDEPENDENT_G3_REVIEW",
+  "status": "PASS_CI_SYNTH_SCOPED_REVIEW_PENDING",
+  "task_id": "TSK.x2n.adapters.010",
+  "task_metrics": {
+    "capability_scope_rows": 8,
+    "failed_run_state": "verified_by_unit_acceptance",
+    "platform_calls": 0,
+    "scope_dispatches": 8,
+    "synthetic_only": true
+  }
+}

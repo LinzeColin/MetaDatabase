@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.4",
+  "review_id": "STG.X2N.4.REVIEW",
+  "run_id": "RUN-X2N-S04-REVIEW",
+  "review_base_commit": "81a8bb7804b968f0cfa4a972c8ed5cfbfce540ae",
+  "gate": {
+    "id": "G4",
+    "status": "PASS_CI_SYNTH",
+    "decision": "PASS",
+    "pass_conditions": {
+      "asr_ocr_vision_fusion_reports_exist": "PASS_CI_SYNTH_TASK002_TASK003_TASK004_RECEIPTS",
+      "prompt_injection_suite_passes": "PASS_CI_SYNTH_TASK004",
+      "ai_cannot_mutate_taxonomy": "PASS_CI_SYNTH_TASK005_OWNER_ONLY_REGISTRY",
+      "automatic_classification_remains_off_unless_precision_gate_passes": "PASS_DISABLED_PENDING_PRIVATE_GOLD"
+    }
+  },
+  "task_receipts": {
+    "TSK.x2n.multimodal.001": {
+      "phase": "PH.X2N.4.1",
+      "task_commit": "e8e026833a6ed052d5366794f123c2f7916c5369",
+      "evidence_commit": "db902304ef4231fa78f1e84109938511cac9b046",
+      "evidence_path": "evidence/multimodal/TSK.x2n.multimodal.001.json",
+      "evidence_sha256": "86043312c69b37077c5fe8f15d1aaa454797c30f0fd3b94a43d5fba6e4942dc2",
+      "source_receipt_sha256": "6f65cb4b61e42cc1f278e20816772237f1faf5b80af4f0242e73f32d71982297",
+      "status": "PASS_CI_SYNTH_SCOPED"
+    },
+    "TSK.x2n.multimodal.002": {
+      "phase": "PH.X2N.4.2",
+      "task_commit": "e16c5e3c0b145c9ff75a87b1ed3cf1c7bfa67c63",
+      "evidence_commit": "60f03caa39cc2accc6e1304c743f041c84122b8c",
+      "evidence_path": "evidence/models/TSK.x2n.multimodal.002.json",
+      "evidence_sha256": "039150bbcd4a466ecd4a084e03811dacaa5afac09ece3eb0e0caab4018a44fa7",
+      "source_receipt_sha256": "30080951c307326433620fb6526f2885f39aceffafe7584fc63200a5028ec0f3",
+      "status": "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
+    },
+    "TSK.x2n.multimodal.003": {
+      "phase": "PH.X2N.4.3",
+      "task_commit": "1886bb525cfb7228b335f59f9e8ba772dc547d9a",
+      "evidence_commit": "85e26fb3c85f72f848c784cb8ad615f57b79c8fd",
+      "evidence_path": "evidence/models/TSK.x2n.multimodal.003.json",
+      "evidence_sha256": "254631d4e72c29a4e356dc301804b33c61ed1e11d8451c2c65934a4b4a8fac78",
+      "source_receipt_sha256": "9d50895a8a5d18f2517ccefc138abc3d31d0c91bafceb8b91b31ae5350be6713",
+      "status": "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
+    },
+    "TSK.x2n.multimodal.004": {
+      "phase": "PH.X2N.4.4",
+      "task_commit": "439dbb587972690a4a2fce79515ff4396dd3e970",
+      "evidence_commit": "0c2eb423c3dffea8a5305d3ce0640c7abb7935b4",
+      "evidence_path": "evidence/models/TSK.x2n.multimodal.004.json",
+      "evidence_sha256": "e104f2c58a34afac50e3e7e8266e4a0105f6f8ef75053f5ffc9df6e8bf2912c8",
+      "source_receipt_sha256": "de39d9e51f340e313d03e4fce2650a7db3767c35dbfd8debb1eb29da899c707e",
+      "status": "PASS_CI_SYNTH_SCOPED_FUSION_MODEL_NOT_RUN"
+    },
+    "TSK.x2n.multimodal.005": {
+      "phase": "PH.X2N.4.5",
+      "task_commit": "55474c16ba333c9cd1ab63dc505906ef93382ed6",
+      "evidence_commit": "81a8bb7804b968f0cfa4a972c8ed5cfbfce540ae",
+      "evidence_path": "evidence/models/TSK.x2n.multimodal.005.json",
+      "evidence_sha256": "7448f37bb2b9146b095c1bd1cd820c97a8447c066c8370aa1d8a58c642c856b7",
+      "source_receipt_sha256": "a7858b2c70e61d37483fc39d4c51e0f333c88f8eb47874466ea9659c65d6cfe9",
+      "status": "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING"
+    }
+  },
+  "execution": {
+    "evidence_class": "INDEPENDENT_LOCAL_CI_SYNTH_REVIEW",
+    "platform_calls": 0,
+    "real_account_execution": "NOT_RUN",
+    "owner_profile_login": "NOT_RUN",
+    "notion_real_calls": 0,
+    "model_calls": 0,
+    "private_gold_evaluation": "NOT_RUN",
+    "automatic_classification_writes": 0,
+    "stage_4_remote_upload": "NOT_RUN",
+    "deployment": "NOT_RUN"
+  },
+  "authorization": {
+    "new_dag_task_executed": false,
+    "stage_4_remote_upload": false,
+    "stage_5_local_task_start": true,
+    "public_release": false,
+    "deployment": false
+  },
+  "next_task": {
+    "id": "TSK.x2n.uxops.001",
+    "phase": "PH.X2N.5.1",
+    "status": "PLANNED",
+    "real_platform_calls": 0
+  },
+  "release_policy": {
+    "alpha_beta": "PROHIBITED",
+    "fixed_health_observation": "PROHIBITED",
+    "fixed_soak": "PROHIBITED",
+    "post_go_live_monitoring": "NON_BLOCKING_FIX_DEGRADE_OR_ROLLBACK_TRIGGER"
+  }
+}

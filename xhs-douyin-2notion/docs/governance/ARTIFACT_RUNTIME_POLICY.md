@@ -40,8 +40,25 @@ X2N_DATA_ROOT/
 - Root 与目录：Owner-only（POSIX `0700`）；marker：`0600`。
 - Root 禁止 Spotlight 索引。
 - macOS 可能在私有根生成根级 `.DS_Store`；仅允许普通文件、Owner-only `0600`、不超过 64 KiB，且它不属于产品数据或证据。
-- `downloads/`、`runtime/temp_media/`、`runtime/browser_profiles/`、`runtime/provider_cache/`、`runtime/logs/`、`runtime/diagnostics/` 排除 Time Machine。
-- `runtime/canonical/`、`runtime/library/` 与 `runtime/backups/` 不自动排除；后续 Stage 必须验证可恢复备份，不能用同盘副本冒充灾备。
+- 目标策略是整个 `X2N_DATA_ROOT` 排除 Time Machine；任何子路径都不能作为第二耐久目的地，
+  Private-MetaDatabase 的已验证 receipt 才能满足 durability/Release Gate。
+- 当前只完成合同版本化，系统设置仍是历史逐子目录状态；不得声称整根已排除。
+  `TSK.x2n.uxops.005` 必须在 Owner 明确授权后记录 pre-state、执行 macOS
+  `tmutil addexclusion`、复验根和全部 required subpath，并保留前态/显式回滚证据。失败时保持
+  exclusion 是更安全的状态；只有新的 Owner 动作才能回滚。非 macOS 或控制不可用时标记
+  `UNSUPPORTED_OS_BACKUP_CONTROL` 并 Fail Closed。
+
+## 耐久恢复与删除
+
+- `Private-MetaDatabase` manifest/`verify` 是 area-global。x2n 只以精确
+  `domain=xhs-douyin-2notion` 行及逐对象 `get`/hash/reassemble/SQLite integrity 作为 durability
+  Gate；area-global `verify` 只可生成不含路径/名称的 advisory。其他 domain 缺对象不阻断 x2n，
+  x2n domain 缺对象必须 Fail Closed。
+- x2n 禁止 Private-Database `put/delete`。本项目的删除只作用于 active SQLite 和派生 Sink，并在
+  最新 restore manifest 记录单调 `deletion_epoch` 与逻辑 tombstone；恢复拒绝旧 epoch、重放当前
+  tombstone，防止 retained history 复活内容。
+- durable hard erase 不属于本项目可声称的能力，状态固定为
+  `UNSUPPORTED_OWNER_PRIVATE_DB_GOVERNANCE_REQUIRED`。本地 runtime wipe 不能冒充耐久删除。
 
 ## Git Allowlist
 

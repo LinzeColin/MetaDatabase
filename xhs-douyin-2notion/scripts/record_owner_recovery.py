@@ -51,7 +51,10 @@ def resolve_private_root(value: Optional[str] = None) -> Path:
     raw_value = value if value is not None else os.environ.get("X2N_DATA_ROOT")
     _require(bool(raw_value), "X2N_DATA_ROOT is required")
     raw_root = Path(str(raw_value)).expanduser()
-    _require(raw_root.exists() and raw_root.is_dir() and not raw_root.is_symlink(), "private root is missing, invalid or symlinked")
+    _require(
+        raw_root.exists() and raw_root.is_dir() and not raw_root.is_symlink(),
+        "private root is missing, invalid or symlinked",
+    )
     root = raw_root.resolve()
     _require(root.name == "xhs-douyin-2notion", "private root basename mismatch")
     _require(stat.S_IMODE(root.stat().st_mode) == 0o700, "private root must be 0700")
@@ -102,7 +105,10 @@ def build_receipt(action: str, owner_confirmation: str, now: Optional[datetime] 
 def write_receipt(root: Path, receipt: dict[str, Any]) -> Path:
     destination = root / RECEIPT_RELATIVE
     _require(destination.parent.resolve() == (root / "runtime").resolve(), "receipt path escaped private runtime")
-    _require(not destination.exists() and not destination.is_symlink(), "recovery receipt already exists; refusing to overwrite")
+    _require(
+        not destination.exists() and not destination.is_symlink(),
+        "recovery receipt already exists; refusing to overwrite",
+    )
     payload = (json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
     _require(len(payload) <= 4096, "recovery receipt exceeds size limit")
 
@@ -138,17 +144,22 @@ def main() -> int:
         root = resolve_private_root()
         receipt = build_receipt(args.action, args.owner_confirmation)
         write_receipt(root, receipt)
-        print(json.dumps({
-            "status": "RECORDED",
-            "incident_id": INCIDENT_ID,
-            "receipt_ref": RECEIPT_RELATIVE.as_posix(),
-            "recovery_action": args.action,
-            "contains_secret_values": False,
-            "authorizes": "STAGE_0_REVIEW_RESUME_ONLY",
-            "g0_status": "BLOCKED_PENDING_REVIEW_RESUME",
-            "stage_1_authorized": False,
-            "remote_upload_authorized": False,
-        }, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": "RECORDED",
+                    "incident_id": INCIDENT_ID,
+                    "receipt_ref": RECEIPT_RELATIVE.as_posix(),
+                    "recovery_action": args.action,
+                    "contains_secret_values": False,
+                    "authorizes": "STAGE_0_REVIEW_RESUME_ONLY",
+                    "g0_status": "BLOCKED_PENDING_REVIEW_RESUME",
+                    "stage_1_authorized": False,
+                    "remote_upload_authorized": False,
+                },
+                sort_keys=True,
+            )
+        )
         return 0
     except (OSError, ValueError, json.JSONDecodeError, RecoveryRecordError) as exc:
         print(json.dumps({"status": "FAIL_CLOSED", "error": _safe_error(exc)}, sort_keys=True), file=sys.stderr)

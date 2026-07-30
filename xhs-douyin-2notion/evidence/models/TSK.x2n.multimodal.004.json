@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TSK.x2n.multimodal.004",
+  "phase": "PH.X2N.4.4",
+  "run_id": "RUN-X2N-S04-M004",
+  "status": "PASS_CI_SYNTH_SCOPED_FUSION_MODEL_NOT_RUN",
+  "task_commit": "439dbb587972690a4a2fce79515ff4396dd3e970",
+  "source_receipt_sha256": "de39d9e51f340e313d03e4fce2650a7db3767c35dbfd8debb1eb29da899c707e",
+  "acceptance_status": {
+    "ACC.x2n.ai.004": "PASS_CI_SYNTH_FUSION_SCHEMA_INJECTION_ISOLATION_MODEL_NOT_RUN",
+    "ACC.x2n.ai.007": "PASS_CI_SYNTH_TASK004_PROVENANCE_CACHE_BUDGET_CLOUD_ZERO"
+  },
+  "execution": {
+    "platform_calls": 0,
+    "model_calls": 0,
+    "tool_calls": 0,
+    "file_reads": 0,
+    "network_calls": 0,
+    "config_writes": 0,
+    "secret_reads": 0,
+    "cloud_uploads": 0,
+    "notion_calls": 0,
+    "real_account_execution": "NOT_RUN",
+    "owner_profile_login": "NOT_RUN",
+    "real_platform_media": "NOT_RUN"
+  },
+  "metrics": {
+    "synthetic_unit_tests": 12,
+    "same_input_duplicate_model_calls": 0,
+    "cloud_cost_microunits": 0,
+    "url_uploads": 0
+  },
+  "policy": {
+    "cloud_provider": "DISABLED",
+    "fusion_text_persisted": false,
+    "raw_media_persisted": false,
+    "raw_media_url_persisted": false,
+    "top_level_category_mutations": 0,
+    "local_paths_emitted": false
+  }
+}

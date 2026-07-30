@@ -30,9 +30,7 @@ class Phase05Tests(unittest.TestCase):
     def test_platform_tasks_are_historically_planned_and_may_progress_with_pass_state(self) -> None:
         historical = VERIFY._load_yaml_unique_at(VERIFY.PHASE_FINAL_COMMIT, VERIFY.TASKPACK)
         historical_by_id = {item["id"]: item for item in historical["tasks"]}
-        self.assertTrue(
-            all(historical_by_id[task_id]["status"] == "planned" for task_id in VERIFY.NEW_PLATFORM_TASKS)
-        )
+        self.assertTrue(all(historical_by_id[task_id]["status"] == "planned" for task_id in VERIFY.NEW_PLATFORM_TASKS))
         current = VERIFY._load_yaml_unique(VERIFY.TASKPACK)
         current_by_id = {item["id"]: item for item in current["tasks"]}
         state = VERIFY._load_json(VERIFY.TASK_STATE)
@@ -56,10 +54,14 @@ class Phase05Tests(unittest.TestCase):
         self.assertFalse(boundary["output_ingest_allowed"])
 
     def test_synthetic_fixture_has_attack_coverage(self) -> None:
-        fixture = json.loads((PROJECT_ROOT / "machine/fixtures/stage_0_governance_cases.json").read_text(encoding="utf-8"))
+        fixture = json.loads(
+            (PROJECT_ROOT / "machine/fixtures/stage_0_governance_cases.json").read_text(encoding="utf-8")
+        )
         self.assertEqual(len(fixture["cases"]), 50)
         categories = {item["category"] for item in fixture["cases"]}
-        self.assertTrue({"platform", "network", "media", "ipc", "privacy", "ai", "license", "release"}.issubset(categories))
+        self.assertTrue(
+            {"platform", "network", "media", "ipc", "privacy", "ai", "license", "release"}.issubset(categories)
+        )
         self.assertTrue(fixture["synthetic_only"])
         self.assertFalse(fixture["real_accounts"])
         by_id = {item["id"]: item for item in fixture["cases"]}
@@ -67,7 +69,9 @@ class Phase05Tests(unittest.TestCase):
         self.assertEqual(by_id["GOV-050"]["expected_decision"], "reject_product_adapter")
 
     def test_owner_taxonomy_and_media_are_fail_closed_in_schema(self) -> None:
-        schema = json.loads((PROJECT_ROOT / "machine/schemas/owner_input_contract.schema.json").read_text(encoding="utf-8"))
+        schema = json.loads(
+            (PROJECT_ROOT / "machine/schemas/owner_input_contract.schema.json").read_text(encoding="utf-8")
+        )
         taxonomy = schema["properties"]["taxonomy"]["properties"]
         media = schema["properties"]["media_retention"]["properties"]
         self.assertFalse(taxonomy["ai_may_create_top_level"]["const"])
@@ -116,12 +120,14 @@ class Phase05Tests(unittest.TestCase):
 
     def test_parent_index_exception_allows_only_the_exact_project_rename(self) -> None:
         legacy = "xiao" + "hongshu-douyin-2notion"
-        valid = "\n".join([
-            "--- a/README.md",
-            "+++ b/README.md",
-            f"-| {legacy} | stage | description |",
-            "+| xhs-douyin-2notion | stage | description |",
-        ])
+        valid = "\n".join(
+            [
+                "--- a/README.md",
+                "+++ b/README.md",
+                f"-| {legacy} | stage | description |",
+                "+| xhs-douyin-2notion | stage | description |",
+            ]
+        )
         VERIFY._validate_parent_index_diff(valid)
         with self.assertRaises(VERIFY.VerificationError):
             VERIFY._validate_parent_index_diff(valid + "\n+unexpected")

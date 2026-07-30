@@ -1,5 +1,231 @@
 # Changelog
 
+## v0.0.0.1 — Stage 6 / Assurance004
+
+- 完成 `TSK.x2n.assurance.004 / PH.X2N.6.4` 的隔离性能、压力、混沌与恢复 Campaign：100 次 Extension Worker restart、100 项 XHS/50 kill、媒体 lease cleanup、Notion Mock 429/529/outage/receipt reconcile、十阶段 recovery、六个核心破坏边界各 10 Seed、20/80/1k/10k Markdown rebuild 和 100 条 burst replay 全部通过。
+- Campaign 只使用临时 `MediaCrawler/xhs-douyin-2notion` 根和新建浏览器 Profile；公开回执不保存 trace、截图、临时数据库、绝对路径、Secret、Cookie、平台 CDN URL 或 Owner 内容。本机 benchmark 只验证相对增长和内存 guard，不声明通用耗时 SLA。
+- 仅授权最终单 Task `TSK.x2n.assurance.005 / PH.X2N.6.5`；没有 Alpha/Beta、固定观察或 soak。真实 Owner 激活、回滚、部署、运行和 online smoke 仍全部位于该 Task 内。
+
+## v0.0.0.1 — Stage 6 / Assurance003
+
+- 完成 `TSK.x2n.assurance.003 / PH.X2N.6.3` 的安全、隐私、许可证与供应链 CI-synth gate：当前源码/fixture、SAST、SBOM 33 components、license unknown=0、匿名 OSV 33 dependencies、CSP、SSRF/media、active nomenclature 与两次确定性候选制品均通过。
+- 公开回执只含聚合结果：current source/candidate artifact private/CDN 为零、历史 credential/authenticated-remote aggregate 为零；执行环境不继承认证变量，不读取、显示或修改共享认证材料。
+- 仅授权下一单 `TSK.x2n.assurance.004 / PH.X2N.6.4`；无 Alpha/Beta、固定观察或 soak，真实 MVP deploy/run/online smoke 仍只在 assurance.005。
+
+## v0.0.0.1 — Stage 6 / Assurance002
+
+- 完成 `TSK.x2n.assurance.002 / PH.X2N.6.2` 的模型安全与 System Card gate：私有 Gold 没有被读取，四个缺失 Gold eval 入口均 Fail Closed，38 个 ASR/OCR/Vision/Fusion/Taxonomy 合成合同与 provenance/cache/budget/cloud-zero 控制通过。
+- ASR/OCR/Vision/Fusion 均显式 disabled；Classification 保持 suggestion-only，`auto_classify=false`。这不是模型质量通过或私有 Gold 结果，模型、平台、网络、账号与外部写入均为 0/NOT_RUN。
+- 仅授权下一单 `TSK.x2n.assurance.003 / PH.X2N.6.3`；无 Alpha/Beta、固定观察或 soak，真实 MVP deploy/run/online smoke 仍只在 assurance.005。
+
+## v0.0.0.1 — Stage 6 / Assurance001
+
+- 完成 TSK.x2n.assurance.001 / PH.X2N.6.1 的当前软件 CI-synth assurance：全树 format/lint/compile/TypeScript、Companion/Contract、browser E2E、风险覆盖与 source scan 均为 blocking pass。
+- 复验 80x2/100 concurrent 的跨层 Canonical→Artifact→Markdown→Notion Mock/Outbox 幂等，10,000 migration/backup/rollback，七个 fresh-copy Skill lifecycle rehearsal，以及两个关键不变量 mutation；重复、data loss、unreadable record、runtime write 和 platform call 均为 0。
+- 新增固定 G5 历史 replay、Assurance001 Run Contract/state/schema/fail-closed verifier 与公开脱敏证据。当前 Task 只授权下一单 TSK.x2n.assurance.002；无 Alpha/Beta、固定观察或 soak，真实 MVP deploy/run/online smoke 仍只在 assurance.005。
+
+## v0.0.0.1 — Stage 5 / G5 Review
+
+- 独立签发 `G5=PASS_CI_SYNTH`：固定 Stage 5 Task001–005 receipt，复跑 G4 preservation、Notion Mock/outbox reconcile、10,000-item Markdown rebuild、loopback Owner review/redacted diagnostics/doctor/recovery，并在 disposable Git checkout 中重放 Task005 final verifier。
+- 新增 G5 Run Contract、review fact/schema、acceptance runner、Task005 historical replay、fail-closed verifier 与脱敏 Gate/finding/verification evidence。所有控制面保持 Public Code / Private Runtime 边界，不含本机绝对路径、凭据或平台媒体 CDN URL。
+- 该结论只授权下一单 `TSK.x2n.assurance.001 / PH.X2N.6.1`；真实账号、平台、Notion、Private-Database transfer、`tmutil`、物理删除、上传、部署和发布仍为 0/NOT_RUN 或未授权。无 Alpha/Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 5 / UX-Ops 005
+
+- 完成 `TSK.x2n.uxops.005 / PH.X2N.5.5` 的 CI-synth 数据生命周期控制：SQLite Canonical Store 的一致性归档经 domain-bound opaque envelope 分片、精确 manifest、逐对象 hash/reassembly/integrity 复原；其他 domain 的缺失或畸形记录既不阻断也不泄露。
+- 增加 Schema v5 lifecycle state、单调 deletion epoch、content/relation/sink tombstone、删除 preview/confirm、TTL cleanup、working-copy wipe gate 以及 whole-root Time Machine exclusion 的 Owner-confirmed 合同。保留 durable history 不得复活逻辑删除内容，且本项目不提供 durable hard erase。
+- 49 个 Task005 合成测试、固定 Task004 历史重放与 lint 通过；真实 Private-Database transfer、authenticated session、`tmutil`、物理删除、平台、账号、Notion、网络和运行时数据写入均为 0/NOT_RUN。下一独立 Run 为 G5 评审，不引入 Alpha/Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 5 / UX-Ops 004
+
+- 完成 `TSK.x2n.uxops.004 / PH.X2N.5.4` 的 CI-synth 可观测性与恢复范围：只允许固定 stage/component/error-code/opaque run ID 的脱敏诊断 journal，指标只从 SQLite Canonical Store 派生，不建立第二真相源。
+- 增加八组件 local doctor 与一次有界 startup recovery：先执行 SQLite recovery、再恢复当前页 job、确定性重建 Markdown，最后仅用进程内 Notion Mock reconcile；十个 kill point 后 Canonical loss=0、duplicate side effect=0、terminal state=0，真实账号、平台、Notion、网络与运行时数据写入均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.005`；G5、上传、部署与发布仍未授权。无 Alpha/Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 5 / UX-Ops 003
+
+- 完成 `TSK.x2n.uxops.003 / PH.X2N.5.3` 的 CI-synth Local WebUI：仅绑定 `127.0.0.1`，提供 Dashboard、Source、Taxonomy、低置信度 Review、Job、Sink、Model 与脱敏 Diagnostics；Host/Origin/仅内存 CSRF、CSP、no-CORS、静态 DOM `textContent` 与 Owner append-only review 均 Fail Closed。
+- 活跃 CLI/Schema/证据迁移为 v2 `owner-mvp-plan`；已退休 v1 仅通过固定 `a67ba091239297b5c9c38a349e0a839680d1c411` 的 disposable Git replay 验证，不在当前运行面复活。21 个合成单测、三类 CSRF/Origin 拒绝、诊断脱敏与历史回放通过；平台、账号、Notion、外网和真实运行时写入均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.004`；G5、上传、部署与发布仍未授权。无预发布、固定观察或 soak。
+
+## v0.0.0.1 — Stage 5 / UX-Ops 002
+
+- 完成 `TSK.x2n.uxops.002 / PH.X2N.5.2` 的 CI-synth Markdown Library 加固：Renderer `1.1.0`、一次 SQLite 读快照、固定 `platform/content_id` Canonical 路径、生成分类 `INDEX.md` 链接、Hash Manifest、Link Checker 与逐文件原子恢复；重建不写 Canonical 或 Outbox。
+- 10,000 条合成 SQLite 输入在删除派生目录后可完整重建，Canonical 内容数/Hash 与 Manifest 一致，分类重命名、合并和重分类不移动主文件，死链/重复内容副本为 0，第二次 rebuild 写入为 0。真实 Runtime、账号、平台、媒体、Notion、网络和下载目录写入均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.003`；G5、上传、部署、发布仍未授权。无 Alpha/Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 5 / UX-Ops 001
+
+- 完成 `TSK.x2n.uxops.001 / PH.X2N.5.1` 的 CI-synth Mock 范围：Items/Categories 版本化加法 schema、精确长文本分块与首批创建/后续 append 均最多 100 block/request、2 req/s 闸门、429/529 Retry-After、Dead Letter、Outbox outage/kill 后 reconcile。
+- 增加 14 个明确 x2n 自有 Items/Categories View 定义：Default Table、Category Gallery、Likes、Favorites、Review、Processing Failed、六个平台、Recent 与 Categories directory；同名但不同定义 Fail Closed，不覆盖 Owner View；View API 不可用时仅返回文档化 fallback，绝不伪称创建。真实 Notion、Owner Canary、网络、账号、平台调用均为 0/NOT_RUN。
+- 下一独立 Run 仅为本地 `TSK.x2n.uxops.002`；G5、上传、部署、发布仍未授权。无 Alpha/Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 4 / G4 Review
+
+- 独立复核 Stage 4 五个固定 Task receipt，并新增 G4 的 Run Contract、机器状态、schema、acceptance runner、fail-closed verifier 与脱敏证据入口。
+- 重新运行 ASR、OCR/Vision、Fusion、taxonomy 合成验收；prompt-injection suite 通过，AI 一级 taxonomy mutation 为 0，自动分类仍为 DISABLED_PENDING_PRIVATE_GOLD。
+- G4=PASS_CI_SYNTH 只授权下一单本地 TSK.x2n.uxops.001；Stage 4 上传、真实模型/私有 Gold、账号、平台、Notion、部署和发布未授权。无 Alpha/Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 4 / Multimodal 005
+
+- 完成 `TSK.x2n.multimodal.005 / PH.X2N.4.5` 的 CI-synth 范围：Owner-only 一级 taxonomy registry、稳定 ID、保留 `unclassified`、全局歧义拒绝、disable/merge、SQLite append-only revision 与物理删除阻断。
+- 增加无 Store/Registry mutator 的 deterministic local classifier、不可变 taxonomy snapshot、短生命周期不可序列化输入、cache/provenance ledger、私有 Gold 聚合评测与 calibration/coverage/precision 门；CI synthetic 不能开启自动分类。
+- 22 个专项/Store 合成测试覆盖未知或 disabled 分类、分类 registry/revision、阈值/覆盖、私有 Gold 接口、Owner 确认/跨内容纠正拒绝和 CLI 聚合 receipt。Owner taxonomy/private Gold 未提供，`ACC.x2n.ai.006` 仍 pending，`auto_classify=false`，下一独立 Run 仅为 `G4` 复核。
+
+## v0.0.0.1 — Stage 4 / Multimodal 004
+
+- 完成 `TSK.x2n.multimodal.004 / PH.X2N.4.4`：增加仅内存 deterministic extractive fusion、来源归因事实/检索文本、缺失模态和非行动性分歧标记、固定 prompt 数据隔离、Unicode/Bidi/超长/恶意指令与 secret-shaped 输入拦截，以及只接受 grounded schema 的严格 parser。
+- 12 个专项合成测试覆盖正常/冲突/缺失模态、恶意 caption/OCR/subtitle、Unicode/Bidi、超长输入、schema 篡改、缓存/版本 Artifact、零 side effect 和不可序列化边界；真实模型、工具、文件、网络、配置、密钥、云、平台、账号与 Notion 调用均为 0/NOT_RUN。
+- `ACC.x2n.ai.004` 取得 CI-synth fusion schema/injection isolation 贡献；`ACC.x2n.ai.007` 仅取得 Task004 provenance/cache/budget/cloud-zero 贡献。未创建或修改分类；下一单仅为 `TSK.x2n.multimodal.005 / PH.X2N.4.5`。
+
+## v0.0.0.1 — Stage 4 / Multimodal 003
+
+- 完成 `TSK.x2n.multimodal.003 / PH.X2N.4.3`：增加 owner-managed 本地 JSON OCR/Vision Provider、不可序列化 OCR 文本/视觉描述、Provider/Model/Snapshot/Prompt/Input provenance、同版本缓存、图片/provider-call/超时预算、禁云路由与 `x2n eval ocr|vision --dataset` 私有聚合 Oracle。
+- 9 个专项合成测试覆盖同输入缓存、版本化 Artifact、坏 JSON/超时清理、预算与云拒绝、OCR CER Gate、Vision rubric、敏感/不支持输入、私有 Gold schema 和零路径输出；真实模型、云上传、Owner Gold、平台、账号与 Notion 调用均为 0/NOT_RUN。
+- `ACC.x2n.ai.002` 与 `ACC.x2n.ai.003` 均保持私有 Gold pending 且对应 Feature Flag 关闭；`ACC.x2n.ai.007` 仅取得 Task003 CI-synth provenance/cache/budget/cloud-zero 贡献。下一单仅为 `TSK.x2n.multimodal.004 / PH.X2N.4.4`。
+
+## v0.0.0.1 — Stage 4 / Multimodal 002
+
+- 完成 `TSK.x2n.multimodal.002 / PH.X2N.4.2`：增加本地 `whisper.cpp` CLI Provider、短生命周期音频/转录、Provider/Model/Snapshot/Prompt/Input provenance、同版本缓存、chunk/provider-call/音频/超时预算、禁云路由与 `x2n eval asr --dataset` 私有聚合 Oracle。
+- 9 个专项合成测试覆盖无语音、JSON 损坏、超时、速率/预算、同输入缓存、新版本 Artifact、CER/WER、私有 Gold schema 与临时 FFmpeg 正规化；真实模型、云上传、Owner Gold、平台、账号与 Notion 调用均为 0/NOT_RUN。
+- `ACC.x2n.ai.001` 保持 `PENDING_PRIVATE_GOLD_ASR_DISABLED_CI_CONTRACT_PASS`，ASR Feature Flag 关闭；`ACC.x2n.ai.007` 仅取得 CI-synth provenance/cache/budget/cloud-zero 贡献。下一单仅为 `TSK.x2n.multimodal.003 / PH.X2N.4.3`。
+
+## v0.0.0.1 — Stage 4 / Multimodal 001
+
+- 完成 `TSK.x2n.multimodal.001 / PH.X2N.4.1`：已有临时媒体 lease 内的 FFprobe、可选音频提取、代表帧采样、近重复过滤和派生文件清理均有硬上限；不新增持久化、平台、账号、Notion 或模型调用。
+- 合成边界覆盖损坏/超限/假 MIME/image bomb/FFmpeg hang/120 分钟与 50 帧上限/清理竞态/24 小时孤儿派生物；32 个专项测试和临时合成本机 FFmpeg/FFprobe smoke 通过，平台调用为 0。
+- 历史 G3/Task010 verifier 现可同时复验冻结事实与 Task001 已完成状态；仅授权下一单本地 `TSK.x2n.multimodal.002 / PH.X2N.4.2`，不引入 Alpha、Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 3 G3 Independent Recheck
+
+- 独立复验签发 `G3=PASS_CI_SYNTH`：Task010 八 scope Extension→Native→Adapter、完整 capability snapshot/技术 veto、Task005 空响应不删除与 Extension 100 次 restart reconciliation 均重新运行；真实平台调用、自动 fallback、上传、部署和发布均为 0/NOT_RUN。
+- 新增可复跑 G3 Run Contract、事实/schema、三份脱敏证据、独立 acceptance runner/negative verifier；首次 Review、Resume contract 和 Task010 final evidence 都以固定摘要/提交验证，不改写历史。
+- 只授权下一单本地 `TSK.x2n.multimodal.001 / PH.X2N.4.1`。最终仍直接走正式 MVP deploy/run/online smoke，不引入 Alpha、Beta、固定观察或 soak。
+
+## v0.0.0.1 — Stage 3 / Adapters 010
+
+- 完成 `TSK.x2n.adapters.010 / PH.X2N.3.10` 的公开 CI synthetic 验收：严格八 scope Extension→Native→Adapter dispatch、versioned typed capability result、SQLite v3 derived snapshot、失败 `run_record`/脱敏 `run_failure` 与显式 Owner current-page fallback。
+- 保持 legacy Native response compatibility，生成的 Pydantic/JSON Schema/TypeScript 与 Extension consumer 同步；8 个 scope dispatch、平台调用和自动 fallback 分别为 8、0、0。
+- Task010 仅贡献 CI synthetic 证据；当前 `G3=REVIEW_PENDING`，Stage 3 上传、Stage 4、部署和真实平台/账号调用仍未授权，下一单为独立 G3 Resume 复验。
+
+## v0.0.0.1 — Stage 3 Review Resume / Direct MVP Contract
+
+- 版本化 `STG.X2N.3.REVIEW.RESUME`，不执行新 DAG Task；原 Stage 3 Review gate fact 与 final commit 字节一致。
+- 将八个 relation/list scope 的合法技术终态固定为 `READY_FOR_MVP_ACTIVATION` / `DISABLED_EXTERNAL_GATE`；后者必须 Feature Flag 关闭、平台调用 0、live support claim 0。
+- 拆分 Stage 3 `PASS_CI_SYNTH_CONTRIBUTION` 与 Stage 6 完整 `ACC.x2n.rel.006`；真实账号激活和私有 Manifest 移至 Stage 6，仍保持 `NOT_RUN`。
+- 新增 `TSK.x2n.adapters.010 / ACC.x2n.batch.002`，DAG 更新为 44 Tasks / 62 Acceptances / 0 cycles；G3 当前只剩 Native dispatch 与 explicit fallback 两个技术 blocker。
+- 明确无预发布阶段、固定 30 日健康观察或 soak；G0–G5、前置 Stage6 Tasks 与
+  `assurance.005` 精确自有 18 项 Acceptance 之外的 Blocking Acceptance 通过后启动该任务，
+  任务内完成激活、Owner MVP、安全门硬通过、模型通过或明确关闭/降级为仅建议模式、回滚、签字、
+  部署与 online smoke 后才签发 G6 PASS；安全未知或失败不能降级结算，任务输出也不反向成为启动条件。
+- 将 `X2N_DATA_ROOT` 定义为易失 working copy；耐久资产只经 `private_db_client.py ingest|get|list|verify` 写 `Private-MetaDatabase` area＋`domain=xhs-douyin-2notion`。根据客户端真实红线补充：不直接上传 `.sqlite/.db`，一致性快照封装为非运行时归档并按 ≤90 MiB 分片，以 restore manifest 验证重组；禁止 clone。
+- 专用 verifier、严格 schema 与 fail-closed 负向突变测试已加入；Resume 20 tests＋旧 Review
+  7 tests 共 27/27 PASS，Phase0.1/0.5 回归 PASS。source-freeze 后的 fresh fast lane 结果只以
+  `machine/evidence/stage_3/review_resume_mvp/verification.json` 为准，禁止复用旧 lane 成功结论。
+  Stage 3 upload、Stage 4、deployment 与真实平台调用保持 false/0。
+
+## v0.0.0.1 — Stage 3 Review / G3 Blocked
+
+- 独立复核 Stage 3 九个 Task、19 条 Acceptance、8 个 Canary 和 G3 四项条件；不执行新 DAG Task、不接触共享认证材料、不吸收其他长期开发线。
+- 关闭六个 finding：Owner removed 终态保护、XHS envelope 严格绑定、Douyin 50 次真实子进程 Kill、private batch comparison/增量候选、80 条 Adapter→Canonical→Artifact→Markdown→Notion Mock/Outbox 真正跨层幂等、XHS resume policy `1.1.0` 对齐。
+- 同一批 80 条 Adapter 输入生成 80 Canonical、80 Artifact、80 Markdown、80 Notion Mock Page 和 160 终态 Outbox/Receipt；第二轮 Artifact/Markdown/Notion 重复与 Notion replay request 均为 0，五个持久逻辑 scope 的 CDN/private-path finding 为 0。
+- 九个 Task Acceptance 全部重新运行并保持 `PASS_CI_SYNTH_SCOPED`；8 个真实 Canary 全部 `NOT_RUN`，平台/真实 Notion/模型/媒体调用均为 0。
+- 最终 263 个 root tests（260 PASS、3 个固定 Owner-private 可选 skip）、227 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，0 failure/flaky/silent skip，coverage 79.66%，33 个依赖漏洞 0，78-member candidate 无 Runtime Data。
+- 保持五个 Blocker：缺 relation/list Native dispatch、缺显式 fallback 状态机、8 Canary 合法 disabled terminal 未定义、`ACC.data.002`/`ACC.rel.006` 的 Stage 3/6 范围需版本化拆分、Owner 独立授权/私有 Manifest 未运行。
+- 结论为 `G3_BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`；Stage 3 上传与 Stage 4 禁止，下一独立 Run 只能是 `STG.X2N.3.REVIEW.RESUME`。
+
+## v0.0.0.1 — Stage 3 / Adapters 005
+
+- 基于固定 `Adapters009@8c6442a2…` 在独立 worktree 开发；A009 verifier 改为从 final commit blob 验收，旧 Task/Evidence 逐字节不改写，Stage 4/G3/上传均未进入。
+- 新增 SQLite `run_record + checkpoint` 关系对账，不改 Schema。仅 `xhs_favorites`/`xhs_likes` 的 succeeded Run、complete/authoritative checkpoint、receipt、Relation 与 Observation 精确一致时可声明完整扫描；扫描必须 ID 不同且时间严格递增。
+- 实现 `active -> unknown -> tombstone_candidate`；观察恢复为 active，既有 removed 原样保留。auth/HTTP/platform-change/empty/partial 清除连续缺失链且关系写入 0；代码没有 removed 写入或 Content/Relation DELETE 路径。
+- 40 条关系中连续两次各缺失 10 条时，第一次生成 10 unknown、第二次生成 10 candidate；同一 source scan 换 event ID 重放、bounded/空/证据不完整、游标损坏和时间倒退均 Fail Closed。
+- 80 条合成输入连续两轮、100 concurrent duplicate、40 个公开合同 cases、15 个专项单测与 50 次真实进程事务内 Kill 通过；重复实体、partial write、checkpoint premature advance、removed、物理删除、Content 自动删除均为 0。重放保持同一 source full-scan 哈希；成功 Run 若丢失 durable checkpoint 则 Fail Closed，不重建空游标。
+- Owner Alpha 80 条只新增固定非执行 20+20+20+20 计划；Owner Profile、私有 Manifest、真实账号/平台、Notion、模型与媒体全部 `NOT_RUN`，平台调用 0，不声明 Alpha PASS。
+- 最终 256 个 root tests（253 PASS、3 个固定可选 skip）、221 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.61%，33 个依赖漏洞 0，78-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止；下一独立 Run 为 `STG.X2N.3.REVIEW`。
+
+## v0.0.0.1 — Stage 3 / Adapters 009
+
+- 基于固定 `Adapters008@a0f4a346…` 在独立 worktree 开发；A008 verifier 固定到 final commit blob，旧 Evidence 逐字节不改写，A005/G3/上传均未进入。
+- 复核 Alibaba 一手 `taobao.item.get`、授权/增值 API、最小必要、可追溯授权、保留期/撤回/服务与合作终止删除及加密/去标识规则。当前审阅没有为本产品建立买家个人收藏列表能力，结论为 `UNKNOWN_DISABLED` 而非“不存在”。
+- 新增 credential-free App/OAuth/Scope/cost/quota/retention receipt 与 `TaobaoSelectedIterator`：只接受 Owner 明确提供的最多 20 个 `num_iid` 及严格 `{num_iid,title}` 净化结果；无 network/OAuth/SDK/DOM/MTop/Cookie/signing/代理/自动重试或 raw API response。
+- 新增 SQLite `TaobaoSelectedAdapter`：20 条合成条目原子映射为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 Observation；不伪造 `liked`/`favorited`、平台收藏夹或 full scan，分类、删除及多余字段写入为 0。
+- App/OAuth/字段 Scope、增值计划、价格/配额、非零预算、官方 TOP＋净化 transport、local-only/canonical route、目的披露、保留期、撤回删除路径与删除回执均独立 Fail Closed。OAuth 撤回生成 cleanup-required receipt；本 Task 不执行历史 Canonical 删除。
+- HTTP 429 必须携带 bounded `Retry-After`；120 秒保持窗内恢复拒绝，无 checkpoint/Canonical 写入、自动请求或代理轮换。70 个公共合成合同 cases、18 个专项单测和 50 次真实进程事务内 Kill 通过，lost/duplicate 均为 0；真实账号/API/Profile/Canary `NOT_RUN`。
+- 最终 248 个 root tests（245 PASS、3 个固定可选 skip）、206 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.59%，33 个依赖漏洞 0，77-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止；下一独立 Run 为 `TSK.x2n.adapters.005`。
+
+## v0.0.0.1 — Stage 3 / Adapters 008
+
+- 基于固定 `Adapters007@a088ea87…` 在独立 worktree 开发；A007 verifier 固定到 final commit blob，旧 Evidence 逐字节不改写，A009/A005/G3/上传均未进入。
+- 复核 Weibo 一手 favorites/OAuth/Scope/限频/错误码/计划配额与存储规则，以及 RFC 429/`Retry-After`：官方存在当前登录用户 favorites API，但本应用权限、价格、配额和 canonical route 未获批准，Owner 预算为 0，因此真实请求继续关闭。
+- 新增 credential-free App/OAuth/cost/quota receipt 与单页 `WeiboSelectedIterator`：仅接受 page 1、固定 20 条、Owner 明确动作的严格净化清单；无 network/OAuth/DOM/cursor transport、自动分页/滚动/重试、代理、购买或 raw API response。
+- 新增 SQLite `WeiboSelectedAdapter`：20 条合成 favorites 原子映射为 20 Content、20 scan-confirmed `favorited` Relation 与 20 Observation；`source_collection_id`/`full_scan_id` 为空，fake `liked`/`saved_current`、删除和分类写入均为 0。
+- HTTP 429 必须携带 canonical `Retry-After` 秒数或日期；120 秒保持窗内恢复拒绝，checkpoint/Canonical 写入、自动请求、代理轮换均为 0，保持窗后仍需新的显式 Owner batch。Auth/OAuth/Budget/Policy kill 只影响对应 scan，撤权后请求 0 并生成 1 个 cleanup-required receipt。
+- 58 个公共合成合同 cases、18 个专项单测和 50 次真实进程事务内 Kill 通过；lost/duplicate/checkpoint premature advance 均为 0。固定 20 条 Canary 只生成非执行计划，真实 App/OAuth/API/CLI/DOM/Profile/账号/Canary `NOT_RUN`。
+- 最终 240 个 root tests（237 PASS、3 个固定可选 skip）、188 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.30%，33 个依赖漏洞 0，76-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## v0.0.0.1 — Stage 3 / Adapters 007
+
+- 基于固定 `Adapters006@5b6564d2…` 在独立 worktree 开发；A006 verifier 改为从 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，旧证据逐字节不改写。
+- 复核 Kuaishou 一手 OAuth、Open API、应用管理与平台协议：当前只证明经审批应用、动态最小同意和 `user_video_info` 覆盖的授权用户本人发布作品列表；任意个人点赞/收藏仍 `UNKNOWN_DISABLED`，公开详情路由仍为待独立证明的合成假设。
+- 新增 credential-free capability receipt 与单次 `KuaishouSelectedIterator`：只接受 page 1、固定 page size 20、Owner 明确选择的严格净化清单；无 network/OAuth/DOM/cursor transport、自动滚动/分页/重试、Cookie/Profile、未知字段或 raw Open API response。
+- 新增 SQLite `KuaishouSelectedAdapter`：20 条合成作品原子映射为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 `selected_collection` Observation；本地 selection ID 不冒充平台收藏夹，`liked`/`favorited` 写入与 full scan 均为 0。
+- Scope 撤回立即使新请求为 0、使对应 scan invalidated 并生成待删除标记；本 Task 没有删除执行器，不自动删除历史 Canonical 关系。Partial/Empty/Platform Changed 写入 0；Auth/Scope Revoked/Policy/CAPTCHA 只影响对应 scan。
+- 50 次真实进程在 item/checkpoint 事务点随机退出后 lost/duplicate/checkpoint premature advance 均为 0，随后恢复提交一次且 exact replay 无副作用。Canary 固定 20 条且只输出非执行计划；真实 App/OAuth/同意/API/DOM/删除/Profile/账号/Owner Canary 全部关闭或 `NOT_RUN`。
+- 最终 233 个 root tests（230 PASS、3 个固定可选 skip）、170 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 78.99%，33 个依赖漏洞 0，75-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## v0.0.0.1 — Stage 3 / Adapters 006
+
+- 基于固定 `Adapters004@37ec58cb…` 在独立 worktree 开发；A004 verifier 改为从 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，旧证据逐字节不改写。
+- 复核 Bilibili 一手开发者协议、OAuth/Scope 与稿件接口：当前只证明经审批应用、关联 UP 主授权和 `ARC_BASE` 覆盖的授权用户自有视频稿件列表；任意个人点赞/收藏和文章列表仍 `UNKNOWN_DISABLED`。无书面自动化许可不得用 crawler/script，这是一项有界研究结论而非“不存在”断言。
+- 新增 credential-free capability receipt 与单次 `BilibiliSelectedIterator`：只接受一页、最多 20 条、Owner 明确选择的严格净化稿件清单；无 network/DOM transport、自动滚动/分页/重试、Cookie/Profile、未知字段或 raw API response。
+- 新增 SQLite `BilibiliSelectedAdapter`：20 条合成稿件原子映射为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 `selected_collection` Observation；本地 selection ID 不冒充平台收藏夹，`liked`/`favorited` 写入为 0，`full_scan_id` 始终为空。
+- Partial/Empty/Platform Changed 只保留差集证据且 Canonical 写入 0；Auth/Policy/CAPTCHA 各自只使一个 Bilibili scan 失效，历史关系的 removed/tombstone/physical delete/Content delete 均为 0。50 次真实子进程事务内随机退出后 lost/duplicate/checkpoint premature advance 均为 0，随后一次提交与 exact replay 通过。
+- Canary 固定 20 条且只输出非执行计划；生产 Feature Flag、真实 API/DOM transport、App/OAuth/书面许可/Profile/账号/Owner Canary 全部关闭或 `NOT_RUN`。现有 Bilibili current-page fallback、Chrome 权限、Native v1、Schema v2 和 A004 evidence 均未修改。
+- 最终 224 个 root tests PASS（3 个固定可选 skip）、153 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 78.69%，33 个依赖漏洞 0，74-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## v0.0.0.1 — Stage 3 / Adapters 004
+
+- 基于固定 `Adapters003@0939d783…` 开发；A003 verifier 改为从其 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，A004 不吸收 `main`、其他 worktree 或共享认证材料。
+- 固定审计 `jiji262/douyin-downloader@ef3ad18c…`、tree `ff7774b6…`、version `2.0.0` 与 MIT identity；原始上游 CLI/REST 不满足 x2n 的 build/schema/persistence 合同，故不 vendor、不安装、不导入、不执行，也不成为 Runtime dependency 或真相源。
+- 新增严格 `DouyinAdapter` sidecar protocol：每次 action 前核对 commit/tree/version/license、capability、persistence-off、integration lock、executable、resolved lock、transitive-license report 与 SBOM 摘要；递归拒绝未知/缺失字段和 URL/path/credential/raw/media/upstream primary key。
+- 新增 `shell=False`、最小环境、bounded timeout/pipe 的 subprocess transport，以及仅数字 `127.0.0.1`、固定 POST path、bounded response 的 loopback REST transport；错误归一化为稳定安全合同，任一 mismatch 在 Canonical transaction 前 Fail Closed。
+- 20 条合成收藏跨两个散列化收藏夹映射为 20 Content＋20 `favorited`；20 条合成点赞映射为 20 Content＋20 `liked`，共 40 Observation、两次 exact replay。upstream path/database primary key、full-scan completion、removed/tombstone/physical delete/Content delete 与分类写入均为 0。
+- 新增 18 个负向合同用例、5 个非权威删除保护用例、固定 20＋20 非执行 Canary plan 与只能阻断不能晋级的 shadow comparator；JSON 布尔伪整数和损坏的 cursor/Run/Checkpoint 状态组合均 Fail Closed。approved pin 不变，观察到的当前 candidate 为 `BLOCKED_SHADOW`、promotion 0。
+- 当前一手资料审阅未发现明确的个人点赞列表或收藏夹/列表 Scope；这是范围化研究结果而非不存在断言。抖音真实 upstream/private sidecar/Profile/账号/平台/Canary 均 `NOT_RUN`，两项生产 Feature Flag 关闭。
+- 最终 216 个 root tests PASS（3 个固定可选 skip）、136 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 78.36%，33 个依赖漏洞 0，73-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## v0.0.0.1 — Stage 3 / Adapters 003
+
+- 基于固定 `Adapters002@050ec0c9…` 开发；A002 verifier 改为从其 final commit blob 验收 Task、状态、实现、Fixture、Receipt 与 Evidence，A003 新文件不会污染历史结论。
+- 新增小红书点赞 clean-room visible-batch extractor：仅在 Owner gesture 后读取最多 20 条可见卡片，输出 stable ID、Canonical Page URL、净化标题/类型与固定 `unclassified` Inbox；无 Host Permission、静态 Content Script、网络、Cookie/Profile、自动滚动/分页、事件合成或 like/unlike/账号状态改变。
+- 新增 SQLite `xhs_likes` Adapter：复用 platform＋stable ID Content key，原子写独立 `liked` Relation、Observation 与 versioned Checkpoint；既有 `favorited` Relation 和 Owner 分类不覆盖，自动归档、Classification/Taxonomy 写入均为 0。
+- 严格 successor、精确最后批次 replay、partial/auth/verification/platform-change/empty-unverified 不推进或完成；bounded Canary 不冒充 full scan，只有权威可见结束可完成。20 条 Canary 仍是非执行计划，Owner/private-gold/真实页面均 `NOT_RUN`。
+- 新增 7 个 DOM Fixture 与 100 条控制数据，其中 20 条预置收藏 Relation；5 个显式批次各执行 10 次真实子进程事务内退出，共 50 Kill。最终精确为 100 Content、100 `liked`、20 `favorited`、120 Observation；lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete 为 0。
+- 已审阅小红书一手材料只证明用户可见的笔记/收藏/赞过自主管理面；未在所审阅 Open/Mini Program 材料中发现个人点赞读取 API。这是范围化研究结果而非不存在断言，因此生产能力默认 deny。
+- 最终 208 个 root tests PASS（3 个固定可选 skip）、119 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 77.79%，33 个依赖漏洞 0，71-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## v0.0.0.1 — Stage 3 / Adapters 002
+
+- 基于固定 `Adapters001@ea440535…` 开发且不吸收 `main`/其他 worktree；历史 Adapters001 verifier 改为固定提交回放，Skeleton009 Extension 源清单改从历史 tree 枚举，避免后代新增文件污染旧验收。
+- 新增小红书收藏 clean-room visible-batch extractor：只在 Owner gesture 后读取最多 20 条稳定 ID、Canonical Page URL、净化标题/类型和可见收藏夹映射；无 Host Permission、静态 Content Script、网络、自动滚动/分页、事件合成、账号状态变化或 Cookie/Profile 读取。
+- 新增 SQLite `xhs_favorites` Adapter：原子写 Content、`favorited` Relation、`selected_collection` Observation 和 versioned Checkpoint；严格 successor、精确最后批次 replay、部分批次保留证据但不推进、未知结束不完成。
+- Canary 固定 20 条且只生成非执行计划；bounded scope 与 full scan 分离，只有权威可见结束可写 `full_scan_id`。真实页面/账号/Profile/Canary 继续关闭或 `NOT_RUN`。
+- 新增 7 个 DOM Fixture 与 100 条两收藏夹控制数据；5 个显式批次每批 10 次真实子进程在事务内随机退出，共 50 Kill。恢复只读 Durable Checkpoint，最终 ID 集精确，lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete 均为 0。
+- 官方一手材料复核只确认用户可见自主管理与商家/分享开发面，未在已审阅来源中找到个人收藏读取 API；此为范围化研究结论而非“不存在”断言，因此生产能力默认 deny、当前页 fallback 保留。
+- 最终 201 个 root tests PASS（3 个固定可选 skip）、105 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.73%，33 个依赖漏洞 0，69-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## v0.0.0.1 — Stage 3 / Adapters 001
+
+- 以 Stage 2 PR #78 合并提交为 Task base，核对 x2n/Dual-Plane 两条远端门禁成功后授权 Stage 3；新增 transition fact，不改写 G2 历史 Evidence。
+- 新增专用 Profile launcher：只选择固定 OS Chrome candidate 和 `X2N_DATA_ROOT` 内的平台 Profile，显式确认后只开内部新标签；无任意 executable/path/URL、remote debugging、Cookie 导入导出、自动登录或验证码绕过。
+- 新增五分钟 enum-only session checkpoint；只保存 platform/signal/time，缺失、未来、过期、login/verification required 与 platform drift 均给出最小 Blocked User Action，Profile path 和账号标识不输出。
+- 新增八组件 `x2n doctor`：Native Host/Companion/DB 核心阻断，FFmpeg/Provider/Notion 与 Profile Adapter 缺失按能力降级或单项阻断；每项有稳定错误码和不含 Secret/path 的修复动作。
+- 新增跨进程全局 Adapter `flock` 非等待互斥、30 秒 batch/3 秒 item 持久低频门、时钟回退/弱策略/状态损坏 Fail Closed；不 sleep、不自动重试。
+- 新增 batch deletion guard：登录过期、HTTP、DOM、空数组、部分扫描均 removed 0；两次连续完整成功最多产生 `tombstone_candidate`，物理删除和 Content 自动删除为 0。
+- 新增 7 session＋7 batch 公共合成 Fixture、16 个专项单测、独立 Acceptance runner/verifier 与 Public Code/Private Runtime 扫描；Owner Profile、真实账号/平台、Canary 与 G3 均 `NOT_RUN`，Stage 3 上传禁止。
+- 最终 194 个 root tests PASS（3 个固定可选 skip）、92 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 77.66%，33 个依赖漏洞 0，67-member candidate 无 Runtime Data。Stage 2 verifier 固定到已合并 Review final commit，旧 G2 Evidence 逐字节不变。
+
 ## v0.0.0.1 — Stage 2 Review / G2
 
 - 独立复核 Skeleton001–009 的 Task、Acceptance、固定提交、九份历史 evidence 与 Stage 2 全提交；Review 不执行新 DAG Task，也没有 `apps/`/`packages/` 产品改动。

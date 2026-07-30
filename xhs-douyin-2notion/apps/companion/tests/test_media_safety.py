@@ -513,9 +513,7 @@ class MediaSafetyTests(unittest.TestCase):
                 ):
                     self.fail("failed finalization must not yield a private media path")
         self.assertEqual(pre_yield_error.exception.code, ErrorCode.STORAGE_FAILED)
-        pending = [
-            item for item in self.store.list_media_leases() if item.run_id == "run-media-pre-yield-error"
-        ]
+        pending = [item for item in self.store.list_media_leases() if item.run_id == "run-media-pre-yield-error"]
         self.assertEqual(len(pending), 1)
         self.assertEqual(pending[0].status, "cleanup_pending")
         retry = MediaLeaseCleaner(self.paths, self.store).run(now="2026-07-22T00:00:00Z")

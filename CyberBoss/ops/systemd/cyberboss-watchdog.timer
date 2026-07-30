@@ -1,0 +1,13 @@
+[Unit]
+Description=Run the CyberBoss watchdog every 2 minutes
+
+[Timer]
+# 开机 1 分钟后开始，之后每 2 分钟一次。
+# 2 分钟 × 连续 3 次 = 最长 6 分钟自愈；比"等主人发现"快一个数量级。
+OnBootSec=1min
+OnUnitActiveSec=2min
+AccuracySec=15s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

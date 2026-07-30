@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TSK.x2n.multimodal.003",
+  "phase": "PH.X2N.4.3",
+  "stage": "STG.X2N.4",
+  "run_id": "RUN-X2N-S04-M003",
+  "status": "PASS_CI_SYNTH_SCOPED_PRIVATE_GOLD_PENDING",
+  "task_commit": "1886bb525cfb7228b335f59f9e8ba772dc547d9a",
+  "source_receipt_sha256": "9d50895a8a5d18f2517ccefc138abc3d31d0c91bafceb8b91b31ae5350be6713",
+  "acceptance_status": {
+    "ACC.x2n.ai.002": "PENDING_PRIVATE_GOLD_OCR_DISABLED_CI_CONTRACT_PASS",
+    "ACC.x2n.ai.003": "PENDING_PRIVATE_GOLD_VISION_DISABLED_CI_CONTRACT_PASS",
+    "ACC.x2n.ai.007": "PASS_CI_SYNTH_TASK003_PROVENANCE_CACHE_BUDGET_CLOUD_ZERO"
+  },
+  "checks": [
+    {
+      "name": "local_provider_and_ephemeral_image_boundary",
+      "status": "PASS",
+      "details": {
+        "cloud_uploads": 0,
+        "local_model_execution": "NOT_RUN_OWNER_MANAGED_MODEL_NOT_PROVISIONED",
+        "ocr_text_persisted": false,
+        "vision_description_persisted": false,
+        "raw_media_persisted": false
+      }
+    },
+    {
+      "name": "provenance_cache_budget_and_cloud_kill_switch",
+      "status": "PASS",
+      "details": {
+        "cache_duplicate_provider_calls": 0,
+        "cloud_cost_microunits": 0,
+        "new_provider_version_artifact_identity": "distinct",
+        "provenance_fields": ["provider", "model", "snapshot", "prompt_hash", "input_hash"]
+      }
+    },
+    {
+      "name": "quality_gates_and_private_oracles",
+      "status": "PENDING_PRIVATE_GOLD",
+      "details": {
+        "ocr_feature": "DISABLED",
+        "vision_feature": "DISABLED",
+        "private_gold_ocr_evaluation": "NOT_RUN",
+        "private_gold_vision_evaluation": "NOT_RUN",
+        "required_ocr_cases": 50,
+        "required_vision_cases": 40
+      }
+    }
+  ],
+  "execution": {
+    "cloud_uploads": 0,
+    "local_model_execution": "NOT_RUN_OWNER_MANAGED_MODEL_NOT_PROVISIONED",
+    "model_calls": 0,
+    "notion_calls": 0,
+    "owner_profile_login": "NOT_RUN",
+    "platform_calls": 0,
+    "private_gold_ocr_evaluation": "NOT_RUN",
+    "private_gold_vision_evaluation": "NOT_RUN",
+    "real_account_execution": "NOT_RUN",
+    "real_platform_media": "NOT_RUN"
+  },
+  "metrics": {
+    "synthetic_unit_tests": 9,
+    "url_uploads": 0
+  },
+  "policy": {
+    "cloud_provider": "DISABLED",
+    "local_paths_emitted": false,
+    "ocr_text_persisted": false,
+    "raw_media_persisted": false,
+    "raw_media_url_persisted": false,
+    "vision_description_persisted": false
+  }
+}

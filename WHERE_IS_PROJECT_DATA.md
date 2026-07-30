@@ -19,6 +19,12 @@
 各来源目录已留 `WHERE_IS_THE_DATA.md` 路牌。**保留在公开仓的是**：各项目代码/治理、FIFA public-safe 件、Serenity 公开基金参考 CSV 与样例。
 仅删当前版本；git 历史里的旧提交仍含这些数据，历史清除由 Owner 另行决策。
 
+## 项目路由
+
+| 项目 | 耐久路由 | 当前状态 |
+|---|---|---|
+| xhs-douyin-2notion | `Private-MetaDatabase` / `domain=xhs-douyin-2notion` / `private_db_client.py ingest|get|list|verify`；禁止 clone | Task005 仅完成 CI-synth 验证；未执行真实传输、认证会话、系统备份设置或物理删除 |
+
 ## 将来怎么用（免 clone）
 
 ```bash

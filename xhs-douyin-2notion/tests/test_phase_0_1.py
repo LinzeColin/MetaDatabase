@@ -32,10 +32,12 @@ class Phase01Tests(unittest.TestCase):
         )
 
     def test_downstream_gates_fail_closed(self) -> None:
-        state = json.loads(VERIFY._run_git(
-            ["show", "2a81db2dd36638b00175ec6226462b37905d4705:xhs-douyin-2notion/machine/facts/task_state.json"],
-            VERIFY.PROJECT_ROOT.parent,
-        ))
+        state = json.loads(
+            VERIFY._run_git(
+                ["show", "2a81db2dd36638b00175ec6226462b37905d4705:xhs-douyin-2notion/machine/facts/task_state.json"],
+                VERIFY.PROJECT_ROOT.parent,
+            )
+        )
         self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
         if state["stage_gate"] == "blocked_owner_action":
             self.assertFalse(state["next_phase_authorized"])
@@ -45,9 +47,7 @@ class Phase01Tests(unittest.TestCase):
             self.assertTrue(state["next_phase_authorized"])
             self.assertTrue(state["stage_1_authorized"])
             expected_upload = (
-                "authorized_after_g1_pass"
-                if state.get("current_stage_gate") == "pass"
-                else "authorized_after_g0_pass"
+                "authorized_after_g1_pass" if state.get("current_stage_gate") == "pass" else "authorized_after_g0_pass"
             )
             self.assertEqual(state["remote_upload"], expected_upload)
         self.assertIn(

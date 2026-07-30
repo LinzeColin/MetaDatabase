@@ -4,22 +4,242 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的九个 `TSK.x2n.skeleton.001–009` 与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。Skeleton005 在 SQLite Schema v2 之外新增可重建 Markdown 与进程内 Notion Mock Sink：六平台 80×2 投影使用固定 `platform/content_id` 路径、原子写、有效 Frontmatter、稳定 Unclassified Index；Notion 使用 `2026-03-11` Data Source 语义、加法式 Schema、Outbox、2 req/s、429/529/断网/kill 重试与对账。重复 Page、半文件、断链、CDN finding 与真实 Notion 调用均为 0。项目原生本地 `G2=PASS`，Stage 2 整体上传已授权；远端 CI/merge 仍为 `PENDING_POST_G2_UPLOAD`，此前不得进入 Stage 3。正式 Verifier release-candidate 因原任务包缺少 canonical `MANIFEST` role 保持 `BLOCKED_REQUIREMENT_GAP`。分类、列表 Adapter、真实平台/Notion、Owner Canary、真实媒体与模型处理仍未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：独立 G3、G4 与 G5 均已签发 `PASS_CI_SYNTH`；Stage 5 五份固定 Task receipt 保持不可变。Assurance001–003 分别完成软件、feature-disabled 模型、安全/供应链 gate；Assurance004 已完成隔离 Extension 100 restart、XHS 100/50 kill、媒体 cleanup、Notion Mock、十阶段 recovery、六个核心场景各 10 Seed、20/80/1k/10k Markdown rebuild 与 100 burst replay。loss、duplicate、unauthorized delete 和持久化 private/CDN finding 均为零；本机性能只报告相对测量，不构成统一 SLA。真实 Private-Database transfer、`tmutil`、物理删除、Runtime、Notion、Owner Canary、账号和平台调用仍为 0/NOT_RUN。下一独立 Run 只可执行 `TSK.x2n.assurance.005 / PH.X2N.6.5`；真实有界激活、部署、运行和 online smoke 均只在该 Task 内执行，且没有预发布、固定观察或 soak 门禁。旧 Review/Task Evidence 不改写，其他长期开发零重叠；本 Task 对共享认证材料保持零接触。
+
+发布策略已经明确：不设置预发布阶段、固定 30 日健康观察或 soak。`G0–G5`、`assurance.001–004/uxops.005` 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动最终发布任务；任务内完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门必须通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署、运行和 online smoke，成功后才签发 `G6 PASS` 并直接上线唯一 `v0.0.0.1`。合法外部门能力可关闭结算，技术阻断不能结算，安全未知或失败不能降级结算；这些任务内 Oracle 不是启动前置，上线后监控也不阻断正常开发，只触发修复、降级或回滚。
 
 ## 固定边界
 
 - 母仓库：`LinzeColin/MetaDatabase`
 - 子项目：`xhs-douyin-2notion/`
 - 下载目的地逻辑名：`X2N_DOWNLOAD_DESTINATION`；原始 taskpack 未指定本机绝对路径
-- 数据根逻辑名：`X2N_DATA_ROOT=${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`（Runtime 与全部下载共用隔离命名空间；真实解析值不进 Git；已有同级条目不触碰）
+- 本机工作根：`X2N_DATA_ROOT=${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`（下载、执行与活跃 SQLite working copy 的易失工作区；真实解析值不进 Git；已有同级条目不触碰）
+- 耐久数据：`LinzeColin/Private-Database` 的 `Private-MetaDatabase` area＋manifest `domain=xhs-douyin-2notion`，只经 `KMOS/KMDatabase/machine/tools/private_db_client.py ingest|get|list|verify`，禁止 clone；SQLite 以一致性非运行时归档、≤90 MiB 分片和 restore manifest 入库，不直接上传 `.sqlite/.db`
 - 路径名边界：下载父目录名不授权安装、运行或接入同名 `MediaCrawler` 上游
-- 真相源：本地 SQLite Canonical Store
+- 真相源：活跃本地 SQLite Canonical Store 是逻辑真相源；经验证的 Private-MetaDatabase snapshot/manifest/receipt 是耐久恢复副本
 - 交互/执行：Chrome Side Panel / Local Companion
 - 发布边界：Public Code / Private Runtime，专有许可
 
 ## v0.0.0.1 DAG
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
+
+## Stage 4 / Task001–Task005 多模态安全边界
+
+```bash
+.venv/bin/python -B scripts/run_multimodal_001_acceptance.py
+.venv/bin/python -B scripts/verify_multimodal_001.py --verify-worktree --run-acceptance
+.venv/bin/python -B scripts/run_multimodal_002_acceptance.py
+.venv/bin/python -B scripts/verify_multimodal_002.py --verify-worktree --run-acceptance
+.venv/bin/python -B scripts/run_multimodal_003_acceptance.py
+.venv/bin/python -B scripts/verify_multimodal_003.py --verify-worktree --run-acceptance
+.venv/bin/python -B scripts/run_multimodal_004_acceptance.py
+.venv/bin/python -B scripts/verify_multimodal_004.py --verify-worktree --run-acceptance
+.venv/bin/python -B scripts/run_multimodal_005_acceptance.py
+.venv/bin/python -B scripts/verify_multimodal_005.py --verify-worktree --run-acceptance
+.venv/bin/python -B scripts/run_stage_4_review_acceptance.py
+.venv/bin/python -B scripts/verify_stage_4_review.py --verify-worktree --run-acceptance --require-evidence
+```
+
+当前运行状态真源是 `machine/facts/task_state.json`；`machine/facts/stage_3_review_resume_state.json`
+与 `machine/facts/stage_3_review_resume_recheck_state.json` 仍分别是冻结 Resume/G3 历史事实。
+Task001 的公开证据在 `evidence/multimodal/TSK.x2n.multimodal.001.json`，Task002–Task004 的公开聚合
+证据分别在 `evidence/models/TSK.x2n.multimodal.002.json`、
+`evidence/models/TSK.x2n.multimodal.003.json`、`evidence/models/TSK.x2n.multimodal.004.json` 和
+`evidence/models/TSK.x2n.multimodal.005.json`；它们都不是真实模型、私有 Gold Set、真实媒体或任何外部平台能力的通过声明。G4 的独立事实在 `machine/facts/stage_4_review_state.json`，公开证据在 `machine/evidence/stage_4/review/`。Task001 的公开 Mock 证据在 `evidence/sinks/TSK.x2n.uxops.001.json`，Task002 的公开合成重建证据在 `evidence/sinks/TSK.x2n.uxops.002.json`，Task003 的公开 Local WebUI 证据在 `evidence/ui/TSK.x2n.uxops.003.json`，Task004 的公开 operations 证据在 `evidence/operations/TSK.x2n.uxops.004.json`，Task005 的公开 lifecycle 证据在 `evidence/lifecycle/TSK.x2n.uxops.005.json`。G5 的独立事实在 `machine/facts/stage_5_review_state.json`，公开 review evidence 在 `machine/evidence/stage_5/review/`；Assurance001 的状态事实在 `machine/facts/stage_6_assurance_001_state.json`，公开证据在 `evidence/assurance/TSK.x2n.assurance.001.json`；真实 Runtime/Notion 均为 `NOT_RUN`，自动分类仍为关闭的 suggestion-only，下一独立 Run 是 `TSK.x2n.assurance.002`；历史 G3 合同见
+`docs/governance/RUN_CONTRACT_S03_REVIEW_RESUME_MVP.md` 和
+`docs/governance/STAGE_3_REVIEW_RESUME_MVP.md`。Assurance002 的状态事实在
+`machine/facts/stage_6_assurance_002_state.json`，公开证据固定在
+`evidence/models/TSK.x2n.assurance.002.json`；其结论是 feature-disabled/suggestion-only，
+不是私有 Gold 或真实模型质量通过。Assurance003 的状态事实在
+`machine/facts/stage_6_assurance_003_state.json`，公开聚合证据在
+`evidence/security/TSK.x2n.assurance.003.json`；它只证明 CI-synth 安全/供应链门禁。Assurance004 的状态事实在
+`machine/facts/stage_6_assurance_004_state.json`，公开聚合证据在
+`evidence/chaos/TSK.x2n.assurance.004.json`；它证明隔离性能/混沌/恢复 Campaign，不是 MVP 部署。下一独立 Run 为
+`TSK.x2n.assurance.005`。
+
+## Stage 3 / 首次 Review 历史判定
+
+```bash
+.venv/bin/python -B scripts/run_stage_3_review_acceptance.py
+.venv/bin/python -B scripts/verify_stage_3_review.py \
+  --verify-worktree --allow-external-main-dirty --run-acceptance
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-review
+.venv/bin/python -B scripts/verify_stage_3_review.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/s03-review/software-lane.json --require-evidence
+```
+
+Review 机器真源是 `machine/facts/stage_3_gate_state.json`。它精确登记 9 个 Task Receipt、19 条
+Acceptance、8 个 Canary 和 5 个 Blocker，并通过负向测试保证 blocked 状态不能授权上传或 Stage 4。
+九个 Task 的合成验收全部通过；A005 的同一批 80 条 Adapter 输入实际生成 80 Artifact、80 Markdown、
+80 Notion Mock Page 与 160 Outbox/Receipt，第二轮重复和持久层 CDN/private-path finding 均为 0。
+最终本地回归为 263 个 root tests（260 PASS、3 个固定 Owner-private 可选 skip）、227 个
+Companion tests 和 12 个 Contract tests；full lane 两轮 24/24 Blocking Gate PASS，0
+failure/flaky/silent skip，coverage 79.66%，33 个依赖漏洞 0，78-member candidate 可确定重建且
+Runtime Data 0。软件验收通过不改变首次 Review 当时的 G3 blocked 判定。
+
+首次 Review 的 `G3` 没有通过：技术上缺少批量 Native dispatch 和显式 fallback 状态机；当时
+8 个真实 Canary 未运行，能力合法终态与 Stage 3/6 Acceptance 归属也未版本化。历史完整结论见
+`docs/governance/STAGE_3_REVIEW.md`。这些历史事实保持不可变；当前合同/归属问题已由 Resume
+闭合；`TSK.x2n.adapters.010` 已在 CI synthetic 范围内闭合剩余两个技术实现 blocker，当前等待独立
+G3 复验，不把 Task 级通过误写为 Gate 通过。
+
+## Stage 3 / Adapters 005 验证
+
+```bash
+PYTHONPATH=apps/companion/src:packages/contracts/src \
+  .venv/bin/python -B scripts/run_adapters_005_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters005-final
+.venv/bin/python -B scripts/verify_adapters_005.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters005-final/software-lane.json --require-evidence
+```
+
+对账状态存在 SQLite `run_record + checkpoint`，不新增 Schema。完整扫描必须精确绑定 succeeded source Run、complete checkpoint、`authoritative_visible_end`、confidence 1.0、receipt、Relation 与 Observation；空响应、bounded scan、重复或旧 source scan 均 Fail Closed。两次独立完整缺失扫描只把 10 条关系推进到 `tombstone_candidate`，不会写 `removed` 或删除 Content/Relation。
+
+80 条合成输入连续两轮与 100 个并发重复消息通过，重复 Content/Relation/Artifact/Markdown/Notion Page 均为 0；五类非权威结果 no-write，50 次真实子进程 Kill 后 partial write/checkpoint advance 为 0。Owner 80 条真实验收固定 20+20+20+20 计划为 `NOT_RUN`，公开计划不含 relation key，平台调用 0。
+
+最终 256 个 root tests（253 PASS、3 个固定可选 skip）、221 个 Companion tests、12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.61%、33 个依赖漏洞 0、78-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传未运行。
+
+## Stage 3 / Adapters 009 历史验证
+
+```bash
+PYTHONPATH=apps/companion/src:packages/contracts/src \
+  .venv/bin/python -B scripts/run_adapters_009_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters009-final
+.venv/bin/python -B scripts/verify_adapters_009.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters009-final/software-lane.json --require-evidence
+```
+
+当前一手 Alibaba 文档证明 `taobao.item.get` 是需授权的增值 API，可按 `num_iid` 请求显式字段；已审阅的当前一手导航没有为本产品建立买家个人收藏列表接口，因此该能力保持 `UNKNOWN_DISABLED`，并不构成“不存在”断言。`TaobaoSelectedIterator` 不包含 network/OAuth/SDK/DOM/MTop/Cookie/signing/proxy/retry transport，只接受 Owner 明确清单与严格 `{num_iid,title}` 净化结果；Canonical URL 由 ID 派生且无 Query/Fragment。
+
+20 条合成条目精确落为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 Observation，不冒充 `liked`/`favorited` 或 full scan。App/OAuth/Scope、增值计划、当前价格/配额、非零预算、官方 TOP＋净化 transport、目的披露、保留期、撤回删除路径与删除回执缺一即阻断；HTTP 429 在 `Retry-After=120` 前禁止恢复且不自动请求或轮换代理。50 次进程退出后 lost/duplicate 均为 0；真实 transport、Owner Canary 和删除执行器 `NOT_RUN`。
+
+最终 248 个 root tests（245 PASS、3 个固定可选 skip）、206 个 Companion tests、12 个 Contract tests 通过；full lane 24/24、coverage 79.59%、33 个依赖漏洞 0、77-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传未运行。
+
+## Stage 3 / Adapters 008 验证
+
+```bash
+PYTHONPATH=apps/companion/src:packages/contracts/src \
+  .venv/bin/python -B scripts/run_adapters_008_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters008-final2
+.venv/bin/python -B scripts/verify_adapters_008.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters008-final2/software-lane.json --require-evidence
+```
+
+`WeiboSelectedIterator` 只接受官方 `GET /2/favorites.json` 形态的 page 1、固定 20 条严格净化清单；没有 network/OAuth/DOM/cursor transport、自动分页/滚动/重试、代理或计划购买。20 条合成 favorites 精确映射为 20 Content、20 scan-confirmed `favorited` Relation 与 20 Observation，不伪造 `liked`/`saved_current` 或 full scan。预算 0、价格/配额未知、授权缺失/撤销均阻断；HTTP 429 必须携带 canonical `Retry-After`，120 秒前恢复被拒绝且无 checkpoint/Canonical 写入或自动请求。50 次进程退出后 lost/duplicate 均为 0。
+
+最终 240 个 root tests（237 PASS、3 个固定可选 skip）、188 个 Companion tests、12 个 Contract tests 通过；full lane 24/24、coverage 79.30%、33 个依赖漏洞 0、76-member candidate 无 Runtime Data。Owner Canary 与真实 transport `NOT_RUN`，G3/上传未运行。
+
+## Stage 3 / Adapters 007 验证
+
+```bash
+PYTHONPATH=apps/companion/src:packages/contracts/src \
+  .venv/bin/python -B scripts/run_adapters_007_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters007-final
+.venv/bin/python -B scripts/verify_adapters_007.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters007-final/software-lane.json --require-evidence
+```
+
+当前一手能力只证明经审批应用、OAuth 动态同意与 `user_video_info` 覆盖的授权用户本人发布作品列表；未证明任意个人点赞或收藏列表。`KuaishouSelectedIterator` 没有网络、DOM、OAuth 或 cursor transport，只接受 page 1、固定 page size 20、Owner 明确选择的严格净化清单；raw cover/play URL/指标/pending/cursor/credential/token/app secret 全部拒绝，公开 `/short-video/{photo_id}` 路由在真实执行前仍需独立证明。
+
+20 条合成作品精确落为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 Observation，不冒充 Kuaishou `liked`/`favorited`，`full_scan_id` 为空。50 次事务内进程退出后 lost/duplicate/checkpoint premature advance 均为 0；Auth/Scope Revoked/Policy/CAPTCHA 只 invalidates 对应 scan。撤权后新请求为 0、生成 1 个待删除标记，历史关系自动删除为 0，等待未来获授权删除路径。最终 233 个 root tests（230 PASS、3 个固定可选 skip）、170 个 Companion tests、12 个 Contract tests 通过；full lane 24/24、coverage 78.99%、33 个依赖漏洞 0、75-member candidate 无 Runtime Data。Owner Canary、真实 transport 与删除执行器 `NOT_RUN`，生产 Feature Flag 关闭，G3/上传未运行。
+
+## Stage 3 / Adapters 006 历史验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_006_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters006-final2
+.venv/bin/python -B scripts/verify_adapters_006.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters006-final2/software-lane.json --require-evidence
+```
+
+当前一手能力只支持经审批应用、关联 UP 主授权与 `ARC_BASE` 覆盖的授权用户自有视频稿件列表；未证明任意个人点赞/收藏或文章列表。`BilibiliSelectedIterator` 没有网络、DOM 或 next-page transport，只接受 page 1、最多 20 条、Owner 明确选择的严格净化清单；raw cover/CID/filename/share/iframe/media/credential/token 字段全部拒绝。
+
+20 条合成稿件精确落为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 Observation；它们不冒充 Bilibili `liked`/`favorited`，`full_scan_id` 为空。50 次事务内子进程退出后 lost/duplicate/checkpoint premature advance 均为 0；Auth/Policy/CAPTCHA 只 invalidates 对应 Bilibili scan，历史关系删除为 0。最终 224 个 root tests PASS（3 skip）、153 个 Companion tests、12 个 Contract tests PASS；full lane 24/24、coverage 78.69%、33 个依赖漏洞 0、74-member candidate 无 Runtime Data。Owner Canary 与真实 transport `NOT_RUN`，生产 Feature Flag 关闭，G3/上传未运行。
+
+## Stage 3 / Adapters 004 历史验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_004_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters004-final
+.venv/bin/python -B scripts/verify_adapters_004.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters004-final/software-lane.json --require-evidence
+```
+
+`DouyinAdapter` 只接受 x2n sidecar 的严格、递归封闭 Schema；每次 bounded action 前都核对固定
+commit/tree/version/license、协议、capability、persistence-off 声明，以及 executable、resolved lock、
+transitive-license report 与 SBOM 摘要。subprocess 固定 `shell=False`、最小环境和 bounded pipe；REST
+只允许数字 `127.0.0.1`、固定 POST path、bounded response。原始上游 CLI/REST 不是该协议，禁止直接
+调用；本 Task 未 vendor、安装、导入或执行上游代码，也没有新增上游 Runtime dependency。
+
+公共合成验收覆盖 18 个负向合同用例、20 条收藏（两个散列化收藏夹）和 20 条点赞；最终精确为
+40 Content、20 `favorited`、20 `liked`、40 Observation 和两次无副作用精确 replay。Canonical 中
+upstream path/database primary key、`full_scan_id`、removed/tombstone/physical delete/Content delete、
+Classification/Taxonomy 写入均为 0。固定 20＋20 Canary 只生成非执行计划；Owner private sidecar 未
+安装，Owner Profile/真实账号/真实平台/Canary 均 `NOT_RUN`。approved pin 保持不变，匿名观察到的
+upstream candidate 只进入 `BLOCKED_SHADOW`，promotion 为 0。
+
+最终本地回归为 216 个 root tests PASS（3 个固定可选 skip）、136 个 Companion tests 与 12 个
+Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage
+78.36%，33 个依赖漏洞 0，73-member source candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## Stage 3 / Adapters 003 历史验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_003_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters003-final
+.venv/bin/python -B scripts/verify_adapters_003.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters003-final/software-lane.json --require-evidence
+```
+
+Extension 只在 Owner 显式动作后读取当前可见、最多 20 条的净化 DOM 事实，不滚动、不翻页、不联网；
+未知空页、部分识别、登录/验证和页面变化都不能推进或完成 Checkpoint。20 条 Canary 只能完成 bounded
+scope，不会冒充 full scan；full scan 只接受权威可见结束信号。Companion 以单个 SQLite 事务复用
+Content、写入独立 `liked` Relation、Observation 与 Checkpoint，精确最后批次 replay 无副作用；点赞固定为
+`unclassified`，自动归档、Classification/Taxonomy 写入和 Owner 既有分类覆盖均为 0。
+
+公共合成验收为 7 个 DOM cases、100 条点赞、其中 20 条已收藏、5 个显式批次和 50 次真实子进程事务内退出；最终精确为 100 Content、100 `liked`、20 `favorited`，lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete/分类写入均为 0。最终本地回归为 208 个 root tests PASS（3 个固定可选 skip）、119 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.79%，33 个依赖漏洞 0，71-member source candidate 无 Runtime Data。Owner 20 条真实验收/private-gold Canary 仍 `NOT_RUN`，真实页面保持禁用。
+
+## Stage 3 / Adapters 001 历史验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_001_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters001-final
+.venv/bin/python -B scripts/verify_adapters_001.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters001-final/software-lane.json --require-evidence
+```
+
+Profile 只允许 Runtime 内六个平台固定逻辑目录，CLI 不接收 executable/Profile path/URL；launcher
+只开 Chrome 内部新标签页，登录和验证码完全由 Owner 手工完成。Companion 不读 Cookie，只接受未来
+live Adapter probe 产生的短 TTL 枚举状态。缺失、过期、验证码和页面变化均阻断对应 Adapter，并保留
+Stage 2 当前页与 Canonical 能力。
+
+`x2n doctor` 复用 Health/Error Contract，覆盖 Extension、Native Host、Companion、DB、FFmpeg、
+Provider、Notion 与 Adapter；非核心依赖缺失只降级。全局 mutex 不等待，低频门不 sleep/自动重试；
+登录过期、HTTP、DOM 改版、空响应和部分扫描的 removed 恒为 0，两次完整成功也只生成候选状态。
+Owner Profile 登录、真实账号、平台调用和 G3 均未运行。
+
+该 Task 完成时本地回归为 194 个 root tests PASS（3 个固定可选 skip）、92 个 Companion tests 与
+12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.66%，
+33 个依赖漏洞 0，67-member source candidate 无 Runtime Data。
 
 ## Stage 2 / Review 与 G2 验证
 
@@ -34,7 +254,8 @@
 Review 冻结九个 Task final commit 与 evidence，逐版本扫描 Stage 2 历史，并聚合六平台独立
 current-page E2E、zero duplicate、zero CDN persistence、媒体清理和 Notion outage 独立性。
 软件 lane 只验证软件，不决定动态 Stage Gate；实际 Python/Node/npm/uv/ruff/coverage/PyYAML
-必须与政策一致。项目原生 G2 只授权 Stage 2 上传；远端 CI/merge 前 `stage_3_task_start=false`。
+必须与政策一致。项目原生 G2 已通过 PR #78 完成整阶段上传、远端双门禁与 merge；其历史
+pre-upload Evidence 保持不变，后续 Stage 3 授权事实由独立机器文件追加记录。
 Review 最终根回归为 186 tests PASS、3 个固定 Owner-private 可选输入 skip；76 个 Companion
 tests PASS。两份独立 full lane 均为 24/24 Blocking Gate PASS，coverage 76.93%、33 个依赖
 vulnerability 0；65-member 候选制品 SHA 一致且 Runtime Data 0。
@@ -49,8 +270,9 @@ vulnerability 0；65-member 候选制品 SHA 一致且 Runtime Data 0。
 ```
 
 Markdown Canonical 路径固定为 `runtime/library/content/<platform>/<content_id>.md`，不使用标题或分类；
-同目录 `0600` 临时文件经 `fsync` 后原子替换，kill 后只保留旧完整文件或新完整文件。Frontmatter、
-正文与 Provenance 均由 SQLite snapshot 和私有 Artifact 文本确定性投影；`Unclassified` 只生成派生
+同目录 `0600` 临时文件经 `fsync` 后原子替换，kill 后只保留旧完整文件或新完整文件。Renderer `1.1.0`
+从一次 SQLite 读快照生成 Content 与分类 `INDEX.md`，以 Hash Manifest 和 Link Checker 验证可删后重建；
+Frontmatter、正文与 Provenance 均由 SQLite snapshot 和私有 Artifact 文本确定性投影；`Unclassified` 只生成派生
 Index，不创建一级分类。
 
 Notion 实现只包含凭据无关的投影合同、限速客户端接口与进程内 deterministic Mock，不包含真实 HTTP
@@ -332,7 +554,7 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 完整门禁使用 80 条合成输入连续两次、100 个并发重复消息和 10k 合成 DB，验证
 SQLite WAL/FK/Unique/append-only、Outbox、Lease、迁移降级、备份 Hash、恢复后逻辑
-摘要与 `integrity_check`。Markdown、Notion、Owner Alpha、Release 与异地灾备仍为
+摘要与 `integrity_check`。Markdown、Notion、Owner 真实验收、Release 与异地灾备仍为
 `DOWNSTREAM_NOT_RUN`。
 
 Owner 私有空库初始化及复验必须显式提供逻辑环境变量，输出不得包含解析路径：
