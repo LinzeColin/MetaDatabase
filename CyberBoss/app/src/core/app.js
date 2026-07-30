@@ -3835,6 +3835,34 @@ class CyberbossApp {
       errorClass,
       kind: normalized.provider === "system" ? "checkin" : "onboarding",
     });
+
+    // 主动问候没送到就先存着，等他下次说话再补上。
+    //
+    // 微信这条通道上，"主动找一个很久没说话的人"是**做不到**的：能不能发出去
+    // 取决于手里有没有一张还没用掉的 context_token，而这张票只在对方发消息时
+    // 刷新。主人一直在跟它聊，所以他的票永远是新的；一个安静了一天的人，票早
+    // 就用完了，怎么发都失败（WEIXIN_PROVIDER_ERROR）。
+    //
+    // 直接丢掉的话，这个人就永远等不到——主动找他这件事对他从来没发生过。
+    // 存起来，他下次随便说一句，问候就先到。这是这条通道上能做到的最好结果。
+    // 主人自己那条路早就这么干了（onDeferredSystemReply），访客这条路一直没接。
+    if (!delivered && normalized.provider === "system") {
+      try {
+        this.deferSystemReply({
+          userId: normalized.senderId,
+          accountId: normalized.accountId,
+          text,
+          error: errorClass,
+          kind: "checkin",
+        });
+        console.warn(
+          `[cyberboss] 主动问候改成等他下次说话再补发 to=${String(normalized.senderId).slice(0, 10)}…`
+          + ` 原因=${errorClass}`,
+        );
+      } catch {
+        // 存不下就算了，不能反过来把这一轮搞挂。
+      }
+    }
   }
 
   // The ordinary-user lane. It never touches the Owner runtime adapter, the
@@ -3947,10 +3975,15 @@ class CyberbossApp {
     }).catch(() => {});
   }
 
-  deferSystemReply({ threadId = "", userId = "", text = "", error = null, kind = "plain_reply" }) {
+  deferSystemReply({ threadId = "", userId = "", text = "", error = null, kind = "plain_reply", accountId = "" }) {
     return this.deferredSystemReplyQueue.enqueue({
       id: `${normalizeCommandArgument(threadId) || "system"}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-      accountId: this.activeAccountId || this.channelAdapter.resolveAccount().accountId,
+      // 这条是哪个号的就存哪个号。写死主号的话，取的那一侧
+      // （drainForSender(normalized.accountId, senderId)）永远找不到它——
+      // 和系统消息队列踩过的是同一个坑：多号加进来了，某一处还停在单号。
+      accountId: normalizeText(accountId)
+        || this.activeAccountId
+        || this.channelAdapter.resolveAccount().accountId,
       senderId: userId,
       threadId,
       text,

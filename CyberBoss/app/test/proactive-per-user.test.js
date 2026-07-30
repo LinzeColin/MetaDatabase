@@ -346,6 +346,30 @@ test("内部触发语不会原样进到给模型的文本里", () => {
   assert.doesNotMatch(modelText, /text: String\(message\.text/);
 });
 
+// ── 八、发不出去就存着，等他下次说话再补 ─────────────────────
+
+test("主动问候发不出去时存起来，而且存在他自己那个号下面", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+
+  // 微信这条通道上，主动找一个很久没说话的人是做不到的：能不能发出去取决于
+  // 手里有没有一张没用掉的 context_token，而它只在对方发消息时刷新。丢掉的话
+  // 这个人就永远等不到，所以必须存下来。
+  const start = source.indexOf("this.noteDirectReply(normalized.senderId, text, {");
+  assert.notEqual(start, -1);
+  const after = source.slice(start, start + 1600);
+  assert.match(after, /provider === "system"/);
+  assert.match(after, /deferSystemReply\(/, "发不出去就丢＝主动找他这件事对他从来没发生过");
+  assert.match(after, /accountId: normalized\.accountId/, "存错号的话取的时候找不到，等于没存");
+
+  // deferSystemReply 自己也不能再把号写死成主号。
+  // 找**方法定义**那一处（行首两个空格），不是上面那个调用点——indexOf 先撞上
+  // 的是调用点，切出来的那段里当然没有实现。
+  const defStart = source.indexOf("\n  deferSystemReply({");
+  assert.notEqual(defStart, -1, "找不到 deferSystemReply 的定义，这个断言已经失效了");
+  const defBody = source.slice(defStart, defStart + 700);
+  assert.match(defBody, /normalizeText\(accountId\)/, "写死主号＝多号下面的人取不回来");
+});
+
 test("轮询器排队的日志带上是给谁排的", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "..", "src", "app", "system-checkin-poller.js"),
