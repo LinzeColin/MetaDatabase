@@ -1,0 +1,798 @@
+{
+  "schema_version": "3.0",
+  "project": "Social Archive",
+  "version": "v0.0.0.4",
+  "rows": [
+    {
+      "requirement_id": "REQ-001",
+      "requirement": "产品、目录、包名、UI、文档和运行身份全面迁移为 Social Archive v0.0.0.4；旧身份只允许出现在迁移输入、兼容读取和历史证据中。",
+      "task_ids": [
+        "SA-002",
+        "SA-005",
+        "SA-507"
+      ],
+      "acceptance_ids": [
+        "AC-SA-002",
+        "AC-SA-005",
+        "AC-SA-507"
+      ],
+      "test_ids": [
+        "TEST-SA-002",
+        "TEST-SA-005",
+        "TEST-SA-507"
+      ],
+      "evidence_paths": [
+        "evidence/SA-002/RESULT.json",
+        "evidence/SA-002/COMMAND_LOG.json",
+        "evidence/SA-005/RESULT.json",
+        "evidence/SA-005/COMMAND_LOG.json",
+        "evidence/SA-507/RESULT.json",
+        "evidence/SA-507/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "00_CONTROL/RENAME_MAP.json",
+        "07_IMPLEMENTATION/apply",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage0_walking_skeleton.py",
+        "10_ACCEPTANCE",
+        "14_EVIDENCE"
+      ]
+    },
+    {
+      "requirement_id": "REQ-002",
+      "requirement": "目标仓采用移动 main 与 Stage 0 Semantic Reconcile。保留聚焦测试证明成立的单一事务/恢复核心；重建产品身份、E2N 插件壳、真实来源连接器、隔离 Sidecar、目的地 Probe/Binding/Receipt、聚合 UI 与运维。latest main 中更强的 Acceptance 等价实现必须保留并适配。只有证据证明核心缺失、局部不可修复或存在不可调和双权威时，才对受影响纵向切片执行只读迁移与受控重建。禁止盲覆盖、双入口、双内核、双权威、静默迁移和隐式数据丢失。",
+      "task_ids": [
+        "SA-001",
+        "SA-002",
+        "SA-003",
+        "SA-005"
+      ],
+      "acceptance_ids": [
+        "AC-SA-001",
+        "AC-SA-002",
+        "AC-SA-003",
+        "AC-SA-005"
+      ],
+      "test_ids": [
+        "TEST-SA-001",
+        "TEST-SA-002",
+        "TEST-SA-003",
+        "TEST-SA-005"
+      ],
+      "evidence_paths": [
+        "evidence/SA-001/RESULT.json",
+        "evidence/SA-001/COMMAND_LOG.json",
+        "evidence/SA-002/RESULT.json",
+        "evidence/SA-002/COMMAND_LOG.json",
+        "evidence/SA-003/RESULT.json",
+        "evidence/SA-003/COMMAND_LOG.json",
+        "evidence/SA-005/RESULT.json",
+        "evidence/SA-005/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "00_CONTROL/RENAME_MAP.json",
+        "07_IMPLEMENTATION/apply",
+        "07_IMPLEMENTATION/overlay/social-archive/src",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage0_walking_skeleton.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-003",
+      "requirement": "浏览器扩展达到 E2N 式低摩擦：工具栏弹窗、站点授权卡、页面悬浮保存、侧边栏任务中心、真实连接检查、中文下一步和一键重试；配置存在不得冒充已授权。",
+      "task_ids": [
+        "SA-004",
+        "SA-005",
+        "SA-303",
+        "SA-305"
+      ],
+      "acceptance_ids": [
+        "AC-SA-004",
+        "AC-SA-005",
+        "AC-SA-303",
+        "AC-SA-305"
+      ],
+      "test_ids": [
+        "TEST-SA-004",
+        "TEST-SA-005",
+        "TEST-SA-303",
+        "TEST-SA-305"
+      ],
+      "evidence_paths": [
+        "evidence/SA-004/RESULT.json",
+        "evidence/SA-004/COMMAND_LOG.json",
+        "evidence/SA-005/RESULT.json",
+        "evidence/SA-005/COMMAND_LOG.json",
+        "evidence/SA-303/RESULT.json",
+        "evidence/SA-303/COMMAND_LOG.json",
+        "evidence/SA-305/RESULT.json",
+        "evidence/SA-305/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps",
+        "07_IMPLEMENTATION/overlay/social-archive/apps/browser-extension",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage0_walking_skeleton.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage3_pwa.py",
+        "01_PRODUCT/E2N_PARITY_CONTRACT.md",
+        "08_UIUX/E2N_BEHAVIORAL_BLUEPRINT.md",
+        "04_CONNECTORS/DESTINATION_PROBE_AND_RECEIPT_CONTRACT.md",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/focused/test_destination_probes_and_receipts.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-004",
+      "requirement": "按通用与国外来源、国内来源、聚合与 UI、Notion/Obsidian/GitHub/Markdown 目的地、存储运维的顺序逐阶段交付。",
+      "task_ids": [
+        "SA-101",
+        "SA-102",
+        "SA-103",
+        "SA-104",
+        "SA-105",
+        "SA-201",
+        "SA-202",
+        "SA-203",
+        "SA-204",
+        "SA-205",
+        "SA-301"
+      ],
+      "acceptance_ids": [
+        "AC-SA-101",
+        "AC-SA-102",
+        "AC-SA-103",
+        "AC-SA-104",
+        "AC-SA-105",
+        "AC-SA-201",
+        "AC-SA-202",
+        "AC-SA-203",
+        "AC-SA-204",
+        "AC-SA-205",
+        "AC-SA-301"
+      ],
+      "test_ids": [
+        "TEST-SA-101",
+        "TEST-SA-102",
+        "TEST-SA-103",
+        "TEST-SA-104",
+        "TEST-SA-105",
+        "TEST-SA-201",
+        "TEST-SA-202",
+        "TEST-SA-203",
+        "TEST-SA-204",
+        "TEST-SA-205",
+        "TEST-SA-301"
+      ],
+      "evidence_paths": [
+        "evidence/SA-101/RESULT.json",
+        "evidence/SA-101/COMMAND_LOG.json",
+        "evidence/SA-102/RESULT.json",
+        "evidence/SA-102/COMMAND_LOG.json",
+        "evidence/SA-103/RESULT.json",
+        "evidence/SA-103/COMMAND_LOG.json",
+        "evidence/SA-104/RESULT.json",
+        "evidence/SA-104/COMMAND_LOG.json",
+        "evidence/SA-105/RESULT.json",
+        "evidence/SA-105/COMMAND_LOG.json",
+        "evidence/SA-201/RESULT.json",
+        "evidence/SA-201/COMMAND_LOG.json",
+        "evidence/SA-202/RESULT.json",
+        "evidence/SA-202/COMMAND_LOG.json",
+        "evidence/SA-203/RESULT.json",
+        "evidence/SA-203/COMMAND_LOG.json",
+        "evidence/SA-204/RESULT.json",
+        "evidence/SA-204/COMMAND_LOG.json",
+        "evidence/SA-205/RESULT.json",
+        "evidence/SA-205/COMMAND_LOG.json",
+        "evidence/SA-301/RESULT.json",
+        "evidence/SA-301/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps/pwa",
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml",
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/command.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/http_workers.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/markdown_watch.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/oauth.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage1_western.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage2_domestic.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-005",
+      "requirement": "通用网页、Social Archiver 本地导出、Reddit、X、Instagram 均具备读取/保存路径；收费或配额不确定时自动使用免费导入或当前页路径。",
+      "task_ids": [
+        "SA-101",
+        "SA-102",
+        "SA-103",
+        "SA-104",
+        "SA-105"
+      ],
+      "acceptance_ids": [
+        "AC-SA-101",
+        "AC-SA-102",
+        "AC-SA-103",
+        "AC-SA-104",
+        "AC-SA-105"
+      ],
+      "test_ids": [
+        "TEST-SA-101",
+        "TEST-SA-102",
+        "TEST-SA-103",
+        "TEST-SA-104",
+        "TEST-SA-105"
+      ],
+      "evidence_paths": [
+        "evidence/SA-101/RESULT.json",
+        "evidence/SA-101/COMMAND_LOG.json",
+        "evidence/SA-102/RESULT.json",
+        "evidence/SA-102/COMMAND_LOG.json",
+        "evidence/SA-103/RESULT.json",
+        "evidence/SA-103/COMMAND_LOG.json",
+        "evidence/SA-104/RESULT.json",
+        "evidence/SA-104/COMMAND_LOG.json",
+        "evidence/SA-105/RESULT.json",
+        "evidence/SA-105/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/command.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/markdown_watch.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/oauth.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage1_western.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-006",
+      "requirement": "小红书、抖音、快手、B站均具备用户触发的当前页兜底和独立 Sidecar/Worker 路径，单平台失效不连坐。",
+      "task_ids": [
+        "SA-201",
+        "SA-202",
+        "SA-203",
+        "SA-204",
+        "SA-205"
+      ],
+      "acceptance_ids": [
+        "AC-SA-201",
+        "AC-SA-202",
+        "AC-SA-203",
+        "AC-SA-204",
+        "AC-SA-205"
+      ],
+      "test_ids": [
+        "TEST-SA-201",
+        "TEST-SA-202",
+        "TEST-SA-203",
+        "TEST-SA-204",
+        "TEST-SA-205"
+      ],
+      "evidence_paths": [
+        "evidence/SA-201/RESULT.json",
+        "evidence/SA-201/COMMAND_LOG.json",
+        "evidence/SA-202/RESULT.json",
+        "evidence/SA-202/COMMAND_LOG.json",
+        "evidence/SA-203/RESULT.json",
+        "evidence/SA-203/COMMAND_LOG.json",
+        "evidence/SA-204/RESULT.json",
+        "evidence/SA-204/COMMAND_LOG.json",
+        "evidence/SA-205/RESULT.json",
+        "evidence/SA-205/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml",
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/http_workers.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage2_domestic.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-007",
+      "requirement": "默认归档 L0、L1、L3；L2 默认关闭且不阻塞任何核心链路。",
+      "task_ids": [
+        "SA-004",
+        "SA-101",
+        "SA-105",
+        "SA-205"
+      ],
+      "acceptance_ids": [
+        "AC-SA-004",
+        "AC-SA-101",
+        "AC-SA-105",
+        "AC-SA-205"
+      ],
+      "test_ids": [
+        "TEST-SA-004",
+        "TEST-SA-101",
+        "TEST-SA-105",
+        "TEST-SA-205"
+      ],
+      "evidence_paths": [
+        "evidence/SA-004/RESULT.json",
+        "evidence/SA-004/COMMAND_LOG.json",
+        "evidence/SA-101/RESULT.json",
+        "evidence/SA-101/COMMAND_LOG.json",
+        "evidence/SA-105/RESULT.json",
+        "evidence/SA-105/COMMAND_LOG.json",
+        "evidence/SA-205/RESULT.json",
+        "evidence/SA-205/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps/browser-extension",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/markdown_watch.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage1_western.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage2_domestic.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-008",
+      "requirement": "统一资料库支持时间线、网格、详情、来源/关系/收藏夹筛选、全文检索、任务与授权状态及防误删关系历史。",
+      "task_ids": [
+        "SA-301",
+        "SA-302",
+        "SA-303",
+        "SA-304",
+        "SA-305"
+      ],
+      "acceptance_ids": [
+        "AC-SA-301",
+        "AC-SA-302",
+        "AC-SA-303",
+        "AC-SA-304",
+        "AC-SA-305"
+      ],
+      "test_ids": [
+        "TEST-SA-301",
+        "TEST-SA-302",
+        "TEST-SA-303",
+        "TEST-SA-304",
+        "TEST-SA-305"
+      ],
+      "evidence_paths": [
+        "evidence/SA-301/RESULT.json",
+        "evidence/SA-301/COMMAND_LOG.json",
+        "evidence/SA-302/RESULT.json",
+        "evidence/SA-302/COMMAND_LOG.json",
+        "evidence/SA-303/RESULT.json",
+        "evidence/SA-303/COMMAND_LOG.json",
+        "evidence/SA-304/RESULT.json",
+        "evidence/SA-304/COMMAND_LOG.json",
+        "evidence/SA-305/RESULT.json",
+        "evidence/SA-305/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps",
+        "07_IMPLEMENTATION/overlay/social-archive/apps/pwa",
+        "07_IMPLEMENTATION/overlay/social-archive/compose.readers.yaml",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/db.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage3_pwa.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-009",
+      "requirement": "Notion、Obsidian、GitHub Private-Database Markdown 和标准 Markdown/JSONL 导出均可独立启用、主动探测、幂等写入、生成回执、重试和对账。",
+      "task_ids": [
+        "SA-401",
+        "SA-402",
+        "SA-403",
+        "SA-404"
+      ],
+      "acceptance_ids": [
+        "AC-SA-401",
+        "AC-SA-402",
+        "AC-SA-403",
+        "AC-SA-404"
+      ],
+      "test_ids": [
+        "TEST-SA-401",
+        "TEST-SA-402",
+        "TEST-SA-403",
+        "TEST-SA-404"
+      ],
+      "evidence_paths": [
+        "evidence/SA-401/RESULT.json",
+        "evidence/SA-401/COMMAND_LOG.json",
+        "evidence/SA-402/RESULT.json",
+        "evidence/SA-402/COMMAND_LOG.json",
+        "evidence/SA-403/RESULT.json",
+        "evidence/SA-403/COMMAND_LOG.json",
+        "evidence/SA-404/RESULT.json",
+        "evidence/SA-404/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/exports.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage4_replication_exports.py",
+        "04_CONNECTORS/DESTINATION_PROBE_AND_RECEIPT_CONTRACT.md",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/sql/runtime_schema.sql",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/focused/test_destination_probes_and_receipts.py",
+        "07_IMPLEMENTATION/overlay/social-archive/apps/obsidian-plugin"
+      ]
+    },
+    {
+      "requirement_id": "REQ-010",
+      "requirement": "对象只加密一次，同一密文依次写入 R2、OCI 和 GitHub 私有归档仓；三张回读校验收据未齐不得显示归档完成。",
+      "task_ids": [
+        "SA-303",
+        "SA-501",
+        "SA-502",
+        "SA-503",
+        "SA-506"
+      ],
+      "acceptance_ids": [
+        "AC-SA-303",
+        "AC-SA-501",
+        "AC-SA-502",
+        "AC-SA-503",
+        "AC-SA-506"
+      ],
+      "test_ids": [
+        "TEST-SA-303",
+        "TEST-SA-501",
+        "TEST-SA-502",
+        "TEST-SA-503",
+        "TEST-SA-506"
+      ],
+      "evidence_paths": [
+        "evidence/SA-303/RESULT.json",
+        "evidence/SA-303/COMMAND_LOG.json",
+        "evidence/SA-501/RESULT.json",
+        "evidence/SA-501/COMMAND_LOG.json",
+        "evidence/SA-502/RESULT.json",
+        "evidence/SA-502/COMMAND_LOG.json",
+        "evidence/SA-503/RESULT.json",
+        "evidence/SA-503/COMMAND_LOG.json",
+        "evidence/SA-506/RESULT.json",
+        "evidence/SA-506/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/github_release_backup.py",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/replicate_objects.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/encryption.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage"
+      ]
+    },
+    {
+      "requirement_id": "REQ-011",
+      "requirement": "Private-Database 是长期结构化事实权威源，R2 是对象字节权威源，OCI 与 GitHub 私有归档仓为异地/第三副本，OVH SQLite 仅为可重建 Runtime Journal。",
+      "task_ids": [
+        "SA-003",
+        "SA-401",
+        "SA-501",
+        "SA-502",
+        "SA-503",
+        "SA-504"
+      ],
+      "acceptance_ids": [
+        "AC-SA-003",
+        "AC-SA-401",
+        "AC-SA-501",
+        "AC-SA-502",
+        "AC-SA-503",
+        "AC-SA-504"
+      ],
+      "test_ids": [
+        "TEST-SA-003",
+        "TEST-SA-401",
+        "TEST-SA-501",
+        "TEST-SA-502",
+        "TEST-SA-503",
+        "TEST-SA-504"
+      ],
+      "evidence_paths": [
+        "evidence/SA-003/RESULT.json",
+        "evidence/SA-003/COMMAND_LOG.json",
+        "evidence/SA-401/RESULT.json",
+        "evidence/SA-401/COMMAND_LOG.json",
+        "evidence/SA-501/RESULT.json",
+        "evidence/SA-501/COMMAND_LOG.json",
+        "evidence/SA-502/RESULT.json",
+        "evidence/SA-502/COMMAND_LOG.json",
+        "evidence/SA-503/RESULT.json",
+        "evidence/SA-503/COMMAND_LOG.json",
+        "evidence/SA-504/RESULT.json",
+        "evidence/SA-504/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/apply",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/github_release_backup.py",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/replicate_objects.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/encryption.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-012",
+      "requirement": "必需增量费用为 0；不得依赖付费 API、付费 SaaS 或模型；未知配额和可能收费路径 fail closed，L0/L1 继续；GitHub 目的地必须为私有仓库。",
+      "task_ids": [
+        "SA-103",
+        "SA-402",
+        "SA-501",
+        "SA-502",
+        "SA-503"
+      ],
+      "acceptance_ids": [
+        "AC-SA-103",
+        "AC-SA-402",
+        "AC-SA-501",
+        "AC-SA-502",
+        "AC-SA-503"
+      ],
+      "test_ids": [
+        "TEST-SA-103",
+        "TEST-SA-402",
+        "TEST-SA-501",
+        "TEST-SA-502",
+        "TEST-SA-503"
+      ],
+      "evidence_paths": [
+        "evidence/SA-103/RESULT.json",
+        "evidence/SA-103/COMMAND_LOG.json",
+        "evidence/SA-402/RESULT.json",
+        "evidence/SA-402/COMMAND_LOG.json",
+        "evidence/SA-501/RESULT.json",
+        "evidence/SA-501/COMMAND_LOG.json",
+        "evidence/SA-502/RESULT.json",
+        "evidence/SA-502/COMMAND_LOG.json",
+        "evidence/SA-503/RESULT.json",
+        "evidence/SA-503/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/github_release_backup.py",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/replicate_objects.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/encryption.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py",
+        "12_GOVERNANCE/FREE_ONLY_POLICY.md",
+        "06_STORAGE/GITHUB_PRIVATE_REPO.md"
+      ]
+    },
+    {
+      "requirement_id": "REQ-013",
+      "requirement": "第三方 GPL/AGPL/专有工具仅通过容器、HTTP、进程、文件或用户浏览器边界复用，不复制或导入到专有核心。",
+      "task_ids": [
+        "SA-104",
+        "SA-201",
+        "SA-202",
+        "SA-203",
+        "SA-204",
+        "SA-304"
+      ],
+      "acceptance_ids": [
+        "AC-SA-104",
+        "AC-SA-201",
+        "AC-SA-202",
+        "AC-SA-203",
+        "AC-SA-204",
+        "AC-SA-304"
+      ],
+      "test_ids": [
+        "TEST-SA-104",
+        "TEST-SA-201",
+        "TEST-SA-202",
+        "TEST-SA-203",
+        "TEST-SA-204",
+        "TEST-SA-304"
+      ],
+      "evidence_paths": [
+        "evidence/SA-104/RESULT.json",
+        "evidence/SA-104/COMMAND_LOG.json",
+        "evidence/SA-201/RESULT.json",
+        "evidence/SA-201/COMMAND_LOG.json",
+        "evidence/SA-202/RESULT.json",
+        "evidence/SA-202/COMMAND_LOG.json",
+        "evidence/SA-203/RESULT.json",
+        "evidence/SA-203/COMMAND_LOG.json",
+        "evidence/SA-204/RESULT.json",
+        "evidence/SA-204/COMMAND_LOG.json",
+        "evidence/SA-304/RESULT.json",
+        "evidence/SA-304/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.readers.yaml",
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml",
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/command.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/http_workers.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-014",
+      "requirement": "不保存平台密码、浏览器 Cookie 或认证头，不绕过 CAPTCHA、DRM、访问控制或平台限制；仅处理用户已授权和可访问内容。",
+      "task_ids": [
+        "SA-004",
+        "SA-102",
+        "SA-104",
+        "SA-201",
+        "SA-203"
+      ],
+      "acceptance_ids": [
+        "AC-SA-004",
+        "AC-SA-102",
+        "AC-SA-104",
+        "AC-SA-201",
+        "AC-SA-203"
+      ],
+      "test_ids": [
+        "TEST-SA-004",
+        "TEST-SA-102",
+        "TEST-SA-104",
+        "TEST-SA-201",
+        "TEST-SA-203"
+      ],
+      "evidence_paths": [
+        "evidence/SA-004/RESULT.json",
+        "evidence/SA-004/COMMAND_LOG.json",
+        "evidence/SA-102/RESULT.json",
+        "evidence/SA-102/COMMAND_LOG.json",
+        "evidence/SA-104/RESULT.json",
+        "evidence/SA-104/COMMAND_LOG.json",
+        "evidence/SA-201/RESULT.json",
+        "evidence/SA-201/COMMAND_LOG.json",
+        "evidence/SA-203/RESULT.json",
+        "evidence/SA-203/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps/browser-extension",
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml",
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/command.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/http_workers.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/oauth.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-015",
+      "requirement": "运行不依赖开发 Agent、聊天线程、人工保活、本机常驻、macOS launchd 或模型 Token；OVH systemd/Compose 可启动、停止、自愈、诊断、备份、恢复和回滚。",
+      "task_ids": [
+        "SA-505",
+        "SA-506"
+      ],
+      "acceptance_ids": [
+        "AC-SA-505",
+        "AC-SA-506"
+      ],
+      "test_ids": [
+        "TEST-SA-505",
+        "TEST-SA-506"
+      ],
+      "evidence_paths": [
+        "evidence/SA-505/RESULT.json",
+        "evidence/SA-505/COMMAND_LOG.json",
+        "evidence/SA-506/RESULT.json",
+        "evidence/SA-506/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/deploy",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage"
+      ]
+    },
+    {
+      "requirement_id": "REQ-016",
+      "requirement": "测试采用聚焦测试、阶段门和最终候选一次全量回归；真实账户/provider canary 明确标为环境绑定，NOT_RUN 不得冒充 PASS。",
+      "task_ids": [
+        "SA-000",
+        "SA-005",
+        "SA-105",
+        "SA-205",
+        "SA-305",
+        "SA-404",
+        "SA-506",
+        "SA-507"
+      ],
+      "acceptance_ids": [
+        "AC-SA-000",
+        "AC-SA-005",
+        "AC-SA-105",
+        "AC-SA-205",
+        "AC-SA-305",
+        "AC-SA-404",
+        "AC-SA-506",
+        "AC-SA-507"
+      ],
+      "test_ids": [
+        "TEST-SA-000",
+        "TEST-SA-005",
+        "TEST-SA-105",
+        "TEST-SA-205",
+        "TEST-SA-305",
+        "TEST-SA-404",
+        "TEST-SA-506",
+        "TEST-SA-507"
+      ],
+      "evidence_paths": [
+        "evidence/SA-000/RESULT.json",
+        "evidence/SA-000/COMMAND_LOG.json",
+        "evidence/SA-005/RESULT.json",
+        "evidence/SA-005/COMMAND_LOG.json",
+        "evidence/SA-105/RESULT.json",
+        "evidence/SA-105/COMMAND_LOG.json",
+        "evidence/SA-205/RESULT.json",
+        "evidence/SA-205/COMMAND_LOG.json",
+        "evidence/SA-305/RESULT.json",
+        "evidence/SA-305/COMMAND_LOG.json",
+        "evidence/SA-404/RESULT.json",
+        "evidence/SA-404/COMMAND_LOG.json",
+        "evidence/SA-506/RESULT.json",
+        "evidence/SA-506/COMMAND_LOG.json",
+        "evidence/SA-507/RESULT.json",
+        "evidence/SA-507/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage0_walking_skeleton.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage1_western.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage2_domestic.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage3_pwa.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage4_replication_exports.py",
+        "10_ACCEPTANCE",
+        "14_EVIDENCE",
+        "MANIFEST.sha256"
+      ]
+    },
+    {
+      "requirement_id": "REQ-017",
+      "requirement": "status.linzezhang.com 只读投影平台、目的地、存储三副本、备份恢复和版本状态，不成为第二事实源。",
+      "task_ids": [
+        "SA-505"
+      ],
+      "acceptance_ids": [
+        "AC-SA-505"
+      ],
+      "test_ids": [
+        "TEST-SA-505"
+      ],
+      "evidence_paths": [
+        "evidence/SA-505/RESULT.json",
+        "evidence/SA-505/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/overlay/social-archive/deploy",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts"
+      ]
+    },
+    {
+      "requirement_id": "REQ-018",
+      "requirement": "Codex 仅执行最新 main 上的语义合并、真实凭证、供应商控制台、部署和兼容性最后一公里；保留更优上游实现，不重新研究、重做架构或扩大验收。",
+      "task_ids": [
+        "SA-000",
+        "SA-001",
+        "SA-003",
+        "SA-507"
+      ],
+      "acceptance_ids": [
+        "AC-SA-000",
+        "AC-SA-001",
+        "AC-SA-003",
+        "AC-SA-507"
+      ],
+      "test_ids": [
+        "TEST-SA-000",
+        "TEST-SA-001",
+        "TEST-SA-003",
+        "TEST-SA-507"
+      ],
+      "evidence_paths": [
+        "evidence/SA-000/RESULT.json",
+        "evidence/SA-000/COMMAND_LOG.json",
+        "evidence/SA-001/RESULT.json",
+        "evidence/SA-001/COMMAND_LOG.json",
+        "evidence/SA-003/RESULT.json",
+        "evidence/SA-003/COMMAND_LOG.json",
+        "evidence/SA-507/RESULT.json",
+        "evidence/SA-507/COMMAND_LOG.json"
+      ],
+      "artifact_paths": [
+        "07_IMPLEMENTATION/apply",
+        "07_IMPLEMENTATION/overlay/social-archive/src",
+        "10_ACCEPTANCE",
+        "14_EVIDENCE",
+        "MANIFEST.sha256",
+        "00_CONTROL/CODEBASE_DECISION.md",
+        "00_CONTROL/SECOND_MODEL_INTEGRATION.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "build_agent_allowed": [
+    {
+      "name": "verifier",
+      "version": "0.0.2.2",
+      "scope": "frozen candidate verification only; read-only taskpack; no product modification"
+    },
+    {
+      "name": "implementation/testing/deployment skills selected by repository catalog",
+      "version": "resolved at build start",
+      "scope": "only deterministic implementation, focused tests, compatibility and deployment"
+    }
+  ],
+  "build_agent_forbidden": [
+    {
+      "name": "teleiosis",
+      "reason": "ordinary software product; formal Skill evolution is not applicable and all white-box preparation is already sealed"
+    },
+    {
+      "name": "persona-distiller-group",
+      "reason": "research/review must not be repeated by Build Agent"
+    },
+    {
+      "name": "grilling",
+      "reason": "owner decisions are frozen; only environment-bound inputs may be collected"
+    },
+    {
+      "name": "market research or product redesign",
+      "reason": "Preparation Agent responsibility already closed"
+    }
+  ]
+}

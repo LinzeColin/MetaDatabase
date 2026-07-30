@@ -1,7 +1,0 @@
-{
-  "schema_version": "1.0",
-  "fixture_id": "FIXTURE.X2N.S03.A004.RESOLVED-LOCK.001",
-  "scope": "ci_synthetic_protocol_worker_only",
-  "upstream_runtime_installed": false,
-  "packages": []
-}

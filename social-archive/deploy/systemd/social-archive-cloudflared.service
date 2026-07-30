@@ -1,0 +1,21 @@
+[Unit]
+Description=Social Archive dedicated Cloudflare Tunnel
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/social-archive/social-archive-cloudflared.env
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/social-archive/social-archive-cloudflared.env
+ExecStart=/usr/local/bin/cloudflared tunnel --no-autoupdate run --token ${SOCIAL_ARCHIVE_CLOUDFLARED_TOKEN}
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateDevices=yes
+ReadOnlyPaths=/etc/social-archive
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-101",
+  "acceptance_id": "AC-SA-101",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T11:31:03Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 177,
+      "apply": 26,
+      "adapt": 8,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "The three SA-101 product source files are byte-identical to the frozen Overlay. The three focused tests are intentionally stronger so every stated idempotency, canonical-authority, and reader-degradation assertion is directly exercised."
+  },
+  "frozen_overlay_product_parity": {
+    "status": "PASS",
+    "files_compared": 3,
+    "identical": 3,
+    "files": {
+      "src/social_archive/connectors/markdown_watch.py": "54edf90ef619dd47dcb0c3d6c494a877b315d1861d9fa099847be1c6d9e29e22",
+      "src/social_archive/connectors/social_archiver_bundle.py": "763671c9c6ab8f8c8c886f26645f02d6481294c450ce847e7297de6cdbefe4f0",
+      "src/social_archive/destinations.py": "46e61e9690e72f73ac40841de246d77296986de47acde733c80bd68a77f042ba"
+    }
+  },
+  "acceptance_observations": {
+    "generic_web_fixture_canary": {
+      "status": "PASS",
+      "public_url": "https://www.iana.org/domains/example",
+      "execution_path": "ConnectorRegistry generic-web -> CaptureRequest -> ArchiveService",
+      "accepted_levels": ["L0", "L1", "L3"],
+      "l3_job_queued": true,
+      "network_fetch": "NOT_REQUIRED: the generic connector saves the user-supplied current-page URL; it does not claim to fetch the page server-side."
+    },
+    "markdown_import": {
+      "status": "PASS",
+      "frontmatter_parsed": true,
+      "watch_root_escape_rejected": true
+    },
+    "social_archiver_import": {
+      "status": "PASS",
+      "zip_markdown_parsed_without_extracting": true,
+      "path_traversal_rejected": true,
+      "same_bundle_content_ids_stable": true,
+      "same_bundle_job_ids_stable": true,
+      "no_duplicate_relation_or_l1_artifact": true
+    },
+    "karakeep_projection": {
+      "status": "PASS",
+      "probe_and_write": "MockTransport fixture verified the documented bearer API path and URL-only projection.",
+      "unchanged_projection_is_noop": true,
+      "deleted_binding_rebuilds_projection": true,
+      "canonical_facts_unchanged_after_projection_or_rebuild": true
+    },
+    "karakeep_degradation": {
+      "status": "PASS",
+      "fixture": "configured local test token plus HTTP 503 MockTransport response",
+      "canonical_generic_capture_succeeds_before_reader_attempt": true,
+      "reader_state": "degraded",
+      "failed_receipt_recorded": true,
+      "reader_binding_not_written_on_failure": true
+    }
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "tests_passed": 13,
+    "tests_failed": 0,
+    "test_files": [
+      "tests/focused/test_generic_web_connector.py",
+      "tests/focused/test_markdown_importer.py",
+      "tests/focused/test_social_archiver_import.py",
+      "tests/focused/test_reader_projection.py"
+    ],
+    "strengthened_test_sha256": {
+      "tests/focused/test_generic_web_connector.py": "71ff2645b0335f992d1531cdd186fc904e9bcd9aec65c64a5b286af8d226113f",
+      "tests/focused/test_social_archiver_import.py": "444e96a05de5ee1e95e98e124a70745d6f9ce21dc88844f37134f368748e2c87",
+      "tests/focused/test_reader_projection.py": "ab561cc163afea1191042adc674524b7901f15b7e5f06b33e73fb5041d57dea6"
+    }
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "environment_boundary": {
+    "project_venv": "PASS",
+    "fixture_canary": "PASS",
+    "live_browser_current_page": "NOT_RUN",
+    "live_karakeep_provider": "NOT_RUN",
+    "treatment": "The frozen contract allows a fixture or a minimal owner canary. This task's blocking local assertions use isolated fixtures; live browser and provider actions remain separately unverified and are not represented as connected or deployed."
+  },
+  "source_change": {
+    "product_source_rewrite": "NOT_REQUIRED",
+    "test_coverage_change": "Strengthened the frozen focused tests for the generic capture path, duplicate-import no-op behavior, disposable reader rebuild, and reader outage isolation.",
+    "files_written_in_this_task": [
+      "tests/focused/test_generic_web_connector.py",
+      "tests/focused/test_social_archiver_import.py",
+      "tests/focused/test_reader_projection.py",
+      "evidence/SA-101/RESULT.json",
+      "evidence/SA-101/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ]
+  },
+  "scope_exclusions": [
+    "No live browser profile, generic-web fetch, platform account, Karakeep instance, destination credential, private-database action, cloud action, deployment, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "All test data, tokens, ZIP files, HTTP responses, runtime journals, canonical bundles, and reader projections were temporary pytest fixtures."
+  ]
+}

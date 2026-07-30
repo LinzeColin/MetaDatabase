@@ -1,0 +1,12 @@
+[Unit]
+Description=Replicate Social Archive objects every fifteen minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=15min
+Persistent=true
+RandomizedDelaySec=60
+Unit=social-archive-replication.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,175 @@
+{
+  "schema_version": "1.0",
+  "default_archive_levels": [
+    "L0",
+    "L1",
+    "L3"
+  ],
+  "manual_archive_levels": [
+    "L2"
+  ],
+  "platforms": [
+    {
+      "id": "generic-web",
+      "display_name": "通用网页",
+      "order": 1,
+      "primary": [
+        "Chrome activeTab capture",
+        "abx-dl/yt-dlp/gallery-dl by URL"
+      ],
+      "fallback": [
+        "metadata-only capture",
+        "manual file import"
+      ],
+      "relations": [
+        "manual_save"
+      ],
+      "canary": "save current page; L0/L1 visible immediately; one L3 object when page has downloadable media"
+    },
+    {
+      "id": "x",
+      "display_name": "X",
+      "order": 2,
+      "primary": [
+        "official OAuth bookmarks/likes"
+      ],
+      "fallback": [
+        "Social Archiver Markdown/Obsidian import",
+        "Chrome current-page capture",
+        "gallery-dl URL artifact"
+      ],
+      "relations": [
+        "bookmark",
+        "like"
+      ],
+      "canary": "import >=1 bookmark and >=1 like; download one owned/authorized media item"
+    },
+    {
+      "id": "reddit",
+      "display_name": "Reddit",
+      "order": 3,
+      "primary": [
+        "official OAuth saved/upvoted"
+      ],
+      "fallback": [
+        "Social Archiver Markdown/Obsidian import",
+        "Chrome current-page capture"
+      ],
+      "relations": [
+        "saved",
+        "upvoted"
+      ],
+      "canary": "import >=1 saved and >=1 upvoted; preserve deletion status without promising deleted third-party text forever"
+    },
+    {
+      "id": "instagram",
+      "display_name": "Instagram",
+      "order": 4,
+      "primary": [
+        "Instaloader :saved local session"
+      ],
+      "fallback": [
+        "Social Archiver Markdown/Obsidian import",
+        "Chrome current-page capture",
+        "gallery-dl URL artifact"
+      ],
+      "relations": [
+        "saved",
+        "collection"
+      ],
+      "canary": "import >=1 saved item; L3 media hash present"
+    },
+    {
+      "id": "tiktok",
+      "display_name": "TikTok",
+      "order": 5,
+      "primary": [
+        "gallery-dl/yt-dlp URL artifact"
+      ],
+      "fallback": [
+        "DouK health-gated worker",
+        "Chrome current-page capture"
+      ],
+      "relations": [
+        "favorite",
+        "like",
+        "manual_save"
+      ],
+      "canary": "save one accessible post with L0/L1/L3"
+    },
+    {
+      "id": "xiaohongshu",
+      "display_name": "小红书",
+      "order": 6,
+      "primary": [
+        "XHS-Downloader 2.7 HTTP worker / user link list"
+      ],
+      "fallback": [
+        "gallery-dl/yt-dlp if supported",
+        "Chrome current-page/visible-card capture"
+      ],
+      "relations": [
+        "favorite",
+        "like",
+        "collection"
+      ],
+      "canary": "save one accessible note with L0/L1 and image/video L3"
+    },
+    {
+      "id": "douyin",
+      "display_name": "抖音",
+      "order": 7,
+      "primary": [
+        "DouK worker only when health probe passes"
+      ],
+      "fallback": [
+        "yt-dlp/gallery-dl if supported",
+        "Chrome current-page/visible-card capture",
+        "manual downloaded file import"
+      ],
+      "relations": [
+        "favorite",
+        "like",
+        "collection"
+      ],
+      "canary": "save one accessible item with L0/L1/L3; no signature/CAPTCHA bypass"
+    },
+    {
+      "id": "kuaishou",
+      "display_name": "快手",
+      "order": 8,
+      "primary": [
+        "KS-Downloader 1.6 OpenAPI-probed worker"
+      ],
+      "fallback": [
+        "yt-dlp/gallery-dl if supported",
+        "Chrome current-page/visible-card capture"
+      ],
+      "relations": [
+        "favorite",
+        "like",
+        "manual_save"
+      ],
+      "canary": "save one accessible item with L0/L1/L3"
+    },
+    {
+      "id": "bilibili",
+      "display_name": "哔哩哔哩",
+      "order": 9,
+      "primary": [
+        "bilibili-cli read-only favorites/watch-later/history + yt-dlp artifact"
+      ],
+      "fallback": [
+        "Chrome current-page/visible-card capture"
+      ],
+      "relations": [
+        "favorite",
+        "watch_later",
+        "history",
+        "like"
+      ],
+      "canary": "read one favorites page and save one accessible video with L0/L1/L3"
+    }
+  ],
+  "global_degradation_contract": "Each platform has independent policy/auth/technical gates, circuit breaker, current-page fallback and visible health state. One connector failure never changes global availability."
+}

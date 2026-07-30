@@ -1,0 +1,2124 @@
+{
+  "schema_version": "4.0",
+  "project": "Social Archive",
+  "taskpack_version": "v0.0.0.4",
+  "product_line": "v0.0.0.x",
+  "current_phase": "SEALED_TASKPACK",
+  "task_count": 32,
+  "full_suite_policy": "Focused tests per task and stage; exactly one full application regression at SA-507 after the product Candidate is frozen. Taskpack integrity rechecks use verify-fast/--skip-tests.",
+  "integration_base_policy": "Stage 0 获取 latest main，并将任务/文件分类为 satisfied|apply|adapt|equivalent|conflict|blocked|obsolete。保留聚焦测试证明成立的单一事务/恢复核心；重建产品身份、E2N 操作壳、真实来源连接器、目的地 Probe/Binding/Receipt、聚合 UI 与运维边界。latest main 中更强的 Acceptance 等价实现必须保留。只有聚焦证据证明核心缺失、局部不可修复或存在不可调和双权威时，才对受影响纵向切片执行只读迁移与受控重建。禁止盲覆盖、双入口、双内核、双权威、静默迁移和隐式数据丢失；SA-002 与 SA-003 复用 ACTIVE_SESSION 和精确工作区指纹。",
+  "tasks": [
+    {
+      "id": "SA-000",
+      "version": "v0.0.0.4",
+      "stage": "S0",
+      "title": "快速校验最终任务包并建立可恢复执行上下文",
+      "task_type": "verification",
+      "status": "READY_LAST_MILE",
+      "dependencies": [],
+      "requirement_ids": [
+        "REQ-016",
+        "REQ-018"
+      ],
+      "capability_key": "taskpack_integrity",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture"
+      ],
+      "outputs": [
+        "10_ACCEPTANCE",
+        "MANIFEST.sha256",
+        "evidence/SA-000/RESULT.json",
+        "evidence/SA-000/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "python3 START_HERE.py verify-fast"
+      ],
+      "expected": "结构、身份、DAG、语法、路径、哈希和预制回归证据 PASS；不重复运行冻结候选全量测试。",
+      "acceptance_ids": [
+        "AC-SA-000"
+      ],
+      "tests": [
+        "TEST-SA-000"
+      ],
+      "oracle": "verify-fast PASS，PREBUILD_TEST_REPORT 绑定冻结 Candidate 且 failed=0；未触发第二次全量回归。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-000/RESULT.json",
+        "evidence/SA-000/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": null,
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 1,
+        "p95_active_hours": 2,
+        "p80_tokens": 20000,
+        "p95_tokens": 40000,
+        "confidence": "high"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive",
+        "10_ACCEPTANCE/FROZEN_ACCEPTANCE_CONTRACT.json"
+      ]
+    },
+    {
+      "id": "SA-001",
+      "version": "v0.0.0.4",
+      "stage": "S0",
+      "title": "获取最新 main 并完成 Semantic Reconcile",
+      "task_type": "research",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-000"
+      ],
+      "requirement_ids": [
+        "REQ-002",
+        "REQ-018"
+      ],
+      "capability_key": "moving_repo_reconcile",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/apply",
+        "evidence/SA-001/RESULT.json",
+        "evidence/SA-001/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "python3 07_IMPLEMENTATION/apply/verify_preconditions.py --repo \"$TARGET_REPOSITORY\" --fetch",
+        "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\""
+      ],
+      "expected": "拉取最新 main，记录精确 HEAD/仓库规则，并为 32 项任务输出 satisfied|apply|adapt|equivalent|conflict|blocked|obsolete 分类。",
+      "acceptance_ids": [
+        "AC-SA-001"
+      ],
+      "tests": [
+        "TEST-SA-001"
+      ],
+      "oracle": "Stage 0 证据绑定实际 integration_base HEAD；所有任务均有唯一语义分类，未用任务包旧文件盲覆盖最新 main。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-001/RESULT.json",
+        "evidence/SA-001/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/apply"
+      ]
+    },
+    {
+      "id": "SA-002",
+      "version": "v0.0.0.4",
+      "stage": "S0",
+      "title": "创建恢复标签并执行完整身份迁移",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-001"
+      ],
+      "requirement_ids": [
+        "REQ-001",
+        "REQ-002"
+      ],
+      "capability_key": "social_archive_identity",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "00_CONTROL/RENAME_MAP.json",
+        "07_IMPLEMENTATION/apply",
+        "evidence/SA-002/RESULT.json",
+        "evidence/SA-002/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "复用 SA-001 的只读报告，创建恢复标签与 ACTIVE_SESSION，不把任务包自己的 Stage 0 报告误判为用户脏改动",
+        "原子迁移目录和运行包身份，记录 base HEAD、恢复标签、身份动作和 status_after_identity",
+        "任何非 allowlist 的预存工作区改动立即 fail closed；不得自动 stash 或覆盖"
+      ],
+      "commands": [
+        "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase identity"
+      ],
+      "expected": "创建恢复标签和 ACTIVE_SESSION；唯一产品路径为 social-archive；运行包身份完成迁移；status_after_identity 可供 SA-003 精确续跑，用户可见面无旧身份。",
+      "acceptance_ids": [
+        "AC-SA-002"
+      ],
+      "tests": [
+        "TEST-SA-002"
+      ],
+      "oracle": "恢复标签绑定 base HEAD；ACTIVE_SESSION 记录同一 stamp、backup_root、move、package_moves、identity_actions 和精确 status_after_identity；重复或第二阶段执行不会因任务包自身报告/身份改动被误阻断，任何额外脏改动仍 fail closed。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-002/RESULT.json",
+        "evidence/SA-002/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "00_CONTROL/RENAME_MAP.json",
+        "07_IMPLEMENTATION/apply"
+      ]
+    },
+    {
+      "id": "SA-003",
+      "version": "v0.0.0.4",
+      "stage": "S0",
+      "title": "保留已验证事务核心并重建产品壳；仅在证据触发时受控重建受影响子系统",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-002"
+      ],
+      "requirement_ids": [
+        "REQ-002",
+        "REQ-011",
+        "REQ-018"
+      ],
+      "capability_key": "preserved_transaction_core",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src",
+        "07_IMPLEMENTATION/apply",
+        "00_CONTROL/CODEBASE_DECISION.md",
+        "00_CONTROL/ADOPT_REBUILD_RETIRE_MATRIX.md",
+        "evidence/SA-003/ASSET_ADOPTION_REPORT.json",
+        "evidence/SA-003/RESULT.json",
+        "evidence/SA-003/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "复用 SA-002 的 ACTIVE_SESSION、恢复标签、base HEAD 与精确 status_after_identity；工作区指纹不一致立即 fail closed",
+        "识别并聚焦验证唯一 SQLite 事务/Runtime Journal、Job/Outbox/幂等、迁移/恢复、Content/Relation/Observation/Scan Receipt、partial-scan 防误删和原子 Markdown 核心；通过即原位保留，不复制第二内核",
+        "重建或适配产品身份、E2N 插件壳与授权中心、真实来源连接器、隔离 Sidecar、目的地 Probe/Binding/Receipt、聚合 UI、三地密文存储和运维边界",
+        "保留 latest main 更强的 Acceptance 等价实现；只有聚焦证据证明核心缺失、局部不可修复或存在不可调和双权威，才对受影响纵向切片执行只读迁移与受控重建，并输出恢复/回滚/对账收据"
+      ],
+      "commands": [
+        "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase all",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_legacy_migration.py"
+      ],
+      "expected": "唯一经验证事务核心被原位保留；产品壳、连接器、目的地、UI 和运维边界达到冻结合同。不存在盲覆盖、双入口、双内核、双权威、静默迁移或隐式数据丢失；受控重建仅由聚焦失败证据触发且限定受影响纵向切片。",
+      "acceptance_ids": [
+        "AC-SA-003"
+      ],
+      "tests": [
+        "TEST-SA-003"
+      ],
+      "oracle": "semantic report 绑定 latest HEAD、共享 ACTIVE_SESSION/恢复点、preserved_core_files、rebuild_prefixes、聚焦核心测试与逐文件分类。产品只有一个运行入口、事务内核和权威链；fallback 项具有触发证据、只读迁移计数/哈希、恢复点、回滚收据和单一权威证明。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-003/RESULT.json",
+        "evidence/SA-003/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 3,
+        "p95_active_hours": 6,
+        "p80_tokens": 60000,
+        "p95_tokens": 120000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_RECONCILE_AND_FOCUSED_CORE_PROOF",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src",
+        "07_IMPLEMENTATION/apply",
+        "00_CONTROL/CODEBASE_DECISION.md",
+        "00_CONTROL/SECOND_MODEL_INTEGRATION.md",
+        "00_CONTROL/ADOPT_REBUILD_RETIRE_MATRIX.md"
+      ]
+    },
+    {
+      "id": "SA-004",
+      "version": "v0.0.0.4",
+      "stage": "S0",
+      "title": "落地 cloud-first E2N 式扩展壳和通用网页 Walking Skeleton",
+      "task_type": "frontend",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-003"
+      ],
+      "requirement_ids": [
+        "REQ-003",
+        "REQ-007",
+        "REQ-014"
+      ],
+      "capability_key": "e2n_extension_surfaces",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps/browser-extension",
+        "evidence/SA-004/RESULT.json",
+        "evidence/SA-004/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_cloud_pairing.py tests/focused/test_extension_api.py tests/focused/test_beginner_journey.py"
+      ],
+      "expected": "扩展从 managed runtime-config 获得独立 API/Library URL；三步向导、一次性配对、授权卡、Popup 单主按钮、悬浮保存、Side Panel 任务中心与通用网页首存可用；Manifest 无 cookies 权限。",
+      "acceptance_ids": [
+        "AC-SA-004"
+      ],
+      "tests": [
+        "TEST-SA-004"
+      ],
+      "oracle": "新用户 Fixture 不编辑 endpoint 即完成首存；配对码 10 分钟/5 次/成功销毁；API 与 Library 域名分离；未授权域名不注入 FAB；业务 API 无 token 返回 401。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-004/RESULT.json",
+        "evidence/SA-004/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": null,
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 4,
+        "p95_active_hours": 9,
+        "p80_tokens": 80000,
+        "p95_tokens": 180000,
+        "confidence": "high"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps/browser-extension"
+      ]
+    },
+    {
+      "id": "SA-005",
+      "version": "v0.0.0.4",
+      "stage": "S0",
+      "title": "通过 Stage 0 基线门",
+      "task_type": "testing",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-004"
+      ],
+      "requirement_ids": [
+        "REQ-001",
+        "REQ-002",
+        "REQ-003",
+        "REQ-016"
+      ],
+      "capability_key": "stage0_gate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage0_walking_skeleton.py",
+        "evidence/SA-005/RESULT.json",
+        "evidence/SA-005/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && bash scripts/doctor.sh --self-test"
+      ],
+      "expected": "通用网页→L0/L1/L3 staging→检索→任务状态→重启恢复通过；旧身份只在迁移 allowlist 中。",
+      "acceptance_ids": [
+        "AC-SA-005"
+      ],
+      "tests": [
+        "TEST-SA-005"
+      ],
+      "oracle": "通用网页→L0/L1/L3 staging→检索→任务状态→重启恢复通过；旧身份只在迁移 allowlist 中。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-005/RESULT.json",
+        "evidence/SA-005/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 1,
+        "p95_active_hours": 3,
+        "p80_tokens": 20000,
+        "p95_tokens": 60000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage0_walking_skeleton.py"
+      ]
+    },
+    {
+      "id": "SA-101",
+      "version": "v0.0.0.4",
+      "stage": "S1",
+      "title": "完成通用网页、Social Archiver 本地导入和 Karakeep 临时阅读投影",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-005"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-005",
+        "REQ-007"
+      ],
+      "capability_key": "generic_capture",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/markdown_watch.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/social_archiver_bundle.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
+        "evidence/SA-101/RESULT.json",
+        "evidence/SA-101/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS=\"-p no:cacheprovider\" python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_markdown_importer.py tests/focused/test_social_archiver_import.py tests/focused/test_reader_projection.py"
+      ],
+      "expected": "通用网页与 Social Archiver 本地导出可幂等导入；至少一个真实通用网页 Canary 可保存并立即投影到可选 Karakeep reader，不改变 Canonical Store。",
+      "acceptance_ids": [
+        "AC-SA-101"
+      ],
+      "tests": [
+        "TEST-SA-101"
+      ],
+      "oracle": "同一输入重复导入为 noop；Karakeep 不可用时主档案仍成功，reader 状态显示 degraded；投影可重建且不能反向覆盖 Canonical facts。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-101/RESULT.json",
+        "evidence/SA-101/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": null,
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 3,
+        "p95_active_hours": 6,
+        "p80_tokens": 60000,
+        "p95_tokens": 120000,
+        "confidence": "high"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/markdown_watch.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/social_archiver_bundle.py",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/focused/test_social_archiver_import.py",
+        "07_IMPLEMENTATION/overlay/social-archive/tests/focused/test_reader_projection.py"
+      ]
+    },
+    {
+      "id": "SA-102",
+      "version": "v0.0.0.4",
+      "stage": "S1",
+      "title": "完成 Reddit 免费只读连接器",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-101"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-005",
+        "REQ-014"
+      ],
+      "capability_key": "reddit_connector",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/oauth.py",
+        "evidence/SA-102/RESULT.json",
+        "evidence/SA-102/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py"
+      ],
+      "expected": "saved/upvoted 独立建模；分页/限流产生 partial 收据；部分扫描不关闭关系；无凭证时扩展仍可用。",
+      "acceptance_ids": [
+        "AC-SA-102"
+      ],
+      "tests": [
+        "TEST-SA-102"
+      ],
+      "oracle": "saved/upvoted 独立建模；分页/限流产生 partial 收据；部分扫描不关闭关系；无凭证时扩展仍可用。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-102/RESULT.json",
+        "evidence/SA-102/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/oauth.py"
+      ]
+    },
+    {
+      "id": "SA-103",
+      "version": "v0.0.0.4",
+      "stage": "S1",
+      "title": "完成 X 零费用路径与收费熔断",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-102"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-005",
+        "REQ-012"
+      ],
+      "capability_key": "x_zero_cost_gate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py",
+        "evidence/SA-103/RESULT.json",
+        "evidence/SA-103/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py"
+      ],
+      "expected": "未确认绝对零费用时官方 API 禁用；扩展、Social Archiver/Markdown 导入继续；bookmark/like 不混淆。",
+      "acceptance_ids": [
+        "AC-SA-103"
+      ],
+      "tests": [
+        "TEST-SA-103"
+      ],
+      "oracle": "未确认绝对零费用时官方 API 禁用；扩展、Social Archiver/Markdown 导入继续；bookmark/like 不混淆。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-103/RESULT.json",
+        "evidence/SA-103/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 5,
+        "p80_tokens": 40000,
+        "p95_tokens": 100000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py"
+      ]
+    },
+    {
+      "id": "SA-104",
+      "version": "v0.0.0.4",
+      "stage": "S1",
+      "title": "完成 Instagram 导出/当前页/隔离 Sidecar 路径",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-103"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-005",
+        "REQ-013",
+        "REQ-014"
+      ],
+      "capability_key": "instagram_connector",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/command.py",
+        "evidence/SA-104/RESULT.json",
+        "evidence/SA-104/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py"
+      ],
+      "expected": "官方导出或当前页始终可用；Instaloader Session 只在独立 Sidecar secret 中，核心不接触。",
+      "acceptance_ids": [
+        "AC-SA-104"
+      ],
+      "tests": [
+        "TEST-SA-104"
+      ],
+      "oracle": "官方导出或当前页始终可用；Instaloader Session 只在独立 Sidecar secret 中，核心不接触。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-104/RESULT.json",
+        "evidence/SA-104/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 3,
+        "p95_active_hours": 7,
+        "p80_tokens": 60000,
+        "p95_tokens": 140000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/command.py"
+      ]
+    },
+    {
+      "id": "SA-105",
+      "version": "v0.0.0.4",
+      "stage": "S1",
+      "title": "通过国外与通用来源阶段门",
+      "task_type": "testing",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-104"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-005",
+        "REQ-007",
+        "REQ-016"
+      ],
+      "capability_key": "western_gate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage1_western.py",
+        "evidence/SA-105/RESULT.json",
+        "evidence/SA-105/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage1_western.py"
+      ],
+      "expected": "四类来源的 fixture 链路全部通过；真实 canary 分平台记录 PASS/FAIL/NOT_RUN，不互相阻塞。",
+      "acceptance_ids": [
+        "AC-SA-105"
+      ],
+      "tests": [
+        "TEST-SA-105"
+      ],
+      "oracle": "四类来源的 fixture 链路全部通过；真实 canary 分平台记录 PASS/FAIL/NOT_RUN，不互相阻塞。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-105/RESULT.json",
+        "evidence/SA-105/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage1_western.py"
+      ]
+    },
+    {
+      "id": "SA-201",
+      "version": "v0.0.0.4",
+      "stage": "S2",
+      "title": "接入 XHS-Downloader 小红书 Sidecar",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-105"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-006",
+        "REQ-013",
+        "REQ-014"
+      ],
+      "capability_key": "xiaohongshu_connector",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml",
+        "evidence/SA-201/RESULT.json",
+        "evidence/SA-201/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source xhs_downloader --resolve-and-lock",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_health_gated_connector.py"
+      ],
+      "expected": "用户触发链接/列表读取和媒体保存可用；Worker 失败时当前页 L0/L1 不受影响；不读取浏览器 Cookie。",
+      "acceptance_ids": [
+        "AC-SA-201"
+      ],
+      "tests": [
+        "TEST-SA-201"
+      ],
+      "oracle": "用户触发链接/列表读取和媒体保存可用；Worker 失败时当前页 L0/L1 不受影响；不读取浏览器 Cookie。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-201/RESULT.json",
+        "evidence/SA-201/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 3,
+        "p95_active_hours": 7,
+        "p80_tokens": 60000,
+        "p95_tokens": 140000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml"
+      ]
+    },
+    {
+      "id": "SA-202",
+      "version": "v0.0.0.4",
+      "stage": "S2",
+      "title": "接入 DouK/TikTokDownloader 抖音实验 Sidecar",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-201"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-006",
+        "REQ-013"
+      ],
+      "capability_key": "douyin_connector",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml",
+        "evidence/SA-202/RESULT.json",
+        "evidence/SA-202/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source douk --resolve-and-lock",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py"
+      ],
+      "expected": "上游算法失效时明确 degraded，不伪装可用；gallery-dl/yt-dlp 或当前页兜底继续。",
+      "acceptance_ids": [
+        "AC-SA-202"
+      ],
+      "tests": [
+        "TEST-SA-202"
+      ],
+      "oracle": "上游算法失效时明确 degraded，不伪装可用；gallery-dl/yt-dlp 或当前页兜底继续。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-202/RESULT.json",
+        "evidence/SA-202/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 4,
+        "p95_active_hours": 10,
+        "p80_tokens": 80000,
+        "p95_tokens": 200000,
+        "confidence": "low"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.workers.yaml"
+      ]
+    },
+    {
+      "id": "SA-203",
+      "version": "v0.0.0.4",
+      "stage": "S2",
+      "title": "接入 KS-Downloader 快手 Sidecar",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-202"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-006",
+        "REQ-013",
+        "REQ-014"
+      ],
+      "capability_key": "kuaishou_connector",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/http_workers.py",
+        "evidence/SA-203/RESULT.json",
+        "evidence/SA-203/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source ks_downloader --resolve-and-lock",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_scan_platform_isolation.py"
+      ],
+      "expected": "Worker 按 OpenAPI 实际路由探测；无唯一安全路由时降级到当前页，不猜端点。",
+      "acceptance_ids": [
+        "AC-SA-203"
+      ],
+      "tests": [
+        "TEST-SA-203"
+      ],
+      "oracle": "Worker 按 OpenAPI 实际路由探测；无唯一安全路由时降级到当前页，不猜端点。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-203/RESULT.json",
+        "evidence/SA-203/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 3,
+        "p95_active_hours": 7,
+        "p80_tokens": 60000,
+        "p95_tokens": 140000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/connectors/http_workers.py"
+      ]
+    },
+    {
+      "id": "SA-204",
+      "version": "v0.0.0.4",
+      "stage": "S2",
+      "title": "接入 B站收藏/稍后看/历史 Sidecar",
+      "task_type": "implementation",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-203"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-006",
+        "REQ-013"
+      ],
+      "capability_key": "bilibili_connector",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools",
+        "evidence/SA-204/RESULT.json",
+        "evidence/SA-204/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py"
+      ],
+      "expected": "只读子命令 allowlist 生效；HTTP 412/限流为结构化降级；当前页和 yt-dlp 媒体兜底可用。",
+      "acceptance_ids": [
+        "AC-SA-204"
+      ],
+      "tests": [
+        "TEST-SA-204"
+      ],
+      "oracle": "只读子命令 allowlist 生效；HTTP 412/限流为结构化降级；当前页和 yt-dlp 媒体兜底可用。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-204/RESULT.json",
+        "evidence/SA-204/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 4,
+        "p95_active_hours": 8,
+        "p80_tokens": 80000,
+        "p95_tokens": 160000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/sidecars/cli-tools"
+      ]
+    },
+    {
+      "id": "SA-205",
+      "version": "v0.0.0.4",
+      "stage": "S2",
+      "title": "通过全部来源阶段门",
+      "task_type": "testing",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-204"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-006",
+        "REQ-007",
+        "REQ-016"
+      ],
+      "capability_key": "eastern_gate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage2_domestic.py",
+        "evidence/SA-205/RESULT.json",
+        "evidence/SA-205/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py"
+      ],
+      "expected": "四个国内平台逐项可验收，单个 Worker 断开不影响其他平台和通用当前页。",
+      "acceptance_ids": [
+        "AC-SA-205"
+      ],
+      "tests": [
+        "TEST-SA-205"
+      ],
+      "oracle": "四个国内平台逐项可验收，单个 Worker 断开不影响其他平台和通用当前页。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-205/RESULT.json",
+        "evidence/SA-205/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage2_domestic.py"
+      ]
+    },
+    {
+      "id": "SA-301",
+      "version": "v0.0.0.4",
+      "stage": "S3",
+      "title": "完成统一资料库 Feed/Grid/Detail",
+      "task_type": "frontend",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-205"
+      ],
+      "requirement_ids": [
+        "REQ-004",
+        "REQ-008"
+      ],
+      "capability_key": "unified_library",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps/pwa",
+        "evidence/SA-301/RESULT.json",
+        "evidence/SA-301/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_ui_contract.py"
+      ],
+      "expected": "Feed/Grid/Detail 使用统一内容/关系模型，平台内容不重复，手机和桌面均可用。",
+      "acceptance_ids": [
+        "AC-SA-301"
+      ],
+      "tests": [
+        "TEST-SA-301"
+      ],
+      "oracle": "Feed/Grid/Detail 使用统一内容/关系模型，平台内容不重复，手机和桌面均可用。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-301/RESULT.json",
+        "evidence/SA-301/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": null,
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "high"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps/pwa"
+      ]
+    },
+    {
+      "id": "SA-302",
+      "version": "v0.0.0.4",
+      "stage": "S3",
+      "title": "完成全文检索、筛选和关系历史",
+      "task_type": "backend",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-301"
+      ],
+      "requirement_ids": [
+        "REQ-008"
+      ],
+      "capability_key": "search_and_relation_history",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/db.py",
+        "evidence/SA-302/RESULT.json",
+        "evidence/SA-302/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_replica_completion.py"
+      ],
+      "expected": "按平台、关系、收藏夹、时间和文本检索；partial 扫描不误删，两次完整缺失才进入关闭候选。",
+      "acceptance_ids": [
+        "AC-SA-302"
+      ],
+      "tests": [
+        "TEST-SA-302"
+      ],
+      "oracle": "按平台、关系、收藏夹、时间和文本检索；partial 扫描不误删，两次完整缺失才进入关闭候选。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-302/RESULT.json",
+        "evidence/SA-302/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": null,
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "high"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/db.py"
+      ]
+    },
+    {
+      "id": "SA-303",
+      "version": "v0.0.0.4",
+      "stage": "S3",
+      "title": "完善授权、任务、错误与三副本状态界面",
+      "task_type": "frontend",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-302"
+      ],
+      "requirement_ids": [
+        "REQ-003",
+        "REQ-008",
+        "REQ-010"
+      ],
+      "capability_key": "authorization_task_storage_ui",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps",
+        "evidence/SA-303/RESULT.json",
+        "evidence/SA-303/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS=\"-p no:cacheprovider\" python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_storage_completion_contract.py tests/focused/test_pwa_contract.py"
+      ],
+      "expected": "所有来源和目的地显示已连接/需操作/检查中/降级/策略阻塞，并展示最后检查时间、延迟、原因和中文下一步；任务支持一键重试，目的地回执可追溯，三副本未齐不显示最终完成。",
+      "acceptance_ids": [
+        "AC-SA-303"
+      ],
+      "tests": [
+        "TEST-SA-303"
+      ],
+      "oracle": "Bootstrap、授权页、弹窗和任务中心读取真实状态与 destination_receipt；错误配置不会使首页崩溃；单目的地失败可见且可重试。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-303/RESULT.json",
+        "evidence/SA-303/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": null,
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "high"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/apps"
+      ]
+    },
+    {
+      "id": "SA-304",
+      "version": "v0.0.0.4",
+      "stage": "S3",
+      "title": "接入可选 ArchiveBox/Karakeep/Linkwarden/ArchiveWeb.page 投影",
+      "task_type": "integration",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-303"
+      ],
+      "requirement_ids": [
+        "REQ-008",
+        "REQ-013"
+      ],
+      "capability_key": "optional_readers",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.readers.yaml",
+        "evidence/SA-304/RESULT.json",
+        "evidence/SA-304/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reader_profiles.py"
+      ],
+      "expected": "读者/归档器均为可选 Sidecar 或文件投影；默认不开 L2；任一退出不影响核心资料库。",
+      "acceptance_ids": [
+        "AC-SA-304"
+      ],
+      "tests": [
+        "TEST-SA-304"
+      ],
+      "oracle": "读者/归档器均为可选 Sidecar 或文件投影；默认不开 L2；任一退出不影响核心资料库。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-304/RESULT.json",
+        "evidence/SA-304/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 1,
+        "p95_active_hours": 2,
+        "p80_tokens": 20000,
+        "p95_tokens": 40000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/compose.readers.yaml"
+      ]
+    },
+    {
+      "id": "SA-305",
+      "version": "v0.0.0.4",
+      "stage": "S3",
+      "title": "通过聚合与 UI 阶段门",
+      "task_type": "testing",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-304"
+      ],
+      "requirement_ids": [
+        "REQ-003",
+        "REQ-008",
+        "REQ-016"
+      ],
+      "capability_key": "ui_gate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage3_pwa.py",
+        "evidence/SA-305/RESULT.json",
+        "evidence/SA-305/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage3_pwa.py"
+      ],
+      "expected": "首次配置、保存、查找、查看失败、重试和移动端关键路径通过，中文下一步唯一且可执行。",
+      "acceptance_ids": [
+        "AC-SA-305"
+      ],
+      "tests": [
+        "TEST-SA-305"
+      ],
+      "oracle": "首次配置、保存、查找、查看失败、重试和移动端关键路径通过，中文下一步唯一且可执行。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-305/RESULT.json",
+        "evidence/SA-305/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 1,
+        "p95_active_hours": 2,
+        "p80_tokens": 20000,
+        "p95_tokens": 40000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage3_pwa.py"
+      ]
+    },
+    {
+      "id": "SA-401",
+      "version": "v0.0.0.4",
+      "stage": "S4",
+      "title": "完成 GitHub Private-Database Markdown 目的地",
+      "task_type": "integration",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-305"
+      ],
+      "requirement_ids": [
+        "REQ-009",
+        "REQ-011"
+      ],
+      "capability_key": "github_markdown_destination",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
+        "evidence/SA-401/RESULT.json",
+        "evidence/SA-401/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS=\"-p no:cacheprovider\" python3 -m pytest -q tests/focused/test_private_database_writer.py tests/focused/test_private_database_sync.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_destinations.py"
+      ],
+      "expected": "GitHub 先主动读取仓库元数据并强制 private=true，再以确定性路径和 Contents API SHA 幂等更新 Markdown；每次写入/无变化/失败均生成绑定和回执，无新增事实不空提交。",
+      "acceptance_ids": [
+        "AC-SA-401"
+      ],
+      "tests": [
+        "TEST-SA-401"
+      ],
+      "oracle": "公开仓库被 blocked_policy；私有仓连接探测通过后才显示已连接；相同 projection SHA 返回 noop，不重复提交，并可由 receipt/binding 对账。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-401/RESULT.json",
+        "evidence/SA-401/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py"
+      ]
+    },
+    {
+      "id": "SA-402",
+      "version": "v0.0.0.4",
+      "stage": "S4",
+      "title": "完成 Notion 目的地",
+      "task_type": "integration",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-401"
+      ],
+      "requirement_ids": [
+        "REQ-009",
+        "REQ-012"
+      ],
+      "capability_key": "notion_destination",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
+        "evidence/SA-402/RESULT.json",
+        "evidence/SA-402/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS=\"-p no:cacheprovider\" python3 -m pytest -q tests/focused/test_destination_probes_and_receipts.py tests/focused/test_destinations.py tests/focused/test_extension_api.py"
+      ],
+      "expected": "Notion 使用 2026-03-11 API 和 data_source_id 写入模型，先主动验证 Token、数据源与标题属性；Page/Block 绑定幂等，429/网络错误进入可重试队列与失败回执，且不阻塞 Canonical Store。",
+      "acceptance_ids": [
+        "AC-SA-402"
+      ],
+      "tests": [
+        "TEST-SA-402"
+      ],
+      "oracle": "请求携带 Notion-Version 2026-03-11；新页面 parent 为 data_source_id；同内容第二次为 noop；失败保留 Canonical Store、receipt 和重试任务。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-402/RESULT.json",
+        "evidence/SA-402/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 80000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py"
+      ]
+    },
+    {
+      "id": "SA-403",
+      "version": "v0.0.0.4",
+      "stage": "S4",
+      "title": "完成第一方 Obsidian 本机桥接与标准 Markdown/JSONL 目的地",
+      "task_type": "integration",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-402"
+      ],
+      "requirement_ids": [
+        "REQ-009"
+      ],
+      "capability_key": "obsidian_markdown_destination",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/exports.py",
+        "evidence/SA-403/RESULT.json",
+        "evidence/SA-403/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "python3 -m pytest -q tests/focused/test_obsidian_bridge_contract.py tests/focused/test_free_destination_contract.py tests/focused/test_exports.py",
+        "node --check apps/obsidian-plugin/main.js"
+      ],
+      "expected": "Obsidian loopback-only 插件、Chrome 直写桥接、服务器端 Vault/REST 兼容路径和 Markdown/JSONL 导出均可用；失败隔离且幂等。",
+      "acceptance_ids": [
+        "AC-SA-403"
+      ],
+      "tests": [
+        "TEST-SA-403"
+      ],
+      "oracle": "插件仅绑定 127.0.0.1、token timing-safe、拒绝路径穿越、Markdown only、20 MiB 上限；重复导出返回 noop；Obsidian 未打开时主档案不回滚。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-403/RESULT.json",
+        "evidence/SA-403/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 3,
+        "p95_active_hours": 6,
+        "p80_tokens": 60000,
+        "p95_tokens": 120000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/exports.py"
+      ]
+    },
+    {
+      "id": "SA-404",
+      "version": "v0.0.0.4",
+      "stage": "S4",
+      "title": "通过多目的地阶段门",
+      "task_type": "testing",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-403"
+      ],
+      "requirement_ids": [
+        "REQ-009",
+        "REQ-016"
+      ],
+      "capability_key": "destination_gate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage4_replication_exports.py",
+        "evidence/SA-404/RESULT.json",
+        "evidence/SA-404/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS=\"-p no:cacheprovider\" python3 -m pytest -q tests/focused/test_destination_probes_and_receipts.py tests/focused/test_extension_api.py tests/focused/test_destinations.py tests/focused/test_reader_projection.py tests/focused/test_reader_profiles.py"
+      ],
+      "expected": "同一内容只向已主动探测并授权的 Notion、Obsidian、GitHub、Karakeep、Linkwarden 等目的地异步导出；ArchiveBox 使用可重放 URL 队列；每个目的地独立生成 done/noop/failed 回执，单点失败不回滚 Canonical Store。",
+      "acceptance_ids": [
+        "AC-SA-404"
+      ],
+      "tests": [
+        "TEST-SA-404"
+      ],
+      "oracle": "Canonical Store 先提交；任一目的地失败时其他目的地继续，失败回执保留 error_code/retryable，成功或无变化回执绑定远端标识；阅读器只能作为可重建投影。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-404/RESULT.json",
+        "evidence/SA-404/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 1,
+        "p95_active_hours": 2,
+        "p80_tokens": 20000,
+        "p95_tokens": 40000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage4_replication_exports.py"
+      ]
+    },
+    {
+      "id": "SA-501",
+      "version": "v0.0.0.4",
+      "stage": "S5",
+      "title": "绑定 age 加密与 R2 对象权威源",
+      "task_type": "deployment",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-404"
+      ],
+      "requirement_ids": [
+        "REQ-010",
+        "REQ-011",
+        "REQ-012"
+      ],
+      "capability_key": "encrypted_r2",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/encryption.py",
+        "evidence/SA-501/RESULT.json",
+        "evidence/SA-501/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/probe_object_store.py --store r2 --encrypted-canary",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py"
+      ],
+      "expected": "对象仅生成一份 age 密文；R2 回读 cipher SHA 一致；明文和私钥不进入远端或日志。",
+      "acceptance_ids": [
+        "AC-SA-501"
+      ],
+      "tests": [
+        "TEST-SA-501"
+      ],
+      "oracle": "对象仅生成一份 age 密文；R2 回读 cipher SHA 一致；明文和私钥不进入远端或日志。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-501/RESULT.json",
+        "evidence/SA-501/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 70000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/encryption.py"
+      ]
+    },
+    {
+      "id": "SA-502",
+      "version": "v0.0.0.4",
+      "stage": "S5",
+      "title": "绑定 OCI 异地密文副本",
+      "task_type": "deployment",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-501"
+      ],
+      "requirement_ids": [
+        "REQ-010",
+        "REQ-011",
+        "REQ-012"
+      ],
+      "capability_key": "encrypted_oci",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/replicate_objects.py",
+        "evidence/SA-502/RESULT.json",
+        "evidence/SA-502/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/probe_object_store.py --store oci --encrypted-canary",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/replicate_objects.py --once"
+      ],
+      "expected": "OCI 回读密文 SHA 与 R2 完全相同；未验证 R2 时 OCI 队列不前进。",
+      "acceptance_ids": [
+        "AC-SA-502"
+      ],
+      "tests": [
+        "TEST-SA-502"
+      ],
+      "oracle": "OCI 回读密文 SHA 与 R2 完全相同；未验证 R2 时 OCI 队列不前进。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-502/RESULT.json",
+        "evidence/SA-502/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 70000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/replicate_objects.py"
+      ]
+    },
+    {
+      "id": "SA-503",
+      "version": "v0.0.0.4",
+      "stage": "S5",
+      "title": "绑定 GitHub 私有归档仓第三密文副本",
+      "task_type": "deployment",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-502"
+      ],
+      "requirement_ids": [
+        "REQ-010",
+        "REQ-011",
+        "REQ-012"
+      ],
+      "capability_key": "encrypted_github_archive",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/github_release_backup.py",
+        "evidence/SA-503/RESULT.json",
+        "evidence/SA-503/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/github_release_backup.py --upload"
+      ],
+      "expected": "私有 Draft Release 分片回读后重组 SHA 与 R2/OCI 密文一致；三收据齐后才完成。",
+      "acceptance_ids": [
+        "AC-SA-503"
+      ],
+      "tests": [
+        "TEST-SA-503"
+      ],
+      "oracle": "私有 Draft Release 分片回读后重组 SHA 与 R2/OCI 密文一致；三收据齐后才完成。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-503/RESULT.json",
+        "evidence/SA-503/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 70000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/scripts/github_release_backup.py"
+      ]
+    },
+    {
+      "id": "SA-504",
+      "version": "v0.0.0.4",
+      "stage": "S5",
+      "title": "完成 Private-Database 完成态事实同步与冷备",
+      "task_type": "deployment",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-503"
+      ],
+      "requirement_ids": [
+        "REQ-011"
+      ],
+      "capability_key": "private_database_authority",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/scripts",
+        "evidence/SA-504/RESULT.json",
+        "evidence/SA-504/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/sync_private_database.py --once",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/backup.py --once"
+      ],
+      "expected": "结构化完成态幂等进入 Private-Database；其可恢复快照加密写入 R2 backups/private-database/ 并镜像 OCI。",
+      "acceptance_ids": [
+        "AC-SA-504"
+      ],
+      "tests": [
+        "TEST-SA-504"
+      ],
+      "oracle": "结构化完成态幂等进入 Private-Database；其可恢复快照加密写入 R2 backups/private-database/ 并镜像 OCI。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-504/RESULT.json",
+        "evidence/SA-504/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 70000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/scripts"
+      ]
+    },
+    {
+      "id": "SA-505",
+      "version": "v0.0.0.4",
+      "stage": "S5",
+      "title": "部署 OVH/systemd/Compose、Cloudflare UI/API 双入口与状态投影",
+      "task_type": "deployment",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-504"
+      ],
+      "requirement_ids": [
+        "REQ-015",
+        "REQ-017"
+      ],
+      "capability_key": "runtime_ops",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/deploy",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts",
+        "evidence/SA-505/RESULT.json",
+        "evidence/SA-505/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && bash scripts/install.sh --dry-run",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && bash scripts/doctor.sh --self-test"
+      ],
+      "expected": "Core 仅 loopback；私人 UI 受 Cloudflare Access；扩展 API 使用独立域名且不要求交互式 Access，公开路径最小化并受 WAF/Rate Limit；status.linzezhang.com 只读投影可用。",
+      "acceptance_ids": [
+        "AC-SA-505"
+      ],
+      "tests": [
+        "TEST-SA-505"
+      ],
+      "oracle": "外网不能直接访问 OVH 端口；UI 未登录被 Access 阻断；API 配对路由可用且业务路由无 bearer 为 401；WAF/Rate Limit rule evidence、Tunnel route 和 sanitized status evidence 齐全。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-505/RESULT.json",
+        "evidence/SA-505/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 3,
+        "p95_active_hours": 7,
+        "p80_tokens": 60000,
+        "p95_tokens": 120000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/deploy",
+        "07_IMPLEMENTATION/overlay/social-archive/scripts"
+      ]
+    },
+    {
+      "id": "SA-506",
+      "version": "v0.0.0.4",
+      "stage": "S5",
+      "title": "执行备份、恢复、降级和回滚演练",
+      "task_type": "verification",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-505"
+      ],
+      "requirement_ids": [
+        "REQ-010",
+        "REQ-015",
+        "REQ-016"
+      ],
+      "capability_key": "recovery_gate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage",
+        "evidence/SA-506/RESULT.json",
+        "evidence/SA-506/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+        "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/restore.py --latest --verify-only"
+      ],
+      "expected": "Fixture 恢复、三副本缺一降级、SQLite 重建、版本回滚和恢复标签均有确定性证据，不等待真实时间。",
+      "acceptance_ids": [
+        "AC-SA-506"
+      ],
+      "tests": [
+        "TEST-SA-506"
+      ],
+      "oracle": "Fixture 恢复、三副本缺一降级、SQLite 重建、版本回滚和恢复标签均有确定性证据，不等待真实时间。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-506/RESULT.json",
+        "evidence/SA-506/COMMAND_LOG.json"
+      ],
+      "risk": "P1",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": false,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 4,
+        "p80_tokens": 40000,
+        "p95_tokens": 70000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage"
+      ]
+    },
+    {
+      "id": "SA-507",
+      "version": "v0.0.0.4",
+      "stage": "S5",
+      "title": "冻结候选、执行唯一全量回归并发布",
+      "task_type": "release",
+      "status": "READY_LAST_MILE",
+      "dependencies": [
+        "SA-506"
+      ],
+      "requirement_ids": [
+        "REQ-001",
+        "REQ-016",
+        "REQ-018"
+      ],
+      "capability_key": "release_candidate",
+      "inputs": [
+        "最新 integration_base",
+        "冻结 Acceptance Contract",
+        "任务包预制 Overlay/脚本/Fixture",
+        "真实环境或凭证"
+      ],
+      "outputs": [
+        "10_ACCEPTANCE",
+        "14_EVIDENCE",
+        "evidence/SA-507/RESULT.json",
+        "evidence/SA-507/COMMAND_LOG.json"
+      ],
+      "implementation_steps": [
+        "先按 Semantic Reconcile 保留 satisfied/equivalent 上游实现",
+        "只实施 apply/adapt 项并保持纵向切片",
+        "执行本任务聚焦测试并写入绑定 HEAD/命令/结果/哈希的证据"
+      ],
+      "commands": [
+        "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
+        "python3 START_HERE.py verify-fast",
+        "python3 scripts/final_verify.py"
+      ],
+      "expected": "冻结精确 Candidate 后运行本开发周期唯一一次全量回归；结构复验不重复 application suite；所有阶段证据齐全后发布 v0.0.0.4。",
+      "acceptance_ids": [
+        "AC-SA-507"
+      ],
+      "tests": [
+        "TEST-SA-507"
+      ],
+      "oracle": "full suite command 只有一条冻结 Candidate 证据且 failed=0；随后 verify-fast PASS；发布制品/镜像/commit digest、回滚点和 live NOT_RUN/PASS 边界明确。",
+      "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+      "evidence": [
+        "evidence/SA-507/RESULT.json",
+        "evidence/SA-507/COMMAND_LOG.json"
+      ],
+      "risk": "P0",
+      "rollback": "执行 07_IMPLEMENTATION/apply/rollback_taskpack.py 或恢复本任务前提交；数据任务只删除本轮派生物，不删除用户源数据。",
+      "stop_condition": "发现目标身份错误、未备份破坏性覆盖、秘密泄露、收费路径、许可证越界、访问控制绕过或数据完整性失败时立即停止。",
+      "environment_bound_reason": "需要最新目标仓、真实凭证、真实供应商控制台或真实网络反馈。",
+      "run_full_suite": true,
+      "estimate": {
+        "p80_active_hours": 2,
+        "p95_active_hours": 5,
+        "p80_tokens": 40000,
+        "p95_tokens": 90000,
+        "confidence": "medium"
+      },
+      "prebuilt_status": "COMPLETE_IN_TASKPACK_PENDING_SEMANTIC_MERGE",
+      "prebuilt_artifacts": [
+        "07_IMPLEMENTATION/overlay/social-archive",
+        "10_ACCEPTANCE/FROZEN_ACCEPTANCE_CONTRACT.json"
+      ]
+    }
+  ],
+  "architecture_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+  "capabilities": [
+    "controlled_rebuild_asset_adoption",
+    "guarded_two_phase_stage0",
+    "legacy_read_only_migration",
+    "preserved_transaction_core",
+    "rebuilt_product_shell_and_connectors",
+    "stronger_upstream_retention"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "Social Archive",
+  "short_name": "Social Archive",
+  "version": "0.0.0.4",
+  "minimum_chrome_version": "116",
+  "description": "像 E2N 一样一键保存网页与多平台收藏，并自动归档到 Social Archive、Notion、Obsidian、GitHub 和 Markdown。",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "scripting",
+    "sidePanel",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://social-archive-api.linzezhang.com/*"
+  ],
+  "optional_host_permissions": [
+    "http://127.0.0.1:27123/*",
+    "http://127.0.0.1:8765/*",
+    "http://127.0.0.1:18765/*",
+    "http://localhost:8765/*",
+    "https://*.xiaohongshu.com/*",
+    "https://*.douyin.com/*",
+    "https://*.tiktok.com/*",
+    "https://*.kuaishou.com/*",
+    "https://*.bilibili.com/*",
+    "https://x.com/*",
+    "https://*.x.com/*",
+    "https://twitter.com/*",
+    "https://*.reddit.com/*",
+    "https://*.instagram.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Social Archive",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "commands": {
+    "save-current-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+A",
+        "mac": "Command+Shift+A"
+      },
+      "description": "保存当前页面到 Social Archive"
+    },
+    "open-task-center": {
+      "description": "打开 Social Archive 任务中心"
+    }
+  }
+}

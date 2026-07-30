@@ -1,0 +1,356 @@
+{
+  "schema_version": "2.0",
+  "version": "v0.0.0.4",
+  "entries": [
+    {
+      "id": "everything_to_notebook",
+      "name": "Everything to Notebook (E2N)",
+      "repository": "https://chromewebstore.google.com/detail/everything-to-notebook/ninggjblhniabhjnoojcgbpldfcadglp",
+      "version": "1.3.2",
+      "commit": null,
+      "license": "PROPRIETARY_REFERENCE_ONLY",
+      "role": "UX_REFERENCE_NO_CODE_REUSE",
+      "boundary": "BEHAVIORAL_REFERENCE",
+      "default_enabled": false,
+      "capabilities": [
+        "toolbar_popup",
+        "authorized_site_cards",
+        "floating_save_button",
+        "side_panel_task_center",
+        "multi_destination"
+      ],
+      "note": "仅复用公开可观察交互机制；不复制代码、素材、品牌或收费能力。Chrome Web Store 2026-07-30 观察版本 1.3.2。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "social_archiver",
+      "name": "Social Archiver",
+      "repository": "https://social-archive.org/",
+      "version": "external-free-export-contract-2026-07",
+      "commit": null,
+      "license": "PROPRIETARY_EXTERNAL_PRODUCT_NO_CODE_REUSE",
+      "role": "WESTERN_LOCAL_EXPORT_BRIDGE_AND_UX_REFERENCE",
+      "boundary": "LOCAL_FILE_IMPORT",
+      "default_enabled": false,
+      "capabilities": [
+        "markdown_import",
+        "zip_import",
+        "western_saved_content_bridge"
+      ],
+      "note": "不作为必需托管服务或付费依赖；只消费用户主动导出的本地文件。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "archivebox",
+      "name": "ArchiveBox",
+      "repository": "https://github.com/ArchiveBox/ArchiveBox",
+      "version": "v0.7.4",
+      "commit": "3830544",
+      "license": "MIT",
+      "role": "OPTIONAL_WEB_ARCHIVER",
+      "boundary": "SIDECAR_HTTP",
+      "default_enabled": false,
+      "capabilities": [
+        "html",
+        "pdf",
+        "screenshot",
+        "warc"
+      ],
+      "note": "L2/证据层可选；私有模式并隔离活动内容。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "karakeep",
+      "name": "Karakeep",
+      "repository": "https://github.com/karakeep-app/karakeep",
+      "version": "v0.32.0",
+      "commit": "b9b252e",
+      "license": "AGPL-3.0",
+      "role": "OPTIONAL_READER",
+      "boundary": "SIDECAR_HTTP",
+      "default_enabled": false,
+      "capabilities": [
+        "bookmark_ingest",
+        "search",
+        "reader"
+      ],
+      "note": "不作为 Canonical Store；AI/付费路径关闭。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "linkwarden",
+      "name": "Linkwarden",
+      "repository": "https://github.com/linkwarden/linkwarden",
+      "version": "v2.16.0",
+      "commit": "62f1b81",
+      "license": "AGPL-3.0",
+      "role": "OPTIONAL_READER",
+      "boundary": "SIDECAR_HTTP",
+      "default_enabled": false,
+      "capabilities": [
+        "bookmark_ingest",
+        "snapshot",
+        "search"
+      ],
+      "note": "与 Karakeep 按需二选一。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "archivewebpage",
+      "name": "ArchiveWeb.page",
+      "repository": "https://github.com/webrecorder/archiveweb.page",
+      "version": "v0.16.2",
+      "commit": "5e796ef",
+      "license": "AGPL-3.0-or-later",
+      "role": "OPTIONAL_L2_BROWSER_ARCHIVER",
+      "boundary": "EXTERNAL_BROWSER_EXTENSION_AND_WACZ_IMPORT",
+      "default_enabled": false,
+      "capabilities": [
+        "wacz",
+        "authenticated_page_capture"
+      ],
+      "note": "仅用户主动触发的 L2。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "xhs_downloader",
+      "name": "XHS-Downloader",
+      "repository": "https://github.com/JoeanAmier/XHS-Downloader",
+      "version": "2.7",
+      "commit": "afaf2fb",
+      "license": "GPL-3.0",
+      "role": "XIAOHONGSHU_SIDECAR",
+      "boundary": "SIDECAR_PROCESS_OR_CONTAINER",
+      "default_enabled": false,
+      "capabilities": [
+        "notes",
+        "favorites",
+        "likes",
+        "collections",
+        "media"
+      ],
+      "note": "Stage 0 重新锁定当前 tag/commit/digest；采用 userscript/server 方式，不读取浏览器 Cookie。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "douk",
+      "name": "DouK / TikTokDownloader",
+      "repository": "https://github.com/JoeanAmier/TikTokDownloader",
+      "version": "5.7",
+      "commit": "f404781",
+      "license": "GPL-3.0",
+      "role": "DOUYIN_EXPERIMENTAL_SIDECAR",
+      "boundary": "SIDECAR_PROCESS_OR_CONTAINER",
+      "default_enabled": false,
+      "capabilities": [
+        "douyin_items",
+        "favorites",
+        "likes",
+        "media"
+      ],
+      "note": "上游公开说明部分加密算法已失效；默认 experimental，健康门失败即降级。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "ks_downloader",
+      "name": "KS-Downloader",
+      "repository": "https://github.com/JoeanAmier/KS-Downloader",
+      "version": "1.6",
+      "commit": "f8d812d",
+      "license": "GPL-3.0",
+      "role": "KUAISHOU_SIDECAR",
+      "boundary": "SIDECAR_PROCESS_OR_CONTAINER",
+      "default_enabled": false,
+      "capabilities": [
+        "kuaishou_items",
+        "media"
+      ],
+      "note": "Stage 0 重新锁定并探测真实 OpenAPI。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "bilibili_cli",
+      "name": "bilibili-cli",
+      "repository": "https://github.com/public-clis/bilibili-cli",
+      "version": "v0.6.2",
+      "commit": "4896074",
+      "license": "Apache-2.0",
+      "role": "BILIBILI_READ_ONLY_SIDECAR",
+      "boundary": "SIDECAR_PROCESS",
+      "default_enabled": false,
+      "capabilities": [
+        "favorites",
+        "watch_later",
+        "history",
+        "subtitles"
+      ],
+      "note": "v0.6.2 发布工作流与提交已核对；仅允许只读命令白名单，真实账号可用性由 SA-204 Canary 判定。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "gallery_dl",
+      "name": "gallery-dl",
+      "repository": "https://codeberg.org/mikf/gallery-dl",
+      "version": "v1.32.8",
+      "commit": "8939a87",
+      "license": "GPL-2.0",
+      "role": "GENERIC_MEDIA_SIDECAR",
+      "boundary": "ISOLATED_HTTP_SIDECAR",
+      "default_enabled": true,
+      "capabilities": [
+        "x",
+        "instagram",
+        "reddit",
+        "media_collections"
+      ],
+      "note": "v1.32.8 已核对签名发布；活跃开发已迁往 Codeberg。只作为隔离 Sidecar，不导入专有 Core。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "yt_dlp",
+      "name": "yt-dlp",
+      "repository": "https://github.com/yt-dlp/yt-dlp",
+      "version": "2026.07.04",
+      "commit": "fdec00e",
+      "license": "Unlicense",
+      "role": "GENERIC_VIDEO_SIDECAR",
+      "boundary": "ISOLATED_HTTP_SIDECAR",
+      "default_enabled": true,
+      "capabilities": [
+        "video",
+        "audio",
+        "subtitles",
+        "metadata"
+      ],
+      "note": "固定安全修复版本，不允许任意 exec 模板。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "instaloader",
+      "name": "Instaloader",
+      "repository": "https://github.com/instaloader/instaloader",
+      "version": "v4.15.3",
+      "commit": "5434692",
+      "license": "MIT",
+      "role": "INSTAGRAM_SIDECAR",
+      "boundary": "ISOLATED_HTTP_SIDECAR",
+      "default_enabled": true,
+      "capabilities": [
+        "instagram_saved",
+        "posts",
+        "metadata",
+        "media"
+      ],
+      "note": "Session 只以 Sidecar secret 挂载，核心不读取。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "rclone",
+      "name": "rclone",
+      "repository": "https://github.com/rclone/rclone",
+      "version": "v1.74.4",
+      "commit": "5bc93a2",
+      "license": "MIT",
+      "role": "OPTIONAL_STORAGE_TRANSPORT",
+      "boundary": "SIDECAR_PROCESS",
+      "default_enabled": false,
+      "capabilities": [
+        "r2",
+        "s3",
+        "oci",
+        "checksum"
+      ],
+      "note": "当前第一方 S3 Port 已可用；rclone 只作恢复/迁移辅助。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
+      "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
+    },
+    {
+      "id": "notion_api_2026_03_11",
+      "name": "Notion API 2026-03-11",
+      "repository": "https://developers.notion.com/reference/versioning",
+      "version": "2026-03-11",
+      "commit": null,
+      "license": "OFFICIAL_DOCUMENTATION_REFERENCE",
+      "role": "DESTINATION_API_CONTRACT",
+      "boundary": "NO_CODE_REUSE",
+      "default_enabled": false,
+      "capabilities": [
+        "data_source_id_parent",
+        "database_to_data_source_discovery",
+        "page_and_block_api"
+      ],
+      "note": "锁定 Notion-Version 2026-03-11；database_id 只作兼容发现，写入父级使用 data_source_id。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "API 版本固定为 2026-03-11；只有官方弃用或兼容性证据触发升级。",
+      "source_status": "OFFICIAL_API_LOCK"
+    },
+    {
+      "id": "obsidian_local_rest_api",
+      "name": "Obsidian Local REST API",
+      "repository": "https://github.com/coddingtonbear/obsidian-local-rest-api",
+      "version": "4.1.3-minimum-safe",
+      "commit": null,
+      "license": "MIT",
+      "role": "OPTIONAL_OBSIDIAN_DESTINATION",
+      "boundary": "LOCALHOST_REST_SIDECAR",
+      "default_enabled": false,
+      "capabilities": [
+        "authenticated_vault_read",
+        "markdown_write",
+        "version_probe"
+      ],
+      "note": "服务器端 REST 模式不得低于 4.1.3；TLS/CA 验证不得静默关闭。浏览器端优先使用任务包内零常驻 Bridge。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "Stage 0 锁定当前稳定 release/commit，且版本必须 >=4.1.3。",
+      "source_status": "MINIMUM_SAFE_VERSION_LOCK"
+    },
+    {
+      "id": "github_rest_contents_api",
+      "name": "GitHub REST Contents API",
+      "repository": "https://docs.github.com/en/rest/repos/contents",
+      "version": "2022-11-28",
+      "commit": null,
+      "license": "OFFICIAL_DOCUMENTATION_REFERENCE",
+      "role": "PRIVATE_MARKDOWN_DESTINATION_API",
+      "boundary": "NO_CODE_REUSE",
+      "default_enabled": false,
+      "capabilities": [
+        "repository_metadata_probe",
+        "contents_create_or_update",
+        "sha_guard",
+        "private_repository_gate"
+      ],
+      "note": "先读取仓库元数据确认 private=true，再使用 Contents API 与远端 SHA 幂等创建或更新 Markdown。",
+      "accessed_at": "2026-07-30",
+      "pin_policy": "X-GitHub-Api-Version 固定为 2022-11-28；Stage 0 只核验官方兼容性。",
+      "source_status": "OFFICIAL_API_LOCK"
+    }
+  ]
+}

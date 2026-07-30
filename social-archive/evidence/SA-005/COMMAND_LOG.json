@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-005",
+  "commands": [
+    {
+      "id": "ambient_python3_dependency_probe",
+      "command": "cd social-archive && python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py",
+      "exit_code": 1,
+      "outcome": "ENVIRONMENT_NOT_CONFIGURED",
+      "result": "The host interpreter lacked pydantic before test collection. No test assertion ran; the project virtual environment is the configured test runtime."
+    },
+    {
+      "id": "frozen_stage0_command_in_project_venv",
+      "command": "cd social-archive && source .venv/bin/activate && python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "2 passed: generic-web L0/L1/L3, library search, queued L3 job, reopened SQLite recovery, and credential-free Compose validation regression."
+    },
+    {
+      "id": "doctor_self_test",
+      "command": "cd social-archive && bash scripts/doctor.sh --self-test",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Compile, brand boundary, and static Compose checks passed. Docker and Compose were available; .env and runtime secrets were not configured or read; no local service was started."
+    },
+    {
+      "id": "semantic_reconciliation",
+      "command": "semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=180, apply=26, adapt=5, equivalent=6, conflict=0, blocked=0, obsolete=0."
+    },
+    {
+      "id": "compatibility_validation",
+      "command": "social-archive/.venv/bin/python social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The compatibility verifier retained the transaction-core/product-shell architecture, recovery boundary, and rollback-plan default."
+    },
+    {
+      "id": "final_static_checks",
+      "command": "python scripts/check_brand.py; git diff --check; git diff --cached --check; find src scripts -type d -name __pycache__ -print",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Brand boundary passed, no whitespace errors were present, and no source or script bytecode cache directory remained."
+    }
+  ],
+  "non_actions": [
+    "No real web request, credential, browser, platform, destination, private-data, cloud, deployment, push, merge, rebase, or new Git worktree action occurred.",
+    "No service was started merely to make the local health probe pass.",
+    "No owner .env or runtime secret was created, read, or changed."
+  ]
+}

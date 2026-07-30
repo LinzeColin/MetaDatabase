@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-102",
+  "acceptance_id": "AC-SA-102",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T11:37:15Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 175,
+      "apply": 26,
+      "adapt": 10,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "oauth.py is byte-identical to the frozen Overlay. The focused tests are intentionally stronger so every stated relation, partial-receipt, relation-safety, and missing-auth assertion is directly exercised."
+  },
+  "frozen_overlay_product_parity": {
+    "status": "PASS",
+    "file": "src/social_archive/connectors/oauth.py",
+    "sha256": "fd1cffdf82e91958d121164f978c6144fcde3f5d98662c569a3343c2bc2b7f28"
+  },
+  "acceptance_observations": {
+    "saved_relation": {
+      "status": "PASS",
+      "endpoint": "/user/owner/saved",
+      "relation_type": "saved",
+      "completeness": "complete",
+      "request_limit": 5
+    },
+    "upvoted_partial_relation": {
+      "status": "PASS",
+      "endpoint": "/user/owner/upvoted",
+      "relation_type": "upvoted",
+      "completeness": "partial",
+      "next_cursor": "t3_next",
+      "request_limit": 3
+    },
+    "partial_scan_relation_safety": {
+      "status": "PASS",
+      "execution_path": "run_connector API boundary with a partial account-relation receipt",
+      "advanced_missing_relation_count": 0,
+      "existing_saved_relation_status": "active",
+      "existing_saved_relation_missing_complete_scan_count": 0
+    },
+    "missing_auth_fallback": {
+      "status": "PASS",
+      "reddit_status": "blocked_environment",
+      "reddit_error_code": "REDDIT_AUTH_MISSING",
+      "reddit_captures": 0,
+      "generic_current_page_fallback": "success with one CaptureRequest"
+    },
+    "oauth_privacy_boundary": {
+      "status": "PASS",
+      "token_use": "Bearer header for the outbound OAuth request only",
+      "source_inspection": "No password, cookie, CAPTCHA, or browser-cookie persistence/bypass path exists in oauth.py.",
+      "credential_or_cookie_persistence": false
+    }
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "tests_passed": 4,
+    "tests_failed": 0,
+    "test_files": [
+      "tests/focused/test_reddit_connector.py",
+      "tests/focused/test_oauth_connectors.py"
+    ],
+    "strengthened_test_sha256": {
+      "tests/focused/test_reddit_connector.py": "0d167d195eff39e17cbe1e96ef4037f4cecda65fcaa14dffdb4d951b7ae93996",
+      "tests/focused/test_oauth_connectors.py": "cd043e33af931851e29b5d08352170214e832cbcc5d4b1bc61846d7d566b76a2"
+    }
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "environment_boundary": {
+    "project_venv": "PASS",
+    "fixture_oauth_responses": "PASS",
+    "live_reddit_oauth": "NOT_RUN",
+    "live_reddit_network": "NOT_RUN",
+    "treatment": "The frozen contract permits a fixture or minimal owner canary. This task proves the local connector and safety semantics with isolated fixtures; it does not represent the provider as connected."
+  },
+  "source_change": {
+    "product_source_rewrite": "NOT_REQUIRED",
+    "test_coverage_change": "Strengthened the frozen tests for saved/upvoted isolation, partial cursor receipt, API partial-scan relation safety, and missing-auth fallback.",
+    "files_written_in_this_task": [
+      "tests/focused/test_reddit_connector.py",
+      "tests/focused/test_oauth_connectors.py",
+      "evidence/SA-102/RESULT.json",
+      "evidence/SA-102/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ]
+  },
+  "scope_exclusions": [
+    "No live Reddit account, OAuth token, browser profile, password, Cookie, provider network request, private-database action, cloud action, deployment, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "All OAuth responses, tokens, API roots, runtime journals, and canonical bundles were isolated pytest fixtures."
+  ]
+}

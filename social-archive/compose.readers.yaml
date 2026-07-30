@@ -1,0 +1,79 @@
+name: social-archive-readers
+services:
+  karakeep:
+    image: ghcr.io/karakeep-app/karakeep:0.32.0
+    profiles: ["karakeep", "readers"]
+    env_file: [./runtime/secrets/karakeep.env]
+    ports: ["127.0.0.1:3000:3000"]
+    volumes: ["karakeep_data:/data"]
+    depends_on:
+      karakeep-meilisearch: {condition: service_healthy}
+      karakeep-chrome: {condition: service_started}
+    networks: [default, social_archive_readers]
+    restart: unless-stopped
+
+  karakeep-meilisearch:
+    image: getmeili/meilisearch:v1.41.0
+    profiles: ["karakeep", "readers"]
+    env_file: [./runtime/secrets/karakeep.env]
+    volumes: ["karakeep_meili:/meili_data"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://127.0.0.1:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  karakeep-chrome:
+    image: gcr.io/zenika-hub/alpine-chrome:124
+    profiles: ["karakeep", "readers"]
+    command: ["--no-sandbox", "--disable-gpu", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=9222", "--hide-scrollbars"]
+    restart: unless-stopped
+
+  linkwarden-postgres:
+    image: postgres:16-alpine
+    profiles: ["linkwarden", "readers"]
+    env_file: [./runtime/secrets/linkwarden.env]
+    volumes: ["linkwarden_db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linkwarden -d linkwarden"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  linkwarden:
+    image: ghcr.io/linkwarden/linkwarden:v2.16.0
+    profiles: ["linkwarden", "readers"]
+    env_file: [./runtime/secrets/linkwarden.env]
+    ports: ["127.0.0.1:3001:3000"]
+    volumes: ["linkwarden_data:/data/data"]
+    depends_on:
+      linkwarden-postgres: {condition: service_healthy}
+    networks: [default, social_archive_readers]
+    restart: unless-stopped
+
+  archivebox:
+    image: archivebox/archivebox:0.7.4
+    profiles: ["archivebox", "readers"]
+    command: ["server", "--quick-init", "0.0.0.0:8000"]
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: ["archivebox_data:/data"]
+    environment:
+      PUBLIC_INDEX: "False"
+      PUBLIC_SNAPSHOTS: "False"
+      ALLOWED_HOSTS: "*"
+    networks: [default, social_archive_readers]
+    restart: unless-stopped
+
+volumes:
+  karakeep_data:
+  karakeep_meili:
+  linkwarden_db:
+  linkwarden_data:
+  archivebox_data:
+
+networks:
+  social_archive_readers:
+    name: social-archive-readers
+    external: true

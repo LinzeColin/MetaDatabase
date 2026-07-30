@@ -131,6 +131,89 @@ def tracked_files(repo: Path, source: Path) -> list[Path]:
     return [repo / item for item in result.stdout.split("\0") if item]
 
 
+def _sparse_state(repo: Path) -> dict[str, object]:
+    enabled = run(["git", "config", "--bool", "core.sparseCheckout"], repo, False).stdout.strip() == "true"
+    if not enabled:
+        return {"enabled": False, "cone": None, "entries": []}
+    cone = run(["git", "config", "--bool", "core.sparseCheckoutCone"], repo, False).stdout.strip() != "false"
+    entries = [line.strip() for line in run(["git", "sparse-checkout", "list"], repo).stdout.splitlines() if line.strip()]
+    return {"enabled": True, "cone": cone, "entries": entries}
+
+
+def _sparse_command(action: str, cone: bool, entries: list[str]) -> list[str]:
+    command = ["git", "sparse-checkout", action]
+    if not cone:
+        command.append("--no-cone")
+    command.extend(entries)
+    return command
+
+
+def prepare_sparse_destination(repo: Path, source: Path, destination: Path) -> dict[str, object]:
+    """Materialize the destination before a sparse-aware tracked rename."""
+    state = _sparse_state(repo)
+    if not state["enabled"]:
+        return {"enabled": False, "destination_added": False, "legacy_rule_retained": False}
+    source_rel = source.relative_to(repo).as_posix()
+    destination_rel = destination.relative_to(repo).as_posix()
+    entries = list(state["entries"])
+    added = destination_rel not in entries
+    if added:
+        run(_sparse_command("add", bool(state["cone"]), [destination_rel]), repo)
+    return {
+        "enabled": True,
+        "cone": bool(state["cone"]),
+        "source_was_listed": source_rel in entries,
+        "destination_added": added,
+        "legacy_rule_retained": source_rel in entries,
+    }
+
+
+def finalize_sparse_destination(repo: Path, source: Path, destination: Path) -> dict[str, object]:
+    """Record the post-move sparse state without removing ignored legacy runtime."""
+    state = _sparse_state(repo)
+    if not state["enabled"]:
+        return {"enabled": False, "destination_added": False, "legacy_rule_retained": False}
+    source_rel = source.relative_to(repo).as_posix()
+    destination_rel = destination.relative_to(repo).as_posix()
+    return {
+        "enabled": True,
+        "cone": bool(state["cone"]),
+        "destination_listed": destination_rel in state["entries"],
+        "legacy_rule_retained": source_rel in state["entries"],
+        "rules_changed": False,
+    }
+
+
+def remove_stale_legacy_worktree_files(source: Path, destination: Path, snapshot: Path) -> dict[str, int]:
+    """Remove only snapshot-verified tracked remnants left by sparse Git moves."""
+    if not snapshot.is_dir() or snapshot.is_symlink():
+        raise RuntimeError("迁移快照不存在或不安全；禁止清理旧工作树残留。")
+    removed = 0
+    retained = 0
+    cleanup_directories: set[Path] = set()
+    for baseline in sorted(path for path in snapshot.rglob("*") if path.is_file() and not path.is_symlink()):
+        relative = baseline.relative_to(snapshot)
+        stale = source / relative
+        if not stale.exists():
+            continue
+        if not stale.is_file() or stale.is_symlink():
+            raise RuntimeError("旧工作树残留不是普通文件；禁止猜测或删除。")
+        if sha(stale) != sha(baseline):
+            raise RuntimeError("旧工作树残留与恢复快照不一致；可能是用户新改动，禁止删除。")
+        stale.unlink()
+        removed += 1
+        parent = stale.parent
+        while parent != source:
+            cleanup_directories.add(parent)
+            parent = parent.parent
+    for directory in sorted(cleanup_directories, key=lambda path: len(path.parts), reverse=True):
+        try:
+            directory.rmdir()
+        except OSError:
+            retained += 1
+    return {"snapshot_verified_tracked_files_removed": removed, "nonempty_legacy_directories_retained": retained}
+
+
 def copy_tree_snapshot(repo: Path, source: Path, destination: Path) -> None:
     """Back up tracked source only; ignored runtime material is never copied."""
     if not source.exists():
@@ -144,7 +227,7 @@ def copy_tree_snapshot(repo: Path, source: Path, destination: Path) -> None:
         shutil.copy2(path, target)
 
 
-def git_move_or_filesystem(repo: Path, source: Path, destination: Path) -> str:
+def git_move_or_filesystem(repo: Path, source: Path, destination: Path, snapshot: Path) -> dict[str, object]:
     """Move tracked code only; leave ignored runtime material at its private source."""
     if not source.is_dir() or source.is_symlink():
         raise RuntimeError("目录迁移只允许普通目录；禁止跟随符号链接。")
@@ -153,6 +236,7 @@ def git_move_or_filesystem(repo: Path, source: Path, destination: Path) -> str:
     tracked = tracked_files(repo, source)
     if not tracked:
         raise RuntimeError("旧产品树没有 tracked 文件；禁止猜测并移动未跟踪或运行时数据。")
+    sparse_before = prepare_sparse_destination(repo, source, destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     for path in tracked:
         if not path.is_file() or path.is_symlink():
@@ -166,7 +250,12 @@ def git_move_or_filesystem(repo: Path, source: Path, destination: Path) -> str:
         # Git's explicit opt-in for this exact move; files remain tracked and
         # ignored runtime material is still never selected by tracked_files().
         run(["git", "mv", "--sparse", "--", path.relative_to(repo).as_posix(), target.relative_to(repo).as_posix()], repo)
-    return "git mv tracked files only; ignored runtime retained in place"
+    sparse_after = finalize_sparse_destination(repo, source, destination)
+    return {
+        "method": "git mv --sparse tracked files only; ignored runtime retained in place",
+        "sparse_checkout": {"before_move": sparse_before, "after_move": sparse_after},
+        "stale_legacy_worktree_cleanup": remove_stale_legacy_worktree_files(source, destination, snapshot),
+    }
 
 
 def migrate_package_path(repo: Path, target: Path) -> list[dict[str, str]]:
@@ -322,6 +411,17 @@ def main() -> int:
     if legacy.exists() and target.exists() and tracked_files(repo, legacy):
         raise RuntimeError("旧目录与新目录同时存在。先运行 semantic_classify.py 并按报告确定唯一权威树。")
 
+    # A resumed identity Session can begin with the new index paths skipped by
+    # sparse checkout.  Materialize them before capability detection; otherwise
+    # a valid focused-proven core is briefly invisible and incorrectly selects
+    # the controlled fallback architecture.
+    session_sparse_checkout: dict[str, object] | None = None
+    if session:
+        session_sparse_checkout = {
+            "repair_before_finalize": prepare_sparse_destination(repo, legacy, target),
+            "after_finalize": finalize_sparse_destination(repo, legacy, target),
+        }
+
     target_caps_before = capability_report(target)
     legacy_caps_before = capability_report(legacy)
     mode = decide_mode(target, legacy, target_caps_before, legacy_caps_before)
@@ -334,8 +434,8 @@ def main() -> int:
         if legacy.exists():
             copy_tree_snapshot(repo, legacy, backup / "legacy-tree-read-only")
         if legacy.exists() and not target.exists():
-            method = git_move_or_filesystem(repo, legacy, target)
-            move = {"from": "xhs-douyin-2notion", "to": "social-archive", "method": method, "preserved_transaction_core": True, "legacy_role": "read_only_backup_snapshot"}
+            move_result = git_move_or_filesystem(repo, legacy, target, backup / "legacy-tree-read-only")
+            move = {"from": "xhs-douyin-2notion", "to": "social-archive", **move_result, "preserved_transaction_core": True, "legacy_role": "read_only_backup_snapshot"}
         elif target.exists():
             move = {"from": None, "to": "social-archive", "retained_current_upstream": True, "legacy_role": None}
         else:
@@ -346,6 +446,9 @@ def main() -> int:
         identity_actions.extend(patch_runtime_identifiers(target))
     else:
         move = dict(session["move"])
+        if session_sparse_checkout is not None:
+            move["sparse_checkout"] = session_sparse_checkout
+        move["stale_legacy_worktree_cleanup"] = remove_stale_legacy_worktree_files(legacy, target, backup / "legacy-tree-read-only")
         package_moves = list(session.get("package_moves") or [])
         identity_actions = list(session.get("identity_actions") or [])
 

@@ -1,0 +1,210 @@
+# Social Archive handoff
+
+## Current goal
+
+按冻结的 Social Archive v0.0.0.4 Task Pack 逐项完成 Stage 0–5：保留一个经聚焦验证的事务与恢复核心，重建 E2N 产品壳、真实来源连接器、目的地授权与回执、聚合浏览和三地密文存储。每次运行只完成一个 Task；全部任务完成前不推送。
+
+## Current state
+
+- 已完成：SA-000、SA-001、SA-002、SA-003、SA-004、SA-005（Stage 0 Gate）、SA-101、SA-102、SA-103、SA-104、SA-105（Stage 1 Gate）、SA-201、SA-202、SA-203、SA-204、SA-205（Stage 2 Gate）、SA-301、SA-302、SA-303、SA-304、SA-305（Stage 3 Gate）、SA-401、SA-402、SA-403、SA-404（Stage 4 Gate）、SA-501、SA-502、SA-503、SA-504、SA-505、SA-506。
+- 进度核对：任务图共 32 项，已有 31 项 PASS 证据，剩余 SA-507 一项；SA-000 与 SA-001 的 PASS 证据按兼容层合同保留在 `social-archive-taskpack-compat/v0.0.0.4/evidence/`，其余已完成产品任务证据位于 `social-archive/evidence/`。不得只扫描后者而误报为 29 项完成。
+- SA-506（2026-07-31）：冻结 `AC-SA-506` 已 **PASS**。Stage 5 为 5/5；隔离、无业务数据的真实 age Fixture 对精确 `restore.py --latest --verify-only`、恢复、SQLite/FTS 重建和拒绝覆盖均通过；缺少 GitHub 第三收据会在重建前失败；兼容任务包的默认回滚只返回 `ROLLBACK_PLAN`，恢复标签解析且 ignored runtime 受保护。恢复/复制/Private-Database/Release 相关定向回归为 47/47，静态检查通过。真实 R2 与 OCI 均已用专用私有桶、最小 S3 凭据完成 age 加密写入、读回哈希校验和删除探针；不记录 ID 或凭据。GitHub Private Draft 和 Private-Database API 投递仍是 **NOT_RUN**：创建新的 repo-scoped fine-grained token 被 GitHub sudo/passkey 本人确认卡住，现有宽权限 CLI token 和受保护文档标记为已暴露的旧 PAT 均未使用。它们不是 SA-506 的 Fixture blocking assertion，也绝不能伪写为真实三副本业务数据。完整分层证据位于 `evidence/SA-506/`；下一次 Run 才能进入 SA-507。
+- 当前产品身份：`social-archive/`、`social_archive`、`v0.0.0.4`。
+- 当前唯一事务核心：`src/social_archive/`；SA-003 最终聚焦测试 6/6 通过（含品牌迁移边界）。
+- 历史核心已在临时测试中证明 34/34 通过，但因旧包名与 RuntimeStore 合同不兼容而退出当前运行入口；恢复标签和只读快照保留其可恢复证据。
+- 277 个与 SA-002 只读快照逐字一致的旧文档、证据和机器清单已从当前产品面退休；历史 Changelog、迁移文档/测试/验证器保留为受控边界。
+- SA-003 证据：`evidence/SA-003/`；迁移会话与回滚计划位于被忽略的 `.social-archive-migration/`。
+- SA-004：浏览器扩展、配对/API/config/script 与四个 focused tests 共 24 个文件与冻结 Overlay 逐字一致；17/17 聚焦测试和 API/FAB Oracle 通过。证据位于 `evidence/SA-004/`。
+- SA-005：激活项目 `.venv` 后的冻结 Stage 0 命令 2/2 通过，覆盖通用网页 L0/L1/L3、检索、任务状态和 SQLite 重开恢复；`doctor.sh --self-test` 通过。阶段测试比冻结候选更强，未改变归档行为；证据位于 `evidence/SA-005/`。裸系统 `python3` 缺少 `pydantic`，是已记录的环境未配置，不是测试断言结果。
+- SA-101：三个任务产品源文件与冻结 Overlay 逐字一致；13/13 聚焦测试通过。通用网页通过 Registry→Service 进入 L0/L1/L3；Social Archiver ZIP 重复导入不重复关系、工件或任务；Karakeep 投影可删除后重建且不会反向覆盖 Canonical facts，503 时主档案成功且 reader 为 degraded。证据位于 `evidence/SA-101/`。
+- SA-102：`oauth.py` 与冻结 Overlay 逐字一致；4/4 聚焦测试通过。Reddit saved/upvoted 关系独立；带 cursor 的结果为 partial；API 对 partial receipt 不推进缺失计数或关闭关系；无凭证时 Reddit 被阻断而当前页兜底仍可用。证据位于 `evidence/SA-102/`。
+
+- SA-103：`registry.py` 与冻结 Overlay 逐字一致；任务指定的 X 聚焦测试 4/4 通过，扩展、Social Archiver、Markdown 兜底回归 14/14 通过。未确认零费用时，即使存在 X 用户和 token 路径，Registry 也在构造官方 X client 前以 `X_ZERO_COST_NOT_CONFIRMED` 阻断，且不创建 capture；generic current-page 和 Markdown 路径继续可用。确认分支仅由本地 fake connector 覆盖，bookmark/like 的 endpoint、关系、内容 ID 与 partial receipt 保持隔离。真实 X 费用/权益、OAuth、网络均为 `NOT_RUN`。证据位于 `evidence/SA-103/`。
+
+- SA-104：`command.py`、`sidecars/cli-tools/Dockerfile`、`sidecars/cli-tools/server.py` 与冻结 Overlay 逐字一致；指定聚焦测试 6/6、当前页/扩展/镜像隔离回归 13/13 通过。核心 API/worker 均不挂载 `instagram_session`；只有无公开端口的 cli-tools Sidecar 挂载 `/run/secrets/instagram_session` 并带 Instaloader。核心远程请求只传 username/limit，禁止 session object 未被访问且路径穿越工件被拒绝；无导出 session 时 generic-web 当前页保存仍可用。真实 Instagram session、浏览器、Docker 与网络均为 `NOT_RUN`。证据位于 `evidence/SA-104/`。
+
+- SA-105：Stage 1 的五个产品连接器文件仍与冻结 Overlay 逐字一致；阶段门 4/4、五类来源 focused 回归 29/29 通过。阶段门实际覆盖 generic current-page 默认 L0/L1/L3（L2 关闭）、Social Archiver ZIP 幂等导入、Reddit/X OAuth 归一化以及 Instagram isolated HTTP Sidecar 归一化和路径穿越拒绝。五个真实 canary（generic、Social Archiver、Reddit、X、Instagram）均逐项记录为 `NOT_RUN`，不被 fixture PASS 掩盖，也不互相阻断。证据位于 `evidence/SA-105/`。
+
+- SA-201：`compose.workers.yaml` 和 `http_workers.py` 与冻结 Overlay 逐字一致；任务指定 XHS/health 聚焦测试 5/5、加 worker profile 的回归 7/7 通过。XHS fixture 仅发送 URL/download/index/skip，绝不转发 Cookie；Worker `degraded` 时 generic current-page L0/L1 仍成功。`vendor_sync.py` 已兼容冻结的单来源命令和当前 lock schema，把 GPL-3.0 XHS-Downloader 固定在忽略的 Sidecar build context（detached `afaf2fb459…`），不进入核心镜像。SA-201 期间检测到一条全局凭据式 Git URL 重写，已精准删除并用隔离的非交互公共 Git 子进程防止重入；本地产品/vendor 配置与源码扫描均无凭据标记。GitHub 侧凭据轮换/撤销为 `NOT_VERIFIED`，不得写成已完成。真实 XHS、Docker、浏览器和平台请求均为 `NOT_RUN`。证据位于 `evidence/SA-201/`。
+
+- SA-202：`http_workers.py` 与冻结 Overlay 逐字一致；任务聚焦测试 6/6、XHS/OpenAPI/health/worker-profile/generic 回归 15/15 通过。唯一 OpenAPI URL 路由才会发送 URL/download；歧义时零 POST、明确 degraded；Worker→gallery-dl→yt-dlp 的顺序和“全部失败仍不阻断 generic L0/L1”均由 fixture 绑定。锁定 GPL-3.0 TikTokDownloader 于忽略的 `runtime/vendors/TikTokDownloader`（detached `f404781eb…`），不进入核心镜像。冻结 `python main.py api` 与 pinned 上游不兼容：上游 `main.py` 不解析 API 参数，而 Dockerfile 默认 `python main.py`；因此仅将 DouK Compose 改为真实入口，并加 `stdin_open`/`tty` 让 Owner 自行阅读声明后选择 Web API，绝不自动同意、预写 Cookie 或猜测端点。Compose 结构解析通过。真实 DouK/Docker/平台请求和端口可达性均为 `NOT_RUN`。证据位于 `evidence/SA-202/`。
+
+- SA-203：锁定 GPL-3.0 KS-Downloader 于忽略的 `runtime/vendors/KS-Downloader`（detached `f8d812db…`），不进入核心镜像。实际 pinned `main.py` 明确支持 `api` 子命令，FastAPI 源码的 `POST /detail/` 使用 `DetailModel.text`（`cookies`/`proxy` 为可选上游字段）；故 KS Compose 保持冻结的 `python main.py api`，不作不必要改动。`OpenAPIURLWorkerConnector` 已最小适配为只解析本地 OpenAPI `$ref`：仅当恰有一个文档化 detail/download/parse/extract POST、JSON schema、且唯一 `url`/`text` 字符串字段满足全部必需输入时才调用；只发送该链接字段和显式文档化的 boolean `download`，绝不转发 Cookie、代理或认证值。零/多候选时零 POST、明确 degraded，独立媒体/当前页兜底不受影响。任务测试 8/8、相关回归 22/22、KS Compose 结构、品牌与兼容检查均通过；真实 KS/Docker/平台请求和端口可达性均为 `NOT_RUN`。证据位于 `evidence/SA-203/`。
+
+- SA-204：锁定 Apache-2.0 bilibili-cli `v0.6.2` 于忽略的 `runtime/vendors/bilibili_cli`（detached `489607468…`），只作为 `cli-tools` 的命名 Docker build context；不进入第一方核心镜像。冻结 Sidecar 未安装该固定来源、误传不支持的 `--limit` 参数且把成功的无工件列表读成失败，已按真实上游适配：只允许 `favorites`、`watch-later`、`history` 三个只读 `--json` 命令，history 只传 `--max 1..100`；元数据列表 exit-0 即成功；结构化 `rate_limited` 或 Sidecar HTTP 412/429 统一返回可重试 `BILI_RATE_LIMITED/degraded`，不做绕过/自动重试。B站子进程每次使用空白 HOME/XDG，未接收浏览器 Cookie、代理、认证值或 B站专用 secret；上游浏览器凭据提取功能未被调用。任务测试 12/12、相关回归 29/29、静态 Compose、品牌与兼容检查均通过。Docker daemon 不可用，镜像构建和真实 B站授权/平台请求均为 `NOT_RUN`。证据位于 `evidence/SA-204/`。
+
+- SA-205（Stage 2 Gate）：冻结 `test_stage2_domestic.py` 与当前产品逐字一致；任务指定的 Stage 2/平台扫描/范围扫描测试 6/6、覆盖 XHS、DouK、KS、B站、Worker profile、generic current-page 与状态投影的联合 fixture 回归 34/34 通过。三条 HTTP Worker（`xhs-worker`、`ks-worker`、`douk-worker`）独立注册，B站保持为独立 `cli-tools` Sidecar；两份 Compose 都以无 `.env`、无 secret 解析、无构建/启动的静态模式通过。四个固定 Vendor checkout 和 SA-201～204 PASS 证据均已复核。XHS/Douyin/B站降级 fixture 保持 generic current-page 独立，快手的歧义 OpenAPI 走 degraded/no-POST 且平台扫描不连坐；因此满足本地 Fixture 的“单平台失效不连坐”门。四个平台的真实账号/平台/Docker Canary 仍逐项 `NOT_RUN`，不冒充线上连通性。证据位于 `evidence/SA-205/`。
+
+- SA-301：冻结 PWA 和两项 focused tests 起始时逐字一致，但统一库查询直接 join `user_relation`，同一 canonical content 有多条关系时会重复成多张卡片；已用临时 SQLite fixture 复现（同一 content id、2 条关系、修复前 2 行），再最小适配为每内容一条确定代表关系（active→最新→id），关系筛选仍显示匹配关系，Detail 保留全部关系。PWA 现在明确使用 Feed/Grid/Detail（将历史 `list` 偏好迁移为 `feed`），Detail 显示所有关系标签；增加内部 SVG favicon，并由 HTML/manifest/service worker 缓存，消除真实浏览器的默认 favicon 404。任务测试 4/4、跨 Stage 0–2 相关回归 25/25 通过。使用既有本机 Chrome 和临时 loopback fixture 对 1440px 与 390px 真机式视口实测：各一张统一卡片、Detail 显示两条关系、无控制台/资源错误、无横向溢出；临时数据、截图和服务已停止并移入废纸篓。证据位于 `evidence/SA-301/`。
+
+- SA-302：在 SA-301 的“一内容一张卡”基础上完成全文检索、平台/关系/收藏夹/时间复合筛选和关系历史。FTS 将用户输入转为 literal terms，避免把 FTS 运算符当作查询语法；同一内容的新关系不带文本时保留原有全文索引，并聚合所有非空收藏夹标签，故每个关系的收藏夹都可检索。列表的收藏夹及日期范围筛选在代表关系范围内执行；API 对日期端点归一化为 UTC 日起点/含当日终点，非法或倒置范围返回 422。Detail 的关系按最近观察确定排序，PWA 显示关系/收藏夹、有效或已关闭状态、首次/最近观察、完整扫描缺失次数和关闭日期。partial receipt 不改变缺失计数；精确范围内第一次 complete 缺失仍 active，第二次才关闭。指定测试 5/5、相关回归 15/15、兼容/品牌检查均通过；回环 Chrome 在 1440px 与 390px 实测所有复合筛选、全文命中、两条关系历史、零浏览器错误和无横向溢出。临时服务已停止，运行时、fixture 和截图已移入废纸篓。证据位于 `evidence/SA-302/`。
+
+- SA-303：连接器状态现以一次 fresh probe 为准并带最后检查时间、延迟和中文原因；探针异常被转为 `degraded/HEALTH_<异常>`，不会让 Bootstrap、设置页或首页崩溃。`connector_state` 的三个元数据字段是可加性迁移，无重置。目的地卡也显示检查时间与延迟。失败的目的地回执在任务中心独立可见、可一键重试；重试把原终态 job 安全重入队，回执仍保留以供追溯，排队/运行/完成状态均不会被误报成第二次重试。设置页以 `storage.completion` 明确区分 3/3 完成与未齐；临时 loopback DOM 验证渲染 8 个来源、8 个目的地、0/1 未齐提示、失败 markdown 回执和实际 receipt-retry POST，读回为 job queued/receipt failed。任务指定 18/18、新增状态/回执 22/22、相关回归 8/8、JS syntax、兼容和品牌检查均通过。Chrome 150 已移除旧的命令行 unpacked-extension 自动加载，故 native extension shell/optional-host prompt 为 `NOT_RUN`；DOM 使用真实 HTML/JS、临时 Chrome profile、live loopback API 与窄 Chrome API mock，不冒充原生壳验证。临时服务器均已停止，67 MiB 临时运行时已移入系统废纸篓。证据位于 `evidence/SA-303/`。
+
+- SA-304：可选 ArchiveBox、Karakeep、Linkwarden 与 ArchiveWeb/WACZ 投影均保持为非权威、可删除重建的 Sidecar/文件投影，默认不启用 L2。启动脚本现在按选定 profile 只要求相应 secret，并在任何 Docker network 副作用前完成验证；ArchiveBox 的非空队列必须显式设置 `SOCIAL_ARCHIVE_L2_ENABLED=true` 才能提交。WACZ 导入在 L2 关闭时不读取输入、不建 runtime DB、不写 CAS；L2 开启后先验证 canonical content_id，未知 id 不会留下孤立工件，已知 id 只新增 L2 artifact 且不改 Canonical fields。任务指定 focused 9/9、reader/destination/extension 相关回归 29/29、Shell syntax、Compose 静态结构、兼容、秘密及品牌扫描均通过。`compose.readers.yaml` 解析因 Owner reader env 文件缺失而有意跳过 Docker Compose 渲染；Docker、真实 Reader/ArchiveWeb.page 账户、凭证、浏览器扩展与 provider canary 均为 `NOT_RUN`。任务图为准，SA-304 属于 Stage 3，产品文档已同步。证据位于 `evidence/SA-304/`。
+
+- SA-305（Stage 3 Gate）：冻结 `test_stage3_pwa.py` 起始时只验证 PWA 五文件存在，虽 1/1 通过却不能单独证明阶段 Oracle；保留该断言并将同一阶段测试兼容性加固为真实临时运行时的首次一次性配对、Library/独立 extension API host 分离、一次保存、中文查找、失败回执和重试。加固后发现连续汉字被 SQLite `unicode61` 作为单一 token，`q=可检索` 查不到 `可检索内容`；已以参数化、转义的汉字子串回退补足，同时保留非中文字面量 FTS，未改 schema、未重置 runtime。任务指定测试 3/3、Stage 0/1/3 与资料库/配对/UI/extension/回执/reader/storage 相关回归 72/72、PWA JS/manifest、兼容、秘密及品牌检查均通过。临时 loopback Chrome 实测 1440px 与 390px：中文搜索、Detail、三步向导、Feed、9 个中文下一步、零横向溢出、零 console/runtime/network error；临时 API、Chrome profile、夹具、日志、截图已停并移入系统废纸篓。fixture 验证 Library host 路径与 API host 的 Bearer 分离，但真实 Cloudflare Access/Tunnel/JWT、真实 extension/provider 均为 `NOT_RUN`。证据位于 `evidence/SA-305/`。
+
+- SA-401：GitHub Markdown 目的地固定到 `LinzeColin/Private-Database` 的 `Private-MetaDatabase/SocialArchive/markdown/`；每次导出先读仓库元数据且强制 `private=true`，再读确定性 Contents 路径。相同 Git blob SHA 返回 `noop` 并写回绑定/回执；远端 SHA 漂移会带当前 SHA 修复，不信任旧本地 binding；公开仓、错误目标身份、缺失/异常回执均 fail closed 且保留失败 receipt。任务指定 Mock/Fixture 12/12、关联 Stage 0/4 与 capture/storage 回归 8/8、秘密/品牌扫描、语义协调与兼容验证均通过。此前的本地 Private-Database writer/clone+Git-push sync 与仓库永久 no-clone 边界冲突，现已在调用前 fail closed；这不是结构化事实同步完成声明，官方 API-client 同步和冷备仍只属于待办 SA-504。真实 GitHub/Private-Database 授权、仓库元数据、写入与网络均为 `NOT_RUN`。证据位于 `evidence/SA-401/`。
+
+- SA-402：Notion 目的地维持 `Notion-Version: 2026-03-11`、`data_source_id` 页面父级与数据源标题属性主动校验。新 Page 成功返回后、每批最多 100 个确认的 Block 写入/删除后，均先写入 `pending:` binding；最终完成才提升为真实 projection SHA。这样 101-Block fixture 在第二批 `429 Retry-After: 7` 后重试时复用同一 Page、更新已知 100 个 Block、只追加第 101 个，不创建重复 Page；失败回执也保存已确认的 Page id/path，RuntimeStore 采用该重试延时。指定 Mock/Fixture 14/14、关联 storage/capture/reader/Stage-0 回归 11/11、秘密/品牌扫描、语义协调与兼容验证均通过。真实 Notion Token/数据源/标题属性探测及写入均为 `NOT_RUN`。特别注意：确认 Page 后的后续失败已可恢复；若恰在 Page POST 请求中发生响应丢失，远端副作用仍不可确认，未宣称 exactly-once，需 Owner canary/对账后才可作生产声明。证据位于 `evidence/SA-402/`。
+
+- SA-403：第一方 Obsidian 插件和 Chrome 直写桥接固定为 `http://127.0.0.1:27123`；插件只接受 timing-safe Bearer token、`text/markdown`、20 MiB 以内的请求，并拒绝绝对/编码/`..` 路径与不安全 Vault 基目录。同路径同正文返回 `noop`；扩展的被篡改本机地址也会归一到该固定 loopback，不会把本机 token 发送给其他端口。服务端 Vault write/readback 和 REST Markdown PUT 均有 done/noop binding/receipt fixture。标准导出新增 `library.jsonl`、正文 Markdown 和 `snapshot_sha256` manifest；同快照不因时间戳而重写。此前正文只在 FTS、未进入投影的问题已以只读 body 查询修复，未改 Canonical 写入。指定测试 8/8、关联 destination/extension/storage/reader/Stage-0/Stage-4 回归 36/36、秘密/品牌扫描、语义协调与兼容验证均通过。真实 Obsidian、Chrome 可选权限/插件写入均为 `NOT_RUN`；直写路径的跨目的地持久回执/重试门由后续 SA-404 实施但本条不提前宣称。证据位于 `evidence/SA-403/`。
+
+- SA-404（Stage 4 Gate）：Canonical Store 始终先提交；捕获、手动导出、回执重试和 Worker 四个入口都只允许已完成主动 Probe 且当前授权有效的目的地入队或出站。Markdown 与 ArchiveBox 不再因本地配置被默认标为 connected，必须先真实检查写入/回读或可重放 URL 队列；Notion、Obsidian、GitHub、Karakeep、Linkwarden 保持同一门。Provider 暂时 degraded 时，只有已确认过连接且已失败过的 retry job 可恢复；新 capture 与新注入 job 仍 fail closed。未授权或过期目的地只生成独立失败回执而不触发 adapter/provider 请求，单目的地失败不改写或回滚 Canonical fields。Chrome→固定 loopback Obsidian 直写现在向受配对 API 上报独立 `obsidian_local` done/noop/failed 回执；它严格限制 `Social Archive/*.md` 相对路径，使用服务端计算的 Markdown SHA，并与服务端 Vault/REST 的 `obsidian` binding 分离。Sidepanel 可把本机失败回执路由回固定 loopback 重试；该 receipt 是已认证配对扩展的 attestation，不是服务端对用户 Vault 的实时验证。冻结命令 32/32、全量 157/157、JS 语法、品牌/秘密扫描、语义协调和兼容验证均通过。真实 Provider/账户/凭证/Chrome/Obsidian/Docker/部署 canary 均为 `NOT_RUN`。证据位于 `evidence/SA-404/`。
+
+- SA-501：`AgeEncryptor` 以原对象 SHA 与 recipient fingerprint 缓存并复用唯一 `.age` 密文；`S3ReplicaStore` 只接受已校验 `.age` 文件、上传 cipher/original SHA 与算法元数据，再以完整 cipher SHA 下载回读验证。冻结任务图的 `--store r2 --encrypted-canary` 与既有脚本不兼容（原先 argparse 退出 2），现已兼容该拼写，同时保留位置参数；任何实际远端写/读/删必须显式带 `--encrypted-canary`，无确认只返回 `BLOCKED_USER_CONFIRMATION`，缺 recipient/配置返回非零 `BLOCKED_ENVIRONMENT`，绝不以退出 0 冒充探针成功。隔离 `env -i` 运行冻结 canary 只得到缺 recipient 的非零阻断，未读取凭证、运行 age、生成密文或访问网络。任务指定测试 8/8、相关复制/三副本回归 15/15、全量 161/161、品牌/秘密扫描、语义协调与兼容验证均通过。真实 R2/account/age binary/网络回读和写后删除仍为 `NOT_RUN`；fixture PASS 只证明代码路径。证据位于 `evidence/SA-501/`。
+
+- SA-502：冻结任务图的 `scripts/replicate_objects.py --once` 原先 argparse 退出 2，现兼容这一单次、已有的有界执行语义；无 age recipient 时在 `ensure_directories()` 和 `RuntimeStore.initialize()` 之前以非零 `BLOCKED_ENVIRONMENT` 返回，因此隔离 `env -i` 命令不生成运行时状态。OCI 候选仍先由已验证 R2 过滤，且每个对象在任何 OCI 远端调用前必须再将 R2 receipt 的 `status`、原对象 SHA、cipher SHA、age 算法与当前唯一 age 密文逐项精确比对；任一不符只写失败 OCI receipt、绝不上传或回读。Fixture 覆盖了无 R2 不进队、错误 cipher SHA 不调用 OCI，以及匹配 cipher 的 OCI 上传/回读/verified receipt。任务聚焦 13/13、相关复制/完成态回归 18/18、全量 164/164、品牌/秘密扫描、语义协调与兼容验证均通过。真实 R2/OCI/account/age binary/网络回读、上传或删除仍为 `NOT_RUN`；证据位于 `evidence/SA-502/`。
+
+- SA-503：冻结 `github_release_backup.py --upload` 的 Draft Release 路径保留，但先后加固为：无 recipient、无有效 repository、无 `gh` 或私有仓 metadata 失败时均在运行时目录初始化前 fail closed；实际上传前必须以 `gh repo view` 确认返回的 `nameWithOwner` 等于配置目标且 `isPrivate=true`，Draft 创建后还必须回读 `isDraft=true`。每个候选对象先以当前唯一 age 密文逐项核对 R2 与 OCI receipt 的 verified 状态、原对象 SHA、cipher SHA 与算法；任一不符只写失败 GitHub receipt，不创建/上传/下载 Release。成功路径上传 Manifest 与不超过 1.8 GiB 的 `.age` pack 分片，回读 Manifest 原始哈希、重组 pack SHA 和每个密文 SHA 后才写 verified GitHub receipt；三收据由既有 RuntimeStore 完成态门统一收束。任务聚焦 14/14、相关三副本回归 34/34、全量 177/177、品牌/秘密扫描、语义协调与兼容验证均通过。隔离 `env -i` 的冻结 `--upload` 命令以缺 recipient 非零阻断且不访问 `gh`。真实 GitHub/R2/OCI/account/age binary/网络、Draft 创建、资产上传/下载、删除和发布均为 `NOT_RUN`；证据位于 `evidence/SA-503/`。
+
+- SA-504：冻结 Overlay 的本地 Git clone/commit/push 同步和工作树备份均与全仓 Private-Database no-clone/no-local-write 铁律冲突，因此保持 Oracle 而最小适配为官方 `private_db_client.py` 的 clone-free API 路径。仅所有 Artifact 已由既有 R2/OCI/GitHub 同密文三收据标记 `complete` 的内容才会生成确定性、去 `local_path`、去敏感 metadata/query 参数的事实；其规范 JSON SHA 同时是 Outbox 身份和 API ingest batch。每个成功 ingest 后必须让官方 `verify` 证明账本总数=在仓数且缺失为 0；该 client 即使缺对象时可能 exit 0，故不可解析、缺失或数量不等均保持 pending。冷备只接收当前精确匹配 delivered Outbox 的事实，在临时目录生成可恢复 bundle、age 加密一次、R2 上传/回读成功后才镜像同一密文至 OCI；R2 失败会阻断 OCI。移除了 Compose/.env/install/systemd 的本地 Private-Database 工作树配置，sync timer 显式 `--once`，backup service 不再可写 `/opt/social-archive/runtime`。任务/存储聚焦 31/31、全量 186/186、compile/compose/systemd/brand/secret 检查通过；隔离无凭据命令分别以缺 client 与缺 recipient `BLOCKED_ENVIRONMENT` 返回且临时根为空。真实 Private-Database、R2、OCI、age、网络和远端回读仍为 `NOT_RUN`；证据位于 `evidence/SA-504/`。
+
+- SA-505（历史本地合同记录；下节的真实部署验收已取代其“未验收”状态）：冻结 `install.sh --dry-run` 原先在 dry-run 分支前写 runtime/Secret/.env 并依赖默认 `python3>=3.12`；现在自动选择可用 3.12+ 解释器，并在创建任何文件前退出。`doctor.sh --self-test` 是零写入静态检查，不连接 Docker、loopback、外网、runtime 或 Secret。两域名合同保持 Library Access / 独立 API Bearer：Core 只看实际 Host、不接受 `X-Forwarded-Host` 伪装；配对只在 API Host、拒绝无 Content-Length/超过 16 KiB、保留 10 分钟/5 次门并有 10/min 内存后备。状态发布改为 allowlist/redact 后写 `SOCIAL_ARCHIVE_DATA_ROOT/status/social-archive.json`（0640）；`StateDirectory=social-archive` 安全创建宿主机数据目录，`social-archive-status-web.service` 只读该文件、只绑定 `127.0.0.1:8780`、拒绝写方法，Tunnel 示例精确路由 `status.linzezhang.com`。新增 `prepare_systemd_host.sh`：dry-run 零写入检查部署源；apply 仅允许 root 在 `/opt/social-archive` 执行，受限创建账户/host env/Secret 权限、备份并安装 unit、daemon-reload，绝不 enable/start。65 项相关 fixture/回归、冻结两条命令、Compose 静态解析、shell/brand/secret/systemd/deployment 检查均通过。经用户授权的只读公网探针显示：Library/API 域名无 DNS 解析；status 域名的 `GET /health` 为 403，HEAD 为 `200 text/html/no-cache`，均未达到目标 JSON/no-store 合同。真实 OVH 端口、Cloudflare Access/Tunnel/WAF、真实 API、真实 status systemd/Tunnel 路由随后已按下一节验收；证据位于 `evidence/SA-505/`。
+
+## SA-505 completed deployment correction (2026-07-30 UTC)
+
+本节取代本文件内此前所有“SA-505 未验收/等待 Owner 部署”的历史叙述。经受控真实 OVH 与 Cloudflare 验收，SA-505 已 PASS：Core 与 status origin 分别仅监听 loopback 的 18765/18780，外部直连均失败；未登录 Library UI 被 Access 302 阻断，而独立 API health 为 200、业务路由在无 Bearer 或伪造 Access assertion 时为 401。重生成一次性码后的真实 API exchange 为 200，返回 Bearer 的业务状态为 200；Docker secret 源记录保留，消费状态在 Core 数据卷中以 0600 保存。
+
+Cloudflare 受管 Tunnel 健康且有连接，UI/API/status projection/status fallback/default-404 ingress 与三条代理 CNAME 均逐项读回。可见控制台确认 API 不支持方法 Block 规则和活跃的配对路径/IP/1 次每 10 秒/Block 限流规则；外部请求也得到 PUT=403、无效配对首个=409、紧随其后=429。状态 JSON/health 为 200、JSON 为 no-store 且只含脱敏合同键；其 overall=degraded 仅表示未宣称真实第三方连接器授权。临时 Access 服务令牌诊断没有形成通过证据，已顺序清理并复查为零。完整脱敏记录在 `evidence/SA-505/`。
+
+备份、复制与 Private-Database sync timer 仍未启用；SA-506 的 Fixture 验收已完成，但定时执行与 GitHub/Private-Database 的真实授权继续保持受控，不提前视作 SA-507 发布完成。全部任务包完成前不得提交或推送 GitHub。
+
+## Key decisions
+
+- 冻结架构：`PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS`。
+- 产品不得有双入口、双事务内核或双权威；旧运行入口、旧 Node workspace、旧测试/脚本、旧文档/证据/机器清单已从当前产品面退休。
+- SQLite 仅为可重建 Runtime Journal；长期结构化事实进入 Private-Database；真实授权、平台、云副本和部署仍为 `NOT_RUN`，不得写成 PASS。
+- 未配置 Owner `.env` 或 `runtime/secrets/` 时，`doctor.sh --self-test` 仅验证 Compose 结构，不渲染 Compose、不读取秘密，也不冒充已部署或服务运行中；语法检查在内存中完成，不遗留源码字节码缓存。
+- 通用网页保存是用户当前页 URL 的受控采集路径；Karakeep/Linkwarden 只接受 URL 投影、可删除并重建，绝不成为 Canonical Store 或反向覆盖事实。真实浏览器和真实 reader Provider 仍为 `NOT_RUN`。
+- Reddit 仅把用户授权的 OAuth token 作为出站 Bearer header 使用；不保存密码、Cookie、浏览器认证头，也不绕过访问控制。真实 Reddit OAuth/网络仍为 `NOT_RUN`。
+
+- X 官方 API 仅在 `SOCIAL_ARCHIVE_X_API_ZERO_COST_CONFIRMED=true` 时允许进入 connector；缺失、未知或其他值均在构造 client 前 fail closed。凭证、用户 ID 或 token 路径不是收费确认；本轮 positive path 是本地 fixture，不是线上免费权益或授权证明。
+
+- Instagram account export is an isolated cli-tools Sidecar operation. Core services have no `instagram_session` mount, must not send a session in the remote payload, and accept only relative Sidecar output paths; when export is unavailable, generic current-page capture remains the free user-triggered fallback.
+
+- Stage gate local fixture PASS and real provider canary are separate evidence planes: every fixture assertion must pass, while a missing owner credential/browser/provider remains `NOT_RUN` rather than a synthetic PASS; one platform's real canary state cannot block another platform's fixture gate.
+
+- Public vendor Git operations must ignore global/system configuration, environment-injected Git config and interactive prompts. This is a supply-chain and credential-isolation boundary, not a way to bypass platform authorization; XHS product requests still never receive browser Cookies.
+
+- DouK is an experimental, user-controlled Sidecar. The core only probes OpenAPI for a unique safe URL route and never forwards a Cookie; if the owner has not started the upstream Web API mode, the route is ambiguous, or its algorithm fails, the result is degraded and gallery-dl/yt-dlp/current-page fallback remains independent.
+
+- KS-Downloader is a fixed isolated Sidecar. Source-verified `api` startup is retained; the first-party core resolves only local OpenAPI references and accepts exactly one source-documented safe URL/text request route. Optional upstream Cookie/proxy fields are never populated from user input. An ambiguous or malformed document causes degraded with no POST, never endpoint inference.
+
+- Bilibili is a fixed Apache Sidecar-only dependency. The HTTP surface can issue only `favorites`、`watch-later`、`history` with source-documented JSON arguments; all write verbs fail before process execution. A metadata-only successful list does not require a downloaded artifact. Rate limit (source structured result or HTTP 412/429) is `BILI_RATE_LIMITED/degraded`, never a bypass attempt, and its unknown receipt never closes relations. Bilibili has no browser-profile mount or Bilibili credential secret; every subprocess gets a fresh per-run HOME/XDG boundary.
+
+- 统一资料库以 `content` 作为卡片身份而非 `user_relation` 身份：列表始终一内容一行；未筛选时选择 active、最新、稳定 id 的代表关系，按关系筛选时选择该匹配关系，Detail 显示所有关系。这样既不重复平台内容，也不丢失关系事实。
+
+- SA-302 的收藏夹与观察时间是关系事实而非全局内容事实：它们只在选择代表关系时缩小范围，平台与全文仍以 canonical content 为入口。日期只接受 ISO 8601 日期/日期时间，日期终点包含整天；partial receipt 永远不能推进关系关闭，只有精确 scope 的两次 complete 缺失会关闭关系。FTS 标签从该内容的全部非空关系收藏夹重建，防止一次无文本的新关系抹去旧正文索引。
+
+- SA-303 的状态投影遵循“fresh probe 优先且 probe 失败 fail closed”：持久化 healthy 不能遮蔽当前 `blocked_environment`，但连接器检查异常必须降级为带中文下一步的状态数据而非把用户页打断。失败目的地回执是不可变审计事实；重试只改变可执行 job 的状态，不能将旧失败回执伪造为成功或删除。
+
+- Reader/archiver 只投影、不获得 Canonical Store 权威。各 reader profile 的 secret 需求彼此隔离，且任何 Docker network/create/start 副作用前必须先完成 profile 与 secret 校验；读者退出、删除或 degraded 均不得回滚核心采集。
+
+- ArchiveBox 高保真采集和 ArchiveWeb/WACZ 文件导入均是 L2：空队列可安全 no-op，非空 ArchiveBox 队列必须显式启用 L2；WACZ 在未启用 L2、未知 canonical content 或无效输入时 fail closed。只允许既有 canonical content 获得附加 L2 artifact，绝不以投影反向创建或改写权威内容。
+
+- Stage 路由以冻结任务图为权威，不能以旧产品文档替代：SA-304 是 Stage 3 的可选阅读器任务，Stage 4 才进入 Notion、Obsidian、GitHub、Markdown 与 JSONL 目的地。
+
+- Stage 3 阶段门不能仅用“PWA 文件存在”替代用户路径证据：冻结 shell fixture 必须保留，但当前产品测试还必须覆盖一次性配置、Library/extension 身份边界、保存、中文检索、失败回执/重试、移动端及唯一中文下一步。真实 Cloudflare/Provider 证据与本地 fixture 证据保持分层，不得互相冒充。
+
+- SQLite `unicode61` 对连续汉字的整段 token 化不足以支撑用户输入的中文部分匹配。非汉字仍走 quoted FTS literal terms；每个连续汉字片段以参数化、LIKE-escaped 子串在既有 FTS columns 上收窄。这个回退不得接受 SQL/FTS 操作符、不得改写既有内容或重建 Runtime Journal。
+
+- GitHub Markdown 目的地不是任意私有仓写入器：只接受 `LinzeColin/Private-Database`，且路径必须位于 `Private-MetaDatabase/`。本地 SQLite binding 只是投递记录，不能取代每次导出的仓库私有性和远端 Contents SHA 对账；公开、身份不符、SHA/路径/commit 回执不完整均不得确认成功。
+
+- Notion 的本地 binding 是已确认远端 Page/Block 前缀的恢复检查点，不是对未收到 provider 回执之 POST 的臆测。每次追加必须收到与提交 children 一一对应且唯一的 Block ID 才能推进检查点；429 仅在 provider 返回有效 `Retry-After` 时传入 job 延时，网络错误仍保留失败 receipt 和可重试任务。真实 Token/数据源/标题属性与模糊请求副作用继续是 `NOT_RUN`，不得把 Mock 覆盖写成线上 exactly-once。
+
+- Obsidian 本机桥接不是任意 URL 写入器：Chrome 与插件共同固定 `127.0.0.1:27123`，插件目录必须是当前 Vault 内的安全子目录，内容只接受 Markdown 且不超过 20 MiB。同内容返回 `noop`。`content_fts.body` 是导出所需的已保存正文读取面；只读投影可读取它，但不得把 StandardExporter、Markdown/JSONL 或 Obsidian 输出说成 Canonical 写入、Private-Database 同步或三地密文备份。真实插件/Chrome canary 仍为 `NOT_RUN`；SA-404 已把其配对扩展 attestation 以独立 `obsidian_local` receipt/binding 接入任务中心与重试，绝不把它冒充服务端 Vault/REST 读回验证。
+
+- SA-404 的授权门要求“当前 live configuration + 持久化 enabled/last_checked_at + connected 成功状态”，配置本身不是授权。Capture、手动 export、receipt retry 与 Worker 都会复核；未通过者不得调用 adapter/provider。若连接在既有失败 job 后暂时降为 `degraded`，Worker 只会在该 job 已有失败尝试（`attempt_count > 0`）时允许恢复；新 capture、首次尝试和新注入 job 都不会自动调度。每个 destination 的 done/noop/failed receipt 独立保存，失败可重试性只对 429、5xx、网络错误或明确 `degraded` 传播；认证、配置、策略错误不做无意义自动重试。
+
+- SA-501 的 age recipient 是可公开的加密接收者；私钥/identity 只允许未来显式 restore drill 使用，`AgeEncryptor`、R2/OCI 复制和 probe 都不得读取它。真实对象 canary 必须显式带 `--encrypted-canary`，仅 `--store` 返回 `BLOCKED_USER_CONFIRMATION`；缺 recipient 或 R2 配置为非零 `BLOCKED_ENVIRONMENT`。密文文件、远端 metadata 和回读 SHA 才是可验证副本证据；本地 plaintext、secret file 内容和 private identity 均不得进入远端、runtime report 或日志。SA-501 只绑定 R2 入口，OCI/GitHub 第二、第三副本和完成态仍由 SA-502/SA-503 负责。
+
+- SA-502 不把“R2 的 verified 状态”单独当作 OCI 授权：同一 artifact 的 R2 receipt 必须与本次 `EncryptedObject` 的 original SHA、cipher SHA 和算法完全相同，才允许 OCI `put_encrypted` 和回读；缺少、未验证或任一字段漂移都不触发远端调用。`--once` 是冻结兼容拼写，不启动守护循环；recipient 守卫必须先于任何本地 runtime 初始化，避免一次失败的命令留下伪进度。
+
+- SA-503 同样不信任“OCI 已 verified”这一状态位：GitHub 第三副本只可复用已同时由 R2 与 OCI 回读确认的当前 age 密文；两份 receipt 的 status、original SHA、cipher SHA、算法必须逐项精确一致，任何漂移都留下失败 GitHub receipt 而不产生 Draft 或 Asset 调用。`--upload` 是显式写入意图，但仍先验证目标 `nameWithOwner/isPrivate`，再验证新建 Release 的 `isDraft`；私有性、目标身份或 Draft 状态任一未知/错误均无本地 runtime 初始化和无远端资产写入。
+
+- Private-Database 禁止 clone、挂载工作树、直接本地写入、Git commit 或 Git push。SA-504 已以官方 API client 的 `ingest`/严格 `verify` 实现完成态事实同步，并让 cold backup 只消费精确 matching 的 delivered Outbox facts；Runtime SQLite 和 Markdown projection 仍不是长期事实权威。真实 provider/账户验证与 local fixture PASS 严格分层，前者仍为 `NOT_RUN`。
+
+- SA-505 的 Core 对 Library Access 的 Host/Header 检查是 Tunnel/Cloudflare Access 边界后的最小防线，不是已验证的 Cloudflare JWT/provider 配置证明。真实验收必须确认 Cloudflare 会在 API Host 去除/不信任伪造 Assertion、UI Host 的 Access 会话实际注入 Assertion，且 Tunnel 的公网与 loopback 边界符合文档。`status.linzezhang.com` 的本地 origin 已收束为受限 systemd 服务；`prepare_systemd_host.sh` 消除了宿主机账户、文件权限、env/unit 安装的隐式前提，但其 apply 尚未在真实 OVH 执行。最新只读公网证据显示状态路由尚未按合同上线；其 OVH 启动状态、Tunnel、TLS、缓存和路由仍必须由真实证据证明；不得把本地 fixture 说成已发布。
+
+## Verification
+
+- `python -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_legacy_migration.py tests/focused/test_brand_migration.py`
+- `python scripts/check_brand.py`（仅历史 Changelog、迁移文档/测试/验证器可出现旧身份）
+- `python ../social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>`（使用 Python 3.12）
+- `python -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_cloud_pairing.py tests/focused/test_extension_api.py tests/focused/test_beginner_journey.py`
+- `source .venv/bin/activate && python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py && bash scripts/doctor.sh --self-test`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_markdown_importer.py tests/focused/test_social_archiver_import.py tests/focused/test_reader_projection.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py`
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_social_archiver_import.py tests/focused/test_markdown_importer.py`
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_extension_e2n_contract.py tests/focused/test_worker_profiles.py`
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage1_western.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_social_archiver_import.py tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py tests/focused/test_extension_e2n_contract.py`
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source xhs_downloader --resolve-and-lock`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_health_gated_connector.py tests/focused/test_worker_profiles.py`
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source douk --resolve-and-lock`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py`
+- `docker compose -f compose.workers.yaml --profile douk-experimental config`（仅结构解析；不启动服务）
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source ks_downloader --resolve-and-lock`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_scan_platform_isolation.py`
+- `docker compose -f compose.workers.yaml --profile kuaishou config`（仅结构解析；不启动服务）
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py`
+- `docker compose -f compose.yaml config --no-env-resolution --no-interpolate --no-path-resolution -q`（仅结构解析；不读取 `.env`、不启动服务）
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_xhs_connector.py tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py tests/focused/test_worker_profiles.py tests/focused/test_generic_web_connector.py tests/focused/test_status_projection.py`
+- `docker compose -f compose.workers.yaml --profile xiaohongshu --profile kuaishou --profile douk-experimental config --no-env-resolution --no-interpolate --no-path-resolution -q`（仅结构解析；不读取 `.env`、不启动服务）
+
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_ui_contract.py`
+- `node --check apps/pwa/app.js && python3 -m json.tool apps/pwa/manifest.webmanifest >/dev/null`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_replica_completion.py tests/focused/test_scan_scope_isolation.py tests/focused/test_ui_contract.py tests/stage/test_stage0_walking_skeleton.py tests/focused/test_beginner_journey.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_storage_completion_contract.py tests/focused/test_pwa_contract.py tests/focused/test_extension_api.py tests/focused/test_status_projection.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_destinations.py tests/focused/test_runtime_store.py tests/focused/test_connector_run_api.py tests/focused/test_health_gated_connector.py`
+- `node --check apps/browser-extension/options.js && node --check apps/browser-extension/sidepanel.js`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reader_profiles.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reader_profiles.py tests/focused/test_reader_projection.py tests/focused/test_destinations.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_free_destination_contract.py tests/focused/test_generic_web_connector.py tests/focused/test_quota_guard.py tests/focused/test_extension_api.py`
+- `/bin/bash -n scripts/start_readers.sh && /bin/bash -n scripts/archivebox_sync.sh && /bin/bash -n scripts/stop_readers.sh`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/validate_compose.py compose.readers.yaml && python3 scripts/secret_scan.py && python3 scripts/check_brand.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage3_pwa.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_private_database_writer.py tests/focused/test_private_database_sync.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_destinations.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_destination_probes_and_receipts.py tests/focused/test_destinations.py tests/focused/test_extension_api.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_obsidian_bridge_contract.py tests/focused/test_free_destination_contract.py tests/focused/test_exports.py && node --check apps/obsidian-plugin/main.js`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py tests/stage/test_stage1_western.py tests/stage/test_stage3_pwa.py tests/focused/test_beginner_journey.py tests/focused/test_capture_api.py tests/focused/test_cloud_pairing.py tests/focused/test_social_archiver_import.py tests/focused/test_library_api.py tests/focused/test_pwa_contract.py tests/focused/test_ui_contract.py tests/focused/test_extension_e2n_contract.py tests/focused/test_extension_api.py tests/focused/test_status_projection.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_storage_completion_contract.py tests/focused/test_replica_completion.py tests/focused/test_reader_profiles.py tests/focused/test_reader_projection.py tests/focused/test_destinations.py tests/focused/test_free_destination_contract.py tests/focused/test_quota_guard.py tests/focused/test_runtime_store.py tests/focused/test_core_capture.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_destination_probes_and_receipts.py tests/focused/test_extension_api.py tests/focused/test_destinations.py tests/focused/test_reader_projection.py tests/focused/test_reader_profiles.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q`
+- `node --check apps/browser-extension/shared.js && node --check apps/browser-extension/background.js && node --check apps/browser-extension/options.js && node --check apps/browser-extension/popup.js && node --check apps/browser-extension/sidepanel.js`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && PYTHONDONTWRITEBYTECODE=1 python3 scripts/secret_scan.py .`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py tests/focused/test_replication_pipeline.py tests/focused/test_replica_completion.py tests/focused/test_free_destination_contract.py tests/stage/test_stage4_replication_exports.py`
+- `/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/probe_object_store.py --store r2 --encrypted-canary`（预期非零 `BLOCKED_ENVIRONMENT`；剥离所有凭证环境，不发生远端探针）
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_replication_pipeline.py tests/focused/test_replica_completion.py tests/focused/test_s3_replication.py`
+- `/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/probe_object_store.py --store oci --encrypted-canary`（预期非零 `BLOCKED_ENVIRONMENT`；剥离所有凭证环境，不发生远端探针）
+- `/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/replicate_objects.py --once`（预期非零 `BLOCKED_ENVIRONMENT`，且 recipient 守卫先于 runtime 初始化）
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_release_pack.py`
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_release_pack.py tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py tests/focused/test_replication_pipeline.py tests/focused/test_replica_completion.py tests/focused/test_free_destination_contract.py tests/focused/test_storage_completion_contract.py tests/stage/test_stage4_replication_exports.py`
+- `/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/github_release_backup.py --upload`（预期非零 `BLOCKED_ENVIRONMENT`；无 recipient 时先于 runtime 和 `gh`）
+- `source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_private_database_writer.py tests/focused/test_private_database_sync.py tests/focused/test_private_database_backup.py tests/focused/test_replication_pipeline.py tests/focused/test_release_pack.py tests/stage/test_stage4_replication_exports.py`
+- `/usr/bin/env -i PATH=/usr/bin:/bin PYTHONDONTWRITEBYTECODE=1 SOCIAL_ARCHIVE_DATA_ROOT=<isolated-empty-temp>/sync <project-venv-python> scripts/sync_private_database.py --once`（预期非零 `PRIVATE_DATABASE_CLIENT_UNAVAILABLE`，根为空）
+- `/usr/bin/env -i PATH=/usr/bin:/bin PYTHONDONTWRITEBYTECODE=1 SOCIAL_ARCHIVE_DATA_ROOT=<isolated-empty-temp>/backup <project-venv-python> scripts/backup.py --once`（预期非零 `AGE_RECIPIENT_MISSING`，根为空）
+
+## Next task
+
+仍是 SA-506，不能进入 SA-507：先补齐专用于 Social Archive 的 R2 endpoint/bucket/最小 S3 凭据、OCI S3-compatible endpoint/bucket/可读写回删列举凭据，以及离线 age recovery identity 方案。其他项目的 R2 凭据、单向 OCI PAR 与现有主机备份密钥均不等价、不得复用。收到这些输入或明确授权创建它们后，运行显式合成密文 canary；只有 R2、OCI、GitHub Private 三份真实同密文读回收据与恢复结果都 PASS，SA-506 才可收束，之后才允许 SA-507。全部 32 项均 PASS 前不得 Git stage、commit、push、merge 或创建发布物。
+
+## Recovery boundary
+
+- 恢复标签：`social-archive-pre-v0.0.0.4-20260730t095749z`。
+- 默认只生成 rollback plan；实际回滚需要任务包要求的精确确认。
+- 不读取、复制、迁移或删除遗留忽略运行时目录。
+- 保留本任务生成的 `runtime/vendors/XHS-Downloader`、`runtime/vendors/TikTokDownloader`、`runtime/vendors/KS-Downloader`、`runtime/vendors/bilibili_cli` 与最新单来源 `runtime/vendor-resolved.json` 供后续国内连接器阶段使用；最终任务包完成后再按清理合同处理派生运行时。

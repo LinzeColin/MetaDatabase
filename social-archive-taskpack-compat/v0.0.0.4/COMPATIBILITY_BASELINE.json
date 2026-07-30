@@ -1,5 +1,5 @@
 {
-  "compatibility_id": "social-archive-v0.0.0.4-compat.2",
+  "compatibility_id": "social-archive-v0.0.0.4-compat.6",
   "base_taskpack": {
     "filename": "Social_Archive_v0.0.0.4_FINAL_TASKPACK_20260730.zip",
     "sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
@@ -22,7 +22,7 @@
     },
     {
       "path": "07_IMPLEMENTATION/apply/apply_taskpack.py",
-      "sha256": "0d639180c16723c4f8fb57ecf3f3ff66bc79d281264a6ecbb1a8491b44002cae"
+      "sha256": "42f341c6c5dc449e994331e28160bd73b3ff18f8264d996cc32fec0be8d99545"
     },
     {
       "path": "07_IMPLEMENTATION/apply/rollback_taskpack.py",

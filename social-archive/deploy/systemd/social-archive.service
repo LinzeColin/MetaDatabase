@@ -1,0 +1,18 @@
+[Unit]
+Description=Social Archive containers
+After=docker.service network-online.target
+Wants=network-online.target social-archive-status-web.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/social-archive
+ExecStart=/usr/bin/docker compose up -d core-api core-worker
+ExecStop=/usr/bin/docker compose down
+TimeoutStartSec=180
+TimeoutStopSec=90
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

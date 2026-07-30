@@ -1,0 +1,35 @@
+{
+  "schema_version": "2.0",
+  "version": "v0.0.0.4",
+  "in_scope": [
+    "REQ-001",
+    "REQ-002",
+    "REQ-003",
+    "REQ-004",
+    "REQ-005",
+    "REQ-006",
+    "REQ-007",
+    "REQ-008",
+    "REQ-009",
+    "REQ-010",
+    "REQ-011",
+    "REQ-012",
+    "REQ-013",
+    "REQ-014",
+    "REQ-015",
+    "REQ-016",
+    "REQ-017",
+    "REQ-018"
+  ],
+  "out_of_scope": [
+    "paid APIs",
+    "mandatory models",
+    "automated account writes",
+    "CAPTCHA/DRM/access-control bypass",
+    "default L2",
+    "public social network",
+    "multi-tenant billing"
+  ],
+  "full_suite_task": "SA-507",
+  "runtime_verdict_after_taskpack": "NOT_RUN"
+}

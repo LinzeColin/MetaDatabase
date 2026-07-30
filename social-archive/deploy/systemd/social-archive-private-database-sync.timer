@@ -1,0 +1,12 @@
+[Unit]
+Description=Sync Social Archive structured facts every ten minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=10min
+Persistent=true
+RandomizedDelaySec=45
+Unit=social-archive-private-database-sync.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-503",
+  "acceptance_id": "AC-SA-503",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T17:10:56Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
+    "worktree_created_or_switched_by_task": 0,
+    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
+    "pre_evidence_default_git_status_entry_count": 720
+  },
+  "github_release_acceptance": {
+    "status": "PASS",
+    "target": "私有 Draft Release 分片回读后重组 SHA 与 R2/OCI 密文一致；三收据齐后才完成。",
+    "blocking_oracle": {
+      "private_target_gate": "An --upload run checks gh availability and reads gh repo view --json nameWithOwner,isPrivate before any runtime initialization, draft creation, or asset upload. The configured name must match exactly and isPrivate must be true.",
+      "draft_gate": "After gh release create --draft and before asset upload, gh release view --json isDraft must confirm isDraft=true. Any failed, malformed, or non-draft response fails closed.",
+      "same_cipher_gate": "For each GitHub candidate, both R2 and OCI receipts must have status=verified and exactly match the current unique age EncryptedObject's original SHA-256, cipher SHA-256, and age algorithm. A missing, unverified, or mismatched receipt records a failed GitHub receipt before any Release create/upload/download call.",
+      "readback_gate": "The release contains only .age object files plus a manifest and parts under 1.8 GiB. Downloaded manifest raw SHA must equal the uploaded manifest; reassembled pack SHA and every archived cipher SHA must equal the local manifest before GitHub receipts become verified.",
+      "completion_boundary": "RuntimeStore marks an artifact complete only after verified R2, OCI, and GitHub receipts have identical cipher SHA, original SHA, and encryption algorithm."
+    },
+    "fixture_coverage": {
+      "private_metadata": "Fake gh metadata rejects public, wrong-name, and malformed repository responses; a public result stops before runtime initialization or any Release command.",
+      "draft_metadata": "Fake gh metadata rejects false, missing, and malformed isDraft responses before upload.",
+      "prior_receipts": "Fixtures bind every R2/OCI prerequisite field: verified state, original SHA, cipher SHA, and encryption algorithm. A mismatched R2 cipher produces R2_CIPHER_SHA_MISMATCH and only a failed GitHub receipt; the fake gh client observes no create/upload/download command.",
+      "successful_readback": "A temporary fake gh client proves private repo view, Draft create/view, asset upload, download, manifest raw-hash comparison, pack reassembly, per-cipher hash verification, verified GitHub receipt, and all-three completion using the same cipher SHA as R2/OCI.",
+      "tamper_rejection": "A modified downloaded part raises the asset readback hash error and cannot be treated as verified.",
+      "runtime_guard": "The exact frozen --upload spelling exits 3 with BLOCKED_ENVIRONMENT when recipient is absent; the fixture proves no configured data root is initialized."
+    },
+    "blocking_result": "The SA-503 focused test passed 14/14. Related encrypted-replication/completion regression passed 34/34. The full project suite passed 177/177."
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "frozen_task_fixture": {
+      "tests_passed": 14,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_release_pack.py"
+      ]
+    },
+    "related_regression": {
+      "tests_passed": 34,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_release_pack.py",
+        "tests/focused/test_encrypted_replication.py",
+        "tests/focused/test_s3_replication.py",
+        "tests/focused/test_replication_pipeline.py",
+        "tests/focused/test_replica_completion.py",
+        "tests/focused/test_free_destination_contract.py",
+        "tests/focused/test_storage_completion_contract.py",
+        "tests/stage/test_stage4_replication_exports.py"
+      ]
+    },
+    "safe_frozen_upload_contract": {
+      "command": "/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/github_release_backup.py --upload",
+      "expected_exit_code": 3,
+      "observed_exit_code": 3,
+      "observed_status": "BLOCKED_ENVIRONMENT",
+      "observed_message": "缺少 SOCIAL_ARCHIVE_AGE_RECIPIENT；禁止明文备份",
+      "network_or_credential_access": "NOT_ATTEMPTED: env -i removed all provider configuration. The recipient guard returned before gh discovery, repository/Draft metadata calls, age execution, runtime initialization, release creation, asset upload/download, or remote readback."
+    },
+    "full_regression": {
+      "tests_passed": 177,
+      "tests_failed": 0,
+      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
+    },
+    "static_checks": {
+      "github_release_script_compile": "PASS",
+      "secret_scan": "PASS: hits=[]",
+      "brand_boundary": "PASS: hits=[]",
+      "trailing_whitespace": "PASS"
+    },
+    "source_sha256": {
+      "src/social_archive/config.py": "5add5d68b780200d656e727fcd97a3f317968871745d2d70c989476cbb755360",
+      "src/social_archive/db.py": "74d646f46c6a35328b328ffa96c0aa65448f4183909fc57926534fbb9c9ea46c",
+      "src/social_archive/encryption.py": "064bcdbea3608b3bc05b57b82d726c1834806252c7e57630393a4b380248ec49",
+      "src/social_archive/storage.py": "2e777d146709bcbf8063b70f5e6c7b28fa921ea640a00fd9b65f18a9f728aae6",
+      "scripts/replicate_objects.py": "ee7b155895685365381007ebf8f5e4ce01149ce89697e26fd01a1d0a76835903",
+      "scripts/github_release_backup.py": "952e19f0f6820733a3d4a1e67de74462b4eec630251be15ed54bded70b6e7f8b",
+      "tests/focused/test_encrypted_replication.py": "f464d8255498bab5274f7b246b736aaa3f69e794f0ddda875547030aabb53c91",
+      "tests/focused/test_s3_replication.py": "acda7586413449b2af8e4224fcc19891d6dc5a8b6e9c4cb4aae2839246476432",
+      "tests/focused/test_replication_pipeline.py": "66a18f706e11a966df1785533df6437708205d65e3ad7d9053a9425281d7bc02",
+      "tests/focused/test_replica_completion.py": "08d264b597f546d5d6399498ef2b4a42d3c6ee019e6519f03df6b6730832074d",
+      "tests/focused/test_release_pack.py": "23cd1253dffa53061b88210c20ada6ee78be8bec279b5e223146e2b6cb41d106",
+      "tests/focused/test_free_destination_contract.py": "8bff869eb69c83c207c9cf1f63cc0aa31b80d46f8824f32668b8fe882b3af691",
+      "tests/focused/test_storage_completion_contract.py": "37fe0d1087b82b8c995d5670387ec9310b725a580ae6bb3096963b0c265b5ee5",
+      "tests/stage/test_stage4_replication_exports.py": "092c491309b5e2b399b0cc5f6e48e4631f650617cfee41e740120aaa0f4a1fd5"
+    }
+  },
+  "semantic_reconciliation": {
+    "status": "PASS",
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 107,
+      "apply": 26,
+      "adapt": 78,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "The frozen prebuilt Release script supplied chunking, Draft creation, and pack readback, but needed minimal upstream safety adapters: no runtime write before hard guards, exact private repository/Draft readback, exact R2/OCI receipt equality before GitHub provider work, and failure receipts on a failed upload/readback. No transaction/recovery-core rewrite or SA-504 behavior was introduced."
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "recovery_tag": "PASS",
+    "ignored_runtime_retained": "PASS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "execution_corrections": [
+    "The prebuilt --upload path initialized local directories and SQLite before checking the age recipient, so a missing credential could leave runtime state. The recipient/repository/gh/private-metadata guards now precede initialization.",
+    "The prebuilt GitHub queue depended only on OCI status=verified and did not compare R2/OCI receipts to the current reusable ciphertext. Both prior receipts now must match verified status, original SHA, cipher SHA, and encryption algorithm before any Release operation.",
+    "The prebuilt command requested --draft but did not read back repository privacy, target identity, Draft state, or raw manifest identity before asset verification. Those checks now fail closed and upload/readback failure creates failed GitHub receipts rather than a completion claim."
+  ],
+  "residual_risk_and_non_claims": [
+    "No real GitHub, R2, OCI, Cloudflare, account, credential, provider request, age binary invocation, ciphertext upload, remote readback/delete, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred. The gh interactions in fixtures are a temporary in-process fake client and temporary files only.",
+    "The isolated frozen command deliberately removes all provider environment values and reports BLOCKED_ENVIRONMENT. It proves fail-closed command behavior, not GitHub authentication, repository privacy, token scope, Draft Release visibility, free-tier availability, asset persistence, or real remote readback.",
+    "The real Owner-authorized GitHub/R2/OCI three-copy encrypted canary remains NOT_RUN. Its prerequisites are explicit owner-approved recipient, repository, and provider configuration; it must remain separate from fixture PASS and must never expose plaintext or a private identity.",
+    "Private-Database completion synchronization, encrypted cold backup, operations/recovery, and final release gates remain unfinished in SA-504 through SA-507. No intermediate Git publication is authorized before the full Task Pack passes."
+  ],
+  "source_change": {
+    "files_written_in_this_task": [
+      "scripts/github_release_backup.py",
+      "tests/focused/test_release_pack.py",
+      "evidence/SA-503/RESULT.json",
+      "evidence/SA-503/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ],
+    "product_source_rewrite": "No broad rewrite. The frozen Release pack, age encryption core, R2/OCI replication core, and three-receipt completion rule remain intact; this task adds only fail-closed target/Draft/receipt gates and their local fake-client coverage."
+  }
+}

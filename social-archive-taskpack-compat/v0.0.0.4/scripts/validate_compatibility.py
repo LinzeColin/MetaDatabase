@@ -41,19 +41,20 @@ def create_synthetic_repo(root: Path) -> Path:
     write(repo / "xhs-douyin-2notion/apps/companion/tests/test_canonical_store.py", "# focused recovery fixture\n")
     write(repo / "xhs-douyin-2notion/apps/companion/tests/test_orchestrator.py", "# focused transaction fixture\n")
     write(repo / "xhs-douyin-2notion/apps/companion/tests/test_operations.py", "# focused operations fixture\n")
-    write(repo / "xhs-douyin-2notion/runtime/private.sqlite", "ignored synthetic runtime bytes\n")
     run(["git", "add", "README.md", "xhs-douyin-2notion/.gitignore", "xhs-douyin-2notion/apps"], repo)
     run(["git", "commit", "-m", "synthetic legacy core"], repo)
     run(["git", "push", "-u", "origin", "main"], repo)
     run(["git", "checkout", "-b", "codex/social-archive-compat-test"], repo)
-    # Model the production worktree: the legacy source is present, while the
-    # Social Archive target is intentionally outside the initial sparse cone.
-    run(["git", "sparse-checkout", "init", "--no-cone"], repo)
-    run(["git", "sparse-checkout", "set", "--no-cone", "README.md", "xhs-douyin-2notion/"], repo)
+    # Model the production cone-mode worktree: the legacy source is present,
+    # while the Social Archive target is intentionally outside the initial
+    # sparse cone.
+    run(["git", "sparse-checkout", "init", "--cone"], repo)
+    run(["git", "sparse-checkout", "set", "xhs-douyin-2notion"], repo)
     if not (repo / "xhs-douyin-2notion/apps/companion/src/x2n_companion/canonical_store.py").is_file():
         raise RuntimeError("synthetic sparse checkout did not retain the legacy source")
     if (repo / "social-archive").exists():
         raise RuntimeError("synthetic sparse checkout unexpectedly includes the target path")
+    write(repo / "xhs-douyin-2notion/runtime/private.sqlite", "ignored synthetic runtime bytes\n")
     return repo
 
 
@@ -87,7 +88,17 @@ def main() -> int:
         moved_core = repo / "social-archive/apps/companion/src/x2n_companion/canonical_store.py"
         retained_runtime = repo / "xhs-douyin-2notion/runtime/private.sqlite"
         if not moved_core.is_file() or not retained_runtime.is_file():
-            raise RuntimeError("tracked core move or ignored runtime retention failed")
+            sparse_entries = run(["git", "sparse-checkout", "list"], repo).stdout.splitlines()
+            raise RuntimeError(
+                "tracked core move or ignored runtime retention failed: "
+                f"moved_core={moved_core.is_file()} retained_runtime={retained_runtime.is_file()} "
+                f"sparse_entries={sparse_entries}"
+            )
+        sparse_entries = run(["git", "sparse-checkout", "list"], repo).stdout.splitlines()
+        if "social-archive" not in sparse_entries or "xhs-douyin-2notion" not in sparse_entries:
+            raise RuntimeError("sparse checkout did not retain both target materialization and legacy runtime safety")
+        if (repo / "xhs-douyin-2notion/apps/companion/src/x2n_companion/canonical_store.py").exists():
+            raise RuntimeError("sparse checkout retained a second legacy tracked core copy")
         if (repo / "social-archive/src/social_archive/db.py").exists():
             raise RuntimeError("identity phase incorrectly created a second core")
         root_ignore = (repo / ".gitignore").read_text(encoding="utf-8")
@@ -119,6 +130,8 @@ def main() -> int:
             "semantic_decision": semantic["decision"],
             "worktree_branch_allowed": True,
             "sparse_target_move_allowed": True,
+            "sparse_legacy_runtime_rule_retained": True,
+            "stale_legacy_tracked_residuals_removed": True,
             "ignored_runtime_retained": True,
             "second_core_withheld_as_candidate": True,
             "rollback_default": rollback["status"],

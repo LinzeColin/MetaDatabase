@@ -1,0 +1,26 @@
+[Unit]
+Description=Serve Social Archive read-only status projection
+After=network-online.target social-archive-status.service
+Wants=network-online.target
+Requires=social-archive-status.service
+PartOf=social-archive.service
+
+[Service]
+Type=simple
+User=socialarchive
+Group=socialarchive
+WorkingDirectory=/opt/social-archive
+EnvironmentFile=/etc/social-archive/social-archive.env
+Environment=SOCIAL_ARCHIVE_STATUS_BIND_HOST=127.0.0.1
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/status_server.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateDevices=yes
+ReadOnlyPaths=/var/lib/social-archive/status
+
+[Install]
+WantedBy=multi-user.target

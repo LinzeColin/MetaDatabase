@@ -1,0 +1,19 @@
+[Unit]
+Description=Generate Social Archive read-only status projection
+After=social-archive.service
+
+[Service]
+Type=oneshot
+User=socialarchive
+Group=socialarchive
+WorkingDirectory=/opt/social-archive
+EnvironmentFile=/etc/social-archive/social-archive.env
+Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=/opt/social-archive/runtime/secrets/social_archive_api_token
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/status_publish.py
+StateDirectory=social-archive
+StateDirectoryMode=0750
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadOnlyPaths=/opt/social-archive/runtime/secrets
+ReadWritePaths=/var/lib/social-archive

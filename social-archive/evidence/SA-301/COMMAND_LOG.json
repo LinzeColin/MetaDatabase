@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-301",
+  "commands": [
+    {
+      "id": "frozen_overlay_identity_audit",
+      "command": "compare the frozen apps/pwa and two SA-301 focused tests to the current product before adaptation",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "All five PWA files and both focused tests were byte-identical before the acceptance-coverage audit."
+    },
+    {
+      "id": "baseline_frozen_task_command",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_ui_contract.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "2 passed before the duplicate-content audit."
+    },
+    {
+      "id": "duplicate_content_reproduction",
+      "command": "capture one generic-web canonical URL with manual_save and bookmark in a temporary SQLite RuntimeStore, then list the library",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The same content id had two relations and produced two list rows, proving a canonical-content duplication defect."
+    },
+    {
+      "id": "unified_library_adaptation",
+      "command": "select one deterministic representative relation per content; preserve relation filters; expose Feed/Grid/Detail relationships; add a PWA icon cache entry",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The query now returns one card per canonical content, a relation filter selects matching metadata, Detail renders all relations, legacy list preferences migrate to feed, and the PWA no longer requests a missing favicon."
+    },
+    {
+      "id": "final_task_focused_tests",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_ui_contract.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "4 passed."
+    },
+    {
+      "id": "cross_stage_library_regression",
+      "command": "run library/UI, core capture, runtime store, beginner journey, generic web, Social Archiver import, status projection, and Stage 0/1/2 tests",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "25 passed."
+    },
+    {
+      "id": "local_visual_render_validation",
+      "command": "start a loopback-only temporary API with a fixture database; use existing local Google Chrome through Playwright at 1440x960 and 390x844; click Feed and Detail; check resource errors and geometry; then stop and trash the temporary directory",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Both viewports rendered one card and two Detail relations, had no console/resource errors or horizontal overflow, and the temporary runtime was moved to Trash after validation."
+    },
+    {
+      "id": "final_semantic_reconciliation",
+      "command": "semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=150, apply=26, adapt=35, equivalent=6, conflict=0, blocked=0, obsolete=0."
+    },
+    {
+      "id": "final_compatibility_and_boundary_checks",
+      "command": "compatibility verifier; brand verifier; evidence integrity; recovery-tag check; JavaScript/manifest syntax; whitespace check",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "25 relevant regression tests, JavaScript and manifest syntax, brand boundary, recovery tag, whitespace check, and task-pack compatibility verifier passed."
+    }
+  ],
+  "non_actions": [
+    "No real provider account, user content, browser profile, Cookie, password, authentication header, provider request, Docker image build, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "The only browser was an existing local Chrome instance with an ephemeral Playwright context. All fixture data, screenshots, and temporary runtime files were local and were moved to Trash after validation."
+  ]
+}

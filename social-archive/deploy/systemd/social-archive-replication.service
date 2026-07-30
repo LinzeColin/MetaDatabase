@@ -1,0 +1,17 @@
+[Unit]
+Description=Replicate Social Archive objects to R2 then OCI
+After=social-archive.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=socialarchive
+Group=socialarchive
+WorkingDirectory=/opt/social-archive
+EnvironmentFile=/etc/social-archive/social-archive.env
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/replicate_objects.py --store all --limit 200
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/github_release_backup.py --upload
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/social-archive

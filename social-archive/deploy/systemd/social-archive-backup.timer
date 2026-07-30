@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Social Archive backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+Persistent=true
+RandomizedDelaySec=900
+Unit=social-archive-backup.service
+
+[Install]
+WantedBy=timers.target

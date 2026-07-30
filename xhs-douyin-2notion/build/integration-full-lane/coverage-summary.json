@@ -1,0 +1,42 @@
+{
+  "branch_mode": true,
+  "critical_modules": {
+    "apps/companion/src/x2n_companion/canonical_store.py": {
+      "combined_percent": 80.33,
+      "covered_branches": 348,
+      "total_branches": 562
+    },
+    "apps/companion/src/x2n_companion/migrations.py": {
+      "combined_percent": 86.55,
+      "covered_branches": 19,
+      "total_branches": 24
+    },
+    "apps/companion/src/x2n_companion/native_host.py": {
+      "combined_percent": 83.28,
+      "covered_branches": 60,
+      "total_branches": 78
+    },
+    "apps/companion/src/x2n_companion/native_host_installer.py": {
+      "combined_percent": 75.81,
+      "covered_branches": 97,
+      "total_branches": 144
+    },
+    "apps/companion/src/x2n_companion/runtime.py": {
+      "combined_percent": 83.95,
+      "covered_branches": 54,
+      "total_branches": 78
+    },
+    "packages/contracts/src/x2n_contracts/base.py": {
+      "combined_percent": 81.82,
+      "covered_branches": 37,
+      "total_branches": 48
+    },
+    "packages/contracts/src/x2n_contracts/models.py": {
+      "combined_percent": 80.76,
+      "covered_branches": 88,
+      "total_branches": 184
+    }
+  },
+  "overall_combined_percent": 77.85,
+  "status": "PASS"
+}

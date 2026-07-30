@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Social Archive 设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand"><span class="brand-mark">SA</span><div><strong>Social Archive</strong><small>连接一次，以后点击即归档</small></div></div>
+      <button id="openLibrary" class="ghost-button">打开我的档案馆 ↗</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <span class="eyebrow">首次设置 · 3 步完成</span>
+      <h1>像 E2N 一样简单，但内容归你自己</h1>
+      <p>输入一次性配对码、授权需要的平台、勾选导出目的地。以后只需点击“保存到我的档案馆”。默认保存 L0＋L1＋L3，L2 关闭。</p>
+    </section>
+
+    <nav class="stepper" aria-label="设置步骤">
+      <button class="step active" data-target="service"><b>1</b><span>连接档案馆</span></button>
+      <button class="step" data-target="platforms"><b>2</b><span>授权平台</span></button>
+      <button class="step" data-target="destinations"><b>3</b><span>选择导出</span></button>
+    </nav>
+
+    <section id="service" class="panel">
+      <div class="panel-heading"><div><h2>连接你的私人档案馆</h2><p>扩展已预置私有云地址，不要求安装本机后台或理解端口。</p></div><span id="serviceState" class="state checking">检查中</span></div>
+      <div class="form-row">
+        <label class="grow"><span>一次性配对码</span><input id="pairingCode" type="text" inputmode="text" autocomplete="one-time-code" spellcheck="false" maxlength="20" placeholder="输入控制台显示的 XXXX-XXXX-XXXX"></label>
+        <button id="connectService" class="primary-button">一键连接</button>
+      </div>
+      <details class="advanced"><summary>高级设置</summary><label><span>服务地址</span><input id="endpoint" type="url" autocomplete="url"></label></details>
+      <div id="serviceMessage" class="message hidden" role="status" aria-live="polite"></div>
+      <p id="replicationSummary" class="message needs">等待三地密文备份状态</p>
+      <div class="storage-strip">
+        <article><span>结构化事实</span><strong>GitHub Private</strong><small id="privateDbState">等待服务状态</small></article>
+        <article><span>对象主存</span><strong>Cloudflare R2</strong><small id="r2State">等待服务状态</small></article>
+        <article><span>异地副本</span><strong>OCI</strong><small id="ociState">等待服务状态</small></article>
+        <article><span>第三副本</span><strong>GitHub Release</strong><small id="githubStorageState">等待服务状态</small></article>
+      </div>
+    </section>
+
+    <section id="platforms" class="panel">
+      <div class="panel-heading"><div><h2>授权来源平台</h2><p>每张卡同时显示浏览器页面授权和服务端连接器状态；失败时仍可保存当前页面。</p></div><label class="toggle"><input id="showFloatingButton" type="checkbox"><span></span>显示悬浮按钮</label></div>
+      <div id="platformGrid" class="card-grid"></div>
+    </section>
+
+    <section id="destinations" class="panel">
+      <div class="panel-heading"><div><h2>自动导入目的地</h2><p>一次点击可并行导入多个目的地，单个失败不会阻塞档案馆主保存。</p></div><button id="refreshDestinations" class="ghost-button">检查全部连接</button></div>
+      <div id="destinationGrid" class="card-grid"></div>
+      <details class="advanced" id="obsidianSetup">
+        <summary>连接本机 Obsidian</summary>
+        <p>安装任务包内的 Social Archive Obsidian 插件；打开 Obsidian 时，扩展只会通过固定的 <code>127.0.0.1:27123</code> 端口自动写入。</p>
+        <div class="form-row">
+          <label class="grow"><span>本机地址（固定）</span><input id="obsidianUrl" type="url" value="http://127.0.0.1:27123" readonly></label>
+          <label class="grow"><span>插件令牌</span><input id="obsidianToken" type="password" autocomplete="off"></label>
+          <button id="connectObsidian" class="primary-button">连接 Obsidian</button>
+        </div>
+        <div id="obsidianMessage" class="message hidden" role="status"></div>
+      </details>
+      <p class="privacy-note">平台 Cookie 和密码不会进入 Social Archive。Notion、GitHub、R2、OCI 凭据只保存在服务端 Secret；Obsidian 本机令牌只保存在浏览器本地。</p>
+    </section>
+
+    <section class="panel compact">
+      <div class="panel-heading"><div><h2>完成</h2><p>点击工具栏、右键菜单或平台页面悬浮按钮即可保存；任务中心会显示读取、下载、导出与三副本进度。</p></div><button id="finish" class="primary-button">完成并开始使用</button></div>
+    </section>
+  </main>
+
+  <script src="shared.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

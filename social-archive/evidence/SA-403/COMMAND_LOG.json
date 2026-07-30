@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-403",
+  "commands": [
+    {
+      "id": "sa403_frozen_task_command",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_obsidian_bridge_contract.py tests/focused/test_free_destination_contract.py tests/focused/test_exports.py && node --check apps/obsidian-plugin/main.js",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "8 passed. Covers plugin loopback/token/path/Markdown/size/idempotency behavior, server Vault/REST done/noop handling, standard body-bearing Markdown and JSONL export, snapshot no-op, free destination constraints, and plugin syntax."
+    },
+    {
+      "id": "related_destination_extension_storage_regression",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_destination_probes_and_receipts.py tests/focused/test_destinations.py tests/focused/test_extension_api.py tests/focused/test_extension_e2n_contract.py tests/focused/test_runtime_store.py tests/focused/test_storage_completion_contract.py tests/focused/test_reader_projection.py tests/stage/test_stage0_walking_skeleton.py tests/stage/test_stage4_replication_exports.py && node --check apps/browser-extension/shared.js && node --check apps/browser-extension/background.js && node --check apps/browser-extension/options.js",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "36 passed; one existing Starlette TestClient deprecation warning only. Existing Notion receipt/retry, canonical-store, extension, reader and replication boundaries remain intact after body projection and local bridge changes."
+    },
+    {
+      "id": "source_boundary_scans",
+      "command": "cd social-archive && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && PYTHONDONTWRITEBYTECODE=1 python3 scripts/secret_scan.py . && no trailing whitespace in task files",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Brand boundary hits=[]; secret scan hits=[]; no trailing whitespace in task files."
+    },
+    {
+      "id": "semantic_and_taskpack_compatibility",
+      "command": "source social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 <TASKROOT>/07_IMPLEMENTATION/apply/semantic_classify.py --repo <single-worktree> && PYTHONDONTWRITEBYTECODE=1 python3 social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <immutable-v0.0.0.4-zip>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Semantic reconciliation ADAPT_CURRENT_UPSTREAM (116 satisfied, 26 apply, 69 adapt, 6 equivalent, 0 conflict/block/obsolete); compatibility verifier PASS with preserve-transaction-core decision."
+    },
+    {
+      "id": "source_hash_capture",
+      "command": "read-only Python hashlib SHA-256 of the eleven task source/test files",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Hashes are recorded in RESULT.json; no source/runtime content was changed by hash capture."
+    }
+  ],
+  "non_actions": [
+    "No real Obsidian/Chrome/Vault/Local REST action, account, credential, provider request, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
+    "The only secret-like test values were temporary pytest files with mode 0600; no value is present in this evidence.",
+    "The real owner-authorized Obsidian and Chrome canaries remain NOT_RUN and are not converted into fixture PASS."
+  ]
+}

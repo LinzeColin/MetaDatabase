@@ -1,0 +1,55 @@
+# Optional domestic platform workers. Stage 0 resolves current upstream tags/commits/digests before enabling a profile.
+name: social-archive-workers
+services:
+  xhs-worker:
+    build:
+      context: ./runtime/vendors/XHS-Downloader
+    image: social-archive/xhs-worker:local
+    command:
+    - python
+    - main.py
+    - api
+    profiles:
+    - xhs
+    ports:
+    - 127.0.0.1:5556:5556
+    volumes:
+    - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}/xhs:/app/Volume
+    restart: unless-stopped
+    security_opt:
+    - no-new-privileges:true
+  ks-worker:
+    build:
+      context: ./runtime/vendors/KS-Downloader
+    image: social-archive/ks-worker:local
+    command:
+    - python
+    - main.py
+    - api
+    profiles:
+    - kuaishou
+    ports:
+    - 127.0.0.1:5557:5557
+    volumes:
+    - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}/kuaishou:/app/Volume
+    restart: unless-stopped
+    security_opt:
+    - no-new-privileges:true
+  douk-worker:
+    build:
+      context: ./runtime/vendors/TikTokDownloader
+    image: social-archive/douk-worker:local
+    command:
+    - python
+    - main.py
+    profiles:
+    - douk-experimental
+    stdin_open: true
+    tty: true
+    ports:
+    - 127.0.0.1:5555:5555
+    volumes:
+    - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}/douk:/app/Volume
+    restart: 'no'
+    security_opt:
+    - no-new-privileges:true

@@ -1,0 +1,25 @@
+{
+  "schema_version": "2.0",
+  "required_before_stage0": [
+    "TARGET_REPOSITORY"
+  ],
+  "environment_bound_by_stage": {
+    "S1": [
+      "optional Reddit/X/Instagram credentials"
+    ],
+    "S2": [
+      "platform-sidecar sessions/userscripts as individually chosen"
+    ],
+    "S4": [
+      "Notion token/database, Obsidian vault/REST, GitHub token"
+    ],
+    "S5": [
+      "age recipient and restore identity separation",
+      "R2/OCI endpoints and keys",
+      "GitHub private archive repository",
+      "Cloudflare Access hostname",
+      "OVH systemd permissions"
+    ]
+  },
+  "secret_rule": "Secrets are files under runtime/secrets or provider secret store; never committed, logged or copied into object metadata."
+}

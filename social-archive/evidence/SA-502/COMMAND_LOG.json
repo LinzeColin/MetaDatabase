@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-502",
+  "commands": [
+    {
+      "id": "sa502_baseline_frozen_once_cli",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/replicate_objects.py --once",
+      "exit_code": 2,
+      "outcome": "COMPATIBILITY_GAP_FOUND",
+      "result": "Before the minimal adapter, argparse did not accept the frozen --once invocation. No provider code ran."
+    },
+    {
+      "id": "sa502_focused_gate",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_replication_pipeline.py tests/focused/test_replica_completion.py tests/focused/test_s3_replication.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "13 passed. Covers R2-before-OCI queue selection, matching/mismatched R2 cipher receipts, OCI receipt recording, frozen --once parsing, and recipient guard before runtime initialization."
+    },
+    {
+      "id": "sa502_safe_frozen_probe_contract",
+      "command": "cd social-archive && /usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/probe_object_store.py --store oci --encrypted-canary",
+      "exit_code": 3,
+      "outcome": "EXPECTED_BLOCKED_ENVIRONMENT",
+      "result": "Printed BLOCKED_ENVIRONMENT for missing age recipient. env -i removes all OCI/R2/provider settings; the probe returned before age, S3 client construction, remote write/read/delete, or runtime report output. This is not a real OCI canary."
+    },
+    {
+      "id": "sa502_safe_frozen_replication_contract",
+      "command": "cd social-archive && /usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/replicate_objects.py --once",
+      "exit_code": 3,
+      "outcome": "EXPECTED_BLOCKED_ENVIRONMENT",
+      "result": "Printed BLOCKED_ENVIRONMENT for missing SOCIAL_ARCHIVE_AGE_RECIPIENT. The recipient guard returned before Settings.ensure_directories or RuntimeStore.initialize; the focused fixture separately proves no configured data root is created. This is not a real OCI replication run."
+    },
+    {
+      "id": "related_replication_regression",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py tests/focused/test_replication_pipeline.py tests/focused/test_replica_completion.py tests/focused/test_free_destination_contract.py tests/stage/test_stage4_replication_exports.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "18 passed. Confirms one-cipher encryption, R2/OCI ordering and receipt equality, cipher readback recording, three-identical-receipt completion boundary, and free/private destination contract."
+    },
+    {
+      "id": "full_project_regression_and_scans",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q; PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py; PYTHONDONTWRITEBYTECODE=1 python3 scripts/secret_scan.py .; PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile scripts/replicate_objects.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "164 passed; one existing Starlette TestClient deprecation warning only. Brand boundary hits=[]; secret scan hits=[]; replication script compiles. Commands were executed as independent passing checks; semicolons here record their grouped evidence only."
+    },
+    {
+      "id": "semantic_and_taskpack_compatibility",
+      "command": "source social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 <TASKROOT>/07_IMPLEMENTATION/apply/semantic_classify.py --repo <single-worktree>; PYTHONDONTWRITEBYTECODE=1 python3 social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <immutable-v0.0.0.4-zip>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Semantic reconciliation ADAPT_CURRENT_UPSTREAM (109 satisfied, 26 apply, 76 adapt, 6 equivalent, 0 conflict/block/obsolete). Compatibility verifier PASS with preserve-transaction-core decision. Commands were executed independently; semicolon is documentary grouping only."
+    },
+    {
+      "id": "source_hash_capture",
+      "command": "LC_ALL=C LANG=C shasum -a 256 of twelve encryption/replica source and test files",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Hashes are recorded in RESULT.json; hash capture performed no source/runtime write."
+    }
+  ],
+  "non_actions": [
+    "No real R2, OCI, GitHub, Cloudflare, account, credential, provider request, age binary invocation, ciphertext upload, remote readback/delete, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
+    "The only encryption/remote objects were pytest-local fake encryptor/client fixtures in temporary directories; no plaintext, private identity, or secret value appears in this evidence.",
+    "Real Owner-authorized OCI and R2 canaries remain NOT_RUN and are not converted into fixture PASS."
+  ]
+}

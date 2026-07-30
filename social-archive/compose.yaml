@@ -1,0 +1,106 @@
+name: social-archive
+services:
+  core-api:
+    build: .
+    image: social-archive/core:0.0.0.4
+    command: ["social-archive-api"]
+    env_file: [.env]
+    ports: ["127.0.0.1:${SOCIAL_ARCHIVE_CORE_LOOPBACK_PORT:-18765}:8765"]
+    volumes:
+      - social_archive_data:/var/lib/social-archive
+      - ${SOCIAL_ARCHIVE_IMPORT_HOST_PATH:-./runtime/import}:/var/lib/social-archive/import
+      - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/var/lib/social-archive/vendor-output
+    secrets: &core_secrets
+      - r2_access_key_id
+      - r2_secret_access_key
+      - oci_access_key_id
+      - oci_secret_access_key
+      - github_token
+      - social_archive_api_token
+      - social_archive_pairing_code
+      - cli_worker_token
+      - notion_token
+      - obsidian_rest_token
+      - karakeep_api_token
+      - linkwarden_api_token
+    networks: [default, social_archive_readers]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=256m"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  core-worker:
+    image: social-archive/core:0.0.0.4
+    command: ["social-archive-worker"]
+    env_file: [.env]
+    volumes:
+      - social_archive_data:/var/lib/social-archive
+      - ${SOCIAL_ARCHIVE_IMPORT_HOST_PATH:-./runtime/import}:/var/lib/social-archive/import
+      - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/var/lib/social-archive/vendor-output
+    secrets: *core_secrets
+    networks: [default, social_archive_readers]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=512m"]
+    depends_on:
+      core-api:
+        condition: service_healthy
+      cli-tools:
+        condition: service_healthy
+
+  cli-tools:
+    build:
+      context: ./sidecars/cli-tools
+      additional_contexts:
+        bilibili_cli: ./runtime/vendors/bilibili_cli
+    image: social-archive/cli-tools:0.0.0.4
+    env_file: [.env]
+    environment:
+      SOCIAL_ARCHIVE_CLI_OUTPUT_ROOT: /work/output/cli
+      SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE: /run/secrets/cli_worker_token
+      SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE: /run/secrets/instagram_session
+    volumes:
+      - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/work/output
+    secrets:
+      - cli_worker_token
+      - instagram_session
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=512m"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5560/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  social_archive_data:
+
+secrets:
+  r2_access_key_id: {file: ./runtime/secrets/r2_access_key_id}
+  r2_secret_access_key: {file: ./runtime/secrets/r2_secret_access_key}
+  oci_access_key_id: {file: ./runtime/secrets/oci_access_key_id}
+  oci_secret_access_key: {file: ./runtime/secrets/oci_secret_access_key}
+  github_token: {file: ./runtime/secrets/github_token}
+  social_archive_api_token: {file: ./runtime/secrets/social_archive_api_token}
+  social_archive_pairing_code: {file: ./runtime/secrets/social_archive_pairing_code}
+  cli_worker_token: {file: ./runtime/secrets/cli_worker_token}
+  instagram_session: {file: ./runtime/secrets/instagram_session}
+  notion_token: {file: ./runtime/secrets/notion_token}
+  obsidian_rest_token: {file: ./runtime/secrets/obsidian_rest_token}
+  karakeep_api_token: {file: ./runtime/secrets/karakeep_api_token}
+  linkwarden_api_token: {file: ./runtime/secrets/linkwarden_api_token}
+
+networks:
+  social_archive_readers:
+    name: social-archive-readers
+    external: true

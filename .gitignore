@@ -1,3 +1,6 @@
 .DS_Store
 __pycache__/
 *.py[cod]
+# Social Archive generated migration material; never stage runtime or candidate data.
+/.social-archive-migration/
+/.social-archive-candidate-v0.0.0.4/

@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-003",
+  "architecture_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+  "selected_runtime_authority": "social_archive",
+  "decision": "ADOPT_PREBUILT_SOCIAL_ARCHIVE_CORE_AFTER_FOCUSED_PROOF_AND_RETIRE_INCOMPATIBLE_LEGACY_ENTRYPOINTS",
+  "adopted_asset": {
+    "source": ".social-archive-candidate-v0.0.0.4/social-archive",
+    "proof": "isolated focused tests PASS 5/5, then actual product focused tests PASS 5/5",
+    "hash_verified": true,
+    "file_count": 5
+  },
+  "retired_asset": {
+    "source": "legacy companion, extension and contracts code",
+    "proof": "reference focused tests PASS 34/34 before retirement",
+    "reason": "Old package and runtime-schema contract cannot be concurrently authoritative with the Social Archive RuntimeStore contract.",
+    "data_migration": "NOT_RUN",
+    "recovery": {
+      "tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+      "snapshot": ".social-archive-migration/backups/20260730T095749Z/legacy-tree-read-only"
+    }
+  },
+  "retired_identity_surface": {
+    "proof": "277 tracked files matched the SA-002 read-only snapshot byte-for-byte before retirement.",
+    "active_surface_removed": [
+      "obsolete governance and product-design documents",
+      "obsolete task evidence",
+      "obsolete machine facts, policies, schemas and source manifest",
+      "three root-level legacy product documents"
+    ],
+    "historical_and_migration_boundaries_retained": [
+      "CHANGELOG.md",
+      "docs/migration/LEGACY_MIGRATION.md",
+      "focused migration test and verifier"
+    ]
+  },
+  "brand_boundary": {
+    "status": "PASS",
+    "active_product_hits": 0,
+    "allowlisted_contexts": [
+      "historical CHANGELOG",
+      "migration document",
+      "focused migration test",
+      "migration verifier"
+    ]
+  },
+  "single_authority_proof": {
+    "semantic_decision": "ADAPT_CURRENT_UPSTREAM",
+    "active_layouts": [
+      "social_archive"
+    ],
+    "dual_core": false,
+    "active_entrypoints": [
+      "social-archive-api",
+      "social-archive-worker"
+    ]
+  }
+}

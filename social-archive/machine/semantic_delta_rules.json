@@ -1,0 +1,56 @@
+{
+  "schema_version": "4.1",
+  "architecture_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+  "controlled_fallback": "CONTROLLED_PRODUCT_REBUILD_WITH_LEGACY_DATA_MIGRATION",
+  "allowed_classifications": [
+    "satisfied",
+    "apply",
+    "adapt",
+    "equivalent",
+    "conflict",
+    "blocked",
+    "obsolete"
+  ],
+  "primary_rule": "保留聚焦测试证明成立的单一事务/恢复核心；重建产品身份、E2N 操作壳、真实来源连接器、目的地 Probe/Binding/Receipt、聚合 UI 与运维边界。",
+  "preserved_transaction_core": [
+    "SQLite transaction and runtime journal",
+    "Job/Outbox/idempotency",
+    "migrations/recovery",
+    "Content/Relation/Observation/Scan Receipt",
+    "partial-scan deletion guard",
+    "atomic Markdown projection"
+  ],
+  "rebuild_surfaces": [
+    "product identity",
+    "Chrome E2N shell and authorization center",
+    "real platform connectors and isolated sidecars",
+    "destination probes/bindings/receipts",
+    "aggregation/PWA UI",
+    "cloud storage and operations"
+  ],
+  "retain_rule": "latest main 中 Acceptance 等价且更强的实现必须保留并适配。",
+  "fallback_trigger": "只有聚焦证据证明事务核心缺失、局部不可修复或存在不可调和双权威时，才对受影响纵向切片执行只读迁移与受控重建。",
+  "forbidden": [
+    "blind_overlay",
+    "dual_entrypoint",
+    "dual_transaction_kernel",
+    "dual_authority",
+    "silent_migration",
+    "implicit_data_loss"
+  ],
+  "two_phase_session": {
+    "file": ".social-archive-migration/ACTIVE_SESSION.json",
+    "phases": [
+      "identity",
+      "all"
+    ],
+    "required_fields": [
+      "base_head",
+      "recovery",
+      "stamp",
+      "backup_root",
+      "status_after_identity"
+    ],
+    "rule": "第二阶段仅在 HEAD 与 status_after_identity 精确一致时续跑。"
+  }
+}

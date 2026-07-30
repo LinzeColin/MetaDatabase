@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-203",
+  "commands": [
+    {
+      "id": "baseline_focused_tests",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_scan_platform_isolation.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "4 pre-change focused tests passed."
+    },
+    {
+      "id": "isolated_public_vendor_sync",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source ks_downloader --resolve-and-lock",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Resolved 1 source: ks_downloader; fixed detached commit f8d812db840fcea763d035705afc8660a38bcfb5 under ignored runtime/vendors/KS-Downloader."
+    },
+    {
+      "id": "pinned_source_interface_audit",
+      "command": "inspect the pinned KS-Downloader main.py, Dockerfile, FastAPI route source, and DetailModel without starting a container or platform client",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Pinned main.py explicitly supports the api subcommand. The FastAPI source documents POST /detail/ with DetailModel.text and optional cookies/proxy; the existing KS Compose startup command is source-valid."
+    },
+    {
+      "id": "openapi_component_schema_compatibility_repair",
+      "command": "adapt OpenAPIURLWorkerConnector to resolve local OpenAPI references, require exactly one safe documented request route, and build a payload solely from its url/text field plus an explicitly documented boolean download field",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The connector supports the fixed KS text schema without hardcoding /detail/ and emits degraded with zero POST for zero or multiple safe candidates."
+    },
+    {
+      "id": "final_task_focused_tests",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_scan_platform_isolation.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "8 passed."
+    },
+    {
+      "id": "supplemental_cross_connector_regression",
+      "command": "run focused XHS, OpenAPI, health-gate, scan-isolation, worker-profile, and generic-web regression tests",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "22 passed."
+    },
+    {
+      "id": "compose_structure_validation",
+      "command": "cd social-archive && docker compose -f compose.workers.yaml --profile kuaishou config",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Compose structure parsed without building, starting, or contacting the KS service."
+    },
+    {
+      "id": "semantic_reconciliation",
+      "command": "semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=163, apply=26, adapt=22, equivalent=6, conflict=0, blocked=0, obsolete=0."
+    },
+    {
+      "id": "final_compatibility_and_boundary_checks",
+      "command": "compatibility verifier; brand verifier; recovery-tag check; Python hashlib and no-secret-marker checks",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Compatibility and brand boundary passed; recovery tag exists; global/product/vendor configuration and product source scans found no credential marker. Native shasum was not used because its local locale initialization failed before hashing; Python hashlib produced the recorded SHA-256 values."
+    }
+  ],
+  "non_actions": [
+    "No real Kuaishou account, user content, browser Cookie, password, authentication header, provider request, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "The public Git vendor resolution is distinct from a real Kuaishou provider canary. Real KS authorization and runtime remain NOT_RUN.",
+    "No credential value or credential-bearing URL was stored in this command log."
+  ]
+}

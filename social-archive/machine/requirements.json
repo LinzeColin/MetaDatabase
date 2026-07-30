@@ -1,0 +1,79 @@
+{
+  "schema_version": "2.0",
+  "project": "Social Archive",
+  "version": "v0.0.0.4",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "text": "产品、目录、包名、UI、文档和运行身份全面迁移为 Social Archive v0.0.0.4；旧身份只允许出现在迁移输入、兼容读取和历史证据中。"
+    },
+    {
+      "id": "REQ-002",
+      "text": "移动 main 语义协调：保留聚焦验证通过的单一事务/恢复核心，重建产品壳与连接层；更强上游保留，受控重建仅限证据触发的受影响纵向切片。"
+    },
+    {
+      "id": "REQ-003",
+      "text": "浏览器扩展达到 E2N 式低摩擦：工具栏弹窗、站点授权卡、页面悬浮保存、侧边栏任务中心、真实连接检查、中文下一步和一键重试；配置存在不得冒充已授权。"
+    },
+    {
+      "id": "REQ-004",
+      "text": "按通用与国外来源、国内来源、聚合与 UI、Notion/Obsidian/GitHub/Markdown 目的地、存储运维的顺序逐阶段交付。"
+    },
+    {
+      "id": "REQ-005",
+      "text": "通用网页、Social Archiver 本地导出、Reddit、X、Instagram 均具备读取/保存路径；收费或配额不确定时自动使用免费导入或当前页路径。"
+    },
+    {
+      "id": "REQ-006",
+      "text": "小红书、抖音、快手、B站均具备用户触发的当前页兜底和独立 Sidecar/Worker 路径，单平台失效不连坐。"
+    },
+    {
+      "id": "REQ-007",
+      "text": "默认归档 L0、L1、L3；L2 默认关闭且不阻塞任何核心链路。"
+    },
+    {
+      "id": "REQ-008",
+      "text": "统一资料库支持时间线、网格、详情、来源/关系/收藏夹筛选、全文检索、任务与授权状态及防误删关系历史。"
+    },
+    {
+      "id": "REQ-009",
+      "text": "Notion、Obsidian、GitHub Private-Database Markdown 和标准 Markdown/JSONL 导出均可独立启用、主动探测、幂等写入、生成回执、重试和对账。"
+    },
+    {
+      "id": "REQ-010",
+      "text": "对象只加密一次，同一密文依次写入 R2、OCI 和 GitHub 私有归档仓；三张回读校验收据未齐不得显示归档完成。"
+    },
+    {
+      "id": "REQ-011",
+      "text": "Private-Database 是长期结构化事实权威源，R2 是对象字节权威源，OCI 与 GitHub 私有归档仓为异地/第三副本，OVH SQLite 仅为可重建 Runtime Journal。"
+    },
+    {
+      "id": "REQ-012",
+      "text": "必需增量费用为 0；不得依赖付费 API、付费 SaaS 或模型；未知配额和可能收费路径 fail closed，L0/L1 继续；GitHub 目的地必须为私有仓库。"
+    },
+    {
+      "id": "REQ-013",
+      "text": "第三方 GPL/AGPL/专有工具仅通过容器、HTTP、进程、文件或用户浏览器边界复用，不复制或导入到专有核心。"
+    },
+    {
+      "id": "REQ-014",
+      "text": "不保存平台密码、浏览器 Cookie 或认证头，不绕过 CAPTCHA、DRM、访问控制或平台限制；仅处理用户已授权和可访问内容。"
+    },
+    {
+      "id": "REQ-015",
+      "text": "运行不依赖开发 Agent、聊天线程、人工保活、本机常驻、macOS launchd 或模型 Token；OVH systemd/Compose 可启动、停止、自愈、诊断、备份、恢复和回滚。"
+    },
+    {
+      "id": "REQ-016",
+      "text": "测试采用聚焦测试、阶段门和最终候选一次全量回归；真实账户/provider canary 明确标为环境绑定，NOT_RUN 不得冒充 PASS。"
+    },
+    {
+      "id": "REQ-017",
+      "text": "status.linzezhang.com 只读投影平台、目的地、存储三副本、备份恢复和版本状态，不成为第二事实源。"
+    },
+    {
+      "id": "REQ-018",
+      "text": "Codex 仅执行最新 main 上的语义合并、真实凭证、供应商控制台、部署和兼容性最后一公里；保留更优上游实现，不重新研究、重做架构或扩大验收。"
+    }
+  ]
+}

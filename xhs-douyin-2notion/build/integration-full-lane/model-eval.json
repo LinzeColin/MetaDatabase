@@ -1,0 +1,17 @@
+{
+  "automatic_classification": "DISABLED_PENDING_ACC.x2n.ai.006",
+  "capabilities": {
+    "asr": "NOT_RUN_FEATURE_DISABLED",
+    "classification": "NOT_RUN_FEATURE_DISABLED",
+    "dataset_contract": "PASS",
+    "fusion": "NOT_RUN_FEATURE_DISABLED",
+    "ocr": "NOT_RUN_FEATURE_DISABLED",
+    "red_team": "CONTRACT_PASS_MODEL_NOT_RUN"
+  },
+  "dataset_id": "x2n-synthetic-model-contract-v1",
+  "dataset_version": "1.0.0",
+  "fallback": "DISABLE_RELATED_CAPABILITY_AND_REQUIRE_REVIEW",
+  "model_calls": 0,
+  "red_team_contract_cases": 3,
+  "status": "PASS_BASELINE_SKELETON"
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=Sync Social Archive structured facts to Private-Database
+After=social-archive.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=socialarchive
+Group=socialarchive
+WorkingDirectory=/opt/social-archive
+EnvironmentFile=/etc/social-archive/social-archive.env
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/sync_private_database.py --once
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/social-archive

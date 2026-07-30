@@ -1,0 +1,251 @@
+{
+  "artifact_deterministic": true,
+  "artifact_report": {
+    "allowlist_findings": 0,
+    "artifact_sha256": "95944455e362e0d341918d23dfa66c6d31b095a000434ee0da669d23b6af1dba",
+    "member_count": 94,
+    "runtime_data_files": 0,
+    "status": "PASS"
+  },
+  "blocking_commands": 11,
+  "blocking_executions": 22,
+  "blocking_failures": 0,
+  "blocking_repetitions": 2,
+  "blocking_results": [
+    {
+      "blocking": true,
+      "gate": "format",
+      "label": "format_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "lint",
+      "label": "lint_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "python_compile",
+      "label": "python_compile_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "typescript_contract",
+      "label": "typescript_contract_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "assurance_unit",
+      "label": "assurance_unit_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "companion_unit_integration",
+      "label": "companion_unit_integration_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "contract_unit",
+      "label": "contract_unit_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "extension_self_test",
+      "label": "extension_self_test_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "sbom_drift",
+      "label": "sbom_drift_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "historical_stage5_review",
+      "label": "historical_stage5_review_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "extension_native_e2e",
+      "label": "extension_native_e2e_r1",
+      "repetition": 1,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "format",
+      "label": "format_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "lint",
+      "label": "lint_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "python_compile",
+      "label": "python_compile_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "typescript_contract",
+      "label": "typescript_contract_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "assurance_unit",
+      "label": "assurance_unit_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "companion_unit_integration",
+      "label": "companion_unit_integration_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "contract_unit",
+      "label": "contract_unit_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "extension_self_test",
+      "label": "extension_self_test_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "sbom_drift",
+      "label": "sbom_drift_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "historical_stage5_review",
+      "label": "historical_stage5_review_r2",
+      "repetition": 2,
+      "status": "PASS"
+    },
+    {
+      "blocking": true,
+      "gate": "extension_native_e2e",
+      "label": "extension_native_e2e_r2",
+      "repetition": 2,
+      "status": "PASS"
+    }
+  ],
+  "coverage": {
+    "branch_mode": true,
+    "critical_modules": {
+      "apps/companion/src/x2n_companion/canonical_store.py": {
+        "combined_percent": 80.33,
+        "covered_branches": 348,
+        "total_branches": 562
+      },
+      "apps/companion/src/x2n_companion/migrations.py": {
+        "combined_percent": 86.55,
+        "covered_branches": 19,
+        "total_branches": 24
+      },
+      "apps/companion/src/x2n_companion/native_host.py": {
+        "combined_percent": 83.28,
+        "covered_branches": 60,
+        "total_branches": 78
+      },
+      "apps/companion/src/x2n_companion/native_host_installer.py": {
+        "combined_percent": 75.81,
+        "covered_branches": 97,
+        "total_branches": 144
+      },
+      "apps/companion/src/x2n_companion/runtime.py": {
+        "combined_percent": 83.95,
+        "covered_branches": 54,
+        "total_branches": 78
+      },
+      "packages/contracts/src/x2n_contracts/base.py": {
+        "combined_percent": 81.82,
+        "covered_branches": 37,
+        "total_branches": 48
+      },
+      "packages/contracts/src/x2n_contracts/models.py": {
+        "combined_percent": 80.76,
+        "covered_branches": 88,
+        "total_branches": 184
+      }
+    },
+    "overall_combined_percent": 77.85,
+    "status": "PASS"
+  },
+  "explicit_nonblocking_skips": 0,
+  "flaky_blocking_tests": 0,
+  "lane": "full",
+  "model_calls": 0,
+  "osv": {
+    "critical_high_unresolved": 0,
+    "dependencies_queried": 33,
+    "status": "PASS",
+    "vulnerabilities_reported": 0
+  },
+  "platform_calls": 0,
+  "real_accounts": 0,
+  "remote_github_actions": "NOT_RUN_LOCAL_BASELINE",
+  "silent_blocking_skips": 0,
+  "stage_gate_evaluation": "NOT_PERFORMED_BY_SOFTWARE_LANE",
+  "status": "PASS",
+  "toolchain": {
+    "actual": {
+      "coverage": "7.15.2",
+      "node": "24.18.0",
+      "npm": "11.16.0",
+      "python": "3.12.13",
+      "pyyaml": "6.0.3",
+      "ruff": "0.15.22",
+      "uv": "0.11.28"
+    },
+    "expected": {
+      "coverage": "7.15.2",
+      "node": "24",
+      "npm": "11.16.0",
+      "python": "3.12",
+      "pyyaml": "6.0.3",
+      "ruff": "0.15.22",
+      "uv": "0.11.28"
+    },
+    "policy_id": "CI.X2N.001",
+    "policy_sha256": "b210c1b9da71074c39e1a0d4c8f7984d7a3d13f69a9990c777e84a921e95d167",
+    "status": "PASS"
+  }
+}

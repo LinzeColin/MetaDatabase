@@ -1,0 +1,19 @@
+# Non-secret ingress semantics for the Cloudflare-managed Tunnel. Production
+# configuration is rendered as a JSON API payload by
+# scripts/render_cloudflare_tunnel_config.py; this YAML remains suitable for
+# local ingress-order validation and must not contain a credentials file.
+
+ingress:
+  - hostname: social-archive.linzezhang.com
+    service: http://127.0.0.1:18765
+  - hostname: social-archive-api.linzezhang.com
+    service: http://127.0.0.1:18765
+  # status.linzezhang.com already serves the estate-wide status site. Only
+  # these Social Archive paths use the isolated projection service; all other
+  # existing paths continue to the local Traefik origin below.
+  - hostname: status.linzezhang.com
+    path: ^/social-archive(\.json|-health)$
+    service: http://127.0.0.1:18780
+  - hostname: status.linzezhang.com
+    service: http://127.0.0.1:80
+  - service: http_status:404

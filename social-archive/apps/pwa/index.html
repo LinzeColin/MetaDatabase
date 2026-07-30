@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101114">
+  <meta name="description" content="Social Archive 私人跨平台收藏档案馆">
+  <title>Social Archive</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="manifest" href="/assets/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">跳到主要内容</a>
+  <header class="topbar">
+    <div class="brand" aria-label="Social Archive">
+      <span class="brand-mark" aria-hidden="true">SA</span>
+      <span><strong>Social Archive</strong><small>你的私人收藏档案馆</small></span>
+    </div>
+    <div class="top-actions">
+      <button id="openImport" class="button secondary">导入备份</button>
+      <button id="openWizard" class="button secondary">新手向导</button>
+      <button id="refreshAll" class="button primary">刷新状态</button>
+    </div>
+  </header>
+
+  <div id="quotaBanner" class="banner hidden" role="status" aria-live="polite"></div>
+
+  <main id="main" class="layout">
+    <aside class="sidebar" aria-label="筛选与平台状态">
+      <section class="panel compact">
+        <label for="search">搜索</label>
+        <div class="search-row">
+          <input id="search" type="search" placeholder="标题、作者、正文或标签" autocomplete="off">
+          <button id="searchButton" class="icon-button" aria-label="搜索">⌕</button>
+        </div>
+      </section>
+
+      <section class="panel compact">
+        <h2>筛选</h2>
+        <label for="platformFilter">平台</label>
+        <select id="platformFilter">
+          <option value="">全部平台</option>
+          <option value="generic-web">通用网页</option><option value="x">X</option>
+          <option value="reddit">Reddit</option><option value="instagram">Instagram</option>
+          <option value="tiktok">TikTok</option><option value="xiaohongshu">小红书</option>
+          <option value="douyin">抖音</option><option value="kuaishou">快手</option>
+          <option value="bilibili">哔哩哔哩</option>
+        </select>
+        <label for="relationFilter">关系</label>
+        <select id="relationFilter">
+          <option value="">全部关系</option><option value="manual_save">手动保存</option>
+          <option value="bookmark">书签</option><option value="saved">收藏</option>
+          <option value="favorite">喜欢/收藏</option><option value="like">点赞</option>
+          <option value="upvoted">赞同</option><option value="watch_later">稍后看</option>
+          <option value="history">历史</option><option value="collection">收藏夹</option>
+        </select>
+        <label for="collectionFilter">收藏夹</label>
+        <input id="collectionFilter" type="search" placeholder="例如：稍后阅读" autocomplete="off">
+        <div class="filter-date-range" role="group" aria-labelledby="observedRangeLabel">
+          <span id="observedRangeLabel" class="filter-label">最近保存时间</span>
+          <div class="date-inputs">
+            <label>从<input id="observedFrom" type="date"></label>
+            <label>至<input id="observedTo" type="date"></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel connector-panel">
+        <div class="section-heading"><h2>平台状态</h2><span id="connectorSummary" class="pill">读取中</span></div>
+        <div id="connectors" class="connector-list" aria-live="polite"></div>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div class="content-heading">
+        <div><p class="eyebrow">统一资料库</p><h1>所有收藏，一个入口</h1><p id="resultSummary" class="muted">正在读取内容…</p></div>
+        <div class="view-toggle" role="group" aria-label="视图切换">
+          <button data-view="feed">时间线</button><button data-view="grid" class="active">网格</button>
+        </div>
+      </div>
+      <div id="emptyState" class="empty hidden">
+        <div class="empty-icon" aria-hidden="true">＋</div>
+        <h2>先保存第一条内容</h2>
+        <p>在 Chrome 中加载 Social Archive 扩展，打开任意页面，点击“保存当前页面”。无需先配置平台账号。</p>
+        <button class="button primary" id="emptyWizard">查看三步向导</button>
+      </div>
+      <div id="library" class="library grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <dialog id="detailDialog" class="dialog">
+    <button id="closeDetail" class="dialog-close" aria-label="关闭">×</button>
+    <div id="detailContent"></div>
+  </dialog>
+
+  <dialog id="wizardDialog" class="dialog wizard">
+    <button id="closeWizard" class="dialog-close" aria-label="关闭">×</button>
+    <p class="eyebrow">零技术门槛</p><h2>三步开始使用</h2>
+    <ol class="steps">
+      <li><span>1</span><div><strong>打开浏览器扩展</strong><p>管理员只需安装一次。日常使用不需要终端、代码或服务器命令。</p></div></li>
+      <li><span>2</span><div><strong>连接我的档案馆</strong><p>首次使用输入一次配对码；扩展会显示服务、平台和 Notion／Obsidian／GitHub 的授权状态。</p></div></li>
+      <li><span>3</span><div><strong>一键保存</strong><p>在本人可访问的页面点击“保存当前页面”或悬浮按钮。L0/L1 立即入库，L3 下载与三地密文备份在任务中心显示进度。</p></div></li>
+    </ol>
+    <div class="callout"><strong>任何单个平台失效都不影响通用剪藏。</strong>失败任务可在侧边栏直接重试；只有 R2、OCI、GitHub 三张密文收据齐全时才显示“归档完成 3/3”。</div>
+  </dialog>
+
+
+  <dialog id="importDialog" class="dialog wizard">
+    <button id="closeImport" class="dialog-close" aria-label="关闭">×</button>
+    <p class="eyebrow">西方平台快速迁移</p><h2>导入 Social Archiver / Markdown ZIP</h2>
+    <p>选择本人导出的 ZIP。系统只读取其中的 Markdown，不解压执行文件；导入后立即进入统一索引，并按 L0/L1/L3 继续归档。</p>
+    <label for="archiveFile">导出包</label>
+    <input id="archiveFile" type="file" accept=".zip,application/zip">
+    <div class="top-actions"><button id="importArchive" class="button primary">开始导入</button></div>
+    <p id="importMessage" class="muted" role="status" aria-live="polite"></p>
+  </dialog>
+
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>
