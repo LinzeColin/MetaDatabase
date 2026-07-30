@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-000",
+  "acceptance_id": "AC-SA-000",
+  "taskpack_version": "v0.0.0.4",
+  "status": "PASS",
+  "executed_at_utc": "2026-07-30T09:45:03Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "execution_head": "6487ad8a4881992ed4c5de861b0705ad1d6b16ce"
+  },
+  "compatibility_context": {
+    "id": "social-archive-taskpack-compat/v0.0.0.4",
+    "base_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+    "generated_manifest_sha256": "7ebe36ea850a01fa65fff0a28cdd11311c35fa2ebad40ee0da006d9b29293da5",
+    "override_count": 5,
+    "authority": [
+      "11_AGENT/EXECUTION_ORDER.md",
+      "09_ROADMAP/TASK_GRAPH.json"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "TEST-SA-000",
+      "status": "PASS",
+      "command": "python3 START_HERE.py verify-fast",
+      "detail": "26 blocking taskpack assertions passed; failures=[]; warnings=[]"
+    },
+    {
+      "id": "PREBUILD_TEST_REPORT",
+      "status": "PASS",
+      "candidate": "v0.0.0.4",
+      "overlay_tree_sha256": "2c43d367ed25608301e34301219f7fe8d1f46a1b59277e85af194dc0fc9a74a3",
+      "passed": 94,
+      "failed": 0,
+      "skipped": 0,
+      "detail": "The frozen-candidate full regression was verified as evidence and was not rerun."
+    },
+    {
+      "id": "FULL_REGRESSION_POLICY",
+      "status": "PASS",
+      "detail": "No second application full regression was run; SA-507 remains the only final full-suite task."
+    }
+  ],
+  "runtime_scope": {
+    "product_runtime_verdict": "NOT_RUN",
+    "interpretation": "This is an explicit non-runtime task scope, not a passing runtime claim.",
+    "external_accounts": "NOT_RUN",
+    "platform_calls": "NOT_RUN",
+    "model_calls": "NOT_RUN"
+  },
+  "scope_exclusions": [
+    "No Social Archive product source was created or changed before SA-002.",
+    "No user runtime, account, secret, private database, raw archive, or external service was read or modified.",
+    "No GitHub push, merge, or release action was performed."
+  ],
+  "evidence_location_reason": "The frozen package manifest must remain immutable and the Social Archive target tree is intentionally absent before SA-002; this public-safe receipt is therefore stored in the compatibility control plane."
+}
