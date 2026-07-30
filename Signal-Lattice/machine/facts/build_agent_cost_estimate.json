@@ -1,5 +1,5 @@
 {
-  "candidate_version": "0.0.0.1.39",
+  "candidate_version": "0.0.0.1.40",
   "change_over_30_percent_triggers": [
     "需要修改冻结 Scope、Acceptance 或数据权威边界",
     "目标环境缺少必要权限或网络访问",

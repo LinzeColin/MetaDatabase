@@ -1,8 +1,7 @@
 {
   "browser": "chromium",
-  "chromium_executable": "/Users/linzezhang/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
   "findings": [],
-  "receipt_sha256": "15997a91a6161c8b7b4b1763d2b2689470fdd33c37f971a4e2606fbf4a3e231f",
+  "receipt_sha256": "4c75ec2cc7cab7a5144c19674d83729094aba33e16a2f2cd59122056029b05b3",
   "results": [
     {
       "business_line_count": 13,

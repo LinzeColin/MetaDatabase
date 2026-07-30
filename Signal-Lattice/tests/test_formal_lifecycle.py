@@ -267,7 +267,7 @@ class FormalLifecycleTests(unittest.TestCase):
     def test_final_zip_refuses_unapproved_or_unfrozen_candidate(self):
         with tempfile.TemporaryDirectory() as temp:
             approval = Path(temp) / "approval.json"
-            approval.write_text(json.dumps(self_hash({"schema_version": "1.0.0", "approved": False, "version": "0.0.0.1.39", "subject_sha256": "c" * 64, "scope_summary_sha256": "d" * 64})))
+            approval.write_text(json.dumps(self_hash({"schema_version": "1.0.0", "approved": False, "version": "0.0.0.1.40", "subject_sha256": "c" * 64, "scope_summary_sha256": "d" * 64})))
             result = self.run_script("build_final_zip.py", "--root", self.root, "--approval", approval, "--output", Path(temp) / "out.zip")
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse((Path(temp) / "out.zip").exists())

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "signal-lattice"
-version = "0.0.0.1.39"
+version = "0.0.0.1.40"
 description = "确定性、零 Agent、零模型 Token 的股票信号格阵决策系统"
 requires-python = ">=3.11"
 dependencies = []

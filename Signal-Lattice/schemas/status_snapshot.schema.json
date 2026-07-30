@@ -2,5 +2,5 @@
   "$schema":"https://json-schema.org/draft/2020-12/schema",
   "type":"object",
   "required":["project_id","version","state","live_action","agent_process_count","model_api_calls_total","llm_input_tokens_total","llm_output_tokens_total","model_provider_egress_attempts_total"],
-  "properties":{"project_id":{"const":"signal-lattice"},"version":{"const":"0.0.0.1.39"},"state":{"enum":["HEALTHY","DEGRADED","BLOCKED"]},"live_action":{"const":false},"agent_process_count":{"const":0},"model_api_calls_total":{"const":0},"llm_input_tokens_total":{"const":0},"llm_output_tokens_total":{"const":0},"model_provider_egress_attempts_total":{"const":0}}
+  "properties":{"project_id":{"const":"signal-lattice"},"version":{"const":"0.0.0.1.40"},"state":{"enum":["HEALTHY","DEGRADED","BLOCKED"]},"live_action":{"const":false},"agent_process_count":{"const":0},"model_api_calls_total":{"const":0},"llm_input_tokens_total":{"const":0},"llm_output_tokens_total":{"const":0},"model_provider_egress_attempts_total":{"const":0}}
 }

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import platform
 import re
 import shutil
 import subprocess
@@ -40,14 +41,20 @@ def main() -> int:
             if forbidden.search(text):
                 findings.append("FORBIDDEN_AGENT_OR_MODEL_REFERENCE:" + unit.name)
             if unit.suffix == ".service":
-                if "EnvironmentFile=/etc/signal-lattice/runtime.env" not in text:
+                cloudflared = unit.name == "signal-lattice-cloudflared.service"
+                if not cloudflared and "EnvironmentFile=/etc/signal-lattice/runtime.env" not in text:
                     findings.append("ENVIRONMENT_FILE_MISSING:" + unit.name)
                 starts = [line.split("=", 1)[1] for line in text.splitlines() if line.startswith("ExecStart=")]
                 if len(starts) != 1:
                     findings.append("EXECSTART_COUNT:" + unit.name)
                 else:
                     command = starts[0]
-                    if command.startswith(allowed_cli):
+                    if cloudflared:
+                        if not command.startswith("/usr/local/bin/cloudflared tunnel --no-autoupdate run --token-file "):
+                            findings.append("CLOUDFLARED_EXECSTART_INVALID:" + unit.name)
+                        if "/etc/signal-lattice/credentials/cloudflare_tunnel_token" not in command:
+                            findings.append("CLOUDFLARED_TOKEN_FILE_INVALID:" + unit.name)
+                    elif command.startswith(allowed_cli):
                         pass
                     elif command.startswith(allowed_python + " "):
                         parts = command.split()
@@ -57,6 +64,8 @@ def main() -> int:
                             script = root / "scripts" / Path(parts[1]).name
                             if not script.is_file():
                                 findings.append("PYTHON_SCRIPT_NOT_PACKAGED:" + unit.name + ":" + script.name)
+                    elif unit.name == "signal-lattice-cloudflared.service" and command == "/usr/local/bin/cloudflared tunnel --no-autoupdate run --token-file /etc/signal-lattice/credentials/cloudflare_tunnel_token":
+                        pass
                     else:
                         findings.append("EXECSTART_NOT_RELEASE_BOUND:" + unit.name)
                 if "NoNewPrivileges=yes" not in text:
@@ -83,13 +92,20 @@ def main() -> int:
             analyze_returncode: int | None = completed.returncode
             stdout_tail = completed.stdout[-1200:]
             stderr_tail = completed.stderr[-1200:]
-        else:
-            # macOS is deliberately not a deployment target. Keep the portable
-            # structural checks strict, but do not fabricate a Linux-only binary.
-            analyze_state = "UNAVAILABLE_NON_TARGET_HOST"
+        elif platform.system() != "Linux":
+            # The package is assembled on macOS, which is not a deployment target.
+            # Preserve strict structural checks here and require the target receipt
+            # for Linux-native systemd verification instead of fabricating a binary.
+            analyze_state = "STATIC_FALLBACK_NON_TARGET_HOST"
             analyze_returncode = None
             stdout_tail = ""
-            stderr_tail = "systemd-analyze unavailable; target-OVH verification remains required"
+            stderr_tail = "systemd-analyze unavailable; target Linux verification remains required"
+        else:
+            findings.append("SYSTEMD_ANALYZE_UNAVAILABLE_ON_LINUX")
+            analyze_state = "UNAVAILABLE_TARGET_HOST"
+            analyze_returncode = None
+            stdout_tail = ""
+            stderr_tail = "systemd-analyze unavailable on Linux target-capable host"
 
     receipt: dict[str, Any] = {
         "schema_version": "1.0.0",
@@ -104,7 +120,7 @@ def main() -> int:
         "runtime_agent_dependency": 0,
         "runtime_llm_tokens": 0,
         "macos_launchd_units": 0,
-        "target_runtime_verification_required": analyze_state == "UNAVAILABLE_NON_TARGET_HOST",
+        "target_runtime_verification_required": analyze_state == "STATIC_FALLBACK_NON_TARGET_HOST",
         "findings": sorted(set(findings)),
     }
     receipt["receipt_sha256"] = hashlib.sha256(canonical(receipt)).hexdigest()

@@ -5,13 +5,13 @@
     "VERIFIED_EXACT_OFFLINE_GIT_BUNDLE",
     "PUBLIC_HTTPS_EXACT_COMMIT_FETCH_WHEN_EXPLICITLY_ALLOWED"
   ],
-  "baseline_sha256": "e25d8f247335f2e50f9c1977001df788639ad5bfe36d758990d7eed48b656279",
+  "baseline_sha256": "8bb4f33b46f009e05b9be4c9fdf081986dc5ce6393d74b5c74d4a932a48fc5b7",
   "developer_research_required": false,
-  "formal_seal_present": false,
+  "formal_seal_present": true,
   "network_fetch_allowed_in_current_runtime": false,
   "network_fetch_attempted": false,
-  "reason_code": "FIXED_UPSTREAM_INPUT_UNAVAILABLE",
-  "receipt_sha256": "dee55ba3548eef1f545064e5b9f34cc844a6100b7813f836d4c1806db42390ee",
+  "reason_code": "FORMAL_UPSTREAM_SEAL_PRESENT",
+  "receipt_sha256": "b35aeee7e3eadf056cbe5004c622945535b0433729b66aeeff057eca8284a145",
   "repositories": [
     {
       "expected_commit": "7628709b3e293dddc1100b00780d0ca521c0f6b9",
@@ -20,7 +20,7 @@
       "state": "BLOCKED"
     },
     {
-      "expected_commit": "82365b31a6171a4f09ee998c4777cd4e87cf0f70",
+      "expected_commit": "4e5381d35be8697d3cf27fe666308dbe3b01c91b",
       "name": "MetaDatabase",
       "reason": "FIXED_CHECKOUT_NOT_PROVIDED",
       "state": "BLOCKED"
@@ -33,7 +33,7 @@
       "repository": "https://github.com/LinzeColin/AgentDatabase"
     },
     {
-      "commit": "82365b31a6171a4f09ee998c4777cd4e87cf0f70",
+      "commit": "4e5381d35be8697d3cf27fe666308dbe3b01c91b",
       "name": "MetaDatabase",
       "repository": "https://github.com/LinzeColin/MetaDatabase"
     }

@@ -1,120 +1,35 @@
 {
-  "info": {
-    "description": "确定性、零 Agent、零模型 Token 的股票研究和决策支持接口。",
-    "title": "Signal Lattice API",
-    "version": "0.0.0.1.39"
-  },
   "openapi": "3.1.0",
+  "info": {
+    "title": "Signal Lattice API",
+    "version": "0.0.0.1.40",
+    "description": "零 Agent、零模型 Token 的股票 Skill 聚合、证据协调、量化硬门与人工投资建议接口。"
+  },
+  "servers": [{"url": "https://signal-lattice.linzezhang.com"}],
   "paths": {
-    "/api/v1/actions": {
-      "get": {
-        "operationId": "listActions",
-        "responses": {
-          "200": {
-            "description": "recent action packets"
-          }
-        }
-      }
-    },
-    "/api/v1/business-lines": {
-      "get": {
-        "operationId": "getBusinessLines",
-        "responses": {
-          "200": {
-            "description": "13x9 governance matrix"
-          }
-        }
-      }
-    },
-    "/api/v1/jobs/{jobId}": {
-      "get": {
-        "operationId": "getJob",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "jobId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "job"
-          },
-          "404": {
-            "description": "not found"
-          }
-        }
-      }
-    },
+    "/health/live": {"get": {"operationId": "healthLive", "responses": {"200": {"description": "进程存活"}}}},
+    "/health/ready": {"get": {"operationId": "healthReady", "responses": {"200": {"description": "服务就绪或安全降级"}}}},
+    "/api/v1/status": {"get": {"operationId": "getStatus", "responses": {"200": {"description": "运行、模式、版本和零 Token 状态"}}}},
+    "/api/v1/system/status": {"get": {"operationId": "getSystemStatus", "responses": {"200": {"description": "系统运行状态"}}}},
     "/api/v1/research": {
       "post": {
         "operationId": "createResearch",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "./schemas/research_request.schema.json"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "existing idempotent request"
-          },
-          "202": {
-            "description": "queued"
-          }
-        }
+        "parameters": [{"in": "header", "name": "Idempotency-Key", "schema": {"type": "string"}}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./schemas/research_request.schema.json"}}}},
+        "responses": {"200": {"description": "已存在的幂等任务"}, "202": {"description": "已排队"}, "422": {"description": "输入无效"}}
       }
     },
-    "/api/v1/status": {
-      "get": {
-        "operationId": "getStatus",
-        "responses": {
-          "200": {
-            "description": "current runtime status"
-          }
-        }
-      }
-    },
-    "/health/live": {
-      "get": {
-        "operationId": "healthLive",
-        "responses": {
-          "200": {
-            "description": "alive"
-          }
-        }
-      }
-    },
-    "/health/ready": {
-      "get": {
-        "operationId": "healthReady",
-        "responses": {
-          "200": {
-            "description": "ready or degraded"
-          }
-        }
-      }
-    }
-  },
-  "servers": [
-    {
-      "url": "https://signal-lattice.linzezhang.com"
-    }
-  ]
+    "/api/v1/jobs/{jobId}": {"get": {"operationId": "getJob", "parameters": [{"in": "path", "name": "jobId", "required": true, "schema": {"type": "string"}}], "responses": {"200": {"description": "任务与结果"}, "404": {"description": "不存在"}}}},
+    "/api/v1/recommendations": {"get": {"operationId": "listRecommendations", "responses": {"200": {"description": "最近人工决策建议或 NO_ACTION"}}}},
+    "/api/v1/actions": {"get": {"operationId": "listActions", "responses": {"200": {"description": "最近 Action Packet"}}}},
+    "/api/v1/opportunities": {"get": {"operationId": "listOpportunities", "responses": {"200": {"description": "商业机会、瓶颈、预测、时序与事件候选"}}}},
+    "/api/v1/consensus": {"get": {"operationId": "getConsensus", "parameters": [{"in": "query", "name": "symbol", "schema": {"type": "string"}}, {"in": "query", "name": "market", "schema": {"type": "string"}}], "responses": {"200": {"description": "平权 Skill 共识、分歧与独立证据根"}}}},
+    "/api/v1/quant": {"get": {"operationId": "getQuant", "responses": {"200": {"description": "最近量化硬门与风险结果"}}}},
+    "/api/v1/skills": {"get": {"operationId": "listSkills", "responses": {"200": {"description": "Skill 输入和状态"}}}},
+    "/api/v1/evolution": {"get": {"operationId": "listEvolution", "responses": {"200": {"description": "每日确定性 Champion–Challenger 结果"}}}},
+    "/api/v1/decision-snapshots": {"get": {"operationId": "listDecisionSnapshots", "responses": {"200": {"description": "决策快照与硬门证据"}}}},
+    "/api/v1/business-lines": {"get": {"operationId": "getBusinessLines", "responses": {"200": {"description": "13×9 业务线治理矩阵"}}}},
+    "/api/v1/inputs/skill-signal": {"post": {"operationId": "ingestSkillSignal", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./schemas/skill_signal.schema.json"}}}}, "responses": {"201": {"description": "Skill 信号已摄取"}, "422": {"description": "信号不可信"}}}},
+    "/api/v1/inputs/market-snapshot": {"post": {"operationId": "ingestMarketSnapshot", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./schemas/market_snapshot.schema.json"}}}}, "responses": {"201": {"description": "市场快照已摄取"}, "422": {"description": "快照不可信"}}}}
+  }
 }

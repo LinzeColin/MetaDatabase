@@ -40,7 +40,7 @@
       "type": "object"
     },
     "product_version": {
-      "const": "0.0.0.1.39"
+      "const": "0.0.0.1.40"
     },
     "production_side_effect_authorization": {
       "type": "boolean"
@@ -97,7 +97,7 @@
       "const": "LinzeColin/MetaDatabase"
     },
     "taskpack_version": {
-      "const": "0.0.0.1.39"
+      "const": "0.0.0.1.40"
     }
   },
   "required": [

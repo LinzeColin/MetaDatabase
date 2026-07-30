@@ -1,0 +1,72 @@
+{
+  "$id": "https://signal-lattice.linzezhang.com/schemas/delivery_result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "completion_claim": {
+      "const": "DEPLOYED_AND_PUBLICLY_VERIFIED"
+    },
+    "public_url": {
+      "const": "https://signal-lattice.linzezhang.com"
+    },
+    "receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "state": {
+      "const": "PASS"
+    },
+    "status_url": {
+      "const": "https://status.linzezhang.com"
+    },
+    "user_visible_result": {
+      "properties": {
+        "automatic_trading": {
+          "const": false
+        },
+        "current_action": {
+          "type": "string"
+        },
+        "human_decision_support_capability": {
+          "const": true
+        },
+        "internal_consensus_coordination": {
+          "const": true
+        },
+        "multi_skill_aggregation": {
+          "const": true
+        },
+        "recommendation_available_now": {
+          "type": "boolean"
+        },
+        "safe_fallback": {
+          "const": "NO_ACTION"
+        },
+        "software_website": {
+          "const": true
+        }
+      },
+      "required": [
+        "software_website",
+        "multi_skill_aggregation",
+        "internal_consensus_coordination",
+        "human_decision_support_capability",
+        "current_action",
+        "recommendation_available_now",
+        "automatic_trading",
+        "safe_fallback"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "state",
+    "completion_claim",
+    "version",
+    "public_url",
+    "status_url",
+    "user_visible_result",
+    "receipt_sha256"
+  ],
+  "type": "object"
+}

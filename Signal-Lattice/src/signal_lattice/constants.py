@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-VERSION = "0.0.0.1.39"
+VERSION = "0.0.0.1.40"
 PROJECT_ID = "signal-lattice"
 DOMAIN = "signal-lattice.linzezhang.com"
 STATUS_URL = "https://status.linzezhang.com"

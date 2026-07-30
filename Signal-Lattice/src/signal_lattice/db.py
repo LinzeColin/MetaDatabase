@@ -222,3 +222,188 @@ class RuntimeDB:
                 "SELECT packet_json FROM actions ORDER BY created_at DESC LIMIT ?", (limit,)
             ).fetchall()
         return [json.loads(row["packet_json"]) for row in rows]
+
+    def upsert_skill_signal(self, signal: dict[str, Any]) -> None:
+        now = self.now()
+        payload = json.dumps(signal, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO skill_signal_inputs(skill_id,symbol,market,as_of,payload_json,source_digest,updated_at)
+                VALUES (?,?,?,?,?,?,?)
+                ON CONFLICT(skill_id,symbol,market) DO UPDATE SET
+                  as_of=excluded.as_of,
+                  payload_json=excluded.payload_json,
+                  source_digest=excluded.source_digest,
+                  updated_at=excluded.updated_at
+                """,
+                (
+                    signal["skill_id"],
+                    signal["symbol"].upper(),
+                    signal["market"].upper(),
+                    signal["as_of"],
+                    payload,
+                    signal["source_digest"],
+                    now,
+                ),
+            )
+
+    def upsert_market_snapshot(self, snapshot: dict[str, Any]) -> None:
+        now = self.now()
+        payload = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO market_snapshots(symbol,market,as_of,payload_json,source_digest,updated_at)
+                VALUES (?,?,?,?,?,?)
+                ON CONFLICT(symbol,market) DO UPDATE SET
+                  as_of=excluded.as_of,
+                  payload_json=excluded.payload_json,
+                  source_digest=excluded.source_digest,
+                  updated_at=excluded.updated_at
+                """,
+                (
+                    snapshot["symbol"].upper(),
+                    snapshot["market"].upper(),
+                    snapshot["as_of"],
+                    payload,
+                    snapshot["source_digest"],
+                    now,
+                ),
+            )
+
+    def skill_signals(self, symbol: str | None = None, market: str | None = None, limit: int = 200) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if symbol:
+            clauses.append("symbol=?")
+            params.append(symbol.upper())
+        if market:
+            clauses.append("market=?")
+            params.append(market.upper())
+        sql = "SELECT payload_json FROM skill_signal_inputs"
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        sql += " ORDER BY updated_at DESC LIMIT ?"
+        params.append(min(max(int(limit), 1), 1000))
+        with self.connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [json.loads(row["payload_json"]) for row in rows]
+
+    def market_snapshot(self, symbol: str, market: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM market_snapshots WHERE symbol=? AND market=?",
+                (symbol.upper(), market.upper()),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row else None
+
+    def skill_overview(self) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT skill_id, COUNT(*) AS signal_count, MAX(updated_at) AS last_updated
+                FROM skill_signal_inputs GROUP BY skill_id ORDER BY skill_id
+                """
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def evolution_overview(self, limit: int = 50) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM evolution_runs ORDER BY created_at DESC LIMIT ?",
+                (min(max(int(limit), 1), 200),),
+            ).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            item["evidence"] = json.loads(item.pop("evidence_json"))
+            result.append(item)
+        return result
+
+
+
+    def upsert_skill_snapshot(self, snapshot: dict[str, Any]) -> None:
+        required = {"skill_id", "source_commit", "content_sha256", "lifecycle_state", "compatibility_state", "observed_at"}
+        missing = required - set(snapshot)
+        if missing:
+            raise ValueError("MISSING_SKILL_SNAPSHOT_FIELDS:" + ",".join(sorted(missing)))
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO skill_snapshots(skill_id,source_commit,content_sha256,lifecycle_state,compatibility_state,observed_at,promoted_at)
+                VALUES (?,?,?,?,?,?,?)
+                ON CONFLICT(skill_id,source_commit,content_sha256) DO UPDATE SET
+                  lifecycle_state=excluded.lifecycle_state,
+                  compatibility_state=excluded.compatibility_state,
+                  observed_at=excluded.observed_at,
+                  promoted_at=COALESCE(excluded.promoted_at,skill_snapshots.promoted_at)
+                """,
+                (snapshot["skill_id"], snapshot["source_commit"], snapshot["content_sha256"], snapshot["lifecycle_state"], snapshot["compatibility_state"], snapshot["observed_at"], snapshot.get("promoted_at")),
+            )
+
+    def skill_source_overview(self, limit: int = 200) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT skill_id,source_commit,content_sha256,lifecycle_state,compatibility_state,observed_at,promoted_at
+                FROM skill_snapshots ORDER BY observed_at DESC LIMIT ?
+                """,
+                (min(max(int(limit), 1), 1000),),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def latest_action(self, symbol: str | None = None, market: str | None = None) -> dict[str, Any] | None:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if symbol:
+            clauses.append("symbol=?")
+            params.append(symbol.upper())
+        sql = "SELECT packet_json FROM actions"
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        sql += " ORDER BY created_at DESC LIMIT 1"
+        with self.connect() as conn:
+            row = conn.execute(sql, params).fetchone()
+        if not row:
+            return None
+        packet = json.loads(row["packet_json"])
+        if market and str(packet.get("market", "")).upper() != market.upper():
+            return None
+        return packet
+
+    def save_decision_snapshot(self, snapshot: dict[str, Any]) -> None:
+        symbol = str(snapshot.get("symbol", "")).upper()
+        market = str(snapshot.get("market", "")).upper()
+        receipt = str(snapshot.get("receipt_sha256", ""))
+        if not symbol or not market or len(receipt) != 64:
+            raise ValueError("INVALID_DECISION_SNAPSHOT")
+        payload = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO decision_snapshots(symbol,market,payload_json,receipt_sha256,created_at)
+                VALUES (?,?,?,?,?)
+                """,
+                (symbol, market, payload, receipt, self.now()),
+            )
+
+    def decision_snapshots(self, limit: int = 50) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                "SELECT payload_json FROM decision_snapshots ORDER BY created_at DESC LIMIT ?",
+                (min(max(int(limit), 1), 200),),
+            ).fetchall()
+        return [json.loads(row["payload_json"]) for row in rows]
+
+    def runtime_counts(self) -> dict[str, int]:
+        names = (
+            "jobs", "attempts", "leases", "runtime_journal", "outbox", "actions",
+            "skill_snapshots", "evolution_runs", "business_line_status", "skill_signal_inputs",
+            "market_snapshots", "decision_snapshots",
+        )
+        result: dict[str, int] = {}
+        with self.connect() as conn:
+            for name in names:
+                result[name] = int(conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0])
+        return result

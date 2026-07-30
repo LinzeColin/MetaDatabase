@@ -6,7 +6,7 @@ from typing import Any
 
 from .receipts import canonical_json_bytes, sha256_file
 
-EXCLUDED_PREFIXES = ("evidence/",)
+EXCLUDED_PREFIXES = ("evidence/", "Stock_Skill/")
 EXCLUDED = {
     "MANIFEST.json",
     "SUBJECT_LOCK.json",

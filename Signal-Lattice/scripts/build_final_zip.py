@@ -27,8 +27,6 @@ def include(path: Path, root: Path) -> bool:
         raise ValueError("SYMLINK_FORBIDDEN:" + rel.as_posix())
     if any(part in EXCLUDED_PARTS or part.endswith((".egg-info", ".dist-info")) for part in rel.parts):
         return False
-    if rel.parts and rel.parts[0] == "Stock_Skill":
-        return False
     if rel.as_posix() in {"FINAL_PACKAGE_MANIFEST.json"} or rel.as_posix().endswith(EXCLUDED_SUFFIXES):
         return False
     return path.is_file()

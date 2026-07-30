@@ -9,7 +9,7 @@
   "fresh_builder_required": true,
   "frozen": true,
   "frozen_replay_count": 2,
-  "frozen_version": "0.0.0.1.39",
+  "frozen_version": "0.0.0.1.40",
   "live_action_enabled": false,
   "owner_gate_qualifying_rounds_required": 2,
   "p0_must_be_zero": true,
@@ -22,5 +22,5 @@
   "taskpack_seal_owner_override_allowed": true,
   "taskpack_seal_owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
   "taskpack_seal_requires_formal_review_pass": false,
-  "version": "0.0.0.1.39"
+  "version": "0.0.0.1.40"
 }
