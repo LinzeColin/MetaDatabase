@@ -8,7 +8,7 @@
     "requirements": "0e93284d88d152639da65fb701ad4e90d4de09562f49f43f15c6c6e595281ca6",
     "task_dag": "70ae2a8c370ebe09bd63321644f7255dcaa072418227de12fae920fa140bb3b2",
     "traceability": "5f6c33c4177cc8f78c07062eb4f17dbe81ef66fd2c22c1219c5494044c1b0e16",
-    "upstream": "120a29ea1a05dc809b3c16a01099cd307b063fdb8760557c5dc31f3c78336062"
+    "upstream": "1879f702c4940db1b87ef0b754c9424505f45cd7bd8a1e7591f70f7be2fdd872"
   },
   "files": [
     {
@@ -3178,13 +3178,13 @@
     },
     {
       "path": "scripts/build_upstream_precheck.py",
-      "sha256": "df950d7f0ff309d64e869e9b10fe01794495bb5375d27822022a57b852d9b834",
-      "size": 6100
+      "sha256": "90165de3ca7755653fde358ca45e5d86b479a258a9a77e7f99a44288dae1cb29",
+      "size": 6445
     },
     {
       "path": "scripts/build_upstream_seal.py",
-      "sha256": "9a009c5db02d7f1726625f65fe07301415c7b1c06a77f138c51de5496df90fa0",
-      "size": 17387
+      "sha256": "4f5f9582e217a17d4e4adb7375bde8438405f94e454c33df6735f167c6f384ec",
+      "size": 18081
     },
     {
       "path": "scripts/build_wheel.py",
@@ -3654,7 +3654,7 @@
   ],
   "schema_version": "1.1.0",
   "state": "PREPARED",
-  "subject_sha256": "8ce66f2d2b44cadcec6efeae528390c8fb884686c036a940c862bb665360f988",
-  "upstream_binding_kind": "blocked_precheck",
+  "subject_sha256": "751a5e9ce4210b4d167b03b82574188009ea158cd7983ba1f1801edfc651eeb2",
+  "upstream_binding_kind": "formal_seal",
   "version": "0.0.0.1.39"
 }
