@@ -6,12 +6,10 @@ on:
     paths:
       - "ABD/**"
       - ".github/workflows/abd-stage0-validation.yml"
-      - ".github/workflows/dual-plane.yml"
   pull_request:
     paths:
       - "ABD/**"
       - ".github/workflows/abd-stage0-validation.yml"
-      - ".github/workflows/dual-plane.yml"
   workflow_dispatch:
 
 permissions:
