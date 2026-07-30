@@ -160,6 +160,14 @@ if (
   || !sources["src/sidepanel.js"].includes("fallbackTabId")
 ) failures.push("sidepanel_unavailable_detail_guidance");
 if (
+  !sources["src/sidepanel.js"].includes("captureFailureMessage")
+  || !sources["src/sidepanel.js"].includes("本机正在完成第一次准备")
+) failures.push("sidepanel_plain_language_capture_failure");
+if (
+  !sources["styles/sidepanel.css"].includes("--color-primary: var(--raw-blue-700)")
+  || !sources["styles/sidepanel.css"].includes("--color-primary-hover: var(--raw-blue-600)")
+) failures.push("sidepanel_blue_primary_action");
+if (
   !sources["src/sidepanel.js"].includes("target.animate")
   || !sources["src/sidepanel.js"].includes("window.matchMedia")
   || !sources["src/sidepanel.js"].includes("prefers-reduced-motion")

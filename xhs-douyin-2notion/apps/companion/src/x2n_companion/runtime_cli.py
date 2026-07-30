@@ -39,12 +39,14 @@ from .mvp_deployment import (
 from .mvp_release import (
     ARM_CONFIRMATION,
     MATERIALIZE_CONFIRMATION,
+    PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
     ROLLBACK_CONFIRMATION,
     SIGNOFF_CONFIRMATION,
     MvpReleaseController,
     OwnerMvpManifestEnrollment,
     load_owner_mvp_release_input,
     owner_input_contract_sha256,
+    prepare_owner_mvp_input_contract,
     verify_owner_private_douyin_sidecar_bundle,
 )
 from .douyin_visible_sidecar import (
@@ -328,6 +330,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 acceptance_scope="ASSURANCE_005_PRIVATE_INPUT_TEMPLATE",
                 task_id=MVP_RELEASE_TASK_ID,
                 template=_owner_mvp_input_template(),
+            )
+        if args.release_action == "prepare-owner-mvp-input":
+            preparation = prepare_owner_mvp_input_contract(_paths(), confirmation=args.confirm)
+            return _success(
+                "release_prepare_owner_mvp_input",
+                acceptance_scope="ASSURANCE_005_OWNER_INPUT_GATE",
+                task_id=MVP_RELEASE_TASK_ID,
+                confirmation_required=PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
+                **preparation,
             )
         if args.release_action == "stage-prearm-sidepanel":
             staged = MvpDeploymentManager(_paths()).stage_prearm_sidepanel()
@@ -925,6 +936,12 @@ def build_parser() -> argparse.ArgumentParser:
     release_sidecar = release_actions.add_parser("provision-douyin-visible-sidecar")
     release_sidecar.add_argument("--confirm", required=True, help=f"Required literal: {PROVISION_CONFIRMATION}")
     release_actions.add_parser("input-template")
+    release_prepare_owner_input = release_actions.add_parser("prepare-owner-mvp-input")
+    release_prepare_owner_input.add_argument(
+        "--confirm",
+        required=True,
+        help=f"Required literal: {PREPARE_OWNER_MVP_INPUT_CONFIRMATION}",
+    )
     release_actions.add_parser("stage-prearm-sidepanel")
     release_prearm_host = release_actions.add_parser("install-prearm-sidepanel-host")
     release_prearm_host.add_argument(

@@ -355,6 +355,20 @@ function renderFallback(result) {
   }
 }
 
+function captureFailureMessage(result) {
+  const code = result?.response?.error?.code ?? result?.code;
+  const detail = result?.response?.error?.safe_message;
+  if (code === "X2N_PLATFORM_CHANGED") return "这篇内容的页面刚刚变化了。请保持它打开，然后再点一次保存。";
+  if (code === "X2N_NATIVE_HOST_UNAVAILABLE") return "本机助手暂时没有连接。打开“帮助”，点“重新检查本地助手”。";
+  if (
+    (code === "POLICY_BLOCKED" || code === "X2N_POLICY_BLOCKED")
+    && detail === "Owner input is unavailable"
+  ) {
+    return "本机正在完成第一次准备。请等几秒，再点一次“保存这条笔记”。";
+  }
+  return "这次没有保存成功。请保持这篇笔记打开，然后再点一次保存。";
+}
+
 function syncPayload() {
   const rule = selectedScopeRule();
   const maxItems = Number(syncMaxItems.value);
@@ -516,11 +530,11 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
     } else if (result?.status === "active_tab_permission_required") {
       captureStatus.textContent = "请在这个页面点击工具栏中的 x2n 后再试。";
     } else {
-      captureStatus.textContent = "当前无法保存，未执行任何操作。";
+      captureStatus.textContent = captureFailureMessage(result);
       renderFallback(result);
     }
   } catch {
-    captureStatus.textContent = "当前无法保存，未执行任何操作。";
+    captureStatus.textContent = "本机助手暂时没有连接。打开“帮助”，点“重新检查本地助手”。";
   } finally {
     clearTimeout(pendingNotice);
     captureInFlight = false;

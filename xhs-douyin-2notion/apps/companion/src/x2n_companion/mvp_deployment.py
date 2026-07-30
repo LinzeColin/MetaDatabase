@@ -48,6 +48,7 @@ _EXTENSION_RELEASE_IDENTITY = "release_identity.json"
 _PREARM_MANIFEST = "prearm_manifest.json"
 _PREARM_ARTIFACT_KIND = "owner_prearm_sidepanel"
 _PREARM_IGNORABLE_BUNDLE_CHILDREN = frozenset({".DS_Store"})
+_PREARM_IGNORABLE_ARTIFACT_CHILDREN = frozenset({".DS_Store"})
 _MAX_PREARM_BUNDLES = 32
 _PREARM_INSTALL_ENTRY = "x2n-点这里安装最新版"
 _SOURCE_TREES = (
@@ -81,6 +82,8 @@ def _directory_digest(path: Path, *, excluded_relative_paths: frozenset[str] = f
             continue
         relative = candidate.relative_to(path).as_posix()
         if relative in excluded_relative_paths:
+            continue
+        if candidate.name == ".DS_Store":
             continue
         if "__pycache__" in candidate.parts or candidate.suffix in {".pyc", ".pyo"}:
             continue
@@ -434,6 +437,16 @@ def _read_prearm_manifest(target: Path) -> dict[str, Any]:
         raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pre-arm Side Panel digest is invalid")
     expected_destinations = {destination for _source, destination in _SOURCE_TREES}
     rows = value["source_trees"]
+    try:
+        member_names: set[str] = set()
+        for entry in target.iterdir():
+            if entry.name in _PREARM_IGNORABLE_ARTIFACT_CHILDREN:
+                if entry.is_symlink() or not entry.is_file():
+                    raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle is unsafe")
+                continue
+            member_names.add(entry.name)
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Pre-arm Side Panel bundle is unsafe") from error
     if (
         len(rows) != len(expected_destinations)
         or any(
@@ -445,8 +458,7 @@ def _read_prearm_manifest(target: Path) -> dict[str, Any]:
             for row in rows
         )
         or {row["destination"] for row in rows} != expected_destinations
-        or {entry.name for entry in target.iterdir()}
-        != {Path(destination).parts[0] for destination in expected_destinations} | {_PREARM_MANIFEST}
+        or member_names != {Path(destination).parts[0] for destination in expected_destinations} | {_PREARM_MANIFEST}
         or (target / "extension" / _EXTENSION_RELEASE_IDENTITY).exists()
         or (target / "extension" / _EXTENSION_RELEASE_IDENTITY).is_symlink()
     ):

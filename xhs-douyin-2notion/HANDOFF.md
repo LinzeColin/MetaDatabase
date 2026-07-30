@@ -230,6 +230,19 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   visible sibling `user-like-list` exposes 40, both without scrolling. The extractor's dedicated-list preference is
   covered by 11 zero-network fixture cases and the current full A005 source lane passed. Fresh private manifest
   capture may now proceed, but no Owner input, tag, deployment, or smoke claim has yet been made.
+- 2026-07-30 first-use repair: the real private Owner contract was a closed legacy default, not an account or page
+  failure. The Companion now creates the fixed direct-MVP contract only after a validated explicit Side Panel
+  gesture, or upgrades only that exact closed default after the confirmation-bound local repair command; it never
+  overwrites a custom, malformed, or symbolic-link record. The actual Owner runtime was upgraded with zero platform
+  and Notion calls. `release preflight` still truthfully reports `owner_input=MISSING_OR_INVALID` until the four
+  hash-only manifests freeze a `owner_mvp_release_input`; that field is not a report of the now-valid first-use
+  contract.
+- The current stable pre-arm Side Panel and Native Host were refreshed after the repair and an actual Native Messaging
+  health frame passed. macOS Finder's regular `.DS_Store` metadata is now ignored only for package identity/digest
+  checks; a directory, symlink, or any other unexpected package member remains fail-closed. The Side Panel source
+  now uses a blue primary action, keeps green exclusively for safe-state feedback, and explains first-use/host
+  failures in plain Chinese. Chrome's Extension Manager reload remains the one manual step needed to show those
+  visual changes in an already-loaded unpacked extension.
 
 ## Next work
 

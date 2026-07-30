@@ -58,6 +58,7 @@ ARM_CONFIRMATION = "ARM_X2N_OWNER_MVP_ACTIVATION"
 MATERIALIZE_CONFIRMATION = "MATERIALIZE_X2N_OWNER_MVP_KNOWLEDGE_ASSETS"
 SIGNOFF_CONFIRMATION = "SIGN_OFF_X2N_OWNER_MVP"
 ROLLBACK_CONFIRMATION = "ROLLBACK_X2N_OWNER_MVP"
+PREPARE_OWNER_MVP_INPUT_CONFIRMATION = "PREPARE_X2N_OWNER_MVP_INPUT"
 OWNER_INPUT_CONTRACT = Path(__file__).resolve().parents[4] / "docs/governance/OWNER_INPUT_CONTRACT.md"
 # The Native Host is installed from the staged package tree, not from this
 # repository.  It therefore cannot safely read the public Markdown contract at
@@ -573,6 +574,176 @@ def _validate_owner_input_contract(paths: RuntimePaths) -> None:
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner external model or Notion boundary is invalid")
 
 
+def _direct_mvp_owner_input_contract() -> dict[str, Any]:
+    """Return the fixed non-secret authorization record for this direct MVP.
+
+    This record intentionally contains no account, content, URL, browser, or
+    credential value. It enables only the already-approved XHS/Douyin direct
+    MVP boundary; every other platform remains closed and Notion/models remain
+    disabled.
+    """
+
+    closed_platform = {"login_state": "not_run", "real_execution_authorized": False}
+    return {
+        "schema_version": "1.0",
+        "project": "x2n",
+        "input_state": "owner_confirmed",
+        "environment": {
+            "os_strategy": "auto_detect",
+            "hardware_strategy": "auto_detect",
+            "detected_snapshot": "private_runtime_only",
+        },
+        "platforms": {
+            "xiaohongshu": {"login_state": "owner_managed_profile", "real_execution_authorized": True},
+            "douyin": {"login_state": "owner_managed_profile", "real_execution_authorized": True},
+            "bilibili": dict(closed_platform),
+            "kuaishou": dict(closed_platform),
+            "weibo": dict(closed_platform),
+            "taobao": dict(closed_platform),
+        },
+        "data_scale": "owner_manifested",
+        "first_sync": "owner_authorized_direct_mvp",
+        "taxonomy": {"top_level_categories": ["Unclassified"], "ai_may_create_top_level": False},
+        "notion": {"enabled": False, "credential_reference": "unset", "parent_reference": "unset"},
+        "models": {"cloud_enabled": False, "monthly_budget": 0, "currency": "AUD"},
+        "gold_set": "synthetic_only",
+        "media_retention": {
+            "success": "delete_immediately",
+            "failure_max_hours": 24,
+            "persist_platform_cdn_urls": False,
+            "persist_raw_media": False,
+        },
+    }
+
+
+def _is_safe_unconfirmed_owner_input_contract(paths: RuntimePaths) -> bool:
+    """Recognize only the old, closed default that may be explicitly upgraded.
+
+    This deliberately does not accept an arbitrary invalid file. Every
+    externally relevant setting must still match the prior no-account,
+    no-Notion, no-model, no-media-persistence boundary.
+    """
+
+    try:
+        raw = _read_owner_private_json(
+            paths.data_root / "runtime/owner_input_contract.local.json",
+            label="Owner input",
+        )
+        root = _require_exact_mapping(
+            raw,
+            {
+                "data_scale",
+                "environment",
+                "first_sync",
+                "gold_set",
+                "input_state",
+                "media_retention",
+                "models",
+                "notion",
+                "platforms",
+                "project",
+                "schema_version",
+                "taxonomy",
+            },
+            label="Owner input",
+        )
+        environment = _require_exact_mapping(
+            root["environment"],
+            {"detected_snapshot", "hardware_strategy", "os_strategy"},
+            label="Owner environment",
+        )
+        platforms = _require_exact_mapping(
+            root["platforms"],
+            {"bilibili", "douyin", "kuaishou", "taobao", "weibo", "xiaohongshu"},
+            label="Owner platform input",
+        )
+        platform_defaults = all(
+            _require_exact_mapping(value, {"login_state", "real_execution_authorized"}, label="Owner platform")
+            == {"login_state": "not_run", "real_execution_authorized": False}
+            for value in platforms.values()
+        )
+        return (
+            root["schema_version"] == "1.0"
+            and root["project"] == "x2n"
+            and isinstance(root["input_state"], str)
+            and _SAFE_TOKEN.fullmatch(root["input_state"]) is not None
+            and root["input_state"] != "owner_confirmed"
+            and isinstance(root["first_sync"], str)
+            and _SAFE_TOKEN.fullmatch(root["first_sync"]) is not None
+            and root["first_sync"] != "owner_authorized_direct_mvp"
+            and environment["os_strategy"] == "auto_detect"
+            and environment["hardware_strategy"] == "auto_detect"
+            and isinstance(environment["detected_snapshot"], str)
+            and _SAFE_TOKEN.fullmatch(environment["detected_snapshot"]) is not None
+            and platform_defaults
+            and root["data_scale"] == "unknown"
+            and root["taxonomy"] == {"top_level_categories": ["Unclassified"], "ai_may_create_top_level": False}
+            and root["notion"] == {"enabled": False, "credential_reference": "unset", "parent_reference": "unset"}
+            and root["models"] == {"cloud_enabled": False, "monthly_budget": 0, "currency": "AUD"}
+            and root["gold_set"] == "synthetic_only"
+            and root["media_retention"]
+            == {
+                "success": "delete_immediately",
+                "failure_max_hours": 24,
+                "persist_platform_cdn_urls": False,
+                "persist_raw_media": False,
+            }
+        )
+    except X2NRuntimeError:
+        return False
+
+
+def _materialize_direct_mvp_owner_input_contract(paths: RuntimePaths) -> str:
+    """Create, upgrade a known-safe default, or prove the private record valid.
+
+    A malformed, custom, or symbolic-link target is never overwritten. The
+    return value contains no private values or filesystem path.
+    """
+
+    destination = paths.data_root / "runtime/owner_input_contract.local.json"
+    if destination.exists() or destination.is_symlink():
+        try:
+            _validate_owner_input_contract(paths)
+            return "ALREADY_VALID"
+        except X2NRuntimeError:
+            if not _is_safe_unconfirmed_owner_input_contract(paths):
+                raise
+            _atomic_private_json(destination, _direct_mvp_owner_input_contract())
+            _validate_owner_input_contract(paths)
+            return "UPGRADED_SAFE_DEFAULT"
+    paths.ensure_private_directory("runtime")
+    _atomic_private_json(destination, _direct_mvp_owner_input_contract())
+    _validate_owner_input_contract(paths)
+    return "CREATED"
+
+
+def prepare_owner_mvp_input_contract(paths: RuntimePaths, *, confirmation: str) -> dict[str, Any]:
+    """Perform explicit local first-use preparation without a platform call."""
+
+    if confirmation != PREPARE_OWNER_MVP_INPUT_CONFIRMATION:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP input preparation confirmation is missing")
+    owner_input_contract = _materialize_direct_mvp_owner_input_contract(paths)
+    return {
+        "notion_mode": "DISABLED",
+        "owner_input_contract": owner_input_contract,
+        "paths_emitted": False,
+        "platform_calls": 0,
+        "real_account_execution": "NOT_RUN",
+    }
+
+
+def ensure_owner_mvp_input_contract_for_explicit_gesture(paths: RuntimePaths, *, user_gesture: bool) -> None:
+    """Allow first-use setup only after a validated Side Panel action.
+
+    The caller has already checked the fixed direct-MVP scope and content
+    identity. A background or synthetic invocation cannot use this route.
+    """
+
+    if user_gesture is not True:
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP first-use action requires an explicit gesture")
+    _materialize_direct_mvp_owner_input_contract(paths)
+
+
 def _initial_knowledge_assets() -> dict[str, Any]:
     """Return the fail-closed post-baseline asset state.
 
@@ -1041,7 +1212,10 @@ class OwnerMvpManifestEnrollment:
         page_url = getattr(payload, "page_url", None)
         if not isinstance(content_id, str) or page_url != f"https://www.xiaohongshu.com/explore/{content_id}":
             raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Owner MVP current-content identity is invalid")
-        _validate_owner_input_contract(self.paths)
+        ensure_owner_mvp_input_contract_for_explicit_gesture(
+            self.paths,
+            user_gesture=getattr(payload, "user_gesture", False),
+        )
         return self._record_hashes(scope_id=scope, content_ids=[content_id])
 
     def record_list_batch(self, *, payload: Any) -> dict[str, Any]:
@@ -1073,7 +1247,10 @@ class OwnerMvpManifestEnrollment:
             content_ids = [item["content_id"] for item in batch.visible_batch["items"]]
         else:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Owner MVP list enrollment binding is invalid")
-        _validate_owner_input_contract(self.paths)
+        ensure_owner_mvp_input_contract_for_explicit_gesture(
+            self.paths,
+            user_gesture=getattr(payload, "user_gesture", False),
+        )
         return self._record_hashes(scope_id=scope_value, content_ids=content_ids)
 
     def _finalize_if_complete(self) -> dict[str, Any]:

@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import socket
+import stat
 import tempfile
 import unittest
 import uuid
@@ -30,6 +31,9 @@ from x2n_companion.mvp_release import (
     MvpReleaseController,
     OwnerMvpManifestEnrollment,
     OwnerMvpReleaseInput,
+    PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
+    ensure_owner_mvp_input_contract_for_explicit_gesture,
+    prepare_owner_mvp_input_contract,
     verify_owner_private_douyin_sidecar_bundle,
 )
 from x2n_companion.douyin_upstream import DouyinBatch, DouyinItem
@@ -543,6 +547,103 @@ class MvpReleaseTests(unittest.TestCase):
         rendered = json.dumps(template, ensure_ascii=False, sort_keys=True)
         self.assertNotIn("https://", rendered)
         self.assertNotIn("/" + "Users/", rendered)
+
+    def test_explicit_first_save_prepares_owner_input_without_a_platform_call(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        contract = self.paths.data_root / "runtime/owner_input_contract.local.json"
+        contract.unlink()
+        response = dispatch_wire(
+            _capture_wire(_current_content_payload(0)),
+            origin=DEVELOPMENT_EXTENSION_ORIGIN,
+            store=self.store,
+        )
+        self.assertTrue(response.accepted)
+        self.assertEqual(response.status.value, "completed")
+        self.assertEqual(stat.S_IMODE(contract.stat().st_mode), 0o600)
+        enrollment = OwnerMvpManifestEnrollment.load(self.paths)
+        assert enrollment is not None
+        self.assertEqual(enrollment.safe_summary()["manifest_item_count"], 1)
+        self.assertEqual(self.store.counts()["content"], 0)
+        self.assertEqual(self.store.counts()["user_relation"], 0)
+
+    def test_prepare_owner_input_cli_is_explicit_idempotent_and_private(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        contract = self.paths.data_root / "runtime/owner_input_contract.local.json"
+        contract.unlink()
+        with self.assertRaises(X2NRuntimeError):
+            prepare_owner_mvp_input_contract(self.paths, confirmation="wrong")
+        self.assertFalse(contract.exists())
+        prepared = prepare_owner_mvp_input_contract(
+            self.paths,
+            confirmation=PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
+        )
+        self.assertEqual(prepared["owner_input_contract"], "CREATED")
+        self.assertEqual(prepared["platform_calls"], 0)
+        self.assertFalse(prepared["paths_emitted"])
+        self.assertEqual(stat.S_IMODE(contract.stat().st_mode), 0o600)
+        repeated = prepare_owner_mvp_input_contract(
+            self.paths,
+            confirmation=PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
+        )
+        self.assertEqual(repeated["owner_input_contract"], "ALREADY_VALID")
+
+    def test_prepare_owner_input_upgrades_only_the_closed_legacy_default(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        legacy = _owner_input()
+        legacy["input_state"] = "awaiting_owner"
+        legacy["first_sync"] = "synthetic_only"
+        legacy["data_scale"] = "unknown"
+        for platform in legacy["platforms"].values():
+            platform["login_state"] = "not_run"
+            platform["real_execution_authorized"] = False
+        contract = self.paths.data_root / "runtime/owner_input_contract.local.json"
+        _write_private(contract, legacy)
+        prepared = prepare_owner_mvp_input_contract(
+            self.paths,
+            confirmation=PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
+        )
+        self.assertEqual(prepared["owner_input_contract"], "UPGRADED_SAFE_DEFAULT")
+
+        unsafe = _owner_input()
+        unsafe["input_state"] = "awaiting_owner"
+        unsafe["first_sync"] = "synthetic_only"
+        unsafe["data_scale"] = "unknown"
+        for platform in unsafe["platforms"].values():
+            platform["login_state"] = "not_run"
+            platform["real_execution_authorized"] = False
+        unsafe["notion"]["parent_reference"] = "custom_reference"
+        _write_private(contract, unsafe)
+        with self.assertRaises(X2NRuntimeError):
+            prepare_owner_mvp_input_contract(
+                self.paths,
+                confirmation=PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
+            )
+
+    def test_owner_input_auto_preparation_rejects_non_gesture(self) -> None:
+        contract = self.paths.data_root / "runtime/owner_input_contract.local.json"
+        contract.unlink()
+        with self.assertRaises(X2NRuntimeError):
+            ensure_owner_mvp_input_contract_for_explicit_gesture(self.paths, user_gesture=False)
+        self.assertFalse(contract.exists())
+
+    def test_prepare_owner_input_cli_command_never_discloses_private_runtime(self) -> None:
+        self.paths.owner_mvp_release_input.unlink()
+        (self.paths.data_root / "runtime/owner_input_contract.local.json").unlink()
+        args = runtime_cli.build_parser().parse_args(
+            [
+                "release",
+                "prepare-owner-mvp-input",
+                "--confirm",
+                PREPARE_OWNER_MVP_INPUT_CONFIRMATION,
+            ]
+        )
+        with mock.patch.object(runtime_cli, "_paths", return_value=self.paths):
+            payload = runtime_cli.run(args)
+        self.assertEqual(payload["action"], "release_prepare_owner_mvp_input")
+        self.assertEqual(payload["owner_input_contract"], "CREATED")
+        self.assertEqual(payload["platform_calls"], 0)
+        self.assertFalse(payload["private_path_emitted"])
+        self.assertNotIn(str(self.paths.data_root), json.dumps(payload, ensure_ascii=False, sort_keys=True))
 
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="x2n-mvp-release-")
@@ -1339,6 +1440,21 @@ class MvpReleaseTests(unittest.TestCase):
         self.assertEqual(plan.release_artifact_sha256, staged.artifact_sha256)
         self.assertEqual(plan.companion_source, bundle / "companion/x2n_companion")
         self.assertEqual(plan.contracts_source, bundle / "contracts/x2n_contracts")
+
+    def test_prearm_bundle_ignores_only_regular_finder_metadata(self) -> None:
+        manager = MvpDeploymentManager(self.paths)
+        staged = manager.stage_prearm_sidepanel()
+        finder_metadata = manager._prearm_target(staged) / ".DS_Store"
+        finder_metadata.write_bytes(b"finder metadata")
+        finder_metadata.chmod(0o600)
+        self.assertEqual(
+            mvp_deployment._read_prearm_manifest(manager._prearm_target(staged))["artifact_sha256"],
+            staged.artifact_sha256,
+        )
+        finder_metadata.unlink()
+        finder_metadata.symlink_to("extension")
+        with self.assertRaises(X2NRuntimeError):
+            mvp_deployment._read_prearm_manifest(manager._prearm_target(staged))
 
     def test_prearm_install_entry_refuses_to_replace_a_regular_file(self) -> None:
         entry = self.paths.data_root / mvp_deployment._PREARM_INSTALL_ENTRY
