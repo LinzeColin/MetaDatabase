@@ -492,6 +492,7 @@ def _audit_imports(
         "leakage_oracle",
         "ledger",
         "reconciliation_oracle",
+        "devig",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:
