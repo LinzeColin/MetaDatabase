@@ -16,7 +16,7 @@ from .canonical_facts import sha256_file, strict_json_load
 
 MANIFEST_PATH = Path("machine/facts/s08_legacy_receipt_compatibility.json")
 COMPATIBILITY_ID = "ABD-S08-LEGACY-RECEIPT-COMPATIBILITY"
-PINNED_MANIFEST_SHA256 = "d376d18c7fff4f0a568a31b6b512efd671f7f1238bab40c1001817d51c496d41"
+PINNED_MANIFEST_SHA256 = "52077ad654b9a362f19d25051cf18bcd6fe77d5b993638913ad6fe884dca5324"
 
 
 def approved_successor_sha256(root: Path, relative: str) -> Optional[str]:
@@ -43,7 +43,7 @@ def approved_successor_sha256(root: Path, relative: str) -> Optional[str]:
         candidate = Path(relative)
         if candidate.is_absolute() or ".." in candidate.parts:
             return None
-        current = root / candidate
+        current = root.parent / candidate if relative.startswith(".github/") else root / candidate
         return value if current.is_file() and sha256_file(current) == value else None
     except Exception:
         return None

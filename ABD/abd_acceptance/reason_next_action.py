@@ -79,11 +79,12 @@ PINNED_BASELINE_HASHES = {
     "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
     "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "f72c8eabc28e5ea8fd612854aa6871c0334636b41216ba7287d570f1bb6aa436"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "b190539733aedde51f5ae14e4ddac7b100f077dc8e54676782027c6143264347"
 
 PHASE_COMMIT = "86f268310e24eeab10639c6c36cbfcec544f9c74"
 PINNED_PHASE_CODE_HASH = "eba903e5593fcc5aebfb1432ec8b8f3614680d1898fc5e101e4a9de07fd564b2"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "abd_acceptance/reason_next_action.py",
     "abd_acceptance/advice_card.py",
@@ -469,7 +470,7 @@ def _check_pinned_hashes(root: Path, checks: List[Dict[str, Any]], hashes: Mutab
     _add(
         checks,
         "S03P03-HASH-CONTINUOUS-WORKFLOW",
-        actual_workflow == "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+        actual_workflow == "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
         actual_workflow,
     )
 
@@ -1298,7 +1299,7 @@ def _historical_file_matches(
         if not _phase_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -1309,7 +1310,8 @@ def _historical_file_matches(
         except Exception:
             return False
     evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return evolved is not None and candidate.is_file() and sha256_file(candidate) == evolved
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:

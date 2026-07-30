@@ -1,6 +1,17 @@
 <?xml version='1.0' encoding='utf-8'?>
 <testsuites name="pytest tests">
-  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="52" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="67" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S00.stage_review_test" name="test_baseline_whole_stage_review_passes_without_generated_stage_reports" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_ci_workflow_mutations_fail_closed[floating_action]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_ci_workflow_mutations_fail_closed[missing_fetch_depth]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_ci_workflow_mutations_fail_closed[wrong_uv]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_ci_workflow_mutations_fail_closed[missing_command]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_ci_workflow_mutations_fail_closed[secret_reference]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_fast_targeted_workflow_mutations_fail_closed[unscoped_pytest-REVIEW-ABD-FAST-TARGETED-EXECUTION-CONTRACT]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_fast_targeted_workflow_mutations_fail_closed[missing_s08_target-REVIEW-ABD-FAST-TARGETED-EXECUTION-CONTRACT]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_fast_targeted_workflow_mutations_fail_closed[full_regression_reference-REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_fast_targeted_workflow_mutations_fail_closed[sleep_reference-REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED]" time="0.000" />
+    <testcase classname="tests.S00.stage_review_test" name="test_abd_fast_targeted_workflow_mutations_fail_closed[disabled_step-REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED]" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_candidate_preflight_passes_without_generated_stage_reports" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_whole_stage_review_passes_without_generated_stage_reports" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_review_identity_scope_and_terminal_state_are_exact" time="0.000" />
@@ -47,6 +58,10 @@
     <testcase classname="tests.S08.stage_review_test" name="test_build_evidence_binds_current_candidate_without_external_claim" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_candidate_code_hash_is_bound_to_oracle_source" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_contract_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[workflow_hash]" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[unscoped_pytest]" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[full_reference]" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[sleep_reference]" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_open_finding_fails_closed_in_a_clone" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_phase_verifier_failure_fails_closed" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_manifest_tamper_fails_closed_in_a_clone" time="0.000" />

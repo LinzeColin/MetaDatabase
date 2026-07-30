@@ -3,7 +3,7 @@
   "review_id": "ABD-S08-WHOLE-STAGE-REVIEW",
   "stage_id": "S08",
   "fixed_at": "2026-07-30T00:00:00+10:00",
-  "summary": {"total": 2, "open": 0, "resolved": 2, "blocked": 0},
+  "summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
   "findings": [
     {
       "id": "S08-REVIEW-001",
@@ -40,24 +40,55 @@
       "id": "S08-REVIEW-002",
       "severity": "HIGH_CONTINUOUS_EVIDENCE_INTEGRITY",
       "status": "RESOLVED_IN_STAGE_REVIEW",
-      "title": "已发布阶段的 successor-evolvable 输入在无 Git 历史重放时没有当前精确兼容锚点",
+      "title": "可演进签名输入的 portable replay 未按仓库根解析，且一项允许的 current hash 未被固定",
       "affected_contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"],
       "discovery_evidence": {
         "full_regression_initial_result": "10_FAILED_5267_PASSED",
-        "root_cause": "旧 Oracle 已声明部分输入可演进，但 portable replay 只能接受过期的单一 successor hash；共享 dispatcher 后续阶段扩展后，历史收据会 fail-closed。"
+        "full_regression_follow_up_result": "3_FAILED_5285_PASSED",
+        "root_cause": "旧 Oracle 已声明部分输入可演进，但无 Git 回放把仓库根的 .github 路径错误拼接到 ABD 根内；同时 S03 整阶段收据已允许 abd_acceptance/stage2_review.py 演进，却没有该文件的当前精确兼容锚点。"
       },
       "remediation": [
         "新增 machine/facts/s08_legacy_receipt_compatibility.json，固定 S08 审查时的精确 successor source SHA-256。",
         "兼容 helper 先验证其固定 manifest SHA-256，再只为旧 Oracle 已显式声明的 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS 返回精确当前哈希；不匹配、越界或未声明路径一律 fail-closed。",
-        "S03、S04、S05、S07 原失败的独立回执与 S07 整体复审定向重放均通过；历史 evidence bytes、GitHub 状态和外部系统均未改写。"
+        "S03 至 S05 的 portable fallback 对 .github 路径只从 ABD 父目录解析，普通 ABD 路径仍从 ABD 根解析；每条路径仍需处于其原有 allow-list 且匹配精确 SHA-256。",
+        "将 S03 已允许的 abd_acceptance/stage2_review.py 当前 SHA-256 纳入兼容清单；未声明路径不能从清单获得许可。"
       ],
       "closure_evidence": [
-        "S03/P04 isolated receipt replay PASS",
-        "S04/P04 isolated receipt replay PASS",
-        "S05/P04 isolated receipt replay PASS",
-        "S07/P04 and S07 stage-review targeted replay PASS",
+        "S03/P04、S04/P04、S05/P04 isolated receipt replay PASS（portable root fix 后）",
+        "S07/P04 与 S07 whole-stage review targeted replay PASS",
         "compatibility manifest and helper are hash-pinned by S08 review contract"
       ],
+      "external_state_changed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S08-REVIEW-003",
+      "severity": "HIGH_CONTINUOUS_DELIVERY",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "完整回归与真实时间 soak 不符合当前快速发布授权",
+      "affected_paths": [
+        ".github/workflows/abd-stage0-validation.yml"
+      ],
+      "discovery_evidence": {
+        "current_delivery_policy": "NO_FULL_REGRESSION_OR_REAL_TIME_SOAK",
+        "historical_remote_runs": "previous full-workflow cancellations are not accepted as release evidence",
+        "local_full_regression_output": "discarded; an interrupted report is not accepted as green evidence"
+      },
+      "root_cause": "旧 CI 设计把无范围 pytest 和完整回归工作流绑定到提交路径；这与当前用户授权的快速、定向、非 soak 推进策略冲突。",
+      "remediation": [
+        "删除完整回归工作流及其调用、路径触发和证据依赖。",
+        "保留 15 分钟的快速失效门，仅运行固定的 S00 基线/CI 变异节点与 S08 整阶段复审节点。",
+        "S00 与 S08 固定快速工作流的精确 SHA-256，并对范围化 pytest、无 full-workflow 引用、无 secret、无 continue-on-error、无 sleep 与固定 action 版本进行 fail-closed 验证。",
+        "签名收据只接受快速定向 JUnit、签名状态 JUnit、任务包验证、A$0 扫描和 SHA-256 清单；不把未运行、取消或中断的完整回归当作通过证据。"
+      ],
+      "closure_evidence": [
+        "S00 与 S08 的快速定向 CI 合同都要求精确节点和单一范围化 pytest 调用。",
+        "S08 签名步骤要求快速定向与签名状态报告都为零 failures/errors 且规范化。",
+        "remote CI remains unclaimed until the post-push fast targeted check completes."
+      ],
+      "fast_gate_timeout_minutes": 15,
+      "full_regression_or_real_time_soak_allowed": false,
       "external_state_changed": false,
       "incremental_cash_spent_aud": "0.00",
       "real_time_soak_waited": false

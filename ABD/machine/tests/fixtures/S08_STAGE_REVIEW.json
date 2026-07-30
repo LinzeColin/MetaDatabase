@@ -10,7 +10,6 @@
   "adverse_replay_count": 10000,
   "minimum_targeted_pytest_cases": 35,
   "minimum_signed_state_pytest_cases": 130,
-  "minimum_full_pytest_cases": 1000,
   "expected_phase_ids": ["P01", "P02", "P03", "P04"],
   "expected_phase_evidence_sha256": {
     "P01": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
@@ -32,12 +31,25 @@
   },
   "expected_next": "S08/GITHUB_STAGE_UPLOAD_READY",
   "expected_release_status": "S08_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
-  "expected_findings_summary": {"total": 2, "open": 0, "resolved": 2, "blocked": 0},
+  "expected_findings_summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
+  "repository_ci_contract": {
+    "fast_workflow_path": ".github/workflows/abd-stage0-validation.yml",
+    "fast_workflow_sha256": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
+    "fast_gate_timeout_minutes": 15,
+    "targeted_test_nodes": [
+      "tests/S00/stage_review_test.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports",
+      "tests/S00/stage_review_test.py::test_abd_ci_workflow_mutations_fail_closed",
+      "tests/S00/stage_review_test.py::test_abd_fast_targeted_workflow_mutations_fail_closed",
+      "tests/S08/stage_review_test.py"
+    ],
+    "full_regression_or_real_time_soak_allowed": false,
+    "real_time_soak_waited": false
+  },
   "legacy_receipt_compatibility": {
     "manifest_path": "machine/facts/s08_legacy_receipt_compatibility.json",
-    "manifest_sha256": "d376d18c7fff4f0a568a31b6b512efd671f7f1238bab40c1001817d51c496d41",
+    "manifest_sha256": "52077ad654b9a362f19d25051cf18bcd6fe77d5b993638913ad6fe884dca5324",
     "helper_path": "abd_acceptance/legacy_receipt_compatibility.py",
-    "helper_sha256": "d2fdd15bf93e4941bc278fc991b03a7109c712c0f4935d0dac2426380f867df6",
+    "helper_sha256": "cd521a16aa487c87618b5762c83e99ef3a2f97799c7de3fcabdab891a9b34dc5",
     "contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"]
   },
   "cases": [

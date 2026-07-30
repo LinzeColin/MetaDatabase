@@ -72,6 +72,7 @@ PINNED_BASELINE_HASHES = {
 PHASE_COMMIT = "b21f7a49f1d2f17c772cc6c1bd55e1add410cda2"
 PINNED_PHASE_CODE_HASH = "0a92aae3fb6801c312aaf453808d71adbba31b8518f9da02aa2ca320dabfdb2e"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "abd_acceptance/advice_card.py",
     "abd_acceptance/terminology_governance.py",
@@ -90,7 +91,7 @@ SUCCESSOR_EVOLVED_PHASE_HASHES = {
     TEST_PATH.as_posix(): "04463326c983d22d53093609429c8ced6589445cb4cde40702f34ce3b33a54f0",
 }
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "a9673d102dfd020462e60279d81d8d5db3470c24fe4887044c86a3e19d428cea"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "e71463f1e1d246cefd5cff9cb957986dd06cac150d3966d45e5d66ac3e4cc8fe"
 
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 PRIMARY_ANSWER_KEYS = ["what_zh", "where_zh", "amount_zh", "minimum_odds_zh"]
@@ -1374,7 +1375,7 @@ def _historical_file_matches(
         if not _phase_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -1385,10 +1386,11 @@ def _historical_file_matches(
         except Exception:
             return False
     evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
     return (
         evolved is not None
-        and (root / relative).is_file()
-        and sha256_file(root / relative) == evolved
+        and candidate.is_file()
+        and sha256_file(candidate) == evolved
     )
 
 

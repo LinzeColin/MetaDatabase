@@ -64,13 +64,15 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "d039c9155cbe1a1f5d734699f4e075e1ed8dcdb4b64aa4b890e456a060863c10"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "26666b848208bd12276e3a7f7ec617bee27d2e119f54a5fde5c92e250f04bd56"
 STAGE_REVIEW_COMMIT = "4168321dee17540bdba5763271694f78b33e3c42"
 PINNED_STAGE_REVIEW_CODE_HASH = "18431889da80b66a6f6c35375859793bee2d811ce14228cec80f69f880902b93"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "tests/S03/stage_review_test.py",
     "abd_acceptance/stage3_review.py",
+    "abd_acceptance/terminology_governance.py",
     "abd_acceptance/usability_accessibility.py",
     "abd_acceptance/reason_next_action.py",
     "abd_acceptance/advice_card.py",
@@ -92,7 +94,7 @@ PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     FIXTURE_PATH.as_posix(): "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
     TEST_PATH.as_posix(): "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
 }
-WORKFLOW_SHA256 = "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+WORKFLOW_SHA256 = "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
@@ -188,7 +190,7 @@ def _historical_file_matches(
         if not _stage_review_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (STAGE_REVIEW_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (STAGE_REVIEW_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -199,7 +201,8 @@ def _historical_file_matches(
         except Exception:
             return False
     evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return evolved is not None and candidate.is_file() and sha256_file(candidate) == evolved
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:

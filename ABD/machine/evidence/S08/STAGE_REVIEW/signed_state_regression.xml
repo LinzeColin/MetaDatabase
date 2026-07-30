@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <testsuites name="pytest tests">
-  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="151" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="155" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
     <testcase classname="tests.S08.P01_test" name="test_candidate_preflight_and_contract_pass_without_generated_reports" time="0.000" />
     <testcase classname="tests.S08.P01_test" name="test_report_is_an_exact_deterministic_replay_of_frozen_vectors" time="0.000" />
     <testcase classname="tests.S08.P01_test" name="test_all_four_methods_are_complete_probability_vectors[THREE_WAY_STANDARD_MARGIN]" time="0.000" />
@@ -146,6 +146,10 @@
     <testcase classname="tests.S08.stage_review_test" name="test_build_evidence_binds_current_candidate_without_external_claim" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_candidate_code_hash_is_bound_to_oracle_source" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_contract_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[workflow_hash]" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[unscoped_pytest]" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[full_reference]" time="0.000" />
+    <testcase classname="tests.S08.stage_review_test" name="test_repository_ci_contract_tamper_fails_closed_in_a_clone[sleep_reference]" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_open_finding_fails_closed_in_a_clone" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_phase_verifier_failure_fails_closed" time="0.000" />
     <testcase classname="tests.S08.stage_review_test" name="test_manifest_tamper_fails_closed_in_a_clone" time="0.000" />

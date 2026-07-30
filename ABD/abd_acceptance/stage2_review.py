@@ -57,10 +57,11 @@ REVIEW_ARTIFACT_HASHES = {
     FINDINGS_PATH.as_posix(): "67237a340447dcd2f651e0fb8f152389ad48be442439ac082cdeb32fae917840",
     FIXTURE_PATH.as_posix(): "f356340ebc9db6907569b1a6b6cbbb308466f7cabd7b4920b61e1078eabd93fa",
 }
-WORKFLOW_SHA256 = "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+WORKFLOW_SHA256 = "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72"
 DELIVERED_PHASE_COMMIT = "23289557d12a46e1f64ee584af5afc552a2b6023"
 PINNED_DELIVERED_CODE_HASH = "a674b8c50b089f8377893d9d25161c993cfe9ad44c86e5ce13f2406cb97e3346"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "abd_acceptance/__init__.py",
     "abd_acceptance/__main__.py",
@@ -68,12 +69,13 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S02/stage_review_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
+    ".github/workflows/abd-stage0-validation.yml": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
     "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
     "tests/S02/stage_review_test.py": "40431438418cb4212c00c3e241b980b4188cd017af2722ffb267670a8aa0f124",
 }
-SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "7b6ad6c093d20193833738fb120ca224b183f05d3f0b141c848a7232e266f856"
+SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "fc5909f7655e937c877565d0a575bd1d16bdffa0b404ea601a12342ba2c83104"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
@@ -134,7 +136,7 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str) ->
         return False
     if _delivered_phase_is_ancestor(root):
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (DELIVERED_PHASE_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (DELIVERED_PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -153,7 +155,8 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str) ->
             except Exception:
                 return False
         evolved = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-        return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+        candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+        return evolved is not None and candidate.is_file() and sha256_file(candidate) == evolved
     return False
 
 

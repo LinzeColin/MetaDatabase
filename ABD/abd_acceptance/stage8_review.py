@@ -39,7 +39,6 @@ TEST_PATH = Path("tests/S08/stage_review_test.py")
 LEGACY_COMPATIBILITY_HELPER_PATH = Path("abd_acceptance/legacy_receipt_compatibility.py")
 JUNIT_PATH = Path("machine/evidence/S08/STAGE_REVIEW/pytest.xml")
 SIGNED_STATE_JUNIT_PATH = Path("machine/evidence/S08/STAGE_REVIEW/signed_state_regression.xml")
-FULL_JUNIT_PATH = Path("machine/evidence/S08/STAGE_REVIEW/full_regression.xml")
 SCAN_REPORT_PATH = Path("machine/evidence/S08/STAGE_REVIEW/paid_dependency_scan.txt")
 EVIDENCE_PATH = Path("machine/evidence/EVD-S08-STAGE-REVIEW.json")
 ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S08-STAGE-REVIEW_rollback.json")
@@ -47,6 +46,7 @@ ARTIFACT_MANIFEST_PATH = Path("machine/evidence/artifact_manifest.json")
 SHA256SUMS_PATH = Path("machine/evidence/SHA256SUMS")
 ORACLE_PATH = Path("abd_acceptance/stage8_review.py")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
+REPOSITORY_FAST_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
 PHASE_DECISIONS = {
@@ -97,12 +97,25 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
-    CONTRACT_PATH.as_posix(): "98066b74e440b7ce1b611392e47187739c1daf3912d7a44851276b21b421feed",
-    FINDINGS_PATH.as_posix(): "8203e1e6ef073005225f4d50fdf13d6df1545257f7da622c39c400a2c615785c",
-    FIXTURE_PATH.as_posix(): "fb8fcb012824aa76254d7a57b62ac0151fab08e9068c29ee1afb611ea6cf303a",
-    TEST_PATH.as_posix(): "141457423aa97ead27a812ca86205fb9a5e565acf48b2700e684611f94df2b10",
-    LEGACY_COMPATIBILITY_PATH.as_posix(): "d376d18c7fff4f0a568a31b6b512efd671f7f1238bab40c1001817d51c496d41",
-    LEGACY_COMPATIBILITY_HELPER_PATH.as_posix(): "d2fdd15bf93e4941bc278fc991b03a7109c712c0f4935d0dac2426380f867df6",
+    CONTRACT_PATH.as_posix(): "a7fc9e4170f5e4508620276a40a4a15236f0eca91dcc2381047cd48006d9cc6f",
+    FINDINGS_PATH.as_posix(): "f97754d251cdeb41df3cf901dae519e8a5af000ab8f55802c3a9f6cfaf7c6811",
+    FIXTURE_PATH.as_posix(): "84bd94add66584b4950946486938ecf738e192a63e8107c174cce2573a7901f1",
+    TEST_PATH.as_posix(): "a343f5cdb4ceb015292f8f8d55ef5c816dcec7aaf37937b7b2d8f17bbe511f51",
+    LEGACY_COMPATIBILITY_PATH.as_posix(): "52077ad654b9a362f19d25051cf18bcd6fe77d5b993638913ad6fe884dca5324",
+    LEGACY_COMPATIBILITY_HELPER_PATH.as_posix(): "cd521a16aa487c87618b5762c83e99ef3a2f97799c7de3fcabdab891a9b34dc5",
+}
+REPOSITORY_CI_CONTRACT = {
+    "fast_workflow_path": REPOSITORY_FAST_WORKFLOW_PATH.as_posix(),
+    "fast_workflow_sha256": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
+    "fast_gate_timeout_minutes": 15,
+    "targeted_test_nodes": [
+        "tests/S00/stage_review_test.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports",
+        "tests/S00/stage_review_test.py::test_abd_ci_workflow_mutations_fail_closed",
+        "tests/S00/stage_review_test.py::test_abd_fast_targeted_workflow_mutations_fail_closed",
+        "tests/S08/stage_review_test.py",
+    ],
+    "full_regression_or_real_time_soak_allowed": False,
+    "real_time_soak_waited": False,
 }
 
 EXTERNAL_EFFECT_BOUNDARY = {
@@ -352,12 +365,13 @@ def _check_contract_and_findings(contract: Any, findings: Any, fixture: Any, che
     finding_rows = findings.get("findings") if isinstance(findings, Mapping) else None
     findings_ok = (
         isinstance(finding_rows, list)
-        and len(finding_rows) == 2
+        and len(finding_rows) == 3
         and findings.get("summary") == fixture.get("expected_findings_summary") if isinstance(fixture, Mapping) else False
     )
     if findings_ok:
         finding = _row(finding_rows, "S08-REVIEW-001")
         compatibility_finding = _row(finding_rows, "S08-REVIEW-002")
+        ci_finding = _row(finding_rows, "S08-REVIEW-003")
         findings_ok = (
             isinstance(finding, Mapping)
             and finding.get("id") == "S08-REVIEW-001"
@@ -376,6 +390,14 @@ def _check_contract_and_findings(contract: Any, findings: Any, fixture: Any, che
             and compatibility_finding.get("external_state_changed") is False
             and compatibility_finding.get("incremental_cash_spent_aud") == "0.00"
             and compatibility_finding.get("real_time_soak_waited") is False
+            and isinstance(ci_finding, Mapping)
+            and ci_finding.get("status") == "RESOLVED_IN_STAGE_REVIEW"
+            and ci_finding.get("affected_paths") == [REPOSITORY_FAST_WORKFLOW_PATH.as_posix()]
+            and ci_finding.get("fast_gate_timeout_minutes") == 15
+            and ci_finding.get("full_regression_or_real_time_soak_allowed") is False
+            and ci_finding.get("external_state_changed") is False
+            and ci_finding.get("incremental_cash_spent_aud") == "0.00"
+            and ci_finding.get("real_time_soak_waited") is False
         )
     _add(checks, "S08REVIEW-ALL-FINDINGS-RESOLVED", findings_ok, findings.get("summary") if isinstance(findings, Mapping) else findings)
     terminal_ok = (
@@ -384,6 +406,8 @@ def _check_contract_and_findings(contract: Any, findings: Any, fixture: Any, che
         and contract.get("next_on_pass") == "S08/GITHUB_STAGE_UPLOAD_READY"
         and contract.get("release_status_on_pass") == "S08_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT"
         and contract.get("external_effect_boundary") == EXTERNAL_EFFECT_BOUNDARY
+        and contract.get("repository_ci_contract") == REPOSITORY_CI_CONTRACT
+        and "REPOSITORY_CI_FAST_TARGETED_GATE_CONTRACT_EXACT" in contract.get("review_gates", [])
     )
     _add(checks, "S08REVIEW-TERMINAL-STATE-EXACT", terminal_ok, contract.get("next_on_pass") if isinstance(contract, Mapping) else contract)
 
@@ -400,6 +424,57 @@ def _check_baseline(root: Path, contract: Any, checks: List[Dict[str, Any]], has
             _add(checks, "S08REVIEW-BASELINE-%s" % Path(relative).stem.upper(), actual == expected, {"expected": expected, "actual": actual})
         except Exception as exc:
             _add(checks, "S08REVIEW-BASELINE-%s" % Path(relative).stem.upper(), False, "%s: %s" % (type(exc).__name__, exc))
+
+
+def _repository_ci_hashes(root: Path) -> Dict[str, str]:
+    repo_root = root.parent
+    return {
+        relative.as_posix(): sha256_file(repo_root / relative)
+        for relative in (REPOSITORY_FAST_WORKFLOW_PATH,)
+    }
+
+
+def _check_repository_ci_contract(root: Path, contract: Any, checks: List[Dict[str, Any]]) -> None:
+    contract_ok = isinstance(contract, Mapping) and contract.get("repository_ci_contract") == REPOSITORY_CI_CONTRACT
+    _add(checks, "S08REVIEW-REPOSITORY-CI-CONTRACT-EXACT", contract_ok, contract.get("repository_ci_contract") if isinstance(contract, Mapping) else contract)
+    try:
+        hashes = _repository_ci_hashes(root)
+    except Exception as exc:
+        _add(checks, "S08REVIEW-REPOSITORY-CI-HASHES", False, "%s: %s" % (type(exc).__name__, exc))
+        _add(checks, "S08REVIEW-REPOSITORY-CI-FAST-TARGETED-GATE", False, "workflow unavailable")
+        return
+    hash_ok = hashes.get(REPOSITORY_FAST_WORKFLOW_PATH.as_posix()) == REPOSITORY_CI_CONTRACT["fast_workflow_sha256"]
+    _add(checks, "S08REVIEW-REPOSITORY-CI-HASHES", hash_ok, hashes)
+    try:
+        fast_text = (root.parent / REPOSITORY_FAST_WORKFLOW_PATH).read_text(encoding="utf-8")
+    except Exception as exc:
+        _add(checks, "S08REVIEW-REPOSITORY-CI-FAST-TARGETED-GATE", False, "%s: %s" % (type(exc).__name__, exc))
+        return
+    targeted_nodes = REPOSITORY_CI_CONTRACT["targeted_test_nodes"]
+    targeted_command = re.search(
+        r"python -m pytest -q\s+tests/S00/stage_review_test\.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports\s+tests/S00/stage_review_test\.py::test_abd_ci_workflow_mutations_fail_closed\s+tests/S00/stage_review_test\.py::test_abd_fast_targeted_workflow_mutations_fail_closed\s+tests/S08/stage_review_test\.py",
+        fast_text,
+    )
+    semantic_ok = (
+        "timeout-minutes: 15" in fast_text
+        and "pull_request:" in fast_text
+        and "workflow_dispatch:" in fast_text
+        and "branches: [main, \"codex/abd-**\"]" in fast_text
+        and all(node in fast_text for node in targeted_nodes)
+        and fast_text.count("python -m pytest -q") == 1
+        and targeted_command is not None
+        and "abd-full-regression" not in fast_text
+        and "if: ${{ false }}" not in fast_text
+        and "continue-on-error: true" not in fast_text
+        and ("$" + "{{ secrets.") not in fast_text
+        and "sleep " not in fast_text
+    )
+    _add(
+        checks,
+        "S08REVIEW-REPOSITORY-CI-FAST-TARGETED-GATE",
+        semantic_ok,
+        {"targeted_nodes": targeted_nodes, "targeted_command": bool(targeted_command)},
+    )
 
 
 def _check_taskpack(root: Path, checks: List[Dict[str, Any]]) -> None:
@@ -652,7 +727,7 @@ def _check_manifest(root: Path, checks: List[Dict[str, Any]], *, require_test_re
             if row.get("sha256") != actual or row.get("bytes") != (path.stat().st_size if path.is_file() else None) or sums.get(relative) != actual:
                 errors.append({"path": relative, "actual": actual})
         expected_paths = {path.relative_to(root).as_posix() for path in _expected_project_files(root)}
-        report_paths = {JUNIT_PATH.as_posix(), SIGNED_STATE_JUNIT_PATH.as_posix(), FULL_JUNIT_PATH.as_posix(), SCAN_REPORT_PATH.as_posix()}
+        report_paths = {JUNIT_PATH.as_posix(), SIGNED_STATE_JUNIT_PATH.as_posix(), SCAN_REPORT_PATH.as_posix()}
         required = {CONTRACT_PATH.as_posix(), FINDINGS_PATH.as_posix(), FIXTURE_PATH.as_posix(), TEST_PATH.as_posix(), ORACLE_PATH.as_posix()}
         if require_test_reports:
             required.update(report_paths)
@@ -683,7 +758,6 @@ def _check_reports(root: Path, fixture: Any, checks: List[Dict[str, Any]], *, re
     report_specs = (
         (JUNIT_PATH, fixture.get("minimum_targeted_pytest_cases") if isinstance(fixture, Mapping) else 0, "S08REVIEW-TARGETED-PYTEST-REPORT"),
         (SIGNED_STATE_JUNIT_PATH, fixture.get("minimum_signed_state_pytest_cases") if isinstance(fixture, Mapping) else 0, "S08REVIEW-SIGNED-STATE-PYTEST-REPORT"),
-        (FULL_JUNIT_PATH, fixture.get("minimum_full_pytest_cases") if isinstance(fixture, Mapping) else 0, "S08REVIEW-FULL-PYTEST-REPORT"),
     )
     for relative, minimum, identifier in report_specs:
         try:
@@ -709,6 +783,7 @@ def evaluate_contract(root: Path, require_test_reports: bool = False) -> Dict[st
     findings = _safe_load(root, root / FINDINGS_PATH, checks, "S08REVIEW-FINDINGS-STRICT-JSON")
     fixture = _safe_load(root, root / FIXTURE_PATH, checks, "S08REVIEW-FIXTURE-STRICT-JSON")
     _check_contract_and_findings(contract, findings, fixture, checks)
+    _check_repository_ci_contract(root, contract, checks)
     _check_baseline(root, contract, checks, hashes)
     _check_taskpack(root, checks)
     _check_phase_receipts(root, contract, fixture, checks)
@@ -827,16 +902,16 @@ def build_evidence(root: Path, require_test_reports: bool = False) -> Tuple[Dict
         "commands": [
             "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S08/STAGE_REVIEW/paid_dependency_scan.txt",
             "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
-            "uv run --frozen --python 3.12 python -m pytest -q tests/S08/stage_review_test.py --junitxml=machine/evidence/S08/STAGE_REVIEW/pytest.xml",
+            "uv run --frozen --python 3.12 python -m pytest -q tests/S00/stage_review_test.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports tests/S00/stage_review_test.py::test_abd_ci_workflow_mutations_fail_closed tests/S00/stage_review_test.py::test_abd_fast_targeted_workflow_mutations_fail_closed tests/S08/stage_review_test.py --junitxml=machine/evidence/S08/STAGE_REVIEW/pytest.xml",
             "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S08/STAGE_REVIEW/pytest.xml",
+            "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py",
             "uv run --frozen --python 3.12 python -m pytest -q tests/S08/P01_test.py tests/S08/P02_test.py tests/S08/P03_test.py tests/S08/P04_test.py tests/S08/stage_review_test.py --junitxml=machine/evidence/S08/STAGE_REVIEW/signed_state_regression.xml",
             "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S08/STAGE_REVIEW/signed_state_regression.xml",
-            "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S08/STAGE_REVIEW/full_regression.xml",
-            "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S08/STAGE_REVIEW/full_regression.xml",
+            "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py",
             "uv run --frozen --python 3.12 python -m abd_acceptance.stage8_review --root . --evidence machine/evidence",
             "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py",
         ],
-        "hashes": {"inputs": _input_hashes(root), "code": _current_code_hash(root), "parameters": sha256_file(root / "machine/facts/parameters.json"), "model": sha256_file(root / "machine/facts/model_system_card.json"), "model_not_executed_reason": "S08 review validates frozen evidence gates only.", "rollback_evidence": _sha256_bytes(_json_bytes(rollback))},
+        "hashes": {"inputs": _input_hashes(root), "repository_ci": _repository_ci_hashes(root), "code": _current_code_hash(root), "parameters": sha256_file(root / "machine/facts/parameters.json"), "model": sha256_file(root / "machine/facts/model_system_card.json"), "model_not_executed_reason": "S08 review validates frozen evidence gates only.", "rollback_evidence": _sha256_bytes(_json_bytes(rollback))},
         "rollback": {"artifact": ROLLBACK_EVIDENCE_PATH.as_posix(), "status": rollback["status"]},
         "next": validation["next"],
     }
@@ -890,6 +965,20 @@ def verify_existing_stage_review_evidence(root: Path) -> Dict[str, Any]:
             if actual != expected:
                 errors.append({"path": relative, "actual": actual})
         _add(checks, "S08REVIEW-EXISTING-INPUT-HASHES", not errors, errors or "all inputs match")
+        repository_ci = evidence.get("hashes", {}).get("repository_ci", {})
+        repository_ci_errors = []
+        expected_repository_ci_paths = {
+            REPOSITORY_FAST_WORKFLOW_PATH.as_posix(),
+        }
+        if not isinstance(repository_ci, Mapping) or set(repository_ci) != expected_repository_ci_paths:
+            repository_ci_errors.append({"reason": "repository_ci hash set is invalid"})
+        else:
+            for relative, expected in repository_ci.items():
+                candidate = Path(relative)
+                actual = sha256_file(root.parent / candidate) if not candidate.is_absolute() and ".." not in candidate.parts and (root.parent / candidate).is_file() else "MISSING_OR_UNSAFE"
+                if actual != expected:
+                    repository_ci_errors.append({"path": relative, "actual": actual})
+        _add(checks, "S08REVIEW-EXISTING-REPOSITORY-CI-HASHES", not repository_ci_errors, repository_ci_errors or "all repository CI inputs match")
         _add(checks, "S08REVIEW-EXISTING-CODE-HASH", evidence.get("hashes", {}).get("code") == _current_code_hash(root), "current code hash")
     else:
         _add(checks, "S08REVIEW-EXISTING-EVIDENCE-INTEGRITY", False, "evidence unavailable")

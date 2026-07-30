@@ -62,12 +62,17 @@ EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 CLOUDFLARED_UNIT_PATH = Path("infra/systemd/abd-cloudflared.service")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "d2975e701e11a0986cf0c13cc0b97dbc825dd40c3d5801d168470e634584696c"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "92dc420a60aa566a7cfd5ef17fc8b57498963c4594f27e052a051f27f7d1cb32"
 STAGE_REVIEW_COMMIT = "258e335ed01a40e6b6ae197bbb8b92398c73b64b"
 PINNED_STAGE_REVIEW_CODE_HASH = "e9b16505eec08cdffc69f21eddc3a9c2c7b9cb262116b406019da32e9d8e6458"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "tests/S04/stage_review_test.py",
+    "abd_acceptance/infrastructure_iac.py",
+    "abd_acceptance/cloudflare_edge.py",
+    "abd_acceptance/release_control.py",
+    "abd_acceptance/capacity_governance.py",
     "abd_acceptance/stage4_review.py",
     "abd_acceptance/__main__.py",
     "abd_acceptance/__init__.py",
@@ -84,7 +89,7 @@ PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     FIXTURE_PATH.as_posix(): "faa3b99005c41c8ce17a7c67c58013aeae21bd2f92db8eeee734af36aea65111",
     TEST_PATH.as_posix(): "681e9656a28c276072fb1b4742b8279c6122fa49521f27c5e7cfe997afbb05b9",
 }
-WORKFLOW_SHA256 = "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+WORKFLOW_SHA256 = "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
@@ -212,7 +217,7 @@ def _historical_file_matches(
         if not _stage_review_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (STAGE_REVIEW_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (STAGE_REVIEW_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -223,7 +228,8 @@ def _historical_file_matches(
         except Exception:
             return False
     evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return evolved is not None and candidate.is_file() and sha256_file(candidate) == evolved
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:

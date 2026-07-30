@@ -45,10 +45,11 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S05-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "22d29de633cf7baf59dc16d831582828e5137547b4e182dbe275d6e391c0337c"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "62d9a4e6356f33facf3cc0f10e67f7b05f46a96e2a8595901e59424a6844d859"
 PHASE_COMMIT = "6ddbf8a36b4b089ab0511bd26f7d0c0fa2662bcc"
 PINNED_PHASE_CODE_HASH = "e5ebba41d7a5943b5302cf0d5813a165aae77cb99fc84d8de72c5f358cf9bc1e"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "abd_acceptance/__init__.py",
     "abd_acceptance/__main__.py",
@@ -91,7 +92,7 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     "abd_acceptance/stage4_delivery.py": "1688b6042cb0d4e21c305fef05dfc0dee720abda57106bb9f0a4d5e2b3fca732",
 }
 PINNED_REPO_HASHES: Dict[str, str] = {
-    WORKFLOW_PATH.as_posix(): "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+    WORKFLOW_PATH.as_posix(): "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
 }
 
 KNOWN_KINDS = (
@@ -228,7 +229,7 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str, ve
         if not _phase_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -239,7 +240,8 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str, ve
         except Exception:
             return False
     successor = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return successor not in {None, "TO_BE_FILLED"} and (root / relative).is_file() and sha256_file(root / relative) == successor
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return successor not in {None, "TO_BE_FILLED"} and candidate.is_file() and sha256_file(candidate) == successor
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:

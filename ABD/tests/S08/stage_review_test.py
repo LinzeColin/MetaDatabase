@@ -19,7 +19,6 @@ from abd_acceptance.stage8_review import (
     EXTERNAL_EFFECT_BOUNDARY,
     FINDINGS_PATH,
     FIXTURE_PATH,
-    FULL_JUNIT_PATH,
     JUNIT_PATH,
     LEGACY_COMPATIBILITY_HELPER_PATH,
     ORACLE_PATH,
@@ -27,6 +26,8 @@ from abd_acceptance.stage8_review import (
     PHASE_VERIFIERS,
     PINNED_BASELINE_HASHES,
     PINNED_REVIEW_ARTIFACT_HASHES,
+    REPOSITORY_CI_CONTRACT,
+    REPOSITORY_FAST_WORKFLOW_PATH,
     REVIEW_ID,
     ROLLBACK_ARTIFACTS,
     ROLLBACK_EVIDENCE_PATH,
@@ -35,6 +36,7 @@ from abd_acceptance.stage8_review import (
     _check_contract_and_findings,
     _check_manifest,
     _check_pins,
+    _check_repository_ci_contract,
     _check_reports,
     _current_code_hash,
     _junit_is_normalized,
@@ -61,6 +63,7 @@ def evaluate_contract(root: Path, require_test_reports: bool = False) -> dict:
 def _clone_project(tmp_path: Path) -> Path:
     destination = tmp_path / "ABD"
     shutil.copytree(ROOT, destination, ignore=shutil.ignore_patterns(".pytest_cache", ".venv", "__pycache__", "*.pyc"))
+    shutil.copytree(ROOT.parent / ".github", destination.parent / ".github")
     return destination
 
 
@@ -108,6 +111,7 @@ def test_review_identity_scope_and_terminal_state_are_exact() -> None:
     assert CONTRACT["review_scope"]["phase_ids"] == ["P01", "P02", "P03", "P04"]
     assert CONTRACT["release_status_on_pass"] == FIXTURE["expected_release_status"]
     assert CONTRACT["next_on_pass"] == FIXTURE["expected_next"]
+    assert CONTRACT["repository_ci_contract"] == FIXTURE["repository_ci_contract"] == REPOSITORY_CI_CONTRACT
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_REVIEW_ARTIFACT_HASHES))
@@ -188,6 +192,7 @@ def test_findings_preserve_provenance_and_upload_is_still_pending(stage_result: 
     assert FINDINGS["summary"] == FIXTURE["expected_findings_summary"]
     finding = next(row for row in FINDINGS["findings"] if row["id"] == "S08-REVIEW-001")
     compatibility_finding = next(row for row in FINDINGS["findings"] if row["id"] == "S08-REVIEW-002")
+    ci_finding = next(row for row in FINDINGS["findings"] if row["id"] == "S08-REVIEW-003")
     assert finding["status"] == "RESOLVED_IN_STAGE_REVIEW"
     assert finding["old_to_new_receipt_sha256"] == {
         phase: {"old": FIXTURE["pre_review_receipt_sha256"][phase], "new": FIXTURE["expected_phase_evidence_sha256"][phase]}
@@ -195,6 +200,11 @@ def test_findings_preserve_provenance_and_upload_is_still_pending(stage_result: 
     }
     assert compatibility_finding["status"] == "RESOLVED_IN_STAGE_REVIEW"
     assert compatibility_finding["affected_contract_ids"] == FIXTURE["legacy_receipt_compatibility"]["contract_ids"]
+    assert ci_finding["status"] == "RESOLVED_IN_STAGE_REVIEW"
+    assert ci_finding["affected_paths"] == [REPOSITORY_FAST_WORKFLOW_PATH.as_posix()]
+    assert ci_finding["fast_gate_timeout_minutes"] == 15
+    assert ci_finding["full_regression_or_real_time_soak_allowed"] is False
+    assert ci_finding["real_time_soak_waited"] is False
     assert stage_result["next"] == "S08/GITHUB_STAGE_UPLOAD_READY"
     assert stage_result["external_effect_boundary"]["github_upload_performed_by_local_review"] is False
 
@@ -254,6 +264,25 @@ def test_contract_mutation_fails_closed_in_a_clone(tmp_path: Path) -> None:
     assert next(row for row in checks if row["id"] == "S08REVIEW-PIN-MACHINE-FACTS-STAGE8_REVIEW_CONTRACT-JSON")["passed"] is False
 
 
+@pytest.mark.parametrize("mutation", ["workflow_hash", "unscoped_pytest", "full_reference", "sleep_reference"])
+def test_repository_ci_contract_tamper_fails_closed_in_a_clone(tmp_path: Path, mutation: str) -> None:
+    clone = _clone_project(tmp_path)
+    fast_path = clone.parent / REPOSITORY_FAST_WORKFLOW_PATH
+    if mutation == "workflow_hash":
+        fast_path.write_text(fast_path.read_text(encoding="utf-8") + "\n# tamper\n", encoding="utf-8")
+    elif mutation == "unscoped_pytest":
+        fast_path.write_text(fast_path.read_text(encoding="utf-8").replace("python -m pytest -q", "python -m pytest -q tests/S00/stage_review_test.py"), encoding="utf-8")
+    elif mutation == "full_reference":
+        fast_path.write_text(fast_path.read_text(encoding="utf-8") + "\n# abd-full-regression.yml\n", encoding="utf-8")
+    else:
+        fast_path.write_text(fast_path.read_text(encoding="utf-8") + "\n# sleep 1\n", encoding="utf-8")
+    checks: list[dict] = []
+    _check_repository_ci_contract(clone, strict_json_load(clone / CONTRACT_PATH), checks)
+    assert next(row for row in checks if row["id"] == "S08REVIEW-REPOSITORY-CI-HASHES")["passed"] is False
+    if mutation != "workflow_hash":
+        assert next(row for row in checks if row["id"] == "S08REVIEW-REPOSITORY-CI-FAST-TARGETED-GATE")["passed"] is False
+
+
 def test_open_finding_fails_closed_in_a_clone(tmp_path: Path) -> None:
     clone = _clone_project(tmp_path)
     findings = strict_json_load(clone / FINDINGS_PATH)
@@ -293,14 +322,17 @@ def test_report_required_mode_fails_closed_when_target_report_is_missing(tmp_pat
     assert next(row for row in checks if row["id"] == "S08REVIEW-TARGETED-PYTEST-REPORT")["passed"] is False
 
 
-def test_existing_evidence_is_not_claimed_before_it_is_written() -> None:
-    result = verify_existing_stage_review_evidence(ROOT)
+def test_existing_evidence_is_not_claimed_before_it_is_written(tmp_path: Path) -> None:
+    clone = _clone_project(tmp_path)
+    (clone / EVIDENCE_PATH).unlink(missing_ok=True)
+    (clone / ROLLBACK_EVIDENCE_PATH).unlink(missing_ok=True)
+    result = verify_existing_stage_review_evidence(clone)
     assert result["status"] == "FAIL"
-    assert result["evidence_sha256"] == "MISSING"
+    assert result["next"] == "S08/STAGE_REVIEW_REMEDIATION_REQUIRED"
 
 
 def test_junit_helpers_do_not_treat_unfinalized_reports_as_green_evidence() -> None:
-    for relative in (JUNIT_PATH, SIGNED_STATE_JUNIT_PATH, FULL_JUNIT_PATH):
+    for relative in (JUNIT_PATH, SIGNED_STATE_JUNIT_PATH):
         path = ROOT / relative
         if path.is_file():
             summary = _junit_summary(path)

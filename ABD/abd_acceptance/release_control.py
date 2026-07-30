@@ -16,6 +16,7 @@ from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Sequence
 
 from .canonical_facts import sha256_file, strict_json_load
 from .cloudflare_edge import verify_existing_phase_evidence as verify_cloudflare_edge_evidence
+from .legacy_receipt_compatibility import approved_successor_sha256
 
 
 CONTRACT_ID = "AC-S04-P03"
@@ -81,10 +82,11 @@ EXPECTED_CANARY_BASIS_POINTS = [0, 100, 500, 2500, 10000]
 
 # Filled only with repository-relative, non-secret artifacts. The self hash is
 # normalized so that changing its literal cannot make an invalid file valid.
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "16933cfd797c703ac3597eba5c48666284f7293f999e49726ed2c55f1cd09f55"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "83928cec27ec4fadcc85a79f47ba34dfe77682b1b06c12b3a5f0d5de8a96c934"
 PHASE_COMMIT = "eead856a87fc15a7b25d08723e021111265c85e6"
 PINNED_PHASE_CODE_HASH = "eebf67dce7cec0e45def06f922d559e5d1d52800a09ab8ef9d6b2c13ac804aad"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "release_slots.json",
     "abd_acceptance/release_control.py",
     "tests/S04/P03_test.py",
@@ -114,7 +116,7 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     P02_ROLLBACK_PATH.as_posix(): "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e",
 }
 PINNED_REPO_HASHES = {
-    WORKFLOW_PATH.as_posix(): "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+    WORKFLOW_PATH.as_posix(): "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
 }
 
 EXTERNAL_EFFECT_BOUNDARY = {
@@ -229,7 +231,7 @@ def _historical_file_matches(
         if not _phase_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -239,8 +241,9 @@ def _historical_file_matches(
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return successor not in {None, "TO_BE_FILLED"} and (root / relative).is_file() and sha256_file(root / relative) == successor
+    successor = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return successor not in {None, "TO_BE_FILLED"} and candidate.is_file() and sha256_file(candidate) == successor
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:

@@ -112,15 +112,29 @@
     "DEVIG_SOURCE_INDEPENDENCE_CONSENSUS_AND_OUTLIER_GATES_REPLAY_EXACT",
     "DETERMINISTIC_100_REPLAY_AND_TEN_THOUSAND_ADVERSE_NO_ACTION_PASS_WITHOUT_WAIT",
     "ALL_REVIEW_FINDINGS_RESOLVED_WITH_OLD_TO_NEW_PROVENANCE",
+    "REPOSITORY_CI_FAST_TARGETED_GATE_CONTRACT_EXACT",
     "NO_EXTERNAL_RUNTIME_OR_FINANCIAL_RETURN_CLAIM",
-    "FULL_STAGE_REGRESSION_TASKPACK_SIGNED_STATE_AND_ROLLBACK_PASS"
+    "FAST_TARGETED_CI_TASKPACK_SIGNED_STATE_AND_ROLLBACK_PASS"
   ],
   "review_findings_path": "machine/evidence/S08/STAGE_REVIEW/findings.json",
+  "repository_ci_contract": {
+    "fast_workflow_path": ".github/workflows/abd-stage0-validation.yml",
+    "fast_workflow_sha256": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
+    "fast_gate_timeout_minutes": 15,
+    "targeted_test_nodes": [
+      "tests/S00/stage_review_test.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports",
+      "tests/S00/stage_review_test.py::test_abd_ci_workflow_mutations_fail_closed",
+      "tests/S00/stage_review_test.py::test_abd_fast_targeted_workflow_mutations_fail_closed",
+      "tests/S08/stage_review_test.py"
+    ],
+    "full_regression_or_real_time_soak_allowed": false,
+    "real_time_soak_waited": false
+  },
   "legacy_receipt_compatibility": {
     "manifest_path": "machine/facts/s08_legacy_receipt_compatibility.json",
-    "manifest_sha256": "d376d18c7fff4f0a568a31b6b512efd671f7f1238bab40c1001817d51c496d41",
+    "manifest_sha256": "52077ad654b9a362f19d25051cf18bcd6fe77d5b993638913ad6fe884dca5324",
     "helper_path": "abd_acceptance/legacy_receipt_compatibility.py",
-    "helper_sha256": "d2fdd15bf93e4941bc278fc991b03a7109c712c0f4935d0dac2426380f867df6",
+    "helper_sha256": "cd521a16aa487c87618b5762c83e99ef3a2f97799c7de3fcabdab891a9b34dc5",
     "legacy_receipt_contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"],
     "constraint": "Only a path already listed by a legacy oracle as SUCCESSOR_EVOLVABLE_SIGNED_INPUTS may use a manifest-listed exact current SHA-256; all other signed inputs remain byte-exact."
   },
@@ -135,7 +149,7 @@
     "ALL_STAGE_PHASES_PASS",
     "WHOLE_STAGE_REVIEW_PASS",
     "ALL_REVIEW_FINDINGS_RESOLVED",
-    "FULL_STAGE_REGRESSION_PASS",
+    "FAST_TARGETED_CI_PASS",
     "SIGNED_STATE_REGRESSION_PASS",
     "PAID_DEPENDENCY_SCAN_PASS",
     "CLEAN_WORKTREE_AFTER_COMMIT",

@@ -64,14 +64,14 @@ RATE_BUDGET_PATH = Path("rate_budget.json")
 COVERAGE_DASHBOARD_PATH = Path("coverage_dashboard.json")
 SILENT_GAP_ORACLE_PATH = Path("silent_gap_oracle.py")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "693f5dd3f11d3836a432260e7cf645f866d6a01501a3c5b61e3e9c7f58fd84ad"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "b0f61172b9f6d0839aba242faf3132aa257b73e9ae326d0788fdfa0bd93e5a85"
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     CONTRACT_PATH.as_posix(): "4181ce43657ad11152acb2a544a0e58dbe402530dee9cef063b3b76577ba9213",
     FINDINGS_PATH.as_posix(): "811314bfcf2f63d9d944b920500aab42454db78e462d6842982826c6c32f7914",
     FIXTURE_PATH.as_posix(): "bee1022c90fa0a7537853179b9c771573fceeba863093a5f15964a69773aa70d",
     TEST_PATH.as_posix(): "cb16462f46ec6b1376ce1ca5b31e7f514f521c6e5fc6d8eceb31200d27c2c269",
 }
-WORKFLOW_SHA256 = "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+WORKFLOW_SHA256 = "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72"
 STAGE_REVIEW_COMMIT = "b280104d2c67018417d84e83e1617d577aa666b7"
 PINNED_STAGE_REVIEW_CODE_HASH = "d77280ff0316537249f16b8d373336af1abb80dd0107d03bbaf9aa8eddaf93a6"
 
@@ -80,6 +80,7 @@ PINNED_STAGE_REVIEW_CODE_HASH = "d77280ff0316537249f16b8d373336af1abb80dd0107d03
 # evolve after S05; a changed byte is accepted only when Git can replay the
 # exact delivered blob at ``STAGE_REVIEW_COMMIT``.  No history means no pass.
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "abd_acceptance/__init__.py",
     "abd_acceptance/__main__.py",
     "abd_acceptance/coverage_observability.py",
@@ -225,7 +226,7 @@ def _historical_file_matches(
         if not _stage_review_commit_is_ancestor(root):
             return False
         blob = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (STAGE_REVIEW_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (STAGE_REVIEW_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -236,7 +237,8 @@ def _historical_file_matches(
         except Exception:
             return False
     successor = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return successor is not None and (root / relative).is_file() and sha256_file(root / relative) == successor
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return successor is not None and candidate.is_file() and sha256_file(candidate) == successor
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
