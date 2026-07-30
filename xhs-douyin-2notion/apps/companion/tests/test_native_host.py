@@ -118,7 +118,10 @@ class NativeHostTests(unittest.TestCase):
         self.assertEqual(recorded.mvp_enrollment_progress.total_recorded_count, 1)
         self.assertEqual(recorded.mvp_enrollment_progress.total_required_count, 80)
         self.assertEqual(
-            [(item.scope_id, item.recorded_count, item.required_count) for item in recorded.mvp_enrollment_progress.scope_progress],
+            [
+                (item.scope_id, item.recorded_count, item.required_count)
+                for item in recorded.mvp_enrollment_progress.scope_progress
+            ],
             [
                 ("xiaohongshu_current_content", 1, 20),
                 ("xiaohongshu_current_content_second_batch", 0, 20),
