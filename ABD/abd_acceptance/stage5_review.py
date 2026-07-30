@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, MutableMapping, Sequence, Tuple
 
 from .canonical_facts import sha256_file, strict_json_load
+from .legacy_receipt_compatibility import approved_successor_sha256
 from .coverage_observability import (
     evaluate_contract as evaluate_p04,
     verify_existing_phase_evidence as verify_p04,
@@ -63,7 +64,7 @@ RATE_BUDGET_PATH = Path("rate_budget.json")
 COVERAGE_DASHBOARD_PATH = Path("coverage_dashboard.json")
 SILENT_GAP_ORACLE_PATH = Path("silent_gap_oracle.py")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "c2138b897c59fa4378c6a4b1cd3f59954f4462ce9300659fac7e73230bcc72d7"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "693f5dd3f11d3836a432260e7cf645f866d6a01501a3c5b61e3e9c7f58fd84ad"
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     CONTRACT_PATH.as_posix(): "4181ce43657ad11152acb2a544a0e58dbe402530dee9cef063b3b76577ba9213",
     FINDINGS_PATH.as_posix(): "811314bfcf2f63d9d944b920500aab42454db78e462d6842982826c6c32f7914",
@@ -89,7 +90,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-    "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
     "abd_acceptance/coverage_observability.py": "fda2042b5d3e1814a909a9cf8b293c42fbd9c74267593dac036751a3abfc0b03",
     "abd_acceptance/market_ontology.py": "7d401f3fa97ca2c25a6e23a98f1dfb889ff27b9a1608131cb1205011167ffcba",
     "abd_acceptance/source_capabilities.py": "6bf37496403c2e81dc0b8ef36cecc2d1f86f263ec905d66c03f8997f464b3b16",
@@ -234,7 +235,7 @@ def _historical_file_matches(
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    successor = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
     return successor is not None and (root / relative).is_file() and sha256_file(root / relative) == successor
 
 

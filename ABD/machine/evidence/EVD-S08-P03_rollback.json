@@ -1,23 +1,23 @@
 {
   "artifacts": {
     "abd_acceptance/__main__.py": {
-      "sha256": "eb324b42a733867568c7dc219c1228d84edae4f00e3550fc8d5179cabe2d220d",
+      "sha256": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
       "status": "PASS"
     },
     "abd_acceptance/budget.py": {
-      "sha256": "793a8b4b9eee3bf5937d5ff7120321bfd4eed2f9c69daec419f0a5d83629233d",
+      "sha256": "7c05deda0fa2943c1e57b124617d91bd2d99f46f0f7241175da7973273bb31c5",
       "status": "PASS"
     },
     "abd_acceptance/market_consensus.py": {
-      "sha256": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+      "sha256": "261536d885a2c20c36335e94c00c47909a45838b3b91d416745319c6b34055da",
       "status": "PASS"
     },
     "consensus_vectors.json": {
-      "sha256": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
+      "sha256": "0fc10d3949080111b246120261c028e486b43a5e84b99a59cc32cbd0de186efb",
       "status": "PASS"
     },
     "machine/tests/fixtures/S08_P03.json": {
-      "sha256": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+      "sha256": "c02b9c078a8dec212cad18a7bac486928624ac56be9e7d9a2aa5191191ad53cb",
       "status": "PASS"
     },
     "market_consensus.py": {

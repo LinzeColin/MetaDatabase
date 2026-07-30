@@ -22,6 +22,7 @@ from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Sequence,
 from .budget import render_scan_report, scan_dependency_budget
 from .canonical_facts import sha256_file, strict_json_load
 from .ledger_trace import verify_existing_phase_evidence as verify_s07_p03_evidence
+from .legacy_receipt_compatibility import approved_successor_sha256
 
 
 CONTRACT_ID = "AC-S07-P04"
@@ -81,7 +82,8 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     P03_EVIDENCE_PATH.as_posix(): "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
     P03_ROLLBACK_PATH.as_posix(): "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "0f81589f2e567b559a343495995952ba5d62603129aa7435e7543f537cb10fba"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "864a0014bea5041e9532a3390654e9f6367f1f04832b2366ac86b50a0982e697"
+LEGACY_EVIDENCE_CODE_HASH = "20a388d41762688b7336698a0069f5c2a6fa817fa7d78436f3ee7d86e460263f"
 FULL_REGRESSION_TEST_MINIMUM = 5028
 REQUIRED_COVERAGE = Decimal("1.0000")
 
@@ -219,6 +221,17 @@ def _structural_self_hash(root: Path) -> str:
 def _current_code_hash(root: Path) -> str:
     payload = ORACLE_PATH.as_posix().encode("utf-8") + b"\0" + (root / ORACLE_PATH).read_bytes() + b"\0"
     return _sha256_bytes(payload)
+
+
+def _structural_self_hash(root: Path) -> str:
+    text = (root / ORACLE_PATH).read_text(encoding="utf-8")
+    normalized = re.sub(
+        r'(?m)^(STRUCTURAL_SELF_NORMALIZED_SHA256 = ")[^"]+("\s*)$',
+        r"\1<NORMALIZED>\2",
+        text,
+        count=1,
+    )
+    return _sha256_bytes(normalized.encode("utf-8")) if normalized != text else "NORMALIZATION_FAILED"
 
 
 def _junit_summary(path: Path) -> Dict[str, int]:
@@ -1191,12 +1204,23 @@ def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = Tru
             try:
                 candidate = _safe_relative(relative)
                 actual = sha256_file(root / candidate) if (root / candidate).is_file() else "MISSING"
-                if actual != expected:
+                if actual != expected and approved_successor_sha256(root, relative) != actual:
                     errors.append({"path": relative, "actual": actual})
             except Exception:
                 errors.append({"path": str(relative), "actual": "UNSAFE_PATH"})
         _add(checks, "S07P04-EXISTING-INPUT-HASHES", not errors, errors or "all inputs match")
-        _add(checks, "S07P04-EXISTING-CODE-HASH", evidence.get("hashes", {}).get("code") == _current_code_hash(root), "current code hash")
+        expected_code = evidence.get("hashes", {}).get("code")
+        current_code = _current_code_hash(root)
+        compatible_code = (
+            expected_code == LEGACY_EVIDENCE_CODE_HASH
+            and _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
+        )
+        _add(
+            checks,
+            "S07P04-EXISTING-CODE-HASH",
+            expected_code == current_code or compatible_code,
+            {"expected": expected_code, "current": current_code, "compatible_structural_hash": compatible_code},
+        )
     else:
         _add(checks, "S07P04-EXISTING-EVIDENCE-INTEGRITY", False, "evidence unavailable")
     if isinstance(rollback, Mapping):

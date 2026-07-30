@@ -9,7 +9,7 @@
   ],
   "contract_id": "AC-S08-P03",
   "decision": "MARKET_CONSENSUS_READY_OUTLIER_GATE_REQUIRED",
-  "decision_sha256": "dbfa3e1d4a6c9e917f76fa47ca172011939e2605779cb0ab3599ec8f76966e2b",
+  "decision_sha256": "89ac7b0e4345c8c09405146c1483cec2e3b52bb587832e261b314a78c2a0740e",
   "deterministic_replay": {
     "adverse_perturbation_iterations": 10000,
     "real_time_wait_performed": false,
@@ -32,14 +32,12 @@
   "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
   "fixed_clock": "2026-07-30T00:00:00+10:00",
   "hashes": {
-    "code": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+    "code": "261536d885a2c20c36335e94c00c47909a45838b3b91d416745319c6b34055da",
     "inputs": {
-      "abd_acceptance/__main__.py": "eb324b42a733867568c7dc219c1228d84edae4f00e3550fc8d5179cabe2d220d",
-      "abd_acceptance/budget.py": "793a8b4b9eee3bf5937d5ff7120321bfd4eed2f9c69daec419f0a5d83629233d",
-      "abd_acceptance/market_consensus.py": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
-      "abd_acceptance/source_independence.py": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
-      "consensus_vectors.json": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
-      "machine/evidence/EVD-S08-P02.json": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+      "abd_acceptance/market_consensus.py": "261536d885a2c20c36335e94c00c47909a45838b3b91d416745319c6b34055da",
+      "abd_acceptance/source_independence.py": "ecf3e4ccbb083a7066c6be54bf8e518c9dc3e5add834d3b8edc8ab128b0c3a1b",
+      "consensus_vectors.json": "0fc10d3949080111b246120261c028e486b43a5e84b99a59cc32cbd0de186efb",
+      "machine/evidence/EVD-S08-P02.json": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c",
       "machine/evidence/S08/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
       "machine/evidence/S08/P03/pytest.xml": "1ff4ae822d4def422c93e1e50d22bc9de0c90c2d172ee4fafca6524f5e540494",
       "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
@@ -51,13 +49,13 @@
       "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S08_P03.json": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+      "machine/tests/fixtures/S08_P03.json": "c02b9c078a8dec212cad18a7bac486928624ac56be9e7d9a2aa5191191ad53cb",
       "market_consensus.py": "7cabd4d261a329412e3c91b72f6626739cd55b6607b8a54f19512f3164039483",
-      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "source_clusters.json": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b",
       "source_independence.py": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
       "tests/S08/P03_test.py": "671438a16f7456a52fdaf785251c717a3772888d6fd1235edeac208574c9482a"
     },
-    "rollback_evidence": "35061e25117f6514b24f739ba3d873fae57e37f01fedf26689407eb76ee4d20b"
+    "rollback_evidence": "163ef2accf53a280969aff21053749a297ad5ac0cc1db001ff9c4d3758e3c15d"
   },
   "next": "S08/P04_READY_NOT_STARTED",
   "phase_id": "P03",
@@ -68,23 +66,23 @@
   "rollback": {
     "artifacts": {
       "abd_acceptance/__main__.py": {
-        "sha256": "eb324b42a733867568c7dc219c1228d84edae4f00e3550fc8d5179cabe2d220d",
+        "sha256": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
         "status": "PASS"
       },
       "abd_acceptance/budget.py": {
-        "sha256": "793a8b4b9eee3bf5937d5ff7120321bfd4eed2f9c69daec419f0a5d83629233d",
+        "sha256": "7c05deda0fa2943c1e57b124617d91bd2d99f46f0f7241175da7973273bb31c5",
         "status": "PASS"
       },
       "abd_acceptance/market_consensus.py": {
-        "sha256": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
+        "sha256": "261536d885a2c20c36335e94c00c47909a45838b3b91d416745319c6b34055da",
         "status": "PASS"
       },
       "consensus_vectors.json": {
-        "sha256": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
+        "sha256": "0fc10d3949080111b246120261c028e486b43a5e84b99a59cc32cbd0de186efb",
         "status": "PASS"
       },
       "machine/tests/fixtures/S08_P03.json": {
-        "sha256": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+        "sha256": "c02b9c078a8dec212cad18a7bac486928624ac56be9e7d9a2aa5191191ad53cb",
         "status": "PASS"
       },
       "market_consensus.py": {
@@ -109,6 +107,14 @@
     "status": "PASS"
   },
   "schema_version": "1.0.0",
+  "shared_runtime_contract": {
+    "current_validation": "evaluate_contract",
+    "paths_excluded_from_receipt_input_hashes": [
+      "abd_acceptance/__main__.py",
+      "abd_acceptance/budget.py"
+    ],
+    "reason": "downstream dispatcher or budget-scanner evolution must not invalidate phase-owned evidence"
+  },
   "stage_id": "S08",
   "status": "PASS",
   "validation": {
@@ -194,17 +200,17 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/requirements.json",
+        "detail": "machine/facts/requirements.json",
         "id": "S08P03-REQUIREMENTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/acceptance_contracts.json",
+        "detail": "machine/facts/acceptance_contracts.json",
         "id": "S08P03-CONTRACTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/task_graph.json",
+        "detail": "machine/facts/task_graph.json",
         "id": "S08P03-TASK-GRAPH-STRICT-JSON",
         "passed": true
       },
@@ -228,27 +234,27 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/EVD-S08-P02.json",
+        "detail": "machine/evidence/EVD-S08-P02.json",
         "id": "S08P03-P02-EVIDENCE-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/source_clusters.json",
+        "detail": "source_clusters.json",
         "id": "S08P03-P02-CLUSTERS-STRICT-JSON",
         "passed": true
       },
       {
         "detail": {
-          "actual": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
-          "expected": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d"
+          "actual": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c",
+          "expected": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c"
         },
         "id": "S08P03-P02-RECEIPT-IMMUTABLE",
         "passed": true
       },
       {
         "detail": {
-          "actual": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
-          "expected": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9"
+          "actual": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b",
+          "expected": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b"
         },
         "id": "S08P03-P02-CLUSTERS-IMMUTABLE",
         "passed": true
@@ -256,7 +262,7 @@
       {
         "detail": {
           "actual_artifact": "machine/evidence/EVD-S08-P02.json",
-          "artifact_sha256": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+          "artifact_sha256": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c",
           "contract_id": "AC-S08-P02",
           "id": "INDEX-AC-S08-P02",
           "kind": "PHASE_EVIDENCE",
@@ -270,7 +276,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/parameters.json",
+        "detail": "machine/facts/parameters.json",
         "id": "S08P03-PARAMETERS-STRICT-JSON",
         "passed": true
       },
@@ -321,12 +327,12 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/tests/fixtures/S08_P03.json",
+        "detail": "machine/tests/fixtures/S08_P03.json",
         "id": "S08P03-FIXTURE-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/consensus_vectors.json",
+        "detail": "consensus_vectors.json",
         "id": "S08P03-VECTORS-STRICT-JSON",
         "passed": true
       },
@@ -683,7 +689,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/validation_report.json",
+        "detail": "machine/evidence/validation_report.json",
         "id": "S08P03-PACK-REPORT-STRICT-JSON",
         "passed": true
       },
@@ -730,9 +736,9 @@
     "hashes": {
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-      "abd_acceptance/market_consensus.py": "866a274f89839b4408738f9e57bc63ac4e199377e052cc87ef194cb3d78f26fa",
-      "consensus_vectors.json": "fe03eccb5f1eb1c02e650ce3cf3e485401de78b8959a53b003f5474edacbb0bf",
-      "machine/evidence/EVD-S08-P02.json": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+      "abd_acceptance/market_consensus.py": "261536d885a2c20c36335e94c00c47909a45838b3b91d416745319c6b34055da",
+      "consensus_vectors.json": "0fc10d3949080111b246120261c028e486b43a5e84b99a59cc32cbd0de186efb",
+      "machine/evidence/EVD-S08-P02.json": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c",
       "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
       "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
       "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
@@ -741,9 +747,9 @@
       "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S08_P03.json": "96a92fef8dd330af4621ec8c600c4418f3861addecf6764f1221e8a6f2727fe7",
+      "machine/tests/fixtures/S08_P03.json": "c02b9c078a8dec212cad18a7bac486928624ac56be9e7d9a2aa5191191ad53cb",
       "market_consensus.py": "7cabd4d261a329412e3c91b72f6626739cd55b6607b8a54f19512f3164039483",
-      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "source_clusters.json": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b",
       "tests/S08/P03_test.py": "671438a16f7456a52fdaf785251c717a3772888d6fd1235edeac208574c9482a"
     },
     "next": "S08/P04_READY_NOT_STARTED",

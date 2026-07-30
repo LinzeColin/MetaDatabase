@@ -9,7 +9,7 @@
   ],
   "contract_id": "AC-S08-P02",
   "decision": "SOURCE_INDEPENDENCE_WEIGHTING_READY_DOWNSTREAM_GATES_REQUIRED",
-  "decision_sha256": "8852e35af2da60a0cb9172a2f06734ca599c953f8942fa2dc36a3ee3890c4c1d",
+  "decision_sha256": "23081db4b2e8eab621befd266ef98db4b082c067ff96f55d4ca6532a8589f5ca",
   "deterministic_replay": {
     "adverse_perturbation_iterations": 10000,
     "real_time_wait_performed": false,
@@ -32,12 +32,10 @@
   "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
   "fixed_clock": "2026-07-30T00:00:00+10:00",
   "hashes": {
-    "code": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+    "code": "ecf3e4ccbb083a7066c6be54bf8e518c9dc3e5add834d3b8edc8ab128b0c3a1b",
     "inputs": {
-      "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-      "abd_acceptance/__main__.py": "774f67a7e2615bd36a296c2bb0ef6704b71a54515004f78d32fc7ffaa81040ac",
-      "abd_acceptance/source_independence.py": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
-      "machine/evidence/EVD-S08-P01.json": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+      "abd_acceptance/source_independence.py": "ecf3e4ccbb083a7066c6be54bf8e518c9dc3e5add834d3b8edc8ab128b0c3a1b",
+      "machine/evidence/EVD-S08-P01.json": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
       "machine/evidence/S08/P02/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
       "machine/evidence/S08/P02/pytest.xml": "8b4c977640f011847cad273302ea27f1cedeb22b997c37e1c57feedf1fcb311e",
       "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
@@ -49,12 +47,12 @@
       "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S08_P02.json": "4c60c4922e7a340342b31da7e0d3c25ca506c4f4f1c4f3646f74590da35d3e77",
-      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "machine/tests/fixtures/S08_P02.json": "c8d04ecf21616c8e270a8a8ecb36f0e478fcc1d5e45f3898d9882613b8babe5f",
+      "source_clusters.json": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b",
       "source_independence.py": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
       "tests/S08/P02_test.py": "64cb5790bcc5022ed69772b3167d9da30c2e84c6e60e55c66961c19ab752cb03"
     },
-    "rollback_evidence": "a242022c019bf28bb411054b1756637fc24554bb8e75f4a8233bbd6bd338dba5"
+    "rollback_evidence": "0f3fda590cce2a1120bbd258a0892c57a13b4eec1a97dd3860f29947f7093b4b"
   },
   "next": "S08/P03_READY_NOT_STARTED",
   "phase_id": "P02",
@@ -69,19 +67,19 @@
         "status": "PASS"
       },
       "abd_acceptance/__main__.py": {
-        "sha256": "774f67a7e2615bd36a296c2bb0ef6704b71a54515004f78d32fc7ffaa81040ac",
+        "sha256": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
         "status": "PASS"
       },
       "abd_acceptance/source_independence.py": {
-        "sha256": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+        "sha256": "ecf3e4ccbb083a7066c6be54bf8e518c9dc3e5add834d3b8edc8ab128b0c3a1b",
         "status": "PASS"
       },
       "machine/tests/fixtures/S08_P02.json": {
-        "sha256": "4c60c4922e7a340342b31da7e0d3c25ca506c4f4f1c4f3646f74590da35d3e77",
+        "sha256": "c8d04ecf21616c8e270a8a8ecb36f0e478fcc1d5e45f3898d9882613b8babe5f",
         "status": "PASS"
       },
       "source_clusters.json": {
-        "sha256": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+        "sha256": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b",
         "status": "PASS"
       },
       "source_independence.py": {
@@ -106,6 +104,14 @@
     "status": "PASS"
   },
   "schema_version": "1.0.0",
+  "shared_runtime_contract": {
+    "current_validation": "evaluate_contract",
+    "paths_excluded_from_receipt_input_hashes": [
+      "abd_acceptance/__main__.py",
+      "abd_acceptance/__init__.py"
+    ],
+    "reason": "downstream dispatcher or bootstrap evolution must not invalidate phase-owned evidence"
+  },
   "stage_id": "S08",
   "status": "PASS",
   "validation": {
@@ -191,17 +197,17 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/requirements.json",
+        "detail": "machine/facts/requirements.json",
         "id": "S08P02-REQUIREMENTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/acceptance_contracts.json",
+        "detail": "machine/facts/acceptance_contracts.json",
         "id": "S08P02-CONTRACTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/task_graph.json",
+        "detail": "machine/facts/task_graph.json",
         "id": "S08P02-TASK-GRAPH-STRICT-JSON",
         "passed": true
       },
@@ -225,25 +231,25 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/EVD-S08-P01.json",
+        "detail": "machine/evidence/EVD-S08-P01.json",
         "id": "S08P02-PREDECESSOR-PARSE-EVD-S08-P01",
         "passed": true
       },
       {
         "detail": {
-          "actual": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
-          "expected": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac"
+          "actual": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
+          "expected": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13"
         },
         "id": "S08P02-PREDECESSOR-HASH-EVD-S08-P01",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/tests/fixtures/S08_P02.json",
+        "detail": "machine/tests/fixtures/S08_P02.json",
         "id": "S08P02-FIXTURE-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/source_clusters.json",
+        "detail": "source_clusters.json",
         "id": "S08P02-CLUSTERS-STRICT-JSON",
         "passed": true
       },
@@ -437,7 +443,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/validation_report.json",
+        "detail": "machine/evidence/validation_report.json",
         "id": "S08P02-PACK-REPORT-STRICT-JSON",
         "passed": true
       },
@@ -484,8 +490,8 @@
     "hashes": {
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-      "abd_acceptance/source_independence.py": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
-      "machine/evidence/EVD-S08-P01.json": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+      "abd_acceptance/source_independence.py": "ecf3e4ccbb083a7066c6be54bf8e518c9dc3e5add834d3b8edc8ab128b0c3a1b",
+      "machine/evidence/EVD-S08-P01.json": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
       "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
       "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
       "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
@@ -494,8 +500,8 @@
       "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S08_P02.json": "4c60c4922e7a340342b31da7e0d3c25ca506c4f4f1c4f3646f74590da35d3e77",
-      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "machine/tests/fixtures/S08_P02.json": "c8d04ecf21616c8e270a8a8ecb36f0e478fcc1d5e45f3898d9882613b8babe5f",
+      "source_clusters.json": "4a07e67e11ee990b8e16ae649f819cfbf7ef490726fc442b981c1a451ebff54b",
       "source_independence.py": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
       "tests/S08/P02_test.py": "64cb5790bcc5022ed69772b3167d9da30c2e84c6e60e55c66961c19ab752cb03"
     },

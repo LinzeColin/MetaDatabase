@@ -9,7 +9,7 @@
   ],
   "contract_id": "AC-S08-P01",
   "decision": "MARKET_PRIOR_DEVIG_READY_DOWNSTREAM_GATES_REQUIRED",
-  "decision_sha256": "c80de983f7021bcd23408168307c7378e0b17229ddf8df423b08eaa0db18a70c",
+  "decision_sha256": "1609cadb7342372b7deb6db0580af31f92b11a39ee6146b7442b53ea0493ea98",
   "deterministic_replay": {
     "adverse_perturbation_iterations": 10000,
     "real_time_wait_performed": false,
@@ -32,11 +32,9 @@
   "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
   "fixed_clock": "2026-07-30T00:00:00+10:00",
   "hashes": {
-    "code": "15d5b03778ce1db3ae2f495e98d3a72307829608ef50e54e491e4d1a69d8d2c9",
+    "code": "116256c8366e1ec9b59b76091ad2d1b837c66918b242024880ee413712e3cf04",
     "inputs": {
-      "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-      "abd_acceptance/__main__.py": "e923e34241a819416194456b83dfac8714e2345807d9e890e8138214f34700e1",
-      "abd_acceptance/devig.py": "15d5b03778ce1db3ae2f495e98d3a72307829608ef50e54e491e4d1a69d8d2c9",
+      "abd_acceptance/devig.py": "116256c8366e1ec9b59b76091ad2d1b837c66918b242024880ee413712e3cf04",
       "devig.py": "3dc43a20d55a4bc7305b83ff1572e6b570814054e92f19a0efc61d15cae6d152",
       "devig_report.json": "a1ae5987e1e892ac4969797cc7599749a5d9f2f1a91f490a78e8e94758946e1c",
       "devig_vectors.json": "ebc39fa41485a8e8eb6b9178c31a1b12c331fb2c16b9255a4ec7ce833a624266",
@@ -56,7 +54,7 @@
       "machine/tests/fixtures/S08_P01.json": "0004477d6914694aef6eb960cb81dd152072f0fe0bdd21052e941c814043d605",
       "tests/S08/P01_test.py": "7b30abacc7543487651e230b303ebcebb9271a07c97f05fc4d6e98f36b1f6722"
     },
-    "rollback_evidence": "6b71327f849d74039011913dd6138b3269c018ccd7442f9db77b66e33688f31d"
+    "rollback_evidence": "539c611a6c339f123215cfb0f3553298ed99e453185df46d2dca06b2906f7cca"
   },
   "next": "S08/P02_READY_NOT_STARTED",
   "phase_id": "P01",
@@ -71,11 +69,11 @@
         "status": "PASS"
       },
       "abd_acceptance/__main__.py": {
-        "sha256": "e923e34241a819416194456b83dfac8714e2345807d9e890e8138214f34700e1",
+        "sha256": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
         "status": "PASS"
       },
       "abd_acceptance/devig.py": {
-        "sha256": "15d5b03778ce1db3ae2f495e98d3a72307829608ef50e54e491e4d1a69d8d2c9",
+        "sha256": "116256c8366e1ec9b59b76091ad2d1b837c66918b242024880ee413712e3cf04",
         "status": "PASS"
       },
       "devig.py": {
@@ -112,6 +110,14 @@
     "status": "PASS"
   },
   "schema_version": "1.0.0",
+  "shared_runtime_contract": {
+    "current_validation": "evaluate_contract",
+    "paths_excluded_from_receipt_input_hashes": [
+      "abd_acceptance/__main__.py",
+      "abd_acceptance/__init__.py"
+    ],
+    "reason": "downstream dispatcher or bootstrap evolution must not invalidate phase-owned evidence"
+  },
   "stage_id": "S08",
   "status": "PASS",
   "validation": {
@@ -197,17 +203,17 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/requirements.json",
+        "detail": "machine/facts/requirements.json",
         "id": "S08P01-REQUIREMENTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/acceptance_contracts.json",
+        "detail": "machine/facts/acceptance_contracts.json",
         "id": "S08P01-CONTRACTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/task_graph.json",
+        "detail": "machine/facts/task_graph.json",
         "id": "S08P01-TASK-GRAPH-STRICT-JSON",
         "passed": true
       },
@@ -232,7 +238,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/EVD-S02-P04.json",
+        "detail": "machine/evidence/EVD-S02-P04.json",
         "id": "S08P01-PREDECESSOR-PARSE-EVD-S02-P04",
         "passed": true
       },
@@ -245,7 +251,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/EVD-S07-P04.json",
+        "detail": "machine/evidence/EVD-S07-P04.json",
         "id": "S08P01-PREDECESSOR-PARSE-EVD-S07-P04",
         "passed": true
       },
@@ -258,12 +264,12 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/devig_vectors.json",
+        "detail": "devig_vectors.json",
         "id": "S08P01-VECTORS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/devig_report.json",
+        "detail": "devig_report.json",
         "id": "S08P01-REPORT-STRICT-JSON",
         "passed": true
       },
@@ -471,7 +477,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/validation_report.json",
+        "detail": "machine/evidence/validation_report.json",
         "id": "S08P01-PACK-REPORT-STRICT-JSON",
         "passed": true
       },
@@ -518,7 +524,7 @@
     "hashes": {
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-      "abd_acceptance/devig.py": "15d5b03778ce1db3ae2f495e98d3a72307829608ef50e54e491e4d1a69d8d2c9",
+      "abd_acceptance/devig.py": "116256c8366e1ec9b59b76091ad2d1b837c66918b242024880ee413712e3cf04",
       "devig.py": "3dc43a20d55a4bc7305b83ff1572e6b570814054e92f19a0efc61d15cae6d152",
       "devig_report.json": "a1ae5987e1e892ac4969797cc7599749a5d9f2f1a91f490a78e8e94758946e1c",
       "devig_vectors.json": "ebc39fa41485a8e8eb6b9178c31a1b12c331fb2c16b9255a4ec7ce833a624266",

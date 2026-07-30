@@ -281,7 +281,7 @@
     "recommendation_generated_or_enabled": false
   },
   "fixed_clock": "2026-07-30T00:00:00+10:00",
-  "fixture_sha256": "b6f6e9aa42fc32f5fe123ebada0c9a180466de3379b4c2b4c6458eb5cd5cca3a",
+  "fixture_sha256": "adf259ad571cb6597eb49a725fd76a986a60e2e99d1d07db3e0cff0e42002578",
   "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
   "phase_id": "P02",
   "product_version": "0.0.0.1",

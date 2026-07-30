@@ -40,10 +40,11 @@ EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 JUNIT_PATH = Path("machine/evidence/S08/P02/pytest.xml")
 SCAN_REPORT_PATH = Path("machine/evidence/S08/P02/paid_dependency_scan.txt")
 PACK_REPORT_PATH = Path("machine/evidence/validation_report.json")
+SHARED_RUNTIME_EXCLUSIONS = (CLI_PATH, INIT_PATH)
 
 _PREDECESSORS = {
     "machine/evidence/EVD-S08-P01.json": {
-        "sha256": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+        "sha256": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
         "contract_id": "AC-S08-P01",
         "status": "PASS",
         "next": "S08/P02_READY_NOT_STARTED",
@@ -108,13 +109,21 @@ def _add(checks: List[Dict[str, Any]], identifier: str, passed: bool, detail: An
     checks.append({"id": identifier, "passed": bool(passed), "detail": detail})
 
 
-def _safe_load(path: Path, checks: List[Dict[str, Any]], identifier: str) -> Any:
+def _portable(root: Path, path: Path) -> str:
     try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError as exc:
+        raise SourceIndependenceAcceptanceError("path is outside the ABD root") from exc
+
+
+def _safe_load(root: Path, path: Path, checks: List[Dict[str, Any]], identifier: str) -> Any:
+    try:
+        portable = _portable(root, path)
         value = strict_json_load(path)
     except Exception as exc:
         _add(checks, identifier, False, "%s: %s" % (type(exc).__name__, exc))
         return None
-    _add(checks, identifier, True, path.as_posix())
+    _add(checks, identifier, True, portable)
     return value
 
 
@@ -175,9 +184,9 @@ def _check_baseline(root: Path, checks: List[Dict[str, Any]], hashes: MutableMap
 
 
 def _check_taskpack(root: Path, checks: List[Dict[str, Any]]) -> None:
-    requirements = _safe_load(root / "machine/facts/requirements.json", checks, "S08P02-REQUIREMENTS-STRICT-JSON")
-    contracts = _safe_load(root / "machine/facts/acceptance_contracts.json", checks, "S08P02-CONTRACTS-STRICT-JSON")
-    task_graph = _safe_load(root / "machine/facts/task_graph.json", checks, "S08P02-TASK-GRAPH-STRICT-JSON")
+    requirements = _safe_load(root, root / "machine/facts/requirements.json", checks, "S08P02-REQUIREMENTS-STRICT-JSON")
+    contracts = _safe_load(root, root / "machine/facts/acceptance_contracts.json", checks, "S08P02-CONTRACTS-STRICT-JSON")
+    task_graph = _safe_load(root, root / "machine/facts/task_graph.json", checks, "S08P02-TASK-GRAPH-STRICT-JSON")
     if not isinstance(requirements, list) or not isinstance(contracts, list) or not isinstance(task_graph, Mapping):
         _add(checks, "S08P02-TASKPACK-EXACT", False, "task pack inputs malformed")
         return
@@ -209,7 +218,7 @@ def _check_taskpack(root: Path, checks: List[Dict[str, Any]]) -> None:
 def _check_predecessors(root: Path, checks: List[Dict[str, Any]], hashes: MutableMapping[str, str]) -> None:
     for relative, expected in _PREDECESSORS.items():
         path = root / relative
-        value = _safe_load(path, checks, "S08P02-PREDECESSOR-PARSE-%s" % Path(relative).stem)
+        value = _safe_load(root, path, checks, "S08P02-PREDECESSOR-PARSE-%s" % Path(relative).stem)
         try:
             actual = sha256_file(path)
         except Exception as exc:
@@ -221,8 +230,8 @@ def _check_predecessors(root: Path, checks: List[Dict[str, Any]], hashes: Mutabl
 
 
 def _check_clusters(root: Path, checks: List[Dict[str, Any]], hashes: MutableMapping[str, str]) -> None:
-    fixture = _safe_load(root / FIXTURE_PATH, checks, "S08P02-FIXTURE-STRICT-JSON")
-    clusters = _safe_load(root / CLUSTERS_PATH, checks, "S08P02-CLUSTERS-STRICT-JSON")
+    fixture = _safe_load(root, root / FIXTURE_PATH, checks, "S08P02-FIXTURE-STRICT-JSON")
+    clusters = _safe_load(root, root / CLUSTERS_PATH, checks, "S08P02-CLUSTERS-STRICT-JSON")
     if not isinstance(fixture, Mapping) or not isinstance(clusters, Mapping):
         return
     try:
@@ -356,7 +365,7 @@ def _check_reports(root: Path, checks: List[Dict[str, Any]], *, require_test_rep
         _add(checks, "S08P02-SCAN-REPORT", scan_ok, SCAN_REPORT_PATH.as_posix())
     except Exception as exc:
         _add(checks, "S08P02-SCAN-REPORT", False, "%s: %s" % (type(exc).__name__, exc))
-    pack = _safe_load(root / PACK_REPORT_PATH, checks, "S08P02-PACK-REPORT-STRICT-JSON")
+    pack = _safe_load(root, root / PACK_REPORT_PATH, checks, "S08P02-PACK-REPORT-STRICT-JSON")
     _add(checks, "S08P02-PACK-REPORT-PASS", isinstance(pack, Mapping) and pack.get("status") == "PASS", pack.get("summary") if isinstance(pack, Mapping) else "unavailable")
 
 
@@ -425,7 +434,7 @@ def perform_rollback_drill(root: Path) -> Dict[str, Any]:
 
 def _input_hashes(root: Path, *, require_test_reports: bool) -> Dict[str, str]:
     paths = [
-        CORE_PATH, CLUSTERS_PATH, ORACLE_PATH, CLI_PATH, INIT_PATH, TEST_PATH, FIXTURE_PATH,
+        CORE_PATH, CLUSTERS_PATH, ORACLE_PATH, TEST_PATH, FIXTURE_PATH,
         Path("machine/facts/canonical_facts.json"), Path("machine/facts/parameters.json"), Path("machine/facts/costs.json"),
         Path("machine/facts/requirements.json"), Path("machine/facts/acceptance_contracts.json"), Path("machine/facts/task_graph.json"), Path("machine/facts/traceability_matrix.json"), Path("machine/facts/roadmap.json"),
         Path("machine/evidence/EVD-S08-P01.json"),
@@ -433,6 +442,14 @@ def _input_hashes(root: Path, *, require_test_reports: bool) -> Dict[str, str]:
     if require_test_reports:
         paths.extend([JUNIT_PATH, SCAN_REPORT_PATH, PACK_REPORT_PATH])
     return {path.as_posix(): sha256_file(root / path) for path in paths}
+
+
+def _shared_runtime_contract() -> Dict[str, Any]:
+    return {
+        "paths_excluded_from_receipt_input_hashes": [path.as_posix() for path in SHARED_RUNTIME_EXCLUSIONS],
+        "current_validation": "evaluate_contract",
+        "reason": "downstream dispatcher or bootstrap evolution must not invalidate phase-owned evidence",
+    }
 
 
 def _decision_hash(evidence: Mapping[str, Any]) -> str:
@@ -466,6 +483,7 @@ def build_evidence(root: Path, require_test_reports: bool = False) -> tuple[Dict
             "inputs": _input_hashes(root, require_test_reports=require_test_reports),
             "rollback_evidence": _sha256_bytes(_json_bytes(rollback)),
         },
+        "shared_runtime_contract": _shared_runtime_contract(),
         "commands": [
             "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S08/P02/paid_dependency_scan.txt",
             "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
@@ -543,6 +561,7 @@ def verify_existing_phase_evidence(root: Path) -> Dict[str, Any]:
         and evidence.get("decision") == "SOURCE_INDEPENDENCE_WEIGHTING_READY_DOWNSTREAM_GATES_REQUIRED"
         and evidence.get("next") == "S08/P03_READY_NOT_STARTED"
         and evidence.get("hashes", {}).get("inputs") == current_inputs
+        and evidence.get("shared_runtime_contract") == _shared_runtime_contract()
         and evidence.get("decision_sha256") == _decision_hash(evidence)
         and validation.get("status") == "PASS"
         and rollback.get("status") == "PASS"

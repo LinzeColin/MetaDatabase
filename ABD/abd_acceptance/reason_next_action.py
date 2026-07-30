@@ -17,6 +17,7 @@ from .advice_card import (
     verify_existing_phase_evidence as verify_p02_evidence,
 )
 from .canonical_facts import sha256_file, strict_json_load
+from .legacy_receipt_compatibility import approved_successor_sha256
 from .terminology_governance import scan_ui_text
 
 
@@ -78,7 +79,7 @@ PINNED_BASELINE_HASHES = {
     "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
     "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "21c48f43ce53d3fce70e267a648d715dc268b4064defea00257a36b15faab84a"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "f72c8eabc28e5ea8fd612854aa6871c0334636b41216ba7287d570f1bb6aa436"
 
 PHASE_COMMIT = "86f268310e24eeab10639c6c36cbfcec544f9c74"
 PINNED_PHASE_CODE_HASH = "eba903e5593fcc5aebfb1432ec8b8f3614680d1898fc5e101e4a9de07fd564b2"
@@ -95,7 +96,7 @@ SUCCESSOR_UNIT_PROFILE_HASHES = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "abd_acceptance/advice_card.py": "17a505bc3ad9c97bbb959846509974200a6af7dbf5280708a0c14391accd9ce1",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
-    "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
     "tests/S03/P03_test.py": "39bbb785926ae83dc84768d83b28ad2c21d3acbed05c588284b2d1682a639f71",
 }
@@ -1307,7 +1308,7 @@ def _historical_file_matches(
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    evolved = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
     return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
 
 

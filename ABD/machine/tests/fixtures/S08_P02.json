@@ -13,7 +13,7 @@
   "fixed_seed": 8002,
   "expected_oracle_check_minimum": 30,
   "expected_task_ids": ["T-S08-P02-01", "T-S08-P02-02", "T-S08-P02-03"],
-  "predecessor_evidence_sha256": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+  "predecessor_evidence_sha256": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
   "claim_boundary": {
     "network_accessed": false,
     "actual_market_or_odds_observed": false,

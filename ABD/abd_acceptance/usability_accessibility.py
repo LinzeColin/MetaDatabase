@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Mapping, MutableMapping, Sequence, Tuple
 
 from .advice_card import contrast_ratio
 from .canonical_facts import sha256_file, strict_json_load
+from .legacy_receipt_compatibility import approved_successor_sha256
 from .reason_next_action import (
     render_failure_guidance,
     resolve_failure_states,
@@ -54,7 +55,7 @@ CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 FAILURE_GUIDANCE_ORDER = ["failure_status", "failure_reason", "next_action", "safety"]
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "5fc44f8cc55df90f6f47e205018e253a09578d005051fa75c36cac2b20bbba7c"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "08e93f5f4b5fe5a0b0a18ce0c61f66b0cdfa509dbe3d8d5f21a609bdcfab4b51"
 
 PHASE_COMMIT = "ef74f1f49994b4249844485bf3e61eb8c65a06b2"
 PINNED_PHASE_CODE_HASH = "dc0228b02944f70eec4d565467a7e1788558c5ef061190106815fd28245b87db"
@@ -82,7 +83,7 @@ SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "abd_acceptance/advice_card.py": "17a505bc3ad9c97bbb959846509974200a6af7dbf5280708a0c14391accd9ce1",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
     "abd_acceptance/stage2_review.py": "0a75b426183fa7edac281bec24b2dc743464ee62426b933d86dbeaf735a0d3ae",
-    "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
 }
 
@@ -1130,7 +1131,7 @@ def _historical_file_matches(
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    evolved = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
     return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
 
 

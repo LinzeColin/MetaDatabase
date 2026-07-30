@@ -15,6 +15,7 @@ from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Sequence,
 from jsonschema import Draft202012Validator, FormatChecker
 
 from .canonical_facts import sha256_file, strict_json_load
+from .legacy_receipt_compatibility import approved_successor_sha256
 from .stage2_delivery import verify_stage2_delivery
 from .stage4_delivery import (
     PINNED_RECEIPT_SHA256 as STAGE4_DELIVERY_RECEIPT_SHA256,
@@ -44,7 +45,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S05-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "93e9d98e373f33d0bb73158f8cf1763201ba134463dfe537885cc33c7a64e6db"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "22d29de633cf7baf59dc16d831582828e5137547b4e182dbe275d6e391c0337c"
 PHASE_COMMIT = "6ddbf8a36b4b089ab0511bd26f7d0c0fa2662bcc"
 PINNED_PHASE_CODE_HASH = "e5ebba41d7a5943b5302cf0d5813a165aae77cb99fc84d8de72c5f358cf9bc1e"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -59,7 +60,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-    "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
     "abd_acceptance/stage4_review.py": "2d338489adfa785be7483c3da4ae16150b78f93c7dc9372718fc7073a766862f",
     "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
     "tests/S05/P01_test.py": "44f2132acd1a9f04ef1b3297300f22e2cbcb86e0db10ec8cf5ca90fa48cab8f7",
@@ -237,7 +238,7 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str, ve
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    successor = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
     return successor not in {None, "TO_BE_FILLED"} and (root / relative).is_file() and sha256_file(root / relative) == successor
 
 

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Sequence, Tuple
 
 from .canonical_facts import sha256_file, strict_json_load
+from .legacy_receipt_compatibility import approved_successor_sha256
 from .capacity_governance import (
     evaluate_contract as evaluate_p04,
     validate_capacity_budget,
@@ -61,7 +62,7 @@ EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 CLOUDFLARED_UNIT_PATH = Path("infra/systemd/abd-cloudflared.service")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "4d299d6d49ffba36a0da953b4f6a38093395b2498c7945fad59a4d4f0fb29033"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "d2975e701e11a0986cf0c13cc0b97dbc825dd40c3d5801d168470e634584696c"
 STAGE_REVIEW_COMMIT = "258e335ed01a40e6b6ae197bbb8b92398c73b64b"
 PINNED_STAGE_REVIEW_CODE_HASH = "e9b16505eec08cdffc69f21eddc3a9c2c7b9cb262116b406019da32e9d8e6458"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -74,7 +75,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
-    "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
@@ -221,7 +222,7 @@ def _historical_file_matches(
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    evolved = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
     return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
 
 

@@ -155,7 +155,7 @@
     "recommendation_generated_or_enabled": false
   },
   "fixed_clock": "2026-07-30T00:00:00+10:00",
-  "fixture_sha256": "1b22d8aa9eaa643c4c22492e03b3f433943baea65f15ee3d1726c88413b802f8",
+  "fixture_sha256": "0d206a759f28fe04049fbafaa7704c870203a1995e31a5352728c01b151b8559",
   "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
   "phase_id": "P03",
   "product_version": "0.0.0.1",

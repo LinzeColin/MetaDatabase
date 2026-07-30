@@ -549,7 +549,7 @@
     "recommendation_generated_or_enabled": false
   },
   "fixed_clock": "2026-07-30T00:00:00+10:00",
-  "fixture_sha256": "7f28f5e14c83abd8ab945109a78b3eb0a82ae59ffa017ce799e193eae5b10bd8",
+  "fixture_sha256": "95b5f23b6d177d6a5afb2d024a6190a1e828a78d21ac4509f67f70149041911d",
   "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
   "phase_id": "P04",
   "predecessor_contract_id": "AC-S08-P03",

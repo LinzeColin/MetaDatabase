@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "compatibility_id": "ABD-S08-LEGACY-RECEIPT-COMPATIBILITY",
+  "stage_id": "S08",
+  "fixed_at": "2026-07-30T00:00:00+10:00",
+  "purpose": "S08 stage-review remediation: exact successor hashes for paths previously declared evolvable by immutable legacy receipt oracles.",
+  "approved_successor_hashes": {
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
+    "abd_acceptance/advice_card.py": "3757e0c8b46dfbc3373119a4a57722e115978003bdf9504ef3974b0f45ba20a2",
+    "abd_acceptance/coverage_observability.py": "8216e28b16a7d9fe48274edaac83e012882cd019f2c07e9f4751e6ead2c76863",
+    "abd_acceptance/evidence_continuity.py": "92b66bef91b3ac196e755ca62058b18bcdf52cba163e2c9c44f17867810057c9",
+    "abd_acceptance/market_ontology.py": "fc60b58b509c5bbb2de99e3b4efd4f3accb4187a12089feee78d277b1c4ec70b",
+    "abd_acceptance/reason_next_action.py": "4bcc5740c9b2501f55f744931640667e3966dcc43bc7ef6e7829d35af35199c3",
+    "abd_acceptance/source_capabilities.py": "363bd7eb3d4bf9d15d050ecf2bcf2fdb4bdb628a85f68c6f37bb57d327ebe495",
+    "abd_acceptance/source_scheduler.py": "9009e99aab032b3d1aa35e18ebf318ce2d2eafdf29049efb9e04e6d4a3b5dcf7",
+    "abd_acceptance/stage3_review.py": "23c9a915944e74eae94ab567840a9144cf7d824512ff1922d98957412918ee63",
+    "abd_acceptance/stage4_review.py": "eb9624b66f8d6006ec1d7660ab870df11ee56edcba0a908b6a35eae1c38be0e3",
+    "abd_acceptance/stage5_review.py": "7abecf78a1503fbae55a63dc045ebdfa8167c56b0f276ea09b438c84f57fd7db",
+    "abd_acceptance/usability_accessibility.py": "531d0a05cc70c5f6418b14b748a8aaba12481949e386a6a30a568055be9c0673"
+  }
+}

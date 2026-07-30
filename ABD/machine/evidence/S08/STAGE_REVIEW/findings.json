@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S08-WHOLE-STAGE-REVIEW",
+  "stage_id": "S08",
+  "fixed_at": "2026-07-30T00:00:00+10:00",
+  "summary": {"total": 2, "open": 0, "resolved": 2, "blocked": 0},
+  "findings": [
+    {
+      "id": "S08-REVIEW-001",
+      "severity": "HIGH_EVIDENCE_INTEGRITY",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "阶段收据含本机路径且共享接线变化会破坏历史重放",
+      "affected_phases": ["P01", "P02", "P03", "P04"],
+      "discovery_evidence": {
+        "pre_review_replay": {"P01": "FAIL", "P02": "FAIL", "P03": "FAIL", "P04": "PASS"},
+        "absolute_path_scan": "P01_TO_P04_SIGNED_RECEIPTS_CONTAINED_WORKTREE_PATHS"
+      },
+      "root_cause": "验收详情序列化了绝对路径，且 phase 收据把可演进的共享 dispatcher 或 budget scanner 当作历史输入哈希。",
+      "remediation": [
+        "所有 S08 phase 验收详情改为相对 ABD 根目录路径，根外路径 fail-closed。",
+        "共享 dispatcher、bootstrap 和 budget scanner 从 phase 历史输入哈希中显式排除，但每次 current validation 仍实时执行。",
+        "按 P01→P04 前序依赖顺序重放派生制品、JUnit、扫描和签名收据。"
+      ],
+      "old_to_new_receipt_sha256": {
+        "P01": {"old": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac", "new": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13"},
+        "P02": {"old": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d", "new": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c"},
+        "P03": {"old": "6d70ea3d8960da3af41d7156d6400335de65b822d83531e15565010d637cf9f5", "new": "b5e92c155f25f7b505f4129a4599af7425c117eda7a6828cbcbd7443a7ff367b"},
+        "P04": {"old": "a93e4be417428195a7b656ef7ab49a452dff2ec27464798ba065abaf1ec4acaa", "new": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3"}
+      },
+      "closure_evidence": [
+        "all four current evidence verifiers pass",
+        "signed P01-P04 receipt and rollback scan has no local path URI",
+        "whole-stage deterministic replay and adverse perturbation remain actionless"
+      ],
+      "external_state_changed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S08-REVIEW-002",
+      "severity": "HIGH_CONTINUOUS_EVIDENCE_INTEGRITY",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "已发布阶段的 successor-evolvable 输入在无 Git 历史重放时没有当前精确兼容锚点",
+      "affected_contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"],
+      "discovery_evidence": {
+        "full_regression_initial_result": "10_FAILED_5267_PASSED",
+        "root_cause": "旧 Oracle 已声明部分输入可演进，但 portable replay 只能接受过期的单一 successor hash；共享 dispatcher 后续阶段扩展后，历史收据会 fail-closed。"
+      },
+      "remediation": [
+        "新增 machine/facts/s08_legacy_receipt_compatibility.json，固定 S08 审查时的精确 successor source SHA-256。",
+        "兼容 helper 先验证其固定 manifest SHA-256，再只为旧 Oracle 已显式声明的 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS 返回精确当前哈希；不匹配、越界或未声明路径一律 fail-closed。",
+        "S03、S04、S05、S07 原失败的独立回执与 S07 整体复审定向重放均通过；历史 evidence bytes、GitHub 状态和外部系统均未改写。"
+      ],
+      "closure_evidence": [
+        "S03/P04 isolated receipt replay PASS",
+        "S04/P04 isolated receipt replay PASS",
+        "S05/P04 isolated receipt replay PASS",
+        "S07/P04 and S07 stage-review targeted replay PASS",
+        "compatibility manifest and helper are hash-pinned by S08 review contract"
+      ],
+      "external_state_changed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "real_time_soak_waited": false
+    }
+  ]
+}

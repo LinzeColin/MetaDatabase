@@ -9,7 +9,7 @@
       "status": "PASS"
     },
     "abd_acceptance/outlier_line_movement.py": {
-      "sha256": "dec5bc0cf04abccda1fc620fd276f4f90f1dfb62cd304ba769911845b3f37726",
+      "sha256": "3956069215b5ab81a445e5550c436f4faaefc2db2de2fc48dd19c3fc6bbef1d3",
       "status": "PASS"
     },
     "line_movement.py": {
@@ -17,7 +17,7 @@
       "status": "PASS"
     },
     "machine/tests/fixtures/S08_P04.json": {
-      "sha256": "90cc366db4928141c026139ad17aa5a97fcea03c9f3092949a7e7f791d4effcc",
+      "sha256": "f1599379deefe7a202a25e933aa5f739be6f62d711ebc93423e746fa9c2e8738",
       "status": "PASS"
     },
     "outlier_detector.py": {
@@ -25,7 +25,7 @@
       "status": "PASS"
     },
     "outlier_fixtures.json": {
-      "sha256": "dccdb5d3ac35b2a5d4320954757c849ad3a5c39a079ad0c2b27402b29b324146",
+      "sha256": "e6b91ba7c9522221fb7b97ca3a1f9bb83aaa790c34693b0705bba9272e9e6474",
       "status": "PASS"
     },
     "tests/S08/P04_test.py": {
