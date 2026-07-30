@@ -59,6 +59,12 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   digest-addressed private bundle. That is the expected temporary-bridge state, not a fresh slot, deployment, or arm
   permission; it keeps `ready_to_arm=false`. The Host must be removed after hash-only preparation and before the later
   fresh deployment install. A foreign, ambiguous, or malformed residual remains `BLOCKED_EXISTING_TARGET`.
+- The owner-visible local entry named `x2n-点这里安装最新版` is now refreshed atomically to the verified current
+  pre-arm Side Panel bundle. It refuses to overwrite a regular file, broken link, foreign target, or malformed bundle;
+  it is a local loading convenience, never a release pointer or identity. The temporary Host now also has a paired,
+  confirmation-bound `uninstall-prearm-sidepanel-host` route: it removes only the one Bridge proved bound to a verified
+  pre-arm bundle, then the current Host installer can bind the refreshed package. This update has been executed once
+  against the real Owner-private runtime with zero platform/account calls and no release-pointer change.
 - A private Owner MVP input, release-state, or browser-handshake symlink, including a dangling one, is treated as
   unsafe rather than absent. `load`, `arm`, state persistence, and handshake recording reject it before any
   pre-switch backup, private state write, or platform action.
@@ -142,6 +148,13 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
+- Current handoff checkpoint: source commit `41ba2f29` is pushed to the branch and the worktree/remote heads match.
+  The A005 full software lane passed all 22 blocking executions across two repetitions, including the native Extension
+  E2E and historical Stage 5 review. The candidate artifact is deterministic (94 members, zero runtime-data files and
+  zero allowlist findings); branch coverage is 77.78%; OSV reported zero vulnerabilities across 33 dependencies;
+  platform, real-account, and model calls are all zero. The current Owner-private stable entry and temporary Host were
+  then refreshed and re-verified by aggregate-only preflight as `PREARM_BRIDGE_INSTALLED`; no Owner input, Canonical
+  write, deployment, or smoke has occurred.
 - The unavailable-detail refinement passed extension self-test; all XHS, Douyin, 哔哩哔哩, 快手, 微博, and 淘宝 fixture
   suites; and both isolated XHS and Douyin Extension E2Es. The latter exercised the XHS guide, the new real-shaped
   哔哩哔哩 unavailable-detail state with zero visible actions, synthetic capture, and 100 service-worker restarts with
@@ -171,11 +184,11 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
   generated-contract verification, Ruff, JavaScript syntax checks, extension self-test, XHS current-page fixtures,
   XHS MVP surface-safety fixtures, Douyin visible-list fixtures, and the 100-restart Douyin extension E2E. This is
   local/synthetic evidence only; it proves neither a live Owner input nor a platform capture.
-- Current Companion discovery contains 332 tests. A bounded current full rerun was stopped during the existing 10k
-  Markdown rebuild without a verdict, so it is not treated as a current full-suite pass. Focused A005
-  bundle/release/acceptance tests passed: 36 tests, covering exact scopes, hash-manifest mismatch before adapter
-  initialization, Markdown idempotency, durable archive proof, external gates, deployment-failure cleanup, pointer
-  rollback, staged Native Host binding, and stale Side Panel identity rejection.
+- An earlier broad Companion discovery run stopped during an existing 10k Markdown rebuild and remains non-evidence.
+  It has been superseded only for the declared A005 software-lane surface by the current full 22-execution pass above;
+  focused A005 bundle/release/acceptance coverage continues to prove exact scopes, pre-write hash-manifest mismatch,
+  Markdown idempotency, durable archive proof, external gates, deployment cleanup, pointer rollback, staged Host
+  binding, and stale Side Panel identity rejection.
 - Contract `unittest discover` passed: 18 tests. Extension full E2E, XHS fixture suites, TypeScript contract checking,
   Ruff, schema parsing, source privacy scan, and a temporary candidate-artifact scan passed. All fixture platform
   calls remain `0`; the current candidate artifact has 93 members and 0 runtime-data files.
@@ -221,8 +234,9 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 ## Next work
 
 1. Do not create `v0.0.0.1` until the Owner is ready to execute the complete direct-release sequence.
-2. In the current delegated Owner run, the stable pre-arm Host is already installed. Load the freshly staged stable
-   first-use Side Panel bundle rather than any `scratch` source directory. On the exact 小红书收藏笔记 list, the intended first screen is the guide with no save
+2. In the current delegated Owner run, the stable pre-arm Host and the owner-visible stable entry are already refreshed.
+   The Chrome Extension Manager action remains manual: load/reload the stable entry rather than any `scratch` source
+   directory. On the exact 小红书收藏笔记 list, the intended first screen is the guide with no save
    button: manually open one visible note, then use the single 保存这条笔记 button on its detail page. Then freshly observe the two
    Douyin lists without scrolling, then use the Side Panel to record their two
    exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
