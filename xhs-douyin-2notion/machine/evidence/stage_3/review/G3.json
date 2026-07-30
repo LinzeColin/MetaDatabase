@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.3",
+  "review_id": "STG.X2N.3.REVIEW",
+  "run_id": "RUN-X2N-S03-REVIEW",
+  "gate_id": "G3",
+  "decision": "FAIL_CLOSED",
+  "status": "BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION",
+  "local_reacceptance": "PASS",
+  "pass_conditions": {
+    "eight_independently_scoped_relation_list_canaries": "BLOCKED_OWNER_AND_CONTRACT_AMBIGUITY",
+    "checkpoint_resume": "PASS_CI_SYNTH",
+    "no_empty_response_deletion": "PASS_CI_SYNTH",
+    "batch_failure_current_page_fallback": "BLOCKED_TECHNICAL"
+  },
+  "canary_execution": {
+    "scope_count": 8,
+    "pass": 0,
+    "not_run": 8,
+    "private_manifests_in_repository": 0,
+    "platform_calls": 0
+  },
+  "redaction": {
+    "secrets_included": false,
+    "credentials_included": false,
+    "cdn_urls_included": false,
+    "profile_paths_included": false,
+    "private_content_included": false
+  },
+  "stage_3_remote_upload_authorized": false,
+  "stage_4_authorized": false,
+  "public_release_authorized": false,
+  "required_next_run": "STG.X2N.3.REVIEW.RESUME"
+}

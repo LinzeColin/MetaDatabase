@@ -33,12 +33,15 @@ class Foundation004Tests(unittest.TestCase):
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S01-F004")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "84731bde18495ab20af005bc70d59d5ce73cbe93")
         self.assertEqual(VERIFY.ORIGIN_CUTOFF, "baac314b7d97369496212ae89057ec107d187f23")
-        self.assertEqual(VERIFY.ALLOWED_CHANGED_PREFIXES, (
-            "apps/companion/native-host/",
-            "apps/extension/styles/",
-            "evidence/extension/",
-            "packages/test-fixtures/extension/",
-        ))
+        self.assertEqual(
+            VERIFY.ALLOWED_CHANGED_PREFIXES,
+            (
+                "apps/companion/native-host/",
+                "apps/extension/styles/",
+                "evidence/extension/",
+                "packages/test-fixtures/extension/",
+            ),
+        )
 
     def test_extension_permissions_and_origin_are_exact(self) -> None:
         historical = VERIFY._load_baseline_json(VERIFY.MANIFEST)
@@ -53,9 +56,9 @@ class Foundation004Tests(unittest.TestCase):
         self.assertNotIn("*", json.dumps(policy, sort_keys=True))
 
     def test_installer_has_no_arbitrary_path_or_command_argument(self) -> None:
-        source = (
-            PROJECT_ROOT / "apps/companion/src/x2n_companion/native_host_installer.py"
-        ).read_text(encoding="utf-8")
+        source = (PROJECT_ROOT / "apps/companion/src/x2n_companion/native_host_installer.py").read_text(
+            encoding="utf-8"
+        )
         self.assertEqual(
             set(VERIFY.re.findall(r'parser\.add_argument\("([^"]+)"', source)),
             {"action", "--browser", "--confirm"},
@@ -90,9 +93,7 @@ class Foundation004Tests(unittest.TestCase):
         self.assertEqual(env["npm_config_ignore_scripts"], "true")
 
     def test_extension_e2e_uses_an_environment_allowlist(self) -> None:
-        source = (
-            PROJECT_ROOT / "apps/extension/scripts/extension-e2e.mjs"
-        ).read_text(encoding="utf-8")
+        source = (PROJECT_ROOT / "apps/extension/scripts/extension-e2e.mjs").read_text(encoding="utf-8")
         self.assertNotIn("...process.env", source)
         self.assertIn('PATH: process.env.PATH ?? ""', source)
 
@@ -108,10 +109,7 @@ class Foundation004Tests(unittest.TestCase):
     def test_current_sbom_accounts_for_install_script_without_executing_it(self) -> None:
         sbom = json.loads(VERIFY.SBOM.read_text(encoding="utf-8"))
         self.assertEqual(len(sbom["components"]), 30)
-        properties = {
-            item["name"]: item["value"]
-            for item in sbom["metadata"]["properties"]
-        }
+        properties = {item["name"]: item["value"] for item in sbom["metadata"]["properties"]}
         self.assertEqual(properties["x2n:install-script-packages"], "fsevents")
         self.assertEqual(properties["x2n:install-scripts-executed"], "0")
         self.assertEqual(properties["x2n:npm-install-policy"], "ignore-scripts")

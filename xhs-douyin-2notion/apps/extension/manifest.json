@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "x2n Development Side Panel",
+  "name": "x2n 内容库",
   "version": "0.0.0.1",
-  "description": "Personal content knowledge governance with explicit current-page capture.",
+  "description": "保存你明确选择的当前内容，并在本机整理为知识资产。",
   "minimum_chrome_version": "120",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwf0gIyfs7+F8u8hgp5kddE8jYDmcU4w4w5Cn2gUhYtRt8wIA8TjfJ3dxjvqKCEdyJAvxGInvDzWr+C8GdXLQZ989ReJvvtZzreYcnQOWIpgOzwlExYQlostAGutcq0NatVDZAOEii+SwmbOJt1kxNzkIMzpJ3fjwhmBYSXdNWVi2HMYTbYeBTkTXb29dnNrB3JhHscawiXte/Q+qhmGOWZkg/N3/NY06e+lpNhw5gtta+c3dhqsXsPmj0aQ/TIlP6gMbiRIvTTm4fPptyIM/LcgiQ/uJaoeZGF9K3Mv+qIpXzfa8mXgxKZEorGJtV8i0Od8r1yittgDxeml68JLrawIDAQAB",
   "permissions": [
@@ -19,7 +19,7 @@
     "default_path": "sidepanel.html"
   },
   "action": {
-    "default_title": "Open x2n Side Panel"
+    "default_title": "打开 x2n 内容库"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none';"

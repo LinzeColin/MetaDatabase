@@ -64,7 +64,9 @@ _MEDIA_HOST_MARKERS = tuple(
     sorted({suffix.split(".", 1)[0] for suffixes in PLATFORM_CDN_SUFFIXES.values() for suffix in suffixes})
 )
 _CDN_URL_PATTERN = re.compile(
-    rb"https?://[^\s<>\"']{0,2048}(?:" + b"|".join(re.escape(item.encode("ascii")) for item in _MEDIA_HOST_MARKERS) + rb")[^\s<>\"']*",
+    rb"https?://[^\s<>\"']{0,2048}(?:"
+    + b"|".join(re.escape(item.encode("ascii")) for item in _MEDIA_HOST_MARKERS)
+    + rb")[^\s<>\"']*",
     flags=re.IGNORECASE,
 )
 _SENSITIVE_QUERY_PATTERN = re.compile(
@@ -830,6 +832,91 @@ def _lease_path(paths: RuntimePaths, record: MediaLeaseRecord) -> Path:
     return candidate
 
 
+def _lease_derived_path(paths: RuntimePaths, record: MediaLeaseRecord) -> Path:
+    """Return the deterministic private workspace for one media lease.
+
+    The workspace is deliberately derived from the lease identity instead of
+    being persisted as another path-bearing database field.  This lets the
+    lease cleaner recover processor leftovers after a process crash without
+    making any raw media or local path part of a public receipt.
+    """
+
+    source = _lease_path(paths, record)
+    candidate = source.with_name(f"{record.lease_id}.derived")
+    try:
+        candidate.resolve(strict=False).relative_to(paths.temp_media_directory.resolve(strict=True))
+    except ValueError:
+        _fail(ErrorCode.POLICY_BLOCKED, "Media derived workspace escaped its temporary root")
+    except OSError:
+        raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Temporary media root is unavailable") from None
+    return candidate
+
+
+def _unlink_tree(path: Path, delete_file: Callable[[Path], None]) -> int:
+    """Delete an owner-only derived directory without ever following links."""
+
+    if path.is_symlink():
+        _fail(ErrorCode.POLICY_BLOCKED, "Media derived workspace became a symbolic link")
+    try:
+        metadata = path.stat()
+    except FileNotFoundError:
+        return 0
+    except OSError:
+        raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Media derived workspace is unavailable") from None
+    if not stat.S_ISDIR(metadata.st_mode) or stat.S_IMODE(metadata.st_mode) != 0o700:
+        _fail(ErrorCode.POLICY_BLOCKED, "Media derived workspace is not owner-only")
+
+    deleted = 0
+    try:
+        with os.scandir(path) as entries:
+            children = sorted(entries, key=lambda entry: entry.name)
+        for entry in children:
+            child = Path(entry.path)
+            if entry.is_symlink():
+                _fail(ErrorCode.POLICY_BLOCKED, "Media derived workspace contains a symbolic link")
+            if entry.is_dir(follow_symlinks=False):
+                deleted += _unlink_tree(child, delete_file)
+                continue
+            if not entry.is_file(follow_symlinks=False):
+                _fail(ErrorCode.POLICY_BLOCKED, "Media derived workspace contains an unsafe entry")
+            delete_file(child)
+            deleted += 1
+        path.rmdir()
+    except X2NRuntimeError:
+        raise
+    except OSError:
+        raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Media derived cleanup failed closed") from None
+    return deleted
+
+
+@contextmanager
+def derived_media_workspace(paths: RuntimePaths, record: MediaLeaseRecord) -> Iterator[Path]:
+    """Yield one non-serializable-on-disk workspace tied to an active lease.
+
+    Callers must hold the lease processing context.  The directory only ever
+    stores temporary processor outputs and is removed before the lease source
+    file is deleted.  A later cleaner also knows this deterministic location.
+    """
+
+    if record.status != "processing":
+        _fail(ErrorCode.POLICY_BLOCKED, "Media derived processing requires an active lease")
+    workspace = _lease_derived_path(paths, record)
+    try:
+        if workspace.exists() or workspace.is_symlink():
+            _fail(ErrorCode.POLICY_BLOCKED, "Media derived workspace already exists")
+        workspace.mkdir(mode=0o700)
+        if workspace.is_symlink() or stat.S_IMODE(workspace.stat().st_mode) != 0o700:
+            _fail(ErrorCode.POLICY_BLOCKED, "Media derived workspace is not owner-only")
+    except X2NRuntimeError:
+        raise
+    except OSError:
+        raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Media derived workspace is unavailable") from None
+    try:
+        yield workspace
+    finally:
+        _unlink_tree(workspace, lambda path: path.unlink())
+
+
 def _delete_lease_files(
     paths: RuntimePaths,
     record: MediaLeaseRecord,
@@ -846,6 +933,10 @@ def _delete_lease_files(
                 found = True
                 delete_file(candidate)
                 deleted += 1
+        workspace = _lease_derived_path(paths, record)
+        if workspace.exists() or workspace.is_symlink():
+            found = True
+            deleted += _unlink_tree(workspace, delete_file)
         return deleted, 0 if found else 1, 0
     except Exception:
         return deleted, 0, 1
@@ -925,7 +1016,9 @@ class MediaLeaseManager:
                 else:
                     run_directory.mkdir(mode=0o700)
             except OSError:
-                raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Temporary media run directory is unavailable") from None
+                raise X2NRuntimeError(
+                    ErrorCode.STORAGE_FAILED, "Temporary media run directory is unavailable"
+                ) from None
             destination = run_directory / f"{lease_id}.bin"
             observed_at = now or datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
             self.store.reserve_media_lease(
@@ -1020,7 +1113,13 @@ class MediaLeaseCleaner:
         except Exception:
             return deleted, missing, 1
 
-    def _delete_old_orphans(self, *, cutoff_epoch: float, registered: set[str]) -> tuple[int, int]:
+    def _delete_old_orphans(
+        self,
+        *,
+        cutoff_epoch: float,
+        registered: set[str],
+        registered_derived_prefixes: set[str],
+    ) -> tuple[int, int]:
         deleted = 0
         errors = 0
         root = self.paths.temp_media_directory
@@ -1050,12 +1149,21 @@ class MediaLeaseCleaner:
                     continue
                 try:
                     relative = candidate.relative_to(root).as_posix()
-                    if relative in registered:
+                    if relative in registered or any(
+                        relative.startswith(prefix) for prefix in registered_derived_prefixes
+                    ):
                         continue
                     if candidate.is_symlink() or not candidate.is_file():
                         errors += 1
                         continue
-                    if not (name.endswith(".bin") or name.endswith(".bin.part")):
+                    parts = Path(relative).parts
+                    is_derived_orphan = (
+                        len(parts) >= 3
+                        and _SAFE_TOKEN.fullmatch(parts[0]) is not None
+                        and parts[1].endswith(".derived")
+                        and MEDIA_LEASE_ID.fullmatch(parts[1].removesuffix(".derived")) is not None
+                    )
+                    if not (name.endswith(".bin") or name.endswith(".bin.part") or is_derived_orphan):
                         errors += 1
                         continue
                     if candidate.stat().st_mtime > cutoff_epoch:
@@ -1102,6 +1210,9 @@ class MediaLeaseCleaner:
                     record.local_relative_path + ".part",
                 )
             }
+            registered_derived_prefixes = {
+                f"{record.run_id}/{record.lease_id}.derived/" for record in all_records if record.status != "deleted"
+            }
             deleted = missing = errors = 0
             for record in candidates:
                 one_deleted, one_missing, one_error = self._delete_candidate(record)
@@ -1111,6 +1222,7 @@ class MediaLeaseCleaner:
             orphan_deleted, orphan_errors = self._delete_old_orphans(
                 cutoff_epoch=(parsed_now - timedelta(seconds=MAX_MEDIA_LEASE_SECONDS)).timestamp(),
                 registered=registered,
+                registered_derived_prefixes=registered_derived_prefixes,
             )
             errors += orphan_errors
         return CleanupReport(
@@ -1157,6 +1269,7 @@ def _scope_files(paths: RuntimePaths, scope: str) -> Iterator[Path]:
         root = paths.data_root / relative
         if root.is_symlink() or not root.is_dir():
             _fail(ErrorCode.POLICY_BLOCKED, "Persistence scanner scope is invalid")
+
         def fail_walk(_error: OSError) -> None:
             raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Persistence scanner could not traverse a sink") from None
 
@@ -1206,7 +1319,11 @@ def scan_persisted_scopes(paths: RuntimePaths, scopes: Sequence[str]) -> CdnScan
     """Scan fixed logical sinks without accepting caller-controlled paths."""
 
     normalized = tuple(sorted(set(scopes)))
-    if not normalized or len(normalized) != len(scopes) or any(scope not in _SCOPE_RELATIVE_DIRECTORIES for scope in normalized):
+    if (
+        not normalized
+        or len(normalized) != len(scopes)
+        or any(scope not in _SCOPE_RELATIVE_DIRECTORIES for scope in normalized)
+    ):
         _fail(ErrorCode.INVALID_INPUT, "Persistence scanner scopes are invalid")
     findings = {name: 0 for name in _SCAN_PATTERNS}
     scanned_files = 0
@@ -1217,7 +1334,9 @@ def scan_persisted_scopes(paths: RuntimePaths, scopes: Sequence[str]) -> CdnScan
             try:
                 resolved = path.resolve(strict=False)
             except OSError:
-                raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Persistence scanner could not resolve a sink") from None
+                raise X2NRuntimeError(
+                    ErrorCode.STORAGE_FAILED, "Persistence scanner could not resolve a sink"
+                ) from None
             if resolved in seen:
                 continue
             seen.add(resolved)

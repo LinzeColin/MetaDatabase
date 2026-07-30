@@ -182,7 +182,9 @@ def validate_scope() -> Check:
         ".p12",
         ".pfx",
     }
-    _require(not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n")
+    _require(
+        not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n"
+    )
     return Check(
         "scope_and_privacy",
         "PASS",
@@ -286,7 +288,10 @@ def validate_task_and_state() -> Check:
         _list_field(task, "acceptance_ids") == ["ACC.x2n.capture.005", "ACC.x2n.ext.001"],
         "Skeleton008 Acceptance drifted",
     )
-    _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Skeleton008 Task changed beyond status")
+    _require(
+        task == base_task.replace("  status: planned\n", "  status: completed\n", 1),
+        "Skeleton008 Task changed beyond status",
+    )
     _require("  status: STAGE_2_SKELETON_008_PASS_G2_NOT_RUN\n" in taskpack, "Task Pack status drifted")
     next_task = _task_block(taskpack, "TSK.x2n.skeleton.009")
     _require(next_task == _task_block(base_taskpack, "TSK.x2n.skeleton.009"), "Skeleton009 was entered by this Run")
@@ -370,14 +375,26 @@ def validate_extension_surface() -> Check:
         manifest.get("content_security_policy", {}).get("extension_pages") == "script-src 'self'; object-src 'none';",
         "Extension CSP weakened",
     )
-    _require(_load_json(PROJECT_ROOT / "package-lock.json") == _load_json_at(TASK_BASE_COMMIT, PROJECT_ROOT / "package-lock.json"), "npm lock changed")
-    _require((PROJECT_ROOT / "uv.lock").read_bytes() == _read_blob_at(TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"), "uv lock changed")
+    _require(
+        _load_json(PROJECT_ROOT / "package-lock.json")
+        == _load_json_at(TASK_BASE_COMMIT, PROJECT_ROOT / "package-lock.json"),
+        "npm lock changed",
+    )
+    _require(
+        (PROJECT_ROOT / "uv.lock").read_bytes() == _read_blob_at(TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"),
+        "uv lock changed",
+    )
     permission = _load_json(PERMISSION_POLICY)
-    _require([item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS, "permission policy drifted")
+    _require(
+        [item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS,
+        "permission policy drifted",
+    )
     _require(permission.get("host_permissions") == [] and permission.get("content_scripts") == [], "policy widened")
     native = _load_json(NATIVE_POLICY)
     _require(native == _load_json_at(TASK_BASE_COMMIT, NATIVE_POLICY), "Native policy changed in Skeleton008")
-    _require(native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened")
+    _require(
+        native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened"
+    )
 
     source_paths = sorted((PROJECT_ROOT / "apps/extension/src").glob("*.js"))
     sources = {path.name: path.read_text(encoding="utf-8") for path in source_paths}
@@ -412,7 +429,9 @@ def validate_extension_surface() -> Check:
     _require("auto_scroll: false" in weibo and "change_account_state: false" in weibo, "capture literals drifted")
     _require("stable_mid" in weibo and "data-mid" in weibo, "Weibo identity cross-check missing")
     _require('.getAttribute("src")' not in weibo and ".src" not in weibo, "media source read entered extractor")
-    _require("hydration" not in weibo.lower() and "innerhtml" not in weibo.lower(), "raw page state read entered extractor")
+    _require(
+        "hydration" not in weibo.lower() and "innerhtml" not in weibo.lower(), "raw page state read entered extractor"
+    )
     package = _load_json(PROJECT_ROOT / "apps/extension/package.json")
     scripts = package.get("scripts", {})
     _require(scripts.get("test:weibo-fixtures") == "node scripts/weibo-fixture-e2e.mjs", "fixture script missing")
@@ -453,7 +472,10 @@ def validate_fixtures_and_policy() -> Check:
         "platform-changed threshold drifted",
     )
     _require(
-        sum(item.get("expected", {}).get("reason") == "weibo_budget_zero_quota_unknown_disabled" for item in policy_cases)
+        sum(
+            item.get("expected", {}).get("reason") == "weibo_budget_zero_quota_unknown_disabled"
+            for item in policy_cases
+        )
         == 2,
         "budget-blocked threshold drifted",
     )
@@ -525,7 +547,9 @@ def validate_fixtures_and_policy() -> Check:
             and parsed.path.startswith("/detail/synthetic-wb-status-ssrf-"),
             "Redirect-SSRF outer URL escaped the synthetic current page",
         )
-        _require(len(set(parse_qs(parsed.query, keep_blank_values=True)) & forbidden_keys) == 1, "URL control key drifted")
+        _require(
+            len(set(parse_qs(parsed.query, keep_blank_values=True)) & forbidden_keys) == 1, "URL control key drifted"
+        )
 
     global_rows = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
     _require(
@@ -552,8 +576,7 @@ def validate_fixtures_and_policy() -> Check:
         "Weibo feature flag drifted",
     )
     _require(
-        policy.get("platform_policy_state")
-        == "blocked_budget_real_page_unknown_disabled_api_and_dom_fallback",
+        policy.get("platform_policy_state") == "blocked_budget_real_page_unknown_disabled_api_and_dom_fallback",
         "Weibo policy state drifted",
     )
     budget_gate = policy.get("budget_gate", {})
@@ -583,7 +606,9 @@ def validate_fixtures_and_policy() -> Check:
         "Weibo platform fact drifted",
     )
     registry = _load_json_at(FINAL_COMMIT, PLATFORM_POLICY)
-    _require(registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted")
+    _require(
+        registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted"
+    )
     official_sources = registry.get("official_sources", {}).get("weibo", [])
     _require(isinstance(official_sources, list) and len(official_sources) >= 8, "official Weibo evidence incomplete")
     _require(
@@ -723,9 +748,7 @@ def validate_full_lane_report(path: Path) -> Check:
     ]
     _require(report.get("blocking_results") == expected_results, "full lane execution identity or result drifted")
     _require(
-        report.get("platform_calls") == 0
-        and report.get("model_calls") == 0
-        and report.get("real_accounts") == 0,
+        report.get("platform_calls") == 0 and report.get("model_calls") == 0 and report.get("real_accounts") == 0,
         "full lane executed a forbidden external surface",
     )
     coverage = report.get("coverage", {})
@@ -871,7 +894,9 @@ def verify_evidence() -> Check:
         "platform execution overstated",
     )
     _require(evidence.get("acceptance_input_sha256") == _acceptance_input_receipt(), "evidence input receipt is stale")
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
+    )
     return Check(
         "evidence",
         "PASS",

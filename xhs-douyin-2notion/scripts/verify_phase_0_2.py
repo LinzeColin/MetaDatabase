@@ -131,7 +131,9 @@ def validate_registry() -> Check:
     douyin = by_id["douyin-downloader"]
     _require(douyin["license"]["spdx"] == "MIT", "douyin MIT missing")
     _require(douyin["dependency_state"]["lock_present"] is False, "douyin lock state must reflect tree")
-    _require(douyin["dependency_state"]["reproducible_environment"] is False, "unlocked environment called reproducible")
+    _require(
+        douyin["dependency_state"]["reproducible_environment"] is False, "unlocked environment called reproducible"
+    )
 
     media = by_id["MediaCrawler"]
     _require(media["license"]["spdx"] == "LicenseRef-NON-COMMERCIAL-LEARNING-1.1", "MediaCrawler restriction missing")
@@ -145,9 +147,18 @@ def validate_registry() -> Check:
     _require(metrics.get("mediacrawler_bundled") is False, "MediaCrawler bundled")
 
     required = registry.get("required_personal_collection_capabilities", {})
-    _require(required.get("xiaohongshu_likes_and_favorites_official_api") == "unknown_disabled", "xhs platform uncertainty weakened")
-    _require(required.get("douyin_likes_and_favorites_official_api") == "unknown_disabled", "douyin platform uncertainty weakened")
-    _require(required.get("upstream_implementation_is_authorization_evidence") is False, "upstream code treated as authorization")
+    _require(
+        required.get("xiaohongshu_likes_and_favorites_official_api") == "unknown_disabled",
+        "xhs platform uncertainty weakened",
+    )
+    _require(
+        required.get("douyin_likes_and_favorites_official_api") == "unknown_disabled",
+        "douyin platform uncertainty weakened",
+    )
+    _require(
+        required.get("upstream_implementation_is_authorization_evidence") is False,
+        "upstream code treated as authorization",
+    )
 
     gates = registry.get("gates", {})
     _require(gates.get("product_code_started") is False, "product code started in discovery")
@@ -176,7 +187,9 @@ def validate_hash_manifest() -> Check:
         _require(identity not in identities, f"duplicate file evidence: {identity}")
         identities.add(identity)
         counts[repo_id] += 1
-    _require(counts == {"xiaohongshu-exporter": 6, "douyin-downloader": 9, "MediaCrawler": 12}, "file evidence count drift")
+    _require(
+        counts == {"xiaohongshu-exporter": 6, "douyin-downloader": 9, "MediaCrawler": 12}, "file evidence count drift"
+    )
     return Check("upstream_file_hashes", "PASS", {"files": len(files), "repositories": 3})
 
 
@@ -204,9 +217,15 @@ def validate_policy() -> Check:
     _require("no_account_state_change" in constraints, "account-state gate missing")
     _require("feature_flags_default_off" in constraints, "feature flag gate missing")
     artifact_policy = _load_json(ARTIFACT_ALLOWLIST)
-    _require("dependency_and_license_manifests" in artifact_policy.get("allowed_classes", []), "dependency evidence is not an allowed artifact class")
+    _require(
+        "dependency_and_license_manifests" in artifact_policy.get("allowed_classes", []),
+        "dependency evidence is not an allowed artifact class",
+    )
     enforcement = set(artifact_policy.get("enforcement", []))
-    _require({"scripts/verify_phase_0_1.py", "scripts/verify_phase_0_2.py"}.issubset(enforcement), "artifact enforcement entrypoints incomplete")
+    _require(
+        {"scripts/verify_phase_0_1.py", "scripts/verify_phase_0_2.py"}.issubset(enforcement),
+        "artifact enforcement entrypoints incomplete",
+    )
     return Check("upstream_integration_policy", "PASS", {"default": "deny", "wrapper_gates": len(wrapper)})
 
 
@@ -237,7 +256,10 @@ def validate_sbom() -> Check:
     components = sbom.get("components", [])
     _require(len(components) == 3, "SBOM candidate count mismatch")
     scopes = {item.get("name"): item.get("scope") for item in components}
-    _require(scopes == {"xiaohongshu-exporter": "excluded", "douyin-downloader": "optional", "MediaCrawler": "excluded"}, "SBOM scope mismatch")
+    _require(
+        scopes == {"xiaohongshu-exporter": "excluded", "douyin-downloader": "optional", "MediaCrawler": "excluded"},
+        "SBOM scope mismatch",
+    )
     for item in components:
         properties = {prop.get("name"): prop.get("value") for prop in item.get("properties", [])}
         _require(properties.get("x2n:actual-runtime") == "false", f"SBOM actual runtime mismatch: {item.get('name')}")
@@ -264,7 +286,14 @@ def _text_files() -> Iterable[Path]:
 
 
 def validate_repository_boundary() -> Check:
-    forbidden_directories = {"vendor", "third_party", "upstreams", "xiaohongshu-exporter", "douyin-downloader", "MediaCrawler"}
+    forbidden_directories = {
+        "vendor",
+        "third_party",
+        "upstreams",
+        "xiaohongshu-exporter",
+        "douyin-downloader",
+        "MediaCrawler",
+    }
     ignored = {
         ".mypy_cache",
         ".pytest_cache",
@@ -301,7 +330,11 @@ def validate_repository_boundary() -> Check:
             authenticated_remote_hits.append(str(path.relative_to(PROJECT_ROOT)))
     _require(not credential_hits, f"credential-shaped value entered repository: {credential_hits}")
     _require(not authenticated_remote_hits, f"authenticated remote entered repository: {authenticated_remote_hits}")
-    return Check("repository_upstream_boundary", "PASS", {"vendored_directories": 0, "credential_hits": 0, "authenticated_remote_hits": 0})
+    return Check(
+        "repository_upstream_boundary",
+        "PASS",
+        {"vendored_directories": 0, "credential_hits": 0, "authenticated_remote_hits": 0},
+    )
 
 
 def validate_task_state() -> Check:
@@ -317,21 +350,59 @@ def validate_task_state() -> Check:
     state = _load_json_at(STAGE_1_REVIEW_COMMIT, TASK_STATE)
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase task state not pass")
     acceptances = state.get("acceptance_status", {})
-    _require(acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch")
-    _require(acceptances.get("ACC.x2n.dy.003") == "baseline_pass_downstream_not_run", "douyin downstream status overstated")
+    _require(
+        acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch"
+    )
+    _require(
+        acceptances.get("ACC.x2n.dy.003") == "baseline_pass_downstream_not_run", "douyin downstream status overstated"
+    )
     if state.get("review_id") == "STG.X2N.0.REVIEW":
-        _require(state.get("schema_version") == "1.1" and state.get("run_id") == "RUN-X2N-S00-REVIEW", "blocked Review identity mismatch")
-        _require(state.get("run_kind") == "stage_review_no_new_dag_task" and state.get("state") == "review_complete_gate_blocked", "blocked Review state is invalid")
-        _require(state.get("next_phase") is None and state.get("next_run") == "STG.X2N.0.REVIEW.RESUME", "blocked next route mismatch")
-        _require(state.get("next_phase_authorized") is False and state.get("stage_1_authorized") is False, "blocked Review authorized Stage 1")
-        _require(state.get("stage_gate") == "blocked_owner_action" and state.get("remote_upload") == "forbidden_until_g0_pass", "blocked Stage/upload gate weakened")
+        _require(
+            state.get("schema_version") == "1.1" and state.get("run_id") == "RUN-X2N-S00-REVIEW",
+            "blocked Review identity mismatch",
+        )
+        _require(
+            state.get("run_kind") == "stage_review_no_new_dag_task"
+            and state.get("state") == "review_complete_gate_blocked",
+            "blocked Review state is invalid",
+        )
+        _require(
+            state.get("next_phase") is None and state.get("next_run") == "STG.X2N.0.REVIEW.RESUME",
+            "blocked next route mismatch",
+        )
+        _require(
+            state.get("next_phase_authorized") is False and state.get("stage_1_authorized") is False,
+            "blocked Review authorized Stage 1",
+        )
+        _require(
+            state.get("stage_gate") == "blocked_owner_action"
+            and state.get("remote_upload") == "forbidden_until_g0_pass",
+            "blocked Stage/upload gate weakened",
+        )
         gate_status = "BLOCKED_OWNER_ACTION"
     elif state.get("schema_version") == "1.2":
-        _require(state.get("schema_version") == "1.2" and state.get("review_id") == "STG.X2N.0.REVIEW.RESUME" and state.get("run_id") == "RUN-X2N-S00-REVIEW-RESUME", "Resume identity mismatch")
-        _require(state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass", "Resume state is invalid")
-        _require(state.get("next_phase") == "PH.X2N.1.1" and state.get("next_run") == "TSK.x2n.foundation.001", "post-G0 route mismatch")
-        _require(state.get("next_phase_authorized") is True and state.get("stage_1_authorized") is True, "post-G0 Stage 1 authorization missing")
-        _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "post-G0 Stage/upload gate mismatch")
+        _require(
+            state.get("schema_version") == "1.2"
+            and state.get("review_id") == "STG.X2N.0.REVIEW.RESUME"
+            and state.get("run_id") == "RUN-X2N-S00-REVIEW-RESUME",
+            "Resume identity mismatch",
+        )
+        _require(
+            state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass",
+            "Resume state is invalid",
+        )
+        _require(
+            state.get("next_phase") == "PH.X2N.1.1" and state.get("next_run") == "TSK.x2n.foundation.001",
+            "post-G0 route mismatch",
+        )
+        _require(
+            state.get("next_phase_authorized") is True and state.get("stage_1_authorized") is True,
+            "post-G0 Stage 1 authorization missing",
+        )
+        _require(
+            state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass",
+            "post-G0 Stage/upload gate mismatch",
+        )
         gate_status = "PASS"
     else:
         schema_version = state.get("schema_version")
@@ -397,10 +468,21 @@ def validate_task_state() -> Check:
                 "G1 Review state mismatch",
             )
         else:
-            _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "historical G0 status drifted")
-            _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+            _require(
+                state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass",
+                "historical G0 status drifted",
+            )
+            _require(
+                state.get("current_stage_gate") == "not_run"
+                and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass",
+                "G1/upload overstated",
+            )
         gate_status = "PASS"
-    return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": gate_status, "adapter_contract": "DOWNSTREAM_NOT_RUN"})
+    return Check(
+        "phase_task_state",
+        "PASS",
+        {"task": PHASE_TASK, "stage_gate": gate_status, "adapter_contract": "DOWNSTREAM_NOT_RUN"},
+    )
 
 
 def validate_source_snapshots(source_root: Path) -> Check:
@@ -418,7 +500,9 @@ def validate_source_snapshots(source_root: Path) -> Check:
         _require(remote == expected["remote"], f"persisted remote is not normalized: {repo_id}")
         git_config = (repo / ".git/config").read_text(encoding="utf-8", errors="replace")
         _require(("github" + "_pat_") not in git_config, f"credential remained in temp clone: {repo_id}")
-        _require(re.search(r"https://[^\s/@]+@github\.com/", git_config) is None, f"authenticated remote remained: {repo_id}")
+        _require(
+            re.search(r"https://[^\s/@]+@github\.com/", git_config) is None, f"authenticated remote remained: {repo_id}"
+        )
         _run(["git", "cat-file", "-e", f"{expected['commit']}^{{commit}}"], repo)
         tree = _run(["git", "rev-parse", f"{expected['commit']}^{{tree}}"], repo)
         _require(tree == expected["tree"], f"tree mismatch: {repo_id}")
@@ -438,10 +522,17 @@ def validate_source_snapshots(source_root: Path) -> Check:
                 _require(license_bytes.startswith(b"MIT License\n"), "douyin license is not MIT")
                 _require(b"Copyright (c) 2026 jiji262" in license_bytes, "douyin copyright missing")
             else:
-                _require(license_bytes.startswith(b"NON-COMMERCIAL LEARNING LICENSE 1.1\n"), "MediaCrawler restriction drifted")
+                _require(
+                    license_bytes.startswith(b"NON-COMMERCIAL LEARNING LICENSE 1.1\n"),
+                    "MediaCrawler restriction drifted",
+                )
 
         if repo_id == "douyin-downloader":
-            lock_names = {name for name in names if Path(name).name in {"uv.lock", "poetry.lock", "Pipfile.lock", "requirements.lock"}}
+            lock_names = {
+                name
+                for name in names
+                if Path(name).name in {"uv.lock", "poetry.lock", "Pipfile.lock", "requirements.lock"}
+            }
             _require(not lock_names, "douyin lock appeared; registry needs re-audit")
         if repo_id == "MediaCrawler":
             _require("uv.lock" in names, "MediaCrawler lock missing")
@@ -455,7 +546,9 @@ def validate_source_snapshots(source_root: Path) -> Check:
             _require(digest == item["sha256"], f"SHA-256 mismatch: {repo_id}/{item['path']}")
             verified_files += 1
     _require(verified_files == 27, "not all upstream evidence files verified")
-    return Check("official_source_snapshots", "PASS", {"repositories": 3, "files": verified_files, "credential_hits": 0})
+    return Check(
+        "official_source_snapshots", "PASS", {"repositories": 3, "files": verified_files, "credential_hits": 0}
+    )
 
 
 def _porcelain_paths(status: str) -> list[str]:
@@ -489,15 +582,18 @@ def _scope_status(status: str) -> tuple[bool, int]:
 def _validate_parent_index_diff(diff: str) -> None:
     legacy_name = "xiao" + "hongshu-douyin-2notion"
     changed_lines = [
-        line
-        for line in diff.splitlines()
-        if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))
+        line for line in diff.splitlines() if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))
     ]
     _require(len(changed_lines) == 2, "parent README change must be one project-index rename")
     removed, added = changed_lines
     _require(removed.startswith(f"-| {legacy_name} |"), "parent README removed line is not the legacy project index")
-    _require(added.startswith("+| xhs-douyin-2notion |"), "parent README added line is not the owner-approved project index")
-    _require(removed[1:].replace(legacy_name, "xhs-douyin-2notion", 1) == added[1:], "parent README change modified more than the project name")
+    _require(
+        added.startswith("+| xhs-douyin-2notion |"), "parent README added line is not the owner-approved project index"
+    )
+    _require(
+        removed[1:].replace(legacy_name, "xhs-douyin-2notion", 1) == added[1:],
+        "parent README change modified more than the project name",
+    )
 
 
 def _evaluate_main_isolation(changed_paths: list[str], allow_external_main_dirty: bool) -> dict[str, Any]:
@@ -524,7 +620,8 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
     _require(repo_root == REPOSITORY_ROOT.resolve(), "project is not in MetaDatabase worktree")
     branch = _run(["git", "branch", "--show-current"], repo_root)
     _require(
-        branch in {
+        branch
+        in {
             "codex/xhs-douyin-2notion-v0001-s00-p02",
             "codex/xhs-douyin-2notion-v0001-s00-p05",
             "codex/xhs-douyin-2notion-v0001-s00-review",
@@ -536,7 +633,9 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
     scope_allowed, legacy_deletions = _scope_status(status)
     _require(scope_allowed, "changed scope escaped project")
     if "README.md" in changed:
-        _validate_parent_index_diff(_run(["git", "diff", "HEAD", "--unified=0", "--no-color", "--", "README.md"], repo_root))
+        _validate_parent_index_diff(
+            _run(["git", "diff", "HEAD", "--unified=0", "--no-color", "--", "README.md"], repo_root)
+        )
 
     blocks = _run(["git", "worktree", "list", "--porcelain"], repo_root).split("\n\n")
     main_path: Path | None = None
@@ -562,7 +661,16 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
 
 
 def validate_temp_cleanup() -> Check:
-    run_root = Path.home() / "Downloads" / "MediaCrawler" / "xhs-douyin-2notion" / "downloads" / "external_research" / "runs" / "RUN-X2N-S00-P02"
+    run_root = (
+        Path.home()
+        / "Downloads"
+        / "MediaCrawler"
+        / "xhs-douyin-2notion"
+        / "downloads"
+        / "external_research"
+        / "runs"
+        / "RUN-X2N-S00-P02"
+    )
     _require(not run_root.exists(), "Phase 0.2 temporary source snapshot still exists")
     return Check("temporary_snapshot_cleanup", "PASS", {"run_id": "RUN-X2N-S00-P02", "remaining_entries": 0})
 
@@ -585,7 +693,10 @@ def validate_evidence() -> Check:
     _require(verification.get("sbom_sha256") == _sha256(SBOM), "SBOM evidence hash mismatch")
     _require(verification.get("route_revalidated_by_run") == "RUN-X2N-S00-P05", "owner route revalidation run missing")
     _require(verification.get("route_change_event") == "CE-X2N-20260719-S00-P05", "owner route change event missing")
-    _require(verification.get("route_revalidation_scope") == "owner_project_name_only_no_upstream_content_change", "Phase 0.2 route revalidation scope is ambiguous")
+    _require(
+        verification.get("route_revalidation_scope") == "owner_project_name_only_no_upstream_content_change",
+        "Phase 0.2 route revalidation scope is ambiguous",
+    )
     _require(verification.get("source_snapshot_verification") == "PASS", "source snapshot evidence missing")
     _require(verification.get("adapter_contract_tests") == "DOWNSTREAM_NOT_RUN", "adapter acceptance overstated")
     _require(verification.get("stage_gate") == "NOT_RUN", "evidence changed Stage gate")
@@ -627,7 +738,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        _require(not args.allow_external_main_dirty or args.verify_worktree, "--allow-external-main-dirty requires --verify-worktree")
+        _require(
+            not args.allow_external_main_dirty or args.verify_worktree,
+            "--allow-external-main-dirty requires --verify-worktree",
+        )
         checks = run_core_checks()
         if args.source_root:
             checks.append(validate_source_snapshots(args.source_root))

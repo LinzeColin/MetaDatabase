@@ -256,7 +256,11 @@ def validate_task_and_gate_contract() -> Check:
         "Stage 0 Phase routing drifted",
     )
     for task in stage_tasks:
-        _require(task.get("completion_gate") == "all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active", f"completion gate drifted: {task['id']}")
+        _require(
+            task.get("completion_gate")
+            == "all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active",
+            f"completion gate drifted: {task['id']}",
+        )
         for relative in task.get("evidence", []):
             _require((PROJECT_ROOT / relative).is_file(), f"task evidence missing: {relative}")
 
@@ -265,7 +269,9 @@ def validate_task_and_gate_contract() -> Check:
     gate = gates[0]
     _require(tuple(gate.get("requires_tasks", [])) == STAGE_TASKS, "G0 required task set drifted")
     _require(tuple(gate.get("pass_conditions", [])) == G0_PASS_CONDITIONS, "G0 pass conditions drifted")
-    _require(tuple(gate.get("stop_conditions", [])) == G0_TASKPACK_STOP_CONDITIONS, "G0 taskpack stop conditions drifted")
+    _require(
+        tuple(gate.get("stop_conditions", [])) == G0_TASKPACK_STOP_CONDITIONS, "G0 taskpack stop conditions drifted"
+    )
     roadmap = ROADMAP.read_text(encoding="utf-8")
     _require("无可回滚数据设计" in roadmap, "roadmap reversible-data Stop Condition missing")
 
@@ -274,14 +280,22 @@ def validate_task_and_gate_contract() -> Check:
     return Check(
         "task_and_gate_contract",
         "PASS",
-        {"stage_tasks": len(stage_tasks), "g0_pass_conditions": 5, "combined_stop_conditions": 4, "max_tasks_per_run": 1},
+        {
+            "stage_tasks": len(stage_tasks),
+            "g0_pass_conditions": 5,
+            "combined_stop_conditions": 4,
+            "max_tasks_per_run": 1,
+        },
     )
 
 
 def validate_canonical_boundaries() -> Check:
     project = _load_json(PROJECT_FACT)
     _require(project.get("parent_repository") == "LinzeColin/MetaDatabase", "wrong parent repository")
-    _require(project.get("name") == "xhs-douyin-2notion" and project.get("project_path") == "xhs-douyin-2notion/", "wrong project identity")
+    _require(
+        project.get("name") == "xhs-douyin-2notion" and project.get("project_path") == "xhs-douyin-2notion/",
+        "wrong project identity",
+    )
     _require(project.get("run_maximum") == "one_task", "project fact weakened the run limit")
     _require(project.get("stage_review_run_kind") == "no_new_dag_task", "Review exception is not bounded")
     _require(project.get("repository_visibility") == "public", "public-repository boundary drifted")
@@ -290,11 +304,24 @@ def validate_canonical_boundaries() -> Check:
 
     path_contract = _load_json(PATH_CONTRACT)
     _require(path_contract.get("root_ref") == "X2N_DATA_ROOT", "wrong private root reference")
-    _require(path_contract.get("owner_download_destination_ref") == "X2N_DOWNLOAD_DESTINATION", "download destination reference missing")
-    _require(path_contract.get("owner_download_destination_required_basename") == "MediaCrawler", "download destination basename drifted")
+    _require(
+        path_contract.get("owner_download_destination_ref") == "X2N_DOWNLOAD_DESTINATION",
+        "download destination reference missing",
+    )
+    _require(
+        path_contract.get("owner_download_destination_required_basename") == "MediaCrawler",
+        "download destination basename drifted",
+    )
     _require(path_contract.get("owner_namespace") == "xhs-douyin-2notion", "private namespace drifted")
-    _require(path_contract.get("destination_name_semantics") == "storage_parent_only_no_upstream_authorization", "storage parent authorized an upstream")
-    _require(path_contract.get("must_be_outside_git") is True and path_contract.get("runtime_and_downloads_share_root") is True, "runtime/download boundary drifted")
+    _require(
+        path_contract.get("destination_name_semantics") == "storage_parent_only_no_upstream_authorization",
+        "storage parent authorized an upstream",
+    )
+    _require(
+        path_contract.get("must_be_outside_git") is True
+        and path_contract.get("runtime_and_downloads_share_root") is True,
+        "runtime/download boundary drifted",
+    )
     required_dirs = set(path_contract.get("required_directories", []))
     allowed_private_files = set(path_contract.get("allowed_private_contract_files", []))
     _require(
@@ -307,21 +334,42 @@ def validate_canonical_boundaries() -> Check:
     platforms = _load_json_at(REVIEW_FINAL_COMMIT, PLATFORM_SCOPE)
     rows = platforms.get("platforms", [])
     _require(tuple(item.get("id") for item in rows) == PLATFORMS, "platform registry drifted")
-    _require(all(item.get("policy_state") == "unknown_disabled" for item in rows), "a platform was enabled without its Gate")
-    _require(platforms.get("implementation_started") is False and platforms.get("real_platform_calls") is False, "platform implementation/execution was overstated")
+    _require(
+        all(item.get("policy_state") == "unknown_disabled" for item in rows), "a platform was enabled without its Gate"
+    )
+    _require(
+        platforms.get("implementation_started") is False and platforms.get("real_platform_calls") is False,
+        "platform implementation/execution was overstated",
+    )
 
     competitor = _load_json(COMPETITOR)
-    _require(competitor.get("actual_runtime_dependencies") == [] and competitor.get("code_copies") == 0, "competitor entered product source/runtime")
+    _require(
+        competitor.get("actual_runtime_dependencies") == [] and competitor.get("code_copies") == 0,
+        "competitor entered product source/runtime",
+    )
     boundary = competitor.get("restricted_research_boundary", {})
-    for key in ("product_adapter_allowed", "installation_allowed", "execution_allowed", "output_ingest_allowed", "runtime_dependency_allowed", "vendoring_allowed"):
+    for key in (
+        "product_adapter_allowed",
+        "installation_allowed",
+        "execution_allowed",
+        "output_ingest_allowed",
+        "runtime_dependency_allowed",
+        "vendoring_allowed",
+    ):
         _require(boundary.get(key) is False, f"restricted upstream boundary weakened: {key}")
     upstream = _load_json(UPSTREAM_REGISTRY)
     _require(upstream.get("actual_runtime_dependencies") == [], "Stage 0 has an actual runtime dependency")
 
     architecture = _load_json_at(REVIEW_FINAL_COMMIT, ARCHITECTURE)
-    _require([item.get("id") for item in architecture.get("decisions", [])] == [f"ADR-{index:03d}" for index in range(1, 11)], "ADR set drifted")
+    _require(
+        [item.get("id") for item in architecture.get("decisions", [])]
+        == [f"ADR-{index:03d}" for index in range(1, 11)],
+        "ADR set drifted",
+    )
     if architecture.get("implementation_started") is False:
-        _require(architecture.get("status") == "accepted_design_not_implemented", "historical architecture status drifted")
+        _require(
+            architecture.get("status") == "accepted_design_not_implemented", "historical architecture status drifted"
+        )
     else:
         implementation_scopes = {
             "foundation_004_extension_native_skeleton_implemented_g1_not_run": (
@@ -336,31 +384,55 @@ def validate_canonical_boundaries() -> Check:
         }
         status = architecture.get("status")
         _require(status in implementation_scopes, "foundation architecture status drifted")
-        _require(architecture.get("implementation_scope") == implementation_scopes[status], "foundation implementation scope overstated")
+        _require(
+            architecture.get("implementation_scope") == implementation_scopes[status],
+            "foundation implementation scope overstated",
+        )
         expected_gate = "g1_pass" if status == "stage_1_review_pass_g1_pass" else "g1_not_run"
         _require(
-            architecture.get("real_account_execution") is False
-            and architecture.get("stage_gate") == expected_gate,
+            architecture.get("real_account_execution") is False and architecture.get("stage_gate") == expected_gate,
             "foundation Gate/account status mismatch",
         )
     stop_kill = _load_json(STOP_KILL)
-    _require([item.get("id") for item in stop_kill.get("rules", [])] == [f"SK-X2N-{index:03d}" for index in range(1, 21)], "Stop/Kill rule set drifted")
+    _require(
+        [item.get("id") for item in stop_kill.get("rules", [])] == [f"SK-X2N-{index:03d}" for index in range(1, 21)],
+        "Stop/Kill rule set drifted",
+    )
     fixtures = _load_json(FIXTURES)
-    _require(len(fixtures.get("cases", [])) == 50 and fixtures.get("synthetic_only") is True and fixtures.get("real_accounts") is False, "synthetic fixture boundary drifted")
+    _require(
+        len(fixtures.get("cases", [])) == 50
+        and fixtures.get("synthetic_only") is True
+        and fixtures.get("real_accounts") is False,
+        "synthetic fixture boundary drifted",
+    )
     owner_schema = _load_json(OWNER_SCHEMA)
     taxonomy = owner_schema["properties"]["taxonomy"]["properties"]
     media = owner_schema["properties"]["media_retention"]["properties"]
     _require(taxonomy["ai_may_create_top_level"]["const"] is False, "AI may create a top-level category")
-    _require(media["persist_platform_cdn_urls"]["const"] is False and media["persist_raw_media"]["const"] is False, "media persistence boundary drifted")
+    _require(
+        media["persist_platform_cdn_urls"]["const"] is False and media["persist_raw_media"]["const"] is False,
+        "media persistence boundary drifted",
+    )
     recovery_schema = _load_json(RECOVERY_SCHEMA)
     _require(recovery_schema.get("additionalProperties") is False, "recovery attestation schema permits extra fields")
     recovery_properties = recovery_schema.get("properties", {})
-    _require(set(recovery_schema.get("required", [])) == set(recovery_properties), "recovery attestation schema has optional or undeclared fields")
+    _require(
+        set(recovery_schema.get("required", [])) == set(recovery_properties),
+        "recovery attestation schema has optional or undeclared fields",
+    )
     _require(recovery_properties.get("g0_pass_granted", {}).get("const") is False, "recovery receipt may grant G0")
-    _require(recovery_properties.get("stage_1_authorized", {}).get("const") is False, "recovery receipt may authorize Stage 1")
-    _require(recovery_properties.get("remote_upload_authorized", {}).get("const") is False, "recovery receipt may authorize upload")
+    _require(
+        recovery_properties.get("stage_1_authorized", {}).get("const") is False,
+        "recovery receipt may authorize Stage 1",
+    )
+    _require(
+        recovery_properties.get("remote_upload_authorized", {}).get("const") is False,
+        "recovery receipt may authorize upload",
+    )
     recovery_fixture = _load_json(RECOVERY_FIXTURE)
-    recovery_verifier = _load_verifier("verify_owner_recovery_attestation_review", "verify_owner_recovery_attestation.py")
+    recovery_verifier = _load_verifier(
+        "verify_owner_recovery_attestation_review", "verify_owner_recovery_attestation.py"
+    )
     recovery_check = recovery_verifier.validate_receipt_payload(
         recovery_fixture,
         now=datetime(2026, 7, 20, 0, 0, 0, tzinfo=timezone.utc),
@@ -376,7 +448,9 @@ def validate_canonical_boundaries() -> Check:
             _require(not (PROJECT_ROOT / relative).exists(), f"unexpected top-level product/runtime path: {relative}")
     else:
         for relative in ("apps", "packages", "extension", "companion", "SKILL.md"):
-            _require(not (PROJECT_ROOT / relative).exists(), f"product implementation entered Stage 0 Review: {relative}")
+            _require(
+                not (PROJECT_ROOT / relative).exists(), f"product implementation entered Stage 0 Review: {relative}"
+            )
 
     forbidden_tokens = (
         "Agent" + "Database",
@@ -401,7 +475,9 @@ def validate_canonical_boundaries() -> Check:
         stale_tokens = ("media" + "crawler_adapter", "MediaCrawler" + "ResearchAdapter", "默认关闭、" + "外部安装")
         if stale_scope and any(token in text for token in stale_tokens):
             stale_upstream_hits.append(str(path.relative_to(PROJECT_ROOT)))
-        if re.search(re.escape("github" + "_pat_") + r"[A-Za-z0-9]", text) or re.search(r"https://[^\s/@]+@github\.com/", text):
+        if re.search(re.escape("github" + "_pat_") + r"[A-Za-z0-9]", text) or re.search(
+            r"https://[^\s/@]+@github\.com/", text
+        ):
             credential_hits.append(str(path.relative_to(PROJECT_ROOT)))
     _require(not forbidden_hits, f"forbidden repository/path identity entered x2n: {forbidden_hits}")
     _require(not stale_upstream_hits, f"stale MediaCrawler product semantics remain: {stale_upstream_hits}")
@@ -429,35 +505,72 @@ def validate_gate_payload(gate: dict[str, Any]) -> None:
     _require(gate.get("project") == "x2n" and gate.get("stage") == "STG.X2N.0", "gate state identity drifted")
     identity = (gate.get("review_id"), gate.get("run_id"))
     _require(identity in {(REVIEW_ID, REVIEW_RUN_ID), (RESUME_ID, RESUME_RUN_ID)}, "gate Review identity drifted")
-    _require(re.fullmatch(r"[0-9a-f]{40}", str(gate.get("review_sync_target", ""))) is not None, "Review sync target is missing or invalid")
-    _require(gate.get("review_status") == "complete" and gate.get("automated_reacceptance") == "pass", "Review did not complete local reacceptance")
+    _require(
+        re.fullmatch(r"[0-9a-f]{40}", str(gate.get("review_sync_target", ""))) is not None,
+        "Review sync target is missing or invalid",
+    )
+    _require(
+        gate.get("review_status") == "complete" and gate.get("automated_reacceptance") == "pass",
+        "Review did not complete local reacceptance",
+    )
     _require(gate.get("gate_id") == "G0", "wrong stage gate")
-    _require(tuple(gate.get("pass_conditions", {}).keys()) == G0_STATE_PASS_KEYS, "G0 state pass-condition keys drifted")
+    _require(
+        tuple(gate.get("pass_conditions", {}).keys()) == G0_STATE_PASS_KEYS, "G0 state pass-condition keys drifted"
+    )
     _require(all(value == "pass" for value in gate["pass_conditions"].values()), "a local G0 pass condition failed")
-    _require(tuple(gate.get("stop_conditions", {}).keys()) == G0_STATE_STOP_KEYS, "G0 state stop-condition keys drifted")
-    _require(all(value == "inactive" for value in gate["stop_conditions"].values()), "a G0 Stop Condition is active or unknown")
+    _require(
+        tuple(gate.get("stop_conditions", {}).keys()) == G0_STATE_STOP_KEYS, "G0 state stop-condition keys drifted"
+    )
+    _require(
+        all(value == "inactive" for value in gate["stop_conditions"].values()),
+        "a G0 Stop Condition is active or unknown",
+    )
     if identity == (REVIEW_ID, REVIEW_RUN_ID):
-        _require(gate.get("blocking_followups") == [{
-            "id": INCIDENT_ID,
-            "scope": "before_g0_pass",
-            "status": "owner_action_pending",
-            "required_resolution": "rotate_or_reauthenticate_or_prove_expiry",
-        }], "before-G0 credential follow-up missing or weakened")
+        _require(
+            gate.get("blocking_followups")
+            == [
+                {
+                    "id": INCIDENT_ID,
+                    "scope": "before_g0_pass",
+                    "status": "owner_action_pending",
+                    "required_resolution": "rotate_or_reauthenticate_or_prove_expiry",
+                }
+            ],
+            "before-G0 credential follow-up missing or weakened",
+        )
         _require(gate.get("gate_status") == "blocked_owner_action", "pending owner action did not block G0")
         _require(gate.get("gate_decision") == "fail_closed", "G0 decision is not fail-closed")
         _require(gate.get("stage_1_authorized") is False, "Stage 1 was authorized while G0 is blocked")
-        _require(gate.get("remote_upload") == "forbidden_until_g0_pass", "remote upload was authorized while G0 is blocked")
+        _require(
+            gate.get("remote_upload") == "forbidden_until_g0_pass", "remote upload was authorized while G0 is blocked"
+        )
     else:
-        _require(gate.get("blocking_followups") == [{
-            "id": INCIDENT_ID,
-            "scope": "before_g0_pass",
-            "status": "resolved",
-            "required_resolution": "owner_directed_external_retention_with_x2n_zero_contact",
-        }], "Resume resolution is missing or ambiguous")
-        _require(gate.get("gate_status") == "pass" and gate.get("gate_decision") == "pass", "Resume did not produce an exact G0 pass")
+        _require(
+            gate.get("blocking_followups")
+            == [
+                {
+                    "id": INCIDENT_ID,
+                    "scope": "before_g0_pass",
+                    "status": "resolved",
+                    "required_resolution": "owner_directed_external_retention_with_x2n_zero_contact",
+                }
+            ],
+            "Resume resolution is missing or ambiguous",
+        )
+        _require(
+            gate.get("gate_status") == "pass" and gate.get("gate_decision") == "pass",
+            "Resume did not produce an exact G0 pass",
+        )
         _require(gate.get("stage_1_authorized") is True, "Stage 1 was not authorized after G0 pass")
-        _require(gate.get("remote_upload") == "authorized_after_g0_pass", "Stage 0 upload was not authorized after G0 pass")
-    _require(gate.get("product_code") == "not_started" and gate.get("real_account_execution") == "not_run" and gate.get("platform_calls") == "not_run", "Stage 0 execution boundary overstated")
+        _require(
+            gate.get("remote_upload") == "authorized_after_g0_pass", "Stage 0 upload was not authorized after G0 pass"
+        )
+    _require(
+        gate.get("product_code") == "not_started"
+        and gate.get("real_account_execution") == "not_run"
+        and gate.get("platform_calls") == "not_run",
+        "Stage 0 execution boundary overstated",
+    )
 
 
 def validate_current_state() -> Check:
@@ -484,25 +597,65 @@ def validate_current_state() -> Check:
     project = _load_json_at(STAGE_1_REVIEW_COMMIT, PROJECT_FACT)
     if gate.get("gate_status") == "blocked_owner_action":
         _require(state.get("schema_version") == "1.1", "blocked task state schema drifted")
-        _require(state.get("review_id") == REVIEW_ID and state.get("run_id") == REVIEW_RUN_ID, "blocked task state Review identity drifted")
-        _require(state.get("run_kind") == "stage_review_no_new_dag_task" and state.get("state") == "review_complete_gate_blocked", "blocked Review state is invalid")
-        _require(state.get("stage_1_authorized") is False and state.get("next_phase_authorized") is False, "next Stage/Phase was authorized while blocked")
+        _require(
+            state.get("review_id") == REVIEW_ID and state.get("run_id") == REVIEW_RUN_ID,
+            "blocked task state Review identity drifted",
+        )
+        _require(
+            state.get("run_kind") == "stage_review_no_new_dag_task"
+            and state.get("state") == "review_complete_gate_blocked",
+            "blocked Review state is invalid",
+        )
+        _require(
+            state.get("stage_1_authorized") is False and state.get("next_phase_authorized") is False,
+            "next Stage/Phase was authorized while blocked",
+        )
         _require(state.get("next_phase") is None and state.get("next_run") == RESUME_ID, "blocked next route drifted")
-        _require(state.get("blocking_followups", [{}])[0].get("id") == INCIDENT_ID and state["blocking_followups"][0].get("status") == "owner_action_pending", "task state lost the pending follow-up")
-        _require(project.get("status") == "stage_0_review_complete_g0_blocked_owner_action", "project fact does not reflect blocked Review verdict")
-        details = {"review": "COMPLETE", "g0": "BLOCKED_OWNER_ACTION", "stage_1_authorized": False, "remote_upload": "FORBIDDEN"}
+        _require(
+            state.get("blocking_followups", [{}])[0].get("id") == INCIDENT_ID
+            and state["blocking_followups"][0].get("status") == "owner_action_pending",
+            "task state lost the pending follow-up",
+        )
+        _require(
+            project.get("status") == "stage_0_review_complete_g0_blocked_owner_action",
+            "project fact does not reflect blocked Review verdict",
+        )
+        details = {
+            "review": "COMPLETE",
+            "g0": "BLOCKED_OWNER_ACTION",
+            "stage_1_authorized": False,
+            "remote_upload": "FORBIDDEN",
+        }
     elif state.get("schema_version") == "1.2":
         _require(state.get("schema_version") == "1.2", "Resume task state schema drifted")
-        _require(state.get("review_id") == RESUME_ID and state.get("run_id") == RESUME_RUN_ID, "Resume task state identity drifted")
-        _require(state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass", "Resume task state is invalid")
-        _require(state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True, "next Stage/Phase was not authorized after G0 pass")
-        _require(state.get("next_phase") == "PH.X2N.1.1" and state.get("next_run") == "TSK.x2n.foundation.001", "post-G0 next route drifted")
-        _require(state.get("blocking_followups") == [{
-            "id": INCIDENT_ID,
-            "scope": "before_g0_pass",
-            "status": "resolved",
-            "action": "owner_directed_external_retention_with_x2n_zero_contact",
-        }], "task state Resume resolution is missing or ambiguous")
+        _require(
+            state.get("review_id") == RESUME_ID and state.get("run_id") == RESUME_RUN_ID,
+            "Resume task state identity drifted",
+        )
+        _require(
+            state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass",
+            "Resume task state is invalid",
+        )
+        _require(
+            state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True,
+            "next Stage/Phase was not authorized after G0 pass",
+        )
+        _require(
+            state.get("next_phase") == "PH.X2N.1.1" and state.get("next_run") == "TSK.x2n.foundation.001",
+            "post-G0 next route drifted",
+        )
+        _require(
+            state.get("blocking_followups")
+            == [
+                {
+                    "id": INCIDENT_ID,
+                    "scope": "before_g0_pass",
+                    "status": "resolved",
+                    "action": "owner_directed_external_retention_with_x2n_zero_contact",
+                }
+            ],
+            "task state Resume resolution is missing or ambiguous",
+        )
         _require(project.get("status") == "stage_0_g0_pass_stage_1_authorized", "project fact does not reflect G0 pass")
         details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "AUTHORIZED"}
     else:
@@ -544,8 +697,14 @@ def validate_current_state() -> Check:
                 state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
                 "foundation Run identity mismatch",
             )
-        _require(state.get("stage") == "STG.X2N.1" and state.get("state") == expected_current["state"], "current Stage state is invalid")
-        _require(state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True, "Stage 1 authorization drifted")
+        _require(
+            state.get("stage") == "STG.X2N.1" and state.get("state") == expected_current["state"],
+            "current Stage state is invalid",
+        )
+        _require(
+            state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True,
+            "Stage 1 authorization drifted",
+        )
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task is not pass")
@@ -556,12 +715,18 @@ def validate_current_state() -> Check:
             and state.get("next_run") == expected_current["next_run"],
             "foundation next route drifted",
         )
-        _require(state.get("blocking_followups") == [{
-            "id": INCIDENT_ID,
-            "scope": "before_g0_pass",
-            "status": "resolved",
-            "action": "owner_directed_external_retention_with_x2n_zero_contact",
-        }], "task state Resume resolution is missing or ambiguous")
+        _require(
+            state.get("blocking_followups")
+            == [
+                {
+                    "id": INCIDENT_ID,
+                    "scope": "before_g0_pass",
+                    "status": "resolved",
+                    "action": "owner_directed_external_retention_with_x2n_zero_contact",
+                }
+            ],
+            "task state Resume resolution is missing or ambiguous",
+        )
         if schema_version == "1.8":
             _require(
                 state.get("current_stage_gate") == "pass"
@@ -569,8 +734,15 @@ def validate_current_state() -> Check:
                 "G1 Review state mismatch",
             )
         else:
-            _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
-        _require(project.get("status") == expected_current["project_status"], "project fact does not reflect foundation completion")
+            _require(
+                state.get("current_stage_gate") == "not_run"
+                and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass",
+                "G1/upload overstated",
+            )
+        _require(
+            project.get("status") == expected_current["project_status"],
+            "project fact does not reflect foundation completion",
+        )
         details = {
             "review": "RESUME_COMPLETE",
             "g0": "PASS",
@@ -592,40 +764,90 @@ def validate_phase_receipts() -> Check:
 
     p01 = _load_json(base / "phase_0_1/verification.json")
     _require(p01.get("phase_status") == "PASS" and p01.get("stage_gate") == "NOT_RUN", "Phase 0.1 receipt overstated")
-    _require(p01.get("downstream_acceptance") == {
-        "ACC.x2n.gov.001": "PASS",
-        "ACC.x2n.gov.002": "DOWNSTREAM_NOT_RUN",
-        "ACC.x2n.media.001": "DOWNSTREAM_NOT_RUN",
-        "ACC.x2n.ops.002": "DOWNSTREAM_NOT_RUN",
-    }, "Phase 0.1 downstream status drifted")
+    _require(
+        p01.get("downstream_acceptance")
+        == {
+            "ACC.x2n.gov.001": "PASS",
+            "ACC.x2n.gov.002": "DOWNSTREAM_NOT_RUN",
+            "ACC.x2n.media.001": "DOWNSTREAM_NOT_RUN",
+            "ACC.x2n.ops.002": "DOWNSTREAM_NOT_RUN",
+        },
+        "Phase 0.1 downstream status drifted",
+    )
     p02 = _load_json(base / "phase_0_2/verification.json")
     _require(p02.get("status") == "PASS" and p02.get("stage_gate") == "NOT_RUN", "Phase 0.2 receipt overstated")
     _require(p02.get("adapter_contract_tests") == "DOWNSTREAM_NOT_RUN", "Phase 0.2 adapter status overstated")
     p05 = _load_json(base / "phase_0_5/verification.json")
     _require(p05.get("status") == "PASS" and p05.get("stage_gate") == "NOT_RUN", "Phase 0.5 receipt overstated")
-    _require(p05.get("acceptance_status", {}).get("ACC.x2n.media.003") == "DESIGN_FIXTURE_PASS_DOWNSTREAM_NOT_RUN", "Phase 0.5 media status overstated")
+    _require(
+        p05.get("acceptance_status", {}).get("ACC.x2n.media.003") == "DESIGN_FIXTURE_PASS_DOWNSTREAM_NOT_RUN",
+        "Phase 0.5 media status overstated",
+    )
     incident = _load_json(base / f"phase_0_5/{INCIDENT_ID}.json")
     _require(incident.get("status") == "CONTAINED_OWNER_ACTION_PENDING", "credential incident status overstated")
-    _require(incident.get("credential_value_in_evidence") is False and incident.get("affected_product_or_runtime_files") == 0, "credential incident evidence is unsafe")
-    manifest_hash = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
-    return Check("phase_evidence_receipts", "PASS", {"files": len(manifest), "manifest_sha256": manifest_hash, "downstream_product_oracles": "NOT_RUN"})
+    _require(
+        incident.get("credential_value_in_evidence") is False
+        and incident.get("affected_product_or_runtime_files") == 0,
+        "credential incident evidence is unsafe",
+    )
+    manifest_hash = hashlib.sha256(
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return Check(
+        "phase_evidence_receipts",
+        "PASS",
+        {"files": len(manifest), "manifest_sha256": manifest_hash, "downstream_product_oracles": "NOT_RUN"},
+    )
 
 
 def validate_external_revalidation() -> Check:
     evidence = _load_json(EXTERNAL_REVALIDATION)
-    _require(evidence.get("review_id") == REVIEW_ID and evidence.get("revalidated_on") == "2026-07-20", "external revalidation identity/date drifted")
+    _require(
+        evidence.get("review_id") == REVIEW_ID and evidence.get("revalidated_on") == "2026-07-20",
+        "external revalidation identity/date drifted",
+    )
     competitor = evidence.get("competitor", {})
     expected_commit = "765207310a90a81c615c0ba2df124543b424af89"
-    _require(competitor.get("selected_commit") == expected_commit and competitor.get("current_default_head") == expected_commit, "competitor fixed/current commit mismatch")
-    _require(competitor.get("tree") == "3fe084d7e3835669ccdb4193312b065a48eeb5d7" and competitor.get("non_git_files") == 177, "competitor tree metrics drifted")
-    _require(competitor.get("source_copy") is False and competitor.get("runtime_dependency") is False and competitor.get("execution") is False and competitor.get("output_ingest") is False, "competitor crossed the research boundary")
+    _require(
+        competitor.get("selected_commit") == expected_commit
+        and competitor.get("current_default_head") == expected_commit,
+        "competitor fixed/current commit mismatch",
+    )
+    _require(
+        competitor.get("tree") == "3fe084d7e3835669ccdb4193312b065a48eeb5d7" and competitor.get("non_git_files") == 177,
+        "competitor tree metrics drifted",
+    )
+    _require(
+        competitor.get("source_copy") is False
+        and competitor.get("runtime_dependency") is False
+        and competitor.get("execution") is False
+        and competitor.get("output_ingest") is False,
+        "competitor crossed the research boundary",
+    )
     sources = evidence.get("official_policy_sources", {})
     _require(tuple(sources.keys()) == ("chrome", "notion", *PLATFORMS), "official source lanes drifted")
-    _require(all(isinstance(urls, list) and urls and all(str(url).startswith("https://") for url in urls) for urls in sources.values()), "official source registry is incomplete")
+    _require(
+        all(
+            isinstance(urls, list) and urls and all(str(url).startswith("https://") for url in urls)
+            for urls in sources.values()
+        ),
+        "official source registry is incomplete",
+    )
     conclusions = evidence.get("policy_conclusions", {})
-    _require(conclusions.get("legal_or_platform_authorization_granted_by_research") is False, "research was treated as platform authorization")
-    _require(conclusions.get("platform_enablement_changed") is False and conclusions.get("all_six_platforms_remain_unknown_disabled") is True, "external recheck enabled a platform")
-    return Check("external_revalidation", "PASS", {"competitor_head_unchanged": True, "official_source_lanes": len(sources), "platforms_enabled": 0})
+    _require(
+        conclusions.get("legal_or_platform_authorization_granted_by_research") is False,
+        "research was treated as platform authorization",
+    )
+    _require(
+        conclusions.get("platform_enablement_changed") is False
+        and conclusions.get("all_six_platforms_remain_unknown_disabled") is True,
+        "external recheck enabled a platform",
+    )
+    return Check(
+        "external_revalidation",
+        "PASS",
+        {"competitor_head_unchanged": True, "official_source_lanes": len(sources), "platforms_enabled": 0},
+    )
 
 
 def _porcelain_paths(status: str) -> list[str]:
@@ -660,33 +882,55 @@ def _evaluate_main_isolation(changed_paths: list[str], allow_external_main_dirty
 
 
 def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
-    _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "not in the MetaDatabase Review worktree")
+    _require(
+        Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(),
+        "not in the MetaDatabase Review worktree",
+    )
     branch = _git(["branch", "--show-current"])
     _require(branch == REVIEW_BRANCH, "wrong Stage 0 Review branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
-    _require(re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote) is not None, "wrong or unsafe persisted origin")
+    _require(
+        re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
+        is not None,
+        "wrong or unsafe persisted origin",
+    )
     live_origin = _git(["rev-parse", "--verify", "origin/main"])
     sync_target = _load_json(GATE_STATE)["review_sync_target"]
     _git(["cat-file", "-e", f"{sync_target}^{{commit}}"])
-    ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", sync_target, "HEAD"], cwd=REPOSITORY_ROOT, check=False)
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", sync_target, "HEAD"], cwd=REPOSITORY_ROOT, check=False
+    )
     _require(ancestor.returncode == 0, "Review branch does not contain its recorded origin/main cutoff")
 
     origin_drift_commits = 0
     origin_project_overlap = 0
     if live_origin != sync_target:
-        linear = subprocess.run(["git", "merge-base", "--is-ancestor", sync_target, live_origin], cwd=REPOSITORY_ROOT, check=False)
+        linear = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", sync_target, live_origin], cwd=REPOSITORY_ROOT, check=False
+        )
         _require(linear.returncode == 0, "origin/main no longer descends from the recorded Review cutoff")
         drift_paths = _git(["diff", "--name-only", f"{sync_target}..{live_origin}"]).splitlines()
-        origin_project_overlap = sum(path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in drift_paths)
+        origin_project_overlap = sum(
+            path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in drift_paths
+        )
         _require(origin_project_overlap == 0, "origin/main changed x2n after the Review cutoff")
         readme_diff = _git(["diff", "--unified=0", f"{sync_target}..{live_origin}", "--", "README.md"])
-        _require(not any(line.startswith(("+", "-")) and "xhs-douyin-2notion" in line for line in readme_diff.splitlines()), "origin/main changed the x2n parent index after the Review cutoff")
+        _require(
+            not any(line.startswith(("+", "-")) and "xhs-douyin-2notion" in line for line in readme_diff.splitlines()),
+            "origin/main changed the x2n parent index after the Review cutoff",
+        )
         origin_drift_commits = int(_git(["rev-list", "--count", f"{sync_target}..{live_origin}"]))
 
     status = _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
     changed = _porcelain_paths(status)
-    _require(all(path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in changed), "Review changed scope escaped x2n")
-    _require(not any(path.startswith("xhs-douyin-2notion/machine/evidence/stage_0/phase_") for path in changed), "Review rewrote historical Phase evidence")
+    _require(
+        all(path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in changed),
+        "Review changed scope escaped x2n",
+    )
+    _require(
+        not any(path.startswith("xhs-douyin-2notion/machine/evidence/stage_0/phase_") for path in changed),
+        "Review rewrote historical Phase evidence",
+    )
 
     main_path: Optional[Path] = None
     for block in _git(["worktree", "list", "--porcelain"]).split("\n\n"):
@@ -725,7 +969,15 @@ def validate_original_sources(roadmap: Path, taskpack_zip: Path) -> Check:
     taskpack_hash = _sha256(taskpack_zip)
     _require(roadmap_hash == EXPECTED_ROADMAP_SHA256, "original roadmap hash changed")
     _require(taskpack_hash == EXPECTED_TASKPACK_ZIP_SHA256, "original taskpack ZIP hash changed")
-    return Check("original_sources", "PASS", {"roadmap_sha256": roadmap_hash, "taskpack_zip_sha256": taskpack_hash, "absolute_download_path_in_source": "UNSPECIFIED"})
+    return Check(
+        "original_sources",
+        "PASS",
+        {
+            "roadmap_sha256": roadmap_hash,
+            "taskpack_zip_sha256": taskpack_hash,
+            "absolute_download_path_in_source": "UNSPECIFIED",
+        },
+    )
 
 
 def validate_phase_reacceptance(
@@ -739,32 +991,45 @@ def validate_phase_reacceptance(
     p05 = _load_verifier("x2n_review_phase_0_5", "verify_phase_0_5.py")
     try:
         p01_checks = p01.run_core_checks()
-        p01_checks.extend([
-            p01.validate_local_root(local_root),
-            p01.validate_worktree_scope(allow_external_main_dirty),
-            p01.validate_original_sources(roadmap, taskpack_zip),
-        ])
+        p01_checks.extend(
+            [
+                p01.validate_local_root(local_root),
+                p01.validate_worktree_scope(allow_external_main_dirty),
+                p01.validate_original_sources(roadmap, taskpack_zip),
+            ]
+        )
         p02_checks = p02.run_core_checks()
-        p02_checks.extend([
-            p02.validate_worktree_scope(allow_external_main_dirty),
-            p02.validate_temp_cleanup(),
-            p02.validate_evidence(),
-        ])
+        p02_checks.extend(
+            [
+                p02.validate_worktree_scope(allow_external_main_dirty),
+                p02.validate_temp_cleanup(),
+                p02.validate_evidence(),
+            ]
+        )
         p05_checks = p05.run_core_checks()
-        p05_checks.extend([
-            p05.validate_owner_input(local_root),
-            p05.validate_worktree_scope(allow_external_main_dirty),
-            p05.validate_temp_cleanup(),
-            p05.validate_evidence(),
-        ])
+        p05_checks.extend(
+            [
+                p05.validate_owner_input(local_root),
+                p05.validate_worktree_scope(allow_external_main_dirty),
+                p05.validate_temp_cleanup(),
+                p05.validate_evidence(),
+            ]
+        )
     except Exception as exc:  # Convert verifier-specific fail-closed errors.
         raise VerificationError(f"Phase reacceptance failed: {exc}") from exc
     all_checks = [*p01_checks, *p02_checks, *p05_checks]
-    _require(all(getattr(check, "status", None) == "PASS" for check in all_checks), "a Phase reacceptance check did not pass")
+    _require(
+        all(getattr(check, "status", None) == "PASS" for check in all_checks), "a Phase reacceptance check did not pass"
+    )
     return Check(
         "phase_reacceptance",
         "PASS",
-        {"phase_0_1_checks": len(p01_checks), "phase_0_2_checks": len(p02_checks), "phase_0_5_checks": len(p05_checks), "downstream_product_oracles": "NOT_RUN"},
+        {
+            "phase_0_1_checks": len(p01_checks),
+            "phase_0_2_checks": len(p02_checks),
+            "phase_0_5_checks": len(p05_checks),
+            "downstream_product_oracles": "NOT_RUN",
+        },
     )
 
 
@@ -787,7 +1052,10 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 def write_evidence(checks: list[Check]) -> None:
     gate = _load_json(GATE_STATE)
     validate_gate_payload(gate)
-    _require(gate.get("gate_status") == "blocked_owner_action", "historical Review writer cannot overwrite evidence after Resume")
+    _require(
+        gate.get("gate_status") == "blocked_owner_action",
+        "historical Review writer cannot overwrite evidence after Resume",
+    )
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     common = {
         "schema_version": "1.0",
@@ -807,32 +1075,41 @@ def write_evidence(checks: list[Check]) -> None:
         "media_downloads": "NOT_RUN",
         "stage_1_authorized": False,
         "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
-        "redaction": {"private_content_included": False, "secrets_included": False, "cdn_urls_included": False, "external_main_paths_included": False},
+        "redaction": {
+            "private_content_included": False,
+            "secrets_included": False,
+            "cdn_urls_included": False,
+            "external_main_paths_included": False,
+        },
     }
     verification = dict(common)
-    verification.update({
-        "status": "PASS",
-        "review_status": "COMPLETE",
-        "g0_status": "BLOCKED_OWNER_ACTION",
-        "checks": [check.__dict__ for check in checks],
-        "findings": {
-            "fixed": ["F-X2N-S00-R01", "F-X2N-S00-R02", "F-X2N-S00-R03", "F-X2N-S00-R04"],
-            "blocking_owner_action": ["F-X2N-S00-R05"],
-        },
-        "downstream_product_acceptances": "NOT_RUN",
-    })
+    verification.update(
+        {
+            "status": "PASS",
+            "review_status": "COMPLETE",
+            "g0_status": "BLOCKED_OWNER_ACTION",
+            "checks": [check.__dict__ for check in checks],
+            "findings": {
+                "fixed": ["F-X2N-S00-R01", "F-X2N-S00-R02", "F-X2N-S00-R03", "F-X2N-S00-R04"],
+                "blocking_owner_action": ["F-X2N-S00-R05"],
+            },
+            "downstream_product_acceptances": "NOT_RUN",
+        }
+    )
     _write_json(REVIEW_EVIDENCE_DIR / "verification.json", verification)
 
     g0 = dict(common)
-    g0.update({
-        "gate_id": "G0",
-        "status": "BLOCKED_OWNER_ACTION",
-        "decision": "FAIL_CLOSED",
-        "pass_conditions": {key: value.upper() for key, value in gate["pass_conditions"].items()},
-        "stop_conditions": {key: value.upper() for key, value in gate["stop_conditions"].items()},
-        "blocking_followups": gate["blocking_followups"],
-        "required_next_run": "STG.X2N.0.REVIEW.RESUME",
-    })
+    g0.update(
+        {
+            "gate_id": "G0",
+            "status": "BLOCKED_OWNER_ACTION",
+            "decision": "FAIL_CLOSED",
+            "pass_conditions": {key: value.upper() for key, value in gate["pass_conditions"].items()},
+            "stop_conditions": {key: value.upper() for key, value in gate["stop_conditions"].items()},
+            "blocking_followups": gate["blocking_followups"],
+            "required_next_run": "STG.X2N.0.REVIEW.RESUME",
+        }
+    )
     _write_json(REVIEW_EVIDENCE_DIR / "G0.json", g0)
 
 
@@ -841,22 +1118,52 @@ def validate_review_evidence() -> Check:
     actual = {path.name for path in REVIEW_EVIDENCE_DIR.glob("*.json")}
     _require(actual == expected, f"Stage Review evidence set mismatch: {sorted(actual)}")
     verification = _load_json(REVIEW_EVIDENCE_DIR / "verification.json")
-    _require(verification.get("status") == "PASS" and verification.get("review_status") == "COMPLETE", "Review verification receipt is not complete/pass")
+    _require(
+        verification.get("status") == "PASS" and verification.get("review_status") == "COMPLETE",
+        "Review verification receipt is not complete/pass",
+    )
     _require(verification.get("g0_status") == "BLOCKED_OWNER_ACTION", "Review verification receipt overstated G0")
-    _require(verification.get("stage_1_authorized") is False and verification.get("remote_upload") == "FORBIDDEN_UNTIL_G0_PASS", "Review receipt weakened Stage/upload gate")
-    _require(verification.get("downstream_product_acceptances") == "NOT_RUN", "Review receipt overstated downstream acceptance")
+    _require(
+        verification.get("stage_1_authorized") is False
+        and verification.get("remote_upload") == "FORBIDDEN_UNTIL_G0_PASS",
+        "Review receipt weakened Stage/upload gate",
+    )
+    _require(
+        verification.get("downstream_product_acceptances") == "NOT_RUN",
+        "Review receipt overstated downstream acceptance",
+    )
     redaction = verification.get("redaction", {})
     _require(all(value is False for value in redaction.values()), "Review evidence redaction flags are unsafe")
     worktree_checks = [item for item in verification.get("checks", []) if item.get("name") == "review_worktree_scope"]
     _require(len(worktree_checks) == 1, "Review worktree evidence missing or duplicated")
     details = worktree_checks[0].get("details", {})
-    _require(details.get("project_overlap_paths") == 0 and isinstance(details.get("external_main_dirty_paths"), int), "Review worktree isolation evidence invalid")
-    _require("external_main_paths" not in details and "external_paths" not in details, "Review evidence leaked external paths")
+    _require(
+        details.get("project_overlap_paths") == 0 and isinstance(details.get("external_main_dirty_paths"), int),
+        "Review worktree isolation evidence invalid",
+    )
+    _require(
+        "external_main_paths" not in details and "external_paths" not in details,
+        "Review evidence leaked external paths",
+    )
     g0 = _load_json(REVIEW_EVIDENCE_DIR / "G0.json")
-    _require(g0.get("status") == "BLOCKED_OWNER_ACTION" and g0.get("decision") == "FAIL_CLOSED", "G0 receipt is not fail-closed")
-    _require(g0.get("blocking_followups", [{}])[0].get("id") == INCIDENT_ID and g0["blocking_followups"][0].get("status") == "owner_action_pending", "G0 receipt lost the Owner action")
-    _require(g0.get("stage_1_authorized") is False and g0.get("remote_upload") == "FORBIDDEN_UNTIL_G0_PASS", "G0 receipt authorized Stage/upload")
-    return Check("review_evidence_receipts", "PASS", {"files": len(actual), "g0": "BLOCKED_OWNER_ACTION", "stage_1_authorized": False})
+    _require(
+        g0.get("status") == "BLOCKED_OWNER_ACTION" and g0.get("decision") == "FAIL_CLOSED",
+        "G0 receipt is not fail-closed",
+    )
+    _require(
+        g0.get("blocking_followups", [{}])[0].get("id") == INCIDENT_ID
+        and g0["blocking_followups"][0].get("status") == "owner_action_pending",
+        "G0 receipt lost the Owner action",
+    )
+    _require(
+        g0.get("stage_1_authorized") is False and g0.get("remote_upload") == "FORBIDDEN_UNTIL_G0_PASS",
+        "G0 receipt authorized Stage/upload",
+    )
+    return Check(
+        "review_evidence_receipts",
+        "PASS",
+        {"files": len(actual), "g0": "BLOCKED_OWNER_ACTION", "stage_1_authorized": False},
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -874,23 +1181,41 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        _require(not args.allow_external_main_dirty or args.verify_worktree, "--allow-external-main-dirty requires --verify-worktree")
-        _require(not (args.source_roadmap or args.source_taskpack) or bool(args.source_roadmap and args.source_taskpack), "both original source paths are required")
+        _require(
+            not args.allow_external_main_dirty or args.verify_worktree,
+            "--allow-external-main-dirty requires --verify-worktree",
+        )
+        _require(
+            not (args.source_roadmap or args.source_taskpack) or bool(args.source_roadmap and args.source_taskpack),
+            "both original source paths are required",
+        )
         if args.write_evidence or args.require_evidence:
-            _require(args.verify_worktree and args.verify_local_root, "Review evidence requires worktree and private-root verification")
-            _require(bool(args.source_roadmap and args.source_taskpack), "Review evidence requires both original source files")
+            _require(
+                args.verify_worktree and args.verify_local_root,
+                "Review evidence requires worktree and private-root verification",
+            )
+            _require(
+                bool(args.source_roadmap and args.source_taskpack),
+                "Review evidence requires both original source files",
+            )
 
         checks = run_core_checks()
         local_root: Optional[Path] = None
         if args.verify_local_root:
             root_value = os.environ.get("X2N_DATA_ROOT")
-            local_root = Path(root_value) if root_value else Path.home() / "Downloads" / "MediaCrawler" / "xhs-douyin-2notion"
+            local_root = (
+                Path(root_value) if root_value else Path.home() / "Downloads" / "MediaCrawler" / "xhs-douyin-2notion"
+            )
         if args.verify_worktree:
             checks.append(validate_worktree_scope(args.allow_external_main_dirty))
         if args.source_roadmap and args.source_taskpack:
             checks.append(validate_original_sources(args.source_roadmap, args.source_taskpack))
         if local_root is not None and args.source_roadmap and args.source_taskpack:
-            checks.append(validate_phase_reacceptance(args.source_roadmap, args.source_taskpack, local_root, args.allow_external_main_dirty))
+            checks.append(
+                validate_phase_reacceptance(
+                    args.source_roadmap, args.source_taskpack, local_root, args.allow_external_main_dirty
+                )
+            )
         if args.write_evidence:
             write_evidence(checks)
             checks.append(validate_review_evidence())
@@ -899,18 +1224,24 @@ def main() -> int:
 
         gate = _load_json(GATE_STATE)
         g0_pass = gate.get("gate_status") == "pass"
-        print(json.dumps({
-            "status": "PASS",
-            "review_status": "RESUME_COMPLETE" if g0_pass else "COMPLETE",
-            "review_id": gate.get("review_id"),
-            "checks": [check.__dict__ for check in checks],
-            "historical_review_g0_status": "BLOCKED_OWNER_ACTION",
-            "g0_status": "PASS" if g0_pass else "BLOCKED_OWNER_ACTION",
-            "stage_1_authorized": g0_pass,
-            "remote_upload": "AUTHORIZED_AFTER_G0_PASS" if g0_pass else "FORBIDDEN_UNTIL_G0_PASS",
-            "product_code": "NOT_STARTED",
-            "real_account_execution": "NOT_RUN",
-        }, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": "PASS",
+                    "review_status": "RESUME_COMPLETE" if g0_pass else "COMPLETE",
+                    "review_id": gate.get("review_id"),
+                    "checks": [check.__dict__ for check in checks],
+                    "historical_review_g0_status": "BLOCKED_OWNER_ACTION",
+                    "g0_status": "PASS" if g0_pass else "BLOCKED_OWNER_ACTION",
+                    "stage_1_authorized": g0_pass,
+                    "remote_upload": "AUTHORIZED_AFTER_G0_PASS" if g0_pass else "FORBIDDEN_UNTIL_G0_PASS",
+                    "product_code": "NOT_STARTED",
+                    "real_account_execution": "NOT_RUN",
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 0
     except (OSError, ValueError, VerificationError, yaml.YAMLError) as exc:
         print(json.dumps({"status": "FAIL", "error": str(exc)}, ensure_ascii=False, sort_keys=True), file=sys.stderr)

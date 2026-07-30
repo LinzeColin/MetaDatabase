@@ -37,9 +37,7 @@ PLATFORM_POLICY = PROJECT_ROOT / "machine/policy/platform_policy_registry.json"
 KUAISHOU_POLICY = PROJECT_ROOT / "machine/policy/kuaishou_current_page_policy.json"
 PERMISSION_POLICY = PROJECT_ROOT / "machine/policy/extension_permission_policy.json"
 GLOBAL_FIXTURE_MANIFEST = PROJECT_ROOT / "machine/policy/synthetic_fixture_manifest.json"
-FIXTURE_MANIFEST = (
-    PROJECT_ROOT / "packages/test-fixtures/extension/v1/kuaishou_current_page/fixture_manifest.json"
-)
+FIXTURE_MANIFEST = PROJECT_ROOT / "packages/test-fixtures/extension/v1/kuaishou_current_page/fixture_manifest.json"
 MANIFEST = PROJECT_ROOT / "apps/extension/manifest.json"
 NATIVE_POLICY = PROJECT_ROOT / "apps/companion/native-host/policy.json"
 EVIDENCE = PROJECT_ROOT / "evidence/adapters/TSK.x2n.skeleton.007.json"
@@ -285,7 +283,9 @@ def validate_scope() -> Check:
         ".p12",
         ".pfx",
     }
-    _require(not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n")
+    _require(
+        not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n"
+    )
     return Check(
         "scope_and_privacy",
         "PASS",
@@ -471,11 +471,16 @@ def validate_extension_surface() -> Check:
         "Extension CSP weakened",
     )
     permission = _load_json(PERMISSION_POLICY)
-    _require([item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS, "permission policy drifted")
+    _require(
+        [item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS,
+        "permission policy drifted",
+    )
     _require(permission.get("host_permissions") == [] and permission.get("content_scripts") == [], "policy widened")
     native = _load_json(NATIVE_POLICY)
     _require(native == _load_json_at(TASK_BASE_COMMIT, NATIVE_POLICY), "Native policy changed in Skeleton007")
-    _require(native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened")
+    _require(
+        native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened"
+    )
 
     source_paths = sorted((PROJECT_ROOT / "apps/extension/src").glob("*.js"))
     sources = {path.name: path.read_text(encoding="utf-8") for path in source_paths}
@@ -499,13 +504,18 @@ def validate_extension_surface() -> Check:
     _require('kuaishou: "ci_synth_only"' in page_support, "Kuaishou feature gate drifted")
     _require('startsWith("synthetic-ks-video-")' in page_support, "Kuaishou synthetic gate missing")
     _require("kuaishou_oauth_scope_missing_blocked_auth" in page_support, "Kuaishou auth policy gate missing")
-    _require("buildKuaishouCapturePayload" in worker and "extractKuaishouCurrentPage" in worker, "Kuaishou adapter missing")
+    _require(
+        "buildKuaishouCapturePayload" in worker and "extractKuaishouCurrentPage" in worker, "Kuaishou adapter missing"
+    )
     _require('world: "ISOLATED"' in worker and "currentTab.url !== tab.url" in worker, "injection race gate missing")
     _require('kuaishou: "Kuaishou"' in panel and "captureInFlight" in panel, "Side Panel gate missing")
     _require("auto_scroll: false" in kuaishou and "change_account_state: false" in kuaishou, "capture literals drifted")
     _require("stable_photo_id" in kuaishou and "data-photo-id" in kuaishou, "Kuaishou identity cross-check missing")
     _require('.getAttribute("src")' not in kuaishou and ".src" not in kuaishou, "media source read entered extractor")
-    _require("hydration" not in kuaishou.lower() and "innerhtml" not in kuaishou.lower(), "raw page state read entered extractor")
+    _require(
+        "hydration" not in kuaishou.lower() and "innerhtml" not in kuaishou.lower(),
+        "raw page state read entered extractor",
+    )
     package = _load_json(PROJECT_ROOT / "apps/extension/package.json")
     scripts = package.get("scripts", {})
     _require(scripts.get("test:kuaishou-fixtures") == "node scripts/kuaishou-fixture-e2e.mjs", "fixture script missing")
@@ -542,8 +552,7 @@ def validate_fixtures_and_policy() -> Check:
         "platform-changed threshold drifted",
     )
     _require(
-        fixture.get("route_assumptions", {}).get("public_short_video_route")
-        == "unverified_real_route_not_enabled",
+        fixture.get("route_assumptions", {}).get("public_short_video_route") == "unverified_real_route_not_enabled",
         "public route assumption was overstated",
     )
     _require(fixture.get("auth_contract", {}).get("required_scope") == "user_video_info", "OAuth scope drifted")
@@ -626,7 +635,9 @@ def validate_fixtures_and_policy() -> Check:
         "Kuaishou platform fact drifted",
     )
     registry = _load_json_at(FINAL_COMMIT, PLATFORM_POLICY)
-    _require(registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted")
+    _require(
+        registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted"
+    )
     official_sources = registry.get("official_sources", {}).get("kuaishou", [])
     _require(isinstance(official_sources, list) and len(official_sources) >= 5, "official Kuaishou evidence incomplete")
     _require(
@@ -936,9 +947,7 @@ def validate_full_lane_report(path: Path) -> Check:
     ]
     _require(results == expected_results, "full lane execution identity or result drifted")
     _require(
-        report.get("platform_calls") == 0
-        and report.get("model_calls") == 0
-        and report.get("real_accounts") == 0,
+        report.get("platform_calls") == 0 and report.get("model_calls") == 0 and report.get("real_accounts") == 0,
         "full lane executed a forbidden external surface",
     )
     coverage = report.get("coverage", {})
@@ -1088,7 +1097,9 @@ def verify_evidence() -> Check:
         "platform execution overstated",
     )
     _require(evidence.get("acceptance_input_sha256") == _acceptance_input_receipt(), "evidence input receipt is stale")
-    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
+    _require(
+        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
+    )
     return Check(
         "evidence",
         "PASS",

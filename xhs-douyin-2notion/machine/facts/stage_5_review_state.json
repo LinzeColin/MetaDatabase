@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.5",
+  "review_id": "STG.X2N.5.REVIEW",
+  "run_id": "RUN-X2N-S05-REVIEW",
+  "review_base_commit": "645ab212eb2e5d7d0e9aeac3c6d2c73804de346c",
+  "gate": {
+    "id": "G5",
+    "status": "PASS_CI_SYNTH",
+    "decision": "PASS",
+    "pass_conditions": {
+      "notion_eventually_consistent_or_disabled": "PASS_CI_SYNTH_MOCK_RECONCILE_REAL_NOTION_NOT_RUN",
+      "markdown_full_rebuild_deterministic": "PASS_CI_SYNTH_TEN_THOUSAND_REBUILD_SECOND_WRITE_ZERO",
+      "review_and_diagnostics_usable": "PASS_CI_SYNTH_LOOPBACK_REVIEW_REDACTED_DOCTOR_RECOVERY",
+      "export_delete_backup_behavior_verified": "PASS_CI_SYNTH_DOMAIN_ARCHIVE_RESTORE_TOMBSTONE_TTL"
+    }
+  },
+  "task_receipts": {
+    "TSK.x2n.uxops.001": {
+      "phase": "PH.X2N.5.1",
+      "task_commit": "5eaf99396f8cbbb06dce4a1620a64c8ab2eb957a",
+      "evidence_commit": "7a75a2f91b8faf12f0181bc8cdcb2dc4ae901c96",
+      "evidence_path": "evidence/sinks/TSK.x2n.uxops.001.json",
+      "evidence_sha256": "202715ca1a5d223cff099566470fadc76cf9c6d20120e240537fc28e7cdcd7ee",
+      "status": "PASS_CI_SYNTH_MOCK_SCOPED_REAL_NOTION_NOT_RUN"
+    },
+    "TSK.x2n.uxops.002": {
+      "phase": "PH.X2N.5.2",
+      "task_commit": "756faf0aec1f69a5a70af37719a4fda85f1eba77",
+      "evidence_commit": "ab1839184976cad6a3a128350b8d4c498c452ae7",
+      "evidence_path": "evidence/sinks/TSK.x2n.uxops.002.json",
+      "evidence_sha256": "7bc0375af69394e9abd0a8c442662d97752244c00fed494c351a1fbf7763fea7",
+      "status": "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN"
+    },
+    "TSK.x2n.uxops.003": {
+      "phase": "PH.X2N.5.3",
+      "task_commit": "dc5aae0bba9ef0e93a7a024766e3285b31e89995",
+      "evidence_commit": "7f78c3074880d887a683fa9cb2ed8b0477dc414c",
+      "evidence_path": "evidence/ui/TSK.x2n.uxops.003.json",
+      "evidence_sha256": "d75187cee428850736e9cb1fb3ad26a6370180e016b5c04d181fe1e256898edb",
+      "status": "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN"
+    },
+    "TSK.x2n.uxops.004": {
+      "phase": "PH.X2N.5.4",
+      "task_commit": "0ad6a63741015df2a3d4397e2adb64f2565fcc87",
+      "evidence_commit": "798e2693a8255030c19f17572b55392c2d4f5f07",
+      "evidence_path": "evidence/operations/TSK.x2n.uxops.004.json",
+      "evidence_sha256": "c9a80ec800f6aa867ec9c50825bfe493158dda9fd3c4a98eea9c67ea26a21c8e",
+      "status": "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN"
+    },
+    "TSK.x2n.uxops.005": {
+      "phase": "PH.X2N.5.5",
+      "task_commit": "83bd9b3cfd3a01747e2bd077823beeb4afdc7f48",
+      "evidence_commit": "645ab212eb2e5d7d0e9aeac3c6d2c73804de346c",
+      "evidence_path": "evidence/lifecycle/TSK.x2n.uxops.005.json",
+      "evidence_sha256": "674ecac11e4947c66b795cba1a75325ba42f8cddc41bfd3862eded1d0ae34894",
+      "status": "PASS_CI_SYNTH_SCOPED_REAL_RUNTIME_NOT_RUN"
+    }
+  },
+  "execution": {
+    "evidence_class": "INDEPENDENT_LOCAL_CI_SYNTH_REVIEW",
+    "external_network_calls": 0,
+    "platform_calls": 0,
+    "real_account_execution": "NOT_RUN",
+    "notion_real_calls": 0,
+    "private_database_client_calls": 0,
+    "tmutil_calls": 0,
+    "physical_delete_execution": "NOT_RUN",
+    "stage_5_remote_upload": "NOT_RUN",
+    "deployment": "NOT_RUN"
+  },
+  "authorization": {
+    "new_dag_task_executed": false,
+    "stage_5_remote_upload": false,
+    "stage_6_assurance001_start": true,
+    "public_release": false,
+    "deployment": false
+  },
+  "next_task": {
+    "id": "TSK.x2n.assurance.001",
+    "phase": "PH.X2N.6.1",
+    "status": "PLANNED",
+    "real_platform_calls": 0
+  },
+  "release_policy": {
+    "alpha_beta": "PROHIBITED",
+    "fixed_health_observation": "PROHIBITED",
+    "fixed_soak": "PROHIBITED",
+    "post_go_live_monitoring": "NON_BLOCKING_FIX_DEGRADE_OR_ROLLBACK_TRIGGER"
+  }
+}

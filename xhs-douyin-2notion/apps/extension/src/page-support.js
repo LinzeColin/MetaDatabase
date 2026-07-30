@@ -73,6 +73,19 @@ const TAOBAO_SIGNATURE_INPUT_KEYS = Object.freeze(new Set([
   "x-umt",
 ]));
 
+function xhsFavoritesGuide(url) {
+  const queryKeys = [...url.searchParams.keys()].sort();
+  const isCanonicalFavoritesList = new Set(["xiaohongshu.com", "www.xiaohongshu.com"]).has(url.hostname.toLowerCase())
+    && /^\/user\/profile\/[A-Za-z0-9._-]+\/?$/u.test(url.pathname)
+    && url.hash === ""
+    && JSON.stringify(queryKeys) === JSON.stringify(["subTab", "tab"])
+    && url.searchParams.get("tab") === "fav"
+    && url.searchParams.get("subTab") === "note";
+  return isCanonicalFavoritesList
+    ? "xiaohongshu_favorites_list"
+    : null;
+}
+
 function hasTaobaoSignatureInput(url) {
   return [...url.searchParams.keys()].some((key) => TAOBAO_SIGNATURE_INPUT_KEYS.has(key.toLowerCase()));
 }
@@ -168,6 +181,22 @@ function disabledReason(match, url) {
   return "platform_gate_disabled";
 }
 
+export function canCaptureXhsMvpCurrent(message, support) {
+  return message !== null
+    && typeof message === "object"
+    && message.type === "X2N_CAPTURE_CURRENT_MVP"
+    && new Set([
+      "xiaohongshu_current_content",
+      "xiaohongshu_current_content_second_batch",
+    ]).has(message.ownerMvpScope)
+    && message.fallbackFromJobId === undefined
+    && support !== null
+    && typeof support === "object"
+    && support.platform === "xiaohongshu"
+    && support.executable === false
+    && support.mvpCurrentEligible === true;
+}
+
 export function recognizePage(rawUrl) {
   if (typeof rawUrl !== "string" || rawUrl.length === 0) {
     return Object.freeze({
@@ -190,6 +219,17 @@ export function recognizePage(rawUrl) {
   }
 
   const host = url.hostname.toLowerCase();
+  const guideSurface = xhsFavoritesGuide(url);
+  if (guideSurface !== null) {
+    return Object.freeze({
+      executable: false,
+      guideSurface,
+      mvpCurrentEligible: false,
+      platform: "xiaohongshu",
+      reason: "open_xhs_favorite_detail",
+      supported: true,
+    });
+  }
   const match = RULES.find(
     (rule) =>
       rule.hosts.includes(host)
@@ -201,10 +241,12 @@ export function recognizePage(rawUrl) {
   }
 
   const executable = currentPageExecutable(match, url);
-  return Object.freeze({
+  const result = {
     executable,
     platform: match.platform,
     reason: executable ? "current_page_ci_synth_enabled" : disabledReason(match, url),
     supported: true,
-  });
+  };
+  if (match.platform === "xiaohongshu") result.mvpCurrentEligible = !executable;
+  return Object.freeze(result);
 }

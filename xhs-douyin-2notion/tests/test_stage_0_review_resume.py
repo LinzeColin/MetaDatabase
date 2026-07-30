@@ -10,7 +10,9 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location("verify_stage_0_review_resume", PROJECT_ROOT / "scripts/verify_stage_0_review_resume.py")
+SPEC = importlib.util.spec_from_file_location(
+    "verify_stage_0_review_resume", PROJECT_ROOT / "scripts/verify_stage_0_review_resume.py"
+)
 assert SPEC and SPEC.loader
 VERIFY = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = VERIFY

@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.3",
+  "review_id": "STG.X2N.3.REVIEW",
+  "run_id": "RUN-X2N-S03-REVIEW",
+  "review_base_commit": "a67ba091239297b5c9c38a349e0a839680d1c411",
+  "status": "PASS_LOCAL_REACCEPTANCE_G3_BLOCKED",
+  "gate_status": "BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION",
+  "task_reacceptance": {
+    "status": "PASS",
+    "task_count": 9,
+    "reports": [
+      {
+        "task_id": "TSK.x2n.adapters.001",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 16,
+        "acceptance_report_sha256": "9216d96c4b6ecbe9dbe60687c4f7481e3f173c8561778a7b51fb53dfcabcc4c4"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.002",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 14,
+        "acceptance_report_sha256": "26c232052c7d3a264c39b2927051c547ceecc443ea5ec24466d9d338f5abb6af"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.003",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 15,
+        "acceptance_report_sha256": "f2ad69111d9fb905cdafcd5865c5bf68d5f755280e099d88339dbbc8fcb0b0ea"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.004",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 18,
+        "acceptance_report_sha256": "782171e72a849de73081b4f0f57357583af8b08ede24ba19e6143b8a714db01c"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.006",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 17,
+        "acceptance_report_sha256": "8b7b79bf7f3537dfac5c49c2cc077b54637f71ca101399b2a5d731e1798d2b6a"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.007",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 17,
+        "acceptance_report_sha256": "9cee3f999ba67742f52c767c801fceca7164604f865293d7b95037d1fb19f69c"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.008",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 18,
+        "acceptance_report_sha256": "f4807d3784124673a22a2e77873e898dd409574dda87899bf8c83492c62d01dd"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.009",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 18,
+        "acceptance_report_sha256": "7c681bed29fcd7dacfb0fdc4fd3873b1d3a17b4c423caf67f743e303f2141ae9"
+      },
+      {
+        "task_id": "TSK.x2n.adapters.005",
+        "status": "PASS_CI_SYNTH_SCOPED",
+        "unit_tests": 18,
+        "acceptance_report_sha256": "11b7b5321809be5bbbc4e8f86d7940bd206c8e4b1bd25c183833c2e4e8548744"
+      }
+    ]
+  },
+  "cross_layer": {
+    "artifacts": 80,
+    "canonical": 80,
+    "cdn_or_private_path_findings": 0,
+    "markdown": 80,
+    "notion_mock_pages": 80,
+    "outbox_receipts": 160,
+    "replay_duplicates": 0
+  },
+  "test_suites": {
+    "root_total": 263,
+    "root_passed": 260,
+    "root_owner_private_optional_skipped": 3,
+    "companion_passed": 227,
+    "contract_passed": 12,
+    "stage_3_review_passed": 7
+  },
+  "full_lane": {
+    "report_path": "build/s03-review/software-lane.json",
+    "report_sha256": "f12b99cf4d713344c24da1c4964649ecfda4c21fa1463f481b8a3353d416ae2b",
+    "status": "PASS",
+    "blocking_commands": 12,
+    "blocking_repetitions": 2,
+    "blocking_executions": 24,
+    "blocking_failures": 0,
+    "flaky_blocking_tests": 0,
+    "silent_blocking_skips": 0,
+    "explicit_nonblocking_skips": 6,
+    "overall_combined_coverage_percent": 79.66,
+    "dependencies_queried": 33,
+    "critical_high_unresolved": 0,
+    "artifact_deterministic": true,
+    "source_candidate_members": 78,
+    "source_candidate_sha256": "95a376a72483116f7cf5aa11f79d107090302bc24527d6b2777b03449355f977",
+    "runtime_data_files": 0,
+    "platform_calls": 0,
+    "real_accounts": 0,
+    "model_calls": 0
+  },
+  "canary_execution": {
+    "scope_count": 8,
+    "pass": 0,
+    "not_run": 8,
+    "platform_calls": 0
+  },
+  "stage_3_remote_upload_authorized": false,
+  "stage_4_authorized": false,
+  "next_action": "STG.X2N.3.REVIEW.RESUME"
+}

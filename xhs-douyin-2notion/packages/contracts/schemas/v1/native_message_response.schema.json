@@ -1,5 +1,153 @@
 {
   "$defs": {
+    "BilibiliSelectedCollectionCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "bilibili",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "saved_current",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "bilibili_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "BilibiliSelectedCollectionCapabilityOutcome",
+      "type": "object"
+    },
+    "CapabilityFeatureFlag": {
+      "description": "The capability contract never claims that a live platform is enabled.",
+      "enum": [
+        "ci_synthetic_only",
+        "disabled",
+        "mvp_activation_candidate"
+      ],
+      "title": "CapabilityFeatureFlag",
+      "type": "string"
+    },
+    "CapabilityManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability_contract_version": {
+          "const": "1.0",
+          "title": "Capability Contract Version",
+          "type": "string"
+        },
+        "outcomes": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "bilibili_selected_collection": "#/$defs/BilibiliSelectedCollectionCapabilityOutcome",
+                "douyin_favorites": "#/$defs/DouyinFavoritesCapabilityOutcome",
+                "douyin_likes": "#/$defs/DouyinLikesCapabilityOutcome",
+                "kuaishou_selected_collection": "#/$defs/KuaishouSelectedCollectionCapabilityOutcome",
+                "taobao_selected_collection": "#/$defs/TaobaoSelectedCollectionCapabilityOutcome",
+                "weibo_selected_collection": "#/$defs/WeiboSelectedCollectionCapabilityOutcome",
+                "xiaohongshu_favorites": "#/$defs/XiaohongshuFavoritesCapabilityOutcome",
+                "xiaohongshu_likes": "#/$defs/XiaohongshuLikesCapabilityOutcome"
+              },
+              "propertyName": "scope_id"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/XiaohongshuFavoritesCapabilityOutcome"
+              },
+              {
+                "$ref": "#/$defs/XiaohongshuLikesCapabilityOutcome"
+              },
+              {
+                "$ref": "#/$defs/DouyinFavoritesCapabilityOutcome"
+              },
+              {
+                "$ref": "#/$defs/DouyinLikesCapabilityOutcome"
+              },
+              {
+                "$ref": "#/$defs/BilibiliSelectedCollectionCapabilityOutcome"
+              },
+              {
+                "$ref": "#/$defs/KuaishouSelectedCollectionCapabilityOutcome"
+              },
+              {
+                "$ref": "#/$defs/WeiboSelectedCollectionCapabilityOutcome"
+              },
+              {
+                "$ref": "#/$defs/TaobaoSelectedCollectionCapabilityOutcome"
+              }
+            ]
+          },
+          "title": "Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "capability_contract_version",
+        "outcomes"
+      ],
+      "title": "CapabilityManifest",
+      "type": "object"
+    },
+    "CapabilityReasonCode": {
+      "description": "Reason codes are intentionally coarse and free of account/platform secrets.",
+      "enum": [
+        "CI_SYNTH_READY",
+        "UNKNOWN_DISABLED",
+        "BLOCKED_POLICY",
+        "BLOCKED_AUTH",
+        "BLOCKED_BUDGET",
+        "BLOCKED_CAPABILITY",
+        "BLOCKED_TECHNICAL"
+      ],
+      "title": "CapabilityReasonCode",
+      "type": "string"
+    },
+    "CapabilityTerminal": {
+      "enum": [
+        "READY_FOR_MVP_ACTIVATION",
+        "DISABLED_EXTERNAL_GATE"
+      ],
+      "title": "CapabilityTerminal",
+      "type": "string"
+    },
     "DataEffect": {
       "enum": [
         "none",
@@ -9,6 +157,116 @@
       ],
       "title": "DataEffect",
       "type": "string"
+    },
+    "DouyinFavoritesCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "douyin",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "favorited",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "douyin_favorites",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "DouyinFavoritesCapabilityOutcome",
+      "type": "object"
+    },
+    "DouyinLikesCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "douyin",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "liked",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "douyin_likes",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "DouyinLikesCapabilityOutcome",
+      "type": "object"
     },
     "ErrorClass": {
       "enum": [
@@ -53,6 +311,8 @@
         "X2N_STORAGE_FAILED",
         "X2N_DATA_INTEGRITY_FAILED",
         "X2N_POLICY_BLOCKED",
+        "X2N_CAPABILITY_TECHNICAL_BLOCKED",
+        "X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE",
         "X2N_UNKNOWN_FAILURE"
       ],
       "title": "ErrorCode",
@@ -107,6 +367,128 @@
       "title": "ErrorContract",
       "type": "object"
     },
+    "KuaishouSelectedCollectionCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "kuaishou",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "saved_current",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "kuaishou_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "KuaishouSelectedCollectionCapabilityOutcome",
+      "type": "object"
+    },
+    "MvpEnrollmentProgress": {
+      "additionalProperties": false,
+      "description": "Aggregate-only state for the four pre-arm direct-MVP selections.",
+      "properties": {
+        "scope_progress": {
+          "items": {
+            "$ref": "#/$defs/MvpEnrollmentScopeProgress"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Scope Progress",
+          "type": "array"
+        },
+        "total_recorded_count": {
+          "maximum": 80,
+          "minimum": 0,
+          "title": "Total Recorded Count",
+          "type": "integer"
+        },
+        "total_required_count": {
+          "const": 80,
+          "default": 80,
+          "title": "Total Required Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scope_progress",
+        "total_recorded_count"
+      ],
+      "title": "MvpEnrollmentProgress",
+      "type": "object"
+    },
+    "MvpEnrollmentScopeProgress": {
+      "additionalProperties": false,
+      "description": "One owner-visible count with no content, identifier, or URL disclosure.",
+      "properties": {
+        "recorded_count": {
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Recorded Count",
+          "type": "integer"
+        },
+        "required_count": {
+          "const": 20,
+          "default": 20,
+          "title": "Required Count",
+          "type": "integer"
+        },
+        "scope_id": {
+          "enum": [
+            "xiaohongshu_current_content",
+            "xiaohongshu_current_content_second_batch",
+            "douyin_favorites",
+            "douyin_likes"
+          ],
+          "title": "Scope Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope_id",
+        "recorded_count"
+      ],
+      "title": "MvpEnrollmentScopeProgress",
+      "type": "object"
+    },
     "NativeResponseStatus": {
       "enum": [
         "queued",
@@ -131,10 +513,264 @@
         "install_dependency",
         "inspect_provider",
         "free_disk_space",
-        "inspect_diagnostics"
+        "inspect_diagnostics",
+        "capture_current"
       ],
       "title": "NextAction",
       "type": "string"
+    },
+    "SourceRegistryDigests": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_registry": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Adapter Registry",
+          "type": "string"
+        },
+        "feature_registry": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Feature Registry",
+          "type": "string"
+        },
+        "policy_registry": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Registry",
+          "type": "string"
+        },
+        "scope_registry": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scope Registry",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapter_registry",
+        "feature_registry",
+        "policy_registry",
+        "scope_registry"
+      ],
+      "title": "SourceRegistryDigests",
+      "type": "object"
+    },
+    "TaobaoSelectedCollectionCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "taobao",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "saved_current",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "taobao_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "TaobaoSelectedCollectionCapabilityOutcome",
+      "type": "object"
+    },
+    "WeiboSelectedCollectionCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "weibo",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "favorited",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "weibo_selected_collection",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "WeiboSelectedCollectionCapabilityOutcome",
+      "type": "object"
+    },
+    "XiaohongshuFavoritesCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "xiaohongshu",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "favorited",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "xiaohongshu_favorites",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "XiaohongshuFavoritesCapabilityOutcome",
+      "type": "object"
+    },
+    "XiaohongshuLikesCapabilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluated_at": {
+          "format": "date-time",
+          "title": "Evaluated At",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "feature_flag": {
+          "$ref": "#/$defs/CapabilityFeatureFlag"
+        },
+        "platform": {
+          "const": "xiaohongshu",
+          "title": "Platform",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/CapabilityReasonCode"
+        },
+        "relation": {
+          "const": "liked",
+          "title": "Relation",
+          "type": "string"
+        },
+        "scope_id": {
+          "const": "xiaohongshu_likes",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source_registry_digests": {
+          "$ref": "#/$defs/SourceRegistryDigests"
+        },
+        "terminal": {
+          "$ref": "#/$defs/CapabilityTerminal"
+        }
+      },
+      "required": [
+        "terminal",
+        "reason_code",
+        "source_registry_digests",
+        "feature_flag",
+        "evidence_hash",
+        "evaluated_at",
+        "scope_id",
+        "platform",
+        "relation"
+      ],
+      "title": "XiaohongshuLikesCapabilityOutcome",
+      "type": "object"
     }
   },
   "$id": "urn:x2n:contract:1.0:native_message_response",
@@ -143,6 +779,17 @@
     "accepted": {
       "title": "Accepted",
       "type": "boolean"
+    },
+    "capabilities": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityManifest"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "error": {
       "anyOf": [
@@ -167,6 +814,17 @@
       ],
       "default": null,
       "title": "Job Id"
+    },
+    "mvp_enrollment_progress": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MvpEnrollmentProgress"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "request_id": {
       "format": "uuid",

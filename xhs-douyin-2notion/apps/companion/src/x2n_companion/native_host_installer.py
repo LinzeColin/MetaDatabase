@@ -53,6 +53,9 @@ class InstallPlan:
     uv_path: Path | None
     launcher_content: str | None
     manifest_content: str | None
+    companion_source: Path
+    contracts_source: Path
+    release_artifact_sha256: str | None
 
     def safe_summary(self) -> dict[str, Any]:
         return {
@@ -96,23 +99,66 @@ def _launcher_content(*, runtime_python: Path, data_root: str, download_destinat
         "LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONNOUSERSITE=1 "
         f"{ROOT_ENV}={shlex.quote(data_root)} "
         f"{DOWNLOAD_ENV}={shlex.quote(download_destination)} "
-        f"{command} \"$@\"\n"
+        f'{command} "$@"\n'
     )
 
 
 def _manifest_content(*, launcher: Path) -> str:
-    return json.dumps(
-        {
-            "allowed_origins": [DEVELOPMENT_EXTENSION_ORIGIN],
-            "description": "x2n local companion development host",
-            "name": HOST_NAME,
-            "path": str(launcher),
-            "type": "stdio",
-        },
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
-    ) + "\n"
+    return (
+        json.dumps(
+            {
+                "allowed_origins": [DEVELOPMENT_EXTENSION_ORIGIN],
+                "description": "x2n local companion development host",
+                "name": HOST_NAME,
+                "path": str(launcher),
+                "type": "stdio",
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
+
+
+def _validate_source_tree(path: Path, *, label: str) -> Path:
+    """Resolve one package source tree without allowing link traversal."""
+
+    if not path.is_absolute() or path.is_symlink() or not path.is_dir():
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"Native Host {label} source is unsafe")
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError as error:
+        raise X2NRuntimeError(ErrorCode.DEPENDENCY_MISSING, f"Native Host {label} source is unavailable") from error
+    for candidate in resolved.rglob("*"):
+        if candidate.is_symlink() or not (candidate.is_dir() or candidate.is_file()):
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, f"Native Host {label} source is unsafe")
+    return resolved
+
+
+def _package_sources(
+    *,
+    release_source_root: Path | None,
+    release_artifact_sha256: str | None,
+) -> tuple[Path, Path, str | None]:
+    if (release_source_root is None) != (release_artifact_sha256 is None):
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Native Host release source identity is incomplete")
+    if release_source_root is None:
+        companion = PROJECT_ROOT / "apps/companion/src/x2n_companion"
+        contracts = PROJECT_ROOT / "packages/contracts/src/x2n_contracts"
+        return (
+            _validate_source_tree(companion, label="Companion"),
+            _validate_source_tree(contracts, label="contract"),
+            None,
+        )
+    if not re.fullmatch(r"[0-9a-f]{64}", str(release_artifact_sha256)):
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Native Host release artifact identity is invalid")
+    root = _validate_source_tree(release_source_root, label="staged release")
+    return (
+        _validate_source_tree(root / "companion/x2n_companion", label="staged Companion"),
+        _validate_source_tree(root / "contracts/x2n_contracts", label="staged contract"),
+        str(release_artifact_sha256),
+    )
 
 
 def create_plan(
@@ -122,12 +168,31 @@ def create_plan(
     home: Path,
     env: Mapping[str, str],
     uv_path: Path | None = None,
+    release_source_root: Path | None = None,
+    release_artifact_sha256: str | None = None,
 ) -> InstallPlan:
     if action not in {"plan", "install", "uninstall"}:
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Installer action is unsupported")
     launcher, manifest, runtime, bundle_marker = _known_paths(home=home, browser=browser)
+    companion_source, contracts_source, artifact_sha256 = _package_sources(
+        release_source_root=release_source_root,
+        release_artifact_sha256=release_artifact_sha256,
+    )
     if action == "uninstall":
-        return InstallPlan(action, browser, launcher, manifest, runtime, bundle_marker, None, None, None)
+        return InstallPlan(
+            action,
+            browser,
+            launcher,
+            manifest,
+            runtime,
+            bundle_marker,
+            None,
+            None,
+            None,
+            companion_source,
+            contracts_source,
+            artifact_sha256,
+        )
 
     resolved_uv = uv_path or (Path(value) if (value := shutil.which("uv")) else None)
     if (
@@ -153,7 +218,46 @@ def create_plan(
         resolved_uv,
         launcher_content,
         _manifest_content(launcher=launcher),
+        companion_source,
+        contracts_source,
+        artifact_sha256,
     )
+
+
+def fresh_install_readiness(
+    *,
+    browser: str,
+    home: Path,
+    env: Mapping[str, str],
+    uv_path: Path | None = None,
+) -> str:
+    """Classify whether a first Native Host install can start without writing.
+
+    This is intentionally narrower than an install: it validates the same
+    source/runtime/``uv`` prerequisites and refuses any existing target,
+    interrupted transaction, or unsafe destination parent.  It never creates
+    a directory, provisions a runtime, or emits a local path.
+    """
+
+    try:
+        plan = create_plan(
+            action="install",
+            browser=browser,
+            home=home,
+            env=env,
+            uv_path=uv_path,
+        )
+    except X2NRuntimeError:
+        return "NOT_READY"
+    destinations = (plan.runtime_path, plan.launcher_path, plan.manifest_path, plan.bundle_marker_path)
+    if any(path.exists() or path.is_symlink() for path in destinations):
+        return "BLOCKED_EXISTING_TARGET"
+    if _transaction_residuals(plan):
+        return "BLOCKED_TRANSACTION_RESIDUAL"
+    parents = (plan.launcher_path.parent, plan.manifest_path.parent)
+    if any(parent.exists() and (parent.is_symlink() or not parent.is_dir()) for parent in parents):
+        return "BLOCKED_DESTINATION_PARENT"
+    return "READY_FOR_FRESH_INSTALL"
 
 
 def _ensure_directory(path: Path, *, private: bool) -> None:
@@ -207,13 +311,18 @@ def _bundle_receipt(path: Path) -> dict[str, Any] | None:
         "host": HOST_NAME,
         "owner": "x2n-native-host-installer",
         "runtime_requirements": list(RUNTIME_REQUIREMENTS),
-        "schema_version": "1.1",
+        "schema_version": "1.2",
     }
     if not isinstance(value, dict) or any(value.get(key) != expected_value for key, expected_value in expected.items()):
         return None
-    if set(value) != set(expected) | {"launcher_sha256", "manifest_sha256"}:
+    if set(value) != set(expected) | {"launcher_sha256", "manifest_sha256", "release_artifact_sha256"}:
         return None
-    if any(re.fullmatch(r"[0-9a-f]{64}", str(value.get(key, ""))) is None for key in ("launcher_sha256", "manifest_sha256")):
+    if any(
+        re.fullmatch(r"[0-9a-f]{64}", str(value.get(key, ""))) is None for key in ("launcher_sha256", "manifest_sha256")
+    ):
+        return None
+    artifact_sha256 = value.get("release_artifact_sha256")
+    if artifact_sha256 is not None and re.fullmatch(r"[0-9a-f]{64}", str(artifact_sha256)) is None:
         return None
     return value
 
@@ -246,20 +355,29 @@ def _owned_launcher(path: Path, receipt: Mapping[str, Any]) -> bool:
         return False
 
 
-def _bundle_marker_content(*, launcher_content: str, manifest_content: str) -> str:
-    return json.dumps(
-        {
-            "host": HOST_NAME,
-            "launcher_sha256": hashlib.sha256(launcher_content.encode("utf-8")).hexdigest(),
-            "manifest_sha256": hashlib.sha256(manifest_content.encode("utf-8")).hexdigest(),
-            "owner": "x2n-native-host-installer",
-            "runtime_requirements": list(RUNTIME_REQUIREMENTS),
-            "schema_version": "1.1",
-        },
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
-    ) + "\n"
+def _bundle_marker_content(
+    *,
+    launcher_content: str,
+    manifest_content: str,
+    release_artifact_sha256: str | None,
+) -> str:
+    return (
+        json.dumps(
+            {
+                "host": HOST_NAME,
+                "launcher_sha256": hashlib.sha256(launcher_content.encode("utf-8")).hexdigest(),
+                "manifest_sha256": hashlib.sha256(manifest_content.encode("utf-8")).hexdigest(),
+                "owner": "x2n-native-host-installer",
+                "release_artifact_sha256": release_artifact_sha256,
+                "runtime_requirements": list(RUNTIME_REQUIREMENTS),
+                "schema_version": "1.2",
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
 
 
 def _owned_bundle(path: Path) -> bool:
@@ -333,7 +451,9 @@ def _provision_runtime(plan: InstallPlan) -> Path:
         requirements = requirements_path.read_text(encoding="utf-8")
         locked_requirements = dict(re.findall(r"(?m)^([a-z0-9-]+)==([0-9][^ \\\n]+)", requirements))
         expected_requirements = dict(item.split("==", 1) for item in RUNTIME_REQUIREMENTS)
-        if locked_requirements != expected_requirements or requirements.count("--hash=sha256:") < len(locked_requirements):
+        if locked_requirements != expected_requirements or requirements.count("--hash=sha256:") < len(
+            locked_requirements
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Native Host locked requirements are incomplete")
         _run_provision(
             [
@@ -367,9 +487,10 @@ def _provision_runtime(plan: InstallPlan) -> Path:
         except ValueError as error:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Native Host runtime escaped its private bundle") from error
         for package_name, source in (
-            ("x2n_companion", PROJECT_ROOT / "apps/companion/src/x2n_companion"),
-            ("x2n_contracts", PROJECT_ROOT / "packages/contracts/src/x2n_contracts"),
+            ("x2n_companion", plan.companion_source),
+            ("x2n_contracts", plan.contracts_source),
         ):
+            _validate_source_tree(source, label=package_name)
             shutil.copytree(
                 source,
                 site_packages / package_name,
@@ -393,6 +514,7 @@ def _provision_runtime(plan: InstallPlan) -> Path:
             _bundle_marker_content(
                 launcher_content=plan.launcher_content,
                 manifest_content=plan.manifest_content,
+                release_artifact_sha256=plan.release_artifact_sha256,
             ),
             0o600,
         )
@@ -419,9 +541,7 @@ def _remove_transaction_path(path: Path) -> None:
 def _transaction_residuals(plan: InstallPlan) -> list[Path]:
     destinations = (plan.runtime_path, plan.launcher_path, plan.manifest_path)
     return [
-        candidate
-        for destination in destinations
-        for candidate in destination.parent.glob(f".{destination.name}.x2n-*")
+        candidate for destination in destinations for candidate in destination.parent.glob(f".{destination.name}.x2n-*")
     ]
 
 
@@ -501,11 +621,11 @@ def execute_plan(plan: InstallPlan, *, confirmation: str | None) -> dict[str, An
         if any(path.is_symlink() for path in (plan.runtime_path, plan.launcher_path, plan.manifest_path)):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses symbolic-link destinations")
         receipt = _bundle_receipt(plan.bundle_marker_path)
-        if (plan.runtime_path.exists() or plan.launcher_path.exists() or plan.manifest_path.exists()) and receipt is None:
+        if (
+            plan.runtime_path.exists() or plan.launcher_path.exists() or plan.manifest_path.exists()
+        ) and receipt is None:
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses an incomplete or unowned installation")
-        if plan.launcher_path.exists() and (
-            receipt is None or not _owned_launcher(plan.launcher_path, receipt)
-        ):
+        if plan.launcher_path.exists() and (receipt is None or not _owned_launcher(plan.launcher_path, receipt)):
             raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses to replace an unowned launcher")
         if plan.manifest_path.exists() and (
             receipt is None or not _owned_manifest(plan.manifest_path, plan.launcher_path, receipt)
@@ -533,9 +653,7 @@ def execute_plan(plan: InstallPlan, *, confirmation: str | None) -> dict[str, An
         receipt is None or not _owned_manifest(plan.manifest_path, plan.launcher_path, receipt)
     ):
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses to remove an unowned manifest")
-    if plan.launcher_path.exists() and (
-        receipt is None or not _owned_launcher(plan.launcher_path, receipt)
-    ):
+    if plan.launcher_path.exists() and (receipt is None or not _owned_launcher(plan.launcher_path, receipt)):
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Installer refuses to remove an unowned launcher")
     if (plan.runtime_path.exists() or plan.bundle_marker_path.exists()) and (
         plan.runtime_path.is_symlink() or not _owned_bundle(plan.bundle_marker_path)
@@ -550,6 +668,32 @@ def execute_plan(plan: InstallPlan, *, confirmation: str | None) -> dict[str, An
     if plan.bundle_marker_path.exists():
         plan.bundle_marker_path.unlink()
     return {**plan.safe_summary(), "status": "UNINSTALLED"}
+
+
+def verify_release_installation(plan: InstallPlan, *, release_artifact_sha256: str) -> dict[str, Any]:
+    """Prove that the installed Host is owned and bound to one staged artifact."""
+
+    if (
+        plan.release_artifact_sha256 != release_artifact_sha256
+        or re.fullmatch(r"[0-9a-f]{64}", release_artifact_sha256) is None
+    ):
+        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Native Host release identity does not match its plan")
+    receipt = _bundle_receipt(plan.bundle_marker_path)
+    if (
+        receipt is None
+        or receipt.get("release_artifact_sha256") != release_artifact_sha256
+        or not _owned_bundle(plan.bundle_marker_path)
+        or not _owned_launcher(plan.launcher_path, receipt)
+        or not _owned_manifest(plan.manifest_path, plan.launcher_path, receipt)
+    ):
+        raise X2NRuntimeError(
+            ErrorCode.DATA_INTEGRITY_FAILED, "Native Host is not bound to the staged release artifact"
+        )
+    return {
+        "native_host_release_bound": True,
+        "paths_emitted": False,
+        "release_artifact_sha256": release_artifact_sha256,
+    }
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -1,0 +1,42 @@
+{
+  "change_event": "CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES",
+  "evidence_kind": "A005_SOURCE_LANE_PRECONDITION",
+  "execution": {
+    "model_calls": 0,
+    "platform_calls": 0,
+    "real_accounts": 0,
+    "remote_github_actions": "NOT_RUN_LOCAL_BASELINE"
+  },
+  "generated_at": "2026-07-29T11:36:24.067239+00:00",
+  "release_claim": "SOURCE_LANE_ONLY_NO_OWNER_RUNTIME_CAPTURE_OR_GO_LIVE",
+  "schema_version": "1.0",
+  "software_lane": {
+    "blocking_executions": 9,
+    "gates": [
+      "format",
+      "lint",
+      "python_compile",
+      "typescript_contract",
+      "assurance_unit",
+      "companion_unit_integration",
+      "contract_unit",
+      "extension_self_test",
+      "sbom_drift"
+    ],
+    "report_sha256": "2da553aa50685b15e63c39444e2bbfa42e60aa36b7daf64a06d143237b488c2e",
+    "toolchain": {
+      "coverage": "7.15.2",
+      "node": "24.18.0",
+      "npm": "11.16.0",
+      "python": "3.12.13",
+      "pyyaml": "6.0.3",
+      "ruff": "0.15.22",
+      "uv": "0.11.28"
+    }
+  },
+  "source_manifest": {
+    "file_count": 666,
+    "sha256": "97a7bc056257f09da4dff6914094a8d34a4fc790219fa0f3d4142b8563c0b20f"
+  },
+  "task_id": "TSK.x2n.assurance.005"
+}

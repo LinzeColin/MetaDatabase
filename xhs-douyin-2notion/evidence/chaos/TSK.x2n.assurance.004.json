@@ -1,0 +1,48 @@
+{
+  "acceptance_status": {
+    "ACC.x2n.ext.002": "PASS_CI_SYNTH_EXTENSION_100_RESTARTS_TASK_LOSS_DUPLICATES_ERROR_STATES_ZERO",
+    "ACC.x2n.xhs.003": "PASS_CI_SYNTH_XHS_100_ITEMS_50_KILLS_LOST_DUPLICATE_AUTO_SCROLL_ZERO",
+    "ACC.x2n.media.002": "PASS_CI_SYNTH_MEDIA_LEASE_CLEANUP_SUCCESS_EXPIRED_ACTIVE_MISDELETE_ZERO",
+    "ACC.x2n.notion.002": "PASS_CI_SYNTH_NOTION_MOCK_429_529_RETRY_AFTER_TWO_RPS_RETRY_STORM_ZERO",
+    "ACC.x2n.notion.003": "PASS_CI_SYNTH_NOTION_MOCK_OUTAGE_KILL_RECONCILE_RECEIPT_OR_DEADLETTER_DUPLICATE_PAGE_ZERO",
+    "ACC.x2n.ops.001": "PASS_CI_SYNTH_TEN_STAGE_RECOVERY_CONTROL_MATCH_LOSS_DUPLICATE_STUCK_ZERO",
+    "ACC.x2n.rel.004": "PASS_CI_SYNTH_20_80_1000_10000_BENCHMARK_BURST_100_BOUNDED_MEDIA",
+    "ACC.x2n.rel.005": "PASS_CI_SYNTH_CRITICAL_MATRIX_EACH_TEN_SEEDS_LOSS_DUPLICATE_UNAUTHORIZED_DELETE_ZERO"
+  },
+  "execution": {
+    "external_release_uploads": 0,
+    "model_calls": 0,
+    "platform_calls": 0,
+    "private_gold_reads": 0,
+    "real_account_execution": "NOT_RUN",
+    "real_notion_calls": 0,
+    "runtime_deployment": "NOT_RUN",
+    "secret_reads": 0
+  },
+  "phase": "PH.X2N.6.4",
+  "reports": {
+    "benchmark": {
+      "burst_messages": 100,
+      "markdown_rebuild_scales": [20, 80, 1000, 10000],
+      "memory_controlled": true,
+      "no_obvious_quadratic_growth": true
+    },
+    "chaos": {
+      "critical_scenarios": 6,
+      "seeds_per_critical_scenario": 10,
+      "unauthorized_deletes": 0
+    },
+    "recovery": {
+      "canonical_loss": 0,
+      "duplicate_side_effects": 0,
+      "ten_stage_kill_points": 10
+    }
+  },
+  "run_id": "RUN-X2N-S06-A004",
+  "schema_version": "1.0",
+  "source_receipt_sha256": "94767664a8021031a58a7e963c587b613a267314c703a4321dfafef8aee4e77c",
+  "status": "PASS_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_REAL_MVP_NOT_RUN",
+  "task_base_commit": "f69dd7a4f2fbc0a0d50063e3d2f2a2e64ec58f7e",
+  "task_commit": "3c06114cc96902bb0d7999c32accf94296510955",
+  "task_id": "TSK.x2n.assurance.004"
+}

@@ -3,10 +3,12 @@ artifact: PRD
 project: xhs-douyin-2notion
 project_token: x2n
 version: v0.0.0.1
-status: FINAL_PRODUCT_DESIGN_BASELINE
-owner_change_event: CE-X2N-20260719-S00-P01
+status: STAGE_6_ASSURANCE004_CI_SYNTH_PERFORMANCE_CHAOS_RECOVERY_PASS_ASSURANCE005_NEXT
+owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
+release_policy_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
 design_authorized: true
-implementation_authorized: stage_0_governance_preparation_only
+current_run_scope: stage_6_assurance004_performance_chaos_recovery_pass_assurance005_next_owner_input_required
+implementation_authorized: stage_6_assurance005_only_single_dag_task
 research_cutoff: 2026-07-19
 owner: LinzeColin
 ---
@@ -14,6 +16,8 @@ owner: LinzeColin
 # `xhs-douyin-2notion` 产品需求文档
 
 > Scope amendment `CE-X2N-20260719-S00-P05`：项目名作为稳定品牌保留，终态平台范围扩为小红书、抖音、哔哩哔哩、快手、微博和淘宝；产品边界仍是个人内容知识治理，不是通用爬虫。
+>
+> Release amendment `CE-X2N-20260728-S03-REVIEW-RESUME-MVP`：取消预发布阶段和固定等待期。`G0–G5`、前四个 Assurance/UXOps005 与最终任务精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动 `assurance.005`；任务内依次完成 80 条 XHS/Douyin Owner MVP 基线、每个额外实际启用能力各自不超过 20 条的独立激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、可回滚部署和 `v0.0.0.1` MVP 在线 smoke，成功后才签发 `G6 PASS`。合法外部门可关闭结算，技术阻断不可结算，安全未知或失败不能降级结算；任务内 Oracle 不是启动前置；上线后健康监控持续运行，但不作为继续开发或上线的定时等待门。
 
 ## 1. 文档控制
 
@@ -24,12 +28,48 @@ owner: LinzeColin
 | 目标仓库 | `LinzeColin/MetaDatabase` |
 | 子项目路径 | `xhs-douyin-2notion/` |
 | 仓库可见性 | Public |
-| 运行数据 | Private / Local-only |
-| Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外，Owner 本机解析值不进入 Git） |
-| 产品阶段 | Pre-Stage 00 Governance Baseline |
-| 开发状态 | 已授权 Stage 0 治理准备；产品代码、真实账号、外部写入、Stage 1 与远端上传未授权 |
+| 运行数据 | Private；持久业务/运行数据进入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，manifest domain 固定 `xhs-douyin-2notion` |
+| Runtime 与下载根 | `X2N_DATA_ROOT`（仓库外短暂执行区，Owner 本机解析值不进入 Git） |
+| 持久数据写入 | 只经 `KMOS/KMDatabase/machine/tools/private_db_client.py`；禁止 clone `Private-Database` |
+| 产品阶段 | Stage 6 Assurance004 已通过 CI-synth，下一步为独立 `TSK.x2n.assurance.005 / PH.X2N.6.5` |
+| 开发状态 | 独立 G3、G4 与 G5 CI-synth 复核及 Assurance001–004 均已通过；Stage 4/5 receipt 均不可变。Assurance004 已复验 Extension 100 restart、XHS 100/50 kill、媒体 cleanup、Notion Mock、十阶段 recovery、六个关键场景各 10 Seed、20/80/1k/10k rebuild 和 100 burst replay，loss/duplicate/unauthorized delete/persistence finding 均为零。真实 Private-Database transfer、`tmutil`、物理删除、Runtime/Notion/Owner Canary 均未运行。ASR/OCR/Vision/分类私有 Gold 均未运行；自动分类保持关闭、仅 Unclassified/suggestion-only。仅 Assurance005 可在 Owner 输入齐备时执行部署或发布 |
 | 适用时间 | 以 2026-07-19 的仓库和官方文档调研为基础 |
 | 变更规则 | 任何事实、范围、Gate 或依赖变更必须记录 ADR/Change Event，不得静默修改 |
+
+Task010 已以版本化严格八行 `scope_id` 矩阵、typed capability result、每 scope 唯一 SQLite
+derived outcome、失败 provenance 与第二次 Owner fallback 替换无法表达 selected-collection scope 的旧
+`START_SYNC` 形状，并禁止 Side Panel 猜测 `GET_CAPABILITIES`。独立 G3 复验已重新验证八 scope、
+完整 capability snapshot、技术 veto、restart/reconciliation、空响应保护与显式 fallback；它仍不替代
+Stage 6 的真实账号激活或最终上线验收。
+
+`TSK.x2n.multimodal.001` 只在临时 lease 内运行本机 FFmpeg/FFprobe：音频、代表帧和指纹均为
+不可序列化的短生命周期派生产物，退出处理上下文即清理；cleaner 可恢复进程中断遗留物。它以 64 MiB、
+120 分钟、50 帧、解码像素、CPU/file-size/open-file/wall-time 与 FFmpeg allocation 预算 Fail Closed，
+并不执行 ASR、OCR、视觉融合、分类、真实平台媒体或任何外部调用。
+
+`TSK.x2n.multimodal.002` 在该短生命周期音频之上增加本地 `whisper.cpp` CLI 适配、版本化
+Provider/Model/Snapshot/Prompt/Input provenance、会话缓存与预算、禁云路由及 `x2n eval asr --dataset`
+私有聚合 Oracle。它不下载模型、不读取或写入凭据、不持久化原始音频或转录文本；没有 Owner 私有 Gold
+Set 的真实评测时，ASR 质量状态为 `pending` 且 Feature Flag 必须保持关闭，不得宣称通过。
+
+`TSK.x2n.multimodal.003` 在 Task001 的短生命周期 JPEG/关键帧之上增加 owner-managed 本地 JSON OCR/Vision
+适配、版本化 Provider/Model/Snapshot/Prompt/Input provenance、会话缓存与图片/provider-call/超时预算、禁云
+路由及 `x2n eval ocr|vision --dataset` 私有聚合 Oracle。它不下载模型、不读取或写入凭据、不持久化原始媒体、
+OCR 文本或视觉描述；没有 Owner 私有 Gold Set 的真实评测时，OCR/Vision 质量状态均为 `pending`，Feature Flag
+必须保持关闭，不得宣称通过。敏感或不支持视觉输入必须返回结构化拒绝。
+
+`TSK.x2n.multimodal.004` 在短生命周期 text/ASR/OCR/Vision 工件之上增加 deterministic extractive fusion：
+它只保留来源归因事实、明确缺失模态、非行动性 source-divergence、检索文本和摘要于不可序列化会话对象。固定
+prompt 把所有内容标为 untrusted data，Unicode/Bidi/control、恶意 instruction、secret-shaped 和超长输入在
+进入输出前 Fail Closed；strict parser 只接受逐字 grounding 的 versioned JSON schema。当前 renderer 无真实模型、
+工具、文件、网络、配置或密钥访问，也不创建或修改分类；因此该 CI-synth 合同不是模型质量或发布通过声明。
+
+`TSK.x2n.multimodal.005` 将一级分类的写权限限定为 Owner registry：分类 ID 稳定，`unclassified` 保留，
+rename/disable/merge 都产生 append-only revision，分类表不能物理删除。分类器只接收 immutable snapshot 和
+短生命周期来源文本，既没有 Store/registry dependency，也没有网络、云、模型、工具或 taxonomy mutation route。
+它只能从已启用分类中给出 suggestion；Owner 显式确认或纠正才写 append-only Classification。私有 Gold Set
+须匹配 taxonomy/classifier snapshot，并满足代表性、coverage、Macro-F1 和高置信 precision 条件后才可能打开
+自动分类；当前 Gold 未提供，因此 `auto_classify=false`，该 CI-synth 合同不是分类质量或发布通过声明。
 
 ### 1.1 事实标记
 
@@ -65,9 +105,9 @@ owner: LinzeColin
 - 通用、大规模、持续在线的公共内容爬虫；
 - 绕过验证码、风控、访问控制或平台限制；
 - 多账号矩阵、代理池或云端账号农场；
-- Alpha 阶段的移动端应用；
-- Alpha 阶段的 Chrome Web Store 发布；
-- Alpha 阶段的 OVH VPS 数据平面；
+- MVP 阶段的移动端应用；
+- MVP 阶段的 Chrome Web Store 发布；
+- MVP 阶段的 OVH VPS 数据平面；
 - 永久保存平台图片/视频/头像/封面；
 - 默认抓取评论；
 - 自动取消点赞、取消收藏或物理删除历史内容；
@@ -79,7 +119,7 @@ owner: LinzeColin
 
 ## 2.4 产品原则
 
-1. **Canonical First**：SQLite Canonical Store 是唯一可写事实源；Sink 可重建。
+1. **Canonical First**：SQLite Canonical Store 是唯一逻辑可写事实源；本地活动副本位于短暂执行区，持久快照、Manifest 和 Receipt 必须经专用 Client 写入 Private-MetaDatabase；Sink 可重建。
 2. **Evidence First**：每个输入、转换、模型结果和外部写入都有版本、Hash 和 Receipt。
 3. **Local First**：平台登录、Cookie、媒体和私人内容默认不离开用户设备。
 4. **Least Persistence**：媒体只临时存在；CDN URL、签名参数和凭据不进入永久层。
@@ -87,7 +127,7 @@ owner: LinzeColin
 6. **Fail Closed on Destruction**：错误、空响应和过期会话不能触发删除。
 7. **Adapter Isolation**：上游项目和平台实现只存在于 Adapter 边界，不污染 Canonical Schema。
 8. **Reversible Delivery**：Feature Flag、Canary、版本化迁移和回滚优先于一次性“大重构”。
-9. **Public Code, Private Runtime**：公共仓库不因便捷而承载任何私人运行资产。
+9. **Public Code, Private Runtime**：公共仓库不因便捷而承载任何私人运行资产；Private-Database 只经专用 Client 访问，禁止 clone。
 10. **Knowledge Product, Not Crawler**：成功由可检索、可分类、可复用和可恢复衡量，不由下载量衡量。
 
 ---
@@ -166,13 +206,13 @@ owner: LinzeColin
 
 | 指标 ID | 指标 | Baseline | 初始目标 | 测量方法 | 观察期 |
 |---|---|---:|---:|---|---|
-| MET-001 | Canonical 必填字段完整率 | UNKNOWN | `>=95%` | 80 条人工真值对比 | Alpha Gate |
+| MET-001 | Canonical 必填字段完整率 | UNKNOWN | `>=95%` | 80 条人工真值对比 | MVP Gate |
 | MET-002 | 静默丢失数 | UNKNOWN | `0` | 页面清单与入库 ID 差集 | 每次验收 |
 | MET-003 | 重复率 | UNKNOWN | `0` 新增重复 | 二次运行差异 + 唯一约束 | 每次回归 |
 | MET-004 | 任务恢复成功率 | UNKNOWN | `100%` 测试场景 | 故障注入矩阵 | Release Gate |
 | MET-005 | CDN URL 持久化数 | UNKNOWN | `0` | 域名/模式扫描四个持久层 | 每次 CI/Release |
 | MET-006 | Secret 泄露数 | UNKNOWN | `0` | Gitleaks/自定义 Canary/制品扫描 | 每次 CI/Release |
-| MET-007 | 高置信度分类精度 | UNKNOWN | `>=90%` | Owner Gold Set；报告置信区间 | Alpha Gate |
+| MET-007 | 高置信度分类精度 | UNKNOWN | `>=90%` | Owner Gold Set；报告置信区间 | MVP Gate |
 | MET-008 | 分类覆盖率 | UNKNOWN | 报告，不强求 | 达到精度 Gate 的自动归档比例 | 每版 |
 | MET-009 | ASR CER | UNKNOWN | 清晰普通话中位 `<=15%` | 人工转录 Gold Set | 模型 Gate |
 | MET-010 | OCR CER | UNKNOWN | 清晰图片中位 `<=12%` | 人工文本 Gold Set | 模型 Gate |
@@ -180,8 +220,8 @@ owner: LinzeColin
 | MET-012 | 临时媒体清理 | UNKNOWN | 成功立即、失败 `<=24h` | 文件 Lease 扫描 | 每小时/启动时 |
 | MET-013 | 月净节省时间 | UNKNOWN | `>0` | Baseline 与运行数据公式 | 两个月 |
 | MET-014 | 月维护时间 | UNKNOWN | 低于月节省时间 | 维护事件记录 | 两个月 |
-| MET-015 | 当前页保存端到端成功率 | UNKNOWN | `>=98%` 在支持页面 Fixture/Canary | E2E + Owner Canary | Alpha |
-| MET-016 | 批量 Adapter 成功率 | UNKNOWN | 每平台 `>=90%` 已识别条目，无静默错误 | 真实样本对比 | Alpha |
+| MET-015 | 当前页保存端到端成功率 | UNKNOWN | `>=98%` 在支持页面 Fixture/Canary | E2E + Owner Canary | MVP |
+| MET-016 | 批量 Adapter 成功率 | UNKNOWN | 每平台 `>=90%` 已识别条目，无静默错误 | 真实样本对比 | MVP |
 
 > 阈值是初始 Acceptance Contract，不是对平台或模型能力的承诺。Stage 0/Gold Set 建立后，只能通过 Owner 批准的变更记录调整。
 
@@ -243,7 +283,7 @@ owner: LinzeColin
 
 # 6. 产品范围
 
-## 6.1 Alpha In Scope
+## 6.1 MVP In Scope
 
 - Chrome Desktop MV3 Side Panel；
 - Local Companion Service；
@@ -268,9 +308,9 @@ owner: LinzeColin
 - 软件正确性流水线；
 - 模型能力与安全流水线；
 - Public Repo 边界和合成 Fixture；
-- Owner Alpha 安装和验收包。
+- Owner MVP 安装和验收包。
 
-## 6.2 Beta Candidates（不属于 v0.0.0.1 开发授权）
+## 6.2 Future Candidates（不属于 v0.0.0.1 开发授权）
 
 - OVH VPS-1 可选控制平面；
 - 远程触发和脱敏状态；
@@ -291,7 +331,7 @@ owner: LinzeColin
 
 ## 7.1 需求总表
 
-| ID | 需求 | 优先级 | Alpha |
+| ID | 需求 | 优先级 | MVP |
 |---|---|---:|---:|
 | REQ.X2N.001 | Chrome Side Panel 作为高频交互入口 | P0 | 是 |
 | REQ.X2N.002 | Native Messaging 连接本地 Companion | P0 | 是 |
@@ -506,6 +546,7 @@ X2N_DATA_ROOT/runtime/library/categories/<category_slug>/INDEX.md
 - 不把 Transcript/OCR 过长内容塞入 Frontmatter。
 - 使用原子写入和确定性渲染，支持全量重建。
 - 分类 Index 是生成文件，不是第二事实源。
+- Content 与 Index 必须标记 Renderer Version；全量重建从一次 SQLite 读快照取得投影，以 Hash Manifest 和 Link Checker 验证零死链、零重复 Canonical 副本与第二次零写入。
 
 ### REQ.X2N.018/019 — Notion Sink 与 Outbox
 
@@ -538,7 +579,10 @@ X2N_DATA_ROOT/runtime/library/categories/<category_slug>/INDEX.md
 ### REQ.X2N.021 — Public/Private 边界
 
 - 代码仓库不保存真实运行数据。
-- Runtime 与全部 Adapter 下载必须使用仓库外 `X2N_DATA_ROOT`；各上游默认下载目录一律不得直接使用。
+- Runtime 与全部 Adapter 下载必须使用仓库外 `X2N_DATA_ROOT`；它只承担短暂执行、下载和工作副本，各上游默认下载目录一律不得直接使用。
+- 数据库、Canonical 快照、Markdown/导出、Receipt、运行时快照和其他持久业务数据必须经 `KMOS/KMDatabase/machine/tools/private_db_client.py` 写入 `LinzeColin/Private-Database` 的 area `Private-MetaDatabase`，并以 manifest `domain=xhs-douyin-2notion` 归属；禁止 clone 该仓。
+- 客户端拒绝直接 `.sqlite/.db` 且单对象硬上限 95 MiB；SQLite 一致性快照必须封装为非运行时归档、按不超过 90 MiB 分片，并用 restore manifest 完成精确 domain 过滤、逐片 SHA-256、重组与 SQLite integrity。禁止改名绕过红线。
+- 本地 SQLite 仍是活动运行的唯一逻辑真相源；MVP 启动必须从已验证的持久快照恢复，Canonical 提交必须产生可核验的持久化 Receipt，未同步状态不得被误报为已持久。
 - Secret 使用 OS Keychain；配置文件只保存 Secret Reference。
 - 浏览器 Profile 独立、受权限保护、加入禁止提交模式。
 - Fixture 必须合成或彻底脱敏。
@@ -586,7 +630,7 @@ X2N_DATA_ROOT/runtime/library/categories/<category_slug>/INDEX.md
 - Skill 提供安装、配置、运行、诊断、验收、升级、回滚命令。
 - 代码正确性流水线覆盖 lint/type/unit/contract/integration/E2E/performance/chaos/security/SBOM/license。
 - 模型流水线覆盖 Gold Set、ASR/OCR、融合、分类、Prompt Injection、内容安全、成本和漂移。
-- 两条流水线都通过才可进入 Alpha。
+- 两条流水线都通过才可进入 MVP。
 - 不同模型/规则互审只用于发现盲区，不以“多数投票”掩盖共同偏差。
 - 任何模型或上游升级都触发对应范围的回归，不允许仅凭版本更新发布。
 
@@ -701,7 +745,7 @@ Media Lease
 → 标记 unknown
 → 第二次成功完整扫描仍未见
 → 生成 tombstone_candidate
-→ Alpha 人工确认
+→ MVP 人工确认
 → relation.status=removed
 → 更新视图
 → Content 保留
@@ -804,7 +848,7 @@ Media Lease
 
 ## 10.1 初始容量假设
 
-| 维度 | Alpha 设计容量 | 说明 |
+| 维度 | MVP 设计容量 | 说明 |
 |---|---:|---|
 | Canonical Content | 10,000 条 | 单用户本地知识库 |
 | UserRelation | 30,000 条 | 同一内容可有多个关系/收藏夹 |
@@ -896,7 +940,7 @@ Media Lease
 - 版本回滚可读取新版本生成的数据，或有明确兼容层；
 - Temp Cleaner 与任务 Lease 协调，避免删除正在处理的文件。
 
-## 12.2 SLO（Alpha 内部）
+## 12.2 SLO（MVP 内部）
 
 | SLO | 目标 |
 |---|---|
@@ -957,7 +1001,7 @@ Media Lease
 - 高级知识图谱；
 - Notion 双向同步。
 
-Alpha 只应验证个人收藏知识化闭环，不能因“未来可能需要”扩大范围。
+MVP 只应验证个人收藏知识化闭环，不能因“未来可能需要”扩大范围。
 
 ---
 
@@ -967,7 +1011,7 @@ Alpha 只应验证个人收藏知识化闭环，不能因“未来可能需要�
 |---|---|---|---|---|
 | 六平台 DOM/API/Policy/Scope 变化 | 高 | 高 | 独立 Capability Manifest、Adapter Contract、Fixture、当前页降级、Canary | 单平台两轮适配后仍 `<90%` 或授权未知，单平台停用 |
 | 登录/验证码 | 中高 | 高 | 专用真实 Profile、人工登录、低频 | 需要绕过机制才可运行，停止 |
-| Secret/私人内容进入 Public Repo | 中 | 极高 | 运行目录外置、Keychain、扫描、合成 Fixture | 任一泄露立即阻断、轮换、历史清理 |
+| Secret/私人内容进入 Public Repo | 中 | 极高 | 运行目录外置、Keychain、扫描、合成 Fixture | 阻断相关 x2n 制品；仅由 Owner 授权处置 x2n product-owned credential；外部共享 GitHub Token 只报告不读取/撤销/轮换；必要时清理历史 |
 | CDN URL 持久化 | 中 | 高 | Scrubber、Schema 禁止、扫描 | 任一 Release 命中阻断 |
 | 媒体处理漏洞 | 中 | 高 | Allowlist、大小/时长、沙箱、超时 | 无法限制不可信媒体时关闭该处理器 |
 | 分类错误 | 高 | 中 | Gold Set、精度 Gate、Suggestion-only | 高置信度精度 `<85%` 时禁用自动归档 |
@@ -1067,7 +1111,7 @@ Alpha 只应验证个人收藏知识化闭环，不能因“未来可能需要�
 - 需要上传私人内容到新第三方；
 - 需要违反平台控制或许可证；
 - 需要破坏性数据迁移且无回滚；
-- 超出 Alpha 范围；
+- 超出 MVP 范围；
 - 发现已发生数据/Secret 泄露；
 - Acceptance Contract 之间出现不可消解冲突。
 
@@ -1075,20 +1119,22 @@ Alpha 只应验证个人收藏知识化闭环，不能因“未来可能需要�
 
 # 17. 验收总门
 
-只有同时满足以下条件，才可声明 `v0.0.0.1 Alpha`：
+只有同时满足以下条件，才可声明 `v0.0.0.1 MVP`：
 
 1. 需求→任务→测试→证据→制品 Traceability 无断链；
 2. Task DAG 无循环、所有 P0 任务完成；
 3. 软件正确性流水线通过；
-4. 模型能力与安全流水线通过或明确降级；
+4. 安全流水线必须通过；模型能力通过，或明确关闭/降级为仅建议模式；
 5. 20 条 Canary 通过；
-6. 每个启用平台/能力的独立 Owner Manifest 与 Canary/Alpha 通过；
+6. 每个启用平台/能力的独立 Owner Manifest 与 Canary/MVP 通过；
 7. Secret/CDN/私人数据扫描为 0；
 8. 所有定义故障点可恢复；
 9. Notion 429/529/断网测试通过；
 10. DB 备份、迁移和回滚演练通过；
 11. Owner 完成人工复核和 Sign-off；
-12. Public Release Artifact 只包含允许内容。
+12. Public Release Artifact 只包含允许内容；
+13. `v0.0.0.1` 已部署、运行并通过同次发布的启动/回滚 Smoke；
+14. 不存在预发布阶段、固定天数健康观察或 soak 等待门；上线后监控告警只触发修复、降级或回滚。
 
 详细 Oracle 见 `04_ACCEPTANCE_CONTRACT_TRACEABILITY.md`。
 

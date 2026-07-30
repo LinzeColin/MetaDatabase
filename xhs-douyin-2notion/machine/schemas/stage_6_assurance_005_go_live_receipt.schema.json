@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:x2n:stage-6-assurance-005-go-live-receipt:1.0",
+  "title": "x2n public direct Owner MVP go-live receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "phase",
+    "release_version",
+    "status",
+    "release_source",
+    "artifact",
+    "artifact_scan",
+    "boundaries",
+    "external_gates",
+    "knowledge_assets",
+    "final_acceptance_bundle_sha256",
+    "go_live",
+    "native_host"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "task_id": {"const": "TSK.x2n.assurance.005"},
+    "phase": {"const": "PH.X2N.6.5"},
+    "release_version": {"const": "v0.0.0.1"},
+    "status": {"const": "PASS_OWNER_MVP_DIRECT_RELEASE_CORE"},
+    "release_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tag"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tag": {"const": "v0.0.0.1"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_sha256", "runtime_data_files", "source_only_artifact"],
+      "properties": {
+        "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "runtime_data_files": {"const": 0},
+        "source_only_artifact": {"const": true}
+      }
+    },
+    "artifact_scan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowlist_findings", "artifact_sha256", "member_count", "runtime_data_files", "status"],
+      "properties": {
+        "allowlist_findings": {"const": 0},
+        "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "member_count": {"type": "integer", "minimum": 1},
+        "runtime_data_files": {"const": 0},
+        "status": {"const": "PASS"}
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_disabled_scope_count",
+        "model_mode",
+        "private_manifest_item_count",
+        "private_manifest_scope_count"
+      ],
+      "properties": {
+        "external_disabled_scope_count": {"const": 4},
+        "model_mode": {"enum": ["disabled", "suggestion_only"]},
+        "private_manifest_item_count": {"const": 80},
+        "private_manifest_scope_count": {"const": 4}
+      }
+    },
+    "external_gates": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "feature_flag",
+          "live_support_claim",
+          "platform_calls",
+          "reason_code",
+          "scope_id",
+          "status"
+        ],
+        "properties": {
+          "feature_flag": {"const": "disabled"},
+          "live_support_claim": {"const": false},
+          "platform_calls": {"const": 0},
+          "reason_code": {
+            "enum": [
+              "UNKNOWN_DISABLED",
+              "BLOCKED_POLICY",
+              "BLOCKED_AUTH",
+              "BLOCKED_BUDGET",
+              "BLOCKED_CAPABILITY"
+            ]
+          },
+          "scope_id": {
+            "enum": [
+              "bilibili_selected_collection",
+              "kuaishou_selected_collection",
+              "weibo_selected_collection",
+              "taobao_selected_collection"
+            ]
+          },
+          "status": {"const": "PASS_DISABLED_EXTERNAL_GATE"}
+        }
+      }
+    },
+    "knowledge_assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "markdown_content_count",
+        "markdown_library_sha256",
+        "markdown_renderer_version",
+        "notion_mode",
+        "notion_platform_calls",
+        "private_durability_manifest_sha256"
+      ],
+      "properties": {
+        "markdown_content_count": {"type": "integer", "minimum": 1},
+        "markdown_library_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "markdown_renderer_version": {"type": "string", "minLength": 1},
+        "notion_mode": {"const": "DISABLED_OWNER_INPUT"},
+        "notion_platform_calls": {"const": 0},
+        "private_durability_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "final_acceptance_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "go_live": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_hash",
+        "owner_mvp_baseline_relations",
+        "rollback_rehearsed",
+        "sidepanel_native_handshake"
+      ],
+      "properties": {
+        "baseline_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "owner_mvp_baseline_relations": {"const": 80},
+        "rollback_rehearsed": {"const": true},
+        "sidepanel_native_handshake": {"const": "PASS"}
+      }
+    },
+    "native_host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["native_host_release_bound", "release_artifact_sha256"],
+      "properties": {
+        "native_host_release_bound": {"const": true},
+        "release_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

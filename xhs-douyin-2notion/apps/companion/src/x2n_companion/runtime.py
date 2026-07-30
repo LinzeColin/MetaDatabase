@@ -45,9 +45,19 @@ REQUIRED_DIRECTORIES = (
     "runtime/library/categories",
     "runtime/logs",
     "runtime/diagnostics",
+    "runtime/lifecycle",
     "runtime/backups",
     "runtime/models",
     "runtime/provider_cache",
+)
+
+PROFILE_PLATFORMS = (
+    "xiaohongshu",
+    "douyin",
+    "bilibili",
+    "kuaishou",
+    "weibo",
+    "taobao",
 )
 
 
@@ -213,6 +223,61 @@ class RuntimePaths:
     def temp_media_directory(self) -> Path:
         return self.data_root / "runtime/temp_media"
 
+    @property
+    def checkpoints_directory(self) -> Path:
+        return self.data_root / "runtime/checkpoints"
+
+    @property
+    def browser_profiles_directory(self) -> Path:
+        return self.data_root / "runtime/browser_profiles"
+
+    @property
+    def release_directory(self) -> Path:
+        return self.data_root / "runtime/release"
+
+    @property
+    def douyin_sidecar_bundle_directory(self) -> Path:
+        """Return the fixed Owner-private Douyin Sidecar bundle location.
+
+        The directory is optional until the Owner has built the private
+        Sidecar. Callers must validate it before use; resolving this path
+        neither creates it nor exposes it in public output.
+        """
+
+        return self._safe_child("runtime/sidecars/douyin/current")
+
+    @property
+    def owner_mvp_release_input(self) -> Path:
+        return self.release_directory / "owner_mvp_release_input.local.json"
+
+    @property
+    def owner_mvp_manifest_enrollment(self) -> Path:
+        """Return the fixed hash-only pre-arm MVP selection state path."""
+
+        return self.release_directory / "owner_mvp_manifest_enrollment.local.json"
+
+    @property
+    def owner_mvp_release_state(self) -> Path:
+        return self.release_directory / "owner_mvp_release_state.local.json"
+
+    @property
+    def owner_mvp_browser_handshake(self) -> Path:
+        return self.release_directory / "owner_mvp_browser_handshake.local.json"
+
+    def browser_profile_directory(self, platform: str) -> Path:
+        if platform not in PROFILE_PLATFORMS:
+            _fail(ErrorCode.INVALID_INPUT, "Browser Profile platform is unsupported")
+        current = self.data_root
+        for part in ("runtime", "browser_profiles", platform):
+            current = current / part
+            if current.is_symlink():
+                _fail(ErrorCode.POLICY_BLOCKED, "Dedicated Browser Profile cannot contain symbolic links")
+        profile = self._safe_child(f"runtime/browser_profiles/{platform}")
+        if not profile.is_dir():
+            _fail(ErrorCode.POLICY_BLOCKED, "Dedicated Browser Profile is unavailable")
+        _private_mode(profile, 0o700, label="Dedicated Browser Profile")
+        return profile
+
     def _safe_child(self, relative: str) -> Path:
         candidate = Path(relative)
         if candidate.is_absolute() or ".." in candidate.parts:
@@ -260,12 +325,15 @@ class RuntimePaths:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Private Runtime marker is invalid") from error
         if not isinstance(value, dict):
             _fail(ErrorCode.DATA_INTEGRITY_FAILED, "Private Runtime marker is invalid")
+        authorized = value.get("product_execution_authorized")
+        real_data_state = value.get("real_data_state")
         if (
             value.get("project") != PROJECT_NAME
             or value.get("root_ref") != ROOT_ENV
             or Path(str(value.get("resolved_root", ""))).resolve(strict=False) != self.data_root
             or value.get("legacy_import") is not False
-            or value.get("product_execution_authorized") is not False
+            or type(authorized) is not bool
+            or (authorized is True and real_data_state not in {"stage_6_mvp_activation_armed", "stage_6_mvp_active"})
         ):
             _fail(ErrorCode.POLICY_BLOCKED, "Private Runtime marker does not match this project")
         return value
@@ -296,6 +364,38 @@ class RuntimePaths:
         marker["product_execution_authorized"] = False
         marker["canonical_store_schema_version"] = 2
         _atomic_private_json(self.marker, marker)
+
+    def set_mvp_execution_authorized(self, *, enabled: bool, active: bool = False) -> None:
+        """Bind the private Runtime marker to a verified Task005 release state.
+
+        This low-level mutation is deliberately narrow: callers still need a
+        validated owner release input and state file before the Native Host can
+        execute a live bounded scope.  Turning it off never deletes Canonical
+        data and is therefore safe for rollback.
+        """
+
+        if type(enabled) is not bool or type(active) is not bool or (active and not enabled):
+            _fail(ErrorCode.INVALID_INPUT, "MVP Runtime authorization state is invalid")
+        marker = self._validate_marker()
+        if enabled:
+            marker["product_execution_authorized"] = True
+            marker["real_data_state"] = "stage_6_mvp_active" if active else "stage_6_mvp_activation_armed"
+        else:
+            marker["product_execution_authorized"] = False
+            marker["real_data_state"] = "stage_6_mvp_rollback_or_disabled"
+        _atomic_private_json(self.marker, marker)
+
+    def ensure_private_directory(self, relative: str) -> Path:
+        """Create one owner-only Runtime directory without accepting arbitrary paths."""
+
+        directory = self._safe_child(relative)
+        current = self.data_root
+        for part in Path(relative).parts:
+            current = current / part
+            _mkdir_private(current)
+            if not _contains(self.data_root, current.resolve(strict=True)):
+                _fail(ErrorCode.POLICY_BLOCKED, "Private Runtime path escaped its namespace")
+        return directory
 
     def ensure_private_file(self, path: Path) -> None:
         resolved = path.resolve(strict=False)

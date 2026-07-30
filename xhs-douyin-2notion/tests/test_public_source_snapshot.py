@@ -7,7 +7,9 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location("public_source_snapshot", PROJECT_ROOT / "scripts/public_source_snapshot.py")
+SPEC = importlib.util.spec_from_file_location(
+    "public_source_snapshot", PROJECT_ROOT / "scripts/public_source_snapshot.py"
+)
 assert SPEC and SPEC.loader
 SNAPSHOT = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = SNAPSHOT
@@ -36,18 +38,21 @@ class PublicSourceSnapshotTests(unittest.TestCase):
             "GIT_CONFIG_GLOBAL": "/unexpected",
         }
         environment = SNAPSHOT.build_isolated_environment(Path("/tmp/isolated"), source)
-        self.assertEqual(set(environment), {
-            "PATH",
-            "HOME",
-            "TMPDIR",
-            "LC_ALL",
-            "LANG",
-            "GIT_CONFIG_GLOBAL",
-            "GIT_CONFIG_NOSYSTEM",
-            "GIT_TERMINAL_PROMPT",
-            "GIT_ASKPASS",
-            "SSH_ASKPASS",
-        })
+        self.assertEqual(
+            set(environment),
+            {
+                "PATH",
+                "HOME",
+                "TMPDIR",
+                "LC_ALL",
+                "LANG",
+                "GIT_CONFIG_GLOBAL",
+                "GIT_CONFIG_NOSYSTEM",
+                "GIT_TERMINAL_PROMPT",
+                "GIT_ASKPASS",
+                "SSH_ASKPASS",
+            },
+        )
         self.assertEqual(environment["GIT_CONFIG_GLOBAL"], "/dev/null")
         self.assertEqual(environment["GIT_CONFIG_NOSYSTEM"], "1")
         self.assertEqual(environment["GIT_TERMINAL_PROMPT"], "0")

@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.1",
+  "audit_id": "AUD-X2N-PRIVATE-DB-CLIENT-20260728",
+  "observed_at": "2026-07-28",
+  "client_path": "KMOS/KMDatabase/machine/tools/private_db_client.py",
+  "client_sha256": "8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa",
+  "client_size_bytes": 10818,
+  "evidence_class": {
+    "client_identity": "LOCAL_SOURCE_DIGEST_RECOMPUTABLE",
+    "external_actions": "PROCESS_ATTESTATION_NOT_INDEPENDENTLY_OBSERVED_BY_OFFLINE_VERIFIER"
+  },
+  "execution": "READ_SOURCE_AND_HELP_ONLY_NO_GH_API_NO_DATA_WRITE",
+  "allowed_area": "Private-MetaDatabase",
+  "allowed_operations": [
+    "ingest",
+    "get",
+    "list",
+    "verify"
+  ],
+  "forbidden_operations": [
+    "put",
+    "delete"
+  ],
+  "observed_contract": {
+    "raw_sqlite_db_rejected": true,
+    "max_object_bytes": 99614720,
+    "ingest_object_model": "objects/{sha_prefix}/{sha256}_{opaque_name}",
+    "manifest_scope": "area_global_manifest_jsonl_with_domain_field",
+    "manifest_idempotency_key": "sha256_global_not_domain_scoped",
+    "verify_missing_objects_exit_nonzero": false,
+    "authentication": "inherited_gh_api_environment",
+    "structured_json_receipt": false,
+    "get_writes_local_output": true
+  },
+  "required_x2n_mitigations": [
+    "consistent_sqlite_snapshot_to_non_running_archive",
+    "domain_bound_chunk_envelope_with_opaque_name_index_total_and_payload_sha256",
+    "chunks_no_larger_than_94371840_bytes",
+    "exact_domain_manifest_filter",
+    "treat_area_global_verify_as_redacted_advisory_not_x2n_gate",
+    "exact_domain_missing_fails_other_domain_missing_nonblocking_zero_path_disclosure",
+    "per_object_get_hash_reassembly_and_sqlite_integrity",
+    "delete_all_temporary_get_outputs",
+    "owner_authorized_existing_gh_session_client_only_no_token_value_or_auth_mutation",
+    "revalidate_client_digest_and_contract_before_uxops_005"
+  ],
+  "process_attestation": {
+    "external_writes": 0,
+    "runtime_data_read": 0,
+    "shared_github_token_value_contact": "ZERO",
+    "shared_github_auth_mutation": "ZERO",
+    "authenticated_session_use": "NOT_USED"
+  }
+}

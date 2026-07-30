@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:x2n:stage-3-review-resume-recheck-state:1.0",
+  "title": "x2n Stage 3 G3 independent recheck state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "stage",
+    "review_id",
+    "run_id",
+    "recheck_base_commit",
+    "gate",
+    "historical_contracts",
+    "task_receipts",
+    "execution",
+    "authorization",
+    "next_task",
+    "release_policy"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project": {"const": "x2n"},
+    "stage": {"const": "STG.X2N.3"},
+    "review_id": {"const": "STG.X2N.3.REVIEW.RESUME.RECHECK"},
+    "run_id": {"const": "RUN-X2N-S03-REVIEW-RESUME-RECHECK"},
+    "recheck_base_commit": {"const": "c528ff14836f116f624fa8b1ea63472a7f4b678f"},
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "decision", "pass_conditions"],
+      "properties": {
+        "id": {"const": "G3"},
+        "status": {"const": "PASS_CI_SYNTH"},
+        "decision": {"const": "PASS"},
+        "pass_conditions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "eight_scope_extension_native_adapter_dispatch",
+            "complete_capability_snapshot_and_technical_veto",
+            "checkpoint_resume_and_restart_reconciliation",
+            "no_empty_response_deletion",
+            "failed_run_and_single_explicit_fallback",
+            "zero_automatic_fallbacks"
+          ]
+        }
+      }
+    },
+    "historical_contracts": {"type": "object", "additionalProperties": false},
+    "task_receipts": {"type": "object", "additionalProperties": false},
+    "execution": {"type": "object", "additionalProperties": false},
+    "authorization": {"type": "object", "additionalProperties": false},
+    "next_task": {"type": "object", "additionalProperties": false},
+    "release_policy": {"type": "object", "additionalProperties": false}
+  }
+}

@@ -138,9 +138,7 @@ class InvalidAndSecurityContractTests(unittest.TestCase):
                     if operation == "set_and_rehash":
                         payload["payload_hash"] = canonical_json_sha256(payload["payload"])
                 elif operation == "remove_node_kind":
-                    removed = {
-                        item["node_id"] for item in payload["nodes"] if item["kind"] == case["value"]
-                    }
+                    removed = {item["node_id"] for item in payload["nodes"] if item["kind"] == case["value"]}
                     payload["nodes"] = [item for item in payload["nodes"] if item["node_id"] not in removed]
                     payload["edges"] = [
                         item
@@ -157,11 +155,7 @@ class InvalidAndSecurityContractTests(unittest.TestCase):
                     pass
                 elif operation in {"duplicate_same_hash", "duplicate_conflicting_hash"}:
                     request = parse_native_message(_json_text(payload), origin=ORIGIN, policy=POLICY)
-                    previous = (
-                        request.payload_hash
-                        if operation == "duplicate_same_hash"
-                        else "0" * 64
-                    )
+                    previous = request.payload_hash if operation == "duplicate_same_hash" else "0" * 64
                     disposition = classify_duplicate_request(previous, request)
                     self.assertEqual(disposition.value, case["expected"])
                     continue
@@ -169,7 +163,11 @@ class InvalidAndSecurityContractTests(unittest.TestCase):
                     self.fail(f"unknown invalid-fixture operation: {operation}")
 
                 if case["contract"] == "native_message_request":
-                    origin = "chrome-extension://bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/" if operation == "invalid_origin" else ORIGIN
+                    origin = (
+                        "chrome-extension://bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/"
+                        if operation == "invalid_origin"
+                        else ORIGIN
+                    )
                     with self.assertRaises(ContractViolation) as caught:
                         parse_native_message(_json_text(payload), origin=origin, policy=POLICY)
                     self.assertEqual(caught.exception.code.value, case["expected"])

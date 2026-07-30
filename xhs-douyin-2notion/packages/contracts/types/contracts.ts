@@ -40,13 +40,21 @@ export const PLATFORMS = ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weib
 export type Platform = (typeof PLATFORMS)[number];
 export const NATIVE_ACTIONS = ["capture_current", "start_sync", "get_job", "cancel_job", "retry_job", "get_capabilities", "health"] as const;
 export type NativeAction = (typeof NATIVE_ACTIONS)[number];
+export const SYNC_SCOPE_IDS = ["xiaohongshu_favorites", "xiaohongshu_likes", "douyin_favorites", "douyin_likes", "bilibili_selected_collection", "kuaishou_selected_collection", "weibo_selected_collection", "taobao_selected_collection"] as const;
+export type SyncScopeId = (typeof SYNC_SCOPE_IDS)[number];
+export const CAPABILITY_TERMINALS = ["READY_FOR_MVP_ACTIVATION", "DISABLED_EXTERNAL_GATE"] as const;
+export type CapabilityTerminal = (typeof CAPABILITY_TERMINALS)[number];
+export const CAPABILITY_REASON_CODES = ["CI_SYNTH_READY", "UNKNOWN_DISABLED", "BLOCKED_POLICY", "BLOCKED_AUTH", "BLOCKED_BUDGET", "BLOCKED_CAPABILITY", "BLOCKED_TECHNICAL"] as const;
+export type CapabilityReasonCode = (typeof CAPABILITY_REASON_CODES)[number];
+export const CAPABILITY_FEATURE_FLAGS = ["ci_synthetic_only", "disabled", "mvp_activation_candidate"] as const;
+export type CapabilityFeatureFlag = (typeof CAPABILITY_FEATURE_FLAGS)[number];
 export const ERROR_CLASSES = ["user_action_required", "platform_changed", "rate_limited", "network", "dependency_missing", "provider", "invalid_input", "security_blocked", "storage", "data_integrity", "policy", "unknown"] as const;
 export type ErrorClass = (typeof ERROR_CLASSES)[number];
-export const ERROR_CODES = ["X2N_INVALID_SCHEMA_VERSION", "X2N_UNKNOWN_FIELD", "X2N_INVALID_INPUT", "X2N_NATIVE_ORIGIN_REJECTED", "X2N_NATIVE_MESSAGE_TOO_LARGE", "X2N_NATIVE_ACTION_UNKNOWN", "X2N_NATIVE_DUPLICATE_REQUEST", "X2N_CANONICAL_KEY_INVALID", "X2N_RELATION_KEY_INVALID", "X2N_ARTIFACT_VERSION_CONFLICT", "X2N_PROVENANCE_INCOMPLETE", "X2N_CDN_PERSISTENCE_BLOCKED", "X2N_URL_REJECTED", "X2N_SECURITY_INJECTION_BLOCKED", "X2N_ADAPTER_AUTH_EXPIRED", "X2N_PLATFORM_CHANGED", "X2N_RATE_LIMITED", "X2N_NETWORK_FAILED", "X2N_DEPENDENCY_MISSING", "X2N_PROVIDER_FAILED", "X2N_STORAGE_FAILED", "X2N_DATA_INTEGRITY_FAILED", "X2N_POLICY_BLOCKED", "X2N_UNKNOWN_FAILURE"] as const;
+export const ERROR_CODES = ["X2N_INVALID_SCHEMA_VERSION", "X2N_UNKNOWN_FIELD", "X2N_INVALID_INPUT", "X2N_NATIVE_ORIGIN_REJECTED", "X2N_NATIVE_MESSAGE_TOO_LARGE", "X2N_NATIVE_ACTION_UNKNOWN", "X2N_NATIVE_DUPLICATE_REQUEST", "X2N_CANONICAL_KEY_INVALID", "X2N_RELATION_KEY_INVALID", "X2N_ARTIFACT_VERSION_CONFLICT", "X2N_PROVENANCE_INCOMPLETE", "X2N_CDN_PERSISTENCE_BLOCKED", "X2N_URL_REJECTED", "X2N_SECURITY_INJECTION_BLOCKED", "X2N_ADAPTER_AUTH_EXPIRED", "X2N_PLATFORM_CHANGED", "X2N_RATE_LIMITED", "X2N_NETWORK_FAILED", "X2N_DEPENDENCY_MISSING", "X2N_PROVIDER_FAILED", "X2N_STORAGE_FAILED", "X2N_DATA_INTEGRITY_FAILED", "X2N_POLICY_BLOCKED", "X2N_CAPABILITY_TECHNICAL_BLOCKED", "X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE", "X2N_UNKNOWN_FAILURE"] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export const DATA_EFFECTS = ["none", "canonical_unchanged", "derived_output_missing", "unknown_fail_closed"] as const;
 export type DataEffect = (typeof DATA_EFFECTS)[number];
-export const NEXT_ACTIONS = ["correct_input", "review_security_event", "use_existing_job", "restore_backup", "review_policy", "open_login_profile", "inspect_platform_fixture", "wait_and_retry", "retry", "install_dependency", "inspect_provider", "free_disk_space", "inspect_diagnostics"] as const;
+export const NEXT_ACTIONS = ["correct_input", "review_security_event", "use_existing_job", "restore_backup", "review_policy", "open_login_profile", "inspect_platform_fixture", "wait_and_retry", "retry", "install_dependency", "inspect_provider", "free_disk_space", "inspect_diagnostics", "capture_current"] as const;
 export type NextAction = (typeof NEXT_ACTIONS)[number];
 
 export type ContentType = "text" | "image_gallery" | "video" | "mixed" | "unknown";
@@ -81,15 +89,17 @@ export interface CaptureCurrentPayload {
   readonly page_context: PageContext;
   readonly relation: "saved_current";
   readonly category_id?: UUID | null;
+  readonly fallback_from_job_id?: UUID | null;
   readonly user_gesture: true;
   readonly auto_scroll: false;
   readonly change_account_state: false;
 }
 
-export interface StartSyncPayload {
+export interface StartSyncBasePayload {
+  readonly dispatch_version: "1.0";
+  readonly scope_id: SyncScopeId;
   readonly platform: Platform;
-  readonly relation: "liked" | "favorited";
-  readonly source_collection_id?: string | null;
+  readonly relation: RelationType;
   readonly max_items: number;
   readonly user_gesture: true;
   readonly bounded_batch: true;
@@ -97,11 +107,96 @@ export interface StartSyncPayload {
   readonly change_account_state: false;
 }
 
+export interface RelationListStartSyncPayload extends StartSyncBasePayload {
+  readonly scope_id: "xiaohongshu_favorites" | "xiaohongshu_likes" | "douyin_favorites" | "douyin_likes";
+  readonly relation: "liked" | "favorited";
+  readonly source_collection_id?: string | null;
+  readonly visible_batch?: XhsFavoritesVisibleBatch | XhsLikesVisibleBatch | null;
+}
+
+export interface XhsVisibleBatchBoundary {
+  readonly automatic_scroll: false;
+  readonly completion_signal: "authoritative_end" | "bounded_limit_reached" | "more_available" | "unknown";
+  readonly explicit_owner_action: true;
+  readonly visible_card_count: number;
+}
+
+export interface XhsVisibleBatchError {
+  readonly card_index: number | null;
+  readonly code: ErrorCode;
+}
+
+export interface XhsVisibleBatchCollection {
+  readonly id: string | null;
+  readonly name_private: string | null;
+  readonly status: "observed" | "unavailable";
+}
+
+export interface XhsFavoritesVisibleItem {
+  readonly collection_id: string | null;
+  readonly collection_name_private: string | null;
+  readonly content_id: string;
+  readonly content_type: "image_gallery" | "unknown" | "video";
+  readonly page_url: string;
+  readonly title: string | null;
+}
+
+export interface XhsLikesVisibleItem {
+  readonly content_id: string;
+  readonly content_type: "image_gallery" | "unknown" | "video";
+  readonly inbox_disposition: "unclassified";
+  readonly page_url: string;
+  readonly title: string | null;
+}
+
+export interface XhsLikesInbox {
+  readonly automatic_filing: false;
+  readonly disposition: "unclassified";
+  readonly taxonomy_mutation: false;
+}
+
+export interface XhsFavoritesVisibleBatch {
+  readonly batch: XhsVisibleBatchBoundary;
+  readonly code: ErrorCode | null;
+  readonly collection: XhsVisibleBatchCollection;
+  readonly errors: readonly XhsVisibleBatchError[];
+  readonly items: readonly XhsFavoritesVisibleItem[];
+  readonly platform: "xiaohongshu";
+  readonly schema_version: "1.0";
+  readonly status: "auth_required" | "empty_unverified" | "partial" | "platform_changed" | "ready" | "verification_required";
+}
+
+export interface XhsLikesVisibleBatch {
+  readonly batch: XhsVisibleBatchBoundary;
+  readonly code: ErrorCode | null;
+  readonly errors: readonly XhsVisibleBatchError[];
+  readonly inbox: XhsLikesInbox;
+  readonly items: readonly XhsLikesVisibleItem[];
+  readonly platform: "xiaohongshu";
+  readonly schema_version: "1.0";
+  readonly status: "auth_required" | "empty_unverified" | "partial" | "platform_changed" | "ready" | "verification_required";
+}
+
+export interface SelectedCollectionStartSyncPayload extends StartSyncBasePayload {
+  readonly scope_id: "bilibili_selected_collection" | "kuaishou_selected_collection" | "weibo_selected_collection" | "taobao_selected_collection";
+  readonly owner_selection_id: string;
+  readonly owner_selection_manifest_sha256: Sha256;
+  readonly source_identity: string;
+}
+
+export type StartSyncPayload = RelationListStartSyncPayload | SelectedCollectionStartSyncPayload;
+
 export interface JobPayload {
   readonly job_id: UUID;
 }
 
 export type EmptyPayload = Record<string, never>;
+export interface GetCapabilitiesPayload {
+  readonly capability_contract_version?: "1.0";
+}
+export interface HealthPayload {
+  readonly mvp_browser_handshake?: true | null;
+}
 
 export interface NativeRequestEnvelope<A extends NativeAction, P> {
   readonly schema_version: SchemaVersion;
@@ -118,10 +213,50 @@ export type NativeMessageRequest =
   | NativeRequestEnvelope<"get_job", JobPayload>
   | NativeRequestEnvelope<"cancel_job", JobPayload>
   | NativeRequestEnvelope<"retry_job", JobPayload>
-  | NativeRequestEnvelope<"get_capabilities", EmptyPayload>
-  | NativeRequestEnvelope<"health", EmptyPayload>;
+  | NativeRequestEnvelope<"get_capabilities", GetCapabilitiesPayload>
+  | NativeRequestEnvelope<"health", HealthPayload>;
 
 export type NativeResponseStatus = "queued" | "running" | "completed" | "rejected";
+
+export interface CapabilityScopeOutcome {
+  readonly scope_id: SyncScopeId;
+  readonly platform: Platform;
+  readonly relation: RelationType;
+  readonly terminal: CapabilityTerminal;
+  readonly reason_code: CapabilityReasonCode;
+  readonly source_registry_digests: SourceRegistryDigests;
+  readonly feature_flag: CapabilityFeatureFlag;
+  readonly evidence_hash: Sha256;
+  readonly evaluated_at: ISODateTime;
+}
+
+export interface SourceRegistryDigests {
+  readonly adapter_registry: Sha256;
+  readonly feature_registry: Sha256;
+  readonly policy_registry: Sha256;
+  readonly scope_registry: Sha256;
+}
+
+export interface CapabilityManifest {
+  readonly capability_contract_version: "1.0";
+  readonly outcomes: readonly CapabilityScopeOutcome[];
+}
+
+export interface MvpEnrollmentScopeProgress {
+  readonly scope_id:
+    | "xiaohongshu_current_content"
+    | "xiaohongshu_current_content_second_batch"
+    | "douyin_favorites"
+    | "douyin_likes";
+  readonly recorded_count: number;
+  readonly required_count: 20;
+}
+
+export interface MvpEnrollmentProgress {
+  readonly scope_progress: readonly MvpEnrollmentScopeProgress[];
+  readonly total_recorded_count: number;
+  readonly total_required_count: 80;
+}
 
 export interface NativeMessageResponse {
   readonly schema_version: SchemaVersion;
@@ -130,6 +265,8 @@ export interface NativeMessageResponse {
   readonly job_id?: UUID | null;
   readonly status: NativeResponseStatus;
   readonly error?: ErrorContract | null;
+  readonly capabilities?: CapabilityManifest | null;
+  readonly mvp_enrollment_progress?: MvpEnrollmentProgress | null;
 }
 
 export interface NativeHostPolicy {

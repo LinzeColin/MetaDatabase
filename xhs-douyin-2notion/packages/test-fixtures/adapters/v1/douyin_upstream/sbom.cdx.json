@@ -1,0 +1,24 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:9d0ff475-b772-5eb4-9547-c07742e8c950",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "x2n-douyin-sidecar-ci-synthetic-worker",
+      "version": "1.0.0"
+    },
+    "properties": [
+      {
+        "name": "x2n:upstream-runtime-installed",
+        "value": "false"
+      },
+      {
+        "name": "x2n:production-accepted",
+        "value": "false"
+      }
+    ]
+  },
+  "components": []
+}

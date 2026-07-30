@@ -1,23 +1,38 @@
 # Machine-executable Product Design Task DAG. Do not edit thresholds without versioned owner-approved change.
-schema_version: '1.0'
+schema_version: '1.1'
 artifact: CODEX_PRODUCT_DESIGN_TASKPACK
 project:
   name: xhs-douyin-2notion
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_2_REVIEW_PASS_G2_PASS_REMOTE_UPLOAD_AUTHORIZED_STAGE_3_PENDING_REMOTE_MERGE
-  owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
+  status: STAGE_3_REVIEW_RESUME_CONTRACT_VERSIONED_G3_BLOCKED_TECHNICAL
+  owner_change_event: CE-X2N-20260728-S03-REVIEW-RESUME-MVP
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
   repository_visibility: public
-  runtime_data_policy: private_local_only
+  runtime_data_policy: private_metadatabase_durable_local_ephemeral_only
   data_root_ref: X2N_DATA_ROOT
   downloads_root_ref: X2N_DATA_ROOT
   data_root_required_basename: xhs-douyin-2notion
   download_destination_ref: X2N_DOWNLOAD_DESTINATION
   download_destination_required_basename: MediaCrawler
   data_root_namespace: xhs-douyin-2notion
+  local_data_root_role: ephemeral_execution_download_and_sqlite_working_copy
+  local_os_backup_policy: target_entire_x2n_data_root_excluded_from_time_machine_implementation_planned_uxops_005
+  durable_data_repository: LinzeColin/Private-Database
+  durable_data_area: Private-MetaDatabase
+  durable_data_domain: xhs-douyin-2notion
+  durable_data_client: KMOS/KMDatabase/machine/tools/private_db_client.py
+  durable_data_object_model: content_addressed_objects_with_global_manifest_domain_field
+  raw_sqlite_db_upload: forbidden_by_client
+  archival_chunk_max_bytes: 94371840
+  durable_chunk_envelope: domain_bound_opaque_name_index_total_payload_sha256
+  private_db_auth: owner_authorized_existing_gh_session_client_only_no_token_value_or_auth_mutation
+  private_db_disallowed_commands:
+  - put
+  - delete
+  private_database_clone: forbidden
   source_taskpack_absolute_path_status: unspecified_owner_resolved
   timezone: Australia/Sydney
   research_cutoff: '2026-07-19'
@@ -36,12 +51,16 @@ authorization:
   stage_2_task_start: true
   stage_2_review: true
   stage_2_remote_upload: true
-  stage_3_task_start: false
+  stage_3_task_start: true
+  stage_3_review: true
+  stage_3_review_resume: true
+  stage_3_remote_upload: false
+  stage_4_task_start: false
   product_code_changes: true
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: G0/G1 已通过且 Stage 0/1 已合并、远端门禁通过；TSK.x2n.skeleton.001-.009 与 STG.X2N.2.REVIEW 已在公共安全合成、进程内 Notion Mock 和本地工具链绑定范围通过，G2 项目原生本地门禁通过并授权 Stage 2 整体上传。下一动作只能是 Stage 2 远端上传与 CI/merge；远端门禁和 merge 完成前不得执行 Stage 3 产品 Task。Owner Chrome 安装/Canary、真实账号、平台/真实 Notion/模型调用、真实媒体处理、正式 Verifier release-candidate 与公开产品 Release 仍未授权。
+  instruction: Stage 3 九个历史 Task 与首次 Review 保持不可改写。Resume 已版本化两个合法能力终态、ACC.data.002/ACC.rel.006 的 Stage 归属、直接 MVP 发布和 Private-MetaDatabase 数据路由；真实平台激活移至 Stage 6，不再阻断 G3。G3 当前只剩技术阻断：TSK.x2n.adapters.010 尚未执行，严格八行 scope_id START_SYNC、typed GET_CAPABILITIES、单一 capability_gate_outcome runtime authority、failed/run_failure 耐久失败＋派生 FALLBACK_AVAILABLE affordance 与第二次 Owner 当前页动作尚未闭合；BLOCKED_TECHNICAL 是 global veto，不能伪装成外部门终态。Stage 3 上传和 Stage 4 禁止；下一独立 Run 只能是 TSK.x2n.adapters.010。G0–G5、assurance.001–004/uxops.005 与 assurance.005 精确自有 Acceptance 集合之外的 Blocking Acceptance 通过后启动 assurance.005；该任务内完成 80 条 XHS/Douyin 基线、每个额外实际启用能力独立不超过 20 条激活、安全门硬通过、模型能力通过或明确关闭/降级为仅建议模式、回滚、签字、部署和在线 smoke，成功后才签发 G6 PASS；安全未知或失败不能降级结算；不存在预发布阶段、固定健康观察期或 soak。本 Resume 对共享认证材料的 Token 值、auth/config/Credential Helper 与 authenticated session 均零接触；其外部风险不是 Gate blocker。未来只有显式授权 Task 可通过 private_db_client.py 使用现有 authenticated session，且永不读取/显示/修改/删除/撤销/轮换 Token。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI
@@ -72,9 +91,17 @@ canonical_decisions:
   reversible: false
   change_requires: not permitted within v0.0.0.1
 - id: DEC-X2N-008
-  decision: OVH VPS-1 is excluded from Alpha data plane
+  decision: OVH VPS-1 is excluded from MVP data plane
   reversible: true
-  change_requires: separate Beta PRD
+  change_requires: separate Future PRD
+- id: DEC-X2N-009
+  decision: X2N_DATA_ROOT is an ephemeral execution workspace; durable assets use private_db_client.py area Private-MetaDatabase and domain xhs-douyin-2notion; raw .sqlite/.db uploads and cloning Private-Database are forbidden
+  reversible: false
+  change_requires: owner-approved data-governance change
+- id: DEC-X2N-010
+  decision: v0.0.0.1 has no pre-release phase or fixed soak; G0-G5, assurance.001-.004/uxops.005 and blocking acceptances outside the exact assurance.005-owned set permit the task to start, then assurance.005 performs the 80-item XHS/Douyin baseline, an independent max-20 activation for each additional enabled capability, mandatory security PASS, model PASS or explicit disable/suggestion-only degradation, rollback, signoff, deploy and online smoke before G6 PASS
+  reversible: false
+  change_requires: owner-approved release-policy change
 canonical_facts:
 - id: FACT-X2N-001
   type: fact
@@ -148,7 +175,7 @@ mandatory_pause_conditions:
 - A platform control, CAPTCHA or access restriction would need to be bypassed.
 - A dependency license is unknown or incompatible with the intended distribution.
 - A destructive migration has no tested backup and rollback.
-- A requested change expands beyond Alpha scope or enables VPS data plane.
+- A requested change expands beyond MVP scope or enables VPS data plane.
 - A secret/private-content/CDN leak is detected.
 - Acceptance contracts conflict and no conservative interpretation exists.
 execution_policy:
@@ -157,6 +184,14 @@ execution_policy:
   single_phase_focus: true
   max_phases_per_run: 1
   task_order_within_phase: dependency_order
+  previous_stage_gate_pass_required: true
+  stage_entry_gate_map:
+    STG.X2N.1: G0
+    STG.X2N.2: G1
+    STG.X2N.3: G2
+    STG.X2N.4: G3
+    STG.X2N.5: G4
+    STG.X2N.6: G5
   stage_upload_gate: whole_stage_review_fix_and_reacceptance
   intermediate_phase_push: forbidden
   default_git_allowed_paths:
@@ -166,6 +201,37 @@ execution_policy:
   - all other MetaDatabase projects and worktrees
   external_writes_require_explicit_run_contract: true
   missing_or_ambiguous_scope: fail_closed
+  pre_release_phases: prohibited
+  fixed_wait_or_soak_gate: prohibited
+  post_go_live_monitoring: non_blocking
+  assurance_005_scope_change_event: CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES
+  assurance_005_live_scope_contract: xiaohongshu_current_content_20_saved_current_explicit_details_xiaohongshu_current_content_second_batch_20_saved_current_explicit_details_disjoint_douyin_favorites_20_douyin_likes_20
+  release_gate_order:
+  - G0_TO_G5_PASS
+  - ASSURANCE_001_TO_004_AND_UXOPS_005_COMPLETE
+  - DEPLOYMENT_INDEPENDENT_BLOCKING_ACCEPTANCES_PASS
+  - START_ASSURANCE_005
+  - ASSURANCE_005_BOUNDED_ACTIVATION_OWNER_MVP_SECURITY_PASS_MODEL_PASS_OR_DISABLED_ROLLBACK_SIGNOFF_PASS
+  - ASSURANCE_005_DEPLOY_RUN_ONLINE_SMOKE
+  - G6_PASS
+  assurance_005_owned_in_task_acceptance_ids:
+  - ACC.x2n.capture.001
+  - ACC.x2n.capture.002
+  - ACC.x2n.capture.003
+  - ACC.x2n.capture.004
+  - ACC.x2n.capture.005
+  - ACC.x2n.capture.006
+  - ACC.x2n.xhs.001
+  - ACC.x2n.dy.001
+  - ACC.x2n.dy.002
+  - ACC.x2n.bili.001
+  - ACC.x2n.ks.001
+  - ACC.x2n.wb.001
+  - ACC.x2n.tb.001
+  - ACC.x2n.data.002
+  - ACC.x2n.rel.006
+  - ACC.x2n.rel.007
+  - ACC.x2n.rel.008
   stage_0_runnable_phase_sequence:
   - PH.X2N.0.1
   - PH.X2N.0.2
@@ -178,6 +244,7 @@ execution_policy:
   - Read 01_PRD.md, 03_ARCHITECTURE_SECURITY_SYSTEM_CARD.md and relevant acceptance rows
   - Confirm changed scope
   - Confirm dependencies are complete
+  - Confirm the previous stage Gate is PASS before starting a task in a later stage
   - Confirm rollback and stop conditions
   task_completion_requirements:
   - Produce declared outputs
@@ -194,85 +261,85 @@ execution_policy:
 effort_rollup_policy:
   unit: engineer_hours
   stage_envelope_total:
-    low: 350
-    high: 764
+    low: 360
+    high: 799
   task_arithmetic_total:
-    low: 350
-    likely: 674
-    isolated_high: 1288
+    low: 360
+    likely: 692
+    isolated_high: 1323
   interpretation: Stage ranges are correlated program planning envelopes; each task high is an isolated risk upper bound and must not be arithmetically summed.
   acceptance_gate: false
   recalibration: record actuals after each phase; issue a Change Event if the stage envelope no longer contains the current forecast
 feature_flags:
   xhs_current_page:
     default: false
-    alpha: true
+    mvp: true
   douyin_current_page:
     default: false
-    alpha: true
+    mvp: true
   xhs_favorites:
     default: false
-    alpha: after_canary
+    mvp: after_canary
   xhs_likes:
     default: false
-    alpha: after_canary
+    mvp: after_canary
   douyin_favorites:
     default: false
-    alpha: after_canary
+    mvp: after_canary
   douyin_likes:
     default: false
-    alpha: after_canary
+    mvp: after_canary
   bilibili_current_page:
     default: false
-    alpha: after_platform_gate
+    mvp: after_platform_gate
   bilibili_selected_collection:
     default: false
-    alpha: after_platform_gate_and_canary
+    mvp: after_platform_gate_and_canary
   kuaishou_current_page:
     default: false
-    alpha: after_platform_gate
+    mvp: after_platform_gate
   kuaishou_selected_collection:
     default: false
-    alpha: after_platform_gate_and_canary
+    mvp: after_platform_gate_and_canary
   weibo_current_page:
     default: false
-    alpha: after_platform_gate
+    mvp: after_platform_gate
   weibo_selected_collection:
     default: false
-    alpha: after_platform_gate_budget_and_canary
+    mvp: after_platform_gate_budget_and_canary
   taobao_current_page:
     default: false
-    alpha: after_platform_gate
+    mvp: after_platform_gate
   taobao_selected_collection:
     default: false
-    alpha: after_platform_gate_and_canary
+    mvp: after_platform_gate_and_canary
   multimodal_asr:
     default: false
-    alpha: after_model_gate
+    mvp: after_model_gate
   multimodal_ocr:
     default: false
-    alpha: after_model_gate
+    mvp: after_model_gate
   multimodal_vision:
     default: false
-    alpha: only_if_ACC.x2n.ai.003_passes
+    mvp: only_if_ACC.x2n.ai.003_passes
   fusion_summary:
     default: false
-    alpha: after_security_gate
+    mvp: after_security_gate
   auto_classify:
     default: false
-    alpha: only_if_ACC.x2n.ai.006_passes
+    mvp: only_if_ACC.x2n.ai.006_passes
   notion_sink:
     default: false
-    alpha: after_notion_gates
+    mvp: after_notion_gates
   retain_local_media:
     default: false
-    alpha: false
+    mvp: false
   vps_control_plane:
     default: false
-    alpha: false
+    mvp: false
   physical_delete:
     default: false
-    alpha: owner_confirmation_only
+    mvp: owner_confirmation_only
 requirements:
 - id: REQ.X2N.001
   source: 01_PRD.md
@@ -346,6 +413,7 @@ acceptance_contract:
   - ACC.x2n.gov.003
   - ACC.x2n.ext.003
   - ACC.x2n.batch.001
+  - ACC.x2n.batch.002
   - ACC.x2n.data.002
   - ACC.x2n.data.004
   - ACC.x2n.media.001
@@ -382,8 +450,8 @@ stages:
   name: Personal Selected-Collection Adapters
   gate: G3
   effort_hours:
-    low: 88
-    high: 210
+    low: 98
+    high: 245
 - id: STG.X2N.4
   name: Multimodal, Taxonomy and Classification
   gate: G4
@@ -397,7 +465,7 @@ stages:
     low: 40
     high: 90
 - id: STG.X2N.6
-  name: Dual Assurance, Chaos and Owner Alpha
+  name: Assurance, Chaos, MVP Deployment and Go-live
   gate: G6
   effort_hours:
     low: 55
@@ -1262,7 +1330,7 @@ tasks:
   title: Implement dedicated browser profile and session health
   stage: STG.X2N.3
   phase: PH.X2N.3.1
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: owner manually logs into a dedicated Chrome profile once; no credential value is requested
@@ -1306,7 +1374,7 @@ tasks:
   title: Implement Xiaohongshu favorites clean-room adapter
   stage: STG.X2N.3
   phase: PH.X2N.3.2
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1354,7 +1422,7 @@ tasks:
   title: Implement Xiaohongshu likes clean-room adapter
   stage: STG.X2N.3
   phase: PH.X2N.3.3
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1400,7 +1468,7 @@ tasks:
   title: Wrap pinned douyin-downloader for likes and favorites
   stage: STG.X2N.3
   phase: PH.X2N.3.4
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1453,7 +1521,7 @@ tasks:
   title: Implement Bilibili selected-collection adapter
   stage: STG.X2N.3
   phase: PH.X2N.3.5
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: Owner selects an authorized personal list or bounded visible batch; no crawler pagination
@@ -1497,7 +1565,7 @@ tasks:
   title: Implement Kuaishou selected-collection adapter
   stage: STG.X2N.3
   phase: PH.X2N.3.6
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: Owner grants the minimum official OAuth scope and selects a bounded personal list
@@ -1540,7 +1608,7 @@ tasks:
   title: Implement Weibo selected-collection adapter
   stage: STG.X2N.3
   phase: PH.X2N.3.7
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: Owner approves current official API scope and any non-zero budget before a canary
@@ -1583,7 +1651,7 @@ tasks:
   title: Implement Taobao selected-collection adapter
   stage: STG.X2N.3
   phase: PH.X2N.3.8
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: Owner grants a minimum official OAuth scope and selects a supported personal list
@@ -1626,7 +1694,7 @@ tasks:
   title: Implement relation reconciliation and batch completion receipts
   stage: STG.X2N.3
   phase: PH.X2N.3.9
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1673,11 +1741,102 @@ tasks:
     likely: 18
     high: 35
   completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.adapters.010
+  title: Wire capability-scoped Native dispatch and explicit current-page fallback
+  stage: STG.X2N.3
+  phase: PH.X2N.3.10
+  status: completed
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none; development uses synthetic fixtures and performs zero real platform calls
+  objective: Make all eight relation/list scopes executable through strict Extension-to-Native-to-Adapter dispatch while preserving fail-closed external gates and requiring a second explicit Owner action for current-page fallback.
+  inputs:
+  - eight completed relation/list adapter contracts
+  - Native Messaging contract
+  - canonical request/job state
+  - platform capability and feature-flag policies
+  - current StartSyncPayload rejects saved_current even though bilibili_selected_collection, kuaishou_selected_collection and taobao_selected_collection require that exact relation semantic
+  - current GET_CAPABILITIES response has no typed result or capability-manifest payload
+  - current Native response invariant: accepted responses have no error and rejected responses use status=rejected
+  - current SQLite run_record state includes failed but has no FALLBACK_AVAILABLE state
+  outputs:
+  - eight-scope dispatch allowlist and router
+  - versioned START_SYNC discriminated request with a strict scope_id enum bound to the exact platform and relation matrix
+  - saved_current allowed in START_SYNC only for bilibili_selected_collection, kuaishou_selected_collection and taobao_selected_collection, each bound to an Owner-selected manifest, source identity and max_items; CAPTURE_CURRENT remains a distinct single-item saved_current action
+  - versioned discriminated GET_CAPABILITIES result carrying exactly eight typed scope outcomes with terminal, fine-grained reason_code, source registry digests and feature flag
+  - versioned SQLite capability_gate_outcome table with at most one derived runtime row per scope_id and exactly eight rows only for a valid complete evaluation; columns are terminal, reason_code, source_registry_digests, evidence_hash and evaluated_at
+  - BLOCKED_TECHNICAL is a global veto evaluated before every external reason; it prevents a complete eight-row snapshot, invalidates/removes the affected current row and makes GET_CAPABILITIES fail closed so a stale digest/READY row cannot be served; only after technical=false does deterministic precedence UNKNOWN_DISABLED > BLOCKED_POLICY > BLOCKED_AUTH > BLOCKED_BUDGET > BLOCKED_CAPABILITY > CI_SYNTH_READY apply
+  - existing capability/policy/feature registries retained only as versioned inputs while capability_gate_outcome is the authoritative restart-safe derived runtime snapshot
+  - versioned SQLite migration with run_failure rows bound to run_record.state=failed, stable sanitized error code, fallback_eligible and provenance hash
+  - FALLBACK_AVAILABLE as a deterministic Side Panel affordance derived from failed run plus fallback_eligible row, never as a second run_record state
+  - rejected GET_JOB failure envelope that preserves job_id and uses stable X2N_ADAPTER_FAILED_FALLBACK_AVAILABLE plus next_action=capture_current while retaining the accepted-response error invariant
+  - optional fallback_from_job_id on CAPTURE_CURRENT and a second-owner-action current-page request flow with a new request_id
+  - synchronized Pydantic model, error registry, generated JSON Schema/TypeScript contract and Extension consumer
+  - migration up/down and pre-task Native request/response compatibility evidence
+  - restart-safe Side Panel status
+  depends_on:
+  - TSK.x2n.adapters.005
+  - TSK.x2n.foundation.004
+  - TSK.x2n.skeleton.004
+  acceptance_ids:
+  - ACC.x2n.batch.002
+  - ACC.x2n.ext.003
+  - ACC.x2n.batch.001
+  tests:
+  - eight-scope Extension-to-Native-to-Adapter dispatch E2E
+  - exact eight-row platform/relation/scope matrix plus rejection of every invalid cross-product, unknown scope and duplicate scope
+  - the three selected-collection saved_current START_SYNC scopes require Owner-selected manifest, source identity and max_items; every other START_SYNC saved_current combination is rejected
+  - CAPTURE_CURRENT remains single-item saved_current and cannot be confused with a selected-collection sync request
+  - GET_CAPABILITIES round-trip returns exactly eight typed outcomes; unknown fields, duplicate/missing scopes, stale source digests and disabled-support overclaims are rejected
+  - capability reason precedence, restart recovery, registry-digest change and conflict tests prove at most one row per scope and exactly eight only for a valid complete authoritative snapshot
+  - BLOCKED_TECHNICAL cannot be serialized as DISABLED_EXTERNAL_GATE and keeps Task010/G3 blocked
+  - BLOCKED_TECHNICAL combined with each external reason still yields no terminal, invalidates any stale READY row and keeps G3 blocked
+  - unknown action and disabled external gate rejection
+  - duplicate request and worker/companion restart recovery
+  - adapter failure atomically writes run_record failed plus one sanitized run_failure row
+  - GET_JOB preserves failed job_id and deterministically derives FALLBACK_AVAILABLE after process restart
+  - accepted response plus error remains invalid and no new Native status enum is invented
+  - second explicit Owner action creates a separate current-page request with fallback_from_job_id provenance
+  - migration up/down plus old current-page and job-response compatibility vectors
+  - old health/current-page/native response vectors remain compatible while the versioned START_SYNC and GET_CAPABILITIES shapes are additive and discriminated
+  - generated JSON Schema/TypeScript drift check
+  - automatic fallback and real platform calls remain zero
+  evidence:
+  - evidence/adapters/TSK.x2n.adapters.010.json
+  risks:
+  - broad dispatch permits an unregistered action
+  - the current START_SYNC relation enum makes three selected-collection scopes unrepresentable or mislabels them
+  - GET_CAPABILITIES cannot transport the persisted scope outcome to the Side Panel
+  - policy registries and SQLite become competing runtime truths
+  - fallback silently performs a second side effect
+  - disabled capability is misrepresented as supported
+  - UI and SQLite job state diverge after restart
+  - Native response compatibility is broken or a failed job loses its job_id/error provenance
+  rollback:
+  - disable all relation/list dispatch flags and preserve independently tested current-page capture
+  stop_conditions:
+  - any unknown action reaches an adapter
+  - any platform/relation/scope cross-product outside the exact eight-row matrix is accepted
+  - any of the three selected-collection scopes is coerced to liked/favorited or loses Owner manifest/source/max_items binding
+  - GET_CAPABILITIES cannot round-trip all eight typed outcomes after restart
+  - multiple capability runtime authorities exist or reason precedence is nondeterministic
+  - BLOCKED_TECHNICAL produces either legal terminal or permits G3/Stage 3 upload
+  - any external reason masks a simultaneous technical veto or a stale READY row remains serviceable
+  - any fallback runs without a second explicit Owner action
+  - any disabled capability performs a platform call or is declared supported
+  - restart cannot reconcile Side Panel state from SQLite
+  - FALLBACK_AVAILABLE is persisted as a competing run state or inferred without a fallback_eligible failure row
+  - accepted response carries an error, rejected failed-job response loses job_id, or pre-task contract vectors break
+  effort_hours:
+    low: 10
+    likely: 18
+    high: 35
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
 - id: TSK.x2n.multimodal.001
   title: Implement bounded media preprocessing
   stage: STG.X2N.4
   phase: PH.X2N.4.1
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1695,6 +1854,7 @@ tasks:
   depends_on:
   - TSK.x2n.skeleton.003
   - TSK.x2n.skeleton.004
+  - TSK.x2n.adapters.010
   acceptance_ids:
   - ACC.x2n.media.002
   - ACC.x2n.media.004
@@ -1722,7 +1882,7 @@ tasks:
   title: Implement ASR provider abstraction and evaluation
   stage: STG.X2N.4
   phase: PH.X2N.4.2
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: cloud provider remains disabled unless owner explicitly enables and supplies key via OS keychain
@@ -1767,7 +1927,7 @@ tasks:
   title: Implement OCR and Vision provider abstractions
   stage: STG.X2N.4
   phase: PH.X2N.4.3
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: cloud providers opt-in only; local/skip defaults permit continuation
@@ -1812,7 +1972,7 @@ tasks:
   title: Implement multimodal fusion and prompt-injection defenses
   stage: STG.X2N.4
   phase: PH.X2N.4.4
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1862,7 +2022,7 @@ tasks:
   title: Implement taxonomy registry, constrained classifier and review revisions
   stage: STG.X2N.4
   phase: PH.X2N.4.5
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: owner provides taxonomy and private Gold Set at G4; until then all items remain unclassified/suggestion-only
@@ -1911,7 +2071,7 @@ tasks:
   title: Harden Notion schema, views, outbox and reconciliation
   stage: STG.X2N.5
   phase: PH.X2N.5.1
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: Notion integration optional until owner canary; no block for local completion
@@ -1961,7 +2121,7 @@ tasks:
   title: Harden Markdown library and generated category indexes
   stage: STG.X2N.5
   phase: PH.X2N.5.2
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -2006,7 +2166,7 @@ tasks:
   title: Build local WebUI and review workflow
   stage: STG.X2N.5
   phase: PH.X2N.5.3
-  status: planned
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -2016,6 +2176,7 @@ tasks:
   - review contracts
   - health/metrics
   - extension links
+  - immutable stage_3_gate_state required_task_receipts pin for adapters.005 final_commit a67ba091239297b5c9c38a349e0a839680d1c411
   outputs:
   - dashboard
   - source settings
@@ -2024,6 +2185,10 @@ tasks:
   - job detail
   - model budget
   - diagnostics UI
+  - canonical owner-mvp-plan CLI, schema and active evidence keys
+  - removal of the legacy pre-release-named command from active help, runtime aliases and newly generated evidence before v0.0.0.1 while fixed-commit historical evidence remains immutable
+  - versioned runtime nomenclature v2 with current root tests migrated to owner-mvp-plan and release artifacts excluding the retired v1 command/alias/keys
+  - historical adapters.005 verifier replay isolated to pinned final commit a67ba091239297b5c9c38a349e0a839680d1c411 and v1 artifacts rather than evaluating the v2 current tree
   depends_on:
   - TSK.x2n.uxops.001
   - TSK.x2n.uxops.002
@@ -2039,6 +2204,9 @@ tasks:
   - CSRF/origin tests
   - low-confidence review flow
   - accessibility smoke
+  - active CLI/help/schema/evidence terminology scan accepts owner-mvp-plan only and rejects every legacy pre-release-named alias or newly emitted key
+  - fixed-commit historical evidence replay remains compatible without copying its retired terminology into active runtime output
+  - current root tests assert only the v2 owner-mvp-plan surface while the old adapters.005 verifier passes against its fixed historical commit
   evidence:
   - evidence/ui/TSK.x2n.uxops.003.json
   risks:
@@ -2050,6 +2218,8 @@ tasks:
   stop_conditions:
   - UI requires arbitrary HTML execution
   - loopback/origin security cannot be enforced
+  - active help/runtime/evidence still exposes a legacy pre-release-named command or alias
+  - a current root test requires the retired v1 surface or the historical verifier is run against the v2 current tree
   effort_hours:
     low: 9
     likely: 20
@@ -2059,7 +2229,7 @@ tasks:
   title: Implement observability, diagnostics and recovery runbooks
   stage: STG.X2N.5
   phase: PH.X2N.5.4
-  status: planned
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -2110,30 +2280,47 @@ tasks:
     high: 38
   completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
 - id: TSK.x2n.uxops.005
-  title: Implement export, retention, tombstone and user deletion controls
+  title: Implement durable Private-MetaDatabase lifecycle, export, retention, tombstone and governed deletion controls
   stage: STG.X2N.5
   phase: PH.X2N.5.5
-  status: planned
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
-  human_input: physical deletion requires explicit owner confirmation at runtime; development uses synthetic data
-  objective: Give the owner explicit, previewable and auditable control over private runtime data.
+  human_input: physical local deletion and whole-root Time Machine exclusion each require explicit Owner confirmation at runtime; development uses synthetic data
+  objective: Give the owner explicit, previewable and auditable control over active private runtime data while making Private-MetaDatabase the only durable destination, retaining SQLite as logical canonical truth, and never misrepresenting local deletion as erasure of immutable durable history.
   inputs:
   - canonical DB
   - library
   - backup
   - relation state
+  - KMOS/KMDatabase/machine/tools/private_db_client.py
+  - Private-MetaDatabase area with domain xhs-douyin-2notion
+  - client redlines for raw .sqlite/.db files and objects larger than 95 MiB
+  - Owner-authorized existing gh authenticated session used only through private_db_client.py with no Token value read/export/display and no auth/config/helper mutation
   outputs:
   - canonical JSONL export
-  - runtime backup
+  - consistent SQLite snapshot packaged as a non-running archival bundle
+  - content-addressed archive chunks no larger than 90 MiB
+  - project restore manifest bound to Private-MetaDatabase domain xhs-douyin-2notion
+  - monotonic deletion_epoch and logical tombstone set in the latest project restore manifest
+  - ingest/get/list/verify durability receipts
+  - project-domain manifest filter and end-to-end restore verification
+  - domain-bound chunk envelope with opaque names and payload hashes
+  - verified cleanup of every temporary get output
+  - durability-pending recovery state
+  - pre-state receipt, explicit Owner authorization, tmutil whole-root exclusion action and post-state verification for X2N_DATA_ROOT on macOS
+  - fail-closed unsupported result on non-macOS rather than claiming an equivalent backup exclusion
+  - repository-root WHERE_IS_PROJECT_DATA.md xhs-douyin-2notion row synchronized at merge
   - delete preview/confirm
   - relation tombstone
   - runtime wipe
   - TTL policies
+  - active SQLite and derived-sink deletion only; durable hard erase is UNSUPPORTED_OWNER_PRIVATE_DB_GOVERNANCE_REQUIRED because x2n forbids the Private-Database delete command
   depends_on:
   - TSK.x2n.uxops.002
   - TSK.x2n.uxops.004
   acceptance_ids:
+  - ACC.x2n.gov.002
   - ACC.x2n.media.002
   - ACC.x2n.ops.003
   - ACC.x2n.data.004
@@ -2142,6 +2329,20 @@ tasks:
   - cancel delete
   - relation-vs-content deletion
   - backup/restore
+  - Private-MetaDatabase ingest/get/list/verify without clone
+  - raw .sqlite/.db and oversized object redline rejection
+  - archive chunk hash/reassembly and restored SQLite integrity
+  - global manifest domain filtering rejects cross-project records
+  - same-payload cross-domain ingest cannot suppress the xhs-douyin-2notion manifest record
+  - area-global verify output is redacted advisory only; exact-domain manifest rows plus per-object get/hash/reassembly/integrity are the x2n durability Gate
+  - a missing x2n-domain object fails closed even when area-global verify exits zero
+  - a missing other-domain object neither blocks x2n durability nor appears by path/name in x2n logs or evidence
+  - put/delete command rejection plus attestation that only private_db_client.py used the Owner-authorized authenticated session without Token value contact or auth mutation
+  - opaque object names and temporary get cleanup
+  - local working-copy loss and durability-pending recovery
+  - Owner-confirmed tmutil addexclusion targets the whole X2N_DATA_ROOT, snapshots pre-state and verifies the root and every required subpath are excluded; local backup still cannot satisfy durability
+  - restore rejects an older deletion_epoch and applies the latest tombstones so a retained historical snapshot cannot resurrect logically deleted content
+  - local wipe and sink deletion cannot be reported as durable hard erase
   - TTL
   evidence:
   - evidence/lifecycle/TSK.x2n.uxops.005.json
@@ -2149,11 +2350,33 @@ tasks:
   - unintended physical deletion
   - backup includes cookies
   - Notion reverse deletion
+  - local SQLite is reported durable before a verified receipt
+  - Private-Database is cloned or written outside the approved client
+  - raw running SQLite is renamed to bypass the client redline
+  - an archive exceeds the client object limit or cannot be reassembled
+  - the authenticated session is used outside private_db_client.py, a Token value enters process input/logs/evidence, or auth/config/Credential Helper is mutated
+  - global manifest SHA-only idempotency loses the project domain record
+  - client verify output reports missing objects but wrapper treats exit zero as success
+  - area-global verify leaks or couples another project state into the x2n durability decision
+  - an OS backup silently creates a second durable destination
+  - retained durable history resurrects content deleted from the active canonical state
   rollback:
-  - physical_delete flag off; restore backup
+  - physical_delete flag off; keep the whole-root Time Machine exclusion as the safer state; any explicit backup-policy rollback requires a separate Owner action and receipt; restore only a manifest at the latest deletion_epoch
   stop_conditions:
   - delete effect cannot be previewed or rolled back
   - backup would include secrets/browser profiles
+  - durable data requires cloning Private-Database or bypassing private_db_client.py
+  - a canonical commit can be reported durable without a verified receipt
+  - project restore selects a manifest record outside domain xhs-douyin-2notion
+  - any object name contains title, content ID, account identity or source URL
+  - any get output remains after hash/reassembly/restore
+  - the Task would require reading/exporting/displaying a Token value or modifying/deleting/rotating/revoking authentication
+  - Owner has not explicitly authorized whole-root Time Machine exclusion, tmutil verification fails, any X2N_DATA_ROOT subpath remains included, or the OS is unsupported
+  - restore can select an older deletion_epoch or omit a current logical tombstone
+  - local deletion is described as durable hard erase without separate Owner Private-Database governance
+  - WHERE_IS_PROJECT_DATA.md cannot be synchronized without overlapping another project row
+  allowed_parent_paths:
+  - WHERE_IS_PROJECT_DATA.md:xhs-douyin-2notion-row-only
   effort_hours:
     low: 6
     likely: 12
@@ -2163,7 +2386,7 @@ tasks:
   title: Complete software correctness pipeline
   stage: STG.X2N.6
   phase: PH.X2N.6.1
-  status: planned
+  status: complete_ci_synth
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -2210,7 +2433,7 @@ tasks:
   title: Complete model capability, safety and System Card pipeline
   stage: STG.X2N.6
   phase: PH.X2N.6.2
-  status: planned
+  status: complete_ci_synth_features_disabled
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: owner completes/approves private 100-item Gold Set and reviews model errors
@@ -2264,7 +2487,7 @@ tasks:
   title: Complete security, privacy, license and supply-chain assurance
   stage: STG.X2N.6
   phase: PH.X2N.6.3
-  status: planned
+  status: complete_ci_synth_security_privacy_supply_chain
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -2298,6 +2521,7 @@ tasks:
   - license scan
   - release artifact scan
   - SSRF/media suites
+  - active CLI/help/schema/evidence terminology scan exposes owner-mvp-plan only and contains no legacy pre-release-named command, alias or newly emitted key
   evidence:
   - evidence/security/TSK.x2n.assurance.003.json
   risks:
@@ -2319,11 +2543,11 @@ tasks:
   title: Run performance, stress, chaos and recovery campaigns
   stage: STG.X2N.6
   phase: PH.X2N.6.4
-  status: planned
+  status: complete_ci_synth_performance_chaos_recovery
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
-  objective: Actively manufacture failures and capacity extremes before Alpha.
+  objective: Actively manufacture failures and capacity extremes before MVP.
   inputs:
   - chaos matrix
   - 20/80/1000/10000 fixtures
@@ -2347,8 +2571,8 @@ tasks:
   - ACC.x2n.rel.004
   - ACC.x2n.rel.005
   tests:
-  - x2n chaos run --suite alpha
-  - x2n benchmark --suite alpha
+  - x2n chaos run --suite mvp
+  - x2n benchmark --suite mvp
   evidence:
   - evidence/chaos/TSK.x2n.assurance.004.json
   risks:
@@ -2366,28 +2590,45 @@ tasks:
     high: 45
   completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
 - id: TSK.x2n.assurance.005
-  title: Execute Canary, blue-green release, rollback and Owner Alpha
+  title: Execute bounded activation checks, reversible deployment and MVP go-live
   stage: STG.X2N.6
   phase: PH.X2N.6.5
   status: planned
   owner: codex
   authorization: owner_starts_codex_dev
-  human_input: owner authorizes real-account canary, reviews 80-item bundle and signs Alpha; all other work uses synthetic
-    data
-  objective: Deliver a fresh-install, reversible Alpha with 20-item canary, 80-item acceptance and final evidence bundle.
+  human_input: owner authorization is recorded by CE-X2N-20260729-S06-A005-XHS-TWO-CURRENT-BATCHES; runtime uses fresh private manifests, forty explicitly opened XHS current-content details across two disjoint batches, and owner signoff; all other work uses synthetic data
+  objective: In one release task, complete the exact 80-item XHS/Douyin Owner MVP baseline (two disjoint XHS current-content batches of 20 as saved_current explicit details, Douyin favorites 20, Douyin likes 20) plus an independent no-more-than-20-item activation check for every additional enabled capability, prove rollback, deploy and run the unique v0.0.0.1 release, and verify that the MVP is online.
   inputs:
-  - release candidate
+  - release-ready artifact
   - owner input pack
   - private manifests
   - backup/rollback plan
   outputs:
-  - signed/tagged alpha candidate
+  - signed/tagged v0.0.0.1 release
   - fresh-install transcript
-  - 20-item canary
-  - 80-item acceptance
+  - exact 80-item XHS/Douyin Owner MVP baseline acceptance with two disjoint 20-item XHS current-content detail batches
+  - one independent no-more-than-20-item activation receipt and private manifest for every additional enabled capability
+  - a legal DISABLED_EXTERNAL_GATE settlement with flag off, zero call and zero live-support claim for every externally gated capability that is not enabled; BLOCKED_TECHNICAL cannot settle
   - rollback rehearsal
+  - deployment and runtime receipt
+  - online smoke receipt
   - Final Acceptance Bundle
   - release notes/system card
+  task_start_conditions:
+  - G0 through G5 pass
+  - assurance.001 through assurance.004 and uxops.005 are complete
+  - all blocking acceptances outside assurance_005_owned_in_task_acceptance_ids pass
+  in_task_pre_switch_checks:
+  - eighty-item XHS/Douyin Owner MVP baseline passes
+  - every additional enabled capability has an independent activation check of no more than twenty items
+  - security assurance passes; model capability passes or is explicitly disabled or degraded to suggestion-only
+  - rollback rehearsal passes
+  - owner signs off
+  post_deployment_conditions:
+  - deployed runtime and online smoke pass
+  - release artifact scan passes with no Runtime Data
+  - unique v0.0.0.1 tag and go-live receipt exist
+  gate_order: assurance.005 performs in-task checks before switching current; G6 is evaluated only after post-deployment conditions and is never a task-start precondition
   depends_on:
   - TSK.x2n.assurance.001
   - TSK.x2n.assurance.002
@@ -2395,15 +2636,33 @@ tasks:
   - TSK.x2n.assurance.004
   - TSK.x2n.uxops.005
   acceptance_ids:
+  - ACC.x2n.capture.001
+  - ACC.x2n.capture.002
+  - ACC.x2n.capture.003
+  - ACC.x2n.capture.004
+  - ACC.x2n.capture.005
+  - ACC.x2n.capture.006
+  - ACC.x2n.xhs.001
+  - ACC.x2n.dy.001
+  - ACC.x2n.dy.002
+  - ACC.x2n.bili.001
+  - ACC.x2n.ks.001
+  - ACC.x2n.wb.001
+  - ACC.x2n.tb.001
+  - ACC.x2n.data.002
   - ACC.x2n.rel.006
   - ACC.x2n.rel.007
   - ACC.x2n.rel.008
   tests:
   - x2n release verify
-  - owner canary/alpha
+  - owner exact 80-item XHS/Douyin MVP baseline with two disjoint twenty-item XHS current-content detail batches
+  - per-additional-enabled-capability independent no-more-than-20-item activation manifest and coverage check
+  - DISABLED_EXTERNAL_GATE settlement proves an external reason, flag off, zero platform call and zero live-support claim; BLOCKED_TECHNICAL fails closed
   - blue-green switch
   - rollback drill
+  - deployed runtime and online smoke
   - artifact scan
+  - active release CLI/help/schema/evidence exposes owner-mvp-plan only and contains no legacy pre-release-named command, alias or newly emitted key
   evidence:
   - evidence/release/TSK.x2n.assurance.005.json
   risks:
@@ -2417,6 +2676,7 @@ tasks:
   - owner does not sign off
   - rollback rehearsal fails
   - secret/private/CDN hit
+  - v0.0.0.1 is not deployed, running or online after the bounded release transaction
   effort_hours:
     low: 13
     likely: 25
@@ -2484,11 +2744,14 @@ stage_gates:
   - TSK.x2n.adapters.008
   - TSK.x2n.adapters.009
   - TSK.x2n.adapters.005
+  - TSK.x2n.adapters.010
   pass_conditions:
-  - eight independently scoped relation/list canaries complete
-  - checkpoint/resume pass
+  - eight independently scoped relation/list synthetic requests traverse Extension-to-Native-to-Adapter dispatch
+  - a valid complete snapshot persists exactly eight capability_gate_outcome rows, one per scope, with READY_FOR_MVP_ACTIVATION or DISABLED_EXTERNAL_GATE and deterministic fine-grained reason; any BLOCKED_TECHNICAL reason prevents the complete snapshot and leaves G3 blocked with no legal terminal
+  - checkpoint/resume and worker/companion restart reconciliation pass
   - no empty-response deletion
-  - batch failure pivots to current-page fallback
+  - adapter failure durably reaches run_record failed plus one sanitized run_failure row and the Side Panel derives FALLBACK_AVAILABLE without a second run state
+  - current-page fallback requires a separate second explicit Owner action and automatic fallback count remains zero
 - id: G4
   after_stage: STG.X2N.4
   requires_tasks:
@@ -2525,48 +2788,50 @@ stage_gates:
   - TSK.x2n.assurance.005
   pass_conditions:
   - all blocking acceptances pass
-  - twenty-item canary passes
-  - eighty-item owner alpha passes
-  - security and model assurance pass or explicitly degrade
+  - eighty-item XHS/Douyin owner mvp baseline passes
+  - every additional enabled capability passes an independent activation check of no more than twenty items
+  - security assurance passes; model capability passes or is explicitly disabled or degraded to suggestion-only
   - rollback rehearsal passes
   - owner signs off
-optional_beta_backlog:
-- id: BKL.X2N.BETA.001
+  - the unique v0.0.0.1 release is deployed, running and online-smoke verified in the same release task
+  - no prerelease phase, fixed observation period or soak gate is inserted
+  - G6 is evaluated only after assurance.005 finishes deployment and online smoke and is never a precondition to assurance.005
+unscheduled_future_backlog:
+- id: BKL.X2N.FUTURE.001
   title: Cross-platform signed installers
   authorized: false
   entry_criteria:
-  - 30 stable owner days
   - verified demand for second OS
   - separate release/security plan
-- id: BKL.X2N.BETA.002
+- id: BKL.X2N.FUTURE.002
   title: OVH VPS-1 redacted control plane
   authorized: false
   entry_criteria:
   - separate PRD
   - threat model
   - no credentials/private content/media on VPS
-- id: BKL.X2N.BETA.003
+- id: BKL.X2N.FUTURE.003
   title: Per-item encrypted local media retention
   authorized: false
   entry_criteria:
   - measured need
   - quota/encryption/deletion PRD
   - default remains off
-- id: BKL.X2N.BETA.004
+- id: BKL.X2N.FUTURE.004
   title: Additional source adapters beyond the six-platform v0.0.0.1 scope
   authorized: false
   entry_criteria:
   - independent license/platform review
   - same adapter and acceptance contracts
-- id: BKL.X2N.BETA.005
+- id: BKL.X2N.FUTURE.005
   title: Chrome Web Store and GA distribution
   authorized: false
   entry_criteria:
-  - owner alpha value proof
+  - owner mvp value proof
   - store privacy disclosures
   - signed update/rollback plan
 validation_contract:
-  task_count_expected: 43
+  task_count_expected: 44
   dag_cycles_expected: 0
   all_task_ids_unique: true
   all_dependencies_must_exist: true
@@ -2602,8 +2867,9 @@ validation_contract:
   - TSK.x2n.adapters.007
   - TSK.x2n.adapters.008
   - TSK.x2n.adapters.009
-  - TSK.x2n.multimodal.001
   - TSK.x2n.adapters.005
+  - TSK.x2n.adapters.010
+  - TSK.x2n.multimodal.001
   - TSK.x2n.multimodal.002
   - TSK.x2n.multimodal.003
   - TSK.x2n.multimodal.004
@@ -2618,5 +2884,5 @@ validation_contract:
   - TSK.x2n.assurance.001
   - TSK.x2n.assurance.003
   - TSK.x2n.assurance.005
-  calculated_task_count: 43
+  calculated_task_count: 44
   calculated_dag_cycles: 0

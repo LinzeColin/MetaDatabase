@@ -35,6 +35,7 @@ RUN_ID = "RUN-X2N-S02-REVIEW"
 REVIEW_BRANCH = "codex/xhs-douyin-2notion-v0001-s02-review"
 STAGE_BASE_COMMIT = "6777c8fcce75a36741b70c2858c8bc5fff17d440"
 REVIEW_BASE_COMMIT = "c133e1d4c1cbc17a3165e19fa5dbb2368da6b32b"
+REVIEW_FINAL_COMMIT = "bfea9f8d4fc0f6d691544c28a641624ed37122fa"
 ORIGIN_CUTOFF = STAGE_BASE_COMMIT
 
 SKELETON_COMMITS = {
@@ -229,6 +230,9 @@ def _is_ancestor(ancestor: str, descendant: str) -> bool:
 
 
 def _logical_review_head() -> str:
+    physical_head = str(_git(["rev-parse", "HEAD"]))
+    if _is_ancestor(REVIEW_FINAL_COMMIT, physical_head):
+        return REVIEW_FINAL_COMMIT
     row = str(_git(["rev-list", "--parents", "-n", "1", "HEAD"])).split()
     _require(len(row) in {2, 3}, "unexpected Review HEAD parent shape")
     head, *parents = row
@@ -779,7 +783,9 @@ def _changed_review_paths() -> set[str]:
     )
     if review_head == physical_head:
         changed.update(str(_git(["-c", "core.quotePath=false", "diff", "--name-only", review_head])).splitlines())
-    changed.update(str(_git(["-c", "core.quotePath=false", "ls-files", "--others", "--exclude-standard"])).splitlines())
+        changed.update(
+            str(_git(["-c", "core.quotePath=false", "ls-files", "--others", "--exclude-standard"])).splitlines()
+        )
     return {path for path in changed if path}
 
 

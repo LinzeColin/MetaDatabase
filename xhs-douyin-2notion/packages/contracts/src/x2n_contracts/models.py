@@ -108,6 +108,44 @@ class NativeAction(str, Enum):
     HEALTH = "health"
 
 
+class SyncScopeId(str, Enum):
+    """The only list/relation routes that Native dispatch may address."""
+
+    XIAOHONGSHU_FAVORITES = "xiaohongshu_favorites"
+    XIAOHONGSHU_LIKES = "xiaohongshu_likes"
+    DOUYIN_FAVORITES = "douyin_favorites"
+    DOUYIN_LIKES = "douyin_likes"
+    BILIBILI_SELECTED_COLLECTION = "bilibili_selected_collection"
+    KUAISHOU_SELECTED_COLLECTION = "kuaishou_selected_collection"
+    WEIBO_SELECTED_COLLECTION = "weibo_selected_collection"
+    TAOBAO_SELECTED_COLLECTION = "taobao_selected_collection"
+
+
+class CapabilityTerminal(str, Enum):
+    READY_FOR_MVP_ACTIVATION = "READY_FOR_MVP_ACTIVATION"
+    DISABLED_EXTERNAL_GATE = "DISABLED_EXTERNAL_GATE"
+
+
+class CapabilityReasonCode(str, Enum):
+    """Reason codes are intentionally coarse and free of account/platform secrets."""
+
+    CI_SYNTH_READY = "CI_SYNTH_READY"
+    UNKNOWN_DISABLED = "UNKNOWN_DISABLED"
+    BLOCKED_POLICY = "BLOCKED_POLICY"
+    BLOCKED_AUTH = "BLOCKED_AUTH"
+    BLOCKED_BUDGET = "BLOCKED_BUDGET"
+    BLOCKED_CAPABILITY = "BLOCKED_CAPABILITY"
+    BLOCKED_TECHNICAL = "BLOCKED_TECHNICAL"
+
+
+class CapabilityFeatureFlag(str, Enum):
+    """The capability contract never claims that a live platform is enabled."""
+
+    CI_SYNTHETIC_ONLY = "ci_synthetic_only"
+    DISABLED = "disabled"
+    MVP_ACTIVATION_CANDIDATE = "mvp_activation_candidate"
+
+
 class DuplicateDisposition(str, Enum):
     NEW_REQUEST = "new_request"
     RETURN_EXISTING_JOB = "return_existing_job"
@@ -183,6 +221,17 @@ class CaptureCurrentPayload(StrictContract):
     page_context: PageContext
     relation: RelationType
     category_id: UUID | None = None
+    fallback_from_job_id: UUID | None = Field(default=None, exclude_if=lambda value: value is None)
+    owner_mvp_scope: (
+        Literal[
+            "xiaohongshu_current_content",
+            "xiaohongshu_current_content_second_batch",
+        ]
+        | None
+    ) = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
     user_gesture: Literal[True]
     auto_scroll: Literal[False]
     change_account_state: Literal[False]
@@ -192,24 +241,283 @@ class CaptureCurrentPayload(StrictContract):
         validate_canonical_page_url(self.page_url, self.platform)
         if self.relation is not RelationType.SAVED_CURRENT:
             raise ValueError("capture_current must use saved_current relation")
+        if self.owner_mvp_scope is not None and (
+            self.platform is not Platform.XIAOHONGSHU
+            or self.category_id is not None
+            or self.fallback_from_job_id is not None
+        ):
+            raise ValueError("owner MVP current content must be a direct Xiaohongshu current-page capture")
         return self
 
 
-class StartSyncPayload(StrictContract):
-    platform: Platform
-    relation: RelationType
-    source_collection_id: SafeToken | None = None
-    max_items: Annotated[int, Field(ge=1, le=80)]
+class StartSyncPayloadBase(StrictContract):
+    """Strict common envelope for a versioned, bounded list dispatch."""
+
+    dispatch_version: Literal["1.0"]
     user_gesture: Literal[True]
     bounded_batch: Literal[True]
     auto_scroll: Literal[False]
     change_account_state: Literal[False]
+    owner_mvp_manifest_enrollment: Literal[True] | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
 
     @model_validator(mode="after")
-    def relation_is_list_relation(self) -> "StartSyncPayload":
-        if self.relation is RelationType.SAVED_CURRENT:
-            raise ValueError("start_sync cannot use saved_current relation")
+    def requires_explicit_non_mutating_gesture(self) -> "StartSyncPayloadBase":
+        if self.owner_mvp_manifest_enrollment is True:
+            scope_id = getattr(self, "scope_id", None)
+            if (
+                scope_id
+                not in {
+                    SyncScopeId.XIAOHONGSHU_FAVORITES,
+                    SyncScopeId.DOUYIN_FAVORITES,
+                    SyncScopeId.DOUYIN_LIKES,
+                }
+                or getattr(self, "max_items", None) != 20
+            ):
+                raise ValueError("owner MVP manifest enrollment must use a fixed live MVP list scope")
         return self
+
+
+class _RelationListStartSyncPayload(StartSyncPayloadBase):
+    max_items: Annotated[int, Field(ge=1, le=80)]
+
+
+class XhsVisibleBatchBoundary(StrictContract):
+    """The bounded, sanitized browser observation accepted for an XHS MVP action.
+
+    This is deliberately a facts-only envelope.  It carries neither DOM, browser
+    profile state, cookies, media addresses nor arbitrary source URLs.  The
+    Companion re-validates it against the adapter's stricter semantic parser
+    before any Canonical Store write.
+    """
+
+    automatic_scroll: Literal[False]
+    completion_signal: Literal["authoritative_end", "bounded_limit_reached", "more_available", "unknown"]
+    explicit_owner_action: Literal[True]
+    visible_card_count: Annotated[int, Field(ge=0, le=20)]
+
+
+class XhsVisibleBatchError(StrictContract):
+    card_index: Annotated[int, Field(ge=0, le=19)] | None
+    code: ErrorCode
+
+
+class XhsVisibleBatchCollection(StrictContract):
+    id: SafeToken | None
+    name_private: ShortText | None
+    status: Literal["observed", "unavailable"]
+
+    @model_validator(mode="after")
+    def collection_fields_are_coherent(self) -> "XhsVisibleBatchCollection":
+        if (self.id is None) != (self.name_private is None):
+            raise ValueError("collection identity and name must be present together")
+        if (self.status == "unavailable") != (self.id is None):
+            raise ValueError("collection availability does not match its identity")
+        return self
+
+
+class XhsFavoritesVisibleItem(StrictContract):
+    collection_id: SafeToken | None
+    collection_name_private: ShortText | None
+    content_id: PlatformContentId
+    content_type: Literal["image_gallery", "unknown", "video"]
+    page_url: Annotated[str, StringConstraints(min_length=9, max_length=2_048)]
+    title: ShortText | None
+
+    @model_validator(mode="after")
+    def canonical_xhs_favorite_item(self) -> "XhsFavoritesVisibleItem":
+        if (self.collection_id is None) != (self.collection_name_private is None):
+            raise ValueError("favorite collection mapping is incomplete")
+        expected = f"https://www.xiaohongshu.com/explore/{self.content_id}"
+        if self.page_url != expected:
+            raise ValueError("favorite page URL is not the canonical XHS item address")
+        return self
+
+
+class XhsLikesVisibleItem(StrictContract):
+    content_id: PlatformContentId
+    content_type: Literal["image_gallery", "unknown", "video"]
+    inbox_disposition: Literal["unclassified"]
+    page_url: Annotated[str, StringConstraints(min_length=9, max_length=2_048)]
+    title: ShortText | None
+
+    @model_validator(mode="after")
+    def canonical_xhs_like_item(self) -> "XhsLikesVisibleItem":
+        expected = f"https://www.xiaohongshu.com/explore/{self.content_id}"
+        if self.page_url != expected:
+            raise ValueError("like page URL is not the canonical XHS item address")
+        return self
+
+
+class XhsLikesInbox(StrictContract):
+    automatic_filing: Literal[False]
+    disposition: Literal["unclassified"]
+    taxonomy_mutation: Literal[False]
+
+
+class XhsFavoritesVisibleBatch(StrictContract):
+    batch: XhsVisibleBatchBoundary
+    code: ErrorCode | None
+    collection: XhsVisibleBatchCollection
+    # Native Messaging is JSON.  These must therefore be JSON arrays rather
+    # than Python-only tuples; the Companion converts them to immutable
+    # adapter batches only after semantic validation.
+    errors: Annotated[list[XhsVisibleBatchError], Field(max_length=20)]
+    items: Annotated[list[XhsFavoritesVisibleItem], Field(max_length=20)]
+    platform: Literal[Platform.XIAOHONGSHU]
+    schema_version: SchemaVersion
+    status: Literal[
+        "auth_required",
+        "empty_unverified",
+        "partial",
+        "platform_changed",
+        "ready",
+        "verification_required",
+    ]
+
+
+class XhsLikesVisibleBatch(StrictContract):
+    batch: XhsVisibleBatchBoundary
+    code: ErrorCode | None
+    errors: Annotated[list[XhsVisibleBatchError], Field(max_length=20)]
+    inbox: XhsLikesInbox
+    items: Annotated[list[XhsLikesVisibleItem], Field(max_length=20)]
+    platform: Literal[Platform.XIAOHONGSHU]
+    schema_version: SchemaVersion
+    status: Literal[
+        "auth_required",
+        "empty_unverified",
+        "partial",
+        "platform_changed",
+        "ready",
+        "verification_required",
+    ]
+
+
+class DouyinVisibleBatchBoundary(StrictContract):
+    """Facts-only current-DOM boundary for one Owner-selected Douyin action.
+
+    The Side Panel never forwards HTML, links, browser state, cookies, media
+    addresses, or a platform cursor. The Owner-private loopback Sidecar
+    performs a second strict parse before it creates a sanitized adapter batch.
+    """
+
+    automatic_scroll: Literal[False]
+    completion_signal: Literal["bounded_limit_reached", "more_available", "unknown"]
+    explicit_owner_action: Literal[True]
+    visible_card_count: Annotated[int, Field(ge=0, le=20)]
+
+
+class DouyinVisibleBatchError(StrictContract):
+    card_index: Annotated[int, Field(ge=0, le=19)] | None
+    code: ErrorCode
+
+
+class DouyinVisibleItem(StrictContract):
+    """One non-media Douyin card fact extracted from the currently visible DOM."""
+
+    content_id: PlatformContentId
+    content_type: Literal["image_gallery", "unknown", "video"]
+    title: ShortText | None
+
+
+class DouyinVisibleBatch(StrictContract):
+    batch: DouyinVisibleBatchBoundary
+    code: ErrorCode | None
+    errors: Annotated[list[DouyinVisibleBatchError], Field(max_length=20)]
+    items: Annotated[list[DouyinVisibleItem], Field(max_length=20)]
+    platform: Literal[Platform.DOUYIN]
+    schema_version: SchemaVersion
+    status: Literal[
+        "auth_required",
+        "empty_unverified",
+        "partial",
+        "platform_changed",
+        "ready",
+        "verification_required",
+    ]
+
+
+class XiaohongshuFavoritesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_FAVORITES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.FAVORITED]
+    source_collection_id: SafeToken | None = None
+    visible_batch: XhsFavoritesVisibleBatch | None = None
+
+
+class XiaohongshuLikesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_LIKES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.LIKED]
+    source_collection_id: SafeToken | None = None
+    visible_batch: XhsLikesVisibleBatch | None = None
+
+
+class DouyinFavoritesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.DOUYIN_FAVORITES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.FAVORITED]
+    source_collection_id: SafeToken | None = None
+    visible_batch: DouyinVisibleBatch | None = None
+
+
+class DouyinLikesStartSyncPayload(_RelationListStartSyncPayload):
+    scope_id: Literal[SyncScopeId.DOUYIN_LIKES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.LIKED]
+    source_collection_id: SafeToken | None = None
+    visible_batch: DouyinVisibleBatch | None = None
+
+
+class _SelectedCollectionStartSyncPayload(StartSyncPayloadBase):
+    """A selected collection is never inferred from page state or a profile."""
+
+    max_items: Annotated[int, Field(ge=1, le=20)]
+    owner_selection_id: SafeToken
+    owner_selection_manifest_sha256: Sha256
+    source_identity: SafeToken
+
+
+class BilibiliSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.BILIBILI_SELECTED_COLLECTION]
+    platform: Literal[Platform.BILIBILI]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class KuaishouSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.KUAISHOU_SELECTED_COLLECTION]
+    platform: Literal[Platform.KUAISHOU]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class WeiboSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.WEIBO_SELECTED_COLLECTION]
+    platform: Literal[Platform.WEIBO]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class TaobaoSelectedCollectionStartSyncPayload(_SelectedCollectionStartSyncPayload):
+    scope_id: Literal[SyncScopeId.TAOBAO_SELECTED_COLLECTION]
+    platform: Literal[Platform.TAOBAO]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+StartSyncPayload = Annotated[
+    Union[
+        XiaohongshuFavoritesStartSyncPayload,
+        XiaohongshuLikesStartSyncPayload,
+        DouyinFavoritesStartSyncPayload,
+        DouyinLikesStartSyncPayload,
+        BilibiliSelectedCollectionStartSyncPayload,
+        KuaishouSelectedCollectionStartSyncPayload,
+        WeiboSelectedCollectionStartSyncPayload,
+        TaobaoSelectedCollectionStartSyncPayload,
+    ],
+    Field(discriminator="scope_id"),
+]
 
 
 class JobPayload(StrictContract):
@@ -218,6 +526,12 @@ class JobPayload(StrictContract):
 
 class EmptyPayload(StrictContract):
     pass
+
+
+class GetCapabilitiesPayload(StrictContract):
+    """Additive version marker; the legacy empty payload remains readable."""
+
+    capability_contract_version: Literal["1.0"] = "1.0"
 
 
 class NativeRequestBase(StrictContract):
@@ -268,12 +582,33 @@ class RetryJobRequest(NativeRequestBase):
 
 class GetCapabilitiesRequest(NativeRequestBase):
     action: Literal[NativeAction.GET_CAPABILITIES]
-    payload: EmptyPayload
+    payload: GetCapabilitiesPayload
+
+
+class HealthPayload(StrictContract):
+    """A facts-only Native Host health request.
+
+    The optional marker is emitted only by the staged Side Panel.  Its release
+    artifact digest gives the local release controller bounded proof that the
+    exact staged extension reached the installed Native Host; it does not carry
+    a page, profile or platform value.
+    """
+
+    mvp_browser_handshake: Literal[True] | None = None
+    mvp_release_artifact_sha256: Sha256 | None = None
+
+    @model_validator(mode="after")
+    def release_identity_requires_handshake_marker(self) -> "HealthPayload":
+        if self.mvp_release_artifact_sha256 is not None and self.mvp_browser_handshake is not True:
+            raise ValueError("MVP release artifact identity requires the Side Panel handshake marker")
+        if self.mvp_browser_handshake is True and self.mvp_release_artifact_sha256 is None:
+            raise ValueError("MVP Side Panel handshake requires a release artifact identity")
+        return self
 
 
 class HealthRequest(NativeRequestBase):
     action: Literal[NativeAction.HEALTH]
-    payload: EmptyPayload
+    payload: HealthPayload
 
 
 NativeRequestUnion = Annotated[
@@ -301,6 +636,148 @@ class NativeResponseStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class SourceRegistryDigests(StrictContract):
+    adapter_registry: Sha256
+    feature_registry: Sha256
+    policy_registry: Sha256
+    scope_registry: Sha256
+
+
+class CapabilityScopeOutcomeBase(StrictContract):
+    terminal: CapabilityTerminal
+    reason_code: CapabilityReasonCode
+    source_registry_digests: SourceRegistryDigests
+    feature_flag: CapabilityFeatureFlag
+    evidence_hash: Sha256
+    evaluated_at: RFC3339DateTime
+
+    @model_validator(mode="after")
+    def terminal_and_reason_are_fail_closed(self) -> "CapabilityScopeOutcomeBase":
+        if self.reason_code is CapabilityReasonCode.BLOCKED_TECHNICAL:
+            raise ValueError("technical capability veto cannot be serialized as an outcome")
+        if self.terminal is CapabilityTerminal.READY_FOR_MVP_ACTIVATION:
+            if self.reason_code is not CapabilityReasonCode.CI_SYNTH_READY:
+                raise ValueError("ready capability outcome requires CI_SYNTH_READY")
+            if self.feature_flag is CapabilityFeatureFlag.DISABLED:
+                raise ValueError("ready capability outcome cannot carry a disabled feature flag")
+        elif self.reason_code is CapabilityReasonCode.CI_SYNTH_READY:
+            raise ValueError("external disabled terminal cannot carry CI_SYNTH_READY")
+        return self
+
+
+class XiaohongshuFavoritesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_FAVORITES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class XiaohongshuLikesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.XIAOHONGSHU_LIKES]
+    platform: Literal[Platform.XIAOHONGSHU]
+    relation: Literal[RelationType.LIKED]
+
+
+class DouyinFavoritesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.DOUYIN_FAVORITES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class DouyinLikesCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.DOUYIN_LIKES]
+    platform: Literal[Platform.DOUYIN]
+    relation: Literal[RelationType.LIKED]
+
+
+class BilibiliSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.BILIBILI_SELECTED_COLLECTION]
+    platform: Literal[Platform.BILIBILI]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class KuaishouSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.KUAISHOU_SELECTED_COLLECTION]
+    platform: Literal[Platform.KUAISHOU]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+class WeiboSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.WEIBO_SELECTED_COLLECTION]
+    platform: Literal[Platform.WEIBO]
+    relation: Literal[RelationType.FAVORITED]
+
+
+class TaobaoSelectedCollectionCapabilityOutcome(CapabilityScopeOutcomeBase):
+    scope_id: Literal[SyncScopeId.TAOBAO_SELECTED_COLLECTION]
+    platform: Literal[Platform.TAOBAO]
+    relation: Literal[RelationType.SAVED_CURRENT]
+
+
+CapabilityScopeOutcome = Annotated[
+    Union[
+        XiaohongshuFavoritesCapabilityOutcome,
+        XiaohongshuLikesCapabilityOutcome,
+        DouyinFavoritesCapabilityOutcome,
+        DouyinLikesCapabilityOutcome,
+        BilibiliSelectedCollectionCapabilityOutcome,
+        KuaishouSelectedCollectionCapabilityOutcome,
+        WeiboSelectedCollectionCapabilityOutcome,
+        TaobaoSelectedCollectionCapabilityOutcome,
+    ],
+    Field(discriminator="scope_id"),
+]
+
+
+class CapabilityManifest(StrictContract):
+    capability_contract_version: Literal["1.0"]
+    outcomes: tuple[CapabilityScopeOutcome, ...]
+
+    @model_validator(mode="after")
+    def has_one_authoritative_outcome_per_scope(self) -> "CapabilityManifest":
+        expected = tuple(SyncScopeId)
+        actual = tuple(outcome.scope_id for outcome in self.outcomes)
+        if actual != expected:
+            raise ValueError("capability outcomes must be the exact ordered eight-scope registry")
+        return self
+
+
+_MVP_ENROLLMENT_SCOPE_ORDER = (
+    "xiaohongshu_current_content",
+    "xiaohongshu_current_content_second_batch",
+    "douyin_favorites",
+    "douyin_likes",
+)
+
+
+class MvpEnrollmentScopeProgress(StrictContract):
+    """One owner-visible count with no content, identifier, or URL disclosure."""
+
+    scope_id: Literal[
+        "xiaohongshu_current_content",
+        "xiaohongshu_current_content_second_batch",
+        "douyin_favorites",
+        "douyin_likes",
+    ]
+    recorded_count: Annotated[int, Field(ge=0, le=20)]
+    required_count: Literal[20] = 20
+
+
+class MvpEnrollmentProgress(StrictContract):
+    """Aggregate-only state for the four pre-arm direct-MVP selections."""
+
+    scope_progress: Annotated[tuple[MvpEnrollmentScopeProgress, ...], Field(min_length=4, max_length=4)]
+    total_recorded_count: Annotated[int, Field(ge=0, le=80)]
+    total_required_count: Literal[80] = 80
+
+    @model_validator(mode="after")
+    def counts_are_exact_and_non_disclosing(self) -> "MvpEnrollmentProgress":
+        if tuple(item.scope_id for item in self.scope_progress) != _MVP_ENROLLMENT_SCOPE_ORDER:
+            raise ValueError("MVP enrollment progress must use the exact ordered four-scope registry")
+        if self.total_recorded_count != sum(item.recorded_count for item in self.scope_progress):
+            raise ValueError("MVP enrollment progress total does not match scope counts")
+        return self
+
+
 class NativeMessageResponse(StrictContract):
     schema_version: SchemaVersion
     request_id: UUID
@@ -308,6 +785,15 @@ class NativeMessageResponse(StrictContract):
     job_id: UUID | None = None
     status: NativeResponseStatus
     error: ErrorContract | None = None
+    # Omit the additive field for pre-Task010 response vectors.  Versioned
+    # callers receive it only when a typed capability manifest is present.
+    capabilities: CapabilityManifest | None = Field(default=None, exclude_if=lambda value: value is None)
+    # Counts are intentionally aggregate-only: never expose a title, content
+    # identity, URL, profile, or any persisted private-runtime location.
+    mvp_enrollment_progress: MvpEnrollmentProgress | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
 
     @model_validator(mode="after")
     def accepted_and_error_are_consistent(self) -> "NativeMessageResponse":
@@ -317,6 +803,19 @@ class NativeMessageResponse(StrictContract):
             raise ValueError("rejected response requires a stable error")
         if self.status in {NativeResponseStatus.QUEUED, NativeResponseStatus.RUNNING} and self.job_id is None:
             raise ValueError("job status requires job_id")
+        if self.capabilities is not None:
+            if not self.accepted or self.status is not NativeResponseStatus.COMPLETED or self.job_id is not None:
+                raise ValueError("capabilities require an accepted completed response without a job")
+        if self.mvp_enrollment_progress is not None:
+            if not self.accepted or self.status is not NativeResponseStatus.COMPLETED or self.job_id is not None:
+                raise ValueError("MVP enrollment progress requires an accepted completed response without a job")
+        if (
+            not self.accepted
+            and self.error is not None
+            and self.error.code is ErrorCode.ADAPTER_FAILED_FALLBACK_AVAILABLE
+            and self.job_id is None
+        ):
+            raise ValueError("adapter fallback failure must preserve job_id")
         return self
 
 
@@ -420,7 +919,11 @@ def parse_native_message(raw: bytes | str, *, origin: str, policy: NativeHostPol
     try:
         request = NativeMessageRequest.model_validate_json(decoded).root
     except ValidationError as error:
-        code = ErrorCode.UNKNOWN_FIELD if any(item.get("type") == "extra_forbidden" for item in error.errors()) else ErrorCode.INVALID_INPUT
+        code = (
+            ErrorCode.UNKNOWN_FIELD
+            if any(item.get("type") == "extra_forbidden" for item in error.errors())
+            else ErrorCode.INVALID_INPUT
+        )
         raise ContractViolation(code, "消息未通过严格 Schema") from error
     return request
 
