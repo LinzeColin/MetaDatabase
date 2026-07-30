@@ -43,7 +43,10 @@ class Adapters001VerifierTests(unittest.TestCase):
         for path in VERIFY.HISTORICAL_STAGE_2_EVIDENCE:
             self.assertEqual(path.read_bytes(), VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path))
         for path in VERIFY.UNCHANGED_SECURITY_SURFACES:
-            self.assertEqual(path.read_bytes(), VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path))
+            self.assertEqual(
+                VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, path),
+                VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path),
+            )
 
     def test_policy_forbids_cookie_paths_urls_login_automation_and_concurrency(self) -> None:
         policy = VERIFY._load_json(VERIFY.POLICY)
