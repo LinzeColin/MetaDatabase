@@ -148,7 +148,15 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 
 ## Latest verification
 
-- Current handoff checkpoint: source commit `41ba2f29` is pushed to the branch and the worktree/remote heads match.
+- Current handoff checkpoint: source commit `3865edf7` is pushed to the branch and the worktree/remote heads match.
+  It adds an aggregate-only progress response to the temporary Native Host and makes the Side Panel show exactly
+  `已记录 N/20 条` plus the next action. The response contains only four bounded counters: no content identity,
+  title, URL, account data, private path, or hash is emitted. The actual Owner-private enrollment currently has
+  小红书第一组 `2/20`, with the other three scopes at `0/20` (total `2/80`); no Canonical write, Notion call,
+  or platform call occurred. Native Host focused tests, the 59-case release suite, Contract validation/generation,
+  Ruff, TypeScript, extension self-test, isolated extension E2E, and the Stage 3 resume recheck all passed. The
+  stable pre-arm bundle and its owned temporary Host were refreshed from that committed source with no release-pointer
+  change. Chrome Extension Manager reload remains the one owner-visible action needed to load that refreshed bundle.
   The A005 full software lane passed all 22 blocking executions across two repetitions, including the native Extension
   E2E and historical Stage 5 review. The candidate artifact is deterministic (94 members, zero runtime-data files and
   zero allowlist findings); branch coverage is 77.78%; OSV reported zero vulnerabilities across 33 dependencies;
@@ -250,7 +258,8 @@ and verifiable rollback. No Alpha/Beta, fixed observation period, or soak. The i
 2. In the current delegated Owner run, the stable pre-arm Host and the owner-visible stable entry are already refreshed.
    The Chrome Extension Manager action remains manual: load/reload the stable entry rather than any `scratch` source
    directory. On the exact 小红书收藏笔记 list, the intended first screen is the guide with no save
-   button: manually open one visible note, then use the single 保存这条笔记 button on its detail page. Then freshly observe the two
+   button and a visible `第一组：已记录 N/20 条` count: manually open one visible note, then use the single
+   blue 保存第 N 条笔记 button on its detail page. Then freshly observe the two
    Douyin lists without scrolling, then use the Side Panel to record their two
    exact visible 20-item pre-arm batches and 20 separate explicit XHS detail-page current-content pre-arm captures
    for each of the two disjoint batch controls. The Companion creates only private hashes and automatically freezes
