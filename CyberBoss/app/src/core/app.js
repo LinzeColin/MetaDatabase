@@ -4765,6 +4765,15 @@ class CyberbossApp {
     };
     if (!normalized.contextToken) {
       // 投不出去就别唤醒模型：花了额度，消息还是发不到他手上。
+      //
+      // 但必须**说一声**。原来这里是一句 return true，静悄悄把消息丢掉——
+      // 2026-07-30 就是这样：一个人的号被换掉了（旧号的 .json 没了，只剩一个
+      // 孤零零的 context-tokens 文件），他的 token 从此加载不到，每一条主动
+      // 消息都在这里无声无息地消失。日志里一个字都没有，只能看出"他就是收不到"。
+      console.warn(
+        `[cyberboss] checkin dropped no_context_token account=${message.accountId}`
+        + ` to=${senderId.slice(0, 10)}…（这个人的号可能被换过，等他再发一条消息就会恢复）`,
+      );
       return true;
     }
     try {
