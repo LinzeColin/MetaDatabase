@@ -44,7 +44,8 @@ function buildSystemInboundText(text, createdAt = "") {
   const body = normalizeText(text);
   const localTime = formatSystemLocalTime(createdAt);
   const sections = [
-    ...(localTime ? [`[${localTime}]`, ""] : []),
+    // 时区跟入站那条保持一致，理由见 inbound-turn.js 的同名注释。
+    ...(localTime ? [`[${localTime} 北京时间]`, ""] : []),
     "SYSTEM ACTION MODE: internal trigger, not user chat.",
     "Do any timeline/diary/reminder/whereabouts work in this turn.",
     "If you act, end with send_message that briefly and naturally reflects what you did or what changed; use silent only if you do nothing.",

@@ -84,6 +84,15 @@ write_binding() {
     sudo tee $LIVE_ENV >/dev/null <<EOF
 # 由 ops/deploy-to-cloud.sh 生成。这里的值覆盖 /etc/cyberboss/cyberboss.env
 # 和各 drop-in 里的同名项——手改会在下一次部署时被覆盖。
+#
+# 机器本身是 UTC（timedatectl 显示 UTC，unit 里从来没有 TZ）。codex 会把宿主机
+# 时区原样塞进模型的开场白：<current_date>2026-07-28</current_date>
+# <timezone>UTC</timezone>。而我们注入的 [2026-07-29 22:48] 是东八区的。模型被
+# 明确告知"你在 UTC"，于是把那个东八区时刻当成 UTC 再换算给用户——主人在悉尼
+# 0 点问，它答"悉尼时间 8 点"，差的正好是东八区那 8 小时。
+# 设 TZ 让 codex 的开场白和我们注入的时间戳落在同一个时区，模型才没得可换算。
+# 子进程（codex app-server）继承这个环境变量，所以两边一起改。
+TZ=Asia/Shanghai
 CB_RELEASE_ROOT=$APP_ROOT/releases/$sha
 CB_EXPECTED_RELEASE_ID=$sha
 CB_CHANNEL_ACTIVATION_MODE=required
