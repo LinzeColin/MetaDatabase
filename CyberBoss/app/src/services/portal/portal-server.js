@@ -145,6 +145,7 @@ class PortalHttpServer {
     // 而 #handleMeData 见到 undefined 会回 404。这个仓在同一件事上栽过八次了。
     personalSiteLogin = null,
     personalSiteData = null,
+    personalSiteSettings = null,
     ownerActivationStart = null,
     ownerActivationPoll = null,
     firstRunProvider = () => false,
@@ -169,6 +170,7 @@ class PortalHttpServer {
     this.adminPersonaWrite = adminPersonaWrite;
     this.personalSiteLogin = personalSiteLogin;
     this.personalSiteData = personalSiteData;
+    this.personalSiteSettings = personalSiteSettings;
     this.adminInsights = adminInsights;
     this.publicEntry = publicEntry;
     this.publicEntryStatus = publicEntryStatus;
@@ -339,6 +341,33 @@ class PortalHttpServer {
       return;
     }
     this.#json(response, 200, data);
+  }
+
+  // 改自己的设置（现在只有「主动找我」）。身份同样只从 cookie 解，请求体里改不了
+  // 别人的——越权在这里也是一件写不出来的事。
+  //
+  // 不带 CSRF token：cookie 是 SameSite=Strict，跨站请求根本带不上它。这和
+  // adminSessionValid 那边（app.js 里 requireCsrf:false 的那处）是同一个判断。
+  async #handleMeSettings(request, response) {
+    if (request.method !== "POST" || typeof this.personalSiteSettings !== "function") {
+      this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+      return;
+    }
+    let patch = {};
+    try {
+      const raw = await readBody(request);
+      if (raw.length) {
+        patch = JSON.parse(raw.toString("utf8")) || {};
+      }
+    } catch {
+      patch = {};
+    }
+    const result = this.personalSiteSettings(String(request.headers.cookie || ""), patch);
+    if (!result?.ok) {
+      this.#json(response, 401, { ok: false, code: "SESSION_REQUIRED" });
+      return;
+    }
+    this.#json(response, 200, result);
   }
 
   async #handleAdminApi(request, response, name) {
@@ -653,6 +682,9 @@ class PortalHttpServer {
     }
     if (pathname === "/me/api/login") {
       return this.#handleMeLogin(request, response);
+    }
+    if (pathname === "/me/api/settings") {
+      return this.#handleMeSettings(request, response);
     }
     if (request.method === "GET" && pathname === "/me/api/data") {
       return this.#handleMeData(request, response);

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal-lattice.local/schemas/iteration_receipt.schema.json",
+  "title": "Signal Lattice 连续收敛迭代收据",
+  "type": "object",
+  "required": [
+    "schema_version", "round_id", "sequence", "subject_sha256", "previous_receipt_sha256",
+    "new_mechanism_count", "new_p0_count", "new_p1_count", "developer_burden_delta_count",
+    "qualifying_no_change_round", "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.1.0"},
+    "round_id": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1},
+    "subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "previous_receipt_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "new_mechanism_count": {"type": "integer", "minimum": 0},
+    "new_p0_count": {"type": "integer", "minimum": 0},
+    "new_p1_count": {"type": "integer", "minimum": 0},
+    "developer_burden_delta_count": {"type": "integer", "minimum": 0},
+    "qualifying_no_change_round": {"type": "boolean"},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,19 @@
+[Unit]
+Description=Signal Lattice upstream source synchronization
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=signal-lattice
+Group=signal-lattice
+EnvironmentFile=/etc/signal-lattice/runtime.env
+ExecStart=/opt/signal-lattice/current/venv/bin/python /opt/signal-lattice/current/scripts/source_sync_once.py
+TimeoutStartSec=120
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice
+ReadOnlyPaths=/opt/signal-lattice/current
+MemoryMax=384M

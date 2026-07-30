@@ -115,7 +115,10 @@ async function runSystemCheckinPoller(config, options = {}) {
         text: buildCheckinTrigger(config),
         createdAt: new Date().toISOString(),
       });
-      console.log(`[cyberboss] checkin queued id=${queued.id}`);
+      // 带上是给谁排的。只有 id 的时候，「boss 是不是只找主人」这个问题得靠翻
+      // next-checkin.json 再解密 bot_initiated_messages 才答得出来。截断到 10 位：
+      // 够区分是谁，又不至于把整个微信号写进普通日志。
+      console.log(`[cyberboss] checkin queued id=${queued.id} to=${target.senderId.slice(0, 10)}…`);
     }
 
     await sleep(SLICE_MS);

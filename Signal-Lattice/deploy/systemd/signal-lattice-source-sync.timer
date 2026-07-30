@@ -1,0 +1,9 @@
+[Unit]
+Description=Signal Lattice source sync timer
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30
+Persistent=true
+[Install]
+WantedBy=timers.target

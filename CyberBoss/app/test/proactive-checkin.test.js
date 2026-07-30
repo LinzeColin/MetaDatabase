@@ -48,9 +48,15 @@ function openSpool(t) {
 
 // ── 默认必须是关的 ──────────────────────────────────────────
 
-test("默认不主动找人——打开是主人的决定，不是我替他做的决定", () => {
-  assert.equal(defaultPersona().proactive.enabled, false);
-  assert.equal(PROACTIVE_DEFAULTS.enabled, false);
+// 这条原来断言的是"默认不主动找人"。2026-07-30 主人明确改了：「它需要能主动去
+// 找每个人，并且每个用户都能有单独的『主动找我』这个设置按钮」，并在被问到默认
+// 值时选了「默认开，本人可以关」。默认关的话这个能力上线即死——没人会先去点一
+// 个他不知道存在的开关。
+test("默认主动找人，本人可以关", () => {
+  assert.equal(defaultPersona().proactive.enabled, true);
+  assert.equal(PROACTIVE_DEFAULTS.enabled, true);
+  // 关得掉才叫开关：显式 false 不能被默认值盖回去。
+  assert.equal(normalizeProactive({ enabled: false }).enabled, false);
 });
 
 test("默认频率比参考仓保守得多，而且默认有静默时段", () => {
@@ -156,11 +162,49 @@ test("只改语气不会把主动设置弄丢的反面：没给就是回到默�
   store.write({ proactive: { enabled: true, minMinutes: 90 } });
   assert.equal(store.read().proactive.enabled, true);
 
-  // 前端每次都提交整份设置，所以"没给 proactive"这件事等于主人明确关掉了它。
-  // 这条钉住的是行为可预期：不给就是默认（关），不会变成"保留上一次"的隐式状态。
+  // 前端每次都提交整份设置。这条钉住的是行为可预期：整份覆盖时"没给"就是默认，
+  // 不会变成"保留上一次"的隐式状态。默认现在是开，所以这里从 false 改成 true——
+  // 被钉住的性质没变，变的是默认值。
   store.write({ tone: "plain" });
-  assert.equal(store.read().proactive.enabled, false);
+  assert.equal(store.read().proactive.enabled, true);
   assert.equal(store.read().tone, "plain");
+});
+
+// 上面那条整份覆盖的语义，正是窄入口不能用它的原因。
+test("窄入口只改主动设置，不碰语气；也不会把已经关掉的人打开", (t) => {
+  const spool = openSpool(t);
+  const store = new PersonaStore({ database: spool });
+  const person = "usr_LK2nQd8w4pXsRt6VbYcH3m";
+
+  store.writeFor(person, { tone: "plain", callMe: "老王", proactive: { enabled: false } });
+  assert.equal(store.readFor(person).proactive.enabled, false);
+
+  // 微信里发「别再问我」只知道 enabled 这一个字段。走整份覆盖的话语气和称呼
+  // 会被清成默认值——这就是为什么要有 setProactiveFor。
+  store.setProactiveFor(person, { enabled: true });
+  assert.equal(store.readFor(person).proactive.enabled, true);
+  assert.equal(store.readFor(person).tone, "plain", "改主动设置不该动语气");
+  assert.equal(store.readFor(person).callMe, "老王", "改主动设置不该动称呼");
+
+  // 反过来：只改语气的窄入口不能把关掉的人重新打开。
+  store.setProactiveFor(person, { enabled: false });
+  store.setProactiveFor(person, { minMinutes: 90 });
+  assert.equal(store.readFor(person).proactive.enabled, false, "没给 enabled 就不该动它");
+  assert.equal(store.readFor(person).proactive.minMinutes, 90);
+});
+
+test("没自己那一行的人，主动设置用默认值，不跟着主人走", (t) => {
+  const spool = openSpool(t);
+  const store = new PersonaStore({ database: spool });
+  // 主人把自己的关了，并且调成很密。
+  store.write({ tone: "warm", proactive: { enabled: false, minMinutes: 10, maxMinutes: 20 } });
+
+  const stranger = store.readFor("usr_Zx9Qw2Er4Ty6Ui8Op0As1D");
+  // 语气继承主人（他设的是所有人的默认口吻）……
+  assert.equal(stranger.tone, "warm");
+  // ……但主动找我不继承：默认开着、默认频率。
+  assert.equal(stranger.proactive.enabled, true, "主人关掉自己的，不该把所有人一起关掉");
+  assert.equal(stranger.proactive.minMinutes, PROACTIVE_DEFAULTS.minMinutes);
 });
 
 // ── 频率换算 ────────────────────────────────────────────────

@@ -1,0 +1,40 @@
+{
+  "asyncapi": "3.0.0",
+  "channels": {
+    "actionCreated": {
+      "address": "signal-lattice.action.created",
+      "messages": {
+        "actionCreated": {
+          "payload": {
+            "$ref": "./schemas/action_packet.schema.json"
+          }
+        }
+      }
+    },
+    "evolutionCompleted": {
+      "address": "signal-lattice.evolution.completed",
+      "messages": {
+        "evolutionCompleted": {
+          "payload": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "skillUpdated": {
+      "address": "signal-lattice.skill.updated",
+      "messages": {
+        "skillUpdated": {
+          "payload": {
+            "$ref": "./schemas/skill_snapshot.schema.json"
+          }
+        }
+      }
+    }
+  },
+  "info": {
+    "title": "Signal Lattice Events",
+    "version": "0.0.0.1.39"
+  },
+  "operations": {}
+}

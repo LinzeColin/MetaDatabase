@@ -93,7 +93,14 @@ function matchPrefix(text) {
 }
 
 class UserCompanionTurn {
-  constructor({ database, now = () => Date.now() }) {
+  // personaStore 是「别再问我 / 可以问我」真正要写的地方。
+  //
+  // 原来这两条口令只调 companion.setCheckinEnabled，写进 user_settings.
+  // checkin_enabled；而主动消息的轮询器读的是 user_persona.proactive，两张表
+  // 之间没有任何关系。读 user_settings 的只有 planProactiveMessage，而
+  // planProactive 从头到尾没有任何地方调用过。于是用户发「别再问我」会收到
+  // 「好，以后不主动打扰你了」，然后照样被打扰——设置存了、回复了、没生效。
+  constructor({ database, personaStore = null, now = () => Date.now() }) {
     this.companion = new UserCompanionService({
       database,
       now: () => new Date(now()),
@@ -103,7 +110,19 @@ class UserCompanionTurn {
       now: () => new Date(now()),
     });
     this.database = database;
+    this.personaStore = personaStore;
     this.now = now;
+  }
+
+  // 口令改开关。写进轮询器真正会读的那一份。
+  #setProactive(userContext, enabled) {
+    // 旧表继续写：用户导出数据时这一列还在，别让它和实际设置对不上。
+    try {
+      this.companion.setCheckinEnabled(userContext, enabled);
+    } catch {
+      // 旧表写不进去不该让口令失败——真正生效的是下面那一句。
+    }
+    this.personaStore?.setProactiveFor?.(userContext?.userId, { enabled });
   }
 
   // 返回一条要回复的文字，或者 null 表示"这条不是我的活儿，交给模型"。
@@ -127,10 +146,10 @@ class UserCompanionTurn {
       case "reminder.create":
         return Object.freeze({ text: MESSAGES.REMINDER_EMPTY, modelCalls: 0 });
       case "checkin.disable":
-        this.companion.setCheckinEnabled(userContext, false);
+        this.#setProactive(userContext, false);
         return Object.freeze({ text: MESSAGES.CHECKIN_OFF, modelCalls: 0 });
       case "checkin.enable":
-        this.companion.setCheckinEnabled(userContext, true);
+        this.#setProactive(userContext, true);
         return Object.freeze({ text: MESSAGES.CHECKIN_ON, modelCalls: 0 });
       case "analytics.week":
         return this.#week(userContext);

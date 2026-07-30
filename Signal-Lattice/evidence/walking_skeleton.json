@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "atomic_counts": true,
+    "job_completed": true,
+    "job_created": true,
+    "no_action": true,
+    "worker_ran": true
+  },
+  "counts": {
+    "actions": 1,
+    "attempts": 1,
+    "outbox": 1,
+    "runtime_journal": 1
+  },
+  "schema_version": "1.0.0",
+  "state": "PASS"
+}

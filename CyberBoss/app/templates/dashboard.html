@@ -253,6 +253,16 @@
         <h2 style="margin-top:0">他发来的图片和文件</h2>
         <ul class="tl" id="ins-media"></ul>
       </div>
+      <div class="card">
+        <h2 style="margin-top:0">他的提醒</h2>
+        <ul class="tl" id="ins-reminders"></ul>
+      </div>
+      <!-- 他自己那一页上的设置。改在下面那块「主动找我」里改，这里只显示现在
+           是什么状态——两处显示不一致的话，排查「他为什么没收到」会更难。 -->
+      <div class="card">
+        <h2 style="margin-top:0">他自己的设置</h2>
+        <ul class="tl" id="ins-settings"></ul>
+      </div>
 
       <!-- 只对这个人的语气。没单独设过就沿用「设置」那一页的默认值，
            页面上要说清楚现在是哪一种，否则改了默认值会以为对每个人都生效。 -->
@@ -266,6 +276,20 @@
         <input type="text" id="pp-callme" maxlength="24" placeholder="不填就不特意称呼">
         <p class="hint" style="margin-top:10px">还想让它对他注意什么</p>
         <textarea id="pp-note" rows="3" placeholder="比如：他在减肥，别推荐吃的"></textarea>
+        <!-- 能不能主动找他。这一项本人在自己那一页也能改，两边写的是同一行。
+             它必须跟着这个表单一起提交：按人保存是**整份覆盖**，漏了它就会把
+             这个人的开关连带清成默认值。 -->
+        <fieldset style="margin-top:14px">
+          <legend>主动找他</legend>
+          <label class="opt"><input type="checkbox" id="pp-active"><span class="lab">让它主动去找他</span></label>
+          <p class="hint" style="margin-top:10px">隔多久找一次（分钟）</p>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="pp-min" min="5" max="1440" style="width:90px">
+            <span class="faint">到</span>
+            <input type="number" id="pp-max" min="5" max="1440" style="width:90px">
+          </div>
+          <p class="hint" id="pp-quiet" style="margin-top:8px"></p>
+        </fieldset>
         <div style="margin-top:10px">
           <button type="button" id="pp-save">只保存给他</button>
           <span class="faint" id="pp-saved" hidden>存好了 ✓</span>
@@ -841,6 +865,29 @@
         tail: [size, m.createdAt || ""].filter(Boolean).join("  "),
       };
     }), openPerson ? "他还没发过图片或文件。" : "先在左边点一个人。");
+    fillRows("ins-reminders", (d.reminders || []).map(function (r) {
+      return { head: "⏰", body: r.text || r.title || "", tail: r.dueAt || "" };
+    }), openPerson ? "他没有还没到点的提醒。" : "先在左边点一个人。");
+    // 「他为什么没收到主动消息」几乎总是这一行的答案：要么他自己关了，要么
+    // 现在正在免打扰时段里。把它显示出来，省得每次都去翻库。
+    var pro = (d.settings || {}).proactive;
+    fillRows("ins-settings", pro ? [
+      {
+        head: pro.enabled ? "开" : "关",
+        body: "主动找他",
+        tail: pro.enabled ? "" : "他自己关掉的",
+      },
+      {
+        head: "",
+        body: "间隔 " + pro.minMinutes + "～" + pro.maxMinutes + " 分钟",
+        tail: "",
+      },
+      {
+        head: "",
+        body: "夜里 " + pro.quietStart + " 点到早上 " + pro.quietEnd + " 点不打扰",
+        tail: "",
+      },
+    ] : [], openPerson ? "读不到他的设置。" : "先在左边点一个人。");
   }
 
   function fillRows(id, rows, emptyText) {
@@ -1105,6 +1152,17 @@
     document.getElementById("pp-note").value = persona.note || "";
     document.getElementById("pp-note").setAttribute("maxlength", String(data.maxNoteChars || 500));
     document.getElementById("pp-preview").textContent = data.preview || "（空）";
+    var ppro = persona.proactive || {};
+    document.getElementById("pp-active").checked = ppro.enabled === true;
+    document.getElementById("pp-min").value = ppro.minMinutes || 45;
+    document.getElementById("pp-max").value = ppro.maxMinutes || 240;
+    // 免打扰时段这一页不给改，但**必须原样带回去**：保存是整份覆盖，不回传
+    // 就会被归一化成默认的 23-8，把他自己设过的时段悄悄改掉。
+    var quietBox = document.getElementById("pp-quiet");
+    quietBox.dataset.start = String(ppro.quietStart != null ? ppro.quietStart : 23);
+    quietBox.dataset.end = String(ppro.quietEnd != null ? ppro.quietEnd : 8);
+    quietBox.textContent = "夜里 " + quietBox.dataset.start
+      + " 点到早上 " + quietBox.dataset.end + " 点不打扰。";
   }
   function loadPersonTone() {
     if (!openPerson) { return; }
@@ -1126,7 +1184,15 @@
         length: checkedValue("pplen", "medium"),
         emoji: document.getElementById("pp-emoji").checked,
         callMe: document.getElementById("pp-callme").value,
-        note: document.getElementById("pp-note").value
+        note: document.getElementById("pp-note").value,
+        // 按人保存是整份覆盖，漏了这一块就会把他的开关清成默认值。
+        proactive: {
+          enabled: document.getElementById("pp-active").checked,
+          minMinutes: Number(document.getElementById("pp-min").value) || 45,
+          maxMinutes: Number(document.getElementById("pp-max").value) || 240,
+          quietStart: Number(document.getElementById("pp-quiet").dataset.start || 23),
+          quietEnd: Number(document.getElementById("pp-quiet").dataset.end || 8)
+        }
       })
     }).then(function (r) { return r.json(); })
       .then(function (data) {

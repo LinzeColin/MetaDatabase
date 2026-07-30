@@ -1,0 +1,419 @@
+"use strict";
+
+// 「boss 要能主动去找每个人，每个人有自己的开关」。
+//
+// 2026-07-30 主人报的是「boss 现在只能主动来找我」。查下来后端其实早就是按人
+// 走的（next-checkin.json 里线上排着 3 个真人），真正断掉的是三处：
+//
+//   1. 开关默认关，而**除主人外没有任何人能打开它**——/me 那一页从头到尾只有
+//      GET，一个写接口都没有。
+//   2. 微信里发「别再问我」写的是 user_settings.checkin_enabled，轮询器读的是
+//      user_persona.proactive。两张表毫无关系，读前者的 planProactiveMessage
+//      还从来没有被调用过。于是那条口令有回复、有落库、零效果。
+//   3. 没自己那一行的人，proactive 整份继承主人——主人一关，所有人跟着哑，
+//      看起来正好就是「只找主人」。
+//
+// 这一份钉的是这三条各自的反面，外加一条整链路可达性：这个仓的惯犯是中间层按
+// 名字解构漏字段，上层传了、下层没接、测试全绿。
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const test = require("node:test");
+
+const { CyberbossApp } = require("../src/core/app");
+const { PersonaStore, PROACTIVE_DEFAULTS } = require("../src/services/persona/persona-store");
+const { PortalHttpServer } = require("../src/services/portal/portal-server");
+const { UserCompanionTurn } = require("../src/core/user-companion-turn");
+
+const OWNER = `usr_${"o".repeat(24)}`;
+const GUEST = `usr_${"g".repeat(24)}`;
+const GUEST_TOKEN = `g${"A1_-b2Cd".repeat(5)}xyz`;
+
+const APP_SOURCE = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+
+// 内存里的一份 persona 表，够测语义。
+function fakeDb() {
+  const owner = { value: null };
+  const people = new Map();
+  return {
+    readOwnerPersona: () => (owner.value ? { value: owner.value, updatedAt: "" } : null),
+    writeOwnerPersona: (v) => { owner.value = v; },
+    readUserPersona: (id) => (people.has(id) ? { value: people.get(id), updatedAt: "" } : null),
+    writeUserPersona: (id, v) => { people.set(id, v); },
+  };
+}
+
+function storeFor() {
+  return new PersonaStore({ database: fakeDb(), ownerUserId: () => OWNER });
+}
+
+// ── 一、开关是本人的，不跟着主人 ─────────────────────────────
+
+test("主人把自己的主动找我关掉，别人不跟着关", () => {
+  const store = storeFor();
+  store.write({ proactive: { enabled: false, minMinutes: 10 } });
+
+  assert.equal(store.read().proactive.enabled, false, "主人自己那份要照他说的关掉");
+  assert.equal(
+    store.readFor(GUEST).proactive.enabled,
+    true,
+    "别人不该被主人的开关连坐——这正是「只找主人」看起来的样子",
+  );
+  assert.equal(store.readFor(GUEST).proactive.minMinutes, PROACTIVE_DEFAULTS.minMinutes);
+});
+
+test("主人自己那一份读得回来，不会掉进「没设过」的分支", () => {
+  const store = storeFor();
+  store.write({ proactive: { enabled: false, minMinutes: 77, maxMinutes: 88 } });
+  // readFor(主人) 必须等于 read()，否则后台一打开就把他自己的频率显示错。
+  assert.deepEqual(store.readFor(OWNER).proactive, store.read().proactive);
+  assert.equal(store.readFor(OWNER).proactive.minMinutes, 77);
+});
+
+// ── 二、微信口令要写进真的被读的那张表 ───────────────────────
+
+test("发「别再问我」改的是轮询器真正会读的那一份", () => {
+  const store = storeFor();
+  const writes = [];
+  const companion = new UserCompanionTurn({
+    database: {
+      prepare: () => ({ run: () => {}, get: () => null, all: () => [] }),
+    },
+    personaStore: {
+      setProactiveFor: (userId, patch) => { writes.push({ userId, patch }); },
+    },
+  });
+
+  const reply = companion.handle({ userId: GUEST, may: () => true }, "别再问我");
+
+  assert.equal(reply.modelCalls, 0, "口令必须零模型调用");
+  assert.deepEqual(writes, [{ userId: GUEST, patch: { enabled: false } }]);
+
+  writes.length = 0;
+  companion.handle({ userId: GUEST, may: () => true }, "可以问我");
+  assert.deepEqual(writes, [{ userId: GUEST, patch: { enabled: true } }]);
+  void store;
+});
+
+test("口令只改开关，不把这个人的语气一起清掉", () => {
+  const store = storeFor();
+  store.writeFor(GUEST, { tone: "plain", callMe: "小李", proactive: { enabled: true } });
+
+  store.setProactiveFor(GUEST, { enabled: false });
+
+  assert.equal(store.readFor(GUEST).proactive.enabled, false);
+  assert.equal(store.readFor(GUEST).tone, "plain", "口令只知道 enabled，不能整份覆盖");
+  assert.equal(store.readFor(GUEST).callMe, "小李");
+});
+
+test("app 真的把 personaStore 交给了 UserCompanionTurn", () => {
+  // 少了这一行，口令写进去的还是那张没人读的表，而且测试照样全绿。
+  const start = APP_SOURCE.indexOf("new UserCompanionTurn({");
+  assert.notEqual(start, -1);
+  const block = APP_SOURCE.slice(start, APP_SOURCE.indexOf("});", start));
+  assert.match(block, /personaStore:\s*this\.personaStore/);
+});
+
+// ── 三、/me 那一页真的能改，而且只能改自己的 ─────────────────
+
+function bootApp({ store }) {
+  const app = Object.create(CyberbossApp.prototype);
+  app.personaStore = store;
+  app.adminSessionService = {
+    verify: ({ token }) => (token === GUEST_TOKEN ? { userId: GUEST } : null),
+  };
+  app.runtimeSpoolDatabase = { database: {}, ownerUserId: OWNER };
+  app.config = { portalOrigin: "https://boss.example.com" };
+  return app;
+}
+
+const GUEST_COOKIE = `cb_session=${GUEST_TOKEN}`;
+
+test("从 /me 关掉开关，真的写进去了", () => {
+  const store = storeFor();
+  const app = bootApp({ store });
+
+  assert.equal(store.readFor(GUEST).proactive.enabled, true, "默认是开的");
+
+  const out = app.personalSiteSettings(GUEST_COOKIE, { proactive: { enabled: false } });
+
+  assert.equal(out.ok, true);
+  assert.equal(out.settings.proactive.enabled, false, "回给页面的必须是存进去的值");
+  assert.equal(store.readFor(GUEST).proactive.enabled, false, "库里也要真的变了");
+});
+
+test("没有会话就改不了，请求体里也指定不了改谁", () => {
+  const store = storeFor();
+  const app = bootApp({ store });
+
+  assert.equal(app.personalSiteSettings("", { proactive: { enabled: false } }).ok, false);
+  assert.equal(app.personalSiteSettings("cb_session=nope", { proactive: { enabled: false } }).ok, false);
+  // 身份只从 cookie 解：即使请求体里写了别人的 id，改的还是自己那一份。
+  const out = app.personalSiteSettings(GUEST_COOKIE, { userId: OWNER, proactive: { enabled: false } });
+  assert.equal(out.ok, true);
+  assert.equal(store.read().proactive.enabled, true, "主人那一份不能被访客改到");
+});
+
+test("/me 的数据里带着当前设置，开关才显示得出状态", () => {
+  const store = storeFor();
+  const app = bootApp({ store });
+  app.runtimeSpoolDatabase = {
+    database: {},
+    ownerUserId: OWNER,
+    listUserItems: () => [],
+  };
+  app.listMemoriesFor = () => [];
+  app.listOwnReminders = () => [];
+  app.formatOwnerLocalTime = (v) => v;
+
+  const site = app.buildPersonalSite(GUEST);
+
+  assert.equal(site.ok, true);
+  assert.equal(site.settings.proactive.enabled, true);
+  assert.equal(typeof site.settings.proactive.quietStart, "number");
+});
+
+// ── 四、整条线接上了没有 ─────────────────────────────────────
+
+test("portal server 接得住 personalSiteSettings，并且真的开了那条路由", () => {
+  const server = new PortalHttpServer({
+    portal: { handle: () => {} },
+    personalSiteSettings: () => ({ ok: true }),
+  });
+  assert.equal(typeof server.personalSiteSettings, "function", "构造函数漏接＝整条路默默 404");
+
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "services", "portal", "portal-server.js"),
+    "utf8",
+  );
+  assert.match(source, /pathname === "\/me\/api\/settings"/, "接了字段但没开路由还是 404");
+});
+
+test("app 真的把 personalSiteSettings 传给了 portal server", () => {
+  const start = APP_SOURCE.indexOf("personalSiteData: (cookieHeader)");
+  assert.notEqual(start, -1);
+  const block = APP_SOURCE.slice(start, start + 400);
+  assert.match(block, /personalSiteSettings:/);
+});
+
+// ── 五、后台看到的必须就是他那一页 ───────────────────────────
+
+test("后台按人看到的字段，和这个人自己那一页完全一致", () => {
+  const store = storeFor();
+  const app = bootApp({ store });
+  app.runtimeSpoolDatabase = {
+    database: {},
+    ownerUserId: OWNER,
+    listUserItems: () => [],
+  };
+  app.listMemoriesFor = () => [];
+  app.listOwnReminders = () => [];
+  app.formatOwnerLocalTime = (v) => v;
+  app.userAdmission = { users: { identify: () => ({ userId: GUEST }) } };
+  app.channelAdapter = { resolveAccount: () => ({ accountId: "acct" }) };
+
+  const mine = app.buildPersonalSite(GUEST);
+  const boss = app.buildPersonDetail("wx-guest");
+
+  // ok 只有 /me 那一侧有（它是个 HTTP 响应），其余每一样后台都得看得到。
+  const mineKeys = Object.keys(mine).filter((k) => k !== "ok").sort();
+  const bossKeys = Object.keys(boss).sort();
+  assert.deepEqual(
+    bossKeys,
+    mineKeys,
+    "两个出口是同一份数据。一边加了字段另一边没加，后台那一栏会显示出来但永远是空的",
+  );
+  assert.equal(boss.settings.proactive.enabled, true, "后台要看得到他的主动找我开着没");
+});
+
+test("后台按人看不到的那一半：认不出这个人时给的空壳字段也要齐", () => {
+  const app = bootApp({ store: storeFor() });
+  app.runtimeSpoolDatabase = { database: {}, ownerUserId: OWNER };
+  const boss = app.buildPersonDetail("");
+  // 空壳少一个键，前端读 detail.reminders 就是 undefined，那一栏直接不渲染。
+  assert.deepEqual(
+    Object.keys(boss).sort(),
+    ["events", "media", "memories", "reminders", "settings", "todos"],
+  );
+});
+
+// ── 六、多个微信号：主动消息不能只排空主号 ───────────────────
+
+const os = require("node:os");
+const { SystemMessageQueueStore } = require("../src/core/system-message-queue-store");
+const { SystemMessageDispatcher } = require("../src/core/system-message-dispatcher");
+
+function queueStore(t) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cb-sysq-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  return new SystemMessageQueueStore({ filePath: path.join(dir, "q.json") });
+}
+
+function msg(accountId, senderId) {
+  return {
+    id: `id-${accountId}-${senderId}`,
+    accountId,
+    senderId,
+    workspaceRoot: "/srv/ws",
+    text: "comes to mind again.",
+    createdAt: "2026-07-29T10:40:27.926Z",
+  };
+}
+
+test("非主号的主动消息也要被取走，不能永远躺在队列里", (t) => {
+  // 线上就是这样哑掉的：轮询器按每个人自己的号排队，取的那一侧钉死了主号。
+  // 另外两个号各卡了一条，最早那条躺了一整天，而且因为 hasPendingForAccount
+  // 永远为真，那两个号下面的人从此每一轮都被跳过。
+  const store = queueStore(t);
+  store.enqueue(msg("main-bot", "wx-owner"));
+  store.enqueue(msg("second-bot", "wx-guest-1"));
+  store.enqueue(msg("third-bot", "wx-guest-2"));
+
+  const dispatcher = new SystemMessageDispatcher({
+    queueStore: store,
+    config: { workspaceId: "ws", workspaceRoot: "/srv/ws" },
+    accountId: "main-bot",
+  });
+
+  const drained = dispatcher.drainPending();
+
+  assert.equal(drained.length, 3, "只取主号那一条就是「boss 只主动找我」的成因");
+  assert.deepEqual(
+    drained.map((m) => m.accountId).sort(),
+    ["main-bot", "second-bot", "third-bot"],
+  );
+  assert.equal(store.hasPending(), false, "取完队列要空，否则那个号会被一直跳过");
+});
+
+test("取出来之后，投递用的是这条消息自己的号", (t) => {
+  const store = queueStore(t);
+  const dispatcher = new SystemMessageDispatcher({
+    queueStore: store,
+    config: { workspaceId: "ws", workspaceRoot: "/srv/ws" },
+    accountId: "main-bot",
+  });
+
+  const prepared = dispatcher.buildPreparedMessage(msg("second-bot", "wx-guest-1"));
+
+  // 写成 this.accountId 的话，取出来也会投到主号上——那个人不在主号下面。
+  assert.equal(prepared.accountId, "second-bot");
+  assert.equal(prepared.senderId, "wx-guest-1");
+});
+
+test("投不出去的消息重排有上限，不能把一个号堵死", () => {
+  const requeued = [];
+  const app = Object.create(CyberbossApp.prototype);
+  app.systemMessageDispatcher = { requeue: (m) => requeued.push(m) };
+
+  // 前几次照常重排。
+  app.requeueSystemMessage(msg("second-bot", "wx-guest-1"));
+  assert.equal(requeued.length, 1);
+  assert.equal(requeued[0].attempts, 1);
+
+  // 到上限就丢掉，而不是永远重排——永远重排会让 hasPendingForAccount 对那个号
+  // 永远为真，整个号从此静默且没有任何报错。
+  requeued.length = 0;
+  app.requeueSystemMessage({ ...msg("second-bot", "wx-guest-1"), attempts: 99 });
+  assert.equal(requeued.length, 0, "到上限必须丢掉，丢一条打招呼远好过让一个号哑掉");
+});
+
+// ── 七、访客的主动问候必须短 ─────────────────────────────────
+
+test("访客的主动问候带指令，而且要求很短", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  const start = source.indexOf("function buildGuestCheckinPrompt()");
+  assert.notEqual(start, -1, "访客那条路又变回直接把内部触发语丢给模型了");
+  const body = source.slice(start, source.indexOf("\n}", start));
+
+  // 长度限制是硬要求，不是文风：微信 context_token 只允许有限次回复，长文被
+  // 切成多片之后整条发不出去。2026-07-30 06:36 那条 527 字的就是这么挂的。
+  assert.match(body, /最多\s*\d+\s*字/, "没有字数上限，模型就会写长文，长文发不出去");
+
+  // 而且这段指令必须真的被用上——写了函数但没接进去，是这个仓的惯犯。
+  const call = source.indexOf("text: buildGuestCheckinPrompt()");
+  assert.notEqual(call, -1, "写了指令却没传给模型，等于没写");
+});
+
+test("内部触发语不会原样进到给模型的文本里", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  const start = source.indexOf("async dispatchGuestCheckin(");
+  const body = source.slice(start, source.indexOf("\n  }", start));
+  // message.text 是 "%USER% comes to mind again."，而 %USER% 填的是**主人**的
+  // 名字——访客看到的会是一个跟他无关的人名。admit() 那一处用原文是对的
+  // （它要拿原文认口令），但给模型的那一处不能用。
+  const modelText = body.slice(body.indexOf("const normalized = {"));
+  assert.doesNotMatch(modelText, /text: String\(message\.text/);
+});
+
+// ── 八、发不出去就存着，等他下次说话再补 ─────────────────────
+
+test("主动问候发不出去时存起来，而且存在他自己那个号下面", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+
+  // 微信这条通道上，主动找一个很久没说话的人是做不到的：能不能发出去取决于
+  // 手里有没有一张没用掉的 context_token，而它只在对方发消息时刷新。丢掉的话
+  // 这个人就永远等不到，所以必须存下来。
+  const start = source.indexOf("this.noteDirectReply(normalized.senderId, text, {");
+  assert.notEqual(start, -1);
+  const after = source.slice(start, start + 1600);
+  assert.match(after, /provider === "system"/);
+  assert.match(after, /deferSystemReply\(/, "发不出去就丢＝主动找他这件事对他从来没发生过");
+  assert.match(after, /accountId: normalized\.accountId/, "存错号的话取的时候找不到，等于没存");
+
+  // deferSystemReply 自己也不能再把号写死成主号。
+  // 找**方法定义**那一处（行首两个空格），不是上面那个调用点——indexOf 先撞上
+  // 的是调用点，切出来的那段里当然没有实现。
+  const defStart = source.indexOf("\n  deferSystemReply({");
+  assert.notEqual(defStart, -1, "找不到 deferSystemReply 的定义，这个断言已经失效了");
+  const defBody = source.slice(defStart, defStart + 700);
+  assert.match(defBody, /normalizeText\(accountId\)/, "写死主号＝多号下面的人取不回来");
+});
+
+// ── 九、席位内的访客真的能说话 ───────────────────────────────
+
+test("席位内的访客走到 job 队列时，UserContext 必须跟着一起到", () => {
+  // 2026-07-30 的线上事故：普通用户发「您好」，收到「这个操作只有管理员可以
+  // 使用」。原因是 admitDurableTurn 只对 route==="owner" 返回 UserContext，而
+  // 「前 N 个席位走主人的 Codex」那个改动让席位内的访客开始走这条路——
+  // dispatchPreparedTurn 拿到的 turnContext 是空的，第一个判断就把他挡了。
+  const ctx = { userId: GUEST, isOwner: false, may: () => false };
+  const app = Object.create(CyberbossApp.prototype);
+  app.userAdmission = {
+    admit: () => ({ route: "user", userContext: ctx }),
+  };
+
+  const out = app.admitDurableTurn({ accountId: "acct", senderId: "wx-1", text: "您好" });
+
+  assert.equal(out, ctx, "访客的 UserContext 没带出去＝他问什么都只会收到「只有管理员可以使用」");
+});
+
+test("主人那一条不受影响", () => {
+  const ownerCtx = { userId: OWNER, isOwner: true, may: () => true };
+  const app = Object.create(CyberbossApp.prototype);
+  app.userAdmission = { admit: () => ({ route: "owner", userContext: ownerCtx }) };
+  assert.equal(app.admitDurableTurn({ accountId: "a", senderId: "s", text: "hi" }), ownerCtx);
+});
+
+test("不是真正的一轮对话的那些路由，仍然不给 UserContext", () => {
+  // reply / status / admin_link 这些在 admissionHandledBeforeJob 就办完了，
+  // 走到这里说明状态不对，不能顺手放行。
+  for (const route of ["reply", "status", "admin_link", "rejected"]) {
+    const app = Object.create(CyberbossApp.prototype);
+    app.userAdmission = { admit: () => ({ route, userContext: { userId: GUEST } }) };
+    assert.equal(
+      app.admitDurableTurn({ accountId: "a", senderId: "s", text: "x" }),
+      null,
+      `route=${route} 不该拿到 UserContext`,
+    );
+  }
+});
+
+test("轮询器排队的日志带上是给谁排的", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "app", "system-checkin-poller.js"),
+    "utf8",
+  );
+  // 只有 id 的时候，「是不是只找主人」这个问题得解密数据库才答得出来。
+  assert.match(source, /checkin queued id=\$\{queued\.id\} to=/);
+});

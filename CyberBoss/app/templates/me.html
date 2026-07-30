@@ -115,9 +115,67 @@ li:last-child{border-bottom:0;padding-bottom:0}
     return box;
   }
 
+  // 「主动找我」。这一页上唯一一个能改东西的地方。
+  //
+  // 改完立刻发给服务器，不设"保存"按钮：只有一个开关和两个下拉，攒起来再保存
+  // 只会多一个忘了点保存的机会。
+  function settingsCard(settings) {
+    var box = el("section", null, "card");
+    var head = el("h2", "主动找我");
+    box.appendChild(head);
+
+    var p = settings && settings.proactive ? settings.proactive : null;
+    if (!p) {
+      box.appendChild(el("p", "暂时读不到这个设置。", "empty"));
+      return box;
+    }
+
+    var status = el("p", "", "empty");
+    var row = el("label");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.gap = "8px";
+    row.style.cursor = "pointer";
+    var toggle = document.createElement("input");
+    toggle.type = "checkbox";
+    toggle.checked = p.enabled === true;
+    row.appendChild(toggle);
+    row.appendChild(el("span", "让它偶尔主动来找我"));
+    box.appendChild(row);
+
+    var quiet = el("p", "夜里 " + p.quietStart + " 点到早上 " + p.quietEnd + " 点不打扰。", "empty");
+    box.appendChild(quiet);
+    box.appendChild(status);
+
+    function save() {
+      status.textContent = "正在保存……";
+      fetch("/me/api/settings", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proactive: { enabled: toggle.checked } }),
+      })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (out) {
+          if (out && out.ok && out.settings && out.settings.proactive) {
+            // 用服务器回来的值刷新，不用本地那个。存进去的和显示的不一致的话，
+            // 这个开关就变成了一个只是看起来动了的东西。
+            toggle.checked = out.settings.proactive.enabled === true;
+            status.textContent = toggle.checked ? "好，它会偶尔来找你。" : "好，不打扰你了。";
+            return;
+          }
+          status.textContent = "没保存上，稍后再试。";
+        })
+        .catch(function () { status.textContent = "没保存上，稍后再试。"; });
+    }
+    toggle.addEventListener("change", save);
+    return box;
+  }
+
   function render(data) {
     sub.textContent = "这些是你的东西。";
     var grid = el("div", null, "grid");
+    grid.appendChild(settingsCard(data.settings));
     grid.appendChild(card("待办", (data.todos || []).map(function (t) {
       return { text: t.title, when: t.dueAt || "" };
     }), "还没有待办。在微信里发「记一下 买菜」就能记。"));

@@ -1,0 +1,42 @@
+{
+  "cost_ceiling": {
+    "new_paid_data_provider_enabled": false,
+    "runtime_llm_tokens": 0
+  },
+  "current_phase": "SEALED_TASKPACK",
+  "forbidden_dependencies": [
+    "active development agent",
+    "manual keepalive",
+    "user Mac runtime",
+    "macOS launchd",
+    "runtime LLM",
+    "automatic broker execution"
+  ],
+  "formal_release_pass_claimed": false,
+  "live_action_enabled": false,
+  "owner_approved_scope": "OWNER_APPROVED_SEALED_TASKPACK",
+  "owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
+  "product_version": "0.0.0.1.39",
+  "production_side_effect_authorization": false,
+  "project_id": "signal-lattice",
+  "project_name": "Signal Lattice｜股票信号格阵决策系统",
+  "required_integrations": [
+    "status.linzezhang.com",
+    "OVH",
+    "Private-Database",
+    "Cloudflare R2",
+    "OCI"
+  ],
+  "resource_ceiling": {
+    "default_worker_concurrency": 1,
+    "macos_runtime_resources": 0,
+    "model_calls": 0,
+    "runtime_python_dependencies": 0
+  },
+  "runtime_node": "OVH Linux",
+  "schema_version": "1.0.0",
+  "target_area": "Signal-Lattice/",
+  "target_domain": "signal-lattice.linzezhang.com",
+  "target_repository": "https://github.com/LinzeColin/MetaDatabase",
+  "taskpack_version": "0.0.0.1.39"
+}

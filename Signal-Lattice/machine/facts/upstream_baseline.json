@@ -1,0 +1,23 @@
+{
+  "agent_database": {
+    "commit": "7628709b3e293dddc1100b00780d0ca521c0f6b9",
+    "index_path": "CodexSkills/index.json",
+    "repository": "https://github.com/LinzeColin/AgentDatabase",
+    "skill_instance_count": 100,
+    "unique_slug_count": 84
+  },
+  "floating_main_allowed_for_formal_seal": false,
+  "meta_database": {
+    "commit": "82365b31a6171a4f09ee998c4777cd4e87cf0f70",
+    "repository": "https://github.com/LinzeColin/MetaDatabase",
+    "stock_registry_path": "Signal-Lattice/Stock_Skill/REGISTRY.json",
+    "stock_skill_count": 5
+  },
+  "resolution_policy": [
+    "explicit clean exact checkout",
+    "verified exact Git worktree or offline Git bundle",
+    "public HTTPS exact commit fetch when explicitly allowed"
+  ],
+  "runtime_upstream_write_allowed": false,
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal-lattice.local/schemas/skill_pass_c.schema.json",
+  "title": "Signal Lattice Skill Pass C 收据",
+  "type": "object",
+  "required": ["schema_version", "candidate_version", "pass", "scope", "state", "formal_pass_claimed", "runtime_agent_dependency", "runtime_llm_tokens", "receipt_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "pass": {"const": "C"},
+    "scope": {"const": "FROZEN_FINAL"},
+    "state": {"enum": ["PASS", "BLOCKED_NOT_READY"]},
+    "formal_pass_claimed": {"type": "boolean"},
+    "runtime_agent_dependency": {"const": 0},
+    "runtime_llm_tokens": {"const": 0},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

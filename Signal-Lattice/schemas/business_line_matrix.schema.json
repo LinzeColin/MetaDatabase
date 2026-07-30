@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "type":"object",
+  "required":["scope","updated_at","lines","runtime_agent_dependency","runtime_model_mode","runtime_token_budget"],
+  "properties":{
+    "scope":{"enum":["TARGET_ENVIRONMENT","PREBUILD_CONTRACT_FIXTURE_NOT_LIVE_STATUS_PROOF"]},
+    "updated_at":{"type":"string","format":"date-time"},
+    "runtime_agent_dependency":{"const":0},
+    "runtime_model_mode":{"const":"DISABLED"},
+    "runtime_token_budget":{"const":0},
+    "lines":{"type":"array","minItems":13,"maxItems":13,"items":{"type":"object","required":["line_id","stage","runtime_state","cells"],"properties":{"line_id":{"pattern":"^BL(0[0-9]|1[0-2])$"},"cells":{"type":"array","minItems":9,"maxItems":9}}}}
+  }
+}

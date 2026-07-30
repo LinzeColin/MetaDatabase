@@ -1,0 +1,24 @@
+{
+  "checks": {
+    "all_gates_still_no_live_action": true,
+    "cost_can_erase_edge": true,
+    "drawdown_detected": true,
+    "dsr_penalizes_trials": true,
+    "future_ingest_excluded": true,
+    "high_win_negative_expectancy": true,
+    "known_record_included": true,
+    "missing_gates_no_action": true,
+    "pbo_overfit_fixture": true
+  },
+  "limitations": [
+    "合法 Point-in-time 市场数据、Provider 许可、市场状态和持有期校准属于部署启用门。"
+  ],
+  "live_action_enabled": false,
+  "live_market_edge_proven": false,
+  "receipt_sha256": "172a28c6769eca2022862a0e45feb5ba750d972613cc1b0f9d7027e641dacadd",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_token_budget": 0,
+  "schema_version": "1.0.0",
+  "scope": "TASKPACK_ALGORITHM_AND_FAIL_CLOSED_BEHAVIOR_ONLY",
+  "state": "PASS"
+}

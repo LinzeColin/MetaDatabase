@@ -1,0 +1,1 @@
+在运行期零 Agent、零模型 Token、禁止上游写回、禁止自动交易和 macOS 零常驻的约束下，完成 Signal Lattice 的目标仓兼容、OVH 部署、恢复回滚与 Status 首尾闭环，使动态股票研究稳定输出可追溯的 Action Packet 或强制 NO_ACTION。

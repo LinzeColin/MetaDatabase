@@ -109,6 +109,8 @@ const SESSION_EXPIRED_ERRCODE = -14;
 const RETRY_DELAY_MS = 2_000;
 const BACKOFF_DELAY_MS = 30_000;
 const MAX_CONSECUTIVE_FAILURES = 3;
+// 一条主动消息最多重排几次。见 requeueSystemMessage：无限重排会让一个号哑掉。
+const SYSTEM_MESSAGE_MAX_ATTEMPTS = 5;
 const MAX_INBOUND_STICKER_IMAGE_BATCH = 10;
 const INBOUND_IMAGE_BATCH_IDLE_MS = 1_500;
 // 公开入口的限流。/join 没有鉴权（刻意的），但每次出码都会真的打一次 iLink，
@@ -437,7 +439,11 @@ class CyberbossApp {
         ),
       });
       // 语气设置。放在 multiUser 判断之外：单人跑的时候也该能调语气。
-      this.personaStore = new PersonaStore({ database: this.runtimeSpoolDatabase });
+      this.personaStore = new PersonaStore({
+        database: this.runtimeSpoolDatabase,
+        // 取函数不取值：库刚开，ownerUserId 这一刻可能还没 backfill 完。
+        ownerUserId: () => this.ownerUserId(),
+      });
       // The v0.0.0.8 admission anchor. It is built here because this is the one
       // place where the runtime database is open and both owner-only keys are
       // still live; they are zeroed in the finally below.
@@ -455,6 +461,8 @@ class CyberbossApp {
         });
         this.userCompanionTurn = new UserCompanionTurn({
           database: this.runtimeSpoolDatabase.database,
+          // 少了这一行，「别再问我」写进去的还是那张没人读的表。
+          personaStore: this.personaStore,
         });
         this.backupRunner = new BackupRunner({
           databasePath: this.config.runtimeDatabasePath,
@@ -1168,6 +1176,7 @@ class CyberbossApp {
       adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
       personalSiteLogin: (token) => this.personalSiteLogin(token),
       personalSiteData: (cookieHeader) => this.personalSiteData(cookieHeader),
+      personalSiteSettings: (cookieHeader, patch) => this.personalSiteSettings(cookieHeader, patch),
       adminSessionRevoke: (cookieHeader) => this.revokeAdminSession(cookieHeader),
       ownerActivationStart: () => this.startOwnerActivation(),
       ownerActivationPoll: (qrcode) => this.pollOwnerActivation(qrcode),
@@ -1768,7 +1777,46 @@ class CyberbossApp {
       media: Object.freeze(items("media")),
       memories: Object.freeze(this.listMemoriesFor(id)),
       reminders: Object.freeze(this.listOwnReminders(id)),
+      // 他自己的设置。页面上那个「主动找我」开关要显示当前状态，不能每次打开
+      // 都是个不知道开没开的方块。
+      settings: this.readPersonSettings(id),
     });
+  }
+
+  // 这个人自己的设置。现在只有「主动找我」，加别的项时往这里塞。
+  readPersonSettings(userId) {
+    const empty = Object.freeze({ proactive: null });
+    const id = String(userId || "").trim();
+    if (!id || !this.personaStore) {
+      return empty;
+    }
+    try {
+      return Object.freeze({ proactive: this.personaStore.readFor(id).proactive });
+    } catch {
+      return empty;
+    }
+  }
+
+  // 「主页」上改自己的设置。和 personalSiteData 一样，**身份只从 cookie 解**，
+  // 入参里没有任何能指定改谁的东西。
+  personalSiteSettings(cookieHeader, patch = {}) {
+    const sessions = this.adminSessions();
+    const token = parseSessionCookie(cookieHeader);
+    if (!sessions || !token || !this.personaStore) {
+      return Object.freeze({ ok: false });
+    }
+    try {
+      const session = sessions.verify({ token, requireCsrf: false });
+      if (!session?.userId) {
+        return Object.freeze({ ok: false });
+      }
+      // 只认 proactive 这一块。整份 persona 不从这里进——语气是主人定的默认，
+      // 这一页改不了它。
+      this.personaStore.setProactiveFor(session.userId, patch?.proactive || {});
+      return Object.freeze({ ok: true, settings: this.readPersonSettings(session.userId) });
+    } catch {
+      return Object.freeze({ ok: false });
+    }
   }
 
   // 日记。后台那一栏读的就是这些文件。
@@ -2246,9 +2294,9 @@ class CyberbossApp {
 
   // 走 admission 直接回掉的那些（入门引导、状态、口令）也不经过 outbox。
   // 落库一份给「对话」栏；内存那份保留，作为数据库不可用时的降级显示。
-  noteDirectReply(userId, text, { delivered = true, errorClass = "" } = {}) {
+  noteDirectReply(userId, text, { delivered = true, errorClass = "", kind = "onboarding" } = {}) {
     const persisted = this.noteBotInitiated({
-      kind: "onboarding", senderId: userId, text, delivered, errorClass,
+      kind, senderId: userId, text, delivered, errorClass,
     });
     // 只有落库失败时才退回内存那一份。两份都留会让同一句话在面板上出现两次——
     // 一次挂在来信下面，一次作为独立卡片。
@@ -3023,7 +3071,9 @@ class CyberbossApp {
   // 只在选了具体某个人时才查——「全部人」那个视图上列所有人的待办没有意义，
   // 而且会把一屏撑爆。
   buildPersonDetail(senderId) {
-    const empty = { memories: [], todos: [], events: [], media: [] };
+    const empty = {
+      memories: [], todos: [], events: [], media: [], reminders: [], settings: { proactive: null },
+    };
     const who = String(senderId || "").trim();
     if (!who || !this.runtimeSpoolDatabase) {
       return empty;
@@ -3070,6 +3120,20 @@ class CyberbossApp {
       todos: Object.freeze(items("todo")),
       events: Object.freeze(items("event")),
       media: Object.freeze(items("media")),
+      // 提醒和他自己的设置。主人要的是「在后台看到所有人的个人页面还有个人信息
+      // 设置」——少这两样，后台看到的就不是他那一页，是他那一页的一部分。
+      //
+      // 这两个函数（这个和 buildPersonalSite）是同一份数据的两个出口，已经因为
+      // 一边加了字段另一边没加而错过一次（media 的 note）。parity 有测试钉着，
+      // 往任何一边加字段都要同时加到另一边。
+      // 这两样取不到就给空的，别让整个「点开一个人」的接口 500。后台是排查工具，
+      // 它自己挂掉的时候恰恰是最需要它的时候。
+      reminders: Object.freeze(
+        typeof this.listOwnReminders === "function" ? this.listOwnReminders(userId) : [],
+      ),
+      settings: typeof this.readPersonSettings === "function"
+        ? this.readPersonSettings(userId)
+        : { proactive: null },
     };
   }
 
@@ -3486,7 +3550,18 @@ class CyberbossApp {
       );
       return null;
     }
-    if (decision.route !== "owner") {
+    // 访客的 UserContext 也要带出去，不能只认主人。
+    //
+    // 这里返回 null 的话，dispatchPreparedTurn 那边
+    // `turnContext = prepared?.userContext || this.activeUserContext || null`
+    // 拿到的是空的，第一个判断 `!turnContext` 直接成立，于是这个人收到一句
+    // 「这个操作只有管理员可以使用」——他问什么都一样。
+    //
+    // 以前这样写没出事，是因为访客根本不会走到 job 队列（上面
+    // admissionHandledBeforeJob 就把他们分流去 runUserModelTurn 了）。2026-07-30
+    // 加「前 N 个席位走主人的 Codex」之后，席位内的访客**开始走这条路**，而这里
+    // 还停在只认主人——于是前 5 个人一句话都发不出去。这是那次改动直接造成的。
+    if (decision.route !== "owner" && decision.route !== "user") {
       return null;
     }
     if (decision.ownerClaimed) {
@@ -3754,13 +3829,59 @@ class CyberbossApp {
       errorClass = /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(code) ? code : "send_failed";
       // 以前这里是 .catch(() => {})，发失败一声不吭，面板上还记成"已发出"。
       // 一条没送到的入门回复 = 这个人以为机器人是坏的。必须看得见。
+      // 把微信真正回的那串也打出来。
+      //
+      // errorClass 只有 "WEIXIN_PROVIDER_ERROR" 这么一个笼统的分类，而
+      // error.message 里是 `sendMessage ret=… errcode=… errmsg=…`——微信自己说的
+      // 原因，而且 errmsg 已经过 redactSensitiveText。只打分类的后果是：出问题时
+      // 只能靠猜（我就先后猜过"字数太长""token 过期"，两个都不对），真正的码就
+      // 在手里却被丢掉了。
       console.error(
-        `[cyberboss] 入门回复没发出去 account=${normalized.accountId} 原因=${errorClass}`,
+        `[cyberboss] 入门回复没发出去 account=${normalized.accountId} 原因=${errorClass}`
+        + ` 详情=${String(error?.message || "").slice(0, 300)}`,
       );
     }
     // 这条不走 outbox，数据库里查不到，所以在这里留一份给后台「对话」栏——
     // 而且要照实记成功还是失败。
-    this.noteDirectReply(normalized.senderId, text, { delivered, errorClass });
+    // 主动问候要记成 checkin，不能跟入门引导混在一起。
+    //
+    // noteDirectReply 一直把 kind 写死成 "onboarding"（它原本只服务入门/口令的
+    // 直回）。访客的主动问候也走这里，于是后台看到的是「入门引导 +1」，而
+    // 「它主动找的」那一栏永远是 0——排查「他到底收到没有」时，这一列是唯一的
+    // 依据，它指错了地方就等于没有依据。
+    this.noteDirectReply(normalized.senderId, text, {
+      delivered,
+      errorClass,
+      kind: normalized.provider === "system" ? "checkin" : "onboarding",
+    });
+
+    // 主动问候没送到就先存着，等他下次说话再补上。
+    //
+    // 微信这条通道上，"主动找一个很久没说话的人"是**做不到**的：能不能发出去
+    // 取决于手里有没有一张还没用掉的 context_token，而这张票只在对方发消息时
+    // 刷新。主人一直在跟它聊，所以他的票永远是新的；一个安静了一天的人，票早
+    // 就用完了，怎么发都失败（WEIXIN_PROVIDER_ERROR）。
+    //
+    // 直接丢掉的话，这个人就永远等不到——主动找他这件事对他从来没发生过。
+    // 存起来，他下次随便说一句，问候就先到。这是这条通道上能做到的最好结果。
+    // 主人自己那条路早就这么干了（onDeferredSystemReply），访客这条路一直没接。
+    if (!delivered && normalized.provider === "system") {
+      try {
+        this.deferSystemReply({
+          userId: normalized.senderId,
+          accountId: normalized.accountId,
+          text,
+          error: errorClass,
+          kind: "checkin",
+        });
+        console.warn(
+          `[cyberboss] 主动问候改成等他下次说话再补发 to=${String(normalized.senderId).slice(0, 10)}…`
+          + ` 原因=${errorClass}`,
+        );
+      } catch {
+        // 存不下就算了，不能反过来把这一轮搞挂。
+      }
+    }
   }
 
   // The ordinary-user lane. It never touches the Owner runtime adapter, the
@@ -3873,10 +3994,15 @@ class CyberbossApp {
     }).catch(() => {});
   }
 
-  deferSystemReply({ threadId = "", userId = "", text = "", error = null, kind = "plain_reply" }) {
+  deferSystemReply({ threadId = "", userId = "", text = "", error = null, kind = "plain_reply", accountId = "" }) {
     return this.deferredSystemReplyQueue.enqueue({
       id: `${normalizeCommandArgument(threadId) || "system"}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-      accountId: this.activeAccountId || this.channelAdapter.resolveAccount().accountId,
+      // 这条是哪个号的就存哪个号。写死主号的话，取的那一侧
+      // （drainForSender(normalized.accountId, senderId)）永远找不到它——
+      // 和系统消息队列踩过的是同一个坑：多号加进来了，某一处还停在单号。
+      accountId: normalizeText(accountId)
+        || this.activeAccountId
+        || this.channelAdapter.resolveAccount().accountId,
       senderId: userId,
       threadId,
       text,
@@ -4638,11 +4764,33 @@ class CyberbossApp {
         }
         const dispatched = await this.dispatchSystemMessage(message);
         if (!dispatched) {
-          this.systemMessageDispatcher.requeue(message);
+          this.requeueSystemMessage(message);
         }
       } catch {
-        this.systemMessageDispatcher?.requeue(message);
+        this.requeueSystemMessage(message);
       }
+    }
+  }
+
+  // 重排一条投不出去的系统消息，但**有上限**。
+  //
+  // 无限重排看起来最安全，实际最危险：一条永远投不出去的消息会让
+  // hasPendingForAccount 对它那个号永远为真，轮询器于是每一轮都跳过那个号下面
+  // 的所有人。那个号从此彻底静默，而且没有任何东西会报错——你只会发现"它只找
+  // 我一个人"，然后查一整天。丢掉一条主动打招呼的代价，远小于让一个号哑掉。
+  requeueSystemMessage(message) {
+    const attempts = Number(message?.attempts || 0) + 1;
+    if (attempts >= SYSTEM_MESSAGE_MAX_ATTEMPTS) {
+      console.warn(
+        `[cyberboss] system message dropped after ${attempts} attempts`
+        + ` account=${message?.accountId} to=${String(message?.senderId || "").slice(0, 10)}…`,
+      );
+      return;
+    }
+    try {
+      this.systemMessageDispatcher?.requeue({ ...message, attempts });
+    } catch {
+      // 重排都失败就让它掉地上，不能反过来把这一轮也搞挂。
     }
   }
 
@@ -4674,11 +4822,32 @@ class CyberbossApp {
       senderId,
       accountId: message.accountId,
       contextToken: this.channelAdapter.getKnownContextTokens()[senderId] || "",
-      text: String(message.text || ""),
+      // 给模型的是**带指令的**那一段，不是那句光秃秃的内部触发语。
+      //
+      // 原来这里直接把 "Linz comes to mind again." 丢给模型：一句没头没尾的英文，
+      // 而且 %USER% 填的是**主人**的名字（buildCheckinTrigger 读的是 config 里
+      // 主人那一份），访客那边看到的是一个跟他无关的人名。模型于是写出一篇
+      // 527 字的长文——主人自己那条路的回复只有 13~31 字，因为它带着
+      // 「one short natural WeChat message」这句指令。
+      //
+      // 长文的代价不是啰嗦，是**发不出去**：长文会被切成多片，而微信的
+      // context_token 只允许有限次回复，片数一超就整条失败（
+      // WEIXIN_PROVIDER_ERROR）。2026-07-30 06:36 那条就是这么挂的，同一个人
+      // 同一个号，400 字那条发得出去，527 字这条发不出去。
+      text: buildGuestCheckinPrompt(),
       provider: "system",
     };
     if (!normalized.contextToken) {
       // 投不出去就别唤醒模型：花了额度，消息还是发不到他手上。
+      //
+      // 但必须**说一声**。原来这里是一句 return true，静悄悄把消息丢掉——
+      // 2026-07-30 就是这样：一个人的号被换掉了（旧号的 .json 没了，只剩一个
+      // 孤零零的 context-tokens 文件），他的 token 从此加载不到，每一条主动
+      // 消息都在这里无声无息地消失。日志里一个字都没有，只能看出"他就是收不到"。
+      console.warn(
+        `[cyberboss] checkin dropped no_context_token account=${message.accountId}`
+        + ` to=${senderId.slice(0, 10)}…（这个人的号可能被换过，等他再发一条消息就会恢复）`,
+      );
       return true;
     }
     try {
@@ -5977,6 +6146,21 @@ function buildMediaNote(item) {
 //
 // 判不出来一律当「没席位」。测试里的桩对象常常没有这个方法，而那种时候正确的
 // 答案是不放行，不是崩掉、也不是默认放行。
+// 访客的主动问候，给模型的那段指令。
+//
+// 必须短。这不是风格偏好：微信的 context_token 只允许有限次回复，长文被切成
+// 多片之后片数一超，整条就发不出去（WEIXIN_PROVIDER_ERROR）。主人那条路一直
+// 是短的，因为 buildSystemInboundText 里写着 one short natural WeChat message；
+// 访客这条路以前什么都没写，模型就按聊天正常发挥，写出 500 多字。
+function buildGuestCheckinPrompt() {
+  return [
+    "（系统内部触发，不是对方发来的消息。）",
+    "现在主动找他说一句话，就像想起他随口问一句。",
+    "只说一句，最多 30 字。不要开场白，不要解释你在做什么，不要提到「系统」或「触发」。",
+    "如果实在没什么可说的，就回一个字：略",
+  ].join("\n");
+}
+
 function hasOwnerSeat(app, userId) {
   if (!app || typeof app.ownerSeatAvailableFor !== "function") {
     return false;
