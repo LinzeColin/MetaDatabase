@@ -496,6 +496,8 @@ def _audit_imports(
         "source_independence",
         "market_consensus",
         "generic_residual",
+        "tennis_model",
+        "combat_model",
         "outlier_detector",
         "line_movement",
     }

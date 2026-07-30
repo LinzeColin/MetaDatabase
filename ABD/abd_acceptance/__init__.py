@@ -276,6 +276,15 @@ from .generic_residual import (
     verify_existing_phase_evidence as verify_generic_residual_evidence,
     write_phase_evidence as write_generic_residual_phase_evidence,
 )
+from .tennis_combat_models import (
+    TennisCombatAcceptanceError,
+    build_evidence as build_tennis_combat_models_evidence,
+    evaluate_contract as evaluate_tennis_combat_models_contract,
+    perform_rollback_drill as perform_tennis_combat_models_rollback_drill,
+    validate_candidate_preflight as validate_tennis_combat_models_candidate,
+    verify_existing_phase_evidence as verify_tennis_combat_models_evidence,
+    write_phase_evidence as write_tennis_combat_models_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -493,4 +502,11 @@ __all__ = [
     "validate_generic_residual_candidate",
     "verify_generic_residual_evidence",
     "write_generic_residual_phase_evidence",
+    "TennisCombatAcceptanceError",
+    "build_tennis_combat_models_evidence",
+    "evaluate_tennis_combat_models_contract",
+    "perform_tennis_combat_models_rollback_drill",
+    "validate_tennis_combat_models_candidate",
+    "verify_tennis_combat_models_evidence",
+    "write_tennis_combat_models_phase_evidence",
 ]
