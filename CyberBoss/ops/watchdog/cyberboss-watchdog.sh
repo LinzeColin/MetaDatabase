@@ -76,10 +76,20 @@ fi
 # 还攥着旧连接。看门狗那时看到 200 就什么都不做，等边缘超时才变 530，于是又是
 # 一次"没人知道的静默中断"。状态判据补上这个空窗。
 for unit in "$SERVICE" "$TUNNEL"; do
-  if systemctl is-enabled --quiet "$unit" 2>/dev/null && ! systemctl is-active --quiet "$unit"; then
-    echo "[watchdog] $unit 该开着却没开，拉起来"
-    systemctl start "$unit" || true
-  fi
+  systemctl is-enabled --quiet "$unit" 2>/dev/null || continue
+  state="$(systemctl is-active "$unit" 2>/dev/null)"
+  # 只在**确定停着**的时候动手。
+  #
+  # activating / deactivating 是正在换版本的中间态：这个服务启动本来就慢（notify
+  # 那一跳能拖几分钟）。原来写的是"不是 active 就拉起来"，于是部署重启到一半时
+  # 看门狗会再踹一脚，两个 start 叠在一起——今天版本反复横跳、同时跑着两个部署，
+  # 这是其中一个推手。看门狗不该和部署打架。
+  case "$state" in
+    inactive|failed) ;;
+    *) continue ;;
+  esac
+  echo "[watchdog] $unit 该开着却没开（state=$state），拉起来"
+  systemctl start "$unit" || true
 done
 
 # ── 公网入口 ────────────────────────────────────────────

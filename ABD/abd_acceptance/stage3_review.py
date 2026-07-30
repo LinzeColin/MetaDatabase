@@ -22,6 +22,7 @@ from .advice_card import (
     verify_existing_phase_evidence as verify_p02,
 )
 from .canonical_facts import sha256_file, strict_json_load
+from .legacy_receipt_compatibility import approved_successor_sha256
 from .reason_next_action import (
     evaluate_contract as evaluate_p03,
     render_failure_guidance,
@@ -63,13 +64,15 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "f512fe73d9d1a6fb2bce35ee208d9cd5d8454c8224ec9e464db8df6622294acf"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "26666b848208bd12276e3a7f7ec617bee27d2e119f54a5fde5c92e250f04bd56"
 STAGE_REVIEW_COMMIT = "4168321dee17540bdba5763271694f78b33e3c42"
 PINNED_STAGE_REVIEW_CODE_HASH = "18431889da80b66a6f6c35375859793bee2d811ce14228cec80f69f880902b93"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "tests/S03/stage_review_test.py",
     "abd_acceptance/stage3_review.py",
+    "abd_acceptance/terminology_governance.py",
     "abd_acceptance/usability_accessibility.py",
     "abd_acceptance/reason_next_action.py",
     "abd_acceptance/advice_card.py",
@@ -79,10 +82,10 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "tests/S03/stage_review_test.py": "4a140a8848b2990873c1e568588336d05d24311ce966ed3ed627ac9d7c3e4b5d",
-    "abd_acceptance/usability_accessibility.py": "fbaa1aabec2774749e3120e1f6ca92ba20fe430c3b643e12f50e40faa23652e0",
-    "abd_acceptance/reason_next_action.py": "b23df4d396671534b1db69e78495aa1f081b8049e623e4a2a6a5790e9bb38842",
-    "abd_acceptance/advice_card.py": "b080d000d0793e78aa271dbe067ad57677c53828013797bc96046fcab9ba2aa7",
-    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
+    "abd_acceptance/usability_accessibility.py": "ad4c531415aeb0717800467dff53866751ea93e89dd057661b09dc58033db1c6",
+    "abd_acceptance/reason_next_action.py": "56c57312b219fac3221c35d95f87d2cca30a2700f617e790c92a06d99138524d",
+    "abd_acceptance/advice_card.py": "17a505bc3ad9c97bbb959846509974200a6af7dbf5280708a0c14391accd9ce1",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
@@ -91,7 +94,7 @@ PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     FIXTURE_PATH.as_posix(): "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
     TEST_PATH.as_posix(): "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
 }
-WORKFLOW_SHA256 = "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+WORKFLOW_SHA256 = "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
@@ -187,7 +190,7 @@ def _historical_file_matches(
         if not _stage_review_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (STAGE_REVIEW_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (STAGE_REVIEW_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -197,8 +200,9 @@ def _historical_file_matches(
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    evolved = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+    evolved = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return evolved is not None and candidate.is_file() and sha256_file(candidate) == evolved
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:

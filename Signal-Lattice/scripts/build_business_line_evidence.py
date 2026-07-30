@@ -12,6 +12,12 @@ def main()->int:
   for line in m['lines']:
    for cell in line['cells']:
     pth=a.evidence_root/f"{line['line_id']}-{cell['slice_id']}.json"
-    if pth.is_file():cell.update({'state':'PASS','measured':True,'evidence_ref':pth.as_posix(),'freshness':'CURRENT','blocker':None,'next_action':'MONITOR'})
+    if pth.is_file():
+     try:
+      evidence=json.loads(pth.read_text())
+      observed_state=str(evidence.get('state','UNKNOWN'))
+     except Exception:
+      observed_state='UNKNOWN'
+     cell.update({'state':observed_state,'measured':True,'evidence_ref':pth.as_posix(),'freshness':'CURRENT','blocker':None if observed_state=='PASS' else 'DEGRADED_EVIDENCE','next_action':'MONITOR' if observed_state=='PASS' else 'RESTORE_MISSING_INPUTS'})
  result=reconcile(m,target=a.target);m['reconciliation']=result;a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(m,ensure_ascii=False,indent=2,sort_keys=True)+'\n');print(json.dumps(result,ensure_ascii=False,sort_keys=True));return 0 if (not a.target or result['state']=='PASS') else 2
 if __name__=='__main__':raise SystemExit(main())

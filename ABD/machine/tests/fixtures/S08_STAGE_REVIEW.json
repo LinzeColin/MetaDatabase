@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S08-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S08",
+  "review_id": "ABD-S08-WHOLE-STAGE-REVIEW",
+  "stage_id": "S08",
+  "product_version": "0.0.0.1",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "minimum_targeted_pytest_cases": 35,
+  "minimum_signed_state_pytest_cases": 130,
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_phase_evidence_sha256": {
+    "P01": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13",
+    "P02": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c",
+    "P03": "b5e92c155f25f7b505f4129a4599af7425c117eda7a6828cbcbd7443a7ff367b",
+    "P04": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "539c611a6c339f123215cfb0f3553298ed99e453185df46d2dca06b2906f7cca",
+    "P02": "0f3fda590cce2a1120bbd258a0892c57a13b4eec1a97dd3860f29947f7093b4b",
+    "P03": "163ef2accf53a280969aff21053749a297ad5ac0cc1db001ff9c4d3758e3c15d",
+    "P04": "133a97c9fdb9ace9ec084d88f92b82dd73ed930d1d31bae8be0e45dc3da814a7"
+  },
+  "pre_review_receipt_sha256": {
+    "P01": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+    "P02": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d",
+    "P03": "6d70ea3d8960da3af41d7156d6400335de65b822d83531e15565010d637cf9f5",
+    "P04": "a93e4be417428195a7b656ef7ab49a452dff2ec27464798ba065abaf1ec4acaa"
+  },
+  "expected_next": "S08/GITHUB_STAGE_UPLOAD_READY",
+  "expected_release_status": "S08_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_findings_summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
+  "repository_ci_contract": {
+    "fast_workflow_path": ".github/workflows/abd-stage0-validation.yml",
+    "fast_workflow_sha256": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
+    "fast_gate_timeout_minutes": 15,
+    "targeted_test_nodes": [
+      "tests/S00/stage_review_test.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports",
+      "tests/S00/stage_review_test.py::test_abd_ci_workflow_mutations_fail_closed",
+      "tests/S00/stage_review_test.py::test_abd_fast_targeted_workflow_mutations_fail_closed",
+      "tests/S08/stage_review_test.py"
+    ],
+    "full_regression_or_real_time_soak_allowed": false,
+    "real_time_soak_waited": false
+  },
+  "legacy_receipt_compatibility": {
+    "manifest_path": "machine/facts/s08_legacy_receipt_compatibility.json",
+    "manifest_sha256": "52077ad654b9a362f19d25051cf18bcd6fe77d5b993638913ad6fe884dca5324",
+    "helper_path": "abd_acceptance/legacy_receipt_compatibility.py",
+    "helper_sha256": "cd521a16aa487c87618b5762c83e99ef3a2f97799c7de3fcabdab891a9b34dc5",
+    "contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"]
+  },
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {
+        "probability_sum_within_tolerance": true,
+        "replicated_sources_do_not_change_consensus": true,
+        "single_long_odds_blocked": true,
+        "fresh_confirmed_line_only": true,
+        "stale_or_desynchronized_blocks": true,
+        "signed_receipts_current": true,
+        "portable_evidence": true,
+        "findings_open": 0
+      },
+      "expected": {"status": "S08_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "PROBABILITY_SUM_GATE_FAIL",
+      "snapshot": {"probability_sum_within_tolerance": false, "replicated_sources_do_not_change_consensus": true, "single_long_odds_blocked": true, "fresh_confirmed_line_only": true, "stale_or_desynchronized_blocks": true, "signed_receipts_current": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S08_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["PROBABILITY_SUM_GATE_FAILED"]}
+    },
+    {
+      "case_id": "SOURCE_INDEPENDENCE_GATE_FAIL",
+      "snapshot": {"probability_sum_within_tolerance": true, "replicated_sources_do_not_change_consensus": false, "single_long_odds_blocked": true, "fresh_confirmed_line_only": true, "stale_or_desynchronized_blocks": true, "signed_receipts_current": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S08_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["SOURCE_INDEPENDENCE_GATE_FAILED"]}
+    },
+    {
+      "case_id": "OUTLIER_GATE_FAIL",
+      "snapshot": {"probability_sum_within_tolerance": true, "replicated_sources_do_not_change_consensus": true, "single_long_odds_blocked": false, "fresh_confirmed_line_only": true, "stale_or_desynchronized_blocks": true, "signed_receipts_current": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S08_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["SINGLE_LONG_ODDS_NOT_BLOCKED"]}
+    },
+    {
+      "case_id": "FRESHNESS_GATE_FAIL",
+      "snapshot": {"probability_sum_within_tolerance": true, "replicated_sources_do_not_change_consensus": true, "single_long_odds_blocked": true, "fresh_confirmed_line_only": false, "stale_or_desynchronized_blocks": false, "signed_receipts_current": true, "portable_evidence": true, "findings_open": 0},
+      "expected": {"status": "S08_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["UNCONFIRMED_OR_UNFRESH_LINE_ALLOWED", "STALE_OR_DESYNCHRONIZED_QUOTE_ALLOWED"]}
+    },
+    {
+      "case_id": "EVIDENCE_PORTABILITY_FAIL",
+      "snapshot": {"probability_sum_within_tolerance": true, "replicated_sources_do_not_change_consensus": true, "single_long_odds_blocked": true, "fresh_confirmed_line_only": true, "stale_or_desynchronized_blocks": true, "signed_receipts_current": false, "portable_evidence": false, "findings_open": 0},
+      "expected": {"status": "S08_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["SIGNED_RECEIPT_NOT_CURRENT", "EVIDENCE_NOT_PORTABLE"]}
+    },
+    {
+      "case_id": "OPEN_FINDING_FAIL",
+      "snapshot": {"probability_sum_within_tolerance": true, "replicated_sources_do_not_change_consensus": true, "single_long_odds_blocked": true, "fresh_confirmed_line_only": true, "stale_or_desynchronized_blocks": true, "signed_receipts_current": true, "portable_evidence": true, "findings_open": 1},
+      "expected": {"status": "S08_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["OPEN_REVIEW_FINDINGS"]}
+    }
+  ]
+}

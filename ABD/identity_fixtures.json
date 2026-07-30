@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S07-P01-02",
+  "fixture_id": "ABD-IDENTITY-FIXTURES-S07-P01",
+  "requirement_id": "REQ-S07-P01",
+  "acceptance_contract_id": "AC-S07-P01",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "claim_boundary": {
+    "actual_provider_or_market_observed": false,
+    "recommendation_or_order_enabled": false,
+    "financial_return_verified_or_guaranteed": false,
+    "real_time_soak_required": false
+  },
+  "cases": [
+    {
+      "case_id": "POSITIVE_AUTHORITATIVE_REFERENCE",
+      "observation": {
+        "source_id": "SYNTHETIC-TAB",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "source_event_ref": "SYN-EVT-0001",
+        "sport_id": "SPORT:football",
+        "competition_id": "COMPETITION:football.fixture-cup",
+        "home_alias": "  AURORA  CITY ",
+        "away_alias": "Borealis United",
+        "start_time": "2026-08-15T19:30:00+10:00",
+        "source_timezone": "Australia/Sydney",
+        "market_code": "HEAD_TO_HEAD",
+        "period_id": "FULL_EVENT",
+        "line": {
+          "representation": "NO_LINE_APPLICABLE"
+        },
+        "selection_alias": "Aurora City"
+      },
+      "expected": {
+        "status": "IDENTITY_RESOLVED",
+        "identity_confidence": "1.0000",
+        "identity_eligible": true,
+        "selection_id": "HOME"
+      }
+    },
+    {
+      "case_id": "POSITIVE_CROSS_SOURCE_MINIMUM_THRESHOLD",
+      "observation": {
+        "source_id": "SYNTHETIC-ALT",
+        "source_version_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_payload_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "source_event_ref": "ALT-EVT-UNKNOWN-BUT-COMPOSITE-EXACT",
+        "sport_id": "SPORT:football",
+        "competition_id": "COMPETITION:football.fixture-cup",
+        "home_alias": "Aurora C",
+        "away_alias": "Borealis U",
+        "start_time": "2026-08-15T09:30:00+00:00",
+        "source_timezone": "UTC",
+        "market_code": "TOTAL_GOALS",
+        "period_id": "FULL_EVENT",
+        "line": {
+          "representation": "SCALAR_DECIMAL",
+          "value": "2.500"
+        },
+        "selection_alias": "Over"
+      },
+      "expected": {
+        "status": "IDENTITY_RESOLVED",
+        "identity_confidence": "0.9950",
+        "identity_eligible": true,
+        "selection_id": "OVER"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_START_TIME_ONE_SECOND_DRIFT",
+      "observation": {
+        "source_id": "SYNTHETIC-ALT",
+        "source_version_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_payload_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "source_event_ref": "ALT-EVT-TIME-DRIFT",
+        "sport_id": "SPORT:football",
+        "competition_id": "COMPETITION:football.fixture-cup",
+        "home_alias": "Aurora C",
+        "away_alias": "Borealis U",
+        "start_time": "2026-08-15T09:30:01+00:00",
+        "source_timezone": "UTC",
+        "market_code": "TOTAL_GOALS",
+        "period_id": "FULL_EVENT",
+        "line": {
+          "representation": "SCALAR_DECIMAL",
+          "value": "2.5"
+        },
+        "selection_alias": "Over"
+      },
+      "expected": {
+        "status": "NO_ADVICE",
+        "identity_confidence": "0.9949",
+        "identity_eligible": false,
+        "reason_code": "IDENTITY_CONFIDENCE_BELOW_THRESHOLD"
+      }
+    },
+    {
+      "case_id": "NEGATIVE_UNKNOWN_ALIAS",
+      "observation": {
+        "source_id": "SYNTHETIC-TAB",
+        "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_payload_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "source_event_ref": "SYN-EVT-0001",
+        "sport_id": "SPORT:football",
+        "competition_id": "COMPETITION:football.fixture-cup",
+        "home_alias": "Unbound Team",
+        "away_alias": "Borealis United",
+        "start_time": "2026-08-15T19:30:00+10:00",
+        "source_timezone": "Australia/Sydney",
+        "market_code": "HEAD_TO_HEAD",
+        "period_id": "FULL_EVENT",
+        "line": {
+          "representation": "NO_LINE_APPLICABLE"
+        },
+        "selection_alias": "Aurora City"
+      },
+      "expected": {
+        "status": "NO_ADVICE",
+        "reason_code": "EVENT_NOT_UNIQUELY_IDENTIFIED"
+      }
+    }
+  ]
+}

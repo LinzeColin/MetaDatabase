@@ -40,6 +40,14 @@ REPO_WORKFLOW_PATHS = {
     ".github/workflows/dual-plane.yml": "fbd5e537a3907573c1b755029aa33e6382260d4227770ea89ad46a9e0f03c6d7",
     ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
 }
+# S00's signed delivery predates two repository-controlled governance additions
+# and the user-directed fast targeted CI policy.  A current checkout may use
+# this one exact successor set, but never a per-file or open-ended hash exception.
+SUCCESSOR_REPO_WORKFLOW_PATHS = {
+    ".github/workflows/dual-plane.yml": "46e60871e0360ed66c852a00e78f3edd602766f975aee32bb73e35c3b341575e",
+    ".github/workflows/abd-stage0-validation.yml": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
+}
+ABD_FAST_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 PROJECT_PINNED_PATHS = {
     CONTRACT_PATH.as_posix(): "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30",
     FINDINGS_PATH.as_posix(): "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284",
@@ -144,7 +152,8 @@ def _check_pinned_review_artifacts(
             actual == expected,
             {"expected": expected, "actual": actual},
         )
-    for relative, expected in REPO_WORKFLOW_PATHS.items():
+    actual_workflow_hashes: Dict[str, str] = {}
+    for relative in sorted(set(REPO_WORKFLOW_PATHS) | set(SUCCESSOR_REPO_WORKFLOW_PATHS)):
         path = repo_root / relative
         try:
             actual = sha256_file(path)
@@ -152,12 +161,30 @@ def _check_pinned_review_artifacts(
             _add(checks, "REVIEW-PIN-%s" % Path(relative).stem.upper(), False, str(exc))
             continue
         hashes[relative] = actual
+        actual_workflow_hashes[relative] = actual
+        expected = REPO_WORKFLOW_PATHS.get(relative)
+        successor = SUCCESSOR_REPO_WORKFLOW_PATHS.get(relative)
+        approved = actual == expected or actual == successor
         _add(
             checks,
             "REVIEW-PIN-%s" % Path(relative).stem.upper(),
-            actual == expected,
-            {"expected": expected, "actual": actual},
+            approved,
+            {"historical": expected, "successor": successor, "actual": actual},
         )
+    historical_set_ok = all(
+        actual_workflow_hashes.get(relative) == expected
+        for relative, expected in REPO_WORKFLOW_PATHS.items()
+    )
+    successor_set_ok = all(
+        actual_workflow_hashes.get(relative) == expected
+        for relative, expected in SUCCESSOR_REPO_WORKFLOW_PATHS.items()
+    )
+    _add(
+        checks,
+        "REVIEW-PIN-CI-WORKFLOW-SET",
+        historical_set_ok or successor_set_ok,
+        {"historical_set_ok": historical_set_ok, "successor_set_ok": successor_set_ok},
+    )
 
 
 def _check_contract_shape(
@@ -505,7 +532,7 @@ def _check_workflows(
 ) -> None:
     try:
         dual_text = (repo_root / ".github/workflows/dual-plane.yml").read_text(encoding="utf-8")
-        abd_text = (repo_root / ".github/workflows/abd-stage0-validation.yml").read_text(encoding="utf-8")
+        abd_text = (repo_root / ABD_FAST_WORKFLOW_PATH).read_text(encoding="utf-8")
     except Exception as exc:
         _add(checks, "REVIEW-REPOSITORY-CI-WORKFLOWS", False, "%s: %s" % (type(exc).__name__, exc))
         return
@@ -516,7 +543,7 @@ def _check_workflows(
     # Stage 0 signed the original seven-project governance list. The repository
     # later migrated arxiv-daily-push on main; accept only that exact additive
     # workflow successor while preserving the immutable Stage 0 contract.
-    controlled_successor_projects = {"arxiv-daily-push"}
+    controlled_successor_projects = {"Signal-Lattice", "arxiv-daily-push"}
     registered_block = re.search(r"registered = \{(.*?)\n\s*\}", dual_text, flags=re.DOTALL)
     workflow_registered = sorted(re.findall(r'"([A-Za-z0-9-]+)"', registered_block.group(1))) if registered_block else []
     specialized_block = re.search(r'specialized = \{"([^"]+)":\s*"([^"]+)"\}', dual_text)
@@ -532,7 +559,7 @@ def _check_workflows(
         and integration.get("classification_rule") == "NO_RENDERER_PROJECT_MAY_BE_SILENTLY_SKIPPED"
         and "expected = registered | set(specialized)" in dual_text
         and "if discovered != expected" in dual_text
-        and "Alpha EEI FIFA LinzeDatabase PFI QBVS Serenity-Alipay" in dual_text
+        and "Alpha EEI FIFA LinzeDatabase PFI QBVS Serenity-Alipay Signal-Lattice arxiv-daily-push" in dual_text
         and ".github/workflows/abd-stage0-validation.yml" in dual_text
     )
     _add(
@@ -560,6 +587,12 @@ def _check_workflows(
         command for command in fixture.get("required_workflow_commands", [])
         if command not in abd_text
     ]
+    targeted_nodes = (
+        "tests/S00/stage_review_test.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports",
+        "tests/S00/stage_review_test.py::test_abd_ci_workflow_mutations_fail_closed",
+        "tests/S00/stage_review_test.py::test_abd_fast_targeted_workflow_mutations_fail_closed",
+        "tests/S08/stage_review_test.py",
+    )
     workflow_ok = (
         not missing_commands
         and "runs-on: ubuntu-latest" in abd_text
@@ -568,8 +601,27 @@ def _check_workflows(
         and "pull_request:" in abd_text
         and "REMOTE_CI_PASS" not in abd_text
         and ("$" + "{{ secrets.") not in abd_text
+        and "continue-on-error: true" not in abd_text
+        and "sleep " not in abd_text
+        and "abd-full-regression" not in abd_text
+        and "if: ${{ false }}" not in abd_text
     )
     _add(checks, "REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED", workflow_ok, missing_commands or "all required commands present")
+    fast_targeted_ok = (
+        all(node in abd_text for node in targeted_nodes)
+        and abd_text.count("python -m pytest -q") == 1
+        and re.search(
+            r"python -m pytest -q\s+tests/S00/stage_review_test\.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports\s+tests/S00/stage_review_test\.py::test_abd_ci_workflow_mutations_fail_closed\s+tests/S00/stage_review_test\.py::test_abd_fast_targeted_workflow_mutations_fail_closed\s+tests/S08/stage_review_test\.py",
+            abd_text,
+        )
+        is not None
+    )
+    _add(
+        checks,
+        "REVIEW-ABD-FAST-TARGETED-EXECUTION-CONTRACT",
+        fast_targeted_ok,
+        {"targeted_nodes": list(targeted_nodes), "pytest_invocations": abd_text.count("python -m pytest -q")},
+    )
 
 
 def _iter_text_files(root: Path) -> Iterable[Path]:

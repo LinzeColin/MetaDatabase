@@ -1,18 +1,22 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "signal-lattice",
-  "version": "0.0.0.1.39",
+  "version": "0.0.0.1.40",
   "domain": "signal-lattice.linzezhang.com",
+  "public_url": "https://signal-lattice.linzezhang.com",
   "status_url": "https://status.linzezhang.com",
   "runtime_mode": "DETERMINISTIC_ONLY",
   "model_mode": "DISABLED",
   "runtime_token_budget": 0,
   "automatic_trading": false,
   "upstream_writeback": false,
+  "recommendation_mode": "RESEARCH_AND_NO_ACTION",
   "live_action_enabled": false,
+  "human_decision_support_enabled": false,
   "default_degraded_mode": "RESEARCH_AND_NO_ACTION",
   "worker_concurrency": 1,
   "memory_limit_mb": 1024,
   "request_timeout_seconds": 120,
-  "disk_soft_limit_mb": 2048
+  "disk_soft_limit_mb": 2048,
+  "decision_policy": "config/decision_policy.json"
 }

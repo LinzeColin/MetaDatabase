@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="61" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S07.P02_test" name="test_candidate_preflight_and_contract_pass_without_generated_reports" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_taskpack_scope_trace_and_zero_tolerance_are_exact" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_phase_artifact_hash_matches_pin[leakage_oracle.py]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_phase_artifact_hash_matches_pin[machine/tests/fixtures/S07_P02.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_phase_artifact_hash_matches_pin[temporal_lineage.schema.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_phase_artifact_hash_matches_pin[tests/S07/P02_test.py]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[PURSUE_GOAL_PROMPT.txt]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[VERSION]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S07-P01.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S07-P01_rollback.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/roadmap_stage_phase.md]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/acceptance_contracts.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/canonical_facts.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/costs.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/model_system_card.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/parameters.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/requirements.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/roadmap.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/task_graph.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/traceability_matrix.json]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_schema_is_production_equivalent_and_policy_is_frozen" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[POSITIVE_EXACT]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[BOUNDARY_ALL_TIMES_EQUAL]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[BOUNDARY_ODDS_MINUS_0001]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[BOUNDARY_ODDS_PLUS_0001]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[NEGATIVE_FEATURE_CUTOFF_PLUS_0001]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[NEGATIVE_AVAILABLE_AFTER_CUTOFF]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[NEGATIVE_SOURCE_VERSION]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[NEGATIVE_MODEL_VERSION]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[NEGATIVE_PARAMETER_VERSION]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_frozen_positive_boundary_negative_and_fault_cases_are_exact[NEGATIVE_TIMEZONE_REQUIRED]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_positive_lineage_is_eligible_but_still_never_a_recommendation_or_order" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_exact_time_equality_passes_but_future_cutoff_by_00001_fails_closed" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_adverse_odds_plus_minus_0001_cannot_enable_an_order_or_change_action" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-SOURCE_TIME_AFTER_OBSERVED]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-OBSERVED_TIME_AFTER_AVAILABLE]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-AVAILABLE_TIME_AFTER_FEATURE_CUTOFF]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-FUTURE_INFORMATION_TOLERANCE_EXCEEDED]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-SOURCE_VERSION_MISMATCH]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-MODEL_VERSION_MISMATCH]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-PARAMETER_VERSION_MISMATCH]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_temporal_version_and_unknown_input_fail_closed[&lt;lambda&gt;-UNKNOWN_FIELD]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_timezone_binary_float_odds_and_missing_field_fail_closed[&lt;lambda&gt;-TIMEZONE_REQUIRED]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_timezone_binary_float_odds_and_missing_field_fail_closed[&lt;lambda&gt;-BINARY_FLOAT_NOT_ALLOWED]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_timezone_binary_float_odds_and_missing_field_fail_closed[&lt;lambda&gt;-ODDS_INVALID]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_timezone_binary_float_odds_and_missing_field_fail_closed[&lt;lambda&gt;-MISSING_FIELD]" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_policy_and_schema_mutations_are_rejected_before_any_result" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_strict_loader_rejects_duplicate_keys_and_binary_floats" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_one_hundred_replays_are_hash_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_ten_thousand_adverse_perturbations_never_enable_advice_or_orders" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_leakage_oracle_has_no_network_process_scheduler_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_rollback_drill_is_hash_only_and_never_changes_external_state" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_candidate_fails_closed_when_phase_artifact_is_tampered" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_candidate_fails_closed_when_p01_predecessor_receipt_is_tampered" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_generated_report_mode_fails_closed_when_reports_are_absent" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_junit_normalization_accepts_only_fixed_metadata" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_oracle_cli_is_wired_to_exact_contract" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_candidate_evidence_carries_pinned_lineage_and_structured_failure_summary" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_p01_predecessor_receipt_remains_independently_verifiable" time="0.000" />
+    <testcase classname="tests.S07.P02_test" name="test_existing_receipt_is_fail_closed_when_absent_or_verifiable" time="0.000" />
+  </testsuite>
+</testsuites>

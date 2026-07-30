@@ -78,7 +78,7 @@ def main() -> int:
     identity = {"files": rows, "bindings": bindings}
     body = {
         "schema_version": "1.1.0",
-        "version": "0.0.0.1.39",
+        "version": "0.0.0.1.40",
         "state": args.state,
         "upstream_binding_kind": "formal_seal" if seal.is_file() else "blocked_precheck",
         "files": rows,

@@ -1,0 +1,38 @@
+[Unit]
+Description=Signal Lattice Cloudflare Tunnel
+After=network-online.target signal-lattice-api.service
+Wants=network-online.target
+Requires=signal-lattice-api.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/signal-lattice/runtime.env
+User=cloudflared
+Group=cloudflared
+ExecStart=/usr/local/bin/cloudflared tunnel --no-autoupdate run --token-file /etc/signal-lattice/credentials/cloudflare_tunnel_token
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+UMask=0077
+ReadOnlyPaths=/etc/signal-lattice/credentials/cloudflare_tunnel_token
+MemoryMax=256M
+CPUQuota=50%
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target

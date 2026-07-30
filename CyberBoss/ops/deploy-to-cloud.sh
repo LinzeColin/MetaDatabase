@@ -139,12 +139,54 @@ EOF
 # 后台端口真的在应答。少一件都不叫部署成功。
 verify_live() {
   local sha="$1" short="${1:0:12}" attempt
-  remote "systemctl is-active $SERVICE" >/dev/null 2>&1 || return 1
+  # 这里也要等。Type=exec 之后 `systemctl restart` 一执行完 ExecStart 就返回，
+  # 此刻 unit 往往还是 activating，而 `systemctl is-active` 对 activating 返回
+  # 非零——查一次就判死，等于每次都失败。
+  #
+  # 「restart 返回时服务已经就绪」这个假设在这个函数里藏了三处（is-active、
+  # 日志里的 release=、healthz）。healthz 本来就在轮询，另外两处不是；只修一处
+  # 就会被下一处挡住，我已经在这上面来回了两轮。
+  local up=1
+  for attempt in $(seq 1 40); do
+    if remote "systemctl is-active $SERVICE" >/dev/null 2>&1; then
+      up=0
+      break
+    fi
+    sleep 3
+  done
+  [ "$up" -eq 0 ] || return 1
   # 日志在独立 namespace 里（LogNamespace=cyberboss），不带 --namespace 查不到。
-  remote "sudo journalctl --namespace=cyberboss -u $SERVICE --since '-2min' --no-pager 2>/dev/null | grep -q 'release=$short'" || return 1
+  #
+  # **要等**，不能查一次就判死。
+  #
+  # 以前 Type=notify 时 `systemctl restart` 会阻塞到服务就绪，所以走到这里日志
+  # 早就打完了，查一次刚好。改成 Type=exec 之后 restart 立刻返回（这正是要的：
+  # 那个 notify 握手对不齐，误判超时是所有事故的起点），于是这一行变成"重启命令
+  # 刚返回就去问日志"——应用还要二三十秒才会打出 release=，一次不中就判失败并
+  # 回滚一个**完全正常**的新版本。
+  #
+  # 下面 healthz 那一步本来就是轮询的；这一步跟它对齐。
+  local bound=1
+  for attempt in $(seq 1 40); do
+    if remote "sudo journalctl --namespace=cyberboss -u $SERVICE --since '-5min' --no-pager 2>/dev/null | grep -q 'release=$short'"; then
+      bound=0
+      break
+    fi
+    sleep 3
+  done
+  [ "$bound" -eq 0 ] || return 1
   local ready=1
   for attempt in $(seq 1 30); do
-    if remote "curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:$PORTAL_PORT/healthz 2>/dev/null | grep -q '^200$'"; then
+    # 端口**在服务器上现读**，不用本地那个默认值。
+    #
+    # PORTAL_PORT 的默认值是 8787，而服务器上实际是 8789（/etc/cyberboss/*.env
+    # 里写着）。于是这一步一直在敲一个没人监听的端口，60 秒轮询全空，判"新版本
+    # 没通过验证"并回滚——一个完全正常的版本。今天连着几次"部署失败"都是它，
+    # 而且我在自己写的看门狗里犯过一模一样的错（也是抄了这个 8787）。
+    # sudo 不能省：远程是以 ubuntu 跑的，而 /etc/cyberboss/*.env 只有 root 读得到。
+    # 不加 sudo 时 P 是空的，URL 变成 http://127.0.0.1:/healthz，curl 回 404，
+    # 于是这一步照样每次都失败——我第一版修这个端口时就漏了 sudo，白跑一轮部署。
+    if remote "P=\$(sudo grep -hoP '^CB_PORTAL_PORT=\K[0-9]+' /etc/cyberboss/*.env 2>/dev/null | tail -1); P=\${P:-$PORTAL_PORT}; curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:\$P/healthz 2>/dev/null | grep -q '^200$'"; then
       ready=0
       break
     fi

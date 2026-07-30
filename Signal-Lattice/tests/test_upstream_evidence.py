@@ -42,10 +42,12 @@ class T(unittest.TestCase):
             recorded = receipt.pop("receipt_sha256")
             self.assertEqual(recorded, hashlib.sha256(canonical(receipt)).hexdigest())
             self.assertEqual(receipt["state"], "BLOCKED")
-            self.assertEqual(receipt["reason_code"], "FIXED_UPSTREAM_INPUT_UNAVAILABLE")
             self.assertFalse(receipt["upstream_write_allowed"])
             self.assertFalse(receipt["developer_research_required"])
-            self.assertFalse(receipt["formal_seal_present"])
+            if receipt["formal_seal_present"]:
+                self.assertEqual(receipt["reason_code"], "FORMAL_UPSTREAM_SEAL_PRESENT")
+            else:
+                self.assertEqual(receipt["reason_code"], "FIXED_UPSTREAM_INPUT_UNAVAILABLE")
             self.assertEqual(len(receipt["required_sources"]), 2)
             self.assertIn("VERIFIED_EXACT_OFFLINE_GIT_BUNDLE", receipt["accepted_inputs"])
             self.assertTrue(
@@ -65,3 +67,7 @@ class T(unittest.TestCase):
         self.assertEqual(data["unique_slug_count"], baseline["agent_database"]["unique_slug_count"])
         self.assertEqual(data["stock_skill_count"], baseline["meta_database"]["stock_skill_count"])
         self.assertFalse(data["upstream_write_allowed"])
+
+    def test_upstream_outputs_are_excluded_from_product_manifest(self):
+        manifest = json.loads((ROOT / "MANIFEST.json").read_text())
+        self.assertFalse(any(row["path"].startswith("evidence/upstream/") for row in manifest["files"]))

@@ -60,6 +60,8 @@ def patch_registered(text: str) -> tuple[str, list[str], bool]:
     if not isinstance(current, set) or not all(isinstance(x, str) for x in current):
         raise ValueError("REGISTERED_SET_INVALID")
     items = sorted(current | {PROJECT})
+    if current == set(items):
+        return text, items, False
     indent = match.group("indent")
     item_indent = indent + "  "
     replacement = "{\n" + "\n".join(f'{item_indent}"{item}",' for item in items) + f"\n{indent}}}"
@@ -69,15 +71,18 @@ def patch_registered(text: str) -> tuple[str, list[str], bool]:
 
 def patch_projects_command(text: str, registered: list[str]) -> tuple[str, bool]:
     pattern = re.compile(
-        r'(?ms)(?P<prefix>^(?P<indent>\s*)python3\s+"\$DUAL_PLANE_TOOL"\s+--root\s+\.\s+--projects\s+\\\n)'
+        r'(?ms)(?P<prefix>^(?P<indent>\s*)python3\s+"\$(?:DUAL_PLANE_TOOL|SCRIPT)"\s+--root\s+\.\s+--projects\s+\\\n)'
         r'(?P<body>.*?)'
-        r'(?P<suffix>^\s*--exceptions\s+ABD\s*$)'
+        r'(?P<suffix>^\s*(?:--exceptions\s+ABD|--require-projects)\s*$)'
     )
     match = pattern.search(text)
     if not match:
         raise ValueError("PROJECTS_COMMAND_NOT_FOUND")
     body_tokens = shlex.split(match.group("body").replace("\\\n", " ").replace("\\", " "))
-    projects = sorted(set(body_tokens) | set(registered))
+    existing_projects = set(body_tokens)
+    if existing_projects == set(registered):
+        return text, False
+    projects = sorted(existing_projects | set(registered))
     indent = match.group("indent") + "  "
     lines: list[str] = []
     chunk = 5

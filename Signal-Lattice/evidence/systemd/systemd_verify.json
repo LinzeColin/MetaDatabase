@@ -1,18 +1,18 @@
 {
   "findings": [],
   "macos_launchd_units": 0,
-  "receipt_sha256": "2ed0d158429c7fa6ec6b9ea069729d77fa74d0fee4d34ce2d9bb5a759d210502",
+  "receipt_sha256": "8e83039ecb6627bb6aca23eb92d680369114bbb04389122c8a12b11d63cc9f94",
   "runtime_agent_dependency": 0,
   "runtime_llm_tokens": 0,
   "schema_version": "1.0.0",
   "state": "PASS",
   "systemd_analyze_available": false,
   "systemd_analyze_returncode": null,
-  "systemd_analyze_state": "UNAVAILABLE_NON_TARGET_HOST",
-  "systemd_analyze_stderr_tail": "systemd-analyze unavailable; target-OVH verification remains required",
+  "systemd_analyze_state": "STATIC_FALLBACK_NON_TARGET_HOST",
+  "systemd_analyze_stderr_tail": "systemd-analyze unavailable; target Linux verification remains required",
   "systemd_analyze_stdout_tail": "",
   "target_runtime_verification_required": true,
-  "unit_count": 12,
+  "unit_count": 13,
   "units": [
     {
       "sha256": "95564298a2ac9130a553892351589a451aa261bcc5e69bf99c756e95b7cd6630",
@@ -25,6 +25,10 @@
     {
       "sha256": "9f19ff3ba28e8faf66de04ed064ee29221926fafed0e48bb54f47bfd6847f392",
       "unit": "signal-lattice-backup.timer"
+    },
+    {
+      "sha256": "ecd42c8e0c4710dde29856cbbfcd16d580fd5b1897359ce3e94db1ce833dfb1f",
+      "unit": "signal-lattice-cloudflared.service"
     },
     {
       "sha256": "9f4825d6892f68c0702175d6977af7e416dc055595f1d266c14b130e94a24442",

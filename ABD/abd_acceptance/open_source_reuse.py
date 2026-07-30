@@ -39,6 +39,7 @@ PHASE_COMMIT = "6fd05aefc6a5f8269909504d36e1907da336628c"
 PINNED_PHASE_CODE_HASH = "92a071e3f5fff10b834c85d8f9eb0636a01b610a934904b07bdc29a5673c8c7b"
 
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "abd_acceptance/official_platform_research.py",
     "abd_acceptance/model_risk_research.py",
     "abd_acceptance/open_source_reuse.py",
@@ -49,6 +50,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S02/P03_test.py",
 }
 SUCCESSOR_EVOLVED_TEST_HASHES = {
+    ".github/workflows/abd-stage0-validation.yml": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
     "tests/S02/P01_test.py": "bc800d7bd6ac82ba5bf8b709013a0e16287750b635d838f6cd4ac885c7364377",
     "tests/S02/P02_test.py": "dcafa1f4120415cf0d191f69654c58392bece7dcfb86e8e698d436ae1f2f68bd",
     "tests/S02/P03_test.py": "3e0bd2ec5eb089a09c6c311ecaca8dd757f3ba9a2dd96f3574434630a2d7d8ae",
@@ -86,7 +88,7 @@ PINNED_BASELINE_HASHES = {
 }
 
 PINNED_REPO_HASHES = {
-    CONTINUOUS_WORKFLOW_PATH.as_posix(): "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+    CONTINUOUS_WORKFLOW_PATH.as_posix(): "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
 }
 
 ALLOWED_DECISIONS = {
@@ -1123,11 +1125,12 @@ def _historical_file_matches(
         return False
     if not verify_git_history:
         evolved_test_hash = SUCCESSOR_EVOLVED_TEST_HASHES.get(relative)
-        return evolved_test_hash is None or sha256_file(root / relative) == evolved_test_hash
+        candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+        return evolved_test_hash is None or (candidate.is_file() and sha256_file(candidate) == evolved_test_hash)
     if not _phase_commit_is_ancestor(root):
         return False
     result = subprocess.run(
-        ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+        ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
         check=False,
         capture_output=True,
     )

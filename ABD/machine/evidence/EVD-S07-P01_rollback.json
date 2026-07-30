@@ -1,0 +1,50 @@
+{
+  "artifacts": {
+    "abd_acceptance/__main__.py": {
+      "after": "0990c01c759fd7afea6a85c41fc7ce564cd09b1ea985903f41362313922ca8bc",
+      "before": "0990c01c759fd7afea6a85c41fc7ce564cd09b1ea985903f41362313922ca8bc",
+      "status": "PASS"
+    },
+    "abd_acceptance/identity_resolution.py": {
+      "after": "bc4ae6d441cd2e1b90fd7bcc01644ab3a85856e225e0fe80e52586b190890581",
+      "before": "bc4ae6d441cd2e1b90fd7bcc01644ab3a85856e225e0fe80e52586b190890581",
+      "status": "PASS"
+    },
+    "identity_fixtures.json": {
+      "after": "d79b855a58089fc143739bbc032ca9d42317f7d453c6cad4fadcef1595877fc7",
+      "before": "d79b855a58089fc143739bbc032ca9d42317f7d453c6cad4fadcef1595877fc7",
+      "status": "PASS"
+    },
+    "identity_registry.json": {
+      "after": "ca8962619e0a93ea6080de78635a63ecc3c22ffc0f09a25c5fef10bf2df10b05",
+      "before": "ca8962619e0a93ea6080de78635a63ecc3c22ffc0f09a25c5fef10bf2df10b05",
+      "status": "PASS"
+    },
+    "identity_resolver.py": {
+      "after": "4d3cf470f26928d8194d24b37e78286a8920b036db56f2b4d87122146ef28250",
+      "before": "4d3cf470f26928d8194d24b37e78286a8920b036db56f2b4d87122146ef28250",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S07_P01.json": {
+      "after": "d4e4c4d9f2d8dae1f72cea8805cf3ea3f8ceb98b8bbba44287c7dff59e69ab4d",
+      "before": "d4e4c4d9f2d8dae1f72cea8805cf3ea3f8ceb98b8bbba44287c7dff59e69ab4d",
+      "status": "PASS"
+    },
+    "tests/S07/P01_test.py": {
+      "after": "a4003b8daf7f94890bf750a6ca9275fb23e31971b63b0c84ac0bfe266d079994",
+      "before": "a4003b8daf7f94890bf750a6ca9275fb23e31971b63b0c84ac0bfe266d079994",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S07-P01",
+  "evidence_id": "EVD-S07-P01-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_IDENTITY_RESOLUTION_KEEP_SIGNED_INPUTS_AND_DERIVED_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

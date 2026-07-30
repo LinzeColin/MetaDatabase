@@ -1,7 +1,7 @@
 {
   "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
   "frozen": true,
-  "frozen_version": "0.0.0.1.39",
+  "frozen_version": "0.0.0.1.40",
   "schema_version": "1.0.0",
   "stages": [
     {
@@ -1185,5 +1185,5 @@
       "title": "输出部署、恢复、回滚和 Status 收尾证据"
     }
   ],
-  "version": "0.0.0.1.39"
+  "version": "0.0.0.1.40"
 }

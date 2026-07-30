@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "compatibility_id": "ABD-S08-LEGACY-RECEIPT-COMPATIBILITY",
+  "stage_id": "S08",
+  "fixed_at": "2026-07-30T00:00:00+10:00",
+  "purpose": "S08 stage-review remediation: exact successor hashes for paths previously declared evolvable by immutable legacy receipt oracles, including the user-directed fast targeted CI successor.",
+  "approved_successor_hashes": {
+    ".github/workflows/abd-stage0-validation.yml": "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
+    "abd_acceptance/advice_card.py": "dee206dd764d61dc21397282b6872d26c29be7eaf5d6e050e6a51085b2581b7a",
+    "abd_acceptance/capacity_governance.py": "b0467d5ae675c6c39d808ba89a86a9733701384c7fab557c0a2541b7ae06608a",
+    "abd_acceptance/cloudflare_edge.py": "87478c65637ecc88622150b95e6d4eba3c954852f8b2ee0d481faca90e798cfa",
+    "abd_acceptance/coverage_observability.py": "b7eece487e7a738888fde1e4b9f8ade8904b6f42a6734894d1441ca0d08e019f",
+    "abd_acceptance/evidence_continuity.py": "92b66bef91b3ac196e755ca62058b18bcdf52cba163e2c9c44f17867810057c9",
+    "abd_acceptance/infrastructure_iac.py": "e3020cbf0364b1a910f6859e20ecca306c876f3bbb1e319ff1a32a1b9899a2df",
+    "abd_acceptance/market_ontology.py": "e9b3e434cd3313668e3ad50433939d544f5b6610a813fef39528896875a4fe65",
+    "abd_acceptance/reason_next_action.py": "944e828c9869f92f05931df7a9e60ade454c26e6b0db51ba493fe0f51244940f",
+    "abd_acceptance/release_control.py": "7d74168d3109281a7c8397d5bc6612f932682f99ad3bd2ba41a5802cde8cd61c",
+    "abd_acceptance/source_capabilities.py": "ed2f6a5e1cdbc52d2c4f93f801e3641186dc025c8e7bc9fc592fb141f3b32467",
+    "abd_acceptance/source_scheduler.py": "7657eec87b187d622191952b27bd739ee5953993154e5e57401c0711cfa03e0b",
+    "abd_acceptance/stage2_review.py": "1e182aa7bb234b1eba8814ff8a267867ba3b6b1051cdea8910e6089ff2920b9c",
+    "abd_acceptance/stage3_review.py": "538511c02e182d20d3b65fc01517196ad1a95bf24ca945f9a6d0926104e31a89",
+    "abd_acceptance/stage4_review.py": "6a09bda97377aaddf90df1d7a587e214fb163bb59ce2bafc6dad5ea3badb86bb",
+    "abd_acceptance/stage5_review.py": "e8111bd33555f842b8e0fa866c919829b8239284aa1693a3875b61a255a0b5a1",
+    "abd_acceptance/terminology_governance.py": "b412c28100b0f563fab4b32b5f536f2ee4a912d3da770b0c8b9f4222f58a83ac",
+    "abd_acceptance/usability_accessibility.py": "ca89c35bf4c4edca0251d942ede8b4b6652d4e5722b490606c3655a2c9526ff1"
+  }
+}

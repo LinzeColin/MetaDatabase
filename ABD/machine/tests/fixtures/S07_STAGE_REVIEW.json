@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S07-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S07",
+  "review_id": "ABD-S07-WHOLE-STAGE-REVIEW",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_finding_ids": [
+    "F-S07-REVIEW-001",
+    "F-S07-REVIEW-002",
+    "F-S07-REVIEW-003",
+    "F-S07-REVIEW-004",
+    "F-S07-REVIEW-005",
+    "F-S07-REVIEW-006"
+  ],
+  "expected_phase_evidence_sha256": {
+    "P01": "2e3f7ceb3e93807fbb14c224282ab3d062d6197c5a139a771e24d30f5316aa99",
+    "P02": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602",
+    "P03": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+    "P04": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "f3a6cbab09f3fc3bb39b15eef2a9371ce2f54c1dd9784a5bd8d8728d16d0e656",
+    "P02": "89f7a7ec50228ac49494d52c28c2f468e962414478ff86c64a420fbbdafb68d9",
+    "P03": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
+    "P04": "ad483c1e873985c14e5c70d67fb18c2801d9033bf8ed435ca9b149e8bb82054a"
+  },
+  "replay_iterations": 100,
+  "adverse_perturbation_iterations": 10000,
+  "minimum_targeted_pytest_cases": 35,
+  "minimum_signed_state_pytest_cases": 200,
+  "minimum_full_pytest_cases": 5078,
+  "expected_release_status": "S07_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "expected_next": "S07/GITHUB_STAGE_UPLOAD_READY",
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_STAGE",
+      "snapshot": {
+        "identity_confidence": "0.9950",
+        "future_information_tolerance": 0,
+        "actual_funds_changed_without_execution": false,
+        "phase_receipts_signed": true,
+        "orphans": {"requirements": [], "tasks": [], "tests": [], "evidence": [], "artifacts": []}
+      },
+      "expected": {"status": "S07_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "BOUNDARY_IDENTITY_9949",
+      "snapshot": {
+        "identity_confidence": "0.9949",
+        "future_information_tolerance": 0,
+        "actual_funds_changed_without_execution": false,
+        "phase_receipts_signed": true,
+        "orphans": {"requirements": [], "tasks": [], "tests": [], "evidence": [], "artifacts": []}
+      },
+      "expected": {"status": "S07_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["IDENTITY_CONFIDENCE_BELOW_995"]}
+    },
+    {
+      "case_id": "BOUNDARY_IDENTITY_9950",
+      "snapshot": {
+        "identity_confidence": "0.9950",
+        "future_information_tolerance": 0,
+        "actual_funds_changed_without_execution": false,
+        "phase_receipts_signed": true,
+        "orphans": {"requirements": [], "tasks": [], "tests": [], "evidence": [], "artifacts": []}
+      },
+      "expected": {"status": "S07_STAGE_REVIEW_VERIFIED_NO_ACTION", "reason_codes": []}
+    },
+    {
+      "case_id": "NEGATIVE_FUTURE_INFORMATION",
+      "snapshot": {
+        "identity_confidence": "0.9950",
+        "future_information_tolerance": 1,
+        "actual_funds_changed_without_execution": false,
+        "phase_receipts_signed": true,
+        "orphans": {"requirements": [], "tasks": [], "tests": [], "evidence": [], "artifacts": []}
+      },
+      "expected": {"status": "S07_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["FUTURE_INFORMATION_TOLERANCE_NONZERO"]}
+    },
+    {
+      "case_id": "NEGATIVE_UNEXECUTED_FUNDS_CHANGE",
+      "snapshot": {
+        "identity_confidence": "0.9950",
+        "future_information_tolerance": 0,
+        "actual_funds_changed_without_execution": true,
+        "phase_receipts_signed": true,
+        "orphans": {"requirements": [], "tasks": [], "tests": [], "evidence": [], "artifacts": []}
+      },
+      "expected": {"status": "S07_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["ACTUAL_FUNDS_CHANGED_WITHOUT_EXECUTION"]}
+    },
+    {
+      "case_id": "NEGATIVE_CONTINUITY_ORPHAN",
+      "snapshot": {
+        "identity_confidence": "0.9950",
+        "future_information_tolerance": 0,
+        "actual_funds_changed_without_execution": false,
+        "phase_receipts_signed": true,
+        "orphans": {"requirements": [], "tasks": [], "tests": [], "evidence": ["INDEX-UNBOUND"], "artifacts": []}
+      },
+      "expected": {"status": "S07_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["CONTINUITY_ORPHANS_PRESENT"]}
+    },
+    {
+      "case_id": "NEGATIVE_UNSIGNED_RECEIPT",
+      "snapshot": {
+        "identity_confidence": "0.9950",
+        "future_information_tolerance": 0,
+        "actual_funds_changed_without_execution": false,
+        "phase_receipts_signed": false,
+        "orphans": {"requirements": [], "tasks": [], "tests": [], "evidence": [], "artifacts": []}
+      },
+      "expected": {"status": "S07_STAGE_REVIEW_REJECTED_NO_ACTION", "reason_codes": ["UNSIGNED_PHASE_RECEIPT"]}
+    }
+  ],
+  "expected_positive_output_sha256": "04cc0a14628d892787617f4e835bfec3d778333f0483237985ec39016412a823"
+}

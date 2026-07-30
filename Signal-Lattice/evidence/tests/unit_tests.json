@@ -1,17 +1,18 @@
 {
-  "candidate_version": "0.0.0.1.39",
+  "candidate_version": "0.0.0.1.40",
   "command": [
     "bash",
     "scripts/run_tests.sh"
   ],
   "failed": 0,
-  "passed": 82,
-  "receipt_sha256": "2b098cbec4468c1b8473217ddbad23bc305b1a1313563ec61ff34537ff487bba",
+  "log_sha256": "204656b86d93990a969813607ea41f12d76bd3667a03d65d8d739665a38895ba",
+  "passed": 98,
+  "receipt_sha256": "eebfa699ec5ec2acd9ccb0ab4c59237b5752e8232bf1111bec485d5c604e134f",
   "runtime_agent_dependency": 0,
   "runtime_llm_tokens": 0,
   "schema_version": "1.0.0",
   "skipped": 1,
   "state": "PASS",
-  "test_count": 83,
+  "test_count": 99,
   "warnings_as_errors": true
 }

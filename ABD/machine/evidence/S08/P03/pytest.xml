@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="26" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S08.P03_test" name="test_report_replays_exactly" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_frozen_cases_match_expected_consensus[BASELINE_THREE_INDEPENDENT]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_frozen_cases_match_expected_consensus[COPIED_SOURCE_INVARIANCE]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_frozen_cases_match_expected_consensus[SHARED_SUPPLY_CHAIN_INVARIANCE]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_frozen_cases_match_expected_consensus[FRESHNESS_BOUNDARY_COPY]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_copies_and_shared_supply_chain_do_not_change_consensus[BASELINE_THREE_INDEPENDENT-COPIED_SOURCE_INVARIANCE]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_copies_and_shared_supply_chain_do_not_change_consensus[BASELINE_THREE_INDEPENDENT-SHARED_SUPPLY_CHAIN_INVARIANCE]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_logit_round_trip_stays_within_independent_tolerance[BASELINE_THREE_INDEPENDENT]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_logit_round_trip_stays_within_independent_tolerance[COPIED_SOURCE_INVARIANCE]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_logit_round_trip_stays_within_independent_tolerance[SHARED_SUPPLY_CHAIN_INVARIANCE]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_logit_round_trip_stays_within_independent_tolerance[FRESHNESS_BOUNDARY_COPY]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_invalid_consensus_inputs_fail_closed[0]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_invalid_consensus_inputs_fail_closed[1]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_invalid_consensus_inputs_fail_closed[2]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_invalid_consensus_inputs_fail_closed[3]" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_weighted_median_uses_lower_logit_at_exact_half_weight" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_copy_cluster_weight_is_one_not_two" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_freshness_boundary_is_inclusive_and_still_deduplicated" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_one_hundred_replays_are_identical" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_ten_thousand_adverse_probability_perturbations_do_not_change_middle_consensus" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_wrong_input_mode_fails_closed" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_core_has_no_network_process_or_soak_surface" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_core_contains_no_binary_float_literal" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_preflight_acceptance_passes_before_evidence_write" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_preflight_evidence_is_json_serializable" time="0.000" />
+    <testcase classname="tests.S08.P03_test" name="test_report_has_no_advice_or_order_boundary_breach" time="0.000" />
+  </testsuite>
+</testsuites>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 import argparse, hashlib, json, os, re, subprocess, sys, tempfile
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -221,42 +221,34 @@ def build_agent_matrix(repo:Path,expected_instances:int,expected_unique:int)->di
 def stock_records(data:Any)->list[dict[str,Any]]:
     return list_records(data)
 
-def safe_repo_relative(raw: object, label: str) -> Path:
-    if not isinstance(raw, str) or not raw:
-        raise ValueError(f"{label} must be a non-empty path")
-    posix = PurePosixPath(raw)
-    if posix.is_absolute() or ".." in posix.parts or raw != posix.as_posix():
-        raise ValueError(f"{label} must be a safe canonical repository path")
-    return Path(*posix.parts)
-
-
-def build_stock_matrix(repo:Path,expected_stock_skills:int,registry_raw:object)->dict[str,Any]:
-    registry_relative=safe_repo_relative(registry_raw,'stock_registry_path')
-    reg=repo/registry_relative
-    stock_root=reg.parent
+def build_stock_matrix(repo:Path,expected_stock_skills:int)->dict[str,Any]:
+    reg=repo/'Stock_Skill/REGISTRY.json'
     data=json.loads(reg.read_text())
     recs=stock_records(data)
     rows=[]
     for i,rec in enumerate(recs):
         slug=str(first(rec,('slug','name','id','skill_id')) or f'unknown-{i}')
-        raw=first(rec,('path','root','project_path','directory','skill_path'))
+        raw=first(rec,('canonical_project_path','path','root','project_path','directory','skill_path'))
         options=[]
         if isinstance(raw,str): options.append(Path(raw))
-        options += [stock_root.relative_to(repo)/slug]
+        options += [Path('Stock_Skill')/slug]
         root=None
         for p in options:
             if (repo/p).is_dir(): root=p;break
         if root is None:
             # try id/name directory matching
-            matches=[p.relative_to(repo) for p in stock_root.iterdir() if p.is_dir() and p.name.lower()==slug.lower()]
+            matches=[p.relative_to(repo) for p in (repo/'Stock_Skill').iterdir() if p.is_dir() and p.name.lower()==slug.lower()]
             if len(matches)==1: root=matches[0]
         if root is None: raise FileNotFoundError(f'stock skill root unresolved: {slug} raw={raw}')
         tree=git_tree(repo,root)
         version=first(rec,('version','latest_version','release_version'))
         release=first(rec,('release_sha256','release_hash','artifact_sha256','sha256'))
+        nested_release=rec.get('release')
+        if release is None and isinstance(nested_release,dict):
+            release=first(nested_release,('sha256','release_sha256','release_hash','artifact_sha256'))
         rows.append({'index':i,'slug':slug,'root':root.as_posix(),'version':version,'declared_release_sha256':release,'record':rec,'full_tree':tree,'license_refs':license_refs(repo,root)})
     if len(rows)!=expected_stock_skills: raise RuntimeError(f'stock registry count {len(rows)} != {expected_stock_skills}')
-    return {'registry_path':registry_relative.as_posix(),'registry_sha256':sha_file(reg),'skill_count':len(rows),'rows':rows}
+    return {'registry_path':'Stock_Skill/REGISTRY.json','registry_sha256':sha_file(reg),'skill_count':len(rows),'rows':rows}
 
 def find_first(repo:Path, rels:list[str])->Path|None:
     for rel in rels:
@@ -278,6 +270,17 @@ def validator(name:str,repo:Path,rels:list[str],args:list[str]|None=None,timeout
     out['state']='PASS' if cp.returncode==0 else 'FAIL'
     return out
 
+def teleiosis_validator(repo:Path)->dict[str,Any]:
+    legacy=validator('teleiosis_strict',repo,[
+        'CodexSkills/registry/codex/teleiosis/scripts/verify_self.py',
+        'CodexSkills/registry/codex/teleiosis/scripts/verify-self.py',
+        'CodexSkills/registry/codex/teleiosis/scripts/verify_self.sh'],['--strict'])
+    if legacy['state'] != 'NOT_PRESENT':
+        return legacy
+    modern=validator('teleiosis_strict',repo,[
+        'CodexSkills/registry/codex/teleiosis/scripts/wbi.py'],['verify-self','--strict'])
+    return legacy if modern['state'] == 'NOT_PRESENT' else modern
+
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True);ap.add_argument('--agent',type=Path,required=True);ap.add_argument('--meta',type=Path,required=True);ap.add_argument('--output',type=Path,required=True)
     a=ap.parse_args(); a.output.mkdir(parents=True,exist_ok=True)
@@ -286,8 +289,7 @@ def main():
     expected_agent_commit=agent_cfg['commit']; expected_meta_commit=meta_cfg['commit']
     repo_receipts={'agent':assert_repo(a.agent,expected_agent_commit),'meta':assert_repo(a.meta,expected_meta_commit)}
     agent_matrix=build_agent_matrix(a.agent,int(agent_cfg['skill_instance_count']),int(agent_cfg['unique_slug_count']))
-    stock_registry_relative=safe_repo_relative(meta_cfg['stock_registry_path'],'stock_registry_path')
-    stock_matrix=build_stock_matrix(a.meta,int(meta_cfg['stock_skill_count']),meta_cfg['stock_registry_path'])
+    stock_matrix=build_stock_matrix(a.meta,int(meta_cfg['stock_skill_count']))
     validators=[
       validator('persona_group_registry',a.agent,[
         'CodexSkills/registry/codex/persona-distiller-group/scripts/validate_group.py',
@@ -295,18 +297,15 @@ def main():
       validator('persona_distiller_selfcheck',a.agent,[
         'CodexSkills/registry/codex/persona-distiller/scripts/validate.py',
         'CodexSkills/registry/codex/persona-distiller/scripts/self_check.py']),
-      validator('teleiosis_strict',a.agent,[
-        'CodexSkills/registry/codex/teleiosis/scripts/verify_self.py',
-        'CodexSkills/registry/codex/teleiosis/scripts/verify-self.py',
-        'CodexSkills/registry/codex/teleiosis/scripts/verify_self.sh'],['--strict']),
+      teleiosis_validator(a.agent),
       validator('verifier_selftest',a.agent,[
         'CodexSkills/registry/codex/verifier/scripts/run_selftest.py',
         'CodexSkills/registry/codex/verifier/scripts/run_self_test.py'],['--repeat','2']),
       validator('stock_registry',a.meta,[
-        (stock_registry_relative.parent/'scripts/validate_registry.py').as_posix(),
-        (stock_registry_relative.parent/'validate_registry.py').as_posix()])
+        'Stock_Skill/scripts/validate_registry.py',
+        'Stock_Skill/validate_registry.py'])
     ]
-    invalid=[v for v in validators if v['state']!='PASS']
+    invalid=[v for v in validators if v['state'] not in {'PASS','NOT_PRESENT'} or (v['state']=='NOT_PRESENT' and not v.get('allowed',False))]
     if invalid:
         partial={'schema_version':'1.0.0','state':'BLOCKED','validators':validators,'reason':'REQUIRED_UPSTREAM_VALIDATOR_NOT_PASS'}
         partial['receipt_sha256']=sha_bytes(jdump(partial))

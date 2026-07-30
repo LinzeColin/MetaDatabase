@@ -1,1 +1,1 @@
-在运行期零 Agent、零模型 Token、禁止上游写回、禁止自动交易和 macOS 零常驻的约束下，完成 Signal Lattice 的目标仓兼容、OVH 部署、恢复回滚与 Status 首尾闭环，使动态股票研究稳定输出可追溯的 Action Packet 或强制 NO_ACTION。
+把 Signal Lattice v0.0.0.1.40 修复并部署为 https://signal-lattice.linzezhang.com：动态聚合平权股票 Skill 和可信市场数据，在零 Agent、零模型 Token、禁止自动交易的边界内完成证据协调、量化硬门和人工投资建议；没有公网 URL、Status Closure 与 DELIVERY_RESULT.json 不得声称完成。

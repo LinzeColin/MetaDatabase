@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="22" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S08.P01_test" name="test_candidate_preflight_and_contract_pass_without_generated_reports" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_report_is_an_exact_deterministic_replay_of_frozen_vectors" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_all_four_methods_are_complete_probability_vectors[THREE_WAY_STANDARD_MARGIN]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_all_four_methods_are_complete_probability_vectors[THREE_WAY_SHIN_REFERENCE]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_all_four_methods_are_complete_probability_vectors[FOUR_WAY_MAIN_MARKET_MARGIN]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_all_four_methods_are_complete_probability_vectors[FAIR_TWO_WAY_BOUNDARY]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_shin_reference_agrees_to_one_e12" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_fair_two_way_boundary_has_zero_method_disagreement" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_incomplete_or_invalid_markets_fail_closed[INCOMPLETE_SINGLE_SELECTION]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_incomplete_or_invalid_markets_fail_closed[EXPLICITLY_INCOMPLETE_MARKET]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_incomplete_or_invalid_markets_fail_closed[UNDERROUND_MARKET]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_incomplete_or_invalid_markets_fail_closed[NON_DECIMAL_ODDS]" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_binary_float_and_non_boolean_completeness_are_rejected" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_one_hundred_replays_are_hash_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_ten_thousand_adverse_decimal_perturbations_remain_probability_safe_without_soak" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_core_source_has_no_network_process_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_rollback_drill_is_hash_only_and_changes_no_external_state" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_candidate_fails_closed_when_report_is_tampered" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_candidate_fails_closed_when_signed_predecessor_is_tampered" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_phase_receipt_is_absent_before_delivery_and_cannot_be_claimed" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_cli_is_wired_to_exact_contract_and_preserves_no_order_boundary" time="0.000" />
+    <testcase classname="tests.S08.P01_test" name="test_fixture_and_report_keep_the_financial_and_runtime_claims_unverified" time="0.000" />
+  </testsuite>
+</testsuites>

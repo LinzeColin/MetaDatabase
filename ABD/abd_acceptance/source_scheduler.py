@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, MutableMapping, Sequence, Tuple
 
 from .canonical_facts import sha256_file, strict_json_load
+from .legacy_receipt_compatibility import approved_successor_sha256
 from .source_capabilities import verify_existing_phase_evidence as verify_source_capability_evidence
 
 
@@ -65,10 +66,11 @@ EXPECTED_ARTIFACTS = {
 }
 EXPECTED_NUMERIC_DELTAS = ["-0.0001", "0", "0.0001"]
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "d1573ddec47405db5eca56c053f16506107c99575c11ebf27eded876cfe62f93"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "f82a0ea746bda2fb2eede9c0b822749e49abe104f73893128ef70965db38d0f6"
 PHASE_COMMIT = "3adc22b9e8bbe0b4df4def6a45caa4ebdd5df89a"
 PINNED_PHASE_CODE_HASH = "0ee10fd13b29f901f4ba9e2cd64291aeef7ecdb0b8ec659bcfeb66fc3ddbcdac"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "abd_acceptance/__init__.py",
     "abd_acceptance/__main__.py",
@@ -87,14 +89,14 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
-    "abd_acceptance/__main__.py": "f69988a600b94f91093a46cbd0cd9be4dbc295da487a01470e8fea86ef71bcd8",
-    "abd_acceptance/advice_card.py": "b080d000d0793e78aa271dbe067ad57677c53828013797bc96046fcab9ba2aa7",
-    "abd_acceptance/market_ontology.py": "3612b37860f5a8892f05159c8d3b13d433d800a8778431d5b1ba1fa929bf0fac",
-    "abd_acceptance/reason_next_action.py": "b23df4d396671534b1db69e78495aa1f081b8049e623e4a2a6a5790e9bb38842",
-    "abd_acceptance/source_capabilities.py": "22ced8b7536058aa3c617b82e66101cb309ae62420e5d9ff73439b02cf49c4d6",
-    "abd_acceptance/stage3_review.py": "84d55222300e5461293bffbba26e80772045ce8fa9881240fcb2ae73c81610c3",
-    "abd_acceptance/stage4_review.py": "973b81abc3f889e62c95e5bf9d192046ecf8e785ad57ff4a69504a952d92424c",
-    "abd_acceptance/usability_accessibility.py": "fbaa1aabec2774749e3120e1f6ca92ba20fe430c3b643e12f50e40faa23652e0",
+    "abd_acceptance/__main__.py": "b488be8ee5475f1b929ea463a60e94ad89e6325655da145867832f91135c50e4",
+    "abd_acceptance/advice_card.py": "17a505bc3ad9c97bbb959846509974200a6af7dbf5280708a0c14391accd9ce1",
+    "abd_acceptance/market_ontology.py": "7d401f3fa97ca2c25a6e23a98f1dfb889ff27b9a1608131cb1205011167ffcba",
+    "abd_acceptance/reason_next_action.py": "56c57312b219fac3221c35d95f87d2cca30a2700f617e790c92a06d99138524d",
+    "abd_acceptance/source_capabilities.py": "6bf37496403c2e81dc0b8ef36cecc2d1f86f263ec905d66c03f8997f464b3b16",
+    "abd_acceptance/stage3_review.py": "fc91e5e610f0cdb8f916ea8402482f6e4574e42be7e3a8a0e07d8961bfa27041",
+    "abd_acceptance/stage4_review.py": "2d338489adfa785be7483c3da4ae16150b78f93c7dc9372718fc7073a766862f",
+    "abd_acceptance/usability_accessibility.py": "ad4c531415aeb0717800467dff53866751ea93e89dd057661b09dc58033db1c6",
     "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
     "tests/S05/P02_test.py": "da9cacf2f864cb60bf0866c072da34685c4d57ff2180acced4b79f1567819cd2",
     "tests/S05/P03_test.py": "082b057150b1d4325d3528b100b27f9b4537a3daafcaa6547138be60e2f0ded4",
@@ -123,7 +125,7 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     "machine/evidence/EVD-S05-P02_rollback.json": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856",
 }
 PINNED_REPO_HASHES = {
-    WORKFLOW_PATH.as_posix(): "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+    WORKFLOW_PATH.as_posix(): "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
 }
 
 EXTERNAL_EFFECT_BOUNDARY = {
@@ -248,7 +250,7 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str, ve
         if not _phase_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )
@@ -258,8 +260,9 @@ def _historical_file_matches(root: Path, relative: str, expected_sha256: str, ve
             return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
         except Exception:
             return False
-    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
-    return successor not in {None, "TO_BE_FILLED"} and (root / relative).is_file() and sha256_file(root / relative) == successor
+    successor = approved_successor_sha256(root, relative) or SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    candidate = root.parent / relative if relative.startswith(".github/") else root / relative
+    return successor not in {None, "TO_BE_FILLED"} and candidate.is_file() and sha256_file(candidate) == successor
 
 
 def _historical_code_hash(root: Path, verify_git_history: bool) -> str:

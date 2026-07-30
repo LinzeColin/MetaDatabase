@@ -1,16 +1,16 @@
 {
   "approval_kind": "OWNER_AUTHORIZED_FINAL_TASKPACK_DELIVERY",
   "approved": true,
-  "approved_at": "2026-07-30T02:46:36Z",
+  "approved_at": "2026-07-30T16:17:34Z",
   "formal_release_pass_claimed": false,
   "live_action_enabled": false,
   "owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
-  "prepared_subject_sha256": "8ce66f2d2b44cadcec6efeae528390c8fb884686c036a940c862bb665360f988",
-  "receipt_sha256": "1ca4d79acb18904c09261714b0ecf0eb9187ebc05534245f358dbc84de310c3d",
+  "prepared_subject_sha256": "7f6a1c5bf0b82ca99231c02fa775aca745cc816d8622a403aaf75569ba6b336c",
+  "receipt_sha256": "99808738d9d456f344580d8dd3ee31128c5be198445fb65a2d3ccb96f68a25b0",
   "residual_environment_tasks_accepted": true,
   "schema_version": "1.0.0",
-  "scope_summary_sha256": "59242c2eef108c75bf0da4889c798816731525cd0c28398604be154c2faa6a71",
-  "source_attachment_sha256": "6f4226dc8cc58d124431d31c5d1dce3d353f8206a98e81a6074d2ad80871a01c",
-  "source_message": "你自己解决阻塞点满足我的要求，授权按 v0.0.0.1.39 重新封存",
-  "version": "0.0.0.1.39"
+  "scope_summary_sha256": "94dceb035b0ac2e8e758050f9041c397b7b92f5c89471faafdba6ab4fb7e2c78",
+  "source_attachment_sha256": "27cc3b705bbf3c07c64dc6ff5ff44acdce9295bb2aafd3d63990f28a75aa7ce9",
+  "source_message": "Owner directives: proceed one Task Pack phase at a time; resolve verified blockers within scope; retain the canonical Stock Skill source at Signal-Lattice/Stock_Skill; re-seal only the v0.0.0.1.40 task-pack delivery after verified Northstar installer and local browser compatibility repairs. This approval does not claim formal release pass or live action.",
+  "version": "0.0.0.1.40"
 }
