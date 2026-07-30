@@ -146,6 +146,8 @@ def verify_compatible_copy(root: Path) -> dict[str, object]:
         raise CompatibilityError(f"compatible verifier did not emit JSON: {exc}") from exc
     if report.get("overall") != "PASS" or report.get("taskpack_verdict") != "PASS":
         raise CompatibilityError("compatible taskpack verifier did not pass")
+    if not (root / "11_AGENT/EXECUTION_ORDER.md").is_file() or not (root / "09_ROADMAP/TASK_GRAPH.json").is_file():
+        raise CompatibilityError("required compatibility execution authority is missing")
     return report
 
 
@@ -178,6 +180,7 @@ def main() -> int:
         "overrides": overrides,
         "taskpack_verifier_status": report["overall"],
         "taskpack_check_count": len(report.get("checks") or []),
+        "execution_authority": ["11_AGENT/EXECUTION_ORDER.md", "09_ROADMAP/TASK_GRAPH.json"],
     }
     (output / "COMPATIBILITY_PROVENANCE.json").write_text(json.dumps(provenance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(provenance, ensure_ascii=False, indent=2))

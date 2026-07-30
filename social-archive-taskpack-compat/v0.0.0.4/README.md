@@ -29,6 +29,23 @@ Task Pack verifier. The compatible extraction is not a release artifact.
    write-free in dry-run; make rollback plan-only by default and require an
    exact destructive confirmation for execution.
 
+## Execution authority
+
+The external handoff refers to `11_AGENT/BUILD_AGENT_RUNBOOK.md`, which is not
+present in the sealed ZIP. For this compatibility overlay only, the exact
+replacement is the already-required pair:
+
+- `11_AGENT/EXECUTION_ORDER.md` for run ordering and handoff rules; and
+- `09_ROADMAP/TASK_GRAPH.json` for the 32 task dependencies, acceptance and
+  stop conditions.
+
+The explicit Social Archive v0.0.0.4 Owner instruction supersedes the old x2n
+v0.0.0.1 product DAG only for the Social Archive migration. The x2n permanent
+privacy, data-placement, no-crawler and real-account boundaries remain in
+force. Its active Owner-private A005 runtime is not imported, moved, read or
+claimed by this Task Pack; any future data transfer requires its own explicit
+Private-Database Run Contract.
+
 ## Non-goals
 
 - No Social Archive product code is built by this overlay.
