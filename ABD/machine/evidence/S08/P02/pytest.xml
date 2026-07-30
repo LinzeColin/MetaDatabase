@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="22" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S08.P02_test" name="test_candidate_preflight_and_contract_pass_without_generated_reports" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_clusters_artifact_is_an_exact_deterministic_replay_of_frozen_fixture" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_expected_cluster_counts_and_weights_are_exact[DIRECT_AND_COPIED_SOURCES]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_expected_cluster_counts_and_weights_are_exact[MATCHING_CONTENT_UNDECLARED_COPY]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_expected_cluster_counts_and_weights_are_exact[STALE_AND_UNVERIFIED_SOURCES]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_expected_cluster_counts_and_weights_are_exact[FRESHNESS_BOUNDARY_COPY]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_matching_content_with_distinct_operator_labels_is_still_one_independent_source" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_stale_or_unverified_sources_contribute_no_independent_weight" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_freshness_boundary_is_inclusive_and_copy_is_not_extra_weight" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_invalid_or_ambiguous_provenance_fails_closed[UNKNOWN_COPY_PARENT]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_invalid_or_ambiguous_provenance_fails_closed[COPY_CONTENT_CONFLICT]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_invalid_or_ambiguous_provenance_fails_closed[FUTURE_SOURCE_TIMESTAMP]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_invalid_or_ambiguous_provenance_fails_closed[UNKNOWN_CONTRACT_STATUS]" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_one_hundred_replays_are_hash_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_ten_thousand_adverse_copies_never_create_an_extra_independent_source_without_soak" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_core_source_has_no_network_process_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_rollback_drill_is_hash_only_and_changes_no_external_state" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_candidate_fails_closed_when_cluster_artifact_is_tampered" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_candidate_fails_closed_when_signed_predecessor_is_tampered" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_phase_receipt_is_absent_before_delivery_and_cannot_be_claimed" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_cli_is_wired_to_exact_contract_and_preserves_no_order_boundary" time="0.000" />
+    <testcase classname="tests.S08.P02_test" name="test_fixture_keeps_financial_and_runtime_claims_unverified" time="0.000" />
+  </testsuite>
+</testsuites>

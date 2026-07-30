@@ -1,0 +1,572 @@
+{
+  "contract_id": "AC-S07-P01",
+  "decision": "IDENTITY_GATE_PASSED_DOWNSTREAM_GATES_REQUIRED",
+  "decision_sha256": "9492578b3d198c965dde693d7e60322fe64ae988cef5c66ce72ab890306796b4",
+  "deterministic_replay": {
+    "adverse_replay_count": 10000,
+    "real_time_wait_performed": false,
+    "replay_count": 100
+  },
+  "evidence_id": "EVD-S07-P01",
+  "external_effect_boundary": {
+    "external_network_accessed_for_identity": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "provider_account_or_page_accessed": false,
+    "raw_market_or_odds_data_read": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false,
+    "scheduler_daemon_started": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-29T00:00:00+10:00",
+  "hashes": {
+    "code": "fcc7f8ef57e3557ffe71b8d7d5392774c55e9a0df8536c7c1c78bbf8a9a257a4",
+    "inputs": {
+      "abd_acceptance/identity_resolution.py": "bc4ae6d441cd2e1b90fd7bcc01644ab3a85856e225e0fe80e52586b190890581",
+      "identity_fixtures.json": "d79b855a58089fc143739bbc032ca9d42317f7d453c6cad4fadcef1595877fc7",
+      "identity_registry.json": "ca8962619e0a93ea6080de78635a63ecc3c22ffc0f09a25c5fef10bf2df10b05",
+      "identity_resolver.py": "4d3cf470f26928d8194d24b37e78286a8920b036db56f2b4d87122146ef28250",
+      "machine/evidence/EVD-S06-P04.json": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea",
+      "machine/evidence/EVD-S06-P04_rollback.json": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579",
+      "machine/evidence/EVD-S06-STAGE-REVIEW.json": "467f3d610bb2b027a6a14ede52ad2ced9a5b71b95dee057641533d4ad29f0be3",
+      "machine/evidence/EVD-S06-STAGE-REVIEW_rollback.json": "2afa60333d47b6459bc8492e0e868e23b1f11aee852c40ebe6469a90a6eb6dc2",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "machine/evidence/S05/STAGE_REVIEW/github_delivery_receipt.json": "5926e2e8ef70c141b9453dbced4851f02499fda817d99a4922cfe3272f75ace2",
+      "machine/evidence/S07/P01/full_regression.xml": "b0ce375de03a7da1c451a695162d0a010d7a0176c78a2e5166aba2d791ee830d",
+      "machine/evidence/S07/P01/pytest.xml": "c406640f89ee542faf94e80ee33fc629dcb056bb939662a1c45a8050fb714844",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S07_P01.json": "d4e4c4d9f2d8dae1f72cea8805cf3ea3f8ceb98b8bbba44287c7dff59e69ab4d",
+      "tests/S07/P01_test.py": "a4003b8daf7f94890bf750a6ca9275fb23e31971b63b0c84ac0bfe266d079994"
+    },
+    "rollback_evidence": "f3a6cbab09f3fc3bb39b15eef2a9371ce2f54c1dd9784a5bd8d8728d16d0e656"
+  },
+  "identity_summary": {
+    "authoritative_identity_key": "IDK-S07P01-a5ed2069f055a29a2865d277bfef6ad8a5849c148f761382e8bc45adec57b0d2",
+    "cross_source_identity_key": "IDK-S07P01-f23a21c9681c3c1f70047bfdba2db1022447673a978cefa3ab496c8def5f3588",
+    "fixture_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+    "identity_confidences": [
+      "1.0000",
+      "0.9950"
+    ],
+    "order_submission_enabled": false,
+    "recommendation_generated": false
+  },
+  "next": "S07/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "phase_status": "S07_P01_PASS",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "requirement_id": "REQ-S07-P01",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S07-P01_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S07",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "4d3cf470f26928d8194d24b37e78286a8920b036db56f2b4d87122146ef28250",
+          "expected": "4d3cf470f26928d8194d24b37e78286a8920b036db56f2b4d87122146ef28250"
+        },
+        "id": "S07P01-PIN-IDENTITY_RESOLVER-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d79b855a58089fc143739bbc032ca9d42317f7d453c6cad4fadcef1595877fc7",
+          "expected": "d79b855a58089fc143739bbc032ca9d42317f7d453c6cad4fadcef1595877fc7"
+        },
+        "id": "S07P01-PIN-IDENTITY_FIXTURES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ca8962619e0a93ea6080de78635a63ecc3c22ffc0f09a25c5fef10bf2df10b05",
+          "expected": "ca8962619e0a93ea6080de78635a63ecc3c22ffc0f09a25c5fef10bf2df10b05"
+        },
+        "id": "S07P01-PIN-IDENTITY_REGISTRY-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d4e4c4d9f2d8dae1f72cea8805cf3ea3f8ceb98b8bbba44287c7dff59e69ab4d",
+          "expected": "d4e4c4d9f2d8dae1f72cea8805cf3ea3f8ceb98b8bbba44287c7dff59e69ab4d"
+        },
+        "id": "S07P01-PIN-S07_P01-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a4003b8daf7f94890bf750a6ca9275fb23e31971b63b0c84ac0bfe266d079994",
+          "expected": "a4003b8daf7f94890bf750a6ca9275fb23e31971b63b0c84ac0bfe266d079994"
+        },
+        "id": "S07P01-PIN-P01_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "af15a25ea99902e346944b28c08c3c234d1e8058f4b4a7d0d3233f1906f5c863",
+          "expected": "af15a25ea99902e346944b28c08c3c234d1e8058f4b4a7d0d3233f1906f5c863"
+        },
+        "id": "S07P01-ORACLE-STRUCTURAL-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S07P01-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S07P01-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S07P01-BASELINE-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S07P01-BASELINE-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S07P01-BASELINE-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S07P01-BASELINE-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S07P01-BASELINE-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S07P01-BASELINE-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S07P01-BASELINE-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S07P01-BASELINE-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S07P01-BASELINE-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+          "expected": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+        },
+        "id": "S07P01-BASELINE-ROADMAP_STAGE_PHASE-MD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+          "expected": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36"
+        },
+        "id": "S07P01-BASELINE-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "5926e2e8ef70c141b9453dbced4851f02499fda817d99a4922cfe3272f75ace2",
+          "expected": "5926e2e8ef70c141b9453dbced4851f02499fda817d99a4922cfe3272f75ace2"
+        },
+        "id": "S07P01-BASELINE-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea",
+          "expected": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea"
+        },
+        "id": "S07P01-BASELINE-EVD-S06-P04-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579",
+          "expected": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579"
+        },
+        "id": "S07P01-BASELINE-EVD-S06-P04_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "467f3d610bb2b027a6a14ede52ad2ced9a5b71b95dee057641533d4ad29f0be3",
+          "expected": "467f3d610bb2b027a6a14ede52ad2ced9a5b71b95dee057641533d4ad29f0be3"
+        },
+        "id": "S07P01-BASELINE-EVD-S06-STAGE-REVIEW-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2afa60333d47b6459bc8492e0e868e23b1f11aee852c40ebe6469a90a6eb6dc2",
+          "expected": "2afa60333d47b6459bc8492e0e868e23b1f11aee852c40ebe6469a90a6eb6dc2"
+        },
+        "id": "S07P01-BASELINE-EVD-S06-STAGE-REVIEW_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S07P01-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S07P01-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S07P01-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S07P01-TRACE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S07P01-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "stage_dependencies": [
+            "S04",
+            "S05",
+            "S06"
+          ],
+          "tasks": [
+            "T-S07-P01-01",
+            "T-S07-P01-02",
+            "T-S07-P01-03"
+          ]
+        },
+        "id": "S07P01-TASKPACK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "S05/P01_READY_NOT_STARTED",
+        "id": "S07P01-S04-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "S06/P01_READY_NOT_STARTED",
+        "id": "S07P01-S05-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "S06/STAGE_REVIEW_READY_NOT_STARTED",
+        "id": "S07P01-S06-P04-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "S06/GITHUB_STAGE_UPLOAD_READY",
+        "id": "S07P01-S06-WHOLE-STAGE-REVIEW-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "identity_fixtures.json",
+        "id": "S07P01-IDENTITY-FIXTURES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "identity_registry.json",
+        "id": "S07P01-REGISTRY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S07_P01.json",
+        "id": "S07P01-MACHINE-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "ABD-IDENTITY-FIXTURES-S07-P01",
+        "id": "S07P01-IDENTITY-FIXTURES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "FIX-S07-P01",
+        "id": "S07P01-MACHINE-FIXTURE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S07P01-REGISTRY-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "authoritative": "1.0000",
+          "cross_source": "0.9950"
+        },
+        "id": "S07P01-POSITIVE-IDENTITY-RESOLUTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "drift": [
+            "IDENTITY_CONFIDENCE_BELOW_THRESHOLD",
+            "START_TIME_NOT_EXACT"
+          ],
+          "unknown": [
+            "EVENT_NOT_UNIQUELY_IDENTIFIED"
+          ]
+        },
+        "id": "S07P01-NEGATIVE-IDENTITY-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "equal": {
+            "identity_action": "IDENTITY_ELIGIBLE_DOWNSTREAM_GATES_REQUIRED",
+            "identity_confidence": "0.9950",
+            "identity_confidence_threshold": "0.9950",
+            "identity_eligible": true
+          },
+          "lower": {
+            "identity_action": "NO_ADVICE",
+            "identity_confidence": "0.9949",
+            "identity_confidence_threshold": "0.9950",
+            "identity_eligible": false
+          },
+          "upper": {
+            "identity_action": "IDENTITY_ELIGIBLE_DOWNSTREAM_GATES_REQUIRED",
+            "identity_confidence": "0.9951",
+            "identity_confidence_threshold": "0.9950",
+            "identity_eligible": true
+          }
+        },
+        "id": "S07P01-CONFIDENCE-BOUNDARY-PLUS-MINUS-00001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "count": 100,
+          "hash": "f289eb04cf17505edc931b6fd05965063f5648bf3dd60356951594a96fec4b4c"
+        },
+        "id": "S07P01-100-REPLAY-DETERMINISTIC-NO-WAIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "count": 10000,
+          "failures": []
+        },
+        "id": "S07P01-ONE-IN-TEN-THOUSAND-ADVERSE-NO-ADVICE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "denied": [],
+          "imports": [
+            "__future__",
+            "dataclasses",
+            "datetime",
+            "decimal",
+            "hashlib",
+            "json",
+            "pathlib",
+            "re",
+            "typing",
+            "unicodedata",
+            "zoneinfo"
+          ],
+          "tokens": []
+        },
+        "id": "S07P01-NO-NETWORK-PROCESS-OR-SLEEP-IMPORT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 24,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 57
+          }
+        },
+        "id": "S07P01-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": 4870,
+          "normalized": true,
+          "summary": {
+            "errors": 0,
+            "failures": 0,
+            "skipped": 0,
+            "tests": 4907
+          }
+        },
+        "id": "S07P01-FULL-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S07P01-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S07P01-TASKPACK-PASS",
+        "passed": true
+      },
+      {
+        "detail": "scan receipt present",
+        "id": "S07P01-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S07-P01",
+    "decision": "IDENTITY_GATE_PASSED_DOWNSTREAM_GATES_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed_for_identity": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "provider_account_or_page_accessed": false,
+      "raw_market_or_odds_data_read": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false,
+      "scheduler_daemon_started": false
+    },
+    "external_network_used_by_verifier": false,
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/identity_resolution.py": "bc4ae6d441cd2e1b90fd7bcc01644ab3a85856e225e0fe80e52586b190890581",
+      "identity_fixtures.json": "d79b855a58089fc143739bbc032ca9d42317f7d453c6cad4fadcef1595877fc7",
+      "identity_registry.json": "ca8962619e0a93ea6080de78635a63ecc3c22ffc0f09a25c5fef10bf2df10b05",
+      "identity_resolver.py": "4d3cf470f26928d8194d24b37e78286a8920b036db56f2b4d87122146ef28250",
+      "machine/evidence/EVD-S06-P04.json": "2530864a43e7b4d2a2a55ccdbbe4a218a77a11b52438ab49ea9c2664f1f60aea",
+      "machine/evidence/EVD-S06-P04_rollback.json": "a54bfe27ffac5efad8fab4683a4a389239939e8fdbdf43fc75fef489c04fc579",
+      "machine/evidence/EVD-S06-STAGE-REVIEW.json": "467f3d610bb2b027a6a14ede52ad2ced9a5b71b95dee057641533d4ad29f0be3",
+      "machine/evidence/EVD-S06-STAGE-REVIEW_rollback.json": "2afa60333d47b6459bc8492e0e868e23b1f11aee852c40ebe6469a90a6eb6dc2",
+      "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "machine/evidence/S05/STAGE_REVIEW/github_delivery_receipt.json": "5926e2e8ef70c141b9453dbced4851f02499fda817d99a4922cfe3272f75ace2",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S07_P01.json": "d4e4c4d9f2d8dae1f72cea8805cf3ea3f8ceb98b8bbba44287c7dff59e69ab4d",
+      "tests/S07/P01_test.py": "a4003b8daf7f94890bf750a6ca9275fb23e31971b63b0c84ac0bfe266d079994"
+    },
+    "next": "S07/P02_READY_NOT_STARTED",
+    "no_real_time_soak": {
+      "deterministic_adverse_replay_count": 10000,
+      "deterministic_replay_count": 100,
+      "required": false,
+      "wait_performed": false
+    },
+    "phase_id": "P01",
+    "phase_status": "S07_P01_PASS",
+    "requirement_id": "REQ-S07-P01",
+    "stage_id": "S07",
+    "status": "PASS",
+    "summary": {
+      "checks": 51,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 51
+    }
+  }
+}

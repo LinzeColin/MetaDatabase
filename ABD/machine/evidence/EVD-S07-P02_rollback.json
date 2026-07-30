@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "abd_acceptance/temporal_lineage.py": {
+      "after": "2c734000bae4147fe000c46d597fc2ca86c639042926583701606ccc7bc50c4d",
+      "before": "2c734000bae4147fe000c46d597fc2ca86c639042926583701606ccc7bc50c4d",
+      "status": "PASS"
+    },
+    "leakage_oracle.py": {
+      "after": "7988dd12cb40b2be837c0efe2904241bffcd4752e437ddba5ca92359e6791208",
+      "before": "7988dd12cb40b2be837c0efe2904241bffcd4752e437ddba5ca92359e6791208",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S07_P02.json": {
+      "after": "45d7dfb31920587332d0375f79bf418a30fb9f664a7be19be9acaab8f4b1f22b",
+      "before": "45d7dfb31920587332d0375f79bf418a30fb9f664a7be19be9acaab8f4b1f22b",
+      "status": "PASS"
+    },
+    "temporal_lineage.schema.json": {
+      "after": "c55fa1a91179347308c31e518e6c4350982d807783a2086061c8e0fe8b88ee5a",
+      "before": "c55fa1a91179347308c31e518e6c4350982d807783a2086061c8e0fe8b88ee5a",
+      "status": "PASS"
+    },
+    "tests/S07/P02_test.py": {
+      "after": "a9aad16244fdc7bf4bb5706b728fc476c274da238387742a194510fe6a862a86",
+      "before": "a9aad16244fdc7bf4bb5706b728fc476c274da238387742a194510fe6a862a86",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S07-P02",
+  "evidence_id": "EVD-S07-P02-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_TEMPORAL_LINEAGE_GATE_RESTORE_PRIOR_SIGNED_ARTIFACTS_REPLAY_DERIVED_STATE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

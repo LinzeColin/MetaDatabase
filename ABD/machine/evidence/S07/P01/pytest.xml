@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="57" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S07.P01_test" name="test_candidate_preflight_and_contract_pass_without_generated_reports" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_taskpack_identity_scope_and_trace_are_exact" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_phase_artifact_hash_matches_pin[identity_fixtures.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_phase_artifact_hash_matches_pin[identity_registry.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_phase_artifact_hash_matches_pin[identity_resolver.py]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_phase_artifact_hash_matches_pin[machine/tests/fixtures/S07_P01.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_phase_artifact_hash_matches_pin[tests/S07/P01_test.py]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[PURSUE_GOAL_PROMPT.txt]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[VERSION]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S06-P04.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S06-P04_rollback.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S06-STAGE-REVIEW.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S06-STAGE-REVIEW_rollback.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/S05/STAGE_REVIEW/github_delivery_receipt.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/roadmap_stage_phase.md]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/acceptance_contracts.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/canonical_facts.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/costs.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/model_system_card.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/parameters.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/requirements.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/roadmap.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/task_graph.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/traceability_matrix.json]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_registry_is_frozen_synthetic_and_valid" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_positive_reference_and_cross_source_boundary_resolutions_are_exact" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_confidence_threshold_boundary_is_exact[value0-False-NO_ADVICE]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_confidence_threshold_boundary_is_exact[value1-True-IDENTITY_ELIGIBLE_DOWNSTREAM_GATES_REQUIRED]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_confidence_threshold_boundary_is_exact[value2-True-IDENTITY_ELIGIBLE_DOWNSTREAM_GATES_REQUIRED]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_confidence_rejects_binary_float_boolean_precision_loss_and_out_of_range[0.995]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_confidence_rejects_binary_float_boolean_precision_loss_and_out_of_range[True]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_confidence_rejects_binary_float_boolean_precision_loss_and_out_of_range[value2]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_confidence_rejects_binary_float_boolean_precision_loss_and_out_of_range[value3]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_line_canonicalization_is_exact_and_float_free[value0-expected0]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_line_canonicalization_is_exact_and_float_free[value1-expected1]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_line_canonicalization_is_exact_and_float_free[value2-expected2]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_line_canonicalization_is_exact_and_float_free[value3-expected3]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_untrusted_or_unsupported_observation_input_is_never_identity_eligible[&lt;lambda&gt;0]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_untrusted_or_unsupported_observation_input_is_never_identity_eligible[&lt;lambda&gt;1]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_untrusted_or_unsupported_observation_input_is_never_identity_eligible[&lt;lambda&gt;2]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_untrusted_or_unsupported_observation_input_is_never_identity_eligible[&lt;lambda&gt;3]" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_one_second_drift_and_unknown_alias_fail_closed" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_timezone_offset_conflict_and_registry_ambiguity_fail_closed" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_one_hundred_replays_are_hash_identical_without_waiting" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_ten_thousand_adverse_perturbations_never_enable_advice_or_orders" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_resolver_has_no_network_process_scheduler_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_rollback_drill_is_hash_only_and_never_changes_external_state" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_candidate_fails_closed_when_phase_artifact_is_tampered" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_candidate_fails_closed_when_baseline_is_tampered" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_generated_report_mode_fails_closed_when_reports_are_absent" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_junit_normalization_accepts_only_fixed_metadata" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_oracle_cli_is_wired_to_exact_contract" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_candidate_evidence_carries_only_frozen_synthetic_identity_summary" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_existing_receipt_is_fail_closed_when_absent_or_verifiable" time="0.000" />
+    <testcase classname="tests.S07.P01_test" name="test_canonical_financial_and_order_boundaries_remain_unchanged" time="0.000" />
+  </testsuite>
+</testsuites>

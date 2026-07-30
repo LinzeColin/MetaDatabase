@@ -1,0 +1,46 @@
+{
+  "artifacts": {
+    "abd_acceptance/ledger_trace.py": {
+      "after": "12c8bb3a0e560d654c72f92407e5ec5cc84045375811351d87710133278167ce",
+      "before": "12c8bb3a0e560d654c72f92407e5ec5cc84045375811351d87710133278167ce",
+      "status": "PASS"
+    },
+    "ledger.py": {
+      "after": "3a316ea7c6ec347dc6bfa165037d11e0a022d1ca5185fae791bede9f62823cfd",
+      "before": "3a316ea7c6ec347dc6bfa165037d11e0a022d1ca5185fae791bede9f62823cfd",
+      "status": "PASS"
+    },
+    "ledger.schema.json": {
+      "after": "781df3d1e19b1571037ba440daf05fc85fda1cae7d6af528b1f046bfd03ef5ae",
+      "before": "781df3d1e19b1571037ba440daf05fc85fda1cae7d6af528b1f046bfd03ef5ae",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S07_P03.json": {
+      "after": "063a080e95c5d8583510cabaaa9a2fcfd77c46a4cf4d95c9415858073091eb8e",
+      "before": "063a080e95c5d8583510cabaaa9a2fcfd77c46a4cf4d95c9415858073091eb8e",
+      "status": "PASS"
+    },
+    "reconciliation_oracle.py": {
+      "after": "aac95af984a4999aab2b8b3a3cbdbeb158e2766d9d1d66a33aec7249de004e8b",
+      "before": "aac95af984a4999aab2b8b3a3cbdbeb158e2766d9d1d66a33aec7249de004e8b",
+      "status": "PASS"
+    },
+    "tests/S07/P03_test.py": {
+      "after": "e7120bf943f20c042291df957ee114bc13b52da1434cf8301d5f34a8c96e5090",
+      "before": "e7120bf943f20c042291df957ee114bc13b52da1434cf8301d5f34a8c96e5090",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S07-P03",
+  "evidence_id": "EVD-S07-P03-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_LEDGER_GATE_RESTORE_PRIOR_SIGNED_ARTIFACTS_REPLAY_DERIVED_STATE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_account_balance_read_or_written": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

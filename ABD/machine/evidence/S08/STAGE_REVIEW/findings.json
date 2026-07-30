@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S08-WHOLE-STAGE-REVIEW",
+  "stage_id": "S08",
+  "fixed_at": "2026-07-30T00:00:00+10:00",
+  "summary": {"total": 3, "open": 0, "resolved": 3, "blocked": 0},
+  "findings": [
+    {
+      "id": "S08-REVIEW-001",
+      "severity": "HIGH_EVIDENCE_INTEGRITY",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "阶段收据含本机路径且共享接线变化会破坏历史重放",
+      "affected_phases": ["P01", "P02", "P03", "P04"],
+      "discovery_evidence": {
+        "pre_review_replay": {"P01": "FAIL", "P02": "FAIL", "P03": "FAIL", "P04": "PASS"},
+        "absolute_path_scan": "P01_TO_P04_SIGNED_RECEIPTS_CONTAINED_WORKTREE_PATHS"
+      },
+      "root_cause": "验收详情序列化了绝对路径，且 phase 收据把可演进的共享 dispatcher 或 budget scanner 当作历史输入哈希。",
+      "remediation": [
+        "所有 S08 phase 验收详情改为相对 ABD 根目录路径，根外路径 fail-closed。",
+        "共享 dispatcher、bootstrap 和 budget scanner 从 phase 历史输入哈希中显式排除，但每次 current validation 仍实时执行。",
+        "按 P01→P04 前序依赖顺序重放派生制品、JUnit、扫描和签名收据。"
+      ],
+      "old_to_new_receipt_sha256": {
+        "P01": {"old": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac", "new": "aa29bfd32067cf53727399f2f9f521ba08e43600b4597b358f994507c5010e13"},
+        "P02": {"old": "eba7a1a1fe4c182ca9677d5b16e409266b8d4c881b8162fbce1f4f1f7ca6ad2d", "new": "4e72c6bb9794f9b3eee7bc719c8b0f464cd149c03276752e49046e1000ca9b4c"},
+        "P03": {"old": "6d70ea3d8960da3af41d7156d6400335de65b822d83531e15565010d637cf9f5", "new": "b5e92c155f25f7b505f4129a4599af7425c117eda7a6828cbcbd7443a7ff367b"},
+        "P04": {"old": "a93e4be417428195a7b656ef7ab49a452dff2ec27464798ba065abaf1ec4acaa", "new": "20ac3e8d01d5623dfb4616ed8cb6076735b7c0d42b9cf118a4688883eb8271d3"}
+      },
+      "closure_evidence": [
+        "all four current evidence verifiers pass",
+        "signed P01-P04 receipt and rollback scan has no local path URI",
+        "whole-stage deterministic replay and adverse perturbation remain actionless"
+      ],
+      "external_state_changed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S08-REVIEW-002",
+      "severity": "HIGH_CONTINUOUS_EVIDENCE_INTEGRITY",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "可演进签名输入的 portable replay 未按仓库根解析，且一项允许的 current hash 未被固定",
+      "affected_contract_ids": ["AC-S03-P04", "AC-S04-P04", "AC-S05-P04", "AC-S07-P04"],
+      "discovery_evidence": {
+        "full_regression_initial_result": "10_FAILED_5267_PASSED",
+        "full_regression_follow_up_result": "3_FAILED_5285_PASSED",
+        "root_cause": "旧 Oracle 已声明部分输入可演进，但无 Git 回放把仓库根的 .github 路径错误拼接到 ABD 根内；同时 S03 整阶段收据已允许 abd_acceptance/stage2_review.py 演进，却没有该文件的当前精确兼容锚点。"
+      },
+      "remediation": [
+        "新增 machine/facts/s08_legacy_receipt_compatibility.json，固定 S08 审查时的精确 successor source SHA-256。",
+        "兼容 helper 先验证其固定 manifest SHA-256，再只为旧 Oracle 已显式声明的 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS 返回精确当前哈希；不匹配、越界或未声明路径一律 fail-closed。",
+        "S03 至 S05 的 portable fallback 对 .github 路径只从 ABD 父目录解析，普通 ABD 路径仍从 ABD 根解析；每条路径仍需处于其原有 allow-list 且匹配精确 SHA-256。",
+        "将 S03 已允许的 abd_acceptance/stage2_review.py 当前 SHA-256 纳入兼容清单；未声明路径不能从清单获得许可。"
+      ],
+      "closure_evidence": [
+        "S03/P04、S04/P04、S05/P04 isolated receipt replay PASS（portable root fix 后）",
+        "S07/P04 与 S07 whole-stage review targeted replay PASS",
+        "compatibility manifest and helper are hash-pinned by S08 review contract"
+      ],
+      "external_state_changed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "real_time_soak_waited": false
+    },
+    {
+      "id": "S08-REVIEW-003",
+      "severity": "HIGH_CONTINUOUS_DELIVERY",
+      "status": "RESOLVED_IN_STAGE_REVIEW",
+      "title": "完整回归与真实时间 soak 不符合当前快速发布授权",
+      "affected_paths": [
+        ".github/workflows/abd-stage0-validation.yml"
+      ],
+      "discovery_evidence": {
+        "current_delivery_policy": "NO_FULL_REGRESSION_OR_REAL_TIME_SOAK",
+        "historical_remote_runs": "previous full-workflow cancellations are not accepted as release evidence",
+        "local_full_regression_output": "discarded; an interrupted report is not accepted as green evidence"
+      },
+      "root_cause": "旧 CI 设计把无范围 pytest 和完整回归工作流绑定到提交路径；这与当前用户授权的快速、定向、非 soak 推进策略冲突。",
+      "remediation": [
+        "删除完整回归工作流及其调用、路径触发和证据依赖。",
+        "保留 15 分钟的快速失效门，仅运行固定的 S00 基线/CI 变异节点与 S08 整阶段复审节点。",
+        "S00 与 S08 固定快速工作流的精确 SHA-256，并对范围化 pytest、无 full-workflow 引用、无 secret、无 continue-on-error、无 sleep 与固定 action 版本进行 fail-closed 验证。",
+        "签名收据只接受快速定向 JUnit、签名状态 JUnit、任务包验证、A$0 扫描和 SHA-256 清单；不把未运行、取消或中断的完整回归当作通过证据。"
+      ],
+      "closure_evidence": [
+        "S00 与 S08 的快速定向 CI 合同都要求精确节点和单一范围化 pytest 调用。",
+        "S08 签名步骤要求快速定向与签名状态报告都为零 failures/errors 且规范化。",
+        "remote CI remains unclaimed until the post-push fast targeted check completes."
+      ],
+      "fast_gate_timeout_minutes": 15,
+      "full_regression_or_real_time_soak_allowed": false,
+      "external_state_changed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "real_time_soak_waited": false
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S08-P04-OUTLIER-LINE-MOVEMENT",
+  "contract_id": "AC-S08-P04",
+  "requirement_id": "REQ-S08-P04",
+  "stage_id": "S08",
+  "phase_id": "P04",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S08/STAGE_REVIEW_READY_NOT_STARTED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "fixed_seed": 8004,
+  "expected_oracle_check_minimum": 34,
+  "expected_task_ids": ["T-S08-P04-01", "T-S08-P04-02", "T-S08-P04-03"],
+  "predecessor_evidence_sha256": "b5e92c155f25f7b505f4129a4599af7425c117eda7a6828cbcbd7443a7ff367b",
+  "predecessor_consensus_vectors_sha256": "0fc10d3949080111b246120261c028e486b43a5e84b99a59cc32cbd0de186efb",
+  "mad_multiplier": "3.5",
+  "quote_usable_seconds": 90,
+  "max_time_skew_seconds": 2,
+  "minimum_confirming_sources": 2,
+  "boundary_perturbation_odds": "0.0001",
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "cases": [
+    {
+      "id": "SINGLE_LONG_ODDS_OUTLIER",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [
+        {"source_id": "SRC_ALPHA", "odds": "2.00"},
+        {"source_id": "SRC_BETA", "odds": "2.05"},
+        {"source_id": "SRC_GAMMA", "odds": "2.10"},
+        {"source_id": "SRC_LONG", "odds": "12.00"}
+      ],
+      "line_observations": [
+        {"source_id": "SRC_ALPHA", "previous_odds": "2.00", "current_odds": "2.00", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:58+10:00"},
+        {"source_id": "SRC_BETA", "previous_odds": "2.05", "current_odds": "2.05", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:59+10:00"},
+        {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"},
+        {"source_id": "SRC_LONG", "previous_odds": "12.00", "current_odds": "12.00", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}
+      ],
+      "expected": {"gate": "BLOCK_NO_RECOMMENDATION", "outlier_source_ids": ["SRC_LONG"], "long_outlier_source_ids": ["SRC_LONG"], "line_status": "NO_LINE_MOVEMENT", "downstream_market_prior_allowed": false}
+    },
+    {
+      "id": "CONFIRMED_LINE_MOVEMENT_FRESH",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [
+        {"source_id": "SRC_ALPHA", "odds": "2.10"},
+        {"source_id": "SRC_BETA", "odds": "2.15"},
+        {"source_id": "SRC_GAMMA", "odds": "2.20"}
+      ],
+      "line_observations": [
+        {"source_id": "SRC_ALPHA", "previous_odds": "2.00", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:58+10:00"},
+        {"source_id": "SRC_BETA", "previous_odds": "2.05", "current_odds": "2.15", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:59+10:00"},
+        {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.20", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}
+      ],
+      "expected": {"gate": "ALLOW_DOWNSTREAM_MARKET_PRIOR", "outlier_source_ids": [], "long_outlier_source_ids": [], "line_status": "CONFIRMED_UP", "downstream_market_prior_allowed": true}
+    },
+    {
+      "id": "UNCONFIRMED_LINE_MOVEMENT",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [
+        {"source_id": "SRC_ALPHA", "odds": "2.10"},
+        {"source_id": "SRC_BETA", "odds": "2.10"},
+        {"source_id": "SRC_GAMMA", "odds": "2.10"}
+      ],
+      "line_observations": [
+        {"source_id": "SRC_ALPHA", "previous_odds": "2.00", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:58+10:00"},
+        {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:59+10:00"},
+        {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}
+      ],
+      "expected": {"gate": "BLOCK_NO_RECOMMENDATION", "outlier_source_ids": [], "long_outlier_source_ids": [], "line_status": "BLOCK_UNCONFIRMED_LINE_MOVEMENT", "downstream_market_prior_allowed": false}
+    },
+    {
+      "id": "STALE_QUOTE",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [
+        {"source_id": "SRC_ALPHA", "odds": "2.10"},
+        {"source_id": "SRC_BETA", "odds": "2.10"},
+        {"source_id": "SRC_GAMMA", "odds": "2.10"}
+      ],
+      "line_observations": [
+        {"source_id": "SRC_ALPHA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:00+10:00", "current_observed_at": "2026-07-29T23:59:59+10:00"},
+        {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:58:20+10:00", "current_observed_at": "2026-07-29T23:58:29+10:00"},
+        {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:00+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}
+      ],
+      "expected": {"gate": "BLOCK_NO_RECOMMENDATION", "outlier_source_ids": [], "long_outlier_source_ids": [], "line_status": "BLOCK_STALE_QUOTES", "downstream_market_prior_allowed": false}
+    },
+    {
+      "id": "TIME_DESYNCHRONIZED_QUOTES",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [
+        {"source_id": "SRC_ALPHA", "odds": "2.10"},
+        {"source_id": "SRC_BETA", "odds": "2.10"},
+        {"source_id": "SRC_GAMMA", "odds": "2.10"}
+      ],
+      "line_observations": [
+        {"source_id": "SRC_ALPHA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:00+10:00", "current_observed_at": "2026-07-29T23:59:57+10:00"},
+        {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:00+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"},
+        {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:00+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}
+      ],
+      "expected": {"gate": "BLOCK_NO_RECOMMENDATION", "outlier_source_ids": [], "long_outlier_source_ids": [], "line_status": "BLOCK_TIME_DESYNCHRONIZED", "downstream_market_prior_allowed": false}
+    },
+    {
+      "id": "MAD_BOUNDARY_NOT_OUTLIER",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [
+        {"source_id": "SRC_ALPHA", "odds": "2.00"},
+        {"source_id": "SRC_BETA", "odds": "2.10"},
+        {"source_id": "SRC_GAMMA", "odds": "2.20"},
+        {"source_id": "SRC_BOUNDARY", "odds": "2.45"}
+      ],
+      "line_observations": [
+        {"source_id": "SRC_ALPHA", "previous_odds": "2.00", "current_odds": "2.00", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:58+10:00"},
+        {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-29T23:59:59+10:00"},
+        {"source_id": "SRC_GAMMA", "previous_odds": "2.20", "current_odds": "2.20", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"},
+        {"source_id": "SRC_BOUNDARY", "previous_odds": "2.45", "current_odds": "2.45", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}
+      ],
+      "expected": {"gate": "ALLOW_DOWNSTREAM_MARKET_PRIOR", "outlier_source_ids": [], "long_outlier_source_ids": [], "line_status": "NO_LINE_MOVEMENT", "downstream_market_prior_allowed": true}
+    }
+  ],
+  "invalid_cases": [
+    {
+      "id": "INVALID_ODDS",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [{"source_id": "SRC_ALPHA", "odds": "1"}, {"source_id": "SRC_BETA", "odds": "2.10"}, {"source_id": "SRC_GAMMA", "odds": "2.10"}],
+      "line_observations": [{"source_id": "SRC_ALPHA", "previous_odds": "2.00", "current_odds": "1", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}]
+    },
+    {
+      "id": "DUPLICATE_QUOTE_SOURCE",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [{"source_id": "SRC_ALPHA", "odds": "2.10"}, {"source_id": "SRC_ALPHA", "odds": "2.10"}, {"source_id": "SRC_GAMMA", "odds": "2.10"}],
+      "line_observations": [{"source_id": "SRC_ALPHA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}]
+    },
+    {
+      "id": "FUTURE_LINE_OBSERVATION",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [{"source_id": "SRC_ALPHA", "odds": "2.10"}, {"source_id": "SRC_BETA", "odds": "2.10"}, {"source_id": "SRC_GAMMA", "odds": "2.10"}],
+      "line_observations": [{"source_id": "SRC_ALPHA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:01+10:00"}, {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}]
+    },
+    {
+      "id": "MISMATCHED_LINE_SOURCE_SET",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "3.5",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [{"source_id": "SRC_ALPHA", "odds": "2.10"}, {"source_id": "SRC_BETA", "odds": "2.10"}, {"source_id": "SRC_GAMMA", "odds": "2.10"}],
+      "line_observations": [{"source_id": "SRC_ALPHA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_DELTA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}]
+    },
+    {
+      "id": "INVALID_MAD_MULTIPLIER",
+      "as_of": "2026-07-30T00:00:00+10:00",
+      "mad_multiplier": "0",
+      "quote_usable_seconds": 90,
+      "max_time_skew_seconds": 2,
+      "minimum_confirming_sources": 2,
+      "quotes": [{"source_id": "SRC_ALPHA", "odds": "2.10"}, {"source_id": "SRC_BETA", "odds": "2.10"}, {"source_id": "SRC_GAMMA", "odds": "2.10"}],
+      "line_observations": [{"source_id": "SRC_ALPHA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_BETA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}, {"source_id": "SRC_GAMMA", "previous_odds": "2.10", "current_odds": "2.10", "previous_observed_at": "2026-07-29T23:59:30+10:00", "current_observed_at": "2026-07-30T00:00:00+10:00"}]
+    }
+  ]
+}

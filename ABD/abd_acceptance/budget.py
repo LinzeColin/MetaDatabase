@@ -482,7 +482,22 @@ def _audit_imports(
     allowed_third_party = set(import_mapping)
     # Root-level modules below are task-pack-mandated local source, not
     # unclassified third-party distributions.
-    allowed_local = {"abd_acceptance", "machine", "mail_collector", "attachment_sandbox", "mail_trash_worker"}
+    allowed_local = {
+        "abd_acceptance",
+        "machine",
+        "mail_collector",
+        "attachment_sandbox",
+        "mail_trash_worker",
+        "identity_resolver",
+        "leakage_oracle",
+        "ledger",
+        "reconciliation_oracle",
+        "devig",
+        "source_independence",
+        "market_consensus",
+        "outlier_detector",
+        "line_movement",
+    }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:
         relative = path.relative_to(root).as_posix()

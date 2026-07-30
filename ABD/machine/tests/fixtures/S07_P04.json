@@ -1,0 +1,174 @@
+{
+  "adverse_odds_ticks": [
+    "-0.0001",
+    "0.0001"
+  ],
+  "adverse_replay_count": 10000,
+  "cases": [
+    {
+      "case_id": "POSITIVE_EXACT_CHAIN",
+      "coverage": "1.0000",
+      "expected": {
+        "reason_codes": [],
+        "status": "CONTINUITY_VERIFIED_NO_ACTION"
+      },
+      "snapshot": {
+        "orphans": {
+          "artifacts": [],
+          "contracts": [],
+          "evidence": [],
+          "release": [],
+          "requirements": [],
+          "tasks": [],
+          "traceability": []
+        }
+      }
+    },
+    {
+      "case_id": "BOUNDARY_COVERAGE_MINUS_0001",
+      "coverage": "0.9999",
+      "expected": {
+        "reason_codes": [
+          "LINK_COVERAGE_BELOW_ONE"
+        ],
+        "status": "CONTINUITY_REJECTED_NO_ACTION"
+      },
+      "snapshot": {
+        "orphans": {
+          "artifacts": [],
+          "contracts": [],
+          "evidence": [],
+          "release": [],
+          "requirements": [],
+          "tasks": [],
+          "traceability": []
+        }
+      }
+    },
+    {
+      "case_id": "BOUNDARY_COVERAGE_EXACT",
+      "coverage": "1.0000",
+      "expected": {
+        "reason_codes": [],
+        "status": "CONTINUITY_VERIFIED_NO_ACTION"
+      },
+      "snapshot": {
+        "orphans": {
+          "artifacts": [],
+          "contracts": [],
+          "evidence": [],
+          "release": [],
+          "requirements": [],
+          "tasks": [],
+          "traceability": []
+        }
+      }
+    },
+    {
+      "case_id": "BOUNDARY_COVERAGE_PLUS_0001",
+      "coverage": "1.0001",
+      "expected": {
+        "reason_codes": [
+          "LINK_COVERAGE_ABOVE_ONE"
+        ],
+        "status": "CONTINUITY_REJECTED_NO_ACTION"
+      },
+      "snapshot": {
+        "orphans": {
+          "artifacts": [],
+          "contracts": [],
+          "evidence": [],
+          "release": [],
+          "requirements": [],
+          "tasks": [],
+          "traceability": []
+        }
+      }
+    },
+    {
+      "case_id": "NEGATIVE_ORPHAN_TASK",
+      "coverage": "1.0000",
+      "expected": {
+        "reason_codes": [
+          "ORPHAN_TASKS"
+        ],
+        "status": "CONTINUITY_REJECTED_NO_ACTION"
+      },
+      "snapshot": {
+        "orphans": {
+          "artifacts": [],
+          "contracts": [],
+          "evidence": [],
+          "release": [],
+          "requirements": [],
+          "tasks": [
+            "T-S07-P04-02"
+          ],
+          "traceability": []
+        }
+      }
+    },
+    {
+      "case_id": "FAULT_ORPHAN_EVIDENCE_INDEX",
+      "coverage": "1.0000",
+      "expected": {
+        "reason_codes": [
+          "ORPHAN_EVIDENCE"
+        ],
+        "status": "CONTINUITY_REJECTED_NO_ACTION"
+      },
+      "snapshot": {
+        "orphans": {
+          "artifacts": [],
+          "contracts": [],
+          "evidence": [
+            "INDEX-AC-S07-P04"
+          ],
+          "release": [],
+          "requirements": [],
+          "tasks": [],
+          "traceability": []
+        }
+      }
+    }
+  ],
+  "contract_id": "AC-S07-P04",
+  "expected_counts": {
+    "contracts": 80,
+    "index": 91,
+    "requirements": 80,
+    "tasks": 240,
+    "traceability": 80
+  },
+  "expected_next": "S07/STAGE_REVIEW_READY_NOT_STARTED",
+  "expected_oracle_check_minimum": 49,
+  "expected_positive_output_sha256": "48ba72cd94f32a6b1998d31e076fdeac910187cb549e7bba05afc66d9f342dff",
+  "expected_source_version_sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "parameter_version_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+  "phase_id": "P04",
+  "predecessor": {
+    "contract_id": "AC-S07-P03",
+    "evidence_path": "machine/evidence/EVD-S07-P03.json",
+    "evidence_sha256": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+    "next": "S07/P04_READY_NOT_STARTED",
+    "rollback_path": "machine/evidence/EVD-S07-P03_rollback.json",
+    "rollback_sha256": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf"
+  },
+  "replay_count": 100,
+  "schema_version": "1.0.0",
+  "stage_id": "S07",
+  "target_test_minimum": 50
+}

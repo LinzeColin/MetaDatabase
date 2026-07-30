@@ -321,6 +321,37 @@ def test_abd_ci_workflow_mutations_fail_closed(tmp_path: Path, mutation: str) ->
     _failed(evaluate_contract(project, False), expected)
 
 
+@pytest.mark.parametrize(
+    ("mutation", "expected"),
+    [
+        ("unscoped_pytest", "REVIEW-ABD-FAST-TARGETED-EXECUTION-CONTRACT"),
+        ("missing_s08_target", "REVIEW-ABD-FAST-TARGETED-EXECUTION-CONTRACT"),
+        ("full_regression_reference", "REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED"),
+        ("sleep_reference", "REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED"),
+        ("disabled_step", "REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED"),
+    ],
+)
+def test_abd_fast_targeted_workflow_mutations_fail_closed(tmp_path: Path, mutation: str, expected: str) -> None:
+    project = _clone_repo(tmp_path)
+    fast_path = project.parent / ".github/workflows/abd-stage0-validation.yml"
+    text = fast_path.read_text(encoding="utf-8")
+    if mutation == "unscoped_pytest":
+        text = text.replace(
+            "python -m pytest -q\n          tests/S00/stage_review_test.py::test_baseline_whole_stage_review_passes_without_generated_stage_reports",
+            "python -m pytest -q\n          tests/S00/stage_review_test.py",
+        )
+    elif mutation == "missing_s08_target":
+        text = text.replace("\n          tests/S08/stage_review_test.py", "")
+    elif mutation == "full_regression_reference":
+        text += "\n# abd-full-regression.yml\n"
+    elif mutation == "sleep_reference":
+        text += "\n# sleep 1\n"
+    else:
+        text += "\n# if: ${{ false }}\n"
+    fast_path.write_text(text, encoding="utf-8")
+    _failed(evaluate_contract(project, False), expected)
+
+
 @pytest.mark.parametrize("mutation", ["omit_abd", "omit_governance_project"])
 def test_repository_ci_classification_cannot_silently_skip_renderer(tmp_path: Path, mutation: str) -> None:
     project = _clone_repo(tmp_path)
@@ -442,6 +473,7 @@ def test_stage_review_evaluation_does_not_mutate_inputs() -> None:
         ROOT / FIXTURE_PATH,
         REPO_ROOT / ".github/workflows/dual-plane.yml",
         REPO_ROOT / ".github/workflows/abd-stage0-validation.yml",
+        REPO_ROOT / ".github/workflows/abd-full-regression.yml",
     ]
     before = {path.as_posix(): sha256_file(path) for path in paths}
     result = evaluate_contract(ROOT, require_external_reports=False)

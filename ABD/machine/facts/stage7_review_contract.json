@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S07",
+  "review_id": "ABD-S07-WHOLE-STAGE-REVIEW",
+  "fixed_at": "2026-07-30T00:00:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S07-P01", "REQ-S07-P02", "REQ-S07-P03", "REQ-S07-P04"],
+    "acceptance_contract_ids": ["AC-S07-P01", "AC-S07-P02", "AC-S07-P03", "AC-S07-P04"],
+    "task_ids": [
+      "T-S07-P01-01", "T-S07-P01-02", "T-S07-P01-03",
+      "T-S07-P02-01", "T-S07-P02-02", "T-S07-P02-03",
+      "T-S07-P03-01", "T-S07-P03-02", "T-S07-P03-03",
+      "T-S07-P04-01", "T-S07-P04-02", "T-S07-P04-03"
+    ]
+  },
+  "supplied_source_receipts": [
+    {
+      "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+      "repository_equivalent_required": true
+    },
+    {
+      "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "original_file_count": 53,
+      "repository_equivalent": null,
+      "repository_equivalent_required": false,
+      "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical repository files, not the absent ZIP"
+    }
+  ],
+  "baseline_critical_artifacts": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S07-P01",
+      "acceptance_contract_id": "AC-S07-P01",
+      "task_ids": ["T-S07-P01-01", "T-S07-P01-02", "T-S07-P01-03"],
+      "evidence_path": "machine/evidence/EVD-S07-P01.json",
+      "evidence_sha256": "2e3f7ceb3e93807fbb14c224282ab3d062d6197c5a139a771e24d30f5316aa99",
+      "rollback_path": "machine/evidence/EVD-S07-P01_rollback.json",
+      "rollback_sha256": "f3a6cbab09f3fc3bb39b15eef2a9371ce2f54c1dd9784a5bd8d8728d16d0e656",
+      "implementation_commit": "167d052618112b79dca1b8297b72b7e2df8190ab",
+      "implementation_code_sha256": "fcc7f8ef57e3557ffe71b8d7d5392774c55e9a0df8536c7c1c78bbf8a9a257a4",
+      "expected_next": "S07/P02_READY_NOT_STARTED",
+      "required_outputs": ["identity_resolver.py", "identity_fixtures.json", "identity_registry.json"]
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S07-P02",
+      "acceptance_contract_id": "AC-S07-P02",
+      "task_ids": ["T-S07-P02-01", "T-S07-P02-02", "T-S07-P02-03"],
+      "evidence_path": "machine/evidence/EVD-S07-P02.json",
+      "evidence_sha256": "05b99ca4038dfff43c1c4ae7591a708fe2e58aefc3f86e7ee38444072647b602",
+      "rollback_path": "machine/evidence/EVD-S07-P02_rollback.json",
+      "rollback_sha256": "89f7a7ec50228ac49494d52c28c2f468e962414478ff86c64a420fbbdafb68d9",
+      "implementation_commit": "96393efb8f3cac7833f8cb9e29b3b15f7d4b3e48",
+      "implementation_code_sha256": "b5c5e6ef10c624b35859b8d097585589e89f2eac2d923d64de5e7b2a49ddeeb9",
+      "expected_next": "S07/P03_READY_NOT_STARTED",
+      "required_outputs": ["temporal_lineage.schema.json", "leakage_oracle.py"]
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S07-P03",
+      "acceptance_contract_id": "AC-S07-P03",
+      "task_ids": ["T-S07-P03-01", "T-S07-P03-02", "T-S07-P03-03"],
+      "evidence_path": "machine/evidence/EVD-S07-P03.json",
+      "evidence_sha256": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
+      "rollback_path": "machine/evidence/EVD-S07-P03_rollback.json",
+      "rollback_sha256": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
+      "implementation_commit": "1ff7473bbc1b7b61bbd8142f696528f8b51e7330",
+      "implementation_code_sha256": "d8ed10b464331c51e47401df7e99cf2449bb48c77583f8c7b979bd738b518eff",
+      "expected_next": "S07/P04_READY_NOT_STARTED",
+      "required_outputs": ["ledger.py", "ledger.schema.json", "reconciliation_oracle.py"]
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S07-P04",
+      "acceptance_contract_id": "AC-S07-P04",
+      "task_ids": ["T-S07-P04-01", "T-S07-P04-02", "T-S07-P04-03"],
+      "evidence_path": "machine/evidence/EVD-S07-P04.json",
+      "evidence_sha256": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6",
+      "rollback_path": "machine/evidence/EVD-S07-P04_rollback.json",
+      "rollback_sha256": "ad483c1e873985c14e5c70d67fb18c2801d9033bf8ed435ca9b149e8bb82054a",
+      "implementation_commit": "c44a2d6a0164daddc0b656ecd6b59b151c8d8988",
+      "implementation_code_sha256": "e0ac5670305a7a08f4a74bd3ad6089627990388d20c6c526a6823b959a3f5559",
+      "expected_next": "S07/STAGE_REVIEW_READY_NOT_STARTED",
+      "required_outputs": ["evidence_index.jsonl", "traceability_matrix.json", "artifact_manifest.json"]
+    }
+  ],
+  "review_findings_path": "machine/evidence/S07/STAGE_REVIEW/findings.json",
+  "review_gates": [
+    "SUPPLIED_BASELINE_CRITICAL_HASHES_MATCH",
+    "S07_REQUIREMENT_ACCEPTANCE_TASK_TRACE_EXACT",
+    "P01_TO_P04_SIGNED_RECEIPTS_AND_CURRENT_ORACLES_PASS",
+    "NO_SIGNED_EVIDENCE_LOCAL_PATH_OR_SECRET_MATERIAL",
+    "IDENTITY_995_ZERO_FUTURE_INFO_NO_UNEXECUTED_FUNDS_CHANGE_AND_NO_ORPHAN_CONTINUITY",
+    "DETERMINISTIC_100_REPLAY_AND_TEN_THOUSAND_ADVERSE_NO_ACTION_PASS_WITHOUT_WAIT",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "NO_EXTERNAL_RUNTIME_OR_FINANCIAL_RETURN_CLAIM",
+    "FULL_STAGE_REGRESSION_TASKPACK_SIGNED_STATE_AND_ROLLBACK_PASS"
+  ],
+  "upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS",
+    "WHOLE_STAGE_REVIEW_PASS",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS",
+    "SIGNED_STATE_REGRESSION_PASS",
+    "PAID_DEPENDENCY_SCAN_PASS",
+    "CLEAN_WORKTREE_AFTER_COMMIT",
+    "NO_INCREMENTAL_CASH_COST"
+  ],
+  "stage_stop_conditions": [
+    "发现法律、监管或来源合同实质冲突且无安全默认",
+    "需要不可逆操作",
+    "新增现金支出将超过A$0",
+    "严重安全事故或证据完整性失败",
+    "阶段终止条件被触发"
+  ],
+  "external_effect_boundary": {
+    "github_upload_performed_by_local_review": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "external_network_accessed_for_product_runtime": false,
+    "gmail_account_or_api_accessed": false,
+    "gmail_mutation_performed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "model_or_strategy_executed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "secret_provisioned_or_read": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_time_soak_waited": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "owner_final_order_only": true
+  },
+  "claim_boundary": {
+    "financial_target_verified_or_guaranteed": false,
+    "production_deployed_or_activated": false,
+    "github_upload_or_remote_ci_verified": false,
+    "ovh_7x24_runtime_verified": false,
+    "cloudflare_global_chinese_access_verified": false,
+    "market_or_account_runtime_access_verified": false
+  },
+  "release_status_on_pass": "S07_GITHUB_UPLOAD_REQUIRED_BEFORE_ANY_DEPLOYMENT",
+  "next_on_pass": "S07/GITHUB_STAGE_UPLOAD_READY"
+}

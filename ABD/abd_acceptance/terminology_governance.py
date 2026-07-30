@@ -65,12 +65,13 @@ PINNED_BASELINE_HASHES = {
 }
 
 PINNED_REPO_HASHES = {
-    CONTINUOUS_WORKFLOW_PATH.as_posix(): "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+    CONTINUOUS_WORKFLOW_PATH.as_posix(): "2a71e5df499247259e8c8b86a3de55b6aa3b810207d37972bfa1a554723c7e72",
 }
 
 PHASE_COMMIT = "436e8e7168a383e0ebcac150bef8dd9f79c32c24"
 PINNED_PHASE_CODE_HASH = "bef5b7366e316ddea86feff558636aee243fa97af71ba1b0c107e45171d68392"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    ".github/workflows/abd-stage0-validation.yml",
     "README.md",
     "abd_acceptance/terminology_governance.py",
     "abd_acceptance/__main__.py",
@@ -80,7 +81,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_EVOLVED_PHASE_HASHES = {
     TEST_PATH.as_posix(): "172fd4792995132b92e812205d9f92a9cada9dc9331d6fec63e2157cb71e0aa2",
 }
-SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "89582f96eeb8033d1fe490d4cc1fd346e66bab07d569105b739c7164b8910b72"
+SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "bdaccaa57fc72efe7a56159620db273d135e64eb4b92d64261fdad1df7daf208"
 
 ALLOWED_UI_POLICIES = {
     "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
@@ -998,7 +999,7 @@ def _historical_file_matches(
         if not _phase_commit_is_ancestor(root):
             return False
         result = subprocess.run(
-            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, relative if relative.startswith(".github/") else "ABD/%s" % relative)],
             check=False,
             capture_output=True,
         )

@@ -1,0 +1,70 @@
+{
+  "$id": "https://abd.local/schemas/ledger/1.0.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "pattern": "^LED-[A-Z0-9][A-Z0-9_-]{3,63}$",
+      "type": "string"
+    },
+    "event_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "ADVICE_RECORDED",
+        "EXECUTION_EVIDENCE_RECONCILED"
+      ],
+      "type": "string"
+    },
+    "idempotency_key": {
+      "pattern": "^IDEMP-[A-Z0-9][A-Z0-9:_-]{3,95}$",
+      "type": "string"
+    },
+    "ledger_kind": {
+      "enum": [
+        "ADVICE",
+        "ACTUAL_FUNDS"
+      ],
+      "type": "string"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "previous_event_sha256": {
+      "pattern": "^(?:GENESIS|[a-f0-9]{64})$",
+      "type": "string"
+    },
+    "recorded_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?[+-]\\d{2}:\\d{2}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "event_id",
+    "ledger_kind",
+    "event_type",
+    "idempotency_key",
+    "sequence",
+    "recorded_at",
+    "previous_event_sha256",
+    "payload",
+    "event_sha256"
+  ],
+  "title": "ABD S07/P03 Immutable Ledger Event",
+  "type": "object",
+  "x_abd_artifact_id": "ART-S07-P03-01",
+  "x_abd_contract_id": "AC-S07-P03",
+  "x_abd_production_equivalent": true,
+  "x_abd_two_ledgers": true
+}

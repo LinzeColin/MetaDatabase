@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="29" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S08.P04_test" name="test_artifact_replays_exactly" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_frozen_cases_match_expected_gate[SINGLE_LONG_ODDS_OUTLIER]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_frozen_cases_match_expected_gate[CONFIRMED_LINE_MOVEMENT_FRESH]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_frozen_cases_match_expected_gate[UNCONFIRMED_LINE_MOVEMENT]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_frozen_cases_match_expected_gate[STALE_QUOTE]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_frozen_cases_match_expected_gate[TIME_DESYNCHRONIZED_QUOTES]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_frozen_cases_match_expected_gate[MAD_BOUNDARY_NOT_OUTLIER]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_single_abnormal_long_odds_cannot_create_recommendation" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_exact_3_point_5_mad_boundary_is_not_an_outlier" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_one_tick_past_boundary_becomes_outlier" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_confirmed_line_movement_requires_two_independent_sources" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_unconfirmed_line_movement_blocks_downstream_market_prior" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_stale_quote_blocks_even_without_price_outlier" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_exact_freshness_boundary_is_usable_when_synchronized" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_time_desynchronization_blocks_fresh_quotes" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_invalid_cases_fail_closed[0]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_invalid_cases_fail_closed[1]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_invalid_cases_fail_closed[2]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_invalid_cases_fail_closed[3]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_invalid_cases_fail_closed[4]" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_lower_median_is_deterministic_for_even_vectors" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_one_hundred_replays_are_identical" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_ten_thousand_adverse_long_odds_perturbations_remain_blocked" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_wrong_input_mode_fails_closed" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_core_modules_have_no_network_process_or_soak_surface" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_core_modules_contain_no_binary_float_literal" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_preflight_acceptance_passes_before_evidence_write" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_preflight_evidence_is_json_serializable" time="0.000" />
+    <testcase classname="tests.S08.P04_test" name="test_artifact_has_no_advice_order_or_external_boundary_breach" time="0.000" />
+  </testsuite>
+</testsuites>

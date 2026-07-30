@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S08-P01-DEVIG",
+  "contract_id": "AC-S08-P01",
+  "requirement_id": "REQ-S08-P01",
+  "stage_id": "S08",
+  "phase_id": "P01",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S08/P02_READY_NOT_STARTED",
+  "probability_sum_tolerance": "0.000000001",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "fixed_seed": 8001,
+  "expected_oracle_check_minimum": 28,
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false
+  },
+  "cases": [
+    {
+      "id": "THREE_WAY_STANDARD_MARGIN",
+      "market_complete": true,
+      "odds": ["2.15", "3.30", "3.60"]
+    },
+    {
+      "id": "THREE_WAY_SHIN_REFERENCE",
+      "market_complete": true,
+      "odds": ["2.60", "2.40", "4.30"],
+      "expected_shin_probabilities": ["0.372994060332", "0.404779410920", "0.222226528748"]
+    },
+    {
+      "id": "FOUR_WAY_MAIN_MARKET_MARGIN",
+      "market_complete": true,
+      "odds": ["1.75", "3.60", "5.25", "9.00"]
+    },
+    {
+      "id": "FAIR_TWO_WAY_BOUNDARY",
+      "market_complete": true,
+      "odds": ["2.00", "2.00"]
+    }
+  ],
+  "invalid_cases": [
+    {
+      "id": "INCOMPLETE_SINGLE_SELECTION",
+      "market_complete": true,
+      "odds": ["2.00"]
+    },
+    {
+      "id": "EXPLICITLY_INCOMPLETE_MARKET",
+      "market_complete": false,
+      "odds": ["1.80", "2.10"]
+    },
+    {
+      "id": "UNDERROUND_MARKET",
+      "market_complete": true,
+      "odds": ["2.50", "2.50"]
+    },
+    {
+      "id": "NON_DECIMAL_ODDS",
+      "market_complete": true,
+      "odds": ["1.80", "NaN"]
+    }
+  ]
+}
