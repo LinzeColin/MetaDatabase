@@ -1,0 +1,10 @@
+[Unit]
+Description=CyberBoss watchdog (restarts the bridge or the tunnel when they stop answering)
+# 只依赖网络，**不依赖被它看护的那两个 unit**——看门狗不能跟着病人一起倒下。
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/cyberboss-cloud/shared/ops/cyberboss-watchdog.sh
+# 需要 systemctl restart 别的 unit，所以以 root 跑；脚本本身不碰任何用户数据。
+User=root
