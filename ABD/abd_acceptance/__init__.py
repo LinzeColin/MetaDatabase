@@ -285,6 +285,15 @@ from .tennis_combat_models import (
     verify_existing_phase_evidence as verify_tennis_combat_models_evidence,
     write_phase_evidence as write_tennis_combat_models_phase_evidence,
 )
+from .score_football_models import (
+    ScoreFootballAcceptanceError,
+    build_evidence as build_score_football_models_evidence,
+    evaluate_contract as evaluate_score_football_models_contract,
+    perform_rollback_drill as perform_score_football_models_rollback_drill,
+    validate_candidate_preflight as validate_score_football_models_candidate,
+    verify_existing_phase_evidence as verify_score_football_models_evidence,
+    write_phase_evidence as write_score_football_models_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -509,4 +518,11 @@ __all__ = [
     "validate_tennis_combat_models_candidate",
     "verify_tennis_combat_models_evidence",
     "write_tennis_combat_models_phase_evidence",
+    "ScoreFootballAcceptanceError",
+    "build_score_football_models_evidence",
+    "evaluate_score_football_models_contract",
+    "perform_score_football_models_rollback_drill",
+    "validate_score_football_models_candidate",
+    "verify_score_football_models_evidence",
+    "write_score_football_models_phase_evidence",
 ]

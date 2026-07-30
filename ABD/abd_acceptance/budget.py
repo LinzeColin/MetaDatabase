@@ -498,6 +498,8 @@ def _audit_imports(
         "generic_residual",
         "tennis_model",
         "combat_model",
+        "score_models",
+        "football_model",
         "outlier_detector",
         "line_movement",
     }

@@ -1,5 +1,5 @@
 {
-  "file_count": 546,
+  "file_count": 556,
   "files": [
     {
       "bytes": 105,
@@ -12,9 +12,9 @@
       "sha256": "a1b6d13afea6f383061d2d3405efe2f2d8f4867fbb08a5edf0e53415c16a239a"
     },
     {
-      "bytes": 1909,
+      "bytes": 2242,
       "path": "HANDOFF.md",
-      "sha256": "945e16646bd547ad719515d6e0237d6a4e13c46a4dac30d74670b194367255e4"
+      "sha256": "b065e0b6c1f032606a7fb4ed242443fd061e5f2a0b5898e4747fb24a4155cbce"
     },
     {
       "bytes": 643,
@@ -32,14 +32,14 @@
       "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
     },
     {
-      "bytes": 22056,
+      "bytes": 22880,
       "path": "abd_acceptance/__init__.py",
-      "sha256": "fdf8e44005284720c097e01ff5d992f8e19b42afeb28a996e8bba3e78b0f46d7"
+      "sha256": "4c5d738b04fd901995ec72863c8e4848b3ca2e0ca57e50ebce8ec7c8c1376e1b"
     },
     {
-      "bytes": 10751,
+      "bytes": 11103,
       "path": "abd_acceptance/__main__.py",
-      "sha256": "f9fe847914c75054e3087075e6df1b0fb420f3d89c2b2085f7a0ab5fb256734d"
+      "sha256": "5927351809150aa87a7d1a758c444438526794258f9dc5a57ea6d7aea763b76e"
     },
     {
       "bytes": 83338,
@@ -57,9 +57,9 @@
       "sha256": "7762779fdb9be6b3b351e05a97dd68b64fc771e5692388fdb9c37194427e2249"
     },
     {
-      "bytes": 51827,
+      "bytes": 51877,
       "path": "abd_acceptance/budget.py",
-      "sha256": "4ad6806b57fa60aee4d700aae423e8464f1a192d64b5e2ae28b468e3c12fef69"
+      "sha256": "450882a2123f2363456f3dce47faec7e86258caed269e32b76bdc02985195e2b"
     },
     {
       "bytes": 23188,
@@ -210,6 +210,11 @@
       "bytes": 79954,
       "path": "abd_acceptance/research_gap_audit.py",
       "sha256": "41b6a41893b82de561e424189adbd7c22fbfacd603fdaf114f19876310a1a0fd"
+    },
+    {
+      "bytes": 45141,
+      "path": "abd_acceptance/score_football_models.py",
+      "sha256": "949e14069a6579524dbfc26784d8da9062428d37f474cece9feeaf67388e53ee"
     },
     {
       "bytes": 63358,
@@ -432,6 +437,11 @@
       "sha256": "ebc39fa41485a8e8eb6b9178c31a1b12c331fb2c16b9255a4ec7ce833a624266"
     },
     {
+      "bytes": 971,
+      "path": "distribution_tests.json",
+      "sha256": "88558194423cf78c47fd43bf5b5fa2ebcc2d1033127ea5bb48d7bd241691ec38"
+    },
+    {
       "bytes": 2005,
       "path": "docs/governance/flow.yaml",
       "sha256": "3ae7b6d7753e8a1f5b892c12b4e8538359c76ddcac9759281232d6d881d709ba"
@@ -455,6 +465,11 @@
       "bytes": 4637,
       "path": "feature_flags.json",
       "sha256": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254"
+    },
+    {
+      "bytes": 14363,
+      "path": "football_model.py",
+      "sha256": "b5a9d264bc3879e0ddc7edb0e4c7256095875a497a3be664eaa97e2655f3a8d5"
     },
     {
       "bytes": 7362,
@@ -1025,6 +1040,16 @@
       "bytes": 1763,
       "path": "machine/evidence/EVD-S09-P02_rollback.json",
       "sha256": "5f9cd9fb5b6327c954ca8e499f4cda6df32b0bb9b82fb17d5d8f3289368d4852"
+    },
+    {
+      "bytes": 9454,
+      "path": "machine/evidence/EVD-S09-P03.json",
+      "sha256": "831d114e888ebfb565236314ab90828b771379fc77e5e0a9b99696224521bdf1"
+    },
+    {
+      "bytes": 1711,
+      "path": "machine/evidence/EVD-S09-P03_rollback.json",
+      "sha256": "0201487b48e3f81ebf78deafa43d1b5fff4caa15b1a7156c343c9514dd70b7c6"
     },
     {
       "bytes": 1981,
@@ -1652,9 +1677,19 @@
       "sha256": "244ee86d47eb874f60d89b7cbbd1466e04a80735cb3ac5a2759622a18084c506"
     },
     {
-      "bytes": 32617,
+      "bytes": 1719,
+      "path": "machine/evidence/S09/P03/paid_dependency_scan.txt",
+      "sha256": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1"
+    },
+    {
+      "bytes": 5160,
+      "path": "machine/evidence/S09/P03/pytest.xml",
+      "sha256": "50a6d0480ffc611b43b865f5ff3016e82524d7d8504fcba6e1d2033bc6047653"
+    },
+    {
+      "bytes": 32721,
       "path": "machine/evidence/evidence_index.jsonl",
-      "sha256": "c24578212c3ab858f3e8fc09d5f1dda64144358aae941a678de9f25c428f2aed"
+      "sha256": "557d008f2f9c769b1d45f335f52f77ef36dfa5e704e64a2f6fc59d833c05c740"
     },
     {
       "bytes": 1120,
@@ -2152,6 +2187,11 @@
       "sha256": "81e367bdfce2ab5c4e07a87cea46d0ee5dc7f5cfb19877f3c6ca737b3b6d11f0"
     },
     {
+      "bytes": 9468,
+      "path": "machine/tests/fixtures/S09_P03.json",
+      "sha256": "987f86373d70d8992af212236848b9b41eadb5a19f516b029cfe06418d84705c"
+    },
+    {
       "bytes": 1705,
       "path": "machine/tests/fixtures/email_security_vectors.json",
       "sha256": "92aacc77257dc3420769c19944076eb70079b8e1cf4187af83b89dc351c5b254"
@@ -2350,6 +2390,11 @@
       "bytes": 11954,
       "path": "scope_boundary.json",
       "sha256": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+    },
+    {
+      "bytes": 22322,
+      "path": "score_models.py",
+      "sha256": "286ef8e1359ea3fa3ae936754e0b1f43a2707ef5376e3f4b39c8df5da59b2ac3"
     },
     {
       "bytes": 17506,
@@ -2670,6 +2715,11 @@
       "bytes": 13475,
       "path": "tests/S09/P02_test.py",
       "sha256": "da3ddacf6f2a6f4597be2baf5dfa86518d5919b6b8da000c6480caaf82b1b80a"
+    },
+    {
+      "bytes": 15103,
+      "path": "tests/S09/P03_test.py",
+      "sha256": "a8b4b822d1f698a143eb764882c703a0b23e58eb4e5fefbbb90acd3ae941f164"
     },
     {
       "bytes": 40,
