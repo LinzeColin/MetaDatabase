@@ -370,6 +370,45 @@ test("主动问候发不出去时存起来，而且存在他自己那个号下�
   assert.match(defBody, /normalizeText\(accountId\)/, "写死主号＝多号下面的人取不回来");
 });
 
+// ── 九、席位内的访客真的能说话 ───────────────────────────────
+
+test("席位内的访客走到 job 队列时，UserContext 必须跟着一起到", () => {
+  // 2026-07-30 的线上事故：普通用户发「您好」，收到「这个操作只有管理员可以
+  // 使用」。原因是 admitDurableTurn 只对 route==="owner" 返回 UserContext，而
+  // 「前 N 个席位走主人的 Codex」那个改动让席位内的访客开始走这条路——
+  // dispatchPreparedTurn 拿到的 turnContext 是空的，第一个判断就把他挡了。
+  const ctx = { userId: GUEST, isOwner: false, may: () => false };
+  const app = Object.create(CyberbossApp.prototype);
+  app.userAdmission = {
+    admit: () => ({ route: "user", userContext: ctx }),
+  };
+
+  const out = app.admitDurableTurn({ accountId: "acct", senderId: "wx-1", text: "您好" });
+
+  assert.equal(out, ctx, "访客的 UserContext 没带出去＝他问什么都只会收到「只有管理员可以使用」");
+});
+
+test("主人那一条不受影响", () => {
+  const ownerCtx = { userId: OWNER, isOwner: true, may: () => true };
+  const app = Object.create(CyberbossApp.prototype);
+  app.userAdmission = { admit: () => ({ route: "owner", userContext: ownerCtx }) };
+  assert.equal(app.admitDurableTurn({ accountId: "a", senderId: "s", text: "hi" }), ownerCtx);
+});
+
+test("不是真正的一轮对话的那些路由，仍然不给 UserContext", () => {
+  // reply / status / admin_link 这些在 admissionHandledBeforeJob 就办完了，
+  // 走到这里说明状态不对，不能顺手放行。
+  for (const route of ["reply", "status", "admin_link", "rejected"]) {
+    const app = Object.create(CyberbossApp.prototype);
+    app.userAdmission = { admit: () => ({ route, userContext: { userId: GUEST } }) };
+    assert.equal(
+      app.admitDurableTurn({ accountId: "a", senderId: "s", text: "x" }),
+      null,
+      `route=${route} 不该拿到 UserContext`,
+    );
+  }
+});
+
 test("轮询器排队的日志带上是给谁排的", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "..", "src", "app", "system-checkin-poller.js"),

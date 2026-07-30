@@ -3550,7 +3550,18 @@ class CyberbossApp {
       );
       return null;
     }
-    if (decision.route !== "owner") {
+    // 访客的 UserContext 也要带出去，不能只认主人。
+    //
+    // 这里返回 null 的话，dispatchPreparedTurn 那边
+    // `turnContext = prepared?.userContext || this.activeUserContext || null`
+    // 拿到的是空的，第一个判断 `!turnContext` 直接成立，于是这个人收到一句
+    // 「这个操作只有管理员可以使用」——他问什么都一样。
+    //
+    // 以前这样写没出事，是因为访客根本不会走到 job 队列（上面
+    // admissionHandledBeforeJob 就把他们分流去 runUserModelTurn 了）。2026-07-30
+    // 加「前 N 个席位走主人的 Codex」之后，席位内的访客**开始走这条路**，而这里
+    // 还停在只认主人——于是前 5 个人一句话都发不出去。这是那次改动直接造成的。
+    if (decision.route !== "owner" && decision.route !== "user") {
       return null;
     }
     if (decision.ownerClaimed) {

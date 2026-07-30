@@ -306,7 +306,12 @@ else
     remote "sudo systemctl restart $SERVICE" || true
     printf '\n已回滚到 %s\n' "${OLD_SHA:0:12}"
   fi
-  die "部署失败"
+  # 回滚只管应用，**不管隧道**——而隧道 Requires=cyberboss-cloud.service，重启
+  # 应用时被 systemd 一起停掉了，回滚之后没有任何东西把它拉回来。于是"部署失败
+  # 但已安全回滚"这句话是假的：公网 530，而且没有任何东西会告诉你。
+  # 2026-07-30 一天之内这样断了两次，两次都是我手工发现的。
+  restore_public_entry
+  die "部署失败（公网入口已恢复，见上面那行）"
 fi
 
 # 7. 清掉旧版本。
