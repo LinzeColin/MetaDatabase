@@ -208,3 +208,17 @@ Cloudflare 受管 Tunnel 健康且有连接，UI/API/status projection/status fa
 - 默认只生成 rollback plan；实际回滚需要任务包要求的精确确认。
 - 不读取、复制、迁移或删除遗留忽略运行时目录。
 - 保留本任务生成的 `runtime/vendors/XHS-Downloader`、`runtime/vendors/TikTokDownloader`、`runtime/vendors/KS-Downloader`、`runtime/vendors/bilibili_cli` 与最新单来源 `runtime/vendor-resolved.json` 供后续国内连接器阶段使用；最终任务包完成后再按清理合同处理派生运行时。
+
+## SA-507 frozen candidate gate (2026-07-30 UTC)
+
+本节覆盖此前“下一任务仍是 SA-506”及“任务包完成前不得提交”的历史状态：SA-506 已完成；当前已经在同一工作树完成本地 checkpoint、合入冻结前的最新 `origin/main`、并运行 SA-507 唯一一次全量应用回归。候选为 `2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a`，产品树为 `fbda32ab30ecaab76651f3dd92801d36b7b513e8`。`214 passed`；兼容任务包 `verify-fast` 为 26/26 PASS；结构性 `scripts/final_verify.py` 为 PASS，且 `application_suite_rerun=false`。回滚仍只返回 `ROLLBACK_PLAN`，恢复标签及 ignored legacy runtime 保护不变。
+
+严格发布状态是 **DEGRADED，不是 PASS**：R2 与 OCI 的专用私有桶 age 密文写入、读回校验、删除 canary 已在 SA-506 通过，但 GitHub Private Draft 的第三同密文读回、Private-Database 官方 clone-free 对账、Docker image digest 与部署 smoke 仍是 `NOT_RUN`。本机 Docker daemon 不可用；用于新建最小权限 GitHub fine-grained 授权的 Owner sudo/passkey 尚未完成。宽权限 CLI 授权及已知不安全的旧备份 credential 均未使用；受保护目录只做过文件名/权限元数据检查，未读取任何 secret 内容。
+
+`evidence/SA-507/RESULT.json`、`COMMAND_LOG.json`、`RELEASE_REPORT.json` 与 `evidence/final-verification.json` 已记录候选哈希、唯一全量测试、结构复验、回滚计划与所有 `NOT_RUN` 边界。由于第三副本/对账未闭合，尚未创建 release tag、GitHub source push、GitHub Release、Private-Database fact、镜像或部署；不能把本地任务包验证误报成生产发布。
+
+### Resume point
+
+1. Owner 完成 GitHub sudo/passkey，提供/配置只限 Social Archive 私有归档仓所需操作的最小权限 fine-grained 授权；同时配置官方 Private-Database clone-free client 与专用授权。
+2. 在候选代码未变化的前提下，运行 GitHub Draft 同密文上传/下载回读、Private-Database ingest/verify、三目标恢复和镜像/部署 smoke；仅更新环境证据，不重复全量应用测试。
+3. 只有这些真实收据均通过后，才把 SA-507 从 `DEGRADED` 收束为 PASS，创建版本 tag，并按 Owner 已授权的“任务包整体完成后再上传”策略推送到 `main`。若候选源代码改变，先重冻新候选并对新候选运行唯一一次全量回归。

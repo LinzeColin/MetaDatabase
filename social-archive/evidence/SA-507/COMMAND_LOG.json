@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.3",
+  "task_id": "SA-507",
+  "acceptance_id": "AC-SA-507",
+  "acceptance_status": "DEGRADED",
+  "verified_at_utc": "2026-07-30T23:50:05Z",
+  "candidate_commit": "2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a",
+  "commands": [
+    {
+      "id": "sa507_candidate_freeze_and_compatibility",
+      "command": "git status --porcelain=v1 (must be empty); <project-venv-python> social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Candidate 2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a is clean, contains fetched origin/main, and binds Social Archive tree fbda32ab30ecaab76651f3dd92801d36b7b513e8. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core."
+    },
+    {
+      "id": "sa507_unique_full_application_suite",
+      "command": "source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "214 passed, 1 non-failing Starlette/httpx deprecation warning, 8.27s. This is the sole full application-suite execution bound to the frozen candidate."
+    },
+    {
+      "id": "sa507_taskpack_verify_fast",
+      "command": "<project-venv-python> prepare_compat_taskpack.py --base-zip <frozen-v0.0.0.4-zip> --output <temporary-compatible-pack> && <project-venv-python> <temporary-compatible-pack>/START_HERE.py verify-fast",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The compatible frozen task pack verified 26/26 checks. Its application_tests check was skipped only by the explicit final re-verification flag, so it did not repeat the unique product suite."
+    },
+    {
+      "id": "sa507_final_structural_verify",
+      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/final_verify.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "compileall, brand scan, secret scan, three Compose structural checks, and systemd contract all passed. evidence/final-verification.json records suite_mode=structural and application_suite_rerun=false."
+    },
+    {
+      "id": "sa507_recovery_rollback_plan",
+      "command": "<project-venv-python> <temporary-compatible-pack>/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo <integration-worktree> --stamp 20260730T095749Z",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Returned ROLLBACK_PLAN for social-archive-pre-v0.0.0.4-20260730t095749z; execution requires the exact confirmation and declares ignored legacy runtime data protected. No rollback ran."
+    },
+    {
+      "id": "sa507_release_environment_boundary",
+      "command": "docker version --format '{{.Server.Version}}'; protected metadata filename/permission inspection only",
+      "exit_code": 1,
+      "outcome": "NOT_RUN",
+      "result": "The local Docker daemon was unavailable, so no image build or digest exists. The protected metadata inspection found no explicitly current, dedicated Social Archive fine-grained GitHub authorization; it did not read any secret contents or use the known inadmissible legacy backup credential."
+    }
+  ],
+  "environment_bound_items_not_used_as_pass": [
+    {
+      "id": "github_private_draft_third_ciphertext_receipt",
+      "outcome": "NOT_RUN",
+      "result": "Creating the required repository-scoped fine-grained authorization still requires the owner's GitHub sudo/passkey confirmation. Existing broad local CLI auth and an exposed legacy backup credential were deliberately not used; no Draft Release, asset, or GitHub receipt was created."
+    },
+    {
+      "id": "private_database_api_reconciliation",
+      "outcome": "NOT_RUN",
+      "result": "No configured official clone-free client plus dedicated authorization was available, so no persistent fact, local checkout, clone, commit, or push occurred."
+    },
+    {
+      "id": "container_image_and_post_deploy_smoke",
+      "outcome": "NOT_RUN",
+      "result": "The Docker daemon was unavailable. No image build, image digest, deployment, timer enablement, or post-deploy smoke was attempted."
+    }
+  ],
+  "side_effects": [
+    "Created a local checkpoint commit and integrated the then-current origin/main before candidate freeze; neither was pushed.",
+    "Removed only the 47 MiB untracked node_modules cache left under the retired legacy tree after proving it was untracked and ignored; no runtime or user data was inspected or removed.",
+    "Created a temporary compatible task-pack extraction for verify-fast and rollback-plan verification; it contained no production data and was removed immediately after final evidence validation.",
+    "No GitHub source push, tag push, GitHub Release, Private-Database write, real platform capture, user-data upload, deployment, timer enablement, extra worktree, or destructive rollback occurred."
+  ]
+}

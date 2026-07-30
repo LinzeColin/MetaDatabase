@@ -1,0 +1,88 @@
+{
+  "status": "DEGRADED",
+  "version": "v0.0.0.4",
+  "commit": "2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a",
+  "tasks": [
+    {
+      "scope": "SA-000 through SA-506",
+      "status": "PASS",
+      "count": 31
+    },
+    {
+      "id": "SA-507",
+      "status": "DEGRADED",
+      "reason": "All local candidate, test, integrity, and rollback-plan assertions pass; the real GitHub third ciphertext receipt, Private-Database reconciliation, image digest, and deployment smoke remain unexecuted."
+    }
+  ],
+  "tests": [
+    {
+      "id": "unique_full_application_suite",
+      "status": "PASS",
+      "detail": "214 passed on candidate 2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a; executed exactly once."
+    },
+    {
+      "id": "taskpack_verify_fast",
+      "status": "PASS",
+      "detail": "26/26 compatible task-pack checks passed with application tests explicitly skipped."
+    },
+    {
+      "id": "final_structural_verify",
+      "status": "PASS",
+      "detail": "Structural verifier recorded application_suite_rerun=false."
+    }
+  ],
+  "canaries": [
+    {
+      "id": "r2_encrypted_write_readback_delete",
+      "status": "PASS",
+      "detail": "Dedicated private bucket, scoped credential, encrypted object readback hash verification, and deletion were recorded in SA-506."
+    },
+    {
+      "id": "oci_encrypted_write_readback_delete",
+      "status": "PASS",
+      "detail": "Dedicated private bucket, scoped credential, encrypted object readback hash verification, and deletion were recorded in SA-506."
+    },
+    {
+      "id": "github_private_draft_same_ciphertext_readback",
+      "status": "NOT_RUN",
+      "detail": "A new repository-scoped fine-grained authorization requires owner passkey confirmation; no unsafe fallback credential was used."
+    },
+    {
+      "id": "private_database_clone_free_reconciliation",
+      "status": "NOT_RUN",
+      "detail": "No compliant official client plus dedicated authorization was configured."
+    }
+  ],
+  "storage": {
+    "status": "DEGRADED",
+    "ciphertext_replicas": {
+      "r2": "PASS",
+      "oci": "PASS",
+      "github_private": "NOT_RUN"
+    },
+    "completion_rule": "Three verified receipts for the same age ciphertext are required before an artifact becomes complete; two verified provider canaries do not satisfy the third-replica gate."
+  },
+  "restore": {
+    "status": "DEGRADED",
+    "fixture_recovery": "PASS",
+    "rollback_plan": "PASS",
+    "real_three_target_recovery": "NOT_RUN",
+    "reason": "Recovery will not be claimed until the missing GitHub receipt exists and all three ciphertext copies can be verified."
+  },
+  "known_degradations": [
+    "No GitHub Private Draft/asset receipt or readback exists.",
+    "No Private-Database API reconciliation exists.",
+    "No Docker image digest or post-deploy smoke exists because the local daemon is unavailable.",
+    "Source and destination provider states remain only as real observations recorded in the per-task evidence; unexecuted providers remain NOT_RUN.",
+    "Git source publication and release tag publication are intentionally deferred until the strict third-replica and Private-Database gate passes."
+  ],
+  "branch_pr_state": {
+    "candidate_branch": "codex/social-archive-v0004-integration",
+    "origin_main_is_ancestor_of_candidate_at_freeze": true,
+    "open_pull_requests_for_candidate_branch": 0,
+    "source_push": "NOT_PERFORMED",
+    "release_tag": "NOT_CREATED",
+    "reason": "The strict release gate is DEGRADED, so the user-directed after-taskpack source publication has not been started."
+  },
+  "evidence_root": "evidence/SA-507"
+}
