@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S07-WHOLE-STAGE-REVIEW",
+  "stage_id": "S07",
+  "fixed_at": "2026-07-30T00:00:00+10:00",
+  "findings": [
+    {
+      "id": "F-S07-REVIEW-001",
+      "title": "Canonical Facts and supplied-source receipts remain exact",
+      "verification_gate": "SUPPLIED_BASELINE_CRITICAL_HASHES_MATCH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "resolution": "Pinned repository-equivalent artifacts and the owner-supplied ZIP receipt agree; the ZIP itself is not claimed present in CI."
+    },
+    {
+      "id": "F-S07-REVIEW-002",
+      "title": "S07 P01 to P04 task graph and receipts are complete",
+      "verification_gate": "P01_TO_P04_SIGNED_RECEIPTS_AND_CURRENT_ORACLES_PASS",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "resolution": "All four independently signed phase receipts and current deterministic verifiers pass in dependency order."
+    },
+    {
+      "id": "F-S07-REVIEW-003",
+      "title": "Identity, temporal, ledger, and continuity gates compose fail-closed",
+      "verification_gate": "IDENTITY_995_ZERO_FUTURE_INFO_NO_UNEXECUTED_FUNDS_CHANGE_AND_NO_ORPHAN_CONTINUITY",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "resolution": "The frozen stage snapshot only passes at 0.9950 confidence, zero future tolerance, unchanged actual funds without execution, signed receipts, and no orphans."
+    },
+    {
+      "id": "F-S07-REVIEW-004",
+      "title": "No real-time soak is required for deterministic stability evidence",
+      "verification_gate": "DETERMINISTIC_100_REPLAY_AND_TEN_THOUSAND_ADVERSE_NO_ACTION_PASS_WITHOUT_WAIT",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "resolution": "100 exact replays and 10,000 adverse deterministic perturbations are CPU-only and never enable an action."
+    },
+    {
+      "id": "F-S07-REVIEW-005",
+      "title": "Signed evidence is free of local absolute paths and preserves the frozen P04 index",
+      "verification_gate": "NO_SIGNED_EVIDENCE_LOCAL_PATH_OR_SECRET_MATERIAL",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "resolution": "P04 now emits repository-relative evidence details, and the review uses its own content-addressed receipt because appending a non-Task-Pack stage row would invalidate P04's frozen 91-row continuity count."
+    },
+    {
+      "id": "F-S07-REVIEW-006",
+      "title": "No runtime, return, deployment, or remote-CI claim is made",
+      "verification_gate": "NO_EXTERNAL_RUNTIME_OR_FINANCIAL_RETURN_CLAIM",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "resolution": "The review is offline; GitHub upload, remote CI, OVH, Cloudflare, Gmail, market and account runtime remain a later run."
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "resolved_in_review_candidate": 6,
+    "open": 0,
+    "github_upload_pending_is_not_an_open_code_finding": true
+  }
+}

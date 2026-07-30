@@ -81,7 +81,7 @@ PINNED_BASELINE_HASHES: Dict[str, str] = {
     P03_EVIDENCE_PATH.as_posix(): "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
     P03_ROLLBACK_PATH.as_posix(): "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "5cba3c3584293de8024636574e672dd4dcda534c90013712053b38413ed69e1c"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "0f81589f2e567b559a343495995952ba5d62603129aa7435e7543f537cb10fba"
 FULL_REGRESSION_TEST_MINIMUM = 5028
 REQUIRED_COVERAGE = Decimal("1.0000")
 
@@ -129,6 +129,16 @@ def _add(checks: List[Dict[str, Any]], check_id: str, passed: bool, detail: Any)
     checks.append({"id": check_id, "passed": bool(passed), "detail": detail})
 
 
+def _portable(path: Path) -> str:
+    """Render evidence paths without leaking an operator-specific absolute path."""
+
+    text = path.as_posix()
+    for anchor in ("/machine/", "/tests/", "/abd_acceptance/"):
+        if anchor in text:
+            return anchor.lstrip("/") + text.split(anchor, 1)[1]
+    return path.name
+
+
 def _strict_pairs(pairs: Iterable[Tuple[str, Any]]) -> Dict[str, Any]:
     value: Dict[str, Any] = {}
     for key, item in pairs:
@@ -144,7 +154,7 @@ def _safe_load(path: Path, checks: List[Dict[str, Any]], check_id: str) -> Any:
     except Exception as exc:
         _add(checks, check_id, False, "%s: %s" % (type(exc).__name__, exc))
         return None
-    _add(checks, check_id, True, path.as_posix())
+    _add(checks, check_id, True, _portable(path))
     return value
 
 

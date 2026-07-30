@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="51" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S07.stage_review_test" name="test_candidate_preflight_passes_without_generated_stage_reports" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_whole_stage_review_passes_without_generated_stage_reports" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_review_identity_scope_and_terminal_state_are_exact" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_review_artifact_hash_matches_pin[machine/evidence/S07/STAGE_REVIEW/findings.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_review_artifact_hash_matches_pin[machine/facts/stage7_review_contract.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_review_artifact_hash_matches_pin[machine/tests/fixtures/S07_STAGE_REVIEW.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_review_artifact_hash_matches_pin[tests/S07/stage_review_test.py]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[PURSUE_GOAL_PROMPT.txt]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[VERSION]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/roadmap_stage_phase.md]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/acceptance_contracts.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/canonical_facts.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/costs.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/model_system_card.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/parameters.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/requirements.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/roadmap.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/task_graph.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/traceability_matrix.json]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_phase_records_bind_exact_evidence_rollback_outputs_and_next_state" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P01]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P02]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P03]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_each_phase_signed_receipt_and_current_oracle_remain_verifiable[P04]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_frozen_stage_cases_are_fail_closed_and_actionless[POSITIVE_EXACT_STAGE]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_frozen_stage_cases_are_fail_closed_and_actionless[BOUNDARY_IDENTITY_9949]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_frozen_stage_cases_are_fail_closed_and_actionless[BOUNDARY_IDENTITY_9950]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_frozen_stage_cases_are_fail_closed_and_actionless[NEGATIVE_FUTURE_INFORMATION]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_frozen_stage_cases_are_fail_closed_and_actionless[NEGATIVE_UNEXECUTED_FUNDS_CHANGE]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_frozen_stage_cases_are_fail_closed_and_actionless[NEGATIVE_CONTINUITY_ORPHAN]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_frozen_stage_cases_are_fail_closed_and_actionless[NEGATIVE_UNSIGNED_RECEIPT]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_malformed_snapshot_fails_closed[snapshot0]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_malformed_snapshot_fails_closed[snapshot1]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_malformed_snapshot_fails_closed[snapshot2]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_malformed_snapshot_fails_closed[snapshot3]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_malformed_snapshot_fails_closed[snapshot4]" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_deterministic_replay_and_adverse_stability_are_cpu_only" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_review_source_has_no_network_process_or_sleep_capability" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_signed_phase_evidence_has_no_local_path_material" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_findings_are_resolved_and_upload_is_still_pending" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_rollback_drill_is_hash_only_and_does_not_change_state" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_build_evidence_binds_current_candidate_without_external_report_claim" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_existing_evidence_is_absent_before_write_or_valid_after_write" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_junit_helpers_accept_existing_reports_only_when_normalized" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_module_cli_is_scoped_without_global_dispatcher_change" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_contract_mutation_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_open_finding_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_phase_verifier_failure_fails_closed" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_manifest_tamper_fails_closed_in_a_clone" time="0.000" />
+    <testcase classname="tests.S07.stage_review_test" name="test_report_required_mode_fails_closed_when_target_report_is_missing" time="0.000" />
+  </testsuite>
+</testsuites>

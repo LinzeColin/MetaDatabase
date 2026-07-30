@@ -1,19 +1,19 @@
 {
   "artifacts": {
     "abd_acceptance/evidence_continuity.py": {
-      "sha256": "db35fc9ffd281f310490a74abd4704b24c8f047bbc9686b15c6aff581629b781",
+      "sha256": "f700bc596af337582bad06c4fc1636be1c0cefefa0e1a6c190cd591f72763249",
       "status": "PASS"
     },
     "machine/evidence/SHA256SUMS": {
-      "sha256": "4f6e696e78668c282e9e9404dcf9b194df9808a7af7ddb1e37eb66fb1ed9d745",
+      "sha256": "f4ce431f186dd3c7ff49f2955e3af4954f77df1f1898fa725cd3ae1237bbb98b",
       "status": "PASS"
     },
     "machine/evidence/artifact_manifest.json": {
-      "sha256": "f345bfd44f00b482ffbd28651e6d4fb1fd43938ca9e775cc31656c4a5b914c22",
+      "sha256": "f130a2ad361645a75482461653920cf3820c2165b72b38532e72a7abf3065060",
       "status": "PASS"
     },
     "machine/evidence/evidence_index.jsonl": {
-      "sha256": "919a508b37fddc2a3faf14380a51cb276766cdf05c337ade796aa31770930859",
+      "sha256": "e119d179b563b1282d7e683635248be0d44d837bc8e701dc492e3e49dde985d0",
       "status": "PASS"
     },
     "machine/facts/traceability_matrix.json": {

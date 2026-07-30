@@ -1,5 +1,5 @@
 {
-  "file_count": 463,
+  "file_count": 474,
   "files": [
     {
       "bytes": 105,
@@ -92,9 +92,9 @@
       "sha256": "6aa3f99ceb55bb7d32e9c2d2764723f21791d9ba77be1722e2e2365a1fa670c3"
     },
     {
-      "bytes": 59541,
+      "bytes": 59866,
       "path": "abd_acceptance/evidence_continuity.py",
-      "sha256": "db35fc9ffd281f310490a74abd4704b24c8f047bbc9686b15c6aff581629b781"
+      "sha256": "f700bc596af337582bad06c4fc1636be1c0cefefa0e1a6c190cd591f72763249"
     },
     {
       "bytes": 45787,
@@ -245,6 +245,11 @@
       "bytes": 59839,
       "path": "abd_acceptance/stage6_review.py",
       "sha256": "f866044f9f3a3b18621232175dda1092e8ccdb4313df41e1770ff6def319b02d"
+    },
+    {
+      "bytes": 51074,
+      "path": "abd_acceptance/stage7_review.py",
+      "sha256": "e864d215c66957662379e82cc87d798cdf37ae1a329a16ce9a236acfe869d614"
     },
     {
       "bytes": 49361,
@@ -847,14 +852,24 @@
       "sha256": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf"
     },
     {
-      "bytes": 30951,
+      "bytes": 30120,
       "path": "machine/evidence/EVD-S07-P04.json",
-      "sha256": "d10cb6802e476c4cc33794080a7346bf70951ed4f5cfddb89c43f8288d1a53c1"
+      "sha256": "a2fa2f72c069050ed7045f7e7c3cbe5928664bee4e91d1307169b19d466a6fa6"
     },
     {
       "bytes": 1559,
       "path": "machine/evidence/EVD-S07-P04_rollback.json",
-      "sha256": "f404475fd62eff033a3ad9165cf1b45bf58114b66ed119ae85c73da7124178b7"
+      "sha256": "ad483c1e873985c14e5c70d67fb18c2801d9033bf8ed435ca9b149e8bb82054a"
+    },
+    {
+      "bytes": 23071,
+      "path": "machine/evidence/EVD-S07-STAGE-REVIEW.json",
+      "sha256": "56b8b2a592aee51ae9f454a1988838c1475895fed3ce1da15b98884af85b6bec"
+    },
+    {
+      "bytes": 2225,
+      "path": "machine/evidence/EVD-S07-STAGE-REVIEW_rollback.json",
+      "sha256": "0430a9e2d4173652ba4a7a3bf6a9927be786fddfd647a11d073ad3f14f207207"
     },
     {
       "bytes": 1981,
@@ -1377,9 +1392,34 @@
       "sha256": "eb59650c26b95b509e394cf2fbe16b2745995d813e572eb2840f9e44738f50ff"
     },
     {
+      "bytes": 2848,
+      "path": "machine/evidence/S07/STAGE_REVIEW/findings.json",
+      "sha256": "1fd1430885e85ab2396cd9ce67c4152b466fbc4c7b9fe5f214503e17b18e5387"
+    },
+    {
+      "bytes": 768461,
+      "path": "machine/evidence/S07/STAGE_REVIEW/full_regression.xml",
+      "sha256": "2f24c0fcd2e399932796f3878ff6681ce6f6eb76a661592d5b895abec837ebbe"
+    },
+    {
+      "bytes": 1719,
+      "path": "machine/evidence/S07/STAGE_REVIEW/paid_dependency_scan.txt",
+      "sha256": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1"
+    },
+    {
+      "bytes": 7547,
+      "path": "machine/evidence/S07/STAGE_REVIEW/pytest.xml",
+      "sha256": "ca3fd536284fd4c5747b64ec005d072d8dad79c4476e0625722fd9226df7795a"
+    },
+    {
+      "bytes": 40018,
+      "path": "machine/evidence/S07/STAGE_REVIEW/signed_state_regression.xml",
+      "sha256": "7f0ccd3afe4d4d809d0655f9bccb8847a4ef9c268464dd88d3cd51579bfe1e4c"
+    },
+    {
       "bytes": 32026,
       "path": "machine/evidence/evidence_index.jsonl",
-      "sha256": "e119d179b563b1282d7e683635248be0d44d837bc8e701dc492e3e49dde985d0"
+      "sha256": "aa6a11b98ae27770751fafc0ecbccc5277c0f936e5885bc4b296e8152c7548ff"
     },
     {
       "bytes": 1120,
@@ -1570,6 +1610,11 @@
       "bytes": 9182,
       "path": "machine/facts/stage6_review_contract.json",
       "sha256": "19ee85cda12926c416b0e2a3fcc94f37a15aaade57d9e1d767e81b51e35a4dfa"
+    },
+    {
+      "bytes": 8522,
+      "path": "machine/facts/stage7_review_contract.json",
+      "sha256": "ee37bd765d9d415e7e3128a14105140d8aaa3fd7c78da5359639cea56f6ff48f"
     },
     {
       "bytes": 2043,
@@ -1820,6 +1865,11 @@
       "bytes": 4626,
       "path": "machine/tests/fixtures/S07_P04.json",
       "sha256": "1867c3a9e8ea40b6322c3647f0405d415a4e79fe5f5ec4479299146d140be5a7"
+    },
+    {
+      "bytes": 4953,
+      "path": "machine/tests/fixtures/S07_STAGE_REVIEW.json",
+      "sha256": "999d421e07c825b7fdfb9eb0e6415c8b9a475eece763cdea6dfd4ea4384c5b0d"
     },
     {
       "bytes": 1705,
@@ -2260,6 +2310,11 @@
       "bytes": 42,
       "path": "tests/S07/__init__.py",
       "sha256": "f6ff719e6937606e4bfba4f1f73a0cedd5b75aca6fd99d78f60678b0fd839501"
+    },
+    {
+      "bytes": 12406,
+      "path": "tests/S07/stage_review_test.py",
+      "sha256": "24de0726ada5384c60d1f814388c5e49c0c358ebefd93fb7994260b1f022a644"
     },
     {
       "bytes": 35,

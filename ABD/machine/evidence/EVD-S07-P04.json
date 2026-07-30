@@ -44,7 +44,7 @@
   },
   "contract_id": "AC-S07-P04",
   "decision": "CONTINUOUS_EVIDENCE_CHAIN_VERIFIED_NO_ACTION",
-  "decision_sha256": "3eaacd17e5813fc3ab3f34549f80dd1eea7550b84cbb5db733b66c2881f265c5",
+  "decision_sha256": "fa2d0d3898889963e4c4c1f9344413abcf3c2fcbff56694b4330a173940ab4c2",
   "deterministic_replay": {
     "adverse_replay_count": 10000,
     "real_time_wait_performed": false,
@@ -66,12 +66,12 @@
   "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
   "fixed_clock": "2026-07-30T00:00:00+10:00",
   "hashes": {
-    "code": "e0ac5670305a7a08f4a74bd3ad6089627990388d20c6c526a6823b959a3f5559",
+    "code": "20a388d41762688b7336698a0069f5c2a6fa817fa7d78436f3ee7d86e460263f",
     "inputs": {
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
       "abd_acceptance/__main__.py": "47238b529b0b9dc4f950e18aafe63f0bd75687151108f01a92fbf99d9d3fb6b6",
-      "abd_acceptance/evidence_continuity.py": "db35fc9ffd281f310490a74abd4704b24c8f047bbc9686b15c6aff581629b781",
+      "abd_acceptance/evidence_continuity.py": "f700bc596af337582bad06c4fc1636be1c0cefefa0e1a6c190cd591f72763249",
       "machine/evidence/EVD-S07-P03.json": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
       "machine/evidence/EVD-S07-P03_rollback.json": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
       "machine/evidence/final_acceptance.json": "2e1b0125b764849fc075bc66c82fd992626444e35c61acf9f0e7ffa362027376",
@@ -92,7 +92,7 @@
     "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
     "model_not_executed_reason": "S07/P04 validates offline evidence continuity only.",
     "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
-    "rollback_evidence": "f404475fd62eff033a3ad9165cf1b45bf58114b66ed119ae85c73da7124178b7"
+    "rollback_evidence": "ad483c1e873985c14e5c70d67fb18c2801d9033bf8ed435ca9b149e8bb82054a"
   },
   "next": "S07/STAGE_REVIEW_READY_NOT_STARTED",
   "phase_id": "P04",
@@ -152,8 +152,8 @@
       },
       {
         "detail": {
-          "actual": "5cba3c3584293de8024636574e672dd4dcda534c90013712053b38413ed69e1c",
-          "expected": "5cba3c3584293de8024636574e672dd4dcda534c90013712053b38413ed69e1c"
+          "actual": "0f81589f2e567b559a343495995952ba5d62603129aa7435e7543f537cb10fba",
+          "expected": "0f81589f2e567b559a343495995952ba5d62603129aa7435e7543f537cb10fba"
         },
         "id": "S07P04-ORACLE-STRUCTURAL-SELF-HASH",
         "passed": true
@@ -287,7 +287,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/tests/fixtures/S07_P04.json",
+        "detail": "machine/tests/fixtures/S07_P04.json",
         "id": "S07P04-FIXTURE-STRICT-JSON",
         "passed": true
       },
@@ -318,22 +318,22 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/requirements.json",
+        "detail": "machine/facts/requirements.json",
         "id": "S07P04-REQUIREMENTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/acceptance_contracts.json",
+        "detail": "machine/facts/acceptance_contracts.json",
         "id": "S07P04-CONTRACTS-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/task_graph.json",
+        "detail": "machine/facts/task_graph.json",
         "id": "S07P04-TASK-GRAPH-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/traceability_matrix.json",
+        "detail": "machine/facts/traceability_matrix.json",
         "id": "S07P04-TRACEABILITY-STRICT-JSON",
         "passed": true
       },
@@ -371,7 +371,7 @@
       },
       {
         "detail": {
-          "index_status": "PLANNED",
+          "index_status": "PASS",
           "tasks": [
             "T-S07-P04-01",
             "T-S07-P04-02",
@@ -404,7 +404,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/artifact_manifest.json",
+        "detail": "machine/evidence/artifact_manifest.json",
         "id": "S07P04-ARTIFACT-MANIFEST-STRICT-JSON",
         "passed": true
       },
@@ -416,8 +416,8 @@
       {
         "detail": {
           "errors": [],
-          "expected_files": 461,
-          "manifest_files": 461,
+          "expected_files": 472,
+          "manifest_files": 472,
           "missing_required": []
         },
         "id": "S07P04-ARTIFACT-MANIFEST-COVERAGE",
@@ -450,12 +450,12 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/release_manifest.json",
+        "detail": "machine/evidence/release_manifest.json",
         "id": "S07P04-RELEASE-MANIFEST-STRICT-JSON",
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/final_acceptance.json",
+        "detail": "machine/evidence/final_acceptance.json",
         "id": "S07P04-FINAL-ACCEPTANCE-STRICT-JSON",
         "passed": true
       },
@@ -714,7 +714,7 @@
         "passed": true
       },
       {
-        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/validation_report.json",
+        "detail": "machine/evidence/validation_report.json",
         "id": "S07P04-PACK-REPORT-STRICT-JSON",
         "passed": true
       },
@@ -801,7 +801,7 @@
     "hashes": {
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-      "abd_acceptance/evidence_continuity.py": "db35fc9ffd281f310490a74abd4704b24c8f047bbc9686b15c6aff581629b781",
+      "abd_acceptance/evidence_continuity.py": "f700bc596af337582bad06c4fc1636be1c0cefefa0e1a6c190cd591f72763249",
       "machine/evidence/EVD-S07-P03.json": "ca87f049463efa377e18ada24ba7cdeb1cf2c1aff920b9d872794d4146728fa9",
       "machine/evidence/EVD-S07-P03_rollback.json": "c51a5f368b3a2aacfce49207c090e84c4e3344c9beb4742923a2cdf0a93a2faf",
       "machine/evidence/final_acceptance.json": "2e1b0125b764849fc075bc66c82fd992626444e35c61acf9f0e7ffa362027376",
