@@ -1,0 +1,9 @@
+[Unit]
+Description=Signal Lattice backup timer
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1h
+RandomizedDelaySec=5min
+Persistent=true
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,1189 @@
+{
+  "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
+  "frozen": true,
+  "frozen_version": "0.0.0.1.39",
+  "schema_version": "1.0.0",
+  "stages": [
+    {
+      "id": "S0",
+      "name": "Status 与制品预检"
+    },
+    {
+      "id": "S1",
+      "name": "原样落库与治理接入"
+    },
+    {
+      "id": "S2",
+      "name": "目标基础设施绑定"
+    },
+    {
+      "id": "S3",
+      "name": "安装与启动"
+    },
+    {
+      "id": "S4",
+      "name": "即时核心验证"
+    },
+    {
+      "id": "S5",
+      "name": "恢复与运行治理"
+    },
+    {
+      "id": "S6",
+      "name": "发布收尾"
+    }
+  ],
+  "tasks": [
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-001.json",
+      "execution_command": "python3 scripts/run_task.py --task T-001 --execute",
+      "id": "T-001",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-001.json"
+      ],
+      "requirements": [
+        "R-024",
+        "R-026",
+        "R-029"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S0",
+      "stage_name": "Status 与制品预检",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-001 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "核验任务包版本、路径、Manifest 与证明 Hash"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-001"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-002.json",
+      "execution_command": "python3 scripts/run_task.py --task T-002 --execute",
+      "id": "T-002",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-002.json"
+      ],
+      "requirements": [
+        "R-001",
+        "R-016"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S0",
+      "stage_name": "Status 与制品预检",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-002 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "执行 Status Tier-0 实现预检"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-002"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-003.json",
+      "execution_command": "python3 scripts/run_task.py --task T-003 --execute",
+      "id": "T-003",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-003.json"
+      ],
+      "requirements": [
+        "R-013",
+        "R-018",
+        "R-022"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S0",
+      "stage_name": "Status 与制品预检",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-003 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "采集目标仓规则、CI 与 OVH 只读上下文"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-003"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-004.json",
+      "execution_command": "python3 scripts/run_task.py --task T-004 --execute",
+      "id": "T-004",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-004.json"
+      ],
+      "requirements": [
+        "R-029"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S0",
+      "stage_name": "Status 与制品预检",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-004 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "锁定版本号和允许修改路径"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-004"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-005.json",
+      "execution_command": "python3 scripts/run_task.py --task T-005 --execute",
+      "id": "T-005",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-005.json"
+      ],
+      "requirements": [
+        "R-024",
+        "R-029"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S1",
+      "stage_name": "原样落库与治理接入",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-005 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "将 Signal-Lattice 原样落入目标仓"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-005"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-006.json",
+      "execution_command": "python3 scripts/run_task.py --task T-006 --execute",
+      "id": "T-006",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-006.json"
+      ],
+      "requirements": [
+        "R-019",
+        "R-024"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S1",
+      "stage_name": "原样落库与治理接入",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-006 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "应用双平面七文件与 CI 精确 Patch"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-006"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-007.json",
+      "execution_command": "python3 scripts/run_task.py --task T-007 --execute",
+      "id": "T-007",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-007.json"
+      ],
+      "requirements": [
+        "R-001",
+        "R-016"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S1",
+      "stage_name": "原样落库与治理接入",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-007 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "幂等登记 Status 项目与业务线"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-007"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-008.json",
+      "execution_command": "python3 scripts/run_task.py --task T-008 --execute",
+      "id": "T-008",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-008.json"
+      ],
+      "requirements": [
+        "R-004",
+        "R-005",
+        "R-007",
+        "R-006"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S1",
+      "stage_name": "原样落库与治理接入",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-008 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "验证固定上游 Seal 与 Stock Skill Registry"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-008"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-009.json",
+      "execution_command": "python3 scripts/run_task.py --task T-009 --execute",
+      "id": "T-009",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-009.json"
+      ],
+      "requirements": [
+        "R-023",
+        "R-024"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S1",
+      "stage_name": "原样落库与治理接入",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-009 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "运行冻结语法、Schema 与定向测试"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-009"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-010.json",
+      "execution_command": "python3 scripts/run_task.py --task T-010 --execute",
+      "id": "T-010",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-010.json"
+      ],
+      "requirements": [
+        "R-002",
+        "R-003",
+        "R-018"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S2",
+      "stage_name": "目标基础设施绑定",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-010 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "创建 OVH 用户、目录、权限和资源预算"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-010"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-011.json",
+      "execution_command": "python3 scripts/run_task.py --task T-011 --execute",
+      "id": "T-011",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-011.json"
+      ],
+      "requirements": [
+        "R-002",
+        "R-022"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S2",
+      "stage_name": "目标基础设施绑定",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-011 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "绑定 runtime.env 且拒绝模型密钥"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-011"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-012.json",
+      "execution_command": "python3 scripts/run_task.py --task T-012 --execute",
+      "id": "T-012",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-012.json"
+      ],
+      "requirements": [
+        "R-015",
+        "R-030"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S2",
+      "stage_name": "目标基础设施绑定",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-012 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "绑定 Private-Database 结构化事实同步"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-012"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-013.json",
+      "execution_command": "python3 scripts/run_task.py --task T-013 --execute",
+      "id": "T-013",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-013.json"
+      ],
+      "requirements": [
+        "R-015",
+        "R-017"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S2",
+      "stage_name": "目标基础设施绑定",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-013 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "绑定 R2、D1 可选索引与 OCI 冷备"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-013"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-014.json",
+      "execution_command": "python3 scripts/run_task.py --task T-014 --execute",
+      "id": "T-014",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-014.json"
+      ],
+      "requirements": [
+        "R-001",
+        "R-016"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S2",
+      "stage_name": "目标基础设施绑定",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-014 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "绑定 Status 快照、Collector 和权限"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-014"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-015.json",
+      "execution_command": "python3 scripts/run_task.py --task T-015 --execute",
+      "id": "T-015",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-015.json"
+      ],
+      "requirements": [
+        "R-025",
+        "R-026"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S3",
+      "stage_name": "安装与启动",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-015 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "构建两次一致的离线 Wheel"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-015"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-016.json",
+      "execution_command": "python3 scripts/run_task.py --task T-016 --execute",
+      "id": "T-016",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-016.json"
+      ],
+      "requirements": [
+        "R-025"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S3",
+      "stage_name": "安装与启动",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-016 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "执行 Hermetic Release 安装与原子 current 切换"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-016"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-017.json",
+      "execution_command": "python3 scripts/run_task.py --task T-017 --execute",
+      "id": "T-017",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-017.json"
+      ],
+      "requirements": [
+        "R-002",
+        "R-018"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S3",
+      "stage_name": "安装与启动",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-017 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "安装并启用 systemd 服务和 Timer"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-017"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-018.json",
+      "execution_command": "python3 scripts/run_task.py --task T-018 --execute",
+      "id": "T-018",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-018.json"
+      ],
+      "requirements": [
+        "R-003",
+        "R-022"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S3",
+      "stage_name": "安装与启动",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-018 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "配置 Cloudflare 入口只转发 Loopback API"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-018"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-019.json",
+      "execution_command": "python3 scripts/run_task.py --task T-019 --execute",
+      "id": "T-019",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-019.json"
+      ],
+      "requirements": [
+        "R-011",
+        "R-012",
+        "R-014"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S4",
+      "stage_name": "即时核心验证",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-019 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "运行请求到 NO_ACTION 的 Walking Skeleton"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-019"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-020.json",
+      "execution_command": "python3 scripts/run_task.py --task T-020 --execute",
+      "id": "T-020",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-020.json"
+      ],
+      "requirements": [
+        "R-002",
+        "R-022"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S4",
+      "stage_name": "即时核心验证",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-020 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "运行零 Agent、零 Token 与出口红队"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-020"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-021.json",
+      "execution_command": "python3 scripts/run_task.py --task T-021 --execute",
+      "id": "T-021",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-021.json"
+      ],
+      "requirements": [
+        "R-004",
+        "R-005",
+        "R-021"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S4",
+      "stage_name": "即时核心验证",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-021 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "运行 Skill 漂移、来源中断和降级测试"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-021"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-022.json",
+      "execution_command": "python3 scripts/run_task.py --task T-022 --execute",
+      "id": "T-022",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-022.json"
+      ],
+      "requirements": [
+        "R-009",
+        "R-010",
+        "R-011",
+        "R-008"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S4",
+      "stage_name": "即时核心验证",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-022 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "运行 PIT、费用、过拟合、共识和硬门 Blind Fixture"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-022"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-023.json",
+      "execution_command": "python3 scripts/run_task.py --task T-023 --execute",
+      "id": "T-023",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-023.json"
+      ],
+      "requirements": [
+        "R-017",
+        "R-025"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S5",
+      "stage_name": "恢复与运行治理",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-023 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "运行 SQLite 备份、损坏、恢复和回滚"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-023"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-024.json",
+      "execution_command": "python3 scripts/run_task.py --task T-024 --execute",
+      "id": "T-024",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-024.json"
+      ],
+      "requirements": [
+        "R-014",
+        "R-015",
+        "R-030"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S5",
+      "stage_name": "恢复与运行治理",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-024 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "验证 Outbox 幂等同步和无空提交"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-024"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-025.json",
+      "execution_command": "python3 scripts/run_task.py --task T-025 --execute",
+      "id": "T-025",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-025.json"
+      ],
+      "requirements": [
+        "R-016"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S5",
+      "stage_name": "恢复与运行治理",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-025 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "自动生成 13×9 业务线目标证据"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-025"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-026.json",
+      "execution_command": "python3 scripts/run_task.py --task T-026 --execute",
+      "id": "T-026",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-026.json"
+      ],
+      "requirements": [
+        "R-001",
+        "R-016"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S5",
+      "stage_name": "恢复与运行治理",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-026 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "执行 Status Closure 并保留降级事实"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-026"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-027.json",
+      "execution_command": "python3 scripts/run_task.py --task T-027 --execute",
+      "id": "T-027",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-027.json"
+      ],
+      "requirements": [
+        "R-020",
+        "R-023",
+        "R-026"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S6",
+      "stage_name": "发布收尾",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-027 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "运行冻结测试目录和 Package Guard"
+    },
+    {
+      "acceptance_criteria": "最终开发任务包已由 Owner 授权封存；Build Agent 无需重新研究或重新执行正式复审",
+      "depends_on": [
+        "T-027"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "{ARTIFACT_DIR}/tasks/T-028.json",
+      "execution_command": "python3 scripts/run_task.py --task T-028 --execute",
+      "id": "T-028",
+      "implementation_steps": [
+        "核验 CANONICAL_STATE 为 SEALED_TASKPACK 且 Owner override 仅限任务包",
+        "核验 Owner Approval 与 Taskpack Seal 自 Hash、版本、Manifest 和 Prepared Subject 绑定",
+        "核验 formal_release_pass_claimed=false、live_action_enabled=false",
+        "核验所有剩余任务均为环境绑定且没有非环境 UNKNOWN",
+        "写入自 Hash 任务收据；失败时保持 fail-closed"
+      ],
+      "input": [
+        "SEALED_TASKPACK",
+        "Owner Approval",
+        "Prepared Subject",
+        "Manifest",
+        "Residual Environment Tasks"
+      ],
+      "oracle": "Owner Approval、Taskpack Seal、Prepared Subject、Manifest 与残余环境任务全部一致；不冒充正式发布 PASS",
+      "output": [
+        "{ARTIFACT_DIR}/tasks/T-028.json"
+      ],
+      "requirements": [
+        "R-027",
+        "R-028"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S6",
+      "stage_name": "发布收尾",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-028 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "核验 Owner 批准、Taskpack Seal、Prepared Subject 与残余环境任务"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-028"
+      ],
+      "environment_bound": true,
+      "environment_bound_reason": "需要真实目标环境、凭证、写权限或供应商控制台。",
+      "evidence": "evidence/T-029.json",
+      "execution_command": "python3 scripts/run_task.py --task T-029 --execute",
+      "id": "T-029",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-029.json"
+      ],
+      "requirements": [
+        "R-029",
+        "R-030"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S6",
+      "stage_name": "发布收尾",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-029 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "有真实变更时 commit、push、merge 和备份"
+    },
+    {
+      "acceptance_criteria": "对应 Requirement 的冻结验收全部满足",
+      "depends_on": [
+        "T-029"
+      ],
+      "environment_bound": false,
+      "environment_bound_reason": null,
+      "evidence": "evidence/T-030.json",
+      "execution_command": "python3 scripts/run_task.py --task T-030 --execute",
+      "id": "T-030",
+      "implementation_steps": [
+        "核验前置证据",
+        "执行冻结命令",
+        "验证 Oracle",
+        "写入自 Hash 收据",
+        "失败时执行回滚"
+      ],
+      "input": [
+        "冻结任务包",
+        "前序任务收据"
+      ],
+      "oracle": "退出码、Schema、Hash 和目标状态均匹配",
+      "output": [
+        "evidence/T-030.json"
+      ],
+      "requirements": [
+        "R-001",
+        "R-017",
+        "R-024"
+      ],
+      "risk": "目标环境差异或权限不足",
+      "rollback": "恢复前一 accepted release；不修改版本号",
+      "stage": "S6",
+      "stage_name": "发布收尾",
+      "stop_condition": "仅核心正确性、安全、权限、成本、法律或不可逆风险可暂停",
+      "test_command": "python3 scripts/run_task.py --task T-030 --validate",
+      "threshold": "100% required checks PASS",
+      "title": "输出部署、恢复、回滚和 Status 收尾证据"
+    }
+  ],
+  "version": "0.0.0.1.39"
+}

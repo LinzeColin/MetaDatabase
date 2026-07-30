@@ -1,0 +1,6 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "type":"object",
+  "required":["specversion","id","source","type","time","data"],
+  "properties":{"specversion":{"const":"1.0"},"id":{"type":"string"},"source":{"type":"string"},"type":{"type":"string"},"time":{"type":"string","format":"date-time"},"subject":{"type":"string"},"datacontenttype":{"const":"application/json"},"data":{}}
+}

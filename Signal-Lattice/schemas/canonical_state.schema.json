@@ -1,0 +1,128 @@
+{
+  "$id": "https://signal-lattice.local/schemas/canonical_state.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "context_calibration": {
+      "type": "object"
+    },
+    "cost_ceiling": {
+      "type": "object"
+    },
+    "current_phase": {
+      "enum": [
+        "CONTEXT_CAPTURE",
+        "RESEARCH_AND_REUSE",
+        "PREBUILD",
+        "TEN_LENS_REVIEW",
+        "REMEDIATION",
+        "BUILDER_READINESS",
+        "OWNER_GATE",
+        "SEALED_TASKPACK",
+        "BUILD_LAST_MILE",
+        "FROZEN_CANDIDATE",
+        "VERIFY_AND_RELEASE",
+        "POST_DEPLOY_OBSERVATION"
+      ]
+    },
+    "forbidden_dependencies": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "owner_approved_scope": {
+      "type": "boolean"
+    },
+    "owner_gate": {
+      "type": "object"
+    },
+    "product_version": {
+      "const": "0.0.0.1.39"
+    },
+    "production_side_effect_authorization": {
+      "type": "boolean"
+    },
+    "project_id": {
+      "const": "signal-lattice"
+    },
+    "project_name": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "required_integrations": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "resource_ceiling": {
+      "type": "object"
+    },
+    "root_blockers": {
+      "type": "array"
+    },
+    "runtime_contract": {
+      "type": "object"
+    },
+    "runtime_node": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "scope_state": {
+      "type": "string"
+    },
+    "state_machine": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 12,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "target_area": {
+      "const": "Signal-Lattice/"
+    },
+    "target_domain": {
+      "const": "signal-lattice.linzezhang.com"
+    },
+    "target_repository": {
+      "const": "LinzeColin/MetaDatabase"
+    },
+    "taskpack_version": {
+      "const": "0.0.0.1.39"
+    }
+  },
+  "required": [
+    "schema_version",
+    "project_name",
+    "project_id",
+    "target_repository",
+    "target_area",
+    "target_domain",
+    "runtime_node",
+    "current_phase",
+    "product_version",
+    "taskpack_version",
+    "owner_approved_scope",
+    "scope_state",
+    "resource_ceiling",
+    "cost_ceiling",
+    "required_integrations",
+    "forbidden_dependencies",
+    "production_side_effect_authorization",
+    "state_machine",
+    "context_calibration",
+    "root_blockers",
+    "owner_gate",
+    "runtime_contract"
+  ],
+  "type": "object"
+}

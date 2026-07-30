@@ -1,0 +1,16 @@
+{
+  "approval_kind": "OWNER_AUTHORIZED_FINAL_TASKPACK_DELIVERY",
+  "approved": true,
+  "approved_at": "2026-07-28T00:00:00Z",
+  "formal_release_pass_claimed": false,
+  "live_action_enabled": false,
+  "owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
+  "prepared_subject_sha256": "989621e8dc8c96e7bd9e80bea0c454ea8ee9b099909573908167ef83528ec5c4",
+  "receipt_sha256": "dc96df57223d52e6601dfc0ad410d3773705d60763d51574a6862aa21241cdb6",
+  "residual_environment_tasks_accepted": true,
+  "schema_version": "1.0.0",
+  "scope_summary_sha256": "c16d61ba83f7df57c36ae986a46b297761737e379bc66d69b570732ade955d5a",
+  "source_attachment_sha256": "6cd13d61cd0062609bc06c9132cf997638bb11fb4487219dd2d6db724acee076",
+  "source_message": "收尾吧进入最终交付阶段",
+  "version": "0.0.0.1.38"
+}

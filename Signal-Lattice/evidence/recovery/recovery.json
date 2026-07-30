@@ -1,0 +1,9 @@
+{
+  "backup_sha256": "30ea001898b9b8eb5211dc86f1a28cbd95743197cf746a8d9a891b0c3731f8fd",
+  "problems": [],
+  "receipt_sha256": "e0e14511f0def3a929561ea9d417554691e6860534f2a502f517e714dab075f8",
+  "rollback_supported": true,
+  "schema_version": "1.0.0",
+  "state": "PASS",
+  "wal_cleaned": true
+}

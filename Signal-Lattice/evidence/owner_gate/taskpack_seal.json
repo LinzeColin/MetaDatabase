@@ -1,0 +1,26 @@
+{
+  "deferred_release_gates": [
+    "UPSTREAM_FORMAL_SEAL",
+    "FORMAL_INDEPENDENT_REVIEW",
+    "FROZEN_CANDIDATE",
+    "VERIFY_AND_RELEASE"
+  ],
+  "formal_release_pass_claimed": false,
+  "live_action_enabled": false,
+  "manifest_sha256": "bb8a31c0704e4bf5f767507308c7286dc6d2a5289ccab746383b9cbc9e9e9611",
+  "owner_approval_sha256": "cf67c8a23475da6dc11ce62a6a25f306ddcd81c05a797d062d73e65d73e3df83",
+  "owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
+  "owner_override_used": true,
+  "prebuild_checks_sha256": "680604a6c2fe018f3a7e55f7ac87f4c8c0dbcc90f1fa52dc593b6916c90ae68f",
+  "prepared_subject_sha256": "989621e8dc8c96e7bd9e80bea0c454ea8ee9b099909573908167ef83528ec5c4",
+  "receipt_sha256": "8e465e29b8ee287a3a853988efad04e3e5b34e365ebfbb2b0971d033fa761b23",
+  "residual_environment_task_count": 17,
+  "residual_environment_tasks_sha256": "91cb6eeb484a9cbd604733aaeb6667100b3a45ab9c8aed7bc7b8e451a75d33c7",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_token_budget": 0,
+  "schema_version": "1.0.0",
+  "scope": "SEALED_DEVELOPMENT_TASKPACK_ONLY",
+  "state": "PASS",
+  "taskpack_sha256": "52cd78b64b789828ff5e5ec31cdd6256b3e3b295f02b1f54b158c7c6726786cc",
+  "version": "0.0.0.1.38"
+}

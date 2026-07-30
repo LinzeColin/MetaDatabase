@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal-lattice.local/schemas/taskpack_owner_approval.schema.json",
+  "title": "Signal Lattice 最终开发任务包 Owner 批准",
+  "type": "object",
+  "required": [
+    "schema_version", "approval_kind", "approved", "version",
+    "prepared_subject_sha256", "scope_summary_sha256",
+    "residual_environment_tasks_accepted", "formal_release_pass_claimed",
+    "live_action_enabled", "source_message", "source_attachment_sha256",
+    "approved_at", "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "approval_kind": {"const": "OWNER_AUTHORIZED_FINAL_TASKPACK_DELIVERY"},
+    "approved": {"const": true},
+    "version": {"const": "0.0.0.1.39"},
+    "prepared_subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope_summary_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "residual_environment_tasks_accepted": {"const": true},
+    "formal_release_pass_claimed": {"const": false},
+    "live_action_enabled": {"const": false},
+    "source_message": {"minLength": 1, "type": "string"},
+    "source_attachment_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "approved_at": {"type": "string", "format": "date-time"},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

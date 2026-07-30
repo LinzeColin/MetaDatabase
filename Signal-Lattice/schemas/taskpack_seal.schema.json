@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal-lattice.local/schemas/taskpack_seal.schema.json",
+  "title": "Signal Lattice Sealed Taskpack 收据",
+  "type": "object",
+  "required": [
+    "schema_version", "state", "scope", "version", "taskpack_sha256",
+    "prepared_subject_sha256", "owner_approval_sha256", "manifest_sha256",
+    "prebuild_checks_sha256", "residual_environment_task_count",
+    "formal_release_pass_claimed", "live_action_enabled",
+    "runtime_agent_dependency", "runtime_llm_token_budget", "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "state": {"const": "PASS"},
+    "scope": {"const": "SEALED_DEVELOPMENT_TASKPACK_ONLY"},
+    "version": {"const": "0.0.0.1.39"},
+    "taskpack_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prepared_subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "owner_approval_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prebuild_checks_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "residual_environment_task_count": {"type": "integer", "minimum": 1},
+    "formal_release_pass_claimed": {"const": false},
+    "live_action_enabled": {"const": false},
+    "runtime_agent_dependency": {"const": 0},
+    "runtime_llm_token_budget": {"const": 0},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

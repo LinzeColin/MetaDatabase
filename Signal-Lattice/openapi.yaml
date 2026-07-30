@@ -1,0 +1,120 @@
+{
+  "info": {
+    "description": "确定性、零 Agent、零模型 Token 的股票研究和决策支持接口。",
+    "title": "Signal Lattice API",
+    "version": "0.0.0.1.39"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/actions": {
+      "get": {
+        "operationId": "listActions",
+        "responses": {
+          "200": {
+            "description": "recent action packets"
+          }
+        }
+      }
+    },
+    "/api/v1/business-lines": {
+      "get": {
+        "operationId": "getBusinessLines",
+        "responses": {
+          "200": {
+            "description": "13x9 governance matrix"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{jobId}": {
+      "get": {
+        "operationId": "getJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "job"
+          },
+          "404": {
+            "description": "not found"
+          }
+        }
+      }
+    },
+    "/api/v1/research": {
+      "post": {
+        "operationId": "createResearch",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/research_request.schema.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "existing idempotent request"
+          },
+          "202": {
+            "description": "queued"
+          }
+        }
+      }
+    },
+    "/api/v1/status": {
+      "get": {
+        "operationId": "getStatus",
+        "responses": {
+          "200": {
+            "description": "current runtime status"
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "healthLive",
+        "responses": {
+          "200": {
+            "description": "alive"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "healthReady",
+        "responses": {
+          "200": {
+            "description": "ready or degraded"
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://signal-lattice.linzezhang.com"
+    }
+  ]
+}

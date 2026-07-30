@@ -1,0 +1,104 @@
+{
+  "artifact_sha256": {
+    "evidence/browser/browser_smoke.json": "d3748ad41be145acd89a24fb38f495b86d8583c117b95a4c897ac28283560b0d",
+    "evidence/builder_readiness/static_readiness.json": "f414f6fb14a127d2e03b45abad25947eb61c0a11d74b447835e26a75fe9920b0",
+    "evidence/quant/quant_seal.json": "10972cd20552d85d05bf762fa21f8cc39685a1b48d45c3afc642077cd2a2b529",
+    "evidence/recovery/recovery.json": "eb662dfc05f361ab8c6b122470be2e9667b523b7e6fff9ca696561f6800bce5d",
+    "evidence/release/wheel_receipt.json": "1c2b840e180669a87c29e7ca5398c8c45c1f72d00083704bcec7c0c1e3305801",
+    "evidence/systemd/systemd_verify.json": "8e2e643aa7a187c1928d5012267e3e57da83f050aca2967cf1de94a85726472f",
+    "evidence/tests/unit_tests.json": "5965caa4a53e90f9962b0bfecf3547867563031986a7a58266a30317e9d90533",
+    "evidence/upstream/upstream_precheck.json": "f5b18535d7fdfd43594a14468baf9eb15d93c23a3df3e844081afb1a02d28ca8",
+    "evidence/walking_skeleton.json": "7863807e945781be28f1e8511177dd4ef85768290ab636272d844722144ee912"
+  },
+  "automatic_trading": false,
+  "candidate_version": "0.0.0.1.38",
+  "check_count": 15,
+  "checks": [
+    {
+      "evidence": "evidence/tests/unit_tests.json",
+      "name": "unit_tests",
+      "state": "PASS"
+    },
+    {
+      "name": "canonical_state",
+      "state": "PASS"
+    },
+    {
+      "name": "version_lock",
+      "state": "PASS"
+    },
+    {
+      "name": "dual_plane",
+      "state": "PASS"
+    },
+    {
+      "accepted_for_taskpack_seal": true,
+      "name": "upstream_precheck",
+      "reason": "FIXED_UPSTREAM_INPUT_UNAVAILABLE",
+      "state": "EXPECTED_BLOCKED"
+    },
+    {
+      "evidence": "evidence/quant/quant_seal.json",
+      "name": "quant_seal",
+      "state": "PASS"
+    },
+    {
+      "name": "task_contract",
+      "state": "PASS",
+      "task_count": 30
+    },
+    {
+      "evidence": "evidence/builder_readiness/static_readiness.json",
+      "name": "builder_readiness_static",
+      "state": "PASS"
+    },
+    {
+      "evidence": "evidence/browser/browser_smoke.json",
+      "name": "browser",
+      "state": "PASS"
+    },
+    {
+      "evidence": "evidence/systemd/systemd_verify.json",
+      "name": "systemd",
+      "state": "PASS"
+    },
+    {
+      "name": "zero_runtime",
+      "state": "PASS"
+    },
+    {
+      "evidence": "evidence/walking_skeleton.json",
+      "name": "walking_skeleton",
+      "state": "PASS"
+    },
+    {
+      "evidence": "evidence/recovery/recovery.json",
+      "name": "recovery",
+      "state": "PASS"
+    },
+    {
+      "evidence": "evidence/release/wheel_receipt.json",
+      "name": "wheel",
+      "state": "PASS"
+    },
+    {
+      "name": "hermetic_install",
+      "state": "PASS"
+    }
+  ],
+  "deferred_environment_bound_gates": [
+    "UPSTREAM_FORMAL_SEAL",
+    "FORMAL_INDEPENDENT_REVIEW",
+    "FROZEN_CANDIDATE",
+    "VERIFY_AND_RELEASE"
+  ],
+  "failure_count": 0,
+  "formal_release_pass_claimed": false,
+  "live_action_enabled": false,
+  "receipt_sha256": "de9b9ba1f1bc22823566d2cdf2a9559e8fab3f3490c54da7c8b1fce752597cd7",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "1.0.0",
+  "scope": "SEALED_DEVELOPMENT_TASKPACK_PREBUILD",
+  "state": "PASS"
+}

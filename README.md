@@ -14,11 +14,11 @@
 | LinzeDatabase | ✅ 已迁入 | 原 CodexProject 中的 MetaDatabase/ 目录（含其内嵌 PFI 数据与 MooMooAU）；支付宝流水已移入 `Private-MetaDatabase` |
 | SerenityAlipay | ✅ 已迁入 | 目录名 `Serenity-Alipay`；运行时派生数据与含邮箱的通知/报告已移入 `Private-MetaDatabase`，保留公开基金参考 CSV |
 | EEI | ✅ 已迁入 | 商域帝国（Enterprise Ecosystem Intelligence）；自带 CI：`eei-validation` |
-| Stock_Skill/stock-commercial-opportunities-skill | ✅ 3.0.0（v3）当前 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；以 `Stock_Skill/REGISTRY.json` 为机器可读索引，未安装运行时 |
-| Stock_Skill/bottleneck-serenity-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | source-only、`numeric-quad`；canonical source、确定性 release、manifest 与 registry entry 已在 Stage 2 用真实 SHA 激活，未安装本机运行时 |
-| Stock_Skill/equity-foresight-signal-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | 股势前瞻；source-only、`numeric-quad`，未安装本机运行时 |
-| Stock_Skill/global-equity-lead-lag-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 全球股市时序联动图谱；source-only、`numeric-quad`，未安装本机运行时 |
-| Stock_Skill/equity-event-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 股票事件航图；source-only、`numeric-quad`，未安装本机运行时 |
+| Signal-Lattice/Stock_Skill/stock-commercial-opportunities-skill | ✅ 3.0.0（v3）当前 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；以 `Signal-Lattice/Stock_Skill/REGISTRY.json` 为机器可读索引，未安装运行时 |
+| Signal-Lattice/Stock_Skill/bottleneck-serenity-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | source-only、`numeric-quad`；canonical source、确定性 release、manifest 与 registry entry 已在 Stage 2 用真实 SHA 激活，未安装本机运行时 |
+| Signal-Lattice/Stock_Skill/equity-foresight-signal-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | 股势前瞻；source-only、`numeric-quad`，未安装本机运行时 |
+| Signal-Lattice/Stock_Skill/global-equity-lead-lag-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 全球股市时序联动图谱；source-only、`numeric-quad`，未安装本机运行时 |
+| Signal-Lattice/Stock_Skill/equity-event-atlas | ✅ 0.0.0.1（v0.0.0.1）当前 | 股票事件航图；source-only、`numeric-quad`，未安装本机运行时 |
 | xhs-douyin-2notion | 🚧 Stage 0 | 个人小红书/抖音内容知识治理；Public Code / Private Runtime |
 | PFI | ✅ 已在仓 | 个人财务智能 Streamlit 应用（顶层 `PFI/`，运行时读本机 `~/.pfi/runtime/`）；与 `LinzeDatabase/PFI` 数据目录不是同一个东西 |
 | ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
@@ -26,7 +26,7 @@
 
 ## 股票 Skill Registry 版本模型
 
-`Stock_Skill/REGISTRY.json` 使用 schema `1.1`。每个 Skill entry 都必须显式声明 `version_scheme`，不允许
+`Signal-Lattice/Stock_Skill/REGISTRY.json` 使用 schema `1.1`。每个 Skill entry 都必须显式声明 `version_scheme`，不允许
 缺字段时默认按某种版本解释：
 
 | Scheme | Canonical 机器版本 | Registry/current 展示 | Release label |
@@ -46,7 +46,7 @@ arity、前导零、archive 自声明 scheme、跨 scheme 比较，或 identity�
 `v0.0.0.1`，`numeric-quad`）。所有条目均为 source-only，未写入本机 Codex/Agents Skill 运行时。权威判定必须从仓库根运行：
 
 ```bash
-python3 Stock_Skill/scripts/validate_registry.py
+python3 Signal-Lattice/Stock_Skill/scripts/validate_registry.py
 ```
 
 预期输出同时包含两个 `CURRENT` 行；任一 source、版本、manifest、release 或 SHA 漂移都会使验证失败。

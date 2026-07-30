@@ -1,0 +1,39 @@
+{
+  "browser": "chromium",
+  "findings": [],
+  "receipt_sha256": "064ed3a09c5f02099a72589694a98ebf3571041d9d5bc55450b4a22911713cae",
+  "results": [
+    {
+      "business_line_count": 13,
+      "console_error_count": 0,
+      "minimum_nav_target_height": 44.0,
+      "nav_count": 9,
+      "no_action_visible": true,
+      "page_overflow": false,
+      "transport_mode": "SET_CONTENT_FALLBACK_ENV_POLICY",
+      "viewport": {
+        "height": 1000,
+        "name": "desktop",
+        "width": 1440
+      }
+    },
+    {
+      "business_line_count": 13,
+      "console_error_count": 0,
+      "minimum_nav_target_height": 44.0,
+      "nav_count": 9,
+      "no_action_visible": true,
+      "page_overflow": false,
+      "transport_mode": "SET_CONTENT_FALLBACK_ENV_POLICY",
+      "viewport": {
+        "height": 844,
+        "name": "mobile",
+        "width": 390
+      }
+    }
+  ],
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "1.0.0",
+  "state": "PASS"
+}

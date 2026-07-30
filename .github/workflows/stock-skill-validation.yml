@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - "Stock_Skill/**"
+      - "Signal-Lattice/Stock_Skill/**"
       - "AGENTS.md"
       - "README.md"
       - ".github/workflows/stock-skill-validation.yml"
   pull_request:
     paths:
-      - "Stock_Skill/**"
+      - "Signal-Lattice/Stock_Skill/**"
       - "AGENTS.md"
       - "README.md"
       - ".github/workflows/stock-skill-validation.yml"
@@ -43,7 +43,7 @@ jobs:
           python-version: "3.12"
 
       - name: Validate registry and registered artifacts
-        run: python3 -B Stock_Skill/scripts/validate_registry.py
+        run: python3 -B Signal-Lattice/Stock_Skill/scripts/validate_registry.py
 
       # ★ 每个技能包的根目录都要能被 import,否则套件里**在进程内**直接
       #   `import <包名>` 的测试必然炸:
@@ -72,10 +72,10 @@ jobs:
         run: |
           set -euo pipefail
           # 每个含 tests/ 的技能包根目录都加进 PYTHONPATH;子进程继承,套件间互不影响
-          PYTHONPATH="$(python3 -c "import os,pathlib;print(os.pathsep.join(sorted({str(p.parent.resolve()) for p in pathlib.Path('Stock_Skill').rglob('tests') if p.is_dir()})))")"
+          PYTHONPATH="$(python3 -c "import os,pathlib;print(os.pathsep.join(sorted({str(p.parent.resolve()) for p in pathlib.Path('Signal-Lattice/Stock_Skill').rglob('tests') if p.is_dir()})))")"
           export PYTHONPATH
           echo "PYTHONPATH 覆盖 $(printf '%s' "$PYTHONPATH" | tr ':' '\n' | grep -c .) 个技能包根目录"
-          python3 -B Stock_Skill/scripts/run_unittests.py
+          python3 -B Signal-Lattice/Stock_Skill/scripts/run_unittests.py
 
       - name: Verify every Stock Skill manifest and SHA256SUMS
         run: |
@@ -87,7 +87,7 @@ jobs:
           import stat
           import unicodedata
 
-          stock_root = Path("Stock_Skill")
+          stock_root = Path("Signal-Lattice/Stock_Skill")
           manifest_line = re.compile(r"([0-9a-f]{64})  \./(.+)")
           sums_line = re.compile(r"([0-9a-f]{64})  (.+)")
           errors: list[str] = []
@@ -194,9 +194,9 @@ jobs:
           manifests = sorted(stock_root.rglob("*MANIFEST.sha256"), key=lambda path: path.as_posix())
           sums_files = sorted(stock_root.rglob("SHA256SUMS"), key=lambda path: path.as_posix())
           if not manifests:
-              errors.append("Stock_Skill: no manifest files discovered")
+              errors.append("Signal-Lattice/Stock_Skill: no manifest files discovered")
           if not sums_files:
-              errors.append("Stock_Skill: no SHA256SUMS files discovered")
+              errors.append("Signal-Lattice/Stock_Skill: no SHA256SUMS files discovered")
           for manifest in manifests:
               verify_control_file(manifest, manifest_line, dot_prefix=True)
           for sums in sums_files:
@@ -213,4 +213,4 @@ jobs:
           PY
 
       - name: Scan public surfaces and ZIP payloads for private material
-        run: python3 -B Stock_Skill/scripts/validate_public_safety.py
+        run: python3 -B Signal-Lattice/Stock_Skill/scripts/validate_public_safety.py

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal-lattice.local/schemas/formal_review_receipt.schema.json",
+  "title": "Signal Lattice 正式独立复审收据",
+  "type": "object",
+  "required": [
+    "schema_version", "review_id", "review_type", "subject_sha256", "input_sha256",
+    "reviewer_identity", "context_isolation", "independent_from_builder",
+    "provider_run_id", "verdict", "findings", "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "review_id": {"type": "string", "minLength": 1},
+    "review_type": {
+      "enum": [
+        "VERIFIER", "TELEIOSIS_SCOPED", "PERSONA_GROUP_SCOPED",
+        "PANEL_ROUND_1", "PANEL_ROUND_2", "SECOND_MODEL",
+        "FINAL_INDEPENDENT", "FRESH_BUILDER"
+      ]
+    },
+    "subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reviewer_identity": {"type": "string", "minLength": 1},
+    "context_isolation": {"const": "ISOLATED"},
+    "independent_from_builder": {"const": true},
+    "provider_run_id": {"type": "string", "minLength": 1},
+    "verdict": {"enum": ["PASS", "CONDITIONAL_PASS", "FAIL", "BLOCKED"]},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "state", "summary"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "severity": {"enum": ["P0", "P1", "P2"]},
+          "state": {"enum": ["OPEN", "CLOSED", "DEFERRED"]},
+          "summary": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    },
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}
