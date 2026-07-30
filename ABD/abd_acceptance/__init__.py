@@ -294,6 +294,15 @@ from .score_football_models import (
     verify_existing_phase_evidence as verify_score_football_models_evidence,
     write_phase_evidence as write_score_football_models_phase_evidence,
 )
+from .multi_sport_fallback import (
+    MultiSportFallbackAcceptanceError,
+    build_evidence as build_multi_sport_fallback_evidence,
+    evaluate_contract as evaluate_multi_sport_fallback_contract,
+    perform_rollback_drill as perform_multi_sport_fallback_rollback_drill,
+    validate_candidate_preflight as validate_multi_sport_fallback_candidate,
+    verify_existing_phase_evidence as verify_multi_sport_fallback_evidence,
+    write_phase_evidence as write_multi_sport_fallback_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -525,4 +534,11 @@ __all__ = [
     "validate_score_football_models_candidate",
     "verify_score_football_models_evidence",
     "write_score_football_models_phase_evidence",
+    "MultiSportFallbackAcceptanceError",
+    "build_multi_sport_fallback_evidence",
+    "evaluate_multi_sport_fallback_contract",
+    "perform_multi_sport_fallback_rollback_drill",
+    "validate_multi_sport_fallback_candidate",
+    "verify_multi_sport_fallback_evidence",
+    "write_multi_sport_fallback_phase_evidence",
 ]

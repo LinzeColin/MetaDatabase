@@ -500,6 +500,9 @@ def _audit_imports(
         "combat_model",
         "score_models",
         "football_model",
+        "racing_model",
+        "basketball_model",
+        "baseball_model",
         "outlier_detector",
         "line_movement",
     }

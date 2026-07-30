@@ -1,0 +1,196 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S09-P04-MULTISPORT-MARKET-ONLY",
+  "contract_id": "AC-S09-P04",
+  "requirement_id": "REQ-S09-P04",
+  "stage_id": "S09",
+  "phase_id": "P04",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "expected_next": "S09/STAGE_REVIEW_READY_NOT_STARTED",
+  "replay_count": 100,
+  "adverse_replay_count": 10000,
+  "claim_boundary": {
+    "network_accessed": false,
+    "actual_market_or_odds_observed": false,
+    "recommendation_generated": false,
+    "order_submission_enabled": false,
+    "real_time_soak_required": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "cases": [
+    {
+      "case_id": "RACING_POSITIVE",
+      "model": "racing",
+      "input": {
+        "id": "RACING_POSITIVE",
+        "decision_at": "2026-08-17T10:00:00+10:00",
+        "event_at": "2026-08-17T18:00:00+10:00",
+        "competitors": ["RUNNER_A", "RUNNER_B", "RUNNER_C"],
+        "market_probabilities": {"RUNNER_A": "0.45", "RUNNER_B": "0.32", "RUNNER_C": "0.23"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "runner_strengths": [{"known_at": "2026-08-16T12:00:00+10:00", "value": {"RUNNER_A": "1.8", "RUNNER_B": "1.2", "RUNNER_C": "0.8"}}],
+          "participation_status": [{"known_at": "2026-08-17T09:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "RACING_FUTURE_REQUIRED_FEATURE",
+      "model": "racing",
+      "input": {
+        "id": "RACING_FUTURE_REQUIRED_FEATURE",
+        "decision_at": "2026-08-17T10:00:00+10:00",
+        "event_at": "2026-08-17T18:00:00+10:00",
+        "competitors": ["RUNNER_A", "RUNNER_B", "RUNNER_C"],
+        "market_probabilities": {"RUNNER_A": "0.45", "RUNNER_B": "0.32", "RUNNER_C": "0.23"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "runner_strengths": [{"known_at": "2026-08-17T10:00:00.0001+10:00", "value": {"RUNNER_A": "1.8", "RUNNER_B": "1.2", "RUNNER_C": "0.8"}}],
+          "participation_status": [{"known_at": "2026-08-17T09:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": false,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    },
+    {
+      "case_id": "BASKETBALL_POSITIVE",
+      "model": "basketball",
+      "input": {
+        "id": "BASKETBALL_POSITIVE",
+        "decision_at": "2026-08-18T10:00:00+10:00",
+        "event_at": "2026-08-18T19:00:00+10:00",
+        "competitors": ["HOME", "AWAY"],
+        "market_probabilities": {"HOME": "0.54", "AWAY": "0.46"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "home_pace": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "100"}],
+          "away_pace": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "98"}],
+          "home_offensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "115"}],
+          "home_defensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "108"}],
+          "away_offensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "112"}],
+          "away_defensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "110"}],
+          "home_advantage_points": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "2.5"}],
+          "participation_status": [{"known_at": "2026-08-18T09:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "BASKETBALL_UNCONFIRMED",
+      "model": "basketball",
+      "input": {
+        "id": "BASKETBALL_UNCONFIRMED",
+        "decision_at": "2026-08-18T10:00:00+10:00",
+        "event_at": "2026-08-18T19:00:00+10:00",
+        "competitors": ["HOME", "AWAY"],
+        "market_probabilities": {"HOME": "0.54", "AWAY": "0.46"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "home_pace": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "100"}],
+          "away_pace": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "98"}],
+          "home_offensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "115"}],
+          "home_defensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "108"}],
+          "away_offensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "112"}],
+          "away_defensive_rating": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "110"}],
+          "home_advantage_points": [{"known_at": "2026-08-17T12:00:00+10:00", "value": "2.5"}],
+          "participation_status": [{"known_at": "2026-08-18T09:00:00+10:00", "value": "PROBABLE"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": false,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    },
+    {
+      "case_id": "BASEBALL_POSITIVE",
+      "model": "baseball",
+      "input": {
+        "id": "BASEBALL_POSITIVE",
+        "decision_at": "2026-08-19T10:00:00+10:00",
+        "event_at": "2026-08-19T19:00:00+10:00",
+        "competitors": ["HOME", "AWAY"],
+        "market_probabilities": {"HOME": "0.52", "AWAY": "0.48"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "home_offense_index": [{"known_at": "2026-08-18T12:00:00+10:00", "value": "1.08"}],
+          "away_offense_index": [{"known_at": "2026-08-18T12:00:00+10:00", "value": "0.95"}],
+          "home_starter_ra": [{"known_at": "2026-08-18T12:00:00+10:00", "value": "3.7"}],
+          "away_starter_ra": [{"known_at": "2026-08-18T12:00:00+10:00", "value": "4.2"}],
+          "home_bullpen_ra": [{"known_at": "2026-08-18T12:00:00+10:00", "value": "3.9"}],
+          "away_bullpen_ra": [{"known_at": "2026-08-18T12:00:00+10:00", "value": "4.5"}],
+          "park_factor": [{"known_at": "2026-08-18T12:00:00+10:00", "value": "1.02"}],
+          "participation_status": [{"known_at": "2026-08-19T09:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "BASEBALL_BOUNDARY_AT_DECISION",
+      "model": "baseball",
+      "input": {
+        "id": "BASEBALL_BOUNDARY_AT_DECISION",
+        "decision_at": "2026-08-19T10:00:00+10:00",
+        "event_at": "2026-08-19T19:00:00+10:00",
+        "competitors": ["HOME", "AWAY"],
+        "market_probabilities": {"HOME": "0.50", "AWAY": "0.50"},
+        "requested_residual_weight": "0.35",
+        "features": {
+          "home_offense_index": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "1"}],
+          "away_offense_index": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "1"}],
+          "home_starter_ra": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "4"}],
+          "away_starter_ra": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "4"}],
+          "home_bullpen_ra": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "4"}],
+          "away_bullpen_ra": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "4"}],
+          "park_factor": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "1"}],
+          "participation_status": [{"known_at": "2026-08-19T10:00:00+10:00", "value": "CONFIRMED"}]
+        }
+      },
+      "expected": {
+        "temporal_safe": true,
+        "residual_weight": "0.35",
+        "market_prior_weight": "0.65",
+        "decision": "MARKET_ANCHORED_VERIFIED_RESIDUAL"
+      }
+    },
+    {
+      "case_id": "NICHE_MARKET_ONLY",
+      "model": "niche",
+      "input": {
+        "id": "NICHE_MARKET_ONLY",
+        "domain": "ESPORTS",
+        "market_family": "binary",
+        "market_probabilities": {"HOME": "0.52", "AWAY": "0.48"},
+        "requested_residual_weight": "0.35"
+      },
+      "expected": {
+        "temporal_safe": false,
+        "residual_weight": "0",
+        "market_prior_weight": "1",
+        "decision": "MARKET_ONLY_NO_DOMAIN_INCREMENT"
+      }
+    }
+  ],
+  "expected_report_sha256": "a02e5cd418bb24704333f0cc111338e7036c16cef1da761fb9ee7f2f89324bd2"
+}
