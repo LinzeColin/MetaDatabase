@@ -16,7 +16,7 @@ class T(unittest.TestCase):
  def test_ui_accessibility_contract(self):
   h=(self.root/'web/index.html').read_text();c=(self.root/'web/styles.css').read_text();self.assertIn('skip-link',h);self.assertIn('prefers-reduced-motion',c);self.assertRegex(c,r'min-height:44px')
  def test_systemd_units(self):
-  units=list((self.root/'deploy/systemd').iterdir());self.assertEqual(len(units),12);self.assertFalse(any('launchd' in p.name for p in units))
+  units=list((self.root/'deploy/systemd').iterdir());self.assertEqual(len(units),13);self.assertFalse(any('launchd' in p.name for p in units))
 
  def test_root_delivery_file_allowlist(self):
   allowed={

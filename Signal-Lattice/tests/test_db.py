@@ -103,3 +103,12 @@ class T(unittest.TestCase):
         self.assertTrue(job)
         with self.assertRaisesRegex(ValueError, "INVALID_LEASE_SECONDS"):
             self.db.claim("worker", lease_seconds=1)
+
+class SignalInputDBTests(unittest.TestCase):
+    def test_signal_market_and_decision_storage(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);schema=Path(__file__).resolve().parents[1]/'db/schema.sql';db=RuntimeDB(root/'r.db',schema,FakeClock(datetime(2026,7,30,tzinfo=timezone.utc)))
+            signal={'skill_id':'s','skill_version':'1','symbol':'ABC','market':'US','as_of':'2026-07-30T00:00:00+00:00','available_at':'2026-07-30T00:00:00+00:00','ingested_at':'2026-07-30T00:00:00+00:00','direction':1,'confidence':.8,'expected_return_pct':5,'downside_pct':-3,'evidence_roots':['e:1'],'point_in_time_ok':True,'license_ok':True,'data_quality':.8,'oos_valid':True,'dsr_confidence':.9,'pbo':.1,'liquidity_score':.8,'cost_bps':10,'source_digest':'a'*64}
+            db.upsert_skill_signal(signal);self.assertEqual(db.skill_signals('ABC','US')[0]['skill_id'],'s')
+            market={'symbol':'ABC','market':'US','as_of':'2026-07-30T00:00:00+00:00','available_at':'2026-07-30T00:00:00+00:00','ingested_at':'2026-07-30T00:00:00+00:00','price':10,'currency':'USD','daily_value_traded_usd':1e7,'capacity_usd':1e5,'point_in_time_ok':True,'license_ok':True,'freshness_seconds':0,'source':'x','source_digest':'b'*64,'upstream_seal_pass':True}
+            db.upsert_market_snapshot(market);self.assertEqual(db.market_snapshot('ABC','US')['price'],10)

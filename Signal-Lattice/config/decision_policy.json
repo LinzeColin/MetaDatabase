@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "signal-lattice-human-decision-support-v1",
+  "minimum_independent_skills": 2,
+  "minimum_independent_evidence_roots": 2,
+  "minimum_evidence_independence_ratio": 0.6,
+  "maximum_freshness_seconds": 86400,
+  "minimum_net_expected_return_pct": 1.0,
+  "minimum_dsr_confidence": 0.8,
+  "maximum_pbo": 0.2,
+  "minimum_liquidity_score": 0.6,
+  "minimum_daily_value_traded_usd": 5000000,
+  "maximum_position_pct": 0.05,
+  "buy_score_threshold": 0.35,
+  "sell_score_threshold": -0.35,
+  "critical_conflict_weight_ratio": 0.35,
+  "runtime_agent_dependency": 0,
+  "runtime_llm_token_budget": 0,
+  "automatic_execution_allowed": false,
+  "human_execution_only": true
+}

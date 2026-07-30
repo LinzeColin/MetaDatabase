@@ -1,0 +1,27 @@
+{
+  "authorization_kind": "OWNER_DIRECTED_STOCK_SKILL_BOUNDARY_RESEAL",
+  "authorized": true,
+  "automatic_trading": false,
+  "formal_release_pass_claimed": false,
+  "live_action_enabled": false,
+  "mechanical_change": [
+    "exclude canonical Stock_Skill source from Signal Lattice product manifest and subject identity",
+    "require Stock_Skill/scripts/validate_registry.py when the preserved source is present",
+    "preserve Stock_Skill unchanged during overlay application",
+    "recognize an equivalent dual-plane --require-projects command when Signal-Lattice is already registered",
+    "leave an already equivalent dual-plane workflow unchanged",
+    "resolve canonical_project_path and nested release hashes from Stock_Skill registry schema 1.1 during frozen upstream sealing",
+    "resolve Teleiosis wbi verify-self entrypoint and preserve allowed NOT_PRESENT as an explicit upstream state",
+    "isolate side-effect-gate tests from inherited authorization and make missing-upstream precheck assertion stage-aware after a valid formal seal",
+    "remove taskpack trailing whitespace from test_api.py to retain a clean Git diff",
+    "exclude mutable upstream evidence from product manifest and prove that boundary in tests"
+  ],
+  "production_side_effect_authorization": true,
+  "receipt_sha256": "d421433d7a7d413602a761738d15ebf3123d31e4b7c7ca16916fdb826b6efa39",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_token_budget": 0,
+  "schema_version": "1.0.0",
+  "scope": "PRESERVE_CANONICAL_SIGNAL_LATTICE_STOCK_SKILL_SOURCE",
+  "source_instruction": "唯一 Git 路径为 Signal-Lattice/Stock_Skill/；现有 Stock_Skill/ 内的股票 Skill 归此路径；现在和未来股票 Skill 均放在该目录。",
+  "version": "0.0.0.1.40"
+}

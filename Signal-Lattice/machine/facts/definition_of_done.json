@@ -13,7 +13,7 @@
   ],
   "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
   "frozen": true,
-  "frozen_version": "0.0.0.1.39",
+  "frozen_version": "0.0.0.1.40",
   "no_real_time_soak": true,
   "release_verification_state": "PENDING_ENVIRONMENT_AND_INDEPENDENT_EVIDENCE",
   "schema_version": "1.0.0",

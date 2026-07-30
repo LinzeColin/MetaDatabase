@@ -1,39 +1,13 @@
 {
-  "context_calibration": {
-    "facts": [
-      {
-        "fact": "Signal Lattice 保持运行期零 Agent、零模型 Token、禁止自动交易。",
-        "id": "CTX-001",
-        "state": "ACTIVE"
-      },
-      {
-        "fact": "Status 是运行状态只读投影与首尾控制入口，不是第二业务事实源。",
-        "id": "CTX-002",
-        "state": "ACTIVE"
-      },
-      {
-        "fact": "外部 Skill 以固定 Git commit 和完整树封存；当前正式 Seal 尚未形成。",
-        "id": "CTX-003",
-        "state": "ACTIVE"
-      },
-      {
-        "fact": "历史中未绑定当前制品的测试数量、Manifest 与 PASS 声明不得作为当前验收证据。",
-        "id": "CTX-004",
-        "state": "SUPERSEDED"
-      },
-      {
-        "fact": "正式独立 Reviewer 收据与目标环境绑定尚未产生。",
-        "id": "CTX-005",
-        "minimum_validation": "冻结 Subject 后执行正式 Review Chain 与目标环境 Context Capture。",
-        "state": "UNVERIFIED"
-      }
+  "completion_contract": {
+    "completion_claim": "DEPLOYED_AND_PUBLICLY_VERIFIED",
+    "required_public_url": "https://signal-lattice.linzezhang.com",
+    "required_receipts": [
+      "public_release.json",
+      "status_closure.json",
+      "DELIVERY_RESULT.json"
     ],
-    "windows_days": [
-      3,
-      7,
-      15,
-      30
-    ]
+    "required_status_url": "https://status.linzezhang.com"
   },
   "cost_ceiling": {
     "new_paid_services_default": "PROHIBITED",
@@ -49,20 +23,20 @@
     "user_machine_runtime"
   ],
   "latest_iteration": {
-    "closed_findings": [],
-    "developer_burden_delta": [
-      "Final taskpack sealed; Build Agent receives only environment-bound work."
+    "closed_findings": [
+      "NO_PUBLIC_URL_DELIVERY_PROOF",
+      "STATIC_NO_ACTION_ONLY_UI",
+      "MISSING_SKILL_SIGNAL_AGGREGATION",
+      "MISSING_PUBLIC_RELEASE_RECEIPT"
     ],
     "formal_release_pass_claimed": false,
-    "id": "FINAL-TASKPACK-SEAL-039",
-    "live_action_enabled": false,
-    "new_mechanisms": [],
+    "id": "NORTHSTAR-DEPLOYMENT-REPAIR-040",
     "open_p0": 0,
     "open_p1": 0,
-    "owner_override_used": true,
-    "qualifying_round": false,
-    "state": "OWNER_APPROVED_TASKPACK_SEAL_PENDING_RECEIPT"
+    "public_deployment_verified": false,
+    "state": "SEALED_TASKPACK_OWNER_AUTHORIZED"
   },
+  "north_star": "平权股票 Skill 聚合、内部证据协调、量化硬门和供人执行的最终投资建议；证据不足时 NO_ACTION。",
   "owner_approved_scope": true,
   "owner_gate": {
     "eligible": true,
@@ -72,16 +46,31 @@
     "qualifying_no_change_rounds": 0,
     "required_rounds": 2
   },
-  "product_version": "0.0.0.1.39",
-  "production_side_effect_authorization": false,
+  "product_version": "0.0.0.1.40",
+  "production_side_effect_authorization": true,
+  "production_side_effect_scope": [
+    "TARGET_REPOSITORY_PATCH",
+    "OVH_DEPLOYMENT",
+    "CLOUDFLARE_TUNNEL",
+    "STATUS_REGISTRATION",
+    "BACKUP_RECOVERY"
+  ],
   "project_id": "signal-lattice",
   "project_name": "Signal Lattice",
+  "recommendation_contract": {
+    "automatic_execution": false,
+    "capability": "HUMAN_DECISION_SUPPORT",
+    "default_mode": "RESEARCH_AND_NO_ACTION",
+    "enablement": "ONLY_AFTER_TRUSTED_INPUT_GATES"
+  },
   "required_integrations": [
     "status.linzezhang.com",
     "OVH",
+    "Cloudflare Tunnel",
     "Private-Database",
     "Cloudflare R2",
     "OCI",
+    "Stock_Skill",
     "PFI",
     "EEI",
     "QBE",
@@ -94,36 +83,19 @@
     "default_profile": "single_worker_low_resource",
     "state": "AUTO_CAPTURE_REQUIRED"
   },
-  "root_blockers": [
-    {
-      "blocks_live_action": true,
-      "blocks_taskpack_seal": false,
-      "environment_bound": true,
-      "id": "B-UPSTREAM-SEAL",
-      "reason": "需要精确只读 Git checkout、worktree 或 bundle。",
-      "state": "DEFERRED_ENVIRONMENT_BOUND"
-    },
-    {
-      "blocks_live_action": true,
-      "blocks_taskpack_seal": false,
-      "environment_bound": true,
-      "id": "B-FORMAL-REVIEW",
-      "reason": "需要真实隔离 Reviewer 与第二模型收据。",
-      "state": "DEFERRED_ENVIRONMENT_BOUND"
-    }
-  ],
+  "root_blockers": [],
   "runtime_contract": {
     "agent_dependency": 0,
     "automatic_trading": false,
+    "human_execution_only": true,
     "macos_runtime": false,
     "model_mode": "DISABLED",
     "token_budget": 0,
-    "trip_on_any_model_attempt": true,
     "upstream_writeback": false
   },
   "runtime_node": "OVH Linux",
-  "schema_version": "1.0.0",
-  "scope_state": "OWNER_APPROVED_SEALED_TASKPACK",
+  "schema_version": "1.1.0",
+  "scope_state": "OWNER_APPROVED_NORTHSTAR_DEPLOYMENT_REPAIR",
   "state_machine": [
     "CONTEXT_CAPTURE",
     "RESEARCH_AND_REUSE",
@@ -138,8 +110,10 @@
     "VERIFY_AND_RELEASE",
     "POST_DEPLOY_OBSERVATION"
   ],
+  "status_url": "https://status.linzezhang.com",
   "target_area": "Signal-Lattice/",
   "target_domain": "signal-lattice.linzezhang.com",
+  "target_public_url": "https://signal-lattice.linzezhang.com",
   "target_repository": "LinzeColin/MetaDatabase",
-  "taskpack_version": "0.0.0.1.39"
+  "taskpack_version": "0.0.0.1.40"
 }

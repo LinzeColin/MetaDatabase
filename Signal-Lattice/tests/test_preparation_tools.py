@@ -137,5 +137,9 @@ class SystemdVerificationTest(unittest.TestCase):
             self.assertEqual(completed.returncode, 0, completed.stderr)
             data = json.loads(output.read_text())
             self.assertEqual(data["state"], "PASS")
-            self.assertEqual(data["unit_count"], 12)
+            self.assertEqual(data["unit_count"], 13)
             self.assertEqual(data["macos_launchd_units"], 0)
+            self.assertIn(data["systemd_analyze_state"], {"EXECUTED_PASS", "STATIC_FALLBACK_NON_TARGET_HOST"})
+            if data["systemd_analyze_state"] == "STATIC_FALLBACK_NON_TARGET_HOST":
+                self.assertFalse(data["systemd_analyze_available"])
+                self.assertTrue(data["target_runtime_verification_required"])

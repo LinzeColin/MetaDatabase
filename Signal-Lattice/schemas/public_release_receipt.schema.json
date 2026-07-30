@@ -1,0 +1,45 @@
+{
+  "$id": "https://signal-lattice.linzezhang.com/schemas/public_release_receipt.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "checks": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "type": "object"
+    },
+    "current_action": {
+      "type": "string"
+    },
+    "decision_support_capability_verified": {
+      "type": "boolean"
+    },
+    "expected_version": {
+      "type": "string"
+    },
+    "public_url": {
+      "const": "https://signal-lattice.linzezhang.com"
+    },
+    "receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "PASS",
+        "BLOCKED"
+      ]
+    }
+  },
+  "required": [
+    "state",
+    "public_url",
+    "expected_version",
+    "checks",
+    "receipt_sha256",
+    "decision_support_capability_verified",
+    "current_action"
+  ],
+  "type": "object"
+}

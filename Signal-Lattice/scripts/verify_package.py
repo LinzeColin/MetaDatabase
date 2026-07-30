@@ -13,8 +13,8 @@ SECRET_PATTERNS = (
 UNFINISHED = re.compile(r"\b(?:TODO|TBD|FIXME)\b")
 PLACEHOLDER = re.compile(r"(?:TARGET_ENVIRONMENT_BINDING_REQUIRED|按任务包内冻结脚本|example\.(?:com|org|net))", re.I)
 MANIFEST_EXCLUDED = {"MANIFEST.json", "SUBJECT_LOCK.json", "CANONICAL_STATE.json", "evidence/skill_router/pass_c.json"}
-MANIFEST_EXCLUDED_PREFIXES = ("evidence/formal_review/", "evidence/owner_gate/")
-EMBEDDED_SOURCE_ROOTS = ("Stock_Skill",)
+MANIFEST_EXCLUDED_PREFIXES = ("evidence/formal_review/", "evidence/owner_gate/", "evidence/upstream/", "Stock_Skill/")
+CANONICAL_STOCK_SKILL_PREFIX = "Stock_Skill/"
 ALLOWED_ROOT_FILES = {
     "00_READ_FIRST.md", "CANONICAL_STATE.json", "CODEX_LAST_MILE_PROMPT.txt",
     "MEMORY_RECONCILIATION.md", "PURSUING_GOAL.txt", "README.md", "ROADMAP.md",
@@ -42,39 +42,6 @@ def sha(path: Path) -> str:
 
 def is_garbage(path: Path) -> bool:
     return any(part in GARBAGE_NAMES or part.endswith((".egg-info", ".dist-info")) for part in path.parts)
-
-
-def is_embedded_source(rel: str) -> bool:
-    return any(rel == root or rel.startswith(root + "/") for root in EMBEDDED_SOURCE_ROOTS)
-
-
-def validate_embedded_stock_skill(root: Path, findings: list[str]) -> None:
-    """Validate the co-located source without treating it as app-package payload.
-
-    Stock Skill archives intentionally retain ZIPs and native YAML, which belong to
-    their own integrity contract rather than the Signal Lattice application bundle.
-    In a repository checkout this helper requires the stock registry and public
-    safety validators to pass. A distributable app-only task pack omits the source
-    tree entirely, so absence is allowed after packaging.
-    """
-    stock_root = root / "Stock_Skill"
-    if not stock_root.exists() and not stock_root.is_symlink():
-        return
-    if stock_root.is_symlink() or not stock_root.is_dir():
-        findings.append("EMBEDDED_STOCK_SKILL_ROOT_INVALID")
-        return
-    repository_root = root.parent
-    if not (repository_root / "AGENTS.md").is_file() or not (repository_root / "README.md").is_file():
-        findings.append("EMBEDDED_STOCK_SKILL_REPOSITORY_SURFACES_MISSING")
-        return
-    validators = (
-        ("registry", [sys.executable, "-B", str(stock_root / "scripts/validate_registry.py")]),
-        ("public_safety", [sys.executable, "-B", str(stock_root / "scripts/validate_public_safety.py"), "--repo-root", str(repository_root)]),
-    )
-    for name, command in validators:
-        completed = subprocess.run(command, cwd=repository_root, capture_output=True, text=True, timeout=300)
-        if completed.returncode != 0:
-            findings.append("EMBEDDED_STOCK_SKILL_" + name.upper() + "_FAILED")
 
 
 def unfinished_scan_text(path: Path, text: str) -> str:
@@ -199,6 +166,34 @@ def validate_evidence_receipts(root: Path, findings: list[str]) -> None:
                     findings.append("EVIDENCE_REFERENCE_MISSING:" + rel + ":" + str(lens["developer_burden_delta_ref"]))
 
 
+def validate_stock_skill_source(root: Path, findings: list[str]) -> None:
+    """Keep the canonical Skill source outside the product seal but validate it when present."""
+    stock_root = root / "Stock_Skill"
+    if not stock_root.exists():
+        return
+    if not stock_root.is_dir() or stock_root.is_symlink():
+        findings.append("STOCK_SKILL_SOURCE_INVALID")
+        return
+    validator = stock_root / "scripts/validate_registry.py"
+    if not validator.is_file():
+        findings.append("STOCK_SKILL_VALIDATOR_MISSING")
+        return
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(validator)],
+            cwd=root.parent,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=120,
+        )
+    except Exception as exc:
+        findings.append("STOCK_SKILL_VALIDATOR_ERROR:" + type(exc).__name__)
+        return
+    if completed.returncode:
+        findings.append("STOCK_SKILL_REGISTRY_INVALID")
+
+
 def validate_manifest(root: Path, manifest: Path, findings: list[str]) -> None:
     try:
         data = json.loads(manifest.read_text())
@@ -217,7 +212,7 @@ def validate_manifest(root: Path, manifest: Path, findings: list[str]) -> None:
             if not path.is_file() or path.is_symlink():
                 continue
             rel = path.relative_to(root).as_posix()
-            if is_embedded_source(rel) or rel in MANIFEST_EXCLUDED or any(rel.startswith(prefix) for prefix in MANIFEST_EXCLUDED_PREFIXES) or is_garbage(path) or rel.endswith((".pyc", ".pyo", ".zip", ".whl")):
+            if rel in MANIFEST_EXCLUDED or any(rel.startswith(prefix) for prefix in MANIFEST_EXCLUDED_PREFIXES) or is_garbage(path) or rel.endswith((".pyc", ".pyo", ".zip", ".whl")):
                 continue
             current.append(rel)
         if set(current) != set(indexed):
@@ -251,7 +246,7 @@ def main() -> int:
     garbage_roots: set[str] = set()
     for path in root.rglob("*"):
         rel = path.relative_to(root).as_posix()
-        if is_embedded_source(rel):
+        if rel.startswith(CANONICAL_STOCK_SKILL_PREFIX):
             continue
         reason = unsafe_path_reason(rel)
         if reason:
@@ -306,6 +301,7 @@ def main() -> int:
         except Exception as exc:
             findings.append("SYNTAX:" + rel + ":" + type(exc).__name__)
     findings.extend("BUILD_GARBAGE:" + item for item in sorted(garbage_roots))
+    validate_stock_skill_source(root, findings)
 
     try:
         connection = sqlite3.connect(":memory:")
@@ -316,7 +312,6 @@ def main() -> int:
 
     validate_dag_and_trace(root, findings)
     validate_evidence_receipts(root, findings)
-    validate_embedded_stock_skill(root, findings)
     try:
         contract = json.loads((root / "machine/facts/task_execution_contract.json").read_text())
         task_rows = contract["tasks"]
@@ -382,9 +377,14 @@ def main() -> int:
         "scripts/transition_canonical_state.py", "scripts/build_skill_pass_c.py",
         "scripts/verify_skill_pass_c.py", "schemas/state_transition.schema.json", "schemas/skill_pass_c.schema.json",
         "schemas/taskpack_owner_approval.schema.json", "schemas/taskpack_seal.schema.json",
-        "scripts/build_taskpack_owner_approval.py", "scripts/build_taskpack_seal.py", "scripts/build_taskpack_zip.py",
+        "scripts/build_taskpack_owner_approval.py", "scripts/build_taskpack_seal.py",
         "scripts/verify_taskpack_seal.py", "machine/facts/final_scope_summary.json",
-        "machine/facts/residual_environment_tasks.json", "machine/facts/skill_route_summary.json"
+        "machine/facts/residual_environment_tasks.json", "machine/facts/skill_route_summary.json",
+        "docs/PRODUCT_RESULT.md", "docs/DEPLOYMENT_RESULT_CONTRACT.md",
+        "docs/architecture/NORTHSTAR_ARCHITECTURE.md", "docs/architecture/DATA_AUTHORITY.md",
+        "scripts/deploy_northstar.sh", "scripts/deploy_public_site.sh",
+        "scripts/verify_public_release.py", "scripts/build_delivery_result.py",
+        "scripts/verify_deployment_claim.py", "scripts/verify_northstar_repair_authorization.py"
     )
     for rel in required_delivery:
         if not (root / rel).is_file():

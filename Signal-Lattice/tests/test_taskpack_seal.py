@@ -1,5 +1,4 @@
 import json
-import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,7 +14,7 @@ class TaskpackSealTests(unittest.TestCase):
 
     def test_owner_override_is_valid_only_when_explicitly_bound(self):
         state = json.loads((self.root / "CANONICAL_STATE.json").read_text(encoding="utf-8"))
-        result = validate_state(state, "0.0.0.1.39")
+        result = validate_state(state, "0.0.0.1.40")
         self.assertEqual(result.state, "PASS", result.findings)
         self.assertEqual(result.current_phase, "SEALED_TASKPACK")
         gate = state["owner_gate"]
@@ -36,8 +35,6 @@ class TaskpackSealTests(unittest.TestCase):
         self.assertFalse(seal["live_action_enabled"])
         self.assertEqual(seal["runtime_agent_dependency"], 0)
         self.assertEqual(seal["runtime_llm_token_budget"], 0)
-        if seal.get("version") == "0.0.0.1.39":
-            self.assertRegex(seal["embedded_stock_skill_payload_sha256"], re.compile(r"^[0-9a-f]{64}$"))
 
     def test_residual_tasks_are_environment_bound_only(self):
         data = json.loads((self.root / "machine/facts/residual_environment_tasks.json").read_text(encoding="utf-8"))

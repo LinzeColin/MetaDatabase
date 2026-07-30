@@ -1,27 +1,34 @@
-# Signal Lattice｜股票信号格阵决策系统
+# Signal Lattice｜股票 Skill 聚合、协调与投资决策网站
 
-Signal Lattice 是确定性、零 Agent、零模型 Token 的股票研究与决策支持系统。它动态接入平权 Skill，将研究结果规范化为 Claim、Evidence、Conflict、Quant Validation 和 Action Packet；任何关键门失败时输出 `NO_ACTION`。
+Signal Lattice 是部署在 OVH、通过 Cloudflare 暴露公网入口的中文股票决策聚合中心。它以平权方式接入股票研究 Skill，把异构输出规范化为可追溯的 Signal、Claim、Evidence、Conflict、Quant Gate 和 Recommendation Snapshot，再形成供人执行的投资建议或严格 `NO_ACTION`。
 
-当前交付物是 `SEALED_TASKPACK`：可交给 Build Agent 完成目标仓、真实凭证、OVH 和供应商环境的最后一公里。它不声称真实市场优势或正式生产发布已经 PASS。
+## 北极星链路
 
-股票 Skill 的唯一 Git 真源是仓库根相对路径 `Signal-Lattice/Stock_Skill/`；根目录 `Stock_Skill/` 不得重建。最终开发任务包会携带该可恢复源码树，并用独立的嵌入式源码哈希绑定；正式应用 ZIP 仍不重复打包历史 Skill ZIP。两种交付均要求在 Git 源码仓验证 registry 与公开安全扫描。
-
-## 快速入口
-
-```bash
-bash scripts/codex_last_mile.sh plan
-bash scripts/codex_last_mile.sh task T-002
-python3 scripts/verify_taskpack_seal.py --root .
+```text
+GitHub 最新 Skill 与外部系统研究制品
+→ 只读来源跟踪与确定性 Adapter
+→ 证据去重、共识与冲突协调
+→ Point-in-time、费用、样本外、过拟合、流动性、容量和组合风险硬门
+→ 人工投资建议或 NO_ACTION
+→ 中文网站与 Status Tier-0
 ```
 
-## 运行边界
+## 软件入口
 
-- 仅部署到 OVH Linux；
-- API 默认只绑定 `127.0.0.1`，由批准的 Cloudflare 入口代理；
-- 无 Agent Runtime、模型 SDK 或模型 API；
-- 无自动交易；
-- 无 macOS launchd 或本地常驻资源；
-- Status Tier-0 是第一步和最后一步；
-- 缺少正式来源、数据或发布证据时强制 `RESEARCH_AND_NO_ACTION`。
+- 公网软件：`https://signal-lattice.linzezhang.com`
+- 权威监控：`https://status.linzezhang.com`
+- OVH 内部 API：`127.0.0.1:8787`
 
-Build Agent P80 约 250k Token／15h 墙钟，P95 约 495k Token／32h 墙钟；详见 `machine/facts/build_agent_cost_estimate.json`。
+部署完成必须由 `scripts/verify_public_release.py` 实际访问公网 URL，并由 `scripts/build_delivery_result.py` 生成 `DEPLOYED_AND_PUBLICLY_VERIFIED` 收据。代码落库、systemd 文件存在或本地测试通过都不能替代公网成果。
+
+## 安全边界
+
+- 运行期 Agent、LLM、模型 API 与 Token：0；
+- 自动券商交易：永久关闭；
+- 任何建议都标记 `human_execution_only=true`；
+- 数据、来源、License、证据独立性或量化硬门失败时强制 `NO_ACTION`；
+- macOS、本机和 launchd 不承载任何运行组件。
+
+## 可选市场数据适配
+
+任务包提供 `scripts/moomoo_market_snapshot.py`，可在目标环境已运行 Moomoo OpenD、且 Owner 明确确认数据许可时，将报价转换为 Signal Lattice 的 Point-in-time 市场快照。它不是核心运行依赖，也不会自动安装或绕过许可门；未绑定合法数据时系统保持 `NO_ACTION`。

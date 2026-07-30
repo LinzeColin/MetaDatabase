@@ -93,3 +93,31 @@ CREATE TABLE IF NOT EXISTS sync_cursor (
   cursor_value TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS skill_signal_inputs (
+  skill_id TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  market TEXT NOT NULL,
+  as_of TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  source_digest TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(skill_id, symbol, market)
+);
+CREATE TABLE IF NOT EXISTS market_snapshots (
+  symbol TEXT NOT NULL,
+  market TEXT NOT NULL,
+  as_of TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  source_digest TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(symbol, market)
+);
+CREATE TABLE IF NOT EXISTS decision_snapshots (
+  symbol TEXT NOT NULL,
+  market TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  receipt_sha256 TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY(symbol, market, receipt_sha256)
+);

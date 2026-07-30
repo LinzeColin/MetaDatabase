@@ -1,17 +1,25 @@
 {
+  "automatic_trading": false,
   "checks": {
-    "atomic_counts": true,
+    "atomic_event_counts": true,
+    "decision_snapshot_written": true,
+    "fail_closed_no_action": true,
+    "human_only": true,
+    "human_recommendation": true,
     "job_completed": true,
     "job_created": true,
-    "no_action": true,
     "worker_ran": true
   },
   "counts": {
-    "actions": 1,
-    "attempts": 1,
-    "outbox": 1,
-    "runtime_journal": 1
+    "actions": 2,
+    "attempts": 2,
+    "decision_snapshots": 1,
+    "outbox": 2,
+    "runtime_journal": 2
   },
-  "schema_version": "1.0.0",
+  "recommended_action": "BUY",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "2.0.0",
   "state": "PASS"
 }

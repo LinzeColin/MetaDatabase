@@ -1,4 +1,5 @@
 {
+  "automatic_trading": false,
   "codex_may_change_version": false,
   "excluded": [
     "automatic trading",
@@ -10,7 +11,8 @@
   "formal_release_pass_claimed": false,
   "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
   "frozen": true,
-  "frozen_version": "0.0.0.1.39",
+  "frozen_version": "0.0.0.1.40",
+  "human_decision_support_capability": true,
   "included": [
     "Signal-Lattice starter kit",
     "schemas",
@@ -20,7 +22,13 @@
     "formal evidence"
   ],
   "live_action_enabled": false,
+  "public_completion_receipts": [
+    "public_release.json",
+    "status_closure.json",
+    "DELIVERY_RESULT.json"
+  ],
+  "public_website_required": true,
   "schema_version": "1.0.0",
   "taskpack_sealed": true,
-  "version": "0.0.0.1.39"
+  "version": "0.0.0.1.40"
 }
