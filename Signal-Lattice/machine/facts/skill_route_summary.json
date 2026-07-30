@@ -1,0 +1,61 @@
+{
+  "catalog_instance_count": 100,
+  "coverage_domains": [
+    "product",
+    "frontend",
+    "backend",
+    "architecture",
+    "data",
+    "security",
+    "reliability",
+    "operations",
+    "testing",
+    "deployment",
+    "governance",
+    "acceptance"
+  ],
+  "deep_applied_methods": [
+    {
+      "purpose": "中文信息层级、响应式、触控面积、焦点、Reduced Motion 与浏览器验收",
+      "slug": "ui-ux-pro-max"
+    },
+    {
+      "purpose": "双平面七文件与目标仓治理接入",
+      "slug": "domain-dual-plane"
+    },
+    {
+      "purpose": "桌面与移动真实浏览器 Smoke",
+      "slug": "web-app-testing"
+    },
+    {
+      "purpose": "不可变 Subject、机械追踪与 fail-closed 证据方法；正式独立裁决仍在发布门",
+      "slug": "verifier"
+    },
+    {
+      "purpose": "冻结 Baseline、单 Challenger、有界回滚方法；运行期为确定性实现",
+      "slug": "teleiosis"
+    },
+    {
+      "purpose": "专家覆盖与职责隔离方法；未冒充独立 SubAgent PASS",
+      "slug": "persona-distiller-group"
+    },
+    {
+      "purpose": "低熵上下文与移动仓语义差量",
+      "slug": "context-kernel"
+    },
+    {
+      "purpose": "最终输出、路径、Manifest 与制品核验",
+      "slug": "output-skill"
+    }
+  ],
+  "formal_release_pass_claimed": false,
+  "full_tree_formal_seal_state": "DEFERRED_ENVIRONMENT_BOUND",
+  "receipt_sha256": "3cc95870c3dfce45bd6a13bc1e48e758e9bbab783529058b3e26e85bceae0ed1",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_token_budget": 0,
+  "schema_version": "1.0.0",
+  "scope": "FULL_CATALOG_ROUTE_METADATA_AND_APPLICABLE_METHOD_MAPPING",
+  "state": "PASS_TASKPACK_SCOPE",
+  "unique_slug_count": 84,
+  "version": "0.0.0.1.39"
+}

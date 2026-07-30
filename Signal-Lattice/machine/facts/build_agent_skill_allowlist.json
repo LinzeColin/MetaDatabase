@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "candidate_version": "0.0.0.1.39",
+  "policy": "ALLOWLIST_ONLY",
+  "allowed": [
+    {
+      "slug": "domain-dual-plane",
+      "purpose": "核验目标仓双平面七文件和 CI 登记，不重新定义领域模型。"
+    },
+    {
+      "slug": "web-app-testing",
+      "purpose": "执行冻结的浏览器兼容性与可访问性检查，不重新设计界面。"
+    },
+    {
+      "slug": "gitnexus",
+      "purpose": "仅在目标仓兼容冲突时做局部影响分析，不重新研究产品。"
+    },
+    {
+      "slug": "output-skill",
+      "purpose": "核验冻结输出、路径和证据，不扩展交付范围。"
+    }
+  ],
+  "forbidden": [
+    "market-research",
+    "product-definition",
+    "teleiosis",
+    "persona-distiller",
+    "persona-distiller-group",
+    "verifier",
+    "scope-redefinition",
+    "version-renaming"
+  ],
+  "runtime_agent_allowed": false,
+  "runtime_llm_allowed": false
+}

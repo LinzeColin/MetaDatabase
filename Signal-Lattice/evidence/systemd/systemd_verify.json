@@ -1,0 +1,66 @@
+{
+  "findings": [],
+  "macos_launchd_units": 0,
+  "receipt_sha256": "2ed0d158429c7fa6ec6b9ea069729d77fa74d0fee4d34ce2d9bb5a759d210502",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "1.0.0",
+  "state": "PASS",
+  "systemd_analyze_available": false,
+  "systemd_analyze_returncode": null,
+  "systemd_analyze_state": "UNAVAILABLE_NON_TARGET_HOST",
+  "systemd_analyze_stderr_tail": "systemd-analyze unavailable; target-OVH verification remains required",
+  "systemd_analyze_stdout_tail": "",
+  "target_runtime_verification_required": true,
+  "unit_count": 12,
+  "units": [
+    {
+      "sha256": "95564298a2ac9130a553892351589a451aa261bcc5e69bf99c756e95b7cd6630",
+      "unit": "signal-lattice-api.service"
+    },
+    {
+      "sha256": "9d52d918e16edbd55a06fc1239186f324fbda5840a74f1692894d24fad33a005",
+      "unit": "signal-lattice-backup.service"
+    },
+    {
+      "sha256": "9f19ff3ba28e8faf66de04ed064ee29221926fafed0e48bb54f47bfd6847f392",
+      "unit": "signal-lattice-backup.timer"
+    },
+    {
+      "sha256": "9f4825d6892f68c0702175d6977af7e416dc055595f1d266c14b130e94a24442",
+      "unit": "signal-lattice-evolution.service"
+    },
+    {
+      "sha256": "4da620b4864a71599ae2d8741c16844bead16bcb6cd0b1a85c99234fd4a6cab5",
+      "unit": "signal-lattice-evolution.timer"
+    },
+    {
+      "sha256": "6820ea5e5424eee61cc9ff0c31fe9b2030cf4eaf2ce73af323619cea7a8169b3",
+      "unit": "signal-lattice-outbox-sync.service"
+    },
+    {
+      "sha256": "c454d3313a811d3d6f9afc4c518a5ef9fffc92115282b2d3121a3ac9a5ad4a90",
+      "unit": "signal-lattice-outbox-sync.timer"
+    },
+    {
+      "sha256": "d3ef64bcf19f9f7f207455623d146230247366ec09b91647b972b8b5234dd0c4",
+      "unit": "signal-lattice-source-sync.service"
+    },
+    {
+      "sha256": "3d939be39bba947e587a62edba31fefd8b86fe0fe6fd76244083dd6812dc4bfa",
+      "unit": "signal-lattice-source-sync.timer"
+    },
+    {
+      "sha256": "7aaafa29a077a03d164f7bcccb3662962808e3749da379b383d5c72dfe3e3902",
+      "unit": "signal-lattice-status.service"
+    },
+    {
+      "sha256": "9abe6fd2f6644b4f5c87907719090386b5ed0aca16f53ccf4bfa0ca12f6aa612",
+      "unit": "signal-lattice-status.timer"
+    },
+    {
+      "sha256": "21bd5f6d8e58b6464ba646c0ed1068b919667bea4ee4b344d8f5e2851e30bcda",
+      "unit": "signal-lattice-worker.service"
+    }
+  ]
+}

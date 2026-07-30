@@ -4,6 +4,7 @@ name: Dual-Plane Governance
 #
 # EEI 已于 2026-07-17 纳入双平面（41 功能从旧三基自动抽取），不再豁免。
 # arxiv-daily-push 已于 2026-07-20 从 CodexProject 迁入（保留完整历史），同步纳入双平面。
+# Signal-Lattice 于 v0.0.0.1.39 作为独立治理项目进入本仓，股票 Skill 源码位于其受控子目录。
 on:
   push:
     branches: [main]
@@ -35,6 +36,7 @@ jobs:
               "PFI",
               "QBVS",
               "Serenity-Alipay",
+              "Signal-Lattice",
               "arxiv-daily-push",
           }
           specialized = {"ABD": ".github/workflows/abd-stage0-validation.yml"}
@@ -63,7 +65,7 @@ jobs:
           for project, workflow in specialized.items():
               if not Path(workflow).is_file():
                   raise SystemExit(f"FAIL: {project} missing specialized workflow: {workflow}")
-          print("PASS: 7 governance projects + ABD specialized task-pack workflow classified")
+          print("PASS: 9 governance projects + ABD specialized task-pack workflow classified")
           PY
       - name: 运行全仓双平面合规校验
         run: |
@@ -75,5 +77,5 @@ jobs:
           fi
           echo "runner: $SCRIPT"
           python3 "$SCRIPT" --root . --projects \
-            Alpha EEI FIFA LinzeDatabase PFI QBVS Serenity-Alipay arxiv-daily-push \
+            Alpha EEI FIFA LinzeDatabase PFI QBVS Serenity-Alipay Signal-Lattice arxiv-daily-push \
             --require-projects

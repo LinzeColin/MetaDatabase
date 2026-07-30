@@ -1,0 +1,40 @@
+{
+  "browser": "chromium",
+  "chromium_executable": "/Users/linzezhang/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "findings": [],
+  "receipt_sha256": "15997a91a6161c8b7b4b1763d2b2689470fdd33c37f971a4e2606fbf4a3e231f",
+  "results": [
+    {
+      "business_line_count": 13,
+      "console_error_count": 0,
+      "minimum_nav_target_height": 44.0,
+      "nav_count": 9,
+      "no_action_visible": true,
+      "page_overflow": false,
+      "transport_mode": "HTTP_LOOPBACK",
+      "viewport": {
+        "height": 1000,
+        "name": "desktop",
+        "width": 1440
+      }
+    },
+    {
+      "business_line_count": 13,
+      "console_error_count": 0,
+      "minimum_nav_target_height": 44.0,
+      "nav_count": 9,
+      "no_action_visible": true,
+      "page_overflow": false,
+      "transport_mode": "HTTP_LOOPBACK",
+      "viewport": {
+        "height": 844,
+        "name": "mobile",
+        "width": 390
+      }
+    }
+  ],
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "1.0.0",
+  "state": "PASS"
+}

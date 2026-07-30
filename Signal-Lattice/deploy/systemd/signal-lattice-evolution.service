@@ -1,0 +1,19 @@
+[Unit]
+Description=Signal Lattice bounded daily Teleiosis
+[Service]
+Type=oneshot
+User=signal-lattice
+Group=signal-lattice
+EnvironmentFile=/etc/signal-lattice/runtime.env
+ExecStart=/opt/signal-lattice/current/venv/bin/python /opt/signal-lattice/current/scripts/evolution_once.py
+TimeoutStartSec=300
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+RestrictAddressFamilies=AF_UNIX
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice
+ReadOnlyPaths=/opt/signal-lattice/current
+MemoryMax=768M

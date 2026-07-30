@@ -1,0 +1,14 @@
+[
+  {
+    "id": "B-UPSTREAM-SEAL",
+    "owner_only": false,
+    "内容": "需要精确只读 Git checkout、worktree 或 bundle 生成正式 Upstream Seal。",
+    "首次登记": "2026-07-28"
+  },
+  {
+    "id": "B-FORMAL-REVIEW",
+    "owner_only": false,
+    "内容": "需要冻结 Subject 后由真实隔离 Reviewer 产生正式收据。",
+    "首次登记": "2026-07-28"
+  }
+]

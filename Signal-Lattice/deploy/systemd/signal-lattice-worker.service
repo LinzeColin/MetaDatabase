@@ -1,0 +1,30 @@
+[Unit]
+Description=Signal Lattice deterministic worker
+After=signal-lattice-api.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=signal-lattice
+Group=signal-lattice
+EnvironmentFile=/etc/signal-lattice/runtime.env
+ExecStart=/opt/signal-lattice/current/venv/bin/python /opt/signal-lattice/current/scripts/worker_loop.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_UNIX
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice
+ReadOnlyPaths=/opt/signal-lattice/current
+MemoryMax=768M
+CPUQuota=100%
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target
