@@ -1,0 +1,517 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py --output machine/evidence/S08/P02/paid_dependency_scan.txt",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S08/P02_test.py --junitxml=machine/evidence/S08/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S08/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S08-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S08-P02",
+  "decision": "SOURCE_INDEPENDENCE_WEIGHTING_READY_DOWNSTREAM_GATES_REQUIRED",
+  "decision_sha256": "8852e35af2da60a0cb9172a2f06734ca599c953f8942fa2dc36a3ee3890c4c1d",
+  "deterministic_replay": {
+    "adverse_perturbation_iterations": 10000,
+    "real_time_wait_performed": false,
+    "replay_iterations": 100
+  },
+  "evidence_id": "EVD-S08-P02",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "real_account_balance_read_or_written": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "hashes": {
+    "code": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+    "inputs": {
+      "abd_acceptance/__init__.py": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
+      "abd_acceptance/__main__.py": "774f67a7e2615bd36a296c2bb0ef6704b71a54515004f78d32fc7ffaa81040ac",
+      "abd_acceptance/source_independence.py": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+      "machine/evidence/EVD-S08-P01.json": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+      "machine/evidence/S08/P02/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S08/P02/pytest.xml": "8b4c977640f011847cad273302ea27f1cedeb22b997c37e1c57feedf1fcb311e",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S08_P02.json": "4c60c4922e7a340342b31da7e0d3c25ca506c4f4f1c4f3646f74590da35d3e77",
+      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "source_independence.py": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
+      "tests/S08/P02_test.py": "64cb5790bcc5022ed69772b3167d9da30c2e84c6e60e55c66961c19ab752cb03"
+    },
+    "rollback_evidence": "a242022c019bf28bb411054b1756637fc24554bb8e75f4a8233bbd6bd338dba5"
+  },
+  "next": "S08/P03_READY_NOT_STARTED",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "S08_P02_LOCAL_EVIDENCE_ONLY_STAGE_REVIEW_REQUIRED_BEFORE_UPLOAD",
+  "requirement_id": "REQ-S08-P02",
+  "rollback": {
+    "artifacts": {
+      "abd_acceptance/__init__.py": {
+        "sha256": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
+        "status": "PASS"
+      },
+      "abd_acceptance/__main__.py": {
+        "sha256": "774f67a7e2615bd36a296c2bb0ef6704b71a54515004f78d32fc7ffaa81040ac",
+        "status": "PASS"
+      },
+      "abd_acceptance/source_independence.py": {
+        "sha256": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+        "status": "PASS"
+      },
+      "machine/tests/fixtures/S08_P02.json": {
+        "sha256": "4c60c4922e7a340342b31da7e0d3c25ca506c4f4f1c4f3646f74590da35d3e77",
+        "status": "PASS"
+      },
+      "source_clusters.json": {
+        "sha256": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+        "status": "PASS"
+      },
+      "source_independence.py": {
+        "sha256": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
+        "status": "PASS"
+      },
+      "tests/S08/P02_test.py": {
+        "sha256": "64cb5790bcc5022ed69772b3167d9da30c2e84c6e60e55c66961c19ab752cb03",
+        "status": "PASS"
+      }
+    },
+    "contract_id": "AC-S08-P02",
+    "evidence_id": "EVD-S08-P02-ROLLBACK",
+    "external_state_changed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "mode": "DISABLE_S08_P02_SOURCE_INDEPENDENCE_DERIVATION_KEEP_PREDECESSOR_EVIDENCE",
+    "order_submission_enabled": false,
+    "production_state_changed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated": false,
+    "schema_version": "1.0.0",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S08",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S08P02-BASELINE-PURSUE_GOAL_PROMPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S08P02-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S08P02-BASELINE-CANONICAL_FACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S08P02-BASELINE-PARAMETERS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S08P02-BASELINE-COSTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S08P02-BASELINE-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S08P02-BASELINE-REQUIREMENTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S08P02-BASELINE-ACCEPTANCE_CONTRACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S08P02-BASELINE-TASK_GRAPH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S08P02-BASELINE-TRACEABILITY_MATRIX",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/requirements.json",
+        "id": "S08P02-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/acceptance_contracts.json",
+        "id": "S08P02-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/facts/task_graph.json",
+        "id": "S08P02-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "outputs": [
+            "machine/evidence/EVD-S08-P02.json",
+            "machine/evidence/EVD-S08-P02_rollback.json",
+            "machine/tests/fixtures/S08_P02.json",
+            "source_clusters.json",
+            "source_independence.py",
+            "tests/S08/P02_test.py"
+          ],
+          "tasks": [
+            "T-S08-P02-01",
+            "T-S08-P02-02",
+            "T-S08-P02-03"
+          ]
+        },
+        "id": "S08P02-TASKPACK-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/EVD-S08-P01.json",
+        "id": "S08P02-PREDECESSOR-PARSE-EVD-S08-P01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+          "expected": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac"
+        },
+        "id": "S08P02-PREDECESSOR-HASH-EVD-S08-P01",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/tests/fixtures/S08_P02.json",
+        "id": "S08P02-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/source_clusters.json",
+        "id": "S08P02-CLUSTERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "recomputed from frozen source fixture",
+        "id": "S08P02-CLUSTERS-REPLAY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "adverse_replay_count",
+          "contract_id",
+          "expected_next",
+          "fixture_id",
+          "input_mode",
+          "phase_id",
+          "predecessor_evidence_sha256",
+          "replay_count",
+          "requirement_id",
+          "schema_version",
+          "stage_id"
+        ],
+        "id": "S08P02-FIXTURE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_market_or_odds_observed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "network_accessed": false,
+          "order_submission_enabled": false,
+          "real_time_soak_required": false,
+          "recommendation_generated": false
+        },
+        "id": "S08P02-FIXTURE-NO-EXTERNAL-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "cluster_count": 3,
+            "cluster_member_counts": [
+              2,
+              2,
+              1
+            ],
+            "effective_independent_weight": "3",
+            "eligible_independent_source_count": 3
+          },
+          "expected": {
+            "cluster_count": 3,
+            "cluster_member_counts": [
+              2,
+              2,
+              1
+            ],
+            "effective_independent_weight": "3",
+            "eligible_independent_source_count": 3
+          }
+        },
+        "id": "S08P02-CASE-DIRECT_AND_COPIED_SOURCES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "cluster_count": 1,
+            "cluster_member_counts": [
+              2
+            ],
+            "effective_independent_weight": "1",
+            "eligible_independent_source_count": 1
+          },
+          "expected": {
+            "cluster_count": 1,
+            "cluster_member_counts": [
+              2
+            ],
+            "effective_independent_weight": "1",
+            "eligible_independent_source_count": 1
+          }
+        },
+        "id": "S08P02-CASE-MATCHING_CONTENT_UNDECLARED_COPY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "cluster_count": 2,
+            "cluster_member_counts": [
+              1,
+              1
+            ],
+            "effective_independent_weight": "0",
+            "eligible_independent_source_count": 0
+          },
+          "expected": {
+            "cluster_count": 2,
+            "cluster_member_counts": [
+              1,
+              1
+            ],
+            "effective_independent_weight": "0",
+            "eligible_independent_source_count": 0
+          }
+        },
+        "id": "S08P02-CASE-STALE_AND_UNVERIFIED_SOURCES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "cluster_count": 1,
+            "cluster_member_counts": [
+              2
+            ],
+            "effective_independent_weight": "1",
+            "eligible_independent_source_count": 1
+          },
+          "expected": {
+            "cluster_count": 1,
+            "cluster_member_counts": [
+              2
+            ],
+            "effective_independent_weight": "1",
+            "eligible_independent_source_count": 1
+          }
+        },
+        "id": "S08P02-CASE-FRESHNESS_BOUNDARY_COPY",
+        "passed": true
+      },
+      {
+        "detail": "member weights sum to one cluster weight and source ids do not repeat",
+        "id": "S08P02-CLUSTER-WEIGHTS-DO-NOT-MULTIPLY-COPIES",
+        "passed": true
+      },
+      {
+        "detail": "copy graph, content conflict, timestamp and status negatives",
+        "id": "S08P02-INVALID-PROVENANCE-FAILS-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "calls": [],
+          "imports": [
+            "__future__",
+            "datetime",
+            "decimal",
+            "hashlib",
+            "json",
+            "re",
+            "typing"
+          ]
+        },
+        "id": "S08P02-CORE-NO-NETWORK-PROCESS-OR-SOAK",
+        "passed": true
+      },
+      {
+        "detail": "decimal-only source weights",
+        "id": "S08P02-CORE-NO-FLOAT-LITERALS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 10,
+          "dependency_manifests": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "locked_registry_packages": 12,
+          "paid_or_unknown_dependencies": 0,
+          "passed": 10,
+          "providers": 5,
+          "runtime_direct_dependencies": 0
+        },
+        "id": "S08P02-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 22
+        },
+        "id": "S08P02-TARGETED-PYTEST-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S08/P02/paid_dependency_scan.txt",
+        "id": "S08P02-SCAN-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-abd-v0001-s07-p01/ABD/machine/evidence/validation_report.json",
+        "id": "S08P02-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S08P02-PACK-REPORT-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S08-P02",
+    "decision": "SOURCE_INDEPENDENCE_WEIGHTING_READY_DOWNSTREAM_GATES_REQUIRED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "order_submission_enabled": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "real_account_balance_read_or_written": false,
+      "real_market_or_odds_observed": false,
+      "real_time_soak_waited": false,
+      "recommendation_generated_or_enabled": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-30T00:00:00+10:00",
+    "hashes": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/source_independence.py": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+      "machine/evidence/EVD-S08-P01.json": "6bef4be6e798b3b7bd87502798e8e4b01088070efd5169c6e84c5163961609ac",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S08_P02.json": "4c60c4922e7a340342b31da7e0d3c25ca506c4f4f1c4f3646f74590da35d3e77",
+      "source_clusters.json": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "source_independence.py": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
+      "tests/S08/P02_test.py": "64cb5790bcc5022ed69772b3167d9da30c2e84c6e60e55c66961c19ab752cb03"
+    },
+    "next": "S08/P03_READY_NOT_STARTED",
+    "phase_id": "P02",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "requirement_id": "REQ-S08-P02",
+    "schema_version": "1.0.0",
+    "stage_id": "S08",
+    "status": "PASS",
+    "summary": {
+      "checks": 34,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 34
+    }
+  }
+}

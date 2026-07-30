@@ -1,0 +1,295 @@
+{
+  "cases": [
+    {
+      "cluster_count": 3,
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 2,
+          "independent_weight": "1",
+          "member_count": 2,
+          "members": [
+            {
+              "age_seconds": 30,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_A_DIRECT",
+              "source_version_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+              "weight": "0.5"
+            },
+            {
+              "age_seconds": 20,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_A_REPUBLISH",
+              "source_version_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+              "weight": "0.5"
+            }
+          ],
+          "relation_reasons": [
+            "DECLARED_COPY_RELATION",
+            "MATCHING_CONTENT_FINGERPRINT"
+          ]
+        },
+        {
+          "cluster_id": "CLUSTER_02",
+          "eligible_member_count": 2,
+          "independent_weight": "1",
+          "member_count": 2,
+          "members": [
+            {
+              "age_seconds": 40,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_B_DIRECT",
+              "source_version_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "weight": "0.5"
+            },
+            {
+              "age_seconds": 10,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_B_PARTNER",
+              "source_version_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+              "weight": "0.5"
+            }
+          ],
+          "relation_reasons": [
+            "SHARED_SUPPLY_CHAIN"
+          ]
+        },
+        {
+          "cluster_id": "CLUSTER_03",
+          "eligible_member_count": 1,
+          "independent_weight": "1",
+          "member_count": 1,
+          "members": [
+            {
+              "age_seconds": 90,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_C_DIRECT",
+              "source_version_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "weight": "1"
+            }
+          ],
+          "relation_reasons": [
+            "UNIQUE_OPERATOR_SUPPLY_CHAIN_AND_CONTENT"
+          ]
+        }
+      ],
+      "decision_boundary": "CLUSTERING_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "3",
+      "eligible_independent_source_count": 3,
+      "id": "DIRECT_AND_COPIED_SOURCES",
+      "input_source_count": 5,
+      "source_weights": {
+        "SRC_A_DIRECT": {
+          "cluster_id": "CLUSTER_01",
+          "eligible": true,
+          "weight": "0.5"
+        },
+        "SRC_A_REPUBLISH": {
+          "cluster_id": "CLUSTER_01",
+          "eligible": true,
+          "weight": "0.5"
+        },
+        "SRC_B_DIRECT": {
+          "cluster_id": "CLUSTER_02",
+          "eligible": true,
+          "weight": "0.5"
+        },
+        "SRC_B_PARTNER": {
+          "cluster_id": "CLUSTER_02",
+          "eligible": true,
+          "weight": "0.5"
+        },
+        "SRC_C_DIRECT": {
+          "cluster_id": "CLUSTER_03",
+          "eligible": true,
+          "weight": "1"
+        }
+      }
+    },
+    {
+      "cluster_count": 1,
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 2,
+          "independent_weight": "1",
+          "member_count": 2,
+          "members": [
+            {
+              "age_seconds": 5,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_BOUNDARY_COPY",
+              "source_version_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "weight": "0.5"
+            },
+            {
+              "age_seconds": 90,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_BOUNDARY_DIRECT",
+              "source_version_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "weight": "0.5"
+            }
+          ],
+          "relation_reasons": [
+            "DECLARED_COPY_RELATION",
+            "MATCHING_CONTENT_FINGERPRINT"
+          ]
+        }
+      ],
+      "decision_boundary": "CLUSTERING_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "1",
+      "eligible_independent_source_count": 1,
+      "id": "FRESHNESS_BOUNDARY_COPY",
+      "input_source_count": 2,
+      "source_weights": {
+        "SRC_BOUNDARY_COPY": {
+          "cluster_id": "CLUSTER_01",
+          "eligible": true,
+          "weight": "0.5"
+        },
+        "SRC_BOUNDARY_DIRECT": {
+          "cluster_id": "CLUSTER_01",
+          "eligible": true,
+          "weight": "0.5"
+        }
+      }
+    },
+    {
+      "cluster_count": 1,
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 2,
+          "independent_weight": "1",
+          "member_count": 2,
+          "members": [
+            {
+              "age_seconds": 30,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_F_FIRST",
+              "source_version_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "weight": "0.5"
+            },
+            {
+              "age_seconds": 15,
+              "eligible": true,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_G_MIRROR",
+              "source_version_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "weight": "0.5"
+            }
+          ],
+          "relation_reasons": [
+            "MATCHING_CONTENT_FINGERPRINT"
+          ]
+        }
+      ],
+      "decision_boundary": "CLUSTERING_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "1",
+      "eligible_independent_source_count": 1,
+      "id": "MATCHING_CONTENT_UNDECLARED_COPY",
+      "input_source_count": 2,
+      "source_weights": {
+        "SRC_F_FIRST": {
+          "cluster_id": "CLUSTER_01",
+          "eligible": true,
+          "weight": "0.5"
+        },
+        "SRC_G_MIRROR": {
+          "cluster_id": "CLUSTER_01",
+          "eligible": true,
+          "weight": "0.5"
+        }
+      }
+    },
+    {
+      "cluster_count": 2,
+      "clusters": [
+        {
+          "cluster_id": "CLUSTER_01",
+          "eligible_member_count": 0,
+          "independent_weight": "0",
+          "member_count": 1,
+          "members": [
+            {
+              "age_seconds": 91,
+              "eligible": false,
+              "source_contract_status": "VERIFIED",
+              "source_id": "SRC_STALE",
+              "source_version_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+              "weight": "0"
+            }
+          ],
+          "relation_reasons": [
+            "UNIQUE_OPERATOR_SUPPLY_CHAIN_AND_CONTENT"
+          ]
+        },
+        {
+          "cluster_id": "CLUSTER_02",
+          "eligible_member_count": 0,
+          "independent_weight": "0",
+          "member_count": 1,
+          "members": [
+            {
+              "age_seconds": 10,
+              "eligible": false,
+              "source_contract_status": "UNVERIFIED",
+              "source_id": "SRC_UNVERIFIED",
+              "source_version_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+              "weight": "0"
+            }
+          ],
+          "relation_reasons": [
+            "UNIQUE_OPERATOR_SUPPLY_CHAIN_AND_CONTENT"
+          ]
+        }
+      ],
+      "decision_boundary": "CLUSTERING_ONLY_NO_ADVICE_OR_ORDER",
+      "effective_independent_weight": "0",
+      "eligible_independent_source_count": 0,
+      "id": "STALE_AND_UNVERIFIED_SOURCES",
+      "input_source_count": 2,
+      "source_weights": {
+        "SRC_STALE": {
+          "cluster_id": "CLUSTER_01",
+          "eligible": false,
+          "weight": "0"
+        },
+        "SRC_UNVERIFIED": {
+          "cluster_id": "CLUSTER_02",
+          "eligible": false,
+          "weight": "0"
+        }
+      }
+    }
+  ],
+  "contract_id": "AC-S08-P02",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "order_submission_enabled": false,
+    "real_market_or_odds_observed": false,
+    "real_time_soak_waited": false,
+    "recommendation_generated_or_enabled": false
+  },
+  "fixed_clock": "2026-07-30T00:00:00+10:00",
+  "fixture_sha256": "b6f6e9aa42fc32f5fe123ebada0c9a180466de3379b4c2b4c6458eb5cd5cca3a",
+  "input_mode": "FROZEN_SYNTHETIC_NO_NETWORK_NO_ACCOUNT",
+  "phase_id": "P02",
+  "product_version": "0.0.0.1",
+  "schema_version": "1.0.0",
+  "stage_id": "S08",
+  "summary": {
+    "case_count": 4,
+    "maximum_eligible_independent_source_count": 3,
+    "minimum_eligible_independent_source_count": 0
+  }
+}

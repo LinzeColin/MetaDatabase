@@ -1,0 +1,43 @@
+{
+  "artifacts": {
+    "abd_acceptance/__init__.py": {
+      "sha256": "b13af24a718b88e43dfc417dbdb1ef8caaeb95c70d462ffc96983b36ef620d20",
+      "status": "PASS"
+    },
+    "abd_acceptance/__main__.py": {
+      "sha256": "774f67a7e2615bd36a296c2bb0ef6704b71a54515004f78d32fc7ffaa81040ac",
+      "status": "PASS"
+    },
+    "abd_acceptance/source_independence.py": {
+      "sha256": "3af289f4aec45a2ecb9afd97455372cf05d6f994fa6bff7e1aa12550ab0c4f84",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S08_P02.json": {
+      "sha256": "4c60c4922e7a340342b31da7e0d3c25ca506c4f4f1c4f3646f74590da35d3e77",
+      "status": "PASS"
+    },
+    "source_clusters.json": {
+      "sha256": "5a516e457b6c644bc1df8d875ef3dc8b8327dd6d76db3a8de83fc8abe5b236b9",
+      "status": "PASS"
+    },
+    "source_independence.py": {
+      "sha256": "68967a5951143820f29c04f978cbf45f0b355e9862a80c4618094441892059d1",
+      "status": "PASS"
+    },
+    "tests/S08/P02_test.py": {
+      "sha256": "64cb5790bcc5022ed69772b3167d9da30c2e84c6e60e55c66961c19ab752cb03",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S08-P02",
+  "evidence_id": "EVD-S08-P02-ROLLBACK",
+  "external_state_changed": false,
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DISABLE_S08_P02_SOURCE_INDEPENDENCE_DERIVATION_KEEP_PREDECESSOR_EVIDENCE",
+  "order_submission_enabled": false,
+  "production_state_changed": false,
+  "real_time_soak_waited": false,
+  "recommendation_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}
