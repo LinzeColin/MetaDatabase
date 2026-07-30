@@ -495,6 +495,8 @@ def _audit_imports(
         "devig",
         "source_independence",
         "market_consensus",
+        "outlier_detector",
+        "line_movement",
     }
     stdlib = set(sys.stdlib_module_names)
     for path in paths:

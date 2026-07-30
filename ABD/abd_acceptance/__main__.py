@@ -55,6 +55,8 @@ from .source_independence import verify_existing_phase_evidence as verify_source
 from .source_independence import write_phase_evidence as write_source_independence_phase_evidence
 from .market_consensus import verify_existing_phase_evidence as verify_market_consensus_phase_evidence
 from .market_consensus import write_phase_evidence as write_market_consensus_phase_evidence
+from .outlier_line_movement import verify_existing_phase_evidence as verify_outlier_line_movement_phase_evidence
+from .outlier_line_movement import write_phase_evidence as write_outlier_line_movement_phase_evidence
 
 
 def main() -> int:
@@ -86,6 +88,7 @@ def main() -> int:
             "AC-S08-P01": verify_devig_phase_evidence,
             "AC-S08-P02": verify_source_independence_phase_evidence,
             "AC-S08-P03": verify_market_consensus_phase_evidence,
+            "AC-S08-P04": verify_outlier_line_movement_phase_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -148,6 +151,7 @@ def main() -> int:
         "AC-S08-P01": write_devig_phase_evidence,
         "AC-S08-P02": write_source_independence_phase_evidence,
         "AC-S08-P03": write_market_consensus_phase_evidence,
+        "AC-S08-P04": write_outlier_line_movement_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)
