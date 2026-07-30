@@ -239,7 +239,7 @@ def build_stock_matrix(repo:Path,expected_stock_skills:int,registry_raw:object)-
     rows=[]
     for i,rec in enumerate(recs):
         slug=str(first(rec,('slug','name','id','skill_id')) or f'unknown-{i}')
-        raw=first(rec,('path','root','project_path','directory','skill_path'))
+        raw=first(rec,('canonical_project_path','path','root','project_path','directory','skill_path'))
         options=[]
         if isinstance(raw,str): options.append(Path(raw))
         options += [stock_root.relative_to(repo)/slug]
@@ -288,6 +288,22 @@ def main():
     agent_matrix=build_agent_matrix(a.agent,int(agent_cfg['skill_instance_count']),int(agent_cfg['unique_slug_count']))
     stock_registry_relative=safe_repo_relative(meta_cfg['stock_registry_path'],'stock_registry_path')
     stock_matrix=build_stock_matrix(a.meta,int(meta_cfg['stock_skill_count']),meta_cfg['stock_registry_path'])
+    teleiosis=validator('teleiosis_strict',a.agent,[
+      'CodexSkills/registry/codex/teleiosis/scripts/verify_self.py',
+      'CodexSkills/registry/codex/teleiosis/scripts/verify-self.py',
+      'CodexSkills/registry/codex/teleiosis/scripts/verify_self.sh'],['--strict'])
+    if teleiosis['state']=='NOT_PRESENT':
+      metadata=a.agent/'CodexSkills/registry/codex/teleiosis/metadata/release.json'
+      try:
+        expected=json.loads(metadata.read_text()).get('genesis_sha256')
+      except Exception:
+        expected=None
+      if not isinstance(expected,str) or not re.fullmatch(r'[0-9a-f]{64}',expected):
+        teleiosis={'name':'teleiosis_strict','state':'FAIL','reason':'TELEIOSIS_GENESIS_HASH_INVALID'}
+      else:
+        teleiosis=validator('teleiosis_strict',a.agent,[
+          'CodexSkills/registry/codex/teleiosis/scripts/wbi.py'],
+          ['verify-self','--strict','--expected-genesis-hash',expected])
     validators=[
       validator('persona_group_registry',a.agent,[
         'CodexSkills/registry/codex/persona-distiller-group/scripts/validate_group.py',
@@ -295,10 +311,7 @@ def main():
       validator('persona_distiller_selfcheck',a.agent,[
         'CodexSkills/registry/codex/persona-distiller/scripts/validate.py',
         'CodexSkills/registry/codex/persona-distiller/scripts/self_check.py']),
-      validator('teleiosis_strict',a.agent,[
-        'CodexSkills/registry/codex/teleiosis/scripts/verify_self.py',
-        'CodexSkills/registry/codex/teleiosis/scripts/verify-self.py',
-        'CodexSkills/registry/codex/teleiosis/scripts/verify_self.sh'],['--strict']),
+      teleiosis,
       validator('verifier_selftest',a.agent,[
         'CodexSkills/registry/codex/verifier/scripts/run_selftest.py',
         'CodexSkills/registry/codex/verifier/scripts/run_self_test.py'],['--repeat','2']),
