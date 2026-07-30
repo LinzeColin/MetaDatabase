@@ -2,14 +2,14 @@
   "schema": "linze.flow_state.v1",
   "steps": {
     "BL-ADP-DAILY.deliver": {
-      "at": "2026-07-29T04:34:07.230300+08:00",
+      "at": "2026-07-30T04:17:02.172509+08:00",
       "note": "生产开关 ADP_PRODUCTION_ENABLED 未设为 true,投递作业每天被跳过(mode=watchdog)",
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-07-29T07:01:46.883448+08:00",
-      "note": "静默归零(绿着的 cron 背后什么都没产出):FAIL  SILENT ZERO: newest completed run 2026-07-28 (降级) ingested arXiv=0 -- ingest broken (P08-c",
-      "state": "blocked"
+      "at": "2026-07-30T07:00:26.542643+08:00",
+      "note": "看门狗全绿:最新一轮真的抓到了论文、候选非空,页面路由与新鲜度都正常",
+      "state": "healthy"
     }
   }
 }

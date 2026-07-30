@@ -69,7 +69,12 @@ function assembleRuntimeTurnText({
     if (lines.length) {
       lines.push("");
     }
-    lines.push(`[${localTime}]`);
+    // 时区要写出来。这个时刻是东八区的，但模型的开场白由 codex 生成，它照抄
+    // 宿主机时区——机器是 UTC 的时候那里写着 <timezone>UTC</timezone>。一个不
+    // 带时区的时刻加一句"你在 UTC"，模型就会把它当 UTC 再换算，主人在悉尼 0 点
+    // 问它答"悉尼时间 8 点"。TZ=Asia/Shanghai 已经在部署里设上了，这行是第二道
+    // 闸：万一哪天 codex 是被手工拉起来的、没继承到 TZ，时刻本身仍然自证时区。
+    lines.push(`[${localTime} 北京时间]`);
   }
   if (originalText) {
     if (lines.length) {
