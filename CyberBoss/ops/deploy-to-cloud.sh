@@ -183,7 +183,10 @@ verify_live() {
     # 里写着）。于是这一步一直在敲一个没人监听的端口，60 秒轮询全空，判"新版本
     # 没通过验证"并回滚——一个完全正常的版本。今天连着几次"部署失败"都是它，
     # 而且我在自己写的看门狗里犯过一模一样的错（也是抄了这个 8787）。
-    if remote "P=\$(grep -hoP '^CB_PORTAL_PORT=\K[0-9]+' /etc/cyberboss/*.env 2>/dev/null | tail -1); P=\${P:-$PORTAL_PORT}; curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:\$P/healthz 2>/dev/null | grep -q '^200$'"; then
+    # sudo 不能省：远程是以 ubuntu 跑的，而 /etc/cyberboss/*.env 只有 root 读得到。
+    # 不加 sudo 时 P 是空的，URL 变成 http://127.0.0.1:/healthz，curl 回 404，
+    # 于是这一步照样每次都失败——我第一版修这个端口时就漏了 sudo，白跑一轮部署。
+    if remote "P=\$(sudo grep -hoP '^CB_PORTAL_PORT=\K[0-9]+' /etc/cyberboss/*.env 2>/dev/null | tail -1); P=\${P:-$PORTAL_PORT}; curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:\$P/healthz 2>/dev/null | grep -q '^200$'"; then
       ready=0
       break
     fi
