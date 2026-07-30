@@ -3829,8 +3829,16 @@ class CyberbossApp {
       errorClass = /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(code) ? code : "send_failed";
       // 以前这里是 .catch(() => {})，发失败一声不吭，面板上还记成"已发出"。
       // 一条没送到的入门回复 = 这个人以为机器人是坏的。必须看得见。
+      // 把微信真正回的那串也打出来。
+      //
+      // errorClass 只有 "WEIXIN_PROVIDER_ERROR" 这么一个笼统的分类，而
+      // error.message 里是 `sendMessage ret=… errcode=… errmsg=…`——微信自己说的
+      // 原因，而且 errmsg 已经过 redactSensitiveText。只打分类的后果是：出问题时
+      // 只能靠猜（我就先后猜过"字数太长""token 过期"，两个都不对），真正的码就
+      // 在手里却被丢掉了。
       console.error(
-        `[cyberboss] 入门回复没发出去 account=${normalized.accountId} 原因=${errorClass}`,
+        `[cyberboss] 入门回复没发出去 account=${normalized.accountId} 原因=${errorClass}`
+        + ` 详情=${String(error?.message || "").slice(0, 300)}`,
       );
     }
     // 这条不走 outbox，数据库里查不到，所以在这里留一份给后台「对话」栏——
