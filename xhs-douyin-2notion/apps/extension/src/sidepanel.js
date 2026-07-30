@@ -56,6 +56,16 @@ const OWNER_MVP_CURRENT_SCOPE_IDS = Object.freeze(new Set([
   "xiaohongshu_current_content",
   "xiaohongshu_current_content_second_batch",
 ]));
+const MVP_ENROLLMENT_SCOPE_ORDER = Object.freeze([
+  "xiaohongshu_current_content",
+  "xiaohongshu_current_content_second_batch",
+  "douyin_favorites",
+  "douyin_likes",
+]);
+const MVP_CURRENT_SCOPE_LABELS = Object.freeze({
+  xiaohongshu_current_content: "第一组",
+  xiaohongshu_current_content_second_batch: "第二组",
+});
 let activeTabId = null;
 let currentPageExecutable = false;
 let mvpCurrentPageExecutable = false;
@@ -67,6 +77,7 @@ let fallbackTabId = null;
 let panelMotion = null;
 let lastPageResult = null;
 let activeMvpCurrentScope = "xiaohongshu_current_content";
+let mvpEnrollmentProgress = null;
 
 function createPanelMotion() {
   if (typeof Element.prototype.animate !== "function" || typeof window.matchMedia !== "function") return null;
@@ -180,6 +191,49 @@ function setWorkflow({ state, eyebrow, title, copy, note, steps }) {
   setWorkflowSteps(steps);
 }
 
+function rememberMvpEnrollmentProgress(response) {
+  const candidate = response?.mvp_enrollment_progress;
+  if (
+    !candidate
+    || typeof candidate !== "object"
+    || Array.isArray(candidate)
+    || candidate.total_required_count !== 80
+    || !Array.isArray(candidate.scope_progress)
+    || candidate.scope_progress.length !== MVP_ENROLLMENT_SCOPE_ORDER.length
+  ) return false;
+  const next = new Map();
+  let total = 0;
+  for (const [index, item] of candidate.scope_progress.entries()) {
+    if (
+      !item
+      || typeof item !== "object"
+      || Array.isArray(item)
+      || item.scope_id !== MVP_ENROLLMENT_SCOPE_ORDER[index]
+      || !Number.isInteger(item.recorded_count)
+      || item.recorded_count < 0
+      || item.recorded_count > 20
+      || item.required_count !== 20
+    ) return false;
+    total += item.recorded_count;
+    next.set(item.scope_id, item.recorded_count);
+  }
+  if (!Number.isInteger(candidate.total_recorded_count) || candidate.total_recorded_count !== total) return false;
+  mvpEnrollmentProgress = next;
+  return true;
+}
+
+function mvpScopeRecordedCount(scopeId) {
+  return mvpEnrollmentProgress?.get(scopeId) ?? null;
+}
+
+function mvpScopeProgressText(scopeId) {
+  const label = MVP_CURRENT_SCOPE_LABELS[scopeId] ?? "当前组";
+  const recordedCount = mvpScopeRecordedCount(scopeId);
+  return recordedCount === null
+    ? `${label}：正在读取已记录数量`
+    : `${label}：已记录 ${recordedCount}/20 条`;
+}
+
 function resetWorkflowActions() {
   workflowAction.hidden = true;
   saveButton.hidden = true;
@@ -199,14 +253,32 @@ function showGenericCurrentAction() {
 
 function showMvpCurrentAction() {
   const recordingSecondBatch = activeMvpCurrentScope === "xiaohongshu_current_content_second_batch";
-  workflowAction.hidden = false;
-  saveMvpCurrentButton.hidden = false;
-  saveMvpCurrentButton.disabled = false;
-  saveMvpCurrentButton.textContent = "保存这条笔记";
+  const currentCount = mvpScopeRecordedCount(activeMvpCurrentScope);
+  const firstCount = mvpScopeRecordedCount("xiaohongshu_current_content");
+  const secondCount = mvpScopeRecordedCount("xiaohongshu_current_content_second_batch");
+  const currentComplete = currentCount === 20;
+  workflowAction.hidden = currentComplete;
+  saveMvpCurrentButton.hidden = currentComplete;
+  saveMvpCurrentButton.disabled = currentComplete;
+  saveMvpCurrentButton.textContent = currentCount === null
+    ? "保存这条笔记"
+    : `保存第 ${Math.min(currentCount + 1, 20)} 条笔记`;
   batchSwitcher.hidden = false;
-  batchSwitcherSummary.textContent = recordingSecondBatch ? "正在记录第二组" : "第一组已经完成？";
-  saveMvpCurrentSecondButton.disabled = false;
-  saveMvpCurrentSecondButton.textContent = recordingSecondBatch ? "回到第一组" : "改为记录第二组";
+  if (recordingSecondBatch) {
+    batchSwitcherSummary.textContent = secondCount === 20
+      ? "小红书两组都已记录完成"
+      : mvpScopeProgressText("xiaohongshu_current_content_second_batch");
+    saveMvpCurrentSecondButton.disabled = true;
+    saveMvpCurrentSecondButton.textContent = "第二组正在记录";
+    return;
+  }
+  batchSwitcherSummary.textContent = firstCount === 20
+    ? "第一组已完成，可以开始第二组"
+    : mvpScopeProgressText("xiaohongshu_current_content");
+  saveMvpCurrentSecondButton.disabled = firstCount !== 20;
+  saveMvpCurrentSecondButton.textContent = firstCount === 20
+    ? "开始记录第二组"
+    : "完成第一组后可开始第二组";
 }
 
 function renderPage(result) {
@@ -251,31 +323,40 @@ function renderPage(result) {
   if (result.guideSurface === "xiaohongshu_favorites_list") {
     setPageContextState("guide");
     pageKicker.textContent = "小红书收藏";
-    pageStatus.textContent = "你正在查看收藏清单";
+    pageStatus.textContent = mvpScopeProgressText("xiaohongshu_current_content");
     platformStatus.textContent = "请打开一篇笔记后继续";
     setWorkflow({
       state: "guide",
-      eyebrow: "第一步",
+      eyebrow: "从这里开始",
       title: "打开一篇想保存的笔记",
-      copy: "现在不用点任何灰色按钮。请在左侧点开任意一篇收藏笔记；打开后，这里会自动出现“保存这条笔记”。",
+      copy: `${mvpScopeProgressText("xiaohongshu_current_content")}。在左侧点开一篇不同的收藏笔记；打开后，这里会自动出现“保存这条笔记”。`,
       note: "x2n 不会替你翻页、点开笔记或改变账号状态。",
       steps: { first: "点开一篇收藏笔记", second: "点击保存这条笔记", third: "打开下一篇继续保存", active: 0 },
     });
     return;
   }
   if (xhsMvpCurrentExecutable) {
-    const recordingSecondBatch = activeMvpCurrentScope === "xiaohongshu_current_content_second_batch";
+    const scopeLabel = MVP_CURRENT_SCOPE_LABELS[activeMvpCurrentScope];
+    const recordedCount = mvpScopeRecordedCount(activeMvpCurrentScope);
+    const currentComplete = recordedCount === 20;
+    const nextItemNumber = recordedCount === null ? null : Math.min(recordedCount + 1, 20);
     setPageContextState("ready");
     pageKicker.textContent = "小红书笔记";
-    pageStatus.textContent = recordingSecondBatch ? "可以保存到第二组" : "可以保存这条笔记";
-    platformStatus.textContent = "点击后只记录这篇内容；不会自动处理其他笔记";
+    pageStatus.textContent = mvpScopeProgressText(activeMvpCurrentScope);
+    platformStatus.textContent = currentComplete
+      ? "这一组已经完成；不会再重复记录。"
+      : "点击后只记录这篇内容；不会自动处理其他笔记";
     setWorkflow({
       state: "ready",
-      eyebrow: recordingSecondBatch ? "第二组" : "第一组",
-      title: "保存这条笔记",
-      copy: "点击一次即可记录这篇笔记。然后打开下一篇，重复同样的操作。",
+      eyebrow: recordedCount === null ? scopeLabel : `${scopeLabel} · ${recordedCount}/20`,
+      title: currentComplete
+        ? `${scopeLabel}已经完成`
+        : nextItemNumber === null ? "保存这条笔记" : `保存第 ${nextItemNumber} 条笔记`,
+      copy: currentComplete
+        ? "这组已经够 20 条。请按下方按钮开始第二组。"
+        : "点击一次即可记录这篇笔记。然后打开下一篇不同的笔记，重复同样的操作。",
       note: "x2n 只记录你亲自打开的内容，不会自动翻页或改变账号状态。",
-      steps: { first: "已经打开笔记", second: "点击保存这条笔记", third: "打开下一篇继续保存", active: 1 },
+      steps: { first: "已经打开笔记", second: "点击保存这条笔记", third: "打开下一篇继续保存", active: currentComplete ? 2 : 1 },
     });
     showMvpCurrentAction();
     return;
@@ -509,6 +590,7 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
     if (explicitFallbackFromJobId !== null) message.fallbackFromJobId = explicitFallbackFromJobId;
     const result = await chrome.runtime.sendMessage(message);
     if (result?.ok && (result.response?.job_id || ownerMvpCurrent)) {
+      if (ownerMvpCurrent) rememberMvpEnrollmentProgress(result.response);
       fallbackFromJobId = null;
       fallbackTabId = null;
       fallbackButton.hidden = true;
@@ -521,9 +603,14 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
           : "当前页面已在本地助手中排队";
       } else {
         delete captureStatus.dataset.jobId;
-        captureStatus.textContent = ownerMvpCurrent
-          ? "已记录这条笔记。打开下一篇后，继续点击“保存这条笔记”。"
-          : "当前页面已在本机记录。";
+        const recordedCount = ownerMvpCurrent ? mvpScopeRecordedCount(ownerMvpScope) : null;
+        captureStatus.textContent = ownerMvpCurrent && recordedCount !== null
+          ? recordedCount === 20
+            ? `${MVP_CURRENT_SCOPE_LABELS[ownerMvpScope]}已记录完成 20/20 条。现在可以开始下一组。`
+            : `已记录第 ${recordedCount} 条，还差 ${20 - recordedCount} 条。打开下一篇后继续。`
+          : ownerMvpCurrent
+            ? "已记录这条笔记。打开下一篇后，继续点击“保存这条笔记”。"
+            : "当前页面已在本机记录。";
       }
     } else if (result?.code === "X2N_PLATFORM_CHANGED") {
       captureStatus.textContent = "页面结构已变化，已停止且未保存。";
@@ -550,6 +637,13 @@ async function captureCurrentPage(explicitFallbackFromJobId = null, ownerMvpScop
 
 function toggleMvpCurrentBatch() {
   if (!mvpCurrentPageExecutable || captureInFlight) return;
+  if (
+    activeMvpCurrentScope === "xiaohongshu_current_content"
+    && mvpScopeRecordedCount("xiaohongshu_current_content") !== 20
+  ) {
+    captureStatus.textContent = "先完成第一组的 20 条，再开始第二组。";
+    return;
+  }
   activeMvpCurrentScope = activeMvpCurrentScope === "xiaohongshu_current_content"
     ? "xiaohongshu_current_content_second_batch"
     : "xiaohongshu_current_content";
@@ -606,8 +700,10 @@ async function refreshStatus() {
       new Promise((resolve) => setTimeout(() => resolve({ ok: false }), 4_000)),
     ]);
     const connected = result?.ok === true;
+    const progressChanged = rememberMvpEnrollmentProgress(result?.response);
     setHostHealthState(connected ? "ready" : "blocked");
     hostStatus.textContent = connected ? "本地助手已连接" : "本地助手不可用，未执行任何操作。";
+    if (progressChanged && lastPageResult !== null) renderPage(lastPageResult);
   } catch {
     setHostHealthState("blocked");
     hostStatus.textContent = "本地助手不可用，未执行任何操作。";

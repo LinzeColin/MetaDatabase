@@ -422,6 +422,73 @@
       "title": "KuaishouSelectedCollectionCapabilityOutcome",
       "type": "object"
     },
+    "MvpEnrollmentProgress": {
+      "additionalProperties": false,
+      "description": "Aggregate-only state for the four pre-arm direct-MVP selections.",
+      "properties": {
+        "scope_progress": {
+          "items": {
+            "$ref": "#/$defs/MvpEnrollmentScopeProgress"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Scope Progress",
+          "type": "array"
+        },
+        "total_recorded_count": {
+          "maximum": 80,
+          "minimum": 0,
+          "title": "Total Recorded Count",
+          "type": "integer"
+        },
+        "total_required_count": {
+          "const": 80,
+          "default": 80,
+          "title": "Total Required Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scope_progress",
+        "total_recorded_count"
+      ],
+      "title": "MvpEnrollmentProgress",
+      "type": "object"
+    },
+    "MvpEnrollmentScopeProgress": {
+      "additionalProperties": false,
+      "description": "One owner-visible count with no content, identifier, or URL disclosure.",
+      "properties": {
+        "recorded_count": {
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Recorded Count",
+          "type": "integer"
+        },
+        "required_count": {
+          "const": 20,
+          "default": 20,
+          "title": "Required Count",
+          "type": "integer"
+        },
+        "scope_id": {
+          "enum": [
+            "xiaohongshu_current_content",
+            "xiaohongshu_current_content_second_batch",
+            "douyin_favorites",
+            "douyin_likes"
+          ],
+          "title": "Scope Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope_id",
+        "recorded_count"
+      ],
+      "title": "MvpEnrollmentScopeProgress",
+      "type": "object"
+    },
     "NativeResponseStatus": {
       "enum": [
         "queued",
@@ -747,6 +814,17 @@
       ],
       "default": null,
       "title": "Job Id"
+    },
+    "mvp_enrollment_progress": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MvpEnrollmentProgress"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "request_id": {
       "format": "uuid",

@@ -1148,6 +1148,24 @@ class OwnerMvpManifestEnrollment:
             "release_input_created": release_input_created,
         }
 
+    def safe_progress(self) -> dict[str, Any]:
+        """Return owner-visible counts only; content hashes never leave private runtime."""
+
+        manifests = self.state["scope_manifests"]
+        scope_progress = tuple(
+            {
+                "scope_id": _scope_value(scope_id),
+                "recorded_count": len(manifests[_scope_value(scope_id)]),
+                "required_count": 20,
+            }
+            for scope_id in MVP_SCOPE_IDS
+        )
+        return {
+            "scope_progress": scope_progress,
+            "total_recorded_count": sum(item["recorded_count"] for item in scope_progress),
+            "total_required_count": 80,
+        }
+
     @staticmethod
     def _hash_identifiers(content_ids: Sequence[str]) -> list[str]:
         if not isinstance(content_ids, Sequence) or isinstance(content_ids, (str, bytes)):

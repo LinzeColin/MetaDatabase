@@ -284,6 +284,22 @@ export interface CapabilityManifest {
   readonly outcomes: readonly CapabilityScopeOutcome[];
 }
 
+export interface MvpEnrollmentScopeProgress {
+  readonly scope_id:
+    | "xiaohongshu_current_content"
+    | "xiaohongshu_current_content_second_batch"
+    | "douyin_favorites"
+    | "douyin_likes";
+  readonly recorded_count: number;
+  readonly required_count: 20;
+}
+
+export interface MvpEnrollmentProgress {
+  readonly scope_progress: readonly MvpEnrollmentScopeProgress[];
+  readonly total_recorded_count: number;
+  readonly total_required_count: 80;
+}
+
 export interface NativeMessageResponse {
   readonly schema_version: SchemaVersion;
   readonly request_id: UUID;
@@ -292,6 +308,7 @@ export interface NativeMessageResponse {
   readonly status: NativeResponseStatus;
   readonly error?: ErrorContract | null;
   readonly capabilities?: CapabilityManifest | null;
+  readonly mvp_enrollment_progress?: MvpEnrollmentProgress | null;
 }
 
 export interface NativeHostPolicy {

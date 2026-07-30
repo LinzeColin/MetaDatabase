@@ -430,7 +430,7 @@ try {
   // action-granted active tab that a docked side panel sees in Chrome.
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForFunction(
-    () => document.querySelector("#page-status")?.textContent === "你正在查看收藏清单",
+    () => document.querySelector("#page-status")?.textContent?.includes("第一组"),
     undefined,
     { timeout: 10_000 },
   );
@@ -439,7 +439,7 @@ try {
     "xhs_favorites_guide_title",
   );
   requireCondition(
-    await page.locator("#workflow-copy").textContent().then((text) => text?.includes("不用点任何灰色按钮")),
+    await page.locator("#workflow-copy").textContent().then((text) => text?.includes("点开一篇不同的收藏笔记")),
     "xhs_favorites_guide_copy",
   );
   requireCondition(await page.locator("#workflow-action").isHidden(), "xhs_favorites_guide_action_visible");

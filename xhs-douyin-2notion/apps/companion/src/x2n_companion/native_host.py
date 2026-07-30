@@ -14,6 +14,7 @@ from x2n_contracts import (
     ContractViolation,
     DuplicateDisposition,
     ErrorCode,
+    MvpEnrollmentProgress,
     NativeHostPolicy,
     NativeMessageResponse,
     canonical_json_sha256,
@@ -118,6 +119,7 @@ def _accepted(
     status: str,
     job_id: str | None = None,
     capabilities: CapabilityManifest | None = None,
+    mvp_enrollment_progress: MvpEnrollmentProgress | None = None,
 ) -> NativeMessageResponse:
     return NativeMessageResponse.model_validate_json(
         json.dumps(
@@ -129,6 +131,9 @@ def _accepted(
                 "status": status,
                 "error": None,
                 "capabilities": capabilities.model_dump(mode="json") if capabilities is not None else None,
+                "mvp_enrollment_progress": (
+                    mvp_enrollment_progress.model_dump(mode="json") if mvp_enrollment_progress is not None else None
+                ),
             },
             ensure_ascii=False,
         )
@@ -189,6 +194,15 @@ def _runtime_release_controller(store: CanonicalStore) -> MvpReleaseController |
     return MvpReleaseController.load(store.paths, require_state=False)
 
 
+def _owner_mvp_enrollment_progress(paths: RuntimePaths) -> MvpEnrollmentProgress | None:
+    """Load only bounded counts for the owner-visible pre-arm progress card."""
+
+    enrollment = OwnerMvpManifestEnrollment.load(paths, require_state=False)
+    if enrollment is None:
+        return None
+    return MvpEnrollmentProgress.model_validate(enrollment.safe_progress())
+
+
 def dispatch_wire(
     raw: bytes,
     *,
@@ -223,15 +237,22 @@ def dispatch_wire(
                     artifact_sha256=str(request.payload.mvp_release_artifact_sha256)
                 ):
                     raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "MVP Side Panel handshake is not eligible")
-            return _accepted(request_id=request_id, status="completed")
+            return _accepted(
+                request_id=request_id,
+                status="completed",
+                mvp_enrollment_progress=_owner_mvp_enrollment_progress(active_store.paths),
+            )
         if request.action is NativeAction.CAPTURE_CURRENT:
             current_content_capture = None
             if request.payload.owner_mvp_scope is not None:
                 if release_controller is None:
-                    OwnerMvpManifestEnrollment.load_or_create(active_store.paths).record_current_content(
-                        payload=request.payload
+                    enrollment = OwnerMvpManifestEnrollment.load_or_create(active_store.paths)
+                    enrollment.record_current_content(payload=request.payload)
+                    return _accepted(
+                        request_id=request_id,
+                        status="completed",
+                        mvp_enrollment_progress=MvpEnrollmentProgress.model_validate(enrollment.safe_progress()),
                     )
-                    return _accepted(request_id=request_id, status="completed")
                 current_content_capture = release_controller.prepare_current_content_capture(
                     payload=request.payload,
                     request_id=request_id,
@@ -264,8 +285,13 @@ def dispatch_wire(
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         if request.action is NativeAction.START_SYNC:
             if request.payload.owner_mvp_manifest_enrollment is True:
-                OwnerMvpManifestEnrollment.load_or_create(active_store.paths).record_list_batch(payload=request.payload)
-                return _accepted(request_id=request_id, status="completed")
+                enrollment = OwnerMvpManifestEnrollment.load_or_create(active_store.paths)
+                enrollment.record_list_batch(payload=request.payload)
+                return _accepted(
+                    request_id=request_id,
+                    status="completed",
+                    mvp_enrollment_progress=MvpEnrollmentProgress.model_validate(enrollment.safe_progress()),
+                )
             manifest = _capability_snapshot(active_store, active_registry)
             outcome = next(
                 (item for item in manifest.outcomes if item.scope_id is request.payload.scope_id),

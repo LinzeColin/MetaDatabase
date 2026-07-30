@@ -741,6 +741,43 @@ class CapabilityManifest(StrictContract):
         return self
 
 
+_MVP_ENROLLMENT_SCOPE_ORDER = (
+    "xiaohongshu_current_content",
+    "xiaohongshu_current_content_second_batch",
+    "douyin_favorites",
+    "douyin_likes",
+)
+
+
+class MvpEnrollmentScopeProgress(StrictContract):
+    """One owner-visible count with no content, identifier, or URL disclosure."""
+
+    scope_id: Literal[
+        "xiaohongshu_current_content",
+        "xiaohongshu_current_content_second_batch",
+        "douyin_favorites",
+        "douyin_likes",
+    ]
+    recorded_count: Annotated[int, Field(ge=0, le=20)]
+    required_count: Literal[20] = 20
+
+
+class MvpEnrollmentProgress(StrictContract):
+    """Aggregate-only state for the four pre-arm direct-MVP selections."""
+
+    scope_progress: Annotated[tuple[MvpEnrollmentScopeProgress, ...], Field(min_length=4, max_length=4)]
+    total_recorded_count: Annotated[int, Field(ge=0, le=80)]
+    total_required_count: Literal[80] = 80
+
+    @model_validator(mode="after")
+    def counts_are_exact_and_non_disclosing(self) -> "MvpEnrollmentProgress":
+        if tuple(item.scope_id for item in self.scope_progress) != _MVP_ENROLLMENT_SCOPE_ORDER:
+            raise ValueError("MVP enrollment progress must use the exact ordered four-scope registry")
+        if self.total_recorded_count != sum(item.recorded_count for item in self.scope_progress):
+            raise ValueError("MVP enrollment progress total does not match scope counts")
+        return self
+
+
 class NativeMessageResponse(StrictContract):
     schema_version: SchemaVersion
     request_id: UUID
@@ -751,6 +788,12 @@ class NativeMessageResponse(StrictContract):
     # Omit the additive field for pre-Task010 response vectors.  Versioned
     # callers receive it only when a typed capability manifest is present.
     capabilities: CapabilityManifest | None = Field(default=None, exclude_if=lambda value: value is None)
+    # Counts are intentionally aggregate-only: never expose a title, content
+    # identity, URL, profile, or any persisted private-runtime location.
+    mvp_enrollment_progress: MvpEnrollmentProgress | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
 
     @model_validator(mode="after")
     def accepted_and_error_are_consistent(self) -> "NativeMessageResponse":
@@ -763,6 +806,9 @@ class NativeMessageResponse(StrictContract):
         if self.capabilities is not None:
             if not self.accepted or self.status is not NativeResponseStatus.COMPLETED or self.job_id is not None:
                 raise ValueError("capabilities require an accepted completed response without a job")
+        if self.mvp_enrollment_progress is not None:
+            if not self.accepted or self.status is not NativeResponseStatus.COMPLETED or self.job_id is not None:
+                raise ValueError("MVP enrollment progress requires an accepted completed response without a job")
         if (
             not self.accepted
             and self.error is not None

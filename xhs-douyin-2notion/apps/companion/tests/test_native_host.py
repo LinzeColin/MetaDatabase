@@ -102,6 +102,42 @@ class NativeHostTests(unittest.TestCase):
             self.assertIsNone(response.job_id)
         self.assertEqual(self.store.counts()["request_ledger"], 0)
 
+    def test_prearm_progress_is_aggregate_only_and_survives_a_health_check(self) -> None:
+        content_id = "owner-private-progress-001"
+        payload = _capture_payload(content_id)
+        payload["owner_mvp_scope"] = "xiaohongshu_current_content"
+        recorded = dispatch_wire(
+            _request("capture_current", payload),
+            origin=DEVELOPMENT_EXTENSION_ORIGIN,
+            store=self.store,
+        )
+        self.assertTrue(recorded.accepted)
+        self.assertEqual(recorded.status.value, "completed")
+        self.assertIsNone(recorded.job_id)
+        assert recorded.mvp_enrollment_progress is not None
+        self.assertEqual(recorded.mvp_enrollment_progress.total_recorded_count, 1)
+        self.assertEqual(recorded.mvp_enrollment_progress.total_required_count, 80)
+        self.assertEqual(
+            [(item.scope_id, item.recorded_count, item.required_count) for item in recorded.mvp_enrollment_progress.scope_progress],
+            [
+                ("xiaohongshu_current_content", 1, 20),
+                ("xiaohongshu_current_content_second_batch", 0, 20),
+                ("douyin_favorites", 0, 20),
+                ("douyin_likes", 0, 20),
+            ],
+        )
+
+        health = dispatch_wire(_request("health", {}), origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
+        self.assertTrue(health.accepted)
+        self.assertEqual(health.mvp_enrollment_progress, recorded.mvp_enrollment_progress)
+
+        rendered = recorded.model_dump_json()
+        self.assertNotIn(content_id, rendered)
+        self.assertNotIn(f"https://www.xiaohongshu.com/explore/{content_id}", rendered)
+        self.assertNotIn(str(self.paths.data_root), rendered)
+        self.assertEqual(self.store.counts()["content"], 0)
+        self.assertEqual(self.store.counts()["request_ledger"], 0)
+
     def test_capture_walk_is_atomic_idempotent_and_canonical_only(self) -> None:
         request_id = str(uuid.uuid4())
         wire = _request("capture_current", _capture_payload(), request_id=request_id)
