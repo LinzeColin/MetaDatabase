@@ -141,7 +141,25 @@ verify_live() {
   local sha="$1" short="${1:0:12}" attempt
   remote "systemctl is-active $SERVICE" >/dev/null 2>&1 || return 1
   # 日志在独立 namespace 里（LogNamespace=cyberboss），不带 --namespace 查不到。
-  remote "sudo journalctl --namespace=cyberboss -u $SERVICE --since '-2min' --no-pager 2>/dev/null | grep -q 'release=$short'" || return 1
+  #
+  # **要等**，不能查一次就判死。
+  #
+  # 以前 Type=notify 时 `systemctl restart` 会阻塞到服务就绪，所以走到这里日志
+  # 早就打完了，查一次刚好。改成 Type=exec 之后 restart 立刻返回（这正是要的：
+  # 那个 notify 握手对不齐，误判超时是所有事故的起点），于是这一行变成"重启命令
+  # 刚返回就去问日志"——应用还要二三十秒才会打出 release=，一次不中就判失败并
+  # 回滚一个**完全正常**的新版本。
+  #
+  # 下面 healthz 那一步本来就是轮询的；这一步跟它对齐。
+  local bound=1
+  for attempt in $(seq 1 40); do
+    if remote "sudo journalctl --namespace=cyberboss -u $SERVICE --since '-5min' --no-pager 2>/dev/null | grep -q 'release=$short'"; then
+      bound=0
+      break
+    fi
+    sleep 3
+  done
+  [ "$bound" -eq 0 ] || return 1
   local ready=1
   for attempt in $(seq 1 30); do
     if remote "curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:$PORTAL_PORT/healthz 2>/dev/null | grep -q '^200$'"; then
