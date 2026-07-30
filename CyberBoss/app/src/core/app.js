@@ -3078,19 +3078,22 @@ class CyberbossApp {
     if (!who || !this.runtimeSpoolDatabase) {
       return empty;
     }
+    // 认人只走一条路：这条来信自己记着的 user_id。
+    //
+    // 原来这里是 identify({botAccountRef: resolveAccount(who)?.accountId ...})，
+    // 而 **resolveAccount() 根本不收参数**——那个 who 被忽略，返回的永远是主号。
+    // 于是不在主号下面的人全被按主号去认，认出来的是另一个 user_id（或者没有）。
+    // 注释还写着"走和别处同一条认人路径"，其实不是：语气面板走的是
+    // personaUserIdForSender（读来信上记着的 user_id）。
+    //
+    // 后果是同一个人在后台同一屏上出现两套设置：可编辑那块显示 120~360（他真的
+    // 那一份），只读这块显示 45~240（认错身份之后的默认值）。记忆、待办、日程
+    // 也一样按错的身份查——看起来是空的或者是别人的。
+    //
+    // 现在两块都用 personaUserIdForSender，同一个人只会有一个答案。
     let userId = "";
     try {
-      // 后台列表是按 senderId 列的，而待办和记忆都按 user_id 存。这一步换算不能
-      // 自己猜，走和别处同一条认人路径。
-      userId = String(
-        this.userAdmission?.users?.identify({
-          channel: "weixin",
-          botAccountRef: this.channelAdapter?.resolveAccount?.(who)?.accountId
-            || this.activeAccountId
-            || "",
-          senderRef: who,
-        })?.userId || "",
-      );
+      userId = String(this.personaUserIdForSender(who) || "");
     } catch {
       return empty;
     }

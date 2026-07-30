@@ -210,8 +210,9 @@ test("后台按人看到的字段，和这个人自己那一页完全一致", ()
   app.listMemoriesFor = () => [];
   app.listOwnReminders = () => [];
   app.formatOwnerLocalTime = (v) => v;
-  app.userAdmission = { users: { identify: () => ({ userId: GUEST }) } };
-  app.channelAdapter = { resolveAccount: () => ({ accountId: "acct" }) };
+  // buildPersonDetail 现在走 personaUserIdForSender（和语气面板同一条路），
+  // 不再走 identify + resolveAccount。
+  app.personaUserIdForSender = () => GUEST;
 
   const mine = app.buildPersonalSite(GUEST);
   const boss = app.buildPersonDetail("wx-guest");
@@ -449,4 +450,34 @@ test("轮询器排队的日志带上是给谁排的", () => {
   );
   // 只有 id 的时候，「是不是只找主人」这个问题得解密数据库才答得出来。
   assert.match(source, /checkin queued id=\$\{queued\.id\} to=/);
+});
+
+// ── 十一、后台同一屏上不能出现两套设置 ───────────────────────
+
+test("后台两块面板认的是同一个人", (t) => {
+  // 2026-07-30 主人截图：同一个人的「主动找他」显示 120~360，而下面的
+  // 「他自己的设置」显示 45~240。两块读的是同一件事，却给出两个答案。
+  //
+  // 原因是认人的路不一样：可编辑那块走 personaUserIdForSender（读来信上记着的
+  // user_id），只读这块走 identify({botAccountRef: resolveAccount(who)...})，
+  // 而 resolveAccount() 不收参数——who 被忽略，永远返回主号。不在主号下面的人
+  // 因此被认成另一个身份，显示的是那个身份的默认值。
+  const SENDER = "wx-not-on-primary";
+  const calls = [];
+  const app = Object.create(CyberbossApp.prototype);
+  app.runtimeSpoolDatabase = { database: {}, listUserItems: () => [] };
+  app.personaUserIdForSender = (s) => { calls.push(s); return GUEST; };
+  app.listMemoriesFor = () => [];
+  app.listOwnReminders = () => [];
+  app.readPersonSettings = (id) => ({ proactive: { enabled: true, minMinutes: 120, maxMinutes: 360 } });
+  app.formatOwnerLocalTime = (v) => v;
+  // 故意放一个"永远返回主号"的适配器：走老路的话会认错人。
+  app.channelAdapter = { resolveAccount: () => ({ accountId: "primary-bot" }) };
+  app.userAdmission = { users: { identify: () => ({ userId: "usr_WRONG_IDENTITY_XXXXXXXX" }) } };
+
+  const detail = app.buildPersonDetail(SENDER);
+
+  assert.deepEqual(calls, [SENDER], "必须走 personaUserIdForSender，和语气面板同一条路");
+  assert.equal(detail.settings.proactive.minMinutes, 120, "两块显示的必须是同一份设置");
+  assert.equal(detail.settings.proactive.maxMinutes, 360);
 });
