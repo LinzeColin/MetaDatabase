@@ -170,6 +170,28 @@ verify_live() {
   return 1
 }
 
+# 把公网入口拉回来。
+#
+# 隧道 unit 写着 Requires=cyberboss-cloud.service，所以每次重启应用 systemd 都会
+# 把隧道一起停掉。部署成功那条路上 verify_live 会重启它；**失败那条路上以前没有
+# 任何东西管它**——回滚只重启应用。于是"部署失败但已安全回滚"是假的：应用回到
+# 老版本跑得好好的，公网却是 530，而且不会有任何提示。2026-07-30 一天之内这样
+# 断了两次，两次都是人工发现的。
+restore_public_entry() {
+  remote "sudo systemctl start $TUNNEL_SERVICE" >/dev/null 2>&1 || true
+  local attempt
+  for attempt in $(seq 1 10); do
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$PUBLIC_ORIGIN/admin")" = "200" ]; then
+      ok "公网入口已恢复：$PUBLIC_ORIGIN/admin"
+      return 0
+    fi
+    sleep 3
+  done
+  printf '  %s✗ 公网入口没能自动恢复，手工执行：sudo systemctl start %s%s\n' \
+    "$RED" "$TUNNEL_SERVICE" "$RESET"
+  return 1
+}
+
 # ── 回滚 ────────────────────────────────────────────────
 if [ "${1:-}" = "--rollback" ]; then
   printf '\n正在回滚……\n\n'
