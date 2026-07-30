@@ -160,7 +160,12 @@ def git_move_or_filesystem(repo: Path, source: Path, destination: Path) -> str:
         relative = path.relative_to(source)
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        run(["git", "mv", "--", path.relative_to(repo).as_posix(), target.relative_to(repo).as_posix()], repo)
+        # The active repository is intentionally sparse.  The new product path
+        # is outside its initial sparse cone, so ordinary `git mv` refuses the
+        # otherwise-safe tracked rename before changing anything.  --sparse is
+        # Git's explicit opt-in for this exact move; files remain tracked and
+        # ignored runtime material is still never selected by tracked_files().
+        run(["git", "mv", "--sparse", "--", path.relative_to(repo).as_posix(), target.relative_to(repo).as_posix()], repo)
     return "git mv tracked files only; ignored runtime retained in place"
 
 

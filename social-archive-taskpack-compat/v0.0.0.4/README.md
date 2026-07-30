@@ -28,6 +28,9 @@ Task Pack verifier. The compatible extraction is not a release artifact.
 5. Make SQLite inspection explicit, one-snapshot, aggregate-only and genuinely
    write-free in dry-run; make rollback plan-only by default and require an
    exact destructive confirmation for execution.
+6. Use Git's explicit `git mv --sparse` when the current worktree includes the
+   legacy source but not the new product path, so the tracked identity move is
+   allowed without broadening the sparse checkout or touching ignored runtime.
 
 ## Execution authority
 

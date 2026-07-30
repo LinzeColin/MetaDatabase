@@ -46,6 +46,14 @@ def create_synthetic_repo(root: Path) -> Path:
     run(["git", "commit", "-m", "synthetic legacy core"], repo)
     run(["git", "push", "-u", "origin", "main"], repo)
     run(["git", "checkout", "-b", "codex/social-archive-compat-test"], repo)
+    # Model the production worktree: the legacy source is present, while the
+    # Social Archive target is intentionally outside the initial sparse cone.
+    run(["git", "sparse-checkout", "init", "--no-cone"], repo)
+    run(["git", "sparse-checkout", "set", "--no-cone", "README.md", "xhs-douyin-2notion/"], repo)
+    if not (repo / "xhs-douyin-2notion/apps/companion/src/x2n_companion/canonical_store.py").is_file():
+        raise RuntimeError("synthetic sparse checkout did not retain the legacy source")
+    if (repo / "social-archive").exists():
+        raise RuntimeError("synthetic sparse checkout unexpectedly includes the target path")
     return repo
 
 
@@ -110,6 +118,7 @@ def main() -> int:
             "base_taskpack_verifier": provenance["taskpack_verifier_status"],
             "semantic_decision": semantic["decision"],
             "worktree_branch_allowed": True,
+            "sparse_target_move_allowed": True,
             "ignored_runtime_retained": True,
             "second_core_withheld_as_candidate": True,
             "rollback_default": rollback["status"],
