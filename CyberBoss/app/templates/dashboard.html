@@ -253,6 +253,16 @@
         <h2 style="margin-top:0">他发来的图片和文件</h2>
         <ul class="tl" id="ins-media"></ul>
       </div>
+      <div class="card">
+        <h2 style="margin-top:0">他的提醒</h2>
+        <ul class="tl" id="ins-reminders"></ul>
+      </div>
+      <!-- 他自己那一页上的设置。改在下面那块「主动找我」里改，这里只显示现在
+           是什么状态——两处显示不一致的话，排查「他为什么没收到」会更难。 -->
+      <div class="card">
+        <h2 style="margin-top:0">他自己的设置</h2>
+        <ul class="tl" id="ins-settings"></ul>
+      </div>
 
       <!-- 只对这个人的语气。没单独设过就沿用「设置」那一页的默认值，
            页面上要说清楚现在是哪一种，否则改了默认值会以为对每个人都生效。 -->
@@ -841,6 +851,29 @@
         tail: [size, m.createdAt || ""].filter(Boolean).join("  "),
       };
     }), openPerson ? "他还没发过图片或文件。" : "先在左边点一个人。");
+    fillRows("ins-reminders", (d.reminders || []).map(function (r) {
+      return { head: "⏰", body: r.text || r.title || "", tail: r.dueAt || "" };
+    }), openPerson ? "他没有还没到点的提醒。" : "先在左边点一个人。");
+    // 「他为什么没收到主动消息」几乎总是这一行的答案：要么他自己关了，要么
+    // 现在正在免打扰时段里。把它显示出来，省得每次都去翻库。
+    var pro = (d.settings || {}).proactive;
+    fillRows("ins-settings", pro ? [
+      {
+        head: pro.enabled ? "开" : "关",
+        body: "主动找他",
+        tail: pro.enabled ? "" : "他自己关掉的",
+      },
+      {
+        head: "",
+        body: "间隔 " + pro.minMinutes + "～" + pro.maxMinutes + " 分钟",
+        tail: "",
+      },
+      {
+        head: "",
+        body: "夜里 " + pro.quietStart + " 点到早上 " + pro.quietEnd + " 点不打扰",
+        tail: "",
+      },
+    ] : [], openPerson ? "读不到他的设置。" : "先在左边点一个人。");
   }
 
   function fillRows(id, rows, emptyText) {

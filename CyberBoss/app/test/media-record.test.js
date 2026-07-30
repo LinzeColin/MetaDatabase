@@ -180,6 +180,9 @@ test("后台那一栏真的拿得到元数据——不是只拿到个文件名",
       runtimeSpoolDatabase: database,
       formatOwnerLocalTime: (v) => v,
       listMemoriesFor: () => [],
+      // 后台那一栏现在还带提醒和他自己的设置（主人要「在后台看到所有人的个人
+      // 页面还有个人信息设置」）。少这一条 stub，这里挂的是 TypeError，不是断言。
+      listOwnReminders: () => [],
       // 后台按 senderId 列人，走的是 userAdmission.users.identify 换算。
       // 只测 mapper 不测这一跳的话，正好漏掉后台真正走的那条路。
       userAdmission: { users: { identify: () => ({ userId: USER_ID }) } },

@@ -437,7 +437,11 @@ class CyberbossApp {
         ),
       });
       // 语气设置。放在 multiUser 判断之外：单人跑的时候也该能调语气。
-      this.personaStore = new PersonaStore({ database: this.runtimeSpoolDatabase });
+      this.personaStore = new PersonaStore({
+        database: this.runtimeSpoolDatabase,
+        // 取函数不取值：库刚开，ownerUserId 这一刻可能还没 backfill 完。
+        ownerUserId: () => this.ownerUserId(),
+      });
       // The v0.0.0.8 admission anchor. It is built here because this is the one
       // place where the runtime database is open and both owner-only keys are
       // still live; they are zeroed in the finally below.
@@ -455,6 +459,8 @@ class CyberbossApp {
         });
         this.userCompanionTurn = new UserCompanionTurn({
           database: this.runtimeSpoolDatabase.database,
+          // 少了这一行，「别再问我」写进去的还是那张没人读的表。
+          personaStore: this.personaStore,
         });
         this.backupRunner = new BackupRunner({
           databasePath: this.config.runtimeDatabasePath,
@@ -1168,6 +1174,7 @@ class CyberbossApp {
       adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
       personalSiteLogin: (token) => this.personalSiteLogin(token),
       personalSiteData: (cookieHeader) => this.personalSiteData(cookieHeader),
+      personalSiteSettings: (cookieHeader, patch) => this.personalSiteSettings(cookieHeader, patch),
       adminSessionRevoke: (cookieHeader) => this.revokeAdminSession(cookieHeader),
       ownerActivationStart: () => this.startOwnerActivation(),
       ownerActivationPoll: (qrcode) => this.pollOwnerActivation(qrcode),
@@ -1768,7 +1775,46 @@ class CyberbossApp {
       media: Object.freeze(items("media")),
       memories: Object.freeze(this.listMemoriesFor(id)),
       reminders: Object.freeze(this.listOwnReminders(id)),
+      // 他自己的设置。页面上那个「主动找我」开关要显示当前状态，不能每次打开
+      // 都是个不知道开没开的方块。
+      settings: this.readPersonSettings(id),
     });
+  }
+
+  // 这个人自己的设置。现在只有「主动找我」，加别的项时往这里塞。
+  readPersonSettings(userId) {
+    const empty = Object.freeze({ proactive: null });
+    const id = String(userId || "").trim();
+    if (!id || !this.personaStore) {
+      return empty;
+    }
+    try {
+      return Object.freeze({ proactive: this.personaStore.readFor(id).proactive });
+    } catch {
+      return empty;
+    }
+  }
+
+  // 「主页」上改自己的设置。和 personalSiteData 一样，**身份只从 cookie 解**，
+  // 入参里没有任何能指定改谁的东西。
+  personalSiteSettings(cookieHeader, patch = {}) {
+    const sessions = this.adminSessions();
+    const token = parseSessionCookie(cookieHeader);
+    if (!sessions || !token || !this.personaStore) {
+      return Object.freeze({ ok: false });
+    }
+    try {
+      const session = sessions.verify({ token, requireCsrf: false });
+      if (!session?.userId) {
+        return Object.freeze({ ok: false });
+      }
+      // 只认 proactive 这一块。整份 persona 不从这里进——语气是主人定的默认，
+      // 这一页改不了它。
+      this.personaStore.setProactiveFor(session.userId, patch?.proactive || {});
+      return Object.freeze({ ok: true, settings: this.readPersonSettings(session.userId) });
+    } catch {
+      return Object.freeze({ ok: false });
+    }
   }
 
   // 日记。后台那一栏读的就是这些文件。
@@ -3023,7 +3069,9 @@ class CyberbossApp {
   // 只在选了具体某个人时才查——「全部人」那个视图上列所有人的待办没有意义，
   // 而且会把一屏撑爆。
   buildPersonDetail(senderId) {
-    const empty = { memories: [], todos: [], events: [], media: [] };
+    const empty = {
+      memories: [], todos: [], events: [], media: [], reminders: [], settings: { proactive: null },
+    };
     const who = String(senderId || "").trim();
     if (!who || !this.runtimeSpoolDatabase) {
       return empty;
@@ -3070,6 +3118,20 @@ class CyberbossApp {
       todos: Object.freeze(items("todo")),
       events: Object.freeze(items("event")),
       media: Object.freeze(items("media")),
+      // 提醒和他自己的设置。主人要的是「在后台看到所有人的个人页面还有个人信息
+      // 设置」——少这两样，后台看到的就不是他那一页，是他那一页的一部分。
+      //
+      // 这两个函数（这个和 buildPersonalSite）是同一份数据的两个出口，已经因为
+      // 一边加了字段另一边没加而错过一次（media 的 note）。parity 有测试钉着，
+      // 往任何一边加字段都要同时加到另一边。
+      // 这两样取不到就给空的，别让整个「点开一个人」的接口 500。后台是排查工具，
+      // 它自己挂掉的时候恰恰是最需要它的时候。
+      reminders: Object.freeze(
+        typeof this.listOwnReminders === "function" ? this.listOwnReminders(userId) : [],
+      ),
+      settings: typeof this.readPersonSettings === "function"
+        ? this.readPersonSettings(userId)
+        : { proactive: null },
     };
   }
 

@@ -73,14 +73,20 @@ const BASELINE = Object.freeze([
 // 「主动找我」。参考仓（WenXiaoWendy/cyberboss）的随机轮询唤醒就是这件事：
 // 系统在随机时刻戳醒模型，让它自己判断该说什么、还是什么都不说。
 //
-// 两条必须写死的边界：
-//   一、只对**主人**做。R19 冻结的 zero-agent 面里 checkin 属于"必须零模型
-//       调用"，那说的是给普通用户的确定性关心（deterministic-checkin，纯模板）。
-//       唤醒模型的这一条落在 permitted_model_triggers 的 owner_codex_turn 上，
-//       所以目标一旦不是主人，就真的违规了。
+// 「只对主人做」这条边界已经被主人自己撤掉了（2026-07-30：「它需要能主动去找每
+// 个人，并且每个用户都能有单独的『主动找我』这个设置按钮」）。原来的理由是 R19
+// 冻结的 zero-agent 面把 checkin 列为"必须零模型调用"、唤醒模型只允许
+// owner_codex_turn；但那个前提早就不成立了——普通用户已经有自己的一条模型路径，
+// 而且 dispatchGuestCheckin 就是照着这条改的。冻结的那份 fixture 不动（它是密封
+// 的治理件），这里如实写现在的规则。
+//
+// 剩下两条边界还在：
+//   一、开关是**本人**的。默认开着，本人随时能关；不是主人替所有人决定。
 //   二、有静默时段。半夜三点戳人一下不叫陪伴。
 const PROACTIVE_DEFAULTS = Object.freeze({
-  enabled: false,
+  // 默认开：主人要的是"能主动去找每个人"。默认关的话这个能力上线即死——
+  // 没人会先去点一个他不知道存在的开关。
+  enabled: true,
   // 参考仓默认 3~60 分钟——那是给 ADHD 监工用的密度，每天四五十次模型调用。
   // 这里默认放缓到 45 分钟~4 小时，想更密就自己在面板上调。
   minMinutes: 45,
@@ -111,7 +117,12 @@ function normalizeProactive(raw) {
   // 上限不得低于下限，否则随机区间是空的。
   const maxMinutes = Math.max(minMinutes, boundedMinutes(source.maxMinutes, PROACTIVE_DEFAULTS.maxMinutes));
   return Object.freeze({
-    enabled: source.enabled === true,
+    // 没设过 = 默认（开）；设过 false 就是真的关掉，不能被默认值盖回去。
+    // 写成 `=== true` 的话"没设过"和"设成了关"分不开，一律变成关——那正是
+    // 上线之后没人收到主动消息的那个原因。
+    enabled: source.enabled === undefined || source.enabled === null
+      ? PROACTIVE_DEFAULTS.enabled
+      : source.enabled === true,
     minMinutes,
     maxMinutes,
     quietStart: boundedHour(source.quietStart, PROACTIVE_DEFAULTS.quietStart),
@@ -251,7 +262,13 @@ function normalizePersonPersona(raw) {
 function mergePersonaForPerson(ownerPersona, personPersona) {
   const base = normalizePersona(ownerPersona);
   if (!personPersona) {
-    return base;
+    // 语气沿用主人那一行（他设的是所有人的默认口吻），但**主动找我不继承**。
+    //
+    // 继承的话「每个人单独的开关」就是假的：一个从没点过开关的人，实际是被主人
+    // 那一份控制着——主人把频率调成十分钟，所有没设过的人一起被戳。而且主人一
+    // 关，所有人跟着哑掉，看起来就像"boss 只找主人"。
+    // 没自己那一行 = 用默认（开着、45 分钟~4 小时、23-8 点不打扰）。
+    return Object.freeze({ ...base, proactive: normalizeProactive(undefined) });
   }
   const own = normalizePersonPersona(personPersona);
   return Object.freeze({
@@ -302,8 +319,26 @@ function renderPersonaInstruction(persona) {
 //
 // 读不出来时退回默认值而不是抛错：语气读不出来不该让一条消息发不出去。
 class PersonaStore {
-  constructor({ database = null } = {}) {
+  // ownerUserId 传函数而不是值：主人的 id 要等库开了才知道，而这个 store 在
+  // 那之前就构造好了。传值的话永远是空串，readFor(主人) 会走进"没有自己那一
+  // 行"的分支，把主人自己的主动找我设置显示成默认值。
+  constructor({ database = null, ownerUserId = null } = {}) {
     this.database = database;
+    this.resolveOwnerUserId = typeof ownerUserId === "function"
+      ? ownerUserId
+      : () => String(ownerUserId || "");
+  }
+
+  #isOwner(userId) {
+    const id = String(userId || "").trim();
+    if (!id) {
+      return false;
+    }
+    try {
+      return id === String(this.resolveOwnerUserId() || "").trim();
+    } catch {
+      return false;
+    }
   }
 
   read() {
@@ -346,6 +381,12 @@ class PersonaStore {
   readFor(userId) {
     const owner = this.read();
     const id = String(userId || "").trim();
+    // 主人那一行就在 owner_persona 里，不存在"继承"的问题。不短路的话他会掉进
+    // 上面那个「没自己那一行 → 主动找我回默认」的分支，等于后台一打开就把他自
+    // 己设的频率显示错。
+    if (this.#isOwner(id)) {
+      return owner;
+    }
     if (!id || !this.database || typeof this.database.readUserPersona !== "function") {
       return owner;
     }
@@ -396,6 +437,45 @@ class PersonaStore {
     });
     return this.readFor(id);
   }
+
+  // 只改「主动找我」，别的原样留着。
+  //
+  // write/writeFor 是**整份覆盖**——前端每次提交完整设置，那样是对的。但现在改
+  // 这一项的入口有三个，其中两个只知道一部分：微信里发「别再问我」只知道
+  // enabled，它要是走整份覆盖，这个人的语气、称呼、备注会被一起清成默认值。
+  // 反过来，默认改成"开"之后，一次只带语气的整份提交会把一个已经关掉的人悄悄
+  // 打开——不想被打扰的人又开始收到消息，这是这次改动里最容易伤到人的一条。
+  // 所以窄入口走这里：读当前的，只盖 proactive 里显式给了的字段，写回去。
+  setProactiveFor(userId, patch) {
+    const id = String(userId || "").trim();
+    const current = this.readFor(id);
+    const merged = mergeProactivePatch(current.proactive, patch);
+    if (this.#isOwner(id) || !id) {
+      return this.write({ ...current, proactive: merged });
+    }
+    return this.writeFor(id, { ...normalizePersonPersona(current), proactive: merged });
+  }
+
+  // 主人自己那一份的同名操作。
+  setProactive(patch) {
+    const current = this.read();
+    return this.write({ ...current, proactive: mergeProactivePatch(current.proactive, patch) });
+  }
+}
+
+// 只取 patch 里**显式给了**的字段，其余保留当前值。undefined 和 null 都算没给
+// ——微信那条口令只会带 enabled，不能让它把频率和免打扰时段一起抹掉。
+function mergeProactivePatch(current, patch) {
+  const base = normalizeProactive(current);
+  const source = patch && typeof patch === "object" ? patch : {};
+  const pick = (key) => (source[key] === undefined || source[key] === null ? base[key] : source[key]);
+  return normalizeProactive({
+    enabled: pick("enabled"),
+    minMinutes: pick("minMinutes"),
+    maxMinutes: pick("maxMinutes"),
+    quietStart: pick("quietStart"),
+    quietEnd: pick("quietEnd"),
+  });
 }
 
 module.exports = {
