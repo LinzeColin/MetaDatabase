@@ -16,6 +16,7 @@ from typing import Any
 SECRET_PATTERN = re.compile(r"(?i)(token|secret|password|cookie|authorization|session)[=: ]+[^\s,;]+")
 SHARED_HOST_SECRET_ROOT = Path("/opt/social-archive/runtime/secrets")
 CORE_SECRET_UID_GID = 10001
+SYSTEMD_CREDENTIALS_ROOT = Path("/run/credentials")
 
 
 def utcnow() -> str:
@@ -123,6 +124,33 @@ def approved_shared_host_secret(path: Path, *, mode: int, uid: int, gid: int) ->
     )
 
 
+def approved_systemd_credential(path: Path, *, mode: int, uid: int, gid: int) -> bool:
+    """Accept only the per-unit credential directory created by systemd.
+
+    ``LoadCredential=`` exposes a root-owned, group-readable file below the
+    service's ``$CREDENTIALS_DIRECTORY``.  The enclosing /run/credentials
+    namespace is isolated for the unit, so this is not equivalent to allowing
+    arbitrary 0640 host files.
+    """
+    raw_directory = os.getenv("CREDENTIALS_DIRECTORY", "").strip()
+    if not raw_directory:
+        return False
+    try:
+        credential_directory = Path(raw_directory).resolve()
+        resolved_path = path.resolve()
+        under_systemd_credentials = credential_directory.is_relative_to(SYSTEMD_CREDENTIALS_ROOT)
+        under_unit_directory = resolved_path.is_relative_to(credential_directory)
+    except OSError:
+        return False
+    return (
+        under_systemd_credentials
+        and under_unit_directory
+        and uid == 0
+        and gid == 0
+        and mode in {0o400, 0o440}
+    )
+
+
 def read_secret(path_value: str | None) -> str | None:
     if not path_value:
         return None
@@ -138,9 +166,16 @@ def read_secret(path_value: str | None) -> str | None:
         uid=metadata.st_uid,
         gid=metadata.st_gid,
     )
-    if mode & 0o022 or (not runtime_secret and mode & 0o077 and not shared_host_secret):
+    systemd_credential = approved_systemd_credential(
+        path,
+        mode=mode,
+        uid=metadata.st_uid,
+        gid=metadata.st_gid,
+    )
+    if mode & 0o022 or (not runtime_secret and mode & 0o077 and not shared_host_secret and not systemd_credential):
         raise PermissionError(
-            f"宿主机秘密文件必须为 0600，或为已批准的 10001:10001 0640 运行时 Secret；"
+            f"宿主机秘密文件必须为 0600，或为已批准的 10001:10001 0640 运行时 Secret，"
+            f"或为 systemd LoadCredential；"
             f"Docker secret 不得可被组/其他用户写入：{path}"
         )
     return path.read_text(encoding="utf-8").strip()

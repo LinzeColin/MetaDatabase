@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from social_archive.utils import approved_shared_host_secret
+from social_archive.utils import approved_shared_host_secret, approved_systemd_credential
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -289,6 +289,26 @@ def test_only_the_documented_nonroot_container_secret_bridge_can_use_group_read_
         mode=0o640,
         uid=10001,
         gid=10002,
+    )
+
+
+def test_only_the_documented_systemd_credential_directory_can_use_root_owned_group_read_mode(monkeypatch):
+    directory = Path("/run/credentials/social-archive-status.service")
+    credential = directory / "api_token"
+    monkeypatch.setenv("CREDENTIALS_DIRECTORY", str(directory))
+
+    assert approved_systemd_credential(credential, mode=0o440, uid=0, gid=0)
+    assert not approved_systemd_credential(credential, mode=0o640, uid=0, gid=0)
+    assert not approved_systemd_credential(credential, mode=0o440, uid=10001, gid=0)
+    assert not approved_systemd_credential(credential, mode=0o440, uid=0, gid=10001)
+    assert not approved_systemd_credential(Path("/tmp/api_token"), mode=0o440, uid=0, gid=0)
+
+    monkeypatch.setenv("CREDENTIALS_DIRECTORY", "/tmp/social-archive-credentials")
+    assert not approved_systemd_credential(
+        Path("/tmp/social-archive-credentials/api_token"),
+        mode=0o440,
+        uid=0,
+        gid=0,
     )
 
 
