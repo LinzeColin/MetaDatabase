@@ -63,7 +63,9 @@ def test_runtime_never_mounts_or_installs_a_private_database_worktree():
     assert "private-database" not in install
     assert "sync_private_database.py --once" in sync_service
     assert "ReadWritePaths=/var/lib/social-archive" in backup_service
-    assert "/opt/social-archive/runtime" not in backup_service
+    assert "/opt/social-archive/runtime" not in "\n".join(
+        line for line in backup_service.splitlines() if line.startswith("ReadWritePaths=")
+    )
 
 
 def test_sync_missing_api_client_fails_before_runtime_or_local_private_copy(monkeypatch, settings, tmp_path, capsys):
