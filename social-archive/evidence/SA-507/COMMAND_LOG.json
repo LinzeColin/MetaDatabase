@@ -1,24 +1,24 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
   "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-30T23:50:05Z",
-  "candidate_commit": "2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a",
+  "verified_at_utc": "2026-07-31T00:16:48Z",
+  "candidate_commit": "2de08bdf098b5a340654677c0682d8746a55c407",
   "commands": [
     {
       "id": "sa507_candidate_freeze_and_compatibility",
       "command": "git status --porcelain=v1 (must be empty); <project-venv-python> social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "Candidate 2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a is clean, contains fetched origin/main, and binds Social Archive tree fbda32ab30ecaab76651f3dd92801d36b7b513e8. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core."
+      "result": "Candidate 2de08bdf098b5a340654677c0682d8746a55c407 is clean, contains fetched origin/main, and binds Social Archive tree dadbdfebd64ab8bda546cf6b9d616cad4324ce76. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. Earlier candidates 2cde65ed and 26713a3 were explicitly superseded after P0 Docker build-context and container-network findings, respectively."
     },
     {
       "id": "sa507_unique_full_application_suite",
       "command": "source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "214 passed, 1 non-failing Starlette/httpx deprecation warning, 8.27s. This is the sole full application-suite execution bound to the frozen candidate."
+      "result": "217 passed, 1 non-failing Starlette/httpx deprecation warning, 8.44s. This is the sole full application-suite execution bound to current frozen candidate 2de08bdf; prior suites belong only to explicitly superseded candidates."
     },
     {
       "id": "sa507_taskpack_verify_fast",
@@ -36,17 +36,17 @@
     },
     {
       "id": "sa507_recovery_rollback_plan",
-      "command": "<project-venv-python> <temporary-compatible-pack>/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo <integration-worktree> --stamp 20260730T095749Z",
+      "command": "<project-venv-python> <temporary-compatible-pack>/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo <integration-worktree> --latest",
       "exit_code": 0,
       "outcome": "PASS",
       "result": "Returned ROLLBACK_PLAN for social-archive-pre-v0.0.0.4-20260730t095749z; execution requires the exact confirmation and declares ignored legacy runtime data protected. No rollback ran."
     },
     {
-      "id": "sa507_release_environment_boundary",
-      "command": "docker version --format '{{.Server.Version}}'; protected metadata filename/permission inspection only",
-      "exit_code": 1,
-      "outcome": "NOT_RUN",
-      "result": "The local Docker daemon was unavailable, so no image build or digest exists. The protected metadata inspection found no explicitly current, dedicated Social Archive fine-grained GitHub authorization; it did not read any secret contents or use the known inadmissible legacy backup credential."
+      "id": "sa507_local_container_build_and_smoke",
+      "command": "docker build --tag social-archive:v0.0.0.4-candidate-2de08bdf . && docker run --rm -d --name social-archive-sa507-smoke-2de08bdf -p 127.0.0.1::8765 <local-image> && curl --fail http://127.0.0.1:<ephemeral-port>/health",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The local image was built as sha256:4dbbcd63375cda08e67f326584deb1a33c95ad72001dd60d1e09eafc34629ac2 (272185676 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The container stopped and both exact candidate image tags were removed after verification."
     }
   ],
   "environment_bound_items_not_used_as_pass": [
@@ -63,13 +63,14 @@
     {
       "id": "container_image_and_post_deploy_smoke",
       "outcome": "NOT_RUN",
-      "result": "The Docker daemon was unavailable. No image build, image digest, deployment, timer enablement, or post-deploy smoke was attempted."
+      "result": "Local image build and no-mount loopback smoke passed, but no image was pushed and no production deployment, timer enablement, or post-deploy smoke was attempted."
     }
   ],
   "side_effects": [
     "Created a local checkpoint commit and integrated the then-current origin/main before candidate freeze; neither was pushed.",
     "Removed only the 47 MiB untracked node_modules cache left under the retired legacy tree after proving it was untracked and ignored; no runtime or user data was inspected or removed.",
-    "Created a temporary compatible task-pack extraction for verify-fast and rollback-plan verification; it contained no production data and was removed immediately after final evidence validation.",
-    "No GitHub source push, tag push, GitHub Release, Private-Database write, real platform capture, user-data upload, deployment, timer enablement, extra worktree, or destructive rollback occurred."
+    "Created a temporary compatible task-pack extraction for verify-fast and rollback-plan verification; it contained no production data and was removed after final evidence validation.",
+    "Built two exact local candidate image tags, ran only ephemeral no-mount loopback health checks, then stopped the containers and removed both exact image tags; no global Docker cleanup ran.",
+    "No GitHub source push, tag push, GitHub Release, Private-Database write, real platform capture, user-data upload, production deployment, timer enablement, extra worktree, or destructive rollback occurred."
   ]
 }

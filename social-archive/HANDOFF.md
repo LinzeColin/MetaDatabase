@@ -222,3 +222,19 @@ Cloudflare 受管 Tunnel 健康且有连接，UI/API/status projection/status fa
 1. Owner 完成 GitHub sudo/passkey，提供/配置只限 Social Archive 私有归档仓所需操作的最小权限 fine-grained 授权；同时配置官方 Private-Database clone-free client 与专用授权。
 2. 在候选代码未变化的前提下，运行 GitHub Draft 同密文上传/下载回读、Private-Database ingest/verify、三目标恢复和镜像/部署 smoke；仅更新环境证据，不重复全量应用测试。
 3. 只有这些真实收据均通过后，才把 SA-507 从 `DEGRADED` 收束为 PASS，创建版本 tag，并按 Owner 已授权的“任务包整体完成后再上传”策略推送到 `main`。若候选源代码改变，先重冻新候选并对新候选运行唯一一次全量回归。
+
+## SA-507 candidate update (2026-07-31 UTC)
+
+本节覆盖上一节中以 `2cde65ed` 为候选且“Docker 不可用”的历史记录。Docker 已在本机可用后发现并修复两项真实 P0：先补上 `.dockerignore`，使 `.env`、运行时、凭据邻近文件和缓存不进入 Docker build context；随后发现服务在容器内绑定 `127.0.0.1` 导致端口映射不可达，故仅在 Docker image 默认环境中设为 `SOCIAL_ARCHIVE_HOST=0.0.0.0`，不改变宿主机 Compose 的 loopback 映射策略。二者均由 `tests/focused/test_container_build_context.py` 固化。
+
+当前经测试的功能候选为 `2de08bdf098b5a340654677c0682d8746a55c407`，完整树 `6e67c856abd8b26710ae1d93c7e49b558b434f67`、产品树 `dadbdfebd64ab8bda546cf6b9d616cad4324ce76`、清单 SHA-256 `f94c6d1fd1b1a0c7716fc9c65e0c69294e41d6c7956b7dfb8c729d9c8033f78e`。它在冻结后唯一一次全量应用回归为 `217 passed`（1 条既有依赖弃用警告，8.44s）；冻结兼容任务包 `verify-fast` 26/26 PASS；`scripts/final_verify.py` 为 PASS 且 `application_suite_rerun=false`；回滚脚本只返回 `ROLLBACK_PLAN`，恢复标签和 ignored runtime 保护保持不变。`2cde65ed`（214 passed）和 `26713a3`（216 passed）均因后续 P0 修复而明确废弃，绝非对未变化候选的重复全量测试。
+
+当前候选本机 Docker build 成功，local-only image id 为 `sha256:4dbbcd63375cda08e67f326584deb1a33c95ad72001dd60d1e09eafc34629ac2`；无任何卷挂载的临时容器在仅本机回环端口映射下 `/health` 通过。临时容器已停止，两张本轮候选 image tag 已精确删除；未运行全局 Docker 清理。此结果只证明本机镜像可构建和启动，**不等于**远端 image push、OVH/Cloudflare 部署或生产 smoke。
+
+严格发布状态仍为 **DEGRADED，不是 PASS**：GitHub Private Draft 的第三同密文上传/下载回读、Private-Database 官方 clone-free `ingest`/严格 `verify`、三目标真实恢复及生产部署 smoke 都尚未执行。现有宽权限 GitHub CLI OAuth 与受保护目录中已知不安全的旧凭据仍未使用，且受保护目录未读取 secret 内容。没有 GitHub source push/tag/release、Private-Database 写入、用户数据上传、生产部署、定时器启用、额外 worktree 或 destructive rollback。
+
+### Updated resume point
+
+1. 仅由 Owner 完成 GitHub sudo/passkey 后，配置只限 Social Archive 私有归档仓所需操作的最小权限 fine-grained 授权；同时在正式主机配置官方 Private-Database clone-free client、专用授权与生产部署入口。
+2. 若 `2de08bdf` 的功能源码未变，仅执行 GitHub 同密文 Draft/readback、Private-Database ingest/verify、三目标恢复和生产 smoke，并更新环境证据；**不得**为未变化候选重跑全量应用测试。
+3. 只有所有真实收据通过后才把 SA-507 收束为 PASS、创建版本 tag、推送到 `main`，并收尾唯一工作树；任何功能源码改变都先产生新候选并只对该新候选运行一次完整回归。

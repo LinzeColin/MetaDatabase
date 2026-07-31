@@ -1,7 +1,7 @@
 {
   "status": "DEGRADED",
   "version": "v0.0.0.4",
-  "commit": "2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a",
+  "commit": "2de08bdf098b5a340654677c0682d8746a55c407",
   "tasks": [
     {
       "scope": "SA-000 through SA-506",
@@ -11,14 +11,14 @@
     {
       "id": "SA-507",
       "status": "DEGRADED",
-      "reason": "All local candidate, test, integrity, and rollback-plan assertions pass; the real GitHub third ciphertext receipt, Private-Database reconciliation, image digest, and deployment smoke remain unexecuted."
+      "reason": "All local candidate, test, integrity, rollback-plan, and local image smoke assertions pass; the real GitHub third ciphertext receipt, Private-Database reconciliation, and production deployment smoke remain unexecuted."
     }
   ],
   "tests": [
     {
       "id": "unique_full_application_suite",
       "status": "PASS",
-      "detail": "214 passed on candidate 2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a; executed exactly once."
+      "detail": "217 passed on candidate 2de08bdf098b5a340654677c0682d8746a55c407; executed exactly once for this final candidate."
     },
     {
       "id": "taskpack_verify_fast",
@@ -29,6 +29,11 @@
       "id": "final_structural_verify",
       "status": "PASS",
       "detail": "Structural verifier recorded application_suite_rerun=false."
+    },
+    {
+      "id": "local_container_build_and_smoke",
+      "status": "PASS",
+      "detail": "Local image sha256:4dbbcd63375cda08e67f326584deb1a33c95ad72001dd60d1e09eafc34629ac2 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. No image was pushed."
     }
   ],
   "canaries": [
@@ -51,6 +56,11 @@
       "id": "private_database_clone_free_reconciliation",
       "status": "NOT_RUN",
       "detail": "No compliant official client plus dedicated authorization was configured."
+    },
+    {
+      "id": "local_container_image_and_health",
+      "status": "PASS",
+      "detail": "The local-only candidate image built and passed no-mount loopback /health; both exact image tags were removed afterwards."
     }
   ],
   "storage": {
@@ -72,7 +82,7 @@
   "known_degradations": [
     "No GitHub Private Draft/asset receipt or readback exists.",
     "No Private-Database API reconciliation exists.",
-    "No Docker image digest or post-deploy smoke exists because the local daemon is unavailable.",
+    "No image was pushed and no production deployment or post-deploy smoke exists; the local-only image identifier is not a published digest.",
     "Source and destination provider states remain only as real observations recorded in the per-task evidence; unexecuted providers remain NOT_RUN.",
     "Git source publication and release tag publication are intentionally deferred until the strict third-replica and Private-Database gate passes."
   ],
