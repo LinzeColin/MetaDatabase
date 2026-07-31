@@ -136,6 +136,8 @@ def test_systemd_host_prepare_keeps_long_lived_secrets_root_only_and_uses_unit_c
     assert "CORE_SECRET_GROUP" not in prepare
     assert 'chmod 0640 "$secret_path"' not in prepare
     assert "SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=$ROOT/runtime/secrets/github_token" not in prepare
+    assert "validate_host_env_replacement" in prepare
+    assert "拒绝覆盖并清空既有非 Secret 配置" in prepare
     assert 'LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token' in replication
     assert 'Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token' in replication
     assert 'LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id' in backup

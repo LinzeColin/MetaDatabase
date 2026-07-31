@@ -55,8 +55,22 @@ fail() {
 }
 
 env_value() {
-  local key="$1"
-  sed -n -E "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*([^[:space:]#]+)[[:space:]]*$/\1/p" "$ROOT/.env" | tail -n 1
+  file_env_value "$ROOT/.env" "$1"
+}
+
+file_env_value() {
+  local file="$1"
+  local key="$2"
+  sed -n -E "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*([^[:space:]#]+)[[:space:]]*$/\1/p" "$file" | tail -n 1
+}
+
+is_unit_credential_file_key() {
+  case "$1" in
+    SOCIAL_ARCHIVE_API_TOKEN_FILE|SOCIAL_ARCHIVE_PAIRING_CODE_FILE|SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE|SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE|SOCIAL_ARCHIVE_NOTION_TOKEN_FILE|SOCIAL_ARCHIVE_OBSIDIAN_REST_TOKEN_FILE|SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE|SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE)
+      return 0
+      ;;
+  esac
+  return 1
 }
 
 usage() {
@@ -106,11 +120,9 @@ render_host_env() {
     fi
     key="${line%%=*}"
     key="${key//[[:space:]]/}"
-    case "$key" in
-      SOCIAL_ARCHIVE_API_TOKEN_FILE|SOCIAL_ARCHIVE_PAIRING_CODE_FILE|SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE|SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE|SOCIAL_ARCHIVE_NOTION_TOKEN_FILE|SOCIAL_ARCHIVE_OBSIDIAN_REST_TOKEN_FILE|SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE|SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE)
-        continue
-        ;;
-    esac
+    if is_unit_credential_file_key "$key"; then
+      continue
+    fi
     normalized="$(printf '%s' "$key" | tr '[:lower:]' '[:upper:]')"
     case "$normalized" in
       *TOKEN|*SECRET|*PASSWORD|*COOKIE|*SESSION)
@@ -133,6 +145,19 @@ SOCIAL_ARCHIVE_CLI_OUTPUT_ROOT=$HOST_DATA_ROOT/vendor-output/cli
 EOF
 }
 
+validate_host_env_replacement() {
+  [[ -f "$HOST_ENV_FILE" ]] || return 0
+  while IFS= read -r key; do
+    [[ -n "$key" ]] || continue
+    is_unit_credential_file_key "$key" && continue
+    existing_value="$(file_env_value "$HOST_ENV_FILE" "$key")"
+    source_value="$(env_value "$key")"
+    if [[ -n "$existing_value" && -z "$source_value" ]]; then
+      fail "现有 $HOST_ENV_FILE 的 $key 有值，但 .env 未声明；拒绝覆盖并清空既有非 Secret 配置。"
+    fi
+  done < <(sed -n -E 's/^[[:space:]]*(SOCIAL_ARCHIVE_[A-Z0-9_]+)[[:space:]]*=.*/\1/p' "$HOST_ENV_FILE" | sort -u)
+}
+
 validate_source_contract
 if [[ "$MODE" == "--dry-run" ]]; then
   render_host_env /dev/null
@@ -148,6 +173,8 @@ command -v useradd >/dev/null || fail '缺少 useradd（仅支持 systemd Linux 
 command -v install >/dev/null || fail '缺少 install。'
 command -v systemctl >/dev/null || fail '缺少 systemctl（仅支持 systemd Linux 宿主机）。'
 command -v stat >/dev/null || fail '缺少 stat。'
+
+validate_host_env_replacement
 
 if ! id "$SYSTEM_USER" >/dev/null 2>&1; then
   useradd --system --user-group --home-dir /var/lib/social-archive --create-home --shell /usr/sbin/nologin "$SYSTEM_USER"

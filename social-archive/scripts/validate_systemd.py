@@ -43,6 +43,8 @@ def main() -> int:
         "未启用或启动任何 unit",
         "runtime/secrets",
         "LoadCredential=",
+        "validate_host_env_replacement",
+        "拒绝覆盖并清空既有非 Secret 配置",
     ):
         _require(host_prepare_text, needle, "prepare_systemd_host.sh")
     if "systemctl enable" in host_prepare_text or "systemctl start" in host_prepare_text:
