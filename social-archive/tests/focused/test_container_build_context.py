@@ -43,3 +43,9 @@ def test_dockerfile_uses_explicit_first_party_copy_paths():
         "COPY scripts ./scripts",
     ):
         assert expected in dockerfile
+
+
+def test_dockerfile_binds_the_api_to_the_container_network():
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert "SOCIAL_ARCHIVE_HOST=0.0.0.0" in dockerfile
+    assert 'CMD ["social-archive-api"]' in dockerfile
