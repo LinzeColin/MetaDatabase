@@ -5,6 +5,14 @@
   "acceptance_status": "DEGRADED",
   "verified_at_utc": "2026-07-31T09:43:16Z",
   "candidate_commit": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
+  "snapshot_scope": "Historical command log for the 0325be9a candidate. The current bca021bf Phase A continuation is separately recorded without rewriting historical command outcomes.",
+  "current_continuation": {
+    "path": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
+    "phase_status": "PASS",
+    "overall_sa507_status": "DEGRADED",
+    "candidate_commit": "bca021bf91baad3f1585dd6ae15044836752e156",
+    "verified_at_utc": "2026-07-31T12:16:51Z"
+  },
   "commands": [
     {
       "id": "sa507_candidate_freeze_and_compatibility",

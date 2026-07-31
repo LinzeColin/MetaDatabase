@@ -8,6 +8,14 @@
   "status": "DEGRADED",
   "acceptance_status": "DEGRADED",
   "verified_at_utc": "2026-07-31T09:43:16Z",
+  "snapshot_scope": "This document preserves the historical candidate snapshot captured at verified_at_utc. Current candidate and production Phase A facts are recorded in the linked continuation; SA-507 remains DEGRADED until its remaining gates close.",
+  "current_continuation": {
+    "path": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
+    "phase_status": "PASS",
+    "overall_sa507_status": "DEGRADED",
+    "candidate_head": "bca021bf91baad3f1585dd6ae15044836752e156",
+    "verified_at_utc": "2026-07-31T12:16:51Z"
+  },
   "subject": {
     "repository": "LinzeColin/MetaDatabase",
     "branch": "codex/social-archive-v0004-integration",
@@ -186,8 +194,9 @@
     "source_and_destination_real_canaries": "Recorded individually in SA-101 through SA-505; non-executed providers remain NOT_RUN rather than synthetic PASS."
   },
   "evidence_manifest": {
-    "evidence/SA-507/COMMAND_LOG.json": "85f1816e6774866133d3a36b4fb9ae6b4e790eccaa8a4c61d7010e97d3c2a586",
-    "evidence/SA-507/RELEASE_REPORT.json": "377bca887bb8d97061b4870add70b951efbe3db3158eae2465e1e7ff8025d984",
+    "evidence/SA-507/COMMAND_LOG.json": "8d71ccd3288b1e013d112a94dedce40a464dcc20864a997051a6e224b8617add",
+    "evidence/SA-507/RELEASE_REPORT.json": "21420efbaee609f6eadf063f2bd8ea796ae42fd4da04b7e293dc51b9307c4303",
+    "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json": "447358db8cc3a76b3261ea2bcd09e985d37592e015e221acce21e948363422e7",
     "evidence/final-verification.json": "3685e9fc189425609a90f1935d5c4a0825d5d595ee4ea390031c6c81bdf543d5",
     "compose.yaml": "698bccaaac58d25c36983b4f6226f1f42b2e792073307fd32c2c8c00b2df5a0e",
     "tests/focused/test_deployment_contract.py": "ccb2413086a7f57988400a3177c0cb2dc96e662c0e4ee3a2915d014e74b796ff",

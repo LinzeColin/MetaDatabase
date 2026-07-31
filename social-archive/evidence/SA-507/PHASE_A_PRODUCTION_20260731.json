@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "task_id": "SA-507",
+  "scope": "Bounded Phase A: unify production runtime topology and prove a persistent non-user-data encrypted tri-replica canary.",
+  "phase_status": "PASS",
+  "overall_sa507_status": "DEGRADED",
+  "overall_taskpack_status": "IN_PROGRESS",
+  "verified_at_utc": "2026-07-31T12:16:51Z",
+  "candidate": {
+    "commit": "bca021bf91baad3f1585dd6ae15044836752e156",
+    "full_tree": "fbb3dff65a2610111ed09a49f7581644b25c897b",
+    "social_archive_tree": "568494a3b7b3cfcc8bad65af1aba16eb08378ed1",
+    "social_archive_tracked_file_count": 278,
+    "social_archive_list_sha256": "83a6bc2c1e552b4e0264a6874e9e6b21ffa87028204ee91d9f9fe1d70cab195e",
+    "full_application_suite": {
+      "status": "PASS",
+      "result": "227 passed; one existing non-failing Starlette/httpx deprecation warning.",
+      "executed_once_for_this_functional_candidate": true
+    },
+    "compatibility_validation": {
+      "status": "PASS",
+      "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+      "second_core_withheld_as_candidate": true,
+      "rollback_default": "ROLLBACK_PLAN"
+    },
+    "p0_fixes_since_the_prior_candidate": [
+      {
+        "commit": "c3feafc9",
+        "purpose": "Align the CLI container with the configured host-data group so shared runtime paths remain writable without widening secret access."
+      },
+      {
+        "commit": "af09191a",
+        "purpose": "Accept only root-owned read-only systemd unit credentials under the documented credentials directory."
+      },
+      {
+        "commit": "bca021bf",
+        "purpose": "Require the long-lived pairing API token only for the request-serving Core API, not offline maintenance units."
+      }
+    ]
+  },
+  "production_topology": {
+    "data_root": "PASS: Core and CLI use the same prepared host-data topology.",
+    "core_api_loopback_health": "PASS",
+    "status_service": "PASS: systemd Result=success and ExecMainStatus=0.",
+    "replication_timer": "DISABLED",
+    "github_vault_token": "PASS: production secret exists only as root:root 0600; its value is neither logged nor committed."
+  },
+  "persistent_non_user_data_canary": {
+    "generic_web_capture": "PASS: deterministic generic-web canary receipt exists in the configured runtime data root.",
+    "scope": "The canary uses the predefined public Archiving page and deterministic text, not user content.",
+    "encryption": "age-x25519",
+    "object_replication_receipt": "PASS"
+  },
+  "tri_replica_receipts": {
+    "same_artifact": true,
+    "r2": "verified",
+    "oci": "verified",
+    "github_private_vault": "verified",
+    "github_release": {
+      "status": "PASS",
+      "draft": true,
+      "asset_count": 2,
+      "content_boundary": "Encrypted object pack and minimal manifest only; no source publication or plaintext user content."
+    },
+    "public_status_projection": [
+      {"store_id": "github", "status": "verified", "object_count": 1},
+      {"store_id": "oci", "status": "verified", "object_count": 1},
+      {"store_id": "r2", "status": "verified", "object_count": 1}
+    ]
+  },
+  "cleanup": {
+    "temporary_recovery_containers_networks_and_service_directories": "PASS: absence verified on the production host.",
+    "temporary_coolify_service_environment_and_project_metadata": "PASS: the exact temporary project URL returns 404 after deletion.",
+    "docker_cleanup": "NOT_RUN: broad image/cache cleanup was explicitly unchecked."
+  },
+  "explicit_non_claims": [
+    "The public status projection may remain overall degraded because later connector and destination authorization work is deliberately outside this phase; storage verification is still 3/3.",
+    "Private-Database Social Archive fact ingest and strict verify are NOT_RUN.",
+    "Real three-target recovery is NOT_RUN.",
+    "Real source and destination provider completion evidence remains task-specific and is not synthesized by this canary.",
+    "No Git source push, source tag, source GitHub Release, image publication, timer enablement, or additional worktree was created."
+  ],
+  "next_authorized_phase": "Do not advance automatically. The next bounded phase must separately authorize and prove the task-pack-required Private-Database fact path and real recovery path."
+}

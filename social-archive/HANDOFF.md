@@ -296,3 +296,21 @@ Owner 已明确授权创建无过期、唯一范围为 `LinzeColin/Social-Archiv
 1. 取得创建并配置专用私有 R2 与 OCI S3-compatible bucket、最小读写/回读（含 list/delete）凭据的即时授权；不得复用其他项目 credential、OCI 单向 PAR 或旧备份密钥。
 2. 以当前 pairing token 的生产 0600 secret 和真实核心路径生成无用户数据持久 storage canary，先获得 R2、OCI 的验证回执，再用已安装的 Vault token 取得同一 age ciphertext 的 GitHub Draft readback；只更新环境证据，不重跑全量应用测试。
 3. 在权威生产 Private-Database client/auth 下执行 Social Archive facts ingest/strict verify 和三目标恢复；随后发布镜像、执行完整生产部署 smoke。全部真实收据通过后才把 SA-507 收束为 PASS、创建 tag、推送/合并 `main` 并收尾唯一 worktree。若功能源码再变，先产生新候选且只为它运行一次完整回归。
+
+## SA-507 bounded Phase A continuation (2026-07-31 UTC)
+
+本节是对上述 0325be9a 历史快照的当前补充，不修改冻结 v0.0.0.4 任务包，也不把 SA-507 总状态从 **DEGRADED** 改为 PASS。当前功能候选为 `bca021bf91baad3f1585dd6ae15044836752e156`（完整树 `fbb3dff65a2610111ed09a49f7581644b25c897b`、Social Archive 树 `568494a3b7b3cfcc8bad65af1aba16eb08378ed1`、278 个跟踪文件清单 SHA-256 `83a6bc2c1e552b4e0264a6874e9e6b21ffa87028204ee91d9f9fe1d70cab195e`）。它在这一功能候选上唯一一次全量应用回归为 `227 passed`，另有 1 条既有非失败 Starlette/httpx 弃用警告；兼容层验证当前为 PASS，仍精确得出 `PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS`、保留单一事务核心且默认回滚仅为 `ROLLBACK_PLAN`。
+
+本阶段发现并以最小变更修复三项生产 P0：CLI 容器显式加入配置的宿主数据组，以便与 Core 共用数据目录而不放宽 secret；`read_secret()` 只接受文档化 `%d` systemd credential 目录内 root:root 只读 credential；配对 API token 仅由请求服务的 Core API 强制要求，离线复制/status 维护单元不再被误阻断。两次对应的新候选完整回归均已分别执行，当前 `bca021bf` 的 227 测试结果是其唯一全量应用套件证据。
+
+生产 Phase A 已闭合：Core loopback `/health` 为 `ok`，status unit `Result=success/ExecMainStatus=0`，generic-web 使用预定义的非用户数据 canary 并留下 runtime receipt，`object-replication` 为 PASS。相同 age-x25519 密文已由 R2、OCI 和私有 Vault GitHub Draft 各自回读验证；公共状态投影显示三处均为 `verified` 且各有 1 个对象。GitHub Draft 仍是 Draft（2 个资产），没有源码、明文用户内容或 Git source Release。生产 `github_token` 只以 `0600 root:root` secret 存在，值从未进入日志、证据或 Git。复制 timer 保持 disabled。
+
+为这次 SSH 恢复创建的 3 个临时容器、专用网络和服务目录已精确删除并在主机复核不存在；对应的 3 个 Coolify service、空 environment 与临时 project 元数据也已通过 UI 删除，项目 URL 返回 404。Docker 的宽范围 image/builder cleanup 被显式取消，未执行。没有增加 worktree、没有 Git source push/tag/release、没有发布镜像、没有启用 timer，也没有进入下一阶段。
+
+正式机器可审计证据在 `evidence/SA-507/PHASE_A_PRODUCTION_20260731.json`。该文件的 scoped `phase_status=PASS` 仅表示生产拓扑与持久三副本 canary；总 SA-507 仍为 **DEGRADED**，因为 Social Archive 的 Private-Database fact `ingest`/严格 `verify`、真实三目标 recovery、以及后续完整生产 release smoke 均尚未运行。状态投影整体 degraded 也仍可能由尚未授权/配置的连接器和目的地造成，不能覆盖 storage 3/3 的已验证事实。
+
+### Resume point after Phase A
+
+1. 先停在此边界；下一次 run 必须只选择一个任务包 phase，并先写新的 Run Contract。
+2. 优先候选是 Private-Database 完成态事实与严格回读，或真实三目标恢复；两者不可在同一 run 混做，且不得把现有 canary 代替恢复证据。
+3. 只有所有任务包 gate（包括真实恢复、目的地/连接器所需证据及完整部署 smoke）都闭合后，才可把 SA-507 标为 PASS，并按 Owner 的“全包完成后”策略处理 Git source 推送/合并与工作树收尾。
