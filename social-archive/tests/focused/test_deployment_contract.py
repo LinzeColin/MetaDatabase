@@ -69,7 +69,10 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     (project / ".env").write_text(
         "SOCIAL_ARCHIVE_ENV=production\n"
         "SOCIAL_ARCHIVE_DATA_HOST_PATH=/var/lib/social-archive\n"
-        "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n",
+        "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
+        "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n",
         encoding="utf-8",
     )
     python_path = project / ".venv" / "bin" / "python"
@@ -117,6 +120,29 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     assert sorted(str(path.relative_to(project)) for path in project.rglob("*")) == before
     assert not (project / "etc").exists()
 
+    (project / ".env").write_text(
+        "SOCIAL_ARCHIVE_ENV=production\n"
+        "SOCIAL_ARCHIVE_DATA_HOST_PATH=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=./runtime/import\n"
+        "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n",
+        encoding="utf-8",
+    )
+    split_result = subprocess.run(["bash", "scripts/prepare_systemd_host.sh", "--dry-run"], cwd=project, text=True, capture_output=True, check=False)
+    assert split_result.returncode == 2
+    assert "SOCIAL_ARCHIVE_IMPORT_HOST_PATH" in split_result.stderr
+
+    (project / ".env").write_text(
+        "SOCIAL_ARCHIVE_ENV=production\n"
+        "SOCIAL_ARCHIVE_DATA_HOST_PATH=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
+        "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n",
+        encoding="utf-8",
+    )
+
     apply_result = subprocess.run(["bash", "scripts/prepare_systemd_host.sh", "--apply"], cwd=project, text=True, capture_output=True, check=False)
     assert apply_result.returncode == 2
     assert "只允许在 /opt/social-archive 执行" in apply_result.stderr
@@ -145,7 +171,10 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
     (project / ".env").write_text(
         "SOCIAL_ARCHIVE_ENV=production\n"
         f"SOCIAL_ARCHIVE_DATA_HOST_PATH={data_root}\n"
-        f"SOCIAL_ARCHIVE_DATA_ROOT={data_root}\n",
+        f"SOCIAL_ARCHIVE_DATA_ROOT={data_root}\n"
+        f"SOCIAL_ARCHIVE_IMPORT_HOST_PATH={data_root}/import\n"
+        f"SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH={data_root}/vendor-output\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n",
         encoding="utf-8",
     )
     python_path = project / ".venv" / "bin" / "python"
@@ -289,12 +318,19 @@ def test_core_and_host_maintenance_share_an_explicit_bind_data_plane():
         assert "oci_access_key_id" not in core_secrets
     assert "social_archive_data" not in (compose.get("volumes") or {})
 
+    cli = compose["services"]["cli-tools"]
+    assert cli["group_add"] == ["${SOCIAL_ARCHIVE_HOST_DATA_GID:-10001}"]
+
     example = (ROOT / ".env.example").read_text(encoding="utf-8")
     prepare = (ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8")
     assert "SOCIAL_ARCHIVE_DATA_HOST_PATH=./runtime/data" in example
+    assert "SOCIAL_ARCHIVE_HOST_DATA_GID=10001" in example
     assert 'HOST_DATA_ROOT="/var/lib/social-archive"' in prepare
     assert "SOCIAL_ARCHIVE_DATA_HOST_PATH" in prepare
     assert "SOCIAL_ARCHIVE_DATA_ROOT" in prepare
+    assert "SOCIAL_ARCHIVE_IMPORT_HOST_PATH" in prepare
+    assert "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH" in prepare
+    assert "SOCIAL_ARCHIVE_HOST_DATA_GID" in prepare
 
 
 def test_core_entrypoint_preserves_group_writable_shared_data_without_root_runtime():

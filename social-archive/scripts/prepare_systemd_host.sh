@@ -101,6 +101,9 @@ validate_source_contract() {
   [[ -f "$ROOT/runtime/secrets/social_archive_api_token" ]] || fail '缺少 runtime/secrets/social_archive_api_token。'
   [[ "$(env_value SOCIAL_ARCHIVE_DATA_HOST_PATH)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_HOST_PATH 必须精确为 $HOST_DATA_ROOT，禁止 Core 与 systemd 使用不同数据面。"
   [[ "$(env_value SOCIAL_ARCHIVE_DATA_ROOT)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_ROOT 必须精确为 $HOST_DATA_ROOT。"
+  [[ "$(env_value SOCIAL_ARCHIVE_IMPORT_HOST_PATH)" == "$HOST_DATA_ROOT/import" ]] || fail "生产 SOCIAL_ARCHIVE_IMPORT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/import，禁止 Core 与宿主机分裂导入面。"
+  [[ "$(env_value SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH)" == "$HOST_DATA_ROOT/vendor-output" ]] || fail "生产 SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/vendor-output，禁止 Core 与 CLI Sidecar 分裂输出面。"
+  [[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" =~ ^[0-9]+$ ]] || fail 'SOCIAL_ARCHIVE_HOST_DATA_GID 必须是宿主机 socialarchive 组的数字 gid。'
   for unit in "${UNITS[@]}"; do
     [[ -f "$ROOT/deploy/systemd/$unit" ]] || fail "缺少 systemd unit：$unit"
   done
@@ -179,6 +182,9 @@ validate_host_env_replacement
 if ! id "$SYSTEM_USER" >/dev/null 2>&1; then
   useradd --system --user-group --home-dir /var/lib/social-archive --create-home --shell /usr/sbin/nologin "$SYSTEM_USER"
 fi
+
+host_data_gid="$(id -g "$SYSTEM_USER")"
+[[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" == "$host_data_gid" ]] || fail "SOCIAL_ARCHIVE_HOST_DATA_GID 必须精确等于 $SYSTEM_USER 的 gid ($host_data_gid)，否则 CLI Sidecar 无法写入共享数据根。"
 
 # These paths are deliberately shallow: the command establishes only new data
 # directories and never recursively changes ownership of existing user objects.

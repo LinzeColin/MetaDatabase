@@ -72,6 +72,12 @@ services:
       SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE: /run/secrets/instagram_session
     volumes:
       - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/work/output
+    # The Core owns the shared host tree; the CLI Sidecar writes only its
+    # derived output through the explicitly configured host maintenance group.
+    # Production must set this to `id -g socialarchive`, rather than relying
+    # on a coincidental numeric group inside the image.
+    group_add:
+      - "${SOCIAL_ARCHIVE_HOST_DATA_GID:-10001}"
     secrets:
       - cli_worker_token
       - instagram_session
