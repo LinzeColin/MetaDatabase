@@ -27,7 +27,7 @@ from .service import ArchiveService
 from .utils import atomic_write, json_bytes, read_secret, sha256_bytes, utcnow
 
 settings = Settings.from_env()
-settings.ensure_directories()
+settings.ensure_directories(require_api_token=True)
 store = RuntimeStore(settings.runtime_db)
 store.initialize()
 service = ArchiveService(settings, store)

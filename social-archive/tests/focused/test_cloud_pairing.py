@@ -47,7 +47,7 @@ def test_one_time_pairing_code_is_consumed(tmp_path, monkeypatch):
     assert bootstrap.json()["pairing"]["mode"] == "cloud_first"
 
 
-def test_pairing_requires_long_term_api_token(tmp_path, monkeypatch):
+def test_pairing_requires_long_term_api_token_for_request_serving_core_only(tmp_path, monkeypatch):
     from social_archive.config import Settings
     data = tmp_path / "data"
     monkeypatch.setenv("SOCIAL_ARCHIVE_DATA_ROOT", str(data))
@@ -56,8 +56,9 @@ def test_pairing_requires_long_term_api_token(tmp_path, monkeypatch):
     monkeypatch.delenv("SOCIAL_ARCHIVE_API_TOKEN_FILE", raising=False)
     monkeypatch.setenv("SOCIAL_ARCHIVE_PAIRING_CODE_FILE", str(tmp_path / "pairing-code"))
     settings = Settings.from_env()
+    settings.ensure_directories()
     try:
-        settings.ensure_directories()
+        settings.ensure_directories(require_api_token=True)
     except RuntimeError as exc:
         assert "长期 API Token" in str(exc)
     else:

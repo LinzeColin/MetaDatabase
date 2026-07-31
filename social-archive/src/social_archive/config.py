@@ -136,7 +136,7 @@ class Settings:
             linkwarden_token_file=os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE") or None,
         )
 
-    def ensure_directories(self) -> None:
+    def ensure_directories(self, *, require_api_token: bool = False) -> None:
         for path in (
             self.data_root,
             self.runtime_db.parent,
@@ -152,7 +152,10 @@ class Settings:
             raise RuntimeError("零费用合同禁止 SOCIAL_ARCHIVE_PAID_API_ALLOWED=true")
         if self.r2_soft_bytes >= self.r2_hard_bytes or self.oci_soft_bytes >= self.oci_hard_bytes:
             raise RuntimeError("存储软门必须小于硬门")
-        if self.pairing_required and not self.api_token_file:
+        # Pairing protects the request-serving Core API.  Offline maintenance
+        # units deliberately receive only their own least-privilege
+        # credentials, so they must not be forced to carry the API token.
+        if require_api_token and self.pairing_required and not self.api_token_file:
             raise RuntimeError("启用配对保护时必须提供长期 API Token 文件；一次性配对码不能替代设备令牌")
         if self.notion_api_version != "2026-03-11":
             raise RuntimeError("本版本只接受已验收的 Notion-Version 2026-03-11")
