@@ -14,16 +14,20 @@ def test_stage5_deployment_contract_keeps_core_private_and_status_runtime_only()
     assert "launchd" not in text.lower() and "ChatGPT" not in text
     assert 'ports: ["127.0.0.1:${SOCIAL_ARCHIVE_CORE_LOOPBACK_PORT:-18765}:8765"]' in compose
     assert "ReadWritePaths=/var/lib/social-archive" in status_service
-    assert "Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=/opt/social-archive/runtime/secrets/social_archive_api_token" in status_service
-    assert "ReadOnlyPaths=/opt/social-archive/runtime/secrets" in status_service
-    assert "StateDirectory=social-archive" in status_service
+    assert "LoadCredential=api_token:/opt/social-archive/runtime/secrets/social_archive_api_token" in status_service
+    assert "Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=%d/api_token" in status_service
+    assert "StateDirectory=" not in status_service
+    assert "LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token" in replication_service
+    assert "Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token" in replication_service
     assert "Environment=SOCIAL_ARCHIVE_STATUS_BIND_HOST=127.0.0.1" in status_web_service
     assert "ReadOnlyPaths=/var/lib/social-archive/status" in status_web_service
     assert "ReadWritePaths=" not in status_web_service
     assert "/opt/social-archive/runtime" not in "\n".join(
         line for line in status_service.splitlines() if line.startswith("ReadWritePaths=")
     )
-    assert "/opt/social-archive/runtime" not in replication_service
+    assert "/opt/social-archive/runtime" not in "\n".join(
+        line for line in replication_service.splitlines() if line.startswith("ReadWritePaths=")
+    )
     assert "--dry-run|--apply" in host_prepare
     assert "systemctl daemon-reload" in host_prepare
     assert "systemctl enable" not in host_prepare and "systemctl start" not in host_prepare

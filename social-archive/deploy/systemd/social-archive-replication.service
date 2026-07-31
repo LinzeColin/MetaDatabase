@@ -9,6 +9,16 @@ User=socialarchive
 Group=socialarchive
 WorkingDirectory=/opt/social-archive
 EnvironmentFile=/etc/social-archive/social-archive.env
+LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id
+LoadCredential=r2_secret_access_key:/opt/social-archive/runtime/secrets/r2_secret_access_key
+LoadCredential=oci_access_key_id:/opt/social-archive/runtime/secrets/oci_access_key_id
+LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key
+LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token
+Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id
+Environment=SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE=%d/r2_secret_access_key
+Environment=SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE=%d/oci_access_key_id
+Environment=SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=%d/oci_secret_access_key
+Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/replicate_objects.py --store all --limit 200
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/github_release_backup.py --upload
 NoNewPrivileges=yes

@@ -66,7 +66,12 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     prepare = scripts / "prepare_systemd_host.sh"
     prepare.write_text((ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8"), encoding="utf-8")
     prepare.chmod(0o755)
-    (project / ".env").write_text("SOCIAL_ARCHIVE_ENV=production\n", encoding="utf-8")
+    (project / ".env").write_text(
+        "SOCIAL_ARCHIVE_ENV=production\n"
+        "SOCIAL_ARCHIVE_DATA_HOST_PATH=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n",
+        encoding="utf-8",
+    )
     python_path = project / ".venv" / "bin" / "python"
     python_path.parent.mkdir(parents=True)
     _write_executable(python_path, "#!/bin/sh\nexit 0\n")
@@ -118,19 +123,28 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     assert sorted(str(path.relative_to(project)) for path in project.rglob("*")) == before
 
 
-def test_systemd_host_prepare_bridges_nonroot_container_and_host_service_secret_access():
+def test_systemd_host_prepare_keeps_long_lived_secrets_root_only_and_uses_unit_credentials():
     prepare = (ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8")
+    replication = (ROOT / "deploy" / "systemd" / "social-archive-replication.service").read_text(encoding="utf-8")
+    backup = (ROOT / "deploy" / "systemd" / "social-archive-backup.service").read_text(encoding="utf-8")
+    status = (ROOT / "deploy" / "systemd" / "social-archive-status.service").read_text(encoding="utf-8")
 
-    assert 'CORE_SECRET_GID="10001"' in prepare
-    assert 'groupadd --system --gid "$CORE_SECRET_GID" "$CORE_SECRET_GROUP"' in prepare
-    assert 'usermod -a -G "$CORE_SECRET_GROUP" "$SYSTEM_USER"' in prepare
-    assert 'chown root:"$CORE_SECRET_GROUP" "$ROOT/runtime/secrets"' in prepare
-    assert 'chmod 0710 "$ROOT/runtime/secrets"' in prepare
-    assert 'chown "$CORE_SECRET_GID:$CORE_SECRET_GID" "$secret_path"' in prepare
-    assert 'chmod 0640 "$secret_path"' in prepare
+    assert 'CORE_CONTAINER_UID="10001"' in prepare
+    assert 'install -d -m 2770 -o "$CORE_CONTAINER_UID" -g "$SYSTEM_USER" "$shared_path"' in prepare
+    assert 'github_token 已设置时必须保持 root:root 0600' in prepare
+    assert 'LoadCredential= at process start' in prepare
+    assert "CORE_SECRET_GROUP" not in prepare
+    assert 'chmod 0640 "$secret_path"' not in prepare
+    assert "SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=$ROOT/runtime/secrets/github_token" not in prepare
+    assert 'LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token' in replication
+    assert 'Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token' in replication
+    assert 'LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id' in backup
+    assert 'Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id' in backup
+    assert 'LoadCredential=api_token:/opt/social-archive/runtime/secrets/social_archive_api_token' in status
+    assert 'Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=%d/api_token' in status
 
 
-def test_only_the_documented_nonroot_secret_bridge_can_use_group_read_mode():
+def test_only_the_documented_nonroot_container_secret_bridge_can_use_group_read_mode():
     assert approved_shared_host_secret(
         Path("/opt/social-archive/runtime/secrets/social_archive_api_token"),
         mode=0o640,
@@ -155,6 +169,12 @@ def test_only_the_documented_nonroot_secret_bridge_can_use_group_read_mode():
         uid=10002,
         gid=10001,
     )
+    assert not approved_shared_host_secret(
+        Path("/opt/social-archive/runtime/secrets/social_archive_api_token"),
+        mode=0o640,
+        uid=10001,
+        gid=10002,
+    )
 
 
 def test_start_uses_the_installed_project_python_for_pairing_code_generation():
@@ -171,6 +191,35 @@ def test_worker_does_not_inherit_the_api_only_image_healthcheck():
     assert worker["healthcheck"] == {"disable": True}
 
 
+def test_core_and_host_maintenance_share_an_explicit_bind_data_plane():
+    compose = yaml.safe_load((ROOT / "compose.yaml").read_text(encoding="utf-8"))
+    bind = "${SOCIAL_ARCHIVE_DATA_HOST_PATH:-./runtime/data}:/var/lib/social-archive"
+
+    for service_name in ("core-api", "core-worker"):
+        assert bind in compose["services"][service_name]["volumes"]
+        core_secrets = compose["services"][service_name]["secrets"]
+        assert "github_token" not in core_secrets
+        assert "r2_access_key_id" not in core_secrets
+        assert "oci_access_key_id" not in core_secrets
+    assert "social_archive_data" not in (compose.get("volumes") or {})
+
+    example = (ROOT / ".env.example").read_text(encoding="utf-8")
+    prepare = (ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8")
+    assert "SOCIAL_ARCHIVE_DATA_HOST_PATH=./runtime/data" in example
+    assert 'HOST_DATA_ROOT="/var/lib/social-archive"' in prepare
+    assert "SOCIAL_ARCHIVE_DATA_HOST_PATH" in prepare
+    assert "SOCIAL_ARCHIVE_DATA_ROOT" in prepare
+
+
+def test_core_entrypoint_preserves_group_writable_shared_data_without_root_runtime():
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    entrypoint = (ROOT / "scripts" / "container-entrypoint.sh").read_text(encoding="utf-8")
+
+    assert 'ENTRYPOINT ["/bin/sh", "/app/scripts/container-entrypoint.sh"]' in dockerfile
+    assert "umask 0007" in entrypoint
+    assert 'exec "$@"' in entrypoint
+
+
 def test_install_checks_out_the_pinned_cli_build_context_before_docker_build():
     install = (ROOT / "scripts" / "install.sh").read_text(encoding="utf-8")
     vendor_command = ".venv/bin/python scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock"
@@ -184,9 +233,10 @@ def test_install_provisions_shared_nonroot_bind_mounts_for_core_and_cli_sidecar(
     core_dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     cli_dockerfile = (ROOT / "sidecars" / "cli-tools" / "Dockerfile").read_text(encoding="utf-8")
 
+    assert "runtime/{data,secrets,import,exports,vendor-src,evidence}" in install
     assert "runtime/vendor-output/{cli,xhs,kuaishou,douk}" in install
-    assert "chown -R 10001:10001 runtime/import runtime/vendor-output" in install
-    assert "chmod 2770 runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}" in install
+    assert "chown -R 10001:10001 runtime/data runtime/import runtime/vendor-output" in install
+    assert "chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}" in install
     assert "groupadd --system --gid 10001 socialarchive" in core_dockerfile
     assert "useradd --system --uid 10001 --gid socialarchive" in core_dockerfile
     assert "groupadd --system --gid 10001 socialarchive" in cli_dockerfile
@@ -248,7 +298,9 @@ def test_status_projection_has_a_loopback_systemd_and_tunnel_route():
     assert "Environment=SOCIAL_ARCHIVE_STATUS_PORT=" not in service
     assert "ReadOnlyPaths=/var/lib/social-archive/status" in service
     assert "ReadWritePaths=" not in service
-    assert "StateDirectory=social-archive" in publisher
+    assert "LoadCredential=api_token:/opt/social-archive/runtime/secrets/social_archive_api_token" in publisher
+    assert "Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=%d/api_token" in publisher
+    assert "StateDirectory=" not in publisher
 
 
 def test_tunnel_renderer_uses_isolated_ports_and_has_no_file_write(tmp_path):

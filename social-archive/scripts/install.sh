@@ -36,13 +36,13 @@ if $DRY_RUN; then
   printf '未创建 .env、runtime、Secret、配对码、venv、Docker network 或镜像；未运行向导。\n'
   exit 0
 fi
-mkdir -p runtime/{secrets,import,exports,vendor-src,evidence} runtime/vendor-output/{cli,xhs,kuaishou,douk}
+mkdir -p runtime/{data,secrets,import,exports,vendor-src,evidence} runtime/vendor-output/{cli,xhs,kuaishou,douk}
 # Core (uid/gid 10001) and the CLI sidecar (uid 10002, shared gid 10001)
 # both need the explicit bind mounts.  Docker does not preserve image ownership
 # for host paths created by root, so provision their ownership before startup.
 if [[ "$(id -u)" == "0" ]]; then
-  chown -R 10001:10001 runtime/import runtime/vendor-output
-  chmod 2770 runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}
+  chown -R 10001:10001 runtime/data runtime/import runtime/vendor-output
+  chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}
 fi
 chmod 700 runtime/secrets
 for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token social_archive_api_token social_archive_pairing_code cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token; do

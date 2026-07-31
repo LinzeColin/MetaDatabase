@@ -42,10 +42,13 @@ def main() -> int:
         "systemctl daemon-reload",
         "未启用或启动任何 unit",
         "runtime/secrets",
+        "LoadCredential=",
     ):
         _require(host_prepare_text, needle, "prepare_systemd_host.sh")
     if "systemctl enable" in host_prepare_text or "systemctl start" in host_prepare_text:
         _fail("prepare_systemd_host.sh 不得启用或启动生产服务")
+    if 'chmod 0640 "$secret_path"' in host_prepare_text or 'chown "$CORE_CONTAINER_UID:$CORE_SECRET_GROUP" "$secret_path"' in host_prepare_text:
+        _fail("prepare_systemd_host.sh 不得放宽长期 Secret 文件权限")
 
     env_example = (ROOT / ".env.example").read_text(encoding="utf-8")
     for needle in (
@@ -116,10 +119,28 @@ def main() -> int:
             _fail(f"{name} 不得写入源码工作目录 runtime")
 
     status_service = documents["social-archive-status.service"]
-    _require(status_service, "Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=/opt/social-archive/runtime/secrets/social_archive_api_token", "social-archive-status.service")
-    _require(status_service, "ReadOnlyPaths=/opt/social-archive/runtime/secrets", "social-archive-status.service")
-    _require(status_service, "StateDirectory=social-archive", "social-archive-status.service")
-    _require(status_service, "StateDirectoryMode=0750", "social-archive-status.service")
+    _require(status_service, "LoadCredential=api_token:/opt/social-archive/runtime/secrets/social_archive_api_token", "social-archive-status.service")
+    _require(status_service, "Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=%d/api_token", "social-archive-status.service")
+    if "StateDirectory=" in status_service or "ReadOnlyPaths=/opt/social-archive/runtime/secrets" in status_service:
+        _fail("social-archive-status.service 不得重置共享数据根或直接暴露长期 Secret 路径")
+
+    replication = documents["social-archive-replication.service"]
+    for needle in (
+        "LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id",
+        "LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key",
+        "LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_token",
+        "Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token",
+    ):
+        _require(replication, needle, "social-archive-replication.service")
+
+    backup = documents["social-archive-backup.service"]
+    for needle in (
+        "LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id",
+        "LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key",
+        "Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id",
+        "Environment=SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=%d/oci_secret_access_key",
+    ):
+        _require(backup, needle, "social-archive-backup.service")
 
     status_web = documents["social-archive-status-web.service"]
     for needle in (

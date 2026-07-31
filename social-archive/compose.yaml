@@ -7,15 +7,15 @@ services:
     env_file: [.env]
     ports: ["127.0.0.1:${SOCIAL_ARCHIVE_CORE_LOOPBACK_PORT:-18765}:8765"]
     volumes:
-      - social_archive_data:/var/lib/social-archive
+      # Core and host-side backup/replication must share one explicit bind
+      # data plane. A Docker named volume would make systemd operate a
+      # different SQLite/CAS tree on the host.
+      - ${SOCIAL_ARCHIVE_DATA_HOST_PATH:-./runtime/data}:/var/lib/social-archive
       - ${SOCIAL_ARCHIVE_IMPORT_HOST_PATH:-./runtime/import}:/var/lib/social-archive/import
       - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/var/lib/social-archive/vendor-output
+    # Replica credentials remain host-only: systemd gives each maintenance job
+    # a short-lived credential copy instead of mounting them into Core.
     secrets: &core_secrets
-      - r2_access_key_id
-      - r2_secret_access_key
-      - oci_access_key_id
-      - oci_secret_access_key
-      - github_token
       - social_archive_api_token
       - social_archive_pairing_code
       - cli_worker_token
@@ -40,7 +40,7 @@ services:
     command: ["social-archive-worker"]
     env_file: [.env]
     volumes:
-      - social_archive_data:/var/lib/social-archive
+      - ${SOCIAL_ARCHIVE_DATA_HOST_PATH:-./runtime/data}:/var/lib/social-archive
       - ${SOCIAL_ARCHIVE_IMPORT_HOST_PATH:-./runtime/import}:/var/lib/social-archive/import
       - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}:/var/lib/social-archive/vendor-output
     secrets: *core_secrets
@@ -85,9 +85,6 @@ services:
       timeout: 5s
       retries: 12
       start_period: 20s
-
-volumes:
-  social_archive_data:
 
 secrets:
   r2_access_key_id: {file: ./runtime/secrets/r2_access_key_id}

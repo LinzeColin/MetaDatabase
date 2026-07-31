@@ -16,4 +16,5 @@ RUN groupadd --system --gid 10001 socialarchive \
 USER socialarchive
 EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://127.0.0.1:8765/health || exit 1
+ENTRYPOINT ["/bin/sh", "/app/scripts/container-entrypoint.sh"]
 CMD ["social-archive-api"]

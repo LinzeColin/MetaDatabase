@@ -10,11 +10,12 @@ HOST_ENV_FILE="$HOST_ENV_DIR/social-archive.env"
 SYSTEMD_DIR="/etc/systemd/system"
 BACKUP_ROOT="/var/backups/social-archive"
 SYSTEM_USER="socialarchive"
-# Docker Compose file-backed secrets preserve the host file's numeric owner.
-# Core runs as uid/gid 10001, so host-side secret ownership must deliberately
-# bridge that unprivileged container identity and the systemd service user.
-CORE_SECRET_GID="10001"
-CORE_SECRET_GROUP="socialarchive-secrets"
+# Core runs unprivileged as this uid. It owns the shared bind data root; the
+# dedicated host service account is granted group access only to that data root.
+# Long-lived source secrets stay root-owned and are handed to a unit through
+# systemd LoadCredential=, never through a shared Unix group.
+CORE_CONTAINER_UID="10001"
+HOST_DATA_ROOT="/var/lib/social-archive"
 
 UNITS=(
   social-archive.service
@@ -30,8 +31,9 @@ UNITS=(
   social-archive-status-web.service
 )
 
-# These are Docker-secret paths in .env, but host systemd jobs need the same
-# files through a non-container path. No credential content is copied.
+# Source files remain in runtime/secrets. PID 1 alone opens them for the
+# named systemd units and provides short-lived per-unit credential copies.
+# The script never changes their ownership or mode.
 HOST_SECRET_NAMES=(
   r2_access_key_id
   r2_secret_access_key
@@ -50,6 +52,11 @@ HOST_SECRET_NAMES=(
 fail() {
   printf 'systemd 宿主机准备停止：%s\n' "$1" >&2
   exit 2
+}
+
+env_value() {
+  local key="$1"
+  sed -n -E "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*([^[:space:]#]+)[[:space:]]*$/\1/p" "$ROOT/.env" | tail -n 1
 }
 
 usage() {
@@ -78,6 +85,8 @@ validate_source_contract() {
   [[ -f "$ROOT/.env" ]] || fail '缺少 .env；先完成 install.sh 和配置向导。'
   [[ -x "$ROOT/.venv/bin/python" ]] || fail '缺少 .venv/bin/python；先完成 install.sh。'
   [[ -f "$ROOT/runtime/secrets/social_archive_api_token" ]] || fail '缺少 runtime/secrets/social_archive_api_token。'
+  [[ "$(env_value SOCIAL_ARCHIVE_DATA_HOST_PATH)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_HOST_PATH 必须精确为 $HOST_DATA_ROOT，禁止 Core 与 systemd 使用不同数据面。"
+  [[ "$(env_value SOCIAL_ARCHIVE_DATA_ROOT)" == "$HOST_DATA_ROOT" ]] || fail "生产 SOCIAL_ARCHIVE_DATA_ROOT 必须精确为 $HOST_DATA_ROOT。"
   for unit in "${UNITS[@]}"; do
     [[ -f "$ROOT/deploy/systemd/$unit" ]] || fail "缺少 systemd unit：$unit"
   done
@@ -113,19 +122,14 @@ render_host_env() {
 
   cat >> "$output" <<EOF
 
-# 由 prepare_systemd_host.sh 生成；仅保存受限 Secret 文件路径，不含凭据值。
-SOCIAL_ARCHIVE_API_TOKEN_FILE=$ROOT/runtime/secrets/social_archive_api_token
-SOCIAL_ARCHIVE_PAIRING_CODE_FILE=$ROOT/runtime/secrets/social_archive_pairing_code
-SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE=$ROOT/runtime/secrets/cli_worker_token
-SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=$ROOT/runtime/secrets/r2_access_key_id
-SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE=$ROOT/runtime/secrets/r2_secret_access_key
-SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE=$ROOT/runtime/secrets/oci_access_key_id
-SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=$ROOT/runtime/secrets/oci_secret_access_key
-SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=$ROOT/runtime/secrets/github_token
-SOCIAL_ARCHIVE_NOTION_TOKEN_FILE=$ROOT/runtime/secrets/notion_token
-SOCIAL_ARCHIVE_OBSIDIAN_REST_TOKEN_FILE=$ROOT/runtime/secrets/obsidian_rest_token
-SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE=$ROOT/runtime/secrets/karakeep_api_token
-SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE=$ROOT/runtime/secrets/linkwarden_api_token
+# 由 prepare_systemd_host.sh 生成。各 service 的 Secret 文件路径由
+# LoadCredential= 在启动时注入，禁止在此长期环境文件中保存 source 路径或凭据值。
+SOCIAL_ARCHIVE_DATA_ROOT=$HOST_DATA_ROOT
+SOCIAL_ARCHIVE_RUNTIME_DB=$HOST_DATA_ROOT/runtime/social-archive.sqlite3
+SOCIAL_ARCHIVE_STAGING_ROOT=$HOST_DATA_ROOT/staging
+SOCIAL_ARCHIVE_WATCH_ROOT=$HOST_DATA_ROOT/import
+SOCIAL_ARCHIVE_EXPORT_ROOT=$HOST_DATA_ROOT/exports
+SOCIAL_ARCHIVE_CLI_OUTPUT_ROOT=$HOST_DATA_ROOT/vendor-output/cli
 EOF
 }
 
@@ -141,31 +145,52 @@ fi
 [[ "$ROOT" == "$TARGET_ROOT" ]] || fail "--apply 只允许在 $TARGET_ROOT 执行。"
 [[ "$(id -u)" == "0" ]] || fail '--apply 需要 root；请先运行 --dry-run。'
 command -v useradd >/dev/null || fail '缺少 useradd（仅支持 systemd Linux 宿主机）。'
-command -v groupadd >/dev/null || fail '缺少 groupadd（仅支持 systemd Linux 宿主机）。'
-command -v usermod >/dev/null || fail '缺少 usermod（仅支持 systemd Linux 宿主机）。'
-command -v getent >/dev/null || fail '缺少 getent（仅支持 systemd Linux 宿主机）。'
 command -v install >/dev/null || fail '缺少 install。'
 command -v systemctl >/dev/null || fail '缺少 systemctl（仅支持 systemd Linux 宿主机）。'
+command -v stat >/dev/null || fail '缺少 stat。'
 
 if ! id "$SYSTEM_USER" >/dev/null 2>&1; then
   useradd --system --user-group --home-dir /var/lib/social-archive --create-home --shell /usr/sbin/nologin "$SYSTEM_USER"
 fi
 
-# Reuse an existing gid only deliberately; otherwise create the dedicated
-# shared group.  The runtime image uses gid 10001 for both Core and the CLI
-# sidecar, while host-side oneshot services run as $SYSTEM_USER.
-if ! getent group "$CORE_SECRET_GID" >/dev/null 2>&1; then
-  getent group "$CORE_SECRET_GROUP" >/dev/null 2>&1 && fail "组名 $CORE_SECRET_GROUP 已被占用，不能安全创建 gid $CORE_SECRET_GID。"
-  groupadd --system --gid "$CORE_SECRET_GID" "$CORE_SECRET_GROUP"
-fi
-CORE_SECRET_GROUP="$(getent group "$CORE_SECRET_GID" | cut -d: -f1)"
-[[ -n "$CORE_SECRET_GROUP" ]] || fail "无法解析 gid $CORE_SECRET_GID 对应的组。"
-usermod -a -G "$CORE_SECRET_GROUP" "$SYSTEM_USER"
+# These paths are deliberately shallow: the command establishes only new data
+# directories and never recursively changes ownership of existing user objects.
+# Core's entrypoint uses umask 0007, so newly created SQLite/CAS files inherit
+# this group and remain writable by the constrained host maintenance account.
+for shared_path in \
+  "$HOST_DATA_ROOT" \
+  "$HOST_DATA_ROOT/runtime" \
+  "$HOST_DATA_ROOT/staging" \
+  "$HOST_DATA_ROOT/import" \
+  "$HOST_DATA_ROOT/exports" \
+  "$HOST_DATA_ROOT/vendor-output" \
+  "$HOST_DATA_ROOT/vendor-output/cli" \
+  "$HOST_DATA_ROOT/status"; do
+  install -d -m 2770 -o "$CORE_CONTAINER_UID" -g "$SYSTEM_USER" "$shared_path"
+done
 
-# The directory grants group execute only (no listing); every individual secret
-# stays readable only by Core's uid/gid 10001 or the dedicated shared group.
-chown root:"$CORE_SECRET_GROUP" "$ROOT/runtime/secrets"
-chmod 0710 "$ROOT/runtime/secrets"
+# A pre-existing journal is never silently re-owned. Its metadata must already
+# allow both the Core owner and the host service group to update SQLite safely.
+runtime_db="$HOST_DATA_ROOT/runtime/social-archive.sqlite3"
+if [[ -e "$runtime_db" ]]; then
+  runtime_uid="$(stat -c '%u' "$runtime_db")"
+  runtime_gid="$(stat -c '%g' "$runtime_db")"
+  runtime_mode="$(stat -c '%a' "$runtime_db")"
+  host_gid="$(id -g "$SYSTEM_USER")"
+  if [[ "$runtime_uid" != "$CORE_CONTAINER_UID" || "$runtime_gid" != "$host_gid" || $((8#$runtime_mode & 0020)) -eq 0 ]]; then
+    fail "现有 Runtime SQLite 不满足 Core uid 与 $SYSTEM_USER group 的共同写入条件；未修改该文件，请先完成受控迁移。"
+  fi
+fi
+
+# The repository-scoped archive token must retain its root-only source file.
+# systemd obtains a read-only copy through LoadCredential= at process start.
+github_token="$ROOT/runtime/secrets/github_token"
+if [[ -s "$github_token" ]]; then
+  github_mode="$(stat -c '%a' "$github_token")"
+  github_uid="$(stat -c '%u' "$github_token")"
+  github_gid="$(stat -c '%g' "$github_token")"
+  [[ "$github_mode" == "600" && "$github_uid" == "0" && "$github_gid" == "0" ]] || fail 'github_token 已设置时必须保持 root:root 0600；禁止通过组权限共享。'
+fi
 
 install -d -m 0750 -o root -g "$SYSTEM_USER" "$HOST_ENV_DIR"
 install -d -m 0700 -o root -g root "$BACKUP_ROOT"
@@ -174,12 +199,6 @@ backup_dir="$(mktemp -d "$BACKUP_ROOT/systemd-prepare.XXXXXX")"
 for unit in "${UNITS[@]}"; do
   unit_path="$SYSTEMD_DIR/$unit"
   [[ -e "$unit_path" ]] && cp -p "$unit_path" "$backup_dir/"
-done
-
-for secret_name in "${HOST_SECRET_NAMES[@]}"; do
-  secret_path="$ROOT/runtime/secrets/$secret_name"
-  chown "$CORE_SECRET_GID:$CORE_SECRET_GID" "$secret_path"
-  chmod 0640 "$secret_path"
 done
 
 umask 077
