@@ -26,11 +26,24 @@ def result(platform:str,status:str,details:dict)->dict:
 def save(doc:dict)->None:
     RESULTS_DIR.mkdir(parents=True,exist_ok=True);path=RESULTS_DIR/f"{doc['platform']}.json";path.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');print(json.dumps(doc,ensure_ascii=False))
 
+def core_capture_headers(settings: Settings) -> tuple[dict[str, str], dict[str, str] | None]:
+    token = read_secret(settings.api_token_file)
+    if settings.pairing_required and not token:
+        return {}, {
+            'error_code': 'API_TOKEN_MISSING',
+            'next_action': '配置受限 API Token 后再运行 generic-web canary。',
+        }
+    return ({'Authorization': f'Bearer {token}'} if token else {}), None
+
+
 def run_one(platform:str,limit:int)->dict:
     settings=Settings.from_env()
     if platform=='generic-web':
+        headers, blocked = core_capture_headers(settings)
+        if blocked:
+            return result(platform, 'BLOCKED_ENVIRONMENT', blocked)
         try:
-            r=httpx.post(f'{core_loopback_url()}/v1/captures',json={'platform':'generic-web','url':'https://www.wikipedia.org/wiki/Archiving','relation_type':'manual_save','title':'Social Archive Canary','text':'deterministic canary','requested_levels':['L0','L1']},timeout=10);r.raise_for_status();return result(platform,'PASS',{'content_id':r.json()['content_id']})
+            r=httpx.post(f'{core_loopback_url()}/v1/captures',headers=headers,json={'platform':'generic-web','url':'https://www.wikipedia.org/wiki/Archiving','relation_type':'manual_save','title':'Social Archive Canary','text':'deterministic canary','requested_levels':['L0','L1']},timeout=10);r.raise_for_status();return result(platform,'PASS',{'content_id':r.json()['content_id']})
         except Exception as exc:return result(platform,'BLOCKED_ENVIRONMENT',{'error_type':exc.__class__.__name__,'next_action':'启动 core-api 后重跑'})
     if platform=='x':
         token=lambda:read_secret(os.getenv('SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE'));conn=XConnector(os.getenv('SOCIAL_ARCHIVE_X_USER_ID'),token);a=conn.fetch('bookmark',limit);b=conn.fetch('like',limit);status='PASS' if a.status in {'success','partial'} and b.status in {'success','partial'} else 'BLOCKED_ENVIRONMENT';return result(platform,status,{'bookmarks':a.__dict__,'likes':b.__dict__})
