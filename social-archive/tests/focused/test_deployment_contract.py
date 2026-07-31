@@ -10,6 +10,8 @@ import sys
 import urllib.error
 from pathlib import Path
 
+import yaml
+
 from social_archive.utils import approved_shared_host_secret
 
 
@@ -159,6 +161,14 @@ def test_start_uses_the_installed_project_python_for_pairing_code_generation():
     start = (ROOT / "scripts" / "start.sh").read_text(encoding="utf-8")
     assert ".venv/bin/python scripts/generate_pairing_code.py" in start
     assert "docker compose up -d --force-recreate core-api core-worker" in start
+
+
+def test_worker_does_not_inherit_the_api_only_image_healthcheck():
+    compose = yaml.safe_load((ROOT / "compose.yaml").read_text(encoding="utf-8"))
+    worker = compose["services"]["core-worker"]
+
+    assert worker["command"] == ["social-archive-worker"]
+    assert worker["healthcheck"] == {"disable": True}
 
 
 def test_install_checks_out_the_pinned_cli_build_context_before_docker_build():

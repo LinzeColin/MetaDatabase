@@ -49,6 +49,10 @@ services:
     security_opt: ["no-new-privileges:true"]
     read_only: true
     tmpfs: ["/tmp:rw,noexec,nosuid,size=512m"]
+    # The image-level probe targets the API endpoint. A worker has no HTTP
+    # listener, so inheriting it would permanently mark a live worker unhealthy.
+    healthcheck:
+      disable: true
     depends_on:
       core-api:
         condition: service_healthy
