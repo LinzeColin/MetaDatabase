@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "已验证可由当前 Moomoo OpenD 提供完整快照与历史数据的默认高流动性观察池；可由 PFI 或 Owner 配置覆盖",
+  "universe": [
+    {"market":"US","symbol":"AAPL","priority":10,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
+    {"market":"US","symbol":"MSFT","priority":20,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
+    {"market":"US","symbol":"NVDA","priority":30,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
+    {"market":"US","symbol":"AMZN","priority":40,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
+    {"market":"US","symbol":"META","priority":50,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
+    {"market":"HK","symbol":"00700","priority":60,"source":"DEFAULT_STARTER","metadata":{"currency":"HKD"}}
+  ]
+}

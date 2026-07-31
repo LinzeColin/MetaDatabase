@@ -14,7 +14,7 @@
     "schema_version": {"const": "1.0.0"},
     "approval_kind": {"const": "OWNER_AUTHORIZED_FINAL_TASKPACK_DELIVERY"},
     "approved": {"const": true},
-    "version": {"const": "0.0.0.1.40"},
+    "version": {"const": "0.0.0.1.41"},
     "prepared_subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "scope_summary_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "residual_environment_tasks_accepted": {"const": true},

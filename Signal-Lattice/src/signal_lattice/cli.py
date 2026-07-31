@@ -16,6 +16,8 @@ from .recommendation import validate_market_snapshot, validate_skill_signal
 from .status import default_matrix
 from .util import atomic_write
 from .worker import run_once
+from .cycle_engine import run_minute_cycle
+from .skill_registry import reconcile_runtime_registry
 
 
 def project_root() -> Path:
@@ -42,6 +44,9 @@ def parser() -> argparse.ArgumentParser:
     sub.add_parser("serve")
     sub.add_parser("worker-once")
     sub.add_parser("verify-runtime")
+    sub.add_parser("run-cycle")
+    sub.add_parser("reconcile-sources")
+    sub.add_parser("cycle-status")
     backup = sub.add_parser("backup")
     backup.add_argument("output", type=Path)
     restore = sub.add_parser("restore")
@@ -72,6 +77,17 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "worker-once":
         return 0 if run_once(db, settings=settings, lease_seconds=settings.worker_lease_seconds) else 3
+    if args.cmd == "run-cycle":
+        result = run_minute_cycle(db, settings)
+        print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+        return 0 if result.get("state") in {"COMPLETED", "DEGRADED"} else 4
+    if args.cmd == "reconcile-sources":
+        result = reconcile_runtime_registry(db, settings)
+        print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+        return 0 if result.get("state") in {"PASS", "DEGRADED"} else 4
+    if args.cmd == "cycle-status":
+        print(json.dumps(db.latest_minute_cycle() or {"state": "SYSTEM_BLOCKED", "reason": "NO_MINUTE_CYCLE"}, ensure_ascii=False, indent=2, sort_keys=True))
+        return 0
     if args.cmd == "verify-runtime":
         forbidden = [
             key for key in os.environ

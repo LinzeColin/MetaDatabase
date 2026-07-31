@@ -7,6 +7,7 @@ SUFFIXES=('.pyc','.pyo')
 def main()->int:
  p=argparse.ArgumentParser();p.add_argument('--root',type=Path,default=Path('.'));a=p.parse_args();root=a.root.resolve();removed=[]
  for path in sorted(root.rglob('*'),key=lambda x:len(x.parts),reverse=True):
+  if path.relative_to(root).parts[:1]==('Stock_Skill',):continue
   if not path.exists() or path.is_symlink():continue
   if path.is_dir() and (path.name in DIRS or path.name.endswith(('.egg-info','.dist-info'))):shutil.rmtree(path);removed.append(path.relative_to(root).as_posix())
   elif path.is_file() and path.suffix in SUFFIXES:path.unlink();removed.append(path.relative_to(root).as_posix())

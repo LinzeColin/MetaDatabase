@@ -1,0 +1,99 @@
+{
+  "formal_independence": false,
+  "formal_release_gate_satisfied": false,
+  "methods": [
+    {
+      "method": "skill-catalog-router",
+      "runs": [
+        {
+          "input": "machine/facts/upstream_baseline.json",
+          "pass": "A_BASELINE_DISCOVERY",
+          "result": "产品、前端、后端、架构、数据、安全、可靠性、运维、测试、部署、治理和验收均有覆盖",
+          "state": "PASS"
+        },
+        {
+          "input": "当前候选代码树与30条Acceptance",
+          "pass": "B_CANDIDATE_REMEDIATION",
+          "result": "所有命中方法已映射到制品、测试或最后一公里白名单",
+          "state": "PASS"
+        },
+        {
+          "input": "SEALED_TASKPACK",
+          "pass": "C_TASKPACK_SEAL_DIAGNOSTIC",
+          "result": "Build Agent研究类Skill全部禁止，运行期Agent与模型均为0",
+          "state": "PASS"
+        }
+      ]
+    },
+    {
+      "formal_skill_execution": false,
+      "method": "teleiosis-method",
+      "runs": [
+        {
+          "pass": "1_BASELINE",
+          "result": "冻结北极星、旧外壳标记SUPERSEDED",
+          "state": "PASS"
+        },
+        {
+          "pass": "2_CHALLENGER",
+          "result": "替换式重构实现每分钟隔离全量判断与唯一建议",
+          "state": "PASS"
+        },
+        {
+          "pass": "3_BOUNDED_REVIEW",
+          "result": "未新增普通功能，保留回滚和Last-Known-Good",
+          "state": "PASS"
+        }
+      ]
+    },
+    {
+      "formal_independent_agents": false,
+      "method": "persona-distiller-group-method",
+      "runs": [
+        {
+          "pass": "1_ROUTE",
+          "result": "产品、架构、数据安全、SRE、验收和反证六职责覆盖",
+          "state": "PASS"
+        },
+        {
+          "pass": "2_DISAGREEMENT",
+          "result": "空壳HTTP 200不能视为产品成功；生产数据不足时SYSTEM_BLOCKED",
+          "state": "PASS"
+        },
+        {
+          "pass": "3_REVIEW",
+          "result": "职责结论已进入Acceptance与公网验证",
+          "state": "PASS"
+        }
+      ]
+    },
+    {
+      "formal_independent_verdict": false,
+      "method": "verifier-method",
+      "runs": [
+        {
+          "pass": "1_TRACEABILITY",
+          "result": "需求到任务、测试、Oracle、证据和制品完整映射",
+          "state": "PASS"
+        },
+        {
+          "pass": "2_FAIL_CLOSED",
+          "result": "空数据、缺Skill、缺市场快照和不完整循环不得通过",
+          "state": "PASS"
+        },
+        {
+          "pass": "3_PACKAGE",
+          "result": "最终任务包必须通过解压、Manifest、语法、秘密、恢复与回滚检查",
+          "state": "PASS"
+        }
+      ]
+    }
+  ],
+  "receipt_sha256": "b4913d2ce8d7036672b971fd127ffd8809aeb716fcaebc0639daecea8ebf6c43",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "1.0.0",
+  "scope": "SEALED_TASKPACK_PREPARATION_DIAGNOSTIC_NOT_FORMAL_RELEASE",
+  "state": "PASS",
+  "subject_version": "0.0.0.1.41"
+}

@@ -18,6 +18,7 @@ from signal_lattice.receipts import canonical_json_bytes, load_self_hashed, sha2
 
 EXCLUDED_PARTS = {".git", ".pytest_cache", "__pycache__", "build", "dist", ".venv", "venv", "node_modules", ".mypy_cache", ".ruff_cache"}
 EXCLUDED_SUFFIXES = (".pyc", ".pyo", ".zip", ".whl")
+SOURCE_ONLY_PREFIXES = ("Stock_Skill/",)
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)
 
 
@@ -26,6 +27,8 @@ def include(path: Path, root: Path) -> bool:
     if path.is_symlink():
         raise ValueError("SYMLINK_FORBIDDEN:" + rel.as_posix())
     if any(part in EXCLUDED_PARTS or part.endswith((".egg-info", ".dist-info")) for part in rel.parts):
+        return False
+    if any(rel.as_posix().startswith(prefix) for prefix in SOURCE_ONLY_PREFIXES):
         return False
     if rel.as_posix() in {"FINAL_PACKAGE_MANIFEST.json"} or rel.as_posix().endswith(EXCLUDED_SUFFIXES):
         return False

@@ -1,1 +1,1 @@
-把 Signal Lattice v0.0.0.1.40 修复并部署为 https://signal-lattice.linzezhang.com：动态聚合平权股票 Skill 和可信市场数据，在零 Agent、零模型 Token、禁止自动交易的边界内完成证据协调、量化硬门和人工投资建议；没有公网 URL、Status Closure 与 DELIVERY_RESULT.json 不得声称完成。
+在 OVH 上交付一个每 60 秒自动读取 GitHub、让全部 Active 股票 Skill 在同一不可变市场快照上隔离独立判断、由中立中枢协调并只输出一个可追溯投资建议的全中文 Signal Lattice；运行期零 Agent、零模型 Token、禁止自动交易，缺少完整链路时必须 SYSTEM_BLOCKED 而不是伪装 NO_ACTION。

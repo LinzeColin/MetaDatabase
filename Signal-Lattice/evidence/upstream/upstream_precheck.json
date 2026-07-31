@@ -5,22 +5,22 @@
     "VERIFIED_EXACT_OFFLINE_GIT_BUNDLE",
     "PUBLIC_HTTPS_EXACT_COMMIT_FETCH_WHEN_EXPLICITLY_ALLOWED"
   ],
-  "baseline_sha256": "8bb4f33b46f009e05b9be4c9fdf081986dc5ce6393d74b5c74d4a932a48fc5b7",
+  "baseline_sha256": "bb8e751e6e66af0d9033a23bad0e3ecdfe85f767cbecab71d9b421f579f47126",
   "developer_research_required": false,
-  "formal_seal_present": true,
+  "formal_seal_present": false,
   "network_fetch_allowed_in_current_runtime": false,
   "network_fetch_attempted": false,
-  "reason_code": "FORMAL_UPSTREAM_SEAL_PRESENT",
-  "receipt_sha256": "b35aeee7e3eadf056cbe5004c622945535b0433729b66aeeff057eca8284a145",
+  "reason_code": "FIXED_UPSTREAM_INPUT_UNAVAILABLE",
+  "receipt_sha256": "5f73939ba96389af561c48626f927dfcbdc6f5f70074874be4d7ebae7ed89a4e",
   "repositories": [
     {
-      "expected_commit": "7628709b3e293dddc1100b00780d0ca521c0f6b9",
+      "expected_commit": "84b028192225cb5f7d8ee37f4b3bfdced1096b9b",
       "name": "AgentDatabase",
       "reason": "FIXED_CHECKOUT_NOT_PROVIDED",
       "state": "BLOCKED"
     },
     {
-      "expected_commit": "4e5381d35be8697d3cf27fe666308dbe3b01c91b",
+      "expected_commit": "c81626d78a63351e8ae511f21e4e1bf224d588e1",
       "name": "MetaDatabase",
       "reason": "FIXED_CHECKOUT_NOT_PROVIDED",
       "state": "BLOCKED"
@@ -28,14 +28,14 @@
   ],
   "required_sources": [
     {
-      "commit": "7628709b3e293dddc1100b00780d0ca521c0f6b9",
+      "commit": "84b028192225cb5f7d8ee37f4b3bfdced1096b9b",
       "name": "AgentDatabase",
-      "repository": "https://github.com/LinzeColin/AgentDatabase"
+      "repository": "https://github.com/LinzeColin/AgentDatabase.git"
     },
     {
-      "commit": "4e5381d35be8697d3cf27fe666308dbe3b01c91b",
+      "commit": "c81626d78a63351e8ae511f21e4e1bf224d588e1",
       "name": "MetaDatabase",
-      "repository": "https://github.com/LinzeColin/MetaDatabase"
+      "repository": "https://github.com/LinzeColin/MetaDatabase.git"
     }
   ],
   "resolution_command": "python3 scripts/build_upstream_seal.py --root . --agent \"$AGENT_DATABASE_CHECKOUT\" --meta \"$META_DATABASE_CHECKOUT\" --output evidence/upstream",

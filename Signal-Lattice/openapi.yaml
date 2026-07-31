@@ -1,35 +1,299 @@
 {
-  "openapi": "3.1.0",
   "info": {
+    "description": "每 60 秒读取 GitHub、让全部 Active 投资 Skill 在相同不可变市场快照上隔离独立判断，由无投资立场的中枢去重证据、协调冲突、自平衡并只输出一个顶层投资建议。运行期零 Agent、零模型 Token、禁止自动交易。",
     "title": "Signal Lattice API",
-    "version": "0.0.0.1.40",
-    "description": "零 Agent、零模型 Token 的股票 Skill 聚合、证据协调、量化硬门与人工投资建议接口。"
+    "version": "0.0.0.1.41"
   },
-  "servers": [{"url": "https://signal-lattice.linzezhang.com"}],
+  "openapi": "3.1.0",
   "paths": {
-    "/health/live": {"get": {"operationId": "healthLive", "responses": {"200": {"description": "进程存活"}}}},
-    "/health/ready": {"get": {"operationId": "healthReady", "responses": {"200": {"description": "服务就绪或安全降级"}}}},
-    "/api/v1/status": {"get": {"operationId": "getStatus", "responses": {"200": {"description": "运行、模式、版本和零 Token 状态"}}}},
-    "/api/v1/system/status": {"get": {"operationId": "getSystemStatus", "responses": {"200": {"description": "系统运行状态"}}}},
+    "/api/v1/actions": {
+      "get": {
+        "operationId": "getUniqueAction",
+        "responses": {
+          "200": {
+            "description": "唯一供人执行的建议；禁止自动交易"
+          }
+        }
+      }
+    },
+    "/api/v1/business-lines": {
+      "get": {
+        "operationId": "getBusinessLines",
+        "responses": {
+          "200": {
+            "description": "14 条业务线 × 9 个纵向切片"
+          }
+        }
+      }
+    },
+    "/api/v1/consensus": {
+      "get": {
+        "operationId": "getConsensus",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "symbol",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "market",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "中枢证据去重、共识和分歧"
+          }
+        }
+      }
+    },
+    "/api/v1/cycles": {
+      "get": {
+        "operationId": "listMinuteCycles",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "最近分钟循环"
+          }
+        }
+      }
+    },
+    "/api/v1/cycles/latest": {
+      "get": {
+        "operationId": "getLatestMinuteCycle",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/minute_cycle.schema.json"
+                }
+              }
+            },
+            "description": "最新一分钟完整循环"
+          }
+        }
+      }
+    },
+    "/api/v1/decision-snapshots": {
+      "get": {
+        "operationId": "listDecisionSnapshots",
+        "responses": {
+          "200": {
+            "description": "可追溯决策快照"
+          }
+        }
+      }
+    },
+    "/api/v1/evolution": {
+      "get": {
+        "operationId": "listSelfBalance",
+        "responses": {
+          "200": {
+            "description": "确定性自平衡与可靠性校准"
+          }
+        }
+      }
+    },
+    "/api/v1/inputs/market-snapshot": {
+      "post": {
+        "operationId": "ingestMarketSnapshot",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/market_snapshot.schema.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "兼容外部市场快照已摄取"
+          },
+          "401": {
+            "description": "鉴权失败"
+          },
+          "422": {
+            "description": "快照不可信"
+          }
+        }
+      }
+    },
+    "/api/v1/inputs/skill-signal": {
+      "post": {
+        "operationId": "ingestSkillSignal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/skill_signal.schema.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "兼容外部 Skill 信号已摄取"
+          },
+          "401": {
+            "description": "鉴权失败"
+          },
+          "422": {
+            "description": "信号不可信"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{jobId}": {
+      "get": {
+        "operationId": "getJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "任务结果"
+          },
+          "404": {
+            "description": "不存在"
+          }
+        }
+      }
+    },
+    "/api/v1/opportunities": {
+      "get": {
+        "operationId": "listSkillSignals",
+        "responses": {
+          "200": {
+            "description": "各 Skill 独立候选信号"
+          }
+        }
+      }
+    },
+    "/api/v1/quant": {
+      "get": {
+        "operationId": "getQuantGates",
+        "responses": {
+          "200": {
+            "description": "量化、费用、流动性、容量和风险硬门"
+          }
+        }
+      }
+    },
+    "/api/v1/recommendations": {
+      "get": {
+        "operationId": "getUniqueRecommendation",
+        "responses": {
+          "200": {
+            "description": "唯一顶层建议；链路不完整时为 SYSTEM_BLOCKED"
+          }
+        }
+      }
+    },
     "/api/v1/research": {
       "post": {
         "operationId": "createResearch",
-        "parameters": [{"in": "header", "name": "Idempotency-Key", "schema": {"type": "string"}}],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./schemas/research_request.schema.json"}}}},
-        "responses": {"200": {"description": "已存在的幂等任务"}, "202": {"description": "已排队"}, "422": {"description": "输入无效"}}
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/research_request.schema.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "幂等任务已存在"
+          },
+          "202": {
+            "description": "任务已排队"
+          },
+          "422": {
+            "description": "输入无效"
+          }
+        }
       }
     },
-    "/api/v1/jobs/{jobId}": {"get": {"operationId": "getJob", "parameters": [{"in": "path", "name": "jobId", "required": true, "schema": {"type": "string"}}], "responses": {"200": {"description": "任务与结果"}, "404": {"description": "不存在"}}}},
-    "/api/v1/recommendations": {"get": {"operationId": "listRecommendations", "responses": {"200": {"description": "最近人工决策建议或 NO_ACTION"}}}},
-    "/api/v1/actions": {"get": {"operationId": "listActions", "responses": {"200": {"description": "最近 Action Packet"}}}},
-    "/api/v1/opportunities": {"get": {"operationId": "listOpportunities", "responses": {"200": {"description": "商业机会、瓶颈、预测、时序与事件候选"}}}},
-    "/api/v1/consensus": {"get": {"operationId": "getConsensus", "parameters": [{"in": "query", "name": "symbol", "schema": {"type": "string"}}, {"in": "query", "name": "market", "schema": {"type": "string"}}], "responses": {"200": {"description": "平权 Skill 共识、分歧与独立证据根"}}}},
-    "/api/v1/quant": {"get": {"operationId": "getQuant", "responses": {"200": {"description": "最近量化硬门与风险结果"}}}},
-    "/api/v1/skills": {"get": {"operationId": "listSkills", "responses": {"200": {"description": "Skill 输入和状态"}}}},
-    "/api/v1/evolution": {"get": {"operationId": "listEvolution", "responses": {"200": {"description": "每日确定性 Champion–Challenger 结果"}}}},
-    "/api/v1/decision-snapshots": {"get": {"operationId": "listDecisionSnapshots", "responses": {"200": {"description": "决策快照与硬门证据"}}}},
-    "/api/v1/business-lines": {"get": {"operationId": "getBusinessLines", "responses": {"200": {"description": "13×9 业务线治理矩阵"}}}},
-    "/api/v1/inputs/skill-signal": {"post": {"operationId": "ingestSkillSignal", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./schemas/skill_signal.schema.json"}}}}, "responses": {"201": {"description": "Skill 信号已摄取"}, "422": {"description": "信号不可信"}}}},
-    "/api/v1/inputs/market-snapshot": {"post": {"operationId": "ingestMarketSnapshot", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./schemas/market_snapshot.schema.json"}}}}, "responses": {"201": {"description": "市场快照已摄取"}, "422": {"description": "快照不可信"}}}}
-  }
+    "/api/v1/skills": {
+      "get": {
+        "operationId": "listRuntimeSkills",
+        "responses": {
+          "200": {
+            "description": "动态 Skill、生命周期、兼容状态与本分钟独立判断"
+          }
+        }
+      }
+    },
+    "/api/v1/system/status": {
+      "get": {
+        "operationId": "getSystemStatus",
+        "responses": {
+          "200": {
+            "description": "系统运行、分钟循环、零 Agent 与零 Token 状态"
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "healthLive",
+        "responses": {
+          "200": {
+            "description": "进程存活"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "healthReady",
+        "responses": {
+          "200": {
+            "description": "服务就绪或安全降级"
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://signal-lattice.linzezhang.com"
+    }
+  ]
 }

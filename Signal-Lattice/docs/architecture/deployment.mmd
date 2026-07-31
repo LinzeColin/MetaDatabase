@@ -1,0 +1,11 @@
+flowchart LR
+  BA[Build Agent] --> SP[Status Preflight]
+  SP --> SR[Stage 0 Semantic Reconcile]
+  SR --> GR[MetaDatabase/Signal-Lattice]
+  GR --> OVH[OVH 原子 Release]
+  OVH --> SD[systemd Services + Timers]
+  SD --> API[127.0.0.1:8787]
+  API --> CF[Cloudflare Tunnel]
+  CF --> WEB[signal-lattice.linzezhang.com]
+  WEB --> PV[公网北极星验证]
+  PV --> SC[Status Closure]

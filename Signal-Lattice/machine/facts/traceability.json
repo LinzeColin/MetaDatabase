@@ -1,173 +1,207 @@
 {
-  "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
   "frozen": true,
-  "frozen_version": "0.0.0.1.40",
   "rows": [
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-002.json",
-        "{ARTIFACT_DIR}/tasks/T-007.json",
-        "{ARTIFACT_DIR}/tasks/T-014.json",
-        "{ARTIFACT_DIR}/tasks/T-026.json",
-        "{ARTIFACT_DIR}/tasks/T-030.json"
+        "{ARTIFACT_DIR}/tasks/T-001.json"
       ],
-      "oracle": "Status Preflight 与 Closure 均有机器收据",
+      "oracle": "systemd Timer 与 cycle_id 证明同一分钟最多一轮，下一分钟自动重跑",
       "requirement_id": "R-001",
       "task_ids": [
-        "T-002",
-        "T-007",
-        "T-014",
-        "T-026",
-        "T-030"
+        "T-001"
       ],
       "tests": [
-        "tests/test_status.py"
+        "tests/test_state_machine.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-010.json",
-        "{ARTIFACT_DIR}/tasks/T-011.json",
-        "{ARTIFACT_DIR}/tasks/T-017.json",
-        "{ARTIFACT_DIR}/tasks/T-020.json"
+        "{ARTIFACT_DIR}/tasks/T-002.json"
       ],
-      "oracle": "运行检查、环境、依赖和出口均为零；任何尝试熔断",
+      "oracle": "当轮全部 Skill input hash 绑定同一 snapshot digest",
       "requirement_id": "R-002",
       "task_ids": [
-        "T-010",
-        "T-011",
-        "T-017",
-        "T-020"
+        "T-002"
       ],
       "tests": [
-        "tests/test_project_files.py"
+        "tests/test_minute_cycle.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-010.json",
-        "{ARTIFACT_DIR}/tasks/T-018.json"
+        "{ARTIFACT_DIR}/tasks/T-003.json"
       ],
-      "oracle": "任务包无 plist/launchd；目标部署仅 OVH Linux",
+      "oracle": "子进程、临时目录、环境白名单、网络阻断和资源预算测试通过",
       "requirement_id": "R-003",
       "task_ids": [
-        "T-010",
-        "T-018"
+        "T-003"
       ],
       "tests": [
-        "tests/test_project_files.py"
+        "tests/test_skill_adapters.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-008.json",
-        "{ARTIFACT_DIR}/tasks/T-021.json"
+        "{ARTIFACT_DIR}/tasks/T-004.json"
       ],
-      "oracle": "Upstream Seal PASS，Skill 矩阵实例数与冻结索引一致，五个 Stock Skill 全树齐全",
+      "oracle": "Registry reconcile 产生 ADDED/UPDATED/REMOVED/SPLIT/MERGE 收据",
       "requirement_id": "R-004",
       "task_ids": [
-        "T-008",
-        "T-021"
+        "T-004"
       ],
       "tests": [
-        "tests/test_source_sync.py"
+        "tests/test_skill_registry_lkg.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-008.json",
-        "{ARTIFACT_DIR}/tasks/T-021.json"
+        "{ARTIFACT_DIR}/tasks/T-005.json"
       ],
-      "oracle": "生命周期状态机和 Last-Known-Good 测试通过",
+      "oracle": "来源漂移时新候选不生效，上一 Active 版本继续运行",
       "requirement_id": "R-005",
       "task_ids": [
-        "T-008",
-        "T-021"
+        "T-005"
       ],
       "tests": [
-        "tests/test_source_sync.py"
+        "tests/test_last_mile_tools.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-008.json",
-        "{ARTIFACT_DIR}/tasks/T-021.json",
-        "{ARTIFACT_DIR}/tasks/T-022.json"
+        "{ARTIFACT_DIR}/tasks/T-006.json"
       ],
-      "oracle": "路由和共识对注册顺序不敏感",
+      "oracle": "注册顺序不影响结果，中枢只做输入统一、证据协调和唯一输出",
       "requirement_id": "R-006",
       "task_ids": [
-        "T-008",
-        "T-021",
-        "T-022"
+        "T-006"
       ],
       "tests": [
-        "tests/test_consensus.py",
-        "tests/test_teleiosis.py"
+        "tests/test_consensus.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
+      ],
+      "complete": true,
+      "evidence": [
+        "{ARTIFACT_DIR}/tasks/T-007.json"
+      ],
+      "oracle": "完整循环硬门失败才 NO_ACTION；链路不完整必须 SYSTEM_BLOCKED",
+      "requirement_id": "R-007",
+      "task_ids": [
+        "T-007"
+      ],
+      "tests": [
+        "tests/test_minute_cycle.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
         "{ARTIFACT_DIR}/tasks/T-008.json"
       ],
-      "oracle": "未知语义只进入 REFERENCE_ONLY 或 QUARANTINED",
-      "requirement_id": "R-007",
+      "oracle": "可靠性权重有上下限、可回滚、不改验收标准",
+      "requirement_id": "R-008",
       "task_ids": [
         "T-008"
       ],
@@ -178,40 +212,50 @@
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-021.json"
+        "{ARTIFACT_DIR}/tasks/T-009.json"
       ],
-      "oracle": "单 Challenger、Champion–Challenger、Root 不可变",
-      "requirement_id": "R-008",
+      "oracle": "available_at/ingested_at、许可、Freshness 和生产 Provider 门通过",
+      "requirement_id": "R-009",
       "task_ids": [
-        "T-021"
+        "T-009"
       ],
       "tests": [
-        "tests/test_teleiosis.py"
+        "tests/test_deployment_northstar.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-022.json"
+        "{ARTIFACT_DIR}/tasks/T-010.json"
       ],
-      "oracle": "三时间轴、PBO、DSR、CPCV、成本与容量测试通过",
-      "requirement_id": "R-009",
+      "oracle": "任一硬门失败不得输出可执行买卖建议",
+      "requirement_id": "R-010",
       "task_ids": [
-        "T-022"
+        "T-010"
       ],
       "tests": [
         "tests/test_quant.py"
@@ -220,84 +264,128 @@
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-022.json"
+        "{ARTIFACT_DIR}/tasks/T-011.json"
       ],
-      "oracle": "根证据聚类、冲突保留、顺序不变性通过",
-      "requirement_id": "R-010",
-      "task_ids": [
-        "T-022"
-      ],
-      "tests": [
-        "tests/test_consensus.py"
-      ]
-    },
-    {
-      "artifacts": [
-        "src/",
-        "web/",
-        "schemas/",
-        "deploy/systemd/",
-        "scripts/"
-      ],
-      "complete": true,
-      "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-019.json",
-        "{ARTIFACT_DIR}/tasks/T-022.json"
-      ],
-      "oracle": "服务器端可信门不能被请求字段绕过",
+      "oracle": "中文桌面与移动页面可访问，非空链路状态清晰",
       "requirement_id": "R-011",
       "task_ids": [
-        "T-019",
-        "T-022"
+        "T-011"
       ],
       "tests": [
-        "tests/test_action.py"
+        "tests/test_project_files.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-019.json"
+        "{ARTIFACT_DIR}/tasks/T-012.json"
       ],
-      "oracle": "API/Schema/代码无订单执行路径",
+      "oracle": "Active/Completed Skill、完整循环、唯一建议、API/DB/UI 一致",
       "requirement_id": "R-012",
       "task_ids": [
-        "T-019"
+        "T-012"
       ],
       "tests": [
-        "tests/test_action.py"
+        "tests/test_public_release.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-003.json"
+        "{ARTIFACT_DIR}/tasks/T-013.json"
       ],
-      "oracle": "Context Capture 与版本协商契约存在；未知接口 fail-closed",
+      "oracle": "API、循环、来源、Outbox、Status、备份和 Cloudflared 单元通过",
       "requirement_id": "R-013",
       "task_ids": [
-        "T-003"
+        "T-013"
+      ],
+      "tests": [
+        "tests/test_project_files.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
+      ],
+      "complete": true,
+      "evidence": [
+        "{ARTIFACT_DIR}/tasks/T-014.json"
+      ],
+      "oracle": "并发、崩溃和 stale worker 测试通过",
+      "requirement_id": "R-014",
+      "task_ids": [
+        "T-014"
+      ],
+      "tests": [
+        "tests/test_db.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
+      ],
+      "complete": true,
+      "evidence": [
+        "{ARTIFACT_DIR}/tasks/T-015.json"
+      ],
+      "oracle": "Private-Database、R2 primary/backups、OCI 契约与无空提交通过",
+      "requirement_id": "R-015",
+      "task_ids": [
+        "T-015"
       ],
       "tests": [
         "tests/test_api.py"
@@ -306,75 +394,24 @@
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-019.json",
-        "{ARTIFACT_DIR}/tasks/T-024.json"
+        "{ARTIFACT_DIR}/tasks/T-016.json"
       ],
-      "oracle": "Queue、Lease、Fencing、Journal、Outbox 同事务正确",
-      "requirement_id": "R-014",
-      "task_ids": [
-        "T-019",
-        "T-024"
-      ],
-      "tests": [
-        "tests/test_db.py"
-      ]
-    },
-    {
-      "artifacts": [
-        "src/",
-        "web/",
-        "schemas/",
-        "deploy/systemd/",
-        "scripts/"
-      ],
-      "complete": true,
-      "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-012.json",
-        "{ARTIFACT_DIR}/tasks/T-013.json",
-        "{ARTIFACT_DIR}/tasks/T-024.json"
-      ],
-      "oracle": "同步契约、对象引用、无空提交和恢复路径明确",
-      "requirement_id": "R-015",
-      "task_ids": [
-        "T-012",
-        "T-013",
-        "T-024"
-      ],
-      "tests": [
-        "tests/test_db.py"
-      ]
-    },
-    {
-      "artifacts": [
-        "src/",
-        "web/",
-        "schemas/",
-        "deploy/systemd/",
-        "scripts/"
-      ],
-      "complete": true,
-      "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-002.json",
-        "{ARTIFACT_DIR}/tasks/T-007.json",
-        "{ARTIFACT_DIR}/tasks/T-014.json",
-        "{ARTIFACT_DIR}/tasks/T-025.json",
-        "{ARTIFACT_DIR}/tasks/T-026.json"
-      ],
-      "oracle": "117 个状态单元，目标环境要求 measured 和 evidence_ref",
+      "oracle": "126单元均带状态、Freshness、依赖、阻塞、下一行动和证据",
       "requirement_id": "R-016",
       "task_ids": [
-        "T-002",
-        "T-007",
-        "T-014",
-        "T-025",
-        "T-026"
+        "T-016"
       ],
       "tests": [
         "tests/test_status.py"
@@ -383,47 +420,23 @@
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-013.json",
-        "{ARTIFACT_DIR}/tasks/T-023.json",
-        "{ARTIFACT_DIR}/tasks/T-030.json"
-      ],
-      "oracle": "SQLite 完整性、Hash、WAL 清理和原子恢复通过",
-      "requirement_id": "R-017",
-      "task_ids": [
-        "T-013",
-        "T-023",
-        "T-030"
-      ],
-      "tests": [
-        "tests/test_db.py"
-      ]
-    },
-    {
-      "artifacts": [
-        "src/",
-        "web/",
-        "schemas/",
-        "deploy/systemd/",
-        "scripts/"
-      ],
-      "complete": true,
-      "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-003.json",
-        "{ARTIFACT_DIR}/tasks/T-010.json",
         "{ARTIFACT_DIR}/tasks/T-017.json"
       ],
-      "oracle": "12 个单元静态校验；无 Agent 会话和人工保活",
-      "requirement_id": "R-018",
+      "oracle": "Schema/接口语法及契约测试通过",
+      "requirement_id": "R-017",
       "task_ids": [
-        "T-003",
-        "T-010",
         "T-017"
       ],
       "tests": [
@@ -433,165 +446,232 @@
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-006.json"
+        "{ARTIFACT_DIR}/tasks/T-018.json"
       ],
-      "oracle": "中文 UI、API 错误和运维文档可读",
+      "oracle": "Loopback、CSP、HMAC、路径穿越、Symlink、ZIP bomb 和 Secret Scan 通过",
+      "requirement_id": "R-018",
+      "task_ids": [
+        "T-018"
+      ],
+      "tests": [
+        "tests/test_repair_security.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
+      ],
+      "complete": true,
+      "evidence": [
+        "{ARTIFACT_DIR}/tasks/T-019.json"
+      ],
+      "oracle": "依赖、进程、环境和出口扫描通过，任何模型调用尝试熔断",
       "requirement_id": "R-019",
       "task_ids": [
-        "T-006"
+        "T-019"
       ],
       "tests": [
-        "tests/test_project_files.py"
+        "tests/test_constants.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-027.json"
+        "{ARTIFACT_DIR}/tasks/T-020.json"
       ],
-      "oracle": "Skip Link、焦点、44px、Reduced Motion、无整页溢出",
+      "oracle": "代码、API、Schema 和部署配置不存在下单路径",
       "requirement_id": "R-020",
       "task_ids": [
-        "T-027"
+        "T-020"
       ],
       "tests": [
-        "tests/test_project_files.py"
+        "tests/test_action.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
         "{ARTIFACT_DIR}/tasks/T-021.json"
       ],
-      "oracle": "签名、条件请求、内容上限和 Last-Known-Good 测试通过",
+      "oracle": "SQLite/WAL、Release、Hash 和故障注入通过",
       "requirement_id": "R-021",
       "task_ids": [
         "T-021"
       ],
       "tests": [
-        "tests/test_source_sync.py"
+        "tests/test_backup.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-003.json",
-        "{ARTIFACT_DIR}/tasks/T-011.json",
-        "{ARTIFACT_DIR}/tasks/T-018.json",
-        "{ARTIFACT_DIR}/tasks/T-020.json"
+        "{ARTIFACT_DIR}/tasks/T-022.json"
       ],
-      "oracle": "Loopback、CSP、路径穿越、Symlink、ZIP bomb、Secret Scan",
+      "oracle": "每项任务分类 satisfied/apply/adapt/equivalent/conflict/blocked/obsolete",
       "requirement_id": "R-022",
       "task_ids": [
-        "T-003",
-        "T-011",
-        "T-018",
-        "T-020"
+        "T-022"
       ],
       "tests": [
-        "tests/test_project_files.py"
+        "tests/test_preparation_tools.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-009.json",
-        "{ARTIFACT_DIR}/tasks/T-027.json"
-      ],
-      "oracle": "Fake Clock、回放、Fixture 和故障注入即时验证",
-      "requirement_id": "R-023",
-      "task_ids": [
-        "T-009",
-        "T-027"
-      ],
-      "tests": [
-        "tests/test_project_files.py"
-      ]
-    },
-    {
-      "artifacts": [
-        "src/",
-        "web/",
-        "schemas/",
-        "deploy/systemd/",
-        "scripts/"
-      ],
-      "complete": true,
-      "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-001.json",
-        "{ARTIFACT_DIR}/tasks/T-005.json",
-        "{ARTIFACT_DIR}/tasks/T-006.json",
-        "{ARTIFACT_DIR}/tasks/T-009.json",
-        "{ARTIFACT_DIR}/tasks/T-030.json"
-      ],
-      "oracle": "Requirement→Task→Test→Oracle→Evidence→Artifact 100%",
-      "requirement_id": "R-024",
-      "task_ids": [
-        "T-001",
-        "T-005",
-        "T-006",
-        "T-009",
-        "T-030"
-      ],
-      "tests": [
-        "tests/test_project_files.py"
-      ]
-    },
-    {
-      "artifacts": [
-        "src/",
-        "web/",
-        "schemas/",
-        "deploy/systemd/",
-        "scripts/"
-      ],
-      "complete": true,
-      "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-015.json",
-        "{ARTIFACT_DIR}/tasks/T-016.json",
         "{ARTIFACT_DIR}/tasks/T-023.json"
       ],
-      "oracle": "Hermetic Wheel 安装、VERSION_COLLISION 和 rollback 测试通过",
+      "oracle": "Version Lock、Scope、Acceptance 和发布边界通过",
+      "requirement_id": "R-023",
+      "task_ids": [
+        "T-023"
+      ],
+      "tests": [
+        "tests/test_constants.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
+      ],
+      "complete": true,
+      "evidence": [
+        "{ARTIFACT_DIR}/tasks/T-024.json"
+      ],
+      "oracle": "Requirement→Task→Test→Oracle→Evidence→Artifact 完整",
+      "requirement_id": "R-024",
+      "task_ids": [
+        "T-024"
+      ],
+      "tests": [
+        "tests/test_task_execution.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
+      ],
+      "complete": true,
+      "evidence": [
+        "{ARTIFACT_DIR}/tasks/T-025.json"
+      ],
+      "oracle": "Fake Clock、Fixture、历史回放和故障注入通过",
       "requirement_id": "R-025",
       "task_ids": [
-        "T-015",
-        "T-016",
-        "T-023"
+        "T-025"
+      ],
+      "tests": [
+        "tests/test_minute_cycle.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
+      ],
+      "complete": true,
+      "evidence": [
+        "{ARTIFACT_DIR}/tasks/T-026.json"
+      ],
+      "oracle": "未知接口 fail-closed，外部系统不能修改中枢 Champion 或验收",
+      "requirement_id": "R-026",
+      "task_ids": [
+        "T-026"
       ],
       "tests": [
         "tests/test_api.py"
@@ -599,143 +679,109 @@
     },
     {
       "artifacts": [
-        "deploy/systemd/",
-        "schemas/",
-        "schemas/owner_approval.schema.json",
-        "scripts/",
-        "scripts/build_final_zip.py",
         "src/",
-        "web/"
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-001.json",
-        "{ARTIFACT_DIR}/tasks/T-015.json",
         "{ARTIFACT_DIR}/tasks/T-027.json"
       ],
-      "oracle": "Package Guard 0 Finding",
-      "requirement_id": "R-026",
+      "oracle": "崩溃重放不重复完成事实，无新增事实不提交",
+      "requirement_id": "R-027",
       "task_ids": [
-        "T-001",
-        "T-015",
         "T-027"
       ],
       "tests": [
-        "tests/test_formal_lifecycle.py",
-        "tests/test_project_files.py"
+        "tests/test_db.py"
       ]
     },
     {
       "artifacts": [
-        "schemas/taskpack_owner_approval.schema.json",
-        "schemas/taskpack_seal.schema.json",
-        "scripts/build_taskpack_owner_approval.py",
-        "scripts/build_taskpack_seal.py",
-        "scripts/verify_taskpack_seal.py",
-        "machine/facts/residual_environment_tasks.json",
-        "SUBJECT_LOCK.json",
-        "MANIFEST.json"
+        "src/",
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-028.json",
-        "evidence/owner_gate/taskpack_owner_approval.json",
-        "evidence/owner_gate/taskpack_seal.json"
+        "{ARTIFACT_DIR}/tasks/T-028.json"
       ],
-      "oracle": "Taskpack Seal 可交给 Build Agent；正式独立复审仍是后续 FROZEN_CANDIDATE/VERIFY_AND_RELEASE 门且未被伪造为 PASS",
-      "requirement_id": "R-027",
-      "task_ids": [
-        "T-028"
-      ],
-      "tests": [
-        "tests/test_taskpack_seal.py",
-        "tests/test_formal_lifecycle.py"
-      ]
-    },
-    {
-      "artifacts": [
-        "schemas/taskpack_owner_approval.schema.json",
-        "schemas/taskpack_seal.schema.json",
-        "scripts/build_taskpack_owner_approval.py",
-        "scripts/build_taskpack_seal.py",
-        "scripts/verify_taskpack_seal.py",
-        "machine/facts/residual_environment_tasks.json",
-        "SUBJECT_LOCK.json",
-        "MANIFEST.json"
-      ],
-      "complete": true,
-      "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-028.json",
-        "evidence/owner_gate/taskpack_owner_approval.json",
-        "evidence/owner_gate/taskpack_seal.json"
-      ],
-      "oracle": "Owner Approval 与 Taskpack Seal 绑定当前 Prepared Subject 和 Manifest，override 仅限任务包交付",
+      "oracle": "Fresh Builder 能从单一 ZIP 按确定性步骤执行",
       "requirement_id": "R-028",
       "task_ids": [
         "T-028"
       ],
       "tests": [
-        "tests/test_taskpack_seal.py",
-        "tests/test_formal_lifecycle.py"
+        "tests/test_preparation_tools.py"
       ]
     },
     {
       "artifacts": [
-        "00_READ_FIRST.md",
-        "CODEX_LAST_MILE_PROMPT.txt",
-        "deploy/systemd/",
-        "machine/facts/task_execution_contract.json",
-        "schemas/",
-        "scripts/",
-        "scripts/run_task.py",
         "src/",
-        "web/"
+        "config/",
+        "schemas/",
+        "web/",
+        "deploy/systemd/",
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-001.json",
-        "{ARTIFACT_DIR}/tasks/T-004.json",
-        "{ARTIFACT_DIR}/tasks/T-005.json",
         "{ARTIFACT_DIR}/tasks/T-029.json"
       ],
-      "oracle": "Version Lock 与唯一 last-mile 入口 fail-closed",
+      "oracle": "public_release、status_closure、DELIVERY_RESULT 均 PASS",
       "requirement_id": "R-029",
       "task_ids": [
-        "T-001",
-        "T-004",
-        "T-005",
         "T-029"
       ],
       "tests": [
-        "tests/test_project_files.py",
-        "tests/test_task_execution.py"
+        "tests/test_cloud_deployment.py"
       ]
     },
     {
       "artifacts": [
         "src/",
-        "web/",
+        "config/",
         "schemas/",
+        "web/",
         "deploy/systemd/",
-        "scripts/"
+        "scripts/",
+        "db/schema.sql",
+        "openapi.yaml",
+        "events.yaml",
+        "docs/"
       ],
       "complete": true,
       "evidence": [
-        "{ARTIFACT_DIR}/tasks/T-012.json",
-        "{ARTIFACT_DIR}/tasks/T-024.json",
-        "{ARTIFACT_DIR}/tasks/T-029.json"
+        "{ARTIFACT_DIR}/tasks/T-030.json"
       ],
-      "oracle": "发布脚本在无差异时退出且不提交",
+      "oracle": "最终 Package Guard 与 ZIP 自复验为零 Finding",
       "requirement_id": "R-030",
       "task_ids": [
-        "T-012",
-        "T-024",
-        "T-029"
+        "T-030"
       ],
       "tests": [
-        "tests/test_project_files.py"
+        "tests/test_repair_security.py"
       ]
     }
   ],
-  "schema_version": "1.0.0"
+  "schema_version": "2.0.0",
+  "version": "0.0.0.1.41"
 }

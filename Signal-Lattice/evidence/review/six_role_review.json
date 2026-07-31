@@ -1,0 +1,85 @@
+{
+  "formal_independence": false,
+  "may_satisfy_formal_independent_gate": false,
+  "open_p0": 0,
+  "open_p1": 0,
+  "receipt_sha256": "306748ab37a0ff0eefa472f3856e7ab2e6817900260e996a3b66a353f1ecc873",
+  "review_mode": "role_separated_same_model",
+  "round_count": 2,
+  "rounds": [
+    {
+      "roles": [
+        {
+          "decision": "KEEP",
+          "finding_count": 0,
+          "role": "产品与用户价值"
+        },
+        {
+          "decision": "KEEP",
+          "finding_count": 0,
+          "role": "软件架构与实现"
+        },
+        {
+          "decision": "KEEP",
+          "finding_count": 0,
+          "role": "数据安全与隐私"
+        },
+        {
+          "decision": "KEEP",
+          "finding_count": 0,
+          "role": "SRE部署与恢复"
+        },
+        {
+          "decision": "KEEP",
+          "finding_count": 0,
+          "role": "测试验收与证据"
+        },
+        {
+          "decision": "KEEP",
+          "finding_count": 0,
+          "role": "反证与范围污染"
+        }
+      ],
+      "round": 1,
+      "scope": "只读审查Baseline和Candidate"
+    },
+    {
+      "roles": [
+        {
+          "decision": "NO_CHANGE",
+          "finding_count": 0,
+          "role": "产品与用户价值"
+        },
+        {
+          "decision": "NO_CHANGE",
+          "finding_count": 0,
+          "role": "软件架构与实现"
+        },
+        {
+          "decision": "NO_CHANGE",
+          "finding_count": 0,
+          "role": "数据安全与隐私"
+        },
+        {
+          "decision": "NO_CHANGE",
+          "finding_count": 0,
+          "role": "SRE部署与恢复"
+        },
+        {
+          "decision": "NO_CHANGE",
+          "finding_count": 0,
+          "role": "测试验收与证据"
+        },
+        {
+          "decision": "NO_CHANGE",
+          "finding_count": 0,
+          "role": "反证与范围污染"
+        }
+      ],
+      "round": 2,
+      "scope": "只复审变化、回归和未关闭Finding"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "state": "PASS_DIAGNOSTIC_ONLY"
+}

@@ -26,7 +26,7 @@ def load_policy(path: Path) -> dict[str, Any]:
     if not path.is_file() or path.is_symlink() or path.stat().st_size > 200_000:
         raise FileNotFoundError("DECISION_POLICY_MISSING")
     data = json.loads(path.read_text(encoding="utf-8"))
-    if data.get("schema_version") != "1.0.0":
+    if data.get("schema_version") not in {"1.0.0", "2.0.0"}:
         raise ValueError("UNSUPPORTED_DECISION_POLICY")
     if data.get("automatic_execution_allowed") is not False:
         raise ValueError("DECISION_POLICY_AUTO_EXECUTION_FORBIDDEN")
@@ -35,11 +35,20 @@ def load_policy(path: Path) -> dict[str, Any]:
     return data
 
 
-def _no_action(symbol: str, market: str, now: datetime, reasons: list[str], *, diagnostics: dict[str, Any] | None = None) -> dict[str, Any]:
+def _decision_packet(
+    symbol: str,
+    market: str,
+    now: datetime,
+    reasons: list[str],
+    *,
+    action: str,
+    confidence_namespace: str,
+    diagnostics: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     packet: dict[str, Any] = {
         "symbol": symbol,
         "market": market,
-        "action": "NO_ACTION",
+        "action": action,
         "reasons": sorted(set(reasons)) or ["TRUSTED_INPUTS_UNAVAILABLE"],
         "valid_until": now.isoformat(),
         "human_execution_only": True,
@@ -47,12 +56,57 @@ def _no_action(symbol: str, market: str, now: datetime, reasons: list[str], *, d
         "runtime_agent_dependency": 0,
         "runtime_llm_tokens": 0,
         "as_of": now.isoformat(),
-        "confidence_namespace": "insufficient_trusted_inputs",
+        "confidence_namespace": confidence_namespace,
         "evidence_refs": [],
     }
     if diagnostics:
         packet["diagnostics"] = diagnostics
     return packet
+
+
+def _system_blocked(
+    symbol: str,
+    market: str,
+    now: datetime,
+    reasons: list[str],
+    *,
+    diagnostics: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Return a truthful infrastructure/input failure state.
+
+    SYSTEM_BLOCKED means the minute cycle could not complete because one or more
+    required trusted inputs or runtime invariants were unavailable. It must not
+    be presented as an investment judgement.
+    """
+    return _decision_packet(
+        symbol,
+        market,
+        now,
+        reasons,
+        action="SYSTEM_BLOCKED",
+        confidence_namespace="system_incomplete_not_an_investment_judgement",
+        diagnostics=diagnostics,
+    )
+
+
+def _no_action(
+    symbol: str,
+    market: str,
+    now: datetime,
+    reasons: list[str],
+    *,
+    diagnostics: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Return a completed investment judgement that intentionally takes no action."""
+    return _decision_packet(
+        symbol,
+        market,
+        now,
+        reasons,
+        action="NO_ACTION",
+        confidence_namespace="trusted_snapshot_but_not_actionable",
+        diagnostics=diagnostics,
+    )
 
 
 def build_for_request(
@@ -67,7 +121,7 @@ def build_for_request(
         symbol = normalize_identity(request.get("symbol"), "symbol")
         market = normalize_identity(request.get("market"), "market")
     except ValueError as exc:
-        return _no_action("UNKNOWN", "UNKNOWN", now, [str(exc)]), None
+        return _system_blocked("UNKNOWN", "UNKNOWN", now, [str(exc)]), None
 
     signals = db.skill_signals(symbol=symbol, market=market)
     market_snapshot = db.market_snapshot(symbol, market)
@@ -77,7 +131,7 @@ def build_for_request(
             reasons.append("NO_TRUSTED_SKILL_SIGNALS")
         if market_snapshot is None:
             reasons.append("NO_TRUSTED_MARKET_SNAPSHOT")
-        return _no_action(symbol, market, now, reasons), None
+        return _system_blocked(symbol, market, now, reasons), None
 
     try:
         weights = load_weights(settings.state_dir / "calibration" / "weights.json")
@@ -95,7 +149,7 @@ def build_for_request(
             now=now,
         )
     except (ValueError, FileNotFoundError, json.JSONDecodeError) as exc:
-        return _no_action(symbol, market, now, [str(exc)]), None
+        return _system_blocked(symbol, market, now, [str(exc)]), None
 
     db.save_decision_snapshot(snapshot)
     snapshot_dir = settings.state_dir / "decision-snapshots" / market
@@ -115,7 +169,6 @@ def build_for_request(
             | {
                 "valid_until": recommendation["valid_until"],
                 "as_of": recommendation["as_of"],
-                "confidence_namespace": "trusted_snapshot_but_not_actionable",
                 "evidence_refs": recommendation["evidence_refs"],
                 "decision_snapshot_sha256": canonical_sha256(snapshot),
             },

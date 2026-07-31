@@ -1,135 +1,32 @@
 {
-  "candidate_version": "0.0.0.1.40",
-  "change_over_30_percent_triggers": [
-    "需要修改冻结 Scope、Acceptance 或数据权威边界",
-    "目标环境缺少必要权限或网络访问",
-    "现有服务产生不可兼容端口或资源冲突",
-    "上游等价实现与任务包发生核心语义冲突",
-    "部署故障暴露核心安全、数据完整性或恢复问题"
+  "confidence": "medium",
+  "cost_drivers": [
+    "目标仓语义差异",
+    "OVH与端口现状",
+    "Moomoo OpenD和许可",
+    "Cloudflare/Status凭证",
+    "恢复故障反馈"
   ],
-  "confidence": "MEDIUM",
-  "estimate_scope": "BUILD_LAST_MILE_ONLY_AFTER_SEALED_TASKPACK",
-  "excluded": [
-    "市场研究",
-    "产品重新定义",
-    "架构重新设计",
-    "正式独立复审",
-    "真实时间 Soak",
-    "运行时模型 Token"
+  "increase_over_30_percent_if": [
+    "北极星或验收改变",
+    "新增资产或自动交易",
+    "目标环境缺关键权限",
+    "移动仓产生核心冲突",
+    "真实恢复发现数据完整性问题"
   ],
-  "largest_cost_drivers": [
-    "目标仓 integration_base 与冻结语义差异",
-    "OVH 与 Cloudflare 凭证和网络绑定",
-    "Private-Database/R2/OCI 权限与恢复实测",
-    "目标环境 systemd/端口/资源冲突",
-    "真实状态收尾和一次有界兼容整改"
-  ],
-  "runtime_model_token_budget": 0,
+  "p80": {
+    "active_hours": 10.5,
+    "tokens": 250000,
+    "wait_hours": 4.5,
+    "wall_clock_hours": 15
+  },
+  "p95": {
+    "active_hours": 22,
+    "tokens": 495000,
+    "wait_hours": 10,
+    "wall_clock_hours": 32
+  },
   "schema_version": "1.0.0",
-  "stages": [
-    {
-      "p80": {
-        "active_hours": 0.75,
-        "tokens": 20000,
-        "wait_hours": 0.25,
-        "wall_hours": 1.0
-      },
-      "p95": {
-        "active_hours": 1.5,
-        "tokens": 40000,
-        "wait_hours": 0.5,
-        "wall_hours": 2.0
-      },
-      "stage": "S0_STATUS_AND_INTEGRATION_BASE"
-    },
-    {
-      "p80": {
-        "active_hours": 1.5,
-        "tokens": 40000,
-        "wait_hours": 0.5,
-        "wall_hours": 2.0
-      },
-      "p95": {
-        "active_hours": 3.0,
-        "tokens": 75000,
-        "wait_hours": 1.0,
-        "wall_hours": 4.0
-      },
-      "stage": "S1_LAND_AND_GOVERNANCE"
-    },
-    {
-      "p80": {
-        "active_hours": 2.0,
-        "tokens": 45000,
-        "wait_hours": 1.0,
-        "wall_hours": 3.0
-      },
-      "p95": {
-        "active_hours": 4.5,
-        "tokens": 90000,
-        "wait_hours": 3.0,
-        "wall_hours": 7.5
-      },
-      "stage": "S2_ENVIRONMENT_AND_CREDENTIAL_BINDING"
-    },
-    {
-      "p80": {
-        "active_hours": 2.0,
-        "tokens": 55000,
-        "wait_hours": 1.0,
-        "wall_hours": 3.0
-      },
-      "p95": {
-        "active_hours": 4.5,
-        "tokens": 110000,
-        "wait_hours": 2.0,
-        "wall_hours": 6.5
-      },
-      "stage": "S3_INSTALL_AND_DEPLOY"
-    },
-    {
-      "p80": {
-        "active_hours": 3.5,
-        "tokens": 75000,
-        "wait_hours": 1.5,
-        "wall_hours": 5.0
-      },
-      "p95": {
-        "active_hours": 7.0,
-        "tokens": 150000,
-        "wait_hours": 3.0,
-        "wall_hours": 10.0
-      },
-      "stage": "S4_TARGETED_VALIDATION_RECOVERY_STATUS"
-    },
-    {
-      "p80": {
-        "active_hours": 0.75,
-        "tokens": 15000,
-        "wait_hours": 0.25,
-        "wall_hours": 1.0
-      },
-      "p95": {
-        "active_hours": 1.5,
-        "tokens": 30000,
-        "wait_hours": 0.5,
-        "wall_hours": 2.0
-      },
-      "stage": "S5_RELEASE_AND_BACKUP"
-    }
-  ],
-  "totals": {
-    "p80": {
-      "active_hours": 10.5,
-      "tokens": 250000,
-      "wait_hours": 4.5,
-      "wall_hours": 15.0
-    },
-    "p95": {
-      "active_hours": 22.0,
-      "tokens": 495000,
-      "wait_hours": 10.0,
-      "wall_hours": 32.0
-    }
-  }
+  "scope": "BUILD_LAST_MILE_ONLY",
+  "version": "0.0.0.1.41"
 }

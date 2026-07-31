@@ -18,7 +18,6 @@ class TaskExecutionContractTests(unittest.TestCase):
 
     def run_cli(self, *args: str, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
         merged = os.environ.copy()
-        merged.pop("SIGNAL_LATTICE_APPLY", None)
         merged["PYTHONPATH"] = str(self.root / "src")
         if env:
             merged.update(env)
@@ -39,7 +38,7 @@ class TaskExecutionContractTests(unittest.TestCase):
         dag_ids = {row["id"] for row in self.dag["tasks"]}
         self.assertEqual(contract_ids, dag_ids)
         self.assertEqual(len(contract_ids), len(self.contract["tasks"]))
-        self.assertEqual(self.contract["version"], "0.0.0.1.40")
+        self.assertEqual(self.contract["version"], "0.0.0.1.41")
 
     def test_every_task_validates(self):
         result = self.run_cli("--validate-all")

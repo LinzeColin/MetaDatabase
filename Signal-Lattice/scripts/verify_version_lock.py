@@ -11,7 +11,7 @@ CHECK_FILES=(
  'config/default.json','openapi.yaml','events.yaml','web/index.html','文档/00_我在哪.md'
 )
 def main()->int:
- p=argparse.ArgumentParser();p.add_argument('--root',type=Path,default=Path('.'));a=p.parse_args();root=a.root.resolve();find=[]
+ p=argparse.ArgumentParser();p.add_argument('--root',type=Path,default=Path('.'));p.add_argument('--output',type=Path);a=p.parse_args();root=a.root.resolve();find=[]
  py=tomllib.loads((root/'pyproject.toml').read_text());declared=py['project']['version']
  if declared!=VERSION:find.append(f'PYPROJECT_VERSION_DRIFT:{declared}:{VERSION}')
  for rel in CHECK_FILES:
@@ -26,5 +26,7 @@ def main()->int:
  for key in ('product_version','taskpack_version'):
   if project.get(key)!=VERSION:find.append(f'PROJECT_VERSION_DRIFT:{key}')
  result={'state':'PASS' if not find else 'FAIL','version':VERSION,'findings':find}
+ if a.output:
+  a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
  print(json.dumps(result,ensure_ascii=False,sort_keys=True));return 0 if not find else 2
 if __name__=='__main__':raise SystemExit(main())

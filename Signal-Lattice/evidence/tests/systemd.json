@@ -1,0 +1,63 @@
+{
+  "findings": [],
+  "macos_launchd_units": 0,
+  "receipt_sha256": "17198ea827850bc52581d60f4a4afa10e9a2397d4f5ca5d072f96733956c1c60",
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "1.0.0",
+  "state": "PASS",
+  "systemd_analyze_returncode": 0,
+  "systemd_analyze_stderr_tail": "",
+  "systemd_analyze_stdout_tail": "",
+  "unit_count": 12,
+  "units": [
+    {
+      "sha256": "95564298a2ac9130a553892351589a451aa261bcc5e69bf99c756e95b7cd6630",
+      "unit": "signal-lattice-api.service"
+    },
+    {
+      "sha256": "9d52d918e16edbd55a06fc1239186f324fbda5840a74f1692894d24fad33a005",
+      "unit": "signal-lattice-backup.service"
+    },
+    {
+      "sha256": "9f19ff3ba28e8faf66de04ed064ee29221926fafed0e48bb54f47bfd6847f392",
+      "unit": "signal-lattice-backup.timer"
+    },
+    {
+      "sha256": "ecd42c8e0c4710dde29856cbbfcd16d580fd5b1897359ce3e94db1ce833dfb1f",
+      "unit": "signal-lattice-cloudflared.service"
+    },
+    {
+      "sha256": "56c72eeffb9a7f55a9bf0365d07c9a84fcb0f60e334ccdabfe60c280226a575c",
+      "unit": "signal-lattice-cycle.service"
+    },
+    {
+      "sha256": "46cb970de7698bf9a73813ee9e6361fa4e0e1f5560ae398370ddc0d6de7b7d13",
+      "unit": "signal-lattice-cycle.timer"
+    },
+    {
+      "sha256": "9f4825d6892f68c0702175d6977af7e416dc055595f1d266c14b130e94a24442",
+      "unit": "signal-lattice-evolution.service"
+    },
+    {
+      "sha256": "4da620b4864a71599ae2d8741c16844bead16bcb6cd0b1a85c99234fd4a6cab5",
+      "unit": "signal-lattice-evolution.timer"
+    },
+    {
+      "sha256": "6820ea5e5424eee61cc9ff0c31fe9b2030cf4eaf2ce73af323619cea7a8169b3",
+      "unit": "signal-lattice-outbox-sync.service"
+    },
+    {
+      "sha256": "2dea3e5e73e9a7a3a5039f4771803ecd881405d9c972aca87879e44e153c931d",
+      "unit": "signal-lattice-outbox-sync.timer"
+    },
+    {
+      "sha256": "7aaafa29a077a03d164f7bcccb3662962808e3749da379b383d5c72dfe3e3902",
+      "unit": "signal-lattice-status.service"
+    },
+    {
+      "sha256": "a2945ef172c2a3b065cd55995e8ce91e9b4538fea48913312e709902dbcbe381",
+      "unit": "signal-lattice-status.timer"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+flowchart LR
+  G[GitHub Skill Registry] --> R[每分钟来源协调]
+  M[同一不可变市场快照] --> F[隔离执行 Fabric]
+  R --> F
+  F --> S1[Skill 1 独立判断]
+  F --> S2[Skill 2 独立判断]
+  F --> SN[Skill N 独立判断]
+  S1 --> C[中立协调中枢]
+  S2 --> C
+  SN --> C
+  C --> Q[量化与风险硬门]
+  Q --> U[唯一建议]
+  U --> W[中文网站]
+  U --> O[Journal + Outbox]
+  O --> T[Status 只读投影]

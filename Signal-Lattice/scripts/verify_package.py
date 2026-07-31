@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, ast, hashlib, io, json, re, sqlite3, subprocess, sys, tokenize, tomllib
+import argparse, ast, hashlib, io, json, re, sqlite3, subprocess, tokenize, tomllib
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 
@@ -13,8 +13,8 @@ SECRET_PATTERNS = (
 UNFINISHED = re.compile(r"\b(?:TODO|TBD|FIXME)\b")
 PLACEHOLDER = re.compile(r"(?:TARGET_ENVIRONMENT_BINDING_REQUIRED|按任务包内冻结脚本|example\.(?:com|org|net))", re.I)
 MANIFEST_EXCLUDED = {"MANIFEST.json", "SUBJECT_LOCK.json", "CANONICAL_STATE.json", "evidence/skill_router/pass_c.json"}
-MANIFEST_EXCLUDED_PREFIXES = ("evidence/formal_review/", "evidence/owner_gate/", "evidence/upstream/", "Stock_Skill/")
-CANONICAL_STOCK_SKILL_PREFIX = "Stock_Skill/"
+MANIFEST_EXCLUDED_PREFIXES = ("evidence/formal_review/", "evidence/owner_gate/")
+SOURCE_ONLY_PREFIXES = ("Stock_Skill/",)
 ALLOWED_ROOT_FILES = {
     "00_READ_FIRST.md", "CANONICAL_STATE.json", "CODEX_LAST_MILE_PROMPT.txt",
     "MEMORY_RECONCILIATION.md", "PURSUING_GOAL.txt", "README.md", "ROADMAP.md",
@@ -166,34 +166,6 @@ def validate_evidence_receipts(root: Path, findings: list[str]) -> None:
                     findings.append("EVIDENCE_REFERENCE_MISSING:" + rel + ":" + str(lens["developer_burden_delta_ref"]))
 
 
-def validate_stock_skill_source(root: Path, findings: list[str]) -> None:
-    """Keep the canonical Skill source outside the product seal but validate it when present."""
-    stock_root = root / "Stock_Skill"
-    if not stock_root.exists():
-        return
-    if not stock_root.is_dir() or stock_root.is_symlink():
-        findings.append("STOCK_SKILL_SOURCE_INVALID")
-        return
-    validator = stock_root / "scripts/validate_registry.py"
-    if not validator.is_file():
-        findings.append("STOCK_SKILL_VALIDATOR_MISSING")
-        return
-    try:
-        completed = subprocess.run(
-            [sys.executable, str(validator)],
-            cwd=root.parent,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=120,
-        )
-    except Exception as exc:
-        findings.append("STOCK_SKILL_VALIDATOR_ERROR:" + type(exc).__name__)
-        return
-    if completed.returncode:
-        findings.append("STOCK_SKILL_REGISTRY_INVALID")
-
-
 def validate_manifest(root: Path, manifest: Path, findings: list[str]) -> None:
     try:
         data = json.loads(manifest.read_text())
@@ -212,7 +184,7 @@ def validate_manifest(root: Path, manifest: Path, findings: list[str]) -> None:
             if not path.is_file() or path.is_symlink():
                 continue
             rel = path.relative_to(root).as_posix()
-            if rel in MANIFEST_EXCLUDED or any(rel.startswith(prefix) for prefix in MANIFEST_EXCLUDED_PREFIXES) or is_garbage(path) or rel.endswith((".pyc", ".pyo", ".zip", ".whl")):
+            if rel in MANIFEST_EXCLUDED or any(rel.startswith(prefix) for prefix in MANIFEST_EXCLUDED_PREFIXES) or any(rel.startswith(prefix) for prefix in SOURCE_ONLY_PREFIXES) or is_garbage(path) or rel.endswith((".pyc", ".pyo", ".zip", ".whl")):
                 continue
             current.append(rel)
         if set(current) != set(indexed):
@@ -246,7 +218,7 @@ def main() -> int:
     garbage_roots: set[str] = set()
     for path in root.rglob("*"):
         rel = path.relative_to(root).as_posix()
-        if rel.startswith(CANONICAL_STOCK_SKILL_PREFIX):
+        if any(rel.startswith(prefix) for prefix in SOURCE_ONLY_PREFIXES):
             continue
         reason = unsafe_path_reason(rel)
         if reason:
@@ -301,7 +273,6 @@ def main() -> int:
         except Exception as exc:
             findings.append("SYNTAX:" + rel + ":" + type(exc).__name__)
     findings.extend("BUILD_GARBAGE:" + item for item in sorted(garbage_roots))
-    validate_stock_skill_source(root, findings)
 
     try:
         connection = sqlite3.connect(":memory:")

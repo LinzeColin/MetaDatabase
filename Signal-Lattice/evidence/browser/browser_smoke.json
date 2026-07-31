@@ -1,14 +1,16 @@
 {
   "browser": "chromium",
   "findings": [],
-  "receipt_sha256": "4c75ec2cc7cab7a5144c19674d83729094aba33e16a2f2cd59122056029b05b3",
+  "receipt_sha256": "153cc78a26517ad710757b15c8fca8aec17400d4ed2b9ada20d4e99008b6c081",
   "results": [
     {
-      "business_line_count": 13,
+      "business_line_count": 14,
       "console_error_count": 0,
+      "decision_title": "系统未就绪",
+      "empty_pipeline_action": "SYSTEM_BLOCKED",
+      "expected_business_line_count": 14,
       "minimum_nav_target_height": 44.0,
       "nav_count": 9,
-      "no_action_visible": true,
       "page_overflow": false,
       "transport_mode": "HTTP_LOOPBACK",
       "viewport": {
@@ -18,11 +20,13 @@
       }
     },
     {
-      "business_line_count": 13,
+      "business_line_count": 14,
       "console_error_count": 0,
+      "decision_title": "系统未就绪",
+      "empty_pipeline_action": "SYSTEM_BLOCKED",
+      "expected_business_line_count": 14,
       "minimum_nav_target_height": 44.0,
       "nav_count": 9,
-      "no_action_visible": true,
       "page_overflow": false,
       "transport_mode": "HTTP_LOOPBACK",
       "viewport": {
@@ -34,6 +38,7 @@
   ],
   "runtime_agent_dependency": 0,
   "runtime_llm_tokens": 0,
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
+  "scope": "NORTH_STAR_UI_EMPTY_PIPELINE_FAIL_CLOSED_DESKTOP_AND_MOBILE",
   "state": "PASS"
 }

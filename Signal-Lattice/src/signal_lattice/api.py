@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from .config import Settings
-from .constants import PROJECT_ID, VERSION
+from .constants import VERSION
 from .db import RuntimeDB
 from .recommendation import validate_market_snapshot, validate_skill_signal
 from .status import default_matrix
@@ -33,13 +33,17 @@ def _limit(value: str | None, default: int = 50) -> int:
 
 
 def _runtime_status(settings: Settings, db: RuntimeDB) -> dict[str, object]:
-    latest = db.latest_action()
-    action = latest.get("action") if latest else "NO_ACTION"
+    latest_cycle = db.latest_minute_cycle()
+    latest = db.latest_unique_recommendation()
+    action = latest.get("action") if latest else "SYSTEM_BLOCKED"
     mode = "HUMAN_DECISION_SUPPORT" if settings.recommendation_enabled else "RESEARCH_AND_NO_ACTION"
+    cycle_state = str((latest_cycle or {}).get("state", "NO_CYCLE"))
+    rec_state = str((latest or {}).get("state", "SYSTEM_BLOCKED"))
+    healthy = cycle_state in {"COMPLETED", "DEGRADED"} and rec_state != "SYSTEM_BLOCKED"
     return {
-        "schema_version": "1.0.0",
-        "project_id": PROJECT_ID,
-        "state": "PASS" if settings.runtime_environment == "production" else "DEGRADED",
+        "schema_version": "2.0.0",
+        "state": "PASS" if healthy else "DEGRADED",
+        "project_id": "signal-lattice",
         "version": VERSION,
         "mode": mode,
         "current_action": action,
@@ -54,6 +58,8 @@ def _runtime_status(settings: Settings, db: RuntimeDB) -> dict[str, object]:
         "public_url": settings.public_url,
         "status_url": settings.status_url,
         "counts": db.runtime_counts(),
+        "minute_cycle": latest_cycle,
+        "next_cycle_seconds": settings.cycle_interval_seconds,
     }
 
 
@@ -133,8 +139,13 @@ def handler(settings: Settings, db: RuntimeDB):
             if path == "/api/v1/business-lines":
                 return self._send(200, default_matrix())
             if path in {"/api/v1/actions", "/api/v1/recommendations"}:
-                limit = _limit((query.get("limit") or [None])[0])
-                return self._send(200, {"items": db.actions(limit), "mode": _runtime_status(settings, db)["mode"]})
+                current = db.latest_unique_recommendation()
+                return self._send(200, {"current": current, "items": [current] if current else [], "mode": _runtime_status(settings, db)["mode"]})
+            if path == "/api/v1/cycles/latest":
+                current = db.latest_minute_cycle()
+                return self._send(200, current or {"state": "SYSTEM_BLOCKED", "reason": "NO_MINUTE_CYCLE"})
+            if path == "/api/v1/cycles":
+                return self._send(200, {"items": db.recent_minute_cycles(_limit((query.get("limit") or [None])[0], 60))})
             if path == "/api/v1/opportunities":
                 signals = db.skill_signals(limit=_limit((query.get("limit") or [None])[0], 100))
                 ranked = sorted(
@@ -153,10 +164,31 @@ def handler(settings: Settings, db: RuntimeDB):
                 roots = sorted({root for item in signals for root in item.get("evidence_roots", [])})
                 return self._send(200, {"signal_count": len(signals), "positive": positive, "neutral": neutral, "negative": negative, "independent_evidence_roots": roots})
             if path == "/api/v1/quant":
-                latest = db.latest_action()
-                return self._send(200, {"latest": latest or {"action": "NO_ACTION", "reasons": ["NO_COMPLETED_DECISION"]}})
+                latest = db.latest_unique_recommendation()
+                return self._send(200, {"latest": latest or {"action": "SYSTEM_BLOCKED", "reasons": ["NO_COMPLETED_MINUTE_CYCLE"]}})
             if path == "/api/v1/skills":
-                return self._send(200, {"items": db.skill_overview()})
+                latest = db.latest_minute_cycle()
+                runs = {row["skill_id"]: row for row in (latest or {}).get("skill_runs", [])}
+                items = []
+                seen: set[str] = set()
+                for item in db.runtime_skill_registry():
+                    skill_id = str(item["skill_id"])
+                    seen.add(skill_id)
+                    items.append({**item, "latest_run": runs.get(skill_id)})
+                # Backward-compatible visibility for explicitly ingested legacy signals.
+                # These items never become Active runtime Skills until the registry promotes them.
+                for item in db.skill_overview():
+                    skill_id = str(item["skill_id"])
+                    if skill_id in seen:
+                        continue
+                    items.append({
+                        **item,
+                        "lifecycle_state": "OBSERVED_SIGNAL_ONLY",
+                        "compatibility_state": "REFERENCE_ONLY",
+                        "latest_run": None,
+                    })
+                active_count = len([x for x in items if x.get("lifecycle_state") == "ACTIVE"])
+                return self._send(200, {"items": items, "active_count": active_count})
             if path == "/api/v1/evolution":
                 return self._send(200, {"items": db.evolution_overview()})
             if path == "/api/v1/decision-snapshots":

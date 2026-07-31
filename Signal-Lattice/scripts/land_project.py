@@ -12,6 +12,7 @@ from pathlib import Path
 
 EXCLUDED_PARTS = {".git", ".pytest_cache", "__pycache__", "build", "dist", ".venv", "venv", "node_modules", ".mypy_cache", ".ruff_cache"}
 EXCLUDED_SUFFIXES = (".pyc", ".pyo", ".zip", ".whl")
+SOURCE_ONLY_ROOT = "Stock_Skill"
 
 
 def sha(path: Path) -> str:
@@ -28,6 +29,8 @@ def inventory(root: Path) -> dict[str, dict[str, object]]:
         if not path.is_file():
             continue
         rel = path.relative_to(root)
+        if rel.parts[:1] == (SOURCE_ONLY_ROOT,):
+            continue
         if any(part in EXCLUDED_PARTS or part.endswith((".egg-info", ".dist-info")) for part in rel.parts):
             continue
         if rel.as_posix().endswith(EXCLUDED_SUFFIXES):
@@ -46,7 +49,7 @@ def atomic_copytree(source: Path, destination: Path) -> None:
     temp = destination.parent / ("." + destination.name + ".tmp")
     if temp.exists():
         shutil.rmtree(temp)
-    shutil.copytree(source, temp, ignore=shutil.ignore_patterns(*EXCLUDED_PARTS, "*.pyc", "*.pyo", "*.zip", "*.whl", "*.egg-info", "*.dist-info"))
+    shutil.copytree(source, temp, ignore=shutil.ignore_patterns(SOURCE_ONLY_ROOT, *EXCLUDED_PARTS, "*.pyc", "*.pyo", "*.zip", "*.whl", "*.egg-info", "*.dist-info"))
     os.replace(temp, destination)
 
 

@@ -1,0 +1,101 @@
+{
+  "$id": "https://signal-lattice.linzezhang.com/schemas/runtime_skill_manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "adapter_contract_version": {
+      "type": "string"
+    },
+    "compatibility_state": {
+      "enum": [
+        "BUNDLED_ADAPTER",
+        "BUNDLED_LAST_KNOWN_GOOD",
+        "MACHINE_CONTRACT",
+        "REFERENCE_ONLY",
+        "UNSUPPORTED",
+        "QUARANTINED_KEEP_LAST_KNOWN_GOOD"
+      ]
+    },
+    "display_name": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "engine": {
+      "enum": [
+        "builtin_v1",
+        "factor_v1"
+      ]
+    },
+    "horizon_days": {
+      "maximum": 3650,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "lifecycle_state": {
+      "enum": [
+        "ACTIVE",
+        "RETIRED",
+        "QUARANTINED"
+      ]
+    },
+    "lineage": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "runtime_profile": {
+      "enum": [
+        "commercial_opportunity",
+        "bottleneck",
+        "equity_foresight",
+        "lead_lag",
+        "event_atlas",
+        "serenity",
+        "factor_v1"
+      ]
+    },
+    "skill_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "skill_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_commit": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_path": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_repository": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "skill_id",
+    "display_name",
+    "skill_version",
+    "runtime_profile",
+    "source_repository",
+    "source_path",
+    "source_commit",
+    "source_sha256",
+    "lifecycle_state",
+    "compatibility_state",
+    "adapter_contract_version",
+    "horizon_days",
+    "engine"
+  ],
+  "type": "object"
+}
