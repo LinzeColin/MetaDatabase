@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -186,3 +187,74 @@ def test_zero_exit_verify_with_missing_objects_is_not_an_acknowledgement(monkeyp
         payload_sha256=fact_sha256(fact),
     )
     assert event and event["status"] == "pending"
+
+
+def test_legacy_prefixed_manifest_is_strictly_read_back_before_acknowledgement(monkeypatch, tmp_path):
+    module = _load_script(Path(__file__).resolve().parents[2])
+    client = tmp_path / "private_db_client.py"
+    client.write_text("# fixture only\n", encoding="utf-8")
+    payload = b'{"legacy":true}\n'
+    digest = hashlib.sha256(payload).hexdigest()
+    name = "eei_facts_2026-07-26.ndjson.gz"
+    relative = f"objects/{digest[:2]}/{digest}_{name}"
+    manifest_entry = {
+        "sha256": digest,
+        "original_name": name,
+        "size_bytes": len(payload),
+        "object_path": f"Private-MetaDatabase/{relative}",
+    }
+    calls: list[list[str]] = []
+
+    def fake_run(_client, argv):
+        calls.append(list(argv))
+        if argv[:3] == ["get", "Private-MetaDatabase", "manifest.jsonl"]:
+            Path(argv[3]).write_text(json.dumps(manifest_entry) + "\n", encoding="utf-8")
+            return 0, ""
+        assert argv[:3] == ["get", "Private-MetaDatabase", relative]
+        Path(argv[3]).write_bytes(payload)
+        return 0, ""
+
+    monkeypatch.setattr(module, "_run_client", fake_run)
+
+    passed, detail = module._verify_legacy_prefixed_manifest(
+        client,
+        "Private-MetaDatabase: 账本 1 条，对象在仓 0，缺 1",
+    )
+
+    assert passed
+    assert "读回并核哈希" in detail
+    assert calls[0][:3] == ["get", "Private-MetaDatabase", "manifest.jsonl"]
+    assert calls[1][:3] == ["get", "Private-MetaDatabase", relative]
+
+
+def test_legacy_prefixed_manifest_rejects_a_readback_sha_mismatch(monkeypatch, tmp_path):
+    module = _load_script(Path(__file__).resolve().parents[2])
+    client = tmp_path / "private_db_client.py"
+    client.write_text("# fixture only\n", encoding="utf-8")
+    expected_payload = b'{"legacy":true}\n'
+    digest = hashlib.sha256(expected_payload).hexdigest()
+    name = "eei_facts_2026-07-26.ndjson.gz"
+    relative = f"objects/{digest[:2]}/{digest}_{name}"
+    manifest_entry = {
+        "sha256": digest,
+        "original_name": name,
+        "size_bytes": len(expected_payload),
+        "object_path": f"Private-MetaDatabase/{relative}",
+    }
+
+    def fake_run(_client, argv):
+        if argv[:3] == ["get", "Private-MetaDatabase", "manifest.jsonl"]:
+            Path(argv[3]).write_text(json.dumps(manifest_entry) + "\n", encoding="utf-8")
+            return 0, ""
+        Path(argv[3]).write_bytes(b'{"legacy":false}\n')
+        return 0, ""
+
+    monkeypatch.setattr(module, "_run_client", fake_run)
+
+    passed, detail = module._verify_legacy_prefixed_manifest(
+        client,
+        "Private-MetaDatabase: 账本 1 条，对象在仓 0，缺 1",
+    )
+
+    assert not passed
+    assert "不一致" in detail

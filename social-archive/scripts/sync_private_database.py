@@ -18,7 +18,7 @@ from social_archive.private_facts import (
     fact_bytes,
     fact_sha256,
 )
-from social_archive.utils import redact, utcnow
+from social_archive.utils import redact, sha256_file, utcnow
 
 
 PRIVATE_DATABASE_AREA = "Private-MetaDatabase"
@@ -26,6 +26,7 @@ PRIVATE_DATABASE_DOMAIN = "SocialArchive"
 _VERIFY_SUMMARY = re.compile(
     r"Private-MetaDatabase:\s*账本\s*(?P<total>\d+)\s*条，\s*对象在仓\s*(?P<present>\d+)\s*，\s*缺\s*(?P<missing>\d+)",
 )
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
 def _private_database_client() -> tuple[Path | None, str | None]:
@@ -54,19 +55,139 @@ def _run_client(client: Path, argv: list[str]) -> tuple[int, str]:
     return int(result.returncode), detail
 
 
-def _verify_summary_is_complete(output: str) -> bool:
-    """The official client currently prints missing-object counts but exits zero.
-
-    Treat an unparseable summary, a nonzero missing count, or an inconsistent
-    total as an unverified delivery rather than trusting its process status.
-    """
+def _verify_summary_counts(output: str) -> tuple[int, int, int] | None:
+    """Return the official client's ledger counts when its summary is parseable."""
     match = _VERIFY_SUMMARY.search(output)
     if not match:
-        return False
+        return None
     total = int(match.group("total"))
     present = int(match.group("present"))
     missing = int(match.group("missing"))
+    return total, present, missing
+
+
+def _verify_summary_is_complete(output: str) -> bool:
+    """Reject incomplete or malformed results from the official verifier."""
+    counts = _verify_summary_counts(output)
+    if counts is None:
+        return False
+    total, present, missing = counts
     return total > 0 and missing == 0 and total == present
+
+
+def _normalized_manifest_object_path(entry: dict[str, Any]) -> tuple[str, bool]:
+    """Validate one immutable ledger row and normalize its legacy path form.
+
+    The canonical client stores ``objects/<sha-prefix>/<sha>_<name>``. Five
+    historical EEI rows instead stored the same path prefixed with their area.
+    The prefix is a read compatibility issue, not a second authority: require
+    the full content-addressed shape before accepting either representation.
+    """
+    digest = entry.get("sha256")
+    name = entry.get("original_name")
+    raw_path = entry.get("object_path")
+    size = entry.get("size_bytes")
+    if not isinstance(digest, str) or not _SHA256.fullmatch(digest):
+        raise ValueError("manifest sha256 非法")
+    if not isinstance(name, str) or not name or Path(name).name != name or "/" in name or "\\" in name:
+        raise ValueError("manifest original_name 非法")
+    if not isinstance(raw_path, str):
+        raise ValueError("manifest object_path 非法")
+    if not isinstance(size, int) or isinstance(size, bool) or size < 0:
+        raise ValueError("manifest size_bytes 非法")
+
+    area_prefix = f"{PRIVATE_DATABASE_AREA}/"
+    if raw_path.startswith("objects/"):
+        relative = raw_path
+        legacy_prefixed = False
+    elif raw_path.startswith(f"{area_prefix}objects/"):
+        relative = raw_path[len(area_prefix):]
+        legacy_prefixed = True
+    else:
+        raise ValueError("manifest object_path 不属于允许的内容寻址路径")
+
+    expected = f"objects/{digest[:2]}/{digest}_{name}"
+    if relative != expected:
+        raise ValueError("manifest object_path 与 sha256/original_name 不一致")
+    return relative, legacy_prefixed
+
+
+def _verify_legacy_prefixed_manifest(client: Path, verify_output: str) -> tuple[bool, str]:
+    """Strictly read back only legacy-prefixed rows rejected by an old verifier.
+
+    The official client already verifies canonical relative rows. This fallback
+    activates only when its own count summary exactly matches the historical
+    prefix mismatch, then fetches each affected object through that same
+    clone-free client and checks both byte length and SHA-256.
+    """
+    counts = _verify_summary_counts(verify_output)
+    if counts is None:
+        return False, "Private-Database verify 未给出可解析账本摘要"
+    total, present, missing = counts
+    if total <= 0 or missing <= 0 or total != present + missing:
+        return False, "Private-Database verify 账本计数不自洽"
+
+    with tempfile.TemporaryDirectory(prefix="social-archive-private-db-verify-") as temp_dir:
+        root = Path(temp_dir)
+        manifest = root / "manifest.jsonl"
+        code, detail = _run_client(
+            client,
+            ["get", PRIVATE_DATABASE_AREA, "manifest.jsonl", str(manifest)],
+        )
+        if code or not manifest.is_file() or manifest.is_symlink():
+            return False, detail or "无法只读取得 Private-Database manifest"
+
+        try:
+            entries = [
+                json.loads(line)
+                for line in manifest.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+        except (OSError, json.JSONDecodeError) as exc:
+            return False, redact(f"Private-Database manifest 不可解析：{exc}")
+        if len(entries) != total or not all(isinstance(entry, dict) for entry in entries):
+            return False, "Private-Database manifest 条数或行类型与官方摘要不一致"
+
+        relative_count = 0
+        legacy_entries: list[tuple[str, str, int]] = []
+        seen_paths: set[str] = set()
+        seen_digests: set[str] = set()
+        try:
+            for entry in entries:
+                relative, legacy_prefixed = _normalized_manifest_object_path(entry)
+                digest = str(entry["sha256"])
+                size = int(entry["size_bytes"])
+                if relative in seen_paths or digest in seen_digests:
+                    raise ValueError("manifest 存在重复内容寻址对象")
+                seen_paths.add(relative)
+                seen_digests.add(digest)
+                if legacy_prefixed:
+                    legacy_entries.append((relative, digest, size))
+                else:
+                    relative_count += 1
+        except (KeyError, TypeError, ValueError) as exc:
+            return False, redact(f"Private-Database manifest 合同不成立：{exc}")
+
+        if relative_count != present or len(legacy_entries) != missing:
+            return False, "Private-Database legacy 路径数量与官方摘要不一致"
+
+        for index, (relative, digest, size) in enumerate(legacy_entries):
+            object_file = root / f"legacy-object-{index}.bin"
+            code, detail = _run_client(
+                client,
+                ["get", PRIVATE_DATABASE_AREA, relative, str(object_file)],
+            )
+            if code or not object_file.is_file() or object_file.is_symlink():
+                return False, detail or "无法读回 legacy 内容寻址对象"
+            if object_file.stat().st_size != size:
+                return False, "legacy 内容寻址对象字节数与 manifest 不一致"
+            if sha256_file(object_file) != digest:
+                return False, "legacy 内容寻址对象 SHA-256 与 manifest 不一致"
+
+    return True, (
+        f"Private-Database legacy manifest 兼容核验通过：账本 {total} 条，"
+        f"canonical {relative_count} 条，历史前缀对象 {len(legacy_entries)} 条均已读回并核哈希"
+    )
 
 
 def _blocked(message: str, *, error_code: str = "PRIVATE_DATABASE_CLIENT_UNAVAILABLE") -> int:
@@ -197,8 +318,12 @@ def main() -> int:
         if not failures:
             code, detail = _run_client(client, ["verify", PRIVATE_DATABASE_AREA])
             if code == 0 and not _verify_summary_is_complete(detail):
-                code = 1
-                detail = "Private-Database verify 未证明账本对象完整"
+                compatible, compatibility_detail = _verify_legacy_prefixed_manifest(client, detail)
+                if compatible:
+                    detail = compatibility_detail
+                else:
+                    code = 1
+                    detail = compatibility_detail
             if code:
                 for event in attempted_events:
                     store.mark_outbox_failed(str(event["id"]), "PRIVATE_DATABASE_VERIFY_FAILED")
