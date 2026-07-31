@@ -7,8 +7,6 @@ from social_archive.connectors.http_workers import OpenAPIURLWorkerConnector, XH
 from social_archive.connectors.oauth import RedditConnector, XConnector
 from social_archive.utils import read_secret, utcnow
 
-RESULTS_DIR=Path('runtime/evidence/platform-canaries')
-
 
 def core_loopback_url() -> str:
     raw_port = os.getenv('SOCIAL_ARCHIVE_CORE_LOOPBACK_PORT', '18765').strip()
@@ -24,7 +22,8 @@ def result(platform:str,status:str,details:dict)->dict:
     return {'schema_version':'1.0','platform':platform,'status':status,'time':utcnow(),'details':details}
 
 def save(doc:dict)->None:
-    RESULTS_DIR.mkdir(parents=True,exist_ok=True);path=RESULTS_DIR/f"{doc['platform']}.json";path.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');print(json.dumps(doc,ensure_ascii=False))
+    results_dir = Settings.from_env().data_root / 'evidence/platform-canaries'
+    results_dir.mkdir(parents=True,exist_ok=True);path=results_dir/f"{doc['platform']}.json";path.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');print(json.dumps(doc,ensure_ascii=False))
 
 def core_capture_headers(settings: Settings) -> tuple[dict[str, str], dict[str, str] | None]:
     token = read_secret(settings.api_token_file)

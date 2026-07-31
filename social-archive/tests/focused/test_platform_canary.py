@@ -59,3 +59,17 @@ def test_generic_web_canary_fails_closed_when_pairing_requires_token(monkeypatch
 
     assert outcome["status"] == "BLOCKED_ENVIRONMENT"
     assert outcome["details"]["error_code"] == "API_TOKEN_MISSING"
+
+
+def test_canary_receipt_uses_the_configured_runtime_data_root(monkeypatch, tmp_path: Path, capsys):
+    root = Path(__file__).resolve().parents[2]
+    module = _load_canary(root)
+    monkeypatch.setattr(module.Settings, "from_env", lambda: SimpleNamespace(data_root=tmp_path))
+
+    document = {"platform": "generic-web", "status": "PASS", "details": {"content_id": "cnt-canary"}}
+    module.save(document)
+
+    receipt = tmp_path / "evidence" / "platform-canaries" / "generic-web.json"
+    assert receipt.is_file()
+    assert receipt.read_text(encoding="utf-8").strip()
+    assert '"platform": "generic-web"' in capsys.readouterr().out
