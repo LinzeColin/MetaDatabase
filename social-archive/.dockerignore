@@ -1,0 +1,46 @@
+# Never send local credentials, runtime state, user content, or generated
+# artifacts to the Docker daemon.  The Dockerfile copies only the explicit
+# first-party source paths needed to build the image.
+.git/
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+*cookies*.json
+
+# Rebuildable/private runtime state and local exports.
+runtime/
+staging/
+exports/
+import/
+vendor-output/
+private/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Local environments, caches, and generated test/build output.
+.venv/
+venv/
+.uv-cache/
+.npm-cache/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage/
+dist/
+build/
+*.egg-info/
+
+# Release evidence and migration snapshots are not image inputs.
+evidence/
+.social-archive-migration/
+.social-archive-candidate-v0.0.0.4/
