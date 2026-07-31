@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
   "task_title": "冻结候选、执行唯一全量回归并发布",
@@ -7,14 +7,14 @@
   "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
   "status": "DEGRADED",
   "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-31T00:16:48Z",
+  "verified_at_utc": "2026-07-31T00:32:18Z",
   "subject": {
     "repository": "LinzeColin/MetaDatabase",
     "branch": "codex/social-archive-v0004-integration",
-    "candidate_head": "2de08bdf098b5a340654677c0682d8746a55c407",
-    "candidate_full_tree": "6e67c856abd8b26710ae1d93c7e49b558b434f67",
-    "candidate_social_archive_tree": "dadbdfebd64ab8bda546cf6b9d616cad4324ce76",
-    "candidate_social_archive_list_sha256": "f94c6d1fd1b1a0c7716fc9c65e0c69294e41d6c7956b7dfb8c729d9c8033f78e",
+    "candidate_head": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
+    "candidate_full_tree": "cc9f2963319e60510e884dbb53005a3f928a2a0d",
+    "candidate_social_archive_tree": "9b8682d70bfa8c2d4e728e7e10f1cb7e8301dc0c",
+    "candidate_social_archive_list_sha256": "806f7627e2cd95ae342053f7453fedf2b32064017cacb2813157fc52929fd113",
     "candidate_social_archive_tracked_file_count": 276,
     "latest_origin_main_integrated_before_freeze": true,
     "single_worktree_used": true,
@@ -34,8 +34,14 @@
       },
       {
         "head": "2de08bdf098b5a340654677c0682d8746a55c407",
-        "status": "CURRENT_TESTED_CANDIDATE",
+        "status": "SUPERSEDED",
+        "reason": "Read-only production inspection found that the worker inherited the API-only image healthcheck and was therefore permanently reported unhealthy.",
         "full_suite": "217 passed"
+      },
+      {
+        "head": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
+        "status": "CURRENT_TESTED_CANDIDATE",
+        "full_suite": "218 passed"
       }
     ]
   },
@@ -45,7 +51,7 @@
       "assertion": "精确候选在合入当时最新 origin/main 后冻结，兼容层保持单一事务核心和 legacy runtime 边界",
       "status": "PASS",
       "evidence": {
-        "candidate_head": "2de08bdf098b5a340654677c0682d8746a55c407",
+        "candidate_head": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
         "taskpack_compatibility": "PASS",
         "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
         "second_core_withheld_as_candidate": true
@@ -56,11 +62,11 @@
       "status": "PASS",
       "evidence": {
         "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
-        "passed": 217,
+        "passed": 218,
         "failed": 0,
         "warning_count": 1,
-        "elapsed_seconds": 8.44,
-        "candidate_social_archive_list_sha256_before_and_after": "f94c6d1fd1b1a0c7716fc9c65e0c69294e41d6c7956b7dfb8c729d9c8033f78e"
+        "elapsed_seconds": 8.16,
+        "candidate_social_archive_list_sha256_before_and_after": "806f7627e2cd95ae342053f7453fedf2b32064017cacb2813157fc52929fd113"
       }
     },
     {
@@ -96,12 +102,24 @@
       "assertion": "当前候选可构建为本地 Docker 镜像，并可在无挂载的临时容器中经仅本机回环端口健康检查",
       "status": "PASS",
       "evidence": {
-        "local_image_id": "sha256:4dbbcd63375cda08e67f326584deb1a33c95ad72001dd60d1e09eafc34629ac2",
-        "local_image_size_bytes": 272185676,
+        "local_image_id": "sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101",
+        "local_image_size_bytes": 272687219,
         "local_container_health": "PASS",
         "local_container_mount_count": 0,
         "loopback_port_mapping": "PASS",
         "temporary_image_tags_removed_after_check": true
+      }
+    },
+    {
+      "assertion": "Worker 不继承 API 专用镜像健康检查，实际 Docker Compose 渲染与线上最小重建均不再将运行中的 worker 标为 unhealthy",
+      "status": "PASS",
+      "evidence": {
+        "local_docker_compose_render": "PASS: core-worker.healthcheck.disable=true",
+        "remote_compose_diff_scope": "PASS: only the core-worker healthcheck declaration differed",
+        "remote_core_worker_recreate": "PASS",
+        "remote_core_api_state_after_recreate": "healthy",
+        "remote_worker_health_state_after_recreate": "no-healthcheck",
+        "remote_compose_rollback_backup": "compose.yaml.pre-worker-healthcheck-20260731T002200Z"
       }
     },
     {
@@ -119,28 +137,30 @@
     }
   ],
   "release_candidate": {
-    "source_commit_digest": "2de08bdf098b5a340654677c0682d8746a55c407",
-    "source_tree_digest": "6e67c856abd8b26710ae1d93c7e49b558b434f67",
-    "product_tree_digest": "dadbdfebd64ab8bda546cf6b9d616cad4324ce76",
+    "source_commit_digest": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
+    "source_tree_digest": "cc9f2963319e60510e884dbb53005a3f928a2a0d",
+    "product_tree_digest": "9b8682d70bfa8c2d4e728e7e10f1cb7e8301dc0c",
     "version": "v0.0.0.4",
     "source_publication": "NOT_PERFORMED",
     "release_tag": "NOT_CREATED",
-    "container_image_digest": "LOCAL_ONLY:sha256:4dbbcd63375cda08e67f326584deb1a33c95ad72001dd60d1e09eafc34629ac2",
+    "container_image_digest": "LOCAL_ONLY:sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101",
     "reason": "A source tag/push would advertise a completed release while the required third real ciphertext receipt and Private-Database reconciliation remain absent. The local-only image identifier is not a published image digest."
   },
   "runtime_and_provider_observations": {
     "classification": "Provider and deployment observations are separate from local fixture and candidate assertions. A NOT_RUN observation is never a PASS assertion.",
     "r2_encrypted_canary": "PASS: dedicated private bucket, scoped credential, encrypted write/readback hash verification/delete; no object left (SA-506).",
     "oci_encrypted_canary": "PASS: dedicated private bucket, scoped credential, encrypted write/readback hash verification/delete; no object left (SA-506).",
-    "github_private_draft_replica": "NOT_RUN: the only available broad local CLI authorization and an inadmissible legacy backup credential were not used; a dedicated repository-scoped authorization needs Owner passkey confirmation.",
-    "private_database_api_delivery": "NOT_RUN: no configured official clone-free client plus dedicated authorization; no fact or checkout was written.",
-    "container_image_and_deployment": "LOCAL_BUILD_PASS: the current candidate built locally and passed an ephemeral no-mount loopback health check; no image was pushed, no deployment/timer was enabled, and no production smoke was run.",
+    "github_private_draft_replica": "NOT_RUN: the deployed GitHub secret file is empty and the configured archive target is not the required canonical identity; the broad local CLI authorization and inadmissible legacy backup credential were not used.",
+    "private_database_api_delivery": "NOT_RUN: the configured KMDatabase client path is absent. Three identical host-side client copies advertise ingest/verify, but none was wired without an authoritative target mapping; no fact or checkout was written.",
+    "container_image_and_deployment": "LOCAL_BUILD_AND_TARGETED_PRODUCTION_FIX_PASS: the current candidate built locally and passed an ephemeral no-mount loopback health check; the production Compose worker-only healthcheck correction was backed up and applied. No image was pushed, no full source deployment/timer was enabled, and no production release smoke was run.",
     "source_and_destination_real_canaries": "Recorded individually in SA-101 through SA-505; non-executed providers remain NOT_RUN rather than synthetic PASS."
   },
   "evidence_manifest": {
-    "evidence/SA-507/COMMAND_LOG.json": "f91a9e5f6259a0ebb1532986ef6e7e0935af31e5dd2d10083274a2d19669baa9",
-    "evidence/SA-507/RELEASE_REPORT.json": "0767b5f77d5910053ca212d13e01a943b4c33535dd93299dd7d10e71683de304",
+    "evidence/SA-507/COMMAND_LOG.json": "031078a610ff8f3b204ca75fba5d4f565257d91679115f428b9f4c92103746e0",
+    "evidence/SA-507/RELEASE_REPORT.json": "2062facb6150a0fcb74da3c114547128001dec06093b9e7f8e3d86144b7dc9b6",
     "evidence/final-verification.json": "3685e9fc189425609a90f1935d5c4a0825d5d595ee4ea390031c6c81bdf543d5",
+    "compose.yaml": "698bccaaac58d25c36983b4f6226f1f42b2e792073307fd32c2c8c00b2df5a0e",
+    "tests/focused/test_deployment_contract.py": "ccb2413086a7f57988400a3177c0cb2dc96e662c0e4ee3a2915d014e74b796ff",
     "Dockerfile": "2ab37da6197649964d924545a8cd157a6f4e13bb60289591eb3326e9310bae61",
     ".dockerignore": "28dae7d4baacf2faa276ac96a1721d2f8963517400f708c2805560381f49a051",
     "tests/focused/test_container_build_context.py": "8a342a57989ace01663d9f5822c0c7a7f1e3e79b87e443161cf0c03f733af96c",
@@ -153,8 +173,8 @@
   "non_claims": [
     "SA-507 本地自动门 PASS 不等于真实 GitHub Private 第三密文、Private-Database 对账、镜像或生产部署已通过。",
     "没有输出、读取或提交 token、cookie、private identity、provider identifier、主机地址、用户内容或 runtime database。",
-    "没有创建 GitHub Draft/Asset、GitHub source push、发布 tag、Private-Database fact、生产部署、定时器或额外 worktree；本机临时镜像标签与容器均已精确清理。",
+    "没有创建 GitHub Draft/Asset、GitHub source push、发布 tag、Private-Database fact、完整源代码生产部署、定时器或额外 worktree；仅有已备份且可回退的 worker Compose 健康检查修复，本机临时镜像标签与容器均已精确清理。",
     "该 DEGRADED 结果不把环境绑定 NOT_RUN 降格为 PASS，也不以 fixture 代替真实 provider 回执。"
   ],
-  "required_next_action": "Owner 完成 GitHub sudo/passkey 后提供或配置专用于 Social Archive 私有归档仓的最小权限 fine-grained 授权，并配置官方 Private-Database clone-free client/专用授权和生产部署入口。若候选源代码不变，执行真实 GitHub 同密文 Draft/readback、Private-Database ingest/verify、三目标恢复与生产 Smoke 后仅更新环境证据；若候选代码改变，必须重新冻结新候选并运行该候选唯一一次全量回归。"
+  "required_next_action": "Owner 完成 GitHub sudo/passkey 后配置专用于 Social Archive 私有归档仓的最小权限 fine-grained 授权（当前部署 secret 为空），并确认应接入的官方 Private-Database client 副本及专用授权/生产部署入口。若候选源代码不变，执行真实 GitHub 同密文 Draft/readback、Private-Database ingest/verify、三目标恢复与生产 Smoke 后仅更新环境证据；若候选代码改变，必须重新冻结新候选并运行该候选唯一一次全量回归。"
 }

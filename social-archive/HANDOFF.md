@@ -238,3 +238,19 @@ Cloudflare 受管 Tunnel 健康且有连接，UI/API/status projection/status fa
 1. 仅由 Owner 完成 GitHub sudo/passkey 后，配置只限 Social Archive 私有归档仓所需操作的最小权限 fine-grained 授权；同时在正式主机配置官方 Private-Database clone-free client、专用授权与生产部署入口。
 2. 若 `2de08bdf` 的功能源码未变，仅执行 GitHub 同密文 Draft/readback、Private-Database ingest/verify、三目标恢复和生产 smoke，并更新环境证据；**不得**为未变化候选重跑全量应用测试。
 3. 只有所有真实收据通过后才把 SA-507 收束为 PASS、创建版本 tag、推送到 `main`，并收尾唯一工作树；任何功能源码改变都先产生新候选并只对该新候选运行一次完整回归。
+
+## SA-507 candidate update (2026-07-31 UTC, worker health correction)
+
+本节覆盖上一节中以 `2de08bdf` 为当前候选的记录。线上只读检查发现 `core-worker` 继承了 image 内仅适用于 API 的 `/health` probe；worker 本身不监听 HTTP，因此即使进程实际运行也会永久显示 `unhealthy`。最小修复只在 `compose.yaml` 的 `core-worker` 明确声明 `healthcheck.disable: true`，并由 `tests/focused/test_deployment_contract.py` 固化。没有修改事务核心、连接器、用户数据、存储契约或宿主机 API 的 loopback 暴露策略。
+
+当前经测试的功能候选为 `752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c`，完整树 `cc9f2963319e60510e884dbb53005a3f928a2a0d`、产品树 `9b8682d70bfa8c2d4e728e7e10f1cb7e8301dc0c`、产品清单 SHA-256 `806f7627e2cd95ae342053f7453fedf2b32064017cacb2813157fc52929fd113`。该候选在冻结后唯一一次全量应用回归为 `218 passed`（1 条既有 Starlette/httpx 弃用警告，8.16s）；兼容任务包 `verify-fast` 26/26 PASS；回滚脚本只给出 `ROLLBACK_PLAN`，恢复标签仍为 `social-archive-pre-v0.0.0.4-20260730t095749z`。此前 `2cde65ed`（214 passed）、`26713a3`（216 passed）及 `2de08bdf`（217 passed）均因后续真实 P0 而明确废弃，绝非对同一候选重复全量测试。
+
+本机镜像 `sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101` 构建成功；无卷挂载的临时 API 容器通过仅本机回环端口的 `/health`。临时容器和精确候选 image tag 已删除。一次错误的 worker `--help` 探针进入循环后立即中断，未作为验收证据且未留下容器。线上只读 Compose diff 证明差异仅为这一 worker healthcheck 声明；在保留 `/opt/social-archive/compose.yaml.pre-worker-healthcheck-20260731T002200Z` 回滚副本后，只重建了 `core-worker`，API 仍为 healthy，worker 状态变为 `no-healthcheck`。这只是最小运行纠偏，**不是**当前源代码的完整生产部署。
+
+严格发布状态仍为 **DEGRADED，不是 PASS**。部署的 GitHub secret 文件为空且归档目标非 canonical，不能创建所需 GitHub Private Draft/asset 的第三同密文收据；宽权限本地 OAuth 与已知不安全旧凭据均未使用。Private-Database 的配置 client 路径不存在；主机上发现相同的 `private_db_client.py` 副本但没有权威目标映射或专用授权，因此没有 `ingest`/严格 `verify`。没有 GitHub source/tag/release push、Private-Database 写入、用户数据上传、镜像推送、完整生产部署、计时器启用、额外 worktree 或破坏性回滚。
+
+### Updated resume point (752b8bb4)
+
+1. 在不改变候选功能源码的前提下，先取得只限 Social Archive canonical 私有归档仓的最小权限 fine-grained GitHub 授权，并由权威配置确定 Private-Database clone-free client 的唯一目标和专用授权；不得回退使用宽权限或旧凭据。
+2. 仅在这些环境门通过后，执行 GitHub Draft 同密文上传/下载回读、Private-Database `ingest`/严格 `verify`、三目标恢复、镜像推送及完整生产部署 smoke；这些均须生成真实收据。
+3. 所有真实收据均通过后，才将 SA-507 标记为 PASS、创建 tag、按整体任务包完成后的授权推送 `main` 并收尾唯一工作树。任何功能源码变化都必须新冻候选，并只对该新候选运行一次完整应用回归。

@@ -1,24 +1,24 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
   "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-31T00:16:48Z",
-  "candidate_commit": "2de08bdf098b5a340654677c0682d8746a55c407",
+  "verified_at_utc": "2026-07-31T00:32:18Z",
+  "candidate_commit": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
   "commands": [
     {
       "id": "sa507_candidate_freeze_and_compatibility",
       "command": "git status --porcelain=v1 (must be empty); <project-venv-python> social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "Candidate 2de08bdf098b5a340654677c0682d8746a55c407 is clean, contains fetched origin/main, and binds Social Archive tree dadbdfebd64ab8bda546cf6b9d616cad4324ce76. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. Earlier candidates 2cde65ed and 26713a3 were explicitly superseded after P0 Docker build-context and container-network findings, respectively."
+      "result": "Candidate 752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c is clean, contains fetched origin/main, and binds Social Archive tree 9b8682d70bfa8c2d4e728e7e10f1cb7e8301dc0c. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. Earlier candidates 2cde65ed, 26713a3, and 2de08bdf were explicitly superseded after P0 Docker build-context, container-network, and worker-healthcheck findings, respectively."
     },
     {
       "id": "sa507_unique_full_application_suite",
       "command": "source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "217 passed, 1 non-failing Starlette/httpx deprecation warning, 8.44s. This is the sole full application-suite execution bound to current frozen candidate 2de08bdf; prior suites belong only to explicitly superseded candidates."
+      "result": "218 passed, 1 non-failing Starlette/httpx deprecation warning, 8.16s. This is the sole full application-suite execution bound to current frozen candidate 752b8bb4; prior suites belong only to explicitly superseded candidates."
     },
     {
       "id": "sa507_taskpack_verify_fast",
@@ -43,34 +43,42 @@
     },
     {
       "id": "sa507_local_container_build_and_smoke",
-      "command": "docker build --tag social-archive:v0.0.0.4-candidate-2de08bdf . && docker run --rm -d --name social-archive-sa507-smoke-2de08bdf -p 127.0.0.1::8765 <local-image> && curl --fail http://127.0.0.1:<ephemeral-port>/health",
+      "command": "docker build --tag social-archive:v0.0.0.4-candidate-752b8bb4 . && docker run --rm -d --name social-archive-sa507-smoke-752b8bb4 -p 127.0.0.1::8765 <local-image> && curl --fail http://127.0.0.1:<ephemeral-port>/health",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "The local image was built as sha256:4dbbcd63375cda08e67f326584deb1a33c95ad72001dd60d1e09eafc34629ac2 (272185676 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The container stopped and both exact candidate image tags were removed after verification."
+      "result": "The local image was built as sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101 (272687219 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The temporary container and exact candidate image tag were removed after verification."
+    },
+    {
+      "id": "sa507_worker_healthcheck_contract_and_production_recreate",
+      "command": "docker compose config --no-env-resolution --no-interpolate --no-path-resolution --format json; read-only remote compose diff; backup remote compose; docker compose up -d --no-deps --force-recreate core-worker",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The local Docker Compose render proved core-worker.healthcheck.disable=true. The remote Compose diff contained only that declaration. After a preserved rollback copy, only core-worker was recreated: core-api remained healthy and core-worker reported no-healthcheck instead of the inherited false unhealthy state."
     }
   ],
   "environment_bound_items_not_used_as_pass": [
     {
       "id": "github_private_draft_third_ciphertext_receipt",
       "outcome": "NOT_RUN",
-      "result": "Creating the required repository-scoped fine-grained authorization still requires the owner's GitHub sudo/passkey confirmation. Existing broad local CLI auth and an exposed legacy backup credential were deliberately not used; no Draft Release, asset, or GitHub receipt was created."
+      "result": "The deployed GitHub secret file is empty and its archive target does not match the canonical required identity. Creating the required repository-scoped fine-grained authorization still requires the owner's GitHub sudo/passkey confirmation. Existing broad local CLI auth and an exposed legacy backup credential were deliberately not used; no Draft Release, asset, or GitHub receipt was created."
     },
     {
       "id": "private_database_api_reconciliation",
       "outcome": "NOT_RUN",
-      "result": "No configured official clone-free client plus dedicated authorization was available, so no persistent fact, local checkout, clone, commit, or push occurred."
+      "result": "The configured KMDatabase client path is absent. Three identical host-side private_db_client.py copies advertise ingest and verify, but no authoritative target mapping or dedicated authorization was configured, so no persistent fact, local checkout, clone, commit, or push occurred."
     },
     {
       "id": "container_image_and_post_deploy_smoke",
       "outcome": "NOT_RUN",
-      "result": "Local image build and no-mount loopback smoke passed, but no image was pushed and no production deployment, timer enablement, or post-deploy smoke was attempted."
+      "result": "Current local image build and no-mount loopback smoke passed. The production worker-only Compose healthcheck correction was also backed up and applied, but no image was pushed and no full source deployment, timer enablement, or post-deploy release smoke was attempted."
     }
   ],
   "side_effects": [
     "Created a local checkpoint commit and integrated the then-current origin/main before candidate freeze; neither was pushed.",
     "Removed only the 47 MiB untracked node_modules cache left under the retired legacy tree after proving it was untracked and ignored; no runtime or user data was inspected or removed.",
     "Created a temporary compatible task-pack extraction for verify-fast and rollback-plan verification; it contained no production data and was removed after final evidence validation.",
-    "Built two exact local candidate image tags, ran only ephemeral no-mount loopback health checks, then stopped the containers and removed both exact image tags; no global Docker cleanup ran.",
-    "No GitHub source push, tag push, GitHub Release, Private-Database write, real platform capture, user-data upload, production deployment, timer enablement, extra worktree, or destructive rollback occurred."
+    "Built exact local candidate image tags, ran only ephemeral no-mount loopback API health checks, then stopped the containers and removed exact image tags; no global Docker cleanup ran. An invalid worker --help probe entered its loop and was immediately interrupted, was not used as acceptance evidence, and left no container.",
+    "After a read-only diff showed one Compose-only change, backed up the remote Compose file and recreated only core-worker to remove the false inherited API healthcheck; core-api remained healthy and the backup is retained for rollback.",
+    "No GitHub source push, tag push, GitHub Release, Private-Database write, real platform capture, user-data upload, full source production deployment, timer enablement, extra worktree, or destructive rollback occurred."
   ]
 }

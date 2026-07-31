@@ -1,7 +1,7 @@
 {
   "status": "DEGRADED",
   "version": "v0.0.0.4",
-  "commit": "2de08bdf098b5a340654677c0682d8746a55c407",
+  "commit": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
   "tasks": [
     {
       "scope": "SA-000 through SA-506",
@@ -11,14 +11,14 @@
     {
       "id": "SA-507",
       "status": "DEGRADED",
-      "reason": "All local candidate, test, integrity, rollback-plan, and local image smoke assertions pass; the real GitHub third ciphertext receipt, Private-Database reconciliation, and production deployment smoke remain unexecuted."
+      "reason": "All local candidate, test, integrity, rollback-plan, local image smoke, and targeted worker healthcheck assertions pass; the real GitHub third ciphertext receipt, Private-Database reconciliation, and full production release smoke remain unexecuted."
     }
   ],
   "tests": [
     {
       "id": "unique_full_application_suite",
       "status": "PASS",
-      "detail": "217 passed on candidate 2de08bdf098b5a340654677c0682d8746a55c407; executed exactly once for this final candidate."
+      "detail": "218 passed on candidate 752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c; executed exactly once for this final candidate."
     },
     {
       "id": "taskpack_verify_fast",
@@ -33,7 +33,7 @@
     {
       "id": "local_container_build_and_smoke",
       "status": "PASS",
-      "detail": "Local image sha256:4dbbcd63375cda08e67f326584deb1a33c95ad72001dd60d1e09eafc34629ac2 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. No image was pushed."
+      "detail": "Local image sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. No image was pushed."
     }
   ],
   "canaries": [
@@ -50,17 +50,22 @@
     {
       "id": "github_private_draft_same_ciphertext_readback",
       "status": "NOT_RUN",
-      "detail": "A new repository-scoped fine-grained authorization requires owner passkey confirmation; no unsafe fallback credential was used."
+      "detail": "The deployed token file is empty and the archive target is noncanonical; a new repository-scoped fine-grained authorization requires owner passkey confirmation, and no unsafe fallback credential was used."
     },
     {
       "id": "private_database_clone_free_reconciliation",
       "status": "NOT_RUN",
-      "detail": "No compliant official client plus dedicated authorization was configured."
+      "detail": "The configured client path is absent; matching host-side client copies were found but not wired without an authoritative target mapping or dedicated authorization."
     },
     {
       "id": "local_container_image_and_health",
       "status": "PASS",
       "detail": "The local-only candidate image built and passed no-mount loopback /health; both exact image tags were removed afterwards."
+    },
+    {
+      "id": "production_worker_healthcheck_correction",
+      "status": "PASS",
+      "detail": "After a one-declaration Compose diff and backup, only core-worker was recreated; the API remained healthy and the worker no longer inherited an API-only healthcheck. This is not a complete source deployment."
     }
   ],
   "storage": {
@@ -80,9 +85,9 @@
     "reason": "Recovery will not be claimed until the missing GitHub receipt exists and all three ciphertext copies can be verified."
   },
   "known_degradations": [
-    "No GitHub Private Draft/asset receipt or readback exists.",
-    "No Private-Database API reconciliation exists.",
-    "No image was pushed and no production deployment or post-deploy smoke exists; the local-only image identifier is not a published digest.",
+    "No GitHub Private Draft/asset receipt or readback exists; the deployed secret file is empty and requires a dedicated fine-grained replacement.",
+    "No Private-Database API reconciliation exists; the configured client path is absent and the correct host-side copy remains unmapped.",
+    "No image was pushed and no full current-source production deployment or post-deploy release smoke exists; the local-only image identifier is not a published digest.",
     "Source and destination provider states remain only as real observations recorded in the per-task evidence; unexecuted providers remain NOT_RUN.",
     "Git source publication and release tag publication are intentionally deferred until the strict third-replica and Private-Database gate passes."
   ],
