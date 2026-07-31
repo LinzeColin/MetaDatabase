@@ -123,6 +123,90 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     assert sorted(str(path.relative_to(project)) for path in project.rglob("*")) == before
 
 
+def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configuration(tmp_path):
+    project = tmp_path / "project"
+    scripts = project / "scripts"
+    scripts.mkdir(parents=True)
+    data_root = project / "data"
+    prepare_text = (ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8")
+    replacements = {
+        'TARGET_ROOT="/opt/social-archive"': f'TARGET_ROOT="{project}"',
+        'HOST_ENV_DIR="/etc/social-archive"': f'HOST_ENV_DIR="{project / "etc" / "social-archive"}"',
+        'SYSTEMD_DIR="/etc/systemd/system"': f'SYSTEMD_DIR="{project / "systemd"}"',
+        'BACKUP_ROOT="/var/backups/social-archive"': f'BACKUP_ROOT="{project / "backups"}"',
+        'HOST_DATA_ROOT="/var/lib/social-archive"': f'HOST_DATA_ROOT="{data_root}"',
+    }
+    for before, after in replacements.items():
+        assert before in prepare_text
+        prepare_text = prepare_text.replace(before, after)
+    prepare = scripts / "prepare_systemd_host.sh"
+    prepare.write_text(prepare_text, encoding="utf-8")
+    prepare.chmod(0o755)
+    (project / ".env").write_text(
+        "SOCIAL_ARCHIVE_ENV=production\n"
+        f"SOCIAL_ARCHIVE_DATA_HOST_PATH={data_root}\n"
+        f"SOCIAL_ARCHIVE_DATA_ROOT={data_root}\n",
+        encoding="utf-8",
+    )
+    python_path = project / ".venv" / "bin" / "python"
+    python_path.parent.mkdir(parents=True)
+    _write_executable(python_path, "#!/bin/sh\nexit 0\n")
+    units = project / "deploy" / "systemd"
+    units.mkdir(parents=True)
+    for name in (
+        "social-archive.service",
+        "social-archive-backup.service",
+        "social-archive-backup.timer",
+        "social-archive-cloudflared.service",
+        "social-archive-private-database-sync.service",
+        "social-archive-private-database-sync.timer",
+        "social-archive-replication.service",
+        "social-archive-replication.timer",
+        "social-archive-status.service",
+        "social-archive-status.timer",
+        "social-archive-status-web.service",
+    ):
+        (units / name).write_text("fixture\n", encoding="utf-8")
+    secrets = project / "runtime" / "secrets"
+    secrets.mkdir(parents=True)
+    for name in (
+        "r2_access_key_id",
+        "r2_secret_access_key",
+        "oci_access_key_id",
+        "oci_secret_access_key",
+        "github_token",
+        "social_archive_api_token",
+        "social_archive_pairing_code",
+        "cli_worker_token",
+        "notion_token",
+        "obsidian_rest_token",
+        "karakeep_api_token",
+        "linkwarden_api_token",
+    ):
+        (secrets / name).write_text("fixture\n", encoding="utf-8")
+    host_env = project / "etc" / "social-archive" / "social-archive.env"
+    host_env.parent.mkdir(parents=True)
+    host_env.write_text("SOCIAL_ARCHIVE_R2_ENDPOINT=https://fixture.invalid\n", encoding="utf-8")
+    before = host_env.read_text(encoding="utf-8")
+
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    _write_executable(
+        fake_bin / "id",
+        "#!/bin/sh\nif [ \"${1:-}\" = \"-u\" ]; then echo 0; elif [ \"${1:-}\" = \"-g\" ]; then echo 980; else exit 0; fi\n",
+    )
+    for command in ("useradd", "install", "systemctl", "stat"):
+        _write_executable(fake_bin / command, "#!/bin/sh\nexit 0\n")
+    env = {**os.environ, "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}"}
+    result = subprocess.run(["bash", "scripts/prepare_systemd_host.sh", "--apply"], cwd=project, env=env, text=True, capture_output=True, check=False)
+
+    assert result.returncode == 2
+    assert "拒绝覆盖并清空既有非 Secret 配置" in result.stderr
+    assert host_env.read_text(encoding="utf-8") == before
+    assert not data_root.exists()
+    assert not (project / "backups").exists()
+
+
 def test_systemd_host_prepare_keeps_long_lived_secrets_root_only_and_uses_unit_credentials():
     prepare = (ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8")
     replication = (ROOT / "deploy" / "systemd" / "social-archive-replication.service").read_text(encoding="utf-8")
