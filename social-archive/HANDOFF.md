@@ -254,3 +254,21 @@ Cloudflare 受管 Tunnel 健康且有连接，UI/API/status projection/status fa
 1. 在不改变候选功能源码的前提下，先取得只限 Social Archive canonical 私有归档仓的最小权限 fine-grained GitHub 授权，并由权威配置确定 Private-Database clone-free client 的唯一目标和专用授权；不得回退使用宽权限或旧凭据。
 2. 仅在这些环境门通过后，执行 GitHub Draft 同密文上传/下载回读、Private-Database `ingest`/严格 `verify`、三目标恢复、镜像推送及完整生产部署 smoke；这些均须生成真实收据。
 3. 所有真实收据均通过后，才将 SA-507 标记为 PASS、创建 tag、按整体任务包完成后的授权推送 `main` 并收尾唯一工作树。任何功能源码变化都必须新冻候选，并只对该新候选运行一次完整应用回归。
+
+## SA-507 candidate update (2026-07-31 UTC, Private-Database legacy manifest verification)
+
+本节覆盖上一节中以 `752b8bb4` 为候选的记录。官方 `Private-Database` clone-free client 的 `verify Private-MetaDatabase` 对当前账本返回 exit 0，但摘要把 5 条历史 EEI 记录列为“缺失”；原因不是对象丢失，而是这些不可变历史条目的 `object_path` 保留了 `Private-MetaDatabase/` 前缀，而旧 verifier 会再拼接一次 area。此处不能以文字摘要直接放行，也不能改写私有账本或复制 client：`scripts/sync_private_database.py` 只在官方摘要的总数关系严格成立时，经同一官方 client 只读取 `manifest.jsonl`，校验内容寻址路径、唯一性和总数，再逐个读回 5 个 legacy 对象并核对精确字节数和 SHA-256；任一不符仍失败。
+
+当前经测试的功能候选是 `0a9fbf3b2051640e61c42b17173bf86deaca3e5d`，完整树 `db5351cfa0d76df90e7b11ba2b1ef7068044d67e`、产品树 `b12b55272d156abd5045c17ac19ebaef7592714d`、276 个产品追踪文件的清单 SHA-256 为 `c3cab908cd5edc7eda7b9c3eb13404c1f2573ed5efc79ffa1e90f98f235ab591`。它的冻结后唯一一次全量应用回归为 `220 passed`（1 条既有 Starlette/httpx 弃用警告，7.93s）；兼容任务包 `verify-fast` 26/26 PASS；结构验证保持 `application_suite_rerun=false`。`752b8bb4`（218 passed）因上述严格兼容问题明确废弃；这是功能源码变更后的新候选，不是对未变化候选重复跑全量测试。
+
+真实只读账本核验结果为：官方 exit 0、账本 31 条、canonical 路径 26 条、历史全前缀路径 5 条，五个对象均经官方 client 读回并 SHA-256 匹配。没有 `ingest`、checkout、clone、commit、push 或 Private-Database 持久写入。这个 PASS 只修复全局历史账本的读兼容；当前并没有 Social Archive 完成态事实，产品 fact `ingest`/严格 `verify` 与冷备仍是 `NOT_RUN`。
+
+为解除第三密文副本的身份门，已创建空私有仓 `LinzeColin/Social-Archive-Vault`，并读回 `private=true`、`visibility=private`、`default_branch=main`。未上传源码、用户数据、密文、Release、Asset 或 tag。GitHub 中已暂存一个未提交的 30 天 fine-grained token 表单：唯一选择该仓，`Contents: Read and write`，强制 `Metadata: Read-only`；这仍不是 token、未写入服务端、未产生 Draft/asset。旧受保护备份 PAT 已有明文暴露记录，本机宽权限 OAuth 也不复制到服务端，二者均不用于归档上传。
+
+严格发布状态仍为 **DEGRADED，不是 PASS**：R2/OCI canary 与本地 Docker/API、worker health correction 通过；GitHub Private Draft 同密文 readback、Social Archive facts sync、三目标恢复、镜像发布及完整生产部署 Smoke 尚未执行。没有 GitHub source push/tag/release、Private-Database fact、用户数据上传、完整源代码生产部署、timer enablement、额外 worktree 或破坏性回滚。
+
+### Updated resume point (0a9fbf3b)
+
+1. 在 GitHub token 表单最终生成前，取得即时确认；生成后只把 token 以 0600 服务端 secret 配置给 `LinzeColin/Social-Archive-Vault`，不显示、不提交或复用宽权限/暴露旧凭据。
+2. 在功能候选不变的前提下，运行 GitHub Draft 同密文上传/下载回读；在权威生产 client/auth 下运行 Social Archive facts `ingest`/严格 `verify`、三目标恢复、镜像发布和完整部署 Smoke；只更新环境证据，不重跑全量应用套件。
+3. 只有所有真实收据通过后，才将 SA-507 收束为 PASS、创建 tag、推送/合并 `main` 并收尾唯一 worktree；若功能源码变更，先冻结新候选并只对该候选运行一次完整应用回归。

@@ -1,31 +1,31 @@
 {
-  "schema_version": "1.5",
+  "schema_version": "1.6",
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
   "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-31T00:32:18Z",
-  "candidate_commit": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
+  "verified_at_utc": "2026-07-31T01:08:46Z",
+  "candidate_commit": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
   "commands": [
     {
       "id": "sa507_candidate_freeze_and_compatibility",
       "command": "git status --porcelain=v1 (must be empty); <project-venv-python> social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "Candidate 752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c is clean, contains fetched origin/main, and binds Social Archive tree 9b8682d70bfa8c2d4e728e7e10f1cb7e8301dc0c. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. Earlier candidates 2cde65ed, 26713a3, and 2de08bdf were explicitly superseded after P0 Docker build-context, container-network, and worker-healthcheck findings, respectively."
+      "result": "Candidate 0a9fbf3b2051640e61c42b17173bf86deaca3e5d is clean, contains fetched origin/main, and binds Social Archive tree b12b55272d156abd5045c17ac19ebaef7592714d. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. Earlier candidates through 752b8bb4 were explicitly superseded after P0 Docker and strict Private-Database legacy-manifest findings."
     },
     {
       "id": "sa507_unique_full_application_suite",
-      "command": "source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "218 passed, 1 non-failing Starlette/httpx deprecation warning, 8.16s. This is the sole full application-suite execution bound to current frozen candidate 752b8bb4; prior suites belong only to explicitly superseded candidates."
+      "result": "220 passed, 1 non-failing Starlette/httpx deprecation warning, 7.93s. This is the sole full application-suite execution bound to current frozen candidate 0a9fbf3b; prior suites belong only to explicitly superseded candidates."
     },
     {
       "id": "sa507_taskpack_verify_fast",
-      "command": "<project-venv-python> prepare_compat_taskpack.py --base-zip <frozen-v0.0.0.4-zip> --output <temporary-compatible-pack> && <project-venv-python> <temporary-compatible-pack>/START_HERE.py verify-fast",
+      "command": "<project-venv-python> prepare_compat_taskpack.py --base-zip <frozen-v0.0.0.4-zip> --output <temporary-compatible-pack> && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python <temporary-compatible-pack>/START_HERE.py verify-fast",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "The compatible frozen task pack verified 26/26 checks. Its application_tests check was skipped only by the explicit final re-verification flag, so it did not repeat the unique product suite."
+      "result": "The compatible frozen task pack verified 26/26 checks. Its application_tests check was skipped only by the explicit final re-verification flag, so it did not repeat the unique product suite. The project venv was required because the macOS system Python lacks tomllib."
     },
     {
       "id": "sa507_final_structural_verify",
@@ -43,10 +43,10 @@
     },
     {
       "id": "sa507_local_container_build_and_smoke",
-      "command": "docker build --tag social-archive:v0.0.0.4-candidate-752b8bb4 . && docker run --rm -d --name social-archive-sa507-smoke-752b8bb4 -p 127.0.0.1::8765 <local-image> && curl --fail http://127.0.0.1:<ephemeral-port>/health",
+      "command": "docker build --tag social-archive:v0.0.0.4-candidate-0a9fbf3b . && docker run --rm -d --name social-archive-sa507-smoke-0a9fbf3b -p 127.0.0.1::8765 <local-image> && curl --fail http://127.0.0.1:<ephemeral-port>/health",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "The local image was built as sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101 (272687219 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The temporary container and exact candidate image tag were removed after verification."
+      "result": "The local image was built as sha256:7756140673c484b7a4668d9429871c66612da512fbec50ff8c5884757b707a24 (272698041 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The temporary container and exact candidate image tag were removed after verification."
     },
     {
       "id": "sa507_worker_healthcheck_contract_and_production_recreate",
@@ -54,18 +54,32 @@
       "exit_code": 0,
       "outcome": "PASS",
       "result": "The local Docker Compose render proved core-worker.healthcheck.disable=true. The remote Compose diff contained only that declaration. After a preserved rollback copy, only core-worker was recreated: core-api remained healthy and core-worker reported no-healthcheck instead of the inherited false unhealthy state."
+    },
+    {
+      "id": "sa507_private_database_legacy_manifest_readback",
+      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python - <read-only helper importing scripts/sync_private_database.py and invoking official private_db_client.py verify/get>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The official clone-free client returned exit 0 for Private-MetaDatabase. Its summary was incomplete only because five historical manifest paths retained the area prefix; the adapter fetched manifest.jsonl and exactly those five objects with the same official client, checked 31 ledger rows, 26 canonical rows, all five byte lengths and SHA-256 values, then accepted only that exact compatible result. No ingest, commit, checkout, or persistent data write occurred."
+    },
+    {
+      "id": "sa507_private_github_archive_repository",
+      "command": "gh repo create LinzeColin/Social-Archive-Vault --private --description <archive-purpose>; gh api repos/LinzeColin/Social-Archive-Vault",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Created an empty dedicated private archive repository and read it back as full_name=LinzeColin/Social-Archive-Vault, private=true, visibility=private, default_branch=main, archived=false. No source, user data, encrypted pack, Draft Release, asset, or tag was uploaded."
     }
   ],
   "environment_bound_items_not_used_as_pass": [
     {
       "id": "github_private_draft_third_ciphertext_receipt",
       "outcome": "NOT_RUN",
-      "result": "The deployed GitHub secret file is empty and its archive target does not match the canonical required identity. Creating the required repository-scoped fine-grained authorization still requires the owner's GitHub sudo/passkey confirmation. Existing broad local CLI auth and an exposed legacy backup credential were deliberately not used; no Draft Release, asset, or GitHub receipt was created."
+      "result": "The canonical private archive repository now exists. A 30-day fine-grained token form is staged for that repository only with Contents read/write and required Metadata read, but token generation and server-side 0600 installation have not occurred. No Draft Release, asset, ciphertext, or GitHub receipt exists."
     },
     {
-      "id": "private_database_api_reconciliation",
+      "id": "private_database_social_archive_fact_reconciliation",
       "outcome": "NOT_RUN",
-      "result": "The configured KMDatabase client path is absent. Three identical host-side private_db_client.py copies advertise ingest and verify, but no authoritative target mapping or dedicated authorization was configured, so no persistent fact, local checkout, clone, commit, or push occurred."
+      "result": "The global Private-MetaDatabase ledger compatibility check is PASS, but no Social Archive completed fact was ingested or verified. Production still lacks the env/auth configuration required to use the authoritative clone-free client, so no persistent fact, checkout, clone, commit, or push occurred."
     },
     {
       "id": "container_image_and_post_deploy_smoke",
@@ -75,9 +89,10 @@
   ],
   "side_effects": [
     "Created a local checkpoint commit and integrated the then-current origin/main before candidate freeze; neither was pushed.",
-    "Removed only the 47 MiB untracked node_modules cache left under the retired legacy tree after proving it was untracked and ignored; no runtime or user data was inspected or removed.",
-    "Created a temporary compatible task-pack extraction for verify-fast and rollback-plan verification; it contained no production data and was removed after final evidence validation.",
-    "Built exact local candidate image tags, ran only ephemeral no-mount loopback API health checks, then stopped the containers and removed exact image tags; no global Docker cleanup ran. An invalid worker --help probe entered its loop and was immediately interrupted, was not used as acceptance evidence, and left no container.",
+    "Created the empty private LinzeColin/Social-Archive-Vault repository through the account's local CLI session. It contains no source, release, asset, user content, or encrypted pack.",
+    "Configured but did not submit a browser form for a repository-only fine-grained archive token; no token value was generated, copied, logged, or installed.",
+    "Performed clone-free readback verification of the existing Private-MetaDatabase ledger; no ingest, checkout, clone, commit, or write occurred.",
+    "Built exact local candidate image tags, ran only ephemeral no-mount loopback API health checks, then stopped the containers and removed exact image tags; no global Docker cleanup ran.",
     "After a read-only diff showed one Compose-only change, backed up the remote Compose file and recreated only core-worker to remove the false inherited API healthcheck; core-api remained healthy and the backup is retained for rollback.",
     "No GitHub source push, tag push, GitHub Release, Private-Database write, real platform capture, user-data upload, full source production deployment, timer enablement, extra worktree, or destructive rollback occurred."
   ]

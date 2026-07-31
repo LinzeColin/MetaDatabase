@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.5",
+  "schema_version": "1.6",
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
   "task_title": "冻结候选、执行唯一全量回归并发布",
@@ -7,17 +7,19 @@
   "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
   "status": "DEGRADED",
   "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-31T00:32:18Z",
+  "verified_at_utc": "2026-07-31T01:08:46Z",
   "subject": {
     "repository": "LinzeColin/MetaDatabase",
     "branch": "codex/social-archive-v0004-integration",
-    "candidate_head": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
-    "candidate_full_tree": "cc9f2963319e60510e884dbb53005a3f928a2a0d",
-    "candidate_social_archive_tree": "9b8682d70bfa8c2d4e728e7e10f1cb7e8301dc0c",
-    "candidate_social_archive_list_sha256": "806f7627e2cd95ae342053f7453fedf2b32064017cacb2813157fc52929fd113",
+    "candidate_head": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
+    "candidate_full_tree": "db5351cfa0d76df90e7b11ba2b1ef7068044d67e",
+    "candidate_social_archive_tree": "b12b55272d156abd5045c17ac19ebaef7592714d",
+    "candidate_social_archive_list_sha256": "c3cab908cd5edc7eda7b9c3eb13404c1f2573ed5efc79ffa1e90f98f235ab591",
     "candidate_social_archive_tracked_file_count": 276,
     "latest_origin_main_integrated_before_freeze": true,
     "single_worktree_used": true,
+    "github_archive_repository": "LinzeColin/Social-Archive-Vault",
+    "github_archive_repository_state": "PRIVATE_EMPTY_CREATED_READBACK_PASS",
     "source_push_or_release_created": false,
     "candidate_lineage": [
       {
@@ -40,8 +42,14 @@
       },
       {
         "head": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
-        "status": "CURRENT_TESTED_CANDIDATE",
+        "status": "SUPERSEDED",
+        "reason": "The official Private-Database verifier classified five historical area-prefixed manifest paths as missing; the Social Archive adapter now permits completion only after clone-free object readback, byte-size, and SHA-256 verification.",
         "full_suite": "218 passed"
+      },
+      {
+        "head": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
+        "status": "CURRENT_TESTED_CANDIDATE",
+        "full_suite": "220 passed"
       }
     ]
   },
@@ -51,7 +59,7 @@
       "assertion": "精确候选在合入当时最新 origin/main 后冻结，兼容层保持单一事务核心和 legacy runtime 边界",
       "status": "PASS",
       "evidence": {
-        "candidate_head": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
+        "candidate_head": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
         "taskpack_compatibility": "PASS",
         "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
         "second_core_withheld_as_candidate": true
@@ -61,12 +69,12 @@
       "assertion": "当前精确冻结候选在冻结后只运行一次全量应用回归；此前候选均因已发现的 P0 修复而废弃",
       "status": "PASS",
       "evidence": {
-        "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
-        "passed": 218,
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q",
+        "passed": 220,
         "failed": 0,
         "warning_count": 1,
-        "elapsed_seconds": 8.16,
-        "candidate_social_archive_list_sha256_before_and_after": "806f7627e2cd95ae342053f7453fedf2b32064017cacb2813157fc52929fd113"
+        "elapsed_seconds": 7.93,
+        "candidate_social_archive_list_sha256_before_and_after": "c3cab908cd5edc7eda7b9c3eb13404c1f2573ed5efc79ffa1e90f98f235ab591"
       }
     },
     {
@@ -102,9 +110,9 @@
       "assertion": "当前候选可构建为本地 Docker 镜像，并可在无挂载的临时容器中经仅本机回环端口健康检查",
       "status": "PASS",
       "evidence": {
-        "local_image_id": "sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101",
-        "local_image_size_bytes": 272687219,
-        "local_container_health": "PASS",
+        "local_image_id": "sha256:7756140673c484b7a4668d9429871c66612da512fbec50ff8c5884757b707a24",
+        "local_image_size_bytes": 272698041,
+        "local_container_health": "PASS_ON_ATTEMPT_2",
         "local_container_mount_count": 0,
         "loopback_port_mapping": "PASS",
         "temporary_image_tags_removed_after_check": true
@@ -123,47 +131,64 @@
       }
     },
     {
-      "assertion": "真实三副本发布、Private-Database 对账与生产部署 Smoke 已闭合",
+      "assertion": "Private-Database 的历史全前缀 manifest 条目只会在官方 clone-free client 读回、长度和 SHA-256 严格核验后被接受",
+      "status": "PASS",
+      "evidence": {
+        "official_verify_exit": 0,
+        "ledger_total": 31,
+        "canonical_relative_entries": 26,
+        "legacy_prefixed_entries": 5,
+        "legacy_readback_sha256": "PASS",
+        "persistent_data_write": "NOT_ATTEMPTED"
+      }
+    },
+    {
+      "assertion": "真实三副本发布、Social Archive 完成态事实同步与完整生产部署 Smoke 已闭合",
       "status": "DEGRADED",
       "evidence": {
         "r2_encrypted_canary": "PASS",
         "oci_encrypted_canary": "PASS",
+        "github_archive_repository_private_readback": "PASS",
         "github_private_draft_same_ciphertext_readback": "NOT_RUN",
-        "private_database_api_reconciliation": "NOT_RUN",
+        "private_database_global_ledger_compatibility": "PASS",
+        "private_database_social_archive_fact_ingest_and_verify": "NOT_RUN",
         "published_container_image_digest": "NOT_RUN",
         "post_deploy_smoke": "NOT_RUN"
       },
-      "reason": "GitHub 第三密文副本仍需要 Owner 的新建最小权限 fine-grained 授权；Private-Database 官方 client/专用授权与生产部署环境也未配置。仅本机镜像构建和无挂载健康检查已通过，不能替代远端发布或生产 Smoke。NOT_RUN 未被写作 PASS。"
+      "reason": "空私有归档仓已创建并读回为 private，但最小权限 fine-grained token 尚未生成或安装，故没有 Draft/asset；Private-Database 仅完成历史账本的只读兼容核验，尚无 Social Archive 完成态事实投递；生产 env、镜像发布与完整部署 Smoke 仍未执行。NOT_RUN 未被写作 PASS。"
     }
   ],
   "release_candidate": {
-    "source_commit_digest": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
-    "source_tree_digest": "cc9f2963319e60510e884dbb53005a3f928a2a0d",
-    "product_tree_digest": "9b8682d70bfa8c2d4e728e7e10f1cb7e8301dc0c",
+    "source_commit_digest": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
+    "source_tree_digest": "db5351cfa0d76df90e7b11ba2b1ef7068044d67e",
+    "product_tree_digest": "b12b55272d156abd5045c17ac19ebaef7592714d",
     "version": "v0.0.0.4",
     "source_publication": "NOT_PERFORMED",
     "release_tag": "NOT_CREATED",
-    "container_image_digest": "LOCAL_ONLY:sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101",
-    "reason": "A source tag/push would advertise a completed release while the required third real ciphertext receipt and Private-Database reconciliation remain absent. The local-only image identifier is not a published image digest."
+    "github_archive_repository": "PRIVATE_EMPTY_CREATED:LinzeColin/Social-Archive-Vault",
+    "container_image_digest": "LOCAL_ONLY:sha256:7756140673c484b7a4668d9429871c66612da512fbec50ff8c5884757b707a24",
+    "reason": "A source tag/push would advertise a completed release while the required third real ciphertext receipt, Social Archive fact synchronization, and production smoke remain absent. The empty private archive repository and local-only image identifier are not a Release, uploaded asset, or published image digest."
   },
   "runtime_and_provider_observations": {
     "classification": "Provider and deployment observations are separate from local fixture and candidate assertions. A NOT_RUN observation is never a PASS assertion.",
     "r2_encrypted_canary": "PASS: dedicated private bucket, scoped credential, encrypted write/readback hash verification/delete; no object left (SA-506).",
     "oci_encrypted_canary": "PASS: dedicated private bucket, scoped credential, encrypted write/readback hash verification/delete; no object left (SA-506).",
-    "github_private_draft_replica": "NOT_RUN: the deployed GitHub secret file is empty and the configured archive target is not the required canonical identity; the broad local CLI authorization and inadmissible legacy backup credential were not used.",
-    "private_database_api_delivery": "NOT_RUN: the configured KMDatabase client path is absent. Three identical host-side client copies advertise ingest/verify, but none was wired without an authoritative target mapping; no fact or checkout was written.",
+    "github_private_draft_replica": "NOT_RUN: LinzeColin/Social-Archive-Vault now exists and is private, but its repository-only Contents read/write fine-grained token is only a browser form draft. No token, Draft Release, asset, ciphertext, or receipt has been created.",
+    "private_database_api_delivery": "READ_ONLY_LEDGER_COMPATIBILITY_PASS; SOCIAL_ARCHIVE_FACT_DELIVERY_NOT_RUN: the official client verified the current 31-row ledger after the adapter strictly read back the five legacy-prefixed objects. No Social Archive fact was ingested and production client/auth configuration remains absent.",
     "container_image_and_deployment": "LOCAL_BUILD_AND_TARGETED_PRODUCTION_FIX_PASS: the current candidate built locally and passed an ephemeral no-mount loopback health check; the production Compose worker-only healthcheck correction was backed up and applied. No image was pushed, no full source deployment/timer was enabled, and no production release smoke was run.",
     "source_and_destination_real_canaries": "Recorded individually in SA-101 through SA-505; non-executed providers remain NOT_RUN rather than synthetic PASS."
   },
   "evidence_manifest": {
-    "evidence/SA-507/COMMAND_LOG.json": "031078a610ff8f3b204ca75fba5d4f565257d91679115f428b9f4c92103746e0",
-    "evidence/SA-507/RELEASE_REPORT.json": "2062facb6150a0fcb74da3c114547128001dec06093b9e7f8e3d86144b7dc9b6",
+    "evidence/SA-507/COMMAND_LOG.json": "6047d2666631e729e8112ef724a197562668537848f4ddf69c87923ef1bcfc61",
+    "evidence/SA-507/RELEASE_REPORT.json": "80425338689a77052b3953705cb58dabe5c72858e2cb88c6274b9d9788931478",
     "evidence/final-verification.json": "3685e9fc189425609a90f1935d5c4a0825d5d595ee4ea390031c6c81bdf543d5",
     "compose.yaml": "698bccaaac58d25c36983b4f6226f1f42b2e792073307fd32c2c8c00b2df5a0e",
     "tests/focused/test_deployment_contract.py": "ccb2413086a7f57988400a3177c0cb2dc96e662c0e4ee3a2915d014e74b796ff",
     "Dockerfile": "2ab37da6197649964d924545a8cd157a6f4e13bb60289591eb3326e9310bae61",
     ".dockerignore": "28dae7d4baacf2faa276ac96a1721d2f8963517400f708c2805560381f49a051",
     "tests/focused/test_container_build_context.py": "8a342a57989ace01663d9f5822c0c7a7f1e3e79b87e443161cf0c03f733af96c",
+    "scripts/sync_private_database.py": "3fd345a5bae958e208d304095fffcea8d07d55faeb5bb80b5520cd3613403888",
+    "tests/focused/test_private_database_sync.py": "c536183a149910411182cf4cc0ba6785178af23be5551710a654a59b9961a4ca",
     "scripts/final_verify.py": "ebcffe8218d217ad4afc38b06f9cd44e2f73c7ee156d9c77a22389175016bc30",
     "tests/focused/test_final_verify_contract.py": "599e0d3e62ee15effab8f9da892750997b72beaeede2e1ba50564b590e772ae8",
     "machine/task_dag.yaml": "23dce3493b72edf40ebeeea76ac82a55e3d4e44af67f87a884c6bb1f3411a820",
@@ -171,10 +196,10 @@
     "machine/release_boundary.json": "beb43cc0ab272eb70fcae79cd99568f8d437d14049d83f3c3d951e1e4412511d"
   },
   "non_claims": [
-    "SA-507 本地自动门 PASS 不等于真实 GitHub Private 第三密文、Private-Database 对账、镜像或生产部署已通过。",
+    "SA-507 本地自动门 PASS 不等于真实 GitHub Private 第三密文、Social Archive Private-Database 完成态同步、镜像或生产部署已通过。",
     "没有输出、读取或提交 token、cookie、private identity、provider identifier、主机地址、用户内容或 runtime database。",
-    "没有创建 GitHub Draft/Asset、GitHub source push、发布 tag、Private-Database fact、完整源代码生产部署、定时器或额外 worktree；仅有已备份且可回退的 worker Compose 健康检查修复，本机临时镜像标签与容器均已精确清理。",
+    "只创建了空私有归档仓并暂存未提交的细粒度令牌表单；没有创建 GitHub Draft/Asset、GitHub source push、发布 tag、Private-Database fact、用户数据上传、完整源代码生产部署、定时器或额外 worktree。",
     "该 DEGRADED 结果不把环境绑定 NOT_RUN 降格为 PASS，也不以 fixture 代替真实 provider 回执。"
   ],
-  "required_next_action": "Owner 完成 GitHub sudo/passkey 后配置专用于 Social Archive 私有归档仓的最小权限 fine-grained 授权（当前部署 secret 为空），并确认应接入的官方 Private-Database client 副本及专用授权/生产部署入口。若候选源代码不变，执行真实 GitHub 同密文 Draft/readback、Private-Database ingest/verify、三目标恢复与生产 Smoke 后仅更新环境证据；若候选代码改变，必须重新冻结新候选并运行该候选唯一一次全量回归。"
+  "required_next_action": "在 GitHub 表单最终生成前取得即时确认，生成仅限 LinzeColin/Social-Archive-Vault、Contents read/write 与必需 Metadata read 的 30 天 fine-grained token；随后仅以 0600 服务端 secret 配置它，执行同密文 Draft/readback。再在权威生产 client/auth 下执行 Social Archive facts ingest/verify、三目标恢复、镜像发布和完整部署 Smoke。功能源码若改变，必须重新冻结并对新候选运行唯一一次全量回归。"
 }

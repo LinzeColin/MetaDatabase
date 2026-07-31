@@ -1,7 +1,7 @@
 {
   "status": "DEGRADED",
   "version": "v0.0.0.4",
-  "commit": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
+  "commit": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
   "tasks": [
     {
       "scope": "SA-000 through SA-506",
@@ -11,14 +11,14 @@
     {
       "id": "SA-507",
       "status": "DEGRADED",
-      "reason": "All local candidate, test, integrity, rollback-plan, local image smoke, and targeted worker healthcheck assertions pass; the real GitHub third ciphertext receipt, Private-Database reconciliation, and full production release smoke remain unexecuted."
+      "reason": "All local candidate, test, integrity, rollback-plan, local image smoke, targeted worker healthcheck, and Private-Database legacy-ledger assertions pass; the real GitHub third ciphertext receipt, Social Archive fact reconciliation, and full production release smoke remain unexecuted."
     }
   ],
   "tests": [
     {
       "id": "unique_full_application_suite",
       "status": "PASS",
-      "detail": "218 passed on candidate 752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c; executed exactly once for this final candidate."
+      "detail": "220 passed on candidate 0a9fbf3b2051640e61c42b17173bf86deaca3e5d; executed exactly once for this final functional candidate."
     },
     {
       "id": "taskpack_verify_fast",
@@ -33,7 +33,12 @@
     {
       "id": "local_container_build_and_smoke",
       "status": "PASS",
-      "detail": "Local image sha256:974036a7e8376b1beff973fdda44d7408cbf1486a4caa58df10ef2b958c15101 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. No image was pushed."
+      "detail": "Local image sha256:7756140673c484b7a4668d9429871c66612da512fbec50ff8c5884757b707a24 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. No image was pushed."
+    },
+    {
+      "id": "private_database_legacy_manifest_readback",
+      "status": "PASS",
+      "detail": "The official clone-free verifier ledger was strictly reconciled by readback of five historical area-prefixed objects with matching length and SHA-256; no Social Archive fact was written."
     }
   ],
   "canaries": [
@@ -48,19 +53,29 @@
       "detail": "Dedicated private bucket, scoped credential, encrypted object readback hash verification, and deletion were recorded in SA-506."
     },
     {
-      "id": "github_private_draft_same_ciphertext_readback",
-      "status": "NOT_RUN",
-      "detail": "The deployed token file is empty and the archive target is noncanonical; a new repository-scoped fine-grained authorization requires owner passkey confirmation, and no unsafe fallback credential was used."
+      "id": "github_private_archive_repository",
+      "status": "PASS",
+      "detail": "LinzeColin/Social-Archive-Vault was created empty and read back as private; this is only the target-identity prerequisite, not a ciphertext receipt."
     },
     {
-      "id": "private_database_clone_free_reconciliation",
+      "id": "github_private_draft_same_ciphertext_readback",
       "status": "NOT_RUN",
-      "detail": "The configured client path is absent; matching host-side client copies were found but not wired without an authoritative target mapping or dedicated authorization."
+      "detail": "The scoped fine-grained token is only an unsubmitted form draft. No Draft Release, asset upload, ciphertext, or readback exists."
+    },
+    {
+      "id": "private_database_clone_free_legacy_ledger_reconciliation",
+      "status": "PASS",
+      "detail": "31 ledger rows were reconciled through the official client, including five strictly read-back legacy-prefixed entries."
+    },
+    {
+      "id": "private_database_social_archive_fact_reconciliation",
+      "status": "NOT_RUN",
+      "detail": "No Social Archive completed fact has been delivered or verified in the authoritative Private-Database."
     },
     {
       "id": "local_container_image_and_health",
       "status": "PASS",
-      "detail": "The local-only candidate image built and passed no-mount loopback /health; both exact image tags were removed afterwards."
+      "detail": "The local-only candidate image built and passed no-mount loopback /health; the exact image tag was removed afterwards."
     },
     {
       "id": "production_worker_healthcheck_correction",
@@ -75,7 +90,8 @@
       "oci": "PASS",
       "github_private": "NOT_RUN"
     },
-    "completion_rule": "Three verified receipts for the same age ciphertext are required before an artifact becomes complete; two verified provider canaries do not satisfy the third-replica gate."
+    "github_archive_repository": "PRIVATE_EMPTY_CREATED:LinzeColin/Social-Archive-Vault",
+    "completion_rule": "Three verified receipts for the same age ciphertext are required before an artifact becomes complete; two verified provider canaries and an empty private repository do not satisfy the third-replica gate."
   },
   "restore": {
     "status": "DEGRADED",
@@ -85,11 +101,11 @@
     "reason": "Recovery will not be claimed until the missing GitHub receipt exists and all three ciphertext copies can be verified."
   },
   "known_degradations": [
-    "No GitHub Private Draft/asset receipt or readback exists; the deployed secret file is empty and requires a dedicated fine-grained replacement.",
-    "No Private-Database API reconciliation exists; the configured client path is absent and the correct host-side copy remains unmapped.",
+    "No GitHub Private Draft/asset receipt or readback exists; the target repository is now private but the needed scoped fine-grained token has not been generated or installed.",
+    "No Social Archive Private-Database fact delivery exists; the historical global ledger was only read-only reconciled, and production client/auth configuration remains absent.",
     "No image was pushed and no full current-source production deployment or post-deploy release smoke exists; the local-only image identifier is not a published digest.",
     "Source and destination provider states remain only as real observations recorded in the per-task evidence; unexecuted providers remain NOT_RUN.",
-    "Git source publication and release tag publication are intentionally deferred until the strict third-replica and Private-Database gate passes."
+    "Git source publication and release tag publication are intentionally deferred until the strict third-replica, fact synchronization, and deployment gates pass."
   ],
   "branch_pr_state": {
     "candidate_branch": "codex/social-archive-v0004-integration",
