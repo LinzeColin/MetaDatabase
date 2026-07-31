@@ -14,7 +14,7 @@
     "schema_version": {"const": "1.0.0"},
     "state": {"const": "PASS"},
     "scope": {"const": "SEALED_DEVELOPMENT_TASKPACK_ONLY"},
-    "version": {"const": "0.0.0.1.40"},
+    "version": {"const": "0.0.0.1.41"},
     "taskpack_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "prepared_subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "owner_approval_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

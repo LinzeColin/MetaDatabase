@@ -8,14 +8,14 @@
         "bash",
         "scripts/run_tests.sh"
       ],
-      "duration_seconds": 9.027,
+      "duration_seconds": 32.998,
       "name": "unit_tests",
       "returncode": 0,
       "state": "PASS",
-      "stderr_sha256": "75a6556d5e2105be613fde250911814c9ef9314191c58bb7175cb26c48ebb0e5",
-      "stderr_tail": "ner_receipt_and_taskpack_seal_are_self_hashed) ... ok\ntest_residual_tasks_are_environment_bound_only (test_taskpack_seal.TaskpackSealTests.test_residual_tasks_are_environment_bound_only) ... ok\ntest_self_hash_helper (test_taskpack_seal.TaskpackSealTests.test_self_hash_helper) ... ok\ntest_subject_identity_excludes_mutable_evidence (test_taskpack_seal.TaskpackSealTests.test_subject_identity_excludes_mutable_evidence) ... ok\ntest_keep_base (test_teleiosis.T.test_keep_base) ... ok\ntest_keep_better (test_teleiosis.T.test_keep_better) ... ok\ntest_revert_unsafe (test_teleiosis.T.test_revert_unsafe) ... ok\ntest_baseline_is_current_and_fail_closed (test_upstream_evidence.T.test_baseline_is_current_and_fail_closed) ... ok\ntest_formal_seal_if_present (test_upstream_evidence.T.test_formal_seal_if_present) ... ok\ntest_missing_checkouts_create_hashed_blocked_receipt (test_upstream_evidence.T.test_missing_checkouts_create_hashed_blocked_receipt) ... ok\ntest_upstream_outputs_are_excluded_from_product_manifest (test_upstream_evidence.T.test_upstream_outputs_are_excluded_from_product_manifest) ... ok\n\n----------------------------------------------------------------------\nRan 110 tests in 8.903s\n\nOK\n",
-      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "stdout_tail": ""
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "b1b2ca0e5b375fd201d6930c0bc4a1230c20c1fc9eeba222b518d9a37cab95a8",
+      "stdout_tail": "\"event\": \"test_file_started\", \"path\": \"tests/test_task_execution.py\"}\n{\"event\": \"test_file_finished\", \"path\": \"tests/test_task_execution.py\", \"state\": \"PASS\", \"returncode\": 0, \"test_count\": 5, \"duration_seconds\": 0.28}\n{\"event\": \"test_file_started\", \"path\": \"tests/test_taskpack_seal.py\"}\n{\"event\": \"test_file_finished\", \"path\": \"tests/test_taskpack_seal.py\", \"state\": \"PASS\", \"returncode\": 0, \"test_count\": 5, \"duration_seconds\": 0.059}\n{\"event\": \"test_file_started\", \"path\": \"tests/test_teleiosis.py\"}\n{\"event\": \"test_file_finished\", \"path\": \"tests/test_teleiosis.py\", \"state\": \"PASS\", \"returncode\": 0, \"test_count\": 3, \"duration_seconds\": 0.05}\n{\"event\": \"test_file_started\", \"path\": \"tests/test_upstream_evidence.py\"}\n{\"event\": \"test_file_finished\", \"path\": \"tests/test_upstream_evidence.py\", \"state\": \"PASS\", \"returncode\": 0, \"test_count\": 3, \"duration_seconds\": 0.102}\n{\"state\": \"PASS\", \"file_count\": 26, \"test_count\": 114, \"skipped\": 1, \"failure_count\": 0, \"receipt\": \"{ROOT}/evidence/tests/unit_suite.json\", \"receipt_sha256\": \"797a577c65cb81c4b30d3d6c9ddfc1491093d10a1cf8827b7e6e4b34974c495a\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -27,7 +27,7 @@
         "--state",
         "{ROOT}/CANONICAL_STATE.json"
       ],
-      "duration_seconds": 0.046,
+      "duration_seconds": 0.05,
       "name": "canonical_state",
       "returncode": 0,
       "state": "PASS",
@@ -46,14 +46,14 @@
         "--root",
         "{ROOT}"
       ],
-      "duration_seconds": 0.038,
+      "duration_seconds": 0.045,
       "name": "version_lock",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "7d5e1bdcf8bc13251d248e3e8d866dca6abf1b3ed61a0b7f0bf2c22d378361fa",
-      "stdout_tail": "{\"findings\": [], \"state\": \"PASS\", \"version\": \"0.0.0.1.40\"}\n"
+      "stdout_sha256": "9fcbf9d406ba8691ca2581a5d89145c0384682dc87c75de6eb99ed647b1af315",
+      "stdout_tail": "{\"findings\": [], \"state\": \"PASS\", \"version\": \"0.0.0.1.41\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -67,7 +67,7 @@
         "--projects",
         "."
       ],
-      "duration_seconds": 0.134,
+      "duration_seconds": 0.147,
       "name": "dual_plane",
       "returncode": 0,
       "state": "PASS",
@@ -89,14 +89,14 @@
         "--output",
         "{ROOT}/evidence/upstream/upstream_precheck.json"
       ],
-      "duration_seconds": 0.04,
+      "duration_seconds": 0.043,
       "name": "upstream_precheck",
       "returncode": 2,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "2ba740ffd7d184535cc7dbb113ad8fe25a8656a53d170ba5a397780bd92407ce",
-      "stdout_tail": "{\"state\": \"BLOCKED\", \"reason_code\": \"FORMAL_UPSTREAM_SEAL_PRESENT\", \"receipt_sha256\": \"b35aeee7e3eadf056cbe5004c622945535b0433729b66aeeff057eca8284a145\"}\n"
+      "stdout_sha256": "db72d76d73e4126e5730fcc85bc5d34891dd074cbdf5d434a6f863438dc5b783",
+      "stdout_tail": "{\"state\": \"BLOCKED\", \"reason_code\": \"FIXED_UPSTREAM_INPUT_UNAVAILABLE\", \"receipt_sha256\": \"5f73939ba96389af561c48626f927dfcbdc6f5f70074874be4d7ebae7ed89a4e\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -107,7 +107,7 @@
         "scripts/build_quant_seal.py",
         "{ROOT}/evidence/quant/quant_seal.json"
       ],
-      "duration_seconds": 0.048,
+      "duration_seconds": 0.052,
       "name": "quant_seal",
       "returncode": 0,
       "state": "PASS",
@@ -125,14 +125,14 @@
         "scripts/run_task.py",
         "--validate-all"
       ],
-      "duration_seconds": 0.042,
+      "duration_seconds": 0.046,
       "name": "task_contract",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "01bb63787ea74dd9217122746b785e2ea125866d12b8bda8709198aa1a3dae10",
-      "stdout_tail": "{\"candidate_version\": \"0.0.0.1.40\", \"developer_research_required\": false, \"findings\": {}, \"schema_version\": \"1.0.0\", \"state\": \"PASS\", \"task_count\": 30}\n"
+      "stdout_sha256": "724e42c66421a026ae49386399decd1c4fd5e7a5cb159b7c5ffcb8bfb77f8954",
+      "stdout_tail": "{\"candidate_version\": \"0.0.0.1.41\", \"developer_research_required\": false, \"findings\": {}, \"schema_version\": \"1.0.0\", \"state\": \"PASS\", \"task_count\": 30}\n"
     },
     {
       "accepted_returncodes": [
@@ -146,14 +146,14 @@
         "--output",
         "{ROOT}/evidence/builder_readiness/static_readiness.json"
       ],
-      "duration_seconds": 0.039,
+      "duration_seconds": 0.043,
       "name": "builder_readiness_static",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "003e21fc7d765e3750de9c5a22ad4b0cf64c080a67505e78dfda8353c77d8288",
-      "stdout_tail": "{\"state\": \"PASS\", \"receipt_sha256\": \"b6a1f86a479ac0d96e9dc3df3e2d9bd7d8439e300c18a40e2e52b0ba2e8cf118\"}\n"
+      "stdout_sha256": "5feb4c8e20beb97b7b3093d32e167a69edf500dde9fa1970c38755113e4f89b5",
+      "stdout_tail": "{\"state\": \"PASS\", \"receipt_sha256\": \"86cec374a6b543a79afb5612b50ee305508439ae126cdb2d024ff70ecb9fe893\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -167,14 +167,14 @@
         "--output",
         "{ROOT}/evidence/browser/browser_smoke.json"
       ],
-      "duration_seconds": 2.897,
+      "duration_seconds": 3.151,
       "name": "browser",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "f4ff889e6a51f80d3b2fa5bcb41c50f089804302517d586b6404f38ba50cdcbc",
-      "stdout_tail": "{\"state\": \"PASS\", \"receipt_sha256\": \"4c75ec2cc7cab7a5144c19674d83729094aba33e16a2f2cd59122056029b05b3\"}\n"
+      "stdout_sha256": "3c8ea010338cf5e775e6d3e8de8deca356c9ba313887ebe2f0f5d7b0c67e9967",
+      "stdout_tail": "{\"state\": \"PASS\", \"receipt_sha256\": \"153cc78a26517ad710757b15c8fca8aec17400d4ed2b9ada20d4e99008b6c081\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -188,14 +188,14 @@
         "--output",
         "{ROOT}/evidence/systemd/systemd_verify.json"
       ],
-      "duration_seconds": 0.049,
+      "duration_seconds": 0.054,
       "name": "systemd",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "ef893eebd3a870f28d3e6074488630c87581051418054b457a77a30ab66be687",
-      "stdout_tail": "{\"state\": \"PASS\", \"unit_count\": 13, \"receipt_sha256\": \"8e83039ecb6627bb6aca23eb92d680369114bbb04389122c8a12b11d63cc9f94\"}\n"
+      "stdout_sha256": "d7573c50c9dc9de0d26a9e2350af2058c559f24ac8edbad8242c2dd7628c6dce",
+      "stdout_tail": "{\"state\": \"PASS\", \"unit_count\": 12, \"receipt_sha256\": \"585455f58a250c01249cbf0d018768edc1c776311747bff867d4a69e85906075\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -207,7 +207,7 @@
         "--root",
         "{ROOT}"
       ],
-      "duration_seconds": 0.072,
+      "duration_seconds": 0.109,
       "name": "zero_runtime",
       "returncode": 0,
       "state": "PASS",
@@ -226,14 +226,14 @@
         "--receipt",
         "{ROOT}/evidence/walking_skeleton.json"
       ],
-      "duration_seconds": 0.081,
+      "duration_seconds": 0.1,
       "name": "walking_skeleton",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "a97aaafb6844f3479e39987088c6fe3e699c6d6b90fc7428d4ebf66a08a027cc",
-      "stdout_tail": "{\"automatic_trading\": false, \"checks\": {\"atomic_event_counts\": true, \"decision_snapshot_written\": true, \"fail_closed_no_action\": true, \"human_only\": true, \"human_recommendation\": true, \"job_completed\": true, \"job_created\": true, \"worker_ran\": true}, \"counts\": {\"actions\": 2, \"attempts\": 2, \"decision_snapshots\": 1, \"outbox\": 2, \"runtime_journal\": 2}, \"recommended_action\": \"BUY\", \"runtime_agent_dependency\": 0, \"runtime_llm_tokens\": 0, \"schema_version\": \"2.0.0\", \"state\": \"PASS\"}\n"
+      "stdout_sha256": "639bec5457b602b708a4bfba82f93e04ab4dd3db15ec85b22f6744a02d1018ee",
+      "stdout_tail": "{\"active_skill_count\": 6, \"automatic_trading\": false, \"blocked_action\": \"SYSTEM_BLOCKED\", \"checks\": {\"atomic_event_counts\": true, \"blocked_worker_ran\": true, \"golden_job_completed\": true, \"golden_job_created\": true, \"golden_worker_ran\": true, \"incomplete_pipeline_is_system_blocked\": true, \"one_human_recommendation\": true, \"recommendation_has_independent_evidence\": true, \"recommendation_is_buy_fixture_oracle\": true, \"runtime_zero_agent_zero_token\": true, \"six_independent_skills_executed\": true, \"system_blocked_not_mislabeled_no_action\": true}, \"counts\": {\"actions\": 2, \"attempts\": 2, \"decision_snapshots\": 1, \"outbox\": 2, \"runtime_journal\": 2}, \"golden_action\": \"BUY\", \"independent_evidence_root_count\": 6, \"runtime_agent_dependency\": 0, \"runtime_llm_tokens\": 0, \"schema_version\": \"3.0.0\", \"state\": \"PASS\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -245,7 +245,7 @@
         "--output",
         "{ROOT}/evidence/recovery/recovery.json"
       ],
-      "duration_seconds": 0.05,
+      "duration_seconds": 0.055,
       "name": "recovery",
       "returncode": 0,
       "state": "PASS",
@@ -268,14 +268,14 @@
         "--receipt",
         "{ROOT}/evidence/release/wheel_receipt.json"
       ],
-      "duration_seconds": 1.3,
+      "duration_seconds": 1.511,
       "name": "wheel",
       "returncode": 0,
       "state": "PASS",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderr_tail": "",
-      "stdout_sha256": "4102354f17df537596f1b7fb9db328e2aa896dac3e52bdf676254cfab375bdc1",
-      "stdout_tail": "{\"build_count\": 2, \"byte_identical\": true, \"network_required\": false, \"schema_version\": \"1.0.0\", \"sha256\": \"6e37aede4d121a723fc2f44d471744949e067f45f9ca1ceff1908b33c31fddb5\", \"size\": 38111, \"state\": \"PASS\", \"wheel\": \"signal_lattice-0.0.0.1.40-py3-none-any.whl\"}\n"
+      "stdout_sha256": "056ea80d8103efbe413bab5b18c04d1008fbbcf5f775b71a4e456c1371e37422",
+      "stdout_tail": "{\"build_count\": 2, \"byte_identical\": true, \"network_required\": false, \"schema_version\": \"1.0.0\", \"sha256\": \"90d5b1e7ef74cd32950ecf397441177a3c1ddc930f8ee1066f5332c4df9722cd\", \"size\": 69876, \"state\": \"PASS\", \"wheel\": \"signal_lattice-0.0.0.1.41-py3-none-any.whl\"}\n"
     },
     {
       "accepted_returncodes": [
@@ -284,19 +284,19 @@
       "command": [
         "bash",
         "scripts/install_release.sh",
-        "{TEMP}/wheel/signal_lattice-0.0.0.1.40-py3-none-any.whl"
+        "{TEMP}/wheel/signal_lattice-0.0.0.1.41-py3-none-any.whl"
       ],
-      "duration_seconds": 17.914,
+      "duration_seconds": 2.98,
       "name": "hermetic_install",
       "returncode": 0,
       "state": "PASS",
-      "stderr_sha256": "6887fd6064b1d4cc8bf64c666293835b004d62dba68f32baea2f0cee536ecc3f",
-      "stderr_tail": " Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.quarantine'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.quarantine'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.quarantine'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.quarantine'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.quarantine'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n",
-      "stdout_sha256": "979add89598e275c6777b97ee46503cff44caf19fc22e27dbdad9f02862738d8",
-      "stdout_tail": "Processing /tmp/signal-lattice-s3-v140.KYmPWN/signal_lattice-0.0.0.1.40-py3-none-any.whl\nInstalling collected packages: signal-lattice\nSuccessfully installed signal-lattice-0.0.0.1.40\n{\"agent_dependency\": 0, \"automatic_trading\": false, \"forbidden_env\": [], \"model_mode\": \"DISABLED\", \"state\": \"PASS\", \"token_budget\": 0, \"version\": \"0.0.0.1.40\"}\n{\"agent_dependency\": 0, \"automatic_trading\": false, \"forbidden_env\": [], \"model_mode\": \"DISABLED\", \"state\": \"PASS\", \"token_budget\": 0, \"version\": \"0.0.0.1.40\"}\nINSTALLED\n"
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_tail": "",
+      "stdout_sha256": "5b06a7f8322f04cad7755f98750be66828f6a3dbbca6d4e5efbabc8da5fab822",
+      "stdout_tail": "Processing {TEMP}/wheel/signal_lattice-0.0.0.1.41-py3-none-any.whl\nInstalling collected packages: signal-lattice\nSuccessfully installed signal-lattice-0.0.0.1.41\n{\"agent_dependency\": 0, \"automatic_trading\": false, \"forbidden_env\": [], \"model_mode\": \"DISABLED\", \"state\": \"PASS\", \"token_budget\": 0, \"version\": \"0.0.0.1.41\"}\nINSTALLED\n"
     }
   ],
-  "receipt_sha256": "35f740505a0235d6449fa8585a521e7e2e88ab4651d4510ede3b7a18c56b35d6",
+  "receipt_sha256": "03cbc81452cafa9b8c2feadaef3637c39e4c578e0b7183deab1c4a265aa80d54",
   "runtime_agent_dependency": 0,
   "runtime_llm_tokens": 0,
   "schema_version": "1.0.0",

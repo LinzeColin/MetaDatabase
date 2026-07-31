@@ -1,34 +1,34 @@
-# Signal Lattice｜股票 Skill 聚合、协调与投资决策网站
+# Signal Lattice｜股票信号格阵决策系统
 
-Signal Lattice 是部署在 OVH、通过 Cloudflare 暴露公网入口的中文股票决策聚合中心。它以平权方式接入股票研究 Skill，把异构输出规范化为可追溯的 Signal、Claim、Evidence、Conflict、Quant Gate 和 Recommendation Snapshot，再形成供人执行的投资建议或严格 `NO_ACTION`。
+Signal Lattice 是一个部署在 OVH 的全自动股票投资决策中枢。它每 60 秒执行一轮完整链路：先只读检查 GitHub 上投资 Skill 的新增、删除、修改、拆分和合并；再让全部 Active Skill 在同一份不可变市场快照上相互隔离、独立判断；最后由无投资立场的中枢去重证据、保留分歧、校准可靠性并只输出一个顶层建议。
 
-## 北极星链路
+## 用户实际看到什么
 
-```text
-GitHub 最新 Skill 与外部系统研究制品
-→ 只读来源跟踪与确定性 Adapter
-→ 证据去重、共识与冲突协调
-→ Point-in-time、费用、样本外、过拟合、流动性、容量和组合风险硬门
-→ 人工投资建议或 NO_ACTION
-→ 中文网站与 Status Tier-0
-```
+网站第一屏始终只显示一个结果：`BUY / ADD / HOLD / REDUCE / SELL / WATCH / AVOID / NO_ACTION / SYSTEM_BLOCKED`。
 
-## 软件入口
+- `NO_ACTION`：所有 Active Skill 已真实完成本分钟独立判断，中枢已完成协调，但量化、证据、费用、流动性或风险硬门不允许行动。
+- `SYSTEM_BLOCKED`：完整链路没有完成，例如市场数据不可用、Active Skill 不足或有 Skill 未返回。系统禁止把空数据伪装为投资建议。
 
-- 公网软件：`https://signal-lattice.linzezhang.com`
-- 权威监控：`https://status.linzezhang.com`
+用户可继续下钻查看每个 Skill 的原始独立判断、证据根、反证、冲突、量化硬门、可靠性权重和 GitHub 版本血缘。
+
+## 不可变运行边界
+
+- 每 60 秒一轮完整循环；
+- 所有 Active Skill 必须参加当轮判断；
+- 所有 Skill 平权，没有母 Skill；
+- 中枢只协调，不产生自己的投资观点；
+- 每轮只允许一个顶层建议；
+- 自动交易永久关闭，仅供人执行；
+- 运行期不依赖 ChatGPT、Codex、Claude、任何 Agent 线程、人工保活、用户 Mac 或 launchd；
+- 当前版本模型模式为禁用，运行 Token 预算为 0；
+- GitHub 上无法确定性兼容的新 Skill 进入隔离区，上一稳定版本继续运行。
+
+## 运行入口
+
+- 公网产品：`https://signal-lattice.linzezhang.com`
+- 权威运行投影：`https://status.linzezhang.com`
 - OVH 内部 API：`127.0.0.1:8787`
 
-部署完成必须由 `scripts/verify_public_release.py` 实际访问公网 URL，并由 `scripts/build_delivery_result.py` 生成 `DEPLOYED_AND_PUBLICLY_VERIFIED` 收据。代码落库、systemd 文件存在或本地测试通过都不能替代公网成果。
+## 最后一公里
 
-## 安全边界
-
-- 运行期 Agent、LLM、模型 API 与 Token：0；
-- 自动券商交易：永久关闭；
-- 任何建议都标记 `human_execution_only=true`；
-- 数据、来源、License、证据独立性或量化硬门失败时强制 `NO_ACTION`；
-- macOS、本机和 launchd 不承载任何运行组件。
-
-## 可选市场数据适配
-
-任务包提供 `scripts/moomoo_market_snapshot.py`，可在目标环境已运行 Moomoo OpenD、且 Owner 明确确认数据许可时，将报价转换为 Signal Lattice 的 Point-in-time 市场快照。它不是核心运行依赖，也不会自动安装或绕过许可门；未绑定合法数据时系统保持 `NO_ACTION`。
+本项目目录是任务包中的完整可部署产品实现。Build Agent 不应重新研究或重新设计；它只执行状态预检、移动仓语义协调、目标仓落库、真实凭证绑定、OVH/systemd/Cloudflare 部署、即时故障注入、备份恢复回滚和 Status Closure。

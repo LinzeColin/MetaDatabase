@@ -1,27 +1,24 @@
-# Signal Lattice｜上下文校准
+# 当前上下文校准
 
 ## ACTIVE
 
-- 版本锁定为 `v0.0.0.1.40`；当前状态由 `CANONICAL_STATE.json` 声明为 `SEALED_TASKPACK`。
-- Owner 已明确授权最终开发任务包交付；授权范围仅为任务包封存，不等于正式生产发布 PASS。
-- 产品范围、Acceptance、Task DAG、版本和运行边界已冻结。
-- 运行期保持零 Agent、零模型 Token、禁止自动交易、禁止上游写回、禁止 macOS 常驻和 launchd。
-- Status 是运行状态只读投影与首尾控制入口，不是第二业务事实源。
-- Build Agent 只承担目标仓写权限、真实凭证、供应商控制台、真实网络、环境兼容、部署和收尾。
+- Signal Lattice 北极星是“全部 Active Skill 每分钟隔离独立判断 → 中枢协调 → 唯一建议”，不是研究展示壳。
+- GitHub Skill 增删改分并必须每分钟发现；安全兼容后生效，不兼容则隔离并继续使用 Last-Known-Good。
+- 运行期零 Agent、零模型 Token、零自动交易、零用户 Mac/launchd 依赖。
+- Status 是当前运行状态的只读权威投影，必须作为最后一公里第一步和最后一步。
 
 ## SUPERSEDED
 
-- 早于 `v0.0.0.1.40` 且未绑定当前任务包的测试数、Manifest、Subject Hash 和 PASS 声明不得作为当前证据。
-- “未满足连续两轮静默收敛不得交付任务包”已被 Owner 最新的明确交付授权覆盖；该覆盖不改变正式发布 fail-closed 门。
+- 仅下载 Skill 文档但不执行 Skill 的同步方式；
+- 依赖人工上传 Skill JSON 或市场数据才能工作；
+- 空数据库也能通过公网验收；
+- 把 `NO_ACTION` 用作空数据占位；
+- v0.0.0.1.38 与 v0.0.0.1.40 的“外壳＋修补”交付路线。
 
 ## CONFLICT
 
-- 无未解决的产品合同冲突。
+- 无。
 
-## UNVERIFIED／环境绑定
+## UNVERIFIED
 
-- 精确固定 checkout／worktree／bundle 生成的 Upstream Seal；
-- 目标仓、OVH、Cloudflare、Private-Database、R2、OCI 和 Status 的真实凭证与环境；
-- FROZEN_CANDIDATE 与独立正式发布验收。
-
-以上均已转化为 `machine/facts/residual_environment_tasks.json` 中的确定性最后一公里任务，不需要 Build Agent 重新研究。
+- 目标 OVH 的真实资源、Moomoo OpenD 许可、Cloudflare/Private-Database/R2/OCI 凭证和当前公网状态；均由最后一公里只读预检与真实环境绑定解决。

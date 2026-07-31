@@ -6,7 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
-EXPECTED_VERSION = "0.0.0.1.40"
+EXPECTED_VERSION = "0.0.0.1.41"
 EXPECTED_URL = "https://signal-lattice.linzezhang.com"
 EXPECTED_SCOPE = "NORTHSTAR_WEBSITE_DEPLOYMENT_REPAIR"
 

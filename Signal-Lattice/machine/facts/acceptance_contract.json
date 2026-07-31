@@ -1,26 +1,223 @@
 {
-  "automatic_trading": false,
-  "developer_burden_delta_must_be_zero_in_qualifying_rounds": true,
-  "formal_release_pass_claimed": false,
-  "formal_release_review_deferred_to": "FROZEN_CANDIDATE_AND_VERIFY_AND_RELEASE",
-  "formal_release_review_receipt_count": 24,
-  "formal_review_receipt_count": 24,
-  "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
-  "fresh_builder_required": true,
   "frozen": true,
-  "frozen_replay_count": 2,
-  "frozen_version": "0.0.0.1.40",
-  "live_action_enabled": false,
-  "owner_gate_qualifying_rounds_required": 2,
-  "p0_must_be_zero": true,
-  "p1_must_be_zero": true,
-  "real_time_soak_required": false,
-  "requirements_count": 30,
-  "runtime_agent_dependency": 0,
-  "runtime_token_budget": 0,
-  "schema_version": "1.0.0",
-  "taskpack_seal_owner_override_allowed": true,
-  "taskpack_seal_owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
-  "taskpack_seal_requires_formal_review_pass": false,
-  "version": "0.0.0.1.40"
+  "public_empty_shell_pass_allowed": false,
+  "release_verdicts": [
+    "PASS",
+    "CONDITIONAL_PASS",
+    "FAIL"
+  ],
+  "requirements": [
+    {
+      "acceptance": "systemd Timer 与 cycle_id 证明同一分钟最多一轮，下一分钟自动重跑",
+      "frozen": true,
+      "id": "R-001",
+      "priority": "P0",
+      "title": "每60秒形成一个完整且幂等的决策循环"
+    },
+    {
+      "acceptance": "当轮全部 Skill input hash 绑定同一 snapshot digest",
+      "frozen": true,
+      "id": "R-002",
+      "priority": "P0",
+      "title": "所有 Active Skill 每轮必须使用同一不可变市场快照"
+    },
+    {
+      "acceptance": "子进程、临时目录、环境白名单、网络阻断和资源预算测试通过",
+      "frozen": true,
+      "id": "R-003",
+      "priority": "P0",
+      "title": "各 Skill 在隔离环境独立判断且看不到其他答案"
+    },
+    {
+      "acceptance": "Registry reconcile 产生 ADDED/UPDATED/REMOVED/SPLIT/MERGE 收据",
+      "frozen": true,
+      "id": "R-004",
+      "priority": "P0",
+      "title": "每分钟读取 GitHub 并识别 Skill 增删改分并"
+    },
+    {
+      "acceptance": "来源漂移时新候选不生效，上一 Active 版本继续运行",
+      "frozen": true,
+      "id": "R-005",
+      "priority": "P0",
+      "title": "不兼容或未知 Skill 安全隔离并继续使用 Last-Known-Good"
+    },
+    {
+      "acceptance": "注册顺序不影响结果，中枢只做输入统一、证据协调和唯一输出",
+      "frozen": true,
+      "id": "R-006",
+      "priority": "P0",
+      "title": "所有投资 Skill 平权，中枢无投资立场"
+    },
+    {
+      "acceptance": "完整循环硬门失败才 NO_ACTION；链路不完整必须 SYSTEM_BLOCKED",
+      "frozen": true,
+      "id": "R-007",
+      "priority": "P0",
+      "title": "每轮只允许一个顶层结果并严格区分 NO_ACTION 与 SYSTEM_BLOCKED"
+    },
+    {
+      "acceptance": "可靠性权重有上下限、可回滚、不改验收标准",
+      "frozen": true,
+      "id": "R-008",
+      "priority": "P0",
+      "title": "系统根据历史真实结果有界自平衡"
+    },
+    {
+      "acceptance": "available_at/ingested_at、许可、Freshness 和生产 Provider 门通过",
+      "frozen": true,
+      "id": "R-009",
+      "priority": "P0",
+      "title": "市场数据必须 Point-in-time、合法、及时且来自批准 Provider"
+    },
+    {
+      "acceptance": "任一硬门失败不得输出可执行买卖建议",
+      "frozen": true,
+      "id": "R-010",
+      "priority": "P0",
+      "title": "投资建议经过证据、量化、费用、流动性、容量和风险硬门"
+    },
+    {
+      "acceptance": "中文桌面与移动页面可访问，非空链路状态清晰",
+      "frozen": true,
+      "id": "R-011",
+      "priority": "P1",
+      "title": "网站第一屏显示本分钟唯一建议和下一更新时间"
+    },
+    {
+      "acceptance": "Active/Completed Skill、完整循环、唯一建议、API/DB/UI 一致",
+      "frozen": true,
+      "id": "R-012",
+      "priority": "P0",
+      "title": "公网验收必须验证真实北极星结果而非 HTTP 200 空壳"
+    },
+    {
+      "acceptance": "API、循环、来源、Outbox、Status、备份和 Cloudflared 单元通过",
+      "frozen": true,
+      "id": "R-013",
+      "priority": "P0",
+      "title": "运行服务由 OVH systemd 自启动、自恢复和定时调度"
+    },
+    {
+      "acceptance": "并发、崩溃和 stale worker 测试通过",
+      "frozen": true,
+      "id": "R-014",
+      "priority": "P0",
+      "title": "SQLite 只承担可重建事务并保证幂等、Lease、Fencing、Journal、Outbox"
+    },
+    {
+      "acceptance": "Private-Database、R2 primary/backups、OCI 契约与无空提交通过",
+      "frozen": true,
+      "id": "R-015",
+      "priority": "P0",
+      "title": "长期结构化事实、对象字节与冷备保持单一权威边界"
+    },
+    {
+      "acceptance": "126单元均带状态、Freshness、依赖、阻塞、下一行动和证据",
+      "frozen": true,
+      "id": "R-016",
+      "priority": "P0",
+      "title": "Status 展示14条业务线×9切片且不成为第二事实源"
+    },
+    {
+      "acceptance": "Schema/接口语法及契约测试通过",
+      "frozen": true,
+      "id": "R-017",
+      "priority": "P1",
+      "title": "OpenAPI、事件和 JSON Schema 覆盖分钟循环、Skill 和唯一建议"
+    },
+    {
+      "acceptance": "Loopback、CSP、HMAC、路径穿越、Symlink、ZIP bomb 和 Secret Scan 通过",
+      "frozen": true,
+      "id": "R-018",
+      "priority": "P0",
+      "title": "输入、权限、供应链、归档和 Secret 安全边界完整"
+    },
+    {
+      "acceptance": "依赖、进程、环境和出口扫描通过，任何模型调用尝试熔断",
+      "frozen": true,
+      "id": "R-019",
+      "priority": "P0",
+      "title": "运行期零 Agent、零模型 Token、零用户本机和 launchd 依赖"
+    },
+    {
+      "acceptance": "代码、API、Schema 和部署配置不存在下单路径",
+      "frozen": true,
+      "id": "R-020",
+      "priority": "P0",
+      "title": "自动交易永久关闭，建议仅供人执行"
+    },
+    {
+      "acceptance": "SQLite/WAL、Release、Hash 和故障注入通过",
+      "frozen": true,
+      "id": "R-021",
+      "priority": "P0",
+      "title": "备份、恢复、原子切换和回滚可即时验证"
+    },
+    {
+      "acceptance": "每项任务分类 satisfied/apply/adapt/equivalent/conflict/blocked/obsolete",
+      "frozen": true,
+      "id": "R-022",
+      "priority": "P0",
+      "title": "移动仓采用 Stage 0 Semantic Reconcile 且不覆盖更优上游实现"
+    },
+    {
+      "acceptance": "Version Lock、Scope、Acceptance 和发布边界通过",
+      "frozen": true,
+      "id": "R-023",
+      "priority": "P0",
+      "title": "版本号与范围冻结，Build Agent 不得改名或重新设计"
+    },
+    {
+      "acceptance": "Requirement→Task→Test→Oracle→Evidence→Artifact 完整",
+      "frozen": true,
+      "id": "R-024",
+      "priority": "P0",
+      "title": "Task DAG 无循环且需求到制品100%追踪"
+    },
+    {
+      "acceptance": "Fake Clock、Fixture、历史回放和故障注入通过",
+      "frozen": true,
+      "id": "R-025",
+      "priority": "P0",
+      "title": "Golden、Black、Abuse、Degraded、Recovery Path 可即时执行"
+    },
+    {
+      "acceptance": "未知接口 fail-closed，外部系统不能修改中枢 Champion 或验收",
+      "frozen": true,
+      "id": "R-026",
+      "priority": "P1",
+      "title": "PFI、EEI、QBE、QBVS、QVE、Serenity、Alpha 通过薄 Adapter 兼容"
+    },
+    {
+      "acceptance": "崩溃重放不重复完成事实，无新增事实不提交",
+      "frozen": true,
+      "id": "R-027",
+      "priority": "P0",
+      "title": "每分钟决策、Journal 与 Outbox 同事务并同步长期事实"
+    },
+    {
+      "acceptance": "Fresh Builder 能从单一 ZIP 按确定性步骤执行",
+      "frozen": true,
+      "id": "R-028",
+      "priority": "P0",
+      "title": "Build Agent 只承担真实环境最后一公里且无需重新研究"
+    },
+    {
+      "acceptance": "public_release、status_closure、DELIVERY_RESULT 均 PASS",
+      "frozen": true,
+      "id": "R-029",
+      "priority": "P0",
+      "title": "公网部署与 Status 首尾闭环必须真实完成"
+    },
+    {
+      "acceptance": "最终 Package Guard 与 ZIP 自复验为零 Finding",
+      "frozen": true,
+      "id": "R-030",
+      "priority": "P0",
+      "title": "任务包可解压、安装、回滚且无缓存、旧副本、占位符和敏感数据"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "version": "0.0.0.1.41"
 }

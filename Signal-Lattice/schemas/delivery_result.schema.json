@@ -1,72 +1,44 @@
 {
   "$id": "https://signal-lattice.linzezhang.com/schemas/delivery_result.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": true,
+  "type": "object",
+  "required": [
+    "schema_version", "state", "completion_claim", "version", "public_url", "status_url",
+    "user_visible_result", "runtime_agent_dependency", "runtime_llm_tokens", "receipt_sha256"
+  ],
   "properties": {
-    "completion_claim": {
-      "const": "DEPLOYED_AND_PUBLICLY_VERIFIED"
-    },
-    "public_url": {
-      "const": "https://signal-lattice.linzezhang.com"
-    },
-    "receipt_sha256": {
-      "pattern": "^[0-9a-f]{64}$",
-      "type": "string"
-    },
-    "state": {
-      "const": "PASS"
-    },
-    "status_url": {
-      "const": "https://status.linzezhang.com"
-    },
+    "schema_version": {"const": "2.0.0"},
+    "state": {"const": "PASS"},
+    "completion_claim": {"const": "NORTH_STAR_DEPLOYED_AND_PUBLICLY_VERIFIED"},
+    "version": {"const": "0.0.0.1.41"},
+    "public_url": {"const": "https://signal-lattice.linzezhang.com"},
+    "status_url": {"const": "https://status.linzezhang.com"},
+    "runtime_agent_dependency": {"const": 0},
+    "runtime_llm_tokens": {"const": 0},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "user_visible_result": {
-      "properties": {
-        "automatic_trading": {
-          "const": false
-        },
-        "current_action": {
-          "type": "string"
-        },
-        "human_decision_support_capability": {
-          "const": true
-        },
-        "internal_consensus_coordination": {
-          "const": true
-        },
-        "multi_skill_aggregation": {
-          "const": true
-        },
-        "recommendation_available_now": {
-          "type": "boolean"
-        },
-        "safe_fallback": {
-          "const": "NO_ACTION"
-        },
-        "software_website": {
-          "const": true
-        }
-      },
+      "type": "object",
       "required": [
-        "software_website",
-        "multi_skill_aggregation",
-        "internal_consensus_coordination",
-        "human_decision_support_capability",
-        "current_action",
-        "recommendation_available_now",
-        "automatic_trading",
-        "safe_fallback"
+        "software_website", "one_minute_full_cycle", "all_active_skills_independently_executed",
+        "github_dynamic_skill_reconciliation", "central_coordination", "exactly_one_recommendation",
+        "current_action", "active_skill_count", "completed_skill_count", "market_data_source", "automatic_trading"
       ],
-      "type": "object"
+      "properties": {
+        "software_website": {"const": true},
+        "one_minute_full_cycle": {"const": true},
+        "all_active_skills_independently_executed": {"const": true},
+        "github_dynamic_skill_reconciliation": {"const": true},
+        "central_coordination": {"const": true},
+        "exactly_one_recommendation": {"const": true},
+        "current_action": {"enum": ["BUY", "ADD", "HOLD", "REDUCE", "SELL", "WATCH", "AVOID", "NO_ACTION"]},
+        "current_symbol": {"type": ["string", "null"]},
+        "active_skill_count": {"type": "integer", "minimum": 5},
+        "completed_skill_count": {"type": "integer", "minimum": 5},
+        "market_data_source": {"type": "string", "minLength": 1},
+        "automatic_trading": {"const": false}
+      },
+      "additionalProperties": true
     }
   },
-  "required": [
-    "state",
-    "completion_claim",
-    "version",
-    "public_url",
-    "status_url",
-    "user_visible_result",
-    "receipt_sha256"
-  ],
-  "type": "object"
+  "additionalProperties": true
 }

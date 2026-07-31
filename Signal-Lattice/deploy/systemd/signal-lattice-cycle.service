@@ -1,0 +1,35 @@
+[Unit]
+Description=Signal Lattice one-minute full independent Skill decision cycle
+After=network-online.target signal-lattice-api.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=oneshot
+User=signal-lattice
+Group=signal-lattice
+EnvironmentFile=/etc/signal-lattice/runtime.env
+ExecStart=/opt/signal-lattice/current/venv/bin/signal-lattice run-cycle
+TimeoutStartSec=58
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice
+ReadOnlyPaths=/opt/signal-lattice/current
+MemoryMax=1536M
+CPUQuota=300%
+TasksMax=128

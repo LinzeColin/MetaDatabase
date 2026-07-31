@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-VERSION = "0.0.0.1.40"
+VERSION = "0.0.0.1.41"
 PROJECT_ID = "signal-lattice"
 DOMAIN = "signal-lattice.linzezhang.com"
 STATUS_URL = "https://status.linzezhang.com"
@@ -11,14 +11,22 @@ AUTOMATIC_TRADING = False
 UPSTREAM_WRITEBACK = False
 MACOS_RUNTIME_ALLOWED = False
 
-BUSINESS_LINES = tuple(f"BL{i:02d}" for i in range(13))
+CYCLE_INTERVAL_SECONDS = 60
+CYCLE_DEADLINE_SECONDS = 55
+MINIMUM_ACTIVE_SKILLS = 5
+MINIMUM_COMPLETED_SKILLS = 3
+
+BUSINESS_LINES = tuple(f"BL{i:02d}" for i in range(14))
 SLICES = (
     "code_source", "ci", "deployment", "runtime", "entrypoint",
     "data", "backup", "monitoring", "self_heal",
 )
 HARD_GATE_REASONS = (
+    "CYCLE_NOT_COMPLETED",
+    "SKILL_RUNS_INCOMPLETE",
     "SKILL_VERSION_UNVALIDATED",
     "SOURCE_DRIFT",
+    "DATA_PROVIDER_UNAVAILABLE",
     "DATA_NOT_POINT_IN_TIME",
     "DATA_STALE",
     "DATA_LICENSE_BLOCKED",

@@ -15,7 +15,7 @@ class CloudDeploymentTests(unittest.TestCase):
 
     def test_deploy_northstar_has_public_url_completion_gate(self):
         text=(ROOT/'scripts/deploy_northstar.sh').read_text()
-        for token in ('verify_public_release.py','status_closure.sh','verify_deployment_claim.py','DEPLOYED_AND_VERIFIED','CLOUDFLARE_TUNNEL_TOKEN_OR_API_CREDENTIALS_REQUIRED','verify_northstar_repair_authorization.py'):
+        for token in ('verify_public_release.py','status_closure.sh','verify_deployment_claim.py','NORTH_STAR_DEPLOYED_AND_PUBLICLY_VERIFIED','CLOUDFLARE_TUNNEL_TOKEN_OR_API_CREDENTIALS_REQUIRED','verify_moomoo_opend.py','signal-lattice-cycle.service'):
             self.assertIn(token,text)
         self.assertNotIn('LIVE_ACTION=1',text)
 

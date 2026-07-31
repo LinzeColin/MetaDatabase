@@ -1,34 +1,35 @@
 {
-  "automatic_trading": false,
-  "codex_may_change_version": false,
+  "build_agent_may_change": [
+    "环境变量",
+    "凭证文件",
+    "OVH端口兼容",
+    "Cloudflare Tunnel绑定",
+    "目标仓移动语义适配"
+  ],
+  "build_agent_must_not_change": [
+    "版本号",
+    "北极星",
+    "Scope",
+    "Acceptance",
+    "自动交易禁令",
+    "零Agent/Token合同"
+  ],
   "excluded": [
-    "automatic trading",
-    "runtime LLM",
-    "macOS launchd",
-    "public multi-tenant auth",
-    "new asset classes"
+    "自动交易",
+    "运行时模型",
+    "新资产类别",
+    "公共多租户"
   ],
-  "formal_release_pass_claimed": false,
-  "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
   "frozen": true,
-  "frozen_version": "0.0.0.1.40",
-  "human_decision_support_capability": true,
   "included": [
-    "Signal-Lattice starter kit",
-    "schemas",
-    "systemd",
-    "fixtures",
-    "patches",
-    "formal evidence"
+    "完整北极星每分钟链",
+    "动态Skill生命周期",
+    "Moomoo行情",
+    "唯一建议",
+    "中文网站",
+    "OVH/systemd/Cloudflare",
+    "数据治理和恢复"
   ],
-  "live_action_enabled": false,
-  "public_completion_receipts": [
-    "public_release.json",
-    "status_closure.json",
-    "DELIVERY_RESULT.json"
-  ],
-  "public_website_required": true,
-  "schema_version": "1.0.0",
-  "taskpack_sealed": true,
-  "version": "0.0.0.1.40"
+  "schema_version": "2.0.0",
+  "version": "0.0.0.1.41"
 }

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import subprocess
@@ -19,27 +18,21 @@ def run(*cmd: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=20)
 
 
-def cgroup_for(pid: str) -> str:
+def control_group(unit: str) -> str | None:
+    result = run("systemctl", "show", unit, "-p", "ControlGroup", "--value")
+    value = result.stdout.strip()
+    return value if result.returncode == 0 and value.startswith("/") else None
+
+
+def belongs_to_signal_lattice(pid: str, groups: set[str]) -> bool:
+    if not pid.isdigit() or not groups:
+        return False
     try:
-        return (Path("/proc") / pid / "cgroup").read_text(encoding="utf-8", errors="replace")
+        rows = Path("/proc", pid, "cgroup").read_text(encoding="utf-8").splitlines()
     except OSError:
-        return ""
-
-
-def is_signal_lattice_process(line: str, cgroup: str) -> bool:
-    return "signal-lattice" in line.lower() or "signal-lattice" in cgroup.lower()
-
-
-def process_record(line: str, process: str, in_scope: bool) -> dict[str, str]:
-    parts = line.split(None, 2)
-    argv = parts[2] if len(parts) > 2 else ""
-    return {
-        "process": process,
-        "pid": parts[0] if parts else "UNKNOWN",
-        "comm": parts[1] if len(parts) > 1 else "UNKNOWN",
-        "argv_sha256": hashlib.sha256(argv.encode("utf-8", errors="replace")).hexdigest(),
-        "scope": "signal-lattice" if in_scope else "external-host",
-    }
+        return False
+    paths = {row.rsplit(":", 1)[-1] for row in rows if ":" in row}
+    return any(path == group or path.startswith(group + "/") for path in paths for group in groups)
 
 
 def main() -> int:
@@ -49,35 +42,53 @@ def main() -> int:
     checks: dict[str, bool] = {}
     details: dict[str, object] = {}
 
-    services = ("signal-lattice-api.service", "signal-lattice-worker.service", "signal-lattice-cloudflared.service")
+    services = ("signal-lattice-api.service", "signal-lattice-cloudflared.service")
     for unit in services:
         result = run("systemctl", "is-active", unit)
         checks[f"unit:{unit}"] = result.returncode == 0 and result.stdout.strip() == "active"
+    worker = run("systemctl", "is-active", "signal-lattice-worker.service")
+    checks["legacy_worker_inactive"] = worker.stdout.strip() != "active"
     timers = (
-        "signal-lattice-source-sync.timer", "signal-lattice-evolution.timer",
+        "signal-lattice-cycle.timer", "signal-lattice-evolution.timer",
         "signal-lattice-outbox-sync.timer", "signal-lattice-status.timer", "signal-lattice-backup.timer",
     )
     for unit in timers:
-        result = run("systemctl", "is-enabled", unit)
-        checks[f"timer:{unit}"] = result.returncode == 0
+        enabled = run("systemctl", "is-enabled", unit)
+        active = run("systemctl", "is-active", unit)
+        checks[f"timer:{unit}"] = (
+            enabled.returncode == 0
+            and active.returncode == 0
+            and active.stdout.strip() == "active"
+        )
+        details[f"timer:{unit}"] = {
+            "enabled": enabled.stdout.strip(),
+            "active": active.stdout.strip(),
+        }
 
-    result = run("ps", "-eo", "pid=,comm=,args=")
+    cgroup_units = (
+        "signal-lattice-api.service", "signal-lattice-cycle.service", "signal-lattice-evolution.service",
+        "signal-lattice-outbox-sync.service", "signal-lattice-status.service", "signal-lattice-backup.service",
+        "signal-lattice-cloudflared.service",
+    )
+    cgroups = {value for unit in cgroup_units if (value := control_group(unit))}
+    checks["signal_lattice_cgroups_resolved"] = bool(cgroups)
+    details["audited_control_groups"] = sorted(cgroups)
+
+    result = run("ps", "-eo", "pid=,args=")
     matches: list[dict[str, str]] = []
-    external_matches: list[dict[str, str]] = []
     for line in (result.stdout or "").splitlines():
+        parts = line.strip().split(None, 1)
+        if not parts or not belongs_to_signal_lattice(parts[0], cgroups):
+            continue
         lowered = line.lower()
         if "runtime_audit.py" in lowered:
             continue
         for name in FORBIDDEN_PROCESSES:
             if name in lowered:
-                pid = line.split(None, 1)[0] if line.split(None, 1) else ""
-                in_scope = is_signal_lattice_process(line, cgroup_for(pid))
-                record = process_record(line, name, in_scope)
-                (matches if in_scope else external_matches).append(record)
+                matches.append({"process": name, "line": line.strip()[:400]})
                 break
     checks["no_agent_or_model_process"] = not matches
     details["forbidden_process_matches"] = matches
-    details["external_forbidden_process_matches"] = external_matches
 
     exposed = sorted(FORBIDDEN_ENV.intersection(os.environ))
     checks["no_model_credentials_in_audit_env"] = not exposed
@@ -92,7 +103,6 @@ def main() -> int:
         "details": details,
         "verified_at": datetime.now(timezone.utc).isoformat(),
         "agent_process_count": len(matches),
-        "external_agent_process_count": len(external_matches),
         "model_api_calls_total": 0,
         "llm_input_tokens_total": 0,
         "llm_output_tokens_total": 0,

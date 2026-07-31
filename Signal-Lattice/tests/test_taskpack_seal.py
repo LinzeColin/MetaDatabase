@@ -14,7 +14,7 @@ class TaskpackSealTests(unittest.TestCase):
 
     def test_owner_override_is_valid_only_when_explicitly_bound(self):
         state = json.loads((self.root / "CANONICAL_STATE.json").read_text(encoding="utf-8"))
-        result = validate_state(state, "0.0.0.1.40")
+        result = validate_state(state, "0.0.0.1.41")
         self.assertEqual(result.state, "PASS", result.findings)
         self.assertEqual(result.current_phase, "SEALED_TASKPACK")
         gate = state["owner_gate"]

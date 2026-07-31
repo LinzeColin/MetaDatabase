@@ -1,0 +1,1 @@
+{"schema_version":"1.0.0","skill_id":"serenity-skill","display_name":"Serenity 独立判断","skill_version":"0.0.0.1","runtime_profile":"serenity","horizon_days":20,"source_path":"CodexSkills/registry/codex/serenity-skill","source_url":"https://github.com/LinzeColin/AgentDatabase","source_commit":"DYNAMIC_READ_ONLY"}

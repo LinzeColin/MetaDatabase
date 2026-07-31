@@ -1,0 +1,120 @@
+{
+  "$id": "https://signal-lattice.linzezhang.com/schemas/unique_recommendation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "active_skill_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "automatic_execution_allowed": {
+      "const": false
+    },
+    "completed_skill_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "cycle_id": {
+      "type": "string"
+    },
+    "effective_skill_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "full_cycle_completed": {
+      "type": "boolean"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "recommendation": {
+      "additionalProperties": true,
+      "properties": {
+        "action": {
+          "enum": [
+            "BUY",
+            "ADD",
+            "HOLD",
+            "REDUCE",
+            "SELL",
+            "WATCH",
+            "AVOID",
+            "NO_ACTION",
+            "SYSTEM_BLOCKED"
+          ]
+        },
+        "market": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_until": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "valid_until"
+      ],
+      "type": "object"
+    },
+    "runtime_agent_dependency": {
+      "const": 0
+    },
+    "runtime_llm_tokens": {
+      "const": 0
+    },
+    "scheduled_for": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "state": {
+      "enum": [
+        "RECOMMENDATION",
+        "NO_ACTION",
+        "SYSTEM_BLOCKED"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "state",
+    "cycle_id",
+    "scheduled_for",
+    "generated_at",
+    "active_skill_count",
+    "completed_skill_count",
+    "effective_skill_count",
+    "full_cycle_completed",
+    "recommendation",
+    "runtime_agent_dependency",
+    "runtime_llm_tokens",
+    "automatic_execution_allowed",
+    "receipt_sha256"
+  ],
+  "type": "object"
+}

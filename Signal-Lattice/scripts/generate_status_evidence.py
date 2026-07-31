@@ -17,15 +17,7 @@ SOURCE_BY_SLICE={
  'monitoring':['status_snapshot.json','public_release.json'],
  'self_heal':['runtime_audit.json','target_backup_recovery.json'],
 }
-
-# A release receipt records its lifecycle state as INSTALLED.  That is the
-# successful deployment state for code-source evidence, not a degraded status.
-ACCEPTED_STATES={
- 'release.json':{'PASS','INSTALLED'},
-}
-
-def accepted_state(name:str,state:object)->bool:
- return str(state) in ACCEPTED_STATES.get(name,{'PASS'})
+PASS_STATES={'PASS','INSTALLED'}
 
 def load(path:Path)->dict:
  if not path.is_file():raise FileNotFoundError(path.name)
@@ -44,7 +36,7 @@ def main()->int:
  rows=[];now=datetime.now(timezone.utc).isoformat()
  for line in BUSINESS_LINES:
   for sl in SLICES:
-   names=SOURCE_BY_SLICE[sl];states=[str(source_cache[n].get('state','UNKNOWN')) for n in names];state='PASS' if all(accepted_state(n,source_cache[n].get('state','UNKNOWN')) for n in names) else 'DEGRADED'
+   names=SOURCE_BY_SLICE[sl];states=[str(source_cache[n].get('state','UNKNOWN')) for n in names];state='PASS' if all(x in PASS_STATES for x in states) else 'DEGRADED'
    evidence=[{'path':(a.artifact_dir/n).as_posix(),'sha256':hashlib.sha256((a.artifact_dir/n).read_bytes()).hexdigest(),'state':source_cache[n].get('state')} for n in names]
    payload={'schema_version':'1.0.0','line_id':line,'slice_id':sl,'state':state,'measured':True,'evidence':evidence,'freshness':'CURRENT','upstream':[],'downstream':[],'coupling':[],'blocker':None if state=='PASS' else 'DEGRADED_EVIDENCE','next_action':'MONITOR' if state=='PASS' else 'RESTORE_MISSING_INPUTS','measured_at':now}
    payload['receipt_sha256']=sha256_bytes(canonical_json_bytes(payload));path=a.output_dir/f'{line}-{sl}.json';atomic_write(path,json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True).encode());rows.append({'path':path.as_posix(),'state':state,'sha256':payload['receipt_sha256']})

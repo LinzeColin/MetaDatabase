@@ -1,29 +1,20 @@
 {
-  "conditions": [
-    "Upstream Seal PASS",
-    "Quant Seal PASS",
-    "Task DAG/Traceability PASS",
-    "Formal independent review chain 24/24 PASS",
-    "Fresh Builder Simulation PASS",
-    "Two no-new-mechanism/P0/P1/Developer-Burden-Delta rounds",
-    "Two frozen replays have identical gate fingerprint",
-    "STOP_AND_FREEZE PASS",
-    "Owner Gate approved",
-    "Final ZIP extracted and verified"
+  "done_when": [
+    "每60秒自动完成完整循环",
+    "全部Active Skill同快照隔离运行",
+    "每轮恰好一个非空顶层结果",
+    "公网UI/API/SQLite一致",
+    "GitHub动态更新和LKG通过",
+    "备份恢复回滚与Status Closure通过"
   ],
-  "freeze_contract": "OWNER_APPROVED_SEALED_TASKPACK_NO_DYNAMIC_SCOPE_ACCEPTANCE_OR_TEST_EXPANSION",
   "frozen": true,
-  "frozen_version": "0.0.0.1.40",
-  "no_real_time_soak": true,
-  "release_verification_state": "PENDING_ENVIRONMENT_AND_INDEPENDENT_EVIDENCE",
-  "schema_version": "1.0.0",
-  "taskpack_conditions": [
-    "Owner explicitly authorized final taskpack delivery",
-    "Environment-independent implementation and deterministic tests are present",
-    "Task DAG and traceability are complete",
-    "Package Guard and deterministic manifest pass",
-    "All remaining tasks are environment-bound and fully specified",
-    "Live action remains disabled and formal release PASS is not claimed"
+  "not_done_when": [
+    "只有HTTP 200",
+    "空Skill或空市场数据",
+    "SYSTEM_BLOCKED",
+    "依赖人工上传JSON",
+    "依赖Agent或Mac保活"
   ],
-  "taskpack_delivery_state": "PASS"
+  "schema_version": "2.0.0",
+  "version": "0.0.0.1.41"
 }

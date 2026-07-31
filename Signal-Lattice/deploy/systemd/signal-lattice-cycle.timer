@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the complete Signal Lattice north-star chain every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=true
+Unit=signal-lattice-cycle.service
+
+[Install]
+WantedBy=timers.target

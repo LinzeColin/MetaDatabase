@@ -5,12 +5,12 @@
   "formal_release_pass_claimed": false,
   "production_side_effect_authorization": true,
   "public_url": "https://signal-lattice.linzezhang.com",
-  "receipt_sha256": "d33693be9c65e81c524052d82da4975fd583d6bd0dfd1444d9caea74a5b52a5e",
+  "receipt_sha256": "2b3450217163d98e3d9cb1862afc802dac9dae7ad7c8ad0fa28e094b0e2b2669",
   "runtime_agent_dependency": 0,
   "runtime_llm_token_budget": 0,
   "schema_version": "1.0.0",
   "scope": "NORTHSTAR_WEBSITE_DEPLOYMENT_REPAIR",
   "source_instruction": "严格交付修补包并要求开发 Agent 提供可访问云网站链接和最终投资建议聚合中心。",
   "status_url": "https://status.linzezhang.com",
-  "version": "0.0.0.1.40"
+  "version": "0.0.0.1.41"
 }

@@ -1,0 +1,44 @@
+{
+  "browser": "chromium",
+  "findings": [],
+  "receipt_sha256": "133c41f1f0a50c2cc4777df8dc2e4c709a6c6af54cbb53b5735cb2fb4a95c605",
+  "results": [
+    {
+      "business_line_count": 14,
+      "console_error_count": 0,
+      "decision_title": "系统未就绪",
+      "empty_pipeline_action": "SYSTEM_BLOCKED",
+      "expected_business_line_count": 14,
+      "minimum_nav_target_height": 44.0,
+      "nav_count": 9,
+      "page_overflow": false,
+      "transport_mode": "SET_CONTENT_FALLBACK_ENV_POLICY",
+      "viewport": {
+        "height": 1000,
+        "name": "desktop",
+        "width": 1440
+      }
+    },
+    {
+      "business_line_count": 14,
+      "console_error_count": 0,
+      "decision_title": "系统未就绪",
+      "empty_pipeline_action": "SYSTEM_BLOCKED",
+      "expected_business_line_count": 14,
+      "minimum_nav_target_height": 44.0,
+      "nav_count": 9,
+      "page_overflow": false,
+      "transport_mode": "SET_CONTENT_FALLBACK_ENV_POLICY",
+      "viewport": {
+        "height": 844,
+        "name": "mobile",
+        "width": 390
+      }
+    }
+  ],
+  "runtime_agent_dependency": 0,
+  "runtime_llm_tokens": 0,
+  "schema_version": "2.0.0",
+  "scope": "NORTH_STAR_UI_EMPTY_PIPELINE_FAIL_CLOSED_DESKTOP_AND_MOBILE",
+  "state": "PASS"
+}

@@ -1,6 +1,7 @@
 {
   "completion_contract": {
     "completion_claim": "DEPLOYED_AND_PUBLICLY_VERIFIED",
+    "empty_shell_cannot_pass": true,
     "required_public_url": "https://signal-lattice.linzezhang.com",
     "required_receipts": [
       "public_release.json",
@@ -9,10 +10,6 @@
     ],
     "required_status_url": "https://status.linzezhang.com"
   },
-  "cost_ceiling": {
-    "new_paid_services_default": "PROHIBITED",
-    "runtime_model_token_budget": 0
-  },
   "current_phase": "SEALED_TASKPACK",
   "forbidden_dependencies": [
     "runtime_agent",
@@ -20,23 +17,38 @@
     "automatic_trading",
     "upstream_skill_writeback",
     "macos_launchd",
-    "user_machine_runtime"
+    "user_machine_runtime",
+    "manual_json_pipeline"
   ],
+  "formal_release_pass_claimed": false,
   "latest_iteration": {
-    "closed_findings": [
-      "NO_PUBLIC_URL_DELIVERY_PROOF",
-      "STATIC_NO_ACTION_ONLY_UI",
-      "MISSING_SKILL_SIGNAL_AGGREGATION",
-      "MISSING_PUBLIC_RELEASE_RECEIPT"
+    "changes": [
+      "North-Star browser oracle validates SYSTEM_BLOCKED on empty pipeline",
+      "Walking Skeleton proves six independent Skill outputs produce one BUY recommendation",
+      "Release installer builds venv at final immutable path and verifies console script after activation"
     ],
-    "formal_release_pass_claimed": false,
-    "id": "NORTHSTAR-DEPLOYMENT-REPAIR-040",
+    "closed_p0": 1,
+    "closed_p1": 2,
+    "decision": "OWNER_APPROVED_FINAL_NORTHSTAR_TASKPACK_PACKAGING",
+    "developer_burden_deltas": 3,
+    "new_mechanisms": 3,
     "open_p0": 0,
-    "open_p1": 0,
-    "public_deployment_verified": false,
-    "state": "SEALED_TASKPACK_OWNER_AUTHORIZED"
+    "open_p1": 0
   },
-  "north_star": "平权股票 Skill 聚合、内部证据协调、量化硬门和供人执行的最终投资建议；证据不足时 NO_ACTION。",
+  "north_star": "每60秒读取GitHub，全部Active股票Skill使用同一不可变市场快照隔离独立判断，中立中枢协调并仅输出一个投资建议。",
+  "observed_upstream": {
+    "AgentDatabase": {
+      "commit": "84b028192225cb5f7d8ee37f4b3bfdced1096b9b",
+      "skill_instance_count": 102,
+      "state": "OBSERVED_NOT_FROZEN",
+      "unique_slug_count": 86
+    },
+    "MetaDatabase": {
+      "commit": "c81626d78a63351e8ae511f21e4e1bf224d588e1",
+      "state": "OBSERVED_NOT_FROZEN"
+    },
+    "observed_at": "2026-07-31"
+  },
   "owner_approved_scope": true,
   "owner_gate": {
     "eligible": true,
@@ -46,56 +58,52 @@
     "qualifying_no_change_rounds": 0,
     "required_rounds": 2
   },
-  "product_version": "0.0.0.1.40",
+  "product_version": "0.0.0.1.41",
   "production_side_effect_authorization": true,
-  "production_side_effect_scope": [
-    "TARGET_REPOSITORY_PATCH",
-    "OVH_DEPLOYMENT",
-    "CLOUDFLARE_TUNNEL",
-    "STATUS_REGISTRATION",
-    "BACKUP_RECOVERY"
-  ],
   "project_id": "signal-lattice",
   "project_name": "Signal Lattice",
+  "public_deployment_verified": false,
   "recommendation_contract": {
-    "automatic_execution": false,
-    "capability": "HUMAN_DECISION_SUPPORT",
-    "default_mode": "RESEARCH_AND_NO_ACTION",
-    "enablement": "ONLY_AFTER_TRUSTED_INPUT_GATES"
-  },
-  "required_integrations": [
-    "status.linzezhang.com",
-    "OVH",
-    "Cloudflare Tunnel",
-    "Private-Database",
-    "Cloudflare R2",
-    "OCI",
-    "Stock_Skill",
-    "PFI",
-    "EEI",
-    "QBE",
-    "QBVS",
-    "QVE",
-    "Serenity",
-    "Alpha"
-  ],
-  "resource_ceiling": {
-    "default_profile": "single_worker_low_resource",
-    "state": "AUTO_CAPTURE_REQUIRED"
+    "actions": [
+      "BUY",
+      "ADD",
+      "HOLD",
+      "REDUCE",
+      "SELL",
+      "WATCH",
+      "AVOID",
+      "NO_ACTION",
+      "SYSTEM_BLOCKED"
+    ],
+    "exactly_one_per_cycle": true,
+    "human_execution_only": true,
+    "no_action_requires_full_cycle": true,
+    "system_blocked_when_pipeline_incomplete": true
   },
   "root_blockers": [],
   "runtime_contract": {
     "agent_dependency": 0,
     "automatic_trading": false,
-    "human_execution_only": true,
+    "cycle_seconds": 60,
+    "human_keepalive": false,
     "macos_runtime": false,
     "model_mode": "DISABLED",
     "token_budget": 0,
     "upstream_writeback": false
   },
   "runtime_node": "OVH Linux",
-  "schema_version": "1.1.0",
-  "scope_state": "OWNER_APPROVED_NORTHSTAR_DEPLOYMENT_REPAIR",
+  "schema_version": "2.0.0",
+  "scope_state": "OWNER_APPROVED_FULL_NORTHSTAR_REBUILD",
+  "skill_contract": {
+    "all_active_run_each_cycle": true,
+    "central_investment_opinion": false,
+    "equal_peers": true,
+    "github_reconcile_each_cycle": true,
+    "isolation": true,
+    "lkg_on_incompatible_update": true,
+    "same_snapshot": true,
+    "unknown_semantics": "QUARANTINE_OR_REFERENCE_ONLY"
+  },
   "state_machine": [
     "CONTEXT_CAPTURE",
     "RESEARCH_AND_REUSE",
@@ -115,5 +123,5 @@
   "target_domain": "signal-lattice.linzezhang.com",
   "target_public_url": "https://signal-lattice.linzezhang.com",
   "target_repository": "LinzeColin/MetaDatabase",
-  "taskpack_version": "0.0.0.1.40"
+  "taskpack_version": "0.0.0.1.41"
 }

@@ -41,7 +41,7 @@ class Client:
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
-                "User-Agent": "signal-lattice/0.0.0.1.40",
+                "User-Agent": "signal-lattice/0.0.0.1.41",
             },
         )
         try:

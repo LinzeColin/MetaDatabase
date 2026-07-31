@@ -1,0 +1,1 @@
+{"schema_version":"1.0.0","skill_id":"equity-foresight-signal","display_name":"股票前瞻信号独立判断","skill_version":"0.0.0.1","runtime_profile":"equity_foresight","horizon_days":20,"source_path":"Signal-Lattice/Stock_Skill/equity-foresight-signal-skill","source_url":"https://github.com/LinzeColin/MetaDatabase"}
