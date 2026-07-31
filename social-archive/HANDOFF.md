@@ -272,3 +272,27 @@ Cloudflare 受管 Tunnel 健康且有连接，UI/API/status projection/status fa
 1. 在 GitHub token 表单最终生成前，取得即时确认；生成后只把 token 以 0600 服务端 secret 配置给 `LinzeColin/Social-Archive-Vault`，不显示、不提交或复用宽权限/暴露旧凭据。
 2. 在功能候选不变的前提下，运行 GitHub Draft 同密文上传/下载回读；在权威生产 client/auth 下运行 Social Archive facts `ingest`/严格 `verify`、三目标恢复、镜像发布和完整部署 Smoke；只更新环境证据，不重跑全量应用套件。
 3. 只有所有真实收据通过后，才将 SA-507 收束为 PASS、创建 tag、推送/合并 `main` 并收尾唯一 worktree；若功能源码变更，先冻结新候选并只对该候选运行一次完整应用回归。
+
+## SA-507 environment continuation (2026-07-31 UTC)
+
+Owner 已明确授权创建无过期、唯一范围为 `LinzeColin/Social-Archive-Vault` 的 fine-grained token；最终 token 仅有 Contents read/write 和必需的 Metadata read。第一枚在 provider 的一次性显示页被自动化渲染后立即撤销、从未安装；替换 token 未输出到证据，按一次性 stdin 写入生产机 `github_token`，核验为 `0600 root:root`，本地临时载体已删除。使用该 token 的 `gh repo view` 已读回 `LinzeColin/Social-Archive-Vault` 为 private。
+
+实际在生产机运行 `scripts/github_release_backup.py --upload`，以受保护 age identity 导出的**公开 recipient**只注入该受限进程，结果为 `PASS / object_count=0 / 没有待复制对象`。因此没有创建 Draft、Asset、密文或 GitHub receipt；SA-507 继续是 **DEGRADED，不是 PASS**。这不是 token 或 GitHub 权限失败：此前 SA-506 的 R2/OCI canary 已按合同删除，生产 `.env` 的 R2/OCI endpoint 与 bucket 均为空、四个相关 secret file 都不可读，当前没有任何具备 R2+OCI verified receipt 的 runtime artifact，不能手工制造/补写第三副本前置收据。
+
+下一步需要 Owner 对创建并配置**专用私有** R2 与 OCI S3-compatible bucket、最小读写/回读凭据给出即时确认；不得复用其他项目 R2 credential、OCI 单向 PAR 或旧主机备份密钥。获准后，用真实核心路径创建不含用户数据的持久 storage canary，依序由 R2、OCI 和 GitHub Draft 取得同一 age ciphertext 的真实读回收据；之后才可进入 Private-Database 完成态事实、三目标恢复和完整部署 smoke。功能源码仍保持冻结候选 `0a9fbf3b2051640e61c42b17173bf86deaca3e5d`，无需重跑全量应用套件。
+
+## SA-507 candidate update (2026-07-31 UTC, platform canary authentication)
+
+本节覆盖上一节末尾的 `0a9fbf3b` 候选声明。生产 loopback 的无效请求确认 pairing-required core 会返回 `401`，同时暴露 `scripts/platform_canary.py` 的 generic-web 分支此前没有发送受限 Bearer token；这会让本应可执行的无用户数据 storage canary 被错误地阻断。最小修复只在该脚本读取既有 `api_token_file`，在 token 存在时传入 Authorization header；若 pairing-required 且 token 缺失，则在本地返回 `BLOCKED_ENVIRONMENT/API_TOKEN_MISSING`，不发 capture 请求。新增 focused tests 2/2 绑定这两个分支；没有真实 capture、用户数据、token 输出或额外 secret 写入。
+
+当前功能候选为 `0325be9af5f65a8a3834d97f66c2c936f066ed6d`，完整树 `39f46b17947a7065070614980d1d8c3d53515e07`、Social Archive 树 `1fc42ac97ca39d288f72c3b7570efb8e9dc000fa`、277 个产品追踪文件清单 SHA-256 为 `f92f8f8d75d1c207000231dabf40e5aac7b5ab8fbb8505a5eeaecc21ff3d2130`。唯一全量应用回归为 `222 passed`（1 条非失败 Starlette/httpx 弃用警告，7.98s）；兼容层 synthetic 验证与兼容任务包 `verify-fast` 为 PASS/26/26，后者以 `--skip-tests` 保证不重复应用套件；结构验证为 PASS 且 `application_suite_rerun=false`。测试时仅 SA-507 evidence/HANDOFF continuation 文件未提交，所有应用源码匹配该候选。
+
+当前候选本地 Docker image `sha256:f353a31f2788a504eb111a9bbc7f4d5c7363ddd38742c75086776ef0a42a99d9` 构建成功，零 Mount 的临时容器在仅本机回环端口上于第 2 次 `/health` 成功；容器和精确 image tag 均已删除。该结果只证明本机当前候选可构建/启动，不是镜像推送、完整生产部署或 release smoke。
+
+严格发布状态仍为 **DEGRADED，不是 PASS**：GitHub token 仅解决 Vault 目标授权，真实 upload 因 `object_count=0` 未产生 Draft/Asset/ciphertext/receipt；生产 R2/OCI endpoint、bucket 与可读 secret 仍未配置，因此不能凭 SA-506 已删除 canary 手工补写前置回执。Social Archive facts ingest/verify、三目标真实恢复、镜像发布和完整部署 smoke 均仍 `NOT_RUN`。没有 GitHub source/tag/release push、Private-Database fact、用户数据上传、完整源码生产部署、timer enablement、额外 worktree 或破坏性回滚。
+
+### Updated resume point (0325be9a)
+
+1. 取得创建并配置专用私有 R2 与 OCI S3-compatible bucket、最小读写/回读（含 list/delete）凭据的即时授权；不得复用其他项目 credential、OCI 单向 PAR 或旧备份密钥。
+2. 以当前 pairing token 的生产 0600 secret 和真实核心路径生成无用户数据持久 storage canary，先获得 R2、OCI 的验证回执，再用已安装的 Vault token 取得同一 age ciphertext 的 GitHub Draft readback；只更新环境证据，不重跑全量应用测试。
+3. 在权威生产 Private-Database client/auth 下执行 Social Archive facts ingest/strict verify 和三目标恢复；随后发布镜像、执行完整生产部署 smoke。全部真实收据通过后才把 SA-507 收束为 PASS、创建 tag、推送/合并 `main` 并收尾唯一 worktree。若功能源码再变，先产生新候选且只为它运行一次完整回归。

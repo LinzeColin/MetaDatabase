@@ -1,7 +1,7 @@
 {
   "status": "DEGRADED",
   "version": "v0.0.0.4",
-  "commit": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
+  "commit": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
   "tasks": [
     {
       "scope": "SA-000 through SA-506",
@@ -11,14 +11,19 @@
     {
       "id": "SA-507",
       "status": "DEGRADED",
-      "reason": "All local candidate, test, integrity, rollback-plan, local image smoke, targeted worker healthcheck, and Private-Database legacy-ledger assertions pass; the real GitHub third ciphertext receipt, Social Archive fact reconciliation, and full production release smoke remain unexecuted."
+      "reason": "All local candidate, test, integrity, rollback-plan, local image smoke, targeted worker healthcheck, and Private-Database legacy-ledger assertions pass. The generic-web canary now authenticates to the pairing-protected core and fails closed when its restricted token is absent. The scoped GitHub token is installed and a real upload invocation returned no pending objects, but the real GitHub third ciphertext receipt, Social Archive fact reconciliation, and full production release smoke remain unexecuted."
     }
   ],
   "tests": [
     {
       "id": "unique_full_application_suite",
       "status": "PASS",
-      "detail": "220 passed on candidate 0a9fbf3b2051640e61c42b17173bf86deaca3e5d; executed exactly once for this final functional candidate."
+      "detail": "222 passed on functional candidate 0325be9af5f65a8a3834d97f66c2c936f066ed6d; executed exactly once for this candidate."
+    },
+    {
+      "id": "platform_canary_authentication_regression",
+      "status": "PASS",
+      "detail": "Two focused tests prove that generic-web supplies the restricted Bearer token to the pairing-protected core and blocks before a capture request when the token is unavailable."
     },
     {
       "id": "taskpack_verify_fast",
@@ -33,7 +38,7 @@
     {
       "id": "local_container_build_and_smoke",
       "status": "PASS",
-      "detail": "Local image sha256:7756140673c484b7a4668d9429871c66612da512fbec50ff8c5884757b707a24 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. No image was pushed."
+      "detail": "Current-candidate local image sha256:f353a31f2788a504eb111a9bbc7f4d5c7363ddd38742c75086776ef0a42a99d9 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. The exact tag was removed and no image was pushed."
     },
     {
       "id": "private_database_legacy_manifest_readback",
@@ -60,7 +65,7 @@
     {
       "id": "github_private_draft_same_ciphertext_readback",
       "status": "NOT_RUN",
-      "detail": "The scoped fine-grained token is only an unsubmitted form draft. No Draft Release, asset upload, ciphertext, or readback exists."
+      "detail": "The scoped fine-grained token is installed as a production 0600 secret and target private-repository authentication passed. The real upload command found object_count=0 because no current artifact carries verified R2/OCI receipts. No Draft Release, asset upload, ciphertext, or readback exists."
     },
     {
       "id": "private_database_clone_free_legacy_ledger_reconciliation",
@@ -101,7 +106,7 @@
     "reason": "Recovery will not be claimed until the missing GitHub receipt exists and all three ciphertext copies can be verified."
   },
   "known_degradations": [
-    "No GitHub Private Draft/asset receipt or readback exists; the target repository is now private but the needed scoped fine-grained token has not been generated or installed.",
+    "No GitHub Private Draft/asset receipt or readback exists; the target repository is private and the scoped token is installed, but the real upload command had zero eligible objects after prior R2/OCI canary cleanup.",
     "No Social Archive Private-Database fact delivery exists; the historical global ledger was only read-only reconciled, and production client/auth configuration remains absent.",
     "No image was pushed and no full current-source production deployment or post-deploy release smoke exists; the local-only image identifier is not a published digest.",
     "Source and destination provider states remain only as real observations recorded in the per-task evidence; unexecuted providers remain NOT_RUN.",

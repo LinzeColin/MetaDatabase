@@ -3,36 +3,43 @@
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
   "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-31T01:08:46Z",
-  "candidate_commit": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
+  "verified_at_utc": "2026-07-31T09:43:16Z",
+  "candidate_commit": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
   "commands": [
     {
       "id": "sa507_candidate_freeze_and_compatibility",
-      "command": "git status --porcelain=v1 (must be empty); <project-venv-python> social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
+      "command": "git rev-parse HEAD; git rev-parse HEAD^{tree}; git rev-parse HEAD:social-archive; <project-venv-python> social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>; <project-venv-python> <temporary-compatible-pack>/START_HERE.py verify-fast",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "Candidate 0a9fbf3b2051640e61c42b17173bf86deaca3e5d is clean, contains fetched origin/main, and binds Social Archive tree b12b55272d156abd5045c17ac19ebaef7592714d. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. Earlier candidates through 752b8bb4 were explicitly superseded after P0 Docker and strict Private-Database legacy-manifest findings."
+      "result": "Functional candidate 0325be9af5f65a8a3834d97f66c2c936f066ed6d has root tree 39f46b17947a7065070614980d1d8c3d53515e07 and Social Archive tree 1fc42ac97ca39d288f72c3b7570efb8e9dc000fa. It descends from the latest-origin/main-integrated 0a9fbf3b candidate. At full-suite time, only SA-507 evidence/HANDOFF continuation files were uncommitted; application source matched this commit. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. The compatible frozen task pack verified 26/26 checks with application_tests skipped by verify-fast."
+    },
+    {
+      "id": "sa507_platform_canary_authentication_regression",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q tests/focused/test_platform_canary.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "2 passed. A production loopback diagnostic had shown that the generic-web canary lacked the pairing-required Bearer header. The repaired canary sends the restricted API token when present and returns BLOCKED_ENVIRONMENT/API_TOKEN_MISSING without making a capture request when pairing requires a missing token. No real capture was made by this regression test."
     },
     {
       "id": "sa507_unique_full_application_suite",
       "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "220 passed, 1 non-failing Starlette/httpx deprecation warning, 7.93s. This is the sole full application-suite execution bound to current frozen candidate 0a9fbf3b; prior suites belong only to explicitly superseded candidates."
+      "result": "222 passed, 1 non-failing Starlette/httpx deprecation warning, 7.98s. This is the sole full application-suite execution bound to current functional candidate 0325be9a; prior suites belong only to explicitly superseded candidates."
     },
     {
       "id": "sa507_taskpack_verify_fast",
       "command": "<project-venv-python> prepare_compat_taskpack.py --base-zip <frozen-v0.0.0.4-zip> --output <temporary-compatible-pack> && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python <temporary-compatible-pack>/START_HERE.py verify-fast",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "The compatible frozen task pack verified 26/26 checks. Its application_tests check was skipped only by the explicit final re-verification flag, so it did not repeat the unique product suite. The project venv was required because the macOS system Python lacks tomllib."
+      "result": "The compatible frozen task pack verified 26/26 checks. START_HERE.py verify-fast passes --skip-tests, so its application_tests check was explicitly skipped and it did not repeat the unique product suite."
     },
     {
       "id": "sa507_final_structural_verify",
       "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/final_verify.py",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "compileall, brand scan, secret scan, three Compose structural checks, and systemd contract all passed. evidence/final-verification.json records suite_mode=structural and application_suite_rerun=false."
+      "result": "After candidate 0325be9a, compileall, brand scan, secret scan, three Compose structural checks, and systemd contract all passed. evidence/final-verification.json records suite_mode=structural and application_suite_rerun=false."
     },
     {
       "id": "sa507_recovery_rollback_plan",
@@ -43,10 +50,10 @@
     },
     {
       "id": "sa507_local_container_build_and_smoke",
-      "command": "docker build --tag social-archive:v0.0.0.4-candidate-0a9fbf3b . && docker run --rm -d --name social-archive-sa507-smoke-0a9fbf3b -p 127.0.0.1::8765 <local-image> && curl --fail http://127.0.0.1:<ephemeral-port>/health",
+      "command": "docker build --tag social-archive:v0.0.0.4-candidate-0325be9a .; docker run --rm -d --name social-archive-sa507-smoke-0325be9a -p 127.0.0.1::8765 <local-image>; curl --fail http://127.0.0.1:<ephemeral-port>/health; docker stop <temporary-container>; docker image rm <exact-temporary-tag>",
       "exit_code": 0,
       "outcome": "PASS",
-      "result": "The local image was built as sha256:7756140673c484b7a4668d9429871c66612da512fbec50ff8c5884757b707a24 (272698041 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The temporary container and exact candidate image tag were removed after verification."
+      "result": "Candidate 0325be9a built as sha256:f353a31f2788a504eb111a9bbc7f4d5c7363ddd38742c75086776ef0a42a99d9 (272697435 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The temporary container and exact candidate image tag were removed after verification."
     },
     {
       "id": "sa507_worker_healthcheck_contract_and_production_recreate",
@@ -68,13 +75,20 @@
       "exit_code": 0,
       "outcome": "PASS",
       "result": "Created an empty dedicated private archive repository and read it back as full_name=LinzeColin/Social-Archive-Vault, private=true, visibility=private, default_branch=main, archived=false. No source, user data, encrypted pack, Draft Release, asset, or tag was uploaded."
+    },
+    {
+      "id": "sa507_scoped_github_token_and_empty_upload_probe",
+      "command": "Create the owner-authorized repository-only fine-grained token; transfer it by one-time stdin into the production 0600 github_token secret; verify the private target with gh; run scripts/github_release_backup.py --upload with the public age recipient injected only for the bounded process.",
+      "exit_code": 0,
+      "outcome": "NO_CHANGE",
+      "result": "The final token was limited to LinzeColin/Social-Archive-Vault with Contents read/write and required Metadata read, then verified by gh repo view as that private repository. The upload command returned status=PASS, object_count=0, message=没有待复制对象. It created no Draft Release, asset, ciphertext, or GitHub receipt. A first transient token that became visible on the provider's one-time page during automation was immediately revoked and was never installed; the active token value was not logged or recorded."
     }
   ],
   "environment_bound_items_not_used_as_pass": [
     {
       "id": "github_private_draft_third_ciphertext_receipt",
       "outcome": "NOT_RUN",
-      "result": "The canonical private archive repository now exists. A 30-day fine-grained token form is staged for that repository only with Contents read/write and required Metadata read, but token generation and server-side 0600 installation have not occurred. No Draft Release, asset, ciphertext, or GitHub receipt exists."
+      "result": "The canonical private archive repository exists, and its scoped no-expiration token is installed as a production 0600 secret. The real upload invocation found zero pending objects, because the earlier R2/OCI canaries were deleted and no current runtime artifact has verified R2/OCI receipts. No Draft Release, asset, ciphertext, or GitHub receipt exists."
     },
     {
       "id": "private_database_social_archive_fact_reconciliation",
@@ -90,7 +104,7 @@
   "side_effects": [
     "Created a local checkpoint commit and integrated the then-current origin/main before candidate freeze; neither was pushed.",
     "Created the empty private LinzeColin/Social-Archive-Vault repository through the account's local CLI session. It contains no source, release, asset, user content, or encrypted pack.",
-    "Configured but did not submit a browser form for a repository-only fine-grained archive token; no token value was generated, copied, logged, or installed.",
+    "Created a repository-only fine-grained archive token after explicit owner confirmation. A transient first token was immediately revoked after its one-time provider page rendered in automation; the replacement token was never displayed in evidence, transferred only through a 0600 local transient file into the production 0600 root-owned github_token secret, and the local transient file was deleted. The active token was used only to read the configured private archive target and to run the bounded encrypted Draft upload/readback command.",
     "Performed clone-free readback verification of the existing Private-MetaDatabase ledger; no ingest, checkout, clone, commit, or write occurred.",
     "Built exact local candidate image tags, ran only ephemeral no-mount loopback API health checks, then stopped the containers and removed exact image tags; no global Docker cleanup ran.",
     "After a read-only diff showed one Compose-only change, backed up the remote Compose file and recreated only core-worker to remove the false inherited API healthcheck; core-api remained healthy and the backup is retained for rollback.",
