@@ -317,7 +317,16 @@ test("源码里不许有裸控制字符——它会让 grep 和 diff 把文件�
   // 见改动——而看不见改动的文件是最容易被改坏的。
   //
   // 两次说明这不是手滑，是写文件那条路上的一个固定坑。加一条守卫，第三次直接红。
-  const roots = [path.join(__dirname, "..", "src"), path.join(__dirname, "..", "migrations")];
+  //
+  // 后来又犯了三次，第五次是在 CB9-540 的**证据文档里**——而且正好是在讲这件事
+  // 的那一句上。守卫当时只扫 src 和 migrations，所以文档那次它没看见。
+  // 证据文档也得扫：一份 grep 不出来、diff 看不见的证据，比没有证据更糟——
+  // 它看起来在那儿。
+  const roots = [
+    path.join(__dirname, "..", "src"),
+    path.join(__dirname, "..", "migrations"),
+    path.join(__dirname, "..", "..", "docs", "evidence"),
+  ];
   const offenders = [];
   const walk = (dir) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
