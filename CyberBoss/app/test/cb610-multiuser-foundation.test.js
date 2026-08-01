@@ -7,6 +7,14 @@ const path = require("node:path");
 const test = require("node:test");
 const { DatabaseSync } = require("node:sqlite");
 
+// 迁移版本清单从 MIGRATIONS 推导，不写死。
+//
+// 写死成 [1..13] 的话，每加一个迁移这几条就要人工跟着改一遍；漏改一处就是一条
+// 假红，改错一处就是一条假绿。CB9-140 加 016 时四处同时红，就是这个写法的代价。
+const { MIGRATIONS: _MIGS } = require("../src/services/db/database-adapter");
+const ALL_MIGRATION_VERSIONS = Array.from({ length: _MIGS.length }, (_, i) => i + 1);
+
+
 const {
   MIGRATIONS,
   RuntimeSpoolDatabase,
@@ -68,7 +76,7 @@ test("migration 006 is additive, dynamically numbered and registered", (t) => {
   t.after(() => spool.close());
 
   const versions = spool.migrationRecords().map((row) => Number(row.version));
-  assert.deepEqual(versions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+  assert.deepEqual(versions, ALL_MIGRATION_VERSIONS);
   // Addressed by version rather than by position: CB-800 appends migration 7,
   // and this node's claim is that 006 is registered, not that it stays last.
   const migration006 = MIGRATIONS.find((migration) => migration.version === 6);
@@ -206,7 +214,7 @@ test("legacy rows are backfilled to Owner and no unscoped row survives", (t) => 
   const ownerUserId = upgraded.ownerUserId;
   assert.deepEqual(
     upgraded.migrationRecords().map((row) => Number(row.version)),
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    ALL_MIGRATION_VERSIONS,
   );
 
   const reader = new DatabaseSync(databasePath, { readOnly: true });

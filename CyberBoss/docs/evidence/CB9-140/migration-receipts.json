@@ -1,0 +1,64 @@
+{
+  "task": "CB9-140",
+  "title": "按现有迁移约定物化下一编号的兼容迁移",
+  "generated_at": "2026-08-01T13:02:34Z",
+  "head_observation": "a01a9260db85b3cc3eb6097fa5a50a027e7ead76",
+  "artifacts": [
+    "app/migrations/016_original_parity_sessions_time_location.sql",
+    "app/test/cb9-140-migration.test.js",
+    "app/src/services/db/database-adapter.js（注册 version 14）"
+  ],
+  "convention": "编号 016 对应 MIGRATIONS 里的 version 14（仓库编号与 version 有固定偏移）；additive only，未 ALTER/DROP 任何既有对象",
+  "acceptance": {
+    "AC-013": {
+      "status": "PASS",
+      "how": "结构性硬门：user_location_profiles_v009 里不存在 raw_ip/latitude/longitude/geohash/precise_address 等列，只有 timezone/coarse_city/coarse_country；不存在的列不会因为谁忘了脱敏而泄漏。另查整份 SQL 的列定义位置无精确定位字样；confidence 有 [0,1] 约束，confirmed 只收 0/1"
+    },
+    "AC-010": {
+      "status": "PASS",
+      "how": "带时间的表一律 *_at_utc 与 *_at_beijing 成对（agent_sessions/parity_receipts）；只存一个的话跨服务排序和给用户看的时间必有一个是错的"
+    },
+    "AC-004": {
+      "status": "PASS",
+      "how": "PRIMARY KEY (user_id, mode) —— 一个人一个模式只能有一条会话；同人不同模式允许"
+    },
+    "AC-044": {
+      "status": "PASS",
+      "how": "UNIQUE (session_key) —— 两个人撞不进同一条会话；mode/state 有 CHECK 约束"
+    },
+    "AC-041": {
+      "status": "PARTIAL",
+      "how": "schema 面已备（双时间列齐全）；文案面属 CB9-230/250，本节点不冒充"
+    }
+  },
+  "tests": {
+    "count": "13/13 pass",
+    "full_regression": "1059 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "往位置表塞 latitude + raw_ip",
+      "result": "2 条转红并点名列出违规列"
+    },
+    {
+      "mutation": "把注册项名字改掉",
+      "result": "1 条转红（漏注册＝迁移永远不跑而单测全绿）"
+    }
+  ],
+  "my_errors_caught_by_full_regression": [
+    {
+      "error": "凭印象写了 checksum 列，真实列名是 checksum_sha256",
+      "caught_by": "全量回归（孤立测试当时是绿的）"
+    },
+    {
+      "error": "夹具只跑 001 的 CREATE TABLE，但 checksum_sha256 是 002 用 ALTER TABLE 加的",
+      "fix": "夹具改为按真实顺序跑 001 + 002"
+    },
+    {
+      "error": "断言了『迁移可重入』——那是我发明的性质，015 用的也是裸 INSERT，重复执行必然撞 UNIQUE",
+      "fix": "改为断言 runner 按 version 只跑一次这个真实约定"
+    }
+  ],
+  "collateral": "四条既有测试把版本清单写死成 [1..13]，加 14 必然连带红。改为从 MIGRATIONS.length 推导——写死的话每加一个迁移都要人工改四处，漏改是假红、改错是假绿",
+  "legacy_wholefile_overwrites": 0
+}

@@ -8,6 +8,14 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 const { DatabaseSync } = require("node:sqlite");
+
+// 迁移版本清单从 MIGRATIONS 推导，不写死。
+//
+// 写死成 [1..13] 的话，每加一个迁移这几条就要人工跟着改一遍；漏改一处就是一条
+// 假红，改错一处就是一条假绿。CB9-140 加 016 时四处同时红，就是这个写法的代价。
+const { MIGRATIONS: _MIGS } = require("../src/services/db/database-adapter");
+const ALL_MIGRATION_VERSIONS = Array.from({ length: _MIGS.length }, (_, i) => i + 1);
+
 const {
   isMainThread,
   parentPort,
@@ -106,7 +114,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const clean = openSpool(cleanPath);
     assert.deepEqual(
       clean.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+      ALL_MIGRATION_VERSIONS,
     );
     assert.deepEqual(clean.pragmaStatus(), {
       journalMode: "wal",
@@ -176,7 +184,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const upgraded = openSpool(v1Path);
     assert.deepEqual(
       upgraded.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+      ALL_MIGRATION_VERSIONS,
     );
     const legacyOutbox = upgraded.getOutbox("legacy-outbox");
     assert.equal(

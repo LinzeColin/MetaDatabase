@@ -14,6 +14,14 @@ const { RuntimeSpoolDatabase } = require("../src/services/db/database-adapter");
 const { SqliteUserRepository } = require("../src/services/users/user-repository");
 const { SqliteInviteCodeStore } = require("../src/services/users/invite-code-store");
 const { RegistrationService } = require("../src/services/users/registration-service");
+
+// 迁移版本清单从 MIGRATIONS 推导，不写死。
+//
+// 写死成 [1..13] 的话，每加一个迁移这几条就要人工跟着改一遍；漏改一处就是一条
+// 假红，改错一处就是一条假绿。CB9-140 加 016 时四处同时红，就是这个写法的代价。
+const { MIGRATIONS: _MIGS } = require("../src/services/db/database-adapter");
+const ALL_MIGRATION_VERSIONS = Array.from({ length: _MIGS.length }, (_, i) => i + 1);
+
 const {
   CredentialVaultError,
   SqliteCredentialVault,
@@ -100,7 +108,7 @@ test("AC-030 migration 7 is additive and the ledger records every version", (t) 
     .all();
   assert.deepEqual(
     versions.map((row) => row.version),
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    ALL_MIGRATION_VERSIONS,
   );
   // 按版本号取，不用 .at(-1)：这条要钉住的是"第 7 版归 CB-800"，再加一版迁移
   // 时不该跟着漂到新的那一版上去。

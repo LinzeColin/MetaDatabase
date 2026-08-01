@@ -113,6 +113,11 @@ const MIGRATIONS = Object.freeze([
     name: "015_user_items.sql",
     sourceCommit: "TODO-1",
   }),
+  Object.freeze({
+    version: 14,
+    name: "016_original_parity_sessions_time_location.sql",
+    sourceCommit: "CB9-140",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
