@@ -1,0 +1,30 @@
+{
+  "task": "CB9-100",
+  "title": "实现服务端双模式不变量与 spoof 防护",
+  "generated_at": "2026-08-01T12:42:31Z",
+  "head_observation": "f3e3143d2a7e1dbf4b247fc76863cd1f9cbc121a",
+  "artifact": "app/test/cb9-100-mode-invariant.test.js",
+  "acceptance": {
+    "AC-001": {
+      "status": "PASS",
+      "oracle": "仅服务端身份决定模式，spoof 返回拒绝且无 Runtime 调用",
+      "how": "3 条断言：消息体外来字段(isOwner/capabilities/may)无法提权、UserContext 冻结不可就地改 role、非 active 状态零能力"
+    },
+    "AC-005": {
+      "status": "PASS",
+      "oracle": "普通用户枚举 Owner-only 能力；允许数=0，拒绝覆盖 Workspace/Tool/Shell/MCP/Approval/Thread",
+      "how": "对整张 11 项 owner-only 表求值得 allowed=[]；六类覆盖显式映射（Approval→shell.execute，Thread→codex.turn/claudecode.turn）；两表不相交；反面用例：主人必须拿得到全部 11 项"
+    }
+  },
+  "tests": {
+    "TEST-001": "7/7 pass",
+    "TEST-005": "7/7 pass",
+    "full_regression": "1019 + 72 全通过"
+  },
+  "red_green_proof": {
+    "mutation": "把 shell.execute 从 OWNER_ONLY_CAPABILITIES 挪进 USER_CAPABILITIES",
+    "result": "3 条转红（能力枚举 / 六类覆盖 / 两表不相交），恢复后回到 7/7",
+    "why": "证明这不是一条恒绿断言——抽查式测试在新增 owner-only 能力时不会红，枚举式会"
+  },
+  "legacy_wholefile_overwrites": 0
+}
