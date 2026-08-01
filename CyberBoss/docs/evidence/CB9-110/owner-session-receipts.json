@@ -1,0 +1,36 @@
+{
+  "task": "CB9-110",
+  "title": "实现 Owner 主 Session/Thread/Workspace 统一入口",
+  "generated_at": "2026-08-01T12:46:46Z",
+  "head_observation": "3e4be9eb3181066f53015db157649ff6d747d3bc",
+  "artifact": "app/test/cb9-110-owner-session.test.js",
+  "acceptance": {
+    "AC-002": {
+      "status": "PASS",
+      "oracle": "五类事件回执的 session_key/thread_ref/workspace_ref 逻辑身份相同",
+      "how": "buildBindingKey 是纯函数 workspaceId:accountId:senderId；五类事件同一三元组产出同一把 key；多余字段不改变身份；换人/换号必须换 key（防止用『所有人共用一把』伪造守恒）"
+    },
+    "AC-003": {
+      "status": "PASS",
+      "oracle": "关闭 Owner Runtime 后 provider_calls=0，状态为排队或明确不可用",
+      "how": "逐个核对 3 个 runUserModelTurn 调用点（admissionHandledBeforeJob / admitInboundMessage / dispatchGuestCheckin）所在函数体内都有非主人判定；Owner Runtime 闸门命中后 return false 且分支内无 runUserModelTurn；拒绝时有 sendText 明确出口"
+    }
+  },
+  "tests": {
+    "TEST-002": "6/6 pass",
+    "TEST-003": "6/6 pass",
+    "full_regression": "1025 + 72 全通过"
+  },
+  "detection_defect_found_and_fixed": {
+    "what": "第一版用『往前数 1200 字符』找守卫，产生两个假阳性",
+    "fp1": "函数定义 async runUserModelTurn( 被当成调用点——排除逻辑往回只看 60 字符，正好切在 async 与函数名之间",
+    "fp2": "dispatchGuestCheckin 的守卫被今天新加的注释挤出 1200 窗口",
+    "fix": "改为按所在函数体判定；窗口大小会随注释长短漂移，函数边界不会",
+    "note": "两个都是检查手段的缺陷，不是代码缺口；3 个调用点实际全部有守卫"
+  },
+  "red_green_proof": {
+    "mutation": "把 dispatchGuestCheckin 的 route!=='user' 判定改成 if(false)",
+    "result": "AC-003 转红并精确报出 dispatchGuestCheckin()（第 4879 行），恢复后 6/6"
+  },
+  "legacy_wholefile_overwrites": 0
+}
