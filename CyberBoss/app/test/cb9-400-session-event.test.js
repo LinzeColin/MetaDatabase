@@ -18,6 +18,7 @@ const path = require("node:path");
 
 const {
   EVENT_TYPES,
+  FORBIDDEN_PUBLIC_VALUE,
   MODES,
   PUBLIC_FIELDS,
   STATUSES,
@@ -267,4 +268,78 @@ test("AC-020 event_id 的拼接不可歧义——分界点错位的两组不能�
   );
   // 反面：真正相同的一组仍然必须相同，否则重放认不出来。
   assert.equal(build("x", "task", "media y"), build("x", "task", "media y"));
+});
+
+test("AC-043 路径过滤区分大小写——不能把自己的对象前缀也误杀", () => {
+  // 第一版整条正则带 /i，于是 macOS 的 `/Users/` 那一支把对象键里的
+  // `cyberboss/users/...` 也拦下了——FR-022 的「Timeline 仅保存对象引用」
+  // 这条正当功能被隐私过滤挡在门外。
+  //
+  // 误杀比漏杀更隐蔽：漏杀会在隐私扫描里被抓到，而误杀表现为「这个功能偶尔
+  // 报错」，没人会想到是过滤器干的。macOS 的 /Users/ 是大写 U，我们自己的
+  // 对象前缀 cyberboss/users/ 是小写，两者只差这一个字母。
+  const BACKSLASH = String.fromCharCode(92);
+  const CASES = [
+    ["cyberboss/users/usr_aaa/attachment/photo/v1-abc.bin", false, "对象引用（正当）"],
+    ["users/photo.jpg", false, "相对路径里的 users"],
+    ["kind=todo count=3", false, "普通载荷"],
+    ["我今天去了公司", false, "中文正文"],
+    ["/Users/someone/Documents/x", true, "macOS 家目录"],
+    ["/home/ubuntu/.cyberboss", true, "Linux 家目录"],
+    ["/srv/linze/apps/cyberboss", true, "部署根"],
+    [`C:${BACKSLASH}Users${BACKSLASH}someone`, true, "Windows 家目录"],
+  ];
+  const wrong = [];
+  for (const [value, shouldBlock, label] of CASES) {
+    if (FORBIDDEN_PUBLIC_VALUE.test(value) !== shouldBlock) {
+      wrong.push(`${label}：期望${shouldBlock ? "拦截" : "放行"}，实际相反`);
+    }
+  }
+  assert.deepEqual(wrong, [], wrong.join("\n"));
+});
+
+test("AC-043 正当的对象引用能进事件，绝对路径不能", () => {
+  // 上一条测的是过滤器本身，这一条测它在真实入口上的效果。
+  const { userObjectKey } = require("../src/services/canonical/object-key");
+  const key = userObjectKey({
+    userId: ALICE, category: "attachment", objectId: "photo", version: 1,
+  });
+  assert.doesNotThrow(() => event({ publicPayload: { object_ref: key, bytes: 1024 } }),
+    "对象引用被隐私过滤挡住了——Timeline 就没法只存引用了");
+  assert.throws(() => event({ publicPayload: { where: "/srv/linze/apps/cache/photo.jpg" } }),
+    /private value in public payload/);
+});
+
+test("源码里不许有裸控制字符——它会让 grep 和 diff 把文件当成二进制", () => {
+  // 这个错我在这一程里犯了两次：session-event.js 和 approval-ledger.js 的
+  // 哈希分隔符都写成了真实的 NUL 字节而不是转义。功能上没错（NUL 恰恰是正确的
+  // 分隔符），但整个文件从此在 grep 里显示 "Binary file matches"，diff 也看不
+  // 见改动——而看不见改动的文件是最容易被改坏的。
+  //
+  // 两次说明这不是手滑，是写文件那条路上的一个固定坑。加一条守卫，第三次直接红。
+  const roots = [path.join(__dirname, "..", "src"), path.join(__dirname, "..", "migrations")];
+  const offenders = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "node_modules" || entry.name === "v8-prebuilt") continue;
+        walk(full);
+        continue;
+      }
+      if (!/\.(js|sql|json|md)$/.test(entry.name)) continue;
+      const bytes = fs.readFileSync(full);
+      // 允许换行(10)、回车(13)、制表(9)。别的控制字符一律不许裸写。
+      for (let i = 0; i < bytes.length; i += 1) {
+        const byte = bytes[i];
+        if (byte < 32 && byte !== 10 && byte !== 13 && byte !== 9) {
+          offenders.push(`${path.relative(path.join(__dirname, ".."), full)}: 0x${byte.toString(16).padStart(2, "0")} @${i}`);
+          break;
+        }
+      }
+    }
+  };
+  for (const root of roots) walk(root);
+  assert.deepEqual(offenders, [],
+    `这些文件里有裸控制字符（用 \\uXXXX 转义代替）：\n${offenders.join("\n")}`);
 });

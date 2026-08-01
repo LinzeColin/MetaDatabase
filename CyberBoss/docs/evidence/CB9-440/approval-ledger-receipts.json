@@ -1,0 +1,106 @@
+{
+  "task": "CB9-440",
+  "title": "统一命令、审批、媒体与对象引用的 Session 语义",
+  "generated_at": "2026-08-01T21:24:36Z",
+  "head_observation": "f12592ff1d81bb04ea558d29f82ce938a513d74d",
+  "artifacts": [
+    "app/src/services/approval/approval-ledger.js（新）",
+    "app/src/services/approval/file-approval-store.js（新）",
+    "app/src/services/timeline/session-event.js（路径过滤改为大小写敏感 + 修 NUL）",
+    "app/src/core/app.js、app/src/services/time/canonical-time.js（修更早就有的 NUL）",
+    "app/test/cb9-440-approval-ledger.test.js（新，24）",
+    "app/test/cb9-400-session-event.test.js（+3：大小写用例、对象引用入口、裸控制字符守卫）"
+  ],
+  "acceptance": {
+    "AC-021": {
+      "status": "PASS",
+      "how": "幂等靠状态机 + 由内容推出的 request_id，不是「查一下有没有」——查一下的写法在两个进程同时批准时会双双查到「没批过」。终态出不去。落盘用 write-temp + rename（直接覆写会在崩溃时留半截 JSON）。台账读不出来时当**没批过**：不知道时正确的做法是让用户再批一次，不是当批过了直接执行。身份检查排在所有别的检查之前——「这个 id 已经批过了」也是信息。跨重启三条：批准前切断仍是 pending、批准后切断读得回 approved、执行认领后切断不会再执行一次。"
+    },
+    "AC-022": {
+      "status": "PASS",
+      "how": "对象键把每个人关在自己那段前缀里，逃不出去，新版本写新键不覆盖旧的（否则「回退到上一版本」没有对象可指）。事件的公开载荷只放对象引用；真塞一条绝对路径进去会被拒。"
+    }
+  },
+  "real_defect_found": {
+    "what": "CB9-400 的隐私值过滤整条带 /i，macOS 家目录那一支把对象键里的 cyberboss/users/... 也误杀了。",
+    "impact": "FR-022 的「Timeline 仅保存对象引用」这条正当功能被隐私过滤挡在门外。",
+    "why_it_is_worse_than_a_leak": "误杀比漏杀更隐蔽。漏杀会在隐私扫描里被抓到；误杀表现为「这个功能偶尔报错」，没人会想到是过滤器干的。",
+    "fix": "路径分支单独用大小写敏感的一段，并加词边界。macOS 家目录是大写 U，我们的对象前缀是小写，只差一个字母。八条用例（四正四负）钉在 CB9-400 里。"
+  },
+  "cross_file_cleanup": {
+    "what": "四个源文件里有裸 NUL 字节——哈希/缓存键的分隔符写成了真实字节而不是转义。",
+    "which": [
+      "session-event.js（本程新增）",
+      "approval-ledger.js（本程新增）",
+      "app.js（更早就有）",
+      "canonical-time.js（更早就有，CB9-200）"
+    ],
+    "impact": "功能上 NUL 恰恰是正确的分隔符（三段输入里都不可能出现它，所以拼不出歧义），但整个文件从此在 grep 里显示 Binary file matches，diff 也看不见改动——而看不见改动的文件最容易被改坏。",
+    "guard": "新加一条测试扫 src/ 和 migrations/ 下所有 .js/.sql/.json/.md 的裸控制字符（换行、回车、制表除外），第三次直接红。"
+  },
+  "mutation_gaps_closed": [
+    {
+      "surviving": "台账坏了凭空造记录 → 0 红",
+      "why": "我的断言只查了不存在的 id 和新建的那条，看不见被伪造成 executed 的行（pendingExecution 只回 approved）。",
+      "fix": "改成直接看盘上的行数——坏台账必须当成空的载入，加一条之后正好一行。"
+    },
+    {
+      "surviving": "request_id 随机 → 变异点没命中",
+      "why": "分隔符里有裸 NUL，我的匹配串对不上。",
+      "fix": "修掉 NUL 之后用真实锚点重跑，3 红。"
+    }
+  ],
+  "known_redundancy": {
+    "what": "「路径过滤改回大小写不敏感」这一刀现在是 0 红。",
+    "why": "加了词边界之后，`cyberboss/users/` 里 `/users/` 前面是字母 s，就算大小写不敏感也匹配不上——大小写敏感成了冗余的第二道。",
+    "judgement": "这是防御冗余，不是测试缺口。两条都留着：边界挡住我们自己的前缀，大小写挡住别的以 users 结尾的目录名。"
+  },
+  "tests": {
+    "count": "24 + 3 = 27 pass",
+    "full_regression": "1347 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "别人也能批",
+      "red": 2
+    },
+    {
+      "mutation": "执行权可以认领两次",
+      "red": 1
+    },
+    {
+      "mutation": "重放把状态打回 pending",
+      "red": 1
+    },
+    {
+      "mutation": "重复批准改写决定时间",
+      "red": 1
+    },
+    {
+      "mutation": "终态可以退回",
+      "red": 1
+    },
+    {
+      "mutation": "request_id 随时间变",
+      "red": 3
+    },
+    {
+      "mutation": "直接覆写（可能留半截台账）",
+      "red": 1
+    },
+    {
+      "mutation": "台账坏了凭空造记录",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "只读也写盘",
+      "red": 1
+    },
+    {
+      "mutation": "过期的还能批",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}

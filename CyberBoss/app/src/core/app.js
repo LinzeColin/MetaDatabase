@@ -6385,7 +6385,7 @@ function buildUserTurnRequestId(normalized) {
   if (!parts[2]) {
     parts[2] = `${normalizeText(normalized?.receivedAt)}:${crypto.randomUUID()}`;
   }
-  return `utr_${crypto.createHash("sha256").update(parts.join(" ")).digest("hex").slice(0, 32)}`;
+  return `utr_${crypto.createHash("sha256").update(parts.join("\u0000")).digest("hex").slice(0, 32)}`;
 }
 
 function buildRunKey(threadId, turnId) {

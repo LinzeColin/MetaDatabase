@@ -67,7 +67,31 @@ const FORBIDDEN_PUBLIC_KEYS = Object.freeze(new Set([
 
 // 值里的形状。字段名过了不等于值是干净的——一段原始私聊塞进一个叫 note 的
 // 字段里，键名检查一点忙都帮不上。
-const FORBIDDEN_PUBLIC_VALUE = /(wxid_[A-Za-z0-9_-]+|@im\.(?:bot|wechat)|\bBearer\s+[A-Za-z0-9._-]{20,}|\bsk-[A-Za-z0-9]{20,}|BEGIN (?:RSA|OPENSSH|EC) PRIVATE KEY|\/Users\/|\/home\/[^/\s]+\/|\/(?:root|opt|etc|var|tmp|srv|work)\/|[A-Za-z]:\\Users\\)/i;
+//
+// **绝对路径那几条不能整条大小写不敏感**。第一版整条带 /i，于是 macOS 家目录
+// 那一支（大写 U 开头的那个）把对象键里的 `cyberboss/users/...` 也误杀了——
+// 一条正当功能（Timeline 只存对象引用，FR-022）被隐私过滤挡在门外。
+//
+// 误杀比漏杀更隐蔽：漏杀会在隐私扫描里被抓到，而误杀表现为「这个功能偶尔报
+// 错」，没人会想到是过滤器干的。所以路径分支单独用大小写敏感的一段。
+//
+// 下面这两条正则里出现的 macOS 家目录形状是**要拒绝的东西**，不是这个仓依赖
+// 它——AC-034 那条守卫认这个区别（它的原话：a marker on a line that refuses
+// the dependency is the opposite of a dependency）。
+const CASE_INSENSITIVE = /(wxid_[A-Za-z0-9_-]+|@im\.(?:bot|wechat)|\bBearer\s+[A-Za-z0-9._-]{20,}|\bsk-[A-Za-z0-9]{20,}|BEGIN (?:RSA|OPENSSH|EC) PRIVATE KEY)/i;
+// 这一段**区分大小写**，而且它是一份 forbidden/reject 清单：macOS 的家目录
+// 前缀是大写 U，我们自己的对象前缀 cyberboss/users/ 是小写，两者只差一个字母。
+const CASE_SENSITIVE = // forbidden path shapes, rejected on sight
+ /(^|[^A-Za-z0-9_-])\/Users\/|\/home\/[^/\s]+\/|(^|[^A-Za-z0-9_-])\/(?:root|opt|etc|var|tmp|srv|work)\/|[A-Za-z]:\\Users\\/;
+const FORBIDDEN_PUBLIC_VALUE = {
+  test(value) {
+    return CASE_INSENSITIVE.test(value) || CASE_SENSITIVE.test(value);
+  },
+  // 供测试和排查用：出问题时要说得出是哪一段挡的。
+  get source() {
+    return `${CASE_INSENSITIVE.source} || ${CASE_SENSITIVE.source}`;
+  },
+};
 
 const MAX_PUBLIC_PAYLOAD_BYTES = 16 * 1024;
 
