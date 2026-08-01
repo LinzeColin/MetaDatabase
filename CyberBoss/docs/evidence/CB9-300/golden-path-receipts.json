@@ -23,7 +23,7 @@
   "acceptance": {
     "AC-045": {
       "status": "PASS",
-      "how": "行为断言 + 源码守卫双向。默认 open，invite 保留为主人的明确关闭态，席位上限和出码限流各自在位。"
+      "how": "行为断言 + 源码守卫 + **走 resolveRegistrationMode 真实路径**三层。三处默认（config / UserAdmission / 面板）现在必须是同一个答案 open；面板三态区分「没设过」和「设了但认不出来」，环境变量仍然有效。"
     },
     "AC-007": {
       "status": "PASS",
@@ -69,5 +69,35 @@
     }
   ],
   "baseline_before_mutation": "fail 0",
-  "operational_note": "这次改的是**默认值**，不是强制值。已经在 .env 里显式写了 CB_REGISTRATION_MODE 的部署不受影响；没写的部署（含 OVH 生产机，需在 CB9-340/650 核对）会从这次发布起变成开放注册。回滚即回退本提交。"
+  "operational_note": "这次改的是**默认值**，不是强制值。已经在 .env 里显式写了 CB_REGISTRATION_MODE 的部署不受影响；没写的部署（含 OVH 生产机，需在 CB9-340/650 核对）会从这次发布起变成开放注册。回滚即回退本提交。",
+  "the_governing_switch": {
+    "discovered": "第一版只改了 config.js 的 CB_REGISTRATION_MODE 默认，17 条测试全绿——但线上一点没变。",
+    "why": "resolveRegistrationMode 里**面板设置优先于环境变量**，而面板的 ACCESS_DEFAULTS.mode 还是 invite。我那批测试全都直接 new UserAdmissionService({registrationMode: 它自己的默认})，一条都没走过 resolveRegistrationMode——改对了一个用不上的默认值，测试却告诉我做完了。",
+    "fix": "ACCESS_DEFAULTS.mode 改成 open，并补一条走真实解析路径的测试。"
+  },
+  "tri_state_mode": {
+    "rule": "access.mode 分三态，一个都不能合并：没设过 → null；明确设了 open/invite → 就是它；设了但认不出来 → invite。",
+    "why_each": {
+      "unset_is_null": "全新安装或还没有 access 字段的旧存档，主人从来没选过关闭公开注册，不能替他选。null 让解析往下走到环境变量和产品默认。把它当 invite 的话，公开页就白做了。",
+      "invalid_is_invite": "这是访问控制字段，看不懂的值一律往关着的那边靠。猜 open 是拿别人的门去赌自己没理解错。",
+      "why_not_default_bottom": "面板兜底返回一个有效值的话，CB_REGISTRATION_MODE 就成了死配置——写了也没人读。"
+    }
+  },
+  "seat_limit_correction": {
+    "what_i_said_wrong": "我一开始告诉主人「席位上限 5 人，满了自动挡住」。",
+    "what_is_true": "席位上限**不是一道门**。直测：seatLimitProvider 返回 5 时，第 1..8 个人全部 route=user，活跃普通用户数 8。它挡的是「谁能用主人的额度」，不是「谁能进来」——仓里既有测试的标题就写着「名额不是一道门：第 N+1 个人照样能进，只是要自己填密钥」。",
+    "real_blast_radius": {
+      "注册人数": "无上限（只受公开页出码的频率与在手张数限流）",
+      "用主人 AI 额度的人数": "前 5 个",
+      "第 6 个人起": "照样注册成功，但拿不到主人的额度"
+    },
+    "owner_decision": "主人 2026-08-02 在知道更正后的事实之后，选择「仍然开放，不加人数上限」——按任务包原样。花钱封顶在 5 人，建行/存储无上限是主人明知并接受的。"
+  },
+  "separate_defect_found": {
+    "where": "app/test/public-entry.test.js 的「排队按开通先后」与「前 N 个用主人的密钥」两条",
+    "symptom": "flaky——单独跑 1 条红，和另一个文件一起跑 2 条红，全量套件里 0 条红",
+    "preexisting": "是。git stash 掉本次改动后同样红，与 CB9-300 无关。",
+    "why_it_matters": "这两条正是「席位配额」这个保证的验证。它们不可靠意味着全量绿有可能是绿得不对——而本节点把「开放注册的成本有界」建立在这个保证之上。",
+    "disposition": "不在 CB9-300 范围内，已单独记录。归口 CB9-600（确定性单元/集成测试）时必须先修好，否则那一段的结论同样不可信。"
+  }
 }

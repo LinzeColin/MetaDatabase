@@ -81,6 +81,7 @@ const { UserCompanionTurn } = require("./user-companion-turn");
 const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
 const {
+  ACCESS_DEFAULTS,
   PersonaStore,
   TONE_PRESETS,
   LENGTH_PRESETS,
@@ -2036,6 +2037,8 @@ class CyberbossApp {
   // 注册模式。面板上的设置优先于环境变量——主人改完不用重启，也不用碰服务器。
   resolveRegistrationMode() {
     try {
+      // null＝主人没在面板上设过。这时候才轮到环境变量说话——面板返回一个
+      // 有效值兜底的话，CB_REGISTRATION_MODE 就成了死配置：写了也没人读。
       const mode = this.personaStore?.read().access.mode;
       if (mode === "open" || mode === "invite") {
         return mode;
@@ -2043,7 +2046,9 @@ class CyberbossApp {
     } catch {
       // 读不出来就退回配置里的那个。
     }
-    return this.config.registrationMode || "invite";
+    // 最后这一层也跟默认走。写死 invite 的话它就是第三个默认值，而三个默认
+    // 值里只要有一个不一样，「默认是什么」这个问题就没有答案。
+    return this.config.registrationMode || ACCESS_DEFAULTS.mode;
   }
 
   resolveSeatLimit() {

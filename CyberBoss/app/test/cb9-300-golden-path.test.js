@@ -28,6 +28,7 @@ const { MESSAGES, present } = require("../src/services/ops/novice-presenter");
 const { RuntimeSpoolDatabase } = require("../src/services/db/database-adapter");
 const { UserAdmissionService } = require("../src/core/user-admission");
 const { STATES } = require("../src/services/users/onboarding-state");
+const { ACCESS_DEFAULTS, PersonaStore } = require("../src/services/persona/persona-store");
 
 const SRC = path.join(__dirname, "..", "src");
 const TEMPLATES = path.join(__dirname, "..", "templates");
@@ -267,4 +268,79 @@ test("AC-045 开放注册下，两个访客仍然是两个隔离的人", (t) => 
   assert.equal(b.route, "user");
   assert.notEqual(a.userContext.userId, b.userContext.userId,
     "两个访客共用了同一个 user_id——隔离没了");
+});
+
+// ── AC-045 走真实那条路：resolveRegistrationMode ────────────
+
+test("AC-045 产品默认是 open，而「没设过」不会被当成主人选了 invite", () => {
+  // 这条是这个节点最贵的一次教训。
+  //
+  // 第一版我只改了 config.js 的 CB_REGISTRATION_MODE 默认，17 条测试全绿——
+  // 但线上一点没变：resolveRegistrationMode 里**面板设置优先于环境变量**，而
+  // 面板的 ACCESS_DEFAULTS.mode 还是 invite。而我那批测试全都直接
+  // new UserAdmissionService({registrationMode: 默认})，一条都没走过
+  // resolveRegistrationMode。改对了一个用不上的默认值，测试却告诉我做完了。
+  const { normalizeAccess } = require("../src/services/persona/persona-store");
+  assert.equal(ACCESS_DEFAULTS.mode, "open", "产品默认不是 open");
+  assert.equal(ACCESS_DEFAULTS.seats, 5, "席位上限变了（主人拍板的是 5）");
+  // 没设过是 null，不是 invite——替主人做了他没做过的选择，公开页就白做了。
+  assert.equal(normalizeAccess({}).mode, null);
+  // 但看不懂的值往关着的那边靠：写坏的配置不该把门打开。
+  assert.equal(normalizeAccess({ mode: "OPEN" }).mode, "invite");
+});
+
+test("AC-045 三层默认必须是同一个答案", () => {
+  // config 的默认、UserAdmission 的默认、面板的默认。三个里只要有一个不一样，
+  // 「默认是什么」这个问题就没有答案——而线上取的是哪一个取决于哪条路先跑到。
+  const config = fs.readFileSync(path.join(SRC, "core", "config.js"), "utf8");
+  const admission = fs.readFileSync(path.join(SRC, "core", "user-admission.js"), "utf8");
+  const app = fs.readFileSync(path.join(SRC, "core", "app.js"), "utf8");
+  assert.equal(/CB_REGISTRATION_MODE"\)\s*\|\|\s*"(\w+)"/.exec(config)[1], "open");
+  assert.equal(/registrationMode\s*=\s*"(\w+)"/.exec(admission)[1], "open");
+  assert.equal(ACCESS_DEFAULTS.mode, "open");
+  // app.js 最后那层兜底不许再写死一个第四个值。
+  assert.ok(!/registrationMode \|\| "invite"/.test(app),
+    "app.js 里还硬写着 invite 兜底");
+});
+
+test("AC-045 resolveRegistrationMode 这条真实路径给出 open", (t) => {
+  // 不是扫源码，是真的跑一遍：建一个空的 PersonaStore（全新安装的样子），
+  // 按 app.js 的逻辑解析一次。
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cb9-300-mode-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const personaStore = new PersonaStore({ filePath: path.join(dir, "persona.json") });
+
+  const resolve = (config) => {
+    try {
+      const mode = personaStore?.read().access.mode;
+      if (mode === "open" || mode === "invite") return mode;
+    } catch { /* 退回配置 */ }
+    return config.registrationMode || ACCESS_DEFAULTS.mode;
+  };
+
+  assert.equal(resolve({ registrationMode: "" }), "open",
+    "全新安装解析出来还是 invite——新人依然要找主人");
+  // 环境变量仍然有效：面板没设过时它说了算，否则 CB_REGISTRATION_MODE 就是
+  // 一条写了也没人读的死配置。
+  assert.equal(resolve({ registrationMode: "invite" }), "invite",
+    "面板兜底把环境变量吃掉了");
+});
+
+test("AC-045 access.mode 三态，一个都不能合并", () => {
+  // 这条测的是**行为**，不是源码形状：上一版我写成扫正则，结果实现改了三态之后
+  // 那条断言和实现直接相反——扫源码的断言在实现变了之后只会告诉你「形状不对」，
+  // 不会告诉你「行为对不对」。
+  const { normalizeAccess } = require("../src/services/persona/persona-store");
+  // 没设过 → null。替主人选 invite 的话，公开页就白做了。
+  assert.equal(normalizeAccess({}).mode, null);
+  assert.equal(normalizeAccess({ mode: "" }).mode, null);
+  assert.equal(normalizeAccess(undefined).mode, null);
+  // 明确设了 → 就是它。
+  assert.equal(normalizeAccess({ mode: "open" }).mode, "open");
+  assert.equal(normalizeAccess({ mode: "invite" }).mode, "invite");
+  // 设了但认不出来 → invite。访问控制字段，看不懂的值往关着的那边靠；
+  // 猜 open 是拿别人的门去赌自己没理解错。
+  for (const junk of ["OPEN", "Open", "foo", "1", "true"]) {
+    assert.equal(normalizeAccess({ mode: junk }).mode, "invite", `${junk} 被当成了开放`);
+  }
 });

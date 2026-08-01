@@ -148,7 +148,14 @@ function inQuietHours(proactive, hour) {
 // entryUrl 是主人从微信那里拿到的"加我"链接：CyberBoss 造不出这个地址，
 // 只能把它渲染成二维码挂在公开页上。协议只收 https: 和 weixin:。
 const ACCESS_DEFAULTS = Object.freeze({
-  mode: "invite",
+  // 默认开放（CB9-300 / AC-045，主人 2026-08-02 拍板）。
+  //
+  // 这一行才是真正生效的那个开关：resolveRegistrationMode 里面板设置**优先于**
+  // 环境变量。只改 config.js 的默认是白改的——线上读到的永远是这里的 invite，
+  // 而所有直接 new UserAdmissionService 的测试都绕过了这条路，于是全绿。
+  //
+  // 挡住滥用的是下面那行 seats：最多 5 个普通用户，满了在建用户之前就被拒。
+  mode: "open",
   seats: 5,
   entryUrl: "",
 });
@@ -177,11 +184,29 @@ function normalizeEntryUrl(value) {
   return text;
 }
 
+function normalizeAccessMode(raw) {
+  if (raw === undefined || raw === null || raw === "") {
+    return null;
+  }
+  return raw === "open" || raw === "invite" ? raw : "invite";
+}
+
 function normalizeAccess(raw) {
   const source = raw && typeof raw === "object" ? raw : {};
   const seats = Math.round(Number(source.seats));
   return Object.freeze({
-    mode: source.mode === "open" ? "open" : "invite",
+    // 三种情况分开，不能合成两种（CB9-300 / AC-045）：
+    //
+    //   没设过（字段不在）→ null。**不是** invite：一份全新安装或者一份还没有
+    //     access 字段的旧存档，主人从来没选过关闭公开注册，不能替他选。null
+    //     让 resolveRegistrationMode 往下走到环境变量和产品默认。
+    //   设成 open / invite → 就是它。主人的选择最大，改完不用重启。
+    //   设了但认不出来（"OPEN"、"foo"）→ invite。这是访问控制字段，看不懂的
+    //     值一律往关着的那边靠；猜 open 是拿别人的门去赌自己没理解错。
+    //
+    // 合成两种的后果各不相同：把「没设过」当 invite，公开页就白做了；把「认不
+    // 出来」当 open，一个写坏的配置会把门打开。
+    mode: normalizeAccessMode(source.mode),
     seats: Number.isFinite(seats) ? Math.min(MAX_SEATS, Math.max(0, seats)) : ACCESS_DEFAULTS.seats,
     entryUrl: normalizeEntryUrl(source.entryUrl),
   });

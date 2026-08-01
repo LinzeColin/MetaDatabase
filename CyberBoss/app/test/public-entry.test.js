@@ -87,10 +87,16 @@ test("席位数被夹在 0 和上限之间，乱填退回默认", () => {
   assert.equal(normalizeAccess({ seats: 999 }).seats, MAX_SEATS);
   assert.equal(normalizeAccess({ seats: -3 }).seats, 0);
   assert.equal(normalizeAccess({ seats: "三" }).seats, 5);
-  // 模式只认 open 这一个字，别的都算 invite——默认必须是关着的那一边。
+  // 模式分三态（CB9-300 / AC-045）：
+  //   设了但认不出来 → invite。访问控制字段，看不懂的值一律往关着的那边靠。
+  //   明确设了 → 就是它。
+  //   **没设过 → null**，不是 invite：全新安装的主人从没选过关闭公开注册，
+  //     不能替他选。null 让 resolveRegistrationMode 往下走到环境变量和产品
+  //     默认（open）——公开页存在的意义就是让人不用找主人要邀请码。
   assert.equal(normalizeAccess({ mode: "OPEN" }).mode, "invite");
   assert.equal(normalizeAccess({ mode: "open" }).mode, "open");
-  assert.equal(normalizeAccess({}).mode, "invite");
+  assert.equal(normalizeAccess({ mode: "invite" }).mode, "invite");
+  assert.equal(normalizeAccess({}).mode, null);
 });
 
 // ── 开放模式 ────────────────────────────────────────────────
