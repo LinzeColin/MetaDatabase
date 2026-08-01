@@ -1,0 +1,80 @@
+{
+  "node": "CB9-510",
+  "acceptance": [
+    "AC-026",
+    "AC-035"
+  ],
+  "requirements": [
+    "FR-026",
+    "NFR-005"
+  ],
+  "generated_at": "2026-08-02T12:00:00.000Z",
+  "schema": {
+    "schema_version": 2,
+    "v009_top_level_fields": [
+      "schema_version",
+      "product",
+      "version",
+      "generated_at",
+      "modes",
+      "capabilities",
+      "queue",
+      "resources",
+      "canonical_sync",
+      "backups"
+    ],
+    "v009_top_level_count": 10,
+    "carried_from_v0008": [
+      "model_usage",
+      "model_calls"
+    ],
+    "capabilities": 15,
+    "modes": [
+      "OWNER",
+      "COMPANION"
+    ],
+    "cells": 30,
+    "per_cell_fields": 17
+  },
+  "freshness_on_a_host_that_never_ran": {
+    "modes": {
+      "OWNER": {
+        "state": "UNKNOWN",
+        "reason": "not_configured"
+      },
+      "COMPANION": {
+        "state": "UNKNOWN",
+        "reason": "no_live_receipt"
+      }
+    },
+    "queue": {
+      "state": "UNKNOWN",
+      "reason": "no_live_receipt"
+    },
+    "resources": {
+      "state": "DEGRADED",
+      "reason": "MIN_FREE_MEMORY"
+    },
+    "canonical_sync": {
+      "state": "UNKNOWN",
+      "reason": "not_configured"
+    },
+    "backups": {
+      "state": "UNKNOWN",
+      "reason": "not_configured",
+      "restore_drill_state": "UNKNOWN"
+    }
+  },
+  "cross_mode_separation": {
+    "COMPANION": {
+      "state": "not_started",
+      "reason_code": "OWNER_ONLY_CAPABILITY"
+    },
+    "OWNER": {
+      "state": "activation_pending",
+      "reason_code": "RUNTIME_NOT_INITIALIZED"
+    }
+  },
+  "model_calls": 0,
+  "snapshot_sha256": "5203f245fe9b35821045dcae85721b68b85185b71bcfa487b0ae5bbc4000eefa"
+}

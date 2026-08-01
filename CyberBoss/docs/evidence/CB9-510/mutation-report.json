@@ -1,0 +1,70 @@
+[
+ {
+  "mutation": "双模式塌成单模式",
+  "result": "转红"
+ },
+ {
+  "mutation": "量不到的资源当成量到了 0",
+  "result": "转红"
+ },
+ {
+  "mutation": "认不出来的降级档位当 normal",
+  "result": "转红"
+ },
+ {
+  "mutation": "备份跑过就当能恢复",
+  "result": "转红"
+ },
+ {
+  "mutation": "状态改成由调用方直接给",
+  "result": "转红"
+ },
+ {
+  "mutation": "commit 什么形状都认",
+  "result": "转红"
+ },
+ {
+  "mutation": "缺格子只丢一行不整份拒",
+  "result": "转红"
+ },
+ {
+  "mutation": "完整性只按能力查、不按模式",
+  "result": "转红"
+ },
+ {
+  "mutation": "多传的参数静默丢掉",
+  "result": "转红"
+ },
+ {
+  "mutation": "顶层少一段也放行",
+  "result": "转红"
+ },
+ {
+  "mutation": "undefined 的那一段不算缺",
+  "result": "转红"
+ },
+ {
+  "mutation": "压回一行时取更好的那个",
+  "result": "转红"
+ },
+ {
+  "mutation": "模式认不出来也放行",
+  "result": "转红"
+ },
+ {
+  "mutation": "访客也报主人的 Codex 健康度",
+  "result": "转红"
+ },
+ {
+  "mutation": "建议动作退化成状态本身",
+  "result": "转红"
+ },
+ {
+  "mutation": "没采到时区信号也算跑起来过",
+  "result": "转红"
+ },
+ {
+  "mutation": "第 15 项能力去掉",
+  "result": "转红"
+ }
+]

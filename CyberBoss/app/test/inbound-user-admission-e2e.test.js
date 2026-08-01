@@ -24,6 +24,7 @@ const { SqliteCredentialVault } = require("../src/services/secrets/credential-va
 const { deriveSubKey } = require("../src/core/user-turn-runtime");
 const { createInboundFilter } = require("../src/adapters/channel/weixin/message-utils");
 const { projectLiveStatus } = require("../src/services/status/live-status-projector");
+const { collapseModes } = require("../src/services/status/business-matrix");
 const { tokenAppearsInRequestTarget } = require("../src/services/security/secure-setup-link");
 
 const ENCRYPTION_KEY = Buffer.alloc(32, 3);
@@ -400,7 +401,7 @@ test("「设置」 says so plainly when no portal origin is configured", async (
   assert.match(h.sent.at(-1).text, /CB_PORTAL_ORIGIN/);
 });
 
-test("the live operational projection reports all fourteen lines and no model call", () => {
+test("the live operational projection reports all fifteen capabilities in both modes and no model call", () => {
   const projection = projectLiveStatus({
     facts: {
       channelReady: true,
@@ -421,7 +422,9 @@ test("the live operational projection reports all fourteen lines and no model ca
     },
   });
 
-  assert.equal(projection.status.business_lines.length, 14);
+  // v0.0.0.9：15 项能力 × 2 个模式 = 30 格，顶层字段从 business_lines 改名
+  // 成 capabilities。
+  assert.equal(projection.status.capabilities.length, 30);
   assert.equal(projection.status.model_calls, 0);
   assert.equal(projection.status.version, "v0.0.0.8");
   assert.equal(projection.resource_gate.admits_new_work, true);
@@ -434,8 +437,9 @@ test("the live operational projection reports all fourteen lines and no model ca
     assert.equal(serialized.includes(forbidden), false, `Status leaked ${forbidden}`);
   }
 
+  // 按能力压回一行看（取更差的那个），下面这几条断言问的是能力级的事实。
   const byLine = new Map(
-    projection.status.business_lines.map((line) => [line.business_line, line]),
+    collapseModes(projection.status.capabilities).map((line) => [line.business_line, line]),
   );
   assert.equal(byLine.get("user_isolation").state, "healthy");
   assert.equal(byLine.get("user_isolation").queue_depth, 2);

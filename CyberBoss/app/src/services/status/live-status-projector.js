@@ -14,6 +14,7 @@ const os = require("node:os");
 
 const {
   BUSINESS_LINES,
+  MODES,
   buildStatusSnapshot,
 } = require("./business-matrix");
 const { admits, evaluateResourceGate } = require("../operations/resource-gate");
@@ -72,6 +73,12 @@ const LINE_TOPOLOGY = Object.freeze({
     upstream: ["ai_provider_connection"],
     downstream: [],
   },
+  // v0.0.0.9 的第 15 项（CB9-510）。挂在注册后面：时区信号是加入页采的。
+  location_timezone: {
+    stage: "S6",
+    upstream: ["user_registration_consent"],
+    downstream: ["timeline_diary_reminder"],
+  },
 });
 
 const SLO = Object.freeze({
@@ -89,7 +96,36 @@ const SLO = Object.freeze({
   owner_codex_runtime: "owner-only capability",
   release_rollback: "rollback is a pointer move",
   model_usage_budget_circuit: "no call outside a reservation",
+  location_timezone: "no coordinate and no ip is stored",
 });
+
+// AC-035 / NFR-005：每一格都要说得出下一步干什么，而那句话必须是**查出来的**。
+//
+// 生成一句「建议」需要模型，而 NFR-005 写死了自愈不依赖 Agent/Token。所以这是
+// 一张 reason_code → 动作的固定表。查不到的走兜底，兜底也是固定串。
+//
+// 这些串是给人看的行动，不是状态的同义反复：「blocked」告诉你它坏了，
+// 「reconnect_wechat_account」告诉你去干什么。前者等于把排查全推给值班的人。
+const SUGGESTED_BY_REASON = Object.freeze({
+  ok: "none",
+  CHANNEL_NOT_LOGGED_IN: "reconnect_wechat_account",
+  ADMISSION_DISABLED: "enable_admission_in_panel",
+  PORTAL_NOT_MOUNTED: "start_setup_portal",
+  NO_USER_CREDENTIAL: "add_provider_credential",
+  IMPORT_NOT_MOUNTED: "mount_import_service",
+  PROFILE_NOT_MOUNTED: "mount_profile_service",
+  TIMELINE_NOT_MOUNTED: "mount_timeline_service",
+  CANONICAL_SYNC_DISABLED: "configure_canonical_repository",
+  OBJECT_STORE_CREDENTIAL_ABSENT: "add_object_store_credential",
+  BACKUP_TARGET_ABSENT: "configure_backup_target",
+  RUNTIME_NOT_INITIALIZED: "initialize_owner_runtime",
+  TARGET_HOST_ABSENT: "configure_release_host",
+  BUDGET_NOT_MOUNTED: "mount_budget_service",
+  NO_TIMEZONE_SIGNAL_YET: "wait_for_first_join",
+  OWNER_ONLY_CAPABILITY: "none",
+});
+
+const DEFAULT_SUGGESTED_ACTION = "read_reason_code";
 
 function safeIso(value) {
   if (!value) {
@@ -112,6 +148,9 @@ function captureHostMetrics({ queueDepth = 0, filesystemPath = "/" } = {}) {
     const statfs = fs.statfsSync(filesystemPath, { bigint: true });
     metrics.freeDiskBytes = Number(statfs.bavail * statfs.bsize);
     metrics.freeInodes = Number(statfs.ffree);
+    // 总量也要量：只有可用字节数的话算不出比例，而 status 的资源段要的是比例。
+    // 算不出来时那一段是 UNKNOWN，不是 0——见 buildResources。
+    metrics.totalDiskBytes = Number(statfs.blocks * statfs.bsize);
   } catch {
     // Left absent on purpose. The frozen gate rejects a missing measurement;
     // supplying a zero here would read as a plausible "no space" and supplying
@@ -166,6 +205,8 @@ function projectLines(facts) {
     rollbackRelease = null,
     lastSuccessAt = null,
     lastRecoveryAt = null,
+    lastFailureAt = null,
+    timezoneSignalsSeen = 0,
   } = facts;
 
   const state = (ready, pendingReason) =>
@@ -242,27 +283,54 @@ function projectLines(facts) {
       queue_depth: 0,
       reason_code: budgetReady ? "ok" : "BUDGET_NOT_MOUNTED",
     },
+    location_timezone: {
+      // 采到过一个时区信号才算跑起来过。表建好了不算——那是配置性伪绿。
+      state: timezoneSignalsSeen > 0 ? "healthy" : "not_started",
+      queue_depth: timezoneSignalsSeen,
+      reason_code: timezoneSignalsSeen > 0 ? "ok" : "NO_TIMEZONE_SIGNAL_YET",
+    },
   };
 
-  return BUSINESS_LINES.map((businessLine) => {
+  // 15 项能力 × 2 个模式 = 30 格。
+  //
+  // 绝大多数能力对两个模式是同一条路，两格状态相同——**这不是冗余**。
+  // 合成一格的话，等哪天访客那条路单独坏了（provider 换了、额度用完了、
+  // 席位外的人拿不到 key），矩阵里没有一格能表达它，于是它不存在。
+  //
+  // owner_codex_runtime 是唯一结构性单模式的那一项：访客根本够不着 Codex。
+  // 对访客报主人的健康度是**串模式的伪绿**——最坏的一种，因为主人看自己那边
+  // 一直是好的。
+  return BUSINESS_LINES.flatMap((businessLine) => {
     const topology = LINE_TOPOLOGY[businessLine];
     const live = measured[businessLine];
-    return {
-      business_line: businessLine,
-      stage: topology.stage,
-      state: live.state,
-      upstream: topology.upstream,
-      downstream: topology.downstream,
-      slo: SLO[businessLine],
-      queue_depth: live.queue_depth,
-      oldest_job_seconds: 0,
-      error_rate: 0,
-      last_success_at: safeIso(lastSuccessAt),
-      last_recovery_at: safeIso(lastRecoveryAt),
-      release,
-      rollback_release: rollbackRelease,
-      reason_code: live.reason_code,
-    };
+    return MODES.map((mode) => {
+      const ownerOnly = businessLine === "owner_codex_runtime" && mode === "COMPANION";
+      const state = ownerOnly ? "not_started" : live.state;
+      const reasonCode = ownerOnly ? "OWNER_ONLY_CAPABILITY" : live.reason_code;
+      return {
+        business_line: businessLine,
+        mode,
+        stage: topology.stage,
+        state,
+        upstream: topology.upstream,
+        downstream: topology.downstream,
+        slo: SLO[businessLine],
+        queue_depth: ownerOnly ? 0 : live.queue_depth,
+        oldest_job_seconds: 0,
+        error_rate: 0,
+        last_success_at: state === "healthy" ? safeIso(lastSuccessAt) : null,
+        // AC-035：上次成功和上次失败都要有。只有成功时间的话，一条长期坏着的
+        // 线和一条从没跑过的线长得一模一样。
+        last_failure_at: safeIso(lastFailureAt),
+        last_recovery_at: safeIso(lastRecoveryAt),
+        // AC-035 的「建议动作」，从冻结的表里查——不是生成的。生成就等于
+        // 自愈调了模型，而 NFR-005 明令不许。
+        suggested_action: SUGGESTED_BY_REASON[reasonCode] || DEFAULT_SUGGESTED_ACTION,
+        release,
+        rollback_release: rollbackRelease,
+        reason_code: reasonCode,
+      };
+    });
   });
 }
 
@@ -292,17 +360,69 @@ function projectLiveStatus({
   } catch {
     modelUsage = null;
   }
-  const snapshot = buildStatusSnapshot({
-    version: PRODUCT_VERSION,
-    generatedAt,
-    lines: projectLines(facts),
-    modelUsage,
-  });
   const metrics = hostMetrics || captureHostMetrics({
     queueDepth: Number(facts.canonicalQueueDepth) || 0,
   });
   const gate = evaluateResourceGate(metrics);
   const admitted = admits(gate);
+  // FR-026 的另外五段。每一段都只交回执，状态由 parity-freshness 判——
+  // 这里传不进去 state，所以「配置里开着」变不成绿色。
+  const snapshot = buildStatusSnapshot({
+    version: PRODUCT_VERSION,
+    generatedAt,
+    lines: projectLines(facts),
+    modelUsage,
+    modes: {
+      OWNER: {
+        configured: facts.ownerRuntimeReady === true,
+        lastSuccessAt: facts.ownerLastSuccessAt ?? null,
+        lastFailureAt: facts.ownerLastFailureAt ?? null,
+        degradationLevel: facts.degradationLevel || "normal",
+      },
+      COMPANION: {
+        configured: facts.admissionEnabled === true,
+        lastSuccessAt: facts.companionLastSuccessAt ?? null,
+        lastFailureAt: facts.companionLastFailureAt ?? null,
+        degradationLevel: facts.degradationLevel || "normal",
+      },
+    },
+    queue: {
+      configured: true,
+      depth: Number(facts.canonicalQueueDepth) || 0,
+      oldestJobSeconds: Number(facts.oldestJobSeconds) || 0,
+      lastDrainedAt: facts.lastDrainedAt ?? null,
+      lastFailureAt: facts.queueLastFailureAt ?? null,
+    },
+    // 资源是当场量出来的，不是回执。量不到的那几项留 null，由 buildResources
+    // 判成 UNKNOWN——补 0 会显示成「资源充裕」，而实际情况是我们瞎了。
+    resources: {
+      cpuLoad: metrics.loadRatio ?? null,
+      memoryFreeRatio: Number.isFinite(metrics.freeMemoryBytes) && os.totalmem() > 0
+        ? metrics.freeMemoryBytes / os.totalmem()
+        : null,
+      diskFreeRatio: Number.isFinite(metrics.freeDiskBytes) && Number.isFinite(metrics.totalDiskBytes)
+        && metrics.totalDiskBytes > 0
+        ? metrics.freeDiskBytes / metrics.totalDiskBytes
+        : null,
+      admitsNewWork: admitted,
+      reasonCode: gate.reasonCode || null,
+      measuredAt: new Date(generatedAt).toISOString(),
+    },
+    canonicalSync: {
+      configured: facts.canonicalReady === true,
+      lastSyncedAt: facts.lastCanonicalSyncAt ?? null,
+      lastFailureAt: facts.lastCanonicalFailureAt ?? null,
+      pendingFacts: Number(facts.canonicalQueueDepth) || 0,
+      lastCommitSha: facts.lastCanonicalCommitSha ?? null,
+    },
+    backups: {
+      configured: facts.backupConfigured === true,
+      lastBackupAt: facts.lastBackupAt ?? null,
+      lastFailureAt: facts.lastBackupFailureAt ?? null,
+      lastRestoreDrillAt: facts.lastRestoreDrillAt ?? null,
+      objectCount: Number(facts.backupObjectCount) || 0,
+    },
+  });
   const heal = decideSelfHeal({
     healthy: admitted,
     reasonCode: admitted ? null : gate.reasonCode,

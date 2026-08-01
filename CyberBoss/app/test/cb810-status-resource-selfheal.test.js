@@ -10,6 +10,7 @@ const test = require("node:test");
 
 const {
   BUSINESS_LINES,
+  MODES,
   FORBIDDEN_FIELDS,
   REQUIRED_FIELDS,
   StatusMatrixError,
@@ -47,6 +48,8 @@ const NOW_MS = Date.parse(NOW);
 function line(overrides = {}) {
   return {
     business_line: "wechat_channel",
+    // v0.0.0.9 起矩阵是「能力 × 模式」（CB9-510 / AC-026）。
+    mode: "OWNER",
     stage: "S8",
     state: "healthy",
     upstream: [],
@@ -56,7 +59,9 @@ function line(overrides = {}) {
     oldest_job_seconds: 0,
     error_rate: 0,
     last_success_at: NOW,
+    last_failure_at: null,
     last_recovery_at: null,
+    suggested_action: "none",
     release: "release-v0.0.0.8",
     rollback_release: "release-v0.0.0.7",
     reason_code: "OK",
@@ -64,47 +69,61 @@ function line(overrides = {}) {
   };
 }
 
+// 15 项能力 × 2 个模式 = 30 格。
 function fullMatrix(overrides = {}) {
-  return BUSINESS_LINES.map((name) => line({ business_line: name, ...overrides }));
+  return BUSINESS_LINES.flatMap((name) => MODES.map(
+    (mode) => line({ business_line: name, mode, ...overrides }),
+  ));
 }
 
 // ---------------------------------------------------------------------------
 // AC-032 — the business matrix
 // ---------------------------------------------------------------------------
 
-test("AC-032 the frozen fourteen lines and fourteen fields are exactly the contract", () => {
-  assert.equal(BUSINESS_LINES.length, 14);
-  assert.equal(REQUIRED_FIELDS.length, 14);
+test("AC-032 冻结的能力清单与字段清单就是契约本身", () => {
+  // 原来写死成「fourteen lines and fourteen fields」。v0.0.0.9 加了第 15 项能力
+  // （location_timezone）、双模式维度和 AC-035 要的两个字段，于是这条必红——
+  // 属于扩矩阵的正常连带更新，不是缺陷。
+  //
+  // 改成从常量推导数量，只逐条钉**内容**：以后再扩不用改数字，而漏掉某一项
+  // 仍然会被抓到。写死数字的话，每次扩容都要人工跟着改，漏改是假红、改错是假绿。
+  assert.equal(BUSINESS_LINES.length, 15, "能力数变了——先确认不是把某一条删了");
+  assert.deepEqual([...MODES], ["OWNER", "COMPANION"]);
   assert.deepEqual(
     [...BUSINESS_LINES].sort(),
     [
       "ai_provider_connection", "backup_restore", "canonical_sync",
-      "four_source_import", "model_usage_budget_circuit", "owner_codex_runtime",
-      "profile_memory", "r2_oci_objects", "release_rollback",
+      "four_source_import", "location_timezone", "model_usage_budget_circuit",
+      "owner_codex_runtime", "profile_memory", "r2_oci_objects", "release_rollback",
       "secure_setup_portal", "timeline_diary_reminder", "user_isolation",
       "user_registration_consent", "wechat_channel",
     ],
   );
   for (const field of [
-    "business_line", "stage", "state", "upstream", "downstream", "slo",
+    "business_line", "mode", "stage", "state", "upstream", "downstream", "slo",
     "queue_depth", "oldest_job_seconds", "error_rate", "last_success_at",
-    "last_recovery_at", "release", "rollback_release", "reason_code",
+    "last_failure_at", "last_recovery_at", "suggested_action",
+    "release", "rollback_release", "reason_code",
   ]) {
     assert.ok(REQUIRED_FIELDS.includes(field), `${field} is required`);
   }
+  assert.equal(REQUIRED_FIELDS.length, 17, "字段数变了——先确认不是把某一个删了");
 });
 
 test("AC-032 a matrix that omits any business line is refused whole", () => {
-  const partial = fullMatrix().slice(0, 13);
+  // 去掉最后一格。detail 现在是「能力:模式」——矩阵是 15×2，缺的是一格不是一行。
+  const full = fullMatrix();
+  const partial = full.slice(0, full.length - 1);
+  const missingCell = `${full.at(-1).business_line}:${full.at(-1).mode}`;
   assert.throws(
     () => buildBusinessMatrix(partial),
     (error) =>
       error.code === "STATUS_BUSINESS_LINE_MISSING" &&
-      error.detail === BUSINESS_LINES.at(-1),
+      error.detail === missingCell,
   );
   // A snapshot that silently drops the broken line reads as complete, so the
   // whole document is refused rather than one row.
-  assert.equal(buildBusinessMatrix(fullMatrix()).length, 14);
+  assert.equal(buildBusinessMatrix(fullMatrix()).length, BUSINESS_LINES.length * MODES.length);
 });
 
 test("AC-032 a missing or extra field is refused", () => {
@@ -200,7 +219,10 @@ test("AC-032 a snapshot is deterministic and carries its own digest", () => {
   const second = build();
   assert.equal(first.snapshot_sha256, second.snapshot_sha256);
   assert.match(first.snapshot_sha256, /^[0-9a-f]{64}$/);
-  assert.equal(first.business_lines.length, 14);
+  // v0.0.0.9 起顶层叫 capabilities（装的是「能力 × 模式」的格子，不再是一行
+  // 一条业务线）。schema_version 跟着从 1 变成 2。
+  assert.equal(first.schema_version, 2);
+  assert.equal(first.capabilities.length, BUSINESS_LINES.length * MODES.length);
   assert.equal(first.model_calls, 0);
   // Ordering is by name, so the digest does not depend on input order.
   const shuffled = buildStatusSnapshot({

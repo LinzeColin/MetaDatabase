@@ -80,6 +80,7 @@ const { DEFAULT_PROVIDER_POLICIES, UserTurnRuntime } = require("./user-turn-runt
 const { UserCompanionTurn } = require("./user-companion-turn");
 const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
+const { collapseModes } = require("../services/status/business-matrix");
 const {
   ACCESS_DEFAULTS,
   PersonaStore,
@@ -1420,7 +1421,9 @@ class CyberbossApp {
   // 后台那一页要的全部数据。都是计数和状态，不含任何用户标识。
   buildDashboardOverview() {
     const projection = this.projectOperationalStatus();
-    const lines = (projection?.status?.business_lines || []).map((line) => ({
+    // v0.0.0.9 的矩阵是 15 项能力 × 2 个模式 = 30 格。概览这一列窄，压回 15 行，
+    // 压的方向是取更差的那个——主人这条路好好的不该盖住访客那条坏了的。
+    const lines = collapseModes(projection?.status?.capabilities || []).map((line) => ({
       label: PLAIN_LINE_NAMES[line.business_line] || line.business_line,
       state: line.state,
     }));
@@ -1496,7 +1499,7 @@ class CyberbossApp {
       // 现在管着几个微信号。多号之后这一格才有意义。
       accounts: this.liveAccountIds(),
       // 业务线状态（和概览同一份投影，这里给全，不只给名字）。
-      lines: (projection?.status?.business_lines || []).map((line) => ({
+      lines: collapseModes(projection?.status?.capabilities || []).map((line) => ({
         id: line.business_line,
         label: PLAIN_LINE_NAMES[line.business_line] || line.business_line,
         state: line.state,
@@ -4403,7 +4406,7 @@ class CyberbossApp {
     if (!projection?.status) {
       return "现在读不到运行状况，稍后再发一次「状态」。";
     }
-    const lines = projection.status.business_lines;
+    const lines = collapseModes(projection.status.capabilities);
     const healthy = lines.filter((line) => line.state === "healthy").length;
     const pending = lines.filter((line) => line.state === "activation_pending");
     const blocked = lines.filter((line) => line.state === "blocked" || line.state === "degraded");
