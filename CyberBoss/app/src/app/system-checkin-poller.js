@@ -4,6 +4,7 @@ const path = require("path");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
 const { BEIJING_ZONE, formatInZone, hourInZone } = require("../services/time/canonical-time");
+const { allows } = require("../services/operations/degradation-ladder");
 const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { SessionStore } = require("../adapters/runtime/codex/session-store");
 const { CheckinConfigStore, resolveDefaultCheckinRange } = require("../core/checkin-config-store");
@@ -37,6 +38,11 @@ async function runSystemCheckinPoller(config, options = {}) {
   const readTimezone = typeof options.readTimezone === "function"
     ? options.readTimezone
     : () => BEIJING_ZONE;
+  // 当前的资源压力等级（CB9-320 / AC-031）。没注入就当一切正常——退化后的行为
+  // 和加这个功能之前一模一样。
+  const readPressure = typeof options.readPressure === "function"
+    ? options.readPressure
+    : () => "normal";
   const primaryAccount = resolveSelectedAccount(config);
   const queue = new SystemMessageQueueStore({ filePath: config.systemMessageQueueFile });
   const checkinConfigStore = new CheckinConfigStore({ filePath: config.checkinConfigFile });
@@ -108,6 +114,14 @@ async function runSystemCheckinPoller(config, options = {}) {
       // 静默时段。半夜戳人一下不叫陪伴，而且这一条必须在排队之前判——排进去了
       // 就一定会发出去。
       if (isQuietNow(target.settings, nowHour(readTimezone(target.senderId)))) {
+        continue;
+      }
+      // 机器扛不住的时候，主动问候是**第一个**被关掉的（AC-031 的固定顺序）。
+      //
+      // 判定必须在**排队之前**：排进去的消息一定会被发出去，那时候再判就晚了。
+      // 访客的问候和主人的脉冲分开判——顺序里它们是两级，前者先关。
+      const capability = target.isOwner ? "owner_pulse" : "guest_proactive";
+      if (!allows(readPressure(), capability)) {
         continue;
       }
 

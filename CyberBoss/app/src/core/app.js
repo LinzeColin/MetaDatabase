@@ -107,6 +107,15 @@ const {
   mergeLocationSignals,
   shouldAskConfirmation,
 } = require("../services/location/location-profile");
+// 阈值直接用资源闸门那一份，不另立一套——两套阈值必然会漂，而漂开之后
+// 「闸门说不行」和「阶梯说正常」会同时成立。
+const { DEFAULT_THRESHOLDS: RESOURCE_THRESHOLDS } = require("../services/operations/resource-gate");
+
+// 压力等级的阶梯顺序，和 degradation-ladder 的 LEVELS 一一对应。
+const PRESSURE_LEVELS = Object.freeze([
+  "normal", "low", "elevated", "high", "severe", "critical",
+]);
+
 const {
   buildForgetReply,
   buildSetReply,
@@ -1072,6 +1081,9 @@ class CyberbossApp {
         // 静默时段按**他当地**的几点判（CB9-230 / AC-011）。没有位置画像的人
         // 退回北京时间——和以前的行为一致。
         readTimezone: (senderId) => this.senderTimezone({ senderId }),
+        // 机器扛不住时先关主动问候（CB9-320 / AC-031）。读不出来当正常，
+        // 退化后的行为和加这个功能之前一模一样。
+        readPressure: () => this.resourcePressureLevel(),
       }).catch((error) => {
         console.error(`[cyberboss] checkin poller stopped: ${error.message}`);
       });
@@ -1892,13 +1904,16 @@ class CyberbossApp {
   listCheckinTargets() {
     const targets = [];
     const seen = new Set();
-    const add = (senderId, settings) => {
+    // isOwner 要跟着目标一起带出去：降级阶梯里「访客主动关心」和「Owner 脉冲」
+    // 是**两级**，前者先关（CB9-320 / AC-031）。轮询器分不清谁是谁的话，要么
+    // 一起关（主人平白少一级缓冲），要么一起留（第一级形同虚设）。
+    const add = (senderId, settings, isOwner = false) => {
       const id = String(senderId || "").trim();
       if (!id || seen.has(id)) {
         return;
       }
       seen.add(id);
-      targets.push({ senderId: id, settings });
+      targets.push({ senderId: id, settings, isOwner });
     };
 
     // 主人。他那一份就是所有人的默认值。
@@ -1908,7 +1923,7 @@ class CyberbossApp {
     } catch {
       ownerSettings = null;
     }
-    add(this.resolveOwnerSenderIdForCheckin(), ownerSettings);
+    add(this.resolveOwnerSenderIdForCheckin(), ownerSettings, true);
 
     // 其余每个说过话的人。
     if (!this.runtimeSpoolDatabase || !this.personaStore) {
@@ -3779,6 +3794,64 @@ class CyberbossApp {
       console.warn(`[cyberboss] 改位置失败 ${String(error?.message || "").slice(0, 200)}`);
       return false;
     }
+  }
+
+  // 当前的资源压力等级（CB9-320 / AC-031）。
+  //
+  // 从闸门的判定推出来：闸门只回 admit/reject，等级要看**几条**地板/压力项同时
+  // 不满足。一条不满足是 low，两条 elevated，以此类推——这样降级是逐步的，
+  // 用户的体感是慢慢变慢而不是断崖。
+  //
+  // 读不到测量值时返回 normal 而不是 critical：一次读数失败不该让整台机器进入
+  // 最高降级——那是把测量问题变成一次全面停服。
+  // measure 可注入（CB9-320）。
+  //
+  // 不可注入的话，这个函数只能在「当前这台机器碰巧是什么状态」下被测——而变异
+  // 测试里「把等级写死成 critical」这一刀是活的：写死的常量也是一个合法等级。
+  // 这就是 CB9-250 那条假时钟教训的同一个形状：喂不进去读数，就证明不了读数
+  // 真的被用上了。
+  resourcePressureLevel({ now = Date.now(), measure = null } = {}) {
+    // 缓存 15 秒。轮询器每一轮都问一次，而 statfs 是一次真实的系统调用——
+    // 在一台已经吃紧的机器上，为了判断「是不是吃紧」而每秒去敲一次磁盘，
+    // 本身就是在加压。
+    const cached = this.resourcePressureCache;
+    if (cached && now - cached.at < 15_000) {
+      return cached.level;
+    }
+    let level = "normal";
+    try {
+      const read = typeof measure === "function" ? measure : () => {
+        const os = require("node:os");
+        const fs = require("node:fs");
+        const statfs = fs.statfsSync(this.config?.stateDir || process.cwd(), { bigint: true });
+        return {
+          freeDiskBytes: Number(statfs.bavail * statfs.bsize),
+          freeInodes: Number(statfs.ffree),
+          freeMemoryBytes: os.freemem(),
+          loadRatio: (os.loadavg()[0] || 0) / Math.max(1, os.cpus().length),
+        };
+      };
+      const { freeDiskBytes, freeInodes, freeMemoryBytes, loadRatio } = read();
+
+      // 逐条数**同时**不满足的项，而不是取闸门那个「第一条不满足的」原因码。
+      // 闸门是 admit/reject，一条就够；降级要的是「有多严重」——一条内存紧和
+      // 内存磁盘 inode 全紧，该关掉的东西差着三级。
+      let violations = 0;
+      if (freeMemoryBytes < RESOURCE_THRESHOLDS.minFreeMemoryBytes) violations += 1;
+      if (freeDiskBytes < RESOURCE_THRESHOLDS.minFreeDiskBytes) violations += 1;
+      if (freeInodes < RESOURCE_THRESHOLDS.minFreeInodes) violations += 1;
+      if (loadRatio > RESOURCE_THRESHOLDS.maxLoadRatio) violations += 1;
+      // 内存和磁盘同时见底是最危险的组合：两个都没了，连日志都写不下去。
+      if (freeMemoryBytes < RESOURCE_THRESHOLDS.minFreeMemoryBytes
+        && freeDiskBytes < RESOURCE_THRESHOLDS.minFreeDiskBytes) violations += 1;
+      level = PRESSURE_LEVELS[Math.min(violations, PRESSURE_LEVELS.length - 1)];
+    } catch {
+      // 测不出来当正常，**不是** critical：一次读数失败不该让整台机器进入最高
+      // 降级——那是把一个测量问题变成一次全面停服。
+      level = "normal";
+    }
+    this.resourcePressureCache = { at: now, level };
+    return level;
   }
 
   // 一条入站消息的发件人在哪个时区。解析不出身份就退回主人的时区——那是这台

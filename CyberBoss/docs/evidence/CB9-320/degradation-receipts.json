@@ -1,0 +1,109 @@
+{
+  "task": "CB9-320",
+  "title": "实现共享额度与 OVH 压力下的中文排队/限流/确定性降级",
+  "generated_at": "2026-08-01T20:19:24Z",
+  "head_observation": "c647c47a1d1dd9ee626c3811f65beada75e621b0",
+  "artifacts": [
+    "app/src/services/operations/degradation-ladder.js（新）",
+    "app/src/app/system-checkin-poller.js（排队前先问阶梯）",
+    "app/src/core/app.js（resourcePressureLevel 真实测量 + isOwner 透传）",
+    "app/test/cb9-320-degradation.test.js（新，22）"
+  ],
+  "the_gap": "资源闸门只做 admit/reject，**没有** AC-031 要的那条固定降级顺序。",
+  "acceptance": {
+    "AC-031": {
+      "status": "PASS",
+      "how": "冻结顺序：访客主动关心 → Owner 脉冲 → 媒体/浏览器 → 访客模型 → Owner 新任务排队，与 AC 原文逐字一致。顺序是按「关掉之后谁会发现」排的：先关没人会发现的，最后动主人的活儿，而且主人那一级是**排队**不是拒绝（一件不丢、正在跑的不打断）。等级与阶梯一一对应，每一格都可达。自愈零模型调用靠的不是「我们没调」而是「够不着」：阶梯和闸门都是零 require 的纯函数，有测试钉住。"
+    },
+    "AC-009": {
+      "status": "PASS",
+      "how": "笔记、提醒、Timeline、查询、日记、位置在任何等级下都保持可用（FR-009 的「保持」）。限流与额度耗尽的中文文案里零配置指令——那是这条 AC 唯一要挡的东西：一个新手在系统最忙的时候被要求去弄一个 API key。文案还必须说清楚「现在还能做什么」，不是只说不行。"
+    }
+  },
+  "design_decisions": [
+    {
+      "what": "认不出来的等级按 normal 办，不按 critical",
+      "why": "反过来的话，一次读数失败会让整台机器进入最高降级——一个测量问题变成一次全面停服。"
+    },
+    {
+      "what": "阶梯上没有的能力默认放行",
+      "why": "挡一个我们没想过的东西，比放行它更容易造成「某个功能莫名其妙不能用了，而且没人知道为什么」。"
+    },
+    {
+      "what": "压力等级缓存 15 秒",
+      "why": "轮询器每轮都问，而 statfs 是一次真实系统调用。在一台已经吃紧的机器上，为了判断「是不是吃紧」而每秒敲一次磁盘，本身就是在加压。"
+    },
+    {
+      "what": "阈值复用 resource-gate 的 DEFAULT_THRESHOLDS",
+      "why": "两套阈值必然会漂，漂开之后「闸门说不行」和「阶梯说正常」会同时成立。"
+    }
+  ],
+  "defects_found_by_my_own_tests": [
+    {
+      "what": "第一版 LEVELS 写成 0/1/3/5，跳过了深度 2 和 4。",
+      "impact": "「只关到媒体/浏览器」和「只关到访客模型」两个状态永远到不了——阶梯上白写了两级，而且掉级时用户的体感是断崖不是逐步变慢。",
+      "found_by": "我自己的覆盖性测试第一版只断言了最大值，跳格照样绿；改成断言每一格都可达后才红。"
+    },
+    {
+      "what": "resourcePressureLevel 的测量不可注入。",
+      "impact": "变异测试里「把等级写死成 critical」这一刀是活的——写死的常量也是一个合法等级。",
+      "fix": "measure 改为可注入，补一条喂两组不同读数看结果跟不跟着变的测试。这和 CB9-250 的假时钟是同一件事：喂不进去读数，就证明不了读数真的被用上了。"
+    }
+  ],
+  "reachability": "轮询器在 **enqueue 之前**问阶梯（排进去的消息一定会被发出去，那时候再判就晚了），并按 target.isOwner 分成 owner_pulse / guest_proactive 两级——不分的话要么主人平白少一级缓冲，要么第一级形同虚设。listCheckinTargets 相应带出 isOwner。有测试钉住这三处接线和先后顺序。",
+  "tests": {
+    "count": "22 pass",
+    "full_regression": "1228 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "顺序打乱（访客问候不再第一个）",
+      "red": 3
+    },
+    {
+      "mutation": "等级跳格（回到有够不着的一级）",
+      "red": 3
+    },
+    {
+      "mutation": "提醒不再是永远开着的",
+      "red": 1
+    },
+    {
+      "mutation": "限流文案里要求配密钥",
+      "red": 2
+    },
+    {
+      "mutation": "轮询器不问阶梯（阶梯变死代码）",
+      "red": 1
+    },
+    {
+      "mutation": "主人和访客不分级",
+      "red": 1
+    },
+    {
+      "mutation": "目标不带 isOwner",
+      "red": 1
+    },
+    {
+      "mutation": "测不出来时进入最高降级",
+      "red": 1
+    },
+    {
+      "mutation": "等级写死成 critical",
+      "red": 1,
+      "note": "改成可注入测量后才红"
+    },
+    {
+      "mutation": "等级写死成 normal",
+      "red": 1,
+      "note": "同上"
+    },
+    {
+      "mutation": "内存+磁盘双紧不再加权",
+      "red": 1,
+      "note": "同上"
+    }
+  ],
+  "baseline_before_mutation": "fail 0",
+  "fault_injection_note": "AC-009/AC-031 的 method 是 fault-injection。这里注入的是**读数**（喂进一组低内存/低磁盘/高负载的测量值），不是真的把 OVH 那台机器撑满——真机故障注入在 CB9-620/630（environment_bound）。"
+}
