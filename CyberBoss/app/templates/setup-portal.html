@@ -109,9 +109,26 @@
   </div>
 
   <!-- 每屏只有一个主操作：其余入口都是次要按钮。 -->
+
+  <!-- 默认落地的是这一屏，不是 BYOK（CB9-310 / AC-008）。
+       一打开设置页就看见一个「粘贴你的密钥」输入框，是在告诉一个刚扫完码的人
+       「你还差一步才能用」——而他其实已经能用了。 -->
+  <section id="view-ready">
+    <h2>已经可以用了</h2>
+    <p>直接回微信跟它说话就行，不用在这一页做任何事。这一页只是给你留着，
+       想调点什么的时候再来。</p>
+    <button class="secondary" id="go-import" type="button">导入以前的聊天</button>
+  </section>
+
+  <!-- BYOK 默认折叠。details 不带 open，浏览器原生就是收起来的：
+       不需要 JS 也不会闪一下再收起来，而且用户「主动展开」这个动作是浏览器
+       自己记录的，不靠我们的状态机（AC-008 要的就是「主动展开后才出现」）。 -->
+  <details id="advanced">
+    <summary>高级设置</summary>
   <section id="view-provider">
     <h2>连接你自己的 AI</h2>
-    <p>填上你自己的密钥，聊天就会用你的账户，费用和额度都在你手里。</p>
+    <p>可选。填上你自己的服务授权，聊天就会走你的账户，费用和额度都在你手里。
+       不填也完全能用。</p>
     <label for="provider">选择服务</label>
     <select id="provider" name="provider">
       <option value="openai">OpenAI</option>
@@ -126,6 +143,7 @@
     <button class="primary" id="save-provider" type="button">保存并继续</button>
     <button class="secondary" id="skip-provider" type="button">先跳过，直接聊天</button>
   </section>
+  </details>
 
   <section id="view-import" hidden>
     <h2>导入你以前的聊天</h2>
@@ -169,6 +187,14 @@
         var node = document.getElementById(views[name]);
         if (node) { node.hidden = views[name] !== target; }
       });
+      var ready = document.getElementById("view-ready");
+      if (ready) { ready.hidden = true; }
+      // 用户是从微信「连接我的AI」这条**主动**指令过来的，才把高级设置展开。
+      // 没带这个参数就保持折叠——AC-008 说的「主动展开」包括这一种主动。
+      if (purpose === "provider") {
+        var advanced = document.getElementById("advanced");
+        if (advanced) { advanced.open = true; }
+      }
     }
 
     // CSRF 令牌只放在内存里。会话 cookie 是 HttpOnly，脚本读不到它，所以
@@ -176,7 +202,7 @@
     var csrf = "";
 
     function show(id) {
-      ["view-provider", "view-import", "view-error"].forEach(function (name) {
+      ["view-ready", "view-provider", "view-import", "view-error"].forEach(function (name) {
         var node = document.getElementById(name);
         if (node) { node.hidden = name !== id; }
       });
@@ -269,6 +295,12 @@
           if (hint) { hint.textContent = reason(error); }
         });
       });
+    }
+
+    // 落地屏上唯一的按钮：去导入。BYOK 不在这一屏出现，它在折叠的高级设置里。
+    var goImport = document.getElementById("go-import");
+    if (goImport) {
+      goImport.addEventListener("click", function () { show("view-import"); });
     }
 
     var skipButton = document.getElementById("skip-provider");

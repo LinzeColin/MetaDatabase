@@ -1,0 +1,66 @@
+{
+  "task": "CB9-310",
+  "title": "将 BYOK 移至高级自选并移除主流程技术术语",
+  "generated_at": "2026-08-01T20:10:19Z",
+  "head_observation": "234a7bb1de24eb17c51369adb13ca789a24dc5b6",
+  "artifacts": [
+    "app/templates/setup-portal.html（BYOK 收进折叠的高级设置 + 新落地屏）",
+    "app/src/services/ops/novice-presenter.js（home 文案不再推销 BYOK）",
+    "app/test/cb9-310-byok-advanced.test.js（新，10）",
+    "app/test/cb730-novice-experience.test.js（AC-049 断言改为逐视图计数）"
+  ],
+  "the_gap": "设置页**一打开就是** BYOK：第一眼是「连接你自己的 AI」加一个「粘贴你的密钥」输入框。对一个刚扫完码的人，这等于告诉他「你还差一步才能用」——而他其实已经能用了。novice-presenter 的 home 文案也在推销它。",
+  "acceptance": {
+    "AC-008": {
+      "status": "PASS",
+      "how": "BYOK 整段（服务选择、密钥框、保存按钮）收进 <details id=\"advanced\">，默认折叠；页面默认落地在新的 view-ready（「已经可以用了，不用在这一页做任何事」）。只有用户从微信主动回「连接我的AI」带 ?p=provider 过来时才展开——那也是一次「主动展开」。跳过 BYOK 不发任何请求、不动会话、不跳视图；保存路径上没有登出/清 cookie/reload。微信侧仍然认得「连接我的AI」这条主动指令：高级不等于藏起来找不到。"
+    }
+  },
+  "why_details_not_js": "用 <details> 而不是 JS 控制显隐是有意的：浏览器原生就是收起来的，不需要脚本，也不会「先闪一下再收起来」。脚本控制的版本在 JS 加载慢或被 CSP 挡住的时候会把密钥输入框直接摊开——而那正是最不该出问题的时刻。而且「用户主动展开」这个动作由浏览器自己记录，不靠我们的状态机。",
+  "collateral_and_why_it_is_an_improvement": {
+    "what": "AC-049「每屏只有一个主操作」原来比的是『主操作总数 === 视图总数』。新加的落地屏没有主操作（它那句话就是「不用做任何事」，硬塞一个按钮只会自相矛盾），于是总数对不上而转红。",
+    "not_a_weakening": "没有放松断言，而是改成**逐视图**计数：每个视图至多一个主操作，且至少两个视图有主操作（防退化成空转）。这比原来强——原写法对『一个视图两个主操作 + 另一个零个』是绿的，而两个主操作正是这条规则要挡的东西。",
+    "verified": "用『给导入屏加第二个主操作，同时把 BYOK 的主操作降级』这一刀验证：总数不变，旧写法绿，新写法红。"
+  },
+  "tests": {
+    "count": "10 pass",
+    "full_regression": "1206 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "高级设置默认展开",
+      "red": 3
+    },
+    {
+      "mutation": "无条件展开高级设置",
+      "red": 1
+    },
+    {
+      "mutation": "落地屏改成「还差一步」",
+      "red": 1
+    },
+    {
+      "mutation": "落地屏按钮变成死按钮",
+      "red": 1
+    },
+    {
+      "mutation": "「先跳过」改成会动会话",
+      "red": 1
+    },
+    {
+      "mutation": "主流程又开始推销 BYOK",
+      "red": 2
+    },
+    {
+      "mutation": "需要 BYOK 的分支不告诉用户怎么修",
+      "red": 1
+    },
+    {
+      "mutation": "一个视图两个主操作 + 另一个零个（总数不变）",
+      "red": 1,
+      "note": "验证 AC-049 新断言确实更强"
+    }
+  ],
+  "baseline_before_mutation": "fail 0",
+  "browser_verification": "真实浏览器上「默认看不见、展开后出现、关掉不影响会话」那一段是 CB9-340（environment_bound）。这里验的是 DOM 结构与脚本分支。"
+}

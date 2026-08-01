@@ -112,15 +112,30 @@ test("AC-037/AC-049 every message is Chinese, jargon-free and repairable", () =>
 });
 
 test("AC-049 the setup page is mobile-first with one primary action per view", () => {
-  // One primary action per visible view.
-  const primaries = PORTAL.match(/class="primary"/g) || [];
-  const sections = PORTAL.match(/<section id="view-[a-z]+"/g) || [];
-  assert.equal(
-    primaries.length,
-    sections.length,
-    "each view carries exactly one primary action",
-  );
-  const visibleSections = (PORTAL.match(/<section id="view-[a-z]+"(?! hidden)/g) || []).length;
+  // 每个视图**至多**一个主操作，逐个数。
+  //
+  // 原来这条比的是「主操作总数 === 视图总数」——那比看起来弱得多：一个视图有
+  // 两个主操作、另一个有零个，总数照样对得上，而两个主操作正是这条规则要挡的
+  // 东西。改成逐个数之后，「至多一个」是真的被挡住了。
+  //
+  // 至多而不是恰好：CB9-310 加的落地屏（「已经可以用了，不用在这一页做任何
+  // 事」）本来就没有主操作——给它硬塞一个按钮只会和它那句话自相矛盾。
+  const sectionBlocks = PORTAL.split(/(?=<section id="view-)/).slice(1);
+  assert.ok(sectionBlocks.length >= 3, "视图数看起来不对，这条断言可能已经失效");
+  let withPrimary = 0;
+  for (const block of sectionBlocks) {
+    const body = block.slice(0, block.indexOf("</section>"));
+    const count = (body.match(/class="primary"/g) || []).length;
+    const id = /<section id="(view-[a-z]+)"/.exec(block)?.[1] || "?";
+    assert.ok(count <= 1, `${id} 有 ${count} 个主操作`);
+    if (count === 1) withPrimary += 1;
+  }
+  assert.ok(withPrimary >= 2, "几乎没有视图有主操作，这条断言退化成了空转");
+
+  // 同时可见的视图只有一个。折叠在 <details> 里的不算可见——它是高级设置，
+  // 用户主动展开才出现（AC-008）。
+  const beforeAdvanced = PORTAL.slice(0, PORTAL.indexOf('<details id="advanced">'));
+  const visibleSections = (beforeAdvanced.match(/<section id="view-[a-z]+"(?! hidden)/g) || []).length;
   assert.equal(visibleSections, 1, "only one view is visible at a time");
 
   // Touch target, base font and viewport.
