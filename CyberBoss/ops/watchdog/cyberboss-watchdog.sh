@@ -107,4 +107,32 @@ else
   fi
 fi
 
+# ── 模型这条路还通吗 ────────────────────────────────────
+#
+# 这是上面那些检查全部看不到的一类故障：进程活着、healthz 200、隧道正常、公网
+# 200——**但模型连不上**。2026-07-31 09:02 主人的 ChatGPT 令牌被服务端吊销
+# （token_invalidated），系统就这样静静地坏了 25 小时、累计 552 次 401，没有
+# 任何东西说过一句话；主人自己发现时的原话是"系统不可用了，自愈失效了"。
+#
+# 这一条修不了（重新登录要用主人的账号，机器做不到），但**必须让它可见**。
+# 修不了不等于可以不说。
+#
+# 注意 `codex login status` 不能用：它只读本地文件，令牌被吊销之后照样回
+# "Logged in using ChatGPT"。只有真实请求的 401 才是证据。
+AUTH_FLAG="$STATE_DIR/auth.broken"
+recent_401="$(journalctl --namespace=cyberboss -u "$SERVICE" --since '-10min' --no-pager 2>/dev/null \
+  | grep -c -E 'token_invalidated|401 Unauthorized' || true)"
+if [ "${recent_401:-0}" -gt 0 ]; then
+  if [ ! -f "$AUTH_FLAG" ]; then
+    date -u +%Y-%m-%dT%H:%M:%SZ >"$AUTH_FLAG"
+  fi
+  since="$(cat "$AUTH_FLAG" 2>/dev/null || echo '?')"
+  # 每一轮都喊。这条不能只喊一次就安静——安静正是它坏了 25 小时的原因。
+  echo "[watchdog] 模型连不上：ChatGPT 授权已失效（近 10 分钟 $recent_401 次 401），从 $since 起。" \
+       "主人的对话和主动消息都发不出去；访客走 DeepSeek 不受影响。" \
+       "恢复要主人本人重新登录：codex login（CODEX_HOME=/var/lib/cyberboss/.codex）"
+else
+  rm -f "$AUTH_FLAG"
+fi
+
 exit 0
