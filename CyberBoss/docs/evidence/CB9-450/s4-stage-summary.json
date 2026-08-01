@@ -1,0 +1,29 @@
+{
+  "stage": "S4",
+  "title": "统一 Session",
+  "nodes": [
+    "CB9-400",
+    "CB9-410",
+    "CB9-420",
+    "CB9-430",
+    "CB9-440",
+    "CB9-450"
+  ],
+  "generated_at": "2026-08-01T22:10:35Z",
+  "acceptance_final": {
+    "AC-017": "PASS",
+    "AC-018": "PASS",
+    "AC-019": "PASS",
+    "AC-020": "PASS",
+    "AC-021": "PASS",
+    "AC-022": "PASS",
+    "AC-023": "PASS",
+    "AC-024": "PASS",
+    "AC-043": "PASS"
+  },
+  "new_tests": "19+17+17+17+27+17 = 114 条",
+  "regression": "1364 + 72 全通过",
+  "environment_bound_nodes_in_S4": "无。六个节点全部 environment_bound=false。",
+  "cross_cutting_cleanup": "四个源文件里的裸 NUL 字节（两个是更早就有的，一直没人发现），并加了一条守卫扫 src/ 和 migrations/ 的所有裸控制字符。",
+  "rollback": "S4 全部是新增模块 + 三处既有文件的加字段（reminder-queue-store、system-message-queue-store、user-admission）。没有迁移，没有删除。回退即回退到本段之前的 immutable release。"
+}
