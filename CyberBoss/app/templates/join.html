@@ -121,6 +121,7 @@
           return;
         }
         ticket = String(d.ticket || "");
+        reportTimezone();
         say(d.message || "用微信扫这个码加它。");
         showSteps(true);
         startCountdown();
@@ -130,6 +131,26 @@
         say("现在连不上。点下面的按钮再试一次。");
         el("ttl").textContent = "";
       });
+  }
+
+  // 静默上报这台设备的时区，让它第一句话就用对你的时间。
+  //
+  // Intl 读的是设备自己的时区设置：不弹框、不问权限、不碰位置。这一页从头到尾
+  // 不会用 navigator.geolocation —— 那个要权限、会弹框，而且给的是经纬度，一个
+  // 我们根本不打算存的东西（库里没有那两列）。
+  //
+  // 整段包在 try 里，且失败什么都不做：拿不到时区就回退北京时间，扫码照常。
+  function reportTimezone() {
+    if (!ticket) { return; }
+    var tz = "";
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { tz = ""; }
+    if (!tz) { return; }
+    fetch("/api/join/timezone", {
+      method: "POST",
+      credentials: "omit",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ticket: ticket, timezone: tz })
+    }).catch(function () {});
   }
 
   function poll() {

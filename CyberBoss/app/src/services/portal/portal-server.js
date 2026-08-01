@@ -137,6 +137,11 @@ class PortalHttpServer {
     // 后台会话。给了这三个就支持"登录一次，之后免令牌"。
     publicEntry = null,
     publicEntryStatus = null,
+    // 加入页静默上报的时区（CB9-210）。漏在这里的后果就是上面那段注释说的：
+    // app.js 注入了、路由也挂了，但 this.joinTimezoneSignal 是 undefined，
+    // handler 里那句 typeof === "function" 判断直接跳过——线上一个时区都收
+    // 不到，而 adapter 的 18 条单测全绿。第九次了。
+    joinTimezoneSignal = null,
     adminSessionIssue = null,
     adminSessionVerify = null,
     adminSessionRevoke = null,
@@ -173,6 +178,7 @@ class PortalHttpServer {
     this.personalSiteSettings = personalSiteSettings;
     this.adminInsights = adminInsights;
     this.publicEntry = publicEntry;
+    this.joinTimezoneSignal = joinTimezoneSignal;
     this.publicEntryStatus = publicEntryStatus;
     this.adminSessionIssue = adminSessionIssue;
     this.adminSessionVerify = adminSessionVerify;
@@ -496,6 +502,36 @@ class PortalHttpServer {
     return null;
   }
 
+  // 这个接口**永远**回 200 ok。
+  //
+  // 时区是锦上添花：有它回复更贴人，没它回退北京时间照样能聊。让一次上报失败
+  // 变成页面上一个错误、或者让访客卡在扫码前，就是拿主路径去赌一个可降级的字
+  // 段——AC-012 明说「无任何信号时首条回复仍成功」，AC-042 明说不阻塞扫码。
+  // 所以这里连 4xx 都不回：调用方没有任何需要分支处理的失败态。
+  async #handleJoinTimezone(request, response) {
+    let timezone = "";
+    let ticket = "";
+    try {
+      const raw = await readBody(request);
+      if (raw.length) {
+        const body = JSON.parse(raw.toString("utf8"));
+        timezone = String(body?.timezone || "");
+        ticket = String(body?.ticket || "");
+      }
+    } catch {
+      // body 坏了就当没报过。
+    }
+    try {
+      if (typeof this.joinTimezoneSignal === "function") {
+        await this.joinTimezoneSignal({ ticket, timezone, headers: request.headers });
+      }
+    } catch {
+      // 采集出任何岔子都不许影响加入。
+    }
+    this.#json(response, 200, { ok: true });
+    return null;
+  }
+
   async #handleAdminLogout(request, response) {
     if (request.method !== "POST") {
       this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
@@ -693,6 +729,12 @@ class PortalHttpServer {
     // 不回 accountId、不回 token、不回任何人的身份。
     if (request.method === "GET" && pathname === "/api/join/status") {
       return this.#handlePublicEntryStatus(response, url.searchParams.get("t") || "");
+    }
+    // 加入页静默上报浏览器 IANA 时区（CB9-210 / AC-012）。
+    // 和公开页同样无鉴权——它收的东西比公开页还少：一个时区名，绑在一张我们
+    // 自己发出去的票上。
+    if (request.method === "POST" && pathname === "/api/join/timezone") {
+      return this.#handleJoinTimezone(request, response);
     }
     if (pathname === "/admin/api/login") {
       return this.#handleAdminLogin(request, response);

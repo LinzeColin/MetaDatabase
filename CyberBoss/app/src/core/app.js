@@ -95,6 +95,12 @@ const {
   normalizeUserZone,
 } = require("../services/time/canonical-time");
 const {
+  PendingTimezoneSignals,
+  normalizeBrowserTimezone,
+  readCloudflareSignals,
+  safeObservation,
+} = require("../services/location/timezone-signals");
+const {
   MAX_TTL_MS: SESSION_MAX_TTL_MS,
   SqliteSessionTokenService,
   parseSessionCookie,
@@ -384,6 +390,8 @@ class CyberbossApp {
     this.accountPollFailureCounts = new Map();
     // 公开入口发出去的授权码票据：ticket -> 出票时刻。
     this.publicEntryGate = { lastMintedAt: 0, tickets: new Map() };
+    // 扫码那一刻还不知道来的是谁——人是扫完才存在的。观测先按票暂存。
+    this.pendingTimezoneSignals = new PendingTimezoneSignals();
     this.jobScheduler = null;
     this.outboxWorker = null;
     this.canonicalSyncCoordinator = null;
@@ -1177,6 +1185,7 @@ class CyberbossApp {
       adminPersonaWrite: (input) => this.writeDashboardPersona(input),
       publicEntry: () => this.buildPublicEntry(),
       publicEntryStatus: (ticket) => this.pollPublicEntryQr(ticket),
+      joinTimezoneSignal: (input) => this.recordJoinTimezoneSignal(input),
       adminSessionIssue: (input) => this.issueAdminSession(input),
       adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
       personalSiteLogin: (token) => this.personalSiteLogin(token),
@@ -2103,6 +2112,42 @@ class CyberbossApp {
     } catch {
       // 公开页不吐内部错误码。
       return Object.freeze({ ok: true, ready: false, status: "unavailable", message: "现在拿不到二维码，过一会儿再试。" });
+    }
+  }
+
+  // 加入页静默上报的浏览器时区（CB9-210 / AC-012、AC-042）。
+  //
+  // 只认自己发出去的票。少了这一条，任何人都能拿编造的票号往内存里塞条目——
+  // 这是个无鉴权接口。
+  recordJoinTimezoneSignal({ ticket, timezone, headers } = {}, { now = Date.now() } = {}) {
+    const key = normalizeText(ticket);
+    if (!key || !this.publicEntryGate.tickets.has(key)) {
+      return false;
+    }
+    const browser = normalizeBrowserTimezone(timezone);
+    const cloudflare = readCloudflareSignals(headers || {});
+    // 浏览器报到了就用浏览器的；只有它没报到才退而用 Cloudflare 的时区。
+    // Cloudflare 是按出口 IP 猜的，用 VPN 的人会被猜错，所以它永远只是佐证。
+    const source = browser ? "browser_iana" : (cloudflare.timezone ? "cloudflare_timezone" : "");
+    const zone = browser || cloudflare.timezone;
+    if (!source || !zone) {
+      return false;
+    }
+    try {
+      // 城市和国家不管来自哪一路都记 Cloudflare 那份——它是唯一有这两样的信号
+      // 源，而且是粗粒度的。浏览器那边我们只要时区，不问位置。
+      const observation = safeObservation({
+        source,
+        timezone: zone,
+        city: cloudflare.city,
+        country: cloudflare.country,
+        observedAtUtc: new Date(now).toISOString(),
+      });
+      return this.pendingTimezoneSignals.record(key, observation, { now });
+    } catch {
+      // safeObservation 是 fail-closed 的。它抛错说明有精确定位字段混进来了，
+      // 那就一条都不记——宁可这个人回退北京时间，也不能把不该存的东西存下去。
+      return false;
     }
   }
 

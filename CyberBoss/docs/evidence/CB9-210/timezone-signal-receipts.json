@@ -1,0 +1,105 @@
+{
+  "task": "CB9-210",
+  "title": "实现浏览器 IANA 时区与 Cloudflare 粗粒度信号 Adapter",
+  "generated_at": "2026-08-01T13:24:57Z",
+  "head_observation": "509b34dac8ca32398958b43863b040e4b2d5a878",
+  "artifacts": [
+    "app/src/services/location/timezone-signals.js（新）",
+    "app/src/services/portal/portal-server.js（路由 + handler + 构造函数接线）",
+    "app/src/core/app.js（recordJoinTimezoneSignal + 暂存）",
+    "app/templates/join.html（静默上报）",
+    "app/test/cb9-210-timezone-signals.test.js（新，19）",
+    "app/test/cb9-210-join-timezone-route.test.js（新，7）"
+  ],
+  "design_decision": {
+    "question": "AC-042 说「拒绝浏览器精确定位权限后仍能完成扫码和首轮；系统不重复弹窗」——是弹了再优雅降级，还是根本不弹？",
+    "answer": "一次都不弹。依据是 FR-012 原文「加入页**静默**采集浏览器 IANA 时区」。Intl.DateTimeFormat().resolvedOptions().timeZone 不需要权限、不弹框；navigator.geolocation 需要权限、会弹框，而且给的是经纬度——016 迁移里压根没有列去装它。一次都不弹是「拒绝后仍能完成」的严格超集，而且不给自己留一条以后有人顺手加精确定位的口子。",
+    "guard": "结构性测试扫加入页（剔注释后）里的 geolocation / getCurrentPosition / watchPosition / permissions.query / requestPermission / getUserMedia，命中即红。"
+  },
+  "acceptance": {
+    "AC-012": {
+      "status": "PASS",
+      "how": "浏览器 IANA 走 POST /api/join/timezone 上报，源标 browser_iana（置信 0.8）；Cloudflare 的 cf-timezone 只在浏览器没报到时兜底，源标 cloudflare_timezone（置信 0.4）——它是按出口 IP 猜的，用 VPN 的人会被猜错，所以永远只是佐证。同一张票重复上报留**优先级高**的那个，不是留最后到的那个。无任何信号时接口照回 200，什么都不记，渲染层回退北京时间（CB9-200 已验）。"
+    },
+    "AC-042": {
+      "status": "PASS",
+      "how": "整条路零权限弹窗（结构性守卫）；上报失败不改任何页面状态；接口对所有输入都回 200——垃圾 body、编造的票、采集侧抛错，一律 200 {ok:true}。假票回 200 而不是 404 也是有意的：回 404 等于送出一个票号枚举接口。"
+    },
+    "AC-013": {
+      "status": "PASS(采集面)",
+      "how": "适配器只取 cf-timezone / cf-ipcountry / cf-ipcity 三项。**源码里根本没有读 cf-connecting-ip / x-forwarded-for / x-real-ip 的那行字**——不是读了再丢，是从来不把它读进变量：一旦它在作用域里，下一次改动就会有人顺手把它传下去，而那次改动看起来完全无害。有测试用真实 CF 头集合（含真的 cf-connecting-ip）跑全链路，断言观测里不含 IP 的任何片段。"
+    }
+  },
+  "real_defects_found_by_these_tests": [
+    {
+      "severity": "P0",
+      "what": "PortalHttpServer 的构造函数是按名字解构的，我在 app.js 注入了 joinTimezoneSignal 却忘了加进解构清单。this.joinTimezoneSignal 会是 undefined，handler 里的 typeof === 'function' 判断直接跳过——线上一个时区都收不到，而 adapter 的 19 条单测全绿。",
+      "found_by": "整条链路的路由测试（起真 PortalHttpServer + 真 HTTP 请求）",
+      "note": "这个坑构造函数自己的注释里写着「这个仓在同一件事上栽过八次了」。这是第九次。"
+    },
+    {
+      "severity": "P0",
+      "what": "safeObservation 的隐私检查查的是**解构后**的对象：assertNoPreciseLocation({source, timezone, city, country})。调用方传进来的 latitude 根本没进那个被检查的对象，整道 fail-closed 检查形同虚设，而任何只传合法字段的测试都是绿的。改为检查原始入参。",
+      "found_by": "给 safeObservation 传 latitude/coords/raw_ip 的针对性测试",
+      "note": "同一个「按名字解构，多出来的字段被静默丢掉」的坏法。写隐私守卫时踩进去尤其贵：守卫在，但守的是空气。"
+    },
+    {
+      "severity": "P1",
+      "what": "时区值被送进了给城市名用的 coarseText，那个正则不含斜杠，会把 Asia/Shanghai 整个拒掉。时区的校验器是 isValidIanaZone。",
+      "found_by": "CF 头解析测试"
+    },
+    {
+      "severity": "P2",
+      "what": "暂存的条数上限差一：prune 只在插入前跑，插入后就停在 maxEntries+1。差的那一条是一个无鉴权接口写进来的。",
+      "found_by": "上限测试"
+    }
+  ],
+  "test_gap_found_by_mutation": {
+    "surviving_mutation": "把 country 的 coarseText 去掉（注入面打开）→ 0 红",
+    "why": "原测试只直接测了 coarseText 这个函数，没测 readCloudflareSignals 真的把它**用在了** city/country 上。函数对不等于用上了。",
+    "fix": "补一条用注入串打 readCloudflareSignals 的测试；补后 country 和 city 两刀各转 1 红。"
+  },
+  "tests": {
+    "count": "19 + 7 = 26 pass",
+    "full_regression": "1098 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "隐私检查改回按解构后的对象查",
+      "red": 1
+    },
+    {
+      "mutation": "country 不过 coarseText",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "city 不过 coarseText",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "把 XX 当成一个真国家",
+      "red": 1
+    },
+    {
+      "mutation": "重复上报改成留最后一个（CF 盖掉浏览器）",
+      "red": 1
+    },
+    {
+      "mutation": "去掉插入后的裁剪（上限差一）",
+      "red": 1
+    },
+    {
+      "mutation": "构造函数漏接 joinTimezoneSignal",
+      "red": 7,
+      "note": "就是上面那条真 P0"
+    },
+    {
+      "mutation": "把静默采集换成 navigator.geolocation",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0",
+  "not_built_on_purpose": "Starter Kit 的 one-time-timezone-resolver（内存态精确定位换时区）没有物化。它是唯一会弹权限框的东西，而 016 迁移里没有任何列去装它的产物——建了就是一段没人调用、却打开了一个隐私面的代码。"
+}
