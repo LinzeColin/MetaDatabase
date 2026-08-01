@@ -1,0 +1,45 @@
+{
+  "task": "CB9-120",
+  "title": "实现 Companion 稳定 Session 与有界上下文",
+  "generated_at": "2026-08-01T12:50:51Z",
+  "head_observation": "160139d48e5179db102cc9dec9bc6ed141d8c0d1",
+  "artifacts": [
+    "app/src/services/companion/companion-session-context.js",
+    "app/test/cb9-120-companion-session.test.js"
+  ],
+  "gap_before": "runUserModelTurn 只传 contextToken（微信回复凭据），无任何对话上下文；仓库内唯一的 sessionKey 是网页 cookie 密钥，与模型会话无关。AC-004/038/044 在此之前不是『没测』，是不可能成立",
+  "acceptance": {
+    "AC-004": {
+      "status": "PASS",
+      "how": "第二轮读得到第一轮已确认事实；另一用户与无 user_scope 的行一条都进不来；上下文深冻结且与源数组脱钩"
+    },
+    "AC-038": {
+      "status": "PASS",
+      "how": "条数超限只留最近窗口；上限 0 就是 0；单条过大丢弃；总字节超限按冻结优先级 turns→timeline→items→facts 逐出，身份与能力策略永不参与；缺身份直接抛错"
+    },
+    "AC-044": {
+      "status": "PASS",
+      "how": "session_key = HMAC(identity-key, user_scope)，跨重启不变；不同用户不同 key；不含 user_id 明文或片段（它会进日志和证据）；弱 secret 直接拒绝"
+    }
+  },
+  "tests": {
+    "TEST-004": "15/15 pass",
+    "TEST-038": "15/15 pass",
+    "TEST-044": "15/15 pass",
+    "frozen_oracle": "任务包 starter-kit/test/session-context.test.js 9/9 pass",
+    "full_regression": "1040 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "去掉 user_scope 过滤（跨用户串线）",
+      "result": "1 条转红"
+    },
+    {
+      "mutation": "逐出顺序反转（先扔已确认事实）",
+      "result": "2 条转红"
+    }
+  ],
+  "source": "改编自任务包 Starter Kit runtime/companion-session-context.js，语义一致；未覆盖任何既有文件",
+  "legacy_wholefile_overwrites": 0,
+  "remaining": "本节点交付的是模块与不变量；把它接进 runUserModelTurn 的实际调用属 CB9-400（统一 Session Event Orchestrator）"
+}
