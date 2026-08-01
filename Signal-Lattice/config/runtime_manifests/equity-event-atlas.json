@@ -1,0 +1,1 @@
+{"schema_version":"1.0.0","skill_id":"equity-event-atlas","display_name":"股票事件独立判断","skill_version":"0.0.0.1","runtime_profile":"event_atlas","horizon_days":5,"source_path":"Signal-Lattice/Stock_Skill/equity-event-atlas","source_url":"https://github.com/LinzeColin/MetaDatabase"}

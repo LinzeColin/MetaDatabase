@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any, Iterable
 
 ALLOWED_DIRECTIONS = {-1, 0, 1}
-ALLOWED_ACTIONS = {"BUY", "ADD", "HOLD", "REDUCE", "SELL", "WATCH", "AVOID", "NO_ACTION"}
+ALLOWED_ACTIONS = {"BUY", "ADD", "HOLD", "REDUCE", "SELL", "WATCH", "AVOID", "NO_ACTION", "SYSTEM_BLOCKED"}
 
 
 def canonical_sha256(payload: object) -> str:

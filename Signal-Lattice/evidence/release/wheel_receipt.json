@@ -3,8 +3,8 @@
   "byte_identical": true,
   "network_required": false,
   "schema_version": "1.0.0",
-  "sha256": "6e37aede4d121a723fc2f44d471744949e067f45f9ca1ceff1908b33c31fddb5",
-  "size": 38111,
+  "sha256": "90d5b1e7ef74cd32950ecf397441177a3c1ddc930f8ee1066f5332c4df9722cd",
+  "size": 69876,
   "state": "PASS",
-  "wheel": "signal_lattice-0.0.0.1.40-py3-none-any.whl"
+  "wheel": "signal_lattice-0.0.0.1.41-py3-none-any.whl"
 }

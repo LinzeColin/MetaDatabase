@@ -1,0 +1,10 @@
+flowchart TD
+  GH[GitHub 固定版本源码] --> RT[OVH 可重建 Runtime Snapshot]
+  MD[Moomoo 行情快照] --> SQ[(OVH SQLite Queue/Journal/Outbox)]
+  RT --> SQ
+  SQ --> PD[Private-Database 长期结构化事实]
+  SQ --> R2[Cloudflare R2 primary-objects/]
+  PD --> R2B[Cloudflare R2 backups/private-database/]
+  R2 --> OCI[OCI 异地冷备]
+  R2B --> OCI
+  SQ --> ST[status.linzezhang.com 只读投影]

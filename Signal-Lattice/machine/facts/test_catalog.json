@@ -1,0 +1,157 @@
+{
+  "frozen": true,
+  "schema_version": "2.0.0",
+  "tests": [
+    {
+      "oracle": "systemd Timer 与 cycle_id 证明同一分钟最多一轮，下一分钟自动重跑",
+      "requirement_id": "R-001",
+      "test": "tests/test_state_machine.py"
+    },
+    {
+      "oracle": "当轮全部 Skill input hash 绑定同一 snapshot digest",
+      "requirement_id": "R-002",
+      "test": "tests/test_minute_cycle.py"
+    },
+    {
+      "oracle": "子进程、临时目录、环境白名单、网络阻断和资源预算测试通过",
+      "requirement_id": "R-003",
+      "test": "tests/test_skill_adapters.py"
+    },
+    {
+      "oracle": "Registry reconcile 产生 ADDED/UPDATED/REMOVED/SPLIT/MERGE 收据",
+      "requirement_id": "R-004",
+      "test": "tests/test_skill_registry_lkg.py"
+    },
+    {
+      "oracle": "来源漂移时新候选不生效，上一 Active 版本继续运行",
+      "requirement_id": "R-005",
+      "test": "tests/test_last_mile_tools.py"
+    },
+    {
+      "oracle": "注册顺序不影响结果，中枢只做输入统一、证据协调和唯一输出",
+      "requirement_id": "R-006",
+      "test": "tests/test_consensus.py"
+    },
+    {
+      "oracle": "完整循环硬门失败才 NO_ACTION；链路不完整必须 SYSTEM_BLOCKED",
+      "requirement_id": "R-007",
+      "test": "tests/test_minute_cycle.py"
+    },
+    {
+      "oracle": "可靠性权重有上下限、可回滚、不改验收标准",
+      "requirement_id": "R-008",
+      "test": "tests/test_teleiosis.py"
+    },
+    {
+      "oracle": "available_at/ingested_at、许可、Freshness 和生产 Provider 门通过",
+      "requirement_id": "R-009",
+      "test": "tests/test_deployment_northstar.py"
+    },
+    {
+      "oracle": "任一硬门失败不得输出可执行买卖建议",
+      "requirement_id": "R-010",
+      "test": "tests/test_quant.py"
+    },
+    {
+      "oracle": "中文桌面与移动页面可访问，非空链路状态清晰",
+      "requirement_id": "R-011",
+      "test": "tests/test_project_files.py"
+    },
+    {
+      "oracle": "Active/Completed Skill、完整循环、唯一建议、API/DB/UI 一致",
+      "requirement_id": "R-012",
+      "test": "tests/test_public_release.py"
+    },
+    {
+      "oracle": "API、循环、来源、Outbox、Status、备份和 Cloudflared 单元通过",
+      "requirement_id": "R-013",
+      "test": "tests/test_project_files.py"
+    },
+    {
+      "oracle": "并发、崩溃和 stale worker 测试通过",
+      "requirement_id": "R-014",
+      "test": "tests/test_db.py"
+    },
+    {
+      "oracle": "Private-Database、R2 primary/backups、OCI 契约与无空提交通过",
+      "requirement_id": "R-015",
+      "test": "tests/test_api.py"
+    },
+    {
+      "oracle": "126单元均带状态、Freshness、依赖、阻塞、下一行动和证据",
+      "requirement_id": "R-016",
+      "test": "tests/test_status.py"
+    },
+    {
+      "oracle": "Schema/接口语法及契约测试通过",
+      "requirement_id": "R-017",
+      "test": "tests/test_project_files.py"
+    },
+    {
+      "oracle": "Loopback、CSP、HMAC、路径穿越、Symlink、ZIP bomb 和 Secret Scan 通过",
+      "requirement_id": "R-018",
+      "test": "tests/test_repair_security.py"
+    },
+    {
+      "oracle": "依赖、进程、环境和出口扫描通过，任何模型调用尝试熔断",
+      "requirement_id": "R-019",
+      "test": "tests/test_constants.py"
+    },
+    {
+      "oracle": "代码、API、Schema 和部署配置不存在下单路径",
+      "requirement_id": "R-020",
+      "test": "tests/test_action.py"
+    },
+    {
+      "oracle": "SQLite/WAL、Release、Hash 和故障注入通过",
+      "requirement_id": "R-021",
+      "test": "tests/test_backup.py"
+    },
+    {
+      "oracle": "每项任务分类 satisfied/apply/adapt/equivalent/conflict/blocked/obsolete",
+      "requirement_id": "R-022",
+      "test": "tests/test_preparation_tools.py"
+    },
+    {
+      "oracle": "Version Lock、Scope、Acceptance 和发布边界通过",
+      "requirement_id": "R-023",
+      "test": "tests/test_constants.py"
+    },
+    {
+      "oracle": "Requirement→Task→Test→Oracle→Evidence→Artifact 完整",
+      "requirement_id": "R-024",
+      "test": "tests/test_task_execution.py"
+    },
+    {
+      "oracle": "Fake Clock、Fixture、历史回放和故障注入通过",
+      "requirement_id": "R-025",
+      "test": "tests/test_minute_cycle.py"
+    },
+    {
+      "oracle": "未知接口 fail-closed，外部系统不能修改中枢 Champion 或验收",
+      "requirement_id": "R-026",
+      "test": "tests/test_api.py"
+    },
+    {
+      "oracle": "崩溃重放不重复完成事实，无新增事实不提交",
+      "requirement_id": "R-027",
+      "test": "tests/test_db.py"
+    },
+    {
+      "oracle": "Fresh Builder 能从单一 ZIP 按确定性步骤执行",
+      "requirement_id": "R-028",
+      "test": "tests/test_preparation_tools.py"
+    },
+    {
+      "oracle": "public_release、status_closure、DELIVERY_RESULT 均 PASS",
+      "requirement_id": "R-029",
+      "test": "tests/test_cloud_deployment.py"
+    },
+    {
+      "oracle": "最终 Package Guard 与 ZIP 自复验为零 Finding",
+      "requirement_id": "R-030",
+      "test": "tests/test_repair_security.py"
+    }
+  ],
+  "version": "0.0.0.1.41"
+}

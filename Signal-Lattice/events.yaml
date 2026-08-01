@@ -1,12 +1,90 @@
 {
   "asyncapi": "3.0.0",
-  "info": {"title": "Signal Lattice Events", "version": "0.0.0.1.40"},
   "channels": {
-    "actionCreated": {"address": "signal-lattice.action.created", "messages": {"actionCreated": {"payload": {"$ref": "./schemas/action_packet.schema.json"}}}},
-    "decisionSnapshotCreated": {"address": "signal-lattice.decision.snapshot.created", "messages": {"decisionSnapshotCreated": {"payload": {"$ref": "./schemas/recommendation_snapshot.schema.json"}}}},
-    "skillUpdated": {"address": "signal-lattice.skill.updated", "messages": {"skillUpdated": {"payload": {"$ref": "./schemas/skill_snapshot.schema.json"}}}},
-    "evolutionCompleted": {"address": "signal-lattice.evolution.completed", "messages": {"evolutionCompleted": {"payload": {"type": "object"}}}},
-    "deploymentVerified": {"address": "signal-lattice.deployment.verified", "messages": {"deploymentVerified": {"payload": {"$ref": "./schemas/delivery_result.schema.json"}}}}
+    "cycleCompleted": {
+      "address": "signal-lattice.cycle.completed",
+      "messages": {
+        "cycleCompleted": {
+          "payload": {
+            "$ref": "./schemas/minute_cycle.schema.json"
+          }
+        }
+      }
+    },
+    "cycleStarted": {
+      "address": "signal-lattice.cycle.started",
+      "messages": {
+        "cycleStarted": {
+          "payload": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "deploymentVerified": {
+      "address": "signal-lattice.deployment.verified",
+      "messages": {
+        "deploymentVerified": {
+          "payload": {
+            "$ref": "./schemas/delivery_result.schema.json"
+          }
+        }
+      }
+    },
+    "recommendationCreated": {
+      "address": "signal-lattice.recommendation.created",
+      "messages": {
+        "recommendationCreated": {
+          "payload": {
+            "$ref": "./schemas/unique_recommendation.schema.json"
+          }
+        }
+      }
+    },
+    "selfBalanceUpdated": {
+      "address": "signal-lattice.self-balance.updated",
+      "messages": {
+        "selfBalanceUpdated": {
+          "payload": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "skillQuarantined": {
+      "address": "signal-lattice.skill.quarantined",
+      "messages": {
+        "skillQuarantined": {
+          "payload": {
+            "$ref": "./schemas/source_reconcile_event.schema.json"
+          }
+        }
+      }
+    },
+    "skillRunCompleted": {
+      "address": "signal-lattice.skill-run.completed",
+      "messages": {
+        "skillRunCompleted": {
+          "payload": {
+            "$ref": "./schemas/minute_skill_run.schema.json"
+          }
+        }
+      }
+    },
+    "sourceReconciled": {
+      "address": "signal-lattice.source.reconciled",
+      "messages": {
+        "sourceReconciled": {
+          "payload": {
+            "$ref": "./schemas/source_reconcile_event.schema.json"
+          }
+        }
+      }
+    }
+  },
+  "info": {
+    "title": "Signal Lattice Events",
+    "version": "0.0.0.1.41"
   },
   "operations": {}
 }

@@ -1,4 +1,4 @@
-# Signal Lattice v0.0.0.1.40｜用户可见成果
+# Signal Lattice v0.0.0.1.41｜用户可见成果
 
 Signal Lattice 不是一份静态报告，也不是只供开发者阅读的代码目录。完成本修补包后，Owner 应能直接访问：
 
@@ -9,7 +9,7 @@ Signal Lattice 不是一份静态报告，也不是只供开发者阅读的代�
 
 `BUY / ADD / HOLD / REDUCE / SELL / WATCH / AVOID / NO_ACTION`
 
-任何关键输入不足时，网站必须明确显示 `NO_ACTION` 及具体原因；这不是故障，而是防止用未知信息制造虚假确定性。系统永远不向券商自动下单。
+只有在本分钟完整链路已经执行、全部 Active Skill 都返回且投资硬门不通过时，网站才显示 `NO_ACTION` 及具体原因。若 Skill、市场快照、来源 Seal 或运行链缺失，必须显示 `SYSTEM_BLOCKED`，不得把空系统伪装成投资判断。系统永远不向券商自动下单。
 
 ## 完工判定
 

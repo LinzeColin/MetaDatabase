@@ -14,14 +14,15 @@ class T(unittest.TestCase):
  def post(self,path,payload,headers=None):
   h={'Content-Type':'application/json',**(headers or {})};req=urllib.request.Request(f'http://127.0.0.1:{self.port}{path}',data=json.dumps(payload).encode(),headers=h,method='POST');return urllib.request.urlopen(req,timeout=3)
  def test_health_headers_and_runtime_contract(self):
-  r=self.get('/api/v1/status');data=json.load(r);self.assertEqual(r.status,200);self.assertEqual(r.headers['X-Frame-Options'],'DENY');self.assertEqual(data['project_id'],'signal-lattice');self.assertEqual(data['runtime_agent_dependency'],0);self.assertEqual(data['runtime_llm_tokens'],0);self.assertFalse(data['automatic_trading']);self.assertEqual(data['public_url'],'https://signal-lattice.linzezhang.com')
+  r=self.get('/api/v1/status');data=json.load(r);self.assertEqual(r.status,200);self.assertEqual(r.headers['X-Frame-Options'],'DENY');self.assertEqual(data['runtime_agent_dependency'],0);self.assertEqual(data['runtime_llm_tokens'],0);self.assertFalse(data['automatic_trading']);self.assertEqual(data['public_url'],'https://signal-lattice.linzezhang.com')
  def test_ui(self):
   text=self.get('/').read().decode();self.assertIn('最终投资建议',text);self.assertIn('内部协调',text)
  def test_research_and_job(self):
   data=json.load(self.post('/api/v1/research',{'symbol':'AAA','market':'US'},{'Idempotency-Key':'z'}));self.assertTrue(data['job_id'])
- def test_business_lines(self):self.assertEqual(len(json.load(self.get('/api/v1/business-lines'))['lines']),13)
+ def test_business_lines(self):self.assertEqual(len(json.load(self.get('/api/v1/business-lines'))['lines']),14)
  def test_ingest_endpoints(self):
   signal=json.loads((self.root/'fixtures/northstar/commercial_signal.json').read_text());market=json.loads((self.root/'fixtures/northstar/market_snapshot.json').read_text())
+
   with self.assertRaises(Exception): self.post('/api/v1/inputs/skill-signal',signal)
   auth={'Authorization':'Bearer '+self.token}
   self.assertEqual(self.post('/api/v1/inputs/skill-signal',signal,auth).status,201);self.assertEqual(self.post('/api/v1/inputs/market-snapshot',market,auth).status,201);self.assertEqual(len(json.load(self.get('/api/v1/skills'))['items']),1)

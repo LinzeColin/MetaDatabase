@@ -1,0 +1,112 @@
+{
+  "$id": "https://signal-lattice.linzezhang.com/schemas/minute_cycle.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "active_skill_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "completed_skill_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "cycle_id": {
+      "type": "string"
+    },
+    "failed_skill_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "market_snapshot_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "receipt_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recommendation": {
+      "anyOf": [
+        {
+          "$ref": "./unique_recommendation.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scheduled_for": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "skill_runs": {
+      "items": {
+        "$ref": "./minute_skill_run.schema.json"
+      },
+      "type": "array"
+    },
+    "source_commit": {
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "RUNNING",
+        "COMPLETED",
+        "DEGRADED",
+        "FAILED",
+        "SKIPPED_OVERLAP"
+      ]
+    },
+    "universe_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "cycle_id",
+    "scheduled_for",
+    "started_at",
+    "state",
+    "active_skill_count",
+    "completed_skill_count",
+    "failed_skill_count"
+  ],
+  "type": "object"
+}

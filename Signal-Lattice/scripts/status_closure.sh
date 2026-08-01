@@ -3,15 +3,7 @@ set -euo pipefail
 umask 077
 MATRIX="${1:?business-line evidence json required}"
 OUT="${2:-/var/lib/signal-lattice/artifacts/status_closure.json}"
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PYTHON_BIN="${SIGNAL_LATTICE_PYTHON:-}"
-if [[ -z "$PYTHON_BIN" && -x "$ROOT/venv/bin/python" ]]; then
-  PYTHON_BIN="$ROOT/venv/bin/python"
-fi
-if [[ -z "$PYTHON_BIN" ]]; then
-  PYTHON_BIN="python3"
-fi
-PYTHONPATH="${PYTHONPATH:-}:$ROOT/src" "$PYTHON_BIN" - "$MATRIX" "$OUT" <<'PY'
+PYTHONPATH="${PYTHONPATH:-}:$(cd "$(dirname "$0")/.." && pwd)/src" python3 - "$MATRIX" "$OUT" <<'PY'
 import hashlib,json,os,sys,tempfile
 from pathlib import Path
 from signal_lattice.status import reconcile

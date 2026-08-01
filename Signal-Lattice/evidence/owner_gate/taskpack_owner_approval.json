@@ -1,16 +1,16 @@
 {
   "approval_kind": "OWNER_AUTHORIZED_FINAL_TASKPACK_DELIVERY",
   "approved": true,
-  "approved_at": "2026-07-30T16:17:34Z",
+  "approved_at": "2026-07-31T00:00:00Z",
   "formal_release_pass_claimed": false,
   "live_action_enabled": false,
   "owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
-  "prepared_subject_sha256": "7f6a1c5bf0b82ca99231c02fa775aca745cc816d8622a403aaf75569ba6b336c",
-  "receipt_sha256": "99808738d9d456f344580d8dd3ee31128c5be198445fb65a2d3ccb96f68a25b0",
+  "prepared_subject_sha256": "628a336833c3fb6eeb2378f1c3c1a8e8a8846deb535ba3944f6f8454bea1476b",
+  "receipt_sha256": "96e9ae4f1cfbe9ae4a56871fa1524c6eb427d805c8a822caf00b4d64d656a520",
   "residual_environment_tasks_accepted": true,
   "schema_version": "1.0.0",
-  "scope_summary_sha256": "94dceb035b0ac2e8e758050f9041c397b7b92f5c89471faafdba6ab4fb7e2c78",
-  "source_attachment_sha256": "27cc3b705bbf3c07c64dc6ff5ff44acdce9295bb2aafd3d63990f28a75aa7ce9",
-  "source_message": "Owner directives: proceed one Task Pack phase at a time; resolve verified blockers within scope; retain the canonical Stock Skill source at Signal-Lattice/Stock_Skill; re-seal only the v0.0.0.1.40 task-pack delivery after verified Northstar installer and local browser compatibility repairs. This approval does not claim formal release pass or live action.",
-  "version": "0.0.0.1.40"
+  "scope_summary_sha256": "467277a900cf7a00d9eaf389d253285e0bd51b492ea6b63cb75f3e39450282c4",
+  "source_attachment_sha256": "e28266240e8dbd6864dd6bce77c04e6dd387cbed057ab2390ad7b6f5620b38ae",
+  "source_message": "Owner authorized completion of the v1.41 Northstar Task Pack and resolution of landing blockers.",
+  "version": "0.0.0.1.41"
 }

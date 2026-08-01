@@ -1,0 +1,68 @@
+{
+  "$id": "https://signal-lattice.linzezhang.com/schemas/source_reconcile_event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "current": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "ADDED",
+        "UPDATED",
+        "REMOVED",
+        "SPLIT_FROM",
+        "MERGED_FROM",
+        "QUARANTINED",
+        "UPDATE_QUARANTINED_KEEP_LKG"
+      ]
+    },
+    "previous": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "skill_id": {
+      "type": "string"
+    },
+    "source_commit": {
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "PROMOTED",
+        "RETIRED",
+        "QUARANTINED",
+        "QUARANTINED_KEEP_LAST_KNOWN_GOOD"
+      ]
+    }
+  },
+  "required": [
+    "event_id",
+    "source_commit",
+    "event_type",
+    "skill_id",
+    "state",
+    "created_at"
+  ],
+  "type": "object"
+}

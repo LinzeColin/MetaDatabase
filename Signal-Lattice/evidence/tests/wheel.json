@@ -1,0 +1,10 @@
+{
+  "build_count": 2,
+  "byte_identical": true,
+  "network_required": false,
+  "schema_version": "1.0.0",
+  "sha256": "23c22c0d8dd05af5198cf068d79358132d1e72ddaf61b7472a7e6bd33496c549",
+  "size": 69785,
+  "state": "PASS",
+  "wheel": "signal_lattice-0.0.0.1.41-py3-none-any.whl"
+}

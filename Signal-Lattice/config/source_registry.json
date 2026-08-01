@@ -1,34 +1,55 @@
 {
-  "poll_interval_seconds": 300,
+  "branch": "main",
+  "compatibility_policy": {
+    "changed_source_with_supported_machine_contract": "AUTO_VALIDATE_AND_PROMOTE",
+    "changed_source_without_machine_contract": "QUARANTINE_CANDIDATE_KEEP_LAST_KNOWN_GOOD",
+    "deleted_skill_after_valid_registry": "RETIRE_PRESERVE_HISTORY",
+    "initial_known_adapter_binding": "AUTO_VALIDATE_AND_PROMOTE_ONCE",
+    "metadata_only_or_identical_tree": "AUTO_PROMOTE",
+    "new_safe_factor_v1_manifest": "AUTO_VALIDATE_AND_PROMOTE",
+    "new_unknown_code_or_natural_language": "QUARANTINE_REFERENCE_ONLY",
+    "split_or_merge": "PRESERVE_LINEAGE_AND_REQUIRE_SUPPORTED_ADAPTER",
+    "transient_source_failure": "KEEP_LAST_KNOWN_GOOD"
+  },
+  "poll_interval_seconds": 60,
+  "registry_path": "Signal-Lattice/Stock_Skill/REGISTRY.json",
+  "repository": "https://github.com/LinzeColin/MetaDatabase.git",
   "runtime_agent_dependency": 0,
   "runtime_llm_tokens": 0,
-  "schema_version": "1.0.0",
-  "source_policy": "READ_ONLY_DYNAMIC_DISCOVERY",
+  "schema_version": "2.0.0",
+  "source_policy": "READ_ONLY_GIT_REGISTRY_RECONCILIATION_EVERY_MINUTE",
   "sources": [
     {
-      "skill_id": "bottleneck-serenity-skill",
-      "url": "https://raw.githubusercontent.com/LinzeColin/MetaDatabase/main/Signal-Lattice/Stock_Skill/bottleneck-serenity-skill/README.md"
-    },
-    {
-      "skill_id": "equity-event-atlas",
-      "url": "https://raw.githubusercontent.com/LinzeColin/MetaDatabase/main/Signal-Lattice/Stock_Skill/equity-event-atlas/README.md"
-    },
-    {
-      "skill_id": "equity-foresight-signal",
-      "url": "https://raw.githubusercontent.com/LinzeColin/MetaDatabase/main/Signal-Lattice/Stock_Skill/equity-foresight-signal-skill/README.md"
-    },
-    {
-      "skill_id": "global-equity-lead-lag-atlas",
-      "url": "https://raw.githubusercontent.com/LinzeColin/MetaDatabase/main/Signal-Lattice/Stock_Skill/global-equity-lead-lag-atlas/README.md"
-    },
-    {
-      "skill_id": "serenity-skill",
-      "url": "https://raw.githubusercontent.com/LinzeColin/AgentDatabase/main/CodexSkills/registry/codex/serenity-skill/SKILL.md"
-    },
-    {
+      "profile": "commercial_opportunity",
       "skill_id": "stock-commercial-opportunities",
-      "url": "https://raw.githubusercontent.com/LinzeColin/MetaDatabase/main/Signal-Lattice/Stock_Skill/stock-commercial-opportunities-skill/README.md"
+      "source": "MetaDatabase/Signal-Lattice/Stock_Skill/stock-commercial-opportunities-skill"
+    },
+    {
+      "profile": "bottleneck",
+      "skill_id": "bottleneck-serenity-skill",
+      "source": "MetaDatabase/Signal-Lattice/Stock_Skill/bottleneck-serenity-skill"
+    },
+    {
+      "profile": "equity_foresight",
+      "skill_id": "equity-foresight-signal",
+      "source": "MetaDatabase/Signal-Lattice/Stock_Skill/equity-foresight-signal-skill"
+    },
+    {
+      "profile": "lead_lag",
+      "skill_id": "global-equity-lead-lag-atlas",
+      "source": "MetaDatabase/Signal-Lattice/Stock_Skill/global-equity-lead-lag-atlas"
+    },
+    {
+      "profile": "event_atlas",
+      "skill_id": "equity-event-atlas",
+      "source": "MetaDatabase/Signal-Lattice/Stock_Skill/equity-event-atlas"
+    },
+    {
+      "profile": "serenity",
+      "skill_id": "serenity-skill",
+      "source": "AgentDatabase/CodexSkills/registry/codex/serenity-skill"
     }
   ],
+  "sparse_path": "Signal-Lattice/Stock_Skill",
   "upstream_writeback": false
 }

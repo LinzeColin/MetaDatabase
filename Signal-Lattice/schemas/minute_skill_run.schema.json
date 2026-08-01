@@ -1,0 +1,105 @@
+{
+  "$id": "https://signal-lattice.linzezhang.com/schemas/minute_skill_run.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cycle_id": {
+      "type": "string"
+    },
+    "duration_ms": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "input_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "isolation_backend": {
+      "enum": [
+        "subprocess_guard",
+        "systemd_run"
+      ]
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "output": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "output_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "skill_id": {
+      "type": "string"
+    },
+    "skill_version": {
+      "type": "string"
+    },
+    "source_commit": {
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "RUNNING",
+        "PASS",
+        "ABSTAIN",
+        "FAILED",
+        "TIMEOUT",
+        "QUARANTINED"
+      ]
+    }
+  },
+  "required": [
+    "cycle_id",
+    "skill_id",
+    "skill_version",
+    "source_commit",
+    "manifest_sha256",
+    "state",
+    "started_at",
+    "input_sha256",
+    "isolation_backend"
+  ],
+  "type": "object"
+}

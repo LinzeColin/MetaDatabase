@@ -1,22 +1,31 @@
 {
-  "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "$id":"https://signal-lattice.linzezhang.com/schemas/action-packet-v1.json",
-  "title":"Signal Lattice Action Packet",
-  "type":"object",
-  "required":["symbol","market","action","valid_until","human_execution_only","automatic_execution_allowed","runtime_agent_dependency","runtime_llm_tokens","as_of","reasons"],
-  "properties":{
-    "symbol":{"type":"string","minLength":1,"maxLength":24},
-    "market":{"type":"string","minLength":1,"maxLength":32},
-    "action":{"enum":["BUY","ADD","HOLD","REDUCE","SELL","AVOID","WATCH","NO_ACTION"]},
-    "valid_until":{"type":"string","format":"date-time"},
-    "as_of":{"type":"string","format":"date-time"},
-    "human_execution_only":{"const":true},
-    "automatic_execution_allowed":{"const":false},
-    "runtime_agent_dependency":{"const":0},
-    "runtime_llm_tokens":{"const":0},
-    "reasons":{"type":"array","items":{"type":"string"},"minItems":1},
-    "evidence_refs":{"type":"array","items":{"type":"string"}},
-    "confidence_namespace":{"type":"string"}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal-lattice.linzezhang.com/schemas/action-packet-v1.json",
+  "title": "Signal Lattice Action Packet",
+  "type": "object",
+  "required": [
+    "symbol", "market", "action", "valid_until", "human_execution_only",
+    "automatic_execution_allowed", "runtime_agent_dependency", "runtime_llm_tokens", "as_of", "reasons"
+  ],
+  "properties": {
+    "symbol": {"type": "string", "minLength": 1, "maxLength": 32},
+    "market": {"type": "string", "minLength": 1, "maxLength": 32},
+    "action": {"enum": ["BUY", "ADD", "HOLD", "REDUCE", "SELL", "AVOID", "WATCH", "NO_ACTION", "SYSTEM_BLOCKED"]},
+    "valid_until": {"type": "string", "format": "date-time"},
+    "as_of": {"type": "string", "format": "date-time"},
+    "human_execution_only": {"const": true},
+    "automatic_execution_allowed": {"const": false},
+    "runtime_agent_dependency": {"const": 0},
+    "runtime_llm_tokens": {"const": 0},
+    "reasons": {"type": "array", "items": {"type": "string"}},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "confidence_namespace": {"type": "string"}
   },
-  "additionalProperties":true
+  "allOf": [
+    {
+      "if": {"properties": {"action": {"enum": ["NO_ACTION", "SYSTEM_BLOCKED"]}}, "required": ["action"]},
+      "then": {"properties": {"reasons": {"minItems": 1}}}
+    }
+  ],
+  "additionalProperties": true
 }

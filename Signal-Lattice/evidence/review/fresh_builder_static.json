@@ -1,0 +1,27 @@
+{
+  "allowed_unknown_classes": [
+    "真实凭证",
+    "目标仓写权限",
+    "OVH环境",
+    "Cloudflare控制台",
+    "Moomoo OpenD与数据许可",
+    "真实网络兼容反馈"
+  ],
+  "architecture_design_required": false,
+  "developer_research_required": false,
+  "formal_independent_context": false,
+  "market_research_required": false,
+  "migration_design_required": false,
+  "mode": "deterministic_static_capsule_not_independent_model",
+  "monitoring_design_required": false,
+  "non_environment_unknown_count": 0,
+  "product_definition_required": false,
+  "receipt_sha256": "4ef05e688f217564ec10bd39086531cfcf786bd58ef910ab617e722c55b77a0a",
+  "rollback_design_required": false,
+  "schema_design_required": false,
+  "schema_version": "1.0.0",
+  "single_entry": "RUN_NORTHSTAR_REBUILD_AND_DEPLOY.sh",
+  "state": "PASS",
+  "taskpack_version": "0.0.0.1.41",
+  "test_design_required": false
+}

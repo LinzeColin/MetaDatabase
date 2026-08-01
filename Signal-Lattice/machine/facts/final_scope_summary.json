@@ -1,50 +1,20 @@
 {
   "excluded": [
-    "automatic trading",
-    "runtime LLM",
-    "macOS launchd",
-    "public multi-tenant auth",
-    "new asset classes"
+    "自动交易",
+    "运行时模型",
+    "新资产类别",
+    "公共多租户"
   ],
-  "formal_release_pass_claimed": false,
   "included": [
-    "Signal-Lattice starter kit",
-    "schemas",
-    "systemd",
-    "fixtures",
-    "patches",
-    "formal evidence",
-    "deterministic runtime starter kit",
-    "Chinese UI and API",
-    "SQLite runtime journal and outbox",
-    "systemd deployment",
-    "Status Tier-0 integration",
-    "backup/recovery/rollback",
-    "environment-bound last-mile contracts"
+    "完整北极星每分钟链",
+    "动态Skill生命周期",
+    "Moomoo行情",
+    "唯一建议",
+    "中文网站",
+    "OVH/systemd/Cloudflare",
+    "数据治理和恢复"
   ],
-  "live_action_enabled": false,
-  "owner_authorized_taskpack_delivery": true,
-  "project_name": "Signal Lattice｜股票信号格阵决策系统",
-  "residual_evidence_scope": [
-    "exact upstream checkout/bundle seal",
-    "real credentials and target environment binding",
-    "independent release verification"
-  ],
-  "runtime_contract": {
-    "agent_dependency": 0,
-    "automatic_trading": false,
-    "macos_runtime": false,
-    "model_mode": "DISABLED",
-    "token_budget": 0,
-    "upstream_writeback": false
-  },
-  "runtime_node": "OVH Linux",
-  "safe_default_mode": "RESEARCH_AND_NO_ACTION",
+  "north_star": "每60秒读取GitHub，全部Active股票Skill使用同一不可变市场快照隔离独立判断，中立中枢协调并仅输出一个投资建议。",
   "schema_version": "1.0.0",
-  "scope_summary_sha256": "8a47b725a3f0e46e543939e304a746a1f8f27576d427fd19e0cd447665de76b3",
-  "target_area": "Signal-Lattice/",
-  "target_domain": "signal-lattice.linzezhang.com",
-  "target_repository": "LinzeColin/MetaDatabase",
-  "taskpack_kind": "SEALED_DEVELOPMENT_TASKPACK",
-  "version": "0.0.0.1.40"
+  "version": "0.0.0.1.41"
 }

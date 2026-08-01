@@ -5,12 +5,12 @@ Build Agent 只有在以下命令通过后才能回复“已完成”：
 ```bash
 python3 Signal-Lattice/scripts/verify_public_release.py \
   --url https://signal-lattice.linzezhang.com \
-  --version 0.0.0.1.40 \
+  --version 0.0.0.1.41 \
   --output /var/lib/signal-lattice/artifacts/public_release.json
 
 python3 Signal-Lattice/scripts/verify_deployment_claim.py \
   --result /var/lib/signal-lattice/artifacts/DELIVERY_RESULT.json \
-  --version 0.0.0.1.40
+  --version 0.0.0.1.41
 ```
 
 最终回复必须逐项给出：
