@@ -188,6 +188,13 @@ class UserAdmissionService {
     this.now = now;
     // 和邀请码同样的做法：从 owner-only 的身份密钥派生，不新增任何密钥文件。
     this.ownerClaimSecret = deriveSubKey(identityKey, "cyberboss-owner-claim-secret");
+    // Companion 会话键的那把盐（CB9-410）。
+    //
+    // 派生子钥而不是把 identityKey 传出去：调用方只需要一个稳定的会话键，
+    // 不需要那把主钥。给出去的话，任何一个拿到它的模块都能伪造任何身份。
+    // 存成 hex 字符串是因为 stableSessionKey 收的是字符串。
+    this.companionSessionSecret = deriveSubKey(identityKey, "cyberboss-companion-session-secret")
+      .toString("hex");
   }
 
   // CB-620 / AC-011 on the live path: 「设置」 mints a single-use, 15-minute

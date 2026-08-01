@@ -1,0 +1,110 @@
+{
+  "task": "CB9-410",
+  "title": "把 Future-self Reminder 接入同一 Session 与 lineage",
+  "generated_at": "2026-08-01T21:00:04Z",
+  "head_observation": "6f3f0f357d22fe489cf5010f29c566ef0fefabbb",
+  "artifacts": [
+    "app/src/services/reminder/future-self.js（新）",
+    "app/src/adapters/channel/weixin/reminder-queue-store.js（userScope/sessionKey/intent 落盘）",
+    "app/src/core/user-admission.js（派生 companionSessionSecret）",
+    "app/src/core/app.js（创建时填三样 + companionSessionKeyFor）",
+    "app/test/cb9-410-future-self.test.js（新，17）"
+  ],
+  "the_gap": "提醒记录里只有 text/senderId/contextToken。到点能做的就只有把那句话原样吐出来——正是 FR-017 要改的「只发送固定字符串」。",
+  "acceptance": {
+    "AC-017": {
+      "status": "PASS",
+      "how": "三条逐条：①创建时落盘 userScope/sessionKey/intent，重开 store（最接近重启）读得回来；②restoreContext 只从这条记录取，源码扫描确认没有任何反查原消息的调用——不去查就不可能查错人；③direct 记成 fixed_string + mode=SYSTEM，不冒充 agent_wake。"
+    }
+  },
+  "design_decisions": [
+    {
+      "what": "三样在创建时钉死，不在触发时推导",
+      "why": "到点时原消息可能已删、人可能换了号。推导要么推不出来，要么推给另一个人。"
+    },
+    {
+      "what": "缺身份或缺会话判成 orphan",
+      "why": "硬唤醒的两种做法——用猜出来的身份、或新开一个会话——都比「如实说它成了孤儿」糟糕。孤儿也记事件，因为「那条提醒为什么没响」正是排查时最想知道的。"
+    },
+    {
+      "what": "缺字段落盘成空串而不是 undefined",
+      "why": "JSON 里 undefined 会让整个字段消失，而消失的字段和「这个人没有会话」读回来长得一模一样。"
+    },
+    {
+      "what": "派生子钥而不是传 identityKey",
+      "why": "调用方只需要一个稳定的会话键。给出主钥的话，任何拿到它的模块都能伪造任何身份。"
+    }
+  ],
+  "defects_found": [
+    {
+      "what": "companionSessionKeyFor 第一版去找 identityKey，而它构造完就被清零了（有意的）。",
+      "impact": "每条提醒都会变成 orphan——模块写好了、单测全绿、线上一条 agent 唤醒都没有。",
+      "fix": "改成从准入层拿派生子钥，并加一条真的算一次会话键的行为测试。"
+    },
+    {
+      "what": "唤醒提示词那条断言写成 /喝水/，被下一行的「到点该说的那句：到点了，喝水。」满足。",
+      "impact": "「删掉意图那一行」这一刀是活的。",
+      "fix": "改成钉住那一行本身，并加一条「没有意图时不该硬凑一行空的」。"
+    }
+  ],
+  "tests": {
+    "count": "17 pass",
+    "full_regression": "1286 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "direct 冒充 agent 唤醒",
+      "red": 2
+    },
+    {
+      "mutation": "事件一律记成 agent_wake",
+      "red": 1
+    },
+    {
+      "mutation": "缺身份也硬着头皮唤醒",
+      "red": 2
+    },
+    {
+      "mutation": "恢复时丢掉意图摘要",
+      "red": 2
+    },
+    {
+      "mutation": "唤醒提示词不带当时的意图",
+      "red": 1,
+      "note": "改紧断言后才红"
+    },
+    {
+      "mutation": "不告诉模型这是过去的约定",
+      "red": 1
+    },
+    {
+      "mutation": "孤儿事件不说原因",
+      "red": 1
+    },
+    {
+      "mutation": "has_intent 写死成 true",
+      "red": 1
+    },
+    {
+      "mutation": "user_scope 不落盘",
+      "red": 1
+    },
+    {
+      "mutation": "session_key 不落盘",
+      "red": 1
+    },
+    {
+      "mutation": "意图摘要不截断",
+      "red": 1
+    },
+    {
+      "mutation": "创建时不填会话键",
+      "red": 1
+    },
+    {
+      "mutation": "把 identityKey 原样传出去",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}

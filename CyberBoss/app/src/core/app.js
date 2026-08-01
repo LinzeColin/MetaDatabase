@@ -116,6 +116,7 @@ const PRESSURE_LEVELS = Object.freeze([
   "normal", "low", "elevated", "high", "severe", "critical",
 ]);
 
+const { stableSessionKey } = require("../services/companion/companion-session-context");
 const {
   buildForgetReply,
   buildSetReply,
@@ -3854,6 +3855,26 @@ class CyberbossApp {
     return level;
   }
 
+  // 这个人那一个 Companion 会话的键（CB9-120 的 stableSessionKey）。
+  //
+  // 拿不到 identity key 就返回空串而不是抛：提醒必须能建出来。缺会话键的那条
+  // 提醒到点时会被判成 orphan 并如实记一条失败事件——那比「建不出提醒」和
+  // 「悄悄唤醒一个新会话」都好。
+  companionSessionKeyFor(userId) {
+    const id = normalizeText(userId);
+    if (!id) {
+      return "";
+    }
+    try {
+      // 从准入层拿派生子钥。identityKey 本身在构造完就被清零了——那是有意的，
+      // 所以这里绝不去找它，只要那把只够算会话键的子钥。
+      const secret = this.userAdmission?.companionSessionSecret || "";
+      return secret ? stableSessionKey(id, secret) : "";
+    } catch {
+      return "";
+    }
+  }
+
   // 一条入站消息的发件人在哪个时区。解析不出身份就退回主人的时区——那是这台
   // 机器的默认口径，和以前的行为一致。
   senderTimezone(normalized) {
@@ -4132,6 +4153,15 @@ class CyberbossApp {
       return true;
     }
     try {
+      // Future-self 三件套在**创建时**钉死（CB9-410 / AC-017）。
+      //
+      // 到点时那条原始消息可能已经删了、那个人可能换了号。触发时再去推导身份，
+      // 要么推不出来，要么推给另一个人——那正是 AC-017 里「删除原消息不导致跨
+      // 用户恢复」要挡的东西。
+      const reminderUserId = this.resolveUserIdForPersona({
+        accountId: normalized.accountId,
+        senderId: normalized.senderId,
+      });
       this.reminderQueue.enqueue({
         id: crypto.randomUUID(),
         accountId: normalized.accountId,
@@ -4140,6 +4170,11 @@ class CyberbossApp {
         text: buildDueMessage(intent),
         dueAtMs: intent.dueAtMs,
         createdAt: new Date().toISOString(),
+        userScope: reminderUserId || "",
+        sessionKey: reminderUserId ? this.companionSessionKeyFor(reminderUserId) : "",
+        // 他当时说的那句话，剥掉时间之后剩下的部分。到点时模型看到这句才知道
+        // 「叫你一声」是为了什么。
+        intent: intent.body || "",
         direct: true,
       });
     } catch (error) {
