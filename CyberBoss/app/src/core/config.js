@@ -74,7 +74,18 @@ function readConfig() {
   const multiUser = durableInbox && (
     multiUserOverride === undefined ? true : multiUserOverride
   );
-  const registrationMode = readTextEnv("CB_REGISTRATION_MODE") || "invite";
+  // 默认开放注册（CB9-300 / AC-045）。
+  //
+  // 默认 invite 的话，一个扫了公开页那张码的人还要去找主人要一串邀请码——
+  // 而公开页存在的**全部意义**就是让人不用找主人。AC-045 的原话：「普通用户从
+  // 扫码到首轮不需要 Owner 点击、生成邀请码或人工开通」，括号里给的唯一例外是
+  // 「Owner 关闭公开注册时的明确产品策略」——也就是说 invite 是主人主动选的
+  // 关闭态，不是出厂设置。
+  //
+  // 挡住滥用的不是这个开关：席位上限（seatLimitProvider）在**建用户之前**判，
+  // 公开页出码本身有频率和在手张数两道限流。用注册模式去当限流是拿新手的第一
+  // 印象换一个别处已经做了的事。
+  const registrationMode = readTextEnv("CB_REGISTRATION_MODE") || "open";
   if (!["invite", "open"].includes(registrationMode)) {
     throw new Error("CB_REGISTRATION_MODE must be invite or open");
   }

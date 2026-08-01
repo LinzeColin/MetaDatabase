@@ -39,7 +39,9 @@ const MESSAGES = Object.freeze({
     primaryAction: "连接我的AI",
   },
   provider_invalid: {
-    text: "你的密钥用不了了，可能是过期或被撤销。回复「连接我的AI」重新填一次就好。",
+    // 不说「密钥」：AC-007 要求新手看得到的文案里零技术词。用户不需要知道那
+    // 串东西叫什么，他只需要知道现在连不上、以及回哪三个字能修好。
+    text: "你自己接的那个 AI 现在连不上了，多半是授权过期了。回复「连接我的AI」重新弄一次就好。",
     primaryAction: "连接我的AI",
   },
   budget_exhausted: {

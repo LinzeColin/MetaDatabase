@@ -975,7 +975,7 @@ class CyberbossApp {
     this.rememberOwnerSender(selfId);
     console.log(
       "[cyberboss] 主人 = 扫码登录的这个微信号本身。"
-      + "别人给它发消息都是普通用户，要邀请码才能开通。",
+      + "别人给它发消息都是普通用户，扫公开页那张码就能直接用。",
     );
     return this.config.ownerSenderIds;
   }

@@ -138,7 +138,10 @@ class UserAdmissionService {
     ownerUserId,
     ownerSenderIds = [],
     channel = "weixin",
-    registrationMode = "invite",
+    // 和 config.js 的默认保持一致（CB9-300 / AC-045）。两处默认值不一样的话，
+    // 直接 new UserAdmission 的调用方会拿到和线上不同的策略——而那正是测试
+    // 走的路，于是测试测的是一套、线上跑的是另一套。
+    registrationMode = "open",
     policyVersion = DEFAULT_POLICY_VERSION,
     portalOrigin = "",
     // 普通用户席位上限。开放模式下这是唯一挡住"任何扫到码的人都来烧主人额度"

@@ -1,0 +1,73 @@
+{
+  "task": "CB9-300",
+  "title": "把扫码→同意→首句→有效回复固化为唯一新手 Golden Path",
+  "generated_at": "2026-08-01T14:07:18Z",
+  "head_observation": "597cba9b7ada007044510df8fbe810351dba0c5b",
+  "artifacts": [
+    "app/src/core/config.js（CB_REGISTRATION_MODE 默认 invite → open）",
+    "app/src/core/user-admission.js（同上，两处默认对齐）",
+    "app/src/services/ops/novice-presenter.js（去掉「密钥」）",
+    "app/src/core/app.js（首启日志改口）",
+    "app/test/cb9-300-golden-path.test.js（新，17）"
+  ],
+  "the_real_gap": {
+    "what": "CB_REGISTRATION_MODE 的默认值是 invite——一个扫了公开页那张码的人还得去找主人要一串邀请码。",
+    "why_it_violates_AC045": "AC-045 的原话是「普通用户从扫码到首轮不需要 Owner 点击、生成邀请码或人工开通」，括号里给的唯一例外是「除 Owner 关闭公开注册时的明确产品策略」——也就是说 invite 是主人主动选的**关闭态**，不是出厂设置。而公开页（OPEN-3 已上线）存在的全部意义就是让人不用找主人。",
+    "what_still_blocks_abuse": "席位上限 seatLimitProvider（在**建用户之前**判）+ 公开页出码的频率与在手张数两道限流。用注册模式当限流是拿新手的第一印象换一件别处已经做了的事。"
+  },
+  "most_important_finding": {
+    "what": "把默认从 invite 翻成 open，仓里 1189 条测试**一条都没红**。",
+    "meaning": "在此之前没有任何测试钉住过这个默认值——而它决定了每一个新人的第一分钟。源码扫描只能防止有人改回去，证明不了它现在真的生效。",
+    "action": "补了三条**行为**断言：默认配置下第二个人发第一句话就直接成为 route=user 的普通用户；主人明确关 open 时邀请码那条路依然可用（例外必须真的可用，否则「默认开放」就变成了「只能开放」）；开放注册下两个访客仍是两个隔离的 user_id（开放注册最容易顺手引入的坏法是所有访客共用一个匿名身份）。"
+  },
+  "acceptance": {
+    "AC-045": {
+      "status": "PASS",
+      "how": "行为断言 + 源码守卫双向。默认 open，invite 保留为主人的明确关闭态，席位上限和出码限流各自在位。"
+    },
+    "AC-007": {
+      "status": "PASS",
+      "how": "扫的是**用户真正读到的文字**：presenter 的全部 MESSAGES（含出错分支——用户最需要看懂的时候）、present() 渲染后的成品（占位符替换进来的值同样会被读到）、以及加入页与首页剥掉注释/script/style/标签后的可见文本。六个词各自带中文等价说法：只查 API Key 的话「密钥」照样溜过去，而用户读的是中文。改掉了 provider_invalid 里的「你的密钥用不了了」。"
+    },
+    "AC-006": {
+      "status": "PASS(代码路径)",
+      "how": "状态机只有一条从 unseen 到 active 的路；requireExplicitConsent 默认关（默认开的话扫完码的人第一句话收到的是「请先回复同意」，多一跳，而那一跳上流失的人不会回来）；公开入口只给二维码，不下发设置链接或令牌；确认响应里不带 accountId/token/senderId/userId。真实浏览器与真实微信那一段是 CB9-340（environment_bound）。"
+    }
+  },
+  "tests": {
+    "count": "17 pass",
+    "full_regression": "1192 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "默认改回要邀请码",
+      "red": 1
+    },
+    {
+      "mutation": "UserAdmission 默认改回 invite",
+      "red": 3
+    },
+    {
+      "mutation": "默认要求先回「同意并开始」",
+      "red": 3
+    },
+    {
+      "mutation": "新手文案里放回「密钥」",
+      "red": 2
+    },
+    {
+      "mutation": "JARGON 表被缩小",
+      "red": 1
+    },
+    {
+      "mutation": "同意文案里说主人能看",
+      "red": 1
+    },
+    {
+      "mutation": "同意提示整条消失",
+      "red": 2
+    }
+  ],
+  "baseline_before_mutation": "fail 0",
+  "operational_note": "这次改的是**默认值**，不是强制值。已经在 .env 里显式写了 CB_REGISTRATION_MODE 的部署不受影响；没写的部署（含 OVH 生产机，需在 CB9-340/650 核对）会从这次发布起变成开放注册。回滚即回退本提交。"
+}
