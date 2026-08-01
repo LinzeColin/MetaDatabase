@@ -27,6 +27,11 @@ const DEFAULT_PORT = 8787;
 const API_PREFIX = "/api/";
 
 const { assertPublicEgress } = require("../privacy/public-egress");
+const {
+  SOURCE_URL,
+  buildSourceOffer,
+  renderSourcePage,
+} = require("../release/source-offer");
 
 // 挂在 response 上的出口路径。用 Symbol 是为了不和 node 自己的字段撞名。
 const EGRESS_SURFACE = Symbol("cyberboss.egress.surface");
@@ -54,6 +59,14 @@ const HOME_TEMPLATE = require("node:path").join(__dirname, "../../../templates/h
 // 每个人自己那一页。HTML 免令牌（页面本身不含任何人的数据），数据接口要会话，
 // 而且**只回签发给那个会话的那一个人的东西**——鉴权在 personalSiteData 里按
 // 会话解出来的 user_id 做，路径上不带任何身份参数，想改都改不了别人的。
+// AGPL 第 13 条要求的对应源码入口（CB9-540 / AC-029）。
+//
+// 免鉴权是硬要求，不是方便：使用者是那些扫码进来聊天的人，把源码链接放在后台里
+// 等于没放，因为他们永远看不到后台。
+const SOURCE_PATHS = Object.freeze(["/source", "/source/"]);
+// app/src/services/portal → app 的上两级，再上一级是 CyberBoss。
+const PROJECT_ROOT = require("node:path").join(__dirname, "../../../..");
+
 const ME_PATHS = Object.freeze(["/me", "/me/"]);
 const ME_TEMPLATE = require("node:path").join(__dirname, "../../../templates/me.html");
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
@@ -147,6 +160,16 @@ class PortalHttpServer {
     // handler 里那句 typeof === "function" 判断直接跳过——线上一个时区都收
     // 不到，而 adapter 的 18 条单测全绿。第九次了。
     joinTimezoneSignal = null,
+    // 线上 release id，印在对应源码页上（CB9-540 / AC-029）。
+    //
+    // **第十次。** 这一条我也是先在别处写好、再回来发现构造函数里没接——
+    // 现象一模一样：路由挂了、页面出得来，只是「线上版本」那一格永远显示
+    // unreleased，而使用者拿它去对公开源码时对不上。
+    //
+    // 上面那段注释数到第九次，我以为读过就不会再犯。没有用——读到的教训防不住
+    // 按名字解构这件事，能防住的只有一条**从真实入口进来的测试**。这次是
+    // cb9-540 里那条起真服务器传 releaseIdProvider 的测试抓到的。
+    releaseIdProvider = null,
     adminSessionIssue = null,
     adminSessionVerify = null,
     adminSessionRevoke = null,
@@ -184,6 +207,7 @@ class PortalHttpServer {
     this.adminInsights = adminInsights;
     this.publicEntry = publicEntry;
     this.joinTimezoneSignal = joinTimezoneSignal;
+    this.releaseIdProvider = releaseIdProvider;
     this.publicEntryStatus = publicEntryStatus;
     this.adminSessionIssue = adminSessionIssue;
     this.adminSessionVerify = adminSessionVerify;
@@ -366,6 +390,37 @@ class PortalHttpServer {
 
   // 这一页的数据。**身份只从 cookie 里的会话解**，路径和 query 里没有任何
   // 用户参数——这样"看到别人的"不是一个需要防住的攻击，而是一件写不出来的事。
+  // 对应源码页。
+  //
+  // 算摘要要读一遍源码树，所以缓存住——但只缓存**这个进程这一次运行**内的结果，
+  // 不落盘：落盘的话换了 release 而缓存还在，页面会印着上一版的摘要，
+  // 而那正是这一页最不该说错的东西。
+  #handleSourceOffer(response) {
+    try {
+      if (!this.sourceOfferCache) {
+        this.sourceOfferCache = buildSourceOffer({
+          projectRoot: PROJECT_ROOT,
+          releaseId: typeof this.releaseIdProvider === "function"
+            ? this.releaseIdProvider()
+            : null,
+        });
+      }
+      const html = renderSourcePage(this.sourceOfferCache);
+      response.writeHead(200, {
+        ...SECURITY_HEADERS,
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      });
+      response.end(html);
+    } catch (error) {
+      // 这一页失败不能是 404——404 读起来像「这个服务不提供源码」，而那是
+      // 一句关于许可证的错话。500 加上仓库地址至少让人还能拿到源码。
+      response.writeHead(500, { ...SECURITY_HEADERS, "Content-Type": "text/plain; charset=utf-8" });
+      response.end(`对应源码页暂时算不出来，源码在 ${SOURCE_URL}\n`);
+    }
+    return null;
+  }
+
   #handleMeData(request, response) {
     if (typeof this.personalSiteData !== "function") {
       this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
@@ -741,6 +796,11 @@ class PortalHttpServer {
       return this.#handlePublicEntry(response);
     }
     // 每个人自己那一页。页面免令牌（它本身不含任何人的数据），数据要会话。
+    // 对应源码那一页。放在鉴权分支**之前**——AC-029 要「链接对未登录网络用户
+    // 可见」，而 AGPL 第 13 条不接受「先登录再说」。
+    if (request.method === "GET" && SOURCE_PATHS.includes(pathname)) {
+      return this.#handleSourceOffer(response);
+    }
     if (request.method === "GET" && ME_PATHS.includes(pathname)) {
       const nonce = newNonce();
       const html = fs.readFileSync(ME_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);

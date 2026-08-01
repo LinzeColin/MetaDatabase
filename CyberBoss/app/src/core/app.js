@@ -1228,6 +1228,15 @@ class CyberbossApp {
       publicEntry: () => this.buildPublicEntry(),
       publicEntryStatus: (ticket) => this.pollPublicEntryQr(ticket),
       joinTimezoneSignal: (input) => this.recordJoinTimezoneSignal(input),
+      // 对应源码页上印的「线上版本」（CB9-540 / AC-029）。
+      //
+      // 用真实部署的那个 commit，不是 package.json 里的版本号——使用者要拿它
+      // 去对公开源码，能对上的只有 commit。读不到就交 null，那一页会显示
+      // unreleased，而不是编一个。
+      releaseIdProvider: () => {
+        const commit = normalizeText(this.config.canonicalDeployedCommit);
+        return commit ? commit.slice(0, 12) : null;
+      },
       adminSessionIssue: (input) => this.issueAdminSession(input),
       adminSessionVerify: (cookieHeader) => this.adminSessionValid(cookieHeader),
       personalSiteLogin: (token) => this.personalSiteLogin(token),

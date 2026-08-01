@@ -1,0 +1,46 @@
+[
+ {
+  "mutation": "构造函数不接 releaseIdProvider（第十次那个 bug）",
+  "result": "转红"
+ },
+ {
+  "mutation": "解构了但忘了 this.x = x",
+  "result": "转红"
+ },
+ {
+  "mutation": "/source 挪到鉴权分支后面（等于要登录）",
+  "result": "转红"
+ },
+ {
+  "mutation": "末尾斜杠那条不认了",
+  "result": "转红"
+ },
+ {
+  "mutation": "算不出来时回 404",
+  "result": "转红"
+ },
+ {
+  "mutation": "首页上的入口拿掉",
+  "result": "转红"
+ },
+ {
+  "mutation": "摘要不排序",
+  "result": "转红"
+ },
+ {
+  "mutation": "摘要改成拼接内容",
+  "result": "转红"
+ },
+ {
+  "mutation": "没 release_id 时编一个",
+  "result": "转红"
+ },
+ {
+  "mutation": "页面不转义",
+  "result": "转红"
+ },
+ {
+  "mutation": "摘要覆盖到 node_modules",
+  "result": "转红"
+ }
+]

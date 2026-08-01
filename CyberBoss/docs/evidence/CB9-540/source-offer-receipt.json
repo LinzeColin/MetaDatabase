@@ -1,0 +1,42 @@
+{
+  "node": "CB9-540",
+  "acceptance": [
+    "AC-029"
+  ],
+  "requirements": [
+    "FR-029"
+  ],
+  "environment_bound": true,
+  "local_half": {
+    "status": "PASS",
+    "checked": [
+      "/source 免鉴权可达（真 HTTP，200）",
+      "/source 与 /source/ 都认",
+      "home.html / join.html / me.html 三页都有入口",
+      "manifest 摘要确定、带路径、排序、不含依赖",
+      "无 release_id 时显示 unreleased 而不是编一个",
+      "算不出摘要时不回 404"
+    ],
+    "offer": {
+      "license": "AGPL-3.0-or-later",
+      "source_url": "https://github.com/LinzeColin/MetaDatabase",
+      "release_id": "unreleased",
+      "manifest_digest": "1e7fd9d93b0d75e8753f1a149170aa37fefdb9f7f8c85da7fdb7d0e3cc7d85e3",
+      "file_count": 270,
+      "generated_at": "2026-08-01T22:58:52.153Z"
+    }
+  },
+  "online_half": {
+    "status": "NOT_RUN",
+    "blocked_by": [
+      "生产机 51.222.29.63:22 连接超时",
+      "本机无 GITHUB_TOKEN / CLOUDFLARE_API_TOKEN"
+    ],
+    "unverified_claims": [
+      "线上 release_id 与部署的 commit 一致",
+      "线上页面的 manifest digest 与公开源码页 digest 一致",
+      "该链接对公网未登录用户可见"
+    ],
+    "note": "本地这份不得用于宣称 AC-029 已在真实环境通过"
+  }
+}

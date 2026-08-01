@@ -1,0 +1,50 @@
+{
+  "node": "CB9-530",
+  "acceptance": [
+    "AC-022",
+    "AC-027",
+    "AC-028"
+  ],
+  "requirements": [
+    "FR-022",
+    "FR-027",
+    "FR-028"
+  ],
+  "environment_bound": true,
+  "status": "NOT_RUN",
+  "probes": [
+    {
+      "probe": "ssh ubuntu@51.222.29.63",
+      "result": "connection timed out"
+    },
+    {
+      "probe": "env R2_ACCESS_KEY_ID",
+      "result": "unset"
+    },
+    {
+      "probe": "env R2_SECRET_ACCESS_KEY",
+      "result": "unset"
+    },
+    {
+      "probe": "env CLOUDFLARE_API_TOKEN",
+      "result": "unset"
+    },
+    {
+      "probe": "env OCI_CLI_CONFIG_FILE",
+      "result": "unset"
+    },
+    {
+      "probe": "env GITHUB_TOKEN",
+      "result": "unset"
+    }
+  ],
+  "unverified_claims": [
+    "R2 对象 hash 校验通过",
+    "OVH 本地缓存超过保留期被清理",
+    "Private-Database 只存对象引用",
+    "重复同步不产生新记录或空提交",
+    "完成态 5 分钟内可从 Private-Database 读回并校验",
+    "R2 与 OCI 各有可验证对象，第一份不可读时第二份可在隔离目录恢复"
+  ],
+  "note": "仓库内 backup/canonical/objects 模块的单元测试为绿，但那证明的是模块被正确调用时行为正确，不是真实写入与读回。不得用作本节点的证据。"
+}
