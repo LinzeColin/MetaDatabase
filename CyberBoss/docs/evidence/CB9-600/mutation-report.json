@@ -1,0 +1,150 @@
+{
+  "acceptance": "AC-036",
+  "requirement": "NFR-006",
+  "node": "CB9-600",
+  "baseline_red": 0,
+  "total": 13,
+  "turned_red": 13,
+  "survived": 0,
+  "dimensions": {
+    "模式隔离": 3,
+    "幂等": 3,
+    "位置隐私": 3,
+    "Status 新鲜度": 4
+  },
+  "missing_dimensions": [],
+  "mutations": [
+    {
+      "dimension": "模式隔离",
+      "mutation": "访客那一格报主人的健康度",
+      "consequence": "主人的 Codex 好好的会盖住访客那条断掉的路，而主人自己永远看不出来",
+      "file": "src/services/status/live-status-projector.js",
+      "tests": [
+        "test/cb9-510-status-vertical-matrix.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "模式隔离",
+      "mutation": "矩阵完整性只按能力查，不按模式",
+      "consequence": "一整个模式的格子全缺也算完整，那半边的故障在面板上不存在",
+      "file": "src/services/status/business-matrix.js",
+      "tests": [
+        "test/cb9-510-status-vertical-matrix.test.js",
+        "test/cb810-status-resource-selfheal.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "模式隔离",
+      "mutation": "压回一行时取更好的那个",
+      "consequence": "访客那条坏路被主人那条好路盖住——而访客坏了正是没人会注意到的情况",
+      "file": "src/services/status/business-matrix.js",
+      "tests": [
+        "test/cb9-510-status-vertical-matrix.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "幂等",
+      "mutation": "幂等键掺进时间",
+      "consequence": "重启后同一件事算出新键，被当成新任务重做一遍",
+      "file": "src/services/outbox/unknown-result.js",
+      "tests": [
+        "test/cb9-450-idempotency-reconcile.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "幂等",
+      "mutation": "不知道成没成时当失败重试",
+      "consequence": "超时的那条会被重发，用户收到两条一模一样的",
+      "file": "src/services/outbox/unknown-result.js",
+      "tests": [
+        "test/cb9-450-idempotency-reconcile.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "幂等",
+      "mutation": "对账用尽后按未送达处理",
+      "consequence": "查不清的那条会被重发，而它可能已经到了",
+      "file": "src/services/outbox/unknown-result.js",
+      "tests": [
+        "test/cb9-450-idempotency-reconcile.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "位置隐私",
+      "mutation": "公开投影里放行经纬度",
+      "consequence": "精确坐标会跟着位置画像出现在公开面上",
+      "file": "src/services/location/location-profile.js",
+      "tests": [
+        "test/cb9-220-location-profile.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "位置隐私",
+      "mutation": "只查解构之后的对象，不查原始输入",
+      "consequence": "调用方多带的 latitude 在解构那一刻就没了，守卫查了个空气",
+      "file": "src/services/location/timezone-signals.js",
+      "tests": [
+        "test/cb9-210-timezone-signals.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "位置隐私",
+      "mutation": "出网隐私闸从唯一出口上摘掉",
+      "consequence": "微信 ID、绝对路径、内部会话 ID 会原样出现在公开接口的响应里",
+      "file": "src/services/portal/portal-server.js",
+      "tests": [
+        "test/cb9-520-public-egress.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "Status 新鲜度",
+      "mutation": "没有 live receipt 时报健康",
+      "consequence": "刚部署完、一次都没跑过的系统整片显示绿色——配置性伪绿",
+      "file": "src/services/status/parity-freshness.js",
+      "tests": [
+        "test/cb9-500-parity-freshness.test.js",
+        "test/cb9-510-status-vertical-matrix.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "Status 新鲜度",
+      "mutation": "过期的成功也算健康",
+      "consequence": "一条昨天好过、今天已经断了的路会一直显示绿色",
+      "file": "src/services/status/parity-freshness.js",
+      "tests": [
+        "test/cb9-500-parity-freshness.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "Status 新鲜度",
+      "mutation": "最近的失败被紧接着的成功抹掉",
+      "consequence": "抖动被藏起来——「有时候不行」在面板上永远是绿的",
+      "file": "src/services/status/parity-freshness.js",
+      "tests": [
+        "test/cb9-500-parity-freshness.test.js"
+      ],
+      "result": "转红"
+    },
+    {
+      "dimension": "Status 新鲜度",
+      "mutation": "量不到的资源当成量到了 0",
+      "consequence": "磁盘读不出来时显示「资源充裕」，而实际是我们瞎了",
+      "file": "src/services/status/vertical-sections.js",
+      "tests": [
+        "test/cb9-510-status-vertical-matrix.test.js"
+      ],
+      "result": "转红"
+    }
+  ]
+}

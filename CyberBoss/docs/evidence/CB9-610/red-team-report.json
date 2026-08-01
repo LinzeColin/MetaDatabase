@@ -1,0 +1,127 @@
+{
+  "node": "CB9-610",
+  "acceptance": [
+    "AC-032",
+    "AC-033",
+    "AC-040"
+  ],
+  "requirements": [
+    "NFR-002",
+    "NFR-003",
+    "NFR-010"
+  ],
+  "aggregation": "none — AC-040 明令安全结果不许被平均分覆盖；下面是逐条判定，没有通过率这一栏",
+  "dimensions": [
+    "模式越权",
+    "位置隐私",
+    "提示注入",
+    "秘密扫描与监听面"
+  ],
+  "attacks": [
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 越权：普通用户碰不到任何一项主人专属能力"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 越权：两套能力集互不相交"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 越权：自称是主人不管用——身份由服务端定"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 越权：认不出来的能力一律拒，不是默认放行"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 越权：停用的人连自己那份能力也没有"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 位置：经纬度从任何一个入口都塞不进去"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 位置：IP 地址同样进不去"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 位置：公开投影只放行城市粒度，坐标一律不出现"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 注入 1：说什么都不改变能力判定"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 注入 2：说什么都不改变能力判定"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 注入 3：说什么都不改变能力判定"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 注入 4：说什么都不改变能力判定"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 注入 5：说什么都不改变能力判定"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 注入 6：说什么都不改变能力判定"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 注入：能力闸的判断里根本读不到文本"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 秘密扫描的判据本身要分得清真假"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 监听：没有任何一处绑 0.0.0.0"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 监听：portal 的默认主机是 loopback"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 秘密扫描：git 跟踪的文件里 0 命中"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 秘密扫描：Status 投影里 0 命中"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "红队 · 秘密扫描：证据目录里 0 命中"
+    },
+    {
+      "verdict": "PASS",
+      "attack": "AC-040 安全结果不许被聚合成一个数字"
+    }
+  ],
+  "failures": [],
+  "findings": [
+    {
+      "id": "CB9-610-F1",
+      "severity": "high",
+      "title": "位置上报服务默认绑 0.0.0.0",
+      "detail": "src/core/config.js 的 locationHost 默认所有网卡。它是位置上报入口，谁打得到谁就能往这台机器写主人的行踪。AC-032 点名了这条，而它一直是绿的——从来没有测试扫过监听面。",
+      "fix": "默认改成 127.0.0.1；要对外走隧道。"
+    },
+    {
+      "id": "CB9-610-F2",
+      "severity": "high",
+      "title": "经纬度/IP 只在不鉴权出口被挡住",
+      "detail": "CB9-520 把键黑名单收窄到不鉴权出口（为了不清空后台对话页），收窄收对了但收过头——{latitude:31.23} 在 /me 和 /admin 上畅通无阻。",
+      "fix": "加一份任何出口都不许出现的字段集（坐标/IP/凭据），和 Timeline 那份完整黑名单分开。"
+    }
+  ]
+}

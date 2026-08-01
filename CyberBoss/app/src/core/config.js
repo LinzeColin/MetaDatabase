@@ -253,7 +253,15 @@ function readConfig() {
     stickerNormalizeGifScript: path.resolve(__dirname, "..", "..", "scripts", "normalize-sticker-gif.js"),
     diaryDir: path.join(stateDir, "diary"),
     locationStoreFile: path.join(stateDir, "locations.json"),
-    locationHost: readTextEnv("CYBERBOSS_LOCATION_HOST") || "0.0.0.0",
+    // loopback，不是 0.0.0.0（CB9-610 / AC-032）。
+    //
+    // 这一条原来默认绑所有网卡。它是**位置上报服务**——谁能打到它，谁就能往这台
+    // 机器里写主人的行踪，而它自己只有一个可选的 token。绑上公网等于把那扇门
+    // 摆在马路边上。
+    //
+    // AC-032 点名了这件事（「监听扫描无 0.0.0.0」），而它一直是绿的，因为从来
+    // 没有一条测试去扫过监听面。真要暴露出去的话，走隧道，别改这个默认值。
+    locationHost: readTextEnv("CYBERBOSS_LOCATION_HOST") || "127.0.0.1",
     locationPort: readIntEnv("CYBERBOSS_LOCATION_PORT") || 4318,
     locationToken: readTextEnv("CYBERBOSS_LOCATION_TOKEN"),
     locationHistoryLimit: readIntEnv("CYBERBOSS_LOCATION_HISTORY_LIMIT") || 1000,

@@ -1,0 +1,469 @@
+{
+  "node": "CB9-600",
+  "acceptance": [
+    "AC-036"
+  ],
+  "requirement": "NFR-006",
+  "purpose": "DAG 37 个节点的证据落位对账；env_bound 的节点允许是 NOT_RUN 记录，但目录必须在",
+  "total": 37,
+  "evidence_present": 30,
+  "environment_bound": 9,
+  "nodes": [
+    {
+      "id": "CB9-000",
+      "stage": "S0",
+      "title": "最新 main 与规则语义对账",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-039"
+      ],
+      "evidence_dir": "docs/evidence/CB9-000",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-010",
+      "stage": "S0",
+      "title": "只读捕获线上 release、OVH 资源、systemd、Cloudflare 和数据端点现状",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-031",
+        "AC-032"
+      ],
+      "evidence_dir": "docs/evidence/CB9-010",
+      "evidence_present": false
+    },
+    {
+      "id": "CB9-020",
+      "stage": "S0",
+      "title": "把 v0.0.0.8 现有实现逐项映射为保留、适配或跳过",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-001",
+        "AC-020",
+        "AC-026",
+        "AC-043"
+      ],
+      "evidence_dir": "docs/evidence/CB9-020",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-100",
+      "stage": "S1",
+      "title": "实现服务端双模式不变量与 spoof 防护",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-001",
+        "AC-005"
+      ],
+      "evidence_dir": "docs/evidence/CB9-100",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-110",
+      "stage": "S1",
+      "title": "实现 Owner 主 Session/Thread/Workspace 统一入口",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-002",
+        "AC-003"
+      ],
+      "evidence_dir": "docs/evidence/CB9-110",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-120",
+      "stage": "S1",
+      "title": "实现 Companion 稳定 Session 与有界上下文",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-004",
+        "AC-038",
+        "AC-044"
+      ],
+      "evidence_dir": "docs/evidence/CB9-120",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-130",
+      "stage": "S1",
+      "title": "补齐跨用户/跨模式能力矩阵和回归防线",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-005"
+      ],
+      "evidence_dir": "docs/evidence/CB9-130",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-140",
+      "stage": "S1",
+      "title": "按现有迁移约定物化下一编号的兼容迁移",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-004",
+        "AC-010",
+        "AC-013",
+        "AC-041",
+        "AC-044"
+      ],
+      "evidence_dir": "docs/evidence/CB9-140",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-200",
+      "stage": "S2",
+      "title": "实现 UTC 瞬时层与北京时间权威表达层",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-010",
+        "AC-041"
+      ],
+      "evidence_dir": "docs/evidence/CB9-200",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-210",
+      "stage": "S2",
+      "title": "实现浏览器 IANA 时区与 Cloudflare 粗粒度信号 Adapter",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-012",
+        "AC-042"
+      ],
+      "evidence_dir": "docs/evidence/CB9-210",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-220",
+      "stage": "S2",
+      "title": "实现位置/时区信号优先级、置信度、确认和隐私最小化",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-013",
+        "AC-014"
+      ],
+      "evidence_dir": "docs/evidence/CB9-220",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-230",
+      "stage": "S2",
+      "title": "把提醒、安静时段、自然语言时间切换到用户当地时区",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-011",
+        "AC-016"
+      ],
+      "evidence_dir": "docs/evidence/CB9-230",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-240",
+      "stage": "S2",
+      "title": "实现用户自然语言纠正、切换与删除位置",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-015"
+      ],
+      "evidence_dir": "docs/evidence/CB9-240",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-250",
+      "stage": "S2",
+      "title": "构建 Fake Clock、DST、双时间文案与权限拒绝测试",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-010",
+        "AC-012",
+        "AC-016",
+        "AC-041",
+        "AC-042"
+      ],
+      "evidence_dir": "docs/evidence/CB9-250",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-300",
+      "stage": "S3",
+      "title": "把扫码→同意→首句→有效回复固化为唯一新手 Golden Path",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-006",
+        "AC-007",
+        "AC-045"
+      ],
+      "evidence_dir": "docs/evidence/CB9-300",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-310",
+      "stage": "S3",
+      "title": "将 BYOK 移至高级自选并移除主流程技术术语",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-008"
+      ],
+      "evidence_dir": "docs/evidence/CB9-310",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-320",
+      "stage": "S3",
+      "title": "实现共享额度与 OVH 压力下的中文排队/限流/确定性降级",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-009",
+        "AC-031"
+      ],
+      "evidence_dir": "docs/evidence/CB9-320",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-330",
+      "stage": "S3",
+      "title": "重构首页、加入页和后台一级信息架构与中文防呆",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-030",
+        "AC-037"
+      ],
+      "evidence_dir": "docs/evidence/CB9-330",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-340",
+      "stage": "S3",
+      "title": "执行移动端、桌面端、拒绝权限与零技术浏览器验收",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-006",
+        "AC-007",
+        "AC-030",
+        "AC-045"
+      ],
+      "evidence_dir": "docs/evidence/CB9-340",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-400",
+      "stage": "S4",
+      "title": "建立统一 Session Event Orchestrator",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-020",
+        "AC-043"
+      ],
+      "evidence_dir": "docs/evidence/CB9-400",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-410",
+      "stage": "S4",
+      "title": "把 Future-self Reminder 接入同一 Session 与 lineage",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-017"
+      ],
+      "evidence_dir": "docs/evidence/CB9-410",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-420",
+      "stage": "S4",
+      "title": "把 Owner Pulse 与 Companion Check-in 接入各自同一 Session",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-018"
+      ],
+      "evidence_dir": "docs/evidence/CB9-420",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-430",
+      "stage": "S4",
+      "title": "统一日记和 Timeline 投影并保持零模型日记",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-019",
+        "AC-020",
+        "AC-043"
+      ],
+      "evidence_dir": "docs/evidence/CB9-430",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-440",
+      "stage": "S4",
+      "title": "统一命令、审批、媒体与对象引用的 Session 语义",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-021",
+        "AC-022"
+      ],
+      "evidence_dir": "docs/evidence/CB9-440",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-450",
+      "stage": "S4",
+      "title": "实现 Inbox/Journal/Outbox 幂等与未知结果对账",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-023",
+        "AC-024"
+      ],
+      "evidence_dir": "docs/evidence/CB9-450",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-500",
+      "stage": "S5",
+      "title": "实现 live parity receipt 与新鲜度状态机",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-025"
+      ],
+      "evidence_dir": "docs/evidence/CB9-500",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-510",
+      "stage": "S5",
+      "title": "扩展 status 纵向矩阵且禁止配置性伪绿",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-026",
+        "AC-035"
+      ],
+      "evidence_dir": "docs/evidence/CB9-510",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-520",
+      "stage": "S5",
+      "title": "实现 Timeline/Status 隐私投影与字段白名单",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-020",
+        "AC-026",
+        "AC-033",
+        "AC-043"
+      ],
+      "evidence_dir": "docs/evidence/CB9-520",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-530",
+      "stage": "S5",
+      "title": "对齐 Private-Database 完成态同步、R2 对象和 R2/OCI 冷备",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-022",
+        "AC-027",
+        "AC-028"
+      ],
+      "evidence_dir": "docs/evidence/CB9-530",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-540",
+      "stage": "S5",
+      "title": "实现线上 release 与 AGPL 对应源码入口",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-029"
+      ],
+      "evidence_dir": "docs/evidence/CB9-540",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-600",
+      "stage": "S6",
+      "title": "执行确定性单元、集成、契约和 traceability 测试",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-036"
+      ],
+      "evidence_dir": "docs/evidence/CB9-600",
+      "evidence_present": true
+    },
+    {
+      "id": "CB9-610",
+      "stage": "S6",
+      "title": "执行模式越权、位置隐私、提示注入和秘密扫描红队",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-032",
+        "AC-033",
+        "AC-040"
+      ],
+      "evidence_dir": "docs/evidence/CB9-610",
+      "evidence_present": false
+    },
+    {
+      "id": "CB9-620",
+      "stage": "S6",
+      "title": "执行 crash-cut、重复消息、恢复和备份故障注入",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-023",
+        "AC-024",
+        "AC-028"
+      ],
+      "evidence_dir": "docs/evidence/CB9-620",
+      "evidence_present": false
+    },
+    {
+      "id": "CB9-630",
+      "stage": "S6",
+      "title": "执行资源闸门、成本预算和自愈测试",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-031",
+        "AC-035"
+      ],
+      "evidence_dir": "docs/evidence/CB9-630",
+      "evidence_present": false
+    },
+    {
+      "id": "CB9-640",
+      "stage": "S6",
+      "title": "组装不可变 release、请求数 Canary 与精确回滚",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-034"
+      ],
+      "evidence_dir": "docs/evidence/CB9-640",
+      "evidence_present": false
+    },
+    {
+      "id": "CB9-650",
+      "stage": "S6",
+      "title": "真实 Owner 与 Companion 微信端到端验收并生成 release receipt",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-002",
+        "AC-004",
+        "AC-006",
+        "AC-025",
+        "AC-040",
+        "AC-044",
+        "AC-045"
+      ],
+      "evidence_dir": "docs/evidence/CB9-650",
+      "evidence_present": false
+    },
+    {
+      "id": "CB9-660",
+      "stage": "S6",
+      "title": "配置发布后自动观察、状态投影和恢复演练入口，不等待真实时间",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-035"
+      ],
+      "evidence_dir": "docs/evidence/CB9-660",
+      "evidence_present": false
+    }
+  ]
+}

@@ -78,6 +78,35 @@ const INTERNAL_ID_SHAPE =
 // 真正精确的做法是按出口分：完全不鉴权的那几个出口钉死顶层键，能出去的字段
 // 就那几个我们自己写的文案；鉴权后的出口本来就该给本人看他自己的内容。
 
+// 无论哪个出口都不许出现的字段名。
+//
+// 和 session-event 那份完整黑名单分开：那份是给 Timeline 公开投影写的，里面有
+// text / content / body——而后台对话页和「我的主页」的意义就是显示这个人自己的
+// text，所以那份只在完全不鉴权的出口上跑。
+//
+// 但这几个不一样，它们在**任何**出口上都不该出现：
+//   坐标和 IP——FR-021 说这个产品根本不采集精确位置，那么它也就没有理由出现在
+//   任何一份响应里。主人自己那一页也不该有他自己的经纬度，因为我们压根没存过。
+//   凭据——不解释。
+//
+// 这一条是红队测试发现的：把黑名单收窄到不鉴权出口之后，`{latitude: 31.23}`
+// 在 /me 和 /admin 上畅通无阻。收窄收对了，但收过头了。
+const NEVER_ALLOWED_KEYS = Object.freeze(new Set([
+  "latitude", "longitude", "lat", "lng", "lon", "coords", "coordinates",
+  "accuracy", "altitude", "geo", "gps",
+  "raw_ip", "ip", "ip_address", "client_ip", "remote_addr",
+  "api_key", "apikey", "secret", "password", "private_key",
+  "access_token", "refresh_token", "context_token", "setup_token",
+]));
+
+function normalizeEgressKey(key) {
+  return String(key)
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 function scan(value, pointer, seen) {
   if (value === null || value === undefined) {
     return;
@@ -103,6 +132,9 @@ function scan(value, pointer, seen) {
     return;
   }
   for (const [key, child] of Object.entries(value)) {
+    if (NEVER_ALLOWED_KEYS.has(normalizeEgressKey(key))) {
+      throw new PublicEgressError("EGRESS_PRIVATE_FIELD", `${pointer}.${key}`);
+    }
     scan(child, `${pointer}.${key}`, seen);
   }
 }
@@ -169,6 +201,7 @@ function isUnauthenticatedSurface(pathname) {
 
 module.exports = {
   FORBIDDEN_PUBLIC_KEYS,
+  NEVER_ALLOWED_KEYS,
   INTERNAL_ID_SHAPE,
   PublicEgressError,
   UNAUTHENTICATED_SURFACES,
