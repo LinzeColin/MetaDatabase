@@ -60,6 +60,12 @@
       "mode": "read-only",
       "result": "PASS",
       "details": "Loopback Core/status/projection returned 200 and remain loopback-bound; public no-cookie/no-bearer safety responses were 302 Access UI, 200 API health/pairing, 401 protected route and forged assertion, and 200 status health/JSON; two data timers remain disabled."
+    },
+    {
+      "id": "source_tag_and_remote_ref_readback",
+      "mode": "controlled non-force publication",
+      "result": "PASS",
+      "details": "Annotated v0.0.0.4 tag object 272cf897b3ed69858a38f5dfbb302f7af3bc0357 and origin/main both resolve to peeled source commit e1f76776668b630b1d9a60a07d07a9791e6c0cf8 after one atomic push."
     }
   ],
   "single_full_suite_boundary": {
@@ -72,8 +78,8 @@
     "runtime_or_user_data_written": false,
     "provider_upload_or_delete": false,
     "timers_enabled": false,
-    "source_stage_commit_tag_push_at_log_write": false,
+    "source_stage_commit_tag_push_at_log_write": true,
     "temporary_compatibility_directory_cleaned": true
   },
-  "post_log_required_action": "Only after this evidence is committed: create annotated v0.0.0.4 tag, fast-forward push final commit to origin/main, verify remote refs, and update RELEASE_REPORT.json with the actual receipt."
+  "post_log_required_action": "Complete: the tag and remote references above were read back successfully. This documentation-only receipt commit does not change the released functional candidate."
 }

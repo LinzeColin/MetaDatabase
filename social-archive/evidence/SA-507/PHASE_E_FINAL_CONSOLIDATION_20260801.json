@@ -4,7 +4,7 @@
   "phase": "E",
   "phase_status": "PASS",
   "overall_sa507_status": "PASS",
-  "overall_taskpack_status": "PASS_PENDING_SOURCE_PUBLICATION_ACTION",
+  "overall_taskpack_status": "PASS",
   "verified_at_utc": "2026-08-01T12:08:30Z",
   "run_contract": "PHASE_E_FINAL_CONSOLIDATION_RUN_CONTRACT.md",
   "candidate": {
@@ -73,9 +73,13 @@
     "request_boundary": "No Cookie, Bearer, real Access assertion, secret, response body, user content, host identifier or credential location was retained."
   },
   "release_boundary": {
-    "source_publication_before_this_phase": "NOT_PERFORMED",
-    "next_ordered_action": "Create one final source evidence commit, annotated v0.0.0.4 tag, then fast-forward push that exact commit to origin/main and verify remote refs.",
-    "release_tag_must_not_preexist": true,
+    "source_publication": "PASS",
+    "published_at_utc": "2026-08-01T12:13:23Z",
+    "release_tag": "v0.0.0.4",
+    "release_tag_object": "272cf897b3ed69858a38f5dfbb302f7af3bc0357",
+    "release_tag_target_commit": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
+    "origin_main_at_initial_readback": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
+    "publication_method": "one non-force atomic push of HEAD:main and annotated tag, followed by remote main/tag/peeled-tag readback",
     "rollback_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
     "timers_remain_disabled": true,
     "github_source_release": "NOT_CREATED; not required by this Task Pack source publication"
@@ -83,6 +87,6 @@
   "nonclaims": [
     "Phase E did not repeat the application pytest suite, write Runtime or user data, enable timers, upload or delete provider objects, create a second worktree, read a secret, or create a GitHub source Release.",
     "The task-pack release boundary metadata retains runtime_verdict_after_taskpack=NOT_RUN because it distinguishes package verification from live runtime; it was not rewritten as a synthetic production PASS.",
-    "A source commit, tag and remote ref readback are intentionally ordered after this local acceptance evidence and must be recorded separately after they actually occur."
+    "The source publication receipt above refers to the v0.0.0.4 tag target. The following documentation-only receipt commit does not change that released functional candidate."
   ]
 }

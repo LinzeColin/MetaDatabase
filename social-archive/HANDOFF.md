@@ -6,16 +6,17 @@
 
 ## Final closure status (2026-08-01 UTC)
 
-- 本地 Task Pack 验收已闭合：32/32 `RESULT` 均为 PASS；SA-507 的当前证据为
+- Task Pack 与源码发布均已闭合：32/32 `RESULT` 均为 PASS；SA-507 的当前证据为
   `evidence/SA-507/RESULT.json` 及 Phase A–E。冻结功能候选 204 文件的清单 SHA-256
   为 `78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90`，其在合入
   当时最新 `origin/main` 前后保持一致；唯一适用于此候选的全量应用回归为 235 passed。
 - 兼容层 synthetic 验证和 frozen `verify-fast`（26 checks、明确跳过应用测试）均
   PASS；最终结构验证为 PASS 且未重跑 pytest。真实三副本、Private-Database facts、
   三目标恢复及生产/边缘 smoke 分别以 Phase A–E 记录为 PASS。
-- 下一受控动作不是新的开发 Task：只在本地 evidence commit 已审查后，创建 annotated
-  `v0.0.0.4` tag、无 force 推送同一提交到 `origin/main`，读回远端 main/tag 后更新
-  `RELEASE_REPORT.json`。若 tag、推送或远端引用不一致，停止且不改写历史。
+- 已发布：annotated `v0.0.0.4` 的 peeled target 与 `origin/main` 初始 readback 均为
+  `e1f76776668b630b1d9a60a07d07a9791e6c0cf8`；tag object 为
+  `272cf897b3ed69858a38f5dfbb302f7af3bc0357`。`RELEASE_REPORT.json` 保存真实回执。
+  后续只需清理本 run 的临时资源并保持现有生产/回滚边界，不再启动新的开发 Task。
 - 不启用复制或 facts timer；不读取/提交秘密，不删除生产备份、ignored runtime 或受保护
   目录。已有 `social-archive-pre-v0.0.0.4-20260730t095749z` 是非破坏性回滚起点。
 

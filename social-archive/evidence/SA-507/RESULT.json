@@ -67,11 +67,15 @@
   },
   "release_candidate": {
     "version": "v0.0.0.4",
-    "source_publication_at_evidence_write": "LOCAL_ACCEPTANCE_PASS_PUBLICATION_ORDERED",
+    "source_publication": "PASS",
+    "published_at_utc": "2026-08-01T12:13:23Z",
     "release_tag": "v0.0.0.4",
-    "source_commit_digest": "resolved only by the annotated tag after the final evidence commit is created and pushed; not fabricated before that action",
+    "annotated_tag_object": "272cf897b3ed69858a38f5dfbb302f7af3bc0357",
+    "source_commit_digest": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
+    "origin_main_at_initial_readback": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
+    "publication_method": "non-force atomic push, then remote main/tag/peeled-tag readback",
     "github_source_release": "NOT_CREATED; no source Release is required for this source-tag publication",
-    "next_action": "Create one final evidence commit, annotate/tag it, fast-forward push it to origin/main, and record remote ref readback in RELEASE_REPORT.json."
+    "post_publication_receipt": "This result is updated by a documentation-only receipt commit; the tagged functional candidate remains the commit above."
   },
   "evidence": {
     "phase_a": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
@@ -86,6 +90,6 @@
   "nonclaims": [
     "Task Pack PASS is not used to rewrite machine/release_boundary.json runtime_verdict_after_taskpack=NOT_RUN; package and live-runtime semantics remain separate.",
     "No secret, token, cookie, host identity, credential location, user content, provider object identifier or response body is present in this result.",
-    "At this exact evidence write the source tag and remote push have not yet happened; a later release receipt records them only after actual success."
+    "The v0.0.0.4 tag targets the final functional evidence commit; the follow-up documentation-only receipt commit does not change the released functional candidate."
   ]
 }
