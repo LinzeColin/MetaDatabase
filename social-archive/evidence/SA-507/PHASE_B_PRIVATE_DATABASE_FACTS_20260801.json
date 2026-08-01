@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "task": "SA-507",
+  "phase": "Phase B: Private-Database completed facts",
+  "phase_status": "PASS",
+  "run_contract": "PHASE_B_PRIVATE_DATABASE_FACTS_RUN_CONTRACT.md",
+  "precheck_evidence": "PHASE_B_PRIVATE_DATABASE_FACTS_PRECHECK_20260801.json",
+  "scope": {
+    "included": [
+      "dedicated fine-grained Private-Database credential",
+      "official clone-free client ingest",
+      "strict ledger verification",
+      "one idempotent no-change repeat"
+    ],
+    "excluded": [
+      "backup.py",
+      "restore.py",
+      "object replication",
+      "GitHub Vault Release",
+      "source push/tag",
+      "timer enablement",
+      "deployment or release smoke"
+    ]
+  },
+  "credential_contract": {
+    "token_name": "social-archive-private-db-prod",
+    "expiration": "no expiration",
+    "resource_owner": "LinzeColin",
+    "selected_repositories": [
+      "LinzeColin/Private-Database"
+    ],
+    "repository_permissions": {
+      "Contents": "read and write",
+      "Metadata": "read-only (required)"
+    },
+    "account_permissions": 0,
+    "fallback_credentials_not_used": [
+      "Social-Archive-Vault-only token",
+      "wide local GitHub OAuth",
+      "historical exposed backup PAT"
+    ],
+    "production_source_secret_metadata": "root:root 0600; non-empty; value omitted"
+  },
+  "production_target_identity": {
+    "target": "LinzeColin/Private-Database",
+    "is_private": true,
+    "verified": true
+  },
+  "first_sync": {
+    "generated_at": "2026-08-01T11:03:42.673110Z",
+    "service_result": "success",
+    "exec_main_status": 0,
+    "status": "PASS",
+    "candidate_fact_count": 1,
+    "attempted_fact_count": 1,
+    "already_delivered_count": 0,
+    "delivered_this_run": 1,
+    "failures": [],
+    "local_checkout": false
+  },
+  "official_verifier": {
+    "exit_code": 0,
+    "ledger_counts": {
+      "total": 32,
+      "canonical_paths_present": 27,
+      "historical_prefixed_paths_reported_missing_by_legacy_verifier": 5
+    },
+    "strict_completion_basis": "The production sync wrapper only emitted PASS and marked the Outbox delivered after the same official verifier's incomplete historical summary passed its code-gated immutable manifest, five-object byte-length, and SHA-256 compatibility readback. A failed readback would have emitted DEGRADED and left the Outbox pending."
+  },
+  "idempotent_repeat": {
+    "generated_at": "2026-08-01T11:04:13.910751Z",
+    "service_result": "success",
+    "exec_main_status": 0,
+    "status": "NO_CHANGE",
+    "candidate_fact_count": 1,
+    "already_delivered_count": 1,
+    "local_checkout": false
+  },
+  "operational_boundaries": {
+    "sync_service_final_state": "inactive after successful oneshot completion",
+    "sync_timer": "disabled",
+    "transient_verify_units_remaining": 0,
+    "official_client_sha256": "8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa",
+    "host_prepare_guard_sha256": "bb8e0e362abdf9866646ee4179c9c0f4bc3f29fef5ec6daba7d8a2a262f3a441"
+  },
+  "local_verification": {
+    "focused_deployment_and_sync": "26 passed",
+    "full_application_suite": "229 passed; 1 existing non-failing Starlette/httpx deprecation warning",
+    "static_and_secret_checks": "PASS",
+    "taskpack_compatibility": {
+      "status": "PASS",
+      "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+      "rollback_default": "ROLLBACK_PLAN"
+    }
+  },
+  "nonclaims": [
+    "This Phase B PASS does not prove backup, recovery, replication, release, deployment smoke, or total SA-507 completion.",
+    "No token value, fact payload, user content, production host identifier, or absolute production path is included.",
+    "No source push, tag, GitHub source release, timer enablement, backup, restore, or destructive cleanup occurred."
+  ]
+}

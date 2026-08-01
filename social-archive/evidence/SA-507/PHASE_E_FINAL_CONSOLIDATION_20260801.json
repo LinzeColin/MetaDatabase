@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-507",
+  "phase": "E",
+  "phase_status": "PASS",
+  "overall_sa507_status": "PASS",
+  "overall_taskpack_status": "PASS_PENDING_SOURCE_PUBLICATION_ACTION",
+  "verified_at_utc": "2026-08-01T12:08:30Z",
+  "run_contract": "PHASE_E_FINAL_CONSOLIDATION_RUN_CONTRACT.md",
+  "candidate": {
+    "starting_head": "9fdf6de319d9d20be22c298c44bbef6b0f4d8320",
+    "integration_merge_commit": "7218767576d329f60ee2338aa6f570f87fc0a86d",
+    "integrated_origin_main": "6b15ed6cdf96bcb24353b8b5c60f4b2193fb9d6e",
+    "functional_candidate_file_count": 204,
+    "functional_candidate_manifest_sha256": "78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90",
+    "pre_and_post_merge_manifest_equal": true,
+    "merge_first_parent_social_archive_changes": [],
+    "unique_full_application_suite": "235 passed; failed=0; one existing non-failing Starlette/httpx deprecation warning; recorded by Phase C"
+  },
+  "frozen_taskpack": {
+    "version": "v0.0.0.4",
+    "zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+    "synthetic_compatibility": "PASS",
+    "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "rollback_default": "ROLLBACK_PLAN",
+    "verify_fast": {
+      "status": "PASS",
+      "check_count": 26,
+      "application_tests": "skipped explicitly by verify-fast"
+    },
+    "temporary_compatibility_material": "created outside the worktree and cleaned on process exit"
+  },
+  "structural_verification": {
+    "status": "PASS",
+    "command_count": 7,
+    "suite_mode": "structural",
+    "application_suite_rerun": false,
+    "evidence": "evidence/final-verification.json"
+  },
+  "task_evidence_audit": {
+    "task_count": 32,
+    "pre_consolidation_pass_count": 31,
+    "pre_consolidation_nonpass": ["SA-507 historical summary only"],
+    "phase_a_production": "PASS",
+    "phase_b_private_database_facts": "PASS",
+    "phase_c_three_target_recovery": "PASS",
+    "phase_d_production_smoke": "PASS",
+    "rule": "Historical provider-specific NOT_RUN observations remain historical boundaries and were not converted into PASS; final SA-507 relies only on the actual completed facts recorded by Phases A-D."
+  },
+  "fresh_production_readonly_recheck": {
+    "core_health_loopback": 200,
+    "status_health_loopback": 200,
+    "status_projection_loopback": 200,
+    "core_bind": "loopback",
+    "status_bind": "loopback",
+    "services": {
+      "social_archive": "enabled; active; success",
+      "cloudflared": "enabled; active; success",
+      "status_web": "disabled by policy; active; success",
+      "replication_timer": "disabled; inactive; success",
+      "private_database_sync_timer": "disabled; inactive; success"
+    },
+    "unauthenticated_edge": {
+      "library_health": 302,
+      "library_access_login_redirect": "PASS",
+      "api_health": 200,
+      "pairing_status": 200,
+      "business_route_without_bearer": 401,
+      "business_route_with_forged_access_assertion": 401,
+      "status_health": 200,
+      "status_json": 200
+    },
+    "request_boundary": "No Cookie, Bearer, real Access assertion, secret, response body, user content, host identifier or credential location was retained."
+  },
+  "release_boundary": {
+    "source_publication_before_this_phase": "NOT_PERFORMED",
+    "next_ordered_action": "Create one final source evidence commit, annotated v0.0.0.4 tag, then fast-forward push that exact commit to origin/main and verify remote refs.",
+    "release_tag_must_not_preexist": true,
+    "rollback_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "timers_remain_disabled": true,
+    "github_source_release": "NOT_CREATED; not required by this Task Pack source publication"
+  },
+  "nonclaims": [
+    "Phase E did not repeat the application pytest suite, write Runtime or user data, enable timers, upload or delete provider objects, create a second worktree, read a secret, or create a GitHub source Release.",
+    "The task-pack release boundary metadata retains runtime_verdict_after_taskpack=NOT_RUN because it distinguishes package verification from live runtime; it was not rewritten as a synthetic production PASS.",
+    "A source commit, tag and remote ref readback are intentionally ordered after this local acceptance evidence and must be recorded separately after they actually occur."
+  ]
+}

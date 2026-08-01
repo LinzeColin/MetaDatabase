@@ -1,121 +1,79 @@
 {
-  "schema_version": "1.6",
+  "schema_version": "2.0",
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
-  "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-31T09:43:16Z",
-  "candidate_commit": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
-  "snapshot_scope": "Historical command log for the 0325be9a candidate. The current bca021bf Phase A continuation is separately recorded without rewriting historical command outcomes.",
-  "current_continuation": {
-    "path": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
-    "phase_status": "PASS",
-    "overall_sa507_status": "DEGRADED",
-    "candidate_commit": "bca021bf91baad3f1585dd6ae15044836752e156",
-    "verified_at_utc": "2026-07-31T12:16:51Z"
+  "acceptance_status": "PASS",
+  "verified_at_utc": "2026-08-01T12:08:30Z",
+  "phase": "E final consolidation",
+  "candidate": {
+    "premerge_head": "9fdf6de319d9d20be22c298c44bbef6b0f4d8320",
+    "postmerge_head": "7218767576d329f60ee2338aa6f570f87fc0a86d",
+    "origin_main": "6b15ed6cdf96bcb24353b8b5c60f4b2193fb9d6e",
+    "functional_candidate_manifest_sha256": "78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90",
+    "functional_candidate_file_count": 204
   },
   "commands": [
     {
-      "id": "sa507_candidate_freeze_and_compatibility",
-      "command": "git rev-parse HEAD; git rev-parse HEAD^{tree}; git rev-parse HEAD:social-archive; <project-venv-python> social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>; <project-venv-python> <temporary-compatible-pack>/START_HERE.py verify-fast",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Functional candidate 0325be9af5f65a8a3834d97f66c2c936f066ed6d has root tree 39f46b17947a7065070614980d1d8c3d53515e07 and Social Archive tree 1fc42ac97ca39d288f72c3b7570efb8e9dc000fa. It descends from the latest-origin/main-integrated 0a9fbf3b candidate. At full-suite time, only SA-507 evidence/HANDOFF continuation files were uncommitted; application source matched this commit. The immutable ZIP hash is 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6; compatibility validation passed with one preserved transaction core, retained ignored legacy runtime, and no second active core. The compatible frozen task pack verified 26/26 checks with application_tests skipped by verify-fast."
+      "id": "task_and_zip_audit",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "32 task IDs parsed from machine/task_dag.yaml; 31 prior RESULT records were PASS; frozen ZIP SHA-256 matched 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6."
     },
     {
-      "id": "sa507_platform_canary_authentication_regression",
-      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q tests/focused/test_platform_canary.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "2 passed. A production loopback diagnostic had shown that the generic-web canary lacked the pairing-required Bearer header. The repaired canary sends the restricted API token when present and returns BLOCKED_ENVIRONMENT/API_TOKEN_MISSING without making a capture request when pairing requires a missing token. No real capture was made by this regression test."
+      "id": "candidate_fingerprint_premerge",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "204 delivery files excluding evidence/docs/HANDOFF/CHANGELOG were hashed into the recorded functional candidate manifest."
     },
     {
-      "id": "sa507_unique_full_application_suite",
-      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "222 passed, 1 non-failing Starlette/httpx deprecation warning, 7.98s. This is the sole full application-suite execution bound to current functional candidate 0325be9a; prior suites belong only to explicitly superseded candidates."
+      "id": "compatibility_synthetic_validation",
+      "mode": "temporary isolated synthetic repository",
+      "result": "PASS",
+      "details": "Base Task Pack verifier PASS; preserved transaction core decision; sparse target move and ignored legacy runtime retention PASS; rollback default ROLLBACK_PLAN; raw SQLite discovery fail-closed."
     },
     {
-      "id": "sa507_taskpack_verify_fast",
-      "command": "<project-venv-python> prepare_compat_taskpack.py --base-zip <frozen-v0.0.0.4-zip> --output <temporary-compatible-pack> && PYTHONDONTWRITEBYTECODE=1 .venv/bin/python <temporary-compatible-pack>/START_HERE.py verify-fast",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "The compatible frozen task pack verified 26/26 checks. START_HERE.py verify-fast passes --skip-tests, so its application_tests check was explicitly skipped and it did not repeat the unique product suite."
+      "id": "compatible_taskpack_verify_fast",
+      "mode": "temporary isolated extraction",
+      "result": "PASS",
+      "details": "prepare_compat_taskpack.py verified immutable ZIP and five bounded overrides; START_HERE.py verify-fast PASS with 26 checks; application tests explicitly skipped; temporary directory was cleaned on exit."
     },
     {
-      "id": "sa507_final_structural_verify",
-      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/final_verify.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "After candidate 0325be9a, compileall, brand scan, secret scan, three Compose structural checks, and systemd contract all passed. evidence/final-verification.json records suite_mode=structural and application_suite_rerun=false."
+      "id": "final_structural_verification",
+      "mode": "local structural only",
+      "result": "PASS",
+      "details": "scripts/final_verify.py completed 7 structural commands; evidence/final-verification.json reports suite_mode structural and application_suite_rerun false."
     },
     {
-      "id": "sa507_recovery_rollback_plan",
-      "command": "<project-venv-python> <temporary-compatible-pack>/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo <integration-worktree> --latest",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Returned ROLLBACK_PLAN for social-archive-pre-v0.0.0.4-20260730t095749z; execution requires the exact confirmation and declares ignored legacy runtime data protected. No rollback ran."
+      "id": "latest_main_integration",
+      "mode": "controlled git merge",
+      "result": "PASS",
+      "details": "The common-ancestor-to-origin/main Social Archive diff was empty; merge-tree preflight was conflict-free; one no-ff merge created 7218767576d329f60ee2338aa6f570f87fc0a86d."
     },
     {
-      "id": "sa507_local_container_build_and_smoke",
-      "command": "docker build --tag social-archive:v0.0.0.4-candidate-0325be9a .; docker run --rm -d --name social-archive-sa507-smoke-0325be9a -p 127.0.0.1::8765 <local-image>; curl --fail http://127.0.0.1:<ephemeral-port>/health; docker stop <temporary-container>; docker image rm <exact-temporary-tag>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Candidate 0325be9a built as sha256:f353a31f2788a504eb111a9bbc7f4d5c7363ddd38742c75086776ef0a42a99d9 (272697435 bytes). A no-mount temporary container passed /health through loopback port mapping on attempt 2. The temporary container and exact candidate image tag were removed after verification."
+      "id": "candidate_fingerprint_postmerge",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "The same 204-file manifest SHA-256 was reproduced after merge; first-parent merge diff contains no Social Archive path; git diff --check produced no whitespace errors."
     },
     {
-      "id": "sa507_worker_healthcheck_contract_and_production_recreate",
-      "command": "docker compose config --no-env-resolution --no-interpolate --no-path-resolution --format json; read-only remote compose diff; backup remote compose; docker compose up -d --no-deps --force-recreate core-worker",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "The local Docker Compose render proved core-worker.healthcheck.disable=true. The remote Compose diff contained only that declaration. After a preserved rollback copy, only core-worker was recreated: core-api remained healthy and core-worker reported no-healthcheck instead of the inherited false unhealthy state."
-    },
-    {
-      "id": "sa507_private_database_legacy_manifest_readback",
-      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python - <read-only helper importing scripts/sync_private_database.py and invoking official private_db_client.py verify/get>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "The official clone-free client returned exit 0 for Private-MetaDatabase. Its summary was incomplete only because five historical manifest paths retained the area prefix; the adapter fetched manifest.jsonl and exactly those five objects with the same official client, checked 31 ledger rows, 26 canonical rows, all five byte lengths and SHA-256 values, then accepted only that exact compatible result. No ingest, commit, checkout, or persistent data write occurred."
-    },
-    {
-      "id": "sa507_private_github_archive_repository",
-      "command": "gh repo create LinzeColin/Social-Archive-Vault --private --description <archive-purpose>; gh api repos/LinzeColin/Social-Archive-Vault",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Created an empty dedicated private archive repository and read it back as full_name=LinzeColin/Social-Archive-Vault, private=true, visibility=private, default_branch=main, archived=false. No source, user data, encrypted pack, Draft Release, asset, or tag was uploaded."
-    },
-    {
-      "id": "sa507_scoped_github_token_and_empty_upload_probe",
-      "command": "Create the owner-authorized repository-only fine-grained token; transfer it by one-time stdin into the production 0600 github_token secret; verify the private target with gh; run scripts/github_release_backup.py --upload with the public age recipient injected only for the bounded process.",
-      "exit_code": 0,
-      "outcome": "NO_CHANGE",
-      "result": "The final token was limited to LinzeColin/Social-Archive-Vault with Contents read/write and required Metadata read, then verified by gh repo view as that private repository. The upload command returned status=PASS, object_count=0, message=没有待复制对象. It created no Draft Release, asset, ciphertext, or GitHub receipt. A first transient token that became visible on the provider's one-time page during automation was immediately revoked and was never installed; the active token value was not logged or recorded."
+      "id": "production_final_readonly_smoke",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "Loopback Core/status/projection returned 200 and remain loopback-bound; public no-cookie/no-bearer safety responses were 302 Access UI, 200 API health/pairing, 401 protected route and forged assertion, and 200 status health/JSON; two data timers remain disabled."
     }
   ],
-  "environment_bound_items_not_used_as_pass": [
-    {
-      "id": "github_private_draft_third_ciphertext_receipt",
-      "outcome": "NOT_RUN",
-      "result": "The canonical private archive repository exists, and its scoped no-expiration token is installed as a production 0600 secret. The real upload invocation found zero pending objects, because the earlier R2/OCI canaries were deleted and no current runtime artifact has verified R2/OCI receipts. No Draft Release, asset, ciphertext, or GitHub receipt exists."
-    },
-    {
-      "id": "private_database_social_archive_fact_reconciliation",
-      "outcome": "NOT_RUN",
-      "result": "The global Private-MetaDatabase ledger compatibility check is PASS, but no Social Archive completed fact was ingested or verified. Production still lacks the env/auth configuration required to use the authoritative clone-free client, so no persistent fact, checkout, clone, commit, or push occurred."
-    },
-    {
-      "id": "container_image_and_post_deploy_smoke",
-      "outcome": "NOT_RUN",
-      "result": "Current local image build and no-mount loopback smoke passed. The production worker-only Compose healthcheck correction was also backed up and applied, but no image was pushed and no full source deployment, timer enablement, or post-deploy release smoke was attempted."
-    }
-  ],
-  "side_effects": [
-    "Created a local checkpoint commit and integrated the then-current origin/main before candidate freeze; neither was pushed.",
-    "Created the empty private LinzeColin/Social-Archive-Vault repository through the account's local CLI session. It contains no source, release, asset, user content, or encrypted pack.",
-    "Created a repository-only fine-grained archive token after explicit owner confirmation. A transient first token was immediately revoked after its one-time provider page rendered in automation; the replacement token was never displayed in evidence, transferred only through a 0600 local transient file into the production 0600 root-owned github_token secret, and the local transient file was deleted. The active token was used only to read the configured private archive target and to run the bounded encrypted Draft upload/readback command.",
-    "Performed clone-free readback verification of the existing Private-MetaDatabase ledger; no ingest, checkout, clone, commit, or write occurred.",
-    "Built exact local candidate image tags, ran only ephemeral no-mount loopback API health checks, then stopped the containers and removed exact image tags; no global Docker cleanup ran.",
-    "After a read-only diff showed one Compose-only change, backed up the remote Compose file and recreated only core-worker to remove the false inherited API healthcheck; core-api remained healthy and the backup is retained for rollback.",
-    "No GitHub source push, tag push, GitHub Release, Private-Database write, real platform capture, user-data upload, full source production deployment, timer enablement, extra worktree, or destructive rollback occurred."
-  ]
+  "single_full_suite_boundary": {
+    "result": "PASS",
+    "evidence": "PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json",
+    "details": "235 passed, failed=0, one existing non-failing warning. Phase E deliberately did not invoke pytest or final_verify.py --full."
+  },
+  "side_effects": {
+    "created_second_worktree": false,
+    "runtime_or_user_data_written": false,
+    "provider_upload_or_delete": false,
+    "timers_enabled": false,
+    "source_stage_commit_tag_push_at_log_write": false,
+    "temporary_compatibility_directory_cleaned": true
+  },
+  "post_log_required_action": "Only after this evidence is committed: create annotated v0.0.0.4 tag, fast-forward push final commit to origin/main, verify remote refs, and update RELEASE_REPORT.json with the actual receipt."
 }

@@ -1,221 +1,91 @@
 {
-  "schema_version": "1.6",
+  "schema_version": "2.0",
   "task_id": "SA-507",
   "acceptance_id": "AC-SA-507",
   "task_title": "冻结候选、执行唯一全量回归并发布",
   "taskpack_version": "v0.0.0.4",
   "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
-  "status": "DEGRADED",
-  "acceptance_status": "DEGRADED",
-  "verified_at_utc": "2026-07-31T09:43:16Z",
-  "snapshot_scope": "This document preserves the historical candidate snapshot captured at verified_at_utc. Current candidate and production Phase A facts are recorded in the linked continuation; SA-507 remains DEGRADED until its remaining gates close.",
-  "current_continuation": {
-    "path": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
-    "phase_status": "PASS",
-    "overall_sa507_status": "DEGRADED",
-    "candidate_head": "bca021bf91baad3f1585dd6ae15044836752e156",
-    "verified_at_utc": "2026-07-31T12:16:51Z"
-  },
+  "status": "PASS",
+  "acceptance_status": "PASS",
+  "verified_at_utc": "2026-08-01T12:08:30Z",
   "subject": {
     "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "candidate_head": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
-    "candidate_full_tree": "39f46b17947a7065070614980d1d8c3d53515e07",
-    "candidate_social_archive_tree": "1fc42ac97ca39d288f72c3b7570efb8e9dc000fa",
-    "candidate_social_archive_list_sha256": "f92f8f8d75d1c207000231dabf40e5aac7b5ab8fbb8505a5eeaecc21ff3d2130",
-    "candidate_social_archive_tracked_file_count": 277,
-    "latest_origin_main_integrated_before_freeze": true,
-    "single_worktree_used": true,
-    "github_archive_repository": "LinzeColin/Social-Archive-Vault",
-    "github_archive_repository_state": "PRIVATE_EMPTY_CREATED_READBACK_PASS",
-    "source_push_or_release_created": false,
-    "candidate_lineage": [
-      {
-        "head": "2cde65edf30cefac7f33e2eb1f4192d31bbd2d9a",
-        "status": "SUPERSEDED",
-        "reason": "A local Docker build revealed that no .dockerignore protected runtime and credential-adjacent files from the build context.",
-        "full_suite": "214 passed"
-      },
-      {
-        "head": "26713a3c395f473240935e9e5d6bd9a9627717a8",
-        "status": "SUPERSEDED",
-        "reason": "The repaired image started but was not reachable through Docker port mapping because the API bound to 127.0.0.1 inside the container.",
-        "full_suite": "216 passed"
-      },
-      {
-        "head": "2de08bdf098b5a340654677c0682d8746a55c407",
-        "status": "SUPERSEDED",
-        "reason": "Read-only production inspection found that the worker inherited the API-only image healthcheck and was therefore permanently reported unhealthy.",
-        "full_suite": "217 passed"
-      },
-      {
-        "head": "752b8bb493e3bd57f899cd98ac6bc8b1e9c41a3c",
-        "status": "SUPERSEDED",
-        "reason": "The official Private-Database verifier classified five historical area-prefixed manifest paths as missing; the Social Archive adapter now permits completion only after clone-free object readback, byte-size, and SHA-256 verification.",
-        "full_suite": "218 passed"
-      },
-      {
-        "head": "0a9fbf3b2051640e61c42b17173bf86deaca3e5d",
-        "status": "SUPERSEDED",
-        "reason": "A production loopback diagnostic showed that the generic-web canary called the pairing-protected capture endpoint without its restricted Bearer token. The canary now supplies that token and fails closed before the request when pairing requires a missing token.",
-        "full_suite": "220 passed"
-      },
-      {
-        "head": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
-        "status": "CURRENT_TESTED_CANDIDATE",
-        "full_suite": "222 passed"
-      }
-    ]
+    "working_branch_before_publication": "codex/sa-507-compat-tomllib-fix",
+    "integration_merge_commit": "7218767576d329f60ee2338aa6f570f87fc0a86d",
+    "integrated_origin_main": "6b15ed6cdf96bcb24353b8b5c60f4b2193fb9d6e",
+    "functional_candidate_file_count": 204,
+    "functional_candidate_manifest_sha256": "78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90",
+    "candidate_fingerprint_before_and_after_merge": "identical",
+    "merge_first_parent_social_archive_changes": []
   },
-  "acceptance_oracle": "full suite command 只有一条冻结 Candidate 证据且 failed=0；随后 verify-fast PASS；发布制品/镜像/commit digest、回滚点和 live NOT_RUN/PASS 边界明确。",
-  "local_blocking_assertions": [
+  "acceptance_oracle": "Only one frozen functional candidate has a full application-suite result with failed=0; verify-fast and structural checks then pass without rerunning pytest; the release tag's peeled commit is verified after publication; rollback and live PASS/NOT_RUN boundaries remain explicit.",
+  "blocking_assertions": [
     {
-      "assertion": "精确候选在合入当时最新 origin/main 后冻结，兼容层保持单一事务核心和 legacy runtime 边界",
+      "assertion": "Frozen v0.0.0.4 Task Pack and compatibility layer preserve the focused-proven single transaction/recovery core rather than create a second authority.",
       "status": "PASS",
-      "evidence": {
-        "candidate_head": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
-        "taskpack_compatibility": "PASS",
-        "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-        "second_core_withheld_as_candidate": true,
-        "source_worktree_status_at_full_suite": "APPLICATION_SOURCE_CLEAN; only SA-507 evidence and HANDOFF continuation edits were uncommitted"
-      }
+      "evidence": "Phase E synthetic compatibility PASS; semantic decision PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS; rollback default ROLLBACK_PLAN."
     },
     {
-      "assertion": "当前精确冻结候选在冻结后只运行一次全量应用回归；此前候选均因已发现的 P0 修复而废弃",
+      "assertion": "The final functional candidate is unchanged by integration of the then-latest origin/main.",
       "status": "PASS",
-      "evidence": {
-        "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q",
-        "passed": 222,
-        "failed": 0,
-        "warning_count": 1,
-        "elapsed_seconds": 7.98,
-        "candidate_social_archive_list_sha256_before_and_after": "f92f8f8d75d1c207000231dabf40e5aac7b5ab8fbb8505a5eeaecc21ff3d2130"
-      }
+      "evidence": "204-file functional manifest SHA-256 78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90 before and after merge; first-parent merge diff has no social-archive path."
     },
     {
-      "assertion": "冻结任务包 verify-fast 不重复应用套件并通过",
+      "assertion": "Exactly one full application regression is asserted for this frozen final functional candidate.",
       "status": "PASS",
-      "evidence": {
-        "taskpack_check_count": 26,
-        "taskpack_verdict": "PASS",
-        "application_tests": "skipped by START_HERE.py verify-fast (--skip-tests)"
-      }
+      "evidence": "PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json records 235 passed, failed=0 and one existing non-failing dependency warning; Phase E did not execute pytest. Earlier suite records belong to explicitly superseded candidates."
     },
     {
-      "assertion": "最终结构验证通过且不重复应用套件",
+      "assertion": "Frozen Task Pack verify-fast and final structural verification pass without another application suite.",
       "status": "PASS",
-      "evidence": {
-        "status": "PASS",
-        "suite_mode": "structural",
-        "application_suite_rerun": false,
-        "structural_commands_passed": 7
-      }
+      "evidence": "verify-fast PASS with 26 checks and application tests explicitly skipped; evidence/final-verification.json PASS, 7 structural commands, suite_mode=structural, application_suite_rerun=false."
     },
     {
-      "assertion": "回滚点可解析且默认回滚保持非破坏性",
+      "assertion": "All 32 task evidence records are complete under their own acceptance contracts, including actual final production closures.",
       "status": "PASS",
-      "evidence": {
-        "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-        "rollback_status": "ROLLBACK_PLAN",
-        "requires_explicit_execute_confirmation": true,
-        "will_not_delete_ignored_runtime_data": true
-      }
+      "evidence": "31 prior task RESULT records PASS; SA-507 is closed by Phase A production topology, Phase B Private-Database facts, Phase C three-target recovery, Phase D deployment smoke, and Phase E consolidation."
     },
     {
-      "assertion": "当前候选可构建为本地 Docker 镜像，并可在无挂载的临时容器中经仅本机回环端口健康检查",
+      "assertion": "The production security and availability boundary remains healthy at final read-only recheck.",
       "status": "PASS",
-      "evidence": {
-        "local_image_id": "sha256:f353a31f2788a504eb111a9bbc7f4d5c7363ddd38742c75086776ef0a42a99d9",
-        "local_image_size_bytes": 272697435,
-        "local_container_health": "PASS_ON_ATTEMPT_2",
-        "local_container_mount_count": 0,
-        "loopback_port_mapping": "PASS",
-        "temporary_image_tags_removed_after_check": true
-      }
+      "evidence": "Loopback Core/status/projection each 200; Core/status bind loopback; library health is Access 302; API health and pairing status 200; protected route without bearer and with forged Access assertion both 401; status health/JSON 200; replication and facts timers disabled."
     },
     {
-      "assertion": "Worker 不继承 API 专用镜像健康检查，实际 Docker Compose 渲染与线上最小重建均不再将运行中的 worker 标为 unhealthy",
+      "assertion": "Rollback remains non-destructive and identifiable.",
       "status": "PASS",
-      "evidence": {
-        "local_docker_compose_render": "PASS: core-worker.healthcheck.disable=true",
-        "remote_compose_diff_scope": "PASS: only the core-worker healthcheck declaration differed",
-        "remote_core_worker_recreate": "PASS",
-        "remote_core_api_state_after_recreate": "healthy",
-        "remote_worker_health_state_after_recreate": "no-healthcheck",
-        "remote_compose_rollback_backup": "compose.yaml.pre-worker-healthcheck-20260731T002200Z"
-      }
-    },
-    {
-      "assertion": "Private-Database 的历史全前缀 manifest 条目只会在官方 clone-free client 读回、长度和 SHA-256 严格核验后被接受",
-      "status": "PASS",
-      "evidence": {
-        "official_verify_exit": 0,
-        "ledger_total": 31,
-        "canonical_relative_entries": 26,
-        "legacy_prefixed_entries": 5,
-        "legacy_readback_sha256": "PASS",
-        "persistent_data_write": "NOT_ATTEMPTED"
-      }
-    },
-    {
-      "assertion": "真实三副本发布、Social Archive 完成态事实同步与完整生产部署 Smoke 已闭合",
-      "status": "DEGRADED",
-      "evidence": {
-        "r2_encrypted_canary": "PASS",
-        "oci_encrypted_canary": "PASS",
-        "github_archive_repository_private_readback": "PASS",
-        "github_private_draft_same_ciphertext_readback": "NOT_RUN",
-        "private_database_global_ledger_compatibility": "PASS",
-        "private_database_social_archive_fact_ingest_and_verify": "NOT_RUN",
-        "published_container_image_digest": "NOT_RUN",
-        "post_deploy_smoke": "NOT_RUN"
-      },
-      "reason": "仅限归档仓的 fine-grained token 已生成、以 0600 root:root 写入生产机并成功验证私有目标；真实 --upload 调用返回“没有待复制对象”，因此没有创建 Draft/asset、也未产生第三同密文回读。现有 R2/OCI canary 按合同已删除，且生产 R2/OCI endpoint、bucket 与可读 secret 文件当前未配置，不能伪造或手工补写前置回执。Private-Database 仅完成历史账本的只读兼容核验，尚无 Social Archive 完成态事实投递；生产镜像发布与完整部署 Smoke 仍未执行。NOT_RUN 未被写作 PASS。"
+      "evidence": "social-archive-pre-v0.0.0.4-20260730t095749z resolves locally; Phase D root-only script backup remains retained; ignored runtime and production data are not rollback cleanup targets."
     }
   ],
+  "current_runtime_boundary": {
+    "completed_real_environment_facts": [
+      "Phase A: persistent non-user-data canary has verified R2, OCI and GitHub Private Draft receipts.",
+      "Phase B: one Social Archive completion fact was ingested and strictly verified through the official clone-free Private-Database client; repeat was idempotent NO_CHANGE.",
+      "Phase C: the same canary was separately restored from R2, OCI and GitHub Private Draft, with ciphertext and plaintext hashes verified.",
+      "Phase D and Phase E: production loopback and unauthenticated edge safety smoke passed while replication and facts timers remain disabled."
+    ],
+    "historical_not_run_rule": "Per-provider observations that their own task contracts classify as NOT_RUN remain so; none was converted into a final PASS. They are not the completed Phase A-D facts relied on above."
+  },
   "release_candidate": {
-    "source_commit_digest": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
-    "source_tree_digest": "39f46b17947a7065070614980d1d8c3d53515e07",
-    "product_tree_digest": "1fc42ac97ca39d288f72c3b7570efb8e9dc000fa",
     "version": "v0.0.0.4",
-    "source_publication": "NOT_PERFORMED",
-    "release_tag": "NOT_CREATED",
-    "github_archive_repository": "PRIVATE_EMPTY_CREATED:LinzeColin/Social-Archive-Vault",
-    "container_image_digest": "LOCAL_ONLY:sha256:f353a31f2788a504eb111a9bbc7f4d5c7363ddd38742c75086776ef0a42a99d9",
-    "reason": "A source tag/push would advertise a completed release while the required third real ciphertext receipt, Social Archive fact synchronization, and production smoke remain absent. The empty private archive repository and local-only image identifier are not a Release, uploaded asset, or published image digest."
+    "source_publication_at_evidence_write": "LOCAL_ACCEPTANCE_PASS_PUBLICATION_ORDERED",
+    "release_tag": "v0.0.0.4",
+    "source_commit_digest": "resolved only by the annotated tag after the final evidence commit is created and pushed; not fabricated before that action",
+    "github_source_release": "NOT_CREATED; no source Release is required for this source-tag publication",
+    "next_action": "Create one final evidence commit, annotate/tag it, fast-forward push it to origin/main, and record remote ref readback in RELEASE_REPORT.json."
   },
-  "runtime_and_provider_observations": {
-    "classification": "Provider and deployment observations are separate from local fixture and candidate assertions. A NOT_RUN observation is never a PASS assertion.",
-    "r2_encrypted_canary": "PASS: dedicated private bucket, scoped credential, encrypted write/readback hash verification/delete; no object left (SA-506).",
-    "oci_encrypted_canary": "PASS: dedicated private bucket, scoped credential, encrypted write/readback hash verification/delete; no object left (SA-506).",
-    "github_private_draft_replica": "NOT_RUN_AFTER_REAL_NO_CHANGE: the repository-only token is installed as a production 0600 secret and verified against the private Vault. The explicit upload command returned object_count=0, so it created no Draft Release, asset, ciphertext, or GitHub receipt. The prior R2/OCI canaries were deliberately deleted and no current runtime artifact has their verified receipts.",
-    "private_database_api_delivery": "READ_ONLY_LEDGER_COMPATIBILITY_PASS; SOCIAL_ARCHIVE_FACT_DELIVERY_NOT_RUN: the official client verified the current 31-row ledger after the adapter strictly read back the five legacy-prefixed objects. No Social Archive fact was ingested and production client/auth configuration remains absent.",
-    "container_image_and_deployment": "LOCAL_BUILD_AND_TARGETED_PRODUCTION_FIX_PASS: candidate 0325be9a built locally and passed an ephemeral no-mount loopback health check; the production Compose worker-only healthcheck correction was backed up and applied. No image was pushed, no full source deployment/timer was enabled, and no production release smoke was run.",
-    "source_and_destination_real_canaries": "Recorded individually in SA-101 through SA-505; non-executed providers remain NOT_RUN rather than synthetic PASS."
+  "evidence": {
+    "phase_a": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
+    "phase_b": "evidence/SA-507/PHASE_B_PRIVATE_DATABASE_FACTS_20260801.json",
+    "phase_c": "evidence/SA-507/PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json",
+    "phase_d": "evidence/SA-507/PHASE_D_PRODUCTION_RELEASE_DEPLOY_SMOKE_20260801.json",
+    "phase_e": "evidence/SA-507/PHASE_E_FINAL_CONSOLIDATION_20260801.json",
+    "command_log": "evidence/SA-507/COMMAND_LOG.json",
+    "release_report": "evidence/SA-507/RELEASE_REPORT.json",
+    "structural_verification": "evidence/final-verification.json"
   },
-  "evidence_manifest": {
-    "evidence/SA-507/COMMAND_LOG.json": "8d71ccd3288b1e013d112a94dedce40a464dcc20864a997051a6e224b8617add",
-    "evidence/SA-507/RELEASE_REPORT.json": "21420efbaee609f6eadf063f2bd8ea796ae42fd4da04b7e293dc51b9307c4303",
-    "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json": "447358db8cc3a76b3261ea2bcd09e985d37592e015e221acce21e948363422e7",
-    "evidence/final-verification.json": "3685e9fc189425609a90f1935d5c4a0825d5d595ee4ea390031c6c81bdf543d5",
-    "compose.yaml": "698bccaaac58d25c36983b4f6226f1f42b2e792073307fd32c2c8c00b2df5a0e",
-    "tests/focused/test_deployment_contract.py": "ccb2413086a7f57988400a3177c0cb2dc96e662c0e4ee3a2915d014e74b796ff",
-    "Dockerfile": "2ab37da6197649964d924545a8cd157a6f4e13bb60289591eb3326e9310bae61",
-    ".dockerignore": "28dae7d4baacf2faa276ac96a1721d2f8963517400f708c2805560381f49a051",
-    "tests/focused/test_container_build_context.py": "8a342a57989ace01663d9f5822c0c7a7f1e3e79b87e443161cf0c03f733af96c",
-    "scripts/sync_private_database.py": "3fd345a5bae958e208d304095fffcea8d07d55faeb5bb80b5520cd3613403888",
-    "tests/focused/test_private_database_sync.py": "c536183a149910411182cf4cc0ba6785178af23be5551710a654a59b9961a4ca",
-    "scripts/final_verify.py": "ebcffe8218d217ad4afc38b06f9cd44e2f73c7ee156d9c77a22389175016bc30",
-    "tests/focused/test_final_verify_contract.py": "599e0d3e62ee15effab8f9da892750997b72beaeede2e1ba50564b590e772ae8",
-    "machine/task_dag.yaml": "23dce3493b72edf40ebeeea76ac82a55e3d4e44af67f87a884c6bb1f3411a820",
-    "machine/acceptance_contract.json": "1fee7c7b12a0055a291eac97a96c333eae0af5ded84d8f26cc71985db53c98c2",
-    "machine/release_boundary.json": "beb43cc0ab272eb70fcae79cd99568f8d437d14049d83f3c3d951e1e4412511d"
-  },
-  "non_claims": [
-    "SA-507 本地自动门 PASS 不等于真实 GitHub Private 第三密文、Social Archive Private-Database 完成态同步、镜像或生产部署已通过。",
-    "没有输出、提交或记录 token、cookie、private identity、provider identifier、用户内容或 runtime database；token 仅以受控一次性 stdin 写入生产机 0600 secret，临时本地载体已删除。",
-    "已创建并验证仅限 Vault 的细粒度 token；没有创建 GitHub Draft/Asset、GitHub source push、发布 tag、Private-Database fact、用户数据上传、完整源代码生产部署、定时器或额外 worktree。",
-    "该 DEGRADED 结果不把环境绑定 NOT_RUN 降格为 PASS，也不以 fixture 代替真实 provider 回执。"
-  ],
-  "required_next_action": "先取得创建并配置专用私有 R2 与 OCI S3-compatible bucket/最小读写回读凭据的明确授权；用真实核心路径生成无用户数据的持久 storage canary，依次取得 R2、OCI、GitHub Draft 同一 age 密文回读。随后在权威生产 client/auth 下执行 Social Archive facts ingest/verify、三目标恢复、镜像发布和完整部署 Smoke。当前功能候选无需重跑全量应用回归；只有功能源码再次改变时才重新冻结并运行一次。"
+  "nonclaims": [
+    "Task Pack PASS is not used to rewrite machine/release_boundary.json runtime_verdict_after_taskpack=NOT_RUN; package and live-runtime semantics remain separate.",
+    "No secret, token, cookie, host identity, credential location, user content, provider object identifier or response body is present in this result.",
+    "At this exact evidence write the source tag and remote push have not yet happened; a later release receipt records them only after actual success."
+  ]
 }

@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "task": "SA-507",
+  "phase": "Phase C: real three-target object recovery",
+  "phase_status": "PASS",
+  "overall_sa507_status": "DEGRADED",
+  "overall_taskpack_status": "IN_PROGRESS",
+  "verified_at_utc": "2026-08-01T11:38:40Z",
+  "run_contract": "PHASE_C_THREE_TARGET_OBJECT_RECOVERY_RUN_CONTRACT.md",
+  "taskpack_requirement": "Recover the same canary separately from GitHub, R2, and OCI; decrypt and recompute the plaintext SHA-256.",
+  "candidate": {
+    "base_head": "9fdf6de319d9d20be22c298c44bbef6b0f4d8320",
+    "branch": "codex/sa-507-compat-tomllib-fix",
+    "source_publication": "none; this remains an uncommitted final-taskpack candidate",
+    "full_application_suite": "235 passed; one existing non-failing Starlette/httpx deprecation warning"
+  },
+  "recovery_implementation": {
+    "object_recovery_cli_sha256": "6e91961696476b080ed7321e3ee413fae813eee0c5edb17fb846066adc92ca89",
+    "local_wrapper_sha256": "e121005614d5b73c39be055fc9af827b272baba0593c2a8234ceafacc33f653d",
+    "systemd_wrapper_sha256": "8cf6c75f88c9d832f35fc3f188b258754811660af33c229b636003ece649d656",
+    "production_install": "all three hashes matched the root-owned production copies",
+    "credential_boundary": "The root-only wrapper asks PID 1 for only the selected store credential through a collected transient unit; it never uses the Private-Database credential."
+  },
+  "preconditions": {
+    "eligible_complete_non_user_data_artifact_count": 1,
+    "three_verified_receipts": true,
+    "same_original_sha256": "701a8b97e9c5566d12663f3a4e9757d49942ea42e9611bea24227faffe5bd9a0",
+    "same_cipher_sha256": "57467f8d618bf0c8d914fd560f39f6832022a5d04f31ab2afb861685c7a998fe",
+    "age_identity_configured": true,
+    "github_vault_private_draft_required_by_cli": true,
+    "recovery_readiness": {
+      "r2": "READY",
+      "oci": "READY",
+      "github": "READY"
+    }
+  },
+  "actual_recovery": {
+    "r2": {
+      "status": "PASS",
+      "mode": "restore",
+      "ciphertext_download_and_hash": "PASS",
+      "age_decrypt_and_plaintext_hash": "PASS",
+      "isolated_target_written": true
+    },
+    "oci": {
+      "status": "PASS",
+      "mode": "restore",
+      "ciphertext_download_and_hash": "PASS",
+      "age_decrypt_and_plaintext_hash": "PASS",
+      "isolated_target_written": true
+    },
+    "github_private_draft": {
+      "status": "PASS",
+      "mode": "restore",
+      "private_repository_and_draft_state": "PASS",
+      "release_pack_manifest_asset_and_ciphertext_hash": "PASS",
+      "age_decrypt_and_plaintext_hash": "PASS",
+      "isolated_target_written": true
+    }
+  },
+  "postconditions": {
+    "runtime_receipt_chain_unchanged": {
+      "eligible_complete_artifact_count": 1,
+      "artifact_sha_matches_receipt": true,
+      "store_count": 3,
+      "cipher_hash_count": 1,
+      "original_hash_count": 1,
+      "encryption_count": 1
+    },
+    "recovery_targets_host_visible_after_unit_exit": 0,
+    "transient_recovery_units_remaining": 0,
+    "replication_timer": "disabled",
+    "replication_service_last_result": "success; ExecMainStatus=0"
+  },
+  "local_validation": {
+    "focused_object_recovery_suite": "24 passed",
+    "full_application_suite": "235 passed; 1 existing non-failing warning",
+    "static_doctor": "PASS",
+    "systemd_contract": "PASS",
+    "brand_and_secret_scan": "PASS",
+    "frozen_taskpack_compatibility": "PASS; PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS; ROLLBACK_PLAN"
+  },
+  "nonclaims_and_nonactions": [
+    "This Phase C PASS proves only the task-pack-required object recovery drill; it does not make SA-507 or the whole task pack PASS.",
+    "No source Git stage, commit, tag, push, merge, source Release, image publication, deployment smoke, timer enablement, additional worktree, provider upload, provider deletion, Runtime write, or user-data operation occurred.",
+    "No secret value, token, credential path, production host identifier, user content, release asset URL, or absolute production recovery path is present in this evidence."
+  ],
+  "next_bounded_phase": "Complete the full production release/deploy smoke and final SA-507 consolidation in a new Run Contract; do not mix it with this recovery phase."
+}

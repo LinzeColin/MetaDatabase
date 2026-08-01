@@ -4,7 +4,22 @@
 
 按冻结的 Social Archive v0.0.0.4 Task Pack 逐项完成 Stage 0–5：保留一个经聚焦验证的事务与恢复核心，重建 E2N 产品壳、真实来源连接器、目的地授权与回执、聚合浏览和三地密文存储。每次运行只完成一个 Task；全部任务完成前不推送。
 
-## Current state
+## Final closure status (2026-08-01 UTC)
+
+- 本地 Task Pack 验收已闭合：32/32 `RESULT` 均为 PASS；SA-507 的当前证据为
+  `evidence/SA-507/RESULT.json` 及 Phase A–E。冻结功能候选 204 文件的清单 SHA-256
+  为 `78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90`，其在合入
+  当时最新 `origin/main` 前后保持一致；唯一适用于此候选的全量应用回归为 235 passed。
+- 兼容层 synthetic 验证和 frozen `verify-fast`（26 checks、明确跳过应用测试）均
+  PASS；最终结构验证为 PASS 且未重跑 pytest。真实三副本、Private-Database facts、
+  三目标恢复及生产/边缘 smoke 分别以 Phase A–E 记录为 PASS。
+- 下一受控动作不是新的开发 Task：只在本地 evidence commit 已审查后，创建 annotated
+  `v0.0.0.4` tag、无 force 推送同一提交到 `origin/main`，读回远端 main/tag 后更新
+  `RELEASE_REPORT.json`。若 tag、推送或远端引用不一致，停止且不改写历史。
+- 不启用复制或 facts timer；不读取/提交秘密，不删除生产备份、ignored runtime 或受保护
+  目录。已有 `social-archive-pre-v0.0.0.4-20260730t095749z` 是非破坏性回滚起点。
+
+## Historical task-by-task state
 
 - 已完成：SA-000、SA-001、SA-002、SA-003、SA-004、SA-005（Stage 0 Gate）、SA-101、SA-102、SA-103、SA-104、SA-105（Stage 1 Gate）、SA-201、SA-202、SA-203、SA-204、SA-205（Stage 2 Gate）、SA-301、SA-302、SA-303、SA-304、SA-305（Stage 3 Gate）、SA-401、SA-402、SA-403、SA-404（Stage 4 Gate）、SA-501、SA-502、SA-503、SA-504、SA-505、SA-506。
 - 进度核对：任务图共 32 项，已有 31 项 PASS 证据，剩余 SA-507 一项；SA-000 与 SA-001 的 PASS 证据按兼容层合同保留在 `social-archive-taskpack-compat/v0.0.0.4/evidence/`，其余已完成产品任务证据位于 `social-archive/evidence/`。不得只扫描后者而误报为 29 项完成。
@@ -314,3 +329,35 @@ Owner 已明确授权创建无过期、唯一范围为 `LinzeColin/Social-Archiv
 1. 先停在此边界；下一次 run 必须只选择一个任务包 phase，并先写新的 Run Contract。
 2. 优先候选是 Private-Database 完成态事实与严格回读，或真实三目标恢复；两者不可在同一 run 混做，且不得把现有 canary 代替恢复证据。
 3. 只有所有任务包 gate（包括真实恢复、目的地/连接器所需证据及完整部署 smoke）都闭合后，才可把 SA-507 标为 PASS，并按 Owner 的“全包完成后”策略处理 Git source 推送/合并与工作树收尾。
+
+## SA-507 bounded Phase B precheck (2026-08-01 UTC)
+
+本轮只执行 `evidence/SA-507/PHASE_B_PRIVATE_DATABASE_FACTS_RUN_CONTRACT.md` 所定义的 Private-Database 完成态事实同步前置，不进入 backup、restore、复制、Vault Release、timer、部署或 source push。生产首次 `--dry-run` 正确以 `PRIVATE_DATABASE_CLIENT_UNAVAILABLE` fail closed；根因是 `.env` 的标准官方 client 路径没有文件。已从官方 KMOS 工具源安装单一、非 checkout 的 `private_db_client.py`（SHA-256 `8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa`，`root:socialarchive 0550`），保留精确回滚副本；随后 runtime dry-run 为 `READY`，有 1 条完成态待投递事实、0 条已投递。该过程没有 clone 或写入 Private-Database。
+
+为防止未来部署把缺 client 伪装为“准备完成”，`prepare_systemd_host.sh` 现在在任何宿主机写入前要求 `SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT` 是已安装、非符号链接的官方 `private_db_client.py`，并有 focused regression 覆盖。生产脚本已备份后更新，`--dry-run` 通过；同步 service 仍 inactive、timer 仍 disabled。当前本地候选的 focused deployment/sync 回归为 26/26，唯一完整应用回归为 229 passed（1 条既有非失败弃用警告），static/secret/compatibility 均 PASS；兼容结论仍为 `PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS`，默认回滚仍只产生 `ROLLBACK_PLAN`。
+
+Phase B **仍是 BLOCKED_OWNER_AUTHENTICATION，不是 PASS**：`private_database_token` 只有 `root:root 0600` 的空占位，GitHub 已在已登录 Owner 会话显示 sudo/passkey 页面。下一步只能由 Owner 完成该 passkey 后创建新的、只限 `LinzeColin/Private-Database`、`Contents read/write` + 必需 `Metadata read-only` 的专用 fine-grained token。严禁复用 Vault-only token、宽权限 local OAuth 或历史暴露 backup PAT。token 写入后，仍只在此 Phase B 内运行一次 `ingest`/strict `verify` 与一次 `NO_CHANGE` 幂等复验，并更新 `PHASE_B_PRIVATE_DATABASE_FACTS_*` 证据；在此之前不得宣称 delivered、不得开始三目标恢复。
+
+## SA-507 bounded Phase B completion (2026-08-01 UTC)
+
+本节取代上一节的“BLOCKED_OWNER_AUTHENTICATION”状态：Owner 完成 GitHub sudo/passkey 后，已创建无过期的 `social-archive-private-db-prod` fine-grained token，唯一仓库为 `LinzeColin/Private-Database`，只有 `Contents: read/write` 和必需的 `Metadata: read-only`，没有 Account permission。token 从 GitHub 一次性展示直接经内存/SSH stdin 写入生产 `private_database_token` source secret；未输出、未写入本机文件、未进入日志，生产元数据为 `root:root 0600`。受限 token 已读回目标为 private；Vault-only token、宽权限 OAuth 与历史暴露 backup PAT 均未使用。
+
+生产 facts sync 首轮为 `PASS`（1 个候选、1 个实际投递、0 个既有投递、无失败）；第二轮为 `NO_CHANGE`（同 1 个候选、1 个既有 delivered）。官方 clone-free verifier 当前报告账本 32 条、27 条常规内容寻址路径、5 条历史全前缀路径；这是已知 legacy verifier 兼容面。实际 sync 仅在其严格 manifest/逐对象 byte+SHA-256 readback 成功后才标记 Outbox delivered，故首轮 `PASS` 是 strict completion 的真实运行证据，而非把官方 legacy 摘要的 5 条缺失文字直接放行。同步 oneshot 最终 inactive/result=success，timer 仍 disabled，临时 verifier unit 已收集为 0。完整脱敏证据见 `evidence/SA-507/PHASE_B_PRIVATE_DATABASE_FACTS_20260801.json`。
+
+Phase B 现为 **PASS**，但总 SA-507 仍为 **DEGRADED，不是 PASS**：真实三目标恢复、完整生产 release/deploy smoke 和其余任务包 gate 还没有执行。本 run 到此为止，严格不混入下一 phase；下一 run 必须在新的 Run Contract 下只选择“真实三目标 recovery”或“完整 release/deploy smoke”之一。继续禁止 Git source push/tag/merge、timer enablement 和宽范围资源清理，直至整个任务包的最终验收完成。
+
+## SA-507 bounded Phase C completion (2026-08-01 UTC)
+
+本轮只执行 `evidence/SA-507/PHASE_C_THREE_TARGET_OBJECT_RECOVERY_RUN_CONTRACT.md` 定义的真实三目标对象恢复，不进入 upload、Release 创建、完整 deployment smoke、timer、source Git 或新的平台 Canary。任务包原本仅有 Private-Database 冷备 `restore.py`，不足以证明“分别从 GitHub、R2、OCI 恢复同一对象”；现增加 `scripts/restore_object.py`，它只读 Runtime SQLite（read-only URI）中的一条完成态 artifact/三份 `verified` 收据，拒绝任一非同密文、非 `age-x25519`、非内容寻址键、错误 GitHub Vault/Draft、非空目标或 Runtime/staging/Private-Database 数据面。R2/OCI 同时验证远端 metadata 与密文 SHA-256；GitHub 必须先验证 private Draft、Pack manifest、每个 asset/对象密文，再取目标密文；三者都以 age 解密并复算明文 SHA-256。
+
+生产 root-only `scripts/restore_object_systemd.sh` 解决了手工 shell 不应读取 source secret 的现实边界：它让 PID 1 只为当前 store 创建 `--wait --collect` transient credential scope，R2/OCI/GitHub 分别最小注入对应 credential，绝不使用 `private_database_token`。早期测试曾因 systemd 展开 `${args[@]}` 而使 CLI 收到空参数；已改为纯位置参数分支，新增 focused regression，且生产 SHA-256 与本地一致。三条 production dry-run 均 `READY`；随后对同一个持久、非用户数据 canary 在三个分别隔离的 private `/tmp` 目标完成实际 `restore`：R2、OCI、GitHub Private Draft 均 `PASS`、均写入目标、均验证同一密文和同一解密后明文哈希。unit 退出后目标在宿主机不可见、transient unit 为 0、复制 timer 仍 disabled；只读后检仍是一个完成对象、三份一致收据。完整脱敏证据为 `evidence/SA-507/PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json`。
+
+当前功能候选的唯一完整应用回归为 **235 passed**（1 条既有非失败 Starlette/httpx 弃用警告）；聚焦对象恢复为 24 passed，静态/doctor/systemd/brand-secret 通过。Phase C 现为 **PASS**，但总 SA-507 仍为 **DEGRADED，不是 PASS**：下一次必须在新 Run Contract 下只做“完整 production release/deploy smoke 与 SA-507 最终收束”，不混入其他 phase。继续禁止 Git source stage/commit/push/tag/merge、Release 发布、timer enablement、额外 worktree 和宽范围资源清理，直到全部任务包 gate 严格通过。
+
+## SA-507 bounded Phase D completion (2026-08-01 UTC)
+
+本轮只执行 `evidence/SA-507/PHASE_D_PRODUCTION_RELEASE_DEPLOY_SMOKE_RUN_CONTRACT.md`：生产基线确认 Core 仅 loopback、Core/Worker/CLI 三容器健康、Cloudflared 与隔离 status service 运行，两个 storage-dependent timer 仍 disabled。生产目录不是 Git checkout，故部署一致性以 SHA-256 绑定；`compose.yaml`、Dockerfile、Systemd、恢复路径与本地候选一致，仅 `scripts/install.sh` 与 `scripts/doctor.sh` 未包含 Phase B/C 的静态合同。二者已在 root-only 临时 staging 中校验 SHA-256 后原子替换，替换前的两个文件有精确、root-only 回滚副本保留；没有复制 `.env`、runtime、Secret、SQLite、CAS 或用户内容，也没有 Docker build/restart、配对码刷新、timer enablement、provider 写入或 source Git 操作。
+
+生产端 `doctor.sh --self-test`、`install.sh --dry-run`、`prepare_systemd_host.sh --dry-run` 全部 PASS；loopback Core/status health 都为 200。无 Cookie/Bearer/配对码的公网 smoke：UI health 为 Access login 302，独立 extension API health/配对状态为 200，无 Bearer 或伪造 Access assertion 的业务 route 都为 401，status health/脱敏 allowlist JSON 为 200。SA-505 已有经认证控制平面回读的 Access/Tunnel/DNS/WAF/Rate Limit 证据；本轮不读取或复用受保护目录中的任何凭据，也不伪称真实 Owner 浏览器 Access 正向会话。完整脱敏记录是 `evidence/SA-507/PHASE_D_PRODUCTION_RELEASE_DEPLOY_SMOKE_20260801.json`。
+
+Phase D 为 **PASS**，总 SA-507 仍为 **DEGRADED，不是 PASS**：下一独立 phase 只能进行最终 SA-507 证据收束、冻结/结构复验与发布前审计；在它严格通过前继续禁止 source Git stage/commit/tag/push/merge、source Release、timer enablement及宽范围资源清理。该最终 phase 若所有门都 PASS，才按 Owner 已授权顺序发布源码并收尾唯一工作树和本轮临时资源。

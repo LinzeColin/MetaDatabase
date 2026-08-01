@@ -144,6 +144,13 @@ def main() -> int:
     ):
         _require(backup, needle, "social-archive-backup.service")
 
+    private_database_sync = documents["social-archive-private-database-sync.service"]
+    for needle in (
+        "LoadCredential=private_database_token:/opt/social-archive/runtime/secrets/private_database_token",
+        "Environment=SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE=%d/private_database_token",
+    ):
+        _require(private_database_sync, needle, "social-archive-private-database-sync.service")
+
     status_web = documents["social-archive-status-web.service"]
     for needle in (
         "Requires=social-archive-status.service",

@@ -66,13 +66,17 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
     prepare = scripts / "prepare_systemd_host.sh"
     prepare.write_text((ROOT / "scripts" / "prepare_systemd_host.sh").read_text(encoding="utf-8"), encoding="utf-8")
     prepare.chmod(0o755)
+    private_database_client = project / "official-tools" / "private_db_client.py"
+    private_database_client.parent.mkdir(parents=True)
+    private_database_client.write_text("# official fixture\n", encoding="utf-8")
     (project / ".env").write_text(
         "SOCIAL_ARCHIVE_ENV=production\n"
         "SOCIAL_ARCHIVE_DATA_HOST_PATH=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n",
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
     python_path = project / ".venv" / "bin" / "python"
@@ -102,6 +106,7 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "oci_access_key_id",
         "oci_secret_access_key",
         "github_token",
+        "private_database_token",
         "social_archive_api_token",
         "social_archive_pairing_code",
         "cli_worker_token",
@@ -124,9 +129,25 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_ENV=production\n"
         "SOCIAL_ARCHIVE_DATA_HOST_PATH=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
+        "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={project / 'missing' / 'private_db_client.py'}\n",
+        encoding="utf-8",
+    )
+    missing_client_result = subprocess.run(["bash", "scripts/prepare_systemd_host.sh", "--dry-run"], cwd=project, text=True, capture_output=True, check=False)
+    assert missing_client_result.returncode == 2
+    assert "SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT 必须指向已安装" in missing_client_result.stderr
+    assert sorted(str(path.relative_to(project)) for path in project.rglob("*")) == before
+
+    (project / ".env").write_text(
+        "SOCIAL_ARCHIVE_ENV=production\n"
+        "SOCIAL_ARCHIVE_DATA_HOST_PATH=/var/lib/social-archive\n"
+        "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=./runtime/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n",
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
     split_result = subprocess.run(["bash", "scripts/prepare_systemd_host.sh", "--dry-run"], cwd=project, text=True, capture_output=True, check=False)
@@ -139,7 +160,8 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "SOCIAL_ARCHIVE_DATA_ROOT=/var/lib/social-archive\n"
         "SOCIAL_ARCHIVE_IMPORT_HOST_PATH=/var/lib/social-archive/import\n"
         "SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH=/var/lib/social-archive/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n",
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=10001\n"
+        f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
 
@@ -168,13 +190,17 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
     prepare = scripts / "prepare_systemd_host.sh"
     prepare.write_text(prepare_text, encoding="utf-8")
     prepare.chmod(0o755)
+    private_database_client = project / "official-tools" / "private_db_client.py"
+    private_database_client.parent.mkdir(parents=True)
+    private_database_client.write_text("# official fixture\n", encoding="utf-8")
     (project / ".env").write_text(
         "SOCIAL_ARCHIVE_ENV=production\n"
         f"SOCIAL_ARCHIVE_DATA_HOST_PATH={data_root}\n"
         f"SOCIAL_ARCHIVE_DATA_ROOT={data_root}\n"
         f"SOCIAL_ARCHIVE_IMPORT_HOST_PATH={data_root}/import\n"
         f"SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH={data_root}/vendor-output\n"
-        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n",
+        "SOCIAL_ARCHIVE_HOST_DATA_GID=980\n"
+        f"SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT={private_database_client}\n",
         encoding="utf-8",
     )
     python_path = project / ".venv" / "bin" / "python"
@@ -204,6 +230,7 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
         "oci_access_key_id",
         "oci_secret_access_key",
         "github_token",
+        "private_database_token",
         "social_archive_api_token",
         "social_archive_pairing_code",
         "cli_worker_token",
@@ -241,10 +268,12 @@ def test_systemd_host_prepare_keeps_long_lived_secrets_root_only_and_uses_unit_c
     replication = (ROOT / "deploy" / "systemd" / "social-archive-replication.service").read_text(encoding="utf-8")
     backup = (ROOT / "deploy" / "systemd" / "social-archive-backup.service").read_text(encoding="utf-8")
     status = (ROOT / "deploy" / "systemd" / "social-archive-status.service").read_text(encoding="utf-8")
+    private_database_sync = (ROOT / "deploy" / "systemd" / "social-archive-private-database-sync.service").read_text(encoding="utf-8")
 
     assert 'CORE_CONTAINER_UID="10001"' in prepare
     assert 'install -d -m 2770 -o "$CORE_CONTAINER_UID" -g "$SYSTEM_USER" "$shared_path"' in prepare
-    assert 'github_token 已设置时必须保持 root:root 0600' in prepare
+    assert 'for root_only_secret in github_token private_database_token; do' in prepare
+    assert '必须保持 root:root 0600；禁止通过组权限共享。' in prepare
     assert 'LoadCredential= at process start' in prepare
     assert "CORE_SECRET_GROUP" not in prepare
     assert 'chmod 0640 "$secret_path"' not in prepare
@@ -257,6 +286,10 @@ def test_systemd_host_prepare_keeps_long_lived_secrets_root_only_and_uses_unit_c
     assert 'Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id' in backup
     assert 'LoadCredential=api_token:/opt/social-archive/runtime/secrets/social_archive_api_token' in status
     assert 'Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=%d/api_token' in status
+    assert 'LoadCredential=private_database_token:/opt/social-archive/runtime/secrets/private_database_token' in private_database_sync
+    assert 'Environment=SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE=%d/private_database_token' in private_database_sync
+    assert 'SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT' in prepare
+    assert '禁止 clone 或挂载 Private-Database' in prepare
 
 
 def test_only_the_documented_nonroot_container_secret_bridge_can_use_group_read_mode():
@@ -334,6 +367,7 @@ def test_core_and_host_maintenance_share_an_explicit_bind_data_plane():
         assert bind in compose["services"][service_name]["volumes"]
         core_secrets = compose["services"][service_name]["secrets"]
         assert "github_token" not in core_secrets
+        assert "private_database_token" not in core_secrets
         assert "r2_access_key_id" not in core_secrets
         assert "oci_access_key_id" not in core_secrets
     assert "social_archive_data" not in (compose.get("volumes") or {})

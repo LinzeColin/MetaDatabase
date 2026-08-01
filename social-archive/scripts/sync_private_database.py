@@ -18,7 +18,7 @@ from social_archive.private_facts import (
     fact_bytes,
     fact_sha256,
 )
-from social_archive.utils import redact, sha256_file, utcnow
+from social_archive.utils import read_secret, redact, sha256_file, utcnow
 
 
 PRIVATE_DATABASE_AREA = "Private-MetaDatabase"
@@ -43,13 +43,40 @@ def _private_database_client() -> tuple[Path | None, str | None]:
     return client, None
 
 
+def _private_database_github_environment() -> tuple[dict[str, str] | None, str | None]:
+    """Build a process-local GitHub environment from the dedicated credential.
+
+    The official client shells out to ``gh``.  A systemd credential is a file,
+    not a token value, so it must be read only by this short-lived process and
+    passed as ``GH_TOKEN`` to its child.  The Vault-only archive token is never
+    a fallback for the Private-Database facts authority.
+    """
+    token_file = os.getenv("SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE", "").strip()
+    if not token_file:
+        return None, "缺少 SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE；禁止复用 GitHub Vault 凭据"
+    try:
+        token = read_secret(token_file)
+    except (OSError, UnicodeError):
+        return None, "Private-Database Token 文件不可读或权限不符合合同"
+    if not token:
+        return None, "Private-Database Token 文件为空或不存在"
+    environment = dict(os.environ)
+    environment.pop("GITHUB_TOKEN", None)
+    environment["GH_TOKEN"] = token
+    return environment, None
+
+
 def _run_client(client: Path, argv: list[str]) -> tuple[int, str]:
+    environment, credential_error = _private_database_github_environment()
+    if credential_error or environment is None:
+        return 3, credential_error or "Private-Database Token 不可用"
     result = subprocess.run(
         [sys.executable, str(client), *argv],
         cwd=client.parent,
         text=True,
         capture_output=True,
         check=False,
+        env=environment,
     )
     detail = redact((result.stderr or result.stdout or "").strip()[-500:])
     return int(result.returncode), detail
@@ -257,6 +284,10 @@ def main() -> int:
             return _dry_run(RuntimeStore(settings.runtime_db), limit=limit)
         except Exception as exc:  # noqa: BLE001 - malformed runtime is an environment boundary
             return _blocked(redact(f"Runtime Journal 不可读：{exc}"), error_code="RUNTIME_JOURNAL_UNREADABLE")
+
+    _, credential_error = _private_database_github_environment()
+    if credential_error:
+        return _blocked(credential_error, error_code="PRIVATE_DATABASE_TOKEN_UNAVAILABLE")
 
     settings.ensure_directories()
     store = RuntimeStore(settings.runtime_db)

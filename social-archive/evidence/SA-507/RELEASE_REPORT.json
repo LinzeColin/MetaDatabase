@@ -1,132 +1,58 @@
 {
-  "status": "DEGRADED",
+  "schema_version": "2.0",
   "version": "v0.0.0.4",
-  "commit": "0325be9af5f65a8a3834d97f66c2c936f066ed6d",
-  "snapshot_scope": "Historical release-boundary snapshot for 0325be9a. The current Phase A storage result is linked below; it does not make the total release ready.",
-  "current_continuation": {
-    "path": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
-    "phase_status": "PASS",
-    "overall_sa507_status": "DEGRADED",
-    "candidate_commit": "bca021bf91baad3f1585dd6ae15044836752e156",
-    "verified_at_utc": "2026-07-31T12:16:51Z"
+  "status": "LOCAL_ACCEPTANCE_PASS_PUBLICATION_PENDING",
+  "verified_at_utc": "2026-08-01T12:08:30Z",
+  "release_scope": "Source tag and fast-forward source push only; no GitHub Source Release, image publication, provider backup operation, timer enablement or runtime mutation.",
+  "acceptance": {
+    "taskpack": "PASS",
+    "sa507": "PASS",
+    "unique_full_application_suite": "PASS: 235 passed, failed=0; final structural verification did not rerun pytest.",
+    "frozen_verify_fast": "PASS: 26 checks; application tests skipped explicitly.",
+    "latest_main_integration": "PASS: 7218767576d329f60ee2338aa6f570f87fc0a86d, no Social Archive first-parent merge change.",
+    "production_recheck": "PASS: loopback and unauthenticated edge boundary under Phase E."
   },
-  "tasks": [
-    {
-      "scope": "SA-000 through SA-506",
-      "status": "PASS",
-      "count": 31
-    },
-    {
-      "id": "SA-507",
-      "status": "DEGRADED",
-      "reason": "All local candidate, test, integrity, rollback-plan, local image smoke, targeted worker healthcheck, and Private-Database legacy-ledger assertions pass. The generic-web canary now authenticates to the pairing-protected core and fails closed when its restricted token is absent. The scoped GitHub token is installed and a real upload invocation returned no pending objects, but the real GitHub third ciphertext receipt, Social Archive fact reconciliation, and full production release smoke remain unexecuted."
-    }
-  ],
-  "tests": [
-    {
-      "id": "unique_full_application_suite",
-      "status": "PASS",
-      "detail": "222 passed on functional candidate 0325be9af5f65a8a3834d97f66c2c936f066ed6d; executed exactly once for this candidate."
-    },
-    {
-      "id": "platform_canary_authentication_regression",
-      "status": "PASS",
-      "detail": "Two focused tests prove that generic-web supplies the restricted Bearer token to the pairing-protected core and blocks before a capture request when the token is unavailable."
-    },
-    {
-      "id": "taskpack_verify_fast",
-      "status": "PASS",
-      "detail": "26/26 compatible task-pack checks passed with application tests explicitly skipped."
-    },
-    {
-      "id": "final_structural_verify",
-      "status": "PASS",
-      "detail": "Structural verifier recorded application_suite_rerun=false."
-    },
-    {
-      "id": "local_container_build_and_smoke",
-      "status": "PASS",
-      "detail": "Current-candidate local image sha256:f353a31f2788a504eb111a9bbc7f4d5c7363ddd38742c75086776ef0a42a99d9 built successfully; an ephemeral no-mount container passed /health through a loopback port mapping. The exact tag was removed and no image was pushed."
-    },
-    {
-      "id": "private_database_legacy_manifest_readback",
-      "status": "PASS",
-      "detail": "The official clone-free verifier ledger was strictly reconciled by readback of five historical area-prefixed objects with matching length and SHA-256; no Social Archive fact was written."
-    }
-  ],
-  "canaries": [
-    {
-      "id": "r2_encrypted_write_readback_delete",
-      "status": "PASS",
-      "detail": "Dedicated private bucket, scoped credential, encrypted object readback hash verification, and deletion were recorded in SA-506."
-    },
-    {
-      "id": "oci_encrypted_write_readback_delete",
-      "status": "PASS",
-      "detail": "Dedicated private bucket, scoped credential, encrypted object readback hash verification, and deletion were recorded in SA-506."
-    },
-    {
-      "id": "github_private_archive_repository",
-      "status": "PASS",
-      "detail": "LinzeColin/Social-Archive-Vault was created empty and read back as private; this is only the target-identity prerequisite, not a ciphertext receipt."
-    },
-    {
-      "id": "github_private_draft_same_ciphertext_readback",
-      "status": "NOT_RUN",
-      "detail": "The scoped fine-grained token is installed as a production 0600 secret and target private-repository authentication passed. The real upload command found object_count=0 because no current artifact carries verified R2/OCI receipts. No Draft Release, asset upload, ciphertext, or readback exists."
-    },
-    {
-      "id": "private_database_clone_free_legacy_ledger_reconciliation",
-      "status": "PASS",
-      "detail": "31 ledger rows were reconciled through the official client, including five strictly read-back legacy-prefixed entries."
-    },
-    {
-      "id": "private_database_social_archive_fact_reconciliation",
-      "status": "NOT_RUN",
-      "detail": "No Social Archive completed fact has been delivered or verified in the authoritative Private-Database."
-    },
-    {
-      "id": "local_container_image_and_health",
-      "status": "PASS",
-      "detail": "The local-only candidate image built and passed no-mount loopback /health; the exact image tag was removed afterwards."
-    },
-    {
-      "id": "production_worker_healthcheck_correction",
-      "status": "PASS",
-      "detail": "After a one-declaration Compose diff and backup, only core-worker was recreated; the API remained healthy and the worker no longer inherited an API-only healthcheck. This is not a complete source deployment."
-    }
-  ],
-  "storage": {
-    "status": "DEGRADED",
-    "ciphertext_replicas": {
-      "r2": "PASS",
-      "oci": "PASS",
-      "github_private": "NOT_RUN"
-    },
-    "github_archive_repository": "PRIVATE_EMPTY_CREATED:LinzeColin/Social-Archive-Vault",
-    "completion_rule": "Three verified receipts for the same age ciphertext are required before an artifact becomes complete; two verified provider canaries and an empty private repository do not satisfy the third-replica gate."
+  "release_candidate": {
+    "functional_candidate_manifest_sha256": "78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90",
+    "functional_candidate_file_count": 204,
+    "prepublication_head": "7218767576d329f60ee2338aa6f570f87fc0a86d",
+    "tag": "v0.0.0.4",
+    "local_tag_exists_before_publication": false,
+    "remote_tag_exists_before_publication": false,
+    "tag_target_commit": null,
+    "remote_main_commit": null
   },
-  "restore": {
-    "status": "DEGRADED",
-    "fixture_recovery": "PASS",
-    "rollback_plan": "PASS",
-    "real_three_target_recovery": "NOT_RUN",
-    "reason": "Recovery will not be claimed until the missing GitHub receipt exists and all three ciphertext copies can be verified."
+  "publication_contract": {
+    "ordered_actions": [
+      "Stage only the scoped Social Archive and compatibility evidence changes.",
+      "Create one final local evidence commit after staged review.",
+      "Create annotated v0.0.0.4 tag on that exact commit.",
+      "Fast-forward push the exact commit to origin/main and push its tag without force.",
+      "Read back origin/main and the peeled tag; both must resolve to the same commit before this report becomes PASS."
+    ],
+    "stop_conditions": [
+      "A tag already exists locally or remotely.",
+      "Staged scope contains unrelated paths, secret material, or a changed functional candidate fingerprint.",
+      "Push is rejected, non-fast-forward, or remote main and peeled tag differ."
+    ],
+    "rollback": "Keep local commit/tag and existing pre-release tag; do not force-push, reset hard, remove ignored runtime or remove production backups."
   },
-  "known_degradations": [
-    "No GitHub Private Draft/asset receipt or readback exists; the target repository is private and the scoped token is installed, but the real upload command had zero eligible objects after prior R2/OCI canary cleanup.",
-    "No Social Archive Private-Database fact delivery exists; the historical global ledger was only read-only reconciled, and production client/auth configuration remains absent.",
-    "No image was pushed and no full current-source production deployment or post-deploy release smoke exists; the local-only image identifier is not a published digest.",
-    "Source and destination provider states remain only as real observations recorded in the per-task evidence; unexecuted providers remain NOT_RUN.",
-    "Git source publication and release tag publication are intentionally deferred until the strict third-replica, fact synchronization, and deployment gates pass."
+  "live_boundary": {
+    "completed": [
+      "R2, OCI and GitHub Private Draft same-ciphertext real receipt and recovery are PASS in Phases A and C.",
+      "Private-Database completed fact strict ingest/verify and idempotent repeat are PASS in Phase B.",
+      "Production parity, loopback health and unauthenticated edge safety smoke are PASS in Phases D and E."
+    ],
+    "preserved_not_run_semantics": "Historical provider-specific NOT_RUN observations remain stated in their individual evidence and are not upgraded by this report."
+  },
+  "evidence_root": [
+    "evidence/SA-507/RESULT.json",
+    "evidence/SA-507/COMMAND_LOG.json",
+    "evidence/SA-507/PHASE_E_FINAL_CONSOLIDATION_20260801.json",
+    "evidence/final-verification.json"
   ],
-  "branch_pr_state": {
-    "candidate_branch": "codex/social-archive-v0004-integration",
-    "origin_main_is_ancestor_of_candidate_at_freeze": true,
-    "open_pull_requests_for_candidate_branch": 0,
-    "source_push": "NOT_PERFORMED",
-    "release_tag": "NOT_CREATED",
-    "reason": "The strict release gate is DEGRADED, so the user-directed after-taskpack source publication has not been started."
-  },
-  "evidence_root": "evidence/SA-507"
+  "nonclaims": [
+    "This pre-publication report does not invent a commit SHA, tag object, or remote ref before the Git actions actually succeed.",
+    "No secret, user content, provider identifier, release asset URL, production host identity or credential location is recorded."
+  ]
 }

@@ -19,7 +19,7 @@ PYTHON=(python3)
 if $SELF_TEST; then
   printf 'Social Archive 零写入自检\n========================\n'
   printf '解释器：'; "${PYTHON[@]}" --version
-  for shell_script in scripts/install.sh scripts/doctor.sh scripts/start.sh scripts/prepare_systemd_host.sh; do
+  for shell_script in scripts/install.sh scripts/doctor.sh scripts/start.sh scripts/prepare_systemd_host.sh scripts/restore_object.sh scripts/restore_object_systemd.sh; do
     /bin/bash -n "$shell_script"
   done
   "${PYTHON[@]}" - <<'PY'

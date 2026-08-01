@@ -45,7 +45,7 @@ if [[ "$(id -u)" == "0" ]]; then
   chmod 2770 runtime/data runtime/import runtime/vendor-output runtime/vendor-output/{cli,xhs,kuaishou,douk}
 fi
 chmod 700 runtime/secrets
-for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token social_archive_api_token social_archive_pairing_code cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token; do
+for name in r2_access_key_id r2_secret_access_key oci_access_key_id oci_secret_access_key github_token private_database_token social_archive_api_token social_archive_pairing_code cli_worker_token instagram_session notion_token obsidian_rest_token karakeep_api_token linkwarden_api_token; do
   [[ -e "runtime/secrets/$name" ]] || : > "runtime/secrets/$name"
   chmod 600 "runtime/secrets/$name"
 done

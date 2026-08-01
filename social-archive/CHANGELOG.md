@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.0.0.4 — Final Task Pack closure
+
+- 完成冻结 Social Archive v0.0.0.4 Task Pack 的 32/32 项验收：保留聚焦证明有效的
+  单一事务与恢复核心，交付 E2N 产品壳、国内外连接器、目的地授权/回执、聚合浏览、
+  R2/OCI/GitHub Private Draft 三地同密文恢复和 Private-Database 完成态事实闭环。
+- 最终功能候选以 204 个交付文件、SHA-256
+  `78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90` 冻结；合入
+  当时最新 `origin/main` 前后清单不变。唯一适用的完整应用回归为 235 passed，之后
+  `verify-fast` 26 项和 7 项结构验证均通过，且没有重复 pytest。
+- 生产复核保持 Core/status 仅 loopback、Library Access 阻断、API Bearer 边界和状态
+  投影可用；复制与 facts timers 均维持 disabled。历史 provider-specific `NOT_RUN`
+  不被改写为 PASS，完整真实环境事实见 `evidence/SA-507/`。
+- `v0.0.0.4` annotated source tag 仅指向包含上述最终证据的提交；GitHub source Release、
+  镜像发布、额外 Provider 写入和定时器启用不属于本次源码发布。
+
 ## v0.0.0.1 — Stage 6 / Assurance004
 
 - 完成 `TSK.x2n.assurance.004 / PH.X2N.6.4` 的隔离性能、压力、混沌与恢复 Campaign：100 次 Extension Worker restart、100 项 XHS/50 kill、媒体 lease cleanup、Notion Mock 429/529/outage/receipt reconcile、十阶段 recovery、六个核心破坏边界各 10 Seed、20/80/1k/10k Markdown rebuild 和 100 条 burst replay 全部通过。

@@ -24,6 +24,14 @@ def _set_settings(monkeypatch, module, settings):
     monkeypatch.setattr(module, "Settings", SimpleNamespace(from_env=lambda: settings))
 
 
+def _enable_private_database_token(monkeypatch, tmp_path: Path) -> Path:
+    token = tmp_path / "private_database_token"
+    token.write_text("private-database-fixture-token\n", encoding="utf-8")
+    token.chmod(0o600)
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE", str(token))
+    return token
+
+
 def _completed_content(service, store):
     response = service.capture(CaptureRequest(
         platform="generic-web",
@@ -60,8 +68,11 @@ def test_runtime_never_mounts_or_installs_a_private_database_worktree():
     assert ":/var/lib/social-archive/private-database" not in compose
     assert "SOCIAL_ARCHIVE_PRIVATE_DATABASE_ROOT=" not in env_example
     assert "SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT=" in env_example
+    assert "SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE=" in env_example
     assert "private-database" not in install
     assert "sync_private_database.py --once" in sync_service
+    assert "LoadCredential=private_database_token:/opt/social-archive/runtime/secrets/private_database_token" in sync_service
+    assert "Environment=SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE=%d/private_database_token" in sync_service
     assert "ReadWritePaths=/var/lib/social-archive" in backup_service
     assert "/opt/social-archive/runtime" not in "\n".join(
         line for line in backup_service.splitlines() if line.startswith("ReadWritePaths=")
@@ -93,6 +104,56 @@ def test_sync_missing_api_client_fails_before_runtime_or_local_private_copy(monk
     assert not blocked_settings.private_database_root.exists()
 
 
+def test_sync_missing_private_database_token_fails_before_runtime_mutation(monkeypatch, settings, tmp_path, capsys):
+    module = _load_script(Path(__file__).resolve().parents[2])
+    data_root = tmp_path / "blocked-runtime"
+    blocked_settings = replace(
+        settings,
+        data_root=data_root,
+        runtime_db=data_root / "runtime/social-archive.sqlite3",
+        staging_root=data_root / "staging",
+        private_database_root=data_root / "private-database",
+        watch_root=data_root / "import",
+        export_root=data_root / "exports",
+        cli_output_root=data_root / "vendor-output/cli",
+    )
+    client = tmp_path / "private_db_client.py"
+    client.write_text("# fixture only\n", encoding="utf-8")
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT", str(client))
+    monkeypatch.delenv("SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE", raising=False)
+    _set_settings(monkeypatch, module, blocked_settings)
+    monkeypatch.setattr(sys, "argv", ["sync_private_database.py", "--once"])
+
+    assert module.main() == 3
+    report = json.loads(capsys.readouterr().out)
+    assert report["status"] == "BLOCKED_ENVIRONMENT"
+    assert report["error_code"] == "PRIVATE_DATABASE_TOKEN_UNAVAILABLE"
+    assert not data_root.exists()
+    assert not blocked_settings.private_database_root.exists()
+
+
+def test_sync_client_injects_only_the_dedicated_token_into_gh(monkeypatch, tmp_path):
+    module = _load_script(Path(__file__).resolve().parents[2])
+    token = _enable_private_database_token(monkeypatch, tmp_path)
+    client = tmp_path / "private_db_client.py"
+    client.write_text("# fixture only\n", encoding="utf-8")
+    monkeypatch.setenv("GITHUB_TOKEN", "unrelated-fallback-token")
+    captured: dict[str, object] = {}
+
+    def fake_run(*_args, **kwargs):
+        captured["env"] = kwargs["env"]
+        return SimpleNamespace(returncode=0, stderr="", stdout="")
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    code, detail = module._run_client(client, ["verify", "Private-MetaDatabase"])
+
+    assert code == 0 and detail == ""
+    environment = captured["env"]
+    assert isinstance(environment, dict)
+    assert environment["GH_TOKEN"] == token.read_text(encoding="utf-8").strip()
+    assert "GITHUB_TOKEN" not in environment
+
+
 def test_completed_fact_is_sanitized_idempotent_and_delivered_only_after_verify(monkeypatch, service, store, settings, tmp_path, capsys):
     content_id = _completed_content(service, store)
     facts = completed_content_facts(store)
@@ -107,6 +168,7 @@ def test_completed_fact_is_sanitized_idempotent_and_delivered_only_after_verify(
     client = tmp_path / "private_db_client.py"
     client.write_text("# fixture only\n", encoding="utf-8")
     monkeypatch.setenv("SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT", str(client))
+    _enable_private_database_token(monkeypatch, tmp_path)
     _set_settings(monkeypatch, module, settings)
     calls: list[list[str]] = []
 
@@ -145,6 +207,7 @@ def test_verify_failure_keeps_fact_pending_for_a_safe_retry(monkeypatch, service
     client = tmp_path / "private_db_client.py"
     client.write_text("# fixture only\n", encoding="utf-8")
     monkeypatch.setenv("SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT", str(client))
+    _enable_private_database_token(monkeypatch, tmp_path)
     _set_settings(monkeypatch, module, settings)
 
     def fake_run(_client, argv):
@@ -172,6 +235,7 @@ def test_zero_exit_verify_with_missing_objects_is_not_an_acknowledgement(monkeyp
     client = tmp_path / "private_db_client.py"
     client.write_text("# fixture only\n", encoding="utf-8")
     monkeypatch.setenv("SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT", str(client))
+    _enable_private_database_token(monkeypatch, tmp_path)
     _set_settings(monkeypatch, module, settings)
 
     def fake_run(_client, argv):

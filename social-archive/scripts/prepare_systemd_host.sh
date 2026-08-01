@@ -40,6 +40,7 @@ HOST_SECRET_NAMES=(
   oci_access_key_id
   oci_secret_access_key
   github_token
+  private_database_token
   social_archive_api_token
   social_archive_pairing_code
   cli_worker_token
@@ -66,7 +67,7 @@ file_env_value() {
 
 is_unit_credential_file_key() {
   case "$1" in
-    SOCIAL_ARCHIVE_API_TOKEN_FILE|SOCIAL_ARCHIVE_PAIRING_CODE_FILE|SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE|SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE|SOCIAL_ARCHIVE_NOTION_TOKEN_FILE|SOCIAL_ARCHIVE_OBSIDIAN_REST_TOKEN_FILE|SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE|SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE)
+    SOCIAL_ARCHIVE_API_TOKEN_FILE|SOCIAL_ARCHIVE_PAIRING_CODE_FILE|SOCIAL_ARCHIVE_CLI_WORKER_TOKEN_FILE|SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE|SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE|SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE|SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE|SOCIAL_ARCHIVE_NOTION_TOKEN_FILE|SOCIAL_ARCHIVE_OBSIDIAN_REST_TOKEN_FILE|SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE|SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE)
       return 0
       ;;
   esac
@@ -104,6 +105,9 @@ validate_source_contract() {
   [[ "$(env_value SOCIAL_ARCHIVE_IMPORT_HOST_PATH)" == "$HOST_DATA_ROOT/import" ]] || fail "生产 SOCIAL_ARCHIVE_IMPORT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/import，禁止 Core 与宿主机分裂导入面。"
   [[ "$(env_value SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH)" == "$HOST_DATA_ROOT/vendor-output" ]] || fail "生产 SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH 必须精确为 $HOST_DATA_ROOT/vendor-output，禁止 Core 与 CLI Sidecar 分裂输出面。"
   [[ "$(env_value SOCIAL_ARCHIVE_HOST_DATA_GID)" =~ ^[0-9]+$ ]] || fail 'SOCIAL_ARCHIVE_HOST_DATA_GID 必须是宿主机 socialarchive 组的数字 gid。'
+  private_database_client="$(env_value SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT)"
+  [[ -n "$private_database_client" ]] || fail '缺少 SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT；禁止回退到本地 Private-Database 工作树。'
+  [[ "$(basename "$private_database_client")" == "private_db_client.py" && -f "$private_database_client" && ! -L "$private_database_client" ]] || fail 'SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT 必须指向已安装、非符号链接的官方 private_db_client.py；禁止 clone 或挂载 Private-Database。'
   for unit in "${UNITS[@]}"; do
     [[ -f "$ROOT/deploy/systemd/$unit" ]] || fail "缺少 systemd unit：$unit"
   done
@@ -215,15 +219,17 @@ if [[ -e "$runtime_db" ]]; then
   fi
 fi
 
-# The repository-scoped archive token must retain its root-only source file.
-# systemd obtains a read-only copy through LoadCredential= at process start.
-github_token="$ROOT/runtime/secrets/github_token"
-if [[ -s "$github_token" ]]; then
-  github_mode="$(stat -c '%a' "$github_token")"
-  github_uid="$(stat -c '%u' "$github_token")"
-  github_gid="$(stat -c '%g' "$github_token")"
-  [[ "$github_mode" == "600" && "$github_uid" == "0" && "$github_gid" == "0" ]] || fail 'github_token 已设置时必须保持 root:root 0600；禁止通过组权限共享。'
-fi
+# Repository-scoped GitHub source credentials must remain root-only.  systemd
+# obtains read-only per-unit copies through LoadCredential= at process start.
+for root_only_secret in github_token private_database_token; do
+  source_secret="$ROOT/runtime/secrets/$root_only_secret"
+  if [[ -s "$source_secret" ]]; then
+    secret_mode="$(stat -c '%a' "$source_secret")"
+    secret_uid="$(stat -c '%u' "$source_secret")"
+    secret_gid="$(stat -c '%g' "$source_secret")"
+    [[ "$secret_mode" == "600" && "$secret_uid" == "0" && "$secret_gid" == "0" ]] || fail "$root_only_secret 已设置时必须保持 root:root 0600；禁止通过组权限共享。"
+  fi
+done
 
 install -d -m 0750 -o root -g "$SYSTEM_USER" "$HOST_ENV_DIR"
 install -d -m 0700 -o root -g root "$BACKUP_ROOT"

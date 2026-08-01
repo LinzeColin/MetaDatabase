@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import tempfile
 import shutil
 import stat
 import subprocess
@@ -95,6 +96,38 @@ def verify_manifest(root: Path) -> None:
         raise CompatibilityError(f"base manifest hash mismatch: {bad[:3]}")
 
 
+def _run_verifier(verifier: Path, root: Path) -> subprocess.CompletedProcess[str]:
+    """Run the taskpack verifier with a safe fallback when stdlib tomllib is unavailable."""
+    cmd = [sys.executable, str(verifier), "--root", str(root), "--skip-tests"]
+    env = os.environ.copy()
+    try:
+        import tomllib  # type: ignore[import-not-found]
+    except ModuleNotFoundError:
+        with tempfile.TemporaryDirectory(prefix="social-archive-tomllib-") as module_directory:
+            shim = Path(module_directory) / "tomllib.py"
+            shim.write_text(
+                "from tomli import loads, load\n",
+                encoding="utf-8",
+            )
+            previous = env.get("PYTHONPATH", "")
+            env["PYTHONPATH"] = str(module_directory) + (os.pathsep + previous if previous else "")
+            return subprocess.run(
+                cmd,
+                text=True,
+                capture_output=True,
+                check=False,
+                env=env,
+            )
+
+    return subprocess.run(
+        cmd,
+        text=True,
+        capture_output=True,
+        check=False,
+        env=env,
+    )
+
+
 def refresh_manifest(root: Path) -> None:
     paths = sorted(
         path for path in root.rglob("*")
@@ -132,12 +165,7 @@ def copy_overrides(root: Path, baseline: dict[str, object]) -> list[dict[str, st
 
 def verify_compatible_copy(root: Path) -> dict[str, object]:
     verifier = root / "10_ACCEPTANCE/scripts/verify_taskpack.py"
-    completed = subprocess.run(
-        [sys.executable, str(verifier), "--root", str(root), "--skip-tests"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    completed = _run_verifier(verifier, root)
     if completed.returncode:
         raise CompatibilityError(f"compatible taskpack verifier failed: {(completed.stderr or completed.stdout)[-2000:]}")
     try:

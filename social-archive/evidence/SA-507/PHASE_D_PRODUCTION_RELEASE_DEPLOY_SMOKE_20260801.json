@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-507",
+  "phase": "D",
+  "phase_status": "PASS",
+  "overall_sa507_status": "DEGRADED",
+  "overall_taskpack_status": "IN_PROGRESS",
+  "verified_at_utc": "2026-08-01T11:54:00Z",
+  "run_contract": "PHASE_D_PRODUCTION_RELEASE_DEPLOY_SMOKE_RUN_CONTRACT.md",
+  "scope": "Minimal production candidate parity and read-only edge smoke; this is not source publication or final release consolidation.",
+  "candidate": {
+    "base_head": "9fdf6de319d9d20be22c298c44bbef6b0f4d8320",
+    "branch": "codex/sa-507-compat-tomllib-fix",
+    "source_publication": "none; working candidate remains uncommitted until the final task-pack completion phase",
+    "unique_full_application_suite": "235 passed; one existing non-failing Starlette/httpx deprecation warning; recorded in PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json",
+    "running_core_and_worker_image_id": "sha256:7751da08d66d94e671b08ccc8eddea48f37534bcee75bcd62267029d29b7ed88",
+    "image_rebuild_or_restart": "not performed: Dockerfile, compose declaration and Core application source had no Phase D behavior change"
+  },
+  "controlled_deployment": {
+    "changed_nonsecret_files": {
+      "scripts/doctor.sh": "03312d318c624e9cf20cee49018b1d0ba7bdcbeaa7955334bfa847217067714e",
+      "scripts/install.sh": "4e76e0f8cd8797054b03be7d053f82d8a411c9a82abdaee21890a835643b1bb7"
+    },
+    "prechange_backup": {
+      "status": "retained_root_only_for_next_phase_rollback",
+      "scripts/doctor.sh_original_sha256": "c2be0a24e8bfb07e97b8afcb96cb79ba8f5750808acd50be5b62f1ca823a1265",
+      "scripts/install.sh_original_sha256": "aea51430769742fc1478bbf5d164c259a3ce457a523fd65ed6bf7227ec311077"
+    },
+    "deployment_method": "root-only staging, SHA-256 verification, install, then static and loopback validation",
+    "excluded": [
+      "No .env, runtime, Secret, SQLite, CAS, user content or pairing record was copied or changed.",
+      "No Docker build, service restart, timer enablement, provider upload, provider deletion or source Git operation occurred."
+    ]
+  },
+  "production_static_and_loopback": {
+    "doctor_self_test": "PASS",
+    "install_dry_run": "PASS",
+    "systemd_host_dry_run": "PASS",
+    "core_health_loopback": 200,
+    "status_health_loopback": 200,
+    "running_services": [
+      "core-api",
+      "core-worker",
+      "cli-tools"
+    ],
+    "systemd": {
+      "social_archive_service": "enabled; active/exited; result=success",
+      "cloudflared": "enabled; active/running; result=success",
+      "status_web": "disabled by policy; active/running; result=success",
+      "replication_timer": "disabled; inactive/dead; result=success",
+      "private_database_sync_timer": "disabled; inactive/dead; result=success"
+    }
+  },
+  "unauthenticated_edge_smoke": {
+    "request_constraints": "No Cookie, Bearer, pairing code, Access assertion or response body was retained.",
+    "library_ui_health": {
+      "status": 302,
+      "access_login_redirect_path": "PASS"
+    },
+    "extension_api_health": 200,
+    "extension_api_pairing_status": 200,
+    "extension_api_business_route_without_bearer": 401,
+    "extension_api_business_route_with_forged_access_assertion": 401,
+    "status_projection_health": 200,
+    "status_projection_json": "200; top-level allowlist and fixed non-authoritative recovery fields verified"
+  },
+  "control_plane_evidence_boundary": {
+    "prior_accepted_evidence": "evidence/SA-505/RESULT.json and evidence/SA-505/COMMAND_LOG.json",
+    "previously_verified": [
+      "Authenticated readback of Cloudflare Access policy, Tunnel ingress/order/connections and proxied DNS.",
+      "Visible authenticated WAF unsupported-method block and active per-IP pairing rate limit, plus observed 403/429 behavior.",
+      "No provider identifiers, host address, browser session, credential or rule value is copied into this evidence."
+    ],
+    "phase_d_nonclaim": "No interactive owner browser Access session or pairing exchange was regenerated in Phase D; the no-session Access boundary is tested above and the earlier accepted control-plane evidence remains the authority for configuration existence."
+  },
+  "local_validation": {
+    "focused_deployment_and_recovery": "23 passed",
+    "local_doctor_self_test": "PASS",
+    "local_install_dry_run": "PASS"
+  },
+  "nonclaims_and_next_boundary": [
+    "Phase D PASS proves the specified production deployment parity and smoke only; it does not make SA-507 or the complete task pack PASS.",
+    "No source Git stage, commit, tag, push, merge, source release or image publication occurred.",
+    "The final separate phase must consolidate all SA-507 evidence, perform structural/frozen-contract rechecks without re-running the application suite, resolve final release bookkeeping, then and only then publish the approved source and clean resources."
+  ]
+}

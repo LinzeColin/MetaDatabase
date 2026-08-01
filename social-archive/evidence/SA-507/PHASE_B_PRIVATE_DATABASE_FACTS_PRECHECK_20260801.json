@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "task": "SA-507",
+  "phase": "Phase B: Private-Database completed facts",
+  "phase_status": "BLOCKED_OWNER_AUTHENTICATION",
+  "run_contract": "PHASE_B_PRIVATE_DATABASE_FACTS_RUN_CONTRACT.md",
+  "generated_at": "2026-08-01T10:48:33Z",
+  "scope": {
+    "included": [
+      "official clone-free Private-Database client availability",
+      "root-only dedicated credential handoff contract",
+      "read-only Runtime Journal eligibility preflight"
+    ],
+    "excluded": [
+      "fact ingest",
+      "Private-Database verify write acknowledgement",
+      "backup",
+      "restore",
+      "object replication",
+      "GitHub Vault Draft release",
+      "timer enablement",
+      "source push or tag"
+    ]
+  },
+  "production_preflight": {
+    "sync_service_state": "inactive",
+    "sync_timer_state": "disabled",
+    "systemd_credential_contract": {
+      "load_credential": "private_database_token",
+      "environment_uses_credential_directory": true,
+      "token_value_in_environment": false
+    },
+    "private_database_token_source_metadata": {
+      "owner_group": "root:root",
+      "mode": "0600",
+      "size_bytes": 0,
+      "state": "empty placeholder; no Vault token reuse"
+    },
+    "initial_dry_run": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "error_code": "PRIVATE_DATABASE_CLIENT_UNAVAILABLE"
+    },
+    "official_client_repair": {
+      "source_role": "official KMOS clone-free client",
+      "source_relative_path": "KMDatabase/machine/tools/private_db_client.py",
+      "sha256": "8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa",
+      "target_is_direct_file": true,
+      "target_is_not_a_private_database_checkout": true,
+      "target_metadata": "root:socialarchive 0550",
+      "rollback_copy_preserved": true
+    },
+    "guard_repair": {
+      "host_prepare_script_sha256": "bb8e0e362abdf9866646ee4179c9c0f4bc3f29fef5ec6daba7d8a2a262f3a441",
+      "host_prepare_dry_run": "PASS",
+      "guard_requires_existing_non_symlink_official_client": true,
+      "no_apply_or_unit_start": true
+    },
+    "read_only_runtime_journal_preflight": {
+      "status": "READY",
+      "candidate_fact_count": 1,
+      "already_delivered_count": 0,
+      "pending_count": 1,
+      "local_checkout": false
+    }
+  },
+  "local_verification": {
+    "focused_deployment_and_sync": "26 passed",
+    "full_application_suite": "229 passed; 1 existing non-failing Starlette/httpx deprecation warning",
+    "static_checks": [
+      "bash -n scripts/prepare_systemd_host.sh",
+      "scripts/validate_systemd.py PASS",
+      "scripts/check_brand.py PASS",
+      "scripts/secret_scan.py PASS",
+      "git diff --check PASS"
+    ],
+    "compatibility": {
+      "status": "PASS",
+      "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+      "rollback_default": "ROLLBACK_PLAN"
+    }
+  },
+  "blocker": {
+    "kind": "GitHub sudo/passkey owner authentication",
+    "required_credential": "a new dedicated fine-grained token restricted to LinzeColin/Private-Database",
+    "minimum_permissions": [
+      "Contents: read and write",
+      "Metadata: read-only"
+    ],
+    "forbidden_fallbacks": [
+      "Vault-only Social-Archive-Vault token",
+      "wide local GitHub OAuth",
+      "historical exposed backup PAT"
+    ],
+    "next_action_after_owner_authentication": "write the generated token only to the existing root-only production private_database_token source file, validate repository identity with that process-local GH_TOKEN, then run one sync and one idempotent no-change repeat"
+  },
+  "nonclaims": [
+    "No Private-Database ingest or delivered Outbox acknowledgement occurred.",
+    "No user content, secret value, credential value, production host identifier, or absolute production path is present in this evidence.",
+    "No backup, restore, replication, release upload, source push, tag, service enablement, or timer enablement occurred."
+  ]
+}
