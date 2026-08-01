@@ -1,0 +1,52 @@
+{
+  "node": "CB9-620",
+  "environment_bound": true,
+  "probes": [
+    {
+      "probe": "ssh ubuntu@51.222.29.63",
+      "result": "connection timed out"
+    },
+    {
+      "probe": "env R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY",
+      "result": "unset"
+    },
+    {
+      "probe": "env CLOUDFLARE_API_TOKEN",
+      "result": "unset"
+    },
+    {
+      "probe": "env OCI_CLI_CONFIG_FILE",
+      "result": "unset"
+    },
+    {
+      "probe": "env GITHUB_TOKEN",
+      "result": "unset"
+    }
+  ],
+  "title": "crash-cut、重复消息、恢复与备份故障注入",
+  "acceptance": [
+    "AC-023",
+    "AC-024",
+    "AC-028"
+  ],
+  "local_half": {
+    "status": "PASS",
+    "note": "AC-023/024 的本地半边此前已闭环，不重复造一套",
+    "covered_by": [
+      "app/test/durable-outbox-crash-cut.test.js（9 条：provider 前崩、provider 后确认前崩、确认提交时崩、同一 key 重放 1000 次只出现一次确认）",
+      "app/test/cb9-450-idempotency-reconcile.test.js（17 条：未知结果三条处置、幂等键跨重启稳定）"
+    ]
+  },
+  "online_half": {
+    "status": "NOT_RUN",
+    "unverified_claims": [
+      "AC-028：R2 那份不可读时，OCI 那份能在隔离目录恢复并核对关系",
+      "真实备份链路上的故障注入（写一半断网、对象被删、凭据过期）"
+    ]
+  },
+  "next_run": [
+    "断开 R2 访问 → 触发一次备份 → 确认回执是失败而不是成功",
+    "把 R2 对象设为不可读 → 从 OCI 在隔离目录恢复 → 核对两份关系",
+    "恢复期间 kill -9 → 重启 → 确认没有半份快照被当成完整的"
+  ]
+}

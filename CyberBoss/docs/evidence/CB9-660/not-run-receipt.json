@@ -1,0 +1,49 @@
+{
+  "node": "CB9-660",
+  "environment_bound": true,
+  "probes": [
+    {
+      "probe": "ssh ubuntu@51.222.29.63",
+      "result": "connection timed out"
+    },
+    {
+      "probe": "env R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY",
+      "result": "unset"
+    },
+    {
+      "probe": "env CLOUDFLARE_API_TOKEN",
+      "result": "unset"
+    },
+    {
+      "probe": "env OCI_CLI_CONFIG_FILE",
+      "result": "unset"
+    },
+    {
+      "probe": "env GITHUB_TOKEN",
+      "result": "unset"
+    }
+  ],
+  "title": "发布后自动观察、状态投影与恢复演练入口",
+  "acceptance": [
+    "AC-035"
+  ],
+  "local_half": {
+    "status": "PASS",
+    "note": "状态投影和「没测过 ≠ 坏的」已闭环",
+    "covered_by": [
+      "app/test/cb9-500-parity-freshness.test.js",
+      "app/test/cb9-510-status-vertical-matrix.test.js"
+    ]
+  },
+  "online_half": {
+    "status": "NOT_RUN",
+    "unverified_claims": [
+      "发布后自动观察真的在生产上跑起来并写回执",
+      "恢复演练入口在真机上能一键触发，且 backups.restore_drill_state 因此转绿"
+    ]
+  },
+  "next_run": [
+    "部署后确认观察任务落了第一条 live receipt（面板从 UNKNOWN 转 HEALTHY）",
+    "触发一次恢复演练 → 确认 restore_drill_state 由 UNKNOWN 变 HEALTHY、建议动作从 run_restore_drill 回到 none"
+  ]
+}

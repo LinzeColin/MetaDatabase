@@ -1,0 +1,44 @@
+{
+  "node": "CB9-010",
+  "environment_bound": true,
+  "probes": [
+    {
+      "probe": "ssh ubuntu@51.222.29.63",
+      "result": "connection timed out"
+    },
+    {
+      "probe": "env R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY",
+      "result": "unset"
+    },
+    {
+      "probe": "env CLOUDFLARE_API_TOKEN",
+      "result": "unset"
+    },
+    {
+      "probe": "env OCI_CLI_CONFIG_FILE",
+      "result": "unset"
+    },
+    {
+      "probe": "env GITHUB_TOKEN",
+      "result": "unset"
+    }
+  ],
+  "title": "只读捕获线上 release、OVH 资源、systemd、Cloudflare 和数据端点现状",
+  "acceptance": [
+    "AC-031",
+    "AC-032"
+  ],
+  "local_half": {
+    "status": "NOT_APPLICABLE",
+    "note": "这个节点就是去读生产现状，本地无从读起"
+  },
+  "online_half": {
+    "status": "NOT_RUN",
+    "unverified_claims": [
+      "线上当前 release、systemd 单元状态、Cloudflare 隧道状态、数据端点可达性"
+    ]
+  },
+  "next_run": [
+    "能连上生产机后只读采集一次，写进本目录（只读，不改任何线上状态）"
+  ]
+}

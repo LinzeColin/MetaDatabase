@@ -6,8 +6,10 @@
   "requirement": "NFR-006",
   "purpose": "DAG 37 个节点的证据落位对账；env_bound 的节点允许是 NOT_RUN 记录，但目录必须在",
   "total": 37,
-  "evidence_present": 30,
-  "environment_bound": 9,
+  "evidence_present": 37,
+  "closed": 30,
+  "not_run_env_bound": 7,
+  "missing": [],
   "nodes": [
     {
       "id": "CB9-000",
@@ -18,7 +20,8 @@
         "AC-039"
       ],
       "evidence_dir": "docs/evidence/CB9-000",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-010",
@@ -30,7 +33,8 @@
         "AC-032"
       ],
       "evidence_dir": "docs/evidence/CB9-010",
-      "evidence_present": false
+      "evidence_present": true,
+      "status": "NOT_RUN(env)"
     },
     {
       "id": "CB9-020",
@@ -44,7 +48,8 @@
         "AC-043"
       ],
       "evidence_dir": "docs/evidence/CB9-020",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-100",
@@ -56,7 +61,8 @@
         "AC-005"
       ],
       "evidence_dir": "docs/evidence/CB9-100",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-110",
@@ -68,7 +74,8 @@
         "AC-003"
       ],
       "evidence_dir": "docs/evidence/CB9-110",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-120",
@@ -81,7 +88,8 @@
         "AC-044"
       ],
       "evidence_dir": "docs/evidence/CB9-120",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-130",
@@ -92,7 +100,8 @@
         "AC-005"
       ],
       "evidence_dir": "docs/evidence/CB9-130",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-140",
@@ -107,7 +116,8 @@
         "AC-044"
       ],
       "evidence_dir": "docs/evidence/CB9-140",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-200",
@@ -119,7 +129,8 @@
         "AC-041"
       ],
       "evidence_dir": "docs/evidence/CB9-200",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-210",
@@ -131,7 +142,8 @@
         "AC-042"
       ],
       "evidence_dir": "docs/evidence/CB9-210",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-220",
@@ -143,7 +155,8 @@
         "AC-014"
       ],
       "evidence_dir": "docs/evidence/CB9-220",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-230",
@@ -155,7 +168,8 @@
         "AC-016"
       ],
       "evidence_dir": "docs/evidence/CB9-230",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-240",
@@ -166,7 +180,8 @@
         "AC-015"
       ],
       "evidence_dir": "docs/evidence/CB9-240",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-250",
@@ -181,7 +196,8 @@
         "AC-042"
       ],
       "evidence_dir": "docs/evidence/CB9-250",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-300",
@@ -194,7 +210,8 @@
         "AC-045"
       ],
       "evidence_dir": "docs/evidence/CB9-300",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-310",
@@ -205,7 +222,8 @@
         "AC-008"
       ],
       "evidence_dir": "docs/evidence/CB9-310",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-320",
@@ -217,7 +235,8 @@
         "AC-031"
       ],
       "evidence_dir": "docs/evidence/CB9-320",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-330",
@@ -229,7 +248,8 @@
         "AC-037"
       ],
       "evidence_dir": "docs/evidence/CB9-330",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-340",
@@ -243,7 +263,8 @@
         "AC-045"
       ],
       "evidence_dir": "docs/evidence/CB9-340",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-400",
@@ -255,7 +276,8 @@
         "AC-043"
       ],
       "evidence_dir": "docs/evidence/CB9-400",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-410",
@@ -266,7 +288,8 @@
         "AC-017"
       ],
       "evidence_dir": "docs/evidence/CB9-410",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-420",
@@ -277,7 +300,8 @@
         "AC-018"
       ],
       "evidence_dir": "docs/evidence/CB9-420",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-430",
@@ -290,7 +314,8 @@
         "AC-043"
       ],
       "evidence_dir": "docs/evidence/CB9-430",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-440",
@@ -302,7 +327,8 @@
         "AC-022"
       ],
       "evidence_dir": "docs/evidence/CB9-440",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-450",
@@ -314,7 +340,8 @@
         "AC-024"
       ],
       "evidence_dir": "docs/evidence/CB9-450",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-500",
@@ -325,7 +352,8 @@
         "AC-025"
       ],
       "evidence_dir": "docs/evidence/CB9-500",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-510",
@@ -337,7 +365,8 @@
         "AC-035"
       ],
       "evidence_dir": "docs/evidence/CB9-510",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-520",
@@ -351,7 +380,8 @@
         "AC-043"
       ],
       "evidence_dir": "docs/evidence/CB9-520",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-530",
@@ -364,7 +394,8 @@
         "AC-028"
       ],
       "evidence_dir": "docs/evidence/CB9-530",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "NOT_RUN(env)"
     },
     {
       "id": "CB9-540",
@@ -375,7 +406,8 @@
         "AC-029"
       ],
       "evidence_dir": "docs/evidence/CB9-540",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-600",
@@ -386,7 +418,8 @@
         "AC-036"
       ],
       "evidence_dir": "docs/evidence/CB9-600",
-      "evidence_present": true
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-610",
@@ -399,7 +432,8 @@
         "AC-040"
       ],
       "evidence_dir": "docs/evidence/CB9-610",
-      "evidence_present": false
+      "evidence_present": true,
+      "status": "CLOSED"
     },
     {
       "id": "CB9-620",
@@ -412,7 +446,8 @@
         "AC-028"
       ],
       "evidence_dir": "docs/evidence/CB9-620",
-      "evidence_present": false
+      "evidence_present": true,
+      "status": "NOT_RUN(env)"
     },
     {
       "id": "CB9-630",
@@ -424,7 +459,8 @@
         "AC-035"
       ],
       "evidence_dir": "docs/evidence/CB9-630",
-      "evidence_present": false
+      "evidence_present": true,
+      "status": "NOT_RUN(env)"
     },
     {
       "id": "CB9-640",
@@ -435,7 +471,8 @@
         "AC-034"
       ],
       "evidence_dir": "docs/evidence/CB9-640",
-      "evidence_present": false
+      "evidence_present": true,
+      "status": "NOT_RUN(env)"
     },
     {
       "id": "CB9-650",
@@ -452,7 +489,8 @@
         "AC-045"
       ],
       "evidence_dir": "docs/evidence/CB9-650",
-      "evidence_present": false
+      "evidence_present": true,
+      "status": "NOT_RUN(env)"
     },
     {
       "id": "CB9-660",
@@ -463,7 +501,8 @@
         "AC-035"
       ],
       "evidence_dir": "docs/evidence/CB9-660",
-      "evidence_present": false
+      "evidence_present": true,
+      "status": "NOT_RUN(env)"
     }
   ]
 }
