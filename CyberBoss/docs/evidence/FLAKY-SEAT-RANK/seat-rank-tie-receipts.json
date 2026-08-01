@@ -1,0 +1,53 @@
+{
+  "item": "public-entry 两条 flaky 席位测试",
+  "status": "已修复",
+  "generated_at": "2026-08-01T20:26:52Z",
+  "head_observation": "d46e481ac7b68de3cfb7c85e13bd6d51772161fb",
+  "reported_symptom": {
+    "单文件": "1 条红",
+    "双文件": "2 条红",
+    "全量": "0 条红"
+  },
+  "root_cause": {
+    "where": "app/src/services/users/user-repository.js 的 ordinaryUserRank",
+    "what": "排序写的是 `ORDER BY created_at, user_id`。created_at 只到毫秒；两个人在同一毫秒注册时 created_at 并列，次序就落到 user_id 上——而那是一个 HMAC 哈希，和谁先到毫无关系。",
+    "why_the_flake_pattern": "机器慢时三次 admit 跨过毫秒边界，created_at 各不相同，排序正确 → 绿。机器快时三次落在同一毫秒 → 次序被哈希打乱 → 红。全量套件里并行进程多、机器忙，反而慢到跨过了边界，所以 0 红。**全量绿是绿得不对**：它证明的是「今天机器够忙」。",
+    "proof": "冻结时钟让三个人必然同毫秒注册，ordinaryUserRank 排出来是 1、3、2——第二个到的人被排到了第三。这是可确定性复现的，不看机器速度。",
+    "corroboration": "给失败的那条测试加两行 console.error 之后它就变绿了——插桩本身拖慢了执行，跨过了毫秒边界。"
+  },
+  "not_a_test_bug": {
+    "claim": "这是**生产缺陷**，不是测试写错了。",
+    "why": "ordinaryUserRank 决定谁能用主人的额度（resolveOwnerQuotaFor）。第 N 号和第 N+1 号在同一毫秒注册时，谁拿到那个位子由哈希决定——而产品对用户的承诺是「先到先得」。",
+    "why_now": "CB9-300 把注册默认改成开放之后，同毫秒注册的概率只会更高：人可能成批扫码进来。"
+  },
+  "fix": {
+    "change": "`ORDER BY created_at, user_id` → `ORDER BY created_at, rowid`",
+    "why_rowid": "rowid 是 SQLite 的插入序，单调递增且**永不并列**——它就是到达顺序本身。",
+    "why_keep_created_at_first": "万一有数据是按历史时间补回来的，意图优先于插入序。",
+    "no_migration_needed": "rowid 是 SQLite 每张表自带的，不用改表。"
+  },
+  "new_test": {
+    "file": "app/test/seat-rank-same-millisecond.test.js（6 条）",
+    "why_a_new_file": "原来那两条**靠机器速度碰运气**：它们能不能测到该测的东西，取决于三次 admit 有没有跨过毫秒边界。新的这份冻结时钟，把并列变成必然而不是偶然，在快机器和慢机器上给出同一个结论。",
+    "guard_against_vacuity": "第一条先断言 created_at 确实只有一个不同取值——否则这条测试又变回「碰巧跨过毫秒」。"
+  },
+  "three_run_modes_after_fix": {
+    "单文件 × 5": "0 0 0 0 0",
+    "多文件 × 3": "0 0 0",
+    "全量": "1234 + 72 全通过"
+  },
+  "red_green_proof": {
+    "回退修复（回到按 user_id 并列）": {
+      "新测试": "3 红（每次都红）",
+      "旧两条": "5 次跑出 [0, 1, 2, 0, 1] —— 仍然是掷硬币"
+    },
+    "完全按哈希排序": {
+      "新测试": "3 红"
+    },
+    "查不到的人返回 1（会白拿一个额度）": {
+      "新测试": "3 红"
+    },
+    "结论": "新测试能确定性地抓到这个缺陷，旧两条不能。这正是为什么修完之后还要加这一份，而不是只把 bug 修掉。"
+  },
+  "old_tests_disposition": "保留。它们的 flakiness 是**这个缺陷造成的**，缺陷修掉之后它们稳定通过（单文件 5 次全绿）。但它们仍然无法可靠地检出回归（见上面的 [0,1,2,0,1]），所以守门的是新那一份。"
+}

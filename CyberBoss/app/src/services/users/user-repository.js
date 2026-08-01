@@ -75,8 +75,21 @@ class SqliteUserRepository {
   // 这个人在普通用户里排第几（1 起）。按开通时间排——先来的先占主人的额度，
   // 这是唯一一个不用解释就说得通的规则。不是普通用户（或不存在）返回 0。
   ordinaryUserRank(userId) {
+    // 并列时按 rowid，**不是** user_id。
+    //
+    // created_at 只到毫秒。两个人在同一毫秒注册（真实会发生，尤其现在默认开放
+    // 注册之后）时，原来的 `ORDER BY created_at, user_id` 会把次序交给
+    // user_id——那是一个 HMAC 哈希，和谁先到毫无关系。实测三个人同毫秒进来，
+    // 排出来是 1、3、2：第二个到的人被排到了第三。
+    //
+    // 这不是排序好不好看的问题：这个名次决定谁能用主人的额度。第 N 和第 N+1
+    // 号同毫秒注册时，谁拿到那个位子由哈希决定，而产品对用户的承诺是「先到先
+    // 得」。
+    //
+    // rowid 是 SQLite 的插入序，单调递增且**永不并列**——它就是到达顺序本身。
+    // created_at 仍排在前面：万一有数据是按历史时间补回来的，意图优先于插入序。
     const rows = this.database
-      .prepare("SELECT user_id FROM users WHERE role='user' AND status='active' ORDER BY created_at, user_id")
+      .prepare("SELECT user_id FROM users WHERE role='user' AND status='active' ORDER BY created_at, rowid")
       .all();
     const index = rows.findIndex((row) => row.user_id === userId);
     return index < 0 ? 0 : index + 1;
