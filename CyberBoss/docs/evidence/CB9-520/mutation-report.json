@@ -1,0 +1,46 @@
+[
+ {
+  "mutation": "闸从出口上摘掉",
+  "result": "转红"
+ },
+ {
+  "mutation": "出口路径不挂了，白名单永远不生效",
+  "result": "转红"
+ },
+ {
+  "mutation": "拦下之后照发不误",
+  "result": "转红"
+ },
+ {
+  "mutation": "值扫描不下数组",
+  "result": "转红"
+ },
+ {
+  "mutation": "内部 ID 不查了",
+  "result": "转红"
+ },
+ {
+  "mutation": "已知私密值形状不查了",
+  "result": "转红"
+ },
+ {
+  "mutation": "顶层键白名单不查了",
+  "result": "转红"
+ },
+ {
+  "mutation": "键黑名单在不鉴权出口上也不查了",
+  "result": "转红"
+ },
+ {
+  "mutation": "键黑名单铺到所有出口（会清空后台对话页）",
+  "result": "转红"
+ },
+ {
+  "mutation": "报错把值也带上",
+  "result": "转红"
+ },
+ {
+  "mutation": "内部 ID 只认前缀不认长度（会误杀 thread_ok）",
+  "result": "转红"
+ }
+]

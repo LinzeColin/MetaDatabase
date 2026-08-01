@@ -25,6 +25,11 @@ const DASHBOARD_TEMPLATE = require("node:path").join(
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8787;
 const API_PREFIX = "/api/";
+
+const { assertPublicEgress } = require("../privacy/public-egress");
+
+// 挂在 response 上的出口路径。用 Symbol 是为了不和 node 自己的字段撞名。
+const EGRESS_SURFACE = Symbol("cyberboss.egress.surface");
 const SETUP_PATHS = Object.freeze(["/setup", "/setup/"]);
 const ADMIN_PATHS = Object.freeze(["/admin", "/admin/"]);
 // 只输一个域名就该看到东西。之前根路径落到最后那个 404 分支，用户看到的是一行
@@ -299,9 +304,34 @@ class PortalHttpServer {
     return this.#tokenMatches(request);
   }
 
+  // 所有 JSON 响应的**唯一**出口，隐私闸就装在这里（CB9-520 / AC-043）。
+  //
+  // 装在这里而不是各个处理函数里，是因为「每个处理函数记得调一下过滤器」是
+  // 行为保证——写的时候都记得，下一个人加一条路由就漏了，而漏了没有任何症状。
+  // 装在出口上就变成结构保证：往公开面塞脏东西这件事做不到，不需要谁记得。
+  //
+  // 出口路径从 response 上读（#route 挂的），用来挑那几个完全不鉴权的出口额外
+  // 钉顶层键白名单。
   #json(response, status, payload) {
+    const surface = response?.[EGRESS_SURFACE] || null;
+    let body = payload;
+    try {
+      assertPublicEgress(payload, { surface });
+    } catch (error) {
+      // fail-closed：查出泄漏就**不发这份 payload**，而不是脱敏之后接着发。
+      // 脱敏接着发会把上游那个 bug 藏起来——那一版代码依然在往公开面塞脏东西，
+      // 只是这一层每次都在替它擦。
+      body = { ok: false, code: "RESPONSE_WITHHELD" };
+      status = 500;
+      // 日志只记 code 和路径，**不记值**——记值的话这条日志本身就是那次泄漏，
+      // 而且它落在普通日志里，泄漏面比原来更大。
+      console.error(
+        "[cyberboss] 响应被隐私闸拦下 出口=%s 原因=%s 位置=%s",
+        surface || "(other)", error?.code || "EGRESS_UNKNOWN", error?.pointer || "$",
+      );
+    }
     response.writeHead(status, { ...SECURITY_HEADERS, "Content-Type": "application/json" });
-    response.end(JSON.stringify(payload));
+    response.end(JSON.stringify(body));
   }
 
   // 「主页」那条链接里的票**就是会话本身**（web_sessions 本来就按 user_id 存）。
@@ -664,6 +694,12 @@ class PortalHttpServer {
   #route(request, response) {
     const url = new URL(request.url || "/", "http://placeholder.invalid");
     const pathname = url.pathname;
+    // 把出口路径挂在 response 上，#json 自己去读。
+    //
+    // 不让每个处理函数把 pathname 传给 #json：那又变成「记得传」的行为保证，
+    // 而漏传的那一条恰好就是新加的那条路由——最可能出问题的那一条。
+    // 一个请求对应一个 response 对象，所以并发下不会串。
+    response[EGRESS_SURFACE] = pathname;
 
     if (request.method === "GET" && ROOT_PATHS.includes(pathname)) {
       // 以前这里是 302 跳 /admin。陌生人打开这个域名，看到的是主人的后台登录页

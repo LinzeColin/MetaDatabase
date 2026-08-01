@@ -1,0 +1,71 @@
+{
+  "node": "CB9-520",
+  "acceptance": [
+    "AC-020",
+    "AC-026",
+    "AC-033",
+    "AC-043"
+  ],
+  "requirements": [
+    "FR-020",
+    "FR-026",
+    "NFR-003"
+  ],
+  "method": "real HTTP server, real request, poisoned upstream payload",
+  "gate_location": "PortalHttpServer#json — the single JSON exit; surface path attached by #route",
+  "unauthenticated_surfaces": {
+    "/api/join": [
+      "ok",
+      "ready",
+      "status",
+      "ticket",
+      "qrDataUri",
+      "message",
+      "open",
+      "full",
+      "code"
+    ],
+    "/api/join/status": [
+      "ok",
+      "state",
+      "message",
+      "code"
+    ],
+    "/api/join/timezone": [
+      "ok",
+      "code"
+    ]
+  },
+  "probes": [
+    {
+      "probe": "clean",
+      "http_status": 200,
+      "leaked": false,
+      "bytes_on_the_wire": 2147
+    },
+    {
+      "probe": "wechat_id",
+      "http_status": 500,
+      "leaked": false,
+      "bytes_on_the_wire": 39
+    },
+    {
+      "probe": "absolute_path",
+      "http_status": 500,
+      "leaked": false,
+      "bytes_on_the_wire": 39
+    },
+    {
+      "probe": "internal_thread_id",
+      "http_status": 500,
+      "leaked": false,
+      "bytes_on_the_wire": 39
+    },
+    {
+      "probe": "unlisted_field",
+      "http_status": 500,
+      "leaked": false,
+      "bytes_on_the_wire": 39
+    }
+  ]
+}
