@@ -90,6 +90,11 @@ const {
   renderPersonaInstruction,
 } = require("../services/persona/persona-store");
 const {
+  BEIJING_ZONE,
+  formatInZone,
+  normalizeUserZone,
+} = require("../services/time/canonical-time");
+const {
   MAX_TTL_MS: SESSION_MAX_TTL_MS,
   SqliteSessionTokenService,
   parseSessionCookie,
@@ -6082,7 +6087,7 @@ function assertWeixinUpdateResponse(response) {
 // 主人的当地时间。服务器在 UTC 上跑，但面板是给人看的，人看的是自己表上的时间。
 // 时区可以用 CB_OWNER_TIMEZONE 改；默认 Asia/Shanghai，和主动打招呼的静默时段
 // 用的是同一个时区，两边必须一致，否则「23 点静默」会在两个不同的时刻生效。
-const OWNER_TIMEZONE = process.env.CB_OWNER_TIMEZONE || "Asia/Shanghai";
+const OWNER_TIMEZONE = normalizeUserZone(process.env.CB_OWNER_TIMEZONE);
 
 // 发这两个字就给自己那一页的链接。主人的原话：「减少关键词输入」。
 // 「我的主页」「首页」「我的网站」也认——同一件事不该因为多打两个字就失灵。
@@ -6100,12 +6105,10 @@ function formatOwnerLocalTime(value) {
     return "";
   }
   try {
-    return new Intl.DateTimeFormat("zh-CN", {
-      timeZone: OWNER_TIMEZONE,
-      month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", second: "2-digit",
-      hour12: false,
-    }).format(date).replace(/\//g, "-");
+    // 面板上的时间戳不写年份——一屏几十行，年份是纯噪声。切掉前 5 个字符
+    // （"2026-"）而不是另建一个 formatter，是为了让它和权威层用同一套渲染，
+    // 不会哪天两边对同一时刻给出不同的分钟。
+    return formatInZone(date, OWNER_TIMEZONE, { seconds: true }).slice(5);
   } catch {
     return date.toISOString().slice(5, 19).replace("T", " ");
   }
@@ -6634,19 +6637,11 @@ function formatWechatLocalTime(receivedAt) {
   if (!value) {
     return "";
   }
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
+  try {
+    return formatInZone(value, BEIJING_ZONE);
+  } catch {
     return value;
   }
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(parsed).replace(/\//g, "-");
 }
 
 function stringifyRpcId(value) {

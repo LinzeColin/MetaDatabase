@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const { resolveSelectedAccount } = require("../adapters/channel/weixin/account-store");
+const { BEIJING_ZONE, formatInZone, hourInZone } = require("../services/time/canonical-time");
 const { resolveAccountForUser } = require("../adapters/channel/weixin/account-routing");
 const { SessionStore } = require("../adapters/runtime/codex/session-store");
 const { CheckinConfigStore, resolveDefaultCheckinRange } = require("../core/checkin-config-store");
@@ -24,9 +25,9 @@ async function runSystemCheckinPoller(config, options = {}) {
   const readProactive = typeof options.readProactive === "function" ? options.readProactive : null;
   const nowHour = typeof options.nowHour === "function"
     ? options.nowHour
-    : () => Number(new Intl.DateTimeFormat("en-US", {
-      timeZone: "Asia/Shanghai", hour: "2-digit", hour12: false,
-    }).format(new Date()));
+    // 安静时段判的是**北京时间**的几点。别用 Date#getHours——那读的是宿主机
+    // 时区，机器在 UTC 上跑的时候「23 点静默」会在北京时间早上 7 点生效。
+    : () => hourInZone(new Date(), BEIJING_ZONE);
   const primaryAccount = resolveSelectedAccount(config);
   const queue = new SystemMessageQueueStore({ filePath: config.systemMessageQueueFile });
   const checkinConfigStore = new CheckinConfigStore({ filePath: config.checkinConfigFile });
@@ -248,16 +249,7 @@ function formatLocalTime(value) {
   if (Number.isNaN(date.getTime())) {
     return String(value || "");
   }
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).format(date).replace(/\//g, "-");
+  return formatInZone(date, BEIJING_ZONE, { seconds: true });
 }
 
 function formatRangeMinutes(range) {

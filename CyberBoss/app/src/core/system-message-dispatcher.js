@@ -1,3 +1,5 @@
+const { injectedTimeLine } = require("../services/time/canonical-time");
+
 class SystemMessageDispatcher {
   constructor({ queueStore, config, accountId }) {
     this.queueStore = queueStore;
@@ -51,12 +53,12 @@ class SystemMessageDispatcher {
   }
 }
 
-function buildSystemInboundText(text, createdAt = "") {
+function buildSystemInboundText(text, createdAt = "", userZone = "") {
   const body = normalizeText(text);
-  const localTime = formatSystemLocalTime(createdAt);
+  const localTime = formatSystemLocalTime(createdAt, userZone);
   const sections = [
     // 时区跟入站那条保持一致，理由见 inbound-turn.js 的同名注释。
-    ...(localTime ? [`[${localTime} 北京时间]`, ""] : []),
+    ...(localTime ? [localTime, ""] : []),
     "SYSTEM ACTION MODE: internal trigger, not user chat.",
     "Do any timeline/diary/reminder/whereabouts work in this turn.",
     "If you act, end with send_message that briefly and naturally reflects what you did or what changed; use silent only if you do nothing.",
@@ -71,20 +73,14 @@ function buildSystemInboundText(text, createdAt = "") {
   return sections.join("\n").trim();
 }
 
-function formatSystemLocalTime(value) {
+// 和入站那条路共用 canonical-time 的同一个渲染（CB9-200）。
+// 两边各写各的话，同一个时刻进模型会有两种措辞，模型会以为是两个时区。
+function formatSystemLocalTime(value, userZone) {
   const normalized = normalizeIsoTime(value);
   if (!normalized) {
     return "";
   }
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(normalized)).replace(/\//g, "-");
+  return injectedTimeLine(normalized, userZone);
 }
 
 function normalizeIsoTime(value) {

@@ -2,6 +2,7 @@ const {
   STICKER_DESC_GUIDANCE,
   STICKER_TAG_GUIDANCE,
 } = require("../services/sticker-service");
+const { injectedTimeLine } = require("../services/time/canonical-time");
 
 function buildInboundDraft(normalized, { attachments = [], attachmentFailures = [] } = {}) {
   const originalText = normalizeText(normalized?.text);
@@ -49,6 +50,10 @@ function assembleRuntimeTurnText({
   config = {},
   visionContext = {},
   personaInstruction = "",
+  // 这个人的 IANA 时区。缺就按北京时间渲染——今天所有人都走这条回退，因为写
+  // user_location_profiles 的信号采集在 CB9-210/220。参数先留着，是为了让填它
+  // 的那个节点只需要改一处调用，而不用再动这里的渲染逻辑。
+  userZone = "",
 }) {
   const lines = [];
   // 语气块贴在最前面，早于时间戳和用户原话。放在末尾会被长附件段落推远，模型
@@ -57,7 +62,7 @@ function assembleRuntimeTurnText({
   if (persona) {
     lines.push(persona);
   }
-  const localTime = formatWechatLocalTime(prepared?.receivedAt);
+  const localTime = formatWechatLocalTime(prepared?.receivedAt, userZone);
   const originalText = normalizeText(prepared?.originalText ?? prepared?.text);
   const attachments = Array.isArray(prepared?.attachments) ? prepared.attachments : [];
   const attachmentFailures = Array.isArray(prepared?.attachmentFailures) ? prepared.attachmentFailures : [];
@@ -74,7 +79,10 @@ function assembleRuntimeTurnText({
     // 带时区的时刻加一句"你在 UTC"，模型就会把它当 UTC 再换算，主人在悉尼 0 点
     // 问它答"悉尼时间 8 点"。TZ=Asia/Shanghai 已经在部署里设上了，这行是第二道
     // 闸：万一哪天 codex 是被手工拉起来的、没继承到 TZ，时刻本身仍然自证时区。
-    lines.push(`[${localTime} 北京时间]`);
+    //
+    // 括号里那句从 canonical-time 出：这个人有当地时区就写成「当地时间…（北京
+    // 时间…）」，没有就还是单独一个北京时间（CB9-200 / AC-041）。
+    lines.push(localTime);
   }
   if (originalText) {
     if (lines.length) {
@@ -210,24 +218,14 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function formatWechatLocalTime(receivedAt) {
+// 时区口径统一由 canonical-time 出（CB9-200）。这里只负责「拿不到时刻就不写
+// 那一行」——认不出来的字符串原样返回，交给上面判空。
+function formatWechatLocalTime(receivedAt, userZone) {
   const value = typeof receivedAt === "string" ? receivedAt.trim() : "";
   if (!value) {
     return "";
   }
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(parsed).replace(/\//g, "-");
+  return injectedTimeLine(value, userZone) || value;
 }
 
 module.exports = {

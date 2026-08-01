@@ -1,5 +1,7 @@
 "use strict";
 
+const { BEIJING_ZONE } = require("../time/canonical-time");
+
 // 「我跟他说 1 分钟后提醒我，他没有回话，1 分钟后也没有提醒我。」
 //
 // 查下来 reminder-queue.json 是空的：模型根本没调 cyberboss_reminder_create。
@@ -216,7 +218,7 @@ function ownerWallClockToMs({ year, month, day, hour, minute }, timeZone) {
 
 function parseReminderIntent(rawText, {
   now = Date.now(),
-  timeZone = "Asia/Shanghai",
+  timeZone = BEIJING_ZONE,
 } = {}) {
   const text = normalizeText(rawText);
   if (!text || text.length > 200) {

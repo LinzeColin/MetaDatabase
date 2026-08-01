@@ -12,6 +12,7 @@
 // 口令尽量短，主人的原话是「减少关键词输入」。
 
 const { parseReminderIntent } = require("../reminder/reminder-intent");
+const { BEIJING_ZONE } = require("../time/canonical-time");
 
 // ── 看 ──────────────────────────────────────────────────────
 // 「待办」「我的待办」「todo」都算。后面不能再跟内容，跟了内容就是要加一条。
@@ -32,7 +33,7 @@ const DONE_BARE = /^(完成|做完了?|搞定|划掉|done)[?？。！!]?$/i;
 const MAX_TITLE = 200;
 
 // 返回 null 表示这句话不归这一层管，照旧交给模型。
-function parseItemIntent(rawText, { now = Date.now(), timeZone = "Asia/Shanghai" } = {}) {
+function parseItemIntent(rawText, { now = Date.now(), timeZone = BEIJING_ZONE } = {}) {
   const text = String(rawText || "").trim();
   if (!text || text.length > 300) {
     return null;

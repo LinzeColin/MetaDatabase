@@ -1,0 +1,78 @@
+{
+  "task": "CB9-200",
+  "title": "实现 UTC 瞬时层与北京时间权威表达层",
+  "generated_at": "2026-08-01T13:13:39Z",
+  "head_observation": "33361d6adc2120e8c3a1ebdd3a7be890b61f9d0c",
+  "stage0_classification": {
+    "before": "Asia/Shanghai 硬写在 8 个源文件里，其中 4 份是几乎一样的 Intl.DateTimeFormat；AC-010 的四元组和 AC-041 的双时间文案一个都不存在",
+    "upstream": "任务包 Starter Kit src/time/canonical-time.js 有四元组和双时间 label",
+    "decision": "采用 Starter Kit 的语义（四元组 + 双时间），保留本仓已上线的显示精度与措辞（分钟精度、[时刻 北京时间] 的词序），并把散落的 4 份 formatter 全部收敛过去"
+  },
+  "artifacts": [
+    "app/src/services/time/canonical-time.js（新）",
+    "app/src/core/inbound-turn.js",
+    "app/src/core/system-message-dispatcher.js",
+    "app/src/core/app.js",
+    "app/src/app/system-checkin-poller.js",
+    "app/src/services/diary-service.js",
+    "app/src/services/reminder/reminder-intent.js",
+    "app/src/services/items/item-intent.js",
+    "app/test/cb9-200-canonical-time.test.js（新）"
+  ],
+  "acceptance": {
+    "AC-010": {
+      "status": "PASS",
+      "how": "canonicalStamp 一次给全 instant_utc / epoch_ms / canonical_zone=Asia/Shanghai / canonical_beijing 并冻结；另有一条测试用两组真实时刻验证「按 epoch_ms 排序」和「按 canonical_beijing 排序」得到同一个序——这正是分层的理由本身"
+    },
+    "AC-041": {
+      "status": "PARTIAL",
+      "how": "渲染层已完成并接进真实入站/主动两条路：dualTime 在用户时区与北京同墙上时间时折叠为一句，否则同时给出当地时间和北京时间；折叠判据是渲染结果相等而不是 zone===Asia/Shanghai，所以 Asia/Chongqing 也折叠、Asia/Urumqi（UTC+6）不折叠。",
+      "why_not_pass": "今天所有人都渲染成北京时间，因为 user_location_profiles_v009 还没有任何写入方——采集信号是 CB9-210/220，提醒确认文案是 CB9-230。现在标 PASS 就是拿一条走不到的分支冒充已验收。",
+      "completes_at": "CB9-230（提醒确认文案）+ CB9-250（Fake Clock/DST/双时间文案冻结测试）"
+    }
+  },
+  "reachability": {
+    "note": "这个仓的招牌坏法是「模块写好了、测试全绿、没人调用」。所以本节点不只建层，还把 4 处线上 formatter 全部改成调用它。",
+    "call_sites": [
+      "inbound-turn.assembleRuntimeTurnText → injectedTimeLine（每条入站消息）",
+      "system-message-dispatcher.buildSystemInboundText → injectedTimeLine（每条主动消息/提醒）",
+      "app.formatOwnerLocalTime / formatWechatLocalTime → formatInZone（后台面板全部时间戳）",
+      "system-checkin-poller nowHour → hourInZone（安静时段判断）",
+      "diary-service formatDate/formatTime → formatDateInZone/formatInZone（日记按天归档）"
+    ],
+    "structural_guard": "一条测试遍历整个 src/ 扫描代码行（剔除注释），断言 Asia/Shanghai 只出现在 canonical-time.js 里。新加一处硬编码立刻转红。"
+  },
+  "regression_oracle": "把被替换掉的那份 zh-CN formatter 原样抄进测试当 oracle，用 5 个真实时刻 × 2 种精度断言收敛前后逐字节一致。不这样写的话「收敛没改变行为」只是一句话——而 zh-CN 给 2026/07/29、en-CA 给 2026-07-29,（带逗号），差一个字符就是线上所有时间戳的形状变了。",
+  "tests": {
+    "count": "14/14 pass",
+    "full_regression": "1073 + 72 全通过（含 5 条钉死线上输出的 beijing-time.test.js）"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "折叠改成 zone === BEIJING_ZONE",
+      "red": 1,
+      "catches": "重庆/澳门用户看到两遍同一个时间"
+    },
+    {
+      "mutation": "hourCycle 改 h12",
+      "red": 11,
+      "catches": "22 点渲染成 10 点"
+    },
+    {
+      "mutation": "去掉时区校验",
+      "red": 1,
+      "catches": "歪掉的外部时区名直接进 Intl 抛错，主路径被一个可降级字段拖挂"
+    },
+    {
+      "mutation": "canonical_zone 改成 UTC",
+      "red": 1,
+      "catches": "权威口径被换掉"
+    },
+    {
+      "mutation": "在入站又写死一份 Asia/Shanghai",
+      "red": 1,
+      "catches": "结构性防线：绕过权威层"
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}

@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const { resolveBodyInput } = require("./text-input");
+const { BEIJING_ZONE, formatDateInZone, formatInZone } = require("./time/canonical-time");
 
 class DiaryService {
   constructor({ config }) {
@@ -41,22 +42,14 @@ function buildDiaryEntry({ timeString, title, body }) {
   return `${heading}\n\n${body}`;
 }
 
+// 日记按天归档，「哪一天」的边界必须按时区切，不能按 UTC——北京时间 0 点到
+// 8 点写的东西，按 UTC 切会掉进前一天的那一篇里。
 function formatDate(date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
+  return formatDateInZone(date, BEIJING_ZONE);
 }
 
 function formatTime(date) {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Shanghai",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
+  return formatInZone(date, BEIJING_ZONE).slice(11);
 }
 
 module.exports = {
