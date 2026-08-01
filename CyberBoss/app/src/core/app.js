@@ -1085,6 +1085,18 @@ class CyberbossApp {
         // 机器扛不住时先关主动问候（CB9-320 / AC-031）。读不出来当正常，
         // 退化后的行为和加这个功能之前一模一样。
         readPressure: () => this.resourcePressureLevel(),
+        // 预算熔断（CB9-420 / AC-018 第三条抑制）。主动问候不花用户的钱，
+        // 但它花的是同一份共享额度：熔断后还继续主动找人，等于用可有可无的
+        // 问候把「他真的问一句话」那次调用挤掉了。
+        readBudget: (senderId) => this.proactiveBudgetFor(senderId),
+        // 唤醒他**既有**的那个会话，不是新开一个。
+        readSession: (senderId) => {
+          const userId = this.resolveUserIdForPersona({ senderId });
+          return {
+            userScope: userId || "",
+            sessionKey: userId ? this.companionSessionKeyFor(userId) : "",
+          };
+        },
       }).catch((error) => {
         console.error(`[cyberboss] checkin poller stopped: ${error.message}`);
       });
@@ -3853,6 +3865,32 @@ class CyberbossApp {
     }
     this.resourcePressureCache = { at: now, level };
     return level;
+  }
+
+  // 这个人现在还能不能收到主动消息——从预算角度（CB9-420 / AC-018）。
+  //
+  // 读不出来返回 ok:false 而不是 true。反过来的话，预算服务一挂主动消息就会
+  // 不受限地发下去，而那正是最花钱的时候。和资源闸门的「没测过的地板不是满足
+  // 的地板」是同一个道理：不确定就别花钱。
+  proactiveBudgetFor(senderId) {
+    try {
+      const userId = this.resolveUserIdForPersona({ senderId });
+      if (!userId) {
+        return { ok: false, reason: "unknown_user" };
+      }
+      const guard = this.modelBudgetGuard;
+      if (!guard || typeof guard.check !== "function") {
+        // 没装预算守卫的部署（本地跑）不该被这条挡住——那会让 `cyberboss start
+        // --checkin` 一条问候都发不出来。
+        return { ok: true, reason: "no_guard" };
+      }
+      const verdict = guard.check({ userId, kind: "proactive" });
+      return verdict?.allowed === true
+        ? { ok: true }
+        : { ok: false, reason: verdict?.reason || "budget_exhausted" };
+    } catch {
+      return { ok: false, reason: "budget_unreadable" };
+    }
   }
 
   // 这个人那一个 Companion 会话的键（CB9-120 的 stableSessionKey）。

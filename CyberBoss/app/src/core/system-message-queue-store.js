@@ -123,6 +123,19 @@ function normalizeSystemMessage(message) {
     // 的人），整个号从此静默，而且没有任何东西会报错。这正是这次「boss 只找
     // 主人」的形状，只是原因换了一个。
     attempts: Number.isInteger(message.attempts) && message.attempts > 0 ? message.attempts : 0,
+    // 会话身份（CB9-420 / AC-018）。
+    //
+    // 不落盘的话，进程一重启这条排着的问候就丢了归属——发出去的时候会新开一个
+    // 会话，模型不知道之前说过什么，「主动关心」变成「陌生人搭讪」。
+    // 空串而不是 undefined：JSON 里 undefined 让字段整个消失，而消失的字段和
+    // 「这个人没有会话」读回来长得一模一样。
+    userScope: normalizeText(message.userScope),
+    sessionKey: normalizeText(message.sessionKey),
+    // 主人的脉冲和访客的主动关心是两件事。混在一起的话，「boss 是不是只找主人」
+    // 这个问题又要靠翻队列文件来答。
+    pulseKind: ["owner_pulse", "companion_checkin"].includes(message.pulseKind)
+      ? message.pulseKind
+      : "",
   };
 }
 

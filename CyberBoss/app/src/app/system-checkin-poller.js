@@ -34,6 +34,21 @@ async function runSystemCheckinPoller(config, options = {}) {
   const nowHour = typeof options.nowHour === "function"
     ? options.nowHour
     : (zone) => hourInZone(new Date(), zone || BEIJING_ZONE);
+  // 这个人的预算还够不够（CB9-420 / AC-018）。
+  //
+  // 三条抑制里这一条以前**根本没查**：主动问候不花用户的钱，但它花的是同一份
+  // 共享额度。额度熔断之后还继续主动找人，等于用「可有可无的问候」把「他真的
+  // 问一句话」那次调用挤掉了——而后者才是他要的。
+  // 没注入就当额度充足，退化后的行为和加这个功能之前一模一样。
+  const readBudget = typeof options.readBudget === "function"
+    ? options.readBudget
+    : () => ({ ok: true });
+  // 这个人那一个会话的键。脉冲要唤醒的是**既有**会话，不是新开一个
+  // ——新开的话模型不知道之前说过什么，「主动关心」就变成了「陌生人搭讪」。
+  const readSession = typeof options.readSession === "function"
+    ? options.readSession
+    : () => ({ userScope: "", sessionKey: "" });
+
   // 目标本人的时区。没注入就退回北京时间，和以前的行为一致。
   const readTimezone = typeof options.readTimezone === "function"
     ? options.readTimezone
@@ -124,6 +139,21 @@ async function runSystemCheckinPoller(config, options = {}) {
       if (!allows(readPressure(), capability)) {
         continue;
       }
+      // 预算熔断（AC-018 的第三条抑制）。同样必须在排队之前判。
+      let budget;
+      try {
+        budget = readBudget(target.senderId);
+      } catch {
+        // 读不出来当**不够**，不是当够。
+        //
+        // 反过来的话，预算服务一挂，主动消息就会不受限地发下去——而那正是最
+        // 花钱的时候。这一条和资源闸门的「没测过的地板不是满足的地板」是同一
+        // 个道理：不确定就别花钱。
+        budget = { ok: false, reason: "budget_unreadable" };
+      }
+      if (!budget || budget.ok !== true) {
+        continue;
+      }
 
       // 每一轮现查一次这个人挂在哪个号下面，而不是启动时定死：他重新扫过码
       // 之后账号会换，定死的那个会把主动消息投到一个已经作废的号上。
@@ -131,6 +161,16 @@ async function runSystemCheckinPoller(config, options = {}) {
       if (queue.hasPendingForAccount(account.accountId)) {
         continue;
       }
+      // 唤醒的是他**既有**的那个会话（AC-018）。
+      // 拿不到就照发——一条没有会话键的问候仍然比不发好，但它在事件里会被
+      // 如实标成没有 lineage，而不是假装唤醒了什么。
+      const session = (() => {
+        try {
+          return readSession(target.senderId) || {};
+        } catch {
+          return {};
+        }
+      })();
       const queued = queue.enqueue({
         id: crypto.randomUUID(),
         accountId: account.accountId,
@@ -138,6 +178,11 @@ async function runSystemCheckinPoller(config, options = {}) {
         workspaceRoot: target.workspaceRoot || defaultWorkspaceRoot,
         text: buildCheckinTrigger(config),
         createdAt: new Date().toISOString(),
+        userScope: String(session.userScope || ""),
+        sessionKey: String(session.sessionKey || ""),
+        // 主人的脉冲和访客的主动关心是两件事，事件里要分得开：
+        // 混在一起的话，「boss 是不是只找主人」这个问题又要靠翻队列文件来答。
+        pulseKind: target.isOwner ? "owner_pulse" : "companion_checkin",
       });
       // 带上是给谁排的。只有 id 的时候，「boss 是不是只找主人」这个问题得靠翻
       // next-checkin.json 再解密 bot_initiated_messages 才答得出来。截断到 10 位：

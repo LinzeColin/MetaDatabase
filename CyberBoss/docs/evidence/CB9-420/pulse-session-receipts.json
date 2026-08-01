@@ -1,0 +1,91 @@
+{
+  "task": "CB9-420",
+  "title": "把 Owner Pulse 与 Companion Check-in 接入各自同一 Session",
+  "generated_at": "2026-08-01T21:06:02Z",
+  "head_observation": "a6fd7030280a835f32aebb1058375183ea7e2364",
+  "artifacts": [
+    "app/src/app/system-checkin-poller.js（预算闸门 + 会话身份）",
+    "app/src/core/system-message-queue-store.js（userScope/sessionKey/pulseKind 落盘）",
+    "app/src/core/app.js（proactiveBudgetFor + readSession 注入）",
+    "app/test/cb9-420-pulse-session.test.js（新，17）"
+  ],
+  "the_gap": "AC-018 的三条抑制里，**预算熔断根本没查**。轮询器只判了禁用和安静时段（加上 CB9-320 的资源降级）。主动问候不花用户的钱，但花的是同一份共享额度——熔断后还主动找人，等于用可有可无的问候把「他真的问一句话」那次调用挤掉了。",
+  "acceptance": {
+    "AC-018": {
+      "status": "PASS",
+      "how": "①会话身份（userScope/sessionKey/pulseKind）跟着脉冲一路落盘，重开 store 读得回来——不落盘的话进程一重启就丢了归属，发出去时会新开一个会话；②四条抑制（禁用/安静时段/资源降级/预算熔断）全部排在 enqueue **之前**（排在之后等于没有：排进去的一定会发出去），任意一条成立发送数就是 0；安静时段用假时钟遍历 24 小时验证，含跨零点区间。"
+    }
+  },
+  "design_decisions": [
+    {
+      "what": "预算读不出来按不够办",
+      "why": "反过来的话预算服务一挂，主动消息就不受限地发下去——而那正是最花钱的时候。和资源闸门「没测过的地板不是满足的地板」同理。"
+    },
+    {
+      "what": "没装预算守卫的部署放行",
+      "why": "本地 `cyberboss start --checkin` 没有守卫。挡住的话那条命令一条问候都发不出来，用户看到的是「主动找我开了但它从来不找我」。"
+    },
+    {
+      "what": "认不出的 pulseKind 落成空串",
+      "why": "悄悄归到某一类的话，运维面上的两个计数会有一个是错的，而没人知道。"
+    }
+  ],
+  "test_gap_found_by_mutation": {
+    "surviving": [
+      "脉冲不带 user_scope → 0 红",
+      "主人和访客的脉冲不分类 → 0 红"
+    ],
+    "why": "测了队列层（落盘对）和判定层（四条闸门对），但没有任何一条覆盖「轮询器在 enqueue 时真的把这两个字段传下去了」——队列层照样能正确处理它收到的东西，只是收到的是空的。",
+    "fix": "补两条盯轮询器那段调用本身的断言，另加一条「会话是读出来的不是每次现造」（现造的话每次都是新会话，而这件事在队列层和判定层都看不出来）。"
+  },
+  "tests": {
+    "count": "17 pass",
+    "full_regression": "1303 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "去掉预算闸门",
+      "red": 2
+    },
+    {
+      "mutation": "预算读不出来时放行",
+      "red": 1
+    },
+    {
+      "mutation": "脉冲不带 user_scope",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "主人和访客的脉冲不分类",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "会话现造",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "会话身份不落盘",
+      "red": 2
+    },
+    {
+      "mutation": "认不出的类型静默归为主人脉冲",
+      "red": 1
+    },
+    {
+      "mutation": "认不出人也放行",
+      "red": 1
+    },
+    {
+      "mutation": "抛错时放行",
+      "red": 1
+    },
+    {
+      "mutation": "熔断了也放行",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}
