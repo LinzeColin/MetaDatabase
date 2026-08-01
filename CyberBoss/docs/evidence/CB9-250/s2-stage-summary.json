@@ -1,0 +1,32 @@
+{
+  "stage": "S2",
+  "title": "时间与位置",
+  "nodes": [
+    "CB9-200",
+    "CB9-210",
+    "CB9-220",
+    "CB9-230",
+    "CB9-240",
+    "CB9-250"
+  ],
+  "generated_at": "2026-08-01T13:59:59Z",
+  "acceptance_final": {
+    "AC-010": "PASS",
+    "AC-011": "PASS",
+    "AC-012": "PASS",
+    "AC-013": "PASS",
+    "AC-014": "PASS",
+    "AC-015": "PASS",
+    "AC-016": "PASS",
+    "AC-041": "PASS",
+    "AC-042": "PASS"
+  },
+  "migrations_added": [
+    "016_original_parity_sessions_time_location.sql（version 14，CB9-140）",
+    "017_location_confirmation_state.sql（version 15，CB9-220）"
+  ],
+  "new_tests": "14+19+7+18+10+15+21+12 = 116 条",
+  "regression": "1175 + 72 全通过",
+  "environment_bound_nodes_in_S2": "无。S2 六个节点全部 environment_bound=false，无 NOT_RUN 项。",
+  "rollback": "两条迁移都是 additive-only（017 全部是 ADD COLUMN，016 只建新表），回退即回退到本段之前的 immutable release；不破坏任何 v0.0.0.8 数据。"
+}
