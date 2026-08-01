@@ -95,6 +95,15 @@
   .error { border-color: var(--accent); }
   [hidden] { display: none !important; }
   /* Long values wrap rather than pushing the layout sideways. */
+  /* 文字链接和 <summary> 也是可点的。
+     min-height 对 display:inline **不生效**——真实浏览器上量出来 65×16，
+     而静态扫描只看到「CSS 里写了 min-height」就放行了。所以这里先把它们变成
+     inline-block，再给高度；不改成 block 是为了不破坏它们在句子里的排版。 */
+  a:not(.btn), summary {
+    display: inline-block;
+    min-height: var(--touch);
+    line-height: var(--touch);
+  }
   .wrap { overflow-wrap: anywhere; word-break: break-word; }
 </style>
 </head>

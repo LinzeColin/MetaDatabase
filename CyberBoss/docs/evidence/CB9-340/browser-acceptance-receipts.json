@@ -1,0 +1,92 @@
+{
+  "task": "CB9-340",
+  "title": "执行移动端、桌面端、拒绝权限与零技术浏览器验收",
+  "environment_bound": true,
+  "status": "RUN（本机真实浏览器）",
+  "generated_at": "2026-08-01T20:41:10Z",
+  "head_observation": "562d6e5b6559faedc619db8fb9155504fab6dab9",
+  "environment": {
+    "host": "macOS-15.1-arm64-arm-64bit",
+    "chrome": "Google Chrome 150.0.7871.187",
+    "playwright_core": "1.62.0",
+    "headless": true,
+    "locale": "zh-CN",
+    "permissions": "[]（定位权限**拒绝**）"
+  },
+  "why_this_counts_as_real": "AC-030 的 method 是 playwright+a11y，AC-042 是 browser。这里用的是本机真实的 Google Chrome + playwright-core 驱动，页面由一个真的 HTTP 服务提供（不是 file://——file:// 下 CSP、fetch 和相对路径的行为都和线上不一样，量出来的不能代表线上）。测量取的是渲染后的 getBoundingClientRect 和 documentElement.scrollWidth，不是对 CSS 的推断。",
+  "what_was_measured": {
+    "viewports": [
+      "mobile-375x812",
+      "desktop-1280x720"
+    ],
+    "pages": [
+      "home.html",
+      "join.html",
+      "me.html",
+      "setup-portal.html",
+      "dashboard.html",
+      "ops-wechat.html"
+    ],
+    "combinations": 12,
+    "横向溢出": "documentElement.scrollWidth − clientWidth，全部 0px",
+    "触控区": "每个可见可点元素的实际渲染高宽，全部 ≥44px",
+    "权限弹窗": "在页面脚本之前挂钩 navigator.geolocation / permissions.query / getUserMedia / Notification.requestPermission，跑完看有没有人碰过——全部 0 次调用",
+    "h1": "每页恰好 1 个",
+    "加载耗时中位数": "425ms（本机 headless，仅供参考；真实网络下的 p95 归 CB9-650）"
+  },
+  "the_point_of_this_node": {
+    "claim": "CB9-330 的静态检查是**假绿**。",
+    "evidence": "静态检查六页全绿（--touch 变量在、min-height 在），真实浏览器一跑出来 7 个控件不到 44px：",
+    "found": [
+      {
+        "page": "home.html",
+        "el": "<a>我是管理员</a>",
+        "measured": "65×16",
+        "cause": "display:inline —— **min-height 对 inline 元素根本不生效**。CSS 里写了不等于生效。"
+      },
+      {
+        "page": "setup-portal.html",
+        "el": "<summary>高级设置</summary>",
+        "measured": "343×27.2",
+        "cause": "CB9-310 我自己加的折叠头，忘了给触控尺寸。"
+      },
+      {
+        "page": "dashboard.html",
+        "el": "四个标签按钮",
+        "measured": "40.4px",
+        "cause": "同一条规则里后面还有一个 min-height:40px，压过了我插进去的 var(--touch)——同规则内后者胜。"
+      },
+      {
+        "page": "dashboard.html",
+        "el": "<a id=showcode>",
+        "measured": "117×16",
+        "cause": "同 home，inline 链接。"
+      }
+    ],
+    "lesson": "「CSS 里有 min-height:44px」和「按钮真的是 44px」之间隔着 display、级联和覆盖三层。只有渲染出来量才知道。"
+  },
+  "fixes": [
+    "基线补 `a:not(.btn), summary { display:inline-block; min-height:var(--touch); line-height:var(--touch) }`（六页统一）",
+    "dashboard 标签按钮去掉那个压过基线的 min-height:40px"
+  ],
+  "acceptance": {
+    "AC-030": {
+      "status": "PASS",
+      "how": "375×812 与 1280×720 两个视口 × 六页 = 12 个组合，横向溢出全 0，可点控件全部 ≥44px，每页恰好一个 h1。真实渲染测量，非静态推断。"
+    },
+    "AC-042": {
+      "status": "PASS",
+      "how": "context 的 permissions 设为空数组（等价于拒绝定位）。六页在两个视口下跑完，权限接口被调用 0 次——不是「拒绝后优雅降级」，是**一次都没问**。页面全部正常渲染。"
+    },
+    "AC-037": {
+      "status": "PARTIAL",
+      "how": "本机 headless 下六页加载中位 425ms。但这是本机，不是 OVH 生产机也不是真实移动网络——NFR-007 的 p95 ≤800ms 与扫码页可交互 ≤2.5s 必须在生产环境上测，归 CB9-650。这里不拿本机数字冒充生产指标。"
+    }
+  },
+  "artifacts": [
+    "app/scripts/browser-acceptance.js（新，可重跑）",
+    "docs/evidence/CB9-340/browser-measurements.json（12 组原始测量）"
+  ],
+  "reproducibility": "node scripts/browser-acceptance.js [--json]。找不到 Chrome 时退出码 2 并打印 NOT_RUN——不静默降级成静态检查。",
+  "why_not_in_the_test_suite": "它要一个真的浏览器，而单元测试套件必须能在没有浏览器的机器上跑完。放进套件的话，没浏览器的环境要么红要么被跳过——跳过就是假绿。"
+}

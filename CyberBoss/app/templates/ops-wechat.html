@@ -27,6 +27,15 @@
     min-height: var(--touch);
     font-size: 16px; /* 16px 以下 iOS 会在聚焦时自动放大整页 */
   }
+  /* 文字链接和 <summary> 也是可点的。
+     min-height 对 display:inline **不生效**——真实浏览器上量出来 65×16，
+     而静态扫描只看到「CSS 里写了 min-height」就放行了。所以这里先把它们变成
+     inline-block，再给高度；不改成 block 是为了不破坏它们在句子里的排版。 */
+  a:not(.btn), summary {
+    display: inline-block;
+    min-height: var(--touch);
+    line-height: var(--touch);
+  }
   .wrap { overflow-wrap: anywhere; word-break: break-word; }
 
   :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--ok:#0b6b45;--bad:#a1211a;--card:#f7f8fa}

@@ -30,6 +30,15 @@
      否则一个 width:100% 的输入框加上 padding 就会顶出横向滚动条。 */
   *, *::before, *::after { box-sizing: border-box; }
   img, svg, canvas, video { max-width: 100%; height: auto; }
+  /* 文字链接和 <summary> 也是可点的。
+     min-height 对 display:inline **不生效**——真实浏览器上量出来 65×16，
+     而静态扫描只看到「CSS 里写了 min-height」就放行了。所以这里先把它们变成
+     inline-block，再给高度；不改成 block 是为了不破坏它们在句子里的排版。 */
+  a:not(.btn), summary {
+    display: inline-block;
+    min-height: var(--touch);
+    line-height: var(--touch);
+  }
   /* 页面级兜底：粘进来的长链接、超宽的表格都不许顶出横向滚动条。
      注意下面标签条上那个 overflow-x:auto 是**它自己**的滚动条，有意留的——
      标签多的时候横着划比换行好用。两者不冲突：一个是页面，一个是容器。 */
@@ -48,8 +57,8 @@
   .card+.card{margin-top:12px}
 
   .tabs{display:flex;gap:2px;background:var(--sunk);border-radius:11px;padding:3px;margin:0 0 20px}
-  .tabs button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;
-    font-weight:600;padding:9px 4px;min-height:40px;cursor:pointer;border-radius:9px}
+  .tabs button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;min-height:var(--touch);
+    font-weight:600;padding:9px 4px;cursor:pointer;border-radius:9px}
   .tabs button[aria-selected="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 
   button{font:inherit;padding:11px 16px;border-radius:10px;border:1px solid var(--line);
