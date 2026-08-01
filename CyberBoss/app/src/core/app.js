@@ -101,6 +101,11 @@ const {
   safeObservation,
 } = require("../services/location/timezone-signals");
 const {
+  buildConfirmationQuestion,
+  mergeLocationSignals,
+  shouldAskConfirmation,
+} = require("../services/location/location-profile");
+const {
   MAX_TTL_MS: SESSION_MAX_TTL_MS,
   SqliteSessionTokenService,
   parseSessionCookie,
@@ -2164,6 +2169,16 @@ class CyberbossApp {
       const result = await pollWebLogin(this.config, normalized);
       if (result.state === "confirmed") {
         gate.tickets.delete(normalized);
+        // 票马上就要被删了，观测得先改挂到账号上，否则跟着一起没（CB9-220）。
+        //
+        // 这一句在扫码确认的**关键路径**上，外面还包着一层 try：它一抛，整个
+        // confirmed 分支就被吞掉，公开页永远停在「等待扫码」——一个可有可无的
+        // 时区把开户这件事整个搞挂了。所以这里既判存在也自己吞异常。
+        try {
+          this.pendingTimezoneSignals?.rekey?.(normalized, result.accountId, { now });
+        } catch {
+          // 时区丢了就丢了，人得先进得来。
+        }
         this.noteForDashboard("有人扫码进来了");
         // 回给公开页的东西里**没有** accountId、没有 token、没有任何人的身份。
         return Object.freeze({
@@ -3617,12 +3632,138 @@ class CyberbossApp {
     if (decision.route !== "owner" && decision.route !== "user") {
       return null;
     }
+    // 他说第一句话了，这时候才有 user_id 可以把加入页那条观测绑上去（CB9-220）。
+    if (decision.userContext?.userId) {
+      this.bindPendingTimezone(decision.userContext.userId, normalized.accountId);
+    }
     if (decision.ownerClaimed) {
       this.rememberOwnerSender(normalized.senderId);
       this.noteForDashboard("有一个微信号绑成了主人");
       void this.sendAdmissionReply(normalized, OWNER_CLAIMED_NOTICE);
     }
     return decision.userContext || null;
+  }
+
+  // 把加入页采到的时区绑到这个人身上（CB9-220 / AC-014）。
+  //
+  // 时机是他说的**第一句话**：在此之前 user_id 还不存在。观测这时候挂在
+  // accountId 上（扫码确认那一刻改的键）。
+  //
+  // 整段吞异常并返回 null：一条采集不到的时区绝不能让一条真实消息处理失败。
+  bindPendingTimezone(userId, accountId, { now = Date.now() } = {}) {
+    const id = normalizeText(userId);
+    const account = normalizeText(accountId);
+    if (!id || !account || !this.runtimeSpoolDatabase) {
+      return null;
+    }
+    try {
+      const observation = this.pendingTimezoneSignals.take(account, { now });
+      if (!observation) {
+        return null;
+      }
+      const existing = this.runtimeSpoolDatabase.readUserLocationProfile(id);
+      // 已有的那份也是一个信号，参与合并——否则第二次上报会无条件覆盖第一次，
+      // 优先级就白定了。
+      const merged = mergeLocationSignals([
+        existing ? {
+          source: existing.source,
+          timezone: existing.timezone,
+          city: existing.coarse_city,
+          country: existing.coarse_country,
+          confidence: existing.confidence,
+          observed_at_utc: existing.observed_at_utc,
+        } : null,
+        observation,
+      ].filter(Boolean), { at: new Date(now) });
+      if (merged.fallback) {
+        return null;
+      }
+      return this.runtimeSpoolDatabase.upsertUserLocationProfile({
+        userId: id,
+        timezone: merged.timezone,
+        city: merged.city,
+        country: merged.country,
+        source: merged.source,
+        confidence: merged.confidence,
+        confirmed: false,
+        observedAtUtc: observation.observed_at_utc,
+        now,
+      });
+    } catch (error) {
+      console.warn(`[cyberboss] 绑定时区失败 ${String(error?.message || "").slice(0, 200)}`);
+      return null;
+    }
+  }
+
+  // 把那句确认发出去。发送失败不重试——「问过了」已经记下了，宁可漏问一次也
+  // 不能反复问（理由见 locationConfirmationToAsk）。
+  async askLocationConfirmationIfNeeded(normalized) {
+    try {
+      const userId = this.resolveUserIdForPersona({
+        accountId: normalized.accountId,
+        senderId: normalized.senderId,
+      });
+      const question = this.locationConfirmationToAsk(userId, { firstReplyDelivered: true });
+      if (!question) {
+        return false;
+      }
+      await this.sendAdmissionReply(normalized, question, { skipLocationFollowUp: true });
+      return true;
+    } catch (error) {
+      console.warn(`[cyberboss] 位置确认没发出去 ${String(error?.message || "").slice(0, 200)}`);
+      return false;
+    }
+  }
+
+  // 这个人当前该按哪个时区渲染时间（CB9-200 的 userZone 从这里来）。
+  userTimezone(userId) {
+    const id = normalizeText(userId);
+    if (!id || !this.runtimeSpoolDatabase) {
+      return BEIJING_ZONE;
+    }
+    try {
+      return normalizeUserZone(this.runtimeSpoolDatabase.readUserLocationProfile(id)?.timezone);
+    } catch {
+      return BEIJING_ZONE;
+    }
+  }
+
+  // 首条成功回复**之后**，必要时问一句（AC-014）。
+  //
+  // 返回要问的那句话，或者空串。调用方负责发出去——把发送放在这里的话，这个
+  // 判断就没法单独测，而「只问一次」正是最容易写错的地方。
+  locationConfirmationToAsk(userId, { firstReplyDelivered = false, now = Date.now() } = {}) {
+    const id = normalizeText(userId);
+    if (!id || !this.runtimeSpoolDatabase) {
+      return "";
+    }
+    try {
+      const profile = this.runtimeSpoolDatabase.readUserLocationProfile(id);
+      if (!profile) {
+        return "";
+      }
+      const merged = mergeLocationSignals([{
+        source: profile.source,
+        timezone: profile.timezone,
+        city: profile.coarse_city,
+        country: profile.coarse_country,
+        confidence: profile.confidence,
+        observed_at_utc: profile.observed_at_utc,
+      }], { at: new Date(now) });
+      if (!shouldAskConfirmation({ merged, profile, firstReplyDelivered })) {
+        return "";
+      }
+      // 先记「问过了」，再返回那句话。
+      //
+      // 反过来的话，发送失败或者进程在中间挂掉，下一轮又满足条件，这个人就会
+      // 被反复问——比不问更烦人，而 AC-014 明说只问一次。宁可漏问一次。
+      this.runtimeSpoolDatabase.markLocationConfirmationAsked({
+        userId: id, timezone: merged.timezone, now,
+      });
+      return buildConfirmationQuestion(merged);
+    } catch {
+      return "";
+    }
   }
 
   async admitInboundMessage(normalized) {
@@ -3839,7 +3980,7 @@ class CyberbossApp {
     return true;
   }
 
-  async sendAdmissionReply(normalized, text) {
+  async sendAdmissionReply(normalized, text, { skipLocationFollowUp = false } = {}) {
     if (!text) {
       return;
     }
@@ -3907,6 +4048,19 @@ class CyberbossApp {
       errorClass,
       kind: normalized.provider === "system" ? "checkin" : "onboarding",
     });
+
+    // 首条成功回复之后，必要时问一句「你是不是在悉尼」（CB9-220 / AC-014）。
+    //
+    // 挂在这里而不是回复之前：AC-014 明说「在首条成功回复后」。人还没见到第一
+    // 句话就先被问个问题，是最差的第一印象；而且回复没送到的时候问也没意义，
+    // 那句问题同样送不到。
+    // skipLocationFollowUp 是**显式**的：那句确认自己也走 sendAdmissionReply，
+    // 不挡的话它会触发自己。用一个隐式的「正在发送中」标志位也能挡，但那种状
+    // 态在异常路径上会漏掉复位，而且没法单独测。
+    if (delivered && normalized.provider !== "system" && !skipLocationFollowUp
+      && typeof this.askLocationConfirmationIfNeeded === "function") {
+      await this.askLocationConfirmationIfNeeded(normalized);
+    }
 
     // 主动问候没送到就先存着，等他下次说话再补上。
     //
@@ -4416,6 +4570,12 @@ class CyberbossApp {
         personaInstruction: this.currentPersonaInstruction(
           this.resolveUserIdForPersona(prepared),
         ),
+        // 这个人自己的时区。CB9-200 把这个插座留在了 assembleRuntimeTurnText
+        // 上，CB9-220 现在把它插上：有位置画像的人，注入行会写成
+        // 「当地时间 …（北京时间 …）」；没有的人还是单独一个北京时间。
+        userZone: typeof this.userTimezone === "function"
+          ? this.userTimezone(this.resolveUserIdForPersona(prepared))
+          : "",
       }),
       attachments: Array.isArray(visionContext.runtimeAttachments) ? visionContext.runtimeAttachments : [],
       visionContext,

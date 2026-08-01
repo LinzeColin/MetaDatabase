@@ -12,6 +12,11 @@ const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
 
 const { assertTransition } = require("../jobs/job-state-machine");
+const {
+  BEIJING_ZONE,
+  formatInZone,
+  isValidIanaZone,
+} = require("../time/canonical-time");
 
 // 队列排序：主人排在访客前面，同一档内仍然先到先得。
 //
@@ -118,6 +123,11 @@ const MIGRATIONS = Object.freeze([
     name: "016_original_parity_sessions_time_location.sql",
     sourceCommit: "CB9-140",
   }),
+  Object.freeze({
+    version: 15,
+    name: "017_location_confirmation_state.sql",
+    sourceCommit: "CB9-220",
+  }),
 ]);
 const OWNER_ROLE = "owner";
 const OWNER_CONSENT_VERSION = "owner-existing-account-v8";
@@ -127,6 +137,10 @@ const USER_SCOPED_LEGACY_TABLES = Object.freeze([
   "outbox_messages",
 ]);
 const USER_ID_PATTERN = /^usr_[A-Za-z0-9_-]{20,64}$/;
+
+// 位置画像允许的信号源。和 timezone-signals 的 SIGNAL_PRIORITY 同一套名字——
+// 库这一层再挡一次，是因为它是最后一道：绕过采集层直接写库的代码也过不去。
+const LOCATION_SOURCES = Object.freeze(["explicit_user", "browser_iana", "cloudflare_timezone"]);
 const ENVELOPE_VERSION = 1;
 const NONCE_BYTES = 12;
 const TAG_BYTES = 16;
@@ -4193,6 +4207,137 @@ class RuntimeSpoolDatabase {
       value: JSON.parse(plain.toString("utf8")),
       updatedAt: row.updated_at,
     });
+  }
+
+  // ── 位置画像（CB9-220 / AC-013、AC-014）───────────────────
+  //
+  // 这张表**没有**明文/密文之分，因为它压根不存自由文本：时区是 IANA 名字，
+  // 城市国家是过滤过的粗粒度词，其余是数字和时间戳。没有内容可加密，也没有
+  // 精确定位可泄漏——016 里根本没有那三列。
+
+  upsertUserLocationProfile({
+    userId,
+    timezone,
+    city = null,
+    country = null,
+    source,
+    confidence,
+    confirmed = false,
+    consentScope = "timezone_only",
+    observedAtUtc = null,
+    now = Date.now(),
+  } = {}) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      throw new RuntimeSpoolError("USER_ID_REQUIRED");
+    }
+    const zone = String(timezone || "").trim();
+    if (!isValidIanaZone(zone)) {
+      throw new RuntimeSpoolError("LOCATION_TIMEZONE_INVALID");
+    }
+    if (!LOCATION_SOURCES.includes(String(source || ""))) {
+      throw new RuntimeSpoolError("LOCATION_SOURCE_INVALID");
+    }
+    const score = Number.isFinite(confidence) ? Math.min(1, Math.max(0, confidence)) : 0;
+    const at = new Date(now);
+    const observed = String(observedAtUtc || at.toISOString());
+    // 用户亲口确认过的，不能被一个推断出来的信号盖掉。
+    //
+    // 少了这一条，一个在东京出差的人说完「我在东京」之后，下一次打开加入页
+    // 或者换个网络，浏览器/Cloudflare 的信号就会把他改回去——而他并没有再说
+    // 过什么。确认过的只有他自己能改（CB9-240 的自然语言纠正）。
+    const existing = this.readUserLocationProfile(id);
+    if (existing?.confirmed && !confirmed) {
+      return existing;
+    }
+    this.database
+      .prepare(
+        `INSERT INTO user_location_profiles_v009
+           (user_id, timezone, coarse_city, coarse_country, source, confidence,
+            confirmed, consent_scope, observed_at_utc, updated_at_utc)
+         VALUES (?,?,?,?,?,?,?,?,?,?)
+         ON CONFLICT(user_id) DO UPDATE SET
+           timezone=excluded.timezone,
+           coarse_city=excluded.coarse_city,
+           coarse_country=excluded.coarse_country,
+           source=excluded.source,
+           confidence=excluded.confidence,
+           confirmed=excluded.confirmed,
+           consent_scope=excluded.consent_scope,
+           observed_at_utc=excluded.observed_at_utc,
+           updated_at_utc=excluded.updated_at_utc`,
+      )
+      .run(
+        id, zone, city ? String(city) : null, country ? String(country) : null,
+        String(source), score, confirmed ? 1 : 0, String(consentScope),
+        observed, at.toISOString(),
+      );
+    return this.readUserLocationProfile(id);
+  }
+
+  readUserLocationProfile(userId) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      return null;
+    }
+    const row = this.database
+      .prepare(
+        `SELECT user_id, timezone, coarse_city, coarse_country, source, confidence,
+                confirmed, consent_scope, observed_at_utc, updated_at_utc,
+                confirmation_asked_at_utc, confirmation_asked_at_beijing,
+                confirmation_asked_timezone
+           FROM user_location_profiles_v009
+          WHERE user_id=?`,
+      )
+      .get(id);
+    if (!row) {
+      return null;
+    }
+    return Object.freeze({ ...row, confirmed: row.confirmed === 1 });
+  }
+
+  // 记下「问过了」。时间列成对写（AC-010）——只写一个的话，跨服务排序和给人
+  // 看的时间必有一个是错的。
+  markLocationConfirmationAsked({ userId, timezone, now = Date.now() } = {}) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      throw new RuntimeSpoolError("USER_ID_REQUIRED");
+    }
+    const at = new Date(now);
+    this.database
+      .prepare(
+        `UPDATE user_location_profiles_v009
+            SET confirmation_asked_at_utc=?,
+                confirmation_asked_at_beijing=?,
+                confirmation_asked_timezone=?,
+                updated_at_utc=?
+          WHERE user_id=?`,
+      )
+      .run(
+        at.toISOString(),
+        formatInZone(at, BEIJING_ZONE, { seconds: true }),
+        String(timezone || ""),
+        at.toISOString(),
+        id,
+      );
+    return this.readUserLocationProfile(id);
+  }
+
+  // 删除这个人的位置（AC-015 的落库面）。
+  // 删掉之后读回来必须是 null——「派生位置不可再读」不是把它标记成隐藏。
+  deleteUserLocationProfile(userId) {
+    this.#assertOpen();
+    const id = String(userId || "").trim();
+    if (!USER_ID_PATTERN.test(id)) {
+      return false;
+    }
+    const result = this.database
+      .prepare("DELETE FROM user_location_profiles_v009 WHERE user_id=?")
+      .run(id);
+    return Number(result?.changes || 0) > 0;
   }
 
   // ── 待办和日程 ──────────────────────────────────────────

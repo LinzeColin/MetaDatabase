@@ -1,0 +1,92 @@
+{
+  "task": "CB9-220",
+  "title": "实现位置/时区信号优先级、置信度、确认和隐私最小化",
+  "generated_at": "2026-08-01T13:38:58Z",
+  "head_observation": "5d7de1ae809360c439f9dbfee3b436791128e838",
+  "artifacts": [
+    "app/migrations/017_location_confirmation_state.sql（新，version 15）",
+    "app/src/services/location/location-profile.js（新）",
+    "app/src/services/db/database-adapter.js（位置画像读写删 + 注册 017）",
+    "app/src/services/location/timezone-signals.js（rekey）",
+    "app/src/core/app.js（三跳绑定 + userTimezone + 确认发送 + userZone 接线）",
+    "app/test/cb9-220-location-profile.test.js（新，18）",
+    "app/test/cb9-220-location-store.test.js（新，10）"
+  ],
+  "why_a_new_migration": "AC-014 要「问过一次就不再问」。016 的 confirmed 说的是「用户**答**过了」，只有 0/1，装不下「问过但他没答」这第三种状态。用 confirmed=0 当「没问过」的话，每一轮都重新满足「低置信且未确认」，于是每句话后面都跟一句「你是不是在悉尼？」——比不问更烦人。017 additive 加三列，时间列照 AC-010 成对。",
+  "acceptance": {
+    "AC-014": {
+      "status": "PASS",
+      "how": "拆成四件各自可测的事：①冻结优先级 explicit_user > browser_iana > cloudflare_timezone，且**顺序无关**（加入页上 CF 头和浏览器上报谁先到是不确定的）；②冲突扣 0.3 置信度，只有 CF 时基准 0.4——两种都落到阈值 0.6 以下，浏览器单独说话的 0.8 不触发；③首条成功回复之前一律不问；④问过就不再问，除非新的时区和上次问的**不是同一件事**（出差是新情况，同一个地方问第二遍是骚扰）。另：用户亲口确认过的永远不问，也不会被推断信号在库层盖掉。"
+    },
+    "AC-013": {
+      "status": "PASS",
+      "how": "三层：①结构性——016/017 跑完之后位置表里仍无 raw_ip/latitude/longitude/精确地址列，对**跑完全部迁移后**的真实表结构再查一遍（加列的那一刻正是最容易顺手加上经纬度的时候）；②库层——LOCATION_SOURCES 白名单 + isValidIanaZone，绕过采集层直接写库也过不去；③出库——publicProjection 字段白名单，输入里混进精确字段直接抛而不是挑着放。"
+    },
+    "AC-015": {
+      "status": "PARTIAL",
+      "how": "落库面已完成：deleteUserLocationProfile 之后读回来是 null，不是标记隐藏。自然语言的「纠正/切换/删除」语句解析是 CB9-240。"
+    }
+  },
+  "three_hop_binding": {
+    "problem": "观测是在加入页按 ticket 采的，那时候这个人还不存在；扫码确认的瞬间票就被删了。",
+    "chain": [
+      "加入页 → ticket（采集）",
+      "扫码确认 → accountId（rekey，就在 gate.tickets.delete 之后一行）",
+      "第一句话 → user_id（admitDurableTurn 里 bindPendingTimezone）"
+    ],
+    "note": "少了中间那一跳，观测跟着票一起消失——采了等于没采，而所有纯函数测试照样全绿。有一条测试把三跳串起来跑。"
+  },
+  "regressions_i_caused_and_fixed": [
+    {
+      "what": "把确认钩子挂进了 sendAdmissionReply，而那句确认自己也走 sendAdmissionReply——自递归。",
+      "fix": "加显式的 skipLocationFollowUp 参数。不用隐式「正在发送中」标志位：那种状态在异常路径上会漏复位，而且没法单独测。"
+    },
+    {
+      "what": "14 条既有测试转红：它们用挑出来的原型方法拼最小 app，我的新方法不在挑选清单里，于是 this.userTimezone / this.askLocationConfirmationIfNeeded 是 undefined 直接抛。",
+      "fix": "改用仓里已有的 typeof === 'function' 守卫。对「可选增强」来说，缺方法退化成不加时区，比让一条真实消息崩掉正确。"
+    },
+    {
+      "what": "最危险的一条：rekey 在扫码确认的关键路径上，外面包着 try——它一抛整个 confirmed 分支被吞掉，公开页永远停在「等待扫码」。一个可有可无的时区把开户整个搞挂。",
+      "fix": "可选链 + 自己吞异常。被 public-entry-qr 的既有回归测试拦住。"
+    }
+  ],
+  "tests": {
+    "count": "18 + 10 = 28 pass",
+    "full_regression": "1127 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "优先级反过来（CF 赢显式陈述）",
+      "red": 5
+    },
+    {
+      "mutation": "首条回复之前就问",
+      "red": 1
+    },
+    {
+      "mutation": "去掉「只问一次」",
+      "red": 1
+    },
+    {
+      "mutation": "没信号的人也去问",
+      "red": 1
+    },
+    {
+      "mutation": "墙上时间判等改成永远不等（重庆被当冲突）",
+      "red": 1
+    },
+    {
+      "mutation": "确认阈值调到 0.1（只有 CF 也不问）",
+      "red": 2
+    },
+    {
+      "mutation": "推断信号可以盖掉用户亲口说的",
+      "red": 1
+    },
+    {
+      "mutation": "017 不注册（永远不跑）",
+      "red": 8
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}

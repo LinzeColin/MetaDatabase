@@ -208,6 +208,30 @@ class PendingTimezoneSignals {
     return true;
   }
 
+  // 扫码确认那一刻，票换成账号。
+  //
+  // 观测是在**加入页**采到的，那时候这个人还不存在。他扫完码，iLink 才给他建
+  // 一个 bot 账号；等他发第一句话，才有 user_id。所以这条观测要跨两跳：
+  //   加入页 → ticket    （采集时）
+  //   扫码确认 → accountId（这里）
+  //   首句话 → user_id   （app 侧绑定）
+  // 少了中间这一跳，票在确认的瞬间就被删了，观测跟着一起没——那就等于没采。
+  rekey(fromTicket, toKey, { now = Date.now() } = {}) {
+    const from = typeof fromTicket === "string" ? fromTicket.trim() : "";
+    const to = typeof toKey === "string" ? toKey.trim() : "";
+    if (!from || !to || from === to) {
+      return false;
+    }
+    const entry = this.entries.get(from);
+    if (!entry) {
+      return false;
+    }
+    this.entries.delete(from);
+    this.entries.set(to, { at: now, observation: entry.observation });
+    this.prune(now);
+    return true;
+  }
+
   take(ticket, { now = Date.now() } = {}) {
     const key = typeof ticket === "string" ? ticket.trim() : "";
     if (!key) {
