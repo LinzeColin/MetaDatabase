@@ -1,0 +1,29 @@
+{
+  "task": "CB9-130",
+  "title": "补齐跨用户/跨模式能力矩阵和回归防线",
+  "generated_at": "2026-08-01T12:54:03Z",
+  "head_observation": "7be985905d3d13513801a48c3d549ab3511f8fff",
+  "artifact": "app/test/cb9-130-capability-matrix.test.js",
+  "acceptance": {
+    "AC-005": {
+      "status": "PASS",
+      "method": "security",
+      "how": "actor × capability 全网格 6×21=126 格逐格核对；期望值由规则推出（非 active 全 false / owner 全 true / active 普通用户仅 USER_CAPABILITIES），不是查表。网格从能力表动态生成，加能力或加 actor 自动覆盖",
+      "extra_axes": [
+        "跨用户数据域：A 的上下文不含 B 的任何一行（双向验证）",
+        "Companion 上下文不得出现 owner-only 能力名（它会进模型、Timeline 和证据）",
+        "主人与 Companion 的 session 命名空间形状不重叠（comp_ 前缀 vs binding key 三元组）"
+      ]
+    }
+  },
+  "difference_from_CB9_100": "CB9-100 验能力模型本身（单点）；CB9-130 验矩阵。单点断言在新增 actor 时仍全绿，而新 actor 可能默认继承了不该有的能力",
+  "tests": {
+    "TEST-005": "6/6 pass",
+    "full_regression": "1046 + 72 全通过"
+  },
+  "red_green_proof": {
+    "mutation": "把 suspended 从 STATUSES 里删掉（模拟状态判定漏一个分支）",
+    "result": "2 条转红，恢复后 6/6"
+  },
+  "legacy_wholefile_overwrites": 0
+}
