@@ -107,6 +107,12 @@ const {
   shouldAskConfirmation,
 } = require("../services/location/location-profile");
 const {
+  buildForgetReply,
+  buildSetReply,
+  buildWhereReply,
+  parseLocationIntent,
+} = require("../services/location/location-intent");
+const {
   MAX_TTL_MS: SESSION_MAX_TTL_MS,
   SqliteSessionTokenService,
   parseSessionCookie,
@@ -3564,6 +3570,13 @@ class CyberbossApp {
       if (this.handlePersonalSiteCommand(normalized, userId)) {
         return true;
       }
+      // 「我在东京」「别记我的位置」「我在哪」（CB9-240 / AC-015）。
+      // 和提醒同理不能交给模型：它可能只回一句「好的」而什么都没改，用户以为
+      // 改好了，接下来所有时间都按错的时区算，一直到他自己发现为止。
+      if (userId && typeof this.handleLocationCommand === "function"
+        && this.handleLocationCommand(normalized, userId)) {
+        return true;
+      }
       if (this.handleHealthCommand(normalized)) {
         return true;
       }
@@ -3715,6 +3728,50 @@ class CyberbossApp {
       return true;
     } catch (error) {
       console.warn(`[cyberboss] 位置确认没发出去 ${String(error?.message || "").slice(0, 200)}`);
+      return false;
+    }
+  }
+
+  // 用大白话改自己的位置（CB9-240 / AC-015）。
+  //
+  // 认不出来返回 false，照旧交给模型——宁可漏判，也不能把「我在想东京的事」
+  // 听成一次搬家。
+  handleLocationCommand(normalized, userId) {
+    const intent = parseLocationIntent(normalized?.text);
+    if (!intent || !this.runtimeSpoolDatabase) {
+      return false;
+    }
+    try {
+      if (intent.kind === "where") {
+        void this.sendAdmissionReply(
+          normalized,
+          buildWhereReply(this.runtimeSpoolDatabase.readUserLocationProfile(userId)),
+        );
+        return true;
+      }
+      if (intent.kind === "forget") {
+        this.runtimeSpoolDatabase.deleteUserLocationProfile(userId);
+        void this.sendAdmissionReply(normalized, buildForgetReply());
+        return true;
+      }
+      // 人自己说的：置信度拉满、confirmed 置位。
+      //
+      // confirmed 这一位是**保护**：它一旦置上，浏览器和 Cloudflare 的推断信号
+      // 就再也盖不掉他（upsert 里那道判断）。少了它，他说完「我在东京」之后，
+      // 下次打开加入页或者换个网络就被改回去了——而他并没有再说过什么。
+      this.runtimeSpoolDatabase.upsertUserLocationProfile({
+        userId,
+        timezone: intent.timezone,
+        city: intent.city,
+        source: "explicit_user",
+        confidence: 1,
+        confirmed: true,
+        consentScope: "user_stated",
+      });
+      void this.sendAdmissionReply(normalized, buildSetReply(intent));
+      return true;
+    } catch (error) {
+      console.warn(`[cyberboss] 改位置失败 ${String(error?.message || "").slice(0, 200)}`);
       return false;
     }
   }

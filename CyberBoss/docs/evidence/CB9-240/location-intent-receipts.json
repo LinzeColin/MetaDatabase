@@ -1,0 +1,81 @@
+{
+  "task": "CB9-240",
+  "title": "实现用户自然语言纠正、切换与删除位置",
+  "generated_at": "2026-08-01T13:55:04Z",
+  "head_observation": "7abbb0d54d6d4c8309d07c6438d7cbb539539442",
+  "artifacts": [
+    "app/src/services/location/location-intent.js（新）",
+    "app/src/core/app.js（handleLocationCommand + 挂上确定性口令链）",
+    "app/test/cb9-240-location-intent.test.js（新，21）"
+  ],
+  "acceptance": {
+    "AC-015": {
+      "status": "PASS",
+      "how": "四种语句：纠正（「不是，我在悉尼」）、切换（「我到纽约了」「我回北京了」）、删除（「别记我的位置」）、查询（「我在哪」）。全部是**确定性口令**——和提醒同理不能交给模型：它可能只回一句「好的」而什么都没改，用户以为改好了，接下来所有时间都按错的时区算，一直到他自己发现。说完立刻落库生效（source=explicit_user、confidence=1、confirmed=true），删除是真 DELETE 而不是标记隐藏，删完读回来是 null 且表里一行不剩。"
+    }
+  },
+  "design_decisions": [
+    {
+      "what": "删除分支排在纠正之前",
+      "why": "「别记我在哪」里也有「我在」两个字。先判纠正的话，这句会被听成「他在『哪』这个城市」——一句删除变成一次搬家。顺序不是随便排的，有测试钉住。"
+    },
+    {
+      "what": "confirmed=true 是保护不是标记",
+      "why": "它一置上，浏览器和 Cloudflare 的推断信号就再也盖不掉（CB9-220 的 upsert 里那道判断）。少了它，他说完「我在东京」之后，下次打开加入页或换个网络就被改回去了——而他并没有再说过什么。"
+    },
+    {
+      "what": "城市表只收中文说得出口的那 50 个",
+      "why": "这是个微信机器人不是订票系统。每多一个条目就多一次误判的机会，而漏掉的城市退回到「问一句」，代价比认错小得多——认错是把时区改错了还告诉他「记下了」。"
+    },
+    {
+      "what": "中国城市用 BEIJING_ZONE 常量",
+      "why": "CB9-200 那条结构性守卫要求 Asia/Shanghai 只出现在权威层。查找表本可以开例外，但开例外就是给守卫开口子；用常量既不违规也不用解释。"
+    }
+  ],
+  "false_positive_defense": "六条「提到城市但不是搬家」的反面用例：「我在想东京的事」「我在东京的朋友说那边下雨了」「帮我查一下悉尼现在几点」等。靠的是行首行尾锚，不是关键词匹配。",
+  "test_gap_found_by_mutation": {
+    "surviving_mutation": "把长度上限从 40 放到 4000 → 0 红",
+    "why": "原来那批测试靠的是行首行尾锚，而锚挡不住空白填充——`我在` + 一百个空格 + `东京` 完全符合 ^prefix city suffix$，只是长。长度上限挡的正是这个，但没有测试碰它。",
+    "fix": "补一条空白填充的用例；补后这一刀转 1 红。同时把 50 个城市正则预编译（原来每条入站消息现建 50 个 RegExp，是纯浪费，长输入上更贵）。"
+  },
+  "tests": {
+    "count": "21 pass",
+    "full_regression": "1163 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "去掉删除分支",
+      "red": 3
+    },
+    {
+      "mutation": "放开长度上限",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "改完不告诉用户怎么撤销",
+      "red": 1
+    },
+    {
+      "mutation": "把用户亲口说的说成是猜的",
+      "red": 1
+    },
+    {
+      "mutation": "去掉行尾锚（任何含城市的句子都算）",
+      "red": 1
+    },
+    {
+      "mutation": "用户自己说的不标 confirmed",
+      "red": 1
+    },
+    {
+      "mutation": "解析器不挂上口令链（写好没人调用）",
+      "red": 1
+    },
+    {
+      "mutation": "「删除」改成写一行北京（不是真删）",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}
