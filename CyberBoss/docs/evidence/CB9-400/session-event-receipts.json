@@ -1,0 +1,114 @@
+{
+  "task": "CB9-400",
+  "title": "建立统一 Session Event Orchestrator",
+  "generated_at": "2026-08-01T20:51:49Z",
+  "head_observation": "9a1b86c7592eb8b49ef5001898b7594f60668b5e",
+  "artifacts": [
+    "app/src/services/timeline/session-event.js（新）",
+    "app/test/cb9-400-session-event.test.js（新，19）"
+  ],
+  "why": "FR-020 点名的十一类事件今天散在 Timeline、后台对话栏、运维日志和几个 JSON 文件里，各写各的字段。「这个人昨天到底发生了什么」这个问题要翻四个地方，翻完还对不上——每个地方的时间口径和身份字段都不一样。",
+  "the_key_line": {
+    "what": "内部事件和公开投影是**两个东西**。",
+    "internal": "带真实 user_scope 和 session_key，进库、进排查、进对账。",
+    "public": "进公开页和 Status。AC-043 明说这里不许出现原始私聊、微信 ID、真实 thread/session ID、绝对路径和 token。",
+    "changed_from_starter_kit": "参考实现把 session_key 原样放进事件、由调用方决定公开哪些——那等于把 AC-043 的责任分给每一个调用点，只要有一个忘了就是一次泄漏。这里改成投影是模块自己的函数，公开面只出哈希，调用方没有「顺手公开原值」这个选项。"
+  },
+  "acceptance": {
+    "AC-020": {
+      "status": "PASS",
+      "how": "十一类事件形状完全一致（收集键名，必须只有一种形状）；每条带齐 event_id/user_scope/session_key/intent/status/canonical_beijing；时间由 canonicalStamp 现算，不收调用方传的一对；event_id 由幂等键推出，重放得到同一个。"
+    },
+    "AC-043": {
+      "status": "PASS",
+      "how": "公开字段白名单（黑名单在加字段时默认放行，而加字段的人多半没想过公开面）；身份只出加盐哈希；载荷同时查字段名和**值**（一段原始私聊塞进叫 note 的字段里，键名检查一点忙都帮不上）；递归且能扛循环引用；投影时再查一次，因为那是另一条路。"
+    }
+  },
+  "defects_found": [
+    {
+      "what": "源码里混进两个真实 NUL 字节（写文件时没转义）",
+      "impact": "grep/diff/部分编辑器把整个文件当二进制，从此看不见改动",
+      "fix": "改成显式 Unicode 转义，并写清楚为什么分隔符必须是 NUL"
+    },
+    {
+      "what": "「哈希输入换成空串（人人相同）」这一刀活着",
+      "impact": "格式对、盐不同则不同、同盐稳定三条全绿，而人人相同的哈希把「这是同一个人的两件事」这条唯一还留着的信息也抹掉了",
+      "fix": "补「不同的人必须得到不同哈希」"
+    },
+    {
+      "what": "「分隔符换成空格」这一刀活着",
+      "impact": "原测试的键里都没空格。真实碰撞：(\"x\", task, \"media y\") 与 (\"x task\", media, \"y\") 空格拼出同一个串——两件毫无关系的事拿到同一个 event_id",
+      "fix": "补钉住这组碰撞的测试"
+    },
+    {
+      "what": "我在测试里写了长得像凭据的字面量，仓里的密钥扫描器（AC-038）当场转红",
+      "judgement": "扫描器是对的。改成运行时拼——一份测试夹具不值得让那道防线破例，破例一次之后下一个真的凭据也会以「那是测试数据」的名义留下来"
+    }
+  ],
+  "tests": {
+    "count": "19 pass",
+    "full_regression": "1269 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "公开面直接放真实 user_scope",
+      "red": 4
+    },
+    {
+      "mutation": "公开面漏掉 session 哈希",
+      "red": 2
+    },
+    {
+      "mutation": "哈希不带原值（人人相同）",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "哈希不带盐",
+      "red": 1
+    },
+    {
+      "mutation": "投影时不再复查",
+      "red": 1
+    },
+    {
+      "mutation": "时间不走权威层",
+      "red": 3
+    },
+    {
+      "mutation": "event_id 随机（重放认不出）",
+      "red": 1
+    },
+    {
+      "mutation": "分隔符换成空格（可撞）",
+      "red": 1,
+      "note": "补测试后才红"
+    },
+    {
+      "mutation": "只查字段名不查值",
+      "red": 2
+    },
+    {
+      "mutation": "去掉载荷上限",
+      "red": 1
+    },
+    {
+      "mutation": "少一类事件（recovery）",
+      "red": 1
+    },
+    {
+      "mutation": "状态不校验",
+      "red": 1
+    },
+    {
+      "mutation": "类型不校验",
+      "red": 1
+    },
+    {
+      "mutation": "私有检查不递归（深层藏得住）",
+      "red": 3
+    }
+  ],
+  "baseline_before_mutation": "fail 0",
+  "scope_note": "本节点交付模型本身。把提醒、脉冲、日记、命令、审批、媒体接到这个模型上分别是 CB9-410/420/430/440，幂等与未知结果对账是 CB9-450。"
+}
