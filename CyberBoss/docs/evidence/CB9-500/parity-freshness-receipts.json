@@ -1,0 +1,89 @@
+{
+  "task": "CB9-500",
+  "title": "实现 live parity receipt 与新鲜度状态机",
+  "generated_at": "2026-08-01T22:15:17Z",
+  "head_observation": "71589249a7ed98eb6aeedcaf8a40001c1d833696",
+  "artifacts": [
+    "app/src/services/status/parity-freshness.js（新）",
+    "app/test/cb9-500-parity-freshness.test.js（新，19）"
+  ],
+  "acceptance": {
+    "AC-025": {
+      "status": "PASS",
+      "how": "四种状态逐条钉住，含边界（恰好在窗口上算新鲜、过一毫秒不算）和交叉情形（失败后紧接一次成功仍是 UNAVAILABLE；只有旧失败从没成功过仍是 UNKNOWN）。每份判定带 evaluated_at——没有它的话，一个 UNKNOWN 和一个刚被评估过的 UNKNOWN 长得一模一样。"
+    }
+  },
+  "why_this_matters": {
+    "红色的代价": "刚部署完每一项都是「还没被真实调用过」。显示红色 → 主人去查一个不存在的故障 → 查完发现只是没人用 → 下次真的红了他不会再当回事。这是这套面板最容易毁掉自己的方式。",
+    "绿色的代价": "配置性伪绿：配置里写着开着于是说健康，而它可能从第一天起就是坏的。AC-026 明令禁止。",
+    "结论": "绿色只能由一次真实链路成功换来，而且得是新鲜的。旧的成功只证明那时候是好的。"
+  },
+  "structural_guarantee": "这个模块**够不着配置**：零 require，源码里不许出现 readFileSync / process.env / config.。它只收 lastSuccessAt 和 lastFailureAt 两个时刻，而那两个时刻只能由真实链路写。另有一条直接的反面测试：只把 configured 设成 true，怎么都不该是 HEALTHY。",
+  "non_obvious_decisions": [
+    {
+      "what": "失败粘滞窗口（30 分钟）比新鲜窗口（15 分钟）长",
+      "why": "短于它的话，一次失败会被紧接着的一次成功立刻抹掉——抖动正是这样被藏起来的。失败的信息价值比成功高：它说明这条路真的会坏。"
+    },
+    {
+      "what": "UNKNOWN 不拉低整体，但全 UNKNOWN 时整体是 UNKNOWN",
+      "why": "把「有一项没人用过」显示成「系统有问题」是同一个错误换了层级；而一项都没验过的系统不该显示健康。"
+    }
+  ],
+  "defect_found": {
+    "what": "toMs 漏了数字类型。",
+    "impact": "Date.parse(1785336480000) 是 NaN，于是一个用 Date.parse() 算出来的 now 被判成读不出来，然后**悄悄回退到真实时钟**——喂进去的假时钟一点用都没有，而且失败方式看起来像业务逻辑错了。",
+    "same_shape_as": "CB9-250 的「喂不进去读数就证明不了读数被用上」。"
+  },
+  "tests": {
+    "count": "19 pass",
+    "full_regression": "1383 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "没测过显示成健康（配置性伪绿）",
+      "red": 5
+    },
+    {
+      "mutation": "没测过显示成故障（指着不存在的故障）",
+      "red": 4
+    },
+    {
+      "mutation": "旧的成功也算成功",
+      "red": 3
+    },
+    {
+      "mutation": "最近失败不算不可用",
+      "red": 3
+    },
+    {
+      "mutation": "失败粘滞窗口短于新鲜窗口",
+      "red": 1
+    },
+    {
+      "mutation": "只有旧失败也显示健康",
+      "red": 1
+    },
+    {
+      "mutation": "UNKNOWN 拉低整体",
+      "red": 1
+    },
+    {
+      "mutation": "全 UNKNOWN 时整体显示健康",
+      "red": 1
+    },
+    {
+      "mutation": "把不知道当成能用",
+      "red": 3
+    },
+    {
+      "mutation": "不给出最后评估时刻",
+      "red": 1
+    },
+    {
+      "mutation": "假时钟又喂不进去",
+      "red": 6
+    }
+  ],
+  "baseline_before_mutation": "fail 0",
+  "post_deploy_note": "AC-025 的 method 含 post-deploy。这里验的是状态机本身；线上真实回执的采集与展示归 CB9-510（矩阵）和 CB9-660（发布后观察，environment_bound）。"
+}
