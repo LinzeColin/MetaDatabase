@@ -1,0 +1,22 @@
+{
+  "repository": "/Users/linzezhang/Documents/Codex/GithubProject/MetaDatabase",
+  "branch": "main",
+  "head_observation": "e8bebc203bbc16b2d40106e6e1e69489d7637d23",
+  "origin_main_observation": "e8bebc203bbc16b2d40106e6e1e69489d7637d23",
+  "rules": [
+    "/Users/linzezhang/Documents/Codex/GithubProject/MetaDatabase/CyberBoss/AGENTS.md",
+    "/Users/linzezhang/Documents/Codex/GithubProject/MetaDatabase/CyberBoss/HANDOFF.md",
+    "/Users/linzezhang/Documents/Codex/GithubProject/MetaDatabase/CyberBoss/README.md"
+  ],
+  "classification_values": [
+    "satisfied",
+    "apply",
+    "adapt",
+    "equivalent",
+    "conflict",
+    "blocked",
+    "obsolete"
+  ],
+  "tasks": {},
+  "note": "Build Agent must populate every CB9 task classification before mutation; SHA is observation only."
+}

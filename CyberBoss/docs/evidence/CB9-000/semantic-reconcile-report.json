@@ -1,0 +1,406 @@
+{
+  "report_id": "AC-039",
+  "task": "CB9-000",
+  "generated_at": "2026-08-01T12:33:21Z",
+  "repository": "LinzeColin/MetaDatabase",
+  "branch": "claude/cyberboss-v0009-r1",
+  "head_observation": "e8bebc203bbc16b2d40106e6e1e69489d7637d23",
+  "taskpack": "CyberBoss_v0.0.0.9_R1_OriginalParity_FINAL_20260801",
+  "manifest_verified": "68/68 OK, 0 FAILED",
+  "method": "stage0",
+  "legacy_wholefile_overwrites": 0,
+  "legacy_wholefile_overwrite_policy": "本节点只读核查，未覆盖任何既有文件；后续节点一律最小纵向切片",
+  "counts": {
+    "adapt": 16,
+    "apply": 5,
+    "blocked": 9,
+    "conflict": 0,
+    "equivalent": 0,
+    "obsolete": 0,
+    "satisfied": 7
+  },
+  "tasks": {
+    "CB9-000": {
+      "classification": "adapt",
+      "evidence": "本节点自身：stage0 骨架由 scripts/stage0_semantic_reconcile.sh 产出，此处补全 37 条分类",
+      "title": "最新 main 与规则语义对账",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-039"
+      ]
+    },
+    "CB9-010": {
+      "classification": "blocked",
+      "evidence": "环境型：需真实 OVH/Cloudflare 只读快照",
+      "title": "只读捕获线上 release、OVH 资源、systemd、Cloudflare 和数据端点现状",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-031",
+        "AC-032"
+      ]
+    },
+    "CB9-020": {
+      "classification": "adapt",
+      "evidence": "本报告即其产物；v0.0.0.8 实现清单见 docs/evidence/ 下 55 个既有节点目录",
+      "title": "把 v0.0.0.8 现有实现逐项映射为保留、适配或跳过",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-001",
+        "AC-020",
+        "AC-026",
+        "AC-043"
+      ]
+    },
+    "CB9-100": {
+      "classification": "satisfied",
+      "evidence": "OWNER_ONLY_CAPABILITIES/USER_CAPABILITIES 能力模型已存在且互斥",
+      "title": "实现服务端双模式不变量与 spoof 防护",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-001",
+        "AC-005"
+      ]
+    },
+    "CB9-110": {
+      "classification": "satisfied",
+      "evidence": "adapters/runtime/codex/session-store.js:buildBindingKey + workspaceRegistry 已统一 Owner 入口",
+      "title": "实现 Owner 主 Session/Thread/Workspace 统一入口",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-002",
+        "AC-003"
+      ]
+    },
+    "CB9-120": {
+      "classification": "adapt",
+      "evidence": "core/app.js:runUserModelTurn 存在；Companion 有界上下文裁剪未见",
+      "title": "实现 Companion 稳定 Session 与有界上下文",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-004",
+        "AC-038",
+        "AC-044"
+      ]
+    },
+    "CB9-130": {
+      "classification": "satisfied",
+      "evidence": "cb640-dual-user-blind-set.test.js + inbound-user-admission-e2e.test.js 构成回归防线",
+      "title": "补齐跨用户/跨模式能力矩阵和回归防线",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-005"
+      ]
+    },
+    "CB9-140": {
+      "classification": "adapt",
+      "evidence": "app/migrations/ 已有 15 个编号迁移，新增需接 016",
+      "title": "按现有迁移约定物化下一编号的兼容迁移",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-004",
+        "AC-010",
+        "AC-013",
+        "AC-041",
+        "AC-044"
+      ]
+    },
+    "CB9-200": {
+      "classification": "satisfied",
+      "evidence": "2026-07-30 实装 TZ=Asia/Shanghai + 注入时间戳标注北京时间，8 处显式 timeZone",
+      "title": "实现 UTC 瞬时层与北京时间权威表达层",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-010",
+        "AC-041"
+      ]
+    },
+    "CB9-210": {
+      "classification": "apply",
+      "evidence": "核查命中=0：无浏览器 IANA 时区上报，也无 Cloudflare 粗粒度地理 Adapter",
+      "title": "实现浏览器 IANA 时区与 Cloudflare 粗粒度信号 Adapter",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-012",
+        "AC-042"
+      ]
+    },
+    "CB9-220": {
+      "classification": "apply",
+      "evidence": "命中的 confidence/coarse/geo 均属无关上下文；无位置信号优先级与置信度模型",
+      "title": "实现位置/时区信号优先级、置信度、确认和隐私最小化",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-013",
+        "AC-014"
+      ]
+    },
+    "CB9-230": {
+      "classification": "adapt",
+      "evidence": "services/reminder-service.js:LOCAL_TIMEZONE_OFFSET 写死 +08:00，需改为按用户时区",
+      "title": "把提醒、安静时段、自然语言时间切换到用户当地时区",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-011",
+        "AC-016"
+      ]
+    },
+    "CB9-240": {
+      "classification": "apply",
+      "evidence": "仅 novice-command-map 有零星词条；无位置纠正/切换/删除路径",
+      "title": "实现用户自然语言纠正、切换与删除位置",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-015"
+      ]
+    },
+    "CB9-250": {
+      "classification": "adapt",
+      "evidence": "app/test 有 2 处时间相关测试，无 Fake Clock/DST 双时间文案矩阵",
+      "title": "构建 Fake Clock、DST、双时间文案与权限拒绝测试",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-010",
+        "AC-012",
+        "AC-016",
+        "AC-041",
+        "AC-042"
+      ]
+    },
+    "CB9-300": {
+      "classification": "adapt",
+      "evidence": "join.html/home.html 已存在；Golden Path 未固化为唯一路径与验收断言",
+      "title": "把扫码→同意→首句→有效回复固化为唯一新手 Golden Path",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-006",
+        "AC-007",
+        "AC-045"
+      ]
+    },
+    "CB9-310": {
+      "classification": "adapt",
+      "evidence": "模板中仍有 BYOK 字样，需移入高级自选",
+      "title": "将 BYOK 移至高级自选并移除主流程技术术语",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-008"
+      ]
+    },
+    "CB9-320": {
+      "classification": "satisfied",
+      "evidence": "circuit-breaker/global-daily-token-ledger/resource-readiness-gate 已具备",
+      "title": "实现共享额度与 OVH 压力下的中文排队/限流/确定性降级",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-009",
+        "AC-031"
+      ]
+    },
+    "CB9-330": {
+      "classification": "adapt",
+      "evidence": "6 个模板齐备；一级信息架构与中文防呆需按本包重排",
+      "title": "重构首页、加入页和后台一级信息架构与中文防呆",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-030",
+        "AC-037"
+      ]
+    },
+    "CB9-340": {
+      "classification": "blocked",
+      "evidence": "环境型：需 Playwright 真机验收，禁止静态检查替代",
+      "title": "执行移动端、桌面端、拒绝权限与零技术浏览器验收",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-006",
+        "AC-007",
+        "AC-030",
+        "AC-045"
+      ]
+    },
+    "CB9-400": {
+      "classification": "apply",
+      "evidence": "核查命中=0：无统一 Session Event Orchestrator，主动/提醒/日记各走各的路",
+      "title": "建立统一 Session Event Orchestrator",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-020",
+        "AC-043"
+      ]
+    },
+    "CB9-410": {
+      "classification": "adapt",
+      "evidence": "reminder-intent.js + reminder-service.js 已存在，需接入 CB9-400 的 lineage",
+      "title": "把 Future-self Reminder 接入同一 Session 与 lineage",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-017"
+      ]
+    },
+    "CB9-420": {
+      "classification": "adapt",
+      "evidence": "app/system-checkin-poller.js 已按人调度并实测可送达；需接入统一 Session",
+      "title": "把 Owner Pulse 与 Companion Check-in 接入各自同一 Session",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-018"
+      ]
+    },
+    "CB9-430": {
+      "classification": "adapt",
+      "evidence": "diary-service.js + timeline-service.js 均在；timeline 线上从未写入，投影未统一",
+      "title": "统一日记和 Timeline 投影并保持零模型日记",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-019",
+        "AC-020",
+        "AC-043"
+      ]
+    },
+    "CB9-440": {
+      "classification": "satisfied",
+      "evidence": "pendingApproval + shell.execute 闸门已实装并有 approval-owner-gate.test.js",
+      "title": "统一命令、审批、媒体与对象引用的 Session 语义",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-021",
+        "AC-022"
+      ]
+    },
+    "CB9-450": {
+      "classification": "satisfied",
+      "evidence": "dedupe_key/幂等在 durable inbox+outbox 已实装",
+      "title": "实现 Inbox/Journal/Outbox 幂等与未知结果对账",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-023",
+        "AC-024"
+      ]
+    },
+    "CB9-500": {
+      "classification": "apply",
+      "evidence": "命中的 receipt 多为 backup/release 语义；无 live parity receipt 新鲜度状态机",
+      "title": "实现 live parity receipt 与新鲜度状态机",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-025"
+      ]
+    },
+    "CB9-510": {
+      "classification": "adapt",
+      "evidence": "buildBusinessMatrix 已存在；需补纵向矩阵并禁止配置性伪绿",
+      "title": "扩展 status 纵向矩阵且禁止配置性伪绿",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-026",
+        "AC-035"
+      ]
+    },
+    "CB9-520": {
+      "classification": "adapt",
+      "evidence": "business-matrix.js:FORBIDDEN_KEYS 已有；需扩为 Timeline/Status 投影白名单",
+      "title": "实现 Timeline/Status 隐私投影与字段白名单",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-020",
+        "AC-026",
+        "AC-033",
+        "AC-043"
+      ]
+    },
+    "CB9-530": {
+      "classification": "blocked",
+      "evidence": "环境型：需真实 Private-Database/R2/OCI 回执",
+      "title": "对齐 Private-Database 完成态同步、R2 对象和 R2/OCI 冷备",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-022",
+        "AC-027",
+        "AC-028"
+      ]
+    },
+    "CB9-540": {
+      "classification": "blocked",
+      "evidence": "环境型：需线上 release 与 AGPL 源码入口实测",
+      "title": "实现线上 release 与 AGPL 对应源码入口",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-029"
+      ]
+    },
+    "CB9-600": {
+      "classification": "adapt",
+      "evidence": "app/test 已有 89 个测试文件；需按 45 个 Oracle 补 traceability",
+      "title": "执行确定性单元、集成、契约和 traceability 测试",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-036"
+      ]
+    },
+    "CB9-610": {
+      "classification": "adapt",
+      "evidence": "cb820-security-privacy-supply-chain.test.js 已存在；需补提示注入与位置隐私红队",
+      "title": "执行模式越权、位置隐私、提示注入和秘密扫描红队",
+      "environment_bound": false,
+      "acceptance_ids": [
+        "AC-032",
+        "AC-033",
+        "AC-040"
+      ]
+    },
+    "CB9-620": {
+      "classification": "blocked",
+      "evidence": "环境型：crash-cut 与备份故障注入需真实环境",
+      "title": "执行 crash-cut、重复消息、恢复和备份故障注入",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-023",
+        "AC-024",
+        "AC-028"
+      ]
+    },
+    "CB9-630": {
+      "classification": "blocked",
+      "evidence": "环境型：资源闸门与成本预算需真实 OVH 压力",
+      "title": "执行资源闸门、成本预算和自愈测试",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-031",
+        "AC-035"
+      ]
+    },
+    "CB9-640": {
+      "classification": "blocked",
+      "evidence": "环境型：ops/deploy-to-cloud.sh 具备不可变 release 与回滚，Canary 需真实发布",
+      "title": "组装不可变 release、请求数 Canary 与精确回滚",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-034"
+      ]
+    },
+    "CB9-650": {
+      "classification": "blocked",
+      "evidence": "环境型：需两个真实微信用户，禁止 simulator 替代",
+      "title": "真实 Owner 与 Companion 微信端到端验收并生成 release receipt",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-002",
+        "AC-004",
+        "AC-006",
+        "AC-025",
+        "AC-040",
+        "AC-044",
+        "AC-045"
+      ]
+    },
+    "CB9-660": {
+      "classification": "blocked",
+      "evidence": "环境型：发布后观察与恢复演练需真实环境",
+      "title": "配置发布后自动观察、状态投影和恢复演练入口，不等待真实时间",
+      "environment_bound": true,
+      "acceptance_ids": [
+        "AC-035"
+      ]
+    }
+  }
+}
