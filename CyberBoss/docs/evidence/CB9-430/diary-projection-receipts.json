@@ -1,0 +1,91 @@
+{
+  "task": "CB9-430",
+  "title": "统一日记和 Timeline 投影并保持零模型日记",
+  "generated_at": "2026-08-01T21:11:32Z",
+  "head_observation": "49353481c0f619029e80accec1f61c7d272580be",
+  "artifacts": [
+    "app/src/services/timeline/diary-projection.js（新）",
+    "app/test/cb9-430-diary-projection.test.js（新，17）"
+  ],
+  "acceptance": {
+    "AC-019": {
+      "status": "PASS",
+      "how": "零模型靠**够不着**而不是「我们没调」：整个模块只 require 事件模型一个东西，有测试钉住 require 清单和源码里不出现 provider/fetch/http。无事件返回 null 而不是空条目——让调用方判断的话总有一个会忘，忘掉的后果是每天多一个空文件。稳定性：同一份事件投影两次一个字不差，短语按冻结顺序念、排序按 epoch_ms，否则「今天有没有新东西」判不出来，每天都会写一次提交一次。"
+    },
+    "AC-020": {
+      "status": "PASS",
+      "how": "投影记录 source_event_ids，「日记里这句话从哪来的」追得到。"
+    },
+    "AC-043": {
+      "status": "PASS",
+      "how": "正文只由计数和冻结短语拼成，一个字符都不来自消息内容；user_scope 和 session_key 也不进正文。"
+    }
+  },
+  "design_decisions": [
+    {
+      "what": "只收六类「我那天做了什么」的事件",
+      "why": "投递、降级、恢复是运维事件。写进日记会把真正有用的两三条淹掉。"
+    },
+    {
+      "what": "数量为 1 时念「聊了一次」而不是「聊了 1 次」",
+      "why": "日记是给人读的。模板拼变量的句子在 1 上读起来像机器。"
+    },
+    {
+      "what": "hasChanged(null, 已有内容) 返回 false",
+      "why": "返回 true 的话，调用方会拿一个空投影去覆盖，把之前写好的日记静默擦掉。"
+    }
+  ],
+  "test_gap_found_by_mutation": {
+    "surviving": "「按渲染字符串排序」→ 0 红",
+    "why": "我挑的两个时刻在两种排序下恰好同序。同一天内构造不出反序（canonical_beijing 的字典序和时间序一致）。",
+    "fix": "改成钉住排序的**性质**——同毫秒事件的两次投影必须给出同样的 source_event_ids 顺序（字符串排序在完全相同的键上不保证稳定），另加一条排序键必须是数字的结构断言。"
+  },
+  "tests": {
+    "count": "17 pass",
+    "full_regression": "1320 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "无事件也产出条目",
+      "red": 2
+    },
+    {
+      "mutation": "按出现顺序念",
+      "red": 1
+    },
+    {
+      "mutation": "别人的事件也进我的日记",
+      "red": 1
+    },
+    {
+      "mutation": "别的日子的事件也进今天",
+      "red": 1
+    },
+    {
+      "mutation": "运维事件也写进日记",
+      "red": 1
+    },
+    {
+      "mutation": "model_calls 不是 0",
+      "red": 1
+    },
+    {
+      "mutation": "没新事件时判成有变化（会擦掉旧日记）",
+      "red": 1
+    },
+    {
+      "mutation": "按渲染字符串排序",
+      "red": 1,
+      "note": "改成性质断言后才红"
+    },
+    {
+      "mutation": "数量 1 也念成「1 次」",
+      "red": 1
+    },
+    {
+      "mutation": "日记模块接上了网络",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}
