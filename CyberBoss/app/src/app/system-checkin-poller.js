@@ -23,11 +23,20 @@ const INTERNAL_CHECKIN_TRIGGER_TEMPLATE = "%USER% comes to mind again.";
 // 的行为不变。
 async function runSystemCheckinPoller(config, options = {}) {
   const readProactive = typeof options.readProactive === "function" ? options.readProactive : null;
+  // 安静时段判的是**这个人当地**的几点（CB9-230 / AC-011）。
+  //
+  // 别用 Date#getHours——那读的是宿主机时区，机器在 UTC 上跑的时候「23 点静默」
+  // 会在北京时间早上 7 点生效。
+  // 也别一律用北京时间：一个在纽约的人设了「23 点到 8 点别打扰」，按北京时间
+  // 判的话，安静时段落在他那边的上午十点到晚上七点——他整个白天收不到消息，
+  // 而半夜正好被戳醒。
   const nowHour = typeof options.nowHour === "function"
     ? options.nowHour
-    // 安静时段判的是**北京时间**的几点。别用 Date#getHours——那读的是宿主机
-    // 时区，机器在 UTC 上跑的时候「23 点静默」会在北京时间早上 7 点生效。
-    : () => hourInZone(new Date(), BEIJING_ZONE);
+    : (zone) => hourInZone(new Date(), zone || BEIJING_ZONE);
+  // 目标本人的时区。没注入就退回北京时间，和以前的行为一致。
+  const readTimezone = typeof options.readTimezone === "function"
+    ? options.readTimezone
+    : () => BEIJING_ZONE;
   const primaryAccount = resolveSelectedAccount(config);
   const queue = new SystemMessageQueueStore({ filePath: config.systemMessageQueueFile });
   const checkinConfigStore = new CheckinConfigStore({ filePath: config.checkinConfigFile });
@@ -98,7 +107,7 @@ async function runSystemCheckinPoller(config, options = {}) {
       }
       // 静默时段。半夜戳人一下不叫陪伴，而且这一条必须在排队之前判——排进去了
       // 就一定会发出去。
-      if (isQuietNow(target.settings, nowHour())) {
+      if (isQuietNow(target.settings, nowHour(readTimezone(target.senderId)))) {
         continue;
       }
 

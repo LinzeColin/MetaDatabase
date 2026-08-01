@@ -1,0 +1,77 @@
+{
+  "task": "CB9-230",
+  "title": "把提醒、安静时段、自然语言时间切换到用户当地时区",
+  "generated_at": "2026-08-01T13:48:26Z",
+  "head_observation": "ec5b0658a285e72d84dfbc687701aef9e3576145",
+  "artifacts": [
+    "app/src/services/reminder/reminder-intent.js（classifyWallClock / 双时间文案 / DST 文案）",
+    "app/src/core/app.js（senderTimezone + 两处解析改按本人时区 + 不存在时刻去问）",
+    "app/src/app/system-checkin-poller.js（安静时段按本人时区）",
+    "app/test/cb9-230-local-time-scheduling.test.js（新，15）"
+  ],
+  "acceptance": {
+    "AC-011": {
+      "status": "PASS",
+      "how": "提醒、待办/日程的绝对时间一律按**发件人本人**的时区解析：悉尼那位说「明天下午三点」落在悉尼 15:00，纽约那位说「明天早上八点」落在纽约 08:00，而审计口径（北京时间）自洽。相对时间（「10 分钟后」）刻意**不**跟时区变——把相对时间也换算是一类常见的过度修正，表现是跨时区的人那里延后 8 小时，所以有一条反面测试钉住。安静时段同样按本人当地的几点判：一个在纽约的人设「23 点到 8 点别打扰」，按北京时间判会落在他那边的上午十点到晚上七点——整个白天收不到消息，半夜正好被戳醒。"
+    },
+    "AC-016": {
+      "status": "PASS",
+      "how": "classifyWallClock 判三种：ok / nonexistent（跳时那一小时不存在）/ ambiguous（重复那一小时出现两次）。不存在的时刻**不建闹钟**，回一句中文问他要提前还是往后；重复的时刻取较早那次并把 UTC 偏移说出来。"
+    },
+    "AC-041": {
+      "status": "PASS",
+      "how": "CB9-200 只交付了渲染层，这里补上用户可见的那一半：跨时区的提醒确认同时给当地时间和北京时间，本人在北京（或墙上时间与北京相同的时区如 Asia/Chongqing）时只显示一次。AC-041 至此从 CB9-200 的 PARTIAL 转 PASS。"
+    }
+  },
+  "defect_my_first_version_had": {
+    "what": "第一版对 DST 跳时是**静默归一**：悉尼 2026-10-04 的「凌晨两点」被安静地给成 01:00。",
+    "why_it_is_bad": "早一小时，而用户没有任何办法发现，直到闹钟在错的时候响。AC-016 要的是「不存在时间请求确认」，不是悄悄挪。",
+    "how_found": "我自己的第一版测试只断言「渲染出来不是 02:xx」——那个早一小时的错误答案同样满足。手工探了一次真实输出才看见 01:00。断言随后改成钉住 needsConfirmation。",
+    "lesson": "松断言比没断言更危险：它让一条已知的错误行为看起来被覆盖了。"
+  },
+  "second_defect": {
+    "what": "fold 检测只往一个方向找候选（-1h），漏掉 ownerWallClockToMs 给的是较早那次的那一半情况。",
+    "symptom": "ambiguous=false，看起来像「这天没问题」。",
+    "found_by": "手工探纽约 2026-11-01，发现 ambiguous 是 false。"
+  },
+  "collateral": "两处调用点加 typeof 守卫：既有测试用挑出来的原型方法拼最小 app，senderTimezone 不在挑选清单里会直接抛。缺方法退回 OWNER_TIMEZONE——那正是改动前所有人共用的口径，退化不改变行为。",
+  "tests": {
+    "count": "15 pass",
+    "full_regression": "1142 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "忽略传进来的时区（回到所有人共用北京）",
+      "red": 7
+    },
+    {
+      "mutation": "不存在的时刻照样建（静默早一小时）",
+      "red": 1
+    },
+    {
+      "mutation": "fold 只往一个方向找候选",
+      "red": 2
+    },
+    {
+      "mutation": "重复时取较晚那次",
+      "red": 3
+    },
+    {
+      "mutation": "确认文案不给北京时间",
+      "red": 1
+    },
+    {
+      "mutation": "北京用户也被塞一份多余的北京时间",
+      "red": 2
+    },
+    {
+      "mutation": "重复时不说明是哪一次",
+      "red": 1
+    },
+    {
+      "mutation": "安静时段一律按北京时间判",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}

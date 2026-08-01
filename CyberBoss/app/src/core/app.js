@@ -35,6 +35,7 @@ const { ReminderQueueStore } = require("../adapters/channel/weixin/reminder-queu
 const {
   buildConfirmation,
   buildDueMessage,
+  buildNonexistentTimeQuestion,
   parseReminderIntent,
 } = require("../services/reminder/reminder-intent");
 const {
@@ -1061,6 +1062,9 @@ class CyberbossApp {
         resolveOwnerSenderId: () => this.resolveOwnerSenderIdForCheckin(),
         // 所有开了「主动找我」的人，每人一份自己的间隔和静默时段。
         listTargets: () => this.listCheckinTargets(),
+        // 静默时段按**他当地**的几点判（CB9-230 / AC-011）。没有位置画像的人
+        // 退回北京时间——和以前的行为一致。
+        readTimezone: (senderId) => this.senderTimezone({ senderId }),
       }).catch((error) => {
         console.error(`[cyberboss] checkin poller stopped: ${error.message}`);
       });
@@ -3715,6 +3719,20 @@ class CyberbossApp {
     }
   }
 
+  // 一条入站消息的发件人在哪个时区。解析不出身份就退回主人的时区——那是这台
+  // 机器的默认口径，和以前的行为一致。
+  senderTimezone(normalized) {
+    try {
+      const userId = this.resolveUserIdForPersona({
+        accountId: normalized?.accountId || "",
+        senderId: normalized?.senderId || "",
+      });
+      return userId ? this.userTimezone(userId) : OWNER_TIMEZONE;
+    } catch {
+      return OWNER_TIMEZONE;
+    }
+  }
+
   // 这个人当前该按哪个时区渲染时间（CB9-200 的 userZone 从这里来）。
   userTimezone(userId) {
     const id = normalizeText(userId);
@@ -3869,7 +3887,11 @@ class CyberbossApp {
   handleItemCommand(normalized, userId) {
     const intent = parseItemIntent(normalized.text, {
       now: Date.now(),
-      timeZone: OWNER_TIMEZONE,
+      // 日程的开始时刻也是「他说的那个点」，理由同 createDeterministicReminder。
+      // 拿不到就退回主人时区——那是改动前所有人共用的口径，退化不改变行为。
+      timeZone: typeof this.senderTimezone === "function"
+        ? this.senderTimezone(normalized)
+        : OWNER_TIMEZONE,
     });
     if (!intent || !this.runtimeSpoolDatabase) {
       return false;
@@ -3945,9 +3967,17 @@ class CyberbossApp {
   // 返回 true 表示这一轮已经办完了，不用再往下走。认不出来就返回 false，一切
   // 照旧交给模型——宁可漏判，也不能把「我三点才下班」听成一个闹钟。
   createDeterministicReminder(normalized) {
+    // 按**这个人自己的**时区解析（CB9-230 / AC-011）。
+    //
+    // 一律用 OWNER_TIMEZONE 的话，一个在悉尼的人说「明天下午三点提醒我」，
+    // 会被建成北京时间的下午三点——他那边是晚上六点，差三个小时，而且他没有
+    // 任何办法发现这件事，直到闹钟在错的时候响。
     const intent = parseReminderIntent(normalized.text, {
       now: Date.now(),
-      timeZone: OWNER_TIMEZONE,
+      // 拿不到就退回主人时区——那是改动前所有人共用的口径，退化不改变行为。
+      timeZone: typeof this.senderTimezone === "function"
+        ? this.senderTimezone(normalized)
+        : OWNER_TIMEZONE,
     });
     if (!intent) {
       return false;
@@ -3957,6 +3987,14 @@ class CyberbossApp {
     const contextToken = String(normalized.contextToken || "").trim();
     if (!contextToken) {
       return false;
+    }
+    // 他说的那个点当天不存在（夏令时往前拨的那一小时）——去问，别建（AC-016）。
+    //
+    // 不接这一条的话，intent 里没有 dueAtMs，enqueue 会收到 undefined：
+    // 要么当场抛，要么排进去一个立刻就到点的闹钟。两种都比问一句差得多。
+    if (intent.needsConfirmation) {
+      void this.sendAdmissionReply(normalized, buildNonexistentTimeQuestion(intent));
+      return true;
     }
     try {
       this.reminderQueue.enqueue({

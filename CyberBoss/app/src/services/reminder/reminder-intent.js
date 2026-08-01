@@ -214,6 +214,42 @@ function ownerWallClockToMs({ year, month, day, hour, minute }, timeZone) {
   return guess + (guess - seenAsUtc);
 }
 
+// 这个墙上时间在这个时区里到底存不存在、是不是出现了两次（AC-016）。
+//
+// 夏令时一年制造两种畸形时刻：
+//   跳时（gap）——那一小时**不存在**。悉尼 2026-10-04 没有 02:00。
+//   重复（fold）——那一小时出现**两次**。纽约 2026-11-01 有两个 01:30。
+//
+// ownerWallClockToMs 对这两种都会安静地给一个数：gap 时给的是跳之前那一刻
+// （用户说 02:00，闹钟落在 01:00，早一小时），fold 时给的是两次里的某一次。
+// 「安静地早一小时」是最坏的结果——用户没有任何办法发现，直到闹钟在错的时候响。
+//
+// 所以这里把它判出来交给上层：不存在就去问，重复就说清楚是哪一次。
+function classifyWallClock({ year, month, day, hour, minute }, timeZone) {
+  const atMs = ownerWallClockToMs({ year, month, day, hour, minute }, timeZone);
+  const back = ownerParts(atMs, timeZone);
+  // 回读对不上＝这个墙上时间不存在。
+  if (back.year !== year || back.month !== month || back.day !== day
+    || back.hour !== hour || back.minute !== minute) {
+    return { kind: "nonexistent", atMs, rendered: back };
+  }
+  // 同一个墙上时间的另一个候选。**两个方向都要找**：ownerWallClockToMs 给的
+  // 可能是较早那次也可能是较晚那次，只往一边找就会漏掉一半的情况——而漏掉的
+  // 那一半在测试里表现为 ambiguous=false，看起来像「这天没问题」。
+  // 半小时和 45 分钟的偏移也要试：不是所有时区都按整小时切。
+  for (const deltaMs of [-3600_000, 3600_000, -1800_000, 1800_000, -2700_000, 2700_000]) {
+    const other = atMs + deltaMs;
+    const p = ownerParts(other, timeZone);
+    if (p.year === year && p.month === month && p.day === day
+      && p.hour === hour && p.minute === minute) {
+      // 两个都对：取**较早**的那一次（和大多数日历软件一致），并把这件事说出来。
+      const earlier = Math.min(atMs, other);
+      return { kind: "ambiguous", atMs: earlier, alternateMs: Math.max(atMs, other) };
+    }
+  }
+  return { kind: "ok", atMs };
+}
+
 // ── 对外 ───────────────────────────────────────────────────
 
 function parseReminderIntent(rawText, {
@@ -231,6 +267,7 @@ function parseReminderIntent(rawText, {
   const relative = matchRelative(text);
   let dueAtMs = 0;
   let matched = "";
+  let ambiguous = false;
   if (relative) {
     dueAtMs = now + relative.delayMs;
     matched = relative.matched;
@@ -240,13 +277,35 @@ function parseReminderIntent(rawText, {
       return null;
     }
     const today = ownerParts(now, timeZone);
-    dueAtMs = ownerWallClockToMs({
+    // 先归一到一个真实日期（day + offset 可能溢出月末），再判 DST。
+    const normalized = ownerParts(ownerWallClockToMs({
       year: today.year,
       month: today.month,
       day: today.day + absolute.dayOffset,
+      hour: 12,
+      minute: 0,
+    }, timeZone), timeZone);
+    const classified = classifyWallClock({
+      year: normalized.year,
+      month: normalized.month,
+      day: normalized.day,
       hour: absolute.hour,
       minute: absolute.minute,
     }, timeZone);
+    // 不存在的时刻不建闹钟，交给上层去问一句（AC-016）。
+    // 安静地挪一小时是最坏的处理：用户没有任何办法发现，直到它在错的时候响。
+    if (classified.kind === "nonexistent") {
+      return {
+        needsConfirmation: true,
+        reason: "nonexistent_local_time",
+        askedFor: `${String(absolute.hour).padStart(2, "0")}:${String(absolute.minute).padStart(2, "0")}`,
+        timeZone,
+      };
+    }
+    dueAtMs = classified.atMs;
+    if (classified.kind === "ambiguous") {
+      ambiguous = true;
+    }
     matched = absolute.matched;
   }
 
@@ -259,6 +318,9 @@ function parseReminderIntent(rawText, {
     dueAtMs,
     body: extractBody(text, matched),
     dueAtLabel: formatDueLabel(dueAtMs, now, timeZone),
+    // 那一小时出现了两次，取的是较早的一次——得说出来，否则用户以为是另一次。
+    ambiguous,
+    ...(ambiguous ? { offsetLabel: utcOffsetLabel(dueAtMs, timeZone) } : {}),
   };
 }
 
@@ -275,6 +337,19 @@ function extractBody(text, matched) {
 }
 
 function formatDueLabel(dueAtMs, nowMs, timeZone) {
+  const local = relativeLabel(dueAtMs, nowMs, timeZone);
+  // 跨时区的人要同时看到北京时间（AC-041）。
+  //
+  // 只给当地时间的话，一个在悉尼的人和主人约「明天 14:00」，两个人说的是两个
+  // 时刻，而两边都以为对上了。只给北京时间更糟——他得自己心算。
+  // 时区和北京是同一个墙上时间时只显示一次，不制造噪声。
+  if (sameWallClock(dueAtMs, timeZone, BEIJING_ZONE)) {
+    return local;
+  }
+  return `${local}（北京时间 ${relativeLabel(dueAtMs, nowMs, BEIJING_ZONE)}）`;
+}
+
+function relativeLabel(dueAtMs, nowMs, timeZone) {
   const due = ownerParts(dueAtMs, timeZone);
   const today = ownerParts(nowMs, timeZone);
   const clock = `${String(due.hour).padStart(2, "0")}:${String(due.minute).padStart(2, "0")}`;
@@ -288,11 +363,45 @@ function formatDueLabel(dueAtMs, nowMs, timeZone) {
   return `${due.month} 月 ${due.day} 日 ${clock}`;
 }
 
+// 这个时刻在两个时区里是不是同一个墙上时间。
+// 按时区名比的话，重庆的人会看到「14:00（北京时间 14:00）」这种纯噪声。
+function sameWallClock(atMs, a, b) {
+  if (a === b) {
+    return true;
+  }
+  const pa = ownerParts(atMs, a);
+  const pb = ownerParts(atMs, b);
+  return pa.year === pb.year && pa.month === pb.month
+    && pa.day === pb.day && pa.hour === pb.hour && pa.minute === pb.minute;
+}
+
+// UTC 偏移，形如 UTC+11。夏令时重复时段唯一能把两次区分开的东西。
+function utcOffsetLabel(atMs, timeZone) {
+  const seen = ownerParts(atMs, timeZone);
+  const seenAsUtc = Date.UTC(seen.year, seen.month - 1, seen.day, seen.hour, seen.minute, seen.second, 0);
+  const minutes = Math.round((seenAsUtc - atMs) / 60000);
+  const sign = minutes >= 0 ? "+" : "-";
+  const abs = Math.abs(minutes);
+  const hh = Math.floor(abs / 60);
+  const mm = abs % 60;
+  return `UTC${sign}${hh}${mm ? `:${String(mm).padStart(2, "0")}` : ""}`;
+}
+
 // 建完立刻回的那一句。不提「已加入队列」「reminder id」这种东西。
-function buildConfirmation({ body, dueAtLabel }) {
-  return body
+function buildConfirmation({ body, dueAtLabel, ambiguous = false, offsetLabel = "" }) {
+  const base = body
     ? `好，${dueAtLabel} 提醒你${body}。`
     : `好，${dueAtLabel} 叫你一声。`;
+  // 夏令时那天这个点有两次，说清楚是哪一次（AC-016）。不说的话，用户以为的
+  // 和实际的差一小时，而两边都觉得自己是对的。
+  return ambiguous && offsetLabel
+    ? `${base}（那天时钟往回拨，这个点有两次，我按早的那次算，${offsetLabel}。）`
+    : base;
+}
+
+// 不存在的时刻问的那一句。给出他说的那个点，让他自己挑一个真实存在的。
+function buildNonexistentTimeQuestion({ askedFor }) {
+  return `那天时钟往前拨，${askedFor} 这个点当天不存在。你是要提前一小时，还是往后挪一小时？`;
 }
 
 // 到点发出去的那一句。
@@ -302,6 +411,8 @@ function buildDueMessage({ body }) {
 
 module.exports = {
   buildConfirmation,
+  buildNonexistentTimeQuestion,
+  classifyWallClock,
   buildDueMessage,
   extractBody,
   ownerWallClockToMs,
