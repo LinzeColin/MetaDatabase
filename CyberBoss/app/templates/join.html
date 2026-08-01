@@ -7,9 +7,31 @@
 <meta name="referrer" content="no-referrer">
 <title>加我聊天</title>
 <style nonce="__CSP_NONCE__">
+  /* ── 中文防呆基线（CB9-330 / AC-030）────────────────────────
+     四条，每条都对应一种在 375×812 上真实发生过的坏法：
+
+       box-sizing  —— 不设的话，padding 会把一个 width:100% 的元素撑出屏幕，
+                      横向滚动条就是这么来的。
+       overflow-x  —— 兜底。上面那条挡的是我们自己写的元素，这条挡的是一段
+                      粘进来的长链接或者一张超宽的图。
+       max-width   —— 图片和二维码是外部来的，尺寸不由我们决定。
+       min-height  —— 44px 是能用拇指点中的下限。比这小的按钮在手机上要点两次。
+
+     这一段和 setup-portal 里的那份是同一套；改一处要四处一起改，有测试守着。
+  */
+  *, *::before, *::after { box-sizing: border-box; }
+  :root { --touch: 44px; }
+  html, body { overflow-x: hidden; }
+  img, svg, canvas, video { max-width: 100%; height: auto; }
+  button, select, textarea, input:not([type=hidden]), a.btn, [role=button] {
+    min-height: var(--touch);
+    font-size: 16px; /* 16px 以下 iOS 会在聚焦时自动放大整页 */
+  }
+  .wrap { overflow-wrap: anywhere; word-break: break-word; }
+
   :root{--bg:#fff;--fg:#16181d;--muted:#4a4f58;--line:#d9dce1;--card:#f7f8fa;--ok:#128a4b}
   @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#f2f4f7;--muted:#c3c8d1;--line:#333842;--card:#1c1f25;--ok:#3ddc84}}
-  *{box-sizing:border-box}
+  
   body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
   main{max-width:460px;margin:0 auto;padding:44px 22px 64px;text-align:center}
   h1{font-size:26px;margin:0 0 8px}

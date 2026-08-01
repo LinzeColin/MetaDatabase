@@ -60,7 +60,9 @@ const MESSAGES = Object.freeze({
     primaryAction: "导入聊天",
   },
   import_unsupported: {
-    text: "这个文件我认不出来。目前支持 ChatGPT、Claude、Gemini 和 DeepSeek 导出的文件。",
+    // 列出支持什么**不是**下一步。用户拿着一个不支持的文件，需要知道的是
+    // 「那我现在该干嘛」——AC-030 要的是「错误包含唯一下一步」。
+    text: "这个文件我认不出来。目前支持 ChatGPT、Claude、Gemini 和 DeepSeek 导出的文件；换一个再发给我就行。",
     primaryAction: "导入聊天",
   },
   import_partial: {

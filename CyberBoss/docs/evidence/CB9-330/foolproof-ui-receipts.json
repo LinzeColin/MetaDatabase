@@ -1,0 +1,88 @@
+{
+  "task": "CB9-330",
+  "title": "重构首页、加入页和后台一级信息架构与中文防呆",
+  "generated_at": "2026-08-01T20:36:43Z",
+  "head_observation": "b09578a3914d427ce7670278068be24228c755da",
+  "artifacts": [
+    "app/templates/{home,join,me,ops-wechat,dashboard,setup-portal}.html（统一防呆基线）",
+    "app/src/services/ops/novice-presenter.js（import_unsupported 补下一步）",
+    "app/test/cb9-330-foolproof-ui.test.js（新，16）"
+  ],
+  "the_gap": "六页里只有 setup-portal 和 dashboard 有防呆约束。首页、加入页、每个人自己那一页、主人激活页四页**一条都没有**——而前三页正是陌生人在手机上打开的那几页。",
+  "what_this_node_verifies_and_what_it_does_not": {
+    "verified_here": "让横向溢出**不可能发生**的结构：box-sizing（padding 不再撑破 width:100%）、页面级 overflow-x（兜住粘进来的长链接）、图片 max-width（外部资源尺寸不由我们决定）、长词断行。触控区靠六页共享的 --touch 变量，硬写数字改一处会漏五处。",
+    "not_verified_here": "真实视口下的像素测量（375×812 / 1280×720 实测溢出=0、控件实际渲染高度≥44px）。那属于 CB9-340，method=playwright，environment_bound。",
+    "why_both": "量一次只覆盖当时那一份内容；规则覆盖所有内容。反过来，规则对也可能被某段具体内容打破。两者互不替代。",
+    "attempted": "本节点尝试过用浏览器实测：渲染六页到临时静态服务后，预览窗对 file:// 只做静态快照（跑不了脚本），换 HTTP 又被浏览器面板的策略挡掉（`http://127.0.0.1:8931 is blocked by policy`）。没有把这件事说成做过了。"
+  },
+  "acceptance": {
+    "AC-030": {
+      "status": "PASS(结构面)",
+      "how": "四条防溢出规则逐页逐条查；写死的 >375px 宽度扫描；视口声明与「不许禁用缩放」；--touch 变量六页统一；输入框字号 ≥16px（小于会触发 iOS 聚焦时放大整页）；每条错误文案都必须含一个可执行的下一步。像素实测归 CB9-340。"
+    },
+    "AC-037": {
+      "status": "PASS(结构面)",
+      "how": "「模型耗时不混入页面性能」用的是**够不着**而不是「测出来很快」：portal-server 的源码里不许出现任何模型适配器/路由/厂商名。另加：加入页首屏文字写在 HTML 里而不是等 JS；零站外资源（性能最不可控的一段，同时是一条隐私出口）；页面重量按用途分档。真实 p95 与可交互时间归 CB9-340。"
+    }
+  },
+  "my_own_sloppy_assertions_corrected": [
+    {
+      "what": "页面重量一刀切 64KB，dashboard 67KB 卡住。",
+      "why_wrong": "64KB 是我拍的，不是从 NFR-007 推出来的。两类页面的约束本来就不同：公开页是陌生人在手机上、移动网络下的第一印象；后台只有主人在桌面上一天开几次。",
+      "fix": "按用途分档（公开页 32–48KB，主人页 64–96KB）。这不是放宽——公开页的上限比原来那个一刀切**更严**。另加一条断言：预算表必须恰好覆盖 PAGES，新加的页不能不定上限。"
+    },
+    {
+      "what": "「标题必须含中文」，首页那个 \"CyberBoss\" 卡住。",
+      "why_wrong": "产品名不是技术词，翻成中文对用户没有任何好处。",
+      "fix": "改成禁技术词（portal/admin/console/api/.html/端口号），并要求首页之外的每一页在产品名之外还得有中文说明「这是哪一页」——微信里并排开着几个页面时要分得清。"
+    }
+  ],
+  "cleanup": "清掉五页里被基线取代的重复 box-sizing 规则。清的过程中把 dashboard 唯一那份也删了——测试当场转红，补上完整基线。这一步本身就是那条「基线必须六页同一套」断言的价值证明。",
+  "tests": {
+    "count": "16 pass",
+    "full_regression": "1250 + 72 全通过"
+  },
+  "red_green_proof": [
+    {
+      "mutation": "加入页去掉页面级 overflow-x",
+      "red": 2
+    },
+    {
+      "mutation": "首页去掉触控变量",
+      "red": 1
+    },
+    {
+      "mutation": "我的一页去掉 box-sizing",
+      "red": 2
+    },
+    {
+      "mutation": "加入页固定视口宽度",
+      "red": 1
+    },
+    {
+      "mutation": "禁用缩放",
+      "red": 1
+    },
+    {
+      "mutation": "激活页图片不再限宽",
+      "red": 1
+    },
+    {
+      "mutation": "错误文案又不给下一步",
+      "red": 1
+    },
+    {
+      "mutation": "portal 里出现模型适配器",
+      "red": 1
+    },
+    {
+      "mutation": "标题换成英文技术名",
+      "red": 1
+    },
+    {
+      "mutation": "首页写死 900px 宽",
+      "red": 1
+    }
+  ],
+  "baseline_before_mutation": "fail 0"
+}

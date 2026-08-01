@@ -8,6 +8,9 @@
 <title>CyberBoss 后台</title>
 <style nonce="__CSP_NONCE__">
   :root{
+    /* 44px：能用拇指点中的下限（CB9-330 / AC-030）。
+       和另外五页共用同一个变量名——硬写数字的话，改一处就会漏掉五处。 */
+    --touch:44px;
     --bg:#fbfbfc;--fg:#15171c;--muted:#61666f;--faint:#8b919b;
     --line:#e4e6eb;--card:#fff;--sunk:#f1f2f5;
     --ok:#0b6b45;--warn:#8a5a00;--bad:#b3261e;
@@ -21,7 +24,16 @@
     --them:#22262d;--me:#3f7043;--me-fg:#eaffe6;
     --h0:#1f232a;--h1:#1e4a34;--h2:#2a7a52;--h3:#3fa46c;--h4:#5fd394;
   }}
-  *{box-sizing:border-box}
+  
+  /* ── 中文防呆基线（CB9-330 / AC-030）─────────────────────
+     和另外五页同一套。box-sizing 让 padding 不再撑破 width:100%，
+     否则一个 width:100% 的输入框加上 padding 就会顶出横向滚动条。 */
+  *, *::before, *::after { box-sizing: border-box; }
+  img, svg, canvas, video { max-width: 100%; height: auto; }
+  /* 页面级兜底：粘进来的长链接、超宽的表格都不许顶出横向滚动条。
+     注意下面标签条上那个 overflow-x:auto 是**它自己**的滚动条，有意留的——
+     标签多的时候横着划比换行好用。两者不冲突：一个是页面，一个是容器。 */
+  html, body { overflow-x: hidden; }
   body{margin:0;background:var(--bg);color:var(--fg);
     font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
     -webkit-font-smoothing:antialiased}
@@ -41,7 +53,7 @@
   .tabs button[aria-selected="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 
   button{font:inherit;padding:11px 16px;border-radius:10px;border:1px solid var(--line);
-    background:var(--card);color:var(--fg);cursor:pointer;min-height:44px}
+    background:var(--card);color:var(--fg);cursor:pointer;min-height:var(--touch)}
   button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
   input[type=text],input[type=search],input[type=number],input[type=date],textarea{
     font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
