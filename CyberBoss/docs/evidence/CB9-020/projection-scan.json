@@ -1,0 +1,12 @@
+{
+ "scanned": [
+  "app/templates/dashboard.html",
+  "app/templates/home.html",
+  "app/templates/join.html",
+  "app/templates/me.html",
+  "app/templates/ops-wechat.html",
+  "app/templates/setup-portal.html",
+  "app/src/v8-prebuilt/status/business-matrix.js"
+ ],
+ "violations": []
+}

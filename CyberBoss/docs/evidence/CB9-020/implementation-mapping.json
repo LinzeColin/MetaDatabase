@@ -1,0 +1,39 @@
+{
+  "task": "CB9-020",
+  "title": "把 v0.0.0.8 现有实现逐项映射为保留、适配或跳过",
+  "generated_at": "2026-08-01T12:37:54Z",
+  "head_observation": "9da8d8b3efb47ccb5fc5e54506f35ec68d3099e6",
+  "note": "冻结测试验证的是 Starter Kit 参考实现；仓库是否满足另列一栏。两者不得互相冒充。",
+  "acceptance": {
+    "AC-001": {
+      "frozen_test": "starter-kit/test/mode-router.test.js 2/2 pass",
+      "repo_state": "PASS",
+      "repo_evidence": "OWNER_ONLY_CAPABILITIES/USER_CAPABILITIES 互斥能力模型 + admitDurableTurn 服务端定身份；app/test/cb640-dual-user-blind-set.test.js 与 inbound-user-admission-e2e.test.js 覆盖 owner/companion/spoof",
+      "mapping": "保留"
+    },
+    "AC-020": {
+      "frozen_test": "starter-kit/test/session-context.test.js 9/9 pass",
+      "repo_state": "FAIL",
+      "repo_evidence": "仓库无统一 event_id/user_scope/session_key/intent/status/beijing_time 事件模型；timeline-service 线上从未写入。缺口归 CB9-400（统一 Session Event Orchestrator）",
+      "mapping": "适配"
+    },
+    "AC-026": {
+      "frozen_test": "starter-kit/test/status-projector.test.js 6/6 pass",
+      "repo_state": "FAIL",
+      "repo_evidence": "status-snapshot-writer 产出 5 个顶层字段 {schema_version,product,version,generated_at,business_lines}；v0.0.0.9 schema 要求 10 个顶层字段与 15 项能力枚举，modes/capabilities/queue/resources/canonical_sync/backups 全缺。缺口归 CB9-510",
+      "mapping": "适配"
+    },
+    "AC-043": {
+      "frozen_test": "starter-kit/test/status-projector.test.js 6/6 pass",
+      "repo_state": "PASS",
+      "repo_evidence": "对 7 个公开面文件（6 个模板 + business-matrix.js）做脱敏扫描，原始微信 ID / 绝对路径 / token 字面量 / 真实 thread ID 四类形态 0 命中，详见 projection-scan.json",
+      "mapping": "保留"
+    }
+  },
+  "summary": {
+    "保留": 2,
+    "适配": 2,
+    "跳过": 0
+  },
+  "legacy_wholefile_overwrites": 0
+}
