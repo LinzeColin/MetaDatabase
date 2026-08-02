@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import importlib
 import io
 import zipfile
 
 import pytest
+from fastapi.testclient import TestClient
 
 from social_archive.connectors.social_archiver_bundle import SocialArchiverBundleImporter
 
@@ -14,6 +16,23 @@ def bundle(entries: dict[str, str]) -> bytes:
         for name, value in entries.items():
             archive.writestr(name, value)
     return output.getvalue()
+
+
+def _api_client(tmp_path, monkeypatch) -> TestClient:
+    root = tmp_path / "data"
+    pwa = tmp_path / "pwa"
+    pwa.mkdir()
+    (pwa / "index.html").write_text("ok", encoding="utf-8")
+    monkeypatch.setenv("SOCIAL_ARCHIVE_DATA_ROOT", str(root))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_RUNTIME_DB", str(root / "db.sqlite"))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_STAGING_ROOT", str(root / "staging"))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PRIVATE_DATABASE_ROOT", str(root / "private"))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_WATCH_ROOT", str(root / "import"))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PWA_ROOT", str(pwa))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_PAIRING_REQUIRED", "false")
+    import social_archive.api as api
+
+    return TestClient(importlib.reload(api).app)
 
 
 def test_social_archiver_zip_imports_markdown_without_extracting():
@@ -46,6 +65,18 @@ def test_service_import_preserves_bundle_and_is_idempotent(service, settings, st
     assert len(store.list_library(platform="x")) == 1
 
 
+def test_social_archiver_api_accepts_raw_zip_body_and_is_idempotent(tmp_path, monkeypatch):
+    client = _api_client(tmp_path, monkeypatch)
+    payload = bundle({"Reddit/item.md": "---\nurl: https://www.reddit.com/r/example/comments/import\nplatform: reddit\ntitle: API import\n---\n正文"})
+    headers = {"Content-Type": "application/zip", "X-Archive-Filename": "owner-export.zip"}
+    first = client.post("/v1/import/social-archiver", content=payload, headers=headers)
+    second = client.post("/v1/import/social-archiver", content=payload, headers=headers)
+    assert first.status_code == second.status_code == 200
+    assert first.json()["imported"] == second.json()["imported"] == 1
+    assert first.json()["bundle_sha256"] == second.json()["bundle_sha256"]
+    assert first.json()["content_ids"] == second.json()["content_ids"]
+
+
 def test_pwa_exposes_zero_tech_social_archiver_import():
     from pathlib import Path
     root = Path(__file__).parents[2] / "apps/pwa"
@@ -54,3 +85,8 @@ def test_pwa_exposes_zero_tech_social_archiver_import():
     assert "导入 Social Archiver / Markdown ZIP" in html
     assert "openImport" in html and "archiveFile" in html
     assert "/v1/import/social-archiver" in js
+    assert 'accept=".zip,application/zip,application/x-zip-compressed"' in html
+    assert '"Content-Type": "application/zip"' in js
+    assert '"X-Archive-Filename": safeArchiveFilename(file)' in js
+    assert "body: file" in js
+    assert "MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024" in js

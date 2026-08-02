@@ -46,6 +46,10 @@
 <div class="page-subtitle">按平台归类，默认按收藏、点赞或书签时间从新到旧排列；点击任意列标题即可排序。</div>
 </div>
 <div class="head-actions">
+<button class="btn" id="openImport">
+<svg class="icon" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>
+          导入 Social Archiver / Markdown ZIP
+        </button>
 <button class="btn" data-open-sync="">
 <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="M20 7h-6V1"></path><path d="M20 7a9 9 0 1 0 2 8"></path><path d="M4 17h6v6"></path></svg>
           管理账号
@@ -146,6 +150,23 @@
 <tbody id="syncTableBody"></tbody>
 </table>
 </div>
+</div>
+</section>
+</div>
+<div class="modal-backdrop" id="importModalBackdrop">
+<section aria-describedby="importModalCopy" aria-labelledby="importModalTitle" aria-modal="true" class="modal" role="dialog">
+<div class="modal-header">
+<div><h2 id="importModalTitle">导入 Social Archiver / Markdown ZIP</h2><p id="importModalCopy">选择你本人从 Social Archiver 或其他本地 Markdown 工具导出的 ZIP。不会要求 Cookie、Token 或命令行。</p></div>
+<span class="header-spacer"></span>
+<button aria-label="关闭导入" class="icon-button" data-close-modal="importModalBackdrop">×</button>
+</div>
+<div class="modal-body">
+<form class="form-grid" id="importForm">
+<label for="archiveFile">ZIP 导出包<input accept=".zip,application/zip,application/x-zip-compressed" id="archiveFile" name="archiveFile" required type="file"/></label>
+<p class="form-help">仅接受 ZIP，最大 200 MiB。重复导入同一包会复用已有内容，不创建重复关系。</p>
+<div aria-live="polite" class="inline-error" id="importError"></div>
+<div class="form-actions"><button class="btn" data-close-modal="importModalBackdrop" type="button">取消</button><button class="btn primary" id="importSubmit" type="submit">开始导入</button></div>
+</form>
 </div>
 </section>
 </div>

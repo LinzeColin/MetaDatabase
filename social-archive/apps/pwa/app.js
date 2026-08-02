@@ -47,6 +47,7 @@
     github: "GitHub Private", karakeep: "Karakeep", linkwarden: "Linkwarden", archivebox: "ArchiveBox"
   };
   const destinationMarks = { markdown: "M", notion: "N", obsidian: "O", github: "G" };
+  const MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES = 200 * 1024 * 1024;
 
   const columns = [
     { key: "check", label: "", cls: "col-check sticky-left", required: true, sortable: false },
@@ -571,6 +572,60 @@
   function openSyncModal() { renderSyncTable(); $("syncModalBackdrop").classList.add("open"); }
   function closeModal(id) { $(id)?.classList.remove("open"); }
 
+  function openImportModal() {
+    $("importForm")?.reset();
+    if ($("importError")) $("importError").textContent = "";
+    openModal("importModalBackdrop");
+  }
+
+  function safeArchiveFilename(file) {
+    const candidate = String(file?.name || "social-archiver-export.zip");
+    const normalized = candidate.replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 180);
+    return normalized || "social-archiver-export.zip";
+  }
+
+  async function importSocialArchiver(event) {
+    event.preventDefault();
+    const file = $("archiveFile")?.files?.[0];
+    const error = $("importError");
+    const submit = $("importSubmit");
+    if (error) error.textContent = "";
+    if (!file) {
+      if (error) error.textContent = "请选择一个 ZIP 导出包。";
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith(".zip") || file.size <= 0) {
+      if (error) error.textContent = "请选择非空的 ZIP 导出包。";
+      return;
+    }
+    if (file.size > MAX_SOCIAL_ARCHIVER_BUNDLE_BYTES) {
+      if (error) error.textContent = "导入包超过 200 MiB，请拆分后重试。";
+      return;
+    }
+    const original = submit?.textContent || "开始导入";
+    if (submit) { submit.disabled = true; submit.textContent = "正在导入…"; }
+    try {
+      const result = await api("/v1/import/social-archiver", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/zip",
+          "X-Archive-Filename": safeArchiveFilename(file)
+        },
+        body: file,
+        timeoutMs: 120000
+      });
+      const imported = Number(result.imported ?? result.accepted ?? 0);
+      closeModal("importModalBackdrop");
+      $("importForm")?.reset();
+      showToast(imported ? `已导入 ${imported} 条内容；重复项会自动复用。` : "导入已完成，但没有可识别的新内容。", imported ? "success" : "needs");
+      await loadLibrary({ resetPage: true });
+    } catch (requestError) {
+      if (error) error.textContent = requestError.message || "导入失败，请检查 ZIP 内容后重试。";
+    } finally {
+      if (submit) { submit.disabled = false; submit.textContent = original; }
+    }
+  }
+
   function postToExtension(type, payload = {}) {
     const requestId = crypto.randomUUID();
     return new Promise((resolve, reject) => {
@@ -795,6 +850,8 @@
       catch (_) { showToast("浏览器未允许复制，请使用“打开原文”", "needs"); }
     });
     document.querySelectorAll("[data-open-sync]").forEach(button => button.addEventListener("click", openSyncModal));
+    $("openImport").addEventListener("click", openImportModal);
+    $("importForm").addEventListener("submit", importSocialArchiver);
     $("closeSyncModal").addEventListener("click", () => closeModal("syncModalBackdrop"));
     $("syncModalBackdrop").addEventListener("click", event => { if (event.target === event.currentTarget) closeModal("syncModalBackdrop"); });
     $("syncAllBtn").addEventListener("click", syncAllAccounts);
@@ -816,7 +873,7 @@
       if (nav === "settings") { renderSettingsModal(); openModal("settingsModalBackdrop"); }
     }));
     document.querySelectorAll("[data-close-modal]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.closeModal)));
-    ["destinationsModalBackdrop", "settingsModalBackdrop", "classificationModalBackdrop"].forEach(id => $(id)?.addEventListener("click", event => { if (event.target === event.currentTarget) closeModal(id); }));
+    ["destinationsModalBackdrop", "settingsModalBackdrop", "classificationModalBackdrop", "importModalBackdrop"].forEach(id => $(id)?.addEventListener("click", event => { if (event.target === event.currentTarget) closeModal(id); }));
     document.addEventListener("click", event => {
       if (!event.target.closest(".popover") && !event.target.closest("#columnsBtn") && !event.target.closest("#sortBtn")) document.querySelectorAll(".popover").forEach(popover => popover.classList.remove("open"));
       const close = event.target.closest("[data-close-modal]");
@@ -824,7 +881,7 @@
     });
     document.addEventListener("keydown", event => {
       if (event.key === "/" && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) { event.preventDefault(); $("globalSearch").focus(); }
-      if (event.key === "Escape") { closeDetail(); ["syncModalBackdrop", "destinationsModalBackdrop", "settingsModalBackdrop", "classificationModalBackdrop"].forEach(closeModal); document.querySelectorAll(".popover").forEach(popover => popover.classList.remove("open")); }
+      if (event.key === "Escape") { closeDetail(); ["syncModalBackdrop", "destinationsModalBackdrop", "settingsModalBackdrop", "classificationModalBackdrop", "importModalBackdrop"].forEach(closeModal); document.querySelectorAll(".popover").forEach(popover => popover.classList.remove("open")); }
     });
   }
 
