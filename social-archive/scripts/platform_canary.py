@@ -25,6 +25,16 @@ def save(doc:dict)->None:
     results_dir = Settings.from_env().data_root / 'evidence/platform-canaries'
     results_dir.mkdir(parents=True,exist_ok=True);path=results_dir/f"{doc['platform']}.json";path.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');print(json.dumps(doc,ensure_ascii=False))
 
+def read_only_result(platform: str) -> dict:
+    return result(platform, 'BLOCKED_ENVIRONMENT', {
+        'error_code': 'OWNER_CANARY_NOT_AUTHORIZED',
+        'next_action': 'Owner 明确授权最小只读 Canary 后再运行；当前 --read-only 不读取凭证、不访问网络、不写入 runtime。',
+        'read_only': True,
+        'credential_read': False,
+        'network_attempted': False,
+        'runtime_write': False,
+    })
+
 def core_capture_headers(settings: Settings) -> tuple[dict[str, str], dict[str, str] | None]:
     token = read_secret(settings.api_token_file)
     if settings.pairing_required and not token:
@@ -35,7 +45,9 @@ def core_capture_headers(settings: Settings) -> tuple[dict[str, str], dict[str, 
     return ({'Authorization': f'Bearer {token}'} if token else {}), None
 
 
-def run_one(platform:str,limit:int)->dict:
+def run_one(platform:str,limit:int,*,read_only: bool = False)->dict:
+    if read_only:
+        return read_only_result(platform)
     settings=Settings.from_env()
     if platform=='generic-web':
         headers, blocked = core_capture_headers(settings)
@@ -65,10 +77,13 @@ def run_one(platform:str,limit:int)->dict:
     return result(platform,'NOT_APPLICABLE',{})
 
 def main()->int:
-    ap=argparse.ArgumentParser();ap.add_argument('platform');ap.add_argument('--read-only',action='store_true');ap.add_argument('--limit',type=int,default=3);args=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('platform');ap.add_argument('--read-only',action='store_true',help='只输出 Owner 授权阻断状态；不读取凭证、不访问网络、不写入 runtime');ap.add_argument('--limit',type=int,default=3);args=ap.parse_args()
     platforms=['generic-web','x','reddit','instagram','tiktok','xiaohongshu','douyin','kuaishou','bilibili'] if args.platform in {'all','all-cn'} else [args.platform]
     if args.platform=='all-cn':platforms=['xiaohongshu','douyin','kuaishou','bilibili']
-    docs=[run_one(p,args.limit) for p in platforms]
-    for doc in docs:save(doc)
+    docs=[run_one(p,args.limit,read_only=args.read_only) for p in platforms]
+    if args.read_only:
+        for doc in docs:print(json.dumps(doc,ensure_ascii=False))
+    else:
+        for doc in docs:save(doc)
     return 0 if all(d['status'] in {'PASS','READY_FOR_OWNER_CANARY','DEGRADED','BLOCKED_ENVIRONMENT'} for d in docs) else 1
 if __name__=='__main__':raise SystemExit(main())
