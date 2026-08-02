@@ -1,0 +1,43 @@
+{
+  "run": "LIVE-20260802-R2",
+  "host": "OVH VPS-1 139.99.61.6",
+  "release": "部署脚本改造后逐次验证",
+  "services": {
+    "cyberboss-cloud": "active",
+    "cyberboss-cf-tunnel": "active",
+    "cyberboss-canonical-sync": "success",
+    "cyberboss-canonical-sync-material": "success",
+    "cyberboss-backup": "failed（缺 R2 写权限，见 F3）"
+  },
+  "fixed_this_round": [
+    {
+      "id": "F4",
+      "title": "material 同步的 EACCES：0710 让组连 stat 都做不了",
+      "detail": "上一轮把 /var/lib/cyberboss 收到 0710（组能穿过、列不出）。代价是 mkdir -p 判断不出目录已存在，去建 /var/lib/cyberboss 本身，撞上 /var/lib 不可写 → EACCES。0750 让组能只读列出，mkdir -p 正确跳过。",
+      "lesson": "最小权限收过头会以一个完全无关的错误形态冒出来（mkdir 而不是 open）"
+    },
+    {
+      "id": "F5",
+      "title": "同步失败只印一句 code，不说是哪一跳",
+      "detail": "daily 修好后 material 还在 EACCES，而错误里没有任何线索，只能一个目录一个目录试。补上 syscall 和 path 之后，一次就定位到 mkdir /var/lib/cyberboss/canonical-spool/outgoing。",
+      "lesson": "EACCES 不告诉你是哪一跳挂的，报错的人有义务说出来"
+    },
+    {
+      "id": "F6",
+      "title": "部署验证是假绿：任何程序回 200 都算过",
+      "detail": "最后一关只查公网 /admin 是否 200。改用 /source（免鉴权且印着 release）当探针，一次证明公网通、通到的是我们、且是刚部署那一版；另加核对 /proc/<pid>/environ 里实际拿到的 CB_EXPECTED_RELEASE_ID。",
+      "lesson": "不区分「谁在应答」的健康检查比没有更糟——它给了假的安心"
+    }
+  ],
+  "session_layer": {
+    "status": "已接入并部署",
+    "paths": [
+      "入站准入",
+      "提醒到点（零模型）",
+      "提醒到点（走模型）",
+      "脉冲/checkin/onboarding 的共同落点"
+    ],
+    "live_rows": 0,
+    "note": "部署后尚无新的真实来信，因此表仍为 0 行；这是待验证，不是已失败"
+  }
+}
