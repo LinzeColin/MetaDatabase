@@ -164,6 +164,29 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   assert.equal((await wereadExport.json()).source, "WeChat Reading");
 });
 
+test("单一生产入口签发 host-only Cookie，并清理历史共享域 Cookie", async t => {
+  const base = testConfig();
+  const config = Object.freeze({ ...base, production: true, sessionCookieDomain: "" });
+  const platform = testPlatform({ config });
+  t.after(platform.close);
+  const app = createPlatformApp({ service: platform.service, config });
+  const response = await app(new Request(`${config.baseUrl}/v1/auth/register/password`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: config.baseUrl,
+      "sec-fetch-site": "same-origin",
+      "x-wrp-internal-secret": config.internalProxySecret,
+    },
+    body: JSON.stringify({ email: "cookie-migration@example.com", password: PASSWORD, displayName: "Cookie 迁移" }),
+  }));
+  assert.equal(response.status, 200);
+  const cookies = response.headers.getSetCookie();
+  assert.equal(cookies.length, 2);
+  assert.doesNotMatch(cookies[0], /;\s*Domain=/iu);
+  assert.match(cookies[1], /Domain=weread\.linzezhang\.com; Secure; Max-Age=0$/u);
+});
+
 test("对象存储短暂不可用或正文损坏时，笔记接口返回可恢复 503 且不泄露下游异常", async t => {
   const platform = testPlatform();
   t.after(platform.close);

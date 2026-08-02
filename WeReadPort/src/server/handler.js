@@ -283,9 +283,10 @@ async function proxyAccountPlatform(request, env) {
   try {
     const response = await fetchImpl(target, { method: request.method, headers, body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body, redirect: "manual", signal: combineSignals(request.signal, controller.signal) });
     const outputHeaders = new Headers();
-    for (const name of ["content-type", "cache-control", "set-cookie", "location", "retry-after"]) {
+    for (const name of ["content-type", "cache-control", "location", "retry-after"]) {
       const value = response.headers.get(name); if (value) outputHeaders.set(name, value);
     }
+    for (const cookie of responseSetCookies(response.headers)) outputHeaders.append("Set-Cookie", cookie);
     if (outputHeaders.has("location")) {
       const location = new URL(outputHeaders.get("location"), incoming.origin);
       if (location.origin !== incoming.origin && !isTrustedAdminSessionHandoff(incoming, location, env)) throw new WeReadPortError("UPSTREAM_REDIRECT", "账户服务返回了非同源重定向。", { status: 502 });
@@ -297,6 +298,13 @@ async function proxyAccountPlatform(request, env) {
     if (error instanceof WeReadPortError) throw error;
     throw new WeReadPortError("NETWORK", "无法连接账户平台服务。", { status: 502, retryable: true });
   } finally { clearTimeout(timer); }
+}
+
+function responseSetCookies(headers) {
+  if (typeof headers.getSetCookie === "function") return headers.getSetCookie();
+  if (typeof headers.getAll === "function") return headers.getAll("Set-Cookie");
+  const single = headers.get("set-cookie");
+  return single ? [single] : [];
 }
 
 function isTrustedAdminSessionHandoff(incoming, location, env) {
