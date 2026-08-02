@@ -1,0 +1,34 @@
+{
+  "node": "CB9-460",
+  "observation": "部署后 agent_sessions_v009 仍为 0 行的原因",
+  "at": "2026-08-02T01:10Z",
+  "wiring": {
+    "deployed": true,
+    "paths_wired": 4,
+    "verified_how": "部署的 release 里 touchSystemSession 出现 4 次；12 刀变异全红，含「不接会话就回到孤岛状态」"
+  },
+  "why_no_rows_yet": [
+    {
+      "fact": "部署后没有新的真实来信",
+      "last_inbound": "2026-08-02T00:19:57.388Z（早于本次接线）"
+    },
+    {
+      "fact": "主人的主动 checkin 被 45 分钟静默窗口压着",
+      "detail": "他 00:19:57 说过话，01:04:57 才到期"
+    },
+    {
+      "fact": "最近一次主动消息是 2026-08-01T14:37",
+      "detail": "已静默 10 小时以上"
+    },
+    {
+      "fact": "我在一小时内部署了 4 次",
+      "detail": "每次重启服务都会重置 checkin 轮询器——这很可能是它一直没发的直接原因，属于我自己造成的观测干扰"
+    }
+  ],
+  "next_natural_trigger": {
+    "who": "访客",
+    "scheduled_utc": "01:50",
+    "note": "不再重启服务，让它自己发"
+  },
+  "status": "接线已闭环（制品+测试+变异+回滚）；线上写出会话行这一条待一次真实 turn，不是失败是没数据"
+}
