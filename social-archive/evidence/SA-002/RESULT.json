@@ -31,7 +31,19 @@
     "sealed_taskpack_version": "v0.0.0.6",
     "retire_plan_exit_code": 2,
     "retire_plan_result": "目标版本不是 0.0.0.6：'0.0.0.5'",
-    "reason": "retire_legacy.py requires VERSION=0.0.0.6 before either plan or apply. apply_taskpack.py --phase identity only patches legacy textual identifiers and does not update VERSION."
+    "reason": "retire_legacy.py requires VERSION=0.0.0.6 before either plan or apply. apply_taskpack.py --phase identity only patches legacy textual identifiers and does not update VERSION.",
+    "identity_inventory": {
+      "legacy_directory": "absent",
+      "active_directory": "social-archive",
+      "dry_run_command": "migrate_identifiers.py --root social-archive --dry-run",
+      "dry_run_proposed_changes": [
+        "CHANGELOG.md",
+        "docs/migration/LEGACY_MIGRATION.md",
+        "scripts/check_brand.py",
+        "tests/focused/test_brand_migration.py"
+      ],
+      "not_applied_reason": "The project contract explicitly permits legacy identifiers in historical Changelog and migration tests/validators. The sealed helper does not exclude those allowed locations, so using it would weaken the controlled migration boundary rather than resolve the version gate."
+    }
   },
   "required_owner_resolution": [
     "Explicitly authorize the v0.0.0.5 -> v0.0.0.6 identity/version migration required by this sealed Task Pack.",
@@ -46,6 +58,6 @@
     "The user-supplied objective explicitly forbids changing versions, so this run cannot choose the first resolution by inference.",
     "No static artifact proves the required live account, extension, provider, or deployment outcomes."
   ],
-  "generated_at": "2026-08-02T20:54:29Z",
-  "record_sha256": "4065a45fd04523b88b68cfb8f9bcebc911157d8e0d29ad4b19f1cfc094a89dd8"
+  "generated_at": "2026-08-02T20:58:54Z",
+  "record_sha256": "3da7bb67566b7a625e7dc3ebc2670bd8427e309b1ed74d2783e8e3d573e4d5d4"
 }

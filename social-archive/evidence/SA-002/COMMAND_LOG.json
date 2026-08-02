@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "task_id": "SA-002",
   "taskpack_version": "v0.0.0.6",
-  "generated_at": "2026-08-02T20:54:29Z",
+  "generated_at": "2026-08-02T20:58:54Z",
   "verification_head": "97b3fcd06de0bf22068ef3dac47ac6d734b4793b",
   "python_runtime": "Python 3.12.13",
   "commands": [
@@ -24,7 +24,14 @@
       "executed": false,
       "status": "NOT_RUN",
       "summary": "Not run because the prior mandatory plan gate is BLOCKED and no legacy retirement is authorized before resolving the version conflict."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/migrate_identifiers.py --root \"$TARGET_REPOSITORY/social-archive\" --dry-run",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Read-only inventory proposes only CHANGELOG.md, docs/migration/LEGACY_MIGRATION.md, scripts/check_brand.py and tests/focused/test_brand_migration.py. These are explicitly permitted legacy-token locations, so the mutating helper was not run."
     }
   ],
-  "record_sha256": "9ca83df2976d596a656155eb2fa2167ee0c8fac82bff775d1709e10910998995"
+  "record_sha256": "0e635923fd8fa37ed9fc7e0cb80bf1ad59fe9ae2aea71eb14a3567a493f6a2dd"
 }
