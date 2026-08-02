@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-002",
+  "predecessor_taskpack_version": "v0.0.0.5",
+  "predecessor_git_commit": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+  "files": [
+    "evidence/SA-002/RESULT.json",
+    "evidence/SA-002/COMMAND_LOG.json"
+  ],
+  "restoration": "git show 19f600472b2be7998ff27c5669b4ba5d36b1fa24:<path> reads the exact v0.0.0.5 predecessor evidence.",
+  "reason": "The active SA-002 evidence path must not carry a v0.0.0.5 PASS as proof for the blocked v0.0.0.6 task."
+}

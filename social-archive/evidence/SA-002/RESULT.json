@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-002",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S0",
   "title": "创建恢复标签并执行完整身份迁移",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "status": "BLOCKED",
+  "implementation_status": "NOT_STARTED",
+  "live_environment_status": "NOT_RUN",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "adapt",
+  "semantic_disposition": "apply",
   "acceptance_ids": [
     "AC-SA-002"
   ],
@@ -17,14 +17,35 @@
   ],
   "oracle": "Social Archive 成为唯一活动身份；新旧目录并存时先外部备份和盘点，再安全暂存删除旧目录；回滚命令可恢复。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Recovery tag and external archive created; legacy plan identified and retired exactly 24 generated build artifacts.",
+  "result_summary": "SA-002 cannot begin: the sealed v0.0.0.6 retire gate rejects current VERSION 0.0.0.5, while --phase identity does not update VERSION and the active Owner objective forbids changing versions. No recovery tag, candidate overlay, identity mutation, or legacy retirement was performed.",
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "verification_head": "97b3fcd06de0bf22068ef3dac47ac6d734b4793b",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "retire_legacy_script_sha256": "af9b054fce0afa7a2cccedc772736539b6ce828dab88220fba7b333f4c98aa5b",
+    "apply_taskpack_script_sha256": "7aed7e0fb98e4ee065ac6c691c835be87c80d111d3473761fa3d0fe9be737ec3"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "8519f50978417414559d1f55d032d1964600b8fdb896831431fc1b0063c1ba75"
+  "blocker": {
+    "code": "VERSION_GATE_CONFLICT",
+    "current_version": "0.0.0.5",
+    "sealed_taskpack_version": "v0.0.0.6",
+    "retire_plan_exit_code": 2,
+    "retire_plan_result": "目标版本不是 0.0.0.6：'0.0.0.5'",
+    "reason": "retire_legacy.py requires VERSION=0.0.0.6 before either plan or apply. apply_taskpack.py --phase identity only patches legacy textual identifiers and does not update VERSION."
+  },
+  "required_owner_resolution": [
+    "Explicitly authorize the v0.0.0.5 -> v0.0.0.6 identity/version migration required by this sealed Task Pack.",
+    "Or provide a corrected sealed v0.0.0.6 Task Pack whose SA-002 retirement gate is compatible with the explicitly frozen product version."
+  ],
+  "predecessor_evidence": {
+    "taskpack_version": "v0.0.0.5",
+    "git_commit": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "preservation": "The prior active SA-002 evidence remains exactly recoverable from this commit."
+  },
+  "known_limitations": [
+    "The user-supplied objective explicitly forbids changing versions, so this run cannot choose the first resolution by inference.",
+    "No static artifact proves the required live account, extension, provider, or deployment outcomes."
+  ],
+  "generated_at": "2026-08-02T20:54:29Z",
+  "record_sha256": "4065a45fd04523b88b68cfb8f9bcebc911157d8e0d29ad4b19f1cfc094a89dd8"
 }
