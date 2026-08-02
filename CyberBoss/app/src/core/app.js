@@ -2413,6 +2413,12 @@ class CyberbossApp {
     const resolved = known.includes(kind)
       ? kind
       : (this.activeSystemMessageKind || "system");
+    // AC-002：脉冲、checkin、onboarding 这些系统主动消息也要落在同一条会话上。
+    //
+    // 接在这里而不是各个发送点：这是它们唯一的共同落点，接一次全都覆盖。
+    // 分别接的话，下一个新增的系统消息种类必然漏掉——而漏掉的表现是「那一类的
+    // 回执挂在别处」，AC-002 的「逻辑身份相同」当场不成立，且没有任何症状。
+    this.touchSystemSession(this.activeSystemMessageAccountId || "", senderId, resolved);
     try {
       this.runtimeSpoolDatabase.recordBotInitiatedMessage({
         kind: known.includes(resolved) ? resolved : "system",
@@ -3782,6 +3788,50 @@ class CyberbossApp {
   // 调度器要求 dispatchRuntime 返回真实的 threadId/turnId，所以非主人的分支
   // 不能在这里中断——那条路要在建 job 之前就分流，是另一件事。这里先把主人
   // 认得出来，因为在此之前主人连自己都绑不上。
+  // 从 (账号, 发信人) 反查这个人的 user_id 和模式。
+  //
+  // 提醒到点、脉冲这些是**系统发起**的，手上只有当初记下来的 accountId/senderId，
+  // 没有 decision。而 AC-002 要的正是「普通消息、建提醒、触发提醒、脉冲、审批」
+  // 五种落在**同一条**会话上——少接一条，那一条的回执就挂在别处，验收当场不成立。
+  resolvePrincipalSession(accountId, senderId) {
+    const users = this.userAdmission?.users;
+    if (!users || !senderId) {
+      return null;
+    }
+    try {
+      const row = users.resolveByPrincipal({
+        channel: "weixin", botAccountRef: String(accountId ?? ""), senderRef: String(senderId),
+      });
+      if (!row?.user_id) {
+        return null;
+      }
+      return { userId: row.user_id, mode: row.role === "owner" ? "OWNER" : "COMPANION" };
+    } catch {
+      return null;
+    }
+  }
+
+  // 系统发起的那几条（提醒到点、脉冲）也要落在同一条会话上。
+  touchSystemSession(accountId, senderId, runtimeKind = "system") {
+    const database = this.runtimeSpoolDatabase?.database;
+    const secret = this.userAdmission?.companionSessionSecret;
+    const who = this.resolvePrincipalSession(accountId, senderId);
+    if (!database || !secret || !who) {
+      return null;
+    }
+    try {
+      return touchLiveSession(database, {
+        userId: who.userId, mode: who.mode, runtimeKind, secret,
+        beijing: this.formatOwnerLocalTime?.(new Date()) || null,
+      });
+    } catch (error) {
+      console.warn(
+        `[cyberboss] 系统侧会话记账失败 code=${normalizeErrorCode(error?.code) || "session_touch_failed"}`,
+      );
+      return null;
+    }
+  }
+
   // 每个真实 turn 上把这个人这个模式的会话取出来或建出来，并推进上下文版本。
   //
   // 吞掉异常：会话记账是**旁路**，它挂掉不该让用户收不到回复。但要出声——
@@ -5585,6 +5635,8 @@ class CyberbossApp {
         continue;
       }
       try {
+        // 走模型那条也一样——两条路都算「触发提醒」。
+        this.touchSystemSession(reminder.accountId, reminder.senderId, "reminder");
         this.systemMessageQueue.enqueue({
           id: `reminder:${reminder.id}`,
           accountId: reminder.accountId,
@@ -5607,6 +5659,8 @@ class CyberbossApp {
   // 发失败要重排，别默默丢掉：主人定了提醒又没等到，比一开始就说"我做不到"
   // 伤得多。重排三次还不行就放弃，并且在后台那一栏留一条看得见的记录。
   async deliverDirectReminder(reminder) {
+    // AC-002：提醒到点这一条也要落在同一条会话上。
+    this.touchSystemSession(reminder.accountId, reminder.senderId, "reminder");
     try {
       await this.channelAdapter.sendText({
         userId: reminder.senderId,
@@ -5653,6 +5707,9 @@ class CyberbossApp {
     this.activeSystemMessageKind = String(message?.id || "").startsWith("reminder:")
       ? "reminder"
       : "checkin";
+    // 会话记账要按号查人（同一个人在不同号下是不同的 user_id），
+    // 而 noteBotInitiated 那一层只拿得到 senderId。
+    this.activeSystemMessageAccountId = String(message?.accountId || "");
     const prepared = this.systemMessageDispatcher?.buildPreparedMessage(message, this.channelAdapter.getKnownContextTokens()[message.senderId] || "");
     if (!prepared) {
       throw new Error("system message could not be prepared");

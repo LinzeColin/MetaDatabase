@@ -121,6 +121,12 @@ function harness(t, {
     },
     // 一键上下线的闸（SWITCH-1）。挂上去而不是绕过去：这几条测试走的正是
     // 真实入站路径，而闸就在那条路上——不挂的话，这里验的是一条线上不存在的路。
+    // 会话记账（CB9-460）。入站和系统主动消息两条路都要挂——
+    // 只挂一条的话，另一条在真实运行时会抛 is not a function，
+    // 而它抛在 await 之外，测试只会报「测试结束后产生了异步活动」。
+    touchTurnSession: CyberbossApp.prototype.touchTurnSession,
+    touchSystemSession: CyberbossApp.prototype.touchSystemSession,
+    resolvePrincipalSession: CyberbossApp.prototype.resolvePrincipalSession,
     passesSystemSwitch: CyberbossApp.prototype.passesSystemSwitch,
     systemSwitchState: CyberbossApp.prototype.systemSwitchState,
     setSystemSwitch: CyberbossApp.prototype.setSystemSwitch,
@@ -688,6 +694,10 @@ test("不需要模型的轮次在建 job 之前就被分流掉", (t) => {
     noteDirectReply: CyberbossApp.prototype.noteDirectReply,
     noteBotInitiated: CyberbossApp.prototype.noteBotInitiated,
     noteDirectReplyInMemory: CyberbossApp.prototype.noteDirectReplyInMemory,
+    // noteBotInitiated 现在会记一笔会话（CB9-460 / AC-002）——借原型就得
+    // 把它真正会调到的每一个方法都带上，这条注释上面那句就是这个意思。
+    touchSystemSession: CyberbossApp.prototype.touchSystemSession,
+    resolvePrincipalSession: CyberbossApp.prototype.resolvePrincipalSession,
     rememberOwnerSender() {},
     noteForDashboard() {},
     buildPlainLanguageStatus: () => "状态正常",

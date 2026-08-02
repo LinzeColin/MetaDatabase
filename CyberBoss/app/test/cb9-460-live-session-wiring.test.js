@@ -132,6 +132,38 @@ test("AC-044 会话钥匙跨进程重启不变", (t) => {
   assert.match(before, /^sess_[0-9a-f]{32}$/);
 });
 
+test("AC-044 钥匙的算料里够不着时间和随机数", () => {
+  // 上一条是**松的**：连着调两次落在同一毫秒里，`Date.now()` 当然相等，
+  // 于是把时间掺进钥匙这一刀能活着穿过去（变异测试抓到的）。
+  //
+  // 「跨重启稳定」这种性质靠调两次比一比是验不出来的——真正的重启隔的是几小时。
+  // 所以查**结构**：那个函数的算料里根本没有时间和随机数这两样东西。
+  // 够不着比「我们没用」强。
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "services", "timeline", "live-session-store.js"), "utf8");
+  const start = source.indexOf("function sessionKeyFor(");
+  const body = source.slice(start, source.indexOf("\n}", start));
+  for (const hint of ["Date.now", "new Date", "Math.random", "randomBytes", "randomUUID", "process.hrtime"]) {
+    assert.ok(!body.includes(hint),
+      `钥匙的算料里出现了 ${hint}——进程一重启同一个人就换了一条会话`);
+  }
+});
+
+test("AC-044 换了服务端密钥也不把已有会话的钥匙冲掉", (t) => {
+  // upsert 的 UPDATE 分支里**不更新** session_key。这一条原本也是死的：
+  // 钥匙是确定的，`session_key = excluded.session_key` 写不写都一样（变异测试
+  // 里那一刀因此活着）。用一把不同的密钥去 touch 同一个人，那行 SQL 就承重了。
+  //
+  // 而这正是密钥轮换那天要的行为：轮换不该把所有人的对话历史切断。
+  const database = openDatabase(t);
+  const userId = uid("rotate");
+  const first = touchLiveSession(database, { userId, mode: "COMPANION", runtimeKind: "provider", secret: SECRET });
+  const second = touchLiveSession(database, { userId, mode: "COMPANION", runtimeKind: "provider", secret: OTHER_SECRET });
+  assert.equal(second.session_key, first.session_key,
+    "换密钥把已有会话的钥匙冲掉了——那一天所有人的上下文一起断");
+  assert.equal(second.context_version, 2, "轮换那一轮没算进上下文版本");
+});
+
 test("AC-044 重开数据库之后还认得同一条会话", (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cb-session-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -234,4 +266,43 @@ test("AC-025 认不出来的结果直接拒，不当成成功", (t) => {
     }),
     (error) => error.code === "RECEIPT_OUTCOME_UNKNOWN",
   );
+});
+
+// ── AC-002 五种都要落在同一条会话上 ─────────────────────
+
+test("AC-002 系统主动消息也接了会话，不是只接了入站", () => {
+  // 第一版只接了 admitDurableTurn。那已经能让表里有行了，看起来是「修好了」——
+  // 但 AC-002 要的是「普通消息、建提醒、**触发提醒**、**脉冲**、审批」五种落在
+  // 同一条会话上。少接一条，那一条的回执就挂在别处，「逻辑身份相同」当场不成立，
+  // 而且没有任何症状：表里有行，只是少了几种。
+  const app = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+
+  // 提醒到点（零模型那条）。
+  const direct = app.slice(app.indexOf("  async deliverDirectReminder(reminder) {"), app.indexOf("  async deliverDirectReminder(reminder) {") + 400);
+  assert.ok(direct.includes("this.touchSystemSession("), "提醒到点没接会话");
+
+  // 脉冲 / checkin / onboarding —— 它们的共同落点。
+  const noted = app.slice(app.indexOf("  noteBotInitiated({"), app.indexOf("  noteBotInitiated({") + 1400);
+  assert.ok(noted.includes("this.touchSystemSession("),
+    "系统主动消息没接会话——脉冲和 checkin 的回执会挂在别处");
+});
+
+test("AC-002 系统侧接在共同落点上，不是每个发送点各接一次", () => {
+  // 每个发送点各接的话，下一个新增的系统消息种类必然漏掉。
+  // noteBotInitiated 是它们唯一的共同落点。
+  const app = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  const calls = [...app.matchAll(/this\.touchSystemSession\(/g)].length;
+  assert.ok(calls <= 3, `touchSystemSession 被调了 ${calls} 次——散开了，下一个新增的种类会漏`);
+  assert.ok(calls >= 2, "至少要覆盖提醒到点和系统主动消息两条");
+});
+
+test("AC-002 按号查人：同一个人在不同号下不是同一条会话", (t) => {
+  // resolvePrincipalSession 要带上 accountId。不带的话，主人同时管两个微信号时，
+  // 两个号下的同一个人会被算成同一个 user_id——那是跨号串数据。
+  const app = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  const body = app.slice(app.indexOf("  resolvePrincipalSession(accountId, senderId) {"), app.indexOf("  resolvePrincipalSession(accountId, senderId) {") + 700);
+  assert.ok(body.includes("botAccountRef: String(accountId"), "查人时没带上账号");
+  // 而系统侧那条路要真的把 accountId 传下来。
+  assert.ok(app.includes("this.activeSystemMessageAccountId = String(message?.accountId"),
+    "系统消息没把 accountId 记下来——noteBotInitiated 那一层拿不到");
 });

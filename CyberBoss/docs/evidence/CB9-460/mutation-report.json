@@ -1,0 +1,50 @@
+[
+ {
+  "mutation": "入站那条不接会话（回到孤岛状态）",
+  "result": "转红"
+ },
+ {
+  "mutation": "提醒到点不接会话",
+  "result": "转红"
+ },
+ {
+  "mutation": "系统主动消息不接会话（脉冲/checkin 漏掉）",
+  "result": "转红"
+ },
+ {
+  "mutation": "查人时不带账号（跨号串数据）",
+  "result": "转红"
+ },
+ {
+  "mutation": "系统消息不记 accountId",
+  "result": "转红"
+ },
+ {
+  "mutation": "会话钥匙掺进时间（重启就换会话）",
+  "result": "转红"
+ },
+ {
+  "mutation": "会话钥匙不含 user_id（两人撞一条）",
+  "result": "转红"
+ },
+ {
+  "mutation": "钥匙里直接拼 user_id（能反推）",
+  "result": "转红"
+ },
+ {
+  "mutation": "upsert 时连会话钥匙一起更新",
+  "result": "转红"
+ },
+ {
+  "mutation": "上下文版本不推进",
+  "result": "转红"
+ },
+ {
+  "mutation": "没密钥时用固定串顶上",
+  "result": "转红"
+ },
+ {
+  "mutation": "回执里存原值不存哈希",
+  "result": "转红"
+ }
+]

@@ -89,6 +89,12 @@ test("App policy gate performs zero Runtime dispatches for rejected inbound", as
     // 一键上下线的闸（SWITCH-1）也在这条真实入站路径上，挂上来。
     // 这条测试验的是「被策略拒掉的输入不触发任何 Runtime 调度」，
     // 而开关闸排在策略之后——两者不冲突，但方法得在。
+    // 会话记账（CB9-460）。入站和系统主动消息两条路都要挂——
+    // 只挂一条的话，另一条在真实运行时会抛 is not a function，
+    // 而它抛在 await 之外，测试只会报「测试结束后产生了异步活动」。
+    touchTurnSession: CyberbossApp.prototype.touchTurnSession,
+    touchSystemSession: CyberbossApp.prototype.touchSystemSession,
+    resolvePrincipalSession: CyberbossApp.prototype.resolvePrincipalSession,
     passesSystemSwitch: CyberbossApp.prototype.passesSystemSwitch,
     systemSwitchState: CyberbossApp.prototype.systemSwitchState,
     setSystemSwitch: CyberbossApp.prototype.setSystemSwitch,
