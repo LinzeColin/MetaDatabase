@@ -75,6 +75,9 @@ class Settings:
     karakeep_token_file: str | None = None
     linkwarden_url: str | None = None
     linkwarden_token_file: str | None = None
+    account_sync_default_interval_minutes: int = 360
+    account_sync_page_size: int = 100
+    account_sync_max_items_per_run: int = 100000
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -134,6 +137,9 @@ class Settings:
             karakeep_token_file=os.getenv("SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE") or None,
             linkwarden_url=(os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_URL") or "").rstrip("/") or None,
             linkwarden_token_file=os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_TOKEN_FILE") or None,
+            account_sync_default_interval_minutes=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_INTERVAL_MINUTES", "360")),
+            account_sync_page_size=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_PAGE_SIZE", "100")),
+            account_sync_max_items_per_run=int(os.getenv("SOCIAL_ARCHIVE_ACCOUNT_SYNC_MAX_ITEMS", "100000")),
         )
 
     def ensure_directories(self, *, require_api_token: bool = False) -> None:
@@ -161,3 +167,9 @@ class Settings:
             raise RuntimeError("本版本只接受已验收的 Notion-Version 2026-03-11")
         if self.obsidian_rest_ca_file and not Path(self.obsidian_rest_ca_file).is_file():
             raise RuntimeError("Obsidian REST CA 文件不存在")
+        if not 15 <= self.account_sync_default_interval_minutes <= 10080:
+            raise RuntimeError("账号同步间隔必须在 15–10080 分钟")
+        if not 1 <= self.account_sync_page_size <= 250:
+            raise RuntimeError("账号同步单页数量必须在 1–250")
+        if self.account_sync_max_items_per_run < self.account_sync_page_size:
+            raise RuntimeError("账号同步单次上限不得小于单页数量")

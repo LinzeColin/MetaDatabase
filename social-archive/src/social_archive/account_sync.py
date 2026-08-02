@@ -112,6 +112,8 @@ class AccountSyncCoordinator:
             raise ValueError("只有完成真实登录验证后才能标记账号已连接")
         if not connection_ref.startswith("conn_"):
             raise ValueError("连接凭据无效，请重新连接账号")
+        if not 15 <= sync_interval_minutes <= 10080:
+            raise ValueError("账号同步间隔必须在 15–10080 分钟")
         account_id = self.store.upsert_source_account(
             platform=platform,
             external_account_id=external_account_id,

@@ -19,10 +19,23 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import __version__
+from .account_sync import AccountSyncCoordinator, PLATFORM_RELATIONS
 from .config import Settings
 from .db import RuntimeStore
 from .destinations import DestinationRegistry, _markdown
-from .models import CaptureBatchRequest, CaptureRequest, CaptureResponse, ConnectorRunRequest, JobView, MarkdownImportRequest
+from .models import (
+    AccountConnectCompleteRequest,
+    AccountConnectRequest,
+    AccountSyncRequest,
+    CaptureBatchRequest,
+    CaptureRequest,
+    CaptureResponse,
+    ConnectorRunRequest,
+    JobView,
+    MarkdownImportRequest,
+    SyncBatchRequest,
+    SyncControlRequest,
+)
 from .registry import ConnectorRegistry
 from .service import ArchiveService
 from .utils import atomic_write, json_bytes, read_secret, sha256_bytes, utcnow
@@ -34,6 +47,7 @@ store.initialize()
 service = ArchiveService(settings, store)
 registry = ConnectorRegistry(settings)
 destinations = DestinationRegistry(settings, store)
+account_sync = AccountSyncCoordinator(settings, store, service, registry)
 app = FastAPI(title="Social Archive", version=__version__, docs_url="/api/docs", redoc_url=None)
 
 PAIRING_PATHS = frozenset({"/v1/pairing/exchange", "/v1/pair"})
@@ -362,6 +376,130 @@ def status() -> dict[str, Any]:
         "queue": {"items": store.list_jobs(limit=20)},
         "storage": {"items": store.quota_states(), "replicas": store.replica_summary(), "completion": store.replication_completion()},
     }
+
+
+def _safe_account_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    """Reject credential-shaped metadata before it reaches the runtime journal."""
+    forbidden = ("cookie", "token", "authorization", "password", "secret", "auth_header")
+    bad: list[str] = []
+
+    def inspect(value: Any, path: str = "metadata") -> None:
+        if isinstance(value, dict):
+            for key, nested in value.items():
+                key_text = str(key)
+                key_path = f"{path}.{key_text}"
+                if any(marker in key_text.lower() for marker in forbidden):
+                    bad.append(key_path)
+                inspect(nested, key_path)
+        elif isinstance(value, list):
+            for index, nested in enumerate(value):
+                inspect(nested, f"{path}[{index}]")
+
+    inspect(metadata)
+    if bad:
+        raise HTTPException(status_code=422, detail="账号连接元数据不得包含 Cookie、令牌、密码或认证头")
+    return dict(metadata)
+
+
+@app.get("/v1/accounts", dependencies=[Depends(require_token)])
+def accounts() -> dict[str, Any]:
+    return {
+        "items": store.list_source_accounts(),
+        "supported_platforms": [
+            {"platform": platform, "relations": relations}
+            for platform, relations in PLATFORM_RELATIONS.items()
+        ],
+    }
+
+
+@app.post("/v1/accounts/connect/start", status_code=202, dependencies=[Depends(require_token)])
+def account_connect_start(request: AccountConnectRequest) -> dict[str, Any]:
+    try:
+        result = account_sync.connect_start(request)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {
+        "connection_ref": result.connection_ref,
+        "platform": result.platform,
+        "auth_method": result.auth_method,
+        "state": result.state,
+        "next_action_zh": result.next_action_zh,
+        "supported_relations": result.supported_relations,
+    }
+
+
+@app.post("/v1/accounts/connect/{platform}/complete", status_code=201, dependencies=[Depends(require_token)])
+def account_connect_complete(platform: str, request: AccountConnectCompleteRequest) -> dict[str, Any]:
+    metadata = _safe_account_metadata(request.metadata)
+    auth_method = str(metadata.get("auth_method") or "browser_session")
+    allowed_methods = {"oauth", "qr", "browser_session", "official_export", "local_import", "chrome_bookmarks"}
+    if auth_method not in allowed_methods:
+        raise HTTPException(status_code=422, detail="账号连接方式无效")
+    try:
+        account_id = account_sync.complete_connection(
+            platform=platform.strip().lower(),
+            auth_method=auth_method,
+            connection_ref=request.connection_ref,
+            external_account_id=request.external_account_id,
+            display_name=request.display_name,
+            auto_sync_enabled=bool(metadata.get("auto_sync_enabled", True)),
+            sync_interval_minutes=int(metadata.get("sync_interval_minutes", settings.account_sync_default_interval_minutes)),
+            metadata=metadata,
+            verified=request.verified,
+        )
+        first = account_sync.start_sync(account_id, AccountSyncRequest(mode="first_full", trigger_type="first_connect"))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {
+        "account_id": account_id,
+        "state": "connected",
+        "first_sync": first,
+        "next_action_zh": "账号已连接，首次全量同步已经开始。",
+    }
+
+
+@app.post("/v1/accounts/{account_id}/sync", status_code=202, dependencies=[Depends(require_token)])
+def start_account_sync(account_id: str, request: AccountSyncRequest) -> dict[str, Any]:
+    try:
+        return account_sync.start_sync(account_id, request)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.get("/v1/accounts/{account_id}/sync-runs", dependencies=[Depends(require_token)])
+def account_sync_runs(account_id: str, limit: int = Query(50, ge=1, le=500)) -> dict[str, Any]:
+    if not store.get_source_account(account_id):
+        raise HTTPException(status_code=404, detail="账号不存在")
+    return {"items": store.list_sync_runs(source_account_id=account_id, limit=limit)}
+
+
+@app.get("/v1/sync-runs", dependencies=[Depends(require_token)])
+def sync_runs(limit: int = Query(100, ge=1, le=500)) -> dict[str, Any]:
+    return {"items": store.list_sync_runs(limit=limit)}
+
+
+@app.get("/v1/sync-runs/{sync_run_id}", dependencies=[Depends(require_token)])
+def sync_run_detail(sync_run_id: str) -> dict[str, Any]:
+    row = store.get_sync_run(sync_run_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="同步运行不存在")
+    return row
+
+
+@app.post("/v1/sync-runs/{sync_run_id}/control", dependencies=[Depends(require_token)])
+def control_sync_run(sync_run_id: str, request: SyncControlRequest) -> dict[str, Any]:
+    if not store.control_sync_run(sync_run_id, request.action):
+        raise HTTPException(status_code=409, detail="当前状态不能执行该操作")
+    row = store.get_sync_run(sync_run_id)
+    return {"sync_run_id": sync_run_id, "action": request.action, "status": row["status"] if row else "unknown"}
+
+
+@app.post("/v1/sync-runs/{sync_run_id}/batches", status_code=202, dependencies=[Depends(require_token)])
+def ingest_sync_batch(sync_run_id: str, request: SyncBatchRequest) -> dict[str, Any]:
+    try:
+        return account_sync.ingest_batch(sync_run_id, request)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.get("/v1/connectors", dependencies=[Depends(require_token)])

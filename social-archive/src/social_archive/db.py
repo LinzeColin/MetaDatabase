@@ -55,7 +55,26 @@ class RuntimeStore:
 
     def initialize(self) -> None:
         schema = files("social_archive").joinpath("sql/runtime_schema.sql").read_text(encoding="utf-8")
+        account_additions = {
+            "connection_state": "TEXT NOT NULL DEFAULT 'disconnected'",
+            "auth_method": "TEXT",
+            "auth_handle_ref": "TEXT",
+            "auto_sync_enabled": "INTEGER NOT NULL DEFAULT 1",
+            "sync_interval_minutes": "INTEGER NOT NULL DEFAULT 360",
+            "last_verified_at": "TEXT",
+            "last_sync_at": "TEXT",
+            "last_error_code": "TEXT",
+            "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+        }
         with self.connection() as con:
+            # The schema adds an index over connection_state.  Upgrade an
+            # existing pre-v0.0.0.6 source_account before executescript reaches
+            # that index; a fresh database has no table yet and is created with
+            # the full definition below.
+            account_columns = {row[1] for row in con.execute("PRAGMA table_info(source_account)").fetchall()}
+            for name, declaration in account_additions.items():
+                if account_columns and name not in account_columns:
+                    con.execute(f"ALTER TABLE source_account ADD COLUMN {name} {declaration}")
             con.executescript(schema)
             # Additive migration for pre-v0.0.0.4 runtime databases. SQLite remains
             # rebuildable, but preserving an existing queue avoids unnecessary loss.
@@ -797,6 +816,486 @@ class RuntimeStore:
                 changed += 1
             con.execute("COMMIT")
         return changed
+
+    # Account-mirror state belongs to the rebuildable runtime journal.  The
+    # methods below intentionally expose opaque handle references only to the
+    # coordinator, never to public account-list responses.
+    def upsert_source_account(
+        self,
+        *,
+        platform: str,
+        external_account_id: str,
+        display_name: str | None,
+        auth_method: str,
+        auth_handle_ref: str | None,
+        connection_state: str,
+        auto_sync_enabled: bool = True,
+        sync_interval_minutes: int = 360,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        now = utcnow()
+        normalized_platform = platform.strip().lower()
+        account_id = stable_id("acct", normalized_platform, external_account_id)
+        with self.connection() as con:
+            con.execute(
+                """INSERT INTO source_account(
+                       id,platform,external_account_id,display_name,auth_ref,
+                       connection_state,auth_method,auth_handle_ref,auto_sync_enabled,
+                       sync_interval_minutes,last_verified_at,metadata_json,created_at,updated_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET
+                     platform=excluded.platform,
+                     external_account_id=excluded.external_account_id,
+                     display_name=COALESCE(excluded.display_name,source_account.display_name),
+                     auth_method=excluded.auth_method,
+                     auth_handle_ref=COALESCE(excluded.auth_handle_ref,source_account.auth_handle_ref),
+                     connection_state=excluded.connection_state,
+                     auto_sync_enabled=excluded.auto_sync_enabled,
+                     sync_interval_minutes=excluded.sync_interval_minutes,
+                     last_verified_at=CASE WHEN excluded.connection_state='connected' THEN excluded.last_verified_at ELSE source_account.last_verified_at END,
+                     metadata_json=excluded.metadata_json,
+                     updated_at=excluded.updated_at""",
+                (
+                    account_id,
+                    normalized_platform,
+                    external_account_id,
+                    display_name,
+                    None,
+                    connection_state,
+                    auth_method,
+                    auth_handle_ref,
+                    1 if auto_sync_enabled else 0,
+                    sync_interval_minutes,
+                    now if connection_state == "connected" else None,
+                    json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True),
+                    now,
+                    now,
+                ),
+            )
+        return account_id
+
+    @staticmethod
+    def _decode_json_field(row: dict[str, Any], field: str, fallback: Any) -> None:
+        try:
+            row[field.removesuffix("_json")] = json.loads(row.pop(field) or fallback)
+        except (TypeError, ValueError):
+            row[field.removesuffix("_json")] = json.loads(fallback)
+
+    def list_source_accounts(self) -> list[dict[str, Any]]:
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT sa.*,
+                          (SELECT COUNT(DISTINCT r.content_id)
+                           FROM user_relation r
+                           WHERE r.source_account_id=sa.id AND r.status='active') AS content_count,
+                          (SELECT COUNT(*) FROM platform_collection pc
+                           WHERE pc.source_account_id=sa.id AND pc.status='active') AS collection_count,
+                          (SELECT id FROM sync_run sr WHERE sr.source_account_id=sa.id
+                           ORDER BY sr.updated_at DESC LIMIT 1) AS latest_sync_run_id,
+                          (SELECT status FROM sync_run sr WHERE sr.source_account_id=sa.id
+                           ORDER BY sr.updated_at DESC LIMIT 1) AS latest_sync_status
+                   FROM source_account sa
+                   ORDER BY sa.platform,COALESCE(sa.display_name,sa.external_account_id),sa.id"""
+            ).fetchall()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            self._decode_json_field(item, "metadata_json", "{}")
+            item["auto_sync_enabled"] = bool(item.get("auto_sync_enabled"))
+            item.pop("auth_ref", None)
+            item.pop("auth_handle_ref", None)
+            result.append(item)
+        return result
+
+    def get_source_account(self, account_id: str, *, include_handle: bool = False) -> dict[str, Any] | None:
+        with self.connection() as con:
+            row = con.execute("SELECT * FROM source_account WHERE id=?", (account_id,)).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        self._decode_json_field(item, "metadata_json", "{}")
+        item["auto_sync_enabled"] = bool(item.get("auto_sync_enabled"))
+        if not include_handle:
+            item.pop("auth_ref", None)
+            item.pop("auth_handle_ref", None)
+        return item
+
+    def set_source_account_state(
+        self,
+        account_id: str,
+        state: str,
+        *,
+        error_code: str | None = None,
+        verified: bool = False,
+    ) -> bool:
+        now = utcnow()
+        with self.connection() as con:
+            cur = con.execute(
+                """UPDATE source_account
+                   SET connection_state=?,last_error_code=?,updated_at=?,
+                       last_verified_at=CASE WHEN ? THEN ? ELSE last_verified_at END
+                   WHERE id=?""",
+                (state, error_code, now, 1 if verified else 0, now, account_id),
+            )
+        return cur.rowcount == 1
+
+    def upsert_platform_collection(
+        self,
+        *,
+        source_account_id: str,
+        relation_type: str,
+        name: str,
+        external_collection_id: str | None = None,
+        item_count: int | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        now = utcnow()
+        external = external_collection_id or name
+        collection_id = stable_id("col", source_account_id, relation_type, external)
+        with self.connection() as con:
+            con.execute(
+                """INSERT INTO platform_collection(
+                       id,source_account_id,external_collection_id,relation_type,name,item_count,
+                       status,first_observed_at,last_observed_at,metadata_json
+                   ) VALUES(?,?,?,?,?,?,'active',?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET
+                     name=excluded.name,
+                     item_count=COALESCE(excluded.item_count,platform_collection.item_count),
+                     status='active',last_observed_at=excluded.last_observed_at,
+                     metadata_json=excluded.metadata_json""",
+                (
+                    collection_id,
+                    source_account_id,
+                    external_collection_id,
+                    relation_type,
+                    name,
+                    item_count,
+                    now,
+                    now,
+                    json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True),
+                ),
+            )
+        return collection_id
+
+    def create_sync_run(
+        self,
+        *,
+        source_account_id: str,
+        platform: str,
+        mode: str,
+        relation_types: list[str],
+        trigger_type: str,
+    ) -> str:
+        now = utcnow()
+        run_id = stable_id("sync", source_account_id, mode, trigger_type, now)
+        normalized_relations = list(dict.fromkeys(relation_types))
+        with self.connection() as con:
+            con.execute(
+                """INSERT INTO sync_run(
+                       id,source_account_id,platform,mode,trigger_type,status,relation_scope_json,updated_at
+                   ) VALUES(?,?,?,?,?,'queued',?,?)""",
+                (
+                    run_id,
+                    source_account_id,
+                    platform.strip().lower(),
+                    mode,
+                    trigger_type,
+                    json.dumps(normalized_relations, ensure_ascii=False),
+                    now,
+                ),
+            )
+            for relation_type in normalized_relations:
+                con.execute(
+                    """INSERT OR IGNORE INTO sync_run_scope(
+                           sync_run_id,relation_type,collection_key,status,completeness,updated_at
+                       ) VALUES(?,?,?,'pending','unknown',?)""",
+                    (run_id, relation_type, "__relation__", now),
+                )
+        self.append_sync_event(run_id, "queued", {"mode": mode, "relations": normalized_relations})
+        return run_id
+
+    def append_sync_event(self, sync_run_id: str, event_type: str, payload: dict[str, Any] | None = None) -> str:
+        with self.connection() as con:
+            row = con.execute(
+                "SELECT COALESCE(MAX(sequence_no),0)+1 AS next_no FROM sync_run_event WHERE sync_run_id=?",
+                (sync_run_id,),
+            ).fetchone()
+            sequence_no = int(row["next_no"])
+            event_id = stable_id("sync_event", sync_run_id, sequence_no, event_type)
+            con.execute(
+                """INSERT INTO sync_run_event(id,sync_run_id,event_type,sequence_no,payload_json,created_at)
+                   VALUES(?,?,?,?,?,?)""",
+                (event_id, sync_run_id, event_type, sequence_no, json.dumps(payload or {}, ensure_ascii=False, sort_keys=True), utcnow()),
+            )
+        return event_id
+
+    def update_sync_run(
+        self,
+        sync_run_id: str,
+        *,
+        status: str | None = None,
+        completeness: str | None = None,
+        discovered_delta: int = 0,
+        imported_delta: int = 0,
+        duplicate_delta: int = 0,
+        failed_delta: int = 0,
+        unavailable_delta: int = 0,
+        cursor: dict[str, Any] | None = None,
+        resume_token: str | None = None,
+        error_code: str | None = None,
+        error_message: str | None = None,
+        evidence: dict[str, Any] | None = None,
+    ) -> bool:
+        now = utcnow()
+        completed = status in {"completed", "partial", "cancelled", "failed", "blocked_environment"}
+        with self.connection() as con:
+            cur = con.execute(
+                """UPDATE sync_run SET
+                     status=COALESCE(?,status),
+                     completeness=COALESCE(?,completeness),
+                     discovered_count=discovered_count+?,
+                     imported_count=imported_count+?,
+                     duplicate_count=duplicate_count+?,
+                     failed_count=failed_count+?,
+                     unavailable_count=unavailable_count+?,
+                     cursor_json=CASE WHEN ? IS NULL THEN cursor_json ELSE ? END,
+                     resume_token=COALESCE(?,resume_token),
+                     last_error_code=?,last_error_message=?,
+                     evidence_json=CASE WHEN ? IS NULL THEN evidence_json ELSE ? END,
+                     started_at=CASE WHEN started_at IS NULL AND COALESCE(?,status) NOT IN ('queued','paused') THEN ? ELSE started_at END,
+                     completed_at=CASE WHEN ? THEN ? ELSE completed_at END,
+                     updated_at=?
+                   WHERE id=?""",
+                (
+                    status,
+                    completeness,
+                    discovered_delta,
+                    imported_delta,
+                    duplicate_delta,
+                    failed_delta,
+                    unavailable_delta,
+                    None if cursor is None else 1,
+                    json.dumps(cursor or {}, ensure_ascii=False, sort_keys=True),
+                    resume_token,
+                    error_code,
+                    error_message,
+                    None if evidence is None else 1,
+                    json.dumps(evidence or {}, ensure_ascii=False, sort_keys=True),
+                    status,
+                    now,
+                    1 if completed else 0,
+                    now,
+                    now,
+                    sync_run_id,
+                ),
+            )
+        if cur.rowcount and status:
+            self.append_sync_event(sync_run_id, status, {"error_code": error_code, "message": error_message})
+        return cur.rowcount == 1
+
+    def _decode_sync_run(self, row: sqlite3.Row) -> dict[str, Any]:
+        item = dict(row)
+        self._decode_json_field(item, "relation_scope_json", "[]")
+        self._decode_json_field(item, "cursor_json", "{}")
+        self._decode_json_field(item, "evidence_json", "{}")
+        return item
+
+    def get_sync_run(self, sync_run_id: str) -> dict[str, Any] | None:
+        with self.connection() as con:
+            row = con.execute("SELECT * FROM sync_run WHERE id=?", (sync_run_id,)).fetchone()
+            events = con.execute(
+                "SELECT * FROM sync_run_event WHERE sync_run_id=? ORDER BY sequence_no",
+                (sync_run_id,),
+            ).fetchall() if row else []
+        if not row:
+            return None
+        result = self._decode_sync_run(row)
+        result["events"] = []
+        for event in events:
+            item = dict(event)
+            self._decode_json_field(item, "payload_json", "{}")
+            result["events"].append(item)
+        return result
+
+    def list_sync_runs(self, *, source_account_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+        sql = "SELECT * FROM sync_run"
+        args: list[Any] = []
+        if source_account_id:
+            sql += " WHERE source_account_id=?"
+            args.append(source_account_id)
+        sql += " ORDER BY updated_at DESC,id DESC LIMIT ?"
+        args.append(min(max(limit, 1), 500))
+        with self.connection() as con:
+            rows = con.execute(sql, args).fetchall()
+        return [self._decode_sync_run(row) for row in rows]
+
+    def control_sync_run(self, sync_run_id: str, action: str) -> bool:
+        run = self.get_sync_run(sync_run_id)
+        if not run:
+            return False
+        transitions = {
+            "pause": ({"queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"}, "paused"),
+            "resume": ({"paused", "partial", "failed", "blocked_environment"}, "queued"),
+            "cancel": ({"queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting", "paused"}, "cancelled"),
+            "retry": ({"partial", "failed", "blocked_environment"}, "queued"),
+        }
+        allowed, target = transitions.get(action, (set(), ""))
+        if run["status"] not in allowed:
+            return False
+        return self.update_sync_run(sync_run_id, status=target, error_code=None, error_message=None)
+
+    def record_sync_seen_relations(
+        self,
+        *,
+        sync_run_id: str,
+        relation_type: str,
+        relation_ids_by_collection: dict[str, set[str]],
+    ) -> int:
+        now = utcnow()
+        inserted = 0
+        with self.connection() as con:
+            con.execute("BEGIN IMMEDIATE")
+            for collection_key, relation_ids in relation_ids_by_collection.items():
+                for relation_id in relation_ids:
+                    cur = con.execute(
+                        """INSERT OR IGNORE INTO sync_seen_relation(
+                               sync_run_id,relation_type,collection_key,relation_id,observed_at
+                           ) VALUES(?,?,?,?,?)""",
+                        (sync_run_id, relation_type, collection_key or "", relation_id, now),
+                    )
+                    inserted += max(cur.rowcount, 0)
+            con.execute("COMMIT")
+        return inserted
+
+    def list_sync_seen_relation_ids(
+        self,
+        *,
+        sync_run_id: str,
+        relation_type: str,
+        collection_key: str | None = None,
+    ) -> set[str]:
+        sql = "SELECT relation_id FROM sync_seen_relation WHERE sync_run_id=? AND relation_type=?"
+        args: list[Any] = [sync_run_id, relation_type]
+        if collection_key is not None:
+            sql += " AND collection_key=?"
+            args.append(collection_key)
+        with self.connection() as con:
+            return {str(row["relation_id"]) for row in con.execute(sql, args).fetchall()}
+
+    def list_sync_seen_collections(self, *, sync_run_id: str, relation_type: str) -> set[str]:
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT DISTINCT collection_key FROM sync_seen_relation
+                   WHERE sync_run_id=? AND relation_type=?""",
+                (sync_run_id, relation_type),
+            ).fetchall()
+        return {str(row["collection_key"] or "") for row in rows}
+
+    def list_existing_relation_collections(
+        self,
+        *,
+        platform: str,
+        external_account_id: str,
+        relation_type: str,
+    ) -> set[str]:
+        account_id = stable_id("acct", platform.strip().lower(), external_account_id)
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT DISTINCT r.collection_key FROM user_relation r
+                   JOIN content c ON c.id=r.content_id
+                   WHERE c.platform=? AND r.source_account_id=? AND r.relation_type=?""",
+                (platform.strip().lower(), account_id, relation_type),
+            ).fetchall()
+        return {str(row["collection_key"] or "") for row in rows}
+
+    def upsert_sync_run_scope(
+        self,
+        *,
+        sync_run_id: str,
+        relation_type: str,
+        collection_key: str,
+        status: str,
+        completeness: str,
+        discovered_delta: int = 0,
+        imported_delta: int = 0,
+        failed_delta: int = 0,
+    ) -> None:
+        now = utcnow()
+        with self.connection() as con:
+            con.execute(
+                """INSERT INTO sync_run_scope(
+                       sync_run_id,relation_type,collection_key,status,completeness,
+                       discovered_count,imported_count,failed_count,updated_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(sync_run_id,relation_type,collection_key) DO UPDATE SET
+                     status=excluded.status,
+                     completeness=excluded.completeness,
+                     discovered_count=sync_run_scope.discovered_count+excluded.discovered_count,
+                     imported_count=sync_run_scope.imported_count+excluded.imported_count,
+                     failed_count=sync_run_scope.failed_count+excluded.failed_count,
+                     updated_at=excluded.updated_at""",
+                (
+                    sync_run_id,
+                    relation_type,
+                    collection_key,
+                    status,
+                    completeness,
+                    discovered_delta,
+                    imported_delta,
+                    failed_delta,
+                    now,
+                ),
+            )
+
+    def list_sync_run_scopes(self, sync_run_id: str) -> list[dict[str, Any]]:
+        with self.connection() as con:
+            rows = con.execute(
+                """SELECT * FROM sync_run_scope WHERE sync_run_id=?
+                   ORDER BY relation_type,collection_key""",
+                (sync_run_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def upsert_sync_checkpoint(
+        self,
+        *,
+        source_account_id: str,
+        relation_type: str,
+        collection_key: str,
+        cursor: dict[str, Any],
+        known_anchor: str | None,
+        last_complete_sync_run_id: str | None,
+        complete: bool,
+    ) -> str:
+        checkpoint_id = stable_id("checkpoint", source_account_id, relation_type, collection_key)
+        now = utcnow()
+        with self.connection() as con:
+            con.execute(
+                """INSERT INTO sync_checkpoint(
+                       id,source_account_id,relation_type,collection_key,cursor_json,known_anchor,
+                       last_complete_sync_run_id,last_success_at,updated_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET
+                     cursor_json=excluded.cursor_json,
+                     known_anchor=COALESCE(excluded.known_anchor,sync_checkpoint.known_anchor),
+                     last_complete_sync_run_id=CASE WHEN ? THEN excluded.last_complete_sync_run_id ELSE sync_checkpoint.last_complete_sync_run_id END,
+                     last_success_at=CASE WHEN ? THEN excluded.last_success_at ELSE sync_checkpoint.last_success_at END,
+                     updated_at=excluded.updated_at""",
+                (
+                    checkpoint_id,
+                    source_account_id,
+                    relation_type,
+                    collection_key,
+                    json.dumps(cursor, ensure_ascii=False, sort_keys=True),
+                    known_anchor,
+                    last_complete_sync_run_id,
+                    now,
+                    now,
+                    1 if complete else 0,
+                    1 if complete else 0,
+                ),
+            )
+        return checkpoint_id
 
     def artifact_unique_bytes(self) -> int:
         with self.connection() as con:

@@ -8,16 +8,27 @@ from pathlib import Path
 
 import httpx
 
+from .account_sync import AccountSyncCoordinator
 from .config import Settings
 from .connectors.command import CommandArtifactConnector
 from .db import RuntimeStore
 from .destinations import DestinationError, DestinationRegistry, retry_after_seconds_from_error
 from .downloader import DirectMediaDownloader
+from .registry import ConnectorRegistry
+from .service import ArchiveService
 from .storage import ContentAddressedStore
 
 
 def process_job(job: dict, settings: Settings, store: RuntimeStore) -> None:
     payload = job["payload"]
+    if job["job_type"] == "account_sync":
+        AccountSyncCoordinator(
+            settings,
+            store,
+            ArchiveService(settings, store),
+            ConnectorRegistry(settings),
+        ).process_job(payload)
+        return
     if job["job_type"] == "export_destination":
         # A queued job from a new capture is not a recovery grant.  Only a job
         # that has already failed at least once may cross a transient degraded

@@ -111,3 +111,68 @@ class JobView(BaseModel):
     updated_at: str
     last_error_code: str | None = None
     last_error_message: str | None = None
+
+
+# Account-mirror requests deliberately carry only opaque connection references
+# and normalized public metadata.  They never accept cookies, passwords or
+# authorization headers as part of the capture protocol.
+AccountAuthMethod = Literal[
+    "oauth",
+    "qr",
+    "browser_session",
+    "official_export",
+    "local_import",
+    "chrome_bookmarks",
+]
+SyncMode = Literal["first_full", "incremental", "manual_repair", "official_import", "browser_import"]
+
+
+class AccountConnectRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    platform: str = Field(min_length=1, max_length=64)
+    auth_method: AccountAuthMethod
+    display_name: str | None = Field(default=None, max_length=256)
+    external_account_id: str | None = Field(default=None, max_length=512)
+    auto_sync_enabled: bool = True
+    sync_interval_minutes: int = Field(default=360, ge=15, le=10080)
+    relation_types: list[RelationType] = Field(default_factory=list, max_length=16)
+
+
+class AccountConnectCompleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    connection_ref: str = Field(min_length=8, max_length=2048)
+    external_account_id: str = Field(min_length=1, max_length=512)
+    display_name: str | None = Field(default=None, max_length=256)
+    verified: bool = True
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class AccountSyncRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    mode: SyncMode = "incremental"
+    relation_types: list[RelationType] = Field(default_factory=list, max_length=16)
+    trigger_type: Literal["manual", "scheduled", "first_connect", "recovery", "bookmark_change", "resume", "retry"] = "manual"
+
+
+class SyncBatchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    relation_type: RelationType
+    collection_key: str = Field(default="", max_length=512)
+    collection_name: str | None = Field(default=None, max_length=512)
+    external_collection_id: str | None = Field(default=None, max_length=512)
+    items: list[CaptureRequest] = Field(default_factory=list, max_length=250)
+    # Collection/page chunks never imply completion for the whole relation.
+    # A separate relation-final batch is required before absence closure can run.
+    scope_type: Literal["collection", "relation"] = "relation"
+    batch_index: int = Field(default=0, ge=0)
+    batch_count: int | None = Field(default=None, ge=1)
+    completeness: Literal["complete", "partial", "failed", "unknown"] = "partial"
+    cursor: dict[str, Any] = Field(default_factory=dict)
+    known_anchor: str | None = Field(default=None, max_length=2048)
+    has_more: bool = False
+    failure_code: str | None = Field(default=None, max_length=256)
+
+
+class SyncControlRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: Literal["pause", "resume", "cancel", "retry"]

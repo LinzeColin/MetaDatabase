@@ -7,6 +7,15 @@ CREATE TABLE IF NOT EXISTS source_account (
   external_account_id TEXT,
   display_name TEXT,
   auth_ref TEXT,
+  connection_state TEXT NOT NULL DEFAULT 'disconnected',
+  auth_method TEXT,
+  auth_handle_ref TEXT,
+  auto_sync_enabled INTEGER NOT NULL DEFAULT 1,
+  sync_interval_minutes INTEGER NOT NULL DEFAULT 360,
+  last_verified_at TEXT,
+  last_sync_at TEXT,
+  last_error_code TEXT,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE(platform, external_account_id)
@@ -224,3 +233,102 @@ CREATE INDEX IF NOT EXISTS idx_replica_status ON object_replica(store_id, status
 CREATE INDEX IF NOT EXISTS idx_destination_binding_content ON destination_binding(content_id, destination_id);
 CREATE INDEX IF NOT EXISTS idx_destination_receipt_lookup ON destination_receipt(destination_id, content_id, finished_at DESC);
 CREATE INDEX IF NOT EXISTS idx_destination_receipt_status ON destination_receipt(status, finished_at DESC);
+
+-- v0.0.0.6 account-mirror state is rebuildable Runtime Journal data. It stores
+-- cursors, queues and observed relation IDs, never browser cookies or headers.
+CREATE TABLE IF NOT EXISTS platform_collection (
+  id TEXT PRIMARY KEY,
+  source_account_id TEXT NOT NULL,
+  external_collection_id TEXT,
+  relation_type TEXT NOT NULL,
+  name TEXT NOT NULL,
+  item_count INTEGER,
+  status TEXT NOT NULL DEFAULT 'active',
+  first_observed_at TEXT NOT NULL,
+  last_observed_at TEXT NOT NULL,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  FOREIGN KEY(source_account_id) REFERENCES source_account(id),
+  UNIQUE(source_account_id, relation_type, external_collection_id)
+);
+
+CREATE TABLE IF NOT EXISTS sync_run (
+  id TEXT PRIMARY KEY,
+  source_account_id TEXT NOT NULL,
+  platform TEXT NOT NULL,
+  mode TEXT NOT NULL CHECK(mode IN ('first_full','incremental','manual_repair','official_import','browser_import')),
+  trigger_type TEXT NOT NULL DEFAULT 'manual',
+  status TEXT NOT NULL CHECK(status IN ('queued','authorizing','discovering','scanning','normalizing','artifacting','exporting','completed','partial','paused','cancelled','failed','blocked_environment')),
+  relation_scope_json TEXT NOT NULL DEFAULT '[]',
+  discovered_count INTEGER NOT NULL DEFAULT 0,
+  imported_count INTEGER NOT NULL DEFAULT 0,
+  duplicate_count INTEGER NOT NULL DEFAULT 0,
+  failed_count INTEGER NOT NULL DEFAULT 0,
+  unavailable_count INTEGER NOT NULL DEFAULT 0,
+  cursor_json TEXT NOT NULL DEFAULT '{}',
+  resume_token TEXT,
+  completeness TEXT NOT NULL DEFAULT 'unknown' CHECK(completeness IN ('complete','partial','failed','unknown')),
+  started_at TEXT,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  last_error_code TEXT,
+  last_error_message TEXT,
+  evidence_json TEXT NOT NULL DEFAULT '{}',
+  FOREIGN KEY(source_account_id) REFERENCES source_account(id)
+);
+
+CREATE TABLE IF NOT EXISTS sync_run_event (
+  id TEXT PRIMARY KEY,
+  sync_run_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  sequence_no INTEGER NOT NULL,
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(sync_run_id) REFERENCES sync_run(id),
+  UNIQUE(sync_run_id, sequence_no)
+);
+
+CREATE TABLE IF NOT EXISTS sync_checkpoint (
+  id TEXT PRIMARY KEY,
+  source_account_id TEXT NOT NULL,
+  relation_type TEXT NOT NULL,
+  collection_key TEXT NOT NULL DEFAULT '',
+  cursor_json TEXT NOT NULL DEFAULT '{}',
+  known_anchor TEXT,
+  last_complete_sync_run_id TEXT,
+  last_success_at TEXT,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(source_account_id) REFERENCES source_account(id),
+  UNIQUE(source_account_id, relation_type, collection_key)
+);
+
+CREATE TABLE IF NOT EXISTS sync_seen_relation (
+  sync_run_id TEXT NOT NULL,
+  relation_type TEXT NOT NULL,
+  collection_key TEXT NOT NULL DEFAULT '',
+  relation_id TEXT NOT NULL,
+  observed_at TEXT NOT NULL,
+  PRIMARY KEY(sync_run_id, relation_type, collection_key, relation_id),
+  FOREIGN KEY(sync_run_id) REFERENCES sync_run(id)
+);
+
+CREATE TABLE IF NOT EXISTS sync_run_scope (
+  sync_run_id TEXT NOT NULL,
+  relation_type TEXT NOT NULL,
+  collection_key TEXT NOT NULL DEFAULT '__relation__',
+  status TEXT NOT NULL DEFAULT 'pending',
+  completeness TEXT NOT NULL DEFAULT 'unknown',
+  discovered_count INTEGER NOT NULL DEFAULT 0,
+  imported_count INTEGER NOT NULL DEFAULT 0,
+  failed_count INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(sync_run_id, relation_type, collection_key),
+  FOREIGN KEY(sync_run_id) REFERENCES sync_run(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_source_account_platform_state ON source_account(platform, connection_state);
+CREATE INDEX IF NOT EXISTS idx_platform_collection_account ON platform_collection(source_account_id, relation_type, status);
+CREATE INDEX IF NOT EXISTS idx_sync_run_account_updated ON sync_run(source_account_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sync_run_status ON sync_run(status, updated_at);
+CREATE INDEX IF NOT EXISTS idx_sync_event_run ON sync_run_event(sync_run_id, sequence_no);
+CREATE INDEX IF NOT EXISTS idx_sync_seen_relation_scope ON sync_seen_relation(sync_run_id, relation_type, collection_key);
+CREATE INDEX IF NOT EXISTS idx_sync_run_scope_status ON sync_run_scope(sync_run_id, status);
