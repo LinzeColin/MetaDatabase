@@ -461,3 +461,60 @@ test("AC-002 那个可变字段只兜底一条路，不能变回默认口径", (
   assert.ok(body.includes("accountId === null"),
     "兜底不是按「调用方没给」触发的——传了空字符串也会被兜底盖掉");
 });
+
+// ── 真实路径上调的方法，得真的存在 ───────────────────────
+
+test("app.js 里每一个 this.X(...) 都必须真的挂在 prototype 上", () => {
+  // 这一条是从会话表那次故障顺出来的，抓的是同一个形状的另一面。
+  //
+  // formatOwnerLocalTime 是个**模块级函数**，而 app.js 里有六处写的是
+  // `this.formatOwnerLocalTime(...)`——prototype 上根本没有这个方法：
+  //
+  //   buildPersonalSite / listOwnReminders / buildPersonDetail / runItemAction
+  //   没加 ?.，只要列表里有一条带时间的项就当场 TypeError；
+  //
+  //   touchTurnSession / touchSystemSession 加了 ?.，不抛，但静默落到 null，
+  //   于是 last_event_at_beijing 这一列存进去的是 UTC——一个叫「北京时间」的
+  //   字段里装着差 8 小时的值。比空着更坏：面板会把它当真的显示出来。
+  //
+  // 它能活到今天，是因为七处测试各自写了 `app.formatOwnerLocalTime = ...`，
+  // 自己往对象上装了一个生产环境没有的方法。测试造出了依赖的存在。
+  //
+  // 所以这里不借测试对象，直接问真的 prototype。
+  const { CyberbossApp } = require("../src/core/app");
+  const source = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+
+  const available = new Set(Object.getOwnPropertyNames(CyberbossApp.prototype));
+  // 构造函数里赋上去的可调用字段也算数（this.X = ...），它们不在 prototype 上
+  // 但确实存在。formatOwnerLocalTime 哪儿都没被赋过——正因如此才抓得到。
+  for (const assigned of source.matchAll(/this\.([A-Za-z_][A-Za-z0-9_]*)\s*=/g)) {
+    available.add(assigned[1]);
+  }
+
+  const missing = new Set();
+  for (const call of source.matchAll(/this\.([A-Za-z_][A-Za-z0-9_]*)\s*(\?\.)?\(/g)) {
+    if (!available.has(call[1])) {
+      missing.add(call[1]);
+    }
+  }
+  assert.deepEqual([...missing].sort(), [],
+    `这些方法在真实路径上被调用，但 prototype 上没有：${[...missing].sort().join(", ")}`
+    + "——加了 ?. 的那几处会静默落到默认值，没加的当场 TypeError",
+  );
+});
+
+test("北京时间那一列真的是北京时间，不是换个名字的 UTC", () => {
+  // 会话行里 last_event_at_beijing 曾经等于 last_event_at_utc，因为
+  // `this.formatOwnerLocalTime?.(new Date()) || null` 里那个方法不存在，
+  // 落成 null，而 live-session-store 的 `beijing || utc` 又把 UTC 填了进去。
+  //
+  // 生产上 2026-08-02T01:59:32.684Z 那一行两列一模一样——真实的北京时间是 09:59。
+  const { CyberbossApp } = require("../src/core/app");
+  const app = Object.create(CyberbossApp.prototype);
+  const utc = "2026-08-02T01:59:32.684Z";
+  const local = CyberbossApp.prototype.formatOwnerLocalTime.call(app, utc);
+  assert.ok(local, "算不出本地时间——那一列又会退回存 UTC");
+  assert.notEqual(local, utc, "本地时间和 UTC 一模一样");
+  // 主人时区是东八区：01:59 UTC 应该渲染成 09:59。
+  assert.match(local, /09:59/, `按主人时区应该是 09:59，实际是 ${local}`);
+});

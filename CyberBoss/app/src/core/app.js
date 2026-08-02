@@ -2037,6 +2037,26 @@ class CyberbossApp {
   // 提醒存在队列文件里而不是库里（它是一次性的），所以只能按发件人反推。用的是
   // 和主动打招呼同一条认人路径（userAdmission.users.identify），不是自己再猜一套
   // ——那条路已经因为猜错把别人的消息记到主人名下过一次。
+  // 主人时区下的时间戳。
+  //
+  // 这是个薄壳，包着下面那个同名的模块级函数——但它必须存在，因为有六处
+  // 真实路径写的是 `this.formatOwnerLocalTime(...)`，而在此之前
+  // CyberbossApp.prototype 上**根本没有这个方法**：
+  //
+  //   buildPersonalSite / listOwnReminders / buildPersonDetail / runItemAction
+  //   ——只要列表里有一条带时间的项，当场 TypeError；
+  //
+  //   touchTurnSession / touchSystemSession 用的是 `?.()`，不抛，但会静默
+  //   落到 null，于是 last_event_at_beijing 这一列存的是 UTC。一个叫「北京
+  //   时间」的字段里装着差 8 小时的值，比空着更坏——面板会把它当真的显示出来。
+  //
+  // 这个洞能活到今天，是因为七处测试各自写了 `app.formatOwnerLocalTime = ...`，
+  // 自己往对象上装了一个生产环境没有的方法。测试造出了依赖的存在，于是套件
+  // 全绿而真实路径一碰就炸。和会话密钥那次（F9）是同一个形状。
+  formatOwnerLocalTime(value) {
+    return formatOwnerLocalTime(value);
+  }
+
   listOwnReminders(userId) {
     const identify = this.userAdmission?.users?.identify;
     if (typeof identify !== "function") {
