@@ -254,6 +254,23 @@ CREATE TABLE IF NOT EXISTS weread_sync_state (
   updated_at INTEGER NOT NULL
 ) STRICT;
 
+-- Keep recovery state separate from source-sync summaries.  It contains only
+-- aggregate health information, never plaintext, ciphertext, or a credential.
+CREATE TABLE IF NOT EXISTS account_data_recovery (
+  account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK(status IN ('HEALTHY','REQUIRED','QUEUED','RUNNING','PARTIAL','FAILED')),
+  reason_code TEXT,
+  recovery_job_id TEXT,
+  detected_at INTEGER,
+  queued_at INTEGER,
+  started_at INTEGER,
+  completed_at INTEGER,
+  last_checked_at INTEGER,
+  unreadable_notes INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL
+) STRICT;
+CREATE INDEX IF NOT EXISTS account_data_recovery_status_idx ON account_data_recovery(status, updated_at);
+
 CREATE TABLE IF NOT EXISTS recommendations (
   id TEXT PRIMARY KEY,
   account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -281,4 +298,4 @@ CREATE TABLE IF NOT EXISTS outbox (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS outbox_state_idx ON outbox(state, available_at);
 
-PRAGMA user_version = 23;
+PRAGMA user_version = 24;

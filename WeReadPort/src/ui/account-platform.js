@@ -177,7 +177,10 @@ function bindAuth(main) {
       state.account = result.account; state.view = "overview"; state.notes = []; state.dashboard = null; resetAiState(); await renderCurrent(document);
       return result;
     });
-    if (result) void syncWeReadAfterLogin(document, { force: true });
+    if (result?.recovery?.status === "QUEUED" || result?.recovery?.status === "RUNNING") {
+      toast("检测到历史加密数据，已启动安全重建；历史内容不会被删除。", "info");
+      if (result.recovery.jobId) void observeWeReadSync(result.recovery.jobId, { automatic: true, preserveView: true });
+    } else if (result) void syncWeReadAfterLogin(document, { force: true });
   });
   main.querySelector("#password-auth-form").addEventListener("submit", async event => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -219,6 +222,7 @@ async function loadOverview(main) {
     <section class="metric-grid" aria-label="账户概览">
       ${overviewMetrics}
     </section>
+    ${dataRecoveryNotice(state.account)}
     ${homeReadingProfile(state.dashboard, state.account, hasWeRead)}
     <section class="quick-grid"><article><div><span class="source-logo weread">微</span><div><h2>微信读书同步</h2><p>${hasWeRead ? "首次完整整理；之后只检查真实变化的书籍与笔记。" : "先绑定本人密钥；密钥不是账户主键，可安全轮换。"}</p></div></div><button id="quick-weread" class="button ${hasWeRead ? "secondary" : "primary"}" type="button">${hasWeRead ? "立即同步" : "绑定密钥"}</button></article>
       <article><div><span class="source-logo cloud">云</span><div><h2>一键导入</h2><p>Notion、Obsidian、GitHub、Google Drive 都会用中文一步一步引导。</p></div></div><button id="quick-import" class="button secondary" type="button">选择来源</button></article>
@@ -228,12 +232,25 @@ async function loadOverview(main) {
   content.querySelector("#quick-import").addEventListener("click", () => { state.view = "imports"; renderCurrent(document); });
   content.querySelector("#quick-analytics").addEventListener("click", () => { state.view = "analytics"; renderCurrent(document); });
   content.querySelector("#quick-weread").addEventListener("click", () => hasWeRead ? runWeReadSync(content) : openWeReadDialog(content));
+  content.querySelectorAll("[data-recover-weread]").forEach(button => button.addEventListener("click", () => openWeReadRecoveryDialog(content)));
   content.querySelectorAll("[data-download-weread]").forEach(button => button.addEventListener("click", () => runSensitiveAction("weread-export")));
   content.querySelectorAll("[data-go-analytics]").forEach(button => button.addEventListener("click", () => { state.view = "analytics"; renderCurrent(document); }));
   content.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => { state.view = button.dataset.go; renderCurrent(document); }));
 }
 function onboardingStep(number, done, title, detail) { return `<li class="${done ? "done" : ""}"><span>${done ? "✓" : number}</span><div><strong>${title}</strong><small>${detail}</small></div></li>`; }
 function metric(label, value, detail) { return `<article class="metric-card"><p>${label}</p><strong>${escapeHtml(String(value))}</strong><small>${detail}</small></article>`; }
+function needsWeReadRecovery(account = state.account) { return hasWeReadCredential(account) && String(account?.dataRecovery?.status || "HEALTHY") !== "HEALTHY"; }
+function dataRecoveryNotice(account = state.account) {
+  if (!needsWeReadRecovery(account)) return "";
+  const status = String(account?.dataRecovery?.status || "REQUIRED");
+  const detail = status === "QUEUED" || status === "RUNNING"
+    ? "系统正在后台安全重建可重新取得的微信读书内容；历史密文会被保留。"
+    : status === "PARTIAL"
+      ? "部分历史内容尚未通过校验，未通过项已保留。重新验证已绑定密钥后可再次完整重建。"
+      : "检测到历史加密数据需要安全恢复。重新验证已绑定的微信读书密钥后，系统会在后台完整重建可重新取得的内容。";
+  const action = status === "QUEUED" || status === "RUNNING" ? "" : `<button class="button secondary" data-recover-weread type="button">安全恢复</button>`;
+  return `<section class="beginner-notice" aria-live="polite"><strong>数据恢复状态</strong><p>${escapeHtml(detail)}</p>${action}</section>`;
+}
 function homeReadingProfile(dashboard, account, hasWeRead) {
   if (!dashboard) return "";
   const noteCategories = (dashboard.categoryDistribution || []).slice(0, 3);
@@ -336,6 +353,7 @@ function hasWeReadCredential(account = state.account) { return Boolean(account?.
 async function syncWeReadAfterLogin(root, { force = false } = {}) {
   const account = state.account;
   if (!hasWeReadCredential(account) || state.autoSyncAccountId === account.id) return;
+  if (needsWeReadRecovery(account)) return;
   const lastSyncAt = Number(account.weread?.lastSyncAt || 0);
   if (!force && lastSyncAt > 0 && Date.now() / 1000 - lastSyncAt < AUTO_SYNC_STALE_SECONDS) return;
   state.autoSyncAccountId = account.id;
@@ -391,8 +409,15 @@ async function observeWeReadSync(jobId, { automatic, preserveView }) {
       ? `快速核对 ${progress.notebookBooks || 0} 本书，跳过 ${progress.skippedUnchangedBooks || 0} 本无变化书籍`
       : `完整整理 ${progress.notebookBooks || 0} 本书`;
     const coverage = progress.coverage?.coverage || progress.coverage || {};
+    const recovery = progress.recovery;
     const verification = coverage.verified ? "覆盖已核验" : coverage.unresolvedDocuments ? `仍有 ${coverage.unresolvedDocuments} 条待确认` : "覆盖待完整核对";
-    toast(`同步完成：${scope}；${progress.updatedDocuments ?? progress.importedDocuments ?? 0} 条更新，${progress.unchangedDocuments || 0} 条已是最新；${verification}。`, Number(progress.failureCount || 0) || !coverage.verified && progress.syncMode === "full" ? "warning" : "success");
+    const normalMessage = `同步完成：${scope}；${progress.updatedDocuments ?? progress.importedDocuments ?? 0} 条更新，${progress.unchangedDocuments || 0} 条已是最新；${verification}。`;
+    const recoveryMessage = recovery?.status === "HEALTHY"
+      ? "历史加密数据已完成安全重建与校验。"
+      : recovery?.status === "PARTIAL"
+        ? `已完成可重新取得内容的重建；仍有 ${recovery.unreadableNotes || 0} 条历史项待恢复，系统未删除它们。`
+        : "";
+    toast(recoveryMessage || normalMessage, recovery?.status === "PARTIAL" || (!recoveryMessage && (Number(progress.failureCount || 0) || !coverage.verified && progress.syncMode === "full")) ? "warning" : "success");
     await refreshDerivedAccountState();
     if (!automatic && !preserveView) state.view = "notes";
     await renderCurrent(document);
@@ -466,6 +491,7 @@ async function loadNotes(main) {
       <div class="notes-hero-copy"><p class="eyebrow">我的笔记 · ${numberFormat(state.notes.length)} 条</p><h1 id="notes-page-title">所有来源，统一保存在你的账户</h1><p>把每一次划线、想法和书评变成可检索的阅读轨迹。按书籍、作者、真实事件时间与来源实时筛选；下载只处理当前显示结果，AI 问询始终只携带你选中的一条笔记。</p></div>
       <section class="notes-sync-card" aria-label="微信读书同步状态"><span class="notes-sync-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M19 7.5A7.5 7.5 0 0 0 5.4 6M5 3.5v3h3M5 16.5A7.5 7.5 0 0 0 18.6 18M19 20.5v-3h-3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><div><strong>${hasWeRead ? "自动同步已启用" : "等待绑定微信读书"}</strong><p>${escapeHtml(syncDetail)}</p></div>${hasWeRead ? `<button class="button secondary" id="notes-sync" type="button">立即同步微信读书</button>` : `<button class="button secondary" id="notes-sync" type="button" disabled>未绑定微信读书</button>`}</section>
     </header>
+    ${dataRecoveryNotice(state.account)}
     <section class="notes-summary-grid" aria-label="笔记概览">
       <article><span>可检索笔记</span><strong>${numberFormat(state.notes.length)} <small>条</small></strong></article>
       <article><span>涉及书籍</span><strong>${numberFormat(books.length)} <small>本</small></strong></article>
@@ -500,6 +526,7 @@ async function loadNotes(main) {
   };
   content.querySelector("#add-note").addEventListener("click", () => noteEditor(content));
   content.querySelector("#notes-sync").addEventListener("click", () => runWeReadSync(content, { preserveView: true }));
+  content.querySelectorAll("[data-recover-weread]").forEach(button => button.addEventListener("click", () => openWeReadRecoveryDialog(content)));
   content.querySelectorAll("[data-note-filter]").forEach(input => input.addEventListener(input.tagName === "SELECT" ? "change" : "input", event => { filters[event.currentTarget.dataset.noteFilter] = event.currentTarget.value; renderFiltered(); }));
   content.querySelectorAll("[data-note-archive-mode]").forEach(button => button.addEventListener("click", () => { state.noteArchiveMode = button.dataset.noteArchiveMode; state.collapsedNoteArchives.clear(); renderCurrent(document); }));
   content.querySelector("#notes-reset").addEventListener("click", () => { for (const key of Object.keys(filters)) filters[key] = ""; content.querySelectorAll("[data-note-filter]").forEach(input => { input.value = ""; }); renderFiltered(); content.querySelector("#note-search").focus(); });
@@ -638,7 +665,40 @@ async function deleteBookSkill(id) {
   });
 }
 function selectNoteForAi(id) { state.aiSelectedNoteId = String(id || ""); state.aiSubview = "ask"; state.view = "ai"; renderCurrent(document); }
-async function openNote(content, id) { await action("正在解密笔记…", async () => { const result = await api.note(id); if (!result?.note) throw new Error("笔记已不存在，请刷新后重试。"); noteDetail(content, result.note); }); }
+async function openNote(content, id) {
+  if (state.busy) return;
+  setBusy(true, "正在解密笔记…");
+  try {
+    const result = await api.note(id);
+    if (!result?.note) throw new Error("笔记已不存在，请刷新后重试。");
+    noteDetail(content, result.note);
+  } catch (error) {
+    if (error?.code === "ACCOUNT_DATA_RECOVERY_REQUIRED" && hasWeReadCredential()) {
+      openWeReadRecoveryDialog(content);
+    } else {
+      toast(error?.message || "笔记暂时无法打开，请稍后重试。", "error");
+      console.error(JSON.stringify({ event: "note_open_failed", code: String(error?.code || "REQUEST_FAILED") }));
+    }
+  } finally {
+    setBusy(false);
+  }
+}
+function openWeReadRecoveryDialog(content) {
+  const host = modal(`<p class="eyebrow">数据安全恢复</p><h2>重新验证微信读书密钥</h2><p>检测到历史加密数据需要恢复。请输入当前账户已绑定的同一把微信读书密钥；它只用于重新加密账户凭据并启动后台完整重建，不会写入日志。历史密文不会被删除。</p><form id="weread-recovery-form"><label for="weread-recovery-key">已绑定的微信读书密钥</label><input id="weread-recovery-key" name="key" type="password" autocomplete="off" required placeholder="wrk-…"><button class="button primary full" type="submit">验证并开始安全恢复</button></form>`);
+  host.querySelector("#weread-recovery-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    await action("正在验证密钥并建立恢复任务…", async () => {
+      const key = new FormData(event.currentTarget).get("key");
+      const result = await api.recoverWeRead(key);
+      state.account = result.account;
+      host.remove();
+      const status = result.recovery?.status;
+      toast(status === "QUEUED" || status === "RUNNING" ? "安全恢复已在后台启动；完成后会自动刷新。" : "密钥已验证；恢复任务将在可用队列中继续。", "info");
+      await renderCurrent(document);
+      if (result.recovery?.jobId) void observeWeReadSync(result.recovery.jobId, { automatic: true, preserveView: true });
+    });
+  });
+}
 function noteDetail(content, note) {
   const host = document.createElement("div"); host.className = "modal-backdrop";
   const metadata = [["来源", sourceName(note.source)], ["书籍", note.bookTitle], ["作者", note.author], ["章节", note.chapterTitle], ["类型", noteKindLabel(note.noteKind)], ["分类", note.category], ["真实事件时间", noteTimeLabel(note)]].filter(([, value]) => String(value || "").trim());

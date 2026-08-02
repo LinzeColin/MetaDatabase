@@ -45,6 +45,120 @@ test("密钥主体可以完成近期身份验证，敏感操作不强制依赖�
   await assert.rejects(() => platform.service.reauthenticateWeRead(user.account.id, KEY_TWO, token), error => error.code === "REAUTH_FAILED");
 });
 
+test("同一微信读书密钥登录会自愈不可解凭据，并由恢复任务强制完整重建", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY_ONE, displayName: "恢复用户" }, requestContext(), { verify: false });
+  platform.store.db.prepare("UPDATE credentials SET secret_encrypted=? WHERE account_id=? AND provider='weread'")
+    .run("v1.invalid-envelope", user.account.id);
+
+  const login = await platform.service.loginWeRead({ key: KEY_ONE }, requestContext());
+  assert.equal(login.account.id, user.account.id);
+  assert.equal(login.recovery.status, "QUEUED");
+  assert.equal(login.account.dataRecovery.status, "QUEUED");
+  const queued = platform.store.findActiveImportJob(user.account.id, "weread");
+  assert.ok(queued);
+  assert.equal(JSON.stringify(queued).includes(KEY_ONE), false, "恢复任务不得保存原始密钥");
+
+  let captured;
+  platform.service.syncWeRead = async (accountId, input) => {
+    captured = { accountId, input };
+    return { summary: { syncMode: "full", importedDocuments: 0, updatedDocuments: 0, unchangedDocuments: 0, notebookBooks: 0, detailedBooks: 0, skippedUnchangedBooks: 0, coverage: { verified: true, unresolvedDocuments: 0 } }, capabilities: [], failures: [], coverage: { verified: true, unresolvedDocuments: 0 } };
+  };
+  const complete = await platform.service.processNextImportJob("recovery-worker");
+  assert.equal(complete.state, "COMPLETE");
+  assert.deepEqual(captured, { accountId: user.account.id, input: { mode: "full", recommendationPages: 3, recovery: true } });
+  assert.equal(platform.service.publicAccount(user.account.id).dataRecovery.status, "HEALTHY");
+  assert.equal(complete.progress.recovery.status, "HEALTHY");
+});
+
+test("恢复未取得来源覆盖证明时保持 PARTIAL，不把可读误报为完整恢复", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY_ONE, displayName: "部分恢复用户" }, requestContext(), { verify: false });
+  platform.store.db.prepare("UPDATE credentials SET secret_encrypted=? WHERE account_id=? AND provider='weread'")
+    .run("v1.invalid-envelope", user.account.id);
+  await platform.service.loginWeRead({ key: KEY_ONE }, requestContext());
+  platform.service.syncWeRead = async () => ({
+    summary: { syncMode: "full", importedDocuments: 0, updatedDocuments: 0, unchangedDocuments: 0, notebookBooks: 0, detailedBooks: 0, skippedUnchangedBooks: 0, coverage: { verified: false, unresolvedDocuments: 1 } },
+    capabilities: [], failures: [], coverage: { verified: false, unresolvedDocuments: 1 },
+  });
+  const complete = await platform.service.processNextImportJob("partial-recovery-worker");
+  assert.equal(complete.state, "COMPLETE");
+  assert.equal(complete.progress.recovery.status, "PARTIAL");
+  assert.equal(platform.service.publicAccount(user.account.id).dataRecovery.status, "PARTIAL");
+});
+
+test("已运行的普通同步不会被误标为恢复任务，避免跳过后续完整重建", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY_ONE, displayName: "运行中恢复用户" }, requestContext(), { verify: false });
+  const job = platform.service.createWeReadSyncJob(user.account.id, { mode: "auto" }, "running-normal-sync");
+  assert.equal(platform.store.claimNextImportJob("already-running-worker", 300)?.id, job.id);
+  platform.store.db.prepare("UPDATE credentials SET secret_encrypted=? WHERE account_id=? AND provider='weread'")
+    .run("v1.invalid-envelope", user.account.id);
+
+  const login = await platform.service.loginWeRead({ key: KEY_ONE }, requestContext());
+  assert.equal(login.recovery.status, "REQUIRED");
+  assert.equal(platform.store.findActiveImportJob(user.account.id, "weread")?.state, "RUNNING");
+});
+
+test("运行中普通同步结束后会补排受控恢复任务", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY_ONE, displayName: "后续恢复用户" }, requestContext(), { verify: false });
+  const job = platform.service.createWeReadSyncJob(user.account.id, { mode: "auto" }, "normal-before-recovery");
+  platform.store.db.prepare("UPDATE credentials SET secret_encrypted=? WHERE account_id=? AND provider='weread'")
+    .run("v1.invalid-envelope", user.account.id);
+  platform.service.syncWeRead = async () => {
+    const login = await platform.service.loginWeRead({ key: KEY_ONE }, requestContext());
+    assert.equal(login.recovery.status, "REQUIRED");
+    return { summary: { syncMode: "incremental", importedDocuments: 0, updatedDocuments: 0, unchangedDocuments: 0, notebookBooks: 0, detailedBooks: 0, skippedUnchangedBooks: 0, coverage: { verified: true, unresolvedDocuments: 0 } }, capabilities: [], failures: [], coverage: { verified: true, unresolvedDocuments: 0 } };
+  };
+  const complete = await platform.service.processNextImportJob("normal-then-recovery-worker");
+  assert.equal(complete.id, job.id);
+  assert.equal(complete.state, "COMPLETE");
+  assert.equal(platform.service.publicAccount(user.account.id).dataRecovery.status, "QUEUED");
+  assert.equal(platform.store.findActiveImportJob(user.account.id, "weread")?.state, "PENDING");
+});
+
+test("微信读书账户的损坏正文进入受控恢复状态，而不是伪装成通用服务器错误", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY_ONE, displayName: "正文恢复用户" }, requestContext(), { verify: false });
+  const note = await platform.service.saveDocument(user.account.id, { source: "weread", externalId: "recovery-note", title: "待恢复正文", content: "不会泄漏的测试正文" });
+  const stored = platform.objectStore.objects.get(note.objectKey);
+  platform.objectStore.objects.set(note.objectKey, { ...stored, bytes: Buffer.from("invalid-envelope", "utf8") });
+
+  await assert.rejects(
+    () => platform.service.readNote(user.account.id, note.id),
+    error => error.code === "ACCOUNT_DATA_RECOVERY_REQUIRED" && error.status === 503,
+  );
+  const recovery = platform.service.publicAccount(user.account.id).dataRecovery;
+  assert.equal(recovery.status, "REQUIRED");
+  assert.equal(JSON.stringify(recovery).includes("invalid-envelope"), false);
+});
+
+test("强制重写与写后回读校验阻止新的损坏对象进入笔记索引", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerPassword({ email: "write-verify@example.com", password: PASSWORD });
+  const first = await platform.service.saveDocument(user.account.id, { source: "manual", externalId: "rewrite-note", title: "第一版", content: "可验证正文" });
+  const rewritten = await platform.service.saveDocument(user.account.id, { source: "manual", externalId: "rewrite-note", title: "第一版", content: "可验证正文" }, { forceRewrite: true, reportStatus: true });
+  assert.equal(rewritten.unchanged, false);
+  assert.equal(rewritten.note.version, first.version + 1);
+  assert.equal((await platform.service.readNote(user.account.id, first.id)).content, "可验证正文");
+
+  const originalGet = platform.objectStore.get.bind(platform.objectStore);
+  platform.objectStore.get = async () => null;
+  await assert.rejects(
+    () => platform.service.saveDocument(user.account.id, { source: "manual", externalId: "write-verify-fail", title: "拒绝索引", content: "写后校验失败不得进入索引" }),
+    error => error.code === "OBJECT_WRITE_VERIFY_FAILED" && error.status === 503,
+  );
+  platform.objectStore.get = originalGet;
+  assert.equal(platform.store.findNote(user.account.id, "manual", "write-verify-fail"), null);
+});
+
 test("个人笔记按账户加密存储、跨租户不可读、版本冲突不静默覆盖", async t => {
   const platform = testPlatform();
   t.after(platform.close);

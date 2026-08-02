@@ -73,6 +73,7 @@ export function createPlatformApp({ service, config }) {
       if (method === "POST" && path === "/auth/logout") { for (const token of sessionTokens) service.logout(token); return json({ loggedOut: true }, 200, { "Set-Cookie": clearCookie(config) }); }
       if (method === "POST" && path === "/auth/reauth/password") { const input = await body(request, config.maxJsonBytes); await service.reauthenticatePassword(session.accountId, input.password, sessionToken); return json({ reauthenticated: true }); }
       if (method === "POST" && path === "/auth/reauth/weread") { const input = await body(request, config.maxJsonBytes); await service.reauthenticateWeRead(session.accountId, input.key, sessionToken); return json({ reauthenticated: true }); }
+      if (method === "POST" && path === "/account/recovery/weread") { const result = service.recoverWeReadAccountData(session.accountId, (await body(request, config.maxJsonBytes)).key, sessionToken); return json(result); }
       if (method === "POST" && path === "/auth/link/weread") { service.requireRecentAuth(session); return json({ account: await service.bindWeRead(session.accountId, (await body(request, config.maxJsonBytes)).key) }); }
       if (method === "POST" && path === "/auth/rotate/weread") { service.requireRecentAuth(session); return json({ account: await service.bindWeRead(session.accountId, (await body(request, config.maxJsonBytes)).key) }); }
       if (method === "POST" && path === "/account/password") { const hasPassword = service.publicAccount(session.accountId)?.credentials?.some(item => item.kind === "password"); if (!hasPassword) service.requireRecentAuth(session); const result = await service.configurePassword(session.accountId, await body(request, config.maxJsonBytes), sessionToken); return json(result); }
@@ -156,7 +157,9 @@ export function createPlatformApp({ service, config }) {
 }
 
 function authResponse(result, config) {
-  return json({ account: result.account, csrf: result.session.csrf, expiresAt: result.session.expiresAt }, 200, { "Set-Cookie": sessionCookie(result.session.token, result.session.expiresAt, config) });
+  const payload = { account: result.account, csrf: result.session.csrf, expiresAt: result.session.expiresAt };
+  if (result.recovery) payload.recovery = result.recovery;
+  return json(payload, 200, { "Set-Cookie": sessionCookie(result.session.token, result.session.expiresAt, config) });
 }
 function sessionHandoffResponse(service, sessionToken, config) {
   if (!config.adminBaseUrl) throw new PlatformError("ADMIN_NOT_CONFIGURED", "管理员入口尚未完成安全配置。", 503);

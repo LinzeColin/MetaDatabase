@@ -27,6 +27,7 @@ export class AccountApi {
   recordAiInquiry(input) { return this.request("/ai/inquiries", { method: "POST", body: input }); }
   bindWeRead(key) { return this.request("/auth/link/weread", { method: "POST", body: { key } }); }
   rotateWeRead(key) { return this.request("/auth/rotate/weread", { method: "POST", body: { key } }); }
+  recoverWeRead(key) { return this.request("/account/recovery/weread", { method: "POST", body: { key } }); }
   reauthPassword(password) { return this.request("/auth/reauth/password", { method: "POST", body: { password } }); }
   reauthWeRead(key) { return this.request("/auth/reauth/weread", { method: "POST", body: { key } }); }
   configurePassword(input) { return this.request("/account/password", { method: "POST", body: input }); }
