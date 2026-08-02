@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-404",
+  "commands": [
+    {
+      "id": "browser_extension_syntax",
+      "command": "cd <single-worktree> && for file in social-archive/apps/browser-extension/shared.js social-archive/apps/browser-extension/background.js social-archive/apps/browser-extension/options.js social-archive/apps/browser-extension/popup.js social-archive/apps/browser-extension/sidepanel.js; do node --check \"$file\" || exit $?; done",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "All five browser-extension JavaScript modules parse successfully."
+    },
+    {
+      "id": "sa404_frozen_task_command",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_destination_probes_and_receipts.py tests/focused/test_extension_api.py tests/focused/test_destinations.py tests/focused/test_reader_projection.py tests/focused/test_reader_profiles.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "32 passed; one existing Starlette TestClient deprecation warning only. Covers active destination probes, authorization gates, independent receipts, manual export, first-attempt degraded rejection, retry-only recovery, canonical isolation, reader projection, and destination profile states."
+    },
+    {
+      "id": "full_project_regression",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "157 passed; one existing Starlette TestClient deprecation warning only."
+    },
+    {
+      "id": "source_boundary_scans",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && PYTHONDONTWRITEBYTECODE=1 python3 scripts/secret_scan.py .",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Brand boundary hits=[]; secret scan hits=[]."
+    },
+    {
+      "id": "semantic_and_taskpack_compatibility",
+      "command": "source social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 <TASKROOT>/07_IMPLEMENTATION/apply/semantic_classify.py --repo <single-worktree> && PYTHONDONTWRITEBYTECODE=1 python3 social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <immutable-v0.0.0.4-zip>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Semantic reconciliation ADAPT_CURRENT_UPSTREAM (113 satisfied, 26 apply, 72 adapt, 6 equivalent, 0 conflict/block/obsolete). Compatibility verifier PASS with preserve-transaction-core decision."
+    },
+    {
+      "id": "source_hash_capture",
+      "command": "read-only Python hashlib SHA-256 of the seventeen changed source/test files",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Hashes are recorded in RESULT.json; the capture performed no source/runtime write."
+    }
+  ],
+  "non_actions": [
+    "No real Notion, Obsidian, GitHub, Karakeep, Linkwarden, ArchiveBox, Chrome extension, Vault, account, credential, provider request, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
+    "The only secret-like test values were temporary pytest files with mode 0600; no value is present in this evidence.",
+    "Real Owner-authorized destination and browser canaries remain NOT_RUN and are not converted into fixture PASS."
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "schema_version": "2.0",
+  "task_id": "SA-507",
+  "acceptance_id": "AC-SA-507",
+  "acceptance_status": "PASS",
+  "verified_at_utc": "2026-08-01T12:08:30Z",
+  "phase": "E final consolidation",
+  "candidate": {
+    "premerge_head": "9fdf6de319d9d20be22c298c44bbef6b0f4d8320",
+    "postmerge_head": "7218767576d329f60ee2338aa6f570f87fc0a86d",
+    "origin_main": "6b15ed6cdf96bcb24353b8b5c60f4b2193fb9d6e",
+    "functional_candidate_manifest_sha256": "78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90",
+    "functional_candidate_file_count": 204
+  },
+  "commands": [
+    {
+      "id": "task_and_zip_audit",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "32 task IDs parsed from machine/task_dag.yaml; 31 prior RESULT records were PASS; frozen ZIP SHA-256 matched 31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6."
+    },
+    {
+      "id": "candidate_fingerprint_premerge",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "204 delivery files excluding evidence/docs/HANDOFF/CHANGELOG were hashed into the recorded functional candidate manifest."
+    },
+    {
+      "id": "compatibility_synthetic_validation",
+      "mode": "temporary isolated synthetic repository",
+      "result": "PASS",
+      "details": "Base Task Pack verifier PASS; preserved transaction core decision; sparse target move and ignored legacy runtime retention PASS; rollback default ROLLBACK_PLAN; raw SQLite discovery fail-closed."
+    },
+    {
+      "id": "compatible_taskpack_verify_fast",
+      "mode": "temporary isolated extraction",
+      "result": "PASS",
+      "details": "prepare_compat_taskpack.py verified immutable ZIP and five bounded overrides; START_HERE.py verify-fast PASS with 26 checks; application tests explicitly skipped; temporary directory was cleaned on exit."
+    },
+    {
+      "id": "final_structural_verification",
+      "mode": "local structural only",
+      "result": "PASS",
+      "details": "scripts/final_verify.py completed 7 structural commands; evidence/final-verification.json reports suite_mode structural and application_suite_rerun false."
+    },
+    {
+      "id": "latest_main_integration",
+      "mode": "controlled git merge",
+      "result": "PASS",
+      "details": "The common-ancestor-to-origin/main Social Archive diff was empty; merge-tree preflight was conflict-free; one no-ff merge created 7218767576d329f60ee2338aa6f570f87fc0a86d."
+    },
+    {
+      "id": "candidate_fingerprint_postmerge",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "The same 204-file manifest SHA-256 was reproduced after merge; first-parent merge diff contains no Social Archive path; git diff --check produced no whitespace errors."
+    },
+    {
+      "id": "production_final_readonly_smoke",
+      "mode": "read-only",
+      "result": "PASS",
+      "details": "Loopback Core/status/projection returned 200 and remain loopback-bound; public no-cookie/no-bearer safety responses were 302 Access UI, 200 API health/pairing, 401 protected route and forged assertion, and 200 status health/JSON; two data timers remain disabled."
+    },
+    {
+      "id": "source_tag_and_remote_ref_readback",
+      "mode": "controlled non-force publication",
+      "result": "PASS",
+      "details": "Annotated v0.0.0.4 tag object 272cf897b3ed69858a38f5dfbb302f7af3bc0357 and origin/main both resolve to peeled source commit e1f76776668b630b1d9a60a07d07a9791e6c0cf8 after one atomic push."
+    }
+  ],
+  "single_full_suite_boundary": {
+    "result": "PASS",
+    "evidence": "PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json",
+    "details": "235 passed, failed=0, one existing non-failing warning. Phase E deliberately did not invoke pytest or final_verify.py --full."
+  },
+  "side_effects": {
+    "created_second_worktree": false,
+    "runtime_or_user_data_written": false,
+    "provider_upload_or_delete": false,
+    "timers_enabled": false,
+    "source_stage_commit_tag_push_at_log_write": true,
+    "temporary_compatibility_directory_cleaned": true
+  },
+  "post_log_required_action": "Complete: the tag and remote references above were read back successfully. This documentation-only receipt commit does not change the released functional candidate."
+}

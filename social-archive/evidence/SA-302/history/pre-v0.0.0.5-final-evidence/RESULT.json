@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-302",
+  "acceptance_id": "AC-SA-302",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T14:03:02Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 149,
+      "apply": 26,
+      "adapt": 36,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "SA-301 already established canonical-content cards. SA-302 therefore adapts the existing representative-relation query rather than restoring the frozen overlay's duplicate content join, adding the missing collection, relation-scoped observed-time, and literal full-text behavior."
+  },
+  "search_and_filter_acceptance": {
+    "status": "PASS",
+    "card_identity": "One canonical content remains one library card. Platform filtering applies to content; relation, collection, and observed-time filtering select a matching relation as the card metadata.",
+    "full_text": {
+      "fields": ["title", "author_name", "body", "all relation collection keys"],
+      "query_behavior": "User text is tokenized as literal FTS terms joined with AND, so FTS operators are not accepted as executable query syntax.",
+      "multi_relation_preservation": "A later relation capture without title or text preserves the existing indexed body while rebuilding tags from every nonempty collection key for that content."
+    },
+    "time_filter": "GET /v1/library accepts observed_from and observed_to. Date-only bounds normalize to the beginning and inclusive end of the supplied UTC day; an invalid date or inverted range is rejected with HTTP 422.",
+    "relation_history": "Detail returns relations in deterministic newest-observation order and the PWA renders relation type, collection, active/closed state, first/last observed dates, complete-scan absence count, and closed date when present."
+  },
+  "scan_safety_acceptance": {
+    "status": "PASS",
+    "partial_receipt": "Recording a partial account_relation scan does not advance missing_complete_scan_count or close a relation.",
+    "complete_absence": "Within the exact platform, account, relation type, and collection scope, the first complete absence sets count=1 and keeps status=active; the second sets count=2, status=closed, and closed_at.",
+    "scope_isolation": "Existing focused coverage keeps different relation types, collections, accounts, and platforms outside the scanned closure scope."
+  },
+  "pwa_render_validation": {
+    "status": "PASS",
+    "execution": "Existing local Google Chrome controlled through Playwright against a loopback-only temporary API and fixture database. No browser download, user profile, external page, provider, or credential was used.",
+    "fixture": "Two canonical cards: one X content with bookmark/research and manual_save/reference relations plus one unrelated generic-web item.",
+    "interaction_contract": [
+      "Initial library rendered two deduplicated content cards.",
+      "Platform=X, relation=bookmark, collection=research, and same-day observed bounds reduced the list to one card and issued the expected filtered API request.",
+      "Text search for needle retained that card.",
+      "Detail rendered 关系历史, both relation records, and their active status."
+    ],
+    "desktop": {
+      "viewport": [1440, 980],
+      "horizontal_overflow": false
+    },
+    "mobile": {
+      "viewport": [390, 844],
+      "horizontal_overflow": false
+    },
+    "browser_errors": 0,
+    "screenshots": "Inspected during the local run, then the explicit temporary fixture directory containing screenshots and runtime data was moved to the system Trash. No fixture or screenshot is retained in the repository."
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "baseline_frozen_task_command": {
+      "tests_passed": 4,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_library_api.py",
+        "tests/focused/test_replica_completion.py"
+      ]
+    },
+    "final_task_command": {
+      "tests_passed": 5,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_library_api.py",
+        "tests/focused/test_replica_completion.py"
+      ]
+    },
+    "related_regression": {
+      "tests_passed": 15,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_library_api.py",
+        "tests/focused/test_replica_completion.py",
+        "tests/focused/test_scan_scope_isolation.py",
+        "tests/focused/test_ui_contract.py",
+        "tests/stage/test_stage0_walking_skeleton.py",
+        "tests/focused/test_beginner_journey.py"
+      ]
+    },
+    "static_checks": {
+      "pwa_javascript_syntax": "PASS",
+      "pwa_manifest_json": "PASS"
+    },
+    "source_sha256": {
+      "src/social_archive/db.py": "0b1678d344fe9dfe1e575d8c879c09c34ef75efada645e15801465c6ff6705b4",
+      "src/social_archive/api.py": "5ef116709b7fbc52eb7d4143bc4cff6f661c51be9fe2ceb9ad58baf21a0cd14f",
+      "apps/pwa/app.js": "0b2f0301afd7216e82827e900ae0653c0ee8d2fe496f80688cb1335a668c3013",
+      "apps/pwa/index.html": "10ec902aa91f5cf9bb204de362f917279b035c2375111f5075cc2b7e96ceb424",
+      "apps/pwa/styles.css": "2ecd468e972e3cf66c45ff434099afbee5d865177ba0b9c73d1606bb43fb27b8",
+      "tests/focused/test_library_api.py": "99f94a4b781320e65334ecc4ef690ae2c5f66de8045403cae7cd4514247cf1f6",
+      "tests/focused/test_scan_scope_isolation.py": "20a0c81143420b9d04f73a232d3c5deaa5014a67b23af58cce075f42a5895bff",
+      "tests/focused/test_ui_contract.py": "fc121326d76df79b3fb01e695b9604a18056efeac27e7df3a000683288f96409"
+    }
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "brand_boundary": "PASS",
+    "recovery_tag": "PASS",
+    "ignored_runtime_retained": "PASS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "source_change": {
+    "files_written_in_this_task": [
+      "src/social_archive/db.py",
+      "src/social_archive/api.py",
+      "apps/pwa/app.js",
+      "apps/pwa/index.html",
+      "apps/pwa/styles.css",
+      "tests/focused/test_library_api.py",
+      "tests/focused/test_scan_scope_isolation.py",
+      "tests/focused/test_ui_contract.py",
+      "evidence/SA-302/RESULT.json",
+      "evidence/SA-302/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ],
+    "product_source_rewrite": "No broad rewrite. This is a vertical adaptation of the existing unified-library core and PWA filters/history surface."
+  },
+  "scope_exclusions": [
+    "No real provider account, user content, browser profile, Cookie, password, authentication header, provider network request, Docker image build, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "The visual validation used only loopback HTTP plus a temporary local fixture database. The explicit temporary directory, screenshots, browser context, and fixture data were moved to the system Trash after validation and are not repository artifacts.",
+    "No credential value or credential-bearing URL is present in this evidence."
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-105",
+  "acceptance_id": "AC-SA-105",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T12:03:46Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 170,
+      "apply": 26,
+      "adapt": 15,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "All five Stage 1 product connector surfaces remain byte-identical to the frozen Overlay. The stage test is intentionally stronger than the frozen existence check so the four required fixture chains and default archive-level safety are directly bound."
+  },
+  "frozen_overlay_product_parity": {
+    "status": "PASS",
+    "files": {
+      "src/social_archive/connectors/markdown_watch.py": "54edf90ef619dd47dcb0c3d6c494a877b315d1861d9fa099847be1c6d9e29e22",
+      "src/social_archive/connectors/social_archiver_bundle.py": "763671c9c6ab8f8c8c886f26645f02d6481294c450ce847e7297de6cdbefe4f0",
+      "src/social_archive/connectors/oauth.py": "fd1cffdf82e91958d121164f978c6144fcde3f5d98662c569a3343c2bc2b7f28",
+      "src/social_archive/connectors/command.py": "77d4ba62f7d1650fc1e24a1e069f75d7af49c1d6e1c5443269420d6276f10f4c",
+      "src/social_archive/registry.py": "fdf9d16f5c6c6e78f9483e25d8faa7511e165e2b9c658a467e5825df30a28c3d"
+    }
+  },
+  "four_fixture_chains": {
+    "generic_current_page": {
+      "status": "PASS",
+      "source": "generic-web",
+      "result_status": "success",
+      "scope": "item",
+      "capture_count": 1,
+      "accepted_levels": [
+        "L0",
+        "L1",
+        "L3"
+      ],
+      "l2_default_enabled": false,
+      "l3_job_type": "download_l3"
+    },
+    "social_archiver_local_export": {
+      "status": "PASS",
+      "source": "Social Archiver ZIP fixture",
+      "bundle_preserved_in_watch_root": true,
+      "idempotent_content_ids": true,
+      "idempotent_job_ids": true,
+      "relation_count_after_reimport": 1,
+      "artifact_count_after_reimport": 1
+    },
+    "reddit_and_x_oauth": {
+      "status": "PASS",
+      "source": "isolated HTTP fixtures with temporary 0600 opaque token files",
+      "reddit": {
+        "relation_type": "saved",
+        "completeness": "complete",
+        "normalized_capture_count": 1,
+        "endpoint": "https://oauth.reddit.com/user/reddit-owner/saved"
+      },
+      "x": {
+        "zero_cost_confirmation": "synthetic fixture true only",
+        "relation_type": "bookmark",
+        "completeness": "complete",
+        "normalized_capture_count": 1,
+        "endpoint": "https://api.x.com/2/users/x-owner/bookmarks"
+      }
+    },
+    "instagram_sidecar": {
+      "status": "PASS",
+      "source": "isolated HTTP Sidecar fixture",
+      "result_status": "success",
+      "completeness": "partial",
+      "scope": "account_relation",
+      "execution_boundary": "isolated_http_sidecar",
+      "payload": {
+        "username": "instagram-owner",
+        "limit": 4
+      },
+      "instagram_session_in_payload": false,
+      "relative_artifacts_accepted": 1,
+      "traversal_artifacts_accepted": 0,
+      "normalized_capture_relation": "saved"
+    }
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "tests_passed": 4,
+    "tests_failed": 0,
+    "test_file": "tests/stage/test_stage1_western.py",
+    "strengthened_test_sha256": "366b0ef5802f00326717082264c7b9f85f0c4f7e69d3e4bd2da7c1839310a7d3",
+    "frozen_candidate_test_sha256": "037eb654475de77f8c2d9e5cd01282b56bc7bf725dacfe5b73ff3154e3f62e85",
+    "supplemental_source_regression": {
+      "status": "PASS",
+      "tests_passed": 29,
+      "test_files": [
+        "tests/focused/test_generic_web_connector.py",
+        "tests/focused/test_social_archiver_import.py",
+        "tests/focused/test_reddit_connector.py",
+        "tests/focused/test_oauth_connectors.py",
+        "tests/focused/test_x_connector.py",
+        "tests/focused/test_x_zero_cost_gate.py",
+        "tests/focused/test_instagram_connector.py",
+        "tests/focused/test_command_connectors.py",
+        "tests/focused/test_extension_e2n_contract.py"
+      ]
+    }
+  },
+  "real_provider_canaries": {
+    "generic_web_current_page": {
+      "status": "NOT_RUN",
+      "reason": "No owner browser page or user-triggered capture was used."
+    },
+    "social_archiver_owner_export": {
+      "status": "NOT_RUN",
+      "reason": "No owner export archive was supplied or read."
+    },
+    "reddit_oauth": {
+      "status": "NOT_RUN",
+      "reason": "No real Reddit account, token, or network request was used."
+    },
+    "x_oauth_and_zero_cost_entitlement": {
+      "status": "NOT_RUN",
+      "reason": "No real X account, entitlement, token, pricing confirmation, or network request was used."
+    },
+    "instagram_sidecar": {
+      "status": "NOT_RUN",
+      "reason": "No real Instagram session, Docker Sidecar, account, browser, or network request was used."
+    },
+    "independence_rule": "Every real canary is reported separately. NOT_RUN is not PASS and does not satisfy a blocking fixture assertion; all four blocking fixture assertions passed without depending on any real canary."
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "rollback_default": "ROLLBACK_PLAN",
+    "brand_boundary": "PASS",
+    "recovery_tag": "PASS",
+    "source_and_sidecar_cache_boundary": "PASS"
+  },
+  "environment_boundary": {
+    "project_venv": "PASS",
+    "fixture_connectors": "PASS",
+    "real_provider_canaries": "NOT_RUN",
+    "treatment": "The Stage 1 gate proves four local fixture chains and their isolation rules. It does not represent any real provider as connected, free, authorized, or running."
+  },
+  "source_change": {
+    "product_source_rewrite": "NOT_REQUIRED",
+    "stage_gate_change": "Strengthened the frozen existence-only candidate into four fixture chains covering generic current-page capture, Social Archiver import, Reddit/X OAuth normalization, and Instagram Sidecar normalization.",
+    "files_written_in_this_task": [
+      "tests/stage/test_stage1_western.py",
+      "evidence/SA-105/RESULT.json",
+      "evidence/SA-105/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ]
+  },
+  "scope_exclusions": [
+    "No owner browser page, Social Archiver export, Reddit/X/Instagram account, token, session, password, Cookie, browser authentication header, provider network request, Docker service, private-database action, cloud action, deployment, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "All URLs, token files, responses, Sidecar clients, artifacts, runtime journals, and canonical bundles used by this task were local pytest fixtures or temporary test data."
+  ]
+}

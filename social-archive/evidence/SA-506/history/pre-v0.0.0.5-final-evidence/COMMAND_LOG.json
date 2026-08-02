@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.2",
+  "task_id": "SA-506",
+  "acceptance_status": "PASS",
+  "verified_at_utc": "2026-07-30T23:25:47Z",
+  "commands": [
+    {
+      "id": "sa506_frozen_stage_tests",
+      "command": "source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "5 passed in 1.08s; covers real temporary age fixture restore, missing third receipt rejection before SQLite rebuild, fresh SQLite/FTS projection, no-overwrite, and operations contract."
+    },
+    {
+      "id": "sa506_exact_restore_latest_verify_only",
+      "command": "temporary deterministic non-production fixture; python3 scripts/restore.py --latest --verify-only",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "The exact frozen restore spelling verified one fact. The same temporary fixture restored successfully, rebuilt one-content Runtime SQLite, and rejected a second rebuild target. The fixture directory was automatically removed."
+    },
+    {
+      "id": "sa506_storage_recovery_targeted_regression",
+      "command": "source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q <Private-Database, recovery, replication, release-pack, Stage 4 and Stage 5 focused files>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "47 passed in 1.92s; py_compile of storage/backup/restore/rebuild/replication/probe/release scripts and git diff --check also passed."
+    },
+    {
+      "id": "sa506_static_contracts",
+      "command": "python3 scripts/check_brand.py && python3 scripts/secret_scan.py . && python3 scripts/validate_systemd.py && python3 scripts/validate_compose.py compose.yaml && git diff --check -- .",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Brand and secret scans have zero hits; systemd contract and Compose structural validation pass. Owner .env was absent, so Compose rendering was intentionally not attempted."
+    },
+    {
+      "id": "sa506_recovery_tag_and_rollback_plan",
+      "command": "compatible task-pack rollback_taskpack.py --repo <existing integration worktree> --stamp 20260730T095749Z",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Returned ROLLBACK_PLAN for the existing recovery tag/base HEAD, dirty_count=720, requires explicit execute confirmation, and declares ignored runtime data protected. No rollback was executed."
+    },
+    {
+      "id": "sa506_r2_real_encrypted_canary",
+      "command": "protected deployment: probe_object_store.py --store r2 --encrypted-canary",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "A dedicated private R2 bucket and bucket-scoped S3 credential performed encrypted write, readback hash verification, and delete; no probe object remained. Identifiers and credentials are omitted."
+    },
+    {
+      "id": "sa506_oci_real_encrypted_canary",
+      "command": "protected deployment: probe_object_store.py --store oci --encrypted-canary",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "A dedicated private OCI bucket and customer-secret S3 credential performed encrypted write, readback hash verification, and delete; no probe object remained. OCI aws-chunked incompatibility was corrected before this run."
+    }
+  ],
+  "environment_bound_items_not_used_as_acceptance": [
+    {
+      "id": "github_private_draft_release",
+      "outcome": "NOT_RUN",
+      "result": "GitHub demands sudo/passkey confirmation before a new repository-scoped fine-grained token can be created. Existing broad local CLI auth and a protected legacy credential recorded as exposed were deliberately rejected. No Draft Release or asset was created."
+    },
+    {
+      "id": "private_database_api_delivery",
+      "outcome": "NOT_RUN",
+      "result": "The production host has no configured official clone-free client and no compliant dedicated GitHub authorization. No fixture or business fact was written."
+    },
+    {
+      "id": "production_restore_latest_without_fixture",
+      "outcome": "EXPECTED_BLOCKED_ENVIRONMENT",
+      "result": "The production runtime has no pre-existing cold-backup manifest and returns the documented no-manifest result without creating Runtime state. This is not used as a Fixture acceptance failure."
+    }
+  ],
+  "side_effects": [
+    "Installed the free age dependency on the protected deployment host and copied only recovery-related source updates after protected rollback copies.",
+    "Created dedicated private R2 and OCI storage resources plus recovery identity material outside the source repository; both provider canaries self-deleted their encrypted objects.",
+    "No storage-dependent timer was enabled; no user content, Private-Database fact, GitHub Draft Release, Git source push, commit, merge, or extra worktree was created."
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-002",
+  "acceptance_id": "AC-SA-002",
+  "taskpack_version": "v0.0.0.4",
+  "status": "PASS",
+  "migration_started_at_utc": "2026-07-30T09:57:49Z",
+  "verified_at_utc": "2026-07-30T10:14:52Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "origin_main": "e3a57048f0a71724a281349b02a1fa2466a553ba",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "compatibility_context": {
+    "id": "social-archive-v0.0.0.4-compat.6",
+    "base_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+    "taskpack_verifier": "PASS",
+    "taskpack_check_count": 26,
+    "isolated_compatibility_validator": "PASS"
+  },
+  "identity_migration": {
+    "tracked_source": "legacy-product-root",
+    "tracked_target": "social-archive",
+    "tracked_source_file_count_after": 0,
+    "tracked_target_file_count_after": 686,
+    "read_only_backup_file_count": 686,
+    "backup_base_head_matches_recovery_tag": true,
+    "identity_actions": [
+      "AGENTS.md",
+      "README.md",
+      "VERSION",
+      "pyproject.toml"
+    ],
+    "user_facing_identity": "Social Archive v0.0.0.4",
+    "no_snapshot_tracked_residuals": true
+  },
+  "single_core_guard": {
+    "semantic_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "focused_proven_core": "legacy-focused-transaction-core",
+    "second_social_archive_core_exists": false,
+    "core_adoption": "deferred_to_SA-003_focused_core_adoption"
+  },
+  "sparse_and_runtime_safety": {
+    "social_archive_rule_present": true,
+    "legacy_runtime_rule_retained": true,
+    "compatibility_control_rule_present": true,
+    "legacy_ignored_runtime_root_retained": true,
+    "generated_migration_paths_ignored": true,
+    "snapshot_verified_stale_file_cleanup": "No residual matched files remained at final repair; no untracked runtime was enumerated or deleted."
+  },
+  "recovery_and_resume": {
+    "active_session_phase": "identity",
+    "active_session_status_matches_current_before_evidence": true,
+    "rollback_plan": "PASS",
+    "rollback_execution": "NOT_RUN",
+    "commit_state": "Intentionally uncommitted until SA-003 consumes the same ACTIVE_SESSION and base HEAD."
+  },
+  "compatibility_remediations": [
+    "Sparse Git moves now materialize the target before capability classification.",
+    "The legacy sparse rule is retained only to preserve ignored runtime; its tracked product file count is zero.",
+    "Any old tracked working-file residual is eligible for removal only after matching the read-only snapshot hash."
+  ],
+  "post_execution_remote_drift": {
+    "observed_origin_main": "02bba427",
+    "additional_commit_count": 2,
+    "affected_paths": [
+      "CyberBoss/app/src/core/app.js",
+      "CyberBoss/app/test/proactive-per-user.test.js"
+    ],
+    "action": "Not merged or rebased during the active Social Archive recovery session because the changes are out of scope and the session base HEAD must remain immutable."
+  },
+  "scope_exclusions": [
+    "No SQLite migration, account or credential read, browser-profile access, platform request, model request, private-database action, GitHub push, merge, or new git worktree occurred.",
+    "The preserved legacy runtime root was not inspected, copied, migrated, or deleted."
+  ]
+}

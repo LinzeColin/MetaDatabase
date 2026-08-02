@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-204",
+  "commands": [
+    {
+      "id": "baseline_focused_tests",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "5 pre-change focused tests passed."
+    },
+    {
+      "id": "isolated_public_vendor_sync",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Resolved 1 source: bilibili_cli; fixed detached commit 489607468f967e0e11f3cdff6efc022d011e982a under ignored runtime/vendors/bilibili_cli."
+    },
+    {
+      "id": "pinned_source_interface_audit",
+      "command": "inspect the pinned bilibili-cli package metadata, command decorators, structured formatter, client error mapper, and credential boundary without invoking a provider request",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Pinned Apache-2.0 v0.6.2 exposes bili favorites/watch-later/history with --json; history uses --max 1..100. Its rate-limit contract covers 412/429, while browser credential extraction exists upstream but is not invoked by the product path."
+    },
+    {
+      "id": "sidecar_source_compatibility_repair",
+      "command": "install only the fixed source from a named additional Docker context; issue source-documented read-only JSON argv; classify metadata-only success and structured rate limit results; isolate HOME/XDG per invocation",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "No write command, Cookie, browser profile mount, Bilibili secret, endpoint guess, or automatic bypass was introduced."
+    },
+    {
+      "id": "final_task_focused_tests",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "12 passed."
+    },
+    {
+      "id": "supplemental_cross_connector_regression",
+      "command": "run focused command, Bilibili, Instagram, generic-web, health-gate, scan-scope, worker-profile, status-projection, and Stage 1 Western regression tests",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "29 passed."
+    },
+    {
+      "id": "compose_structure_validation",
+      "command": "cd social-archive && docker compose -f compose.yaml config --no-env-resolution --no-interpolate --no-path-resolution -q",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Compose accepted the named Bilibili build context without reading a missing .env, resolving secrets, building an image, or starting a service."
+    },
+    {
+      "id": "semantic_reconciliation",
+      "command": "semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=158, apply=26, adapt=27, equivalent=6, conflict=0, blocked=0, obsolete=0."
+    },
+    {
+      "id": "final_compatibility_and_boundary_checks",
+      "command": "compatibility verifier; brand verifier; recovery-tag check; source lock audit; Compose static validation; SHA-256 and no-secret-marker checks",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Compatibility and brand boundary passed; recovery tag exists; global/product/vendor configuration and product source scans found no credential marker."
+    },
+    {
+      "id": "docker_buildx_check",
+      "command": "docker buildx build --check --build-context bilibili_cli=./runtime/vendors/bilibili_cli -f sidecars/cli-tools/Dockerfile sidecars/cli-tools",
+      "exit_code": null,
+      "outcome": "NOT_RUN",
+      "result": "Docker daemon is unavailable; no image build, container start, provider request, or resource allocation occurred."
+    }
+  ],
+  "non_actions": [
+    "No real Bilibili account, user content, browser Cookie, password, authentication header, provider request, Docker image build, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "The public Git vendor resolution is distinct from a real Bilibili provider canary. Real Bilibili authorization and runtime remain NOT_RUN.",
+    "No credential value or credential-bearing URL was stored in this command log."
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-004",
+  "acceptance_id": "AC-SA-004",
+  "taskpack_version": "v0.0.0.4",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T11:03:24Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 183,
+      "apply": 26,
+      "adapt": 2,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "sa004_resolution": "The current SA-004 product and focused-test files are already the frozen Overlay implementation; no source rewrite was required."
+  },
+  "frozen_overlay_parity": {
+    "overlay_root": "07_IMPLEMENTATION/overlay/social-archive",
+    "areas": [
+      "apps/browser-extension",
+      "src/social_archive/api.py",
+      "src/social_archive/config.py",
+      "scripts/generate_pairing_code.py",
+      "scripts/start.sh",
+      "tests/focused/test_extension_e2n_contract.py",
+      "tests/focused/test_cloud_pairing.py",
+      "tests/focused/test_extension_api.py",
+      "tests/focused/test_beginner_journey.py"
+    ],
+    "files_compared": 24,
+    "identical": 24,
+    "changed": 0,
+    "missing": 0,
+    "aggregate_sha256": "a013e665854fa440e6e0d43842c7ce0cc18abe3e4597c0b7397ea29d43b5a0e9"
+  },
+  "acceptance_observations": {
+    "managed_dual_domain_runtime": {
+      "status": "PASS",
+      "api_url": "https://social-archive-api.linzezhang.com",
+      "library_url": "https://social-archive.linzezhang.com",
+      "managed": true,
+      "manifest_version": 3,
+      "manifest_has_cookies_permission": false
+    },
+    "one_time_pairing": {
+      "status": "PASS",
+      "pairing_path": "/v1/pairing/exchange",
+      "maximum_ttl_seconds": 600,
+      "maximum_attempts": 5,
+      "case_and_separator_normalization": true,
+      "successful_exchange_consumes_code": true
+    },
+    "authorization_and_capture": {
+      "status": "PASS",
+      "business_api_without_bearer_status": 401,
+      "post_pairing_extension_bootstrap": "PASS",
+      "fab_injection_requires_site_permission": true,
+      "no_unauthorized_generic_web_fab": true
+    },
+    "extension_surfaces": {
+      "status": "PASS",
+      "surfaces": [
+        "three-step onboarding",
+        "Popup primary action",
+        "authorization cards",
+        "floating save button",
+        "Side Panel task center",
+        "first-run keyboard shortcuts"
+      ]
+    },
+    "runtime_behavior": {
+      "status": "PASS",
+      "fixture_capture_and_retry": "PASS",
+      "library_access_host_scoped": "PASS"
+    }
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "tests_passed": 17,
+    "tests_failed": 0,
+    "warning_count": 1,
+    "warning": "Starlette TestClient dependency deprecation warning; no assertion or runtime failure."
+  },
+  "source_change": {
+    "product_source_rewrite": "NOT_REQUIRED",
+    "reason": "The required implementation was already present and byte-identical to the frozen Overlay.",
+    "files_written_in_this_task": [
+      "evidence/SA-004/RESULT.json",
+      "evidence/SA-004/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ]
+  },
+  "scope_exclusions": [
+    "No browser extension was installed in a real browser and no real browser profile was accessed.",
+    "No platform, account, destination authorization, private-database, cloud, deployment, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "Real connector, destination, cloud-replica and deployment verification remain NOT_RUN for their later Task contracts."
+  ]
+}

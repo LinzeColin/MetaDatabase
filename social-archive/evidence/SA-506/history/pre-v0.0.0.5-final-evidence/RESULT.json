@@ -1,0 +1,148 @@
+{
+  "schema_version": "1.2",
+  "task_id": "SA-506",
+  "acceptance_id": "AC-SA-506",
+  "task_title": "执行备份、恢复、降级和回滚演练",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "acceptance_status": "PASS",
+  "verified_at_utc": "2026-07-30T23:25:47Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "preexisting_status_entry_count": 720,
+    "single_worktree_used": true,
+    "source_push_or_release_created": false
+  },
+  "acceptance_oracle": "Fixture 恢复、三副本缺一降级、SQLite 重建、版本回滚和恢复标签均有确定性证据，不等待真实时间。",
+  "blocking_acceptance_assertions": [
+    {
+      "assertion": "冻结 Stage 5 Fixture 覆盖恢复、缺少第三副本拒绝、SQLite/FTS 重建与运维合同",
+      "status": "PASS",
+      "evidence": {
+        "command": "python3 -m pytest -q tests/stage/test_stage5_recovery.py tests/stage/test_stage5_operations.py",
+        "passed": 5,
+        "failed": 0,
+        "real_age_fixture": true,
+        "missing_third_receipt_rejected_before_rebuild": true
+      }
+    },
+    {
+      "assertion": "冻结 restore.py --latest --verify-only 在确定性、临时、非业务 Fixture 上可验证",
+      "status": "PASS",
+      "evidence": {
+        "exact_command": "python3 scripts/restore.py --latest --verify-only",
+        "result": "PASS",
+        "fact_count": 1,
+        "temporary_fixture_cleaned": true
+      }
+    },
+    {
+      "assertion": "完整恢复包可恢复并重建全新 Runtime SQLite，已有目标绝不覆盖",
+      "status": "PASS",
+      "evidence": {
+        "restore": "PASS",
+        "fresh_sqlite_rebuild": "PASS",
+        "content_count": 1,
+        "overwrite_refusal": "RUNTIME_REBUILD_REJECTED"
+      }
+    },
+    {
+      "assertion": "恢复标签可解析且默认回滚仅生成计划，不删除 ignored runtime",
+      "status": "PASS",
+      "evidence": {
+        "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+        "rollback_status": "ROLLBACK_PLAN",
+        "requires_explicit_execute_confirmation": true,
+        "will_not_delete_ignored_runtime_data": true
+      }
+    },
+    {
+      "assertion": "恢复/复制/Private-Database/Release 相关定向回归与静态检查无失败",
+      "status": "PASS",
+      "evidence": {
+        "targeted_tests_passed": 47,
+        "targeted_tests_failed": 0,
+        "py_compile": "PASS",
+        "brand_scan": "PASS",
+        "secret_scan": "PASS",
+        "systemd_contract": "PASS",
+        "compose_structure": "PASS",
+        "git_diff_check": "PASS"
+      }
+    }
+  ],
+  "runtime_and_provider_observations": {
+    "classification": "These are live operational observations, recorded separately from the frozen Fixture acceptance oracle. A NOT_RUN item is never treated as a PASS assertion.",
+    "age_recovery_material": {
+      "status": "PASS",
+      "host_age_available": true,
+      "offline_identity_kept_outside_repository_and_reports": true,
+      "remote_identity_file_permission_verified": "root-owned 0600"
+    },
+    "r2_encrypted_canary": {
+      "status": "PASS",
+      "dedicated_private_bucket": true,
+      "least_privilege_bucket_scoped_credential": true,
+      "encrypted_write_readback_delete": true,
+      "object_left_after_probe": false
+    },
+    "oci_encrypted_canary": {
+      "status": "PASS",
+      "dedicated_private_bucket": true,
+      "customer_secret_key_scoped_for_s3_compatibility": true,
+      "encrypted_write_readback_delete": true,
+      "object_left_after_probe": false,
+      "oci_chunked_payload_compatibility_fixed_and_regressed": true
+    },
+    "github_private_draft_replica": {
+      "status": "NOT_RUN",
+      "reason": "GitHub 为创建新的仓库最小权限 fine-grained token 要求本人 sudo/passkey 确认；现有本机 CLI token 权限过宽，且受保护文档标记的旧备份 PAT 已暴露，二者均未被用作本任务凭据。",
+      "release_or_asset_created": false
+    },
+    "private_database_api_delivery": {
+      "status": "NOT_RUN",
+      "reason": "部署主机未配置官方 clone-free client；在没有专用、可验证的 GitHub 授权前不写入任何长期事实。",
+      "local_checkout_or_clone_used": false,
+      "business_or_fixture_fact_written": false
+    },
+    "production_timers": {
+      "status": "INTENTIONALLY_DISABLED",
+      "timers": [
+        "social-archive-backup.timer",
+        "social-archive-replication.timer",
+        "social-archive-private-database-sync.timer"
+      ]
+    }
+  },
+  "recovery_implementation": {
+    "remote_descriptor": "R2/OCI recovery.json 只保存哈希、对象键和收据，不保存事实正文、明文或 identity。",
+    "remote_restore": "restore.py --latest --from-store r2|oci 只接受受验证 descriptor，下载并校验同一密文后才解密。",
+    "runtime_rebuild": "rebuild_runtime.py 只从完整、三副本收据一致的事实重建新的 Runtime SQLite/FTS，不复制 Private-Database 工作树、job、lease 或目的地投递状态。",
+    "provider_compatibility": "OCI 使用路径寻址、非 aws-chunked payload 与 required checksum 配置；R2 保持标准 S3-compatible 配置。",
+    "github_token_boundary": "github_release_backup.py 仅从配置的秘密文件读取 GH_TOKEN，读取失败会在 Runtime 或 provider 调用前退出。"
+  },
+  "source_sha256": {
+    "src/social_archive/storage.py": "b163ddc1c6a3017d35bea5477e5b4348bd49e21d9f94794e0f7dc2660a443513",
+    "src/social_archive/recovery.py": "b6f8015a6eab1cc6f4525cc5c2dcef44845ce206eafa84835a7dc68da7664581",
+    "scripts/backup.py": "104938498bd35abbbf854f1026dab7d8d47fe817d12a88368f5681e52cf7e00e",
+    "scripts/restore.py": "db640d95def29e4ff40c905841b99b98a1ae78e09be5d347197496e1da12dc09",
+    "scripts/rebuild_runtime.py": "5da1056e2fcaa3b535cb739061650e98cc32ba9d6f5255ab4a8fae857da0aaaf",
+    "scripts/replicate_objects.py": "e4f518901b961540fc778e8267da3e0f93cff02f344804481697f44d4c02fb57",
+    "scripts/probe_object_store.py": "04a1fec44fbc7911f39df201b9b2663ecb597527dd5299cf64769fd86be79c40",
+    "scripts/github_release_backup.py": "e34540241ebcde3dbfc75fdb1b668b7b35bda68e8b320e8409ad0c1c535b300a",
+    "tests/focused/test_s3_replication.py": "afcbf375780d83b5621abc615f23726c002c534b2c89353dee5fe33b47f60ab2",
+    "tests/focused/test_release_pack.py": "6f6eaea6de4bd4f43533c4ac7c49a034402e10c4753cc2c53cebc53a8b332e43",
+    "tests/stage/test_stage5_recovery.py": "ab1475b4f20618cd18ca3a76872ab184627a166ce635a654b2de00f230d7e1e2",
+    "tests/stage/test_stage5_operations.py": "c9467b22723efe1a45d137c4f6217eb92dcd47ed0acdcd0af620b51692aece08"
+  },
+  "non_claims": [
+    "SA-506 Fixture acceptance PASS 不等于 GitHub Private Draft、Private-Database API 写入或真实三副本业务数据已经完成。",
+    "没有输出或提交 credential、cookie、private identity、provider identifier、主机地址、用户内容或 runtime database。",
+    "没有启用 storage-dependent timer，也没有执行破坏性 rollback。",
+    "没有 Git stage、commit、push、merge、source release、额外 worktree 或 GitHub source upload。"
+  ],
+  "next_task_boundary": "SA-506 已按冻结 oracle 完成。下一次 Run 只可进入 SA-507；GitHub/Private-Database 的真实授权仍必须先完成本人安全确认，且不得以宽权限或已暴露旧 credential 替代。"
+}

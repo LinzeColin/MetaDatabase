@@ -374,3 +374,4 @@ Phase D 为 **PASS**，总 SA-507 仍为 **DEGRADED，不是 PASS**：下一独�
 - Product runtime verdict: `NOT_RUN`; do not claim v0.0.0.5 production deployment from this run.
 - Evidence: `evidence/v0.0.0.5/VALIDATION_REPORT.json` and `evidence/SA-*/{RESULT,COMMAND_LOG}.json`.
 - Next: validate evidence schema, commit/push the evidence commit, merge the PR to main, then run production/provider gates only from an authorized environment with existing secret delivery.
+- Preservation correction: pre-final canonical task evidence is retained byte-for-byte under `evidence/SA-*/history/pre-v0.0.0.5-final-evidence/`; see `evidence/v0.0.0.5/PRESERVED_UPSTREAM_EVIDENCE_INDEX.json`.

@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-304",
+  "acceptance_id": "AC-SA-304",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T14:47:36Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "reader_projection_acceptance": {
+    "status": "PASS",
+    "optionality": "ArchiveBox, Karakeep and Linkwarden remain independent optional reader/archive sidecars or URL projections. The reader Compose overlay has no mandatory default L2 profile, and every profile is separately selectable.",
+    "secret_scope": "The reader launcher requires only the secret file needed by the selected profile: ArchiveBox requires none, Karakeep requires only karakeep.env, Linkwarden requires only linkwarden.env, and the combined readers profile requires both. Required secret validation runs before any Docker network side effect.",
+    "canonical_boundary": "Readers are disposable projections, never Canonical Store authority. The existing focused projection coverage proves Karakeep same-hash idempotency, reader binding deletion/rebuild, failure degradation without capture rollback, Linkwarden probe/export behavior, and ArchiveBox queue idempotency.",
+    "degraded_behavior": "A reader or archiver failure remains isolated from the core archive. The UI/API contract distinguishes configured, connected and degraded state rather than claiming a projection has succeeded."
+  },
+  "l2_archive_acceptance": {
+    "status": "PASS",
+    "archivebox": "An empty ArchiveBox queue is a no-op. A populated queue may be submitted only after the owner explicitly sets SOCIAL_ARCHIVE_L2_ENABLED to an accepted true value; without it the script exits before invoking Docker. The focused fake-Docker test proves both the zero-side-effect disabled path and the explicit enabled invocation path.",
+    "archiveweb_page": "The local WACZ importer blocks before reading input, creating a runtime database, or copying to CAS while L2 is disabled. With L2 enabled it rejects an unknown canonical content_id before importing, and accepts a valid existing canonical content only as an L2 WACZ artifact while preserving the canonical content fields.",
+    "l2_default": "High-fidelity HTML, screenshot, PDF, WARC and WACZ paths are L2 only. L0/L1/L3 remain the normal free capture path; the task does not turn on high-fidelity archival by default."
+  },
+  "documentation_and_stage_alignment": {
+    "status": "PASS",
+    "stage_authority": "The task graph is authoritative: SA-304 belongs to Stage 3. docs/00_我在哪.md now routes optional readers to Stage 3 and reserves Stage 4 for Notion, Obsidian, GitHub, Markdown and JSONL destinations.",
+    "operator_docs": "docs/07_可选阅读器.md documents profile-scoped secret requirements and the explicit ArchiveBox L2 activation gate."
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "baseline_frozen_task_command": {
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_reader_profiles.py"
+      ]
+    },
+    "final_frozen_task_command": {
+      "tests_passed": 9,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_reader_profiles.py"
+      ]
+    },
+    "related_regression": {
+      "tests_passed": 29,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_reader_profiles.py",
+        "tests/focused/test_reader_projection.py",
+        "tests/focused/test_destinations.py",
+        "tests/focused/test_destination_probes_and_receipts.py",
+        "tests/focused/test_free_destination_contract.py",
+        "tests/focused/test_generic_web_connector.py",
+        "tests/focused/test_quota_guard.py",
+        "tests/focused/test_extension_api.py"
+      ],
+      "warning": "One pre-existing Starlette TestClient deprecation warning; no test failure."
+    },
+    "static_checks": {
+      "bash_syntax": "PASS: /bin/bash -n scripts/start_readers.sh scripts/archivebox_sync.sh scripts/stop_readers.sh",
+      "compose_structure": "PASS: scripts/validate_compose.py compose.readers.yaml. Owner karakeep.env and linkwarden.env are absent, so Docker Compose rendering was intentionally skipped.",
+      "secret_scan": "PASS: hits=[]",
+      "brand_boundary": "PASS: hits=[]"
+    },
+    "source_sha256": {
+      "compose.readers.yaml": "30520a74bba9c5bb0bb43f7d1fd3a30160d1657544b1e80d132fe40b97e447dd",
+      "scripts/start_readers.sh": "0b8adb937ba4db615fc66dd113a126de490361d3164e4c70dfb0cd521a55a7fc",
+      "scripts/archivebox_sync.sh": "c7bcc39f5471e8513c6b551736d62d63d87a336a655669236120fd462b4a3097",
+      "scripts/import_wacz.py": "bc2a20dc64b5e2e0c3e3619d8ca386a4ea63d2b7246469b70a10b40ebad4421a",
+      "docs/00_我在哪.md": "1cadfce961fd05438e7f795b3bc59127fd3c41b386107a4dca81dae65f5521a3",
+      "docs/07_可选阅读器.md": "c09007ee6dd682bbb557b4df226c4c17fdc30699d0f154b5f908957bcd571aa3",
+      "tests/focused/test_reader_profiles.py": "bddce4741681889abebdef3f84438e025d581ef21ea7f619d9a61b159cb4620b",
+      "tests/focused/test_reader_projection.py": "ab561cc163afea1191042adc674524b7901f15b7e5f06b33e73fb5041d57dea6",
+      "src/social_archive/destinations.py": "46e61e9690e72f73ac40841de246d77296986de47acde733c80bd68a77f042ba"
+    }
+  },
+  "semantic_reconciliation": {
+    "status": "PASS",
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 136,
+      "apply": 26,
+      "adapt": 49,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "The frozen reader overlay is retained where compatible. The current product shell is minimally adapted to prevent unrelated secret requirements, implicit L2 network capture, and WACZ CAS artifacts detached from a known canonical content record."
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "brand_boundary": "PASS",
+    "recovery_tag": "PASS",
+    "ignored_runtime_retained": "PASS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "source_change": {
+    "files_written_in_this_task": [
+      "scripts/start_readers.sh",
+      "scripts/archivebox_sync.sh",
+      "scripts/import_wacz.py",
+      "docs/00_我在哪.md",
+      "docs/07_可选阅读器.md",
+      "tests/focused/test_reader_profiles.py",
+      "evidence/SA-304/RESULT.json",
+      "evidence/SA-304/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ],
+    "product_source_rewrite": "No broad rewrite. This is a narrow optional-reader safety adaptation that preserves the single transaction/recovery core and isolates sidecar/projection failure."
+  },
+  "scope_exclusions": [
+    "No Docker image pull, build, start, network creation, Compose render, or service operation occurred. The only Docker behavior covered dynamically was a focused fake executable with no daemon interaction.",
+    "No real ArchiveBox, Karakeep, Linkwarden or ArchiveWeb.page account, browser extension, credential, user content, provider request, or provider receipt was exercised. Each is NOT_RUN because owner configuration and a real provider environment were intentionally out of scope.",
+    "No deployment, cloud action, Private-Database action, GitHub push, merge, rebase, Git staging action, new Git worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
+    "No credential value or credential-bearing URL is present in this evidence."
+  ]
+}
