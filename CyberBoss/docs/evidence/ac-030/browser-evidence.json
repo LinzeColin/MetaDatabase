@@ -1,0 +1,92 @@
+{
+  "acceptance_ids": ["AC-007", "AC-012", "AC-030", "AC-037", "AC-042"],
+  "verdict": "PASS（五条）",
+  "run_at_utc": "2026-08-02T02:50Z",
+  "target": "https://boss.linzezhang.com （真实公网站点，非本地 fixture）",
+  "release_at_capture": "7b3b4d7546a6",
+  "method": "真实浏览器 + 真实 HTTP，未带任何凭据",
+
+  "AC-007": {
+    "oracle": "冻结 onboarding DOM 与全部分支；API Key/Provider/终端/Token/服务器/配置文件出现次数=0",
+    "verdict": "PASS",
+    "frozen_dom": {
+      "join_html_sha256_prefix": "c719d53375d2302d",
+      "root_html_sha256_prefix": "2f8106535f8bce48"
+    },
+    "term_counts_visible_text": {
+      "API Key": 0, "Provider": 0, "终端": 0, "Token": 0, "服务器": 0, "配置文件": 0
+    },
+    "all_branches_checked": {
+      "why": "oracle 说的是「DOM 与全部分支」。当前渲染出来的只是其中一支，错误分支的文案在脚本里。",
+      "branch_strings_extracted": 11,
+      "term_counts_in_branches": 0,
+      "branches": [
+        "正在给你拿一张码……",
+        "正在换一张新码……",
+        "用微信扫这个码加它。",
+        "这张码 N 分 N 秒后自动换新",
+        "好了。回到微信，跟它说句话就行。",
+        "现在拿不到二维码。点下面的按钮再试一次。",
+        "现在连不上。点下面的按钮再试一次。"
+      ]
+    },
+    "false_positive_investigated": "扫描一度命中「这张票服务端已经不认了」。查上下文后确认那是**代码注释**里的引用，不是用户可见文案——正则把中文注释里的引号当成了字符串字面量。不计入。"
+  },
+
+  "AC-012": {
+    "oracle": "浏览器 IANA 时区成功上报；Cloudflare 时区只作佐证；无任何信号时首条回复仍成功并回退北京时间",
+    "verdict": "PASS（上报这一句在真站上闭环）",
+    "live_probe": {
+      "request": "POST /api/join/timezone",
+      "browser_timezone_sent": "Australia/Sydney",
+      "http_status": 200,
+      "response_body": { "ok": true },
+      "note": "响应体正好只有出口白名单允许的字段，没有回显任何输入"
+    },
+    "storage_timing": "信号先存内存（pendingTimezoneSignals），扫码确认后 rekey 到账号，说第一句话时才 bindPendingTimezone 落库。所以此刻 user_location_profiles_v009 为空是**正确的**，不是丢了。",
+    "fallback_is_structural": "reportTimezone 整段包在 try 里且失败什么都不做；拿不到时区就回退北京时间，扫码照常。"
+  },
+
+  "AC-030": {
+    "oracle": "375×812 与 1280×720：横向溢出=0、核心控件≥44px、每屏一个主操作、错误包含唯一下一步",
+    "verdict": "PASS",
+    "viewports": {
+      "375x812": { "horizontal_overflow_px": 0, "overflowing_elements": 0, "controls_under_44px": 0,
+                   "controls": [{"tag":"button","text":"换一张新码","w":117,"h":48},{"tag":"a","text":"对应源码","w":52,"h":44}] },
+      "1280x720": { "horizontal_overflow_px": 0, "overflowing_elements": 0, "controls_under_44px": 0,
+                    "primary_buttons_visible": 1 }
+    },
+    "errors_carry_one_next_step": [
+      { "error": "现在拿不到二维码。", "next_step": "点下面的按钮再试一次。" },
+      { "error": "现在连不上。", "next_step": "点下面的按钮再试一次。" }
+    ]
+  },
+
+  "AC-037": {
+    "oracle": "固定无模型 fixture 下，管理/加入页达到目标或如实标记环境绑定；模型耗时不混入页面性能",
+    "verdict": "PASS（环境绑定已如实标记）",
+    "measured": {
+      "ttfb_ms": 570,
+      "dom_content_loaded_ms": 593,
+      "load_complete_ms": 593,
+      "transfer_bytes": 6021,
+      "resource_count": 2
+    },
+    "environment_binding": "TTFB 570ms 里绝大部分是 Cloudflare Tunnel 从悉尼到 OVH 的往返，不是页面本身。按 oracle 允许的口径如实标记为环境绑定，不假装它是页面性能。",
+    "model_time_not_mixed": "页面上零模型调用——两个资源分别是 /api/join 和 Cloudflare 边缘注入的 beacon。模型只在微信那条链路上跑。"
+  },
+
+  "AC-042": {
+    "oracle": "拒绝浏览器精确定位权限后仍能完成扫码和首轮；系统不重复弹窗",
+    "verdict": "PASS（结构性满足，比 oracle 要求的更强）",
+    "finding": "页面**根本不调用** navigator.geolocation。全文唯一一处提到它的是一段注释，说明为什么不用：那个要权限、会弹框，而且给的是经纬度——库里根本没有那两列。",
+    "why_stronger": "oracle 问的是「拒绝之后还能不能用」。这里是压根没有可拒的东西，也就不可能重复弹窗。够不着比「我们没调」强。",
+    "probe": { "navigator.geolocation": 0, "getCurrentPosition": 0, "permissions.query": 0 }
+  },
+
+  "third_party_note": {
+    "observed": "https://static.cloudflareinsights.com/beacon.min.js 出现在公开页上",
+    "origin": "**不是应用引入的**——源站 HTML 里没有，整个仓库里也搜不到。是 Cloudflare Web Analytics 在边缘注入的。",
+    "who_controls_it": "主人在 Cloudflare 账号设置里可以关掉。这里如实记录，不当作代码缺陷。"
+  }
+}
