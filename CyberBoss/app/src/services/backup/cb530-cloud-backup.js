@@ -96,22 +96,43 @@ async function runCloudBackup({
     scopePolicy,
     configReferences: ["identity-scope-policy", "runtime-spool-schema"],
   });
-  const r2 = await uploadR2Bundle({
+  // 两份冷备各自独立地传，一份挂了不影响另一份。
+  //
+  // 原来是串着的：uploadR2Bundle 先跑，它一抛，uploadOciBundle 永远轮不到。
+  // 于是 2026-08-01T23:53 起 R2 因为令牌没有写权限连续失败的那几天里，OCI 那
+  // 一份**一次都没写过**——异地副本数从「两份」直接掉到「零份」，而不是「一份」。
+  //
+  // 那不是冗余，那是把两个单点串成了一条链：任何一边坏掉，整条备份就没了。
+  // 双冷备的全部意义就是它们不该互相牵连。
+  //
+  // 所以两边各自兜住异常，各自如实记状态，最后只在**两份都失败**时才算这一轮
+  // 失败。剩一份也是异地有副本——那和一份都没有是完全不同的处境，运维上要
+  // 分得开：前者是「补一条腿」，后者是「现在就去手工备份」。
+  const r2 = await attemptCopy("r2", () => uploadR2Bundle({
     bundle: backup,
     accountId: r2AccountId,
     token: r2Token,
     fetchImpl,
-  });
-  const restored = restoreDownloadedR2Bundle({
-    backup,
-    downloaded: r2.downloaded,
-    restoreRoot: restore,
-  });
-  const oci = await uploadOciBundle({
+  }));
+  // 隔离恢复只能从**读得回来的**那一份做。R2 挂了就没有 downloaded，
+  // 这时候不是失败，是「这一轮没法做回读校验」，要说得出是为什么。
+  const restored = r2.downloaded
+    ? restoreDownloadedR2Bundle({
+      backup,
+      downloaded: r2.downloaded,
+      restoreRoot: restore,
+    })
+    : Object.freeze({ state: "skipped", reason: "R2_COPY_UNAVAILABLE" });
+  const oci = await attemptCopy("oci", () => uploadOciBundle({
     bundle: backup,
     parUrl: ociParUrl,
     fetchImpl,
-  });
+  }));
+  const landed = [r2, oci].filter((copy) => copy.state !== "failed");
+  if (landed.length === 0) {
+    // 两份都没落地：这一轮**确实**没有任何异地副本，必须失败。
+    throw new CloudBackupError(r2.error_code || oci.error_code || "CB530_ALL_COLD_COPIES_FAILED");
+  }
   const receipt = Object.freeze({
     schema_version: "cyberboss.cb530.provider-receipt.v1",
     product_version: "v0.0.0.5",
@@ -135,7 +156,11 @@ async function runCloudBackup({
   const receiptPath = path.join(receipts, `${backup.manifest.backup_id}.json`);
   writeJsonDurable(receiptPath, receipt);
   return Object.freeze({
-    status: "passed",
+    // 两份都落地才叫 passed。剩一份是 degraded——它**成功了**（异地确实有副本，
+    // 所以退出码是 0、不该让 systemd 每晚报警），但它和「两份都在」不是一回事，
+    // 运维要看得出来。挤成一个 passed 的话，双冷备退化成单冷备且无人知晓。
+    status: landed.length === 2 ? "passed" : "degraded",
+    cold_copies_landed: landed.length,
     backup_id: backup.manifest.backup_id,
     archive_sha256: backup.manifest.archive.sha256,
     manifest_sha256: sha256File(backup.manifestPath),
@@ -196,6 +221,27 @@ async function restoreRemoteBackup({
     });
   } finally {
     fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+}
+
+// 一份冷备的尝试。挂了就如实记下来，不把另一份也带走。
+//
+// 只吞 CloudBackupError 这一类：别的异常（编程错误、越界）该炸出来，
+// 被这里吞掉的话，一个真 bug 会伪装成「那家云今天不行」。
+async function attemptCopy(label, run) {
+  try {
+    return await run();
+  } catch (error) {
+    if (!(error instanceof CloudBackupError)) {
+      throw error;
+    }
+    return Object.freeze({
+      state: "failed",
+      error_code: error.code || `CB530_${label.toUpperCase()}_FAILED`,
+      real_remote_receipt: false,
+      provider_requests: 0,
+      objects: Object.freeze([]),
+    });
   }
 }
 

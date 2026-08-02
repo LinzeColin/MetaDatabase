@@ -1034,6 +1034,7 @@ class CyberbossApp {
       // LINE_NOTES 里写着 backup_restore 的口径是 "receipt only when both
       // copies land"，而代码没有照做。
       backupLastSuccessAt: this.readLatestBackupAt(),
+      backupColdCopies: this.readLatestBackupColdCopies(),
       ownerRuntimeReady: runtimeReadiness?.ready === true,
       releaseConfigured: false,
       budgetReady: Boolean(this.userTurnRuntime),
@@ -1453,6 +1454,45 @@ class CyberbossApp {
     } catch {
       // 读不出来就是不知道，不是「刚备份过」。
       return "";
+    }
+  }
+
+  // 最新那份回执里，两份冷备到底落地了几份。
+  //
+  // 「有异地副本」和「有两份异地副本」是两回事。一份也是异地有备份——所以
+  // 那一轮不算失败、退出码是 0、不该每晚报警。但它离「一份都没有」只剩一次
+  // 故障，而这正是 AC-028 要的「双冷备」不成立的时候。
+  //
+  // 不把它显示出来的话，双冷备会静静地退化成单冷备，直到剩下那一份也挂掉
+  // 的那天——那天才发现，已经晚了。
+  readLatestBackupColdCopies() {
+    try {
+      const root = path.join(
+        this.config.backupLocalDir || path.join(this.config.stateDir || "", "snapshots"),
+        "receipts",
+      );
+      let newestAt = 0;
+      let newestFile = "";
+      for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+        if (!entry.isFile()) {
+          continue;
+        }
+        const at = fs.statSync(path.join(root, entry.name)).mtimeMs;
+        if (at > newestAt) {
+          newestAt = at;
+          newestFile = entry.name;
+        }
+      }
+      if (!newestFile) {
+        return null;
+      }
+      const receipt = JSON.parse(fs.readFileSync(path.join(root, newestFile), "utf8"));
+      // 老回执里没有 state 字段（那时候一份挂了整轮就抛了，能写出回执就是两份都成）。
+      // 认不出来时按 2 算，而不是按 0——把历史回执一律判成「只有一份」会让面板
+      // 凭空黄一片，而那是我们不知道，不是它坏了。
+      return ["r2", "oci"].filter((k) => (receipt?.[k]?.state ?? "verified") !== "failed").length;
+    } catch {
+      return null;
     }
   }
 

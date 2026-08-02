@@ -189,7 +189,7 @@ function countZeroAgentInvocations() {
 const BACKUP_FRESH_MS = 26 * 60 * 60 * 1000;
 const BACKUP_STALE_MS = 72 * 60 * 60 * 1000;
 
-function backupLine({ backupConfigured, backupLastSuccessAt, now }) {
+function backupLine({ backupConfigured, backupLastSuccessAt, backupColdCopies = null, now }) {
   if (!backupConfigured) {
     return { state: "not_started", queue_depth: 0, reason_code: "BACKUP_TARGET_ABSENT" };
   }
@@ -205,6 +205,11 @@ function backupLine({ backupConfigured, backupLastSuccessAt, now }) {
     return { state: "degraded", queue_depth: 0, reason_code: "BACKUP_RECEIPT_IN_FUTURE" };
   }
   if (age <= BACKUP_FRESH_MS) {
+    // 新鲜，但只落地了一份——异地确实有备份，可双冷备已经不成立了。
+    // 显示成绿的话，它会一路绿到剩下那一份也挂掉的那天。
+    if (Number.isFinite(backupColdCopies) && backupColdCopies < 2) {
+      return { state: "degraded", queue_depth: 0, reason_code: "BACKUP_SINGLE_COPY_ONLY" };
+    }
     return { state: "healthy", queue_depth: 0, reason_code: "ok" };
   }
   if (age <= BACKUP_STALE_MS) {
@@ -228,6 +233,7 @@ function projectLines(facts, { now = new Date() } = {}) {
     objectStoreConfigured = false,
     backupConfigured = false,
     backupLastSuccessAt = null,
+    backupColdCopies = null,
     ownerRuntimeReady = false,
     releaseConfigured = false,
     budgetReady = false,
@@ -309,7 +315,7 @@ function projectLines(facts, { now = new Date() } = {}) {
     //   超过 72 小时     → blocked（连着三天没有异地副本，这是要出事的）
     // 没配置 → not_started；配了但从来没成功过 → activation_pending。
     // 一次抖动不会立刻翻红，而真的停摆藏不过三天。
-    backup_restore: backupLine({ backupConfigured, backupLastSuccessAt, now }),
+    backup_restore: backupLine({ backupConfigured, backupLastSuccessAt, backupColdCopies, now }),
     owner_codex_runtime: {
       state: ownerRuntimeReady ? "healthy" : "activation_pending",
       queue_depth: 0,

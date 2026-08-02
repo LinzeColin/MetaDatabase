@@ -104,3 +104,77 @@ test("collectStatusFacts 真的把这个 fact 交出去了", () => {
   assert.ok(body.includes("backupLastSuccessAt: this.readLatestBackupAt()"),
     "collectStatusFacts 没交出 backupLastSuccessAt——投影那边永远拿 null");
 });
+
+// ── 双冷备不能互相牵连 ───────────────────────────────────
+
+const { runCloudBackup } = require("../src/services/backup/cb530-cloud-backup");
+
+test("F16 一份冷备挂掉不能把另一份也带走", () => {
+  // 原来 uploadR2Bundle 先跑而且**抛异常**，uploadOciBundle 永远轮不到。
+  // 于是 2026-08-01T23:53 起 R2 因为令牌没有写权限连续失败的那几天里，OCI 那
+  // 一份一次都没写过——异地副本从「两份」直接掉到「零份」，而不是「一份」。
+  //
+  // 那不是冗余，是把两个单点串成了一条链。
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "services", "backup", "cb530-cloud-backup.js"), "utf8");
+  const start = source.indexOf("async function runCloudBackup(");
+  const body = source.slice(start, source.indexOf("\nasync function restoreRemoteBackup", start));
+
+  assert.ok(body.includes('attemptCopy("r2"'), "R2 那一份没有各自兜住异常");
+  assert.ok(body.includes('attemptCopy("oci"'), "OCI 那一份没有各自兜住异常");
+  // 只在两份都失败时才算这一轮失败。
+  assert.ok(/landed\.length === 0/.test(body),
+    "不是按「两份都失败」判失败——一份挂了整轮就没了，另一份永远写不成");
+  // 隔离恢复要能在 R2 缺席时说得出是为什么，而不是拿 undefined 去还原。
+  assert.ok(body.includes("R2_COPY_UNAVAILABLE"), "R2 缺席时隔离恢复没有给出原因");
+});
+
+test("F16 attemptCopy 只吞云那一类错误，不吞编程错误", () => {
+  // 无差别吞掉的话，一个真 bug 会伪装成「那家云今天不行」，而且每天伪装一次。
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "services", "backup", "cb530-cloud-backup.js"), "utf8");
+  const start = source.indexOf("async function attemptCopy(");
+  const body = source.slice(start, source.indexOf("\n}", start));
+  assert.ok(body.includes("instanceof CloudBackupError"), "什么异常都吞——真 bug 会被当成云故障");
+  assert.ok(/throw error/.test(body), "非云错误没有被重新抛出");
+});
+
+test("AC-028 只剩一份冷备时不许显示成健康", () => {
+  // 一份也是异地有备份，所以那一轮不算失败（退出码 0，不该每晚报警）。
+  // 但它离「一份都没有」只剩一次故障——而那正是双冷备不成立的时候。
+  const fresh = new Date(Date.now() - 3600e3).toISOString();
+  const both = lineOf({ backupConfigured: true, backupLastSuccessAt: fresh, backupColdCopies: 2 });
+  assert.equal(both.state, "healthy");
+  const single = lineOf({ backupConfigured: true, backupLastSuccessAt: fresh, backupColdCopies: 1 });
+  assert.equal(single.state, "degraded", "只剩一份冷备却显示成健康——会一路绿到那一份也挂掉");
+  assert.equal(single.reason_code, "BACKUP_SINGLE_COPY_ONLY");
+});
+
+test("AC-028 认不出份数时按两份算，不凭空黄一片", () => {
+  // 老回执里没有 state 字段（那时候一份挂了整轮就抛了，能写出回执就是两份都成）。
+  // 一律判成「只有一份」会让面板凭空黄一片，而那是我们不知道，不是它坏了。
+  const fresh = new Date(Date.now() - 3600e3).toISOString();
+  assert.equal(lineOf({ backupConfigured: true, backupLastSuccessAt: fresh, backupColdCopies: null }).state,
+    "healthy", "份数认不出来时凭空判成了降级");
+});
+
+test("F16 份数是从最新那份回执里读出来的，不是猜的", (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cb-copies-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(root, "receipts"), { recursive: true });
+  const app = Object.create(CyberbossApp.prototype);
+  app.config = { backupLocalDir: root, stateDir: root };
+
+  fs.writeFileSync(path.join(root, "receipts", "a.json"),
+    JSON.stringify({ r2: { state: "verified" }, oci: { state: "verified" } }));
+  assert.equal(CyberbossApp.prototype.readLatestBackupColdCopies.call(app), 2);
+
+  fs.writeFileSync(path.join(root, "receipts", "b.json"),
+    JSON.stringify({ r2: { state: "failed" }, oci: { state: "verified" } }));
+  assert.equal(CyberbossApp.prototype.readLatestBackupColdCopies.call(app), 1,
+    "回执里明写着 R2 失败了，却还是数成两份");
+
+  // 老回执（没有 state 字段）按两份算。
+  fs.writeFileSync(path.join(root, "receipts", "c.json"), JSON.stringify({ r2: {}, oci: {} }));
+  assert.equal(CyberbossApp.prototype.readLatestBackupColdCopies.call(app), 2);
+});
