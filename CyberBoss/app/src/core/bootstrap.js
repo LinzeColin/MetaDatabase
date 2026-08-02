@@ -60,10 +60,35 @@ function registryWorkspaceBase(configPath) {
   }
 }
 
+// 保住已有的**组穿越位**（--x），不要每次启动都把它抹掉。
+//
+// 这一行是两次生产故障换来的。
+//
+// 原来这里无条件 `chmod 0700`。而 /var/lib/cyberboss 底下有几个目录是**按组
+// 共享**给别的服务用的——canonical-sync 以 cyberboss-data:cyberboss 的身份
+// 跑，它需要穿过 /var/lib/cyberboss 才够得着自己那个 0770 的子目录。
+//
+// 0700 把组的 x 位抹掉之后，子目录权限设得再对也没用：**穿不过去**。
+// 而 EACCES 只报最里面那一跳（mkdir …/canonical-spool/outgoing），不会告诉
+// 你是哪一级挡的，所以每次排查都要从根往下逐跳试。
+//
+// 更要命的是它会**复发**：手工 chmod 0710 修好之后，下一次部署这个函数原样
+// 改回 0700，服务第二天又红。2026-08-02 这一天里我修了两次才想到来看这里。
+//
+// 保留 --x 不放松安全：组成员能穿过去，但列不出目录内容（没有 r），也写不进
+// 这一级（没有 w）。真正要保密的是密钥文件，那由 KEY_MODE 自己管。
+const DIR_GROUP_TRAVERSE = 0o010;
+
 function ensureDirectory(directory) {
   fs.mkdirSync(directory, { recursive: true, mode: DIR_MODE });
   try {
-    fs.chmodSync(directory, DIR_MODE);
+    let keep = 0;
+    try {
+      keep = fs.statSync(directory).mode & DIR_GROUP_TRAVERSE;
+    } catch {
+      keep = 0;
+    }
+    fs.chmodSync(directory, DIR_MODE | keep);
   } catch {
     // A directory the installer does not own is left as it is; the key write
     // below is what actually has to be private, and it enforces its own mode.
@@ -228,6 +253,9 @@ function bootstrapInstallation({ stateDir = defaultStateDir() } = {}) {
 }
 
 module.exports = {
+  // 只给测试用：这个函数的行为（保住组穿越位）是两次生产故障换来的，
+  // 必须能被直接验证，而不是靠猜它在哪条调用链上被走到。
+  __ensureDirectoryForTest: ensureDirectory,
   BootstrapError,
   KEY_BYTES,
   WORKSPACE_ALIAS,
