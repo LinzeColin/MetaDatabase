@@ -363,8 +363,16 @@ export class PlatformService {
     const id = randomId("job_");
     const normalizedSelection = { ...selection, items };
     const selectionEncrypted = encryptForAccount(this.accountKey(accountId), normalizedSelection, `import-selection:${accountId}:${id}:v1`);
-    const job = this.store.createImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey: sanitizeText(idempotencyKey || randomToken(12), 128) });
-    return publicImportJob(job);
+    try {
+      const job = this.store.createImportJob({
+        id, accountId, provider, selectionEncrypted,
+        idempotencyKey: sanitizeText(idempotencyKey || randomToken(12), 128),
+        maxActiveJobs: this.config.maxActiveImportJobsPerAccount,
+      });
+      return publicImportJob(job);
+    } catch (error) {
+      throw importQueuePlatformError(error);
+    }
   }
 
   createWeReadSyncJob(accountId, input = {}, idempotencyKey) {
@@ -381,11 +389,12 @@ export class PlatformService {
         provider: "weread",
         selectionEncrypted,
         idempotencyKey: sanitizeText(idempotencyKey || randomToken(12), 128),
+        maxActiveJobs: this.config.maxActiveImportJobsPerAccount,
       });
       return publicImportJob(job);
     } catch (error) {
       if (error?.code === "IDEMPOTENCY_CONFLICT") throw new PlatformError("IDEMPOTENCY_CONFLICT", "该请求标识已用于其他任务。", 409);
-      throw error;
+      throw importQueuePlatformError(error);
     }
   }
 
@@ -485,10 +494,21 @@ export class PlatformService {
   async readNote(accountId, noteId) {
     const note = this.store.getNote(accountId, noteId);
     if (!note || note.deletedAt) return null;
-    const stored = await this.objectStore.get(note.objectKey);
+    let stored;
+    try {
+      stored = await this.objectStore.get(note.objectKey);
+    } catch {
+      throw new PlatformError("OBJECT_UNAVAILABLE", "笔记正文暂时不可用，请稍后重试。", 503);
+    }
     if (!stored) throw new PlatformError("OBJECT_MISSING", "笔记正文暂时不可用。", 503);
-    const decoded = decryptForAccount(this.accountKey(accountId), stored.bytes.toString("utf8"), `note:${accountId}:${note.id}:v${note.version}`);
-    const payload = JSON.parse(decoded.toString("utf8"));
+    let payload;
+    try {
+      const decoded = decryptForAccount(this.accountKey(accountId), stored.bytes.toString("utf8"), `note:${accountId}:${note.id}:v${note.version}`);
+      payload = JSON.parse(decoded.toString("utf8"));
+      if (!payload || typeof payload.content !== "string") throw new Error("笔记正文格式无效。");
+    } catch {
+      throw new PlatformError("OBJECT_CORRUPT", "笔记正文暂时不可用，请稍后重试。", 503);
+    }
     return { ...publicNote(note), content: payload.content };
   }
 
@@ -1253,6 +1273,10 @@ function countWords(text) { return String(text).trim().split(/\s+|(?=[\u3400-\u9
 function sanitizeSource(value) { const source = String(value || "manual").toLowerCase().replace(/[^a-z0-9_-]/g, "-").slice(0, 40); return source || "manual"; }
 function stripSensitive(value) { const result = {}; for (const [key, item] of Object.entries(value || {})) if (!/(token|key|secret|content|email|title|name)/i.test(key)) result[key] = item; return result; }
 function safeErrorCode(error) { return String(error?.code || "IMPORT_FAILED").replace(/[^A-Z0-9_]/g, "_").slice(0, 80); }
+function importQueuePlatformError(error) {
+  if (error?.code === "IMPORT_QUEUE_FULL") return new PlatformError("IMPORT_QUEUE_FULL", "当前账户的导入任务已达上限，请等待现有任务完成后再试。", 429);
+  return error;
+}
 function normalizeObsidianDocuments(selection) {
   const files = Array.isArray(selection?.items) ? selection.items : [];
   let total = 0;

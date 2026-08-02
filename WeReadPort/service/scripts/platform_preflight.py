@@ -161,6 +161,13 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
                     raise ValueError
             except ValueError:
                 block("INTEGER", name, "必须是正整数。")
+    active_import_limit = values.get("WRP_MAX_ACTIVE_IMPORT_JOBS_PER_ACCOUNT", "")
+    if active_import_limit:
+        try:
+            if not 1 <= int(active_import_limit) <= 64:
+                raise ValueError
+        except ValueError:
+            block("IMPORT_QUEUE_LIMIT", "WRP_MAX_ACTIVE_IMPORT_JOBS_PER_ACCOUNT", "必须是 1–64 的整数。")
     area = values.get("WRP_PRIVATE_DATABASE_AREA", "")
     if area != "Private-MetaDatabase":
         block("PRIVATE_DATABASE_AREA", "WRP_PRIVATE_DATABASE_AREA", "阅迁结构化事实必须写入 Private-MetaDatabase。")

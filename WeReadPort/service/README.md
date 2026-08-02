@@ -30,7 +30,9 @@ python3 service/scripts/platform_ops.py restore-check /var/lib/weread-port/snaps
 ## 生产正确性边界
 
 - `/readyz` 会主动验证 SQLite、R2 写读删、导入 worker 心跳和 OAuth 配置；依赖不健康时返回 503，不能假绿。
+- 健康单元只在账户服务不可达且数据面完整性正常时执行有界 `reset-failed` + `restart`；同一故障有五分钟冷却。服务仍可达但 `/readyz` 因 R2 等依赖退化时只记录失败、不盲目重启；SQLite 完整性异常绝不自动恢复或新建数据。
 - 微信读书全量同步通过同一受限工作器队列执行；`POST /v1/weread/sync` 只创建任务并返回 202，前端轮询任务状态，不以长时间 HTTP 等待伪装成“同步中”。
+- 导入队列按 `account_id` 施加 SQLite 原子准入上限（默认 6 个 PENDING/RUNNING 任务），避免单一账户压满公共 worker；同一幂等键始终复用原任务。
 - 失败认证计数和锁定保存在 SQLite，服务重启不会绕过；导入选择正文使用账户级 AES-256-GCM 暂存，任务完成或失败即清除。
 - 微信读书同步先返回可轮询的后台任务；实际广范围读取由同一受监控 worker 执行，避免长同步占满 Sites 到账户服务的响应窗口。
 - 所有上游调用有有限超时与最多三次有界尝试；OAuth token 交换等非幂等请求不自动重试。
