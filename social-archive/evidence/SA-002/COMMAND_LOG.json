@@ -1,48 +1,35 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-002",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "stage0_reconcile_refresh",
-      "command": "verify_preconditions.py --repo <current-worktree> --fetch; semantic_classify.py --repo <current-worktree>",
+      "command": "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase identity",
+      "command_sha256": "7e7de293049e6f56d9db760994f7d065cd7504cf6b7068e0d7805fbeaae802f9",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "READY; latest main is included; preserve-core architecture decision; conflict=0; blocked=0"
+      "summary": "Recovery tag and external archive created; legacy plan identified and retired exactly 24 generated build artifacts."
     },
     {
-      "id": "compatibility_sparse_regression",
-      "command": "validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
+      "command": "python3 07_IMPLEMENTATION/apply/retire_legacy.py --repo \"$TARGET_REPOSITORY\" --plan",
+      "command_sha256": "7c9638aead93adb7e9c1143fba9c4a5bf12fa1cbd66664ad20e00e4b74816ade",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Base verifier PASS; cone-mode sparse target move, ignored-runtime retention, no second core and non-mutating rollback plan verified."
+      "summary": "Recovery tag and external archive created; legacy plan identified and retired exactly 24 generated build artifacts."
     },
     {
-      "id": "identity_migration_final",
-      "command": "apply_taskpack.py --repo <current-worktree> --phase identity",
+      "command": "python3 07_IMPLEMENTATION/apply/retire_legacy.py --repo \"$TARGET_REPOSITORY\" --apply",
+      "command_sha256": "cc57eef4afe17b43e6ed18891938908123b0324351958796f3bc123f061deb33",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Reused migration stamp 20260730T095749Z; preserved-core decision restored; tracked source count=0; tracked target count=686."
-    },
-    {
-      "id": "structural_acceptance",
-      "command": "validate recovery tag, ACTIVE_SESSION, backup snapshot, tracked path counts, sparse rules, core uniqueness and public identity",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "All SA-002 structural assertions passed; only the preserved legacy runtime root remains untracked."
-    },
-    {
-      "id": "rollback_plan",
-      "command": "rollback_taskpack.py --repo <current-worktree> --stamp 20260730T095749Z",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ROLLBACK_PLAN only; destructive execution requires the exact confirmation and was not invoked."
+      "summary": "Recovery tag and external archive created; legacy plan identified and retired exactly 24 generated build artifacts."
     }
   ],
-  "remediation_history": [
-    "The initial sparse-aware rename exposed target materialization and session-order gaps; each was reproduced in an isolated synthetic repository before the compatibility control was revised.",
-    "No failed attempt performed a reset, destructive rollback, data migration, or external action."
-  ],
-  "non_actions": [
-    "No application full suite, runtime action, account action, platform request, model request, private-data access, GitHub push, or new git worktree."
-  ]
+  "record_sha256": "f9aaff5a1faed2ecf61a5337aceef44687ddc3fda77ecde7e28d42c8587eb2f7"
 }

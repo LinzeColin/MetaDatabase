@@ -1,74 +1,27 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-202",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "baseline_focused_tests",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source douk --resolve-and-lock",
+      "command_sha256": "db9fd787d51d6455a734810899d890b5ecc95ca9f9bcde41b055719eeddece5f",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "2 frozen-candidate tests passed before coverage expansion."
+      "summary": "Vendor lock resolved; 9 focused tests passed."
     },
     {
-      "id": "pinned_source_interface_audit",
-      "command": "inspect the pinned DouK main.py, Dockerfile, FastAPI source, and settings model without starting a container or platform client",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py",
+      "command_sha256": "19a04bc31511ca2e66ba2369504769a017ec38432c4e19eb47674d4a20b7861e",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Pinned main.py has no CLI API-mode selector; its Dockerfile defaults to python main.py, while FastAPI exists behind the upstream user-controlled Web API menu."
-    },
-    {
-      "id": "compose_source_compatibility_repair",
-      "command": "adapt only douk-worker command from python main.py api to python main.py; add stdin_open and tty so no declaration or Web API mode is auto-accepted",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "The experimental Sidecar now matches the pinned upstream Docker default and retains all other frozen DouK fields."
-    },
-    {
-      "id": "isolated_public_vendor_sync",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source douk --resolve-and-lock",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Resolved 1 source: douk; fixed commit f404781eb1a82a753c56e1b17f5913ff16acec0c; detached checkout under ignored runtime/vendors/TikTokDownloader."
-    },
-    {
-      "id": "final_task_focused_tests",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "6 passed."
-    },
-    {
-      "id": "supplemental_cross_connector_regression",
-      "command": "run focused XHS, OpenAPI, health-gate, worker-profile, and generic-web regression tests",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "15 passed."
-    },
-    {
-      "id": "compose_structure_validation",
-      "command": "cd social-archive && docker compose -f compose.workers.yaml --profile douk-experimental config",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Compose structure parsed without starting, building, or contacting the DouK service."
-    },
-    {
-      "id": "semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=165, apply=26, adapt=20, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_boundary_checks",
-      "command": "compatibility verifier; brand verifier; recovery-tag check; ignored runtime and no-secret-marker checks",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Compatibility and brand boundary passed; recovery tag exists; source and local Git configuration scans found no credential marker."
+      "summary": "Vendor lock resolved; 9 focused tests passed."
     }
   ],
-  "non_actions": [
-    "No real Douyin account, user content, browser Cookie, password, authentication header, provider request, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "The public Git vendor fetch is distinct from a real Douyin provider canary. Real DouK authorization and runtime remain NOT_RUN.",
-    "No credential value or credential-bearing URL was stored in this command log."
-  ]
+  "record_sha256": "c03dd92bc4f30863311155070b386142ab9d1e7e27f3234c0cb0e2934a0d01b5"
 }

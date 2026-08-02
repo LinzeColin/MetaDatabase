@@ -1,12 +1,27 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-001",
-  "executed_at_utc": "2026-08-01T23:55:24Z",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
-    {"command": "git fetch origin main; main worktree git pull --ff-only origin main", "exit_code": 0, "outcome": "PASS", "result": "origin/main=2aab055fadc5e72dbd889f33df47666727b2153f"},
-    {"command": "python3 07_IMPLEMENTATION/apply/verify_preconditions.py --repo <isolated-worktree> --fetch", "exit_code": 0, "outcome": "PASS_WITH_FINDINGS", "result": "P1 isolated branch required by root governance; dual-tree reconciliation required; no P0."},
-    {"command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo <isolated-worktree>", "exit_code": 0, "outcome": "PASS", "result": "decision=REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS; conflict=0; blocked=0."},
-    {"command": "manual semantic review against v0.0.0.4 HEAD-bound evidence and v0.0.0.5 frozen tests", "exit_code": 0, "outcome": "PASS", "result": "32 task classifications recorded; weaker Overlay deployment/core replacements marked obsolete at file level."}
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/verify_preconditions.py --repo \"$TARGET_REPOSITORY\" --fetch",
+      "command_sha256": "808b7c21dd876e56a84b4a1637212694f6021ad95eaeedb9884b11d6448fa13a",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Semantic Reconcile final decision ADAPT_CURRENT_UPSTREAM: satisfied 85, apply 26, adapt 94, equivalent 6, conflict/blocked/obsolete 0."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Semantic Reconcile final decision ADAPT_CURRENT_UPSTREAM: satisfied 85, apply 26, adapt 94, equivalent 6, conflict/blocked/obsolete 0."
+    }
   ],
-  "non_actions": ["No production, provider, secret, private-data, push, merge, or release action was performed during SA-001."]
+  "record_sha256": "88a7b6b00ecd27936fdb86e74c137e42b05911729c9c90232904b40703a6b343"
 }

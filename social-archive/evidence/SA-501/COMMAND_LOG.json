@@ -1,60 +1,27 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-501",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "sa501_baseline_frozen_cli",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/probe_object_store.py --store r2 --encrypted-canary",
-      "exit_code": 2,
-      "outcome": "COMPATIBILITY_GAP_FOUND",
-      "result": "Before the minimal adapter, argparse accepted only a positional store and rejected the frozen --store/--encrypted-canary invocation. No provider code ran."
-    },
-    {
-      "id": "sa501_frozen_pytest_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "8 passed. Covers ciphertext reuse/re-encryption, ciphertext-only upload metadata, matching SHA readback, mismatched SHA rejection/cleanup, frozen canary CLI spelling, and nonzero fail-closed behavior."
-    },
-    {
-      "id": "sa501_safe_frozen_canary_contract",
-      "command": "cd social-archive && /usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/probe_object_store.py --store r2 --encrypted-canary",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/probe_object_store.py --store r2 --encrypted-canary",
+      "command_sha256": "bf1a61a6531e5ee36b11f45b3da05469d54fe57ae20282e107000d3157f2004b",
+      "executed": true,
+      "status": "BLOCKED_ENVIRONMENT",
       "exit_code": 3,
-      "outcome": "EXPECTED_BLOCKED_ENVIRONMENT",
-      "result": "Printed BLOCKED_ENVIRONMENT for missing age recipient. env -i removes all R2/OCI/provider settings; the script returned before age, S3 client construction, remote write/read/delete, or runtime report output. This is not a real R2 canary."
+      "summary": "Missing age recipient; plaintext canary prohibited."
     },
     {
-      "id": "related_replication_regression",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py tests/focused/test_replication_pipeline.py tests/focused/test_replica_completion.py tests/focused/test_free_destination_contract.py tests/stage/test_stage4_replication_exports.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py",
+      "command_sha256": "fb97d6031732e9df6a871ef6930089fd3558c8a4d5e0d6fb0318eb699da32953",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "15 passed. Confirms R2-before-OCI ordering, cipher readback recording, three-identical-receipt completion boundary, and free/private destination contract."
-    },
-    {
-      "id": "full_project_regression_and_scans",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && PYTHONDONTWRITEBYTECODE=1 python3 scripts/secret_scan.py . && PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile scripts/probe_object_store.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "161 passed; one existing Starlette TestClient deprecation warning only. Brand boundary hits=[]; secret scan hits=[]; probe script compiles."
-    },
-    {
-      "id": "semantic_and_taskpack_compatibility",
-      "command": "source social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 <TASKROOT>/07_IMPLEMENTATION/apply/semantic_classify.py --repo <single-worktree> && PYTHONDONTWRITEBYTECODE=1 python3 social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <immutable-v0.0.0.4-zip>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Semantic reconciliation ADAPT_CURRENT_UPSTREAM (111 satisfied, 26 apply, 74 adapt, 6 equivalent, 0 conflict/block/obsolete). Compatibility verifier PASS with preserve-transaction-core decision."
-    },
-    {
-      "id": "source_hash_capture",
-      "command": "read-only Python hashlib SHA-256 of twelve encryption/replica source and test files",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Hashes are recorded in RESULT.json; hash capture performed no source/runtime write."
+      "summary": "9 encryption/replication tests passed; live R2 canary blocked before write because age recipient is absent."
     }
   ],
-  "non_actions": [
-    "No real R2, OCI, GitHub, Cloudflare, account, credential, provider request, age binary invocation, ciphertext upload, remote readback/delete, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
-    "The only encryption/remote objects were pytest-local fake runner/client fixtures in temporary directories; no plaintext, private identity, or secret value appears in this evidence.",
-    "Real Owner-authorized R2 canary remains NOT_RUN and is not converted into fixture PASS."
-  ]
+  "record_sha256": "5764130a0195748957c1ca5f52e71693f5abb1ba8d91cb876fc36a0f209bead4"
 }

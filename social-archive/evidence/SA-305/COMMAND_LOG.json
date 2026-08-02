@@ -1,67 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-305",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "baseline_frozen_task_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage3_pwa.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage3_pwa.py",
+      "command_sha256": "bec1237e0f8029b4b9771b926acb46f98564ea3de0e3c49b0ae89a21532be67c",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "1 passed before the SA-305 adaptation; the immutable test verified only the PWA asset shell."
-    },
-    {
-      "id": "stage_gate_strengthening_initial_discovery",
-      "command": "run strengthened temporary-runtime SA-305 coverage for pairing, access separation, save, Chinese find, failed receipt and retry",
-      "exit_code": 1,
-      "outcome": "CORRECTED",
-      "result": "2 passed and 1 failed: q=可检索 returned no saved item. The failure was retained as evidence of a real Chinese-search gap, then investigated against a temporary SQLite FTS vocabulary."
-    },
-    {
-      "id": "cjk_search_repair",
-      "command": "preserve literal FTS MATCH for non-CJK terms and add parameter-bound, LIKE-escaped Han substring predicates over the existing content_fts columns",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Unicode61 contiguous-Han tokenization no longer prevents a partial Chinese title/body query. No schema migration, index reset, runtime-data read, or destructive operation occurred."
-    },
-    {
-      "id": "stage3_and_library_validation_after_repair",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage3_pwa.py tests/focused/test_library_api.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "6 passed; includes CJK title/body and mixed unspaced Han-plus-English lookup."
-    },
-    {
-      "id": "loopback_chrome_dom_validation",
-      "command": "start temporary 127.0.0.1 API with a temporary runtime and pairing disabled only for same-origin browser rendering; seed one generic-web fixture; use an ephemeral headless Chrome profile through DevTools Protocol at 1440x900 and 390x844; interact with Chinese search, Detail, wizard and Feed; inspect DOM/layout/errors; stop and trash all temporary material",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Desktop rendered one result, nine connector next actions, Detail, wizard and Feed with zero overflow. Mobile rendered one result in a single 362px column at a 390px viewport with zero overflow. Console errors, runtime exceptions and network failures were all zero."
-    },
-    {
-      "id": "targeted_stage_and_regression",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py tests/stage/test_stage1_western.py tests/stage/test_stage3_pwa.py tests/focused/test_beginner_journey.py tests/focused/test_capture_api.py tests/focused/test_cloud_pairing.py tests/focused/test_social_archiver_import.py tests/focused/test_library_api.py tests/focused/test_pwa_contract.py tests/focused/test_ui_contract.py tests/focused/test_extension_e2n_contract.py tests/focused/test_extension_api.py tests/focused/test_status_projection.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_storage_completion_contract.py tests/focused/test_replica_completion.py tests/focused/test_reader_profiles.py tests/focused/test_reader_projection.py tests/focused/test_destinations.py tests/focused/test_free_destination_contract.py tests/focused/test_quota_guard.py tests/focused/test_runtime_store.py tests/focused/test_core_capture.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "72 passed, one existing Starlette TestClient deprecation warning only."
-    },
-    {
-      "id": "static_semantic_and_compatibility_validation",
-      "command": "node --check apps/pwa/app.js; parse manifest JSON; run secret/brand scans; semantic_classify.py --repo <current-single-worktree>; validate_compatibility.py --base-zip <immutable-v0.0.0.4-zip>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "PWA syntax/manifest, secret and brand boundaries, ADAPT_CURRENT_UPSTREAM semantic reconciliation, and immutable task-pack compatibility all passed."
-    },
-    {
-      "id": "final_frozen_task_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage3_pwa.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "3 passed after the SA-305 adaptation."
+      "summary": "3 stage tests passed."
     }
   ],
-  "non_actions": [
-    "No real Cloudflare Access, Cloudflare Tunnel, provider account, user content, user browser profile, Cookie, password, provider request, Docker image/build/service, deployment, cloud action, Private-Database action, GitHub push, merge, rebase, Git staging or new Git worktree action occurred.",
-    "Loopback Chrome exercised the actual PWA DOM only. It used a temporary runtime with pairing disabled for same-origin fixture fetches; real Cloudflare/extension/provider authorization remains explicitly NOT_RUN.",
-    "All temporary API, Chrome, fixture, screenshot and log material was stopped and moved to the system Trash immediately after validation."
-  ]
+  "record_sha256": "c31fcdcf28ac8cf113cec71b7d1896526c142df16827fad24f8d82661166c442"
 }

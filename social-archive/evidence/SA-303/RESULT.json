@@ -1,170 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-303",
-  "acceptance_id": "AC-SA-303",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S3",
+  "title": "完善授权、任务、错误与三副本状态界面",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T14:30:01Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
-    "migration_stamp": "20260730T095749Z"
-  },
-  "authorization_and_status_acceptance": {
-    "status": "PASS",
-    "connector_projection": "Every bootstrap connector now projects state, last_checked_at, latency_ms, last_message_zh, error code, and Chinese next action. A fresh live probe wins over stale persisted health; a probe exception is converted to degraded HEALTH_<exception> rather than failing bootstrap.",
-    "destination_projection": "Destination cards use the existing real probe fields and now render last-check time plus latency. The API continues to project destination_receipt rows independently from jobs.",
-    "runtime_journal": "connector_state gained only additive nullable metadata columns. Existing databases migrate through PRAGMA table_info checks; no data reset or destructive schema action occurs.",
-    "error_boundary": "A connector health exception produces an actionable degraded projection and leaves the authorization/home surface renderable. The focused test proves persisted healthy state cannot mask a current blocked-environment live probe."
-  },
-  "task_and_receipt_acceptance": {
-    "status": "PASS",
-    "failure_visibility": "The side-panel projects failed destination receipts as independently visible export tasks with the receipt message, destination, and retry action.",
-    "retry_contract": "POST /v1/destinations/receipts/{receipt_id}/retry requeues its terminal origin job where available. If only a stable export job can be found, it reuses it safely; queued, running, and completed jobs are not falsely reported as new retries.",
-    "traceability": "The failed receipt remains queryable after retry while its original job is queued. This preserves the failure audit trail instead of replacing it with a synthetic success receipt.",
-    "duplicate_retry_guard": "POST /v1/jobs/{job_id}/retry rejects queued, running, and completed jobs with HTTP 409, preventing a stale/double click from claiming another retry."
-  },
-  "three_replica_completion_acceptance": {
-    "status": "PASS",
-    "rule": "The settings page reads bootstrap.storage.completion and only labels archive completion when pending is zero. Any incomplete replica state shows the explicit Chinese 3/3-not-complete message.",
-    "local_dom_fixture": "One temporary loopback fixture rendered: 未齐三张收据不会显示完成：0/1 个对象已完成 3/3，1 个仍在备份。"
-  },
-  "loopback_dom_validation": {
-    "status": "PASS",
-    "execution": "A temporary loopback-only API at 127.0.0.1:27123 and static extension source server at 127.0.0.1:27124 were exercised by an ephemeral local Chrome profile. The actual options.js and sidepanel.js DOM ran against the live temporary API; chrome.storage, chrome.permissions, chrome.tabs, and chrome.runtime were narrowly mocked only because the native extension shell could not be auto-loaded by this Chrome version.",
-    "options": {
-      "service_state": "已连接",
-      "platform_cards": 8,
-      "destination_cards": 8,
-      "destination_last_check_metadata_cards": 8,
-      "three_replica_message": "未齐三张收据不会显示完成：0/1 个对象已完成 3/3，1 个仍在备份"
-    },
-    "side_panel": {
-      "failed_receipt_visible": "导出副本 / markdown / 需要你处理 / 本地失败回执夹具，可一键重试",
-      "retry_request": "http://127.0.0.1:27123/v1/destinations/receipts/dstreceipt_4333648bd6a15540a7fcbc6561096b5d/retry",
-      "backend_readback_after_click": {
-        "origin_job_status": "queued",
-        "origin_job_error_cleared": true,
-        "receipt_status": "failed",
-        "failed_exports": 1
-      }
-    },
-    "native_extension_shell": {
-      "status": "NOT_RUN",
-      "reason": "This Mac uses Chrome 150. Chrome removed command-line unpacked-extension loading after Chrome 137, so --load-extension was present in the command line but Chrome did not install the extension into the ephemeral profile. No compatible browser runtime or driver was already installed, and no user profile was changed."
-    },
-    "cleanup": "Both local servers were stopped. The 67 MiB temporary API database, fixture content, and ephemeral Chrome profiles were moved to the system Trash; no repository artifact or user browser profile contains them."
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "baseline_frozen_task_command": {
-      "tests_passed": 17,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_extension_e2n_contract.py",
-        "tests/focused/test_destination_probes_and_receipts.py",
-        "tests/focused/test_storage_completion_contract.py",
-        "tests/focused/test_pwa_contract.py"
-      ]
-    },
-    "final_frozen_task_command": {
-      "tests_passed": 18,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_extension_e2n_contract.py",
-        "tests/focused/test_destination_probes_and_receipts.py",
-        "tests/focused/test_storage_completion_contract.py",
-        "tests/focused/test_pwa_contract.py"
-      ]
-    },
-    "new_status_and_receipt_coverage": {
-      "tests_passed": 22,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_extension_e2n_contract.py",
-        "tests/focused/test_destination_probes_and_receipts.py",
-        "tests/focused/test_storage_completion_contract.py",
-        "tests/focused/test_pwa_contract.py",
-        "tests/focused/test_extension_api.py",
-        "tests/focused/test_status_projection.py"
-      ]
-    },
-    "related_regression": {
-      "tests_passed": 8,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_destinations.py",
-        "tests/focused/test_runtime_store.py",
-        "tests/focused/test_connector_run_api.py",
-        "tests/focused/test_health_gated_connector.py"
-      ]
-    },
-    "static_checks": {
-      "browser_extension_javascript_syntax": "PASS"
-    },
-    "source_sha256": {
-      "src/social_archive/sql/runtime_schema.sql": "6793a8277ddcb229fbc8acc93d2d567549788c707d0c30bffd0b85dfab1e7f39",
-      "src/social_archive/db.py": "a3180fb74cf26b8cce94be60db57c7c80c31d1dce33e5dfeb216d1888670c8d5",
-      "src/social_archive/registry.py": "8f16810e2ecf05cc4010076efde04ff63052b4dd407a17f035b505590290c6eb",
-      "src/social_archive/api.py": "0dfd5d090a0645ee0136e099fd821df0d7e6f98d1be6625b388b2f2e96444899",
-      "apps/browser-extension/options.js": "02afd86f243208fc39aab96d66fdb2c5aef7f9fd30a88edaa9cf6e0daf0149e4",
-      "apps/browser-extension/sidepanel.js": "2036b0bd354b0c46cdc8268036c33dbf733c46077b2c07588a90e98aa10ca55d",
-      "tests/focused/test_status_projection.py": "8b7dc5c8cb3073b71d3bfe27c009a200dfaf704e46586457d64f2dfa4209b7f9",
-      "tests/focused/test_extension_api.py": "b3bdac7f7a94cc5410527d1aa32e2186604253ac6524abcd4c4bce81fbc2f300",
-      "tests/focused/test_extension_e2n_contract.py": "16ceaa1084c69034b1d63e8613be36b4338ffc1ed738337f2df2e9dc73cfea51"
-    }
-  },
-  "semantic_reconciliation": {
-    "status": "PASS",
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 142,
-      "apply": 26,
-      "adapt": 43,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "SA-303 adapts the established E2N shell and current transaction core rather than restoring frozen UI files. The classifier reports no core conflict or blocker."
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "execution_corrections": [
-    "A first final-test invocation used the bare system Python and correctly failed before collection because that interpreter lacks pydantic. Re-running the frozen command inside the project .venv passed 18/18; no source or data was changed by the failed invocation.",
-    "The first temporary API launch scoped environment assignments only to source .venv/bin/activate, so it attempted its default /var/lib path and failed with PermissionError before serving. Re-launching with exported temporary variables succeeded; no product runtime or user data path was touched."
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-303"
   ],
-  "source_change": {
-    "files_written_in_this_task": [
-      "src/social_archive/sql/runtime_schema.sql",
-      "src/social_archive/db.py",
-      "src/social_archive/registry.py",
-      "src/social_archive/api.py",
-      "apps/browser-extension/options.js",
-      "apps/browser-extension/sidepanel.js",
-      "tests/focused/test_status_projection.py",
-      "tests/focused/test_extension_api.py",
-      "tests/focused/test_extension_e2n_contract.py",
-      "evidence/SA-303/RESULT.json",
-      "evidence/SA-303/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ],
-    "product_source_rewrite": "No broad rewrite. This is an additive status/receipt vertical slice over the existing extension bootstrap, runtime journal, and task center."
+  "tests": [
+    "TEST-SA-303"
+  ],
+  "oracle": "所有平台和目的地显示已授权/需操作/降级；任务可重试；未齐三收据不显示完成。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "15 extension/storage/PWA tests passed; quota, relation history and task surfaces retained.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "scope_exclusions": [
-    "No real provider account, user content, browser profile, Cookie, password, authentication header, provider network request, Docker image build, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "No native Chrome extension shell, native optional-host permission prompt, or actual provider authorization was asserted as tested; those remain NOT_RUN.",
-    "No credential value or credential-bearing URL is present in this evidence."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "3ce58be6533fff0c63bcc51af32eab2974c34bdc14fbc9fe185a97057d34da9a"
 }

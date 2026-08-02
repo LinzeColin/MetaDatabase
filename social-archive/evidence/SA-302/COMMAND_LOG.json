@@ -1,66 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-302",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "baseline_frozen_task_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_replica_completion.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_replica_completion.py",
+      "command_sha256": "af94ec066dce4f5f99f029be714e0352c1ce8d10a3ee167363720f96eead3990",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "4 passed before the SA-302 adaptation."
-    },
-    {
-      "id": "search_relation_history_adaptation",
-      "command": "adapt the existing one-content-one-card query with literal FTS terms, aggregate collection tags, relation-scoped collection/time filters, inclusive ISO date bounds, deterministic detail history, and PWA filter/history controls",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Full text survives a later relation-only capture; every collection remains searchable; platform/relation/collection/date filters compose without duplicating a canonical card."
-    },
-    {
-      "id": "final_task_focused_tests",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_replica_completion.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "5 passed; the frozen task command plus new acceptance coverage passed."
-    },
-    {
-      "id": "related_library_regression",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_library_api.py tests/focused/test_replica_completion.py tests/focused/test_scan_scope_isolation.py tests/focused/test_ui_contract.py tests/stage/test_stage0_walking_skeleton.py tests/focused/test_beginner_journey.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "15 passed; includes exact partial-vs-two-complete closure history, UI contract, Stage 0 search/reopen, and beginner capture regression."
-    },
-    {
-      "id": "pwa_static_syntax",
-      "command": "node --check apps/pwa/app.js && python3 -m json.tool apps/pwa/manifest.webmanifest >/dev/null",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "PWA JavaScript syntax and manifest JSON parse passed."
-    },
-    {
-      "id": "local_visual_render_validation",
-      "command": "start a loopback-only temporary API and fixture database; use existing local Google Chrome through Playwright at 1440x980 and 390x844; apply platform/relation/collection/date/text filters; open Detail; inspect geometry and browser errors; then stop the server and move the temporary directory to Trash",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "One filtered card, full-text hit, two history rows, zero browser errors, and no horizontal overflow at either viewport. The temporary runtime was moved to Trash."
-    },
-    {
-      "id": "final_semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=149, apply=26, adapt=36, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_brand_checks",
-      "command": "compatibility verifier against the immutable v0.0.0.4 ZIP, then python3 scripts/check_brand.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Task-pack compatibility, recovery boundary, and product-brand boundary passed."
+      "summary": "5 search, relation and replica tests passed."
     }
   ],
-  "non_actions": [
-    "No real provider account, user content, browser profile, Cookie, password, authentication header, provider request, Docker image build, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "The only browser was an existing local Chrome instance with an ephemeral Playwright context. All fixture data, screenshots, and temporary runtime files were moved to Trash."
-  ]
+  "record_sha256": "45d79ae40a4b39ffb6773fd9e213e07c8311f2aa4dda2599e8d066d25f9af00c"
 }

@@ -1,52 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-101",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "frozen_focused_baseline",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_markdown_importer.py tests/focused/test_social_archiver_import.py tests/focused/test_reader_projection.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_markdown_importer.py tests/focused/test_exports.py",
+      "command_sha256": "3e0e09d3dc4b32c0d3a21e512750bb2a53d622f344462aae3a27b78caa6e4f06",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "11 passed before the acceptance-coverage audit."
-    },
-    {
-      "id": "acceptance_coverage_upgrade",
-      "command": "strengthen only the three SA-101 focused tests for generic capture, duplicate import no-op, disposable reader rebuild, and reader outage isolation",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "No product source behavior changed; the tests now bind every stated local oracle assertion."
-    },
-    {
-      "id": "final_focused_validation",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_markdown_importer.py tests/focused/test_social_archiver_import.py tests/focused/test_reader_projection.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "13 passed."
-    },
-    {
-      "id": "frozen_overlay_product_parity",
-      "command": "SHA-256 compare markdown_watch.py, social_archiver_bundle.py, and destinations.py against the frozen Overlay",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "3 of 3 SA-101 product source files are byte-identical to the frozen Overlay."
-    },
-    {
-      "id": "semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=177, apply=26, adapt=8, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_boundary_checks",
-      "command": "compatibility verifier; brand verifier; recovery-tag check; git diff checks; source-cache check",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Compatibility, brand boundary, recovery boundary, whitespace checks, and source-cache checks passed."
+      "summary": "7 focused tests passed."
     }
   ],
-  "non_actions": [
-    "No live generic-web fetch, browser profile, platform account, Karakeep instance, credential, private-data, cloud, deployment, push, merge, rebase, or new Git worktree action occurred.",
-    "The Karakeep success and degradation paths used only MockTransport and temporary 0600 test secret files."
-  ]
+  "record_sha256": "48a7d79c7bc5d3cdf02646afe99a9ea79b6d650e810c7a071c81f48f2473a5df"
 }

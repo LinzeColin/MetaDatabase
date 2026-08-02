@@ -1,223 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-204",
-  "acceptance_id": "AC-SA-204",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S2",
+  "title": "接入 B站收藏/稍后看/历史 Sidecar",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T13:17:37Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "migration_stamp": "20260730T095749Z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-204"
+  ],
+  "tests": [
+    "TEST-SA-204"
+  ],
+  "oracle": "只读子命令 allowlist 生效；HTTP 412/限流为结构化降级；当前页和 yt-dlp 媒体兜底可用。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Vendor lock resolved; 13 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "semantic_reconciliation": {
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 158,
-      "apply": 26,
-      "adapt": 27,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The frozen cli-tools image did not install the fixed Bilibili CLI. Its list invocation used unsupported --limit arguments and treated a successful metadata-only list as failed because no artifact existed. The pinned source documents different read-only command shapes and structured rate-limit results, so only the Sidecar boundary was adapted."
-  },
-  "frozen_overlay_product_reconciliation": {
-    "status": "ADAPT_REQUIRED_AND_APPLIED",
-    "source_verified_repairs": {
-      "fixed_vendor_build_context": "cli-tools now receives only runtime/vendors/bilibili_cli as a named additional Docker build context and installs its package source. The first-party core image does not receive the vendor source.",
-      "read_only_command_shapes": {
-        "favorites": [
-          "bili",
-          "favorites",
-          "--json"
-        ],
-        "watch_later": [
-          "bili",
-          "watch-later",
-          "--json"
-        ],
-        "history": [
-          "bili",
-          "history",
-          "--max",
-          "<1..100>",
-          "--json"
-        ]
-      },
-      "metadata_list_success": "A zero-artifact exit-0 read-only list is success; media capture commands still require artifacts.",
-      "rate_limit_contract": "A structured upstream rate_limited result or an HTTP 412/429 Sidecar response becomes BILI_RATE_LIMITED with degraded status and retryable=true. No bypass, retry loop, Cookie, or write command is attempted."
-    }
-  },
-  "vendor_source": {
-    "status": "PASS",
-    "source_id": "bilibili_cli",
-    "repository": "https://github.com/public-clis/bilibili-cli",
-    "requested_ref": "4896074",
-    "resolved_commit": "489607468f967e0e11f3cdff6efc022d011e982a",
-    "version": "0.6.2",
-    "license": "Apache-2.0",
-    "boundary": "SIDECAR_PROCESS",
-    "working_tree": "runtime/vendors/bilibili_cli",
-    "checkout": "detached",
-    "runtime_ignored": true,
-    "interface_facts": {
-      "entrypoint": "bili = bili_cli.cli:cli",
-      "read_only_subcommands": [
-        "favorites",
-        "watch-later",
-        "history"
-      ],
-      "upstream_rate_mapping": "RateLimitError documents HTTP 412/429 and the pinned client maps API code 412 to that structured class.",
-      "upstream_browser_credential_feature": "PRESENT_UPSTREAM_NOT_INVOKED"
-    },
-    "meaning": "The package is installed only into the isolated cli-tools Sidecar from a fixed named build context. It is not imported into the first-party core."
-  },
-  "acceptance_observations": {
-    "read_only_allowlist": {
-      "status": "PASS",
-      "exposed_subcommands": [
-        "favorites",
-        "watch-later",
-        "history"
-      ],
-      "write_subcommand_like": "rejected before subprocess invocation",
-      "structured_json": true,
-      "history_limit_capped_at": 100
-    },
-    "rate_limit_degradation": {
-      "status": "PASS",
-      "upstream_structured_rate_limited": {
-        "connector_status": "degraded",
-        "error_code": "BILI_RATE_LIMITED",
-        "retryable": true
-      },
-      "sidecar_http_412": {
-        "connector_status": "degraded",
-        "error_code": "BILI_RATE_LIMITED",
-        "outbound_payload": {
-          "subcommand": "history",
-          "limit": 100
-        },
-        "browser_cookie_forwarded": false
-      },
-      "relationship_receipt": "unknown/degraded receipt records BILI_RATE_LIMITED but does not advance missing-scan closure."
-    },
-    "fallback_independence": {
-      "status": "PASS",
-      "bilibili_rate_limited": "degraded",
-      "isolated_ytdlp_media_capture": "success fixture",
-      "generic_current_page": "success fixture with L0/L1",
-      "meaning": "A Bilibili list failure does not block independent yt-dlp media capture or user-triggered current-page preservation."
-    },
-    "sidecar_boundary": {
-      "status": "PASS",
-      "build_context": "./sidecars/cli-tools",
-      "additional_vendor_context": "./runtime/vendors/bilibili_cli",
-      "bilibili_specific_secret_mount": false,
-      "existing_cli_sidecar_secrets": [
-        "cli_worker_token",
-        "instagram_session"
-      ],
-      "browser_profile_mount": false,
-      "bilibili_subprocess_home": "fresh per-run output-directory home",
-      "xdg_paths": "fresh per-run directories",
-      "core_image_contains_bilibili_source": false,
-      "compose_structure": "PASS"
-    }
-  },
-  "vendor_sync_security": {
-    "status": "PASS",
-    "public_git_subprocess_isolation": {
-      "global_config_ignored": true,
-      "system_config_ignored": true,
-      "environment_config_injection_removed": true,
-      "interactive_prompt_disabled": true
-    },
-    "credential_marker_scans": {
-      "global_git_config": "ABSENT",
-      "product_local_config": "ABSENT",
-      "bilibili_vendor_local_config": "ABSENT",
-      "product_source_marker_files": 0
-    }
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "task_required_tests": {
-      "tests_passed": 12,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_command_connectors.py",
-        "tests/focused/test_scan_scope_isolation.py"
-      ]
-    },
-    "supplemental_regression": {
-      "tests_passed": 29,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_command_connectors.py",
-        "tests/focused/test_bilibili_connector.py",
-        "tests/focused/test_instagram_connector.py",
-        "tests/focused/test_generic_web_connector.py",
-        "tests/focused/test_health_gated_connector.py",
-        "tests/focused/test_scan_scope_isolation.py",
-        "tests/focused/test_worker_profiles.py",
-        "tests/focused/test_status_projection.py",
-        "tests/stage/test_stage1_western.py"
-      ]
-    },
-    "test_source_sha256": {
-      "src/social_archive/connectors/command.py": "097c4c9283ae2f4c1ac9d70e57f87f49b35e1b2ff41b57129dc759257efcbb34",
-      "sidecars/cli-tools/server.py": "a79c6e9f9dd49a84477da653dc8947642b8e68517a3bb3a436dba877ef9b34fb",
-      "sidecars/cli-tools/Dockerfile": "0005804151464186bee235a5e8b0f7573c7385135aec241c141feb5a24738959",
-      "compose.yaml": "94ffdbdafc9980ffffbac8a255936907f7af1db1c42ea12bc7b11d87aaec26a2",
-      "tests/focused/test_command_connectors.py": "5f837041fff3a0d70a87fd77d25759a10fbb718fbe08914df29177fab9548c48",
-      "tests/focused/test_scan_scope_isolation.py": "0858220178c51e88f63ddfaec1996f732127e5b2d19965899284cb62ef8adaca",
-      "scripts/vendor_sync.py": "844646db9a0e9185703a4d1faf9b6d3726cafa9eac6fb8da2eda745c68791455"
-    }
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "real_provider_canary": {
-    "bilibili_source_and_authorization": {
-      "status": "NOT_RUN",
-      "reason": "No real Bilibili account, user content, browser profile, Cookie, credential, owner login, or platform request was used. The upstream browser-credential feature was not invoked."
-    },
-    "cli_sidecar_image_build": {
-      "status": "NOT_RUN",
-      "reason": "Docker daemon is unavailable at unix:///Users/linzezhang/.docker/run/docker.sock. Docker Buildx could not perform a check; no image was built and no service was started."
-    },
-    "meaning": "All blocking local fixture assertions passed. This is not evidence that a real Bilibili list is authorized, connected, free, or operational."
-  },
-  "source_change": {
-    "compatibility_repair": "Install the fixed Bilibili source only in the cli Sidecar, invoke only source-documented read-only JSON commands, classify metadata-only list success correctly, and make 412/429/rate limits structured degradation.",
-    "focused_test_upgrade": "Bind the fixed source command shapes, write-command rejection, zero-artifact list success, 412/429 degradation, per-run HOME/XDG isolation, Bilibili scan-receipt isolation, independent yt-dlp/current-page paths, and named vendor build context.",
-    "files_written_in_this_task": [
-      "src/social_archive/connectors/command.py",
-      "sidecars/cli-tools/server.py",
-      "sidecars/cli-tools/Dockerfile",
-      "compose.yaml",
-      "tests/focused/test_command_connectors.py",
-      "tests/focused/test_scan_scope_isolation.py",
-      "evidence/SA-204/RESULT.json",
-      "evidence/SA-204/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  },
-  "scope_exclusions": [
-    "No real Bilibili account, user content, browser Cookie, password, authentication header, provider request, Docker image build, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "The public fixed-source vendor resolution through the isolated Git subprocess is not a Bilibili product-provider canary.",
-    "No credential value or credential-bearing URL is present in this evidence."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "f1cd170f99a9340aa6c76670cf5eb7f75a11733568005d41e499db4e9fd3f27e"
 }

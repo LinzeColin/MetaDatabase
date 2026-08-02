@@ -1,144 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-003",
-  "acceptance_id": "AC-SA-003",
-  "taskpack_version": "v0.0.0.4",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S0",
+  "title": "保留事务内核并语义合并预制实现",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T10:56:51Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "migration_stamp": "20260730T095749Z",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-003"
+  ],
+  "tests": [
+    "TEST-SA-003"
+  ],
+  "oracle": "现有 SQLite/Outbox/原子投影能力保留；冲突文件进入候选目录；核心缺失时才受控重建并迁移旧数据。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Current transactional core preserved; controlled manual semantic merge replaced unsafe phase-all overlay; focused core gates PASS.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "architecture": {
-    "frozen_decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "post_retirement_semantic_decision": "ADAPT_CURRENT_UPSTREAM",
-    "active_transaction_core": "social_archive",
-    "active_core_layouts": [
-      "social_archive"
-    ],
-    "dual_transaction_core": false,
-    "active_product_entrypoints": [
-      "social-archive-api",
-      "social-archive-worker"
-    ]
-  },
-  "phase_all": {
-    "frozen_apply_status": "APPLIED_WITH_CANDIDATES",
-    "shared_active_session": true,
-    "session_phase": "all",
-    "base_head_unchanged": true,
-    "recovery_tag_reused": true
-  },
-  "focused_proof": {
-    "legacy_reference_core": {
-      "status": "PASS",
-      "tests_passed": 34,
-      "proof": [
-        "SQLite transaction, idempotency, outbox lease and receipt",
-        "migration backup/restore and restart recovery",
-        "current-page state machine and redacted receipt",
-        "operations recovery and diagnostic redaction"
-      ],
-      "active_use": "RETIRED_AFTER_PROOF"
-    },
-    "prebuilt_social_archive_core_in_isolated_overlay": {
-      "status": "PASS",
-      "tests_passed": 5,
-      "environment": "temporary no-runtime-data overlay"
-    },
-    "actual_product_core": {
-      "status": "PASS",
-      "tests_passed": 5,
-      "command": "python -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_legacy_migration.py"
-    }
-  },
-  "core_adoption": {
-    "method": "frozen candidate copied only after isolated focused proof; each absent target was verified by SHA-256 after copy",
-    "files": [
-      {
-        "path": "src/social_archive/db.py",
-        "sha256": "e93e2bee1a0199987d269ed9395f01a63b84035360c2b68a746329519dc871c3"
-      },
-      {
-        "path": "src/social_archive/models.py",
-        "sha256": "29fc5c08d0315811729927904f0dbf8f4cac4d2353e1fdeadb68448467bb7cbe"
-      },
-      {
-        "path": "src/social_archive/repository.py",
-        "sha256": "880d2470d10dd786e97d135d2e41e88eb3490f2b9d3879826d343897d20ad180"
-      },
-      {
-        "path": "src/social_archive/service.py",
-        "sha256": "8df7952f162beadf565adb8b0d23cc7ef445b634fd2a155fc6ac8e9f0da745c6"
-      },
-      {
-        "path": "src/social_archive/sql/runtime_schema.sql",
-        "sha256": "697d3d512ae25daf5d5466eacd74e2ed46aca3744d83b3bbd6cfa37321bab5e4"
-      }
-    ]
-  },
-  "legacy_asset_retirement": {
-    "reason": "The validated legacy core has an old package and runtime-schema contract. Keeping it executable beside social_archive would be an irreconcilable dual authority; it is therefore retained only through recovery evidence, not as an active product core.",
-    "retired_active_paths": [
-      "apps/companion",
-      "apps/extension",
-      "packages/contracts"
-    ],
-    "read_only_snapshot": ".social-archive-migration/backups/20260730T095749Z/legacy-tree-read-only",
-    "snapshot_assets": [
-      {
-        "path": "apps/companion",
-        "file_count": 68,
-        "aggregate_sha256": "fcf85b95cd945c81c1d5bb3a076b8987d375453e3ce90a656109264374403c40"
-      },
-      {
-        "path": "apps/extension",
-        "file_count": 31,
-        "aggregate_sha256": "a95985228df84b99c0d36d4ecd505fa40fc2079efa373b909df23e8af4a55e45"
-      },
-      {
-        "path": "packages/contracts",
-        "file_count": 29,
-        "aggregate_sha256": "bcd93f713dcdc0163f8ab06a394c89c2e4c3f0a07511425c0c7f814e9ae4172e"
-      }
-    ],
-    "runtime_data_access": "NOT_RUN",
-    "legacy_runtime_root": "RETAINED_AND_NOT_INSPECTED"
-  },
-  "legacy_identity_surface_retirement": {
-    "status": "PASS",
-    "retired_tracked_snapshot_equal_files": 277,
-    "retirement_scope": [
-      "docs/{architecture,governance,model,product_design,research,security}",
-      "evidence/<prior-task-areas>",
-      "machine/{evidence,facts,fixtures,policy,sbom,schemas,source}",
-      "three root-level legacy product documents"
-    ],
-    "proof": "Every retired file was tracked, matched the SA-002 read-only snapshot byte-for-byte, and was removed only from the active Social Archive product surface.",
-    "retained_history_and_migration_boundaries": [
-      "CHANGELOG.md",
-      "docs/migration/LEGACY_MIGRATION.md",
-      "tests/focused/test_brand_migration.py",
-      "scripts/check_brand.py"
-    ]
-  },
-  "validation": {
-    "semantic_classification_after_retirement": "PASS: ADAPT_CURRENT_UPSTREAM; conflict=0; blocked=0",
-    "focused_product_tests": "PASS: 6 focused tests including the brand migration boundary",
-    "brand_boundary": "PASS: no unexpected active-product identity occurrence",
-    "compatibility_validator_python_3_12": "PASS",
-    "uv_lock_check": "PASS",
-    "temporary_overlay_cleanup": "PASS",
-    "diff_whitespace_checks": "PASS",
-    "rollback_plan": "PASS",
-    "rollback_execution": "NOT_RUN"
-  },
-  "scope_exclusions": [
-    "No SQLite data migration, raw SQLite discovery, account or credential read, browser-profile access, platform request, model request, private-database action, GitHub push, merge, rebase, or new Git worktree occurred.",
-    "The ignored legacy runtime root was not enumerated, copied, modified, migrated, or deleted.",
-    "Live connector, destination authorization, cloud replica, deployment, and real-provider canary checks remain NOT_RUN for later task contracts."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "ca19da528189e77bad25dd73954734dfff0f160ca0bac105f6fd285bcfb34598"
 }

@@ -1,22 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-000",
-  "acceptance_id": "AC-SA-000",
   "taskpack_version": "v0.0.0.5",
+  "stage": "S0",
+  "title": "校验最终任务包并建立可恢复执行上下文",
   "status": "PASS",
-  "executed_at_utc": "2026-08-01T23:55:24Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "base_head": "2aab055fadc5e72dbd889f33df47666727b2153f",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "satisfied",
+  "acceptance_ids": [
+    "AC-SA-000"
+  ],
+  "tests": [
+    "TEST-SA-000"
+  ],
+  "oracle": "任务包自验 PASS，所有哈希、DAG、语法、路径和封包边界一致。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Sealed Task Pack verification PASS: 26 checks, 383 manifest entries, 73 candidate tests.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
     "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "assertions": [
-    {"id": "TASKPACK_VERIFY", "status": "PASS", "detail": "26 checks PASS; 383 manifest entries verified; 73 candidate tests passed with one non-failing dependency warning."},
-    {"id": "DAG_AND_ACCEPTANCE", "status": "PASS", "detail": "32 tasks, S0-S5, one DAG root, no cycles, and only SA-507 permits the Build-stage full suite."},
-    {"id": "RUNTIME_BOUNDARY", "status": "PASS", "detail": "taskpack_verdict=PASS; product_runtime_verdict=NOT_RUN remains explicit."}
-  ],
-  "scope_exclusions": [
-    "No secret, private runtime data, provider account, production service, or user content was read or modified.",
-    "Initial failures were interpreter/dependency environment failures and were not represented as Task Pack failures."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "077cb5e383003f12c8220de5eaad68605085763207bddb546528251f995aabe5"
 }

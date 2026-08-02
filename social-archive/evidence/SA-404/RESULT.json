@@ -1,141 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-404",
-  "acceptance_id": "AC-SA-404",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S4",
+  "title": "通过多目的地阶段门",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T16:37:09Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
-    "worktree_created_or_switched_by_task": 0,
-    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
-    "pre_evidence_default_git_status_entry_count": 720
-  },
-  "multi_destination_stage_gate": {
-    "status": "PASS",
-    "target": "Canonical Store commits before every non-authoritative export. Only destinations that have passed a current active probe and remain configured may leave the asynchronous export boundary; every destination persists an independent done/noop/failed receipt, and one failure does not roll back Canonical facts.",
-    "blocking_oracle": {
-      "active_authorization": "Configuration alone is insufficient. Capture, manual library export, receipt retry, and Worker export each re-check configured, enabled, last_checked_at, and connected state before any adapter/provider request. Markdown and ArchiveBox now require their own active write/readback or replayable-queue check rather than defaulting to connected.",
-      "degraded_recovery": "A transient degraded state can recover only an already-authorized job with a prior success and at least one recorded failed attempt; new captures, first attempts, and newly injected jobs remain fail-closed. Authorization/configuration/policy errors are terminal; only network, 429, 5xx, or explicit degraded failures receive bounded automatic retry.",
-      "independent_receipts": "Unready and adapter failures retain destination-specific error_code/retryable receipts. A Markdown done receipt and a Notion failed receipt can coexist for the same canonical content while Canonical fields remain unchanged.",
-      "obsidian_local_bridge": "Chrome writes only to fixed http://127.0.0.1:27123, reports an authenticated paired-extension attestation to a distinct obsidian_local receipt/binding, validates a safe Social Archive relative Markdown path, and retries through the same fixed loopback route. The service computes the projection SHA and never treats this client attestation as server-side Vault/REST readback.",
-      "reader_boundary": "Karakeep, Linkwarden, and ArchiveBox remain non-authoritative URL/read projections. ArchiveBox retains a replayable URL queue; no reader or destination can create, replace, or roll back Canonical facts."
-    },
-    "mocked_oracle_coverage": {
-      "capture_and_worker_gate": "Focused fixtures capture before and after the Markdown active probe, prove that an injected Notion worker job cannot bypass the gate, and assert that an unready job becomes terminal with a retained receipt rather than contacting a provider.",
-      "recovery_attempt_boundary": "Two Worker fixtures prove that a first-attempt Markdown job is rejected while the state is degraded even if prior success exists, while the same previously authorized job is allowed to recover only after its transient failed attempt increments attempt_count.",
-      "manual_export_and_retry_gate": "API fixtures verify that manual export returns only authorized job IDs plus skipped destinations, and receipt retry requires active authorization except for a pre-authorized transient degraded recovery.",
-      "local_bridge_path_and_token_boundary": "A Node harness rejects a traversal retry path, keeps both Vault writes and local token on the fixed loopback origin, posts the paired service receipt with its separate API token, and verifies success/noop/failed routing semantics without a real browser or Vault.",
-      "canonical_isolation": "Destination failure coverage asserts preservation of canonical content, relationships, and artifacts while destination bindings and receipts carry the projection state."
-    },
-    "blocking_result": "The frozen SA-404 command passed 32/32. The full project suite passed 157/157."
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "frozen_task_command": {
-      "tests_passed": 32,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_destination_probes_and_receipts.py",
-        "tests/focused/test_extension_api.py",
-        "tests/focused/test_destinations.py",
-        "tests/focused/test_reader_projection.py",
-        "tests/focused/test_reader_profiles.py"
-      ],
-      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
-    },
-    "full_regression": {
-      "tests_passed": 157,
-      "tests_failed": 0,
-      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
-    },
-    "static_checks": {
-      "node_syntax": "PASS: shared.js, background.js, options.js, popup.js, sidepanel.js",
-      "secret_scan": "PASS: hits=[]",
-      "brand_boundary": "PASS: hits=[]",
-      "trailing_whitespace": "PASS"
-    },
-    "source_sha256": {
-      "src/social_archive/destinations.py": "726bda60cb0a725b3c2a622da5933a555e2991c75ab23e23340a136fbbb451cd",
-      "src/social_archive/service.py": "8da199e528d11d2a2d5480e2a772c7c67247fea124be33a8c68b45245aa7204f",
-      "src/social_archive/worker.py": "b4b5642a0bb91d599edc11e957eb9f3930910b7227dbfb8580682785b4fe9ab4",
-      "src/social_archive/api.py": "38c593d1097fa3538a0f4c749f586a8376c827d5d240d45b22f903f059dc3be9",
-      "src/social_archive/models.py": "9e4bafc384864094204afb503ab5d9247a14d92d2e304ca06f4d2ba87bec9176",
-      "apps/browser-extension/shared.js": "1bb1a6ce55d91bc6950687b503e15b8af24514ba1c2f2345f061f9ee2e189ed6",
-      "apps/browser-extension/background.js": "43707fd929a5de144fe64d140ef6679516a55f46b306305ca7397395998b2013",
-      "apps/browser-extension/options.js": "e46e640c682a5ea2e9ea030a5ad11d4c8d4e455195ca1eebf090f54ada7675ed",
-      "apps/browser-extension/popup.js": "e8dafcc4375b083a26600ebb342b8fff61747713a34ff3c0c7f4834e37e08669",
-      "apps/browser-extension/sidepanel.js": "27ac78a32d39711f192e7283de536476f62f6a7c1e24fc8b20101329b800328e",
-      "tests/focused/test_destination_probes_and_receipts.py": "969a1c0271b93706e50e26d7695d42a3e1835102cf590b12ca0a753923c58b37",
-      "tests/focused/test_destinations.py": "daf3a4a90085d57a0041a1714bd991cf8451792478105cc5717eebfa659ab3ba",
-      "tests/focused/test_extension_api.py": "2970586d548eecf37916b3d7b57fc039b50a278d79ddabd2fa362fac59592df3",
-      "tests/focused/test_extension_e2n_contract.py": "23377aaf7e76423c2280ec4a8f865d2fca39f62aaccf8b2a7db13089d38e1455",
-      "tests/focused/test_reader_projection.py": "7d759e04b93242196d8140e32f519488e0d09fc32f2ddbc106f9981acd4c90bd",
-      "tests/focused/test_obsidian_bridge_contract.py": "ad0bc72fb09acdf23db8e311fe2f5025a2866509e24def23bef445f96cfcf6be",
-      "tests/stage/test_stage3_pwa.py": "ec5a94d934d7af5ac2a38ff9293145cc731ab21db3a513b14512767cf091853c"
-    }
-  },
-  "semantic_reconciliation": {
-    "status": "PASS",
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 113,
-      "apply": 26,
-      "adapt": 72,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The current single transaction/recovery core was preserved; the product shell and destination boundary were minimally adapted to make active authorization, independent receipts, and local bridge retry enforceable at every dispatch entry point."
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "execution_corrections": [
-    "The pre-SA-404 destination model treated configured Markdown and ArchiveBox as connected. The active-probe gate now makes their local write/readback and replayable-queue checks explicit before asynchronous export.",
-    "The pre-SA-404 Chrome direct Obsidian path returned an immediate local result but did not persist a destination-independent receipt or provide a safe task-center retry route. A distinct obsidian_local paired-attestation endpoint and fixed-loopback retry path close that gap without conflating it with server Vault/REST bindings.",
-    "The first recovery implementation used the presence of a job_id as the degraded-recovery signal. It is now bound to the Worker job's actual prior attempt_count, and new regression fixtures reject a new degraded job while proving a prior transient failure can recover."
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-404"
   ],
-  "residual_risk_and_non_claims": [
-    "No real Notion, Obsidian, GitHub, Karakeep, Linkwarden, ArchiveBox, Chrome extension, account, credential, provider request, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred. Pytest and Node coverage used only temporary local fixtures/mocks and mode-0600 fake secrets.",
-    "A real Owner-authorized provider probe/write/noop/retry canary remains NOT_RUN for every external or local owner-controlled destination. Fixture PASS proves the local code contract only; it is not an account authorization, provider availability, or deployment claim.",
-    "obsidian_local is an authenticated paired-extension attestation. The API cannot inspect the user's Vault, so it deliberately does not claim server-side live readback; a real owner canary is required before operational verification.",
-    "Stage 5 encrypted replica, R2/OCI/GitHub recovery, Private-Database API completion, operations recovery, and final release gates remain unfinished. No intermediate Git publication is authorized before the entire task pack passes."
+  "tests": [
+    "TEST-SA-404"
   ],
-  "source_change": {
-    "files_written_in_this_task": [
-      "src/social_archive/destinations.py",
-      "src/social_archive/service.py",
-      "src/social_archive/worker.py",
-      "src/social_archive/api.py",
-      "src/social_archive/models.py",
-      "apps/browser-extension/shared.js",
-      "apps/browser-extension/background.js",
-      "apps/browser-extension/options.js",
-      "apps/browser-extension/popup.js",
-      "apps/browser-extension/sidepanel.js",
-      "tests/focused/test_destination_probes_and_receipts.py",
-      "tests/focused/test_destinations.py",
-      "tests/focused/test_extension_api.py",
-      "tests/focused/test_extension_e2n_contract.py",
-      "tests/focused/test_reader_projection.py",
-      "tests/focused/test_obsidian_bridge_contract.py",
-      "tests/stage/test_stage3_pwa.py",
-      "evidence/SA-404/RESULT.json",
-      "evidence/SA-404/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ],
-    "product_source_rewrite": "No broad rewrite. The tested single transaction/recovery core remains intact; changes are confined to destination authorization/receipt dispatch and the existing first-party browser product shell."
-  }
+  "oracle": "同一内容同时导出到已启用目的地，单目的地故障不回滚 Canonical Store，可重试和对账。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "1 stage replication/export test passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "ce06409400b5b1cc72645cf2212c38b9868cc00fe2b5090f66173ebb2d3f9c65"
 }

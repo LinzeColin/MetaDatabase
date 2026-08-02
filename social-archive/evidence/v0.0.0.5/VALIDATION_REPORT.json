@@ -1,0 +1,342 @@
+{
+  "status": "DEGRADED",
+  "version": "v0.0.0.5",
+  "commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "tasks": [
+    {
+      "task_id": "SA-000",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "satisfied",
+      "result": "evidence/SA-000/RESULT.json",
+      "command_log": "evidence/SA-000/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-001",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "satisfied",
+      "result": "evidence/SA-001/RESULT.json",
+      "command_log": "evidence/SA-001/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-002",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-002/RESULT.json",
+      "command_log": "evidence/SA-002/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-003",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-003/RESULT.json",
+      "command_log": "evidence/SA-003/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-004",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-004/RESULT.json",
+      "command_log": "evidence/SA-004/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-005",
+      "stage": "S0",
+      "status": "PASS",
+      "semantic_disposition": "apply",
+      "result": "evidence/SA-005/RESULT.json",
+      "command_log": "evidence/SA-005/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-101",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-101/RESULT.json",
+      "command_log": "evidence/SA-101/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-102",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-102/RESULT.json",
+      "command_log": "evidence/SA-102/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-103",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-103/RESULT.json",
+      "command_log": "evidence/SA-103/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-104",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-104/RESULT.json",
+      "command_log": "evidence/SA-104/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-105",
+      "stage": "S1",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-105/RESULT.json",
+      "command_log": "evidence/SA-105/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-201",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-201/RESULT.json",
+      "command_log": "evidence/SA-201/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-202",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-202/RESULT.json",
+      "command_log": "evidence/SA-202/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-203",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-203/RESULT.json",
+      "command_log": "evidence/SA-203/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-204",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-204/RESULT.json",
+      "command_log": "evidence/SA-204/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-205",
+      "stage": "S2",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-205/RESULT.json",
+      "command_log": "evidence/SA-205/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-301",
+      "stage": "S3",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-301/RESULT.json",
+      "command_log": "evidence/SA-301/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-302",
+      "stage": "S3",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-302/RESULT.json",
+      "command_log": "evidence/SA-302/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-303",
+      "stage": "S3",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-303/RESULT.json",
+      "command_log": "evidence/SA-303/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-304",
+      "stage": "S3",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-304/RESULT.json",
+      "command_log": "evidence/SA-304/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-305",
+      "stage": "S3",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-305/RESULT.json",
+      "command_log": "evidence/SA-305/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-401",
+      "stage": "S4",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-401/RESULT.json",
+      "command_log": "evidence/SA-401/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-402",
+      "stage": "S4",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-402/RESULT.json",
+      "command_log": "evidence/SA-402/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-403",
+      "stage": "S4",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-403/RESULT.json",
+      "command_log": "evidence/SA-403/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-404",
+      "stage": "S4",
+      "status": "PASS",
+      "semantic_disposition": "adapt",
+      "result": "evidence/SA-404/RESULT.json",
+      "command_log": "evidence/SA-404/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-501",
+      "stage": "S5",
+      "status": "BLOCKED",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-501/RESULT.json",
+      "command_log": "evidence/SA-501/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-502",
+      "stage": "S5",
+      "status": "BLOCKED",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-502/RESULT.json",
+      "command_log": "evidence/SA-502/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-503",
+      "stage": "S5",
+      "status": "BLOCKED",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-503/RESULT.json",
+      "command_log": "evidence/SA-503/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-504",
+      "stage": "S5",
+      "status": "BLOCKED",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-504/RESULT.json",
+      "command_log": "evidence/SA-504/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-505",
+      "stage": "S5",
+      "status": "PASS",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-505/RESULT.json",
+      "command_log": "evidence/SA-505/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-506",
+      "stage": "S5",
+      "status": "BLOCKED",
+      "semantic_disposition": "equivalent",
+      "result": "evidence/SA-506/RESULT.json",
+      "command_log": "evidence/SA-506/COMMAND_LOG.json"
+    },
+    {
+      "task_id": "SA-507",
+      "stage": "S5",
+      "status": "PASS",
+      "semantic_disposition": "apply",
+      "result": "evidence/SA-507/RESULT.json",
+      "command_log": "evidence/SA-507/COMMAND_LOG.json"
+    }
+  ],
+  "tests": [
+    {
+      "name": "unique_full_suite",
+      "status": "PASS",
+      "passed": 241,
+      "warnings": 1
+    },
+    {
+      "name": "taskpack_application_tests",
+      "status": "PASS",
+      "passed": 73,
+      "warnings": 1
+    },
+    {
+      "name": "taskpack_sealed_verify",
+      "status": "PASS",
+      "checks": 26,
+      "manifest_entries": 383
+    },
+    {
+      "name": "git_diff_check",
+      "status": "PASS"
+    },
+    {
+      "name": "deployment_contract_doctor",
+      "status": "PASS",
+      "network_access": false,
+      "secret_read": false
+    }
+  ],
+  "canaries": [
+    {
+      "name": "r2_encrypted_canary",
+      "status": "BLOCKED_ENVIRONMENT",
+      "exit_code": 3,
+      "remote_write": false
+    },
+    {
+      "name": "oci_encrypted_canary",
+      "status": "BLOCKED_ENVIRONMENT",
+      "exit_code": 3,
+      "remote_write": false
+    },
+    {
+      "name": "github_private_release_backup",
+      "status": "BLOCKED_ENVIRONMENT",
+      "exit_code": 3,
+      "remote_write": false
+    },
+    {
+      "name": "private_database_no_clone_sync",
+      "status": "BLOCKED_ENVIRONMENT",
+      "exit_code": 3,
+      "remote_write": false
+    }
+  ],
+  "storage": {
+    "implementation_status": "PASS",
+    "live_status": "NOT_RUN",
+    "reason": "Age recipient and live provider credentials were unavailable in this local worktree."
+  },
+  "restore": {
+    "implementation_status": "PASS",
+    "tests_passed": 5,
+    "live_verify_status": "BLOCKED_ENVIRONMENT",
+    "reason": "No local production backup manifest."
+  },
+  "known_degradations": [
+    "product_runtime_verdict=NOT_RUN; no v0.0.0.5 production deployment claim",
+    "R2, OCI, GitHub Release, Private-Database sync and real restore were fail-closed in the local environment",
+    "Starlette TestClient emitted one httpx2 migration deprecation warning"
+  ],
+  "branch_pr_state": {
+    "branch": "codex/social-archive-v0.0.0.5",
+    "target": "main",
+    "state_at_report_generation": "LOCAL_COMMITTED_NOT_YET_PUSHED",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1"
+  },
+  "evidence_root": "social-archive/evidence"
+}

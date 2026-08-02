@@ -1,60 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-304",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "baseline_frozen_task_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reader_profiles.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reader_profiles.py",
+      "command_sha256": "b55bff30f4ea0913f7f95a20e1946e57d92336fa65243f9953bae21e1265dbad",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "1 passed before the SA-304 adaptation."
-    },
-    {
-      "id": "reader_optionality_and_l2_adaptation",
-      "command": "scope reader secret validation by selected profile; require explicit L2 activation for populated ArchiveBox queues; validate canonical content before WACZ CAS import; align reader operator documentation with the task graph",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Optional readers cannot require unrelated secrets or create a Docker network before validation. L2 ArchiveBox and ArchiveWeb/WACZ actions fail closed by default, and an unknown content id cannot leave an imported orphan artifact."
-    },
-    {
-      "id": "related_reader_and_destination_regression",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reader_profiles.py tests/focused/test_reader_projection.py tests/focused/test_destinations.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_free_destination_contract.py tests/focused/test_generic_web_connector.py tests/focused/test_quota_guard.py tests/focused/test_extension_api.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "29 passed; covers optional reader isolation, canonical projection semantics, destination authorization/receipt behavior, free destination contract, generic capture, quota guard, and extension API regression. One Starlette TestClient deprecation warning only."
-    },
-    {
-      "id": "final_frozen_task_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reader_profiles.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "9 passed; exercises profile-scoped secret gates, explicit ArchiveBox L2 gating, WACZ default block, unknown-content rejection before CAS copy, and valid L2 artifact projection."
-    },
-    {
-      "id": "static_reader_checks",
-      "command": "cd social-archive && /bin/bash -n scripts/start_readers.sh && /bin/bash -n scripts/archivebox_sync.sh && /bin/bash -n scripts/stop_readers.sh && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/validate_compose.py compose.readers.yaml && python3 scripts/secret_scan.py && python3 scripts/check_brand.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Shell syntax, Compose structure, secret scan, and product-brand boundary passed. Owner reader env files were absent, so the validator intentionally skipped Docker Compose rendering."
-    },
-    {
-      "id": "final_semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-single-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=136, apply=26, adapt=49, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_validation",
-      "command": "validate_compatibility.py --base-zip <immutable-v0.0.0.4-zip>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Immutable task-pack compatibility, recovery boundary, ignored runtime retention, and product-brand boundary passed."
+      "summary": "9 reader profile tests passed."
     }
   ],
-  "non_actions": [
-    "No Docker daemon or real reader/provider action was started. Fake-Docker focused coverage validates fail-closed command sequencing only; it is not a provider canary.",
-    "No real ArchiveBox, Karakeep, Linkwarden or ArchiveWeb.page credential, account, user content, browser extension, provider network request, or provider receipt was used. These environment-bound checks are explicitly NOT_RUN.",
-    "No deployment, cloud, Private-Database, GitHub push, merge, rebase, Git staging, new Git worktree, legacy ignored-runtime access, or destructive cleanup occurred."
-  ]
+  "record_sha256": "2315d7ce60e93c64bd65fd949ade5795431c95c21afdaf1319abbb5921f017de"
 }

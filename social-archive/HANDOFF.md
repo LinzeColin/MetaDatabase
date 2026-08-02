@@ -362,3 +362,15 @@ Phase B 现为 **PASS**，但总 SA-507 仍为 **DEGRADED，不是 PASS**：真�
 生产端 `doctor.sh --self-test`、`install.sh --dry-run`、`prepare_systemd_host.sh --dry-run` 全部 PASS；loopback Core/status health 都为 200。无 Cookie/Bearer/配对码的公网 smoke：UI health 为 Access login 302，独立 extension API health/配对状态为 200，无 Bearer 或伪造 Access assertion 的业务 route 都为 401，status health/脱敏 allowlist JSON 为 200。SA-505 已有经认证控制平面回读的 Access/Tunnel/DNS/WAF/Rate Limit 证据；本轮不读取或复用受保护目录中的任何凭据，也不伪称真实 Owner 浏览器 Access 正向会话。完整脱敏记录是 `evidence/SA-507/PHASE_D_PRODUCTION_RELEASE_DEPLOY_SMOKE_20260801.json`。
 
 Phase D 为 **PASS**，总 SA-507 仍为 **DEGRADED，不是 PASS**：下一独立 phase 只能进行最终 SA-507 证据收束、冻结/结构复验与发布前审计；在它严格通过前继续禁止 source Git stage/commit/tag/push/merge、source Release、timer enablement及宽范围资源清理。该最终 phase 若所有门都 PASS，才按 Owner 已授权顺序发布源码并收尾唯一工作树和本轮临时资源。
+
+## v0.0.0.5 Task Pack execution handoff (2026-08-02)
+
+- Goal: merge the frozen Social Archive v0.0.0.5 candidate into MetaDatabase main without weakening newer upstream behavior.
+- Integration base: `963ecd800`; implementation commit: `c7ce42aa91f878aaa751420e70cc3048370d39b1`.
+- Semantic task dispositions: satisfied 2, apply 2, adapt 10, equivalent 18, conflict/blocked/obsolete 0.
+- Local acceptance: unique full suite `241 passed`; sealed Task Pack `PASS` with 73 candidate tests and 383 manifest hashes; `git diff --check` PASS.
+- Preserved stronger upstream: fail-closed pairing/Host rules, destination active-Probe authorization, no-clone Private-Database client, production systemd/Cloudflare/restore surfaces, PWA feed/grid/date/collection/relation history and ZIP import.
+- Environment-bound commands: R2, OCI, GitHub Release backup, Private-Database sync, cold backup and real restore stopped fail-closed because local production inputs were absent. No plaintext fallback or remote mutation occurred.
+- Product runtime verdict: `NOT_RUN`; do not claim v0.0.0.5 production deployment from this run.
+- Evidence: `evidence/v0.0.0.5/VALIDATION_REPORT.json` and `evidence/SA-*/{RESULT,COMMAND_LOG}.json`.
+- Next: validate evidence schema, commit/push the evidence commit, merge the PR to main, then run production/provider gates only from an authorized environment with existing secret delivery.

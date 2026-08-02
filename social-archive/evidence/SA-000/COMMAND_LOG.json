@@ -1,11 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-000",
-  "executed_at_utc": "2026-08-01T23:55:24Z",
-  "attempts": [
-    {"command": "python3 START_HERE.py verify", "exit_code": 1, "outcome": "BLOCKED_ENVIRONMENT", "detail": "macOS system Python 3.9.6 lacks tomllib."},
-    {"command": "python3.12 START_HERE.py verify", "exit_code": 1, "outcome": "BLOCKED_ENVIRONMENT", "detail": "Python 3.12 environment initially lacked PyYAML and pytest."},
-    {"command": "<isolated-python-3.12>/bin/python3 START_HERE.py verify", "exit_code": 0, "outcome": "PASS", "detail": "All 26 checks PASS; 73 passed; product runtime NOT_RUN."}
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "python3 START_HERE.py verify",
+      "command_sha256": "dadc1aa7ff1cabb627b6e078380195ea196c69820ecef00cca10403e9fa14b5b",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Sealed Task Pack verification PASS: 26 checks, 383 manifest entries, 73 candidate tests."
+    }
   ],
-  "non_actions": ["No application deployment, provider write, Git push, tag publication, or full current-main suite was run."]
+  "record_sha256": "48961820bb74a6da5e6db209481dc68cec6bf5725000816d06a6ba13405a580d"
 }

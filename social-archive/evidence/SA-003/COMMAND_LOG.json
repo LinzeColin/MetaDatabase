@@ -1,100 +1,27 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-003",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "legacy_reference_core_proof",
-      "command": "PYTHONPATH=apps/companion/src:packages/contracts/src <isolated-python-3.12> -m unittest discover -s apps/companion/tests -p test_{canonical_store,orchestrator,operations}.py",
+      "command": "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase all",
+      "command_sha256": "0c4a60df94350edf0a1ce339cfa5d9c192c255807f8747678265ac012350dae8",
+      "executed": false,
+      "status": "ADAPTED",
+      "exit_code": null,
+      "summary": "Unsafe phase-all replacement was not run on the reconciled dirty tree; equivalent per-file semantic merge preserved stronger upstream deploy/core surfaces."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_legacy_migration.py",
+      "command_sha256": "0a6077be07de46dc8579065c0591002329769a96b73c9a5b5c7431e576a57ab6",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "34 temporary-directory tests passed; no production runtime was opened."
-    },
-    {
-      "id": "phase_all",
-      "command": "apply_taskpack.py --repo <current-worktree> --phase all",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "APPLIED_WITH_CANDIDATES using the SA-002 session, base HEAD and recovery tag."
-    },
-    {
-      "id": "candidate_isolated_focus",
-      "command": "temporary overlay + python -m pytest -q test_core_capture.py test_runtime_store.py test_legacy_migration.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "5 focused tests passed before candidate adoption."
-    },
-    {
-      "id": "core_adoption",
-      "command": "verify absent target; copy five frozen candidate files; compare SHA-256 source and target",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "All five target hashes equal the frozen candidate; no prior target file was overwritten."
-    },
-    {
-      "id": "dual_core_guard_before_retirement",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 2,
-      "outcome": "FAIL_CLOSED_EXPECTED",
-      "result": "BLOCKED_DUAL_TRANSACTION_CORE correctly detected the still-executable legacy transaction core beside social_archive."
-    },
-    {
-      "id": "legacy_entry_retirement",
-      "command": "verify SA-002 recovery snapshot and tag; git rm -f -r --sparse -- social-archive/apps/companion social-archive/apps/extension social-archive/packages/contracts",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "128 tracked code files retired from the active product tree after snapshot hash checks; ignored runtime data was outside the target paths."
-    },
-    {
-      "id": "single_authority_reclassification",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; preserved_transaction_core=[social_archive]; core_authority_conflict=false."
-    },
-    {
-      "id": "actual_product_focus",
-      "command": "cd social-archive && python -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_legacy_migration.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "5 passed in the actual product source tree."
-    },
-    {
-      "id": "compatibility_validator_system_python",
-      "command": "python3 validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
-      "exit_code": 2,
-      "outcome": "BLOCKED_ENVIRONMENT",
-      "result": "macOS system Python 3.9 lacks tomllib; no product mutation occurred."
-    },
-    {
-      "id": "compatibility_validator_python_3_12",
-      "command": "social-archive/.venv/bin/python validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Base verifier, sparse migration safeguards, candidate withholding and rollback-plan behavior passed."
-    },
-    {
-      "id": "diff_whitespace",
-      "command": "git diff --check && git diff --cached --check",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "No whitespace errors."
-    },
-    {
-      "id": "legacy_identity_surface_retirement",
-      "command": "verify recovery tag and SA-002 snapshot; select only tracked byte-identical legacy-identity files; git rm via NUL-delimited exact path list",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "277 obsolete tracked files were retired from active product directories; untracked current Task Pack assets and ignored runtime data were excluded."
-    },
-    {
-      "id": "final_sa003_validation",
-      "command": "semantic classifier; four focused tests; brand verifier; Python 3.12 compatibility validator; uv lock --check; git diff --check",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM with satisfied=183, apply=26, adapt=2, equivalent=6, conflict=0 and blocked=0; 6 focused tests passed; brand boundary, compatibility validator, lock and diff checks passed."
+      "summary": "Current transactional core preserved; controlled manual semantic merge replaced unsafe phase-all overlay; focused core gates PASS."
     }
   ],
-  "non_actions": [
-    "No rollback execution, data migration, raw SQLite inspection, real platform/canary action, account or credential read, private-database action, GitHub push, merge, rebase, or new Git worktree."
-  ]
+  "record_sha256": "ccd6c5425f72c29fe528fc7f144191c407b1dafe22a7b167175cf91b28d87d46"
 }

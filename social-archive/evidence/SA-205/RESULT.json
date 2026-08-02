@@ -1,194 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-205",
-  "acceptance_id": "AC-SA-205",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S2",
+  "title": "通过全部来源阶段门",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T13:28:14Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "migration_stamp": "20260730T095749Z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-205"
+  ],
+  "tests": [
+    "TEST-SA-205"
+  ],
+  "oracle": "四个国内平台逐项可验收，单个 Worker 断开不影响其他平台和通用当前页。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "7 stage/focused isolation tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "semantic_reconciliation": {
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 158,
-      "apply": 26,
-      "adapt": 27,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The frozen Stage 2 test remains byte-identical to the product. The gate preserves the source-verified Sidecar adaptations already made in SA-201 through SA-204 and binds their current fixture behavior without reverting any of them."
-  },
-  "frozen_overlay_stage_gate": {
-    "status": "PASS",
-    "product_path": "tests/stage/test_stage2_domestic.py",
-    "frozen_overlay_path": "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage2_domestic.py",
-    "product_sha256": "fde5b42e4697feb87553f413ee309cbd04ef121b437eba54d1f366cf8fa92720",
-    "frozen_overlay_sha256": "fde5b42e4697feb87553f413ee309cbd04ef121b437eba54d1f366cf8fa92720",
-    "byte_identical": true
-  },
-  "four_domestic_platforms": {
-    "xiaohongshu": {
-      "status": "PASS",
-      "prior_task_evidence": "evidence/SA-201/RESULT.json",
-      "prior_verified_at_utc": "2026-07-30T12:25:34Z",
-      "vendor_commit": "afaf2fb459980fccef9eec74e304a39af2c49cab",
-      "boundary": "isolated XHS Worker/Sidecar",
-      "current_fixture_coverage": "URL-only Worker payload, degraded Worker path, and independent generic current-page L0/L1 preservation."
-    },
-    "douyin": {
-      "status": "PASS",
-      "prior_task_evidence": "evidence/SA-202/RESULT.json",
-      "prior_verified_at_utc": "2026-07-30T12:41:18Z",
-      "vendor_commit": "f404781eb1a82a753c56e1b17f5913ff16acec0c",
-      "boundary": "experimental DouK Worker/Sidecar",
-      "current_fixture_coverage": "Unique safe OpenAPI route only; failed Worker exercises media fallback and independent generic current-page preservation."
-    },
-    "kuaishou": {
-      "status": "PASS",
-      "prior_task_evidence": "evidence/SA-203/RESULT.json",
-      "prior_verified_at_utc": "2026-07-30T12:52:59Z",
-      "vendor_commit": "f8d812db840fcea763d035705afc8660a38bcfb5",
-      "boundary": "isolated KS Worker/Sidecar",
-      "current_fixture_coverage": "Pinned api entry, local OpenAPI reference resolution, ambiguous-route degraded/no-POST behavior, and platform-scoped scan isolation."
-    },
-    "bilibili": {
-      "status": "PASS",
-      "prior_task_evidence": "evidence/SA-204/RESULT.json",
-      "prior_verified_at_utc": "2026-07-30T13:17:37Z",
-      "vendor_commit": "489607468f967e0e11f3cdff6efc022d011e982a",
-      "boundary": "isolated cli-tools Sidecar process",
-      "current_fixture_coverage": "Read-only JSON allowlist, 412/429 structured degradation, rate-limited receipt isolation, and independent yt-dlp/current-page fallback."
-    }
-  },
-  "stage_gate_observations": {
-    "independent_service_boundaries": {
-      "status": "PASS",
-      "worker_services": [
-        "xhs-worker",
-        "ks-worker",
-        "douk-worker"
-      ],
-      "bilibili_service": "cli-tools",
-      "bilibili_vendor_context": "./runtime/vendors/bilibili_cli",
-      "meaning": "The three HTTP Worker services are independently registered; Bilibili remains a separate cli-tools Sidecar rather than a fourth Worker registration."
-    },
-    "failure_and_scope_isolation": {
-      "status": "PASS",
-      "worker_to_generic_current_page": [
-        "XHS degraded Worker fixture leaves generic L0/L1 success independent.",
-        "Douyin failed Worker fixture leaves generic current-page success independent, including total media failure.",
-        "Bilibili rate-limit fixture leaves yt-dlp and generic current-page success independent."
-      ],
-      "platform_scoped_state": [
-        "A Kuaishou complete scan closes only the matching Kuaishou relation and leaves X active.",
-        "A Bilibili unknown/rate-limited receipt does not advance missing-scan closure."
-      ],
-      "meaning": "A disconnected or degraded domestic path does not create a cross-platform state transition, and the user-triggered generic current-page route remains independently callable."
-    },
-    "archive_level_default": {
-      "status": "PASS",
-      "generic_current_page": "Fixture assertions use L0/L1; established Stage 0/1 contract retains L0/L1/L3 defaults and L2 disabled by default.",
-      "not_a_real_provider_claim": true
-    }
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "task_required_stage_gate": {
-      "tests_passed": 6,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/stage/test_stage2_domestic.py",
-        "tests/focused/test_scan_platform_isolation.py",
-        "tests/focused/test_scan_scope_isolation.py"
-      ]
-    },
-    "supplemental_domestic_regression": {
-      "tests_passed": 34,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/stage/test_stage2_domestic.py",
-        "tests/focused/test_xhs_connector.py",
-        "tests/focused/test_openapi_probe_connector.py",
-        "tests/focused/test_health_gated_connector.py",
-        "tests/focused/test_command_connectors.py",
-        "tests/focused/test_scan_platform_isolation.py",
-        "tests/focused/test_scan_scope_isolation.py",
-        "tests/focused/test_worker_profiles.py",
-        "tests/focused/test_generic_web_connector.py",
-        "tests/focused/test_status_projection.py"
-      ]
-    },
-    "test_source_sha256": {
-      "tests/stage/test_stage2_domestic.py": "fde5b42e4697feb87553f413ee309cbd04ef121b437eba54d1f366cf8fa92720",
-      "tests/focused/test_xhs_connector.py": "a5a5ab37a03612f8fc4995bd0a0b90d24ec0df374c52076b9e7fe7872f45ee14",
-      "tests/focused/test_openapi_probe_connector.py": "c5839f341c551d3c929f371583fc5b59dd494b53b11f42e95a3a38725542bcc9",
-      "tests/focused/test_health_gated_connector.py": "82a9c21cfd3113a6b8095241aa610eeb2bf63f36f8804a5538f053b0578bb1cb",
-      "tests/focused/test_command_connectors.py": "5f837041fff3a0d70a87fd77d25759a10fbb718fbe08914df29177fab9548c48",
-      "tests/focused/test_scan_platform_isolation.py": "68e8787f2a51225ca84ff632043a3ad8f8c9940b965dbddaf78773c381e214a6",
-      "tests/focused/test_scan_scope_isolation.py": "0858220178c51e88f63ddfaec1996f732127e5b2d19965899284cb62ef8adaca",
-      "tests/focused/test_worker_profiles.py": "99ab0104a4b9eabe084aecb6542fbdbd3bebeaf7c1ce18b8d5b16d408bbc73ed",
-      "tests/focused/test_generic_web_connector.py": "71ff2645b0335f992d1531cdd186fc904e9bcd9aec65c64a5b286af8d226113f",
-      "tests/focused/test_status_projection.py": "94b3fbed793e69c7b7a899029969fdc83d48f6fc5c1363571da37e88ae6bd119",
-      "compose.workers.yaml": "6e4218fb69f0d6685e3bca164e108c8a3ce2d6a848d7ad623539b95dd87ecff2",
-      "compose.yaml": "94ffdbdafc9980ffffbac8a255936907f7af1db1c42ea12bc7b11d87aaec26a2",
-      "src/social_archive/connectors/http_workers.py": "557f8c956c0ee39296be9dd18595c29b85f0b2bd7becedb353200b464f2d15c1",
-      "src/social_archive/connectors/command.py": "097c4c9283ae2f4c1ac9d70e57f87f49b35e1b2ff41b57129dc759257efcbb34",
-      "src/social_archive/registry.py": "fdf9d16f5c6c6e78f9483e25d8faa7511e165e2b9c658a467e5825df30a28c3d"
-    }
-  },
-  "static_compose_validation": {
-    "status": "PASS",
-    "workers": "compose.workers.yaml profiles xiaohongshu, kuaishou, douk-experimental parsed without reading .env, resolving secrets, building an image, or starting a service.",
-    "bilibili_sidecar": "compose.yaml parsed the named Bilibili vendor build context without reading .env, resolving secrets, building an image, or starting a service."
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "rollback_default": "ROLLBACK_PLAN",
-    "ignored_runtime_retained": "PASS"
-  },
-  "real_provider_canaries": {
-    "xiaohongshu": {
-      "status": "NOT_RUN",
-      "reason": "No owner account, browser, credential, Cookie, provider request, Docker service, or platform request was used."
-    },
-    "douyin": {
-      "status": "NOT_RUN",
-      "reason": "No owner account, browser, credential, Cookie, provider request, Docker service, or platform request was used."
-    },
-    "kuaishou": {
-      "status": "NOT_RUN",
-      "reason": "No owner account, browser, credential, Cookie, provider request, Docker service, or platform request was used."
-    },
-    "bilibili": {
-      "status": "NOT_RUN",
-      "reason": "No owner account, browser, credential, Cookie, provider request, Docker image build, Docker service, or platform request was used."
-    },
-    "meaning": "All blocking local fixture assertions passed. These results do not prove a real provider is authorized, connected, free, or operational. NOT_RUN is kept separate from the blocking test gate."
-  },
-  "source_change": {
-    "product_source_rewrite": "NOT_REQUIRED",
-    "stage_gate_test_change": "NOT_REQUIRED; the frozen Stage 2 gate is already byte-identical and its focused assertions pass.",
-    "files_written_in_this_task": [
-      "evidence/SA-205/RESULT.json",
-      "evidence/SA-205/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  },
-  "scope_exclusions": [
-    "No real domestic-platform account, user content, browser Cookie, password, authentication header, provider request, Docker image build, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "No Vendor refresh, source-license mutation, legacy ignored-runtime access, or user-data deletion occurred.",
-    "No credential value or credential-bearing URL is present in this evidence."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "3f934fa6a9a4bd098c3e0a3951c0c74ce557e069024ba50113b71f8191cebf24"
 }

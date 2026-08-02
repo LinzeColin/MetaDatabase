@@ -1,97 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-005",
-  "acceptance_id": "AC-SA-005",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S0",
+  "title": "通过 Stage 0 基线门",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T11:21:37Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "migration_stamp": "20260730T095749Z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "apply",
+  "acceptance_ids": [
+    "AC-SA-005"
+  ],
+  "tests": [
+    "TEST-SA-005"
+  ],
+  "oracle": "通用网页→L0/L1/L3 staging→检索→任务状态→重启恢复通过；旧身份只在迁移 allowlist 中。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Stage 0 walking skeleton and zero-write doctor PASS.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "semantic_reconciliation": {
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 180,
-      "apply": 26,
-      "adapt": 5,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "adaptations": [
-      "The Stage 0 test is stronger than the frozen candidate: it proves L3 queued work, task state, and recovery through a reopened RuntimeStore.",
-      "The credential-free operator self-test validates Compose structure without rendering a configuration whose owner .env is absent.",
-      "The operator self-test reports an absent runtime secrets directory without reading or requiring secrets."
-    ]
-  },
-  "stage0_walking_skeleton": {
-    "status": "PASS",
-    "fixture": {
-      "platform": "generic-web",
-      "url": "https://www.wikipedia.org/walk",
-      "requested_levels": [
-        "L0",
-        "L1",
-        "L3"
-      ]
-    },
-    "verified": {
-      "l0_canonical_content": true,
-      "l1_staged_metadata_artifact": true,
-      "l3_download_job_queued": true,
-      "full_text_library_search": true,
-      "reopened_runtime_store_retains_content_and_job": true,
-      "recovered_job_can_finish": true,
-      "credential_free_compose_validation_regression": true
-    },
-    "tests_passed": 2,
-    "test_file": "tests/stage/test_stage0_walking_skeleton.py",
-    "target_sha256": "4de3f82e3e347a8b4fed80e97d8d04a345ad5365323208ed189911a181e3dba5",
-    "frozen_overlay_sha256": "0e448292fa7b8584c35b9694b2f4933f5d1ef71eb72cf32ef5c0b39b03b43034"
-  },
-  "doctor_self_test": {
-    "status": "PASS",
-    "compile_check": "PASS",
-    "brand_boundary": "PASS",
-    "compose_structure": "PASS",
-    "compose_render": "NOT_CONFIGURED_OWNER_ENV_ABSENT",
-    "runtime_secrets": "NOT_CONFIGURED_NOT_READ",
-    "local_api_probe": "DOWN_NO_SERVICE_STARTED",
-    "docker_and_compose_observed": true
-  },
-  "environment_preconditions": {
-    "project_venv_python3": "PASS",
-    "ambient_system_python3": "NOT_CONFIGURED: pydantic is absent before test collection; this is not a product assertion result.",
-    "real_platforms_and_credentials": "NOT_RUN"
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "source_change": {
-    "archive_capture_behavior_change": "NOT_REQUIRED",
-    "test_coverage_change": "The Stage 0 test now binds the complete stated oracle without changing capture behavior.",
-    "operator_self_test_change": "Missing owner configuration and an absent runtime secrets directory are handled as explicit local configuration states; syntax is compiled in memory so static self-test leaves no bytecode cache in the source tree.",
-    "files_written_in_this_task": [
-      "tests/stage/test_stage0_walking_skeleton.py",
-      "scripts/validate_compose.py",
-      "scripts/doctor.sh",
-      "evidence/SA-005/RESULT.json",
-      "evidence/SA-005/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  },
-  "scope_exclusions": [
-    "No real generic-web request, browser profile, platform account, destination authorization, private-database action, cloud action, deployment, GitHub push, merge, rebase, or new Git worktree occurred.",
-    "The local doctor health probe found no running service; it was not treated as a deployment or production-health assertion.",
-    "The Stage 0 test used only pytest temporary directories and no owner runtime data."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "bacfe560f04cb0860ddb597fe2da03b0b3835c7faf8eface10fd1072c1af2115"
 }

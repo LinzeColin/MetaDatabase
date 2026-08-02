@@ -1,67 +1,27 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-201",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "frozen_task_command_compatibility_repair",
-      "command": "adapt scripts/vendor_sync.py to the current entries/repository/commit lock schema and the frozen --source xhs_downloader --resolve-and-lock command",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/vendor_sync.py --source xhs_downloader --resolve-and-lock",
+      "command_sha256": "d09ec39b3696b92f5196dfe7dbf4be1ddee38376eefca77fd937c83f58e6d88f",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "The task command resolves only xhs_downloader to runtime/vendors/XHS-Downloader at its fixed commit and produces an ignored vendor-resolved.json record."
+      "summary": "Vendor lock resolved; 7 focused tests passed."
     },
     {
-      "id": "credential_style_url_rewrite_containment",
-      "command": "safe boolean-only Git configuration audit; remove only detected credential-style GitHub insteadOf rewrite; rescan local configurations and product source without outputting values",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_health_gated_connector.py",
+      "command_sha256": "0292ed2e5de7db9616ab7b9154bc076397330f92799a090acc8445bace584e8f",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "One global credential-style rewrite was removed. Product and vendor local configurations, plus the product source scan, had no credential marker after remediation. No secret value was recorded."
-    },
-    {
-      "id": "isolated_public_vendor_sync",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/vendor_sync.py --source xhs_downloader --resolve-and-lock",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Resolved 1 source: xhs_downloader; fixed commit afaf2fb459980fccef9eec74e304a39af2c49cab; detached checkout under ignored runtime/vendors/XHS-Downloader."
-    },
-    {
-      "id": "frozen_task_focused_tests",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_health_gated_connector.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "5 passed."
-    },
-    {
-      "id": "supplemental_worker_profile_regression",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_health_gated_connector.py tests/focused/test_worker_profiles.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "7 passed."
-    },
-    {
-      "id": "frozen_overlay_parity",
-      "command": "SHA-256 compare compose.workers.yaml and src/social_archive/connectors/http_workers.py with the frozen 07_IMPLEMENTATION Overlay",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Both XHS product surfaces are byte-identical to the frozen Overlay."
-    },
-    {
-      "id": "semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=168, apply=26, adapt=17, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_boundary_checks",
-      "command": "compatibility verifier; brand verifier; recovery-tag check; ignored runtime boundary check",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Compatibility and brand boundary passed; recovery tag exists; XHS vendor source and resolution record remain ignored runtime derivatives."
+      "summary": "Vendor lock resolved; 7 focused tests passed."
     }
   ],
-  "non_actions": [
-    "No real XHS account, user content, browser Cookie, password, authentication header, XHS provider request, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "The public Git vendor fetch is distinct from a real XHS product-provider canary. Real XHS authorization and runtime remain NOT_RUN.",
-    "No credential value or credential-bearing URL was stored in this command log."
-  ]
+  "record_sha256": "10e3bbc3cb5ee3c6fb7c6b8e6fe36d063c03e840fd0b8932b3095904426a4c1c"
 }
