@@ -413,3 +413,51 @@ test("AC-002 这个文件里对生产密钥的检查，不许退化成自己造�
   assert.ok(uses >= 3, `真实密钥只用了 ${uses} 处——这一节正在退回自己造密钥`);
   assert.ok(!/secret:\s*SECRET/.test(section), "这一节里出现了自己造的密钥常量");
 });
+
+// ── 系统直回记在哪个号下面 ───────────────────────────────
+
+test("AC-002 系统直回必须带上自己的号，不能读那个可变字段", () => {
+  // this.activeSystemMessageAccountId 是个留在对象上的可变字段，只有
+  // dispatchSystemMessage 会设它。入门引导、状态、后台链接、提醒到点这几条
+  // 直回如果也读它，读到的是**上一条系统消息留下的号**。
+  //
+  // 后果不是「记不上」，是「记到别人头上」：同一个人在不同号下本来就是两个
+  // user_id，拿陈旧的号去查，要么静默丢掉，要么查到另一条身份。
+  const app = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  for (const [call, expected] of [
+    ["this.noteDirectReply(senderId, text,", "accountId: account.accountId"],
+    ["this.noteDirectReply(normalized.senderId, text,", "accountId: normalized.accountId"],
+    ["this.noteDirectReply(reminder.senderId, reminder.text,", "accountId: reminder.accountId"],
+  ]) {
+    let from = 0;
+    let seen = 0;
+    for (;;) {
+      const at = app.indexOf(call, from);
+      if (at < 0) {
+        break;
+      }
+      seen += 1;
+      assert.ok(app.slice(at, at + 260).includes(expected),
+        `${call} 没把自己手上的号传下去——会话会记到上一条系统消息那个号的人头上`);
+      from = at + call.length;
+    }
+    assert.ok(seen > 0, `找不到调用点：${call}`);
+  }
+});
+
+test("AC-002 那个可变字段只兜底一条路，不能变回默认口径", () => {
+  // 兜底留着是因为 streamDelivery 那条路确实没把号带下来。但它只该服务那一条：
+  // 一旦别的调用点又开始依赖它，这个 bug 就原样回来了，而且照样没有症状。
+  const app = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  // 只数真正的读：赋值那一处不算，注释里提到它也不算。
+  const reads = app.split("\n")
+    .filter((line) => !line.trim().startsWith("//"))
+    .filter((line) => /this\.activeSystemMessageAccountId\b/.test(line))
+    .filter((line) => !/this\.activeSystemMessageAccountId\s*=/.test(line));
+  assert.equal(reads.length, 1,
+    `activeSystemMessageAccountId 被读了 ${reads.length} 次——兜底正在变成默认口径`);
+  const start = app.indexOf("  noteBotInitiated({");
+  const body = app.slice(start, app.indexOf("  noteDirectReply(", start));
+  assert.ok(body.includes("accountId === null"),
+    "兜底不是按「调用方没给」触发的——传了空字符串也会被兜底盖掉");
+});

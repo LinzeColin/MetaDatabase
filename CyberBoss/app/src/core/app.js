@@ -1432,7 +1432,7 @@ class CyberbossApp {
         text,
         accountId: account.accountId,
       });
-      this.noteDirectReply(senderId, text, { delivered: true });
+      this.noteDirectReply(senderId, text, { delivered: true, accountId: account.accountId });
       return true;
     } catch (error) {
       console.error(
@@ -2403,7 +2403,23 @@ class CyberbossApp {
   // 才看得见它自己主动说过什么。
   //
   // 记账失败一律吞掉：宁可面板上少一条，也不能因为记账出错让主人收不到提醒。
-  noteBotInitiated({ kind = "system", senderId = "", text = "", delivered = false, errorClass = "" } = {}) {
+  noteBotInitiated({
+    kind = "system", senderId = "", text = "", delivered = false, errorClass = "",
+    // 这条系统消息**是从哪个号发出去的**。
+    //
+    // 以前这里没有这个参数，下面一律读 this.activeSystemMessageAccountId——
+    // 而那是个留在对象上的可变字段，只有 dispatchSystemMessage 会设它。于是
+    // 入门引导、状态、后台链接、提醒到点这几条直回，读到的是**上一条系统消息
+    // 留下的号**。
+    //
+    // 后果不是「记不上」，是「记到别人头上」：同一个人在不同号下本来就是两个
+    // user_id（这是有意的隔离），拿着陈旧的号去 resolveByPrincipal，要么查不到
+    // 静默丢掉，要么查到另一条身份，把这次会话记到那个人身上。
+    //
+    // 所以知道号的调用点必须自己传。留着那个字段做兜底，是因为 streamDelivery
+    // 那条路确实没把号带下来——但兜底只该服务它一个。
+    accountId = null,
+  } = {}) {
     if (!text || !this.runtimeSpoolDatabase) {
       return false;
     }
@@ -2418,7 +2434,11 @@ class CyberbossApp {
     // 接在这里而不是各个发送点：这是它们唯一的共同落点，接一次全都覆盖。
     // 分别接的话，下一个新增的系统消息种类必然漏掉——而漏掉的表现是「那一类的
     // 回执挂在别处」，AC-002 的「逻辑身份相同」当场不成立，且没有任何症状。
-    this.touchSystemSession(this.activeSystemMessageAccountId || "", senderId, resolved);
+    this.touchSystemSession(
+      accountId === null ? (this.activeSystemMessageAccountId || "") : String(accountId),
+      senderId,
+      resolved,
+    );
     try {
       this.runtimeSpoolDatabase.recordBotInitiatedMessage({
         kind: known.includes(resolved) ? resolved : "system",
@@ -2435,9 +2455,11 @@ class CyberbossApp {
 
   // 走 admission 直接回掉的那些（入门引导、状态、口令）也不经过 outbox。
   // 落库一份给「对话」栏；内存那份保留，作为数据库不可用时的降级显示。
-  noteDirectReply(userId, text, { delivered = true, errorClass = "", kind = "onboarding" } = {}) {
+  noteDirectReply(userId, text, {
+    delivered = true, errorClass = "", kind = "onboarding", accountId = null,
+  } = {}) {
     const persisted = this.noteBotInitiated({
-      kind, senderId: userId, text, delivered, errorClass,
+      kind, senderId: userId, text, delivered, errorClass, accountId,
     });
     // 只有落库失败时才退回内存那一份。两份都留会让同一句话在面板上出现两次——
     // 一次挂在来信下面，一次作为独立卡片。
@@ -4517,6 +4539,8 @@ class CyberbossApp {
       delivered,
       errorClass,
       kind: normalized.provider === "system" ? "checkin" : "onboarding",
+      // 这条消息是从哪个号收到的，会话就记在哪个号下面。
+      accountId: normalized.accountId,
     });
 
     // 首条成功回复之后，必要时问一句「你是不是在悉尼」（CB9-220 / AC-014）。
@@ -5678,7 +5702,9 @@ class CyberbossApp {
         accountId: reminder.accountId,
         contextToken: reminder.contextToken,
       });
-      this.noteDirectReply(reminder.senderId, reminder.text, { delivered: true });
+      this.noteDirectReply(reminder.senderId, reminder.text, {
+        delivered: true, accountId: reminder.accountId,
+      });
       this.noteForDashboard("一条提醒到点发出去了");
     } catch (error) {
       const attempts = Number(reminder.attempts) || 0;
@@ -5696,6 +5722,7 @@ class CyberbossApp {
       this.noteDirectReply(reminder.senderId, reminder.text, {
         delivered: false,
         errorClass,
+        accountId: reminder.accountId,
       });
       this.noteForDashboard("有一条提醒到点了但没发出去");
     }
