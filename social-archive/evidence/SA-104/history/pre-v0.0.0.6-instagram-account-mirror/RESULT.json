@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-104",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S1",
+  "title": "完成 Instagram 导出/当前页/隔离 Sidecar 路径",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-104"
+  ],
+  "tests": [
+    "TEST-SA-104"
+  ],
+  "oracle": "官方导出或当前页始终可用；Instaloader Session 只在独立 Sidecar secret 中，核心不接触。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "12 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "4b6180a4efeb1d6d1c8754b34ecca2261d014b8b0193eb5384640644ff9bf195"
+}

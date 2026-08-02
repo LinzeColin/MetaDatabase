@@ -1,30 +1,90 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-104",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S1",
-  "title": "完成 Instagram 导出/当前页/隔离 Sidecar 路径",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
   "acceptance_ids": [
     "AC-SA-104"
   ],
+  "evidence_binding": {
+    "command_connector_sha256": "097c4c9283ae2f4c1ac9d70e57f87f49b35e1b2ff41b57129dc759257efcbb34",
+    "frozen_cli_tools_dockerfile_sha256": "512fc9bd74da2de294e96b3d87591b981a90019a7c660856e8930b5b650a7453",
+    "frozen_cli_tools_server_sha256": "05b9572bca03eaea9dac1415c300a3254e94ee7bcfc7ef1f01833fa186bafad9",
+    "frozen_command_connector_sha256": "77d4ba62f7d1650fc1e24a1e069f75d7af49c1d6e1c5443269420d6276f10f4c",
+    "frozen_instagram_connector_test_sha256": "6256ceb9a08c3c51c95d60dae8608544bef99438d9dd79fd50dba65e5687289c",
+    "frozen_scan_scope_isolation_test_sha256": "8b3513f5f5048bfa99fa63e34c71f15cde785500e9d4a6e1fffb0d95d7d80925",
+    "frozen_test_command_connectors_sha256": "ee8b5f3f8bed19d809a228fd01e4df288be42ce6911b16168615a6a761184e46",
+    "implementation_commit": "3187252b9d62dfadf6de0b2e5cf56a5a57d3f358",
+    "implementation_tree": "dfc5c7c7c978c25deaa1313df195a824e0edfda1",
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "local_cli_tools_dockerfile_sha256": "4abc4256367552a1e9d85a64adf73c2b7a3288436d5e3f39ad2a10b69e73eb6c",
+    "local_cli_tools_server_sha256": "1844ad6ae8087f84ece675eaef4f2e34d9e88787c9752adffb420752ae83d59d",
+    "local_instagram_connector_test_sha256": "4a324ceadd6dc9897acf5e88ad50f60c562e72995b17ef84f18197bda556f91e",
+    "local_scan_scope_isolation_test_sha256": "20a0c81143420b9d04f73a232d3c5deaa5014a67b23af58cce075f42a5895bff",
+    "local_test_command_connectors_sha256": "5f837041fff3a0d70a87fd77d25759a10fbb718fbe08914df29177fab9548c48",
+    "semantic_classifier_sha256": "100f2a3d220ccc8a1326b2a540ba7b96922cb5fe8648d587d72ca5a8955ded21",
+    "semantic_report_sha256": "594066a78eee74f5315b7936932c627b02f16306e1cb37711c6d71a68d7b0671",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "validated_head_after_latest_main_merge": "3187252b9d62dfadf6de0b2e5cf56a5a57d3f358"
+  },
+  "generated_at": "2026-08-02T23:38:17Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "No real Instagram session, owner account, browser, extension reload or pairing, official export, platform request, Docker build, deployment, or production action was attempted.",
+    "No session secret was read, recorded, or supplied to the core. The PASS covers fixture/static isolation only; real Saved Collections/Posts totals, permissions, media retrieval, and platform behavior remain NOT_RUN.",
+    "The local runtime vendor context runtime/vendors/bilibili_cli was absent. scripts/vendor_sync.py and docker compose build were deliberately not run; the fixed Bilibili Sidecar build contract is covered only by focused static fixtures.",
+    "PASS is limited to the v0.0.0.6 Task Pack local tests and static checks. Product runtime and real-world acceptance remain NOT_RUN."
+  ],
+  "live_environment_status": "NOT_RUN",
+  "oracle": "Instagram Saved Collections/Posts 通过官方导出、浏览器会话或隔离 Instaloader/gallery-dl 路径批量导入；Session 只在隔离边界，核心不接触。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-104/history/pre-v0.0.0.6-instagram-account-mirror/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "0017573771da71e402d27ef7e02ece810b77836732a2afdcbbbb2391f7cc3137",
+    "prior_result_sha256": "3e64c981ec2bf9fc462665b3761b72394870e3f7f9af3c700f0fcbd38dfe9c7b"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "record_sha256": "1bb6e24c21ce2d62c5d36f53ad3ff0bbfc896e86d726f63eb2ab80a3cf157097",
+  "result_summary": "保留 Instagram Session 只在无公开端口 cli-tools Sidecar 的边界，核心服务不挂载该 secret、远程 payload 不携带 session、只接受受限相对工件路径。任务包精确 fixture 同时揭示当前分支的 Bilibili Sidecar 静态契约失配：读操作现在使用固定 JSON argv，metadata-only 成功不要求下载工件，HTTP 412/429 被降级为可重试的 BILI_RATE_LIMITED，每次子进程使用全新 HOME/XDG 边界；固定 vendor build context 仍仅位于 Sidecar，未运行 vendor 同步或 Docker build。",
+  "schema_version": "1.0",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "scope": "The sealed Instagram isolation boundary was retained. The v0.0.0.6 exact focused test exposed an internally inconsistent current Sidecar contract: compose/install already declared a fixed Bilibili vendor context and focused tests required documented read-only JSON commands, per-run HOME/XDG isolation, and structured rate-limit degradation, while server.py and Dockerfile did not implement them. The narrowly scoped Sidecar repair aligns those local contracts without downloading a vendor, building Docker, enabling a session, or crossing the real-account boundary.",
+    "summary": {
+      "adapt": 103,
+      "apply": 26,
+      "blocked": 0,
+      "conflict": 0,
+      "equivalent": 6,
+      "obsolete": 0,
+      "satisfied": 87
+    },
+    "targeted_files": {
+      "sidecars/cli-tools/Dockerfile": "adapt",
+      "sidecars/cli-tools/server.py": "adapt",
+      "src/social_archive/connectors/command.py": "adapt (retained; no code change required)",
+      "tests/focused/test_command_connectors.py": "adapt (retained current stronger coverage)",
+      "tests/focused/test_instagram_connector.py": "adapt (retained current stronger coverage)",
+      "tests/focused/test_scan_scope_isolation.py": "adapt (retained current stronger coverage)"
+    }
+  },
+  "stage": "S1",
+  "status": "PASS",
+  "task_id": "SA-104",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-104"
   ],
-  "oracle": "官方导出或当前页始终可用；Instaloader Session 只在独立 Sidecar secret 中，核心不接触。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "12 focused tests passed.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "4b6180a4efeb1d6d1c8754b34ecca2261d014b8b0193eb5384640644ff9bf195"
+  "title": "完成 Instagram Saved Collections/Posts 账号镜像",
+  "validation": {
+    "baseline_taskpack_focused_pytest": "12 passed, 4 failed before repair. All failures were Bilibili Sidecar static-contract assertions in the exact SA-104 command; Instagram isolation assertions passed.",
+    "brand_check": "PASS; hits=[]",
+    "expected_repair_red": "4 Bilibili compatibility failures identified fixed documented JSON argv, metadata-only receipt semantics, structured rate-limit degradation, per-run HOME/XDG isolation, and the existing named vendor build context as the missing local contract.",
+    "git_diff_check": "PASS before functional commit.",
+    "latest_main_reconciliation": "PASS; origin/main=7925695c0078bb3b98d71636f5a1315270d9de87 remained unchanged and is an ancestor of validated head 3187252b9d62dfadf6de0b2e5cf56a5a57d3f358.",
+    "python_compile": "PASS; sidecars/cli-tools/server.py and src/social_archive/connectors/command.py compiled.",
+    "related_account_mirror_stage1_regression": "34 passed.",
+    "secret_scan": "PASS; hits=[]",
+    "semantic_classifier": "PASS; ADAPT_CURRENT_UPSTREAM; conflict=0; blocked=0.",
+    "taskpack_focused_pytest": "16 passed.",
+    "uv_lock_check_offline": "PASS"
+  }
 }

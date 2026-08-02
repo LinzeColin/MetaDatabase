@@ -1,0 +1,21 @@
+{
+  "archive_reason": "The active SA-104 evidence predates the sealed v0.0.0.6 run and is retained verbatim, not reclassified as v0.0.0.6 evidence.",
+  "archived_at": "2026-08-02T23:38:17Z",
+  "files": [
+    {
+      "path": "RESULT.json",
+      "raw_sha256": "3e64c981ec2bf9fc462665b3761b72394870e3f7f9af3c700f0fcbd38dfe9c7b",
+      "record_sha256": "4b6180a4efeb1d6d1c8754b34ecca2261d014b8b0193eb5384640644ff9bf195",
+      "taskpack_version": "v0.0.0.5"
+    },
+    {
+      "path": "COMMAND_LOG.json",
+      "raw_sha256": "0017573771da71e402d27ef7e02ece810b77836732a2afdcbbbb2391f7cc3137",
+      "record_sha256": "0f8cadb1d7cbdfe01e7a0cbeaa78ac0fb2f24e18cd1b1764aacd6a0eb0f62986",
+      "taskpack_version": "v0.0.0.5"
+    }
+  ],
+  "predecessor_commit": "7f25d51bb1c3e8752c4727498699caf636d2b436",
+  "record_sha256": "9ebc58b38c7fc6012dd2933723d64773bebe58e7e6ed22e30a74ecdf6aec87f9",
+  "schema_version": "1.0"
+}

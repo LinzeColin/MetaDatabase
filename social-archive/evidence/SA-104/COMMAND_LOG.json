@@ -1,19 +1,71 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-104",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py",
-      "command_sha256": "c3d5efaae9ec092f06fe981fa903feff7467410b86368e455f4f732b1ba082c9",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "03c9a26e81823efa92343a036592e3ab44848054bee14759a5a814e5b0a83886",
       "executed": true,
-      "status": "PASS",
+      "exit_code": 1,
+      "status": "FAIL_EXPECTED_REPAIR",
+      "summary": "12 passed, 4 failed before repair; all four were Bilibili Sidecar static-contract assertions in the exact SA-104 command."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "03c9a26e81823efa92343a036592e3ab44848054bee14759a5a814e5b0a83886",
+      "executed": true,
       "exit_code": 0,
-      "summary": "12 focused tests passed."
+      "status": "PASS",
+      "summary": "16 passed after the isolated Sidecar repair; executed with the existing project virtual environment."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_sync_run_controls.py tests/focused/test_connector_run_api.py tests/focused/test_oauth_connectors.py tests/focused/test_x_connector.py tests/focused/test_reddit_connector.py tests/stage/test_stage1_western.py",
+      "command_sha256": "02d80672763c61de068bd7e761e658c376551167026c8417f9c7698de7be5522",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "34 passed after the functional commit."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m py_compile sidecars/cli-tools/server.py src/social_archive/connectors/command.py",
+      "command_sha256": "84022df60f5d2ae07b9b261964c346d3bf50067cec2bb3369adc22cc453f3e84",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Changed Sidecar and command-connector Python sources compiled."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "ADAPT_CURRENT_UPSTREAM; satisfied=87, apply=26, adapt=103, equivalent=6, conflict=0, blocked=0."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/check_brand.py && python3 scripts/secret_scan.py sidecars/cli-tools/server.py sidecars/cli-tools/Dockerfile tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py && uv lock --check --offline && git diff --check",
+      "command_sha256": "28b41688f416dc7e8f7aadb6accdff21d6d64a09bd498dfc1f48714b1c253616",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Brand check, targeted secret scan, offline lock check, and diff whitespace check passed."
+    },
+    {
+      "command": "git -C \"$TARGET_REPOSITORY\" ls-remote origin refs/heads/main && git -C \"$TARGET_REPOSITORY\" merge-base --is-ancestor 7925695c0078bb3b98d71636f5a1315270d9de87 HEAD",
+      "command_sha256": "170ab405365368ba6595b7f87ad3fb89f9cc7f0266fc3941378caa571e7307eb",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Remote main remained 7925695c0078bb3b98d71636f5a1315270d9de87; it is an ancestor of validated head 3187252b9d62dfadf6de0b2e5cf56a5a57d3f358."
     }
   ],
-  "record_sha256": "0f8cadb1d7cbdfe01e7a0cbeaa78ac0fb2f24e18cd1b1764aacd6a0eb0f62986"
+  "generated_at": "2026-08-02T23:38:17Z",
+  "implementation_commit": "3187252b9d62dfadf6de0b2e5cf56a5a57d3f358",
+  "implementation_tree": "dfc5c7c7c978c25deaa1313df195a824e0edfda1",
+  "record_context": {
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "validated_head_after_latest_main_merge": "3187252b9d62dfadf6de0b2e5cf56a5a57d3f358"
+  },
+  "record_sha256": "5a078dd793f72356872304e588587f67144f734b7ff3b5214366b52c2a1f93ec",
+  "schema_version": "1.0",
+  "task_id": "SA-104",
+  "taskpack_version": "v0.0.0.6"
 }
