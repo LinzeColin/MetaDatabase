@@ -1,18 +1,1 @@
-{
-  "name": "Social Archive",
-  "short_name": "Social Archive",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#0c0d10",
-  "theme_color": "#101114",
-  "lang": "zh-CN",
-  "description": "私人跨平台收藏档案馆",
-  "icons": [
-    {
-      "src": "/assets/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
-}
+{"name":"Social Archive","short_name":"Social Archive","start_url":"/home","display":"standalone","background_color":"#f4f5f1","theme_color":"#f4f5f1","description":"你的私人跨平台收藏档案馆","icons":[{"src":"/assets/favicon.svg","sizes":"any","type":"image/svg+xml"}]}

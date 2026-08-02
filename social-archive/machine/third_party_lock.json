@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "version": "v0.0.0.4",
+  "version": "v0.0.0.5",
   "entries": [
     {
       "id": "everything_to_notebook",
@@ -19,8 +19,8 @@
         "side_panel_task_center",
         "multi_destination"
       ],
-      "note": "仅复用公开可观察交互机制；不复制代码、素材、品牌或收费能力。Chrome Web Store 2026-07-30 观察版本 1.3.2。",
-      "accessed_at": "2026-07-30",
+      "note": "仅复用公开可观察交互机制；不复制代码、素材或收费能力。",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -40,7 +40,7 @@
         "western_saved_content_bridge"
       ],
       "note": "不作为必需托管服务或付费依赖；只消费用户主动导出的本地文件。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -61,7 +61,7 @@
         "warc"
       ],
       "note": "L2/证据层可选；私有模式并隔离活动内容。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -81,7 +81,7 @@
         "reader"
       ],
       "note": "不作为 Canonical Store；AI/付费路径关闭。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -101,7 +101,7 @@
         "search"
       ],
       "note": "与 Karakeep 按需二选一。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -120,7 +120,7 @@
         "authenticated_page_capture"
       ],
       "note": "仅用户主动触发的 L2。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -142,7 +142,7 @@
         "media"
       ],
       "note": "Stage 0 重新锁定当前 tag/commit/digest；采用 userscript/server 方式，不读取浏览器 Cookie。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -163,7 +163,7 @@
         "media"
       ],
       "note": "上游公开说明部分加密算法已失效；默认 experimental，健康门失败即降级。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -182,7 +182,7 @@
         "media"
       ],
       "note": "Stage 0 重新锁定并探测真实 OpenAPI。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -202,8 +202,8 @@
         "history",
         "subtitles"
       ],
-      "note": "v0.6.2 发布工作流与提交已核对；仅允许只读命令白名单，真实账号可用性由 SA-204 Canary 判定。",
-      "accessed_at": "2026-07-30",
+      "note": "仅只读子命令 allowlist；Stage 0 核验当前版本。",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -212,7 +212,7 @@
       "name": "gallery-dl",
       "repository": "https://codeberg.org/mikf/gallery-dl",
       "version": "v1.32.8",
-      "commit": "8939a87",
+      "commit": null,
       "license": "GPL-2.0",
       "role": "GENERIC_MEDIA_SIDECAR",
       "boundary": "ISOLATED_HTTP_SIDECAR",
@@ -223,8 +223,8 @@
         "reddit",
         "media_collections"
       ],
-      "note": "v1.32.8 已核对签名发布；活跃开发已迁往 Codeberg。只作为隔离 Sidecar，不导入专有 Core。",
-      "accessed_at": "2026-07-30",
+      "note": "在 cli-tools 独立镜像运行，核心只通过带令牌 HTTP 和共享输出目录通信。",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -245,7 +245,7 @@
         "metadata"
       ],
       "note": "固定安全修复版本，不允许任意 exec 模板。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -266,7 +266,7 @@
         "media"
       ],
       "note": "Session 只以 Sidecar secret 挂载，核心不读取。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
     },
@@ -287,70 +287,9 @@
         "checksum"
       ],
       "note": "当前第一方 S3 Port 已可用；rclone 只作恢复/迁移辅助。",
-      "accessed_at": "2026-07-30",
+      "accessed_at": "2026-08-02",
       "pin_policy": "Stage 0 重新解析当前稳定 tag/commit、release checksum 或镜像 digest；当前锁仅为封包参考，不允许浮动 latest。",
       "source_status": "REFERENCE_LOCK_REVERIFY_ON_MOVING_MAIN"
-    },
-    {
-      "id": "notion_api_2026_03_11",
-      "name": "Notion API 2026-03-11",
-      "repository": "https://developers.notion.com/reference/versioning",
-      "version": "2026-03-11",
-      "commit": null,
-      "license": "OFFICIAL_DOCUMENTATION_REFERENCE",
-      "role": "DESTINATION_API_CONTRACT",
-      "boundary": "NO_CODE_REUSE",
-      "default_enabled": false,
-      "capabilities": [
-        "data_source_id_parent",
-        "database_to_data_source_discovery",
-        "page_and_block_api"
-      ],
-      "note": "锁定 Notion-Version 2026-03-11；database_id 只作兼容发现，写入父级使用 data_source_id。",
-      "accessed_at": "2026-07-30",
-      "pin_policy": "API 版本固定为 2026-03-11；只有官方弃用或兼容性证据触发升级。",
-      "source_status": "OFFICIAL_API_LOCK"
-    },
-    {
-      "id": "obsidian_local_rest_api",
-      "name": "Obsidian Local REST API",
-      "repository": "https://github.com/coddingtonbear/obsidian-local-rest-api",
-      "version": "4.1.3-minimum-safe",
-      "commit": null,
-      "license": "MIT",
-      "role": "OPTIONAL_OBSIDIAN_DESTINATION",
-      "boundary": "LOCALHOST_REST_SIDECAR",
-      "default_enabled": false,
-      "capabilities": [
-        "authenticated_vault_read",
-        "markdown_write",
-        "version_probe"
-      ],
-      "note": "服务器端 REST 模式不得低于 4.1.3；TLS/CA 验证不得静默关闭。浏览器端优先使用任务包内零常驻 Bridge。",
-      "accessed_at": "2026-07-30",
-      "pin_policy": "Stage 0 锁定当前稳定 release/commit，且版本必须 >=4.1.3。",
-      "source_status": "MINIMUM_SAFE_VERSION_LOCK"
-    },
-    {
-      "id": "github_rest_contents_api",
-      "name": "GitHub REST Contents API",
-      "repository": "https://docs.github.com/en/rest/repos/contents",
-      "version": "2022-11-28",
-      "commit": null,
-      "license": "OFFICIAL_DOCUMENTATION_REFERENCE",
-      "role": "PRIVATE_MARKDOWN_DESTINATION_API",
-      "boundary": "NO_CODE_REUSE",
-      "default_enabled": false,
-      "capabilities": [
-        "repository_metadata_probe",
-        "contents_create_or_update",
-        "sha_guard",
-        "private_repository_gate"
-      ],
-      "note": "先读取仓库元数据确认 private=true，再使用 Contents API 与远端 SHA 幂等创建或更新 Markdown。",
-      "accessed_at": "2026-07-30",
-      "pin_policy": "X-GitHub-Api-Version 固定为 2022-11-28；Stage 0 只核验官方兼容性。",
-      "source_status": "OFFICIAL_API_LOCK"
     }
   ]
 }

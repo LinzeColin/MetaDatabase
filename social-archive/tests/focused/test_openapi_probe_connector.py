@@ -259,7 +259,7 @@ def test_ks_worker_is_documented_openapi_sidecar_without_secret_or_core_import()
 
     assert worker["build"]["context"] == "./runtime/vendors/KS-Downloader"
     assert worker["command"] == ["python", "main.py", "api"]
-    assert worker["profiles"] == ["kuaishou"]
+    assert set(worker["profiles"]) == {"domestic-stable", "kuaishou"}
     assert worker["ports"] == ["127.0.0.1:5557:5557"]
     assert worker["restart"] == "unless-stopped"
     assert worker["security_opt"] == ["no-new-privileges:true"]
@@ -276,10 +276,11 @@ def test_douk_worker_is_experimental_sidecar_without_secret_or_core_import():
     core_dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
 
     assert worker["build"]["context"] == "./runtime/vendors/TikTokDownloader"
-    assert worker["command"] == ["python", "main.py"]
+    assert worker["command"] == ["python", "main.py", "api"]
     assert worker["profiles"] == ["douk-experimental"]
-    assert worker["stdin_open"] is True
-    assert worker["tty"] is True
+    assert "stdin_open" not in worker
+    assert "tty" not in worker
+    assert "healthcheck" in worker
     assert worker["ports"] == ["127.0.0.1:5555:5555"]
     assert worker["restart"] == "no"
     assert worker["security_opt"] == ["no-new-privileges:true"]

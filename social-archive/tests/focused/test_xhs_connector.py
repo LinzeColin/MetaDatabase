@@ -124,7 +124,7 @@ def test_xhs_worker_profile_is_isolated_and_has_no_cookie_secret_mount():
     core_dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
 
     assert worker["build"]["context"] == "./runtime/vendors/XHS-Downloader"
-    assert worker["profiles"] == ["xhs"]
+    assert set(worker["profiles"]) == {"domestic-stable", "xhs"}
     assert worker["ports"] == ["127.0.0.1:5556:5556"]
     assert worker["security_opt"] == ["no-new-privileges:true"]
     assert "secrets" not in worker

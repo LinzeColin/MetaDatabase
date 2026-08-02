@@ -451,3 +451,8 @@
 - 建立 Public Artifact / Private Runtime 路径契约、合成 Fixture 清单和机器验证入口。
 - 保存原始输入 SHA-256，并以 Owner Change Event 记录路由与路径修正。
 - 未进入产品代码、真实账号、浏览器、Notion、模型或媒体执行。
+# v0.0.0.5 - 2026-08-02
+
+- Preserve the released v0.0.0.4 transaction, destination, production, and recovery hardening while adopting the sealed v0.0.0.5 product identity and machine contracts.
+- Add the website-to-extension bridge, shared multi-platform extractor core, deterministic extension package builder, browser acceptance entrypoints, and v0.0.0.5 focused gates.
+- Add health-gated domestic worker profiles without regressing the verified loopback, Cloudflare, Private-Database, encrypted-replica, or restore boundaries.

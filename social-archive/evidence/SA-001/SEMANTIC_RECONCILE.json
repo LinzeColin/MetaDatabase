@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-001",
+  "taskpack_version": "v0.0.0.5",
+  "executed_at_utc": "2026-08-01T23:55:24Z",
+  "repository": {
+    "remote": "git@github.com:LinzeColin/MetaDatabase.git",
+    "base_head": "2aab055fadc5e72dbd889f33df47666727b2153f",
+    "origin_main": "2aab055fadc5e72dbd889f33df47666727b2153f",
+    "branch": "codex/social-archive-v0.0.0.5",
+    "root_rules": "main worktree read-only; isolated worktree required"
+  },
+  "machine_classifier": {
+    "decision": "REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "summary": {"satisfied": 50, "apply": 37, "adapt": 119, "equivalent": 5, "conflict": 0, "blocked": 0, "obsolete": 0},
+    "semantic_report_sha256": "e61aa43050b05db84f806321bd5acca841f9195a269ff3dd161261612d6f5bc3",
+    "precondition_report_sha256": "5bc21a5deabfb007e57d5c41638edb9d2bb0b5032c8cb0ba356e87a86241efd8",
+    "finding": "READY_WITH_FINDINGS: isolated non-main branch plus dual-tree reconciliation"
+  },
+  "manual_task_classifications": {
+    "SA-000": "satisfied",
+    "SA-001": "satisfied",
+    "SA-002": "adapt",
+    "SA-003": "equivalent",
+    "SA-004": "adapt",
+    "SA-005": "apply",
+    "SA-101": "equivalent",
+    "SA-102": "equivalent",
+    "SA-103": "equivalent",
+    "SA-104": "equivalent",
+    "SA-105": "equivalent",
+    "SA-201": "adapt",
+    "SA-202": "adapt",
+    "SA-203": "adapt",
+    "SA-204": "equivalent",
+    "SA-205": "adapt",
+    "SA-301": "adapt",
+    "SA-302": "equivalent",
+    "SA-303": "adapt",
+    "SA-304": "equivalent",
+    "SA-305": "adapt",
+    "SA-401": "equivalent",
+    "SA-402": "equivalent",
+    "SA-403": "equivalent",
+    "SA-404": "adapt",
+    "SA-501": "equivalent",
+    "SA-502": "equivalent",
+    "SA-503": "equivalent",
+    "SA-504": "equivalent",
+    "SA-505": "equivalent",
+    "SA-506": "equivalent",
+    "SA-507": "apply"
+  },
+  "manual_task_summary": {"satisfied": 2, "apply": 2, "adapt": 10, "equivalent": 18, "conflict": 0, "blocked": 0, "obsolete": 0},
+  "file_resolution": {
+    "apply": [
+      "apps/browser-extension/bridge.js",
+      "apps/browser-extension/content/extract-core.js",
+      "scripts/browser_acceptance.py",
+      "scripts/build_extension_package.py",
+      "scripts/extension_ui_acceptance.py",
+      "tests/focused/test_v005_extension_package.py",
+      "tests/focused/test_v005_pairing_destinations.py",
+      "tests/focused/test_v005_worker_profiles.py",
+      "tests/stage/test_v005_walking_skeleton.py",
+      "dist/social-archive-extension.zip"
+    ],
+    "adapt": [
+      "v0.0.0.5 active identity and machine contracts",
+      "website-to-extension bridge while retaining stronger extension receipts and local Obsidian behavior",
+      "shared extractor core while retaining current capture/destination isolation",
+      "domestic worker profiles and health gates",
+      "v0.0.0.5 PWA product shell"
+    ],
+    "equivalent_or_preserved": [
+      "current SQLite/Outbox/FTS transaction core",
+      "current pairing, destination receipts, retry and API hostname security",
+      "current Private-Database no-clone, encrypted three-replica and restore implementation",
+      "current Obsidian plugin and existing focused/stage evidence",
+      "all current files absent from the Overlay"
+    ],
+    "obsolete_overlay_files": [
+      "compose.yaml fixed host port 8765",
+      "simpler current-core replacements that remove fail-closed status metadata",
+      "systemd/deployment replacements that omit the proven status-web, cloudflared and object-recovery boundaries"
+    ]
+  },
+  "legacy": {
+    "tracked_file_count": 24,
+    "content": "superseded build-only integration artifacts",
+    "retirement": "pending v0.0.0.5 target gate; external tracked snapshot already created"
+  },
+  "recovery": {
+    "tag": "social-archive-pre-v0.0.0.5-20260801t234823z",
+    "external_archive_sha256": "3755875c57c7ea03fdbb2b0b610f6409c877495c234b670aba464f1940544434",
+    "external_archive_entries": 396,
+    "forbidden_rollback": "The sealed rollback script uses git reset --hard/git clean and is not authorized by workspace safety rules."
+  },
+  "conflicts": [],
+  "blocked": [],
+  "nonclaims": [
+    "v0.0.0.4 task PASS receipts establish reusable upstream capability but do not by themselves prove v0.0.0.5 runtime acceptance.",
+    "No environment-bound NOT_RUN state is converted to PASS."
+  ]
+}

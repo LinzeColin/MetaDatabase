@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-001",
+  "executed_at_utc": "2026-08-01T23:55:24Z",
+  "commands": [
+    {"command": "git fetch origin main; main worktree git pull --ff-only origin main", "exit_code": 0, "outcome": "PASS", "result": "origin/main=2aab055fadc5e72dbd889f33df47666727b2153f"},
+    {"command": "python3 07_IMPLEMENTATION/apply/verify_preconditions.py --repo <isolated-worktree> --fetch", "exit_code": 0, "outcome": "PASS_WITH_FINDINGS", "result": "P1 isolated branch required by root governance; dual-tree reconciliation required; no P0."},
+    {"command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo <isolated-worktree>", "exit_code": 0, "outcome": "PASS", "result": "decision=REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS; conflict=0; blocked=0."},
+    {"command": "manual semantic review against v0.0.0.4 HEAD-bound evidence and v0.0.0.5 frozen tests", "exit_code": 0, "outcome": "PASS", "result": "32 task classifications recorded; weaker Overlay deployment/core replacements marked obsolete at file level."}
+  ],
+  "non_actions": ["No production, provider, secret, private-data, push, merge, or release action was performed during SA-001."]
+}

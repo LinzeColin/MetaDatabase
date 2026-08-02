@@ -1,11 +1,11 @@
 {
   "schema_version": "3.0",
   "project": "Social Archive",
-  "version": "v0.0.0.4",
+  "version": "v0.0.0.5",
   "rows": [
     {
       "requirement_id": "REQ-001",
-      "requirement": "产品、目录、包名、UI、文档和运行身份全面迁移为 Social Archive v0.0.0.4；旧身份只允许出现在迁移输入、兼容读取和历史证据中。",
+      "requirement": "产品、目录、包名、UI、文档和运行身份全面迁移为 Social Archive v0.0.0.5；旧身份只允许出现在迁移输入、兼容读取和历史证据中。",
       "task_ids": [
         "SA-002",
         "SA-005",
@@ -39,7 +39,7 @@
     },
     {
       "requirement_id": "REQ-002",
-      "requirement": "目标仓采用移动 main 与 Stage 0 Semantic Reconcile。保留聚焦测试证明成立的单一事务/恢复核心；重建产品身份、E2N 插件壳、真实来源连接器、隔离 Sidecar、目的地 Probe/Binding/Receipt、聚合 UI 与运维。latest main 中更强的 Acceptance 等价实现必须保留并适配。只有证据证明核心缺失、局部不可修复或存在不可调和双权威时，才对受影响纵向切片执行只读迁移与受控重建。禁止盲覆盖、双入口、双内核、双权威、静默迁移和隐式数据丢失。",
+      "requirement": "目标仓采用移动 main 与 Stage 0 Semantic Reconcile，不以任务包生成时的旧快照覆盖上游更优实现。",
       "task_ids": [
         "SA-001",
         "SA-002",
@@ -77,7 +77,7 @@
     },
     {
       "requirement_id": "REQ-003",
-      "requirement": "浏览器扩展达到 E2N 式低摩擦：工具栏弹窗、站点授权卡、页面悬浮保存、侧边栏任务中心、真实连接检查、中文下一步和一键重试；配置存在不得冒充已授权。",
+      "requirement": "浏览器扩展达到 E2N 式低摩擦：工具栏弹窗、站点授权卡、页面悬浮保存、侧边栏任务中心、中文下一步和一键重试。",
       "task_ids": [
         "SA-004",
         "SA-005",
@@ -110,11 +110,7 @@
         "07_IMPLEMENTATION/overlay/social-archive/apps",
         "07_IMPLEMENTATION/overlay/social-archive/apps/browser-extension",
         "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage0_walking_skeleton.py",
-        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage3_pwa.py",
-        "01_PRODUCT/E2N_PARITY_CONTRACT.md",
-        "08_UIUX/E2N_BEHAVIORAL_BLUEPRINT.md",
-        "04_CONNECTORS/DESTINATION_PROBE_AND_RECEIPT_CONTRACT.md",
-        "07_IMPLEMENTATION/overlay/social-archive/tests/focused/test_destination_probes_and_receipts.py"
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage3_pwa.py"
       ]
     },
     {
@@ -368,7 +364,7 @@
     },
     {
       "requirement_id": "REQ-009",
-      "requirement": "Notion、Obsidian、GitHub Private-Database Markdown 和标准 Markdown/JSONL 导出均可独立启用、主动探测、幂等写入、生成回执、重试和对账。",
+      "requirement": "Notion、Obsidian、GitHub Private-Database Markdown 和标准 Markdown/JSONL 导出均可独立启用、重试和对账。",
       "task_ids": [
         "SA-401",
         "SA-402",
@@ -400,11 +396,7 @@
       "artifact_paths": [
         "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
         "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/exports.py",
-        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage4_replication_exports.py",
-        "04_CONNECTORS/DESTINATION_PROBE_AND_RECEIPT_CONTRACT.md",
-        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/sql/runtime_schema.sql",
-        "07_IMPLEMENTATION/overlay/social-archive/tests/focused/test_destination_probes_and_receipts.py",
-        "07_IMPLEMENTATION/overlay/social-archive/apps/obsidian-plugin"
+        "07_IMPLEMENTATION/overlay/social-archive/tests/stage/test_stage4_replication_exports.py"
       ]
     },
     {
@@ -504,7 +496,7 @@
     },
     {
       "requirement_id": "REQ-012",
-      "requirement": "必需增量费用为 0；不得依赖付费 API、付费 SaaS 或模型；未知配额和可能收费路径 fail closed，L0/L1 继续；GitHub 目的地必须为私有仓库。",
+      "requirement": "必需增量费用为 0；不得依赖付费 API、付费 SaaS 或模型；未知配额和可能收费路径 fail closed，L0/L1 继续。",
       "task_ids": [
         "SA-103",
         "SA-402",
@@ -543,9 +535,7 @@
         "07_IMPLEMENTATION/overlay/social-archive/scripts/replicate_objects.py",
         "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/destinations.py",
         "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/encryption.py",
-        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py",
-        "12_GOVERNANCE/FREE_ONLY_POLICY.md",
-        "06_STORAGE/GITHUB_PRIVATE_REPO.md"
+        "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py"
       ]
     },
     {
@@ -755,7 +745,7 @@
     },
     {
       "requirement_id": "REQ-018",
-      "requirement": "Codex 仅执行最新 main 上的语义合并、真实凭证、供应商控制台、部署和兼容性最后一公里；保留更优上游实现，不重新研究、重做架构或扩大验收。",
+      "requirement": "Codex 仅执行最新 main 上的语义合并、真实凭证、供应商控制台、部署和兼容性最后一公里，不重新研究、重做架构或扩大验收。",
       "task_ids": [
         "SA-000",
         "SA-001",
@@ -789,9 +779,7 @@
         "07_IMPLEMENTATION/overlay/social-archive/src",
         "10_ACCEPTANCE",
         "14_EVIDENCE",
-        "MANIFEST.sha256",
-        "00_CONTROL/CODEBASE_DECISION.md",
-        "00_CONTROL/SECOND_MODEL_INTEGRATION.md"
+        "MANIFEST.sha256"
       ]
     }
   ]

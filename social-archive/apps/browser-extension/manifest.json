@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Social Archive",
   "short_name": "Social Archive",
-  "version": "0.0.0.4",
+  "version": "0.0.0.5",
   "minimum_chrome_version": "116",
   "description": "像 E2N 一样一键保存网页与多平台收藏，并自动归档到 Social Archive、Notion、Obsidian、GitHub 和 Markdown。",
   "permissions": [
@@ -13,7 +13,8 @@
     "storage"
   ],
   "host_permissions": [
-    "https://social-archive-api.linzezhang.com/*"
+    "https://social-archive-api.linzezhang.com/*",
+    "https://social-archive.linzezhang.com/*"
   ],
   "optional_host_permissions": [
     "http://127.0.0.1:27123/*",
@@ -29,7 +30,15 @@
     "https://*.x.com/*",
     "https://twitter.com/*",
     "https://*.reddit.com/*",
-    "https://*.instagram.com/*"
+    "https://*.instagram.com/*",
+    "https://xhslink.com/*",
+    "https://*.xhslink.com/*",
+    "https://v.iesdouyin.com/*",
+    "https://*.gifshow.com/*",
+    "https://kuaishou.cn/*",
+    "https://*.kuaishou.cn/*",
+    "https://b23.tv/*",
+    "https://redd.it/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -56,5 +65,16 @@
     "open-task-center": {
       "description": "打开 Social Archive 任务中心"
     }
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://social-archive.linzezhang.com/*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
 }

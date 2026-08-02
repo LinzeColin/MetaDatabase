@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Social Archive">
-  <defs>
-    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8ee6c8"/>
-      <stop offset="1" stop-color="#67b7ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="18" fill="#101114"/>
-  <path d="M18 17h28v30H18z" fill="url(#g)"/>
-  <path d="M24 25h16M24 32h16M24 39h10" stroke="#07110e" stroke-width="4" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="18" fill="#27c98a"/><path d="M20 20h24v6H26v6h15v6H26v6h18v6H20z" fill="#083b2b"/></svg>
