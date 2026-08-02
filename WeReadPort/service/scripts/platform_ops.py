@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,6 +23,9 @@ BUSINESS_LINES = (
     "identity-access", "account-storage", "cross-device-sync", "provider-imports",
     "weread-wide-sync", "analytics-recommendations", "operations-recovery", "facts-backup",
 )
+SELF_HEAL_UNITS = ("weread-port-platform.service", "weread-port-import-worker.service")
+SELF_HEAL_COOLDOWN_SECONDS = 5 * 60
+SYSTEMCTL_TIMEOUT_SECONDS = 35
 
 
 def utc_now() -> str:
@@ -64,6 +68,54 @@ def integrity(path: Path, *, immutable: bool = False) -> str:
     return str(row[0] if row else "unknown")
 
 
+def safe_integrity(path: Path) -> str:
+    try:
+        return integrity(path)
+    except (OSError, sqlite3.Error):
+        return "unavailable"
+
+
+def read_json(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def self_heal(previous: dict, *, now: float | None = None, runner=None) -> dict:
+    current = int(time.time() if now is None else now)
+    recovery = previous.get("recovery") if isinstance(previous.get("recovery"), dict) else {}
+    attempted_at = recovery.get("attemptedAtUnix")
+    if isinstance(attempted_at, int):
+        elapsed = max(0, current - attempted_at)
+        if elapsed < SELF_HEAL_COOLDOWN_SECONDS:
+            return {
+                "status": "COOLDOWN",
+                "attemptedAtUnix": attempted_at,
+                "remainingSeconds": SELF_HEAL_COOLDOWN_SECONDS - elapsed,
+            }
+    execute = subprocess.run if runner is None else runner
+    actions = []
+    try:
+        for command in (
+            ["systemctl", "reset-failed", *SELF_HEAL_UNITS],
+            ["systemctl", "restart", *SELF_HEAL_UNITS],
+        ):
+            completed = execute(command, timeout=SYSTEMCTL_TIMEOUT_SECONDS, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return_code = getattr(completed, "returncode", 1)
+            actions.append({"action": command[1], "returnCode": return_code if isinstance(return_code, int) else 1})
+    except subprocess.TimeoutExpired:
+        return {"status": "FAILED", "attemptedAtUnix": current, "errorCode": "SYSTEMCTL_TIMEOUT"}
+    except OSError:
+        return {"status": "FAILED", "attemptedAtUnix": current, "errorCode": "SYSTEMCTL_UNAVAILABLE"}
+    succeeded = all(action["returnCode"] == 0 for action in actions)
+    result = {"status": "ATTEMPTED" if succeeded else "FAILED", "attemptedAtUnix": current, "actions": actions}
+    if not succeeded:
+        result["errorCode"] = "SYSTEMCTL_NONZERO"
+    return result
+
+
 def health() -> dict:
     port = int(os.environ.get("WRP_SERVICE_PORT", "8788"))
     result: dict[str, object] = {"version": VERSION, "checkedAt": utc_now(), "database": str(database_path())}
@@ -71,16 +123,28 @@ def health() -> dict:
         request = urllib.request.Request(f"http://127.0.0.1:{port}/readyz", headers={"Accept": "application/json", "User-Agent": f"WeReadPort-Health/{VERSION}"})
         with urllib.request.urlopen(request, timeout=5) as response:
             payload = json.loads(response.read(1024 * 1024).decode("utf-8"))
-            result.update({"httpStatus": response.status, "serviceReady": response.status == 200 and payload.get("status") == "ready"})
+            result.update({"httpStatus": response.status, "serviceReachable": True, "serviceReady": response.status == 200 and (payload.get("ready") is True or payload.get("status") == "ready")})
+    except urllib.error.HTTPError as exc:
+        # A readiness 503 proves the Node process is responding. Restarting it
+        # cannot repair an external dependency and would add avoidable churn.
+        result.update({"httpStatus": exc.code, "serviceReachable": True, "serviceReady": False, "errorCode": f"READYZ_HTTP_{exc.code}"})
     except Exception as exc:  # noqa: BLE001 - only safe code is emitted
         result.update({"serviceReady": False, "errorCode": type(exc).__name__.upper()})
-    result["databaseIntegrity"] = integrity(database_path())
+    result["databaseIntegrity"] = safe_integrity(database_path())
     result["ok"] = result.get("serviceReady") is True and result["databaseIntegrity"] == "ok"
     status_path = state_root() / "platform-health.json"
+    previous = read_json(status_path)
+    if result["ok"]:
+        result["recovery"] = {"status": "NOT_NEEDED"}
+    elif result["databaseIntegrity"] != "ok":
+        # Never auto-restore or start from an unverified data file.
+        result["recovery"] = {"status": "SKIPPED_DATABASE_INTEGRITY", "reason": "DATABASE_INTEGRITY_NOT_OK"}
+    elif result.get("serviceReachable") is True:
+        result["recovery"] = {"status": "SKIPPED_DEPENDENCY_DEGRADED", "reason": "READYZ_NOT_READY"}
+    else:
+        result["recovery"] = self_heal(previous)
     atomic_json(status_path, result)
     if not result["ok"]:
-        # One bounded self-heal attempt. The timer retries later; no loop or agent is required.
-        subprocess.run(["systemctl", "try-restart", "weread-port-platform.service", "weread-port-import-worker.service"], timeout=20, check=False)
         raise RuntimeError("PLATFORM_NOT_READY")
     return result
 

@@ -70,6 +70,7 @@ export function loadConfig(env = process.env, { test = false } = {}) {
     maxJsonBytes: integer(env.WRP_MAX_JSON_BYTES, 2 * 1024 * 1024, 1024, 16 * 1024 * 1024),
     maxImportBytes: integer(env.WRP_MAX_IMPORT_BYTES, 50 * 1024 * 1024, 1024, 512 * 1024 * 1024),
     maxImportItems: integer(env.WRP_MAX_IMPORT_ITEMS, 500, 1, 5000),
+    maxActiveImportJobsPerAccount: integer(env.WRP_MAX_ACTIVE_IMPORT_JOBS_PER_ACCOUNT, 6, 1, 64),
     maxWereadBooks: integer(env.WRP_MAX_WEREAD_BOOKS, 2000, 6, 10000),
     upstreamTimeoutMs: integer(env.WRP_UPSTREAM_TIMEOUT_MS, 15_000, 500, 120_000),
     upstreamRetryAttempts: integer(env.WRP_UPSTREAM_RETRY_ATTEMPTS, 2, 1, 3),

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createPlatformApp } from "../../service/platform/app.mjs";
 import { PlatformService } from "../../service/platform/service.mjs";
-import { testPlatform, requestContext } from "./helpers.mjs";
+import { testPlatform, requestContext, testConfig } from "./helpers.mjs";
 
 const PASSWORD = "Correct-Horse-2026";
 const WEREAD_KEY = `wrk-${"W".repeat(32)}`;
@@ -49,6 +49,44 @@ test("Obsidian 新手导入任务幂等、可恢复并保存到账户", async t 
   assert.equal(complete.state, "COMPLETE");
   assert.equal(complete.progress.saved, 2);
   assert.equal(platform.service.listNotes(user.account.id).length, 2);
+});
+
+test("导入背压按账户持久执行，单一租户不能耗尽公共 worker", async t => {
+  const platform = testPlatform({ config: testConfig({ maxActiveImportJobsPerAccount: 2 }) });
+  t.after(platform.close);
+  const first = await platform.service.registerPassword({ email: "queue-a@example.com", password: PASSWORD });
+  const second = await platform.service.registerPassword({ email: "queue-b@example.com", password: PASSWORD });
+  const selection = { items: [{ name: "书摘.md", path: "Vault/书摘.md", content: "账户级队列背压" }] };
+  const firstJob = platform.service.createImportJob(first.account.id, "obsidian", selection, "queue-a-1");
+  const secondJob = platform.service.createImportJob(first.account.id, "google", selection, "queue-a-2");
+  assert.equal(platform.service.createImportJob(first.account.id, "obsidian", selection, "queue-a-1").id, firstJob.id, "幂等重试不应被配额误拒绝");
+  assert.equal(secondJob.state, "PENDING");
+  assert.throws(
+    () => platform.service.createImportJob(first.account.id, "notion", selection, "queue-a-3"),
+    error => error.code === "IMPORT_QUEUE_FULL" && error.status === 429,
+  );
+  assert.throws(
+    () => platform.service.createWeReadSyncJob(first.account.id, { mode: "auto" }, "queue-a-weread"),
+    error => error.code === "IMPORT_QUEUE_FULL" && error.status === 429,
+  );
+  assert.ok(platform.store.db.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='import_jobs_active_account_idx'").get()?.sql, "活跃任务计数必须由账户级索引支持");
+  const app = createPlatformApp({ service: platform.service, config: platform.config });
+  const rejected = await app(new Request(`${platform.config.baseUrl}/v1/imports/obsidian/start`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: platform.config.baseUrl,
+      "sec-fetch-site": "same-origin",
+      "x-wrp-internal-secret": platform.config.internalProxySecret,
+      cookie: `wrp_session=${first.session.token}`,
+      "x-csrf-token": first.session.csrf,
+      "idempotency-key": "queue-a-http-rejected",
+    },
+    body: JSON.stringify({ selection }),
+  }));
+  assert.equal(rejected.status, 429);
+  assert.deepEqual((await rejected.json()).error, { code: "IMPORT_QUEUE_FULL", message: "当前账户的导入任务已达上限，请等待现有任务完成后再试。" });
+  assert.equal(platform.service.createImportJob(second.account.id, "obsidian", selection, "queue-b-1").state, "PENDING", "其他租户必须保有独立准入额度");
 });
 
 test("微信读书同步先建立可轮询后台任务，不占用账户平台代理响应窗口", async t => {
@@ -122,6 +160,33 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   const wereadExport = await app(new Request(`${platform.config.baseUrl}/v1/weread/export`, { headers: { ...baseHeaders, cookie: refreshedCookie } }));
   assert.equal(wereadExport.status, 200);
   assert.equal((await wereadExport.json()).source, "WeChat Reading");
+});
+
+test("对象存储短暂不可用或正文损坏时，笔记接口返回可恢复 503 且不泄露下游异常", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const app = createPlatformApp({ service: platform.service, config: platform.config });
+  const user = await platform.service.registerPassword({ email: "object-health@example.com", password: PASSWORD });
+  const note = await platform.service.saveDocument(user.account.id, { source: "manual", externalId: "object-health-note", title: "对象存储韧性", content: "恢复性错误必须对客户端安全。" });
+  const headers = {
+    origin: platform.config.baseUrl,
+    "sec-fetch-site": "same-origin",
+    "x-wrp-internal-secret": platform.config.internalProxySecret,
+    cookie: `wrp_session=${user.session.token}`,
+  };
+  const originalGet = platform.objectStore.get.bind(platform.objectStore);
+  platform.objectStore.get = async () => { throw new Error("simulated R2 read outage"); };
+  const unavailable = await app(new Request(`${platform.config.baseUrl}/v1/notes/${note.id}`, { headers }));
+  assert.equal(unavailable.status, 503);
+  assert.deepEqual((await unavailable.json()).error, { code: "OBJECT_UNAVAILABLE", message: "笔记正文暂时不可用，请稍后重试。" });
+
+  platform.objectStore.get = async () => ({ bytes: Buffer.from("not a valid encrypted note", "utf8"), metadata: {} });
+  const corrupt = await app(new Request(`${platform.config.baseUrl}/v1/notes/${note.id}`, { headers }));
+  assert.equal(corrupt.status, 503);
+  const corruptPayload = await corrupt.json();
+  assert.deepEqual(corruptPayload.error, { code: "OBJECT_CORRUPT", message: "笔记正文暂时不可用，请稍后重试。" });
+  assert.equal(JSON.stringify(corruptPayload).includes("not a valid encrypted note"), false);
+  platform.objectStore.get = originalGet;
 });
 
 test("格式错误的微信读书密钥返回可恢复客户端错误", async t => {

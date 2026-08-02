@@ -155,6 +155,7 @@ class PlatformOperationsTests(unittest.TestCase):
             "WRP_AUTH_LOCK_SECONDS": "900",
             "WRP_IMPORT_LEASE_SECONDS": "300",
             "WRP_WORKER_STALE_SECONDS": "30",
+            "WRP_MAX_ACTIVE_IMPORT_JOBS_PER_ACCOUNT": "6",
         }
         result = PREFLIGHT.check_environment(values, require_paths=True)
         self.assertEqual(result["status"], "PASS")
@@ -167,6 +168,8 @@ class PlatformOperationsTests(unittest.TestCase):
         wrong_result = PREFLIGHT.check_environment(wrong_bridge, require_paths=True)
         wrong_targets = {(item["code"], item["field"]) for item in wrong_result["blockers"]}
         self.assertTrue({("EDGE_BRIDGE_TARGET", "WRP_EDGE_BRIDGE_HOST"), ("EDGE_BRIDGE_TARGET", "WRP_EDGE_BRIDGE_PORT")}.issubset(wrong_targets))
+        invalid_import_limit = PREFLIGHT.check_environment({**values, "WRP_MAX_ACTIVE_IMPORT_JOBS_PER_ACCOUNT": "65"}, require_paths=True)
+        self.assertTrue(any(item["code"] == "IMPORT_QUEUE_LIMIT" for item in invalid_import_limit["blockers"]))
 
     def test_preflight_rejects_placeholders_public_bind_and_missing_clone_free_private_database(self):
         result = PREFLIGHT.check_environment({
@@ -183,6 +186,73 @@ class PlatformOperationsTests(unittest.TestCase):
         codes = {item["code"] for item in result["blockers"]}
         self.assertTrue({"MISSING", "NODE_ENV", "PUBLIC_URL", "BIND_ADDRESS", "EDGE_BRIDGE_ADDRESS", "DATABASE_PATH", "OBJECT_MODE"}.issubset(codes))
         self.assertTrue(any(item["field"] == "WRP_PRIVATE_DATABASE_CLIENT_PATH" for item in result["blockers"]))
+
+    def test_health_starts_stopped_units_once_per_cooldown_and_never_auto_restores_data(self):
+        calls = []
+
+        def record(command, **_kwargs):
+            calls.append(command)
+            return subprocess.CompletedProcess(command, 0)
+
+        values = {"WRP_DATABASE_PATH": str(self.database), "WRP_SERVICE_PORT": "8788"}
+        with environment(values), patch.object(OPS.urllib.request, "urlopen", side_effect=OSError("offline")), patch.object(OPS.subprocess, "run", side_effect=record), patch.object(OPS.time, "time", return_value=1_700_000_000):
+            with self.assertRaisesRegex(RuntimeError, "PLATFORM_NOT_READY"):
+                OPS.health()
+
+        self.assertEqual(calls, [
+            ["systemctl", "reset-failed", *OPS.SELF_HEAL_UNITS],
+            ["systemctl", "restart", *OPS.SELF_HEAL_UNITS],
+        ])
+        status_path = self.database.parent / "platform-health.json"
+        first_status = json.loads(status_path.read_text(encoding="utf-8"))
+        self.assertEqual(first_status["recovery"]["status"], "ATTEMPTED")
+
+        calls.clear()
+        with environment(values), patch.object(OPS.urllib.request, "urlopen", side_effect=OSError("offline")), patch.object(OPS.subprocess, "run", side_effect=record), patch.object(OPS.time, "time", return_value=1_700_000_120):
+            with self.assertRaisesRegex(RuntimeError, "PLATFORM_NOT_READY"):
+                OPS.health()
+        self.assertEqual(calls, [])
+        cooldown_status = json.loads(status_path.read_text(encoding="utf-8"))
+        self.assertEqual(cooldown_status["recovery"]["status"], "COOLDOWN")
+
+        self.database.write_bytes(b"not a sqlite database")
+        calls.clear()
+        with environment(values), patch.object(OPS.urllib.request, "urlopen", side_effect=OSError("offline")), patch.object(OPS.subprocess, "run", side_effect=record):
+            with self.assertRaisesRegex(RuntimeError, "PLATFORM_NOT_READY"):
+                OPS.health()
+        integrity_status = json.loads(status_path.read_text(encoding="utf-8"))
+        self.assertEqual(integrity_status["recovery"]["status"], "SKIPPED_DATABASE_INTEGRITY")
+        self.assertEqual(calls, [])
+
+    def test_health_does_not_restart_a_reachable_service_when_only_readiness_is_degraded(self):
+        calls = []
+
+        def record(command, **_kwargs):
+            calls.append(command)
+            return subprocess.CompletedProcess(command, 0)
+
+        values = {"WRP_DATABASE_PATH": str(self.database), "WRP_SERVICE_PORT": "8788"}
+        response = OPS.urllib.error.HTTPError("http://127.0.0.1:8788/readyz", 503, "not ready", None, None)
+        with environment(values), patch.object(OPS.urllib.request, "urlopen", side_effect=response), patch.object(OPS.subprocess, "run", side_effect=record):
+            with self.assertRaisesRegex(RuntimeError, "PLATFORM_NOT_READY"):
+                OPS.health()
+
+        status = json.loads((self.database.parent / "platform-health.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["httpStatus"], 503)
+        self.assertTrue(status["serviceReachable"])
+        self.assertEqual(status["recovery"]["status"], "SKIPPED_DEPENDENCY_DEGRADED")
+        self.assertEqual(calls, [])
+
+    def test_health_unit_has_bounded_restart_authority(self):
+        health = (ROOT / "service/systemd/weread-port-platform-health.service").read_text(encoding="utf-8")
+        platform = (ROOT / "service/systemd/weread-port-platform.service").read_text(encoding="utf-8")
+        worker = (ROOT / "service/systemd/weread-port-import-worker.service").read_text(encoding="utf-8")
+        self.assertIn("User=root", health)
+        self.assertIn("ExecStartPre=/usr/bin/install -d -o weread-port -g weread-port -m 0700 /var/lib/weread-port", health)
+        self.assertIn("TimeoutStartSec=45", health)
+        for unit in (platform, worker):
+            self.assertIn("StartLimitIntervalSec=5min", unit)
+            self.assertIn("StartLimitBurst=6", unit)
 
     def test_backup_restore_check_and_fact_snapshot_are_deterministic_and_private(self):
         with sqlite3.connect(self.database) as connection:

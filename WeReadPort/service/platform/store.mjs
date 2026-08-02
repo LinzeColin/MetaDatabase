@@ -42,6 +42,7 @@ export class PlatformStore {
     this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS sessions_public_id_idx ON sessions(id) WHERE id IS NOT NULL");
     this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_queue_idx ON import_jobs(state, lease_until, created_at)");
     this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_account_provider_active_idx ON import_jobs(account_id, provider, state, created_at)");
+    this.db.exec("CREATE INDEX IF NOT EXISTS import_jobs_active_account_idx ON import_jobs(account_id, created_at) WHERE state IN ('PENDING','RUNNING')");
     this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS import_jobs_one_active_weread_idx ON import_jobs(account_id) WHERE provider='weread' AND state IN ('PENDING','RUNNING')");
     this.db.exec("CREATE INDEX IF NOT EXISTS notes_account_event_idx ON notes(account_id, event_at DESC, id DESC)");
     this.db.exec("CREATE INDEX IF NOT EXISTS notes_account_book_author_idx ON notes(account_id, book_title, author, event_at DESC, id DESC)");
@@ -484,24 +485,25 @@ export class PlatformStore {
       .all(Math.min(Math.max(Number(limit) || 100, 1), 5_000));
   }
 
-  createImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey }) {
-    const now = this.now();
-    try {
-      this.db.prepare("INSERT INTO import_jobs(id,account_id,provider,state,selection_json,selection_encrypted,progress_json,idempotency_key,attempts,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
-        .run(id, accountId, provider, "PENDING", "{}", selectionEncrypted, "{}", idempotencyKey, 0, now, now);
-    } catch (error) {
+  createImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey, maxActiveJobs = 6 }) {
+    return this.transaction(() => {
       const existing = this.db.prepare("SELECT id FROM import_jobs WHERE account_id=? AND idempotency_key=?").get(accountId, idempotencyKey);
       if (existing) return this.getImportJob(accountId, existing.id);
-      if (provider === "weread") {
-        const active = this.findActiveImportJob(accountId, provider);
-        if (active) return active;
+      if (this.countActiveImportJobs(accountId) >= maxActiveJobs) throw importQueueFull();
+      const now = this.now();
+      try {
+        this.db.prepare("INSERT INTO import_jobs(id,account_id,provider,state,selection_json,selection_encrypted,progress_json,idempotency_key,attempts,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+          .run(id, accountId, provider, "PENDING", "{}", selectionEncrypted, "{}", idempotencyKey, 0, now, now);
+      } catch (error) {
+        const duplicate = this.db.prepare("SELECT id FROM import_jobs WHERE account_id=? AND idempotency_key=?").get(accountId, idempotencyKey);
+        if (duplicate) return this.getImportJob(accountId, duplicate.id);
+        throw error;
       }
-      throw error;
-    }
-    return this.getImportJob(accountId, id);
+      return this.getImportJob(accountId, id);
+    });
   }
 
-  createOrGetActiveImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey }) {
+  createOrGetActiveImportJob({ id, accountId, provider, selectionEncrypted, idempotencyKey, maxActiveJobs = 6 }) {
     return this.transaction(() => {
       const now = this.now();
       this.db.prepare("UPDATE import_jobs SET state='PENDING',worker_id=NULL,lease_until=NULL,updated_at=? WHERE account_id=? AND provider=? AND state='RUNNING' AND lease_until IS NOT NULL AND lease_until<=?")
@@ -509,6 +511,7 @@ export class PlatformStore {
       const active = this.db.prepare("SELECT id FROM import_jobs WHERE account_id=? AND provider=? AND state IN ('PENDING','RUNNING') ORDER BY created_at LIMIT 1")
         .get(accountId, provider);
       if (active) return this.getImportJob(accountId, active.id);
+      if (this.countActiveImportJobs(accountId) >= maxActiveJobs) throw importQueueFull();
       try {
         this.db.prepare("INSERT INTO import_jobs(id,account_id,provider,state,selection_json,selection_encrypted,progress_json,idempotency_key,attempts,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
           .run(id, accountId, provider, "PENDING", "{}", selectionEncrypted, "{}", idempotencyKey, 0, now, now);
@@ -520,6 +523,11 @@ export class PlatformStore {
       }
       return this.getImportJob(accountId, id);
     });
+  }
+
+  countActiveImportJobs(accountId) {
+    const row = this.db.prepare("SELECT COUNT(*) AS count FROM import_jobs WHERE account_id=? AND state IN ('PENDING','RUNNING')").get(accountId);
+    return Number(row?.count || 0);
   }
 
   getImportJob(accountId, id) {
@@ -665,6 +673,7 @@ export class PlatformStore {
 
 function parseJson(value) { try { const result = JSON.parse(value || "{}"); return result && typeof result === "object" && !Array.isArray(result) ? result : {}; } catch { return {}; } }
 function parseArray(value) { try { const result = JSON.parse(value || "[]"); return Array.isArray(result) ? result : []; } catch { return []; } }
+function importQueueFull() { return Object.assign(new Error("账户进行中的导入任务已达上限。"), { code: "IMPORT_QUEUE_FULL" }); }
 function normalizeEventAt(value, fallback) { const raw = Number(value); if (!Number.isFinite(raw) || raw <= 0) return fallback; const seconds = raw >= 10_000_000_000 ? Math.floor(raw / 1000) : Math.floor(raw); return seconds > 0 ? seconds : fallback; }
 function redactSubject(provider, subject) {
   const value = String(subject ?? "");

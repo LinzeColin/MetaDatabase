@@ -235,6 +235,7 @@ CREATE TABLE IF NOT EXISTS import_jobs (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS import_jobs_queue_idx ON import_jobs(state, lease_until, created_at);
 CREATE INDEX IF NOT EXISTS import_jobs_account_provider_active_idx ON import_jobs(account_id, provider, state, created_at);
+CREATE INDEX IF NOT EXISTS import_jobs_active_account_idx ON import_jobs(account_id, created_at) WHERE state IN ('PENDING','RUNNING');
 CREATE UNIQUE INDEX IF NOT EXISTS import_jobs_one_active_weread_idx ON import_jobs(account_id) WHERE provider='weread' AND state IN ('PENDING','RUNNING');
 
 CREATE TABLE IF NOT EXISTS worker_heartbeats (

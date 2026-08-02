@@ -2,6 +2,8 @@
 Description=阅迁 微信读书与多平台导入工作器 v0.0.0.1.9
 After=network-online.target weread-port-platform.service
 Wants=network-online.target
+StartLimitIntervalSec=5min
+StartLimitBurst=6
 
 [Service]
 Type=simple
