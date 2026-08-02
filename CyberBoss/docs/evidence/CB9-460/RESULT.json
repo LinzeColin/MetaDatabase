@@ -1,0 +1,28 @@
+{
+  "node": "CB9-460",
+  "title": "统一 Session 接入真实链路（CB9-400 收尾）",
+  "acceptance": [
+    "AC-002",
+    "AC-004",
+    "AC-044"
+  ],
+  "discovery": {
+    "what": "生产库 agent_sessions_v009 = 0 行",
+    "when": "2026-08-02，迁移 016 已在生产应用、CB9-400 的 73 条测试全绿之后",
+    "why_it_matters": "「同一个人连续两轮」「重启后还认得他」这两条验收没有任何数据可验；我此前把 S4 标成完成是错的",
+    "shape": "模块能用 ≠ 真实链路上有人用它——这个仓反复栽的形状，这次是我造的"
+  },
+  "fix": {
+    "wired_at": "CyberbossApp#admitDurableTurn，拿到 user_id 之后",
+    "session_key": "HMAC(secret, mode + NUL + user_id)——不含时间不含随机数（跨重启稳定），含 user_id（两人不撞），HMAC 不拼接（反推不出 user_id）",
+    "upsert": "ON CONFLICT(user_id,mode)，一次事务；会话钥匙在 UPDATE 分支里不更新",
+    "failure_mode": "记账是旁路，异常吞掉但 console.warn——静默失败正是这张表空了这么久没人发现的原因"
+  },
+  "tests": {
+    "file": "app/test/cb9-460-live-session-wiring.test.js",
+    "count": 14,
+    "most_important": "直接读 app.js 断言 admitDurableTurn 里调了 touchTurnSession，且排在拿到 user_id 之后——上一轮的失败不是判定写错，是没人在真实路径上调它"
+  },
+  "deployed": "38771ed0bca19e403…",
+  "live_verification": "PENDING_REAL_MESSAGE"
+}
