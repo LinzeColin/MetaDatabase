@@ -1,19 +1,59 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-101",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_markdown_importer.py tests/focused/test_exports.py",
-      "command_sha256": "3e0e09d3dc4b32c0d3a21e512750bb2a53d622f344462aae3a27b78caa6e4f06",
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "7 focused tests passed."
+      "status": "PASS",
+      "summary": "ADAPT_CURRENT_UPSTREAM; conflict=0; blocked=0; semantic summary bound in RESULT.json."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_account_mirror_sync.py tests/focused/test_generic_web_connector.py tests/focused/test_markdown_importer.py",
+      "command_sha256": "03a994888f91826eddd8e39b4692e25eb1d0315ec0647b235fd5fbf8ec9ea53c",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "7 passed."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_social_archiver_import.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_extension_e2n_contract.py tests/stage/test_stage1_western.py",
+      "command_sha256": "c10aae981156960ee140e8a0e48175a37f6f2dce2bf0581670ba045950fe20cf",
+      "executed": true,
+      "exit_code": 1,
+      "status": "FAIL_EXPECTED_REPAIR",
+      "summary": "Before repair: 14 passed, 1 failed because the PWA omitted the Social Archiver/Markdown ZIP import entry."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_social_archiver_import.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_extension_e2n_contract.py tests/stage/test_stage1_western.py",
+      "command_sha256": "c10aae981156960ee140e8a0e48175a37f6f2dce2bf0581670ba045950fe20cf",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "16 passed; one upstream Starlette/httpx TestClient deprecation warning only."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && node --check apps/pwa/app.js && python3 scripts/check_brand.py && python3 scripts/secret_scan.py . && uv lock --check --offline",
+      "command_sha256": "e9da5bbe6ce791ca7780b7e4f392a7c4f520fad5241f73c8cf7f297f103b9c96",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "PWA JavaScript syntax, brand check, secret scan and offline lock check all passed."
+    },
+    {
+      "command": "git diff --check",
+      "command_sha256": "466c2f308b48c7661d646fdd068fbecea974c665fe65dbf8ed508f224180ce0b",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "No whitespace errors before the implementation commit."
     }
   ],
-  "record_sha256": "48a7d79c7bc5d3cdf02646afe99a9ea79b6d650e810c7a071c81f48f2473a5df"
+  "generated_at": "2026-08-02T22:44:41Z",
+  "implementation_commit": "21a61a9acd0f87484f91770c5289dbbd77bb61a6",
+  "implementation_tree": "e9ca443299b954a5ae8c0793fbf7f1d822fc1a30",
+  "record_sha256": "5b17d31289c26713c6da2857237ca2e9797e8c352db0c8079025573c71a673a2",
+  "schema_version": "1.0",
+  "task_id": "SA-101",
+  "taskpack_version": "v0.0.0.6"
 }

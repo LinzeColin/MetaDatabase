@@ -1,30 +1,79 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-101",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S1",
-  "title": "完成通用网页和 Social Archiver 本地导入",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
   "acceptance_ids": [
     "AC-SA-101"
   ],
+  "evidence_binding": {
+    "api_sha256": "6e2b86372060ecaa71464b0e6c5e9fd772aa9e962114c07be657bfafbd72e829",
+    "frozen_account_mirror_sync_test_sha256": "f762d63fd7226062edbe83ce5318788a0a5fc652dc119f907b2b018a7f67ca1e",
+    "frozen_generic_web_contract_test_sha256": "2b43ab25cc4d9eb0e2629353f0eed0be7e960ef129a8a7137c6a74eff44c0a42",
+    "frozen_markdown_importer_test_sha256": "dd0ab8a3375735c8c544dad6eb87cc829a48d6c030d48b25eb65397e53002f3d",
+    "implementation_commit": "21a61a9acd0f87484f91770c5289dbbd77bb61a6",
+    "implementation_tree": "e9ca443299b954a5ae8c0793fbf7f1d822fc1a30",
+    "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "local_generic_web_connector_test_sha256": "71ff2645b0335f992d1531cdd186fc904e9bcd9aec65c64a5b286af8d226113f",
+    "local_social_archiver_import_test_sha256": "7426d67681d907f35adc6bc3a2744504f97caf0f9285f9b63594e835b870628f",
+    "markdown_watch_sha256": "54edf90ef619dd47dcb0c3d6c494a877b315d1861d9fa099847be1c6d9e29e22",
+    "pwa_app_sha256": "b062af3e7435a06557754df6c303d33340d67ee8908240f5c6b213187c52afc3",
+    "pwa_index_sha256": "88d0bc11775cf3e22e5bf6abc7c399f7a4e04a4dce8eac712bbfb16d2ef6e62f",
+    "pwa_styles_sha256": "adff75c24dc7cf8e17fda12d1dc04190ed5f4fa2df7839dc4f594ba6df10d23e",
+    "semantic_classifier_sha256": "24efb8cc2fec4c144fe014bb0fef52f2ca27d7df5b8f4fd443e254c7abf07265",
+    "service_sha256": "8da199e528d11d2a2d5480e2a772c7c67247fea124be33a8c68b45245aa7204f",
+    "social_archiver_bundle_sha256": "763671c9c6ab8f8c8c886f26645f02d6481294c450ce847e7297de6cdbefe4f0",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494"
+  },
+  "generated_at": "2026-08-02T22:44:41Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "No Chrome browser or unpacked extension was loaded, refreshed, or paired.",
+    "No real account, bookmark permission grant, platform request, provider action, deployment, or production action was attempted.",
+    "The PWA ZIP dialog and raw-upload path were validated in local Fixture/API tests and JavaScript syntax only; no deployed browser interaction was run.",
+    "PASS is limited to the Task Pack Fixture/local API/static checks. Product runtime and real-world acceptance remain NOT_RUN."
+  ],
+  "live_environment_status": "NOT_RUN",
+  "oracle": "Chrome 书签与本地导入均可一次批量进入统一账号/关系/收藏夹模型；重复导入幂等，恶意包拒绝，单条网页仅为兜底。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-101/history/pre-v0.0.0.6-stage1-import-gate/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "bdf5d342a2f16b90b3a67261b44b96380dae693f9f5632b8ebd8c8c5079c984e",
+    "prior_result_sha256": "3f0e6fe98d3325e7f043de49cf59afa244603367e95843efc2e4e3d96e4a3fad"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "record_sha256": "04e24664e30eae43a6c0794c162a3e04d17442376f0aef10684f405baf7fe7c8",
+  "result_summary": "保留当前上游的 Markdown/Social Archiver ZIP 解析、路径拒绝、L0/L1/L3 默认和幂等内容身份；补齐此前缺失的 PWA 零门槛 ZIP 导入入口。入口只接收本地 ZIP、在客户端限制 200 MiB、将原始包以 application/zip 发往既有受保护接口，并将安全文件名置入元数据请求头。服务端继续拒绝路径穿越、符号链接、加密 ZIP、超额条目及压缩炸弹。",
+  "schema_version": "1.0",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "scope": "The sealed v0.0.0.6 generic-web assertions remain semantically unchanged; the current upstream test adds an end-to-end L0/L1/L3 check, and only the missing PWA import surface was adapted.",
+    "summary": {
+      "adapt": 100,
+      "apply": 26,
+      "blocked": 0,
+      "conflict": 0,
+      "equivalent": 6,
+      "obsolete": 0,
+      "satisfied": 90
+    }
+  },
+  "stage": "S1",
+  "status": "PASS",
+  "task_id": "SA-101",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-101"
   ],
-  "oracle": "当前页、Markdown/ZIP/本地媒体导入可去重、可回放，并形成 L0/L1/L3。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "7 focused tests passed.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "751056a3fa3fcd4dc260eb800df0a408b897f3523236f3eadc20d4f1a10a656e"
+  "title": "完成 Chrome 书签全量/增量和 Social Archiver/官方导入",
+  "validation": {
+    "brand_check": "PASS; hits=[]",
+    "frozen_generic_web_contract": "PASS; the two sealed test functions are AST-equivalent, while the current test adds an end-to-end public-URL/L0-L1-L3 assertion.",
+    "git_diff_check": "PASS before implementation commit",
+    "initial_related_stage1_regression": "14 passed, 1 failed before repair because the PWA omitted the Social Archiver/Markdown ZIP import entry.",
+    "javascript_syntax": "PASS; node --check apps/pwa/app.js",
+    "related_stage1_regression": "16 passed; one upstream Starlette/httpx TestClient deprecation warning only.",
+    "secret_scan": "PASS; hits=[]",
+    "semantic_classifier": "PASS; ADAPT_CURRENT_UPSTREAM; conflict=0; blocked=0.",
+    "taskpack_focused_pytest": "7 passed.",
+    "uv_lock_check_offline": "PASS"
+  }
 }
