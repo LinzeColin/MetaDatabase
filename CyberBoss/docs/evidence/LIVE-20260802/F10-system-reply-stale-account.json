@@ -1,0 +1,72 @@
+{
+  "defect_id": "F10",
+  "title": "系统直回把会话记到上一条系统消息那个号的人头上",
+  "found_at_utc": "2026-08-02T01:54:00Z",
+  "found_by": "修 F9 之后顺着同一条路径读代码",
+  "severity": "high",
+  "blocks_acceptance": [
+    "AC-002"
+  ],
+  "status": "fixed_and_deployed",
+  "note": "这一条从来没有在生产上产生过错误的行——因为 F9 让整条路一行都写不进去。F9 修好之后它才会开始出错，所以必须在同一批里修掉。",
+  "root_cause": {
+    "file": "app/src/core/app.js",
+    "function": "noteBotInitiated",
+    "before": "this.touchSystemSession(this.activeSystemMessageAccountId || \"\", senderId, resolved)",
+    "problem": "activeSystemMessageAccountId 是留在对象上的可变字段，只在 dispatchSystemMessage（app.js:5749）里赋值。入门引导、状态、后台链接、提醒到点这几条直回走 noteDirectReply → noteBotInitiated，读到的是上一条系统消息留下的号。",
+    "consequence": "不是『记不上』，是『记到别人头上』。同一个人在不同号下本来就是两个 user_id（有意的隔离，见测试『同一个人在不同号下不是同一条会话』）。拿陈旧的号去 resolveByPrincipal，要么查不到静默丢掉，要么查到另一条身份，把这次会话记在那个人身上。",
+    "why_invisible": "resolveByPrincipal 查不到时 resolvePrincipalSession 返回 null，touchSystemSession 直接 return null——没有异常、没有日志、没有症状。"
+  },
+  "fix": {
+    "commit": "02f973585b56",
+    "approach": "给 noteBotInitiated / noteDirectReply 加显式 accountId 参数，三个调用点各自把手上真正的号传下去",
+    "call_sites": [
+      {
+        "line": 1435,
+        "passes": "account.accountId",
+        "path": "体检结果告诉主人"
+      },
+      {
+        "line": 4538,
+        "passes": "normalized.accountId",
+        "path": "入门引导 / 状态 / 后台链接 / 访客主动问候"
+      },
+      {
+        "line": 5705,
+        "passes": "reminder.accountId",
+        "path": "提醒到点发出去了"
+      },
+      {
+        "line": 5722,
+        "passes": "reminder.accountId",
+        "path": "提醒发不出去，放弃"
+      }
+    ],
+    "fallback_kept": "activeSystemMessageAccountId 留作兜底，因为 streamDelivery 那条路确实没把号带下来。触发条件改成『调用方没给』（accountId === null）而不是『值为空』——否则显式传空字符串会被兜底盖掉。"
+  },
+  "sentinel": {
+    "tests_added": 2,
+    "structural_guarantee": "第二条盯着『activeSystemMessageAccountId 被真正读取的次数必须恰好是 1』（排除赋值行和注释行）。兜底一旦重新变成默认口径，这条立刻红。",
+    "mutation_verified": [
+      {
+        "mutation": "把兜底改回无条件读那个可变字段",
+        "result": "『那个可变字段只兜底一条路』红"
+      },
+      {
+        "mutation": "让提醒到点不传 accountId",
+        "result": "『系统直回必须带上自己的号』红"
+      }
+    ]
+  },
+  "regression": {
+    "main_suite": "1530 pass / 0 fail",
+    "contract_suite": "72 pass / 0 fail"
+  },
+  "deploy": {
+    "release": "02f973585b5608ff0bdd3bbc264feb0e01502aa1",
+    "release_short": "02f97358",
+    "deployed_at_utc": "2026-08-02T01:56Z",
+    "verified": "验证通过：跑的就是 02f973585b56，公网 https://boss.linzezhang.com/admin 打得开"
+  },
+  "rollback": "ops/deploy-to-cloud.sh --rollback 回到 36afa5f7d502。回滚后系统直回会退回读那个可变字段，会话可能记错人；其余功能不受影响。"
+}
