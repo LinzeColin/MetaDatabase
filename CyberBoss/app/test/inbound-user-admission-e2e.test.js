@@ -457,10 +457,20 @@ test("the live operational projection reports all fifteen capabilities in both m
   );
   assert.equal(byLine.get("user_isolation").state, "healthy");
   assert.equal(byLine.get("user_isolation").queue_depth, 2);
-  // An unconfigured dependency is activation_pending, never a quiet healthy.
+  // An unconfigured dependency is never a quiet healthy.
   assert.equal(byLine.get("r2_oci_objects").state, "activation_pending");
-  assert.equal(byLine.get("backup_restore").state, "activation_pending");
   assert.equal(byLine.get("release_rollback").state, "activation_pending");
+  // backup_restore 这一行细分过一次（F13）：以前「没配置」和「配了但一次都
+  // 没成功过」挤在同一格 activation_pending 里，于是异地冷备连续失败四天时
+  // 面板照样是 healthy——因为它判的是 backupConfigured，也就是「备份器构造
+  // 出来了」。现在两态分开：
+  //
+  //   没配置             → not_started
+  //   配了但从未成功      → activation_pending
+  //
+  // 这条断言原本的意思是「没配置绝不能悄悄变健康」，那个意思一点没变。
+  assert.equal(byLine.get("backup_restore").state, "not_started");
+  assert.notEqual(byLine.get("backup_restore").state, "healthy");
 });
 
 test("a host whose disk cannot be measured is refused rather than admitted", () => {

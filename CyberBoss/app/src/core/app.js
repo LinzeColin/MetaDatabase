@@ -1027,6 +1027,13 @@ class CyberbossApp {
       canonicalQueueDepth: Number(canonicalStatus?.pending || 0),
       objectStoreConfigured: this.backupRunner?.status().ready === true,
       backupConfigured: this.backupRunner?.status().ready === true,
+      // 「配好了」和「真备份成功了」是两件事（AC-026 禁止配置性伪绿）。
+      //
+      // backup_restore 原来判的是 backupConfigured——也就是「备份器构造出来了」。
+      // 于是异地冷备连续失败四天，面板一直显示 healthy。这个文件自己在
+      // LINE_NOTES 里写着 backup_restore 的口径是 "receipt only when both
+      // copies land"，而代码没有照做。
+      backupLastSuccessAt: this.readLatestBackupAt(),
       ownerRuntimeReady: runtimeReadiness?.ready === true,
       releaseConfigured: false,
       budgetReady: Boolean(this.userTurnRuntime),
@@ -1414,21 +1421,37 @@ class CyberbossApp {
     };
   }
 
-  // 冷备是另一个服务写的，本进程读不到它的日志；快照目录的最新一个就是证据。
+  // 冷备是另一个服务写的，本进程读不到它的日志。
+  //
+  // 读**回执**目录，不读快照目录——这两个差着一整件事：
+  //
+  //   快照目录（backup_*/）在本地打完包就有了。上传到 R2 那一步失败，
+  //   目录照样在，时间戳照样是新的。
+  //
+  //   回执目录（receipts/）只有**远端真的收下并读回校验通过**才会写。
+  //
+  // 原来读的是快照目录。于是 2026-08-01T23:53 起 cyberboss-backup 连续以
+  // CB530_R2_PUT_FAILED 退出、异地副本停在 07-29 的那四天里，这个函数一直
+  // 报告「刚刚备份过」——因为本地快照确实每天都在生成。
+  //
+  // 冷备的全部意义是**不在同一台机器上**。本地快照和生产库同机，那台机器没了
+  // 两份一起没。所以这里量的必须是异地那一份。
   readLatestBackupAt() {
     try {
-      const root = this.config.backupLocalDir
-        || path.join(this.config.stateDir || "", "snapshots");
+      const root = path.join(
+        this.config.backupLocalDir || path.join(this.config.stateDir || "", "snapshots"),
+        "receipts",
+      );
       let newest = 0;
       for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
-        if (!entry.isDirectory() || !entry.name.startsWith("backup_")) {
+        if (!entry.isFile()) {
           continue;
         }
-        const at = fs.statSync(path.join(root, entry.name)).mtimeMs;
-        newest = Math.max(newest, at);
+        newest = Math.max(newest, fs.statSync(path.join(root, entry.name)).mtimeMs);
       }
       return newest ? new Date(newest).toISOString() : "";
     } catch {
+      // 读不出来就是不知道，不是「刚备份过」。
       return "";
     }
   }

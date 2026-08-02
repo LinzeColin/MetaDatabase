@@ -184,7 +184,36 @@ function countZeroAgentInvocations() {
 // reachable in this process. `activation_pending` is the honest answer for a
 // dependency that needs a credential or a target host this deployment has not
 // been given.
-function projectLines(facts) {
+// 冷备这一行怎么判。见调用处那段注释：量的是**异地那一份**的新鲜度，
+// 不是「备份器配好了没有」。
+const BACKUP_FRESH_MS = 26 * 60 * 60 * 1000;
+const BACKUP_STALE_MS = 72 * 60 * 60 * 1000;
+
+function backupLine({ backupConfigured, backupLastSuccessAt, now }) {
+  if (!backupConfigured) {
+    return { state: "not_started", queue_depth: 0, reason_code: "BACKUP_TARGET_ABSENT" };
+  }
+  const at = backupLastSuccessAt ? Date.parse(backupLastSuccessAt) : NaN;
+  if (!Number.isFinite(at)) {
+    // 配了，但一次都没成功过。这不是「坏了」，是「还没跑起来」——
+    // 和「跑过而且现在坏了」要分开，那是 AC-025 的整条道理。
+    return { state: "activation_pending", queue_depth: 0, reason_code: "BACKUP_NEVER_COMPLETED" };
+  }
+  const age = Date.parse(new Date(now).toISOString()) - at;
+  if (!(age >= 0)) {
+    // 回执比现在还新：钟不对，或者文件被人动过。不当成健康。
+    return { state: "degraded", queue_depth: 0, reason_code: "BACKUP_RECEIPT_IN_FUTURE" };
+  }
+  if (age <= BACKUP_FRESH_MS) {
+    return { state: "healthy", queue_depth: 0, reason_code: "ok" };
+  }
+  if (age <= BACKUP_STALE_MS) {
+    return { state: "degraded", queue_depth: 0, reason_code: "BACKUP_STALE" };
+  }
+  return { state: "blocked", queue_depth: 0, reason_code: "BACKUP_OFFSITE_MISSING" };
+}
+
+function projectLines(facts, { now = new Date() } = {}) {
   const {
     channelReady = false,
     admissionEnabled = false,
@@ -198,6 +227,7 @@ function projectLines(facts) {
     canonicalQueueDepth = 0,
     objectStoreConfigured = false,
     backupConfigured = false,
+    backupLastSuccessAt = null,
     ownerRuntimeReady = false,
     releaseConfigured = false,
     budgetReady = false,
@@ -263,11 +293,23 @@ function projectLines(facts) {
       queue_depth: 0,
       reason_code: objectStoreConfigured ? "ok" : "OBJECT_STORE_CREDENTIAL_ABSENT",
     },
-    backup_restore: {
-      state: backupConfigured ? "healthy" : "activation_pending",
-      queue_depth: 0,
-      reason_code: backupConfigured ? "ok" : "BACKUP_TARGET_ABSENT",
-    },
+    // 冷备这一行由**真实回执**判，不由「配好了没有」判。
+    //
+    // 原来写的是 `backupConfigured ? "healthy" : ...`——而 backupConfigured 的
+    // 意思只是「备份器构造出来了」。于是 2026-08-01T23:53 起异地上传连续失败、
+    // 副本停在 07-29 的那四天里，这一行一直是 healthy。
+    //
+    // 这正是本文件 LINE_NOTES 里给 backup_restore 写的口径：
+    // "receipt only when both copies land"——意图早就写下来了，代码没照做。
+    // 也正是 AC-026 明令禁止的配置性伪绿。
+    //
+    // 门槛按每天一次的节奏定：
+    //   26 小时内有回执 → healthy（允许一次运行时刻的漂移）
+    //   26～72 小时     → degraded（漏了一两次，值得看一眼）
+    //   超过 72 小时     → blocked（连着三天没有异地副本，这是要出事的）
+    // 没配置 → not_started；配了但从来没成功过 → activation_pending。
+    // 一次抖动不会立刻翻红，而真的停摆藏不过三天。
+    backup_restore: backupLine({ backupConfigured, backupLastSuccessAt, now }),
     owner_codex_runtime: {
       state: ownerRuntimeReady ? "healthy" : "activation_pending",
       queue_depth: 0,
@@ -370,7 +412,7 @@ function projectLiveStatus({
   const snapshot = buildStatusSnapshot({
     version: PRODUCT_VERSION,
     generatedAt,
-    lines: projectLines(facts),
+    lines: projectLines(facts, { now: generatedAt }),
     modelUsage,
     modes: {
       OWNER: {
