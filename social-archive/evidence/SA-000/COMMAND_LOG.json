@@ -1,19 +1,55 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-000",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
       "command": "python3 START_HERE.py verify",
       "command_sha256": "dadc1aa7ff1cabb627b6e078380195ea196c69820ecef00cca10403e9fa14b5b",
       "executed": true,
-      "status": "PASS",
+      "exit_code": 1,
+      "status": "BLOCKED_ENVIRONMENT",
+      "summary": "/usr/bin/python3 is Python 3.9.6 and cannot import tomllib; no package or interpreter was changed."
+    },
+    {
+      "command": "\"/Users/linzezhang/.local/bin/python3.12\" START_HERE.py verify",
+      "command_sha256": "0bc7056854af97e86acd7ec74d64003a59d268297bdc589345193c383b2742f7",
+      "executed": true,
+      "exit_code": 1,
+      "status": "REJECTED_CONTAMINATED_WORKSPACE",
+      "summary": "The historical /tmp extraction had two __pycache__ artifacts; global Python 3.12 also lacked PyYAML and pytest. Its FAIL was not accepted as package evidence."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 \"$SA_TASKPACK_PYTHON\" 10_ACCEPTANCE/scripts/verify_taskpack.py --zip \"$TASKPACK_ZIP\"",
+      "command_sha256": "217a96b19b43233e5976210495535a714695eace046a5a7467cad4eeeff5dd05",
+      "executed": true,
       "exit_code": 0,
-      "summary": "Sealed Task Pack verification PASS: 26 checks, 383 manifest entries, 73 candidate tests."
+      "status": "PASS",
+      "summary": "Fresh safe ZIP extraction: 27 checks including zip_safety, 395 manifest entries, and 97 passed with one upstream Starlette deprecation warning."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 \"$SA_TASKPACK_PYTHON\" START_HERE.py verify",
+      "command_sha256": "752097131d4c813b6c8792a5960dc6835aaa04dd8a9b2cf6e08fbc00b8fd5abd",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Fresh independent extraction using the Task Graph START_HERE.py entry: 26 checks, 395 manifest entries, and 97 passed with one upstream Starlette deprecation warning."
+    },
+    {
+      "command": "git -C \"$TARGET_REPOSITORY\" ls-remote origin refs/heads/main && git -C \"$TARGET_REPOSITORY\" merge-base --is-ancestor 7925695c0078bb3b98d71636f5a1315270d9de87 HEAD",
+      "command_sha256": "170ab405365368ba6595b7f87ad3fb89f9cc7f0266fc3941378caa571e7307eb",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Remote main remained 7925695c0078bb3b98d71636f5a1315270d9de87; it is an ancestor of validated head 2d9f624420df34114dd173220a2af414c10ab00e."
     }
   ],
-  "record_sha256": "48961820bb74a6da5e6db209481dc68cec6bf5725000816d06a6ba13405a580d"
+  "generated_at": "2026-08-02T23:48:16Z",
+  "implementation_commit": "2d9f624420df34114dd173220a2af414c10ab00e",
+  "implementation_tree": "e02ac6a38634b20ddbecdc87e83875fd51c3f751",
+  "record_context": {
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "validated_head_after_latest_main_reconciliation": "2d9f624420df34114dd173220a2af414c10ab00e"
+  },
+  "record_sha256": "e9a0c4095126d987e96aac8c9b90e262323f8afa63b4af8467af51f22c6370cc",
+  "schema_version": "1.0",
+  "task_id": "SA-000",
+  "taskpack_version": "v0.0.0.6"
 }

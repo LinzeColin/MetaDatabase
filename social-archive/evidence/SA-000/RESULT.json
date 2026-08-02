@@ -1,30 +1,60 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-000",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S0",
-  "title": "校验最终任务包并建立可恢复执行上下文",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "satisfied",
   "acceptance_ids": [
     "AC-SA-000"
   ],
+  "evidence_binding": {
+    "acceptance_contract_sha256": "a623223ff41b51ad703b5f8c79d92b12f5bcefdcacbd38ab4a735f0cc1f8d2aa",
+    "acceptance_matrix_sha256": "19d4da6f652bed8ed4daf233e0005af012761b69a489d5cecd6a686eb0882fbd",
+    "implementation_commit": "2d9f624420df34114dd173220a2af414c10ab00e",
+    "implementation_tree": "e02ac6a38634b20ddbecdc87e83875fd51c3f751",
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "manifest_sha256": "adc04a35b32199e48fb3fba196df2ab106532904d13be4b79032e8e8bde6d230",
+    "start_here_sha256": "d0ce079dad8c0e3385dea905c008c04c256a22f02e82edc450cc17686e5af957",
+    "task_graph_sha256": "dfb8ef7a69168dd5b0fb6faaf6b44883fdb5380896f5b29b6d41c5517ae2352b",
+    "taskpack_verifier_sha256": "2ad2209013a35a7757fd829ed9db7997ae15ed9ad35285d7c8e28144934db1c4",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "validated_head_after_latest_main_reconciliation": "2d9f624420df34114dd173220a2af414c10ab00e"
+  },
+  "generated_at": "2026-08-02T23:48:16Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "Task Pack verification proves the sealed preparation artifact only. It does not prove a real account connection, extension pairing, provider request, cloud replica, deployment, release, or product runtime.",
+    "The macOS default /usr/bin/python3 is Python 3.9.6 and lacks tomllib, so the literal default command is BLOCKED_ENVIRONMENT. No interpreter was installed or modified; the successful checks used an existing isolated Python 3.12.13 environment with PyYAML and pytest.",
+    "The previously reused /tmp extraction contained Python cache artifacts and was rejected rather than repaired or treated as valid evidence. Acceptance used fresh ZIP extraction only.",
+    "No source, runtime data, secrets, credentials, Docker service, external provider, cloud resource, deployment, or GitHub upload was touched."
+  ],
+  "live_environment_status": "NOT_RUN",
+  "oracle": "任务包自验 PASS，所有哈希、DAG、语法、路径和封包边界一致。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-000/history/pre-v0.0.0.6-taskpack-integrity/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "933324e3c38cb005240af0bcfe8d1816a5809d2a5e8be2f95b10ff8e54483584",
+    "prior_result_sha256": "c4a59468b7dc35bf63ba009ebfbd6363f2c648255d567dcdeb656e4ccd0e71b5"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "record_sha256": "9e4311e0cf54bd29740a6e08fffe4a2502b597e9cf178a2c0ee9fed4507c0126",
+  "result_summary": "从原始密封 v0.0.0.6 ZIP 的新鲜安全解包完成 SA-000：ZIP 模式通过 27 项检查（含 zip_safety），任务图入口 START_HERE.py verify 通过 26 项检查；两次均验证 395/395 manifest entries、32-task DAG、18 项 requirement traceability、所有结构/语言/边界检查，并运行冻结候选全量 97/97 pytest。旧缓存污染的临时解包和不兼容 Python 3.9 均被显式拒绝，不作为通过证据。",
+  "schema_version": "1.0",
+  "semantic_disposition": "satisfied",
+  "semantic_reconciliation": {
+    "decision": "satisfied",
+    "scope": "SA-000 is a sealed-package verification task. No upstream source was replaced or adapted; the current checkout was bound only after the original ZIP independently passed fresh-extraction integrity verification."
+  },
+  "stage": "S0",
+  "status": "PASS",
+  "task_id": "SA-000",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-000"
   ],
-  "oracle": "任务包自验 PASS，所有哈希、DAG、语法、路径和封包边界一致。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Sealed Task Pack verification PASS: 26 checks, 383 manifest entries, 73 candidate tests.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "077cb5e383003f12c8220de5eaad68605085763207bddb546528251f995aabe5"
+  "title": "校验最终任务包并建立可恢复执行上下文",
+  "validation": {
+    "clean_root_entry_verify": "PASS; 26 checks, 395 manifest entries, 97 passed, 1 upstream Starlette deprecation warning.",
+    "default_system_python3": "BLOCKED_ENVIRONMENT; /usr/bin/python3=3.9.6 lacks tomllib. This result is not accepted as a Task Pack failure or PASS.",
+    "fresh_zip_verify": "PASS; zip_safety plus 26 Task Pack checks, 395 manifest entries, 97 passed, 1 upstream Starlette deprecation warning.",
+    "historical_tmp_extraction": "REJECTED; cache artifacts invalidated manifest/hygiene and global Python 3.12 lacked PyYAML/pytest. It was not modified or used as evidence.",
+    "latest_main_reconciliation": "PASS; origin/main=7925695c0078bb3b98d71636f5a1315270d9de87 is an ancestor of validated head 2d9f624420df34114dd173220a2af414c10ab00e.",
+    "zip_sha256": "PASS; 921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494."
+  }
 }

@@ -1,0 +1,21 @@
+{
+  "archive_reason": "The active SA-000 evidence predates the sealed v0.0.0.6 run and is retained verbatim, not reclassified as v0.0.0.6 evidence.",
+  "archived_at": "2026-08-02T23:48:16Z",
+  "files": [
+    {
+      "path": "RESULT.json",
+      "raw_sha256": "c4a59468b7dc35bf63ba009ebfbd6363f2c648255d567dcdeb656e4ccd0e71b5",
+      "record_sha256": "077cb5e383003f12c8220de5eaad68605085763207bddb546528251f995aabe5",
+      "taskpack_version": "v0.0.0.5"
+    },
+    {
+      "path": "COMMAND_LOG.json",
+      "raw_sha256": "933324e3c38cb005240af0bcfe8d1816a5809d2a5e8be2f95b10ff8e54483584",
+      "record_sha256": "48961820bb74a6da5e6db209481dc68cec6bf5725000816d06a6ba13405a580d",
+      "taskpack_version": "v0.0.0.5"
+    }
+  ],
+  "predecessor_commit": "7f25d51bb1c3e8752c4727498699caf636d2b436",
+  "record_sha256": "98605a63353aefd19af650f7d6e34d9d732cfc8a1ab6557550c45d0f1507b2bf",
+  "schema_version": "1.0"
+}
