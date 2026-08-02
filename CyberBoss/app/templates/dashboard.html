@@ -194,6 +194,18 @@
   </nav>
 
   <section id="tab-overview">
+    <!-- 总开关放在最上面。它是主人对这套系统唯一的「全停」手段，
+         埋在设置里的开关等于没有——真出事的时候他找不到。 -->
+    <div class="hero" id="switch-card" style="align-items:center;justify-content:space-between;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <i class="dot warn" id="switch-dot"></i>
+        <div style="min-width:0">
+          <strong id="switch-title">正在读取开关……</strong>
+          <span id="switch-sub" class="hint" style="display:block"></span>
+        </div>
+      </div>
+      <button id="switch-btn" class="primary" style="flex:none;min-height:44px" disabled>…</button>
+    </div>
     <div class="hero">
       <i class="dot warn" id="dot"></i>
       <div><strong id="headline">正在读取……</strong><span id="subline">稍等一下</span></div>
@@ -530,6 +542,7 @@
     }
   }
   function refresh() {
+    loadSwitch();
     fetch("/admin/api/overview", { headers: authed(), credentials: "same-origin" })
       .then(function (r) { if (!r.ok) { throw new Error(String(r.status)); } return r.json(); })
       .then(render)
@@ -707,6 +720,73 @@
     wrap.appendChild(body);
     return wrap;
   }
+
+  // ── 一键上下线 ──────────────────────────────────────────
+  //
+  // 显示三种状态，不是两种：开着、停着、以及**读不出来**。把「读不出来」显示成
+  // 「停着」的话，主人会以为是自己关的，然后去点「开」，而真正的问题（文件坏了
+  // 或者权限没了）没人看见。
+  let switchBusy = false;
+  function paintSwitch(state) {
+    const dot = document.getElementById("switch-dot");
+    const title = document.getElementById("switch-title");
+    const sub = document.getElementById("switch-sub");
+    const btn = document.getElementById("switch-btn");
+    if (!state) {
+      dot.className = "dot warn";
+      title.textContent = "读不到开关状态";
+      sub.textContent = "网页和后台之间断了，先刷新一下";
+      btn.disabled = true;
+      btn.textContent = "—";
+      return;
+    }
+    const broken = state.reason === "state_unreadable"
+      || state.reason === "state_unrecognized"
+      || state.reason === "switch_not_wired";
+    // 「开关本身不健康」和「系统开着还是关着」是两件事，分开显示。
+    dot.className = "dot " + (broken ? "warn" : (state.online ? "ok" : "bad"));
+    if (state.reason === "switch_not_wired") {
+      title.textContent = "系统正在运行，但这个开关没接上";
+      sub.textContent = "后台没有配开关文件路径，按钮暂时按不动；系统本身照常收发消息。";
+    } else if (broken) {
+      title.textContent = "开关状态读不出来，已按停机处理";
+      sub.textContent = "状态文件坏了或者读不到；在修好之前它不会处理任何消息。";
+    } else {
+      title.textContent = state.online ? "系统正在运行" : "系统已停";
+      sub.textContent = state.online
+        ? "正常收发消息。按右边可以随时全停。"
+        : "不处理任何人的消息，也不存任何东西。";
+    }
+    btn.disabled = switchBusy || state.reason === "switch_not_wired";
+    btn.textContent = switchBusy ? "正在切换…" : (state.online ? "停止整个系统" : "重新启动系统");
+    btn.dataset.next = state.online ? "off" : "on";
+  }
+  function loadSwitch() {
+    fetch("/admin/api/system-switch", { headers: authed(), credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => paintSwitch(d && d.ok ? d.switch : null))
+      .catch(() => paintSwitch(null));
+  }
+  document.getElementById("switch-btn").addEventListener("click", function () {
+    const next = this.dataset.next === "on";
+    // 停机是影响所有人的操作，问一句再动手。开机不问——那是在修东西，
+    // 每次都拦一下只会让人烦。
+    if (!next && !window.confirm("停掉之后，所有人发来的消息都不会被处理，也不会被保存。确定？")) {
+      return;
+    }
+    switchBusy = true;
+    this.disabled = true;
+    this.textContent = "正在切换…";
+    fetch("/admin/api/system-switch", {
+      method: "POST",
+      headers: Object.assign({ "content-type": "application/json" }, authed()),
+      credentials: "same-origin",
+      body: JSON.stringify({ online: next }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { switchBusy = false; paintSwitch(d && d.ok ? d.switch : null); })
+      .catch(() => { switchBusy = false; paintSwitch(null); });
+  });
 
   function feedUrl(person) {
     return "/admin/api/conversations?limit=" + (person ? 200 : 60)

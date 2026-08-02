@@ -16,6 +16,7 @@ const test = require("node:test");
 const { DatabaseSync } = require("node:sqlite");
 
 const { CyberbossApp } = require("../src/core/app");
+const { OfflineNoticeLedger } = require("../src/services/operations/system-switch");
 const { UserAdmissionService } = require("../src/core/user-admission");
 const { UserTurnRuntime } = require("../src/core/user-turn-runtime");
 const { RuntimeSpoolDatabase } = require("../src/services/db/database-adapter");
@@ -118,6 +119,13 @@ function harness(t, {
     async handlePreparedMessage(normalized, options) {
       runtimeTurns.push({ senderId: normalized.senderId, options });
     },
+    // 一键上下线的闸（SWITCH-1）。挂上去而不是绕过去：这几条测试走的正是
+    // 真实入站路径，而闸就在那条路上——不挂的话，这里验的是一条线上不存在的路。
+    passesSystemSwitch: CyberbossApp.prototype.passesSystemSwitch,
+    systemSwitchState: CyberbossApp.prototype.systemSwitchState,
+    setSystemSwitch: CyberbossApp.prototype.setSystemSwitch,
+    isOwnerSender: CyberbossApp.prototype.isOwnerSender,
+    offlineNotices: new OfflineNoticeLedger(),
     admitInboundMessage: CyberbossApp.prototype.admitInboundMessage,
     sendAdmissionReply: CyberbossApp.prototype.sendAdmissionReply,
     // sendAdmissionReply 会把这一条记进后台「对话」栏——那条路不走 outbox，

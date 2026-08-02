@@ -1,0 +1,54 @@
+[
+ {
+  "mutation": "闸从入站锚点上摘掉",
+  "result": "转红"
+ },
+ {
+  "mutation": "状态文件坏了当成「跑」",
+  "result": "转红"
+ },
+ {
+  "mutation": "认不出来的状态当成「跑」",
+  "result": "转红"
+ },
+ {
+  "mutation": "没有文件时当成「停」",
+  "result": "转红"
+ },
+ {
+  "mutation": "不落盘，只在内存里改",
+  "result": "转红"
+ },
+ {
+  "mutation": "口令改成包含匹配",
+  "result": "转红"
+ },
+ {
+  "mutation": "主人的上线口令也被挡住",
+  "result": "转红"
+ },
+ {
+  "mutation": "停机期间每条都回",
+  "result": "转红"
+ },
+ {
+  "mutation": "重新上线不清通知台账",
+  "result": "转红"
+ },
+ {
+  "mutation": "接口不校验布尔值",
+  "result": "转红"
+ },
+ {
+  "mutation": "接口不鉴权",
+  "result": "转红"
+ },
+ {
+  "mutation": "状态文件里写上用户身份",
+  "result": "转红"
+ },
+ {
+  "mutation": "面板上把按钮拿掉",
+  "result": "转红"
+ }
+]

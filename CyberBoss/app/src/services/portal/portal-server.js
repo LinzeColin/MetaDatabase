@@ -160,6 +160,9 @@ class PortalHttpServer {
     // handler 里那句 typeof === "function" 判断直接跳过——线上一个时区都收
     // 不到，而 adapter 的 18 条单测全绿。第九次了。
     joinTimezoneSignal = null,
+    // 一键上下线（SWITCH-1）。读一个、写一个。
+    systemSwitchRead = null,
+    systemSwitchWrite = null,
     // 线上 release id，印在对应源码页上（CB9-540 / AC-029）。
     //
     // **第十次。** 这一条我也是先在别处写好、再回来发现构造函数里没接——
@@ -207,6 +210,8 @@ class PortalHttpServer {
     this.adminInsights = adminInsights;
     this.publicEntry = publicEntry;
     this.joinTimezoneSignal = joinTimezoneSignal;
+    this.systemSwitchRead = systemSwitchRead;
+    this.systemSwitchWrite = systemSwitchWrite;
     this.releaseIdProvider = releaseIdProvider;
     this.publicEntryStatus = publicEntryStatus;
     this.adminSessionIssue = adminSessionIssue;
@@ -418,6 +423,44 @@ class PortalHttpServer {
       response.writeHead(500, { ...SECURITY_HEADERS, "Content-Type": "text/plain; charset=utf-8" });
       response.end(`对应源码页暂时算不出来，源码在 ${SOURCE_URL}\n`);
     }
+    return null;
+  }
+
+  // 一键上下线：GET 读当前状态，POST 改。
+  async #handleSystemSwitch(request, response) {
+    // 和后台对话/语气同一条鉴权：会话 cookie 或管理员令牌，两者有其一。
+    if (!this.#sessionAuthorized(request) && !(this.adminToken && this.#tokenMatches(request))) {
+      this.#json(response, 401, { ok: false, code: "ADMIN_TOKEN_INVALID" });
+      return null;
+    }
+    if (request.method === "GET") {
+      if (typeof this.systemSwitchRead !== "function") {
+        this.#json(response, 404, { ok: false, code: "NOT_FOUND" });
+        return null;
+      }
+      this.#json(response, 200, { ok: true, switch: this.systemSwitchRead() });
+      return null;
+    }
+    if (request.method !== "POST" || typeof this.systemSwitchWrite !== "function") {
+      this.#json(response, 405, { ok: false, code: "METHOD_NOT_ALLOWED" });
+      return null;
+    }
+    let online;
+    try {
+      const raw = await readBody(request);
+      const body = JSON.parse(raw.toString("utf8") || "{}");
+      online = body.online;
+    } catch {
+      this.#json(response, 400, { ok: false, code: "BODY_INVALID" });
+      return null;
+    }
+    // 只认真正的布尔值。收 "false" 这个字符串会被 JS 当成真——
+    // 那意味着主人点「停」而系统听成了「开」，是这个接口最不能犯的错。
+    if (typeof online !== "boolean") {
+      this.#json(response, 400, { ok: false, code: "SWITCH_STATE_REQUIRED" });
+      return null;
+    }
+    this.#json(response, 200, { ok: true, switch: this.systemSwitchWrite({ online }) });
     return null;
   }
 
@@ -840,6 +883,11 @@ class PortalHttpServer {
     }
     // 顺序要紧：这一条必须排在 /admin/api/ 的通用分支前面，否则对话和语气会掉
     // 进 #handleAdminApi，跟着继承首次运行免令牌那条规则。
+    // 一键上下线。**必须是主人专属**——任何人能按的开关等于任何人都能让
+    // 整套系统停摆。走和对话/语气同一条鉴权路径。
+    if (pathname === "/admin/api/system-switch") {
+      return this.#handleSystemSwitch(request, response);
+    }
     if (OWNER_ONLY_ADMIN_APIS.some((name) => pathname === `/admin/api/${name}`)) {
       return this.#handleOwnerOnlyApi(
         request,

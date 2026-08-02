@@ -6,6 +6,7 @@ const path = require("path");
 
 const { createInboundFilter } = require("../src/adapters/channel/weixin/message-utils");
 const { CyberbossApp } = require("../src/core/app");
+const { OfflineNoticeLedger } = require("../src/services/operations/system-switch");
 const { StreamDelivery } = require("../src/core/stream-delivery");
 const {
   TRACE_STAGE_ORDER,
@@ -85,6 +86,15 @@ test("App policy gate performs zero Runtime dispatches for rejected inbound", as
         return "cb140-0123456789abcdef01234567";
       },
     },
+    // 一键上下线的闸（SWITCH-1）也在这条真实入站路径上，挂上来。
+    // 这条测试验的是「被策略拒掉的输入不触发任何 Runtime 调度」，
+    // 而开关闸排在策略之后——两者不冲突，但方法得在。
+    passesSystemSwitch: CyberbossApp.prototype.passesSystemSwitch,
+    systemSwitchState: CyberbossApp.prototype.systemSwitchState,
+    setSystemSwitch: CyberbossApp.prototype.setSystemSwitch,
+    isOwnerSender: CyberbossApp.prototype.isOwnerSender,
+    offlineNotices: new OfflineNoticeLedger(),
+    config: {},
     primeDeferredRepliesForSender() {
       throw new Error("rejected input reached deferred-reply handling");
     },

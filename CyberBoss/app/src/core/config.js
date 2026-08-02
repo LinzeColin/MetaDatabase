@@ -253,6 +253,13 @@ function readConfig() {
     stickerNormalizeGifScript: path.resolve(__dirname, "..", "..", "scripts", "normalize-sticker-gif.js"),
     diaryDir: path.join(stateDir, "diary"),
     locationStoreFile: path.join(stateDir, "locations.json"),
+    // 一键上下线的状态文件（SWITCH-1）。
+    //
+    // 和 runtime.db 分开放：数据库是给系统自己用的，而这个开关在系统**停着**的
+    // 时候也必须读得出来——如果它躺在一个只有跑起来才打得开的库里，
+    // 「系统停了怎么让它再起来」就成了鸡生蛋。
+    systemSwitchFile: process.env.CYBERBOSS_SYSTEM_SWITCH_FILE
+      || path.join(stateDir, "system-switch.json"),
     // loopback，不是 0.0.0.0（CB9-610 / AC-032）。
     //
     // 这一条原来默认绑所有网卡。它是**位置上报服务**——谁能打到它，谁就能往这台

@@ -82,6 +82,13 @@ const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
 const { collapseModes } = require("../services/status/business-matrix");
 const {
+  OFFLINE_NOTICE,
+  OfflineNoticeLedger,
+  matchOwnerSwitchCommand,
+  readSystemSwitch,
+  writeSystemSwitch,
+} = require("../services/operations/system-switch");
+const {
   ACCESS_DEFAULTS,
   PersonaStore,
   TONE_PRESETS,
@@ -381,6 +388,9 @@ class CyberbossApp {
     this.pendingImageInboundByScope = new Map();
     this.turnBoundaryScopeKeys = new Set();
     this.systemMessageDispatcher = null;
+    // 停机期间「只回一次」的台账。放在实例上而不是模块级：多个 app 实例
+    // （测试里就是）各记各的，不会互相串。
+    this.offlineNotices = new OfflineNoticeLedger();
     this.walkingSkeletonTrace = new WalkingSkeletonTraceStore({
       filePath: config.walkingSkeletonTraceFile,
       stateDir: config.stateDir,
@@ -1228,6 +1238,10 @@ class CyberbossApp {
       publicEntry: () => this.buildPublicEntry(),
       publicEntryStatus: (ticket) => this.pollPublicEntryQr(ticket),
       joinTimezoneSignal: (input) => this.recordJoinTimezoneSignal(input),
+      // 一键上下线（SWITCH-1）。网页端和微信口令走同一个 setSystemSwitch，
+      // 不各写一份。
+      systemSwitchRead: () => this.systemSwitchState(),
+      systemSwitchWrite: ({ online }) => this.setSystemSwitch({ online, actor: "owner" }),
       // 对应源码页上印的「线上版本」（CB9-540 / AC-029）。
       //
       // 用真实部署的那个 commit，不是 package.json 里的版本号——使用者要拿它
@@ -3511,12 +3525,116 @@ class CyberbossApp {
     }, {});
   }
 
+  // 系统总开关的当前状态。读一次文件，不缓存——缓存的话主人在网页上点了「停」，
+  // 而这个进程要等到重启才看见，那按钮就是假的。
+  systemSwitchState() {
+    try {
+      return readSystemSwitch({ file: this.config.systemSwitchFile });
+    } catch {
+      // 没给路径 = 这个功能压根没接上，**不是**「主人可能说过停」。
+      //
+      // 第一版把它和「状态文件坏了」归成一类，一起往「停」落。那是错的，而且
+      // 错得很危险：哪天有人重命名了这个 config 键，整个产品会直接全黑，
+      // 而用户看到的是一句「主人手动关掉了」——一句彻头彻尾的假话。
+      //
+      // 抓到这个的是那几条走真实入站路径的既有测试：它们的 harness 没有配这个
+      // 路径，于是每一条消息都被挡下了。纯函数测试全绿，因为它们都显式传了路径。
+      //
+      // 正确的落点是「跑」，但要在面板上明说开关没接上——系统照常运行，
+      // 只是那个按钮现在按不动。
+      return Object.freeze({
+        state: "online", online: true, reason: "switch_not_wired",
+        changed_at: null, changed_by: null,
+        evaluated_at: new Date().toISOString(),
+      });
+    }
+  }
+
+  // 主人是不是这个发信人。只认服务端配置里的 sender id，不认消息文本里的自称。
+  // 不用 #private：这个仓验证真实入站路径的方式是把 prototype 上的方法挑出来
+  // 挂到一个普通对象上再 call。私有方法在那种对象上会直接抛
+  // 「Cannot read private member」——于是守卫在真实路径的测试里根本跑不起来。
+  isOwnerSender(normalized) {
+    const owners = Array.isArray(this.config.ownerSenderIds) ? this.config.ownerSenderIds : [];
+    return owners.length > 0 && owners.includes(String(normalized?.senderId ?? ""));
+  }
+
+  // 这条消息能不能往下走。
+  //
+  // 返回 false = 到此为止，不入库、不排队、不调模型。
+  async passesSystemSwitch(normalized) {
+    const verdict = this.systemSwitchState();
+    const command = matchOwnerSwitchCommand(normalized?.text);
+    const isOwner = this.isOwnerSender(normalized);
+
+    // 主人的开关口令随时生效，包括停机期间——否则关掉之后唯一的复活方式是
+    // SSH 上服务器，那这个按钮对不会 SSH 的人就是个单向陷阱。
+    if (isOwner && command) {
+      const wantOnline = command === "resume";
+      if (wantOnline === verdict.online) {
+        await this.channelAdapter.sendText({
+          userId: normalized.senderId,
+          text: wantOnline ? "它本来就是开着的。" : "它已经是停着的了。",
+          contextToken: normalized.contextToken,
+        }).catch(() => {});
+        return false;
+      }
+      this.setSystemSwitch({ online: wantOnline, actor: "owner" });
+      await this.channelAdapter.sendText({
+        userId: normalized.senderId,
+        text: wantOnline
+          ? "开了。现在开始正常收消息。"
+          : "停了。在你说「上线」之前，它不会处理任何人的消息，也不会存任何东西。",
+        contextToken: normalized.contextToken,
+      }).catch(() => {});
+      return false;
+    }
+
+    if (verdict.online) {
+      return true;
+    }
+
+    // 停机期间：只回一句，而且同一个人一段时间内只回一次。每条都回的话，
+    // 一个正在连发消息的人会收到一串一模一样的回复——停机之后系统反而更吵。
+    if (this.offlineNotices.shouldNotify(`${normalized.accountId}:${normalized.senderId}`)) {
+      await this.channelAdapter.sendText({
+        userId: normalized.senderId,
+        text: OFFLINE_NOTICE,
+        contextToken: normalized.contextToken,
+      }).catch(() => {});
+    }
+    console.warn(`[cyberboss] 系统停机中，已挡下一条来信 原因=${verdict.reason}`);
+    return false;
+  }
+
+  // 改开关。网页端和微信口令走同一条路——两条路各写各的话，迟早会有一条忘了
+  // 清通知台账，然后重新上线之后再停机时没人收到通知。
+  setSystemSwitch({ online, actor = "owner" }) {
+    const verdict = writeSystemSwitch({
+      file: this.config.systemSwitchFile, online: Boolean(online), actor,
+    });
+    if (verdict.online) {
+      this.offlineNotices.reset();
+    }
+    this.noteForDashboard(verdict.online ? "主人把系统打开了" : "主人把系统停了");
+    return verdict;
+  }
+
   async handleIncomingMessage(message) {
     const normalized = this.channelAdapter.normalizeIncomingMessage(message);
     if (!normalized) {
       return;
     }
     normalized.traceId = this.walkingSkeletonTrace?.beginInbound?.(normalized) || "";
+
+    // 一键上下线的闸（SWITCH-1）。
+    //
+    // 位置是刻意的：**在准入之前、在建 job 之前、在任何模型调用之前**。
+    // 放在后面的话，「关掉」只是不回话，而消息照样入库、事实照样落盘、
+    // 队列照样堆——那不叫停机，那叫静音。
+    if (!(await this.passesSystemSwitch(normalized))) {
+      return;
+    }
     if (normalized.policyDecision?.accepted === false) {
       const code = normalized.policyDecision.code || "policy_rejected";
       console.warn(`[cyberboss] inbound rejected code=${code}`);
