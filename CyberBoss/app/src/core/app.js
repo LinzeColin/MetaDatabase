@@ -81,6 +81,7 @@ const { UserCompanionTurn } = require("./user-companion-turn");
 const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
 const { collapseModes } = require("../services/status/business-matrix");
+const { touchLiveSession } = require("../services/timeline/live-session-store");
 const {
   OFFLINE_NOTICE,
   OfflineNoticeLedger,
@@ -3781,6 +3782,33 @@ class CyberbossApp {
   // 调度器要求 dispatchRuntime 返回真实的 threadId/turnId，所以非主人的分支
   // 不能在这里中断——那条路要在建 job 之前就分流，是另一件事。这里先把主人
   // 认得出来，因为在此之前主人连自己都绑不上。
+  // 每个真实 turn 上把这个人这个模式的会话取出来或建出来，并推进上下文版本。
+  //
+  // 吞掉异常：会话记账是**旁路**，它挂掉不该让用户收不到回复。但要出声——
+  // 静默失败正是让这张表空了这么久还没人发现的原因。
+  touchTurnSession(decision) {
+    const database = this.runtimeSpoolDatabase?.database;
+    const secret = this.userAdmission?.companionSessionSecret;
+    const userId = decision?.userContext?.userId;
+    if (!database || !secret || !userId) {
+      return null;
+    }
+    try {
+      return touchLiveSession(database, {
+        userId,
+        mode: decision.route === "owner" ? "OWNER" : "COMPANION",
+        runtimeKind: decision.route === "owner" ? "codex" : "provider",
+        secret,
+        beijing: this.formatOwnerLocalTime?.(new Date()) || null,
+      });
+    } catch (error) {
+      console.warn(
+        `[cyberboss] 会话记账失败 code=${normalizeErrorCode(error?.code) || "session_touch_failed"}`,
+      );
+      return null;
+    }
+  }
+
   admitDurableTurn(normalized) {
     if (!this.userAdmission) {
       return null;
@@ -3815,6 +3843,12 @@ class CyberbossApp {
     // 他说第一句话了，这时候才有 user_id 可以把加入页那条观测绑上去（CB9-220）。
     if (decision.userContext?.userId) {
       this.bindPendingTimezone(decision.userContext.userId, normalized.accountId);
+      // 统一 Session 接到真实链路上（CB9-400 收尾 / AC-002、AC-004、AC-044）。
+      //
+      // 在此之前 agent_sessions_v009 在生产上是 **0 行**：表建好了、迁移跑了、
+      // 七十多条测试全绿，而真实消息一条条进来一条条回出去，从来没人写过它。
+      // 「同一个人连续两轮」「重启后还认得他」这两条验收因此根本没有数据可验。
+      this.touchTurnSession(decision);
     }
     if (decision.ownerClaimed) {
       this.rememberOwnerSender(normalized.senderId);
