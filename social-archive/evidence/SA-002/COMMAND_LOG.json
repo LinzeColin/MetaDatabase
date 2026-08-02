@@ -2,36 +2,77 @@
   "schema_version": "1.0",
   "task_id": "SA-002",
   "taskpack_version": "v0.0.0.6",
-  "generated_at": "2026-08-02T20:58:54Z",
-  "verification_head": "97b3fcd06de0bf22068ef3dac47ac6d734b4793b",
+  "generated_at": "2026-08-02T21:30:15Z",
+  "recovery_base_head": "cfed00d4ada61ce0a737f38e0b9955202ff71535",
+  "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
   "python_runtime": "Python 3.12.13",
   "commands": [
     {
-      "command": "python3 07_IMPLEMENTATION/apply/retire_legacy.py --repo \"$TARGET_REPOSITORY\" --plan",
-      "executed": true,
-      "status": "BLOCKED",
-      "exit_code": 2,
-      "summary": "BLOCKED: target VERSION is 0.0.0.5; sealed script requires 0.0.0.6 before plan or apply and wrote no retirement report."
-    },
-    {
-      "command": "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase identity",
-      "executed": false,
-      "status": "NOT_RUN",
-      "summary": "Not run because it would create a recovery tag and mutate identity surfaces while the subsequent mandatory retirement gate is deterministically blocked by the unresolved version conflict."
-    },
-    {
-      "command": "python3 07_IMPLEMENTATION/apply/retire_legacy.py --repo \"$TARGET_REPOSITORY\" --apply",
-      "executed": false,
-      "status": "NOT_RUN",
-      "summary": "Not run because the prior mandatory plan gate is BLOCKED and no legacy retirement is authorized before resolving the version conflict."
-    },
-    {
-      "command": "python3 07_IMPLEMENTATION/apply/migrate_identifiers.py --root \"$TARGET_REPOSITORY/social-archive\" --dry-run",
+      "taskpack_command": "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase identity",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
       "executed": true,
       "status": "PASS",
       "exit_code": 0,
-      "summary": "Read-only inventory proposes only CHANGELOG.md, docs/migration/LEGACY_MIGRATION.md, scripts/check_brand.py and tests/focused/test_brand_migration.py. These are explicitly permitted legacy-token locations, so the mutating helper was not run."
+      "summary": "APPLIED; created social-archive-pre-v0.0.0.6-20260802t212629z, snapshot 20260802T212629Z, and a rollback command without applying the all-phase Overlay."
+    },
+    {
+      "operation": "Owner-authorized v0.0.0.5 to v0.0.0.6 active-identity migration",
+      "executed": true,
+      "status": "PASS",
+      "summary": "29 tracked files changed only the product-version identity token; historical evidence, CHANGELOG, and prior embedded machine contracts were preserved."
+    },
+    {
+      "command": "uv lock --check --offline",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Lockfile is consistent with pyproject.toml version 0.0.0.6."
+    },
+    {
+      "taskpack_command": "python3 07_IMPLEMENTATION/apply/retire_legacy.py --repo \"$TARGET_REPOSITORY\" --plan",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "ALREADY_RETIRED; social-archive/VERSION is 0.0.0.6 and the recorded legacy directory is absent."
+    },
+    {
+      "taskpack_command": "python3 07_IMPLEMENTATION/apply/retire_legacy.py --repo \"$TARGET_REPOSITORY\" --apply",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "ALREADY_RETIRED; no deletion or staged removal was performed."
+    },
+    {
+      "command": "python3 -m pytest -q tests/focused/test_legacy_migration.py tests/focused/test_brand_migration.py tests/focused/test_extension_api.py tests/focused/test_extension_e2n_contract.py tests/focused/test_obsidian_bridge_contract.py tests/focused/test_status_projection.py",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "29 passed, 1 dependency deprecation warning."
+    },
+    {
+      "command": "python3 scripts/check_brand.py",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "{\"status\": \"PASS\", \"hits\": []}"
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Post-migration social_archive_identity=satisfied; SA-002=equivalent; decision=ADAPT_CURRENT_UPSTREAM; conflicts=0; blocked=0."
+    },
+    {
+      "command": "python3 scripts/check_brand.py (post-evidence remediation rerun)",
+      "executed": true,
+      "status": "PASS_AFTER_REMEDIATION",
+      "exit_code": 0,
+      "summary": "A final recheck found two self-authored active textual legacy-directory mentions in the handoff and command evidence. They were replaced by neutral historical descriptors; the rerun returned PASS with hits=[]."
     }
   ],
-  "record_sha256": "0e635923fd8fa37ed9fc7e0cb80bf1ad59fe9ae2aea71eb14a3567a493f6a2dd"
+  "record_sha256": "e776c75969afaadedb11a7d7eb781434ced06ee869daa32f9b4671f778cd473a"
 }

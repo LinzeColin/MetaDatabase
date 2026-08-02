@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-002",
+  "status": "SUPERSEDED_BY_OWNER_RESOLUTION",
+  "predecessor_commit": "cfed00d4ada61ce0a737f38e0b9955202ff71535",
+  "predecessor_state": "BLOCKED",
+  "predecessor_files": {
+    "RESULT.json": {
+      "git_path": "social-archive/evidence/SA-002/RESULT.json",
+      "sha256": "56d04b829b908397c5f979fc05a72155dee764817aed137461bc6981384e7144"
+    },
+    "COMMAND_LOG.json": {
+      "git_path": "social-archive/evidence/SA-002/COMMAND_LOG.json",
+      "sha256": "5f9e2d90c4888358ff46814f69e2b8ac2251e51e2eaeccfcd5e1b61bdda51588"
+    }
+  },
+  "resolution": {
+    "authority": "Owner",
+    "decision": "The target product version is 0.0.0.6, not 0.0.0.5.",
+    "effect": "The explicit v0.0.0.6 version-identity migration required by the sealed SA-002 retirement gate is authorized."
+  },
+  "preservation": "The blocked predecessor remains byte-recoverable from the recorded commit; this pointer avoids rewriting historical evidence in place."
+}

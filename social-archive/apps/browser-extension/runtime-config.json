@@ -5,5 +5,5 @@
   "pairing_path": "/v1/pairing/exchange",
   "managed": true,
   "product": "Social Archive",
-  "version": "0.0.0.5"
+  "version": "0.0.0.6"
 }

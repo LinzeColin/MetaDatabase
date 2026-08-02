@@ -2,16 +2,17 @@
 
 ## v0.0.0.6 current execution (2026-08-02 UTC)
 
-- The sealed `Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802.zip` passed `START_HERE.py verify` (Manifest 395/395, package tests 97 passed). This is Task Pack integrity only; product runtime remains `NOT_RUN`.
-- SA-001 is **PASS** on latest `origin/main` / verification HEAD `19f600472b2be7998ff27c5669b4ba5d36b1fa24`. The prescribed precondition and semantic-classification commands completed on an isolated worktree at the same HEAD: 32 tasks and 190 Overlay files are classified, with no `conflict`, `blocked`, or `obsolete`; machine decision is `REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS`.
-- Evidence is active at `evidence/SA-001/{RESULT,COMMAND_LOG,SEMANTIC_RECONCILE}.json`; the v0.0.0.5 predecessor is anchored by commit `19f600472b2be7998ff27c5669b4ba5d36b1fa24`. No Overlay was applied and no browser/extension reload, pairing, account connection, first sync, provider, deployment, or production action was attempted.
-- SA-002 is **BLOCKED** before mutation: current `social-archive/VERSION` is `0.0.0.5`, while sealed `retire_legacy.py --plan` requires `0.0.0.6` and returns exit 2. `apply_taskpack.py --phase identity` does not update `VERSION`, so it cannot clear this gate. The active Owner objective also prohibits an agent-initiated version change. Evidence is at `evidence/SA-002/{RESULT,COMMAND_LOG}.json`; neither recovery tag nor candidate/identity/legacy mutation was performed.
-- The SA-002 read-only inventory confirms the legacy directory is absent and the active directory is already `social-archive/`. The packaged `migrate_identifiers.py` would nevertheless rewrite only historical/migration/validator allowlist files, so it is not a safe substitute for the version gate and was not run mutatively.
-- **Resume condition: Owner must resolve the version conflict.** Either explicitly authorize the v0.0.0.5 → v0.0.0.6 identity/version migration required by this sealed Task Pack, or provide a corrected sealed Task Pack with a version-compatible SA-002 retirement gate. Do not invoke `apply_taskpack.py` before that resolution.
+- The sealed `Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802.zip` passed `START_HERE.py verify` (Manifest 395/395, package tests 97 passed). This proves Task Pack integrity only; product runtime remains `NOT_RUN`.
+- SA-001 is **PASS** on latest `origin/main` / integration base `19f600472b2be7998ff27c5669b4ba5d36b1fa24`. Its original semantic decision was `REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS`, with no conflict, blocked, or obsolete classification.
+- SA-002 is **PASS** after the Owner explicitly confirmed that the target version is `v0.0.0.6`, not `v0.0.0.5`. The sealed identity phase created recovery tag `social-archive-pre-v0.0.0.6-20260802t212629z` and ignored snapshot `20260802T212629Z`; the 29 tracked active identity declarations changed only the version token. `VERSION`, package, browser-extension and Obsidian identity anchors now read `0.0.0.6`.
+- Both sealed legacy-retirement commands returned `ALREADY_RETIRED`: the recorded legacy directory is absent, so no deletion occurred. The exact rollback command and report hashes are in `evidence/SA-002/{RESULT,COMMAND_LOG}.json`; the prior BLOCKED evidence is preserved by `evidence/SA-002/history/pre-owner-v006-version-correction/BLOCKED_PREDECESSOR.json`.
+- SA-002 validation: identity-specific focused tests **29 passed** (one dependency deprecation warning), `scripts/check_brand.py` found no prohibited current identity hit, `uv lock --check --offline` passed, and the post-migration classifier has `social_archive_identity=satisfied`, `SA-002=equivalent`, `conflict=0`, `blocked=0`.
+- Earlier v0.0.0.5 evidence, Changelog, and embedded task-pack compatibility contracts remain historical inputs, not authority for this sealed v0.0.0.6 execution. No browser/extension reload, pairing, account connection, first sync, provider action, deployment, or production action was attempted.
+- **Next task only: SA-003.** Do not invoke the full Overlay or any live environment action before its separate execution contract.
 
 ## Current goal
 
-按冻结的 Social Archive v0.0.0.4 Task Pack 逐项完成 Stage 0–5：保留一个经聚焦验证的事务与恢复核心，重建 E2N 产品壳、真实来源连接器、目的地授权与回执、聚合浏览和三地密文存储。每次运行只完成一个 Task；全部任务完成前不推送。
+按冻结的 Social Archive v0.0.0.6 Task Pack 逐项完成 Stage 0–5：保留一个经聚焦验证的事务与恢复核心，重建 E2N 产品壳、真实来源连接器、目的地授权与回执、聚合浏览和三地密文存储。每次运行只完成一个 Task；全部任务完成前不推送。
 
 ## Final closure status (2026-08-01 UTC)
 

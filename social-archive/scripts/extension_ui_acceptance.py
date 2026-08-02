@@ -118,7 +118,7 @@ def main() -> int:
     result = {
         "schema_version": "1.0",
         "status": "PASS",
-        "subject": "Social Archive v0.0.0.5 Chrome extension popup",
+        "subject": "Social Archive v0.0.0.6 Chrome extension popup",
         "mode": "real_chromium_with_deterministic_chrome_api_fixture",
         "assertions": assertions,
         "native_dialogs": dialogs,

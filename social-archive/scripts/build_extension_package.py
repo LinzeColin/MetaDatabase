@@ -15,8 +15,8 @@ EXCLUDED = {".DS_Store"}
 
 def main() -> int:
     manifest = json.loads((SOURCE / "manifest.json").read_text(encoding="utf-8"))
-    if manifest.get("version") != "0.0.0.5":
-        raise SystemExit("extension manifest version must be 0.0.0.5")
+    if manifest.get("version") != "0.0.0.6":
+        raise SystemExit("extension manifest version must be 0.0.0.6")
     files = sorted(
         path for path in SOURCE.rglob("*")
         if path.is_file() and path.name not in EXCLUDED and "__pycache__" not in path.parts

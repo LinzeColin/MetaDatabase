@@ -98,7 +98,7 @@ def main() -> int:
         path = parsed.path
         query = parse_qs(parsed.query)
         if path == "/health":
-            return response_json(route, {"status": "ok", "version": "0.0.0.5"})
+            return response_json(route, {"status": "ok", "version": "0.0.0.6"})
         if path == "/v1/extension/bootstrap":
             return response_json(route, {"connectors": connectors, "destinations": destinations, "jobs": jobs})
         if path == "/v1/library":
@@ -248,7 +248,7 @@ def main() -> int:
     result = {
         "schema_version": "1.0",
         "status": "PASS",
-        "subject": "Social Archive v0.0.0.5 PWA",
+        "subject": "Social Archive v0.0.0.6 PWA",
         "mode": "real_chromium_offline_intercepted_api",
         "assertions": assertions,
         "capture_requests": len(captures),

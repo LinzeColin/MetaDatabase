@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "social-archive"
-version = "0.0.0.5"
+version = "0.0.0.6"
 description = "Free, private, cross-platform saved-content archive with an E2N-like browser workflow"
 requires-python = ">=3.12"
 dependencies = [

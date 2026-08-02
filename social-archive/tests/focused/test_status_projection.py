@@ -77,7 +77,7 @@ def test_status_publish_allowlists_and_redacts_projection(tmp_path, monkeypatch)
     monkeypatch.setenv("SOCIAL_ARCHIVE_DATA_ROOT", str(data_root))
     payload = {
         "project": "untrusted name",
-        "version": "0.0.0.5",
+        "version": "0.0.0.6",
         "overall": "healthy",
         "connectors": [{
             "connector_id": "x",
@@ -144,7 +144,7 @@ def test_status_web_is_loopback_only_and_serves_only_sanitized_readonly_projecti
     projection.write_text(
         json.dumps(
             {
-                "version": "0.0.0.5",
+                "version": "0.0.0.6",
                 "overall": "healthy",
                 "connectors": [{"connector_id": "x", "last_message_zh": "token=must-not-publish", "private_path": "/private"}],
                 "recovery": {"last_backup": "/private"},

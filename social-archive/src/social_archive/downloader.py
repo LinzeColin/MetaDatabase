@@ -19,7 +19,7 @@ class DirectMediaDownloader:
         clean = assert_public_http_url(url, resolve_dns=True)
         chunks: list[bytes] = []
         total = 0
-        with httpx.stream("GET", clean, timeout=60.0, follow_redirects=True, headers={"User-Agent":"SocialArchive/0.0.0.5"}) as response:
+        with httpx.stream("GET", clean, timeout=60.0, follow_redirects=True, headers={"User-Agent":"SocialArchive/0.0.0.6"}) as response:
             response.raise_for_status()
             length = int(response.headers.get("content-length", "0") or 0)
             if length > self.max_bytes:

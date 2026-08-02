@@ -35,7 +35,7 @@ def test_extension_install_guide_and_package_are_real_downloads(tmp_path, monkey
     assert package.status_code == 200
     assert package.content == b"PK\x03\x04fixture-extension"
     assert package.headers["content-type"] == "application/zip"
-    assert "social-archive-extension-v0.0.0.5.zip" in package.headers["content-disposition"]
+    assert "social-archive-extension-v0.0.0.6.zip" in package.headers["content-disposition"]
     assert len(package.headers["x-social-archive-sha256"]) == 64
 
 
@@ -45,7 +45,7 @@ def test_extension_bootstrap_is_single_render_payload(tmp_path, monkeypatch):
     assert response.status_code == 200
     body = response.json()
     assert body["project"] == "Social Archive"
-    assert body["version"] == "0.0.0.5"
+    assert body["version"] == "0.0.0.6"
     assert body["archive_defaults"] == ["L0", "L1", "L3"]
     assert body["privacy"] == {
         "cookie_custody": False,

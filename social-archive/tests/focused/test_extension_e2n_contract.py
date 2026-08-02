@@ -11,7 +11,7 @@ def test_extension_has_e2n_like_surfaces_and_one_primary_action():
     root = _extension_root()
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["manifest_version"] == 3
-    assert manifest["version"] == "0.0.0.5"
+    assert manifest["version"] == "0.0.0.6"
     assert manifest["action"]["default_popup"] == "popup.html"
     assert manifest["side_panel"]["default_path"] == "sidepanel.html"
     assert manifest["options_page"] == "options.html"

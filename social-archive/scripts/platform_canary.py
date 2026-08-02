@@ -47,7 +47,7 @@ def run_one(platform:str,limit:int)->dict:
     if platform=='x':
         token=lambda:read_secret(os.getenv('SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE'));conn=XConnector(os.getenv('SOCIAL_ARCHIVE_X_USER_ID'),token);a=conn.fetch('bookmark',limit);b=conn.fetch('like',limit);status='PASS' if a.status in {'success','partial'} and b.status in {'success','partial'} else 'BLOCKED_ENVIRONMENT';return result(platform,status,{'bookmarks':a.__dict__,'likes':b.__dict__})
     if platform=='reddit':
-        token=lambda:read_secret(os.getenv('SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE'));conn=RedditConnector(os.getenv('SOCIAL_ARCHIVE_REDDIT_USERNAME'),os.getenv('SOCIAL_ARCHIVE_REDDIT_USER_AGENT','SocialArchive/0.0.0.5'),token);a=conn.fetch('saved',limit);b=conn.fetch('upvoted',limit);status='PASS' if a.status in {'success','partial'} and b.status in {'success','partial'} else 'BLOCKED_ENVIRONMENT';return result(platform,status,{'saved':a.__dict__,'upvoted':b.__dict__})
+        token=lambda:read_secret(os.getenv('SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE'));conn=RedditConnector(os.getenv('SOCIAL_ARCHIVE_REDDIT_USERNAME'),os.getenv('SOCIAL_ARCHIVE_REDDIT_USER_AGENT','SocialArchive/0.0.0.6'),token);a=conn.fetch('saved',limit);b=conn.fetch('upvoted',limit);status='PASS' if a.status in {'success','partial'} and b.status in {'success','partial'} else 'BLOCKED_ENVIRONMENT';return result(platform,status,{'saved':a.__dict__,'upvoted':b.__dict__})
     if platform=='instagram':
         session=Path(os.getenv('SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE',''))
         if not session.is_file() or not shutil.which('instaloader'):return result(platform,'BLOCKED_ENVIRONMENT',{'next_action':'配置 0600 Instagram session 并安装 Instaloader'})

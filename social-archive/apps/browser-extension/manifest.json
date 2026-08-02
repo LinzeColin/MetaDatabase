@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Social Archive",
   "short_name": "Social Archive",
-  "version": "0.0.0.5",
+  "version": "0.0.0.6",
   "minimum_chrome_version": "116",
   "description": "像 E2N 一样一键保存网页与多平台收藏，并自动归档到 Social Archive、Notion、Obsidian、GitHub 和 Markdown。",
   "permissions": [

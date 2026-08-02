@@ -12,7 +12,7 @@ from social_archive.utils import atomic_write, read_secret, utcnow
 def _down_document(exc: Exception) -> dict[str, object]:
     return {
         "project": "Social Archive",
-        "version": "0.0.0.5",
+        "version": "0.0.0.6",
         "generated_at": utcnow(),
         "overall": "down",
         "connectors": [],
