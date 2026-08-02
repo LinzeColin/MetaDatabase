@@ -66,6 +66,18 @@ class RuntimeStore:
             "last_error_code": "TEXT",
             "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
         }
+        content_additions = {
+            "summary": "TEXT",
+            "language": "TEXT",
+            "media_count": "INTEGER NOT NULL DEFAULT 0",
+            "last_synced_at": "TEXT",
+        }
+        relation_additions = {
+            "relation_observed_at": "TEXT",
+            "external_relation_id": "TEXT",
+            "source_order": "INTEGER",
+            "last_sync_run_id": "TEXT",
+        }
         with self.connection() as con:
             # The schema adds an index over connection_state.  Upgrade an
             # existing pre-v0.0.0.6 source_account before executescript reaches
@@ -75,7 +87,20 @@ class RuntimeStore:
             for name, declaration in account_additions.items():
                 if account_columns and name not in account_columns:
                     con.execute(f"ALTER TABLE source_account ADD COLUMN {name} {declaration}")
+            # These columns are indexed by the current schema, so legacy rows
+            # must gain them before executescript creates the indexes.
+            content_columns = {row[1] for row in con.execute("PRAGMA table_info(content)").fetchall()}
+            for name, declaration in content_additions.items():
+                if content_columns and name not in content_columns:
+                    con.execute(f"ALTER TABLE content ADD COLUMN {name} {declaration}")
+            relation_columns = {row[1] for row in con.execute("PRAGMA table_info(user_relation)").fetchall()}
+            for name, declaration in relation_additions.items():
+                if relation_columns and name not in relation_columns:
+                    con.execute(f"ALTER TABLE user_relation ADD COLUMN {name} {declaration}")
             con.executescript(schema)
+            con.execute(
+                "UPDATE user_relation SET relation_observed_at=COALESCE(relation_observed_at,first_observed_at)"
+            )
             # Additive migration for pre-v0.0.0.4 runtime databases. SQLite remains
             # rebuildable, but preserving an existing queue avoids unnecessary loss.
             columns = {row[1] for row in con.execute("PRAGMA table_info(object_replica)").fetchall()}
@@ -105,38 +130,69 @@ class RuntimeStore:
 
     def capture(self, request: CaptureRequest) -> tuple[str, str, str]:
         now = utcnow()
+        relation_time = request.relation_observed_at or now
         canonical_url = canonicalize_url(str(request.url))
-        content_id = stable_id("cnt", request.platform.lower(), request.external_content_id or canonical_url)
-        account_id = stable_id("acct", request.platform.lower(), request.source_account_id) if request.source_account_id else None
+        platform = request.platform.lower()
+        content_id = stable_id("cnt", platform, request.external_content_id or canonical_url)
+        account_id = stable_id("acct", platform, request.source_account_id) if request.source_account_id else None
         relation_id = stable_id("rel", account_id or "owner", content_id, request.relation_type, request.collection_key)
         payload = request.model_dump(mode="json")
         payload_bytes = json_bytes(payload)
-        observation_id = stable_id("obs", request.platform.lower(), sha256_bytes(payload_bytes))
+        observation_id = stable_id("obs", platform, sha256_bytes(payload_bytes))
         metadata_json = json.dumps(request.raw_metadata, ensure_ascii=False, sort_keys=True)
+        summary = (request.text or "").strip()[:1000] or None
+        keywords = list(dict.fromkeys(item.strip() for item in request.keywords if item and item.strip()))[:32]
+        topic = (request.topic or "未分类").strip()[:256] or "未分类"
         with self.connection() as con:
             con.execute("BEGIN IMMEDIATE")
             con.execute(
-                """INSERT INTO content(id,platform,external_content_id,canonical_url,title,author_name,published_at,first_observed_at,last_observed_at,metadata_json)
-                   VALUES(?,?,?,?,?,?,?,?,?,?)
-                   ON CONFLICT(id) DO UPDATE SET title=COALESCE(excluded.title,content.title),author_name=COALESCE(excluded.author_name,content.author_name),published_at=COALESCE(excluded.published_at,content.published_at),last_observed_at=excluded.last_observed_at,metadata_json=excluded.metadata_json""",
-                (content_id, request.platform.lower(), request.external_content_id, canonical_url, request.title, request.author_name, request.published_at, now, now, metadata_json),
+                """INSERT INTO content(id,platform,external_content_id,canonical_url,title,author_name,published_at,first_observed_at,last_observed_at,metadata_json,summary,language,media_count,last_synced_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET
+                     title=COALESCE(excluded.title,content.title),
+                     author_name=COALESCE(excluded.author_name,content.author_name),
+                     published_at=COALESCE(excluded.published_at,content.published_at),
+                     last_observed_at=excluded.last_observed_at,
+                     metadata_json=excluded.metadata_json,
+                     summary=COALESCE(excluded.summary,content.summary),
+                     language=COALESCE(excluded.language,content.language),
+                     media_count=MAX(content.media_count,excluded.media_count),
+                     last_synced_at=excluded.last_synced_at""",
+                (content_id, platform, request.external_content_id, canonical_url, request.title, request.author_name, request.published_at, now, now, metadata_json, summary, request.language, len(request.media_urls), now),
             )
             if request.source_account_id:
                 con.execute(
                     """INSERT INTO source_account(id,platform,external_account_id,created_at,updated_at)
                        VALUES(?,?,?,?,?)
                        ON CONFLICT(id) DO UPDATE SET platform=excluded.platform,external_account_id=excluded.external_account_id,updated_at=excluded.updated_at""",
-                    (account_id, request.platform.lower(), request.source_account_id, now, now),
+                    (account_id, platform, request.source_account_id, now, now),
                 )
             con.execute(
-                """INSERT INTO user_relation(id,source_account_id,content_id,relation_type,collection_key,status,first_observed_at,last_observed_at,missing_complete_scan_count)
-                   VALUES(?,?,?,?,?,'active',?,?,0)
-                   ON CONFLICT(id) DO UPDATE SET status='active',last_observed_at=excluded.last_observed_at,missing_complete_scan_count=0,closed_at=NULL""",
-                (relation_id, account_id, content_id, request.relation_type, request.collection_key, now, now),
+                """INSERT INTO user_relation(id,source_account_id,content_id,relation_type,collection_key,status,first_observed_at,last_observed_at,relation_observed_at,missing_complete_scan_count,last_sync_run_id)
+                   VALUES(?,?,?,?,?,'active',?,?,?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET
+                     status='active',
+                     last_observed_at=excluded.last_observed_at,
+                     relation_observed_at=COALESCE(excluded.relation_observed_at,user_relation.relation_observed_at),
+                     missing_complete_scan_count=0,
+                     last_sync_run_id=COALESCE(excluded.last_sync_run_id,user_relation.last_sync_run_id),
+                     closed_at=NULL""",
+                (relation_id, account_id, content_id, request.relation_type, request.collection_key, now, now, relation_time, 0, str(request.raw_metadata.get("sync_run_id") or "") or None),
             )
             con.execute(
                 "INSERT OR IGNORE INTO observation(id,connector_id,content_id,observed_at,payload_json,payload_sha256) VALUES(?,?,?,?,?,?)",
-                (observation_id, f"capture:{request.platform.lower()}", content_id, now, payload_bytes.decode("utf-8"), sha256_bytes(payload_bytes)),
+                (observation_id, f"capture:{platform}", content_id, now, payload_bytes.decode("utf-8"), sha256_bytes(payload_bytes)),
+            )
+            con.execute(
+                """INSERT INTO content_classification(content_id,topic,keywords_json,confidence,source,updated_at)
+                   VALUES(?,?,?,?,?,?)
+                   ON CONFLICT(content_id) DO UPDATE SET
+                     topic=CASE WHEN excluded.topic!='未分类' THEN excluded.topic ELSE content_classification.topic END,
+                     keywords_json=CASE WHEN excluded.keywords_json!='[]' THEN excluded.keywords_json ELSE content_classification.keywords_json END,
+                     confidence=MAX(content_classification.confidence,excluded.confidence),
+                     source=CASE WHEN excluded.topic!='未分类' OR excluded.keywords_json!='[]' THEN excluded.source ELSE content_classification.source END,
+                     updated_at=excluded.updated_at""",
+                (content_id, topic, json.dumps(keywords, ensure_ascii=False), 1.0 if request.topic or keywords else 0.0, str(request.raw_metadata.get("classification_source") or "connector"), now),
             )
             stored_content = con.execute(
                 "SELECT title,author_name FROM content WHERE id=?",
@@ -152,7 +208,7 @@ class RuntimeStore:
                    WHERE content_id=? AND collection_key<>'' ORDER BY collection_key""",
                 (content_id,),
             ).fetchall()
-            fts_tags = " ".join(str(row["collection_key"]) for row in collection_rows)
+            fts_tags = " ".join([*(str(row["collection_key"]) for row in collection_rows), topic, *keywords])
             con.execute("DELETE FROM content_fts WHERE content_id=?", (content_id,))
             con.execute(
                 "INSERT INTO content_fts(content_id,title,author_name,body,tags) VALUES(?,?,?,?,?)",
@@ -514,6 +570,153 @@ class RuntimeStore:
                  WHERE {' AND '.join(clauses)} ORDER BY c.last_observed_at DESC LIMIT ? OFFSET ?"""
         with self.connection() as con:
             return [dict(row) for row in con.execute(sql, args).fetchall()]
+
+    _TABLE_SORT_COLUMNS = {
+        "time": "relation_time",
+        "platform": "platform",
+        "topic": "topic",
+        "keywords": "keywords_json",
+        "content": "title",
+        "link": "canonical_url",
+        "relation": "primary_relation",
+        "author": "author_name",
+        "collection": "primary_collection",
+        "media": "media_count",
+        "archive": "archive_status",
+        "published": "published_at",
+        "account": "account_name",
+        "synced": "last_synced_at",
+    }
+
+    def list_library_table(
+        self,
+        *,
+        q: str | None = None,
+        platform: str | None = None,
+        relation: str | None = None,
+        topic: str | None = None,
+        collection: str | None = None,
+        archive_status: str | None = None,
+        after: str | None = None,
+        observed_from: str | None = None,
+        observed_to: str | None = None,
+        sort_by: str = "time",
+        sort_dir: str = "desc",
+        limit: int = 100,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        clauses = ["r.status='active'"]
+        args: list[Any] = []
+        if platform:
+            clauses.append("c.platform=?")
+            args.append(platform.lower())
+        if relation:
+            clauses.append("r.relation_type=?")
+            args.append(relation)
+        if topic:
+            clauses.append("COALESCE(cc.topic,'未分类')=?")
+            args.append(topic)
+        if collection:
+            clauses.append("r.collection_key=?")
+            args.append(collection)
+        for boundary in (after, observed_from):
+            if boundary:
+                clauses.append("COALESCE(r.relation_observed_at,r.first_observed_at)>=?")
+                args.append(boundary)
+        if observed_to:
+            clauses.append("COALESCE(r.relation_observed_at,r.first_observed_at)<=?")
+            args.append(observed_to)
+        if q:
+            literal_query = _literal_fts_query(q)
+            cjk_terms = _cjk_substrings(q)
+            if literal_query:
+                clauses.append("c.id IN (SELECT content_id FROM content_fts WHERE content_fts MATCH ?)")
+                args.append(literal_query)
+            for term in cjk_terms:
+                pattern = _like_pattern(term)
+                clauses.append(
+                    """c.id IN (SELECT content_id FROM content_fts
+                       WHERE title LIKE ? ESCAPE '\\' OR author_name LIKE ? ESCAPE '\\'
+                          OR body LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')"""
+                )
+                args.extend([pattern, pattern, pattern, pattern])
+            if not literal_query and not cjk_terms:
+                clauses.append("0=1")
+        where = " AND ".join(clauses)
+        direction = "ASC" if sort_dir.lower() == "asc" else "DESC"
+        order_column = self._TABLE_SORT_COLUMNS.get(sort_by, "relation_time")
+        safe_limit = min(max(limit, 1), 500)
+        safe_offset = max(offset, 0)
+        base = f"""WITH relation_rows AS (
+            SELECT c.id,c.platform,c.external_content_id,c.canonical_url,c.title,c.author_name,c.published_at,
+                   c.summary,c.language,c.media_count,c.last_synced_at,c.last_observed_at,
+                   r.id AS relation_id,r.relation_type AS primary_relation,r.collection_key AS primary_collection,
+                   COALESCE(r.relation_observed_at,r.first_observed_at) AS relation_time,
+                   COALESCE(sa.display_name,sa.external_account_id,'') AS account_name,
+                   COALESCE(cc.topic,'未分类') AS topic,COALESCE(cc.keywords_json,'[]') AS keywords_json,
+                   COALESCE(cc.confidence,0) AS classification_confidence,COALESCE(cc.source,'local_rules') AS classification_source,
+                   (SELECT COUNT(*) FROM artifact a WHERE a.content_id=c.id) AS artifact_count,
+                   CASE
+                     WHEN EXISTS(SELECT 1 FROM artifact a WHERE a.content_id=c.id AND a.status='complete') THEN '完整'
+                     WHEN EXISTS(SELECT 1 FROM artifact a WHERE a.content_id=c.id AND a.status IN ('staged','ready')) THEN '处理中'
+                     ELSE '仅元数据'
+                   END AS archive_status,
+                   (SELECT COUNT(*) FROM destination_receipt dr WHERE dr.content_id=c.id AND dr.status='done') AS export_done_count,
+                   (SELECT GROUP_CONCAT(dr.destination_id) FROM destination_receipt dr WHERE dr.content_id=c.id AND dr.status='done') AS export_destination_ids,
+                   ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY COALESCE(r.relation_observed_at,r.first_observed_at) DESC,r.id) AS row_rank,
+                   GROUP_CONCAT(r.relation_type) OVER (PARTITION BY c.id) AS relation_types,
+                   GROUP_CONCAT(NULLIF(r.collection_key,'')) OVER (PARTITION BY c.id) AS collection_names
+            FROM content c
+            JOIN user_relation r ON r.content_id=c.id
+            LEFT JOIN source_account sa ON sa.id=r.source_account_id
+            LEFT JOIN content_classification cc ON cc.content_id=c.id
+            WHERE {where}
+        )
+        SELECT * FROM relation_rows WHERE row_rank=1"""
+        archive_clause = ""
+        query_args = list(args)
+        if archive_status:
+            archive_clause = " AND archive_status=?"
+            query_args.append(archive_status)
+        count_sql = f"SELECT COUNT(*) AS total FROM ({base}) WHERE 1=1{archive_clause}"
+        query_sql = f"SELECT * FROM ({base}) WHERE 1=1{archive_clause} ORDER BY {order_column} {direction}, id ASC LIMIT ? OFFSET ?"
+        with self.connection() as con:
+            total = int(con.execute(count_sql, query_args).fetchone()["total"])
+            rows = [dict(row) for row in con.execute(query_sql, [*query_args, safe_limit, safe_offset]).fetchall()]
+            platform_rows = con.execute(
+                f"""SELECT c.platform,COUNT(DISTINCT c.id) AS count
+                    FROM content c JOIN user_relation r ON r.content_id=c.id
+                    LEFT JOIN content_classification cc ON cc.content_id=c.id
+                    WHERE {where} GROUP BY c.platform ORDER BY count DESC""",
+                args,
+            ).fetchall()
+            topic_rows = con.execute(
+                f"""SELECT COALESCE(cc.topic,'未分类') AS topic,COUNT(DISTINCT c.id) AS count
+                    FROM content c JOIN user_relation r ON r.content_id=c.id
+                    LEFT JOIN content_classification cc ON cc.content_id=c.id
+                    WHERE {where} GROUP BY COALESCE(cc.topic,'未分类') ORDER BY count DESC LIMIT 100""",
+                args,
+            ).fetchall()
+        for row in rows:
+            try:
+                row["keywords"] = json.loads(row.pop("keywords_json") or "[]")
+            except (TypeError, ValueError):
+                row["keywords"] = []
+            row["relations"] = list(dict.fromkeys(item for item in (row.pop("relation_types") or "").split(",") if item))
+            row["collections"] = list(dict.fromkeys(item for item in (row.pop("collection_names") or "").split(",") if item))
+            row["export_destinations"] = list(dict.fromkeys(item for item in (row.pop("export_destination_ids") or "").split(",") if item))
+        return {
+            "items": rows,
+            "total": total,
+            "limit": safe_limit,
+            "offset": safe_offset,
+            "sort_by": sort_by if sort_by in self._TABLE_SORT_COLUMNS else "time",
+            "sort_dir": direction.lower(),
+            "facets": {
+                "platforms": [dict(row) for row in platform_rows],
+                "topics": [dict(row) for row in topic_rows],
+            },
+        }
 
     def content_bodies(self, content_ids: list[str]) -> dict[str, str]:
         """Read export text from FTS without widening the library API payload."""

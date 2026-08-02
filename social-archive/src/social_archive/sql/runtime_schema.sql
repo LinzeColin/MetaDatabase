@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS content (
   last_observed_at TEXT NOT NULL,
   availability TEXT NOT NULL DEFAULT 'observed',
   metadata_json TEXT NOT NULL DEFAULT '{}',
+  summary TEXT,
+  language TEXT,
+  media_count INTEGER NOT NULL DEFAULT 0,
+  last_synced_at TEXT,
   UNIQUE(platform, external_content_id),
   UNIQUE(platform, canonical_url)
 );
@@ -47,6 +51,10 @@ CREATE TABLE IF NOT EXISTS user_relation (
   status TEXT NOT NULL DEFAULT 'active',
   first_observed_at TEXT NOT NULL,
   last_observed_at TEXT NOT NULL,
+  relation_observed_at TEXT,
+  external_relation_id TEXT,
+  source_order INTEGER,
+  last_sync_run_id TEXT,
   missing_complete_scan_count INTEGER NOT NULL DEFAULT 0,
   closed_at TEXT,
   FOREIGN KEY(source_account_id) REFERENCES source_account(id),
@@ -325,6 +333,16 @@ CREATE TABLE IF NOT EXISTS sync_run_scope (
   FOREIGN KEY(sync_run_id) REFERENCES sync_run(id)
 );
 
+CREATE TABLE IF NOT EXISTS content_classification (
+  content_id TEXT PRIMARY KEY,
+  topic TEXT NOT NULL DEFAULT '未分类',
+  keywords_json TEXT NOT NULL DEFAULT '[]',
+  confidence REAL NOT NULL DEFAULT 0,
+  source TEXT NOT NULL DEFAULT 'local_rules',
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(content_id) REFERENCES content(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_source_account_platform_state ON source_account(platform, connection_state);
 CREATE INDEX IF NOT EXISTS idx_platform_collection_account ON platform_collection(source_account_id, relation_type, status);
 CREATE INDEX IF NOT EXISTS idx_sync_run_account_updated ON sync_run(source_account_id, updated_at DESC);
@@ -332,3 +350,5 @@ CREATE INDEX IF NOT EXISTS idx_sync_run_status ON sync_run(status, updated_at);
 CREATE INDEX IF NOT EXISTS idx_sync_event_run ON sync_run_event(sync_run_id, sequence_no);
 CREATE INDEX IF NOT EXISTS idx_sync_seen_relation_scope ON sync_seen_relation(sync_run_id, relation_type, collection_key);
 CREATE INDEX IF NOT EXISTS idx_sync_run_scope_status ON sync_run_scope(sync_run_id, status);
+CREATE INDEX IF NOT EXISTS idx_relation_time ON user_relation(relation_observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_content_synced ON content(last_synced_at DESC);

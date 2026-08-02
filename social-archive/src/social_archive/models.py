@@ -18,6 +18,10 @@ class CaptureRequest(BaseModel):
     author_name: str | None = Field(default=None, max_length=1024)
     text: str | None = Field(default=None, max_length=2_000_000)
     published_at: str | None = None
+    relation_observed_at: str | None = None
+    topic: str | None = Field(default=None, max_length=256)
+    keywords: list[str] = Field(default_factory=list, max_length=32)
+    language: str | None = Field(default=None, max_length=32)
     media_urls: list[HttpUrl] = Field(default_factory=list, max_length=100)
     source_account_id: str | None = None
     raw_metadata: dict[str, Any] = Field(default_factory=dict)

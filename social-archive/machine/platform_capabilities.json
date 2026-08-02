@@ -1,5 +1,17 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
+  "project": "Social Archive",
+  "version": "v0.0.0.6",
+  "active_platform_ids": [
+    "generic-web",
+    "x",
+    "reddit",
+    "instagram",
+    "xiaohongshu",
+    "douyin",
+    "kuaishou",
+    "bilibili"
+  ],
   "default_archive_levels": [
     "L0",
     "L1",
@@ -8,168 +20,259 @@
   "manual_archive_levels": [
     "L2"
   ],
+  "golden_path": "connect_account_once -> first_full_mirror -> platform_grouped_table -> automatic_incremental_sync",
+  "single_page_capture": "fallback_only",
+  "paid_paths": "disabled_fail_closed",
   "platforms": [
     {
       "id": "generic-web",
-      "display_name": "通用网页",
+      "display_name": "Chrome 书签 / 通用网页",
       "order": 1,
-      "primary": [
-        "Chrome activeTab capture",
-        "abx-dl/yt-dlp/gallery-dl by URL"
-      ],
-      "fallback": [
-        "metadata-only capture",
-        "manual file import"
-      ],
+      "account_source": "chrome_bookmarks",
       "relations": [
+        "bookmark",
         "manual_save"
       ],
-      "canary": "save current page; L0/L1 visible immediately; one L3 object when page has downloadable media"
+      "primary": [
+        "Chrome bookmarks permission + account-level tree mirror"
+      ],
+      "fallback": [
+        "current-page capture",
+        "Markdown/JSONL import"
+      ],
+      "enhancement": [
+        "ArchiveBox",
+        "ArchiveWeb.page",
+        "Karakeep or Linkwarden",
+        "gallery-dl/yt-dlp when applicable"
+      ],
+      "auth": "Chrome optional bookmarks permission; no password/cookie custody",
+      "full_sync_oracle": "one permission grant mirrors the complete bookmark tree, folder path, relation time and stable bookmark ID without opening items one by one",
+      "incremental_oracle": "bookmark create/change/move/remove events enqueue a deduplicated rescan; only complete tree scans may close missing relations",
+      "canary": "connect Chrome bookmarks, import an entire deterministic fixture tree, show every row in the platform-grouped table, then add/remove one fixture bookmark and reconcile incrementally",
+      "completion_proof": [
+        "Chrome bookmarks API getTree returned successfully",
+        "final relation marker emitted after every chunk"
+      ],
+      "single_page_capture": "fallback_only"
     },
     {
       "id": "x",
       "display_name": "X",
       "order": 2,
-      "primary": [
-        "official OAuth bookmarks/likes"
-      ],
-      "fallback": [
-        "Social Archiver Markdown/Obsidian import",
-        "Chrome current-page capture",
-        "gallery-dl URL artifact"
-      ],
+      "account_source": "browser_session_or_official_export",
       "relations": [
         "bookmark",
         "like"
       ],
-      "canary": "import >=1 bookmark and >=1 like; download one owned/authorized media item"
+      "primary": [
+        "browser-session account mirror in the user-authorized Chrome tab",
+        "official account export import when available"
+      ],
+      "fallback": [
+        "Social Archiver local export import",
+        "gallery-dl media enhancement",
+        "current-page capture only when account mirror is unavailable"
+      ],
+      "enhancement": [
+        "gallery-dl"
+      ],
+      "auth": "current browser session or official export; paid API is disabled by default",
+      "full_sync_oracle": "after one account connection, enumerate all currently accessible bookmarks and likes with pagination/scroll evidence; no per-post clicks",
+      "incremental_oracle": "scheduled/manual rescan reuses checkpoints and stable IDs; incomplete scans never infer deletion",
+      "canary": "connect one owned X account, mirror the complete accessible Bookmarks and Likes scopes, compare discovered/imported/failed totals, then verify one newly added bookmark arrives on the next sync",
+      "completion_proof": [
+        "explicit end marker or trustworthy total-count match",
+        "otherwise partial and deletion-safe"
+      ],
+      "single_page_capture": "fallback_only"
     },
     {
       "id": "reddit",
       "display_name": "Reddit",
       "order": 3,
-      "primary": [
-        "official OAuth saved/upvoted"
-      ],
-      "fallback": [
-        "Social Archiver Markdown/Obsidian import",
-        "Chrome current-page capture"
-      ],
+      "account_source": "browser_session_or_official_export",
       "relations": [
         "saved",
         "upvoted"
       ],
-      "canary": "import >=1 saved and >=1 upvoted; preserve deletion status without promising deleted third-party text forever"
+      "primary": [
+        "browser-session account mirror",
+        "official export/import or permitted official read path without mandatory spend"
+      ],
+      "fallback": [
+        "Social Archiver local export import",
+        "current-page capture"
+      ],
+      "enhancement": [
+        "gallery-dl"
+      ],
+      "auth": "current browser session/export; no password or cookie upload",
+      "full_sync_oracle": "one connection enumerates every currently accessible Saved and Upvoted page across pagination",
+      "incremental_oracle": "stable IDs and checkpoints avoid duplicate rows; complete-scan deletion rules preserve user relation history",
+      "canary": "connect one owned Reddit account, mirror all accessible Saved and Upvoted entries, verify totals and a subsequent incremental addition",
+      "completion_proof": [
+        "pagination terminal state, explicit end marker, or trustworthy total-count match"
+      ],
+      "single_page_capture": "fallback_only"
     },
     {
       "id": "instagram",
       "display_name": "Instagram",
       "order": 4,
-      "primary": [
-        "Instaloader :saved local session"
-      ],
-      "fallback": [
-        "Social Archiver Markdown/Obsidian import",
-        "Chrome current-page capture",
-        "gallery-dl URL artifact"
-      ],
+      "account_source": "browser_session_or_official_export",
       "relations": [
         "saved",
-        "collection"
+        "collection_member"
       ],
-      "canary": "import >=1 saved item; L3 media hash present"
-    },
-    {
-      "id": "tiktok",
-      "display_name": "TikTok",
-      "order": 5,
       "primary": [
-        "gallery-dl/yt-dlp URL artifact"
+        "browser-session Saved/Collections mirror",
+        "official data-export import"
       ],
       "fallback": [
-        "DouK health-gated worker",
-        "Chrome current-page capture"
+        "Social Archiver local export import",
+        "current-page capture"
       ],
-      "relations": [
-        "favorite",
-        "like",
-        "manual_save"
+      "enhancement": [
+        "Instaloader",
+        "gallery-dl"
       ],
-      "canary": "save one accessible post with L0/L1/L3"
+      "auth": "current browser session or official export; isolated tools receive local ephemeral session only in real environment",
+      "full_sync_oracle": "one connection discovers all accessible Saved collections and posts; collection membership is preserved",
+      "incremental_oracle": "rescan uses stable shortcode IDs and collection keys; partial scans cannot close relations",
+      "canary": "connect one owned Instagram account, mirror every accessible Saved collection/post, verify collection membership and one new saved post on incremental sync",
+      "completion_proof": [
+        "each discovered collection and the Saved root reaches an explicit terminal/total match"
+      ],
+      "single_page_capture": "fallback_only"
     },
     {
       "id": "xiaohongshu",
       "display_name": "小红书",
-      "order": 6,
-      "primary": [
-        "XHS-Downloader 2.7 HTTP worker / user link list"
-      ],
-      "fallback": [
-        "gallery-dl/yt-dlp if supported",
-        "Chrome current-page/visible-card capture"
-      ],
+      "order": 5,
+      "account_source": "browser_session",
       "relations": [
         "favorite",
         "like",
-        "collection"
+        "collection_member"
       ],
-      "canary": "save one accessible note with L0/L1 and image/video L3"
+      "primary": [
+        "browser-session account mirror with automatic list/collection discovery"
+      ],
+      "fallback": [
+        "XHS-Downloader isolated sidecar for structure/media completion",
+        "official/local export import if available",
+        "current-page capture only as last fallback"
+      ],
+      "enhancement": [
+        "XHS-Downloader"
+      ],
+      "auth": "current Chrome login or locally isolated ephemeral session; never paste cookies into UI/chat/Git",
+      "full_sync_oracle": "one connection mirrors all accessible 收藏夹、收藏、点赞 and collection membership without opening posts individually",
+      "incremental_oracle": "scheduled/manual rescan continues from checkpoints; incomplete scans are partial and deletion-safe",
+      "canary": "connect one owned 小红书 account, discover every accessible collection plus favorites/likes, import all rows and verify one newly saved note on incremental sync",
+      "completion_proof": [
+        "explicit end/total match per relation and per discovered collection"
+      ],
+      "single_page_capture": "fallback_only"
     },
     {
       "id": "douyin",
       "display_name": "抖音",
-      "order": 7,
-      "primary": [
-        "DouK worker only when health probe passes"
-      ],
-      "fallback": [
-        "yt-dlp/gallery-dl if supported",
-        "Chrome current-page/visible-card capture",
-        "manual downloaded file import"
-      ],
+      "order": 6,
+      "account_source": "browser_session",
       "relations": [
         "favorite",
         "like",
-        "collection"
+        "collection_member"
       ],
-      "canary": "save one accessible item with L0/L1/L3; no signature/CAPTCHA bypass"
+      "primary": [
+        "browser-session account mirror with automatic list/collection discovery"
+      ],
+      "fallback": [
+        "DouK/TikTokDownloader isolated health-gated sidecar",
+        "yt-dlp/gallery-dl media enhancement",
+        "current-page capture only as last fallback"
+      ],
+      "enhancement": [
+        "DouK/TikTokDownloader",
+        "yt-dlp",
+        "gallery-dl"
+      ],
+      "auth": "current Chrome login or locally isolated ephemeral session; no signature/CAPTCHA/access-control bypass",
+      "full_sync_oracle": "one connection mirrors all accessible 收藏夹、收藏、点赞 without per-item clicks",
+      "incremental_oracle": "checkpointed rescan; worker failure degrades only media completion and never blocks structured browser mirror",
+      "canary": "connect one owned 抖音 account, mirror all accessible collections/favorites/likes, verify totals and one new favorite in the next sync",
+      "completion_proof": [
+        "explicit end/total match per relation and collection; algorithm failure remains partial/degraded"
+      ],
+      "single_page_capture": "fallback_only"
     },
     {
       "id": "kuaishou",
       "display_name": "快手",
-      "order": 8,
-      "primary": [
-        "KS-Downloader 1.6 OpenAPI-probed worker"
-      ],
-      "fallback": [
-        "yt-dlp/gallery-dl if supported",
-        "Chrome current-page/visible-card capture"
-      ],
+      "order": 7,
+      "account_source": "browser_session",
       "relations": [
         "favorite",
-        "like",
-        "manual_save"
+        "like"
       ],
-      "canary": "save one accessible item with L0/L1/L3"
+      "primary": [
+        "browser-session account mirror"
+      ],
+      "fallback": [
+        "KS-Downloader isolated OpenAPI-probed sidecar",
+        "yt-dlp/gallery-dl media enhancement",
+        "current-page capture only as last fallback"
+      ],
+      "enhancement": [
+        "KS-Downloader",
+        "yt-dlp",
+        "gallery-dl"
+      ],
+      "auth": "current Chrome login or isolated local session; no credential custody",
+      "full_sync_oracle": "one connection mirrors all accessible 收藏/点赞 or platform-equivalent scopes",
+      "incremental_oracle": "stable content IDs/checkpoints, independent circuit breaker, partial scans never infer deletion",
+      "canary": "connect one owned 快手 account, mirror the complete accessible 收藏/点赞 scopes and verify one incremental addition",
+      "completion_proof": [
+        "explicit end/total match per scope"
+      ],
+      "single_page_capture": "fallback_only"
     },
     {
       "id": "bilibili",
-      "display_name": "哔哩哔哩",
-      "order": 9,
-      "primary": [
-        "bilibili-cli read-only favorites/watch-later/history + yt-dlp artifact"
-      ],
-      "fallback": [
-        "Chrome current-page/visible-card capture"
-      ],
+      "display_name": "B站",
+      "order": 8,
+      "account_source": "browser_session_or_local_cli_import",
       "relations": [
         "favorite",
         "watch_later",
         "history",
         "like"
       ],
-      "canary": "read one favorites page and save one accessible video with L0/L1/L3"
+      "primary": [
+        "browser-session account mirror",
+        "bilibili-cli structured local import"
+      ],
+      "fallback": [
+        "yt-dlp/gallery-dl media enhancement",
+        "current-page capture only as last fallback"
+      ],
+      "enhancement": [
+        "bilibili-cli",
+        "yt-dlp",
+        "gallery-dl"
+      ],
+      "auth": "current Chrome login or local CLI session in isolated worker; no cookie upload to product UI",
+      "full_sync_oracle": "one connection/import mirrors all accessible 收藏夹、稍后再看、历史 and enumerable likes; collection membership is preserved",
+      "incremental_oracle": "checkpoints and stable BV/av IDs prevent duplicates; every collection has independent completeness",
+      "canary": "connect one owned B站 account, mirror all accessible folders/watch-later/history, verify totals and one incremental addition",
+      "completion_proof": [
+        "explicit terminal/pagination state or trustworthy total match per collection/relation"
+      ],
+      "single_page_capture": "fallback_only"
     }
   ],
-  "global_degradation_contract": "Each platform has independent policy/auth/technical gates, circuit breaker, current-page fallback and visible health state. One connector failure never changes global availability."
+  "global_degradation_contract": "Every source has independent policy/auth/technical gates, pause/resume/cancel/retry, checkpoints and a circuit breaker. A partial or failed source never infers deletion and never makes other sources unavailable.",
+  "runtime_truth_boundary": "Fixture and deterministic tests prove contracts only. Real-account completeness remains NOT_RUN until Build Agent produces provider/browser canary evidence."
 }

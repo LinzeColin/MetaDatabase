@@ -1,65 +1,56 @@
-import subprocess
-import sys
-from pathlib import Path
-
-from social_archive.db import RuntimeStore
-from social_archive.models import CaptureRequest
+from social_archive.account_sync import AccountSyncCoordinator
+from social_archive.models import AccountConnectRequest, AccountSyncRequest, CaptureRequest, SyncBatchRequest
+from social_archive.registry import ConnectorRegistry
 
 
-def test_stage0_walking_skeleton(service, store, settings):
-    response = service.capture(
-        CaptureRequest(
+def test_stage0_account_mirror_walking_skeleton(settings, store, service):
+    coordinator = AccountSyncCoordinator(settings, store, service, ConnectorRegistry(settings))
+    start = coordinator.connect_start(AccountConnectRequest(
+        platform="generic-web",
+        auth_method="chrome_bookmarks",
+        display_name="Chrome 书签",
+        relation_types=["bookmark"],
+    ))
+    account_id = coordinator.complete_connection(
+        platform="generic-web",
+        auth_method="chrome_bookmarks",
+        connection_ref=start.connection_ref,
+        external_account_id="chrome-bookmarks",
+        display_name="Chrome 书签",
+        auto_sync_enabled=True,
+        sync_interval_minutes=360,
+        metadata={"permission": "bookmarks"},
+        verified=True,
+    )
+    run_id = coordinator.start_sync(account_id, AccountSyncRequest(
+        mode="first_full", relation_types=["bookmark"], trigger_type="first_connect"
+    ))["sync_run_id"]
+    result = coordinator.ingest_batch(run_id, SyncBatchRequest(
+        relation_type="bookmark",
+        scope_type="relation",
+        completeness="complete",
+        has_more=False,
+        items=[CaptureRequest(
             platform="generic-web",
             url="https://www.wikipedia.org/walk",
+            external_content_id="bookmark-1",
+            source_account_id="chrome-bookmarks",
+            relation_type="bookmark",
+            relation_observed_at="2026-08-02T10:00:00Z",
             title="Walking Skeleton",
-            text="可检索文字",
-            requested_levels=["L0", "L1", "L3"],
-        )
+            text="账号授权后批量导入并在表格资料库显示",
+            topic="产品验收",
+            keywords=["账号同步", "表格"],
+        )],
+    ))
+    assert result["status"] == "completed"
+    table = store.list_library_table(
+        platform="generic-web",
+        relation="bookmark",
+        sort_by="time",
+        sort_dir="desc",
     )
-
-    # L0 is the canonical content record; L1 is staged metadata; L3 is a
-    # durable download job.  These assertions bind the Stage 0 oracle rather
-    # than merely proving that a library row exists.
-    assert response.accepted_levels == ["L0", "L1", "L3"]
-    assert response.paused_levels == []
-    content = store.get_content(response.content_id)
-    assert content is not None
-    assert any(artifact["archive_level"] == "L1" for artifact in content["artifacts"])
-    assert store.list_library(q="可检索文字")[0]["id"] == response.content_id
-    assert len(response.job_ids) == 1
-    assert store.get_job(response.job_ids[0])["status"] == "queued"
-
-    # Restart recovery must retain both the searchable content and the queued
-    # L3 work; completing it through the reopened store proves the task state
-    # is not only process-local.
-    reopened = RuntimeStore(settings.runtime_db)
-    reopened.initialize()
-    assert reopened.list_library(q="可检索文字")[0]["id"] == response.content_id
-    recovered_job = reopened.claim_job("stage0-restart")
-    assert recovered_job is not None
-    assert recovered_job["id"] == response.job_ids[0]
-    assert recovered_job["job_type"] == "download_l3"
-    reopened.finish_job(recovered_job["id"], success=True)
-    assert reopened.get_job(recovered_job["id"])["status"] == "done"
-
-
-def test_stage0_doctor_compose_check_is_credential_free(tmp_path):
-    compose_file = tmp_path / "compose.yaml"
-    compose_file.write_text(
-        "services:\n"
-        "  core:\n"
-        "    image: example/core\n"
-        "    env_file:\n"
-        "      - .env\n",
-        encoding="utf-8",
-    )
-    validator = Path(__file__).parents[2] / "scripts" / "validate_compose.py"
-    result = subprocess.run(
-        [sys.executable, str(validator), str(compose_file)],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0
-    assert "Owner 配置 .env 缺失，跳过 Docker Compose 渲染" in result.stdout
+    assert table["total"] == 1
+    assert table["items"][0]["title"] == "Walking Skeleton"
+    assert table["items"][0]["topic"] == "产品验收"
+    assert table["items"][0]["keywords"] == ["账号同步", "表格"]

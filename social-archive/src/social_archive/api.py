@@ -879,9 +879,14 @@ def library(
     q: str | None = None,
     platform: str | None = None,
     relation: str | None = None,
+    topic: str | None = None,
     collection: str | None = None,
+    archive_status: str | None = Query(default=None, alias="archive"),
+    after: str | None = Query(default=None),
     observed_from: str | None = None,
     observed_to: str | None = None,
+    sort_by: str = Query(default="time"),
+    sort_dir: str = Query(default="desc", pattern="^(asc|desc)$"),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ) -> dict[str, Any]:
@@ -889,20 +894,21 @@ def library(
     end = _observed_bound(observed_to, end_of_day=True)
     if start and end and start > end:
         raise HTTPException(status_code=422, detail="开始时间不得晚于结束时间")
-    return {
-        "items": store.list_library(
-            q=q,
-            platform=platform,
-            relation=relation,
-            collection=collection,
-            observed_from=start,
-            observed_to=end,
-            limit=limit,
-            offset=offset,
-        ),
-        "limit": limit,
-        "offset": offset,
-    }
+    return store.list_library_table(
+        q=q,
+        platform=platform,
+        relation=relation,
+        topic=topic,
+        collection=collection,
+        archive_status=archive_status,
+        after=after,
+        observed_from=start,
+        observed_to=end,
+        sort_by=sort_by,
+        sort_dir=sort_dir,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @app.get("/v1/search", dependencies=[Depends(require_token)])
