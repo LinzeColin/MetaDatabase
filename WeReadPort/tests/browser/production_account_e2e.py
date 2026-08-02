@@ -158,13 +158,18 @@ def main() -> int:
     parser.add_argument("--url", default=os.environ.get("WEREAD_PORT_SITE_URL", "https://weread.linzezhang.com"))
     parser.add_argument("--output", type=Path)
     parser.add_argument("--chromium", default=os.environ.get("CHROMIUM_PATH", ""))
+    parser.add_argument(
+        "--core-only",
+        action="store_true",
+        help="仅验证账户、存储、隔离、导入、OAuth 与导出删除；不调用微信读书官方 gateway。",
+    )
     args = parser.parse_args()
     origin = args.url.rstrip("/")
     parsed = urlparse(origin)
     if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
         raise SystemExit("生产地址必须是无凭据 HTTPS origin")
     weread_key = os.environ.get("WRP_E2E_WEREAD_KEY", "").strip()
-    if not weread_key:
+    if not args.core_only and not weread_key:
         raise SystemExit("缺少 WRP_E2E_WEREAD_KEY；真实密钥链路不得跳过")
     domain = os.environ.get("WRP_E2E_EMAIL_DOMAIN", "linzezhang.com").strip().lower()
     if not domain or any(ch not in "abcdefghijklmnopqrstuvwxyz0123456789.-" for ch in domain):
@@ -175,8 +180,20 @@ def main() -> int:
     password_a = f"A9!{secrets.token_urlsafe(24)}"
     password_b = f"B9!{secrets.token_urlsafe(24)}"
     note_external = f"production-e2e-{run_id}"
-    report: dict[str, Any] = {"schemaVersion": 1, "suite": "production-account-e2e", "taskpackVersion": VERSION, "origin": origin, "startedAt": utc_now(), "status": "FAIL", "checks": []}
+    report: dict[str, Any] = {
+        "schemaVersion": 1,
+        "suite": "production-account-e2e",
+        "scope": "core-account-e2e" if args.core_only else "formal-account-e2e",
+        "taskpackVersion": VERSION,
+        "origin": origin,
+        "startedAt": utc_now(),
+        "status": "FAIL",
+        "checks": [],
+    }
     account_a = account_b = None
+    page_a = page_a2 = page_b = None
+    csrf_a = csrf_a2 = csrf_b = csrf_current_a = ""
+    cleanup_failures: list[str] = []
     chromium_args = {"headless": True, "args": ["--no-sandbox", "--disable-dev-shm-usage"]}
     if args.chromium:
         chromium_args["executable_path"] = args.chromium
@@ -208,6 +225,7 @@ def main() -> int:
                 account_a2, csrf_a2 = login_password(page_a2, email_a, password_a)
                 if account_a2["id"] != account_a["id"]:
                     raise AssertionError("第二设备登录账户不一致")
+                csrf_current_a = csrf_a2
                 persisted = expect(api(page_a2, f"/notes/{note['id']}"), 200, "第二设备读取长期笔记")["note"]
                 if persisted.get("content") != "用于验证服务端长期存储、跨设备同步和租户隔离。":
                     raise AssertionError("第二设备读取的笔记正文不一致")
@@ -235,27 +253,30 @@ def main() -> int:
                 oauth_checks = oauth_contract(page_a2)
                 report["checks"].extend({"id": f"oauth-start-{item['provider']}", **item} for item in oauth_checks)
 
-                expect(api(page_a2, "/auth/link/weread", method="POST", csrf=csrf_a2, body={"key": weread_key}), 200, "绑定微信读书密钥")
-                logout(page_a2, csrf_a2)
-                key_login = expect(api(page_a2, "/auth/login/weread", method="POST", body={"key": weread_key}), 200, "微信读书密钥登录")
-                if key_login.get("account", {}).get("id") != account_a["id"]:
-                    raise AssertionError("密钥登录未返回绑定账户")
-                csrf_key = key_login["csrf"]
-                wide_start = expect(api(page_a2, "/weread/sync", method="POST", csrf=csrf_key, idempotency=f"weread-{run_id}", body={"recommendationPages": 3}), 202, "微信读书广范围同步任务启动")
-                wide = wait_weread_sync(page_a2, wide_start["job"]["id"])
-                progress = wide.get("progress") or {}
-                caps = set(progress.get("capabilities") or [])
-                if caps and not REQUIRED_WEREAD_CAPABILITIES.issubset(caps):
-                    raise AssertionError("真实微信读书能力范围缺失关键接口")
-                coverage = progress.get("coverage") or {}
-                if coverage.get("legacyTop5CeilingRemoved") is not True or int(coverage.get("detailedBooks") or 0) <= 5:
-                    raise AssertionError("真实微信读书读取仍未证明突破 Top 5")
-                report["checks"].append({"id": "weread-key-login-wide-sync", "status": "PASS", "detailedBooks": int(coverage.get("detailedBooks") or 0), "capabilityCount": int(coverage.get("capabilityCount") or 0)})
+                if args.core_only:
+                    report["checks"].append({"id": "weread-key-login-wide-sync", "status": "NOT_RUN", "reason": "CORE_ONLY_MODE"})
+                else:
+                    expect(api(page_a2, "/auth/link/weread", method="POST", csrf=csrf_a2, body={"key": weread_key}), 200, "绑定微信读书密钥")
+                    logout(page_a2, csrf_a2)
+                    key_login = expect(api(page_a2, "/auth/login/weread", method="POST", body={"key": weread_key}), 200, "微信读书密钥登录")
+                    if key_login.get("account", {}).get("id") != account_a["id"]:
+                        raise AssertionError("密钥登录未返回绑定账户")
+                    csrf_current_a = key_login["csrf"]
+                    wide_start = expect(api(page_a2, "/weread/sync", method="POST", csrf=csrf_current_a, idempotency=f"weread-{run_id}", body={"recommendationPages": 3}), 202, "微信读书广范围同步任务启动")
+                    wide = wait_weread_sync(page_a2, wide_start["job"]["id"])
+                    progress = wide.get("progress") or {}
+                    caps = set(progress.get("capabilities") or [])
+                    if caps and not REQUIRED_WEREAD_CAPABILITIES.issubset(caps):
+                        raise AssertionError("真实微信读书能力范围缺失关键接口")
+                    coverage = progress.get("coverage") or {}
+                    if coverage.get("legacyTop5CeilingRemoved") is not True or int(coverage.get("detailedBooks") or 0) <= 5:
+                        raise AssertionError("真实微信读书读取仍未证明突破 Top 5")
+                    report["checks"].append({"id": "weread-key-login-wide-sync", "status": "PASS", "detailedBooks": int(coverage.get("detailedBooks") or 0), "capabilityCount": int(coverage.get("capabilityCount") or 0)})
 
                 dashboard = expect(api(page_a2, "/analytics/dashboard"), 200, "读取画像与行为可视化")["dashboard"]
                 if not dashboard.get("summary") or not isinstance(dashboard.get("noteActivityHeatmap"), list) or not isinstance(dashboard.get("recommendations"), list):
                     raise AssertionError("画像、笔记活动或潜在推荐结构缺失")
-                if not isinstance(dashboard.get("officialReading"), dict):
+                if not args.core_only and not isinstance(dashboard.get("officialReading"), dict):
                     raise AssertionError("微信读书官方阅读统计结构缺失")
                 report["checks"].append({"id": "profile-behavior-visualization", "status": "PASS", "recommendations": len(dashboard.get("recommendations", []))})
 
@@ -264,16 +285,47 @@ def main() -> int:
                     raise AssertionError("账户导出缺少笔记")
                 delete_account(page_b, csrf_b)
                 account_b = None
-                delete_account(page_a2, csrf_key)
+                delete_account(page_a2, csrf_current_a)
                 account_a = None
                 report["checks"].append({"id": "export-delete-cleanup", "status": "PASS"})
 
                 context_b.close(); context_a2.close(); context_a.close()
             finally:
+                if account_b is not None:
+                    try:
+                        if page_b is None or not csrf_b:
+                            raise AssertionError("账户 B 缺少可用清理会话")
+                        delete_account(page_b, csrf_b)
+                        account_b = None
+                    except Exception as error:
+                        cleanup_failures.append(f"account_b:{type(error).__name__}")
+                if account_a is not None:
+                    try:
+                        cleanup_page = page_a2 or page_a
+                        cleanup_csrf = csrf_current_a or csrf_a2 or csrf_a
+                        if cleanup_page is None:
+                            raise AssertionError("账户 A 缺少可用清理页面")
+                        try:
+                            if not cleanup_csrf:
+                                raise AssertionError("账户 A 缺少可用清理会话")
+                            delete_account(cleanup_page, cleanup_csrf)
+                        except Exception:
+                            _, cleanup_csrf = login_password(cleanup_page, email_a, password_a)
+                            delete_account(cleanup_page, cleanup_csrf)
+                        account_a = None
+                    except Exception as error:
+                        cleanup_failures.append(f"account_a:{type(error).__name__}")
+                report["cleanup"] = {
+                    "status": "FAILED" if cleanup_failures else "PASS",
+                    "failures": cleanup_failures,
+                }
                 browser.close()
+        if cleanup_failures:
+            raise AssertionError("测试账户清理未完成")
         report["status"] = "PASS"
         report["completedAt"] = utc_now()
-        report["passed"] = len(report["checks"])
+        report["passed"] = sum(1 for check in report["checks"] if check.get("status") == "PASS")
+        report["notRun"] = sum(1 for check in report["checks"] if check.get("status") == "NOT_RUN")
         report["credentialsPrinted"] = False
         report["userContentPrinted"] = False
         output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"

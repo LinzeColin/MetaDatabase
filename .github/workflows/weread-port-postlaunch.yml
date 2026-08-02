@@ -2,6 +2,11 @@ name: 阅迁生产持续验证
 "on":
   workflow_dispatch:
     inputs:
+      core_account_e2e:
+        description: "运行会创建并删除测试账户的真实核心账户 E2E（不调用微信读书）"
+        required: true
+        type: boolean
+        default: false
       formal_account_e2e:
         description: "运行会创建并删除测试账户的真实生产 E2E"
         required: true
@@ -37,6 +42,31 @@ jobs:
           --expected-commit "$WRP_RELEASE_COMMIT"
           --expected-ovh-release-id "$WRP_OVH_RELEASE_ID"
           --expected-sites-project-id "$WRP_SITES_PROJECT_ID"
+  core-account-e2e:
+    name: 注册、登录、持久化、跨设备、隔离、导入、画像与删除
+    if: github.event_name == 'workflow_dispatch' && inputs.core_account_e2e
+    needs: production-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    defaults:
+      run:
+        working-directory: WeReadPort
+    steps:
+      - name: 读取代码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 配置 Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: 安装浏览器验收依赖
+        run: |
+          python3 -m pip install --disable-pip-version-check playwright==1.58.0
+          python3 -m playwright install --with-deps chromium
+      - name: 运行真实生产核心账户 E2E
+        env:
+          WEREAD_PORT_SITE_URL: ${{ vars.WEREAD_PORT_SITE_URL }}
+          WRP_E2E_EMAIL_DOMAIN: ${{ vars.WRP_E2E_EMAIL_DOMAIN }}
+        run: python3 tests/browser/production_account_e2e.py --core-only --url "$WEREAD_PORT_SITE_URL"
   formal-account-e2e:
     name: 注册、登录、持久化、跨设备、隔离、导入、画像与微信读书
     if: github.event_name == 'workflow_dispatch' && inputs.formal_account_e2e
