@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-001",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-02T20:45:16Z",
+  "verification_head": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+  "python_runtime": "Python 3.12.13",
   "commands": [
     {
       "command": "python3 07_IMPLEMENTATION/apply/verify_preconditions.py --repo \"$TARGET_REPOSITORY\" --fetch",
@@ -12,7 +12,7 @@
       "executed": true,
       "status": "PASS",
       "exit_code": 0,
-      "summary": "Semantic Reconcile final decision ADAPT_CURRENT_UPSTREAM: satisfied 85, apply 26, adapt 94, equivalent 6, conflict/blocked/obsolete 0."
+      "summary": "READY_WITH_FINDINGS：isolated verification branch 与 origin/main 同 HEAD；无 dirty、无 legacy tree、目标 social-archive/ 存在。"
     },
     {
       "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
@@ -20,8 +20,8 @@
       "executed": true,
       "status": "PASS",
       "exit_code": 0,
-      "summary": "Semantic Reconcile final decision ADAPT_CURRENT_UPSTREAM: satisfied 85, apply 26, adapt 94, equivalent 6, conflict/blocked/obsolete 0."
+      "summary": "REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS；32 项任务与 190 个 Overlay 文件已分类，conflict/blocked/obsolete 均为 0。"
     }
   ],
-  "record_sha256": "88a7b6b00ecd27936fdb86e74c137e42b05911729c9c90232904b40703a6b343"
+  "record_sha256": "8a110aea4f0b8cb8d041d220a72a11b218153efaf65376152ea4d959466c7873"
 }

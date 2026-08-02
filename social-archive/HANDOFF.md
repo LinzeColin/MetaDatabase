@@ -1,5 +1,12 @@
 # Social Archive handoff
 
+## v0.0.0.6 current execution (2026-08-02 UTC)
+
+- The sealed `Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802.zip` passed `START_HERE.py verify` (Manifest 395/395, package tests 97 passed). This is Task Pack integrity only; product runtime remains `NOT_RUN`.
+- SA-001 is **PASS** on latest `origin/main` / verification HEAD `19f600472b2be7998ff27c5669b4ba5d36b1fa24`. The prescribed precondition and semantic-classification commands completed on an isolated worktree at the same HEAD: 32 tasks and 190 Overlay files are classified, with no `conflict`, `blocked`, or `obsolete`; machine decision is `REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS`.
+- Evidence is active at `evidence/SA-001/{RESULT,COMMAND_LOG,SEMANTIC_RECONCILE}.json`; the v0.0.0.5 predecessor is anchored by commit `19f600472b2be7998ff27c5669b4ba5d36b1fa24`. No Overlay was applied and no browser/extension reload, pairing, account connection, first sync, provider, deployment, or production action was attempted.
+- **Next DAG task only: SA-002.** Before any Candidate application it must create the required recovery point and complete the identity-migration contract. Do not invoke `apply_taskpack.py` early; its mutation scope crosses SA-002.
+
 ## Current goal
 
 按冻结的 Social Archive v0.0.0.4 Task Pack 逐项完成 Stage 0–5：保留一个经聚焦验证的事务与恢复核心，重建 E2N 产品壳、真实来源连接器、目的地授权与回执、聚合浏览和三地密文存储。每次运行只完成一个 Task；全部任务完成前不推送。

@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-001",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S0",
   "title": "获取最新 main 并完成 Semantic Reconcile",
   "status": "PASS",
   "implementation_status": "PASS",
   "live_environment_status": "LOCAL_PASS",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "satisfied",
+  "semantic_disposition": "REUSE_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
   "acceptance_ids": [
     "AC-SA-001"
   ],
@@ -17,14 +17,23 @@
   ],
   "oracle": "每个任务和文件被分类为 satisfied/apply/adapt/equivalent/conflict/blocked/obsolete，未盲覆盖上游。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Semantic Reconcile final decision ADAPT_CURRENT_UPSTREAM: satisfied 85, apply 26, adapt 94, equivalent 6, conflict/blocked/obsolete 0.",
+  "result_summary": "在 19f600472b2be7998ff27c5669b4ba5d36b1fa24 上完成 Semantic Reconcile：32 项任务（apply 27、equivalent 5）和 190 个 Overlay 文件（satisfied 54、apply 12、adapt 124）均已分类；conflict/blocked/obsolete 均为 0，未应用 Overlay 或改变产品运行态。",
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "verification_head": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "precondition_report_sha256": "3a9e55f5a91b8de83dcdca5dc2c4eae10cfc077895399c738582712386582ea0",
+    "semantic_report_sha256": "b4cf1e375b0c5082b79da8ba6d2a31ca05104f2929c756c28a92ee2c1d76dc66"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "541002c595d50e0858d2d8d836742ac5f92291cef87d73266869a989141f4ef7"
+  "predecessor_evidence": {
+    "taskpack_version": "v0.0.0.5",
+    "git_commit": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "preservation": "该提交中的原 SA-001 证据保持可由 Git 精确恢复；本记录仅替换活动 v0.0.0.6 验收面。"
+  },
+  "known_limitations": [
+    "verify_preconditions.py 返回 READY_WITH_FINDINGS，因为本任务在隔离、与 origin/main 同 HEAD 的工作分支执行；该 finding 不是阻塞失败。",
+    "本任务未执行 apply_taskpack.py、身份迁移、扩展构建、浏览器/账号配对或真实环境验收。"
+  ],
+  "generated_at": "2026-08-02T20:45:16Z",
+  "record_sha256": "1dbb1be33768f67f1e8e0286261601efbf458123c88d61ede6bf3f840aabcb4d"
 }

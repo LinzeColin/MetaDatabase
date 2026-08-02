@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-001",
+  "predecessor_taskpack_version": "v0.0.0.5",
+  "predecessor_git_commit": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+  "files": [
+    "evidence/SA-001/RESULT.json",
+    "evidence/SA-001/COMMAND_LOG.json",
+    "evidence/SA-001/SEMANTIC_RECONCILE.json"
+  ],
+  "restoration": "git show 19f600472b2be7998ff27c5669b4ba5d36b1fa24:<path> 可精确读取本次更新前的活动证据。",
+  "reason": "v0.0.0.6 SA-001 需要使用任务包规定的活动 evidence/SA-001 路径，旧证据不作为新任务包 PASS 依据。"
+}
