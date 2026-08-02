@@ -139,8 +139,23 @@ async function main() {
 }
 
 main().catch((error) => {
-  process.stderr.write(
-    `CANONICAL_DATA_SYNC=FAIL code=${error?.code || error?.message || "unknown"}\n`,
-  );
+  // 带上 syscall 和 path。
+  //
+  // 只印 code 的话，一个 EACCES 就是一句「EACCES」——不知道是哪个文件、
+  // 哪一步。material 那条同步为此卡了很久：daily 修好之后它还在 EACCES，
+  // 而错误里没有任何线索指向是哪一跳，只能一个目录一个目录去试。
+  //
+  // 这和 /var/lib/cyberboss 那次是同一个教训：**EACCES 不告诉你是哪一跳挂的**，
+  // 所以报错的人有义务说出来。
+  //
+  // path 是文件系统路径，不是用户数据——它进的是运维日志，不是公开面。
+  const parts = [`code=${error?.code || error?.message || "unknown"}`];
+  if (error?.syscall) {
+    parts.push(`syscall=${error.syscall}`);
+  }
+  if (error?.path) {
+    parts.push(`path=${error.path}`);
+  }
+  process.stderr.write(`CANONICAL_DATA_SYNC=FAIL ${parts.join(" ")}\n`);
   process.exitCode = 2;
 });
