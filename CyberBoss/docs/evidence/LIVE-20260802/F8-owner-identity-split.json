@@ -1,0 +1,20 @@
+{
+  "id": "F8",
+  "severity": "high",
+  "title": "两条路径对「谁是主人」判断不一致，主动消息因此三天零发送",
+  "found_how": "给 resolveOwnerSenderIdForCheckin 加了一行日志，它立刻说出「最近的来信里认不出主人」",
+  "facts": [
+    "users 表：1 个 owner（usr_n-moZ3PD…）+ 3 个 active user",
+    "inbox_messages 里只有 3 个不同的发件人——主人不在其中",
+    "但 00:19:57 那条真实来信被准入层路由给了 codex（主人专属运行时），即准入层认为发信人就是主人",
+    "而 resolveOwnerSenderIdForCheckin 用另一套推导，在最近 200 条来信里一个都对不上，返回空串",
+    "listCheckinTargets 于是把主人整个跳过，他从 2026-07-29 起收不到任何主动消息"
+  ],
+  "root_cause": "准入层和 checkin 目标解析对「这个 senderId 属于哪个 user_id」用了不同的推导；这正是「换微信号会把同一个人劈成多个 user_id」那条已知问题的一个新出口",
+  "why_not_fixed_by_me": "修它要决定「哪一个 user_id 才是主人」。那个决定控制着谁能用 Codex、谁有主人专属能力——它是主人自己的决定，不是我该替他做的。我把两条路径统一到任意一边，都可能把主人身份挪到另一个号上。",
+  "already_shipped": [
+    "__owner__ 死键的兼容（真实故障，独立于 F8）",
+    "认不出主人时出声——正是这行日志让 F8 在八分钟内现形，而它此前静默了三天"
+  ],
+  "minimum_decision_for_owner": "确认 users 表里 usr_n-moZ3PD… 是不是你现在在用的那个微信号。如果不是，说明你换过号，需要决定把主人身份迁到新号还是把旧号绑回来。"
+}
