@@ -202,13 +202,39 @@ verify_live() {
   remote "sudo systemctl enable $TUNNEL_SERVICE >/dev/null 2>&1 || true"
   remote "sudo systemctl restart $TUNNEL_SERVICE >/dev/null 2>&1 || true"
   remote "systemctl is-active $TUNNEL_SERVICE" >/dev/null 2>&1 || return 1
-  # 最后一关：从这台开发机走公网真的打开后台。本机 200 不代表别人打得开。
+  # 进程**实际拿到**的 release，不是 drop-in 文件里写的那个。
+  #
+  # cyberboss-cloud.service.d/ 下现在有五个历史 drop-in，每个钉着一个早就没了的
+  # release（cb510/cb520/cb530 各一个）。systemd 按文件名字典序合并，谁排最后谁
+  # 说了算——所以「文件里写了什么」和「进程拿到了什么」可以完全是两回事。
+  # 只能读 /proc/<pid>/environ。
+  local live_id
+  live_id=$(remote "PID=\$(systemctl show $SERVICE -p MainPID --value); sudo sh -c \"tr '\\0' '\\n' < /proc/\$PID/environ\" 2>/dev/null | sed -n 's/^CB_EXPECTED_RELEASE_ID=//p' | head -1" 2>/dev/null || true)
+  if [ "$live_id" != "$sha" ]; then
+    printf '\n%s进程实际拿到的 release 是 %s，不是刚部署的 %s%s\n' \
+      "$RED" "${live_id:0:12}" "$short" "$RESET"
+    return 1
+  fi
+
+  # 最后一关：从这台开发机走公网，打开的必须是**这个应用的这个版本**。
+  #
+  # 以前这一步只查 /admin 回不回 200。那句「验证通过」因此可以被**任何**在这个
+  # 域名上应答的程序满足——2026-08-02 就是这样：隧道 ingress 还指着 8787，而
+  # 8787 早被另一个项目（signal-lattice）占了，CyberBoss 的后台在 8789。于是
+  # 连着好几次部署都「成功」，线上却一直跑着七月三十号那版，而主人的后台根本
+  # 打不开。一个不区分「谁在应答」的健康检查，比没有健康检查更糟——它给了一个
+  # 假的安心。
+  #
+  # /source 是 AGPL 对应源码页：免鉴权、而且**印着当前 release**。用它当探针，
+  # 一次证明三件事：公网通、通到的是我们、而且是刚部署的那一版。
   for attempt in $(seq 1 20); do
-    if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$PUBLIC_ORIGIN/admin")" = "200" ]; then
+    if curl -s --max-time 10 "$PUBLIC_ORIGIN/source" 2>/dev/null | grep -q "$short"; then
       return 0
     fi
     sleep 5
   done
+  printf '\n%s公网 %s/source 上读不到 %s——域名可能指着别的服务%s\n' \
+    "$RED" "$PUBLIC_ORIGIN" "$short" "$RESET"
   return 1
 }
 
