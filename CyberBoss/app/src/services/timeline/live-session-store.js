@@ -23,6 +23,41 @@ const { createHmac } = require("node:crypto");
 const MODES = Object.freeze(["OWNER", "COMPANION"]);
 const STATES = Object.freeze(["active", "paused", "reconcile", "closed"]);
 
+const HEX_ONLY = /^[0-9a-fA-F]+$/;
+
+// 密钥两种形状都收：Buffer，和 hex 字符串。
+//
+// 这个分支不是「顺手兼容一下」，它是又一张 0 行的表换来的。
+//
+//   第一版这里写的是 `if (!Buffer.isBuffer(secret)) throw`。而真实链路上的生产方
+//   （user-admission）把子钥存成 **hex 字符串**——那不是笔误，是因为同一把子钥
+//   还要喂给 stableSessionKey，而那个函数收字符串。于是每一个真实 turn 走到这里
+//   都抛 SESSION_SECRET_REQUIRED，被 touchTurnSession 的 catch 吞成一行 warn，
+//   表继续空着。上线之后真实消息进来又出去，看起来一切正常。
+//
+//   而这个仓的模块级测试全绿——因为测试自己写了 `Buffer.alloc(32, 9)`，
+//   **从来没问过真正的生产方给出来的是什么**。造出来的输入形状让套件全绿而
+//   生产 100% 失效，这是同一个坑的第十一次。
+//
+// 所以收两种形状，但**不收随便一个字符串**：
+//
+//   hex 必须偶数长度、只含 hex 字符、折算出来至少 16 字节。
+//   Buffer.from(x, "hex") 遇到非法字符会**悄悄截断**——Buffer.from("zz","hex")
+//   得到一个空 Buffer，那等于压根没有密钥，而且不会有任何人报错。
+function normalizeSecret(secret) {
+  if (Buffer.isBuffer(secret)) {
+    return secret.length >= 16 ? secret : null;
+  }
+  if (typeof secret !== "string") {
+    return null;
+  }
+  const text = secret.trim();
+  if (text.length < 32 || text.length % 2 !== 0 || !HEX_ONLY.test(text)) {
+    return null;
+  }
+  return Buffer.from(text, "hex");
+}
+
 class LiveSessionError extends Error {
   constructor(code, detail = null) {
     super(code);
@@ -51,12 +86,13 @@ function sessionKeyFor({ userId, mode, secret }) {
   if (!MODES.includes(mode)) {
     throw new LiveSessionError("SESSION_MODE_UNKNOWN", String(mode ?? ""));
   }
-  if (!Buffer.isBuffer(secret) || secret.length < 16) {
+  const key = normalizeSecret(secret);
+  if (!key) {
     // 没有密钥就不发钥匙。用一个固定字符串顶上的话，任何人拿到源码就能算出
     // 别人的 session_key。
     throw new LiveSessionError("SESSION_SECRET_REQUIRED", "secret");
   }
-  return `sess_${createHmac("sha256", secret).update(`${mode}\u0000${id}`).digest("hex").slice(0, 32)}`;
+  return `sess_${createHmac("sha256", key).update(`${mode}\u0000${id}`).digest("hex").slice(0, 32)}`;
 }
 
 // 取出这条会话，没有就建一条，并把上下文版本推进一格。
@@ -150,8 +186,15 @@ function recordParityReceipt(database, {
   if (!["success", "failure", "unknown"].includes(outcome)) {
     throw new LiveSessionError("RECEIPT_OUTCOME_UNKNOWN", String(outcome));
   }
-  const hash = (value) => (value && Buffer.isBuffer(secret)
-    ? createHmac("sha256", secret).update(String(value)).digest("hex").slice(0, 32)
+  // 和 sessionKeyFor 同一把归一化：这里原本也只认 Buffer，而真实链路给的是
+  // hex 字符串——于是 user_scope_hash 和 session_key_hash 会**双双静默存成 NULL**，
+  // 回执照样落库、看起来一切正常，只是回执再也对不上是谁的。
+  const key = normalizeSecret(secret);
+  if (!key) {
+    throw new LiveSessionError("SESSION_SECRET_REQUIRED", "secret");
+  }
+  const hash = (value) => (value
+    ? createHmac("sha256", key).update(String(value)).digest("hex").slice(0, 32)
     : null);
   const utc = new Date(now).toISOString();
   database.prepare(
@@ -160,7 +203,7 @@ function recordParityReceipt(database, {
        real_path_verified, outcome, occurred_at_utc, occurred_at_beijing)
      VALUES(?,?,?,?,?,?,?,?,?)`,
   ).run(
-    `rcpt_${createHmac("sha256", secret || Buffer.alloc(32))
+    `rcpt_${createHmac("sha256", key)
       .update(`${capabilityId}\u0000${mode}\u0000${utc}\u0000${userScope ?? ""}`)
       .digest("hex").slice(0, 32)}`,
     String(capabilityId), String(mode), hash(userScope), hash(sessionKey),

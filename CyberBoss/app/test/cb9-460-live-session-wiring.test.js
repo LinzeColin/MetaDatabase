@@ -306,3 +306,110 @@ test("AC-002 按号查人：同一个人在不同号下不是同一条会话", (
   assert.ok(app.includes("this.activeSystemMessageAccountId = String(message?.accountId"),
     "系统消息没把 accountId 记下来——noteBotInitiated 那一层拿不到");
 });
+
+// ── 生产方给的密钥，会话层收不收得下 ─────────────────────
+
+// 这一节是这个文件里唯一能抓到 2026-08-02 那个故障的东西，而它之所以能抓到，
+// 只有一个原因：**密钥是从真实生产方身上取的，不是这里造的。**
+//
+// 上面所有用 `SECRET = Buffer.alloc(32, 9)` 的测试，在故障存在的那段时间里
+// 全部是绿的。生产上真实链路每一个 turn 都在抛 SESSION_SECRET_REQUIRED，
+// 被旁路的 catch 吞掉，表一直 0 行。造出来的输入形状让套件全绿而生产 100% 失效。
+//
+// 所以这几条不许出现任何自己拼的密钥常量。
+
+const { UserAdmissionService } = require("../src/core/user-admission");
+const { RuntimeSpoolDatabase } = require("../src/services/db/database-adapter");
+
+const IDENTITY_KEY = Buffer.alloc(32, 5);
+const ENCRYPTION_KEY = Buffer.alloc(32, 3);
+
+function realAdmission(t) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cb-session-real-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const spool = new RuntimeSpoolDatabase({
+    databasePath: path.join(dir, "runtime.db"),
+    encryptionKey: ENCRYPTION_KEY,
+    identityKey: IDENTITY_KEY,
+  });
+  t.after(() => spool.close());
+  const admission = new UserAdmissionService({
+    database: spool.database,
+    identityKey: IDENTITY_KEY,
+    ownerUserId: spool.ownerUserId,
+    ownerSenderIds: ["owner-sender"],
+    registrationMode: "invite",
+  });
+  return { spool, admission };
+}
+
+test("AC-002 真实准入层给出的密钥，会话层必须直接收得下", (t) => {
+  const { admission } = realAdmission(t);
+  // 不看它是什么形状——形状是生产方的自由。只要求会话层收得下。
+  const key = sessionKeyFor({
+    userId: uid("realsecret"), mode: "OWNER", secret: admission.companionSessionSecret,
+  });
+  assert.match(key, /^sess_[0-9a-f]{32}$/,
+    "真实生产方的密钥算不出会话钥匙——真实链路上每一个 turn 都会静默失败");
+});
+
+test("AC-002 真实密钥落库：表里真的多一行，不是只算出个字符串", (t) => {
+  const { admission } = realAdmission(t);
+  const database = openDatabase(t);
+  const userId = uid("realrow");
+  const first = touchLiveSession(database, {
+    userId, mode: "OWNER", runtimeKind: "codex", secret: admission.companionSessionSecret,
+  });
+  assert.equal(first.context_version, 1);
+  const second = touchLiveSession(database, {
+    userId, mode: "OWNER", runtimeKind: "codex", secret: admission.companionSessionSecret,
+  });
+  assert.equal(second.context_version, 2, "第二轮没有推进上下文版本");
+  assert.equal(second.session_key, first.session_key, "同一个人两轮换了会话钥匙");
+});
+
+test("AC-002 真实密钥下的回执，两个哈希都不许是 NULL", (t) => {
+  const { admission } = realAdmission(t);
+  const database = openDatabase(t);
+  const userId = uid("realrcpt");
+  const key = sessionKeyFor({ userId, mode: "OWNER", secret: admission.companionSessionSecret });
+  recordParityReceipt(database, {
+    capabilityId: "cap.session", mode: "OWNER", userScope: userId, sessionKey: key,
+    outcome: "success", secret: admission.companionSessionSecret,
+  });
+  const row = database
+    .prepare("SELECT user_scope_hash, session_key_hash FROM parity_receipts_v009 WHERE capability_id=?")
+    .get("cap.session");
+  // 原来只认 Buffer 的写法在这里不会抛，只会把两个哈希静默写成 NULL——
+  // 回执照样落库、看起来一切正常，只是再也对不上是谁的。
+  assert.ok(row.user_scope_hash, "user_scope_hash 是空的");
+  assert.ok(row.session_key_hash, "session_key_hash 是空的");
+  assert.notEqual(row.user_scope_hash, userId, "原值直接进了回执");
+});
+
+test("AC-002 不是什么字符串都当密钥：截断出来的空 Buffer 必须被拦住", (t) => {
+  const database = openDatabase(t);
+  // Buffer.from(x, "hex") 遇到非法字符会**悄悄截断**。"zz" 得到空 Buffer，
+  // 那等于没有密钥，而且不报错——所以归一化必须自己验 hex，不能交给 Buffer.from。
+  for (const bad of ["z".repeat(64), "ab", "", "abc".repeat(11), Buffer.alloc(8, 1), 12345, null]) {
+    assert.throws(
+      () => sessionKeyFor({ userId: uid("badkey"), mode: "OWNER", secret: bad }),
+      (error) => error.code === "SESSION_SECRET_REQUIRED",
+      `弱密钥被放行了：${typeof bad === "string" ? JSON.stringify(bad.slice(0, 8)) : String(bad)}`,
+    );
+  }
+  assert.equal(
+    database.prepare("SELECT COUNT(*) AS n FROM agent_sessions_v009").get().n, 0,
+    "弱密钥居然还落了行",
+  );
+});
+
+test("AC-002 这个文件里对生产密钥的检查，不许退化成自己造的常量", () => {
+  // 这条守的是这一节本身。有人把 admission.companionSessionSecret 换成
+  // SECRET 之后，上面四条会全绿，而 2026-08-02 那个故障重新变得抓不到。
+  const self = fs.readFileSync(__filename, "utf8");
+  const section = self.slice(self.indexOf("// ── 生产方给的密钥"));
+  const uses = [...section.matchAll(/admission\.companionSessionSecret/g)].length;
+  assert.ok(uses >= 3, `真实密钥只用了 ${uses} 处——这一节正在退回自己造密钥`);
+  assert.ok(!/secret:\s*SECRET/.test(section), "这一节里出现了自己造的密钥常量");
+});
