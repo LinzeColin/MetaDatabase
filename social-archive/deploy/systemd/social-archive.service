@@ -1,7 +1,7 @@
 [Unit]
 Description=Social Archive containers
 After=docker.service network-online.target
-Wants=network-online.target
+Wants=network-online.target social-archive-status-web.service
 Requires=docker.service
 
 [Service]
