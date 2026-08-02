@@ -99,6 +99,24 @@ test("账户代理向 OVH 传入 Worker 派生的公开 origin，而非客户端
   assert.equal(forwarded.get("x-wrp-public-origin"), "https://admin.weread.linzezhang.com");
 });
 
+test("账户代理逐条保留多 Set-Cookie 响应，不能合并或丢失迁移 Cookie", async () => {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  headers.append("Set-Cookie", "wrp_session=current; Path=/; HttpOnly; SameSite=Lax; Secure");
+  headers.append("Set-Cookie", "wrp_session=; Path=/; HttpOnly; SameSite=Lax; Domain=weread.linzezhang.com; Secure; Max-Age=0");
+  const response = await handleRequest(new Request("https://weread.linzezhang.com/api/platform/v1/session", {
+    headers: { Origin: "https://weread.linzezhang.com", "Sec-Fetch-Site": "same-origin" },
+  }), {
+    WEREAD_ACCOUNT_SERVICE_URL: "https://account.example.test",
+    WRP_INTERNAL_PROXY_SECRET: "test-internal-proxy-secret-not-for-production",
+    ACCOUNT_SERVICE_FETCH: async () => new Response(JSON.stringify({ account: {} }), { status: 200, headers }),
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.headers.getSetCookie(), [
+    "wrp_session=current; Path=/; HttpOnly; SameSite=Lax; Secure",
+    "wrp_session=; Path=/; HttpOnly; SameSite=Lax; Domain=weread.linzezhang.com; Secure; Max-Age=0",
+  ]);
+});
+
 test("主站会话接力只允许跳转到受控管理员子域", async () => {
   const env = {
     WRP_ADMIN_HOST: "admin.weread.linzezhang.com",

@@ -57,7 +57,7 @@ export function createPlatformApp({ service, config }) {
         const result = await service.completeOAuth(oauthCallback[1], { state: url.searchParams.get("state"), code: url.searchParams.get("code") }, requestContext(request), { expectedAccountId: session?.accountId || null, sessionToken });
         const callbackStatus = result.intent === "reauth" ? "reauthenticated" : "connected";
         const headers = new Headers({ Location: `${config.baseUrl}/?oauth=${encodeURIComponent(result.provider)}&status=${callbackStatus}` });
-        if (result.session) headers.append("Set-Cookie", sessionCookie(result.session.token, result.session.expiresAt, config));
+        if (result.session) appendCookies(headers, sessionCookies(result.session.token, result.session.expiresAt, config));
         return secure(new Response(null, { status: 303, headers }));
       }
 
@@ -69,8 +69,8 @@ export function createPlatformApp({ service, config }) {
         if (!["POST /auth/logout", "POST /auth/reauth/password"].includes(`${method} ${path}`)) enforceJson(request);
       }
 
-      if (method === "GET" && path === "/session") { const refreshed = service.refreshSession(sessionToken); if (!refreshed) throw new PlatformError("AUTH_REQUIRED", "请重新登录。", 401); return json({ account: refreshed.account, csrf: refreshed.csrf, expiresAt: refreshed.expiresAt }, 200, { "Set-Cookie": sessionCookie(refreshed.token, refreshed.expiresAt, config) }); }
-      if (method === "POST" && path === "/auth/logout") { for (const token of sessionTokens) service.logout(token); return json({ loggedOut: true }, 200, { "Set-Cookie": clearCookie(config) }); }
+      if (method === "GET" && path === "/session") { const refreshed = service.refreshSession(sessionToken); if (!refreshed) throw new PlatformError("AUTH_REQUIRED", "请重新登录。", 401); return json({ account: refreshed.account, csrf: refreshed.csrf, expiresAt: refreshed.expiresAt }, 200, {}, sessionCookies(refreshed.token, refreshed.expiresAt, config)); }
+      if (method === "POST" && path === "/auth/logout") { for (const token of sessionTokens) service.logout(token); return json({ loggedOut: true }, 200, {}, clearCookies(config)); }
       if (method === "POST" && path === "/auth/reauth/password") { const input = await body(request, config.maxJsonBytes); await service.reauthenticatePassword(session.accountId, input.password, sessionToken); return json({ reauthenticated: true }); }
       if (method === "POST" && path === "/auth/reauth/weread") { const input = await body(request, config.maxJsonBytes); await service.reauthenticateWeRead(session.accountId, input.key, sessionToken); return json({ reauthenticated: true }); }
       if (method === "POST" && path === "/account/recovery/weread") { const result = service.recoverWeReadAccountData(session.accountId, (await body(request, config.maxJsonBytes)).key, sessionToken); return json(result); }
@@ -80,7 +80,7 @@ export function createPlatformApp({ service, config }) {
       if (method === "GET" && path === "/account/sessions") return json({ sessions: service.listSessions(session.accountId, sessionToken) });
       if (method === "POST" && path === "/account/sessions/revoke-others") { service.requireRecentAuth(session); return json(service.revokeOtherSessions(session.accountId, sessionToken)); }
       const sessionMatch = path.match(/^\/account\/sessions\/([A-Za-z0-9_-]+)$/);
-      if (method === "DELETE" && sessionMatch) { service.requireRecentAuth(session); const result = service.revokeSession(session.accountId, sessionMatch[1], sessionToken); return json(result, 200, result.currentSession ? { "Set-Cookie": clearCookie(config) } : {}); }
+      if (method === "DELETE" && sessionMatch) { service.requireRecentAuth(session); const result = service.revokeSession(session.accountId, sessionMatch[1], sessionToken); return json(result, 200, {}, result.currentSession ? clearCookies(config) : []); }
 
       if (method === "GET" && path === "/profile") return json({ account: service.publicAccount(session.accountId) });
       if (method === "PATCH" && path === "/profile") return json({ account: service.updateProfile(session.accountId, await body(request, config.maxJsonBytes)) });
@@ -131,7 +131,7 @@ export function createPlatformApp({ service, config }) {
       if (method === "GET" && path === "/weread/export") { service.requireRecentAuth(session); return json(await service.exportWeRead(session.accountId)); }
       if (method === "GET" && path === "/analytics/dashboard") return json({ dashboard: service.analytics(session.accountId) });
       if (method === "GET" && path === "/account/export") { service.requireRecentAuth(session); return json(await service.exportAccount(session.accountId)); }
-      if (method === "POST" && path === "/account/delete") { service.requireRecentAuth(session); const result = await service.deleteAccount(session.accountId); return json(result, 200, { "Set-Cookie": clearCookie(config) }); }
+      if (method === "POST" && path === "/account/delete") { service.requireRecentAuth(session); const result = await service.deleteAccount(session.accountId); return json(result, 200, {}, clearCookies(config)); }
       if (method === "GET" && path === "/status/business-lines") { const readiness = await service.readiness(); return json({ version: "v0.0.0.1.9", readiness, lines: businessLines(service.store.counts(), readiness) }); }
 
       if (path.startsWith("/admin/")) {
@@ -159,7 +159,7 @@ export function createPlatformApp({ service, config }) {
 function authResponse(result, config) {
   const payload = { account: result.account, csrf: result.session.csrf, expiresAt: result.session.expiresAt };
   if (result.recovery) payload.recovery = result.recovery;
-  return json(payload, 200, { "Set-Cookie": sessionCookie(result.session.token, result.session.expiresAt, config) });
+  return json(payload, 200, {}, sessionCookies(result.session.token, result.session.expiresAt, config));
 }
 function sessionHandoffResponse(service, sessionToken, config) {
   if (!config.adminBaseUrl) throw new PlatformError("ADMIN_NOT_CONFIGURED", "管理员入口尚未完成安全配置。", 503);
@@ -168,7 +168,7 @@ function sessionHandoffResponse(service, sessionToken, config) {
   const location = new URL(config.adminBaseUrl);
   location.searchParams.set("handoff", "1");
   const headers = new Headers({ Location: location.toString() });
-  headers.append("Set-Cookie", sessionCookie(sessionToken, current.expiresAt, config));
+  appendCookies(headers, sessionCookies(sessionToken, current.expiresAt, config));
   return secure(new Response(null, { status: 303, headers }));
 }
 function requireInternal(request, expected) { const actual = request.headers.get("x-wrp-internal-secret") || ""; if (!secureEqual(actual, expected)) throw new PlatformError("INTERNAL_AUTH", "服务身份验证失败。", 401); }
@@ -205,7 +205,11 @@ async function body(request, maxBytes) {
   if (bytes.length > maxBytes) throw new PlatformError("TOO_LARGE", "请求超过安全上限。", 413);
   try { return JSON.parse(bytes.toString("utf8") || "{}"); } catch { throw new PlatformError("INVALID_JSON", "请求不是有效 JSON。", 400); }
 }
-function json(payload, status = 200, extraHeaders = {}) { return secure(new Response(JSON.stringify(payload), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extraHeaders } })); }
+function json(payload, status = 200, extraHeaders = {}, cookies = []) {
+  const headers = new Headers({ "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extraHeaders });
+  appendCookies(headers, cookies);
+  return secure(new Response(JSON.stringify(payload), { status, headers }));
+}
 function secure(response) { const headers = new Headers(response.headers); for (const [key, value] of Object.entries(SECURITY_HEADERS)) if (!headers.has(key)) headers.set(key, value); return new Response(response.body, { status: response.status, statusText: response.statusText, headers }); }
 function errorResponse(error) { const known = error instanceof PlatformError; const status = known ? error.status : 500; const payload = { error: { code: known ? error.code : "INTERNAL", message: known ? error.message : "服务暂时不可用，请稍后重试。" } }; return json(payload, status); }
 function cookieValues(header, name) {
@@ -222,8 +226,14 @@ function authenticateSession(service, tokens) {
   return { token: tokens[0] || "", session: null };
 }
 function sessionCookie(token, expiresAt, config) { const secureFlag = config.production ? "; Secure" : ""; return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax${cookieDomainFlag(config)}${secureFlag}; Expires=${new Date(expiresAt * 1000).toUTCString()}`; }
-function clearCookie(config) { const secureFlag = config.production ? "; Secure" : ""; return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax${cookieDomainFlag(config)}${secureFlag}; Max-Age=0`; }
+function sessionCookies(token, expiresAt, config) { return [sessionCookie(token, expiresAt, config), ...legacyCookieClear(config)]; }
+function clearCookies(config) { const secureFlag = config.production ? "; Secure" : ""; return [`${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax${cookieDomainFlag(config)}${secureFlag}; Max-Age=0`, ...legacyCookieClear(config)]; }
 function cookieDomainFlag(config) { const domain = String(config.sessionCookieDomain || "").trim(); return domain ? `; Domain=${domain}` : ""; }
+function legacyCookieClear(config) {
+  if (!config.production || config.sessionCookieDomain || String(config.baseUrl || "") !== "https://weread.linzezhang.com") return [];
+  return [`${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Domain=weread.linzezhang.com; Secure; Max-Age=0`];
+}
+function appendCookies(headers, cookies) { for (const cookie of cookies) headers.append("Set-Cookie", cookie); }
 function boundedInt(value, fallback, min, max) { const parsed = Number(value ?? fallback); return Number.isInteger(parsed) ? Math.min(Math.max(parsed, min), max) : fallback; }
 function rateLimit(request, buckets) { boundedRateLimit(request, buckets, "global", "", 300, 60_000); }
 function authRateLimit(request, buckets, scope, subject, limit) { boundedRateLimit(request, buckets, scope, subject, limit, 15 * 60_000); }
