@@ -1,5 +1,5 @@
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 SOCIAL_ARCHIVE_HOST=0.0.0.0
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 SOCIAL_ARCHIVE_HOST=0.0.0.0 SOCIAL_ARCHIVE_EXTENSION_PACKAGE=/app/dist/social-archive-extension.zip
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates curl git ffmpeg age \
  && rm -rf /var/lib/apt/lists/*
@@ -8,6 +8,7 @@ COPY pyproject.toml README.md VERSION ./
 COPY src ./src
 COPY apps ./apps
 COPY scripts ./scripts
+COPY dist/social-archive-extension.zip ./dist/social-archive-extension.zip
 RUN pip install .
 RUN groupadd --system --gid 10001 socialarchive \
  && useradd --system --uid 10001 --gid socialarchive --create-home socialarchive \

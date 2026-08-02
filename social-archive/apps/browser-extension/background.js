@@ -119,8 +119,8 @@ async function captureRecord(record, tabUrl, config, overrides = {}) {
   return response;
 }
 
-async function captureActive(message = {}) {
-  const tab = await SA.activeTab();
+async function captureActive(message = {}, sourceTab = null) {
+  const tab = sourceTab?.id && sourceTab?.url ? sourceTab : await SA.activeTab();
   const config = await SA.getConfig();
   const extracted = await extractFromTab(tab, message.mode === "list" ? "list" : "page");
   const items = message.mode === "list" ? extracted.items : [extracted.page];
@@ -250,9 +250,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
-    if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message);
+    if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message, sender?.tab);
     if (message?.type === "SA_RETRY_LOCAL_OBSIDIAN") return retryLocalObsidian(message.contentId, message.remotePath);
     if (message?.type === "SA_OPEN_TASK_CENTER") {
       const tab = await SA.activeTab().catch(() => null);

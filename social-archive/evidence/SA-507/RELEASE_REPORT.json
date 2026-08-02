@@ -1,50 +1,56 @@
 {
-  "schema_version": "2.0",
-  "version": "v0.0.0.4",
-  "status": "PASS",
-  "published_at_utc": "2026-08-01T12:13:23Z",
-  "release_scope": "Annotated source tag and fast-forward source push only; no GitHub Source Release, image publication, provider backup operation, timer enablement or runtime mutation.",
-  "acceptance": {
-    "taskpack": "PASS",
-    "sa507": "PASS",
-    "unique_full_application_suite": "PASS: 235 passed, failed=0; final structural verification did not rerun pytest.",
-    "frozen_verify_fast": "PASS: 26 checks; application tests skipped explicitly.",
-    "latest_main_integration": "PASS: 7218767576d329f60ee2338aa6f570f87fc0a86d, no Social Archive first-parent merge change.",
-    "production_recheck": "PASS: loopback and unauthenticated edge boundary under Phase E."
+  "schema_version": "1.0",
+  "generated_at": "2026-08-02T04:11:57Z",
+  "task": "SA-507",
+  "version": "0.0.0.5",
+  "release_status": "NOT_RELEASED",
+  "release_decision": "STOP_AT_EXTERNAL_UAT_GATE",
+  "reason": "Frozen local, package, runtime, backup, recovery, and two destination checks pass, but browser pairing/save/restart, Notion, and Obsidian real UAT are incomplete.",
+  "target": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "main",
+    "baseline_sha": "d9961c3a0a14ec2a1b50f741b50324634e470fc6"
   },
-  "published_source": {
-    "tag": "v0.0.0.4",
-    "annotated_tag_object": "272cf897b3ed69858a38f5dfbb302f7af3bc0357",
-    "peeled_tag_target_commit": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
-    "origin_main_at_initial_readback": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
-    "remote_readback": "PASS: origin/main, refs/tags/v0.0.0.4 and refs/tags/v0.0.0.4^{} were queried after the push; main and peeled tag matched.",
-    "publication_method": "one non-force atomic push of HEAD:main and refs/tags/v0.0.0.4"
+  "github_policy": {
+    "new_repository_creation_forbidden": true,
+    "new_repository_created": false,
+    "deleted_repository": "LinzeColin/Social-Archive-Vault",
+    "deleted_repository_classification": "obsolete",
+    "current_private_data_repository": "LinzeColin/Private-Database"
   },
-  "release_candidate": {
-    "functional_candidate_manifest_sha256": "78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90",
-    "functional_candidate_file_count": 204,
-    "frozen_full_suite_evidence": "PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json",
-    "rollback_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "post_publication_receipt_commit": "This file is updated by a documentation-only follow-up commit after the tagged source release; that follow-up does not alter the tagged functional candidate."
-  },
-  "live_boundary": {
-    "completed": [
-      "R2, OCI and GitHub Private Draft same-ciphertext real receipt and recovery are PASS in Phases A and C.",
-      "Private-Database completed fact strict ingest/verify and idempotent repeat are PASS in Phase B.",
-      "Production parity, loopback health and unauthenticated edge safety smoke are PASS in Phases D and E."
-    ],
-    "preserved_not_run_semantics": "Historical provider-specific NOT_RUN observations remain stated in their individual evidence and are not upgraded by this report.",
-    "timers": "replication and Private-Database facts timers remain disabled"
-  },
-  "evidence_root": [
-    "evidence/SA-507/RESULT.json",
-    "evidence/SA-507/COMMAND_LOG.json",
-    "evidence/SA-507/PHASE_E_FINAL_CONSOLIDATION_20260801.json",
-    "evidence/final-verification.json"
+  "passed_gates": [
+    "Stage 0 Semantic Reconcile",
+    "repository test suite",
+    "git diff check",
+    "Task Pack verify",
+    "secret scan",
+    "production loopback health",
+    "extension guide and ZIP delivery",
+    "deterministic backup",
+    "latest restore verify-only",
+    "three-target object verification",
+    "GitHub private destination",
+    "Markdown destination",
+    "status publication",
+    "rollback material"
   ],
-  "nonclaims": [
-    "No secret, user content, provider identifier, release asset URL, production host identity or credential location is recorded.",
-    "A GitHub Source Release is not created; v0.0.0.4 is an annotated source tag on the exact published commit.",
-    "This receipt commit is documentation-only and does not change the released functional candidate or enable runtime timers."
-  ]
+  "open_gates": [
+    "Chrome extension unpacked install, pairing, one-click save, and restart persistence",
+    "Notion real integration and write/readback",
+    "Obsidian real Vault or Local REST API write/readback"
+  ],
+  "prohibited_until_open_gates_pass": [
+    "commit",
+    "push",
+    "merge to main",
+    "release tag",
+    "claim of final acceptance"
+  ],
+  "current_mutations": {
+    "commit": false,
+    "push": false,
+    "merge_to_main": false,
+    "tag": false
+  },
+  "next_action": "Owner completes the three external UAT gates; rerun final acceptance and only then consider release mutations."
 }

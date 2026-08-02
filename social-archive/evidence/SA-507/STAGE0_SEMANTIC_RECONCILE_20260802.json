@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-02T04:11:57Z",
+  "stage": "Stage 0 Semantic Reconcile",
+  "target_repository": "LinzeColin/MetaDatabase",
+  "target_branch": "main",
+  "baseline_sha": "d9961c3a0a14ec2a1b50f741b50324634e470fc6",
+  "decision": "PROCEED_WITH_ADAPTATION",
+  "constraints": {
+    "preserve_newer_stronger_or_equivalent_main": true,
+    "blind_taskpack_overwrite_forbidden": true,
+    "competitor_research_repeated": false,
+    "product_redesigned": false,
+    "version_renamed": false,
+    "new_github_repository_allowed": false,
+    "github_data_repository": "LinzeColin/Private-Database"
+  },
+  "items": [
+    {
+      "item": "latest-main-baseline",
+      "classification": "equivalent",
+      "reason": "Latest main changes were outside the Social Archive implementation surface and did not supersede the frozen task."
+    },
+    {
+      "item": "frozen-product-architecture-schema-and-version",
+      "classification": "satisfied",
+      "reason": "Preparation Agent decisions and version 0.0.0.5 were preserved without redesign or rename."
+    },
+    {
+      "item": "zero-technical-user-extension-install-guide-and-zip-route",
+      "classification": "apply",
+      "reason": "The required guide, download route, PWA fallback, README instructions, and focused tests were absent and were applied."
+    },
+    {
+      "item": "production-image-extension-package",
+      "classification": "adapt",
+      "reason": "The package path and Docker build context were adapted so the live image serves the verified ZIP rather than a host-only artifact."
+    },
+    {
+      "item": "private-backup-repository",
+      "classification": "adapt",
+      "reason": "All GitHub backup and Markdown targets were adapted to the existing private LinzeColin/Private-Database repository. No repository was created."
+    },
+    {
+      "item": "replica-self-heal-for-complete-artifacts",
+      "classification": "adapt",
+      "reason": "Replica retry eligibility was extended to complete artifacts so a failed replica can self-heal without weakening verification."
+    },
+    {
+      "item": "github-r2-oci-same-cipher-replication",
+      "classification": "satisfied",
+      "reason": "Two objects are independently verified on GitHub, R2, and OCI with matching per-object cipher hashes."
+    },
+    {
+      "item": "social-archive-vault-repository-and-destination",
+      "classification": "obsolete",
+      "reason": "LinzeColin/Social-Archive-Vault was deleted by the owner and must not be recreated or referenced as a current target."
+    },
+    {
+      "item": "frozen-static-and-repository-validation",
+      "classification": "satisfied",
+      "reason": "Repository tests, diff check, Task Pack integrity, application tests, manifest verification, and secret scan passed."
+    },
+    {
+      "item": "production-deployment-backup-restore-and-status",
+      "classification": "satisfied",
+      "reason": "The current image is healthy, backup passed, latest restore verify-only passed, rollback is pinned, and sanitized status publication succeeded."
+    },
+    {
+      "item": "github-private-and-markdown-destination-probes",
+      "classification": "satisfied",
+      "reason": "Both destinations passed real write/readback or repository authorization probes."
+    },
+    {
+      "item": "notion-external-uat",
+      "classification": "blocked",
+      "reason": "A user-owned Notion integration secret and shared data_source_id are not configured."
+    },
+    {
+      "item": "obsidian-external-uat",
+      "classification": "blocked",
+      "reason": "A user-selected Vault folder or Local REST API 4.1.3+ endpoint is not configured."
+    },
+    {
+      "item": "browser-extension-pair-save-and-restart-persistence-uat",
+      "classification": "blocked",
+      "reason": "Chrome requires owner-performed unpacked-extension installation; browser security policy prevents the agent from completing chrome://extensions installation."
+    },
+    {
+      "item": "historical-social-archive-vault-receipts",
+      "classification": "obsolete",
+      "reason": "Historical Vault-target receipts remain failed history and are superseded by verified Private-Database receipts."
+    }
+  ],
+  "counts": {
+    "satisfied": 5,
+    "apply": 1,
+    "adapt": 3,
+    "equivalent": 1,
+    "conflict": 0,
+    "blocked": 3,
+    "obsolete": 2
+  }
+}

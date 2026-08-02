@@ -172,7 +172,7 @@ def _bilibili_list(payload: dict) -> dict:
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "SocialArchiveCliWorker/0.0.0.4"
+    server_version = "SocialArchiveCliWorker/0.0.0.5"
 
     def _json(self, code: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -191,7 +191,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/health":
             self._json(404, {"error": "not_found"})
             return
-        self._json(200, {"status": "ok", "version": "0.0.0.4", "tools": {name: bool(shutil.which(name)) for name in sorted(ALLOWED_TOOLS)}})
+        self._json(200, {"status": "ok", "version": "0.0.0.5", "tools": {name: bool(shutil.which(name)) for name in sorted(ALLOWED_TOOLS)}})
 
     def do_POST(self) -> None:  # noqa: N802
         if not self._authorized():

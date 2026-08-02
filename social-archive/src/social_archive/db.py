@@ -824,7 +824,7 @@ class RuntimeStore:
                   LEFT JOIN object_replica current
                     ON current.artifact_id=a.id AND current.store_id=?
                   WHERE a.local_path IS NOT NULL
-                    AND a.status IN ('staged','ready')
+                    AND a.status IN ('staged','ready','complete')
                     AND (current.status IS NULL OR current.status!='verified')
                     {prerequisite}
                   ORDER BY a.created_at ASC

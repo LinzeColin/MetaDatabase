@@ -38,7 +38,7 @@ def _configured(settings):
     return replace(
         settings,
         age_recipient="age1testrecipient",
-        github_archive_repository="LinzeColin/Social-Archive-Vault",
+        github_archive_repository="LinzeColin/Private-Database",
     )
 
 
@@ -59,8 +59,8 @@ def test_release_part_limit_constant_is_under_two_gib():
 @pytest.mark.parametrize(
     "metadata",
     [
-        {"nameWithOwner": "LinzeColin/Social-Archive-Vault", "isPrivate": False},
-        {"nameWithOwner": "someone-else/Social-Archive-Vault", "isPrivate": True},
+        {"nameWithOwner": "LinzeColin/Private-Database", "isPrivate": False},
+        {"nameWithOwner": "someone-else/Private-Database", "isPrivate": True},
         [],
     ],
 )
@@ -68,7 +68,7 @@ def test_private_repository_check_rejects_public_wrong_or_malformed_metadata(mon
     module = _load_script(Path(__file__).resolve().parents[2])
     monkeypatch.setattr(module, "run", lambda _argv: json.dumps(metadata))
     with pytest.raises(RuntimeError, match="私有归档仓"):
-        module.verify_private_repository("LinzeColin/Social-Archive-Vault")
+        module.verify_private_repository("LinzeColin/Private-Database")
 
 
 def test_draft_release_check_rejects_published_or_malformed_metadata(monkeypatch):
@@ -76,7 +76,7 @@ def test_draft_release_check_rejects_published_or_malformed_metadata(monkeypatch
     for metadata in ({"isDraft": False}, {}, []):
         monkeypatch.setattr(module, "run", lambda _argv, response=metadata: json.dumps(response))
         with pytest.raises(RuntimeError, match="Draft"):
-            module.verify_draft_release("LinzeColin/Social-Archive-Vault", "test-tag")
+            module.verify_draft_release("LinzeColin/Private-Database", "test-tag")
 
 
 def test_upload_fails_closed_without_recipient_before_runtime_initialization(monkeypatch, tmp_path, capsys):
@@ -115,7 +115,7 @@ def test_public_repository_is_rejected_before_runtime_or_release(monkeypatch, se
     def fake_run(argv, **_kwargs):
         calls.append(list(argv))
         assert argv[:3] == ["gh", "repo", "view"]
-        return json.dumps({"nameWithOwner": "LinzeColin/Social-Archive-Vault", "isPrivate": False})
+        return json.dumps({"nameWithOwner": "LinzeColin/Private-Database", "isPrivate": False})
 
     monkeypatch.setattr(module, "run", fake_run)
     monkeypatch.setattr(module.shutil, "which", lambda _name: "/fake/gh")
@@ -123,7 +123,7 @@ def test_public_repository_is_rejected_before_runtime_or_release(monkeypatch, se
 
     assert module.main() == 3
     assert json.loads(capsys.readouterr().out)["status"] == "BLOCKED_ENVIRONMENT"
-    assert calls == [["gh", "repo", "view", "LinzeColin/Social-Archive-Vault", "--json", "nameWithOwner,isPrivate"]]
+    assert calls == [["gh", "repo", "view", "LinzeColin/Private-Database", "--json", "nameWithOwner,isPrivate"]]
     assert not data_root.exists()
 
 
@@ -159,7 +159,7 @@ def test_mismatched_r2_or_oci_cipher_is_rejected_before_draft_release(service, s
     def fake_run(argv, **_kwargs):
         calls.append(list(argv))
         if argv[:3] == ["gh", "repo", "view"]:
-            return json.dumps({"nameWithOwner": "LinzeColin/Social-Archive-Vault", "isPrivate": True})
+            return json.dumps({"nameWithOwner": "LinzeColin/Private-Database", "isPrivate": True})
         raise AssertionError("密文不一致时不得创建、上传或下载 GitHub Release")
 
     monkeypatch.setattr(module, "AgeEncryptor", FakeEncryptor)
@@ -171,7 +171,7 @@ def test_mismatched_r2_or_oci_cipher_is_rejected_before_draft_release(service, s
     report = json.loads(capsys.readouterr().out)
     assert report["status"] == "DEGRADED"
     assert report["rejected_object_count"] == 1
-    assert calls == [["gh", "repo", "view", "LinzeColin/Social-Archive-Vault", "--json", "nameWithOwner,isPrivate"]]
+    assert calls == [["gh", "repo", "view", "LinzeColin/Private-Database", "--json", "nameWithOwner,isPrivate"]]
     github = store.get_object_replica(artifact["id"], "github")
     assert github and github["status"] == "failed" and github["last_error_code"] == "R2_CIPHER_SHA_MISMATCH"
 
@@ -221,6 +221,15 @@ def test_private_draft_release_upload_and_readback_reuses_r2_oci_cipher(service,
             status="verified", verified_sha256=encrypted.cipher_sha256,
             original_sha256=artifact["sha256"], encryption="age-x25519",
         )
+    store.upsert_object_replica(
+        artifact_id=artifact["id"], store_id="github",
+        object_key="gh-release://LinzeColin/Social-Archive-Vault/deleted#objects/fixture.age",
+        status="failed", verified_sha256=encrypted.cipher_sha256,
+        original_sha256=artifact["sha256"], encryption="age-x25519",
+        last_error_code="GITHUB_REPOSITORY_OBSOLETE",
+    )
+    with store.connection() as con:
+        con.execute("UPDATE artifact SET status='complete' WHERE id=?", (artifact["id"],))
     module = _load_script(Path(__file__).resolve().parents[2])
     _set_settings(monkeypatch, module, _configured(settings))
     _enable_github_token(monkeypatch, module)
@@ -239,7 +248,7 @@ def test_private_draft_release_upload_and_readback_reuses_r2_oci_cipher(service,
     def fake_run(argv, **_kwargs):
         calls.append(list(argv))
         if argv[:3] == ["gh", "repo", "view"]:
-            return json.dumps({"nameWithOwner": "LinzeColin/Social-Archive-Vault", "isPrivate": True})
+            return json.dumps({"nameWithOwner": "LinzeColin/Private-Database", "isPrivate": True})
         if argv[:3] == ["gh", "release", "create"]:
             assert "--draft" in argv
             return ""

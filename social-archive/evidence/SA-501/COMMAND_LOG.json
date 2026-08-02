@@ -2,9 +2,10 @@
   "schema_version": "1.0",
   "task_id": "SA-501",
   "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "generated_at": "2026-08-02T01:03:03.997856Z",
   "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
   "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "source_main": "9d13085159653f9df7df7e2cde051eb585bdfd2e",
   "commands": [
     {
       "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/probe_object_store.py --store r2 --encrypted-canary",
@@ -12,7 +13,7 @@
       "executed": true,
       "status": "BLOCKED_ENVIRONMENT",
       "exit_code": 3,
-      "summary": "Missing age recipient; plaintext canary prohibited."
+      "summary": "Initial local run stopped before write because the age recipient was absent."
     },
     {
       "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_encrypted_replication.py tests/focused/test_s3_replication.py",
@@ -20,8 +21,29 @@
       "executed": true,
       "status": "PASS",
       "exit_code": 0,
-      "summary": "9 encryption/replication tests passed; live R2 canary blocked before write because age recipient is absent."
+      "summary": "9 encryption/replication tests passed in the frozen implementation run."
+    },
+    {
+      "command": "systemd-run --wait --collect --pipe <LoadCredential:r2> /opt/social-archive/.venv/bin/python /opt/social-archive/scripts/probe_object_store.py --store r2 --encrypted-canary",
+      "command_sha256": "ff0b72ea119e3c34c51f014b2ff36a1aff305ac2acfb47cefffb8523823c2439",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Production v0.0.0.5 used systemd transient credentials; R2 age ciphertext upload, metadata validation, cipher SHA readback and post-delete NOT_FOUND all passed."
     }
   ],
-  "record_sha256": "5764130a0195748957c1ca5f52e71693f5abb1ba8d91cb876fc36a0f209bead4"
+  "live_receipt": {
+    "generated_at": "2026-08-02T01:03:03.997856Z",
+    "production_version": "0.0.0.5",
+    "credential_custody": "systemd_transient_LoadCredential",
+    "evidence_path": "/var/lib/social-archive/evidence/SA-501/20260802T010253Z/RESULT.json",
+    "evidence_sha256": "fdd3d8bc650de22929dcbc2532b6636a17cda65c0bbf6dd3601d430981dce640",
+    "object_key": "probes/social-archive/sha256/ef/37/ef37cd7d8c552b187739db59ba38a2b7d8aca2e31916e08f8bd837097e933ac9.age",
+    "etag": "1ff363148513d514b2cd74a85ffce17a",
+    "original_sha256": "ef37cd7d8c552b187739db59ba38a2b7d8aca2e31916e08f8bd837097e933ac9",
+    "cipher_sha256": "13cbca6a6a7d2b5655e7a1496b33a40072cddf4a55c6fe82806f844036d8dfd5",
+    "deleted_after_probe": true,
+    "head_after_delete": "NOT_FOUND"
+  },
+  "record_sha256": "13d8bf15c4bf4fbec7f0bae9687e3128a341e3ea1bdf652e76d9161a503ad0fd"
 }

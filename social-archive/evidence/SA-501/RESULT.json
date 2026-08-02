@@ -4,10 +4,10 @@
   "taskpack_version": "v0.0.0.5",
   "stage": "S5",
   "title": "绑定 age 加密与 R2 对象权威源",
-  "status": "BLOCKED",
+  "status": "PASS",
   "implementation_status": "PASS",
-  "live_environment_status": "BLOCKED_ENVIRONMENT",
-  "product_runtime_verdict": "NOT_RUN",
+  "live_environment_status": "PASS",
+  "product_runtime_verdict": "PASS",
   "semantic_disposition": "equivalent",
   "acceptance_ids": [
     "AC-SA-501"
@@ -17,16 +17,40 @@
   ],
   "oracle": "对象仅生成一份 age 密文；R2 回读 cipher SHA 一致；明文和私钥不进入远端或日志。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "9 encryption/replication tests passed; live R2 canary blocked before write because age recipient is absent.",
+  "result_summary": "Production v0.0.0.5 uploaded one age ciphertext to R2, verified remote metadata and cipher SHA-256 by readback, then verified the canary was deleted.",
   "evidence_binding": {
     "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
     "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
     "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "source_main": "9d13085159653f9df7df7e2cde051eb585bdfd2e",
     "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
+  "blocking_assertions": {
+    "age_ciphertext_only": "PASS",
+    "r2_upload": "PASS",
+    "remote_metadata": "PASS",
+    "cipher_sha256_readback": "PASS",
+    "canary_delete_verified": "PASS",
+    "plaintext_remote_write": false,
+    "private_key_used": false,
+    "paid_api_allowed": false
+  },
+  "live_receipt": {
+    "generated_at": "2026-08-02T01:03:03.997856Z",
+    "production_version": "0.0.0.5",
+    "credential_custody": "systemd_transient_LoadCredential",
+    "evidence_path": "/var/lib/social-archive/evidence/SA-501/20260802T010253Z/RESULT.json",
+    "evidence_sha256": "fdd3d8bc650de22929dcbc2532b6636a17cda65c0bbf6dd3601d430981dce640",
+    "object_key": "probes/social-archive/sha256/ef/37/ef37cd7d8c552b187739db59ba38a2b7d8aca2e31916e08f8bd837097e933ac9.age",
+    "etag": "1ff363148513d514b2cd74a85ffce17a",
+    "original_sha256": "ef37cd7d8c552b187739db59ba38a2b7d8aca2e31916e08f8bd837097e933ac9",
+    "cipher_sha256": "13cbca6a6a7d2b5655e7a1496b33a40072cddf4a55c6fe82806f844036d8dfd5",
+    "deleted_after_probe": true,
+    "head_after_delete": "NOT_FOUND"
+  },
   "known_limitations": [
-    "Live product/runtime success was not asserted in this local run."
+    "The disposable SA-501 canary was intentionally deleted; durable same-ciphertext replication remains governed by SA-502 and SA-503."
   ],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "35eb559e423d3ea7ee47e7c1ffb929e5c5892b8c330fa93f6953964ae0b1fe81"
+  "generated_at": "2026-08-02T01:03:03.997856Z",
+  "record_sha256": "dec6398916bad005f728798a311fbfc8865b42898492de35c7edd3697f5d1ad5"
 }

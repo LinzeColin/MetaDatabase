@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "project": "Social Archive",
+  "version": "0.0.0.5",
+  "recorded_date": "2026-08-02",
+  "decision": "OWNER_STOP_AND_UPLOAD_CHECKPOINT",
+  "owner_instruction": "Stop all remaining tasks and upload the current state to the existing LinzeColin/MetaDatabase main branch.",
+  "release_claim": "CHECKPOINT_ONLY_NOT_FINAL_ACCEPTANCE",
+  "baseline_main_sha": "d9961c3a0a14ec2a1b50f741b50324634e470fc6",
+  "latest_origin_main_sha_before_integration": "f57471853d61d2cb04303f8562316f1405d4a6cc",
+  "verified": {
+    "website_entry": "https://social-archive.linzezhang.com",
+    "extension_version": "0.0.0.5",
+    "extension_pairing": "PASS",
+    "real_page_one_click_save": {
+      "state": "PASS",
+      "marker": "SA-UAT-20260802-R5-1785649099450",
+      "source_url": "https://www.bilibili.com/video/BV1oMgZ6EETu/",
+      "title": "\u4e2d\u7f8e\u53ef\u56de\u6536\u706b\u7bad\u4ee5\u53ca\u822a\u5929\u4ea7\u4e1a\u5bf9\u6bd4\u62a5\u544a\u3010\u601d\u7ef4\u5b9e\u9a8c\u5ba4\u3011",
+      "button_result": "\u5df2\u4fdd\u5b58"
+    },
+    "library_search_after_root_reload": {
+      "state": "PASS",
+      "query": "\u4e2d\u7f8e\u53ef\u56de\u6536\u706b\u7bad\u4ee5\u53ca\u822a\u5929\u4ea7\u4e1a\u5bf9\u6bd4\u62a5\u544a",
+      "result_count": 1
+    },
+    "focused_tests": "5 passed",
+    "full_tests": "247 passed, 1 known deprecation warning",
+    "extension_package_sha256": "702d1dcba9de085598ddca74406473121d95aa1aa5a3c43cf6cac1340d9de746",
+    "production_image_id": "3e31351aef139394c1e11e7e5831930c6027b7656e80a7464359f5fbf9c66e19",
+    "production_rollback_command": "sudo /var/lib/social-archive/evidence/SA-507/20260802T051306Z-sender-tab-r1/rollback.sh"
+  },
+  "non_pass": [
+    {
+      "id": "SPA_DEEP_LINK_REFRESH",
+      "state": "FAIL",
+      "evidence": "Production GET /library returns HTTP 404 and direct browser refresh rendered blank; navigating from / to Library still returned the persisted record."
+    },
+    {
+      "id": "CHROME_FULL_RESTART_RETENTION",
+      "state": "NOT_RUN"
+    },
+    {
+      "id": "NOTION_REAL_RECEIPT",
+      "state": "NEEDS_USER_ACTION"
+    },
+    {
+      "id": "OBSIDIAN_REAL_RECEIPT",
+      "state": "NEEDS_USER_ACTION"
+    },
+    {
+      "id": "FINAL_ACCEPTANCE_AUDIT",
+      "state": "NOT_RUN"
+    },
+    {
+      "id": "V0.0.0.5_FINAL_TAG",
+      "state": "NOT_CREATED",
+      "reason": "The frozen final acceptance contract is not complete."
+    }
+  ],
+  "github": {
+    "new_repository_created": false,
+    "target_repository": "LinzeColin/MetaDatabase",
+    "target_branch": "main",
+    "force_push_allowed": false
+  }
+}

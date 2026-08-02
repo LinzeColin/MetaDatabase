@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-02T04:11:57Z",
+  "task": "SA-507",
+  "version": "0.0.0.5",
+  "overall_status": "BLOCKED_EXTERNAL",
+  "release_ready": false,
+  "baseline_sha": "d9961c3a0a14ec2a1b50f741b50324634e470fc6",
+  "validation": {
+    "repository_pytest": {
+      "status": "PASS",
+      "passed": 245,
+      "warnings": 1,
+      "warning": "StarletteDeprecationWarning"
+    },
+    "git_diff_check": {
+      "status": "PASS"
+    },
+    "taskpack_verify": {
+      "status": "PASS",
+      "required_files": 107,
+      "application_tests_passed": 73,
+      "manifest_hashes_passed": 383,
+      "product_runtime_verdict": "NOT_RUN",
+      "note": "Task Pack verification proves sealed package integrity and static checks only; live runtime evidence is recorded separately."
+    },
+    "secret_scan": {
+      "status": "PASS",
+      "hits": 0
+    }
+  },
+  "production": {
+    "core_image_manifest_sha256": "sha256:a2c7f617a478df06394c9e8844524182b9adb26d7d96c97b34b78ba5676b4b07",
+    "services_healthy": true,
+    "loopback_health": {
+      "status": "PASS",
+      "http": 200,
+      "version": "0.0.0.5",
+      "paid_api_allowed": false
+    },
+    "extension_install_guide": {
+      "status": "PASS",
+      "http": 200
+    },
+    "extension_zip": {
+      "status": "PASS",
+      "http": 200,
+      "bytes": 36716,
+      "sha256": "04fede5d2ce38c797e7d2147cee226ebe84ce6c05de5e80be572bf3db9908706"
+    },
+    "external_unauthenticated_probe": {
+      "status": "BLOCKED_ENVIRONMENT",
+      "http": 403,
+      "reason": "Cloudflare Access requires an authenticated browser session."
+    },
+    "rollback_script": "/var/lib/social-archive/evidence/SA-507/20260802T033817Z/rollback.sh"
+  },
+  "backup_and_recovery": {
+    "backup_status": "PASS",
+    "manifest": "/var/lib/social-archive/backups/private-database/20260802T033342Z/manifest.json",
+    "fact_count": 1,
+    "verified_remote_copies": 2,
+    "recovery_descriptors": 2,
+    "cipher_sha256": "e614beb8afae61545d31999eb5784e15eef5f02f76a263006ad6a22dcd5c659f",
+    "restore_help_status": "PASS",
+    "restore_verify_only": {
+      "status": "PASS",
+      "original_sha256": "b3a8cec092729045c19447f2f8efa0358d2a91b87aea92b5da737a0abca8d6b2",
+      "fact_count": 1
+    }
+  },
+  "replication": {
+    "github_repository": "LinzeColin/Private-Database",
+    "new_repository_created": false,
+    "draft_release_tag": "social-archive-backup-20260802T035535Z",
+    "draft": true,
+    "object_count": 2,
+    "all_three_verified_objects": 2,
+    "total_artifacts": 4,
+    "pending_artifacts": 2,
+    "stores": {
+      "github": "verified",
+      "r2": "verified",
+      "oci": "verified"
+    },
+    "pack_sha256": "fc3d73bdf75e8bdf2ca596a758521abe370afc3a5fb309538a48343b932a6efc"
+  },
+  "status_projection": {
+    "status": "PASS",
+    "path": "/var/lib/social-archive/status/social-archive.json",
+    "overall": "degraded",
+    "version": "0.0.0.5",
+    "connectors": {
+      "healthy": 4,
+      "degraded": 3,
+      "blocked_environment": 2
+    },
+    "destinations": {
+      "connected": [
+        "social_archive",
+        "markdown",
+        "github"
+      ],
+      "needs_user_action": [
+        "notion",
+        "obsidian",
+        "karakeep",
+        "linkwarden",
+        "archivebox"
+      ]
+    },
+    "recovery_fields": {
+      "last_backup": "unknown",
+      "last_restore_drill": "unknown",
+      "note": "The published status remains honest; independent backup and restore receipts above are the authoritative recovery evidence for this run."
+    }
+  },
+  "external_uat": {
+    "browser_pair_save_restart": "BLOCKED_EXTERNAL",
+    "notion": "BLOCKED_EXTERNAL",
+    "obsidian": "BLOCKED_EXTERNAL"
+  },
+  "release_mutations": {
+    "commit_created": false,
+    "branch_pushed": false,
+    "main_updated": false,
+    "tag_created": false,
+    "new_github_repository_created": false
+  }
+}

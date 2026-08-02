@@ -30,7 +30,7 @@ def _descriptor(module, *, plain: bytes = b"recovery plaintext", cipher: bytes =
             "artifact_id": "art_canary",
             "store_id": store_id,
             "object_key": (
-                f"gh-release://LinzeColin/Social-Archive-Vault/social-archive-backup-fixture#objects/{original_sha}.age"
+                f"gh-release://LinzeColin/Private-Database/social-archive-backup-fixture#objects/{original_sha}.age"
                 if store_id == "github"
                 else f"primary-objects/sha256/{original_sha[:2]}/{original_sha[2:4]}/{original_sha}.age"
             ),
@@ -54,7 +54,7 @@ def test_runtime_descriptor_requires_exact_three_receipts(service, store, settin
         store.upsert_object_replica(
             artifact_id=artifact["id"], store_id=store_id,
             object_key=(
-                f"gh-release://LinzeColin/Social-Archive-Vault/fixture#objects/{artifact['sha256']}.age"
+                f"gh-release://LinzeColin/Private-Database/fixture#objects/{artifact['sha256']}.age"
                 if store_id == "github"
                 else f"primary-objects/sha256/{artifact['sha256'][:2]}/{artifact['sha256'][2:4]}/{artifact['sha256']}.age"
             ),

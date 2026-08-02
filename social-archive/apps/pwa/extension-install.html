@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>安装 Social Archive 浏览器插件</title>
+  <style>
+    :root { --ink:#17211d; --paper:#f7f2e8; --card:#fffdf8; --green:#17684f; --line:#d7cbb8; --soft:#e8f2e8; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 12% 8%,#d9ead9 0,transparent 30%),linear-gradient(135deg,var(--paper),#efe3d2); font-family:"Avenir Next","Gill Sans",sans-serif; }
+    main { width:min(920px,calc(100% - 32px)); margin:0 auto; padding:48px 0 72px; }
+    .eyebrow { margin:0 0 10px; color:var(--green); font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { max-width:760px; margin:0; font-family:"Iowan Old Style","Palatino Linotype",serif; font-size:clamp(2.4rem,7vw,5rem); line-height:.98; letter-spacing:-.04em; }
+    .lead { max-width:650px; margin:22px 0 30px; font-size:1.12rem; line-height:1.7; }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:34px; }
+    .button { display:inline-flex; align-items:center; min-height:48px; padding:0 20px; border:1px solid var(--green); border-radius:999px; color:#fff; background:var(--green); font-weight:700; text-decoration:none; }
+    .button.secondary { color:var(--green); background:transparent; }
+    ol { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:0; padding:0; list-style:none; counter-reset:steps; }
+    li { position:relative; min-height:155px; padding:25px 24px 22px 70px; border:1px solid var(--line); border-radius:22px; background:rgba(255,253,248,.88); box-shadow:0 14px 40px rgba(55,44,26,.08); counter-increment:steps; }
+    li::before { content:counter(steps); position:absolute; top:23px; left:22px; width:32px; height:32px; display:grid; place-items:center; border-radius:50%; color:#fff; background:var(--green); font-weight:800; }
+    li strong { display:block; margin-bottom:8px; font-size:1.08rem; }
+    li p { margin:0; color:#4b554f; line-height:1.55; }
+    code { padding:2px 7px; border-radius:6px; background:var(--soft); font-family:"SFMono-Regular",Menlo,monospace; overflow-wrap:anywhere; }
+    .privacy { margin-top:22px; padding:18px 20px; border-left:4px solid var(--green); border-radius:12px; background:var(--soft); line-height:1.6; }
+    @media (max-width:680px) { main{padding-top:30px} ol{grid-template-columns:1fr} li{min-height:auto} }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Social Archive v0.0.0.5 · 免费安装</p>
+    <h1>五分钟装好，之后看到好内容只点一下。</h1>
+    <p class="lead">Chrome Web Store 上架前使用官方 ZIP 安装包。下面六步不需要命令行，也不用填写服务器、端口或 Token。</p>
+    <div class="actions">
+      <a class="button" href="/downloads/social-archive-extension.zip" download>1. 下载官方安装包</a>
+      <a class="button secondary" href="/home">返回 Social Archive</a>
+    </div>
+    <ol aria-label="Chrome 插件安装步骤">
+      <li><strong>解压下载的 ZIP</strong><p>在“下载”文件夹双击解压 ZIP，得到一个插件文件夹。</p></li>
+      <li><strong>打开扩展管理页</strong><p>在 Chrome 地址栏输入 <code>chrome://extensions</code> 并回车。</p></li>
+      <li><strong>打开开发者模式</strong><p>点击页面右上角“开发者模式”开关。</p></li>
+      <li><strong>载入插件文件夹</strong><p>点击“加载已解压的扩展程序”，选择刚才解压的文件夹。</p></li>
+      <li><strong>返回网站并刷新</strong><p>回到 Social Archive。页面会显示“已检测到插件，还需要连接”。</p></li>
+      <li><strong>点击连接</strong><p>按页面提示完成一次性配对。以后在任何网页点击“保存到我的档案馆”即可。</p></li>
+    </ol>
+    <p class="privacy"><strong>隐私边界：</strong>插件不会把密码、Cookie 或浏览器登录状态交给服务器。若安装包未生成，下载会明确报错，不会提供旧版本或第三方文件。</p>
+  </main>
+</body>
+</html>

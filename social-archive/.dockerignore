@@ -36,7 +36,8 @@ __pycache__/
 .ruff_cache/
 .coverage
 coverage/
-dist/
+dist/*
+!dist/social-archive-extension.zip
 build/
 *.egg-info/
 

@@ -1,19 +1,154 @@
 {
-  "schema_version": "1.0",
   "task_id": "SA-503",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "version": "v0.0.0.5",
+  "status": "PASS",
+  "recorded_at": "2026-08-02T01:38:11Z",
+  "source_main_sha": "fc3b5d8e9eedd18d76588012d40dc51483198712",
+  "secrets_logged": false,
+  "source_git_write": false,
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/github_release_backup.py --upload",
-      "command_sha256": "db32ca4a998081af523bdd9b932f5b8b00bf02738793bc81889a8438a1431747",
-      "executed": true,
+      "sequence": 1,
+      "scope": "preparation_evidence",
+      "command": "python3 scripts/github_release_backup.py --upload",
       "status": "BLOCKED_ENVIRONMENT",
+      "reason": "Preparation-time age recipient was absent",
+      "provider_write": false,
+      "preserved": true
+    },
+    {
+      "sequence": 2,
+      "scope": "semantic_reconcile",
+      "command": "git fetch origin main; git log HEAD..origin/main; git diff --name-status HEAD..origin/main",
+      "exit_code": 0,
+      "status": "PASS",
+      "result": "Three upstream commits touched only CyberBoss paths; social-archive overlap=false"
+    },
+    {
+      "sequence": 3,
+      "scope": "semantic_reconcile",
+      "command": "git merge --ff-only origin/main",
+      "exit_code": 0,
+      "status": "PASS",
+      "result": "Execution worktree fast-forwarded to fc3b5d8e9eedd18d76588012d40dc51483198712 with local evidence edits preserved"
+    },
+    {
+      "sequence": 4,
+      "scope": "remote_wrapper",
+      "command": "systemd transient upload without sudo",
+      "exit_code": 1,
+      "status": "FAILED_LOCAL_WRAPPER",
+      "result": "Permission denied before evidence directory or unit creation",
+      "provider_write": false
+    },
+    {
+      "sequence": 5,
+      "scope": "production_scoped_token_upload",
+      "command": "github_release_backup.py --limit 1 --upload via systemd LoadCredential",
       "exit_code": 3,
-      "summary": "Missing age recipient; plaintext backup and upload prohibited."
+      "status": "BLOCKED_ENVIRONMENT",
+      "result": "Configured private archive repository could not be verified; no Draft was created",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012049Z/UPLOAD.json",
+      "evidence_sha256": "9f16050f1c3ad4963578520a30ebaa8ed52784946f6762012aa5bf6470c86b43"
+    },
+    {
+      "sequence": 6,
+      "scope": "readiness_wrapper",
+      "command": "systemd credential readiness diagnostic without --pipe",
+      "exit_code": 0,
+      "status": "FAILED_LOCAL_WRAPPER",
+      "result": "No stdin reached the verifier; empty evidence file only; no GitHub API call",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012224Z-github-readiness.json",
+      "evidence_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sequence": 7,
+      "scope": "readiness",
+      "command": "gh api user and gh repo view via configured production credential",
+      "exit_code": 0,
+      "status": "PASS_DIAGNOSTIC",
+      "result": "Identity LinzeColin valid; LinzeColin/Social-Archive-Vault absent or inaccessible",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012250Z-github-readiness.json",
+      "evidence_sha256": "37da67507f08cfb1c2aee3cfecec861cde497f76d2c9469761bd457e2277255b"
+    },
+    {
+      "sequence": 8,
+      "scope": "repository_provision_attempt",
+      "command": "gh repo create LinzeColin/Social-Archive-Vault --private --add-readme using production credential",
+      "status": "PROVIDER_DENIED",
+      "provider_result": "HTTP 403 Resource not accessible by personal access token",
+      "result": "Repository not created",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012529Z-repository-provision.json",
+      "evidence_sha256": "4f50e254a719a6b1b06b529bdaa08980e4acf0878aad0090cba7771f6ebdf0b9"
+    },
+    {
+      "sequence": 9,
+      "scope": "repository_provision",
+      "command": "gh repo create LinzeColin/Social-Archive-Vault --private --add-readme --disable-issues --disable-wiki using Owner session",
+      "exit_code": 0,
+      "status": "PASS",
+      "result": "Private repository initialized; production token remained unable to access the new repository",
+      "provider_write": true,
+      "source_code_write": false
+    },
+    {
+      "sequence": 10,
+      "scope": "github_third_replica",
+      "command": "github_release_backup.py --limit 1 --upload via one-time Owner systemd LoadCredential",
+      "exit_code": 0,
+      "status": "PASS",
+      "result": "One private Draft Release uploaded and read back; object_replica github receipt persisted",
+      "provider_write": true,
+      "plaintext_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/UPLOAD.json",
+      "evidence_sha256": "d8f3e4b9b59ff41e447eee3fafcae4602db6fabd9b4faaf350139e20c646944e",
+      "ephemeral_credential_removed": true
+    },
+    {
+      "sequence": 11,
+      "scope": "independent_verifier",
+      "command": "Draft verification using REST releases/tags endpoint",
+      "exit_code": 2,
+      "status": "FAILED_VERIFIER_ADAPTER",
+      "result": "Draft-by-tag REST lookup returned 404; no provider write or reupload",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/VERIFY-FAILED-20260802T013113Z.json",
+      "evidence_sha256": "7c2753ccb21b1889969906e603373c9d88a9a0e0b5651e5b51f69117e6331034"
+    },
+    {
+      "sequence": 12,
+      "scope": "independent_verifier",
+      "command": "gh release view plus fresh asset download, manifest, tar and age-member verification",
+      "exit_code": 2,
+      "status": "PARTIAL_VERIFIER_PASS",
+      "result": "All GitHub assertions passed; custom DB locator missed runtime/social-archive.sqlite3",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/VERIFY-FAILED-20260802T013311Z.json",
+      "evidence_sha256": "ce6ca3cb4f876d88ca15822d6a3924a66c1fb5deeb993bf836d752b49f2f9485",
+      "ephemeral_credential_removed": true
+    },
+    {
+      "sequence": 13,
+      "scope": "database_receipt_verification",
+      "command": "Read-only query of runtime/social-archive.sqlite3 object_replica for target artifact",
+      "exit_code": 0,
+      "status": "PASS",
+      "result": "Exactly R2, OCI and GitHub verified rows; original SHA, ciphertext SHA and age-x25519 all equal",
+      "provider_write": false
+    },
+    {
+      "sequence": 14,
+      "scope": "final_evidence",
+      "command": "Merge independent download assertions with real object_replica schema into production RESULT.json",
+      "exit_code": 0,
+      "status": "PASS",
+      "provider_write": false,
+      "evidence": "/var/lib/social-archive/evidence/SA-503/20260802T012805Z/RESULT.json",
+      "evidence_sha256": "df6a7e545501d0bccf27ffdb1e152b4c230220b5627e9e79e5d3397d0c578af1"
     }
-  ],
-  "record_sha256": "e5843861a36d0980636f8e69019cc9bf6dff4951d70eec86539e3f1f3b36117b"
+  ]
 }

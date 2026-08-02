@@ -1,30 +1,53 @@
 {
   "schema_version": "1.0",
-  "task_id": "SA-507",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S5",
-  "title": "冻结候选、执行唯一全量回归并发布",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "apply",
-  "acceptance_ids": [
-    "AC-SA-507"
+  "generated_at": "2026-08-02T04:11:57Z",
+  "task": "SA-507",
+  "version": "0.0.0.5",
+  "status": "BLOCKED_EXTERNAL",
+  "progress_percent": 88,
+  "release_ready": false,
+  "summary": "Implementation, static validation, production deployment, backup, restore verification, status publication, Private-Database replication, and GitHub/Markdown probes pass. Owner-controlled browser, Notion, and Obsidian UAT remain open.",
+  "completed": [
+    "Stage 0 Semantic Reconcile",
+    "zero-technical-user extension install guide and verified ZIP",
+    "production image deployment and loopback health",
+    "245-test repository suite",
+    "git diff check",
+    "sealed Task Pack verification",
+    "secret scan",
+    "Private-Database backup and restore verify-only",
+    "GitHub/R2/OCI same-cipher three-target verification for two objects",
+    "GitHub private destination probe",
+    "Markdown destination write/readback probe",
+    "sanitized status publication"
   ],
-  "tests": [
-    "TEST-SA-507"
+  "blocked": [
+    {
+      "gate": "browser-extension-pair-save-restart",
+      "status": "BLOCKED_EXTERNAL",
+      "next_action": "Owner installs the unpacked extension in Chrome, pairs it, performs one-click save, restarts Chrome, and confirms persistence."
+    },
+    {
+      "gate": "notion",
+      "status": "BLOCKED_EXTERNAL",
+      "next_action": "Owner creates a free Notion integration, shares the target data source, and configures the secret and data_source_id outside chat."
+    },
+    {
+      "gate": "obsidian",
+      "status": "BLOCKED_EXTERNAL",
+      "next_action": "Owner selects a Vault folder or configures Local REST API 4.1.3+ outside chat."
+    }
   ],
-  "oracle": "全量测试、敏感信息、许可证边界、依赖、回滚和证据全部通过；环境绑定 NOT_RUN 明确，不冒充产品生产 PASS。",
-  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Unique full suite PASS (241 tests); git diff check PASS; sealed Task Pack verification PASS (73 candidate tests). Product runtime NOT_RUN.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "ce9a11336c70bd011f7877404c99ed26973843a06a594e84952999e6eb994d36"
+  "obsolete": [
+    "LinzeColin/Social-Archive-Vault repository target",
+    "historical Social-Archive-Vault receipts as current acceptance evidence"
+  ],
+  "release_mutations_performed": false,
+  "next_gate": "Complete all three owner-controlled UAT gates, then rerun final acceptance before any commit, push, main update, or tag.",
+  "evidence": [
+    "evidence/SA-507/STAGE0_SEMANTIC_RECONCILE_20260802.json",
+    "evidence/SA-507/V005_FINAL_EXECUTION_20260802.json",
+    "/var/lib/social-archive/backups/private-database/20260802T033342Z/manifest.json",
+    "/var/lib/social-archive/status/social-archive.json"
+  ]
 }

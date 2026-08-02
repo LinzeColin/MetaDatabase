@@ -10,15 +10,33 @@ def _client(tmp_path, monkeypatch) -> TestClient:
     pwa = tmp_path / "pwa"
     pwa.mkdir()
     (pwa / "index.html").write_text("ok", encoding="utf-8")
+    (pwa / "extension-install.html").write_text("六步安装 Social Archive", encoding="utf-8")
+    extension_package = tmp_path / "social-archive-extension.zip"
+    extension_package.write_bytes(b"PK\x03\x04fixture-extension")
     monkeypatch.setenv("SOCIAL_ARCHIVE_DATA_ROOT", str(root))
     monkeypatch.setenv("SOCIAL_ARCHIVE_RUNTIME_DB", str(root / "db.sqlite"))
     monkeypatch.setenv("SOCIAL_ARCHIVE_STAGING_ROOT", str(root / "staging"))
     monkeypatch.setenv("SOCIAL_ARCHIVE_PRIVATE_DATABASE_ROOT", str(root / "private"))
     monkeypatch.setenv("SOCIAL_ARCHIVE_WATCH_ROOT", str(root / "import"))
     monkeypatch.setenv("SOCIAL_ARCHIVE_PWA_ROOT", str(pwa))
+    monkeypatch.setenv("SOCIAL_ARCHIVE_EXTENSION_PACKAGE", str(extension_package))
     import social_archive.api as api
     importlib.reload(api)
     return TestClient(api.app)
+
+
+def test_extension_install_guide_and_package_are_real_downloads(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    guide = client.get("/extension-install")
+    assert guide.status_code == 200
+    assert "六步安装 Social Archive" in guide.text
+
+    package = client.get("/downloads/social-archive-extension.zip")
+    assert package.status_code == 200
+    assert package.content == b"PK\x03\x04fixture-extension"
+    assert package.headers["content-type"] == "application/zip"
+    assert "social-archive-extension-v0.0.0.5.zip" in package.headers["content-disposition"]
+    assert len(package.headers["x-social-archive-sha256"]) == 64
 
 
 def test_extension_bootstrap_is_single_render_payload(tmp_path, monkeypatch):

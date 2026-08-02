@@ -18,6 +18,15 @@ from social_archive.utils import approved_shared_host_secret, approved_systemd_c
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def test_github_markdown_uses_the_repo_scoped_private_database_secret():
+    compose = yaml.safe_load((ROOT / "compose.yaml").read_text(encoding="utf-8"))
+    assert compose["secrets"]["github_markdown_token"]["file"] == "./runtime/secrets/github_markdown_token"
+    expected = {"source": "github_markdown_token", "target": "github_token"}
+    assert expected in compose["services"]["core-api"]["secrets"]
+    assert expected in compose["services"]["core-worker"]["secrets"]
+    assert "github_token" not in compose["services"]["core-api"]["secrets"]
+
+
 def _load_script(name: str):
     spec = importlib.util.spec_from_file_location(f"{name}_test_module", ROOT / "scripts" / f"{name}.py")
     module = importlib.util.module_from_spec(spec)

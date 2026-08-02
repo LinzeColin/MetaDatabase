@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import ipaddress
+import os
 import secrets
 import threading
 import time
@@ -803,12 +804,40 @@ def status_projection() -> dict[str, Any]:
 
 
 pwa_root = settings.pwa_root
+extension_package = Path(
+    os.getenv(
+        "SOCIAL_ARCHIVE_EXTENSION_PACKAGE",
+        str(Path(__file__).resolve().parents[2] / "dist" / "social-archive-extension.zip"),
+    )
+).resolve()
+
+
+@app.get("/downloads/social-archive-extension.zip")
+def download_browser_extension() -> FileResponse:
+    if not extension_package.is_file():
+        raise HTTPException(status_code=503, detail="浏览器插件安装包尚未生成，请稍后重试")
+    payload = extension_package.read_bytes()
+    return FileResponse(
+        extension_package,
+        media_type="application/zip",
+        filename=f"social-archive-extension-v{__version__}.zip",
+        headers={
+            "Cache-Control": "private, max-age=3600",
+            "X-Social-Archive-SHA256": sha256_bytes(payload),
+        },
+    )
+
+
 if pwa_root.exists():
     app.mount("/assets", StaticFiles(directory=pwa_root), name="assets")
 
     @app.get("/")
     def pwa_index() -> FileResponse:
         return FileResponse(pwa_root / "index.html")
+
+    @app.get("/extension-install")
+    def extension_install_guide() -> FileResponse:
+        return FileResponse(pwa_root / "extension-install.html")
 
     @app.get("/item/{content_id}")
     def pwa_item(content_id: str) -> FileResponse:
