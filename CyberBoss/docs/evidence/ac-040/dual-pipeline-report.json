@@ -1,0 +1,31 @@
+{
+  "schema_version": "cyberboss.dual-pipeline.v1",
+  "pipelines": {
+    "software": {
+      "pipeline": "software",
+      "present": true,
+      "total": 1641,
+      "passed": 1641,
+      "failed": 0,
+      "hard_failures": []
+    },
+    "model": {
+      "pipeline": "model",
+      "present": true,
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "hard_failures": []
+    }
+  },
+  "hard_failure_kinds": [
+    "privilege_escalation",
+    "duplicate_side_effect",
+    "privacy_leak"
+  ],
+  "hard_failures": [],
+  "vetoed_by": [],
+  "verdict": "PASS",
+  "generated_at": "2026-08-02T04:36:24Z",
+  "report_digest": "fc34bafa22324e0d9f212483bdf5ccc6081eacf3cda2bd5d2c898eec1271e2e5"
+}
