@@ -24,7 +24,7 @@ function productionEnv(overrides = {}) {
     WRP_TASKPACK_VERSION: "v0.0.0.1.9",
     WRP_RELEASE_COMMIT: "0123456789abcdef0123456789abcdef01234567",
     WRP_OVH_RELEASE_ID: "ovh-release-test",
-    WRP_SITES_PROJECT_ID: "sites-project-test",
+    WRP_EDGE_DEPLOYMENT_ID: "edge-deployment-test",
     WRP_OBJECT_STORE_MODE: "r2",
     WRP_R2_ENDPOINT: "https://r2.cloudflarestorage.com",
     WRP_R2_BUCKET: "weread-port-test",
@@ -52,25 +52,19 @@ test("R2 主对象与 Private-Database 冷备使用隔离命名空间", () => {
   assert.throws(() => loadConfig(productionEnv({ WRP_PRIVATE_DATABASE_BACKUP_PREFIX: "primary-objects" })), /命名空间必须隔离/);
 });
 
-test("受控管理员子域与主站复用最小 Cookie 域", () => {
-  const config = loadConfig(productionEnv({
-    WRP_ADMIN_BASE_URL: "https://admin.weread.linzezhang.com",
-    WRP_ADMIN_ACCOUNT_IDS: "acct_admin0001",
-  }));
-  assert.equal(config.sessionCookieDomain, "weread.linzezhang.com");
-
-  const unrelated = loadConfig(productionEnv({
-    WRP_ADMIN_BASE_URL: "https://admin.other.example",
-    WRP_ADMIN_ACCOUNT_IDS: "acct_admin0001",
-  }));
-  assert.equal(unrelated.sessionCookieDomain, "");
+test("单一公开入口使用 host-only 会话 Cookie，半配置管理域 fail-closed", () => {
+  const config = loadConfig(productionEnv());
+  assert.equal(config.sessionCookieDomain, "");
+  assert.throws(() => loadConfig(productionEnv({ WRP_ADMIN_BASE_URL: "https://admin.weread.linzezhang.com" })), /必须同时配置或同时留空/);
+  assert.throws(() => loadConfig(productionEnv({ WRP_ADMIN_ACCOUNT_IDS: "acct_admin0001" })), /必须同时配置或同时留空/);
+  assert.throws(() => loadConfig(productionEnv({ WRP_ADMIN_BASE_URL: "https://admin.weread.linzezhang.com", WRP_ADMIN_ACCOUNT_IDS: "acct_admin0001" })), /只允许 weread\.linzezhang\.com/);
 });
 
 test("账户正文对象只写入 primary-objects 并在 readiness 暴露精确 release identity", async t => {
   const config = testConfig({
     primaryObjectPrefix: "primary-objects",
     privateDatabaseBackupPrefix: "backups/private-database",
-    releaseIdentity: { taskpackVersion: "v0.0.0.1.9", releaseCommit: "test-release-commit", ovhReleaseId: "test-ovh-release", sitesProjectId: "test-sites-project" },
+    releaseIdentity: { taskpackVersion: "v0.0.0.1.9", releaseCommit: "test-release-commit", ovhReleaseId: "test-ovh-release", edgeDeploymentId: "test-edge-deployment" },
   });
   const platform = testPlatform({ config });
   t.after(platform.close);
@@ -89,7 +83,7 @@ test("不可变账户发布包携带服务依赖的共享微信读书规范化�
   t.after(() => rm(root, { recursive: true, force: true }));
   const commit = "a".repeat(40);
   const install = fileURLToPath(new URL("../../service/install_platform.py", import.meta.url));
-  await execFile("python3", [install, "--root", root, "--release-commit", commit, "--ovh-release-id", "test-release", "--sites-project-id", "test-sites"]);
+  await execFile("python3", [install, "--root", root, "--release-commit", commit, "--ovh-release-id", "test-release", "--edge-deployment-id", "test-edge"]);
   const release = path.join(root, "opt", "weread-port", "releases", `0.0.0.1.9-${commit.slice(0, 12)}-test-release`);
   const normalizer = path.join(release, "src", "core", "normalize.js");
   await access(normalizer);

@@ -1127,7 +1127,7 @@ export class PlatformService {
       this.config.releaseIdentity.taskpackVersion === "v0.0.0.1.9" &&
       this.config.releaseIdentity.releaseCommit &&
       this.config.releaseIdentity.ovhReleaseId &&
-      this.config.releaseIdentity.sitesProjectId
+      this.config.releaseIdentity.edgeDeploymentId
     );
     dependencies.releaseIdentity = { ok: releaseIdentityReady, ...this.config.releaseIdentity };
     dependencies.objectNamespaces = {

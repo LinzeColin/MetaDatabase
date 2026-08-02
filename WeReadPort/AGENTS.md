@@ -20,7 +20,7 @@
 - 会话使用 HttpOnly、SameSite、Secure Cookie；写请求使用 CSRF 和同源检查；敏感操作要求近期重新验证；错误不得泄漏账户是否存在或 Secret。
 - 认证失败计数与锁定必须持久化，服务重启不得绕过；用户可补设/更换密码并撤销其他设备会话。导入暂存正文必须账户级加密且终态清除；OAuth 半失败不得留下孤儿账户或凭据。
 - 上游调用必须有有限超时、幂等感知的有界重试和手动重定向策略；`/readyz` 必须主动检查 SQLite、R2 和 worker，不得硬编码正常。GitHub 采用 GitHub App 用户授权和安装范围，不得请求传统全仓库 `repo` scope。
-- 任何曾在聊天、工单或日志出现的真实密钥视为泄露，不得进入代码、任务包、测试、日志、Sites 或部署配置；必须撤销并轮换后才可做 Owner E2E。
+- 任何曾在聊天、工单或日志出现的真实密钥视为泄露，不得进入代码、任务包、测试、日志、Cloudflare 静态配置或部署配置；必须撤销并轮换后才可做 Owner E2E。
 - 生产运行使用 Linux systemd，不使用 macOS launchd，不依赖开发 Agent、后台会话或模型 Token。
 - 不得加入真实时间 Soak、等待 Gate、重复审批或无限重试。时间逻辑用 Fake Clock、Fixture、历史回放和故障注入即时验证。
-- Scope、Acceptance、测试集和版本 `v0.0.0.1.9` 已冻结；Codex 不得创建新版本、重新研究、重新调用 Verifier/Teleiosis/Persona/SubAgent，或更改产品合同。Codex只运行任务包、精确 commit/push、安装 OVH 单元、复用同一 Sites 项目部署并回传证据。
+- Scope、Acceptance、测试集和版本 `v0.0.0.1.9` 已冻结；Codex 不得创建新版本、重新研究、重新调用 Verifier/Teleiosis/Persona/SubAgent，或更改产品合同。Codex只运行任务包、精确 commit/push、安装 OVH 单元、部署自有 Cloudflare Worker 并回传证据。

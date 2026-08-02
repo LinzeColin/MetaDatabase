@@ -13,7 +13,8 @@ export function loadConfig(env = process.env, { test = false } = {}) {
   const baseUrl = optionalOrigin(env.WRP_PUBLIC_BASE_URL || DEFAULT_BASE_URL, "WRP_PUBLIC_BASE_URL", production);
   const adminBaseUrl = optionalOrigin(env.WRP_ADMIN_BASE_URL, "WRP_ADMIN_BASE_URL", production);
   const adminAccountIds = parseAdminAccountIds(env.WRP_ADMIN_ACCOUNT_IDS || "");
-  if (adminAccountIds.length && !adminBaseUrl) throw new Error("配置管理员账户时必须同时设置 WRP_ADMIN_BASE_URL。");
+  if (Boolean(adminBaseUrl) !== Boolean(adminAccountIds.length)) throw new Error("管理入口地址和管理员账户必须同时配置或同时留空。");
+  if (production && (adminBaseUrl || adminAccountIds.length)) throw new Error("生产范围只允许 weread.linzezhang.com，不得启用管理子域或跨域会话。");
   const sessionCookieDomain = sharedSessionCookieDomain(baseUrl, adminBaseUrl);
   const internalProxySecret = String(env.WRP_INTERNAL_PROXY_SECRET || (test ? "test-internal-proxy-secret-not-for-production" : ""));
   if (!internalProxySecret) throw new Error("缺少 WRP_INTERNAL_PROXY_SECRET。");
@@ -21,11 +22,12 @@ export function loadConfig(env = process.env, { test = false } = {}) {
     taskpackVersion: String(env.WRP_TASKPACK_VERSION || TASKPACK_VERSION),
     releaseCommit: String(env.WRP_RELEASE_COMMIT || (test ? "test-release-commit" : "")),
     ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || (test ? "test-ovh-release" : "")),
-    sitesProjectId: String(env.WRP_SITES_PROJECT_ID || (test ? "test-sites-project" : "")),
+    edgeDeploymentId: String(env.WRP_EDGE_DEPLOYMENT_ID || (test ? "test-edge-deployment" : "")),
+    ...(String(env.WRP_LEGACY_EDGE_COMPAT_ID || "") ? { sitesProjectId: String(env.WRP_LEGACY_EDGE_COMPAT_ID) } : {}),
   });
   if (releaseIdentity.taskpackVersion !== TASKPACK_VERSION) throw new Error("WRP_TASKPACK_VERSION 与冻结版本不一致。");
-  if (production && (!/^[0-9a-f]{40}$/.test(releaseIdentity.releaseCommit) || !safeReleaseId(releaseIdentity.ovhReleaseId) || !safeReleaseId(releaseIdentity.sitesProjectId))) {
-    throw new Error("生产部署身份缺少或无效：release commit 必须为 40 位 SHA，OVH release ID 与 Sites project ID 必须为安全标识。");
+  if (production && (!/^[0-9a-f]{40}$/.test(releaseIdentity.releaseCommit) || !safeReleaseId(releaseIdentity.ovhReleaseId) || !safeReleaseId(releaseIdentity.edgeDeploymentId) || (releaseIdentity.sitesProjectId && !safeReleaseId(releaseIdentity.sitesProjectId)))) {
+    throw new Error("生产部署身份缺少或无效：release commit 必须为 40 位 SHA，OVH release ID 与边缘部署 ID 必须为安全标识。");
   }
   const primaryObjectPrefix = safePrefix(env.WRP_PRIMARY_OBJECT_PREFIX || "primary-objects", "WRP_PRIMARY_OBJECT_PREFIX");
   const privateDatabaseBackupPrefix = safePrefix(env.WRP_PRIVATE_DATABASE_BACKUP_PREFIX || "backups/private-database", "WRP_PRIVATE_DATABASE_BACKUP_PREFIX");

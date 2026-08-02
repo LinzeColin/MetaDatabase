@@ -12,7 +12,6 @@ assert.equal(APP_VERSION, pkg.taskpackVersion, "任务包版本与运行时版�
 assert.equal(pkg.releaseStage, "stage2-formal-development-taskpack-delivery");
 for (const [name, expected] of Object.entries({
   "@cloudflare/vite-plugin": "1.47.0",
-  "@openai/sites-vite-plugin": "0.1.0",
   vite: "8.1.5",
   wrangler: "4.114.0",
 })) assert.equal(pkg.devDependencies[name], expected, `${name} 必须锁定到 ${expected}`);
@@ -30,13 +29,15 @@ assert.ok(sbomPath, "正式开发任务包必须包含 CycloneDX SBOM");
 const sbom = await readJson(sbomPath);
 assert.equal(sbom.metadata?.component?.name, pkg.name);
 assert.equal(sbom.metadata?.component?.version, pkg.version);
+assert.equal(JSON.stringify(sbom).includes("@openai/sites-vite-plugin"), false, "SBOM 不得残留 ChatGPT Sites 构建依赖。");
+assert.equal(JSON.stringify(sbom).includes("chatgpt.site"), false, "SBOM 不得残留 ChatGPT Sites 域名。");
 
-const hosting = await readJson(".openai/hosting.json");
-for (const forbidden of ["secret", "token", "password", "cookie", "authorization"]) {
-  assert.equal(Object.keys(hosting).some(key => key.toLowerCase().includes(forbidden)), false, `hosting.json 禁止字段：${forbidden}`);
-}
-assert.equal(hosting.d1 ?? null, null, "Sites 产品面不直接使用 D1");
-assert.equal(hosting.r2 ?? null, null, "R2 只能由 OVH 账户服务通过 Secret 访问，不绑定到静态 Sites 配置");
+assert.equal(await exists(".openai/hosting.json"), false, "生产入口不得保留 ChatGPT Sites 配置。");
+const wrangler = await readJson("wrangler.jsonc");
+assert.equal(wrangler.workers_dev, false, "不得暴露 workers.dev 默认入口。");
+assert.equal(wrangler.assets?.binding, "ASSETS", "Cloudflare 静态资源绑定必须存在。");
+assert.equal(wrangler.assets?.directory, "./dist/client", "Cloudflare 静态资源必须来自标准 Vite 构建输出。");
+assert.equal(JSON.stringify(pkg).includes("@openai/sites-vite-plugin"), false, "不得保留 ChatGPT Sites 构建依赖。");
 
 for (const required of [
   "service/platform/app.mjs", "service/platform/service.mjs", "service/platform/store.mjs",
@@ -45,7 +46,7 @@ for (const required of [
   "src/ui/account-platform.js", "src/ui/account-api.js", "src/ui/obsidian-import.js",
 ]) assert.equal(await exists(required), true, `缺少当前版本必要文件：${required}`);
 
-console.log("发布元数据检查通过：v0.0.0.1.9、锁文件、SBOM、Sites/OVH 分层与账户平台制品一致。");
+console.log("发布元数据检查通过：v0.0.0.1.9、锁文件、SBOM、Cloudflare/OVH 分层与账户平台制品一致。");
 
 async function readJson(relative) { return JSON.parse(await readFile(path.join(root, relative), "utf8")); }
 async function exists(relative) { try { await access(path.join(root, relative)); return true; } catch { return false; } }

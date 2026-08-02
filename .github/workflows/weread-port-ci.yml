@@ -36,7 +36,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: 验证冻结实现
         run: npm run verify:all
-      - name: 构建 ChatGPT Sites 制品
+      - name: 构建自有 Cloudflare Worker 制品
         run: npm run build
       - name: 关键供应链漏洞检查
         run: npm audit --audit-level=critical --omit=optional

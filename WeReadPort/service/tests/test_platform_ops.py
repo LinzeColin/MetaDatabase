@@ -60,7 +60,7 @@ class PlatformOperationsTests(unittest.TestCase):
         legacy_unit.write_text("[Service]\nExecStart=/bin/false\n", encoding="utf-8")
         completed = subprocess.run(
             [sys.executable, str(ROOT / "service/install_platform.py"), "--root", str(self.root / "install"),
-             "--release-commit", "a" * 40, "--ovh-release-id", "ovh-test-v019", "--sites-project-id", "sites-test-v019"],
+             "--release-commit", "a" * 40, "--ovh-release-id", "ovh-test-v019", "--edge-deployment-id", "edge-test-v019"],
             cwd=ROOT, text=True, capture_output=True, check=True,
         )
         result = json.loads(completed.stdout)
@@ -97,7 +97,7 @@ class PlatformOperationsTests(unittest.TestCase):
             calls.append(command)
             return subprocess.CompletedProcess(command, 0)
 
-        with patch.object(INSTALLER, "root_path", side_effect=rooted), patch.object(INSTALLER, "run_preflight", return_value={"status": "PASS"}), patch.object(INSTALLER, "update_env", return_value=required), patch.object(INSTALLER, "wait_for_platform_ready") as wait_ready, patch.object(INSTALLER.os, "geteuid", return_value=0), patch.object(INSTALLER.pwd, "getpwnam", return_value=object()), patch.object(INSTALLER.subprocess, "run", side_effect=record), patch.object(sys, "argv", ["install_platform.py", "--apply", "--release-commit", "b" * 40, "--ovh-release-id", "ovh-active-v019", "--sites-project-id", "sites-active-v019"]):
+        with patch.object(INSTALLER, "root_path", side_effect=rooted), patch.object(INSTALLER, "run_preflight", return_value={"status": "PASS"}), patch.object(INSTALLER, "update_env", return_value=required), patch.object(INSTALLER, "wait_for_platform_ready") as wait_ready, patch.object(INSTALLER.os, "geteuid", return_value=0), patch.object(INSTALLER.pwd, "getpwnam", return_value=object()), patch.object(INSTALLER.subprocess, "run", side_effect=record), patch.object(sys, "argv", ["install_platform.py", "--apply", "--release-commit", "b" * 40, "--ovh-release-id", "ovh-active-v019", "--edge-deployment-id", "edge-active-v019"]):
             self.assertEqual(INSTALLER.main(), 0)
 
         wait_ready.assert_called_once_with(8788)
@@ -112,8 +112,8 @@ class PlatformOperationsTests(unittest.TestCase):
         values = {
             "NODE_ENV": "production",
             "WRP_PUBLIC_BASE_URL": "https://weread.linzezhang.com",
-            "WRP_ADMIN_BASE_URL": "https://admin.weread.linzezhang.com",
-            "WRP_ADMIN_ACCOUNT_IDS": "acct_admin00000001",
+            "WRP_ADMIN_BASE_URL": "",
+            "WRP_ADMIN_ACCOUNT_IDS": "",
             "WRP_SERVICE_HOST": "127.0.0.1",
             "WRP_SERVICE_PORT": "8788",
             "WRP_EDGE_BRIDGE_HOST": "10.0.1.1",
@@ -143,7 +143,7 @@ class PlatformOperationsTests(unittest.TestCase):
             "WRP_TASKPACK_VERSION": "v0.0.0.1.9",
             "WRP_RELEASE_COMMIT": "a" * 40,
             "WRP_OVH_RELEASE_ID": "ovh-test-v019",
-            "WRP_SITES_PROJECT_ID": "sites-test-v019",
+            "WRP_EDGE_DEPLOYMENT_ID": "edge-test-v019",
             "WRP_PRIMARY_OBJECT_PREFIX": "primary-objects",
             "WRP_PRIVATE_DATABASE_BACKUP_PREFIX": "backups/private-database",
             "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET": "r2:weread/backups/private-database",

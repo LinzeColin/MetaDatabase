@@ -43,9 +43,9 @@ def add(checks,name,status,latency,passed,detail=""): checks.append({"name":name
 
 def main() -> int:
     parser=argparse.ArgumentParser(); parser.add_argument("origin"); parser.add_argument("--timeout",type=float,default=15.0); parser.add_argument("--output")
-    parser.add_argument("--expected-commit",default=os.environ.get("WRP_RELEASE_COMMIT","")); parser.add_argument("--expected-ovh-release-id",default=os.environ.get("WRP_OVH_RELEASE_ID","")); parser.add_argument("--expected-sites-project-id",default=os.environ.get("WRP_SITES_PROJECT_ID","")); args=parser.parse_args()
-    base=origin(args.origin); commit=required("expected commit",args.expected_commit,SHA40); ovh=required("expected OVH release ID",args.expected_ovh_release_id,SAFE_ID); sites=required("expected Sites project ID",args.expected_sites_project_id,SAFE_ID)
-    expected={"taskpackVersion":EXPECTED_APP_VERSION,"releaseCommit":commit,"ovhReleaseId":ovh,"sitesProjectId":sites}; checks=[]
+    parser.add_argument("--expected-commit",default=os.environ.get("WRP_RELEASE_COMMIT","")); parser.add_argument("--expected-ovh-release-id",default=os.environ.get("WRP_OVH_RELEASE_ID","")); parser.add_argument("--expected-edge-deployment-id",default=os.environ.get("WRP_EDGE_DEPLOYMENT_ID","")); args=parser.parse_args()
+    base=origin(args.origin); commit=required("expected commit",args.expected_commit,SHA40); ovh=required("expected OVH release ID",args.expected_ovh_release_id,SAFE_ID); edge=required("expected edge deployment ID",args.expected_edge_deployment_id,SAFE_ID)
+    expected={"taskpackVersion":EXPECTED_APP_VERSION,"releaseCommit":commit,"ovhReleaseId":ovh,"edgeDeploymentId":edge}; checks=[]
     status,headers,raw,latency=fetch(base+"/healthz",timeout=args.timeout); health=parse_json(raw,"health"); add(checks,"liveness",status,latency,status==200 and health.get("status")=="ALIVE",str(health.get("status")))
     status,headers,raw,latency=fetch(base+"/readyz",timeout=args.timeout); readiness=parse_json(raw,"readyz"); account=(readiness.get("checks") or {}).get("accountPlatformService") or {}; actual=account.get("releaseIdentity") or {}
     readiness_ok=status==200 and readiness.get("status")=="READY" and (readiness.get("checks") or {}).get("staticAssets",{}).get("ready") is True and account.get("ready") is True and actual==expected and (readiness.get("checks") or {}).get("businessGovernanceContract",{}).get("schemaVersion")==EXPECTED_BUSINESS_SCHEMA_VERSION
