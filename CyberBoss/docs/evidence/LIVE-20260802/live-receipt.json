@@ -1,0 +1,67 @@
+{
+  "run": "LIVE-20260802",
+  "host": "OVH VPS-1 139.99.61.6",
+  "release": "31794bf6bbf701296507312d23ca0305ea802d94",
+  "closed": {
+    "AC-027": {
+      "verdict": "PASS",
+      "how": [
+        "修好 EACCES 后连跑 4 次：第 4 次 eligible=0 / ingest=0（无新事实不产生新记录）",
+        "outgoing 7 个批次 = receipts 7 份收据，一批一收据无重复",
+        "独立从 Private-Database get 回对象，sha256 与收据完全一致，耗时 <1 秒（目标 300 秒）"
+      ]
+    },
+    "AC-029": {
+      "verdict": "PASS",
+      "how": [
+        "https://boss.linzezhang.com/source 公网 HTTP 200，未登录可见",
+        "页面上的线上版本 = 31794bf6bbf7，与部署的 release 一致",
+        "manifest digest afeccdbe… 由线上进程按实际源码树算出"
+      ]
+    },
+    "AC-034": {
+      "verdict": "PASS",
+      "how": [
+        "不可变 release 目录 releases/<sha> + current 指针 + previous 回滚指针",
+        "本次部署 89f3f7bf483e → 31794bf6bbf7，服务进程实际环境已核对",
+        "ops/deploy-to-cloud.sh --rollback 是一次指针改写 + 重启"
+      ]
+    },
+    "SWITCH-1": {
+      "verdict": "PASS",
+      "how": [
+        "生产上按「停」→ 立刻读回 offline / owner_decision",
+        "状态文件落盘 /var/lib/cyberboss/system-switch.json",
+        "systemctl restart 后仍是 offline（活过重启）",
+        "按「开」恢复 online；无令牌请求 401"
+      ]
+    }
+  },
+  "production_findings": [
+    {
+      "id": "F1",
+      "severity": "high",
+      "title": "canonical-sync 自 7-29 起一直失败（EACCES）",
+      "detail": "/var/lib/cyberboss 是 0700，canonical-spool 给的是 0750 组读、cyberboss-data 也在 cyberboss 组里——组配对了但父目录走不进去。",
+      "fix": "chmod 0710 父目录：组能穿过，列不出内容。"
+    },
+    {
+      "id": "F2",
+      "severity": "high",
+      "title": "boss.linzezhang.com 指向了另一个项目",
+      "detail": "隧道 ingress 写的是 8787，而 CyberBoss portal 在 8789；8787 自 7-31 起被 signal-lattice-api 占着。于是主人的后台打不开，同时一个内部 API 被暴露在 CyberBoss 的公网域名上。部署脚本的「公网 /admin 打得开」正是被它应答的假绿。",
+      "fix": "ingress 两处 8787 → 8789（原文件已备份为 .bak-20260802）。"
+    },
+    {
+      "id": "F3",
+      "severity": "high",
+      "title": "备份的 R2 与 OCI 恰好互补地各缺一半权限",
+      "detail": "OAuth 刷新令牌被 Cloudflare 判 invalid_grant；机器上的 r2_api_token 无 R2 权限；_protected 的 cloudflare_r2d1_token 有 R2 读、PUT 403；weread 那对 S3 密钥对 cyberboss-cold 是 AccessDenied；两个 OCI PAR 都是只写（PUT 200 / GET 404）。",
+      "fix": "需要主人在 Cloudflare 后台发一个对 cyberboss-cold 有写权限的令牌，或发一个可读的 OCI PAR。"
+    }
+  ],
+  "not_run": {
+    "AC-028": "缺凭据，见 F3",
+    "AC-002/004/006/025/040/044/045": "要真人真微信号往返，未擅自代发"
+  }
+}
