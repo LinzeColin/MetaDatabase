@@ -2,282 +2,172 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
+  const platformOrder = ["generic-web", "xiaohongshu", "douyin", "kuaishou", "bilibili", "x", "reddit", "instagram"];
+  const platformNames = { "generic-web":"Chrome 书签", xiaohongshu:"小红书", douyin:"抖音", kuaishou:"快手", bilibili:"B站", x:"X", reddit:"Reddit", instagram:"Instagram" };
+  const platformIcons = { "generic-web":"书", xiaohongshu:"红", douyin:"抖", kuaishou:"快", bilibili:"B", x:"X", reddit:"R", instagram:"I" };
+  const relationCopy = {
+    "generic-web":"全部 Chrome 书签与文件夹", xiaohongshu:"收藏夹、收藏、点赞", douyin:"收藏夹、收藏、点赞",
+    kuaishou:"收藏、点赞", bilibili:"收藏夹、稍后再看、历史、点赞", x:"书签、点赞", reddit:"Saved、Upvoted", instagram:"Saved Collections"
+  };
+  const destinationNames = { social_archive:"主档案", markdown:"Markdown", notion:"Notion", obsidian:"Obsidian", github:"GitHub Private", karakeep:"Karakeep", linkwarden:"Linkwarden", archivebox:"ArchiveBox" };
+  const activeStates = new Set(["queued","authorizing","discovering","scanning","normalizing","artifacting","exporting"]);
   let config = null;
-  let bootstrap = null;
+  let accounts = [];
+  let runs = [];
+  let destinations = [];
+  let pendingConnections = {};
+  let serviceReady = false;
 
-  function setServiceState(state, text) {
-    const badge = $("serviceState");
-    badge.className = `state ${state}`;
-    badge.textContent = text || SA.statusCopy(state);
+  function toast(message, type="success") {
+    const node = $("toast");
+    node.textContent = message;
+    node.className = `toast ${type === "success" ? "" : type}`.trim();
+    node.classList.remove("hidden");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => node.classList.add("hidden"), 4200);
   }
+  function stateLabel(value) { return ({connected:"已连接",degraded:"降级可用",disconnected:"未连接",authorizing:"正在授权",queued:"等待同步",discovering:"正在发现",scanning:"正在同步",normalizing:"正在整理",artifacting:"正在归档",exporting:"正在导出",completed:"同步完成",partial:"部分完成",failed:"需要处理",blocked_environment:"重新连接"})[value] || value || "未连接"; }
+  function latestRun(accountId) { return runs.filter(run => run.source_account_id === accountId).sort((a,b)=>String(b.updated_at||"").localeCompare(String(a.updated_at||"")))[0] || null; }
+  function formatTime(value) { if(!value)return"尚未同步";const d=new Date(value);return Number.isNaN(d.getTime())?"尚未同步":new Intl.DateTimeFormat("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d).replaceAll("/","-"); }
 
-  function message(text, type = "success", target = "serviceMessage") {
-    const el = $(target);
-    el.textContent = text;
-    el.className = `message ${type === "success" ? "" : type}`.trim();
-  }
-
-  function obsidianLoopbackUrl(value) {
-    const url = new URL(String(value || SA.OBSIDIAN_LOOPBACK_URL).trim());
-    if (
-      url.protocol !== "http:"
-      || url.hostname !== "127.0.0.1"
-      || url.port !== "27123"
-      || url.username
-      || url.password
-      || url.pathname !== "/"
-      || url.search
-      || url.hash
-    ) throw new Error("Obsidian 只允许 http://127.0.0.1:27123 的本机桥接地址");
-    return SA.OBSIDIAN_LOOPBACK_URL;
-  }
-
-  function statusText(value) {
-    if (!value) return "尚未检查";
-    const state = value.status || value.state || value.action;
-    if (["verified", "healthy", "connected", "allow"].includes(state)) return "已连接 / 可用";
-    if (["pause", "paused", "degraded", "needs_user_action"].includes(state)) return "需要处理";
-    return SA.statusCopy(state);
-  }
-
-  function checkMeta(item) {
-    const raw = item?.last_checked_at;
-    let checked = "尚未检查";
-    if (raw) {
-      const date = new Date(raw);
-      checked = Number.isNaN(date.getTime()) ? String(raw) : date.toLocaleString("zh-CN");
-    }
-    const latency = Number(item?.latency_ms);
-    return `最后检查：${checked}${Number.isFinite(latency) ? ` · ${latency} ms` : " · 延迟未测量"}`;
-  }
-
-  async function ensureOriginPermission(endpoint) {
-    const originPattern = `${new URL(endpoint).origin}/*`;
-    const already = await chrome.permissions.contains({ origins: [originPattern] });
-    if (already) return true;
-    return chrome.permissions.request({ origins: [originPattern] });
-  }
-
-  function renderStorage() {
-    const quota = new Map((bootstrap?.storage?.items || []).map(item => [item.store_id, item]));
-    const replicas = new Map((bootstrap?.storage?.replicas || []).map(item => [item.store_id, item]));
-    $("privateDbState").textContent = bootstrap ? "结构化事实同步可检查" : "等待服务状态";
-    $("r2State").textContent = statusText(quota.get("r2") || replicas.get("r2"));
-    $("ociState").textContent = statusText(quota.get("oci") || replicas.get("oci"));
-    $("githubStorageState").textContent = statusText(quota.get("github_release") || replicas.get("github"));
-    const completion = bootstrap?.storage?.completion || {};
-    const done = Number(completion.all_three_verified || 0);
-    const total = Number(completion.total_artifacts || 0);
-    const pending = Number(completion.pending || 0);
-    const summary = $("replicationSummary");
-    if (!bootstrap) { summary.textContent = "等待三地密文备份状态"; summary.className = "message needs"; }
-    else if (total === 0) { summary.textContent = "尚无归档对象；保存后会显示 0/3 → 3/3"; summary.className = "message needs"; }
-    else if (pending === 0) { summary.textContent = `归档完成 3/3：${done} 个对象已回读验证`; summary.className = "message"; }
-    else { summary.textContent = `未齐三张收据不会显示完成：${done}/${total} 个对象已完成 3/3，${pending} 个仍在备份`; summary.className = "message needs"; }
-  }
-
-  async function connectService() {
-    const button = $("connectService");
-    button.disabled = true;
-    button.textContent = "正在连接…";
+  async function checkService() {
+    config = await SA.getConfig();
+    $("endpoint").value = config.endpoint;
     try {
-      const endpoint = new URL($("endpoint").value.trim() || config.endpoint).toString().replace(/\/$/, "");
-      if (!await ensureOriginPermission(endpoint)) throw new Error("未授权访问该私人档案馆地址");
-      config = await SA.setConfig({ endpoint, libraryUrl: config.libraryUrl, token: "" });
-      const code = $("pairingCode").value.trim().toUpperCase().replace(/\s+/g, "");
-      if (code) {
-        const paired = await SA.api(config.pairingPath || "/v1/pairing/exchange", {
-          method: "POST", body: JSON.stringify({ code, device_name: "Chrome Extension" }), timeoutMs: 12000
-        });
-        config = await SA.setConfig({ endpoint: paired.endpoint || endpoint, libraryUrl: paired.library_url || paired.endpoint || endpoint, token: paired.token || "" });
-        $("pairingCode").value = "";
+      const status = await fetch(`${config.endpoint}/v1/pairing/status`, {cache:"no-store"}).then(r=>r.ok?r.json():null);
+      if (status?.pairing_required === false && status.service_ready) {
+        serviceReady = true;
+        $("serviceState").className = "state connected";
+        $("serviceState").textContent = "已连接";
+        $("serviceBadge").className = "badge connected";
+        $("serviceBadge").textContent = "私人档案馆已连接";
+        $("pairingArea").classList.add("hidden");
+        return true;
       }
-      bootstrap = await SA.api("/v1/extension/bootstrap", { timeoutMs: 8000 });
-      setServiceState("connected", "已连接");
-      message("连接成功。以后无需输入地址或配对码，直接点击保存即可。");
-      await Promise.all([renderPlatforms(), renderDestinations()]);
-      renderStorage();
-    } catch (error) {
-      setServiceState("error", "连接失败");
-      const hint = error?.status === 401 ? "请输入控制台显示的一次性配对码。" : "请确认服务已部署并可访问。";
-      message(`无法连接：${error?.message || "未知错误"} ${hint}`, "error");
-    } finally {
-      button.disabled = false;
-      button.textContent = "一键连接";
+      await SA.api("/v1/extension/bootstrap", {timeoutMs:6000});
+      serviceReady = true;
+      $("serviceState").className = "state connected";
+      $("serviceState").textContent = "已连接";
+      $("serviceBadge").className = "badge connected";
+      $("serviceBadge").textContent = "私人档案馆已连接";
+      $("pairingArea").classList.add("hidden");
+      return true;
+    } catch (_) {
+      serviceReady = false;
+      $("serviceState").className = "state error";
+      $("serviceState").textContent = "待连接";
+      $("serviceBadge").className = "badge error";
+      $("serviceBadge").textContent = "需要连接";
+      $("pairingArea").classList.remove("hidden");
+      return false;
     }
   }
 
-  async function renderPlatforms() {
-    const serverMap = new Map((bootstrap?.connectors || []).map(item => [item.connector_id, item]));
-    const aliases = { xiaohongshu: "xhs", douyin: "douk", kuaishou: "ks", bilibili: "bilibili" };
-    const cards = [];
-    for (const item of SA.PLATFORM_RULES.filter(value => value.id !== "generic_web")) {
-      const browser = await SA.permissionState(item.id);
-      const server = serverMap.get(item.id) || serverMap.get(aliases[item.id]);
-      const serverState = server?.state || "blocked_environment";
-      const usable = browser.authorized;
-      const reason = server?.last_message_zh || (server?.last_error_code ? `状态代码：${server.last_error_code}` : server?.next_action_zh || "等待服务端检查");
-      cards.push(`<article class="setting-card" data-platform="${item.id}">
-        <header><h3>${SA.escapeHtml(item.name)}</h3><span class="card-state ${usable ? "connected" : "needs_user_action"}">${usable ? "页面已授权" : "未授权"}</span></header>
-        <p>${usable ? "可一键保存当前页" : "授权后显示悬浮保存按钮"} · 服务连接器：${SA.escapeHtml(SA.statusCopy(serverState))}</p>
-        <small class="check-meta">${SA.escapeHtml(checkMeta(server))} · ${SA.escapeHtml(reason)}</small>
-        <div class="card-actions"><button class="card-button ${usable ? "" : "primary"}" data-action="${usable ? "remove" : "add"}">${usable ? "撤销授权" : "授权平台"}</button></div>
-      </article>`);
-    }
-    $("platformGrid").innerHTML = cards.join("");
-    for (const card of $("platformGrid").querySelectorAll("article")) {
-      card.querySelector("button").addEventListener("click", async () => {
-        const id = card.dataset.platform;
-        const action = card.querySelector("button").dataset.action;
-        if (action === "add") await SA.requestPlatformPermission(id); else await SA.removePlatformPermission(id);
-        await renderPlatforms();
-      });
-    }
+  async function loadData() {
+    if (!await checkService()) { accounts=[]; runs=[]; destinations=[]; render(); return; }
+    try {
+      const [accountData, runData, bootstrap, pendingData] = await Promise.all([
+        SA.api("/v1/accounts",{timeoutMs:8000}), SA.api("/v1/sync-runs?limit=200",{timeoutMs:8000}), SA.api("/v1/extension/bootstrap",{timeoutMs:8000}),
+        chrome.runtime.sendMessage({type:"SA_GET_PENDING_CONNECTIONS"}).catch(()=>({items:{}}))
+      ]);
+      accounts=accountData.items||[]; runs=runData.items||[]; destinations=bootstrap.destinations||[]; pendingConnections=pendingData.items||{};
+    } catch(error){ toast(`状态读取失败：${error.message}`,"error"); }
+    render();
+  }
+
+  function renderSummary() {
+    const connected=accounts.filter(a=>["connected","degraded"].includes(a.connection_state));
+    const total=connected.reduce((sum,a)=>sum+Number(a.content_count||0),0);
+    const active=runs.filter(run=>activeStates.has(run.status));
+    $("connectedCount").textContent=String(connected.length);
+    $("contentCount").textContent=total.toLocaleString("zh-CN");
+    $("activeCount").textContent=String(active.length);
+  }
+
+  function renderAccounts() {
+    $("accountGrid").innerHTML=platformOrder.map(platform=>{
+      const account=accounts.find(item=>item.platform===platform && (platform!=="generic-web" || item.external_account_id==="chrome-bookmarks"));
+      const run=account?latestRun(account.id):null;
+      const pending=Boolean(pendingConnections[platform]);
+      const status=pending?"authorizing":(run && activeStates.has(run.status)?run.status:(account?.connection_state||"disconnected"));
+      const imported=Number(run?.imported_count||0),discovered=Number(run?.discovered_count||0);
+      const progress=discovered?Math.min(100,Math.round(imported/discovered*100)):(run&&activeStates.has(run.status)?18:(account?100:0));
+      const meta=pending
+        ? `登录页已经打开。完成登录后会自动继续；未自动识别时点击“我已登录”。`
+        : account
+          ? (run&&activeStates.has(run.status)?`已导入 ${imported.toLocaleString("zh-CN")}/${discovered?discovered.toLocaleString("zh-CN"):"…"} 条`:`${Number(account.content_count||0).toLocaleString("zh-CN")} 条 · ${formatTime(account.last_sync_at)}`)
+          : relationCopy[platform];
+      const action=pending
+        ? `<button class="card-button primary" data-verify-platform="${platform}">我已登录，继续</button><button class="card-button" data-connect-platform="${platform}">重新打开</button>`
+        : account
+          ? `<button class="card-button primary" data-sync-account="${SA.escapeHtml(account.id)}">立即同步</button>${["blocked_environment","failed"].includes(status)?`<button class="card-button" data-connect-platform="${platform}">重新连接</button>`:""}`
+          : `<button class="card-button primary" data-connect-platform="${platform}">连接账号</button>`;
+      return `<article class="account-card"><header><span class="platform-icon">${platformIcons[platform]}</span><span class="account-title"><strong>${platformNames[platform]}</strong><small>${SA.escapeHtml(account?.display_name||"未连接")}</small></span><span class="state ${SA.escapeHtml(status)}">${SA.escapeHtml(stateLabel(status))}</span></header><div class="account-meta">${SA.escapeHtml(meta)}</div><div class="progress"><span style="width:${progress}%"></span></div><div class="account-actions">${action}</div></article>`;
+    }).join("");
+    document.querySelectorAll("[data-connect-platform]").forEach(button=>button.addEventListener("click",()=>connectPlatform(button.dataset.connectPlatform,button)));
+    document.querySelectorAll("[data-verify-platform]").forEach(button=>button.addEventListener("click",()=>verifyPlatform(button.dataset.verifyPlatform,button)));
+    document.querySelectorAll("[data-sync-account]").forEach(button=>button.addEventListener("click",()=>syncAccount(button.dataset.syncAccount,button)));
   }
 
   function renderDestinations() {
-    const serverItems = new Map((bootstrap?.destinations || []).map(item => [item.destination_id, item]));
-    const ids = ["social_archive", "markdown", "notion", "obsidian", "github", "karakeep", "linkwarden", "archivebox"];
-    const validSelected = config.destinationIds.filter(id => {
-      if (id === "social_archive") return true;
-      if (id === "obsidian" && config.obsidianLocalEnabled) return true;
-      return serverItems.get(id)?.state === "connected";
-    });
-    if (validSelected.length !== config.destinationIds.length) {
-      config = { ...config, destinationIds: validSelected };
-      SA.setConfig({ destinationIds: validSelected }).catch(() => {});
-    }
-    $("destinationGrid").innerHTML = ids.map(id => {
-      const item = serverItems.get(id) || {};
-      const localObsidian = id === "obsidian" && config.obsidianLocalEnabled;
-      const state = localObsidian ? "connected" : (item.state || (id === "social_archive" ? "connected" : "needs_user_action"));
-      const connected = state === "connected";
-      const configured = localObsidian || item.configured === true || id === "social_archive";
-      const selected = config.destinationIds.includes(id) && connected;
-      const checkboxDisabled = id === "social_archive" || !connected;
-      const checked = checkMeta(item);
-      const detail = localObsidian
-        ? "扩展已主动检查本机插件，可以自动写入。"
-        : (item.last_message_zh || item.next_action_zh || "完成连接后即可自动导入。");
-      const action = id === "social_archive"
-        ? ""
-        : `<button class="card-button" data-probe="${id}">${configured ? "检查连接" : "连接设置"}</button>`;
-      return `<article class="setting-card" data-destination="${id}">
-        <header><h3>${SA.escapeHtml(SA.destinationLabel(id))}</h3><span class="card-state ${SA.escapeHtml(state)}">${SA.escapeHtml(SA.statusCopy(state))}</span></header>
-        <p>${SA.escapeHtml(detail)}</p>
-        <small class="check-meta">${connected ? "授权有效" : configured ? "配置已保存" : "尚未配置"} · ${SA.escapeHtml(checked)}</small>
-        <div class="card-actions"><label class="card-checkbox"><input type="checkbox" ${selected ? "checked" : ""} ${checkboxDisabled ? "disabled" : ""}>自动导入</label>${action}</div>
-      </article>`;
+    const order=["social_archive","markdown","notion","obsidian","github","karakeep","archivebox","linkwarden"];
+    const map=new Map(destinations.map(item=>[item.destination_id,item]));
+    $("destinationGrid").innerHTML=order.map(id=>{
+      const item=map.get(id)||{};const state=id==="social_archive"||id==="markdown"?(item.state||"connected"):(item.state||"needs_user_action");
+      return `<article class="destination-card"><header><strong>${destinationNames[id]}</strong><span class="state ${SA.escapeHtml(state)}">${SA.escapeHtml(SA.statusCopy(state))}</span></header><p>${SA.escapeHtml(item.last_message_zh||item.next_action_zh||(state==="connected"?"自动写入已开启":"在网站连接向导中完成一次真实写入"))}</p></article>`;
     }).join("");
-    for (const card of $("destinationGrid").querySelectorAll("article")) {
-      const id = card.dataset.destination;
-      const checkbox = card.querySelector('input[type="checkbox"]');
-      checkbox.addEventListener("change", async () => {
-        const next = new Set(config.destinationIds);
-        checkbox.checked ? next.add(id) : next.delete(id);
-        config = await SA.setConfig({ destinationIds: [...next] });
-      });
-      card.querySelector("button[data-probe]")?.addEventListener("click", async event => {
-        if (id === "obsidian" && config.obsidianLocalEnabled) return connectObsidian();
-        event.currentTarget.disabled = true;
-        event.currentTarget.textContent = "正在检查…";
-        try {
-          const result = await SA.api(`/v1/destinations/${encodeURIComponent(id)}/probe`, { method: "POST", timeoutMs: 25000 });
-          message(`${SA.destinationLabel(id)}：${result.last_message_zh || result.next_action_zh || SA.statusCopy(result.state)}`, result.state === "connected" ? "success" : "needs");
-          await refresh(false);
-        } catch (error) {
-          message(`${SA.destinationLabel(id)} 检查失败：${error?.message || "未知错误"}`, "error");
-          await refresh(false);
-        }
-      });
-    }
+  }
+  function render(){renderSummary();renderAccounts();renderDestinations();}
+
+  async function connectPlatform(platform,button){
+    if(!serviceReady){toast("请先连接私人档案馆","needs");location.hash="service";return;}
+    button.disabled=true;button.textContent="正在连接…";
+    try{
+      const result=await chrome.runtime.sendMessage({type:"SA_ACCOUNT_CONNECT",platform});
+      if(!result?.ok)throw new Error(result?.error||"连接未完成");
+      toast(result.message||"授权流程已打开");
+      if(result.state==="connected")await loadData();
+      else setTimeout(()=>loadData().catch(()=>{}),2500);
+    }catch(error){toast(`${platformNames[platform]}：${error.message}`,"error");}
+    finally{button.disabled=false;button.textContent="连接账号";}
+  }
+  async function verifyPlatform(platform,button){
+    button.disabled=true;button.textContent="正在检查…";
+    try{const result=await chrome.runtime.sendMessage({type:"SA_VERIFY_PLATFORM_SESSION",platform});if(!result?.ok)throw new Error(result?.error||"尚未检测到登录状态");toast(result.message||"账号已连接，首次同步已经开始");await loadData();}
+    catch(error){toast(`${platformNames[platform]}：${error.message}`,"needs");}
+    finally{button.disabled=false;button.textContent="我已登录，继续";}
+  }
+  async function syncAccount(accountId,button){
+    button.disabled=true;button.textContent="正在启动…";
+    try{const result=await chrome.runtime.sendMessage({type:"SA_SYNC_ACCOUNT",accountId});if(!result?.ok)throw new Error(result?.error||"同步失败");toast("同步已开始，已完成内容会立即出现在资料库");await loadData();}
+    catch(error){toast(`同步失败：${error.message}`,"error");}
+    finally{button.disabled=false;button.textContent="立即同步";}
+  }
+  async function syncAll(){
+    $("syncAll").disabled=true;
+    try{const result=await chrome.runtime.sendMessage({type:"SA_SYNC_ALL_ACCOUNTS"});if(!result?.ok)throw new Error("请先连接账号");toast("已启动全部账号同步");await loadData();}
+    catch(error){toast(error.message,"needs");}
+    finally{$("syncAll").disabled=false;}
+  }
+  async function pair(){
+    const endpoint=String($("endpoint").value||config.endpoint).replace(/\/$/,"");const code=$("pairingCode").value.trim();
+    if(!code)return toast("请输入一次性配对码","needs");
+    $("connectService").disabled=true;
+    try{
+      const response=await fetch(`${endpoint}${config.pairingPath||"/v1/pairing/exchange"}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,device_name:"Social Archive Chrome"})});
+      const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.detail||`配对失败（${response.status}）`);
+      await SA.setConfig({endpoint:payload.endpoint||endpoint,libraryUrl:payload.library_url||config.libraryUrl,token:payload.token||"",onboardingComplete:true});
+      toast("私人档案馆已连接");await loadData();
+    }catch(error){toast(error.message,"error");}
+    finally{$("connectService").disabled=false;}
   }
 
-  async function probeConfiguredDestinations() {
-    const items = bootstrap?.destinations || [];
-    const ids = items
-      .filter(item => item.destination_id !== "obsidian" || !config.obsidianLocalEnabled)
-      .filter(item => item.configured && item.destination_id !== "social_archive")
-      .map(item => item.destination_id);
-    if (!ids.length) {
-      message("尚无需要服务端检查的目的地；请先完成 Notion、Obsidian、GitHub 或可选阅读器设置。", "needs");
-      return;
-    }
-    const button = $("refreshDestinations");
-    button.disabled = true;
-    button.textContent = "正在检查…";
-    try {
-      const results = await Promise.all(ids.map(id => SA.api(`/v1/destinations/${encodeURIComponent(id)}/probe`, { method: "POST", timeoutMs: 25000 })));
-      const passed = results.filter(item => item.state === "connected").length;
-      message(`已检查 ${results.length} 个目的地：${passed} 个连接有效，${results.length - passed} 个需要处理。`, passed === results.length ? "success" : "needs");
-      await refresh(false);
-    } finally {
-      button.disabled = false;
-      button.textContent = "检查全部连接";
-    }
-  }
-
-  async function connectObsidian() {
-    const token = $("obsidianToken").value.trim();
-    if (!token) return message("请输入 Obsidian 插件设置页显示的令牌。", "needs", "obsidianMessage");
-    let url;
-    try { url = obsidianLoopbackUrl($("obsidianUrl").value); }
-    catch (error) { return message(error?.message || "Obsidian 地址无效", "error", "obsidianMessage"); }
-    const origin = `${SA.OBSIDIAN_LOOPBACK_URL}/*`;
-    try {
-      const alreadyAllowed = await chrome.permissions.contains({ origins: [origin] });
-      if (!alreadyAllowed && !(await chrome.permissions.request({ origins: [origin] }))) {
-        return message("未获得本机 Obsidian 访问权限。", "error", "obsidianMessage");
-      }
-      const response = await fetch(`${url}/health`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      config = await SA.setConfig({ obsidianLocalEnabled: true, obsidianLocalUrl: url, obsidianLocalToken: token });
-      message("Obsidian 已连接。打开 Obsidian 时，保存会自动写入 Vault。", "success", "obsidianMessage");
-      renderDestinations();
-    } catch (error) {
-      await SA.setConfig({ obsidianLocalEnabled: false });
-      message(`无法连接 Obsidian：${error?.message || "未知错误"}`, "error", "obsidianMessage");
-    }
-  }
-
-  async function refresh(showConnectionMessage = true) {
-    try {
-      bootstrap = await SA.api("/v1/extension/bootstrap", { timeoutMs: 6000 });
-      setServiceState("connected", "已连接");
-    } catch (_) {
-      bootstrap = null;
-      setServiceState("needs_user_action", "待连接");
-      if (showConnectionMessage) message("尚未连接私人档案馆；请先完成第一步。", "needs");
-    }
-    renderStorage();
-    await renderPlatforms();
-    renderDestinations();
-  }
-
-  async function init() {
-    config = await SA.getConfig();
-    $("endpoint").value = config.endpoint;
-    $("showFloatingButton").checked = config.showFloatingButton;
-    $("obsidianUrl").value = SA.OBSIDIAN_LOOPBACK_URL;
-    $("obsidianToken").value = config.obsidianLocalToken;
-    await refresh();
-  }
-
-  $("connectService").addEventListener("click", connectService);
-  $("connectObsidian").addEventListener("click", connectObsidian);
-  $("refreshDestinations").addEventListener("click", probeConfiguredDestinations);
-  $("showFloatingButton").addEventListener("change", async event => {
-    config = await SA.setConfig({ showFloatingButton: event.target.checked });
-    chrome.runtime.sendMessage({ type: "SA_REFRESH_FAB" }).catch(() => {});
-  });
-  $("openLibrary").addEventListener("click", async () => chrome.tabs.create({ url: (await SA.getConfig()).libraryUrl }));
-  $("finish").addEventListener("click", async () => {
-    config = await SA.setConfig({ onboardingComplete: true });
-    chrome.tabs.create({ url: config.libraryUrl });
-  });
-  for (const step of document.querySelectorAll(".step")) {
-    step.addEventListener("click", () => document.getElementById(step.dataset.target).scrollIntoView({ behavior: "smooth", block: "start" }));
-  }
-
-  init().catch(error => message(error?.message || "设置读取失败", "error"));
+  $("connectService").addEventListener("click",pair);
+  $("syncAll").addEventListener("click",syncAll);
+  $("jumpAccounts").addEventListener("click",()=>{location.hash="accounts";$("accounts").scrollIntoView({behavior:"smooth"});});
+  $("refreshAccounts").addEventListener("click",loadData);
+  $("openLibrary").addEventListener("click",async()=>chrome.tabs.create({url:(await SA.getConfig()).libraryUrl}));
+  $("openDestinationCenter").addEventListener("click",async()=>chrome.tabs.create({url:`${(await SA.getConfig()).libraryUrl}/?open=destinations`}));
+  $("finish").addEventListener("click",async()=>{await SA.setConfig({onboardingComplete:true});chrome.tabs.create({url:(await SA.getConfig()).libraryUrl});});
+  loadData();
 })();

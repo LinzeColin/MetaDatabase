@@ -3,73 +3,57 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Social Archive 设置</title>
+  <title>Social Archive · 账号与导出</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-inner">
-      <div class="brand"><span class="brand-mark">SA</span><div><strong>Social Archive</strong><small>连接一次，以后点击即归档</small></div></div>
-      <button id="openLibrary" class="ghost-button">打开我的档案馆 ↗</button>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#accounts"><span class="brand-mark">SA</span><span><strong>Social Archive</strong><small>一次连接，自动同步全部收藏</small></span></a>
+      <div class="top-actions"><span id="serviceBadge" class="badge checking">正在连接</span><button id="openLibrary" class="button ghost">打开资料库 ↗</button></div>
     </div>
   </header>
 
   <main>
-    <section class="intro">
-      <span class="eyebrow">首次设置 · 3 步完成</span>
-      <h1>像 E2N 一样简单，但内容归你自己</h1>
-      <p>输入一次性配对码、授权需要的平台、勾选导出目的地。以后只需点击“保存到我的档案馆”。默认保存 L0＋L1＋L3，L2 关闭。</p>
-    </section>
-
-    <nav class="stepper" aria-label="设置步骤">
-      <button class="step active" data-target="service"><b>1</b><span>连接档案馆</span></button>
-      <button class="step" data-target="platforms"><b>2</b><span>授权平台</span></button>
-      <button class="step" data-target="destinations"><b>3</b><span>选择导出</span></button>
-    </nav>
-
-    <section id="service" class="panel">
-      <div class="panel-heading"><div><h2>连接你的私人档案馆</h2><p>扩展已预置私有云地址，不要求安装本机后台或理解端口。</p></div><span id="serviceState" class="state checking">检查中</span></div>
-      <div class="form-row">
-        <label class="grow"><span>一次性配对码</span><input id="pairingCode" type="text" inputmode="text" autocomplete="one-time-code" spellcheck="false" maxlength="20" placeholder="输入控制台显示的 XXXX-XXXX-XXXX"></label>
-        <button id="connectService" class="primary-button">一键连接</button>
-      </div>
-      <details class="advanced"><summary>高级设置</summary><label><span>服务地址</span><input id="endpoint" type="url" autocomplete="url"></label></details>
-      <div id="serviceMessage" class="message hidden" role="status" aria-live="polite"></div>
-      <p id="replicationSummary" class="message needs">等待三地密文备份状态</p>
-      <div class="storage-strip">
-        <article><span>结构化事实</span><strong>GitHub Private</strong><small id="privateDbState">等待服务状态</small></article>
-        <article><span>对象主存</span><strong>Cloudflare R2</strong><small id="r2State">等待服务状态</small></article>
-        <article><span>异地副本</span><strong>OCI</strong><small id="ociState">等待服务状态</small></article>
-        <article><span>第三副本</span><strong>GitHub Release</strong><small id="githubStorageState">等待服务状态</small></article>
+    <section class="hero">
+      <span class="eyebrow">账号收藏库镜像</span>
+      <h1>连接一次账号，收藏、点赞和书签自动搬进来</h1>
+      <p>不需要逐条打开帖子，也不需要复制 Cookie、Token 或运行命令。首次同步完成后，只同步新增内容。</p>
+      <div class="hero-actions"><button id="syncAll" class="button primary">立即同步全部账号</button><button id="jumpAccounts" class="button">连接新账号</button></div>
+      <div class="summary" aria-live="polite">
+        <article><strong id="connectedCount">0</strong><span>已连接账号</span></article>
+        <article><strong id="contentCount">0</strong><span>已导入内容</span></article>
+        <article><strong id="activeCount">0</strong><span>正在同步</span></article>
       </div>
     </section>
 
-    <section id="platforms" class="panel">
-      <div class="panel-heading"><div><h2>授权来源平台</h2><p>每张卡同时显示浏览器页面授权和服务端连接器状态；失败时仍可保存当前页面。</p></div><label class="toggle"><input id="showFloatingButton" type="checkbox"><span></span>显示悬浮按钮</label></div>
-      <div id="platformGrid" class="card-grid"></div>
+    <section id="service" class="panel service-panel">
+      <div class="section-heading"><div><span class="step-number">1</span><h2>连接私人档案馆</h2><p>通常会自动连接；只有首次安装或换浏览器时需要输入一次性配对码。</p></div><span id="serviceState" class="state checking">检查中</span></div>
+      <div id="pairingArea" class="pairing hidden">
+        <label><span>一次性配对码</span><input id="pairingCode" maxlength="20" autocomplete="one-time-code" placeholder="例如 ABCD-EFGH"></label>
+        <button id="connectService" class="button primary">一键连接</button>
+      </div>
+      <details class="advanced"><summary>服务连接遇到问题</summary><label><span>服务地址</span><input id="endpoint" type="url"></label><p>普通情况下无需修改。</p></details>
+      <div id="serviceMessage" class="message hidden" role="status"></div>
+    </section>
+
+    <section id="accounts" class="panel">
+      <div class="section-heading"><div><span class="step-number">2</span><h2>连接来源账号</h2><p>点击一次。Chrome 书签会立即全量同步；其他平台会打开登录页，登录后自动继续。</p></div><button id="refreshAccounts" class="button ghost">刷新状态</button></div>
+      <div id="accountGrid" class="account-grid"></div>
+      <div class="plain-note"><strong>安全边界：</strong>插件使用你当前 Chrome 的登录状态读取账号内容，不要求粘贴密码、Cookie、请求头或开发者参数。只有真实读取成功后才显示“已连接”。</div>
     </section>
 
     <section id="destinations" class="panel">
-      <div class="panel-heading"><div><h2>自动导入目的地</h2><p>一次点击可并行导入多个目的地，单个失败不会阻塞档案馆主保存。</p></div><button id="refreshDestinations" class="ghost-button">检查全部连接</button></div>
-      <div id="destinationGrid" class="card-grid"></div>
-      <details class="advanced" id="obsidianSetup">
-        <summary>连接本机 Obsidian</summary>
-        <p>安装任务包内的 Social Archive Obsidian 插件；打开 Obsidian 时，扩展只会通过固定的 <code>127.0.0.1:27123</code> 端口自动写入。</p>
-        <div class="form-row">
-          <label class="grow"><span>本机地址（固定）</span><input id="obsidianUrl" type="url" value="http://127.0.0.1:27123" readonly></label>
-          <label class="grow"><span>插件令牌</span><input id="obsidianToken" type="password" autocomplete="off"></label>
-          <button id="connectObsidian" class="primary-button">连接 Obsidian</button>
-        </div>
-        <div id="obsidianMessage" class="message hidden" role="status"></div>
-      </details>
-      <p class="privacy-note">平台 Cookie 和密码不会进入 Social Archive。Notion、GitHub、R2、OCI 凭据只保存在服务端 Secret；Obsidian 本机令牌只保存在浏览器本地。</p>
+      <div class="section-heading"><div><span class="step-number">3</span><h2>选择自动导出</h2><p>主档案与 Markdown 默认开启；Notion、Obsidian 和 GitHub 完成真实写入后才显示已连接。</p></div><button id="openDestinationCenter" class="button ghost">打开连接向导</button></div>
+      <div id="destinationGrid" class="destination-grid"></div>
     </section>
 
-    <section class="panel compact">
-      <div class="panel-heading"><div><h2>完成</h2><p>点击工具栏、右键菜单或平台页面悬浮按钮即可保存；任务中心会显示读取、下载、导出与三副本进度。</p></div><button id="finish" class="primary-button">完成并开始使用</button></div>
+    <section class="panel finish-panel">
+      <div><h2>设置完成后，你只需要查看资料库</h2><p>平台新增收藏会自动增量同步；失败只显示一句人话和一个修复按钮。</p></div>
+      <button id="finish" class="button primary">完成并打开资料库</button>
     </section>
   </main>
-
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="shared.js"></script>
   <script src="options.js"></script>
 </body>

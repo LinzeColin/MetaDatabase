@@ -1,27 +1,70 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-003",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-02T21:41:06Z",
+  "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+  "recovery_base_head": "a6dee7723fac76fa3a59492bd1e1526a547548ae",
+  "python_runtime": "Python 3.12.13",
   "commands": [
     {
-      "command": "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase all",
-      "command_sha256": "0c4a60df94350edf0a1ce339cfa5d9c192c255807f8747678265ac012350dae8",
-      "executed": false,
-      "status": "ADAPTED",
-      "exit_code": null,
-      "summary": "Unsafe phase-all replacement was not run on the reconciled dirty tree; equivalent per-file semantic merge preserved stronger upstream deploy/core surfaces."
-    },
-    {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_legacy_migration.py",
-      "command_sha256": "0a6077be07de46dc8579065c0591002329769a96b73c9a5b5c7431e576a57ab6",
+      "taskpack_command": "python3 07_IMPLEMENTATION/apply/apply_taskpack.py --repo \"$TARGET_REPOSITORY\" --phase all",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
       "executed": true,
       "status": "PASS",
       "exit_code": 0,
-      "summary": "Current transactional core preserved; controlled manual semantic merge replaced unsafe phase-all overlay; focused core gates PASS."
+      "summary": "APPLIED_WITH_CANDIDATES; recovery tag social-archive-pre-v0.0.0.6-20260802t213736z, snapshot 20260802T213736Z, and a rollback command were created."
+    },
+    {
+      "operation": "Overlay action audit and PWA whitespace normalization",
+      "executed": true,
+      "status": "PASS",
+      "summary": "24 approved replacements and 12 additions map to the Overlay; all 93 candidates match it. db.py and service.py remain byte-identical to the recovery base. The only post-apply source deviation removes two trailing spaces in apps/pwa/styles.css."
+    },
+    {
+      "command": "uv lock --check --offline",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Lockfile remains consistent with the active v0.0.0.6 project metadata."
+    },
+    {
+      "taskpack_command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_legacy_migration.py",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "5 passed."
+    },
+    {
+      "command": "python3 -m py_compile src/social_archive/account_sync.py",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "The newly added module compiles without importing or contacting a provider."
+    },
+    {
+      "command": "python3 scripts/secret_scan.py && python3 scripts/check_brand.py",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Both scans returned PASS with hits=[]."
+    },
+    {
+      "command": "node --check changed extension/PWA JavaScript files && unzip -t dist/social-archive-extension.zip",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "All 10 JavaScript syntax checks and the generated extension ZIP integrity check passed."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "ADAPT_CURRENT_UPSTREAM; preserved_transaction_core=satisfied; SA-003=equivalent; conflicts=0; blocked=0."
     }
   ],
-  "record_sha256": "ccd6c5425f72c29fe528fc7f144191c407b1dafe22a7b167175cf91b28d87d46"
+  "record_sha256": "2270010eb1c4de5a5c162250b757f1ddb11e6419c989b352c25eaa74cd1c34f7"
 }

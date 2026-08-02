@@ -9,9 +9,7 @@ User=socialarchive
 Group=socialarchive
 WorkingDirectory=/opt/social-archive
 EnvironmentFile=/etc/social-archive/social-archive.env
-LoadCredential=private_database_token:/opt/social-archive/runtime/secrets/private_database_token
-Environment=SOCIAL_ARCHIVE_PRIVATE_DB_TOKEN_FILE=%d/private_database_token
-ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/sync_private_database.py --once
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/sync_private_database.py
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict

@@ -1,5 +1,5 @@
 /* global SA */
-importScripts("shared.js");
+importScripts("shared.js", "content/account-mirror-core.js");
 
 const MENU_SAVE = "social-archive-save-page";
 const MENU_SELECTION = "social-archive-save-selection";
@@ -49,84 +49,54 @@ function safeFileSegment(value, fallback) {
   return (text || fallback || "未命名").slice(0, 120);
 }
 
-function isSafeLocalObsidianPath(value) {
-  const text = String(value || "");
-  const parts = text.split("/");
-  return text.length <= 2048
-    && parts.length >= 3
-    && parts[0] === "Social Archive"
-    && parts.every(part => part && part !== "." && part !== ".." && !/[\\\u0000-\u001f]/.test(part))
-    && parts.at(-1).toLowerCase().endsWith(".md");
-}
-
-function localObsidianPath(response, record, remotePath) {
-  if (isSafeLocalObsidianPath(remotePath)) return String(remotePath);
-  const platform = SA.platformFromUrl(record?.url || "").id;
-  return `Social Archive/${safeFileSegment(platform, "web")}/${safeFileSegment(record?.title, response.content_id)}-${response.content_id.slice(-8)}.md`;
-}
-
-async function exportLocalObsidian(response, record, config, remotePath = null) {
+async function exportLocalObsidian(response, record, config) {
   if (!config.obsidianLocalEnabled || !config.destinationIds.includes("obsidian")) return { status: "not_selected" };
-  const path = localObsidianPath(response, record, remotePath);
-  if (!config.obsidianLocalToken) return { status: "failed", path, error: "Obsidian 令牌缺失" };
-  try {
-    const markdown = await SA.apiText(`/v1/library/${encodeURIComponent(response.content_id)}/markdown`, { timeoutMs: 15000 });
-    const result = await fetch(`${SA.OBSIDIAN_LOOPBACK_URL}/vault`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${config.obsidianLocalToken}`,
-        "Content-Type": "text/markdown; charset=utf-8",
-        "X-Social-Archive-Path": encodeURIComponent(path)
-      },
-      body: markdown
-    });
-    if (!result.ok) throw new Error(`Obsidian HTTP ${result.status}`);
-    let payload = {};
-    try { payload = await result.json(); } catch (_) { throw new Error("Obsidian 返回了无效回执"); }
-    if (!["done", "noop"].includes(payload.status)) throw new Error("Obsidian 返回了未知完成状态");
-    const confirmedPath = isSafeLocalObsidianPath(payload.path) ? payload.path : path;
-    return { status: payload.status, path: confirmedPath };
-  } catch (error) {
-    return { status: "failed", path, error: error?.message || "Obsidian 写入失败" };
-  }
-}
-
-async function recordLocalObsidianReceipt(response, local) {
-  if (!["done", "noop", "failed"].includes(local.status)) return null;
-  return SA.api("/v1/destinations/obsidian-local/receipts", {
-    method: "POST",
-    body: JSON.stringify({ content_id: response.content_id, status: local.status, remote_path: local.path || null }),
-    timeoutMs: 15000
+  if (!config.obsidianLocalToken) return { status: "needs_user_action", error: "Obsidian 令牌缺失" };
+  const markdown = await SA.apiText(`/v1/library/${encodeURIComponent(response.content_id)}/markdown`, { timeoutMs: 15000 });
+  const platform = SA.platformFromUrl(record.url || "").id;
+  const path = `Social Archive/${safeFileSegment(platform, "web")}/${safeFileSegment(record.title, response.content_id)}-${response.content_id.slice(-8)}.md`;
+  const result = await fetch(`${config.obsidianLocalUrl.replace(/\/$/, "")}/vault`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${config.obsidianLocalToken}`,
+      "Content-Type": "text/markdown; charset=utf-8",
+      "X-Social-Archive-Path": encodeURIComponent(path)
+    },
+    body: markdown
   });
-}
-
-async function attachLocalObsidianReceipt(response, record, config, remotePath = null) {
-  const local = await exportLocalObsidian(response, record, config, remotePath);
-  response.local_obsidian = local;
-  if (local.status === "not_selected") return local;
-  try {
-    response.local_obsidian_receipt = await recordLocalObsidianReceipt(response, local);
-  } catch (error) {
-    local.receipt_error = error?.message || "Obsidian 回执未写入任务中心";
-  }
-  return local;
+  if (!result.ok) throw new Error(`Obsidian HTTP ${result.status}`);
+  return { status: "done", path };
 }
 
 async function captureRecord(record, tabUrl, config, overrides = {}) {
   const body = buildCaptureBody(record, tabUrl, config, overrides);
   const response = await SA.api("/v1/captures", { method: "POST", body: JSON.stringify(body), timeoutMs: 30000 });
-  await attachLocalObsidianReceipt(response, record, config);
+  try {
+    response.local_obsidian = await exportLocalObsidian(response, record, config);
+  } catch (error) {
+    response.local_obsidian = { status: "needs_user_action", error: error?.message || "Obsidian 写入失败" };
+  }
   return response;
 }
 
-async function captureActive(message = {}, sourceTab = null) {
-  const tab = sourceTab?.id && sourceTab?.url ? sourceTab : await SA.activeTab();
+async function captureActive(message = {}) {
+  const tab = await SA.activeTab();
   const config = await SA.getConfig();
   const extracted = await extractFromTab(tab, message.mode === "list" ? "list" : "page");
   const items = message.mode === "list" ? extracted.items : [extracted.page];
+  if (message.mode === "list") {
+    for (const item of items) {
+      item.raw_metadata = {
+        ...(item.raw_metadata || {}),
+        scan_completeness: extracted.completeness || "partial",
+        scan_context: extracted.scan_context || { mode: "visible_only", no_autoscroll: true }
+      };
+    }
+  }
   if (!items.length) return { ok: false, state: "needs_user_action", error: "当前可见区域没有可读取的内容" };
   let saved = [];
   const failed = [];
+  const localDestinationErrors = [];
   if (message.mode === "list") {
     try {
       const batch = await SA.api("/v1/captures/batch", {
@@ -138,7 +108,8 @@ async function captureActive(message = {}, sourceTab = null) {
       for (const error of batch.errors || []) failed.push(error.detail || "保存失败");
       if (config.obsidianLocalEnabled && config.destinationIds.includes("obsidian")) {
         for (let index = 0; index < saved.length; index += 1) {
-          await attachLocalObsidianReceipt(saved[index], items[index] || {}, config);
+          try { saved[index].local_obsidian = await exportLocalObsidian(saved[index], items[index] || {}, config); }
+          catch (error) { localDestinationErrors.push(error?.message || "Obsidian 写入失败"); }
         }
       }
     } catch (error) {
@@ -149,39 +120,18 @@ async function captureActive(message = {}, sourceTab = null) {
     catch (error) { failed.push(error?.message || "保存失败"); }
   }
   if (!saved.length) return { ok: false, state: "needs_user_action", error: failed[0] || "保存失败" };
-  const skippedDestinationIds = [...new Set(saved.flatMap(item => item.skipped_destination_ids || []))];
-  const localDestinationErrors = saved
-    .map(item => item.local_obsidian)
-    .filter(item => item?.status === "failed")
-    .map(item => item.receipt_error || item.error || "Obsidian 本机桥接失败");
-  const destinationWarnings = [...new Set([
-    ...localDestinationErrors,
-    ...skippedDestinationIds.map(id => `${SA.destinationLabel(id)} 尚未完成主动连接检查，未自动导出`)
-  ])];
-  await chrome.action.setBadgeBackgroundColor({ color: destinationWarnings.length ? "#9a6700" : "#1f7a4c" });
+  await chrome.action.setBadgeBackgroundColor({ color: localDestinationErrors.length ? "#9a6700" : "#1f7a4c" });
   await chrome.action.setBadgeText({ text: String(saved.length) });
   setTimeout(() => chrome.action.setBadgeText({ text: "" }).catch(() => {}), 2500);
   return {
     ok: true,
     savedCount: saved.length,
     failedCount: failed.length,
-    destinationWarningCount: destinationWarnings.length,
-    destinationWarnings,
-    skippedDestinationIds,
+    destinationWarningCount: localDestinationErrors.length,
+    destinationWarnings: localDestinationErrors,
     jobIds: saved.flatMap(item => item.job_ids || []),
     detailUrls: saved.map(item => item.detail_url)
   };
-}
-
-async function retryLocalObsidian(contentId, remotePath) {
-  const config = await SA.getConfig();
-  if (!config.obsidianLocalEnabled || !config.destinationIds.includes("obsidian")) {
-    return { ok: false, state: "needs_user_action", error: "请先在设置中连接并启用 Obsidian 本机桥接" };
-  }
-  const response = { content_id: contentId };
-  const local = await attachLocalObsidianReceipt(response, {}, config, remotePath);
-  if (local.status === "done" || local.status === "noop") return { ok: true, status: local.status };
-  return { ok: false, state: "needs_user_action", error: local.receipt_error || local.error || "Obsidian 本机桥接重试失败" };
 }
 
 async function injectFabIfAuthorized(tabId, url) {
@@ -189,28 +139,686 @@ async function injectFabIfAuthorized(tabId, url) {
   const config = await SA.getConfig();
   if (!config.showFloatingButton) return;
   const platform = SA.platformFromUrl(url);
-  if (platform.id === "generic_web") return;
+  if (platform.id === "generic-web") return;
   const state = await SA.permissionState(platform.id);
   if (!state.authorized) return;
   await chrome.scripting.executeScript({ target: { tabId }, files: ["content/fab.js"] }).catch(() => {});
 }
 
+
+const PENDING_CONNECTIONS_KEY = "saPendingAccountConnections";
+const SYNC_QUEUE_KEY = "saAccountSyncQueue";
+const SYNC_QUEUE_LOCK_KEY = "saAccountSyncQueueLock";
+const SYNC_QUEUE_LAST_RESULT_KEY = "saAccountSyncQueueLastResult";
+const SYNC_CONTROL_KEY = "saSyncRunControls";
+const SYNC_QUEUE_ALARM = "sa-account-sync-queue";
+const MIRROR_TAB_PREFIX = "saMirrorTab:";
+const ACTIVE_SYNC_STATES = new Set(["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"]);
+
+async function getPendingConnections() {
+  const stored = await chrome.storage.local.get({ [PENDING_CONNECTIONS_KEY]: {} });
+  return stored[PENDING_CONNECTIONS_KEY] || {};
+}
+
+async function setPendingConnection(platform, value) {
+  const pending = await getPendingConnections();
+  if (value) pending[platform] = value;
+  else delete pending[platform];
+  await chrome.storage.local.set({ [PENDING_CONNECTIONS_KEY]: pending });
+}
+
+
+async function getSyncQueue() {
+  const stored = await chrome.storage.local.get({ [SYNC_QUEUE_KEY]: [] });
+  return Array.isArray(stored[SYNC_QUEUE_KEY]) ? stored[SYNC_QUEUE_KEY] : [];
+}
+
+async function setSyncQueue(items) {
+  await chrome.storage.local.set({ [SYNC_QUEUE_KEY]: items });
+}
+
+async function getSyncControls() {
+  const stored = await chrome.storage.local.get({ [SYNC_CONTROL_KEY]: {} });
+  return stored[SYNC_CONTROL_KEY] || {};
+}
+
+async function setSyncControl(syncRunId, action = null) {
+  if (!syncRunId) return;
+  const controls = await getSyncControls();
+  if (action) controls[syncRunId] = { action, updatedAt: Date.now() };
+  else delete controls[syncRunId];
+  await chrome.storage.local.set({ [SYNC_CONTROL_KEY]: controls });
+}
+
+async function getSyncControl(syncRunId) {
+  if (!syncRunId) return null;
+  const controls = await getSyncControls();
+  return controls[syncRunId] || null;
+}
+
+async function removeQueuedSync({ syncRunId = null, accountId = null } = {}) {
+  const queue = await getSyncQueue();
+  const kept = queue.filter(item => {
+    if (syncRunId && item.syncRunId === syncRunId) return false;
+    if (accountId && item.accountId === accountId) return false;
+    return true;
+  });
+  if (kept.length !== queue.length) await setSyncQueue(kept);
+  return queue.length - kept.length;
+}
+
+async function broadcastMirrorControl(syncRunId, action) {
+  const tabs = await chrome.tabs.query({}).catch(() => []);
+  await Promise.all(tabs.filter(tab => tab.id).map(tab =>
+    chrome.tabs.sendMessage(tab.id, { type: "SA_MIRROR_CONTROL", syncRunId, action }).catch(() => null)
+  ));
+}
+
+async function stopStateFor(syncRunId) {
+  const local = await getSyncControl(syncRunId);
+  if (local?.action === "pause" || local?.action === "cancel") return local.action;
+  if (!syncRunId) return null;
+  const run = await SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}`, { timeoutMs: 8000 }).catch(() => null);
+  if (run?.status === "paused") return "pause";
+  if (run?.status === "cancelled") return "cancel";
+  return null;
+}
+
+async function controlSyncRun({ syncRunId, accountId = null, action }) {
+  const allowed = new Set(["pause", "resume", "cancel", "retry"]);
+  if (!syncRunId || !allowed.has(action)) throw new Error("同步控制参数无效");
+  const before = await SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}`, { timeoutMs: 10000 });
+  const effectiveAccountId = accountId || before.source_account_id;
+  const result = await SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/control`, {
+    method: "POST",
+    body: JSON.stringify({ action }),
+    timeoutMs: 15000
+  });
+
+  if (action === "pause" || action === "cancel") {
+    await setSyncControl(syncRunId, action);
+    await removeQueuedSync({ syncRunId, accountId: effectiveAccountId });
+    await broadcastMirrorControl(syncRunId, action);
+  } else {
+    await setSyncControl(syncRunId, null);
+    await broadcastMirrorControl(syncRunId, "clear");
+    await enqueueAccountSync({
+      accountId: effectiveAccountId,
+      syncRunId,
+      triggerType: action === "retry" ? "retry" : "resume"
+    });
+  }
+
+  const messages = {
+    pause: "同步已暂停，已完成内容不会丢失",
+    resume: "同步已恢复并重新加入后台队列",
+    cancel: "同步已取消，已完成内容仍保留在资料库",
+    retry: "同步已重新加入后台队列"
+  };
+  return { ok: true, ...result, accountId: effectiveAccountId, message: messages[action] };
+}
+
+async function scheduleSyncQueue(delayInMinutes = 0.5) {
+  await chrome.alarms.create(SYNC_QUEUE_ALARM, { delayInMinutes: Math.max(0.5, Number(delayInMinutes || 0.5)) });
+}
+
+async function enqueueAccountSync({ accountId, syncRunId = null, tabId = null, profileUrl = "", triggerType = "manual" }) {
+  if (!accountId) throw new Error("账号不存在");
+  const active = (await listSyncRuns()).find(run => run.source_account_id === accountId && ACTIVE_SYNC_STATES.has(run.status));
+  if (active && (!syncRunId || active.id !== syncRunId)) {
+    return { ok: true, state: "already_running", accountId, syncRunId: active.id, message: "该账号已经在同步" };
+  }
+  const queue = await getSyncQueue();
+  const existing = queue.find(item => item.accountId === accountId);
+  if (existing) {
+    existing.syncRunId = existing.syncRunId || syncRunId;
+    existing.tabId = existing.tabId || tabId;
+    existing.profileUrl = existing.profileUrl || profileUrl;
+    existing.triggerType = triggerType || existing.triggerType;
+    existing.updatedAt = Date.now();
+  } else {
+    queue.push({ accountId, syncRunId, tabId, profileUrl, triggerType, enqueuedAt: Date.now(), updatedAt: Date.now() });
+  }
+  await setSyncQueue(queue);
+  await scheduleSyncQueue();
+  return { ok: true, state: "queued", accountId, syncRunId, queuedCount: queue.length, message: "同步已加入后台队列" };
+}
+
+async function enqueueAllAccounts(triggerType = "manual") {
+  const accounts = (await listAccounts()).filter(item => ["connected", "degraded"].includes(item.connection_state));
+  const results = [];
+  for (const account of accounts) {
+    try { results.push(await enqueueAccountSync({ accountId: account.id, triggerType })); }
+    catch (error) { results.push({ ok: false, accountId: account.id, error: error?.message || "加入同步队列失败" }); }
+  }
+  return { ok: results.some(item => item.ok), state: "queued", queuedCount: results.filter(item => item.ok).length, results };
+}
+
+async function processSyncQueue() {
+  const stored = await chrome.storage.local.get({ [SYNC_QUEUE_LOCK_KEY]: null });
+  const lock = stored[SYNC_QUEUE_LOCK_KEY];
+  if (lock && Date.now() - Number(lock.startedAt || 0) < 2 * 60 * 60 * 1000) {
+    await scheduleSyncQueue();
+    return { ok: true, state: "busy" };
+  }
+  const queue = await getSyncQueue();
+  const item = queue.shift();
+  if (!item) return { ok: true, state: "empty" };
+  await setSyncQueue(queue);
+  const queuedControl = await getSyncControl(item.syncRunId);
+  if (queuedControl?.action === "pause" || queuedControl?.action === "cancel") {
+    if (queue.length) await scheduleSyncQueue();
+    return { ok: true, state: queuedControl.action === "pause" ? "paused" : "cancelled", syncRunId: item.syncRunId };
+  }
+  await chrome.storage.local.set({ [SYNC_QUEUE_LOCK_KEY]: { accountId: item.accountId, startedAt: Date.now() } });
+  let result;
+  try {
+    result = await syncAccountById(item.accountId, item);
+    await chrome.storage.local.set({ [SYNC_QUEUE_LAST_RESULT_KEY]: { ...result, accountId: item.accountId, finishedAt: Date.now() } });
+  } catch (error) {
+    result = { ok: false, accountId: item.accountId, error: error?.message || "同步失败", finishedAt: Date.now() };
+    await chrome.storage.local.set({ [SYNC_QUEUE_LAST_RESULT_KEY]: result });
+  } finally {
+    await chrome.storage.local.remove(SYNC_QUEUE_LOCK_KEY);
+    if ((await getSyncQueue()).length) await scheduleSyncQueue();
+  }
+  return result;
+}
+
+async function listAccounts() {
+  const response = await SA.api("/v1/accounts", { timeoutMs: 10000 });
+  return response.items || [];
+}
+
+async function listSyncRuns() {
+  const response = await SA.api("/v1/sync-runs?limit=200", { timeoutMs: 10000 });
+  return response.items || [];
+}
+
+function platformSpec(platform) {
+  return globalThis.SAMirrorCore?.PLATFORM_SPECS?.[platform] || null;
+}
+
+async function waitForTabComplete(tabId, timeoutMs = 45000) {
+  const current = await chrome.tabs.get(tabId).catch(() => null);
+  if (current?.status === "complete") return current;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      chrome.tabs.onUpdated.removeListener(listener);
+      reject(new Error("平台页面加载超时"));
+    }, timeoutMs);
+    function listener(updatedId, changeInfo, tab) {
+      if (updatedId !== tabId || changeInfo.status !== "complete") return;
+      clearTimeout(timer);
+      chrome.tabs.onUpdated.removeListener(listener);
+      resolve(tab);
+    }
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+}
+
+async function ensureAccountMirrorScripts(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    files: ["content/account-mirror-core.js", "content/account-mirror.js"]
+  }).catch(() => {});
+}
+
+async function sendSyncBatch(syncRunId, body) {
+  return SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}/batches`, {
+    method: "POST",
+    body: JSON.stringify(body),
+    timeoutMs: 90000
+  });
+}
+
+async function syncChromeBookmarks({ accountId = null, syncRunId = null, triggerType = "manual" } = {}) {
+  const hasPermission = await chrome.permissions.contains({ permissions: ["bookmarks"] });
+  if (!hasPermission) throw new Error("请先授权读取 Chrome 书签");
+  let account = null;
+  if (accountId) account = (await listAccounts()).find(item => item.id === accountId) || null;
+  if (!account) account = (await listAccounts()).find(item => item.platform === "generic-web" && item.external_account_id === "chrome-bookmarks") || null;
+  if (!account) throw new Error("Chrome 书签账号尚未连接");
+  if (!syncRunId) {
+    const started = await SA.api(`/v1/accounts/${encodeURIComponent(account.id)}/sync`, {
+      method: "POST",
+      body: JSON.stringify({ mode: account.last_sync_at ? "incremental" : "first_full", relation_types: ["bookmark"], trigger_type: triggerType }),
+      timeoutMs: 15000
+    });
+    syncRunId = started.sync_run_id;
+  }
+  const tree = await chrome.bookmarks.getTree();
+  const config = await SA.getConfig();
+  const records = SAMirrorCore.flattenBookmarksTree(tree).map(item => ({
+    ...item,
+    destination_ids: serverDestinations(config)
+  }));
+  const chunks = SAMirrorCore.chunk(records, 200);
+  for (let index = 0; index < chunks.length; index += 1) {
+    const control = await stopStateFor(syncRunId);
+    if (control) return { ok: true, accountId: account.id, syncRunId, status: control === "pause" ? "paused" : "cancelled", controlled: true };
+    await sendSyncBatch(syncRunId, {
+      relation_type: "bookmark",
+      scope_type: "collection",
+      collection_key: "",
+      items: chunks[index],
+      completeness: "partial",
+      batch_index: index,
+      batch_count: chunks.length || 1,
+      has_more: index < chunks.length - 1,
+      cursor: { source: "chrome.bookmarks", batch_index: index, total_items: records.length }
+    });
+    await chrome.action.setBadgeBackgroundColor({ color: "#171717" });
+    await chrome.action.setBadgeText({ text: `${Math.min(records.length, (index + 1) * 200)}`.slice(-4) });
+  }
+  const finalControl = await stopStateFor(syncRunId);
+  if (finalControl) return { ok: true, accountId: account.id, syncRunId, status: finalControl === "pause" ? "paused" : "cancelled", controlled: true };
+  const result = await sendSyncBatch(syncRunId, {
+    relation_type: "bookmark",
+    scope_type: "relation",
+    items: [],
+    completeness: "complete",
+    batch_index: chunks.length,
+    batch_count: chunks.length + 1,
+    has_more: false,
+    cursor: { source: "chrome.bookmarks", total_items: records.length }
+  });
+  await chrome.action.setBadgeBackgroundColor({ color: "#1f7a4c" });
+  await chrome.action.setBadgeText({ text: "✓" });
+  setTimeout(() => chrome.action.setBadgeText({ text: "" }).catch(() => {}), 2500);
+  return { ok: true, accountId: account.id, syncRunId, imported: records.length, status: result.status };
+}
+
+async function connectChromeBookmarks() {
+  const granted = await chrome.permissions.request({ permissions: ["bookmarks"] });
+  if (!granted) return { ok: false, state: "unauthorized", error: "你没有授权读取 Chrome 书签" };
+  const existing = (await listAccounts()).find(item => item.platform === "generic-web" && item.external_account_id === "chrome-bookmarks");
+  if (existing) {
+    const queued = await enqueueAccountSync({ accountId: existing.id, triggerType: "manual" });
+    return { ...queued, state: "connected", message: "Chrome 书签已连接，首次全量同步已进入后台队列" };
+  }
+  const start = await SA.api("/v1/accounts/connect/start", {
+    method: "POST",
+    body: JSON.stringify({
+      platform: "generic-web", auth_method: "chrome_bookmarks", display_name: "Chrome 书签",
+      external_account_id: "chrome-bookmarks", auto_sync_enabled: true, sync_interval_minutes: 360,
+      relation_types: ["bookmark"]
+    })
+  });
+  const completed = await SA.api("/v1/accounts/connect/generic-web/complete", {
+    method: "POST",
+    body: JSON.stringify({
+      connection_ref: start.connection_ref,
+      external_account_id: "chrome-bookmarks",
+      display_name: "Chrome 书签",
+      verified: true,
+      metadata: { auth_method: "chrome_bookmarks", permission: "bookmarks", auto_sync_enabled: true, sync_interval_minutes: 360 }
+    })
+  });
+  const queued = await enqueueAccountSync({
+    accountId: completed.account_id,
+    syncRunId: completed.first_sync?.sync_run_id || null,
+    triggerType: "first_connect"
+  });
+  return { ...queued, state: "connected", message: "Chrome 书签已连接，首次全量同步已进入后台队列" };
+}
+
+async function connectBrowserPlatform(platform) {
+  const spec = platformSpec(platform);
+  if (!spec) throw new Error("当前平台尚未配置账号镜像入口");
+  const granted = await SA.requestPlatformPermission(platform);
+  if (!granted) return { ok: false, state: "unauthorized", error: `未获得${spec.label}页面读取权限` };
+  const start = await SA.api("/v1/accounts/connect/start", {
+    method: "POST",
+    body: JSON.stringify({
+      platform, auth_method: "browser_session", display_name: `${spec.label}账号`,
+      auto_sync_enabled: true, sync_interval_minutes: 360, relation_types: spec.relations
+    }),
+    timeoutMs: 15000
+  });
+  const tab = await chrome.tabs.create({ url: spec.home, active: true });
+  await setPendingConnection(platform, {
+    connectionRef: start.connection_ref,
+    authMethod: "browser_session",
+    createdAt: Date.now(),
+    tabId: tab.id,
+    relations: spec.relations
+  });
+  return {
+    ok: true,
+    state: "authorizing",
+    platform,
+    tabId: tab.id,
+    message: `已打开${spec.label}。完成登录后，插件会自动读取收藏与点赞。`
+  };
+}
+
+async function connectPlatform(platform) {
+  if (platform === "generic-web" || platform === "chrome-bookmarks") return connectChromeBookmarks();
+  return connectBrowserPlatform(platform);
+}
+
+function resolveRelationUrl(platform, relation, profileUrl = "") {
+  const spec = platformSpec(platform);
+  let url = spec?.relationUrls?.[relation] || spec?.home;
+  if (platform === "x" && relation === "like" && /https:\/\/x\.com\/[^/]+/i.test(profileUrl)) url = `${profileUrl.replace(/\/$/, "")}/likes`;
+  if (platform === "bilibili" && /space\.bilibili\.com\/\d+/i.test(profileUrl)) {
+    const base = profileUrl.match(/https:\/\/space\.bilibili\.com\/\d+/i)?.[0];
+    if (relation === "favorite") url = `${base}/favlist`;
+    if (relation === "like") url = base;
+  }
+  return url;
+}
+
+async function navigateMirrorTab(tabId, url) {
+  await chrome.tabs.update(tabId, { url, active: true });
+  await waitForTabComplete(tabId);
+  await ensureAccountMirrorScripts(tabId);
+}
+
+async function sendBrowserScopeBatches({ syncRunId, platform, relation, scopeResult, collectionKey = "", collectionName = "" }) {
+  const config = await SA.getConfig();
+  const items = (scopeResult.items || []).map(item => ({
+    ...item,
+    platform,
+    relation_type: relation,
+    collection_key: collectionKey || item.collection_key || "",
+    collection_name: collectionName || item.collection_name || collectionKey || "",
+    destination_ids: serverDestinations(config)
+  }));
+  const chunks = SAMirrorCore.chunk(items, 200);
+  for (let index = 0; index < chunks.length; index += 1) {
+    await sendSyncBatch(syncRunId, {
+      relation_type: relation,
+      scope_type: "collection",
+      collection_key: collectionKey,
+      collection_name: collectionName,
+      items: chunks[index],
+      completeness: "partial",
+      batch_index: index,
+      batch_count: chunks.length || 1,
+      has_more: index < chunks.length - 1,
+      cursor: { ...scopeResult.cursor, batch_index: index, collection_key: collectionKey }
+    });
+  }
+  if (collectionKey) {
+    await sendSyncBatch(syncRunId, {
+      relation_type: relation,
+      scope_type: "collection",
+      collection_key: collectionKey,
+      collection_name: collectionName,
+      items: [],
+      completeness: scopeResult.completeness === "complete" ? "complete" : "partial",
+      batch_index: chunks.length,
+      batch_count: chunks.length + 1,
+      has_more: false,
+      failure_code: scopeResult.failureCode || null,
+      cursor: { ...scopeResult.cursor, collection_key: collectionKey }
+    });
+  }
+  return { imported: items.length, chunks: chunks.length, complete: scopeResult.completeness === "complete" };
+}
+
+async function scanBrowserScope({ tabId, platform, relation, syncRunId, url, collectionKey = "", collectionName = "", alreadyLoaded = false }) {
+  if (!alreadyLoaded) await navigateMirrorTab(tabId, url);
+  const result = await chrome.tabs.sendMessage(tabId, {
+    type: "SA_MIRROR_SCAN_RELATION",
+    syncRunId,
+    relationType: relation,
+    collectionKey,
+    collectionName,
+    maxItems: 100000,
+    maxScrolls: 1200,
+    stableRoundsRequired: 5
+  });
+  if (result?.controlled) return { controlled: true, status: result.controlAction === "pause" ? "paused" : "cancelled", relation };
+  if (!result?.ok) throw new Error(result?.error || "平台列表读取失败");
+  const sent = await sendBrowserScopeBatches({ syncRunId, platform, relation, scopeResult: result, collectionKey, collectionName });
+  return { ...result, ...sent, collectionKey, collectionName, url };
+}
+
+async function scanOneBrowserRelation({ tabId, platform, relation, syncRunId, profileUrl = "" }) {
+  const url = resolveRelationUrl(platform, relation, profileUrl);
+  if (!url) {
+    return sendSyncBatch(syncRunId, {
+      relation_type: relation, scope_type: "relation", items: [], completeness: "failed",
+      failure_code: "RELATION_URL_UNAVAILABLE", has_more: false
+    });
+  }
+  await navigateMirrorTab(tabId, url);
+  const discoveredCollections = await chrome.tabs.sendMessage(tabId, { type: "SA_MIRROR_DISCOVER_COLLECTIONS" })
+    .then(result => result?.ok ? (result.items || []) : [])
+    .catch(() => []);
+
+  const scopeResults = [];
+  const baseResult = await scanBrowserScope({ tabId, platform, relation, syncRunId, url, alreadyLoaded: true });
+  if (baseResult?.controlled) return baseResult;
+  scopeResults.push(baseResult);
+
+  const seenUrls = new Set([SAMirrorCore.canonicalUrl(url)]);
+  for (const collection of discoveredCollections.slice(0, 100)) {
+    const collectionUrl = SAMirrorCore.canonicalUrl(collection.url);
+    if (!collectionUrl || seenUrls.has(collectionUrl)) continue;
+    seenUrls.add(collectionUrl);
+    const control = await stopStateFor(syncRunId);
+    if (control) return { controlled: true, status: control === "pause" ? "paused" : "cancelled", relation };
+    const collectionResult = await scanBrowserScope({
+      tabId,
+      platform,
+      relation,
+      syncRunId,
+      url: collectionUrl,
+      collectionKey: String(collection.collectionKey || collectionUrl).slice(0, 512),
+      collectionName: String(collection.collectionName || "未命名收藏夹").slice(0, 256)
+    });
+    if (collectionResult?.controlled) return collectionResult;
+    scopeResults.push(collectionResult);
+  }
+
+  const allComplete = scopeResults.length > 0 && scopeResults.every(item => item.completeness === "complete");
+  const imported = scopeResults.reduce((sum, item) => sum + Number(item.imported || 0), 0);
+  const failureCodes = scopeResults.map(item => item.failureCode).filter(Boolean);
+  return sendSyncBatch(syncRunId, {
+    relation_type: relation,
+    scope_type: "relation",
+    items: [],
+    completeness: allComplete ? "complete" : "partial",
+    batch_index: scopeResults.length,
+    batch_count: scopeResults.length + 1,
+    has_more: false,
+    failure_code: allComplete ? null : (failureCodes[0] || "RELATION_TERMINAL_NOT_PROVEN"),
+    cursor: {
+      relation_url: url,
+      discovered_collections: Math.max(0, scopeResults.length - 1),
+      imported_items: imported,
+      scope_completion: scopeResults.map(item => ({
+        collection_key: item.collectionKey || "",
+        complete: item.completeness === "complete",
+        reason: item.completionReason || item.failureCode || null,
+        observed_count: item.cursor?.observed_count ?? item.imported ?? 0
+      }))
+    }
+  });
+}
+
+async function runBrowserAccountSync({ account, syncRunId = null, tabId = null, profileUrl = "", triggerType = "manual" }) {
+  const spec = platformSpec(account.platform);
+  if (!spec) throw new Error("该平台暂不支持浏览器账号同步");
+  if (!syncRunId) {
+    const started = await SA.api(`/v1/accounts/${encodeURIComponent(account.id)}/sync`, {
+      method: "POST",
+      body: JSON.stringify({ mode: account.last_sync_at ? "incremental" : "first_full", relation_types: spec.relations, trigger_type: triggerType }),
+      timeoutMs: 15000
+    });
+    syncRunId = started.sync_run_id;
+  }
+  let tab = tabId ? await chrome.tabs.get(tabId).catch(() => null) : null;
+  if (!tab) tab = await chrome.tabs.create({ url: spec.home, active: true });
+  const results = [];
+  for (let index = 0; index < spec.relations.length; index += 1) {
+    const relation = spec.relations[index];
+    try {
+      const relationResult = await scanOneBrowserRelation({ tabId: tab.id, platform: account.platform, relation, syncRunId, profileUrl });
+      results.push(relationResult);
+      if (relationResult?.controlled) break;
+    } catch (error) {
+      const control = await stopStateFor(syncRunId);
+      if (control) {
+        results.push({ controlled: true, status: control === "pause" ? "paused" : "cancelled", relation });
+        break;
+      }
+      results.push(await sendSyncBatch(syncRunId, {
+        relation_type: relation,
+        scope_type: "relation",
+        items: [],
+        completeness: "failed",
+        failure_code: "BROWSER_SCAN_FAILED",
+        cursor: { error: String(error?.message || error).slice(0, 300) },
+        has_more: false
+      }));
+    }
+    await chrome.action.setBadgeBackgroundColor({ color: "#171717" });
+    await chrome.action.setBadgeText({ text: `${index + 1}/${spec.relations.length}` });
+  }
+  const latest = await SA.api(`/v1/sync-runs/${encodeURIComponent(syncRunId)}`, { timeoutMs: 10000 });
+  await chrome.action.setBadgeBackgroundColor({ color: latest.status === "completed" ? "#1f7a4c" : "#9a6700" });
+  await chrome.action.setBadgeText({ text: latest.status === "completed" ? "✓" : "!" });
+  setTimeout(() => chrome.action.setBadgeText({ text: "" }).catch(() => {}), 3000);
+  return { ok: true, syncRunId, status: latest.status, results };
+}
+
+async function completePendingBrowserConnection(message, senderTab) {
+  const platform = message.platform;
+  const pending = (await getPendingConnections())[platform];
+  if (!pending || !message.loggedIn) return { ok: false, ignored: true };
+  if (Date.now() - Number(pending.createdAt || 0) > 30 * 60 * 1000) {
+    await setPendingConnection(platform, null);
+    return { ok: false, state: "expired", error: "连接流程已过期，请重新点击连接账号" };
+  }
+  const completed = await SA.api(`/v1/accounts/connect/${encodeURIComponent(platform)}/complete`, {
+    method: "POST",
+    body: JSON.stringify({
+      connection_ref: pending.connectionRef,
+      external_account_id: message.externalAccountId || `browser-session:${platform}`,
+      display_name: message.accountName || `${platformSpec(platform)?.label || platform}账号`,
+      verified: true,
+      metadata: {
+        auth_method: "browser_session",
+        auto_sync_enabled: true,
+        sync_interval_minutes: 360,
+        verification_source: "browser_content_script",
+        profile_url: message.profileUrl || ""
+      }
+    }),
+    timeoutMs: 15000
+  });
+  await setPendingConnection(platform, null);
+  await enqueueAccountSync({
+    accountId: completed.account_id,
+    syncRunId: completed.first_sync?.sync_run_id || null,
+    tabId: senderTab?.id || pending.tabId || null,
+    profileUrl: message.profileUrl || "",
+    triggerType: "first_connect"
+  });
+  return { ok: true, state: "connected", accountId: completed.account_id, message: "账号已连接，首次全量同步已进入后台队列" };
+}
+
+async function verifyPendingPlatform(platform) {
+  const pending = (await getPendingConnections())[platform];
+  if (!pending) return { ok: false, state: "not_pending", error: "没有等待确认的连接流程，请重新点击连接账号" };
+  const patterns = SA.patternsForPlatform(platform);
+  const tabs = [];
+  for (const pattern of patterns) {
+    const found = await chrome.tabs.query({ url: pattern }).catch(() => []);
+    for (const tab of found) if (!tabs.some(item => item.id === tab.id)) tabs.push(tab);
+  }
+  const preferred = tabs.find(tab => tab.id === pending.tabId) || tabs[0];
+  if (!preferred?.id) {
+    const spec = platformSpec(platform);
+    const tab = await chrome.tabs.create({ url: spec?.home || "about:blank", active: true });
+    return { ok: false, state: "authorizing", tabId: tab.id, error: `请先在已打开的${spec?.label || platform}页面完成登录` };
+  }
+  await chrome.tabs.update(preferred.id, { active: true });
+  await ensureAccountMirrorScripts(preferred.id);
+  const state = await chrome.tabs.sendMessage(preferred.id, { type: "SA_MIRROR_DISCOVER_ACCOUNT" }).catch(() => null);
+  if (!state?.loggedIn) return { ok: false, state: "authorizing", error: state?.loginHint || "尚未检测到登录状态，请完成登录后再试" };
+  return completePendingBrowserConnection({ type: "SA_PLATFORM_PAGE_READY", platform, ...state }, preferred);
+}
+
+async function syncAccountById(accountId, options = {}) {
+  const account = (await listAccounts()).find(item => item.id === accountId);
+  if (!account) throw new Error("账号不存在");
+  if (account.platform === "generic-web" && account.external_account_id === "chrome-bookmarks") {
+    return syncChromeBookmarks({
+      accountId,
+      syncRunId: options.syncRunId || null,
+      triggerType: options.triggerType || "manual"
+    });
+  }
+  return runBrowserAccountSync({
+    account,
+    syncRunId: options.syncRunId || null,
+    tabId: options.tabId || null,
+    profileUrl: options.profileUrl || "",
+    triggerType: options.triggerType || "manual"
+  });
+}
+
+async function syncAllAccounts(triggerType = "manual") {
+  return enqueueAllAccounts(triggerType);
+}
+
+async function openAccountCenter() {
+  await chrome.tabs.create({ url: chrome.runtime.getURL("options.html#platforms") });
+  return { ok: true };
+}
+
+async function scheduleBookmarkRefresh() {
+  const hasPermission = await chrome.permissions.contains({ permissions: ["bookmarks"] });
+  if (!hasPermission) return;
+  await chrome.alarms.create("sa-bookmarks-refresh", { delayInMinutes: 0.2 });
+}
+
 chrome.runtime.onInstalled.addListener(async details => {
   const config = await SA.setConfig({});
   await ensureMenus();
+  await chrome.alarms.create("sa-account-sync", { periodInMinutes: 360 });
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
   if (details.reason === "install" && !config.onboardingComplete) {
     await chrome.tabs.create({ url: chrome.runtime.getURL("options.html?onboarding=1") });
   }
 });
 
-chrome.runtime.onStartup.addListener(() => ensureMenus().catch(() => {}));
+chrome.runtime.onStartup.addListener(() => {
+  ensureMenus().catch(() => {});
+  chrome.alarms.create("sa-account-sync", { periodInMinutes: 360 }).catch(() => {});
+  getSyncQueue().then(queue => queue.length ? scheduleSyncQueue() : null).catch(() => {});
+});
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") injectFabIfAuthorized(tabId, tab.url).catch(() => {});
 });
 chrome.permissions.onAdded.addListener(async () => {
   try { const tab = await SA.activeTab(); await injectFabIfAuthorized(tab.id, tab.url); } catch (_) {}
 });
+
+
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name === "sa-bookmarks-refresh") {
+    listAccounts().then(accounts => {
+      const account = accounts.find(item => item.platform === "generic-web" && item.external_account_id === "chrome-bookmarks");
+      return account ? enqueueAccountSync({ accountId: account.id, triggerType: "bookmark_change" }) : null;
+    }).catch(() => {});
+  }
+  if (alarm.name === "sa-account-sync") enqueueAllAccounts("scheduled").catch(() => {});
+  if (alarm.name === SYNC_QUEUE_ALARM) processSyncQueue().catch(() => {});
+});
+
+if (chrome.bookmarks) {
+  chrome.bookmarks.onCreated.addListener(() => scheduleBookmarkRefresh().catch(() => {}));
+  chrome.bookmarks.onChanged.addListener(() => scheduleBookmarkRefresh().catch(() => {}));
+  chrome.bookmarks.onMoved.addListener(() => scheduleBookmarkRefresh().catch(() => {}));
+  chrome.bookmarks.onRemoved.addListener(() => scheduleBookmarkRefresh().catch(() => {}));
+}
 
 chrome.commands.onCommand.addListener(async command => {
   try {
@@ -232,17 +840,14 @@ chrome.commands.onCommand.addListener(async command => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab?.id || !tab.url) return;
   try {
-    let hasDestinationWarning = false;
     if (info.menuItemId === MENU_SELECTION && info.selectionText) {
       const config = await SA.getConfig();
-      const saved = await captureRecord({ url: tab.url, title: tab.title, text: info.selectionText, media_urls: [], raw_metadata: { source: "selection" } }, tab.url, config, { source: "context_selection" });
-      hasDestinationWarning = Boolean((saved.skipped_destination_ids || []).length || saved.local_obsidian?.status === "failed");
+      await captureRecord({ url: tab.url, title: tab.title, text: info.selectionText, media_urls: [], raw_metadata: { source: "selection" } }, tab.url, config, { source: "context_selection" });
     } else if (info.menuItemId === MENU_SAVE) {
-      const saved = await captureActive({ mode: "page", source: "context_menu" });
-      hasDestinationWarning = Boolean(saved.destinationWarningCount);
+      await captureActive({ mode: "page", source: "context_menu" });
     }
-    await chrome.action.setBadgeBackgroundColor({ color: hasDestinationWarning ? "#9a6700" : "#1f7a4c" });
-    await chrome.action.setBadgeText({ text: hasDestinationWarning ? "!" : "✓" });
+    await chrome.action.setBadgeBackgroundColor({ color: "#1f7a4c" });
+    await chrome.action.setBadgeText({ text: "✓" });
     setTimeout(() => chrome.action.setBadgeText({ text: "" }).catch(() => {}), 2200);
   } catch (_) {
     await chrome.action.setBadgeBackgroundColor({ color: "#b42318" });
@@ -250,10 +855,30 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onConnect.addListener(port => {
+  if (port.name !== "sa-account-mirror-scan") return;
+  port.onMessage.addListener(() => {});
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   (async () => {
-    if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message, sender?.tab);
-    if (message?.type === "SA_RETRY_LOCAL_OBSIDIAN") return retryLocalObsidian(message.contentId, message.remotePath);
+    if (message?.type === "SA_ACCOUNT_CONNECT") return connectPlatform(String(message.platform || ""));
+    if (message?.type === "SA_VERIFY_PLATFORM_SESSION") return verifyPendingPlatform(String(message.platform || ""));
+    if (message?.type === "SA_GET_PENDING_CONNECTIONS") return { ok: true, items: await getPendingConnections() };
+    if (message?.type === "SA_OPEN_ACCOUNT_CENTER") return openAccountCenter();
+    if (message?.type === "SA_SYNC_ACCOUNT") return enqueueAccountSync({ accountId: String(message.accountId || ""), triggerType: "manual" });
+    if (message?.type === "SA_SYNC_ALL_ACCOUNTS") return syncAllAccounts("manual");
+    if (message?.type === "SA_CONTROL_SYNC_RUN") return controlSyncRun({
+      syncRunId: String(message.syncRunId || ""),
+      accountId: message.accountId ? String(message.accountId) : null,
+      action: String(message.action || "")
+    });
+    if (message?.type === "SA_GET_SYNC_CONTROL_STATE") {
+      const control = await getSyncControl(String(message.syncRunId || ""));
+      return { ok: true, action: control?.action || null };
+    }
+    if (message?.type === "SA_PLATFORM_PAGE_READY") return completePendingBrowserConnection(message, _sender?.tab);
+    if (message?.type === "SA_CAPTURE_ACTIVE") return captureActive(message);
     if (message?.type === "SA_OPEN_TASK_CENTER") {
       const tab = await SA.activeTab().catch(() => null);
       if (tab?.windowId) await chrome.sidePanel.open({ windowId: tab.windowId });
@@ -269,8 +894,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       let serviceReady = false;
       let paired = false;
       try {
-        const pairing = await fetch(`${config.endpoint}/v1/pairing/status`, { cache: "no-store" })
-          .then(response => response.ok ? response.json() : null);
+        const pairing = await fetch(`${config.endpoint}/v1/pairing/status`, { cache: "no-store" }).then(response => response.ok ? response.json() : null);
         if (pairing && pairing.pairing_required === false) {
           serviceReady = Boolean(pairing.service_ready);
           paired = serviceReady;

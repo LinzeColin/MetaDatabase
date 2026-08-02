@@ -2,148 +2,111 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
-  let jobs = [];
+  const running = new Set(["queued", "authorizing", "discovering", "scanning", "normalizing", "artifacting", "exporting"]);
+  const needsAction = new Set(["partial", "failed", "blocked_environment"]);
+  const icons = { xiaohongshu: "小", douyin: "抖", kuaishou: "快", bilibili: "B", x: "X", reddit: "R", instagram: "In", "generic-web": "书" };
+  const names = { xiaohongshu: "小红书", douyin: "抖音", kuaishou: "快手", bilibili: "B站", x: "X", reddit: "Reddit", instagram: "Instagram", "generic-web": "Chrome书签/网页" };
+  let accounts = [];
+  let runs = [];
   let filter = "active";
   let timer = null;
 
-  function taskProgress(job) {
-    const state = SA.normalizeJobState(job);
-    if (state === "success") return 100;
-    if (state === "running") return 58;
-    if (state === "needs_user_action" || state === "failed") return 100;
-    return 12;
+  function label(status) {
+    return ({ queued: "等待同步", authorizing: "正在授权", discovering: "正在发现", scanning: "正在同步", normalizing: "正在整理", artifacting: "正在归档", exporting: "正在导出", completed: "已完成", partial: "部分完成", paused: "已暂停", failed: "需要处理", blocked_environment: "重新连接", cancelled: "已取消" })[status] || status;
+  }
+  function showBanner(message) { $("banner").textContent = message; $("banner").classList.remove("hidden"); }
+  function visible() {
+    if (filter === "all") return runs;
+    if (filter === "needs") return runs.filter(run => needsAction.has(run.status));
+    return runs.filter(run => running.has(run.status) || run.status === "paused");
+  }
+  async function openLibrary() { chrome.tabs.create({ url: (await SA.getConfig()).libraryUrl }); }
+
+  async function control(run, action, button) {
+    if (action === "cancel" && !confirm("取消本次同步？已经导入的内容会保留。")) return;
+    button.disabled = true;
+    try {
+      const result = await chrome.runtime.sendMessage({ type: "SA_CONTROL_SYNC_RUN", syncRunId: run.id, accountId: run.source_account_id, action });
+      if (!result?.ok) throw new Error(result?.error || result?.message || "操作失败");
+      await refresh();
+    } catch (error) {
+      showBanner(error?.message || "无法控制同步任务");
+    } finally { button.disabled = false; }
   }
 
-  function taskMessage(job) {
-    const state = SA.normalizeJobState(job);
-    if (job.receipt_message) return job.receipt_message;
-    if (job.last_error_message) return job.last_error_message;
-    if (state === "queued") return "已加入队列，系统会自动处理。";
-    if (state === "running") return "正在处理，请保持服务在线。";
-    if (state === "success") return "已完成并记录可核验回执。";
-    if (state === "needs_user_action") return "自动重试未完成，请检查授权、配额或网络。";
-    return "任务状态已更新。";
-  }
-
-  function visibleJobs() {
-    if (filter === "all") return jobs;
-    if (filter === "needs_user_action") return jobs.filter(job => ["needs_user_action", "failed"].includes(SA.normalizeJobState(job)));
-    return jobs.filter(job => ["queued", "running"].includes(SA.normalizeJobState(job)));
+  function bindControl(card, selector, run, action, visibleWhen) {
+    const button = card.querySelector(selector);
+    button.classList.toggle("hidden", !visibleWhen);
+    if (visibleWhen) button.addEventListener("click", () => control(run, action, button));
   }
 
   function render() {
-    const states = jobs.map(SA.normalizeJobState);
-    $("runningCount").textContent = String(states.filter(state => ["queued", "running"].includes(state)).length);
-    $("successCount").textContent = String(states.filter(state => state === "success").length);
-    $("actionCount").textContent = String(states.filter(state => ["needs_user_action", "failed"].includes(state)).length);
-    const list = visibleJobs();
-    $("empty").classList.toggle("hidden", list.length !== 0);
-    $("taskList").replaceChildren();
-    for (const job of list) {
-      const fragment = $("taskTemplate").content.cloneNode(true);
-      const card = fragment.querySelector(".task-card");
-      const state = SA.normalizeJobState(job);
-      card.classList.add(state);
-      card.querySelector(".task-title strong").textContent = SA.jobLabel(job.job_type);
-      card.querySelector(".task-title small").textContent = `${job.connector_id || "系统"} · ${new Date(job.updated_at).toLocaleString("zh-CN")}`;
-      card.querySelector(".task-state").textContent = SA.statusCopy(state);
-      card.querySelector(".progress span").style.width = `${taskProgress(job)}%`;
-      card.querySelector(".task-message").textContent = taskMessage(job);
-      const retry = card.querySelector(".retry");
-      retry.classList.toggle("hidden", !["needs_user_action", "failed"].includes(state));
-      retry.addEventListener("click", async () => {
-        retry.disabled = true;
-        try {
-          if (job.receipt && job.connector_id === "obsidian_local") {
-            const result = await chrome.runtime.sendMessage({
-              type: "SA_RETRY_LOCAL_OBSIDIAN",
-              contentId: job.content_id,
-              remotePath: job.remote_path
-            });
-            if (!result?.ok) throw new Error(result?.error || "Obsidian 本机桥接重试失败");
-          } else if (job.receipt) {
-            await SA.api(`/v1/destinations/receipts/${encodeURIComponent(job.receipt_id)}/retry`, { method: "POST" });
-          } else {
-            await SA.api(`/v1/jobs/${encodeURIComponent(job.id)}/retry`, { method: "POST" });
-          }
-          await refresh();
-        } catch (error) {
-          $("connectionBanner").textContent = `重试失败：${error?.message || "未知错误"}`;
-          $("connectionBanner").classList.remove("hidden");
-        } finally { retry.disabled = false; }
-      });
-      card.querySelector(".details").textContent = job.receipt ? "查看内容" : "查看详情";
-      card.querySelector(".details").addEventListener("click", async () => {
-        const config = await SA.getConfig();
-        chrome.tabs.create({ url: `${config.libraryUrl}/?task=${encodeURIComponent(job.id)}` });
-      });
-      $("taskList").appendChild(fragment);
-    }
-  }
+    const states = runs.map(run => run.status);
+    $("activeCount").textContent = states.filter(status => running.has(status) || status === "paused").length;
+    $("doneCount").textContent = states.filter(status => status === "completed").length;
+    $("actionCount").textContent = states.filter(status => needsAction.has(status)).length;
+    const list = visible();
+    $("empty").classList.toggle("hidden", list.length > 0);
+    $("list").replaceChildren();
+    for (const run of list) {
+      const account = accounts.find(item => item.id === run.source_account_id) || {};
+      const fragment = $("cardTemplate").content.cloneNode(true);
+      const card = fragment.querySelector(".card");
+      card.classList.add(run.status);
+      card.querySelector(".platform").textContent = icons[run.platform] || "网";
+      card.querySelector(".title strong").textContent = account.display_name || names[run.platform] || run.platform;
+      card.querySelector(".title small").textContent = `${run.mode === "first_full" ? "首次全量" : "增量同步"} · ${Number(run.imported_count || 0).toLocaleString("zh-CN")}/${Number(run.discovered_count || 0) || "…"} 条`;
+      card.querySelector(".status").textContent = label(run.status);
+      const progress = run.discovered_count ? Math.min(100, Math.round(Number(run.imported_count || 0) / Number(run.discovered_count) * 100)) : (run.status === "completed" ? 100 : 18);
+      card.querySelector(".progress span").style.width = `${progress}%`;
+      card.querySelector(".message").textContent = run.last_error_message || (run.status === "completed" ? "内容已进入资料库并继续后台导出。" : running.has(run.status) ? "已完成内容会立即显示；可以随时暂停或取消。" : run.status === "paused" ? "同步已暂停；点击继续会从现有进度恢复。" : "点击重试或重新连接账号。");
 
-  function receiptToJob(receipt) {
-    return {
-      id: `receipt:${receipt.id}`,
-      job_type: "export_destination",
-      connector_id: receipt.destination_id,
-      status: receipt.status,
-      attempt_count: 1,
-      created_at: receipt.attempted_at,
-      updated_at: receipt.finished_at,
-      receipt_id: receipt.id,
-      content_id: receipt.content_id,
-      remote_path: receipt.remote_path,
-      evidence: receipt.evidence || {},
-      last_error_code: receipt.error_code,
-      last_error_message: receipt.status === "failed" ? receipt.message_zh : null,
-      receipt_message: receipt.message_zh,
-      receipt: true
-    };
+      bindControl(card, ".pause", run, "pause", running.has(run.status));
+      bindControl(card, ".resume", run, "resume", run.status === "paused");
+      bindControl(card, ".retry", run, "retry", ["partial", "failed"].includes(run.status));
+      bindControl(card, ".cancel", run, "cancel", running.has(run.status) || run.status === "paused");
+      card.querySelector(".details").addEventListener("click", openLibrary);
+      $("list").appendChild(fragment);
+    }
   }
 
   async function refresh() {
     try {
-      const [jobResponse, receiptResponse] = await Promise.all([
-        SA.api("/v1/jobs?limit=100", { timeoutMs: 8000 }),
-        SA.api("/v1/destinations/receipts?limit=50", { timeoutMs: 8000 })
+      const [accountResponse, runResponse] = await Promise.all([
+        SA.api("/v1/accounts", { timeoutMs: 7000 }),
+        SA.api("/v1/sync-runs?limit=200", { timeoutMs: 7000 })
       ]);
-      jobs = [...(jobResponse.items || []), ...(receiptResponse.items || []).map(receiptToJob)]
-        .sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at)));
-      $("connectionBanner").classList.add("hidden");
+      accounts = accountResponse.items || [];
+      runs = runResponse.items || [];
+      $("banner").classList.add("hidden");
       render();
     } catch (error) {
-      jobs = [];
+      accounts = [];
+      runs = [];
       render();
-      const banner = $("connectionBanner");
-      banner.textContent = `尚未连接档案馆：${error?.message || "请先完成设置"}`;
-      banner.classList.remove("hidden");
+      showBanner(`尚未连接私人档案馆：${error?.message || "请完成设置"}`);
     }
   }
 
   $("refresh").addEventListener("click", refresh);
-  $("saveCurrent").addEventListener("click", async () => {
-    $("saveCurrent").disabled = true;
+  $("syncAll").addEventListener("click", async () => {
+    $("syncAll").disabled = true;
     try {
-      const response = await chrome.runtime.sendMessage({ type: "SA_CAPTURE_ACTIVE", mode: "page", source: "task_center" });
-      if (!response?.ok) throw new Error(response?.error || "保存失败");
+      const result = await chrome.runtime.sendMessage({ type: "SA_SYNC_ALL_ACCOUNTS" });
+      if (!result?.ok) throw new Error("请先连接账号");
       await refresh();
-    } catch (error) {
-      const banner = $("connectionBanner");
-      banner.textContent = `保存失败：${error?.message || "未知错误"}`;
-      banner.classList.remove("hidden");
-    } finally { $("saveCurrent").disabled = false; }
+    } catch (error) { showBanner(error?.message || "无法同步账号"); }
+    finally { $("syncAll").disabled = false; }
   });
-  $("openLibrary").addEventListener("click", async () => chrome.tabs.create({ url: (await SA.getConfig()).libraryUrl }));
+  $("connectAccount").addEventListener("click", () => chrome.runtime.sendMessage({ type: "SA_OPEN_ACCOUNT_CENTER" }));
+  $("openLibrary").addEventListener("click", openLibrary);
   $("openSettings").addEventListener("click", () => chrome.runtime.openOptionsPage());
-  for (const button of document.querySelectorAll(".segmented button")) {
-    button.addEventListener("click", () => {
-      filter = button.dataset.filter;
-      document.querySelector(".segmented button.active")?.classList.remove("active");
-      button.classList.add("active");
-      render();
-    });
-  }
-
+  document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
+    filter = button.dataset.filter;
+    document.querySelector("[data-filter].active")?.classList.remove("active");
+    button.classList.add("active");
+    render();
+  }));
   refresh();
   timer = setInterval(refresh, 5000);
   addEventListener("unload", () => clearInterval(timer));

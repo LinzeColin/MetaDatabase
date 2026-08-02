@@ -4,7 +4,6 @@
   const MANAGED_CONFIG_URL = chrome.runtime.getURL("runtime-config.json");
   const FALLBACK_ENDPOINT = "https://social-archive-api.linzezhang.com";
   const FALLBACK_LIBRARY = "https://social-archive.linzezhang.com";
-  const OBSIDIAN_LOOPBACK_URL = "http://127.0.0.1:27123";
   const DEFAULT_CONFIG = Object.freeze({
     endpoint: FALLBACK_ENDPOINT,
     libraryUrl: FALLBACK_LIBRARY,
@@ -16,20 +15,19 @@
     showFloatingButton: true,
     onboardingComplete: false,
     obsidianLocalEnabled: false,
-    obsidianLocalUrl: OBSIDIAN_LOOPBACK_URL,
+    obsidianLocalUrl: "http://127.0.0.1:27123",
     obsidianLocalToken: ""
   });
 
   const PLATFORM_RULES = Object.freeze([
-    { id: "xiaohongshu", name: "小红书", patterns: ["https://*.xiaohongshu.com/*"] },
-    { id: "douyin", name: "抖音", patterns: ["https://*.douyin.com/*"] },
-    { id: "tiktok", name: "TikTok", patterns: ["https://*.tiktok.com/*"] },
-    { id: "kuaishou", name: "快手", patterns: ["https://*.kuaishou.com/*"] },
-    { id: "bilibili", name: "哔哩哔哩", patterns: ["https://*.bilibili.com/*"] },
+    { id: "xiaohongshu", name: "小红书", patterns: ["https://*.xiaohongshu.com/*", "https://xhslink.com/*", "https://*.xhslink.com/*"] },
+    { id: "douyin", name: "抖音", patterns: ["https://*.douyin.com/*", "https://v.iesdouyin.com/*"] },
+    { id: "kuaishou", name: "快手", patterns: ["https://*.kuaishou.com/*", "https://*.gifshow.com/*", "https://kuaishou.cn/*", "https://*.kuaishou.cn/*"] },
+    { id: "bilibili", name: "哔哩哔哩", patterns: ["https://*.bilibili.com/*", "https://b23.tv/*"] },
     { id: "x", name: "X", patterns: ["https://x.com/*", "https://*.x.com/*", "https://twitter.com/*"] },
-    { id: "reddit", name: "Reddit", patterns: ["https://*.reddit.com/*"] },
+    { id: "reddit", name: "Reddit", patterns: ["https://*.reddit.com/*", "https://redd.it/*"] },
     { id: "instagram", name: "Instagram", patterns: ["https://*.instagram.com/*"] },
-    { id: "generic_web", name: "普通网页", patterns: [] }
+    { id: "generic-web", name: "普通网页", patterns: [] }
   ]);
 
   const DESTINATION_NAMES = Object.freeze({
@@ -37,7 +35,6 @@
     markdown: "Markdown",
     notion: "Notion",
     obsidian: "Obsidian",
-    obsidian_local: "Obsidian 本机桥接",
     github: "GitHub 私有库",
     karakeep: "Karakeep 阅读器",
     linkwarden: "Linkwarden 阅读器",
@@ -63,25 +60,6 @@
       return url.toString().replace(/\/$/, "");
     } catch (_) {
       return fallback;
-    }
-  }
-
-  function normalizeObsidianLoopbackUrl(value) {
-    try {
-      const url = new URL(String(value || OBSIDIAN_LOOPBACK_URL).trim());
-      if (
-        url.protocol !== "http:"
-        || url.hostname !== "127.0.0.1"
-        || url.port !== "27123"
-        || url.username
-        || url.password
-        || url.pathname !== "/"
-        || url.search
-        || url.hash
-      ) return OBSIDIAN_LOOPBACK_URL;
-      return OBSIDIAN_LOOPBACK_URL;
-    } catch (_) {
-      return OBSIDIAN_LOOPBACK_URL;
     }
   }
 
@@ -115,7 +93,6 @@
       endpoint: normalizeEndpoint(stored.endpoint, managed.endpoint),
       libraryUrl: normalizeEndpoint(stored.libraryUrl, managed.libraryUrl),
       pairingPath: String(stored.pairingPath || managed.pairingPath),
-      obsidianLocalUrl: normalizeObsidianLoopbackUrl(stored.obsidianLocalUrl),
       destinationIds: Array.isArray(stored.destinationIds) && stored.destinationIds.length
         ? [...new Set(stored.destinationIds.map(String))]
         : [...DEFAULT_CONFIG.destinationIds]
@@ -127,7 +104,6 @@
     const next = { ...current, ...patch };
     next.endpoint = normalizeEndpoint(next.endpoint, current.endpoint);
     next.libraryUrl = normalizeEndpoint(next.libraryUrl, current.libraryUrl || FALLBACK_LIBRARY);
-    next.obsidianLocalUrl = normalizeObsidianLoopbackUrl(next.obsidianLocalUrl);
     next.destinationIds = [...new Set((next.destinationIds || []).map(String))];
     if (!next.destinationIds.includes("social_archive")) next.destinationIds.unshift("social_archive");
     await chrome.storage.local.set(next);
@@ -180,7 +156,6 @@
     const test = needle => host === needle || host.endsWith(`.${needle}`);
     if (test("xiaohongshu.com")) return PLATFORM_RULES.find(x => x.id === "xiaohongshu");
     if (test("douyin.com")) return PLATFORM_RULES.find(x => x.id === "douyin");
-    if (test("tiktok.com")) return PLATFORM_RULES.find(x => x.id === "tiktok");
     if (test("kuaishou.com")) return PLATFORM_RULES.find(x => x.id === "kuaishou");
     if (test("bilibili.com")) return PLATFORM_RULES.find(x => x.id === "bilibili");
     if (test("x.com") || test("twitter.com")) return PLATFORM_RULES.find(x => x.id === "x");
@@ -244,7 +219,7 @@
   }
 
   globalThis.SA = Object.freeze({
-    DEFAULT_CONFIG, PLATFORM_RULES, DESTINATION_NAMES, OBSIDIAN_LOOPBACK_URL, normalizeObsidianLoopbackUrl, loadManagedConfig, getConfig, setConfig,
+    DEFAULT_CONFIG, PLATFORM_RULES, DESTINATION_NAMES, loadManagedConfig, getConfig, setConfig,
     api, apiText, activeTab, platformFromUrl, patternsForPlatform, permissionState,
     requestPlatformPermission, removePlatformPermission, destinationLabel, jobLabel,
     normalizeJobState, statusCopy, escapeHtml

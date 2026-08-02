@@ -44,7 +44,7 @@ def _is_public_url(raw: str) -> str:
     return raw
 
 
-def _run(argv: list[str], run_dir: Path, timeout: int = 900, *, require_artifacts: bool = True) -> dict:
+def _run(argv: list[str], run_dir: Path, timeout: int = 900) -> dict:
     binary = Path(argv[0]).name
     if binary not in ALLOWED_TOOLS:
         raise ValueError("命令未在允许列表")
@@ -52,14 +52,7 @@ def _run(argv: list[str], run_dir: Path, timeout: int = 900, *, require_artifact
         return {"status": "blocked_environment", "exit_code": 127, "stdout": "", "stderr": f"{binary} 未安装", "artifacts": []}
     home = run_dir / "home"
     home.mkdir(parents=True, exist_ok=True)
-    env = {
-        "PATH": os.environ.get("PATH", ""),
-        "HOME": str(home),
-        "XDG_CONFIG_HOME": str(home / ".config"),
-        "XDG_CACHE_HOME": str(home / ".cache"),
-        "XDG_DATA_HOME": str(home / ".local" / "share"),
-        "LANG": "C.UTF-8",
-    }
+    env = {"PATH": os.environ.get("PATH", ""), "HOME": str(home), "LANG": "C.UTF-8"}
     try:
         result = subprocess.run(argv, cwd=run_dir, env=env, text=True, capture_output=True, timeout=timeout, check=False)
     except subprocess.TimeoutExpired:
@@ -69,7 +62,7 @@ def _run(argv: list[str], run_dir: Path, timeout: int = 900, *, require_artifact
         if not path.is_file() or "home" in path.parts or path.name == "command-result.json":
             continue
         artifacts.append(str(path.relative_to(OUTPUT_ROOT)))
-    status = "success" if result.returncode == 0 and (artifacts or not require_artifacts) else "failed"
+    status = "success" if result.returncode == 0 and artifacts else "failed"
     receipt = {
         "status": status,
         "exit_code": result.returncode,
@@ -136,38 +129,16 @@ def _bilibili_list(payload: dict) -> dict:
     run_dir = OUTPUT_ROOT / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
     limit = max(1, min(int(payload.get("limit") or 20), 500))
-    argv = ["bili", subcommand]
-    if subcommand == "history":
-        argv.extend(["--max", str(min(limit, 100))])
-    argv.append("--json")
-    result = _run(argv, run_dir, require_artifacts=False)
+    result = _run(["bili", subcommand, "--limit", str(limit)], run_dir)
+    observations = []
     text = result.get("stdout", "").strip()
-    try:
-        parsed = json.loads(text) if text else None
-    except json.JSONDecodeError:
-        parsed = None
-
-    if result.get("exit_code") == 0 and isinstance(parsed, dict) and parsed.get("ok") is True:
-        data = parsed.get("data")
-        if isinstance(data, dict):
-            for key in ("items", "list", "medias"):
-                if isinstance(data.get(key), list):
-                    data = data[key]
-                    break
-        observations = [item for item in data if isinstance(item, dict)] if isinstance(data, list) else []
-        result.update({"status": "success", "run_id": run_id, "observations": observations})
-        return result
-
-    error = parsed.get("error") if isinstance(parsed, dict) else None
-    upstream_code = str(error.get("code") or "") if isinstance(error, dict) else ""
-    raw_error = " ".join((text, str(result.get("stderr") or ""))).lower()
-    if upstream_code == "rate_limited" or any(marker in raw_error for marker in ("rate_limited", "http 412", "http 429", "-412", " 412", " 429")):
-        result.update({"status": "degraded", "run_id": run_id, "observations": [], "error_code": "BILI_RATE_LIMITED", "message": "B站暂时限流（HTTP 412/429）；未尝试绕过，请稍后重试或保存当前页。", "retryable": True})
-        return result
-    if upstream_code == "not_authenticated":
-        result.update({"status": "blocked_environment", "run_id": run_id, "observations": [], "error_code": "BILI_NOT_AUTHENTICATED", "message": "B站读取需要 Owner 在隔离 Sidecar 中完成授权；未读取浏览器 Cookie。", "retryable": False})
-        return result
-    result.update({"status": "failed", "run_id": run_id, "observations": [], "error_code": "BILI_LIST_FAILED", "message": "bilibili-cli 未返回可用的只读列表结果。", "retryable": True})
+    if text:
+        try:
+            parsed = json.loads(text)
+            observations = parsed if isinstance(parsed, list) else [parsed]
+        except json.JSONDecodeError:
+            observations = [{"raw_text": line} for line in text.splitlines() if line.strip()]
+    result.update({"run_id": run_id, "observations": observations})
     return result
 
 

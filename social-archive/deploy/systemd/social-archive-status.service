@@ -8,10 +8,8 @@ User=socialarchive
 Group=socialarchive
 WorkingDirectory=/opt/social-archive
 EnvironmentFile=/etc/social-archive/social-archive.env
-LoadCredential=api_token:/opt/social-archive/runtime/secrets/social_archive_api_token
-Environment=SOCIAL_ARCHIVE_API_TOKEN_FILE=%d/api_token
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/status_publish.py
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
-ReadWritePaths=/var/lib/social-archive
+ReadWritePaths=/var/lib/social-archive /opt/social-archive/runtime

@@ -8,60 +8,56 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">SA</span><span><strong>Social Archive</strong><small>一键保存，自动归档</small></span></div>
+    <div class="brand"><span class="brand-mark">SA</span><span><strong>Social Archive</strong><small>连接一次，自动同步全部收藏</small></span></div>
     <button id="settings" class="icon-button" aria-label="设置">···</button>
   </header>
 
   <main>
-    <section class="site-card">
-      <div>
-        <span id="platformBadge" class="platform-badge">普通网页</span>
-        <h1 id="pageTitle">正在识别当前页面…</h1>
-      </div>
-      <div id="authorization" class="auth-row" aria-live="polite"></div>
+    <section class="mirror-summary" aria-live="polite">
+      <div><span class="eyebrow">账号收藏镜像</span><h1 id="summaryTitle">正在读取同步状态…</h1><p id="summaryCopy">请稍候。</p></div>
+      <span id="serviceState" class="service-pill checking">检查中</span>
     </section>
 
-    <section id="connectionSummary" class="connection-summary" aria-live="polite">正在读取连接状态…</section>
-
-    <section class="primary-actions" aria-label="保存操作">
-      <button id="savePage" class="primary-action">
+    <section class="primary-actions" aria-label="账号同步操作">
+      <button id="primarySync" class="primary-action">
+        <span class="action-icon">↻</span>
+        <span><strong id="primarySyncLabel">同步全部已连接账号</strong><small id="primarySyncHint">新增内容会自动进入资料库</small></span>
+      </button>
+      <button id="manageAccounts" class="secondary-action">
         <span class="action-icon">＋</span>
-        <span><strong>保存到我的档案馆</strong><small>默认归档 L0＋L1＋L3</small></span>
-      </button>
-      <button id="scanList" class="secondary-action">
-        <span class="action-icon">≡</span>
-        <span><strong>读取当前列表</strong><small>只读取当前可见内容，不自动滚动</small></span>
+        <span><strong>连接与管理账号</strong><small>小红书、抖音、快手、B站、X、Reddit、Instagram、Chrome 书签</small></span>
       </button>
     </section>
 
-    <section class="field-grid">
-      <label>
-        <span>保存为</span>
-        <select id="relationType">
-          <option value="saved">收藏</option>
-          <option value="like">点赞</option>
-          <option value="bookmark">书签</option>
-          <option value="watch_later">稍后看</option>
-          <option value="manual_save">手动保存</option>
-        </select>
-      </label>
-      <label>
-        <span>收藏夹</span>
-        <input id="collectionKey" maxlength="512" placeholder="可留空">
-      </label>
+    <section class="accounts-section">
+      <div class="section-heading"><span>账号状态</span><button id="refresh" class="text-button">刷新</button></div>
+      <div id="accountList" class="account-list" aria-live="polite"></div>
     </section>
 
     <section class="destinations">
-      <div class="section-heading"><span>自动导入到</span><button id="manageDestinations" class="text-button">管理</button></div>
+      <div class="section-heading"><span>自动导出</span><button id="manageDestinations" class="text-button">管理</button></div>
       <div id="destinationChips" class="chip-list" aria-live="polite"></div>
     </section>
+
+    <details class="fallback-panel">
+      <summary>备用：保存当前页面</summary>
+      <div class="site-card">
+        <div><span id="platformBadge" class="platform-badge">普通网页</span><h2 id="pageTitle">正在识别当前页面…</h2></div>
+        <div id="authorization" class="auth-row" aria-live="polite"></div>
+      </div>
+      <div class="field-grid">
+        <label><span>保存为</span><select id="relationType"><option value="saved">收藏</option><option value="like">点赞</option><option value="bookmark">书签</option><option value="watch_later">稍后看</option><option value="manual_save">手动保存</option></select></label>
+        <label><span>收藏夹</span><input id="collectionKey" maxlength="512" placeholder="可留空"></label>
+      </div>
+      <button id="savePage" class="fallback-save">保存当前页面</button>
+    </details>
 
     <div id="status" class="status hidden" role="status" aria-live="polite"></div>
   </main>
 
   <footer>
-    <button id="taskCenter" class="footer-button">任务中心 <span id="taskCount" class="count hidden">0</span></button>
-    <button id="openLibrary" class="footer-button">打开档案馆 ↗</button>
+    <button id="taskCenter" class="footer-button">同步进度 <span id="taskCount" class="count hidden">0</span></button>
+    <button id="openLibrary" class="footer-button">打开资料库 ↗</button>
   </footer>
 
   <script src="shared.js"></script>

@@ -6,9 +6,7 @@
   const allowedOrigins = new Set([
     "https://social-archive.linzezhang.com",
     "http://127.0.0.1:8765",
-    "http://localhost:8765",
-    "http://127.0.0.1:18765",
-    "http://localhost:18765"
+    "http://localhost:8765"
   ]);
 
   if (!allowedOrigins.has(location.origin)) return;
@@ -40,6 +38,39 @@
       chrome.runtime.sendMessage({ type: "SA_WEB_BRIDGE_PAIR", code: message.code, endpoint: message.endpoint })
         .then(result => post("SA_PAIR_RESULT", { requestId: message.requestId, ...(result || {}) }))
         .catch(error => post("SA_PAIR_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "配对失败" }));
+      return;
+    }
+
+    if (message.type === "SA_ACCOUNT_CONNECT") {
+      chrome.runtime.sendMessage({ type: "SA_ACCOUNT_CONNECT", platform: message.platform })
+        .then(result => post("SA_ACCOUNT_CONNECT_RESULT", { requestId: message.requestId, ...(result || {}) }))
+        .catch(error => post("SA_ACCOUNT_CONNECT_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "无法连接账号" }));
+      return;
+    }
+
+    if (message.type === "SA_SYNC_ACCOUNT") {
+      chrome.runtime.sendMessage({ type: "SA_SYNC_ACCOUNT", accountId: message.accountId })
+        .then(result => post("SA_SYNC_ACCOUNT_RESULT", { requestId: message.requestId, ...(result || {}) }))
+        .catch(error => post("SA_SYNC_ACCOUNT_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "无法启动账号同步" }));
+      return;
+    }
+
+    if (message.type === "SA_SYNC_ALL_ACCOUNTS") {
+      chrome.runtime.sendMessage({ type: "SA_SYNC_ALL_ACCOUNTS" })
+        .then(result => post("SA_SYNC_ALL_RESULT", { requestId: message.requestId, ...(result || {}) }))
+        .catch(error => post("SA_SYNC_ALL_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "无法启动同步" }));
+      return;
+    }
+
+    if (message.type === "SA_CONTROL_SYNC_RUN") {
+      chrome.runtime.sendMessage({
+        type: "SA_CONTROL_SYNC_RUN",
+        syncRunId: message.syncRunId,
+        accountId: message.accountId,
+        action: message.action
+      })
+        .then(result => post("SA_CONTROL_SYNC_RESULT", { requestId: message.requestId, ...(result || {}) }))
+        .catch(error => post("SA_CONTROL_SYNC_RESULT", { requestId: message.requestId, ok: false, message: error?.message || "无法控制同步任务" }));
       return;
     }
 

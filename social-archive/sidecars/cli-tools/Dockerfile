@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.4
 # Third-party downloaders stay in this isolated process image. No GPL/AGPL code is copied or imported into the proprietary core.
 FROM python:3.12-slim
 ARG GALLERY_DL_VERSION=1.32.8
@@ -12,15 +11,10 @@ RUN apt-get update \
       "yt-dlp==${YT_DLP_VERSION}" \
       "instaloader==${INSTALOADER_VERSION}"
 WORKDIR /worker
-COPY --from=bilibili_cli pyproject.toml README.md LICENSE /opt/bilibili-cli/
-COPY --from=bilibili_cli bili_cli /opt/bilibili-cli/bili_cli
-RUN pip install --no-cache-dir /opt/bilibili-cli \
- && rm -rf /opt/bilibili-cli
 COPY server.py /worker/server.py
-RUN groupadd --system --gid 10001 socialarchive \
- && useradd --system --uid 10002 --gid socialarchive --create-home cliworker \
+RUN useradd --system --uid 10002 --create-home cliworker \
  && mkdir -p /work/output/cli \
- && chown -R cliworker:socialarchive /work /worker
+ && chown -R cliworker:cliworker /work /worker
 USER cliworker
 EXPOSE 5560
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5560/health', timeout=3)" || exit 1

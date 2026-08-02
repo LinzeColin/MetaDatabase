@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-003",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S0",
   "title": "保留事务内核并语义合并预制实现",
   "status": "PASS",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "NOT_RUN",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
+  "semantic_disposition": "equivalent_after_overlay_apply",
   "acceptance_ids": [
     "AC-SA-003"
   ],
@@ -17,14 +17,72 @@
   ],
   "oracle": "现有 SQLite/Outbox/原子投影能力保留；冲突文件进入候选目录；核心缺失时才受控重建并迁移旧数据。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Current transactional core preserved; controlled manual semantic merge replaced unsafe phase-all overlay; focused core gates PASS.",
+  "result_summary": "The sealed --phase all command created a recovery tag and snapshot, wrote only its approved replacement or missing surfaces, and preserved 93 divergent upstream files as candidates. The existing SQLite/Outbox/atomic-projection core is byte-identical to the recovery base and the required focused core gates pass.",
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "recovery_base_head": "a6dee7723fac76fa3a59492bd1e1526a547548ae",
+    "recovery_tag": "social-archive-pre-v0.0.0.6-20260802t213736z",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "apply_taskpack_script_sha256": "7aed7e0fb98e4ee065ac6c691c835be87c80d111d3473761fa3d0fe9be737ec3",
+    "semantic_classifier_sha256": "100f2a3d220ccc8a1326b2a540ba7b96922cb5fe8648d587d72ca5a8955ded21",
+    "apply_report_sha256": "e628e87203167cf801b0a781dd9e7ae6394c52b459be96192a638056ddbb9088"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "ca19da528189e77bad25dd73954734dfff0f160ca0bac105f6fd285bcfb34598"
+  "overlay_application": {
+    "status": "APPLIED_WITH_CANDIDATES",
+    "stamp": "20260802T213736Z",
+    "action_counts": {
+      "satisfied": 61,
+      "apply_missing": 12,
+      "adapt_replace_after_backup": 24,
+      "adapt_candidate_preserve_upstream": 93
+    },
+    "source_write_inventory": {
+      "replacement_files": 24,
+      "new_files": 12,
+      "ignored_generated_dist_file": "dist/social-archive-extension.zip",
+      "candidate_directory": ".social-archive-candidate-v0.0.0.6/social-archive",
+      "candidate_files": 93,
+      "candidate_handling": "Generated candidates are retained locally and explicitly ignored; they are not staged as product source."
+    },
+    "manual_normalization": {
+      "path": "apps/pwa/styles.css",
+      "change": "Removed only two trailing spaces on line 726 after the packaged replacement.",
+      "behavioral_delta": "none",
+      "reason": "Restored git diff --check cleanliness."
+    },
+    "rollback_command": "python3 /private/tmp/social-archive-sa000.Xi6Qzf/Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-sa001 --stamp 20260802T213736Z"
+  },
+  "core_preservation": {
+    "src/social_archive/db.py_sha256": "1c4a580bde272b06fd6238196606f15e5cf44cacf66a84e522a58366975e0d5d",
+    "src/social_archive/service.py_sha256": "8da199e528d11d2a2d5480e2a772c7c67247fea124be33a8c68b45245aa7204f",
+    "recovery_base_comparison": "PASS; both files are byte-identical to a6dee772.",
+    "post_apply_classifier": {
+      "decision": "ADAPT_CURRENT_UPSTREAM",
+      "preserved_transaction_core": "satisfied",
+      "sa_003": "equivalent",
+      "conflict": 0,
+      "blocked": 0
+    }
+  },
+  "validation": {
+    "focused_pytest": "5 passed",
+    "uv_lock_check": "PASS",
+    "account_sync_py_compile": "PASS",
+    "brand_check": "PASS; hits=[]",
+    "secret_scan": "PASS; hits=[]",
+    "javascript_syntax": "PASS for the 10 changed or added extension/PWA JavaScript files",
+    "extension_zip_integrity": "PASS; unzip -t reports no errors",
+    "git_diff_check": "PASS"
+  },
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-003/history/pre-v0.0.0.6-overlay-apply/PREVIOUS_EVIDENCE.json",
+    "state": "prior v0.0.0.5 active evidence"
+  },
+  "known_limitations": [
+    "The phase-all command copied account-mirror and UI assets required by later tasks; this result does not claim SA-004, a Stage gate, or any later task is complete.",
+    "No browser or extension reload, pairing, account connection, provider interaction, deployment, or production action was attempted.",
+    "Product runtime and all real-world outcomes remain NOT_RUN."
+  ],
+  "generated_at": "2026-08-02T21:41:06Z",
+  "record_sha256": "6530714a3686d6c5df55f772422e4cb2377799f5708eed44c022cd35f0f96e72"
 }

@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-003",
+  "status": "SUPERSEDED_BY_V0_0_0_6_EXECUTION",
+  "predecessor_commit": "a6dee7723fac76fa3a59492bd1e1526a547548ae",
+  "predecessor_taskpack_version": "v0.0.0.5",
+  "predecessor_files": {
+    "RESULT.json": {
+      "git_path": "social-archive/evidence/SA-003/RESULT.json",
+      "sha256": "156606a3f731edeafa59a23aa393fbd8e4aac49b862c5385014a7e8dddb3d4f4"
+    },
+    "COMMAND_LOG.json": {
+      "git_path": "social-archive/evidence/SA-003/COMMAND_LOG.json",
+      "sha256": "2a69b3cccfe5bd4876fe80006ee6a1e5432fa94e5455cc53e7be0d6e84a4279b"
+    }
+  },
+  "preservation": "The predecessor evidence remains byte-recoverable from the recorded commit. The active evidence is replaced only to bind this sealed v0.0.0.6 execution."
+}

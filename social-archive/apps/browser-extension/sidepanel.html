@@ -1,57 +1,9 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Social Archive 任务中心</title>
-  <link rel="stylesheet" href="sidepanel.css">
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand"><span class="brand-mark">SA</span><span><strong>任务中心</strong><small>读取、下载、导出与备份</small></span></div>
-    <button id="refresh" class="icon-button" aria-label="刷新">↻</button>
-  </header>
-
-  <main>
-    <section id="connectionBanner" class="banner hidden"></section>
-    <section class="summary" aria-label="任务概览">
-      <article><strong id="runningCount">0</strong><span>处理中</span></article>
-      <article><strong id="successCount">0</strong><span>已完成</span></article>
-      <article><strong id="actionCount">0</strong><span>需要处理</span></article>
-    </section>
-
-    <section class="controls">
-      <div class="segmented" role="tablist">
-        <button class="active" data-filter="active">进行中</button>
-        <button data-filter="all">全部</button>
-        <button data-filter="needs_user_action">需要处理</button>
-      </div>
-      <button id="saveCurrent" class="quick-save">＋ 保存当前页</button>
-    </section>
-
-    <section id="empty" class="empty hidden">
-      <div class="empty-icon">✓</div>
-      <h2>当前没有待处理任务</h2>
-      <p>从工具栏弹窗或页面悬浮按钮保存内容，进度会显示在这里。</p>
-    </section>
-    <section id="taskList" class="task-list" aria-live="polite"></section>
-  </main>
-
-  <footer>
-    <button id="openLibrary">打开我的档案馆</button>
-    <button id="openSettings">连接与导出设置</button>
-  </footer>
-
-  <template id="taskTemplate">
-    <article class="task-card">
-      <div class="task-head"><span class="task-icon"></span><div class="task-title"><strong></strong><small></small></div><span class="task-state"></span></div>
-      <div class="progress"><span></span></div>
-      <p class="task-message"></p>
-      <div class="task-actions"><button class="retry hidden">重试</button><button class="details">查看详情</button></div>
-    </article>
-  </template>
-
-  <script src="shared.js"></script>
-  <script src="sidepanel.js"></script>
-</body>
-</html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Social Archive 同步</title><link rel="stylesheet" href="sidepanel.css"></head><body>
+<header><div class="brand"><span class="mark">SA</span><span><strong>账号同步</strong><small>收藏、点赞与书签</small></span></div><button id="refresh" class="icon" aria-label="刷新">↻</button></header>
+<main><div id="banner" class="banner hidden"></div><section class="summary"><article><strong id="activeCount">0</strong><span>同步中</span></article><article><strong id="doneCount">0</strong><span>已完成</span></article><article><strong id="actionCount">0</strong><span>需处理</span></article></section>
+<div class="primary-actions"><button id="syncAll" class="button primary">同步全部账号</button><button id="connectAccount" class="button">连接账号</button></div>
+<div class="filters"><button class="active" data-filter="active">同步中</button><button data-filter="needs">需处理</button><button data-filter="all">全部</button></div>
+<div id="list" class="list"></div><div id="empty" class="empty"><span>✓</span><h2>没有需要处理的同步</h2><p>连接账号后，首次全量和后续增量同步会显示在这里。</p></div></main>
+<footer><button id="openLibrary">打开资料库</button><button id="openSettings">账号与导出</button></footer>
+<template id="cardTemplate"><article class="card"><div class="card-head"><span class="platform"></span><span class="title"><strong></strong><small></small></span><span class="status"></span></div><div class="progress"><span></span></div><p class="message"></p><div class="actions"><button class="pause">暂停</button><button class="resume">继续</button><button class="retry">重试</button><button class="cancel">取消</button><button class="details">查看资料库</button></div></article></template>
+<script src="shared.js"></script><script src="sidepanel.js"></script></body></html>

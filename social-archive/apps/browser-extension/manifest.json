@@ -4,13 +4,14 @@
   "short_name": "Social Archive",
   "version": "0.0.0.6",
   "minimum_chrome_version": "116",
-  "description": "像 E2N 一样一键保存网页与多平台收藏，并自动归档到 Social Archive、Notion、Obsidian、GitHub 和 Markdown。",
+  "description": "连接一次账号，自动同步多平台收藏、点赞、书签与收藏夹，并导出到 Notion、Obsidian、GitHub 和 Markdown。",
   "permissions": [
     "activeTab",
     "contextMenus",
     "scripting",
     "sidePanel",
-    "storage"
+    "storage",
+    "alarms"
   ],
   "host_permissions": [
     "https://social-archive-api.linzezhang.com/*",
@@ -19,11 +20,9 @@
   "optional_host_permissions": [
     "http://127.0.0.1:27123/*",
     "http://127.0.0.1:8765/*",
-    "http://127.0.0.1:18765/*",
     "http://localhost:8765/*",
     "https://*.xiaohongshu.com/*",
     "https://*.douyin.com/*",
-    "https://*.tiktok.com/*",
     "https://*.kuaishou.com/*",
     "https://*.bilibili.com/*",
     "https://x.com/*",
@@ -75,6 +74,27 @@
         "bridge.js"
       ],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://*.xiaohongshu.com/*",
+        "https://*.douyin.com/*",
+        "https://*.kuaishou.com/*",
+        "https://*.bilibili.com/*",
+        "https://x.com/*",
+        "https://*.x.com/*",
+        "https://twitter.com/*",
+        "https://*.reddit.com/*",
+        "https://*.instagram.com/*"
+      ],
+      "js": [
+        "content/account-mirror-core.js",
+        "content/account-mirror.js"
+      ],
+      "run_at": "document_idle"
     }
+  ],
+  "optional_permissions": [
+    "bookmarks"
   ]
 }
