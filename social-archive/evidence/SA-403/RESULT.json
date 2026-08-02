@@ -1,143 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-403",
-  "acceptance_id": "AC-SA-403",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S4",
+  "title": "完成 Obsidian 与标准 Markdown/JSONL 目的地",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T16:00:32Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
-    "worktree_created_or_switched_by_task": 0,
-    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
-    "pre_evidence_default_git_status_entry_count": 720
-  },
-  "obsidian_and_standard_export_acceptance": {
-    "status": "PASS",
-    "target": "The first-party Obsidian bridge is loopback-only, token-bound, Markdown-only, size-bounded and idempotent. Server Vault/REST and portable Markdown/JSONL exports remain independent projections that do not mutate Canonical facts.",
-    "mocked_oracle_coverage": {
-      "plugin_loopback_and_token": "The desktop-only plugin listens only on 127.0.0.1:27123, normalizes persisted port/maxBytes/baseFolder settings, compares UTF-8 token bytes with timingSafeEqual, rejects non-Markdown input, rejects unsafe/encoded traversal paths, and returns 413 above its configured cap.",
-      "plugin_idempotency": "A Node harness invokes the plugin HTTP handler and vault mock: the first Markdown write is done, the identical retry is noop, and a changed body is done without escaping the configured Vault subdirectory.",
-      "chrome_direct_bridge": "The extension's persisted configuration and direct fetch are pinned to http://127.0.0.1:27123. A Node harness proves a tampered saved URL or an arbitrary replacement normalizes to that fixed loopback origin; the options UI makes the address read-only and requests only that optional host permission.",
-      "server_vault_and_rest": "Fixture coverage actively probes a temporary Vault via write/readback and verifies done/noop binding and receipts. A MockTransport REST path verifies an authenticated text/markdown PUT under /vault/Social Archive/ followed by a local-binding noop.",
-      "markdown_and_jsonl": "StandardExporter now writes one body-bearing Obsidian Markdown file per item plus stable library.jsonl, CSV, bookmark, ArchiveBox URL, feed and manifest outputs. The manifest records a JSONL snapshot SHA-256 so an unchanged repeat returns noop rather than churning generated_at."
-    },
-    "body_projection_repair": {
-      "status": "PASS",
-      "defect_found": "Canonical text was stored in content_fts but RuntimeStore.get_content and list_library did not expose it to projection code. As a result, standard Markdown/JSONL and destination Markdown could omit an otherwise captured body.",
-      "repair": "A narrow read-only RuntimeStore body accessor serves batch standard export, get_content exposes its own FTS body for projection, and _markdown prefers that body before the historical metadata fallback. No schema, Canonical capture write, relation or artifact mutation was introduced.",
-      "proof": "The temporary Vault export, JSONL record and Markdown fixture all contain the captured body; Notion/destination regressions remain green."
-    },
-    "blocking_result": "The frozen SA-403 command passed 8/8. The adjacent destination, extension, RuntimeStore, storage, reader, Stage-0 and Stage-4 export regression passed 36/36."
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "frozen_task_command": {
-      "tests_passed": 8,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_obsidian_bridge_contract.py",
-        "tests/focused/test_free_destination_contract.py",
-        "tests/focused/test_exports.py"
-      ],
-      "node_check": "PASS: apps/obsidian-plugin/main.js"
-    },
-    "related_regression": {
-      "tests_passed": 36,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_destination_probes_and_receipts.py",
-        "tests/focused/test_destinations.py",
-        "tests/focused/test_extension_api.py",
-        "tests/focused/test_extension_e2n_contract.py",
-        "tests/focused/test_runtime_store.py",
-        "tests/focused/test_storage_completion_contract.py",
-        "tests/focused/test_reader_projection.py",
-        "tests/stage/test_stage0_walking_skeleton.py",
-        "tests/stage/test_stage4_replication_exports.py"
-      ],
-      "node_checks": [
-        "apps/browser-extension/shared.js",
-        "apps/browser-extension/background.js",
-        "apps/browser-extension/options.js"
-      ],
-      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
-    },
-    "static_checks": {
-      "secret_scan": "PASS: hits=[]",
-      "brand_boundary": "PASS: hits=[]",
-      "trailing_whitespace": "PASS"
-    },
-    "source_sha256": {
-      "src/social_archive/exports.py": "dfbbbb52d71e536e373102e7ba81cb6c73e967bc5c7257fc063f4e6892d3f4b8",
-      "src/social_archive/db.py": "444f41ff9bf2ea8c70f18b4e4822d2ffab272485b51337e4f3f49950e6a944f9",
-      "src/social_archive/destinations.py": "a661f87b83f3c7d0cdaa6e23513eb2806ded7e8aabef9f0a470cc577f73cbff1",
-      "scripts/export_all.py": "694d00a7b86dbbf5c403aa11ce201f6b5053b8ca0b5ae304e7caa60166221887",
-      "apps/obsidian-plugin/main.js": "7712b725107bddcf40bee09538fa078cbddebd4137fe63d89fb81bd3a148b07d",
-      "apps/browser-extension/shared.js": "56f6013298cf07132fab888f580d804fdcabf7ac8e828a407230d0462274734d",
-      "apps/browser-extension/background.js": "b7780ec7e4767d4c02dc4a5f7a189a7ff924822c727e1dfd340017d2c9c6c752",
-      "apps/browser-extension/options.js": "d3712f25f7181b3bae799e4cc8388b98fb8fbda4a4ed33a5bf28dcf9e301d143",
-      "tests/focused/test_exports.py": "8e7df13dbfd9712405b136b97d4695ff4a86c2011693928ae920f93c87141c64",
-      "tests/focused/test_obsidian_bridge_contract.py": "468811dce07a711123f61787f4dc29acf18c0451645e302f06dfa154fcfead28",
-      "tests/focused/test_extension_e2n_contract.py": "f471b43848a139bc5315c703731ccf4fd519493ae5c800d5ad6cd03ba530fb08"
-    }
-  },
-  "semantic_reconciliation": {
-    "status": "PASS",
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 116,
-      "apply": 26,
-      "adapt": 69,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The frozen bridge/export implementation was preserved where valid and minimally adapted to close missing JSONL/body projection, no-op manifest and fixed-loopback plugin/extension boundaries."
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "execution_corrections": [
-    "The initial expanded export fixture proved that StandardExporter had no JSONL output and did not include captured FTS body in Markdown. A narrow read-only body projection and stable JSONL manifest repair were added before final validation.",
-    "The first JSONL assertion exposed that an empty collection key was serialized as an empty string. The portable schema now represents an absent collection as null and the final focused command passed."
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-403"
   ],
-  "residual_risk_and_non_claims": [
-    "No real Obsidian process, Vault, Local REST plugin, Chrome optional-permission prompt, browser extension, Notion/GitHub account, provider network request, credential, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, or destructive cleanup occurred. Node/pytest fixtures used only temporary local mocks and mode-0600 fake secrets.",
-    "A real Owner-authorized Obsidian health/write/noop canary and Chrome extension permission/write path are NOT_RUN. Fixture PASS proves code behavior only; it is not a real plugin installation, authorization or operational claim.",
-    "The direct Chrome-to-plugin route reports its immediate local status but intentionally cannot be replayed by the server without the user's local plugin token. The cross-destination receipt/retry/reconciliation stage is reserved for SA-404 and is not claimed complete here.",
-    "Standard Markdown/JSONL exports are local derived projections, not a substitute for Private-Database structured facts or the encrypted R2/OCI/GitHub backup requirements still owned by Stage 5."
+  "tests": [
+    "TEST-SA-403"
   ],
-  "source_change": {
-    "files_written_in_this_task": [
-      "src/social_archive/exports.py",
-      "src/social_archive/db.py",
-      "src/social_archive/destinations.py",
-      "scripts/export_all.py",
-      "apps/obsidian-plugin/main.js",
-      "apps/obsidian-plugin/README.zh-CN.md",
-      "apps/browser-extension/shared.js",
-      "apps/browser-extension/background.js",
-      "apps/browser-extension/options.js",
-      "apps/browser-extension/options.html",
-      "docs/06_运维手册.md",
-      "tests/focused/test_exports.py",
-      "tests/focused/test_obsidian_bridge_contract.py",
-      "tests/focused/test_extension_e2n_contract.py",
-      "evidence/SA-403/RESULT.json",
-      "evidence/SA-403/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ],
-    "product_source_rewrite": "No broad rewrite. The single transaction/recovery core remains intact; changes are confined to projection body reads, deterministic local export, and first-party Obsidian bridge security/idempotency."
-  }
+  "oracle": "本地 Vault/REST 两种模式和标准导出可独立启用；文件原子写、可重建、可导回。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "7 destination/export tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "ff7fe6b526c054252d343d1a9493b678f17890032b8168e7dfb45915aee69423"
 }

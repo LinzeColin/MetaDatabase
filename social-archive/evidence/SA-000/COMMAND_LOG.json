@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-000",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "python3 START_HERE.py verify",
+      "command_sha256": "dadc1aa7ff1cabb627b6e078380195ea196c69820ecef00cca10403e9fa14b5b",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Sealed Task Pack verification PASS: 26 checks, 383 manifest entries, 73 candidate tests."
+    }
+  ],
+  "record_sha256": "48961820bb74a6da5e6db209481dc68cec6bf5725000816d06a6ba13405a580d"
+}

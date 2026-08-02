@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-504",
+  "commands": [
+    {
+      "id": "sa504_focused_task_and_storage_regression",
+      "command": "cd social-archive && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q tests/focused/test_private_database_writer.py tests/focused/test_private_database_sync.py tests/focused/test_private_database_backup.py tests/focused/test_replication_pipeline.py tests/focused/test_release_pack.py tests/stage/test_stage4_replication_exports.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "31 passed. Covers no local checkout, canonical fact redaction/omission, completed-only selection, Outbox identity, official-client fake ingest/verify, zero-exit incomplete verify rejection, API-delivered-only cold backup, R2-before-OCI ordering, same ciphertext receipts, and Stage 4 continuation."
+    },
+    {
+      "id": "sa504_safe_sync_command",
+      "command": "cd social-archive && /usr/bin/env -i PATH=/usr/bin:/bin PYTHONDONTWRITEBYTECODE=1 SOCIAL_ARCHIVE_DATA_ROOT=<isolated-empty-temp>/sync .venv/bin/python scripts/sync_private_database.py --once",
+      "exit_code": 3,
+      "outcome": "EXPECTED_BLOCKED_ENVIRONMENT",
+      "result": "PRIVATE_DATABASE_CLIENT_UNAVAILABLE. The empty temporary root remained empty, then was removed. No official client, RuntimeStore initialization, credential, network, or provider operation occurred."
+    },
+    {
+      "id": "sa504_safe_backup_command",
+      "command": "cd social-archive && /usr/bin/env -i PATH=/usr/bin:/bin PYTHONDONTWRITEBYTECODE=1 SOCIAL_ARCHIVE_DATA_ROOT=<isolated-empty-temp>/backup .venv/bin/python scripts/backup.py --once",
+      "exit_code": 3,
+      "outcome": "EXPECTED_BLOCKED_ENVIRONMENT",
+      "result": "AGE_RECIPIENT_MISSING. The empty temporary root remained empty, then was removed. No age execution, RuntimeStore initialization, credential, network, ciphertext upload, or provider operation occurred."
+    },
+    {
+      "id": "full_project_regression_and_static_checks",
+      "command": "cd social-archive && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q; PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/check_brand.py; PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/secret_scan.py .; /bin/bash -n scripts/install.sh; .venv/bin/python -m compileall -q src scripts; .venv/bin/python scripts/validate_compose.py compose.yaml; .venv/bin/python scripts/validate_systemd.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "186 passed with one existing Starlette TestClient deprecation warning; brand hits=[]; secret scan hits=[]; compileall and install shell syntax passed; compose structure passed while intentionally skipping Docker rendering because Owner .env is absent; systemd contract passed. Commands were executed as independent checks; semicolons are documentary grouping only."
+    },
+    {
+      "id": "scope_and_source_hash_capture",
+      "command": "git status --short; rg forbidden local-checkout/git-mutation patterns in SA-504 scripts/configuration; /usr/bin/env -i PATH=/usr/bin:/bin LC_ALL=C LANG=C /usr/bin/shasum -a 256 <SA-504 source-and-test files>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "HEAD stayed 9e2750b779e846cd7668689dbd2bc1e20d6134d7 on codex/social-archive-v0004-integration; status entry count remained the pre-existing 720. Forbidden-pattern scan returned no matches. Hashes are recorded in RESULT.json."
+    }
+  ],
+  "non_actions": [
+    "No real Private-Database/GitHub/R2/OCI account, credential, remote request, age invocation, ciphertext upload/download, Docker action, deployment, Git mutation, extra worktree, clone, local Private-Database mount/write, or destructive cleanup occurred.",
+    "The only transport/encryption/storage interactions were in-process pytest fakes and isolated temporary files. No plaintext business fact, credential, token, cookie, identity, or private key appears in the evidence."
+  ]
+}

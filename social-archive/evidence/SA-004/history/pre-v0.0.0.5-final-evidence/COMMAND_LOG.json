@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-004",
+  "commands": [
+    {
+      "id": "focused_extension_contract",
+      "command": "cd social-archive && .venv/bin/python -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_cloud_pairing.py tests/focused/test_extension_api.py tests/focused/test_beginner_journey.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "17 passed; one non-failing upstream TestClient deprecation warning."
+    },
+    {
+      "id": "semantic_reconciliation",
+      "command": "semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=183, apply=26, adapt=2, equivalent=6, conflict=0, blocked=0."
+    },
+    {
+      "id": "frozen_overlay_parity",
+      "command": "SHA-256 compare current browser-extension, pairing/API/config/script and four focused-test areas against the frozen Overlay",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "24 of 24 compared files identical; aggregate_sha256=a013e665854fa440e6e0d43842c7ce0cc18abe3e4597c0b7397ea29d43b5a0e9."
+    },
+    {
+      "id": "oracle_black_box",
+      "command": "temporary FastAPI TestClient fixture with pairing required, a fixture token and a one-time code",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Unauthenticated business jobs and batch-capture routes returned 401; normalized one-time pairing succeeded, consumed its code, and authorized extension bootstrap."
+    },
+    {
+      "id": "manifest_and_fab_guard",
+      "command": "inspect browser-extension manifest/runtime-config and FAB injection guard",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Managed API and Library domains are distinct; no cookies permission; FAB injection exits unless the platform is non-generic and its optional host permission is authorized."
+    },
+    {
+      "id": "final_task_validation",
+      "command": "semantic classifier; four frozen focused tests; brand verifier; JSON parsing; uv lock --check; recovery-tag and git diff checks",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ADAPT_CURRENT_UPSTREAM with conflict=0 and blocked=0; 17 focused tests passed; brand, evidence, lock, recovery and diff checks passed."
+    }
+  ],
+  "non_actions": [
+    "No real pairing code, credential, browser profile, platform account, destination, cloud service, deployment, push, merge, rebase, or new Git worktree was used.",
+    "No product source rewrite was required because the current implementation matched the frozen Overlay."
+  ]
+}

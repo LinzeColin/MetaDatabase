@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-401",
+  "acceptance_id": "AC-SA-401",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T15:23:15Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
+    "worktree_created_or_switched_by_task": 0,
+    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
+    "initial_and_final_dirty_path_count": 720
+  },
+  "github_private_database_markdown_acceptance": {
+    "status": "PASS",
+    "target": "Before every GitHub export, actively read repository metadata, require private=true, then reconcile a deterministic Markdown path through the Contents API using the current content SHA.",
+    "fixed_target": {
+      "repository": "LinzeColin/Private-Database",
+      "area": "Private-MetaDatabase",
+      "path_root": "Private-MetaDatabase/SocialArchive/markdown/"
+    },
+    "mocked_oracle_coverage": {
+      "public_repository": "blocked_policy before any Contents request; export creates a failed receipt with GITHUB_REPOSITORY_NOT_PRIVATE and no binding.",
+      "wrong_repository_identity": "blocked_policy before any network request.",
+      "first_export": "GET repository metadata, GET deterministic Contents path, then PUT Markdown; returned content SHA, commit SHA and exact returned path are required before binding/receipt confirmation.",
+      "unchanged_projection": "GET repository metadata and current Contents SHA, return noop, refresh binding and create a noop receipt without PUT.",
+      "remote_drift": "A changed remote SHA is repaired with that current SHA in the PUT payload rather than trusting the old local binding."
+    },
+    "binding_and_receipt": "Done and noop outcomes upsert the deterministic binding and create matching receipts. Failure creates a failed receipt with the provider error code and retains no invented remote identity.",
+    "blocking_result": "The frozen SA-401 command passed 12/12. The additional Stage 0/4, capture, replication and storage regression command passed 8/8."
+  },
+  "private_database_boundary_correction": {
+    "status": "PASS",
+    "defect_found": "The pre-existing local writer and sync script treated a checked-out Private-Database clone as a durable transport and could Git commit/push it. That conflicts with the repository-wide no-clone Private-Database boundary.",
+    "repair": "ArchiveService no longer writes a second local Private-Database copy. The retained legacy writer and sync entry point now fail closed before writing, cloning, committing or pushing.",
+    "scope_boundary": "This is a safety disablement, not a claim that structured-fact durable synchronization is complete. SA-504 remains solely responsible for the compliant official Private-Database API-client transport and cold backup."
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "frozen_task_command": {
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_private_database_writer.py",
+        "tests/focused/test_private_database_sync.py",
+        "tests/focused/test_destination_probes_and_receipts.py",
+        "tests/focused/test_destinations.py"
+      ]
+    },
+    "related_regression": {
+      "tests_passed": 8,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/stage/test_stage0_walking_skeleton.py",
+        "tests/stage/test_stage4_replication_exports.py",
+        "tests/focused/test_replication_pipeline.py",
+        "tests/focused/test_capture_api.py",
+        "tests/focused/test_storage_completion_contract.py"
+      ],
+      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
+    },
+    "static_checks": {
+      "secret_scan": "PASS: hits=[]",
+      "brand_boundary": "PASS: hits=[]",
+      "trailing_whitespace": "PASS"
+    },
+    "source_sha256": {
+      "src/social_archive/destinations.py": "1880446ab20e7afe4eeeee2af0bcfa48180479bdc0a7df1153f1981ec5e887de",
+      "src/social_archive/repository.py": "52581d9fa517ea2963d5f1eb781a72919873954ca65aa3071e1cf401ebfbeb42",
+      "src/social_archive/service.py": "818186587537b1d8a8cfd75577bfc964ae17b9d4bc95461376e47798e70c2d7b",
+      "scripts/sync_private_database.py": "82e7db01cdc552a98d57e850efe32c7b7861a8d3da53f137a6ae9fc762986764",
+      "tests/focused/test_private_database_writer.py": "281586ba86d6e157324fdb3b8321d9f70343e895a76f3a5ecc2cb2940f1c5f75",
+      "tests/focused/test_private_database_sync.py": "039f5e0c481ca66c75f3ceae68a3f0c4965cf65be45ee7729da669636ffa4ffa",
+      "tests/focused/test_destination_probes_and_receipts.py": "43b83a6266f24bf1ca25e4b36e8098afa8fed9d1a62d1f1318c6c059e2b032c5",
+      "tests/stage/test_stage4_replication_exports.py": "092c491309b5e2b399b0cc5f6e48e4631f650617cfee41e740120aaa0f4a1fd5"
+    }
+  },
+  "semantic_reconciliation": {
+    "status": "PASS",
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 127,
+      "apply": 26,
+      "adapt": 58,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "The frozen GitHub destination was preserved where valid and adapted only to remove the local-binding bypass, add remote Contents reconciliation, bind the fixed Private-Database identity/area, and fail close the prohibited local clone path."
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "recovery_tag": "PASS",
+    "ignored_runtime_retained": "PASS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "execution_corrections": [
+    "The first added Mock assertion used a non-ASCII bytes literal and failed during test collection. It was immediately corrected to UTF-8 encoding; the final frozen command and related regression both passed.",
+    "A macOS locale failure prevented shasum from producing source hashes. Read-only Python hashlib was used instead; no source or runtime data was changed by the hash retry."
+  ],
+  "source_change": {
+    "files_written_in_this_task": [
+      "src/social_archive/destinations.py",
+      "src/social_archive/repository.py",
+      "src/social_archive/service.py",
+      "scripts/sync_private_database.py",
+      "tests/focused/test_private_database_writer.py",
+      "tests/focused/test_private_database_sync.py",
+      "tests/focused/test_destination_probes_and_receipts.py",
+      "tests/stage/test_stage4_replication_exports.py",
+      "evidence/SA-401/RESULT.json",
+      "evidence/SA-401/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ],
+    "product_source_rewrite": "No broad rewrite. The existing single transaction/recovery core remains intact; this is a narrow GitHub destination reconciliation and Private-Database boundary repair."
+  },
+  "scope_exclusions": [
+    "No real GitHub account, credential, repository metadata, Contents API, Private-Database API, user content, provider network request, cloud action, Docker image/build/service, deployment, Git staging, commit, push, merge, rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
+    "All provider behavior was exercised only through in-process httpx.MockTransport and pytest temporary 0600 fake secrets. Fixture PASS does not prove a real repository or owner authorization.",
+    "Real GitHub Private-Database metadata/read/write canary is NOT_RUN because no Owner credential or real remote action was authorized."
+  ]
+}

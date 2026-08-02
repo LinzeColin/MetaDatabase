@@ -1,143 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-104",
-  "acceptance_id": "AC-SA-104",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S1",
+  "title": "完成 Instagram 导出/当前页/隔离 Sidecar 路径",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T11:55:49Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "migration_stamp": "20260730T095749Z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-104"
+  ],
+  "tests": [
+    "TEST-SA-104"
+  ],
+  "oracle": "官方导出或当前页始终可用；Instaloader Session 只在独立 Sidecar secret 中，核心不接触。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "12 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "semantic_reconciliation": {
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 171,
-      "apply": 26,
-      "adapt": 14,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "command.py and the cli-tools Sidecar sources are byte-identical to the frozen Overlay. The focused tests are intentionally stronger so the current-page fallback, session boundary, remote payload, and export limit are directly bound."
-  },
-  "frozen_overlay_product_parity": {
-    "status": "PASS",
-    "files": {
-      "src/social_archive/connectors/command.py": "77d4ba62f7d1650fc1e24a1e069f75d7af49c1d6e1c5443269420d6276f10f4c",
-      "sidecars/cli-tools/Dockerfile": "512fc9bd74da2de294e96b3d87591b981a90019a7c660856e8930b5b650a7453",
-      "sidecars/cli-tools/server.py": "5c36272c5f5863481a29320125dd30994deeb9be10e8665995ddddb9e0b48f38"
-    }
-  },
-  "acceptance_observations": {
-    "session_missing_current_page_fallback": {
-      "status": "PASS",
-      "instagram_export_status": "blocked_environment",
-      "instagram_error_code": "INSTAGRAM_SESSION_OR_BINARY_MISSING",
-      "scan_completeness": "unknown",
-      "generic_current_page": "success with one generic-web manual_save CaptureRequest for an Instagram URL",
-      "meaning": "Missing account-export prerequisites do not remove the user-triggered current-page path."
-    },
-    "container_secret_isolation": {
-      "status": "PASS",
-      "core_services_without_instagram_session": [
-        "core-api",
-        "core-worker"
-      ],
-      "cli_sidecar_session_path": "/run/secrets/instagram_session",
-      "cli_sidecar_has_no_host_port": true,
-      "core_image_has_instaloader": false,
-      "cli_sidecar_image_has_instaloader": true,
-      "meaning": "The Instaloader dependency and Instagram session mount are confined to the isolated cli-tools Sidecar."
-    },
-    "production_remote_boundary": {
-      "status": "PASS",
-      "endpoint": "http://cli-tools:5560/v1/instagram/saved",
-      "payload": {
-        "username": "owner",
-        "limit": 7
-      },
-      "instagram_session_in_payload": false,
-      "core_session_access": "A forbidden session object was passed to the remote branch without being accessed.",
-      "artifact_path_safety": "one relative artifact accepted; ../../instagram_session rejected",
-      "scan_receipt": {
-        "completeness": "partial",
-        "scope": "account_relation",
-        "execution_boundary": "isolated_http_sidecar"
-      }
-    },
-    "sidecar_owned_export_fixture": {
-      "status": "PASS",
-      "missing_sidecar_session": "blocked_environment with no artifacts",
-      "fixture_session_permissions": "0600",
-      "tool": "instaloader",
-      "limit_input": 501,
-      "limit_sent_to_instaloader": 500,
-      "login_username": "owner",
-      "saved_relation_selector": ":saved",
-      "fixture_secret_exposure": false,
-      "meaning": "Only the imported Sidecar module read the temporary fixture session; its mocked process invocation contained the path but never the fixture contents."
-    }
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "tests_passed": 6,
-    "tests_failed": 0,
-    "test_files": [
-      "tests/focused/test_instagram_connector.py",
-      "tests/focused/test_command_connectors.py"
-    ],
-    "strengthened_test_sha256": {
-      "tests/focused/test_instagram_connector.py": "4a324ceadd6dc9897acf5e88ad50f60c562e72995b17ef84f18197bda556f91e",
-      "tests/focused/test_command_connectors.py": "ae2aaed743c148880208e396226abd8995282c196e56574c897f22d2f4c8287f"
-    },
-    "supplemental_regression": {
-      "status": "PASS",
-      "tests_passed": 13,
-      "test_files": [
-        "tests/focused/test_generic_web_connector.py",
-        "tests/focused/test_extension_e2n_contract.py",
-        "tests/focused/test_worker_profiles.py"
-      ]
-    }
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "rollback_default": "ROLLBACK_PLAN",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "source_and_sidecar_cache_boundary": "PASS"
-  },
-  "environment_boundary": {
-    "project_venv": "PASS",
-    "isolated_fixture_sidecar": "PASS",
-    "live_instagram_export": "NOT_RUN",
-    "live_instagram_session": "NOT_RUN",
-    "live_browser_capture": "NOT_RUN",
-    "docker_compose_or_sidecar_start": "NOT_RUN",
-    "live_instagram_network": "NOT_RUN",
-    "treatment": "The local acceptance result proves the code and container-boundary behavior with temporary fixtures. It does not establish that a real Instagram account, browser permission, Docker service, session, or provider network is connected or authorized."
-  },
-  "source_change": {
-    "product_source_rewrite": "NOT_REQUIRED",
-    "test_coverage_change": "Strengthened the frozen focused tests for missing-session current-page fallback, Docker secret topology, core-to-Sidecar payload isolation, Sidecar-owned session use, export-limit clamping, and artifact traversal rejection.",
-    "files_written_in_this_task": [
-      "tests/focused/test_instagram_connector.py",
-      "tests/focused/test_command_connectors.py",
-      "evidence/SA-104/RESULT.json",
-      "evidence/SA-104/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  },
-  "scope_exclusions": [
-    "No live Instagram account, session, password, Cookie, browser authentication header, provider network request, Docker service start, private-database action, cloud action, deployment, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "All Instagram sessions, clients, responses, subprocesses, output paths, runtime journals, and canonical bundles used by this task were local pytest fixtures or temporary test data."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "4b6180a4efeb1d6d1c8754b34ecca2261d014b8b0193eb5384640644ff9bf195"
 }

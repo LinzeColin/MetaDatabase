@@ -1,74 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-303",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "baseline_frozen_task_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_storage_completion_contract.py tests/focused/test_pwa_contract.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_storage_completion_contract.py tests/focused/test_pwa_contract.py",
+      "command_sha256": "669131b047637f7d5a9fff10535a9ef1bd0e6c53ada7ed14f61833a789e498dc",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "17 passed before the SA-303 adaptation."
-    },
-    {
-      "id": "status_receipt_adaptation",
-      "command": "add additive connector status metadata, fail-closed live health projection, receipt lookup/retry, queued retry guard, options status metadata, and side-panel failed-receipt retry",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Bootstrap is resilient to a failed live connector probe; every projected connector/destination has last-check/latency/message fields; a failed destination receipt is independently retryable and remains traceable."
-    },
-    {
-      "id": "new_status_and_receipt_coverage",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_storage_completion_contract.py tests/focused/test_pwa_contract.py tests/focused/test_extension_api.py tests/focused/test_status_projection.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "22 passed; includes fresh-probe fail-closed metadata, bootstrap projections, failed receipt retry, and the three-replica completion contract."
-    },
-    {
-      "id": "related_runtime_regression",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_destinations.py tests/focused/test_runtime_store.py tests/focused/test_connector_run_api.py tests/focused/test_health_gated_connector.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "8 passed; covers destination probes, RuntimeStore behavior, connector run API, and health-gated degradation."
-    },
-    {
-      "id": "browser_extension_static_syntax",
-      "command": "node --check apps/browser-extension/options.js && node --check apps/browser-extension/sidepanel.js",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Both changed browser-extension scripts parse successfully."
-    },
-    {
-      "id": "loopback_dom_and_retry_validation",
-      "command": "start temporary loopback API at 127.0.0.1:27123 and static extension server at 127.0.0.1:27124; execute options.js and sidepanel.js in an ephemeral Chrome profile with narrow chrome API mocks; use a temporary failed destination receipt; click retry; read API state; stop both servers",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Options rendered 已连接, 8 platform cards, 8 destination cards, and the explicit 0/1 incomplete three-replica message. Sidepanel rendered the failed markdown receipt and issued its receipt-retry POST; readback showed the origin job queued and the failure receipt retained. Native extension-shell load is NOT_RUN because Chrome 150 ignores the removed --load-extension path."
-    },
-    {
-      "id": "final_frozen_task_command",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_destination_probes_and_receipts.py tests/focused/test_storage_completion_contract.py tests/focused/test_pwa_contract.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "18 passed after the SA-303 adaptation."
-    },
-    {
-      "id": "final_semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=142, apply=26, adapt=43, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_brand_checks",
-      "command": "compatibility verifier against the immutable v0.0.0.4 ZIP, then python3 scripts/check_brand.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Task-pack compatibility, recovery boundary, and product-brand boundary passed."
+      "summary": "15 extension/storage/PWA tests passed; quota, relation history and task surfaces retained."
     }
   ],
-  "non_actions": [
-    "No real provider account, user content, user browser profile, Cookie, password, authentication header, provider request, Docker image build, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "Chrome 150 removed the command-line unpacked-extension loading route. The DOM validation therefore used actual extension HTML/JS plus a temporary Chrome profile and only narrow Chrome API mocks; native shell/permission-prompt validation is explicitly NOT_RUN.",
-    "Both local servers were stopped after validation. The 67 MiB temporary runtime directory was moved to the system Trash and is outside the repository."
-  ]
+  "record_sha256": "22acf591deb8f46e872fc4aae35883f01dea19216218373a901eb6971d9afe4a"
 }

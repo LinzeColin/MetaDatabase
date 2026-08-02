@@ -27,7 +27,7 @@ def test_extension_bootstrap_is_single_render_payload(tmp_path, monkeypatch):
     assert response.status_code == 200
     body = response.json()
     assert body["project"] == "Social Archive"
-    assert body["version"] == "0.0.0.4"
+    assert body["version"] == "0.0.0.5"
     assert body["archive_defaults"] == ["L0", "L1", "L3"]
     assert body["privacy"] == {
         "cookie_custody": False,

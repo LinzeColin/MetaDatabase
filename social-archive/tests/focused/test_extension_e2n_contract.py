@@ -11,14 +11,14 @@ def test_extension_has_e2n_like_surfaces_and_one_primary_action():
     root = _extension_root()
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["manifest_version"] == 3
-    assert manifest["version"] == "0.0.0.4"
+    assert manifest["version"] == "0.0.0.5"
     assert manifest["action"]["default_popup"] == "popup.html"
     assert manifest["side_panel"]["default_path"] == "sidepanel.html"
     assert manifest["options_page"] == "options.html"
     required = {
         "runtime-config.json", "popup.html", "popup.js", "popup.css", "sidepanel.html", "sidepanel.js",
-        "options.html", "options.js", "options.css", "shared.js", "background.js",
-        "content/fab.js", "content/extract.js",
+        "options.html", "options.js", "options.css", "shared.js", "background.js", "bridge.js",
+        "content/fab.js", "content/extract-core.js", "content/extract.js",
     }
     assert required <= {str(path.relative_to(root)) for path in root.rglob("*") if path.is_file()}
     all_text = "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in root.rglob("*.*"))
@@ -33,7 +33,10 @@ def test_extension_is_cloud_first_but_preserves_explicit_local_dev_and_obsidian_
     assert runtime["endpoint"] == "https://social-archive-api.linzezhang.com"
     assert runtime["library_url"] == "https://social-archive.linzezhang.com"
     assert runtime["managed"] is True
-    assert manifest["host_permissions"] == ["https://social-archive-api.linzezhang.com/*"]
+    assert manifest["host_permissions"] == [
+        "https://social-archive-api.linzezhang.com/*",
+        "https://social-archive.linzezhang.com/*",
+    ]
     assert "http://127.0.0.1:27123/*" in manifest["optional_host_permissions"]
     assert "http://127.0.0.1:8765/*" in manifest["optional_host_permissions"]
     assert "http://127.0.0.1:18765/*" in manifest["optional_host_permissions"]
@@ -54,7 +57,7 @@ def test_extension_default_destinations_and_archive_levels():
     root = _extension_root()
     shared = (root / "shared.js").read_text(encoding="utf-8")
     background = (root / "background.js").read_text(encoding="utf-8")
-    assert 'destinationIds: ["social_archive"]' in shared
+    assert 'destinationIds: ["social_archive", "markdown"]' in shared
     assert '["L0", "L1", "L3"]' in background
     assert "/v1/captures/batch" in background
     assert "/v1/extension/bootstrap" in (root / "popup.js").read_text(encoding="utf-8")

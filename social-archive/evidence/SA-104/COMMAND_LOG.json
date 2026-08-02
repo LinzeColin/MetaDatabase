@@ -1,59 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-104",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "frozen_focused_baseline",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py",
+      "command_sha256": "c3d5efaae9ec092f06fe981fa903feff7467410b86368e455f4f732b1ba082c9",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "3 passed before the acceptance-coverage audit."
-    },
-    {
-      "id": "acceptance_coverage_upgrade",
-      "command": "strengthen only the two SA-104 focused tests for current-page fallback, Sidecar-only session topology, remote payload isolation, fixture-owned Instaloader session use, limit clamping, and artifact traversal rejection",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "No product source or Sidecar behavior changed; the tests now bind every stated local oracle assertion."
-    },
-    {
-      "id": "final_focused_validation",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_instagram_connector.py tests/focused/test_command_connectors.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "6 passed."
-    },
-    {
-      "id": "fallback_and_isolation_regression",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_generic_web_connector.py tests/focused/test_extension_e2n_contract.py tests/focused/test_worker_profiles.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "13 passed; generic-page capture, browser-extension contract, and isolated downloader image topology remain locally covered."
-    },
-    {
-      "id": "frozen_overlay_product_parity",
-      "command": "byte-compare command.py, cli-tools Dockerfile, and cli-tools server.py against the 07_IMPLEMENTATION Overlay and record SHA-256",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "All three product sources are byte-identical to the frozen Overlay."
-    },
-    {
-      "id": "semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=171, apply=26, adapt=14, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_boundary_checks",
-      "command": "compatibility verifier; brand verifier; recovery-tag check; whitespace check; source-and-sidecar-cache check",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Compatibility, brand boundary, recovery boundary, whitespace checks, and source-and-sidecar-cache checks passed."
+      "summary": "12 focused tests passed."
     }
   ],
-  "non_actions": [
-    "No live Instagram account, session, password, Cookie, browser authentication header, provider network request, Docker service, private-data, cloud, deployment, push, merge, rebase, or new Git worktree action occurred.",
-    "The session and Instaloader positive path used a temporary 0600 fixture and mocked process call inside the imported Sidecar module; the production core remote branch received a forbidden object that it never accessed."
-  ]
+  "record_sha256": "0f8cadb1d7cbdfe01e7a0cbeaa78ac0fb2f24e18cd1b1764aacd6a0eb0f62986"
 }

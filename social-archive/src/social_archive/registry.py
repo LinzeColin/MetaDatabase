@@ -64,7 +64,7 @@ class ConnectorRegistry:
                 return {"state":"blocked_environment", "error_code":"X_ZERO_COST_NOT_CONFIRMED"}
             return XConnector(os.getenv("SOCIAL_ARCHIVE_X_USER_ID"), self._secret("SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE")).health()
         if connector_id == "reddit":
-            return RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.4"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).health()
+            return RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.5"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).health()
         if connector_id == "instagram":
             probe = self.command.health()
             return probe if probe.get("state") == "healthy" else {"state":"blocked_environment", "error_code":probe.get("error_code", "CLI_SIDECAR_NOT_READY")}
@@ -124,7 +124,7 @@ class ConnectorRegistry:
                 result = XConnector(os.getenv("SOCIAL_ARCHIVE_X_USER_ID"), self._secret("SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE")).fetch(relation, request.limit)
         elif connector_id == "reddit":
             relation = "upvoted" if relation == "upvoted" else "saved"
-            result = RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.4"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).fetch(relation, request.limit)
+            result = RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.5"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).fetch(relation, request.limit)
         elif connector_id == "instagram":
             session = Path(os.getenv("SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE", ""))
             result = self.command.instagram_saved(session if session else None, os.getenv("SOCIAL_ARCHIVE_INSTAGRAM_USERNAME"), request.limit)

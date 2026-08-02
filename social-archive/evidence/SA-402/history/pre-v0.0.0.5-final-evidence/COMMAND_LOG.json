@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-402",
+  "commands": [
+    {
+      "id": "sa402_frozen_task_command",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_destination_probes_and_receipts.py tests/focused/test_destinations.py tests/focused/test_extension_api.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "14 passed. Covers the 2026-03-11 header, data_source_id Page parent, title-property authorization probe, same-projection noop, Page/Block checkpoint recovery over 101 Blocks, 429 Retry-After queue delay, failure receipt/binding retention, connection failure retryability, and extension receipt retry action."
+    },
+    {
+      "id": "related_storage_capture_reader_regression",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_runtime_store.py tests/focused/test_capture_api.py tests/focused/test_storage_completion_contract.py tests/focused/test_reader_projection.py tests/stage/test_stage0_walking_skeleton.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "11 passed; one existing Starlette TestClient deprecation warning only. The Notion failure paths do not mutate Canonical capture state or break runtime job/store recovery."
+    },
+    {
+      "id": "source_boundary_scans",
+      "command": "cd social-archive && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && PYTHONDONTWRITEBYTECODE=1 python3 scripts/secret_scan.py . && no trailing whitespace in the five task source/test files",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Brand boundary hits=[]; secret scan hits=[]; no trailing whitespace in task files."
+    },
+    {
+      "id": "semantic_and_taskpack_compatibility",
+      "command": "source social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 <TASKROOT>/07_IMPLEMENTATION/apply/semantic_classify.py --repo <single-worktree> && PYTHONDONTWRITEBYTECODE=1 python3 social-archive-taskpack-compat/v0.0.0.4/scripts/validate_compatibility.py --base-zip <immutable-v0.0.0.4-zip>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Semantic reconciliation ADAPT_CURRENT_UPSTREAM (126 satisfied, 26 apply, 59 adapt, 6 equivalent, 0 conflict/block/obsolete); compatibility verifier PASS with preserve-transaction-core decision."
+    },
+    {
+      "id": "source_hash_capture",
+      "command": "read-only Python hashlib SHA-256 of the five task source/test files",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Hashes are recorded in RESULT.json; no source/runtime content was changed by hash capture."
+    }
+  ],
+  "non_actions": [
+    "No real Notion account, credential, provider request, data upload, OAuth action, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
+    "The only secret-like test values were temporary pytest files with mode 0600; no value is present in this evidence.",
+    "A real owner-authorized Notion probe/write/reconciliation canary remains NOT_RUN and is not converted into fixture PASS."
+  ]
+}

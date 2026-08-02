@@ -1,129 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-103",
-  "acceptance_id": "AC-SA-103",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S1",
+  "title": "完成 X 零费用路径与收费熔断",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T11:43:37Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "migration_stamp": "20260730T095749Z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-103"
+  ],
+  "tests": [
+    "TEST-SA-103"
+  ],
+  "oracle": "未确认绝对零费用时官方 API 禁用；扩展、Social Archiver/Markdown 导入继续；bookmark/like 不混淆。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "4 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "semantic_reconciliation": {
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 173,
-      "apply": 26,
-      "adapt": 12,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "registry.py is byte-identical to the frozen Overlay. The two focused tests are intentionally stronger so the zero-cost gate, fallback continuity, and bookmark/like isolation are directly bound."
-  },
-  "frozen_overlay_product_parity": {
-    "status": "PASS",
-    "file": "src/social_archive/registry.py",
-    "frozen_path": "07_IMPLEMENTATION/overlay/social-archive/src/social_archive/registry.py",
-    "sha256": "fdf9d16f5c6c6e78f9483e25d8faa7511e165e2b9c658a467e5825df30a28c3d"
-  },
-  "acceptance_observations": {
-    "unconfirmed_zero_cost_circuit_breaker": {
-      "status": "PASS",
-      "zero_cost_confirmation": "unknown",
-      "configured_x_user_and_token_path": true,
-      "official_x_client_constructed": false,
-      "result_status": "blocked_environment",
-      "error_code": "X_ZERO_COST_NOT_CONFIRMED",
-      "scan_completeness": "unknown",
-      "captures_created": 0,
-      "meaning": "The registry blocks before constructing the official X client; a configured account or token path cannot imply cost approval."
-    },
-    "fallback_continuity": {
-      "status": "PASS",
-      "generic_current_page": "success with one CaptureRequest while X remains blocked",
-      "markdown_import": "one local Markdown fixture imported while X remains blocked",
-      "supplemental_regression": {
-        "test_files": [
-          "tests/focused/test_extension_e2n_contract.py",
-          "tests/focused/test_social_archiver_import.py",
-          "tests/focused/test_markdown_importer.py"
-        ],
-        "result": "14 passed"
-      }
-    },
-    "confirmed_fixture_path": {
-      "status": "PASS",
-      "confirmation": "SOCIAL_ARCHIVE_X_API_ZERO_COST_CONFIRMED=true",
-      "connector": "local fake XConnector only",
-      "calls": [
-        ["bookmark", 4],
-        ["like", 5]
-      ],
-      "meaning": "The positive branch is covered without a real X account, credential, pricing check, or network request."
-    },
-    "bookmark_like_isolation": {
-      "status": "PASS",
-      "bookmark_endpoint": "https://api.x.com/2/users/owner/bookmarks",
-      "like_endpoint": "https://api.x.com/2/users/owner/liked_tweets",
-      "bookmark_relation_type": "bookmark",
-      "like_relation_type": "like",
-      "partial_next_token": "page-2",
-      "limit_clamp": {
-        "input": 101,
-        "sent": 100
-      },
-      "meaning": "Fixture tests bind distinct endpoints, relation types, content identifiers, and partial-scan receipt semantics."
-    }
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "tests_passed": 4,
-    "tests_failed": 0,
-    "test_files": [
-      "tests/focused/test_x_connector.py",
-      "tests/focused/test_x_zero_cost_gate.py"
-    ],
-    "strengthened_test_sha256": {
-      "tests/focused/test_x_connector.py": "5a27586d549732ee7b306af9a210b61338e877d6ad2a26f51ed7325df5dcce5a",
-      "tests/focused/test_x_zero_cost_gate.py": "c87f6b52db160f089bb691fdecbfeb01c770304a29fee5c1f34166d670d481b0"
-    }
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "rollback_default": "ROLLBACK_PLAN",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "source_cache_boundary": "PASS"
-  },
-  "environment_boundary": {
-    "project_venv": "PASS",
-    "fixture_x_connector_and_gate": "PASS",
-    "live_x_pricing_or_entitlement": "NOT_RUN",
-    "live_x_oauth": "NOT_RUN",
-    "live_x_network": "NOT_RUN",
-    "treatment": "The local acceptance result proves fail-closed behavior and fallback continuity. It does not establish that X is free, authorized, connected, or safe to call in a live owner environment."
-  },
-  "source_change": {
-    "product_source_rewrite": "NOT_REQUIRED",
-    "test_coverage_change": "Strengthened the frozen X focused tests for pre-construction fail-closed behavior, generic/Markdown fallback, bookmark/like separation, partial receipts, endpoint routing, and request-limit clamping.",
-    "files_written_in_this_task": [
-      "tests/focused/test_x_connector.py",
-      "tests/focused/test_x_zero_cost_gate.py",
-      "evidence/SA-103/RESULT.json",
-      "evidence/SA-103/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  },
-  "scope_exclusions": [
-    "No live X account, pricing entitlement, OAuth token, token-file read, provider network request, browser profile, password, Cookie, private-database action, cloud action, deployment, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "All X responses, X clients, authorization values, generic-page captures, Markdown files, runtime journals, and canonical bundles used by this task were local pytest fixtures or temporary test data."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "68cf3af2ca4a623fd2af4ee0af36bfc597bea577a2f9bbf52bbb368b204cd60d"
 }

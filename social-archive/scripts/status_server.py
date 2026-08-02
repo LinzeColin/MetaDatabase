@@ -45,7 +45,7 @@ def public_status_bytes(path: Path) -> bytes | None:
 
 def make_server(host: str, port: int, status_file: Path) -> ThreadingHTTPServer:
     class StatusProjectionHandler(BaseHTTPRequestHandler):
-        server_version = "SocialArchiveStatus/0.0.0.4"
+        server_version = "SocialArchiveStatus/0.0.0.5"
         sys_version = ""
 
         def log_message(self, _format: str, *_args: object) -> None:

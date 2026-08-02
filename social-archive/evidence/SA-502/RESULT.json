@@ -1,142 +1,32 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-502",
-  "acceptance_id": "AC-SA-502",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
-  "status": "PASS",
-  "verified_at_utc": "2026-07-30T16:55:40Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
-    "worktree_created_or_switched_by_task": 0,
-    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
-    "pre_evidence_default_git_status_entry_count": 720
-  },
-  "oci_acceptance": {
-    "status": "PASS",
-    "target": "OCI 回读密文 SHA 与 R2 完全相同；未验证 R2 时 OCI 队列不前进。",
-    "blocking_oracle": {
-      "verified_r2_queue_gate": "RuntimeStore selects OCI candidates only when an R2 object_replica exists with status=verified. Without that receipt there is no OCI candidate.",
-      "same_cipher_gate": "Before any OCI remote call, replicate_objects.py reads the R2 receipt and requires status=verified plus exact equality of original SHA-256, cipher SHA-256, and age encryption algorithm with the current EncryptedObject.",
-      "readback_boundary": "Only after the three fields match can S3ReplicaStore upload the existing .age ciphertext and verify the full OCI readback against that same cipher SHA. A verified OCI receipt records that exact cipher SHA, original SHA, and algorithm.",
-      "mismatch_fail_closed": "Missing, unverified, or mismatched R2 receipt records a failed OCI receipt with a bounded error code and returns before put_encrypted or download_verified is called."
-    },
-    "fixture_coverage": {
-      "unverified_r2": "A captured artifact has no OCI queue candidate until the R2 receipt becomes verified.",
-      "mismatched_cipher": "A verified R2 receipt with a different cipher SHA yields R2_CIPHER_SHA_MISMATCH; the fake OCI put_encrypted method would raise if reached and is not reached.",
-      "matching_cipher": "A matching verified R2 receipt permits one fake OCI ciphertext upload, requires OCI readback to receive the same cipher SHA, and persists a verified OCI receipt with that SHA.",
-      "frozen_cli_and_runtime_guard": "The exact frozen --once spelling is accepted. With all environment values stripped and no age recipient, it exits 3 with BLOCKED_ENVIRONMENT before creating the configured data root."
-    },
-    "blocking_result": "The SA-502 focused gate passed 13/13. Related encryption/replication/completion regression passed 18/18. The full project suite passed 164/164."
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "task_phase_gate": {
-      "tests_passed": 13,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_replication_pipeline.py",
-        "tests/focused/test_replica_completion.py",
-        "tests/focused/test_s3_replication.py"
-      ]
-    },
-    "related_regression": {
-      "tests_passed": 18,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_encrypted_replication.py",
-        "tests/focused/test_s3_replication.py",
-        "tests/focused/test_replication_pipeline.py",
-        "tests/focused/test_replica_completion.py",
-        "tests/focused/test_free_destination_contract.py",
-        "tests/stage/test_stage4_replication_exports.py"
-      ]
-    },
-    "safe_canary_contract": {
-      "probe_command": "/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/probe_object_store.py --store oci --encrypted-canary",
-      "probe_expected_exit_code": 3,
-      "probe_observed_exit_code": 3,
-      "probe_observed_status": "BLOCKED_ENVIRONMENT",
-      "probe_observed_message": "缺少 age recipient；禁止明文探针",
-      "replication_command": "/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/replicate_objects.py --once",
-      "replication_expected_exit_code": 3,
-      "replication_observed_exit_code": 3,
-      "replication_observed_status": "BLOCKED_ENVIRONMENT",
-      "replication_observed_message": "缺少 SOCIAL_ARCHIVE_AGE_RECIPIENT；禁止明文复制",
-      "network_or_credential_access": "NOT_ATTEMPTED: env -i removed all provider configuration. Both recipient guards returned before age execution, S3 client construction, remote write/read/delete, or runtime evidence output; the --once fixture also proves no data root is initialized."
-    },
-    "full_regression": {
-      "tests_passed": 164,
-      "tests_failed": 0,
-      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
-    },
-    "static_checks": {
-      "replication_script_compile": "PASS",
-      "secret_scan": "PASS: hits=[]",
-      "brand_boundary": "PASS: hits=[]",
-      "trailing_whitespace": "PASS"
-    },
-    "source_sha256": {
-      "src/social_archive/db.py": "74d646f46c6a35328b328ffa96c0aa65448f4183909fc57926534fbb9c9ea46c",
-      "src/social_archive/encryption.py": "064bcdbea3608b3bc05b57b82d726c1834806252c7e57630393a4b380248ec49",
-      "src/social_archive/storage.py": "2e777d146709bcbf8063b70f5e6c7b28fa921ea640a00fd9b65f18a9f728aae6",
-      "src/social_archive/config.py": "5add5d68b780200d656e727fcd97a3f317968871745d2d70c989476cbb755360",
-      "scripts/probe_object_store.py": "14253e234ea2a4b7883277befe62c0593d086ce45d1ae4850af29ec45b3de718",
-      "scripts/replicate_objects.py": "ee7b155895685365381007ebf8f5e4ce01149ce89697e26fd01a1d0a76835903",
-      "tests/focused/test_encrypted_replication.py": "f464d8255498bab5274f7b246b736aaa3f69e794f0ddda875547030aabb53c91",
-      "tests/focused/test_s3_replication.py": "acda7586413449b2af8e4224fcc19891d6dc5a8b6e9c4cb4aae2839246476432",
-      "tests/focused/test_replication_pipeline.py": "66a18f706e11a966df1785533df6437708205d65e3ad7d9053a9425281d7bc02",
-      "tests/focused/test_replica_completion.py": "08d264b597f546d5d6399498ef2b4a42d3c6ee019e6519f03df6b6730832074d",
-      "tests/focused/test_free_destination_contract.py": "8bff869eb69c83c207c9cf1f63cc0aa31b80d46f8824f32668b8fe882b3af691",
-      "tests/stage/test_stage4_replication_exports.py": "092c491309b5e2b399b0cc5f6e48e4631f650617cfee41e740120aaa0f4a1fd5"
-    }
-  },
-  "semantic_reconciliation": {
-    "status": "PASS",
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 109,
-      "apply": 26,
-      "adapt": 76,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The frozen replica script needed a minimal compatibility adapter for its --once command. The current upstream queue status gate was retained and made fail-closed at dispatch by comparing all three R2 receipt fields before OCI provider work; no transaction/recovery-core rewrite or later-stage GitHub behavior was introduced."
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "execution_corrections": [
-    "The SA-502 Task Graph invokes scripts/replicate_objects.py --once, while the current script did not accept that frozen spelling and exited 2. The adapter preserves its existing one-pass behavior and adds --once without starting a loop or changing the systemd no-flag invocation.",
-    "The previous OCI queue query checked only a verified R2 status. A stale or different verified R2 cipher could therefore have permitted an OCI upload of a different current ciphertext. OCI now requires matching R2 original SHA, cipher SHA, and algorithm before any remote call.",
-    "The previous recipient guard ran after local directory/SQLite initialization. It now runs first, so a stripped-environment frozen command fails without creating runtime state."
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S5",
+  "title": "绑定 OCI 异地密文副本",
+  "status": "BLOCKED",
+  "implementation_status": "PASS",
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-502"
   ],
-  "residual_risk_and_non_claims": [
-    "No real R2, OCI, GitHub, Cloudflare, account, credential, provider request, age binary invocation, ciphertext upload, remote readback/delete, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred. Unit fixtures use temporary fake encryptor/S3 clients only.",
-    "The isolated commands deliberately remove all provider environment values and report BLOCKED_ENVIRONMENT. They prove frozen CLI compatibility and fail-closed behavior, not OCI/R2 account access, bucket privacy, free-tier availability, real cipher persistence, or remote readback.",
-    "The real Owner-authorized OCI encrypted canary remains NOT_RUN. Its prerequisite is explicit owner-approved recipient plus OCI and already-verified R2 configuration; it must remain separate from fixture PASS and must never expose plaintext or a private identity.",
-    "GitHub encrypted third replica, Private-Database completion synchronization, operations recovery, and final release gates remain unfinished in SA-503 through SA-507. No intermediate Git publication is authorized before the full Task Pack passes."
+  "tests": [
+    "TEST-SA-502"
   ],
-  "source_change": {
-    "files_written_in_this_task": [
-      "src/social_archive/db.py",
-      "scripts/replicate_objects.py",
-      "tests/focused/test_replication_pipeline.py",
-      "evidence/SA-502/RESULT.json",
-      "evidence/SA-502/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ],
-    "product_source_rewrite": "No broad rewrite. The existing one-cipher encryption core and R2 replica implementation remain intact; the change is limited to the frozen one-pass CLI compatibility, no-runtime-on-missing-recipient boundary, R2-to-OCI receipt equality gate, and its fixture coverage."
-  }
+  "oracle": "OCI 回读密文 SHA 与 R2 完全相同；未验证 R2 时 OCI 队列不前进。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "OCI canary and one-shot replication both blocked before write because age recipient is absent.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [
+    "Live product/runtime success was not asserted in this local run."
+  ],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "b65e5ab6cb6674ad05f5861a01a97e30472fb4a5b4640339762525d0f74b46df"
 }

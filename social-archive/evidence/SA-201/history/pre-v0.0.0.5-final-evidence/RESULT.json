@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-201",
+  "acceptance_id": "AC-SA-201",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T12:25:34Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 168,
+      "apply": 26,
+      "adapt": 17,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "The XHS worker Compose and HTTP connector are already frozen-Overlay equivalent. The only source adaptation repairs the frozen task command against the current third-party lock schema and isolates public vendor Git operations from user-level URL rewrites."
+  },
+  "frozen_overlay_product_parity": {
+    "status": "PASS",
+    "files": {
+      "compose.workers.yaml": "aa6ffa2233f6e2870f142fcca3469aaf495bf64f35f3e947772d63d1add0c315",
+      "src/social_archive/connectors/http_workers.py": "14f3c50f01965a46c0d69b6434acb15b1868c8819a812099a8c942ec5e18c6b9"
+    }
+  },
+  "vendor_source": {
+    "status": "PASS",
+    "source_id": "xhs_downloader",
+    "repository": "https://github.com/JoeanAmier/XHS-Downloader",
+    "requested_ref": "afaf2fb",
+    "resolved_commit": "afaf2fb459980fccef9eec74e304a39af2c49cab",
+    "license": "GPL-3.0",
+    "boundary": "SIDECAR_PROCESS_OR_CONTAINER",
+    "working_tree": "runtime/vendors/XHS-Downloader",
+    "checkout": "detached",
+    "runtime_ignored": true,
+    "meaning": "The GPL source is retained only as an ignored Sidecar build context, never copied into the proprietary core image."
+  },
+  "acceptance_observations": {
+    "user_triggered_fixture_capture": {
+      "status": "PASS",
+      "request": "XHS fixture URL with selected media indexes and skip flag",
+      "worker_endpoint": "/xhs/detail",
+      "outbound_payload_fields": [
+        "url",
+        "download",
+        "index",
+        "skip"
+      ],
+      "browser_cookie_forwarded": false,
+      "new_vendor_artifacts": 1,
+      "scan_completeness": "complete"
+    },
+    "worker_failure_isolation": {
+      "status": "PASS",
+      "xhs_worker_result": "degraded",
+      "generic_current_page_result": "success",
+      "accepted_levels": [
+        "L0",
+        "L1"
+      ],
+      "meaning": "A failed XHS worker does not block the user-triggered generic current-page fallback."
+    },
+    "sidecar_boundary": {
+      "status": "PASS",
+      "profile": "xhs",
+      "host_port": "127.0.0.1:5556:5556",
+      "no_new_privileges": true,
+      "xhs_secrets_mount": false,
+      "xhs_cookie_configuration": false,
+      "core_image_contains_vendor_source": false
+    }
+  },
+  "vendor_sync_security": {
+    "status": "PASS",
+    "public_git_subprocess_isolation": {
+      "global_config_ignored": true,
+      "system_config_ignored": true,
+      "environment_config_injection_removed": true,
+      "interactive_prompt_disabled": true,
+      "covered_operations": [
+        "clone",
+        "fetch",
+        "rev_parse",
+        "checkout"
+      ]
+    },
+    "credential_style_url_rewrite_incident": {
+      "detected_during_task": true,
+      "scope": "global Git URL rewrite; not product source or the vendor local Git configuration",
+      "local_product_config_after_remediation": "PASS",
+      "local_vendor_config_after_remediation": "PASS",
+      "source_marker_scan_after_remediation": "PASS",
+      "global_credential_style_rewrites_removed": 1,
+      "secret_value_recorded": false,
+      "credential_rotation_or_revocation": "NOT_VERIFIED",
+      "follow_up": "The credential owner should rotate or revoke the affected GitHub credential; this task did not read, retain, or use its value."
+    }
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "task_required_tests": {
+      "tests_passed": 5,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_xhs_connector.py",
+        "tests/focused/test_health_gated_connector.py"
+      ]
+    },
+    "supplemental_worker_profile_regression": {
+      "tests_passed": 7,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_xhs_connector.py",
+        "tests/focused/test_health_gated_connector.py",
+        "tests/focused/test_worker_profiles.py"
+      ]
+    },
+    "vendor_sync_source_sha256": "844646db9a0e9185703a4d1faf9b6d3726cafa9eac6fb8da2eda745c68791455",
+    "xhs_focused_test_sha256": "a5a5ab37a03612f8fc4995bd0a0b90d24ec0df374c52076b9e7fe7872f45ee14"
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "brand_boundary": "PASS",
+    "recovery_tag": "PASS",
+    "ignored_runtime_retained": "PASS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "real_provider_canary": {
+    "xhs_user_content_and_media": {
+      "status": "NOT_RUN",
+      "reason": "No real XHS account, page, browser cookie, Docker worker, or XHS platform request was used."
+    },
+    "meaning": "The blocking local fixture assertions passed. This is not evidence that a real XHS account is connected, authorized, free, or running."
+  },
+  "source_change": {
+    "compatibility_repair": "vendor_sync.py now supports the frozen --source xhs_downloader --resolve-and-lock command against the current entries/repository/commit lock schema and maps the XHS source to the Compose build context.",
+    "security_repair": "Public vendor Git commands run in a non-interactive isolated configuration so a global URL rewrite cannot inject credentials into this product workflow.",
+    "files_written_in_this_task": [
+      "scripts/vendor_sync.py",
+      "tests/focused/test_xhs_connector.py",
+      "evidence/SA-201/RESULT.json",
+      "evidence/SA-201/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ]
+  },
+  "scope_exclusions": [
+    "No real XHS account, user content, browser Cookie, password, authentication header, platform API request, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "The only external network action was the public pinned XHS-Downloader vendor fetch through the isolated Git subprocess; it is not an XHS product-provider canary.",
+    "No credential value or credential-bearing URL is present in this evidence."
+  ]
+}

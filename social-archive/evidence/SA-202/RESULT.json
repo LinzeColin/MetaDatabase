@@ -1,205 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-202",
-  "acceptance_id": "AC-SA-202",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S2",
+  "title": "接入 DouK/TikTokDownloader 抖音实验 Sidecar",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T12:41:18Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "migration_stamp": "20260730T095749Z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-202"
+  ],
+  "tests": [
+    "TEST-SA-202"
+  ],
+  "oracle": "上游算法失效时明确 degraded，不伪装可用；gallery-dl/yt-dlp 或当前页兜底继续。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Vendor lock resolved; 9 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "semantic_reconciliation": {
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 165,
-      "apply": 26,
-      "adapt": 20,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The frozen HTTP worker is already equivalent. The DouK Compose command required a source-verified adaptation because pinned main.py has no CLI API-mode selector while the pinned Dockerfile starts python main.py."
-  },
-  "frozen_overlay_product_reconciliation": {
-    "status": "ADAPT_REQUIRED_AND_APPLIED",
-    "unchanged_file": {
-      "src/social_archive/connectors/http_workers.py": "14f3c50f01965a46c0d69b6434acb15b1868c8819a812099a8c942ec5e18c6b9"
-    },
-    "douk_worker_compose_adaptation": {
-      "current_compose_sha256": "6e4218fb69f0d6685e3bca164e108c8a3ce2d6a848d7ad623539b95dd87ecff2",
-      "frozen_command": [
-        "python",
-        "main.py",
-        "api"
-      ],
-      "pinned_vendor_docker_default": [
-        "python",
-        "main.py"
-      ],
-      "current_command": [
-        "python",
-        "main.py"
-      ],
-      "api_argument_removed": true,
-      "stdin_open": true,
-      "tty": true,
-      "other_frozen_douk_fields_preserved": true,
-      "reason": "The upstream starts its user-controlled menu from main.py and exposes Web API mode only after the owner selects it. The task must not invent an API selector or automatically accept the upstream declaration."
-    }
-  },
-  "vendor_source": {
-    "status": "PASS",
-    "source_id": "douk",
-    "repository": "https://github.com/JoeanAmier/TikTokDownloader",
-    "requested_ref": "f404781",
-    "resolved_commit": "f404781eb1a82a753c56e1b17f5913ff16acec0c",
-    "license": "GPL-3.0",
-    "boundary": "SIDECAR_PROCESS_OR_CONTAINER",
-    "working_tree": "runtime/vendors/TikTokDownloader",
-    "checkout": "detached",
-    "runtime_ignored": true,
-    "main_cli_argument_parser": false,
-    "docker_default_command_matches_current_compose": true,
-    "fastapi_source_present": true,
-    "meaning": "The GPL source remains only an ignored experimental Sidecar build context; it is not imported or copied into the core image."
-  },
-  "acceptance_observations": {
-    "unique_openapi_route_fixture": {
-      "status": "PASS",
-      "connector": "douyin",
-      "route": "/v1/douyin/detail",
-      "outbound_payload_fields": [
-        "url",
-        "download"
-      ],
-      "browser_cookie_forwarded": false,
-      "new_vendor_artifacts": 1,
-      "scan_completeness": "complete"
-    },
-    "ambiguous_route_health_gate": {
-      "status": "PASS",
-      "candidate_routes": 2,
-      "worker_health": "degraded",
-      "guessed_post_requests": 0,
-      "capture_status": "degraded",
-      "error_code": "WORKER_PROBE_OR_CALL_FAILED"
-    },
-    "media_fallback_after_worker_failure": {
-      "status": "PASS",
-      "worker_status": "degraded",
-      "attempted_tools": [
-        "gallery-dl",
-        "yt-dlp"
-      ],
-      "successful_tool": "yt-dlp",
-      "fallback_from_worker": true,
-      "normalized_capture_count": 1
-    },
-    "total_media_failure_current_page_isolation": {
-      "status": "PASS",
-      "worker_and_media_status": "degraded",
-      "douyin_capture_count": 0,
-      "generic_current_page_status": "success",
-      "accepted_levels": [
-        "L0",
-        "L1"
-      ],
-      "meaning": "A failed experimental DouK worker and both media fallbacks do not block user-triggered current-page capture."
-    },
-    "sidecar_boundary": {
-      "status": "PASS",
-      "profile": "douk-experimental",
-      "host_port": "127.0.0.1:5555:5555",
-      "no_new_privileges": true,
-      "secret_mount": false,
-      "cookie_configuration": false,
-      "core_image_contains_vendor_source": false,
-      "compose_structure": "PASS"
-    }
-  },
-  "vendor_sync_security": {
-    "status": "PASS",
-    "public_git_subprocess_isolation": {
-      "global_config_ignored": true,
-      "system_config_ignored": true,
-      "environment_config_injection_removed": true,
-      "interactive_prompt_disabled": true
-    },
-    "credential_marker_scans": {
-      "global_git_config": "ABSENT",
-      "product_local_config": "ABSENT",
-      "douk_vendor_local_config": "ABSENT",
-      "product_source_marker_files": 0
-    }
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "task_required_tests": {
-      "tests_passed": 6,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_openapi_probe_connector.py",
-        "tests/focused/test_health_gated_connector.py"
-      ]
-    },
-    "supplemental_regression": {
-      "tests_passed": 15,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_xhs_connector.py",
-        "tests/focused/test_openapi_probe_connector.py",
-        "tests/focused/test_health_gated_connector.py",
-        "tests/focused/test_worker_profiles.py",
-        "tests/focused/test_generic_web_connector.py"
-      ]
-    },
-    "test_source_sha256": {
-      "tests/focused/test_openapi_probe_connector.py": "26a5b51fd038dd747ccc9f9b4a0aba48dcbb1f2c0209253d8781b796b51fa0cf",
-      "tests/focused/test_health_gated_connector.py": "82a9c21cfd3113a6b8095241aa610eeb2bf63f36f8804a5538f053b0578bb1cb",
-      "scripts/vendor_sync.py": "844646db9a0e9185703a4d1faf9b6d3726cafa9eac6fb8da2eda745c68791455"
-    }
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "real_provider_canary": {
-    "douk_experimental_sidecar": {
-      "status": "NOT_RUN",
-      "reason": "No owner accepted the upstream declaration or manually selected its Web API mode; no Docker service, real Douyin URL, account, Cookie, credential, or platform request was used."
-    },
-    "docker_ingress": {
-      "status": "NOT_RUN",
-      "reason": "docker compose config only validates structure; no container was built or started."
-    },
-    "meaning": "All blocking local fixture assertions passed. This is not evidence that a real DouK/Douyin service is connected, authorized, free, or operational."
-  },
-  "source_change": {
-    "compatibility_repair": "Adapt douk-worker from the frozen but source-invalid main.py api invocation to the pinned upstream Docker default python main.py, with explicit interactive terminal instead of automatic consent.",
-    "focused_test_upgrade": "Bind unique-route calls, zero-post ambiguity degradation, media fallback sequencing, total media failure isolation, current-page L0/L1 continuity, Sidecar boundary, and isolated fixed-source synchronization.",
-    "files_written_in_this_task": [
-      "compose.workers.yaml",
-      "tests/focused/test_openapi_probe_connector.py",
-      "tests/focused/test_health_gated_connector.py",
-      "evidence/SA-202/RESULT.json",
-      "evidence/SA-202/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  },
-  "scope_exclusions": [
-    "No real Douyin account, user content, browser Cookie, password, authentication header, platform API request, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "The only external network action was the public pinned TikTokDownloader vendor fetch through the isolated Git subprocess; it is not a Douyin product-provider canary.",
-    "No credential value or credential-bearing URL is present in this evidence."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "623cc7824cd556243c6064b93a4deab5bd2f4819619d6afef10eb6c3b6970109"
 }

@@ -1,204 +1,30 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.0",
   "task_id": "SA-505",
-  "acceptance_id": "AC-SA-505",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S5",
+  "title": "部署 OVH systemd/Compose、Cloudflare Access 与状态投影",
   "status": "PASS",
-  "acceptance_status": "PASS",
-  "verified_at_utc": "2026-07-30T21:56:10Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "worktree_created_or_switched_by_task": 0,
-    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
-    "completed_task_count": 30,
-    "total_task_count": 32,
-    "remaining_task_ids": [
-      "SA-506",
-      "SA-507"
-    ]
-  },
-  "acceptance_oracle": "外网不能直接访问 OVH 端口；UI 未登录被 Access 阻断；API 配对路由可用且业务路由无 bearer 为 401；WAF/Rate Limit rule evidence、Tunnel route 和 sanitized status evidence 齐全。",
-  "blocking_acceptance_assertions": [
-    {
-      "assertion": "OVH Core 和 status origin 没有直接公网端口",
-      "status": "PASS",
-      "evidence": {
-        "host_listeners": {
-          "core_18765": "1 listener, loopback=1, non_loopback=0",
-          "status_18780": "1 listener, loopback=1, non_loopback=0"
-        },
-        "host_loopback_health": {
-          "core": 200,
-          "status": 200
-        },
-        "independent_external_direct_probe": {
-          "core_18765": "000",
-          "status_18780": "000"
-        }
-      }
-    },
-    {
-      "assertion": "真实 Cloudflare Access 阻断未登录 UI，独立 API Host 不进入交互式登录",
-      "status": "PASS",
-      "evidence": {
-        "unauthenticated_library_ui": 302,
-        "api_health_without_interactive_access": 200,
-        "access_application": "present",
-        "owner_email_allow_policy": "present"
-      }
-    },
-    {
-      "assertion": "真实 Tunnel API 配对可用，业务 API 在无 Bearer 或伪造 Access header 下 fail closed",
-      "status": "PASS",
-      "evidence": {
-        "pairing_status": 200,
-        "business_route_without_bearer": 401,
-        "business_route_with_forged_access_assertion": 401,
-        "regenerated_one_time_code_exchange": 200,
-        "returned_bearer_business_status": 200,
-        "source_pairing_record_preserved": true,
-        "container_pairing_consumption_state_mode": "0600"
-      }
-    },
-    {
-      "assertion": "真实 WAF 与边缘 Rate Limit 保护 API 配对面",
-      "status": "PASS",
-      "evidence": {
-        "unsupported_api_method": 403,
-        "invalid_pairing_exchange_sequence": [
-          409,
-          429
-        ],
-        "waf_rule_visible_contract": "API hostname and method not in GET/HEAD/POST => Block",
-        "rate_limit_rule_visible_contract": "API pairing paths, IP characteristic, 1 request per 10 seconds, Block, Active",
-        "rate_limit_compatibility": "The currently available 10-second Free-plan window is stricter than the product target of at most 10 requests per minute."
-      }
-    },
-    {
-      "assertion": "三个产品入口和状态投影由健康的受管 Tunnel、代理 DNS 和只读状态服务组成",
-      "status": "PASS",
-      "evidence": {
-        "tunnel": {
-          "healthy": true,
-          "remote_managed": true,
-          "active_connection_count": 1,
-          "ui_loopback_ingress": true,
-          "api_loopback_ingress": true,
-          "status_projection_loopback_ingress": true,
-          "status_existing_site_fallback": true,
-          "final_default_404": true
-        },
-        "dns": {
-          "ui_proxied_cname": true,
-          "api_proxied_cname": true,
-          "status_proxied_cname": true
-        },
-        "status_projection": {
-          "json": 200,
-          "health": 200,
-          "cache_control_no_store": true,
-          "sanitized_contract_keys": [
-            "project",
-            "version",
-            "generated_at",
-            "overall",
-            "connectors",
-            "destinations",
-            "storage",
-            "recovery",
-            "replicas"
-          ],
-          "overall": "degraded",
-          "degraded_reason": "No live third-party connector authorization has been claimed; this is not a deployment-boundary failure."
-        }
-      }
-    }
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-505"
   ],
-  "runtime_operational_state": {
-    "active_enabled": [
-      "social-archive.service",
-      "social-archive-cloudflared.service",
-      "social-archive-status.timer"
-    ],
-    "active_not_enabled": [
-      "social-archive-status-web.service"
-    ],
-    "oneshot_completed": [
-      "social-archive-status.service"
-    ],
-    "intentionally_disabled_pending_storage_credentials": [
-      "social-archive-backup.timer",
-      "social-archive-replication.timer",
-      "social-archive-private-database-sync.timer"
-    ],
-    "host_secret_boundary": {
-      "directory_mode": "0:10001:0710",
-      "core_secret_mode": "10001:10001:0640",
-      "container_pairing_state_mode": "0600"
-    },
-    "running_compose_services": [
-      "core-api",
-      "core-worker",
-      "cli-tools"
-    ]
-  },
-  "local_contract_and_regression": {
-    "status": "PASS",
-    "focused_regression": {
-      "tests_passed": 71,
-      "tests_failed": 0,
-      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
-    },
-    "static_checks": {
-      "shell_syntax": "PASS",
-      "compose_static_structure": "PASS",
-      "brand_scan": "PASS",
-      "secret_scan": "PASS",
-      "systemd_contract": "PASS",
-      "deployment_contract": "PASS",
-      "git_diff_check": "PASS"
-    }
-  },
-  "controlled_provider_evidence": {
-    "scope": "Cloudflare control plane and controlled OVH deployment, verified through authenticated control-plane readback or visible dashboard state.",
-    "record_handling": "Provider identifiers, DNS rollback snapshot identifiers, credentials, browser session data and host addresses remain outside the repository in controlled operational access. No value is copied into this evidence.",
-    "temporary_access_test_resources": {
-      "temporary_service_tokens_remaining": 0,
-      "temporary_policies_remaining": 0
-    },
-    "diagnostic_not_used_for_acceptance": "A short-lived service-token UI probe still returned 302 after an 18-second propagation wait. Its policy and token were removed sequentially and verified absent. This non-interactive diagnostic does not replace the explicit unauthenticated-UI Access assertion and is not counted as a PASS."
-  },
-  "residual_risk_and_non_claims": [
-    "SA-505 is accepted, but SA-506 and SA-507 have not started and must each satisfy their own blocking assertions before any Git commit or GitHub push.",
-    "No real end-user interactive Cloudflare Access session was exercised in this run; the accepted UI requirement is the real unauthenticated Access block, while the Core Host/header fail-closed behavior is independently tested.",
-    "No XHS, Douyin, Kuaishou, Bilibili, Reddit, X, Instagram, Notion, GitHub destination, Private-Database, R2 or OCI production provider canary is implied by this deployment acceptance.",
-    "The public status projection deliberately reports degraded until real connector/destination authorization is completed; it exposes only the documented sanitized schema.",
-    "No credentials, host addresses, Access/Tunnel/DNS/Rule identifiers, cookies, user content or runtime database material are present in this repository evidence."
+  "tests": [
+    "TEST-SA-505"
   ],
-  "source_sha256": {
-    "scripts/install.sh": "1c97b4e9d0c6cf126627bf74d3045055af825b5cfdfa95d546e05a31e0e6eb83",
-    "scripts/doctor.sh": "c2be0a24e8bfb07e97b8afcb96cb79ba8f5750808acd50be5b62f1ca823a1265",
-    "scripts/start.sh": "687c4cdcbb5b0a5e3d19014e3c3a0a02996f7fdc12b56a53bc6a5f31ddeb0fef",
-    "scripts/prepare_systemd_host.sh": "8372025871ac13fbce30f6e9ad1bbd024d0a09e865f6b6920c814af6d664782c",
-    "src/social_archive/api.py": "ef7f00f64c6884f42d3cddb91cf59f3a3c74261f9c1740afdf4dd1c7f851fc8c",
-    "src/social_archive/utils.py": "b8538975318cc0d4ee0330bcd5235c04f04480b65efcb425f085171740d2fdc9",
-    "deploy/cloudflare/API_EDGE_POLICY.md": "f6afc0ab45fc2cac09ead966fba1a477a44a0e90f2c5adc34731ca742c15dcb0",
-    "deploy/cloudflare/tunnel-config.example.yml": "0cbf87472109ed773bfe14879eb416a64260c5d66487176ee4ecf01568a9e32d",
-    "docs/06_运维手册.md": "b5dae731f9742874bbc2e1662d810db504e69b680bd8e20f6998fb23552bef62",
-    "docs/07_SA-505_兼容性决策.md": "ada760c67de661e51c48116af301d40966afec5372700525b64418e9b774bf37",
-    "tests/focused/test_deployment_contract.py": "d6752d41d9c1ff3cc4af6a85ccd7b61cb7928d469ffc1986df2bd3ff46a3f163",
-    "tests/focused/test_cloud_pairing.py": "8f1c254b6c3efba51f5f0964f866a86c17642854369588641425f389c24b0feb",
-    "tests/stage/test_stage5_operations.py": "c9467b22723efe1a45d137c4f6217eb92dcd47ed0acdcd0af620b51692aece08"
+  "oracle": "服务重启自愈、无本机/launchd/Agent 依赖；公网入口受 Access 保护；状态投影只读。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Install dry-run and zero-write doctor PASS; no runtime, Secret, image, network or service mutation.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "source_change": {
-    "product_source_rewrite": "No broad rewrite. SA-505 adapts deployment safety, host Secret ownership, pairing consumption state, status projection, Cloudflare ingress and deployment documentation while preserving the focused transaction/recovery core.",
-    "evidence_files": [
-      "evidence/SA-505/RESULT.json",
-      "evidence/SA-505/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  }
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "28894f02b759f71ec5fd0e3c9696efd650b9d7254f6980862af3339e58743797"
 }

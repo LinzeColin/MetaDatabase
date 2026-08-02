@@ -1,167 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-305",
-  "acceptance_id": "AC-SA-305",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S3",
+  "title": "通过聚合与 UI 阶段门",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T15:04:21Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
-    "migration_stamp": "20260730T095749Z"
-  },
-  "stage_gate_acceptance": {
-    "status": "PASS",
-    "oracle": "首次配置、保存、查找、查看失败、重试和移动端关键路径通过，中文下一步唯一且可执行。",
-    "frozen_fixture": "The immutable overlay test exists unchanged as the self-contained PWA shell assertion. It passed at baseline, but only checked five files and was insufficient by itself for AC-SA-305.",
-    "compatible_strengthening": "The current stage test retains the immutable shell assertion and adds temporary-runtime checks for one-time setup, library-only Cloudflare Access host separation, one-click capture, Chinese full-text lookup, failed destination receipt visibility, safe retry, and one non-empty one-line Chinese next action per connector.",
-    "blocking_result": "Final strengthened task command: 3 passed, 0 failed. The targeted Stage 0/1/3, library, pairing, UI, extension, receipt, reader and storage regression command: 72 passed, 0 failed."
-  },
-  "chinese_search_acceptance": {
-    "status": "PASS",
-    "defect_found": "A saved title containing Stage 3 可检索内容 could not be found with q=可检索. SQLite unicode61 indexes a contiguous Han phrase as one token, so a partial Han phrase did not match the prior literal FTS query.",
-    "repair": "Non-CJK words remain quoted FTS MATCH terms. Each contiguous Han run additionally uses a parameter-bound, LIKE-escaped substring predicate across the existing FTS title, author, body and tags columns; no schema change, index reset or runtime-data rewrite occurs.",
-    "coverage": "Focused library coverage proves English terms, Han title/body substrings, and a mixed unspaced Han-plus-English query. The Stage 3 temporary runtime proves q=可检索 reaches the saved canonical content through the real /v1/library API."
-  },
-  "access_and_setup_acceptance": {
-    "status": "PASS",
-    "one_time_pairing": "A temporary 0600 pairing record was available, exchanged successfully once, returned the distinct library/API URLs, and was then unavailable. No user pairing record or device token was touched.",
-    "library_edge_boundary": "With pairing required in a temporary runtime, unauthenticated /v1/library returned 401; a fixture Cloudflare Access assertion on the exact configured library host returned 200; the same assertion presented on the independent API host returned 401; the extension bootstrap succeeded only with the temporary Bearer token.",
-    "scope_note": "This proves the local hostname/auth routing contract only. The origin currently trusts Cloudflare's injected assertion because it is designed to be loopback-only behind Cloudflare Tunnel/Access; real Cloudflare Access policy, tunnel isolation and JWT issuance were not configured or exercised and remain NOT_RUN."
-  },
-  "save_find_failure_retry_acceptance": {
-    "status": "PASS",
-    "save_and_find": "A temporary generic-web L0/L1 capture with a Markdown projection target returned 202, appeared once in /v1/library under a Chinese full-text query, and opened through /v1/library/{content_id}.",
-    "failure_visibility": "The test created only a temporary failed Markdown receipt linked to its actual export job. The receipt remained observable with its Chinese remediation message.",
-    "retry": "POST /v1/destinations/receipts/{receipt_id}/retry requeued the failed origin export job and returned the single actionable Chinese message 已重新加入目的地导出队列. The failed receipt remained traceable rather than being replaced by a false success."
-  },
-  "browser_loopback_validation": {
-    "status": "PASS",
-    "environment": "A temporary loopback-only API at 127.0.0.1:27125, an ephemeral Chrome profile, and a temporary runtime with pairing disabled only for same-origin browser rendering. No external network, owner browser profile, account or credential was used.",
-    "desktop": {
-      "viewport": "1440x900",
-      "observed": "One saved card rendered; real Chinese search retained it; opening the card rendered its Detail; the real three-step wizard rendered; Feed switch rendered; nine connector rows each exposed a non-empty one-line Chinese next action; no horizontal overflow."
-    },
-    "mobile": {
-      "viewport": "390x844",
-      "observed": "One saved card rendered; the layout became one column (362px content width), and document scroll width did not exceed the 390px viewport."
-    },
-    "runtime_result": {
-      "console_errors": 0,
-      "runtime_exceptions": 0,
-      "network_failures": 0
-    },
-    "cleanup": "The temporary API, Chrome process/profile, generated content, logs and screenshots were stopped and moved to the system Trash immediately after inspection."
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "baseline_frozen_task_command": {
-      "tests_passed": 1,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/stage/test_stage3_pwa.py"
-      ]
-    },
-    "final_frozen_task_command": {
-      "tests_passed": 3,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/stage/test_stage3_pwa.py"
-      ]
-    },
-    "targeted_stage_and_regression": {
-      "tests_passed": 72,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/stage/test_stage0_walking_skeleton.py",
-        "tests/stage/test_stage1_western.py",
-        "tests/stage/test_stage3_pwa.py",
-        "tests/focused/test_beginner_journey.py",
-        "tests/focused/test_capture_api.py",
-        "tests/focused/test_cloud_pairing.py",
-        "tests/focused/test_social_archiver_import.py",
-        "tests/focused/test_library_api.py",
-        "tests/focused/test_pwa_contract.py",
-        "tests/focused/test_ui_contract.py",
-        "tests/focused/test_extension_e2n_contract.py",
-        "tests/focused/test_extension_api.py",
-        "tests/focused/test_status_projection.py",
-        "tests/focused/test_destination_probes_and_receipts.py",
-        "tests/focused/test_storage_completion_contract.py",
-        "tests/focused/test_replica_completion.py",
-        "tests/focused/test_reader_profiles.py",
-        "tests/focused/test_reader_projection.py",
-        "tests/focused/test_destinations.py",
-        "tests/focused/test_free_destination_contract.py",
-        "tests/focused/test_quota_guard.py",
-        "tests/focused/test_runtime_store.py",
-        "tests/focused/test_core_capture.py"
-      ],
-      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
-    },
-    "static_checks": {
-      "pwa_javascript_syntax": "PASS: node --check apps/pwa/app.js",
-      "pwa_manifest_json": "PASS: python3 -m json.tool apps/pwa/manifest.webmanifest",
-      "secret_scan": "PASS: hits=[]",
-      "brand_boundary": "PASS: hits=[]"
-    },
-    "source_sha256": {
-      "src/social_archive/db.py": "c707393f2bd5405db32bf32c1cfce8f50fb584b0a216a481e4765543d1f9ab6f",
-      "tests/focused/test_library_api.py": "14c338df440a91476689680b3fe8adc3d27345a6862bc0c56b977e554f0fd330",
-      "tests/stage/test_stage3_pwa.py": "266affbcc1773cda01e7601cbd7b1e3da2b78e255bfa2b994cfc70c130509352",
-      "apps/pwa/index.html": "10ec902aa91f5cf9bb204de362f917279b035c2375111f5075cc2b7e96ceb424",
-      "apps/pwa/app.js": "0b2f0301afd7216e82827e900ae0653c0ee8d2fe496f80688cb1335a668c3013",
-      "apps/pwa/styles.css": "2ecd468e972e3cf66c45ff434099afbee5d865177ba0b9c73d1606bb43fb27b8",
-      "apps/pwa/sw.js": "96d456fff172762d9999e90586ef6ad02dc4975ed13356031daf9c7765473b4d",
-      "apps/pwa/manifest.webmanifest": "aa30aa9d6101a49afad001f267698245b286b2af34f45e22c137ba296b4e065f"
-    }
-  },
-  "semantic_reconciliation": {
-    "status": "PASS",
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 135,
-      "apply": 26,
-      "adapt": 50,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The immutable stage fixture is preserved as a shell check, while the current upstream stage gate is strengthened to prove the broader AC-SA-305 oracle. The CJK search repair is a narrow, data-preserving adaptation needed for the Chinese user path."
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "execution_corrections": [
-    "The immutable stage test first passed 1/1 but only checked asset existence. It was retained and strengthened because that result alone could not prove the published stage oracle.",
-    "The first strengthened run found that a Chinese partial-title query returned no item. The root cause was confirmed against temporary SQLite FTS vocabulary; the safe substring fallback fixed it without schema mutation or product runtime data access.",
-    "The temporary loopback API needed two short readiness polls before accepting connections. It then completed all browser checks; no service was left running."
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-305"
   ],
-  "source_change": {
-    "files_written_in_this_task": [
-      "src/social_archive/db.py",
-      "tests/focused/test_library_api.py",
-      "tests/stage/test_stage3_pwa.py",
-      "evidence/SA-305/RESULT.json",
-      "evidence/SA-305/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ],
-    "product_source_rewrite": "No broad rewrite. This is a narrow Chinese-search correctness repair plus a Stage 3 acceptance test strengthening over the existing single transaction/recovery core and E2N shell."
+  "tests": [
+    "TEST-SA-305"
+  ],
+  "oracle": "首次配置、保存、查找、查看失败、重试和移动端关键路径通过，中文下一步唯一且可执行。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "3 stage tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "scope_exclusions": [
-    "No real Cloudflare Access policy, Cloudflare Tunnel, JWT issuance, provider account, user content, user browser profile, Cookie, password, authentication header, provider network request, Docker image/build/service, deployment, cloud action, Private-Database action, GitHub push, merge, rebase, Git staging action, new Git worktree, legacy ignored-runtime access, or destructive cleanup occurred.",
-    "The temporary local browser rendered with pairing disabled for same-origin fixture requests only; separate TestClient coverage exercised pairing-required routing with temporary values. Neither proves a real edge deployment or real extension shell authorization.",
-    "No credential value or credential-bearing URL is present in this evidence."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "16368897eaf39bdcefdd61be369879b68ed3b7bef1934c394d2f799ddfbae7b7"
 }

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-002",
+  "commands": [
+    {
+      "id": "stage0_reconcile_refresh",
+      "command": "verify_preconditions.py --repo <current-worktree> --fetch; semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "READY; latest main is included; preserve-core architecture decision; conflict=0; blocked=0"
+    },
+    {
+      "id": "compatibility_sparse_regression",
+      "command": "validate_compatibility.py --base-zip <frozen-v0.0.0.4-zip>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Base verifier PASS; cone-mode sparse target move, ignored-runtime retention, no second core and non-mutating rollback plan verified."
+    },
+    {
+      "id": "identity_migration_final",
+      "command": "apply_taskpack.py --repo <current-worktree> --phase identity",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Reused migration stamp 20260730T095749Z; preserved-core decision restored; tracked source count=0; tracked target count=686."
+    },
+    {
+      "id": "structural_acceptance",
+      "command": "validate recovery tag, ACTIVE_SESSION, backup snapshot, tracked path counts, sparse rules, core uniqueness and public identity",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "All SA-002 structural assertions passed; only the preserved legacy runtime root remains untracked."
+    },
+    {
+      "id": "rollback_plan",
+      "command": "rollback_taskpack.py --repo <current-worktree> --stamp 20260730T095749Z",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ROLLBACK_PLAN only; destructive execution requires the exact confirmation and was not invoked."
+    }
+  ],
+  "remediation_history": [
+    "The initial sparse-aware rename exposed target materialization and session-order gaps; each was reproduced in an isolated synthetic repository before the compatibility control was revised.",
+    "No failed attempt performed a reset, destructive rollback, data migration, or external action."
+  ],
+  "non_actions": [
+    "No application full suite, runtime action, account action, platform request, model request, private-data access, GitHub push, or new git worktree."
+  ]
+}

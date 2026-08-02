@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-402",
+  "acceptance_id": "AC-SA-402",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T15:41:09Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
+    "worktree_created_or_switched_by_task": 0,
+    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
+    "pre_evidence_default_git_status_entry_count": 720
+  },
+  "notion_destination_acceptance": {
+    "status": "PASS",
+    "target": "Notion destination uses the 2026-03-11 API contract and data_source_id parent model; a confirmed Page/Block checkpoint is durable before later mutable calls, and retryable failures leave the Canonical Store intact.",
+    "mocked_oracle_coverage": {
+      "authorization_probe": "Every probe/export reads the configured Token through the existing secret boundary, sends Notion-Version: 2026-03-11, resolves the configured data source, and rejects a missing title property before Page creation.",
+      "new_page": "POST /v1/pages uses parent.type=data_source_id and the exact configured data_source_id.",
+      "normal_idempotency": "A completed binding with the same projection SHA returns local noop without another provider request and creates a noop receipt.",
+      "checkpoint_recovery": "A 101-Block fixture creates one Page, checkpoints the Page and first 100 confirmed Block IDs, then receives 429 for the final Block. The retry PATCHes that Page, updates the 100 known Blocks, appends only the remaining Block, and never creates a second Page.",
+      "receipt_and_job": "The 429 failure receipt retains its confirmed page id/path and retryability evidence; Retry-After: 7 becomes the job not_before delay. A connection failure also creates a retryable failed receipt and retry job without a binding or Canonical Store mutation."
+    },
+    "provider_contract_sources": {
+      "append_block_children": "https://developers.notion.com/reference/patch-block-children",
+      "request_limits": "https://developers.notion.com/reference/request-limits"
+    },
+    "implementation_boundary": {
+      "page_block_checkpoint": "A pending projection binding is persisted after confirmed Page creation and after each confirmed <=100-Block append/delete mutation. The final successful binding is promoted only after all mutations finish.",
+      "receipt_validation": "An Append Block response must return exactly one unique Block id for every submitted child before it can be checkpointed.",
+      "rate_limit": "Only a valid Notion HTTP 429 Retry-After value is converted to a bounded 1..3600 second delay; absent/invalid values preserve the RuntimeStore default retry interval.",
+      "failure_audit": "A failed receipt reads the latest durable binding so a previously confirmed remote Page identity is not lost during a later Block failure."
+    },
+    "blocking_result": "The frozen SA-402 command passed 14/14. The storage/capture/reader Stage-0 adjacent regression passed 11/11."
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "frozen_task_command": {
+      "tests_passed": 14,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_destination_probes_and_receipts.py",
+        "tests/focused/test_destinations.py",
+        "tests/focused/test_extension_api.py"
+      ],
+      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
+    },
+    "related_regression": {
+      "tests_passed": 11,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_runtime_store.py",
+        "tests/focused/test_capture_api.py",
+        "tests/focused/test_storage_completion_contract.py",
+        "tests/focused/test_reader_projection.py",
+        "tests/stage/test_stage0_walking_skeleton.py"
+      ],
+      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
+    },
+    "static_checks": {
+      "secret_scan": "PASS: hits=[]",
+      "brand_boundary": "PASS: hits=[]",
+      "trailing_whitespace": "PASS"
+    },
+    "source_sha256": {
+      "src/social_archive/destinations.py": "9b74aec370a09977c7f326d2008eb50462ee5e45cd56c19f08375ce60f9928ee",
+      "src/social_archive/db.py": "dba95bded8f425defe107f473709d8b26115702ef5074b544271dd79f93ef107",
+      "src/social_archive/worker.py": "b32f9127fffced0532d85e49b0437e15645b791d9ca13875c5a883c72ff317b9",
+      "tests/focused/test_destination_probes_and_receipts.py": "af150dd65899ca0c0e656b5dcd7dd4aa53cf30d66fd66dc2526ddb24b4d08469",
+      "tests/focused/test_extension_api.py": "a55e2e97c6561a5282648167619eeb64477e8e5cd766cabbd14ef26e079fae19"
+    }
+  },
+  "semantic_reconciliation": {
+    "status": "PASS",
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 126,
+      "apply": 26,
+      "adapt": 59,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "The task-pack implementation was retained where compatible and minimally adapted to checkpoint a confirmed Page/Block prefix, propagate valid Retry-After into the RuntimeStore retry job, and retain the checkpointed Page identity on a failed receipt."
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "recovery_tag": "PASS",
+    "ignored_runtime_retained": "PASS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "execution_corrections": [
+    "The first new checkpoint fixture undercounted provider calls by one and compared export-receipt fields as if they were Canonical fields. It was corrected to assert the actual 107 calls and only immutable Canonical fields; the final frozen and regression commands passed.",
+    "The initial worker retry fixture bypassed the worker failure helper. It was changed to exercise the same _finish_failed_job path that production run() uses, including Retry-After propagation."
+  ],
+  "residual_risk_and_non_claims": [
+    "No real Notion account, credential, provider network request, Page/Block write, OAuth action, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, or destructive cleanup occurred. All Notion behavior was in-process httpx.MockTransport with pytest temporary mode-0600 fake secrets.",
+    "The required real Notion Token/data-source/title-property connectivity canary is NOT_RUN because no Owner credential or external action was authorized. Fixture PASS is not a real authorization or provider-compatibility claim.",
+    "This checkpoint removes the duplicate-Page path after a confirmed Page response followed by later Block failure. An ambiguous network loss exactly while POST /v1/pages is in flight can still leave an unconfirmed remote side effect; without a provider-returned Page id it is intentionally not claimed as exactly-once and needs Owner canary/reconciliation evidence before any production claim."
+  ],
+  "source_change": {
+    "files_written_in_this_task": [
+      "src/social_archive/destinations.py",
+      "src/social_archive/db.py",
+      "src/social_archive/worker.py",
+      "tests/focused/test_destination_probes_and_receipts.py",
+      "tests/focused/test_extension_api.py",
+      "evidence/SA-402/RESULT.json",
+      "evidence/SA-402/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ],
+    "product_source_rewrite": "No broad rewrite. The existing transaction/recovery core remains intact; this is a narrow Notion destination recovery and receipt audit repair."
+  }
+}

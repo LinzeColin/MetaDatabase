@@ -1,19 +1,19 @@
 {
   "schema_version": "2.0",
   "project": "Social Archive",
-  "version": "v0.0.0.4",
+  "version": "v0.0.0.5",
   "requirements": [
     {
       "id": "REQ-001",
-      "text": "产品、目录、包名、UI、文档和运行身份全面迁移为 Social Archive v0.0.0.4；旧身份只允许出现在迁移输入、兼容读取和历史证据中。"
+      "text": "产品、目录、包名、UI、文档和运行身份全面迁移为 Social Archive v0.0.0.5；旧身份只允许出现在迁移输入、兼容读取和历史证据中。"
     },
     {
       "id": "REQ-002",
-      "text": "移动 main 语义协调：保留聚焦验证通过的单一事务/恢复核心，重建产品壳与连接层；更强上游保留，受控重建仅限证据触发的受影响纵向切片。"
+      "text": "目标仓采用移动 main 与 Stage 0 Semantic Reconcile，不以任务包生成时的旧快照覆盖上游更优实现。"
     },
     {
       "id": "REQ-003",
-      "text": "浏览器扩展达到 E2N 式低摩擦：工具栏弹窗、站点授权卡、页面悬浮保存、侧边栏任务中心、真实连接检查、中文下一步和一键重试；配置存在不得冒充已授权。"
+      "text": "浏览器扩展达到 E2N 式低摩擦：工具栏弹窗、站点授权卡、页面悬浮保存、侧边栏任务中心、中文下一步和一键重试。"
     },
     {
       "id": "REQ-004",
@@ -37,7 +37,7 @@
     },
     {
       "id": "REQ-009",
-      "text": "Notion、Obsidian、GitHub Private-Database Markdown 和标准 Markdown/JSONL 导出均可独立启用、主动探测、幂等写入、生成回执、重试和对账。"
+      "text": "Notion、Obsidian、GitHub Private-Database Markdown 和标准 Markdown/JSONL 导出均可独立启用、重试和对账。"
     },
     {
       "id": "REQ-010",
@@ -49,7 +49,7 @@
     },
     {
       "id": "REQ-012",
-      "text": "必需增量费用为 0；不得依赖付费 API、付费 SaaS 或模型；未知配额和可能收费路径 fail closed，L0/L1 继续；GitHub 目的地必须为私有仓库。"
+      "text": "必需增量费用为 0；不得依赖付费 API、付费 SaaS 或模型；未知配额和可能收费路径 fail closed，L0/L1 继续。"
     },
     {
       "id": "REQ-013",
@@ -73,7 +73,7 @@
     },
     {
       "id": "REQ-018",
-      "text": "Codex 仅执行最新 main 上的语义合并、真实凭证、供应商控制台、部署和兼容性最后一公里；保留更优上游实现，不重新研究、重做架构或扩大验收。"
+      "text": "Codex 仅执行最新 main 上的语义合并、真实凭证、供应商控制台、部署和兼容性最后一公里，不重新研究、重做架构或扩大验收。"
     }
   ]
 }

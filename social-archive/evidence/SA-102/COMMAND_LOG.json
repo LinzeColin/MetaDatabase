@@ -1,59 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-102",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "frozen_focused_baseline",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py",
+      "command_sha256": "f8358151f3ae3a24c4cc6dee61db0b22784e368f1b3d54254810e1d72b947d8d",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "2 passed before the acceptance-coverage audit."
-    },
-    {
-      "id": "acceptance_coverage_upgrade",
-      "command": "strengthen only the two SA-102 focused tests for saved/upvoted, partial cursor receipts, partial-relation safety, and missing-auth fallback",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "No product source behavior changed; the tests now bind every stated local oracle assertion."
-    },
-    {
-      "id": "final_focused_validation",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "4 passed."
-    },
-    {
-      "id": "frozen_overlay_product_parity",
-      "command": "SHA-256 compare oauth.py against the frozen Overlay",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "oauth.py is byte-identical to the frozen Overlay."
-    },
-    {
-      "id": "oauth_privacy_boundary",
-      "command": "inspect oauth.py for password, Cookie, CAPTCHA, browser-cookie persistence or bypass paths",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "No such persistence or bypass path is present; OAuth tokens are used only for outbound bearer headers."
-    },
-    {
-      "id": "semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=175, apply=26, adapt=10, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_boundary_checks",
-      "command": "compatibility verifier; brand verifier; recovery-tag check; git diff checks; source-cache check",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Compatibility, brand boundary, recovery boundary, whitespace checks, and source-cache checks passed."
+      "summary": "4 focused tests passed."
     }
   ],
-  "non_actions": [
-    "No live Reddit account, OAuth token, provider network request, browser profile, password, Cookie, private-data, cloud, deployment, push, merge, rebase, or new Git worktree action occurred.",
-    "The OAuth success, partial, and missing-auth paths used only local fake clients and temporary test data."
-  ]
+  "record_sha256": "ab1e15e689c9a8f15a7014ba7ef3897fd0c3e4ccc6b0420eb24a64dc337958b0"
 }

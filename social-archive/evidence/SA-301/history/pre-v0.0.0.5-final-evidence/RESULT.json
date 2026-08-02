@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-301",
+  "acceptance_id": "AC-SA-301",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T13:48:35Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "migration_stamp": "20260730T095749Z"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 150,
+      "apply": 26,
+      "adapt": 35,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    },
+    "reason": "The frozen PWA was initially byte-identical, but its library query returned one row per relation. A canonical content can have multiple relations, so a one-content-one-card result required a focused data-model adaptation rather than preserving the duplicate join."
+  },
+  "frozen_overlay_reconciliation": {
+    "initial_pwa_identity_before_adaptation": {
+      "status": "PASS",
+      "apps/pwa/app.js": "5b7e1fd1ea2f18f3024108d2087c3a0de7e814531ad1687b0c5f95802ad0af74",
+      "apps/pwa/index.html": "efb1b3df370fc7fbcc88a8775fb46f7d0aed67affd8e9deafe0a8f2959803329",
+      "apps/pwa/manifest.webmanifest": "45b7941951e097654df69ceb8b59d7ee1d26f85040b14cca00a9992bcdc75eaa",
+      "apps/pwa/styles.css": "1851784cc1d352516b0c25ef00dcff7f5188012f5dbee95cf367abe6267591de",
+      "apps/pwa/sw.js": "cf9ee6c04b7748c35b57d5a54e396175927ab4a0f47eac3b36b613b4199e1802",
+      "tests/focused/test_library_api.py": "ddf42888a9c3fa8d71f147dcdf42f104b3cb86d6f8ccdf2dbf289abe0635c698",
+      "tests/focused/test_ui_contract.py": "72a0c687db728a21f90e658a7cb521a7b9fbb58b715ca45811799677db5831a5"
+    },
+    "status": "ADAPT_REQUIRED_AND_APPLIED",
+    "adaptations": {
+      "library_card_identity": "list_library now joins exactly one deterministic relation per content: active before closed, then newest observation, then relation id. A relation filter selects the matching relation as the card metadata while keeping one content row.",
+      "feed_grid_detail": "The persisted legacy list view is migrated to feed; the PWA exposes Feed and Grid explicitly, and Detail renders every relation attached to the unified content instead of only the first relation.",
+      "pwa_shell": "An internal SVG favicon is linked by HTML, manifest, and service-worker cache so the rendered PWA has no default favicon 404."
+    }
+  },
+  "unified_content_relation_observations": {
+    "defect_reproduction_before_fix": {
+      "status": "REPRODUCED_AND_FIXED",
+      "fixture": "one generic-web canonical URL captured with manual_save and bookmark",
+      "content_ids_equal": true,
+      "detail_relation_count": 2,
+      "library_row_count_before_fix": 2
+    },
+    "api_after_fix": {
+      "status": "PASS",
+      "fixture_endpoint": "POST /v1/captures",
+      "two_relation_captures_share_content_id": true,
+      "unfiltered_library_card_count": 1,
+      "bookmark_filter_card": {
+        "content_id_matches": true,
+        "relation_type": "bookmark"
+      },
+      "detail_relation_types": [
+        "bookmark",
+        "manual_save"
+      ]
+    },
+    "meaning": "A unified content identity is rendered once in Feed/Grid while every user relation stays visible in Detail and remains filterable."
+  },
+  "pwa_render_validation": {
+    "status": "PASS",
+    "execution": "Existing local Google Chrome controlled through Playwright against a loopback-only temporary API and fixture database; no browser download, user profile, external page, provider, or credential was used.",
+    "desktop": {
+      "viewport": [1440, 960],
+      "card_count": 1,
+      "detail_relations_rendered": 2,
+      "document_scroll_width": 1440,
+      "viewport_width": 1440,
+      "library_width": 1066
+    },
+    "mobile": {
+      "viewport": [390, 844],
+      "card_count": 1,
+      "detail_relations_rendered": 2,
+      "document_scroll_width": 390,
+      "viewport_width": 390,
+      "library_width": 362
+    },
+    "interaction_contract": [
+      "Initial Grid renders one canonical content card.",
+      "The 时间线 control switches the library class to feed.",
+      "Opening the card shows the Detail dialog with manual_save and bookmark relation pills.",
+      "Both viewports had no console errors, failed resources, or horizontal overflow."
+    ],
+    "screenshots": "Inspected during the local run, then discarded with the temporary fixture directory; no screenshot or fixture database is retained in the repository."
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "baseline_frozen_command": {
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_library_api.py",
+        "tests/focused/test_ui_contract.py"
+      ]
+    },
+    "final_task_command": {
+      "tests_passed": 4,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_library_api.py",
+        "tests/focused/test_ui_contract.py"
+      ]
+    },
+    "cross_stage_regression": {
+      "tests_passed": 25,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_library_api.py",
+        "tests/focused/test_ui_contract.py",
+        "tests/focused/test_core_capture.py",
+        "tests/focused/test_runtime_store.py",
+        "tests/focused/test_beginner_journey.py",
+        "tests/focused/test_generic_web_connector.py",
+        "tests/focused/test_social_archiver_import.py",
+        "tests/focused/test_status_projection.py",
+        "tests/stage/test_stage0_walking_skeleton.py",
+        "tests/stage/test_stage1_western.py",
+        "tests/stage/test_stage2_domestic.py"
+      ]
+    },
+    "source_sha256": {
+      "src/social_archive/db.py": "b9d5b45779c6a8adbc9c57bf5f12a014c39537a8b9a680e0cfb05908580e6e01",
+      "apps/pwa/app.js": "7231292a78c90fe79552d646ff414d06f5fb20ec51e304d4d2ad6b66c89cb333",
+      "apps/pwa/index.html": "7d2625f220028f570b6db8ff1bd632a9737e7abcce9f6382d1dfc0c8055aa2cd",
+      "apps/pwa/styles.css": "07cc55718abb1f2100a08dbca0ced73c47abc14be5395c2cda706d0ac3342b2a",
+      "apps/pwa/manifest.webmanifest": "aa30aa9d6101a49afad001f267698245b286b2af34f45e22c137ba296b4e065f",
+      "apps/pwa/sw.js": "96d456fff172762d9999e90586ef6ad02dc4975ed13356031daf9c7765473b4d",
+      "apps/pwa/favicon.svg": "9e529a7ba7bb88eb69f2659f800e29253f662684c62846a30595fde1e51614f9",
+      "tests/focused/test_library_api.py": "0c293322ffca4cea2e6f58a100e5aa02340a56e49e939b48c1e216267c108c2a",
+      "tests/focused/test_ui_contract.py": "1ff14b5fb17a7fba3e8818b1e1c747b89204e6186bfd01109417d617b7ba8b07"
+    }
+  },
+  "compatibility_validation": {
+    "status": "PASS",
+    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
+    "brand_boundary": "PASS",
+    "recovery_tag": "PASS",
+    "ignored_runtime_retained": "PASS",
+    "rollback_default": "ROLLBACK_PLAN"
+  },
+  "source_change": {
+    "files_written_in_this_task": [
+      "src/social_archive/db.py",
+      "apps/pwa/app.js",
+      "apps/pwa/index.html",
+      "apps/pwa/styles.css",
+      "apps/pwa/manifest.webmanifest",
+      "apps/pwa/sw.js",
+      "apps/pwa/favicon.svg",
+      "tests/focused/test_library_api.py",
+      "tests/focused/test_ui_contract.py",
+      "evidence/SA-301/RESULT.json",
+      "evidence/SA-301/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ],
+    "product_source_rewrite": "No broad rewrite. The only data-model change is one-card-per-canonical-content query selection; PWA changes expose the specified Feed/Grid/Detail behavior and remove the observed icon 404."
+  },
+  "scope_exclusions": [
+    "No real provider account, user content, browser profile, Cookie, password, authentication header, provider network request, Docker image build, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "The visual validation used only loopback HTTP plus a temporary local fixture database. The explicit temporary directory, screenshots, browser context, and fixture data were moved to the system Trash after validation and are not repository artifacts.",
+    "No credential value or credential-bearing URL is present in this evidence."
+  ]
+}

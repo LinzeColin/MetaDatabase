@@ -1,59 +1,19 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-105",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "id": "frozen_stage_baseline",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage1_western.py",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage1_western.py",
+      "command_sha256": "f889df8845700a2f7fd4178d2de48ef867251a517f93fdcec1eb7a15907bff7e",
+      "executed": true,
+      "status": "PASS",
       "exit_code": 0,
-      "outcome": "PASS",
-      "result": "1 passed before the acceptance-coverage audit; the frozen candidate only checked connector file existence."
-    },
-    {
-      "id": "stage_gate_coverage_upgrade",
-      "command": "strengthen only test_stage1_western.py into generic current-page, Social Archiver ZIP, Reddit/X OAuth, and Instagram Sidecar fixture chains",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "No product source behavior changed; the stage gate now binds the required fixture paths, default L0/L1/L3 archive levels, and isolated Sidecar output boundary."
-    },
-    {
-      "id": "final_stage_gate_validation",
-      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage1_western.py",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "4 passed."
-    },
-    {
-      "id": "source_focused_regression",
-      "command": "run focused generic-web, Social Archiver, Reddit, X, Instagram, command-sidecar, and extension contract tests",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "29 passed."
-    },
-    {
-      "id": "frozen_overlay_product_parity",
-      "command": "byte-compare markdown_watch.py, social_archiver_bundle.py, oauth.py, command.py, and registry.py against the 07_IMPLEMENTATION Overlay and record SHA-256",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "All five Stage 1 product connector surfaces are byte-identical to the frozen Overlay."
-    },
-    {
-      "id": "semantic_reconciliation",
-      "command": "semantic_classify.py --repo <current-worktree>",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=170, apply=26, adapt=15, equivalent=6, conflict=0, blocked=0, obsolete=0."
-    },
-    {
-      "id": "final_compatibility_and_boundary_checks",
-      "command": "compatibility verifier; brand verifier; recovery-tag check; whitespace check; source-and-sidecar-cache check",
-      "exit_code": 0,
-      "outcome": "PASS",
-      "result": "Compatibility, brand boundary, recovery boundary, whitespace checks, and source-and-sidecar-cache checks passed."
+      "summary": "4 stage tests passed."
     }
   ],
-  "non_actions": [
-    "No owner browser page, Social Archiver export, Reddit/X/Instagram account, token, session, password, Cookie, browser authentication header, provider network request, Docker service, private-data, cloud, deployment, push, merge, rebase, or new Git worktree action occurred.",
-    "The OAuth token files, OAuth and Sidecar responses, generic page, Social Archiver ZIP, and output artifacts were temporary local fixtures. Real canaries are separately recorded as NOT_RUN."
-  ]
+  "record_sha256": "275461957d167a5e40bd3dd829e7b0662ab88a164eae9377a538df192b2219f7"
 }

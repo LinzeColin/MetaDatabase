@@ -3,119 +3,172 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#101114">
-  <meta name="description" content="Social Archive 私人跨平台收藏档案馆">
+  <meta name="theme-color" content="#f5f6f2">
+  <meta name="description" content="Social Archive：一键保存网页与多平台收藏到私人资料库">
   <title>Social Archive</title>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="manifest" href="/assets/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
-  <a class="skip" href="#main">跳到主要内容</a>
-  <header class="topbar">
-    <div class="brand" aria-label="Social Archive">
-      <span class="brand-mark" aria-hidden="true">SA</span>
-      <span><strong>Social Archive</strong><small>你的私人收藏档案馆</small></span>
-    </div>
-    <div class="top-actions">
-      <button id="openImport" class="button secondary">导入备份</button>
-      <button id="openWizard" class="button secondary">新手向导</button>
-      <button id="refreshAll" class="button primary">刷新状态</button>
-    </div>
-  </header>
-
-  <div id="quotaBanner" class="banner hidden" role="status" aria-live="polite"></div>
-
-  <main id="main" class="layout">
-    <aside class="sidebar" aria-label="筛选与平台状态">
-      <section class="panel compact">
-        <label for="search">搜索</label>
-        <div class="search-row">
-          <input id="search" type="search" placeholder="标题、作者、正文或标签" autocomplete="off">
-          <button id="searchButton" class="icon-button" aria-label="搜索">⌕</button>
-        </div>
-      </section>
-
-      <section class="panel compact">
-        <h2>筛选</h2>
-        <label for="platformFilter">平台</label>
-        <select id="platformFilter">
-          <option value="">全部平台</option>
-          <option value="generic-web">通用网页</option><option value="x">X</option>
-          <option value="reddit">Reddit</option><option value="instagram">Instagram</option>
-          <option value="tiktok">TikTok</option><option value="xiaohongshu">小红书</option>
-          <option value="douyin">抖音</option><option value="kuaishou">快手</option>
-          <option value="bilibili">哔哩哔哩</option>
-        </select>
-        <label for="relationFilter">关系</label>
-        <select id="relationFilter">
-          <option value="">全部关系</option><option value="manual_save">手动保存</option>
-          <option value="bookmark">书签</option><option value="saved">收藏</option>
-          <option value="favorite">喜欢/收藏</option><option value="like">点赞</option>
-          <option value="upvoted">赞同</option><option value="watch_later">稍后看</option>
-          <option value="history">历史</option><option value="collection">收藏夹</option>
-        </select>
-        <label for="collectionFilter">收藏夹</label>
-        <input id="collectionFilter" type="search" placeholder="例如：稍后阅读" autocomplete="off">
-        <div class="filter-date-range" role="group" aria-labelledby="observedRangeLabel">
-          <span id="observedRangeLabel" class="filter-label">最近保存时间</span>
-          <div class="date-inputs">
-            <label>从<input id="observedFrom" type="date"></label>
-            <label>至<input id="observedTo" type="date"></label>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel connector-panel">
-        <div class="section-heading"><h2>平台状态</h2><span id="connectorSummary" class="pill">读取中</span></div>
-        <div id="connectors" class="connector-list" aria-live="polite"></div>
-      </section>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <a class="brand" href="/home" data-route="home" aria-label="Social Archive 首页">
+        <span class="brand-mark" aria-hidden="true">SA</span>
+        <span><strong>Social Archive</strong><small>你的私人收藏档案馆</small></span>
+      </a>
+      <nav class="main-nav">
+        <a href="/home" data-route="home"><span aria-hidden="true">⌂</span>首页</a>
+        <a href="/library" data-route="library"><span aria-hidden="true">▦</span>资料库</a>
+        <a href="/connections" data-route="connections"><span aria-hidden="true">◎</span>连接中心</a>
+        <a href="/tasks" data-route="tasks"><span aria-hidden="true">↻</span>任务中心 <b id="navTaskBadge" class="nav-badge hidden">0</b></a>
+        <a href="/settings" data-route="settings"><span aria-hidden="true">⚙</span>设置</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="system-chip"><i id="serviceDot"></i><span><strong id="serviceState">正在检查</strong><small id="serviceVersion">Social Archive</small></span></div>
+        <p>免费 · 私有 · 不依赖模型</p>
+      </div>
     </aside>
 
-    <section class="content">
-      <div class="content-heading">
-        <div><p class="eyebrow">统一资料库</p><h1>所有收藏，一个入口</h1><p id="resultSummary" class="muted">正在读取内容…</p></div>
-        <div class="view-toggle" role="group" aria-label="视图切换">
-          <button data-view="feed">时间线</button><button data-view="grid" class="active">网格</button>
+    <div class="workspace">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark">SA</span><strong>Social Archive</strong></div>
+        <div class="topbar-copy"><strong id="pageTitle">首页</strong><span id="pageSubtitle">一键保存，自动归档</span></div>
+        <div class="topbar-actions">
+          <button id="quickSaveButton" class="button ghost">保存链接</button>
+          <button id="refreshButton" class="icon-button" aria-label="刷新当前页面">↻</button>
         </div>
-      </div>
-      <div id="emptyState" class="empty hidden">
-        <div class="empty-icon" aria-hidden="true">＋</div>
-        <h2>先保存第一条内容</h2>
-        <p>在 Chrome 中加载 Social Archive 扩展，打开任意页面，点击“保存当前页面”。无需先配置平台账号。</p>
-        <button class="button primary" id="emptyWizard">查看三步向导</button>
-      </div>
-      <div id="library" class="library grid" aria-live="polite"></div>
-    </section>
-  </main>
+      </header>
 
-  <dialog id="detailDialog" class="dialog">
-    <button id="closeDetail" class="dialog-close" aria-label="关闭">×</button>
+      <main id="main" tabindex="-1">
+        <section class="page" data-page="home" aria-labelledby="homeTitle">
+          <div class="hero">
+            <div class="hero-copy">
+              <p class="eyebrow">看到有用的，点一下就收好</p>
+              <h1 id="homeTitle">把散落在各个平台的收藏，变成你自己的资料。</h1>
+              <p class="hero-lead">小红书、抖音、快手、B站、X、Reddit、Instagram 和普通网页，都从同一个入口保存、搜索和导出。</p>
+              <div class="hero-actions">
+                <button id="heroPrimary" class="button primary">检测浏览器插件</button>
+                <button id="heroLinkSave" class="button secondary">先保存一个链接</button>
+              </div>
+              <p id="extensionStatusLine" class="microcopy">正在检测 Social Archive 插件…</p>
+            </div>
+            <div class="hero-visual" aria-label="保存流程示意">
+              <div class="capture-card">
+                <div class="capture-source"><span class="source-icon">小</span><div><strong>一篇值得保留的笔记</strong><small>xiaohongshu.com</small></div><span class="saved-check">✓</span></div>
+                <div class="capture-body"><span></span><span></span><span></span></div>
+                <button type="button" tabindex="-1">保存到我的档案馆</button>
+              </div>
+              <div class="destination-stack" aria-hidden="true">
+                <span>Markdown</span><span>Notion</span><span>Obsidian</span><span>GitHub</span>
+              </div>
+            </div>
+          </div>
+
+          <section class="setup-section" aria-labelledby="setupTitle">
+            <div class="section-heading"><div><p class="eyebrow">三步开始使用</p><h2 id="setupTitle">第一次只需要设置一次</h2></div><span id="setupProgress" class="progress-label">0 / 3</span></div>
+            <div class="setup-grid">
+              <article class="setup-card" data-step="extension">
+                <div class="step-number">1</div><div><h3>安装并连接插件</h3><p>安装后，网页右侧会出现“保存到我的档案馆”。</p><button id="installExtension" class="text-action">安装或查看状态 →</button></div><span class="step-state" id="extensionStepState">检查中</span>
+              </article>
+              <article class="setup-card" data-step="sources">
+                <div class="step-number">2</div><div><h3>授权常用平台</h3><p>只授权你需要的平台；账号密码和 Cookie 不交给服务器。</p><a class="text-action" href="/connections" data-route="connections">管理平台 →</a></div><span class="step-state" id="sourceStepState">未检查</span>
+              </article>
+              <article class="setup-card" data-step="destinations">
+                <div class="step-number">3</div><div><h3>选择自动导出位置</h3><p>主档案和 Markdown 开箱即用，Notion、Obsidian、GitHub 按需连接。</p><a class="text-action" href="/connections" data-route="connections">管理目的地 →</a></div><span class="step-state" id="destinationStepState">未检查</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="save-panel" aria-labelledby="saveLinkTitle">
+            <div><p class="eyebrow">免插件也能用</p><h2 id="saveLinkTitle">粘贴链接，立即保存</h2><p>插件暂时不可用时，普通网页保存仍然是全局保底。</p></div>
+            <form id="saveLinkForm" class="save-form">
+              <label class="sr-only" for="saveUrl">网页链接</label>
+              <input id="saveUrl" type="url" inputmode="url" placeholder="粘贴小红书、B站、X 或任意网页链接" required autocomplete="off">
+              <select id="saveRelation" aria-label="保存类型"><option value="saved">收藏</option><option value="bookmark">书签</option><option value="like">点赞</option><option value="watch_later">稍后看</option><option value="manual_save">手动保存</option></select>
+              <button class="button primary" type="submit">保存</button>
+            </form>
+            <div id="saveFeedback" class="inline-feedback hidden" role="status" aria-live="polite"></div>
+          </section>
+
+          <section class="dashboard-grid">
+            <article class="dashboard-card"><div class="section-heading"><div><p class="eyebrow">最近保存</p><h2>刚刚进入档案馆</h2></div><a href="/library" data-route="library">查看全部</a></div><div id="recentItems" class="recent-list"><div class="skeleton"></div><div class="skeleton"></div></div></article>
+            <article class="dashboard-card"><div class="section-heading"><div><p class="eyebrow">当前状态</p><h2>只告诉你需要做什么</h2></div><a href="/tasks" data-route="tasks">任务中心</a></div><div id="homeStatus" class="status-stack"><div class="skeleton"></div><div class="skeleton"></div></div><div id="storageStatus" class="status-stack"></div></article>
+          </section>
+        </section>
+
+        <section class="page" data-page="library" aria-labelledby="libraryTitle">
+          <div class="page-heading"><div><p class="eyebrow">你的全部资料</p><h1 id="libraryTitle">资料库</h1><p id="librarySummary">正在读取…</p></div><div class="library-heading-actions"><div class="view-toggle" role="group" aria-label="视图切换"><button type="button" data-view="feed">时间线</button><button type="button" data-view="grid" class="active">网格</button></div><button id="openImport" class="button ghost">导入 ZIP</button><button id="librarySaveButton" class="button primary">保存新链接</button></div></div>
+          <div class="library-toolbar">
+            <label class="search-box"><span aria-hidden="true">⌕</span><input id="librarySearch" type="search" placeholder="搜索标题、作者、正文或标签"></label>
+            <button id="filterToggle" class="button ghost" aria-expanded="false">筛选</button>
+            <div id="filterPanel" class="filter-panel hidden">
+              <label>平台<select id="platformFilter"><option value="">全部平台</option><option value="generic-web">普通网页</option><option value="xiaohongshu">小红书</option><option value="douyin">抖音</option><option value="kuaishou">快手</option><option value="bilibili">B站</option><option value="x">X</option><option value="reddit">Reddit</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option></select></label>
+              <label>关系<select id="relationFilter"><option value="">全部关系</option><option value="saved">收藏</option><option value="like">点赞</option><option value="bookmark">书签</option><option value="watch_later">稍后看</option><option value="manual_save">手动保存</option></select></label>
+              <label>收藏夹<input id="collectionFilter" type="search" placeholder="例如：稍后阅读" autocomplete="off"></label>
+              <div class="filter-date-range" role="group" aria-labelledby="observedRangeLabel"><span id="observedRangeLabel" class="filter-label">最近保存时间</span><div class="date-inputs"><label>从<input id="observedFrom" type="date"></label><label>至<input id="observedTo" type="date"></label></div></div>
+              <button id="clearFilters" class="button ghost">清空</button>
+            </div>
+          </div>
+          <div id="libraryEmpty" class="empty-state hidden"><div class="empty-illustration">＋</div><h2>先保存第一条内容</h2><p>安装插件后打开任意页面点击一次，或先粘贴一个链接。</p><button class="button primary" data-open-save>保存第一条</button></div>
+          <div id="library" class="library grid"><div id="libraryGrid" class="library-grid" aria-live="polite"></div></div>
+        </section>
+
+        <section class="page" data-page="connections" aria-labelledby="connectionsTitle">
+          <div class="page-heading"><div><p class="eyebrow">一次授权，之后自动完成</p><h1 id="connectionsTitle">连接中心</h1><p>平台权限与目的地写入分开显示；只有真实探针成功才叫“已连接”。</p></div><button id="probeAllDestinations" class="button secondary">检查全部目的地</button></div>
+          <section class="connection-section"><div class="section-heading"><div><h2>来源平台</h2><p>浏览器权限是“已授权”，真实读取成功才是“已连接”。</p></div><span id="sourceCount" class="summary-pill">读取中</span></div><div id="sourceCards" class="connection-grid"></div></section>
+          <section class="connection-section"><div class="section-heading"><div><h2>自动导出</h2><p>某个目的地失败不会撤销主档案；失败项可单独重试。</p></div><span id="destinationCount" class="summary-pill">读取中</span></div><div id="destinationCards" class="connection-grid destinations-grid"></div></section>
+          <section class="connection-section"><div class="section-heading"><div><h2>内部归档引擎</h2><p>由 Social Archive 自动调用，日常不需要分别打开。</p></div><span class="summary-pill neutral">自动路由</span></div><div id="engineGrid" class="engine-grid"></div></section>
+        </section>
+
+        <section class="page" data-page="tasks" aria-labelledby="tasksTitle">
+          <div class="page-heading"><div><p class="eyebrow">真实进度与唯一修复动作</p><h1 id="tasksTitle">任务中心</h1><p id="taskSummary">正在读取…</p></div><button id="retryFailed" class="button secondary">重试全部失败项</button></div>
+          <div class="task-tabs" role="tablist"><button class="active" data-task-filter="all">全部</button><button data-task-filter="active">处理中</button><button data-task-filter="needs">需要处理</button><button data-task-filter="done">已完成</button></div>
+          <div id="taskList" class="task-list"></div>
+          <section class="receipt-section"><div class="section-heading"><div><h2>最近导出回执</h2><p>Notion、Obsidian、GitHub 和 Markdown 的真实写入结果。</p></div></div><div id="receiptList" class="receipt-list"></div></section>
+        </section>
+
+        <section class="page" data-page="settings" aria-labelledby="settingsTitle">
+          <div class="page-heading"><div><p class="eyebrow">少而清楚的默认值</p><h1 id="settingsTitle">设置</h1><p>技术配置由系统管理；这里仅保留日常会用到的选择。</p></div></div>
+          <div class="settings-grid">
+            <section class="settings-card"><h2>默认归档内容</h2><label class="toggle-row"><span><strong>L0 · 关系与链接</strong><small>收藏、点赞、来源、原始链接</small></span><input type="checkbox" checked disabled></label><label class="toggle-row"><span><strong>L1 · 正文与元数据</strong><small>标题、作者、正文、发布时间</small></span><input type="checkbox" checked disabled></label><label class="toggle-row"><span><strong>L3 · 原始媒体</strong><small>图片、视频、字幕；配额不足自动降级</small></span><input id="settingL3" type="checkbox" checked></label><label class="toggle-row"><span><strong>L2 · 页面快照</strong><small>默认关闭，仅在你主动选择时使用</small></span><input id="settingL2" type="checkbox"></label></section>
+            <section class="settings-card"><h2>浏览器体验</h2><label class="toggle-row"><span><strong>平台悬浮保存按钮</strong><small>仅在已授权平台显示</small></span><input id="settingFab" type="checkbox" checked></label><label class="toggle-row"><span><strong>保存后自动打开任务中心</strong><small>默认关闭，不打断浏览</small></span><input id="settingOpenTasks" type="checkbox"></label><button id="openExtensionSettings" class="button secondary full">打开插件设置</button></section>
+            <section class="settings-card danger-safe"><h2>隐私与恢复</h2><ul class="plain-list"><li><span>账号密码与 Cookie</span><strong>不交给服务器</strong></li><li><span>默认费用</span><strong>A$0</strong></li><li><span>主档案</span><strong>Private-Database</strong></li><li><span>对象副本</span><strong>R2 / OCI / GitHub Private</strong></li></ul><a class="button ghost full" href="/api/docs" target="_blank" rel="noopener">查看 API 状态</a></section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="saveDialog" class="modal">
+    <form method="dialog"><button class="modal-close" aria-label="关闭">×</button></form>
+    <p class="eyebrow">保存新链接</p><h2>放进你的档案馆</h2>
+    <form id="dialogSaveForm" class="modal-form">
+      <label>网页链接<input id="dialogSaveUrl" type="url" required placeholder="https://"></label>
+      <div class="form-row"><label>保存为<select id="dialogRelation"><option value="saved">收藏</option><option value="bookmark">书签</option><option value="like">点赞</option><option value="watch_later">稍后看</option><option value="manual_save">手动保存</option></select></label><label>收藏夹<input id="dialogCollection" placeholder="可留空"></label></div>
+      <button class="button primary full" type="submit">保存到我的档案馆</button>
+      <div id="dialogFeedback" class="inline-feedback hidden" role="status"></div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="modal detail-modal">
+    <form method="dialog"><button class="modal-close" aria-label="关闭">×</button></form>
     <div id="detailContent"></div>
   </dialog>
 
-  <dialog id="wizardDialog" class="dialog wizard">
-    <button id="closeWizard" class="dialog-close" aria-label="关闭">×</button>
-    <p class="eyebrow">零技术门槛</p><h2>三步开始使用</h2>
-    <ol class="steps">
-      <li><span>1</span><div><strong>打开浏览器扩展</strong><p>管理员只需安装一次。日常使用不需要终端、代码或服务器命令。</p></div></li>
-      <li><span>2</span><div><strong>连接我的档案馆</strong><p>首次使用输入一次配对码；扩展会显示服务、平台和 Notion／Obsidian／GitHub 的授权状态。</p></div></li>
-      <li><span>3</span><div><strong>一键保存</strong><p>在本人可访问的页面点击“保存当前页面”或悬浮按钮。L0/L1 立即入库，L3 下载与三地密文备份在任务中心显示进度。</p></div></li>
-    </ol>
-    <div class="callout"><strong>任何单个平台失效都不影响通用剪藏。</strong>失败任务可在侧边栏直接重试；只有 R2、OCI、GitHub 三张密文收据齐全时才显示“归档完成 3/3”。</div>
-  </dialog>
-
-
-  <dialog id="importDialog" class="dialog wizard">
-    <button id="closeImport" class="dialog-close" aria-label="关闭">×</button>
+  <dialog id="importDialog" class="modal">
+    <form method="dialog"><button id="closeImport" class="modal-close" aria-label="关闭">×</button></form>
     <p class="eyebrow">西方平台快速迁移</p><h2>导入 Social Archiver / Markdown ZIP</h2>
-    <p>选择本人导出的 ZIP。系统只读取其中的 Markdown，不解压执行文件；导入后立即进入统一索引，并按 L0/L1/L3 继续归档。</p>
-    <label for="archiveFile">导出包</label>
-    <input id="archiveFile" type="file" accept=".zip,application/zip">
-    <div class="top-actions"><button id="importArchive" class="button primary">开始导入</button></div>
-    <p id="importMessage" class="muted" role="status" aria-live="polite"></p>
+    <div class="modal-form">
+      <p class="microcopy">选择本人导出的 ZIP。系统只读取其中的 Markdown，不解压执行文件。</p>
+      <label>导出包<input id="archiveFile" type="file" accept=".zip,application/zip"></label>
+      <button id="importArchive" class="button primary full" type="button">开始导入</button>
+      <p id="importMessage" class="microcopy" role="status" aria-live="polite"></p>
+    </div>
   </dialog>
 
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="/assets/app.js" defer></script>
 </body>
 </html>

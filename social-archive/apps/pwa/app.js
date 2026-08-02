@@ -1,170 +1,121 @@
-const savedView = localStorage.getItem('sa-view');
-const state = { items: [], view: savedView === 'list' ? 'feed' : (savedView === 'feed' || savedView === 'grid' ? savedView : 'grid') };
-const $ = (id) => document.getElementById(id);
-const escapeHtml = (s='') => String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-const platformNames = {'generic-web':'通用网页','x':'X','reddit':'Reddit','instagram':'Instagram','tiktok':'TikTok','xiaohongshu':'小红书','douyin':'抖音','kuaishou':'快手','bilibili':'哔哩哔哩'};
-const relationNames = {manual_save:'手动保存',bookmark:'书签',saved:'收藏',favorite:'喜欢/收藏',like:'点赞',upvoted:'赞同',watch_later:'稍后看',history:'历史',collection:'收藏夹'};
-const needsUrl = new Set(['generic-web','tiktok','xiaohongshu','douyin','kuaishou']);
-
-async function api(path, options={}) {
-  const response = await fetch(path, {headers:{'Content-Type':'application/json'}, ...options});
-  if (!response.ok) {
-    const body = await response.json().catch(()=>({detail:'请求失败'}));
-    throw new Error(body.detail || `HTTP ${response.status}`);
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const state = { route: "home", items: [], connectors: [], destinations: [], jobs: [], receipts: [], extension: { detected: false, paired: false, checking: true }, taskFilter: "all", libraryView: localStorage.getItem("sa-library-view") === "feed" ? "feed" : "grid" };
+  const pageMeta = {
+    home: ["首页", "一键保存，自动归档"], library: ["资料库", "搜索全部收藏与正文"],
+    connections: ["连接中心", "平台授权与自动导出"], tasks: ["任务中心", "真实进度、失败与重试"], settings: ["设置", "只保留日常需要的选择"]
+  };
+  const platformNames = {"generic-web":"普通网页",xiaohongshu:"小红书",douyin:"抖音",tiktok:"TikTok",kuaishou:"快手",bilibili:"B站",x:"X",reddit:"Reddit",instagram:"Instagram"};
+  const relationNames = {manual_save:"手动保存",bookmark:"书签",saved:"收藏",favorite:"收藏",like:"点赞",upvoted:"赞同",watch_later:"稍后看",history:"历史",collection:"收藏夹"};
+  const destinationNames = {social_archive:"我的档案馆",markdown:"Markdown",notion:"Notion",obsidian:"Obsidian",github:"GitHub 私有库"};
+  const engineNames = [
+    ["网页正文","内置 Readability 式提取"],["西方平台","Social Archiver 导入 / gallery-dl / Instaloader"],
+    ["小红书","XHS-Downloader Sidecar"],["抖音 / TikTok","DouK / gallery-dl / yt-dlp"],
+    ["快手","KS-Downloader Sidecar"],["B站","bilibili-cli / yt-dlp"],
+    ["阅读与检索","Karakeep 或 Linkwarden"],["深度证据","ArchiveBox / ArchiveWeb.page（按需）"]
+  ];
+  const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+  const api = async (path, options={}) => {
+    const headers = new Headers(options.headers || {}); if (options.body && !headers.has("Content-Type")) headers.set("Content-Type","application/json");
+    const response = await fetch(path,{...options,headers}); const text=await response.text(); let data={};
+    try{data=text?JSON.parse(text):{};}catch(_){data={detail:text};} if(!response.ok) throw new Error(data.detail||`请求失败（${response.status}）`); return data;
+  };
+  const toast = (message,type="") => { const el=$("toast"); el.textContent=message; el.className=`toast show ${type}`.trim(); clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.className="toast",3200); };
+  const dateText = value => { if(!value)return"时间未知"; const d=new Date(value); return Number.isNaN(d.getTime())?String(value):new Intl.DateTimeFormat("zh-CN",{dateStyle:"medium"}).format(d); };
+  function normalizeRoute(path=location.pathname){ const key=path.split("/").filter(Boolean)[0]||"home"; return ["home","library","connections","tasks","settings"].includes(key)?key:"home"; }
+  function navigate(route,push=true){ state.route=route; document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===route)); document.querySelectorAll("[data-route]").forEach(a=>a.classList.toggle("active",a.dataset.route===route)); const meta=pageMeta[route]; $("pageTitle").textContent=meta[0]; $("pageSubtitle").textContent=meta[1]; if(push&&location.pathname!==`/${route}`) history.pushState({route},"",`/${route}`); $("main").focus({preventScroll:true}); refreshRoute(route); }
+  async function refreshRoute(route){ if(route==="home") await Promise.allSettled([loadBootstrap(),loadLibrary(true),loadStorageStatus()]); if(route==="library") await loadLibrary(); if(route==="connections") await loadBootstrap(); if(route==="tasks") await loadTasks(); }
+  async function loadHealth(){ try{const data=await api("/health"); $("serviceState").textContent="服务正常"; $("serviceVersion").textContent=`v${data.version}`; $("serviceDot").className="ok";}catch(_){$("serviceState").textContent="服务需要检查";$("serviceDot").className="warn";} }
+  async function loadBootstrap(){
+    try{
+      const data=await api("/v1/extension/bootstrap"); state.connectors=data.connectors||[]; state.destinations=data.destinations||[]; state.jobs=data.jobs||[];
+      renderHomeStatus(data); renderConnections(); updateTaskBadge(); updateSetup();
+    }catch(error){ state.connectors=[];state.destinations=[]; renderHomeStatus({error:error.message}); renderConnections(); updateSetup(); }
   }
-  return response.json();
-}
-
-function dateText(value) {
-  if (!value) return '时间未知';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('zh-CN',{dateStyle:'medium'}).format(date);
-}
-
-function renderItems(items) {
-  state.items = items;
-  const library = $('library');
-  library.className = `library ${state.view}`;
-  $('resultSummary').textContent = `${items.length} 条内容 · 默认 L0 / L1 / L3`;
-  $('emptyState').classList.toggle('hidden', items.length !== 0);
-  library.innerHTML = items.map(item => `
-    <button class="card" data-id="${escapeHtml(item.id)}" aria-label="打开 ${escapeHtml(item.title || item.canonical_url)}">
-      <div class="card-cover"><span class="platform-tag">${escapeHtml(platformNames[item.platform] || item.platform)}</span></div>
-      <div class="card-body">
-        <h3>${escapeHtml(item.title || '未命名内容')}</h3>
-        <p>${escapeHtml(item.author_name || item.canonical_url || '')}</p>
-        <div class="card-meta"><span>${escapeHtml(relationNames[item.relation_type] || item.relation_type || '已保存')} · ${dateText(item.last_observed_at)}</span>
-          <span class="level-badges"><span class="level">L0</span><span class="level">L1</span>${Number(item.artifact_count)>1?'<span class="level">L3</span>':''}</span>
-        </div>
-      </div>
-    </button>`).join('');
-  library.querySelectorAll('.card').forEach(card => card.addEventListener('click', () => openDetail(card.dataset.id)));
-}
-
-async function loadLibrary() {
-  const params = new URLSearchParams();
-  const q = $('search').value.trim();
-  const platform = $('platformFilter').value;
-  const relation = $('relationFilter').value;
-  const collection = $('collectionFilter').value.trim();
-  const observedFrom = $('observedFrom').value;
-  const observedTo = $('observedTo').value;
-  if (q) params.set('q', q); if (platform) params.set('platform', platform); if (relation) params.set('relation', relation);
-  if (collection) params.set('collection', collection); if (observedFrom) params.set('observed_from', observedFrom); if (observedTo) params.set('observed_to', observedTo);
-  try { const data = await api(`/v1/library?${params}`); renderItems(data.items || []); }
-  catch (error) { $('resultSummary').textContent = `读取失败：${error.message}`; renderItems([]); }
-}
-
-async function runConnector(id, stateValue, button) {
-  const body = {limit:20, requested_levels:['L0','L1','L3']};
-  if (needsUrl.has(id)) {
-    const value = window.prompt(`粘贴${platformNames[id] || id}中你本人可访问的链接`);
-    if (!value) return;
-    body.url = value;
+  function updateSetup(){
+    const extDone=state.extension.detected&&state.extension.paired; const sourceDone=state.connectors.some(x=>x.state==="healthy"); const destinationDone=state.destinations.filter(x=>x.state==="connected").length>=2;
+    const steps=[["extension",extDone,"extensionStepState",state.extension.checking?"检查中":(extDone?"已连接":state.extension.detected?"待连接":"未安装")],["sources",sourceDone,"sourceStepState",sourceDone?"已连接":"可稍后设置"],["destinations",destinationDone,"destinationStepState",destinationDone?"已就绪":"可稍后设置"]];
+    steps.forEach(([key,done,id,label])=>{document.querySelector(`[data-step="${key}"]`)?.classList.toggle("complete",done); const el=$(id); if(el){el.textContent=label;el.classList.toggle("done",done);}}); $("setupProgress").textContent=`${steps.filter(x=>x[1]).length} / 3`;
   }
-  if (id === 'x') body.relation_type = 'bookmark';
-  if (id === 'reddit') body.relation_type = 'saved';
-  button.disabled = true; button.textContent = '读取中…';
-  try {
-    const data = await api(`/v1/connectors/${encodeURIComponent(id)}/run`, {method:'POST', body:JSON.stringify(body)});
-    alert(data.next_action_zh || `已导入 ${data.imported || 0} 条`);
-    await Promise.all([loadLibrary(),loadConnectors(),loadQuota()]);
-  } catch (error) {
-    alert(`暂时不能读取：${error.message}\n你仍可使用浏览器扩展“保存当前页面”。`);
-  } finally { button.disabled = false; button.textContent = stateValue === 'healthy' ? '读取/保存' : '尝试读取'; }
-}
-
-async function loadConnectors() {
-  try {
-    const data = await api('/v1/connectors');
-    const items = data.items || [];
-    const healthy = items.filter(x=>x.state==='healthy').length;
-    $('connectorSummary').textContent = `${healthy}/${items.length} 可用`;
-    $('connectors').innerHTML = items.map(x=>`<div class="connector" title="${escapeHtml(x.next_action_zh)}"><span class="dot ${escapeHtml(x.state)}"></span><span><strong>${escapeHtml(x.display_name)}</strong><small>${escapeHtml(x.next_action_zh)}</small></span><button class="connector-run" data-connector="${escapeHtml(x.connector_id)}" data-state="${escapeHtml(x.state)}">${x.state==='healthy'?'读取/保存':'尝试读取'}</button></div>`).join('');
-    $('connectors').querySelectorAll('.connector-run').forEach(button => button.addEventListener('click', () => runConnector(button.dataset.connector, button.dataset.state, button)));
-  } catch (error) { $('connectors').innerHTML = `<p class="muted">状态读取失败：${escapeHtml(error.message)}</p>`; }
-}
-
-async function loadQuota() {
-  try {
-    const data = await api('/v1/storage/status');
-    const banner = $('quotaBanner');
-    banner.textContent = data.message_zh || '';
-    banner.classList.toggle('hidden', data.l3_allowed && !String(data.message_zh).includes('接近'));
-  } catch (_) {}
-}
-
-async function openDetail(id) {
-  try {
-    const item = await api(`/v1/library/${encodeURIComponent(id)}`);
-    const relations = Array.isArray(item.relations) ? item.relations : [];
-    const relationPills = relations.length ? relations.map(relation => {
-      const label = relationNames[relation.relation_type] || relation.relation_type || '已保存';
-      const collection = relation.collection_key ? ` · ${relation.collection_key}` : '';
-      return `<span class="pill">${escapeHtml(label + collection)}</span>`;
-    }).join('') : '<span class="pill">已保存</span>';
-    const relationHistory = relations.length ? `<section class="relation-history" aria-label="关系历史"><h3>关系历史</h3><ul>${relations.map(relation => {
-      const label = relationNames[relation.relation_type] || relation.relation_type || '已保存';
-      const collection = relation.collection_key ? ` · ${relation.collection_key}` : '';
-      const status = relation.status === 'closed' ? '已关闭' : (relation.status === 'active' ? '生效中' : (relation.status || '状态未知'));
-      const missing = Number(relation.missing_complete_scan_count || 0);
-      const facts = [`首次 ${dateText(relation.first_observed_at)}`, `最近 ${dateText(relation.last_observed_at)}`];
-      if (missing) facts.push(`完整扫描缺失 ${missing} 次`);
-      if (relation.closed_at) facts.push(`关闭 ${dateText(relation.closed_at)}`);
-      return `<li><strong>${escapeHtml(label + collection)}</strong><span>${escapeHtml(status)}</span><small>${escapeHtml(facts.join(' · '))}</small></li>`;
-    }).join('')}</ul></section>` : '';
-    let metadata = {};
-    try { metadata = JSON.parse(item.metadata_json || '{}'); } catch (_) {}
-    $('detailContent').innerHTML = `<div class="detail-header"><p class="eyebrow">${escapeHtml(platformNames[item.platform]||item.platform)}</p><h2>${escapeHtml(item.title||'未命名内容')}</h2><div class="detail-meta">${relationPills}<span class="pill">${(item.artifacts||[]).length} 个制品</span><span class="pill">${escapeHtml(item.availability||'observed')}</span></div><a class="detail-link" href="${escapeHtml(item.canonical_url)}" target="_blank" rel="noopener noreferrer">打开原始页面</a>${relationHistory}<div class="detail-text">${escapeHtml(metadata.text || item.author_name || '正文已归档在 L1 制品中。')}</div></div>`;
-    $('detailDialog').showModal();
-    history.replaceState(null,'',`/item/${id}`);
-  } catch (error) { alert(`无法打开：${error.message}`); }
-}
-
-
-async function importSocialArchiverBundle() {
-  const input = $('archiveFile');
-  const file = input.files && input.files[0];
-  const message = $('importMessage');
-  if (!file) { message.textContent = '请先选择 ZIP 导出包。'; return; }
-  if (!file.name.toLowerCase().endsWith('.zip')) { message.textContent = '只接受 ZIP 导出包。'; return; }
-  const button = $('importArchive');
-  button.disabled = true; button.textContent = '导入中…'; message.textContent = '正在安全读取 Markdown…';
-  try {
-    const response = await fetch('/v1/import/social-archiver', {
-      method: 'POST',
-      headers: {'X-Archive-Filename': file.name},
-      body: file,
-    });
-    const result = await response.json().catch(()=>({detail:'导入失败'}));
-    if (!response.ok) throw new Error(result.detail || `HTTP ${response.status}`);
-    message.textContent = result.message_zh || `已导入 ${result.imported || 0} 条。`;
-    await Promise.all([loadLibrary(), loadConnectors(), loadQuota()]);
-  } catch (error) {
-    message.textContent = `导入失败：${error.message}`;
-  } finally {
-    button.disabled = false; button.textContent = '开始导入';
+  function renderHomeStatus(data){
+    const pending=(data.jobs||[]).filter(x=>!["done","succeeded","noop"].includes(x.status)).length; const connected=(data.destinations||[]).filter(x=>x.state==="connected").length;
+    $("homeStatus").innerHTML=data.error?`<div class="status-line warn"><i></i><span><strong>暂时不能读取服务状态</strong><small>${escapeHtml(data.error)}。普通网页仍可稍后重试。</small></span></div>`:[
+      `<div class="status-line"><i></i><span><strong>${connected} 个目的地可用</strong><small>主档案和 Markdown 默认可用；其他目的地按需连接。</small></span></div>`,
+      `<div class="status-line ${pending?"warn":""}"><i></i><span><strong>${pending?`${pending} 个任务正在处理或需要处理`:"当前没有待处理任务"}</strong><small>${pending?"进入任务中心可查看真实进度和唯一修复动作。":"保存后下载、导出和备份会自动进入这里。"}</small></span></div>`
+    ].join("");
   }
-}
-
-function showWizard(){ $('wizardDialog').showModal(); }
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[data-view]').forEach(button => {
-    button.classList.toggle('active', button.dataset.view === state.view);
-    button.addEventListener('click', () => { state.view=button.dataset.view; localStorage.setItem('sa-view',state.view); document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===button)); renderItems(state.items); });
-  });
-  $('searchButton').addEventListener('click', loadLibrary);
-  $('search').addEventListener('keydown', e => { if(e.key==='Enter') loadLibrary(); });
-  $('platformFilter').addEventListener('change', loadLibrary); $('relationFilter').addEventListener('change', loadLibrary);
-  $('collectionFilter').addEventListener('change', loadLibrary); $('observedFrom').addEventListener('change', loadLibrary); $('observedTo').addEventListener('change', loadLibrary);
-  $('refreshAll').addEventListener('click', () => Promise.all([loadLibrary(),loadConnectors(),loadQuota()]));
-  $('openImport').addEventListener('click', ()=>$('importDialog').showModal());
-  $('closeImport').addEventListener('click', ()=>$('importDialog').close());
-  $('importArchive').addEventListener('click', importSocialArchiverBundle);
-  $('openWizard').addEventListener('click', showWizard); $('emptyWizard').addEventListener('click', showWizard);
-  $('closeWizard').addEventListener('click', ()=>$('wizardDialog').close()); $('closeDetail').addEventListener('click', ()=>$('detailDialog').close());
-  $('detailDialog').addEventListener('close',()=>history.replaceState(null,'','/'));
-  Promise.all([loadLibrary(),loadConnectors(),loadQuota()]);
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('/assets/sw.js').catch(()=>{});
-});
+  async function loadStorageStatus(){try{const data=await api("/v1/storage/status");const warning=!data.l3_allowed||String(data.message_zh||"").includes("接近");$("storageStatus").innerHTML=`<div class="status-line ${warning?"warn":""}"><i></i><span><strong>${warning?"原始媒体归档已降级":"原始媒体配额可用"}</strong><small>${escapeHtml(data.message_zh||"L3 原始媒体仍可按默认策略归档。")}</small></span></div>`;}catch(error){$("storageStatus").innerHTML=`<div class="status-line warn"><i></i><span><strong>存储状态暂不可读</strong><small>${escapeHtml(error.message)}</small></span></div>`;}}
+  async function loadLibrary(recentOnly=false){
+    const params=new URLSearchParams(); const q=$("librarySearch")?.value.trim(); const platform=$("platformFilter")?.value; const relation=$("relationFilter")?.value;
+    const collection=$("collectionFilter")?.value.trim(); const observedFrom=$("observedFrom")?.value; const observedTo=$("observedTo")?.value;
+    if(q)params.set("q",q);if(platform)params.set("platform",platform);if(relation)params.set("relation",relation);
+    if(collection)params.set('collection', collection);if(observedFrom)params.set('observed_from', observedFrom);if(observedTo)params.set('observed_to', observedTo);params.set("limit",recentOnly?"4":"200");
+    try{const data=await api(`/v1/library?${params}`); state.items=data.items||[]; if(recentOnly)renderRecent(); else renderLibrary();}
+    catch(error){if(recentOnly)$("recentItems").innerHTML=`<div class="status-line warn"><i></i><span><strong>资料库暂时不可读</strong><small>${escapeHtml(error.message)}</small></span></div>`;else{$("librarySummary").textContent=`读取失败：${error.message}`;$("libraryGrid").innerHTML="";$("libraryEmpty").classList.remove("hidden");}}
+  }
+  function renderRecent(){ const items=state.items.slice(0,4); $("recentItems").innerHTML=items.length?items.map(i=>`<button class="recent-item" data-detail="${escapeHtml(i.id)}"><span class="platform-avatar">${escapeHtml((platformNames[i.platform]||i.platform||"网").slice(0,1))}</span><span><strong>${escapeHtml(i.title||"未命名内容")}</strong><small>${escapeHtml(platformNames[i.platform]||i.platform)} · ${escapeHtml(relationNames[i.relation_type]||i.relation_type||"已保存")}</small></span><time>${escapeHtml(dateText(i.last_observed_at))}</time></button>`).join(""):`<div class="status-line"><i></i><span><strong>还没有保存内容</strong><small>粘贴链接或安装插件，第一条内容会出现在这里。</small></span></div>`; bindDetails(); }
+  function setLibraryView(view){state.libraryView=view==="feed"?"feed":"grid";const library=$("library");library.classList.remove("feed","grid");library.classList.add(state.libraryView);document.querySelectorAll("[data-view]").forEach(button=>button.classList.toggle("active",button.dataset.view===state.libraryView));localStorage.setItem("sa-library-view",state.libraryView);}
+  function renderLibrary(){ const items=state.items; $("librarySummary").textContent=`${items.length} 条内容 · 默认 L0 / L1 / L3`; $("libraryEmpty").classList.toggle("hidden",items.length!==0); $("libraryGrid").innerHTML=items.map(i=>`<button class="library-card" data-detail="${escapeHtml(i.id)}"><div class="library-cover"><span class="platform-pill">${escapeHtml(platformNames[i.platform]||i.platform)}</span><span class="archive-pill">${Number(i.verified_replica_count||0)}/3 副本</span></div><div class="library-body"><h3>${escapeHtml(i.title||"未命名内容")}</h3><p>${escapeHtml(i.author_name||i.canonical_url||"")}</p><div class="library-meta"><span>${escapeHtml(relationNames[i.relation_type]||i.relation_type||"已保存")}</span><time>${escapeHtml(dateText(i.last_observed_at))}</time></div></div></button>`).join(""); bindDetails(); }
+  function bindDetails(){ document.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>openDetail(b.dataset.detail)); }
+  async function openDetail(id){
+    try{
+      const item=await api(`/v1/library/${encodeURIComponent(id)}`);
+      const relations=Array.isArray(item.relations)?item.relations:[];
+      const relationPills = relations.length?relations.map(relation=>{const label=relationNames[relation.relation_type]||relation.relation_type||"已保存";const collection=relation.collection_key?` · ${relation.collection_key}`:"";return `<span class="summary-pill">${escapeHtml(label+collection)}</span>`;}).join(""):'<span class="summary-pill">已保存</span>';
+      const relationHistory = relations.length?`<section class="relation-history" aria-label="关系历史"><h3>关系历史</h3><ul>${relations.map(relation=>{const label=relationNames[relation.relation_type]||relation.relation_type||"已保存";const collection=relation.collection_key?` · ${relation.collection_key}`:"";const status=relation.status==="closed"?"已关闭":relation.status==="active"?"生效中":relation.status||"状态未知";const missing=Number(relation.missing_complete_scan_count||0);const facts=[`首次 ${dateText(relation.first_observed_at)}`,`最近 ${dateText(relation.last_observed_at)}`];if(missing)facts.push(`完整扫描缺失 ${missing} 次`);if(relation.closed_at)facts.push(`关闭 ${dateText(relation.closed_at)}`);return `<li><strong>${escapeHtml(label+collection)}</strong><span>${escapeHtml(status)}</span><small>${escapeHtml(facts.join(" · "))}</small></li>`;}).join("")}</ul></section>`:"";
+      let metadata={};try{metadata=JSON.parse(item.metadata_json||"{}");}catch(_){metadata={};}
+      $("detailContent").innerHTML=`<p class="eyebrow">${escapeHtml(platformNames[item.platform]||item.platform)}</p><h2>${escapeHtml(item.title||"未命名内容")}</h2><div class="detail-meta">${relationPills}<span class="summary-pill">${(item.artifacts||[]).length} 个制品</span><span class="summary-pill">${escapeHtml(item.availability||"observed")}</span></div><a class="detail-link" href="${escapeHtml(item.canonical_url)}" target="_blank" rel="noopener noreferrer">打开原始页面 ↗</a>${relationHistory}<div class="detail-text">${escapeHtml(metadata.text||item.author_name||"正文与元数据已进入 L1 归档。")}</div>`;
+      $("detailDialog").showModal();
+    }catch(error){toast(`无法打开：${error.message}`,"error");}
+  }
+  async function importSocialArchiverBundle(){
+    const input=$("archiveFile");const file=input.files&&input.files[0];const message=$("importMessage");
+    if(!file){message.textContent="请先选择 ZIP 导出包。";return;}if(!file.name.toLowerCase().endsWith(".zip")){message.textContent="只接受 ZIP 导出包。";return;}
+    const button=$("importArchive");button.disabled=true;button.textContent="导入中…";message.textContent="正在安全读取 Markdown…";
+    try{const response=await fetch("/v1/import/social-archiver",{method:"POST",headers:{"X-Archive-Filename":file.name},body:file});const text=await response.text();let data={};try{data=text?JSON.parse(text):{};}catch(_){data={detail:text};}if(!response.ok)throw new Error(data.detail||`导入失败（${response.status}）`);message.textContent=data.message_zh||`已导入 ${data.imported||0} 条内容。`;input.value="";await loadLibrary();toast("导入完成");}
+    catch(error){message.textContent=`导入失败：${error.message}`;}
+    finally{button.disabled=false;button.textContent="开始导入";}
+  }
+  function renderConnections(){
+    const sources=state.connectors; $("sourceCount").textContent=`${sources.filter(x=>x.state==="healthy").length}/${sources.length||9} 可用`;
+    $("sourceCards").innerHTML=(sources.length?sources:Object.keys(platformNames).map(id=>({connector_id:id,display_name:platformNames[id],state:"blocked_environment",next_action_zh:"尚未检查"}))).map(x=>connectionCard(x,"source")).join("");
+    const dests=state.destinations; $("destinationCount").textContent=`${dests.filter(x=>x.state==="connected").length}/${dests.length||5} 已连接`; $("destinationCards").innerHTML=(dests.length?dests:Object.keys(destinationNames).map(id=>({destination_id:id,display_name:destinationNames[id],state:id==="social_archive"||id==="markdown"?"connected":"needs_user_action",next_action_zh:"尚未检查"}))).map(x=>connectionCard(x,"destination")).join("");
+    $("engineGrid").innerHTML=engineNames.map(([name,detail])=>`<div class="engine-chip"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(detail)}</small></div>`).join("");
+    document.querySelectorAll("[data-probe-destination]").forEach(b=>b.onclick=()=>probeDestination(b.dataset.probeDestination,b)); document.querySelectorAll("[data-open-extension]").forEach(b=>b.onclick=openExtensionOptions);
+  }
+  function connectionCard(item,type){const id=item.connector_id||item.destination_id;const name=item.display_name||platformNames[id]||destinationNames[id]||id;const stateName=statusCopy(item.state);const action=type==="destination"?`<button class="button ghost" data-probe-destination="${escapeHtml(id)}">检查连接</button>`:`<button class="button ghost" data-open-extension="${escapeHtml(id)}">在插件中授权</button>`;return `<article class="connection-card"><span class="connection-icon">${escapeHtml(name.slice(0,1))}</span><div><h3>${escapeHtml(name)}</h3><p>${escapeHtml(item.next_action_zh||"系统会自动选择可用路径。")}</p><div class="connection-actions">${action}</div></div><span class="state-label ${escapeHtml(item.state)}">${escapeHtml(stateName)}</span></article>`;}
+  function statusCopy(s){return({healthy:"已连接",connected:"已连接",authorized:"已授权",degraded:"降级可用",blocked_environment:"等待授权",needs_user_action:"需要处理",checking:"检查中",disabled:"未启用",paused:"已暂停",expired:"已失效"})[s]||s||"未知";}
+  async function probeDestination(id,button){button.disabled=true;button.textContent="检查中…";try{const result=await api(`/v1/destinations/${encodeURIComponent(id)}/probe`,{method:"POST"});toast(result.message_zh||"连接有效");await loadBootstrap();}catch(error){toast(error.message,"error");await loadBootstrap();}finally{button.disabled=false;button.textContent="检查连接";}}
+  async function loadTasks(){try{const [jobs,receipts]=await Promise.all([api("/v1/jobs?limit=100"),api("/v1/destinations/receipts?limit=50")]);state.jobs=jobs.items||[];state.receipts=receipts.items||[];renderTasks();updateTaskBadge();}catch(error){$("taskSummary").textContent=`读取失败：${error.message}`;$("taskList").innerHTML="";}}
+  function jobGroup(job){if(["done","succeeded","noop"].includes(job.status))return"done";if(["failed","retry","dead"].includes(job.status))return"needs";return"active";}
+  function renderTasks(){const visible=state.jobs.filter(j=>state.taskFilter==="all"||jobGroup(j)===state.taskFilter);const needs=state.jobs.filter(j=>jobGroup(j)==="needs").length;$("taskSummary").textContent=`${state.jobs.length} 个任务 · ${needs} 个需要处理`;$("taskList").innerHTML=visible.length?visible.map(j=>`<article class="task-row"><span class="task-symbol">${jobGroup(j)==="done"?"✓":"↻"}</span><span><strong>${escapeHtml(jobLabel(j.job_type))}</strong><small>${escapeHtml(j.last_error_message||`${j.connector_id||"系统"} · 尝试 ${j.attempt_count||0} 次`)}</small></span><span class="task-actions"><span class="task-state ${escapeHtml(j.status)}">${escapeHtml(statusCopy(j.status))}</span>${jobGroup(j)==="needs"?`<button class="task-retry" data-retry-job="${escapeHtml(j.id)}">重试</button>`:""}</span></article>`).join(""):`<div class="empty-state"><h2>没有匹配的任务</h2><p>保存内容后，下载、导出和备份进度会出现在这里。</p></div>`;document.querySelectorAll("[data-retry-job]").forEach(b=>b.onclick=()=>retryJob(b.dataset.retryJob,b));$("receiptList").innerHTML=state.receipts.length?state.receipts.map(r=>`<article class="receipt-row"><span class="task-symbol">${r.status==="done"?"✓":"!"}</span><span><strong>${escapeHtml(destinationNames[r.destination_id]||r.destination_id)}</strong><small>${escapeHtml(r.message_zh||r.remote_ref||"已记录")}</small></span><span class="task-state ${escapeHtml(r.status)}">${escapeHtml(statusCopy(r.status))}</span></article>`).join(""):`<p class="microcopy">还没有导出回执。</p>`;}
+  const jobLabel=t=>({download_l3:"保存原始媒体",export_destination:"自动导出",replicate_object:"三地备份",sync_private_database:"同步长期事实",connector_run:"读取平台"})[t]||t||"归档任务";
+  async function retryJob(id,button){button.disabled=true;try{const r=await api(`/v1/jobs/${encodeURIComponent(id)}/retry`,{method:"POST"});toast(r.message_zh||"已重新加入队列");await loadTasks();}catch(error){toast(error.message,"error");button.disabled=false;}}
+  function updateTaskBadge(){const count=state.jobs.filter(j=>jobGroup(j)==="needs").length;$("navTaskBadge").textContent=String(count);$("navTaskBadge").classList.toggle("hidden",count===0);}
+  async function saveUrl(url,relation,collection,feedback){feedback.className="inline-feedback";feedback.textContent="正在保存…";try{const parsed=new URL(url);const p=platformFromUrl(parsed);const result=await api("/v1/captures",{method:"POST",body:JSON.stringify({platform:p,url:parsed.toString(),relation_type:relation||"saved",collection_key:collection||"",title:parsed.hostname,requested_levels:["L0","L1","L3"],destination_ids:["social_archive","markdown"]})});feedback.textContent="已保存。正文、媒体、导出和备份进度可在任务中心查看。";toast("已保存到你的档案馆");await Promise.allSettled([loadLibrary(state.route==="home"),loadBootstrap()]);return result;}catch(error){feedback.className="inline-feedback error";feedback.textContent=`保存失败：${error.message}`;throw error;}}
+  function platformFromUrl(url){const h=url.hostname.toLowerCase();const t=x=>h===x||h.endsWith(`.${x}`);if(t("xiaohongshu.com"))return"xiaohongshu";if(t("douyin.com"))return"douyin";if(t("tiktok.com"))return"tiktok";if(t("kuaishou.com"))return"kuaishou";if(t("bilibili.com"))return"bilibili";if(t("x.com")||t("twitter.com"))return"x";if(t("reddit.com"))return"reddit";if(t("instagram.com"))return"instagram";return"generic-web";}
+  function openSaveDialog(){ $("saveDialog").showModal(); setTimeout(()=>$("dialogSaveUrl").focus(),50); }
+  function postToExtension(type,payload={}){const requestId=crypto.randomUUID();return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{window.removeEventListener("message",onMessage);reject(new Error("没有检测到插件"));},1500);function onMessage(event){const d=event.data||{};if(event.source!==window||d.source!=="social-archive-extension"||d.requestId!==requestId)return;clearTimeout(timer);window.removeEventListener("message",onMessage);resolve(d);}window.addEventListener("message",onMessage);window.postMessage({source:"social-archive-web",type,requestId,...payload},location.origin);});}
+  async function detectExtension(){state.extension.checking=true;updateSetup();try{const result=await postToExtension("SA_PING");state.extension={detected:Boolean(result.detected),paired:Boolean(result.paired),checking:false,version:result.version};$("extensionStatusLine").textContent=result.paired?`插件 v${result.version} 已连接，可以直接保存。`:`已检测到插件 v${result.version}，还需要连接私人档案馆。`;$("heroPrimary").textContent=result.paired?"插件已连接":"连接浏览器插件";}catch(_){state.extension={detected:false,paired:false,checking:false};$("extensionStatusLine").textContent="尚未检测到插件。可下载免费安装包，或先粘贴链接使用。";$("heroPrimary").textContent="安装浏览器插件";}updateSetup();}
+  async function primaryExtensionAction(){if(!state.extension.detected){location.href="/downloads/social-archive-extension.zip";return;}if(state.extension.paired){toast("插件已经连接，可在任意网页点击保存");return;}try{const status=await api("/v1/pairing/status");if(status.pairing_required===false&&status.service_ready){const result=await postToExtension("SA_CONFIGURE",{endpoint:location.origin,libraryUrl:location.origin});if(result.ok){toast("插件已连接");await detectExtension();return;}}openExtensionOptions();}catch(_){openExtensionOptions();}}
+  function openExtensionOptions(){postToExtension("SA_OPEN_OPTIONS").catch(()=>{location.href="/downloads/social-archive-extension.zip";});}
+  function saveSettings(){localStorage.setItem("sa-ui-settings",JSON.stringify({l2:$("settingL2").checked,l3:$("settingL3").checked,fab:$("settingFab").checked,openTasks:$("settingOpenTasks").checked}));toast("设置已保存");}
+  function loadSettings(){let s={};try{s=JSON.parse(localStorage.getItem("sa-ui-settings")||"{}");}catch(_){s={};}if(typeof s.l2==="boolean")$("settingL2").checked=s.l2;if(typeof s.l3==="boolean")$("settingL3").checked=s.l3;if(typeof s.fab==="boolean")$("settingFab").checked=s.fab;if(typeof s.openTasks==="boolean")$("settingOpenTasks").checked=s.openTasks;}
+  function bind(){
+    document.querySelectorAll("a[data-route]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();navigate(a.dataset.route);}));window.addEventListener("popstate",()=>navigate(normalizeRoute(),false));
+    $("refreshButton").onclick=()=>refreshRoute(state.route);$("quickSaveButton").onclick=openSaveDialog;$("heroLinkSave").onclick=openSaveDialog;$("librarySaveButton").onclick=openSaveDialog;$("openImport").onclick=()=>$("importDialog").showModal();$("importArchive").onclick=importSocialArchiverBundle;
+    document.querySelectorAll("[data-open-save]").forEach(b=>b.onclick=openSaveDialog);document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>setLibraryView(b.dataset.view));
+    $("heroPrimary").onclick=primaryExtensionAction;$("installExtension").onclick=primaryExtensionAction;$("openExtensionSettings").onclick=openExtensionOptions;
+    $("saveLinkForm").onsubmit=async e=>{e.preventDefault();await saveUrl($("saveUrl").value,$("saveRelation").value,"",$("saveFeedback")).catch(()=>{});};
+    $("dialogSaveForm").onsubmit=async e=>{e.preventDefault();const ok=await saveUrl($("dialogSaveUrl").value,$("dialogRelation").value,$("dialogCollection").value,$("dialogFeedback")).then(()=>true).catch(()=>false);if(ok)setTimeout(()=>$("saveDialog").close(),650);};
+    $("librarySearch").addEventListener("input",debounce(()=>loadLibrary(),240));$("collectionFilter").addEventListener("input",debounce(()=>loadLibrary(),240));$("platformFilter").onchange=loadLibrary;$("relationFilter").onchange=loadLibrary;$("observedFrom").onchange=loadLibrary;$("observedTo").onchange=loadLibrary;
+    $("filterToggle").onclick=()=>{const p=$("filterPanel");const open=p.classList.toggle("hidden")===false;$("filterToggle").setAttribute("aria-expanded",String(open));};
+    $("clearFilters").onclick=()=>{$("platformFilter").value="";$("relationFilter").value="";$("collectionFilter").value="";$("observedFrom").value="";$("observedTo").value="";loadLibrary();};
+    $("probeAllDestinations").onclick=async()=>{for(const d of state.destinations.filter(x=>!["social_archive","markdown"].includes(x.destination_id))){await probeDestination(d.destination_id,{disabled:false,textContent:""});}await loadBootstrap();};
+    document.querySelectorAll("[data-task-filter]").forEach(b=>b.onclick=()=>{state.taskFilter=b.dataset.taskFilter;document.querySelectorAll("[data-task-filter]").forEach(x=>x.classList.toggle("active",x===b));renderTasks();});
+    $("retryFailed").onclick=async()=>{for(const j of state.jobs.filter(x=>jobGroup(x)==="needs")){try{await api(`/v1/jobs/${encodeURIComponent(j.id)}/retry`,{method:"POST"});}catch(_){}}await loadTasks();};["settingL2","settingL3","settingFab","settingOpenTasks"].forEach(id=>$(id).onchange=saveSettings);
+  }
+  function debounce(fn,ms){let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),ms);};}
+  document.addEventListener("DOMContentLoaded",async()=>{bind();loadSettings();setLibraryView(state.libraryView);navigate(normalizeRoute(),false);await Promise.allSettled([loadHealth(),detectExtension()]);if("serviceWorker"in navigator)navigator.serviceWorker.register("/assets/sw.js").catch(()=>{});});
+})();

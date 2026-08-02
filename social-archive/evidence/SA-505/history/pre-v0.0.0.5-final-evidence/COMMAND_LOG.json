@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.1",
+  "task_id": "SA-505",
+  "verified_at_utc": "2026-07-30T21:56:10Z",
+  "commands": [
+    {
+      "id": "sa505_focused_regression_replay",
+      "command": "cd social-archive && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' .venv/bin/python -m pytest -q <16 SA-505 focused/stage test files>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "71 passed; one existing Starlette TestClient deprecation warning."
+    },
+    {
+      "id": "sa505_static_contract_replay",
+      "command": "cd social-archive && bash -n <deployment scripts>; docker compose -f compose.yaml config --no-env-resolution --no-interpolate --no-path-resolution -q; python validation/scan commands; git diff --check",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Shell syntax, Compose static structure, brand scan, secret scan, systemd/deployment validators and diff whitespace check all passed."
+    },
+    {
+      "id": "sa505_controlled_ovh_service_and_listener_readback",
+      "command": "controlled remote read-only systemd, Docker, listener, local-health and permission metadata probe",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Core 18765 and status 18780 each had exactly one loopback listener; local health was 200; Core, Worker and CLI were running; Tunnel and status timer were active; storage-dependent timers remained disabled."
+    },
+    {
+      "id": "sa505_external_direct_origin_probe",
+      "command": "two unauthenticated HTTP GET probes to the protected deployment address on 18765 and 18780",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Both direct external probes returned curl code 000; no host address is recorded here."
+    },
+    {
+      "id": "sa505_external_edge_behavior",
+      "command": "unauthenticated HTTPS probes for Library UI, API health, API business route, forged Access assertion, pairing status, unsupported method, pairing exchange rate behavior and status projection",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "UI 302; API health 200; API business route 401 with no Bearer and with forged assertion; pairing status 200; unsupported PUT 403; invalid exchange 409 then 429; status JSON/health 200 with no-store and the sanitized top-level schema."
+    },
+    {
+      "id": "sa505_real_pairing_round_trip",
+      "command": "controlled remote start.sh regeneration followed by HTTPS one-time-code exchange and Bearer-protected API status request; secret values remained in remote process memory",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Regenerated one-time code exchange returned 200; returned Bearer accessed business status with 200; source record remained present; consumption state was present in the Core container data volume with mode 0600."
+    },
+    {
+      "id": "sa505_cloudflare_control_plane_readback",
+      "command": "authenticated readback of Access apps/policies, service tokens, Tunnel, remote ingress, connections and three DNS records; visible authenticated dashboard review of security rules",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Tunnel was healthy, remote-managed and connected; ingress order matched UI/API/status/fallback/404; all three DNS records were proxied CNAMEs; Access app and owner allow policy existed; temporary test resources were zero. The dashboard showed the active unsupported-method Block rule and the active IP 1/10-second pairing Rate Limit Block rule."
+    }
+  ],
+  "diagnostics_not_used_as_acceptance": [
+    {
+      "id": "temporary_service_token_ui_probe",
+      "outcome": "NOT_ACCEPTANCE",
+      "result": "A 10-minute temporary service-token policy was allowed 18 seconds to propagate and returned 302 for UI and Library paths. It was sequentially removed with its token; subsequent control-plane readback was zero. No credential, ID or response body was persisted."
+    },
+    {
+      "id": "direct_rule_api_readback_scope",
+      "outcome": "ACCESS_UNAVAILABLE",
+      "result": "The available Cloudflare API scopes could read Tunnel, Access and DNS but not zone WAF/Rate Limit rules. Visible authenticated dashboard inspection plus real 403/429 external behavior supplied the accepted evidence instead."
+    }
+  ],
+  "non_actions": [
+    "No Git stage, commit, push, merge, rebase, pull request, GitHub release or additional worktree was created.",
+    "No credentials, cookies, tokens, host addresses, provider IDs, user content or runtime database data were stored in repository evidence.",
+    "No XHS, Douyin, Kuaishou, Bilibili, Reddit, X, Instagram, Notion, GitHub destination, Private-Database, R2 or OCI production provider canary was claimed.",
+    "No storage-dependent backup, replication or Private-Database sync timer was enabled."
+  ]
+}

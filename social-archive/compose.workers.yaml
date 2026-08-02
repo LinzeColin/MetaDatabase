@@ -10,11 +10,18 @@ services:
     - main.py
     - api
     profiles:
+    - domestic-stable
     - xhs
     ports:
     - 127.0.0.1:5556:5556
     volumes:
     - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}/xhs:/app/Volume
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 5556), 3); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
     restart: unless-stopped
     security_opt:
     - no-new-privileges:true
@@ -27,11 +34,18 @@ services:
     - main.py
     - api
     profiles:
+    - domestic-stable
     - kuaishou
     ports:
     - 127.0.0.1:5557:5557
     volumes:
     - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}/kuaishou:/app/Volume
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 5557), 3); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
     restart: unless-stopped
     security_opt:
     - no-new-privileges:true
@@ -42,14 +56,19 @@ services:
     command:
     - python
     - main.py
+    - api
     profiles:
     - douk-experimental
-    stdin_open: true
-    tty: true
     ports:
     - 127.0.0.1:5555:5555
     volumes:
     - ${SOCIAL_ARCHIVE_VENDOR_OUTPUT_HOST_PATH:-./runtime/vendor-output}/douk:/app/Volume
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 5555), 3); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
     restart: 'no'
     security_opt:
     - no-new-privileges:true

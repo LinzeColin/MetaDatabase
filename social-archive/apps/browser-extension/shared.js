@@ -10,7 +10,7 @@
     libraryUrl: FALLBACK_LIBRARY,
     pairingPath: "/v1/pairing/exchange",
     token: "",
-    destinationIds: ["social_archive"],
+    destinationIds: ["social_archive", "markdown"],
     relationType: "saved",
     collectionKey: "",
     showFloatingButton: true,

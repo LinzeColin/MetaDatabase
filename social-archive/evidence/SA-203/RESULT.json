@@ -1,204 +1,30 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-203",
-  "acceptance_id": "AC-SA-203",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S2",
+  "title": "接入 KS-Downloader 快手 Sidecar",
   "status": "PASS",
-  "verified_at_utc": "2026-07-30T12:52:59Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "migration_stamp": "20260730T095749Z"
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "adapt",
+  "acceptance_ids": [
+    "AC-SA-203"
+  ],
+  "tests": [
+    "TEST-SA-203"
+  ],
+  "oracle": "Worker 按 OpenAPI 实际路由探测；无唯一安全路由时降级到当前页，不猜端点。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Vendor lock resolved; 8 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "semantic_reconciliation": {
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 163,
-      "apply": 26,
-      "adapt": 22,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The frozen generic OpenAPI worker only recognized inline URL-shaped operation text. The pinned KS source exposes a documented local component schema whose required link carrier is text, so the first-party probe was minimally adapted to resolve local references and send only the documented link field."
-  },
-  "frozen_overlay_product_reconciliation": {
-    "status": "ADAPT_REQUIRED_AND_APPLIED",
-    "frozen_http_workers_sha256": "14f3c50f01965a46c0d69b6434acb15b1868c8819a812099a8c942ec5e18c6b9",
-    "current_http_workers_sha256": "557f8c956c0ee39296be9dd18595c29b85f0b2bd7becedb353200b464f2d15c1",
-    "ks_source_verified_interface": {
-      "startup": [
-        "python",
-        "main.py",
-        "api"
-      ],
-      "documented_post_route": "/detail/",
-      "documented_required_link_field": "text",
-      "optional_upstream_fields_not_forwarded": [
-        "cookies",
-        "proxy"
-      ],
-      "compose_ks_command_matches_source": true,
-      "reason": "Pinned main.py explicitly registers the api subcommand. Its FastAPI source documents POST /detail/ with DetailModel.text; the existing KS Compose command was therefore retained unchanged."
-    },
-    "probe_adaptation": {
-      "local_openapi_references_only": true,
-      "candidate_requires": [
-        "POST operation",
-        "application/json object schema",
-        "one string field named url or text",
-        "documented detail/download/parse/extract action",
-        "no unsupplied required fields"
-      ],
-      "request_payload_policy": "Send only the discovered url/text field and an explicitly documented boolean download field when present; never forward input Cookie, cookies, proxy, header, or authentication values.",
-      "failure_policy": "Zero or multiple safe candidates raise OPENAPI_ROUTE_AMBIGUOUS; capture emits degraded without a POST, so independent media and current-page fallbacks remain available."
-    }
-  },
-  "vendor_source": {
-    "status": "PASS",
-    "source_id": "ks_downloader",
-    "repository": "https://github.com/JoeanAmier/KS-Downloader",
-    "requested_ref": "f8d812d",
-    "resolved_commit": "f8d812db840fcea763d035705afc8660a38bcfb5",
-    "license": "GPL-3.0",
-    "boundary": "SIDECAR_PROCESS_OR_CONTAINER",
-    "working_tree": "runtime/vendors/KS-Downloader",
-    "checkout": "detached",
-    "runtime_ignored": true,
-    "meaning": "The GPL source remains a fixed, ignored Sidecar build context. It is neither imported into nor copied into the first-party core image."
-  },
-  "acceptance_observations": {
-    "ks_component_schema_probe": {
-      "status": "PASS",
-      "fixture_is_source_shaped_not_live_provider": true,
-      "connector": "kuaishou",
-      "unique_route": "/detail/",
-      "outbound_payload": {
-        "field_names": [
-          "text"
-        ],
-        "browser_cookie_forwarded": false,
-        "proxy_forwarded": false
-      },
-      "new_vendor_artifacts": 1,
-      "scan_completeness": "complete"
-    },
-    "ambiguous_route_health_gate": {
-      "status": "PASS",
-      "candidate_routes": 2,
-      "worker_health": "degraded",
-      "guessed_post_requests": 0,
-      "capture_status": "degraded",
-      "error_code": "WORKER_PROBE_OR_CALL_FAILED"
-    },
-    "platform_scan_isolation": {
-      "status": "PASS",
-      "complete_scan_platform": "kuaishou",
-      "relation_type": "favorite",
-      "after_two_absences": "only the Kuaishou relation closes",
-      "other_platform_relation": "X bookmark remains active with zero missing count"
-    },
-    "sidecar_boundary": {
-      "status": "PASS",
-      "profile": "kuaishou",
-      "host_port": "127.0.0.1:5557:5557",
-      "startup_command": [
-        "python",
-        "main.py",
-        "api"
-      ],
-      "no_new_privileges": true,
-      "secret_mount": false,
-      "cookie_configuration": false,
-      "core_image_contains_vendor_source": false,
-      "compose_structure": "PASS"
-    }
-  },
-  "vendor_sync_security": {
-    "status": "PASS",
-    "public_git_subprocess_isolation": {
-      "global_config_ignored": true,
-      "system_config_ignored": true,
-      "environment_config_injection_removed": true,
-      "interactive_prompt_disabled": true
-    },
-    "credential_marker_scans": {
-      "global_git_config": "ABSENT",
-      "product_local_config": "ABSENT",
-      "ks_vendor_local_config": "ABSENT",
-      "product_source_marker_files": 0
-    }
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "task_required_tests": {
-      "tests_passed": 8,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_openapi_probe_connector.py",
-        "tests/focused/test_scan_platform_isolation.py"
-      ]
-    },
-    "supplemental_regression": {
-      "tests_passed": 22,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_xhs_connector.py",
-        "tests/focused/test_openapi_probe_connector.py",
-        "tests/focused/test_health_gated_connector.py",
-        "tests/focused/test_scan_platform_isolation.py",
-        "tests/focused/test_scan_scope_isolation.py",
-        "tests/focused/test_worker_profiles.py",
-        "tests/focused/test_generic_web_connector.py"
-      ]
-    },
-    "test_source_sha256": {
-      "src/social_archive/connectors/http_workers.py": "557f8c956c0ee39296be9dd18595c29b85f0b2bd7becedb353200b464f2d15c1",
-      "tests/focused/test_openapi_probe_connector.py": "c5839f341c551d3c929f371583fc5b59dd494b53b11f42e95a3a38725542bcc9",
-      "tests/focused/test_scan_platform_isolation.py": "68e8787f2a51225ca84ff632043a3ad8f8c9940b965dbddaf78773c381e214a6",
-      "compose.workers.yaml": "6e4218fb69f0d6685e3bca164e108c8a3ce2d6a848d7ad623539b95dd87ecff2",
-      "scripts/vendor_sync.py": "844646db9a0e9185703a4d1faf9b6d3726cafa9eac6fb8da2eda745c68791455"
-    }
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "brand_boundary": "PASS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "real_provider_canary": {
-    "kuaishou_sidecar": {
-      "status": "NOT_RUN",
-      "reason": "No Docker service, real Kuaishou URL, account, browser Cookie, credential, or platform request was used. Source inspection and fixture probes are not real-provider evidence."
-    },
-    "docker_ingress": {
-      "status": "NOT_RUN",
-      "reason": "docker compose config only parsed structure; no image was built and no container was started."
-    },
-    "meaning": "All blocking local fixture assertions passed. This is not evidence that a real Kuaishou service is connected, authorized, free, or operational."
-  },
-  "source_change": {
-    "compatibility_repair": "Resolve only local OpenAPI component references and use the unique documented url/text request field, allowing the pinned KS DetailModel.text contract without a hardcoded endpoint or credential forwarding.",
-    "focused_test_upgrade": "Bind source-shaped KS component-schema discovery, text-only request payload, zero-POST ambiguity degradation, KS Sidecar isolation, and Kuaishou-versus-X complete-scan isolation.",
-    "files_written_in_this_task": [
-      "src/social_archive/connectors/http_workers.py",
-      "tests/focused/test_openapi_probe_connector.py",
-      "tests/focused/test_scan_platform_isolation.py",
-      "evidence/SA-203/RESULT.json",
-      "evidence/SA-203/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ]
-  },
-  "scope_exclusions": [
-    "No real Kuaishou account, user content, browser Cookie, password, authentication header, provider request, Docker service, deployment, cloud action, private-database action, GitHub push, merge, rebase, or new Git worktree action occurred.",
-    "The public fixed-source vendor resolution through the isolated Git subprocess is not a Kuaishou product-provider canary.",
-    "No credential value or credential-bearing URL is present in this evidence."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "c331f2f1daf6bc327c2467fb0590e4240d6488ddedcc7d16e0c6dd6f5bcad8ab"
 }

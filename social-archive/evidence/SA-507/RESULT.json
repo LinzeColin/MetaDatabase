@@ -1,95 +1,30 @@
 {
-  "schema_version": "2.0",
+  "schema_version": "1.0",
   "task_id": "SA-507",
-  "acceptance_id": "AC-SA-507",
-  "task_title": "冻结候选、执行唯一全量回归并发布",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S5",
+  "title": "冻结候选、执行唯一全量回归并发布",
   "status": "PASS",
-  "acceptance_status": "PASS",
-  "verified_at_utc": "2026-08-01T12:08:30Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "working_branch_before_publication": "codex/sa-507-compat-tomllib-fix",
-    "integration_merge_commit": "7218767576d329f60ee2338aa6f570f87fc0a86d",
-    "integrated_origin_main": "6b15ed6cdf96bcb24353b8b5c60f4b2193fb9d6e",
-    "functional_candidate_file_count": 204,
-    "functional_candidate_manifest_sha256": "78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90",
-    "candidate_fingerprint_before_and_after_merge": "identical",
-    "merge_first_parent_social_archive_changes": []
-  },
-  "acceptance_oracle": "Only one frozen functional candidate has a full application-suite result with failed=0; verify-fast and structural checks then pass without rerunning pytest; the release tag's peeled commit is verified after publication; rollback and live PASS/NOT_RUN boundaries remain explicit.",
-  "blocking_assertions": [
-    {
-      "assertion": "Frozen v0.0.0.4 Task Pack and compatibility layer preserve the focused-proven single transaction/recovery core rather than create a second authority.",
-      "status": "PASS",
-      "evidence": "Phase E synthetic compatibility PASS; semantic decision PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS; rollback default ROLLBACK_PLAN."
-    },
-    {
-      "assertion": "The final functional candidate is unchanged by integration of the then-latest origin/main.",
-      "status": "PASS",
-      "evidence": "204-file functional manifest SHA-256 78126ef0abd193aa18fb0055564786d234a468deeb0ffb2370f4844509493c90 before and after merge; first-parent merge diff has no social-archive path."
-    },
-    {
-      "assertion": "Exactly one full application regression is asserted for this frozen final functional candidate.",
-      "status": "PASS",
-      "evidence": "PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json records 235 passed, failed=0 and one existing non-failing dependency warning; Phase E did not execute pytest. Earlier suite records belong to explicitly superseded candidates."
-    },
-    {
-      "assertion": "Frozen Task Pack verify-fast and final structural verification pass without another application suite.",
-      "status": "PASS",
-      "evidence": "verify-fast PASS with 26 checks and application tests explicitly skipped; evidence/final-verification.json PASS, 7 structural commands, suite_mode=structural, application_suite_rerun=false."
-    },
-    {
-      "assertion": "All 32 task evidence records are complete under their own acceptance contracts, including actual final production closures.",
-      "status": "PASS",
-      "evidence": "31 prior task RESULT records PASS; SA-507 is closed by Phase A production topology, Phase B Private-Database facts, Phase C three-target recovery, Phase D deployment smoke, and Phase E consolidation."
-    },
-    {
-      "assertion": "The production security and availability boundary remains healthy at final read-only recheck.",
-      "status": "PASS",
-      "evidence": "Loopback Core/status/projection each 200; Core/status bind loopback; library health is Access 302; API health and pairing status 200; protected route without bearer and with forged Access assertion both 401; status health/JSON 200; replication and facts timers disabled."
-    },
-    {
-      "assertion": "Rollback remains non-destructive and identifiable.",
-      "status": "PASS",
-      "evidence": "social-archive-pre-v0.0.0.4-20260730t095749z resolves locally; Phase D root-only script backup remains retained; ignored runtime and production data are not rollback cleanup targets."
-    }
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "apply",
+  "acceptance_ids": [
+    "AC-SA-507"
   ],
-  "current_runtime_boundary": {
-    "completed_real_environment_facts": [
-      "Phase A: persistent non-user-data canary has verified R2, OCI and GitHub Private Draft receipts.",
-      "Phase B: one Social Archive completion fact was ingested and strictly verified through the official clone-free Private-Database client; repeat was idempotent NO_CHANGE.",
-      "Phase C: the same canary was separately restored from R2, OCI and GitHub Private Draft, with ciphertext and plaintext hashes verified.",
-      "Phase D and Phase E: production loopback and unauthenticated edge safety smoke passed while replication and facts timers remain disabled."
-    ],
-    "historical_not_run_rule": "Per-provider observations that their own task contracts classify as NOT_RUN remain so; none was converted into a final PASS. They are not the completed Phase A-D facts relied on above."
+  "tests": [
+    "TEST-SA-507"
+  ],
+  "oracle": "全量测试、敏感信息、许可证边界、依赖、回滚和证据全部通过；环境绑定 NOT_RUN 明确，不冒充产品生产 PASS。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Unique full suite PASS (241 tests); git diff check PASS; sealed Task Pack verification PASS (73 candidate tests). Product runtime NOT_RUN.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
   },
-  "release_candidate": {
-    "version": "v0.0.0.4",
-    "source_publication": "PASS",
-    "published_at_utc": "2026-08-01T12:13:23Z",
-    "release_tag": "v0.0.0.4",
-    "annotated_tag_object": "272cf897b3ed69858a38f5dfbb302f7af3bc0357",
-    "source_commit_digest": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
-    "origin_main_at_initial_readback": "e1f76776668b630b1d9a60a07d07a9791e6c0cf8",
-    "publication_method": "non-force atomic push, then remote main/tag/peeled-tag readback",
-    "github_source_release": "NOT_CREATED; no source Release is required for this source-tag publication",
-    "post_publication_receipt": "This result is updated by a documentation-only receipt commit; the tagged functional candidate remains the commit above."
-  },
-  "evidence": {
-    "phase_a": "evidence/SA-507/PHASE_A_PRODUCTION_20260731.json",
-    "phase_b": "evidence/SA-507/PHASE_B_PRIVATE_DATABASE_FACTS_20260801.json",
-    "phase_c": "evidence/SA-507/PHASE_C_THREE_TARGET_OBJECT_RECOVERY_20260801.json",
-    "phase_d": "evidence/SA-507/PHASE_D_PRODUCTION_RELEASE_DEPLOY_SMOKE_20260801.json",
-    "phase_e": "evidence/SA-507/PHASE_E_FINAL_CONSOLIDATION_20260801.json",
-    "command_log": "evidence/SA-507/COMMAND_LOG.json",
-    "release_report": "evidence/SA-507/RELEASE_REPORT.json",
-    "structural_verification": "evidence/final-verification.json"
-  },
-  "nonclaims": [
-    "Task Pack PASS is not used to rewrite machine/release_boundary.json runtime_verdict_after_taskpack=NOT_RUN; package and live-runtime semantics remain separate.",
-    "No secret, token, cookie, host identity, credential location, user content, provider object identifier or response body is present in this result.",
-    "The v0.0.0.4 tag targets the final functional evidence commit; the follow-up documentation-only receipt commit does not change the released functional candidate."
-  ]
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "ce9a11336c70bd011f7877404c99ed26973843a06a594e84952999e6eb994d36"
 }

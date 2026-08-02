@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-001",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S0",
+  "title": "获取最新 main 并完成 Semantic Reconcile",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "satisfied",
+  "acceptance_ids": [
+    "AC-SA-001"
+  ],
+  "tests": [
+    "TEST-SA-001"
+  ],
+  "oracle": "每个任务和文件被分类为 satisfied/apply/adapt/equivalent/conflict/blocked/obsolete，未盲覆盖上游。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Semantic Reconcile final decision ADAPT_CURRENT_UPSTREAM: satisfied 85, apply 26, adapt 94, equivalent 6, conflict/blocked/obsolete 0.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "541002c595d50e0858d2d8d836742ac5f92291cef87d73266869a989141f4ef7"
+}

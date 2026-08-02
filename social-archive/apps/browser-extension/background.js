@@ -11,7 +11,7 @@ async function ensureMenus() {
 }
 
 async function injectExtractor(tabId) {
-  await chrome.scripting.executeScript({ target: { tabId }, files: ["content/extract.js"] });
+  await chrome.scripting.executeScript({ target: { tabId }, files: ["content/extract-core.js", "content/extract.js"] });
 }
 
 async function extractFromTab(tab, mode) {
@@ -262,6 +262,69 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message?.type === "SA_REFRESH_FAB") {
       const tab = await SA.activeTab();
       await injectFabIfAuthorized(tab.id, tab.url);
+      return { ok: true };
+    }
+    if (message?.type === "SA_WEB_BRIDGE_STATUS") {
+      const config = await SA.getConfig();
+      let serviceReady = false;
+      let paired = false;
+      try {
+        const pairing = await fetch(`${config.endpoint}/v1/pairing/status`, { cache: "no-store" })
+          .then(response => response.ok ? response.json() : null);
+        if (pairing && pairing.pairing_required === false) {
+          serviceReady = Boolean(pairing.service_ready);
+          paired = serviceReady;
+        } else if (config.token) {
+          await SA.api("/v1/extension/bootstrap", { timeoutMs: 5000 });
+          serviceReady = true;
+          paired = true;
+        }
+      } catch (_) {
+        serviceReady = false;
+      }
+      return {
+        detected: true,
+        paired,
+        configured: Boolean(config.endpoint),
+        endpoint: config.endpoint,
+        libraryUrl: config.libraryUrl,
+        version: chrome.runtime.getManifest().version
+      };
+    }
+    if (message?.type === "SA_WEB_BRIDGE_CONFIGURE") {
+      const current = await SA.getConfig();
+      const endpoint = String(message.endpoint || current.endpoint || "").replace(/\/$/, "");
+      const libraryUrl = String(message.libraryUrl || current.libraryUrl || endpoint).replace(/\/$/, "");
+      if (!/^https?:\/\//i.test(endpoint) || !/^https?:\/\//i.test(libraryUrl)) throw new Error("服务地址无效");
+      const response = await fetch(`${endpoint}/v1/pairing/status`, { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload.pairing_required !== false || !payload.service_ready) {
+        throw new Error(payload.detail || "当前服务仍要求安全配对");
+      }
+      const next = await SA.setConfig({ endpoint, libraryUrl, token: "", onboardingComplete: true });
+      return { ok: true, paired: true, endpoint: next.endpoint, libraryUrl: next.libraryUrl };
+    }
+    if (message?.type === "SA_WEB_BRIDGE_PAIR") {
+      const current = await SA.getConfig();
+      const endpoint = String(message.endpoint || current.endpoint || "").replace(/\/$/, "");
+      if (!/^https?:\/\//i.test(endpoint)) throw new Error("服务地址无效");
+      const response = await fetch(`${endpoint}${current.pairingPath || "/v1/pairing/exchange"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: String(message.code || ""), device_name: "Social Archive Chrome" })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.detail || `配对失败（${response.status}）`);
+      const next = await SA.setConfig({
+        endpoint: payload.endpoint || endpoint,
+        libraryUrl: payload.library_url || current.libraryUrl,
+        token: payload.token || "",
+        onboardingComplete: true
+      });
+      return { ok: true, paired: Boolean(next.token), endpoint: next.endpoint, libraryUrl: next.libraryUrl };
+    }
+    if (message?.type === "SA_OPEN_OPTIONS") {
+      await chrome.runtime.openOptionsPage();
       return { ok: true };
     }
     return { ok: false, error: "未知操作" };

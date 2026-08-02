@@ -1,0 +1,456 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Preserve all task evidence byte-for-byte from the implementation commit before v0.0.0.5 final evidence replaced canonical RESULT/COMMAND_LOG paths.",
+  "source_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "entry_count": 64,
+  "entries": [
+    {
+      "task_id": "SA-000",
+      "source_path": "social-archive/evidence/SA-000/RESULT.json",
+      "archive_path": "evidence/SA-000/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "e802f97b6a253e6ae1ecec470be9a89c3ffaf147fbc1c463559c86f95a34f7ee",
+      "byte_size": 1162
+    },
+    {
+      "task_id": "SA-000",
+      "source_path": "social-archive/evidence/SA-000/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-000/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "493710dac332fef34fdfdd1f22d09e9bd6fdb68f5543ba01d7b9d4ed8c970265",
+      "byte_size": 754
+    },
+    {
+      "task_id": "SA-001",
+      "source_path": "social-archive/evidence/SA-001/RESULT.json",
+      "archive_path": "evidence/SA-001/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "b5f75d9c0f207f424eddae82bb26e644238d6d3e1c4ce71f28e413093b6d1574",
+      "byte_size": 764
+    },
+    {
+      "task_id": "SA-001",
+      "source_path": "social-archive/evidence/SA-001/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-001/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "78f52a3006325c538b1e3b578b0c9efdae44dea2618b75affa068d9780e5f569",
+      "byte_size": 1191
+    },
+    {
+      "task_id": "SA-002",
+      "source_path": "social-archive/evidence/SA-002/RESULT.json",
+      "archive_path": "evidence/SA-002/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "61f2b8e3a54eca0e98c1cf25b2916a17a2714619cc18324c5f905b46d413fc8e",
+      "byte_size": 3473
+    },
+    {
+      "task_id": "SA-002",
+      "source_path": "social-archive/evidence/SA-002/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-002/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "e50f64c513f57a0f7e68bd00ba35d46be6cddfa2cd9bac600e7231ef653b6b55",
+      "byte_size": 2230
+    },
+    {
+      "task_id": "SA-003",
+      "source_path": "social-archive/evidence/SA-003/RESULT.json",
+      "archive_path": "evidence/SA-003/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "80443c9998afc78f8277fb95ae840d89de84f13958593c4a76eb87b31f230e5e",
+      "byte_size": 5813
+    },
+    {
+      "task_id": "SA-003",
+      "source_path": "social-archive/evidence/SA-003/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-003/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "b0eb6d126bcbd71fb017a778cd1a64e3b09583ae598628661b2f4694787fd39d",
+      "byte_size": 4663
+    },
+    {
+      "task_id": "SA-004",
+      "source_path": "social-archive/evidence/SA-004/RESULT.json",
+      "archive_path": "evidence/SA-004/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "1ef1e910bb3a419cdae74546c57c0a18e5cdd70d6e87f7af02237b44fd9b53f1",
+      "byte_size": 3835
+    },
+    {
+      "task_id": "SA-004",
+      "source_path": "social-archive/evidence/SA-004/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-004/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "96db906e62d9f59a23803c24993ebe06ea00817994d7070f0db42eb5e2339c57",
+      "byte_size": 2612
+    },
+    {
+      "task_id": "SA-005",
+      "source_path": "social-archive/evidence/SA-005/RESULT.json",
+      "archive_path": "evidence/SA-005/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "84e82b7f4ad8e321b68c99fde5f3fc9941992b9c6feca696bb6c55281c4cc103",
+      "byte_size": 4092
+    },
+    {
+      "task_id": "SA-005",
+      "source_path": "social-archive/evidence/SA-005/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-005/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "cda194e3e345461347d8caebf2cd7dfc7caa5b3ddae55f5266cb34e5431638bf",
+      "byte_size": 2650
+    },
+    {
+      "task_id": "SA-101",
+      "source_path": "social-archive/evidence/SA-101/RESULT.json",
+      "archive_path": "evidence/SA-101/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "83c57cc6ae9b09e0e37dbaef37d80b4a9018d06ca9286053b97a59815b9f7cfc",
+      "byte_size": 5517
+    },
+    {
+      "task_id": "SA-101",
+      "source_path": "social-archive/evidence/SA-101/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-101/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "bf780d56ee6d2c106bf0ce0df567398cb4defe48d8cc855c0f4ef916b11bc16f",
+      "byte_size": 2689
+    },
+    {
+      "task_id": "SA-102",
+      "source_path": "social-archive/evidence/SA-102/RESULT.json",
+      "archive_path": "evidence/SA-102/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "87a823f2ab137f2e49ba5b18d020ac122b242d7a57a537f176b7dbb6e3db0ba2",
+      "byte_size": 4537
+    },
+    {
+      "task_id": "SA-102",
+      "source_path": "social-archive/evidence/SA-102/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-102/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "5bffc839fd8b934b5a2b6e9002423ce411c485bef804ba81f1ffcd9e23deef62",
+      "byte_size": 2750
+    },
+    {
+      "task_id": "SA-103",
+      "source_path": "social-archive/evidence/SA-103/RESULT.json",
+      "archive_path": "evidence/SA-103/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "d9f55bce8da6630f8cc48b244f072cb1f286593b495e818fe10d849aa8de9d86",
+      "byte_size": 5547
+    },
+    {
+      "task_id": "SA-103",
+      "source_path": "social-archive/evidence/SA-103/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-103/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "678580625f34289cad91b4d3b5f9b3abc9c542c5fe09d807e6561b363d54be0f",
+      "byte_size": 3150
+    },
+    {
+      "task_id": "SA-104",
+      "source_path": "social-archive/evidence/SA-104/RESULT.json",
+      "archive_path": "evidence/SA-104/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "f5a957c2359ff5af931e81ced6523181971b4aadad28713d3f554eff93d6025a",
+      "byte_size": 6402
+    },
+    {
+      "task_id": "SA-104",
+      "source_path": "social-archive/evidence/SA-104/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-104/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "be085cbf3c9b56fde3c4ae143d4216bee9f89f9295931c51f27af184c1d1e07b",
+      "byte_size": 3311
+    },
+    {
+      "task_id": "SA-105",
+      "source_path": "social-archive/evidence/SA-105/RESULT.json",
+      "archive_path": "evidence/SA-105/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "e3968c73363df45553f1f5ac6cec5c9d083c2e84327956adc0c357339484943c",
+      "byte_size": 7202
+    },
+    {
+      "task_id": "SA-105",
+      "source_path": "social-archive/evidence/SA-105/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-105/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "bd9fc37bf579dbacfa3e9bdbf52747e460bc645761fa99df59b548c2028f5f1d",
+      "byte_size": 3054
+    },
+    {
+      "task_id": "SA-201",
+      "source_path": "social-archive/evidence/SA-201/RESULT.json",
+      "archive_path": "evidence/SA-201/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "ce22c46cf07a3c1732e55d520f014babe6d7cec3998c846355052c580509f7e3",
+      "byte_size": 6675
+    },
+    {
+      "task_id": "SA-201",
+      "source_path": "social-archive/evidence/SA-201/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-201/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "94c52e37c9709d5b43be0d3e3acc8ece6469700b9fcdc13d3c49f0fdc7bb18ec",
+      "byte_size": 3760
+    },
+    {
+      "task_id": "SA-202",
+      "source_path": "social-archive/evidence/SA-202/RESULT.json",
+      "archive_path": "evidence/SA-202/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "9e0cc36a3cf1a0010a85d0a17ece9f52b887fb3315931768d83d338e5a881bd7",
+      "byte_size": 8134
+    },
+    {
+      "task_id": "SA-202",
+      "source_path": "social-archive/evidence/SA-202/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-202/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "67b53131f3cba6820ddc3c4a1a256480a50ae3515498f8c2a805f6f5f0e0dc0d",
+      "byte_size": 3857
+    },
+    {
+      "task_id": "SA-203",
+      "source_path": "social-archive/evidence/SA-203/RESULT.json",
+      "archive_path": "evidence/SA-203/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "8d1e727fa922952bf1988cfb61a4735a3e2452f3338e1eccb78947f245100b0a",
+      "byte_size": 8785
+    },
+    {
+      "task_id": "SA-203",
+      "source_path": "social-archive/evidence/SA-203/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-203/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "c2725a598038c8af91993ef2ec18ffac434a24252021d05927383b405a357d72",
+      "byte_size": 4192
+    },
+    {
+      "task_id": "SA-204",
+      "source_path": "social-archive/evidence/SA-204/RESULT.json",
+      "archive_path": "evidence/SA-204/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "e500021ae98cc147bac503929ff13a47f38683e0896a120cfd5591fd388623a6",
+      "byte_size": 9785
+    },
+    {
+      "task_id": "SA-204",
+      "source_path": "social-archive/evidence/SA-204/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-204/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "89cddf6bd51e3c39c42aecdb3ca614c207949b7ed73e1cc41186b42f01ec6ead",
+      "byte_size": 4648
+    },
+    {
+      "task_id": "SA-205",
+      "source_path": "social-archive/evidence/SA-205/RESULT.json",
+      "archive_path": "evidence/SA-205/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "e1bc5c48511a1a17e82fe3161e69c0fe466754c82c7e8c90004318a24f35a056",
+      "byte_size": 10196
+    },
+    {
+      "task_id": "SA-205",
+      "source_path": "social-archive/evidence/SA-205/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-205/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "da952381fba9328cae1732c3259cd0472ac88c697ad0dfa2c881a1647d23b6fe",
+      "byte_size": 3532
+    },
+    {
+      "task_id": "SA-301",
+      "source_path": "social-archive/evidence/SA-301/RESULT.json",
+      "archive_path": "evidence/SA-301/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "47cabd984b4f47742c0c6390af43b018868ab8bfc432fbc0a68f6334f184ffbd",
+      "byte_size": 8458
+    },
+    {
+      "task_id": "SA-301",
+      "source_path": "social-archive/evidence/SA-301/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-301/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "fa71628706766314a8aaed3ec610e8e76e028a086503c3431d123228ba8bdcdc",
+      "byte_size": 4133
+    },
+    {
+      "task_id": "SA-302",
+      "source_path": "social-archive/evidence/SA-302/RESULT.json",
+      "archive_path": "evidence/SA-302/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "0379e777915c03e6741980274ad8ee70a15a7c64a5ecb904869a9e806cbf0403",
+      "byte_size": 7600
+    },
+    {
+      "task_id": "SA-302",
+      "source_path": "social-archive/evidence/SA-302/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-302/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "f65eaf15ff6ba614cf4f7fb3ea3b1da76a3234a164db39f796b5ec9e39c20cb9",
+      "byte_size": 4045
+    },
+    {
+      "task_id": "SA-303",
+      "source_path": "social-archive/evidence/SA-303/RESULT.json",
+      "archive_path": "evidence/SA-303/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "4dbd8a6e03fc20debce168c303e20ca1efb4b15bbf50dac68cd4ffca1ec60a84",
+      "byte_size": 10184
+    },
+    {
+      "task_id": "SA-303",
+      "source_path": "social-archive/evidence/SA-303/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-303/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "c5d7620cfba018571d6d6511e39778bd381be1a19fefdccad02c42310718996b",
+      "byte_size": 5262
+    },
+    {
+      "task_id": "SA-304",
+      "source_path": "social-archive/evidence/SA-304/RESULT.json",
+      "archive_path": "evidence/SA-304/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "e6ce42a450b4639e2ed94c0c7068ab2794ac9d637345085ca3f25f546cb6dd7f",
+      "byte_size": 7864
+    },
+    {
+      "task_id": "SA-304",
+      "source_path": "social-archive/evidence/SA-304/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-304/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "6288f028af9217e9b947791519d1027d66b5b5028fc216d032c6b06ad837a2db",
+      "byte_size": 4260
+    },
+    {
+      "task_id": "SA-305",
+      "source_path": "social-archive/evidence/SA-305/RESULT.json",
+      "archive_path": "evidence/SA-305/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "a37ea969552eccebbc0736d1a9b448ee3c86a8dbc1f05eb16ac273dccd0a6943",
+      "byte_size": 10958
+    },
+    {
+      "task_id": "SA-305",
+      "source_path": "social-archive/evidence/SA-305/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-305/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "72bf8acb4cce71fcb505f241d3bc1ca57514fc831ca2521b93a5dcacd51504e9",
+      "byte_size": 5377
+    },
+    {
+      "task_id": "SA-401",
+      "source_path": "social-archive/evidence/SA-401/RESULT.json",
+      "archive_path": "evidence/SA-401/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "75d087bdbad3ab6a90d85f450fc7c576c63206485a019de55283f1c1532a0ced",
+      "byte_size": 7820
+    },
+    {
+      "task_id": "SA-401",
+      "source_path": "social-archive/evidence/SA-401/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-401/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "8b3614c419b5c999c44b325c09e99b5cd5cf623c14452aebf1fbb222424147d6",
+      "byte_size": 3367
+    },
+    {
+      "task_id": "SA-402",
+      "source_path": "social-archive/evidence/SA-402/RESULT.json",
+      "archive_path": "evidence/SA-402/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "3294bd56678b01506599b6f1fc842c25bcf1197e480159095c193341946515fa",
+      "byte_size": 7875
+    },
+    {
+      "task_id": "SA-402",
+      "source_path": "social-archive/evidence/SA-402/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-402/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "4343cdb598ed217b6f1dd6c26100995fa11dbe2eae3c694784b19cd10c2df695",
+      "byte_size": 3305
+    },
+    {
+      "task_id": "SA-403",
+      "source_path": "social-archive/evidence/SA-403/RESULT.json",
+      "archive_path": "evidence/SA-403/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "059e269b8baf64d8efd88ff54182cdd075107a7a5be6b47035fc72380566673e",
+      "byte_size": 9574
+    },
+    {
+      "task_id": "SA-403",
+      "source_path": "social-archive/evidence/SA-403/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-403/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "cea6ff9e44d4c4b644e7bb3fbb85fda0b03895c1a7caa99cd76925dd6fd4ff3a",
+      "byte_size": 3662
+    },
+    {
+      "task_id": "SA-404",
+      "source_path": "social-archive/evidence/SA-404/RESULT.json",
+      "archive_path": "evidence/SA-404/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "4e6f8cd849441e19d1fbcfa9fd083295f969d81c3f5db8e1212cede6e0f3239d",
+      "byte_size": 11234
+    },
+    {
+      "task_id": "SA-404",
+      "source_path": "social-archive/evidence/SA-404/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-404/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "0437f3049050b543bd9ed520f75505c8b97b33b0a601567e2c0ca7ae1f9d57be",
+      "byte_size": 3559
+    },
+    {
+      "task_id": "SA-501",
+      "source_path": "social-archive/evidence/SA-501/RESULT.json",
+      "archive_path": "evidence/SA-501/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "d4c9472e78a6c32b43abeb2eca53ce3acef3513a3db0792379d180e2af740aa8",
+      "byte_size": 9756
+    },
+    {
+      "task_id": "SA-501",
+      "source_path": "social-archive/evidence/SA-501/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-501/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "f4a90d5fa6d98f3d6b68a334cf885f713a98b6950270616803b150dcad1eb7b9",
+      "byte_size": 4517
+    },
+    {
+      "task_id": "SA-502",
+      "source_path": "social-archive/evidence/SA-502/RESULT.json",
+      "archive_path": "evidence/SA-502/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "f37cfb4c95140f7791d131ec2ee07324072d3b1298e192e611682b3e363b17ad",
+      "byte_size": 9857
+    },
+    {
+      "task_id": "SA-502",
+      "source_path": "social-archive/evidence/SA-502/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-502/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "2a259f89904c0b5bebc9b9bd8e39a5e7339cf68146e177b867beb5df9c2eafaa",
+      "byte_size": 5264
+    },
+    {
+      "task_id": "SA-503",
+      "source_path": "social-archive/evidence/SA-503/RESULT.json",
+      "archive_path": "evidence/SA-503/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "b86fcf1a7e3bfa665082f25cd008a172cf28f1d51ea1a6fdbfdc379a5e72e6d4",
+      "byte_size": 10702
+    },
+    {
+      "task_id": "SA-503",
+      "source_path": "social-archive/evidence/SA-503/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-503/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "32e144ad690e625444bbea19ac365c64ddf1460975e65f12f77041a2aa0af08a",
+      "byte_size": 5186
+    },
+    {
+      "task_id": "SA-504",
+      "source_path": "social-archive/evidence/SA-504/RESULT.json",
+      "archive_path": "evidence/SA-504/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "3a5fe7b63c771fca9e891ee220d1c54248dbb099c7ea218aa19759752cc6c466",
+      "byte_size": 10049
+    },
+    {
+      "task_id": "SA-504",
+      "source_path": "social-archive/evidence/SA-504/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-504/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "8e1ce1a48cab1bad952376938d7f0a4fa6cb27f126456a7213332616755ac452",
+      "byte_size": 4030
+    },
+    {
+      "task_id": "SA-505",
+      "source_path": "social-archive/evidence/SA-505/RESULT.json",
+      "archive_path": "evidence/SA-505/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "6b4437a7ca6e9b9fa12c7e685b98a0eb5c45a30e8862d0440e5797a643f26128",
+      "byte_size": 9292
+    },
+    {
+      "task_id": "SA-505",
+      "source_path": "social-archive/evidence/SA-505/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-505/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "a96056f26398326d75056fffc79c5db3ac0344e5a9f76481f1057e4fc6755f8c",
+      "byte_size": 4814
+    },
+    {
+      "task_id": "SA-506",
+      "source_path": "social-archive/evidence/SA-506/RESULT.json",
+      "archive_path": "evidence/SA-506/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "e2df613e324242497788168a4f874d9699bdc0d54c80d2e97e69473254721c5d",
+      "byte_size": 7595
+    },
+    {
+      "task_id": "SA-506",
+      "source_path": "social-archive/evidence/SA-506/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-506/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "a130a529684db6e5ef0af179ba413d4f370f1e51e28c1e8604def83dc50600d3",
+      "byte_size": 4967
+    },
+    {
+      "task_id": "SA-507",
+      "source_path": "social-archive/evidence/SA-507/RESULT.json",
+      "archive_path": "evidence/SA-507/history/pre-v0.0.0.5-final-evidence/RESULT.json",
+      "sha256": "4ca3df9186bb5e8ed1e0f35b11e7365143a563ab011cd62299b86e4eedea1252",
+      "byte_size": 6679
+    },
+    {
+      "task_id": "SA-507",
+      "source_path": "social-archive/evidence/SA-507/COMMAND_LOG.json",
+      "archive_path": "evidence/SA-507/history/pre-v0.0.0.5-final-evidence/COMMAND_LOG.json",
+      "sha256": "0b819e42c877da15f57a152eaf5ff9ad37b3cd7bef4a49050c6a182bbb9d1a04",
+      "byte_size": 4234
+    }
+  ]
+}

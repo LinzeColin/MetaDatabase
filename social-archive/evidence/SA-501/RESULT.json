@@ -1,134 +1,32 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-501",
-  "acceptance_id": "AC-SA-501",
-  "taskpack_version": "v0.0.0.4",
-  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
-  "status": "PASS",
-  "verified_at_utc": "2026-07-30T16:45:48Z",
-  "subject": {
-    "repository": "LinzeColin/MetaDatabase",
-    "branch": "codex/social-archive-v0004-integration",
-    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
-    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
-    "recovery_tag_head": "b87bda5ab21aa34a59b830bae76f4ee40f3a8546",
-    "worktree_created_or_switched_by_task": 0,
-    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
-    "pre_evidence_default_git_status_entry_count": 720
-  },
-  "age_and_r2_acceptance": {
-    "status": "PASS",
-    "target": "Each object produces one reusable age ciphertext; R2 accepts ciphertext only and verifies a full cipher SHA-256 after readback. Plaintext and private identities do not leave the local boundary or enter logs.",
-    "blocking_oracle": {
-      "single_ciphertext": "AgeEncryptor validates the registered plaintext SHA before encryption, keys its deterministic ciphertext/manifest path by original SHA, and reuses it only when the recipient fingerprint and ciphertext SHA still match. A recipient change invalidates the old cache and creates one replacement ciphertext, not a second remote payload.",
-      "ciphertext_only_r2": "S3ReplicaStore rejects non-.age or wrong-hash input, uploads only the ciphertext path, records original/cipher SHA and age algorithm metadata, validates remote metadata, then verifies the complete downloaded ciphertext SHA before a replica can be marked verified.",
-      "cli_confirmation_and_fail_closed": "The frozen Task Pack invocation --store r2 --encrypted-canary is accepted. A remote write/read/delete canary now requires that explicit flag; a bare --store returns BLOCKED_USER_CONFIRMATION. Missing recipient/configuration returns nonzero BLOCKED_ENVIRONMENT instead of an argparse error or a successful exit.",
-      "completion_boundary": "R2 is only the first replica. OCI remains blocked behind verified R2 and GitHub remains the third encrypted receipt; an artifact cannot become complete until all three records have the same cipher SHA, original SHA, and encryption algorithm."
-    },
-    "fixture_coverage": {
-      "age_reuse": "Fake age runners prove one encryption call for the same content/recipient, stable cipher SHA/path, and a necessary re-encryption after recipient change.",
-      "r2_metadata_and_readback": "Fake S3 clients prove upload receives only .age ciphertext, metadata includes both hashes and age algorithm, an exact readback publishes the target, and a mismatched readback raises while deleting its temporary file and never publishing the target.",
-      "taskpack_cli_contract": "A dynamically loaded probe script accepts the exact frozen --store r2 --encrypted-canary spelling. With recipient and R2 configuration removed, it exits 3 with BLOCKED_ENVIRONMENT before an S3 client or age process is created; bare --store exits 3 with BLOCKED_USER_CONFIRMATION.",
-      "pipeline_and_completion": "Related fixtures prove R2 replica records carry the cipher SHA/readback evidence, OCI queue selection requires verified R2, and three identical R2/OCI/GitHub receipts are required for completion."
-    },
-    "blocking_result": "The frozen SA-501 pytest command passed 8/8. Related encryption/replication/completion regression passed 15/15. The full project suite passed 161/161."
-  },
-  "focused_validation": {
-    "status": "PASS",
-    "frozen_task_command": {
-      "tests_passed": 8,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_encrypted_replication.py",
-        "tests/focused/test_s3_replication.py"
-      ]
-    },
-    "related_regression": {
-      "tests_passed": 15,
-      "tests_failed": 0,
-      "test_files": [
-        "tests/focused/test_encrypted_replication.py",
-        "tests/focused/test_s3_replication.py",
-        "tests/focused/test_replication_pipeline.py",
-        "tests/focused/test_replica_completion.py",
-        "tests/focused/test_free_destination_contract.py",
-        "tests/stage/test_stage4_replication_exports.py"
-      ]
-    },
-    "safe_canary_contract": {
-      "command": "/usr/bin/env -i PYTHONDONTWRITEBYTECODE=1 <project-venv-python> scripts/probe_object_store.py --store r2 --encrypted-canary",
-      "expected_exit_code": 3,
-      "observed_exit_code": 3,
-      "observed_status": "BLOCKED_ENVIRONMENT",
-      "observed_message": "缺少 age recipient；禁止明文探针",
-      "network_or_credential_access": "NOT_ATTEMPTED: env -i removed all provider configuration; the recipient guard returns before age, S3 client construction, remote write/read/delete, or runtime evidence output."
-    },
-    "full_regression": {
-      "tests_passed": 161,
-      "tests_failed": 0,
-      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
-    },
-    "static_checks": {
-      "probe_script_compile": "PASS",
-      "secret_scan": "PASS: hits=[]",
-      "brand_boundary": "PASS: hits=[]",
-      "trailing_whitespace": "PASS"
-    },
-    "source_sha256": {
-      "src/social_archive/encryption.py": "064bcdbea3608b3bc05b57b82d726c1834806252c7e57630393a4b380248ec49",
-      "src/social_archive/storage.py": "2e777d146709bcbf8063b70f5e6c7b28fa921ea640a00fd9b65f18a9f728aae6",
-      "src/social_archive/config.py": "5add5d68b780200d656e727fcd97a3f317968871745d2d70c989476cbb755360",
-      "src/social_archive/db.py": "444f41ff9bf2ea8c70f18b4e4822d2ffab272485b51337e4f3f49950e6a944f9",
-      "scripts/probe_object_store.py": "14253e234ea2a4b7883277befe62c0593d086ce45d1ae4850af29ec45b3de718",
-      "scripts/replicate_objects.py": "a8723c30ad60ae59b5a243e71b775be1e296d605109bd9279857486cf47fe749",
-      "tests/focused/test_encrypted_replication.py": "f464d8255498bab5274f7b246b736aaa3f69e794f0ddda875547030aabb53c91",
-      "tests/focused/test_s3_replication.py": "acda7586413449b2af8e4224fcc19891d6dc5a8b6e9c4cb4aae2839246476432",
-      "tests/focused/test_replication_pipeline.py": "8d77bea5885918aad7e6a5fea3f63c24fe6c7f5ae0ab4b9e5a752d038afb025c",
-      "tests/focused/test_replica_completion.py": "08d264b597f546d5d6399498ef2b4a42d3c6ee019e6519f03df6b6730832074d",
-      "tests/focused/test_free_destination_contract.py": "8bff869eb69c83c207c9cf1f63cc0aa31b80d46f8824f32668b8fe882b3af691",
-      "tests/stage/test_stage4_replication_exports.py": "092c491309b5e2b399b0cc5f6e48e4631f650617cfee41e740120aaa0f4a1fd5"
-    }
-  },
-  "semantic_reconciliation": {
-    "status": "PASS",
-    "decision": "ADAPT_CURRENT_UPSTREAM",
-    "summary": {
-      "satisfied": 111,
-      "apply": 26,
-      "adapt": 74,
-      "equivalent": 6,
-      "conflict": 0,
-      "blocked": 0,
-      "obsolete": 0
-    },
-    "reason": "The frozen age implementation was already semantically valid. A minimal upstream adaptation reconciles the frozen Task Pack CLI spelling and hardens blocked-environment exit semantics without altering the transaction/recovery core or starting OCI/GitHub replication."
-  },
-  "compatibility_validation": {
-    "status": "PASS",
-    "decision": "PRESERVE_TRANSACTION_CORE_REBUILD_PRODUCT_SHELL_AND_CONNECTORS",
-    "recovery_tag": "PASS",
-    "ignored_runtime_retained": "PASS",
-    "rollback_default": "ROLLBACK_PLAN"
-  },
-  "execution_corrections": [
-    "The SA-501 Task Graph invokes probe_object_store.py with --store r2 --encrypted-canary, while the frozen implementation only accepted a positional store and silently treated BLOCKED_ENVIRONMENT as exit 0. The adapter now accepts the frozen spelling, preserves the old positional form, requires explicit write confirmation, and returns nonzero for blocked environment state.",
-    "Readback coverage previously exercised only a matching ciphertext. A new fixture proves a wrong ciphertext SHA raises, removes the temporary download, and never publishes a target file."
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S5",
+  "title": "绑定 age 加密与 R2 对象权威源",
+  "status": "BLOCKED",
+  "implementation_status": "PASS",
+  "live_environment_status": "BLOCKED_ENVIRONMENT",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-501"
   ],
-  "residual_risk_and_non_claims": [
-    "No real R2, OCI, GitHub, Cloudflare, account, credential, provider request, age binary invocation, ciphertext upload, remote readback/delete, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, legacy ignored-runtime access, or destructive cleanup occurred. Unit fixtures use temporary fake age/S3 clients only.",
-    "The isolated command deliberately removes all provider environment values and reports BLOCKED_ENVIRONMENT. It proves CLI compatibility and fail-closed behavior, not R2 account access, bucket privacy, free-tier availability, real cipher persistence, or remote readback.",
-    "The real Owner-authorized R2 encrypted canary remains NOT_RUN. Its prerequisite is an explicit owner-approved recipient and R2 configuration; it must remain separate from fixture PASS and must never expose plaintext or a private identity.",
-    "OCI, GitHub encrypted third replica, Private-Database completion synchronization, operations recovery, and final release gates remain unfinished in SA-502 through SA-507. No intermediate Git publication is authorized before the full Task Pack passes."
+  "tests": [
+    "TEST-SA-501"
   ],
-  "source_change": {
-    "files_written_in_this_task": [
-      "scripts/probe_object_store.py",
-      "tests/focused/test_s3_replication.py",
-      "evidence/SA-501/RESULT.json",
-      "evidence/SA-501/COMMAND_LOG.json",
-      "HANDOFF.md"
-    ],
-    "product_source_rewrite": "No broad rewrite. The existing one-cipher encryption core and R2 replica implementation remain intact; the change is limited to the frozen CLI compatibility/safety boundary and its fixture coverage."
-  }
+  "oracle": "对象仅生成一份 age 密文；R2 回读 cipher SHA 一致；明文和私钥不进入远端或日志。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "9 encryption/replication tests passed; live R2 canary blocked before write because age recipient is absent.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [
+    "Live product/runtime success was not asserted in this local run."
+  ],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "35eb559e423d3ea7ee47e7c1ffb929e5c5892b8c330fa93f6953964ae0b1fe81"
 }

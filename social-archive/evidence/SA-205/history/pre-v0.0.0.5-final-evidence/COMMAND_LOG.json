@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-205",
+  "commands": [
+    {
+      "id": "frozen_stage_gate_identity",
+      "command": "byte-compare tests/stage/test_stage2_domestic.py with 07_IMPLEMENTATION Overlay and record SHA-256",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Both files have SHA-256 fde5b42e4697feb87553f413ee309cbd04ef121b437eba54d1f366cf8fa92720."
+    },
+    {
+      "id": "task_required_stage_gate",
+      "command": "cd social-archive && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "6 passed."
+    },
+    {
+      "id": "supplemental_domestic_regression",
+      "command": "run Stage 2 plus XHS, OpenAPI, health-gated, command-sidecar, scan-isolation, worker-profile, generic-web, and status-projection fixture tests",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "34 passed."
+    },
+    {
+      "id": "fixed_vendor_and_prior_evidence_audit",
+      "command": "verify four pinned local Vendor checkout commits, Sidecar boundaries, prior SA-201 through SA-204 PASS evidence, and current test/source SHA-256 values",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "XHS afaf2fb459980fccef9eec74e304a39af2c49cab; DouK f404781eb1a82a753c56e1b17f5913ff16acec0c; KS f8d812db840fcea763d035705afc8660a38bcfb5; Bilibili 489607468f967e0e11f3cdff6efc022d011e982a."
+    },
+    {
+      "id": "static_compose_validation",
+      "command": "docker compose config with no env resolution/interpolation/path resolution for all domestic Worker profiles and the Bilibili cli-tools Sidecar",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "Both Compose configurations parsed without reading .env, resolving secrets, building an image, or starting a service."
+    },
+    {
+      "id": "final_semantic_reconciliation",
+      "command": "semantic_classify.py --repo <current-worktree>",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "ADAPT_CURRENT_UPSTREAM; satisfied=158, apply=26, adapt=27, equivalent=6, conflict=0, blocked=0, obsolete=0."
+    },
+    {
+      "id": "final_compatibility_and_boundary_checks",
+      "command": "compatibility verifier; brand verifier; evidence integrity; recovery-tag check; static Compose check",
+      "exit_code": 0,
+      "outcome": "PASS",
+      "result": "34 domestic fixture tests, both static Compose checks, brand boundary, recovery tag, and task-pack compatibility verifier passed."
+    },
+    {
+      "id": "docker_daemon_runtime_check",
+      "command": "docker info --format '{{.ServerVersion}}'",
+      "exit_code": 1,
+      "outcome": "NOT_RUN",
+      "result": "Docker daemon is unavailable; no image was built or service started. Docker runtime is not used as a substitute for the fixture gate."
+    }
+  ],
+  "non_actions": [
+    "No real domestic-platform account, user content, browser Cookie, password, authentication header, provider request, Docker image build, Docker service, deployment, cloud, private-data, GitHub push, merge, rebase, or new Git worktree action occurred.",
+    "No Vendor refresh, source-license mutation, legacy ignored-runtime access, or user-data deletion occurred.",
+    "All blocking assertions are local fixtures. Real platform canaries remain individually NOT_RUN and are not represented as PASS."
+  ]
+}

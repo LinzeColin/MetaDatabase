@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-001",
+  "acceptance_id": "AC-SA-001",
+  "taskpack_version": "v0.0.0.5",
+  "status": "PASS",
+  "executed_at_utc": "2026-08-01T23:55:24Z",
+  "subject": {"repository": "LinzeColin/MetaDatabase", "base_head": "2aab055fadc5e72dbd889f33df47666727b2153f", "origin_main": "2aab055fadc5e72dbd889f33df47666727b2153f"},
+  "oracle": "All 32 tasks and 179 Overlay files were classified without blind overwrite; stronger current-main production, recovery, destination and API boundaries are retained.",
+  "evidence": ["evidence/SA-001/SEMANTIC_RECONCILE.json", "evidence/SA-001/COMMAND_LOG.json"],
+  "classification_summary": {"satisfied": 2, "apply": 2, "adapt": 10, "equivalent": 18, "conflict": 0, "blocked": 0, "obsolete": 0}
+}

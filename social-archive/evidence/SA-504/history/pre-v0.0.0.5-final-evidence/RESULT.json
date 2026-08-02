@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-504",
+  "acceptance_id": "AC-SA-504",
+  "taskpack_version": "v0.0.0.4",
+  "taskpack_zip_sha256": "31c3af6c551e93bd32bec48c0f18a5e4084452175b85bac59bcd4759b60617c6",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-30T17:36:20Z",
+  "subject": {
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/social-archive-v0004-integration",
+    "base_head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "head": "9e2750b779e846cd7668689dbd2bc1e20d6134d7",
+    "recovery_tag": "social-archive-pre-v0.0.0.4-20260730t095749z",
+    "worktree_created_or_switched_by_task": 0,
+    "single_worktree_used_by_task": "codex/social-archive-v0004-integration",
+    "pre_evidence_default_git_status_entry_count": 720,
+    "post_evidence_default_git_status_entry_count": 720
+  },
+  "acceptance_oracle": "结构化完成态幂等进入 Private-Database；其可恢复快照加密写入 R2 backups/private-database/ 并镜像 OCI。",
+  "implemented_boundary": {
+    "private_database_transport": "Only SOCIAL_ARCHIVE_PRIVATE_DB_CLIENT may invoke the official KMOS private_db_client.py ingest/verify API. Missing, unreadable, or wrongly named clients stop before RuntimeStore initialization. The implementation never calls git clone, git add, git commit, git pull, git push, or a local Private-Database checkout.",
+    "completed_fact_gate": "RuntimeStore exports a fact only when its content has at least one artifact and every artifact is already status=complete. That status remains governed by the existing identical R2/OCI/GitHub ciphertext receipt gate.",
+    "fact_integrity_and_idempotency": "A deterministic credential-safe fact excludes local_path, removes sensitive metadata keys and URL query keys, redacts inline credential patterns, uses a canonical JSON byte representation, and uses that exact SHA-256 as the Outbox identity and API ingest batch. A delivered event is never resent unless a current fact changes.",
+    "remote_ack_gate": "After ingest, the wrapper calls official verify and requires a parseable Private-MetaDatabase summary with total>0, missing=0, and total=present. The official client can print missing objects while exiting zero, so an unparseable or incomplete summary leaves all affected facts pending rather than claiming delivery.",
+    "cold_backup_gate": "backup.py accepts only current facts whose exact matching Outbox event is delivered. It builds the recovery tar from temporary API-synchronized fact files, encrypts it once with age, uploads and reads back R2 first, then uses the same ciphertext for OCI. R2 failure blocks OCI; either missing receipt yields DEGRADED, never PASS.",
+    "local_checkout_removal": "Settings no longer creates the legacy private_database_root. Compose, .env.example, install.sh, and systemd no longer mount/install/write a Private-Database working tree. The timer uses bounded --once sync and the backup service has no write access to /opt/social-archive/runtime."
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "task_and_storage_regression": {
+      "tests_passed": 31,
+      "tests_failed": 0,
+      "test_files": [
+        "tests/focused/test_private_database_writer.py",
+        "tests/focused/test_private_database_sync.py",
+        "tests/focused/test_private_database_backup.py",
+        "tests/focused/test_replication_pipeline.py",
+        "tests/focused/test_release_pack.py",
+        "tests/stage/test_stage4_replication_exports.py"
+      ]
+    },
+    "fixture_coverage": {
+      "no_local_checkout": "Missing API client and missing age recipient each return BLOCKED_ENVIRONMENT before a new data root or legacy private path exists; compose/install/systemd contracts reject mounting or creating that path.",
+      "safe_fact": "A fully three-replica-complete capture with token-bearing metadata, URL query, body, and local artifact path is serialized without those sensitive/raw-local values.",
+      "idempotency": "The first fake official-client pass invokes ingest then a complete verify summary and marks the exact Outbox payload delivered; a second pass is NO_CHANGE with zero client calls.",
+      "verification_failure": "A nonzero verify and a misleading zero-exit verify summary with missing objects both keep the fact pending and return DEGRADED.",
+      "cold_backup": "Only delivered current facts enter the temporary recovery bundle. Fake R2 then OCI receipts prove the same encrypted ciphertext/key is used; R2 failure prevents an OCI attempt. The S3 receipt test binds original SHA-256, cipher SHA-256, algorithm, and readback hash."
+    },
+    "safe_task_commands": {
+      "environment": "env -i with an isolated empty temporary SOCIAL_ARCHIVE_DATA_ROOT; no client, recipient, provider configuration, credential, network, or age invocation available",
+      "sync_command": "scripts/sync_private_database.py --once",
+      "sync_exit_code": 3,
+      "sync_status": "BLOCKED_ENVIRONMENT",
+      "sync_error_code": "PRIVATE_DATABASE_CLIENT_UNAVAILABLE",
+      "backup_command": "scripts/backup.py --once",
+      "backup_exit_code": 3,
+      "backup_status": "BLOCKED_ENVIRONMENT",
+      "backup_error_code": "AGE_RECIPIENT_MISSING",
+      "temporary_root_after_each_command": "empty; removed after verification"
+    },
+    "full_regression": {
+      "tests_passed": 186,
+      "tests_failed": 0,
+      "warning": "One existing Starlette TestClient deprecation warning; no assertion failure."
+    },
+    "static_checks": {
+      "compileall": "PASS",
+      "install_shell_syntax": "PASS",
+      "compose_structure": "PASS; Owner .env absent so Docker Compose rendering was deliberately skipped",
+      "systemd_contract": "PASS",
+      "brand_boundary": "PASS: hits=[]",
+      "secret_scan": "PASS: hits=[]",
+      "legacy_local_checkout_and_git_mutation_scan": "PASS: no matches in the SA-504 scripts/configuration scope"
+    }
+  },
+  "semantic_reconciliation": {
+    "status": "PASS",
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "reason": "The frozen sync overlay clones, edits, commits, rebases, and pushes a local Private-Database checkout; the frozen backup reads that checkout. Both conflict with the governing no-clone/no-local-write rule. SA-504 therefore retains the frozen oracle while replacing only its forbidden transport/source with the official clone-free client and its API-acknowledged canonical facts. Existing single-transaction and three-replica completion cores remain intact."
+  },
+  "source_sha256": {
+    "src/social_archive/config.py": "b0fab0c8cbc49cdada67a5f384413333d3e7aa6bd4c5979ac3f1541734355653",
+    "src/social_archive/db.py": "db186c1801c427154ba40c21b2666affcfd82d56ecfc0e87b7fba11a19408c1d",
+    "src/social_archive/private_facts.py": "f4192624fc5efb2f98461e022ac725cc2cc94de9c1942b9bee12b4a521ab47dd",
+    "src/social_archive/repository.py": "811f1cbcebb4c639a14f76f028e7091c8f0b8a22789f6d8027a070e3fb428604",
+    "scripts/sync_private_database.py": "ef23236a9e5c15c658ab1f569ceda6e9be74def80a9f754804ec36b9cefa5498",
+    "scripts/backup.py": "b7f851c745cae4be776c2246c7d023a01155dd749a1672296a60ed9027952a3a",
+    "compose.yaml": "c5d26815d7fcf5e0abf82de717ed28683a9681e8ae4979d74c886012202554f8",
+    ".env.example": "eb03037f7eac69b5972100d5b0c1c8c2e189b83c85f18e5c0dc5c609c6223f1d",
+    "deploy/systemd/social-archive-private-database-sync.service": "75ff0baf39b386ecc867063d1073eb0d8e3851fc1af6160b834353dc880e6767",
+    "deploy/systemd/social-archive-backup.service": "e27c8dbc79fbb29060a05ac9a51fd460c806abd14cd9a28140124a3c6b6397f4",
+    "scripts/install.sh": "4aee9d7ec922171b98532e058e6eacf657b0a1a02b26f75fabcd43a369ef36a6",
+    "tests/focused/test_private_database_sync.py": "7cdc913ad5396246c2b497d1bfab2a34581516fb6d432a3b94ccee3c27e52004",
+    "tests/focused/test_private_database_backup.py": "a3bb326c9b440dec2aac7351a19b7a8e46ad5a27ea9ef6eb2b289220b1911ee3"
+  },
+  "residual_risk_and_non_claims": [
+    "No real Private-Database, GitHub, R2, OCI, Cloudflare, account, credential, provider request, age binary invocation, ciphertext upload, remote readback/delete, data upload, Docker action, deployment, Git stage/commit/push/merge/rebase, new worktree, or legacy ignored-runtime access occurred.",
+    "Fixture PASS proves command ordering, serialization, idempotency, local policy boundaries, and same-cipher receipt handling only. It does not prove the configured client path, gh authentication, Private-Database authorization, repository privacy, R2/OCI bucket policy, free-tier availability, age recipient validity, object persistence, or real remote readback.",
+    "A real Owner-authorized encrypted canary remains NOT_RUN and must be explicitly approved with production client/recipient/store configuration. It must remain separate from this local acceptance evidence and may not upload plaintext or expose a private identity.",
+    "SA-505 through SA-507 and the final task-pack release gate remain unfinished. No intermediate Git publication is authorized."
+  ],
+  "source_change": {
+    "files_written_in_this_task": [
+      "src/social_archive/config.py",
+      "src/social_archive/db.py",
+      "src/social_archive/private_facts.py",
+      "src/social_archive/repository.py",
+      "scripts/sync_private_database.py",
+      "scripts/backup.py",
+      "compose.yaml",
+      ".env.example",
+      "scripts/install.sh",
+      "deploy/systemd/social-archive-private-database-sync.service",
+      "deploy/systemd/social-archive-backup.service",
+      "docs/00_零门槛运行手册.md",
+      "docs/02_系统架构.md",
+      "docs/06_运维手册.md",
+      "tests/focused/test_private_database_sync.py",
+      "tests/focused/test_private_database_backup.py",
+      "evidence/SA-504/RESULT.json",
+      "evidence/SA-504/COMMAND_LOG.json",
+      "HANDOFF.md"
+    ],
+    "product_source_rewrite": "No broad rewrite. This task adds only the no-clone completed-fact transport, durable acknowledgement gate, API-sourced cold backup path, explicit removal of legacy local-checkout configuration, and focused fake-provider coverage."
+  }
+}
