@@ -18,7 +18,7 @@
 // 所以这个模块只做一件事：在每一个真实 turn 上，把这个人这个模式的那条会话
 // **取出来或者建出来**，并且把上下文版本推进一格。
 
-const { createHmac } = require("node:crypto");
+const { createHmac, randomBytes } = require("node:crypto");
 
 const MODES = Object.freeze(["OWNER", "COMPANION"]);
 const STATES = Object.freeze(["active", "paused", "reconcile", "closed"]);
@@ -203,9 +203,17 @@ function recordParityReceipt(database, {
        real_path_verified, outcome, occurred_at_utc, occurred_at_beijing)
      VALUES(?,?,?,?,?,?,?,?,?)`,
   ).run(
-    `rcpt_${createHmac("sha256", key)
-      .update(`${capabilityId}\u0000${mode}\u0000${utc}\u0000${userScope ?? ""}`)
-      .digest("hex").slice(0, 32)}`,
+    // 回执 id 是随机的，不是从内容推出来的。
+    //
+    // 原来推的料是 capability + mode + 时间 + userScope。会话钥匙必须那样推
+    // （它是**稳定身份**，跨重启要算得出同一个），但回执是**事件**——同一个人
+    // 同一项能力在同一毫秒里发生两次是完全正常的（比如两条提醒同时到点），
+    // 而那两条推出来的 id 一模一样，第二条撞主键。撞了之后 recordDeliveryReceipt
+    // 的 catch 把它吞成一行 warn，于是一条真实发生过的投递从账上消失了。
+    //
+    // AC-025 判的是「最近一次成功/失败是什么时候」，丢掉的那条正好可能是最近
+    // 的那条——面板会因此显示一个偏旧的时间，看起来像「有点久没人用了」。
+    `rcpt_${randomBytes(16).toString("hex")}`,
     String(capabilityId), String(mode), hash(userScope), hash(sessionKey),
     realPathVerified ? 1 : 0, outcome, utc, beijing || utc,
   );

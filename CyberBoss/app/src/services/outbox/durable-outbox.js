@@ -360,6 +360,15 @@ class DurableOutboxWorker {
     clearTimeoutFn = clearTimeout,
     autoSchedule = true,
     faultInjector = () => {},
+    // 投递确认回调（CB9-500 收尾 / AC-025）。
+    //
+    // 这一层是**唯一**知道「这条消息真的送到了」的地方——上游只知道它入了队。
+    // AC-025 要的绿色必须由「真实入口 → Runtime → 动作 → 投递」整条换来，
+    // 所以回执只能记在这里，记在上游等于一条发不出去的回复照样是绿的。
+    //
+    // 用回调而不是让这一层自己去写回执：它不认识用户身份和会话，让它认识
+    // 就把身份逻辑漏进了投递层。
+    onDelivery = null,
   } = {}) {
     if (
       !database
@@ -397,6 +406,7 @@ class DurableOutboxWorker {
       random: () => 0.5,
     });
 
+    this.onDelivery = typeof onDelivery === "function" ? onDelivery : null;
     this.database = database;
     this.channelAdapter = channelAdapter;
     this.now = now;
@@ -667,6 +677,8 @@ class DurableOutboxWorker {
       });
       this.#fault("after_confirmation_commit", confirmed);
       this.database.reconcileJobReplyState(confirmed.job_id);
+      // 送到了才叫送到了。回执记在这一行之后，不记在入队处。
+      this.#notifyDelivery(confirmed.user_id || claimedRow.user_id, "success");
       return "confirmed";
     } catch (error) {
       if (isSimulatedProcessCrash(error)) {
@@ -717,7 +729,30 @@ class DurableOutboxWorker {
       if (classification.actionable && material.target.advisory !== true) {
         this.#stageTerminalAdvice(failed, material.target);
       }
+      // 终态失败也是一条回执——而且比成功更该记。
+      //
+      // 只记成功的话，一条能力从「新鲜的成功」直接掉进「过期」，面板显示
+      // DEGRADED，而实际情况是它在**明确地坏着**（UNAVAILABLE）。AC-025 把这
+      // 两态分开，正是因为「久没人用」和「用了就报错」要的处置完全不同。
+      //
+      // ambiguous 不记：那是「不知道送没送到」，记成失败会把一次可能成功的
+      // 投递说成故障，而这套面板最不该做的就是指着一个不存在的故障。
+      if (!ambiguous) {
+        this.#notifyDelivery(failed.user_id || current.user_id, "failure");
+      }
       return ambiguous ? "ambiguous" : "terminal";
+    }
+  }
+
+  // 回执回调整个吞掉：它挂掉绝不能让一条已经送到的消息被当成失败重发。
+  #notifyDelivery(userId, outcome) {
+    if (!this.onDelivery || !userId) {
+      return;
+    }
+    try {
+      this.onDelivery({ userId: String(userId), outcome });
+    } catch {
+      // 旁路。
     }
   }
 

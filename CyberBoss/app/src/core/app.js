@@ -81,7 +81,9 @@ const { UserCompanionTurn } = require("./user-companion-turn");
 const { BackupRunner } = require("../services/backup/backup-runner");
 const { projectLiveStatus } = require("../services/status/live-status-projector");
 const { collapseModes } = require("../services/status/business-matrix");
-const { touchLiveSession } = require("../services/timeline/live-session-store");
+const {
+  readLiveSession, recordParityReceipt, touchLiveSession,
+} = require("../services/timeline/live-session-store");
 const {
   OFFLINE_NOTICE,
   OfflineNoticeLedger,
@@ -563,6 +565,14 @@ class CyberbossApp {
           baseDelayMs: this.config.outboxBaseDelayMs,
           maxDelayMs: this.config.outboxMaxDelayMs,
           maxChunkChars: this.config.outboxChunkChars,
+          // 普通消息那条路的投递确认（CB9-500 收尾 / AC-002、AC-025）。
+          //
+          // 这一行是这整块最容易漏掉的一行：模块写好了、参数留好了、测试全绿，
+          // 而**构造的时候没传**，于是真实链路上一条回执都不会产生。这个仓在
+          // 会话表上刚栽过一次一模一样的（F9），所以这里配了一条结构性测试盯着。
+          onDelivery: ({ userId, outcome }) => {
+            this.recordDeliveryReceipt({ userId, capabilityId: "wechat_channel", outcome });
+          },
         });
         this.streamDelivery.setOutboxWorker(this.outboxWorker);
       }
@@ -930,6 +940,50 @@ class CyberbossApp {
     }
   }
 
+  // 每个模式最近一次真实成功和最近一次真实失败（AC-025）。
+  //
+  // 按 mode 各取两个极值，不取全表最大：两个模式的健康度是分开判的，混在一起
+  // 的话 Owner 那条路一直在用就能把 Companion 的故障盖成绿色。
+  //
+  // 读不出来时四个都留 null——那会让 parity-freshness 判成 UNKNOWN，也就是
+  // 「我们不知道」。补一个时间戳上去等于凭空造出一次没发生过的成功。
+  collectParityFreshness() {
+    const database = this.runtimeSpoolDatabase?.database;
+    const empty = {
+      ownerLastSuccessAt: null,
+      ownerLastFailureAt: null,
+      companionLastSuccessAt: null,
+      companionLastFailureAt: null,
+    };
+    if (!database) {
+      return empty;
+    }
+    try {
+      const rows = database.prepare(
+        `SELECT mode,
+                MAX(CASE WHEN outcome='success' THEN occurred_at_utc END) AS lastSuccess,
+                MAX(CASE WHEN outcome='failure' THEN occurred_at_utc END) AS lastFailure
+         FROM parity_receipts_v009
+         WHERE real_path_verified=1
+         GROUP BY mode`,
+      ).all();
+      const facts = { ...empty };
+      for (const row of rows) {
+        if (row.mode === "OWNER") {
+          facts.ownerLastSuccessAt = row.lastSuccess || null;
+          facts.ownerLastFailureAt = row.lastFailure || null;
+        } else if (row.mode === "COMPANION") {
+          facts.companionLastSuccessAt = row.lastSuccess || null;
+          facts.companionLastFailureAt = row.lastFailure || null;
+        }
+      }
+      return facts;
+    } catch {
+      // 读不出来就是不知道，不是健康。
+      return empty;
+    }
+  }
+
   collectStatusFacts() {
     const runtimeReadiness = typeof this.runtimeAdapter.getReadiness === "function"
       ? this.runtimeAdapter.getReadiness()
@@ -952,6 +1006,14 @@ class CyberbossApp {
       ? this.canonicalSyncCoordinator.status()
       : null;
     return {
+      // 真实回执的新鲜度（CB9-500 收尾 / AC-025）。
+      //
+      // 在此之前这四个 fact 从来没被产出过，于是 live-status-projector 里的
+      // `facts.ownerLastSuccessAt ?? null` 永远拿到 null，那五段**只可能是
+      // UNKNOWN**——AC-025 要的 HEALTHY / DEGRADED / UNAVAILABLE 三个分支在
+      // 生产上根本到不了。而 UNKNOWN 看起来和「刚部署完还没人用」一模一样，
+      // 所以这个洞不会有任何症状。
+      ...this.collectParityFreshness(),
       channelReady: Boolean(this.activeAccountId),
       admissionEnabled: Boolean(this.userAdmission),
       activeUsers,
@@ -2454,11 +2516,23 @@ class CyberbossApp {
     // 接在这里而不是各个发送点：这是它们唯一的共同落点，接一次全都覆盖。
     // 分别接的话，下一个新增的系统消息种类必然漏掉——而漏掉的表现是「那一类的
     // 回执挂在别处」，AC-002 的「逻辑身份相同」当场不成立，且没有任何症状。
-    this.touchSystemSession(
+    const touched = this.touchSystemSession(
       accountId === null ? (this.activeSystemMessageAccountId || "") : String(accountId),
       senderId,
       resolved,
     );
+    // 这条系统消息**投出去了没有**——AC-025 要的绿色只能由投递成功换来。
+    //
+    // delivered 就在手上，而且它是照实记的（发失败时上游传的是 false + errorClass）。
+    // 所以这里不需要再判断一次，只把结果原样交给回执层。记在这里而不是发送点，
+    // 是因为这是提醒到点、脉冲、checkin、入门引导四条路唯一的共同落点。
+    if (touched?.user_id) {
+      this.recordDeliveryReceipt({
+        userId: touched.user_id,
+        capabilityId: `system.${known.includes(resolved) ? resolved : "system"}`,
+        outcome: delivered ? "success" : "failure",
+      });
+    }
     try {
       this.runtimeSpoolDatabase.recordBotInitiatedMessage({
         kind: known.includes(resolved) ? resolved : "system",
@@ -3859,6 +3933,58 @@ class CyberbossApp {
       }
       return { userId: row.user_id, mode: row.role === "owner" ? "OWNER" : "COMPANION" };
     } catch {
+      return null;
+    }
+  }
+
+  // 一次**投递确认**换一条回执（CB9-500 收尾 / AC-002、AC-025）。
+  //
+  // 在此之前 parity_receipts_v009 两头都没有人：没人写，也没人读。而任务包的
+  // 目标原话是「以真实链路回执驱动 Timeline、Private-Database、R2/OCI 与
+  // status」，AC-025 更是把四种状态直接架在回执上——
+  //
+  //   配置存在但没有 live receipt → UNKNOWN
+  //   新鲜的成功                  → HEALTHY
+  //   过期                        → DEGRADED
+  //   最近一次失败                → UNAVAILABLE
+  //
+  // 表空着的时候，后三个分支在生产上**根本到不了**：面板永远显示 UNKNOWN，
+  // 而那看起来和「刚部署完还没人用」一模一样。这正是 CB9-400 那次的翻版——
+  // 模块建好了、测试全绿、真实链路上没有人调它。
+  //
+  // 锚点选在**投递确认**而不是准入：AC-025 要的绿色是「真实入口 → Runtime →
+  // 动作 → 投递」整条换来的。记在准入上的话，一条发不出去的回复照样是绿的。
+  recordDeliveryReceipt({ userId, capabilityId, outcome = "success", now = new Date() } = {}) {
+    const database = this.runtimeSpoolDatabase?.database;
+    const secret = this.userAdmission?.companionSessionSecret;
+    const users = this.userAdmission?.users;
+    const id = normalizeText(userId);
+    if (!database || !secret || !users || !id) {
+      return null;
+    }
+    try {
+      const mode = users.isOwner(id) ? "OWNER" : "COMPANION";
+      // 回执要带上会话钥匙——AC-002 判的就是「所有回执的 session_key 逻辑
+      // 身份相同」。读不到会话就不编一个：宁可这条回执没有钥匙，也不能给出
+      // 一个对不上任何会话的假钥匙。
+      const session = readLiveSession(database, { userId: id, mode });
+      recordParityReceipt(database, {
+        capabilityId: capabilityId || "live_turn",
+        mode,
+        userScope: id,
+        sessionKey: session?.session_key || null,
+        outcome,
+        realPathVerified: true,
+        now,
+        beijing: this.formatOwnerLocalTime?.(now) || null,
+        secret,
+      });
+      return mode;
+    } catch (error) {
+      // 和会话记账同样是旁路：它挂掉不该让用户收不到回复。但要出声。
+      console.warn(
+        `[cyberboss] 回执记账失败 code=${normalizeErrorCode(error?.code) || "receipt_failed"}`,
+      );
       return null;
     }
   }
