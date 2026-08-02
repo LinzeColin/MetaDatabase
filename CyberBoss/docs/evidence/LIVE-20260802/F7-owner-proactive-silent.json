@@ -1,0 +1,20 @@
+{
+  "id": "F7",
+  "severity": "high",
+  "title": "主人自 7-29 起收不到任何主动消息，而且是静默失效",
+  "found_at": "2026-08-02，为了给 AC-002 的脉冲腿找真实触发时顺带发现",
+  "evidence": [
+    "生产 next-checkin.json 的 targets 里只有 __owner__（7-29 的时间戳）和三个访客的 senderId，没有主人的",
+    "轮询器循环按 schedule[target.senderId] 查，而 __owner__ 是旧版单值文件迁移时写下的键——两边对不上，主人那条永远读不到",
+    "bot_initiated_messages 最近一条 checkin 是 2026-08-01T14:37，之后 10 小时零主动消息",
+    "日志里只有『轮询器已启动（当前开着）』，没有任何一条说明它为谁做了什么决定"
+  ],
+  "root_cause": "resolveOwnerSenderIdForCheckin() 只在最近 200 条来信里找主人；找不到就返回空串，listCheckinTargets 的 add() 直接跳过——主人从目标列表里消失，而没有任何一行日志说这件事发生了",
+  "why_it_hides": "「开着」和「有目标」是两回事。面板和日志都只说前者，于是一个完全静默的主动消息系统看起来一切正常——这和 Status 那条『配置性伪绿』是同一个形状",
+  "not_fixed_because": "改这里会动生产的主动消息行为，而我这一程的上下文已经不足以做完整的红绿和回滚验证。半修比不修危险",
+  "suggested_fix": [
+    "__owner__ 这个遗留键要么在迁移时换成真实 senderId，要么在查表时兼容",
+    "resolveOwnerSenderIdForCheckin 返回空串时要出声，不能静默跳过",
+    "轮询器每一轮该记一行『这一轮的目标是谁、下次几点』——现在完全看不出它在做什么"
+  ]
+}
