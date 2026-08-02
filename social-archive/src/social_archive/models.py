@@ -75,6 +75,7 @@ class ConnectorRunRequest(BaseModel):
     limit: int = Field(default=20, ge=1, le=100)
     collection_key: str = Field(default="", max_length=512)
     source_account_id: str | None = Field(default=None, max_length=512)
+    cursor: str | None = Field(default=None, max_length=1024)
     requested_levels: list[ArchiveLevel] = Field(default_factory=lambda: ["L0", "L1", "L3"])
     destination_ids: list[str] = Field(default_factory=lambda: ["social_archive"], max_length=8)
 

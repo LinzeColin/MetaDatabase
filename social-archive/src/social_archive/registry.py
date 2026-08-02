@@ -124,7 +124,7 @@ class ConnectorRegistry:
                 result = XConnector(os.getenv("SOCIAL_ARCHIVE_X_USER_ID"), self._secret("SOCIAL_ARCHIVE_X_OAUTH_TOKEN_FILE")).fetch(relation, request.limit)
         elif connector_id == "reddit":
             relation = "upvoted" if relation == "upvoted" else "saved"
-            result = RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.6"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).fetch(relation, request.limit)
+            result = RedditConnector(os.getenv("SOCIAL_ARCHIVE_REDDIT_USERNAME"), os.getenv("SOCIAL_ARCHIVE_REDDIT_USER_AGENT","SocialArchive/0.0.0.6"), self._secret("SOCIAL_ARCHIVE_REDDIT_OAUTH_TOKEN_FILE")).fetch(relation, request.limit, request.cursor)
         elif connector_id == "instagram":
             session = Path(os.getenv("SOCIAL_ARCHIVE_INSTAGRAM_SESSION_FILE", ""))
             result = self.command.instagram_saved(session if session else None, os.getenv("SOCIAL_ARCHIVE_INSTAGRAM_USERNAME"), request.limit)

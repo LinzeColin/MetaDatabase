@@ -190,69 +190,172 @@ class AccountSyncCoordinator:
         self.store.update_sync_run(run_id, status="discovering")
         imported_total = 0
         failed_total = 0
+        discovered_total = 0
         partial = False
+        blocked_environment = False
+        last_failure_code: str | None = None
+        max_items = self.settings.account_sync_max_items_per_run
         for relation in relations:
             current = self.store.get_sync_run(run_id)
             if current and current["status"] in {"paused", "cancelled"}:
                 return
             self.store.update_sync_run(run_id, status="scanning")
-            request = ConnectorRunRequest(
-                relation_type=relation,  # type: ignore[arg-type]
-                limit=self.settings.account_sync_page_size,
-                source_account_id=account["external_account_id"],
-                requested_levels=["L0", "L1", "L3"],
-                destination_ids=["social_archive", "markdown"],
-            )
-            result, captures = self.registry.run(platform, request)
-            responses = []
-            for capture in captures:
-                effective = capture.model_copy(update={
-                    "source_account_id": account["external_account_id"],
-                    "raw_metadata": {**capture.raw_metadata, "sync_run_id": run_id},
-                })
-                responses.append(self.archive.capture(effective))
-            receipt = dict(result.scan_receipt)
-            receipt.setdefault("scope", "account_relation")
-            receipt.setdefault("relation_type", relation)
-            receipt.setdefault("source_account_id", account["external_account_id"])
-            self.store.record_scan_receipt(platform, result.run_id, receipt, source_account_id=account["external_account_id"], relation_type=relation)
-            imported_total += len(responses)
-            failed_total += len(result.errors)
-            complete = receipt.get("completeness") == "complete"
-            partial = partial or not complete
-            if complete:
-                self.store.apply_complete_scan(
-                    platform,
-                    {response.relation_id for response in responses},
-                    relation_type=relation,
-                    source_account_id=account["external_account_id"],
-                )
-            self.store.upsert_sync_checkpoint(
+            checkpoint = self.store.get_sync_checkpoint(
                 source_account_id=account_id,
                 relation_type=relation,
                 collection_key="",
-                cursor={key: value for key, value in receipt.items() if key in {"next_token", "next_cursor", "cursor_end"}},
-                known_anchor=(captures[0].external_content_id if captures else None),
-                last_complete_sync_run_id=run_id if complete else None,
-                complete=complete,
             )
-            self.store.update_sync_run(
-                run_id,
-                discovered_delta=max(int(receipt.get("item_count") or len(captures)), len(captures)),
-                imported_delta=len(responses),
-                failed_delta=len(result.errors),
-                cursor={"relation": relation, **{key: value for key, value in receipt.items() if key.startswith("next_")}},
-            )
-        final_status = "partial" if partial or failed_total else "completed"
+            checkpoint_cursor = (checkpoint or {}).get("cursor") or {}
+            cursor_value = checkpoint_cursor.get("next_cursor") or checkpoint_cursor.get("next_token")
+            cursor = str(cursor_value).strip() if cursor_value else None
+            resumed_from_prior_run = bool(cursor)
+            seen_cursors = {cursor} if cursor else set()
+            observed_relation_ids: set[str] = set()
+            known_anchor: str | None = None
+
+            while True:
+                current = self.store.get_sync_run(run_id)
+                if current and current["status"] in {"paused", "cancelled"}:
+                    return
+                remaining = max_items - discovered_total
+                if remaining <= 0:
+                    partial = True
+                    last_failure_code = "ACCOUNT_SYNC_ITEM_LIMIT_REACHED"
+                    resume_cursor = {"next_cursor": cursor} if cursor else {}
+                    self.store.upsert_sync_checkpoint(
+                        source_account_id=account_id,
+                        relation_type=relation,
+                        collection_key="",
+                        cursor=resume_cursor,
+                        known_anchor=known_anchor,
+                        last_complete_sync_run_id=None,
+                        complete=False,
+                    )
+                    self.store.update_sync_run(
+                        run_id,
+                        error_code=last_failure_code,
+                        error_message="本次同步达到安全条目上限；已保留检查点。",
+                        cursor={"relation": relation, **resume_cursor},
+                    )
+                    break
+
+                request = ConnectorRunRequest(
+                    relation_type=relation,  # type: ignore[arg-type]
+                    limit=min(self.settings.account_sync_page_size, remaining),
+                    source_account_id=account["external_account_id"],
+                    cursor=cursor,
+                    requested_levels=["L0", "L1", "L3"],
+                    destination_ids=["social_archive", "markdown"],
+                )
+                result, captures = self.registry.run(platform, request)
+                responses = []
+                for capture in captures:
+                    effective = capture.model_copy(update={
+                        "source_account_id": account["external_account_id"],
+                        "raw_metadata": {**capture.raw_metadata, "sync_run_id": run_id},
+                    })
+                    response = self.archive.capture(effective)
+                    responses.append(response)
+                    observed_relation_ids.add(response.relation_id)
+                if known_anchor is None and captures:
+                    known_anchor = captures[0].external_content_id
+
+                receipt = dict(result.scan_receipt)
+                receipt.setdefault("scope", "account_relation")
+                receipt.setdefault("relation_type", relation)
+                receipt.setdefault("source_account_id", account["external_account_id"])
+                if cursor:
+                    receipt.setdefault("cursor_start", cursor)
+                page_discovered = max(int(receipt.get("item_count") or len(captures)), len(captures))
+                discovered_total += page_discovered
+                failed_total += len(result.errors)
+                blocked_environment = blocked_environment or result.status == "blocked_environment"
+
+                complete = receipt.get("completeness") == "complete"
+                next_value = receipt.get("next_cursor") or receipt.get("next_token")
+                next_cursor = str(next_value).strip() if next_value else None
+                failure_code = str(receipt.get("failure_code") or (result.errors[0].get("code") if result.errors else "") or "") or None
+                resume_cursor: dict[str, Any] = {}
+                continue_paging = False
+
+                if complete and resumed_from_prior_run:
+                    # A cursor recovered from an earlier run proves continuation,
+                    # not a complete current-run relation snapshot. Never close
+                    # older relations until one fresh scan observes every page.
+                    complete = False
+                    partial = True
+                    failure_code = "REDDIT_FRESH_FULL_SCAN_REQUIRED"
+                    receipt["completeness"] = "partial"
+                    receipt["failure_code"] = failure_code
+                elif complete:
+                    self.store.apply_complete_scan(
+                        platform,
+                        observed_relation_ids,
+                        relation_type=relation,
+                        source_account_id=account["external_account_id"],
+                    )
+                elif next_cursor and discovered_total < max_items and next_cursor not in seen_cursors:
+                    resume_cursor = {"next_cursor": next_cursor}
+                    continue_paging = True
+                else:
+                    partial = True
+                    if next_cursor:
+                        if discovered_total >= max_items:
+                            resume_cursor = {"next_cursor": next_cursor}
+                            failure_code = "ACCOUNT_SYNC_ITEM_LIMIT_REACHED"
+                            receipt["failure_code"] = failure_code
+                        elif next_cursor in seen_cursors:
+                            resume_cursor = {"next_cursor": cursor or next_cursor}
+                            failure_code = "REDDIT_CURSOR_LOOP"
+                            receipt["failure_code"] = failure_code
+                    elif cursor:
+                        resume_cursor = {"next_cursor": cursor}
+
+                if failure_code:
+                    last_failure_code = failure_code
+                self.store.record_scan_receipt(
+                    platform,
+                    result.run_id,
+                    receipt,
+                    source_account_id=account["external_account_id"],
+                    relation_type=relation,
+                )
+                imported_total += len(responses)
+                self.store.upsert_sync_checkpoint(
+                    source_account_id=account_id,
+                    relation_type=relation,
+                    collection_key="",
+                    cursor={} if complete else resume_cursor,
+                    known_anchor=known_anchor,
+                    last_complete_sync_run_id=run_id if complete else None,
+                    complete=complete,
+                )
+                self.store.update_sync_run(
+                    run_id,
+                    discovered_delta=page_discovered,
+                    imported_delta=len(responses),
+                    failed_delta=len(result.errors),
+                    error_code=failure_code,
+                    error_message=(result.errors[0].get("message") if result.errors else None),
+                    cursor={"relation": relation, **({} if complete else resume_cursor)},
+                )
+                if not continue_paging:
+                    break
+                cursor = next_cursor
+                seen_cursors.add(cursor)
+        final_status = "blocked_environment" if blocked_environment else ("partial" if partial or failed_total else "completed")
         self.store.update_sync_run(
             run_id,
             status=final_status,
-            completeness="partial" if final_status == "partial" else "complete",
+            completeness="unknown" if final_status == "blocked_environment" else ("partial" if final_status == "partial" else "complete"),
+            error_code=last_failure_code,
             evidence={"imported": imported_total, "failed": failed_total, "completed_at": utcnow()},
         )
-        self.store.set_source_account_state(account_id, "connected", verified=True)
-        with self.store.connection() as con:
-            con.execute("UPDATE source_account SET last_sync_at=?,updated_at=? WHERE id=?", (utcnow(), utcnow(), account_id))
+        if final_status != "blocked_environment":
+            self.store.set_source_account_state(account_id, "connected", verified=True)
+        if final_status == "completed":
+            with self.store.connection() as con:
+                con.execute("UPDATE source_account SET last_sync_at=?,updated_at=? WHERE id=?", (utcnow(), utcnow(), account_id))
 
     def _finalize_relation_scope(
         self,

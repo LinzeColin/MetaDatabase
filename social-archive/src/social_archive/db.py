@@ -1500,6 +1500,26 @@ class RuntimeStore:
             )
         return checkpoint_id
 
+    def get_sync_checkpoint(
+        self,
+        *,
+        source_account_id: str,
+        relation_type: str,
+        collection_key: str,
+    ) -> dict[str, Any] | None:
+        checkpoint_id = stable_id("checkpoint", source_account_id, relation_type, collection_key)
+        with self.connection() as con:
+            row = con.execute("SELECT * FROM sync_checkpoint WHERE id=?", (checkpoint_id,)).fetchone()
+        if not row:
+            return None
+        result = dict(row)
+        try:
+            cursor = json.loads(result.pop("cursor_json") or "{}")
+        except (TypeError, ValueError):
+            cursor = {}
+        result["cursor"] = cursor if isinstance(cursor, dict) else {}
+        return result
+
     def artifact_unique_bytes(self) -> int:
         with self.connection() as con:
             row = con.execute("SELECT COALESCE(SUM(byte_size),0) AS total FROM (SELECT sha256,MAX(byte_size) AS byte_size FROM artifact GROUP BY sha256)").fetchone()

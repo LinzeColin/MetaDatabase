@@ -8,6 +8,16 @@ import httpx
 from .base import ConnectorResult
 
 
+def _retry_after_seconds(response: httpx.Response) -> int | None:
+    value = response.headers.get("Retry-After", "").strip()
+    if not value:
+        return None
+    try:
+        return max(0, int(value))
+    except ValueError:
+        return None
+
+
 class PaginatedOAuthConnector:
     def __init__(self, connector_id: str, display_name: str, token_provider: Callable[[], str | None]):
         self.connector_id = connector_id
@@ -53,7 +63,7 @@ class RedditConnector(PaginatedOAuthConnector):
         self.username = username
         self.user_agent = user_agent
 
-    def fetch(self, relation: str, limit: int = 100) -> ConnectorResult:
+    def fetch(self, relation: str, limit: int = 100, cursor: str | None = None) -> ConnectorResult:
         run_id = str(uuid.uuid4())
         token = self._token()
         if not token or not self.username:
@@ -61,14 +71,67 @@ class RedditConnector(PaginatedOAuthConnector):
         endpoint = "saved" if relation == "saved" else "upvoted"
         url = f"https://oauth.reddit.com/user/{self.username}/{endpoint}"
         headers = {"Authorization":f"Bearer {token}","User-Agent":self.user_agent}
+        page_cursor = cursor.strip() if cursor else None
+        params: dict[str, Any] = {"limit":min(max(limit,1),100),"raw_json":1}
+        if page_cursor:
+            params["after"] = page_cursor
         try:
             with httpx.Client(timeout=30.0, headers=headers) as client:
-                response = client.get(url, params={"limit":min(max(limit,1),100),"raw_json":1})
+                response = client.get(url, params=params)
                 response.raise_for_status()
                 data = response.json()
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 429:
+                receipt: dict[str, Any] = {
+                    "completeness":"unknown",
+                    "item_count":0,
+                    "scope":"account_relation",
+                    "relation_type":relation,
+                    "failure_code":"REDDIT_RATE_LIMITED",
+                }
+                if page_cursor:
+                    receipt["cursor_start"] = page_cursor
+                retry_after_seconds = _retry_after_seconds(exc.response)
+                if retry_after_seconds is not None:
+                    receipt["retry_after_seconds"] = retry_after_seconds
+                return ConnectorResult(
+                    self.connector_id,
+                    run_id,
+                    "partial",
+                    scan_receipt=receipt,
+                    errors=[{"code":"REDDIT_RATE_LIMITED","message":"Reddit 限流；保留检查点后稍后重试","retryable":True}],
+                )
+            receipt = {
+                "completeness":"unknown",
+                "item_count":0,
+                "scope":"account_relation",
+                "relation_type":relation,
+                "failure_code":"REDDIT_API_FAILED",
+            }
+            if page_cursor:
+                receipt["cursor_start"] = page_cursor
+            return ConnectorResult(self.connector_id, run_id, "partial", scan_receipt=receipt, errors=[{"code":"REDDIT_API_FAILED","message":str(exc),"retryable":True}])
         except httpx.HTTPError as exc:
-            return ConnectorResult(self.connector_id, run_id, "partial", scan_receipt={"completeness":"partial","item_count":0}, errors=[{"code":"REDDIT_API_FAILED","message":str(exc),"retryable":True}])
+            receipt = {
+                "completeness":"unknown",
+                "item_count":0,
+                "scope":"account_relation",
+                "relation_type":relation,
+                "failure_code":"REDDIT_API_FAILED",
+            }
+            if page_cursor:
+                receipt["cursor_start"] = page_cursor
+            return ConnectorResult(self.connector_id, run_id, "partial", scan_receipt=receipt, errors=[{"code":"REDDIT_API_FAILED","message":str(exc),"retryable":True}])
         children = ((data.get("data") or {}).get("children") or [])
         observations = [{"relation_type":relation,"kind":item.get("kind"),**(item.get("data") or {})} for item in children]
         after = (data.get("data") or {}).get("after")
-        return ConnectorResult(self.connector_id, run_id, "success" if not after else "partial", observations=observations, scan_receipt={"completeness":"complete" if not after else "partial","item_count":len(observations),"next_cursor":after,"scope":"account_relation","relation_type":relation})
+        receipt = {
+            "completeness":"complete" if not after else "partial",
+            "item_count":len(observations),
+            "next_cursor":after,
+            "scope":"account_relation",
+            "relation_type":relation,
+        }
+        if page_cursor:
+            receipt["cursor_start"] = page_cursor
+        return ConnectorResult(self.connector_id, run_id, "success" if not after else "partial", observations=observations, scan_receipt=receipt)

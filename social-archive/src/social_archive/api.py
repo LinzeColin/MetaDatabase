@@ -572,6 +572,8 @@ def _artifact_mapping(captures: list[CaptureRequest], artifacts: list[dict[str, 
 
 @app.post("/v1/connectors/{connector_id}/run", status_code=202, dependencies=[Depends(require_token)])
 def run_connector(connector_id: str, request: ConnectorRunRequest) -> dict[str, Any]:
+    if request.cursor:
+        raise HTTPException(status_code=422, detail="分页检查点仅由账号同步任务内部管理，不能从请求提交")
     started = time.perf_counter()
     try:
         result, captures = registry.run(connector_id, request)
