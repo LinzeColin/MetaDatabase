@@ -47,6 +47,8 @@ import {
 const WEREAD_FULL_RECONCILE_SECONDS = 24 * 60 * 60;
 const BOOK_SKILL_MAX_NOTES = 5_000;
 const BOOK_SKILL_MAX_BYTES = 20 * 1024 * 1024;
+const RECOVERY_VERIFY_MAX_NOTES = 5_000;
+const RECOVERY_VERIFY_CONCURRENCY = 4;
 const SECRET_LIKE_WEREAD_KEY = /\bwrk-[A-Za-z0-9._-]{8,}\b/u;
 const ADMIN_DIRECT_VIEW_REASON = "管理员直接查看";
 
@@ -128,8 +130,9 @@ export class PlatformService {
     const credential = this.store.findCredential("key", "weread", subject);
     if (!credential) this.failAuthentication(bucketKey, "微信读书密钥未绑定账户。");
     this.store.clearAuthFailures(bucketKey);
+    const recovery = this.restoreWeReadCredentialIfNeeded(credential.accountId, credential, cleanKey);
     this.audit(credential.accountId, "login_completed", { method: "weread_key" });
-    return { account: this.publicAccount(credential.accountId), session: this.issueSession(credential.accountId, context, { eventType: "login", method: "weread_key" }) };
+    return { account: this.publicAccount(credential.accountId), session: this.issueSession(credential.accountId, context, { eventType: "login", method: "weread_key" }), recovery };
   }
 
   async bindWeRead(accountId, key, { verify = true } = {}) {
@@ -140,6 +143,7 @@ export class PlatformService {
     if (verify) await this.verifyWeReadKey(cleanKey);
     const accountKey = this.accountKey(accountId);
     const current = this.store.findCredentialByAccount(accountId, "key", "weread");
+    const currentCredentialReadable = !current || this.storedWeReadCredentialIsReadable(accountId, current);
     const data = {
       subject,
       secretEncrypted: encryptForAccount(accountKey, cleanKey, `credential:weread:${accountId}:v1`),
@@ -149,7 +153,69 @@ export class PlatformService {
     else this.store.addCredential({ id: randomId("cred_"), accountId, kind: "key", provider: "weread", ...data });
     this.outbox(accountId, "CREDENTIAL_CHANGED", { provider: "weread", operation: current ? "ROTATED" : "BOUND" });
     this.securityEvent({ accountId, eventType: current ? "credential_rotated" : "credential_bound", method: "weread_key" });
+    if (!currentCredentialReadable) this.queueWeReadDataRecovery(accountId, "CREDENTIAL_DECRYPT_FAILED");
     return this.publicAccount(accountId);
+  }
+
+  recoverWeReadAccountData(accountId, key, sessionToken = "") {
+    const cleanKey = requireValidWeReadKey(key);
+    const bucketKey = this.authBucket("weread-recovery", accountId, { ipPrefix: accountId });
+    this.assertAuthAllowed(bucketKey);
+    const credential = this.store.findCredentialByAccount(accountId, "key", "weread");
+    if (!credential?.secretEncrypted) throw new PlatformError("WEREAD_NOT_BOUND", "请先绑定微信读书密钥。", 409);
+    if (!constantTimeHexEqual(credential.subject, this.wereadSubject(cleanKey))) {
+      const failure = this.store.recordAuthFailure(bucketKey, { limit: this.config.authFailureLimit, windowSeconds: this.config.authFailureWindowSeconds, lockSeconds: this.config.authLockSeconds });
+      if (failure.lockedUntil > this.now()) throw new PlatformError("RATE_LIMIT", "尝试次数过多，请稍后再试。", 429);
+      throw new PlatformError("RECOVERY_KEY_MISMATCH", "请使用当前账户已绑定的微信读书密钥完成恢复。", 403);
+    }
+    this.store.clearAuthFailures(bucketKey);
+    if (sessionToken) this.store.updateRecentAuth(this.sessionHash(sessionToken));
+    this.store.updateCredentialSecret(credential.id, {
+      subject: credential.subject,
+      secretEncrypted: encryptForAccount(this.accountKey(accountId), cleanKey, `credential:weread:${accountId}:v1`),
+      metadata: { ...credential.metadata, lastFour: cleanKey.slice(-4), verifiedAt: this.now() },
+    });
+    const recovery = this.queueWeReadDataRecovery(accountId, "USER_REAUTHENTICATED");
+    this.securityEvent({ accountId, eventType: "account_data_recovery_requested", method: "weread_key", outcome: "SUCCESS" });
+    return { account: this.publicAccount(accountId), recovery };
+  }
+
+  storedWeReadCredentialIsReadable(accountId, credential) {
+    try {
+      const key = decryptForAccount(this.accountKey(accountId), credential.secretEncrypted, `credential:weread:${accountId}:v1`).toString("utf8");
+      return constantTimeHexEqual(credential.subject, this.wereadSubject(key));
+    } catch {
+      return false;
+    }
+  }
+
+  restoreWeReadCredentialIfNeeded(accountId, credential, cleanKey) {
+    if (this.storedWeReadCredentialIsReadable(accountId, credential)) return publicRecoveryState(this.store.getAccountDataRecovery(accountId));
+    this.store.updateCredentialSecret(credential.id, {
+      subject: credential.subject,
+      secretEncrypted: encryptForAccount(this.accountKey(accountId), cleanKey, `credential:weread:${accountId}:v1`),
+      metadata: { ...credential.metadata, lastFour: cleanKey.slice(-4), verifiedAt: this.now() },
+    });
+    const recovery = this.queueWeReadDataRecovery(accountId, "CREDENTIAL_DECRYPT_FAILED");
+    this.securityEvent({ accountId, eventType: "account_data_recovery_queued", method: "weread_key", outcome: "SUCCESS" });
+    return recovery;
+  }
+
+  queueWeReadDataRecovery(accountId, reasonCode) {
+    this.store.markAccountDataRecoveryRequired(accountId, reasonCode);
+    // Do not relabel an already-running normal sync as a recovery: it may have
+    // captured its selection before the credential was repaired.  Its normal
+    // completion path below will enqueue the durable follow-up recovery.
+    if (this.store.findActiveImportJob(accountId, "weread")?.state === "RUNNING") {
+      return publicRecoveryState(this.store.getAccountDataRecovery(accountId));
+    }
+    try {
+      const job = this.createWeReadSyncJob(accountId, { mode: "full" }, randomId("recovery_"), { recovery: true });
+      return publicRecoveryState(this.store.queueAccountDataRecovery(accountId, job.id, reasonCode));
+    } catch (error) {
+      if (error?.code !== "IMPORT_QUEUE_FULL") throw error;
+      return publicRecoveryState(this.store.getAccountDataRecovery(accountId));
+    }
   }
 
   async reauthenticatePassword(accountId, password, sessionToken) {
@@ -375,11 +441,12 @@ export class PlatformService {
     }
   }
 
-  createWeReadSyncJob(accountId, input = {}, idempotencyKey) {
+  createWeReadSyncJob(accountId, input = {}, idempotencyKey, { recovery = false } = {}) {
     const id = randomId("job_");
     const selection = {
       mode: input?.mode === "full" ? "full" : "auto",
       recommendationPages: Math.min(Math.max(Number(input?.recommendationPages || 3), 1), 10),
+      ...(recovery ? { recovery: true } : {}),
     };
     const selectionEncrypted = encryptForAccount(this.accountKey(accountId), selection, `import-selection:${accountId}:${id}:v1`);
     try {
@@ -402,6 +469,8 @@ export class PlatformService {
     this.store.heartbeat(workerId, "import", "v0.0.0.1.9");
     const job = this.store.claimNextImportJob(workerId, this.config.importLeaseSeconds);
     if (!job) return null;
+    const recoveryBefore = job.provider === "weread" ? this.store.getAccountDataRecovery(job.accountId) : null;
+    const recoveryRequested = Boolean(recoveryBefore && recoveryBefore.status !== "HEALTHY");
     const refreshLease = () => {
       try {
         this.store.renewImportJobLease(job.accountId, job.id, workerId, this.config.importLeaseSeconds);
@@ -412,10 +481,39 @@ export class PlatformService {
     leaseTimer.unref?.();
     try {
       if (!job.selectionEncrypted) throw new PlatformError("IMPORT_SELECTION_MISSING", "导入内容已失效，请重新选择。", 409);
-      const selection = JSON.parse(decryptForAccount(this.accountKey(job.accountId), job.selectionEncrypted, `import-selection:${job.accountId}:${job.id}:v1`).toString("utf8"));
+      let selection;
+      try {
+        selection = JSON.parse(decryptForAccount(this.accountKey(job.accountId), job.selectionEncrypted, `import-selection:${job.accountId}:${job.id}:v1`).toString("utf8"));
+      } catch (error) {
+        if (!recoveryRequested || job.provider !== "weread") throw error;
+        // A queued pre-recovery job may have been encrypted with the lost data
+        // key.  The recovery job is deliberately self-contained and can safely
+        // replace only this account's pending WeRead selection.
+        selection = { mode: "full", recommendationPages: 3, recovery: true };
+      }
       if (job.provider === "weread") {
-        const result = await this.syncWeRead(job.accountId, selection);
-        this.store.updateImportJob(job.accountId, job.id, { state: "COMPLETE", progress: publicWeReadSyncProgress(result), clearSelection: true });
+        if (recoveryRequested) this.store.startAccountDataRecovery(job.accountId, job.id);
+        const result = await this.syncWeRead(job.accountId, recoveryRequested ? { ...selection, mode: "full", recovery: true } : selection);
+        let progress = publicWeReadSyncProgress(result);
+        if (recoveryRequested) {
+          const verification = await this.verifyCurrentAccountNotes(job.accountId);
+          const sourceCoverageVerified = result?.coverage?.coverage?.verified ?? result?.coverage?.verified ?? (result?.summary?.coverage?.verified === true);
+          const recoveryHealthy = verification.complete && verification.unreadableNotes === 0 && sourceCoverageVerified === true;
+          const recovery = this.store.completeAccountDataRecovery(job.accountId, {
+            status: recoveryHealthy ? "HEALTHY" : "PARTIAL",
+            reasonCode: recoveryHealthy ? null : !verification.complete ? "VERIFY_LIMIT_REACHED" : verification.unreadableNotes > 0 ? "UNREADABLE_NOTES_REMAIN" : "SOURCE_COVERAGE_UNVERIFIED",
+            unreadableNotes: verification.unreadableNotes,
+          });
+          progress = { ...progress, recovery: publicRecoveryState(recovery), recoveryVerification: publicRecoveryVerification(verification) };
+        }
+        this.store.updateImportJob(job.accountId, job.id, { state: "COMPLETE", progress, clearSelection: true });
+        if (!recoveryRequested) {
+          const pendingRecovery = this.store.getAccountDataRecovery(job.accountId);
+          const credential = this.store.findCredentialByAccount(job.accountId, "key", "weread");
+          if (pendingRecovery.status === "REQUIRED" && credential && this.storedWeReadCredentialIsReadable(job.accountId, credential)) {
+            this.queueWeReadDataRecovery(job.accountId, "CREDENTIAL_REBIND");
+          }
+        }
         return publicImportJob(this.store.getImportJob(job.accountId, job.id));
       }
       let documents;
@@ -437,6 +535,7 @@ export class PlatformService {
       this.audit(job.accountId, "import_completed", { provider: job.provider, count: saved.length });
       return publicImportJob(this.store.getImportJob(job.accountId, job.id));
     } catch (error) {
+      if (recoveryRequested && job.provider === "weread") this.store.failAccountDataRecovery(job.accountId, safeErrorCode(error));
       this.store.updateImportJob(job.accountId, job.id, { state: "FAILED", progress: {}, errorCode: safeErrorCode(error), clearSelection: true });
       throw error;
     } finally {
@@ -444,7 +543,7 @@ export class PlatformService {
     }
   }
 
-  async saveDocument(accountId, document, { expectedVersion = null, reportStatus = false } = {}) {
+  async saveDocument(accountId, document, { expectedVersion = null, reportStatus = false, forceRewrite = false } = {}) {
     const source = sanitizeSource(document.source || "manual");
     const externalId = sanitizeText(document.externalId || randomId("manual_"), 240);
     const title = sanitizeText(document.title || "未命名笔记", 180) || "未命名笔记";
@@ -463,7 +562,7 @@ export class PlatformService {
       return reportStatus ? { note: current, conflict: true, unchanged: false } : { conflict: true, current };
     }
     const effectiveEventAt = eventAt || Number(current?.eventAt || current?.createdAt || 0);
-    if (current && !current.deletedAt && current.contentHash === contentHash && current.title === title && String(current.category || "") === category && String(current.bookTitle || "") === String(bookTitle || "") && String(current.author || "") === String(author || "") && String(current.chapterTitle || "") === String(chapterTitle || "") && String(current.noteKind || "") === String(noteKind || "") && Number(current.eventAt || current.createdAt || 0) === effectiveEventAt) {
+    if (!forceRewrite && current && !current.deletedAt && current.contentHash === contentHash && current.title === title && String(current.category || "") === category && String(current.bookTitle || "") === String(bookTitle || "") && String(current.author || "") === String(author || "") && String(current.chapterTitle || "") === String(chapterTitle || "") && String(current.noteKind || "") === String(noteKind || "") && Number(current.eventAt || current.createdAt || 0) === effectiveEventAt) {
       return reportStatus ? { note: current, unchanged: true } : current;
     }
     const accountKey = this.accountKey(accountId);
@@ -473,6 +572,12 @@ export class PlatformService {
     const objectKey = `${this.config.primaryObjectPrefix}/accounts/${accountId}/notes/${noteId}/v${nextVersion}.enc`;
     const envelope = encryptForAccount(accountKey, { content, title, source, externalId, bookTitle, author, chapterTitle, noteKind }, `note:${accountId}:${noteId}:v${nextVersion}`);
     await this.objectStore.put(objectKey, Buffer.from(envelope, "utf8"), { account: sha256(accountId).slice(0, 16), note: noteId, version: nextVersion });
+    try {
+      await this.verifyWrittenNoteObject({ accountId, noteId, version: nextVersion, objectKey, accountKey, contentHash });
+    } catch {
+      await this.objectStore.delete(objectKey).catch(() => undefined);
+      throw new PlatformError("OBJECT_WRITE_VERIFY_FAILED", "笔记保存未完成安全校验，请稍后重试。", 503);
+    }
     let result;
     try {
       result = this.store.upsertNote({
@@ -503,13 +608,45 @@ export class PlatformService {
     if (!stored) throw new PlatformError("OBJECT_MISSING", "笔记正文暂时不可用。", 503);
     let payload;
     try {
-      const decoded = decryptForAccount(this.accountKey(accountId), stored.bytes.toString("utf8"), `note:${accountId}:${note.id}:v${note.version}`);
-      payload = JSON.parse(decoded.toString("utf8"));
-      if (!payload || typeof payload.content !== "string") throw new Error("笔记正文格式无效。");
+      payload = this.decodeStoredNotePayload(accountId, note, stored, this.accountKey(accountId));
     } catch {
+      if (this.store.findCredentialByAccount(accountId, "key", "weread")) {
+        this.store.markAccountDataRecoveryRequired(accountId, "NOTE_DECRYPT_FAILED");
+        throw new PlatformError("ACCOUNT_DATA_RECOVERY_REQUIRED", "检测到历史加密数据需要安全恢复。请重新验证已绑定的微信读书密钥，系统会在后台重建可重新取得的内容。", 503);
+      }
       throw new PlatformError("OBJECT_CORRUPT", "笔记正文暂时不可用，请稍后重试。", 503);
     }
     return { ...publicNote(note), content: payload.content };
+  }
+
+  decodeStoredNotePayload(accountId, note, stored, accountKey = this.accountKey(accountId)) {
+    const decoded = decryptForAccount(accountKey, stored.bytes.toString("utf8"), `note:${accountId}:${note.id}:v${note.version}`);
+    const payload = JSON.parse(decoded.toString("utf8"));
+    if (!payload || typeof payload.content !== "string") throw new Error("笔记正文格式无效。");
+    return payload;
+  }
+
+  async verifyWrittenNoteObject({ accountId, noteId, version, objectKey, accountKey, contentHash }) {
+    const stored = await this.objectStore.get(objectKey);
+    if (!stored) throw new Error("刚写入的对象不存在。");
+    const payload = this.decodeStoredNotePayload(accountId, { id: noteId, version }, stored, accountKey);
+    if (sha256(payload.content) !== contentHash) throw new Error("刚写入的对象哈希不匹配。");
+  }
+
+  async verifyCurrentAccountNotes(accountId) {
+    const listed = this.store.listNotes(accountId, { limit: RECOVERY_VERIFY_MAX_NOTES + 1 });
+    const notes = listed.slice(0, RECOVERY_VERIFY_MAX_NOTES);
+    let unreadableNotes = 0;
+    await forEachWithConcurrency(notes, RECOVERY_VERIFY_CONCURRENCY, async note => {
+      try {
+        const stored = await this.objectStore.get(note.objectKey);
+        if (!stored) throw new Error("对象不存在。");
+        this.decodeStoredNotePayload(accountId, note, stored);
+      } catch {
+        unreadableNotes += 1;
+      }
+    });
+    return { checkedNotes: notes.length, unreadableNotes, complete: listed.length <= RECOVERY_VERIFY_MAX_NOTES };
   }
 
   async deleteNote(accountId, noteId, expectedVersion = null) {
@@ -540,7 +677,7 @@ export class PlatformService {
     return { results };
   }
 
-  async syncWeRead(accountId, { recommendationPages = 3, mode = "auto" } = {}) {
+  async syncWeRead(accountId, { recommendationPages = 3, mode = "auto", recovery = false } = {}) {
     const credential = this.store.findCredentialByAccount(accountId, "key", "weread");
     if (!credential?.secretEncrypted) throw new PlatformError("WEREAD_NOT_BOUND", "请先绑定微信读书密钥。", 409);
     const key = decryptForAccount(this.accountKey(accountId), credential.secretEncrypted, `credential:weread:${accountId}:v1`).toString("utf8");
@@ -550,7 +687,7 @@ export class PlatformService {
     const hasIncrementalBaseline = Number(priorState?.lastSyncAt || 0) > 0 && Object.keys(priorBookState).length > 0;
     const collectionRepairDue = String(priorState?.summary?.collectionFormatVersion || "") !== WEREAD_COLLECTION_FORMAT_VERSION;
     const fullReconcileDue = priorFullSyncAt <= 0 || this.now() - priorFullSyncAt >= WEREAD_FULL_RECONCILE_SECONDS || collectionRepairDue;
-    const syncMode = mode === "full" || !hasIncrementalBaseline || fullReconcileDue ? "full" : "incremental";
+    const syncMode = recovery || mode === "full" || !hasIncrementalBaseline || fullReconcileDue ? "full" : "incremental";
     const dataset = await syncWeReadDataset(key, {
       fetchImpl: this.fetchImpl,
       maxBooks: this.config.maxWereadBooks,
@@ -563,7 +700,7 @@ export class PlatformService {
     let updatedDocuments = 0;
     let unchangedDocuments = Number(dataset.summary.skippedUnchangedDocuments || 0);
     for (const document of documents) {
-      const outcome = await this.saveDocument(accountId, document, { reportStatus: true });
+      const outcome = await this.saveDocument(accountId, document, { reportStatus: true, forceRewrite: Boolean(recovery) });
       if (outcome.unchanged) unchangedDocuments += 1;
       else updatedDocuments += 1;
     }
@@ -607,6 +744,8 @@ export class PlatformService {
     };
     const summary = {
       ...dataset.summary,
+      syncMode,
+      recovery: Boolean(recovery),
       importedDocuments: documents.length,
       updatedDocuments,
       unchangedDocuments,
@@ -935,6 +1074,7 @@ export class PlatformService {
       connections: this.store.listConnections(accountId).map(item => ({ provider: item.provider, metadata: publicConnectionMetadata(item.metadata), scopes: item.scopes, importReady: connectionSupportsImport(item.provider, item.scopes), expiresAt: item.expiresAt, updatedAt: item.updatedAt })),
       consent: this.store.getConsent(accountId),
       weread: this.store.getWereadState(accountId),
+      dataRecovery: publicRecoveryState(this.store.getAccountDataRecovery(accountId)),
     };
   }
 
@@ -1169,6 +1309,40 @@ function publicImportJob(job) {
   if (!job) return null;
   const { selectionEncrypted, idempotencyKey, workerId, ...safe } = job;
   return safe;
+}
+
+function publicRecoveryState(recovery) {
+  const status = ["HEALTHY", "REQUIRED", "QUEUED", "RUNNING", "PARTIAL", "FAILED"].includes(recovery?.status) ? recovery.status : "REQUIRED";
+  const jobId = /^(job_)[A-Za-z0-9_-]{8,200}$/.test(String(recovery?.recoveryJobId || "")) ? String(recovery.recoveryJobId) : null;
+  return {
+    status,
+    jobId: status === "QUEUED" || status === "RUNNING" ? jobId : null,
+    unreadableNotes: Math.max(0, Number(recovery?.unreadableNotes) || 0),
+    detectedAt: Number(recovery?.detectedAt) || null,
+    queuedAt: Number(recovery?.queuedAt) || null,
+    startedAt: Number(recovery?.startedAt) || null,
+    completedAt: Number(recovery?.completedAt) || null,
+    updatedAt: Number(recovery?.updatedAt) || null,
+  };
+}
+
+function publicRecoveryVerification(verification) {
+  return {
+    checkedNotes: Math.max(0, Number(verification?.checkedNotes) || 0),
+    unreadableNotes: Math.max(0, Number(verification?.unreadableNotes) || 0),
+    complete: verification?.complete === true,
+  };
+}
+
+async function forEachWithConcurrency(items, concurrency, callback) {
+  const queue = [...items];
+  const workers = Array.from({ length: Math.min(Math.max(1, Number(concurrency) || 1), queue.length || 1) }, async () => {
+    while (queue.length) {
+      const item = queue.shift();
+      if (item !== undefined) await callback(item);
+    }
+  });
+  await Promise.all(workers);
 }
 
 function publicWeReadSyncProgress(result) {

@@ -602,6 +602,63 @@ export class PlatformStore {
     return state;
   }
 
+  getAccountDataRecovery(accountId) {
+    const row = this.db.prepare("SELECT account_id AS accountId,status,reason_code AS reasonCode,recovery_job_id AS recoveryJobId,detected_at AS detectedAt,queued_at AS queuedAt,started_at AS startedAt,completed_at AS completedAt,last_checked_at AS lastCheckedAt,unreadable_notes AS unreadableNotes,updated_at AS updatedAt FROM account_data_recovery WHERE account_id=?").get(accountId);
+    return row ?? { accountId, status: "HEALTHY", reasonCode: null, recoveryJobId: null, detectedAt: null, queuedAt: null, startedAt: null, completedAt: null, lastCheckedAt: null, unreadableNotes: 0, updatedAt: null };
+  }
+
+  markAccountDataRecoveryRequired(accountId, reasonCode = "NOTE_DECRYPT_FAILED") {
+    const now = this.now();
+    this.db.prepare(`INSERT INTO account_data_recovery(account_id,status,reason_code,detected_at,last_checked_at,unreadable_notes,updated_at)
+      VALUES(?,?,?,?,?,?,?)
+      ON CONFLICT(account_id) DO UPDATE SET
+        status=CASE WHEN status IN ('QUEUED','RUNNING') THEN status ELSE 'REQUIRED' END,
+        reason_code=excluded.reason_code,
+        detected_at=COALESCE(account_data_recovery.detected_at,excluded.detected_at),
+        last_checked_at=excluded.last_checked_at,
+        updated_at=excluded.updated_at`)
+      .run(accountId, "REQUIRED", reasonCode, now, now, 0, now);
+    return this.getAccountDataRecovery(accountId);
+  }
+
+  queueAccountDataRecovery(accountId, recoveryJobId, reasonCode = "CREDENTIAL_REBIND") {
+    const now = this.now();
+    this.db.prepare(`INSERT INTO account_data_recovery(account_id,status,reason_code,recovery_job_id,detected_at,queued_at,last_checked_at,unreadable_notes,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(account_id) DO UPDATE SET
+        status=CASE WHEN status='RUNNING' THEN 'RUNNING' ELSE 'QUEUED' END,
+        reason_code=CASE WHEN status='RUNNING' THEN reason_code ELSE excluded.reason_code END,
+        recovery_job_id=CASE WHEN status='RUNNING' THEN recovery_job_id ELSE excluded.recovery_job_id END,
+        detected_at=COALESCE(account_data_recovery.detected_at,excluded.detected_at),
+        queued_at=CASE WHEN status='RUNNING' THEN queued_at ELSE excluded.queued_at END,
+        last_checked_at=excluded.last_checked_at,
+        updated_at=excluded.updated_at`)
+      .run(accountId, "QUEUED", reasonCode, recoveryJobId, now, now, now, 0, now);
+    return this.getAccountDataRecovery(accountId);
+  }
+
+  startAccountDataRecovery(accountId, recoveryJobId) {
+    const now = this.now();
+    this.db.prepare("UPDATE account_data_recovery SET status='RUNNING',recovery_job_id=?,started_at=?,last_checked_at=?,updated_at=? WHERE account_id=?")
+      .run(recoveryJobId, now, now, now, accountId);
+    return this.getAccountDataRecovery(accountId);
+  }
+
+  completeAccountDataRecovery(accountId, { status = "HEALTHY", reasonCode = null, unreadableNotes = 0 } = {}) {
+    const nextStatus = status === "PARTIAL" ? "PARTIAL" : "HEALTHY";
+    const now = this.now();
+    this.db.prepare("UPDATE account_data_recovery SET status=?,reason_code=?,completed_at=?,last_checked_at=?,unreadable_notes=?,updated_at=? WHERE account_id=?")
+      .run(nextStatus, reasonCode, now, now, Math.max(0, Number(unreadableNotes) || 0), now, accountId);
+    return this.getAccountDataRecovery(accountId);
+  }
+
+  failAccountDataRecovery(accountId, reasonCode = "RECOVERY_FAILED") {
+    const now = this.now();
+    this.db.prepare("UPDATE account_data_recovery SET status='FAILED',reason_code=?,last_checked_at=?,updated_at=? WHERE account_id=?")
+      .run(reasonCode, now, now, accountId);
+    return this.getAccountDataRecovery(accountId);
+  }
+
   replaceRecommendations(accountId, recommendations) {
     const now = this.now();
     this.transaction(() => {

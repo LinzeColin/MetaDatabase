@@ -207,6 +207,37 @@ test("格式错误的微信读书密钥返回可恢复客户端错误", async t 
   assert.deepEqual((await response.json()).error, { code: "INVALID_KEY", message: "微信读书密钥格式无效。" });
 });
 
+test("账户恢复接口受会话、同源和 CSRF 保护，并且只能接受当前绑定密钥", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: WEREAD_KEY, displayName: "恢复 HTTP 用户" }, {}, { verify: false });
+  platform.store.db.prepare("UPDATE credentials SET secret_encrypted=? WHERE account_id=? AND provider='weread'")
+    .run("v1.invalid-envelope", user.account.id);
+  const app = createPlatformApp({ service: platform.service, config: platform.config });
+  const headers = {
+    "content-type": "application/json",
+    origin: platform.config.baseUrl,
+    "sec-fetch-site": "same-origin",
+    "x-wrp-internal-secret": platform.config.internalProxySecret,
+    cookie: `wrp_session=${user.session.token}`,
+  };
+  const csrfRejected = await app(new Request(`${platform.config.baseUrl}/v1/account/recovery/weread`, { method: "POST", headers, body: JSON.stringify({ key: WEREAD_KEY }) }));
+  assert.equal(csrfRejected.status, 403);
+  const wrongKey = await app(new Request(`${platform.config.baseUrl}/v1/account/recovery/weread`, {
+    method: "POST", headers: { ...headers, "x-csrf-token": user.session.csrf }, body: JSON.stringify({ key: `wrk-${"Q".repeat(32)}` }),
+  }));
+  assert.equal(wrongKey.status, 403);
+  assert.deepEqual((await wrongKey.json()).error, { code: "RECOVERY_KEY_MISMATCH", message: "请使用当前账户已绑定的微信读书密钥完成恢复。" });
+  const accepted = await app(new Request(`${platform.config.baseUrl}/v1/account/recovery/weread`, {
+    method: "POST", headers: { ...headers, "x-csrf-token": user.session.csrf }, body: JSON.stringify({ key: WEREAD_KEY }),
+  }));
+  assert.equal(accepted.status, 200);
+  const payload = await accepted.json();
+  assert.equal(payload.account.id, user.account.id);
+  assert.equal(payload.recovery.status, "QUEUED");
+  assert.equal(JSON.stringify(payload).includes(WEREAD_KEY), false);
+});
+
 test("OAuth 回调仅放行无 Origin 的跨站顶层导航", async t => {
   const platform = testPlatform({ fetchImpl: oauthFetch });
   t.after(platform.close);
