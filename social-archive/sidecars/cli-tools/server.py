@@ -44,7 +44,7 @@ def _is_public_url(raw: str) -> str:
     return raw
 
 
-def _run(argv: list[str], run_dir: Path, timeout: int = 900) -> dict:
+def _run(argv: list[str], run_dir: Path, timeout: int = 900, *, require_artifacts: bool = True) -> dict:
     binary = Path(argv[0]).name
     if binary not in ALLOWED_TOOLS:
         raise ValueError("命令未在允许列表")
@@ -52,7 +52,19 @@ def _run(argv: list[str], run_dir: Path, timeout: int = 900) -> dict:
         return {"status": "blocked_environment", "exit_code": 127, "stdout": "", "stderr": f"{binary} 未安装", "artifacts": []}
     home = run_dir / "home"
     home.mkdir(parents=True, exist_ok=True)
-    env = {"PATH": os.environ.get("PATH", ""), "HOME": str(home), "LANG": "C.UTF-8"}
+    config_home = home / ".config"
+    cache_home = home / ".cache"
+    data_home = home / ".local" / "share"
+    for path in (config_home, cache_home, data_home):
+        path.mkdir(parents=True, exist_ok=True)
+    env = {
+        "PATH": os.environ.get("PATH", ""),
+        "HOME": str(home),
+        "LANG": "C.UTF-8",
+        "XDG_CONFIG_HOME": str(config_home),
+        "XDG_CACHE_HOME": str(cache_home),
+        "XDG_DATA_HOME": str(data_home),
+    }
     try:
         result = subprocess.run(argv, cwd=run_dir, env=env, text=True, capture_output=True, timeout=timeout, check=False)
     except subprocess.TimeoutExpired:
@@ -62,7 +74,7 @@ def _run(argv: list[str], run_dir: Path, timeout: int = 900) -> dict:
         if not path.is_file() or "home" in path.parts or path.name == "command-result.json":
             continue
         artifacts.append(str(path.relative_to(OUTPUT_ROOT)))
-    status = "success" if result.returncode == 0 and artifacts else "failed"
+    status = "success" if result.returncode == 0 and (artifacts or not require_artifacts) else "failed"
     receipt = {
         "status": status,
         "exit_code": result.returncode,
@@ -128,14 +140,39 @@ def _bilibili_list(payload: dict) -> dict:
     run_id = str(uuid.uuid4())
     run_dir = OUTPUT_ROOT / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
-    limit = max(1, min(int(payload.get("limit") or 20), 500))
-    result = _run(["bili", subcommand, "--limit", str(limit)], run_dir)
+    limit = max(1, min(int(payload.get("limit") or 20), 100))
+    argv = {
+        "favorites": ["bili", "favorites", "--json"],
+        "history": ["bili", "history", "--max", str(limit), "--json"],
+        "watch-later": ["bili", "watch-later", "--json"],
+    }[subcommand]
+    result = _run(argv, run_dir, require_artifacts=False)
+    raw_text = f"{result.get('stdout', '')}\n{result.get('stderr', '')}".lower()
+    if result.get("status") != "success" and any(marker in raw_text for marker in ("rate_limited", "rate limited", "http 412", "http 429")):
+        return {
+            "status": "degraded",
+            "run_id": run_id,
+            "exit_code": result.get("exit_code", 1),
+            "error_code": "BILI_RATE_LIMITED",
+            "message": "B站暂时限流（HTTP 412/429）；未尝试绕过，请稍后重试或保存当前页。",
+            "retryable": True,
+            "stdout": "",
+            "stderr": "B站暂时限流",
+            "artifacts": [],
+            "observations": [],
+        }
     observations = []
     text = result.get("stdout", "").strip()
     if text:
         try:
             parsed = json.loads(text)
-            observations = parsed if isinstance(parsed, list) else [parsed]
+            payload_data = parsed.get("data", parsed) if isinstance(parsed, dict) else parsed
+            if isinstance(payload_data, dict) and isinstance(payload_data.get("items"), list):
+                observations = payload_data["items"]
+            elif isinstance(payload_data, list):
+                observations = payload_data
+            else:
+                observations = [payload_data]
         except json.JSONDecodeError:
             observations = [{"raw_text": line} for line in text.splitlines() if line.strip()]
     result.update({"run_id": run_id, "observations": observations})

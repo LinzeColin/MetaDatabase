@@ -10,6 +10,12 @@ RUN apt-get update \
       "gallery-dl==${GALLERY_DL_VERSION}" \
       "yt-dlp==${YT_DLP_VERSION}" \
       "instaloader==${INSTALOADER_VERSION}"
+# The pinned Apache-2.0 Bilibili CLI is supplied only as a named Sidecar build
+# context after `scripts/vendor_sync.py --source bilibili_cli --resolve-and-lock`.
+# It never enters the first-party core image and needs no Bilibili secret.
+COPY --from=bilibili_cli pyproject.toml README.md LICENSE /opt/bilibili-cli/
+COPY --from=bilibili_cli bili_cli /opt/bilibili-cli/bili_cli
+RUN pip install --no-cache-dir /opt/bilibili-cli
 WORKDIR /worker
 COPY server.py /worker/server.py
 RUN useradd --system --uid 10002 --create-home cliworker \
