@@ -1,27 +1,61 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-004",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "taskpack_version": "v0.0.0.6",
+  "generated_at": "2026-08-02T22:01:14Z",
+  "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+  "implementation_commit": "28e5451bc602443adfa7fbc30cb332f50c56c3ca",
+  "implementation_tree": "b9f09bb8ef915dbdc0df856dcb0deff0cce4a335",
+  "python_runtime": "Python 3.12.13",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_extension_api.py tests/focused/test_generic_web_connector.py",
-      "command_sha256": "94895eab5fe93155b16322b25242e9ec782491210341cce813e641e437b13e31",
+      "taskpack_command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_extension_e2n_contract.py",
+      "command_sha256": "e3fbccb2ba9fe082fff24468e0a945139994e1c25f8d574b2dccafb33a136f30",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
       "executed": true,
       "status": "PASS",
       "exit_code": 0,
-      "summary": "Extension shell, generic-web walking skeleton, pairing bridge, package builder and JavaScript syntax gates PASS."
+      "summary": "13 passed."
     },
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && node --check apps/browser-extension/popup.js && node --check apps/browser-extension/options.js && node --check apps/browser-extension/sidepanel.js",
-      "command_sha256": "3d39f3da2c500597c0b870b95019b0b93d1b7d17d92bf09a42caab43341dc0b1",
+      "taskpack_command": "cd \"$TARGET_REPOSITORY/social-archive\" && node --check apps/browser-extension/background.js && node --check apps/browser-extension/content/account-mirror.js && node --check apps/browser-extension/popup.js && node --check apps/browser-extension/sidepanel.js",
+      "command_sha256": "07b3499d1b0dbe91ced432468f89d57348dab7ac24130c04b8866043fd326b7e",
       "executed": true,
       "status": "PASS",
       "exit_code": 0,
-      "summary": "Extension shell, generic-web walking skeleton, pairing bridge, package builder and JavaScript syntax gates PASS."
+      "summary": "All four JavaScript syntax checks passed."
+    },
+    {
+      "command": "python3 -m pytest -q tests/focused/test_core_capture.py tests/focused/test_runtime_store.py tests/focused/test_extension_api.py tests/focused/test_sync_run_controls.py",
+      "command_sha256": "5a595a031a1fb0e8a989d2fd3183cd71667d9efcc9d805d6e478d46f7d1d07ee",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "14 passed; one upstream Starlette httpx deprecation warning."
+    },
+    {
+      "command": "legacy source_account fixture -> RuntimeStore.initialize()",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Confirmed additive account-mirror columns and six runtime sync tables are created before the new index path."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "ADAPT_CURRENT_UPSTREAM; conflicts=0; blocked=0."
+    },
+    {
+      "command": "python3 -m py_compile selected account-sync modules; python3 scripts/check_brand.py; python3 scripts/secret_scan.py .; uv lock --check --offline",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Compile, brand, secret and lockfile checks passed."
     }
   ],
-  "record_sha256": "29214ad33eb952160797eb102232510c770011e9bc402f4b9c5cd0e30e1b92e9"
+  "record_sha256": "f3ca98a8cafc09da2872fe02796a65b02c4e7a43df4bf00b482505e2091bdc6d"
 }

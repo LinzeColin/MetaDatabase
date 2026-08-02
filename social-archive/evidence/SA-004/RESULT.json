@@ -1,30 +1,69 @@
 {
   "schema_version": "1.0",
   "task_id": "SA-004",
-  "taskpack_version": "v0.0.0.5",
+  "taskpack_version": "v0.0.0.6",
   "stage": "S0",
-  "title": "落地 E2N 式扩展壳和通用网页 Walking Skeleton",
+  "title": "落地账号镜像引擎、扩展持久队列和 Chrome 书签 Walking Skeleton",
   "status": "PASS",
   "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
+  "live_environment_status": "NOT_RUN",
   "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "adapt",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
   "acceptance_ids": [
     "AC-SA-004"
   ],
   "tests": [
     "TEST-SA-004"
   ],
-  "oracle": "弹窗、授权卡、悬浮按钮、任务中心和当前页保存形成真实端到端链路；扩展不请求 cookies 权限。",
+  "oracle": "授权 Chrome 书签后自动发现全部书签和文件夹，持久队列分块提交并以 relation-final complete 结束；已完成内容进入平台分组表格，后续书签变化触发增量同步；扩展不申请 cookies 权限。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "Extension shell, generic-web walking skeleton, pairing bridge, package builder and JavaScript syntax gates PASS.",
+  "result_summary": "账号镜像纵向切片已接入当前事务核心：受控账号连接、可恢复 Runtime SQLite 队列/游标/关系范围、受保护 API、worker job 处理和 Chrome 书签扩展持久队列均由本地 Fixture 验证。残留 v0.0.0.5 E2N 测试已以封存 Task Pack 的 v0.0.0.6 版本精确替换。",
   "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+    "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "implementation_commit": "28e5451bc602443adfa7fbc30cb332f50c56c3ca",
+    "implementation_tree": "b9f09bb8ef915dbdc0df856dcb0deff0cce4a335",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "semantic_classifier_sha256": "100f2a3d220ccc8a1326b2a540ba7b96922cb5fe8648d587d72ca5a8955ded21",
+    "frozen_extension_e2n_contract_sha256": "7061d447b667515d6b389ecc55db913a9be61f55d50a47b0e186f21573f6c28c",
+    "background_js_sha256": "d114ae2a5c04c15538593e13acd45c350e92d4e748b99d2e8619eaf34f314d96",
+    "manifest_sha256": "bce1a985af96ba31270329fdc232274a15bd3e859f447146edaa2a646ca61525",
+    "account_sync_sha256": "0fea95366ac49144ef413e0d7f34837e3960b90cc7652bfd35007861230e39d8"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "2fdc512213ed37eb3424e06e1c713065dd8c92e031b0cb0bf2fa66b68e07fb80"
+  "validation": {
+    "taskpack_focused_pytest": "13 passed",
+    "taskpack_javascript_syntax": "PASS for background.js, account-mirror.js, popup.js, sidepanel.js",
+    "sync_control_regression": "4 passed",
+    "core_and_extension_api_regression": "14 passed; one upstream Starlette httpx deprecation warning only",
+    "legacy_runtime_migration": "PASS; a pre-v0.0.0.6 source_account fixture upgrades before account-mirror indexes are created",
+    "python_compile": "PASS",
+    "brand_check": "PASS; hits=[]",
+    "secret_scan": "PASS; hits=[]",
+    "uv_lock_check_offline": "PASS",
+    "git_diff_check": "PASS before implementation commit"
+  },
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "summary": {
+      "satisfied": 97,
+      "apply": 26,
+      "adapt": 93,
+      "equivalent": 6,
+      "conflict": 0,
+      "blocked": 0,
+      "obsolete": 0
+    }
+  },
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-004/history/pre-v0.0.0.6-sa004-account-mirror/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_result_sha256": "0564db4ed04feb26635a0ba5e633ad5e6f01323e9ee53eed7efd4390d6710732",
+    "prior_command_log_sha256": "a95f7d1846594d4b57debc06df23cfb559f7c7e9d553e0f4322188bf3a191b09"
+  },
+  "known_limitations": [
+    "No Chrome browser or unpacked extension was loaded, refreshed, or paired.",
+    "No real account, bookmark permission grant, platform request, provider action, deployment, or production action was attempted.",
+    "The PASS verdict is limited to local Fixture and static syntax checks; product runtime and real-world acceptance remain NOT_RUN."
+  ],
+  "generated_at": "2026-08-02T22:01:14Z",
+  "record_sha256": "a4356a5b5c72bdcce9b204d6a7517d8cc882f13b0a247456f84999a2c8edceaf"
 }

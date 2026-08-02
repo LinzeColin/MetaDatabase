@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-004",
+  "preserved_at": "2026-08-02T22:01:14Z",
+  "reason": "The active v0.0.0.5 SA-004 evidence is superseded by the sealed v0.0.0.6 Task Pack result and is retained verbatim before replacement.",
+  "prior_active_evidence": {
+    "result_path": "evidence/SA-004/history/pre-v0.0.0.6-sa004-account-mirror/RESULT.json",
+    "result_sha256": "0564db4ed04feb26635a0ba5e633ad5e6f01323e9ee53eed7efd4390d6710732",
+    "command_log_path": "evidence/SA-004/history/pre-v0.0.0.6-sa004-account-mirror/COMMAND_LOG.json",
+    "command_log_sha256": "a95f7d1846594d4b57debc06df23cfb559f7c7e9d553e0f4322188bf3a191b09"
+  }
+}

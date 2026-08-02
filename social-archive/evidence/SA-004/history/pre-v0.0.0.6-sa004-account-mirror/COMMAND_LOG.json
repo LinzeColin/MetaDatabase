@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-004",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_extension_e2n_contract.py tests/focused/test_extension_api.py tests/focused/test_generic_web_connector.py",
+      "command_sha256": "94895eab5fe93155b16322b25242e9ec782491210341cce813e641e437b13e31",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Extension shell, generic-web walking skeleton, pairing bridge, package builder and JavaScript syntax gates PASS."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && node --check apps/browser-extension/popup.js && node --check apps/browser-extension/options.js && node --check apps/browser-extension/sidepanel.js",
+      "command_sha256": "3d39f3da2c500597c0b870b95019b0b93d1b7d17d92bf09a42caab43341dc0b1",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Extension shell, generic-web walking skeleton, pairing bridge, package builder and JavaScript syntax gates PASS."
+    }
+  ],
+  "record_sha256": "29214ad33eb952160797eb102232510c770011e9bc402f4b9c5cd0e30e1b92e9"
+}
