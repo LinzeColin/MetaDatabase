@@ -1,0 +1,21 @@
+{
+  "archive_reason": "The active SA-102 evidence predates the sealed v0.0.0.6 run and is retained verbatim, not reclassified as v0.0.0.6 evidence.",
+  "archived_at": "2026-08-02T23:05:36Z",
+  "files": [
+    {
+      "path": "RESULT.json",
+      "raw_sha256": "67dab29e548f1f7c9a2c4e51f71b0dc7208d107fbd2777be890196da015565f7",
+      "record_sha256": "3204e4ca58c8d8cb289bd9255c02f52f779128c6d5065a9299ef7c2e4eb2191e",
+      "taskpack_version": "v0.0.0.5"
+    },
+    {
+      "path": "COMMAND_LOG.json",
+      "raw_sha256": "08c6eb6d541fcfc7bc0269e3910822375d656897c339715922ed662bc434d80f",
+      "record_sha256": "ab1e15e689c9a8f15a7014ba7ef3897fd0c3e4ccc6b0420eb24a64dc337958b0",
+      "taskpack_version": "v0.0.0.5"
+    }
+  ],
+  "predecessor_commit": "cab0cd33e28965d00231f90f2c5e4acd1e501085",
+  "record_sha256": "24ef362f925595e7d9bf24468059926aed87e82095ed05ff77295e63f978b818",
+  "schema_version": "1.0"
+}

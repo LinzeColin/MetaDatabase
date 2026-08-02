@@ -1,19 +1,75 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-102",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py",
-      "command_sha256": "f8358151f3ae3a24c4cc6dee61db0b22784e368f1b3d54254810e1d72b947d8d",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "64a21bcdd731b1ab9e7ed06b8f04ec622cbc5b4d6f9614fdf15b1705a1d30bb2",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "4 focused tests passed."
+      "status": "BASELINE_PASS",
+      "summary": "8 passed before the SA-102 coverage expansion."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "64a21bcdd731b1ab9e7ed06b8f04ec622cbc5b4d6f9614fdf15b1705a1d30bb2",
+      "executed": true,
+      "exit_code": 1,
+      "status": "FAIL_EXPECTED_REPAIR",
+      "summary": "3 failed after added fixture assertions exposed absent cursor transport/checkpoint continuation."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_reddit_connector.py tests/focused/test_oauth_connectors.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "64a21bcdd731b1ab9e7ed06b8f04ec622cbc5b4d6f9614fdf15b1705a1d30bb2",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "13 passed."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_sync_run_controls.py tests/stage/test_stage1_western.py tests/focused/test_connector_run_api.py",
+      "command_sha256": "522f2c12d4e03bd7be1a7d9835a5622e2e907f7a5d20559a64011f8769bf4c93",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "20 passed."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_sync_run_controls.py tests/focused/test_v006_account_mirror_contract.py tests/stage/test_stage1_western.py tests/focused/test_connector_run_api.py",
+      "command_sha256": "b873a45fbf3de7b8f66de36d682b77eee31ecb23cb8d9da1231b0834286702b4",
+      "executed": true,
+      "exit_code": 1,
+      "status": "OUT_OF_SCOPE_PATH_ASSUMPTION",
+      "summary": "22 passed, 2 failed before product assertions because test_v006_account_mirror_contract.py assumes a missing Task Pack parent path; no SA-102 source was changed for it."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m py_compile src/social_archive/models.py src/social_archive/connectors/oauth.py src/social_archive/registry.py src/social_archive/db.py src/social_archive/account_sync.py src/social_archive/api.py",
+      "command_sha256": "f7c62c5f50796dcf1b9afd301ee63d746270321dc9ae793e979e5768b8304376",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Six changed Python source files compiled."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "ADAPT_CURRENT_UPSTREAM; SA-102=apply; conflict=0; blocked=0."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/check_brand.py && python3 scripts/secret_scan.py src/social_archive tests/focused/test_reddit_connector.py && uv lock --check --offline && git diff --check",
+      "command_sha256": "5109a8488170548b18f8ff74ba9613d3a315d69a7d02de53c378a9895b9e577c",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Brand check, targeted secret scan, offline lock check, and diff whitespace check passed."
     }
   ],
-  "record_sha256": "ab1e15e689c9a8f15a7014ba7ef3897fd0c3e4ccc6b0420eb24a64dc337958b0"
+  "generated_at": "2026-08-02T23:05:36Z",
+  "implementation_commit": "fdb21051135cd22219bad92d23a1be81a3568d74",
+  "implementation_tree": "ae0c2e8ff539ce79d74739b8db726007e083937c",
+  "record_sha256": "3b70beb8e338c4c2ba823700c3b1b666d2d170a30bfda056585f1783c6587e46",
+  "schema_version": "1.0",
+  "task_id": "SA-102",
+  "taskpack_version": "v0.0.0.6"
 }

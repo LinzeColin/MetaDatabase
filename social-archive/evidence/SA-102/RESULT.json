@@ -1,30 +1,82 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-102",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S1",
-  "title": "完成 Reddit 免费只读连接器",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
   "acceptance_ids": [
     "AC-SA-102"
   ],
+  "evidence_binding": {
+    "account_sync_sha256": "0685f0b88de436354b8db62ca9d7b28b118be5f7eafe2808d17bf22fbef1beb2",
+    "api_sha256": "0943ec33789fb6f6a00f0c5dc51f1f2433cb579ea6f22380f54dcf02faaf1050",
+    "db_sha256": "b8a59e8b256bc732ffbeff2f66b9d3aaac42d02544823b200920e011e83d90cf",
+    "frozen_oauth_connectors_test_sha256": "5d4b9e8a034da696489b3a36e91f60c883b3ed180c686569727aa08610ab3e5f",
+    "frozen_reddit_connector_test_sha256": "faa271f5e944c125ba4b892ff146d00f0a6f40bfeb1926b4e68206508e4aadb8",
+    "frozen_scan_scope_isolation_test_sha256": "8b3513f5f5048bfa99fa63e34c71f15cde785500e9d4a6e1fffb0d95d7d80925",
+    "implementation_commit": "fdb21051135cd22219bad92d23a1be81a3568d74",
+    "implementation_tree": "ae0c2e8ff539ce79d74739b8db726007e083937c",
+    "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+    "local_oauth_connectors_test_sha256": "cd043e33af931851e29b5d08352170214e832cbcc5d4b1bc61846d7d566b76a2",
+    "local_reddit_connector_test_sha256": "73e53c191cf320502c7ba61f18dce0e6f88eb77bc8d7931b11b230012d8bd371",
+    "local_scan_scope_isolation_test_sha256": "20a0c81143420b9d04f73a232d3c5deaa5014a67b23af58cce075f42a5895bff",
+    "models_sha256": "ce9ee0b6c9022ca544fc62cea87addff186a5afd08800d3a1309e1d7bf610984",
+    "oauth_sha256": "87ad0263ed3cd454de1a6a5ac945a88751ed1b42b9d6bbf035349276a0cccc84",
+    "registry_sha256": "a299aeebacbdd78b7509306caeb80b6a4540bfcf5e7638774af1e2b148ebde96",
+    "semantic_classifier_sha256": "100f2a3d220ccc8a1326b2a540ba7b96922cb5fe8648d587d72ca5a8955ded21",
+    "semantic_report_sha256": "627ce3a16f67b18699e1a223a5935fe060fd74a4bf4ec5d67ecb8e78c0da44c2",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494"
+  },
+  "generated_at": "2026-08-02T23:05:36Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "No real Reddit OAuth, account, browser session, extension reload, pairing, platform request, deployment, or production action was attempted.",
+    "The fixture proves local normalization, checkpoint/pagination safety, and terminal-state handling only; real owner-account totals, permissions, rate limits, and platform behavior remain NOT_RUN.",
+    "The unrelated test_v006_account_mirror_contract.py assumes an immutable Task Pack at the GithubProject parent and therefore could not resolve its files in this scratch worktree; it was not changed in this single-task SA-102 run.",
+    "PASS is limited to Task Pack Fixture/local API/static checks. Product runtime and real-world acceptance remain NOT_RUN."
+  ],
+  "live_environment_status": "NOT_RUN",
+  "oracle": "Reddit Saved 与 Upvoted 独立建模并支持首次全量、增量、Checkpoint、partial/限流安全终态；无授权时明确要求连接或导入，不冒充成功。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-102/history/pre-v0.0.0.6-reddit-account-mirror/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "08c6eb6d541fcfc7bc0269e3910822375d656897c339715922ed662bc434d80f",
+    "prior_result_sha256": "67dab29e548f1f7c9a2c4e51f71b0dc7208d107fbd2777be890196da015565f7"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "record_sha256": "2ed34057b6d5841d6a5523f9c5660e48176ca9e7e975960de23b2707766cfa75",
+  "result_summary": "保留密封 v0.0.0.6 OAuth 归一化并补齐其跨层分页执行缺口：服务端账号同步现在读取并继续 Reddit next_cursor，单次首次全量会跨页累积关系后才允许缺失处理；先前运行留下的检查点可安全续传，但续传完成不会冒充当前运行的全量关系快照。HTTP 429 记录 REDDIT_RATE_LIMITED、Retry-After 与可重试 unknown 收据；无 OAuth 时账号同步明确进入 blocked_environment。外部 connector-run 请求不能注入检查点。",
+  "schema_version": "1.0",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "sa_102_classification": "apply",
+    "scope": "The sealed oauth.py was byte-equivalent at task entry. The task oracle exposed a cross-layer gap: persisted next_cursor was never read and completed final pages could evaluate only that page. The adaptive slice adds safe cursor transport, checkpoint readback, page accumulation, rate-limit/blocked terminal states, and focused fixture coverage without changing the real-account boundary.",
+    "summary": {
+      "adapt": 101,
+      "apply": 26,
+      "blocked": 0,
+      "conflict": 0,
+      "equivalent": 6,
+      "obsolete": 0,
+      "satisfied": 89
+    }
+  },
+  "stage": "S1",
+  "status": "PASS",
+  "task_id": "SA-102",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-102"
   ],
-  "oracle": "saved/upvoted 独立建模；分页/限流产生 partial 收据；部分扫描不关闭关系；无凭证时扩展仍可用。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "4 focused tests passed.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
-  },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "3204e4ca58c8d8cb289bd9255c02f52f779128c6d5065a9299ef7c2e4eb2191e"
+  "title": "完成 Reddit Saved/Upvoted 账号镜像",
+  "validation": {
+    "baseline_taskpack_focused_pytest": "8 passed before the SA-102 coverage expansion.",
+    "brand_check": "PASS; hits=[]",
+    "expected_repair_red": "3 failed after new pagination/rate-limit/checkpoint assertions were added; failures identified missing cursor transport and checkpoint continuation.",
+    "git_diff_check": "PASS before implementation commit",
+    "python_compile": "PASS; six changed Python source files compiled.",
+    "related_account_mirror_stage1_regression": "20 passed.",
+    "secret_scan": "PASS; hits=[]",
+    "semantic_classifier": "PASS; ADAPT_CURRENT_UPSTREAM; SA-102=apply; conflict=0; blocked=0.",
+    "taskpack_focused_pytest": "13 passed.",
+    "uv_lock_check_offline": "PASS",
+    "v006_contract_path_assumption": "22 passed, 2 failed only because test_v006_account_mirror_contract.py hard-codes a missing Task Pack parent path; outside SA-102 scope and independent of this patch."
+  }
 }
