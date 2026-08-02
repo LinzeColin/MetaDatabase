@@ -14,8 +14,8 @@ UNITS = (
 )
 LEGACY_UNITS = ("weread-port-edge-bridge.service",)
 REQUIRED_DEPLOY_KEYS = (
-    "WRP_TASKPACK_VERSION","WRP_RELEASE_COMMIT","WRP_OVH_RELEASE_ID","WRP_SITES_PROJECT_ID",
-    "WRP_ADMIN_BASE_URL","WRP_ADMIN_ACCOUNT_IDS","WRP_EDGE_BRIDGE_HOST","WRP_EDGE_BRIDGE_PORT",
+    "WRP_TASKPACK_VERSION","WRP_RELEASE_COMMIT","WRP_OVH_RELEASE_ID","WRP_EDGE_DEPLOYMENT_ID",
+    "WRP_EDGE_BRIDGE_HOST","WRP_EDGE_BRIDGE_PORT",
     "WRP_SESSION_PEPPER","WRP_CREDENTIAL_PEPPER","WRP_KEYRING_JSON","WRP_ACTIVE_KEY_ID","WRP_INTERNAL_PROXY_SECRET",
     "WRP_R2_ENDPOINT","WRP_R2_BUCKET","WRP_R2_ACCESS_KEY_ID","WRP_R2_SECRET_ACCESS_KEY",
     "WRP_PRIMARY_OBJECT_PREFIX","WRP_PRIVATE_DATABASE_BACKUP_PREFIX",
@@ -44,7 +44,7 @@ def atomic_write(path: pathlib.Path, text: str, mode: int=0o600) -> None:
   try: os.unlink(name)
   except FileNotFoundError: pass
 
-def update_env(path: pathlib.Path, template: pathlib.Path, updates: dict[str,str], *, generate_secrets: bool) -> dict[str,str]:
+def update_env(path: pathlib.Path, template: pathlib.Path, updates: dict[str,str], *, generate_secrets: bool, remove_keys: tuple[str,...]=()) -> dict[str,str]:
  if not path.exists(): path.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(template,path)
  values=read_env(path); generated={}
  if generate_secrets:
@@ -52,10 +52,11 @@ def update_env(path: pathlib.Path, template: pathlib.Path, updates: dict[str,str
    if not values.get(key): generated[key]=base64.b64encode(secrets.token_bytes(32)).decode("ascii") if key!="WRP_INTERNAL_PROXY_SECRET" else secrets.token_urlsafe(48)
   if not values.get("WRP_KEYRING_JSON"):
    generated["WRP_KEYRING_JSON"]=json.dumps({"k1":base64.b64encode(secrets.token_bytes(32)).decode("ascii")},separators=(",",":")); generated.setdefault("WRP_ACTIVE_KEY_ID","k1")
- merged={**generated,**updates}; lines=path.read_text(encoding="utf-8").splitlines(); out=[]; seen=set()
+ merged={**generated,**updates}; removed=set(remove_keys); lines=path.read_text(encoding="utf-8").splitlines(); out=[]; seen=set()
  for line in lines:
   if "=" in line and not line.lstrip().startswith("#"):
    key=line.split("=",1)[0].strip()
+   if key in removed: continue
    if key in merged: line=f"{key}={merged[key]}"; seen.add(key)
   out.append(line)
  for key,value in merged.items():
@@ -102,24 +103,25 @@ def wait_for_platform_ready(port: int, timeout_seconds: float = 30.0) -> None:
   time.sleep(0.5)
  raise RuntimeError("PLATFORM_READY_TIMEOUT")
 
-def validate_identity(commit,ovh,sites):
+def validate_identity(commit,ovh,edge,legacy=""):
  if not SHA40.fullmatch(commit): raise RuntimeError("--release-commit 必须是 40 位小写 Git SHA")
  if not SAFE_ID.fullmatch(ovh): raise RuntimeError("--ovh-release-id 无效")
- if not SAFE_ID.fullmatch(sites): raise RuntimeError("--sites-project-id 无效")
+ if not SAFE_ID.fullmatch(edge): raise RuntimeError("--edge-deployment-id 无效")
+ if legacy and not SAFE_ID.fullmatch(legacy): raise RuntimeError("--legacy-edge-compat-id 无效")
 
 def main()->int:
  parser=argparse.ArgumentParser(); parser.add_argument("--root",type=pathlib.Path,default=pathlib.Path("/")); parser.add_argument("--apply",action="store_true")
- parser.add_argument("--release-commit",default=os.environ.get("WRP_RELEASE_COMMIT","")); parser.add_argument("--ovh-release-id",default=os.environ.get("WRP_OVH_RELEASE_ID","")); parser.add_argument("--sites-project-id",default=os.environ.get("WRP_SITES_PROJECT_ID","")); args=parser.parse_args()
+ parser.add_argument("--release-commit",default=os.environ.get("WRP_RELEASE_COMMIT","")); parser.add_argument("--ovh-release-id",default=os.environ.get("WRP_OVH_RELEASE_ID","")); parser.add_argument("--edge-deployment-id",default=os.environ.get("WRP_EDGE_DEPLOYMENT_ID","")); parser.add_argument("--legacy-edge-compat-id",default=os.environ.get("WRP_LEGACY_EDGE_COMPAT_ID","")); args=parser.parse_args()
  root=args.root.expanduser().resolve(); source_root=pathlib.Path(__file__).resolve().parents[1]
- identity_supplied=bool(args.release_commit or args.ovh_release_id or args.sites_project_id)
- if args.apply or identity_supplied: validate_identity(args.release_commit,args.ovh_release_id,args.sites_project_id)
+ identity_supplied=bool(args.release_commit or args.ovh_release_id or args.edge_deployment_id)
+ if args.apply or identity_supplied: validate_identity(args.release_commit,args.ovh_release_id,args.edge_deployment_id,args.legacy_edge_compat_id)
  release_suffix=(args.release_commit[:12]+"-"+re.sub(r"[^A-Za-z0-9._-]","-",args.ovh_release_id)[:48]) if identity_supplied else "prepared"
  release=root_path(root,f"/opt/weread-port/releases/{VERSION}-{release_suffix}"); current=root_path(root,"/opt/weread-port/current"); env_file=root_path(root,"/etc/weread-port/platform.env"); unit_dir=root_path(root,"/etc/systemd/system"); state=root_path(root,"/var/lib/weread-port")
  copy_release(source_root,release); state.mkdir(parents=True,exist_ok=True,mode=0o700)
  updates={}
- if identity_supplied: updates={"WRP_TASKPACK_VERSION":TASKPACK_VERSION,"WRP_RELEASE_COMMIT":args.release_commit,"WRP_OVH_RELEASE_ID":args.ovh_release_id,"WRP_SITES_PROJECT_ID":args.sites_project_id}
+ if identity_supplied: updates={"WRP_TASKPACK_VERSION":TASKPACK_VERSION,"WRP_RELEASE_COMMIT":args.release_commit,"WRP_OVH_RELEASE_ID":args.ovh_release_id,"WRP_EDGE_DEPLOYMENT_ID":args.edge_deployment_id,"WRP_LEGACY_EDGE_COMPAT_ID":args.legacy_edge_compat_id,"WRP_ADMIN_BASE_URL":"","WRP_ADMIN_ACCOUNT_IDS":""}
  previous_env_text=env_file.read_text(encoding="utf-8") if env_file.exists() else None
- values=update_env(env_file,source_root/"service/env/weread-port-platform.env.example",updates,generate_secrets=args.apply and root==pathlib.Path("/"))
+ values=update_env(env_file,source_root/"service/env/weread-port-platform.env.example",updates,generate_secrets=args.apply and root==pathlib.Path("/"),remove_keys=("WRP_SITES_PROJECT_ID",) if identity_supplied else ())
  unit_dir.mkdir(parents=True,exist_ok=True)
  for unit in sorted((source_root/"service/systemd").iterdir()):
   if unit.is_file(): shutil.copy2(unit,unit_dir/unit.name); (unit_dir/unit.name).chmod(0o644)
@@ -158,7 +160,7 @@ def main()->int:
   if current.is_symlink() or current.is_file(): current.unlink()
   elif current.exists(): shutil.rmtree(current)
   current.symlink_to(pathlib.Path("releases")/release.name)
- print(json.dumps({"status":"ACTIVATED" if activated else "PREPARED","version":TASKPACK_VERSION,"release":str(release),"current":str(current),"environment":str(env_file),"missingDeploymentInputs":sorted(set(missing)),"preflight":preflight,"units":list(UNITS),"nextCommand":None if activated else f"sudo python3 service/install_platform.py --apply --release-commit <40_SHA> --ovh-release-id <ID> --sites-project-id <EXISTING_PROJECT_ID>"},ensure_ascii=False,indent=2,sort_keys=True)); return 0
+ print(json.dumps({"status":"ACTIVATED" if activated else "PREPARED","version":TASKPACK_VERSION,"release":str(release),"current":str(current),"environment":str(env_file),"missingDeploymentInputs":sorted(set(missing)),"preflight":preflight,"units":list(UNITS),"nextCommand":None if activated else f"sudo python3 service/install_platform.py --apply --release-commit <40_SHA> --ovh-release-id <ID> --edge-deployment-id <ID>"},ensure_ascii=False,indent=2,sort_keys=True)); return 0
 if __name__=="__main__":
  try: raise SystemExit(main())
  except Exception as exc: print(json.dumps({"status":"FAILED","errorCode":type(exc).__name__,"message":str(exc)},ensure_ascii=False),file=sys.stderr); raise SystemExit(2)

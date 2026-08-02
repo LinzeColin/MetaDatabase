@@ -16,9 +16,8 @@ from urllib.parse import urlparse
 
 VERSION = "v0.0.0.1.9"
 EXPECTED_ORIGIN = "https://weread.linzezhang.com"
-EXPECTED_ADMIN_ORIGIN = "https://admin.weread.linzezhang.com"
 REQUIRED = (
-    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_ADMIN_BASE_URL", "WRP_ADMIN_ACCOUNT_IDS", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT", "WRP_EDGE_BRIDGE_HOST", "WRP_EDGE_BRIDGE_PORT",
+    "NODE_ENV", "WRP_PUBLIC_BASE_URL", "WRP_SERVICE_HOST", "WRP_SERVICE_PORT", "WRP_EDGE_BRIDGE_HOST", "WRP_EDGE_BRIDGE_PORT",
     "WRP_DATABASE_PATH", "WRP_OBJECT_STORE_MODE", "WRP_SESSION_PEPPER",
     "WRP_CREDENTIAL_PEPPER", "WRP_KEYRING_JSON", "WRP_ACTIVE_KEY_ID",
     "WRP_INTERNAL_PROXY_SECRET", "WRP_R2_ENDPOINT", "WRP_R2_BUCKET",
@@ -27,7 +26,7 @@ REQUIRED = (
     "WRP_NOTION_CLIENT_ID", "WRP_NOTION_CLIENT_SECRET", "WRP_PRIVATE_DATABASE_CLIENT_PATH",
     "WRP_PRIVATE_DATABASE_CLIENT_SHA256", "WRP_PRIVATE_DATABASE_AREA", "WRP_PRIVATE_DATABASE_DOMAIN",
     "WRP_PRIVATE_DATABASE_GH_TOKEN",
-    "WRP_TASKPACK_VERSION", "WRP_RELEASE_COMMIT", "WRP_OVH_RELEASE_ID", "WRP_SITES_PROJECT_ID",
+    "WRP_TASKPACK_VERSION", "WRP_RELEASE_COMMIT", "WRP_OVH_RELEASE_ID", "WRP_EDGE_DEPLOYMENT_ID",
     "WRP_PRIMARY_OBJECT_PREFIX", "WRP_PRIVATE_DATABASE_BACKUP_PREFIX",
     "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "WRP_R2_RCLONE_SOURCE", "WRP_OCI_RCLONE_TARGET",
 )
@@ -72,15 +71,8 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
         block("PUBLIC_URL", "WRP_PUBLIC_BASE_URL", "必须是无路径、无查询参数的 HTTPS origin。")
     elif origin.rstrip("/") != EXPECTED_ORIGIN:
         block("TARGET_DOMAIN", "WRP_PUBLIC_BASE_URL", f"当前版本冻结域名必须为 {EXPECTED_ORIGIN}。")
-    admin_origin = values.get("WRP_ADMIN_BASE_URL", "")
-    admin_parsed = urlparse(admin_origin)
-    if admin_parsed.scheme != "https" or not admin_parsed.netloc or admin_parsed.path not in ("", "/") or admin_parsed.query or admin_parsed.fragment:
-        block("ADMIN_URL", "WRP_ADMIN_BASE_URL", "必须是无路径、无查询参数的 HTTPS origin。")
-    elif admin_origin.rstrip("/") != EXPECTED_ADMIN_ORIGIN:
-        block("ADMIN_DOMAIN", "WRP_ADMIN_BASE_URL", f"当前版本管理域必须为 {EXPECTED_ADMIN_ORIGIN}。")
-    admin_ids = [item.strip() for item in values.get("WRP_ADMIN_ACCOUNT_IDS", "").split(",") if item.strip()]
-    if not admin_ids or any(not re.fullmatch(r"acct_[A-Za-z0-9_-]{8,200}", item) for item in admin_ids):
-        block("ADMIN_ACCOUNTS", "WRP_ADMIN_ACCOUNT_IDS", "必须配置至少一个有效的不可变管理员账户 ID。")
+    if values.get("WRP_ADMIN_BASE_URL", "").strip() or values.get("WRP_ADMIN_ACCOUNT_IDS", "").strip():
+        block("ADMIN_PUBLIC_SURFACE", "WRP_ADMIN_BASE_URL/WRP_ADMIN_ACCOUNT_IDS", "当前生产范围只允许 weread.linzezhang.com，不得启用独立管理域或跨域会话。")
     if values.get("WRP_SERVICE_HOST") not in {"127.0.0.1", "::1"}:
         block("BIND_ADDRESS", "WRP_SERVICE_HOST", "账户服务必须只监听回环地址。")
     try:
@@ -122,7 +114,7 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
         block("TASKPACK_VERSION", "WRP_TASKPACK_VERSION", f"必须精确等于 {VERSION}。")
     if not re.fullmatch(r"[0-9a-f]{40}", values.get("WRP_RELEASE_COMMIT", "")):
         block("RELEASE_COMMIT", "WRP_RELEASE_COMMIT", "必须是 40 位小写 Git SHA。")
-    for field in ("WRP_OVH_RELEASE_ID", "WRP_SITES_PROJECT_ID"):
+    for field in ("WRP_OVH_RELEASE_ID", "WRP_EDGE_DEPLOYMENT_ID"):
         if not re.fullmatch(r"[A-Za-z0-9._:-]{3,160}", values.get(field, "")):
             block("RELEASE_ID", field, "部署身份格式无效。")
     if values.get("WRP_PRIMARY_OBJECT_PREFIX") != "primary-objects":

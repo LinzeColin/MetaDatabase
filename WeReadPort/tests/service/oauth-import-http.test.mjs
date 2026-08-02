@@ -130,7 +130,9 @@ test("账户 HTTP 接口强制内部身份、同源、Cookie、CSRF 与账户会
   assert.equal(register.status, 200);
   assert.equal(register.headers.get("cache-control"), "no-store");
   const payload = await register.json();
-  const cookie = register.headers.get("set-cookie").split(";")[0];
+  const setCookie = register.headers.get("set-cookie");
+  assert.doesNotMatch(setCookie, /;\s*Domain=/iu, "单一公开入口不得签发跨域 Cookie");
+  const cookie = setCookie.split(";")[0];
   assert.ok(cookie.startsWith("wrp_session="));
 
   const rejected = await app(new Request(`${platform.config.baseUrl}/v1/notes`, { method: "POST", headers: { ...baseHeaders, cookie }, body: JSON.stringify({ title: "失败", content: "缺少 CSRF" }) }));

@@ -37,6 +37,8 @@ export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
   const rawPath = url.pathname;
   const path = normalizePath(rawPath);
+  const canonicalHostResponse = rejectUnexpectedHost(request, url, env);
+  if (canonicalHostResponse) return secure(canonicalHostResponse);
   const adminHost = isAdminHost(url, env);
   try {
     if (!adminHost && isAdminOnlyPath(path)) return secure(jsonForRequest(request, { error: { code: "NOT_FOUND", message: "页面不存在。" } }, 404));
@@ -55,7 +57,7 @@ export async function handleRequest(request, env = {}) {
         taskpackVersion: "v0.0.0.1.9",
         releaseCommit: String(env.WRP_RELEASE_COMMIT || ""),
         ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || ""),
-        sitesProjectId: String(env.WRP_SITES_PROJECT_ID || ""),
+        edgeDeploymentId: String(env.WRP_EDGE_DEPLOYMENT_ID || ""),
       }));
     }
     if (path.startsWith("/api/platform/")) {
@@ -203,7 +205,7 @@ async function inspectAssets(request, env) {
   if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
     return { ready: false, detail: "静态资源绑定不可用。" };
   }
-  const probeUrl = new URL(isAdminHost(new URL(request.url), env) ? "/site/admin.html" : "/site/home.html", request.url);
+  const probeUrl = new URL(isAdminHost(new URL(request.url), env) ? "/admin.html" : "/index.html", request.url);
   let response;
   try {
     response = await fetchAssetWithCanonicalRedirect(new Request(probeUrl, { method: "GET", headers: { Accept: "text/html" } }), env);
@@ -227,10 +229,10 @@ async function inspectAccountService(request, env) {
     taskpackVersion: "v0.0.0.1.9",
     releaseCommit: String(env.WRP_RELEASE_COMMIT || ""),
     ovhReleaseId: String(env.WRP_OVH_RELEASE_ID || ""),
-    sitesProjectId: String(env.WRP_SITES_PROJECT_ID || ""),
+    edgeDeploymentId: String(env.WRP_EDGE_DEPLOYMENT_ID || ""),
   };
   if (!raw || !internalSecret) return { ready: false, detail: "账户平台地址或内部代理密钥未配置。", releaseIdentity: expected };
-  if (!expected.releaseCommit || !expected.ovhReleaseId || !expected.sitesProjectId) return { ready: false, detail: "部署身份未绑定 commit、OVH release 或 Sites project。", releaseIdentity: expected };
+  if (!expected.releaseCommit || !expected.ovhReleaseId || !expected.edgeDeploymentId) return { ready: false, detail: "部署身份未绑定 commit、OVH release 或边缘部署。", releaseIdentity: expected };
   let base;
   try { base = new URL(raw); } catch { return { ready: false, detail: "账户平台服务地址无效。", releaseIdentity: expected }; }
   if (base.protocol !== "https:" && !["127.0.0.1", "localhost"].includes(base.hostname)) return { ready: false, detail: "账户平台服务必须使用 HTTPS。", releaseIdentity: expected };
@@ -316,7 +318,7 @@ function runtimeMode(url, env) {
   const configured = String(env.DEPLOYMENT_ENV ?? "").trim().toLowerCase();
   if (["production", "preview", "local"].includes(configured)) return configured;
   if (["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)) return "local";
-  if (["weread.linzezhang.com", "admin.weread.linzezhang.com", "status.linzezhang.com"].includes(url.hostname)) return "production";
+  if (["weread.linzezhang.com", "status.linzezhang.com"].includes(url.hostname)) return "production";
   return "preview";
 }
 
@@ -329,8 +331,8 @@ function normalizePath(value) {
   return value.replace(/\/+$/u, "") || "/";
 }
 
-/** Keep public routes out of the direct static-asset namespace so Sites always
- * reaches this Worker before a document is returned. */
+/** Keep public routes out of the direct static-asset namespace so the Worker
+ * always enforces the canonical host before a document is returned. */
 function staticAssetRequest(request, url, { adminHost = false } = {}) {
   const target = new URL(url);
   target.pathname = staticAssetPath(url.pathname, { adminHost });
@@ -344,20 +346,45 @@ async function fetchAssetWithCanonicalRedirect(request, env) {
   let canonical;
   try { canonical = new URL(location, request.url); } catch { return response; }
   const source = new URL(request.url);
-  if (canonical.origin !== source.origin || !canonical.pathname.startsWith("/site/")) return response;
+  if (canonical.origin !== source.origin) return response;
   response = await env.ASSETS.fetch(new Request(canonical.toString(), request));
   return response;
 }
 
 function staticAssetPath(pathname, { adminHost = false } = {}) {
   if (adminHost) {
-    if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return `/site${pathname}`;
-    return "/site/admin.html";
+    if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return pathname;
+    return "/admin.html";
   }
-  if (pathname === "/") return "/site/home.html";
-  if (["/privacy/", "/terms/", "/status/"].includes(pathname)) return `/site${pathname}page.html`;
-  if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return `/site${pathname}`;
-  return "/site/home.html";
+  if (pathname === "/") return "/index.html";
+  if (["/privacy/", "/terms/", "/status/"].includes(pathname)) return `${pathname}index.html`;
+  if (pathname.startsWith("/assets/") || /\.[A-Za-z0-9]{1,16}$/u.test(pathname)) return pathname;
+  return "/index.html";
+}
+
+function rejectUnexpectedHost(request, url, env) {
+  const rawPublicHost = String(env.WRP_PUBLIC_HOST || "").trim();
+  if (!rawPublicHost) return null;
+  const publicHost = configuredHostname(rawPublicHost);
+  if (!publicHost) {
+    return jsonForRequest(request, { error: { code: "EDGE_CONFIGURATION", message: "边缘入口配置无效。" } }, 503);
+  }
+  const adminHost = configuredHostname(String(env.WRP_ADMIN_HOST || "").trim());
+  const currentHost = url.hostname.toLowerCase();
+  if (currentHost === publicHost || (adminHost && currentHost === adminHost)) return null;
+  if (["GET", "HEAD"].includes(request.method) && !url.pathname.startsWith("/api/")) {
+    const target = new URL(url);
+    target.protocol = "https:";
+    target.hostname = publicHost;
+    target.port = "";
+    return new Response(null, { status: 308, headers: { Location: target.toString(), "Cache-Control": "no-store" } });
+  }
+  return jsonForRequest(request, { error: { code: "CANONICAL_HOST_REQUIRED", message: "请从规范网站地址重新打开后再登录。" } }, 421);
+}
+
+function configuredHostname(value) {
+  const host = String(value || "").trim().toLowerCase();
+  return /^[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?$/u.test(host) ? host : "";
 }
 
 function isAdminHost(url, env) {

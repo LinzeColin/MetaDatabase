@@ -15,7 +15,7 @@ const healthyEnv = {
   ASSETS: {
     fetch: async request => {
       const url = new URL(request.url);
-      if (url.pathname === "/site/home.html") {
+      if (url.pathname === "/index.html") {
         return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁｜个人阅读资产中心</title></html>", {
           status: 200,
           headers: { "Content-Type": "text/html; charset=utf-8" },
@@ -29,14 +29,14 @@ const healthyEnv = {
   WRP_TASKPACK_VERSION: "v0.0.0.1.9",
   WRP_RELEASE_COMMIT: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   WRP_OVH_RELEASE_ID: "ovh-release-test",
-  WRP_SITES_PROJECT_ID: "sites-project-test",
+  WRP_EDGE_DEPLOYMENT_ID: "edge-deployment-test",
   ACCOUNT_SERVICE_FETCH: async url => new Response(JSON.stringify({
     status: "ready", ready: true, url: String(url),
     releaseIdentity: {
       taskpackVersion: "v0.0.0.1.9",
       releaseCommit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       ovhReleaseId: "ovh-release-test",
-      sitesProjectId: "sites-project-test",
+      edgeDeploymentId: "edge-deployment-test",
     },
   }), {
     status: 200,
@@ -117,8 +117,8 @@ test("版本接口公开治理 schema 与非 Secret 发布身份", async () => {
   const response = await handleRequest(new Request("https://example.test/api/version"), healthyEnv);
   const payload = await response.json();
   assert.equal(payload.businessGovernanceSchemaVersion, BUSINESS_GOVERNANCE_SCHEMA_VERSION);
-  assert.deepEqual(Object.keys(payload).sort(), ["app", "appVersion", "businessGovernanceSchemaVersion", "sourceSkillVersion", "taskpackVersion", "releaseCommit", "ovhReleaseId", "sitesProjectId"].sort());
+  assert.deepEqual(Object.keys(payload).sort(), ["app", "appVersion", "businessGovernanceSchemaVersion", "sourceSkillVersion", "taskpackVersion", "releaseCommit", "ovhReleaseId", "edgeDeploymentId"].sort());
   assert.equal(payload.releaseCommit, healthyEnv.WRP_RELEASE_COMMIT);
   assert.equal(payload.ovhReleaseId, healthyEnv.WRP_OVH_RELEASE_ID);
-  assert.equal(payload.sitesProjectId, healthyEnv.WRP_SITES_PROJECT_ID);
+  assert.equal(payload.edgeDeploymentId, healthyEnv.WRP_EDGE_DEPLOYMENT_ID);
 });

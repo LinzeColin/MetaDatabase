@@ -36,12 +36,12 @@ jobs:
           WEREAD_PORT_SITE_URL: ${{ vars.WEREAD_PORT_SITE_URL }}
           WRP_RELEASE_COMMIT: ${{ vars.WRP_RELEASE_COMMIT }}
           WRP_OVH_RELEASE_ID: ${{ vars.WRP_OVH_RELEASE_ID }}
-          WRP_SITES_PROJECT_ID: ${{ vars.WRP_SITES_PROJECT_ID }}
+          WRP_EDGE_DEPLOYMENT_ID: ${{ vars.WRP_EDGE_DEPLOYMENT_ID }}
         run: >-
           python3 WeReadPort/scripts/smoke-site.py "$WEREAD_PORT_SITE_URL"
           --expected-commit "$WRP_RELEASE_COMMIT"
           --expected-ovh-release-id "$WRP_OVH_RELEASE_ID"
-          --expected-sites-project-id "$WRP_SITES_PROJECT_ID"
+          --expected-edge-deployment-id "$WRP_EDGE_DEPLOYMENT_ID"
   core-account-e2e:
     name: 注册、登录、持久化、跨设备、隔离、导入、画像与删除
     if: github.event_name == 'workflow_dispatch' && inputs.core_account_e2e

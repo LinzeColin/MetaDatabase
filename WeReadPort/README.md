@@ -13,7 +13,7 @@
 - **跨设备同步**：服务端提供账户级增量游标、幂等键、乐观版本冲突和删除事件；并发修改不会静默覆盖。
 - **画像与可视化**：在明确同意后，以确定性聚合生成阅读热度、来源分布、主题偏好、活跃趋势和可解释推荐；关闭同意后删除非必要行为事件；运行期不调用模型，Agent 与 Token 依赖均为零。
 - **AI 问询**：搜索结果默认按书籍归档并可折叠；支持作者和时间归档。对选中的单条笔记，可选择 ChatGPT、Claude、DeepSeek、豆包或 Kimi，以及盲点反思等提问风格；浏览器先复制文本，再打开你选定的平台，不把笔记正文代为上传。个人补充信息与自定义提示词按账户加密保存。
-- **专用管理面**：`admin.weread.linzezhang.com` 仅向服务端不可变账户白名单展示资料、笔记、提示词、运行状态与操作记录；主站已登录会话会无感接力到该受控子域，不要求再次输入密钥或填写查看用途。普通用户站点不展示管理入口或权限。
+- **单一公开入口**：生产仅开放 `weread.linzezhang.com`。不存在公开管理子域；账户和数据权限始终由同一受控服务端执行。
 - **更广微信读书读取**：通过冻结的官方 gateway/Skill 合同先做能力发现，再有界分页读取书架、笔记本、划线、想法、个人书评、书籍信息、进度、章节、阅读统计、热门划线和推荐；不再限制 Top 5。全量同步先返回已入队任务，再由 OVH 工作器续租执行和前端轮询，避免把长任务卡在账户 HTTP 超时内。
 - **账户权利**：支持查看和修改资料、导出账户数据、撤销平台连接、删除笔记与永久删除账户。高风险操作要求近期重新验证。
 - **生产运行**：OVH Linux systemd 运行账户 API、导入工作器、健康、自愈、备份、事实同步和 R2→OCI 冷备；仅当账户服务不可达且数据库完整性正常时，健康单元才会清除 systemd failed 状态并有界重启 API 与工作器，同一故障五分钟内不会重复抖动；R2 等依赖退化只记录失败，数据库完整性异常绝不自动恢复数据。不使用 macOS launchd，不依赖开发 Agent 会话或后台模型。
@@ -32,7 +32,7 @@
               └─ OCI：R2/D1 异地冷备
 ```
 
-Cloudflare Worker 绑定 `weread.linzezhang.com` 与 `admin.weread.linzezhang.com`；前者仅提供用户站点，后者仅映射管理静态页。Worker 必须配置 `WEREAD_ACCOUNT_SERVICE_URL=https://origin.weread.linzezhang.com`、`WRP_INTERNAL_PROXY_SECRET` 与 `WRP_ADMIN_HOST=admin.weread.linzezhang.com`。OVH 账户服务始终只监听 `127.0.0.1:8788`；Coolify Traefik 只经 Docker 私网桥接到该端口，不能直接开放明文 HTTP 端口。
+自有 Cloudflare Worker 只绑定 `weread.linzezhang.com`，并配置 `WEREAD_ACCOUNT_SERVICE_URL=https://weread-api.linzezhang.com`、`WRP_INTERNAL_PROXY_SECRET`、`WRP_PUBLIC_HOST=weread.linzezhang.com` 与发布身份。OVH 账户服务始终只监听 `127.0.0.1:8788`；Coolify Traefik 只经 Docker 私网桥接到该端口，不能直接开放明文 HTTP 端口。
 
 ## 本地冻结验证
 
@@ -58,7 +58,7 @@ npm run verify:integration
 python3 service/install_platform.py --root /tmp/weread-port-install-check
 ```
 
-真实环境由 Owner 填写 `/etc/weread-port/platform.env` 中的 R2、OAuth、Private-Database 工作树、OCI 输入、`WRP_PUBLIC_BASE_URL=https://weread.linzezhang.com`、`WRP_ADMIN_BASE_URL=https://admin.weread.linzezhang.com` 和至少一个不可变 `WRP_ADMIN_ACCOUNT_IDS`；预检不会回显 Secret，再执行安装：
+真实环境由 Owner 填写 `/etc/weread-port/platform.env` 中的 R2、OAuth、Private-Database 工作树、OCI 输入、`WRP_PUBLIC_BASE_URL=https://weread.linzezhang.com` 与边缘部署身份；`WRP_ADMIN_BASE_URL` 和 `WRP_ADMIN_ACCOUNT_IDS` 必须留空。预检不会回显 Secret，再执行安装：
 
 ```bash
 sudo python3 service/scripts/platform_preflight.py --env-file /etc/weread-port/platform.env --require-paths --strict

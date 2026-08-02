@@ -14,9 +14,6 @@ await cp(path.join(root, "public"), dist, { recursive: true });
 await mkdir(path.join(dist, "src"), { recursive: true });
 await cp(path.join(root, "src", "core"), path.join(dist, "src", "core"), { recursive: true });
 await cp(path.join(root, "src", "ui"), path.join(dist, "src", "ui"), { recursive: true });
-await mkdir(path.join(dist, ".openai"), { recursive: true });
-await cp(path.join(root, ".openai", "hosting.json"), path.join(dist, ".openai", "hosting.json"));
-
 for (const kind of ["privacy", "terms"]) {
   const target = path.join(dist, kind);
   await mkdir(target, { recursive: true });

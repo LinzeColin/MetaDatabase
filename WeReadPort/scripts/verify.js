@@ -21,7 +21,7 @@ try {
   run(python, ["-m", "unittest", "discover", "-s", "ops/tests", "-p", "test_*.py"]);
   run(python, ["-m", "unittest", "discover", "-s", "service/tests", "-p", "test_*.py"]);
   run(process.execPath, ["scripts/build-static.js"], { WEREAD_PORT_PORTABLE_DIST: portableDist });
-  for (const expected of ["index.html", "src/ui/account-platform.js", "src/ui/app.js", "src/ui/export-worker.js", "src/core/exporter.js", ".openai/hosting.json", "build-manifest.json", "privacy/index.html", "terms/index.html", "status/index.html"]) await access(path.join(portableDist, expected));
+  for (const expected of ["index.html", "src/ui/account-platform.js", "src/ui/app.js", "src/ui/export-worker.js", "src/core/exporter.js", "build-manifest.json", "privacy/index.html", "terms/index.html", "status/index.html"]) await access(path.join(portableDist, expected));
   console.log("\n全部冻结验证通过：账户平台、四平台导入、跨租户隔离、同步、画像、微信读书广范围合同、全局中文、运维恢复和便携构建均已即时验证。");
 } finally { await rm(portableDist, { recursive: true, force: true }); }
 function run(command, args, extraEnv = {}) { console.log(`\n> ${[command, ...args].join(" ")}`); const result=spawnSync(command,args,{cwd:root,stdio:"inherit",env:{...process.env,...extraEnv}}); if(result.status!==0) process.exit(result.status??1); }

@@ -12,7 +12,7 @@ const healthyEnv = {
   ASSETS: {
     fetch: async request => {
       const url = new URL(request.url);
-      if (url.pathname === "/site/home.html") return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁</title></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+      if (url.pathname === "/index.html") return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁</title></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
       return new Response("未找到", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
     },
   },
@@ -21,14 +21,14 @@ const healthyEnv = {
   WRP_TASKPACK_VERSION: "v0.0.0.1.9",
   WRP_RELEASE_COMMIT: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   WRP_OVH_RELEASE_ID: "ovh-release-test",
-  WRP_SITES_PROJECT_ID: "sites-project-test",
+  WRP_EDGE_DEPLOYMENT_ID: "edge-deployment-test",
   ACCOUNT_SERVICE_FETCH: async () => new Response(JSON.stringify({
     status: "ready", ready: true,
     releaseIdentity: {
       taskpackVersion: "v0.0.0.1.9",
       releaseCommit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       ovhReleaseId: "ovh-release-test",
-      sitesProjectId: "sites-project-test",
+      edgeDeploymentId: "edge-deployment-test",
     },
   }), { status: 200, headers: { "Content-Type": "application/json" } }),
 };
@@ -36,7 +36,7 @@ const healthyEnv = {
 test("隐私政策覆盖账户、凭据、长期存储、隔离、第三方、权利和删除边界", () => {
   const html = legalContentHtml("privacy");
   for (const phrase of ["适用范围与产品主体", "我们处理的数据", "用途与法律边界", "存储、位置与保留", "安全与多用户隔离", "第三方平台与一键导入", "你的选择与权利", "儿童、事件与变更"]) assert.ok(html.includes(phrase), phrase);
-  for (const phrase of ["不可变 account_id", "不会因为邮箱相同自动合并账户", "AI 问询偏好", "本地剪贴板", "admin.weread.linzezhang.com", "永久删除账户", "运行期模型 Token 依赖为零"]) assert.ok(html.includes(phrase), phrase);
+  for (const phrase of ["不可变 account_id", "不会因为邮箱相同自动合并账户", "AI 问询偏好", "本地剪贴板", "生产只开放 weread.linzezhang.com", "永久删除账户", "运行期模型 Token 依赖为零"]) assert.ok(html.includes(phrase), phrase);
   assert.ok(!/wrk-[A-Za-z0-9_-]{8,}/u.test(html));
   const page = legalMainHtml("privacy");
   assert.ok(page.includes("请勿公开粘贴密钥"));
@@ -75,7 +75,7 @@ test("公开静态入口由 Worker 映射到内部资产前缀并统一附加安
       },
     },
   };
-  for (const [path, expected] of [["/", "/site/home.html"], ["/privacy/", "/site/privacy/page.html"], ["/assets/app.js", "/site/assets/app.js"]]) {
+  for (const [path, expected] of [["/", "/index.html"], ["/privacy/", "/privacy/index.html"], ["/assets/app.js", "/assets/app.js"]]) {
     const response = await handleRequest(new Request(`https://example.test${path}`), env);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("content-security-policy"), "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; connect-src 'self'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; media-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests");
@@ -85,24 +85,22 @@ test("公开静态入口由 Worker 映射到内部资产前缀并统一附加安
   }
 });
 
-test("管理员静态入口只在专用 host 映射，普通用户 host 不会展示管理页面", async () => {
-  const requested = [];
+test("非规范 host 不代理账户请求，页面统一回到唯一公开入口", async () => {
+  let proxied = false;
   const env = {
     ...healthyEnv,
-    WRP_ADMIN_HOST: "admin.weread.linzezhang.com",
-    ASSETS: {
-      fetch: async request => {
-        requested.push(new URL(request.url).pathname);
-        return new Response("<!doctype html><html lang=\"zh-CN\"></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
-      },
-    },
+    WRP_PUBLIC_HOST: "weread.linzezhang.com",
+    ACCOUNT_SERVICE_FETCH: async () => { proxied = true; return Response.json({}); },
   };
-  const admin = await handleRequest(new Request("https://admin.weread.linzezhang.com/"), env);
-  assert.equal(admin.status, 200);
-  assert.equal(requested.at(-1), "/site/admin.html");
-  const normal = await handleRequest(new Request("https://weread.linzezhang.com/admin"), env);
-  assert.equal(normal.status, 404);
-  assert.equal(requested.at(-1), "/site/admin.html", "普通 host 的管理路径不得读取 admin 静态资源");
+  const page = await handleRequest(new Request("https://weread-port.example.test/?source=legacy"), env);
+  assert.equal(page.status, 308);
+  assert.equal(page.headers.get("location"), "https://weread.linzezhang.com/?source=legacy");
+  const session = await handleRequest(new Request("https://weread-port.example.test/api/platform/v1/session", { headers: { Origin: "https://weread-port.example.test", "Sec-Fetch-Site": "same-origin" } }), env);
+  assert.equal(session.status, 421);
+  assert.equal((await session.json()).error.code, "CANONICAL_HOST_REQUIRED");
+  assert.equal(proxied, false);
+  const hiddenAdmin = await handleRequest(new Request("https://weread.linzezhang.com/admin"), env);
+  assert.equal(hiddenAdmin.status, 404);
 });
 
 test("静态资产规范化跳转只在 Worker 内部跟随，不暴露内部路径", async () => {
@@ -113,8 +111,8 @@ test("静态资产规范化跳转只在 Worker 内部跟随，不暴露内部路
       fetch: async request => {
         const path = new URL(request.url).pathname;
         requested.push(path);
-        if (path === "/site/home.html") return new Response(null, { status: 307, headers: { Location: "/site/home" } });
-        if (path === "/site/home") return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁</title></html>", { headers: { "Content-Type": "text/html; charset=utf-8" } });
+        if (path === "/index.html") return new Response(null, { status: 307, headers: { Location: "/index" } });
+        if (path === "/index") return new Response("<!doctype html><html lang=\"zh-CN\"><title>阅迁</title></html>", { headers: { "Content-Type": "text/html; charset=utf-8" } });
         return new Response("未找到", { status: 404 });
       },
     },
@@ -123,7 +121,7 @@ test("静态资产规范化跳转只在 Worker 内部跟随，不暴露内部路
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("location"), null);
   assert.equal(response.headers.get("content-security-policy")?.startsWith("default-src 'self'"), true);
-  assert.deepEqual(requested, ["/site/home.html", "/site/home"]);
+  assert.deepEqual(requested, ["/index.html", "/index"]);
 });
 
 test("法律页面链接不会吞入中文标点且安全入口明确", () => {

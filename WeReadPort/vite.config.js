@@ -1,14 +1,12 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { cloudflare } from "@cloudflare/vite-plugin";
-import { sites } from "@openai/sites-vite-plugin";
 import { defineConfig } from "vite";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
-    sites(),
     cloudflare(),
     {
       name: "weread-port-worker-entry",
