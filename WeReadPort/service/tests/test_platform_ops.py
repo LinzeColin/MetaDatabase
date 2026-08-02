@@ -215,12 +215,17 @@ class PlatformOperationsTests(unittest.TestCase):
         cooldown_status = json.loads(status_path.read_text(encoding="utf-8"))
         self.assertEqual(cooldown_status["recovery"]["status"], "COOLDOWN")
 
-        self.database.write_bytes(b"not a sqlite database")
+        # Do not overwrite the live SQLite file: a valid WAL can legitimately
+        # make SQLite recover it on Linux, which would invalidate this test's
+        # corruption premise. A separate invalid database deterministically
+        # exercises the fail-closed recovery branch on every supported host.
+        corrupt_database = self.root / "state/corrupt-platform.sqlite3"
+        corrupt_database.write_bytes(b"not a sqlite database")
         calls.clear()
-        with environment(values), patch.object(OPS.urllib.request, "urlopen", side_effect=OSError("offline")), patch.object(OPS.subprocess, "run", side_effect=record):
+        with environment({**values, "WRP_DATABASE_PATH": str(corrupt_database)}), patch.object(OPS.urllib.request, "urlopen", side_effect=OSError("offline")), patch.object(OPS.subprocess, "run", side_effect=record):
             with self.assertRaisesRegex(RuntimeError, "PLATFORM_NOT_READY"):
                 OPS.health()
-        integrity_status = json.loads(status_path.read_text(encoding="utf-8"))
+        integrity_status = json.loads((corrupt_database.parent / "platform-health.json").read_text(encoding="utf-8"))
         self.assertEqual(integrity_status["recovery"]["status"], "SKIPPED_DATABASE_INTEGRITY")
         self.assertEqual(calls, [])
 
