@@ -42,14 +42,14 @@ def test_x_official_api_is_blocked_until_zero_cost_is_explicit(monkeypatch, sett
 def test_x_confirmed_zero_cost_gate_preserves_bookmark_and_like(monkeypatch, settings):
     monkeypatch.setenv("SOCIAL_ARCHIVE_X_API_ZERO_COST_CONFIRMED", "true")
     monkeypatch.setenv("SOCIAL_ARCHIVE_X_USER_ID", "owner")
-    calls: list[tuple[str, int]] = []
+    calls: list[tuple[str, int, str | None]] = []
 
     class FixtureXConnector:
         def __init__(self, *args, **kwargs):
             return None
 
-        def fetch(self, relation, limit):
-            calls.append((relation, limit))
+        def fetch(self, relation, limit, cursor=None):
+            calls.append((relation, limit, cursor))
             return ConnectorResult(
                 "x",
                 f"fixture-{relation}",
@@ -61,9 +61,9 @@ def test_x_confirmed_zero_cost_gate_preserves_bookmark_and_like(monkeypatch, set
     monkeypatch.setattr("social_archive.registry.XConnector", FixtureXConnector)
     registry = ConnectorRegistry(settings)
     bookmark, bookmark_captures = registry.run("x", ConnectorRunRequest(relation_type="bookmark", limit=4))
-    like, like_captures = registry.run("x", ConnectorRunRequest(relation_type="like", limit=5))
+    like, like_captures = registry.run("x", ConnectorRunRequest(relation_type="like", limit=5, cursor="like-page-2"))
 
-    assert calls == [("bookmark", 4), ("like", 5)]
+    assert calls == [("bookmark", 4, None), ("like", 5, "like-page-2")]
     assert bookmark.scan_receipt["relation_type"] == "bookmark"
     assert like.scan_receipt["relation_type"] == "like"
     assert bookmark_captures[0].relation_type == "bookmark"

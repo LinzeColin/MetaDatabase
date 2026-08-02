@@ -206,7 +206,11 @@ class AccountSyncCoordinator:
                 collection_key="",
             )
             checkpoint_cursor = (checkpoint or {}).get("cursor") or {}
-            cursor_value = checkpoint_cursor.get("next_cursor") or checkpoint_cursor.get("next_token")
+            cursor_key = "next_cursor"
+            cursor_value = checkpoint_cursor.get(cursor_key)
+            if not cursor_value:
+                cursor_key = "next_token"
+                cursor_value = checkpoint_cursor.get(cursor_key)
             cursor = str(cursor_value).strip() if cursor_value else None
             resumed_from_prior_run = bool(cursor)
             seen_cursors = {cursor} if cursor else set()
@@ -221,7 +225,7 @@ class AccountSyncCoordinator:
                 if remaining <= 0:
                     partial = True
                     last_failure_code = "ACCOUNT_SYNC_ITEM_LIMIT_REACHED"
-                    resume_cursor = {"next_cursor": cursor} if cursor else {}
+                    resume_cursor = {cursor_key: cursor} if cursor else {}
                     self.store.upsert_sync_checkpoint(
                         source_account_id=account_id,
                         relation_type=relation,
@@ -272,8 +276,11 @@ class AccountSyncCoordinator:
                 blocked_environment = blocked_environment or result.status == "blocked_environment"
 
                 complete = receipt.get("completeness") == "complete"
-                next_value = receipt.get("next_cursor") or receipt.get("next_token")
+                next_cursor_key = "next_cursor" if receipt.get("next_cursor") else "next_token"
+                next_value = receipt.get(next_cursor_key)
                 next_cursor = str(next_value).strip() if next_value else None
+                if next_cursor:
+                    cursor_key = next_cursor_key
                 failure_code = str(receipt.get("failure_code") or (result.errors[0].get("code") if result.errors else "") or "") or None
                 resume_cursor: dict[str, Any] = {}
                 continue_paging = False
@@ -284,7 +291,7 @@ class AccountSyncCoordinator:
                     # older relations until one fresh scan observes every page.
                     complete = False
                     partial = True
-                    failure_code = "REDDIT_FRESH_FULL_SCAN_REQUIRED"
+                    failure_code = f"{platform.upper().replace('-', '_')}_FRESH_FULL_SCAN_REQUIRED"
                     receipt["completeness"] = "partial"
                     receipt["failure_code"] = failure_code
                 elif complete:
@@ -295,21 +302,21 @@ class AccountSyncCoordinator:
                         source_account_id=account["external_account_id"],
                     )
                 elif next_cursor and discovered_total < max_items and next_cursor not in seen_cursors:
-                    resume_cursor = {"next_cursor": next_cursor}
+                    resume_cursor = {cursor_key: next_cursor}
                     continue_paging = True
                 else:
                     partial = True
                     if next_cursor:
                         if discovered_total >= max_items:
-                            resume_cursor = {"next_cursor": next_cursor}
+                            resume_cursor = {cursor_key: next_cursor}
                             failure_code = "ACCOUNT_SYNC_ITEM_LIMIT_REACHED"
                             receipt["failure_code"] = failure_code
                         elif next_cursor in seen_cursors:
-                            resume_cursor = {"next_cursor": cursor or next_cursor}
-                            failure_code = "REDDIT_CURSOR_LOOP"
+                            resume_cursor = {cursor_key: cursor or next_cursor}
+                            failure_code = f"{platform.upper().replace('-', '_')}_CURSOR_LOOP"
                             receipt["failure_code"] = failure_code
                     elif cursor:
-                        resume_cursor = {"next_cursor": cursor}
+                        resume_cursor = {cursor_key: cursor}
 
                 if failure_code:
                     last_failure_code = failure_code
