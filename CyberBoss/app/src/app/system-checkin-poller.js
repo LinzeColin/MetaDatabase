@@ -104,7 +104,19 @@ async function runSystemCheckinPoller(config, options = {}) {
 
     for (const target of targets) {
       const range = rangeFrom(target.settings);
+      // __owner__ 是升级迁移留下的键，而这个循环按**真实 senderId** 查表——
+      // 两边对不上，于是主人那条排期永远读不到，每一轮都走「没排过」重掷一次，
+      // 一次都发不出去。生产上主人因此从 2026-07-29 起再没收到过任何主动消息，
+      // 而日志里只有一句「轮询器已启动（当前开着）」。
+      //
+      // 认一下这个旧键，并且认到之后就把它换成真实 senderId——留着的话每次
+      // 重启都要再兼容一次，而兼容层活得越久越没人记得它为什么在。
       let dueAt = Number(schedule[target.senderId]) || 0;
+      if (!dueAt && target.isOwner && Number(schedule.__owner__)) {
+        dueAt = Number(schedule.__owner__);
+        nextCheckinStore.write(target.senderId, dueAt);
+        nextCheckinStore.forget("__owner__");
+      }
 
       // 没排过，或者排的时刻比现在的最大间隔还远（他把间隔调短了），重掷。
       if (!dueAt || dueAt > now + range.maxIntervalMs) {

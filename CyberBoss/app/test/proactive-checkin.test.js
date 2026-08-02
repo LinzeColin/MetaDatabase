@@ -290,3 +290,52 @@ test("重启之后不能等人先说话——启动时要把会话上下文补�
   const loopStarted = source.indexOf("bridge loop started");
   assert.ok(boot > 0 && boot < loopStarted, "补回必须排在轮询启动之前");
 });
+
+// ── F7 主人自 7-29 起收不到任何主动消息 ─────────────────
+
+test("F7 老格式留下的 __owner__ 排期要认，且认过就换成真实 senderId", async () => {
+  // 生产上的真实故障：next-checkin.json 里主人那条存在 __owner__ 名下（旧版
+  // 单值文件迁移时写的），而轮询循环按**真实 senderId** 查表——两边对不上，
+  // 于是每一轮都走「没排过」重掷一次，一次都发不出去。
+  //
+  // 主人因此从 2026-07-29 起再没收到过任何主动消息，而日志里只有一句
+  // 「轮询器已启动（当前开着）」。「开着」和「有目标」是两回事。
+  const fs = require("node:fs");
+  const os = require("node:os");
+  const path = require("node:path");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cb-checkin-"));
+  const file = path.join(dir, "next-checkin.json");
+  try {
+    // 老格式：只有一个数字。
+    const legacyDue = Date.now() - 60_000;
+    fs.writeFileSync(file, JSON.stringify({ nextAtMs: legacyDue }));
+
+    const source = fs.readFileSync(
+      path.join(__dirname, "..", "src", "app", "system-checkin-poller.js"), "utf8");
+    // 循环里必须认这个旧键，否则主人那条永远读不到。
+    assert.ok(source.includes("schedule.__owner__"),
+      "循环里不认 __owner__——主人那条排期永远读不到，一次都发不出去");
+    // 而且认过之后要换成真实 senderId 并把旧键删掉：留着的话每次重启都要再
+    // 兼容一次，而兼容层活得越久越没人记得它为什么在。
+    const at = source.indexOf("schedule.__owner__");
+    const after = source.slice(at, at + 400);
+    assert.ok(after.includes("nextCheckinStore.write(target.senderId"),
+      "认了旧键但没换成真实 senderId");
+    assert.ok(after.includes('forget("__owner__")'), "认了旧键但没把它删掉");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("F7 认不出主人时要出声，不能静默跳过", () => {
+  // 静默返回空串的后果是 listCheckinTargets 把主人整个跳过——他从此收不到
+  // 任何主动消息，而面板和日志都只说「轮询器开着」。
+  // 生产上这件事发生了，没有任何人发现。
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const app = fs.readFileSync(path.join(__dirname, "..", "src", "core", "app.js"), "utf8");
+  const start = app.indexOf("  resolveOwnerSenderIdForCheckin() {");
+  const body = app.slice(start, app.indexOf("\n  }", app.indexOf("return \"\";", start)));
+  assert.ok(/console\.warn/.test(body),
+    "认不出主人时一声不吭——这正是它静默了三天没人发现的原因");
+});
