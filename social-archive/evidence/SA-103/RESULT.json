@@ -1,30 +1,82 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-103",
-  "taskpack_version": "v0.0.0.5",
-  "stage": "S1",
-  "title": "完成 X 零费用路径与收费熔断",
-  "status": "PASS",
-  "implementation_status": "PASS",
-  "live_environment_status": "LOCAL_PASS",
-  "product_runtime_verdict": "NOT_RUN",
-  "semantic_disposition": "equivalent",
   "acceptance_ids": [
     "AC-SA-103"
   ],
+  "evidence_binding": {
+    "account_sync_sha256": "789b990eb8b09eb3add162449f08b7c2ce3995de1a980f9c282d3e086fbb611c",
+    "api_sha256": "0943ec33789fb6f6a00f0c5dc51f1f2433cb579ea6f22380f54dcf02faaf1050",
+    "frozen_scan_scope_isolation_test_sha256": "8b3513f5f5048bfa99fa63e34c71f15cde785500e9d4a6e1fffb0d95d7d80925",
+    "frozen_x_connector_test_sha256": "e1ef260b1ee0250599f92ce380b4db436edbcd3aeea74cb53c3f7e870863082b",
+    "frozen_x_zero_cost_gate_test_sha256": "121dba73acbd7ea8a1727ca920fd2b781fc3e9bfe6bcaef4620e59b13ca12129",
+    "implementation_commit": "60ce0b0112cbea62b92cfba9017be9da0cec2fcd",
+    "implementation_tree": "85aa7c2568d27770d9c9b58ffad775dae0753d71",
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "local_scan_scope_isolation_test_sha256": "20a0c81143420b9d04f73a232d3c5deaa5014a67b23af58cce075f42a5895bff",
+    "local_x_connector_test_sha256": "bcbc0239a10842ec927969ffa307b8a368116ea50c370175785bdc02e4f27b75",
+    "local_x_zero_cost_gate_test_sha256": "ef746ba548b668868689e4ed7a7506231cf6bdb1e9d7183a7c10baa575410011",
+    "models_sha256": "ce9ee0b6c9022ca544fc62cea87addff186a5afd08800d3a1309e1d7bf610984",
+    "oauth_sha256": "cb777caaa1f5472e68080624f185fea222fd5ff158563f32bb4f59528454b8db",
+    "registry_sha256": "6d175049302bb2376ce7472bdf45fee79b8d09fc647d57b71d01ba7805c76b50",
+    "semantic_classifier_sha256": "100f2a3d220ccc8a1326b2a540ba7b96922cb5fe8648d587d72ca5a8955ded21",
+    "semantic_report_sha256": "0203fd20a203cbdebd6882869def0b3be96850e1b9111dee9a493d142a8c3b1d",
+    "taskpack_zip_sha256": "921a9bda63c8e009b90f574d10ff5ffce1aa2e2dc68fbf1ae43627900b22a494",
+    "validated_head_after_latest_main_merge": "f3e9a931366da05d104caa1fad83451e7fa62af9"
+  },
+  "generated_at": "2026-08-02T23:23:42Z",
+  "implementation_status": "PASS",
+  "known_limitations": [
+    "No real X zero-cost entitlement, OAuth token, owner account, browser session, extension reload, pairing, official export, platform request, deployment, or production action was attempted.",
+    "The default X official-API gate remains fail-closed until zero-cost access is explicitly confirmed; this local fixture did not confirm entitlement or consume any X quota.",
+    "The fixture proves local pagination/checkpoint, relation isolation, rate-limit safety, and blocked-environment behavior only; real owner-account totals, permissions, rate limits, and platform behavior remain NOT_RUN.",
+    "PASS is limited to Task Pack Fixture/local API/static checks. Product runtime and real-world acceptance remain NOT_RUN."
+  ],
+  "live_environment_status": "NOT_RUN",
+  "oracle": "X 书签与点赞独立批量镜像；收费 API 默认关闭，免费浏览器会话/官方导出/Social Archiver 导入可切换；任何付费或配额不确定路径 fail closed。",
+  "predecessor_evidence": {
+    "pointer": "evidence/SA-103/history/pre-v0.0.0.6-x-account-mirror/PREVIOUS_EVIDENCE.json",
+    "prior_active_taskpack_version": "v0.0.0.5",
+    "prior_command_log_sha256": "7f4678b0c847c342aad68feb3f32679691da7877a756f104b1f93895e5999bd8",
+    "prior_result_sha256": "c12c0b7b3ea31b70307ed7fc892785c5e59b1c38c31b70249034817e93878d44"
+  },
+  "product_runtime_verdict": "NOT_RUN",
+  "result_summary": "保留密封 v0.0.0.6 的零费用默认关闭，并补齐 X 的跨层分页执行缺口：账号同步可将内部 next_token 传至 X pagination_token，单次首次全量会跨页累积 Bookmarks/Likes 的独立关系后才允许缺失处理；先前运行留下的 next_token 可安全续传，但续传完成不会冒充当前运行的全量关系快照。HTTP 429 记录 X_RATE_LIMITED、Retry-After 与可重试 unknown 收据；未确认零费用时官方 API 在构造客户端前保持 blocked_environment。外部 connector-run 请求仍不能注入检查点。",
+  "schema_version": "1.0",
+  "semantic_disposition": "ADAPT_CURRENT_UPSTREAM",
+  "semantic_reconciliation": {
+    "decision": "ADAPT_CURRENT_UPSTREAM",
+    "sa_103_classification": "apply",
+    "scope": "The sealed zero-cost gate was retained. The task oracle exposed a cross-layer gap: X next_token was emitted but never transported as pagination_token, while shared account-sync diagnostics were Reddit-specific. The adaptive slice adds safe internal X cursor transport, checkpoint-key preservation, provider-specific terminal diagnostics, and focused fixture coverage without enabling the paid API or crossing the real-account boundary.",
+    "summary": {
+      "adapt": 101,
+      "apply": 26,
+      "blocked": 0,
+      "conflict": 0,
+      "equivalent": 6,
+      "obsolete": 0,
+      "satisfied": 89
+    }
+  },
+  "stage": "S1",
+  "status": "PASS",
+  "task_id": "SA-103",
+  "taskpack_version": "v0.0.0.6",
   "tests": [
     "TEST-SA-103"
   ],
-  "oracle": "未确认绝对零费用时官方 API 禁用；扩展、Social Archiver/Markdown 导入继续；bookmark/like 不混淆。",
   "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
-  "result_summary": "4 focused tests passed.",
-  "evidence_binding": {
-    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
-    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
-    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  "title": "完成 X Bookmarks/Likes 零费用账号镜像路径",
+  "validation": {
+    "baseline_taskpack_focused_pytest": "8 passed before the SA-103 coverage expansion.",
+    "brand_check": "PASS; hits=[]",
+    "expected_repair_red": "4 failed and 7 passed after new pagination/rate-limit/checkpoint assertions were added; failures identified missing X cursor transport and Reddit-specific shared diagnostics.",
+    "git_diff_check": "PASS after latest-main merge.",
+    "latest_main_reconciliation": "PASS; origin/main=7925695c0078bb3b98d71636f5a1315270d9de87 is an ancestor of validated head f3e9a931366da05d104caa1fad83451e7fa62af9; the only newly merged main change was outside social-archive.",
+    "python_compile": "PASS; three changed Python source files compiled.",
+    "related_account_mirror_stage1_regression": "29 passed.",
+    "secret_scan": "PASS; hits=[]",
+    "semantic_classifier": "PASS; ADAPT_CURRENT_UPSTREAM; SA-103=apply; conflict=0; blocked=0.",
+    "taskpack_focused_pytest": "11 passed.",
+    "uv_lock_check_offline": "PASS"
   },
-  "known_limitations": [],
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "record_sha256": "68cf3af2ca4a623fd2af4ee0af36bfc597bea577a2f9bbf52bbb368b204cd60d"
+  "record_sha256": "1956fbd97478635fc821af506b8e253c864e1225de8a4992867c3daf79b6adff"
 }

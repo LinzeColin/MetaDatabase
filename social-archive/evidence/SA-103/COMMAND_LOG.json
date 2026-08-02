@@ -1,19 +1,79 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-103",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py",
-      "command_sha256": "c7740812e8c247535ffb838ec57ae2d5f564c08d647efbe00fb995963d97a067",
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "4f76169253500135617731e5403b4b406cfde385d1fbcd933e8027aa0294d12d",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "4 focused tests passed."
+      "status": "BASELINE_PASS",
+      "summary": "8 passed before the SA-103 coverage expansion; executed with the existing project virtual environment."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "4f76169253500135617731e5403b4b406cfde385d1fbcd933e8027aa0294d12d",
+      "executed": true,
+      "exit_code": 1,
+      "status": "FAIL_EXPECTED_REPAIR",
+      "summary": "4 failed and 7 passed after added fixture assertions exposed missing X pagination-token transport and Reddit-specific shared diagnostics."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py tests/focused/test_scan_scope_isolation.py",
+      "command_sha256": "4f76169253500135617731e5403b4b406cfde385d1fbcd933e8027aa0294d12d",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "11 passed after the latest-main merge; executed with the existing project virtual environment."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/focused/test_oauth_connectors.py tests/focused/test_reddit_connector.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_sync_run_controls.py tests/focused/test_connector_run_api.py tests/stage/test_stage1_western.py",
+      "command_sha256": "19b96621c41c6ee00e10fd3d0ec8d899a180b5c4efa2282d99b5aeef77e01606",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "29 passed after the latest-main merge."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m py_compile src/social_archive/connectors/oauth.py src/social_archive/registry.py src/social_archive/account_sync.py",
+      "command_sha256": "6e2bc227c272666eb8a52655fcd4124ddd20c8365142859c76bbbc0bbf196e59",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Three changed Python source files compiled."
+    },
+    {
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "ADAPT_CURRENT_UPSTREAM; SA-103=apply; conflict=0; blocked=0."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 scripts/check_brand.py && python3 scripts/secret_scan.py src/social_archive/connectors/oauth.py src/social_archive/registry.py src/social_archive/account_sync.py tests/focused/test_x_connector.py tests/focused/test_x_zero_cost_gate.py && uv lock --check --offline && git diff --check",
+      "command_sha256": "e225f361b5527d70943551c68fefb2916de719d23421fb28de457e1facbd7fcf",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Brand check, targeted secret scan, offline lock check, and diff whitespace check passed."
+    },
+    {
+      "command": "git -C \"$TARGET_REPOSITORY\" merge-base --is-ancestor origin/main HEAD",
+      "command_sha256": "ff10d1d4cdaaf8fc48739a5ae8932fd2850f5924e6eab213348f4763867b5344",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Latest main 7925695c0078bb3b98d71636f5a1315270d9de87 is an ancestor of validated head f3e9a931366da05d104caa1fad83451e7fa62af9."
     }
   ],
-  "record_sha256": "fb04944540edbb87abe4ea5c30f5396d866eb9e37b726aee480fc3448c06652d"
+  "generated_at": "2026-08-02T23:23:42Z",
+  "implementation_commit": "60ce0b0112cbea62b92cfba9017be9da0cec2fcd",
+  "implementation_tree": "85aa7c2568d27770d9c9b58ffad775dae0753d71",
+  "record_context": {
+    "integration_base": "7925695c0078bb3b98d71636f5a1315270d9de87",
+    "validated_head_after_latest_main_merge": "f3e9a931366da05d104caa1fad83451e7fa62af9"
+  },
+  "schema_version": "1.0",
+  "task_id": "SA-103",
+  "taskpack_version": "v0.0.0.6",
+  "record_sha256": "a86196e3e2ab615364d4407281b655c5599263fcd3921ab94eaf692d74f652c9"
 }

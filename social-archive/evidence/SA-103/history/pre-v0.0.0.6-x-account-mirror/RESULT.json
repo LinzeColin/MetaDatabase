@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-103",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S1",
+  "title": "完成 X 零费用路径与收费熔断",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "equivalent",
+  "acceptance_ids": [
+    "AC-SA-103"
+  ],
+  "tests": [
+    "TEST-SA-103"
+  ],
+  "oracle": "未确认绝对零费用时官方 API 禁用；扩展、Social Archiver/Markdown 导入继续；bookmark/like 不混淆。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "4 focused tests passed.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "68cf3af2ca4a623fd2af4ee0af36bfc597bea577a2f9bbf52bbb368b204cd60d"
+}

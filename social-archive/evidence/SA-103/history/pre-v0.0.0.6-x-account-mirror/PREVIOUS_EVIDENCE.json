@@ -1,0 +1,21 @@
+{
+  "archive_reason": "The active SA-103 evidence predates the sealed v0.0.0.6 run and is retained verbatim, not reclassified as v0.0.0.6 evidence.",
+  "archived_at": "2026-08-02T23:23:42Z",
+  "files": [
+    {
+      "path": "RESULT.json",
+      "raw_sha256": "c12c0b7b3ea31b70307ed7fc892785c5e59b1c38c31b70249034817e93878d44",
+      "record_sha256": "68cf3af2ca4a623fd2af4ee0af36bfc597bea577a2f9bbf52bbb368b204cd60d",
+      "taskpack_version": "v0.0.0.5"
+    },
+    {
+      "path": "COMMAND_LOG.json",
+      "raw_sha256": "7f4678b0c847c342aad68feb3f32679691da7877a756f104b1f93895e5999bd8",
+      "record_sha256": "fb04944540edbb87abe4ea5c30f5396d866eb9e37b726aee480fc3448c06652d",
+      "taskpack_version": "v0.0.0.5"
+    }
+  ],
+  "predecessor_commit": "0e9e50a3d8ae3e83dcf14b37bc6ca4914333e278",
+  "schema_version": "1.0",
+  "record_sha256": "4cd9c8372699af67c66510c41a86b7b4517a05f197fe04f7869884dd39fd2b8a"
+}
