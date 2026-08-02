@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-005",
+  "taskpack_version": "v0.0.0.5",
+  "stage": "S0",
+  "title": "通过 Stage 0 基线门",
+  "status": "PASS",
+  "implementation_status": "PASS",
+  "live_environment_status": "LOCAL_PASS",
+  "product_runtime_verdict": "NOT_RUN",
+  "semantic_disposition": "apply",
+  "acceptance_ids": [
+    "AC-SA-005"
+  ],
+  "tests": [
+    "TEST-SA-005"
+  ],
+  "oracle": "通用网页→L0/L1/L3 staging→检索→任务状态→重启恢复通过；旧身份只在迁移 allowlist 中。",
+  "threshold": "所有 blocking assertion PASS；UNKNOWN、NOT_RUN、WAIVED 均不是 PASS",
+  "result_summary": "Stage 0 walking skeleton and zero-write doctor PASS.",
+  "evidence_binding": {
+    "integration_base": "963ecd800e5dc0e9afa334ff81990437cbb0da56",
+    "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+    "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+    "taskpack_zip_sha256": "88a249fb550392f80b9629e126836d53a05b9112b4967033a68d94421cc214fb"
+  },
+  "known_limitations": [],
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "record_sha256": "bacfe560f04cb0860ddb597fe2da03b0b3835c7faf8eface10fd1072c1af2115"
+}

@@ -1,27 +1,73 @@
 {
-  "schema_version": "1.0",
-  "task_id": "SA-005",
-  "taskpack_version": "v0.0.0.5",
-  "generated_at": "2026-08-02T00:25:23.584327Z",
-  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
-  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
   "commands": [
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py",
-      "command_sha256": "6e5974acaac4fb13952ef2b68b205d455b6b171829b1f2cd1c1d23f76ffda449",
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "command_sha256": "4de468b4b8ba3ef406bd5996e9bca8fe39bb52e991a103d2ea44f4e48eef2136",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "Stage 0 walking skeleton and zero-write doctor PASS."
+      "status": "PASS",
+      "summary": "4 passed.",
+      "taskpack_command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py tests/focused/test_account_mirror_sync.py tests/focused/test_table_contract.py"
     },
     {
-      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && bash scripts/doctor.sh --self-test",
       "command_sha256": "a6cfb518a3113d8e143e33790ac3c6a075278297eca6726735a19ddaaa7fa29f",
       "executed": true,
-      "status": "PASS",
       "exit_code": 0,
-      "summary": "Stage 0 walking skeleton and zero-write doctor PASS."
+      "status": "PASS",
+      "summary": "Credential-free self-test passed: Compose, systemd and local deployment contracts passed without Docker/network/runtime/Secret access.",
+      "taskpack_command": "cd \"$TARGET_REPOSITORY/social-archive\" && bash scripts/doctor.sh --self-test"
+    },
+    {
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "command": "python3 -m pytest -q tests/focused/test_runtime_store.py tests/focused/test_runtime_recovery.py tests/focused/test_library_table_api.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_extension_e2n_contract.py tests/focused/test_sync_run_controls.py tests/focused/test_extension_api.py tests/focused/test_core_capture.py",
+      "command_sha256": "73e5bc1357727c6bf3e7ea08fb0d7433bd491c84b872e40d65c30efe5deac43e",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "31 passed; one upstream Starlette/httpx deprecation warning."
+    },
+    {
+      "command": "python3 test_v006_account_mirror_contract.py with TASKPACK_ROOT injected to the sealed v0.0.0.6 unpack root; source test remains byte-identical to the frozen candidate",
+      "command_sha256": "053193fca9e9d01a52624ce0b23571f0245dd7532099e3b75b582a3596acca19",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "All 4 direct frozen-contract assertions passed against the sealed unpack root."
+    },
+    {
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "command": "python3 07_IMPLEMENTATION/apply/semantic_classify.py --repo \"$TARGET_REPOSITORY\"",
+      "command_sha256": "36b7ae95ebc97f92af108679e6d3c1393982d32d1b1cad6afeb78dc4f8b82519",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "ADAPT_CURRENT_UPSTREAM; conflicts=0; blocked=0."
+    },
+    {
+      "command": "python3 -m py_compile selected modules; scripts/check_brand.py; scripts/secret_scan.py .; uv lock --check --offline; node --check account-mirror extension surfaces; git diff --check",
+      "command_sha256": "783e7ecb496f158fbd85bfa9e15596f471b3e737d84a7bda4db53c5fed641a86",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "Compile, brand, secret, offline lock, extension JavaScript syntax and diff checks passed."
+    },
+    {
+      "actual_interpreter": "social-archive/.venv/bin/python (Python 3.12.13)",
+      "command": "python3 scripts/validate_systemd.py; bash scripts/doctor.sh --self-test; pytest -q selected deployment-contract, private-database-sync and Stage 5 static assertions",
+      "command_sha256": "170494037b3978f41d769862e7d36d56010364b7c1ce9f9daa03e8d16e802912",
+      "executed": true,
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "validate_systemd and doctor passed; affected static regressions 14 passed."
     }
   ],
-  "record_sha256": "f0be853f6a49434f982d5bebdfe523b5d7a3a891f47e764d08e7f5421f86edb4"
+  "generated_at": "2026-08-02T22:27:47Z",
+  "implementation_commit": "09db0c8c0f9396dfe99e70d62f581f097d6bea93",
+  "implementation_tree": "3e9a7c0163cda5e312d833bd930308398ac90538",
+  "integration_base": "19f600472b2be7998ff27c5669b4ba5d36b1fa24",
+  "python_runtime": "Python 3.12.13",
+  "record_sha256": "e6f69cd9fe8c69506f0b439f4c28fa4e407221ebba82931d9188e11881b66fb7",
+  "schema_version": "1.0",
+  "task_id": "SA-005",
+  "taskpack_version": "v0.0.0.6"
 }

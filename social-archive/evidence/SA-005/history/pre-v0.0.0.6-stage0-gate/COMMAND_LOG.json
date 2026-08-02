@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "task_id": "SA-005",
+  "taskpack_version": "v0.0.0.5",
+  "generated_at": "2026-08-02T00:25:23.584327Z",
+  "implementation_commit": "c7ce42aa91f878aaa751420e70cc3048370d39b1",
+  "implementation_tree": "0abd766c92c0c4d17fd0e230a27292ce6b4405fa",
+  "commands": [
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && python3 -m pytest -q tests/stage/test_stage0_walking_skeleton.py",
+      "command_sha256": "6e5974acaac4fb13952ef2b68b205d455b6b171829b1f2cd1c1d23f76ffda449",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Stage 0 walking skeleton and zero-write doctor PASS."
+    },
+    {
+      "command": "cd \"$TARGET_REPOSITORY/social-archive\" && bash scripts/doctor.sh --self-test",
+      "command_sha256": "a6cfb518a3113d8e143e33790ac3c6a075278297eca6726735a19ddaaa7fa29f",
+      "executed": true,
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "Stage 0 walking skeleton and zero-write doctor PASS."
+    }
+  ],
+  "record_sha256": "f0be853f6a49434f982d5bebdfe523b5d7a3a891f47e764d08e7f5421f86edb4"
+}
