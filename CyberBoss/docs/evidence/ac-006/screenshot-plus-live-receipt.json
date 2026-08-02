@@ -1,0 +1,72 @@
+{
+  "acceptance_ids": ["AC-006", "AC-045"],
+  "run_at_utc": "2026-08-02T03:32Z",
+  "method": "生产数据取证（三个真实访客的历史记录），非 fixture、非模拟",
+  "note": "主人明确说明：不会有新人来扫码。所以这两条不靠「再找一个人试一次」来验，改为对**已经发生过三次**的真实开通做取证。",
+
+  "AC-045": {
+    "oracle": "普通用户从扫码到首轮不需要 Owner 点击、生成邀请码或人工开通（除 Owner 关闭公开注册时的明确产品策略）。",
+    "verdict": "PASS",
+    "live_policy": {
+      "registrationMode": "open",
+      "source": "生产 env 没有设 CB_REGISTRATION_MODE，走 config.js:88 的默认值 open",
+      "requireExplicitConsent": false,
+      "reading": "开放注册 + 不要求显式同意 = 结构上没有任何需要主人动手的环节"
+    },
+    "invite_codes_never_consumed": {
+      "rows": 3,
+      "used_count": [0, 0, 0],
+      "reading": "三个邀请码一个都没被用过。三位访客都不是靠邀请码进来的——这直接排除了「主人生成邀请码」这一步。"
+    },
+    "no_owner_action_window": {
+      "usr_oEolx5ikqH": {
+        "registered_at": "2026-07-30T06:54:21.681Z",
+        "first_inbound": "2026-07-30T06:54:21.693Z",
+        "first_confirmed_reply": "2026-07-30T06:54:23.680Z",
+        "elapsed": "1.999 秒",
+        "reading": "注册到已送达回复整整 2 秒。主人不可能在这 2 秒里点任何东西——这不是「我们没让他点」，是**来不及点**。"
+      },
+      "usr_D7QDsysFqA": {
+        "registered_at": "2026-07-29T06:04:56.504Z",
+        "first_inbound": "2026-07-29T06:26:57.536Z",
+        "first_confirmed_reply": "2026-07-29T06:27:43.375Z",
+        "reading": "他扫完隔了 22 分钟才说第一句，说完 46 秒收到回复。中间没有任何主人侧动作的记录。"
+      },
+      "usr_KPEKBX9Lpt": {
+        "inbound_count": 5,
+        "delivered_replies": 5,
+        "latencies": ["3.7s", "6.0s", "10.7s", "5.3s", "10.2s"],
+        "reading": "五条全部收到 onboarding 直回、delivered=1。"
+      }
+    }
+  },
+
+  "AC-006": {
+    "oracle": "全新用户从 /join 扫码、同意、发第一句；不经设置页获得有效回复。",
+    "verdict": "PARTIAL",
+    "proven": {
+      "全新用户": "三位访客都是首次出现即建号（users.created_at 与首条入站相差 12～17 毫秒，是同一条消息触发的建号）",
+      "发第一句": "三位都发了，全部得到回复",
+      "不经设置页": {
+        "setup_tokens_total": 2,
+        "both_belong_to": "usr_D7QDsysFqA",
+        "purpose": "provider（配模型），不是开通",
+        "used_at": "Jul 29 ~10:28，比他 06:27 的首条回复晚了 4 小时",
+        "other_two_users": "从未产生过任何 setup_token",
+        "reading": "三位的首条有效回复都发生在任何设置页动作之前。这一句成立。"
+      },
+      "有效回复": "usr_oEolx5ikqH 和 usr_D7QDsysFqA 有 outbox status=confirmed；usr_KPEKBX9Lpt 有 5 条 delivered=1 的直回"
+    },
+    "not_proven": {
+      "clause": "从 /join 扫码",
+      "why": "库里没有把 user_id 和「这次开通来自 /join 那张码」绑起来的记录。公开入口的票是内存态的，确认后即删（见 pollPublicEntryQr）。所以我能证明他们是新人、能证明他们没经设置页、能证明没人替他们开通——但证明不了他们具体是从 /join 那张码进来的，还是从别的途径加的这个微信号。",
+      "what_would_close_it": "一次现场扫码（主人说明不会有），或者给开通记录加一个来源标记（那是产品改动，不是取证，本轮不做）"
+    }
+  },
+
+  "a_wrong_call_i_corrected": {
+    "what_i_thought": "usr_KPEKBX9Lpt 的 5 条入站全是 status=rejected，一条回复都没有——一个真实用户被静默拒绝了。",
+    "what_was_actually_true": "reject_reason 全是 handled_by_admission——那不是失败，是「准入层直接办掉了，不进 job 队列」。主人自己也有这样的行。查 bot_initiated_messages 后确认：五条各自对应一条 delivered=1 的 onboarding 直回。",
+    "lesson": "durable inbox 里的 rejected 是「没排进队」，不是「没服务到」。按字面读状态名就会把一次正常服务读成一次事故。"
+  }
+}
