@@ -1,0 +1,101 @@
+{
+  "acceptance_id": "AC-028",
+  "name": "双冷备恢复",
+  "oracle": "R2 与 OCI 各有可验证对象；第一份不可读时第二份可在隔离目录恢复并核对关系。",
+  "verdict": "PARTIAL",
+  "run_at_utc": "2026-08-02T02:40Z",
+  "method": "recovery（真实远端，非 fixture）",
+
+  "summary": "恢复这一半跑通了，而且是在真实条件下跑的——OCI 那份**此刻确实读不出来**，不是模拟出来的。两份可验证对象这一半不成立：只有 R2 一份。",
+
+  "half_that_passed": {
+    "claim": "第一份不可读时，第二份可在隔离目录恢复并核对关系",
+    "first_copy_unreadable": {
+      "which": "OCI",
+      "not_simulated": true,
+      "probe": "GET <PAR>/ → HTTP 404",
+      "response": "{\"code\":\"BucketNotFound\",\"message\":\"Either the bucket named 'linze-offsite-backups' does not exist in the namespace 'sd7zexoygenu' or you are not authorized to access it\"}",
+      "host_config": "CB_OCI_STATE=not_configured, CB_OCI_BACKUP=false"
+    },
+    "second_copy_restored": {
+      "which": "R2 cyberboss-cold",
+      "backup_id": "backup_4d9e860e71bf5716f2fe7a69",
+      "created_at": "2026-07-29T03:35:04.407Z",
+      "manifest_schema": "cyberboss.backup-manifest.v3",
+      "archive": "runtime.sqlite3",
+      "expected_bytes": 716800,
+      "actual_bytes": 716800,
+      "expected_sha256_prefix": "16f31b053bd58be675f1ed2b",
+      "actual_sha256_prefix": "16f31b053bd58be675f1ed2b",
+      "hash_match": true,
+      "isolated_directory": "scratchpad/ac028-drill（不是生产路径，不是仓库路径）",
+      "sqlite_integrity_check": "ok",
+      "table_count": 33,
+      "schema_migration_version": 9
+    },
+    "relationship_crosscheck": {
+      "why_this_and_not_a_row_count": "「核对关系」不是数一数行数——那只能证明文件能打开。要证明的是这份副本确实是这套生产数据的祖先。",
+      "identity_anchor": {
+        "restored": "usr_n-moZ3PDM2zAKMHN… | owner | active | 2026-07-28T09:19:26.443Z",
+        "production": "usr_n-moZ3PDM2zAKMHN… | owner | active | 2026-07-28T09:19:26.443Z",
+        "identical": true
+      },
+      "history_is_strict_prefix": {
+        "restored_inbound_span": "2026-07-28T10:25:23.738Z → 2026-07-28T22:59:57.206Z",
+        "production_inbound_span": "2026-07-28T10:25:23.738Z → 2026-08-02T01:59:32.626Z",
+        "same_start": true,
+        "restored_ends_earlier": true
+      },
+      "schema_lineage": {
+        "restored_migration_version": 9,
+        "production_migration_version": 15,
+        "reading": "备份早于其后六次迁移，符合它 2026-07-29 的时间戳"
+      }
+    }
+  },
+
+  "half_that_failed": {
+    "claim": "R2 与 OCI 各有可验证对象",
+    "actual": "只有 R2 一份。OCI 从来没有配起来过。",
+    "status": "NOT_RUN（缺外部凭据，不是代码问题）"
+  },
+
+  "blocker_measured_not_assumed": {
+    "what_is_needed": "一个带 `Workers R2 Storage : Edit` 的 Cloudflare 令牌（现在这两个都只有 Read），以及一个可用的 OCI 目标（PAR 或 CLI 配置）",
+    "probes": [
+      {
+        "credential": "_protected/alpha_deploy_private/cloudflare_r2d1_token.txt",
+        "verify": "active",
+        "r2_list_buckets": "200（看得见 cyberboss-cold）",
+        "r2_get_object": "200",
+        "r2_put_object": "403",
+        "r2_delete_object": "403",
+        "conclusion": "只读"
+      },
+      {
+        "credential": "生产机 /etc/cyberboss/credentials/r2_api_token（OAuth 刷新流产出）",
+        "tested_on": "生产机上测的，令牌没有离开那台机器",
+        "verify": "active",
+        "r2_get_object": "200",
+        "r2_put_object": "403",
+        "conclusion": "也是只读——OAuth 授权本身就没给 Edit"
+      },
+      {
+        "credential": "_protected/alpha_deploy_private/oci_backup_par_url.txt",
+        "result": "HTTP 404 BucketNotFound"
+      }
+    ]
+  },
+
+  "operational_finding": {
+    "id": "F13",
+    "severity": "high",
+    "title": "异地冷备已经停了 4 天，而系统对此没有任何可见反应",
+    "detail": "cyberboss-backup.service 自 2026-08-01T23:53:31Z 起持续以 CB530_R2_PUT_FAILED 退出（status=2）。本地快照仍在正常生成（最新 backup_e333acb209896525b848b5fe，2026-08-01 23:53），失败发生在上传那一步。因此**数据没丢，但异地副本停在 2026-07-29**。",
+    "why_it_matters": "本地快照和生产库在同一台机器上。这台机器没了，两份一起没。冷备的全部意义就是不在同一台机器上。",
+    "not_fixed_by_me": "修它需要一个有写权限的令牌，而那要主人在 Cloudflare 后台建。已实测确认现有两个令牌都不行。",
+    "next_timer_fire": "2026-08-02T03:35:00Z（会再失败一次）"
+  },
+
+  "rollback": "本节点只读远端并在临时目录还原，没有对生产、对 R2、对仓库做任何写入。回滚 = 删除该临时目录。"
+}

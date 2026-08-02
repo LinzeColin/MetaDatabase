@@ -38,6 +38,15 @@ const SOURCE_ROOTS = Object.freeze(["app/src", "app/templates", "app/migrations"
 
 const SOURCE_EXTENSIONS = Object.freeze([".js", ".sql", ".html", ".css"]);
 
+class SourceOfferError extends Error {
+  constructor(code, detail = null) {
+    super(code);
+    this.name = "SourceOfferError";
+    this.code = code;
+    this.detail = detail;
+  }
+}
+
 function listSourceFiles(projectRoot) {
   const found = [];
   for (const root of SOURCE_ROOTS) {
@@ -85,6 +94,19 @@ function sourceManifest({ projectRoot }) {
   //
   // 空格则是正确性问题：路径里有空格的话，("a b", h) 和 ("a", "b" + h) 会拼出
   // 同一个串，两份不同的源码算出同一个摘要。
+  // 一个文件都没扫到，就不发摘要。
+  //
+  // 空集合算出来的是 e3b0c44298fc1c14…b855——空字符串的 sha256。它长得和一个
+  // 正常摘要一模一样，页面照样渲染、照样权威，而它在法律上什么都没证明：
+  // AGPL §13 要的是「你正在跑的这份源码」的凭据，不是一个恰好自洽的常量。
+  //
+  // 这不是假想：projectRoot 传成 app/ 而不是仓库根，就正好落进这一格
+  // （SOURCE_ROOTS 是 "app/src" 这样的相对路径）。而失败方式是**静默的**——
+  // 摘要还在、页面还在，只有文件数悄悄变成 0。哪天有人挪了目录结构，
+  // 这一页会继续每天对全世界公布一个空摘要。
+  if (entries.length === 0) {
+    throw new SourceOfferError("SOURCE_MANIFEST_EMPTY", String(projectRoot || ""));
+  }
   const digest = createHash("sha256")
     .update(entries.map((entry) => `${entry.path}\u0000${entry.sha256}`).join("\n"))
     .digest("hex");
@@ -173,6 +195,7 @@ ${rows.map(([label, value]) => `  <dt>${escapeHtml(label)}</dt>\n  <dd>${
 }
 
 module.exports = {
+  SourceOfferError,
   LICENSE_ID,
   SOURCE_EXTENSIONS,
   SOURCE_ROOTS,

@@ -1,0 +1,50 @@
+{
+  "acceptance_id": "AC-029",
+  "name": "AGPL 对应源码",
+  "oracle": "线上 release_id、manifest digest 与对应源码页 digest 一致；链接对未登录网络用户可见。",
+  "verdict": "PASS",
+  "run_at_utc": "2026-08-02T02:45Z",
+  "method": "release+license（对公网真实抓取，非 fixture）",
+
+  "publicly_visible_without_login": {
+    "url": "https://boss.linzezhang.com/source",
+    "http_status": 200,
+    "auth_header_sent": false,
+    "cookie_sent": false,
+    "note": "未带任何凭据直接 curl，返回完整页面。AGPL §13 要的正是这个——使用者不需要账号就能拿到对应源码的凭据。"
+  },
+
+  "three_way_match": {
+    "release_id": {
+      "on_page": "7b3b4d7546a6",
+      "on_host": "7b3b4d7546a66332444594fca824c3ad9a67e2a6",
+      "host_probe": "basename $(readlink /opt/cyberboss-cloud/current)",
+      "match": true
+    },
+    "manifest_digest": {
+      "on_page": "dc3e8936bc6bca9237244c535af3de03182cf86dae0388fa1026ca72076fb560",
+      "recomputed_locally": "dc3e8936bc6bca9237244c535af3de03182cf86dae0388fa1026ca72076fb560",
+      "recomputed_from": "本地仓库 checkout 到 7b3b4d7546a66332444594fca824c3ad9a67e2a6，用 buildSourceOffer({projectRoot: <repo>}) 重算",
+      "match": true
+    },
+    "file_count": { "on_page": 272, "recomputed": 272, "match": true },
+    "source_url": "https://github.com/LinzeColin/MetaDatabase",
+    "license": "AGPL-3.0-or-later"
+  },
+
+  "defect_found_while_verifying": {
+    "id": "F14",
+    "severity": "medium",
+    "title": "扫不到源文件时静默发布一个空摘要，而不是报错",
+    "how_found": "第一次核对时把 projectRoot 传成了 app/ 而不是仓库根——SOURCE_ROOTS 是 \"app/src\" 这样的相对路径，于是一个文件都没扫到。",
+    "symptom": "digest 变成 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855（空字符串的 sha256），file_count 变成 0，而页面照常渲染、照常权威。",
+    "why_it_matters": "AGPL §13 要的是「你正在跑的这份源码」的凭据。一个盖住空集合的摘要在法律上什么都没证明，而它长得和真摘要一模一样。目录结构一旦被挪动，这一页会继续每天对全世界公布一个空摘要，没有任何症状。",
+    "fix": "entries.length === 0 时抛 SOURCE_MANIFEST_EMPTY，不再返回摘要。",
+    "sentinel": [
+      "空目录调用必须抛 SOURCE_MANIFEST_EMPTY",
+      "结构性的一条：直接盯住空字符串的 sha256 这个常量，任何一份 offer 里出现它就是红的"
+    ]
+  },
+
+  "rollback": "改动只在 app/src/services/release/source-offer.js 加了一条空集合守卫和一个错误类。回滚后行为退回「扫不到就发空摘要」。"
+}

@@ -306,3 +306,77 @@ test("每一个 app.js 注入给 portal 的字段都真的被接住了", () => {
   assert.deepEqual(dropped, [],
     `这几个字段注入了但没被接住，线上会静默失效：${dropped.join(", ")}`);
 });
+
+// ── 空集合不许当成一份摘要 ───────────────────────────────
+
+test("AC-029 一个源文件都没扫到时，不发摘要而是报错", (t) => {
+  // 空集合算出来的是 e3b0c44298fc1c14…b855——空字符串的 sha256。它长得和一个
+  // 正常摘要一模一样，页面照样渲染、照样权威，而它在法律上什么都没证明。
+  //
+  // 这不是假想：projectRoot 传成 app/ 而不是仓库根就正好落进这一格
+  // （SOURCE_ROOTS 是 "app/src" 这样的相对路径）。2026-08-02 核对 AC-029 时
+  // 第一次就踩中了，而症状只是文件数从 272 悄悄变成 0。
+  const empty = fs.mkdtempSync(path.join(require("node:os").tmpdir(), "cb-src-empty-"));
+  t.after(() => fs.rmSync(empty, { recursive: true, force: true }));
+  assert.throws(
+    () => buildSourceOffer({ projectRoot: empty }),
+    (error) => error.code === "SOURCE_MANIFEST_EMPTY",
+    "空集合被当成了一份合法摘要",
+  );
+});
+
+test("AC-029 空字符串的 sha256 绝不能出现在任何一份 offer 里", () => {
+  // 结构性的：上一条靠「目录是空的」触发。这一条直接盯住那个常量本身——
+  // 无论以后怎么改，只要有人算出了它，就说明摘要盖的是一个空集合。
+  const EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  const offer = buildSourceOffer({
+    projectRoot: path.resolve(__dirname, "..", ".."),
+    releaseId: "test-release",
+  });
+  assert.notEqual(offer.manifest_digest, EMPTY_SHA256, "摘要盖的是一个空集合");
+  assert.ok(offer.file_count > 0, "文件数是 0，摘要没有覆盖任何东西");
+});
+
+// ── HEAD 不能把好页面报成 404 ─────────────────────────────
+
+test("AC-035 探活用的 HEAD 不能把活着的页面报成 404", async (t) => {
+  // 2026-08-02 在真站上量出来：**每一个**公开路径 HEAD 都回 404，包括 /healthz。
+  // 而探活监控普遍默认用 HEAD——它会一直报「站挂了」，而站是好的。
+  //
+  // 这正是这套系统最不该犯的那种错：面板指着一个不存在的故障。指多了，
+  // 真出事那天就没人当回事了。
+  // 用这个文件里现成的那个真服务 helper，不自己再拼一个——参数拼错了会
+  // 让这条测试因为构造失败而红，看起来像 HEAD 有问题，实际不是。
+  const port = await server(t, { releaseIdProvider: () => "headtest" });
+  const base = `http://127.0.0.1:${port}`;
+
+  const call = (method, pathname) => new Promise((resolve, reject) => {
+    const req = http.request(`${base}${pathname}`, { method }, (res) => {
+      res.resume();
+      res.on("end", () => resolve({ status: res.statusCode, type: res.headers["content-type"] || "" }));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+
+  for (const pathname of ["/", "/join", "/source", "/healthz"]) {
+    const get = await call("GET", pathname);
+    const head = await call("HEAD", pathname);
+    assert.equal(head.status, get.status,
+      `HEAD ${pathname} 回 ${head.status}，GET 回 ${get.status}——探活监控会误报`);
+    assert.equal(head.type.split(";")[0], get.type.split(";")[0],
+      `HEAD ${pathname} 的 content-type 和 GET 不一样`);
+  }
+});
+
+test("AC-035 会产生副作用的接口不许被 HEAD 触发", async (t) => {
+  // /api/join 的 GET 会**发一张新票**。让 HEAD 也能发，等于多了一条不留正文
+  // 痕迹的方式去消耗票池。监控探的是页面，不是发票接口。
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "src", "services", "portal", "portal-server.js"), "utf8");
+  const start = source.indexOf("const HEAD_READABLE_PATHS");
+  assert.ok(start > 0, "找不到 HEAD 白名单");
+  const list = source.slice(start, source.indexOf("]);", start));
+  assert.ok(!list.includes("/api/"), "把接口放进 HEAD 白名单了");
+  assert.ok(list.includes("/healthz"), "探活路径不在 HEAD 白名单里");
+});

@@ -68,6 +68,13 @@ const SOURCE_PATHS = Object.freeze(["/source", "/source/"]);
 const PROJECT_ROOT = require("node:path").join(__dirname, "../../../..");
 
 const ME_PATHS = Object.freeze(["/me", "/me/"]);
+
+// HEAD 会被当成 GET 的那些路径：**只有页面，没有会产生副作用的接口**。
+// /api/join 故意不在里面——它的 GET 会发一张新票。
+const HEAD_READABLE_PATHS = Object.freeze([
+  "/", "/index.html", "/join", "/join/", "/source", "/source/",
+  "/admin", "/admin/", "/me", "/me/", "/healthz",
+]);
 const ME_TEMPLATE = require("node:path").join(__dirname, "../../../templates/me.html");
 // 读 body 的硬上限。SetupPortal 自己还会再判一次 16 KiB；这里的作用是让一个
 // 无限长的请求在耗尽内存之前就被切断。
@@ -799,7 +806,23 @@ class PortalHttpServer {
     // 一个请求对应一个 response 对象，所以并发下不会串。
     response[EGRESS_SURFACE] = pathname;
 
-    if (request.method === "GET" && ROOT_PATHS.includes(pathname)) {
+    // HEAD 当 GET 走——但只对纯读的那几条路径。
+    //
+    // 起因是 2026-08-02 在真站上量出来的：**每一个**公开路径 HEAD 都回 404，
+    // 包括 /healthz。而探活监控普遍默认用 HEAD，于是它会一直报「站挂了」，
+    // 而站是好的。这正是这套系统最不该犯的那种错——面板指着一个不存在的
+    // 故障，指多了，真出事那天就没人当回事了。
+    //
+    // 不无脑把所有 HEAD 都当 GET：/api/join 的 GET 会**发一张新票**。让 HEAD
+    // 也能发票，等于多了一条不留正文痕迹的方式去消耗票池。监控探的是页面，
+    // 不是发票接口，所以名单只列页面。
+    //
+    // 正文不用自己截断：Node 对 HEAD 请求的 response 不会发送 body。
+    const method = (request.method === "HEAD" && HEAD_READABLE_PATHS.includes(pathname))
+      ? "GET"
+      : request.method;
+
+    if (method === "GET" && ROOT_PATHS.includes(pathname)) {
       // 以前这里是 302 跳 /admin。陌生人打开这个域名，看到的是主人的后台登录页
       // ——对一个要卖出去的产品来说，那等于把大门开在员工通道上，而且他连
       // 「怎么开始用」的入口都找不到。
@@ -823,12 +846,12 @@ class PortalHttpServer {
     if (pathname.startsWith("/ops/api/wechat/")) {
       return this.#handleOwnerActivation(request, response, pathname.slice("/ops/api/wechat/".length), url);
     }
-    if (request.method === "GET" && ADMIN_PATHS.includes(pathname)) {
+    if (method === "GET" && ADMIN_PATHS.includes(pathname)) {
       this.#handleAdminPage(response);
       return null;
     }
     // 公开入口：无鉴权，这是刻意的。它只吐一张二维码和一句说明。
-    if (request.method === "GET" && JOIN_PATHS.includes(pathname)) {
+    if (method === "GET" && JOIN_PATHS.includes(pathname)) {
       const nonce = newNonce();
       const html = fs.readFileSync(JOIN_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
       response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/html; charset=utf-8" });
@@ -841,10 +864,10 @@ class PortalHttpServer {
     // 每个人自己那一页。页面免令牌（它本身不含任何人的数据），数据要会话。
     // 对应源码那一页。放在鉴权分支**之前**——AC-029 要「链接对未登录网络用户
     // 可见」，而 AGPL 第 13 条不接受「先登录再说」。
-    if (request.method === "GET" && SOURCE_PATHS.includes(pathname)) {
+    if (method === "GET" && SOURCE_PATHS.includes(pathname)) {
       return this.#handleSourceOffer(response);
     }
-    if (request.method === "GET" && ME_PATHS.includes(pathname)) {
+    if (method === "GET" && ME_PATHS.includes(pathname)) {
       const nonce = newNonce();
       const html = fs.readFileSync(ME_TEMPLATE, "utf8").replaceAll("__CSP_NONCE__", nonce);
       response.writeHead(200, {
@@ -909,7 +932,7 @@ class PortalHttpServer {
       return this.#handleApi(request, response, decodeURIComponent(pathname.slice(API_PREFIX.length)));
     }
     // 健康检查故意不透露任何状态，只证明进程还活着。
-    if (request.method === "GET" && pathname === "/healthz") {
+    if (method === "GET" && pathname === "/healthz") {
       response.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": "text/plain" });
       response.end("ok");
       return null;
