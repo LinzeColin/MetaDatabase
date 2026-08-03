@@ -7,7 +7,7 @@ Against `10_ACCEPTANCE/RELEASE_CHECKLIST.md`. **Overall: not releasable.** Six i
 | 1 | Version 与 Tag 一致 | **BLOCKED** | `VERSION`, both manifests and all `machine/*.json` now read `0.0.0.6`, and the five contracts that still stamped `v0.0.0.5` were corrected. No tag exists, because tagging is deliberately deferred until the pack completes. |
 | 2 | main 是唯一活动长期分支 | **NOT MET** | `origin` carries at least eight long-lived branches (`codex/*`, `claude/*`). None are mine except `claude/social-archive-v0-0-0-6-eaad48`, which is local only. Cleaning other sessions' branches is theirs to do. |
 | 3 | 无 Open PR | **PASS** | `gh pr list --state open` returns 0. |
-| 4 | 实现目录无旧名称 | **PASS** | `xhs-douyin-2notion/` is absent; `scripts/check_brand.py` reports PASS with no hits. |
+| 4 | 实现目录无旧名称 | **PASS** | The retired legacy project directory named in `CANONICAL_STATE.legacy_area_for_stage0_only` is absent from the repository root; `scripts/check_brand.py` reports PASS with no hits. |
 | 5 | 来源 Commit 和镜像 Digest 全部锁定 | **PASS** | Production images pinned: `social-archive/core:0.0.0.6` `sha256:1deb565c93c4a726c3ee2ccb0ecf6bde68f48b36ea1df19f56e411259cc910f7`, `social-archive/cli-tools:0.0.0.6` `sha256:cb09c71f7974c3bf52be1d25ea2f0789b6d301d1e8379daaa83c187dabd92640`. |
 | 6 | 未知许可证组件未启用 | **PASS** | `machine/third_party_lock.json` holds one reference-only entry, explicitly `default_enabled: false` with no code reuse. No GPL/AGPL enters the first-party core. |
 | 7 | 无付费依赖 | **PASS** | Production `/health` reports `paid_api_allowed: false`. |
