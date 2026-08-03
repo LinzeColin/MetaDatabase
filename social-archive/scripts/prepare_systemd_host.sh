@@ -42,6 +42,9 @@ HOST_SECRET_NAMES=(
   github_token
   private_database_token
   social_archive_api_token
+  google_oauth_client_secret
+  github_oauth_client_secret
+  credential_age_identity
   cli_worker_token
   notion_token
   obsidian_rest_token

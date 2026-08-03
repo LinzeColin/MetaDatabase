@@ -120,6 +120,12 @@ def test_systemd_host_prepare_dry_run_is_zero_write(tmp_path):
         "github_token",
         "private_database_token",
         "social_archive_api_token",
+        # v0.0.0.7：登录与凭据托管的三个 secret。这份夹具清单必须跟着
+        # prepare_systemd_host.sh 的必需列表走，否则 dry-run 会报「缺少宿主机 Secret」
+        # ——看起来像脚本坏了，其实是夹具漏建（本仓已经犯过同样的错）。
+        "google_oauth_client_secret",
+        "github_oauth_client_secret",
+        "credential_age_identity",
         "cli_worker_token",
         "notion_token",
         "obsidian_rest_token",
@@ -243,6 +249,12 @@ def test_systemd_host_prepare_refuses_to_erase_existing_nonsecret_host_configura
         "github_token",
         "private_database_token",
         "social_archive_api_token",
+        # v0.0.0.7：登录与凭据托管的三个 secret。这份夹具清单必须跟着
+        # prepare_systemd_host.sh 的必需列表走，否则 dry-run 会报「缺少宿主机 Secret」
+        # ——看起来像脚本坏了，其实是夹具漏建（本仓已经犯过同样的错）。
+        "google_oauth_client_secret",
+        "github_oauth_client_secret",
+        "credential_age_identity",
         "cli_worker_token",
         "notion_token",
         "obsidian_rest_token",

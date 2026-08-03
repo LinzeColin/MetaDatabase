@@ -60,8 +60,11 @@ app = FastAPI(title="Social Archive", version=__version__, docs_url="/api/docs",
 app.include_router(auth.build_router(settings, store))
 
 # 有界 Cookie 托管（v0.0.0.7 / T05）。
+# 凭据用独立密钥对，**不回退到备份那对**——回退会让「备份通道只有公钥」
+# 这条性质在没人察觉的情况下失效。没配就是没配，写入时明确 503。
 credential_vault = CredentialVault(
-    recipient=settings.age_recipient, identity_file=settings.age_identity_file
+    recipient=settings.credential_age_recipient,
+    identity_file=settings.credential_age_identity_file,
 )
 credential_store = CredentialStore(store, credential_vault)
 

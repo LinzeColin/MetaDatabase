@@ -5,15 +5,12 @@
   "recorded_at": "2026-08-04T13:00Z",
   "status": "BLOCKED",
   "must_not_be_rewritten_as_pass": true,
-
   "note_this_is_the_second_block_not_the_first": {
     "first_block": "凭据缺失（evidence/T02/CREDENTIAL_BLOCKED_RECEIPT.json）——**已解除**，两个 OAuth 应用已建并接进生产，见 LOGIN_RECEIPTS.json",
     "this_block": "制品已就位但线上跑的还是旧镜像，真实登录无处可做"
   },
-
   "what_is_blocked": "Acceptance：Owner 在真实浏览器用 Google 与 GitHub 各登录成功一次；登出后受保护接口返回 401",
   "why": "生产运行的是 social-archive/core:0.0.0.6 镜像，里面没有 auth 路由。本分支的 auth.py 只存在于代码里，没有上线。真实登录必须等新镜像部署——那是 T18。",
-
   "measured_facts": {
     "artifact_closed": true,
     "tests": "31 条（tests/focused/test_auth_session.py），全过",
@@ -21,14 +18,35 @@
     "rollback_ready": ".env 有精确副本 /opt/social-archive/.env.pre-oauth-20260803T195929Z；两个 OAuth 应用可在各自后台删除",
     "acceptance_result": "NOT_RUN"
   },
-
   "why_this_cannot_be_unblocked_by_more_work_here": "这不是缺代码，是缺一次部署。DAG 把部署放在 T18，而 T02 在 S1——任务包自身的排序造成 T02 的验收晚于它的位置。不改任务包、不改验收标准，如实记为 BLOCKED。",
-
   "what_would_unblock_it": [
     "T18 部署新镜像后，在干净浏览器各登录一次",
     "把两行真实 oauth_identity subject 与一次 401 回执补进 evidence/T02/LOGIN_RECEIPTS.json"
   ],
-
   "owner_action_required": false,
-  "deployment_required": true
+  "deployment_required": true,
+  "release_blocker_found_and_fixed_before_deploy": {
+    "found_during": "系统性排查「硬编码清单会不会跟不上新增项」——租户审计、脱敏扫描面、回滚校验已经各栽过一次，这是第四处。",
+    "what_was_wrong": "T02 的 OAuth 与 T05 的凭据托管都读 /run/secrets 下的文件，.env 里也写了对应的 *_FILE 变量，**看起来配好了**；但 compose.yaml 的 core-api.secrets 一个都没加。",
+    "why_it_would_have_bitten_exactly_at_T18": "start.sh 每次都跑 docker compose up -d --force-recreate core-api。重建后容器里根本没有那些文件——登录 503、已托管 Cookie 解不开，而 .env 看着完全正常。上一轮那四个 secret 是用 ssh 手工放到宿主机的，宿主机上有、容器里没有。",
+    "fixed": {
+      "compose_yaml": "新增 google_oauth_client_secret / github_oauth_client_secret / credential_age_identity 三个 secret 定义，并挂进 core-api",
+      "env_example": "写明三个 *_FILE 路径，并注明 client_id 可留 .env、secret 只走文件",
+      "prepare_systemd_host": "三个文件加入必需 secret 列表，走同一套属主与权限"
+    },
+    "a_design_flaw_fixed_at_the_same_time": {
+      "what": "T05 的 CredentialVault 原本复用**备份用的** age 私钥（settings.age_identity_file）。",
+      "why_that_was_wrong": "encryption.py 明写备份私钥「仅在明确的恢复演练时读取」，因此它留在宿主机、不进容器。而凭据解密要求私钥常驻在一个 24 小时联网的 Core 里。用同一把，等于 Core 一旦被攻破，攻击者拿到的不只是当前凭据，而是**全部历史备份**。",
+      "my_own_comment_had_said_so": "T05 里我写过「刻意不复用 AgeEncryptor…混在一起会让『备份通道只有公钥』这条性质悄悄失效」——分了类，却仍共用同一个 identity 设置。分了一半。",
+      "now": "独立的 credential_age_recipient / credential_age_identity_file；**不回退**到备份那对（没配就是 503，不静默降级）。compose 只挂凭据那把，备份私钥仍不进容器。"
+    },
+    "guards": {
+      "file": "tests/focused/test_secret_provisioning_covers_what_the_app_reads.py（5 条）",
+      "what": "代码里每一个 *_FILE 设置都必须在 compose 的 core-api secrets 里有对应项，或在 EXEMPT 里写明豁免理由；另有判据禁止备份私钥被挂进 Core、禁止凭据金库回退到备份密钥。",
+      "positive_control": "把 google 那条从 compose 拿掉，判据立刻变红；放回即绿。",
+      "my_matcher_was_wrong_first": "第一版按子串比对，把 google_client_secret↔google_oauth_client_secret、karakeep_token↔karakeep_api_token 判成缺失（中间多了一个词）。改成按词包含。**本会话第五次「检查器错、产品对」。**"
+    },
+    "still_blocked": "本项修的是「部署时会缺东西」，不解除 T02 的阻塞——真实登录仍要等新镜像上线（T18）。但现在上线时不会再撞上这个 503。",
+    "owner_action_added": "T18 部署前，宿主机 runtime/secrets/ 下需要新增一个 credential_age_identity（age-keygen 生成的独立密钥对），并把公钥填进 SOCIAL_ARCHIVE_CREDENTIAL_AGE_RECIPIENT。两个 OAuth secret 上一轮已就位。"
+  }
 }

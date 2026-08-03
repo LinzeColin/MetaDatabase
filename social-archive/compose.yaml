@@ -18,6 +18,14 @@ services:
     secrets: &core_secrets
       - social_archive_api_token
       - cli_worker_token
+      # 登录与凭据托管（v0.0.0.7）。**不挂这三个，Core 起来就是残的**：
+      # OAuth 登录返回 503、已托管的平台 Cookie 解不开——而 .env 里那几个
+      # *_FILE 变量指向的正是这些路径，看起来像"配好了"。
+      # 注意这里**没有**挂备份用的 age 私钥：那把仅在恢复演练时读取，
+      # 不进这个 24 小时联网的容器（见 config.py 里 credential_age_* 的说明）。
+      - google_oauth_client_secret
+      - github_oauth_client_secret
+      - credential_age_identity
       - notion_token
       - source: github_markdown_token
         target: github_token
@@ -101,6 +109,9 @@ secrets:
   github_token: {file: ./runtime/secrets/github_token}
   github_markdown_token: {file: ./runtime/secrets/github_markdown_token}
   social_archive_api_token: {file: ./runtime/secrets/social_archive_api_token}
+  google_oauth_client_secret: {file: ./runtime/secrets/google_oauth_client_secret}
+  github_oauth_client_secret: {file: ./runtime/secrets/github_oauth_client_secret}
+  credential_age_identity: {file: ./runtime/secrets/credential_age_identity}
   cli_worker_token: {file: ./runtime/secrets/cli_worker_token}
   instagram_session: {file: ./runtime/secrets/instagram_session}
   notion_token: {file: ./runtime/secrets/notion_token}

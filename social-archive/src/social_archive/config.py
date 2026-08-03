@@ -73,6 +73,20 @@ class Settings:
     github_markdown_branch: str = "main"
     age_recipient: str | None = None
     age_identity_file: str | None = None
+    # 凭据用的是**另一对**密钥，不复用上面那对（v0.0.0.7 / T05+T06）。
+    #
+    # 上面那对是三副本备份通道的：日常只需要公钥加密，私钥「仅在明确的恢复演练
+    # 时读取」（encryption.py 的原话），因此它留在宿主机、不进容器。
+    #
+    # 而托管的平台 Cookie 必须能被 Core 解回来喂给 gallery-dl，也就是说
+    # 那把私钥得进容器、且常驻在一个 24 小时联网的进程里。
+    # 把备份私钥拿去干这件事，等于把「备份通道只有公钥」这条性质悄悄作废——
+    # 一旦 Core 被攻破，攻击者拿到的就不只是当前凭据，而是**全部历史备份**。
+    #
+    # 所以分成两对。T05 当时把 CredentialVault 与 AgeEncryptor 分了类，
+    # 却仍然共用同一个 identity 设置——那是分了一半，本次补齐。
+    credential_age_recipient: str | None = None
+    credential_age_identity_file: str | None = None
     karakeep_url: str | None = None
     karakeep_token_file: str | None = None
     linkwarden_url: str | None = None
@@ -140,6 +154,8 @@ class Settings:
             github_markdown_branch=os.getenv("SOCIAL_ARCHIVE_GITHUB_MARKDOWN_BRANCH", "main"),
             age_recipient=os.getenv("SOCIAL_ARCHIVE_AGE_RECIPIENT") or None,
             age_identity_file=os.getenv("SOCIAL_ARCHIVE_AGE_IDENTITY_FILE") or None,
+            credential_age_recipient=os.getenv("SOCIAL_ARCHIVE_CREDENTIAL_AGE_RECIPIENT") or None,
+            credential_age_identity_file=os.getenv("SOCIAL_ARCHIVE_CREDENTIAL_AGE_IDENTITY_FILE") or None,
             karakeep_url=(os.getenv("SOCIAL_ARCHIVE_KARAKEEP_URL") or "").rstrip("/") or None,
             karakeep_token_file=os.getenv("SOCIAL_ARCHIVE_KARAKEEP_TOKEN_FILE") or None,
             linkwarden_url=(os.getenv("SOCIAL_ARCHIVE_LINKWARDEN_URL") or "").rstrip("/") or None,
