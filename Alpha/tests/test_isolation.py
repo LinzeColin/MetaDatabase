@@ -39,7 +39,10 @@ def test_frozen_start_capital_isolates_equity_from_owner_cash(tmp_path):
                        real_power_usd=9999.0, fx_aud_usd=0.65)
     # 系统无成交 → 交易盈亏为 0 → 净值恰为期初本金 3000 澳元,绝不含 owner 的 9999
     assert abs(o["hero"]["equity_aud"] - 3000.0) < 0.01
-    assert abs(o["hero"]["total_pnl_aud"]) < 0.01
+    # 注意:累计盈亏 = 净值 − 本月应达(滚动复利要求线),会随月份增长,**不可写死为 0**
+    # (2026-08-03 踩过:8 月要求线 3037.35,未交易的 3000 就是落后 37.35,属正确行为)
+    assert abs(o["hero"]["total_pnl_aud"]
+               - (o["hero"]["equity_aud"] - o["hero"]["month_target_aud"])) < 0.01
     assert abs(o["hero"]["cash_usd"] - 1587.09) < 0.01, "策略现金 = 冻结本金 + 自己的现金流"
 
 
@@ -50,6 +53,7 @@ def test_never_counts_owner_money_as_strategy_return(tmp_path):
     而策略一次交易都没做过。策略净值必须只由策略自己的账算出。
     """
     ks = KillSwitch(tmp_path / "KS2")
+    seen: list[tuple[float, float]] = []
     for account_cash in (1587.09, 2744.57, 9999.0):     # owner 反复动自己的钱
         o = build_overview(session_factory=None, heartbeats=None, kill_switch=ks,
                            runtime_dir=tmp_path / "empty", reports_dir=tmp_path / "nore",
@@ -57,7 +61,9 @@ def test_never_counts_owner_money_as_strategy_return(tmp_path):
         h = o["hero"]
         # 策略没交易过 → 净值恰为期初本金 3000 澳元,盈亏 0
         assert abs(h["equity_aud"] - 3000.0) < 0.01, f"账户现金 {account_cash} 污染了策略净值"
-        assert abs(h["total_pnl_aud"]) < 0.01, "策略没交易过却报出了盈亏"
         assert h["traded_yet"] is False
+        # 核心不变量:owner 账户现金无论怎么变,策略净值与盈亏都必须**完全一致**
+        seen.append((round(h["equity_aud"], 2), round(h["total_pnl_aud"], 2)))
+        assert len(set(seen)) == 1, f"owner 动钱改变了策略数字:{seen}"
         # 你的账户余额仍可见,但只作"资金是否到位"提示
         assert abs(h["account_cash_usd"] - account_cash) < 0.01
